@@ -389,7 +389,7 @@ class DynamicChild(DynamicBlock):
     """
 
     dynamicParent = schema.One(initialValue = None)
-    title = schema.One(schema.Text, initialValue = u'')
+    title = schema.One(schema.Text)
     operation = schema.One(operationEnumType, defaultValue = 'None')
     location = schema.One(schema.Text)
     itemLocation = schema.One(schema.Text, initialValue = u'')
@@ -980,7 +980,7 @@ class wxTextCtrl(wx.TextCtrl):
         super (wxTextCtrl, self).onDestroy(event)
 
 class toolbarItemKindEnumType(schema.Enumeration):
-    values = "Button", "Separator", "Radio", "Search"
+    values = "Button", "Separator", "Radio", "QuickEntry"
 
 class ToolbarItem(Block.Block, DynamicChild):
     """
@@ -1001,6 +1001,9 @@ class ToolbarItem(Block.Block, DynamicChild):
     event = schema.One(Block.BlockEvent)
     toolbarItemKind = schema.One(toolbarItemKindEnumType)
 
+    text = schema.One(schema.Text) # optional text for the toolbar item, e.g. QuickEntry text
+    size = schema.One(SizeType) # optional size used in QuickEntry
+
     schema.addClouds(
         copying = schema.Cloud(byRef=[prototype], byCloud=[event])
     )
@@ -1015,7 +1018,7 @@ class ToolbarItem(Block.Block, DynamicChild):
 
     def instantiateWidget (self):
         def getBitmaps (self):
-            bitmap = theApp.GetImage (self.bitmap)
+            bitmap = wx.GetApp().GetImage (self.bitmap)
             disabledBitmap = getattr (self, 'disabledBitmap', wx.NullBitmap)
             if disabledBitmap is not wx.NullBitmap:
                 disabledBitmap = app.GetImage (disabledBitmap)
@@ -1032,13 +1035,11 @@ class ToolbarItem(Block.Block, DynamicChild):
             # for this reason I'm putting the longhelp into shorthelp too.
             shortHelp = self.helpString
             longHelp = self.helpString
-            theApp = wx.GetApp()
     
             # First consider toolBarItems that don't have tools
             if self.toolbarItemKind == 'Separator':
                 theToolbar.AddSeparator()
             else:
-                toolWidgetMixin = 'osaf.framework.blocks.MenusAndToolbars.wxToolbarItemMixin'
                 # Next consider toolBarItems that aren't controls
                 if (self.toolbarItemKind == 'Button' or
                     self.toolbarItemKind == 'Radio'):
@@ -1056,35 +1057,43 @@ class ToolbarItem(Block.Block, DynamicChild):
                                                 bitmap,
                                                 disabledBitmap,
                                                 kind = theKind,
-                                                shortHelp=shortHelp,
-                                                longHelp=longHelp)
-                    # add toolbarMixin, so
-                    # it has the extra methods needed for Bind.
-                    mixinAClass (tool, toolWidgetMixin)
+                                                shortHelp = shortHelp,
+                                                longHelp = longHelp)
+                    # add toolbarMixin, so it has the extra methods needed for Bind.
+                    mixinAClass (tool, 'osaf.framework.blocks.MenusAndToolbars.wxToolbarItemMixin')
                     theToolbar.SetToolLongHelp(id, longHelp)
                     theToolbar.Bind (wx.EVT_TOOL, tool.OnToolEvent, id=id)
                 else:
                     # Finally consider toolBarItems that are controls
-                    if self.toolbarItemKind == 'Search':
-                        # unlike most other Toolbar items, a 'search' item actually creates a
-                        # real wx control
-                        tool = wx.SearchCtrl (theToolbar,
-                                              id,
-                                              "",
-                                              wx.DefaultPosition,
-                                              size=(200,-1),
-                                              style=wx.TE_PROCESS_ENTER)
-                        # show (x) cancel button
-                        tool.ShowCancelButton(1)
-                        # don't show search magnification icon
-                        tool.ShowSearchButton(0)
-                        # called when user clicks on (x) in search tool
-                        def ClearSearch(evt):
-                            tool.SetValue("")
-                        tool.Bind(wx.EVT_SEARCHCTRL_CANCEL_BTN, ClearSearch)
-                        tool.Bind(wx.EVT_TEXT_ENTER, theApp.OnCommand, id=id)
-                        mixinAClass (tool, toolWidgetMixin)
+                    if self.toolbarItemKind == 'QuickEntry':
+                        tool = wxQuickEntry (theToolbar,
+                                             id,
+                                             "",
+                                             wx.DefaultPosition,
+                                             size = (self.size.width, self.size.height),
+                                             style = wx.TE_PROCESS_ENTER)
                         theToolbar.AddControl (tool)
                     assert tool is not None, "unknown toolbarItemKind"
-        
         return tool
+
+class wxQuickEntry (wxToolbarItemMixin, wx.SearchCtrl):
+    """
+    The order of superclasses is important. If it's wx.SearchCtrl, wxToolbarItemMixin
+    Mac crashes in the destructor of the toolbar when it calls Realize
+    """
+    def __init__(self, parent, id, title, position, **keywords):
+        super (wxQuickEntry, self).__init__ (parent, id, title, position, **keywords)
+        self.ShowCancelButton (True)
+        self.ShowSearchButton (False)
+        self.Bind(wx.EVT_SEARCHCTRL_CANCEL_BTN, self.OnCancelButton)
+        self.Bind(wx.EVT_TEXT_ENTER, wx.GetApp().OnCommand, id=id)
+
+    def OnCancelButton (self, event):
+        self.SetValue (u"")
+        block = self.blockItem
+        block.post (block.event, {}, sender = block)
+
+    def wxSynchronizeWidget(self, useHints=False):
+        super (wxQuickEntry, self).wxSynchronizeWidget()
+        self.SetValue (self.blockItem.text)
+

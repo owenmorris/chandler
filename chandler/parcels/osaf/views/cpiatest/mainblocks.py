@@ -141,11 +141,12 @@ def makeCPIATestMainView (parcel):
                 helpString = _(u'Send the selected Item')),
             ToolbarItem.template('ApplicationSeparator3',
                 toolbarItemKind = 'Separator'),
-            ToolbarItem.template('ApplicationBarSearchField',
-                event = main.Search,
-                title = u'',
-                toolbarItemKind = 'Search',
-                helpString = _(u'Search field - enter text to find'))
+            ToolbarItem.template('ApplicationBarQuickEntry',
+                event = main.QuickEntry,
+                text = u"/", # text value displayed in the control
+                toolbarItemKind = 'QuickEntry',
+                size = SizeType (200,-1),
+                helpString = _(u'Quick entry field: enter search string, or command beginning with "/"')),
         ]
     ) # Toolbar ApplicationBar
 

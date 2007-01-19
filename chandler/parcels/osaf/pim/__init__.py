@@ -317,6 +317,10 @@ def installParcel(parcel, oldVersion=None):
         kind=UserNotification.getKind(view),
         recursive=True).addIndex('timestamp', 'value', attribute='timestamp')
 
+    searchResults = ListCollection.update(
+        parcel, 'searchResults',
+        displayName=_(u"Search Results"))
+
     tzInstallParcel(parcel)
 
 

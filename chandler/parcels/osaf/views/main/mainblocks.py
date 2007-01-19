@@ -177,20 +177,21 @@ def makeMainView(parcel):
                 helpString = _(u'Send selected message')),
             ToolbarItem.template('ApplicationSeparator4',
                 toolbarItemKind = 'Separator'),
-            ToolbarItem.template('ApplicationBarSearchField',
-                event = main.Search,
-                title = u'', # text here will be the default, non-grey, editable text
-                toolbarItemKind = 'Search',
-                helpString = _(u'Command field - enter command, or /search to search')),
+            ToolbarItem.template('ApplicationBarQuickEntry',
+                event = main.QuickEntry,
+                text = u"", # text value displayed in the control
+                toolbarItemKind = 'QuickEntry',
+                size = SizeType (200,-1),
+                helpString = _(u'Quick entry field: enter search string, or command beginning with "/"')),
         ]
     ) # Toolbar ApplicationBar
 
     MainViewInstance = MainView.template(
         'MainView',
-        size=SizeType(1024, 720),
+        size = SizeType (1024, 720),
         orientationEnum='Vertical',
-        eventBoundary=True,
-        displayName=_(u'Chandler\'s MainView'),
+        eventBoundary = True,
+        displayName = _(u'Chandler\'s MainView'),
         eventsForNamedLookup=[
             main.RequestSelectSidebarItem,
             main.SendMail,

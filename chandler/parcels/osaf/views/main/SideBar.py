@@ -850,7 +850,9 @@ class SSSidebarSharingButton (SSSidebarButton):
 
 
 class SidebarBlock(Table):
-    filterClass = schema.One(schema.Class, initialValue = MissingClass)
+    filterClass = schema.One(schema.Class, defaultValue = MissingClass)
+
+    showSearch = schema.One(schema.Boolean, defaultValue = False)
 
     disallowOverlaysForFilterClasses = schema.Sequence(
         schema.Class, initialValue = [],
@@ -887,6 +889,11 @@ class SidebarBlock(Table):
 
     def onClassParameterizedEvent(self, event):
         self.setPreferredClass(event.classParameter)
+
+    def setShowSearch(self, showSearch):
+        self.showSearch = showSearch
+        self.postEventByName("SelectItemsBroadcast",
+                             {'items':list(self.contents.iterSelection())})
 
     def setPreferredClass(self, filterClass):
         if self.filterClass != filterClass:
@@ -1169,154 +1176,164 @@ class SidebarBranchPointDelegate(BranchPoint.BranchPointDelegate):
         return self._copyItem(keyItem, onlyIfReadOnly=True)
 
     def _mapItemToCacheKeyItem(self, item, hints):
-        assert item is None or isinstance (item, ContentCollection) # The sidebar can only contain ContentCollections
-        key = item
+
+        def wrapInIndexedSelectionCollection (key):
+            # Finally, create a UI wrapper collection to manage
+            # things like selection and sorting
+            newKey = IndexedSelectionCollection(itsView=self.itsView, source=key)
+            if len (newKey) > 0:
+                newKey.addSelectionRange (0)
+            UserCollection(newKey).dontDisplayAsCalendar = UserCollection(key).dontDisplayAsCalendar
+            return newKey
+
         sidebar = Block.Block.findBlockByName ("Sidebar")
-        """
-        collectionList should be in the order that the source items
-        are overlayed in the Calendar view
+        if sidebar.showSearch:
+            key = self.itemTupleKeyToCacheKey.get("Search", None)
+            if key is None:
+                key = wrapInIndexedSelectionCollection (schema.ns('osaf.pim', self.itsView).searchResults)
+                key.displayName = u"Search Results"
+                key.collectionList = []
+                self.itemTupleKeyToCacheKey ["Search"] = key
 
-        'item' in this case is more or less only used to determine
-        order. We're not so much mapping item => cacheKeyItem, but
-        rather mapping the sidebar's current state to a cacheKeyItem.
-        """
-        collectionList = []
-        if not hints.get ("getOnlySelectedCollection", False):
-            # make sure 'item' is at the front of the list so that
-            # consumers know what the 'primary' collection is.
-            if item is not None:
-                collectionList.append (item)
-            # When item is none we have multiple selections
-            if (item is None or
-                (sidebar.filterClass not in sidebar.disallowOverlaysForFilterClasses and
-                (not UserCollection (item).outOfTheBoxCollection))):
-                for theItem in sidebar.contents:
-                    if ((theItem in sidebar.checkedItems or sidebar.contents.isItemSelected (theItem)) and
-                         theItem not in collectionList):
-                        collectionList.append (theItem)
-
-        if len (collectionList) > 0:
+        else:
+            assert item is None or isinstance (item, ContentCollection) # The sidebar can only contain ContentCollections
+            key = item
             """
-            tupleList is sorted so we always end up with on collection
-            for any order of collections in the source
+            collectionList should be in the order that the source items
+            are overlayed in the Calendar view
+    
+            'item' in this case is more or less only used to determine
+            order. We're not so much mapping item => cacheKeyItem, but
+            rather mapping the sidebar's current state to a cacheKeyItem.
             """
-            tupleList = [theItem.itsUUID for theItem in collectionList]
-            tupleList.sort()
-
-            filterClass = sidebar.filterClass
-            if filterClass is not MissingClass:
-                tupleList.append(filterClass)
-
-            tupleKey = tuple(tupleList)
-
-            # Bug 5884: in order to overlay the allCollection remove
-            # all 'mine' collections already included in collectionList.
-            # Their inclusion in collectionList would be duplicated by
-            # the inclusion of the allCollection and would invalidate
-            # the resulting union.
-            if len(collectionList) > 1:
-                pim_ns = schema.ns('osaf.pim', self.itsView)
-                if pim_ns.allCollection in collectionList:
-                    mineCollections = pim_ns.mine.sources
-                    collectionList = [c for c in collectionList
-                                      if c not in mineCollections]
-
-            key = self.itemTupleKeyToCacheKey.get(tupleKey, None)
-            if key is not None and isDead(key): # item was deleted (bug 7338)
-                del self.itemTupleKeyToCacheKey[tupleKey]
-                key = None
-
-            if (key is not None and
-                len ([c for c in collectionList if c.itsUUID not in key.collectionList]) != 0):
-                # See bug #6793: If a subscribed collection has been deleted, then resubscribed
-                # our cached key will be stale because the subscribed collection will have
-                # been removed but not added when resubscribed. In this case, the removed
-                # collection will not be in the key's collectionList, so we need to
-                # delete our key
-                del self.itemTupleKeyToCacheKey [tupleKey]
-                del key
-                key = None
-            if (key is None):
-                # we don't have a cached version of this key, so we'll
-                # create a new one
-
-
-                if len(collectionList) == 1:
-                    key = collectionList[0]
-                else:
-                    # eventually it would be nice to just make a
-                    # Union here, but we need to make sure each
-                    # withoutTrash gets called
-                    combined = UnionCollection(itsView=self.itsView,
-                                               sources=collectionList)
-
-                    # unioning Smart/AppCollections makes them
-                    # lose their trash (which is good) so add it
-                    # back by wrapping with an AppCollection
-                    # (AppCollections are more transitory than
-                    # SmartCollections)
-                    key = AppCollection(itsView=self.itsView,
-                                        source=combined)
-
-                # create an INTERNAL name for this collection, just
-                # for debugging purposes
-                displayName = u" and ".join ([theItem.displayName for theItem in collectionList])
-
-                # Handle filtered collections by intersecting with
-                # the stamp collection
+            collectionList = []
+            if not hints.get ("getOnlySelectedCollection", False):
+                # make sure 'item' is at the front of the list so that
+                # consumers know what the 'primary' collection is.
+                if item is not None:
+                    collectionList.append (item)
+                # When item is none we have multiple selections
+                if (item is None or
+                    (sidebar.filterClass not in sidebar.disallowOverlaysForFilterClasses and
+                    (not UserCollection (item).outOfTheBoxCollection))):
+                    for theItem in sidebar.contents:
+                        if ((theItem in sidebar.checkedItems or sidebar.contents.isItemSelected (theItem)) and
+                             theItem not in collectionList):
+                            collectionList.append (theItem)
+    
+            if len (collectionList) > 0:
+                """
+                tupleList is sorted so we always end up with one collection
+                for any order of collections in the source
+                """
+                tupleList = [theItem.itsUUID for theItem in collectionList]
+                tupleList.sort()
+    
+                filterClass = sidebar.filterClass
                 if filterClass is not MissingClass:
-                    stampCollection = self.stampToCollectionCache.get(filterClass, None)
-                    if stampCollection is None:
-                        if filterClass is not MissingClass:
-                            stampCollection = filterClass.getCollection(self.itsView)
-                        else:
-                            stampCollection = schema.ns("osaf.pim", self.itsView).allCollection
-                        self.stampToCollectionCache[filterClass] = stampCollection
-                    newKey = IntersectionCollection(itsView=self.itsView,
-                                                    sources=[key, stampCollection])
-                    UserCollection(newKey).dontDisplayAsCalendar = UserCollection(key).dontDisplayAsCalendar
-                    displayName += u" filtered by " + filterClass.__name__
+                    tupleList.append(filterClass)
+    
+                tupleKey = tuple(tupleList)
+    
+                # Bug 5884: in order to overlay the allCollection remove
+                # all 'mine' collections already included in collectionList.
+                # Their inclusion in collectionList would be duplicated by
+                # the inclusion of the allCollection and would invalidate
+                # the resulting union.
+                if len(collectionList) > 1:
+                    pim_ns = schema.ns('osaf.pim', self.itsView)
+                    if pim_ns.allCollection in collectionList:
+                        mineCollections = pim_ns.mine.sources
+                        collectionList = [c for c in collectionList
+                                          if c not in mineCollections]
+    
+                key = self.itemTupleKeyToCacheKey.get(tupleKey, None)
+                if key is not None and isDead(key): # item was deleted (bug 7338)
+                    del self.itemTupleKeyToCacheKey[tupleKey]
+                    key = None
+    
+                if (key is not None and
+                    len ([c for c in collectionList if c.itsUUID not in key.collectionList]) != 0):
+                    # See bug #6793: If a subscribed collection has been deleted, then resubscribed
+                    # our cached key will be stale because the subscribed collection will have
+                    # been removed but not added when resubscribed. In this case, the removed
+                    # collection will not be in the key's collectionList, so we need to
+                    # delete our key
+                    del self.itemTupleKeyToCacheKey [tupleKey]
+                    del key
+                    key = None
+                if key is None:
+                    # we don't have a cached version of this key, so we'll
+                    # create a new one
+    
+    
+                    if len(collectionList) == 1:
+                        key = collectionList[0]
+                    else:
+                        # eventually it would be nice to just make a
+                        # Union here, but we need to make sure each
+                        # withoutTrash gets called
+                        combined = UnionCollection(itsView=self.itsView,
+                                                   sources=collectionList)
+    
+                        # unioning Smart/AppCollections makes them
+                        # lose their trash (which is good) so add it
+                        # back by wrapping with an AppCollection
+                        # (AppCollections are more transitory than
+                        # SmartCollections)
+                        key = AppCollection(itsView=self.itsView,
+                                            source=combined)
+    
+                    # create an INTERNAL name for this collection, just
+                    # for debugging purposes
+                    displayName = u" and ".join ([theItem.displayName for theItem in collectionList])
+    
+                    # Handle filtered collections by intersecting with
+                    # the stamp collection
+                    if filterClass is not MissingClass:
+                        stampCollection = self.stampToCollectionCache.get(filterClass, None)
+                        if stampCollection is None:
+                            if filterClass is not MissingClass:
+                                stampCollection = filterClass.getCollection(self.itsView)
+                            else:
+                                stampCollection = schema.ns("osaf.pim", self.itsView).allCollection
+                            self.stampToCollectionCache[filterClass] = stampCollection
+                        newKey = IntersectionCollection(itsView=self.itsView,
+                                                        sources=[key, stampCollection])
+                        UserCollection(newKey).dontDisplayAsCalendar = UserCollection(key).dontDisplayAsCalendar
+                        displayName += u" filtered by " + filterClass.__name__
+    
+                        key = newKey
 
-                    key = newKey
-
-                # Finally, create a UI wrapper collection to manage
-                # things like selection and sorting
-                newKey = IndexedSelectionCollection(itsView=self.itsView,
-                                                    source=key)
-                if len (newKey) > 0:
-                    newKey.addSelectionRange (0)
-                UserCollection(newKey).dontDisplayAsCalendar = \
-                    UserCollection(key).dontDisplayAsCalendar
-                key = newKey
-
-                key.displayName = displayName
-
-                key.collectionList = collectionList
-                self.itemTupleKeyToCacheKey [tupleKey] = key
-            else: # if key is None
-                """
-                We found the key, but we might still need to reorder
-                collectionList. The list is kept sorted by the order
-                of the collections as they overlay one another in the
-                Calendar.  We don't bother to reorder when we're
-                looking up a collection that isn't displayed in the
-                summary view.
-                """
-                if item in sidebar.contents.iterSelection():
-                    for new, old in zip(key.collectionList, collectionList):
-                        if new is not old:
-                            key.collectionList = collectionList
-                            # Force setContents to be true even if the
-                            # contents hasn't changed since the order
-                            # of collectionList has changed
-                            hints["sendSetContents"] = True
-                            break
+                    key = wrapInIndexedSelectionCollection (key)
+                    self.itemTupleKeyToCacheKey [tupleKey] = key
+                    key.displayName = displayName
+                    key.collectionList = collectionList
+                else: # if key is None
+                    """
+                    We found the key, but we might still need to reorder
+                    collectionList. The list is kept sorted by the order
+                    of the collections as they overlay one another in the
+                    Calendar.  We don't bother to reorder when we're
+                    looking up a collection that isn't displayed in the
+                    summary view.
+                    """
+                    if item in sidebar.contents.iterSelection():
+                        for new, old in zip(key.collectionList, collectionList):
+                            if new is not old:
+                                key.collectionList = collectionList
+                                # Force setContents to be true even if the
+                                # contents hasn't changed since the order
+                                # of collectionList has changed
+                                hints["sendSetContents"] = True
+                                break
         return key
 
     def _makeBranchForCacheKey(self, keyItem):
-        filterClass = Block.Block.findBlockByName("Sidebar").filterClass
+        sidebar = Block.Block.findBlockByName("Sidebar")
         if (not UserCollection(keyItem).dontDisplayAsCalendar and
-            filterClass is pim.EventStamp):
+            sidebar.filterClass is pim.EventStamp and
+            not sidebar.showSearch):
                 template = self.findPath (self.calendarTemplatePath)
                 keyUUID = template.itsUUID
                 branch = self.keyUUIDToBranch.get (keyUUID, None)

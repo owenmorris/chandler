@@ -29,7 +29,7 @@ from application.dialogs import ( AccountPreferences, PublishCollection,
 )
 
 from repository.item.Item import MissingClass
-from osaf import pim, sharing, messages, webserver, settings
+from osaf import pim, sharing, messages, webserver, settings, search
 
 from osaf.pim import Contact, ContentCollection, mail, Modification
 from osaf.usercollections import UserCollection
@@ -253,6 +253,214 @@ class MainView(View):
 
     def onPrintEvent (self, event):
         self.printEvent(0)
+
+    def onQuickEntryEvent (self, event):
+
+        def parseCommand(self, query):
+            """
+            Parses the text in the quick item entry widget in the toolbar. Creates the items 
+            depending on the command and adds it to the appropriate collection. Also parses the
+            date/time info and sets the start/end time or the reminder time.
+            """
+            
+            query = query.strip()
+            if query == '':
+                return False
+            msgFlag = False
+            eventFlag = False
+            taskFlag = False
+            
+            # Default kind
+            defaultKind = sidebar.filterClass
+            
+            # Search the text for "/" which indicates it is a quick item entry
+            cmd_re = re.compile(r'/(?P<kind>([A-z]+))')
+            
+            cmd = cmd_re.match(query)
+            if cmd is None:
+                # If the text entered does not start with '/', set the flag of the default kind of item
+                if defaultKind is not None:
+                    if defaultKind == pim.tasks.TaskStamp:
+                        taskFlag = True
+                    elif defaultKind == pim.mail.MailStamp:
+                        msgFlag = True
+                    elif defaultKind == pim.calendar.Calendar.EventStamp:
+                        eventFlag = True
+                displayName = query
+                        
+            while cmd is not None:
+                kind = (cmd.group('kind')).lower()
+                displayName = query[(cmd.end()):].strip()
+                query = displayName
+                
+                # Set flags depending on its kind
+                if kind == 'search':
+                    # Text in the search bar in not an quick item entry
+                    return False
+                
+                elif kind == 'task':
+                    taskFlag = True
+                    
+                elif kind in ('msg', 'message'):
+                     msgFlag = True
+                    
+                elif kind == 'event':
+                    eventFlag = True
+                    
+                elif kind == 'invite':
+                    eventFlag = True
+                    msgFlag = True
+                    
+                elif kind == 'request':
+                    taskFlag = True
+                    msgFlag = True
+                    
+                elif kind != 'note':
+                    # if command is not 'note' then it is not a valid  command. for eg: '/foo'
+                    return False
+                    
+                cmd = cmd_re.match(displayName)
+    
+            #Create a Note 
+            item = pim.Note(itsView = self.itsView)
+            
+            # Parse the text for date/time information
+            startTime, endTime, countFlag, typeFlag = \
+                             pim.calendar.Calendar.parseText(displayName)
+             
+            # Check whether there is a date/time range
+            if startTime != endTime:
+                eventFlag = True
+            
+            #Stamp the note appropriately depending on flags
+            if taskFlag:
+                pim.tasks.TaskStamp(item).add()
+            if eventFlag:
+                pim.calendar.Calendar.EventStamp(item).add()
+            if msgFlag:
+                pim.mail.MailStamp(item).add()
+                pim.mail.MailStamp(item).InitOutgoingAttributes()
+       
+            # Set a reminder if the item is not an event but it has time
+            if (not eventFlag) and (typeFlag != 0) :
+                pim.Remindable(item).userReminderTime = startTime
+     
+            if eventFlag:
+                # If the item is an event, set the event's start and end date/time
+                pim.calendar.Calendar.setEventDateTime(item, startTime, endTime, typeFlag)
+            
+           # If item is a message, search for contacts and seperate them        
+            if msgFlag:
+                pattern = {}
+                pattern['email'] = r'[a-zA-Z0-9._%-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,4}'
+                
+                checkContact = re.match(r'\s?((%(email)s)\s?(,|;)?\s?)+\s?:'%pattern,displayName)
+                sep = re.search(r':',displayName)
+                                       
+                if checkContact and sep:
+                    contacts = (displayName[:sep.start()]).strip()
+                    displayName = (displayName[sep.end():]).strip()
+                    
+                    contacts_pattern = r"""
+                        \s*                      # ignore whitespace
+                        (?P<contact> ([^,;\s]*)) # any intervening non-whitespace is the contact
+                        \s*                      # ignore whitespace
+                        (,|;)?                   # gobble contact separators
+                        \s*                      # ignore whitespace
+                        """
+                    
+                    contacts_re = re.compile(contacts_pattern, re.VERBOSE)
+                    
+                    for match in contacts_re.finditer(contacts):
+                        toOne = pim.mail.EmailAddress(itsView=self.itsView)
+                        toOne.emailAddress = match.group('contact')
+                        pim.mail.MailStamp(item).toAddress.append(toOne)                        
+    
+                else:
+                    pim.mail.MailStamp(item).subject = displayName
+        
+        
+            if item is not None:
+                item.displayName = displayName
+                
+                # Add the item to the appropriate collection
+                if defaultKind is not MissingClass:
+                    if (defaultKind == pim.tasks.TaskStamp and taskFlag == True) or \
+                    (defaultKind == pim.calendar.Calendar.EventStamp and eventFlag == True) or \
+                    (defaultKind == pim.mail.MailStamp and msgFlag == True):
+                        collection = Block.findBlockByName("MainView").getSidebarSelectedCollection()
+                        statusMsg =  _(u"New item created in the selected collection")
+                    
+                    else:
+                        # if item is of a different kind than the default item of current view,
+                        # put it in Dashboard 'All' collection
+                        collection = schema.ns('osaf.pim',self).allCollection
+                        statusMsg =  _(u"New item created in the Dashboard All Collection")
+                
+                else:
+                    # if kind is None, it is 'All' app, so add item to selected collection
+                    collection = Block.findBlockByName("MainView").getSidebarSelectedCollection()
+                    statusMsg =  _(u"New item created in the selected collection")
+                
+                if collection is not None:
+                    collection.add(item)
+                    #Put the status message in the Status bar
+                    wx.GetApp().CallItemMethodAsync("MainView", 'setStatusMessage', statusMsg)
+                    
+            return True
+        
+        
+        sidebar = Block.findBlockByName ("Sidebar")
+        quickEntryWidget = event.arguments['sender'].widget
+        query = quickEntryWidget.GetValue()
+        quickEntryWidget.blockItem.text = query
+        
+        # Check if the query is a quick item entry or not
+        if (query != None) and (parseCommand(self, query) is False) and (query.strip() != ''):
+            
+            if not (query.startswith('/search') or query.startswith('/Search')):
+                # Query is not a valid command
+                quickEntryWidget.SetValue(query + ' ?')
+                wx.GetApp().CallItemMethodAsync("MainView", 'setStatusMessage', _(u"Command entered is not valid"))
+                return
+            
+            # Remove command "/search " from the query before processing it
+            query = query[8:]
+            
+            try:
+                sidebar.setShowSearch (True)
+
+                view = self.itsView
+    
+                # make sure all changes are searchable
+                view.commit()
+                view.repository.notifyIndexer(True)
+                results = view.searchItems(query)
+    
+                searchResults = schema.ns('osaf.pim', view).searchResults
+                searchResults.clear()
+
+                for item in search.processResults(results):
+                    searchResults.add(item)
+                    
+                if len(searchResults) == 0:
+                    # For now we'll write a message to the status bar because it's easy
+                    # When we get more time to work on search, we should write the message
+                    # just below the search box in the toolbar.
+                    wx.GetApp().CallItemMethodAsync("MainView", 'setStatusMessage', _(u"Search found nothing"))
+            except PyLucene.JavaError, error:
+                message = unicode (error)
+                prefix = u"org.apache.lucene.queryParser.ParseException: "
+                if message.startswith (prefix):
+                    message = message [len(prefix):]
+                
+                message = _(u"An error occured during search.\n\nThe search engine reported the following error:\n\n" ) + message
+                
+                Util.ok (None, _(u"Search Error"), message)
+            else:
+                return
+        sidebar.setShowSearch (False)
+                
 
     def printEvent(self, isPreview):
         block = self.findBlockByName ("TimedEvents")
