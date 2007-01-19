@@ -90,14 +90,14 @@ def parseOptions():
 
 _templist = []
 
-def buildList(tests):
+def buildUnitList(tests):
     """
-    Scan thru the list of test instances and build
+    Scan thru the list of unit test instances and build
     a list of all individual test names.
     """
     for item in tests:
         if isinstance(item, unittest.TestSuite):
-            buildList(item)
+            buildUnitList(item)
         else:
             if isinstance(item, unittest.TestCase) and \
                not isinstance(item, doctest.DocTestCase):
@@ -108,7 +108,7 @@ def buildList(tests):
     return _templist
 
 
-def buildTestList(args, individual=False):
+def buildUnitTestList(args, individual=False):
     """
     Pass the given command line arguments to our scanning loader
     and create a list of test names.
@@ -144,14 +144,14 @@ def buildTestList(args, individual=False):
         loader = test_finder.ScanningLoader()
 
         for item in testlist:
-            tests += buildList(loader.loadTestsFromName(item))
+            tests += buildUnitList(loader.loadTestsFromName(item))
     else:
         tests = testlist
 
     return tests
 
 
-def callRun_Test(cmd):
+def doCommand(cmd):
     """
     Run the given command and return the results.
     If during the wait a ctrl-c is pressed kill the cmd's process.
@@ -176,8 +176,7 @@ def callRun_Test(cmd):
 
     return r
 
-
-def doTest(test):
+def doUnitTest(test):
     """
     Run the given test for each of the active modes
     """
@@ -191,30 +190,30 @@ def doTest(test):
 
         cmd += [test]
 
-        result = callRun_Test(cmd)
+        result = doCommand(cmd)
 
         if (result <> 0 and not options.nonstop) or _stop_test_run:
             break
 
     return result
 
-def runSuite(testlist):
+def runUnitSuite(testlist):
     """
-    Call doTest with all of the given test names
+    Call doUnitTest with all of the given test names
     """
     print 'Running tests as a suite'
 
-    return doTest(' '.join(testlist))
+    return doUnitTest(' '.join(testlist))
 
 
-def runTests(testlist):
+def runUnitTests(testlist):
     """
-    Call doTest once for each given test name
+    Call doUnitTest once for each given test name
     """
     result = 0
 
     for test in testlist:
-        result = doTest(test)
+        result = doUnitTest(test)
 
         if result <> 0 and not options.nonstop:
             break
@@ -222,7 +221,7 @@ def runTests(testlist):
     return result
 
 
-def runTest(testlist, target):
+def runUnitTest(testlist, target):
     """
     Scan thru the list of tests and run each test that
     includes as part of it's class name the target name.
@@ -245,9 +244,12 @@ def runTest(testlist, target):
             tests.append(testname)
 
     if len(tests) > 0:
-        result = runTests(tests)
+        result = runUnitTests(tests)
 
     return result
+
+def runFuncSuite():
+    pass
 
 
 if __name__ == '__main__':
@@ -278,17 +280,20 @@ if __name__ == '__main__':
             print "Single test run (-t) only allowed by itself"
             sys.exit(1)
 
-    testlist = buildTestList(options.args, options.unit or len(options.single) > 0)
+    testlist = buildUnitTestList(options.args, options.unit or len(options.single) > 0)
     result   = 0
 
     if options.unitSuite:
-        result = runSuite(testlist)
+        result = runUnitSuite(testlist)
 
     if options.unit:
-        result = runTests(testlist)
+        result = runUnitTests(testlist)
 
     if options.single:
-        result = runTest(testlist, options.single)
+        result = runUnitTest(testlist, options.single)
+
+    if options.funcSuite:
+        result = runFuncSuite()
 
     if result <> 0:
         print '\n\nError generated during run: %s' % result
