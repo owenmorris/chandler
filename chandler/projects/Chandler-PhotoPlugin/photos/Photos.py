@@ -109,11 +109,11 @@ class PhotoMixin(pim.ContentItem):
     def onDateTakenChanged(self, op, attr):
         self.updateDisplayDate(op, attr)
 
-    def addDisplayDates(self, dates):
-        super(PhotoMixin, self).addDisplayDates(dates)
+    def addDisplayDates(self, dates, now):
+        super(PhotoMixin, self).addDisplayDates(dates, now)
         dateTaken = getattr(self, 'dateTaken', None)
         if dateTaken is not None:
-            dates.append((dateTaken, 'dateTaken'))
+            dates.append((40, dateTaken, 'dateTaken'))
 
 
 class Photo(PhotoMixin, pim.Note):

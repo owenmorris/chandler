@@ -528,7 +528,8 @@ class ContentItem(schema.Item):
     sharedState = property(getSharedState)
 
     def _updateCommonAttribute(self, attributeName, sourceAttributeName,
-                               collectorMethod, default=Nil, picker=None):
+                               collectorMethod, args=None, default=Nil, 
+                               picker=None):
         """
         Mechanism for coordinating updates to a common-display field
         (like displayWho and displayDate, but not displayName for now).
@@ -553,7 +554,7 @@ class ContentItem(schema.Item):
         # negative indexes (so contender[-2] is the value, contender[-1] is
         # the name).
         contenders = []
-        collectorMethod(contenders)
+        collectorMethod(contenders, *(args if args is not None else []))
 
         # Now that we have the contenders, pick one.
         contenderCount = len(contenders)
@@ -595,25 +596,14 @@ class ContentItem(schema.Item):
     def updateDisplayWho(self, op, attr):
         self._updateCommonAttribute('displayWho', 'displayWhoSource', self.addDisplayWhos)
 
-    def addDisplayDates(self, dates):
+    def addDisplayDates(self, dates, now):
         from osaf.pim.reminders import Remindable
-        Remindable(self).addDisplayDates(dates)
+        Remindable(self).addDisplayDates(dates, now)
 
     def updateDisplayDate(self, op, attr):
-        def picker(contenders):
-            # We want to pick the first date after 'now'
-            nowTuple = (datetime.now(tz=ICUtzinfo.default), 'now')
-            contenders.append(nowTuple)
-            contenders.sort()
-            nowIndex = contenders.index(nowTuple)
-            try:
-                result = contenders[nowIndex+1]
-            except IndexError:
-                result = contenders[nowIndex-1]
-            return result
-
+        now = datetime.now(tz=ICUtzinfo.default)
         self._updateCommonAttribute('displayDate', 'displayDateSource',
-                                    self.addDisplayDates, picker=picker)
+                                    self.addDisplayDates, [now])
 
     @schema.observer(lastModified)
     def onLastModifiedChanged(self, op, attr):
@@ -784,11 +774,11 @@ class UserNotification(ContentItem):
     def onTimestampChanged(self, op, attr):
         self.updateDisplayDate(op, attr)
 
-    def addDisplayDates(self, dates):
-        super(UserNotification, self).addDisplayDates(dates)
+    def addDisplayDates(self, dates, now):
+        super(UserNotification, self).addDisplayDates(dates, now)
         timestamp = getattr(self, 'timestamp', None)
         if timestamp is not None:
-            dates.append((timestamp, 'timestamp'))
+            dates.append((40, timestamp, 'timestamp'))
 
 
 class Principal(ContentItem):

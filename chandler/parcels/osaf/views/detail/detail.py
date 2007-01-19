@@ -409,21 +409,21 @@ class DetailTriageButton(DetailSynchronizer, ControlBlocks.Button):
         #
         # From these we build the three triage states (Done, Later, Now)
         #
-        self.icon = "Triage"
+        self.icon = "Markup"
         now = MultiStateButton.BitmapInfo()
-        now.normal   = "%sNow" % self.icon
-        now.selected = "%sNowMousedown" % self.icon
-        now.rollover = "%sNowRollover" % self.icon
+        now.normal   = "%sNowStamped" % self.icon
+        now.selected = "%sNowStampedPressed" % self.icon
+        now.rollover = "%sNowStampedRollover" % self.icon
         now.stateName = "%s.now" % self.icon
         later = MultiStateButton.BitmapInfo()
-        later.normal   = "%sLater" % self.icon
-        later.selected = "%sLaterMousedown" % self.icon
-        later.rollover = "%sLaterRollover" % self.icon
+        later.normal   = "%sLaterStamped" % self.icon
+        later.selected = "%sLaterStampedPressed" % self.icon
+        later.rollover = "%sLaterStampedRollover" % self.icon
         later.stateName = "%s.later" % self.icon
         done = MultiStateButton.BitmapInfo()
-        done.normal   = "%sDone" % self.icon
-        done.selected = "%sDoneMousedown" % self.icon
-        done.rollover = "%sDoneRollover" % self.icon
+        done.normal   = "%sDoneStamped" % self.icon
+        done.selected = "%sDoneStampedPressed" % self.icon
+        done.rollover = "%sDoneStampedRollover" % self.icon
         done.stateName = "%s.done" % self.icon
         button = ControlBlocks.wxChandlerMultiStateButton (parentWidget, 
                             id, 
@@ -457,7 +457,7 @@ class DetailTriageButton(DetailSynchronizer, ControlBlocks.Button):
         oldState = getattr(self.widget, 'currentState', None)
         if oldState != None:
             item = self.item
-            assert oldState.startswith('Triage.')
+            assert oldState.startswith('Markup.')
             newState = pim.getNextTriageStatus(getattr(pim.TriageEnum,
                                                        oldState[7:]))
             item.unpurgedTriageStatus = newState

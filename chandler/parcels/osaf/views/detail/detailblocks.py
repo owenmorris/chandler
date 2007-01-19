@@ -623,6 +623,21 @@ def makeMarkupBar(parcel, oldVersion):
                                     commitAfterDispatch=True).install(parcel)
 
     # The buttons.
+    triageStamp = \
+        DetailTriageButton.template('TriageStamp',
+                                title=messages.STAMP_TRIAGE,
+                                icon="TriageDone",
+                                helpString=messages.STAMP_TRIAGE_HELP,
+                                event=buttonPressed,
+                                viewAttribute='unpurgedTriageStatus',
+                                stretchFactor=0.0,
+                                minimumSize=SizeType(39, 20))
+
+    markupSpacer1 = ControlBlocks.StaticText.template('MarkupSpacer1',
+                                    title=u'',
+                                    stretchFactor=0.0,
+                                    minimumSize=SizeType(30, 18))
+
     mailMessageButton = \
         MailMessageButtonBlock.template('MailMessageButton',
                                         title=messages.STAMP_MAIL,
@@ -641,21 +656,6 @@ def makeMarkupBar(parcel, oldVersion):
                                 stretchFactor=0.0,
                                 minimumSize=SizeType(30, 18))
 
-    markupSpacer1 = ControlBlocks.StaticText.template('MarkupSpacer1',
-                                    title=u'',
-                                    stretchFactor=0.0,
-                                    minimumSize=SizeType(30, 18))
-                                        
-    triageStamp = \
-        DetailTriageButton.template('TriageStamp',
-                                title=messages.STAMP_TRIAGE,
-                                icon="TriageDone",
-                                helpString=messages.STAMP_TRIAGE_HELP,
-                                event=buttonPressed,
-                                viewAttribute='unpurgedTriageStatus',
-                                stretchFactor=0.0,
-                                minimumSize=SizeType(39, 20))
-
     calendarStamp = \
         CalendarStampButtonBlock.template('CalendarStamp',
                                     title=messages.STAMP_CALENDAR,
@@ -667,7 +667,8 @@ def makeMarkupBar(parcel, oldVersion):
 
     markupSpacer2 = ControlBlocks.StaticText.template('MarkupSpacer2',
                                     title=u'',
-                                    stretchFactor=1.0)
+                                    stretchFactor=0.0,
+                                    minimumSize=SizeType(30, 18))
 
     privateSwitchButton = \
         PrivateSwitchButtonBlock.template('PrivateSwitchButton',
@@ -678,6 +679,10 @@ def makeMarkupBar(parcel, oldVersion):
                                     event=buttonPressed,
                                     stretchFactor=0.0,
                                     minimumSize=SizeType(30, 18))
+
+    markupSpacer3 = ControlBlocks.StaticText.template('MarkupSpacer3',
+                                    title=u'',
+                                    stretchFactor=1.0)
 
     readOnlyIcon = \
         ReadOnlyIconBlock.template('ReadOnlyIcon',
@@ -690,12 +695,13 @@ def makeMarkupBar(parcel, oldVersion):
 
     markupBar = ControlBlocks.ContentItemDetail.template('MarkupBar',
                                     childrenBlocks=[triageStamp,
+                                                    markupSpacer1,
                                                     mailMessageButton,
                                                     taskStamp,
                                                     calendarStamp,
-                                                    markupSpacer1,
-                                                    privateSwitchButton,
                                                     markupSpacer2,
+                                                    privateSwitchButton,
+                                                    markupSpacer3,
                                                     readOnlyIcon],
                                     position=0.0,
                                     toolSize=SizeType(30, 18),

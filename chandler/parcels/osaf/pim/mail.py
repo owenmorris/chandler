@@ -1067,10 +1067,10 @@ class MailStamp(stamping.Stamp):
     def onDateSentChanged(self, op, name):
         self.itsItem.updateDisplayDate(op, name)
 
-    def addDisplayDates(self, dates):
+    def addDisplayDates(self, dates, now):
         dateSent = getattr(self, 'dateSent', None)
         if dateSent is not None:
-            dates.append((dateSent, 'dateSent'))
+            dates.append((50, dateSent, 'dateSent'))
 
     def outgoingMessage(self, account, type='SMTP'):
         assert type == "SMTP", "Only SMTP currently supported"

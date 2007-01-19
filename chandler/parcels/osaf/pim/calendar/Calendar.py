@@ -747,10 +747,11 @@ class EventStamp(Stamp):
         # Update our display-date attribute, too
         self.itsItem.updateDisplayDate(op, name)
 
-    def addDisplayDates(self, dates):
+    def addDisplayDates(self, dates, now):
         effectiveStartTime = getattr(self, 'effectiveStartTime', None)
         if effectiveStartTime is not None:
-            dates.append((effectiveStartTime, 'startTime'))
+            dates.append((effectiveStartTime < now and 20 or 10,
+                          effectiveStartTime, 'startTime'))
 
     # begin recurrence related methods
 

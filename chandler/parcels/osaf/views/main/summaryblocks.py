@@ -211,9 +211,12 @@ class ReminderColumnAttributeEditor(attributeEditors.IconAttributeEditor):
         return states
     
     def GetAttributeValue(self, item, attributeName):
-        if pim.Remindable(item).getUserReminder(expiredToo=True):
+        # We want the icon shown to match the date displayed in the date column,
+        # so just pick a value based on the date we're displaying.
+        displayDateSource = getattr(item, 'displayDateSource', None)
+        if displayDateSource == 'reminder':
             return "SumEvent.Tickled"
-        return pim.has_stamp(item, pim.EventStamp) and \
+        return displayDateSource == 'startTime' and \
                "SumEvent.Stamped" or "SumEvent.Unstamped"
 
     def SetAttributeValue(self, item, attributeName, value):
@@ -518,6 +521,8 @@ def makeSummaryBlocks(parcel):
         baseClass=TitleColumnIndexDefinition,
         attributes=list(dict(TitleColumnIndexDefinition.findParams)),)
 
+    reminderColumnAttributes = list(dict(CalendarColumnIndexDefinition.findParams))
+    reminderColumnAttributes.append('displayDateSource')
     reminderColumn = makeColumnAndIndexes('SumColCalendarEvent',
         icon = 'ColHEvent',
         valueType = 'stamp',
@@ -528,7 +533,7 @@ def makeSummaryBlocks(parcel):
         readOnly = True,
         indexName = '%s.calendarStatus' % __name__,
         baseClass=CalendarColumnIndexDefinition,
-        attributes=list(dict(CalendarColumnIndexDefinition.findParams)),)
+        attributes=reminderColumnAttributes,)
 
     dateColumn = makeColumnAndIndexes('SumColDate',
         heading = _(u'Date'),

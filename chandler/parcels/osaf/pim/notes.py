@@ -59,12 +59,12 @@ class Note(items.ContentItem):
         # Let the clipboard handler know we've got a Note to export
         clipboardHandler.ExportItemFormat(self, 'Note')
         
-    def addDisplayDates(self, dates):
-        super(Note, self).addDisplayDates(dates)
+    def addDisplayDates(self, dates, now):
+        super(Note, self).addDisplayDates(dates, now)
         
         for stampObject in Stamp(self).stamps:
-            method = getattr(stampObject, 'addDisplayDates', lambda _: None)
-            method(dates)
+            method = getattr(stampObject, 'addDisplayDates', lambda _,__: None)
+            method(dates, now)
 
     def addDisplayWhos(self, whos):
         super(Note, self).addDisplayWhos(whos)
