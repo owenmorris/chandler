@@ -24,10 +24,8 @@ from osaf.pim.calendar import TimeZoneInfo
 logger = logging.getLogger(__name__)
 
 PUBLISH   = 0
-SUBSCRIBE = 1
-SWITCH_ON = 2
-IMPORT    = 3
-EXPORT    = 4
+IMPORT    = 1
+EXPORT    = 2
 
 stateData = { IMPORT : 
               {'title' : _(u"Turn on timezones"),
@@ -39,9 +37,21 @@ stateData = { IMPORT :
                'hide'  : [],
                'text'  : _(u"When sharing items, we recommend assigning timezones to your events.  Turn on timezones?")
               },              
+              EXPORT : 
+              {'title' : _(u"Turn on timezones"),
+               'hide'  : [],
+               'text'  : _(u"When sharing items, we recommend assigning timezones to your events.  Turn on timezones?")
+              },              
             }
 
+# don't pop up more than one dialog, which can happen when importing events
+# spawns lots of non-modal dialogs.
+dialogShowing = False
+
 def ShowTurnOnTimezonesDialog(parent, view=None, state=IMPORT, modal=False):
+    
+    if dialogShowing:
+        return True
     
     # Check preferences before showing the dialog
     tzprefs = schema.ns('osaf.pim', view).TimezonePrefs
@@ -68,6 +78,8 @@ class TurnOnTimezonesDialog(wx.Dialog):
 
     def __init__(self, parent, resources=None, view=None, state=IMPORT,
                  modal=True):
+        global dialogShowing
+        dialogShowing = True
 
         self.resources = resources
         self.view      = view
@@ -140,6 +152,8 @@ class TurnOnTimezonesDialog(wx.Dialog):
         self.End(ret=True)
 
     def End(self, event=None, ret=False):
+        global dialogShowing
+        dialogShowing = False        
         if self.modal:
             self.EndModal(ret)
         self.Destroy()

@@ -952,8 +952,7 @@ class SidebarBlock(Table):
 
     def onRemoveEvent(self, event):
         """
-        Permanently remove the collection - we eventually need a user
-        confirmation here
+        Permanently remove the collection
         """
         viewsmain = schema.ns('osaf.views.main', self.itsView)
 
@@ -969,7 +968,7 @@ class SidebarBlock(Table):
         notMineMessage = _(u"Deleting %(collectionName)s will move its contents to the Trash")
         
         # don't pop up a dialog when running functional tests
-        if not event.arguments.get('testing'):
+        if not event.arguments.get('testing'):                
             for collection in self.contents.iterSelection():
                 dataDict = {'collectionName' : collection.displayName}
                 if collection in mine.sources:

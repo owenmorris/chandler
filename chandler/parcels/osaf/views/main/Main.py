@@ -25,7 +25,7 @@ import application.Parcel
 
 import application.dialogs.Util
 from application.dialogs import ( AccountPreferences, PublishCollection,
-    SubscribeCollection, RestoreShares, autosyncprefs
+    SubscribeCollection, RestoreShares, autosyncprefs, TurnOnTimezones
 )
 
 from repository.item.Item import MissingClass
@@ -781,6 +781,15 @@ class MainView(View):
             title = _(u"Export cancelled")
             application.dialogs.Util.ok(None, message, title)
             return
+
+        if not TurnOnTimezones.ShowTurnOnTimezonesDialog(
+            wx.GetApp().mainFrame,
+            self.itsView,
+            state=TurnOnTimezones.EXPORT,
+            modal=True):
+            # cancelled in turn on timezone dialog
+            return
+            
 
         name = collection.displayName
         try:

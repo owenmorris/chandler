@@ -45,6 +45,8 @@ import os, logging
 import bisect
 from chandlerdb.util.c import UUID
 import md5
+from application.dialogs.TurnOnTimezones import ShowTurnOnTimezonesDialog
+import wx
 
 FREEBUSY_WEEKS_EXPORTED = 26
 
@@ -209,6 +211,8 @@ def itemsToVObject(view, items, cal=None, filters=None):
     for item in items: # main loop
         try:
             # ignore any events that aren't masters
+            if not has_stamp(item, EventStamp):
+                continue
             event = EventStamp(item)
             if event.getMaster() == event:
                 populateEvent(cal.add('vevent'), event)
@@ -500,6 +504,15 @@ def itemsFromVObject(view, text, coerceTzinfo = None, filters = None,
                     dtstart = TimeZone.forceToDateTime(dtstart)
                     # convert to Chandler's notion of all day duration
                     duration -= oneDay
+                elif dtstart.tzinfo is not None:                    
+                    # got a timezoned event, prompt (non-modally) to turn on
+                    # timezones
+                    app = wx.GetApp()
+                    if app is not None:
+                        parent = app.mainFrame
+                        def ShowTimezoneDialogCallback():
+                            ShowTurnOnTimezonesDialog(parent, view=view)
+                        app.PostAsyncEvent(ShowTimezoneDialogCallback)
                 
                 # coerce timezones based on coerceTzinfo
                 def convertDatetime(dt):
