@@ -154,7 +154,7 @@ endif
 #   CURL="wget -r -P .. -nd"
 
 ifeq ($(CURL),)
-    CURL=curl $(CHANDLER_CURL_OPTIONS) -f -o
+    CURL=curl $(CHANDLER_CURL_OPTIONS) -f -L -o
 endif
 
 HOST  = builds.osafoundation.org
