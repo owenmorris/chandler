@@ -215,7 +215,7 @@ endif
 all: build
 
 
-COMPILERS=http://downloads.osafoundation.org/compilers
+COMPILERS=http://builds.osafoundation.org/compilers
 
 ifeq ($(OS),Cygwin)
 
