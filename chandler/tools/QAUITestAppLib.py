@@ -46,6 +46,13 @@ def sidebarCollectionNamed(name):
             return collection
     return None
 
+def disableDialogs():
+    """
+    Disable any dialogs that can be disabled.
+    """
+    # disable turn on timezones dialog
+    pim_ns = scripting.schema.ns('osaf.pim', App_ns.itsView)
+    pim_ns.TimezonePrefs.showPrompt = False
 
 def publishSubscribe(logger):
     """
@@ -1535,6 +1542,7 @@ class UITestAccounts:
 
 class UITestView(object):
     def __init__(self, logger=None, environmentFile=None):
+        disableDialogs()
         self.logger = logger
         self.view = App_ns.itsView
         #get the current view state
