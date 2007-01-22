@@ -115,7 +115,8 @@ class WebDAVAccount(pim.ContentItem):
         @return: An account item, or None if no WebDAV account could be found.
         """
 
-        (useSSL, host, port, path, query, fragment) = utility.splitUrl(url)
+        (useSSL, host, port, path, query, fragment, ticket, parentPath,
+            shareName) = utility.splitUrl(url)
 
         # Get the parent directory of the given path:
         # '/dev1/foo/bar' becomes ['dev1', 'foo']

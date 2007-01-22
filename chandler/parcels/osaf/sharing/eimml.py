@@ -1,8 +1,7 @@
 
 
 from application import schema
-from osaf import sharing
-from osaf.sharing import model
+from osaf.sharing import model, eim
 from osaf.sharing.simplegeneric import generic
 from PyICU import ICUtzinfo
 import time, datetime, base64, decimal
@@ -12,6 +11,9 @@ from xml.etree.cElementTree import (
 
 
 
+__all__ = [
+    'EIMMLSerializer',
+]
 
 
 
@@ -25,35 +27,35 @@ def serializeValue(typeinfo, value):
     """Serialize a value based on typeinfo"""
     raise NotImplementedError("Unrecognized type:", typeinfo)
 
-@serializeValue.when_type(sharing.BytesType)
+@serializeValue.when_type(eim.BytesType)
 def serialize_bytes(typeinfo, value):
     return base64.b64encode(value)
 
-@serializeValue.when_type(sharing.IntType)
+@serializeValue.when_type(eim.IntType)
 def serialize_int(typeinfo, value):
     return str(value)
 
-@serializeValue.when_type(sharing.TextType)
+@serializeValue.when_type(eim.TextType)
 def serialize_text(typeinfo, value):
     return value
 
-@serializeValue.when_type(sharing.BlobType)
+@serializeValue.when_type(eim.BlobType)
 def serialize_blob(typeinfo, value):
     return base64.b64encode(value)
 
-@serializeValue.when_type(sharing.ClobType)
+@serializeValue.when_type(eim.ClobType)
 def serialize_clob(typeinfo, value):
     return value
 
 # TODO
-# @serializeValue.when_type(sharing.DateType)
+# @serializeValue.when_type(eim.DateType)
 # def serialize_date(typeinfo, value):
 
-# @serializeValue.when_type(sharing.TimestampType)
+# @serializeValue.when_type(eim.TimestampType)
 # def serialize_date(typeinfo, value):
 #     return value.strftime("%Y-%m-%dT%H:%M:%SZ")
 
-@serializeValue.when_type(sharing.DecimalType)
+@serializeValue.when_type(eim.DecimalType)
 def serialize_decimal(typeinfo, value):
     return str(value)
 
@@ -65,35 +67,35 @@ def deserializeValue(typeinfo, text):
     """Deserialize text based on typeinfo"""
     raise NotImplementedError("Unrecognized type:", typeinfo)
 
-@deserializeValue.when_type(sharing.BytesType)
+@deserializeValue.when_type(eim.BytesType)
 def deserialize_bytes(typeinfo, text):
     return base64.b64decode(text)
 
-@deserializeValue.when_type(sharing.IntType)
+@deserializeValue.when_type(eim.IntType)
 def deserialize_int(typeinfo, text):
     return int(text)
 
-@deserializeValue.when_type(sharing.TextType)
+@deserializeValue.when_type(eim.TextType)
 def deserialize_text(typeinfo, text):
     return text
 
-@deserializeValue.when_type(sharing.BlobType)
+@deserializeValue.when_type(eim.BlobType)
 def deserialize_blob(typeinfo, text):
     return base64.b64decode(text)
 
-@deserializeValue.when_type(sharing.ClobType)
+@deserializeValue.when_type(eim.ClobType)
 def deserialize_clob(typeinfo, text):
     return text
 
-@deserializeValue.when_type(sharing.DecimalType)
+@deserializeValue.when_type(eim.DecimalType)
 def deserialize_decimal(typeinfo, text):
     return decimal.Decimal(text)
 
 # TODO
-# @deserializeValue.when_type(sharing.DateType)
+# @deserializeValue.when_type(eim.DateType)
 # def deserialize_date(typeinfo, text):
 
-# @deserializeValue.when_type(sharing.TimestampType)
+# @deserializeValue.when_type(eim.TimestampType)
 # def deserialize_date(typeinfo, text):
 #     tuples = time.strptime(text, "%Y-%m-%dT%H:%M:%SZ")[0:6]
 #     utc = ICUtzinfo.getInstance('UTC')
@@ -129,7 +131,7 @@ class EIMMLSerializer(object):
                         if value is not None:
                             serialized = serializeValue(field.typeinfo,
                                 record[field.offset])
-                            if isinstance(field, sharing.key):
+                            if isinstance(field, eim.key):
                                 fieldElement = SubElement(recordElement,
                                     "{%s}%s" % (record.URI, field.name),
                                     key="true")
@@ -143,7 +145,7 @@ class EIMMLSerializer(object):
                         "{%s}record" % (record.URI), deleted="true")
 
                     for field in record.__fields__:
-                        if isinstance(field, sharing.key):
+                        if isinstance(field, eim.key):
                             value = record[field.offset]
                             serialized = serializeValue(field.typeinfo,
                                 record[field.offset])
@@ -175,7 +177,7 @@ class EIMMLSerializer(object):
             for recordElement in recordSetElement:
                 ns, name = recordElement.tag[1:].split("}")
 
-                recordClass = sharing.lookupSchemaURI(ns)
+                recordClass = eim.lookupSchemaURI(ns)
                 if recordClass is None:
                     continue    # XXX handle error?  logging?
 
@@ -184,8 +186,15 @@ class EIMMLSerializer(object):
                     for fieldElement in recordElement:
                         ns, name = fieldElement.tag[1:].split("}")
                         if field.name == name:
-                            value = deserializeValue(field.typeinfo,
-                                                     fieldElement.text)
+                            if fieldElement.text is None:
+                                value = None
+                            else:
+                                try:
+                                    value = deserializeValue(field.typeinfo,
+                                                             fieldElement.text)
+                                except:
+                                    print "Error:", name, fieldElement.text, field.typeinfo
+                                    raise
                             break
                     else:
                         value = None
@@ -194,7 +203,7 @@ class EIMMLSerializer(object):
 
                 records.append(recordClass(*values))
 
-            recordSet = sharing.RecordSet(records)
+            recordSet = eim.RecordSet(records)
             recordSets[uuid] = recordSet
 
         return recordSets
@@ -247,7 +256,7 @@ class EIMMLSerializerLite(object):
             for recordElement in recordSetElement:
                 ns, name = recordElement.tag[1:].split("}")
 
-                recordClass = sharing.lookupSchemaURI(ns)
+                recordClass = eim.lookupSchemaURI(ns)
                 if recordClass is None:
                     continue    # XXX handle error?  logging?
 
@@ -262,7 +271,7 @@ class EIMMLSerializerLite(object):
 
                 records.append(recordClass(*values))
 
-            recordSet = sharing.RecordSet(records)
+            recordSet = eim.RecordSet(records)
             recordSets[uuid] = recordSet
 
         return recordSets

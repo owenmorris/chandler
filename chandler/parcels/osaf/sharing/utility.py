@@ -14,6 +14,7 @@
 
 __all__ = [
     'sync',
+    'inspect',
     'getSyncableShares',
     'splitUrl',
     'isShared',
@@ -31,6 +32,8 @@ __all__ = [
     'getActiveShares',
     'checkForActiveShares',
     'getExistingResources',
+    'extractLinks',
+    'getPage',
 ]
 
 from application import schema
@@ -40,9 +43,52 @@ from PyICU import ICUtzinfo
 from i18n import ChandlerMessageFactory as _
 from repository.util.Lob import Lob
 from itertools import chain
+from osaf.sharing import errors
+from HTMLParser import HTMLParser
 import logging
+import sys
+from twisted.internet import reactor
+
+from zanshin.webdav import (
+    PropfindRequest, ServerHandle, quote, CALDAV_NAMESPACE
+)
+from zanshin.util import PackElement
+from zanshin.ticket import Ticket, getTicketInfoNodes
+import zanshin.http
+import zanshin.acl as acl
+import twisted.web.http as http
+import xml.etree.cElementTree as ElementTree
 
 logger = logging.getLogger(__name__)
+
+
+
+def inspect(url, username=None, password=None):
+
+    # Twisted doesn't understand "webcal:"
+    if url.startswith('webcal'):
+        url = 'http' + url[6:]
+
+    try:
+        return zanshin.util.blockUntil(getDAVInfo, url, username=username,
+            password=password)
+
+    except zanshin.http.HTTPError, e:
+
+        if e.status == 401: # Unauthorized
+            raise errors.NotAllowed("Not authorized (%s)" % e.message)
+        elif e.status == 404: # Not Found
+            raise errors.NotFound("Not found (%s)" % e.message)
+        else:
+            # just try to HEAD the resource
+            return zanshin.util.blockUntil(getHEADInfo, url, username=username,
+                password=password)
+
+    except zanshin.webdav.ConnectionError, e:
+        raise errors.CouldNotConnect(_(u"Unable to connect to server. Received the following error: %(error)s") % {'error': e})
+
+    except M2Crypto.BIO.BIOError, e:
+        raise errors.CouldNotConnect(_(u"Unable to connect to server. Received the following error: %(error)s") % {'error': e})
 
 
 
@@ -89,6 +135,10 @@ def getSyncableShares(rv, collection=None):
 
 
 def splitUrl(url):
+
+    if url.startswith('webcal'):
+        url = 'http' + url[6:]
+
     (scheme, host, path, query, fragment) = urlparse.urlsplit(url)
 
     if scheme == 'https':
@@ -102,7 +152,25 @@ def splitUrl(url):
         (host, port) = host.split(':')
         port = int(port)
 
-    return (useSSL, host, port, path, query, fragment)
+    ticket = None
+    if query:
+        for part in query.split('&'):
+            (arg, value) = part.split('=')
+            if arg == 'ticket':
+                ticket = value.encode('utf8')
+                break
+
+    # Get the parent directory of the given path:
+    # '/dev1/foo/bar' becomes ['dev1', 'foo']
+    pathList = path.strip(u'/').split(u'/')
+
+    # ['dev1', 'foo'] becomes "dev1/foo"
+    parentPath = u"/".join(pathList[:-1])
+
+    shareName = pathList[-1]
+
+    return (useSSL, host, port, path, query, fragment, ticket, parentPath,
+        shareName)
 
 
 
@@ -201,10 +269,8 @@ def findMatchingShare(view, url):
     # matching share; go through all conduits this account points to and look
     # for shareNames that match
 
-    (useSSL, host, port, path, query, fragment) = splitUrl(url)
-
-    # '/dev1/foo/bar' becomes 'bar'
-    shareName = path.strip("/").split("/")[-1]
+    (useSSL, host, port, path, query, fragment, ticket, parentPath,
+         shareName) = splitUrl(url)
 
     if hasattr(account, 'conduits'):
         for conduit in account.conduits:
@@ -398,6 +464,237 @@ def getExistingResources(account):
     # @@@ [grant] Localized sort?
     existing.sort( )
     return existing
+
+
+
+
+# = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =
+
+
+def getDAVInfo(url, username=None, password=None):
+    """
+    Returns a deferred to a dict, describing various DAV properties of
+    the URL. The deferred may errback if the resource doesn't support DAV.
+
+    Keys in the resulting dictionary:
+
+      - "priv:read", "priv:write", "priv:freebusy"
+           Values are True if the given privilege is supported on the resource
+
+      - "contentType"
+           Value is a str indicating the MIME type of the resource. May not
+           be present in the dictionary if the resource has no
+           DAV:getcontenttype property.
+
+      - "collection"
+           Value is a bool that's True if url represents a DAV collection
+
+      - "calendar"
+          Value is a bool that's True if the url represents a CALDAV
+          calendar collection.
+    """
+
+    parsedUrl = urlparse.urlsplit(url)
+    useSSL = (parsedUrl.scheme == "https")
+    host = parsedUrl.hostname
+    if parsedUrl.port:
+        port = parsedUrl.port
+    else:
+        if useSSL:
+            port = 443
+        else:
+            port = 80
+
+    handle = ServerHandle(host, port, username, password, useSSL)
+
+    properties = (
+        PackElement("current-user-privilege-set"),
+        PackElement("ticketdiscovery", Ticket.TICKET_NAMESPACE),
+        PackElement("getcontenttype"),
+        PackElement("resourcetype"),
+    )
+
+    request = PropfindRequest(url, 0, list(properties), {})
+
+    d = handle.addRequest(request)
+
+
+    def handlePropfindResponse(resp):
+        resultDict = dict(calendar=False, collection=False)
+
+        if resp.status != http.MULTI_STATUS:
+            raise zanshin.http.HTTPError(status=resp.status,
+                                         message=resp.message)
+
+        try:
+            cups = acl.CurrentUserPrivilegeSet.parse(resp.body)
+        except ValueError:
+            # Some servers ignore the CUPS request, which is illegal,
+            # but tolerate it and just return an empty privilege set
+            cups = acl.CurrentUserPrivilegeSet()
+
+        if not cups.privileges:
+            ticketInfoNodes = getTicketInfoNodes(resp.body)
+            if len(ticketInfoNodes) > 0:
+                ticket = Ticket.parse(ticketInfoNodes[0])
+                for privName, value in ticket.privileges.iteritems():
+                    # the ticket privileges dictionary currently doesn't
+                    # have the flexibility to handle namespaces, that should
+                    # probably be added.
+                    if value and (privName, "DAV:") not in cups.privileges:
+                        cups.privileges.append((privName, "DAV:"))
+
+        for priv in (('read', "DAV:"), ('write', "DAV:"),
+                           ('freebusy', CALDAV_NAMESPACE)):
+            resultDict["priv:%s" % priv[0]] = (priv in cups.privileges)
+
+        xml = ElementTree.XML(resp.body)
+
+        for ctype in xml.getiterator(properties[2]):
+            if ctype.text:
+                resultDict.update(contentType=ctype.text)
+                break
+
+        calendarTag = PackElement("calendar", CALDAV_NAMESPACE)
+        collectionTag = PackElement("collection")
+
+        for rtype in xml.getiterator(properties[3]):
+            for calendarElement in rtype.getiterator(calendarTag):
+                resultDict.update(calendar=True)
+                break
+            for collectionElement in rtype.getiterator(collectionTag):
+                resultDict.update(collection=True)
+                break
+
+        return resultDict
+
+
+    return d.addCallback(handlePropfindResponse)
+
+
+
+
+def getHEADInfo(url, username=None, password=None):
+    """
+    Returns a deferred to a dict, describing various DAV properties of
+    the URL. The deferred may errback if the resource doesn't support DAV.
+
+    Keys in the resulting dictionary:
+
+      - "priv:read", "priv:write", "priv:freebusy"
+           Values are True if the given privilege is supported on the resource
+
+      - "contentType"
+           Value is a str indicating the MIME type of the resource. May not
+           be present in the dictionary if the resource has no
+           DAV:getcontenttype property.
+
+      - "collection"
+           Value is a bool that's True if url represents a DAV collection
+
+      - "calendar"
+          Value is a bool that's True if the url represents a CALDAV
+          calendar collection.
+    """
+
+    parsedUrl = urlparse.urlsplit(url)
+    useSSL = (parsedUrl.scheme == "https")
+    host = parsedUrl.hostname
+    if parsedUrl.port:
+        port = parsedUrl.port
+    else:
+        if useSSL:
+            port = 443
+        else:
+            port = 80
+
+    handle = ServerHandle(host, port, username, password, useSSL)
+    request = zanshin.http.Request('HEAD', url, None, None)
+    d = handle.addRequest(request)
+
+    def handleHeadResponse(resp):
+        resultDict = {
+            'calendar' : False,
+            'collection' : False,
+            'priv:read' : True,
+            'priv:write' : False,
+        }
+
+        if resp.status != http.OK:
+            raise zanshin.http.HTTPError(status=resp.status,
+                                         message=resp.message)
+
+
+        contentType = resp.headers.getHeader('Content-Type')
+        if contentType:
+            resultDict['contentType'] = contentType[0]
+
+        return resultDict
+
+
+    return d.addCallback(handleHeadResponse)
+
+def getPage(url, username=None, password=None):
+    return zanshin.util.blockUntil(_getPage, url, username=username,
+        password=password)
+
+
+def _getPage(url, username=None, password=None):
+    """
+    Returns a deferred to a string
+    """
+
+    parsedUrl = urlparse.urlsplit(url)
+    useSSL = (parsedUrl.scheme == "https")
+    host = parsedUrl.hostname
+    if parsedUrl.port:
+        port = parsedUrl.port
+    else:
+        if useSSL:
+            port = 443
+        else:
+            port = 80
+
+    handle = ServerHandle(host, port, username, password, useSSL)
+    request = zanshin.http.Request('GET', url, None, None)
+    d = handle.addRequest(request)
+
+    def handleGetResponse(resp):
+
+        if resp.status != http.OK:
+            raise zanshin.http.HTTPError(status=resp.status,
+                                         message=resp.message)
+
+        return resp.body
+
+    return d.addCallback(handleGetResponse)
+
+
+
+# = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =
+
+
+
+class LinkExtracter(HTMLParser):
+
+    def handle_starttag(self, tag, attrs):
+        if tag == "link":
+            data = dict(attrs)
+            rel = data.get('rel', None)
+            if rel == 'self':
+                self.links['self'] = data.get('href', None)
+            elif rel == 'alternate':
+                linkType = data.get('type', None)
+                link = data.get('href', None)
+                if linkType and link:
+                    self.links['alternate'][linkType] = link
+
+def extractLinks(text):
+    p = LinkExtracter()
+    p.links = {'self' : None, 'alternate' : { }}
+    p.feed(text)
+    return p.links
+
 
 
 

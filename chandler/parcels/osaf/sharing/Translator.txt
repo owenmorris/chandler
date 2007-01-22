@@ -81,7 +81,8 @@ Importing:
     >>> rec = sharing.model.NoteRecord(
     ...         uuid='f230dcd4-7c32-4c3f-908b-d92081cc9a89',
     ...         body='This is the body',
-    ...         icaluid=None
+    ...         icaluid=None,
+    ...         reminderTime=None
     ... )
 
     >>> rs = sharing.RecordSet([rec])
@@ -103,7 +104,7 @@ Exporting:
     >>> t.startExport()
     >>> records = list(t.exportItem(item))
     >>> records
-    [ItemRecord('f230dcd4-7c32-4c3f-908b-d92081cc9a89', u'Translator test', u'later', Decimal("..."), None, Decimal("1164803131")), NoteRecord('f230dcd4-7c32-4c3f-908b-d92081cc9a89', u'This is the body', None)]
+    [ItemRecord('f230dcd4-7c32-4c3f-908b-d92081cc9a89', u'Translator test', u'later', Decimal("..."), None, Decimal("1164803131")), NoteRecord('f230dcd4-7c32-4c3f-908b-d92081cc9a89', u'This is the body', None, None)]
 
 TODO: icaluid
 
@@ -139,4 +140,4 @@ Exporting:
     >>> t.startExport()
     >>> records = list(t.exportItem(item))
     >>> records
-    [ItemRecord('f230dcd4-7c32-4c3f-908b-d92081cc9a89', u'Translator test', u'later', Decimal("..."), None, Decimal("1164803131")), NoteRecord('f230dcd4-7c32-4c3f-908b-d92081cc9a89', u'This is the body', None), TaskRecord('f230dcd4-7c32-4c3f-908b-d92081cc9a89')]
+    [ItemRecord('f230dcd4-7c32-4c3f-908b-d92081cc9a89', u'Translator test', u'later', Decimal("..."), None, Decimal("1164803131")), NoteRecord('f230dcd4-7c32-4c3f-908b-d92081cc9a89', u'This is the body', None, None), TaskRecord('f230dcd4-7c32-4c3f-908b-d92081cc9a89')]

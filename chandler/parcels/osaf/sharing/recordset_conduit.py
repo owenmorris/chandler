@@ -21,12 +21,16 @@ import zanshin
 logger = logging.getLogger(__name__)
 
 
+__all__ = [
+    'RecordSetConduit',
+    'InMemoryRecordSetConduit',
+]
 
 
-class Baseline(schema.Item):
-    records = schema.Sequence(schema.Tuple)
-
-
+class State(schema.Item):
+    agreed = schema.Sequence(schema.Tuple)
+    pending_inclusions = schema.Sequence(schema.Tuple)
+    pending_exclusions = schema.Sequence(schema.Tuple)
 
 
 
@@ -46,10 +50,9 @@ class RecordSetConduit(conduits.BaseConduit):
         changedItems = set()
 
         if self.syncToken:  # We've been synced before
-            # Determine which items have changed:
-            for uuid, version, kind, status, values, references, prevKind in \
-                rv.mapHistory(self.itemsMarker.itsVersion-1, rv.itsVersion):
-                # @@@MOR: Doublecheck the above version numbers's are correct
+            for item in self.share.contents:
+                # TBD: determine which items have actually changed,
+                # and also which have been deleted
                 changedItems.add(uuid)
 
         else:               # We've not been synced before
@@ -67,13 +70,12 @@ class RecordSetConduit(conduits.BaseConduit):
                 rs = eim.RecordSet()
             rsNewBase[uuid] = rs
 
-
         # Get inbound diffs
         text = self.get()
         inboundDiff = self.serializer.deserialize(text)
 
         # Merge
-        toSend, toApply, lost = self.merge(rsNewBase, inboundDiff)
+        toSend, toApply, pending = self.merge(rsNewBase, inboundDiff)
 
         # Apply
         for itemUUID, rs in toApply.items():
@@ -84,72 +86,114 @@ class RecordSetConduit(conduits.BaseConduit):
         self.put(text)
 
 
-    def merge(self, rsNewBase, inboundDiff):
 
-        # The new sync algorithm
 
-        toSend = {}
+    def clean_diff(self, state, diff):
+        diff = (state + diff) - state
+
+        # Remove any unnecessary exclusions (i.e., those that don't have a
+        # match in the state.inclusions)
+        inc = list(r.getKey() for r in state.inclusions)
+        for r in list(diff.exclusions):
+            k = r.getKey()
+            if k not in inc:
+                diff.exclusions.remove(r)
+
+        return diff
+
+
+
+
+    def merge(self, rsNewBase, inboundDiffs={}, send=True, receive=True):
+        """Update states, return send/apply/pending dicts
+
+        rsNewBase is a dict from itemUUID -> recordset for items changed
+        since last send.  It must always be supplied.
+
+        inboundDiffs is a dict from itemUUID -> the inbound diff recordset.
+        It can be omitted if `receive` is false.
+
+        The returned mappings are unfiltered; note that the 'pending'
+        mapping's contents need to get filtered too!  So long as we aren't
+        sharing a particular field, it shouldn't be considered part of a
+        pending change, at least at the UI level.
+        """
         toApply = {}
-        lost = {}
-
+        toSend  = {}
+        pending = {}
 
         filter = self.getFilter()
 
-        for itemUUID, rs in inboundDiff.items():
-            # Until Cosmo supports diffs, we need to compute the diffs
-            # ourselves:
-            rsOld = self.getRecordSet(itemUUID)
-            dInbound = rs - rsOld
+        for uuid in set(rsNewBase) | set(inboundDiffs):
+            agreed, old_pending = self.getStates(uuid)
+            my_state = filter.sync_filter(rsNewBase.get(uuid, agreed))
 
-            if itemUUID in rsNewBase:
-                dLocal = (filter.sync_filter(rsNewBase[itemUUID]) -
-                          filter.sync_filter(rsOld))
-                conflicts = dLocal.conflicts(dInbound)
-                if conflicts:
-                    lost[itemUUID] = conflicts
-                rsNewBase[itemUUID] += dInbound
+            filteredInbound = filter.sync_filter(inboundDiffs.get(uuid,
+                eim.RecordSet()))
+            their_state = agreed + old_pending + filteredInbound
 
-            dFilteredIn = filter.sync_filter(rs) - filter.sync_filter(rsOld)
-            if dFilteredIn:
-                toApply[itemUUID] = dFilteredIn
+            ncd = (my_state - agreed) | (their_state - agreed)
 
-            rsOld += dInbound
-            self.saveRecordSet(itemUUID, rsOld)
+            dSend = self.clean_diff(their_state, ncd)
+            if dSend:
+                toSend[uuid] = dSend
 
-        for itemUUID, rs in rsNewBase.items():
-            rsOld = self.getRecordSet(itemUUID)
-            dOutbound = filter.sync_filter(rs) - filter.sync_filter(rsOld)
-            if dOutbound:
-                if rsNewBase[itemUUID].inclusions:
-                    toSend[itemUUID] = dOutbound
-                else: # deleted item
-                    toSend[itemUUID] = None # marker indicating deletion
-                rsOld += dOutbound
-                self.saveRecordSet(itemUUID, rsOld)
+            dApply = self.clean_diff(my_state, ncd)
+            if dApply:
+                toApply[uuid] = dApply
 
-        return toSend, toApply, lost
+            if send:
+                their_state += dSend
+
+            agreed += ncd
+
+            new_pending = their_state - agreed
+            if new_pending:
+                pending[uuid] = new_pending
+
+            self.saveStates(uuid, agreed, new_pending)
+
+        return toSend, toApply, pending
 
 
 
-    def saveRecordSet(self, uuidString, recordSet):
-        Baseline.update(self, uuidString,
-            records=list(recordSet.inclusions))
+    def saveStates(self, uuidString, agreed, new_pending):
+        State.update(self, uuidString,
+            agreed=list(agreed.inclusions),
+            pending_inclusions=list(new_pending.inclusions),
+            pending_exclusions=list(new_pending.exclusions))
 
 
 
-    def getRecordSet(self, uuidString):
-        baseline = self.getItemChild(uuidString)
-        if baseline is None:
-            recordSet = eim.RecordSet()
+    def getStates(self, uuidString):
+        state = self.getItemChild(uuidString)
+
+        if state is None:
+            state = (eim.RecordSet(), eim.RecordSet())
+
         else:
-            # recordSet = RecordSet.from_tuples(baseline.records)
-            # Until RecordSet gets fleshed out:
-            records = []
             tupleNew = tuple.__new__
-            for tup in baseline.records:
+
+            # pull out the agreed-upon records
+            records = []
+            for tup in state.agreed:
                 records.append(tupleNew(tup[0], tup))
-            recordSet = eim.RecordSet(records)
-        return recordSet
+            agreed = eim.RecordSet(records)
+
+            # pull out the pending records
+            inclusions = []
+            for tup in state.pending_inclusions:
+                inclusions.append(tupleNew(tup[0], tup))
+            exclusions = []
+            for tup in state.pending_exclusions:
+                exclusions.append(tupleNew(tup[0], tup))
+            pending = eim.RecordSet(inclusions, exclusions)
+
+            state = (agreed, pending)
+
+        return state
+
+
 
 
     def getFilter(self):
@@ -159,66 +203,6 @@ class RecordSetConduit(conduits.BaseConduit):
         return filter
 
 
-
-
-
-class CosmoRecordSetConduit(RecordSetConduit, conduits.HTTPMixin):
-
-    # TODO:
-    # getLocation() -- if sharePath is "" and shareName is "collections/uuid"
-    # then getLocation() should work
-
-    def get(self):
-        location = self.getLocation()
-
-        if self.syncToken:
-            location += "?token=%s" % self.syncToken
-
-        resp = self._send('GET', location)
-
-        self.syncToken = resp.headers.getHeader('X-MorseCode-SyncToken')
-        # # @@@MOR what if this header is missing?
-
-        text = resp.body
-
-    def put(self, text):
-        location = self.getLocation()
-
-        if self.syncToken:
-            location += "?token=%s" % self.syncToken
-            method = 'POST'
-        else:
-            method = 'PUT'
-
-        resp = self._send(method, location, text)
-
-        self.syncToken = resp.headers.getHeader('X-MorseCode-SyncToken')
-        # # @@@MOR what if this header is missing?
-
-        text = resp.body
-
-
-
-    def _send(self, methodName, path, body=None):
-
-        handle = self._getServerHandle()
-
-        extraHeaders = { }
-        if hasattr(self, 'ticket'):
-            extraHeaders['Ticket'] = self.ticket
-
-        request = zanshin.http.Request(methodName, path, extraHeaders, body)
-
-        try:
-            return handle.blockUntil(handle.addRequest, request)
-
-            # @@@MOR Should I check the response.status here or in the caller?
-
-        except zanshin.webdav.ConnectionError, err:
-            raise errors.CouldNotConnect(_(u"Unable to connect to server. Received the following error: %(error)s") % {'error': err})
-
-        except M2Crypto.BIO.BIOError, err:
-            raise errors.CouldNotConnect(_(u"Unable to connect to server. Received the following error: %(error)s") % {'error': err})
 
 
 

@@ -6,6 +6,10 @@ import time
 from datetime import datetime
 from decimal import Decimal
 
+__all__ = [
+    'PIMTranslator',
+]
+
 
 class PIMTranslator(eim.Translator):
 
@@ -60,22 +64,22 @@ class PIMTranslator(eim.Translator):
 
     # NoteRecord -------------
 
-    # TODO: icaluid (Grant is moving it to Note)
-
     @model.NoteRecord.importer
     def import_note(self, record):
         self.loadItemByUUID(
             record.uuid,
             pim.Note,
+            icaluid=record.icaluid,
             body=record.body
-        ) # incomplete
+        )
 
     @eim.exporter(pim.Note)
     def export_note(self, item):
         yield model.NoteRecord(
             item.itsUUID,                               # uuid
             item.body,                                  # body
-            None                                        # icaluid
+            getattr(item, "icaluid", None),             # icaluid
+            None                                        # reminderTime
         )
 
 

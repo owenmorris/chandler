@@ -12,7 +12,7 @@
 #   See the License for the specific language governing permissions and
 #   limitations under the License.
 
-from osaf import sharing
+import eim
 from application import schema
 import logging
 logger = logging.getLogger(__name__)
@@ -20,89 +20,115 @@ logger = logging.getLogger(__name__)
 # TODO: MailMessage
 
 
-text20 = sharing.TextType(size=20)
-text256 = sharing.TextType(size=256)
-text1024 = sharing.TextType(size=1024)
+text20 = eim.TextType(size=20)
+text256 = eim.TextType(size=256)
+text1024 = eim.TextType(size=1024)
 
 
-triageFilter = sharing.Filter('cid:triage-filter@osaf.us', u"Triage Status")
+triageFilter = eim.Filter('cid:triage-filter@osaf.us', u"Triage Status")
 
-eventStatusFilter = sharing.Filter('cid:event-status-filter@osaf.us',
+eventStatusFilter = eim.Filter('cid:event-status-filter@osaf.us',
     u"Event Status")
 
-remindersFilter = sharing.Filter('cid:reminders-filter@osaf.us', u"Reminders")
+remindersFilter = eim.Filter('cid:reminders-filter@osaf.us', u"Reminders")
 
 
-
-
-
-class CollectionRecord(sharing.Record):
-    URI = "http://osafoundation.org/eim/collection"
-
-    uuid = sharing.key(schema.UUID)
-
-
-
-
-
-class ItemRecord(sharing.Record):
+class ItemRecord(eim.Record):
     URI = "http://osafoundation.org/eim/item"
 
-    uuid = sharing.key(schema.UUID)
-    title = sharing.field(text256)
-    triageStatus = sharing.field(text256, [triageFilter])
-    triageStatusChanged = sharing.field(sharing.DecimalType(digits=11,
-        decimal_places=2), [triageFilter])
-    lastModifiedBy = sharing.field(text256) # storing an email address
-    createdOn = sharing.field(sharing.DecimalType(digits=20,
-        decimal_places=0))
+    uuid = eim.key(schema.UUID)
+    title = eim.field(text256)
+    triageStatus = eim.field(text256, [triageFilter])
+    triageStatusChanged = eim.field(eim.DecimalType(digits=11, decimal_places=2), [triageFilter])
+    lastModifiedBy = eim.field(text256) # storing an email address
+    createdOn = eim.field(eim.DecimalType(digits=20, decimal_places=0))
 
-class NoteRecord(sharing.Record):
+
+
+class NoteRecord(eim.Record):
     URI = "http://osafoundation.org/eim/note"
 
-    uuid = sharing.key(ItemRecord.uuid)
-    body = sharing.field(sharing.ClobType)
-    icaluid = sharing.field(text256)
+    uuid = eim.key(ItemRecord.uuid)
+    body = eim.field(eim.ClobType)
+    icaluid = eim.field(text256)
+    reminderTime = eim.field(eim.DecimalType(digits=20, decimal_places=0))
 
-class TaskRecord(sharing.Record):
+
+
+class TaskRecord(eim.Record):
     URI = "http://osafoundation.org/eim/task"
 
-    uuid = sharing.key(ItemRecord.uuid)
+    uuid = eim.key(ItemRecord.uuid)
 
-class EventRecord(sharing.Record):
+
+
+class TaskModificationRecord(eim.Record):
+    URI = "http://osafoundation.org/eim/taskModification"
+
+    masterUuid = eim.key(ItemRecord.uuid)
+    recurrenceId = eim.key(text20)
+
+
+
+class EventRecord(eim.Record):
     URI = "http://osafoundation.org/eim/event"
 
-    uuid = sharing.key(ItemRecord.uuid)
-    dtstart = sharing.field(text20)
-    dtend = sharing.field(text20)
-    location = sharing.field(text256)
-    rrule = sharing.field(text1024)
-    exrule = sharing.field(text1024)
-    rdate = sharing.field(text1024)
-    exdate = sharing.field(text1024)
-    recurrenceid = sharing.field(text20)
-    status = sharing.field(text256, [eventStatusFilter])
-
-    # anyTime -- may need for Apple iCal?
-    # allDay
-
-
-class ICalExtensionRecord(sharing.Record):
-    URI = "http://osafoundation.org/eim/icalext"
-
-    uuid = sharing.key(ItemRecord.uuid)
-    name = sharing.key(text256)
-    value = sharing.field(text1024)
+    uuid = eim.key(ItemRecord.uuid)
+    dtstart = eim.field(text20)
+    dtend = eim.field(text20)
+    anytime = eim.field(eim.IntType)
+    location = eim.field(text256)
+    rrule = eim.field(text1024)
+    exrule = eim.field(text1024)
+    rdate = eim.field(text1024)
+    exdate = eim.field(text1024)
+    status = eim.field(text256, [eventStatusFilter])
 
 
 
-class MailMessageRecord(sharing.Record):
+
+class EventModificationRecord(eim.Record):
+    URI = "http://osafoundation.org/eim/eventModification"
+
+    masterUuid = eim.field(ItemRecord.uuid)
+    recurrenceId = eim.key(text20)
+    dtstart = eim.field(text20)
+    dtend = eim.field(text20)
+    anytime = eim.field(eim.IntType)
+    location = eim.field(text256)
+    status = eim.field(text256, [eventStatusFilter])
+    title = eim.field(text256)
+    body = eim.field(eim.ClobType)
+    triageStatus = eim.field(text256, [triageFilter])
+    triageStatusChanged = eim.field(eim.DecimalType(digits=11, decimal_places=2), [triageFilter])
+    reminderTime = eim.field(eim.DecimalType(digits=20, decimal_places=0))
+
+
+
+
+
+
+class DisplayAlarmRecord(eim.Record):
+    URI = "http://osafoundation.org/eim/displayAlarm"
+
+    uuid = eim.key(ItemRecord.uuid)
+    description = eim.field(text1024)
+    trigger = eim.field(text1024)
+    duration = eim.field(text1024)
+    repeat = eim.field(eim.IntType)
+
+
+
+
+class MailMessageRecord(eim.Record):
     URI = "http://osafoundation.org/eim/mail"
 
-    uuid = sharing.key(ItemRecord.uuid)
-    subject = sharing.field(text256)
-    to = sharing.field(text256)
-    cc = sharing.field(text256)
-    bcc = sharing.field(text256)
+    uuid = eim.key(ItemRecord.uuid)
+    subject = eim.field(text256)
+    to = eim.field(text256)
+    cc = eim.field(text256)
+    bcc = eim.field(text256)
     # other headers?
+
+
 

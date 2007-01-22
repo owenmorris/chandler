@@ -61,12 +61,12 @@ Serialize and deserialize entire record sets using EIMMLSerializerLite::
     ... xmlns:note="http://osafoundation.org/eim/note">
     ... <eim:recordset uuid="8501de14-1dc9-40d4-a7d4-f289feff8214">
     ...    <item:record uuid="8501de14-1dc9-40d4-a7d4-f289feff8214" title="Welcome to Cosmo" triageStatus="now" triageStatusChanged="123456789.12" lastModifiedBy="foo@example.com" createdOn="1164803131" />
-    ...    <note:record uuid="8501de14-1dc9-40d4-a7d4-f289feff8214" body="This is the body" icaluid="1e2d48c0-d66b-494c-bb33-c3d75a1ba66b" />
+    ...    <note:record uuid="8501de14-1dc9-40d4-a7d4-f289feff8214" body="This is the body" icaluid="1e2d48c0-d66b-494c-bb33-c3d75a1ba66b" reminderTime="1169163900" />
     ...    <event:record uuid="8501de14-1dc9-40d4-a7d4-f289feff8214" dtstart="20061130T140000" dtend="20061130T150000" location="San Jose" rrule="FREQ=WEEKLY" status="CONFIRMED" />
     ... </eim:recordset>
     ... </eim:records>'''
 
-    >>> expectedRecordSets = { '8501de14-1dc9-40d4-a7d4-f289feff8214': rs([sharing.model.ItemRecord('8501de14-1dc9-40d4-a7d4-f289feff8214', u'Welcome to Cosmo', u'now', decimal.Decimal("123456789.12"), u'foo@example.com', decimal.Decimal("1164803131")), sharing.model.NoteRecord('8501de14-1dc9-40d4-a7d4-f289feff8214', 'This is the body', u'1e2d48c0-d66b-494c-bb33-c3d75a1ba66b'), sharing.model.EventRecord('8501de14-1dc9-40d4-a7d4-f289feff8214', u'20061130T140000', u'20061130T150000', u'San Jose', u'FREQ=WEEKLY', None, None, None, None, u'CONFIRMED')])}
+    >>> expectedRecordSets = { '8501de14-1dc9-40d4-a7d4-f289feff8214': rs([sharing.model.ItemRecord('8501de14-1dc9-40d4-a7d4-f289feff8214', u'Welcome to Cosmo', u'now', decimal.Decimal("123456789.12"), u'foo@example.com', decimal.Decimal("1164803131")), sharing.model.NoteRecord('8501de14-1dc9-40d4-a7d4-f289feff8214', 'This is the body', u'1e2d48c0-d66b-494c-bb33-c3d75a1ba66b', decimal.Decimal('1169163900')), sharing.model.EventRecord('8501de14-1dc9-40d4-a7d4-f289feff8214', u'20061130T140000', u'20061130T150000', None, u'San Jose', u'FREQ=WEEKLY', None, None, None, u'CONFIRMED')])}
 
     >>> recordSets = eimml.EIMMLSerializerLite.deserialize(sampleLite)
     >>> recordSets == expectedRecordSets
@@ -97,6 +97,7 @@ Serialize and deserialize entire record sets using EIMMLSerializer::
     ...       <note:uuid eim:type="text" eim:key="true"><![CDATA[8501de14-1dc9-40d4-a7d4-f289feff8214]]></note:uuid>
     ...       <note:body eim:type="clob"><![CDATA[This is the body]]></note:body>
     ...       <note:icaluid eim:type="text"><![CDATA[1e2d48c0-d66b-494c-bb33-c3d75a1ba66b]]></note:icaluid>
+    ...       <note:reminderTime eim:type="decimal"><![CDATA[1169163900]]></note:reminderTime>
     ...     </note:record>
     ...     <event:record xmlns:event="http://osafoundation.org/eim/event">
     ...       <event:uuid eim:type="text" eim:key="true"><![CDATA[8501de14-1dc9-40d4-a7d4-f289feff8214]]></event:uuid>
@@ -150,10 +151,11 @@ RecordSets can be stored and retrieved by UUID::
     >>> share = sharing.Share(itsView=rv)
     >>> conduit = recordset_conduit.RecordSetConduit(itsView=rv)
     >>> share.conduit = conduit
-    >>> conduit.saveRecordSet(uuidString, recordSet)
-    >>> newRecordSet = conduit.getRecordSet(uuidString)
-    >>> recordSet == newRecordSet
+    >>> conduit.saveStates(uuidString, recordSet, sharing.RecordSet())
+    >>> agreed, pending = conduit.getStates(uuidString)
+    >>> recordSet == agreed
     True
+
 
 
 
@@ -194,7 +196,7 @@ Send a new item::
     ... xmlns:note="http://osafoundation.org/eim/note">
     ... <eim:recordset uuid="9501de14-1dc9-40d4-a7d4-f289feff8214">
     ...    <item:record uuid="9501de14-1dc9-40d4-a7d4-f289feff8214" title="Welcome to Cosmo" triageStatus="now" triageStatusChanged="123456789.12" createdOn ="1164803131" />
-    ...    <note:record uuid="9501de14-1dc9-40d4-a7d4-f289feff8214" body="This is the body" icaluid="1e2d48c0-d66b-494c-bb33-c3d75a1ba66b" />
+    ...    <note:record uuid="9501de14-1dc9-40d4-a7d4-f289feff8214" body="This is the body" icaluid="1e2d48c0-d66b-494c-bb33-c3d75a1ba66b" reminderTime="1169163900" />
     ...    <event:record uuid="9501de14-1dc9-40d4-a7d4-f289feff8214" dtstart="20061130T140000" dtend="20061130T150000" rrule="FREQ=WEEKLY" status="CONFIRMED" />
     ... </eim:recordset>
     ... </eim:records>'''
@@ -218,7 +220,7 @@ created::
     >>> text = conduit.get()
     >>> conduit.syncToken
     '3'
-    >>> expectedRecordSets = { '8501de14-1dc9-40d4-a7d4-f289feff8214': rs([sharing.model.ItemRecord('8501de14-1dc9-40d4-a7d4-f289feff8214', u'Welcome to Cosmo', u'now', decimal.Decimal("123456789.12"), u'foo@example.com', decimal.Decimal("1164803131")), sharing.model.NoteRecord('8501de14-1dc9-40d4-a7d4-f289feff8214', 'This is the body', u'1e2d48c0-d66b-494c-bb33-c3d75a1ba66b'), sharing.model.EventRecord('8501de14-1dc9-40d4-a7d4-f289feff8214', u'20061130T140000', u'20061130T150000', u'San Jose', u'FREQ=WEEKLY', None, None, None, None, u'CONFIRMED')]), '9501de14-1dc9-40d4-a7d4-f289feff8214': rs([sharing.model.ItemRecord('9501de14-1dc9-40d4-a7d4-f289feff8214', u'Welcome to Cosmo', u'now', decimal.Decimal("123456789.12"), None, decimal.Decimal("1164803131")), sharing.model.NoteRecord('9501de14-1dc9-40d4-a7d4-f289feff8214', 'This is the body', u'1e2d48c0-d66b-494c-bb33-c3d75a1ba66b'), sharing.model.EventRecord('9501de14-1dc9-40d4-a7d4-f289feff8214', u'20061130T140000', u'20061130T150000', None, u'FREQ=WEEKLY', None, None, None, None, u'CONFIRMED')]) }
+    >>> expectedRecordSets = { '8501de14-1dc9-40d4-a7d4-f289feff8214': rs([sharing.model.ItemRecord('8501de14-1dc9-40d4-a7d4-f289feff8214', u'Welcome to Cosmo', u'now', decimal.Decimal("123456789.12"), u'foo@example.com', decimal.Decimal("1164803131")), sharing.model.NoteRecord('8501de14-1dc9-40d4-a7d4-f289feff8214', 'This is the body', u'1e2d48c0-d66b-494c-bb33-c3d75a1ba66b', decimal.Decimal('1169163900')), sharing.model.EventRecord('8501de14-1dc9-40d4-a7d4-f289feff8214', u'20061130T140000', u'20061130T150000', None, u'San Jose', u'FREQ=WEEKLY', None, None, None, u'CONFIRMED')]), '9501de14-1dc9-40d4-a7d4-f289feff8214': rs([sharing.model.ItemRecord('9501de14-1dc9-40d4-a7d4-f289feff8214', u'Welcome to Cosmo', u'now', decimal.Decimal("123456789.12"), None, decimal.Decimal("1164803131")), sharing.model.NoteRecord('9501de14-1dc9-40d4-a7d4-f289feff8214', 'This is the body', u'1e2d48c0-d66b-494c-bb33-c3d75a1ba66b', decimal.Decimal('1169163900')), sharing.model.EventRecord('9501de14-1dc9-40d4-a7d4-f289feff8214', u'20061130T140000', u'20061130T150000', None, None, u'FREQ=WEEKLY', None, None, None, u'CONFIRMED')]) }
     >>> recordSets = eimml.EIMMLSerializerLite.deserialize(text)
     >>> recordSets == expectedRecordSets
     True
@@ -233,7 +235,9 @@ Merging RecordSets
 The RecordSetConduit class has a merge method which will compare inbound
 and outbound changes, merge the non-overlapping changes, and return the
 set of records to send outbound, the set of records to apply locally, and
-the local changes that were lost due to conflict::
+the inbound changes that are pending due to conflict::
+
+    >>> empty = rs()
 
     >>> barFilter = sharing.Filter('cid:bar-filter@osaf.us', u"Bars")
     >>> bazFilter = sharing.Filter('cid:baz-filter@osaf.us', u"Bazzes")
@@ -244,101 +248,131 @@ the local changes that were lost due to conflict::
     ...     bar = sharing.field(int, [barFilter])
     ...     baz = sharing.field(int, [bazFilter])
 
+
 Set up a conduit::
 
     >>> conduit = recordset_conduit.RecordSetConduit(itsView=rv)
     >>> conduit.filters = []
 
-Verify the old baseline is empty::
+Verify the old state is empty::
 
-    >>> conduit.getRecordSet('1') == rs()
+    >>> conduit.getStates('1') == (empty, empty)
     True
 
 Test a no-op (no inbound nor outbound changes)::
 
-    >>> rsNewBase = { }
-    >>> inboundDiff = { }
-    >>> toSend, toApply, lost = conduit.merge(rsNewBase, inboundDiff)
-    >>> toSend == { }
+    >>> conduit.saveStates('1', empty, empty)
+    >>> conduit.merge({ }, { }) == ({ }, { }, { })
     True
-    >>> toApply == { }
-    True
-    >>> lost == { }
-    True
-    >>> conduit.getRecordSet('1') == rs()
+    >>> conduit.getStates('1') == (empty, empty)
     True
 
 Merge a local addition with no inbound changes::
 
     >>> rsNewBase =   { '1' : rs([Demo(1, 1, 1)]) }
     >>> inboundDiff = { }
-    >>> toSend, toApply, lost = conduit.merge(rsNewBase, inboundDiff)
+    >>> toSend, toApply, pending = conduit.merge(rsNewBase, inboundDiff)
     >>> toSend == {'1': rs(set([Demo(1, 1, 1)]))}
     True
     >>> toApply == { }
     True
-    >>> lost == { }
+    >>> pending == { }
+    True
+
+    >>> conduit.saveStates('1', empty, empty)
+    >>> conduit.merge(
+    ...     { '1' : rs([Demo(1, 1, 1)]) }, { }
+    ... ) == (
+    ...     {'1': rs(set([Demo(1, 1, 1)]))}, { }, { }
+    ... )
     True
 
 Verify the old baseline has been updated::
-
-    >>> conduit.getRecordSet('1') == rs(set([Demo(1,1,1)]))
+    >>> conduit.getStates('1') == (rs(set([Demo(1,1,1)])), empty)
     True
 
 Merge in an inbound change (no outbound changes)::
 
-    >>> rsNewBase = { }
-    >>> inboundDiff = { '1' : rs([Demo(1, 1, 2)]) }
-    >>> toSend, toApply, lost = conduit.merge(rsNewBase, inboundDiff)
-    >>> toSend == { }
+    >>> conduit.merge(
+    ...     { }, { '1' : rs([Demo(1, 1, 2)]) }
+    ... ) == (
+    ...     { }, {'1': rs(set([Demo(1, nc, 2)]))}, { }
+    ... )
     True
-    >>> toApply == {'1': rs(set([Demo(1, nc, 2)]))}
-    True
-    >>> lost == { }
-    True
-    >>> conduit.getRecordSet('1') == rs(set([Demo(1,1,2)]))
+
+    >>> conduit.getStates('1') == (rs(set([Demo(1,1,2)])), empty)
     True
 
 Merge non-overlapping inbound and outbound changes::
 
     >>> rsNewBase =   { '1' : rs([Demo(1, 3, 2)]) }
     >>> inboundDiff = { '1' : rs([Demo(1, 1, 3)]) }
-    >>> toSend, toApply, lost = conduit.merge(rsNewBase, inboundDiff)
+    >>> toSend, toApply, pending = conduit.merge(rsNewBase, inboundDiff)
     >>> toSend == {'1': rs(set([Demo(1, 3, nc)]))}
     True
     >>> toApply == {'1': rs(set([Demo(1, nc, 3)]))}
     True
-    >>> lost == { }
+    >>> pending == { }
     True
-    >>> conduit.getRecordSet('1') == rs(set([Demo(1,3,3)]))
+    >>> conduit.getStates('1') == (rs(set([Demo(1,3,3)])), empty)
     True
 
-Merge overlapping and non-overlapping inbound and outbound changes::
+Merge overlapping and non-overlapping inbound and outbound changes, resulting
+in pending inbound changes::
 
     >>> rsNewBase =   { '1' : rs([Demo(1, 4, 4)]) }
-    >>> inboundDiff = { '1' : rs([Demo(1, 5, 3)]) }
-    >>> toSend, toApply, lost = conduit.merge(rsNewBase, inboundDiff)
+    >>> inboundDiff = { '1' : rs([Demo(1, 5, nc)]) }
+    >>> toSend, toApply, pending = conduit.merge(rsNewBase, inboundDiff)
     >>> toSend == {'1': rs(set([Demo(1, nc, 4)]))}
     True
-    >>> toApply == {'1': rs(set([Demo(1, 5, nc)]))}
+    >>> toApply == { }
     True
-    >>> lost == {'1': rs(set([Demo(1, 4, nc)]))}
+    >>> pending == {'1': rs(set([Demo(1, 5, nc)]))}
     True
-    >>> conduit.getRecordSet('1') == rs(set([Demo(1,5,4)]))
+    >>> conduit.getStates('1') == (rs(set([Demo(1,3,4)])), rs(set([Demo(1,5,nc)])))
+    True
+
+With pending changes, non-conflicting local modifications can still go out::
+
+    >>> rsNewBase =   { '1' : rs([Demo(1, 4, 5)]) }
+    >>> inboundDiff = { }
+    >>> toSend, toApply, pending = conduit.merge(rsNewBase, inboundDiff)
+    >>> toSend == {'1': rs(set([Demo(1, nc, 5)]))}
+    True
+    >>> toApply == { }
+    True
+    >>> pending == {'1': rs(set([Demo(1, 5, nc)]))}
+    True
+    >>> conduit.getStates('1') == (rs(set([Demo(1,3,5)])), rs(set([Demo(1,5,nc)])))
+    True
+
+See that a pending change can disappear due to a later inbound change:
+
+    >>> rsNewBase =   { } # Note: without specifying the full recordset for this item, a redundant toApply appears
+    >>> rsNewBase =   { '1' : rs([Demo(1, 4, 5)]) }
+    >>> inboundDiff = { '1' : rs([Demo(1, 4, 5)]) }
+    >>> toSend, toApply, pending = conduit.merge(rsNewBase, inboundDiff)
+    >>> toSend == { }
+    True
+    >>> toApply == { }
+    True
+    >>> pending == { }
+    True
+    >>> conduit.getStates('1') == (rs(set([Demo(1,4,5)])), empty)
     True
 
 Merge only overlapping inbound and outbound changes::
 
-    >>> rsNewBase =   { '1' : rs([Demo(1, 5, 6)]) }
-    >>> inboundDiff = { '1' : rs([Demo(1, 5, 7)]) }
-    >>> toSend, toApply, lost = conduit.merge(rsNewBase, inboundDiff)
+    >>> rsNewBase =   { '1' : rs([Demo(1, 4, 6)]) }
+    >>> inboundDiff = { '1' : rs([Demo(1, 4, 7)]) }
+    >>> toSend, toApply, pending = conduit.merge(rsNewBase, inboundDiff)
     >>> toSend == { }
     True
-    >>> toApply == {'1': rs(set([Demo(1, nc, 7)]))}
+    >>> toApply == { }
     True
-    >>> lost == {'1': rs(set([Demo(1, nc, 6)]))}
+    >>> pending == {'1': rs(set([Demo(1, nc, 7)]))}
     True
-    >>> conduit.getRecordSet('1') == rs(set([Demo(1,5,7)]))
+    >>> conduit.getStates('1') == (rs(set([Demo(1,4,5)])), rs(set([Demo(1,nc,7)])))
     True
 
 Add in a filter, make a local change and no inbound changes::
@@ -346,67 +380,79 @@ Add in a filter, make a local change and no inbound changes::
     >>> conduit.filters = ['cid:bar-filter@osaf.us']
     >>> rsNewBase = { '1' : rs([Demo(1, 6, 8)]) }
     >>> inboundDiff = { }
-    >>> toSend, toApply, lost = conduit.merge(rsNewBase, inboundDiff)
-    >>> toSend == {'1': rs(set([Demo(1, nc, 8)]))}
-    True
-    >>> conduit.getRecordSet('1') == rs(set([Demo(1,5,8)]))
-    True
-
-Even though we locally modified the 'bar' field, the outbound record still
-contains the previous, externally seen value.
-
-There can be multiple filters in effect; note how the outbound record hasn't
-changed at all::
-
-    >>> conduit.filters = ['cid:bar-filter@osaf.us', 'cid:baz-filter@osaf.us']
-    >>> rsNewBase = { '1' : rs([Demo(1, 7, 9)]) }
-    >>> inboundDiff = { }
-    >>> toSend, toApply, lost = conduit.merge(rsNewBase, inboundDiff)
-    >>> toSend == {}
-    True
-    >>> conduit.getRecordSet('1') == rs(set([Demo(1,5,8)]))
-    True
-
-Verify that inbound changes to filtered fields are not applied locally::
-
-    >>> conduit.filters = ['cid:bar-filter@osaf.us']
-    >>> rsNewBase = { }
-    >>> inboundDiff = { '1' : rs([Demo(1, 6, 8)]) }
-    >>> toSend, toApply, lost = conduit.merge(rsNewBase, inboundDiff)
+    >>> toSend, toApply, pending = conduit.merge(rsNewBase, inboundDiff)
     >>> toSend == { }
     True
     >>> toApply == { }
     True
-    >>> conduit.getRecordSet('1') == rs(set([Demo(1,6,8)]))
+    >>> pending == {'1': rs(set([Demo(1, nc, 7)]))}
+    True
+    >>> conduit.getStates('1') == (rs(set([Demo(1,4,5)])), rs(set([Demo(1,nc,7)])))
     True
 
-Verify that inbound changes to unfiltered fields (when filters are active)
-are applied locally::
+Even though we locally modified the 'bar' field, it is not sent because of
+the filter.  Even though we locally modified the 'baz' field, since there is
+an outstanding pending change it is also not sent.
+
+See that a pending change can disappear due to a later outbound change:
+
+    >>> rsNewBase =   { '1' : rs([Demo(1, 6, 7)]) }
+    >>> inboundDiff = { }
+    >>> toSend, toApply, pending = conduit.merge(rsNewBase, inboundDiff)
+    >>> toSend == { }
+    True
+    >>> toApply == { }
+    True
+    >>> pending == { }
+    True
+    >>> conduit.getStates('1') == (rs(set([Demo(1,4,7)])), empty)
+    True
+
+There can be multiple filters in effect; note how we locally change both fields
+yet send nothing, and the agreed upon state doesn't change::
+
+    >>> conduit.filters = ['cid:bar-filter@osaf.us', 'cid:baz-filter@osaf.us']
+    >>> rsNewBase = { '1' : rs([Demo(1, 7, 8)]) }
+    >>> inboundDiff = { }
+    >>> toSend, toApply, pending = conduit.merge(rsNewBase, inboundDiff)
+    >>> toSend == { }
+    True
+    >>> toApply == { }
+    True
+    >>> pending == { }
+    True
+    >>> conduit.getStates('1') == (rs(set([Demo(1,4,7)])), empty)
+    True
+
+Verify that inbound changes to filtered fields are not applied locally, yet
+unfiltered inbound changes are applied::
 
     >>> conduit.filters = ['cid:bar-filter@osaf.us']
     >>> rsNewBase = { }
-    >>> inboundDiff = { '1' : rs([Demo(1, 6, 9)]) }
-    >>> toSend, toApply, lost = conduit.merge(rsNewBase, inboundDiff)
+    >>> inboundDiff = { '1' : rs([Demo(1, 5, 8)]) }
+    >>> toSend, toApply, pending = conduit.merge(rsNewBase, inboundDiff)
     >>> toSend == { }
     True
-    >>> toApply == {'1': rs(set([Demo(1, nc, 9)]))}
+    >>> toApply == {'1': rs(set([Demo(1, nc, 8)]))}
     True
-    >>> conduit.getRecordSet('1') == rs(set([Demo(1,6,9)]))
+    >>> pending == { }
+    True
+    >>> conduit.getStates('1') == (rs(set([Demo(1,4,8)])), empty)
     True
 
 Verify that inbound and outbound changes to a filtered field is not considered
 a conflict::
 
-    >>> rsNewBase =   { '1' : rs([Demo(1, 7, 9)]) }
-    >>> inboundDiff = { '1' : rs([Demo(1, 8, 9)]) }
-    >>> toSend, toApply, lost = conduit.merge(rsNewBase, inboundDiff)
+    >>> rsNewBase =   { '1' : rs([Demo(1, 8, 9)]) }
+    >>> inboundDiff = { '1' : rs([Demo(1, 9, 9)]) }
+    >>> toSend, toApply, pending = conduit.merge(rsNewBase, inboundDiff)
     >>> toSend == { }
     True
     >>> toApply == { }
     True
-    >>> lost == { }
+    >>> pending == { }
     True
-    >>> conduit.getRecordSet('1') == rs(set([Demo(1,8,9)]))
+    >>> conduit.getStates('1') == (rs(set([Demo(1,4,9)])), empty)
     True
 
 Verify that conflicts can still be detected when at least one conflicting
@@ -414,29 +460,86 @@ field is not filtered::
 
     >>> rsNewBase =   { '1' : rs([Demo(1, 9, 10)]) }
     >>> inboundDiff = { '1' : rs([Demo(1, 10, 11)]) }
-    >>> toSend, toApply, lost = conduit.merge(rsNewBase, inboundDiff)
+    >>> toSend, toApply, pending = conduit.merge(rsNewBase, inboundDiff)
     >>> toSend == { }
     True
-    >>> toApply == {'1': rs(set([Demo(1, nc, 11)]))}
+    >>> toApply == { }
     True
-    >>> lost == {'1': rs(set([Demo(1, nc, 10)]))}
+    >>> pending == {'1': rs(set([Demo(1, nc, 11)]))}
     True
-    >>> conduit.getRecordSet('1') == rs(set([Demo(1,10,11)]))
+    >>> conduit.getStates('1') == (rs(set([Demo(1,4,9)])), rs(set([Demo(1, nc, 11)])))
     True
 
-Verify that a missing inbound record is applied as a deletion::
+
+Start over, to test that local deletions get sent::
+
+    >>> conduit.filters = []
+    >>> conduit.saveStates('1', rs(set([Demo(1,1,1)])), rs())
+
+    >>> rsNewBase = { '1' : rs() }
+    >>> inboundDiff =   { }
+    >>> toSend, toApply, pending = conduit.merge(rsNewBase, inboundDiff)
+    >>> toSend == {'1': rs([], set([Demo(1, 1, 1)]))}
+    True
+    >>> toApply == { }
+    True
+    >>> pending == { }
+    True
+
+
+Start over, to test that remote deletions get applied::
+
+    >>> conduit.saveStates('1', rs(set([Demo(1,1,1)])), rs())
 
     >>> rsNewBase =   { }
-    >>> inboundDiff = { '1' : rs() }
-    >>> toSend, toApply, lost = conduit.merge(rsNewBase, inboundDiff)
+    >>> inboundDiff = { '1' : rs([], [Demo(1, nc, nc)]) }
+    >>> toSend, toApply, pending = conduit.merge(rsNewBase, inboundDiff)
     >>> toSend == { }
     True
-    >>> toApply == {'1': rs(set([]), set([Demo(1, nc, 11)]))}
+    >>> toApply == {'1': rs([], set([Demo(1, 1, 1)]))}
     True
-    >>> lost == {}
+    >>> pending == { }
     True
-    >>> conduit.getRecordSet('1') == rs()
+
+
+Start over, to test that local changes and remote deletions get detected::
+
+    >>> conduit.saveStates('1', rs(set([Demo(1,1,1)])), rs())
+
+    >>> rsNewBase = { '1' : rs([Demo(1, 2, 2)]) }
+    >>> inboundDiff = { '1' : rs([], [Demo(1, nc, nc)]) }
+    >>> toSend, toApply, pending = conduit.merge(rsNewBase, inboundDiff)
+    >>> toSend == { }
     True
+    >>> toApply == { }
+    True
+    >>> pending == {'1': rs([], set([Demo(1, 1, 1)]))}
+    True
+    >>> conduit.getStates('1') == (rs(set([Demo(1,1,1)])), rs([], set([Demo(1, 1, 1)])))
+    True
+
+
+Start over, to test that local deletions and remote changes get detected::
+
+
+    >>> conduit.saveStates('1', rs(set([Demo(1,1,1)])), rs())
+
+    >>> rsNewBase = { '1' : rs() }
+    >>> inboundDiff = { '1' : rs([Demo(1, 2, 2)]) }
+    >>> toSend, toApply, pending = conduit.merge(rsNewBase, inboundDiff)
+    >>> toSend == { }
+    True
+    >>> toApply == { }
+    True
+    >>> pending == {'1': rs(set([Demo(1, 2, 2)]))}
+    True
+    >>> conduit.getStates('1') == (rs(set([Demo(1,1,1)])), rs(set([Demo(1, 2, 2)])))
+    True
+
+
+
+
+
 
 Start over, adding two records (one of a new record type)::
 
@@ -447,54 +550,48 @@ Start over, adding two records (one of a new record type)::
     ...     baz = sharing.field(int, [bazFilter])
 
     >>> conduit.filters = []
-    >>> rsNewBase =   { '1' : rs([Demo(1, 1, 1), Demo2(1, 2, 2)]) }
-    >>> inboundDiff = { }
-    >>> toSend, toApply, lost = conduit.merge(rsNewBase, inboundDiff)
-    >>> toSend == {'1': rs(set([Demo(1, 1, 1), Demo2(1, 2, 2)]))}
-    True
-    >>> conduit.getRecordSet('1') == rs(set([Demo(1,1,1), Demo2(1,2,2)]))
-    True
+    >>> conduit.saveStates('1', rs(set([Demo(1,1,1), Demo2(1, 2, 2)])), rs())
 
 ...now remove the Demo(1,1,1), and the result of the merge will be that we
-will send only the remaining record::
+will send a deletion for that record::
 
     >>> rsNewBase =   { '1' : rs(set([Demo2(1,2,2)])) }
     >>> inboundDiff = { }
-    >>> toSend, toApply, lost = conduit.merge(rsNewBase, inboundDiff)
+    >>> toSend, toApply, pending = conduit.merge(rsNewBase, inboundDiff)
     >>> toSend == {'1' : rs(set([]), set([Demo(1,1,1)])) }
     True
-    >>> conduit.getRecordSet('1') == rs(set([Demo2(1,2,2)]))
+    >>> conduit.getStates('1') == (rs(set([Demo2(1,2,2)])), empty)
     True
 
 If a record is removed inbound and outbound, that is not a conflict.  Note
 that a double-deletion results in an unnecessary record deletion in toApply,
 but record adding and deleting need to be idempotent anyway, so it's ok::
 
-    >>> rsNewBase =   { '1' : rs() }
-    >>> inboundDiff =   { '1' : rs() }
-    >>> toSend, toApply, lost = conduit.merge(rsNewBase, inboundDiff)
-    >>> toSend == {'1' : None} # an item deletion indicator
+    >>> rsNewBase =   { '1' : empty }
+    >>> inboundDiff =   { '1' : empty }
+    >>> toSend, toApply, pending = conduit.merge(rsNewBase, inboundDiff)
+    >>> toSend == {'1' : rs(set([]), set([Demo2(1,2,2)]))} # will be a no-op
     True
-    >>> toApply == {'1' : rs(set([]), set([Demo2(1,2,2)]))} # will be a no-op
+    >>> toApply == { }
     True
-    >>> lost == { }
+    >>> pending == { }
     True
-    >>> conduit.getRecordSet('1') == rs()
+    >>> conduit.getStates('1') == (empty, empty)
     True
 
 
 
-Set up a conduit, with a filter this time from the start::
+Start over, with a filter this time from the start::
 
-    >>> conduit = recordset_conduit.RecordSetConduit(itsView=rv)
     >>> conduit.filters = ['cid:bar-filter@osaf.us']
+    >>> conduit.saveStates('1', empty, empty)
 
 Merge a local addition with no inbound changes; note that the outbound
 record has a NoChange value on the filtered field::
 
     >>> rsNewBase = { '1' : rs([Demo(1, 1, 1)]) }
     >>> inboundDiff = { }
-    >>> toSend, toApply, lost = conduit.merge(rsNewBase, inboundDiff)
+    >>> toSend, toApply, pending = conduit.merge(rsNewBase, inboundDiff)
     >>> toSend == {'1': rs(set([Demo(1, nc, 1)]))}
     True
 
