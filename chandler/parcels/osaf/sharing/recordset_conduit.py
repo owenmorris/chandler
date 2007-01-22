@@ -112,11 +112,6 @@ class RecordSetConduit(conduits.BaseConduit):
 
         inboundDiffs is a dict from itemUUID -> the inbound diff recordset.
         It can be omitted if `receive` is false.
-
-        The returned mappings are unfiltered; note that the 'pending'
-        mapping's contents need to get filtered too!  So long as we aren't
-        sharing a particular field, it shouldn't be considered part of a
-        pending change, at least at the UI level.
         """
         toApply = {}
         toSend  = {}
