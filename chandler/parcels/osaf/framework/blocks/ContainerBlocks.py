@@ -256,7 +256,7 @@ class SplitterWindow(RectangularChild):
     This block seems to ignore children's stretchFactors.
     """
 
-    splitPercentage = schema.One(schema.Float, initialValue = 0.5)
+    splitPercentage = schema.One(schema.Float, defaultValue = 0.5)
     allowResize = schema.One(schema.Boolean, initialValue = True)
     orientationEnum = schema.One(
         orientationEnumType, initialValue = 'Horizontal',
@@ -268,14 +268,12 @@ class SplitterWindow(RectangularChild):
         copying = schema.Cloud (byCloud = [splitController])
     )
 
-
     def instantiateWidget (self):
         return wxSplitterWindow (self.parentBlock.widget,
                                  self.getWidgetID(), 
                                  wx.DefaultPosition,
                                  (self.size.width, self.size.height),
                                  style=wxSplitterWindow.CalculateWXStyle(self))
-                
 
 class wxViewContainer (wxBoxContainer):
     pass

@@ -1162,8 +1162,9 @@ class SidebarBlock(Table):
 
 class SidebarBranchPointDelegate(BranchPoint.BranchPointDelegate):
 
-    tableTemplatePath = schema.One(schema.Text)
     calendarTemplatePath = schema.One(schema.Text)
+    dashboardTemplatePath = schema.One(schema.Text)
+    tableTemplatePath = schema.One(schema.Text)
     itemTupleKeyToCacheKey = schema.Mapping(schema.Item, initialValue = {})
     stampToCollectionCache = schema.Mapping(schema.Item, initialValue = {})
 
@@ -1336,17 +1337,19 @@ class SidebarBranchPointDelegate(BranchPoint.BranchPointDelegate):
 
     def _makeBranchForCacheKey(self, keyItem):
         sidebar = Block.Block.findBlockByName("Sidebar")
-        if (not UserCollection(keyItem).dontDisplayAsCalendar and
-            sidebar.filterClass is pim.EventStamp and
-            not sidebar.showSearch):
-                template = self.findPath (self.calendarTemplatePath)
-                keyUUID = template.itsUUID
-                branch = self.keyUUIDToBranch.get (keyUUID, None)
-                if branch is None:
-                    branch = self._copyItem(template, onlyIfReadOnly=True)
-                    self.keyUUIDToBranch[keyUUID] = branch
-        else:
+        if sidebar.showSearch:
             branch = self.findPath (self.tableTemplatePath)
+        else:
+            if (not UserCollection(keyItem).dontDisplayAsCalendar and
+                sidebar.filterClass is pim.EventStamp):
+                    template = self.findPath (self.calendarTemplatePath)
+                    keyUUID = template.itsUUID
+                    branch = self.keyUUIDToBranch.get (keyUUID, None)
+                    if branch is None:
+                        branch = self._copyItem(template, onlyIfReadOnly=True)
+                        self.keyUUIDToBranch[keyUUID] = branch
+            else:
+                branch = self.findPath (self.dashboardTemplatePath)
 
         assert isinstance (branch, Block.Block)
         return self._copyItem(branch, onlyIfReadOnly=True)

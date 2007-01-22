@@ -45,8 +45,9 @@ def makeMainView(parcel):
 
     SidebarBranchPointDelegateInstance = SidebarBranchPointDelegate.update(
         parcel, 'SidebarBranchPointDelegateInstance',
-        tableTemplatePath = '//parcels/osaf/views/main/DashboardSummaryViewTemplate',
-        calendarTemplatePath = '//parcels/osaf/views/main/CalendarSummaryViewTemplate')
+        calendarTemplatePath = '//parcels/osaf/views/main/CalendarSummaryViewTemplate',
+        dashboardTemplatePath = '//parcels/osaf/views/main/DashboardSummaryViewTemplate',
+        tableTemplatePath = '//parcels/osaf/views/main/TableSummaryViewTemplate')
     
     IconButton = SSSidebarIconButton.update(
         parcel, 'IconButton',

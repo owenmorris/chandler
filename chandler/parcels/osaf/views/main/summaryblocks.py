@@ -569,7 +569,7 @@ def makeSummaryBlocks(parcel):
         branchStub = detailblocks.DetailRoot)
 
     iconColumnWidth = 23 # temporarily not 20, to work around header bug 6168
-    SplitterWindow.template(
+    DashboardSummaryViewTemplate = SplitterWindow.template(
         'DashboardSummaryViewTemplate',
         eventBoundary = True,
         orientationEnum = "Vertical",
@@ -597,9 +597,37 @@ def makeSummaryBlocks(parcel):
                 elementDelegate = 'osaf.views.main.SectionedGridDelegate',
                        defaultEditableAttribute = u'displayName',
                 selection = [[0,0]]),
+            BranchPointBlock.template('DashboardDetailBranchPointBlock',
+                delegate = detailBranchPointDelegate,
+                )
+            ]).install(parcel) # SplitterWindow DashboardSummaryViewTemplate
+
+    SplitterWindow.template(
+        'TableSummaryViewTemplate',
+        eventBoundary = True,
+        orientationEnum = "Vertical",
+        splitPercentage = 0.65,
+        childrenBlocks = [
+            Table.template('TableSummaryView',
+                contents = pim_ns.allCollection,
+                scaleWidthsToFit = True,
+                columns = [
+                    taskColumn,
+                    commColumn,
+                    whoColumn,
+                    titleColumn,
+                    reminderColumn,
+                    dateColumn,
+                    triageColumn                    
+                ],
+                characterStyle = blocks.SummaryRowStyle,
+                headerCharacterStyle = blocks.SummaryHeaderStyle,
+                rowHeight = 19,
+                elementDelegate = 'osaf.framework.blocks.ControlBlocks.AttributeDelegate',
+                       defaultEditableAttribute = u'displayName',
+                selection = [[0,0]]),
             BranchPointBlock.template('TableSummaryDetailBranchPointBlock',
                 delegate = detailBranchPointDelegate,
-                #contents = detailContentsCollection
                 )
             ]).install(parcel) # SplitterWindow DashboardSummaryViewTemplate
 
