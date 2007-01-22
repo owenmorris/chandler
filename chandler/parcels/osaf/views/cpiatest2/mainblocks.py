@@ -37,7 +37,7 @@ def makeCPIATestMainView (parcel):
 
     SidebarBranchPointDelegateInstance = SidebarBranchPointDelegate.update(
         parcel, 'SidebarBranchPointDelegateInstance',
-        tableTemplatePath = '//parcels/osaf/views/main/TableSummaryViewTemplate',
+        tableTemplatePath = '//parcels/osaf/views/main/DashboardSummaryViewTemplate',
         calendarTemplatePath = '//parcels/osaf/views/main/CalendarSummaryViewTemplate')
     
     IconButton = SSSidebarIconButton2.update(

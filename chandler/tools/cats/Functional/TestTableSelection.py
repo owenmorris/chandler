@@ -42,7 +42,7 @@ class TestTableSelection(ChandlerTestCase):
             
         # action
         self.logger.startAction("Test summary view")
-        dashboardBlock = self.app_ns.TableSummaryView
+        dashboardBlock = self.app_ns.DashboardSummaryView
         dashboard = dashboardBlock.widget
         header_widget = dashboard.GetGridColLabelWindow()
 

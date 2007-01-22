@@ -567,16 +567,15 @@ def makeSummaryBlocks(parcel):
     detailBranchPointDelegate = detailblocks.DetailBranchPointDelegate.update(
         parcel, 'DetailBranchPointDelegateInstance',
         branchStub = detailblocks.DetailRoot)
-    #detailContentsCollection = pim.ListCollection.update(
-        #parcel, 'DetailContentsCollection')
+
     iconColumnWidth = 23 # temporarily not 20, to work around header bug 6168
     SplitterWindow.template(
-        'TableSummaryViewTemplate',
+        'DashboardSummaryViewTemplate',
         eventBoundary = True,
         orientationEnum = "Vertical",
         splitPercentage = 0.65,
         childrenBlocks = [
-            DashboardBlock.template('TableSummaryView',
+            DashboardBlock.template('DashboardSummaryView',
                 contents = pim_ns.allCollection,
                 scaleWidthsToFit = True,
                 columns = [
@@ -602,7 +601,7 @@ def makeSummaryBlocks(parcel):
                 delegate = detailBranchPointDelegate,
                 #contents = detailContentsCollection
                 )
-            ]).install(parcel) # SplitterWindow TableSummaryViewTemplate
+            ]).install(parcel) # SplitterWindow DashboardSummaryViewTemplate
 
 
     TimeZoneChange = BlockEvent.template(

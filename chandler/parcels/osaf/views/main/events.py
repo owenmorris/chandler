@@ -193,7 +193,7 @@ def makeMainEvents(parcel):
         'Triage',
         commitAfterDispatch = True,
         dispatchEnum = 'SendToBlockByName',
-        dispatchToBlockName = 'TableSummaryView').install(parcel)
+        dispatchToBlockName = 'DashboardSummaryView').install(parcel)
 
     ClassParameterizedEvent.template(
         'ApplicationBarAll',

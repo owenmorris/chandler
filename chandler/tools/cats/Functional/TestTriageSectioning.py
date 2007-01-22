@@ -42,7 +42,7 @@ class TestTriageSectioning(ChandlerTestCase):
         self.scripting.User.idle()
         
         # Get ready to bang on the dashboard
-        dashboardBlock = self.app_ns.TableSummaryView
+        dashboardBlock = self.app_ns.DashboardSummaryView
         dashboard = dashboardBlock.widget
         rowHeight = dashboard.GetDefaultRowSize()
         rowMiddle = rowHeight/2

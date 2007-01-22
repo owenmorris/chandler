@@ -2010,7 +2010,7 @@ class CalendarControl(CalendarBlock):
         if eventItem.getMaster().itsItem not in self.contents:
             allCollection = schema.ns('osaf.pim', self.itsView).allCollection
             self.SelectCollectionInSidebar(allCollection)
-            self.findBlockByName("TableSummaryView").postEventByName(
+            self.findBlockByName("DashboardSummaryView").postEventByName(
                 "SelectItemsBroadcast", 
                 {'items':[eventItem.itsItem]})
         else:                

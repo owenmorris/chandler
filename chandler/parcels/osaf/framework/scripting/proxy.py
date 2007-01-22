@@ -154,7 +154,7 @@ class AppProxy(object):
         self.markupbar = BlockProxy('MarkupBar', self)
         self.sidebar = BlockProxy('Sidebar', self)
         self.calendar = BlockProxy('CalendarSummaryView', self)
-        self.summary = BlockProxy('TableSummaryView', self)
+        self.summary = BlockProxy('DashboardSummaryView', self)
         self.detail = BlockProxy('DetailRoot', self)
 
     def item_named(self, itemClass, itemName):
