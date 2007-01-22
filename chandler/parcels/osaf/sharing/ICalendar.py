@@ -511,7 +511,8 @@ def itemsFromVObject(view, text, coerceTzinfo = None, filters = None,
                     if app is not None:
                         parent = app.mainFrame
                         def ShowTimezoneDialogCallback():
-                            ShowTurnOnTimezonesDialog(parent, view=view)
+                            ShowTurnOnTimezonesDialog(parent,
+                                                      view=app.UIRepositoryView)
                         app.PostAsyncEvent(ShowTimezoneDialogCallback)
                 
                 # coerce timezones based on coerceTzinfo
