@@ -89,18 +89,10 @@ class RecordSetConduit(conduits.BaseConduit):
 
 
     def clean_diff(self, state, diff):
-        diff = (state + diff) - state
-
-        # Remove any unnecessary exclusions (i.e., those that don't have a
-        # match in the state.inclusions)
-        inc = list(r.getKey() for r in state.inclusions)
-        for r in list(diff.exclusions):
-            k = r.getKey()
-            if k not in inc:
-                diff.exclusions.remove(r)
-
+        new_state = state + diff
+        new_state.exclusions = set()
+        diff = new_state - state
         return diff
-
 
 
 
