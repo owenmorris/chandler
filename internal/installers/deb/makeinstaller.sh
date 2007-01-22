@@ -40,7 +40,7 @@ if [ -d "$DEB_PATH" ]; then
     echo "Calling dpkg-deb -b chandler chandler_$DISTRIB_VERSION.$DISTRIB_RELEASE-1_i386.deb"
     dpkg-deb -b chandler chandler_$DISTRIB_VERSION.$DISTRIB_RELEASE-1_i386.deb
     echo "Moving .deb to $DISTRIB_PATH/chandler_$DISTRIB_VERSION.$DISTRIB_RELEASE-1_i386.deb"
-    mv $DEB_PATH/chandler_$DISTRIB_VERSION.$DISTRIB_RELEASE-1_i386.deb $DISTRIB_PATH/chandler_$DISTRIB_VERSION.$DISTRIB_RELEASE-1_i386.deb
+    mv $DEB_PATH/chandler_$DISTRIB_VERSION.$DISTRIB_RELEASE-1_i386.deb $DISTRIB_PATH/$DISTRIB_FILE_i386.deb
     echo "deb generation done"
 else
     echo "ERROR: debian local environment does not seem to be setup"
