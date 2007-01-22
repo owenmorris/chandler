@@ -348,7 +348,6 @@ With pending changes, non-conflicting local modifications can still go out::
 
 See that a pending change can disappear due to a later inbound change:
 
-    >>> rsNewBase =   { } # Note: without specifying the full recordset for this item, a redundant toApply appears
     >>> rsNewBase =   { '1' : rs([Demo(1, 4, 5)]) }
     >>> inboundDiff = { '1' : rs([Demo(1, 4, 5)]) }
     >>> toSend, toApply, pending = conduit.merge(rsNewBase, inboundDiff)
@@ -428,12 +427,12 @@ Verify that inbound changes to filtered fields are not applied locally, yet
 unfiltered inbound changes are applied::
 
     >>> conduit.filters = ['cid:bar-filter@osaf.us']
-    >>> rsNewBase = { }
+    >>> rsNewBase = { '1' : rs([Demo(1, 7, 8)]) }
     >>> inboundDiff = { '1' : rs([Demo(1, 5, 8)]) }
     >>> toSend, toApply, pending = conduit.merge(rsNewBase, inboundDiff)
     >>> toSend == { }
     True
-    >>> toApply == {'1': rs(set([Demo(1, nc, 8)]))}
+    >>> toApply == { }
     True
     >>> pending == { }
     True
@@ -491,7 +490,7 @@ Start over, to test that remote deletions get applied::
 
     >>> conduit.saveStates('1', rs(set([Demo(1,1,1)])), rs())
 
-    >>> rsNewBase =   { }
+    >>> rsNewBase =   { '1' : rs([Demo(1, 1, 1)]) }
     >>> inboundDiff = { '1' : rs([], [Demo(1, nc, nc)]) }
     >>> toSend, toApply, pending = conduit.merge(rsNewBase, inboundDiff)
     >>> toSend == { }

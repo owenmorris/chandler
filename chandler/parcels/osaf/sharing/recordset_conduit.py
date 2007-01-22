@@ -100,7 +100,8 @@ class RecordSetConduit(conduits.BaseConduit):
         """Update states, return send/apply/pending dicts
 
         rsNewBase is a dict from itemUUID -> recordset for items changed
-        since last send.  It must always be supplied.
+        since last send, *and* for any items appearing in inboundDiffs (even
+        if the item has not been locally changed).  It must always be supplied.
 
         inboundDiffs is a dict from itemUUID -> the inbound diff recordset.
         It can be omitted if `receive` is false.
