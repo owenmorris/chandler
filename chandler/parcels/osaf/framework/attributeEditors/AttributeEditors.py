@@ -2366,7 +2366,7 @@ class BasePermanentAttributeEditor (BaseAttributeEditor):
     def EndControlEdit(self, item, attributeName, control):
         # update the item attribute value, from the latest control value.
         # logger.debug("EndControlEdit: '%s' on %s", attributeName, item)
-        if item is not None:
+        if not pim.isDead(item):
             value = self.GetControlValue (control)
             self.SetAttributeValue (item, attributeName, value)
 

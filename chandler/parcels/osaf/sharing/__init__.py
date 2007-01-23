@@ -22,7 +22,8 @@ from application.Utility import getDesktopDir, CertificateVerificationError
 from osaf import pim
 from osaf.pim import isDead
 from osaf.pim.calendar import Calendar
-from osaf.pim.collections import UnionCollection, DifferenceCollection
+from osaf.pim.collections import (UnionCollection, DifferenceCollection,
+                                  FilteredCollection)
 from i18n import ChandlerMessageFactory as _
 from chandlerdb.util.c import UUID
 
@@ -112,6 +113,17 @@ def installParcel(parcel, oldVersion=None):
             publishedFreeBusy],
         displayName = 'Unpublished Freebusy Events'
     )
+
+    
+    # Make a collection of all Events with an icalUID, so that
+    # we can index it.    
+    filterAttribute = pim.Note.icalUID.name
+    iCalendarItems = FilteredCollection.update(parcel, 'iCalendarItems',
+        source = Calendar.EventStamp.getCollection(parcel.itsView),
+        filterExpression="view.hasTrueValues(uuid, '%s')" % (filterAttribute,),
+        filterAttributes=[filterAttribute])
+    iCalendarItems.addIndex('icalUID', 'value', attribute=filterAttribute)
+
 
 # = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =
 

@@ -1462,12 +1462,6 @@ Issues:
             else:
                 return None
 
-    def _compareAddr(self, other):
-        return cmp(self.emailAddress.lower(), other.emailAddress.lower())
-
-    def _compareFullName(self, other):
-        return cmp(self.fullName.lower(), other.fullName.lower())
-
     @classmethod
     def findEmailAddress(cls, view, emailAddress, collection=None):
         """
@@ -1630,6 +1624,16 @@ Issues:
         else:
             return account.replyToAddress
 
+def makeCompareMethod(attrName):
+    def compare(self, uuid1, uuid2):
+        v1 = self.itsView.findValue(uuid1, attrName).lower()
+        v2 = self.itsView.findValue(uuid2, attrName).lower()
+        return cmp(v1, v2)
+    return compare
+
+class EmailComparator(schema.Item):
+    cmpAddress = makeCompareMethod('emailAddress')
+    cmpFullName = makeCompareMethod('fullName')
 
 # Map from account type strings to account types
 
@@ -1700,7 +1704,8 @@ class CommunicationStatus(schema.Annotation):
         
         modifiedFlags, lastMod, stampTypes, fromMe, \
         toMe, needsReply, read, error = \
-            view.findValues(uuid, *(CommunicationStatus.attributeValues))
+            collections.IndexDefinition.findInheritedValues(view, uuid,
+                                      *(CommunicationStatus.attributeValues))
 
         result = 0
         

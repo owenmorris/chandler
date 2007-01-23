@@ -149,7 +149,9 @@ class Remindable(schema.Annotation):
 
     @schema.Comparator
     def cmpReminderTime(self, remindable):
-        return cmpTimeAttribute(self, remindable, 'nextReminderTime')
+        itemTime = self.nextReminderTime
+        otherTime = remindable.nextReminderTime
+        return cmpTimeAttribute(itemTime, otherTime)
 
 
     def getUserReminder(self, refListToo=False, expiredToo=True, skipThis=None):
@@ -173,6 +175,11 @@ class Remindable(schema.Annotation):
                 refList = getattr(self.itsItem, attr.name)
                 for reminder in refList:
                     if reminder.userCreated and reminder is not skipThis:
+                        if refListToo and not self.itsItem.hasLocalAttributeValue(attr.name):
+
+                            setattr(self.itsItem, attr.name, [])
+                            refList = getattr(self.itsItem, attr.name)
+
                         return refListToo and (refList, reminder) or reminder
         return refListToo and (None, None) or None
 
@@ -192,7 +199,7 @@ class Remindable(schema.Annotation):
             newReminder = Reminder(None, itsView=self.itsItem.itsView, **kwds)
             logger.debug("Adding %s to %s", newReminder, self)
 
-            addThisTo = self.reminders
+            addThisTo = Remindable.reminders.name
             event = EventStamp(self)
             isMaster = event.isRecurrenceMaster()
             if checkExpired or isMaster:
@@ -208,9 +215,12 @@ class Remindable(schema.Annotation):
                     addToExpired = (nextTime < datetime.now(ICUtzinfo.default))
                     
                 if addToExpired:
-                    addThisTo = self.expiredReminders
-    
-            addThisTo.add(newReminder)
+                    addThisTo = Remindable.expiredReminders.name
+            if (not isMaster and not self.itsItem.hasLocalAttributeValue(addThisTo)):
+                # Make sure that the item gets its own reminders
+                # or expiredReminders reflist
+                setattr(self.itsItem, addThisTo, [])
+            getattr(self.itsItem, addThisTo).add(newReminder)
         else:
             # We don't need to create a new reminder, which means we're just
             # replacing an old one with None, right?
@@ -246,11 +256,12 @@ class Remindable(schema.Annotation):
             assert not event.isRecurrenceMaster(), \
                    "Dismissing a reminder on a recurrence master"
             
-            # Get the next occurrence of this event. We
-            # don't need to do anything with it; we just
-            # want to make sure it's been instantiated
-            # so that the next reminder will fire.
-            event.getNextOccurrence(after=datetime.now(ICUtzinfo.default))
+            if reminder.userCreated or reminder.absoluteTime is None:
+                # Get the next occurrence of this event. We
+                # don't need to do anything with it; we just
+                # want to make sure it's been instantiated
+                # so that the next reminder will fire.
+                event.getNextOccurrence(after=datetime.now(ICUtzinfo.default))
 
         # Remove the reminder from the pending list
         if reminder in self.reminders:

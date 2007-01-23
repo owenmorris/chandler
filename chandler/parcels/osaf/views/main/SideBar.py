@@ -22,7 +22,7 @@ from osaf.framework.blocks import (
     )
 
 from osaf.pim import (
-    ContentCollection, IntersectionCollection,
+    ContentCollection, IntersectionCollection, DifferenceCollection,
     UnionCollection, IndexedSelectionCollection, AppCollection
     )
 

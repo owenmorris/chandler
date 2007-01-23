@@ -35,7 +35,7 @@ class TaskColumnIndexDefinition(pim.MethodIndexDefinition):
     def compare(self, u1, u2):
         def getCompareTuple(uuid):
             stamp_types, displayName, triage, triageChanged = \
-                self.itsView.findValues(uuid, *self.findParams)
+                self.findValues(uuid, *self.findParams)
             return (pim.TaskStamp in stamp_types, displayName, triage, triageChanged)
         return cmp(getCompareTuple(u1), getCompareTuple(u2))
 
@@ -46,7 +46,7 @@ class CommunicationColumnIndexDefinition(pim.MethodIndexDefinition):
     )
     def compare(self, u1, u2):
         def getCompareTuple(uuid):                            
-            triage, triageChanged = self.itsView.findValues(uuid, *self.findParams)
+            triage, triageChanged = self.findValues(uuid, *self.findParams)
             commState = CommunicationStatus.getItemCommState(uuid, self.itsView)
             return (commState, triage, triageChanged)
 
@@ -64,7 +64,7 @@ class CalendarColumnIndexDefinition(pim.MethodIndexDefinition):
     def compare(self, u1, u2):
         def getCompareTuple(uuid):
             stamp_types, reminders, expiredReminders, displayDate, triage, triageChanged = \
-                self.itsView.findValues(uuid, *self.findParams)
+                self.findValues(uuid, *self.findParams)
             
             # We need to do this:
             #   hasUserReminder = pim.Remindable(item).getUserReminder(expiredToo=True) is not None
@@ -100,7 +100,7 @@ class WhoColumnIndexDefinition(pim.MethodIndexDefinition):
     def compare(self, u1, u2):
         def getCompareTuple(uuid):
             displayWho, triage, triageChanged = \
-                self.itsView.findValues(uuid, *self.findParams)                    
+                self.findValues(uuid, *self.findParams)                    
             return (displayWho.lower(), triage, triageChanged)
         return cmp(getCompareTuple(u1), getCompareTuple(u2))
 
@@ -113,7 +113,7 @@ class TitleColumnIndexDefinition(pim.MethodIndexDefinition):
     def compare(self, u1, u2):
         def getCompareTuple(uuid):
             displayName, triage, triageChanged = \
-                self.itsView.findValues(uuid, *self.findParams)                    
+                self.findValues(uuid, *self.findParams)                    
             return (displayName.lower(), triage, triageChanged)
         return cmp(getCompareTuple(u1), getCompareTuple(u2))
 
@@ -176,12 +176,6 @@ class TriageAttributeEditor(attributeEditors.IconAttributeEditor):
         oldValue = getattr(item, self.editingAttribute or attributeName)
         newValue = pim.getNextTriageStatus(oldValue)
         self.SetAttributeValue(item, self.editingAttribute or attributeName, newValue)        
-
-    def ReadOnly (self, (item, attribute)):
-        # @@@ For now, treat recurring events as readOnly.
-        return super(TriageAttributeEditor, self).ReadOnly((item, attribute)) \
-               or (pim.has_stamp(item, pim.EventStamp) and \
-                   pim.EventStamp(item).isRecurring())
 
 class ReminderColumnAttributeEditor(attributeEditors.IconAttributeEditor):    
     def makeStates(self):
@@ -372,6 +366,10 @@ class CommunicationsColumnAttributeEditor(attributeEditors.IconAttributeEditor):
         return currentValue.replace("Read", "ReadNeedsReply")
     
     def advanceState(self, item, attributeName):
+        # changes to read/unread/needs reply should apply to all occurrences
+        item = getattr(item, 'proxiedItem', item)
+        item = pim.EventStamp(item).getMaster().itsItem
+        
         oldState = self.GetAttributeValue(item, attributeName)
         if oldState.find("NeedsReply") != -1:
             item.read = False

@@ -64,7 +64,7 @@ class ICalendarTestCase(SingleRepositoryTestCase):
 
     def testSummaryAndDateTimeImported(self):
         format = self.Import(self.view, u'Chandler.ics')
-        event = pim.EventStamp(Calendar.findUID(
+        event = pim.EventStamp(sharing.findUID(
                                     self.view,
                                    'BED962E5-6042-11D9-BE74-000A95BB2738'))
         self.assertEqual(event.summary, u'3 ho\u00FCr event',
@@ -77,7 +77,7 @@ class ICalendarTestCase(SingleRepositoryTestCase):
 
     def testDateImportAsAllDay(self):
         format = self.Import(self.view, u'AllDay.ics')
-        event = pim.EventStamp(Calendar.findUID(self.view, 'testAllDay'))
+        event = pim.EventStamp(sharing.findUID(self.view, 'testAllDay'))
         self.failUnless(pim.has_stamp(event, pim.EventStamp))
         self.assert_(event.startTime ==
                      datetime.datetime(2005,1,1, tzinfo=ICUtzinfo.floating),
@@ -159,7 +159,7 @@ class ICalendarTestCase(SingleRepositoryTestCase):
 
     def testImportRecurrence(self):
         format = self.Import(self.view, u'Recurrence.ics')
-        event = Calendar.findUID(self.view, '5B30A574-02A3-11DA-AA66-000A95DA3228')
+        event = sharing.findUID(self.view, '5B30A574-02A3-11DA-AA66-000A95DA3228')
         third = event.getFirstOccurrence().getNextOccurrence().getNextOccurrence()
         self.assertEqual(third.summary, u'\u00FCChanged title')
         self.assertEqual(third.recurrenceID, datetime.datetime(2005, 8, 10, 
@@ -167,16 +167,25 @@ class ICalendarTestCase(SingleRepositoryTestCase):
         # while were at it, test bug 3509, all day event duration is off by one
         self.assertEqual(event.duration, datetime.timedelta(0))
         # make sure we imported the floating EXDATE
-        event = Calendar.findUID(self.view, '07f3d6f0-4c04-11da-b671-0013ce40e90f')
+        event = sharing.findUID(self.view, '07f3d6f0-4c04-11da-b671-0013ce40e90f')
         self.assertEqual(event.rruleset.exdates[0], datetime.datetime(2005, 12, 6, 12, 30,
                                                     tzinfo=ICUtzinfo.floating))
 
     def testImportRecurrenceWithTimezone(self):
         format = self.Import(self.view, u'RecurrenceWithTimezone.ics')
-        event = Calendar.findUID(self.view, 'FF14A660-02A3-11DA-AA66-000A95DA3228')
+        event = sharing.findUID(self.view,
+                                  'FF14A660-02A3-11DA-AA66-000A95DA3228')
         # THISANDFUTURE change creates a new event, so there's nothing in
         # event.modifications
-        self.assertEqual(event.modifications, None)
+        mods = [evt for evt in event.modifications if
+                not pim.EventStamp(evt).isTriageOnlyModification()]
+        self.assertEqual(len(mods), 0)
+        # Bug 6994, EXDATEs need to have ICU timezones, or they won't commit
+        # (unless we're suffering from Bug 7023, in which case tzinfos are
+        # changed silently, often to GMT, without raising an exception)
+        self.assertEqual(event.rruleset.exdates[0].tzinfo,
+                         ICUtzinfo.getInstance('US/Central'))
+        
         # Bug 6994, EXDATEs need to have ICU timezones, or they won't commit
         # (unless we're suffering from Bug 7023, in which case tzinfos are
         # changed silently, often to GMT, without raising an exception)
@@ -186,7 +195,7 @@ class ICalendarTestCase(SingleRepositoryTestCase):
 
     def testImportUnusualTzid(self):
         format = self.Import(self.view, u'UnusualTzid.ics')
-        event = pim.EventStamp(Calendar.findUID(
+        event = pim.EventStamp(sharing.findUID(
                                 self.view,
                                 '42583280-8164-11da-c77c-0011246e17f0'))
         self.assertEqual(event.startTime.tzinfo,
@@ -194,14 +203,14 @@ class ICalendarTestCase(SingleRepositoryTestCase):
 
     def testImportReminders(self):
         format = self.Import(self.view, u'RecurrenceWithAlarm.ics')
-        future = Calendar.findUID(self.view, 'RecurringAlarmFuture')
+        future = sharing.findUID(self.view, 'RecurringAlarmFuture')
         reminder = Remindable(future).getUserReminder()
         # this will start failing in 2015...
         self.assertEqual(reminder.delta, datetime.timedelta(minutes=-5))
         second = pim.EventStamp(future).getFirstOccurrence().getNextOccurrence()
         self.assert_(reminder in Remindable(second).reminders)
 
-        past = Calendar.findUID(self.view, 'RecurringAlarmPast')
+        past = sharing.findUID(self.view, 'RecurringAlarmPast')
         reminder = Remindable(past).getUserReminder()
         self.assertEqual(reminder.delta, datetime.timedelta(hours=-1))
         second = pim.EventStamp(past).getFirstOccurrence().getNextOccurrence()
@@ -209,7 +218,7 @@ class ICalendarTestCase(SingleRepositoryTestCase):
 
     def testImportAbsoluteReminder(self):
         format = self.Import(self.view, u'AbsoluteReminder.ics')
-        event = Calendar.findUID(self.view, 'I-have-an-absolute-reminder')
+        event = sharing.findUID(self.view, 'I-have-an-absolute-reminder')
         reminder = Remindable(event).getUserReminder()
         self.failUnless(reminder is not None, "No reminder was set")
         self.failUnlessEqual(reminder.absoluteTime,
@@ -234,19 +243,18 @@ class ICalendarTestCase(SingleRepositoryTestCase):
         vevent.rruleset = ruleSetItem.createDateUtilFromRule(start)
         self.assertEqual(vevent.rrule.value, 'FREQ=DAILY')
 
-
         event = Calendar.CalendarEvent(itsView = self.view)
         event.anyTime = False
         event.summary = uw("blah")
         event.startTime = start
-        event.endTime = datetime.datetime(2005,3,1,1, tzinfo = eastern)
+        event.endTime = datetime.datetime(2005,2,1,1, tzinfo = eastern)
 
         ruleItem = RecurrenceRule(None, itsView=self.view)
         ruleItem.until = datetime.datetime(2005,3,1, tzinfo = eastern)
         ruleSetItem = RecurrenceRuleSet(None, itsView=self.view)
         ruleSetItem.addRule(ruleItem)
         event.rruleset = ruleSetItem
-
+        
         vcalendar = ICalendar.itemsToVObject(self.view, [event])
 
         self.assertEqual(vcalendar.vevent.dtstart.serialize(),
@@ -282,7 +290,7 @@ class ICalendarTestCase(SingleRepositoryTestCase):
         # creating a VEVENT with RECURRENCE-ID matching the RDATE, except the
         # RECURRENCE-ID is in UTC, as is the modifications DTSTART.
         self.Import(self.view, u'oracle_mod.ics')
-        master = pim.EventStamp(Calendar.findUID(self.view,
+        master = pim.EventStamp(sharing.findUID(self.view,
                                         'abbfc510-4d8f-11db-c525-001346a711f0'))
         modTime = datetime.datetime(2006, 9, 29, 13, tzinfo=ICalendar.utc)
         changed = master.getRecurrenceID(modTime)
@@ -505,10 +513,10 @@ class ICalendarMergeTestCase(SingleRepositoryTestCase):
             "PRODID:-//PYVOBJECT//NONSGML Version 1//EN",
             "BEGIN:VEVENT",
             "UID:9cf1f128-c416-11da-9051-000a95d7eed8",
-            "DTSTART:20060417T130000",
-            "DTEND:20060417T140000",
+            "DTSTART:20060828T130000",
+            "DTEND:20060828T140000",
             "DESCRIPTION:\n",
-            "RRULE:FREQ=WEEKLY",
+            "RRULE:FREQ=WEEKLY;COUNT=20",
             "SUMMARY:PPD meeting",
             "END:VEVENT",
             "BEGIN:VEVENT",
@@ -516,7 +524,7 @@ class ICalendarMergeTestCase(SingleRepositoryTestCase):
             "RECURRENCE-ID:20060904T130000",
             "DTSTART:20060906T160000",
             "DTEND:20060906T170000",
-            "DESCRIPTION:\\n",
+            "DESCRIPTION:\n",
             "SUMMARY:Meeting Weakly",
             "END:VEVENT",
             "BEGIN:VEVENT",
@@ -535,12 +543,15 @@ class ICalendarMergeTestCase(SingleRepositoryTestCase):
         
         sharedEvent = pim.EventStamp(sharedItem)
         self.failUnlessEqual(sharedEvent.startTime.replace(tzinfo=None),
-                             datetime.datetime(2006, 4, 17, 13))
+                             datetime.datetime(2006, 8, 28, 13))
                              
-        mods = list(sharedEvent.modifications)
+        mods = [evt for evt in sharedEvent.modifications if
+                not pim.EventStamp(evt).isTriageOnlyModification()]
         self.failUnlessEqual(len(mods), 2, "A modification was lost on import")
-        
+
         eventMod = pim.EventStamp(mods[1])
+
+
         self.failUnlessEqual(eventMod.startTime.replace(tzinfo=None),
                              datetime.datetime(2006, 10, 16, 14, 15))
         self.failUnlessEqual(eventMod.recurrenceID.replace(tzinfo=None),

@@ -232,7 +232,9 @@ class DashboardBlock(Table):
             self.synchronizeWidget()
 
     def onTriageEvent(self, event):
-        for key in self.contents.iterkeys():
+        # triaging a recurring event can cause later keys to disappear from the
+        # collection, which upsets iterkeys, so wrap the iterator in a list
+        for key in list(self.contents.iterkeys()):
             if self.itsView.findValue(key, '_unpurgedTriageStatus', 
                                       default=None) is not None:
                 item = self.itsView[key]

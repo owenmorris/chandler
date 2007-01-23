@@ -44,6 +44,7 @@ class TestNewEvent(ChandlerTestCase):
         evtSecondDate = mondayPlus(1)
         evtThirdDate = mondayPlus(2)
         evtRecurrenceEnd = mondayPlus(365)
+        evtNextWeek = mondayPlus(7)
         
         # Make sure we're not showing timezones now (we'll put it back below)
         tzPrefs = schema.ns('osaf.pim', QAUITestAppLib.App_ns.itsView).TimezonePrefs
@@ -105,11 +106,6 @@ class TestNewEvent(ChandlerTestCase):
             CalendarEndAtLabel=(True,)
             )
         
-        # Create a reminder on the item
-        event.SetAttr("Adding reminder", eventReminder="Before event")
-        event.CheckDisplayedValues("Checking recurrence",
-            EditReminderType=(True, "Before event"))  
-        
         # Make it recur
         event.SetAttr("Making it recur",
                       recurrence="Daily", 
@@ -149,24 +145,24 @@ class TestNewEvent(ChandlerTestCase):
             EditCalendarStartDate=(True, evtThirdDate),
             )
 
-        # Remove reminders from all occurrences
-        event.SelectItem()
-        event.SetAttr("Removing reminder", eventReminder="None")
-        scripting.User.idle()
-        
-        # handle the recurrence dialog
-        recurrenceDialog = wx.FindWindowByName(u'RecurrenceDialog')
-        if recurrenceDialog is None:
-            self.logger.endAction(False, "Didn't see the recurrence dialog when removing reminder")
-        else:
-            scripting.User.emulate_click(recurrenceDialog.futureButton)
-            scripting.User.idle()
-            
-        # bug 7422, make sure remove reminder works
-        event.CheckDisplayedValues("Checking reminder set to None",
-            EditReminderType=(True, "None"),
-            )              
-        
+        # Create an event in a future week
+        futureEvent = QAUITestAppLib.UITestItem("Event", self.logger)
+        futureEvent.SetAttr(displayName=uw("Future Weekly"), 
+                            startDate=evtNextWeek, 
+                            startTime="6:00 PM", 
+                            recurrence="Weekly",
+                            body=uw("This is an event in the future"))
+        futureEvent.CheckDisplayedValues("Checking future recurring event",
+            HeadlineBlock=(True, uw("Future Weekly")),
+            EditAllDay=(True, False),
+            EditCalendarStartDate=(True, evtNextWeek),
+            CalendarStartAtLabel=(True,),
+            EditCalendarStartTime=(True, "6:00 PM"),
+            EditCalendarEndDate=(True, evtNextWeek),
+            CalendarEndAtLabel=(True,),
+            EditCalendarEndTime=(True, "7:00 PM"),
+            NotesBlock=(True, uw("This is an event in the future")))
+
         #leave Chandler with timezones turned off
         tzPrefs.showUI = False
 

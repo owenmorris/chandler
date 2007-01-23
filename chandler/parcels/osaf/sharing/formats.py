@@ -13,6 +13,7 @@
 #   limitations under the License.
 
 __all__ = [
+    'findUID',
     'ImportExportFormat',
     'STYLE_SINGLE',
     'STYLE_DIRECTORY',
@@ -32,6 +33,7 @@ from chandlerdb.util.c import UUID, Nil
 from cStringIO import StringIO
 from repository.item.Item import Item
 from repository.schema.Types import Type
+from util import indexes
 import logging
 
 logger = logging.getLogger(__name__)
@@ -42,6 +44,21 @@ STYLE_DIRECTORY = 'directory' # Share is a directory where each item has
                               # its own file
 
 CLOUD_XML_VERSION = '3'
+
+
+def findUID(view, uid):
+    """
+    Return the master event whose icalUID matched uid, or None.
+    """
+    iCalendarItems = schema.ns("osaf.sharing", view).iCalendarItems
+    eventItem = indexes.valueLookup(iCalendarItems, 'icalUID',
+                                    pim.Note.icalUID.name, uid)
+
+    if eventItem is None:
+        return None
+    else:
+        return pim.EventStamp(eventItem).getMaster()
+
 
 class ImportExportFormat(pim.ContentItem):
 
@@ -446,8 +463,13 @@ class CloudXMLFormat(ImportExportFormat):
                             # part of the name after the last '.'; note that
                             # it still works if rfind fails (i.e. returns -1)
                             # 
-                            attrValue = list(x[x.rfind(".")+1:]
-                                             for x in attrValue)
+                            newValues = []
+                            for value in attrValue:
+                                lastComponent = value[value.rfind(".")+1:]
+                                if lastComponent == 'inheritFrom':
+                                    lastComponent = 'occurrenceFor'
+                                newValues.append(lastComponent)
+                            attrValue = newValues
                         elif (attrXmlName == "filterClasses") and attrValue:
                             # Similarly, since the class names have changed
                             # (from xxxMixin to xxxStamp) some translation
@@ -609,7 +631,7 @@ class CloudXMLFormat(ImportExportFormat):
                 icalElement = self._getElement(dom, element, 'icalUID')
                 if icalElement is not None:
                     icalUID = icalElement.text
-                    existingEvent = pim.calendar.Calendar.findUID(view, icalUID)
+                    existingEvent = findUID(view, icalUID)
                     if existingEvent is not None:
                         eventItem = existingEvent.itsItem
                         logger.error("A master event with this icalUID (%s) "

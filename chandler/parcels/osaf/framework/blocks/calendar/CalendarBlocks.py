@@ -168,7 +168,7 @@ class wxMiniCalendar(DragAndDrop.DropReceiveWidget,
             end = datetime.combine(end, zerotime)
 
             if useHints and self.HavePendingNewEvents():
-                addedEvents = self.GetPendingNewEvents((start, end))
+                addedEvents = self.GetPendingNewEvents((start, end), expandRecurrence=False)
 
                 # self._eventsToAdd is a set to deal with cases where
                 # multiple notifications are received for a given
@@ -290,7 +290,6 @@ class wxMiniCalendar(DragAndDrop.DropReceiveWidget,
             # would be good to refactor it at some point.
             self.blockItem.EnsureIndexes()
 
-            # First, look at all non-generated events
             startOfDay = time(0, tzinfo=ICUtzinfo.default)
             startDatetime = datetime.combine(startDate, startOfDay)
             endDatetime = datetime.combine(endDate, startOfDay)
@@ -298,82 +297,12 @@ class wxMiniCalendar(DragAndDrop.DropReceiveWidget,
             events = self.blockItem.contents
             view = self.blockItem.itsView
 
-            for event in Calendar.eventsInRange(view, startDatetime, endDatetime,
-                                               events):
-                    updateBusy(event, event.effectiveStartTime)
+            for event, start in Calendar.iterBusyInfo(view, startDatetime,
+                                                       endDatetime, events):                                                
+                updateBusy(event, start)
 
             # Next, try to find all generated events in the given
             # datetime range
-
-
-           # The following iteration over keys comes from Calendar.py
-
-            pimNs = schema.ns('osaf.pim', view)
-            masterEvents = pimNs.masterEvents
-
-            tzprefs = schema.ns('osaf.pim', view).TimezonePrefs
-            if tzprefs.showUI:
-                startIndex = 'effectiveStart'
-                endIndex   = 'recurrenceEnd'
-            else:
-                startIndex = 'effectiveStartNoTZ'
-                endIndex   = 'recurrenceEndNoTZ'
-
-
-            keys = Calendar.getKeysInRange(view,
-                    startDatetime, 'effectiveStartTime', startIndex, masterEvents,
-                    endDatetime, 'recurrenceEnd', endIndex, masterEvents,
-                    events, '__adhoc__',
-                    tzprefs.showUI)
-
-
-            for key in keys:
-                masterEvent = pim.EventStamp(view[key])
-                rruleset = masterEvent.createDateUtilFromRule()
-
-                # If timezones have been disabled in the UI, we want to
-                # use the event's timezone for comparisons, since that
-                # timezone determines what date each occurrence occurs on.
-                tzinfo = masterEvent.effectiveStartTime.tzinfo
-                if not tzEnabled:
-                    startDatetime = startDatetime.replace(tzinfo=tzinfo)
-                    endDatetime = endDatetime.replace(tzinfo=tzinfo)
-
-                modifications = map(pim.EventStamp, masterEvent.modifications or [])
-
-                for recurDatetime in rruleset.between(startDatetime, endDatetime,
-                                                      True):
-                    # Now see if recurDatetime matches any of our modifications
-                    matchingMod = None
-
-                    for mod in modifications:
-                        if recurDatetime == mod.recurrenceID:
-                            matchingMod = mod
-                            break
-
-
-                    if matchingMod is None:
-                        # OK, an unmodified occurrence. Just
-                        # go ahead and update
-                        updateBusy(masterEvent, recurDatetime)
-                    else:
-                        # Aha, we found a matching modification. We
-                        # need to make sure it still falls inside the
-                        # range of datetimes we're interested in.
-                        modStart = matchingMod.startTime
-
-                        # To do the comparison, we need to make sure
-                        # the naivetes of modStart, startDatetime and
-                        # endDatetime all match.
-                        if modStart.tzinfo is None:
-                            modStart = modStart.replace(tzinfo=tzinfo)
-                        else:
-                            modStart = modStart.astimezone(tzinfo)
-
-                        if (modStart >= startDatetime and
-                            modStart <= endDatetime):
-
-                            updateBusy(matchingMod, modStart)
 
             offset = 0
             while (startDate < endDate):

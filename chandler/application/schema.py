@@ -391,7 +391,7 @@ class AttributeAsEndpoint(Endpoint):
     def __init__(self, attr, policy):
         if isinstance(attr,str):
             super(AttributeAsEndpoint,self).__init__(attr,(attr,), policy)
-        elif isinstance(attr,Descriptor):
+        elif isinstance(attr,Descriptor) or hasattr(attr,'name'):
             self.attr = attr
             super(AttributeAsEndpoint,self).__init__(None,(),policy)
         else:

@@ -57,6 +57,7 @@ localtime = dateutil.tz.tzlocal()
 utc = ICUtzinfo.getInstance('UTC')
 oneDay = datetime.timedelta(1)
 
+
 def translateToTimezone(dt, tzinfo):
     if dt.tzinfo == None:
         return dt.replace(tzinfo=localtime).astimezone(tzinfo)
@@ -201,9 +202,8 @@ def itemsToVObject(view, items, cal=None, filters=None):
     def populateModifications(event, cal):
         for modification in itertools.imap(EventStamp,
                                            event.modifications or []):
-            populateEvent(cal.add('vevent'), modification)
-            if modification.modifies == 'thisandfuture':
-                populateModifications(modification, cal)
+            if not modification.isTriageOnlyModification():
+                populateEvent(cal.add('vevent'), modification)
         #end helper functions
 
     if cal is None:
@@ -535,7 +535,7 @@ def itemsFromVObject(view, text, coerceTzinfo = None, filters = None,
                 itemChangeCallback = None
                
                 # See if we have a corresponding item already
-                uidMatchItem = Calendar.findUID(view, uid)
+                uidMatchItem = formats.findUID(view, uid)
                 
                 if uidMatchItem is not None:
                     if DEBUG: logger.debug("matched UID")

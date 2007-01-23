@@ -86,11 +86,8 @@ def isDead(item):
 
 # For use in indexing time-related attributes. We only use this for 
 # reminderFireTime here, but CalendarEventMixin uses this a lot more...
-def cmpTimeAttribute(item, other, attr, useTZ=True):
-    """Compare item and self.attr, ignore timezones if useTZ is False."""
-    otherTime = getattr(other, attr, None)
-    itemTime = getattr(item, attr, None)
-
+def cmpTimeAttribute(itemTime, otherTime, useTZ=True):
+    """Compare itemTime and otherTime, ignore timezones if useTZ is False."""
     if otherTime is None:
         if itemTime is None:
             # both attributes are None, so item and other compare as equal
@@ -314,11 +311,14 @@ class ContentItem(schema.Item):
     )
 
     def __init__(self, *args, **kw):
+        triageStatus = kw.pop('triageStatus', None)
         super(ContentItem, self).__init__(*args, **kw)
         now = None
         if not hasattr(self, 'createdOn'):
             now = datetime.now(ICUtzinfo.default)
             self.createdOn = now
+        if triageStatus is not None:
+            self.triageStatus = triageStatus
         if not hasattr(self, 'triageStatusChanged'):
             self.setTriageStatusChanged(when=now)
 

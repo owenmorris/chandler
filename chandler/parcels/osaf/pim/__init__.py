@@ -25,21 +25,21 @@ from collections import (
     KindCollection, ContentCollection, DifferenceCollection, UnionCollection,
     IntersectionCollection, FilteredCollection, ListCollection, SmartCollection, 
     AppCollection, IndexedSelectionCollection, AllIndexDefinitions,
-    IndexDefinition, AttributeIndexDefinition, MethodIndexDefinition
+    IndexDefinition, AttributeIndexDefinition, MethodIndexDefinition,
 )
 
 from stamping import Stamp, has_stamp
 from notes import Note
 from contacts import Contact, ContactName
 from calendar.Calendar import CalendarEvent, EventStamp, LONG_TIME, zero_delta
-from calendar.Calendar import Location, RecurrencePattern
+from calendar.Calendar import EventComparator, Location, RecurrencePattern
 from calendar.TimeZone import installParcel as tzInstallParcel
 from calendar.DateTimeUtil import (ampmNames, durationFormat, mediumDateFormat, 
      monthNames, sampleDate, sampleTime, shortDateFormat, shortTimeFormat, 
      weekdayNames, weekdayName)
 from reminders import Reminder, Remindable
 from tasks import Task, TaskStamp
-from mail import EmailAddress
+from mail import EmailAddress, EmailComparator
 from application.Parcel import Reference
 from repository.item.Item import Item
 from PyICU import ICUtzinfo
@@ -52,14 +52,20 @@ from i18n import ChandlerMessageFactory as _
 
 from application import schema
 
-class NonRecurringFilter(Item):
+class NonOccurrenceFilter(Item):
 
-    def isNonRecurring(self, view, uuid):
-        isGenerated, modificationFor = view.findValues(uuid,
-                           (EventStamp.isGenerated.name, False),
-                           (EventStamp.modificationFor.name, None))
+    def isNonOccurrence(self, view, uuid):
+        occurrences, modificationFor, occurrenceFor = view.findValues(uuid,
+                           (EventStamp.occurrences.name, None),
+                           (EventStamp.modificationFor.name, None),
+                           (EventStamp.occurrenceFor.name, None))
 
-        return not (isGenerated or modificationFor)
+        if occurrences is not None and len(occurrences) > 0:
+            return True # a master
+        elif not modificationFor and occurrenceFor:
+            return False # a plain occurrence, not a modification
+        else:
+            return True # non-recurring, or a modification
 
 class LongEventFilter(Item):
 
@@ -91,7 +97,30 @@ class UTCEventFilter(Item):
         if anyTime or allDay:
             return False
         return (start is not None and start.tzinfo == UTC)
+
+class RecurrenceAwareFilter(Item):
+    attrAndDefault = ()
     
+    @classmethod
+    def makeCollection(cls, parcel, name, source):
+        filter = cls(None, parcel)
+        collection = FilteredCollection.update(
+                        parcel, name,
+                        source=source,
+                        filterMethod=(filter, 'matches'),
+                        filterAttributes=[cls.attrAndDefault[0]],
+                    )
+        return collection
+    
+    def matches(self, view, uuid):
+        return IndexDefinition.findInheritedValues(view, uuid,
+                                      type(self).attrAndDefault)[0]
+
+class ToMeFilter(RecurrenceAwareFilter):
+    attrAndDefault = mail.MailStamp.toMe.name, True
+
+class FromMeFilter(RecurrenceAwareFilter):
+    attrAndDefault = mail.MailStamp.fromMe.name, False
 
 def installParcel(parcel, oldVersion=None):
     view = parcel.itsView
@@ -115,14 +144,6 @@ def installParcel(parcel, oldVersion=None):
 
     mine = UnionCollection.update(parcel, 'mine')
 
-    meAddressCollection = ListCollection.update(
-        parcel, 'meAddressCollection')
-
-    meAddressCollection.addIndex('emailAddress', 'compare',
-                                    compare='_compareAddr',
-                                    monitor='emailAddress')
-
-
     # it would be nice to get rid of these intermediate fully-fledged
     # item collections, and replace them with lower level Set objects
     mineNotes = IntersectionCollection.update(parcel, 'mineNotes',
@@ -130,16 +151,17 @@ def installParcel(parcel, oldVersion=None):
 
     nonRecurringNotes = FilteredCollection.update(parcel, 'nonRecurringNotes',
         source=mineNotes,
-        filterMethod=(NonRecurringFilter(None, parcel), 'isNonRecurring'),
-        filterAttributes=[EventStamp.isGenerated.name,
-                          EventStamp.modificationFor.name]
+        filterMethod=(NonOccurrenceFilter(None, parcel), 'isNonOccurrence'),
+        filterAttributes=[EventStamp.occurrenceFor.name,
+                          EventStamp.modificationFor.name,
+                          EventStamp.occurrences.name]
     )
 
     itemKindCollection = KindCollection.update(
         parcel, 'contentItems',
         kind = ContentItem.getKind(view),
        recursive=True)
-
+       
     itemsWithRemindersIncludingTrash = FilteredCollection.update(
         parcel, 'itemsWithRemindersIncludingTrash',
         source=itemKindCollection,
@@ -174,20 +196,22 @@ def installParcel(parcel, oldVersion=None):
 
 
     events = EventStamp.getCollection(view)
-    EventStamp.addIndex(view, 'effectiveStart', 'compare',
-                    compare='cmpStartTime',
+    eventComparator = EventComparator.update(parcel, 'eventComparator')
+    
+    EventStamp.addIndex(events, 'effectiveStart', 'method',
+                    method=(eventComparator, 'cmpStartTime'),
                     monitor=(EventStamp.startTime, EventStamp.allDay,
                              EventStamp.anyTime))
-    EventStamp.addIndex(view, 'effectiveEnd', 'compare',
-                    compare='cmpEndTime',
+    EventStamp.addIndex(events, 'effectiveEnd', 'method',
+                    method=(eventComparator, 'cmpEndTime'),
                     monitor=(EventStamp.startTime, EventStamp.allDay,
                              EventStamp.anyTime, EventStamp.duration))
-    EventStamp.addIndex(view, 'effectiveStartNoTZ', 'compare',
-                    compare='cmpStartTimeNoTZ',
+    EventStamp.addIndex(events, 'effectiveStartNoTZ', 'method',
+                    method=(eventComparator, 'cmpStartTimeNoTZ'),
                     monitor=(EventStamp.startTime, EventStamp.allDay,
                              EventStamp.anyTime))
-    EventStamp.addIndex(view, 'effectiveEndNoTZ', 'compare',
-                    compare='cmpEndTimeNoTZ',
+    EventStamp.addIndex(events, 'effectiveEndNoTZ', 'method',
+                    method=(eventComparator, 'cmpEndTimeNoTZ'),
                     monitor=(EventStamp.startTime, EventStamp.allDay,
                              EventStamp.anyTime, EventStamp.duration))
     
@@ -230,18 +254,25 @@ def installParcel(parcel, oldVersion=None):
     
     filterAttributes = (EventStamp.rruleset.name, EventStamp.occurrences.name)
     masterFilter = "view.hasTrueValues(uuid, '%s', '%s')" % filterAttributes
-                            
+    nonMasterFilter = "not " + masterFilter
+    
     masterEvents = FilteredCollection.update(parcel, 'masterEvents',
         source = events,
         filterExpression = masterFilter,
         filterAttributes = list(filterAttributes))
 
-    EventStamp.addIndex(masterEvents, "recurrenceEnd", 'compare',
-                        compare='cmpRecurEnd',
+    nonMasterEvents = FilteredCollection.update(parcel, 'nonMasterEvents',
+        source = events,
+        filterExpression = nonMasterFilter,
+        filterAttributes = list(filterAttributes))
+
+
+    EventStamp.addIndex(masterEvents, "recurrenceEnd", 'method',
+                        method=(eventComparator, 'cmpRecurEnd'),
                         monitor=(EventStamp.recurrenceEnd,))
 
-    EventStamp.addIndex(masterEvents, "recurrenceEndNoTZ", 'compare',
-                        compare='cmpRecurEndNoTZ',
+    EventStamp.addIndex(masterEvents, "recurrenceEndNoTZ", 'method',
+                        method=(eventComparator, 'cmpRecurEndNoTZ'),
                         monitor=(EventStamp.recurrenceEnd))
 
     EventStamp.addIndex(masterEvents, 'effectiveStart', 'subindex',
@@ -264,19 +295,23 @@ def installParcel(parcel, oldVersion=None):
         KindCollection.update(parcel, 'emailAddressCollection',
                               kind=mail.EmailAddress.getKind(view),
                               recursive=True)
-    emailAddressCollection.addIndex('emailAddress', 'compare',
-                                    compare='_compareAddr', 
+    emailComparator = EmailComparator.update(parcel, 'emailComparator')
+    emailAddressCollection.addIndex('emailAddress', 'method',
+                                    method=(emailComparator, 'cmpAddress'), 
                                     monitor='emailAddress')
-    emailAddressCollection.addIndex('fullName', 'compare',
-                                    compare='_compareFullName', 
+    emailAddressCollection.addIndex('fullName', 'method',
+                                    method=(emailComparator, 'cmpFullName'), 
                                     monitor='fullName')
 
-    inSource = FilteredCollection.update(
-        parcel, 'inSource',
-        source=mailCollection,
-        filterExpression="view.findValue(uuid, '%s', True)" % 
-                            (mail.MailStamp.toMe.name,),
-        filterAttributes=[mail.MailStamp.toMe.name])
+    meAddressCollection = ListCollection.update(
+        parcel, 'meAddressCollection')
+
+    meAddressCollection.addIndex('emailAddress', 'method',
+                                  method=(emailComparator, 'cmpAddress'), 
+                                  monitor='emailAddress')
+
+
+    inSource = ToMeFilter.makeCollection(parcel, 'inSource', mailCollection)
     # this index must be added to shield from the duplicate
     # source (mailCollection) that is going to be in mine
     inSource.addIndex('__adhoc__', 'numeric')
@@ -289,11 +324,7 @@ def installParcel(parcel, oldVersion=None):
         visible=True)
     mine.addSource(inCollection)
 
-    outSource = FilteredCollection.update(parcel, 'outSource',
-        source=mailCollection,
-        filterExpression=u"view.findValue(uuid, '%s', False)" %
-                           (mail.MailStamp.fromMe.name,),
-        filterAttributes=[mail.MailStamp.fromMe.name])
+    outSource = FromMeFilter.makeCollection(parcel, 'outSource', mailCollection)
     # this index must be added to shield from the duplicate
     # source (mailCollection) that is going to be in mine
     outSource.addIndex('__adhoc__', 'numeric')

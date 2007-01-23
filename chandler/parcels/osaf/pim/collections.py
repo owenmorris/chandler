@@ -17,14 +17,16 @@ __parcel__ = "osaf.pim"
 
 from application import schema
 
-from chandlerdb.util.c import Default
-from repository.item.Sets import \
-    Set, MultiUnion, Union, MultiIntersection, Intersection, Difference, \
+from chandlerdb.util.c import Default, Nil
+from repository.item.Sets import (
+    Set, MultiUnion, Union, MultiIntersection, Intersection, Difference,
     KindSet, ExpressionFilteredSet, MethodFilteredSet, EmptySet
+)
 from repository.item.Collection import Collection
 
 from osaf.pim.items import ContentItem
-from itertools import chain
+import itertools
+
 # Common attribute for collection inclusions
 inclusions = schema.Sequence(inverse=ContentItem.collections, initialValue=[])
 
@@ -94,25 +96,176 @@ class IndexDefinition(schema.Item):
             "overrides makeIndexOn"
         )
 
-class AttributeIndexDefinition(IndexDefinition):
-    def makeIndexOn(self, collection):
-        """ Create the index we describe on this collection """
-        collection.addIndex(self.itsName, 'attribute',
-                            attributes=self.attributes)
+    def findValues(self, uuid, *pairs):
+        return self.findInheritedValues(self.itsView, uuid, *pairs)
+    
+    @staticmethod
+    def findInheritedValues(view, uuid, *pairs):
+        """
+        Inheritance-aware version of RepositoryView.findValues(), for
+        use in IndexDefinitions, mainly.
+        
+        @param uuid: The UUID to find values for
+        @type uuid: C{UUID}
+        
+        @param pairs: (attribute-name, default-value) pairs to pass to
+                       C{RepositoryView.findValues}
+        @type pairs: iterable
+        
+        @return: A C{tuple} of values for the item with C{uuid}, corresponding
+                 to the attribute names in  C{pairs}. If the item doesn't have
+                 a value for a given attribute, and the item's 'inheritFrom'
+                 attribute is non-None, the inheritFrom's value is used instead.
+                 (If in turn that item doesn't have the value, the 2nd element
+                 of the pair -- the default value -- is what's returned.
+        @rtype: C{tuple}
+        """
+        
+        valuesToFind = [('inheritFrom', None)]
+        # Use Nil, not None here so that we can distinguish
+        # no-value-for-attribute from attribute-value-is-None.
+        valuesToFind.extend((attr, Nil) for attr, default in pairs)
+
+        result = view.findValues(uuid, *valuesToFind)
+        masterUuid = result[0]
+        result = result[1:] # Skip inheritFrom
+        nilValues = []
+        masterValues = []
+        
+        # Go through the returned tuple, and see if any results were
+        # Nil. If they were, we'll need to call view.findValues on
+        # masterUuid (sic).
+        for inputTuple, resultValue in zip(pairs, result):
+            if resultValue is Nil:
+                if masterUuid is None:
+                    nilValues.append(inputTuple[1])
+                else:
+                    masterValues.append(inputTuple)
+        if masterValues:
+            nilValues = view.findValues(masterUuid, *masterValues)
+        
+        iterNilValues = iter(nilValues)
+        
+        return tuple(fetched if fetched is not Nil else iterNilValues.next()
+                      for fetched in result)
+                      
+
 
 class MethodIndexDefinition(IndexDefinition):
+    """
+    A class that allows you to build indexes based on comparing computed
+    attributes (i.e. ones that aren't stored in the repository directly).
+    Note that this class reinterprets the 'attributes' attribute of
+    IndexDefinition: this is now the attributes to _monitor_ (i.e. the ones
+    that trigger recomputing the index).
+
+    @cvar findValuePairs: The pairs you want instances to pass to
+                          C{IndexDefinition.findValues()} when the index
+                          is asked to compare two UUIDs.
+    
+    @type findValuePairs: C{tuple}
+    """
+    findValuePairs = ()
+
     def makeIndexOn(self, collection):
         """ Create the index we describe on this collection """
+        
+        monitoredAttributes = (self.attributes or [])
+        
+        # We need to include inheritFrom in the attributes we monitor,
+        # else (especially at Occurrence creation time) items don't get
+        # re-indexed properly when they inherit attribute values from
+        # their "rich relatives" (ovaltofu's term).
+        if not 'inheritFrom' in monitoredAttributes:
+            monitoredAttributes = ['inheritFrom'] + monitoredAttributes
+            
         collection.addIndex(self.itsName, 'method',
                             method=(self, 'compare'),
-                            monitor=self.attributes)
+                            monitor=monitoredAttributes)
 
     def compare(self, u1, u2):
-        """Compare two items, given their uuids"""
+        """
+        Compare two items, given their UUIDs. This method fetches (using
+        findValues() on the item UUIDs) the pairs specified in the
+        C{findValuePairs} (class) variable.
+        """
+        if not self.findValuePairs:
+            raise TypeError(
+                "pim.MethodIndexDefinition is an abstract type; use a " \
+                "subtype that sets findValuePairs"
+            )
+        v1 = self.findValues(u1, *self.findValuePairs)
+        v2 = self.findValues(u1, *self.findValuePairs)
+        return cmp(v1, v2)
+        
+    # @@@ [grant] Unused
+    def compareValues(self, v1, v2):
+        """
+        Override this to implement the comparison between two items. C{v1}
+        and C{v2} are C{tuple} objects; the results of calling C{findValues()}
+        on C{findValuePairs} for the two items in question.
+        """
+        
+        # Maybe this should default to cmp()?
         raise TypeError(
             "pim.MethodIndexDefinition is an abstract type; use a subtype " \
-            "that overrides compare"
+            "that overrides compare, or compareValues()"
         )
+
+    def __init__(self, *args, **kw):
+        # Make the attributes we monitor be the same as the ones we'll
+        # fetch in findValues().
+        if not kw.get('attributes', ()):
+            kw['attributes'] = [tuple[0]
+                                 for tuple in type(self).findValuePairs]
+        return super(MethodIndexDefinition, self).__init__(*args, **kw)
+
+        
+
+class AttributeIndexDefinition(MethodIndexDefinition):
+    """
+    A little like AttributeIndexDefinition, except that this looks up
+    the attribute values using the findValues() call, thereby taking
+    recurring events into account.
+    """
+    
+    def getFindValuePairs(self):
+        # Make sure that findValuePairs is initialized correctly. To emulate
+        # the behaviour of an attribute index, this has to make sure that
+        # attributes with defaultValues are compared/fetched correctly.
+        if not self.findValuePairs:
+            tuples=[]
+            for attr in self.attributes:
+                descriptor = getattr(ContentItem, attr, None)
+                default = getattr(descriptor, 'defaultValue', None)
+                tuples.append((attr, default))
+            self.findValuePairs = tuple(tuples)
+        return self.findValuePairs
+
+    def compare(self, u1, u2):
+        attrs = self.getFindValuePairs() 
+        
+        def cmpObjects(v1, v2):
+            # ... somewhat stolen from Indexes.py in the repository
+            # code.
+            if v1 is v2:
+                return 0
+
+            if v1 is None:
+                return 1
+
+            if v2 is None:
+                return -1
+
+            return cmp(v1, v2)
+        
+        for value1, value2 in itertools.izip(
+                         self.findValues(u1, *attrs),
+                         self.findValues(u2, *attrs)):
+            result = cmpObjects(value1, value2)
+            if result:
+                return result
+        return 0
 
 
 class AllIndexDefinitions(schema.Item):
@@ -217,7 +370,19 @@ class ContentCollection(ContentItem, Collection):
         return True
 
     readOnly = property(isReadOnly)
-
+    
+    def _reIndex(self, op, item, attrName, collectionName, indexName):
+        collection = getattr(self, collectionName, None)
+        if item in collection:
+            keys = [item.itsUUID]
+            if op in ('set', 'remove') and getattr(item, 'inheritFrom', None) is None:
+                mods = getattr(item, 'inheritTo', None)
+                
+                if mods:
+                    keys.extend(mod.itsUUID for mod in mods
+                     if mod in collection and
+                       not mod.hasLocalAttributeValue(attrName))
+            collection.reindexKeys(keys, indexName)
 
 class KindCollection(ContentCollection):
     """
@@ -642,7 +807,8 @@ class AppCollection(ContentCollection):
 
         if not (isDeleting or trash is None):
             if isinstance(trash, ContentCollection):
-                for collection in chain(trash.trashFor, [pim_ns.allCollection]):
+                for collection in itertools.chain(trash.trashFor,
+                                                  [pim_ns.allCollection]):
                     # allCollection isn't in trash.trashFor, but needs to be
                     # considered
                     if collection is not self and item in collection:

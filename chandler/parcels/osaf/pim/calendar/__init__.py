@@ -30,6 +30,6 @@ Issues:
    percentComplete)
 """
 from Calendar import EventStamp as __EventStamp
-from Calendar import EventStamp, Location, RecurrencePattern
+from Calendar import EventStamp, Location, RecurrencePattern, EventComparator
 
 from TimeZone import TimeZoneInfo, formatTime, shortTZ

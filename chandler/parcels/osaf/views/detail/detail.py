@@ -315,7 +315,7 @@ class DetailSynchronizer(Item):
         # Ignore notifications during stamping or deleting
         (op, uuid, attributes) = data
         changedItem = self.itsView.findUUID(uuid, False)
-        if changedItem is None or changedItem.isMutating():
+        if pim.isDead(changedItem) or changedItem.isMutating():
             return
         
         #logger.debug("%s: Resyncing due to change on %s", 
@@ -340,16 +340,14 @@ class UnreadTimer(DetailSynchronizer, ControlBlocks.Timer):
         # but we may not be rendered here, so set a flag; we'll check 
         # it at synchronize time, below.)
         item = getattr(self, 'item', None)
-        self.checkReadState = (item is not None and not item.read and
-                               not Calendar.isRecurring(item))        
+        self.checkReadState = (item is not None and not item.read)        
     
     def synchronizeWidget(self, useHints=False):
         super(DetailSynchronizer, self).synchronizeWidget(useHints)
         if getattr(self, 'checkReadState', False):
             self.checkReadState = False
             item = getattr(self, 'item', None) 
-            if item is not None and not item.read and \
-               not Calendar.isRecurring(item):
+            if item is not None and not item.read:
                 logger.debug("Setting unread timer for %s", debugName(item))
                 self.setFiringTime(timedelta(seconds=1))
             else:
@@ -361,6 +359,9 @@ class UnreadTimer(DetailSynchronizer, ControlBlocks.Timer):
         # (i.e. we don't want this showing up as a user edit).
         item = getattr(self, 'contents', None) 
         if item is not None:
+            # changes to read/unread/needs reply should apply to all occurrences
+            item = getattr(item, 'proxiedItem', item)
+            item = pim.EventStamp(item).getMaster().itsItem
             logger.debug("Clearing unread flag for %s", debugName(item))
             item.read = True
     
@@ -541,7 +542,7 @@ class DetailStampButton(DetailSynchronizer, ControlBlocks.StampButton):
 
     def onButtonPressedEventUpdateUI(self, event):
         item = self.item
-        enable = item is not None and self._isStampable(item) and \
+        enable = not pim.isDead(item) and self._isStampable(item) and \
                item.isAttributeModifiable('displayName')
         event.arguments ['Enable'] = enable
         

@@ -72,7 +72,7 @@ class TestEventIndexing(TimeZoneTestCase):
         self.tzInfoItem.default = self.eastern
         daysEvents = list(Calendar.eventsInRange(self.rep.view, self.midnight,
                                                  self.midnight + timedelta(1)))
-        print [i.startTime for i in daysEvents]
+        #print [i.startTime for i in daysEvents]
         self.assertEqual(daysEvents[0], self.easternEvent)
         self.assertEqual(daysEvents[1], self.floatingEvent)
         self.assertEqual(daysEvents[2], self.pacificEvent)

@@ -926,7 +926,7 @@ class CalendarNotificationHandler(object):
     def ClearPendingNewEvents(self):
         self._pendingNewEvents = set()
         
-    def GetPendingNewEvents(self, (startTime, endTime)):
+    def GetPendingNewEvents(self, (startTime, endTime), expandRecurrence=True):
 
         # Helper method for optimizing the display of
         # newly created events in various calendar widgets.
@@ -962,9 +962,11 @@ class CalendarNotificationHandler(object):
                 if (hasattr(event, 'startTime') and
                     hasattr(event, 'duration')):
                     
-                    if event.rruleset is not None:
+                    if expandRecurrence and event.rruleset is not None:
                         addedEvents.extend(event.getOccurrencesBetween(startTime, endTime))
                     elif not (event.startTime > endTime or event.endTime < startTime):
+                        addedEvents.append(event)
+                    else:
                         addedEvents.append(event)
 
         self._pendingNewEvents = set()
