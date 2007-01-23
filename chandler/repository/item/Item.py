@@ -14,7 +14,7 @@
 
 
 from chandlerdb.util.c import \
-    UUID, _hash, _combine, isuuid, Nil, Default
+    UUID, _hash, _combine, isuuid, Nil, Default, Empty
 from chandlerdb.schema.c import _countAccess
 from chandlerdb.item.c import CItem, isitem, isitemref
 from chandlerdb.item.ItemValue import ItemValue
@@ -189,7 +189,7 @@ class Item(CItem):
                 old = _attrDict[name]
                 if old is value:
                     return value
-                if old is not None:
+                if old not in (None, Empty):
                     if isItem and isuuid(old):
                         if old == value.itsUUID:
                             return value
@@ -197,7 +197,7 @@ class Item(CItem):
                         wasRefs = True
                         old._removeRefs()
 
-        if isItem or value is None:
+        if isItem or value in (None, Empty):
             if _attrDict is _values:
                 _values[name] = value
                 dirty = Item.VDIRTY
@@ -227,7 +227,7 @@ class Item(CItem):
 
         elif isinstance(value, (RefList, list)):
             if _attrDict is _references:
-                if old is None:
+                if old in (None, Empty):
                     _references[name] = refList = self._refList(name)
                 else:
                     if not wasRefs:
@@ -496,10 +496,9 @@ class Item(CItem):
                 _attrDict = self._values
             elif name in self._references:
                 _attrDict = self._references
+            elif hasattr(self, name): # inherited value
+                return
             else:
-                if hasattr(self, name): # inherited value
-                    return
-
                 raise NoLocalValueForAttributeError, (self, name)
 
         if _attrDict is self._values:

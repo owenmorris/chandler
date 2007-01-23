@@ -191,6 +191,12 @@
   </item>
 
   <item withSchema="True" coreSchema="True">
+    <name>NilValue</name>
+    <kind type="path">//Schema/Core/Type</kind>
+    <class module="repository.schema.Types">NilValue</class>
+  </item>
+
+  <item withSchema="True" coreSchema="True">
     <name>Path</name>
     <kind type="path">//Schema/Core/Type</kind>
     <class module="repository.schema.Types">Path</class>

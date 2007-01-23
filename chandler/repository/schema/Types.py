@@ -23,7 +23,7 @@ from decimal import Decimal as decimal
 
 from chandlerdb.schema.c import CAttribute
 from chandlerdb.util.c import \
-    _hash, _combine, Nil, packDigits, unpackDigits, isuuid
+    _hash, _combine, Nil, Default, Empty, packDigits, unpackDigits, isuuid
 from chandlerdb.persistence.c import Record
 from chandlerdb.item.c import isitem, isitemref
 from repository.item.Item import Item
@@ -824,6 +824,56 @@ class NoneType(Type):
 
     def hashValue(self, value):
         return 0
+
+
+class NilValue(Type):
+
+    def getImplementationType(self):
+        return type(Nil)
+
+    def handlerName(self):
+        return 'nil'
+    
+    def makeValue(self, data):
+        if data == 'empty':
+            return Empty
+        if data == 'default':
+            return Default
+        raise ValueError, data
+
+    def makeString(self, value):
+        if value is Empty:
+            return 'empty'
+        if value is Default:
+            return 'default'
+        raise ValueError, value
+
+    def recognizes(self, value):
+        # Nil is not a persistable value, by definition
+        return value in (Empty, Default)
+
+    def _compareTypes(self, other):
+        return -1
+
+    def writeValue(self, itemWriter, record, item, version, value, withSchema):
+        if value is Empty:
+            record += (Record.BYTE, 1)
+        elif value is Default:
+            record += (Record.BYTE, 2)
+        else:
+            raise ValueError, value
+        return 0
+
+    def readValue(self, itemReader, offset, data, withSchema, view, name,
+                  afterLoadHooks):
+        return offset+1, (Empty, Default)[data[offset] - 1]
+
+    def hashValue(self, value):
+        if value is Empty:
+            return 1
+        if value is Default:
+            return 2
+        raise ValueError, value
 
 
 class Class(Type):

@@ -88,7 +88,7 @@ core_types = """
 Boolean Symbol Importable Bytes Text Integer Long Float Decimal
 Tuple List Set Class Dictionary Anything
 Date Time DateTime DateTimeTZ TimeDelta TimeZone
-Lob URL Complex UUID Path ItemRef
+Lob URL Complex UUID Path ItemRef NilValue
 """.split()
 
 for name in core_types:

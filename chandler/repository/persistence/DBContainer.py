@@ -1557,8 +1557,9 @@ class ValueContainer(DBContainer):
     # 0.6.10: FileContainer changed to contain both file info and data blocks
     # 0.6.11: Renamed DB_VERSION to DB_INFO
     # 0.6.12: added Record C type to serialize into DB
+    # 0.6.13: added support for persisting Empty for ref collections
 
-    FORMAT_VERSION = 0x00060c00
+    FORMAT_VERSION = 0x00060d00
 
     SCHEMA_KEY  = pack('>16sl', Repository.itsUUID._uuid, 0)
     VERSION_KEY = pack('>16sl', Repository.itsUUID._uuid, 1)

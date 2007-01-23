@@ -274,9 +274,13 @@ class Indexed(object):
         index = self._indexes[indexName]
         if index.getIndexType() == 'subindex':
             uuid, superName, superIndexName = index._super
-            superIndex = getattr(item.itsView[uuid],
-                                 superName).getIndex(superIndexName)
-            superIndex.removeSubIndex(item.itsUUID, name, indexName)
+            try:
+                superValue = getattr(item.itsView[uuid], superName)
+                superIndex = superValue._indexes[superIndexName]
+                superIndex.removeSubIndex(item.itsUUID, name, indexName)
+            except (AttributeError, KeyError):
+                # no super value, no super index or sub-index not found
+                pass
 
         indexRef = (item.itsUUID, name, indexName)
         monitors = [monitor for monitor in getattr(item, 'monitors', Nil)

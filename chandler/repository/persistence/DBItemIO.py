@@ -16,7 +16,7 @@
 from struct import pack, unpack
 
 from chandlerdb.persistence.c import DBLockDeadlockError, Record
-from chandlerdb.util.c import Nil, Default, UUID, _hash, isuuid
+from chandlerdb.util.c import Nil, Default, Empty, UUID, _hash, isuuid
 from chandlerdb.item.c import isitem, CItem, isitemref, ItemRef, CValues
 from chandlerdb.schema.c import CAttribute
 from chandlerdb.item.ItemValue import Indexable
@@ -361,7 +361,12 @@ class DBItemWriter(ItemWriter):
             refRecord += (Record.SYMBOL, name)
 
         if value is None:
-            refRecord += (Record.BYTE, DBItemWriter.NONE | DBItemWriter.REF)
+            refRecord += (Record.BYTE, (DBItemWriter.NONE | DBItemWriter.REF |
+                                        DBItemWriter.SINGLE))
+
+        elif value is Empty:
+            refRecord += (Record.BYTE, (DBItemWriter.NONE | DBItemWriter.REF |
+                                        DBItemWriter.LIST))
 
         elif isuuid(value):
             if withSchema:
@@ -605,7 +610,10 @@ class DBValueReader(ValueReader):
         offset += 1
         
         if flags & DBItemWriter.NONE:
-            return offset, None
+            if flags & DBItemWriter.LIST:
+                return offset, Empty
+            else:
+                return offset, None
 
         elif flags & DBItemWriter.SINGLE:
             return offset+1, ItemRef(data[offset], view)
