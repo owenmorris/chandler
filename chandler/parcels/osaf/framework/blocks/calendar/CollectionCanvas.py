@@ -353,8 +353,7 @@ class wxCollectionCanvas(DragAndDrop.DropReceiveWidget,
         self._focusWindow.Bind(wx.EVT_CHAR, self.OnChar)
         
     def SetPanelFocus(self):
-        if self._focusWindow:
-            self._focusWindow.SetFocus()
+        self._focusWindow.SetFocus()
 
     def GetCanvasItemAt(self, unscrolledPosition):
         for canvasItem in reversed(self.canvasItemList):
