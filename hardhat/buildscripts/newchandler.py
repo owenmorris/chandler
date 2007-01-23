@@ -295,7 +295,7 @@ def doFunctionalTests(releaseMode, workingDir, log):
                 '--create', '--nocatch',
                 '--profileDir=%s' % profileDir,
                 '--parcelPath=tools/QATestScripts/DataFiles',
-                '--scriptTimeout=720', 
+                '--scriptTimeout=900', 
                 '--scriptFile=tools/cats/Functional/FunctionalTestSuite.py',
                # '--chandlerTestLogfile=FunctionalTestSuite.log', #new framework defaults to no log without this
                 '--chandlerTestDebug=1',
