@@ -1705,7 +1705,6 @@ class wxInPlaceEditor(AttributeEditors.wxEditText):
 
         # If an event's title is empty and a user presses enter to begin 
         # editing, SetItem doesn't call SetValue, so empty the buffer
-        import pdb; pdb.set_trace()
         self.SetValue('') 
 
     def OnEnterPressed(self, event):
