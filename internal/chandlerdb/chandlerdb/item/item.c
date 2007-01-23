@@ -74,6 +74,8 @@ static PyObject *t_item__getPath(t_item *self, void *data);
 static PyObject *t_item__getStatus(t_item *self, void *data);
 static PyObject *t_item__getVersion(t_item *self, void *data);
 static int t_item__setVersion(t_item *self, PyObject *value, void *data);
+static PyObject *t_item__getValues(t_item *self, void *data);
+static PyObject *t_item__getRefs(t_item *self, void *data);
 
 static PyObject *_setKind_NAME;
 static PyObject *move_NAME;
@@ -177,6 +179,10 @@ static PyGetSetDef t_item_properties[] = {
       "itsVersion property", NULL },
     { "_version", (getter) t_item__getVersion, (setter) t_item__setVersion,
       "itsVersion property", NULL },
+    { "itsValues", (getter) t_item__getValues, NULL,
+      NULL, NULL },
+    { "itsRefs", (getter) t_item__getRefs, NULL,
+      NULL, NULL },
     { NULL, NULL, NULL, NULL, NULL }
 };
 
@@ -1575,6 +1581,24 @@ static int t_item__setVersion(t_item *self, PyObject *value, void *data)
     self->version = version;
     
     return 0;
+}
+
+
+/* itsValues */
+
+static PyObject *t_item__getValues(t_item *self, void *data)
+{
+    Py_INCREF(self->values);
+    return (PyObject *) self->values;
+}
+
+
+/* itsRefs */
+
+static PyObject *t_item__getRefs(t_item *self, void *data)
+{
+    Py_INCREF(self->references);
+    return (PyObject *) self->references;
 }
 
 

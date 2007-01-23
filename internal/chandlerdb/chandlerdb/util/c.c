@@ -29,8 +29,7 @@ PyTypeObject *CPoint = NULL;
 PyTypeObject *CNode = NULL;
 PyTypeObject *SkipList = NULL;
 
-PyObject *Nil = NULL;
-PyObject *Default = NULL;
+PyObject *Nil = NULL, *Default = NULL, *Empty = NULL;
 PyObject *Empty_TUPLE = NULL;
 
 static PyObject *isuuid(PyObject *self, PyObject *obj)

@@ -226,7 +226,7 @@ static PyObject *t_descriptor___get__(t_descriptor *self,
                     {
                         if (value->ob_type == ItemRef)
                             value = PyObject_Call(value, Empty_TUPLE, NULL);
-                        else if (value == Py_None ||
+                        else if (value == Py_None || value == Empty ||
                                  PyObject_TypeCheck(value, CLinkedMap))
                             Py_INCREF(value);
                         else

@@ -29,6 +29,7 @@ PyTypeObject *CValues = NULL;
 PyTypeObject *CLinkedMap = NULL;
 PyObject *PyExc_StaleItemError = NULL;
 PyObject *True_TUPLE, *Empty_TUPLE = NULL;
+PyObject *Empty = NULL;
 
 static PyObject *countAccess(PyObject *self, t_item *item)
 {
@@ -89,5 +90,6 @@ void initc(void)
     if (!(m = PyImport_ImportModule("chandlerdb.util.c")))
         return;
     LOAD_TYPE(m, CLinkedMap);
+    LOAD_OBJ(m, Empty);
     Py_DECREF(m);
 }

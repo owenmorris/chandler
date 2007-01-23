@@ -21,21 +21,27 @@
 
 typedef struct {
     PyObject_HEAD
+    char name[8];
 } t_nil;
 
 
+static PyObject *t_nil_repr(t_nil *self);
 static PyObject *t_nil_get(t_nil *self, PyObject *args);
 static PyObject *t_nil_iternext(t_nil *self);
 static Py_ssize_t t_nil_length(t_nil *self);
 static PyObject *t_nil_dict_get(t_nil *self, PyObject *key);
 static int t_nil_contains(t_nil *self, PyObject *obj);
 static PyObject *t_nil_call(t_nil *self, PyObject *args, PyObject *kwds);
+static PyObject *t_nil_list(t_nil *self);
 
 static PyMethodDef t_nil_methods[] = {
     { "get", (PyCFunction) t_nil_get, METH_VARARGS, NULL },
     { "iteritems", (PyCFunction) PyObject_SelfIter, METH_NOARGS, NULL },
     { "iterkeys", (PyCFunction) PyObject_SelfIter, METH_NOARGS, NULL },
     { "itervalues", (PyCFunction) PyObject_SelfIter, METH_NOARGS, NULL },
+    { "items", (PyCFunction) t_nil_list, METH_NOARGS, NULL },
+    { "keys", (PyCFunction) t_nil_list, METH_NOARGS, NULL },
+    { "values", (PyCFunction) t_nil_list, METH_NOARGS, NULL },
     { NULL, NULL, 0, NULL }
 };
 
@@ -59,7 +65,6 @@ static PyMappingMethods nil_as_mapping = {
     (objobjargproc) 0,                  /* mp_ass_subscript */
 };
 
-
 static PyTypeObject NilType = {
     PyObject_HEAD_INIT(NULL)
     0,                                         /* ob_size */
@@ -71,7 +76,7 @@ static PyTypeObject NilType = {
     0,                                         /* tp_getattr */
     0,                                         /* tp_setattr */
     0,                                         /* tp_compare */
-    0,                                         /* tp_repr */
+    (reprfunc)t_nil_repr,                      /* tp_repr */
     0,                                         /* tp_as_number */
     &nil_as_sequence,                          /* tp_as_sequence */
     &nil_as_mapping,                           /* tp_as_mapping */
@@ -102,6 +107,10 @@ static PyTypeObject NilType = {
     0,                                         /* tp_new */
 };
 
+static PyObject *t_nil_repr(t_nil *self)
+{
+    return PyString_FromFormat("<%s nil object>", self->name);
+}
 
 static Py_ssize_t t_nil_length(t_nil *self)
 {
@@ -141,6 +150,11 @@ static PyObject *t_nil_call(t_nil *self, PyObject *args, PyObject *kwds)
     Py_RETURN_NONE;
 }
 
+static PyObject *t_nil_list(t_nil *self)
+{
+    return PyList_New(0);
+}
+
 
 void _init_nil(PyObject *m)
 {
@@ -150,9 +164,16 @@ void _init_nil(PyObject *m)
         {
             Nil = (PyObject *) PyObject_New(t_nil, &NilType);
             Default = (PyObject *) PyObject_New(t_nil, &NilType);
+            Empty = (PyObject *) PyObject_New(t_nil, &NilType);
+
+            /* max name size is 7 chars + '\0' */
+            strcpy(((t_nil *) Nil)->name, "Nil");
+            strcpy(((t_nil *) Default)->name, "Default");
+            strcpy(((t_nil *) Empty)->name, "Empty");
 
             PyModule_AddObject(m, "Nil", Nil);
             PyModule_AddObject(m, "Default", Default);
+            PyModule_AddObject(m, "Empty", Empty);
         }
     }
 }
