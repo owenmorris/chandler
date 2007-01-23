@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-#   Copyright (c) 2006 Open Source Applications Foundation
+#   Copyright (c) 2006,2007 Open Source Applications Foundation
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -41,6 +41,21 @@ _all_modules = ['application', 'i18n', 'repository', 'osaf']
     # even if options.nonstop is True
 _stop_test_run = False
 
+    # When the --ignoreEnv option is used the following
+    # list of environment variable names will be deleted
+
+_ignoreEnvNames = [ 'PARCELPATH',
+                    'CHANDLERWEBSERVER',
+                    'PROFILEDIR',
+                    'CREATE',
+                    'CHANDLERNOCATCH',
+                    'CHANDLERCATCH',
+                    'CHANDLERNOSPLASH',
+                    'CHANDLERLOGCONFIG',
+                    'CHANDLEROFFLINE',
+                    'CHANDLERNONEXCLUSIVEREPO',
+                    'MVCC',
+                  ]
 
 def parseOptions():
     _configItems = {
@@ -414,6 +429,13 @@ if __name__ == '__main__':
     if options.single and (options.unitSuite or options.unit):
         print "Single test run (-t) only allowed by itself"
         sys.exit(1)
+
+    if options.noEnv:
+        for item in _ignoreEnvNames:
+            try:
+                os.unsetenv(item)
+            except:
+                print 'Error removing "%s" from the environment' % item
 
     if options.unitSuite or options.unit:
         testlist = buildUnitTestList(options.args, options.unit or len(options.single) > 0)
