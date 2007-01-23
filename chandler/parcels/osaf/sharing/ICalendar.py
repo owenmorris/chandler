@@ -509,10 +509,8 @@ def itemsFromVObject(view, text, coerceTzinfo = None, filters = None,
                     # timezones
                     app = wx.GetApp()
                     if app is not None:
-                        parent = app.mainFrame
                         def ShowTimezoneDialogCallback():
-                            ShowTurnOnTimezonesDialog(parent,
-                                                      view=app.UIRepositoryView)
+                            ShowTurnOnTimezonesDialog(view=app.UIRepositoryView)
                         app.PostAsyncEvent(ShowTimezoneDialogCallback)
                 
                 # coerce timezones based on coerceTzinfo

@@ -48,11 +48,15 @@ stateData = { IMPORT :
 # spawns lots of non-modal dialogs.
 dialogShowing = False
 
-def ShowTurnOnTimezonesDialog(parent, view=None, state=IMPORT, modal=False):
+def ShowTurnOnTimezonesDialog(parent=None, view=None, state=IMPORT,
+                              modal=False):
     
     if dialogShowing:
         return True
     
+    if parent is None:
+        parent = wx.GetApp().mainFrame
+
     # Check preferences before showing the dialog
     tzprefs = schema.ns('osaf.pim', view).TimezonePrefs
     if tzprefs.showUI or not tzprefs.showPrompt:
