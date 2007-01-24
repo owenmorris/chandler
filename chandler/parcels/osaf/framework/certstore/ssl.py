@@ -204,10 +204,9 @@ class TwistedProtocolWrapper(wrapper.TLSProtocolWrapper):
             try:
                 err = store.get_error()
     
-                x509 = store.get_current_cert()
+                pem = store.get_current_cert().as_pem()
     
                 # Check temporarily trusted certificates
-                pem = x509.as_pem()
     
                 if err not in unknown_issuer:
                     # Check if we are temporarily ignoring errors with this
@@ -218,6 +217,12 @@ class TwistedProtocolWrapper(wrapper.TLSProtocolWrapper):
                         return 1
                     self.untrustedCertificates.append(pem)
                     return ok
+                else:
+                    # In case of unknown issuer, we only ask the user about
+                    # the actual server certificate, not the CA certificate(s).
+                    stack = store.get1_chain()
+                    x509 = stack[0]
+                    pem = x509.as_pem()
     
                 if pem in trusted_until_shutdown_site_certs:
                     log.debug('Found temporarily trusted site cert')
