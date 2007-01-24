@@ -474,7 +474,7 @@ def itemsFromVObject(view, text, coerceTzinfo = None, filters = None,
                 # RFC2445 allows VEVENTs without DTSTART, but it's hard to guess
                 # what that would mean, so we won't catch an exception if there's no
                 # dtstart.
-                anyTime = getattr(event.dtstart, 'x_osaf_anytime_param', None) == 'TRUE'
+                anyTime = getattr(event.dtstart, 'x_osaf_anytime_param', "").upper() == 'TRUE'
 
                 reminderDelta = None
                 reminderAbsoluteTime = None
