@@ -16,6 +16,8 @@ import tools.cats.framework.ChandlerTestLib as QAUITestAppLib
 from tools.cats.framework.ChandlerTestCase import ChandlerTestCase
 from i18n.tests import uw
 
+import osaf.pim as pim
+
 class TestRecurringEvent(ChandlerTestCase):
 
     def startTest(self):
@@ -148,20 +150,20 @@ class TestRecurringEvent(ChandlerTestCase):
         
         # action
         yearlyEvent.SetAttr(displayName=uw("Yearly dentist appointment"),
-                         startDate="02/06/2006",
+                         startDate="02/06/2004",
                             startTime="10:00 AM",
                             location=uw("Downtown"),
                             status="CONFIRMED",
                             body=uw("Resolution: get teeth cleaned once a year"),
                             timeZone="US/Pacific",
                             recurrence="Yearly",
-                            recurrenceEnd="02/07/2010")
+                            recurrenceEnd="02/07/2050")
                             
         # verification
           
         yearlyEvent.Check_DetailView({"displayName":uw("Yearly dentist appointment"),
-                                      "startDate":"2/6/2006",
-                                      "endDate":"2/6/2006",
+                                      "startDate":"2/6/2004",
+                                      "endDate":"2/6/2004",
                                       "startTime":"10:00 AM",
                                       "endTime":"11:00 AM",
                                       "location":uw("Downtown"),
@@ -169,11 +171,11 @@ class TestRecurringEvent(ChandlerTestCase):
                                       "body":uw("Resolution: get teeth cleaned once a year"),
                                       "timeZone":"US/Pacific",
                                       "recurrence":"Yearly",
-                                      "recurrenceEnd":"2/7/2010"})
+                                      "recurrenceEnd":"2/7/2050"})
     
         yearlyEvent.Check_Object({"displayName":uw("Yearly dentist appointment"),
-                                  "startDate":"2/6/2006",
-                                  "endDate":"2/6/2006",
+                                  "startDate":"2/6/2004",
+                                  "endDate":"2/6/2004",
                                   "startTime":"10:00 AM",
                                   "endTime":"11:00 AM",
                                   "location":uw("Downtown"),
@@ -181,6 +183,59 @@ class TestRecurringEvent(ChandlerTestCase):
                                   "body":uw("Resolution: get teeth cleaned once a year"),
                                   "timeZone":"US/Pacific"})
 
-                              
+        # switch to the table view, make sure there are appropriate triageStatus
+        # modifications.  These tests will fail if run before Feb. 2006 or after
+        # Feb. 2050.
+        view = QAUITestAppLib.UITestView(self.logger)
+        view.SwitchToAllView()
+        dashboardBlock = self.app_ns.DashboardSummaryView
+        
+        def getTriageStatusDict(title):
+            """
+            Get a dictionary mapping triage status to lists of items with the
+            given title.
+            """
+            dictionary=dict()
+            for status in pim.TriageEnum.constants:
+                dictionary[status] = []
 
+            for item in dashboardBlock.contents:
+                if item.displayName == title:
+                    dictionary[item.triageStatus].append(item)
 
+            return dictionary
+
+        def checkDictNumbers(done, later, now):
+            statuses = getTriageStatusDict(uw("Yearly dentist appointment"))
+            if len(statuses[pim.TriageEnum.done]) != done:
+                self.logger.endAction(False,
+                                'Wrong number of Done items, %s instead of %s'
+                                % (len(statuses[pim.TriageEnum.done]), done))
+            elif len(statuses[pim.TriageEnum.later]) != later:
+                self.logger.endAction(False,
+                                'Wrong number of Later items, %s instead of %s'
+                                % (len(statuses[pim.TriageEnum.later]), later))
+            elif len(statuses[pim.TriageEnum.now]) != now:
+                self.logger.endAction(False,
+                                'Wrong number of Now items, %s instead of %s'
+                                % (len(statuses[pim.TriageEnum.now]), now))
+                
+
+        self.logger.startAction("Check initial modification states.")
+        checkDictNumbers(1, 1, 1)
+        self.logger.endAction(True)
+
+        statuses = getTriageStatusDict(uw("Yearly dentist appointment"))
+        changing_item = statuses[pim.TriageEnum.done][0]        
+        
+        self.logger.startAction("Change a Done to Now.")
+        # This isn't going through the UI, so changes don't need to be purged
+        # moved the Done to Now, created a new Done
+        changing_item.triageStatus = pim.TriageEnum.now
+        checkDictNumbers(1, 1, 2)
+        self.logger.endAction(True)
+
+        self.logger.startAction("Change the now back to Done.")
+        changing_item.triageStatus = pim.TriageEnum.done
+        checkDictNumbers(1, 1, 1)
+        self.logger.endAction(True)

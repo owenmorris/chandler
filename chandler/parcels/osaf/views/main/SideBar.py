@@ -1272,47 +1272,66 @@ class SidebarBranchPointDelegate(BranchPoint.BranchPointDelegate):
                     # we don't have a cached version of this key, so we'll
                     # create a new one
     
-    
+                    
                     if len(collectionList) == 1:
                         key = collectionList[0]
                     else:
-                        # eventually it would be nice to just make a
-                        # Union here, but we need to make sure each
-                        # withoutTrash gets called
-                        combined = UnionCollection(itsView=self.itsView,
-                                                   sources=collectionList)
-    
-                        # unioning Smart/AppCollections makes them
-                        # lose their trash (which is good) so add it
-                        # back by wrapping with an AppCollection
-                        # (AppCollections are more transitory than
-                        # SmartCollections)
-                        key = AppCollection(itsView=self.itsView,
-                                            source=combined)
+                        # UnionCollection removes trash from its children before
+                        # bringing them together
+                        key = UnionCollection(itsView=self.itsView,
+                                              sources=collectionList)
     
                     # create an INTERNAL name for this collection, just
                     # for debugging purposes
                     displayName = u" and ".join ([theItem.displayName for theItem in collectionList])
     
-                    # Handle filtered collections by intersecting with
-                    # the stamp collection
-                    if filterClass is not MissingClass:
-                        stampCollection = self.stampToCollectionCache.get(filterClass, None)
-                        if stampCollection is None:
-                            if filterClass is not MissingClass:
-                                stampCollection = filterClass.getCollection(self.itsView)
-                            else:
-                                stampCollection = schema.ns("osaf.pim", self.itsView).allCollection
-                            self.stampToCollectionCache[filterClass] = stampCollection
+                    if filterClass is pim.EventStamp and \
+                                        UserCollection(key).dontDisplayAsCalendar:
+                        # filtering on calendar in the dashboard is a special case,
+                        # we can't filter out both master events and intersect
+                        # with events, so filter on nonMasterEvents
+                        nonMasterEvents = schema.ns("osaf.pim", self.itsView).nonMasterEvents
                         newKey = IntersectionCollection(itsView=self.itsView,
-                                                        sources=[key, stampCollection])
+                                                        sources=[key, nonMasterEvents])
                         UserCollection(newKey).dontDisplayAsCalendar = UserCollection(key).dontDisplayAsCalendar
-                        displayName += u" filtered by " + filterClass.__name__
-    
+                        displayName += u" filtered by non-master events"
+                        newKey.displayName = displayName
                         key = newKey
-
+    
+                    else:
+                        # Handle filtered collections by intersecting with
+                        # the stamp collection
+                        if filterClass is not MissingClass:
+                            stampCollection = self.stampToCollectionCache.get(filterClass, None)
+                            if stampCollection is None:
+                                stampCollection = filterClass.getCollection(self.itsView)
+                                self.stampToCollectionCache[filterClass] = stampCollection
+                            newKey = IntersectionCollection(itsView=self.itsView,
+                                                            sources=[key, stampCollection])
+                            UserCollection(newKey).dontDisplayAsCalendar = UserCollection(key).dontDisplayAsCalendar
+                            displayName += u" filtered by " + filterClass.__name__
+                            newKey.displayName = displayName
+                            key = newKey
+        
+                        # don't include masterEvents in collections passed to 
+                        # anything but the calendar view. Master events in tables should
+                        # never be edited directly.  If view and filter are ever
+                        # decoupled, this will need to be reworked.
+                        if (filterClass is not pim.EventStamp or 
+                            UserCollection(key).dontDisplayAsCalendar):
+                            masterEvents = schema.ns("osaf.pim", self.itsView).masterEvents
+            
+                            newKey = DifferenceCollection(itsView=self.itsView,
+                                                          sources=[key, masterEvents])
+                            UserCollection(newKey).dontDisplayAsCalendar = \
+                                UserCollection(key).dontDisplayAsCalendar
+                            displayName += u" minus master events"
+                            newKey.displayName = displayName
+                            key = newKey
+                        
                     key = wrapInIndexedSelectionCollection (key)
                     self.itemTupleKeyToCacheKey [tupleKey] = key
+                    displayName += u" ISC"
                     key.displayName = displayName
                     key.collectionList = collectionList
                 else: # if key is None
