@@ -252,25 +252,25 @@ class AttributeIndexDefinition(MethodIndexDefinition):
 
     def compare(self, u1, u2):
         attrs = self.getFindValuePairs() 
-        
-        def cmpObjects(v1, v2):
+
+        def noneAwareCmp(v1, v2):
             # ... somewhat stolen from Indexes.py in the repository
             # code.
             if v1 is v2:
                 return 0
-
+ 
             if v1 is None:
-                return 1
-
-            if v2 is None:
                 return -1
-
+ 
+            if v2 is None:
+                return 1
+ 
             return cmp(v1, v2)
         
         for value1, value2 in itertools.izip(
                          self.findValues(u1, *attrs),
                          self.findValues(u2, *attrs)):
-            result = cmpObjects(value1, value2)
+            result = noneAwareCmp(value1, value2)
             if result:
                 return result
         return 0
