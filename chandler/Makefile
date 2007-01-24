@@ -37,7 +37,7 @@ ARCHIVES = $(CHANDLERARCHIVES)/Launchers-$(SNAP)-0.9-$(BP)3.tar.gz \
            $(CHANDLERARCHIVES)/zope.interface-$(SNAP)-3.3.0b2-r71371-$(BP)1.tar.gz \
            $(CHANDLERARCHIVES)/dateutil-$(SNAP)-1.1-$(BP)4.tar.gz \
            $(CHANDLERARCHIVES)/vobject-$(SNAP)-0.4.5-r172-$(BP)1.tar.gz \
-           $(CHANDLERARCHIVES)/zanshin-$(SNAP)-158-$(BP)1.tar.gz \
+           $(CHANDLERARCHIVES)/zanshin-$(SNAP)-163-$(BP)1.tar.gz \
            $(CHANDLERARCHIVES)/logilab-astng-$(SNAP)-0.16.3-$(BP)2.tar.gz \
            $(CHANDLERARCHIVES)/logilab-common-$(SNAP)-0.21.0-$(BP)2.tar.gz \
            $(CHANDLERARCHIVES)/pylint-$(SNAP)-0.12.2-$(BP)2.tar.gz \
