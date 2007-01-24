@@ -70,7 +70,7 @@ def makeMainView(parcel):
                                  heading = u'',
                                  scaleColumn = wx.grid.Grid.GRID_COLUMN_SCALABLE,
                                  attributeName = u'displayName')],
-                          
+
         scaleWidthsToFit = True,
         rowHeight = 19,
         border = RectType(0, 0, 4, 0),

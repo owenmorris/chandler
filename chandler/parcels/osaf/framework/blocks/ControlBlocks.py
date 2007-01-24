@@ -285,7 +285,7 @@ class columnType(schema.Enumeration):
     A 'stamp' column gets the value of the item passing stamp
     to the attribute editor.
     """
-    values = 'attribute', 'stamp'
+    values = 'attribute', 'stamp', 'None'
 
 
 class Column(schema.Item):
@@ -331,8 +331,6 @@ class Column(schema.Item):
                        doc="The width of the column, "
                        "relative to other columns")
 
-    format = schema.One(schema.Text)
-
     scaleColumn = schema.One(schema.Integer, defaultValue = wx.grid.Grid.GRID_COLUMN_NON_SCALABLE)
     readOnly = schema.One(schema.Boolean, initialValue=False)
     defaultSort = schema.One(schema.Boolean, initialValue=False)
@@ -346,6 +344,8 @@ class Column(schema.Item):
     def getAttributeEditorValue(self):
         if self.valueType == 'stamp':
             return self.stamp
+        elif self.valueType == 'None':
+            return "None"
         else:
             return self.attributeName
         
@@ -437,6 +437,9 @@ class AttributeDelegate (ListDelegate):
             if col.valueType == 'stamp':
                 typeName = col.stamp.__name__ # ?
                 
+            elif col.valueType == 'None':
+                typeName = "None"
+
             elif col.valueType == 'attribute':
                 attributeName = col.attributeName
                 if item.itsKind.hasAttribute(attributeName):

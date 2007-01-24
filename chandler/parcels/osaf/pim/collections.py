@@ -151,6 +151,14 @@ class IndexDefinition(schema.Item):
                       
 
 
+class NumericIndexDefinition (IndexDefinition):
+    """
+    A class that allows you to build numeric indexes
+    """
+    def makeIndexOn(self, collection):
+        """ Create the index we describe on this collection """
+        collection.addIndex(self.itsName, 'numeric')
+
 class MethodIndexDefinition(IndexDefinition):
     """
     A class that allows you to build indexes based on comparing computed

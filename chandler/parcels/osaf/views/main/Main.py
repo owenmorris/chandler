@@ -464,7 +464,6 @@ class MainView(View):
                                             application.propagateAsynchronousNotifications()
                                             application.Yield()
 
-                            
                         if len(searchResults) == 0:
                             # For now we'll write a message to the status bar because it's easy
                             # When we get more time to work on search, we should write the message

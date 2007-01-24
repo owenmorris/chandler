@@ -561,6 +561,20 @@ def makeSummaryBlocks(parcel):
             pim.ContentItem.triageStatusChanged.name,
         ])
         
+    rankColumn = makeColumnAndIndexes('SumColRank',
+        heading = _(u'Rank'),
+        valueType = 'None',
+        defaultSort = True,
+        useSortArrows = False,
+        useMaster = False,
+        width = 46,
+        scaleColumn = wx.grid.Grid.GRID_COLUMN_SCALABLE,
+        readOnly = True,
+        indexName ='%s.rank' % __name__,
+        format='rank',
+        baseClass = pim.NumericIndexDefinition,
+        attributes = [])
+
     # Our detail views share the same delegate instance and contents collection
     detailBranchPointDelegate = detailblocks.DetailBranchPointDelegate.update(
         parcel, 'DetailBranchPointDelegateInstance',
@@ -610,6 +624,7 @@ def makeSummaryBlocks(parcel):
                 contents = pim_ns.allCollection,
                 scaleWidthsToFit = True,
                 columns = [
+                    rankColumn,
                     taskColumn,
                     commColumn,
                     whoColumn,

@@ -26,6 +26,7 @@ from collections import (
     IntersectionCollection, FilteredCollection, ListCollection, SmartCollection, 
     AppCollection, IndexedSelectionCollection, AllIndexDefinitions,
     IndexDefinition, AttributeIndexDefinition, MethodIndexDefinition,
+    NumericIndexDefinition
 )
 
 from stamping import Stamp, has_stamp

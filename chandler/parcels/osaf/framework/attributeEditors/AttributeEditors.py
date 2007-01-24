@@ -154,6 +154,7 @@ def installParcel(parcel, oldVersion=None):
         'Timedelta': 'TimeDeltaAttributeEditor',
         'TimeTransparencyEnum': 'ChoiceAttributeEditor',
         'URL': 'StaticStringAttributeEditor',
+        'None+rank': 'RankAttributeEditor',
     }
     AttributeEditorMapping.register(parcel, aeDict, __name__)
 
@@ -2756,3 +2757,29 @@ class IconAttributeEditor (BaseAttributeEditor):
         # We'll want capture if the mouse is in this cell, or if the mouse is
         # down.
         return isIn or isDown
+
+
+class RankAttributeEditor (BaseAttributeEditor):
+    """
+    A special purpose attribute editor that displays order in a collection, currently
+    used for display relevancy of search results
+    """
+    def Draw (self, grid, dc, rect, (item, attributeName), isInSelection = False):
+        # Erase the bounding box
+        dc.SetBackgroundMode (wx.SOLID)
+        dc.SetPen (wx.TRANSPARENT_PEN)
+
+        dc.DrawRectangleRect (rect)
+        
+        contents = grid.blockItem.contents
+        position = contents.positionInIndex ("osaf.views.main.summaryblocks.rank", item)
+        length = len (contents)
+        rank = float (length - position) / length
+        
+        rect.Inflate (-1, -4)
+        rect.SetWidth (rect.GetWidth() * rank)
+        
+        brush = wx.Brush(wx.SystemSettings.GetColour (wx.SYS_COLOUR_GRAYTEXT), wx.SOLID)
+        dc.SetBrush (brush)
+        dc.DrawRectangleRect (rect)
+
