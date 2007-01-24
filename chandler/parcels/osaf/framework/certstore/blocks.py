@@ -1,4 +1,4 @@
-#   Copyright (c) 2005-2006 Open Source Applications Foundation
+#   Copyright (c) 2005-2007 Open Source Applications Foundation
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -104,13 +104,13 @@ def installParcel(parcel, oldVersion=None):
         parentBlock = certMenu,
     )
 
-    typeArea = detail.makeArea(parcel, "TypeArea",
+    purposeArea = detail.makeArea(parcel, "PurposeArea",
         position = 0.1,
         childrenBlocks = [
-            detail.makeLabel(parcel, _(u'type')),
+            detail.makeLabel(parcel, _(u'purpose')),
             detail.makeSpacer(parcel, width=8),
-            detail.makeEditor(parcel, 'TypeAttribute',
-                viewAttribute=u'type',
+            detail.makeEditor(parcel, 'PurposeAttribute',
+                viewAttribute=u'purpose',
                 stretchFactor=0.0,
                 size=SizeType(60, -1)
             )]).install(parcel)
@@ -162,7 +162,7 @@ def installParcel(parcel, oldVersion=None):
     detail.makeSubtree(parcel, certstore.Certificate, [
         detail.MarkupBar,
         detail.makeSpacer(parcel, height=6, position=0.01).install(parcel),
-        typeArea,
+        purposeArea,
         trustArea,
         fingerprintArea,
         fingerprintAlgArea,

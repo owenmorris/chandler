@@ -1,4 +1,4 @@
-#   Copyright (c) 2005-2006 Open Source Applications Foundation
+#   Copyright (c) 2005-2007 Open Source Applications Foundation
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -58,7 +58,7 @@ __all__ = ['loadCertificatesToContext', 'SSLContextError', 'getContext',
            'connectSSL', 'connectTCP', 'unknown_issuer',
            'trusted_until_shutdown_site_certs',
            'trusted_until_shutdown_invalid_site_certs',
-           'askTrustSiteCertificate',
+           'askTrustServerCertificate',
            'askIgnoreSSLError', 'contextCache']
 
 log = logging.getLogger(__name__)
@@ -236,7 +236,7 @@ class TwistedProtocolWrapper(wrapper.TLSProtocolWrapper):
                 # self.repositoryView.commit()
     
                 q = schema.ns('osaf.framework.certstore', 
-                              self.repositoryView).sslTrustedSiteCertificatesQuery
+                              self.repositoryView).sslTrustedServerCertificatesQuery
                 for cert in q:
                     if cert.pemAsString() == pem:
                         log.debug('Found permanently trusted site cert')
@@ -337,7 +337,7 @@ def connectTCP(host, port, factory, repositoryView,
     return reactor.connectTCP(host, port, wrappingFactory, timeout,
                               bindAddress)    
 
-def askTrustSiteCertificate(repositoryView, pem, reconnect):
+def askTrustServerCertificate(repositoryView, pem, reconnect):
     """
     Ask user if they would like to trust the certificate that was returned by
     the server. This will only happen if the certificate is not already
@@ -387,15 +387,15 @@ def askTrustSiteCertificate(repositoryView, pem, reconnect):
     while _pending_trust_requests:
 
         # Don't pop(0) the first element: we still want to append
-        # to its list of reconnects if askTrustSiteCertificate() gets
+        # to its list of reconnects if askTrustServerCertificate() gets
         # called while the dialog is up.
         repositoryView, pem, reconnects = _pending_trust_requests[0]
         
         x509 = X509.load_cert_string(pem)
         untrustedCertificate = certificate.findCertificate(repositoryView, pem)
-        dlg = dialogs.TrustSiteCertificateDialog(wx.GetApp().mainFrame,
-                                                 x509,
-                                                 untrustedCertificate)
+        dlg = dialogs.TrustServerCertificateDialog(wx.GetApp().mainFrame,
+                                                   x509,
+                                                   untrustedCertificate)
         try:
             if dlg.ShowModal() == wx.ID_OK:
                 selection = dlg.GetSelection()
@@ -409,8 +409,7 @@ def askTrustSiteCertificate(repositoryView, pem, reconnect):
                         fingerprint = utils.fingerprint(x509)
                         certificate.importCertificate(x509, fingerprint,
                                            constants.TRUST_AUTHENTICITY,
-                                           repositoryView,
-                                           typeHint=constants.TYPE_SITE)
+                                           repositoryView)
                     # In either case here (a known, untrusted cert, or a
                     # completely untrusted cert), we have made a change
                     # and we need to commit so other views can see it.

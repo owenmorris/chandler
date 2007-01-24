@@ -87,7 +87,7 @@ class ChandlerServerHandle(zanshin.webdav.ServerHandle):
                 retry = (lambda: setattr(self, '_retry', True))
     
                 if err.args[0] in ssl.unknown_issuer:
-                    handler = lambda: ssl.askTrustSiteCertificate(
+                    handler = lambda: ssl.askTrustServerCertificate(
                         Globals.wxApplication.UIRepositoryView,
                         err.untrustedCertificates[0], 
                         retry)

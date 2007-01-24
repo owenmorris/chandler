@@ -1,4 +1,4 @@
-#   Copyright (c) 2003-2006 Open Source Applications Foundation
+#   Copyright (c) 2003-2007 Open Source Applications Foundation
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -14,6 +14,19 @@
 
 
 from certificate import *
+from repository.item.Item import Item
+
+class TrustedCACertsFilter(Item):
+    def isTrustedCACert(self, view, uuid):
+        purpose, trust = view.findValues(uuid, ('purpose', 0), ('trust', 0))
+        return purpose & constants.PURPOSE_CA and \
+               trust & constants.TRUST_AUTHENTICITY | constants.TRUST_SERVER
+
+class TrustedServerCertsFilter(Item):
+    def isTrustedServerCert(self, view, uuid):
+        purpose, trust = view.findValues(uuid, ('purpose', 0), ('trust', 0))
+        return purpose & constants.PURPOSE_SERVER and \
+               trust & constants.TRUST_AUTHENTICITY
 
 def installParcel(parcel, oldVersion=None):
     # load our subparcels
@@ -26,12 +39,13 @@ def installParcel(parcel, oldVersion=None):
 
     FilteredCollection.update(parcel, 'sslCertificateQuery',
         source=utils.getExtent(certificate.Certificate, parcel.itsView),
-        filterExpression=u"view.findValues(uuid, ('type', None), ('trust', None)) == ('%s', %d)" %(constants.TYPE_ROOT, constants.TRUST_AUTHENTICITY | constants.TRUST_SITE),
-        filterAttributes=['type', 'trust']
+        filterMethod=(TrustedCACertsFilter(None, parcel), 'isTrustedCACert'),
+        filterAttributes=['purpose', 'trust']
     )
     
-    FilteredCollection.update(parcel, 'sslTrustedSiteCertificatesQuery',
+    FilteredCollection.update(parcel, 'sslTrustedServerCertificatesQuery',
         source=utils.getExtent(certificate.Certificate, parcel.itsView),
-        filterExpression=u"view.findValues(uuid, ('type', None), ('trust', None)) == ('%s', %d)" %(constants.TYPE_SITE, constants.TRUST_AUTHENTICITY),
-        filterAttributes=['type', 'trust']
+        filterMethod=(TrustedServerCertsFilter(None, parcel),
+                      'isTrustedServerCert'),
+        filterAttributes=['purpose', 'trust']
     )

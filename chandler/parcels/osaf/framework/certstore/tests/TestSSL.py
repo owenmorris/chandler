@@ -165,7 +165,7 @@ Mi6jbcmKpkTked0C7KzayFkggv/SZtmeibzOjQJbO5WQCRgYuF9t7Rijk7oiAt3U
         fingerprint = utils.fingerprint(x509)
         cert = certificate.importCertificate(x509,
                                              fingerprint,
-                                             constants.TRUST_AUTHENTICITY | constants.TRUST_SITE,
+                                             constants.TRUST_AUTHENTICITY | constants.TRUST_SERVER,
                                              self.rep.view)
         self.assert_(ssl.contextCache is None, 'cache should have been cleared after adding a cert')
 

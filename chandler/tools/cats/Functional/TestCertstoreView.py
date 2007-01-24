@@ -1,4 +1,4 @@
-#   Copyright (c) 2003-2006 Open Source Applications Foundation
+#   Copyright (c) 2003-2007 Open Source Applications Foundation
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -15,6 +15,7 @@
 import tools.cats.framework.ChandlerTestLib as QAUITestAppLib
 from tools.cats.framework.ChandlerTestCase import ChandlerTestCase
 import wx
+from osaf.framework.certstore import constants
 
 class TestCertstoreView(ChandlerTestCase):
     
@@ -74,8 +75,8 @@ class TestCertstoreView(ChandlerTestCase):
         cert.item = self.app_ns.summary.contents.getFirstSelectedItem() # Dunno how to get it from detail
         
         # Check_DetailView has hardcoded values so we can't use it :(
-        cert.CheckEditableBlock('TypeAttribute', 'type', 'root')
-        cert.CheckEditableBlock('TrustAttribute', 'trust', '3')
+        cert.CheckEditableBlock('PurposeAttribute', 'purpose', '%s' % constants.PURPOSE_CA)
+        cert.CheckEditableBlock('TrustAttribute', 'trust', '%s' % (constants.TRUST_AUTHENTICITY | constants.TRUST_SERVER))
         cert.CheckEditableBlock('FingerprintLabel', 'fingerprint', '0x4463c531d7ccc1006794612bb656d3bf8257846fL')
         cert.CheckEditableBlock('FingerprintAlgLabel', 'algorithm', 'sha1')
         cert.CheckEditableBlock('AsTextAttribute', 'certificate', """Certificate:

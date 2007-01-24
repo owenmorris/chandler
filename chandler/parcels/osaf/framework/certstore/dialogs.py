@@ -1,4 +1,4 @@
-#   Copyright (c) 2005-2006 Open Source Applications Foundation
+#   Copyright (c) 2005-2007 Open Source Applications Foundation
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -32,12 +32,12 @@ class ImportCertificateDialog(wx.Dialog):
     Import cerificate dialog.
     """
 
-    def __init__(self, parent, type, fingerprint, x509, choices, size=wx.DefaultSize,
+    def __init__(self, parent, purpose, fingerprint, x509, choices, size=wx.DefaultSize,
      pos=wx.DefaultPosition, style=wx.DEFAULT_DIALOG_STYLE|wx.RESIZE_BORDER):
         """
         Ask the user if they would like to import and trust a certificate.
         
-        @param type:        Certificate type
+        @param purpose:     Certificate purpose
         @param fingerprint: The certificate fingerprint
         @param x509:        The certificate to import.
         @param choices:     List of possible trust values.
@@ -61,7 +61,8 @@ class ImportCertificateDialog(wx.Dialog):
 
         # Static text
 
-        message = _(u'Do you want to import this certificate?\nType: %(certType)s\nSHA1 fingerprint: %(fingerprint)s') % {'certType': type, 'fingerprint': fingerprint}
+        # XXX Map purpose to human readable values
+        message = _(u'Do you want to import this certificate?\nPurpose: %(certPurpose)s\nSHA1 fingerprint: %(fingerprint)s') % {'certPurpose': purpose, 'fingerprint': fingerprint}
         label = wx.StaticText(self, -1, message)
         sizer.Add(label, 0, wx.ALIGN_LEFT|wx.ALL, 5)
 
@@ -116,7 +117,7 @@ class ImportCertificateDialog(wx.Dialog):
         return sel
 
 
-class TrustSiteCertificateDialog(wx.Dialog):
+class TrustServerCertificateDialog(wx.Dialog):
     """
     This is the dialog we show to users when the certificate returned by the
     server is signed by a certificate authority that is unknown to us. The user

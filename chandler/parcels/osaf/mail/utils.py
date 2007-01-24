@@ -186,7 +186,7 @@ def displaySSLCertDialog(cert, reconnectMethod):
     wxApplication = Globals.wxApplication
     if wxApplication is not None: # test framework has no wxApplication
         wxApplication.CallItemMethodAsync("MainView", 'callAnyCallable', 
-                                          ssl.askTrustSiteCertificate, True,
+                                          ssl.askTrustServerCertificate, True,
                                           cert, reconnectMethod)
 
 def displayIgnoreSSLErrorDialog(cert, err, reconnectMethod):

@@ -1,4 +1,4 @@
-#   Copyright (c) 2005-2006 Open Source Applications Foundation
+#   Copyright (c) 2005-2007 Open Source Applications Foundation
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -19,7 +19,7 @@ Certificate
 __parcel__ = "osaf.framework.certstore"
 
 __all__ = ['Certificate', 'importCertificate',
-           'importCertificateDialog', 'findCertificate', 'certificateType']
+           'importCertificateDialog', 'findCertificate', 'certificatePurpose']
 
 import os, logging, sys
 
@@ -38,13 +38,6 @@ from osaf.framework.certstore import utils, dialogs, constants
 
 log = logging.getLogger(__name__)
 
-class typeEnum(schema.Enumeration):
-    """
-    Type enumeration
-    @see: U{model<../model/parcels/osaf/framework/certstore/typeEnum/index.html>}
-    """
-    values = constants.TYPE_ROOT, constants.TYPE_SITE
-
 class Certificate(pim.ContentItem):
     """
     Certificate
@@ -52,15 +45,15 @@ class Certificate(pim.ContentItem):
     @see: U{model<../model/parcels/osaf/framework/certstore/Certificate/index.html>}
     """
 
-    type = schema.One(
-        typeEnum,
-        doc = 'Certificate type.',
-        initialValue = constants.TYPE_ROOT,
+    purpose = schema.One(
+        schema.Integer,
+        doc = 'Certificate purpose.',
+        initialValue = constants.PURPOSE_CA,
     )
     trust = schema.One(
         schema.Integer,
-        defaultValue = 0,
-        doc = 'A certificate can have no trust assigned to it, or any combination of 1=trust authenticity of certificate, 2=trust to issue site certificates.',
+        defaultValue = constants.TRUST_NONE,
+        doc = 'A certificate can have no trust assigned to it, or any combination of 1=trust authenticity of certificate, 2=trust to issue server certificates.',
     )
     pem = schema.One(
         schema.Lob,
@@ -113,35 +106,14 @@ class Certificate(pim.ContentItem):
         """
         return X509.load_cert_string(self.pemAsString())
 
-    # XXX These don't work?
-    def getAuthenticityBit(self):
-        return bool(self.trust & constants.TRUST_AUTHENTICITY)
-    def setAuthenticityBit(self, authBit):
-        if authBit:
-            self.trust |= constants.TRUST_AUTHENTICITY
-        else:
-            self.trust &= ~constants.TRUST_AUTHENTICITY
-    authenticityBit = property(getAuthenticityBit, setAuthenticityBit,
-                               doc='Authenticity bit.')
-
-    def getSiteBit(self):
-        return bool(self.trust & constants.TRUST_SITE)
-    def setSiteBit(self, siteBit):
-        if siteBit:
-            self.trust |= constants.TRUST_SITE
-        else:
-            self.trust &= ~constants.TRUST_SITE
-    siteBit = property(getSiteBit, setSiteBit,
-                       doc='Site bit.')
-
     def isAttributeModifiable(self, attribute):
         # None of these attributes should be edited by the user.
-        if attribute in ['date', 'type', 'fingerprintAlgorithm',
+        if attribute in ['date', 'purpose', 'fingerprintAlgorithm',
                                  'fingerprint', 'asTextAsString' ]:
             return False
         return super(Certificate, self).isAttributeModifiable(attribute)
     
-    @schema.observer(type, trust, pem)
+    @schema.observer(purpose, trust, pem)
     def changed(self, op, name):
         """
         Get a change notification for an attribute change. This happens
@@ -158,111 +130,107 @@ class Certificate(pim.ContentItem):
         """
         self.changed('remove', None)
 
-def _isRootCertificate(x509):
-    root = False
+def _isCACertificate(x509):
+    ca = False
     
     try:
         # This works with OpenSSL 0.9.8 or later
-        root = x509.check_ca() > 0
-        log.debug('check_ca(): %s' % root)
+        ca = x509.check_ca() > 0
+        log.debug('check_ca(): %s' % ca)
     except AttributeError:
         # Our backup algorithm for older OpenSSL
         try:
-            root = x509.get_ext('basicConstraints').get_value().find('CA:TRUE') > -1
-            log.debug('"basicConstraints" contained "CA:TRUE": %s' % root)
+            ca = x509.get_ext('basicConstraints').get_value().find('CA:TRUE') > -1
+            log.debug('"basicConstraints" contained "CA:TRUE": %s' % ca)
         except LookupError:
             pass
     
-        if not root:
+        if not ca:
             try:
-                root = x509.get_ext('keyUsage').get_value().find('Certificate Sign') > -1
-                log.debug('"keyUsage" contained "Certificate Sign": %s' % root)
+                ca = x509.get_ext('keyUsage').get_value().find('Certificate Sign') > -1
+                log.debug('"keyUsage" contained "Certificate Sign": %s' % ca)
             except LookupError:
                 pass
     
-        if not root:
+        if not ca:
             try:
-                root = x509.get_ext('nsCertType').get_value().find('SSL CA') > -1
-                log.debug('"nsCertType" contained "SSL CA": %s' % root)
+                ca = x509.get_ext('nsCertType').get_value().find('SSL CA') > -1
+                log.debug('"nsCertType" contained "SSL CA": %s' % ca)
             except LookupError:
                 pass
     
-        if not root:
+        if not ca:
             subject = x509.get_subject()
             issuer = x509.get_issuer()
             if subject.as_text() == issuer.as_text():
-                root = True
-            log.debug('subject and issuer matched: %s' % root)
+                ca = True
+            log.debug('subject and issuer matched: %s' % ca)
 
-    return root
+    return ca
 
-def _isSiteCertificate(x509):
-    # XXX This will need tweaks
-    # XXX Should use OpenSSL itself if possible
-    # XXX X509_check_purpose
-    site = False
+def _isServerCertificate(x509):
+    server = False
 
     try:
-        site = x509.get_ext('extendedKeyUsage').get_value().find('TLS Web Server Authentication') > -1
-        log.debug('"extendedKeyUsage" contained "TLS Web Server Authentication": %s' % site)
-    except LookupError:
-        pass
-
-    if not site:
+        # Works with M2Crypto 0.17 and later
+        server = x509.check_purpose(m2.X509_PURPOSE_SSL_SERVER, 0) or \
+                 x509.check_purpose(m2.X509_PURPOSE_NS_SSL_SERVER, 0)
+        log.debug('check_purpose(): %s' % server)
+    except:
         try:
-            site = x509.get_ext('nsCertType').get_value().find('SSL Server') > -1
-            log.debug('"nsCertType" contained "SSL Server": %s' % site)
+            server = x509.get_ext('extendedKeyUsage').get_value().find('TLS Web Server Authentication') > -1
+            log.debug('"extendedKeyUsage" contained "TLS Web Server Authentication": %s' % server)
         except LookupError:
             pass
+    
+        if not server:
+            try:
+                server = x509.get_ext('nsCertType').get_value().find('SSL Server') > -1
+                log.debug('"nsCertType" contained "SSL Server": %s' % server)
+            except LookupError:
+                pass
+    
+        if not server:
+            try:
+                host = x509.get_ext('subjectAltName').get_value()
+                host = host.lower()
+                if host[:4] == 'dns:':
+                    server = True
+                log.debug('"subjectAltName" contained "DNS": %s' % server)
+            except LookupError:
+                pass
+    
+        if not server:
+            commonName = x509.get_subject().CN or ''
+            if commonName.find(' ') < 0 and commonName.find('.') > -1:
+                server = True
+            elif commonName.replace('.','').isdigit():
+                server = True
+            elif commonName == 'localhost':
+                server = True
+            # XXX We could still miss certificates that are issued for
+            # XXX local, named hosts other than localhost.
+            log.debug('"commonName" indicated a server certificate: %s' % server)
 
-    if not site:
-        try:
-            host = x509.get_ext('subjectAltName').get_value()
-            host = host.lower()
-            if host[:4] == 'dns:':
-                site = True
-            log.debug('"subjectAltName" contained "DNS": %s' % site)
-        except LookupError:
-            pass
-
-    if not site:
-        commonName = x509.get_subject().CN or ''
-        if commonName.find(' ') < 0 and commonName.find('.') > -1:
-            site = True
-        elif commonName.replace('.','').isdigit():
-            site = True
-        elif commonName == 'localhost':
-            site = True
-        # XXX We could still miss certificates that are issued for
-        # XXX local, named hosts other than localhost.
-        log.debug('"commonName" indicated a site certificate: %s' % site)
-
-    return site
+    return server
 
 
-def certificateType(x509, typeHint=None):
+def certificatePurpose(x509):
     """
-    Determine certificate type.
-
-    @param typeHint: We try to see if the certificate could be this type first,
-                     before trying any other types.
+    Determine certificate purposes.
     """
-    type = None
+    purpose = 0
+    
+    if _isCACertificate(x509):
+        purpose |= constants.PURPOSE_CA
+    
+    if _isServerCertificate(x509):
+        purpose |= constants.PURPOSE_SERVER
 
-    if typeHint == constants.TYPE_SITE:
-        if _isSiteCertificate(x509):
-            type = constants.TYPE_SITE
+    if purpose == 0:
+        raise utils.CertificateException(_(u'Could not determine certificate purpose.'))
 
-    if type is None:
-        if _isRootCertificate(x509):
-            type = constants.TYPE_ROOT
-        elif _isSiteCertificate(x509):
-            type = constants.TYPE_SITE
-
-    if type is None:
-        raise utils.CertificateException(_(u'Could not determine certificate type.'))
-
-    return type
+    return purpose
 
 def findCertificate(repView, pem):
     """
@@ -276,7 +244,7 @@ def findCertificate(repView, pem):
 
     return None
 
-def importCertificate(x509, fingerprint, trust, repView, typeHint=None):
+def importCertificate(x509, fingerprint, trust, repView):
     """
     Import X.509 certificate.
 
@@ -295,8 +263,8 @@ def importCertificate(x509, fingerprint, trust, repView, typeHint=None):
 
     asText = x509.as_text()
 
-    type = certificateType(x509, typeHint)
-    if type == constants.TYPE_ROOT:
+    purpose = certificatePurpose(x509)
+    if purpose & constants.PURPOSE_CA:
         if not x509.verify():
             raise utils.CertificateException(_(u'Unable to verify the certificate.'))
 
@@ -307,16 +275,16 @@ def importCertificate(x509, fingerprint, trust, repView, typeHint=None):
     #XXX [i18n] Can a commonName contain non-ascii characters?
     cert = Certificate(itsView=repView,
                        trust=trust,
-                       type=type,
+                       purpose=purpose,
                        fingerprint=fingerprint,
                        fingerprintAlgorithm='sha1',
                        displayName=unicode(commonName),
                        pem=pem,
                        asText=text)
 
-    log.info('Imported certificate: CN=%s, type=%s, fp=%s' % (commonName,
-                                                              type,
-                                                              fingerprint))
+    log.info('Imported certificate: CN=%s, purpose=%s, fp=%s' % (commonName,
+                                                                 purpose,
+                                                                 fingerprint))
     return cert
 
 
@@ -344,18 +312,18 @@ def importCertificateDialog(repView):
             x509 = X509.load_cert(path)
 
             fprint = utils.fingerprint(x509)
-            type = certificateType(x509)
+            purpose = certificatePurpose(x509)
             # Note: the order of choices must match the selections code below
             choices = [_(u"Trust the authenticity of this certificate.")]
-            if type == constants.TYPE_ROOT:
+            if purpose & constants.PURPOSE_CA:
                 choices += [_(u"Trust this certificate to sign site certificates.")]
 
             dlg = dialogs.ImportCertificateDialog(app.mainFrame,
-                                       type,
+                                       purpose,
                                        fprint,
                                        x509,
                                        choices)
-            trust = 0
+            trust = constants.TRUST_NONE
             if dlg.ShowModal() == wx.ID_OK:
                 selections = dlg.GetSelections()
                 # Note: this code must match the choices above
@@ -363,7 +331,7 @@ def importCertificateDialog(repView):
                     if sel == 0:
                         trust |= constants.TRUST_AUTHENTICITY
                     if sel == 1:
-                        trust |= constants.TRUST_SITE
+                        trust |= constants.TRUST_SERVER
                 certificate = importCertificate(x509, fprint, trust, repView)
             dlg.Destroy()
 

@@ -103,8 +103,8 @@ rZehs7GgIFvKMquNzxPwHynD
         rootCerts = FilteredCollection('rootCertsQuery',
                                        itsView=view,
                                        source=utils.getExtent(certificate.Certificate, view, exact=True),
-                                       filterExpression=u"view.findValue(uuid, 'type') == '%s'" % constants.TYPE_ROOT,
-                                       filterAttributes=['type'])
+                                       filterExpression=u"view.findValue(uuid, 'purpose') & %d" % constants.PURPOSE_CA,
+                                       filterAttributes=['purpose'])
             
         now = time.gmtime()
         format = '%b %d %H:%M:%S %Y %Z'
@@ -125,13 +125,13 @@ rZehs7GgIFvKMquNzxPwHynD
                 raise ValueError('bad time value in ' + cert.displayName.encode('utf8'))
         
             self.assertTrue(len(cert.displayName) > 0)
-            self.assertTrue(cert.type == constants.TYPE_ROOT)
-            self.assertTrue(cert.trust == constants.TRUST_AUTHENTICITY | constants.TRUST_SITE)
+            self.assertTrue(cert.purpose & constants.PURPOSE_CA, cert.getAsTextAsString())
+            self.assertTrue(cert.trust == constants.TRUST_AUTHENTICITY | constants.TRUST_SERVER)
             self.assertTrue(cert.fingerprintAlgorithm == 'sha1')
             self.assertTrue(len(cert.fingerprint) > 3)
             self.assertTrue(cert.asTextAsString[:12] == 'Certificate:')            
     
-            self.assertTrue(certificate.certificateType(x509) == constants.TYPE_ROOT)
+            self.assertTrue(certificate.certificatePurpose(x509) & constants.PURPOSE_CA, cert.getAsTextAsString())
             
     def _importAndFind(self, pem, trust):
         x509 = X509.load_cert_string(pem)
@@ -168,14 +168,13 @@ rZehs7GgIFvKMquNzxPwHynD
         
         self.assert_(cert.fingerprint == '0xff8013055aae612ad79c347f06d1b83f93deb664L', cert.fingerprint)
         self.assert_(cert.trust == trust)
-        self.assert_(cert.type == constants.TYPE_SITE)
+        self.assert_(cert.purpose == constants.PURPOSE_SERVER)
         self.assert_(cert.displayName == u'bugzilla.osafoundation.org')
         
-        self.assertTrue(certificate.certificateType(x509) == constants.TYPE_SITE)
-        self.assertTrue(certificate.certificateType(x509, constants.TYPE_SITE) == constants.TYPE_SITE)
+        self.assertTrue(certificate.certificatePurpose(x509) == constants.PURPOSE_SERVER)
 
     def testImportRootCertificate(self):
-        trust = constants.TRUST_AUTHENTICITY | constants.TRUST_SITE
+        trust = constants.TRUST_AUTHENTICITY | constants.TRUST_SERVER
         cert = self._importAndFind(self.pemRoot, trust)
 
         x509 = cert.asX509()
@@ -185,17 +184,17 @@ rZehs7GgIFvKMquNzxPwHynD
         
         self.assert_(cert.fingerprint == '0xadacc622c85df4c2ae471a81eda1bd28379a6fa9L', cert.fingerprint)
         self.assert_(cert.trust == trust)
-        self.assert_(cert.type == constants.TYPE_ROOT)
+        self.assert_(cert.purpose == constants.PURPOSE_CA)
         self.assert_(cert.displayName == u'OSAF CA')
 
-        self.assertTrue(certificate.certificateType(x509) == constants.TYPE_ROOT)
+        self.assertTrue(certificate.certificatePurpose(x509) == constants.PURPOSE_CA)
         
     def testImportUnsupportedCertificate(self):
         trust = constants.TRUST_AUTHENTICITY
         self.assertRaises(Exception, self._importAndFind, self.pemUnsupported, trust)
 
         x509 = X509.load_cert_string(self.pemUnsupported)
-        self.assertRaises(Exception, certificate.certificateType, x509)
+        self.assertRaises(Exception, certificate.certificatePurpose, x509)
         
     #def testImportMultipleCertificate(self):
         # XXX I would like to make it so that attempting to import when
