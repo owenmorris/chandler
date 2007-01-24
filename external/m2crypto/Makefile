@@ -1,5 +1,5 @@
 
-VERSION=0.17
+VERSION=514
 RELVER=$(VERSION)-$(BRANCH_REV_PREFIX)1
 SRC=$(BUILD_ROOT)/m2crypto/M2Crypto-$(VERSION)
 BUILD=build_$(SNAP)
@@ -38,7 +38,7 @@ tests:
 	cd $(SRC)/; $(PYTHON) setup.py test -q
 
 M2Crypto-$(VERSION).tar.gz:
-	svn export http://svn.osafoundation.org/m2crypto/tags/$(VERSION) M2Crypto-$(VERSION)
+	svn export -r $(VERSION) http://svn.osafoundation.org/m2crypto/trunk M2Crypto-$(VERSION)
 	tar czf M2Crypto-$(VERSION).tar.gz M2Crypto-$(VERSION)
 
 sources: M2Crypto-$(VERSION).tar.gz
