@@ -96,16 +96,6 @@ class FeedbackWindow(wx.PyOnDemandOutputWindow):
                     index += 1
             except:
                 pass
-            try:
-                f = codecs.open(os.path.join(Globals.options.profileDir,
-                                             'twisted.log'),
-                                encoding='utf-8', mode='r', errors='ignore')
-                for line in f.readlines()[-LOGLINES:]:
-                    self.frame.sysInfo.InsertStringItem(index, 'twisted.log')
-                    self.frame.sysInfo.SetStringItem(index, 1, '%s' % line.strip())
-                    index += 1
-            except:
-                pass
 
             self.frame.sysInfo.SetColumnWidth(0, wx.LIST_AUTOSIZE)
             self.frame.sysInfo.SetColumnWidth(1, wx.LIST_AUTOSIZE)
@@ -313,7 +303,7 @@ def buildXML(comments, email, optional, required):
     Given the possible fields in the error dialog, build an XML file
     of the data.
     """
-    ret = ['<feedback xmlns="http://osafoundation.org/xmlns/feedback" version="0.3">']
+    ret = ['<feedback xmlns="http://osafoundation.org/xmlns/feedback" version="0.4">']
     
     # The required field consists of field: value lines, followed by either
     # traceback or arbitrary output that was printed to stdout or stderr.
