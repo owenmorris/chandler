@@ -415,6 +415,9 @@ def itemsFromVObject(view, text, coerceTzinfo = None, filters = None,
     Return is a tuple (itemlist, calname).
 
     """
+    tzprefs = schema.ns("osaf.pim", view).TimezonePrefs
+    promptForTimezone = not tzprefs.showUI and tzprefs.showPrompt
+    
     newItemParent = view.findPath("//userdata")
     
     countNew = 0
@@ -504,7 +507,7 @@ def itemsFromVObject(view, text, coerceTzinfo = None, filters = None,
                     dtstart = TimeZone.forceToDateTime(dtstart)
                     # convert to Chandler's notion of all day duration
                     duration -= oneDay
-                elif dtstart.tzinfo is not None:                    
+                elif dtstart.tzinfo is not None and promptForTimezone:                    
                     # got a timezoned event, prompt (non-modally) to turn on
                     # timezones
                     app = wx.GetApp()
@@ -512,6 +515,7 @@ def itemsFromVObject(view, text, coerceTzinfo = None, filters = None,
                         def ShowTimezoneDialogCallback():
                             ShowTurnOnTimezonesDialog(view=app.UIRepositoryView)
                         app.PostAsyncEvent(ShowTimezoneDialogCallback)
+                    promptForTimezone = False
                 
                 # coerce timezones based on coerceTzinfo
                 def convertDatetime(dt):
