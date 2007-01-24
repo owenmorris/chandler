@@ -2296,20 +2296,16 @@ class Occurrence(Note):
     
     def __setattr__(self, attr, value):
         cls = type(self)
-        
         s = super(Occurrence, self)
-        
-        if (not attr in cls.LOCAL_ATTRIBUTES and
-            not isDead(self) and
-            cls._kind.__get__(self) and
-            not hasattr(self, EventStamp.IGNORE_CHANGE_ATTR) and
-            getattr(self, EventStamp.modificationFor.name) is None and
-            cls.itsKind.__get__(self).hasAttribute(attr)):
-            
-            s.__setattr__(EventStamp.modificationFor.name,
-                          self.inheritFrom)
-            s.__setattr__(EventStamp.isGenerated.name, False)
-            
+
+        if getattr(self, EventStamp.isGenerated.name, True):
+            if (not attr in cls.LOCAL_ATTRIBUTES and
+                not isDead(self) and
+                not hasattr(self, EventStamp.IGNORE_CHANGE_ATTR) and
+                self.itsKind.hasAttribute(attr)):
+                s.__setattr__(EventStamp.modificationFor.name,
+                              self.inheritFrom)
+                s.__setattr__(EventStamp.isGenerated.name, False)
            
         s.__setattr__(attr, value)
         
