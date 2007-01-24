@@ -1558,8 +1558,9 @@ class ValueContainer(DBContainer):
     # 0.6.11: Renamed DB_VERSION to DB_INFO
     # 0.6.12: added Record C type to serialize into DB
     # 0.6.13: added support for persisting Empty for ref collections
+    # 0.6.14: 'descending' bit moved to NumericIndex
 
-    FORMAT_VERSION = 0x00060d00
+    FORMAT_VERSION = 0x00060e00
 
     SCHEMA_KEY  = pack('>16sl', Repository.itsUUID._uuid, 0)
     VERSION_KEY = pack('>16sl', Repository.itsUUID._uuid, 1)

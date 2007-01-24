@@ -544,19 +544,13 @@ class DBNumericIndex(NumericIndex):
 
         return node
 
-    def __iter__(self, firstKey=None, lastKey=None, backwards=False):
+    def iterkeys(self, firstKey=None, lastKey=None):
 
         version = self._version
         view = self.view
 
-        if firstKey is None:
-            if backwards:
-                nextKey = self.getLastKey()
-            else:
-                nextKey = self.getFirstKey()
-        else:
-            nextKey = firstKey
-
+        nextKey = firstKey or self.getFirstKey()
+        descending = self._descending
         sup = super(DBNumericIndex, self)
         nodeIterator = None
 
@@ -573,7 +567,7 @@ class DBNumericIndex(NumericIndex):
                 node = nodeIterator.next(key)
                 self[key] = node
 
-            if backwards:
+            if descending:
                 nextKey = node[1].prevKey
             else:
                 nextKey = node[1].nextKey

@@ -27,15 +27,10 @@ from repository.util.RangeSet import RangeSet
 
 class Index(CIndex):
 
-    def iterkeys(self, firstKey=None, lastKey=None, backwards=False):
+    def iterkeys(self, firstKey=None, lastKey=None):
 
-        if backwards:
-            getFirstKey = self.getLastKey
-            getNextKey = self.getPreviousKey
-        else:
-            getFirstKey = self.getFirstKey
-            getNextKey = self.getNextKey
-            
+        getFirstKey = self.getFirstKey
+        getNextKey = self.getNextKey
         nextKey = firstKey or getFirstKey()
 
         while nextKey != lastKey:
@@ -82,15 +77,6 @@ class Index(CIndex):
     def _readValue(self, itemReader, offset, data):
         return offset
 
-    def _xmlValue(self, generator, version, attrs):
-
-        generator.startElement('index', attrs)
-        self._xmlValues(generator, version)
-        generator.endElement('index')
-
-    def _xmlValues(self, generator, version):
-        raise NotImplementedError, "%s._xmlValues" %(type(self))
-
     def _checkIndex(self, _index, logger, name, value, item, attribute, count,
                     repair):
 
@@ -118,7 +104,7 @@ class Index(CIndex):
         
         size = len(self)
 
-        for key in self:
+        for key in iter(self):
             size -= 1
             if size < 0:
                 break
@@ -138,11 +124,23 @@ class NumericIndex(Index):
         super(NumericIndex, self).__init__(**kwds)
         self.skipList = SkipList(self)
 
+        self._ranges = None
+        self._descending = False
+
         if not kwds.get('loading', False):
             if 'ranges' in kwds:
                 self._ranges = RangeSet(kwds.pop('ranges'))
-            else:
-                self._ranges = None
+            self._descending = str(kwds.pop('descending', 'False')) == 'True'
+
+    def setDescending(self, descending=True):
+
+        wasDescending = self._descending
+        self._descending = descending
+
+        return wasDescending
+
+    def isDescending(self):
+        return self._descending
 
     def _keyChanged(self, key):
         pass
@@ -196,27 +194,45 @@ class NumericIndex(Index):
 
     def getKey(self, n):
 
-        return self.skipList[n]
+        if self._descending:
+            return self.skipList[self._count - n - 1]
+        else:
+            return self.skipList[n]
 
     def getPosition(self, key):
 
-        return self.skipList.position(key)
+        if self._descending:
+            return self._count - self.skipList.position(key) - 1
+        else:
+            return self.skipList.position(key)
 
     def getFirstKey(self):
 
-        return self.skipList.first()
+        if self._descending:
+            return self.skipList.last()
+        else:
+            return self.skipList.first()
 
     def getNextKey(self, key):
 
-        return self.skipList.next(key)
+        if self._descending:
+            return self.skipList.previous(key)
+        else:
+            return self.skipList.next(key)
 
     def getPreviousKey(self, key):
 
-        return self.skipList.previous(key)
+        if self._descending:
+            return self.skipList.next(key)
+        else:
+            return self.skipList.previous(key)
 
     def getLastKey(self):
 
-        return self.skipList.last()
+        if self._descending:
+            return self.skipList.first()
+        else:
+            return self.skipList.last()
 
     def getIndexType(self):
 
@@ -224,20 +240,23 @@ class NumericIndex(Index):
 
     def getInitKeywords(self):
 
-        if self._ranges is not None:
-            return { 'ranges': self._ranges.ranges }
+        kwds = {}
 
-        return {}
+        if self._ranges is not None:
+            kwds['ranges'] = self._ranges.ranges
+        if self._descending:
+            kwds['descending'] = self._descending
+
+        return kwds
 
     def insertKey(self, key, afterKey=None):
 
-        skipList = self.skipList
-        skipList.insert(key, afterKey)
+        self.skipList.insert(key, afterKey)
         self._keyChanged(key)
 
         ranges = self._ranges
         if ranges is not None:
-            ranges.onInsert(key, skipList.position(key))
+            ranges.onInsert(key, self.getPosition(key))
 
         super(NumericIndex, self).insertKey(key, afterKey)
 
@@ -254,16 +273,15 @@ class NumericIndex(Index):
                 raise KeyError, key
 
         elif afterKey is not Default:
-            skipList = self.skipList
             ranges = self._ranges
             if ranges is not None:
-                ranges.onRemove(key, skipList.position(key))
+                ranges.onRemove(key, self.getPosition(key))
 
-            skipList.move(key, afterKey)
+            self.skipList.move(key, afterKey)
             self._keyChanged(key)
 
             if ranges is not None:
-                ranges.onInsert(key, skipList.position(key))
+                ranges.onInsert(key, self.getPosition(key))
 
             super(NumericIndex, self).moveKey(key, afterKey)
 
@@ -275,13 +293,11 @@ class NumericIndex(Index):
     def removeKey(self, key):
 
         if key in self:
-            skipList = self.skipList
-
             ranges = self._ranges
             if ranges is not None:
-                ranges.onRemove(key, skipList.position(key))
+                ranges.onRemove(key, self.getPosition(key))
 
-            skipList.remove(key)
+            self.skipList.remove(key)
             return super(NumericIndex, self).removeKey(key)
 
         return False
@@ -317,6 +333,8 @@ class NumericIndex(Index):
         else:
             record += (Record.BYTE, 0)
 
+        record += (Record.BOOLEAN, self._descending)
+
     def _readValue(self, itemReader, offset, data):
 
         offset = super(NumericIndex, self)._readValue(itemReader, offset, data)
@@ -334,7 +352,9 @@ class NumericIndex(Index):
         else:
             self._ranges = None
 
-        return offset
+        self._descending = data[offset]
+
+        return offset + 1
 
 
 class SortedIndex(DelegatingIndex):
@@ -346,16 +366,6 @@ class SortedIndex(DelegatingIndex):
         self._valueMap = valueMap
         self._subIndexes = None
 
-        if not kwds.get('loading', False):
-            self._descending = str(kwds.pop('descending', 'False')) == 'True'
-
-    def iterkeys(self, firstKey=None, lastKey=None, backwards=False):
-
-        if self._descending:
-            backwards = not backwards
-
-        return self._index.iterkeys(firstKey, lastKey, backwards)
-
     def __iter__(self):
 
         return self.iterkeys()
@@ -364,8 +374,6 @@ class SortedIndex(DelegatingIndex):
 
         kwds = self._index.getInitKeywords()
 
-        if self._descending:
-            kwds['descending'] = self._descending
         if self._subIndexes:
             kwds['subindexes'] = self._subIndexes
 
@@ -436,76 +444,14 @@ class SortedIndex(DelegatingIndex):
 
         return False
 
-    def setDescending(self, descending=True):
-
-        wasDescending = self._descending
-        self._descending = descending
-
-        return wasDescending
-
-    def isDescending(self):
-
-        return self._descending
-
-    def getKey(self, n):
-
-        if self._descending:
-            return self._index.skipList[self._count - n - 1]
-        else:
-            return self._index.skipList[n]
-
     def findKey(self, mode, callable, *args):
 
         return self._index.skipList.find(mode, callable, *args)
 
-    def getPosition(self, key):
-
-        if self._descending:
-            return self._count - self._index.getPosition(key) - 1
-        else:
-            return self._index.getPosition(key)
-
-    def getFirstKey(self):
-
-        if self._descending:
-            return self._index.getLastKey()
-        else:
-            return self._index.getFirstKey()
-
-    def getNextKey(self, key):
-
-        if self._descending:
-            return self._index.getPreviousKey(key)
-        else:
-            return self._index.getNextKey(key)
-
-    def getPreviousKey(self, key):
-
-        if self._descending:
-            return self._index.getNextKey(key)
-        else:
-            return self._index.getPreviousKey(key)
-
-    def getLastKey(self):
-
-        if self._descending:
-            return self._index.getFirstKey()
-        else:
-            return self._index.getLastKey()
-
-    def _xmlValues(self, generator, version, attrs, mode):
-
-        if self._descending:
-            attrs['descending'] = 'True'
-        if self._subIndexes:
-            attrs['subindexes'] = ','.join(["(%s,%s,%s)" %(uuid.str64(), attr, name) for uuid, attr, name in self._subIndexes])
-
-        self._index._xmlValues(generator, version, attrs, mode)
-
     def _writeValue(self, itemWriter, record, version):
 
         self._index._writeValue(itemWriter, record, version)
-        record += (Record.BOOLEAN, self._descending)
+
         if self._subIndexes:
             record += (Record.SHORT, len(self._subIndexes))
             for uuid, attr, name in self._subIndexes:
@@ -519,9 +465,8 @@ class SortedIndex(DelegatingIndex):
 
         offset = self._index._readValue(itemReader, offset, data)
 
-        self._descending = data[offset]
-        count = data[offset + 1]
-        offset += 2
+        count = data[offset]
+        offset += 1
 
         if count > 0:
             self._subIndexes = set()
@@ -667,11 +612,6 @@ class AttributeIndex(SortedIndex):
 
         return 0
 
-    def _xmlValues(self, generator, version, attrs, mode):
-
-        attrs['attributes'] = ','.join(self._attributes)
-        super(AttributeIndex, self)._xmlValues(generator, version, attrs, mode)
-
     def _writeValue(self, itemWriter, record, version):
 
         super(AttributeIndex, self)._writeValue(itemWriter, record, version)
@@ -803,15 +743,6 @@ class StringIndex(AttributeIndex):
 
         return 0
 
-    def _xmlValues(self, generator, version, attrs, mode):
-
-        if self._strength is not None:
-            attrs['strength'] = self._strength
-        if self._locale is not None:
-            attrs['locale'] = self._locale
-
-        super(StringIndex, self)._xmlValues(generator, version, attrs, mode)
-
     def _writeValue(self, itemWriter, record, version):
 
         super(StringIndex, self)._writeValue(itemWriter, record, version)
@@ -857,11 +788,6 @@ class CompareIndex(SortedIndex):
 
         return getattr(self._valueMap[k0], self._compare)(self._valueMap[k1])
 
-    def _xmlValues(self, generator, version, attrs, mode):
-
-        attrs['compare'] = self._compare
-        super(CompareIndex, self)._xmlValues(generator, version, attrs, mode)
-
     def _writeValue(self, itemWriter, record, version):
 
         super(CompareIndex, self)._writeValue(itemWriter, record, version)
@@ -900,14 +826,6 @@ class MethodIndex(SortedIndex):
 
         uItem, methodName = self._method
         return getattr(self._valueMap._getView()[uItem], methodName)(k0, k1)
-
-    def _xmlValues(self, generator, version, attrs, mode):
-
-        uItem, methodName = self._method
-        attrs['method'] = methodName
-        attrs['uItem'] = uItem.str64()
-
-        super(MethodIndex, self)._xmlValues(generator, version, attrs, mode)
 
     def _writeValue(self, itemWriter, record, version):
 
@@ -960,12 +878,6 @@ class SubIndex(SortedIndex):
         skipList = index.skipList
 
         return skipList.position(k0) - skipList.position(k1)
-
-    def _xmlValues(self, generator, version, attrs, mode):
-
-        uuid, attr, name = self._super
-        attrs['superindex'] = "%s,%s,%s" %(uuid.str64(), attr, name)
-        super(SubIndex, self)._xmlValues(generator, version, attrs, mode)
 
     def _writeValue(self, itemWriter, record, version):
 
