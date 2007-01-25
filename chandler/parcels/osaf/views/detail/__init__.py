@@ -50,5 +50,6 @@ from detail import (
     StaticTextLabel, 
     TaskAreaBlock,
     TaskStampButtonBlock,
+    WatchedItemRootBlock,
 )
     

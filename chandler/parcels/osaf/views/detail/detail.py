@@ -73,19 +73,10 @@ def BroadcastSelect(item):
        'SelectItemsBroadcast', {'items':selection}
     )
 
-class DetailRootBlock(FocusEventHandlers, ControlBlocks.ContentItemDetail):
+class WatchedItemRootBlock(FocusEventHandlers):
     """
-    Root of the Detail View. The prototype instance of this block is copied
-    by the BranchPointBlock mechanism every time we build a detail view for a
-    new distinct item type.
+    UI that needs to track an item's attributes should inherit from WatchedItemRootBlock
     """
-    def onSetContentsEvent (self, event):
-        #logger.debug("%s: onSetContentsEvent: %s, %s", debugName(self), 
-                     #event.arguments['item'], event.arguments['collection'])
-        Block.Block.finishEdits()
-        self.setContentsOnBlock(event.arguments['item'],
-                                event.arguments['collection'])
-
     # This gives us easy access to a proxied version of our contents; where
     # we want the unproxied version, we'll still use self.contents.
     item = property(fget=Block.Block.getProxiedContents, 
@@ -115,7 +106,36 @@ class DetailRootBlock(FocusEventHandlers, ControlBlocks.ContentItemDetail):
             #logger.debug("%s: Resyncing parent block due to kind change on %s", 
                          #debugName(self), debugName(self.contents))
             parentBlock.synchronizeWidget()
-        
+
+    def SelectedItems(self):
+        """ 
+        Return a list containing the item we're displaying.
+        (This gets used for Send)
+        """
+        return getattr(self, 'contents', None) is not None and [ self.contents ] or []
+
+
+class DetailRootBlock(WatchedItemRootBlock, ControlBlocks.ContentItemDetail):
+    """
+    Root of the Detail View. The prototype instance of this block is copied
+    by the BranchPointBlock mechanism every time we build a detail view for a
+    new distinct item type.
+    """
+    def onSetContentsEvent (self, event):
+        #logger.debug("%s: onSetContentsEvent: %s, %s", debugName(self), 
+                     #event.arguments['item'], event.arguments['collection'])
+        Block.Block.finishEdits()
+        self.setContentsOnBlock(event.arguments['item'],
+                                event.arguments['collection'])
+
+    def onSendShareItemEvent (self, event):
+        """
+        Send or Share the current item.
+        """
+        # finish changes to previous selected item, then do it.
+        Block.Block.finishEdits()
+        super(WatchedItemRootBlock, self).onSendShareItemEvent(event)
+
     def unRender(self):
         # There's a wx bug on Mac (2857) that causes EVT_KILL_FOCUS events to happen
         # after the control's been deleted, which makes it impossible to grab
@@ -128,22 +148,7 @@ class DetailRootBlock(FocusEventHandlers, ControlBlocks.ContentItemDetail):
         # then call our parent which'll do the actual unrender, triggering the
         # no-op EVT_KILL_FOCUS.
         super(DetailRootBlock, self).unRender()
-        
-    def SelectedItems(self):
-        """ 
-        Return a list containing the item we're displaying.
-        (This gets used for Send)
-        """
-        return getattr(self, 'contents', None) is not None and [ self.contents ] or []
 
-    def onSendShareItemEvent (self, event):
-        """
-        Send or Share the current item.
-        """
-        # finish changes to previous selected item, then do it.
-        Block.Block.finishEdits()
-        super(DetailRootBlock, self).onSendShareItemEvent(event)
-    
     def focus(self):
         """
         Put the focus into the Detail View.
@@ -169,7 +174,7 @@ class DetailRootBlock(FocusEventHandlers, ControlBlocks.ContentItemDetail):
                 syncInside(self)
             finally:
                 self.widget.Thaw()
-            
+
 
 class DetailBranchPointDelegate(BranchPoint.BranchPointDelegate):
     """ 
