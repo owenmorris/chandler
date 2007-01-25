@@ -376,7 +376,8 @@ def stop_reactor():
         reactor.callFromThread(reactor.stop)
 
     if _reactor_thread is not None:
-        _reactor_thread.join()
+        if _reactor_thread.isAlive():
+            _reactor_thread.join()
         _reactor_thread = None
 
 
