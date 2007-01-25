@@ -927,7 +927,9 @@ class wxApplication (wx.App):
         args = []
         if not __debug__:
             args.append('-O')
-        args.extend(sys.argv)
+        for arg in sys.argv:
+            if arg not in ('-c', '--create'):
+                args.append(arg)
 
         encoding = sys.getfilesystemencoding()
         for name, value in kwds.iteritems():
