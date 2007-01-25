@@ -2298,14 +2298,14 @@ class Occurrence(Note):
         cls = type(self)
         s = super(Occurrence, self)
 
-        if getattr(self, EventStamp.isGenerated.name, True):
-            if (not attr in cls.LOCAL_ATTRIBUTES and
-                not isDead(self) and
-                not hasattr(self, EventStamp.IGNORE_CHANGE_ATTR) and
-                self.itsKind.hasAttribute(attr)):
-                s.__setattr__(EventStamp.modificationFor.name,
-                              self.inheritFrom)
-                s.__setattr__(EventStamp.isGenerated.name, False)
+        if self.isLive():
+            if getattr(self, EventStamp.isGenerated.name, True):
+                if (not attr in cls.LOCAL_ATTRIBUTES and
+                    not hasattr(self, EventStamp.IGNORE_CHANGE_ATTR) and
+                    self.itsKind.hasAttribute(attr)):
+                    s.__setattr__(EventStamp.modificationFor.name,
+                                  self.inheritFrom)
+                    s.__setattr__(EventStamp.isGenerated.name, False)
            
         s.__setattr__(attr, value)
         

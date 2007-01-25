@@ -2100,13 +2100,12 @@ class Item(CItem):
                 self._children = None
 
             view._unregisterItem(self, reloadable)
+            self._status |= Item.STALE
 
             if not reloadable:
                 self._parent = None
                 self._kind = None
             
-            self._status |= Item.STALE
-
     def _refList(self, name, otherName=None, dictKey=None):
 
         if otherName is None:
