@@ -32,8 +32,10 @@ from collections import (
 from stamping import Stamp, has_stamp
 from notes import Note
 from contacts import Contact, ContactName
-from calendar.Calendar import CalendarEvent, EventStamp, LONG_TIME, zero_delta
-from calendar.Calendar import EventComparator, Location, RecurrencePattern
+from calendar.Calendar import (
+    CalendarEvent, EventStamp, Occurrence, LONG_TIME, zero_delta,
+    EventComparator, Location, RecurrencePattern
+)
 from calendar.TimeZone import installParcel as tzInstallParcel
 from calendar.DateTimeUtil import (ampmNames, durationFormat, mediumDateFormat, 
      monthNames, sampleDate, sampleTime, shortDateFormat, shortTimeFormat, 
