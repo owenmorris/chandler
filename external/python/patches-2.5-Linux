@@ -1,0 +1,14 @@
+--- Python-2.5/Lib/locale.py	2006-05-17 19:06:40.000000000 -0700
++++ Python-2.5-patched/Lib/locale.py	2007-01-25 15:02:53.000000000 -0800
+@@ -509,7 +509,10 @@
+             according to the system configuration."""
+             if do_setlocale:
+                 oldloc = setlocale(LC_CTYPE)
+-                setlocale(LC_CTYPE, "")
++                try:  # python bug 1443504 (on Linux)
++                    setlocale(LC_CTYPE, "")
++                except:
++                    pass
+                 result = nl_langinfo(CODESET)
+                 setlocale(LC_CTYPE, oldloc)
+                 return result
