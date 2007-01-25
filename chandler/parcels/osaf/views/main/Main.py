@@ -529,7 +529,7 @@ class MainView(View):
 
         self.RepositoryCommitWithStatus()
         
-        dlg = wx.DirDialog(wx.GetApp().mainFrame, "Backup Repository",
+        dlg = wx.DirDialog(wx.GetApp().mainFrame, _(u'Backup Repository'),
                            unicode(Utility.getDesktopDir()),
                            wx.DD_DEFAULT_STYLE | wx.DD_NEW_DIR_BUTTON)
         if dlg.ShowModal() == wx.ID_OK:
@@ -547,6 +547,40 @@ class MainView(View):
             successMessage = _(u'Repository was backed up into %(directory)s') % {'directory': (dbHome)}
             repository.logger.info('Repository was backed up into %s' % (dbHome))
             self.setStatusMessage(successMessage)
+
+    def onRestoreRepositoryEvent(self, event):
+
+        app = wx.GetApp()
+
+        srcPath = path = Utility.getDesktopDir()
+        rev = 1
+        while True:
+            backupPath = os.path.join(srcPath, "__repository__.%03d" %(rev))
+            if os.path.isdir(backupPath):
+                path = backupPath
+                rev += 1
+            else:
+                break
+        
+        dlg = wx.DirDialog(app.mainFrame, _(u'Restore Repository'),
+                           unicode(path),
+                           wx.DD_DEFAULT_STYLE | wx.DD_NEW_DIR_BUTTON)
+        if dlg.ShowModal() == wx.ID_OK:
+            path = dlg.GetPath()
+        else:
+            path = None
+        dlg.Destroy()
+
+        if path is not None:
+            dlg = wx.MessageDialog(app.mainFrame,
+                                   _(u"Your current repository will be destructively replaced by the repository backup you're about restart Chandler with: %s") %(path),
+                                   _(u"Confirm Restore"),
+                                   (wx.YES_NO | wx.NO_DEFAULT |
+                                    wx.ICON_EXCLAMATION))
+            cmd = dlg.ShowModal()
+            dlg.Destroy()
+            if cmd == wx.ID_YES:
+                app.PostAsyncEvent(app.restart, restore=path)
 
     def RepositoryCommitWithStatus (self):
         """

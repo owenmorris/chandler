@@ -72,11 +72,12 @@ def mixinAClass (self, myMixinClassImportPath):
 
 
 class MainThreadCallbackEvent(wx.PyEvent):
-    def __init__(self, target, *args):
+    def __init__(self, target, *args, **kwds):
         super (MainThreadCallbackEvent, self).__init__()
         self.SetEventType(wxEVT_MAIN_THREAD_CALLBACK)
         self.target = target
         self.args = args
+        self.kwds = kwds
         self.lock = threading.Lock()
 
 class wxBlockFrameWindow (wx.Frame):
@@ -910,19 +911,59 @@ class wxApplication (wx.App):
         """
         self.UIRepositoryView.repository.close()
 
+    def restart(self, **kwds):
+        """
+        Restart the application.
+
+        The application is restarted using the same command it was started
+        with. Named arguments to be appended to the command may be passed in.
+        They must match the long names of the application's valid command
+        line arguments (without the leading '--'). 
+        Use C{True} as value for a command line argument taking no argument.
+
+        For example: app.restart(restore=path, mvcc=True)
+        """
+
+        args = []
+        if not __debug__:
+            args.append('-O')
+        args.extend(sys.argv)
+
+        encoding = sys.getfilesystemencoding()
+        for name, value in kwds.iteritems():
+            if value is True:
+                arg = "--%s" %(name)
+                args.append(arg)
+            else:
+                arg = "--%s=%s" %(name, value)
+                args.append(arg.encode(encoding))
+
+        Utility.stopTwisted()
+        self.UIRepositoryView.repository.close()
+
+        try:
+            if sys.platform == 'darwin':
+                from chandlerdb.util.c import vfork
+                vfork()
+            os.execl(sys.executable, sys.executable, *args)
+        except:
+            logger.exception("while restarting")
+        finally:
+            os._exit(0)
+
     def OnMainThreadCallbackEvent(self, event):
         """
         Fire off a custom event handler
         """
-        event.target(*event.args)
         event.lock.release()
+        event.target(*event.args, **event.kwds)
         event.Skip()
 
-    def PostAsyncEvent(self, callback, *args):
+    def PostAsyncEvent(self, callback, *args, **kwds):
         """
         Post an asynchronous event that will call 'callback' with 'data'
         """
-        evt = MainThreadCallbackEvent(callback, *args)
+        evt = MainThreadCallbackEvent(callback, *args, **kwds)
         evt.lock.acquire()
         wx.PostEvent(self, evt)
         return evt.lock
