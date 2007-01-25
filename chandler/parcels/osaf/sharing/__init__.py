@@ -788,6 +788,11 @@ def subscribe(view, url, updateCallback=None, username=None, password=None,
             account.path = parentPath
             account.useSSL = useSSL
             account.port = port
+        elif account.path.strip("/") != parentPath.strip("/"):
+            # update shareName if it's a subcollection in the account
+            tail = parentPath.strip("/")[len(account.path.strip("/")):]
+            if tail != "":
+                shareName = tail + "/" + shareName
 
         if username is not None:
             account.username = username
