@@ -925,6 +925,7 @@ class wxApplication (wx.App):
         """
 
         args = []
+
         if not __debug__:
             args.append('-O')
         for arg in sys.argv:
@@ -939,6 +940,15 @@ class wxApplication (wx.App):
             else:
                 arg = "--%s=%s" %(name, value)
                 args.append(arg.encode(encoding))
+
+        if sys.platform.startswith('linux'):
+            for arg in args:
+                if arg in ('-l', '--locale'):
+                    break
+            else:
+                from locale import getdefaultlocale
+                loc, enc = getdefaultlocale()
+                args.append('--locale=%s' %(loc))
 
         Utility.stopTwisted()
         self.UIRepositoryView.repository.close()
