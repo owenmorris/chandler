@@ -2758,7 +2758,6 @@ class IconAttributeEditor (BaseAttributeEditor):
         # down.
         return isIn or isDown
 
-
 class RankAttributeEditor (BaseAttributeEditor):
     """
     A special purpose attribute editor that displays order in a collection, currently
@@ -2773,8 +2772,9 @@ class RankAttributeEditor (BaseAttributeEditor):
         
         contents = grid.blockItem.contents
         position = contents.positionInIndex ("osaf.views.main.summaryblocks.rank", item)
-        length = len (contents)
-        rank = float (length - position) / length
+        rank = float (position) / len (contents)
+        if not contents.isDescending ("osaf.views.main.summaryblocks.rank"):
+            rank = 1 - rank
         
         rect.Inflate (-1, -4)
         rect.SetWidth (rect.GetWidth() * rank)

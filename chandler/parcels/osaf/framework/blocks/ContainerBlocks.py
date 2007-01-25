@@ -20,7 +20,7 @@ from Block import (
     WithoutSynchronizeWidget, IgnoreSynchronizeWidget
 )
 from osaf.pim.structs import PositionType, SizeType
-import DragAndDrop
+import DragAndDrop, MenusAndToolbars
 from repository.item.Item import Item
 from application import schema
 import wx
@@ -170,24 +170,23 @@ class wxSplitterWindow(wx.SplitterWindow):
         blockItem = self.blockItem
         self.SetSize ((blockItem.size.width, blockItem.size.height))
 
-        assert (len (blockItem.childrenBlocks) >= 1 and
-                len (blockItem.childrenBlocks) <= 2), "We don't currently allow splitter windows with no contents"
-
         # Collect information about the splitter
         oldWindow1 = self.GetWindow1()
         oldWindow2 = self.GetWindow2()
 
-        children = iter (blockItem.childrenBlocks)
+        children = [child for child in blockItem.childrenBlocks if not isinstance (child, MenusAndToolbars.DynamicBlock)]
+        assert (len (children) >= 1 and
+                len (children) <= 2), "Splitter windows only support one or two non-DynamicBlocks"
 
         window1 = None
-        child1 = children.next()
+        child1 = children[0]
         if child1.isShown:
             window1 = child1.widget
         child1.widget.Show (child1.isShown)
 
         window2 = None
-        if len (blockItem.childrenBlocks) >= 2:
-            child2 = children.next()
+        if len (children) >= 2:
+            child2 = children[1]
             if child2.isShown:
                 window2 = child2.widget
             child2.widget.Show (child2.isShown)

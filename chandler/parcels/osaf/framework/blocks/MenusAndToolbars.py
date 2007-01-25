@@ -312,10 +312,8 @@ class DynamicBlock(schema.Item):
                 elif operation == 'Replace':
                     bar[child.itemLocation] = child
                 elif operation == 'Delete':
-                    """
-                    If you get an exception here, it's probably because
-                    you're trying to remove a bar item that doesn't exist.
-                    """
+                    # If you get an exception here, it's probably because
+                    # you're trying to remove a bar item that doesn't exist.
                     del bar[child.itemLocation]
 
     def synchronizeDynamicBlocks (self):
@@ -388,12 +386,12 @@ class DynamicChild(DynamicBlock):
     Used as a mixin class for other blocks.
     """
 
-    dynamicParent = schema.One(initialValue = None)
+    dynamicParent = schema.One(defaultValue = None)
     title = schema.One(schema.Text)
     operation = schema.One(operationEnumType, defaultValue = 'None')
     location = schema.One(schema.Text)
-    itemLocation = schema.One(schema.Text, initialValue = u'')
-    helpString = schema.One(schema.Text, initialValue = u'')
+    itemLocation = schema.One(schema.Text, defaultValue = u'')
+    helpString = schema.One(schema.Text, defaultValue = u'')
 
     def isDynamicChild (self):
         return True
@@ -855,8 +853,11 @@ class wxToolbarItemMixin (object):
         # handles their blocks' destruction.
         if not isinstance(self, wx.Window):
             Block.Block.wxOnDestroyWidget (self)
-        toolbar = self.blockItem.parentBlock.widget
-        toolbar.DeleteTool(self.GetId())
+        
+        parent = self.blockItem.dynamicParent
+        if parent is None:
+            parent = self.blockItem.parentBlock
+        parent.widget.DeleteTool(self.GetId())
 
     def wxSynchronizeWidget(self, useHints=False):
         """

@@ -44,7 +44,7 @@ from mail import EmailAddress, EmailComparator
 from application.Parcel import Reference
 from repository.item.Item import Item
 from PyICU import ICUtzinfo
-
+from osaf import messages
 import tasks, mail, calendar.Calendar
 from i18n import ChandlerMessageFactory as _
 
@@ -349,9 +349,9 @@ def installParcel(parcel, oldVersion=None):
         kind=UserNotification.getKind(view),
         recursive=True).addIndex('timestamp', 'value', attribute='timestamp')
 
-    searchResults = ListCollection.update(
+    searchResults = SmartCollection.update(
         parcel, 'searchResults',
-        displayName=_(u"Search Results"))
+        displayName = messages.UNTITLED)
 
     tzInstallParcel(parcel)
 

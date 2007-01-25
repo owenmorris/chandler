@@ -902,25 +902,19 @@ class SidebarBlock(Table):
     def setPreferredClass(self, filterClass):
         if self.filterClass != filterClass:
 
-            # We need to update the click state of the toolbar as well
-            toolbar = Block.Block.findBlockByName("ApplicationBar")
-            for button in toolbar.childrenBlocks:
+            # We need to update the click state of the toolbar as well.
+            # By default we'll switch to all
+            newFilterStamp = MissingClass
+            buttonToSelect = self.findBlockByName("ApplicationBarAllButton")
 
-                try:
-                    buttonClass = button.event.classParameter
-                except AttributeError:
-                    pass
-                else:
-                    if (filterClass is not MissingClass and
-                        issubclass(filterClass, buttonClass)):
-                        newFilterStamp = buttonClass
-                        buttonToSelect = button
-                        break
-            else:
-                #If we don't have a button with the appropriate kind
-                #We'll switch to all
-                newFilterStamp = MissingClass
-                buttonToSelect = self.findBlockByName("ApplicationBarAllButton")
+            if filterClass is not MissingClass:
+                toolbar = Block.Block.findBlockByName("ApplicationBar")
+                for button in toolbar.childrenBlocks:
+                        buttonClass = getattr (button.event, "classParameter", None)
+                        if buttonClass is not None and issubclass (filterClass, buttonClass):
+                            newFilterStamp = buttonClass
+                            buttonToSelect = button
+                            break
 
             self.filterClass = newFilterStamp
             buttonToSelect.widget.selectTool()
@@ -1164,7 +1158,7 @@ class SidebarBranchPointDelegate(BranchPoint.BranchPointDelegate):
 
     calendarTemplatePath = schema.One(schema.Text)
     dashboardTemplatePath = schema.One(schema.Text)
-    tableTemplatePath = schema.One(schema.Text)
+    searchResultsTemplatePath = schema.One(schema.Text)
     itemTupleKeyToCacheKey = schema.Mapping(schema.Item, initialValue = {})
     stampToCollectionCache = schema.Mapping(schema.Item, initialValue = {})
 
@@ -1357,7 +1351,7 @@ class SidebarBranchPointDelegate(BranchPoint.BranchPointDelegate):
     def _makeBranchForCacheKey(self, keyItem):
         sidebar = Block.Block.findBlockByName("Sidebar")
         if sidebar.showSearch:
-            branch = self.findPath (self.tableTemplatePath)
+            branch = self.findPath (self.searchResultsTemplatePath)
         else:
             if (not UserCollection(keyItem).dontDisplayAsCalendar and
                 sidebar.filterClass is pim.EventStamp):

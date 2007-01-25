@@ -717,13 +717,15 @@ class Table (PimBlocks.FocusEventHandlers, RectangularChild):
     hideColumnHeadings = schema.One(schema.Boolean, initialValue = False)
     characterStyle = schema.One(Styles.CharacterStyle)
     headerCharacterStyle = schema.One(Styles.CharacterStyle)
+    prefixCharacterStyle = schema.One(Styles.CharacterStyle)
+
     hasGridLines = schema.One(schema.Boolean, initialValue = False)
     scaleWidthsToFit = schema.One(schema.Boolean, defaultValue = False)
 
     schema.addClouds(
         copying = schema.Cloud(
-            byRef=[characterStyle, headerCharacterStyle],
-            byCloud=[columns]
+            byRef = [characterStyle, headerCharacterStyle, prefixCharacterStyle],
+            byCloud = [columns]
         )
     )
 

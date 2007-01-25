@@ -439,6 +439,7 @@ def makeSummaryBlocks(parcel):
     detailblocks = schema.ns('osaf.views.detail', view)
     pim_ns = schema.ns('osaf.pim', view)
     blocks = schema.ns('osaf.framework.blocks', view)
+    main = schema.ns("osaf.views.main", view)
     repositoryView = parcel.itsView
     
     # Register our attribute editors.
@@ -602,7 +603,6 @@ def makeSummaryBlocks(parcel):
                 characterStyle = blocks.SummaryRowStyle,
                 headerCharacterStyle = blocks.SummaryHeaderStyle,
                 prefixCharacterStyle = blocks.SummaryPrefixStyle,
-                triageStatusCharacterStyle = blocks.SummaryTriageStatusStyle,
                 sectionLabelCharacterStyle = blocks.SummarySectionLabelStyle,
                 sectionCountCharacterStyle = blocks.SummarySectionCountStyle,
                 rowHeight = 19,
@@ -614,12 +614,31 @@ def makeSummaryBlocks(parcel):
                 )
             ]).install(parcel) # SplitterWindow DashboardSummaryViewTemplate
 
+    saveResultsEvent = AddToSidebarEvent.update(
+        parcel, 'SaveResults',
+        blockName = 'SaveResults',
+        editAttributeNamed = 'displayName',
+        sphereCollection = schema.ns('osaf.pim', repositoryView).mine,
+        item = schema.ns('osaf.pim', view).searchResults)
+        
     SplitterWindow.template(
-        'TableSummaryViewTemplate',
-        eventBoundary = True,
+        'SearchResultsViewTemplate',
         orientationEnum = "Vertical",
         splitPercentage = 0.65,
+        eventBoundary = True,
+        eventsForNamedLookup = [saveResultsEvent],
         childrenBlocks = [
+            #
+            # Comment in for save search results button
+            #
+            #ToolbarItem.template('SaveResultsButton',
+                #event = saveResultsEvent,
+                #bitmap = 'ApplicationBarSave.png',
+                #title = _(u"Save"),
+                #toolbarItemKind = 'Button',
+                #location = "ApplicationBar",
+                #operation = 'InsertBefore',
+                #helpString = _(u'Save a copy of the results in the sidebar')),
             Table.template('TableSummaryView',
                 contents = pim_ns.allCollection,
                 scaleWidthsToFit = True,
@@ -634,16 +653,16 @@ def makeSummaryBlocks(parcel):
                     triageColumn                    
                 ],
                 characterStyle = blocks.SummaryRowStyle,
+                prefixCharacterStyle = blocks.SummaryPrefixStyle,
                 headerCharacterStyle = blocks.SummaryHeaderStyle,
                 rowHeight = 19,
                 elementDelegate = 'osaf.framework.blocks.ControlBlocks.AttributeDelegate',
                        defaultEditableAttribute = u'displayName',
                 selection = [[0,0]]),
             BranchPointBlock.template('TableSummaryDetailBranchPointBlock',
-                delegate = detailBranchPointDelegate,
-                )
-            ]).install(parcel) # SplitterWindow DashboardSummaryViewTemplate
-
+                delegate = detailBranchPointDelegate)
+        ]
+    ).install(parcel) # SplitterWindow SearchResultsViewTemplate
 
     TimeZoneChange = BlockEvent.template(
         'TimeZoneChange',

@@ -737,9 +737,9 @@ class AppCollection(ContentCollection):
     collectionExclusions = schema.Sequence(inverse=ContentItem.excludedBy)
 
     exclusionsCollection = schema.One(inverse=ContentCollection.exclusionsFor,
-                                      initialValue=None)
+                                      defaultValue = None)
     trashCollection = schema.One(inverse=ContentCollection.trashFor,
-                                 initialValue=None)
+                                 defaultValue = None)
 
     # an AppCollection may have another collection for exclusions and that
     # other collection may be the global trash collection. If no collection

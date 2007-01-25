@@ -189,15 +189,12 @@ class DashboardBlock(Table):
     """
 
     # A few extra character styles
-    prefixCharacterStyle = schema.One(Styles.CharacterStyle)
-    triageStatusCharacterStyle = schema.One(Styles.CharacterStyle)
     sectionLabelCharacterStyle = schema.One(Styles.CharacterStyle)
     sectionCountCharacterStyle = schema.One(Styles.CharacterStyle)
     
     schema.addClouds(
         copying = schema.Cloud(
-            byRef=[prefixCharacterStyle, triageStatusCharacterStyle,
-                   sectionLabelCharacterStyle, sectionCountCharacterStyle]
+            byRef = [sectionLabelCharacterStyle, sectionCountCharacterStyle]
         )
     )
 
