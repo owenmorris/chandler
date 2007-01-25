@@ -77,6 +77,7 @@ def installParcel(parcel, oldName=None):
                                 dispatchEnum = 'FocusBubbleUp').install(parcel),
     
             BlockEvent.template('CommitView').install(parcel),
+            BlockEvent.template('BackupRepository').install(parcel),
 
             BlockEvent.template('PrintPreview').install(parcel),
 

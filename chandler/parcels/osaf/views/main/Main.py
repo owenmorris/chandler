@@ -525,6 +525,29 @@ class MainView(View):
     def onCommitViewEvent(self, event):
         self.RepositoryCommitWithStatus()
 
+    def onBackupRepositoryEvent(self, event):
+
+        self.RepositoryCommitWithStatus()
+        
+        dlg = wx.DirDialog(wx.GetApp().mainFrame, "Backup Repository",
+                           unicode(Utility.getDesktopDir()),
+                           wx.DD_DEFAULT_STYLE | wx.DD_NEW_DIR_BUTTON)
+        if dlg.ShowModal() == wx.ID_OK:
+            path = os.path.join(dlg.GetPath(), '__repository__')
+        else:
+            path = None
+        dlg.Destroy()
+
+        if path is not None:
+            repository = self.itsView.repository
+            progressMessage = _(u'Backing up repository...')
+            repository.logger.info('Backing up repository...')
+            self.setStatusMessage(progressMessage)
+            dbHome = repository.backup(path)
+            successMessage = _(u'Repository was backed up into %(directory)s') % {'directory': (dbHome)}
+            repository.logger.info('Repository was backed up into %s' % (dbHome))
+            self.setStatusMessage(successMessage)
+
     def RepositoryCommitWithStatus (self):
         """
         Do a repository commit with notice posted in the Status bar.
@@ -739,18 +762,6 @@ class MainView(View):
             errorMessage = _(u'Check completed with errors')
             repository.logger.info('Check completed with errors')
             self.setStatusMessage(errorMessage)
-
-    def onBackupRepositoryEvent(self, event):
-        # triggered from "Test | Backup Repository" Menu
-        self.RepositoryCommitWithStatus()
-        repository = self.itsView.repository
-        progressMessage = _(u'Backing up repository...')
-        repository.logger.info('Backing up repository...')
-        self.setStatusMessage(progressMessage)
-        dbHome = repository.backup()
-        successMessage = _(u'Repository was backed up into %(directory)s') % {'directory': (dbHome)}
-        repository.logger.info('Repository was backed up into %s' % (dbHome))
-        self.setStatusMessage(successMessage)
 
     def onCompactRepositoryEvent(self, event):
         # triggered from "Test | Compact Repository" Menu

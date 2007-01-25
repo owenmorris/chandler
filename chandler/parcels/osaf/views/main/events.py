@@ -64,8 +64,6 @@ def makeMainEvents(parcel):
 
     BlockEvent.template('AddSharingLogToSidebar').install(parcel)
 
-    BlockEvent.template('BackupRepository').install(parcel)
-
     BlockEvent.template('CompactRepository').install(parcel)
 
     BlockEvent.template('IndexRepository').install(parcel)
@@ -159,8 +157,6 @@ def makeMainEvents(parcel):
     BlockEvent.template('ToggleReadOnlyMode').install(parcel)
 
     BlockEvent.template('EditMyName').install(parcel)
-
-    BlockEvent.template('CommitRepository').install(parcel)
 
     BlockEvent.template('GetNewMail',
                        commitAfterDispatch = True).install(parcel)
