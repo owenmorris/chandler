@@ -14,7 +14,6 @@
  *  limitations under the License.
  */
 
-
 #include <Python.h>
 #include "structmember.h"
 
@@ -176,6 +175,12 @@ static PyObject *unpackDigits(PyObject *self, PyObject *arg)
     }
 }
 
+#ifdef __MACH__
+static PyObject *_vfork(PyObject *self)
+{
+    return PyInt_FromLong(vfork());
+}
+#endif
 
 static PyMethodDef c_funcs[] = {
     { "isuuid", (PyCFunction) isuuid, METH_O, "isinstance(UUID)" },
@@ -189,6 +194,9 @@ static PyMethodDef c_funcs[] = {
       "pack decimal digits from a tuple into a string, 4 bits each" },
     { "unpackDigits", (PyCFunction) unpackDigits, METH_O,
       "unpack decimal digits from a string into a tuple, 4 bits each" },
+#ifdef __MACH__
+    { "vfork", (PyCFunction) _vfork, METH_NOARGS, "" },
+#endif
 #ifdef WINDOWS
     { "openHFILE", (PyCFunction) openHFILE, METH_VARARGS, "open HFILE" },
     { "closeHFILE", (PyCFunction) closeHFILE, METH_VARARGS, "close HFILE" },
