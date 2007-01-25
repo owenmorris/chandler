@@ -17,7 +17,7 @@ import os, sys, threading, time, logging, cStringIO
 import wx, Globals, Utility
 
 from new import classobj
-from i18n import ChandlerMessageFactory as _, getImage
+from i18n import ChandlerMessageFactory as _, getImage, getLocaleSet
 import schema, feedback
 from version import version
 
@@ -946,9 +946,7 @@ class wxApplication (wx.App):
                 if arg in ('-l', '--locale'):
                     break
             else:
-                from locale import getdefaultlocale
-                loc, enc = getdefaultlocale()
-                args.append('--locale=%s' %(loc))
+                args.append('--locale=%s' %(getLocaleSet()[0]))
 
         Utility.stopTwisted()
         self.UIRepositoryView.repository.close()
