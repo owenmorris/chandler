@@ -62,14 +62,11 @@ Creating diffs from records::
     >>> r1 - Demo(1, "Foo", "This is NOT a foo", Decimal('2.50'))
     Demo(1, NoChange, u'This is a foo', NoChange)
 
-
-Lost update checking/conflict detection between diff records::
+Record addition (second record overwrites fields in first, unless NoChange,
+as long as keys match::
 
     >>> diff1 = Demo(1, "Bar", sharing.NoChange, Decimal('1.29'))
     >>> diff2 = Demo(1, sharing.NoChange, "This is NOT a foo", Decimal('2.50'))
-
-Record addition (second record overwrites fields in first, unless NoChange,
-as long as keys match::
 
     >>> r1 + diff1
     Demo(1, u'Bar', u'This is a foo', Decimal("1.29"))
