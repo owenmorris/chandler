@@ -573,7 +573,7 @@ class MainView(View):
 
         if path is not None:
             dlg = wx.MessageDialog(app.mainFrame,
-                                   _(u"Your current repository will be destructively replaced by the repository backup you're about restart Chandler with: %s") %(path),
+                                   _(u"Your current repository will be destructively replaced by the repository backup you're about to restart Chandler with: %s") %(path),
                                    _(u"Confirm Restore"),
                                    (wx.YES_NO | wx.NO_DEFAULT |
                                     wx.ICON_EXCLAMATION))
