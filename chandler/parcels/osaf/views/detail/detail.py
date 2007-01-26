@@ -462,11 +462,16 @@ class DetailTriageButton(DetailSynchronizer, ControlBlocks.Button):
     def onButtonPressedEvent(self, event):
         oldState = getattr(self.widget, 'currentState', None)
         if oldState != None:
-            item = self.item
             assert oldState.startswith('Markup.')
             newState = pim.getNextTriageStatus(getattr(pim.TriageEnum,
                                                        oldState[7:]))
-            item.unpurgedTriageStatus = newState
+            # always make changeThis changes to recurring events
+            item = getattr(self.item, 'proxiedItem', self.item)
+            if pim.has_stamp(item, pim.EventStamp):
+                pim.EventStamp(item).changeThis('unpurgedTriageStatus',
+                                                newState)
+            else:
+                item.unpurgedTriageStatus = newState
             self.setState()
 
     def onButtonPressedEventUpdateUI(self, event):

@@ -829,6 +829,8 @@ class RecurringEventTest(testcase.SingleRepositoryTestCase):
         self.assertNotEqual(self.event.itsItem.icalUID, second.itsItem.icalUID)
         self.assertEqual(second.itsItem.icalUID, third.itsItem.icalUID)
         self.assertEqual(third.modificationFor, second.occurrenceFor)
+        self.assertNotEqual(third.itsItem.displayName,
+                            second.itsItem.displayName)
         
     @staticmethod
     def isDeleted(item):

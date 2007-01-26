@@ -643,7 +643,11 @@ class ContentItem(schema.Item):
        if _unpurged is not None:
            self.triageStatus = _unpurged
            self.triageStatusChanged = self._unpurgedTriageStatusChanged
-           del self._unpurgedTriageStatus
+           # sadly, on recurring events, _unpurgedTriageStatus may have been
+           # deleted already as a side effect of setting triageStatus above,
+           # so check before deleting
+           if hasattr(self, '_unpurgedTriageStatus'):
+               del self._unpurgedTriageStatus
            del self._unpurgedTriageStatusChanged
 
     def getBasedAttributes(self, attribute):

@@ -547,7 +547,7 @@ class ICalendarMergeTestCase(SingleRepositoryTestCase):
                              
         mods = [evt for evt in sharedEvent.modifications if
                 not pim.EventStamp(evt).isTriageOnlyModification()]
-        self.failUnlessEqual(len(mods), 2, "A modification was lost on import")
+        self.failUnlessEqual(len(mods), 2, "Wrong number of modifications after import")
 
         eventMod = pim.EventStamp(mods[1])
 
