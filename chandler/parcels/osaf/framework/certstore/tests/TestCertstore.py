@@ -184,10 +184,10 @@ rZehs7GgIFvKMquNzxPwHynD
         
         self.assert_(cert.fingerprint == '0xadacc622c85df4c2ae471a81eda1bd28379a6fa9L', cert.fingerprint)
         self.assert_(cert.trust == trust)
-        self.assert_(cert.purpose == constants.PURPOSE_CA)
+        self.assert_(cert.purpose & constants.PURPOSE_CA)
         self.assert_(cert.displayName == u'OSAF CA')
 
-        self.assertTrue(certificate.certificatePurpose(x509) == constants.PURPOSE_CA)
+        self.assertTrue(certificate.certificatePurpose(x509) & constants.PURPOSE_CA)
         
     def testImportUnsupportedCertificate(self):
         trust = constants.TRUST_AUTHENTICITY

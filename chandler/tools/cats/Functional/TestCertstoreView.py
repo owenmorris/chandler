@@ -75,7 +75,7 @@ class TestCertstoreView(ChandlerTestCase):
         cert.item = self.app_ns.summary.contents.getFirstSelectedItem() # Dunno how to get it from detail
         
         # Check_DetailView has hardcoded values so we can't use it :(
-        cert.CheckEditableBlock('PurposeAttribute', 'purpose', '%s' % constants.PURPOSE_CA)
+        cert.CheckEditableBlock('PurposeAttribute', 'purpose', '%s' % (constants.PURPOSE_CA | constants.PURPOSE_SERVER))
         cert.CheckEditableBlock('TrustAttribute', 'trust', '%s' % (constants.TRUST_AUTHENTICITY | constants.TRUST_SERVER))
         cert.CheckEditableBlock('FingerprintLabel', 'fingerprint', '0x4463c531d7ccc1006794612bb656d3bf8257846fL')
         cert.CheckEditableBlock('FingerprintAlgLabel', 'algorithm', 'sha1')

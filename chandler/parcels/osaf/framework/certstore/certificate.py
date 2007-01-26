@@ -24,7 +24,7 @@ __all__ = ['Certificate', 'importCertificate',
 import os, logging, sys
 
 import wx
-import M2Crypto.X509 as X509
+from M2Crypto import X509, m2
 
 import application
 from application import schema
