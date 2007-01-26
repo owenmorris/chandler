@@ -30,6 +30,7 @@ import glob
 from optparse import OptionParser
 from types import *
 from util import killableprocess
+import build_util
 
 
 modes = ['release', 'debug']
@@ -292,33 +293,6 @@ def runFuncSuite():
 
     return result
 
-def rmdir_recursive(dir):
-    """
-    Recursively remove a directory.
-    Parameters:
-        dir: directory path
-    Returns:
-        nothing
-    """
-
-    if os.path.islink(dir):
-        os.remove(dir)
-        return
-
-    for name in os.listdir(dir):
-        full_name = os.path.join(dir, name)
-        # on Windows, if we don't have write permission we can't remove
-        # the file/directory either, so turn that on
-        if os.name == 'nt':
-            if not os.access(full_name, os.W_OK):
-                os.chmod(full_name, 0600)
-        if os.path.isdir(full_name):
-            rmdir_recursive(full_name)
-        else:
-            # print "removing file", full_name
-            os.remove(full_name)
-    os.rmdir(dir)
-
 def runPerfSuite():
     """
     Run the Performance Test Suite
@@ -334,7 +308,7 @@ def runPerfSuite():
 
         for item in glob.iglob(os.path.join(options.profileDir, '__repository__.0*')):
             if os.path.isdir(item):
-                rmdir_recursive(item)
+                build_util.rmdirs(item)
             else:
                 os.remove(item)
 
