@@ -415,6 +415,7 @@ _instructions = {
     '.zip' : ['tarball', 'Download the zip file, extract into a new directory and run.'],
     '.dmg' : ['install', 'Download the dmg file, double-click to open, copy the application to your preferred location and run.'],
     '.rpm' : ['install', 'Download the rpm file, install and run.'],
+    '.deb' : ['install', 'Download the deb file, install and run.'],
     '.exe' : ['install', 'Download the installation executable, double-click to install and run.'],
     '.jar' : ['jarfile', 'Download the jar file and place it in your local jar repository.']
 }
