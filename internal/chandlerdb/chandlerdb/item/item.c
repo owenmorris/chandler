@@ -863,6 +863,19 @@ static PyObject *_t_item__fireChanges(t_item *self,
                                       PyObject *op, PyObject *name,
                                       PyObject *fireAfterChange)
 {
+    /* first fire system monitors */
+    {
+        PyObject *args = PyTuple_Pack(3, op, self, name);
+        PyObject *result = _t_view_invokeMonitors((t_view *) self->ref->view,
+                                                  args, Py_True);
+
+        Py_DECREF(args);
+        if (result == NULL)
+            return NULL;
+
+        Py_DECREF(result);
+    }
+
     /* fireAfterChange is one of Py_True, Py_False or Default */
     if (fireAfterChange != Py_False && self->kind != Py_None)
     {
@@ -902,10 +915,11 @@ static PyObject *_t_item__fireChanges(t_item *self,
     }
 
     /* during SYSMONONLY only sys monitors fire */
+    if (!(self->status & SYSMONONLY))
     {
         PyObject *args = PyTuple_Pack(3, op, self, name);
-        PyObject *result = CView_invokeMonitors((t_view *) self->ref->view,
-                                                args);
+        PyObject *result = _t_view_invokeMonitors((t_view *) self->ref->view,
+                                                  args, Py_False);
 
         Py_DECREF(args);
         if (result == NULL)

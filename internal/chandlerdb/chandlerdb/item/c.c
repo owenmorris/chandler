@@ -34,7 +34,7 @@ PyObject *Nil = NULL;
 PyObject *Default = NULL;
 long itemCount = 0;
 
-CView_invokeMonitors_fn CView_invokeMonitors;
+_t_view_invokeMonitors_fn _t_view_invokeMonitors;
 PyUUID_Check_fn PyUUID_Check;
 C_countAccess_fn C_countAccess;
 CAttribute_invokeAfterChange_fn CAttribute_invokeAfterChange;
@@ -175,6 +175,6 @@ void initc(void)
     if (!(m = PyImport_ImportModule("chandlerdb.persistence.c")))
         return;
     LOAD_TYPE(m, CView);
-    LOAD_FN(m, CView_invokeMonitors);
+    LOAD_FN(m, _t_view_invokeMonitors);
     Py_DECREF(m);
 }    

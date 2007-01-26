@@ -801,10 +801,12 @@ static PyObject *t_view_setSingleton(t_view *self, PyObject *args)
     Py_RETURN_NONE;
 }
 
-static PyObject *t_view_invokeMonitors(t_view *self, PyObject *args)
+static PyObject *_t_view_invokeMonitors(t_view *self, PyObject *args,
+                                        PyObject *mode)
 {
     PyObject *op, *attribute, *monitors, *changedItem;
     int argCount = PySequence_Size(args);
+    int sysOnly = 0, userOnly = 0;
 
     if (argCount < 3)
     {
@@ -838,15 +840,28 @@ static PyObject *t_view_invokeMonitors(t_view *self, PyObject *args)
     changedItem = PyTuple_GET_ITEM(args, 1);
     attribute = PyTuple_GET_ITEM(args, 2);
 
+    if (mode == Py_True)
+    {
+        sysOnly = 1;
+        userOnly = 0;
+    }
+    else if (mode == Py_False)
+    {
+        sysOnly = 0;
+        userOnly = 1;
+    }
+
     monitors = PyDict_GetItem(PyDict_GetItem(self->monitors, op), attribute);
     if (monitors != NULL)
     {
         int size = PyList_Size(monitors);
-        int sysOnly = 0;
         int i;
 
         if (PyObject_TypeCheck(changedItem, CItem))
-            sysOnly = ((t_item *) changedItem)->status & SYSMONONLY;
+        {
+            if (!sysOnly)
+                sysOnly = ((t_item *) changedItem)->status & SYSMONONLY;
+        }
         else
         {
             PyErr_SetObject(PyExc_TypeError, changedItem);
@@ -863,6 +878,8 @@ static PyObject *t_view_invokeMonitors(t_view *self, PyObject *args)
                 continue;
 
             if (sysOnly && !(monitor->status & SYSMONITOR))
+                continue;
+            if (userOnly && (monitor->status & SYSMONITOR))
                 continue;
 
             monitoringItem = PyDict_GetItem(monitor->references->dict,
@@ -969,6 +986,17 @@ static PyObject *t_view_invokeMonitors(t_view *self, PyObject *args)
     Py_DECREF(args);
     Py_RETURN_NONE;
 }
+
+static PyObject *t_view_invokeMonitors(t_view *self, PyObject *args)
+{
+    PyObject *monitorArgs, *mode = Py_None;
+
+    if (!PyArg_ParseTuple(args, "O|O", &monitorArgs, &mode))
+        return NULL;
+
+    return _t_view_invokeMonitors(self, monitorArgs, mode);
+}
+
 
 static int _debugOn(PyObject *obj, PyFrameObject *frame,
                     int what, PyObject *arg)
@@ -1091,8 +1119,8 @@ void _init_view(PyObject *m)
             MONITORS_PATH = PyString_FromString("//Schema/Core/items/Monitors");
             PyDict_SetItemString(dict, "MONITORS", MONITORS_PATH);
 
-            cobj = PyCObject_FromVoidPtr(t_view_invokeMonitors, NULL);
-            PyModule_AddObject(m, "CView_invokeMonitors", cobj);
+            cobj = PyCObject_FromVoidPtr(_t_view_invokeMonitors, NULL);
+            PyModule_AddObject(m, "_t_view_invokeMonitors", cobj);
         }
     }
 }

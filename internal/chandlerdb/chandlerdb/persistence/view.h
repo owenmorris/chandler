@@ -63,4 +63,5 @@ enum {
 };
 
 
-typedef PyObject *(*CView_invokeMonitors_fn)(t_view *, PyObject *);
+typedef PyObject *(*_t_view_invokeMonitors_fn)(t_view *, PyObject *,
+                                               PyObject *);
