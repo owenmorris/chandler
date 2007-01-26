@@ -631,7 +631,7 @@ def makeMarkupBar(parcel, oldVersion):
                                 event=buttonPressed,
                                 viewAttribute='unpurgedTriageStatus',
                                 stretchFactor=0.0,
-                                minimumSize=SizeType(39, 20))
+                                minimumSize=SizeType(41, 20))
 
     markupSpacer1 = ControlBlocks.StaticText.template('MarkupSpacer1',
                                     title=u'',
