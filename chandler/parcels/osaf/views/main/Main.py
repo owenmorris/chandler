@@ -1098,6 +1098,7 @@ class MainView(View):
         dlg.Destroy()
         if path:
             settings.save(self.itsView, path)
+            self.setStatusMessage(u'Settings saved')
 
     def onRestoreSettingsEvent(self, event):
         # triggered from "Test | Restore Settings" Menu
@@ -1114,6 +1115,7 @@ class MainView(View):
         dlg.Destroy()
         if path:
             settings.restore(self.itsView, path)
+            self.setStatusMessage(u'Settings restored')
 
     def onActivateWebserverEventUpdateUI (self, event):
         for server in webserver.Server.iterItems(self.itsView):
