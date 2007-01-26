@@ -42,12 +42,17 @@ class PIMTranslator(eim.Translator):
         else:
             triageStatus = eim.NoChange
 
+        if record.triageStatusChanged is not eim.NoChange:
+            tsc = float(record.triageStatusChanged)
+        else:
+            tsc = eim.NoChange
+
         self.loadItemByUUID(
             record.uuid,
             pim.ContentItem,
             displayName=record.title,
             triageStatus=triageStatus,
-            triageStatusChanged=float(record.triageStatusChanged),
+            triageStatusChanged=tsc,
             createdOn=createdOn
         ) # incomplete
 
@@ -104,6 +109,14 @@ class PIMTranslator(eim.Translator):
         )
 
 
+    @model.TaskRecord.deleter
+    def delete_task(self, record):
+        item = self.rv.findUUID(record.uuid)
+        if item is not None and item.isLive() and pim.has_stamp(item,
+            pim.TaskStamp):
+            pim.TaskStamp(item).remove()
+
+
 
     # EventRecord -------------
 
@@ -111,9 +124,11 @@ class PIMTranslator(eim.Translator):
 
     @model.EventRecord.importer
     def import_event(self, record):
+
         self.loadItemByUUID(
             record.uuid,
-            pim.EventStamp
+            pim.EventStamp,
+            transparency=record.status
         ) # incomplete
 
 
@@ -129,10 +144,16 @@ class PIMTranslator(eim.Translator):
             None,                                       # rdate
             None,                                       # exdate
             None,                                       # recurrenceid
-            None,                                       # status
-            None                                        # trigger
+            str(event.transparency)                      # status
         )
 
+
+    @model.EventRecord.deleter
+    def delete_event(self, record):
+        item = self.rv.findUUID(record.uuid)
+        if item is not None and item.isLive() and pim.has_stamp(item,
+            pim.EventStamp):
+            pim.EventStamp(item).remove()
 
 
 

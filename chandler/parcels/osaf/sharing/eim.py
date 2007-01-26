@@ -840,7 +840,7 @@ class Translator:
         """Load/create/upgrade/stamp item by UUID and type, w/optional attrs"""
 
         if issubclass(itype, pim.Stamp):
-            stamp = itype(self.loadItemByUUID(uuid, pim.ContentItem))
+            stamp = itype(self.loadItemByUUID(uuid, itype.targetType()))
             if not stamp.stamp_types or itype not in stamp.stamp_types:
                 stamp.add()
 
