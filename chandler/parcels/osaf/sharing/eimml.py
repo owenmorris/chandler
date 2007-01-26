@@ -128,9 +128,17 @@ class EIMMLSerializer(object):
 
                     for field in record.__fields__:
                         value = record[field.offset]
-                        if value is not None:
-                            serialized = serializeValue(field.typeinfo,
-                                record[field.offset])
+
+                        if value is eim.NoChange:
+                            continue
+
+                        else:
+                            if value is not None:
+                                serialized = serializeValue(field.typeinfo,
+                                    record[field.offset])
+                            else:
+                                serialized = None
+
                             if isinstance(field, eim.key):
                                 fieldElement = SubElement(recordElement,
                                     "{%s}%s" % (record.URI, field.name),
@@ -166,44 +174,58 @@ class EIMMLSerializer(object):
     def deserialize(cls, text):
         """ Parse XML text into a list of record sets """
 
-        recordSets = {}
 
         recordsElement = fromstring(text) # xml parser
 
+        recordSets = {}
         for recordSetElement in recordsElement:
             uuid = recordSetElement.get("uuid")
-            records = []
 
-            for recordElement in recordSetElement:
-                ns, name = recordElement.tag[1:].split("}")
+            deleted = recordSetElement.get("deleted")
+            if deleted and deleted.lower() == "true":
+                recordSet = None
 
-                recordClass = eim.lookupSchemaURI(ns)
-                if recordClass is None:
-                    continue    # XXX handle error?  logging?
+            else:
+                inclusions = []
+                exclusions = []
 
-                values = []
-                for field in recordClass.__fields__:
-                    for fieldElement in recordElement:
-                        ns, name = fieldElement.tag[1:].split("}")
-                        if field.name == name:
-                            if fieldElement.text is None:
-                                value = None
-                            else:
-                                try:
-                                    value = deserializeValue(field.typeinfo,
-                                                             fieldElement.text)
-                                except:
-                                    print "Error:", name, fieldElement.text, field.typeinfo
-                                    raise
-                            break
+                for recordElement in recordSetElement:
+                    ns, name = recordElement.tag[1:].split("}")
+
+                    recordClass = eim.lookupSchemaURI(ns)
+                    if recordClass is None:
+                        continue    # XXX handle error?  logging?
+
+                    values = []
+                    for field in recordClass.__fields__:
+                        for fieldElement in recordElement:
+                            ns, name = fieldElement.tag[1:].split("}")
+                            if field.name == name:
+                                if fieldElement.text is None:
+                                    value = None
+                                else:
+                                    try:
+                                        value = deserializeValue(field.typeinfo,
+                                                                 fieldElement.text)
+                                    except:
+                                        print "Error:", name, fieldElement.text, field.typeinfo
+                                        raise
+                                break
+                        else:
+                            value = eim.NoChange
+
+                        values.append(value)
+
+                    record = recordClass(*values)
+
+                    deleted = recordElement.get("deleted")
+                    if deleted and deleted.lower() == "true":
+                        exclusions.append(record)
                     else:
-                        value = None
+                        inclusions.append(record)
 
-                    values.append(value)
+                recordSet = eim.RecordSet(inclusions, exclusions)
 
-                records.append(recordClass(*values))
-
-            recordSet = eim.RecordSet(records)
             recordSets[uuid] = recordSet
 
         return recordSets

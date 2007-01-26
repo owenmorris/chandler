@@ -57,7 +57,8 @@ def setReadOnlyMode(active):
 class Conduit(pim.ContentItem):
     share = schema.One(shares.Share, inverse=shares.Share.conduit)
 
-    def sync(self, modeOverride=None, updateCallback=None, forceUpdate=None):
+    def sync(self, modeOverride=None, updateCallback=None, forceUpdate=None,
+        debug=False):
         raise NotImplementedError
 
 
@@ -89,7 +90,8 @@ class BaseConduit(Conduit):
 
 class LinkableConduit(BaseConduit):
 
-    def sync(self, modeOverride=None, updateCallback=None, forceUpdate=None):
+    def sync(self, modeOverride=None, updateCallback=None, forceUpdate=None,
+        debug=False):
         from formats import CloudXMLFormat
         from ICalendar import ICalendarFormat
         from webdav_conduit import WebDAVConduit

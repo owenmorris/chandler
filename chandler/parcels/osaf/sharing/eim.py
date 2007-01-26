@@ -305,7 +305,7 @@ class RecordSet(object):
     def __ne__(self, other):
         return not self==other
 
-    def update(self, inclusions, exclusions):
+    def update(self, inclusions, exclusions, subtract=False):
         ind = self._index
         for r in inclusions:
             k = r.getKey()
@@ -317,7 +317,7 @@ class RecordSet(object):
             k = r.getKey()
             if k in ind:
                 r = ind[k] - r
-                if r is NoChange:
+                if r is NoChange or not subtract:
                     del ind[k]
                     continue
                 else:
@@ -328,7 +328,7 @@ class RecordSet(object):
 
     def __sub__(self, other):
         rs = RecordSet(self.inclusions, self.exclusions)
-        rs.update(other.exclusions, other.inclusions)
+        rs.update(other.exclusions, other.inclusions, subtract=True)
         return rs
         
     def __add__(self, other):
@@ -339,29 +339,6 @@ class RecordSet(object):
     def __iadd__(self, other):
         self.update(other.inclusions, other.exclusions)
         return self
-
-    def conflicts(self, other):
-        """Changes in this diff that would be lost by applying `other`"""
-        incs = []
-        excs = []
-
-        for key in self._index:
-            if key in other._index:
-                lost = self._index[key] - other._index[key]
-                if lost is not NoChange:
-                    incs.append(lost)
-
-        for r in self.exclusions:
-            key = r.getKey()
-            if key in other._index:
-                excs.append(r)
-
-        for r in other.exclusions:
-            key = r.getKey()
-            if key in self._index:
-                incs.append(self._index[key])
-            
-        return RecordSet(incs, excs)
 
     def __nonzero__(self):
         return bool(self.inclusions or self.exclusions)
@@ -641,7 +618,7 @@ class Record(tuple):
                             "Can't subtract %s %r from %s %r" %
                             (f.name, old, f.name, new)
                         )
-                elif old==new or old is NoChange:
+                elif old==new:
                     res.append(NoChange)
                     continue
                 elif new is not NoChange:

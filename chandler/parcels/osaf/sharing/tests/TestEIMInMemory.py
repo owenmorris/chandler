@@ -23,7 +23,6 @@ from repository.item.Item import Item
 from util import testcase
 from PyICU import ICUtzinfo
 from application import schema
-from i18n.tests import uw
 
 logger = logging.getLogger(__name__)
 
@@ -43,21 +42,18 @@ class EIMInMemoryTestCase(testcase.DualRepositoryTestCase):
 
         sandbox = view.findPath("//sandbox")
         coll = pim.ListCollection("testCollection", sandbox,
-            displayName=uw("Test Collection"))
+            displayName="Test Collection")
 
         titles = [
             u"breakfast",
-            u"lunch",
-            u"dinner",
-            u"meeting",
-            u"movie",
         ]
 
         self.uuids = { }
 
-        for i in xrange(6):
+        count = len(titles)
+        for i in xrange(count):
             n = pim.Note(itsParent=sandbox)
-            n.displayName = titles[i % 5]
+            n.displayName = titles[i % count]
             self.uuids[n.itsUUID] = n.displayName
             n.body = u"Here is the body"
             coll.add(n)
@@ -69,7 +65,7 @@ class EIMInMemoryTestCase(testcase.DualRepositoryTestCase):
         coll0 = sandbox0.findPath("testCollection")
         conduit = recordset_conduit.InMemoryRecordSetConduit(
             "conduit", itsView=view0,
-            shareName=uw("exportedCollection"),
+            shareName="exportedCollection",
             translator=translator.PIMTranslator,
             serializer=eimml.EIMMLSerializer
         )
@@ -82,7 +78,7 @@ class EIMInMemoryTestCase(testcase.DualRepositoryTestCase):
         view1 = self.views[1]
         conduit = recordset_conduit.InMemoryRecordSetConduit(
             "conduit", itsView=view1,
-            shareName=uw("exportedCollection"),
+            shareName="exportedCollection",
             translator=translator.PIMTranslator,
             serializer=eimml.EIMMLSerializer
         )
@@ -91,25 +87,128 @@ class EIMInMemoryTestCase(testcase.DualRepositoryTestCase):
 
     def RoundTrip(self):
 
-        # Export
         view0 = self.views[0]
+        view1 = self.views[1]
         sandbox0 = view0.findPath("//sandbox")
         coll0 = sandbox0.findPath("testCollection")
-        # view0.commit()
+
+        item = self.share0.contents.first()
+        testUuid = item.itsUUID.str16()
+
+        # Initial publish
         self.share0.create()
-        self.share0.sync()
-        # view0.commit()
+        view0.commit(); self.share0.sync(); view0.commit()
 
-        # Import
-        view1 = self.views[1]
-        self.share1.sync()
-        # view1.commit()
+        # Local modification only
+        item.body = u"CHANGED"
+        view0.commit(); self.share0.sync(); view0.commit()
 
+        # Initial subscribe
+        view1.commit(); self.share1.sync(); view1.commit()
+
+        # Verify items are imported
         for uuid in self.uuids:
             n = view1.findUUID(uuid)
             self.assertEqual(self.uuids[uuid], n.displayName)
+        item1 = view1.findUUID(testUuid)
+        self.assert_(item1 in self.share1.contents)
+        self.assert_(item1.body == u"CHANGED")
 
-        self.share0.conduit.dump()
+
+        # TODO: stamping/unstamping
+        # TODO: non-overlapping changes
+        # TODO: overlapping changes
+
+
+        # Local removal -  sends removal recordset
+        self.share0.contents.remove(item)
+        view0.commit(); self.share0.sync(); view0.commit()
+
+        # Remote removal - results in local removal
+        view1.commit(); self.share1.sync(); view1.commit()
+        item1 = view1.findUUID(testUuid)
+        self.assert_(item1 not in self.share1.contents)
+
+
+
+
+        # Local addition of once-shared item - sends item
+        self.share0.contents.add(item)
+        item.body = "back from removal"
+        view0.commit(); self.share0.sync(); view0.commit()
+
+
+
+
+        # Remote modification of existing item *not* in the local collection
+        # - adds item to local collection
+        view1.commit(); self.share1.sync(); view1.commit()
+        item1 = view1.findUUID(testUuid)
+        self.assert_(item1 in self.share1.contents)
+        # Note, we have pending changes because we already had this item
+        # in our repository (and it wasn't deleted). Our body is as we had
+        # it before the sync:
+        self.assertEqual(item1.body, "CHANGED")
+        # print self.share1.conduit.getState(testUuid)
+        # TODO: When there is an API for examining pending changes, test that
+        # here to verify they include "back from removal"
+
+
+
+
+        # Remote modification of locally *deleted* item - reconstitutes the
+        # item based on last agreed state and adds to local collection
+        item.body = "back from the dead"
+        view0.commit(); self.share0.sync(); view0.commit()
+        # Completely delete item in view 1, ensure it comes back
+        item1.delete(True)
+        view1.commit(); self.share1.sync(); view1.commit()
+        item1 = view1.findUUID(testUuid)
+        self.assert_(item1 in self.share1.contents)
+        # Note, since we completely deleted the item, and we reconstituted
+        # it back from the agreed state, there are no pending changes
+        # print self.share1.conduit.getState(testUuid)
+        self.assertEqual(item1.body, "back from the dead")
+
+
+
+        # Remotely removed, locally modified - item gets put back to server
+        # including local mods
+        self.share0.contents.remove(item)
+        self.assert_(item not in self.share0.contents)
+        view0.commit(); self.share0.sync(); view0.commit()
+        item1.body = "modification trumps removal"
+        view1.commit(); self.share1.sync(); view1.commit()
+        view0.commit(); self.share0.sync(); view0.commit()
+        self.assert_(item in self.share0.contents)
+        self.assertEqual(item.body, "back from the dead")
+        # We have pending changes ("modification trumps removal"), so clear
+        # them out:
+        # agreed, pending = self.share0.conduit.getState(testUuid)
+        # print pending
+        self.share0.conduit.discardPending(testUuid)
+
+
+
+        # Remotely modified, locally removed - item gets put back into local
+        # collection with remote state.
+        item.body = "I win!"
+        view0.commit(); self.share0.sync(); view0.commit()
+        self.share1.contents.remove(item1)
+        view1.commit(); self.share1.sync(); view1.commit()
+        self.assert_(item1 in self.share1.contents)
+
+
+
+        # Remote *and* Local item removal
+        self.share0.contents.remove(item)
+        self.share1.contents.remove(item1)
+        view0.commit(); self.share0.sync(); view0.commit()
+        view1.commit(); self.share1.sync(); view1.commit()
+        self.assert_(item not in self.share0.contents)
+        self.assert_(item1 not in self.share1.contents)
+
+        # self.share0.conduit.dump("at the end")
 
 if __name__ == "__main__":
     unittest.main()

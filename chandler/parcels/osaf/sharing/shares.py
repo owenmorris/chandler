@@ -142,10 +142,11 @@ class Share(pim.ContentItem):
     def close(self):
         self.conduit.close()
 
-    def sync(self, modeOverride=None, updateCallback=None, forceUpdate=None):
+    def sync(self, modeOverride=None, updateCallback=None, forceUpdate=None,
+        debug=False):
         return self.conduit.sync(modeOverride=modeOverride,
                                  updateCallback=updateCallback,
-                                 forceUpdate=forceUpdate)
+                                 forceUpdate=forceUpdate, debug=debug)
 
     def put(self, updateCallback=None):
         return self.sync(modeOverride='put', updateCallback=updateCallback,

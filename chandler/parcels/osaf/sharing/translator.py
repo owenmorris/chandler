@@ -33,10 +33,14 @@ class PIMTranslator(eim.Translator):
             inUTC = naive.replace(tzinfo=utc)
             # Convert to user's tz:
             createdOn = inUTC.astimezone(ICUtzinfo.default)
+        else:
+            createdOn = eim.NoChange
 
         if record.triageStatus is not eim.NoChange:
             # @@@MOR -- is this the right way to get an enum?  (it works)
             triageStatus = getattr(pim.TriageEnum, record.triageStatus)
+        else:
+            triageStatus = eim.NoChange
 
         self.loadItemByUUID(
             record.uuid,

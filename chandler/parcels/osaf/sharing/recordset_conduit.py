@@ -12,11 +12,13 @@
 #   See the License for the specific language governing permissions and
 #   limitations under the License.
 
+from osaf import pim
 import conduits, errors, formats, eim
 from i18n import ChandlerMessageFactory as _
 import logging
 from application import schema
 import zanshin
+from repository.item.Item import Item
 
 logger = logging.getLogger(__name__)
 
@@ -26,11 +28,23 @@ __all__ = [
     'InMemoryRecordSetConduit',
 ]
 
+USE_PICKLE = True
+if USE_PICKLE:
+    import cPickle
 
 class State(schema.Item):
-    agreed = schema.Sequence(schema.Tuple)
-    pending_inclusions = schema.Sequence(schema.Tuple)
-    pending_exclusions = schema.Sequence(schema.Tuple)
+    deleted = schema.One(schema.Boolean, defaultValue=False)
+
+    if USE_PICKLE:
+        agreed = schema.One(schema.Text)
+        pending = schema.One(schema.Text)
+    else:
+        agreed = schema.Sequence(schema.Tuple)
+        pending_inclusions = schema.Sequence(schema.Tuple)
+        pending_exclusions = schema.Sequence(schema.Tuple)
+
+
+    # TODO: add a biref to the item here (pending_for_item), where the other end is a ref collection, an annotation called pending_states
 
 
 
@@ -40,29 +54,95 @@ class RecordSetConduit(conduits.BaseConduit):
     serializer = schema.One(schema.Class)
     syncToken = schema.One(schema.Text, defaultValue="")
     filters = schema.Sequence(schema.Text)
+    baseline = schema.One(schema.ItemRef)
 
-    def sync(self, modeOverride=None, updateCallback=None, forceUpdate=None):
+
+    def __init__(self, *args, **kw):
+        super(RecordSetConduit, self).__init__(*args, **kw)
+        self.baseline = schema.Item('baseline', self, None)
+
+    def sync(self, modeOverride=None, updateCallback=None, forceUpdate=None,
+        debug=False):
+
+        if debug: print " ================ start of sync ================= "
 
         rv = self.itsView
 
         translator = self.translator(rv)
 
-        changedItems = set()
+        if self.share.contents is None:
+            self.share.contents = pim.SmartCollection(itsView=rv)
 
-        if self.syncToken:  # We've been synced before
-            for item in self.share.contents:
-                # TBD: determine which items have actually changed,
-                # and also which have been deleted
-                changedItems.add(uuid)
+        if self.syncToken:
+            version = self.itemsMarker.itsVersion
+        else:
+            version = -1
 
-        else:               # We've not been synced before
-            if self.share.contents is not None:
-                for item in self.share.contents:
-                    changedItems.add(item.itsUUID.str16())
+        # Get inbound changes
+        text = self.get()
+        if debug: print "Inbound text:", text
+
+        inboundDiff = self.serializer.deserialize(text)
+        if debug: print "Inbound records", inboundDiff
+
+        # Generate records for all local items to be merged -- those that
+        # have either been changed locally or remotely:
+
+        remotelyRemoved = set()
+        localItems = set()
+
+        # Add remotely changed items
+        for uuid in inboundDiff.keys():
+            rs = inboundDiff[uuid]
+            if rs is None: # skip deletions
+                if debug: print "Inbound removal:", uuid
+                del inboundDiff[uuid]
+                remotelyRemoved.add(uuid)
+
+                # Clear out the agreed state and any pending changes, so
+                # that if there are local changes, they'll just get sent
+                # back out along with the *complete* state of the item. The
+                # item has already been removed from the server, and we're
+                # putting it back.
+                self.removeState(uuid)
+
+            else:
+                if debug: print "Inbound modification:", uuid
+                item = rv.findUUID(uuid)
+                if item is not None and item.isLive():
+                    # An inbound modification to an item we already have
+                    localItems.add(uuid)
+
+                elif self.hasState(uuid):
+                    # This is an item we completely deleted since our last
+                    # sync.  We need to grab its previous state out of the
+                    # baseline, apply any pending changes and the new
+                    # inbound chagnes to it, and use that as the new
+                    # inboundDiff
+                    agreed, pending = self.getState(uuid)
+                    rs = agreed + pending + rs
+                    if debug: print "Reconstituting item from baseline:", rs
+                    inboundDiff[uuid] = rs
+                    self.removeState(uuid)
 
 
+        if debug: print "Conduit marker version:", version
+
+        # Add locally changed items
+        for item in self.share.contents:
+            if debug: print "Examining local item", item, item.itsVersion
+            if item.itsVersion > version:
+                uuid = item.itsUUID.str16()
+                localItems.add(uuid)
+                if uuid in remotelyRemoved:
+                    # This remotely removed item was modified locally.
+                    # We are going to send the whole item back out.
+                    remotelyRemoved.remove(uuid)
+
+
+        # Compute local records
         rsNewBase = { }
-        for uuid in changedItems:
+        for uuid in localItems:
             item = rv.findUUID(uuid)
             if item is not None and item.isLive():
                 rs = eim.RecordSet(translator.exportItem(item))
@@ -70,23 +150,63 @@ class RecordSetConduit(conduits.BaseConduit):
                 rs = eim.RecordSet()
             rsNewBase[uuid] = rs
 
-        # Get inbound diffs
-        text = self.get()
-        inboundDiff = self.serializer.deserialize(text)
 
         # Merge
-        toSend, toApply, pending = self.merge(rsNewBase, inboundDiff)
+        toSend, toApply, pending = self.merge(rsNewBase, inboundDiff,
+            debug=debug)
+
 
         # Apply
-        for itemUUID, rs in toApply.items():
+        for uuid, rs in toApply.items():
+            if debug: print "Applying:", uuid, rs
             translator.importRecords(rs)
 
+
+        # Make sure any items that came in are added to the collection
+        for uuid in inboundDiff:
+            # Add the item to contents
+            item = rv.findUUID(uuid)
+            if item is not None and item.isLive():
+                if debug: print "Adding to collection:", uuid
+                self.share.contents.add(item)
+
+
+        # For each item that was in the collection before but is no longer,
+        # add an empty recordset to toSend
+        for uuid in self.getBaselineUuids():
+            item = rv.findUUID(uuid)
+            if (item is None or
+                item not in self.share.contents and
+                uuid not in remotelyRemoved):
+                toSend[uuid] = None
+                self.removeState(uuid)
+                if debug: print "Remotely removing item:", uuid
+
+
+        # For each remote removal, remove the item from the collection locally
+        # At this point, we know there were no local modifications
+        for uuid in remotelyRemoved:
+            item = rv.findUUID(uuid)
+            if item is not None and item in self.share.contents:
+                self.share.contents.remove(item)
+                self.removeState(uuid)
+                if debug: print "Locally removing item:", uuid
+
+
         # Send
-        text = self.serializer.serialize(toSend)
-        self.put(text)
+        if toSend:
+            text = self.serializer.serialize(toSend)
+            self.put(text)
+            if debug: print "Sent text:", text
+        else:
+            if debug: print "Nothing to send"
 
 
+        # Note the repository version number, which will increase at the next
+        # commit
+        self.itemsMarker.setDirty(Item.NDIRTY)
 
+        if debug: print " ================== end of sync ================= "
 
     def clean_diff(self, state, diff):
         new_state = state + diff
@@ -96,7 +216,8 @@ class RecordSetConduit(conduits.BaseConduit):
 
 
 
-    def merge(self, rsNewBase, inboundDiffs={}, send=True, receive=True):
+    def merge(self, rsNewBase, inboundDiffs={}, send=True, receive=True,
+        debug=False):
         """Update states, return send/apply/pending dicts
 
         rsNewBase is a dict from itemUUID -> recordset for items changed
@@ -113,7 +234,14 @@ class RecordSetConduit(conduits.BaseConduit):
         filter = self.getFilter()
 
         for uuid in set(rsNewBase) | set(inboundDiffs):
-            agreed, old_pending = self.getStates(uuid)
+            agreed, old_pending = self.getState(uuid)
+            if debug:
+                print " ----------- Merging item:", uuid
+                print "   rsNewBase:", rsNewBase.get(uuid, "Nothing")
+                print "   inboundDiff:", inboundDiffs.get(uuid, "Nothing")
+                print "   agreed:", agreed
+                print "   old_pending:", old_pending
+
             my_state = filter.sync_filter(rsNewBase.get(uuid, agreed))
 
             filteredInbound = filter.sync_filter(inboundDiffs.get(uuid,
@@ -121,6 +249,11 @@ class RecordSetConduit(conduits.BaseConduit):
             their_state = agreed + old_pending + filteredInbound
 
             ncd = (my_state - agreed) | (their_state - agreed)
+
+            if debug:
+                print "   my_state:", my_state
+                print "   their_state:", their_state
+                print "   ncd:", ncd
 
             dSend = self.clean_diff(their_state, ncd)
             if dSend:
@@ -139,47 +272,87 @@ class RecordSetConduit(conduits.BaseConduit):
             if new_pending:
                 pending[uuid] = new_pending
 
-            self.saveStates(uuid, agreed, new_pending)
+            self.saveState(uuid, agreed, new_pending)
+
+            if debug:
+                print " - - - - Results - - - - "
+                print "   agreed:", agreed
+                print "   new_pending:", new_pending
+                print "   toSend:", toSend
+                print "   toApply:", toApply
+                print "   pending:", pending
+                print " ----------- End of merge "
 
         return toSend, toApply, pending
 
 
 
-    def saveStates(self, uuidString, agreed, new_pending):
-        State.update(self, uuidString,
-            agreed=list(agreed.inclusions),
-            pending_inclusions=list(new_pending.inclusions),
-            pending_exclusions=list(new_pending.exclusions))
+    def saveState(self, uuidString, agreed, new_pending):
+        if USE_PICKLE:
+            State.update(self.baseline, uuidString,
+                deleted=False,
+                agreed=cPickle.dumps(agreed),
+                pending=cPickle.dumps(new_pending))
+        else:
+            State.update(self.baseline, uuidString,
+                deleted=False,
+                agreed=list(agreed.inclusions),
+                pending_inclusions=list(new_pending.inclusions),
+                pending_exclusions=list(new_pending.exclusions))
 
 
 
-    def getStates(self, uuidString):
-        state = self.getItemChild(uuidString)
 
-        if state is None:
+    def getState(self, uuidString):
+        state = self.baseline.getItemChild(uuidString)
+
+        if state is None or state.deleted:
             state = (eim.RecordSet(), eim.RecordSet())
 
         else:
-            tupleNew = tuple.__new__
+            if USE_PICKLE:
+                agreed = cPickle.loads(state.agreed)
+                pending = cPickle.loads(state.pending)
+            else:
+                tupleNew = tuple.__new__
 
-            # pull out the agreed-upon records
-            records = []
-            for tup in state.agreed:
-                records.append(tupleNew(tup[0], tup))
-            agreed = eim.RecordSet(records)
+                # pull out the agreed-upon records
+                records = []
+                for tup in state.agreed:
+                    records.append(tupleNew(tup[0], tup))
+                agreed = eim.RecordSet(records)
 
-            # pull out the pending records
-            inclusions = []
-            for tup in state.pending_inclusions:
-                inclusions.append(tupleNew(tup[0], tup))
-            exclusions = []
-            for tup in state.pending_exclusions:
-                exclusions.append(tupleNew(tup[0], tup))
-            pending = eim.RecordSet(inclusions, exclusions)
+                # pull out the pending records
+                inclusions = []
+                for tup in state.pending_inclusions:
+                    inclusions.append(tupleNew(tup[0], tup))
+                exclusions = []
+                for tup in state.pending_exclusions:
+                    exclusions.append(tupleNew(tup[0], tup))
+                pending = eim.RecordSet(inclusions, exclusions)
 
             state = (agreed, pending)
 
         return state
+
+    def removeState(self, uuidString):
+        state = self.baseline.getItemChild(uuidString)
+        if state is not None:
+            state.deleted = True
+
+    def hasState(self, uuidString):
+        state = self.baseline.getItemChild(uuidString)
+        return state is not None and not state.deleted
+
+    def discardPending(self, uuidString):
+        if self.hasState(uuidString):
+            agreed, pending = self.getState(uuidString)
+            self.saveState(uuidString, agreed, eim.RecordSet())
+
+    def getBaselineUuids(self):
+        for state in self.baseline.iterChildren():
+            if state.isLive():
+                yield state.itsName
 
 
 
@@ -223,37 +396,29 @@ class InMemoryRecordSetConduit(RecordSetConduit):
     # simulate cosmo:
 
     def _getCollection(self, path):
-        return shareDict.setdefault(path, { "tokens" : [], "recordsets" : {} })
+        return shareDict.setdefault(path, { "token" : 0, "items" : {} })
 
-    def _storeUUIDs(self, tokens, uuids):
-        tokens.append(uuids)
-        return len(tokens)
 
     def serverPut(self, path, text):
         recordsets = self.serializer.deserialize(text)
         coll = self._getCollection(path)
-        uuids = set()
+        newToken = coll["token"]
+        newToken += 1
         for uuid, rs in recordsets.items():
-            coll["recordsets"][uuid] = rs
-            uuids.add(uuid)
-        token = self._storeUUIDs(coll["tokens"], uuids)
-        return str(token)
+            itemHistory = coll["items"].setdefault(uuid, [])
+            itemHistory.append( (newToken, rs) )
+        coll["token"] = newToken
+        return str(newToken)
 
     def serverPost(self, path, token, text):
         token = int(token)
         coll = self._getCollection(path)
-        current = len(coll["tokens"])
+        current = coll["token"]
 
         if token != current:
             raise errors.TokenMismatch("%s != %s" % (token, current))
 
-        recordsets = self.serializer.deserialize(text)
-        uuids = set()
-        for uuid, rs in recordsets.items():
-            coll["recordsets"][uuid] = rs
-            uuids.add(uuid)
-        token = self._storeUUIDs(coll["tokens"], uuids)
-        return str(token)
+        return self.serverPut(path, text)
 
     def serverGet(self, path, token):
 
@@ -264,21 +429,42 @@ class InMemoryRecordSetConduit(RecordSetConduit):
 
         coll = self._getCollection(path)
 
-        current = len(coll["tokens"])
+        current = coll["token"]
         if token > current:
             raise errors.MalformedToken(token)
 
-        uuids = set()
-        for uuid_set in coll["tokens"][token:]:
-            uuids |= uuid_set
 
-        recordsets = {}
-        for uuid in uuids:
-            recordsets[uuid] = coll["recordsets"][uuid]
+        empty = eim.RecordSet()
+        recordsets = { }
+        for uuid, itemHistory in coll["items"].iteritems():
+            rs = eim.RecordSet()
+            for historicToken, diff in itemHistory:
+                if historicToken > token:
+                    if diff is None:
+                        # This item was removed
+                        rs = None
+                    if diff is not None:
+                        if rs is None:
+                            rs = eim.RecordSet()
+                        rs = rs + diff
+            if rs != empty:
+                recordsets[uuid] = rs
+
 
         text = self.serializer.serialize(recordsets)
 
         return str(current), text
 
-    def dump(self):
-        print shareDict
+    def dump(self, text=""):
+
+        print "\nState of InMemoryRecordSetConduit (%s):" % text
+        for path, coll in shareDict.iteritems():
+            print "\nCollection:", path
+            print "\n   Latest token:", coll["token"]
+            for uuid, itemHistory in coll["items"].iteritems():
+                print "\n   - History for item:", uuid, "\n"
+                for historicToken, diff in itemHistory:
+                    if diff is None:
+                        print "       [%d] <Deleted>" % historicToken
+                    else:
+                        print "       [%d] %s" % (historicToken, diff)
