@@ -1266,7 +1266,7 @@ class StringAttributeEditor (BaseAttributeEditor):
             except AttributeError:
                 lineStyleEnum = ""
             if lineStyleEnum == "MultiLine":
-                style |= wx.TE_MULTILINE
+                style |= (wx.TE_MULTILINE | wx.TE_AUTO_URL)
             else:
                 style |= wx.TE_PROCESS_ENTER
 
