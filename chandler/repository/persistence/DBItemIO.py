@@ -1031,8 +1031,10 @@ class DBItemPurger(ItemPurger):
                             done.add(uuid)
 
                 elif flags & DBItemWriter.REF:
-                    uuid = data[offset]
+                    if flags & DBItemWriter.NONE:
+                        continue
                     if flags & DBItemWriter.LIST:
+                        uuid = data[offset]
                         if uuid not in done:
                             count = store._refs.purgeRefs(txn, uuid,
                                                           uuid in keep)
