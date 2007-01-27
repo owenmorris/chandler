@@ -607,7 +607,7 @@ class wxPreviewArea(CalendarCanvas.CalendarNotificationHandler, wx.Panel):
         previewPrefs = schema.ns("osaf.framework.blocks.calendar",
                                  self.blockItem.itsView).previewPrefs
         for i, event in enumerate(self.currentDaysItems):
-            if event.itsItem.isDeleted():
+            if isDead(event.itsItem):
                 # This is to fix bug 4322, after removing recurrence,
                 # OnPaint gets called before wxSynchronizeWidget, so
                 # self.currentDaysItems has deleted items in it.

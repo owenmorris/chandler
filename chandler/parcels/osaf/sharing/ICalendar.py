@@ -507,7 +507,7 @@ def itemsFromVObject(view, text, coerceTzinfo = None, filters = None,
                     dtstart = TimeZone.forceToDateTime(dtstart)
                     # convert to Chandler's notion of all day duration
                     duration -= oneDay
-                elif dtstart.tzinfo is not None and promptForTimezone:                    
+                elif dtstart.tzinfo is not None and promptForTimezone:
                     # got a timezoned event, prompt (non-modally) to turn on
                     # timezones
                     app = wx.GetApp()
