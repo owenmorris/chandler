@@ -6,7 +6,7 @@ Serializing Values
 First define a record type::
 
     >>> from application import schema
-    >>> from osaf import sharing
+    >>> from osaf import sharing, pim
     >>> from osaf.sharing import ( eimml, recordset_conduit, merge,
     ...                            getState, saveState, getFilter,
     ...                            RecordSet as rs, NoChange as nc )
@@ -615,3 +615,66 @@ record has a NoChange value on the filtered field::
     >>> toSend == {'1': rs(set([Demo(1, nc, 1)]))}
     True
 
+
+
+
+
+Itemcentric Sharing
+-------------------
+
+Items can be shared with a peer without using a persistent Share/Conduit.
+The sharing package provides methods for translating items to EIMML and
+back.
+
+    >>> rv0 = NullRepositoryView()
+    >>> rv1 = NullRepositoryView()
+    >>> item0 = pim.Note(itsView=rv0, displayName="test displayName",
+    ...     body="test body")
+    >>> uuid = item0.itsUUID.str16()
+    >>> not pim.has_stamp(item0, sharing.SharedItem)
+    True
+
+An item is serialized to EIMML using the outbound method.  The second argument
+is a string which identifies the peer the item is being shared with.  The
+limitations on this value are TBD, but for now it just has to be a string.
+Perhaps we will require that it be a UUID of some object such as a Contact item
+or Share item.
+
+    >>> text = sharing.outbound(rv0, "pje", item0)
+
+Sharing an item this way automatically stamps the item as SharedItem.
+
+    >>> pim.has_stamp(item0, sharing.SharedItem)
+    True
+
+An item is imported via the inbound method.
+
+    >>> item1 = sharing.inbound(rv1, "morgen", text)
+    >>> item1 is not None
+    True
+    >>> pim.has_stamp(item1, sharing.SharedItem)
+    True
+
+Conflicts are accessed via getConflicts( )
+
+    >>> shared0 = sharing.SharedItem(item0)
+    >>> not shared0.getConflicts()
+    True
+    >>> shared1 = sharing.SharedItem(item1)
+    >>> not shared1.getConflicts()
+    True
+
+Cause a conflict:
+
+    >>> item0.displayName = "changed by morgen"
+    >>> item1.displayName = "changed by pje"
+    >>> text = sharing.outbound(rv0, "pje", item0)
+    >>> item1 = sharing.inbound(rv1, "morgen", text)
+    >>> shared1.getConflicts().has_key('morgen')
+    True
+
+getConflicts( ) returns a dictionary, keyed by peer, of RecordSets containing
+conflict diffs:
+
+    >>> shared1.getConflicts()
+    {'morgen': RecordSet(set([ItemRecord(u'...', u'changed by morgen', NoChange, Decimal("..."), NoChange, NoChange)]), set([]))}
