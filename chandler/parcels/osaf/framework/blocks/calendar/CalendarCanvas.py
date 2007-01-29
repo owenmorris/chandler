@@ -1725,6 +1725,8 @@ class wxInPlaceEditor(AttributeEditors.wxEditText):
         self.SetValue('') 
 
     def OnKillFocus(self, event):
+        if self.IsBeingDeleted():
+            return
         super(wxInPlaceEditor, self).OnKillFocus(event)
         if not self._unfocusing:
             self.SaveAndHide()

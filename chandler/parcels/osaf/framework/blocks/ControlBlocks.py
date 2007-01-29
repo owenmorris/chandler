@@ -1116,7 +1116,7 @@ class ReminderTimer(Timer):
         self._inPrimeReminderTimer = True
         try:
             mainFrame = wx.GetApp().mainFrame
-            if not mainFrame.IsShown():
+            if not mainFrame or not mainFrame.IsShown():
                 # The main window isn't up yet; try again shortly.
                 (nextReminderTime, closeIt) = (datetime.now(
                     PyICU.ICUtzinfo.default) + timedelta(seconds=1), False)
