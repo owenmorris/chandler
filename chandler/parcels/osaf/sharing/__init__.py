@@ -768,8 +768,8 @@ def unpublishFreeBusy(collection):
 def subscribe(view, url, updateCallback=None, username=None, password=None,
               forceFreeBusy=False):
     
-    return subscribe2(view, url, updateCallback=updateCallback,
-        username=username, password=password)
+    # return subscribe2(view, url, updateCallback=updateCallback,
+    #     username=username, password=password)
 
     if updateCallback:
         progressMonitor = ProgressMonitor(0, updateCallback)
