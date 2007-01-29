@@ -20,7 +20,7 @@ from application import schema, dialogs
 from application.Parcel import Reference
 from application.Utility import getDesktopDir, CertificateVerificationError
 from osaf import pim
-from osaf.pim import isDead
+from osaf.pim import isDead, has_stamp
 from osaf.pim.calendar import Calendar
 from osaf.pim.collections import (UnionCollection, DifferenceCollection,
                                   FilteredCollection)
@@ -47,6 +47,7 @@ from eim import *
 from translator import *
 from eimml import *
 from cosmo import *
+from merging import *
 
 
 logger = logging.getLogger(__name__)
@@ -394,6 +395,10 @@ def publish(collection, account, classesToInclude=None,
 
     view = collection.itsView
 
+    # Stamp the collection
+    if not has_stamp(collection, SharedItem):
+        SharedItem(collection).add()
+
     conduit = WebDAVConduit(itsView=view, account=account)
     path = account.path.strip("/")
 
@@ -446,10 +451,10 @@ def publish(collection, account, classesToInclude=None,
                                      useCalDAV=True)
 
             try:
-                collection.shares.append(share, 'main')
+                SharedItem(collection).shares.append(share, 'main')
             except ValueError:
                 # There is already a 'main' share for this collection
-                collection.shares.append(share)
+                SharedItem(collection).shares.append(share)
 
             if attrsToExclude:
                 share.filterAttributes = attrsToExclude
@@ -534,10 +539,10 @@ def publish(collection, account, classesToInclude=None,
                         share.filterAttributes = attrsToExclude
     
                     try:
-                        collection.shares.append(share, alias)
+                        SharedItem(collection).shares.append(share, alias)
                     except ValueError:
                         # There is already a 'main' share for this collection
-                        collection.shares.append(share)
+                        SharedItem(collection).shares.append(share)
     
                     shares.append(share)
     
@@ -623,10 +628,10 @@ def publish(collection, account, classesToInclude=None,
                                          publishType=publishType)
 
                 try:
-                    collection.shares.append(share, alias)
+                    SharedItem(collection).shares.append(share, alias)
                 except ValueError:
                     # There is already a 'main' share for this collection
-                    collection.shares.append(share)
+                    SharedItem(collection).shares.append(share)
 
                 shares.append(share)
 
@@ -717,12 +722,13 @@ def unpublish(collection):
 
     """
 
-    for share in collection.shares:
-        deleteShare(share)
-        
-    sharing_ns = schema.ns('osaf.sharing', collection.itsView)
-    if collection in sharing_ns.publishedFreeBusy.sources:
-        sharing_ns.publishedFreeBusy.removeSource(collection)
+    if has_stamp(collection, SharedItem):
+        for share in SharedItem(collection).shares:
+            deleteShare(share)
+            
+        sharing_ns = schema.ns('osaf.sharing', collection.itsView)
+        if collection in sharing_ns.publishedFreeBusy.sources:
+            sharing_ns.publishedFreeBusy.removeSource(collection)
 
 def deleteTicket(share, ticket):
     """Delete ticket associated with the given ticket string from the share."""
@@ -762,8 +768,8 @@ def unpublishFreeBusy(collection):
 def subscribe(view, url, updateCallback=None, username=None, password=None,
               forceFreeBusy=False):
     
-    # return subscribe2(view, url, updateCallback=updateCallback,
-    #     username=username, password=password)
+    return subscribe2(view, url, updateCallback=updateCallback,
+        username=username, password=password)
 
     if updateCallback:
         progressMonitor = ProgressMonitor(0, updateCallback)
@@ -852,10 +858,10 @@ def subscribe(view, url, updateCallback=None, username=None, password=None,
             share.get(updateCallback=callback)
 
             try:
-                share.contents.shares.append(share, 'main')
+                SharedItem(share.contents).shares.append(share, 'main')
             except ValueError:
                 # There is already a 'main' share for this collection
-                share.contents.shares.append(share)
+                SharedItem(share.contents).shares.append(share)
 
             return share.contents
 
@@ -889,10 +895,10 @@ def subscribe(view, url, updateCallback=None, username=None, password=None,
             share.get(updateCallback=callback)
 
             try:
-                share.contents.shares.append(share, 'main')
+                SharedItem(share.contents).shares.append(share, 'main')
             except ValueError:
                 # There is already a 'main' share for this collection
-                share.contents.shares.append(share)
+                SharedItem(share.contents).shares.append(share)
 
             return share.contents
 
@@ -923,10 +929,10 @@ def subscribe(view, url, updateCallback=None, username=None, password=None,
             share.get(updateCallback=callback)
 
             try:
-                share.contents.shares.append(share, 'main')
+                SharedItem(share.contents).shares.append(share, 'main')
             except ValueError:
                 # There is already a 'main' share for this collection
-                share.contents.shares.append(share)
+                SharedItem(share.contents).shares.append(share)
 
             return share.contents
 
@@ -984,10 +990,10 @@ def subscribe(view, url, updateCallback=None, username=None, password=None,
             share.conduit.getTickets()
 
             try:
-                share.contents.shares.append(share, 'main')
+                SharedItem(share.contents).shares.append(share, 'main')
             except ValueError:
                 # There is already a 'main' share for this collection
-                share.contents.shares.append(share)
+                SharedItem(share.contents).shares.append(share)
 
         except Exception, err:
             logger.exception("Failed to subscribe to %s", url)
@@ -1064,10 +1070,10 @@ def subscribe(view, url, updateCallback=None, username=None, password=None,
                     share.filterAttributes.append('triageStatus')
 
             try:
-                share.contents.shares.append(share, 'main')
+                SharedItem(share.contents).shares.append(share, 'main')
             except ValueError:
                 # There is already a 'main' share for this collection
-                share.contents.shares.append(share)
+                SharedItem(share.contents).shares.append(share)
 
             # If free busy has already been published, add the subscribed
             # collection to publishedFreeBusy if appropriate
@@ -1083,8 +1089,10 @@ def subscribe(view, url, updateCallback=None, username=None, password=None,
 
 
 def unsubscribe(collection):
-    for share in collection.shares:
-        share.delete(recursive=True, cloudAlias='copying')
+    if has_stamp(collection, SharedItem):
+        collection = SharedItem(collection)
+        for share in collection.shares:
+            share.delete(recursive=True, cloudAlias='copying')
 
 
 def interrogate(conduit, location, ticket=None):
@@ -1209,11 +1217,11 @@ def subscribe2(view, url, updateCallback=None, username=None, password=None):
 
     inspection = inspect(url, username=username, password=password)
 
-    print url, inspection
+    logger.info("Inspection results for %s: %s", url, inspection)
 
     # Override, because we can't trust .mac to return 'text/calendar'
-    parsedURL = urlparse.urlsplit(url)
-    if parsedURL.scheme == 'webcal':
+    parsedUrl = urlparse.urlsplit(url)
+    if parsedUrl.scheme == 'webcal':
         inspection['contentType'] = 'text/calendar'
 
     contentType = inspection.get('contentType', None)
@@ -1262,6 +1270,7 @@ def subscribe2(view, url, updateCallback=None, username=None, password=None):
     elif contentType == "text/html":
         # parse the webpage for embedded link to real url
         text = getPage(url, username=username, password=password)
+
         # getPage needs to raise Forbidden exception, right?
 
         if text:
@@ -1273,6 +1282,8 @@ def subscribe2(view, url, updateCallback=None, username=None, password=None):
 
             morsecodeUrl = links['alternate'].get('text/xml', None)
             if morsecodeUrl:
+                morsecodeUrl = urlparse.urlunparse((parsedUrl.scheme,
+                    parsedUrl.netloc, morsecodeUrl, "", "", ""))
                 collection = subscribeEIMXML(view, url, morsecodeUrl,
                     inspection, updateCallback=updateCallback,
                     account=account, username=username, password=password)
@@ -1407,10 +1418,10 @@ def subscribeCalDAV(view, url, inspection, updateCallback=None, account=None,
             share.filterAttributes.append('triageStatus')
 
     try:
-        share.contents.shares.append(share, 'main')
+        SharedItem(share.contents).shares.append(share, 'main')
     except ValueError:
         # There is already a 'main' share for this collection
-        share.contents.shares.append(share)
+        SharedItem(share.contents).shares.append(share)
 
     # If free busy has already been published, add the subscribed
     # collection to publishedFreeBusy if appropriate
@@ -1445,10 +1456,10 @@ def subscribeWebDAV(view, url, inspection, updateCallback=None, account=None,
     share.conduit.getTickets()
 
     try:
-        share.contents.shares.append(share, 'main')
+        SharedItem(share.contents).shares.append(share, 'main')
     except ValueError:
         # There is already a 'main' share for this collection
-        share.contents.shares.append(share)
+        SharedItem(share.contents).shares.append(share)
 
     return share.contents
 
@@ -1481,10 +1492,10 @@ def subscribeICS(view, url, inspection, updateCallback=None,
     share.get(updateCallback=updateCallback)
 
     try:
-        share.contents.shares.append(share, 'main')
+        SharedItem(share.contents).shares.append(share, 'main')
     except ValueError:
         # There is already a 'main' share for this collection
-        share.contents.shares.append(share)
+        SharedItem(share.contents).shares.append(share)
 
     return share.contents
 
@@ -1528,14 +1539,14 @@ def subscribeEIMXML(view, url, morsecodeUrl, inspection, updateCallback=None,
             translator=PIMTranslator, serializer=EIMMLSerializer)
 
 
-    share.sync(updateCallback=updateCallback, modeOverride='get')
+    share.sync(updateCallback=updateCallback, modeOverride='get', debug=True)
     # share.conduit.getTickets()
 
     try:
-        share.contents.shares.append(share, 'main')
+        SharedItem(share.contents).shares.append(share, 'main')
     except ValueError:
         # There is already a 'main' share for this collection
-        share.contents.shares.append(share)
+        SharedItem(share.contents).shares.append(share)
 
     return share.contents
 

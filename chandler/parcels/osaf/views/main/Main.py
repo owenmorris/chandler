@@ -207,7 +207,7 @@ class MainView(View):
 
         # If we can't add items to the collection use the All collection
         if (collection is None or
-            collection.isReadOnly() or
+            sharing.isReadOnly(collection) or
             not UserCollection(collection).canAdd):
             # Tell the sidebar we want to go to the All collection
             collection = allCollection

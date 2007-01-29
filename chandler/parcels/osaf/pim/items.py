@@ -278,10 +278,6 @@ class ContentItem(schema.Item):
                             doc="Calculated for edited triageStatus, before"
                                 "user has committed changes")
 
-    # XXX These attributes should be moved to an Annotation defined in sharing
-    #     to preserve the "modular APIs" tenet
-    shares = schema.Sequence(initialValue=[], otherName='contents') # Share.contents
-    sharedIn = schema.Sequence(initialValue=[], otherName='items')  # Share.items
 
     # ContentItem instances can be put into ListCollections and AppCollections
     collections = schema.Sequence(notify=True) # inverse=collections.inclusions
@@ -505,27 +501,6 @@ class ContentItem(schema.Item):
         return EmailAddress.getCurrentMeEmailAddress (self.itsView)
 
 
-    READWRITE = 'read-write'
-    READONLY = 'read-only'
-    UNSHARED = 'unshared'
-
-    def getSharedState(self):
-        """
-        Examine all the shares this item participates in; if any of those
-        shares are writable the shared state is READWRITE.  If all the shares
-        are read-only the shared state is READONLY.  Otherwise UNSHARED.
-        """
-
-        state = ContentItem.UNSHARED
-        if hasattr(self, 'sharedIn'):
-            for share in self.sharedIn:
-                state = ContentItem.READONLY
-                if share.mode in ('put', 'both'):
-                    return ContentItem.READWRITE
-
-        return state
-
-    sharedState = property(getSharedState)
 
     def _updateCommonAttribute(self, attributeName, sourceAttributeName,
                                collectorMethod, args=None, default=Nil, 
@@ -669,35 +644,18 @@ class ContentItem(schema.Item):
 
 
     def isAttributeModifiable(self, attribute):
-        # fast path -- item is unshared; have at it!
-        if not self.sharedIn:
-            return True
+        """ Determine if an item's attribute is modifiable based on the
+            shares it's in """
 
-        # slow path -- item is shared; we need to look at all the *inbound*
-        # shares this item participates in -- if *any* of those inbound shares
-        # are writable, the attribute is modifiable; otherwise, if *all* of
-        # those inbound shares are read-only, but none of those shares
-        # actually *share* that attribute (i.e., it's being filtered either
-        # by sharing cloud or explicit filter), then it's modifiable.
-        me = schema.ns("osaf.pim", self.itsView).currentContact.item
-        basedAttributeNames = None # we'll look these up if necessary
-        isSharedInAnyReadOnlyShares = False
-        for share in self.sharedIn:
-            if getattr(share, 'sharer', None) is not me:   # inbound share
-                if share.mode in ('put', 'both'):   # writable share
-                    return True
-                else:                               # read-only share
-                    # We found a read-only share; this attribute isn't
-                    # modifiable if it's one of the attributes shared for
-                    # this item in this share. (First, map this attribute to
-                    # the 'real' attributes it depends on, if we haven't yet.)
-                    if basedAttributeNames is None:
-                        basedAttributeNames = self.getBasedAttributes(attribute)
-                    for attr in basedAttributeNames:
-                        if attr in share.getSharedAttributes(self.itsKind):
-                            isSharedInAnyReadOnlyShares = True
+        from stamping import Stamp
+        for stampObject in Stamp(self).stamps:
+            isAttrMod = getattr(stampObject, 'isAttributeModifiable', None)
+            if isAttrMod is not None:
+                if not isAttrMod(attribute):
+                    return False
+        return True
 
-        return not isSharedInAnyReadOnlyShares
+
 
 class Tag(ContentItem):
 

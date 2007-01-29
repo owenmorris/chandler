@@ -604,7 +604,7 @@ class ReadOnlyIconBlock(DetailSynchronizer, ControlBlocks.StampButton):
         super(ReadOnlyIconBlock, self).synchronizeWidget(useHints)
 
         checked = self.item is not None and \
-               (self.item.getSharedState() == ContentItem.READONLY)
+               (sharing.getSharedState(self.item) == sharing.READONLY)
         self.widget.SetState("%s.%s" % (self.icon,
                              checked and "Unstamped" or "Stamped"))
 
@@ -614,7 +614,7 @@ class ReadOnlyIconBlock(DetailSynchronizer, ControlBlocks.StampButton):
 
     def onButtonPressedEventUpdateUI(self, event):
         enable = self.item is not None and \
-               (self.item.getSharedState() == ContentItem.READONLY)
+               (sharing.getSharedState(self.item) == sharing.READONLY)
         event.arguments ['Enable'] = enable        
 
 class EditTextAttribute(DetailSynchronizer, ControlBlocks.EditText):

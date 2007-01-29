@@ -139,6 +139,12 @@ class Stamp(schema.Annotation):
         if inAllBeforeStamp and not item in all:
             all.add(item)
 
+    def isAttributeModifiable(self, attribute):
+        # A default implementation which sub-classes can override if necessary
+        # ContentItem's isAttributeModifiable( ) calls this method on all of
+        # an item's stamps
+        return True
+
 
     @classmethod
     def addIndex(cls, view_or_collection, name, type, **keywds):

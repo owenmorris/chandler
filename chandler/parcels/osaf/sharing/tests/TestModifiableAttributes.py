@@ -31,7 +31,7 @@ class TestModifiableAttributes(testcase.NRVTestCase):
         # We need a currentContact set for isAttributeModifiable to work;
         # normally this is set by the app
         me = pim.Contact(itsView=view,
-                         references=[schema.ns('osaf.pim', view).currentContact]
+            references=[schema.ns('osaf.pim', view).currentContact]
         )
 
         # Add the subject to a read-only share:
@@ -39,11 +39,9 @@ class TestModifiableAttributes(testcase.NRVTestCase):
         share_ro = sharing.Share(itsView=view)
         share_ro.mode = 'get'
 
-        e1.sharedIn.append(share_ro)
+        share_ro.addSharedItem(e1)
 
         # Test modifiability against...
-
-        print e1.sharedIn
 
         # ...an attribute which is always shared
         self.assert_(not e1.isAttributeModifiable('displayName'))
@@ -63,7 +61,7 @@ class TestModifiableAttributes(testcase.NRVTestCase):
         share_rw = sharing.Share(itsView=view)
         share_rw.mode = 'both'
 
-        e1.sharedIn.append(share_rw)
+        share_rw.addSharedItem(e1)
 
         # Test modifiability against...
 

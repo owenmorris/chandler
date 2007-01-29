@@ -128,7 +128,7 @@ class SubscribeDialog(wx.Dialog):
 
         if self.publisher:
             me = schema.ns("osaf.pim", self.view).currentContact.item
-            for share in collection.shares:
+            for share in sharing.SharedItem(collection).shares:
                 share.sharer = me
 
         # Put this collection into "My items" if not checked:

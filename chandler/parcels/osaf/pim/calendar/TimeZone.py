@@ -428,6 +428,8 @@ def convertFloatingEvents(view, newTZ):
     someone else's events and are intended to be floating. 
         
     """
+    from osaf import sharing # yikes, need a suggestion here ~morgen
+
     pim_ns = schema.ns("osaf.pim", view)
     # put all floating events in a list, because we can't iterate over 
     # floatingEvents while we remove items from it
@@ -436,5 +438,6 @@ def convertFloatingEvents(view, newTZ):
         # not all items are actually floating, some will be all day, but those
         # events still have a floating startTime, might as well put them in
         # the right timezone if they're changed to timed events
-        if item.sharedIn is None or len(item.sharedIn) == 0:
+        # if item.sharedIn is None or len(item.sharedIn) == 0:
+        if sharing.getSharedState(item) == sharing.UNSHARED:
             event.startTime = event.startTime.replace(tzinfo=newTZ)

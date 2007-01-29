@@ -2461,7 +2461,13 @@ class Occurrence(Note):
                         if masterReminder == eventReminder:
                             continue
                     elif attr == Stamp.stamp_types.name:
-                        if set(Stamp(self).stamp_types) == set(Stamp(masterEvent).stamp_types):
+                        # Ignore SharedItem stamp on the master
+                        my_stamps = set(Stamp(self).stamp_types)
+                        master_stamps = set()
+                        for stamp in Stamp(masterEvent).stamp_types:
+                            if stamp.__name__ != 'SharedItem':
+                                master_stamps.add(stamp)
+                        if my_stamps == master_stamps:
                             continue
 
                     yield attr, value

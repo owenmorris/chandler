@@ -305,6 +305,11 @@ class CloudXMLFormat(ImportExportFormat):
         
         try:
             stampClasses = set(pim.Stamp(item).stamp_types)
+
+            # Ignore SharedItem stamp
+            if shares.SharedItem in stampClasses:
+                stampClasses.remove(shares.SharedItem)
+
         except TypeError:
             pass
 

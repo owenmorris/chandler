@@ -16,7 +16,6 @@
 import unittest, sys, os, logging, datetime, time
 from osaf import pim, sharing
 
-# @@@MOR: clean this up
 from osaf.sharing import recordset_conduit, translator, eimml
 
 from repository.item.Item import Item
@@ -63,6 +62,7 @@ class EIMInMemoryTestCase(testcase.DualRepositoryTestCase):
         view0 = self.views[0]
         sandbox0 = view0.findPath("//sandbox")
         coll0 = sandbox0.findPath("testCollection")
+        self.assert_(not pim.has_stamp(coll0, sharing.SharedItem))
         conduit = recordset_conduit.InMemoryRecordSetConduit(
             "conduit", itsView=view0,
             shareName="exportedCollection",
@@ -71,6 +71,7 @@ class EIMInMemoryTestCase(testcase.DualRepositoryTestCase):
         )
         self.share0 = sharing.Share("share", itsView=view0,
             contents=coll0, conduit=conduit)
+        self.assert_(pim.has_stamp(coll0, sharing.SharedItem))
 
         if self.share0.exists():
             self.share0.destroy()
@@ -95,9 +96,14 @@ class EIMInMemoryTestCase(testcase.DualRepositoryTestCase):
         item = self.share0.contents.first()
         testUuid = item.itsUUID.str16()
 
+        self.assert_(not pim.has_stamp(item, sharing.SharedItem))
+
         # Initial publish
         self.share0.create()
         view0.commit(); self.share0.sync(); view0.commit()
+        self.assert_(pim.has_stamp(coll0, sharing.SharedItem))
+        self.assert_(pim.has_stamp(item, sharing.SharedItem))
+        self.assert_(self.share0 in sharing.SharedItem(item).sharedIn)
 
         # Local modification only
         item.body = u"CHANGED"
@@ -113,6 +119,8 @@ class EIMInMemoryTestCase(testcase.DualRepositoryTestCase):
         item1 = view1.findUUID(testUuid)
         self.assert_(item1 in self.share1.contents)
         self.assert_(item1.body == u"CHANGED")
+        self.assert_(pim.has_stamp(item1, sharing.SharedItem))
+        self.assert_(pim.has_stamp(self.share1.contents, sharing.SharedItem))
 
 
 
@@ -250,15 +258,18 @@ class EIMInMemoryTestCase(testcase.DualRepositoryTestCase):
 
         # Local removal -  sends removal recordset
         self.share0.contents.remove(item)
+        self.assert_(pim.has_stamp(item, sharing.SharedItem))
         view0.commit(); self.share0.sync(); view0.commit()
+        self.assert_(not pim.has_stamp(item, sharing.SharedItem))
 
 
 
 
         # Remote removal - results in local removal
+        self.assert_(pim.has_stamp(item1, sharing.SharedItem))
         view1.commit(); self.share1.sync(); view1.commit()
-        item1 = view1.findUUID(testUuid)
         self.assert_(item1 not in self.share1.contents)
+        self.assert_(not pim.has_stamp(item1, sharing.SharedItem))
 
 
 

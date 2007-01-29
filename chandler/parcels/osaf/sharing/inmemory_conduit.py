@@ -61,6 +61,7 @@ class InMemoryConduit(conduits.LinkableConduit, conduits.ManifestEngineMixin):
         style = self.share.format.fileStyle()
         if style == formats.STYLE_DIRECTORY:
             for (key, val) in shareDict[self.shareName].iteritems():
+                logger.debug("'remote' resource key (%s) (%s)", key, val[0])
                 fileList[key] = { 'data' : val[0] }
 
         return fileList

@@ -586,7 +586,7 @@ class ManifestEngineMixin(pim.ContentItem):
                  (data, item.getVersion()))
 
                 cvSelf = contentView[self.itsUUID]
-                cvSelf.share.items.append(item)
+                cvSelf.share.addSharedItem(item)
             else:
                 return 'skipped'
 
@@ -764,6 +764,7 @@ class ManifestEngineMixin(pim.ContentItem):
         self.disconnect()
 
         logger.info("Finished PUT of %s", location) # , stats)
+        logger.debug("Manifest: %s", self.manifest)
 
         return stats
 
@@ -806,7 +807,7 @@ class ManifestEngineMixin(pim.ContentItem):
 
                 logger.info(debugString.encode('utf8', 'replace'))
 
-                cvSelf.share.items.append(item)
+                cvSelf.share.addSharedItem(item)
                 if updateCallback and updateCallback(msg="'%s'" %
                     displayName):
                     raise errors.SharingError(_(u"Cancelled by user"))
@@ -917,6 +918,8 @@ class ManifestEngineMixin(pim.ContentItem):
             cvSelf.share.contents = pim.SmartCollection(itsView=contentView)
 
         contents = cvSelf.share.contents
+        if not pim.has_stamp(contents, shares.SharedItem):
+            shares.SharedItem(contents).add()
 
         # If share.contents is an ContentCollection, treat other resources as
         # items to add to the collection:
@@ -982,8 +985,7 @@ class ManifestEngineMixin(pim.ContentItem):
                             logger.info("...removing %s from collection" % item)
                             if item in cvSelf.share.contents:
                                 cvSelf.share.contents.remove(item)
-                            if item in cvSelf.share.items:
-                                cvSelf.share.items.remove(item)
+                            cvSelf.share.removeSharedItem(item)
                             stats['removed'].append(item.itsUUID)
                             if updateCallback and updateCallback(
                                 msg=_(u"Removing from collection: '%(name)s'")
@@ -1098,11 +1100,11 @@ class ManifestEngineMixin(pim.ContentItem):
         try:
             record = self.manifest[path]
             if record['data'] == data:
-                # logger.info("haveLatest: Yes (%s %s)" % (path, data))
+                logger.debug("haveLatest: Yes (%s %s)" % (path, data))
                 return True
             else:
                 # print "MISMATCH: local=%s, remote=%s" % (record['data'], data)
-                logger.info("...don't have latest (%s local:%s remote:%s)" % (path,
+                logger.debug("...don't have latest (%s local:%s remote:%s)" % (path,
                  record['data'], data))
                 return False
         except KeyError:
@@ -1383,7 +1385,7 @@ class SimpleHTTPConduit(LinkableConduit, ManifestEngineMixin, HTTPMixin):
 
             # The share maintains bi-di-refs between Share and Item:
             for item in cvSelf.share.contents:
-                cvSelf.share.items.append(item)
+                cvSelf.share.addSharedItem(item)
 
         except errors.MalformedData:
             logger.exception("Failed to parse: '%s'" %

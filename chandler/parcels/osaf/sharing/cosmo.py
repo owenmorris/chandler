@@ -51,9 +51,6 @@ class CosmoConduit(recordset_conduit.RecordSetConduit, conduits.HTTPMixin):
 
         location = self.getMorsecodeLocation()
 
-        if self.syncToken:
-            location += "?token=%s" % self.syncToken
-
         resp = self._send('GET', location)
 
         syncTokenHeaders = resp.headers.getHeader('X-MorseCode-SyncToken')
@@ -64,10 +61,10 @@ class CosmoConduit(recordset_conduit.RecordSetConduit, conduits.HTTPMixin):
         return resp.body
 
     def put(self, text):
+
         location = self.getMorsecodeLocation()
 
         if self.syncToken:
-            location += "?token=%s" % self.syncToken
             method = 'POST'
         else:
             method = 'PUT'
@@ -88,6 +85,8 @@ class CosmoConduit(recordset_conduit.RecordSetConduit, conduits.HTTPMixin):
         extraHeaders = { }
         if hasattr(self, 'ticket'):
             extraHeaders['Ticket'] = self.ticket
+        if hasattr(self, 'syncToken'):
+            extraHeaders['X-MorseCode-SyncToken'] = self.syncToken
 
         request = zanshin.http.Request(methodName, path, extraHeaders, body)
 

@@ -929,10 +929,12 @@ class ICalendarFormat(formats.ImportExportFormat):
 
             if item is None:
                 item = SmartCollection(itsView=view)
+                shares.SharedItem(item).add()
             elif isinstance(item, shares.Share):                        
                 if item.contents is None:
                     item.contents = \
                         SmartCollection(itsView=view)
+                    shares.SharedItem(item.contents).add()
                 item = item.contents
 
             if not isinstance(item, ContentCollection):
@@ -1023,10 +1025,12 @@ class FreeBusyFileFormat(ICalendarFormat):
 
         if item is None:
             item = SmartCollection(itsView=view)
+            shares.SharedItem(item).add()
         elif isinstance(item, shares.Share):
             if item.contents is None:
                 item.contents = \
                     SmartCollection(itsView=view)
+                shares.SharedItem(item.contents).add()
             item = item.contents
 
         # something should be done with start and end, eventually

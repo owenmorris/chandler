@@ -18,6 +18,7 @@ import os, sys
 from application import schema, Globals
 from i18n import ChandlerMessageFactory as _
 from application.dialogs.RecurrenceDialog import getProxy
+from osaf import sharing
 
 logger = logging.getLogger(__name__)
 
@@ -56,7 +57,7 @@ def GetReadOnlyCollection(item, view):
     sidebarCollections = app_ns.sidebarCollection
     
     memberItem = getProxy(u'ui', item).getMembershipItem()
-    for collection in [col for col in sidebarCollections if col.readOnly]:
+    for collection in [col for col in sidebarCollections if sharing.isReadOnly(col)]:
         if memberItem in collection:
             return collection
     return None
@@ -75,7 +76,7 @@ def GetItemRemovalState(selectedCollection, item, view):
     
     sidebarCollections = app_ns.sidebarCollection
     readonlyCollections = [col for col in sidebarCollections
-                           if col.readOnly]
+                           if sharing.isReadOnly(col)]
 
     # you can always remove from the trash
     if selectedCollection is pim_ns.trashCollection:

@@ -34,6 +34,7 @@ __all__ = [
     'getExistingResources',
     'extractLinks',
     'getPage',
+    'isReadOnly'
 ]
 
 from application import schema
@@ -48,6 +49,8 @@ from HTMLParser import HTMLParser
 import logging
 import sys
 from twisted.internet import reactor
+import shares
+from osaf import pim
 
 from zanshin.webdav import (
     PropfindRequest, ServerHandle, quote, CALDAV_NAMESPACE
@@ -108,14 +111,15 @@ def sync(collection, modeOverride=None, updateCallback=None,
 
 
 def getSyncableShares(rv, collection=None):
-    import shares
 
     syncable = []
+    potential = []
 
     if collection is None:
         potential = shares.Share.iterItems(rv)
     else:
-        potential = collection.shares
+        if pim.has_stamp(collection, shares.SharedItem):
+            potential = shares.SharedItem(collection).shares
 
     for share in potential:
 
@@ -242,7 +246,10 @@ def isShared(collection):
     # invitation process (such as transient import/export shares, or shares
     # for publishing an .ics file to a webdav server).
 
-    for share in collection.shares:
+    if not pim.has_stamp(collection, shares.SharedItem):
+        return False
+
+    for share in shares.SharedItem(collection).shares:
         if share.hidden == False:
             return True
     return False
@@ -328,18 +335,38 @@ def getShare(collection):
     # return the first "non-hidden" share for this collection -- see isShared()
     # method for further details.
 
-    if hasattr(collection, 'shares') and collection.shares:
+    if pim.has_stamp(collection, shares.SharedItem):
+        collection = shares.SharedItem(collection)
+        if hasattr(collection, 'shares') and collection.shares:
 
-        share = collection.shares.getByAlias('main')
-        if share is not None:
-            return share
-
-        for share in collection.shares:
-            if share.hidden == False:
+            share = collection.shares.getByAlias('main')
+            if share is not None:
                 return share
+
+            for share in collection.shares:
+                if share.hidden == False:
+                    return share
 
     return None
 
+def isReadOnly(collection):
+    """
+    Return C{True} iff participating in only read-only shares.
+    """
+
+    if not pim.has_stamp(collection, shares.SharedItem):
+        return False
+
+    collection = shares.SharedItem(collection)
+
+    if not collection.shares:
+        return False
+
+    for share in collection.shares:
+        if share.mode in ('put', 'both'):
+            return False
+
+    return True
 
 
 
@@ -355,8 +382,10 @@ def getFreeBusyShare(collection):
     caldavShare = schema.ns('osaf.sharing', collection.itsView).prefs.freeBusyShare
     if caldavShare is not None:
         return caldavShare
-    if hasattr(collection, 'shares') and collection.shares:
-        return collection.shares.getByAlias('freebusy')
+    if pim.has_stamp(collection, shares.SharedItem):
+        collection = shares.SharedItem(collection)
+        if hasattr(collection, 'shares') and collection.shares:
+            return collection.shares.getByAlias('freebusy')
     return None
 
 
@@ -364,17 +393,23 @@ def getFreeBusyShare(collection):
 
 def isOnline(collection):
     """ Return the active state of the first share, if any """
-    for share in collection.shares:
-        return share.active
+    if pim.has_stamp(collection, shares.SharedItem):
+        collection = shares.SharedItem(collection)
+        for share in collection.shares:
+            return share.active
     return False
 
 def takeOnline(collection):
-    for share in collection.shares:
-        share.active = True
+    if pim.has_stamp(collection, shares.SharedItem):
+        collection = shares.SharedItem(collection)
+        for share in collection.shares:
+            share.active = True
 
 def takeOffline(collection):
-    for share in collection.shares:
-        share.active = False
+    if pim.has_stamp(collection, shares.SharedItem):
+        collection = shares.SharedItem(collection)
+        for share in collection.shares:
+            share.active = False
 
 
 
@@ -399,7 +434,6 @@ def isWebDAVSetUp(view):
 
 
 def getActiveShares(view):
-    import shares
     for share in shares.Share.iterItems(view):
         if (share.active and
             share.contents is not None):
@@ -417,7 +451,6 @@ def checkForActiveShares(view):
     @return: True if there are non-hidden, active shares; False otherwise
     """
 
-    import shares
     for share in shares.Share.iterItems(view):
         if share.active and share.active:
             return True

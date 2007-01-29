@@ -110,16 +110,16 @@ eimURI = "http://osafoundation.org/eim"
 class EIMMLSerializer(object):
 
     @classmethod
-    def serialize(cls, recordSets):
+    def serialize(cls, recordSets, rootName="collection", **extra):
         """ Convert a list of record sets to XML text """
 
-        recordsElement = Element("{%s}records" % eimURI)
+        rootElement = Element("{%s}%s" % (eimURI, rootName), **extra)
 
         for uuid, recordSet in recordSets.iteritems():
 
             if recordSet is not None:
 
-                recordSetElement = SubElement(recordsElement,
+                recordSetElement = SubElement(rootElement,
                     "{%s}recordset" % eimURI, uuid=uuid)
 
                 for record in list(recordSet.inclusions):
@@ -164,21 +164,22 @@ class EIMMLSerializer(object):
 
             else: # item deletion indicated
 
-                recordSetElement = SubElement(recordsElement,
+                recordSetElement = SubElement(rootElement,
                     "{%s}recordset" % eimURI, uuid=uuid, deleted="true")
 
 
-        return tostring(recordsElement)
+        return tostring(rootElement)
 
     @classmethod
     def deserialize(cls, text):
         """ Parse XML text into a list of record sets """
 
+        rootElement = fromstring(text) # xml parser
 
-        recordsElement = fromstring(text) # xml parser
+        # possibly also grab the collectionUuid?
 
         recordSets = {}
-        for recordSetElement in recordsElement:
+        for recordSetElement in rootElement:
             uuid = recordSetElement.get("uuid")
 
             deleted = recordSetElement.get("deleted")
@@ -228,7 +229,7 @@ class EIMMLSerializer(object):
 
             recordSets[uuid] = recordSet
 
-        return recordSets
+        return recordSets, dict(rootElement.items())
 
 
 
@@ -240,14 +241,14 @@ class EIMMLSerializer(object):
 class EIMMLSerializerLite(object):
 
     @classmethod
-    def serialize(cls, recordSets):
+    def serialize(cls, recordSets, rootName="collection", **extra):
         """ Convert a list of record sets to XML text """
 
-        recordsElement = Element("{%s}records" % eimURI)
+        rootElement = Element("{%s}%s" % (eimURI, rootName), **extra)
 
         for uuid, recordSet in recordSets.iteritems():
-            recordSetElement = SubElement(recordsElement,
-                "{%s}item" % eimURI, uuid=uuid)
+            recordSetElement = SubElement(rootElement,
+                "{%s}recordset" % eimURI, uuid=uuid)
 
             for record in list(recordSet.inclusions):
                 fields = {}
@@ -261,7 +262,7 @@ class EIMMLSerializerLite(object):
                 recordElement = SubElement(recordSetElement,
                     "{%s}record" % (recordURI), **fields)
 
-        return tostring(recordsElement)
+        return tostring(rootElement)
 
     @classmethod
     def deserialize(cls, text):
@@ -269,9 +270,9 @@ class EIMMLSerializerLite(object):
 
         recordSets = {}
 
-        recordsElement = fromstring(text) # xml parser
+        rootElement = fromstring(text) # xml parser
 
-        for recordSetElement in recordsElement:
+        for recordSetElement in rootElement:
             uuid = recordSetElement.get("uuid")
             records = []
 
@@ -296,7 +297,7 @@ class EIMMLSerializerLite(object):
             recordSet = eim.RecordSet(records)
             recordSets[uuid] = recordSet
 
-        return recordSets
+        return recordSets, dict(rootElement.items())
 
 
 

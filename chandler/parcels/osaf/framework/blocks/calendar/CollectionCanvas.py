@@ -28,6 +28,7 @@ from wx.lib import buttons
 from i18n import ChandlerMessageFactory as _
 from time import time as epochtime
 from osaf.pim import EventStamp
+from osaf import sharing
 
 # temporary hack because Mac/Linux force BitmapButtons to
 # have some specific borders
@@ -1146,7 +1147,7 @@ class CollectionBlock(FocusEventHandlers, Block.RectangularChild):
         self.postSelectItemsBroadcast()
 
     def CanAdd(self):
-        return not self.contentsCollection.isReadOnly()
+        return not sharing.isReadOnly(self.contentsCollection)
 
     def GetSelection():
         # by default, selection is managed by the collection itself

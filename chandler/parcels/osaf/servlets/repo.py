@@ -19,7 +19,7 @@ from twisted.web import resource
 import repository
 import application
 import re
-from osaf import pim, webserver
+from osaf import pim, webserver, sharing
 from osaf.pim.items import ContentItem
 from osaf.pim.collections import ContentCollection
 from repository.item.Item import Item
@@ -965,7 +965,7 @@ def RenderItem(repoView, item):
         result += "<td><b>Additional information:</b></td>\n"
         result += "</tr>\n"
         result += "<tr class='oddrow'>\n"
-        result += "<td>Item version: %d<br>Is item dirty: %s<br>Shared state: %s</td>\n" % (item.getVersion(), item.isDirty(), item.sharedState)
+        result += "<td>Item version: %d<br>Is item dirty: %s<br>Shared state: %s</td>\n" % (item.getVersion(), item.isDirty(), pim.has_stamp(item, sharing.SharedItem))
         result += "</tr>\n"
         result += "</table>\n"
 

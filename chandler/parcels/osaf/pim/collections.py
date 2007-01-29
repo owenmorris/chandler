@@ -364,20 +364,6 @@ class ContentCollection(ContentItem, Collection):
 
         return self
 
-    def isReadOnly(self):
-        """
-        Return C{True} iff participating in only read-only shares.
-        """
-        if not self.shares:
-            return False
-
-        for share in self.shares:
-            if share.mode in ('put', 'both'):
-                return False
-
-        return True
-
-    readOnly = property(isReadOnly)
     
     def _reIndex(self, op, item, attrName, collectionName, indexName):
         collection = getattr(self, collectionName, None)

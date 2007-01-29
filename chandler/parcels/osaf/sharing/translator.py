@@ -10,6 +10,7 @@ __all__ = [
     'PIMTranslator',
 ]
 
+COSMO_MODE = False
 
 class PIMTranslator(eim.Translator):
 
@@ -24,6 +25,14 @@ class PIMTranslator(eim.Translator):
 
     @model.ItemRecord.importer
     def import_item(self, record):
+
+        if COSMO_MODE:
+            self.loadItemByUUID(
+                record.uuid,
+                pim.ContentItem,
+                displayName=record.title,
+            ) # incomplete
+            return
 
         utc = ICUtzinfo.getInstance('UTC')
 
@@ -124,6 +133,13 @@ class PIMTranslator(eim.Translator):
 
     @model.EventRecord.importer
     def import_event(self, record):
+
+        if COSMO_MODE:
+            self.loadItemByUUID(
+                record.uuid,
+                pim.EventStamp,
+            ) # incomplete
+            return
 
         self.loadItemByUUID(
             record.uuid,

@@ -188,7 +188,7 @@ class PublishCollectionDialog(wx.Dialog):
 
     def OnManageDone(self, evt):
 
-        for share in self.collection.shares:
+        for share in sharing.SharedItem(self.collection).shares:
             self._saveAttributeFilterState(share)
 
         if self.modal:

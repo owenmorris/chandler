@@ -22,6 +22,7 @@ import datetime, bisect
 from application import schema
 from osaf import pim, messages
 import webdav_conduit
+import shares
 import zanshin, twisted.web.http
 from xml.etree.cElementTree import XML
 from PyICU import ICUtzinfo
@@ -272,6 +273,7 @@ class CalDAVFreeBusyConduit(CalDAVConduit):
 
         if self.share.contents is None:
             self.share.contents = pim.SmartCollection(itsView=self.itsView)
+            shares.SharedItem(self.share.contents).add()
         updates = FreeBusyAnnotation(self.share.contents)
         updates.cleanUpdates()
 
