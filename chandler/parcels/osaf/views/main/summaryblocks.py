@@ -218,6 +218,14 @@ class ReminderColumnAttributeEditor(attributeEditors.IconAttributeEditor):
         # this editor are done via advanceState
         pass
             
+    def getToolTip(self, item, attributeName):
+        state = self.GetAttributeValue(item, attributeName)
+        if state == "SumEvent.Tickled":
+            return _(u"Remove custom alarm")
+        else:
+            return _(u"Add custom alarm")
+        return None
+
     def advanceState(self, item, attributeName):
         # If there is one, remove the existing reminder
         remindable = pim.Remindable(item)
@@ -342,7 +350,6 @@ class CommunicationsColumnAttributeEditor(attributeEditors.IconAttributeEditor):
     def GetAttributeValue(self, item, attributeName):
         # Determine what state this item is in.
         return getCommStateName(CommunicationStatus(item).status)
-                
 
     def SetAttributeValue(self, item, attributeName, value):
         # Don't bother implementing this - the only changes made in
@@ -365,6 +372,15 @@ class CommunicationsColumnAttributeEditor(attributeEditors.IconAttributeEditor):
         # Otherwise, it's Read -> ReadNeedsReply.
         return currentValue.replace("Read", "ReadNeedsReply")
     
+    def getToolTip(self, item, attributeName):
+        nextState = self.getNextValue(item, attributeName,
+                                      self.GetAttributeValue(item, attributeName))
+        if nextState.find("NeedsReply") != -1:
+            return _(u"Mark as Needs reply")
+        elif nextState.find("Unread") != -1:
+            return _(u"Mark as Unread")
+        return _(u"Mark as Read")
+
     def advanceState(self, item, attributeName):
         # changes to read/unread/needs reply should apply to all occurrences
         item = getattr(item, 'proxiedItem', item)
@@ -417,6 +433,14 @@ class TaskColumnAttributeEditor(attributeEditors.IconAttributeEditor):
                     stampedObject.remove()
                 else:
                     stampedObject.add()
+
+    def getToolTip(self, item, attributeName):
+        state = self.GetAttributeValue(item, attributeName)
+        if state == "SumTask.Stamped":
+            return _(u"Remove from task list")
+        else:
+            return _(u"Add to task list")
+        return None
 
     def advanceState(self, item, attributeName):
         if not self.ReadOnly((item, attributeName)):

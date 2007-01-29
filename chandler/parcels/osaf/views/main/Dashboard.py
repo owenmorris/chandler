@@ -177,6 +177,7 @@ class wxDashboard(wxTable):
 
     def OnMouseCaptureLost(self, event):
         if hasattr(self.blockItem, 'mouseCaptured'):
+            #logger.debug("OnMouseCaptureLost: forgetting captured.")
             del self.blockItem.mouseCaptured
 
 

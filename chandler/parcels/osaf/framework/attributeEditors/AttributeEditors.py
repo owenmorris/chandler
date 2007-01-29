@@ -2708,16 +2708,25 @@ class IconAttributeEditor (BaseAttributeEditor):
         Handle live changes of mouse state related to our cell; return True
         if we want the mouse captured for future updates.
         """
+        gridWindow = event.GetEventObject()
+        
         # Note whether the item we were over changed
         item, attributeName = event.getCellValue()
         isIn = event.isInCell
         rolledOverItem = getattr(self, 'rolledOverItem', None)
         inChanged = (not isIn) or (rolledOverItem is not item)
+        toolTipMethod = getattr(self, 'getToolTip', None)
         if inChanged:
             if isIn:
                 self.rolledOverItem = item
-            elif hasattr(self, 'rolledOverItem'):
-                del self.rolledOverItem
+                if toolTipMethod is not None:
+                    toolTip = toolTipMethod(item, attributeName)
+                    gridWindow.SetToolTipString(toolTip)
+            else:
+                if hasattr(self, 'rolledOverItem'):
+                    del self.rolledOverItem
+                if toolTipMethod is not None:
+                    gridWindow.SetToolTip(None)
 
         # Note down-ness changes; eat the event if the downness changed, and
         # trigger an advance if appropriate.
@@ -2728,6 +2737,9 @@ class IconAttributeEditor (BaseAttributeEditor):
         if downChanged and advanceStateMethod is not None:
             if isIn and not isDown:
                 advanceStateMethod(item, attributeName)
+                if toolTipMethod:
+                    toolTip = toolTipMethod(item, attributeName)
+                    gridWindow.SetToolTipString(toolTip)
                 justClicked = True
             if isDown:
                 self.wasDown = True
@@ -2745,8 +2757,7 @@ class IconAttributeEditor (BaseAttributeEditor):
             
         # Redraw ourselves if necessary
         if inChanged or downChanged:
-            grid = event.GetEventObject().GetParent()
-            grid.RefreshRect(event.getCellRect())
+            gridWindow.GetParent().RefreshRect(event.getCellRect())
             
         #logger.debug("IconAttributeEditor (isDown=%s, isIn=%s, %s): %s%s%s",
                      #isDown, isIn, getattr(self, 'rolledOverItem', None),
