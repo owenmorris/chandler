@@ -22,7 +22,7 @@ from PyICU import ICUtzinfo, TimeZone
 from osaf.pim.calendar.TimeZone import convertToICUtzinfo
 from dateutil.parser import parse as dateutil_parse
 from application import schema
-from util import feedparser, indexes
+from util import indexes
 from xml.sax import SAXParseException
 from osaf import pim
 from osaf.pim.notes import Note
@@ -162,6 +162,7 @@ class FeedChannel(pim.ListCollection):
         )
     )
 
+    feedparser = None
     
     def __init__(self, *args, **kw):
         """
@@ -288,7 +289,10 @@ class FeedChannel(pim.ListCollection):
         This method uses an external library method to parse the RSS feed content
         and then fills the channel attributes.
         """
-        data = feedparser.parse(rawData)
+        if self.feedparser is None:
+            from util import feedparser
+            FeedChannel.feedparser = feedparser
+        data = self.feedparser.parse(rawData)
         # For fun, keep the latest copy of the feed inside the channel item
         self.body = unicode(rawData, "utf-8")
         return self.fillAttributes(data)
