@@ -677,4 +677,4 @@ getConflicts( ) returns a dictionary, keyed by peer, of RecordSets containing
 conflict diffs:
 
     >>> shared1.getConflicts()
-    {'morgen': RecordSet(set([ItemRecord(u'...', u'changed by morgen', NoChange, Decimal("..."), NoChange, NoChange)]), set([]))}
+    {'morgen': RecordSet(set([ItemRecord(u'...', u'changed by morgen', NoChange, ..., NoChange, NoChange)]), set([]))}
