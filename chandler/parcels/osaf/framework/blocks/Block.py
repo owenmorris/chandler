@@ -1259,14 +1259,14 @@ class BlockEvent(schema.Item):
                              blockName=blockName or itemName,
                              **attrs)
 
-class ChoiceEvent(BlockEvent):
+class ChoiceEvent (BlockEvent):
     choice = schema.One(schema.Text, required = True)
 
-class ColorEvent(BlockEvent):
+class ColorEvent (BlockEvent):
     from osaf.pim.structs import ColorType
     color = schema.One(ColorType, required = True)
 
-class ClassParameterizedEvent(BlockEvent):
+class ClassParameterizedEvent (BlockEvent):
     classParameter = schema.One(
         schema.Class,
         defaultValue = MissingClass
@@ -1274,6 +1274,9 @@ class ClassParameterizedEvent(BlockEvent):
     schema.addClouds(
         copying = schema.Cloud(byRef=[classParameter])
     )
+
+class ViewEvent (BlockEvent):
+    viewTemplatePath = schema.One(schema.Text)
 
 class NewItemEvent(ClassParameterizedEvent):
     """

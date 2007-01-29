@@ -183,6 +183,21 @@ class RefCollectionDictionary(schema.Item):
         coll.insertItem (item, afterItem)
         coll.setAlias(item, self.itemNameAccessor(item))
 
+    def insertAfter(self, index, item):
+        """
+        Insert item after index in our ref collection.
+
+        @param index: The position used for insertion into the ref collection.
+        @type index: C{item} that exists in the ref collection.
+        @param item: The C{item} to insert before C{index} in the ref collection.
+        @type item: C{item}
+        """
+
+        coll = self.getAttributeValue(self.getCollectionSpecifier())
+
+        coll.insertItem (item, index)
+        coll.setAlias(item, self.itemNameAccessor(item))
+
     def __delitem__(self, key):
         """
         Delete the keyed item from our ref collection.
@@ -193,6 +208,10 @@ class RefCollectionDictionary(schema.Item):
         """
         itemIndex, coll = self._index(key)
         coll.remove(itemIndex)
+        
+    def next(self, item):
+        coll = self.getAttributeValue(self.getCollectionSpecifier())
+        return coll.next (item)
 
 class DynamicBlock(schema.Item):
     """
@@ -300,13 +319,12 @@ class DynamicBlock(schema.Item):
                 bar = containers [locationName]
 
                 operation = child.operation
-                if operation == 'InsertBefore':
-                    # Shouldn't have items with the same name, unless they are the same
-                    if __debug__:
-                        if not child in bar:
-                            if bar.has_key (child.blockName):
-                                logging.warning ("%s already has a %s named %s" % (bar.blockName, child.blockName, child.blockName))
+                assert child in bar or not bar.has_key (child.blockName), "Child name is already in toolbar"
+                if operation == 'InsertAfter':
                     # find its position (or None) and insert there (or at the end)
+                    i = bar.index (child.itemLocation)
+                    bar.insertAfter (i, child)
+                elif operation == 'InsertBefore':
                     i = bar.index (child.itemLocation)
                     bar.insert (i, child)
                 elif operation == 'Replace':
@@ -375,7 +393,7 @@ class DynamicBlock(schema.Item):
 
 
 class operationEnumType(schema.Enumeration):
-      values = "None", "InsertBefore", "Replace", "Delete"
+      values = "None", "InsertAfter", "InsertBefore", "Replace", "Delete"
 
 
 class DynamicChild(DynamicBlock):
@@ -767,7 +785,7 @@ class wxToolbar (Block.ShownSynchronizer, wx.ToolBar):
         super (wxToolbar, self).__init__ (*arguments, **keywords)
         # keep track of ToolbarItems so we can tell when/how they change in synchronize
         self.toolItemList = [] # non-persistent list
-        self.toolItems = 0
+        self.renderItems = False # controls whether toolbar items are rendered
 
     def wxSynchronizeWidget(self, useHints=False):
         super (wxToolbar, self).wxSynchronizeWidget()
@@ -779,35 +797,31 @@ class wxToolbar (Block.ShownSynchronizer, wx.ToolBar):
             self.SetBackgroundColour(colorStyle.backgroundColor.wxColor())
             self.SetForegroundColour(colorStyle.foregroundColor.wxColor())
 
-        # first time synchronizing this bar?
         dynamicChildren = self.blockItem.dynamicChildren
-        rebuild = False
-        if self.toolItems != 0:
-            # no, check if anything has changed in this toolbar
-            if len(dynamicChildren) != len(self.toolItemList):
-                rebuild = True
-            else:
-                i = 0
-                for item in dynamicChildren:
-                    if item is not self.toolItemList[i]:
-                        rebuild = True
-                        break
-                    i += 1
+        index = 0
+        for old, new in map (None, self.toolItemList, dynamicChildren):
+            if old is not new:
+                break
+            index += 1
+        else:
+            return
 
-            if rebuild:
-                # For now, we just blow away the old toolbar, and build a new one
-                for i in xrange(self.toolItems):
-                    block = self.toolItemList[i]
-                    block.onDestroyWidget () # notify the world about the tool's destruction
-                    self.DeleteToolByPos(0)
-                self.toolItemList = []
-                self.toolItems = len (dynamicChildren)
-                # shallow copy the children list
-                for child in dynamicChildren:
-                    if rebuild:
-                        child.render ()
-                    self.toolItemList.append (child)
-
+        for block in self.toolItemList [index:]:
+            widget = getattr (block, "widget", None)
+            if widget is not None:
+                block.onDestroyWidget()
+            self.DeleteToolByPos (index)
+        
+        self.toolItemList = self.toolItemList [0:index]
+        
+        self.renderItems = True
+        try:
+            while new is not None:
+                new.render()
+                new = dynamicChildren.next (new)
+        finally:
+            self.renderItems = False
+        
         # draw the bar, and we're done.
         self.Realize()
 
@@ -1007,14 +1021,6 @@ class ToolbarItem(Block.Block, DynamicChild):
         copying = schema.Cloud(byRef=[prototype], byCloud=[event])
     )
 
-    def onDestroyWidget(self, *arguments, **keywords):
-        # This only gets called for the text field toolbar item, which is already being deleted
-        # by the toolbar (I think). -- Reid
-        #pass
-        # Hm, 'pass' causes a different functional test failure.
-        #import pdb;pdb.set_trace()
-        super (ToolbarItem, self).onDestroyWidget(*arguments, **keywords)
-
     def instantiateWidget (self):
         def getBitmaps (self):
             bitmap = wx.GetApp().GetImage (self.bitmap)
@@ -1024,9 +1030,9 @@ class ToolbarItem(Block.Block, DynamicChild):
             return bitmap, disabledBitmap
 
         tool = None
-        # can't instantiate ourself without a toolbar widget
-        theToolbar = getattr (self.dynamicParent, "widget", None)
-        if theToolbar is not None:
+        # Don't render unless our toolbar wants items rendered
+        toolbar = self.dynamicParent.widget
+        if toolbar.renderItems:
 
             id = self.getWidgetID()
             self.toolID = id
@@ -1037,7 +1043,7 @@ class ToolbarItem(Block.Block, DynamicChild):
     
             # First consider toolBarItems that don't have tools
             if self.toolbarItemKind == 'Separator':
-                theToolbar.AddSeparator()
+                toolbar.AddSeparator()
             else:
                 # Next consider toolBarItems that aren't controls
                 if (self.toolbarItemKind == 'Button' or
@@ -1051,28 +1057,30 @@ class ToolbarItem(Block.Block, DynamicChild):
                     else:
                         theKind = wx.ITEM_NORMAL
         
-                    tool = theToolbar.DoAddTool (id,
-                                                self.title,
-                                                bitmap,
-                                                disabledBitmap,
-                                                kind = theKind,
-                                                shortHelp = shortHelp,
-                                                longHelp = longHelp)
+                    tool = toolbar.DoAddTool (id,
+                                              self.title,
+                                              bitmap,
+                                              disabledBitmap,
+                                              kind = theKind,
+                                              shortHelp = shortHelp,
+                                              longHelp = longHelp)
                     # add toolbarMixin, so it has the extra methods needed for Bind.
                     mixinAClass (tool, 'osaf.framework.blocks.MenusAndToolbars.wxToolbarItemMixin')
-                    theToolbar.SetToolLongHelp(id, longHelp)
-                    theToolbar.Bind (wx.EVT_TOOL, tool.OnToolEvent, id=id)
+                    toolbar.SetToolLongHelp(id, longHelp)
+                    toolbar.Bind (wx.EVT_TOOL, tool.OnToolEvent, id=id)
                 else:
                     # Finally consider toolBarItems that are controls
                     if self.toolbarItemKind == 'QuickEntry':
-                        tool = wxQuickEntry (theToolbar,
+                        tool = wxQuickEntry (toolbar,
                                              id,
                                              "",
                                              wx.DefaultPosition,
                                              size = (self.size.width, self.size.height),
                                              style = wx.TE_PROCESS_ENTER)
-                        theToolbar.AddControl (tool)
+                        toolbar.AddControl (tool)
                     assert tool is not None, "unknown toolbarItemKind"
+            toolbar.toolItemList.append (self)
+        
         return tool
 
 class wxQuickEntry (wxToolbarItemMixin, wx.SearchCtrl):
