@@ -101,14 +101,6 @@ class BranchPointBlock(BoxContainer):
     def instantiateWidget(self):
         return wxBranchPointBlock(self.parentBlock.widget)
 
-    def onViewEvent (self, event):
-        # Delegate work to our delegate
-        self.delegate.setView (self.selectedItem, event.viewTemplatePath)
-        self.widget.wxSynchronizeWidget()
-
-    def onViewEventUpdateUI (self, event):
-        event.arguments ['Check'] = self.delegate.getView (self.selectedItem) == event.viewTemplatePath
-
     def onSelectItemsEvent (self, event):
         # for the moment, multiple selection means, "select nothing"
         # i.e. multiple selection in the summary view means selecting
@@ -240,7 +232,6 @@ class BranchPointDelegate(schema.Item):
         required = True,
     )
 
-    # Dictionary of trees of blocks indexed by cache key UUID
     keyUUIDToBranch = schema.Mapping(Block, initialValue = {})
 
     def deleteCopiesFromCache(self):

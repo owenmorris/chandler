@@ -637,10 +637,9 @@ def makeSummaryBlocks(parcel):
                 #title = _(u"Save"),
                 #toolbarItemKind = 'Button',
                 #location = "ApplicationBar",
-                #operation = 'InsertAfter',
-                #itemLocation = 'ApplicationBarQuickEntry',
+                #operation = 'InsertBefore',
                 #helpString = _(u'Save a copy of the results in the sidebar')),
-            Table.template('SearchResultsSummaryView',
+            Table.template('TableSummaryView',
                 contents = pim_ns.allCollection,
                 scaleWidthsToFit = True,
                 columns = [
@@ -660,41 +659,10 @@ def makeSummaryBlocks(parcel):
                 elementDelegate = 'osaf.framework.blocks.ControlBlocks.AttributeDelegate',
                        defaultEditableAttribute = u'displayName',
                 selection = [[0,0]]),
-            BranchPointBlock.template('SearchResultsSummaryDetailBranchPointBlock',
-                delegate = detailBranchPointDelegate)
-        ]
-    ).install(parcel) # SplitterWindow SearchResultsViewTemplate
-
-    SplitterWindow.template(
-        'TableViewTemplate',
-        orientationEnum = "Vertical",
-        splitPercentage = 0.65,
-        eventBoundary = True,
-        eventsForNamedLookup = [saveResultsEvent],
-        childrenBlocks = [
-            Table.template('TableSummaryView',
-                contents = pim_ns.allCollection,
-                scaleWidthsToFit = True,
-                columns = [
-                    taskColumn,
-                    commColumn,
-                    whoColumn,
-                    titleColumn,
-                    reminderColumn,
-                    dateColumn,
-                    triageColumn                    
-                ],
-                characterStyle = blocks.SummaryRowStyle,
-                prefixCharacterStyle = blocks.SummaryPrefixStyle,
-                headerCharacterStyle = blocks.SummaryHeaderStyle,
-                rowHeight = 19,
-                elementDelegate = 'osaf.framework.blocks.ControlBlocks.AttributeDelegate',
-                       defaultEditableAttribute = u'displayName',
-                selection = [[0,0]]),
             BranchPointBlock.template('TableSummaryDetailBranchPointBlock',
                 delegate = detailBranchPointDelegate)
         ]
-    ).install(parcel)
+    ).install(parcel) # SplitterWindow SearchResultsViewTemplate
 
     TimeZoneChange = BlockEvent.template(
         'TimeZoneChange',

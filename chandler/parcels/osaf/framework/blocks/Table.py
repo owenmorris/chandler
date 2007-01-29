@@ -773,10 +773,6 @@ class Table (PimBlocks.FocusEventHandlers, RectangularChild):
         if isinstance (item, ContentCollection):
             self.setContentsOnBlock(item, event.arguments['collection'])
             self.PostSelectItems()
-            widget = getattr (self, 'widget', None)
-            if widget is not None:
-                widget.InitElementDelegate()
-                widget.wxSynchronizeWidget()
 
     def onSetFocusEvent (self, event):
         self.widget.GetGridWindow().SetFocus()

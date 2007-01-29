@@ -1159,14 +1159,7 @@ class SidebarBranchPointDelegate(BranchPoint.BranchPointDelegate):
     calendarTemplatePath = schema.One(schema.Text)
     dashboardTemplatePath = schema.One(schema.Text)
     searchResultsTemplatePath = schema.One(schema.Text)
-
-    # Dictionary of template paths for eachh cache key
-    keyUUIDToViewTemplatePath = schema.Mapping(schema.Text, defaultValue = {})
-
-    # Dictionary of collections indexed by tuple key used as view cache key
     itemTupleKeyToCacheKey = schema.Mapping(schema.Item, initialValue = {})
-    
-    # Dictionary of FilterCollections indexed by stamp used to filter by app area
     stampToCollectionCache = schema.Mapping(schema.Item, initialValue = {})
 
     schema.addClouds(
@@ -1356,32 +1349,23 @@ class SidebarBranchPointDelegate(BranchPoint.BranchPointDelegate):
         return key
 
     def _makeBranchForCacheKey(self, keyItem):
-        keyUUID = keyItem.itsUUID
-        template = self.keyUUIDToViewTemplatePath.get (keyUUID, None)
-        if template is None:
-            sidebar = Block.Block.findBlockByName("Sidebar")
-            if sidebar.showSearch:
-                template = self.searchResultsTemplatePath
+        sidebar = Block.Block.findBlockByName("Sidebar")
+        if sidebar.showSearch:
+            branch = self.findPath (self.searchResultsTemplatePath)
+        else:
+            if (not UserCollection(keyItem).dontDisplayAsCalendar and
+                sidebar.filterClass is pim.EventStamp):
+                    template = self.findPath (self.calendarTemplatePath)
+                    keyUUID = template.itsUUID
+                    branch = self.keyUUIDToBranch.get (keyUUID, None)
+                    if branch is None:
+                        branch = self._copyItem(template, onlyIfReadOnly=True)
+                        self.keyUUIDToBranch[keyUUID] = branch
             else:
-                if (not UserCollection(keyItem).dontDisplayAsCalendar and
-                    sidebar.filterClass is pim.EventStamp):
-                        template = self.calendarTemplatePath
-                else:
-                    template = self.dashboardTemplatePath
-            self.keyUUIDToViewTemplatePath [keyUUID] = template
+                branch = self.findPath (self.dashboardTemplatePath)
 
-        parts = template.split('.')
-        assert len (parts) >= 2
-        name = parts.pop()
-        template = getattr (schema.ns('.'.join(parts), self), name)
-        keyUUID = template.itsUUID
-        branch = self.keyUUIDToBranch.get (keyUUID, None)
-        if branch is None:
-            branch = self._copyItem(template, onlyIfReadOnly=True)
-            self.keyUUIDToBranch[keyUUID] = branch
- 
         assert isinstance (branch, Block.Block)
-        return branch
+        return self._copyItem(branch, onlyIfReadOnly=True)
 
     def _getContentsForBranch(self, branch, item, keyItem):
         return keyItem
@@ -1396,15 +1380,3 @@ class SidebarBranchPointDelegate(BranchPoint.BranchPointDelegate):
         """
         return item
 
-    def setView (self, item, template):
-        if item is not None:
-            hints = {}
-            keyUUID = self._mapItemToCacheKeyItem (item, hints).itsUUID
-            if self.keyUUIDToViewTemplatePath.get (keyUUID, None) != template:
-                self.keyUUIDToViewTemplatePath [keyUUID] = template
-                del self.keyUUIDToBranch [keyUUID]
-
-    def getView (self, item):
-        hints = {}
-        keyUUID = self._mapItemToCacheKeyItem (item, hints).itsUUID
-        return self.keyUUIDToViewTemplatePath.get (keyUUID, None)
