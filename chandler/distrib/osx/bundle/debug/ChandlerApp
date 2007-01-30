@@ -1,9 +1,9 @@
 #!/bin/sh
 
-cd $(dirname "${0}")
+cd "$(dirname "${0}")"
 execdir="$PWD"           
 executable="${execdir}/python"
-resdir=$(dirname "${execdir}")/Resources
+resdir="$(dirname "${execdir}")/Resources"
 main="${resdir}/Chandler.py"
 DYLD_LIBRARY_PATH="$resdir/lib"
 export DYLD_LIBRARY_PATH
@@ -13,5 +13,5 @@ PYTHONPATH="$resdir"
 export PYTHONPATH
 PYTHONHOME="$resdir/Library/Frameworks/Python.framework/Versions/2.5"
 export PYTHONHOME
-cd ${resdir}
+cd "${resdir}"
 exec "${executable}" "${main}" "$@"
