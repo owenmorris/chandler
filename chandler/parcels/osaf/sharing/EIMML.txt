@@ -507,11 +507,10 @@ back.
     >>> pje = schema.Item(itsView=rv0)
     >>> morgen = schema.Item(itsView=rv1)
 
-An item is serialized to EIMML using the outbound method.  The second argument
-is a string which identifies the peer the item is being shared with.  The
-limitations on this value are TBD, but for now it just has to be a string.
-Perhaps we will require that it be a UUID of some object such as a Contact item
-or Share item.
+An item is serialized to EIMML using the outbound method.  The first argument
+is an item which identifies the peer we're sharing with; the sharing package
+doesn't care what this item is; it could be a Contact item, or email address
+item, etc., as long as it's a persistent Chandler item.
 
     >>> text = sharing.outbound(pje, item0)
 
