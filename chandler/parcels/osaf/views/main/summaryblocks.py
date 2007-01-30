@@ -652,18 +652,15 @@ def makeSummaryBlocks(parcel):
         eventBoundary = True,
         eventsForNamedLookup = [saveResultsEvent],
         childrenBlocks = [
-            #
-            # Comment in for save search results button
-            #
-            #ToolbarItem.template('SaveResultsButton',
-                #event = saveResultsEvent,
-                #bitmap = 'ApplicationBarSave.png',
-                #title = _(u"Save"),
-                #toolbarItemKind = 'Button',
-                #location = "ApplicationBar",
-                #operation = 'InsertAfter',
-                #itemLocation = 'ApplicationBarQuickEntry',
-                #helpString = _(u'Save a copy of the results in the sidebar')),
+            ToolbarItem.template('SaveResultsButton',
+                event = saveResultsEvent,
+                bitmap = 'ApplicationBarSave.png',
+                title = _(u"Save"),
+                toolbarItemKind = 'Button',
+                location = "ApplicationBar",
+                operation = 'InsertAfter',
+                itemLocation = 'ApplicationBarQuickEntry',
+                helpString = _(u'Save a copy of the results in the sidebar')),
             Table.template('SearchResultsSummaryView',
                 contents = pim_ns.allCollection,
                 scaleWidthsToFit = True,

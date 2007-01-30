@@ -275,7 +275,14 @@ class MainView(View):
             
             cmd = cmd_re.match(command)
             if cmd is None:
-                return False
+                if defaultKind is not None:
+                    if defaultKind == pim.tasks.TaskStamp:
+                        taskFlag = True
+                    elif defaultKind == pim.mail.MailStamp:
+                        msgFlag = True
+                    elif defaultKind == pim.calendar.Calendar.EventStamp:
+                        eventFlag = True
+                    displayName = command
                         
             while cmd is not None:
                 kind = (cmd.group('kind')).lower()
@@ -283,15 +290,8 @@ class MainView(View):
                 command = displayName
                 
                 # Set flags depending on its kind
-                if kind == 'item':
-                    # Create a default item
-                    if defaultKind is not None:
-                        if defaultKind == pim.tasks.TaskStamp:
-                            taskFlag = True
-                        elif defaultKind == pim.mail.MailStamp:
-                            msgFlag = True
-                        elif defaultKind == pim.calendar.Calendar.EventStamp:
-                            eventFlag = True
+                if kind == 'search':
+                    return False
                 
                 elif kind == 'task':
                     taskFlag = True
@@ -429,11 +429,13 @@ class MainView(View):
             # Try to process as a quick entry command
             if len (command) != 0 and not processQucikEntry (self, command):
                 
-                if command.startswith('/'):
+                if not (command.startswith('/search') or command.startswith('/Search')):
                     # command is not a valid
                     quickEntryWidget.SetValue (command + ' ?')
                     wx.GetApp().CallItemMethodAsync("MainView", 'setStatusMessage', _(u"Command entered is not valid"))
                 else:
+                    # Remove command "/search " from the query before processing it
+                    command = command[8:]
                     try:
                         sidebar.setShowSearch (True)
                         showSearchResults = True
