@@ -16,9 +16,19 @@
 # prints the block found under the cursor
 
 import wx
-w = wx.FindWindowAtPoint(wx.GetMousePosition())
-while not hasattr(w, 'blockItem'):
-    w = w.GetParent()
-print w.blockItem.blockName, w.blockItem
+window = wx.FindWindowAtPoint(wx.GetMousePosition())
+
+while True:
+    blockItem = getattr (window, 'blockItem', None)
+    if blockItem is None:
+        method = getattr (window, 'GetParent', None)
+        if method is not None:
+            window = method()
+        else:
+            break
+    else:
+        print blockItem.blockName, blockItem
+        break
+
 
 
