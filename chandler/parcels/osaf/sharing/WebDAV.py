@@ -202,7 +202,20 @@ def checkAccess(host, port=80, useSSL=False, username=None, password=None,
         return (IGNORE, None) # The user cancelled trust cert/SSL error dialog
     except Exception, err: # Consider any other exception as a connection error
         return (CANT_CONNECT, err)
-    
+
+    try:
+        privilege_set = handle.blockUntil(topLevelResource.getPrivileges)
+        # cosmo doesn't return anything for getPrivileges, bug 7925, so fall
+        # back to other tests if write access isn't available.
+        #if not ('read', 'DAV:') in privilege_set.privileges:
+            #return (NO_ACCESS, _(u"Current-user-privilege-set not supported or Read not allowed."))
+        if ('write', 'DAV:') in privilege_set.privileges:
+            return (READ_WRITE, None)
+        #else:
+            #return (READ_ONLY, None)
+    except zanshin.http.HTTPError, err:
+        return (CANT_CONNECT, err.message)
+
     # Unique the child names returned by the server. (Note that
     # collection subresources will have a name that ends in '/').
     # We're doing this so that we can try a PUT below to a (hopefully
