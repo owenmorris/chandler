@@ -874,6 +874,10 @@ class References(Values):
         for key, value in self._dict.iteritems():
             if isitemref(value):
                 value = value(True)
+                if isitemref(value):
+                    logger.error("Dangling reference %s on %s.%s", value,
+                                 item._repr_(), key)
+                    continue
                 
             attrCard = item.getAttributeAspect(key, 'cardinality',
                                                False, None, 'single')
