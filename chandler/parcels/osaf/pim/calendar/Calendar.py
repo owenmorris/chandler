@@ -1713,12 +1713,16 @@ class EventStamp(Stamp):
 
                 if not self.itsItem.hasLocalAttributeValue(Stamp.stamp_types.name):
                     Stamp(self).stamp_types = set()
-                for stamp in list(Stamp(first).stamp_types):
-                    if not stamp in iter(Stamp(self).stamp_types):
-                        stamp(self).add()
-                for stamp in list(Stamp(self).stamp_types):
-                    if not stamp in Stamp(first).stamp_types:
-                        stamp(self).remove()
+                stamp_types = Stamp(first).stamp_types
+                if stamp_types is not None:
+                    for stamp in list(stamp_types):
+                        if not stamp in iter(Stamp(self).stamp_types):
+                            stamp(self).add()
+                stamp_types = Stamp(first).stamp_types
+                if stamp_types is not None:
+                    for stamp in list(Stamp(self).stamp_types):
+                        if not stamp in Stamp(first).stamp_types:
+                            stamp(self).remove()
                 self._copyCollections(first, self)
                 if disabled:
                     self.__enableRecurrenceChanges()
