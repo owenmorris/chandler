@@ -215,49 +215,37 @@ def checkAccess(host, port=80, useSSL=False, username=None, password=None,
             #return (READ_ONLY, None)
     except zanshin.http.HTTPError, err:
         return (CANT_CONNECT, err.message)
-
-    # Unique the child names returned by the server. (Note that
-    # collection subresources will have a name that ends in '/').
-    # We're doing this so that we can try a PUT below to a (hopefully
-    # nonexistent) path.
-    childNames = set([])
-    
-    for child in resourceList:
-        if child is not topLevelResource:
-            childPath = child.path
-            if childPath and childPath[-1] == '/':
-                childPath = childPath[:-1]
-            childComponents = childPath.split('/')
-            if len(childComponents):
-                childNames.add(childComponents[-1])
-
-    # Try to figure out a unique path (although the odds of
-    # even more than one try being needs are probably negligible)..
-    testFilename = unicode(chandlerdb.util.c.UUID())
-
-    # Random string to use for trying a put
-    while testFilename in childNames:
-        testFilename = unicode(chandlerdb.util.c.UUID())
     
     # Now, we try to PUT a small test file on the server. If that
-    # fails, we're going to say the user only has read-only access.
+    # fails (and a MKCOLL fails), we're going to say the user only has
+    # read-only access.
     try:
-        tmpResource = handle.getResource(topLevelResource.path + testFilename)
+        tmpResource = handle.getResource(topLevelResource.path + 
+                                         unicode(chandlerdb.util.c.UUID()))
         body = "Write access test"
         handle.blockUntil(tmpResource.put, body, checkETag=False,
                           contentType="text/plain")
-    except zanshin.webdav.WebDAVError, e:
-        return (READ_ONLY, e.status)
-        
-    # Remove the temporary resource, and ignore failures (since there's
-    # not much we can do here, anyway).
-    try:
+        # Remove the temporary resource, and ignore failures (since there's
+        # not much we can do here, anyway).
         handle.blockUntil(tmpResource.delete)
     except:
         pass
-        
-    # Success!
-    return (READ_WRITE, None)
+    else:
+        return (READ_WRITE, None)
+    
+    # PUT failed, but servers like Kerio's reject PUTs in the home collection,
+    # but accept MKCOLL, so try that
+    try:
+        child = handle.blockUntil(tmpResource.createCollection,
+                                  unicode(chandlerdb.util.c.UUID()))
+        handle.blockUntil(child.delete)
+    except zanshin.webdav.WebDAVError, e:
+        return (READ_ONLY, e.status)
+    except:
+        # PUT and MKCOLL failed, give up
+        return (READ_ONLY, None)
+    else:
+        return (READ_WRITE, None)
 
 
 
