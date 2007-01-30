@@ -1076,8 +1076,13 @@ class SidebarBlock(Table):
             trash.add(item)
 
         # here's the meat of it
-        for item in collection:
-            DoDeleteAction(item)
+        # deletion seems to have side-effects on the collection's membership
+        # therefore using a safe way to iterate and delete (bug 7945).
+        view = collection.itsView
+        for uuid in list(collection.iterkeys()):
+            item = view.find(uuid)
+            if not isDead(item):
+                DoDeleteAction(item)
 
     def onCollectionColorEvent(self, event):
         assert (self.contents.getSelectionRanges() is not None and
