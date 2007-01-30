@@ -236,7 +236,7 @@ def checkAccess(host, port=80, useSSL=False, username=None, password=None,
     # PUT failed, but servers like Kerio's reject PUTs in the home collection,
     # but accept MKCOLL, so try that
     try:
-        child = handle.blockUntil(tmpResource.createCollection,
+        child = handle.blockUntil(topLevelResource.createCollection,
                                   unicode(chandlerdb.util.c.UUID()))
         handle.blockUntil(child.delete)
     except zanshin.webdav.WebDAVError, e:
