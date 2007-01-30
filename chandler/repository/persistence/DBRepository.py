@@ -13,7 +13,7 @@
 #   limitations under the License.
 
 
-import sys, os, shutil, atexit, cStringIO, time, threading, tarfile
+import sys, os, shutil, atexit, cStringIO, time, threading
 
 from datetime import datetime, timedelta
 from os.path import exists, normpath, join, dirname, basename
@@ -482,10 +482,14 @@ class DBRepository(OnDemandRepository):
                     self.logger.info(srcPath)
                     shutil.copy2(srcPath, dstPath)
 
-            else:
-                # We were given a filename; open it as a tarfile and 
-                # restore from the files contained in it.
-                restoreFile = tarfile.open(srcHome, 'r:gz')
+            elif srcHome.endswith('gz') or srcHome.endswith('bz2'):
+                import tarfile
+
+                if srcHome.endswith('gz'):
+                    restoreFile = tarfile.open(srcHome, 'r:gz')
+                else:
+                    restoreFile = tarfile.open(srcHome, 'r:bz2')
+
                 for member in restoreFile:
                     f = os.path.basename(member.name)
                     if f.endswith('.db'):
@@ -498,8 +502,37 @@ class DBRepository(OnDemandRepository):
                         continue
 
                     self.logger.info(join(srcHome, f))
-                    restoreFile.extract(member, dstPath)
+                    data = restoreFile.extractfile(member).read()
+                    outFile = file(os.path.join(dstPath, f), 'w+b')
+                    outFile.write(data)
+                    outFile.close()
                 restoreFile.close()
+
+            elif srcHome.endswith('zip'):
+                import zipfile
+
+                restoreFile = zipfile.ZipFile(srcHome, 'r')
+
+                for member in restoreFile.infolist():
+                    f = os.path.basename(member.filename)
+                    if f.endswith('.db'):
+                        dstPath = datadir
+                    elif f.startswith('log.'):
+                        dstPath = logdir
+                    elif f in ('DB_CONFIG', 'DB_INFO'):
+                        dstPath = dbHome
+                    else:
+                        continue
+
+                    self.logger.info(join(srcHome, f))
+                    data = restoreFile.read(member.filename)
+                    outFile = file(os.path.join(dstPath, f), 'w+b')
+                    outFile.write(data)
+                    outFile.close()
+                restoreFile.close()
+
+            else:
+                raise ValueError, (srcHome, 'not a valid backup archive')
 
             if datadir != dbHome or logdir != dbHome:
                 outFile = file(join(dbHome, 'DB_CONFIG'), 'a+b')

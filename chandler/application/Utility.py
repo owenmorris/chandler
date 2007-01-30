@@ -253,6 +253,7 @@ COMMAND_LINE_OPTIONS = {
     'uuids':      ('-U', '--uuids',      's', None, None, 'use a file containing a bunch of pre-generated UUIDs'),
     'undo':       ('',   '--undo',       's', None, None, 'undo <n> versions or until <check> or <repair> passes'),
     'backup':     ('',   '--backup',     'b', False, None, 'backup repository before start'),
+    'backupdir':  ('',   '--backup-dir', 's', None, None, 'backup repository before start into dir'),
     'repair':     ('',   '--repair',     'b', False, None, 'repair repository before start (currently repairs broken indices)'),
     'mvcc':       ('',   '--mvcc',       'b', False, 'MVCC', 'run repository with multi version concurrency control'),
     'prune':      ('',   '--prune',      's', '10000', None, 'number of items in a view to prune to after each commit'),
@@ -516,7 +517,11 @@ def initRepository(directory, options, allowSchemaView=False):
             del kwds
             break
 
-    if options.backup:
+    if options.backupdir:
+        dbHome = repository.backup(os.path.join(options.backupdir,
+                                                '__repository__'))
+        repository.logger.info("Repository was backed up into %s", dbHome)
+    elif options.backup:
         dbHome = repository.backup()
         repository.logger.info("Repository was backed up into %s", dbHome)
 
