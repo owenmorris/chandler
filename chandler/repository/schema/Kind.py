@@ -100,8 +100,7 @@ class Kind(Item):
             
                 if sync is not None:
                     for name, descriptor in descriptors.items():
-                        attr = descriptor.attr
-                        if attr.attrID not in attributes:
+                        if descriptor.attr.attrID not in attributes:
                             del descriptors[name]
 
                 for name, attribute in attributes.itervalues():
