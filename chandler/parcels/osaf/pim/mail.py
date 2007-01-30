@@ -133,7 +133,9 @@ def __populateBody(mailStamp, bodyHeader=u"", includeMailHeaders=False, includeE
             pass
 
         try:
-            r = Remindable(mailStamp.itsItem)
+            r = mailStamp.itsItem
+            
+            # @@@ [grant] No such method
             alarm = r.getNextReminderTime()
 
             if alarm and len(r.reminders):

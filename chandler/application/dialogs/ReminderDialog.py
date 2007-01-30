@@ -141,17 +141,11 @@ class ReminderDialog(wx.Dialog):
             if reminderTime < datetime.now(ICUtzinfo.default):
                 # Another pending reminder; add it to the list.
                 index = listCtrl.InsertStringItem(sys.maxint, 
-                                                  remindable.itsItem.displayName)
+                                                  remindable.displayName)
                 self.remindersInList[index] = t
 
                 # Make a relative expression of its time ("3 minutes from now").
-                # If we're a snooze reminder, display the user reminder time we 
-                # started with. (@@@ this assumes there's only one user reminder,
-                # but works whether it's expired or not)
-                isSnooze = reminder.promptUser and not reminder.userCreated
-                displayReminder = isSnooze and remindable.getUserReminder() or \
-                                  reminder
-                eventTime = displayReminder.getBaseTimeFor(remindable)
+                eventTime = reminder.getItemBaseTime(remindable)
                 deltaMessage = self.RelativeDateTimeMessage(eventTime)
                 listCtrl.SetStringItem(index, 1, deltaMessage)
 
@@ -222,7 +216,7 @@ class ReminderDialog(wx.Dialog):
         """
         dismissSelection = event.GetEventObject() is self.reminderControls['dismiss']
         for (reminderTime, remindable, reminder) in self.getListItems(dismissSelection):
-            remindable.dismissReminder(reminder)
+            reminder.dismissItem(remindable)
         wx.GetApp().repository.view.commit()
         if self.dismissCallback is not None:
             self.dismissCallback()
@@ -230,7 +224,7 @@ class ReminderDialog(wx.Dialog):
     def onSnooze(self, event):
         """ Snooze the selected reminders for five minutes """
         for (reminderTime, remindable, reminder) in self.getListItems(True):
-            remindable.snoozeReminder(reminder, timedelta(minutes=5))
+            reminder.snoozeItem(remindable, timedelta(minutes=5))
         wx.GetApp().repository.view.commit()
         if self.dismissCallback is not None:
             self.dismissCallback()

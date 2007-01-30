@@ -338,7 +338,7 @@ class MainView(View):
        
             # Set a reminder if the item is not an event but it has time
             if (not eventFlag) and (typeFlag != 0) :
-                pim.Remindable(item).userReminderTime = startTime
+                item.userReminderTime = startTime
      
             if eventFlag:
                 # If the item is an event, set the event's start and end date/time

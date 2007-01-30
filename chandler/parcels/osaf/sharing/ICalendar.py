@@ -153,7 +153,7 @@ def itemsToVObject(view, items, cal=None, filters=None):
         comp.add('dtstamp').value = timestamp.replace(tzinfo=utc)
 
         if not filters or Remindable.reminders.name not in filters:
-            firstReminder = Remindable(item).getUserReminder()
+            firstReminder = item.getUserReminder()
             if firstReminder is not None:
                 if firstReminder.absoluteTime is not None:
                     value = firstReminder.absoluteTime
@@ -669,10 +669,9 @@ def itemsFromVObject(view, text, coerceTzinfo = None, filters = None,
                     
                 # rruleset and userReminderInterval/userReminderTime must be set last
                 changeLast = []
-                # Need to update this for Remindable
                 if not filters or Remindable.reminders.name not in filters:
                     if reminderDelta is not None:
-                        changeLast.append((Remindable.userReminderInterval.name, 
+                        changeLast.append((EventStamp.userReminderInterval.name, 
                                            reminderDelta))
                     elif reminderAbsoluteTime is not None:
                         changeLast.append((Remindable.userReminderTime.name, 

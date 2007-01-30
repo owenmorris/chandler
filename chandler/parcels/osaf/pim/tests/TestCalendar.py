@@ -100,7 +100,7 @@ class CalendarTest(TestDomainModel.DomainModelTestCase):
         # Check cloud membership - event + location
 
         items = calendarEventItem.itsItem.getItemCloud('copying')
-        self.assertEqual(len(items), 2)
+        self.assertEqual(len(items), 3)
 
         # Re-examine items
         self._reopenRepository()

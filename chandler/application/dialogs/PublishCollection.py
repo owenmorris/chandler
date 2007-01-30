@@ -218,7 +218,6 @@ class PublishCollectionDialog(wx.Dialog):
             # @@@ Jeffrey: Needs updating for new reminders?
             if not self.CheckboxShareAlarms.GetValue():
                 attrs.append(Remindable.reminders.name)
-                attrs.append(Remindable.expiredReminders.name)
             if not self.CheckboxShareStatus.GetValue():
                 attrs.append(EventStamp.transparency.name)
             if not self.CheckboxShareTriage.GetValue():
@@ -232,11 +231,9 @@ class PublishCollectionDialog(wx.Dialog):
         if not self.CheckboxShareAlarms.GetValue():
             if Remindable.reminders.name not in share.filterAttributes:
                 share.filterAttributes.append(Remindable.reminders.name)
-                share.filterAttributes.append(Remindable.expiredReminders.name)
         else:
             if Remindable.reminders.name in share.filterAttributes:
                 share.filterAttributes.remove(Remindable.reminders.name)
-                share.filterAttributes.remove(Remindable.expiredReminders.name)
 
         if not self.CheckboxShareStatus.GetValue():
             if EventStamp.transparency.name not in share.filterAttributes:

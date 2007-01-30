@@ -63,6 +63,7 @@ from osaf.pim.notes import Note
 from osaf.pim.calendar import Recurrence
 from osaf.pim.collections import FilteredCollection, IndexDefinition
 from chandlerdb.util.c import isuuid
+from osaf.pim.reminders import Remindable, Reminder
 
 from TimeZone import formatTime
 from osaf.pim.calendar.TimeZone import coerceTimeZone, TimeZoneInfo
@@ -645,16 +646,12 @@ class EventStamp(Stamp):
 
         # Delete any relative user reminders, as well as any
         # triageStatus reminders
-        from osaf.pim.reminders import Remindable
-        remindable = Remindable(self)
-        doomed = (r for r in remindable.reminders
-                  if (r.userCreated and r.absoluteTime is None) or
-                     not r.promptUser)
-        moreDoomed = (r for r in remindable.expiredReminders
-                      if r.absoluteTime is None)
-        for r in itertools.chain(doomed, moreDoomed):
-            logger.debug("Destroying obsolete %s on %s", r, self)
-            remindable.dismissReminder(r, dontExpire=True)
+        toDelete = list(r for r in self.itsItem.reminders
+                        if hasattr(r, 'delta'))
+              
+        for rem in toDelete:
+            logger.debug("Destroying obsolete %s on %s", rem)
+            rem.delete(recursive=True)
 
         super(EventStamp, self).remove()
 
@@ -808,40 +805,40 @@ class EventStamp(Stamp):
 
     @schema.observer(startTime, allDay, anyTime)
     def onStartTimeChanged(self, op, name):
-        from osaf.pim.reminders import Remindable
-        remindable = Remindable(self)
-        # Update the reminder we use to update triageStatus at startTime, 
-        # if it's in the future. First, find any existing startTime reminder.
-        existing = [r for r in getattr(remindable, 'reminders', [])
-                      if not (r.userCreated or r.promptUser)]
-        assert len(existing) <= 1
-        existing = len(existing) and existing[0] or None
-        assert not existing or existing.absoluteTime is not None
+        # Update our relative reminders. If necessary, add a relative reminder
+        # to fire at our effectiveStartTime and update triageStatus.
         
         try:
             newStartTime = self.effectiveStartTime
         except AttributeError:
             pass
         else:
-            # @@@ For now, occurrences don't handle individual values right,
-            # so don't do this if the event is a member of a recurrence set.
-            # (see bug 6701)
-            if not self.isRecurring() and \
-               newStartTime is not None and \
-               newStartTime >= datetime.now(tz=ICUtzinfo.default):
-                # It's due, or in the future.
-                if existing is not None and newStartTime == existing.absoluteTime:
-                    return # the effective time didn't change - leave it alone.
-
-                # Create a new reminder for the new time. (We don't just update 
-                # the old because we want notifications to fire on this change)
-                remindable.makeReminder(absoluteTime=newStartTime,
-                                     userCreated=False, checkExpired=True,
-                                     promptUser=False)
+            triageStatusReminder = None
+            onlyReminder = (self.rruleset is None or
+                            self.itsItem.hasLocalAttributeValue('reminders'))
+            isMaster = (self.occurrenceFor is None and self.rruleset is not None)
+            
+            for reminder in self.itsItem.reminders:
+            
+                # Absolute-time reminders don't need to change
+                if not hasattr(reminder, 'delta'):
+                    continue
+                
+                if (reminder.delta == zero_delta and not reminder.userCreated
+                    and not reminder.promptUser):
+                    triageStatusReminder = reminder
+                if isMaster or onlyReminder:
+                    reminder.startTimeChanged(self.itsItem)
                     
-        # If we had an existing startTime reminder, dismiss it.
-        if existing:
-            remindable.dismissReminder(existing)
+                    
+            if (triageStatusReminder is None and
+                (self.occurrenceFor is None or onlyReminder)):
+                # Make our own triage status reminder. We could save some
+                # time here by not bothering if this event is in the past.
+                RelativeReminder(itsView=self.itsItem.itsView,
+                                 reminderItem=self.itsItem,
+                                 delta=zero_delta, userCreated=False,
+                                 promptUser=False)
             
         # Update our display-date attribute, too
         self.itsItem.updateDisplayDate(op, name)
@@ -1071,16 +1068,12 @@ class EventStamp(Stamp):
         # item.
         item = first.itsItem.getMembershipItem()
         
-        from osaf.pim.reminders import Remindable
         
         values = {
             EventStamp.isGenerated.name: True,
             EventStamp.recurrenceID.name: recurrenceID,
             EventStamp.startTime.name: recurrenceID,
             EventStamp.occurrenceFor.name: item,
-            Remindable.reminders.name: list(Remindable(item).reminders),
-            Remindable.expiredReminders.name:
-                  list(Remindable(item).expiredReminders),
         }
 
         item = Occurrence.getKind(item.itsView).instantiateItem(
@@ -1093,7 +1086,6 @@ class EventStamp(Stamp):
         event.__disableRecurrenceChanges()
         for key, value in values.iteritems():
             setattr(item, key, value)
-        event._fixReminders()
         event.__enableRecurrenceChanges()
 
         return event
@@ -1146,48 +1138,6 @@ class EventStamp(Stamp):
         else:
             return result # @@@ [grant] not right if we did an inclusive match
                           # on before
-
-    def _fixReminders(self):
-        from osaf.pim.reminders import Remindable
-        # When creating generated events, this function is
-        # called so that all reminders in the past are marked
-        # expired, and the rest are not. This helps avoid a
-        # mass of reminders if an event in the past is changed.
-        #
-        now = datetime.now(ICUtzinfo.default)
-
-        def expired(reminder):
-            nextTime = reminder.getNextReminderTimeFor(self)
-            return nextTime <= now
-
-
-        # We really don't want to touch self.reminders
-        # or self.expiredReminders if they haven't really
-        # changed. The reason is that that will trigger a
-        # change notification on app idle, which in turn causes
-        # the UI to re-generate all these occurrences, which puts
-        # us back in this # method, etc, etc.
-
-        # Figure out what (if anything) has changed ...
-        remindable = Remindable(self)
-        nowExpired = [r for r in remindable.reminders
-                         if (not r.userCreated) or expired(r)]
-
-        nowNotExpired = [r for r in remindable.expiredReminders
-                           if not expired(r)]
-
-        # ... and update the collections accordingly
-        for reminder in nowExpired:
-            remindable.reminders.remove(reminder)
-            if reminder.userCreated:
-                remindable.expiredReminders.add(reminder)
-            elif len(reminder.reminderItems) == 0 and \
-                 len(reminder.expiredReminderItems) == 0:
-                reminder.delete()
-
-        for reminder in nowNotExpired:
-            remindable.reminders.add(reminder)
-            remindable.expiredReminders.remove(reminder)
 
     def _generateRule(self, after=None, before=None, inclusive=False,
                       occurrenceCreator=_createOccurrence):
@@ -1620,7 +1570,24 @@ class EventStamp(Stamp):
                 # Make sure master's recurrenceID matches its effectiveStartTime
                 self.recurrenceID = self.effectiveStartTime
                 if attr == EventStamp.rruleset.name: # rule change, thus a destructive change
-                    self._fixMasterReminders()
+                    oldReminders = list(self.itsItem.reminders)
+                    self.itsItem.reminders.clear()
+                    newReminders = []
+                    for rem in oldReminders:
+                        # Convert absolute-time reminders to delta-time ones
+                        if hasattr(rem, 'delta'):
+                            newReminder = rem.copy(cloudAlias="copying")
+                        else:
+                            newReminder = RelativeReminder(
+                                itsView=self.itsItem.itsView,
+                                userCreated=rem.userCreated,
+                                promptUser=rem.promptUser,
+                                delta=rem.absoluteTime - self.effectiveStartTime  
+                            )
+                        newReminders.append(newReminder)
+                        rem.delete(recursive=True)
+                    self.itsItem.reminders = newReminders
+
             else:
                 # If we're not first, we're an occurrence (and not the master's
                 # occurrence). So, we generate a new master, truncate the old
@@ -1755,6 +1722,8 @@ class EventStamp(Stamp):
                 self._copyCollections(first, self)
                 if disabled:
                     self.__enableRecurrenceChanges()
+
+                        
         if attr is not None:
             if setWithHandlerDisabled:
                 disabled = self.__disableRecurrenceChanges()
@@ -1897,60 +1866,6 @@ class EventStamp(Stamp):
                 self.__enableRecurrenceChanges()
 
 
-    def _fixMasterReminders(self):
-        """
-        When we turn recurrence on or off, deal with existing reminders.
-        """
-        from osaf.pim.reminders import Remindable
-        remindable = Remindable(self)
-        
-        if self.rruleset is not None:
-            if not self.isRecurrenceMaster():
-                return
-
-            # We're adding recurrence, and this is a master.
-            # Tweak the reminders.
-            disabled = self.__disableRecurrenceChanges()
-            try:
-                # Convert any absolute user reminder to relative.
-                absTime = remindable.userReminderTime
-                if absTime is not None:
-                    remindable.userReminderInterval = \
-                        (absTime - self.effectiveStartTime)
-                else:
-                    # No absolute reminder. If we have a relative one, move it
-                    # to 'expired' (so the master won't show up in the 
-                    # itemsWithReminders list).                    
-                    reminder = remindable.getUserReminder(expiredToo=False)
-                    if reminder is not None:
-                        # We've got a relative reminder that isn't expired - move
-                        # it to 'expired' now that we're a master.
-                        remindable.reminders.remove(reminder)
-                        remindable.expiredReminders.add(reminder)
-                    
-                # Any remaining reminders in the pending list are triageStatus
-                # or snooze reminders; discard them -- it'd be messy to have 
-                # them on the master.
-                if remindable.reminders:
-                    for r in list(remindable.reminders):
-                        r.delete()
-                    # delete() is sometimes deferred until commit
-                    # therefore remindable.reminders won't clear until then
-                    # unless it's explicitely done here.
-                    remindable.reminders.clear()
-                assert len(remindable.reminders) == 0
-            finally:
-                if disabled: self.__enableRecurrenceChanges()
-        else:
-            # When we remove recurrence, we might need to move the user
-            # reminder from 'expired' to 'reminders' if it's still in the future.
-            (refList, reminder) = remindable.getUserReminder(refListToo=True)
-            now = datetime.now(tz=ICUtzinfo.default)
-            if reminder is not None and refList is remindable.expiredReminders \
-               and reminder.getNextReminderTimeFor(remindable) >= now:
-                remindable.expiredReminders.remove(reminder)
-                remindable.reminders.add(reminder)
-            
     @schema.observer(
         ContentItem.displayName, ContentItem.body, ContentItem.lastModified,
         startTime, duration, location, allDay, rruleset, Stamp.stamp_types,
@@ -1970,11 +1885,11 @@ class EventStamp(Stamp):
             return
         # avoid infinite loops
         if name == EventStamp.rruleset.name:
-            logger.debug("just set rruleset")
-            self._fixMasterReminders()
-            if self == self.getFirstInRule():
-                self.recurrenceID = self.effectiveStartTime
-                self.cleanRule()
+            # A rruleset change is always a THISANDFUTURE change ... 
+            # Note that there's currently no way to set it on an Occurrence,
+            # so really this code path only happens if there are changes
+            # on a recurrence master, or on a non-recurring event.
+            self.changeThisAndFuture(name, self.rruleset)
         elif name == ContentItem.triageStatus.name:
             # just in case this isn't already a modification, make it one
             self.changeThis()
@@ -2179,11 +2094,63 @@ class EventStamp(Stamp):
         """ Is this Event a master of a recurrence set? """
         return self.rruleset is not None and self.getMaster() == self
     
+            
+    # @@@ Note: 'Calculated' APIs are provided for both relative and absolute
+    # user-set reminders, even though only one reminder (which can be of either
+    # flavor) can be set right now. The 'set' functions can replace an existing
+    # reminder of either flavor, but the 'get' functions ignore (that is, return
+    # 'None' for) reminders of the wrong flavor.
+    
+    def getUserReminderInterval(self):
+        userReminder = self.itsItem.getUserReminder()
+        if userReminder is None or userReminder.absoluteTime is not None:
+            return None
+        return userReminder.delta
+
+    def _removeThisUserReminder(self):
+        # Prepares for a THIS change of user reminder interval/time, by
+        # making a copy of all non-user reminders from the master, and
+        # installing that in self.itsItem.reminders
+        item = self.itsItem
+        if not item.hasLocalAttributeValue('reminders'):
+            userReminder = item.getUserReminder()
+            newReminders = list(rem.copy(cloudAlias='copying')
+                                     for rem in item.reminders
+                                  if rem is not userReminder)
+            self.changeThis('reminders', newReminders)
+
+    def setUserReminderInterval(self, delta):
+        if self != self.getMaster():
+            self._removeThisUserReminder()
+
+        existing = self.itsItem.getUserReminder()
+        if delta is not None:
+            # Make a new reminder
+            retval = RelativeReminder(itsView=self.itsItem.itsView,
+                                      reminderItem=self.itsItem, delta=delta)
+        else:
+            retval = None
+
+        if existing is not None:
+            existing.delete(recursive=True)
+            
+        return retval
+
+    userReminderInterval = schema.Calculated(
+        schema.TimeDelta,
+        basedOn=(Remindable.reminders,),
+        fget=getUserReminderInterval,
+        fset=setUserReminderInterval,
+        doc="User-set reminder interval, computed from the first unexpired reminder."
+    )
+
+
+    
 def isRecurring(item):
     """ Is this item a recurring event? """
     return (has_stamp(item, EventStamp) and 
             EventStamp(item).isRecurring())
-    
+            
 def CalendarEvent(*args, **kw):
     """An unstamped event."""
 
@@ -2348,8 +2315,6 @@ class Occurrence(Note):
     """
 
     LOCAL_ATTRIBUTES = (
-            'osaf.pim.reminders.Remindable.reminders',
-            'osaf.pim.reminders.Remindable.expiredReminders',
             'triageStatusChanged',
             EventStamp.isGenerated.name,
             EventStamp.recurrenceID.name,
@@ -2432,22 +2397,17 @@ class Occurrence(Note):
         exclusions:
         
         1) Excluding all attributes in the DONT_PUSH class variable
-        2) Excluding startTime and reminders/expiredReminders if they match
-           recurrenceID
-        3) Excluding any attribute that starts with IGNORE_ATTRIBUTE_PREFIX.
+        2) Excluding any attribute that starts with IGNORE_ATTRIBUTE_PREFIX.
            This is a total hack which will break if we ever refactor, but it's a
            stand in for a way to define attributes as "not user facing"
 
         """
         event = EventStamp(self)
-        master = event.modificationFor
+        masterItem = event.modificationFor
         
-        if master is not None:
+        if masterItem is not None:
             cls = type(self)
-            masterEvent = EventStamp(master)
-            from osaf.pim.reminders import Remindable
-            masterReminder = Remindable(master).getUserReminder()
-            eventReminder  = Remindable(self).getUserReminder()
+            masterEvent = EventStamp(masterItem)
                         
             for attr, value in self.iterAttributeValues():
                 if (attr not in cls.DONT_PUSH and
@@ -2456,9 +2416,9 @@ class Occurrence(Note):
                         if event.effectiveStartTime == event.recurrenceID:
                             # startTime matches recurrenceID, ignore it
                             continue
-                    elif attr in (Remindable.reminders.name, 
-                                  Remindable.expiredReminders.name):
-                        if masterReminder == eventReminder:
+                    elif attr == Remindable.reminders.name:
+                        if (masterItem.getUserReminder() is
+                            self.getUserReminder()):
                             continue
                     elif attr == Stamp.stamp_types.name:
                         # Ignore SharedItem stamp on the master
@@ -2471,7 +2431,20 @@ class Occurrence(Note):
                             continue
 
                     yield attr, value
+                    
+    def setUserReminderTime(self, reminderTime):
+        EventStamp(self)._removeThisUserReminder()
+        return super(Occurrence, self).setUserReminderTime(reminderTime)
+                    
+    userReminderTime = schema.Calculated(
+        Remindable.userReminderTime.type,
+        basedOn=Remindable.userReminderTime.basedOn,
+        fget=Remindable.userReminderTime.fget,
+        fset=setUserReminderTime,
+        doc="User-set absolute reminder time."
+    )
 
+                    
 # Make sure iCalUID and rruleset are read-only attributes; i.e. they always
 # get inherited from the master event.
 def _makeReadonlyAccessor(attr):
@@ -2482,4 +2455,164 @@ def _makeReadonlyAccessor(attr):
 
 _makeReadonlyAccessor(Note.icalUID)
 _makeReadonlyAccessor(EventStamp.rruleset)
+
+    
+
+class RelativeReminder(Reminder):
+    relativeTo = EventStamp.effectiveStartTime.name
+
+    delta = schema.One(
+        schema.TimeDelta
+    )
+    schema.addClouds(
+        sharing = schema.Cloud(
+            literal = [delta]
+        ),
+        copying = schema.Cloud(
+            literal = [delta]
+        )
+    )
+    
+    # @@@ [grant] Seem to have lost relativeTo from the clouds. Do we
+    # need it?
+    def _getReminderTime(self, item, includePending=True):
+        if includePending:
+            for entry in self.pendingEntries:
+                if entry.item is item:
+                    return entry.when
+                
+        when = self.getItemBaseTime(item)
+        
+        if when is None or not self.hasLocalAttributeValue('delta'):
+            return None
+        else:
+            return when + self.delta
+            
+
+    def updatePending(self, dt=None):
+        if dt is None:
+            dt = datetime.now(ICUtzinfo.default)
+            
+        reminderItem = self.reminderItem
+        reminderTime = self._getReminderTime(reminderItem)
+
+        if reminderTime is None:
+            self.nextPoll = self.farFuture
+            return
+        
+        # Find the earliest "invisible" (snoozed into the future) reminder.
+        # The idea is to make sure that self.nextPoll doesn't skip over some
+        # snoozed reminder.
+        firstSnoozedDate = None
+        for pending in self.pendingEntries:
+            if pending.when > dt:
+                if firstSnoozedDate is None:
+                    firstSnoozedDate = pending.when
+                else:
+                    firstSnoozedDate = min(firstSnoozedDate, pending.when)
+            
+        if self.nextPoll is None:
+            # No value for nextPoll means we've just been initialized, and want
+            # to find the first occurrence after dt, and set self.nextPoll to
+            # be the reminder time for the event after that.
+            
+            start = dt - self.delta
+
+        elif self.nextPoll != self.farFuture:
+            start = self.nextPoll
+            
+        else:
+            return
+        
+        event = EventStamp(reminderItem)
+        
+        def _isModReminder(event):
+            # Is self part of a modification's changed reminders?
+            if (event.modificationFor is not None and
+                event.itsItem.hasLocalAttributeValue('reminders') and
+                self in event.itsItem.reminders):
+                return True
+            else:
+                return False
+
+
+        if not has_stamp(event, EventStamp):
+            interestingEvents = []
+        elif event.rruleset is None or _isModReminder(event):
+            if event.startTime >= start:
+                interestingEvents = [event]
+            else:
+                interestingEvents = []
+        else:
+            master = event.getMaster()
+            # skip mods, since they get their own copy of reminders for now
+            interestingEvents = iter(
+                e for e in master._generateRule(start, None, True)
+                       if self in e.itsItem.reminders
+            )
+            
+        for event in interestingEvents:
+            reminderItem = event.itsItem
+            reminderTime = self._getReminderTime(reminderItem)
+            
+            if dt < reminderTime:
+                self.nextPoll = reminderTime
+                break
+                
+            reminderItem.reminderFired(self, reminderTime)
+        else:
+            # We reached the end of the recurring series without
+            # finding any new and "interesting" events. So, set
+            # nextPoll to be the farFuture
+            self.nextPoll = self.farFuture
+            
+        if firstSnoozedDate is not None and firstSnoozedDate < self.nextPoll:
+            self.nextPoll = firstSnoozedDate
+        else:
+            self._checkExpired()
+            
+    def getItemBaseTime(self, item):
+        return getattr(item, self.relativeTo, None)
+        
+    def getReminderTime(self, item):
+        """
+        When will we fire (or would we have fired) for item; taking
+        snooze into account
+        """
+        return self._getReminderTime(item) or Reminder.farFuture
+        
+    def startTimeChanged(self, item):
+        if self.nextPoll is None:
+            return # We'll get updated later as necessary
+            
+        reminderTime = self._getReminderTime(item)
+        if reminderTime is None:
+            return # Er ....
+            
+        for entry in self.pendingEntries:
+            if not entry.snoozed:
+                entryReminder = self._getReminderTime(entry.item, False)
+                # If the reminder has moved off into the future, but is before
+                # our nextPoll, make sure that we remove it, and update
+                # self.nextPoll accordingly.
+                if entryReminder > entry.when:
+                    self.pendingEntries.remove(entry)
+                    if entryReminder <= self.nextPoll:
+                        self.nextPoll = entryReminder
+        if self.nextPoll < Reminder.farFuture and reminderTime < self.nextPoll:
+            self.nextPoll = reminderTime
+                        
+    def reminderFired(self, reminder, when):
+        """
+        Override of C{ContentItem.reminderFired}: performs a THIS change
+        of triageStatus to now.
+        """
+
+        self.changeThis('triageStatus', TriageEnum.now)
+        self.setTriageStatusChanged(when=when)
+        
+        # bypass ContentItem, because we want to do a THIS change here
+        # always
+        return super(ContentItem, self).reminderFired(reminder, when)
+
 

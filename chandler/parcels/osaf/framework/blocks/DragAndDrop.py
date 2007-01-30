@@ -389,7 +389,7 @@ class ItemClipboardHandler(_ClipboardHandler):
         """
         compositeObject = wx.DataObjectComposite()
 
-        # Build a dictonary of Item data formats
+        # Build a dictionary of Item data formats
         self.exportDict = {}
         items = self.SelectedItems()
         for item in items:

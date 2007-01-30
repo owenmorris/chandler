@@ -26,7 +26,7 @@ from repository.schema.Kind import Kind
 import repository.item.Item as Item
 from chandlerdb.item.ItemError import NoLocalValueForAttributeError
 from chandlerdb.util.c import Nil
-from chandlerdb.item.c import isitemref
+from osaf.pim.reminders import Remindable, isDead
 import logging
 from i18n import ChandlerMessageFactory as _
 from osaf import messages
@@ -76,14 +76,6 @@ class Modification(schema.Enumeration):
     """
     values = { "edited":100, "queued":200, "sent":300, "updated":400 }
 
-def isDead(item):
-    """
-    Return True if the item is None, an itemref, stale, or deferred.
-    
-    """
-    return (item is None or isitemref(item) or item.isStale() or
-            item.isDeferred())
-
 # For use in indexing time-related attributes. We only use this for 
 # reminderFireTime here, but CalendarEventMixin uses this a lot more...
 def cmpTimeAttribute(itemTime, otherTime, useTZ=True):
@@ -106,7 +98,7 @@ def cmpTimeAttribute(itemTime, otherTime, useTZ=True):
 
 
 
-class ContentItem(schema.Item):
+class ContentItem(Remindable):
     """
     Content Item
 
@@ -362,6 +354,7 @@ class ContentItem(schema.Item):
             onItemDelete = getattr(stampObject, 'onItemDelete', None)
             if onItemDelete is not None:
                 onItemDelete(view, deferring)
+        super(ContentItem, self).onItemDelete(view, deferring)
 
     def addToCollection(self, collection):
         """Add self to the given collection.
@@ -571,10 +564,6 @@ class ContentItem(schema.Item):
     def updateDisplayWho(self, op, attr):
         self._updateCommonAttribute('displayWho', 'displayWhoSource', self.addDisplayWhos)
 
-    def addDisplayDates(self, dates, now):
-        from osaf.pim.reminders import Remindable
-        Remindable(self).addDisplayDates(dates, now)
-
     def updateDisplayDate(self, op, attr):
         now = datetime.now(tz=ICUtzinfo.default)
         self._updateCommonAttribute('displayDate', 'displayDateSource',
@@ -624,6 +613,19 @@ class ContentItem(schema.Item):
            if hasattr(self, '_unpurgedTriageStatus'):
                del self._unpurgedTriageStatus
            del self._unpurgedTriageStatusChanged
+
+    def reminderFired(self, reminder, when):
+        """
+        Override of C{Remindable.reminderFired}: sets triageStatus
+        to now.
+        """
+        pending = super(ContentItem, self).reminderFired(reminder, when)
+        
+        self.triageStatus = TriageEnum.now
+        self.setTriageStatusChanged(when=when)
+        
+        return pending
+
 
     def getBasedAttributes(self, attribute):
         """ Determine the schema attributes that affect this attribute

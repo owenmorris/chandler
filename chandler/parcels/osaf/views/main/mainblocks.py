@@ -39,11 +39,11 @@ def makeMainView(parcel):
     # these reference each other... ugh!
     RTimer = ReminderTimer.template('ReminderTimer').install(parcel)
     main.ReminderTime.destinationBlockReference = RTimer
-
+    
     ReminderTimer.update(
         parcel, 'ReminderTimer',
         event = main.ReminderTime,
-        contents = pim_ns.itemsWithReminders)
+        contents = pim_ns.allFutureReminders)
 
     SidebarBranchPointDelegateInstance = SidebarBranchPointDelegate.update(
         parcel, 'SidebarBranchPointDelegateInstance',
@@ -238,7 +238,7 @@ def makeMainView(parcel):
             StatusBar.template('StatusBar'),
             ReminderTimer.template('ReminderTimer',
                                    event = main.ReminderTime,
-                                   contents=pim_ns.itemsWithReminders),
+                                   contents=pim_ns.allFutureReminders),
             ApplicationBar,
             BoxContainer.template('SidebarContainerContainer',
                 border = RectType(4, 0, 0, 0),

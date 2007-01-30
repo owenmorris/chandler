@@ -1183,7 +1183,7 @@ class UITestItem(object):
                 else:
                     if self.logger: self.logger.ReportPass("(On time zone Checking)")
             elif field == "alarm": # status checking
-                alarm = pim.EventStamp(self.item).startTime - pim.Remindable(self.item).reminderTime
+                alarm = pim.EventStamp(self.item).startTime - self.item.reminderTime
                 field = timedelta(minutes = string.atoi(value))
                 if not field == alarm:
                     if self.logger: self.logger.ReportFailure("(On alarm Checking) || object alarm = %s ; expected alarm = %s" % (alarm, field))

@@ -56,21 +56,21 @@ class CalendarColumnIndexDefinition(pim.MethodIndexDefinition):
     findParams = (
         (pim.Stamp.stamp_types.name, []),
         (pim.Remindable.reminders.name, None),
-        (pim.Remindable.expiredReminders.name, None),
         ('displayDate', pim.Reminder.farFuture),
         ('triageStatus', pim.TriageEnum.done),
         ('triageStatusChanged', 0)
     )
     def compare(self, u1, u2):
         def getCompareTuple(uuid):
-            stamp_types, reminders, expiredReminders, displayDate, triage, triageChanged = \
+            stamp_types, reminders, displayDate, triage, triageChanged = \
                 self.findValues(uuid, *self.findParams)
             
             # We need to do this:
-            #   hasUserReminder = pim.Remindable(item).getUserReminder(expiredToo=True) is not None
+            #   hasUserReminder = item.getUserReminder(expiredToo=True) is not None
             # while avoiding loading the items. @@@ Note: This code matches the 
             # implementation of Remindable.getUserReminder - be sure to change 
             # that if you change this!
+            
             def hasAUserReminder(remList):
                 if remList is not None:
                     for reminderUUID in remList.iterkeys():
@@ -78,8 +78,8 @@ class CalendarColumnIndexDefinition(pim.MethodIndexDefinition):
                         if userCreated:
                             return True
                 return False
-            hasUserReminder = hasAUserReminder(reminders) or \
-                              hasAUserReminder(expiredReminders)
+            hasUserReminder = hasAUserReminder(reminders)
+
             if hasUserReminder:
                 reminderState = 0
             elif pim.EventStamp in stamp_types:
@@ -228,16 +228,15 @@ class ReminderColumnAttributeEditor(attributeEditors.IconAttributeEditor):
 
     def advanceState(self, item, attributeName):
         # If there is one, remove the existing reminder
-        remindable = pim.Remindable(item)
-        if remindable.getUserReminder(expiredToo=False) is not None:
-            remindable.userReminderTime = None
+        if item.getUserReminder(expiredToo=False) is not None:
+            item.userReminderTime = None
             return
 
         # No existing one -- create one.
         # @@@ unless this is a recurring event, for now.
         if pim.has_stamp(item, pim.EventStamp) and pim.EventStamp(item).isRecurring():
             return # ignore the click.
-        remindable.userReminderTime = pim.Reminder.defaultTime()
+        item.userReminderTime = pim.Reminder.defaultTime()
         
     def ReadOnly (self, (item, attribute)):
         """

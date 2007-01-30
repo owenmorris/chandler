@@ -202,24 +202,26 @@ class ICalendarTestCase(SingleRepositoryTestCase):
                          ICUtzinfo.getInstance('US/Mountain'))
 
     def testImportReminders(self):
+        # @@@ [grant] Check for that reminders end up expired or not, as
+        # appropriate.
         format = self.Import(self.view, u'RecurrenceWithAlarm.ics')
         future = sharing.findUID(self.view, 'RecurringAlarmFuture')
-        reminder = Remindable(future).getUserReminder()
+        reminder = future.itsItem.getUserReminder()
         # this will start failing in 2015...
         self.assertEqual(reminder.delta, datetime.timedelta(minutes=-5))
-        second = pim.EventStamp(future).getFirstOccurrence().getNextOccurrence()
-        self.assert_(reminder in Remindable(second).reminders)
+        second = future.getFirstOccurrence().getNextOccurrence()
+        self.failUnless(second.itsItem.reminders is future.itsItem.reminders)
 
         past = sharing.findUID(self.view, 'RecurringAlarmPast')
-        reminder = Remindable(past).getUserReminder()
+        reminder = past.itsItem.getUserReminder()
         self.assertEqual(reminder.delta, datetime.timedelta(hours=-1))
-        second = pim.EventStamp(past).getFirstOccurrence().getNextOccurrence()
-        self.assert_(reminder in Remindable(second).expiredReminders)
+        second = past.getFirstOccurrence().getNextOccurrence()
+        self.failUnless(second.itsItem.reminders is past.itsItem.reminders)
 
     def testImportAbsoluteReminder(self):
         format = self.Import(self.view, u'AbsoluteReminder.ics')
         event = sharing.findUID(self.view, 'I-have-an-absolute-reminder')
-        reminder = Remindable(event).getUserReminder()
+        reminder = event.itsItem.getUserReminder()
         self.failUnless(reminder is not None, "No reminder was set")
         self.failUnlessEqual(reminder.absoluteTime,
                              datetime.datetime(2006, 9, 25, 8,

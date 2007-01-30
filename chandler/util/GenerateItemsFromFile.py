@@ -185,7 +185,7 @@ def GenerateCalendarEvent(view, args):
             reminderInterval = random.choice(REMINDERS)
         else:
             reminderInterval = string.atoi(args[7])
-        pim.Remindable(event).userReminderInterval = timedelta(minutes=-reminderInterval)
+        event.userReminderInterval = timedelta(minutes=-reminderInterval)
 
     #location
     if args[8]=='*': # semi-random data

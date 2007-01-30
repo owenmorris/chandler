@@ -38,7 +38,7 @@ import application.dialogs.RecurrenceDialog as RecurrenceDialog
 import Styles
 from datetime import datetime, time, timedelta
 from osaf.pim.calendar import Calendar
-from osaf.pim import EventStamp, Remindable, TriageEnum
+from osaf.pim import Reminder, TriageEnum
 from repository.item.Monitors import Monitors
 from i18n import ChandlerMessageFactory as _
 
@@ -1072,33 +1072,6 @@ class ReminderTimer(Timer):
         if not wx.GetApp().ignoreSynchronizeWidget:
             self.primeReminderTimer()
     
-    def getPendingReminders(self):
-        """
-        Return a list of all reminder tuples with fire times in the past, 
-        sorted by reminderTime.
-
-        Each tuple contains (reminderTime, remindable, reminder).
-        """
-
-        view = self.itsView
-        # nextReminderTime always adds a timezone, so add one to now 
-        now = datetime.now(PyICU.ICUtzinfo.default)
-
-        def matches(key):
-            if Remindable(view[key]).nextReminderTime <= now:
-                return 0
-            return -1
-
-        itemsWithReminders = schema.ns('osaf.pim', view).itemsWithReminders
-        lastPastKey = itemsWithReminders.findInIndex('reminderTime', 'last', matches)
-
-        if lastPastKey is not None:
-            return [Remindable(item).getNextReminderTuple()
-                    for item in (view[key] for key in
-                     itemsWithReminders.iterindexkeys('reminderTime', None, lastPastKey))]
-
-        return []
-    
     def onReminderTimeEvent(self, event):
         # Run the reminders dialog and re-queue our timer if necessary
         logger.warning("*** Got reminders time event!")
@@ -1114,29 +1087,27 @@ class ReminderTimer(Timer):
             return
         
         self._inPrimeReminderTimer = True
+        now = datetime.now(PyICU.ICUtzinfo.default)
+        
         try:
             mainFrame = wx.GetApp().mainFrame
             if not mainFrame or not mainFrame.IsShown():
                 # The main window isn't up yet; try again shortly.
-                (nextReminderTime, closeIt) = (datetime.now(
-                    PyICU.ICUtzinfo.default) + timedelta(seconds=1), False)
+                (nextReminderTime, closeIt) = (now + timedelta(seconds=1), False)
             else:
                 # Update triagestatus on each pending reminder. Dismiss any
                 # internal reminders that exist only to trigger on startTime.
-                pending = self.getPendingReminders()
+                pending = Reminder.getPendingTuples(self.itsView, now)
                 if pending:
                     def processReminder((reminderTime, remindable, reminder)):
                         logger.warning("*** now-ing %s due to %s", 
-                                       debugName(remindable.itsItem), 
-                                       reminder)
-                        remindable.itsItem.triageStatus = TriageEnum.now
-                        remindable.itsItem.setTriageStatusChanged(when=reminderTime)
+                                       debugName(remindable), reminder)
                         assert not reminder.isDeleted()
                         if reminder.promptUser:
                             return True # this should appear in the list.
                         # This is a non-user reminder, which served only to let us
                         # bump the triageStatus. Discard it.
-                        remindable.dismissReminder(reminder)
+                        reminder.dismissItem(remindable)
                         return False
                     pending = filter(processReminder, pending)
 
@@ -1156,10 +1127,21 @@ class ReminderTimer(Timer):
             if nextReminderTime is None:
                 # The dialog didn't give us a time to fire; we'll fire at the
                 # next non-pending reminder's time.
-                itemsWithReminders = schema.ns('osaf.pim', self.itsView).itemsWithReminders
-                firstReminder = itemsWithReminders.firstInIndex('reminderTime')
-                if firstReminder is not None:
-                    nextReminderTime = Remindable(firstReminder).nextReminderTime
+                
+                nextReminderTime = None
+                reminders = schema.ns('osaf.pim', self.itsView).allFutureReminders
+                
+                firstReminder = reminders.firstInIndex('reminderPoll')
+                while firstReminder is not None:
+                    nextReminderTime = firstReminder.nextPoll
+                    
+                    if nextReminderTime is not None:
+                        break
+                         
+                     
+                    firstReminder.updatePending()
+                    firstReminder = reminders.firstInIndex('reminderPoll')
+
     
             if closeIt:
                 self.closeReminderDialog()

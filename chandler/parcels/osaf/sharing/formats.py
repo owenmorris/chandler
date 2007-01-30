@@ -858,16 +858,16 @@ class CloudXMLFormat(ImportExportFormat):
                         # For Share.filterAttributes, we need to map
                         # 'unqualified' attribute names to annotation-
                         # style ones. To do this, we look through all
-                        # the Stamp classes we know, as well as
-                        # pim.Remindable, to find a matching attribute.
-                        # There is an inverse hack to this in exportProcess.
+                        # the Stamp classes we know, to find a matching
+                        # attribute. There is an inverse hack to this in
+                        # exportProcess.
                         if isFilterAttributes:
                             for cls in self.STAMP_MAP.iterkeys():
                                 schemaAttr = getattr(cls, value, None)
                                 if schemaAttr is not None:
                                     break
                             else:
-                                schemaAttr = getattr(pim.Remindable, value, None)
+                                schemaAttr = None
 
                             if schemaAttr is not None:
                                 value = schemaAttr.name

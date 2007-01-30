@@ -34,13 +34,13 @@ from notes import Note
 from contacts import Contact, ContactName
 from calendar.Calendar import (
     CalendarEvent, EventStamp, Occurrence, LONG_TIME, zero_delta,
-    EventComparator, Location, RecurrencePattern
+    EventComparator, Location, RecurrencePattern, RelativeReminder
 )
 from calendar.TimeZone import installParcel as tzInstallParcel
 from calendar.DateTimeUtil import (ampmNames, durationFormat, mediumDateFormat, 
      monthNames, sampleDate, sampleTime, shortDateFormat, shortTimeFormat, 
      weekdayNames, weekdayName)
-from reminders import Reminder, Remindable
+from reminders import PendingReminderEntry, Reminder, Remindable
 from tasks import Task, TaskStamp
 from mail import EmailAddress, EmailComparator
 from application.Parcel import Reference
@@ -103,7 +103,7 @@ class UTCEventFilter(Item):
 
 class RecurrenceAwareFilter(Item):
     attrAndDefault = ()
-    
+
     @classmethod
     def makeCollection(cls, parcel, name, source):
         filter = cls(None, parcel)
@@ -118,6 +118,27 @@ class RecurrenceAwareFilter(Item):
     def matches(self, view, uuid):
         return IndexDefinition.findInheritedValues(view, uuid,
                                       type(self).attrAndDefault)[0]
+    
+class UnexpiredFilter(Item):
+    findValuePair = (Reminder.nextPoll.name, None)
+    
+    def notExpired(self, view, uuid):
+        nextPoll = view.findValue(uuid, *self.findValuePair)
+        
+        return nextPoll != Reminder.farFuture
+        
+    def compare(self, u1, u2):
+        view = self.itsView
+        np1 = view.findValue(u1, self.findValuePair[0], None)
+        np2 = view.findValue(u2, self.findValuePair[0], None)
+        
+        if np1 == np2:
+            return 0
+        if np1 is None:
+            return -1
+        if np2 is None:
+            return 1
+        return cmp(np1, np2)
 
 class ToMeFilter(RecurrenceAwareFilter):
     attrAndDefault = mail.MailStamp.toMe.name, True
@@ -165,27 +186,20 @@ def installParcel(parcel, oldVersion=None):
         kind = ContentItem.getKind(view),
        recursive=True)
        
-    itemsWithRemindersIncludingTrash = FilteredCollection.update(
-        parcel, 'itemsWithRemindersIncludingTrash',
-        source=itemKindCollection,
-        filterExpression="view.hasTrueValue(uuid, '%s')" % (
-                                                    Remindable.reminders.name,),
-        filterAttributes=[Remindable.reminders.name])
-
-    itemsWithReminders = AppCollection.update(
-        parcel, 'itemsWithReminders',
-        source=itemsWithRemindersIncludingTrash,
-        exclusions=trashCollection,
-        trash=None,
+    allReminders = KindCollection.update(
+        parcel, 'allReminders', kind=Reminder.getKind(view), recursive=True
     )
-
-    # the monitor list assumes all reminders will be relativeTo
-    # effectiveStartTime, which is true in 0.6, but may not be in the future
-    Remindable.addIndex(itemsWithReminders, 'reminderTime', 'compare',
-                        compare='cmpReminderTime',
-                        monitor=(EventStamp.startTime, EventStamp.allDay,
-                                 EventStamp.anyTime, Remindable.reminders))
-
+    
+    allFutureReminders = FilteredCollection.update(
+        parcel, 'allFutureReminders',
+        source=allReminders,
+        filterMethod=(UnexpiredFilter(None, parcel), 'notExpired'),
+        filterAttributes=[UnexpiredFilter.findValuePair[0]],
+    )
+    
+    allFutureReminders.addIndex('reminderPoll',
+        'method', method=(UnexpiredFilter(None, parcel), 'compare'),
+        monitor=[UnexpiredFilter.findValuePair[0]])
 
     # the "All" / "My" collection
     allCollection = SmartCollection.update(parcel, 'allCollection',

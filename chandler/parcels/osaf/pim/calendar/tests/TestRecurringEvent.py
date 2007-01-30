@@ -1234,7 +1234,7 @@ class RecurringEventTest(testcase.SingleRepositoryTestCase):
         #  to the collection
         note = Note(None, itsParent=self.sandbox, displayName=u"Hello")
         reminderTime = datetime.now(ICUtzinfo.default) + timedelta(hours=2)
-        Remindable(note).setUserReminderTime(reminderTime)
+        note.setUserReminderTime(reminderTime)
         collection.add(note)
         
         # Check sorting ... since Note has a reminder an hour after our
@@ -1299,7 +1299,7 @@ class RecurringEventTest(testcase.SingleRepositoryTestCase):
         #  to the collection
         note = Note(None, itsParent=self.sandbox, displayName=u"Hello")
         reminderTime = datetime.now(ICUtzinfo.default) + timedelta(hours=2)
-        Remindable(note).setUserReminderTime(reminderTime)
+        note.setUserReminderTime(reminderTime)
         collection.add(note)
         
         self.failUnlessEqual(

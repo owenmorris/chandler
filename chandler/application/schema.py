@@ -337,6 +337,8 @@ class Calculated(property, ActiveDescriptor):
             newProp.name = fullname
 
             setattr(_target_type(cls),fullname,newProp)
+        else:
+            self.name = name
 
         setattr(cls,name,self)
 

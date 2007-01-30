@@ -68,7 +68,6 @@ CALDAVFILTER = [attr.name for attr in (
                     pim.EventStamp.allDay,
                     pim.EventStamp.anyTime,
                     pim.EventStamp.duration,
-                    pim.Remindable.expiredReminders,
                     pim.EventStamp.isGenerated,
                     pim.EventStamp.location,
                     pim.EventStamp.modifications,
@@ -1064,7 +1063,6 @@ def subscribe(view, url, updateCallback=None, username=None, password=None,
                 # status.
                 share.filterAttributes = [
                      pim.Remindable.reminders.name,
-                     pim.Remindable.expiredReminders.name,
                      pim.EventStamp.transparency.name
                 ]
                 if 'triageStatus' in getattr(subShare, 'filterAttributes', []):
