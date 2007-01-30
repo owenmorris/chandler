@@ -156,8 +156,9 @@ class MultipleSharesTestCase(testcase.DualRepositoryTestCase):
 
         shared = sharing.SharedItem(item0)
         conflicts = shared.getConflicts()
-        self.assert_(conflicts.has_key(self.share0a.itsUUID.str16()))
-        self.assert_(conflicts.has_key(self.share0b.itsUUID.str16()))
+        self.assert_(conflicts)
+        # TODO: when conflicts API develops, make sure there are two
+        # conflicts here
 
 
 if __name__ == "__main__":

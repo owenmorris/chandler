@@ -46,14 +46,21 @@ class ItemSharingTestCase(testcase.DualRepositoryTestCase):
 
         item0 = view0.findUUID(self.uuid)
 
+        pje = schema.Item(itsView=view0, itsName="pje")
+        morgen = schema.Item(itsView=view1, itsName="morgen")
+
         # morgen sends to pje
         self.assert_(not pim.has_stamp(item0, sharing.SharedItem))
-        text = itemcentric.outbound(view0, "pje", item0)
+        view0.commit()
+        text = itemcentric.outbound(view0, pje, item0)
+        view0.commit()
         self.assert_(pim.has_stamp(item0, sharing.SharedItem))
 
         # pje receives from morgen
         self.assert_(view1.findUUID(self.uuid) is None)
-        item1 = itemcentric.inbound(view1, "morgen", text)
+        view1.commit()
+        item1 = itemcentric.inbound(view1, morgen, text)
+        view1.commit()
         self.assert_(pim.has_stamp(item1, sharing.SharedItem))
         self.assertEqual(item1.displayName, "test displayName")
         self.assertEqual(item1.body, "test body")
@@ -66,32 +73,54 @@ class ItemSharingTestCase(testcase.DualRepositoryTestCase):
         # conflict
         item0.displayName = "changed by morgen"
         item1.displayName = "changed by pje"
-        text = itemcentric.outbound(view0, "pje", item0)
-        itemcentric.inbound(view1, "morgen", text)
-        self.assert_(shared1.getConflicts().has_key('morgen'))
+        view0.commit()
+        text = itemcentric.outbound(view0, pje, item0)
+        view0.commit()
+        view1.commit()
+        itemcentric.inbound(view1, morgen, text)
+        view1.commit()
+        self.assert_(shared1.getConflicts())
 
         # removal
-        text = itemcentric.outboundDeletion(view0, "pje", self.uuid)
+        view0.commit()
+        text = itemcentric.outboundDeletion(view0, pje, self.uuid)
+        view0.commit()
         # allowDeletion flag False
-        itemcentric.inbound(view1, "morgen", text, allowDeletion=False)
+        view1.commit()
+        itemcentric.inbound(view1, morgen, text, allowDeletion=False)
         view1.commit() # to give a chance for a deleted item to go away
         self.assert_(view1.findUUID(self.uuid) is not None)
         # allowDeletion flag True
-        itemcentric.inbound(view1, "morgen", text, allowDeletion=True)
+        itemcentric.inbound(view1, morgen, text, allowDeletion=True)
         view1.commit() # to give a chance for a deleted item to go away
         self.assert_(view1.findUUID(self.uuid) is None)
 
         # adding item back
-        text = itemcentric.outbound(view0, "pje", item0)
-        itemcentric.inbound(view1, "morgen", text)
+        text = itemcentric.outbound(view0, pje, item0)
+        itemcentric.inbound(view1, morgen, text)
         self.assert_(view1.findUUID(self.uuid) is not None)
 
         # overlapping but identical modifications results in no conflicts
         item0.displayName = "changed"
         item1.displayName = "changed"
-        text = itemcentric.outbound(view0, "pje", item0)
-        itemcentric.inbound(view1, "morgen", text)
-        self.assert_(not shared1.getConflicts().has_key('morgen'))
+        view0.commit()
+        text = itemcentric.outbound(view0, pje, item0)
+        view0.commit()
+        view1.commit()
+        itemcentric.inbound(view1, morgen, text)
+        view1.commit()
+        self.assert_(not shared1.getConflicts())
+
+
+        # Verify that an out of sequence update is rejected
+        view0.itsVersion = 2
+        text = itemcentric.outbound(view0, pje, item0)
+        try:
+            itemcentric.inbound(view1, morgen, text)
+        except sharing.OutOfSequence:
+            pass # This is what we're expecting
+        else:
+            raise Exception("We were expecting an OutOfSequence exception")
 
 if __name__ == "__main__":
     unittest.main()

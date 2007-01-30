@@ -153,7 +153,7 @@ class EIMInMemoryTestCase(testcase.DualRepositoryTestCase):
         view0.commit(); self.share0.sync(); view0.commit()
         self.assert_(item.displayName == "displayName changed in 0")
         self.assert_(item.body == "body changed again in 0")
-        self.share1.conduit.discardPending(testUuid)
+        sharing.SharedItem(item1).clearConflicts()
 
 
 
@@ -323,12 +323,11 @@ class EIMInMemoryTestCase(testcase.DualRepositoryTestCase):
         view1.commit(); self.share1.sync(); view1.commit()
         view0.commit(); self.share0.sync(); view0.commit()
         self.assert_(item in self.share0.contents)
+        # item retains any local differences from what's on server:
         self.assertEqual(item.body, "back from the dead")
         # We have pending changes ("modification trumps removal"), so clear
         # them out:
-        # agreed, pending = self.share0.conduit.getState(testUuid)
-        # print pending
-        self.share0.conduit.discardPending(testUuid)
+        sharing.SharedItem(item).clearConflicts()
 
 
 

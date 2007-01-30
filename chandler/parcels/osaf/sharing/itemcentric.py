@@ -13,7 +13,7 @@
 #   limitations under the License.
 
 from osaf import pim
-import eim, eimml, translator, shares, merging
+import eim, eimml, translator, shares, errors
 import logging
 
 logger = logging.getLogger(__name__)
@@ -41,42 +41,70 @@ def inbound(rv, peer, text, allowDeletion=False, debug=False):
     if len(inbound) != 1:
         raise errors.MalformedData(_("Only one recordset allowed"))
 
-    uuid, rs = inbound.items()[0]
+    peerRepoId = extra.get('repo', None)
+    peerItemVersion = int(extra.get('version', '-1'))
+
+    uuid, rsExternal = inbound.items()[0]
 
     item = rv.findUUID(uuid)
 
-    if rs is not None:
+    if rsExternal is not None:
 
         if item is not None: # Item already exists
             if not pim.has_stamp(item, shares.SharedItem):
                 shares.SharedItem(item).add()
             shared = shares.SharedItem(item)
-            baseline = getPeerBaseline(shared, peer)
-            rsNewBase = {
-                uuid : eim.RecordSet(trans.exportItem(item))
-            }
+            state = getPeerState(shared, peer)
+            rsInternal= eim.RecordSet(trans.exportItem(item))
 
         else: # Item doesn't exist yet
-            baseline = shares.Baseline(itsView=rv, peer=peer)
-            rsNewBase = { uuid : eim.RecordSet() }
+            state = shares.State(itsView=rv, peer=peer)
+            rsInternal = eim.RecordSet()
 
-        toSend, toApply, pending = merging.merge(baseline, rsNewBase,
-            inbound, send=False, receive=True, debug=debug)
+        if peerRepoId != state.peerRepoId:
+            # This update is not from the peer repository we last saw.
+            # Treat the update is entirely new
+            state.clear()
+            state.peerRepoId = peerRepoId
 
-        if toApply.has_key(uuid):
-            apply = toApply[uuid]
-            if debug: print "Applying:", uuid, apply
-            trans.importRecords(apply)
+        if 0 < peerItemVersion <= state.peerItemVersion:
+            # If we're using a null repository view (like during doctesting)
+            # the item versions are stuck at zero, so ignore versions less
+            # than 1
+            raise errors.OutOfSequence("Update %d arrived after %d" %
+                (peerItemVersion, state.peerItemVersion))
+
+        state.peerItemVersion = peerItemVersion
+
+        dSend, dApply, pending = state.merge(rsInternal, rsExternal,
+            send=False, receive=True, uuid=uuid, debug=debug)
+
+        if dApply:
+            if debug: print "Applying:", uuid, dApply
+            trans.importRecords(dApply)
 
         item = rv.findUUID(uuid)
         if item is not None and item.isLive():
             if not pim.has_stamp(item, shares.SharedItem):
                 shares.SharedItem(item).add()
             shared = shares.SharedItem(item)
-            shared.baselines.add(baseline)
+            if not hasattr(shared, 'states'):
+                shared.states = []
+            if state not in shared.states:
+                shared.states.append(state, peer.itsUUID.str16())
 
     else: # Deletion
-        deletePeerBaseline(item, peer)
+
+        # Remove the state
+        if pim.has_stamp(item, shares.SharedItem):
+            shared = shares.SharedItem(item)
+            if hasattr(shared, 'states'):
+                state = shared.states.getByAlias(peer.itsUUID.str16())
+                if state is not None:
+                    shared.states.remove(state)
+                    state.delete(True)
+
+        # Remove the item (if allowed)
         if allowDeletion:
             if debug: print "Deleting item:", uuid
             item.delete(True)
@@ -94,21 +122,26 @@ def outbound(rv, peer, item, debug=False):
     trans = translator.PIMTranslator(rv)
 
     uuid = item.itsUUID.str16()
-    rsNewBase = { uuid : eim.RecordSet(trans.exportItem(item)) }
+    rsInternal = eim.RecordSet(trans.exportItem(item))
 
     if not pim.has_stamp(item, shares.SharedItem):
         shares.SharedItem(item).add()
 
     shared = shares.SharedItem(item)
-    baseline = getPeerBaseline(shared, peer)
+    state = getPeerState(shared, peer)
 
-    toSend, toApply, pending = merging.merge(baseline, rsNewBase,
-        send=True, receive=False, debug=debug)
+    # Abort if pending
 
-    if toSend:
-        text = serializer.serialize(toSend, "item")
+    # Repository identifier:
+    if rv.repository is not None:
+        repoId = rv.repository.getSchemaInfo()[0].str16()
     else:
-        text = None
+        repoId = ""
+
+    text = serializer.serialize({uuid : rsInternal}, "item", repo=repoId,
+        version=str(item.itsVersion))
+
+    if debug: print "Text:", text
 
     return text
 
@@ -125,21 +158,12 @@ def outboundDeletion(rv, peer, uuid, debug=False):
 
 
 
-def getPeerBaseline(item, peer, create=True):
-    for baseline in getattr(item, 'baselines', []):
-        if baseline.peer == peer:
-            return baseline
-    if create:
-        return shares.Baseline(itsView=item.itsItem.itsView, peer=peer)
-    else:
-        return None
+def getPeerState(item, peer, create=True):
 
-
-
-def deletePeerBaseline(item, peer):
-    if pim.has_stamp(item, shares.SharedItem):
-        shared = shares.SharedItem(item)
-        baseline = getPeerBaseline(shared, peer, create=False)
-        if baseline:
-            baseline.delete(True)
+    state = None
+    if hasattr(item, 'states'):
+        state = item.states.getByAlias(peer.itsUUID.str16())
+    if state is None and create:
+        state = shares.State(itsView=item.itsItem.itsView, peer=peer)
+    return state
 

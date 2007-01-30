@@ -16,17 +16,10 @@ __all__ = [
     'OneTimeShare',
     'OneTimeFileSystemShare',
     'SharedItem',
-    'READWRITE',
-    'READONLY',
-    'UNSHARED',
-    'getSharedState', #hmm, perhaps rename this
-    'saveState',
-    'getState',
-    'removeState',
-    'hasState',
-    'discardPending',
-    'getBaselineUuids',
-    'Baseline'
+    'State',
+    'getFilter',
+    'isShared',
+    'isReadOnly',
 ]
 
 
@@ -35,15 +28,15 @@ from osaf import pim
 from i18n import ChandlerMessageFactory as _
 import errors, eim
 from callbacks import *
+import cPickle
 import logging
 
-import logging
 logger = logging.getLogger(__name__)
 
 
-READWRITE = 'read-write'
-READONLY = 'read-only'
-UNSHARED = 'unshared'
+
+
+
 
 class SharedItem(pim.Stamp):
     schema.kindInfo(annotates=pim.ContentItem)
@@ -54,38 +47,33 @@ class SharedItem(pim.Stamp):
     sharedIn = schema.Sequence(initialValue=[])
     # 'sharedIn' links shared items to their shares
 
-    baselines = schema.Sequence(initialValue=[])
-    # 'baselines' is used only for p2p sharing, including mail-edit-update.
-    # In Cosmo-based sharing, baselines are stored in the conduit's baseline
+    states = schema.Sequence()
+    # 'states' is used only for p2p sharing, including mail-edit-update.
+    # It's a ref collection aliased by peer.itsUUID.str16()
+    # In Cosmo-based sharing, states are stored in the conduit
+
+    conflictingStates = schema.Sequence()
 
     def getConflicts(self):
-        uuid = self.itsItem.itsUUID.str16()
-        conflicts = { }
-
-        for baseline in getattr(self, 'baselines', []):
-            if hasState(baseline, uuid):
-                agreed, pending = getState(baseline, uuid)
-                if pending:
-                    conflicts[baseline.peer] = pending
-
+        conflicts = [ ]
+        for state in getattr(self, 'conflictingStates', []):
+            if state.pending:
+                conflicts.append(state.pending)
         return conflicts
 
 
-    def getSharedState(self): # TODO: rename this
-        """
-        Examine all the shares this item participates in; if any of those
-        shares are writable the shared state is READWRITE.  If all the shares
-        are read-only the shared state is READONLY.  Otherwise UNSHARED.
-        """
+    def clearConflicts(self):
+        for state in getattr(self, 'conflictingStates', []):
+            if state.pending:
+                del state.pending
+                self.conflictingStates.remove(state)
 
-        state = UNSHARED
-        if hasattr(self, 'sharedIn'):
-            for share in self.sharedIn:
-                state = READONLY
-                if share.mode in ('put', 'both'):
-                    return READWRITE
-        return state
 
+
+    # In the new sharing world, this method might be obsolete, now that even
+    # read-only attributes can technically be locally modified without being
+    # automatically overwritten by inbound changes -- those inbound changes
+    # would be held as pending conflicts.
 
     def isAttributeModifiable(self, attribute):
         # fast path -- item is unshared; have at it!
@@ -119,104 +107,186 @@ class SharedItem(pim.Stamp):
 
         return not isSharedInAnyReadOnlyShares
 
-# -----------
 
-USE_PICKLE = True
-if USE_PICKLE:
-    import cPickle
-
-class Baseline(schema.Item):
-    baselineFor = schema.One(inverse=SharedItem.baselines)
-    peer = schema.One(schema.Text)
-
-class State(schema.Item):
-    deleted = schema.One(schema.Boolean, defaultValue=False)
-
-    if USE_PICKLE:
-        agreed = schema.One(schema.Text)
-        pending = schema.One(schema.Text)
-    else:
-        agreed = schema.Sequence(schema.Tuple)
-        pending_inclusions = schema.Sequence(schema.Tuple)
-        pending_exclusions = schema.Sequence(schema.Tuple)
-
-
-def saveState(baseline, uuidString, agreed, new_pending):
-    if USE_PICKLE:
-        State.update(baseline, uuidString,
-            deleted=False,
-            agreed=cPickle.dumps(agreed),
-            pending=cPickle.dumps(new_pending))
-    else:
-        State.update(baseline, uuidString,
-            deleted=False,
-            agreed=list(agreed.inclusions),
-            pending_inclusions=list(new_pending.inclusions),
-            pending_exclusions=list(new_pending.exclusions))
 
 
 
 
-def getState(baseline, uuidString):
-    state = baseline.getItemChild(uuidString)
+class State(schema.Item):
 
-    if state is None or state.deleted:
-        state = (eim.RecordSet(), eim.RecordSet())
+    stateFor = schema.One(inverse=SharedItem.states)
+    conflictFor = schema.One(inverse=SharedItem.conflictingStates)
+    peer = schema.One(schema.ItemRef)
+    peerRepoId = schema.One(schema.Text, initialValue="")
+    peerItemVersion = schema.One(schema.Integer, initialValue=-1)
+    _agreed = schema.One(schema.Text)
+    _pending = schema.One(schema.Text)
 
-    else:
-        if USE_PICKLE:
-            agreed = cPickle.loads(state.agreed)
-            pending = cPickle.loads(state.pending)
+
+    def __repr__(self):
+        return "State(%r, %r)" % (self.agreed, self.pending)
+
+
+    def getAgreed(self):
+        if hasattr(self, '_agreed'):
+            return cPickle.loads(self._agreed)
         else:
-            tupleNew = tuple.__new__
+            return eim.RecordSet()
 
-            # pull out the agreed-upon records
-            records = []
-            for tup in state.agreed:
-                records.append(tupleNew(tup[0], tup))
-            agreed = eim.RecordSet(records)
+    def setAgreed(self, agreed):
+        self._agreed = cPickle.dumps(agreed)
 
-            # pull out the pending records
-            inclusions = []
-            for tup in state.pending_inclusions:
-                inclusions.append(tupleNew(tup[0], tup))
-            exclusions = []
-            for tup in state.pending_exclusions:
-                exclusions.append(tupleNew(tup[0], tup))
-            pending = eim.RecordSet(inclusions, exclusions)
+    def delAgreed(self):
+        del self._agreed
 
-        state = (agreed, pending)
-
-    return state
-
-def removeState(baseline, uuidString):
-    state = baseline.getItemChild(uuidString)
-    if state is not None:
-        state.deleted = True
-
-def hasState(baseline, uuidString):
-    state = baseline.getItemChild(uuidString)
-    return state is not None and not state.deleted
-
-def discardPending(baseline, uuidString):
-    if hasState(baseline, uuidString):
-        agreed, pending = getState(baseline, uuidString)
-        saveState(baseline, uuidString, agreed, eim.RecordSet())
-
-def getBaselineUuids(baseline):
-    for state in baseline.iterChildren():
-        if state.isLive():
-            yield state.itsName
-
-# -----------
+    agreed = property(getAgreed, setAgreed, delAgreed)
 
 
 
-def getSharedState(item): # TODO: rename this
-    if not pim.has_stamp(item, SharedItem):
-        return UNSHARED
-    else:
-        return SharedItem(item).getSharedState()
+    def getPending(self):
+        if hasattr(self, '_pending'):
+            return cPickle.loads(self._pending)
+        else:
+            return eim.RecordSet()
+
+    def setPending(self, pending):
+        self._pending = cPickle.dumps(pending)
+
+    def delPending(self):
+        del self._pending
+
+    pending = property(getPending, setPending, delPending)
+
+
+
+    def merge(self, rsInternal, rsExternal=None, uuid=None,
+        send=True, receive=True, filter=None, debug=False):
+
+        if filter is None:
+            filter = lambda rs: rs
+        else:
+            filter = filter.sync_filter
+
+        if rsExternal is None:
+            rsExternal = eim.RecordSet()
+
+        agreed = self.agreed
+        pending = self.pending
+
+        if debug:
+            print " ----------- Merging item:", uuid
+            print "   rsInternal:", rsInternal
+            print "   rsExternal:", rsExternal
+            print "   agreed:", agreed
+            print "   pending:", pending
+
+        filteredInternal = filter(rsInternal)
+        externalState = agreed + pending + filter(rsExternal)
+
+        ncd = (filteredInternal - agreed) | (externalState - agreed)
+
+        if debug:
+            print "   filteredInternal:", filteredInternal
+            print "   externalState:", externalState
+            print "   ncd:", ncd
+
+        dSend = self._cleanDiff(externalState, ncd)
+
+        dApply = self._cleanDiff(filteredInternal, ncd)
+
+        if send:
+            externalState += dSend
+
+        agreed += ncd
+
+        pending = externalState - agreed
+
+
+        self.agreed = agreed
+        self.pending = pending
+
+        # Hook up pending conflicts to item
+        if uuid is not None:
+            item = self.itsView.findUUID(uuid)
+            if item is not None:
+                if not pim.has_stamp(item, SharedItem):
+                    SharedItem(item).add()
+                shared = SharedItem(item)
+                if pending:
+                    if not hasattr(shared, 'conflictingStates'):
+                        shared.conflictingStates = []
+                    shared.conflictingStates.add(self)
+                else:
+                    if self in getattr(shared, 'conflictingStates', []):
+                        shared.conflictingStates.remove(self)
+
+
+        if debug:
+            print " - - - - Results - - - - "
+            print "   agreed:", agreed
+            print "   dSend:", dSend
+            print "   dApply:", dApply
+            print "   pending:", pending
+            print " ----------- End of merge "
+
+        return dSend, dApply, pending
+
+    def _cleanDiff(self, state, diff):
+        newState = state + diff
+        newState.exclusions = set()
+        diff = newState - state
+        return diff
+
+
+    def set(self, agreed, pending):
+        self.agreed = agreed
+        self.pending = pending
+
+    def clear(self):
+        try:
+            del self._agreed
+        except AttributeError:
+            pass
+        try:
+            del self._pending
+        except AttributeError:
+            pass
+        self.peerItemVersion = -1
+
+
+
+def getFilter(filterUris):
+    filter = eim.Filter(None, u'Temporary filter')
+    for uri in filterUris:
+        filter += eim.lookupSchemaURI(uri)
+    return filter
+
+
+
+
+
+
+
+def isShared(item):
+    return pim.has_stamp(item, SharedItem)
+
+def isReadOnly(item):
+    """
+    Examine all the shares this item participates in; if any of those
+    shares are writable the item is not readonly.  If all the shares
+    are read-only the item is readonly.
+    """
+    if not isShared(item):
+        return False
+
+    sharedItem = SharedItem(item)
+    if hasattr(sharedItem, 'sharedIn'):
+        for share in self.sharedIn:
+            if share.mode in ('put', 'both'):
+                return False
+    return True
+
+
 
 
 class modeEnum(schema.Enumeration):
@@ -277,6 +347,8 @@ class Share(pim.ContentItem):
 
     format = schema.One(initialValue=None)
     # inverse of ImportExportFormat.share
+
+    states = schema.Sequence(State, inverse=schema.One(), initialValue=[])
 
     sharer = schema.One(
         pim.Contact,

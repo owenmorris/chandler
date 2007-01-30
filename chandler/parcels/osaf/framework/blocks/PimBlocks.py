@@ -169,8 +169,7 @@ class FocusEventHandlers(Item):
         if len(selectedItems) > 0:
             # if any item is shared, give a warning if marking it private
             for item in selectedItems:
-                if not item.private and \
-                    (sharing.getSharedState(item) != sharing.UNSHARED):
+                if not item.private and sharing.isShared(item):
                     # Marking a shared item as "private" could act weird...
                     # Are you sure?
                     caption = _(u"Change the privacy of a shared item?")

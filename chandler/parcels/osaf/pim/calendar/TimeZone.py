@@ -439,5 +439,5 @@ def convertFloatingEvents(view, newTZ):
         # events still have a floating startTime, might as well put them in
         # the right timezone if they're changed to timed events
         # if item.sharedIn is None or len(item.sharedIn) == 0:
-        if sharing.getSharedState(item) == sharing.UNSHARED:
+        if not sharing.isShared(item):
             event.startTime = event.startTime.replace(tzinfo=newTZ)

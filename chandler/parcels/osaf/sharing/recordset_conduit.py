@@ -13,7 +13,7 @@
 #   limitations under the License.
 
 from osaf import pim
-import conduits, errors, formats, eim, shares, merging
+import conduits, errors, formats, eim, shares
 from i18n import ChandlerMessageFactory as _
 import logging
 from application import schema
@@ -36,20 +36,15 @@ class RecordSetConduit(conduits.BaseConduit):
     serializer = schema.One(schema.Class)
     syncToken = schema.One(schema.Text, defaultValue="")
     filters = schema.Sequence(schema.Text)
-    baseline = schema.One(schema.ItemRef)
 
     def sync(self, modeOverride=None, updateCallback=None, forceUpdate=None,
         debug=False):
 
+        # TODO: handle mode=get
+
         if debug: print " ================ start of sync ================= "
 
         rv = self.itsView
-
-        # Set up baseline if it doesn't exist
-        baseline = getattr(self, 'baseline', None)
-        if not baseline:
-            self.baseline = shares.Baseline('baseline', self,
-                peer=self.share.itsUUID.str16())
 
         translator = self.translator(rv)
 
@@ -94,7 +89,7 @@ class RecordSetConduit(conduits.BaseConduit):
                 # back out along with the *complete* state of the item. The
                 # item has already been removed from the server, and we're
                 # putting it back.
-                shares.removeState(self.baseline, uuid)
+                self.removeState(uuid)
 
             else:
                 if debug: print "Inbound modification:", uuid
@@ -103,17 +98,17 @@ class RecordSetConduit(conduits.BaseConduit):
                     # An inbound modification to an item we already have
                     localItems.add(uuid)
 
-                elif shares.hasState(self.baseline, uuid):
+                elif self.hasState(uuid):
                     # This is an item we completely deleted since our last
                     # sync.  We need to grab its previous state out of the
                     # baseline, apply any pending changes and the new
                     # inbound chagnes to it, and use that as the new
                     # inboundDiff
-                    agreed, pending = shares.getState(self.baseline, uuid)
-                    rs = agreed + pending + rs
+                    state = self.getState(uuid)
+                    rs = state.agreed + state.pending + rs
                     if debug: print "Reconstituting item from baseline:", rs
                     inboundDiff[uuid] = rs
-                    shares.removeState(self.baseline, uuid)
+                    self.removeState(uuid)
 
 
         if debug: print "Conduit marker version:", version
@@ -136,24 +131,34 @@ class RecordSetConduit(conduits.BaseConduit):
             item = rv.findUUID(uuid)
             if item is not None and item.isLive():
                 rs = eim.RecordSet(translator.exportItem(item))
-                self.share.addSharedItem(item, baseline=self.baseline)
+                self.share.addSharedItem(item)
             else:
                 rs = eim.RecordSet()
             rsNewBase[uuid] = rs
 
 
+
         filterUris = getattr(self, "filters", None)
         if filterUris:
-            filter = merging.getFilter(filterUris)
+            filter = self.getFilter(filterUris)
         else:
             filter = None
 
 
-
         # Merge
-        toSend, toApply, pending = merging.merge(self.baseline, rsNewBase,
-            inboundDiff, filter=filter, debug=debug)
+        toApply = {}
+        toSend = {}
 
+        for uuid in set(rsNewBase) | set(inboundDiff):
+            state = self.getState(uuid)
+            rsInternal = rsNewBase.get(uuid, eim.RecordSet())
+            rsExternal = inboundDiff.get(uuid, None)
+            dSend, dApply, pending = state.merge(rsInternal, rsExternal,
+                uuid=uuid, filter=filter, debug=debug)
+            if dSend:
+                toSend[uuid] = dSend
+            if dApply:
+                toApply[uuid] = dApply
 
 
         # Apply
@@ -170,20 +175,21 @@ class RecordSetConduit(conduits.BaseConduit):
             if item is not None and item.isLive():
                 if debug: print "Adding to collection:", uuid
                 self.share.contents.add(item)
-                self.share.addSharedItem(item, baseline=self.baseline)
+                self.share.addSharedItem(item)
 
 
         # For each item that was in the collection before but is no longer,
         # add an empty recordset to toSend
-        for uuid in shares.getBaselineUuids(self.baseline):
+        for state in self.share.states:
+            uuid = self.share.states.getAlias(state)
             item = rv.findUUID(uuid)
             if (item is None or
                 item not in self.share.contents and
                 uuid not in remotelyRemoved):
                 toSend[uuid] = None
-                shares.removeState(self.baseline, uuid)
+                self.removeState(uuid)
                 if debug: print "Remotely removing item:", uuid
-                self.share.removeSharedItem(item, baseline=self.baseline)
+                self.share.removeSharedItem(item)
 
 
         # For each remote removal, remove the item from the collection locally
@@ -192,9 +198,9 @@ class RecordSetConduit(conduits.BaseConduit):
             item = rv.findUUID(uuid)
             if item is not None and item in self.share.contents:
                 self.share.contents.remove(item)
-                shares.removeState(self.baseline, uuid)
+                self.removeState(uuid)
                 if debug: print "Locally removing item:", uuid
-                self.share.removeSharedItem(item, baseline=self.baseline)
+                self.share.removeSharedItem(item)
 
 
         # Send
@@ -215,25 +221,32 @@ class RecordSetConduit(conduits.BaseConduit):
         if debug: print " ================== end of sync ================= "
 
 
+    def getState(self, uuidString):
+        state = self.share.states.getByAlias(uuidString)
+        if state is None:
+            state = self.newState(uuidString)
+        return state
+
+    def newState(self, uuidString):
+        state = shares.State(itsView=self.itsView, peer=self)
+        self.share.states.append(state, uuidString)
+        return state
+
+    def removeState(self, uuidString):
+        state = self.share.states.getByAlias(uuidString)
+        if state is not None:
+            self.share.states.remove(state)
+            state.delete(True)
+
+    def hasState(self, uuidString):
+        return self.share.states.getByAlias(uuidString) is not None
+
 
     def getFilter(self):
         filter = eim.Filter(None, u'Temporary filter')
         for uri in getattr(self, 'filters', []):
             filter += eim.lookupSchemaURI(uri)
         return filter
-
-
-
-    def saveState(self, uuidString, agreed, new_pending):
-        return shares.saveState(self.baseline, uuidString, agreed,
-            new_pending)
-
-    def getState(self, uuidString):
-        return shares.getState(self.baseline, uuidString)
-
-    def discardPending(self, uuidString):
-        return shares.discardPending(self.baseline, uuidString)
-
 
 
 

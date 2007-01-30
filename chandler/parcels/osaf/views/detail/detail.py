@@ -603,8 +603,7 @@ class ReadOnlyIconBlock(DetailSynchronizer, ControlBlocks.StampButton):
         # toggle this icon to reflect the read only status of the selected item
         super(ReadOnlyIconBlock, self).synchronizeWidget(useHints)
 
-        checked = self.item is not None and \
-               (sharing.getSharedState(self.item) == sharing.READONLY)
+        checked = self.item is not None and sharing.isReadOnly(self.item)
         self.widget.SetState("%s.%s" % (self.icon,
                              checked and "Unstamped" or "Stamped"))
 
@@ -613,8 +612,7 @@ class ReadOnlyIconBlock(DetailSynchronizer, ControlBlocks.StampButton):
         pass
 
     def onButtonPressedEventUpdateUI(self, event):
-        enable = self.item is not None and \
-               (sharing.getSharedState(self.item) == sharing.READONLY)
+        enable = self.item is not None and sharing.isReadOnly(self.item)
         event.arguments ['Enable'] = enable        
 
 class EditTextAttribute(DetailSynchronizer, ControlBlocks.EditText):

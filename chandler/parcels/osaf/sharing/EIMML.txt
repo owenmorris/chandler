@@ -7,8 +7,7 @@ First define a record type::
 
     >>> from application import schema
     >>> from osaf import sharing, pim
-    >>> from osaf.sharing import ( eimml, recordset_conduit, merge,
-    ...                            getState, saveState, getFilter,
+    >>> from osaf.sharing import ( eimml, recordset_conduit, State, getFilter,
     ...                            RecordSet as rs, NoChange as nc )
     >>> from PyICU import ICUtzinfo
     >>> import datetime, decimal
@@ -156,22 +155,6 @@ To indicate that item has been deleted, pass None instead of a recordset::
 
 
 
-Persisting RecordSets
----------------------
-
-
-RecordSets can be stored and retrieved by UUID::
-
-    >>> uuidString = '8501de14-1dc9-40d4-a7d4-f289feff8214'
-    >>> recordSet = recordSets[uuidString]
-    >>> baseline = schema.Item(itsView=rv)
-    >>> saveState(baseline, uuidString, recordSet, sharing.RecordSet())
-    >>> agreed, pending = getState(baseline, uuidString)
-    >>> recordSet == agreed
-    True
-
-
-
 
 
 Inmemory Cosmo Replacement
@@ -266,144 +249,96 @@ the inbound changes that are pending due to conflict::
     ...     baz = sharing.field(int, [bazFilter])
     >>> osaf.sharing.Demo = Demo
 
+    >>> state = State(itsView=rv)
 
-    >>> bl = schema.Item(itsView=rv) # baseline root
-
-Verify the old state is empty::
-
-    >>> getState(bl, '1') == (empty, empty)
-    True
+Verify the state is empty
+    >>> state
+    State(RecordSet(set([]), set([])), RecordSet(set([]), set([])))
 
 Test a no-op (no inbound nor outbound changes)::
 
-    >>> saveState(bl, '1', empty, empty)
-    >>> merge(bl, { }, { }) == ({ }, { }, { })
-    True
-    >>> getState(bl, '1') == (empty, empty)
-    True
+    >>> state.merge(empty, empty)
+    (RecordSet(set([]), set([])), RecordSet(set([]), set([])), RecordSet(set([]), set([])))
+
+Verify the state is still empty
+    >>> state
+    State(RecordSet(set([]), set([])), RecordSet(set([]), set([])))
 
 Merge a local addition with no inbound changes::
 
-    >>> rsNewBase =   { '1' : rs([Demo(1, 1, 1)]) }
-    >>> inboundDiff = { }
-    >>> toSend, toApply, pending = merge(bl, rsNewBase, inboundDiff)
-    >>> toSend == {'1': rs(set([Demo(1, 1, 1)]))}
-    True
-    >>> toApply == { }
-    True
-    >>> pending == { }
-    True
+    >>> state.merge(rs([Demo(1, 1, 1)]), empty)
+    (RecordSet(set([Demo(1, 1, 1)]), set([])), RecordSet(set([]), set([])), RecordSet(set([]), set([])))
 
-    >>> saveState(bl, '1', empty, empty)
-    >>> merge(bl,
-    ...     { '1' : rs([Demo(1, 1, 1)]) }, { }
-    ... ) == (
-    ...     {'1': rs(set([Demo(1, 1, 1)]))}, { }, { }
-    ... )
-    True
+Verify the state has been updated::
 
-Verify the old baseline has been updated::
-    >>> getState(bl, '1') == (rs(set([Demo(1,1,1)])), empty)
-    True
+    >>> state
+    State(RecordSet(set([Demo(1, 1, 1)]), set([])), RecordSet(set([]), set([])))
+
 
 Merge in an inbound change (no outbound changes)::
 
-    >>> merge(bl,
-    ...     { }, { '1' : rs([Demo(1, 1, 2)]) }
-    ... ) == (
-    ...     { }, {'1': rs(set([Demo(1, nc, 2)]))}, { }
-    ... )
-    True
+    >>> state.merge(rs([Demo(1, 1, 1)]), rs(set([Demo(1, 1, 2)])))
+    (RecordSet(set([]), set([])), RecordSet(set([Demo(1, NoChange, 2)]), set([])), RecordSet(set([]), set([])))
 
-    >>> getState(bl, '1') == (rs(set([Demo(1,1,2)])), empty)
-    True
+    >>> state
+    State(RecordSet(set([Demo(1, 1, 2)]), set([])), RecordSet(set([]), set([])))
+
 
 Merge non-overlapping inbound and outbound changes::
 
-    >>> rsNewBase =   { '1' : rs([Demo(1, 3, 2)]) }
-    >>> inboundDiff = { '1' : rs([Demo(1, 1, 3)]) }
-    >>> toSend, toApply, pending = merge(bl, rsNewBase, inboundDiff)
-    >>> toSend == {'1': rs(set([Demo(1, 3, nc)]))}
-    True
-    >>> toApply == {'1': rs(set([Demo(1, nc, 3)]))}
-    True
-    >>> pending == { }
-    True
-    >>> getState(bl, '1') == (rs(set([Demo(1,3,3)])), empty)
-    True
+    >>> state.merge(rs([Demo(1, 3, 2)]), rs([Demo(1, 1, 3)]))
+    (RecordSet(set([Demo(1, 3, NoChange)]), set([])), RecordSet(set([Demo(1, NoChange, 3)]), set([])), RecordSet(set([]), set([])))
+
+    >>> state
+    State(RecordSet(set([Demo(1, 3, 3)]), set([])), RecordSet(set([]), set([])))
+
 
 Merge overlapping and non-overlapping inbound and outbound changes, resulting
 in pending inbound changes::
 
-    >>> rsNewBase =   { '1' : rs([Demo(1, 4, 4)]) }
-    >>> inboundDiff = { '1' : rs([Demo(1, 5, nc)]) }
-    >>> toSend, toApply, pending = merge(bl, rsNewBase, inboundDiff)
-    >>> toSend == {'1': rs(set([Demo(1, nc, 4)]))}
-    True
-    >>> toApply == { }
-    True
-    >>> pending == {'1': rs(set([Demo(1, 5, nc)]))}
-    True
-    >>> getState(bl, '1') == (rs(set([Demo(1,3,4)])), rs(set([Demo(1,5,nc)])))
-    True
+    >>> state.merge(rs([Demo(1, 4, 4)]), rs([Demo(1, 5, nc)]))
+    (RecordSet(set([Demo(1, NoChange, 4)]), set([])), RecordSet(set([]), set([])), RecordSet(set([Demo(1, 5, NoChange)]), set([])))
+
+    >>> state
+    State(RecordSet(set([Demo(1, 3, 4)]), set([])), RecordSet(set([Demo(1, 5, NoChange)]), set([])))
+
 
 With pending changes, non-conflicting local modifications can still go out::
 
-    >>> rsNewBase =   { '1' : rs([Demo(1, 4, 5)]) }
-    >>> inboundDiff = { }
-    >>> toSend, toApply, pending = merge(bl, rsNewBase, inboundDiff)
-    >>> toSend == {'1': rs(set([Demo(1, nc, 5)]))}
-    True
-    >>> toApply == { }
-    True
-    >>> pending == {'1': rs(set([Demo(1, 5, nc)]))}
-    True
-    >>> getState(bl, '1') == (rs(set([Demo(1,3,5)])), rs(set([Demo(1,5,nc)])))
-    True
+    >>> state.merge(rs([Demo(1, 4, 5)]))
+    (RecordSet(set([Demo(1, NoChange, 5)]), set([])), RecordSet(set([]), set([])), RecordSet(set([Demo(1, 5, NoChange)]), set([])))
+
+    >>> state
+    State(RecordSet(set([Demo(1, 3, 5)]), set([])), RecordSet(set([Demo(1, 5, NoChange)]), set([])))
+
 
 See that a pending change can disappear due to a later inbound change:
 
-    >>> rsNewBase =   { '1' : rs([Demo(1, 4, 5)]) }
-    >>> inboundDiff = { '1' : rs([Demo(1, 4, 5)]) }
-    >>> toSend, toApply, pending = merge(bl, rsNewBase, inboundDiff)
-    >>> toSend == { }
-    True
-    >>> toApply == { }
-    True
-    >>> pending == { }
-    True
-    >>> getState(bl, '1') == (rs(set([Demo(1,4,5)])), empty)
-    True
+    >>> state.merge(rs([Demo(1, 4, 5)]), rs([Demo(1, 4, 5)]))
+    (RecordSet(set([]), set([])), RecordSet(set([]), set([])), RecordSet(set([]), set([])))
+
+    >>> state
+    State(RecordSet(set([Demo(1, 4, 5)]), set([])), RecordSet(set([]), set([])))
+
 
 Merge only overlapping inbound and outbound changes::
 
-    >>> rsNewBase =   { '1' : rs([Demo(1, 4, 6)]) }
-    >>> inboundDiff = { '1' : rs([Demo(1, 4, 7)]) }
-    >>> toSend, toApply, pending = merge(bl, rsNewBase, inboundDiff)
-    >>> toSend == { }
-    True
-    >>> toApply == { }
-    True
-    >>> pending == {'1': rs(set([Demo(1, nc, 7)]))}
-    True
-    >>> getState(bl, '1') == (rs(set([Demo(1,4,5)])), rs(set([Demo(1,nc,7)])))
-    True
+    >>> state.merge(rs([Demo(1, 4, 6)]), rs([Demo(1, 4, 7)]))
+    (RecordSet(set([]), set([])), RecordSet(set([]), set([])), RecordSet(set([Demo(1, NoChange, 7)]), set([])))
+
+    >>> state
+    State(RecordSet(set([Demo(1, 4, 5)]), set([])), RecordSet(set([Demo(1, NoChange, 7)]), set([])))
+
 
 Add in a filter, make a local change and no inbound changes::
 
     >>> filter = getFilter(['cid:bar-filter@osaf.us'])
-    >>> rsNewBase = { '1' : rs([Demo(1, 6, 8)]) }
-    >>> inboundDiff = { }
-    >>> toSend, toApply, pending = merge(bl, rsNewBase, inboundDiff,
-    ...     filter=filter)
-    >>> toSend == { }
-    True
-    >>> toApply == { }
-    True
-    >>> pending == {'1': rs(set([Demo(1, nc, 7)]))}
-    True
-    >>> getState(bl, '1') == (rs(set([Demo(1,4,5)])), rs(set([Demo(1,nc,7)])))
-    True
+    >>> state.merge(rs([Demo(1, 6, 8)]), filter=filter)
+    (RecordSet(set([]), set([])), RecordSet(set([]), set([])), RecordSet(set([Demo(1, NoChange, 7)]), set([])))
+
+    >>> state
+    State(RecordSet(set([Demo(1, 4, 5)]), set([])), RecordSet(set([Demo(1, NoChange, 7)]), set([])))
+
 
 Even though we locally modified the 'bar' field, it is not sent because of
 the filter.  Even though we locally modified the 'baz' field, since there is
@@ -411,149 +346,93 @@ an outstanding pending change it is also not sent.
 
 See that a pending change can disappear due to a later outbound change:
 
-    >>> rsNewBase =   { '1' : rs([Demo(1, 6, 7)]) }
-    >>> inboundDiff = { }
-    >>> toSend, toApply, pending = merge(bl, rsNewBase, inboundDiff,
-    ...     filter=filter)
-    >>> toSend == { }
-    True
-    >>> toApply == { }
-    True
-    >>> pending == { }
-    True
-    >>> getState(bl, '1') == (rs(set([Demo(1,4,7)])), empty)
-    True
+    >>> state.merge(rs([Demo(1, 6, 7)]), filter=filter)
+    (RecordSet(set([]), set([])), RecordSet(set([]), set([])), RecordSet(set([]), set([])))
+
+    >>> state
+    State(RecordSet(set([Demo(1, 4, 7)]), set([])), RecordSet(set([]), set([])))
+
 
 There can be multiple filters in effect; note how we locally change both fields
 yet send nothing, and the agreed upon state doesn't change::
 
     >>> filter = getFilter(['cid:bar-filter@osaf.us', 'cid:baz-filter@osaf.us'])
-    >>> rsNewBase = { '1' : rs([Demo(1, 7, 8)]) }
-    >>> inboundDiff = { }
-    >>> toSend, toApply, pending = merge(bl, rsNewBase, inboundDiff,
-    ...     filter=filter)
-    >>> toSend == { }
-    True
-    >>> toApply == { }
-    True
-    >>> pending == { }
-    True
-    >>> getState(bl, '1') == (rs(set([Demo(1,4,7)])), empty)
-    True
+    >>> state.merge(rs([Demo(1, 7, 8)]), filter=filter)
+    (RecordSet(set([]), set([])), RecordSet(set([]), set([])), RecordSet(set([]), set([])))
+
+    >>> state
+    State(RecordSet(set([Demo(1, 4, 7)]), set([])), RecordSet(set([]), set([])))
+
 
 Verify that inbound changes to filtered fields are not applied locally, yet
 unfiltered inbound changes are applied::
 
     >>> filter = getFilter(['cid:bar-filter@osaf.us'])
-    >>> rsNewBase = { '1' : rs([Demo(1, 7, 8)]) }
-    >>> inboundDiff = { '1' : rs([Demo(1, 5, 8)]) }
-    >>> toSend, toApply, pending = merge(bl, rsNewBase, inboundDiff,
-    ...     filter=filter)
-    >>> toSend == { }
-    True
-    >>> toApply == { }
-    True
-    >>> pending == { }
-    True
-    >>> getState(bl, '1') == (rs(set([Demo(1,4,8)])), empty)
-    True
+    >>> state.merge(rs([Demo(1, 7, 8)]), rs([Demo(1, 5, 8)]), filter=filter)
+    (RecordSet(set([]), set([])), RecordSet(set([]), set([])), RecordSet(set([]), set([])))
+
+    >>> state
+    State(RecordSet(set([Demo(1, 4, 8)]), set([])), RecordSet(set([]), set([])))
+
 
 Verify that inbound and outbound changes to a filtered field is not considered
 a conflict::
 
-    >>> rsNewBase =   { '1' : rs([Demo(1, 8, 9)]) }
-    >>> inboundDiff = { '1' : rs([Demo(1, 9, 9)]) }
-    >>> toSend, toApply, pending = merge(bl, rsNewBase, inboundDiff,
-    ...     filter=filter)
-    >>> toSend == { }
-    True
-    >>> toApply == { }
-    True
-    >>> pending == { }
-    True
-    >>> getState(bl, '1') == (rs(set([Demo(1,4,9)])), empty)
-    True
+    >>> state.merge(rs([Demo(1, 8, 9)]), rs([Demo(1, 9, 9)]), filter=filter)
+    (RecordSet(set([]), set([])), RecordSet(set([]), set([])), RecordSet(set([]), set([])))
+
+    >>> state
+    State(RecordSet(set([Demo(1, 4, 9)]), set([])), RecordSet(set([]), set([])))
+
 
 Verify that conflicts can still be detected when at least one conflicting
 field is not filtered::
 
-    >>> rsNewBase =   { '1' : rs([Demo(1, 9, 10)]) }
-    >>> inboundDiff = { '1' : rs([Demo(1, 10, 11)]) }
-    >>> toSend, toApply, pending = merge(bl, rsNewBase, inboundDiff,
-    ...     filter=filter)
-    >>> toSend == { }
-    True
-    >>> toApply == { }
-    True
-    >>> pending == {'1': rs(set([Demo(1, nc, 11)]))}
-    True
-    >>> getState(bl, '1') == (rs(set([Demo(1,4,9)])), rs(set([Demo(1, nc, 11)])))
-    True
+    >>> state.merge(rs([Demo(1, 9, 10)]), rs([Demo(1, 10, 11)]), filter=filter)
+    (RecordSet(set([]), set([])), RecordSet(set([]), set([])), RecordSet(set([Demo(1, NoChange, 11)]), set([])))
+
+    >>> state
+    State(RecordSet(set([Demo(1, 4, 9)]), set([])), RecordSet(set([Demo(1, NoChange, 11)]), set([])))
+
 
 
 Start over, to test that local deletions get sent::
 
-    >>> saveState(bl, '1', rs(set([Demo(1,1,1)])), rs())
+    >>> state.set(rs(set([Demo(1,1,1)])), empty)
 
-    >>> rsNewBase = { '1' : rs() }
-    >>> inboundDiff =   { }
-    >>> toSend, toApply, pending = merge(bl, rsNewBase, inboundDiff)
-    >>> toSend == {'1': rs([], set([Demo(1, 1, 1)]))}
-    True
-    >>> toApply == { }
-    True
-    >>> pending == { }
-    True
+    >>> state.merge(empty)
+    (RecordSet(set([]), set([Demo(1, 1, 1)])), RecordSet(set([]), set([])), RecordSet(set([]), set([])))
+
 
 
 Start over, to test that remote deletions get applied::
 
-    >>> saveState(bl, '1', rs(set([Demo(1,1,1)])), rs())
+    >>> state.set(rs(set([Demo(1,1,1)])), empty)
+    >>> state.merge(rs([Demo(1, 1, 1)]), rs([], [Demo(1, nc, nc)]))
+    (RecordSet(set([]), set([])), RecordSet(set([]), set([Demo(1, 1, 1)])), RecordSet(set([]), set([])))
 
-    >>> rsNewBase =   { '1' : rs([Demo(1, 1, 1)]) }
-    >>> inboundDiff = { '1' : rs([], [Demo(1, nc, nc)]) }
-    >>> toSend, toApply, pending = merge(bl, rsNewBase, inboundDiff)
-    >>> toSend == { }
-    True
-    >>> toApply == {'1': rs([], set([Demo(1, 1, 1)]))}
-    True
-    >>> pending == { }
-    True
 
 
 Start over, to test that local changes and remote deletions get detected::
 
-    >>> saveState(bl, '1', rs(set([Demo(1,1,1)])), rs())
+    >>> state.set(rs(set([Demo(1,1,1)])), empty)
+    >>> state.merge(rs([Demo(1, 2, 2)]), rs([], [Demo(1, nc, nc)]))
+    (RecordSet(set([]), set([])), RecordSet(set([]), set([])), RecordSet(set([]), set([Demo(1, 1, 1)])))
 
-    >>> rsNewBase = { '1' : rs([Demo(1, 2, 2)]) }
-    >>> inboundDiff = { '1' : rs([], [Demo(1, nc, nc)]) }
-    >>> toSend, toApply, pending = merge(bl, rsNewBase, inboundDiff)
-    >>> toSend == { }
-    True
-    >>> toApply == { }
-    True
-    >>> pending == {'1': rs([], set([Demo(1, 1, 1)]))}
-    True
-    >>> getState(bl, '1') == (rs(set([Demo(1,1,1)])), rs([], set([Demo(1, 1, 1)])))
-    True
+    >>> state
+    State(RecordSet(set([Demo(1, 1, 1)]), set([])), RecordSet(set([]), set([Demo(1, 1, 1)])))
 
 
 Start over, to test that local deletions and remote changes get detected::
 
 
-    >>> saveState(bl, '1', rs(set([Demo(1,1,1)])), rs())
+    >>> state.set(rs(set([Demo(1,1,1)])), empty)
+    >>> state.merge(empty, rs([Demo(1, 2, 2)]))
+    (RecordSet(set([]), set([])), RecordSet(set([]), set([])), RecordSet(set([Demo(1, 2, 2)]), set([])))
 
-    >>> rsNewBase = { '1' : rs() }
-    >>> inboundDiff = { '1' : rs([Demo(1, 2, 2)]) }
-    >>> toSend, toApply, pending = merge(bl, rsNewBase, inboundDiff)
-    >>> toSend == { }
-    True
-    >>> toApply == { }
-    True
-    >>> pending == {'1': rs(set([Demo(1, 2, 2)]))}
-    True
-    >>> getState(bl, '1') == (rs(set([Demo(1,1,1)])), rs(set([Demo(1, 2, 2)])))
-    True
+    >>> state
+    State(RecordSet(set([Demo(1, 1, 1)]), set([])), RecordSet(set([Demo(1, 2, 2)]), set([])))
+
 
 
 
@@ -569,51 +448,42 @@ Start over, adding two records (one of a new record type)::
     ...     baz = sharing.field(int, [bazFilter])
     >>> osaf.sharing.Demo2 = Demo2
 
-    >>> saveState(bl, '1', rs(set([Demo(1,1,1), Demo2(1, 2, 2)])), rs())
+    >>> state.set(rs(set([Demo(1,1,1), Demo2(1,2,2)])), empty)
 
 ...now remove the Demo(1,1,1), and the result of the merge will be that we
 will send a deletion for that record::
 
-    >>> rsNewBase =   { '1' : rs(set([Demo2(1,2,2)])) }
-    >>> inboundDiff = { }
-    >>> toSend, toApply, pending = merge(bl, rsNewBase, inboundDiff)
-    >>> toSend == {'1' : rs(set([]), set([Demo(1,1,1)])) }
-    True
-    >>> getState(bl, '1') == (rs(set([Demo2(1,2,2)])), empty)
-    True
+    >>> state.merge(rs([Demo2(1, 2, 2)]))
+    (RecordSet(set([]), set([Demo(1, 1, 1)])), RecordSet(set([]), set([])), RecordSet(set([]), set([])))
+
+    >>> state
+    State(RecordSet(set([Demo2(1, 2, 2)]), set([])), RecordSet(set([]), set([])))
+
 
 If a record is removed inbound and outbound, that is not a conflict.  Note
 that a double-deletion results in an unnecessary record deletion in toApply,
 but record adding and deleting need to be idempotent anyway, so it's ok::
 
-    >>> rsNewBase =   { '1' : empty }
-    >>> inboundDiff =   { '1' : empty }
-    >>> toSend, toApply, pending = merge(bl, rsNewBase, inboundDiff)
-    >>> toSend == {'1' : rs(set([]), set([Demo2(1,2,2)]))} # will be a no-op
-    True
-    >>> toApply == { }
-    True
-    >>> pending == { }
-    True
-    >>> getState(bl, '1') == (empty, empty)
-    True
+    >>> state.merge(empty, empty)
+    (RecordSet(set([]), set([Demo2(1, 2, 2)])), RecordSet(set([]), set([])), RecordSet(set([]), set([])))
+
+    >>> state
+    State(RecordSet(set([]), set([])), RecordSet(set([]), set([])))
+
 
 
 
 Start over, with a filter this time from the start::
 
     >>> filter = getFilter(['cid:bar-filter@osaf.us'])
-    >>> saveState(bl, '1', empty, empty)
+    >>> state.set(empty, empty)
 
 Merge a local addition with no inbound changes; note that the outbound
 record has a NoChange value on the filtered field::
 
-    >>> rsNewBase = { '1' : rs([Demo(1, 1, 1)]) }
-    >>> inboundDiff = { }
-    >>> toSend, toApply, pending = merge(bl, rsNewBase, inboundDiff,
-    ...     filter=filter)
-    >>> toSend == {'1': rs(set([Demo(1, nc, 1)]))}
-    True
+    >>> state.merge(rs([Demo(1, 1, 1)]), filter=filter)
+    (RecordSet(set([Demo(1, NoChange, 1)]), set([])), RecordSet(set([]), set([])), RecordSet(set([]), set([])))
+
 
 
 
@@ -634,13 +504,18 @@ back.
     >>> not pim.has_stamp(item0, sharing.SharedItem)
     True
 
+    >>> morgen0 = schema.Item(itsView=rv0)
+    >>> morgen1 = schema.Item(itsView=rv1)
+    >>> pje0 = schema.Item(itsView=rv0)
+    >>> pje1 = schema.Item(itsView=rv1)
+
 An item is serialized to EIMML using the outbound method.  The second argument
 is a string which identifies the peer the item is being shared with.  The
 limitations on this value are TBD, but for now it just has to be a string.
 Perhaps we will require that it be a UUID of some object such as a Contact item
 or Share item.
 
-    >>> text = sharing.outbound(rv0, "pje", item0)
+    >>> text = sharing.outbound(rv0, pje0, item0)
 
 Sharing an item this way automatically stamps the item as SharedItem.
 
@@ -649,32 +524,27 @@ Sharing an item this way automatically stamps the item as SharedItem.
 
 An item is imported via the inbound method.
 
-    >>> item1 = sharing.inbound(rv1, "morgen", text)
+    >>> item1 = sharing.inbound(rv1, morgen1, text)
     >>> item1 is not None
     True
     >>> pim.has_stamp(item1, sharing.SharedItem)
     True
 
-Conflicts are accessed via getConflicts( )
+Conflicts are accessed via statesWithConflicts (until a better API)
 
     >>> shared0 = sharing.SharedItem(item0)
-    >>> not shared0.getConflicts()
+    >>> not hasattr(shared0, 'statesWithConflicts')
     True
+
     >>> shared1 = sharing.SharedItem(item1)
-    >>> not shared1.getConflicts()
+    >>> not hasattr(shared1, 'statesWithConflicts')
     True
 
 Cause a conflict:
 
     >>> item0.displayName = "changed by morgen"
     >>> item1.displayName = "changed by pje"
-    >>> text = sharing.outbound(rv0, "pje", item0)
-    >>> item1 = sharing.inbound(rv1, "morgen", text)
-    >>> shared1.getConflicts().has_key('morgen')
-    True
-
-getConflicts( ) returns a dictionary, keyed by peer, of RecordSets containing
-conflict diffs:
-
+    >>> text = sharing.outbound(rv0, pje0, item0)
+    >>> item1 = sharing.inbound(rv1, morgen1, text)
     >>> shared1.getConflicts()
-    {'morgen': RecordSet(set([ItemRecord(u'...', u'changed by morgen', NoChange, ..., NoChange, NoChange)]), set([]))}
+    [RecordSet(set([ItemRecord(u'...', u'changed by morgen', NoChange, ..., NoChange, NoChange)]), set([]))]
