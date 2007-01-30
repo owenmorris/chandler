@@ -455,7 +455,8 @@ def okCancel(parent, caption, message):
 
 # A simple "yes/no" dialog
 
-def ShowMessageDialog(parent, message, caption, flags, resultsTable=None):
+def ShowMessageDialog(parent, message, caption, flags, resultsTable=None,
+                      textTable=None):
     if flags & wx.YES_NO:
         flags |= wx.ICON_QUESTION
     elif flags & wx.OK:
@@ -464,7 +465,11 @@ def ShowMessageDialog(parent, message, caption, flags, resultsTable=None):
     if caption is None:
         caption = _("Chandler")
 
-    dlg = wx.MessageDialog(parent, message, caption, flags)
+    if textTable is not None:
+        dlg = CustomYesNoLabelDialog(parent, message, caption, flags, textTable)
+    else:
+        dlg = wx.MessageDialog(parent, message, caption, flags)
+
     val = dlg.ShowModal()
     dlg.Destroy()
 
@@ -473,6 +478,45 @@ def ShowMessageDialog(parent, message, caption, flags, resultsTable=None):
     else:
         return resultsTable[val]
 
+class CustomYesNoLabelDialog(wx.Dialog):
+    def __init__(self, parent, message, caption, flags, textTable):
+        
+        wx.Dialog.__init__(self, parent, -1, caption)
+        outerSizer = wx.BoxSizer(wx.VERTICAL)
+        text = wx.StaticText(self, -1, message)
+        text.Wrap(300)
+        outerSizer.Add(text, 0, wx.ALIGN_CENTER|wx.ALL, 20)
+
+        sizer = wx.StdDialogButtonSizer()
+        if flags & wx.YES_NO:
+            sizer.AddButton(wx.Button(self, wx.ID_YES))
+            sizer.AddButton(wx.Button(self, wx.ID_NO))
+        elif flags & wx.OK:
+            sizer.AddButton(wx.Button(self, wx.ID_OK))
+            
+        if flags & wx.CANCEL:
+            sizer.AddButton(wx.Button(self, wx.ID_CANCEL))
+        
+        sizer.Realize()
+        for id, text in textTable.iteritems():
+            self.FindWindowById(id).SetLabel(text)        
+        
+        outerSizer.Add(sizer, 0, wx.BOTTOM|wx.LEFT|wx.RIGHT|wx.ALIGN_CENTER, 10)
+
+        self.SetSizer(outerSizer)
+        outerSizer.Fit(self)
+        
+        if flags & wx.YES_NO:
+            self.Bind(wx.EVT_BUTTON, self.End, id=wx.ID_YES)
+            self.Bind(wx.EVT_BUTTON, self.End, id=wx.ID_NO)
+        elif flags & wx.OK:
+            self.Bind(wx.EVT_BUTTON, self.End, id=wx.ID_OK)
+            
+        if flags & wx.CANCEL:
+            self.Bind(wx.EVT_BUTTON, self.End, id=wx.ID_CANCEL) 
+
+    def End(self, event):
+        self.EndModal(event.GetId())
 
 def yesNo(parent, caption, message):
     """

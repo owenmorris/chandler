@@ -962,7 +962,10 @@ class SidebarBlock(Table):
         mine = pim_ns.mine
         allCollection = pim_ns.allCollection
 
-        mineMessage = _(u'Do you want to delete the items in %(collectionName)s?')
+        mineMessage = _(u'Would you like to delete just the collection or the '
+                        u'collection and the items within it as well?')
+        mineTextTable = {wx.ID_YES : _(u"Collection and Items"),
+                         wx.ID_NO  : _(u"Collection only")}
         notMineMessage = _(u"Deleting %(collectionName)s will move its contents to the Trash")
         
         # don't pop up a dialog when running functional tests
@@ -974,7 +977,8 @@ class SidebarBlock(Table):
                 if collection in mine.sources:
                     shouldClearCollection = \
                         promptYesNoCancel(mineMessage % dataDict,
-                                          viewsmain.clearCollectionPref)
+                                          viewsmain.clearCollectionPref,
+                                          textTable=mineTextTable)
     
                     if shouldClearCollection is None: # user pressed cancel
                         return

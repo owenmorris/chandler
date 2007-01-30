@@ -30,7 +30,8 @@ class DialogPref(Preferences):
     askNextTime = schema.One(schema.Boolean, defaultValue=True)
 
 
-def prefPrompt(message, pref, flags, parent=None, resultsTable=None, caption=None):
+def prefPrompt(message, pref, flags, parent=None, resultsTable=None,
+               caption=None, textTable=None):
     if pref is not None and not pref.askNextTime:
         if pref.hasLocalAttributeValue('response'):
             return pref.response
@@ -43,19 +44,22 @@ def prefPrompt(message, pref, flags, parent=None, resultsTable=None, caption=Non
     if caption is None:
         caption = _(u"Chandler")
 
-    return ShowMessageDialog(parent, message, caption, flags, resultsTable)
+    return ShowMessageDialog(parent, message, caption, flags, resultsTable,
+                             textTable)
 
 
-def promptYesNo(message, pref=None, parent=None, caption=None):
+def promptYesNo(message, pref=None, parent=None, caption=None, textTable=None):
 
     return prefPrompt(message, pref, 
                       wx.YES_NO,
                       parent=parent,
                       resultsTable={wx.ID_YES: True,
                                     wx.ID_NO: False},
-                      caption=caption)
+                      caption=caption,
+                      textTable=textTable)
 
-def promptYesNoCancel(message, pref=None, parent=None, caption=None):
+def promptYesNoCancel(message, pref=None, parent=None, caption=None,
+                      textTable=None):
     
     return prefPrompt(message, pref,
                       wx.YES_NO | wx.CANCEL,
@@ -63,8 +67,9 @@ def promptYesNoCancel(message, pref=None, parent=None, caption=None):
                       resultsTable={wx.ID_YES: True,
                                     wx.ID_NO: False,
                                     wx.ID_CANCEL: None },
-                      caption=caption)
-                       
+                      caption=caption,
+                      textTable=textTable)
+
 def promptOk(message, pref=None, parent=None, caption=None):
 
     return prefPrompt(message, pref, wx.OK, parent=parent, caption=caption)
