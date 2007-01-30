@@ -91,3 +91,8 @@ class OutOfSequence(SharingError):
     Exception raised if an old itemcentric update arrives after a more recent
     one
     """
+
+class ConflictsPending(SharingError):
+    """
+    Exception raised if attempting to send a p2p change with conflicts pending
+    """

@@ -14,6 +14,7 @@
 
 from osaf import pim
 import eim, eimml, translator, shares, errors
+from i18n import ChandlerMessageFactory as _
 import logging
 
 logger = logging.getLogger(__name__)
@@ -28,7 +29,9 @@ __all__ = [
 
 # Item-centric peer-to-peer sharing
 
-def inbound(rv, peer, text, allowDeletion=False, debug=False):
+def inbound(peer, text, allowDeletion=False, debug=False):
+
+    rv = peer.itsView
 
     # At some point, which serializer and translator to use should be
     # configurable
@@ -114,7 +117,9 @@ def inbound(rv, peer, text, allowDeletion=False, debug=False):
 
 
 
-def outbound(rv, peer, item, debug=False):
+def outbound(peer, item, debug=False):
+
+    rv = peer.itsView
 
     # At some point, which serializer and translator to use should be
     # configurable
@@ -128,9 +133,15 @@ def outbound(rv, peer, item, debug=False):
         shares.SharedItem(item).add()
 
     shared = shares.SharedItem(item)
-    state = getPeerState(shared, peer)
 
     # Abort if pending
+    if shared.getConflicts():
+        raise errors.ConflictsPending(_(u"Conflicts pending"))
+
+    state = getPeerState(shared, peer)
+
+    # Set agreed state to what we have locally
+    state.agreed = rsInternal
 
     # Repository identifier:
     if rv.repository is not None:
@@ -141,14 +152,14 @@ def outbound(rv, peer, item, debug=False):
     text = serializer.serialize({uuid : rsInternal}, "item", repo=repoId,
         version=str(item.itsVersion))
 
-    if debug: print "Text:", text
-
     return text
 
 
 
 
-def outboundDeletion(rv, peer, uuid, debug=False):
+def outboundDeletion(peer, uuid, debug=False):
+
+    rv = peer.itsView
 
     # At some point, which serializer and translator to use should be
     # configurable
@@ -160,10 +171,14 @@ def outboundDeletion(rv, peer, uuid, debug=False):
 
 def getPeerState(item, peer, create=True):
 
+    peerUuid = peer.itsUUID.str16()
     state = None
     if hasattr(item, 'states'):
-        state = item.states.getByAlias(peer.itsUUID.str16())
+        state = item.states.getByAlias(peerUuid)
+    else:
+        item.states = []
     if state is None and create:
         state = shares.State(itsView=item.itsItem.itsView, peer=peer)
+        item.states.append(state, peerUuid)
     return state
 

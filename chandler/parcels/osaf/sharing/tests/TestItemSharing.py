@@ -52,14 +52,14 @@ class ItemSharingTestCase(testcase.DualRepositoryTestCase):
         # morgen sends to pje
         self.assert_(not pim.has_stamp(item0, sharing.SharedItem))
         view0.commit()
-        text = itemcentric.outbound(view0, pje, item0)
+        text = itemcentric.outbound(pje, item0)
         view0.commit()
         self.assert_(pim.has_stamp(item0, sharing.SharedItem))
 
         # pje receives from morgen
         self.assert_(view1.findUUID(self.uuid) is None)
         view1.commit()
-        item1 = itemcentric.inbound(view1, morgen, text)
+        item1 = itemcentric.inbound(morgen, text)
         view1.commit()
         self.assert_(pim.has_stamp(item1, sharing.SharedItem))
         self.assertEqual(item1.displayName, "test displayName")
@@ -74,49 +74,60 @@ class ItemSharingTestCase(testcase.DualRepositoryTestCase):
         item0.displayName = "changed by morgen"
         item1.displayName = "changed by pje"
         view0.commit()
-        text = itemcentric.outbound(view0, pje, item0)
+        text = itemcentric.outbound(pje, item0)
         view0.commit()
         view1.commit()
-        itemcentric.inbound(view1, morgen, text)
+        itemcentric.inbound(morgen, text)
         view1.commit()
         self.assert_(shared1.getConflicts())
 
+
+        # try sending when there are pending conflicts
+        try:
+            itemcentric.outbound(morgen, item1)
+        except sharing.ConflictsPending:
+            pass # This is what we're expecting
+        else:
+            raise Exception("We were expecting an ConflictsPending exception")
+
+
+
         # removal
         view0.commit()
-        text = itemcentric.outboundDeletion(view0, pje, self.uuid)
+        text = itemcentric.outboundDeletion(pje, self.uuid)
         view0.commit()
         # allowDeletion flag False
         view1.commit()
-        itemcentric.inbound(view1, morgen, text, allowDeletion=False)
+        itemcentric.inbound(morgen, text, allowDeletion=False)
         view1.commit() # to give a chance for a deleted item to go away
         self.assert_(view1.findUUID(self.uuid) is not None)
         # allowDeletion flag True
-        itemcentric.inbound(view1, morgen, text, allowDeletion=True)
+        itemcentric.inbound(morgen, text, allowDeletion=True)
         view1.commit() # to give a chance for a deleted item to go away
         self.assert_(view1.findUUID(self.uuid) is None)
 
         # adding item back
-        text = itemcentric.outbound(view0, pje, item0)
-        itemcentric.inbound(view1, morgen, text)
+        text = itemcentric.outbound(pje, item0)
+        itemcentric.inbound(morgen, text)
         self.assert_(view1.findUUID(self.uuid) is not None)
 
         # overlapping but identical modifications results in no conflicts
         item0.displayName = "changed"
         item1.displayName = "changed"
         view0.commit()
-        text = itemcentric.outbound(view0, pje, item0)
+        text = itemcentric.outbound(pje, item0)
         view0.commit()
         view1.commit()
-        itemcentric.inbound(view1, morgen, text)
+        itemcentric.inbound(morgen, text)
         view1.commit()
         self.assert_(not shared1.getConflicts())
 
 
         # Verify that an out of sequence update is rejected
         view0.itsVersion = 2
-        text = itemcentric.outbound(view0, pje, item0)
+        text = itemcentric.outbound(pje, item0)
         try:
-            itemcentric.inbound(view1, morgen, text)
+            itemcentric.inbound(morgen, text)
         except sharing.OutOfSequence:
             pass # This is what we're expecting
         else:

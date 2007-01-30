@@ -499,15 +499,13 @@ back.
     >>> rv0 = NullRepositoryView()
     >>> rv1 = NullRepositoryView()
     >>> item0 = pim.Note(itsView=rv0, displayName="test displayName",
-    ...     body="test body")
+    ...     body="test body", triageStatus=pim.TriageEnum.later)
     >>> uuid = item0.itsUUID.str16()
     >>> not pim.has_stamp(item0, sharing.SharedItem)
     True
 
-    >>> morgen0 = schema.Item(itsView=rv0)
-    >>> morgen1 = schema.Item(itsView=rv1)
-    >>> pje0 = schema.Item(itsView=rv0)
-    >>> pje1 = schema.Item(itsView=rv1)
+    >>> pje = schema.Item(itsView=rv0)
+    >>> morgen = schema.Item(itsView=rv1)
 
 An item is serialized to EIMML using the outbound method.  The second argument
 is a string which identifies the peer the item is being shared with.  The
@@ -515,7 +513,7 @@ limitations on this value are TBD, but for now it just has to be a string.
 Perhaps we will require that it be a UUID of some object such as a Contact item
 or Share item.
 
-    >>> text = sharing.outbound(rv0, pje0, item0)
+    >>> text = sharing.outbound(pje, item0)
 
 Sharing an item this way automatically stamps the item as SharedItem.
 
@@ -524,11 +522,28 @@ Sharing an item this way automatically stamps the item as SharedItem.
 
 An item is imported via the inbound method.
 
-    >>> item1 = sharing.inbound(rv1, morgen1, text)
+    >>> item1 = sharing.inbound(morgen, text)
     >>> item1 is not None
     True
     >>> pim.has_stamp(item1, sharing.SharedItem)
     True
+
+    >>> item1.displayName
+    u'test displayName'
+
+    >>> item1.body
+    u'test body'
+
+    >>> item1.triageStatus
+    TriageEnum.later
+
+Send changes back
+
+    >>> item1.triageStatus = pim.TriageEnum.now
+    >>> text = sharing.outbound(morgen, item1)
+    >>> item0 = sharing.inbound(pje, text)
+    >>> item0.triageStatus
+    TriageEnum.now
 
 Conflicts are accessed via statesWithConflicts (until a better API)
 
@@ -544,7 +559,7 @@ Cause a conflict:
 
     >>> item0.displayName = "changed by morgen"
     >>> item1.displayName = "changed by pje"
-    >>> text = sharing.outbound(rv0, pje0, item0)
-    >>> item1 = sharing.inbound(rv1, morgen1, text)
+    >>> text = sharing.outbound(pje, item0)
+    >>> item1 = sharing.inbound(morgen, text)
     >>> shared1.getConflicts()
     [(<Item (new): ...>, RecordSet(set([ItemRecord(u'...', u'changed by morgen', NoChange, ..., NoChange, NoChange)]), set([])))]
