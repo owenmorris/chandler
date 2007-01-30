@@ -399,7 +399,7 @@ class DBRepository(OnDemandRepository):
                 dstPath = join(dbHome, 'DB_CONFIG')
                 self.logger.info(dstPath)
                 inFile = file(join(self.dbHome, 'DB_CONFIG'), 'r')
-                outFile = file(dstPath, 'w')
+                outFile = file(dstPath, 'w+b')
                 for line in inFile:
                     if not (line.startswith('set_data_dir') or
                             line.startswith('set_lg_dir')):
@@ -502,7 +502,7 @@ class DBRepository(OnDemandRepository):
                 restoreFile.close()
 
             if datadir != dbHome or logdir != dbHome:
-                outFile = file(join(dbHome, 'DB_CONFIG'), 'a')
+                outFile = file(join(dbHome, 'DB_CONFIG'), 'a+b')
                 if datadir != dbHome:
                     outFile.write('set_data_dir %s\n' %(datadir))
                 if logdir != dbHome:
