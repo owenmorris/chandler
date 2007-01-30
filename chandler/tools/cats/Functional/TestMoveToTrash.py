@@ -16,6 +16,7 @@ import tools.cats.framework.ChandlerTestLib as QAUITestAppLib
 from tools.cats.framework.ChandlerTestCase import ChandlerTestCase
 import osaf.framework.scripting as scripting
 from i18n.tests import uw
+import wx
 
 from time import strftime, localtime
 
@@ -27,6 +28,12 @@ class TestMoveToTrash(ChandlerTestCase):
         note = QAUITestAppLib.UITestItem("Note", self.logger)
         # actions
         note.SetAttr(displayName=uw("A note to move to Trash"), body=uw("TO MOVE TO TRASH"))
+        
+        # Work around nasty bug in QAUITestAppLib caused by not propagating notificatons correctly
+        application = wx.GetApp()
+        application.propagateAsynchronousNotifications()
+        application.Yield()
+
         note.MoveToTrash()
         # verification
         note.Check_ItemInCollection("Trash")

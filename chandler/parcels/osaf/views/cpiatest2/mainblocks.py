@@ -37,9 +37,9 @@ def makeCPIATestMainView (parcel):
 
     SidebarBranchPointDelegateInstance = SidebarBranchPointDelegate.update(
         parcel, 'SidebarBranchPointDelegateInstance',
-        calendarTemplatePath = '//parcels/osaf/views/main/CalendarSummaryViewTemplate',
-        dashboardTemplatePath = '//parcels/osaf/views/main/DashboardSummaryViewTemplate',
-        searchResultsTemplatePath = '//parcels/osaf/views/main/SearchResultsViewTemplate')
+        calendarTemplatePath = 'osaf.views.main.CalendarSummaryViewTemplate',
+        dashboardTemplatePath = 'osaf.views.main.DashboardSummaryViewTemplate',
+        searchResultsTemplatePath = 'osaf.views.main.SearchResultsViewTemplate')
     
     IconButton = SSSidebarIconButton2.update(
         parcel, 'IconButton3',
@@ -156,6 +156,7 @@ def makeCPIATestMainView (parcel):
         size = SizeType(1024, 720),
         orientationEnum = 'Vertical',
         eventBoundary = True,
+        bufferedDraw = True,
         displayName = _(u'Chandler\'s MainView'),
         eventsForNamedLookup = [
             main.RequestSelectSidebarItem,
@@ -171,53 +172,48 @@ def makeCPIATestMainView (parcel):
         childrenBlocks = [
             cpiatest2.MenuBar,
             StatusBar.template('StatusBar'),
-            BoxContainer.template('ToolbarContainer',
-                orientationEnum = 'Vertical',
-                bufferedDraw = True,
+            ApplicationBar,
+            BoxContainer.template('SidebarContainerContainer',
+                border = RectType(4, 0, 0, 0),
                 childrenBlocks = [
-                    ApplicationBar,
-                    BoxContainer.template('SidebarContainerContainer',
-                        border = RectType(4, 0, 0, 0),
+                    SplitterWindow.template('SidebarContainer',
+                        stretchFactor = 0.0,
+                        border = RectType(0, 0, 0, 4.0),
+                        splitPercentage = 0.42,
+                        splitController = miniCal,
                         childrenBlocks = [
-                            SplitterWindow.template('SidebarContainer',
-                                stretchFactor = 0.0,
-                                border = RectType(0, 0, 0, 4.0),
-                                splitPercentage = 0.42,
-                                splitController = miniCal,
+                            Sidebar,
+                            BoxContainer.template('PreviewAndMiniCalendar',
+                                orientationEnum = 'Vertical',
                                 childrenBlocks = [
-                                    Sidebar,
-                                    BoxContainer.template('PreviewAndMiniCalendar',
-                                        orientationEnum = 'Vertical',
-                                        childrenBlocks = [
-                                            PreviewArea.template('PreviewArea',
-                                                contents = pim_ns.allCollection,
-                                                calendarContainer = None,
-                                                timeCharacterStyle = \
-                                                    CharacterStyle.update(parcel, 
-                                                                          'PreviewTimeStyle', 
-                                                                          fontSize = 10,
-                                                                          fontStyle = 'bold'),
-                                                eventCharacterStyle = \
-                                                    CharacterStyle.update(parcel, 
-                                                                          'PreviewEventStyle', 
-                                                                          fontSize = 11),
-                                                linkCharacterStyle = \
-                                                    CharacterStyle.update(parcel, 
-                                                                          'PreviewLinkStyle', 
-                                                                          fontSize = 11,
-                                                                          fontStyle = 'underline'),                                                
-                                                stretchFactor = 0.0,
-                                                miniCalendar = miniCal),
-                                            miniCal
-                                            ]) # BoxContainer PreviewAndMiniCalendar
-                                    ]), # SplitterWindow SidebarContainer
-                            BranchPointBlock.template('SidebarBranchPointBlock',
-                                delegate = SidebarBranchPointDelegateInstance,
-                                detailItem = pim_ns.allCollection,
-                                selectedItem = pim_ns.allCollection,
-                                detailItemCollection = pim_ns.allCollection),
-                            ]) # BoxContainer SidebarContainerContainer
-                    ]) # BoxContainer ToolbarContainer
+                                    PreviewArea.template('PreviewArea',
+                                        contents = pim_ns.allCollection,
+                                        calendarContainer = None,
+                                        timeCharacterStyle = \
+                                            CharacterStyle.update(parcel, 
+                                                                  'PreviewTimeStyle', 
+                                                                  fontSize = 10,
+                                                                  fontStyle = 'bold'),
+                                        eventCharacterStyle = \
+                                            CharacterStyle.update(parcel, 
+                                                                  'PreviewEventStyle', 
+                                                                  fontSize = 11),
+                                        linkCharacterStyle = \
+                                            CharacterStyle.update(parcel, 
+                                                                  'PreviewLinkStyle', 
+                                                                  fontSize = 11,
+                                                                  fontStyle = 'underline'),                                                
+                                        stretchFactor = 0.0,
+                                        miniCalendar = miniCal),
+                                    miniCal
+                                    ]) # BoxContainer PreviewAndMiniCalendar
+                            ]), # SplitterWindow SidebarContainer
+                    BranchPointBlock.template('SidebarBranchPointBlock',
+                        delegate = SidebarBranchPointDelegateInstance,
+                        detailItem = pim_ns.allCollection,
+                        selectedItem = pim_ns.allCollection,
+                        detailItemCollection = pim_ns.allCollection),
+                    ]) # BoxContainer SidebarContainerContainer
             ]).install (parcel) # MainViewInstance MainView
 
     return MainViewInstance

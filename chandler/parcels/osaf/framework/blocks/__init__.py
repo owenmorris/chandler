@@ -23,7 +23,8 @@ from Block import (
     RectangularChild, BlockEvent, NewItemEvent, ChoiceEvent, ColorEvent,
     ClassParameterizedEvent, AddToSidebarEvent, NewBlockWindowEvent, 
     EventList, debugName, getProxiedItem, WithoutSynchronizeWidget,
-    IgnoreSynchronizeWidget, DispatchHook, DispatcHookList, BlockDispatchHook
+    IgnoreSynchronizeWidget, DispatchHook, DispatcHookList, BlockDispatchHook,
+    ViewEvent
 )
 
 from ContainerBlocks import (
