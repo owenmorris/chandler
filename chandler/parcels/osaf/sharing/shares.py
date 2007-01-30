@@ -58,7 +58,7 @@ class SharedItem(pim.Stamp):
         conflicts = [ ]
         for state in getattr(self, 'conflictingStates', []):
             if state.pending:
-                conflicts.append(state.pending)
+                conflicts.append((state.peer, state.pending))
         return conflicts
 
 

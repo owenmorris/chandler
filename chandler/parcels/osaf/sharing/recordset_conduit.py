@@ -228,7 +228,7 @@ class RecordSetConduit(conduits.BaseConduit):
         return state
 
     def newState(self, uuidString):
-        state = shares.State(itsView=self.itsView, peer=self)
+        state = shares.State(itsView=self.itsView, peer=self.share)
         self.share.states.append(state, uuidString)
         return state
 

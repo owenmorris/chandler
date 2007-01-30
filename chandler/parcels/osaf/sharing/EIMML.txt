@@ -547,4 +547,4 @@ Cause a conflict:
     >>> text = sharing.outbound(rv0, pje0, item0)
     >>> item1 = sharing.inbound(rv1, morgen1, text)
     >>> shared1.getConflicts()
-    [RecordSet(set([ItemRecord(u'...', u'changed by morgen', NoChange, ..., NoChange, NoChange)]), set([]))]
+    [(<Item (new): ...>, RecordSet(set([ItemRecord(u'...', u'changed by morgen', NoChange, ..., NoChange, NoChange)]), set([])))]
