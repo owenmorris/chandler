@@ -70,31 +70,29 @@ def inbound(peer, text, allowDeletion=False, debug=False):
             state.clear()
             state.peerRepoId = peerRepoId
 
-        if 0 < peerItemVersion <= state.peerItemVersion:
-            # If we're using a null repository view (like during doctesting)
-            # the item versions are stuck at zero, so ignore versions less
-            # than 1
-            raise errors.OutOfSequence("Update %d arrived after %d" %
-                (peerItemVersion, state.peerItemVersion))
+        # Only process recordsets whose version is greater than the last one
+        # we say.  In the case of null-repository-view testing, versions are
+        # always stuck at zero, so process those as well.
 
-        state.peerItemVersion = peerItemVersion
+        if (peerItemVersion == 0) or (peerItemVersion > state.peerItemVersion):
+            state.peerItemVersion = peerItemVersion
 
-        dSend, dApply, pending = state.merge(rsInternal, rsExternal,
-            send=False, receive=True, uuid=uuid, debug=debug)
+            dSend, dApply, pending = state.merge(rsInternal, rsExternal,
+                send=False, receive=True, uuid=uuid, debug=debug)
 
-        if dApply:
-            if debug: print "Applying:", uuid, dApply
-            trans.importRecords(dApply)
+            if dApply:
+                if debug: print "Applying:", uuid, dApply
+                trans.importRecords(dApply)
 
-        item = rv.findUUID(uuid)
-        if item is not None and item.isLive():
-            if not pim.has_stamp(item, shares.SharedItem):
-                shares.SharedItem(item).add()
-            shared = shares.SharedItem(item)
-            if not hasattr(shared, 'states'):
-                shared.states = []
-            if state not in shared.states:
-                shared.states.append(state, peer.itsUUID.str16())
+            item = rv.findUUID(uuid)
+            if item is not None and item.isLive():
+                if not pim.has_stamp(item, shares.SharedItem):
+                    shares.SharedItem(item).add()
+                shared = shares.SharedItem(item)
+                if not hasattr(shared, 'states'):
+                    shared.states = []
+                if state not in shared.states:
+                    shared.states.append(state, peer.itsUUID.str16())
 
     else: # Deletion
 

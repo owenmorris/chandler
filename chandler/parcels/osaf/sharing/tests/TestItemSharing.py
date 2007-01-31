@@ -123,15 +123,6 @@ class ItemSharingTestCase(testcase.DualRepositoryTestCase):
         self.assert_(not shared1.getConflicts())
 
 
-        # Verify that an out of sequence update is rejected
-        view0.itsVersion = 2
-        text = itemcentric.outbound(pje, item0)
-        try:
-            itemcentric.inbound(morgen, text)
-        except sharing.OutOfSequence:
-            pass # This is what we're expecting
-        else:
-            raise Exception("We were expecting an OutOfSequence exception")
 
 if __name__ == "__main__":
     unittest.main()
