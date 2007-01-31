@@ -83,12 +83,12 @@ def importFileAsFormat(format, filename, view, coll=None,
         return importEmail(text, view, coll, selectedCollection)
 
 def importEmail(text, view, coll=None, selectedCollection=False):
-    item = osaf.mail.message.messageTextToKind(view, text)
+    msg = osaf.mail.message.messageTextToKind(view, text)
     if selectedCollection or coll is None:
         coll = Block.findBlockByName("MainView").getSidebarSelectedCollection()
-    if item is not None:
-        coll.add(item)
-    return item
+    if msg is not None:
+        coll.add(msg.itsItem)
+    return msg.itsItem
 
 def importFile(filename, view, coll=None, selectedCollection=False):
     """

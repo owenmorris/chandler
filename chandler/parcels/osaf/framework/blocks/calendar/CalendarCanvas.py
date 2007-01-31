@@ -1381,7 +1381,9 @@ class wxCalendarCanvas(CalendarNotificationHandler, CollectionCanvas.wxCollectio
         for filename in self.fileDataObject.GetFilenames():
             item = ChooseFormat.importFile(filename, self.blockItem.itsView,
                                            selectedCollection=True)
-            self.StampDraggedItem(item)
+            # if the file was ics, None will be returned
+            if item is not None:
+                self.StampDraggedItem(item)
 
     def OnEmailPaste(self, text):
         item = ChooseFormat.importEmail(text, self.blockItem.itsView,
