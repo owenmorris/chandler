@@ -256,7 +256,7 @@ class MainView(View):
 
     def onQuickEntryEvent (self, event):
 
-        def processQucikEntry(self, command):
+        def processQuickEntry(self, command):
             """
             Parses the text in the quick item entry widget in the toolbar. Creates the items 
             depending on the command and adds it to the appropriate collection. Also parses the
@@ -427,7 +427,7 @@ class MainView(View):
                 block.lastText = command
         else:
             # Try to process as a quick entry command
-            if len (command) != 0 and not processQucikEntry (self, command):
+            if len (command) != 0 and not processQuickEntry (self, command):
                 
                 if not (command.startswith('/search') or command.startswith('/Search')):
                     # command is not a valid
