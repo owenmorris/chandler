@@ -837,17 +837,17 @@ class wxCollectionCanvas(DragAndDrop.DropReceiveWidget,
 
     def ScrollIntoView(self, unscrolledPosition, buffer=0):
         clientSize = self.GetClientSize()
+        unscrolledPositionY = unscrolledPosition.y
         
         # scrolling up
-        if unscrolledPosition.y < buffer:
+        if unscrolledPositionY < buffer:
             # rectangle goes off the top - scroll up
-            self.ScaledScroll(0, unscrolledPosition.y - buffer)
+            self.ScaledScroll(0, unscrolledPositionY - buffer)
             
         # scrolling down
-        elif unscrolledPosition.y > clientSize.y - buffer:
+        elif unscrolledPositionY > clientSize.y - buffer:
             # rectangle goes off the bottom - scroll down
-            dy = unscrolledPosition.y - clientSize.y + buffer
-            self.ScaledScroll(0, dy)
+            self.ScaledScroll(0, unscrolledPositionY - clientSize.y + buffer)
 
     def IsValidDragPosition(self, unscrolledPosition):
         # by default, any position is valid, even if it goes off the canvas
@@ -950,8 +950,7 @@ class wxCollectionCanvas(DragAndDrop.DropReceiveWidget,
 
         # Sometimes we get empty regions to paint,
         # like when you mouseover the scrollbar
-        region = self.GetUpdateRegion()
-        if region.IsEmpty():
+        if self.GetUpdateRegion().IsEmpty():
             return
 
         self.PrepareDC(dc)
@@ -992,10 +991,7 @@ class wxCollectionCanvas(DragAndDrop.DropReceiveWidget,
         """
         (scrollX, scrollY) = self.CalcUnscrolledPosition(0,0)
         
-        scrollX += dx
-        scrollY += dy
-        
-        self.Scroll(scrollX, scrollY)
+        self.Scroll(scrollX + dx, scrollY + dy)
  
     # selection
 
