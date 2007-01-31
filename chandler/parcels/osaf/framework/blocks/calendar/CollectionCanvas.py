@@ -954,13 +954,6 @@ class wxCollectionCanvas(DragAndDrop.DropReceiveWidget,
         if region.IsEmpty():
             return
 
-        # a temporary performance boost for bug 4010, because
-        # bug 4213 is causing the all day area to get extra damage
-        # when bug 4213 is fixed, this code should be removed!
-        regionBox = region.GetBox()
-        if regionBox.y == 0 and regionBox.height == 1:
-            return
-
         self.PrepareDC(dc)
         self.DrawCanvas(dc)
         
