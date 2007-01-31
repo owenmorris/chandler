@@ -3,8 +3,10 @@
 from application import schema
 from osaf.sharing import model, eim
 from osaf.sharing.simplegeneric import generic
+from osaf.pim.calendar.TimeZone import convertToICUtzinfo
 from PyICU import ICUtzinfo
 import time, datetime, base64, decimal
+from dateutil.parser import parse as dateutilparser
 from xml.etree.cElementTree import (
     Element, SubElement, ElementTree, parse, tostring, fromstring
 )
@@ -47,13 +49,9 @@ def serialize_blob(typeinfo, value):
 def serialize_clob(typeinfo, value):
     return value
 
-# TODO
-# @serializeValue.when_type(eim.DateType)
-# def serialize_date(typeinfo, value):
-
-# @serializeValue.when_type(eim.TimestampType)
-# def serialize_date(typeinfo, value):
-#     return value.strftime("%Y-%m-%dT%H:%M:%SZ")
+@serializeValue.when_type(eim.DateType)
+def serialize_date(typeinfo, value):
+    return value.isoformat()
 
 @serializeValue.when_type(eim.DecimalType)
 def serialize_decimal(typeinfo, value):
@@ -91,15 +89,9 @@ def deserialize_clob(typeinfo, text):
 def deserialize_decimal(typeinfo, text):
     return decimal.Decimal(text)
 
-# TODO
-# @deserializeValue.when_type(eim.DateType)
-# def deserialize_date(typeinfo, text):
-
-# @deserializeValue.when_type(eim.TimestampType)
-# def deserialize_date(typeinfo, text):
-#     tuples = time.strptime(text, "%Y-%m-%dT%H:%M:%SZ")[0:6]
-#     utc = ICUtzinfo.getInstance('UTC')
-#     return datetime.datetime(*tuples).replace(tzinfo=utc)
+@deserializeValue.when_type(eim.DateType)
+def deserialize_date(typeinfo, text):
+    return convertToICUtzinfo(dateutilparser(text))
 
 
 

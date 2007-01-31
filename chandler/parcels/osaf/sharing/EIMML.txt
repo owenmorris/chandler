@@ -41,12 +41,12 @@ Translate decimal values::
 
 Translate datetime values::
 
-    >>> value = eimml.deserializeValue(TestRecord.decimalField.typeinfo, '123.45')
+    >>> value = eimml.deserializeValue(TestRecord.dateField.typeinfo,
+    ... '2007-01-30T15:45:30.098593-08:00')
     >>> value
-    Decimal("123.45")
-    >>> eimml.serializeValue(TestRecord.decimalField.typeinfo, value)
-    '123.45'
-
+    datetime.datetime(2007, 1, 30, 15, 45, 30, 98593, tzinfo=<ICUtzinfo: Etc/GMT+8>)
+    >>> eimml.serializeValue(TestRecord.dateField.typeinfo, value)
+    '2007-01-30T15:45:30.098593-08:00'
 
 TODO: int, lob, bytes
 
