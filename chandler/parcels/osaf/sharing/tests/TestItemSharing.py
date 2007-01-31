@@ -16,8 +16,6 @@
 import unittest, sys, os, logging, datetime, time
 from osaf import pim, sharing
 
-from osaf.sharing import itemcentric
-
 from repository.item.Item import Item
 from util import testcase
 from PyICU import ICUtzinfo
@@ -52,14 +50,14 @@ class ItemSharingTestCase(testcase.DualRepositoryTestCase):
         # morgen sends to pje
         self.assert_(not pim.has_stamp(item0, sharing.SharedItem))
         view0.commit()
-        text = itemcentric.outbound(pje, item0)
+        text = sharing.outbound(pje, item0)
         view0.commit()
         self.assert_(pim.has_stamp(item0, sharing.SharedItem))
 
         # pje receives from morgen
         self.assert_(view1.findUUID(self.uuid) is None)
         view1.commit()
-        item1 = itemcentric.inbound(morgen, text)
+        item1 = sharing.inbound(morgen, text)
         view1.commit()
         self.assert_(pim.has_stamp(item1, sharing.SharedItem))
         self.assertEqual(item1.displayName, "test displayName")
@@ -74,17 +72,17 @@ class ItemSharingTestCase(testcase.DualRepositoryTestCase):
         item0.displayName = "changed by morgen"
         item1.displayName = "changed by pje"
         view0.commit()
-        text = itemcentric.outbound(pje, item0)
+        text = sharing.outbound(pje, item0)
         view0.commit()
         view1.commit()
-        itemcentric.inbound(morgen, text)
+        sharing.inbound(morgen, text)
         view1.commit()
         self.assert_(shared1.getConflicts())
 
 
         # try sending when there are pending conflicts
         try:
-            itemcentric.outbound(morgen, item1)
+            sharing.outbound(morgen, item1)
         except sharing.ConflictsPending:
             pass # This is what we're expecting
         else:
@@ -94,35 +92,50 @@ class ItemSharingTestCase(testcase.DualRepositoryTestCase):
 
         # removal
         view0.commit()
-        text = itemcentric.outboundDeletion(pje, self.uuid)
+        text = sharing.outboundDeletion(pje, self.uuid)
         view0.commit()
         # allowDeletion flag False
         view1.commit()
-        itemcentric.inbound(morgen, text, allowDeletion=False)
+        sharing.inbound(morgen, text, allowDeletion=False)
         view1.commit() # to give a chance for a deleted item to go away
         self.assert_(view1.findUUID(self.uuid) is not None)
         # allowDeletion flag True
-        itemcentric.inbound(morgen, text, allowDeletion=True)
+        sharing.inbound(morgen, text, allowDeletion=True)
         view1.commit() # to give a chance for a deleted item to go away
         self.assert_(view1.findUUID(self.uuid) is None)
 
         # adding item back
-        text = itemcentric.outbound(pje, item0)
-        itemcentric.inbound(morgen, text)
-        self.assert_(view1.findUUID(self.uuid) is not None)
+        text = sharing.outbound(pje, item0)
+        item1 = sharing.inbound(morgen, text)
+        shared1 = sharing.SharedItem(item1)
+        self.assert_(view1.findUUID(self.uuid) is item1)
 
         # overlapping but identical modifications results in no conflicts
         item0.displayName = "changed"
         item1.displayName = "changed"
         view0.commit()
-        text = itemcentric.outbound(pje, item0)
+        text = sharing.outbound(pje, item0)
         view0.commit()
         view1.commit()
-        itemcentric.inbound(morgen, text)
+        sharing.inbound(morgen, text)
         view1.commit()
-        self.assert_(not shared1.getConflicts())
+        # Examine the conflicts and ensure the 'title' field isn't conflicting
+        peer, conflict = shared1.getConflicts()[0]
+        self.assert_(peer is morgen)
+        record = list(conflict.inclusions)[0]
+        self.assertEqual(record.title, sharing.NoChange)
 
 
+        # Verify that an out of sequence update is ignored
+        before = sharing.getPeerState(shared1, morgen, create=False)
+        beforeAgreed = before.agreed # copy the old agreed recordset
+        # item0.displayName is "changed"
+        view0.itsVersion = 2 # Back in time
+        # Now item0.displayName is "test displayName"
+        text = sharing.outbound(pje, item0)
+        sharing.inbound(morgen, text, debug=False)
+        after = sharing.getPeerState(shared1, morgen, create=False)
+        self.assertEqual(beforeAgreed, after.agreed)
 
 if __name__ == "__main__":
     unittest.main()

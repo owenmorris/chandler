@@ -24,6 +24,7 @@ __all__ = [
     'inbound',
     'outbound',
     'outboundDeletion',
+    'getPeerState',
 ]
 
 
