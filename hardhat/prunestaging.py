@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 
-#   Copyright (c) 2003-2006 Open Source Applications Foundation
+#   Copyright (c) 2003-2007 Open Source Applications Foundation
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -19,7 +19,7 @@
 # staging area. The job of this script is to prune excess directories.
 #
 # The default policy is as follows:
-# - keep 10 latest builds
+# - keep 5 latest builds
 #
 # We assume directory structure as follows:
 #
@@ -29,7 +29,7 @@
 #
 # We delete all YYYYMMDDHHMMSS directories that don't match our policy.
 
-keepLatestBuilds = 10
+keepLatestBuilds = 5
 smtpServer       = 'mail.osafoundation.org'
 downloadsServer  = 'builds'
 fromAddr         = 'builds'
