@@ -582,8 +582,6 @@ class MainView(View):
             cmd = dlg.ShowModal()
             dlg.Destroy()
             if cmd == wx.ID_YES:
-                if os.name == 'nt':
-                    path = '"%s"' %(path)
                 app.PostAsyncEvent(app.restart, restore=path)
 
     def RepositoryCommitWithStatus (self):

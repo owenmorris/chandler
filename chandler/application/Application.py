@@ -911,42 +911,82 @@ class wxApplication (wx.App):
         """
         self.UIRepositoryView.repository.close()
 
-    def restart(self, **kwds):
+    def restart(self, *args, **kwds):
         """
         Restart the application.
 
         The application is restarted using the same command it was started
-        with. Named arguments to be appended to the command may be passed in.
-        They must match the long names of the application's valid command
-        line arguments (without the leading '--'). 
-        Use C{True} as value for a command line argument taking no argument.
+        with.
 
-        For example: app.restart(restore=path, mvcc=True)
+        Optional arguments passed in via C{args} are appended to the command 
+        first.
+
+        Optional named arguments passed in via C{kwds} are appended to the 
+        command next by pre-pending '--' to their name which must be a valid
+        command line argument for the application.
+
+        Argument values may be of any type that can be represented as a
+        string. Unicode values are encoded using the system's file system
+        encoding.
+        On Windows, values containing space characters are wrapped with C{"} 
+        if there are not already.
+        If a keyword argument's value is C{True}, only its name is appended to
+        the command.
+
+        For example: app.restart('--backup', restore=path, mvcc=True) adds the
+                     arguments to the command as 
+                     C{'--backup --restore=path --mvcc'}
         """
 
-        args = []
-
-        if not __debug__:
-            args.append('-O')
-        for arg in sys.argv:
-            if arg not in ('-c', '--create'):
-                args.append(arg)
-
         encoding = sys.getfilesystemencoding()
+        windows = os.name == 'nt'
+
+        argv = []
+
+        if windows:
+            if (not __debug__ and
+                sys.executable.lower().endswith('python.exe')):
+                argv.append('-O')
+            for arg in sys.argv:
+                if arg not in ('-c', '--create'):
+                    if not arg.endswith('"') and ' ' in arg:
+                        arg = '"%s"' %(arg)
+                    argv.append(arg)
+        else:
+            if not __debug__:
+                argv.append('-O')
+            for arg in sys.argv:
+                if arg not in ('-c', '--create'):
+                    argv.append(arg)
+
+        for arg in args:
+            if isinstance(arg, unicode):
+                arg = arg.encode(encoding)
+            elif not isinstance(arg, str):
+                arg = str(arg)
+            if windows and not arg.endswith('"') and ' ' in arg:
+                arg = '"%s"' %(arg)
+            argv.append(arg)
+
         for name, value in kwds.iteritems():
             if value is True:
-                arg = "--%s" %(name)
-                args.append(arg)
+                arg = '--%s' %(name)
             else:
-                arg = "--%s=%s" %(name, value)
-                args.append(arg.encode(encoding))
+                if isinstance(value, unicode):
+                    value = value.encode(encoding)
+                elif not isinstance(value, str):
+                    value = str(value)
+                if windows and not value.endswith('"') and ' ' in value:
+                    value = '"%s"' %(value)
+                arg = '--%s=%s' %(name, value)
+            argv.append(arg)
 
         if sys.platform.startswith('linux'):
-            for arg in args:
+            for arg in argv:
                 if arg in ('-l', '--locale'):
                     break
             else:
-                args.append('--locale=%s' %(getLocaleSet()[0]))
+                argv.append('--locale=%s' %(getLocaleSet()[0]))
 
         Utility.stopTwisted()
         self.UIRepositoryView.repository.close()
@@ -955,7 +995,7 @@ class wxApplication (wx.App):
             if sys.platform == 'darwin':
                 from chandlerdb.util.c import vfork
                 vfork()
-            os.execl(sys.executable, sys.executable, *args)
+            os.execl(sys.executable, sys.executable, *argv)
         except:
             logger.exception("while restarting")
         finally:
