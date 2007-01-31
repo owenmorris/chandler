@@ -17,6 +17,7 @@ __parcel__ = "osaf.framework.blocks"
 
 from application import schema
 from application.Application import mixinAClass
+from i18n import ChandlerMessageFactory as _
 import Block as Block
 import logging
 import wx
@@ -1092,6 +1093,7 @@ class wxQuickEntry (wxToolbarItemMixin, wx.SearchCtrl):
         super (wxQuickEntry, self).__init__ (parent, id, title, position, **keywords)
         self.ShowCancelButton (True)
         self.ShowSearchButton (False)
+        self.SetDescriptiveText(_(u'Create new item'))
         self.Bind(wx.EVT_SEARCHCTRL_CANCEL_BTN, self.OnCancelButton)
         self.Bind(wx.EVT_TEXT_ENTER, wx.GetApp().OnCommand, id=id)
 
