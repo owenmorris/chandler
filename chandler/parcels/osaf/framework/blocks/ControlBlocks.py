@@ -1239,7 +1239,8 @@ class AEBlock(BoxContainer):
     characterStyle = schema.One(Styles.CharacterStyle, 
         doc="""an optional CharacterStyle in which this editor should draw""")
     readOnly = schema.One(schema.Boolean, initialValue = False,
-        doc="""If True, this editor should never allow editing of its value""")
+        doc="If True, this editor should never allow editing of its value, "
+            "but may allow selection & copying")
     presentationStyle = schema.One(PresentationStyle,
         doc="""an optional PresentationStyle to customize
                this editor's selection or behavior""")

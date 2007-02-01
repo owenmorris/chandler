@@ -291,11 +291,6 @@ def makeRootStuff(parcel, oldVersion):
                                           eventBoundary=True)
     detailRoot.install(parcel)
 
-    # A few spacer blocks, copied by other parcel.xml blocks.
-    # @@@ Should go away when parcel.xml conversion is complete!
-    makeSpacer(parcel, height=6, name='TopSpacer', position=0.01).install(parcel)
-    makeSpacer(parcel, width=8, name='HorizontalSpacer').install(parcel)
-
 def makeCalendarArea(parcel, oldVersion):
     blocks = schema.ns("osaf.framework.blocks", parcel.itsView)
 
@@ -453,7 +448,7 @@ def makeCalendarArea(parcel, oldVersion):
                 makeSpacer(parcel, width=8),
                 makeEditor(parcel, 'TimeDescription',
                     viewAttribute=pim.EventStamp.timeDescription.name,
-                    presentationStyle={ 'format' : 'static' },
+                    readOnly=True,
                     )])
     
     timeEditArea = \
@@ -716,13 +711,13 @@ def makeNoteSubtree(parcel, oldVersion):
 
     bylineArea = \
         makeArea(parcel, 'BylineArea',
-            baseClass=BylineAEBlock,
             childrenBlocks=[
-                makeEditor(parcel, 'BylineArea',
+                makeEditor(parcel, 'BylineBlock',
+                    baseClass=BylineAEBlock,
                     viewAttribute='byline',
                     presentationStyle={'format' : 'static'})],
             position=0.4,
-            border=RectType(0, 0, 6, 6)).install(parcel)
+            border=RectType(0, 6, 6, 6)).install(parcel)
 
     errorArea = \
         makeArea(parcel, 'ErrorArea',
@@ -845,15 +840,16 @@ def makeNoteSubtree(parcel, oldVersion):
                                        event=unreadTimeout,
                                        position=0.999).install(parcel)
     
-    # Finally, the subtree
+    # Finally, the subtree. Note that the actual vertical ordering will be
+    # determined by the 'position' attribute of each thing in the list.
     makeSubtree(parcel, osaf.pim.Note, [
-        makeSpacer(parcel, height=6, position=0.01).install(parcel),
         parcel['MarkupBar'],
+        makeSpacer(parcel, height=6, position=0.01).install(parcel),
+        bylineArea,
         errorArea,
         headlineArea, 
         makeSpacer(parcel, height=7, baseClass=ReminderSpacerBlock,
                    position=0.809999).install(parcel),
-        bylineArea,
         reminderTypeArea,
         reminderRelativeArea,
         reminderAbsoluteArea,
