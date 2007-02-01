@@ -21,6 +21,7 @@ build:	winlaunch/chandler.exe
 winlaunch/chandler.exe: winlaunch/winlaunch.cpp
 	devenv.com winlaunch/winlaunch.sln /build $(SNAP)
 	cp winlaunch/$(Snap)/chandler.exe $(BUILD_ROOT)
+	cp $(DLLS) $(BUILD_ROOT)/$(SNAP)/bin
 
 endif
 
