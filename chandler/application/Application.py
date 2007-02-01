@@ -922,42 +922,32 @@ class wxApplication (wx.App):
         first.
 
         Optional named arguments passed in via C{kwds} are appended to the 
-        command next by pre-pending '--' to their name which must be a valid
-        command line argument for the application.
+        command next - in no particular order - by pre-pending '--' to their
+        name which must be a valid command line argument for the application. 
 
         Argument values may be of any type that can be represented as a
         string. Unicode values are encoded using the system's file system
-        encoding.
-        On Windows, values containing space characters are wrapped with C{"} 
-        if there are not already.
-        If a keyword argument's value is C{True}, only its name is appended to
-        the command.
+        encoding. On Windows, values containing space characters are wrapped
+        with C{"} if there are not already. If a keyword argument's value is
+        C{True}, only its name is appended to the command.
 
-        For example: app.restart('--backup', restore=path, mvcc=True) adds the
-                     arguments to the command as 
+        For example: app.restart('--backup', restore=path, mvcc=True) would
+                     produce a command line containing:
                      C{'--backup --restore=path --mvcc'}
         """
 
         encoding = sys.getfilesystemencoding()
         windows = os.name == 'nt'
-
         argv = []
 
-        if windows:
-            if (not __debug__ and
-                sys.executable.lower().endswith('python.exe')):
-                argv.append('-O')
-            for arg in sys.argv:
-                if arg not in ('-c', '--create'):
-                    if not arg.endswith('"') and ' ' in arg:
-                        arg = '"%s"' %(arg)
-                    argv.append(arg)
-        else:
-            if not __debug__:
-                argv.append('-O')
-            for arg in sys.argv:
-                if arg not in ('-c', '--create'):
-                    argv.append(arg)
+        if not __debug__:
+            argv.append('-O')
+
+        for arg in sys.argv:
+            if arg not in ('-c', '--create'):
+                if windows and not arg.endswith('"') and ' ' in arg:
+                    arg = '"%s"' %(arg)
+                argv.append(arg)
 
         for arg in args:
             if isinstance(arg, unicode):
