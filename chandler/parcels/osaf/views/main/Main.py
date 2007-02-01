@@ -254,6 +254,12 @@ class MainView(View):
     def onPrintEvent (self, event):
         self.printEvent(0)
 
+    def onSearchEvent (self, event):
+        quickEntryWidget = Block.findBlockByName("ApplicationBarQuickEntry").widget
+        quickEntryWidget.SetValue (_(u"/find "))
+        quickEntryWidget.SetInsertionPointEnd()
+        quickEntryWidget.SetFocus()
+
     def onQuickEntryEvent (self, event):
 
         def processQuickEntry(self, command):
@@ -429,13 +435,12 @@ class MainView(View):
             # Try to process as a quick entry command
             if len (command) != 0 and not processQuickEntry (self, command):
                 
-                if not (command.startswith('/search') or command.startswith('/Search')):
-                    # command is not a valid
+                if not command.lower().startswith('/find '):
+                    # command is not valid
                     quickEntryWidget.SetValue (command + ' ?')
                     wx.GetApp().CallItemMethodAsync("MainView", 'setStatusMessage', _(u"Command entered is not valid"))
                 else:
-                    # Remove command "/search " from the query before processing it
-                    command = command[8:]
+                    command = command[6:] # remove '/find '
                     try:
                         sidebar.setShowSearch (True)
                         showSearchResults = True
