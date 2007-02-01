@@ -104,10 +104,10 @@ chandlerDebug.exe
 
 src=chandler/debug/bin
 dest=debug/bin
-chandler.exe
 python_d.exe
-chandler.exe.manifest
 python_d.exe.manifest
+pythonw_d.exe
+# pythonw_d.exe.manifest
 # and the launch scripts
 src=chandler/debug
 dest=debug
