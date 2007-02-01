@@ -11,6 +11,7 @@ build:	winlaunch/chandlerDebug.exe
 winlaunch/chandlerDebug.exe: winlaunch/winlaunch.cpp
 	devenv.com winlaunch/winlaunch.sln /build $(SNAP)
 	cp winlaunch/$(Snap)/chandlerDebug.exe $(BUILD_ROOT)
+	cp $(DLLS) $(BUILD_ROOT)/$(SNAP)/bin
 
 else
 
