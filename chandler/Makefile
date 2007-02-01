@@ -21,10 +21,10 @@ PYEGGS =
 
 # When a version changes, the ARCHIVES lists below needs to be updated.
 # these get installed into release or debug
-ARCHIVES = $(CHANDLERARCHIVES)/Launchers-$(SNAP)-0.9-$(BP)3.tar.gz \
+ARCHIVES = $(CHANDLERARCHIVES)/Launchers-$(SNAP)-0.9-$(BP)4.tar.gz \
            $(CHANDLERARCHIVES)/chandlerdb-$(SNAP)-0.6-$(BP)78.tar.gz \
            $(CHANDLERARCHIVES)/db-$(SNAP)-4.5.20-$(BP)2.tar.gz \
-           $(CHANDLERARCHIVES)/python-$(SNAP)-2.5-$(BP)3.tar.gz \
+           $(CHANDLERARCHIVES)/python-$(SNAP)-2.5-$(BP)4.tar.gz \
            $(CHANDLERARCHIVES)/epydoc-$(SNAP)-2.1-$(BP)10.tar.gz \
            $(CHANDLERARCHIVES)/icu-$(SNAP)-3.6-$(BP)1.tar.gz \
            $(CHANDLERARCHIVES)/openssl-$(SNAP)-0.9.8d-$(BP)1.tar.gz \
@@ -33,7 +33,7 @@ ARCHIVES = $(CHANDLERARCHIVES)/Launchers-$(SNAP)-0.9-$(BP)3.tar.gz \
            $(CHANDLERARCHIVES)/PyICU-$(SNAP)-0.6-67-$(BP)1.tar.gz \
            $(CHANDLERARCHIVES)/PyLucene-$(SNAP)-2.0.0-7-$(BP)1.tar.gz \
            $(CHANDLERARCHIVES)/twisted-$(SNAP)-r18795-$(BP)1.tar.gz \
-           $(CHANDLERARCHIVES)/wxPython-$(SNAP)-2.8.1.1-r144-$(BP)1.tar.gz \
+           $(CHANDLERARCHIVES)/wxPython-$(SNAP)-2.8.1.1-r146-$(BP)1.tar.gz \
            $(CHANDLERARCHIVES)/zope.interface-$(SNAP)-3.3.0b2-r71371-$(BP)1.tar.gz \
            $(CHANDLERARCHIVES)/dateutil-$(SNAP)-1.1-$(BP)4.tar.gz \
            $(CHANDLERARCHIVES)/vobject-$(SNAP)-0.4.5-r172-$(BP)1.tar.gz \
