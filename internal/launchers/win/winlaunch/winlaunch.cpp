@@ -23,9 +23,9 @@
 #include "atlstr.h"
 
 #ifdef _DEBUG
-    #define LAUNCHER _T("\\debug\\bin\\chandler.exe")
+    #define LAUNCHER _T("\\debug\\bin\\pythonw_d.exe")
 #else
-    #define LAUNCHER _T("\\release\\bin\\chandler.exe")
+    #define LAUNCHER _T("\\release\\bin\\pythonw.exe")
 #endif
 
 void PathTooLongErrorDialog (LPCSTR  path)
@@ -39,6 +39,16 @@ void PathTooLongErrorDialog (LPCSTR  path)
     MessageBox(NULL, message, _T("Unexpected Error"), MB_OK);
 }
 
+void MissingFileOrFolderErrorDialog (LPCSTR  missingFileOrFolder)
+{
+    CString  message;
+
+    message.Format (_T("Chandler can't start because it can't find a missing "
+                       "file or folder (\"%s\"). To fix the problem, "
+                       "try reinstalling Chandler."), missingFileOrFolder);
+    MessageBox(NULL, message, _T("Unexpected Error"), MB_OK);
+}
+
 
 int APIENTRY WinMain (HINSTANCE hInstance,
                       HINSTANCE hPrevInstance,
@@ -49,7 +59,8 @@ int APIENTRY WinMain (HINSTANCE hInstance,
     CString             commandLine;
     int                 index;
     DWORD               length;
-    CString             pathToChandler;
+    CString             pathToPython;
+    CString             chandlerHome;
     CString                pathToExe;
     PROCESS_INFORMATION    processInfo;
     STARTUPINFO            startupInfo;
@@ -69,34 +80,80 @@ int APIENTRY WinMain (HINSTANCE hInstance,
     if (!length) return EXIT_FAILURE;
     if (length == _MAX_PATH && GetLastError() == ERROR_INSUFFICIENT_BUFFER) {
         PathTooLongErrorDialog(_T(""));
-	return EXIT_FAILURE;
+        return EXIT_FAILURE;
     }
     
-    index = pathToExe.ReverseFind (TCHAR ('\\'));
-    pathToExe.Truncate (index);
+    index = pathToExe.ReverseFind(TCHAR('\\'));
+    pathToExe.Truncate(index);
     /*
-     * Get the path to the chandler launcher
+     * Get the path to the python launcher
      */
-    pathToChandler = pathToExe + _T(LAUNCHER);
+    pathToPython = pathToExe + _T(LAUNCHER);
 
     /*
      * See if we need to exit because of problems.
      */
-    if (pathToChandler.GetLength() > _MAX_PATH) {
-        PathTooLongErrorDialog (pathToChandler);
+    if (pathToPython.GetLength() > _MAX_PATH) {
+        PathTooLongErrorDialog (pathToPython);
         return EXIT_FAILURE;
     }
-    
+
+    /*
+     * now, get the path to the python launcher's dir
+     */
+    pathToExe = pathToExe + _T(LAUNCHER);
+    index = pathToExe.ReverseFind(TCHAR('\\'));
+    pathToExe.Truncate(index);
+
+    /*
+     * Get CHANDLERHOME
+     */
+    chandlerHome = pathToExe;
+    index = chandlerHome.ReverseFind(TCHAR('\\'));
+    chandlerHome.Truncate(index);
+    index = chandlerHome.ReverseFind(TCHAR('\\'));
+    chandlerHome.Truncate(index);
+
+    /*
+     * PYTHONCASEOK must be removed because we treat import paths as
+     * case sensitive.
+     */
+    _putenv(_T("PYTHONCASEOK="));
+
+    /*
+     * PYTHONPATH must be set because otherwise Chandler won't find
+     * the application.
+     */
+    _putenv(_T("PYTHONPATH=") + chandlerHome);
+
+    /*
+     * PATH must be set because some DLLs don't get found
+     * pre XP SP1
+     */
+    _putenv(_T("PATH=") + pathToExe);
+
+    /*
+     * Current directory is used in the search path for dlls pre XP SP1
+     */
+    success = SetCurrentDirectory(pathToExe);
+    if (!success)
+        MissingFileOrFolderErrorDialog(pathToExe);
+
     /*
      * Wrap the exe path in quotes in case the path contains spaces,
      * so that we get the right number of arguments.
      */
-    commandLine = _T("\"") + pathToChandler + _T("\"") + _T(" ") + lpCmdLine;
+    commandLine = _T("\"") + pathToPython + _T("\" ");
+#ifndef _DEBUG
+    commandLine += _T("-O ");
+#endif
+    commandLine += chandlerHome + _T("\\Chandler.py ");
+    commandLine += lpCmdLine;
 
     GetStartupInfo (&startupInfo);
     startupInfo.dwFlags &= ~STARTF_USESHOWWINDOW;
 
-    success = CreateProcess (pathToChandler,        // Path to executable
+    success = CreateProcess (pathToPython,        // Path to executable
                              LPSTR (LPCSTR (commandLine)),    // command line
                              NULL,                    // Default process security attributes
                              NULL,                    // Default thread security attributes
@@ -115,7 +172,7 @@ int APIENTRY WinMain (HINSTANCE hInstance,
                            "(launching \"%s\" failed, error code %d). "
                            "To fix the problem, "
                            "try reinstalling Chandler."),
-                        pathToChandler, error);
+                        pathToPython, error);
         MessageBox(NULL, message, _T("Unexpected Error"), MB_OK);
     }
 

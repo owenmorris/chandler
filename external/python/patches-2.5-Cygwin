@@ -1,0 +1,63 @@
+--- Python-2.5/PC/WinMain.c	2004-09-08 08:57:36.000000000 -0700
++++ Python-2.5-patched/PC/WinMain.c	2007-01-31 18:51:20.000000000 -0800
+@@ -12,5 +12,60 @@
+     int nCmdShow              /* show state of window */
+ )
+ {
++    /* SetDllDirectory is an entry point defined in XP SP1 that allows
++     * us to specify a directory to search first. Check to see if we
++     * can use it and give it a tryGoogle says:
++     *
++     * "No longer is the current directory searched first when loading DLLs!
++     * This change was also made in Windows XP SP1. The default behavior now
++     * is to look in all the system locations first, then the current 
++     * directory, and finally any user-defined paths. This will have an impact
++     * on your code if you install a DLL in the application's directory
++     * because Windows Server 2003 no longer loads the 'local' DLL if a DLL of
++     * the same name is in the system directory. A common example is if an
++     * application won't run with a specific version of a DLL, an older
++     * version is installed that does work in the application directory. 
++     * This scenario will fail in Windows Server 2003.
++     * 
++     * The reason this change was made was to mitigate some kinds of trojaning
++     * attacks. An attacker may be able to sneak a bad DLL into your
++     * application directory or a directory that has files associated with
++     * your application.
++     * The DLL search order change removes this attack vector.
++     *
++     * The SetDllDirectory function, also available in Windows XP SP1, modifies
++     * the search path used to locate DLLs for the application and affects all
++     * subsequent calls to the LoadLibrary and LoadLibraryEx functions by the
++     * application."
++     */
++
++    typedef void (CALLBACK* LPFNSETDLLDIRECTORY)(LPCTSTR);
++    LPFNSETDLLDIRECTORY SetDllDirectory_fn = NULL;
++    HMODULE kernel32 = GetModuleHandle("kernel32.dll");
++
++    if (kernel32)
++    {
++#ifdef UNICODE
++        char *fname = "SetDllDirectoryW";
++#else
++        char *fname = "SetDllDirectoryA";
++#endif
++        SetDllDirectory_fn = (LPFNSETDLLDIRECTORY)
++            GetProcAddress(kernel32, fname);
++    }
++
++    if (SetDllDirectory_fn)
++    {
++        char path[_MAX_PATH], *bsl;
++        
++        GetModuleFileName(NULL, path, sizeof(path));
++        bsl = strrchr(path, '\\');
++        if (bsl)
++	{
++            bsl[0] = '\0';
++            (*SetDllDirectory_fn)(path);
++	}
++    }
++
+     return Py_Main(__argc, __argv);
+ }

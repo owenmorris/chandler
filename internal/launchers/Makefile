@@ -1,5 +1,5 @@
 
-RELVER=0.9-$(BRANCH_REV_PREFIX)3
+RELVER=0.9-$(BRANCH_REV_PREFIX)4
 LAUNCHERS=$(INTERNAL)/launchers
 SRC=$(LAUNCHERS)
 BUILD=build_$(SNAP)
@@ -30,9 +30,9 @@ endif
 ifeq ($(OS),Cygwin)
 
 ifeq ($(DEBUG),1)
-LAUNCHER_FILES=./chandlerDebug.exe $(SNAP)/bin/chandler.exe
+LAUNCHER_FILES=./chandlerDebug.exe
 else
-LAUNCHER_FILES=./chandler.exe $(SNAP)/bin/chandler.exe
+LAUNCHER_FILES=./chandler.exe
 endif
 
 LIB_FILES=$(SNAP)/bin/ms*dll
