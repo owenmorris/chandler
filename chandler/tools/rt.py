@@ -30,7 +30,7 @@ import glob
 from optparse import OptionParser
 from types import *
 from util import killableprocess
-import build_util
+import build_lib
 
 
 modes = ['release', 'debug']
