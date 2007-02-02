@@ -31,31 +31,31 @@ def serializeValue(typeinfo, value):
 
 @serializeValue.when_type(eim.BytesType)
 def serialize_bytes(typeinfo, value):
-    return base64.b64encode(value)
+    return base64.b64encode(value), "bytes"
 
 @serializeValue.when_type(eim.IntType)
 def serialize_int(typeinfo, value):
-    return str(value)
+    return str(value), "integer"
 
 @serializeValue.when_type(eim.TextType)
 def serialize_text(typeinfo, value):
-    return value
+    return value, "text"
 
 @serializeValue.when_type(eim.BlobType)
 def serialize_blob(typeinfo, value):
-    return base64.b64encode(value)
+    return base64.b64encode(value), "blob"
 
 @serializeValue.when_type(eim.ClobType)
 def serialize_clob(typeinfo, value):
-    return value
+    return value, "clob"
 
 @serializeValue.when_type(eim.DateType)
 def serialize_date(typeinfo, value):
-    return value.isoformat()
+    return value.isoformat(), "datetime"
 
 @serializeValue.when_type(eim.DecimalType)
 def serialize_decimal(typeinfo, value):
-    return str(value)
+    return str(value), "decimal"
 
 
 
@@ -105,6 +105,7 @@ class EIMMLSerializer(object):
     def serialize(cls, recordSets, rootName="collection", **extra):
         """ Convert a list of record sets to XML text """
 
+
         rootElement = Element("{%s}%s" % (eimURI, rootName), **extra)
 
         for uuid, recordSet in recordSets.iteritems():
@@ -126,18 +127,26 @@ class EIMMLSerializer(object):
 
                         else:
                             if value is not None:
-                                serialized = serializeValue(field.typeinfo,
-                                    record[field.offset])
+                                serialized, typeName = serializeValue(
+                                    field.typeinfo, record[field.offset])
                             else:
-                                serialized = None
+                                serialized = typeName = None
 
                             if isinstance(field, eim.key):
+                                attrs = { 'key' : 'true' }
+                                if typeName is not None:
+                                    attrs['type'] = typeName
                                 fieldElement = SubElement(recordElement,
                                     "{%s}%s" % (record.URI, field.name),
-                                    key="true")
+                                    **attrs)
                             else:
+                                attrs = { }
+                                if typeName is not None:
+                                    attrs['type'] = typeName
                                 fieldElement = SubElement(recordElement,
-                                    "{%s}%s" % (record.URI, field.name))
+                                    "{%s}%s" % (record.URI, field.name),
+                                    **attrs)
+
                             fieldElement.text = serialized
 
                 for record in list(recordSet.exclusions):
@@ -147,11 +156,14 @@ class EIMMLSerializer(object):
                     for field in record.__fields__:
                         if isinstance(field, eim.key):
                             value = record[field.offset]
-                            serialized = serializeValue(field.typeinfo,
-                                record[field.offset])
+                            serialized, typeName = serializeValue(
+                                field.typeinfo, record[field.offset])
+                            attrs = { 'key' : 'true' }
+                            if typeName is not None:
+                                attrs['type'] = typeName
                             fieldElement = SubElement(recordElement,
                                 "{%s}%s" % (record.URI, field.name),
-                                key="true")
+                                **attrs)
                             fieldElement.text = serialized
 
             else: # item deletion indicated
@@ -197,12 +209,8 @@ class EIMMLSerializer(object):
                                 if fieldElement.text is None:
                                     value = None
                                 else:
-                                    try:
-                                        value = deserializeValue(field.typeinfo,
-                                                                 fieldElement.text)
-                                    except:
-                                        print "Error:", name, fieldElement.text, field.typeinfo
-                                        raise
+                                    value = deserializeValue(field.typeinfo,
+                                        fieldElement.text)
                                 break
                         else:
                             value = eim.NoChange
@@ -247,7 +255,7 @@ class EIMMLSerializerLite(object):
                 for field in record.__fields__:
                     value = record[field.offset]
                     if value is not None:
-                        serialized = serializeValue(field.typeinfo,
+                        serialized, typeName = serializeValue(field.typeinfo,
                             record[field.offset])
                         fields[field.name] = serialized
                 recordURI = record.URI

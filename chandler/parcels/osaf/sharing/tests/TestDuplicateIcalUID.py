@@ -23,7 +23,7 @@ from i18n.tests import uw
 
 logger = logging.getLogger(__name__)
 
-printStatistics = True
+printStatistics = False
 
 def printStats(view, stats):
     if printStatistics:

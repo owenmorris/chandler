@@ -74,15 +74,15 @@ def getTimeValues(record):
         start, allDay, anyTime = fromICalendarDateTime(dtstart)
     else:
         allDay = anyTime = start = eim.NoChange
-        
+
     if dtend is not eim.NoChange:
         end, end_allDay, end_anyTime = fromICalendarDateTime(dtend)
         if (end_allDay or end_anyTime) and end > start:
             # iCalendar syntax for serializing all day dtends is off by one day
-            end -= oneDay 
+            end -= oneDay
     else:
         end = eim.NoChange
-    
+
     return (start, end, allDay, anyTime)
 
 
@@ -172,11 +172,17 @@ class PIMTranslator(eim.Translator):
 
     @model.NoteRecord.importer
     def import_note(self, record):
+        # TODO: REMOVE HACK:
+        if record.body is None:
+            body = ""
+        else:
+            body = record.body
+
         self.loadItemByUUID(
             record.uuid,
             pim.Note,
             icaluid=record.icaluid,
-            body=record.body
+            body=body
         )
 
     @eim.exporter(pim.Note)
@@ -228,9 +234,9 @@ class PIMTranslator(eim.Translator):
                 pim.EventStamp,
             ) # incomplete
             return
-        
-        start, end, allDay, anyTime = getTimeValues(record)        
-        
+
+        start, end, allDay, anyTime = getTimeValues(record)
+
         if start is not eim.NoChange and end is eim.NoChange:
             # odd case, Chandler's object model doesn't allow start to
             # change without changing end
@@ -240,6 +246,7 @@ class PIMTranslator(eim.Translator):
 
         # start must be set before endTime, it'd be nice if we could just
         # serialize duration instead of endTime, avoiding this problem
+
         self.loadItemByUUID(
             record.uuid,
             pim.EventStamp,
@@ -262,7 +269,7 @@ class PIMTranslator(eim.Translator):
             location = None
         else:
             location = event.location.displayName
-        
+
         yield model.EventRecord(
             event.itsItem.itsUUID,                      # uuid
             toICalendarDateTime(event.startTime, event.allDay, event.anyTime),

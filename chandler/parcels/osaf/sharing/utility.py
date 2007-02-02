@@ -568,8 +568,8 @@ def getDAVInfo(url, username=None, password=None):
 
         if not cups.privileges:
             ticketInfoNodes = getTicketInfoNodes(resp.body)
-            if len(ticketInfoNodes) > 0:
-                ticket = Ticket.parse(ticketInfoNodes[0])
+            for node in ticketInfoNodes:
+                ticket = Ticket.parse(node)
                 for privName, value in ticket.privileges.iteritems():
                     # the ticket privileges dictionary currently doesn't
                     # have the flexibility to handle namespaces, that should
@@ -577,9 +577,11 @@ def getDAVInfo(url, username=None, password=None):
                     if value and (privName, "DAV:") not in cups.privileges:
                         cups.privileges.append((privName, "DAV:"))
 
+        logger.debug("inspect getDAVinfo cups.privileges: %s", cups.privileges)
         for priv in (('read', "DAV:"), ('write', "DAV:"),
                            ('freebusy', CALDAV_NAMESPACE)):
             resultDict["priv:%s" % priv[0]] = (priv in cups.privileges)
+        logger.debug("inspect getDAVinfo results: %s", resultDict)
 
         xml = ElementTree.XML(resp.body)
 

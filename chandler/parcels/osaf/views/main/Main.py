@@ -1289,11 +1289,15 @@ class MainView(View):
                                             collection=allCollection)
 
     def onSharingPublishFreeBusyEventUpdateUI(self, event):
-        event.arguments['Enable'] = not self._freeBusyShared()
+        # Freebusy Disabled
+        event.arguments['Enable'] = False
+        # event.arguments['Enable'] = not self._freeBusyShared()
 
 
     def onSharingUnpublishFreeBusyEventUpdateUI(self, event):
-        event.arguments['Enable'] = self._freeBusyShared()
+        # Freebusy Disabled
+        event.arguments['Enable'] = False
+        # event.arguments['Enable'] = self._freeBusyShared()
 
     onCopyFreeBusyURLEventUpdateUI = onSharingUnpublishFreeBusyEventUpdateUI
 

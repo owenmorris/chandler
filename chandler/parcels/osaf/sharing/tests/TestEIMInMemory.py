@@ -25,6 +25,29 @@ from application import schema
 
 logger = logging.getLogger(__name__)
 
+
+printStatistics = False
+
+def printStats(view, stats):
+    if printStatistics:
+        for opStats in stats:
+            share = view.findUUID(opStats['share'])
+            print "'%s' %-25s Add: %3d, Mod: %3d, Rm: %3d" % \
+                (opStats['op'], share.conduit.shareName.encode('utf8'),
+                 len(opStats['added']),
+                 len(opStats['modified']),
+                 len(opStats['removed'])
+                )
+        print
+
+def checkStats(stats, expecting):
+    for seen, expected in zip(stats, expecting):
+        for event in ('added', 'modified', 'removed'):
+            if len(seen[event]) != expected[event]:
+                return False
+    return True
+
+
 class EIMInMemoryTestCase(testcase.DualRepositoryTestCase):
 
     def runTest(self):
@@ -100,17 +123,29 @@ class EIMInMemoryTestCase(testcase.DualRepositoryTestCase):
 
         # Initial publish
         self.share0.create()
-        view0.commit(); self.share0.sync(); view0.commit()
+        view0.commit(); stats = self.share0.sync(); view0.commit()
+        self.assert_(checkStats(stats,
+            ({'added' : 0, 'modified' : 0, 'removed' : 0},
+             {'added' : 1, 'modified' : 0, 'removed' : 0})),
+            "Sync operation mismatch")
         self.assert_(pim.has_stamp(coll0, sharing.SharedItem))
         self.assert_(pim.has_stamp(item, sharing.SharedItem))
         self.assert_(self.share0 in sharing.SharedItem(item).sharedIn)
 
         # Local modification only
         item.body = u"CHANGED"
-        view0.commit(); self.share0.sync(); view0.commit()
+        view0.commit(); stats = self.share0.sync(); view0.commit()
+        self.assert_(checkStats(stats,
+            ({'added' : 0, 'modified' : 0, 'removed' : 0},
+             {'added' : 0, 'modified' : 1, 'removed' : 0})),
+            "Sync operation mismatch")
 
         # Initial subscribe
-        view1.commit(); self.share1.sync(); view1.commit()
+        view1.commit(); stats = self.share1.sync(); view1.commit()
+        self.assert_(checkStats(stats,
+            ({'added' : 1, 'modified' : 0, 'removed' : 0},
+             {'added' : 0, 'modified' : 0, 'removed' : 0})),
+            "Sync operation mismatch")
 
         # Verify items are imported
         for uuid in self.uuids:
@@ -128,9 +163,21 @@ class EIMInMemoryTestCase(testcase.DualRepositoryTestCase):
         # apply
         item.body = u"body changed in 0"
         item1.displayName = u"displayName changed in 1"
-        view0.commit(); self.share0.sync(); view0.commit()
-        view1.commit(); self.share1.sync(); view1.commit()
-        view0.commit(); self.share0.sync(); view0.commit()
+        view0.commit(); stats = self.share0.sync(); view0.commit()
+        self.assert_(checkStats(stats,
+            ({'added' : 0, 'modified' : 0, 'removed' : 0},
+             {'added' : 0, 'modified' : 1, 'removed' : 0})),
+            "Sync operation mismatch")
+        view1.commit(); stats = self.share1.sync(); view1.commit()
+        self.assert_(checkStats(stats,
+            ({'added' : 0, 'modified' : 1, 'removed' : 0},
+             {'added' : 0, 'modified' : 1, 'removed' : 0})),
+            "Sync operation mismatch")
+        view0.commit(); stats = self.share0.sync(); view0.commit()
+        self.assert_(checkStats(stats,
+            ({'added' : 0, 'modified' : 1, 'removed' : 0},
+             {'added' : 0, 'modified' : 0, 'removed' : 0})),
+            "Sync operation mismatch")
         self.assert_(item.displayName == "displayName changed in 1")
         self.assert_(item.body == "body changed in 0")
         self.assert_(item1.displayName == "displayName changed in 1")
@@ -145,12 +192,24 @@ class EIMInMemoryTestCase(testcase.DualRepositoryTestCase):
         item.body = u"body changed again in 0"
         item.displayName = u"displayName changed in 0"
         item1.displayName = u"displayName changed again in 1"
-        view0.commit(); self.share0.sync(); view0.commit()
-        view1.commit(); self.share1.sync(); view1.commit()
+        view0.commit(); stats = self.share0.sync(); view0.commit()
+        self.assert_(checkStats(stats,
+            ({'added' : 0, 'modified' : 0, 'removed' : 0},
+             {'added' : 0, 'modified' : 1, 'removed' : 0})),
+            "Sync operation mismatch")
+        view1.commit(); stats = self.share1.sync(); view1.commit()
+        self.assert_(checkStats(stats,
+            ({'added' : 0, 'modified' : 1, 'removed' : 0},
+             {'added' : 0, 'modified' : 0, 'removed' : 0})),
+            "Sync operation mismatch")
         self.assert_(item1.displayName == "displayName changed again in 1")
         self.assert_(item1.body == "body changed again in 0")
         # TODO: Verify the pending here
-        view0.commit(); self.share0.sync(); view0.commit()
+        view0.commit(); stats = self.share0.sync(); view0.commit()
+        self.assert_(checkStats(stats,
+            ({'added' : 0, 'modified' : 0, 'removed' : 0},
+             {'added' : 0, 'modified' : 0, 'removed' : 0})),
+            "Sync operation mismatch")
         self.assert_(item.displayName == "displayName changed in 0")
         self.assert_(item.body == "body changed again in 0")
         sharing.SharedItem(item1).clearConflicts()
@@ -165,9 +224,17 @@ class EIMInMemoryTestCase(testcase.DualRepositoryTestCase):
         # time0 = datetime.datetime(2007, 1, 26, 12, 0, 0, 0, tzinfo)
         # pim.EventStamp(item).startTime = time0
         pim.EventStamp(item).transparency = 'tentative'
-        view0.commit(); self.share0.sync(); view0.commit()
+        view0.commit(); stats = self.share0.sync(); view0.commit()
+        self.assert_(checkStats(stats,
+            ({'added' : 0, 'modified' : 0, 'removed' : 0},
+             {'added' : 0, 'modified' : 1, 'removed' : 0})),
+            "Sync operation mismatch")
         self.assert_(not pim.has_stamp(item1, pim.EventStamp))
-        view1.commit(); self.share1.sync(); view1.commit()
+        view1.commit(); stats = self.share1.sync(); view1.commit()
+        self.assert_(checkStats(stats,
+            ({'added' : 0, 'modified' : 1, 'removed' : 0},
+             {'added' : 0, 'modified' : 1, 'removed' : 0})),
+            "Sync operation mismatch")
         self.assert_(pim.has_stamp(item1, pim.EventStamp))
         self.assertEqual(pim.EventStamp(item1).transparency, 'tentative')
 
@@ -177,8 +244,17 @@ class EIMInMemoryTestCase(testcase.DualRepositoryTestCase):
         # Remote unstamping - item unstamped locally
         pim.EventStamp(item).remove()
         self.assert_(not pim.has_stamp(item, pim.EventStamp))
-        view0.commit(); self.share0.sync(); view0.commit()
-        view1.commit(); self.share1.sync(); view1.commit()
+        view0.commit(); stats = self.share0.sync(); view0.commit()
+        self.assert_(checkStats(stats,
+            ({'added' : 0, 'modified' : 1, 'removed' : 0},
+             {'added' : 0, 'modified' : 1, 'removed' : 0})),
+            "Sync operation mismatch")
+        self.assert_(pim.has_stamp(item1, pim.EventStamp))
+        view1.commit(); stats = self.share1.sync(); view1.commit()
+        self.assert_(checkStats(stats,
+            ({'added' : 0, 'modified' : 1, 'removed' : 0},
+             {'added' : 0, 'modified' : 0, 'removed' : 0})),
+            "Sync operation mismatch")
         self.assert_(not pim.has_stamp(item1, pim.EventStamp))
 
 
@@ -188,31 +264,63 @@ class EIMInMemoryTestCase(testcase.DualRepositoryTestCase):
         # locally, the unstamping becomes a pending conflict
         # First, put the stamp back
         pim.EventStamp(item).add()
-        view0.commit(); self.share0.sync(); view0.commit()
-        view1.commit(); self.share1.sync(); view1.commit()
+        view0.commit(); stats = self.share0.sync(); view0.commit()
+        self.assert_(checkStats(stats,
+            ({'added' : 0, 'modified' : 0, 'removed' : 0},
+             {'added' : 0, 'modified' : 1, 'removed' : 0})),
+            "Sync operation mismatch")
+        view1.commit(); stats = self.share1.sync(); view1.commit()
+        self.assert_(checkStats(stats,
+            ({'added' : 0, 'modified' : 1, 'removed' : 0},
+             {'added' : 0, 'modified' : 0, 'removed' : 0})),
+            "Sync operation mismatch")
         self.assert_(pim.has_stamp(item1, pim.EventStamp))
         pim.EventStamp(item).remove()
         self.assert_(not pim.has_stamp(item, pim.EventStamp))
-        view0.commit(); self.share0.sync(); view0.commit()
+        view0.commit(); stats = self.share0.sync(); view0.commit()
+        self.assert_(checkStats(stats,
+            ({'added' : 0, 'modified' : 0, 'removed' : 0},
+             {'added' : 0, 'modified' : 1, 'removed' : 0})),
+            "Sync operation mismatch")
         pim.EventStamp(item1).transparency = 'fyi'
-        view1.commit(); self.share1.sync(); view1.commit()
+        view1.commit(); stats = self.share1.sync(); view1.commit()
+        self.assert_(checkStats(stats,
+            ({'added' : 0, 'modified' : 0, 'removed' : 0},
+             {'added' : 0, 'modified' : 0, 'removed' : 0})),
+            "Sync operation mismatch")
         self.assert_(pim.has_stamp(item1, pim.EventStamp))
         self.assertEqual(pim.EventStamp(item1).transparency, 'fyi')
         # TODO: Verify pending is correct
         # print self.share1.conduit.getState(testUuid)[1]
 
+        # Clear the conflict by removing the stamp from item1
+        pim.EventStamp(item1).remove()
+        view1.commit(); stats = self.share1.sync(); view1.commit()
+        self.assert_(checkStats(stats,
+            ({'added' : 0, 'modified' : 0, 'removed' : 0},
+             {'added' : 0, 'modified' : 0, 'removed' : 0})),
+            "Sync operation mismatch")
 
 
 
         # Non-overlapping stamping - stamps get applied on both ends
-        # First, remove the stamp, and now both ends just have a Note
-        pim.EventStamp(item1).remove()
-        view1.commit(); self.share1.sync(); view1.commit()
         pim.EventStamp(item).add()
         pim.TaskStamp(item1).add()
-        view0.commit(); self.share0.sync(); view0.commit()
-        view1.commit(); self.share1.sync(); view1.commit()
-        view0.commit(); self.share0.sync(); view0.commit()
+        view0.commit(); stats = self.share0.sync(); view0.commit()
+        self.assert_(checkStats(stats,
+            ({'added' : 0, 'modified' : 0, 'removed' : 0},
+             {'added' : 0, 'modified' : 1, 'removed' : 0})),
+            "Sync operation mismatch")
+        view1.commit(); stats = self.share1.sync(); view1.commit()
+        self.assert_(checkStats(stats,
+            ({'added' : 0, 'modified' : 1, 'removed' : 0},
+             {'added' : 0, 'modified' : 1, 'removed' : 0})),
+            "Sync operation mismatch")
+        view0.commit(); stats = self.share0.sync(); view0.commit()
+        self.assert_(checkStats(stats,
+            ({'added' : 0, 'modified' : 1, 'removed' : 0},
+             {'added' : 0, 'modified' : 0, 'removed' : 0})),
+            "Sync operation mismatch")
         self.assert_(pim.has_stamp(item, pim.EventStamp))
         self.assert_(pim.has_stamp(item, pim.TaskStamp))
         self.assert_(pim.has_stamp(item1, pim.EventStamp))
@@ -224,9 +332,21 @@ class EIMInMemoryTestCase(testcase.DualRepositoryTestCase):
         # Both sides unstamp - no conflict
         pim.EventStamp(item).remove()
         pim.EventStamp(item1).remove()
-        view0.commit(); self.share0.sync(); view0.commit()
-        view1.commit(); self.share1.sync(); view1.commit()
-        view0.commit(); self.share0.sync(); view0.commit()
+        view0.commit(); stats = self.share0.sync(); view0.commit()
+        self.assert_(checkStats(stats,
+            ({'added' : 0, 'modified' : 0, 'removed' : 0},
+             {'added' : 0, 'modified' : 1, 'removed' : 0})),
+            "Sync operation mismatch")
+        view1.commit(); stats = self.share1.sync(); view1.commit()
+        self.assert_(checkStats(stats,
+            ({'added' : 0, 'modified' : 0, 'removed' : 0},
+             {'added' : 0, 'modified' : 0, 'removed' : 0})),
+            "Sync operation mismatch")
+        view0.commit(); stats = self.share0.sync(); view0.commit()
+        self.assert_(checkStats(stats,
+            ({'added' : 0, 'modified' : 0, 'removed' : 0},
+             {'added' : 0, 'modified' : 0, 'removed' : 0})),
+            "Sync operation mismatch")
         self.assert_(not pim.has_stamp(item, pim.EventStamp))
         self.assert_(pim.has_stamp(item, pim.TaskStamp))
         self.assert_(not pim.has_stamp(item1, pim.EventStamp))
@@ -239,16 +359,36 @@ class EIMInMemoryTestCase(testcase.DualRepositoryTestCase):
         # the remote modification becomes a pending conflict
         # First, put the event stamp back
         pim.EventStamp(item).add()
-        view0.commit(); self.share0.sync(); view0.commit()
-        view1.commit(); self.share1.sync(); view1.commit()
+        view0.commit(); stats = self.share0.sync(); view0.commit()
+        self.assert_(checkStats(stats,
+            ({'added' : 0, 'modified' : 0, 'removed' : 0},
+             {'added' : 0, 'modified' : 1, 'removed' : 0})),
+            "Sync operation mismatch")
+        view1.commit(); stats = self.share1.sync(); view1.commit()
+        self.assert_(checkStats(stats,
+            ({'added' : 0, 'modified' : 1, 'removed' : 0},
+             {'added' : 0, 'modified' : 0, 'removed' : 0})),
+            "Sync operation mismatch")
         self.assert_(pim.has_stamp(item, pim.EventStamp))
         self.assert_(pim.has_stamp(item1, pim.EventStamp))
         pim.EventStamp(item).transparency = 'confirmed'
         pim.EventStamp(item1).remove()
         self.assert_(not pim.has_stamp(item1, pim.EventStamp))
-        view0.commit(); self.share0.sync(); view0.commit()
-        view1.commit(); self.share1.sync(); view1.commit()
-        view0.commit(); self.share0.sync(); view0.commit()
+        view0.commit(); stats = self.share0.sync(); view0.commit()
+        self.assert_(checkStats(stats,
+            ({'added' : 0, 'modified' : 0, 'removed' : 0},
+             {'added' : 0, 'modified' : 1, 'removed' : 0})),
+            "Sync operation mismatch")
+        view1.commit(); stats = self.share1.sync(); view1.commit()
+        self.assert_(checkStats(stats,
+            ({'added' : 0, 'modified' : 0, 'removed' : 0},
+             {'added' : 0, 'modified' : 0, 'removed' : 0})),
+            "Sync operation mismatch")
+        view0.commit(); stats = self.share0.sync(); view0.commit()
+        self.assert_(checkStats(stats,
+            ({'added' : 0, 'modified' : 0, 'removed' : 0},
+             {'added' : 0, 'modified' : 0, 'removed' : 0})),
+            "Sync operation mismatch")
         self.assert_(not pim.has_stamp(item1, pim.EventStamp))
         self.assertEqual(pim.EventStamp(item1).transparency, 'tentative')
         # TODO: Verify pending is correct
@@ -259,7 +399,11 @@ class EIMInMemoryTestCase(testcase.DualRepositoryTestCase):
         # Local removal -  sends removal recordset
         self.share0.contents.remove(item)
         self.assert_(pim.has_stamp(item, sharing.SharedItem))
-        view0.commit(); self.share0.sync(); view0.commit()
+        view0.commit(); stats = self.share0.sync(); view0.commit()
+        self.assert_(checkStats(stats,
+            ({'added' : 0, 'modified' : 0, 'removed' : 0},
+             {'added' : 0, 'modified' : 0, 'removed' : 1})),
+            "Sync operation mismatch")
         self.assert_(not pim.has_stamp(item, sharing.SharedItem))
 
 
@@ -267,7 +411,11 @@ class EIMInMemoryTestCase(testcase.DualRepositoryTestCase):
 
         # Remote removal - results in local removal
         self.assert_(pim.has_stamp(item1, sharing.SharedItem))
-        view1.commit(); self.share1.sync(); view1.commit()
+        view1.commit(); stats = self.share1.sync(); view1.commit()
+        self.assert_(checkStats(stats,
+            ({'added' : 0, 'modified' : 0, 'removed' : 1},
+             {'added' : 0, 'modified' : 0, 'removed' : 0})),
+            "Sync operation mismatch")
         self.assert_(item1 not in self.share1.contents)
         self.assert_(not pim.has_stamp(item1, sharing.SharedItem))
 
@@ -277,14 +425,22 @@ class EIMInMemoryTestCase(testcase.DualRepositoryTestCase):
         # Local addition of once-shared item - sends item
         self.share0.contents.add(item)
         item.body = "back from removal"
-        view0.commit(); self.share0.sync(); view0.commit()
+        view0.commit(); stats = self.share0.sync(); view0.commit()
+        self.assert_(checkStats(stats,
+            ({'added' : 0, 'modified' : 0, 'removed' : 0},
+             {'added' : 1, 'modified' : 0, 'removed' : 0})),
+            "Sync operation mismatch")
 
 
 
 
         # Remote modification of existing item *not* in the local collection
         # - adds item to local collection
-        view1.commit(); self.share1.sync(); view1.commit()
+        view1.commit(); stats = self.share1.sync(); view1.commit()
+        self.assert_(checkStats(stats,
+            ({'added' : 0, 'modified' : 1, 'removed' : 0},
+             {'added' : 0, 'modified' : 0, 'removed' : 0})),
+            "Sync operation mismatch")
         item1 = view1.findUUID(testUuid)
         self.assert_(item1 in self.share1.contents)
         # Note, we have pending changes because we already had this item
@@ -301,10 +457,18 @@ class EIMInMemoryTestCase(testcase.DualRepositoryTestCase):
         # Remote modification of locally *deleted* item - reconstitutes the
         # item based on last agreed state and adds to local collection
         item.body = "back from the dead"
-        view0.commit(); self.share0.sync(); view0.commit()
+        view0.commit(); stats = self.share0.sync(); view0.commit()
+        self.assert_(checkStats(stats,
+            ({'added' : 0, 'modified' : 0, 'removed' : 0},
+             {'added' : 0, 'modified' : 1, 'removed' : 0})),
+            "Sync operation mismatch")
         # Completely delete item in view 1, ensure it comes back
         item1.delete(True)
-        view1.commit(); self.share1.sync(); view1.commit()
+        view1.commit(); stats = self.share1.sync(); view1.commit()
+        self.assert_(checkStats(stats,
+            ({'added' : 1, 'modified' : 0, 'removed' : 0},
+             {'added' : 0, 'modified' : 0, 'removed' : 0})),
+            "Sync operation mismatch")
         item1 = view1.findUUID(testUuid)
         self.assert_(item1 in self.share1.contents)
         # Note, since we completely deleted the item, and we reconstituted
@@ -318,10 +482,22 @@ class EIMInMemoryTestCase(testcase.DualRepositoryTestCase):
         # including local mods
         self.share0.contents.remove(item)
         self.assert_(item not in self.share0.contents)
-        view0.commit(); self.share0.sync(); view0.commit()
+        view0.commit(); stats = self.share0.sync(); view0.commit()
+        self.assert_(checkStats(stats,
+            ({'added' : 0, 'modified' : 0, 'removed' : 0},
+             {'added' : 0, 'modified' : 0, 'removed' : 1})),
+            "Sync operation mismatch")
         item1.body = "modification trumps removal"
-        view1.commit(); self.share1.sync(); view1.commit()
-        view0.commit(); self.share0.sync(); view0.commit()
+        view1.commit(); stats = self.share1.sync(); view1.commit()
+        self.assert_(checkStats(stats,
+            ({'added' : 0, 'modified' : 0, 'removed' : 0},
+             {'added' : 1, 'modified' : 0, 'removed' : 0})),
+            "Sync operation mismatch")
+        view0.commit(); stats = self.share0.sync(); view0.commit()
+        self.assert_(checkStats(stats,
+            ({'added' : 0, 'modified' : 0, 'removed' : 0},
+             {'added' : 0, 'modified' : 0, 'removed' : 0})),
+            "Sync operation mismatch")
         self.assert_(item in self.share0.contents)
         # item retains any local differences from what's on server:
         self.assertEqual(item.body, "back from the dead")
@@ -334,9 +510,17 @@ class EIMInMemoryTestCase(testcase.DualRepositoryTestCase):
         # Remotely modified, locally removed - item gets put back into local
         # collection with remote state.
         item.body = "I win!"
-        view0.commit(); self.share0.sync(); view0.commit()
+        view0.commit(); stats = self.share0.sync(); view0.commit()
+        self.assert_(checkStats(stats,
+            ({'added' : 0, 'modified' : 0, 'removed' : 0},
+             {'added' : 0, 'modified' : 1, 'removed' : 0})),
+            "Sync operation mismatch")
         self.share1.contents.remove(item1)
-        view1.commit(); self.share1.sync(); view1.commit()
+        view1.commit(); stats = self.share1.sync(); view1.commit()
+        self.assert_(checkStats(stats,
+            ({'added' : 0, 'modified' : 1, 'removed' : 0},
+             {'added' : 0, 'modified' : 0, 'removed' : 0})),
+            "Sync operation mismatch")
         self.assert_(item1 in self.share1.contents)
 
 
@@ -344,8 +528,16 @@ class EIMInMemoryTestCase(testcase.DualRepositoryTestCase):
         # Remote *and* Local item removal
         self.share0.contents.remove(item)
         self.share1.contents.remove(item1)
-        view0.commit(); self.share0.sync(); view0.commit()
-        view1.commit(); self.share1.sync(); view1.commit()
+        view0.commit(); stats = self.share0.sync(); view0.commit()
+        self.assert_(checkStats(stats,
+            ({'added' : 0, 'modified' : 0, 'removed' : 0},
+             {'added' : 0, 'modified' : 0, 'removed' : 1})),
+            "Sync operation mismatch")
+        view1.commit(); stats = self.share1.sync(); view1.commit()
+        self.assert_(checkStats(stats,
+            ({'added' : 0, 'modified' : 0, 'removed' : 0},
+             {'added' : 0, 'modified' : 0, 'removed' : 0})),
+            "Sync operation mismatch")
         self.assert_(item not in self.share0.contents)
         self.assert_(item1 not in self.share1.contents)
 

@@ -395,25 +395,21 @@ class Share(pim.ContentItem):
 
         super(Share, self).__init__(*args, **kw)
 
-    def addSharedItem(self, item, baseline=None):
+    def addSharedItem(self, item):
+        """ Add an item to the share's sharedIn refcoll, stamping if
+            necessary """
         if not pim.has_stamp(item, SharedItem):
             SharedItem(item).add()
         sharedItem = SharedItem(item)
         sharedItem.sharedIn = self
-        if baseline is not None:
-            if not hasattr(sharedItem, 'baselines'):
-                sharedItem.baselines = [baseline]
-            elif baseline not in sharedItem.baselines:
-                sharedItem.baselines.add(baseline)
 
-    def removeSharedItem(self, item, baseline=None):
+    def removeSharedItem(self, item):
+        """ Remove an item from the share's sharedIn refcoll, unstamping if
+            the last share for this item """
         if not pim.has_stamp(item, SharedItem):
             return
         sharedItem = SharedItem(item)
         sharedItem.sharedIn.remove(self)
-        if (baseline is not None and
-            baseline in getattr(sharedItem, 'baselines', [])):
-            sharedItem.baselines.remove(baseline)
         if not sharedItem.sharedIn:
             SharedItem(item).remove()
 

@@ -82,6 +82,10 @@ class SubscribeDialog(wx.Dialog):
         if self.mine:
             self.checkboxKeepOut.SetValue(False)
         self.forceFreeBusy = wx.xrc.XRCCTRL(self, "CHECKBOX_FORCEFREEBUSY")
+
+        # Freebusy Disabled
+        self.forceFreeBusy.Enable(False)
+
         if self.freebusy:
             self.forceFreeBusy.SetValue(True)
 
@@ -200,8 +204,8 @@ class SubscribeDialog(wx.Dialog):
             self._showStatus(_(u"Spaces are not allowed in URLs"))
             return
 
-        if url.startswith('webcal:'):
-            url = 'http:' + url[7:]
+        # if url.startswith('webcal:'):
+        #     url = 'http:' + url[7:]
 
         if self.accountPanel.IsShown():
             username = self.textUsername.GetValue()

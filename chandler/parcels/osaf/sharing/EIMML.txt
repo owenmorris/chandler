@@ -27,7 +27,7 @@ Translate text values::
     >>> value
     'xyzzy'
     >>> eimml.serializeValue(TestRecord.textField.typeinfo, value)
-    'xyzzy'
+    ('xyzzy', 'text')
 
 
 Translate decimal values::
@@ -36,7 +36,7 @@ Translate decimal values::
     >>> value
     Decimal("123.45")
     >>> eimml.serializeValue(TestRecord.decimalField.typeinfo, value)
-    '123.45'
+    ('123.45', 'decimal')
 
 
 Translate datetime values::
@@ -46,7 +46,7 @@ Translate datetime values::
     >>> value
     datetime.datetime(2007, 1, 30, 15, 45, 30, 98593, tzinfo=<ICUtzinfo: Etc/GMT+8>)
     >>> eimml.serializeValue(TestRecord.dateField.typeinfo, value)
-    '2007-01-30T15:45:30.098593-08:00'
+    ('2007-01-30T15:45:30.098593-08:00', 'datetime')
 
 TODO: int, lob, bytes
 
@@ -141,15 +141,15 @@ Any records in a recordset's exclusions are serialized as deletions::
 
     >>> recordDeletion = { '8501de14-1dc9-40d4-a7d4-f289feff8214': rs(set([]), set([sharing.model.ItemRecord('8501de14-1dc9-40d4-a7d4-f289feff8214', u'Welcome to Cosmo', u'now', decimal.Decimal("123456789.12"), u'foo@example.com', decimal.Decimal("1164803131"))]))}
     >>> text = eimml.EIMMLSerializer.serialize(recordDeletion)
-    >>> text == '<ns0:collection xmlns:ns0="http://osafoundation.org/eim"><ns0:recordset uuid="8501de14-1dc9-40d4-a7d4-f289feff8214"><ns1:record deleted="true" xmlns:ns1="http://osafoundation.org/eim/item"><ns1:uuid key="true">8501de14-1dc9-40d4-a7d4-f289feff8214</ns1:uuid></ns1:record></ns0:recordset></ns0:collection>'
-    True
+    >>> text
+    '<ns0:collection xmlns:ns0="http://osafoundation.org/eim"><ns0:recordset uuid="8501de14-1dc9-40d4-a7d4-f289feff8214"><ns1:record deleted="true" xmlns:ns1="http://osafoundation.org/eim/item"><ns1:uuid key="true" type="text">8501de14-1dc9-40d4-a7d4-f289feff8214</ns1:uuid></ns1:record></ns0:recordset></ns0:collection>'
 
 To indicate that item has been deleted, pass None instead of a recordset::
 
     >>> itemDeletion = { '8501de14-1dc9-40d4-a7d4-f289feff8214' : None }
     >>> text = eimml.EIMMLSerializer.serialize(itemDeletion)
-    >>> text == '<ns0:collection xmlns:ns0="http://osafoundation.org/eim"><ns0:recordset deleted="true" uuid="8501de14-1dc9-40d4-a7d4-f289feff8214" /></ns0:collection>'
-    True
+    >>> text
+    '<ns0:collection xmlns:ns0="http://osafoundation.org/eim"><ns0:recordset deleted="true" uuid="8501de14-1dc9-40d4-a7d4-f289feff8214" /></ns0:collection>'
 
 
 

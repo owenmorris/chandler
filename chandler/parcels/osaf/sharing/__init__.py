@@ -766,9 +766,13 @@ def unpublishFreeBusy(collection):
 
 def subscribe(view, url, updateCallback=None, username=None, password=None,
               forceFreeBusy=False):
-    
-    # return subscribe2(view, url, updateCallback=updateCallback,
-    #     username=username, password=password)
+
+    return subscribe2(view, url, updateCallback=updateCallback,
+        username=username, password=password)
+
+def subscribe1(view, url, updateCallback=None, username=None, password=None,
+              forceFreeBusy=False):
+
 
     if updateCallback:
         progressMonitor = ProgressMonitor(0, updateCallback)
@@ -1217,9 +1221,12 @@ def subscribe2(view, url, updateCallback=None, username=None, password=None):
 
     logger.info("Inspection results for %s: %s", url, inspection)
 
+    # TODO: check for "already subscribed"
+    # TODO: upgrade to read-write if provided new ticket
+
     # Override, because we can't trust .mac to return 'text/calendar'
     parsedUrl = urlparse.urlsplit(url)
-    if parsedUrl.scheme == 'webcal':
+    if parsedUrl.scheme.startswith('webcal'):
         inspection['contentType'] = 'text/calendar'
 
     contentType = inspection.get('contentType', None)
@@ -1237,8 +1244,10 @@ def subscribe2(view, url, updateCallback=None, username=None, password=None):
             account.path = parentPath
             account.useSSL = useSSL
             account.port = port
-            account.username = username
-            account.password = password
+            if username is not None:
+                account.username = username
+            if password is not None:
+                account.password = password
 
         collection = subscribeCalDAV(view, url, inspection,
             updateCallback=updateCallback, account=account,
@@ -1256,8 +1265,10 @@ def subscribe2(view, url, updateCallback=None, username=None, password=None):
             account.path = parentPath
             account.useSSL = useSSL
             account.port = port
-            account.username = username
-            account.password = password
+            if username is not None:
+                account.username = username
+            if password is not None:
+                account.password = password
 
         collection = subscribeWebDAV(view, url, inspection,
             updateCallback=updateCallback, account=account,
@@ -1275,17 +1286,29 @@ def subscribe2(view, url, updateCallback=None, username=None, password=None):
             links = extractLinks(text)
 
             selfUrl = links['self']
-            if selfUrl.endswith('forbidden'):
-                raise NotAllowed(_("You don't have permission"))
+            if selfUrl is not None:
+                if selfUrl.endswith('forbidden'):
+                    raise NotAllowed(_("You don't have permission"))
 
-            morsecodeUrl = links['alternate'].get('text/xml', None)
-            if morsecodeUrl:
-                morsecodeUrl = urlparse.urlunparse((parsedUrl.scheme,
-                    parsedUrl.netloc, morsecodeUrl, "", "", ""))
-                collection = subscribeEIMXML(view, url, morsecodeUrl,
-                    inspection, updateCallback=updateCallback,
-                    account=account, username=username, password=password)
-                return collection
+                morsecodeUrl = links['alternate'].get('text/xml', None)
+                if morsecodeUrl:
+                    morsecodeUrl = urlparse.urlunparse((parsedUrl.scheme,
+                        parsedUrl.netloc, morsecodeUrl, "", "", ""))
+
+                    # inspect the morsecode url this time
+                    # TODO: I think username/password is irrelevant here since
+                    # cosmo doesn't support basic auth on the pim url, and
+                    # we *must* have gotten here via ticket
+
+                    inspection = inspect(morsecodeUrl, username=username,
+                        password=password)
+                    logger.info("Inspection results for %s: %s", morsecodeUrl,
+                        inspection)
+
+                    collection = subscribeEIMXML(view, url, morsecodeUrl,
+                        inspection, updateCallback=updateCallback,
+                        account=account, username=username, password=password)
+                    return collection
 
         raise errors.SharingError("Can't parse webpage")
 
@@ -1299,8 +1322,10 @@ def subscribe2(view, url, updateCallback=None, username=None, password=None):
             account.path = parentPath
             account.useSSL = useSSL
             account.port = port
-            account.username = username
-            account.password = password
+            if username is not None:
+                account.username = username
+            if password is not None:
+                account.password = password
 
         # monolithic .ics file
         collection = subscribeICS(view, url, inspection,
@@ -1409,7 +1434,6 @@ def subscribeCalDAV(view, url, inspection, updateCallback=None, account=None,
         # status.
         share.filterAttributes = [
              pim.Remindable.reminders.name,
-             pim.Remindable.expiredReminders.name,
              pim.EventStamp.transparency.name
         ]
         if 'triageStatus' in getattr(subShare, 'filterAttributes', []):
