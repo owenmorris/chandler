@@ -47,6 +47,10 @@ def location(val, view):
     return pim.Location.getLocation(view, val)
 
 def fromICalendarDateTime(text):
+    prefix = 'dtstart' # arbitrary
+    if not text.startswith(';'):
+        # no parameters
+        prefix =+ ':'
     line = textLineToContentLine('dtstart' + text)
     native_line = DateOrDateTimeBehavior.transformToNative(line)
     anyTime = getattr(native_line, 'x_osaf_anytime_param', "").upper() == 'TRUE'
@@ -87,23 +91,34 @@ def getTimeValues(record):
 
     return (start, end, allDay, anyTime)
 
-
-def prepareDtForVObject(dt, asDate=False):
-    if asDate:
-        return dt.date()
-    elif dt.tzinfo is ICUtzinfo.floating:
-        return dt.replace(tzinfo=None)
-    else:
-        return dt
+dateFormat = "%04d%02d%02d"
+datetimeFormat = "%04d%02d%02dT%02d%02d%02d"
+tzidFormat = ";TZID=%s"
+allDayParameter = ";VALUE=DATE"
+timedParameter  = ";VALUE=DATE-TIME"
+anyTimeParameter = ";X-OSAF-ANYTIME=TRUE"
 
 def toICalendarDateTime(dt, allDay, anyTime=False):
-    line = ContentLine('dtstart', [], prepareDtForVObject(dt, anyTime or allDay))
-    line.native = True
+    output = ''
+    if allDay or anyTime:
+        if anyTime and not allDay:
+            output += anyTimeParameter
+        output += allDayParameter
+        output += ':'
+        output += dateFormat % dt.timetuple()[:3]
+    else:
+        isUTC = dt.tzinfo == utc
+        output += timedParameter
+        if not isUTC and dt.tzinfo != ICUtzinfo.floating:
+            output += tzidFormat % dt.tzinfo.tzid
+        if output != '':
+            output += ':'
+        output += datetimeFormat % dt.timetuple()[:6]
+        if isUTC:
+            output += 'Z'
+    
+    return output
 
-    if anyTime and not allDay:
-        line.x_osaf_anytime_param = 'TRUE'
-
-    return DateOrDateTimeBehavior.transformFromNative(line).serialize()[7:].strip()
 
 class PIMTranslator(eim.Translator):
 

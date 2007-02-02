@@ -182,7 +182,7 @@ Importing:
 
 Exporting:
 
-    #>>> t.startExport()
-    #>>> records = [r for r in t.exportItem(item) if isinstance(r, sharing.model.EventRecord)]
-    #>>> records
-    #[]
+    >>> t.startExport()
+    >>> records = [r for r in t.exportItem(item) if isinstance(r, sharing.model.EventRecord)]
+    >>> records
+    [EventRecord('f230dcd4-7c32-4c3f-908b-d92081cc9a89', u';VALUE=DATE-TIME;TZID=US/Pacific:20070201T140000', u';VALUE=DATE-TIME;TZID=US/Pacific:20070201T150000', u'Nowhere', None, None, None, None, u'fyi')]
