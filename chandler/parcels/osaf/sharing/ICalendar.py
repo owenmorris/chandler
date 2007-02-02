@@ -558,7 +558,7 @@ def itemsFromVObject(view, text, coerceTzinfo = None, filters = None,
                             # recurrence-id as UTC, which wreaks havoc with 
                             # noTZ mode. So move recurrenceID to the same tzinfo
                             # as dtstart, bug 6830
-                            tweakedID = recurrenceID.astimezone(ICUtzinfo.default)
+                            tweakedID = recurrenceID.astimezone(uidMatchItem.startTime.tzinfo)
                             eventItem = uidMatchItem.getRecurrenceID(tweakedID)
                         if eventItem == None:                            
                             # our recurrenceID didn't match an item we know
