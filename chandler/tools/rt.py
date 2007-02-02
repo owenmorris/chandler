@@ -200,7 +200,7 @@ def doUnitTest(test):
     result = 0
 
     for mode in modes:
-        cmd = ['./%s/RunPython' % mode, './tools/run_tests.py']
+        cmd = [ os.path.join(options.chandlerBin, mode, 'RunPython'), './tools/run_tests.py']
 
         if options.verbose:
             cmd += ['-v']
