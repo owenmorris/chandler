@@ -392,7 +392,7 @@ if __name__ == '__main__':
         modes = [options.mode]
 
     for item in modes:
-        if not os.path.isdir(item):
+        if not os.path.isdir(os.path.join(options.chandlerBin, item)):
             modes.remove(item)
             print 'Requested mode (%s) not availble - ignoring' % item
 
