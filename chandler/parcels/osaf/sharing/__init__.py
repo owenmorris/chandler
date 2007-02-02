@@ -1290,20 +1290,30 @@ def subscribe2(view, url, updateCallback=None, username=None, password=None):
                 if selfUrl.endswith('forbidden'):
                     raise NotAllowed(_("You don't have permission"))
 
+                davUrl = links['alternate'].get('text/html', None)
+                if davUrl:
+                    davUrl = urlparse.urlunparse((parsedUrl.scheme,
+                        parsedUrl.netloc, davUrl, "", "", ""))
+
                 morsecodeUrl = links['alternate'].get('text/xml', None)
                 if morsecodeUrl:
                     morsecodeUrl = urlparse.urlunparse((parsedUrl.scheme,
                         parsedUrl.netloc, morsecodeUrl, "", "", ""))
 
-                    # inspect the morsecode url this time
+                if davUrl and morsecodeUrl:
+
+                    # inspect the dav url this time to get permissions
                     # TODO: I think username/password is irrelevant here since
                     # cosmo doesn't support basic auth on the pim url, and
                     # we *must* have gotten here via ticket
 
-                    inspection = inspect(morsecodeUrl, username=username,
-                        password=password)
-                    logger.info("Inspection results for %s: %s", morsecodeUrl,
-                        inspection)
+                    # TODO: When Cosmo supports the davUrl, we can inspect
+                    # it for permissions.  For now assume writeability
+                    # inspection = inspect(davUrl, username=username,
+                    #     password=password)
+                    # logger.info("Inspection results for %s: %s", davUrl,
+                    #     inspection)
+                    inspection['priv:write'] = True
 
                     collection = subscribeEIMXML(view, url, morsecodeUrl,
                         inspection, updateCallback=updateCallback,
