@@ -98,6 +98,9 @@ def deserialize_date(typeinfo, text):
 
 
 eimURI = "http://osafoundation.org/eim"
+keyURI = "{%s}key" % eimURI
+typeURI = "{%s}type" % eimURI
+deletedURI = "{%s}deleted" % eimURI
 
 class EIMMLSerializer(object):
 
@@ -133,16 +136,16 @@ class EIMMLSerializer(object):
                                 serialized = typeName = None
 
                             if isinstance(field, eim.key):
-                                attrs = { 'key' : 'true' }
+                                attrs = { keyURI : 'true' }
                                 if typeName is not None:
-                                    attrs['type'] = typeName
+                                    attrs[typeURI] = typeName
                                 fieldElement = SubElement(recordElement,
                                     "{%s}%s" % (record.URI, field.name),
                                     **attrs)
                             else:
                                 attrs = { }
                                 if typeName is not None:
-                                    attrs['type'] = typeName
+                                    attrs[typeURI] = typeName
                                 fieldElement = SubElement(recordElement,
                                     "{%s}%s" % (record.URI, field.name),
                                     **attrs)
@@ -150,17 +153,18 @@ class EIMMLSerializer(object):
                             fieldElement.text = serialized
 
                 for record in list(recordSet.exclusions):
+                    attrs = { deletedURI : "true"}
                     recordElement = SubElement(recordSetElement,
-                        "{%s}record" % (record.URI), deleted="true")
+                        "{%s}record" % (record.URI), **attrs)
 
                     for field in record.__fields__:
                         if isinstance(field, eim.key):
                             value = record[field.offset]
                             serialized, typeName = serializeValue(
                                 field.typeinfo, record[field.offset])
-                            attrs = { 'key' : 'true' }
+                            attrs = { keyURI : 'true' }
                             if typeName is not None:
-                                attrs['type'] = typeName
+                                attrs[typeURI] = typeName
                             fieldElement = SubElement(recordElement,
                                 "{%s}%s" % (record.URI, field.name),
                                 **attrs)
@@ -168,8 +172,9 @@ class EIMMLSerializer(object):
 
             else: # item deletion indicated
 
+                attrs = { deletedURI : "true"}
                 recordSetElement = SubElement(rootElement,
-                    "{%s}recordset" % eimURI, uuid=uuid, deleted="true")
+                    "{%s}recordset" % eimURI, uuid=uuid, **attrs)
 
 
         return tostring(rootElement)
@@ -180,13 +185,11 @@ class EIMMLSerializer(object):
 
         rootElement = fromstring(text) # xml parser
 
-        # possibly also grab the collectionUuid?
-
         recordSets = {}
         for recordSetElement in rootElement:
             uuid = recordSetElement.get("uuid")
 
-            deleted = recordSetElement.get("deleted")
+            deleted = recordSetElement.get(deletedURI)
             if deleted and deleted.lower() == "true":
                 recordSet = None
 
@@ -219,7 +222,7 @@ class EIMMLSerializer(object):
 
                     record = recordClass(*values)
 
-                    deleted = recordElement.get("deleted")
+                    deleted = recordElement.get(deletedURI)
                     if deleted and deleted.lower() == "true":
                         exclusions.append(record)
                     else:

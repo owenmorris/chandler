@@ -22,6 +22,8 @@ oneDay = timedelta(1)
 def with_nochange(value, converter, view=None):
     if value is eim.NoChange:
         return value
+    if value is None:  # TODO: think about how to handle None
+        return eim.NoChange
     if view is None:
         return converter(value)
     else:
@@ -97,10 +99,10 @@ def prepareDtForVObject(dt, asDate=False):
 def toICalendarDateTime(dt, allDay, anyTime=False):
     line = ContentLine('dtstart', [], prepareDtForVObject(dt, anyTime or allDay))
     line.native = True
-    
+
     if anyTime and not allDay:
         line.x_osaf_anytime_param = 'TRUE'
-    
+
     return DateOrDateTimeBehavior.transformFromNative(line).serialize()[7:].strip()
 
 class PIMTranslator(eim.Translator):
@@ -125,7 +127,7 @@ class PIMTranslator(eim.Translator):
             ) # incomplete
             return
 
-        if record.createdOn is not eim.NoChange:
+        if record.createdOn not in (eim.NoChange, None):
             # createdOn is a Decimal we need to change to datetime
             naive = datetime.utcfromtimestamp(float(record.createdOn))
             inUTC = naive.replace(tzinfo=utc)
@@ -134,13 +136,13 @@ class PIMTranslator(eim.Translator):
         else:
             createdOn = eim.NoChange
 
-        if record.triageStatus is not eim.NoChange:
+        if record.triageStatus not in (eim.NoChange, None):
             # @@@MOR -- is this the right way to get an enum?  (it works)
             triageStatus = getattr(pim.TriageEnum, record.triageStatus)
         else:
             triageStatus = eim.NoChange
 
-        if record.triageStatusChanged is not eim.NoChange:
+        if record.triageStatusChanged not in (eim.NoChange, None):
             tsc = float(record.triageStatusChanged)
         else:
             tsc = eim.NoChange
