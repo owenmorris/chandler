@@ -15,6 +15,8 @@
 
 from application import schema
 from chandlerdb.item.c import CItem
+from osaf.pim import has_stamp
+from osaf.sharing import SharedItem
 
 from repository.persistence.Repository import RepositoryWorker
 from repository.item.Access import AccessDeniedError, Permissions
@@ -67,7 +69,7 @@ class Worker(RepositoryWorker):
         if acl is None or not acl.verify(account.user, Permissions.READ):
             raise AccessDeniedError
 
-        for share in collection.shares:
+        for share in SharedItem(collection).shares:
             if isinstance(share, self.shareClass):
                 if share.repoId is None:
                     if (share.ackPending and
@@ -81,6 +83,8 @@ class Worker(RepositoryWorker):
 
         share = self.shareClass(view, view[self.client.account], repoId, peerId)
         share.contents = collection
+        if not has_stamp(collection, SharedItem):
+            SharedItem(collection).add()
         share.localVersion = view.itsVersion + 1
         view.commit()
 

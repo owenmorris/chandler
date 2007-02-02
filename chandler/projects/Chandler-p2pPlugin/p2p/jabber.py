@@ -28,7 +28,7 @@ from repository.item.Access import ACL, ACE, Permissions
 
 from application import schema
 from osaf import pim
-from osaf.sharing import formats
+from osaf.sharing import formats, SharedItem
 from osaf.framework.certstore import ssl
 
 from p2p.account import Account, Conduit, Share
@@ -125,7 +125,7 @@ class JabberAccount(Account):
 
         for collection in sidebar:
             if collection.displayName == name:
-                for share in collection.shares:
+                for share in SharedItem(collection).shares:
                     conduit = share.conduit
                     if isinstance(conduit, JabberConduit):
                         if conduit.peerId == peerId:

@@ -34,6 +34,7 @@ from chandlerdb.item.c import CItem
 from chandlerdb.util.c import UUID, Nil
 from repository.item.Access import ACL, ACE, Permissions
 from osaf import pim
+from osaf.sharing import SharedItem
 from osaf.sharing.formats import ElementTreeDOM
 from osaf.framework.certstore import ssl
 from osaf.mail.smtp import _TwistedESMTPSender
@@ -93,7 +94,7 @@ class MailAccount(Account):
 
         for collection in sidebar:
             if collection.displayName == name:
-                for share in collection.shares:
+                for share in SharedItem(collection).shares:
                     conduit = share.conduit
                     if isinstance(conduit, MailConduit):
                         if conduit.peerId == peerId:
