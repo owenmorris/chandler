@@ -27,13 +27,18 @@ if [ -d "$DEB_PATH" ]; then
     rm -f ${DEB_PATH}/chandler_*.deb
     echo "Preparing build tree"
     cd ${DEB_PATH}
+    if [ -d chandler ]; then
+        rm -rf chandler
+    fi
     mkdir -p chandler/usr/local
     mkdir chandler/DEBIAN/
+    cd chandler/usr/local
     echo "Creating build tree from distribution tarball"
     tar xzf ${DISTRIB_PATH}/${DISTRIB_FILE}.tar.gz
-    mv ${DISTRIB_FILE} chandler/usr/local/chandler
+    mv ${DISTRIB_FILE} chandler
     echo "Ensuring all files have a+r set"
-    chmod -R a+r chandler/usr/local/chandler/
+    chmod -R a+r chandler/
+    cd ${DEB_PATH}
     CHANDLER_SIZE=`du -c -b ${DEB_PATH}/chandler/usr/local/chandler | tail -n1 | awk '{ print $1 }'`
     sed -e "s/CHANDLER_VERSION/${DISTRIB_VERSION}.${DISTRIB_RELEASE}/" -e "s/CHANDLER_SIZE/${CHANDLER_SIZE}/" < ${DEB_PATH}/control.in > ${DEB_PATH}/chandler/DEBIAN/control
     echo `pwd`
