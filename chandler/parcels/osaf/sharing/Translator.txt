@@ -141,3 +141,48 @@ Exporting:
     >>> records = list(t.exportItem(item))
     >>> records
     [ItemRecord('f230dcd4-7c32-4c3f-908b-d92081cc9a89', u'Translator test', u'later', Decimal("..."), None, Decimal("1164803131")), NoteRecord('f230dcd4-7c32-4c3f-908b-d92081cc9a89', u'This is the body', None, None), TaskRecord('f230dcd4-7c32-4c3f-908b-d92081cc9a89')]
+
+EventRecord type
+- - - - - - - -
+
+Importing:
+
+    >>> pim.stamping.has_stamp(item, pim.EventStamp)
+    False
+    
+    >>> rec = sharing.model.EventRecord(
+    ...         uuid='f230dcd4-7c32-4c3f-908b-d92081cc9a89',
+    ...         dtstart = ';TZID=US/Pacific:20070201T140000',
+    ...         dtend = ';TZID=US/Pacific:20070201T150000',
+    ...         location = 'Nowhere',
+    ...         rrule = None,
+    ...         exrule = None,
+    ...         rdate = None,
+    ...         exdate = None,
+    ...         status = 'CANCELLED',
+    ... )
+
+    >>> rs = sharing.RecordSet([rec])
+
+    >>> t.startImport()
+    >>> t.importRecords(rs)
+    >>> t.finishImport()
+
+    >>> pim.stamping.has_stamp(item, pim.EventStamp)
+    True
+    >>> event = pim.EventStamp(item)
+    >>> event.transparency
+    'fyi'
+    >>> event.location.displayName
+    u'Nowhere'
+    >>> event.startTime
+    datetime.datetime(2007, 2, 1, 14, 0, tzinfo=<ICUtzinfo: US/Pacific>)
+    >>> event.duration
+    datetime.timedelta(0, 3600)
+
+Exporting:
+
+    #>>> t.startExport()
+    #>>> records = [r for r in t.exportItem(item) if isinstance(r, sharing.model.EventRecord)]
+    #>>> records
+    #[]
