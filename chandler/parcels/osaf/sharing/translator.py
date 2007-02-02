@@ -6,7 +6,7 @@ import time
 from datetime import datetime, date, timedelta
 from decimal import Decimal
 
-from vobject.base import textLineToContentLine
+from vobject.base import textLineToContentLine, ContentLine
 from vobject.icalendar import DateOrDateTimeBehavior
 import osaf.pim.calendar.TimeZone as TimeZone
 
@@ -40,9 +40,11 @@ def transparency(val):
     return out
 
 def location(val, view):
+    if val is None:
+        return None
     return pim.Location.getLocation(view, val)
 
-def readICalendarDateTime(text):
+def fromICalendarDateTime(text):
     line = textLineToContentLine('dtstart' + text)
     native_line = DateOrDateTimeBehavior.transformToNative(line)
     anyTime = getattr(native_line, 'x_osaf_anytime_param', "").upper() == 'TRUE'
@@ -69,19 +71,37 @@ def getTimeValues(record):
     dtstart = record.dtstart
     dtend   = record.dtend
     if dtstart is not eim.NoChange:
-        start, allDay, anyTime = readICalendarDateTime(dtstart)
+        start, allDay, anyTime = fromICalendarDateTime(dtstart)
     else:
         allDay = anyTime = start = eim.NoChange
         
     if dtend is not eim.NoChange:
-        end, end_allDay, end_anyTime = readICalendarDateTime(dtend)
-        if end_allDay or end_anyTime:
-            # iCalendar syntax for serializing all day dtends is off by one day;
+        end, end_allDay, end_anyTime = fromICalendarDateTime(dtend)
+        if (end_allDay or end_anyTime) and end > start:
+            # iCalendar syntax for serializing all day dtends is off by one day
             end -= oneDay 
     else:
         end = eim.NoChange
     
     return (start, end, allDay, anyTime)
+
+
+def prepareDtForVObject(dt, asDate=False):
+    if asDate:
+        return dt.date()
+    elif dt.tzinfo is ICUtzinfo.floating:
+        return dt.replace(tzinfo=None)
+    else:
+        return dt
+
+def toICalendarDateTime(dt, allDay, anyTime=False):
+    line = ContentLine('dtstart', [], prepareDtForVObject(dt, anyTime or allDay))
+    line.native = True
+    
+    if anyTime and not allDay:
+        line.x_osaf_anytime_param = 'TRUE'
+    
+    return DateOrDateTimeBehavior.transformFromNative(line).serialize()[7:].strip()
 
 class PIMTranslator(eim.Translator):
 
@@ -209,23 +229,25 @@ class PIMTranslator(eim.Translator):
             ) # incomplete
             return
         
-        start, end, allDay, anyTime = getTimeValues(record)
-        if end is eim.NoChange and start is not eim.NoChange:
-            # odd case, Chandler's object model doesn't allow start to change
-            # without changing end, so explicitly set both start and end time
-            # appropriately
+        start, end, allDay, anyTime = getTimeValues(record)        
+        
+        if start is not eim.NoChange and end is eim.NoChange:
+            # odd case, Chandler's object model doesn't allow start to
+            # change without changing end
             item = self.rv.findUUID(record.uuid)
             if item is not None:
-                event = pim.EventStamp(item)
-                end = event.endTime
-                event.startTime = start
-                event.endTime = end
-                end = start = eim.NoChange
-        
+                end = pim.EventStamp(item).endTime
+
+        # start must be set before endTime, it'd be nice if we could just
+        # serialize duration instead of endTime, avoiding this problem
         self.loadItemByUUID(
             record.uuid,
             pim.EventStamp,
-            startTime=start,
+            startTime=start)
+
+        self.loadItemByUUID(
+            record.uuid,
+            pim.EventStamp,
             endTime=end,
             allDay=allDay,
             anyTime=anyTime,
@@ -236,17 +258,21 @@ class PIMTranslator(eim.Translator):
 
     @eim.exporter(pim.EventStamp)
     def export_event(self, event):
+        if getattr(event, 'location', None) is None:
+            location = None
+        else:
+            location = event.location.displayName
+        
         yield model.EventRecord(
             event.itsItem.itsUUID,                      # uuid
-            str(event.startTime),                       # dstart
-            None,                                       # dtend
-            None,                                       # location
+            toICalendarDateTime(event.startTime, event.allDay, event.anyTime),
+            toICalendarDateTime(event.endTime, event.allDay or event.anyTime),
+            location,                                   # location
             None,                                       # rrule
             None,                                       # exrule
             None,                                       # rdate
             None,                                       # exdate
-            None,                                       # recurrenceid
-            str(event.transparency)                      # status
+            str(event.transparency)                     # status
         )
 
 
