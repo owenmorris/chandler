@@ -41,7 +41,6 @@ class RecordSetConduit(conduits.BaseConduit):
         debug=False):
 
         # TODO: handle mode=get
-        # TODO: handle returning statistics
         # TODO: private items
         # TODO: use remote collection uuid locally when creating collection
         # TODO: send local collection name and uuid
