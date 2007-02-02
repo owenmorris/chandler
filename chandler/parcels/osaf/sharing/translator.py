@@ -21,11 +21,11 @@ oneDay = timedelta(1)
 
 def with_nochange(value, converter, view=None):
     if value is eim.NoChange:
-	return value
+        return value
     if view is None:
-	return converter(value)
+        return converter(value)
     else:
-	return converter(value, view)
+        return converter(value, view)
 
 
 ### Event field conversion functions
@@ -49,17 +49,17 @@ def readICalendarDateTime(text):
     allDay = False
     start = native_line.value
     if type(start) == date:
-	allDay = not anyTime
-	start = TimeZone.forceToDateTime(start)
+        allDay = not anyTime
+        start = TimeZone.forceToDateTime(start)
     else:
-	# this parameter is broken, this should be fixed in vobject, at which
-	# point this will break
-	tzid = native_line.params.get('X-VOBJ-ORIGINAL-TZID')
-	if tzid is None:
-	    tzinfo = ICUtzinfo.floating
-	else:
-	    tzinfo = ICUtzinfo.getInstance(tzid)
-	start = start.replace(tzinfo=tzinfo)
+        # this parameter is broken, this should be fixed in vobject, at which
+        # point this will break
+        tzid = native_line.params.get('X-VOBJ-ORIGINAL-TZID')
+        if tzid is None:
+            tzinfo = ICUtzinfo.floating
+        else:
+            tzinfo = ICUtzinfo.getInstance(tzid)
+        start = start.replace(tzinfo=tzinfo)
     return (start, allDay, anyTime)
 
 def getTimeValues(record):
@@ -69,17 +69,17 @@ def getTimeValues(record):
     dtstart = record.dtstart
     dtend   = record.dtend
     if dtstart is not eim.NoChange:
-	start, allDay, anyTime = readICalendarDateTime(dtstart)
+        start, allDay, anyTime = readICalendarDateTime(dtstart)
     else:
-	allDay = anyTime = start = eim.NoChange
-	
+        allDay = anyTime = start = eim.NoChange
+        
     if dtend is not eim.NoChange:
-	end, end_allDay, end_anyTime = readICalendarDateTime(dtend)
-	if end_allDay or end_anyTime:
-	    # iCalendar syntax for serializing all day dtends is off by one day;
-	    end -= oneDay 
+        end, end_allDay, end_anyTime = readICalendarDateTime(dtend)
+        if end_allDay or end_anyTime:
+            # iCalendar syntax for serializing all day dtends is off by one day;
+            end -= oneDay 
     else:
-	end = eim.NoChange
+        end = eim.NoChange
     
     return (start, end, allDay, anyTime)
 
@@ -208,29 +208,29 @@ class PIMTranslator(eim.Translator):
                 pim.EventStamp,
             ) # incomplete
             return
-	
-	start, end, allDay, anyTime = getTimeValues(record)
-	if end is eim.NoChange and start is not eim.NoChange:
-	    # odd case, Chandler's object model doesn't allow start to change
-	    # without changing end, so explicitly set both start and end time
-	    # appropriately
-	    item = self.rv.findUUID(record.uuid)
-	    if item is not None:
-		event = pim.EventStamp(item)
-		end = event.endTime
-		event.startTime = start
-		event.endTime = end
-		end = start = eim.NoChange
-	
+        
+        start, end, allDay, anyTime = getTimeValues(record)
+        if end is eim.NoChange and start is not eim.NoChange:
+            # odd case, Chandler's object model doesn't allow start to change
+            # without changing end, so explicitly set both start and end time
+            # appropriately
+            item = self.rv.findUUID(record.uuid)
+            if item is not None:
+                event = pim.EventStamp(item)
+                end = event.endTime
+                event.startTime = start
+                event.endTime = end
+                end = start = eim.NoChange
+        
         self.loadItemByUUID(
             record.uuid,
             pim.EventStamp,
-	    startTime=start,
-	    endTime=end,
-	    allDay=allDay,
-	    anyTime=anyTime,
+            startTime=start,
+            endTime=end,
+            allDay=allDay,
+            anyTime=anyTime,
             transparency = with_nochange(record.status, transparency),
-	    location     = with_nochange(record.location, location, self.rv),
+            location     = with_nochange(record.location, location, self.rv),
         ) # incomplete
 
 
