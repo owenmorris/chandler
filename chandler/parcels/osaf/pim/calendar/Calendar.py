@@ -1732,6 +1732,8 @@ class EventStamp(Stamp):
             if setWithHandlerDisabled:
                 disabled = self.__disableRecurrenceChanges()
             setattr(self.itsItem, attr, value)
+            if attr is EventStamp.rruleset.name:
+                self.updateRecurrenceEnd()
             if setWithHandlerDisabled and disabled:
                 disabled = self.__enableRecurrenceChanges()               
                 
