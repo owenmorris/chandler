@@ -152,8 +152,8 @@ Importing:
     
     >>> rec = sharing.model.EventRecord(
     ...         uuid='f230dcd4-7c32-4c3f-908b-d92081cc9a89',
-    ...         dtstart = ';TZID=US/Pacific:20070201T140000',
-    ...         dtend = ';TZID=US/Pacific:20070201T150000',
+    ...         dtstart = ';VALUE=DATE-TIME;TZID=US/Pacific:20070201T140000',
+    ...         dtend = ';VALUE=DATE-TIME;TZID=US/Pacific:20070201T150000',
     ...         location = 'Nowhere',
     ...         rrule = None,
     ...         exrule = None,

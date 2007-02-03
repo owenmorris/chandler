@@ -71,7 +71,7 @@ def QuickProfile(profilefile):
             """
             Wrapper which actually calls the profiler
             """
-            profile.runcall(method, *args, **kwds)
+            return profile.runcall(method, *args, **kwds)
         return profiled_caller
 
     return profiled_descriptor
