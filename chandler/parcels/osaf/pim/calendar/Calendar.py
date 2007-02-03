@@ -1733,7 +1733,7 @@ class EventStamp(Stamp):
                 disabled = self.__disableRecurrenceChanges()
             setattr(self.itsItem, attr, value)
             if setWithHandlerDisabled and disabled:
-                disabled = self.__enableRecurrenceChanges()
+                disabled = self.__enableRecurrenceChanges()               
                 
     def getLastPastDone(self):
         """
@@ -2550,9 +2550,13 @@ class RelativeReminder(Reminder):
         else:
             master = event.getMaster()
             # skip mods, since they get their own copy of reminders for now
+            # note that _generateRule returns items before start if their end
+            # time is after start, but reminders don't want those, so explicitly
+            # filter out such occurrences
             interestingEvents = iter(
                 e for e in master._generateRule(start, None, True)
-                       if self in e.itsItem.reminders
+                       if self in e.itsItem.reminders and
+                       e.effectiveStartTime >= start
             )
             
         for event in interestingEvents:
