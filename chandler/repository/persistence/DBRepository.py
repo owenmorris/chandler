@@ -16,7 +16,7 @@
 import sys, os, shutil, atexit, cStringIO, time, threading
 
 from datetime import datetime, timedelta
-from os.path import exists, normpath, join, dirname, basename
+from os.path import exists, abspath, normpath, join, dirname, basename, isdir
 
 from chandlerdb.util import lock
 from chandlerdb.util.c import Nil, Default, UUID, _hash
@@ -53,7 +53,7 @@ class DBRepository(OnDemandRepository):
         Construct an DBRepository giving it a DB container pathname
         """
         
-        super(DBRepository, self).__init__(dbHome)
+        super(DBRepository, self).__init__(abspath(dbHome))
 
         self._openLock = None
         self._openFile = None
@@ -84,7 +84,7 @@ class DBRepository(OnDemandRepository):
         if exists(self._openDir):
             for name in os.listdir(self._openDir):
                 path = join(self._openDir, name)
-                if not os.path.isdir(path):
+                if not isdir(path):
                     os.remove(path)
             
     def create(self, **kwds):
@@ -124,7 +124,7 @@ class DBRepository(OnDemandRepository):
 
             if not exists(self.dbHome):
                 os.makedirs(self.dbHome)
-            elif not os.path.isdir(self.dbHome):
+            elif not isdir(self.dbHome):
                 raise ValueError, "%s is not a directory" %(self.dbHome)
             else:
                 self.delete(datadir, logdir)
@@ -326,19 +326,19 @@ class DBRepository(OnDemandRepository):
                     name.endswith('.db') or
                     name in ('DB_CONFIG', 'DB_INFO')):
                     path = join(dbHome, name)
-                    if not os.path.isdir(path):
+                    if not isdir(path):
                         os.remove(path)
             if datadir:
                 for name in os.listdir(join(dbHome, datadir)):
                     if name.endswith('.db'):
                         path = join(dbHome, datadir, name)
-                        if not os.path.isdir(path):
+                        if not isdir(path):
                             os.remove(path)
             if logdir:
                 for name in os.listdir(join(dbHome, logdir)):
                     if name.startswith('log.'):
                         path = join(dbHome, logdir, name)
-                        if not os.path.isdir(path):
+                        if not isdir(path):
                             os.remove(path)
             self._clearOpenDir()
 
@@ -467,7 +467,7 @@ class DBRepository(OnDemandRepository):
             else:
                 logdir = dbHome
 
-            if os.path.isdir(srcHome):
+            if isdir(srcHome):
                 for f in os.listdir(srcHome):
                     if f.endswith('.db'):
                         dstPath = join(datadir, f)
