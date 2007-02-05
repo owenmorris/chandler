@@ -202,6 +202,44 @@ The bitwise OR operator can also be applied to record sets::
     RecordSet(set([]), set([]))
 
 
+Subset Removal
+~~~~~~~~~~~~~~
+
+The conflict resolution API needs to be able to remove changes from a record
+set, both to discard pending changes and to break down a pending change
+recordset into its constituent changes.  The recordset ``.remove()`` method
+allows you to delete an arbitrary subset of an existing recordset::
+
+    >>> rs = sharing.RecordSet([R(1,2)], [R(2,3)])
+    >>> rs.remove(sharing.RecordSet([], [R(2,3)]))  # delete the exclusion
+    >>> rs
+    RecordSet(set([R(1, 2)]), set([]))
+    
+    >>> rs.remove(sharing.RecordSet([R(1,2)]))
+    >>> rs
+    RecordSet(set([]), set([]))
+
+Removing non-existent inclusions raises a KeyError::
+
+    >>> rs.remove(sharing.RecordSet([R(2,4)]))
+    Traceback (most recent call last):
+      ...
+    KeyError: R(2, 4)
+
+    >>> r = Demo(1,"Foo", "This is a foo", Decimal('2.50'))
+    >>> rs = sharing.RecordSet([r])
+
+You can also remove individual Records, without having to wrap them in a
+recordset::
+
+    >>> rs.remove(Demo(1,"Foo", sharing.NoChange, sharing.NoChange))
+    >>> rs
+    RecordSet(set([Demo(1, NoChange, u'This is a foo', Decimal("2.50"))]), set([]))
+    >>> rs.remove(Demo(1, sharing.NoChange, 'This is a foo', sharing.NoChange))
+    >>> rs
+    RecordSet(set([Demo(1, NoChange, NoChange, Decimal("2.50"))]), set([]))
+    
+
 Filters
 -------
 

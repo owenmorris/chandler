@@ -1,4 +1,4 @@
-#   Copyright (c) 2003-2006 Open Source Applications Foundation
+#   Copyright (c) 2006-2007 Open Source Applications Foundation
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -11,6 +11,7 @@
 #   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 #   See the License for the specific language governing permissions and
 #   limitations under the License.
+
 __all__ = [
     'UnknownType', 'typeinfo_for', 'BytesType', 'TextType', 'DateType',
     'IntType', 'BlobType', 'ClobType', 'DecimalType', 'get_converter',
@@ -18,7 +19,6 @@ __all__ = [
     'Record', 'RecordSet', 'lookupSchemaURI', 'Filter', 'Translator',
     'exporter', 'TimestampType', 'IncompatibleTypes',
 ]
-
 from symbols import Symbol  # XXX change this to peak.util.symbols
 from simplegeneric import generic
 from weakref import WeakValueDictionary
@@ -86,7 +86,7 @@ class UnknownType(KeyError):
 class IncompatibleTypes(TypeError):
     """An item's existing type can't be changed to the requested type"""
 
-    
+
 @generic
 def typeinfo_for(context):
     """Return the relevant ``sharing.TypeInfo`` for `context`
@@ -312,7 +312,7 @@ class RecordSet(object):
             if k in ind:
                 ind[k] += r
             else:
-                ind[k] = r            
+                ind[k] = r
         for r in exclusions:
             k = r.getKey()
             if k in ind:
@@ -330,7 +330,7 @@ class RecordSet(object):
         rs = RecordSet(self.inclusions, self.exclusions)
         rs.update(other.exclusions, other.inclusions, subtract=True)
         return rs
-        
+
     def __add__(self, other):
         rs = RecordSet(self.inclusions, self.exclusions)
         rs.update(other.inclusions, other.exclusions)
@@ -343,7 +343,30 @@ class RecordSet(object):
     def __nonzero__(self):
         return bool(self.inclusions or self.exclusions)
 
+    def remove(self, other):
+        if isinstance(other, RecordSet):
+            inclusions, exclusions = other.inclusions, other.exclusions
+        else:
+            inclusions, exclusions = [other], ()
+        
+        ind = self._index
+        for r in inclusions:
+            k = r.getKey()
+            if k in ind:
+                r = ind[k] - r
+                if r is NoChange:
+                    del ind[k]
+                else:
+                    ind[k] = r
+            else:
+                raise KeyError(r)
+        self.inclusions = set(ind.values())
 
+        skip = set([r.getKey() for r in exclusions])
+        self.exclusions = set(
+            [r for r in self.exclusions if r.getKey() not in skip]
+        )
+                
     def _merge(self, inclusions, exclusions):
         exc = dict((r.getKey(),r) for r in self.exclusions)
         ind = self._index
@@ -364,7 +387,7 @@ class RecordSet(object):
                 else:
                     ind[k] = r
             else:
-                ind[k] = r            
+                ind[k] = r
 
         for r in exclusions:
             k = r.getKey()
@@ -384,6 +407,47 @@ class RecordSet(object):
         rs._merge(self.inclusions|other.inclusions,
                  self.exclusions|other.exclusions)
         return rs
+
+''' Partial sketch of a dependency-ordering routine
+
+def sort_records(records):
+    """Sort an iterable of records such that dependencies occur first"""
+    waiting = {}
+    seen = {}
+
+    def release(key):
+        seen[key] = True
+        to_release = [key]
+        while to_release:
+            key = to_release.pop()
+            if key not in waiting:
+                continue
+            for deps, record in waiting[key]:
+                deps.remove(key)
+                if not deps:
+                    yield record
+                    to_release.append(record.getKey())
+            del waiting[key]
+
+    for record in records:
+        deps = []
+        pair = deps, record
+        for dep in record.requiresKeys():
+            if dep not in seen:
+                waiting.setdefault(dep,[]).append(pair)
+        if deps:
+            continue    # can't process record with outstanding dependencies
+
+        yield record    # allow the record to pass, then its dependents
+        for record in release(r.getKey()):
+            yield record
+
+    while waiting:
+        for key in list(waiting):
+            if key not in seen:     # release only unseen root dependencies
+                for record in release(key):
+                    yield record
+'''
 
 class Filter:
     """Suppress inclusion of specified field(s) in Records and RecordSets"""
@@ -418,7 +482,7 @@ class Filter:
 
         return self
 
-        
+
 
 
 
@@ -433,7 +497,7 @@ class Filter:
 
         except KeyError:
             # No cached filter function, build one or use default
-            
+
             t = type(record_or_set)
             if not isinstance(t, RecordClass):
                 # Only record types allowed!
@@ -458,7 +522,7 @@ class Filter:
             self.types[t] = ff
 
         return ff(record_or_set)
-        
+
 
 def _no_filtering(record):
     # Fast default filter function used when the Filter doesn't apply to a type
@@ -587,7 +651,7 @@ class key(field):
     """Primary key field (can't be filtered)"""
     __slots__ = filters = ()
     def __init__(self, type):
-        field.__init__(self, type)        
+        field.__init__(self, type)
 
 
 NoChange = Symbol('NoChange', __name__)
@@ -623,8 +687,8 @@ class Record(tuple):
                     continue
                 elif new is not NoChange:
                     changed = True
-                res.append(new)          
-    
+                res.append(new)
+
             if changed:
                 return t(*res)
 
@@ -815,7 +879,7 @@ class Translator:
                     if exporter:
                         exporters.append(exporter)
 
-                # fall through to fast path    
+                # fall through to fast path
 
             for exporter in exporters:
                 for record in exporter(self, item):
@@ -863,7 +927,7 @@ class Translator:
                     item.__class__ = itype
                     item.itsKind = itype.getKind(self.rv)
 
-        # Set specified attributes, skipping NoChange attrs       
+        # Set specified attributes, skipping NoChange attrs
         for attr, val in attrs.items():
             if val is not NoChange:
                 setattr(item, attr, val)
@@ -914,7 +978,6 @@ def item_uuid_converter(item):
 add_converter(UUIDType, UUID, uuid_converter)
 add_converter(UUIDType, schema.Item, item_uuid_converter)
 add_converter(UUIDType, str, unicode)
-
 
 
 
