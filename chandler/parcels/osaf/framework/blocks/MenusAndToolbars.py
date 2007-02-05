@@ -1091,12 +1091,13 @@ class wxQuickEntry (wxToolbarItemMixin, wx.SearchCtrl):
     """
     def __init__(self, parent, id, title, position, **keywords):
         super (wxQuickEntry, self).__init__ (parent, id, title, position, **keywords)
-        self.ShowCancelButton (True)
-        self.ShowSearchButton (False)
+        self.ShowSearchButton(False)
+        self.ShowHideCancelButton()
         self.SetDescriptiveText(_(u'Create new item'))
         self.Bind(wx.EVT_SEARCHCTRL_CANCEL_BTN, self.OnCancelButton)
-        self.Bind(wx.EVT_TEXT_ENTER, wx.GetApp().OnCommand, id=id)
-
+        self.Bind(wx.EVT_TEXT_ENTER, wx.GetApp().OnCommand)
+        self.Bind(wx.EVT_TEXT, self.OnUpdateButtons)
+                  
     def OnCancelButton (self, event):
         block = self.blockItem
         block.post (block.event, {"cancelClicked": True}, sender = block)
@@ -1104,4 +1105,11 @@ class wxQuickEntry (wxToolbarItemMixin, wx.SearchCtrl):
     def wxSynchronizeWidget(self, useHints=False):
         super (wxQuickEntry, self).wxSynchronizeWidget()
         self.SetValue (self.blockItem.text)
+        self.ShowHideCancelButton()
+        
+    def ShowHideCancelButton(self):
+        self.ShowCancelButton( self.GetValue() != "" )
 
+    def OnUpdateButtons(self, event):
+        self.ShowHideCancelButton()
+        
