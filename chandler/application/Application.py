@@ -29,7 +29,6 @@ logger = logging.getLogger(__name__)
 
 # SCHEMA_VERSION has moved to Utility.py
 
-
 #@@@Temporary testing tool written by Morgen -- DJA
 import util.timing
 
@@ -88,6 +87,7 @@ class wxBlockFrameWindow (wx.Frame):
         self.Bind(wx.EVT_CLOSE, self.OnClose)
         self.Bind(wx.EVT_SIZE, self.OnSize)
         self.Bind(wx.EVT_MOVE, self.OnMove)
+        self.app = wx.GetApp()
  
     def ShowTreeOfBlocks (self, treeOfBlocks):
         if hasattr (self, "treeOfBlocks"):
@@ -117,20 +117,22 @@ class wxBlockFrameWindow (wx.Frame):
         # Calling Skip causes wxWindows to continue processing the event, 
         # which will cause the parent class to get a crack at the event.
 
-        if not wx.GetApp().ignoreSynchronizeWidget:
+        if not self.app.ignoreSynchronizeWidget:
             from osaf.pim.structs import SizeType
             # Our first child's block is the FrameWindow where we store size and position
-            self.GetChildren()[0].blockItem.size = SizeType (self.GetSize().x, self.GetSize().y)
+            size = self.GetSize()
+            self.GetChildren()[0].blockItem.size = SizeType (size.x, size.y)
         event.Skip()
 
     def OnMove(self, event):
         # Calling Skip causes wxWindows to continue processing the event, 
         # which will cause the parent class to get a crack at the event.
         
-        if not wx.GetApp().ignoreSynchronizeWidget:
+        if not self.app.ignoreSynchronizeWidget:
             from osaf.pim.structs import PositionType
             # Our first child's block is the FrameWindow where we store size and position
-            self.GetChildren()[0].blockItem.position = PositionType(self.GetPosition().x, self.GetPosition().y)
+            position = self.GetPosition()
+            self.GetChildren()[0].blockItem.position = PositionType(position.x, position.y)
         event.Skip()
 
 
@@ -209,7 +211,7 @@ class wxMainFrame (wxBlockFrameWindow):
         app.Bind(wx.EVT_MENU, None, id=-1)
 
         if wx.Platform == '__WXMAC__':
-            wx.GetApp().Bind(wx.EVT_ACTIVATE_APP, None)
+            app.Bind(wx.EVT_ACTIVATE_APP, None)
 
         if __debug__:
             displayInfoWhileProcessing (_("Checking repository..."),
@@ -623,17 +625,17 @@ class wxApplication (wx.App):
             def deleteAllBranchCaches (block):
                 for child in block.childrenBlocks:
                     deleteAllBranchCaches (child)
-                import osaf.framework.blocks.BranchPoint as BranchPoint
-                if isinstance (block, BranchPoint.BranchPointBlock):
+                from osaf.framework.blocks.BranchPoint import BranchPointBlock
+                if isinstance (block, BranchPointBlock):
                     block.delegate.deleteCopiesFromCache()
 
             self.UIRepositoryView.refresh()
             deleteAllBranchCaches(mainViewRoot)
 
-            from osaf.framework.blocks import Block
+            from osaf.framework.blocks.Block import Block
 
             for item in self.UIRepositoryView['userdata'].iterChildren():
-                if isinstance (item, Block.Block):
+                if isinstance (item, Block):
                     item.delete()
 
             self.UIRepositoryView.commit()
@@ -769,7 +771,7 @@ class wxApplication (wx.App):
             #wx.GetActiveWindow is implemented only on windows, so wet get the top
             #level parent of whatever window has the focus
     
-            if ((wxID > 0 and wxID < wx.ID_LOWEST) or
+            if ((0 < wxID < wx.ID_LOWEST) or
                 not isinstance (wx.GetTopLevelParent(wx.Window.FindFocus()), wx.Dialog)):
 
                 updateUIEvent = event.GetEventType() == wx.EVT_UPDATE_UI.evtType[0]
@@ -819,7 +821,7 @@ class wxApplication (wx.App):
         # object to get the wrong type because of a "feature" of SWIG. So we need to avoid
         # OnShows in this case by using ignoreSynchronizeWidget as a flag.
         
-        if not wx.GetApp().ignoreSynchronizeWidget:
+        if not self.ignoreSynchronizeWidget:
             widget = event.GetEventObject()
             try:
                 block = widget.blockItem
@@ -1015,7 +1017,7 @@ class wxApplication (wx.App):
         """
         from osaf.framework.blocks.Block import Block
 
-        wx.GetApp().UIRepositoryView.refresh () # bring changes across from the other thread/view
+        self.UIRepositoryView.refresh () # bring changes across from the other thread/view
 
         # unwrap the target item and find the method to call
 
@@ -1074,7 +1076,7 @@ class wxApplication (wx.App):
         # convert all dictionary items
         for key,value in keyArgs.items():
             keyArgs[key] = TransportWrapper (value)
-        wx.GetApp().PostAsyncEvent (self._DispatchItemMethod, item, 
+        self.PostAsyncEvent (self._DispatchItemMethod, item, 
                                     methodName, transportArgs, keyArgs)
 
 
