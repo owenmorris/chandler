@@ -370,7 +370,7 @@ def restart():
             # work around that issue by explicitly adding
             # locale option. See bug 6668 for more information.
             import i18n
-            args.append('--locale=%s' % i18n.getLocaleSet()[0])
+            args.append('--locale=%s' % i18n.getLocale())
         elif sys.platform == 'darwin':
             # If you start Chandler using the .app bundle, the restarted
             # application fails to find display. Work around this by

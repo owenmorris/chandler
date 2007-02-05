@@ -58,7 +58,7 @@ from util import MultiStateButton
 
 import parsedatetime.parsedatetime as parsedatetime
 import parsedatetime.parsedatetime_consts as ptc
-from i18n import getLocaleSet
+from i18n import getLocale
 
 
 logger = logging.getLogger(__name__)
@@ -1322,7 +1322,7 @@ class CalendarDateAttributeEditor(DateAttributeEditor):
             #successfully, which causes fromtimestamp() to throw.)
             try:
                 # use parsedatetime to calculate the date
-                cal = parsedatetime.Calendar(ptc.Constants(str(getLocaleSet()[0]))) 
+                cal = parsedatetime.Calendar(ptc.Constants(str(getLocale())))
                 (dateVar, invalidFlag) = cal.parse(newValueString)
                 #invalidFlag = 0 implies no date/time
                 #invalidFlag = 2 implies only time, no date

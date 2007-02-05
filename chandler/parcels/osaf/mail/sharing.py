@@ -104,7 +104,7 @@ class SMTPInvitationSender(object):
         m.fromAddress = self.fromAddress
 
         sendStr = makeSharingHeaderValue(self.url, self.collectionName)
-        m.chandlerHeaders[message.createChandlerHeader(constants.SHARING_HEADER)] = sendStr
+        m.headers[message.createChandlerHeader(constants.SHARING_HEADER)] = sendStr
 
         for address in self.sendToList:
             assert isinstance(address, Mail.EmailAddress), \
@@ -140,7 +140,7 @@ def getSharingHeaderInfo(mailItem):
     sharingHeaderName = message.createChandlerHeader(constants.SHARING_HEADER)
 
     #XXX: Tnis needs to be base 64 unencoded; also, see above.
-    sharingHeaderValue = mailItem.chandlerHeaders[sharingHeaderName]
+    sharingHeaderValue = mailItem.headers[sharingHeaderName]
  
     urlAndCollectionName = sharingHeaderValue.split(constants.SHARING_DIVIDER)
     return urlAndCollectionName 

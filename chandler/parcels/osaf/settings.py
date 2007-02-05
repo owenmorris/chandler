@@ -91,6 +91,7 @@ def save(rv, filename):
     counter = 1
     for account in pim.mail.SMTPAccount.iterItems(rv):
         if account.isActive and account.host:
+            currentAccount = schema.ns("osaf.pim", rv).currentSMTPAccount.item
             section_name = u"smtp_account_%d" % counter
             cfg[section_name] = {}
             cfg[section_name][u"type"] = u"smtp account"
@@ -100,6 +101,9 @@ def save(rv, filename):
             cfg[section_name][u"auth"] = account.useAuth
             cfg[section_name][u"username"] = account.username
             cfg[section_name][u"password"] = account.password
+
+            if account is currentAccount:
+                cfg[section_name][u"default"] = u"True"
 
             if account.fromAddress:
                 cfg[section_name][u"name"] = account.fromAddress.fullName
@@ -133,6 +137,26 @@ def save(rv, filename):
                 cfg[section_name][u"smtp"] = account.defaultSMTPAccount.itsUUID
             if account is currentAccount:
                 cfg[section_name][u"default"] = u"True"
+
+            folderNum = len(account.folders)
+
+            if folderNum:
+                cfg[section_name]["imap_folder_num"] = folderNum
+
+                fCounter = 0
+
+                for folder in account.folders:
+                    fname = "imap_folder_%d" % fCounter
+                    cfg[section_name][fname] = {}
+                    cfg[section_name][fname][u"type"] = u"imap folder"
+                    cfg[section_name][fname][u"uuid"] = folder.itsUUID
+                    cfg[section_name][fname][u"title"] = folder.displayName
+                    cfg[section_name][fname][u"name"] = folder.folderName
+                    cfg[section_name][fname][u"type"] = folder.folderType
+                    cfg[section_name][fname][u"max"] = folder.downloadMax
+                    cfg[section_name][fname][u"del"] = folder.deleteOnDownload
+                    fCounter += 1
+
             counter += 1
 
     # POP accounts
@@ -155,7 +179,7 @@ def save(rv, filename):
 
             cfg[section_name][u"port"] = account.port
             cfg[section_name][u"security"] = account.connectionSecurity
-            cfg[section_name][u"leave"] = account.leaveOnServer
+            cfg[section_name][u"del"] = account.deleteOnDownload
             if account.defaultSMTPAccount:
                 cfg[section_name][u"smtp"] = account.defaultSMTPAccount.itsUUID
             if account is currentAccount:
@@ -187,9 +211,9 @@ def save(rv, filename):
 
 def restore(rv, filename, testmode=False):
     """Restore accounts and shares from an INI file"""
-    
+
     cfg = ConfigObj(filename, encoding="UTF8")
-    
+
     for sectionname, section in cfg.iteritems():
         if section.has_key(u"type"):
             sectiontype = section[u"type"]
@@ -197,7 +221,23 @@ def restore(rv, filename, testmode=False):
             sectiontype = ""
         # sharing accounts
         if sectiontype == u"webdav account":
-            if section.has_key(u"uuid"):
+
+            account = None
+            makeCurrent = False
+
+            if section.has_key(u"default") and section.as_bool(u"default"):
+                accountRef = schema.ns("osaf.sharing", rv).currentWebDAVAccount
+                current = accountRef.item
+
+                if len(current.password.strip()) == 0 and \
+                   len(current.username.strip()) == 0:
+                   # The current account is empty
+                    account = current
+
+                else:
+                    makeCurrent = True
+
+            if section.has_key(u"uuid") and account is None:
                 uuid = section[u"uuid"]
                 uuid = UUID(uuid)
                 account = rv.findUUID(uuid)
@@ -206,8 +246,11 @@ def restore(rv, filename, testmode=False):
                     parent = schema.Item.getDefaultParent(rv)
                     account = kind.instantiateItem(None, parent, uuid,
                         withInitialValues=True)
-            else:
+            elif account is None:
                 account = sharing.WebDAVAccount(itsView=rv)
+
+            if makeCurrent:
+                schema.ns("osaf.sharing", rv).currentWebDAVAccount.item = account
 
             account.displayName = section[u"title"]
             account.host = section[u"host"]
@@ -217,10 +260,7 @@ def restore(rv, filename, testmode=False):
             account.port = section.as_int(u"port")
             account.useSSL = section.as_bool(u"usessl")
 
-            if section.has_key(u"default") and section.as_bool(u"default"):
-                accountRef = schema.ns("osaf.sharing", rv).currentWebDAVAccount
-                accountRef.item = account
-                
+
     for sectionname, section in cfg.iteritems():
         if section.has_key(u"type"):
             sectiontype = section[u"type"]
@@ -279,7 +319,7 @@ def restore(rv, filename, testmode=False):
                                              immediate=True, mine=mine,
                                              publisher=publisher,
                                              freebusy=freebusy, color=color)
-        
+
     for sectionname, section in cfg.iteritems():
         if section.has_key(u"type"):
             sectiontype = section[u"type"]
@@ -287,7 +327,20 @@ def restore(rv, filename, testmode=False):
             sectiontype = ""
         # smtp accounts
         if sectiontype == u"smtp account":
-            if section.has_key(u"uuid"):
+            account = None
+            makCurrent = False
+
+            if section.has_key(u"default") and section.as_bool(u"default"):
+                accountRef = schema.ns("osaf.pim", rv).currentSMTPAccount
+                current = accountRef.item
+
+                if len(current.host.strip()) == 0:
+                   # The current account is empty
+                    account = current
+                else:
+                    makeCurrent = True
+
+            if section.has_key(u"uuid") and account is None:
                 uuid = section[u"uuid"]
                 uuid = UUID(uuid)
                 account = rv.findUUID(uuid)
@@ -296,8 +349,11 @@ def restore(rv, filename, testmode=False):
                     parent = schema.Item.getDefaultParent(rv)
                     account = kind.instantiateItem(None, parent, uuid,
                         withInitialValues=True)
-            else:
+            elif account is None:
                 account = pim.mail.SMTPAccount(itsView=rv)
+
+            if makeCurrent:
+                schema.ns("osaf.pim", rv).currentSMTPAccount.item = account
 
             account.displayName = section[u"title"]
             account.host = section[u"host"]
@@ -319,17 +375,41 @@ def restore(rv, filename, testmode=False):
             sectiontype = ""
         # imap accounts
         if sectiontype == u"imap account":
-            if section.has_key(u"uuid"):
+            account = None
+            makeCurrent = False
+
+            if section.has_key(u"default") and section.as_bool(u"default"):
+                accountRef = schema.ns("osaf.pim", rv).currentMailAccount
+                current = accountRef.item
+
+                if current.accountProtocol == "IMAP" and \
+                   len(current.host.strip()) == 0 and \
+                   len(current.password.strip()) == 0 and \
+                   len(current.username.strip()) == 0:
+                   # The current account is empty
+                    account = current
+                else:
+                    makeCurrent = True
+
+            if section.has_key(u"uuid") and account is None:
                 uuid = section[u"uuid"]
                 uuid = UUID(uuid)
                 account = rv.findUUID(uuid)
                 if account is None:
+                   #XXX overwrite the default account info
                     kind = pim.mail.IMAPAccount.getKind(rv)
                     parent = schema.Item.getDefaultParent(rv)
                     account = kind.instantiateItem(None, parent, uuid,
                         withInitialValues=True)
-            else:
-                account = pim.mail.IMAPAccount(itsView=rv)
+
+            elif account is None:
+                # addInbox = False tells the IMAP account not to
+                # create a default inbox folder in account.folders
+                # since the inbox info wiill come from the ini file.
+                account = pim.mail.IMAPAccount(itsView=rv, addInbox=False)
+
+            if makeCurrent:
+                schema.ns("osaf.pim", rv).currentMailAccount.item = account
 
             account.displayName = section[u"title"]
             account.host = section[u"host"]
@@ -353,6 +433,32 @@ def restore(rv, filename, testmode=False):
                 smtp = rv.findUUID(uuid)
                 account.defaultSMTPAccount = smtp
 
+            if section.has_key(u"imap_folder_num"):
+                fnum = section.as_int("imap_folder_num")
+
+                for i in xrange(0, fnum):
+                    fcfg = section['imap_folder_%d' % i]
+
+                    if fcfg.has_key(u"uuid"):
+                        uuid = fcfg[u"uuid"]
+                        uuid = UUID(uuid)
+                        folder = rv.findUUID(uuid)
+                        if folder is None:
+                            kind = pim.mail.IMAPFolder.getKind(rv)
+                            parent = schema.Item.getDefaultParent(rv)
+                            folder = kind.instantiateItem(None, parent, uuid,
+                                                 withInitialValues=True)
+                    else:
+                        folder = pim.mail.IMAPFolder(itsView=rv)
+
+                    folder.displayName = fcfg['title']
+                    folder.folderName = fcfg['name']
+                    folder.folderType = fcfg['type']
+                    folder.downloadMax = fcfg.as_int('max')
+                    folder.deleteOnDownload = fcfg.as_bool('del')
+
+                    account.folders.append(folder)
+
     for sectionname, section in cfg.iteritems():
         if section.has_key(u"type"):
             sectiontype = section[u"type"]
@@ -360,7 +466,23 @@ def restore(rv, filename, testmode=False):
             sectiontype = ""
         # pop accounts
         if sectiontype == u"pop account":
-            if section.has_key(u"uuid"):
+            account = None
+            makeCurrent = False
+
+            if section.has_key(u"default") and section.as_bool(u"default"):
+                accountRef = schema.ns("osaf.pim", rv).currentMailAccount
+                current = accountRef.item
+
+                if current.accountProtocol == "POP" and \
+                   len(current.host.strip()) == 0 and \
+                   len(current.password.strip()) == 0 and \
+                   len(current.username.strip()) == 0:
+                   # The current account is empty
+                    account = current
+                else:
+                    makeCurrent = True
+
+            if section.has_key(u"uuid") and account is None:
                 uuid = section[u"uuid"]
                 uuid = UUID(uuid)
                 account = rv.findUUID(uuid)
@@ -369,8 +491,11 @@ def restore(rv, filename, testmode=False):
                     parent = schema.Item.getDefaultParent(rv)
                     account = kind.instantiateItem(None, parent, uuid,
                         withInitialValues=True)
-            else:
+            elif account is None:
                 account = pim.mail.POPAccount(itsView=rv)
+
+            if makeCurrent:
+                schema.ns("osaf.pim", rv).currentMailAccount.item = account
 
             account.displayName = section[u"title"]
             account.host = section[u"host"]
@@ -378,7 +503,7 @@ def restore(rv, filename, testmode=False):
             account.password = section[u"password"]
             account.port = section.as_int(u"port")
             account.connectionSecurity = section[u"security"]
-            account.leaveOnServer = section.as_bool(u"leave")
+            account.deleteOnDownload = section.as_bool(u"del")
 
             if section.has_key(u"address"):
                 emailAddress = pim.mail.EmailAddress.getEmailAddress(rv,

@@ -144,7 +144,7 @@ class MailService(object):
 
         self._refreshCache("POP")
 
-    def getSMTPInstance(self, account):
+    def getSMTPInstance(self, account, fromCache=True):
         """
         Returns a C{SMTPClient} instance
         for the given account
@@ -152,63 +152,83 @@ class MailService(object):
         @param account: A SMTPAccount
         @type account: C{SMTPAccount}
 
+        @param fromCache: Boolean flag indicating whether the
+                          c{SMTPClient} instance should come from
+                          the cache.
+        @type fromCache: C{bool}
+
         @return: C{SMTPClient}
         """
 
         assert isinstance(account, Mail.SMTPAccount)
+
+        if not fromCache:
+            return SMTPClient(self._createView("SMTPClient", account), account)
 
         smtpInstances = self._clientInstances.get("SMTP")
 
         if account.itsUUID in smtpInstances:
             return smtpInstances.get(account.itsUUID)
 
-        #XXX Just pass self._view
         s = SMTPClient(self._createView("SMTPClient", account), account)
         smtpInstances[account.itsUUID] = s
 
         return s
 
-    def getIMAPInstance(self, account):
+    def getIMAPInstance(self, account, fromCache=True):
         """Returns a C{IMAPClient} instance
            for the given account
 
            @param account: A IMAPAccount
            @type account: C{IMAPAccount}
+           @param fromCache: Boolean flag indicating whether the
+                             c{IMAPClient} instance should come from
+                             the cache.
+
+           @type fromCache: C{bool}
 
            @return: C{IMAPClient}
         """
 
         assert isinstance(account, Mail.IMAPAccount)
 
+        if not fromCache:
+            return IMAPClient(self._createView("IMAPClient", account), account)
+
         imapInstances = self._clientInstances.get("IMAP")
 
         if account.itsUUID in imapInstances:
             return imapInstances.get(account.itsUUID)
 
-        #XXX Just pass self._view
         i = IMAPClient(self._createView("IMAPClient", account), account)
         imapInstances[account.itsUUID] = i
 
         return i
 
-    def getPOPInstance(self, account):
+    def getPOPInstance(self, account, fromCache=True):
         """Returns a C{POPClient} instance
            for the given account
 
            @param account: A POPAccount
            @type account: C{POPAccount}
+           @param fromCache: Boolean flag indicating whether the
+                             c{POPClient} instance should come from
+                             the cache.
+           @type fromCache: C{bool}
 
            @return: C{POPClient}
         """
 
         assert isinstance(account, Mail.POPAccount)
 
+        if not fromCache:
+            return POPClient(self._createView("POPClient", account), account)
+
         popInstances = self._clientInstances.get("POP")
 
         if account.itsUUID in popInstances:
             return popInstances.get(account.itsUUID)
 
-        #XXX Just pass self._view
         i = POPClient(self._createView("POPClient", account), account)
         popInstances[account.itsUUID] = i
 
@@ -246,7 +266,12 @@ class MailService(object):
                 trace("removed %s%s with %s %s" % (protocol, c, a, delList))
 
     def _createView(self, clientName, account):
-        #Assign a unique name to the view
+        # Assign a unique name to the view
         viewName = "%s for account: %s" % (clientName, str(account.itsUUID))
-        return self._view.repository.createView(viewName)
+        v = self._view.repository.createView(viewName)
+
+        # Set the prune size to limit the views memory use
+        v.pruneSize = 200
+
+        return v
 

@@ -20,10 +20,10 @@ from twisted.internet import reactor
 import sys
 import os
 
-LOGIN_PLAIN = "test test"
+LOGIN_PLAIN = "\"test\" \"test\""
 
 CERT_FILE = "./cert/server.pem"
-PORT = 1430
+PORT = 1431
 SSL_PORT = 9950
 
 SSL_SUPPORT = True
@@ -42,7 +42,7 @@ SEND_CAPABILITY_IN_GREETING = False
 
 """Commands"""
 CONNECTION_MADE = "OK Twisted Test Server Ready"
-CAP  = "CAPABILITY IMAP4REV1 IDLE NAMESPACE MAILBOX-REFERRALS BINARY UNSELECT SCAN SORT THREAD=REFERENCES THREAD=ORDEREDSUBJECT MULTIAPPEND LOGIN-REFERRALS"
+CAP  = "CAPABILITY IMAP4REV1 IDLE NAMESPACE MAILBOX-REFERRALS BINARY UNSELECT SCAN SORT THREAD=REFERENCES THREAD=ORDEREDSUBJECT MULTIAPPEND LOGIN-REFERRALS AUTH=PLAIN"
 CAP_SSL   = CAP + " STARTTLS"
 
 
@@ -131,6 +131,7 @@ class IMAPTestServer(basic.LineReceiver):
         self.sendLine("* %s" % line)
 
     def lineReceived(self, line):
+        print "Got line: ", line
         """Error Conditions"""
         if TIMEOUT_RESPONSE:
             """Do not respond to clients request"""

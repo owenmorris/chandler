@@ -42,7 +42,7 @@ from calendar.DateTimeUtil import (ampmNames, durationFormat, mediumDateFormat,
      weekdayNames, weekdayName)
 from reminders import PendingReminderEntry, Reminder, Remindable
 from tasks import Task, TaskStamp
-from mail import EmailAddress, EmailComparator
+from mail import EmailAddress, EmailComparator, MailStamp
 from application.Parcel import Reference
 from repository.item.Item import Item
 from PyICU import ICUtzinfo

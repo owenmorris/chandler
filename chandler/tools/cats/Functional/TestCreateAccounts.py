@@ -17,9 +17,9 @@ from tools.cats.framework.ChandlerTestCase import ChandlerTestCase
 from i18n.tests import uw
 
 class TestCreateAccounts(ChandlerTestCase):
-    
+
     def startTest(self):
-        
+
         ap = QAUITestAppLib.UITestAccounts(self.logger)
 
         pSMTP   = uw("Personal SMTP")
@@ -28,21 +28,21 @@ class TestCreateAccounts(ChandlerTestCase):
         pWEBDAV = uw("Personal WEBDAV")
         pEMAIL  = "demo1@osafoundation.org"
         pNAME   = uw("Demo One")
-        
+
         # action
         ap.Open() # first, open the accounts dialog window
-        
-        ap.CreateAccount("SMTP") # create a new SMTP account
+
+        ap.GetDefaultAccount("OUTGOING")
         ap.TypeValue("displayName", pSMTP) # type the following values into their apporpriate fields
         ap.TypeValue("host","smtp.osafoundation.org")
         ap.SelectValue("security",  'TLS') # select the TLS radio button
         ap.ToggleValue("authentication", True) # turn on the authentication checkbox
         ap.TypeValue("port", '587')
-        ap.TypeValue("email",pEMAIL)
+        ap.TypeValue("email", pEMAIL)
         ap.TypeValue('username', 'demo1')
         ap.TypeValue('password', 'ad3leib5')
-        
-        ap.CreateAccount("IMAP")
+
+        ap.GetDefaultAccount("INCOMING")
         ap.TypeValue("displayName", pIMAP)
         ap.TypeValue("email", pEMAIL)
         ap.TypeValue("name", pNAME)
@@ -50,10 +50,9 @@ class TestCreateAccounts(ChandlerTestCase):
         ap.TypeValue("username", "demo1")
         ap.TypeValue("password", "ad3leib5")
         ap.SelectValue("security", "SSL")
-        ap.ToggleValue("default", True)
-        ap.SelectValue("server", pSMTP)
-        
-        ap.CreateAccount("POP")
+        ap.SelectValue("protocol", "IMAP")
+
+        ap.CreateAccount("INCOMING")
         ap.TypeValue("displayName", pPOP)
         ap.TypeValue("email", pEMAIL)
         ap.TypeValue("name", pNAME)
@@ -61,12 +60,9 @@ class TestCreateAccounts(ChandlerTestCase):
         ap.TypeValue("username", "demo1")
         ap.TypeValue("password", "ad3leib5")
         ap.SelectValue("security", "SSL")
-        ap.TypeValue("port", "143")
-        ap.ToggleValue("leave", True)
-        ap.ToggleValue("default", True)
-        ap.SelectValue("server", pSMTP)
-        
-        ap.CreateAccount("WebDAV")
+        ap.SelectValue("protocol", "POP")
+
+        ap.GetDefaultAccount("SHARING")
         ap.TypeValue("displayName", pWEBDAV)
         ap.TypeValue("host", "osaf.us")
         ap.TypeValue("path", "cosmo/home/demo1")
@@ -74,10 +70,9 @@ class TestCreateAccounts(ChandlerTestCase):
         ap.TypeValue("password", "ad3leib5")
         ap.TypeValue("port", "443")
         ap.ToggleValue("ssl", True)
-        ap.ToggleValue("default", True)
-        
+
         ap.Ok()
-        
+
         # verification
         self.logger.startAction("Verifying Account Values")
         ap.VerifyValues("SMTP", pSMTP, host= "smtp.osafoundation.org", connectionSecurity = "TLS", useAuth = True, port = 587, username = 'demo1', password = 'ad3leib5' )

@@ -32,7 +32,7 @@ from application import Globals
 from repository.persistence.RepositoryError \
     import RepositoryError, VersionConflictError
 from repository.persistence.RepositoryView import RepositoryView
-import osaf.pim.mail as Mail
+from osaf.pim.mail import AccountBase
 from osaf.framework.certstore import ssl
 import application.Utility as Utility
 from osaf import messages
@@ -42,21 +42,27 @@ import errors
 import constants
 from utils import *
 
-#Call RepositoryView.prune(1000) after commit when the number of
-# downloaded messages exceeds PRUNE_MIN
-PRUNE_MIN = 25
+class DownloadVars(object):
+    """
+       This class contains the non-persisted
+       DownloadAccount variables that are used
+       during the downloading of mail.
+    """
 
+    def __init__(self):
+        self.numDownloaded   = 0
+        self.numToDownload   = 0
+        self.totalDownloaded = 0
 
-"""
-ISSUES:
-1. If an account is testing while a background sync of that account is happening then
-   this will be an issue. Especially on a cancel. Need to think about this during
-   folder refactoring for preview. Solutions are don't persist testing values or
-   don't cache mail clients or always create a new mail client per testing try this
-   avoids affecting the cached client used for download.
-"""
+        # The list of pending messages to download
+        self.pending = []
 
-
+        # List of protocol UID's to delete from the
+        # mail server. This is used for the case
+        # where the user wants to delete the
+        # messages on the server once they have
+        # been downloaded to Chandler.
+        self.delList = []
 
 class AbstractDownloadClientFactory(protocol.ClientFactory):
     """ Base class for Chandler download transport factories(IMAP, POP, etc.).
@@ -64,13 +70,13 @@ class AbstractDownloadClientFactory(protocol.ClientFactory):
         disconnects and Twisted protocol creation"""
 
     # Base exception that will be raised on error.
-    # can be overiden for use by subclasses.
+    # can be overidden for use by subclasses.
     exception = errors.MailException
 
     def __init__(self, delegate):
         """
         @param delegate: A Chandler protocol class containing:
-          1. An account object inherited from c{Mail.AccountBase}
+          1. An account object inherited from c{AccountBase}
           2. A loginClient method implementation callback
           3. A catchErrors method implementation errback
         @type delegate: c{object}
@@ -139,7 +145,7 @@ class AbstractDownloadClientFactory(protocol.ClientFactory):
     def _processConnectionError(self, connector, err):
         self.connectionLost = True
 
-        if self.delegate.complete:
+        if self.delegate.errorHandled:
             self.delegate._resetClient()
 
         elif self.retries < self.sendFinished <= 0:
@@ -150,7 +156,7 @@ class AbstractDownloadClientFactory(protocol.ClientFactory):
 
         elif self.sendFinished <= 0:
             if err.check(error.ConnectionDone):
-                err.value = self.exception(errors.STR_CONNECTION_ERROR)
+                err.value = self.exception(constants.MAIL_PROTOCOL_CONNECTION_ERROR)
 
             if __debug__:
                 trace("_processConnectionError manual call to catchErrors")
@@ -164,7 +170,7 @@ class AbstractDownloadClient(object):
 
 
     #Subclasses overide these constants
-    accountType = Mail.AccountBase
+    accountType = AccountBase
     clientType  = "AbstractDownloadClient"
     factoryType = AbstractDownloadClientFactory
     defaultPort = 0
@@ -185,36 +191,57 @@ class AbstractDownloadClient(object):
         #These values exist for life of client
         self.accountUUID = account.itsUUID
         self.account = None
-        self.currentlyDownloading = False
-        self.testing = False
-        self.callback = None
-        self.cancel = False
         self.shuttingDown = False
 
-        #These values are reassigned per request
+        # These values are reassigned on each
+        # connection to the server
+        self.performingAction = False
+        self.testing = False
+        self.logIn = True
+        self.callback = None
+        self.statusMessages = False
         self.factory = None
         self.proto = None
-        self.lastUID = 0
-        self.totalDownloaded = 0
-        self.pruneCounter = 0
-        self.pending = []
-        self.downloadMax = 0
-        self.complete = False
+        self.reconnect = None
+        self.errorHandled = False
 
-        #These values are reassigned per fetch
-        self.numDownloaded = 0
-        self.numToDownload = 0
+        # Cancel is experimental and used
+        # with the account testing dialog.
+        # More work still needs to be done
+        # for it to be useful for all protocol
+        # based operations.
+        self.cancel = False
+
+        #The internal class method to
+        #call after initial connection
+        #to the server and login / SSL / TLS
+        # is completed.
+        self.cb = None
+
+        self.vars = None
+        self.commitNumber = 0
 
     def getMail(self):
         """Retrieves mail from a download protocol (POP, IMAP)"""
         if __debug__:
             trace("getMail")
 
+        # Tells whether to print status messages
+        self.statusMessages = True
+
+        # Tell what method to call if the SSL acceptance
+        # dialog needs to be displayed
+        self.reconnect = self.getMail
+
+        # The first callback after login / TLS /SSL
+        # complete
+        self.cb = self._getMail
+
         # Move code execution path from current thread
         # to Reactor Asynch thread
-        reactor.callFromThread(self._getMail)
+        reactor.callFromThread(self._connectToServer)
 
-    def testAccountSettings(self, callback):
+    def testAccountSettings(self, callback, reconnect, logIn=True):
         """Tests the account settings for a download protocol (POP, IMAP).
            Raises an error if unable to establish or communicate properly
            with the a server.
@@ -222,19 +249,50 @@ class AbstractDownloadClient(object):
         if __debug__:
             trace("testAccountSettings")
 
-
         if Globals.options.offline:
             return
 
         assert(callback is not None)
+        assert(reconnect is not None)
+        assert(isinstance(logIn, bool))
+
+        # Tells whether to print status messages
+        self.statusMessages = False
+
+        # Tell what method to call on reconnect
+        # when a SSL dialog is displayed.
+        # When the dialog is shown the
+        # protocol code terminates the
+        # connection and calls reconnect
+        # if the cert has been accepted
+        self.reconnect = reconnect
+
+        # The method to call in the UI Thread
+        # when the testing is complete.
+        # This method is called for both success and failure.
         self.callback = callback
+
+        # Preview timeframe addition that
+        # specifies whether the protocol should
+        # login the user as part of the account
+        # testing. A value of True will log
+        # the user in as part of the test.
+        self.logIn = logIn
+
+        # The first callback after login / TLS /SSL
+        # complete
+        self.cb = self._accountTestingComplete
+
+        # Flag indicating we are in test mode
         self.testing = True
 
-        reactor.callFromThread(self._getMail)
+        # Move code execution path from current thread
+        # to Reactor Asynch thread
+        reactor.callFromThread(self._connectToServer)
 
-    def _getMail(self):
+    def _connectToServer(self):
         if __debug__:
-            trace("_getMail")
+            trace("_connectToServer")
 
         if self.cancel:
             return self._resetClient()
@@ -254,31 +312,30 @@ class AbstractDownloadClient(object):
         self._getAccount()
 
         if Globals.options.offline:
-            msg = constants.DOWNLOAD_OFFLINE % {"accountName": self.account.displayName}
+            if self.statusMessages:
+                msg = constants.MAIL_PROTOCOL_OFFLINE % \
+                              {"accountName": self.account.displayName}
+
+                setStatusMessage(msg)
+            return
+
+        if self.performingAction:
+            trace("%s is currently in use request ignored" % self.clientType)
+            return
+
+        self.performingAction = True
+
+        if self.statusMessages:
+            msg = constants.MAIL_PROTOCOL_CONNECTION \
+                          % {"accountName": self.account.displayName,
+                             "serverDNSName": self.account.host}
+
             setStatusMessage(msg)
-            return
-
-        if self.currentlyDownloading:
-            if self.testing:
-                trace("%s currently testing account settings" % self.clientType)
-
-            else:
-                trace("%s currently downloading mail" % self.clientType)
-
-            return
-
-        self.currentlyDownloading = True
-
-        msg = constants.DOWNLOAD_START \
-                      % {"accountName": self.account.displayName,
-                         "serverDNSName": self.account.host}
-
-        setStatusMessage(msg)
 
         self.factory = self.factoryType(self)
 
         #Cache the maximum number of messages to download before forcing a commit
-        self.downloadMax = self.account.downloadMax
+        self.commitNumber = self.account.commitNumber
 
         if self.testing:
             # If in testing mode then do not want to retry connection or
@@ -310,7 +367,9 @@ class AbstractDownloadClient(object):
         if __debug__:
             trace("catchErrors")
 
-        self.complete = True
+        # Flag that tells the connection factory
+        # that the error has been handled
+        self.errorHandled = True
 
         try:
             #On error cancel any changes done in the view
@@ -340,29 +399,21 @@ class AbstractDownloadClient(object):
 
                 #set the value of the error to something more meaningful than
                 #'Connection closed cleanly.'
-                err.value = self.factory.exception(errors.STR_CONNECTION_ERROR)
-
-            try:
-                err.raiseException()
-            except:
-                log.exception("Exception raised in Twisted Framework Layer. \
-                               More information may be available in the twisted.log.")
+                err.value = self.factory.exception(constants.MAIL_PROTOCOL_CONNECTION_ERROR)
 
             err = err.value
 
         #Get the str representation of Python class
-        errorType   = str(err.__class__)
+        errorType = str(err.__class__)
 
-        if self.testing:
-            reconnect = self.testAccountSettings
-        else:
-            reconnect = self.getMail
-            #Clear the previous message in the status bar.
-            #But only if we are not in testing mode since it
-            #does not leverage the status bar.
+        if self.statusMessages:
+            # Reset the status bar since the error will be displayed
+            # in a dialog or handled by a callback method.
             setStatusMessage(u"")
 
         if isinstance(err, Utility.CertificateVerificationError):
+            #rc = self.reconnect
+
             assert err.args[1] == 'certificate verify failed'
 
             # Reason why verification failed is stored in err.args[0], see
@@ -373,40 +424,46 @@ class AbstractDownloadClient(object):
             # we ask the user if they would like to trust this
             # certificate. The main thread will then initiate a retry
             # when the new certificate has been added.
-            if err.args[0] in ssl.unknown_issuer:
-                displaySSLCertDialog(err.untrustedCertificates[0], reconnect)
-            else:
-                displayIgnoreSSLErrorDialog(err.untrustedCertificates[0], err.args[0],
-                                                  reconnect)
+            try:
+                if err.args[0] in ssl.unknown_issuer:
+                    displaySSLCertDialog(err.untrustedCertificates[0], self.reconnect)
+                else:
+                    displayIgnoreSSLErrorDialog(err.untrustedCertificates[0], err.args[0],
+                                                self.reconnect)
 
-            self._actionCompleted()
-            return
+                if self.callback:
+                    callMethodInUIThread(self.callback, (2, None))
+            except Exception, e:
+                # There is a bug in the M2Crypto code which needs
+                # to be fixed.
+                from i18n import ChandlerMessageFactory as _
+                callMethodInUIThread(self.callback, (0, _(u"Error in SSL Layer")))
+
+            return self._actionCompleted()
 
         if errorType == errors.M2CRYPTO_CHECKER_ERROR:
             # Post an asynchronous event to the main thread where
             # we ask the user if they would like to continue even though
             # the certificate identifies a different host.
+            #rc = self.reconnect
+
             displayIgnoreSSLErrorDialog(err.pem,
-                                        messages.SSL_HOST_MISMATCH % {'expectedHost': err.expectedHost, 'actualHost': err.actualHost},
-                                        reconnect)
+                                        messages.SSL_HOST_MISMATCH % \
+                                          {'expectedHost': err.expectedHost,
+                                           'actualHost': err.actualHost}, self.reconnect)
 
-            self._actionCompleted()
-            return
+            if self.callback:
+                callMethodInUIThread(self.callback, (2, None))
 
-        #Convert error messages to unicode objects for display
-        try:
-            errorText = unicode(err.__str__(), 'utf8', 'replace')
-        except (UnicodeEncodeError, TypeError), e:
-            logging.exception("Unable to convert Exception string text to Unicode")
-            #XXX If the conversion fails add a more detailed message
-            # such "Please look at log to view the error"
-            errorText = u""
+            return self._actionCompleted()
 
-        if self.testing:
+        errorText = unicode(err.__str__(), 'utf8', 'ignore')
+
+        if self.callback:
             callMethodInUIThread(self.callback, (0, errorText))
         else:
-            alertMailError(constants.DOWNLOAD_ERROR, self.account, \
-                          {'error': errorText})
+            alertMailError(constants.MAIL_PROTOCOL_ERROR, self.account, \
+                          {'hostName': self.account.host, 'errText': errorText})
 
         self._actionCompleted()
 
@@ -419,17 +476,24 @@ class AbstractDownloadClient(object):
 
         @return: C{None}
         """
+        if __debug__:
+            trace("loginClient")
 
         if self.cancel:
             return self._actionCompleted()
 
-        return self._loginClient()
+        if not self.logIn:
+            callMethodInUIThread(self.callback, (1, None))
+            return self._actionCompleted()
+
+        self._loginClient()
+
 
     def cancelLastRequest(self):
         if __debug__:
             trace("cancelLastRequest")
 
-        if self.currentlyDownloading or self.testing:
+        if self.performingAction or self.testing:
             self.cancel = True
 
     def shutdown(self):
@@ -438,12 +502,12 @@ class AbstractDownloadClient(object):
 
         self.shuttingDown = True
 
-    def _loginClient(self):
-        """Overide this method to place any protocol specific
-           logic to be handle logging in to client
-        """
 
-        raise NotImplementedError()
+    def _accountTestingComplete(self, results):
+        if not self.cancel:
+            callMethodInUIThread(self.callback, (1, None))
+
+        return self._actionCompleted()
 
     def _beforeDisconnect(self):
         """Overide this method to place any protocol specific
@@ -473,7 +537,7 @@ class AbstractDownloadClient(object):
         if not self.factory.connectionLost and self.proto:
             self.proto.transport.loseConnection()
 
-    def _commitDownloadedMail(self, callback=None):
+    def _commitDownloadedMail(self):
         """Commits mail to the C{Repository}.
            If there are more messages to download
            calls C{_getNextMessageSet} otherwise
@@ -486,22 +550,6 @@ class AbstractDownloadClient(object):
         def _tryCommit():
             try:
                 self.view.commit()
-
-                # Prune the view to free up memory if the number downloaded is equal
-                # to or exceeds the PRUNE_MIN. If the numDownloaded is less than the
-                # download maximum before a commit it means that all messages have been downloaded
-                # from the server in which case we prune to free every ounce of memory we can
-                # get :)
-
-                if self.pruneCounter >= PRUNE_MIN or \
-                   self.numDownloaded < self.downloadMax:
-                    self.view.prune(1000)
-
-                    if __debug__:
-                        trace("Prunning %s messages" % self.pruneCounter)
-
-                    #reset the counter
-                    self.pruneCounter = 0
             except RepositoryError, e:
                 raise
 
@@ -510,46 +558,9 @@ class AbstractDownloadClient(object):
 
         d = threads.deferToThread(_tryCommit)
 
-        if callback:
-            d.addCallback(callback)
-            d.addCallback(lambda _: self._postCommit())
-            d.addErrback(self.catchErrors)
+        return d.addCallback(lambda _: self._performNextAction()
+                            ).addErrback(self.catchErrors)
 
-            return d
-
-        else:
-            return d.addCallback(lambda _: self._postCommit()
-                                ).addErrback(self.catchErrors)
-
-
-    def _postCommit(self):
-        if __debug__:
-            trace("_postCommit")
-
-        msg = constants.DOWNLOAD_MESSAGES % {'accountName': self.account.displayName,
-                                             'numberOfMessages': self.totalDownloaded}
-
-        setStatusMessage(msg)
-
-        # We have downloaded the last batch of messages if the
-        # number downloaded is less than the max.
-        # Add a check to make sure the account was not
-        # deactivated during the last fetch.
-
-        if self.numDownloaded < self.downloadMax or not self.account.isActive:
-            self._actionCompleted()
-
-        else:
-            self.numDownloaded = 0
-            self.numToDownload = 0
-
-            self._getNextMessageSet()
-
-    def _getNextMessageSet(self):
-        """Overide this to add retrieval of
-           message set logic for POP. IMAP, etc
-        """
-        raise NotImplementedError()
 
     def _actionCompleted(self):
         """Handles clean up after mail downloaded
@@ -574,30 +585,60 @@ class AbstractDownloadClient(object):
         if __debug__:
             trace("_resetClient")
 
-        #Release the currentlyDownloading lock
-        self.currentlyDownloading = False
+        # Release the performingAction lock
+        self.performingAction = False
 
-        #Reset testing to False
+        # Reset testing to False
         self.testing = False
 
-        #Reset callback to None
+        # Reset logIn to True
+
+        self.logIn = True
+
+        # Reset callback to None
         self.callback = None
 
-        #reset the cancel flag
+        # Reset the cancel flag
         self.cancel = False
 
-        #Clear out per request values
-        self.factory         = None
-        self.proto           = None
-        self.lastUID         = 0
-        self.totalDownloaded = 0
-        self.pruneCounter    = 0
-        self.pending         = []
-        self.downloadMax     = 0
-        self.complete        = False
+        #reset the show status messages flag
+        self.statusMessages = False
 
-        self.numToDownload  = 0
-        self.numDownloaded  = 0
+        # Clear out per request values
+        self.factory         = None
+        self.cb              = None
+        self.reconnect       = None
+        self.proto           = None
+        self.commitNumber    = 0
+        self.errorHandled    = False
+        self.vars            = None
+
+    def _performNextAction(self):
+        """Overide this to add retrieval of
+           message set logic for POP. IMAP, etc
+        """
+        raise NotImplementedError()
+
+    def _getNextMessageSet(self):
+        """Overide this to add retrieval of
+           message set logic for POP. IMAP, etc
+        """
+        raise NotImplementedError()
+
+    def _loginClient(self):
+        """Overide this method to place any protocol specific
+           logic to be handle logging in to client
+        """
+
+        raise NotImplementedError()
+
+
+    def _getMail(self, result):
+        """Overide this method to place any protocol specific
+           logic to be handled after the client has logged.
+        """
+
+        raise NotImplementedError()
 
     def _getAccount(self):
         """Overide this method to add custom account

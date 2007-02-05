@@ -16,9 +16,6 @@ E_OPTERROR=65
 
 USAGE="Usage: `basename $0` -fpuF [-m debug|release] [-t test_name] [chandler-base-path]"
 
-# Signals to the Chandler code that it is being run from a unit test
-export UNIT_TESTING=True
-
 if [ "$CHANDLER_FUNCTIONAL_TEST" = "yes" ]; then
     RUN_FUNCTIONAL=yes
 else

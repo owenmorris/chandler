@@ -29,14 +29,13 @@ from datetime import datetime
 from PyICU import ICUtzinfo
 
 #Chandler imports
-from application import Globals
-import osaf.pim.mail as Mail
+from application import Globals, Utility
+from osaf.pim.mail import SMTPAccount, MailStamp, MailDeliveryError, EmailAddress
 from osaf.pim import Modification
 from osaf.framework.certstore import ssl
 from repository.persistence.RepositoryView import RepositoryView
 from repository.persistence.RepositoryError \
     import RepositoryError, VersionConflictError
-import application.Utility as Utility
 
 #Chandler Mail Service imports
 import constants
@@ -110,6 +109,7 @@ class _TwistedESMTPSender(smtp.ESMTPSender):
 
         return smtp.ESMTPSender.smtpState_from(self, code, resp)
 
+
 class SMTPClient(object):
     """Sends a Chandler mail message via SMTP"""
 
@@ -119,9 +119,9 @@ class SMTPClient(object):
            @type view: C{RepositoryView}
 
            @param account: An SMTP Account domain model object
-           @type account: C{Mail.SMTPAccount}
+           @type account: C{SMTPAccount}
         """
-        assert isinstance(account, Mail.SMTPAccount)
+        assert isinstance(account, SMTPAccount)
         assert isinstance(view, RepositoryView)
 
         self.view = view
@@ -132,6 +132,7 @@ class SMTPClient(object):
         #These values are reset per request
         self.testing = False
         self.callback = None
+        self.reconnect = None
         self.cancel = False
         self.displayed = False
 
@@ -144,11 +145,11 @@ class SMTPClient(object):
            passed to this classes __init__ method
 
            @param mailMessage: A MailMessage domain model object
-           @type mailMessage: C{Mail.MailStamp}
+           @type mailMessage: C{MailStamp}
 
            @return: C{None}
         """
-        assert isinstance(mailMessage, Mail.MailStamp)
+        assert isinstance(mailMessage, MailStamp)
 
         if __debug__:
             trace("sendMail")
@@ -159,9 +160,12 @@ class SMTPClient(object):
         # can be race conditions where the view in the twisted thread
         # doesn't pick up the changes from this view.
         mailItem.itsView.commit()
+
+        self.reconnect = lambda: self.sendMail(mailMessage)
+
         reactor.callFromThread(self._prepareForSend, mailItem.itsUUID)
 
-    def testAccountSettings(self, callback):
+    def testAccountSettings(self, callback, reconnect):
         """Tests the user entered settings for C{SMTPAccount}"""
 
         if __debug__:
@@ -171,7 +175,20 @@ class SMTPClient(object):
             return self._resetClient()
 
         assert(callback is not None)
+        assert(reconnect is not None)
+
+        # The method to call in the UI Thread
+        # when the testing is complete.
+        # This method is called for both success and failure.
         self.callback = callback
+
+        # Tell what method to call on reconnect
+        # when a SSL dialog is displayed.
+        # When the dialog is shown the
+        # protocol code terminates the
+        # connection and calls reconnect
+        # if the cert has been accepted
+        self.reconnect = reconnect
 
         reactor.callFromThread(self._testAccountSettings)
 
@@ -305,6 +322,7 @@ class SMTPClient(object):
                 return
 
             messageText = kindToMessageText(self.mailMessage)
+
         except Exception, e:
             if __debug__:
                 trace(e)
@@ -333,6 +351,7 @@ class SMTPClient(object):
         self.testing = True
 
         d = defer.Deferred()
+
         d.addCallback(self._testSuccess)
         d.addErrback(self._testFailure)
 
@@ -417,6 +436,8 @@ class SMTPClient(object):
             # Just get the error string do not need the error code
             err = self._getError(exc)[1]
             callMethodInUIThread(self.callback, (0, err))
+        else:
+            callMethodInUIThread(self.callback, (2, None))
 
         self._resetClient()
 
@@ -429,14 +450,13 @@ class SMTPClient(object):
         if __debug__:
             trace("_mailSuccessCheck")
 
-        # Refresh our view before adding items to our mail Message
-        # and commiting. Will not cause merge conflicts since
-        # no data changed in view in yet
-
         if self.shuttingDown or Globals.options.offline or \
            self.cancel:
             return self._resetClient()
 
+        # Refresh our view before adding items to our mail Message
+        # and commit. Will not cause merge conflicts since
+        # no data changed in view in yet
         self.view.refresh()
 
         if result[0] == len(result[1]):
@@ -478,7 +498,7 @@ class SMTPClient(object):
             email, code, st = recipient
 
             if recipient[1] != constants.SMTP_SUCCESS:
-                deliveryError = Mail.MailDeliveryError(itsView=self.view)
+                deliveryError = MailDeliveryError(itsView=self.view)
                 deliveryError.errorCode = code
                 deliveryError.errorString = u"%s: %s" % (email, st)
                 deliveryError.errorDate = errorDate
@@ -548,7 +568,7 @@ class SMTPClient(object):
 
         result = self._getError(err)
 
-        deliveryError = Mail.MailDeliveryError(itsView=self.view)
+        deliveryError = MailDeliveryError(itsView=self.view)
 
         deliveryError.errorDate   = datetime.now()
         deliveryError.errorCode   = result[0]
@@ -565,11 +585,6 @@ class SMTPClient(object):
            self.cancel:
             return self._resetClient()
 
-        if self.testing:
-            reconnect = self.testAccountSettings
-        else:
-            reconnect = lambda: self.sendMail(mailMessage)
-
         if isinstance(err, Utility.CertificateVerificationError):
             assert err.args[1] == 'certificate verify failed'
             # Reason why verification failed is stored in err.args[0], see
@@ -579,26 +594,35 @@ class SMTPClient(object):
             # we ask the user if they would like to trust this
             # certificate. The main thread will then initiate a retry
             # when the new certificate has been added.
-            if err.args[0] in ssl.unknown_issuer:
-                displaySSLCertDialog(err.untrustedCertificates[0],
-                                           reconnect)
-            else:
-                displayIgnoreSSLErrorDialog(err.untrustedCertificates[0],
-                                                  err.args[0],
-                                                  reconnect)
+            try:
+                if err.args[0] in ssl.unknown_issuer:
+                    displaySSLCertDialog(err.untrustedCertificates[0],
+                                               self.reconnect)
+                else:
+                    displayIgnoreSSLErrorDialog(err.untrustedCertificates[0],
+                                                      err.args[0],
+                                                      self.reconnect)
+                return True
+            except Exception, e:
+                # There is a bug in the M2Crypto code that needs to be 
+                # fixed
+                return False
 
-            return True
         elif str(err.__class__) == errors.M2CRYPTO_CHECKER_ERROR:
             displayIgnoreSSLErrorDialog(err.pem,
-                                        messages.SSL_HOST_MISMATCH % {'expectedHost': err.expectedHost, 'actualHost': err.actualHost},
-                                        reconnect)
-
+                                        messages.SSL_HOST_MISMATCH % \
+                                        {'expectedHost': err.expectedHost, 
+                                        'actualHost': err.actualHost},
+                                         self.reconnect)
             return True
+
         return False
 
     def cancelLastRequest(self):
         if __debug__:
             trace("cancelLastRequest")
+
+        # This feature is still experimental
 
         if self.mailMessage or self.testing:
             self.cancel = True
@@ -755,9 +779,9 @@ class SMTPClient(object):
             return True
 
         # Make sure the sender's Email Address is valid
-        if not Mail.EmailAddress.isValidEmailAddress(sender.emailAddress):
+        if not EmailAddress.isValidEmailAddress(sender.emailAddress):
             self._fatalError(constants.INVALID_EMAIL_ADDRESS % \
-                              {'emailAddress': Mail.EmailAddress.format(sender)})
+                              {'emailAddress': EmailAddress.format(sender)})
             return True
 
         # Make sure there is at least one Email Address to send the message to
@@ -770,16 +794,16 @@ class SMTPClient(object):
 
         # Make sure that each Recipients Email Address is valid
         for toAddress in self.mailMessage.toAddress:
-            if not Mail.EmailAddress.isValidEmailAddress(toAddress.emailAddress):
-                errs.append(errStr % {'emailAddress': Mail.EmailAddress.format(toAddress)})
+            if not EmailAddress.isValidEmailAddress(toAddress.emailAddress):
+                errs.append(errStr % {'emailAddress': EmailAddress.format(toAddress)})
 
         for ccAddress in self.mailMessage.ccAddress:
-            if not Mail.EmailAddress.isValidEmailAddress(ccAddress.emailAddress):
-                errs.append(errStr % {'emailAddress': Mail.EmailAddress.format(ccAddress)})
+            if not EmailAddress.isValidEmailAddress(ccAddress.emailAddress):
+                errs.append(errStr % {'emailAddress': EmailAddress.format(ccAddress)})
 
         for bccAddress in self.mailMessage.bccAddress:
-            if not Mail.EmailAddress.isValidEmailAddress(bccAddress.emailAddress):
-                errs.append(errStr % {'emailAddress': Mail.EmailAddress.format(bccAddress)})
+            if not EmailAddress.isValidEmailAddress(bccAddress.emailAddress):
+                errs.append(errStr % {'emailAddress': EmailAddress.format(bccAddress)})
 
         if len(errs) > 0:
             self._fatalError(u"\n".join(errs))
@@ -799,4 +823,4 @@ class SMTPClient(object):
         m = self.view.findUUID(mailMessageUUID)
 
         assert m is not None
-        return Mail.MailStamp(m)
+        return MailStamp(m)

@@ -39,10 +39,6 @@ TO DO:
 
 """
 
-# remember if I18nManager.initialize() was called so that it 
-# can be lazily called if needed
-_MANAGER_INITIALIZED = False
-
 # Keep a Global reference to the PyICU Locale
 # To ensure it does not get unloaded during the
 # application life cycle. There can be only one
@@ -208,9 +204,6 @@ class I18nManager(EggTranslations):
         if wxIsAvailable():
             self._wx_filehandler = I18nFileSystemHandler(self)
             wx.FileSystem.AddHandler(self._wx_filehandler)
-
-        global _MANAGER_INITIALIZED
-        _MANAGER_INITIALIZED = True
 
     def discoverLocaleSet(self):
         """
@@ -480,7 +473,7 @@ class I18nManager(EggTranslations):
                  localization found.
         """
 
-        if not _MANAGER_INITIALIZED:
+        if not self._init:
             from application import Globals
             self.initialize(Globals.options.locale)
 

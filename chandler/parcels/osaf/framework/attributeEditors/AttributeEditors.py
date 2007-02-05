@@ -31,7 +31,7 @@ import logging
 from operator import itemgetter
 from datetime import datetime, time, timedelta
 from PyICU import ICUError, ICUtzinfo, UnicodeString
-from osaf.framework.blocks.Block import (ShownSynchronizer, 
+from osaf.framework.blocks.Block import (ShownSynchronizer,
                                          wxRectangularChild, debugName)
 from osaf.pim.items import ContentItem
 from application import schema, styles
@@ -45,7 +45,7 @@ import parsedatetime.parsedatetime as parsedatetime
 import parsedatetime.parsedatetime_consts as ptc
 from datetime import date
 import PyICU
-from i18n import getLocaleSet
+from i18n import getLocale
 
 logger = logging.getLogger(__name__)
 
@@ -1895,7 +1895,7 @@ class DateAttributeEditor (StringAttributeEditor):
                     matchKey = cls.textMatches[matchKey]+ " : %s" % dateStr
                     yield matchKey
             else:
-                cal = parsedatetime.Calendar(ptc.Constants(str(getLocaleSet()[0])))
+                cal = parsedatetime.Calendar(ptc.Constants(str(getLocale())))
                 (dateVar, invalidFlag) = cal.parse(target)
                 #invalidFlag = 0 implies no date/time
                 #invalidFlag = 2 implies only time, no date

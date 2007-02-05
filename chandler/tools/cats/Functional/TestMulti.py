@@ -30,7 +30,7 @@ class TestMulti(ChandlerTestCase):
         # action
         self.logger.startAction("Setup email account")
         ap.Open() # first, open the accounts dialog window
-        ap.CreateAccount("SMTP") # create a new SMTP account
+        ap.GetDefaultAccount("OUTGOING") # get the default SMTP account
         ap.TypeValue("displayName", uw("Personal SMTP")) # type the following values into their apporpriate fields
         ap.TypeValue("host","smtp.osafoundation.org")
         ap.SelectValue("security",  'TLS') # select the TLS radio button
@@ -38,8 +38,8 @@ class TestMulti(ChandlerTestCase):
         ap.TypeValue("port", '587')
         ap.TypeValue('username', 'demo1')
         ap.TypeValue('password', 'ad3leib5')
-        
-        ap.CreateAccount("IMAP")
+
+        ap.GetDefaultAccount("INCOMING")
         ap.TypeValue("displayName", uw("Personal IMAP"))
         ap.TypeValue("email", "demo1@osafoundation.org")
         ap.TypeValue("name", uw("Demo One"))
@@ -47,8 +47,7 @@ class TestMulti(ChandlerTestCase):
         ap.TypeValue("username", "demo1")
         ap.TypeValue("password", "ad3leib5")
         ap.SelectValue("security", "SSL")
-        ap.ToggleValue("default", True)
-        ap.SelectValue("server", uw("Personal SMTP"))
+        ap.SelectValue("protocol", "IMAP")
         
         ap.Ok()
         self.logger.endAction(True)

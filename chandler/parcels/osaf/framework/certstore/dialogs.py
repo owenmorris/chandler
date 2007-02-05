@@ -103,6 +103,7 @@ class ImportCertificateDialog(wx.Dialog):
         self.SetSizer(sizer)
         self.SetAutoLayout(True)
         sizer.Fit(self)
+        self.CenterOnScreen()
 
         self.cs = cs
         
@@ -208,6 +209,7 @@ class TrustServerCertificateDialog(wx.Dialog):
         self.SetSizer(sizer)
         self.SetAutoLayout(True)
         sizer.Fit(self)
+        self.CenterOnScreen()
 
         self.rbs = rbs
 
@@ -294,3 +296,4 @@ class IgnoreSSLErrorDialog(wx.Dialog):
         self.SetSizer(sizer)
         self.SetAutoLayout(True)
         sizer.Fit(self)
+        self.CenterOnScreen()

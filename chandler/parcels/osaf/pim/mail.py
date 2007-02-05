@@ -17,20 +17,17 @@
 Classes used for Mail parcel kinds.
 """
 
-__all__ = (
+__all__ = [
     'AccountBase', 'CommunicationStatus', 'DownloadAccountBase', 'EmailAddress',
-    'IMAPAccount', 'IMAPDelivery', 'MIMEBase', 'MIMEBinary', 'MIMEContainer',
-    'MIMENote', 'MIMESecurity', 'MIMEText', 'MailDeliveryBase',
-    'MailDeliveryError', 'MailMessage', 'MailStamp', 'POPAccount',
-    'POPDelivery', 'SMTPAccount', 'SMTPDelivery', 'replyToMessage',
-    'replyAllToMessage', 'forwardMessage', 'getCurrentSMTPAccount',
-    'getCurrentMailAccount', 'ACCOUNT_TYPES'
-)
+    'IMAPAccount', 'IMAPDelivery', 'MIMEBase', 'MIMEBinary', 'MIMEContainer', 'MIMENote',
+    'MIMESecurity', 'MIMEText', 'MailDeliveryBase', 'MailDeliveryError',
+    'IMAPFolder', 'ProtocolTypeEnum', 'MailMessage', 'MailStamp',
+    'POPAccount', 'POPDelivery', 'SMTPAccount', 'SMTPDelivery',
+    'replyToMessage', 'replyAllToMessage', 'forwardMessage',
+     'getCurrentSMTPAccount', 'getCurrentMailAccount',
+    'ACCOUNT_TYPES']
 
-
-import application
 from application import schema
-import repository.item.Item as Item
 import items, notes, stamping, collections
 import email.Utils as Utils
 import re as re
@@ -38,8 +35,6 @@ import chandlerdb.item.ItemError as ItemError
 from chandlerdb.util.c import UUID
 import PyICU
 
-
-from repository.util.Path import Path
 from i18n import ChandlerMessageFactory as _
 from osaf import messages
 from repository.persistence.RepositoryError import RepositoryError, VersionConflictError
@@ -52,17 +47,8 @@ ISSUES:
 ===========
 1. Why is from check getting called with invalid address and then called again. The first call
    is always the current me address wierd.
-
-TO DO:
-=========
-1. Rethink MailDeliveryError logic
-2. Reread POP spec for UID logic
-3. Rename messageDownloadSequence
-
-Design Issues:
-      1. Is tries really needed
-      2. Date sent string could probally be gotten rid of
 """
+
 
 def __populateBody(mailStamp, bodyHeader=u"", includeMailHeaders=False, includeEventInfo=False):
 
@@ -384,13 +370,10 @@ def getCurrentSMTPAccount(view, uuid=None, includeInactives=False):
             replyToAddress = parentAccount.replyToAddress
 
         """
-        Get the default SMTP Account
+        Get the current SMTP Account
         """
-        try:
-            smtpAccount = parentAccount.defaultSMTPAccount
+        smtpAccount = schema.ns('osaf.pim', view).currentSMTPAccount.item
 
-        except ItemError.NoValueForAttributeError:
-            pass
 
     return(smtpAccount, replyToAddress)
 
@@ -416,7 +399,7 @@ def getCurrentMailAccount(view, uuid=None):
 
     return account
 
-class connectionSecurityEnum(schema.Enumeration):
+class ConnectionSecurityEnum(schema.Enumeration):
     values = "NONE", "TLS", "SSL"
 
 
@@ -456,7 +439,7 @@ class AccountBase(items.ContentItem):
         schema.Integer, doc = 'The port number to use',
     )
     connectionSecurity = schema.One(
-        connectionSecurityEnum,
+        ConnectionSecurityEnum,
         doc = 'The security mechanism to leverage for a network connection',
         initialValue = 'NONE',
     )
@@ -501,7 +484,7 @@ class DownloadAccountBase(AccountBase):
         initialValue = None,
     ) # inverse of SMTPAccount.accounts
 
-    downloadMax = schema.One(
+    commitNumber = schema.One(
         schema.Integer,
         doc = 'The maximum number of messages to download before forcing a repository commit',
         initialValue = 6,
@@ -553,8 +536,8 @@ class DownloadAccountBase(AccountBase):
 
 
 class SMTPAccount(AccountBase):
-
-    accountType = "SMTP"
+    accountProtocol = "SMTP"
+    accountType = "OUTGOING"
 
     schema.kindInfo(
         description="An SMTP Account",
@@ -643,8 +626,8 @@ class SMTPAccount(AccountBase):
                 self.itsView.commit()
 
 class IMAPAccount(DownloadAccountBase):
-
-    accountType = "IMAP"
+    accountProtocol = "IMAP"
+    accountType = "INCOMING"
 
     schema.kindInfo(
         description = "An IMAP Account",
@@ -660,16 +643,80 @@ class IMAPAccount(DownloadAccountBase):
         initialValue = 143,
     )
 
-    #This is contains the last downloaded IMAP Message UID
-    messageDownloadSequence = schema.One(
+    folders = schema.Sequence(
+        doc = 'Details which IMAP folders to download mail from',
+        initialValue = [],
+    ) # inverse of IMAPFolder.parentAccount
+
+    def __init__(self, itsName=None, itsParent=None, itsKind=None,
+                itsView=None, clone=None, addInbox=True, **kw):
+
+        super(IMAPAccount, self).__init__(itsName, itsParent, itsKind,
+                                         itsView, **kw)
+
+        if not addInbox:
+            return
+
+        # Create the Inbox IMAPFolder and add to the account
+        # folders collection
+        inbox = IMAPFolder(itsView=self.itsView)
+        inbox.displayName = _(u"Inbox")
+        inbox.folderName  = u"INBOX"
+        inbox.folderType  = "CHANDLER_HEADERS"
+        self.folders.append(inbox)
+
+class ProtocolTypeEnum(schema.Enumeration):
+    values = "CHANDLER_HEADERS", "MAIL", "TASK", "EVENT"
+
+class IMAPFolder(items.ContentItem):
+    schema.kindInfo(
+        description=
+            "Chandler representation of a Folder on a IMAP server "
+    )
+
+    folderName = schema.One(
+        schema.Text,
+        doc = 'The name of the folder on the IMAP server.',
+    )
+
+    folderType = schema.One(
+        ProtocolTypeEnum,
+        doc = 'The value of this dictates whether the action to perform on the downloaded message',
+        initialValue = 'MAIL',
+    )
+
+    #This contains the last downloaded IMAP Message UID
+    #for the folder.
+    lastMessageUID = schema.One(
         schema.Integer,
         initialValue = 0,
     )
 
+    deleteOnDownload = schema.One(
+        schema.Boolean,
+        doc = 'Whether to delete the message after downloading',
+        initialValue = False,
+    )
+
+    downloadMax = schema.One(
+        schema.Integer,
+        doc = 'The maximum number of messages to download for this folder. A value of 0 indicates that there is no download message limit.',
+        initialValue = 0,
+    )
+
+    parentAccount = schema.One(
+        IMAPAccount, initialValue = None, inverse = IMAPAccount.folders,
+    ) # Inverse ofIMAPAccount.folders sequence
+
+    deliveryExtensions = schema.Sequence(
+        doc = 'Details which IMAPDelivery instances are linked to this folder. This is used as a means to track which mail messages were downloaded from this IMAP folder. An inverse relationship between a MailStamp and a parent account already exists.',
+        initialValue = [],
+    ) # inverse of IMAPDelivery.folder
+
 
 class POPAccount(DownloadAccountBase):
-
-    accountType = "POP"
+    accountProtocol = "POP"
+    accountType = "INCOMING"
 
     schema.kindInfo(
         description = "A POP Account",
@@ -685,21 +732,32 @@ class POPAccount(DownloadAccountBase):
         initialValue = 110,
     )
 
-    downloadedMessageUIDS = schema.Mapping(
+    seenMessageUIDS = schema.Mapping(
         schema.Text,
-        doc = 'Used for quick look up to discover if a message has already been downloaded',
+        doc = 'Used for quick look up to discover messages that have already been downloaded or inspected.',
         initialValue = {},
     )
 
-    leaveOnServer = schema.One(
+    actionType = schema.One(
+        ProtocolTypeEnum,
+        doc = 'The value of this dictates whether the action to perform on the downloaded message',
+        initialValue = 'MAIL',
+    )
+
+    deleteOnDownload = schema.One(
         schema.Boolean,
         doc = 'Whether or not to leave messages on the server after downloading',
-        initialValue = True,
+        initialValue = False,
+    )
+
+    downloadMax = schema.One(
+        schema.Integer,
+        doc = 'The maximum number of messages to download. A value of 0 indicates that there is no download message limit.',
+        initialValue = 0,
     )
 
 
 class MailDeliveryError(items.ContentItem):
-
     schema.kindInfo(
         description=
             "Contains the error data associated with a MailDelivery Type"
@@ -743,6 +801,7 @@ class MailDeliveryBase(items.ContentItem):
 #class historyEnum(schema.Enumeration):
 #    values = "QUEUED", "FAILED", "SENT"
 
+#XXX needs to be updated for Edit / Update workflows
 class stateEnum(schema.Enumeration):
     values = "DRAFT", "QUEUED", "SENT", "FAILED"
 
@@ -798,10 +857,11 @@ class IMAPDelivery(MailDeliveryBase):
         description = "Tracks the state of an inbound message",
     )
 
-    #XXX Reference back to the folder object
-    #the message came from on IMAP Server
     folder = schema.One(
-        schema.Text, initialValue = u'',
+        IMAPFolder,
+        doc = "The folder that the message was downloaded from",
+        initialValue = None,
+        inverse = IMAPFolder.deliveryExtensions,
     )
 
     uid = schema.One(
@@ -967,8 +1027,6 @@ class MailStamp(stamping.Stamp):
         schema.Text, doc = 'Catch-all for headers', initialValue = {},
     )
 
-    chandlerHeaders = schema.Mapping(schema.Text, initialValue = {})
-
     fromMe = schema.One(schema.Boolean, initialValue=False, doc = "Boolean flag used to signal that the MailStamp instance contains a from or reply to address that matches one or more of the me addresses")
 
     toMe = schema.One(schema.Boolean, initialValue=False, doc = "boolean flag used to signal that the MailStamp instance contains a to or cc address that matches one or more of the me addresses")
@@ -1099,10 +1157,10 @@ class MailStamp(stamping.Stamp):
         self.isOutbound = False
         self.parentAccount = account
 
-        #Add to the dashboard
+        # For Preview we add all downloaded mail via POP and IMAP
+        # accounts to the Dashboard.
         schema.ns('osaf.pim', view).allCollection.add(self.itsItem)
         self.itsItem.mine = True
-
 
     def getAttachments(self):
         """

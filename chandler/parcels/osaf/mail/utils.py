@@ -272,10 +272,10 @@ def dataToBinary(mailMessage, attribute, data,
     """
     Converts non-string data to a C{Lob}.
     """
-    
+
     contentItem = mailMessage.itsItem
     itemAttributeName = getattr(type(mailMessage), attribute).name
-    
+
     lobType = contentItem.getAttributeAspect(itemAttributeName, 'type')
     assert lobType.itsName == 'Lob', "The attribute must be of type Lob"
 
@@ -298,7 +298,6 @@ def binaryToData(binary):
 
 
 class HTMLCleaner(sgmllib.SGMLParser):
-    #XXX Issue with title should be on own line
     entitydefs={"nbsp": " "}
 
     def __init__(self):

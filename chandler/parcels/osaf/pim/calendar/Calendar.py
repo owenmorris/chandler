@@ -73,6 +73,7 @@ from datetime import datetime, time, timedelta
 import itertools
 import StringIO
 import logging
+from util import tokenizer
 import operator
 from chandlerdb.util.c import UUID
 
@@ -2186,72 +2187,76 @@ def _sortEvents(itemlist, reverse=False, attrName=EventStamp.effectiveStartTime.
 
 class RecurrencePattern(ContentItem):
     """Unused, should be removed."""
-    
-def parseText(text):
+
+def parseText(text, locale=None):
     """
     Parses the given text and returns the start date/time and the end date/time and
     a countFlag  and a typeFlag.
-    
+
     countFlag indicates the number of date/times present in the text. It is an enum.
     0 indicates no date/time, 1 indicates only one date/time, 2 indicates more than one date/time.
-    
+
     typeFlag indicates the type of date/time information present. It is an ennum too.
     0 indicates no date/time, 1 indicates only date, 2 indicates only time
     and 3 indicates both date and time
     """
-    
+
     import parsedatetime.parsedatetime as parsedatetime
     import parsedatetime.parsedatetime_consts as ptc
-    from i18n import getLocaleSet
+    from i18n import getLocale
     import time
     import string
-    
-    cal = parsedatetime.Calendar(ptc.Constants(str(getLocaleSet()[0])))
+
+    loc = str(locale is not None and locale or getLocale())
+
+    cal = parsedatetime.Calendar(ptc.Constants(loc))
     countFlag = 0   #counts the number of date/times in the text
-    for line in (text.split('.')):
-        line = string.strip(line)
+
+    # The tokenizer will split large
+    # bodies of text in to locale aware sentences.
+    st = tokenizer.SentenceTokenizer(text, loc)
+    for line in st.nextToken():
         if  countFlag > 1:
             #More than one date time exists.
             break
         else:
-            if line is not '' and line is not None:
-                (dt1, dt2, typeFlag) = cal.evalRanges(line)
+            (dt1, dt2, typeFlag) = cal.evalRanges(line)
+            if typeFlag != 0:
+                countFlag += 1
+                # Date/time range exists
+                (yr1, mth1, dy1, hr1, mn1, sec1, wd1, yd1, isdst1) = dt1
+                (yr2, mth2, dy2, hr2, mn2, sec2, wd2, yd2, isdst2) = dt2
+
+                if typeFlag == 1:
+                    #only date exists
+                    startTime = datetime(yr1, mth1, dy1, tzinfo=ICUtzinfo.default)
+                    endTime = datetime(yr2, mth2, dy2, tzinfo=ICUtzinfo.default)
+                else:
+                    #time exists
+                    startTime = datetime(yr1, mth1, dy1, hr1, mn1, tzinfo=ICUtzinfo.default)
+                    endTime = datetime(yr2, mth2, dy2, hr2, mn2, tzinfo=ICUtzinfo.default)
+            else:
+                # Check whether there is a single date/time
+                (dt, typeFlag) = cal.parse(line)
                 if typeFlag != 0:
+                    # Date/time exists
                     countFlag += 1
-                    # Date/time range exists
-                    (yr1, mth1, dy1, hr1, mn1, sec1, wd1, yd1, isdst1) = dt1
-                    (yr2, mth2, dy2, hr2, mn2, sec2, wd2, yd2, isdst2) = dt2
-                    
+                    (yr, mth, dy, hr, mn, sec, wd, yd, isdst) = dt
+
                     if typeFlag == 1:
-                        #only date exists
-                        startTime = datetime(yr1, mth1, dy1, tzinfo=ICUtzinfo.default)
-                        endTime = datetime(yr2, mth2, dy2, tzinfo=ICUtzinfo.default)
+                    #only date exists
+                        startTime = endTime = datetime(yr, mth, dy, tzinfo=ICUtzinfo.default)
                     else:
                         #time exists
-                        startTime = datetime(yr1, mth1, dy1, hr1, mn1, tzinfo=ICUtzinfo.default)
-                        endTime = datetime(yr2, mth2, dy2, hr2, mn2, tzinfo=ICUtzinfo.default)
-                else:
-                    # Check whether there is a single date/time
-                    (dt, typeFlag) = cal.parse(line)
-                    if typeFlag != 0:
-                        # Date/time exists
-                        countFlag += 1
-                        (yr, mth, dy, hr, mn, sec, wd, yd, isdst) = dt
-                        
-                        if typeFlag == 1:
-                            #only date exists
-                            startTime = endTime = datetime(yr, mth, dy, tzinfo=ICUtzinfo.default)
-                        else:
-                            #time exists
-                            startTime = endTime = datetime(yr, mth, dy, hr, mn, tzinfo=ICUtzinfo.default)
-                            
+                        startTime = endTime = datetime(yr, mth, dy, hr, mn, tzinfo=ICUtzinfo.default)
+
     #If no date/time exists or more than one date/time exists,
-    #set the date as today's date and time as Anytime                                   
+    #set the date as today's date and time as Anytime
     if (countFlag == 2) or (countFlag == 0):
         (yr, mth, dy, hr, mn, sec, wd, yd, isdst) = time.localtime()
         startTime = endTime = datetime(yr, mth, dy, tzinfo=ICUtzinfo.default)
         typeFlag = 0
-        
+
     return startTime, endTime, countFlag, typeFlag
 
 def makeCompareMethod(attr=None, getFn=None, useTZ=True):

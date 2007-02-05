@@ -50,7 +50,7 @@ def installParcel(parcel, oldVersion=None):
     )
 
 
-    sharing.WebDAVAccount.update(parcel, 'CosmoWebDAVAccount',
+    sharing.WebDAVAccount.update(parcel, 'defaultWebDAVAccount',
         displayName=_(u'Cosmo Sharing Service'),
         host=u'osaf.us',
         path=u'/cosmo/home/<username>',
@@ -61,26 +61,19 @@ def installParcel(parcel, oldVersion=None):
         references=[sharing_ns.currentWebDAVAccount]
     )
 
-    preReply = pim.EmailAddress.update(parcel, 'PredefinedReplyAddress')
+    preReply = pim.EmailAddress.update(parcel, 'defaultReplyAddress')
 
-    preSmtp = pim.mail.SMTPAccount.update(parcel, 'PredefinedSMTPAccount',
-        displayName=_(u'Outgoing %(accountType)s mail') % {'accountType': 'SMTP'},
+    preSmtp = pim.mail.SMTPAccount.update(parcel, 'defaultSMTPAccount',
+        displayName=_(u'Outgoing mail'),
         references=[pim_ns.currentSMTPAccount]
     )
 
-    pim.mail.IMAPAccount.update(parcel, 'PredefinedIMAPAccount',
-        displayName=_(u'Incoming %(accountType)s mail') % {'accountType': 'IMAP'},
+    pim.mail.IMAPAccount.update(parcel, 'defaultIMAPAccount',
+        displayName=_(u'Incoming mail'),
         replyToAddress=preReply,
         defaultSMTPAccount=preSmtp,
         references=[pim_ns.currentMailAccount]
     )
-
-    pim.mail.POPAccount.update(parcel, 'PredefinedPOPAccount',
-        displayName=_(u'Incoming %(accountType)s mail') % {'accountType': 'POP'},
-        replyToAddress=preReply,
-        defaultSMTPAccount=preSmtp
-    )
-
 
     testReply = pim.mail.EmailAddress.update(parcel, 'TestReplyAddress')
 

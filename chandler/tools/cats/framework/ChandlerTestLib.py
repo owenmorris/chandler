@@ -27,7 +27,7 @@ from osaf import pim
 import osaf.pim.mail as Mail
 import osaf.pim.collections as Collection
 from osaf import sharing
-import application.Globals as Globals
+from application import Globals, schema
 import wx
 import string
 import osaf.framework.scripting as scripting
@@ -60,10 +60,10 @@ def publishSubscribe(testClass):
     A function to publish and subscribe a collection.
     """
     # action
-    # Webdav Account Setting
+    # Sharing Account Setting
     ap = UITestAccounts(testClass.logger)
     ap.Open() # first, open the accounts dialog window
-    ap.CreateAccount("WebDAV")
+    ap.GetDefaultAccount("SHARING")
     ap.TypeValue("displayName", uw("Publish Test WebDAV"))
     ap.TypeValue("host", "osaf.us")
     ap.TypeValue("path", "cosmo/home/demo1")
@@ -71,7 +71,6 @@ def publishSubscribe(testClass):
     ap.TypeValue("password", "ad3leib5")
     ap.TypeValue("port", "443")
     ap.ToggleValue("ssl", True)
-    ap.ToggleValue("default", True)
     ap.Ok()
 
     # verification
@@ -1392,37 +1391,30 @@ class UITestItem(object):
                 self.logger.report(False, name="Check_CalendarView", comment="(On %s Checking) || calendar view value = %s ; expected value = %s" % (attrName, getattr(canvasItem, attrName), attrValue))
                 #if self.logger: self.logger.addComment("Calendar View")
 
-    
+
 class UITestAccounts:
     fieldMap = {
-        'SMTP': {'displayName': 3, 'email': 5, 'host': 7,
-                 'username': 17, 'password': 19, 'security': 9,
-                 'port':13, 'authentication': 15},
+        'OUTGOING': {'displayName': 3, 'email': 5, 'host': 7,
+                 'username': 18, 'password': 20, 'security': 12,
+                 'port':11, 'authentication': 16},
 
-        'IMAP': {'displayName': 3, 'email': 5,
+       'INCOMING': {'displayName': 3, 'email': 5,
                  'name': 7, 'host': 9, 'username': 11,
-                 'password': 13, 'security': 15, 'port': 19,
-                 'default': 21, 'server': 24},
+                 'protocol': 17, 'password': 13, 
+                 'security': 24, 'port': 23, },
 
-        'POP': {'displayName': 3, 'email': 5,
-                'name': 7, 'host': 9, 'username': 11,
-                'password': 13, 'security': 15,'port': 19,
-                'leave': 21, 'default': 23, 'server': 26},
-
-        'WebDAV':{'displayName': 3, 'host':5, 'path': 7,
-                  'username':9, 'password':11, 'port': 13, 'ssl': 14,
-                  'default':16},
+        'SHARING':{'displayName': 3, 'host':5, 'path': 7,
+                  'username':9, 'password':11, 'port': 13, 'ssl': 14,},
         }
-    
-    accountTypeIndex = {'SMTP': 3, 'IMAP': 1, 'POP': 2,
-                        'WebDAV': 4}
+
+    accountTypeIndex = {'SHARING': 3, 'INCOMING': 1, 'OUTGOING': 2}
 
     def __init__(self, logger):
         self.view = App_ns.itsView
         self.logger = logger
         self.window = None
-        
-        
+
+
     def Open(self):
         """
         Open the Account preferences dialog window in non-modal mode
@@ -1431,14 +1423,14 @@ class UITestAccounts:
         import application
         self.window = application.dialogs.AccountPreferences.ShowAccountPreferencesDialog(wx.GetApp().mainFrame, rv=self.view, modal=False)
         wx.GetApp().Yield()
-        
+
     def Ok(self):
         """
         Call the OK button click handler
         """
         self.window.OnOk(None)
         self.window = None
-        
+
     def Cancel(self):
         """
         Call the Cancel button click handler
@@ -1446,11 +1438,55 @@ class UITestAccounts:
         self.window.OnCancel(None)
         self.window = None
 
+    def GetDefaultAccount(self, type):
+
+        pos = -1
+
+        for account in self.window.data:
+            pos += 1
+
+            if account['type'] != type:
+                continue
+
+            uuid = account['item']
+
+            if not uuid:
+                continue
+
+            item = self.window.rv.findUUID(account['item'])
+
+            if type == "SHARING":
+                sharing_ns = schema.ns('osaf.sharing', item.itsView)
+
+                if item != sharing_ns.currentWebDAVAccount.item:
+                    continue
+
+                self.window.selectAccount(pos)
+                break
+
+            elif type == "OUTGOING":
+                ns_pim = schema.ns('osaf.pim', item.itsView)
+
+                if item != ns_pim.currentSMTPAccount.item:
+                    continue
+
+                self.window.selectAccount(pos)
+                break
+
+            elif type == "INCOMING":
+                ns_pim = schema.ns('osaf.pim', item.itsView)
+
+                if item != ns_pim.currentMailAccount.item:
+                    continue
+
+                self.window.selectAccount(pos)
+                break
+
     def CreateAccount(self, type):
         """
         Create an account of the given type
         @type type : string
-        @param type : an account type (IMAP,SMTP,WebDAV,POP)
+        @param type : an account type (OUTGOING, INCOMING, SHARING)
         """
         self.window.choiceNewType.SetSelection(self.accountTypeIndex[type])
         self.window.OnNewAccount(None)
@@ -1458,14 +1494,35 @@ class UITestAccounts:
     def _GetField(self, field):
         index = self._GetIndex(field)
         return self._GetChild(index)
-    
+
     def _GetIndex(self, field):
         type = self.window.currentPanelType
         return self.fieldMap[type][field]
-    
+
     def _GetChild(self, child):
         return self.window.currentPanel.GetChildren()[child]
-        
+
+    def iterFields(self):
+        """
+          Returns a list of wx Widget field names
+          along with the position.
+          This is a handy way to discover
+          the ordering for a panel when
+          building the fieldMap.
+        """
+        buf = []
+
+        counter = 0
+
+        items = self.window.currentPanel.GetChildren()
+
+        for item in items:
+            print dir(item)
+            buf.append("%d %s" % (counter, item.GetName()))
+            counter += 1
+
+        return "\n".join(buf)
+
     def TypeValue(self, field, value):
         """
         Emulate keyboard typing in the given field
@@ -1478,7 +1535,7 @@ class UITestAccounts:
         child.SetFocus()
         child.Clear() #work around : SelectAll() doesn't work on mac
         wx.GetApp().Yield()
-        scripting.User.emulate_typing(value)        
+        scripting.User.emulate_typing(value)
 
     def ToggleValue(self, field, value):
         """
@@ -1495,7 +1552,7 @@ class UITestAccounts:
         self.window.OnLinkedControl(event)
         self.window.OnExclusiveRadioButton(event)
         wx.GetApp().Yield()
-        
+
     def SelectValue(self, field, value):
         """
         Select a value in a list-menu
@@ -1512,16 +1569,16 @@ class UITestAccounts:
             button.SetValue(True)
             event = wx.CommandEvent()
             event.SetEventObject(button)
-            self.window.OnLinkedControl(event)  
+            self.window.OnLinkedControl(event)
             self.window.OnExclusiveRadioButton(event)
         else:
             child.SetStringSelection(value)
-        
+
     def VerifyValues(self, type, name, **keys):
         """
         Check the accounts settings
         @type type : string
-        @param type : the type of account you want to check (IMAP,SMTP,WebDAV,POP)
+        @param type : the type of account you want to check (IMAP, SMTP, WEbDAV, POP)
         @type name : string
         @param name : the name of the account to check
         @param keys : key:value pairs
@@ -1536,7 +1593,7 @@ class UITestAccounts:
             iter = Mail.POPAccount.iterItems(App_ns.itsView)
         else:
             raise AttributeError
-        
+
         for account in iter:
             if account.displayName == name:
                 break
@@ -1544,7 +1601,7 @@ class UITestAccounts:
             self.logger.report(False, name="VerifyValues", comment="No such account: %s" % name)
             result = False
             account = None
-        
+
         if account is not None:
             result = True
             for (key, value) in keys.items():

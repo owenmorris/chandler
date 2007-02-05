@@ -63,8 +63,13 @@ class WebDAVAccount(pim.ContentItem):
         doc = 'Whether or not to use SSL/TLS',
         initialValue = False,
     )
-    accountType = schema.One(
+
+    accountProtocol = schema.One(
         initialValue = 'WebDAV',
+    )
+
+    accountType = schema.One(
+        initialValue = 'SHARING',
     )
     conduits = schema.Sequence(
         conduits.HTTPMixin,

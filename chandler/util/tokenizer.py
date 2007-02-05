@@ -19,13 +19,13 @@
  sentences.
 """
 
-from PyICU import *
+from PyICU import BreakIterator, Locale
 from types import UnicodeType, StringType
 import sys
 
 
 class SentenceTokenizer(object):
-    def __init__(self, txt, locale=Locale.getUS(), stripEndOfLine=True):
+    def __init__(self, txt, locale, stripEndOfLine=True):
         if type(txt) == StringType:
            txt = unicode(txt)
 
@@ -35,22 +35,30 @@ class SentenceTokenizer(object):
 
         #XXX The decision of whether to replace returns with spaces
         #    is still up for debate. It helps the BreakIterator which
-        #    will otherwise assume sentences end at the return even if
+        #    will otherwise assume sentences end at the '\n' even if
         #    it really continues on the next line.
         #    However, if the BreakIterator is not able to find sentences
         #    with returns stripped the entire body of self.txt will be returned.
         if stripEndOfLine:
             self.txt = self.txt.replace(u"\r", u"").replace(u"\n", u" ")
 
-        self.locale = locale
+        if type(locale) == UnicodeType:
+           locale = str(locale)
+
+        assert(type(locale) == StringType)
+
+        #XXX This could be an invalid PyICU Locale.
+        #    The i18n.i18nmanager.isValidPyICULocale
+        #    could be used to check the value.
+        pyLocale = Locale(locale)
+
+        self.iterator = BreakIterator.createSentenceInstance(pyLocale)
+        self.iterator.setText(self.txt)
 
     def nextToken(self):
-        i = BreakIterator.createSentenceInstance(self.locale)
-        i.setText(self.txt)
-
         pos = []
 
-        for n in i:
+        for n in self.iterator:
             pos.append(n)
 
         l = len(pos)
@@ -74,7 +82,7 @@ if __name__ == "__main__":
         sys.argv[2].lower() == "false":
         strip = False
 
-    s = SentenceTokenizer(unicode(txt, "utf8", "ignore"), stripEndOfLine=strip)
+    s = SentenceTokenizer(unicode(txt, "utf8", "ignore"), "en", stripEndOfLine=strip)
 
     for tok in s.nextToken():
         print '"%s"' % tok.encode("utf8")

@@ -441,6 +441,7 @@ def okCancel(parent, caption, message):
 
     dlg = wx.MessageDialog(parent, message, caption,
      wx.OK | wx.CANCEL | wx.ICON_QUESTION)
+
     val = dlg.ShowModal()
 
     if val == wx.ID_OK:
@@ -577,3 +578,284 @@ def ok(parent, caption, message):
     @type message:  String
     """
     ShowMessageDialog(parent, message, caption, wx.OK)
+
+
+class ProgressDialog(wx.Dialog):
+    ERROR                 = 0
+    SUCCESS               = 1
+    CERT_DIALOG_DISPLAYED = 2
+
+    TIMEOUT               = 10
+    DISPLAY_YES_NO        = False
+    ALLOW_CANCEL          = True
+    SUCCESS_TEXT_SIZE     = (450, 100)
+    ERROR_TEXT_SIZE       = (450, 100)
+
+    def __init__(self):
+        st = wx.DEFAULT_DIALOG_STYLE
+
+        if not self.ALLOW_CANCEL:
+            # Turn of the ability for the
+            # user to close the dialog
+            # manually
+            st = st & ~wx.CLOSE_BOX
+
+        super(ProgressDialog, self).__init__(None, -1, self.getTitleText(),
+                                             style=st)
+
+        self.sizer = wx.BoxSizer(wx.VERTICAL)
+        self.progressPanel = ProgressPanel(self, self.TIMEOUT * 1000)
+        self.buttonPanel = ButtonPanel(self)
+        self.resultsPanel = None
+        self.resultsButtonPanel = None
+
+        if self.ALLOW_CANCEL:
+            self.Bind(wx.EVT_CLOSE, self.OnClose)
+
+        #Signals that operations are in progress
+        self.inProgress = False
+
+        #Signals that the try again button clicked
+        self.tryAgain = False
+
+    def initDialog(self):
+        #    custom logic
+        self.layoutDialog()
+        self.CenterOnScreen()
+        self.ShowModal()
+
+    def layoutDialog(self):
+        if self.tryAgain:
+            self.resultsPanel.Hide()
+            self.sizer.Detach(self.resultsPanel)
+            self.resultsPanel = None
+
+            self.resultsButtonPanel.Hide()
+            self.sizer.Detach(self.resultsButtonPanel)
+            self.resultsButtonPanel = None
+
+            self.progressPanel.Show(True)
+            self.buttonPanel.Show(True)
+
+        self.sizer.Add(self.progressPanel, 0, wx.GROW|wx.ALL, 5)
+        self.sizer.Add(self.buttonPanel, 1,wx.ALIGN_RIGHT|wx.ALL, 5)
+
+        self.progressPanel.layoutDialog()
+
+        if self.tryAgain:
+            resizeLayout(self, self.sizer)
+        else:
+            initLayout(self, self.sizer)
+
+        self.inProgress = True
+        self.tryAgain = False
+
+        # Callback to be implemented in
+        # the child class
+        self.performAction()
+
+    def connectionTimeout(self):
+        if self.inProgress:
+            self.cancelAction()
+            self.OnActionComplete((0, self.getTimeoutText()))
+
+    def OnTryAgain(self, evt):
+        self.tryAgain = True
+        self.layoutDialog()
+
+    def OnClose(self, evt):
+        if self.inProgress:
+            self.progressPanel.timer.Stop()
+            self.cancelAction()
+
+        self.EndModal(True)
+        self.Destroy()
+
+    def OnSuccess(self, value):
+        # Override to provide
+        # success handling logic
+        return
+
+    def OnError(self, value):
+        # Override to provide
+        # error handling logic
+        return
+
+    def OnActionComplete(self, results):
+        self.inProgress = False
+
+        self.progressPanel.timer.Stop()
+        self.progressPanel.Hide()
+        self.sizer.Detach(self.progressPanel)
+
+        self.buttonPanel.Hide()
+        self.sizer.Detach(self.buttonPanel)
+
+        statusCode, statusValue = results
+
+        if statusCode == self.CERT_DIALOG_DISPLAYED:
+            # The SSL Cert Dialog was displayed
+            # So close this progress dialog
+            # If the user selects to accept
+            # the cert the SSL code will
+            # create a new instance of this
+            # dialog via reconnect method
+            return self.OnClose(1)
+
+        if statusCode == self.SUCCESS:
+            self.OnSuccess(statusValue)
+
+        elif statusCode == self.ERROR:
+            self.OnError(statusValue)
+
+        self.resultsPanel = ResultsPanel(self, statusCode, statusValue)
+        self.sizer.Add(self.resultsPanel, 0, wx.GROW|wx.ALL, 5)
+
+        self.resultsButtonPanel = ResultsButtonPanel(self, statusCode)
+        self.sizer.Add(self.resultsButtonPanel, 0, wx.ALIGN_RIGHT|wx.ALL, 5)
+
+        resizeLayout(self, self.sizer)
+
+    def performAction(self):
+        raise NotImplementedError()
+
+    def cancelAction(self):
+        raise NotImplementedError()
+
+    def getTimeoutText(self):
+        raise NotImplementedError()
+
+    def getTitleText(self):
+        raise NotImplementedError()
+
+    def getStartText(self):
+        raise NotImplementedError()
+
+    def getSuccessText(self, statusValue):
+        raise NotImplementedError()
+
+    def getErrorText(self, statusValue):
+        raise NotImplementedError()
+
+    def OnYes(self, evt):
+        raise NotImplementedError()
+
+
+class ProgressPanel(wx.Panel):
+    def __init__(self, parent, gaugeTime):
+        super(ProgressPanel, self).__init__(parent, -1)
+        self.parent = parent
+
+        self.progress = 0
+        self.timeout = gaugeTime
+
+        self.label = wx.StaticText(self, -1, self.parent.getStartText(),
+                                   size=(450,-1))
+
+        self.gauge = wx.Gauge(self, -1, gaugeTime, size=(400, 25))
+
+        self.sizer = wx.BoxSizer(wx.VERTICAL)
+        self.sizer.Add(self.label, 0, wx.ALIGN_LEFT|wx.ALL, 10)
+        self.sizer.Add(self.gauge, 0, wx.ALIGN_LEFT|wx.ALL, 10)
+        self.timer = wx.Timer(self, 0)
+        self.Bind(wx.EVT_TIMER, self.OnTimer, self.timer)
+
+        initLayout(self, self.sizer)
+        self.layoutDialog()
+
+    def layoutDialog(self):
+        self.progress = 0
+        self.gauge.SetValue(self.progress)
+        self.timer.Start(250)
+
+    def OnTimer(self, evt):
+        self.progress += 250
+
+        if self.progress >= self.timeout:
+            self.parent.connectionTimeout()
+            return
+
+        self.gauge.SetValue(self.progress)
+
+class ResultsPanel(wx.Panel):
+    def __init__(self, parent, statusCode, statusValue):
+        super(ResultsPanel, self).__init__(parent, -1)
+        self.parent = parent
+
+        if statusCode == self.parent.ERROR:
+            txt = self.parent.getErrorText(statusValue)
+            sz  = self.parent.ERROR_TEXT_SIZE
+
+        elif statusCode == self.parent.SUCCESS:
+            txt = self.parent.getSuccessText(statusValue)
+            sz  = self.parent.SUCCESS_TEXT_SIZE
+
+        else:
+            # This code should never be reached
+            raise Exception("Invalid status code passed")
+
+        self.label = wx.StaticText(self, -1, txt, size=sz)
+
+        self.sizer = wx.BoxSizer(wx.VERTICAL)
+        self.sizer.Add(self.label, 0, wx.ALIGN_LEFT|wx.ALL, 10)
+        initLayout(self, self.sizer)
+
+class ButtonPanel(wx.Panel):
+    def __init__(self, parent):
+        super(ButtonPanel, self).__init__(parent, -1)
+        self.parent = parent
+
+        self.sizer = wx.BoxSizer(wx.HORIZONTAL)
+
+        if self.parent.ALLOW_CANCEL:
+            self.mainButton = wx.Button(self, wx.ID_CANCEL)
+            self.mainButton.Bind(wx.EVT_BUTTON, self.parent.OnClose)
+
+            self.sizer.Add(self.mainButton, 0, wx.ALIGN_RIGHT|wx.ALL, 5)
+
+        initLayout(self, self.sizer)
+
+class ResultsButtonPanel(wx.Panel):
+    def __init__(self, parent, statusCode):
+        super(ResultsButtonPanel, self).__init__(parent, -1)
+        self.parent = parent
+
+        self.sizer = wx.BoxSizer(wx.HORIZONTAL)
+
+        if statusCode == self.parent.ERROR:
+            self.tryAgainButton = wx.Button(self, -1, _(u"Try Again"))
+            self.tryAgainButton.Bind(wx.EVT_BUTTON, self.parent.OnTryAgain)
+            self.sizer.Add(self.tryAgainButton, 0, wx.ALIGN_RIGHT|wx.ALL, 5)
+
+            self.closeButton = wx.Button(self, -1, _(u"Close Window"))
+            self.closeButton.SetDefault()
+            self.closeButton.Bind(wx.EVT_BUTTON, self.parent.OnClose)
+            self.sizer.Add(self.closeButton, 1, wx.ALIGN_RIGHT|wx.ALL, 5)
+
+        elif self.parent.DISPLAY_YES_NO == True:
+            self.noButton = wx.Button(self, wx.ID_NO)
+            self.noButton.Bind(wx.EVT_BUTTON, self.parent.OnClose)
+            self.sizer.Add(self.noButton, 0, wx.ALIGN_RIGHT|wx.ALL, 5)
+
+            self.yesButton = wx.Button(self, wx.ID_YES)
+            self.yesButton.SetDefault()
+            self.yesButton.Bind(wx.EVT_BUTTON, self.parent.OnYes)
+            self.sizer.Add(self.yesButton, 1, wx.ALIGN_RIGHT|wx.ALL, 5)
+
+        else:
+            self.closeButton = wx.Button(self, -1, _(u"Close Window"))
+            self.closeButton.SetDefault()
+            self.closeButton.Bind(wx.EVT_BUTTON, self.parent.OnClose)
+            self.sizer.Add(self.closeButton, 1, wx.ALIGN_RIGHT|wx.ALL, 5)
+
+        initLayout(self, self.sizer)
+
+def initLayout(container, sizer):
+    container.SetSizer(sizer)
+    container.SetAutoLayout(True)
+    resizeLayout(container, sizer)
+
+def resizeLayout(container, sizer):
+    sizer.Layout()
+    sizer.SetSizeHints(container)
+    sizer.Fit(container)

@@ -336,6 +336,10 @@ class wxApplication (wx.App):
 
         class _pyLog(wx.PyLog):
             def DoLogString(self, message, timestamp):
+
+                if isinstance(message, unicode):
+                    message = message.encode("utf-8", "replace")
+
                 sys.stderr.write('wx output: ')
                 sys.stderr.write(message)
                 sys.stderr.write('\n')
@@ -586,7 +590,7 @@ class wxApplication (wx.App):
             return False # we've never recorded a locale, so it can't have changed.
         
         import i18n
-        itChanged = localeInfo.localeName != i18n.getLocaleSet()[0]
+        itChanged = localeInfo.localeName != i18n.getLocale()
         self._localeChanged = itChanged
         return itChanged
     
@@ -597,7 +601,7 @@ class wxApplication (wx.App):
             return
         import i18n
         localeInfo = self.UIRepositoryView.findPath('//parcels/localeInfo')
-        localeName = i18n.getLocaleSet()[0]
+        localeName = i18n.getLocale()
         if localeInfo is None:
             localeInfo = LocaleInfo.update(self.UIRepositoryView.getRoot('parcels'),
                                            'localeInfo',

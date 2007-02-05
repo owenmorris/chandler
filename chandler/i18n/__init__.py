@@ -17,8 +17,8 @@ from i18nmanager import I18nManager, I18nException
 from types import UnicodeType, StringType
 
 __all__ = ["MessageFactory", "ChandlerMessageFactory",
-            "SafeTranslationMessageFactory", "ChandlerSafeTranslationMessageFactory",
-           "wxMessageFactory", "getLocaleSet", "getImage", "getHTML"]
+           "SafeTranslationMessageFactory", "ChandlerSafeTranslationMessageFactory",
+           "wxMessageFactory", "getLocale", "getLocaleSet", "getImage", "getHTML"]
 
 CHANDLER_PROJECT = u"Chandler"
 DEFAULT_CATALOG  = u"gettext.catalog"
@@ -38,6 +38,13 @@ Expose the I18nManager instance methods
 getLocaleSet = _I18nManager.getLocaleSet
 getImage = _I18nManager.getImage
 getHTML = _I18nManager.getHTML
+
+def getLocale():
+   """
+   Returns the primary Chandler locale.
+   """
+   return getLocaleSet()[0]
+
 
 def MessageFactory(project, catalog_name=DEFAULT_CATALOG):
     """

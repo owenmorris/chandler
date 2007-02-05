@@ -14,18 +14,20 @@
 
 
 #twisted imports
+import twisted.internet.reactor as reactor
 import twisted.internet.defer as defer
 import twisted.mail.imap4 as imap4
+import twisted.python.failure as failure
 
 #python imports
 import email
 
 #Chandler imports
-import osaf.pim.mail as Mail
+from osaf.pim.mail import IMAPAccount, IMAPFolder
 from osaf.framework.certstore import ssl
+from application import Globals
 
 #Chandler Mail Service imports
-import message
 import errors
 import constants
 import base
@@ -38,14 +40,49 @@ __all__ = ['IMAPClient']
     TODO:
     1. Look in to pluging the Python email 3.0 Feedparser in to the
        rawDataReceived method of IMAP4Client for better performance.
-       Or Twisted Feedparser (For 1.0)
+       Or Twisted Feedparser (For 1.0). *** By lowering the in memory
+       limit the messgeFile IMAP4Client API will be used to create a tmp file.
+       This is useful for memory management
     2. Will need to just get the basic headers of subject, message id,
        message size to, from, cc. Then have a callback to sync the rest
        when downloading an individual mail use the feedparser for performance
-    3. Start thinking about offline mode. Does the domain model need any changes.
-       Offline mode for email is simply adding MailMessages to a queue and executing
-       the queue when online. The queue need to be persisted in the repository
 """
+
+class FolderVars(base.DownloadVars):
+    """
+       This class contains the non-persisted
+       IMAPFolder variables that are used
+       during the downloading of mail from an
+       IMAP folder.
+    """ 
+    def __init__(self):
+        super(FolderVars, self).__init__()
+
+        # The C{osaf.pim.mail.IMAPFolder} item
+        # that contains the persisted folder info
+        self.folderItem   = None
+
+        # The IMAP UID of the last message
+        # downloaded from the folder.
+        # This is used to cache the highest
+        # downloaded message uid up to point
+        # just before a commit takes place.
+        # At that point the lastUID is saved
+        # in the IMAPFolder.lastMessageUID
+        # attribute
+        self.lastUID = 0
+
+        # The index position of the
+        # IMAP folder in the IMAPAccount.folders
+        # sequence.
+        self.indexNumber = 0
+
+    def getNextUID(self):
+        return self.folderItem.lastMessageUID
+
+    def setNextUID(self, uid):
+        self.folderItem.lastMessageUID = uid
+
 
 class _TwistedIMAP4Client(imap4.IMAP4Client):
     """
@@ -94,7 +131,7 @@ class _TwistedIMAP4Client(imap4.IMAP4Client):
                                  ).addErrback(self.delegate.catchErrors)
 
         if 'LOGINDISABLED' in caps:
-            self._raiseException(errors.IMAPException(constants.DOWNLOAD_REQUIRES_TLS))
+            self._raiseException(errors.IMAPException(constants.MAIL_PROTOCOL_REQUIRES_TLS))
 
         else:
             # Remove the STARTTLS from capabilities
@@ -112,7 +149,7 @@ class _TwistedIMAP4Client(imap4.IMAP4Client):
 
         # We have timed out so do not send any more commands to
         # the server just disconnect
-        exc = errors.IMAPException(errors.STR_TIMEOUT_ERROR)
+        exc = errors.IMAPException(constants.MAIL_PROTOCOL_TIMEOUT_ERROR)
         self.factory.timedOut = True
         self._raiseException(exc)
 
@@ -162,10 +199,279 @@ class IMAPClient(base.AbstractDownloadClient):
 
     # Overides default values in base class to provide
     # IMAP specific functionality
-    accounType  = Mail.IMAPAccount
-    clientType  = "IMAPClient"
-    factoryType = IMAPClientFactory
-    defaultPort = 143
+    accountType  = IMAPAccount
+    clientType   = "IMAPClient"
+    factoryType  = IMAPClientFactory
+    defaultPort  = 143
+
+    def __init__(self, view, account):
+        super(IMAPClient, self).__init__(view, account)
+
+        # This is the total number of mail messages
+        # downloaded for all folders
+        self.totalDownloaded = 0
+
+    def createChandlerFolders(self, callback, reconnect):
+        if __debug__:
+            trace("createChandlerFolders")
+
+        assert(callback is not None)
+        assert(reconnect is not None)
+
+        self.cb = self._createChandlerFolders
+
+        # The method to call in the UI Thread
+        # when the testing is complete.
+        # This method is called for both success and failure.
+        self.callback = callback
+
+        # Tells whether to print status messages
+        self.statusMessages = False
+
+        # Tell what method to call on reconnect
+        # when a SSL dialog is displayed.
+        # When the dialog is shown the
+        # protocol code terminates the
+        # connection and calls reconnect
+        # if the cert has been accepted
+        self.reconnect = reconnect
+
+        # Move code execution path from current thread
+        # to Reactor Asynch thread
+        reactor.callFromThread(self._connectToServer)
+
+    def removeChandlerFolders(self, callback, reconnect):
+        if __debug__:
+            trace("removeChandlerFolders")
+
+        assert(callback is not None)
+        assert(reconnect is not None)
+
+        self.cb = self._removeChandlerFolders
+
+        # The method to call in the UI Thread
+        # when the testing is complete.
+        # This method is called for both success and failure.
+        self.callback = callback
+
+        # Tells whether to print status messages
+        self.statusMessages = False
+
+        # Tell what method to call on reconnect
+        # when a SSL dialog is displayed.
+        # When the dialog is shown the
+        # protocol code terminates the
+        # connection and calls reconnect
+        # if the cert has been accepted
+        self.reconnect = reconnect
+
+        # Move code execution path from current thread
+        # to Reactor Asynch thread
+        reactor.callFromThread(self._connectToServer)
+
+    def _removeChandlerFolders(self, results):
+        if __debug__:
+            trace("_removeChandlerFolders")
+
+        d = self._getChandlerFoldersStatus()
+        d.addCallback(self._cbRemoveChandlerFolders)
+        d.addErrback(self.catchErrors)
+
+        return d
+
+    def _cbRemoveChandlerFolders(self, status):
+        m = status[constants.CHANDLER_MAIL_FOLDER]
+        t = status[constants.CHANDLER_TASKS_FOLDER]
+        e = status[constants.CHANDLER_EVENTS_FOLDER]
+
+        d = defer.succeed(1)
+
+        self._addFolderToDeferred(m, d)
+        self._addFolderToDeferred(t, d)
+        self._addFolderToDeferred(e, d)
+
+        d.addCallback(self._folderingFinished, status)
+        return d
+
+    def _addFolderToDeferred(self, folder, d):
+
+        name, exists, subscribed = folder
+
+        if exists:
+            #XXX This logic can be refined to first do a status on the
+            # folder and determine if there are any messages in the folder.
+            # If no messages then just do a delete otherwise select the
+            # folder, add the \Deleted flag on all messages, expunge,
+            # close, and then delete folder.
+
+            msgSet = imap4.MessageSet(1, None)
+            d.addCallback(lambda x: self.proto.select(folder[0]))
+            d.addCallback(lambda x: self.proto.addFlags(msgSet, ("\\Deleted",), uid=True))
+            d.addCallback(lambda x: self.proto.expunge())
+            d.addCallback(lambda x: self.proto.close())
+            d.addCallback(lambda x: self.proto.delete(folder[0]))
+
+        if subscribed:
+            d.addCallback(lambda x: self.proto.unsubscribe(folder[0]))
+
+    def _getChandlerFoldersStatus(self):
+        if __debug__:
+            trace("_getChandlerFoldersStatus")
+
+        m = constants.CHANDLER_MAIL_FOLDER
+        t = constants.CHANDLER_TASKS_FOLDER
+        e = constants.CHANDLER_EVENTS_FOLDER
+
+        status = {
+            #pos 0: The Unicode name of the folder on the IMAP Server
+            #pos 1: Boolean whether to folder exists on the server already
+            #pos 2: Boolean whether the folder is currently subscribe to already
+            m: [m, False, False],
+            t: [t, False, False],
+            e: [e, False, False]
+        }
+
+        if self.proto._capCache.has_key("CHILDREN"):
+            # Get the list of all directories under the Inbox.
+            # The '*" is used instead of the "%" due to an
+            # issue with fastmail returning the wrong results
+            # with "%" :(
+            d = self.proto.list("INBOX", "*")
+
+            #List the subscribe sub-folders in the Inbox
+            lsub = lambda x: self.proto.lsub("INBOX", "*")
+
+            #The folders are children of the Inbox
+            status[m][0] = u"INBOX.%s" % m
+            status[t][0] = u"INBOX.%s" % t
+            status[e][0] = u"INBOX.%s" % e
+
+        else:
+            # List all root level mailboxes
+            d = self.proto.list("", "%")
+            # List all subscribed root folders
+            lsub = lambda x: self.proto.lsub("", "%")
+
+        d.addCallback(self._updateStatus, status, 0)
+        d.addCallback(lsub)
+        d.addCallback(self._updateStatus, status, 1)
+        d.addCallback(lambda x: status)
+
+        return d
+
+
+    def _updateStatus(self, results, status, type):
+        #type 0: list
+        #type 1: lsub
+        m = status[constants.CHANDLER_MAIL_FOLDER]
+        t = status[constants.CHANDLER_TASKS_FOLDER]
+        e = status[constants.CHANDLER_EVENTS_FOLDER]
+
+        for folder in results:
+            (flags, dir, name) = folder
+
+            # A lower case comparison is done here
+            # since the casing of "INBOX" returned
+            # can differ depending on IMAP server
+            # implementation
+
+            if name.lower() == m[0].encode("imap4-utf-7").lower():
+                #The chandler mail folder already
+                #exists on the server or is
+                #already subscribed to.
+                if type:
+                    m[2] = True
+                else:
+                    m[1] = True
+
+            elif name.lower() == t[0].encode("imap4-utf-7").lower():
+                #The chandler tasks folder already
+                #exists on the server or is
+                #already subscribed to.
+                if type:
+                    t[2] = True
+                else:
+                    t[1] = True
+
+            elif name.lower() == e[0].encode("imap4-utf-7").lower():
+                #The chandler events folder already
+                #exists on the server or is
+                #already subscribed to.
+                if type:
+                    e[2] = True
+                else:
+                    e[1] = True
+
+    def _createChandlerFolders(self, results):
+        if __debug__:
+            trace("_createChandlerFolders")
+
+        d = self._getChandlerFoldersStatus()
+        d.addCallback(self._cbCreateChandlerFolders)
+        d.addErrback(self.catchErrors)
+        return d
+
+    def _cbCreateChandlerFolders(self, status):
+        d = defer.succeed(1)
+
+        d.addCallback(self._createOrSubscribe, status, 0)
+        d.addCallback(self._createOrSubscribe, status, 1)
+        d.addCallback(self._folderingFinished, status)
+        d.addErrback(self.catchErrors)
+
+        return d
+
+    def _createOrSubscribe(self, results, status, type):
+        #type 0: list
+        #type 1: lsub
+        m = status[constants.CHANDLER_MAIL_FOLDER]
+        t = status[constants.CHANDLER_TASKS_FOLDER]
+        e = status[constants.CHANDLER_EVENTS_FOLDER]
+
+        dList = []
+
+        if type:
+            if not m[2]:
+                dList.append(self.proto.subscribe(m[0]))
+
+            if not t[2]:
+                dList.append(self.proto.subscribe(t[0]))
+
+            if not e[2]:
+                dList.append(self.proto.subscribe(e[0]))
+        else:
+            if not m[1]:
+                dList.append(self.proto.create(m[0]))
+
+            if not t[1]:
+                dList.append(self.proto.create(t[0]))
+
+            if not e[1]:
+                dList.append(self.proto.create(e[0]))
+
+
+        if len(dList):
+            return defer.DeferredList(dList)
+
+    def _folderingFinished(self, results, status):
+        m = status[constants.CHANDLER_MAIL_FOLDER]
+        t = status[constants.CHANDLER_TASKS_FOLDER]
+        e = status[constants.CHANDLER_EVENTS_FOLDER]
+
+        # Store the value of the calback locally since
+        # actionCompleted will set self.callback to None
+        cb = self.callback
+        self._actionCompleted()
+
+        # Pass the IMAP server folder names back to the 
+        # caller.
+        callMethodInUIThread(cb, (1, (m[0], t[0], e[0])))
+
+    def _actionCompleted(self):
+       # Reset the total downloaded counter
+        self.totalDownloaded = 0
+
+        super(IMAPClient, self)._actionCompleted()
 
     def _loginClient(self):
         """
@@ -181,7 +487,7 @@ class IMAPClient(base.AbstractDownloadClient):
 
         assert self.account is not None
 
-        #Twisted expects ascii values so encode the utf-8 username and password
+        #Twisted expects 8-bit values so encode the utf-8 username and password
         username = self.account.username.encode(constants.DEFAULT_CHARSET)
         password = self.account.password.encode(constants.DEFAULT_CHARSET)
 
@@ -189,10 +495,9 @@ class IMAPClient(base.AbstractDownloadClient):
         self.proto.registerAuthenticator(imap4.LOGINAuthenticator(username))
 
         return self.proto.authenticate(password
-                     ).addCallback(self._selectInbox
+                     ).addCallback(self.cb
                      ).addErrback(self.loginClientInsecure, username, password
                      ).addErrback(self.catchErrors)
-
 
     def loginClientInsecure(self, error, username, password):
         """
@@ -225,28 +530,85 @@ class IMAPClient(base.AbstractDownloadClient):
         error.trap(imap4.NoSupportedAuthentication)
 
         return self.proto.login(username, password
-                    ).addCallback(self._selectInbox
+                    ).addCallback(self.cb
                     ).addErrback(self.catchErrors)
 
 
-    def _selectInbox(self, result):
+    def _getMail(self, result):
         if __debug__:
-            trace("_selectInbox")
+            trace("_getMail")
 
         if self.cancel:
             return self._actionCompleted()
 
-        if self.testing:
-            callMethodInUIThread(self.callback, (1, None))
-            return self._actionCompleted()
+        if self.account.folders.isEmpty():
+            # Since the accounts may have been
+            # saved or restored with a
+            # pre-Preview version of Chandler,
+            # the Mail Service plays nice and
+            # adds the Inbox folder to the
+            # IMAPAccount. This feature
+            # will go away in the future
+            # since not having a folder in the
+            # IMAP account will signal an 
+            # error or a bug.
+            from i18n import ChandlerMessageFactory as _
+            inbox = IMAPFolder(itsView=self.view)
+            inbox.displayName = _(u"Inbox")
+            inbox.folderName  = u"INBOX"
+            inbox.folderType  = "CHANDLER_HEADERS"
+            self.account.folders.append(inbox)
+            self.view.commit()
 
-        setStatusMessage(constants.DOWNLOAD_CHECK_MESSAGES % \
-                        {'accountName': self.account.displayName})
+        self.vars = FolderVars()
+        self.vars.folderItem = self.account.folders.first()
 
-        d = self.proto.select("INBOX"
+        d = self.proto.select(self.vars.folderItem.folderName
                    ).addCallback(self._checkForNewMessages
                    ).addErrback(self.catchErrors)
 
+        return d
+
+    def _getNextFolder(self):
+        if __debug__:
+            trace("_getNextFolder")
+
+        i = self.vars.indexNumber + 1
+
+        # Temp variable needed to get the
+        # next folder in the sequence
+        f = self.vars.folderItem
+
+        # Free the mem refs of the previous
+        # FolderVars instance
+        self.vars = None
+
+        # Close the current folder
+        d = self.proto.close()
+
+        if i >= len(self.account.folders):
+            # All folders for the IMAPAccount have been
+            # scanned so call actionCompleted
+            if self.statusMessages:
+                if self.totalDownloaded > 0:
+                    setStatusMessage(constants.DOWNLOAD_MESSAGES % \
+                                    {'accountName': self.account.displayName,
+                                     'numberOfMessages': self.totalDownloaded})
+                else:
+                    setStatusMessage(constants.DOWNLOAD_NO_MESSAGES % \
+                                    {'accountName': self.account.displayName})
+
+            d.addBoth(lambda x: self._actionCompleted())
+            return d
+
+        self.vars = FolderVars()
+        self.vars.folderItem  = self.account.folders.next(f)
+        self.vars.indexNumber = i
+
+        d.addCallback(lambda x: self.proto.select(self.vars.folderItem.folderName))
+
+        d.addCallback(self._checkForNewMessages)
+        d.addErrback(self.catchErrors)
 
         return d
 
@@ -254,7 +616,16 @@ class IMAPClient(base.AbstractDownloadClient):
         if __debug__:
             trace("_checkForNewMessages")
 
-        #XXX: Need to store and compare UIDVALIDITY
+        #XXX: Need to store and compare UIDVALIDITY.
+        #     The issue is what does Chandler do if the
+        #     UIDVALIDITY has changed. Not being a
+        #     traditional mail client we could not
+        #     just refetch the messages since the
+        #     Message Items may have changed dramatically
+        #     i.e. unstamped as Mail and stamped as an Event
+        #     and shared with other users. Or altered as
+        #     part of an Edit / Update workflow.
+        #     For now UIDVALIDITY will be ignored :(
         #if not msgs['UIDVALIDITY']:
         #    print "server: %s has no UUID Validity:\n%s" % (self.account.host, msgs)
 
@@ -262,15 +633,60 @@ class IMAPClient(base.AbstractDownloadClient):
             return self._actionCompleted()
 
         if msgs['EXISTS'] == 0:
-            setStatusMessage(constants.DOWNLOAD_NO_MESSAGES % \
-                             {'accountName': self.account.displayName})
+            return self._getNextFolder()
 
-            return self._actionCompleted()
+        # Check that we have not already downloaded the max
+        # number of messages for the folder
+        max = self.vars.folderItem.downloadMax
+        downloaded = len(self.vars.folderItem.deliveryExtensions)
 
-        if self._getNextUID() == 0:
+        if max > 0 and max == downloaded:
+            if __debug__:
+                trace("Max number of messages %s reached. No new mail will be \
+                       downloaded from '%s'" % (max, self.vars.folderItem.displayName))
+
+            return self._getNextFolder()
+
+        if self.vars.folderItem.folderType == "CHANDLER_HEADERS":
+            lastUID = 1
+            if self.vars.getNextUID() > 0:
+                lastUID = self.vars.getNextUID()
+
+
+            # Find all mail in the folder that contains the header
+            # X-Chandler-Mailer: True, does not contain the \Deleted
+            # flag and is greater than the IMAP UID of the last
+            # message downloaded from the folder.
+            query = imap4.Query(header=('X-Chandler-Mailer', 'True'), undeleted=True,
+                           uid=imap4.MessageSet(lastUID, None))
+
+            d = self.proto.search(query, uid=1)
+
+            d.addCallback(self._searchForChandlerMessages
+                         ).addErrback(self.catchErrors)
+
+            return d
+
+        if self.vars.getNextUID() == 0:
             msgSet = imap4.MessageSet(1, None)
         else:
-            msgSet = imap4.MessageSet(self._getNextUID(), None)
+            msgSet = imap4.MessageSet(self.vars.getNextUID(), None)
+
+        return self.proto.fetchFlags(msgSet, uid=True
+                   ).addCallback(self._getMessagesFlagsUID
+                   ).addErrback(self.catchErrors)
+
+    def _searchForChandlerMessages(self, msgUIDs):
+        if __debug__:
+            trace("_searchForChandlerHeaders")
+
+        if len(msgUIDs) == 0:
+            return self._getNextFolder()
+
+        msgSet = imap4.MessageSet()
+
+        for uid in msgUIDs:
+            msgSet.add(uid)
 
         return self.proto.fetchFlags(msgSet, uid=True
                    ).addCallback(self._getMessagesFlagsUID
@@ -283,28 +699,42 @@ class IMAPClient(base.AbstractDownloadClient):
         if self.cancel:
             return self._actionCompleted()
 
-        nextUID = self._getNextUID()
+        nextUID = self.vars.getNextUID()
 
         for message in msgs.itervalues():
-            luid = int(message['UID'])
+            uid = int(message['UID'])
 
-            if luid < nextUID:
+            if uid < nextUID:
                 continue
 
             if not "\\Deleted" in message['FLAGS']:
-                self.pending.append([luid, message['FLAGS']])
+                self.vars.pending.append([uid, message['FLAGS']])
 
-        numPending = len(self.pending)
+        numPending = len(self.vars.pending)
 
         if numPending == 0:
-            setStatusMessage(constants.DOWNLOAD_NO_MESSAGES % \
-                             {'accountName': self.account.displayName})
+            return self._getNextFolder()
 
-            return self._actionCompleted()
+        max = self.vars.folderItem.downloadMax
+        downloaded = len(self.vars.folderItem.deliveryExtensions)
 
-        setStatusMessage(constants.DOWNLOAD_START_MESSAGES % \
-                         {"accountName": self.account.displayName,
-                          "numberOfMessages": numPending})
+        if max > 0 and (numPending + downloaded > max):
+            # If the number of pending messages exceeds the
+            # maximum number of messages that should be downloaded
+            # for this folder as specified in c{IMAPFolder.downloadMax}
+            # then reduce the pending list to that maximum number.
+            #
+            # A c{IMAPFolder.downladMax} value <= 0 indicated that
+            # there is no limit on the number of messages that
+            # can be downloaded from this folder.
+            self.vars.pending = self.vars.pending[:max - downloaded]
+            numPending = len(self.vars.pending)
+
+        if self.statusMessages:
+            setStatusMessage(constants.IMAP_START_MESSAGES % \
+                             {"accountName": self.account.displayName,
+                              "numberOfMessages": numPending,
+                              "folderDisplayName": self.vars.folderItem.displayName})
 
         self._getNextMessageSet()
 
@@ -313,7 +743,7 @@ class IMAPClient(base.AbstractDownloadClient):
         Overides base class to add IMAP specific logic.
 
         If the pending queue has one or messages to download
-        for n messages up to C{IMAPAccount.downloadMax} fetches
+        for n messages up to C{IMAPAccount.commitNumber} fetches
         the mail from the IMAP server. If no message pending
         calls actionCompleted() to clean up client resources.
         """
@@ -323,15 +753,15 @@ class IMAPClient(base.AbstractDownloadClient):
         if self.cancel:
             return self._actionCompleted()
 
-        self.numToDownload = len(self.pending)
+        self.vars.numToDownload = len(self.vars.pending)
 
-        if self.numToDownload == 0:
-            return self._actionCompleted()
+        if self.vars.numToDownload == 0:
+            return self._getNextFolder()
 
-        if self.numToDownload > self.downloadMax:
-            self.numToDownload = self.downloadMax
+        if self.vars.numToDownload > self.commitNumber:
+            self.vars.numToDownload = self.commitNumber
 
-        m = self.pending.pop(0)
+        m = self.vars.pending.pop(0)
 
         return self.proto.fetchMessage(str(m[0]), uid=True
                       ).addCallback(self._fetchMessage, m
@@ -357,13 +787,13 @@ class IMAPClient(base.AbstractDownloadClient):
 
         #Check if the uid of the message is greater than
         #last message fetched
-        if curMessage[0] > self.lastUID:
-            self.lastUID = curMessage[0]
+        if curMessage[0] > self.vars.lastUID:
+            self.vars.lastUID = curMessage[0]
 
         if  "\\Seen" in curMessage[1]:
-            callback = defer.succeed(True)
+            d = defer.succeed(True)
         else:
-            callback = self.proto.removeFlags(curMessage[0], ["\Seen"], uid=True)
+            d = self.proto.removeFlags(curMessage[0], ["\Seen"], uid=True)
 
         messageText = msgs[msg]['RFC822']
 
@@ -372,42 +802,95 @@ class IMAPClient(base.AbstractDownloadClient):
 
         repMessage = messageObjectToKind(self.view, messageObject, messageText)
 
+        if self.vars.folderItem.folderType == "EVENT":
+            parseEventInfo(repMessage)
+
+        elif self.vars.folderItem.folderType == "TASK":
+            parseTaskInfo(repMessage)
+
         # Set the message as incoming
+        # XXX the incomingMessage method is
+        # where the mail gets added to the Dashboard
+        # and set as "Mine"
         repMessage.incomingMessage(self.account)
 
         # Save IMAP Delivery info in Repository
-        repMessage.deliveryExtension.folder = u"INBOX"
+        repMessage.deliveryExtension.folder = self.vars.folderItem
         repMessage.deliveryExtension.uid = curMessage[0]
-        #Commented out for Preview
-        #repMessage.deliveryExtension.flags = curMessage[1]
 
-        self.numDownloaded += 1
-        self.pruneCounter  += 1
+        self.vars.numDownloaded += 1
 
-        if self.numDownloaded == self.numToDownload:
-            self._setNextUID(self.lastUID + 1)
-            self.totalDownloaded += self.numDownloaded
+        if self.vars.folderItem.deleteOnDownload:
+            # If the user elects to delete mail
+            # from the IMAP Server that has been
+            # downloaded to Chandler from this
+            # IMAP folder then add the message UID
+            # to the delete list. The \\Deleted flag
+            # flag will be added to the message on the
+            # IMAP Server after the corresponding MailStamp
+            # has been committed to the Repository.
 
-            return callback.addBoth(lambda x: self._commitDownloadedMail())
+            self.vars.delList.append(curMessage[0])
+
+        if self.vars.numDownloaded == self.vars.numToDownload:
+            # Set the next uid on the IMAPFolder item since
+            # this information is about to be committed.
+            # The setting of this value is delayed till the
+            # last possible point. If an error happens
+            # during download we want to make sure that
+            # the correct next UID is saved.
+            self.vars.setNextUID(self.vars.lastUID + 1)
+
+            # Track the total number of messages downloaded from
+            # this IMAP Folder
+            self.vars.totalDownloaded += self.vars.numDownloaded
+
+            # Track the total number of messages downloaded for
+            # this IMAP Account
+            self.totalDownloaded += self.vars.numDownloaded
+
+            return d.addBoth(lambda x: self._commitDownloadedMail())
 
         else:
-            m = self.pending.pop(0)
+            m = self.vars.pending.pop(0)
 
-            return callback.addBoth(lambda x: self.proto.fetchMessage(str(m[0]), uid=True
-                                        ).addCallback(self._fetchMessage, m
-                                        ).addErrback(self.catchErrors)
-                                    )
-    def _expunge(self, result):
+            #XXX Can be refined in to the curren d deferred
+            return d.addBoth(lambda x: self.proto.fetchMessage(str(m[0]), uid=True
+                                     ).addCallback(self._fetchMessage, m
+                                     ).addErrback(self.catchErrors)
+                            )
+
+    def _performNextAction(self):
         if __debug__:
-            trace("_expunge")
+            trace("_performNextAction")
 
-        return self.proto.expunge()
+        if self.vars.folderItem.deleteOnDownload and len(self.vars.delList):
+            msgSet = imap4.MessageSet()
 
-    def _getNextUID(self):
-        return self.account.messageDownloadSequence
+            for uid in self.vars.delList:
+                msgSet.add(uid)
 
-    def _setNextUID(self, uid):
-        self.account.messageDownloadSequence = uid
+            # Reset the delList
+            self.vars.delList = []
+
+            # Since the flags are silent this should never raise an error
+            d = self.proto.addFlags(msgSet, ("\\Deleted",), uid=True)
+
+        else:
+            d = defer.succeed(True)
+
+        if len(self.vars.pending) == 0:
+           # We have downloaded all the pending messages for this folder
+            meth = self._getNextFolder
+        else:
+           # There are more messages to download from this folder
+            meth = self._getNextMessageSet
+
+            # Reset the download counter variables
+            self.vars.numDownloaded = 0
+            self.vars.numToDownload = 0
+
+        return d.addCallback(lambda x: meth())
 
     def _beforeDisconnect(self):
         """
@@ -423,19 +906,23 @@ class IMAPClient(base.AbstractDownloadClient):
            self.proto.queued is None:
             return defer.succeed(True)
 
-        if self.testing:
-            # In testing mode no mailbox is open
-            return self.proto.sendCommand(imap4.Command('LOGOUT', wantResponse=('BYE',)))
+        if self.vars and self.vars.folderItem:
+            # If the vars instance is not None and the
+            # folderItem is not None then a cancel,
+            # shutdown, or error occurred in which case
+            # we want to close the open folder
+            d = self.proto.close()
+            d.addBoth(lambda x: self.proto.sendCommand(imap4.Command('LOGOUT', \
+                                wantResponse=('BYE',))))
 
         else:
-            d = self.proto.close()
-            d.addBoth(lambda x: self.proto.sendCommand(imap4.Command('LOGOUT', wantResponse=('BYE',))))
+             d = self.proto.sendCommand(imap4.Command('LOGOUT', wantResponse=('BYE',)))
 
-            return d
+        return d
 
     def _getAccount(self):
         """
-        Retrieves a C{Mail.IMAPAccount} instance from its C{UUID}.
+        Retrieves a C{IMAPAccount} instance from its C{UUID}.
         """
         if self.account is None:
             self.account = self.view.findUUID(self.accountUUID)

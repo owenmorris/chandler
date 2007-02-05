@@ -41,7 +41,7 @@ class SettingsTestCase(testcase.SingleRepositoryTestCase):
         # If we don't load this item now, before restoring settings, it will
         # get loaded afterwards, which messes up the notion of "current" dav
         # account
-        act = schema.ns("osaf.app", rv).CosmoWebDAVAccount
+        act = schema.ns("osaf.app", rv).defaultWebDAVAccount
 
 
         # restore settings
@@ -51,13 +51,12 @@ class SettingsTestCase(testcase.SingleRepositoryTestCase):
 
         # verify accounts
 
-        act = rv.findUUID(UUID("1bfc2a92-53eb-11db-9367-d2f16e571a02"))
+        # Get the current Sharing account which should be
+        # the "Test Sharing Service" account
+        act = schema.ns("osaf.sharing", rv).currentWebDAVAccount.item
         self.assert_(act)
         self.assert_(isinstance(act, sharing.WebDAVAccount))
         self.assertEquals(act.displayName, "Test Sharing Service")
-        # ensure this is the "current" sharing account
-        curDavRef = schema.ns("osaf.sharing", rv).currentWebDAVAccount
-        self.assertEquals(curDavRef.item.itsUUID, act.itsUUID)
         self.assertEquals(act.port, 443)
         self.assertEquals(act.useSSL, True)
         self.assertEquals(act.host, "cosmo-demo.osafoundation.org")
@@ -90,7 +89,9 @@ class SettingsTestCase(testcase.SingleRepositoryTestCase):
         self.assertEquals(act.port, 993)
         self.assertEquals(act.connectionSecurity, "SSL")
 
-        act = rv.findUUID(UUID("1c01a31e-53eb-11db-9367-d2f16e571a02"))
+        # Get the current Mail account which should be
+        # the pop.example.com account
+        act = schema.ns("osaf.pim", rv).currentMailAccount.item
         self.assert_(act)
         self.assert_(isinstance(act, pim.mail.POPAccount))
         self.assertEquals(act.host, "pop.example.com")
@@ -98,9 +99,6 @@ class SettingsTestCase(testcase.SingleRepositoryTestCase):
         self.assertEquals(act.password, "pop_password")
         self.assertEquals(act.port, 995)
         self.assertEquals(act.connectionSecurity, "SSL")
-
-        curMailRef = schema.ns("osaf.pim", rv).currentMailAccount
-        self.assertEquals(curMailRef.item.itsUUID, act.itsUUID)
 
 
         # verify shares

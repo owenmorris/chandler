@@ -15,6 +15,7 @@
 
 __all__ = [
     'ChandlerServerHandle',
+    'WebDAVTester',
     'checkAccess',
     'createCosmoAccount',
     'CANT_CONNECT',
@@ -38,8 +39,12 @@ import application.Globals as Globals
 import application.Utility as Utility
 from osaf.framework.certstore import ssl
 from osaf import messages
+import threading
 import version
 from i18n import ChandlerMessageFactory as _
+from osaf.mail.utils import displayIgnoreSSLErrorDialog, \
+                            displaySSLCertDialog, \
+                            callMethodInUIThread
 
 
 class ChandlerServerHandle(zanshin.webdav.ServerHandle):
@@ -248,7 +253,6 @@ def checkAccess(host, port=80, useSSL=False, username=None, password=None,
         return (READ_WRITE, None)
 
 
-
 def createCosmoAccount(host, port=80, useSSL=False,
     admin="root", adminpw="cosmo",
     username="username", password="password",
@@ -276,3 +280,170 @@ def createCosmoAccount(host, port=80, useSSL=False,
     except zanshin.http.HTTPError, e:
         pass # ignore these for now, since we'll always get a 501 on the
              # followup PROPFIND
+
+class TestChandlerServerHandle(ChandlerServerHandle):
+    def __init__(self, host=None, port=None, username=None, password=None,
+                 useSSL=False, repositoryView=None, reconnect=None):
+
+        super(TestChandlerServerHandle, self).__init__(host, port, username,
+                                                        password, useSSL,
+                                                        repositoryView)
+        self.reconnect = reconnect
+
+    def execCommand(self, callable, *args, **keywds):
+        try:
+            result =  zanshin.util.blockUntil(callable, *args, **keywds)
+            return (1, result)
+
+        except Utility.CertificateVerificationError, err:
+            assert err.args[1] == 'certificate verify failed'
+
+            # Reason why verification failed is stored in err.args[0], see
+            # codes at http://www.openssl.org/docs/apps/verify.html#DIAGNOSTICS
+            try:
+                if err.args[0] in ssl.unknown_issuer:
+                    displaySSLCertDialog(err.untrustedCertificates[0], self.reconnect)
+                else:
+                    displayIgnoreSSLErrorDialog(err.untrustedCertificates[0],
+                                                err.args[0], self.reconnect)
+
+                return (2, None)
+            except Exception, e:
+                # There is a bug in the M2Crypto code which needs
+                # to be fixed.
+                return (0, (CANT_CONNECT, _(u"Error in SSL Layer")))
+
+        except M2Crypto.SSL.Checker.WrongHost, err:
+            ssl.askIgnoreSSLError( err.pem,
+                    messages.SSL_HOST_MISMATCH % \
+                      {'expectedHost': err.expectedHost,
+                       'actualHost': err.actualHost},
+                       self.reconnect)
+
+            return (2, None)
+
+        except M2Crypto.BIO.BIOError, error:
+            return (0, (CANT_CONNECT, str(err)))
+
+        except zanshin.webdav.ConnectionError, err:
+            return (0, (CANT_CONNECT, err.message))
+
+        except zanshin.webdav.WebDAVError, err:
+            return (0, (NO_ACCESS, err.status))
+
+        except error.SSLError, err:
+            return (0, (CANT_CONNECT, err)) # Unhandled SSL error
+
+        except Exception, err: # Consider any other exception as a connection error
+            return (0, (CANT_CONNECT, err))
+
+
+class WebDAVTester(object):
+    def __init__(self, host=None, port=None, path=None, username=None,
+                 password=None, useSSL=False, repositoryView=None):
+
+       self.host = host
+       self.port = port
+       self.path = path
+       self.username = username
+       self.password = password
+       self.useSSL = useSSL
+       self.view = repositoryView
+
+       self.cancel  = False
+
+    def cancelLastRequest(self):
+        self.cancel = True
+
+    def testAccountSettings(self, callback, reconnect, blocking=False):
+        if blocking:
+            return self._testAccountSettings(callback, reconnect)
+
+        # don't block the current thread
+        t = threading.Thread(target=self._testAccountSettings,
+              args=(callback, reconnect))
+
+        t.start()
+
+    def _testAccountSettings(self, callback, reconnect):
+        handle = TestChandlerServerHandle(self.host,
+                                          self.port,
+                                          self.username,
+                                          self.password,
+                                          self.useSSL,
+                                          self.view, reconnect)
+
+        # Make sure path begins/ends with /
+        self.path = self.path.strip("/")
+
+        if self.path == "":
+            self.path = "/"
+        else:
+            self.path = "/" + self.path + "/"
+
+        # Get the C{Resource} object associated with the specified
+        # path
+        topLevelResource = handle.getResource(self.path)
+
+        statusCode, statusValue = handle.execCommand(
+                                        topLevelResource.propfind, depth=1)
+
+        if self.cancel:
+            return
+
+        if statusCode != 1:
+            # If the request failed or the cert dialog was displayed
+            # then report back to the caller and return
+            return callMethodInUIThread(callback, (statusCode, statusValue))
+
+        childNames = set([])
+
+        for child in statusValue:
+            if child is not topLevelResource:
+                childPath = child.path
+
+                if childPath and childPath[-1] == '/':
+                    childPath = childPath[:-1]
+
+                childComponents = childPath.split('/')
+
+                if len(childComponents):
+                    childNames.add(childComponents[-1])
+
+        # Try to figure out a unique path (although the odds of
+        # even more than one try being needs are probably negligible)..
+        testFilename = unicode(chandlerdb.util.c.UUID())
+
+        # Random string to use for trying a put
+        while testFilename in childNames:
+            testFilename = unicode(chandlerdb.util.c.UUID())
+
+        # Now, we try to PUT a small test file on the server. If that
+        # fails, we're going to say the user only has read-only access.
+
+        tmpResource = handle.getResource(topLevelResource.path + testFilename)
+
+        body = "Write access test"
+
+        statusCode, statusValue = handle.execCommand(tmpResource.put, body, checkETag=False,
+                                                    contentType="text/plain")
+
+        if self.cancel:
+            return
+
+        if statusCode == 0:
+            # No access in this case means read only
+            if statusValue[0] == NO_ACCESS:
+                return callMethodInUIThread(callback, (1, (READ_ONLY, None)))
+
+            return callMethodInUIThread(callback, (statusCode, statusValue))
+
+        # Remove the temporary resource, and ignore failures (since there's
+        # not much we can do here, anyway).
+        handle.execCommand(tmpResource.delete)
+
+        if self.cancel:
+            return
+
+        # Success!
+        return callMethodInUIThread(callback, (1, (READ_WRITE, None)))

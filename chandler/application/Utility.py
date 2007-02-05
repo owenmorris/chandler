@@ -186,7 +186,7 @@ def getUserAgent():
     Construct a rfc spec'd UserAgent string from the platform and version information
     """
     platformID = getPlatformID()
-    locale     = i18n.getLocaleSet()[0]
+    locale     = i18n.getLocale()
 
     if platformID == 'win' or platformID == 'win-cygwin':
         platform = 'Windows'

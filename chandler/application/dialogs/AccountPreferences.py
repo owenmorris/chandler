@@ -1,4 +1,4 @@
-#   Copyright (c) 2003-2006 Open Source Applications Foundation
+# Copyright (c) 2003-2006 Open Source Applications FoundationA411
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -19,33 +19,56 @@
 import os, sys
 import wx
 import wx.xrc
-import webbrowser
 
 import application.schema as schema
 from   application import Globals
 import application.Parcel
-import application.dialogs.Util
+from application.dialogs import Util
 import osaf.pim.mail as Mail
+from osaf.mail import constants
 from osaf import sharing
 from i18n import ChandlerMessageFactory as _
-from osaf import messages
 from osaf.framework.blocks.Block import Block
-import AccountTestDialog
+from AccountPreferencesDialogs import MailTestDialog, \
+                                      AutoDiscoveryDialog, \
+                                      ChandlerIMAPFoldersDialog, \
+                                      RemoveChandlerIMAPFoldersDialog, \
+                                      SharingTestDialog, \
+                                      showYesNoDialog, \
+                                      showOKDialog
 
-"""
-Notes: still more i18n work to do on this file. This is just a first pass.
-"""
 
-CANT_CONNECT = _(u"Couldn't connect to server '%(host)s'.\nPlease double-check the server name and port settings.\nError was: '%(reason)s'.")
-NO_ACCESS    = _(u"Permission denied by server '%(host)s'.")
-READ_ONLY    = _(u"You have read access but not write access.")
-READ_WRITE   = _(u"Test was successful.\nThis account has read/write access.")
-UNKNOWN      = _(u"Test failed with an unknown response.")
+# Localized messages displayed in dialogs
+
+# --- Error Messages ----- #
+FIELDS_REQUIRED = _(u"The following fields ore required to perform this action:\n\n\tServer\n\tUser name\n\tPassword\n\tPort\n\n\nPlease correct the error and try again.")
+FIELDS_REQUIRED_ONE = _(u"The following fields are required to perform this action:\n\n\tServer\n\tPort\n\n\nPlease correct the error and try again.")
+FIELDS_REQUIRED_TWO = _(u"The following fields ore required to perform this action:\n\n\tServer\n\tPath\n\tUser name\n\tPassword\n\tPort\n\n\nPlease correct the error and try again.")
+
+DEFAULT_ACCOUNT = _(u"This account can not be deleted because it is\nthe default '%(accountType)s' account.")
+HOST_REQUIRED  = _(u"Auto-configure requires a Server name.")
+
+
+
+
+# --- Yes No Dialog Messages ----- #
+CREATE_FOLDERS_TITLE = _(u"Create Chandler IMAP Folders")
+CREATE_FOLDERS = _(u"Chandler will now attempt to create the\nfollowing IMAP folders on '%(host)s':\n\n\tChandler Mail\n\tChander Tasks\n\tChandler Events.\n\n Would you like to proceed?")
+
+REMOVE_FOLDERS_TITLE = _(u"Remove Chandler IMAP Folders")
+REMOVE_FOLDERS = _(u"Chandler will now attempt to remove the\nfollowing IMAP folders on '%(host)s':\n\n\tChandler Mail\n\tChander Tasks\n\tChandler Events.\n\n Would you like to proceed?")
+
+
+# Will print out saved account changes
+# before exiting the dialog when set to True
+DEBUG = False
+FOLDERS_URL = "http://wiki.osafoundation.org/bin/view/Projects/ChandlerProductFAQ"
+SHARING_URL = "https://osaf.us/account/new"
 
 # Special handlers referenced in the PANELS dictionary below:
 
-def IMAPValidationHandler(item, fields, values):
-    newAddressString = values['IMAP_EMAIL_ADDRESS']
+def IncomingValidationHandler(item, fields, values):
+    newAddressString = values['INCOMING_EMAIL_ADDRESS']
     # Blank address string?  Don't bother the user now, they will get
     # reminded when they actually try to fetch mail.  Bogus address?
     # They better fix it before leaving the dialog box.
@@ -53,20 +76,44 @@ def IMAPValidationHandler(item, fields, values):
         Mail.EmailAddress.isValidEmailAddress(newAddressString):
         return None
     else:
-        return (_(u"'%(emailAddress)s' is not a valid email address") % {'emailAddress': newAddressString})
+        return _(u"'%(emailAddress)s' is not a valid email address") % \
+                {'emailAddress': newAddressString}
 
-def IMAPSaveHandler(item, fields, values):
-    newAddressString = values['IMAP_EMAIL_ADDRESS']
-    newFullName = values['IMAP_FULL_NAME']
-    newUsername = values['IMAP_USERNAME']
-    newServer = values['IMAP_SERVER']
+def IncomingSaveHandler(item, fields, values):
+    newAddressString = values['INCOMING_EMAIL_ADDRESS']
+    newFullName = values['INCOMING_FULL_NAME']
+    newUsername = values['INCOMING_USERNAME']
+    newServer = values['INCOMING_SERVER']
+    newAccountProtocol = values['INCOMING_PROTOCOL']
 
-    # If either the host or username changes, we need to set this account item
-    # to inactive and create a new one.
+    # If either the host, username, or protocol changes
+    # we need to set this account item to inactive and
+    # create a new one.
     if (item.host and item.host != newServer) or \
-       (item.username and item.username != newUsername):
+       (item.username and item.username != newUsername) or \
+       (item.accountProtocol != newAccountProtocol):
         item.isActive = False
-        item = Mail.IMAPAccount(itsView=item.itsView)
+
+        ns_pim = schema.ns('osaf.pim', item.itsView)
+
+        isCurrent = item == ns_pim.currentMailAccount.item
+        oldItem   = item
+
+        if newAccountProtocol == "IMAP":
+            item = Mail.IMAPAccount(itsView=item.itsView)
+
+        elif newAccountProtocol == "POP":
+            item = Mail.POPAccount(itsView=item.itsView)
+        else:
+            # If this code is reached then there is a
+            # bug which needs to be fixed.
+            raise Exception("Internal Exception")
+
+        item.defaultSMTPAccount = oldItem.defaultSMTPAccount
+
+        if isCurrent:
+            ns_pim.currentMailAccount.item = item
+
 
     item.replyToAddress = Mail.EmailAddress.getEmailAddress(item.itsView,
                                                             newAddressString,
@@ -78,42 +125,12 @@ def IMAPSaveHandler(item, fields, values):
                 # item is complete.
 
 
-def IMAPDeleteHandler(item, values, data):
-    # If this IMAP account is the default, then return False to indicate it
-    # can't be deleted; True otherwise.
-    return not values['IMAP_DEFAULT']
+def IncomingDeleteHandler(item, values, data):
+    ns_pim = schema.ns('osaf.pim', item.itsView)
+    return not item == ns_pim.currentMailAccount.item
 
-def POPSaveHandler(item, fields, values):
-    newAddressString = values['POP_EMAIL_ADDRESS']
-    newFullName = values['POP_FULL_NAME']
-    newUsername = values['POP_USERNAME']
-    newServer = values['POP_SERVER']
-
-    # If either the host or username changes, we need to set this account item
-    # to inactive and create a new one.
-    if (item.host and item.host != newServer) or \
-       (item.username and item.username != newUsername):
-        item.isActive = False
-        item = Mail.POPAccount(itsView=item.itsView)
-
-
-    item.replyToAddress = Mail.EmailAddress.getEmailAddress(item.itsView,
-                                                            newAddressString,
-                                                            newFullName)
-
-    return item # Returning a non-None item tells the caller to continue
-                # processing this item.
-                # Returning None would tell the caller that processing this
-                # item is complete.
-
-
-def POPDeleteHandler(item, values, data):
-    # If this POP account is the default, then return False to indicate it
-    # can't be deleted; True otherwise.
-    return not values['POP_DEFAULT']
-
-def SMTPSaveHandler(item, fields, values):
-    newAddressString = values['SMTP_FROM']
+def OutgoingSaveHandler(item, fields, values):
+    newAddressString = values['OUTGOING_FROM']
     newFullName = ""
 
     item.fromAddress = Mail.EmailAddress.getEmailAddress(item.itsView,
@@ -125,270 +142,191 @@ def SMTPSaveHandler(item, fields, values):
                 # Returning None would tell the caller that processing this
                 # item is complete.
 
-def SMTPDeleteHandler(item, values, data):
-    # If this SMTP account is the default for any of the IMAP accounts, return
-    # False to indicate it can't be deleted; True otherwise.
-    isDefault = False
-    for accountData in data:
-        if accountData['type'] == "IMAP":
-            if accountData['values']['IMAP_SMTP'] == item.itsUUID:
-                isDefault = True
-                break
-    return not isDefault
+def OutgoingDeleteHandler(item, values, data):
+    ns_pim = schema.ns('osaf.pim', item.itsView)
+    return not item == ns_pim.currentSMTPAccount.item
 
-def WebDAVDeleteHandler(item, values, data):
-    # If this WebDAV account is the default, then return False to indicate it
-    # can't be deleted; True otherwise.
-    return not values['WEBDAV_DEFAULT']
-
+def SharingDeleteHandler(item, values, data):
+    sharing_ns = schema.ns('osaf.sharing', item.itsView)
+    return not item == sharing_ns.currentWebDAVAccount.item
 
 # Used to map form fields to item attributes:
 PANELS = {
-    "IMAP" : {
+    "INCOMING" : {
         "fields" : {
-            "IMAP_DESCRIPTION" : {
+            "INCOMING_DESCRIPTION" : {
                 "attr" : "displayName",
                 "type" : "string",
                 "required" : True,
-                "default": messages.NEW_ACCOUNT % {'accountType': 'IMAP'}
+                "default": _(u"New Incoming Account"),
             },
-            "IMAP_EMAIL_ADDRESS" : {
+            "INCOMING_EMAIL_ADDRESS" : {
                 "attr" : "emailAddress",
                 "type" : "string",
             },
-            "IMAP_FULL_NAME" : {
+            "INCOMING_FULL_NAME" : {
                 "attr" : "fullName",
                 "type" : "string",
             },
-            "IMAP_SERVER" : {
+            "INCOMING_SERVER" : {
                 "attr" : "host",
                 "type" : "string",
             },
-            "IMAP_USERNAME" : {
+            "INCOMING_USERNAME" : {
                 "attr" : "username",
                 "type" : "string",
             },
-            "IMAP_PASSWORD" : {
+            "INCOMING_PASSWORD" : {
                 "attr" : "password",
                 "type" : "string",
             },
-            "IMAP_PORT" : {
+
+            "INCOMING_PORT" : {
                 "attr" : "port",
                 "type" : "integer",
                 "default": 143,
                 "required" : True,
             },
-            "IMAP_SECURE" : {
+
+            "INCOMING_PROTOCOL" : {
+                "attr" : "accountProtocol",
+                "type" : "choice",
+                "default": "IMAP",
+            },
+
+            "INCOMING_SECURE" : {
                 "attr" : "connectionSecurity",
                 "type" : "radioEnumeration",
                 "buttons" : {
-                    "IMAP_SECURE_NO" : "NONE",
-                    "IMAP_TLS" : "TLS",
-                    "IMAP_SSL" : "SSL",
+                    "INCOMING_SECURE_NO" : "NONE",
+                    "INCOMING_TLS" : "TLS",
+                    "INCOMING_SSL" : "SSL",
                     },
                 "default" : "NONE",
-                "linkedTo" : ("IMAP_PORT",
-                              { "NONE":"143", "TLS":"143", "SSL":"993" } )
+                "linkedTo" :
+                 {
+                   "callback": "getIncomingProtocol",
+                   "protocols": {
+                      "IMAP": ("INCOMING_PORT", { "NONE":"143", "TLS":"143", "SSL":"993" } ),
+                      "POP":  ("INCOMING_PORT", { "NONE":"110", "TLS":"110", "SSL":"995" } ),
+                    },
+                 }
             },
-            "IMAP_DEFAULT" : {
-                "type" : "currentPointer",
-                "ns" : "osaf.pim",
-                "pointer" : "currentMailAccount",
-                "exclusive" : True,
-            },
-            "IMAP_SMTP" : {
-                "type" : "itemRef",
-                "attr" : "defaultSMTPAccount",
-                "kind" : Mail.SMTPAccount,
+
+            "INCOMING_FOLDERS" : {
+                "attr" : "folders",
+                "type" : "chandlerFolders",
             },
         },
-        "id" : "IMAPPanel",
-        "saveHandler" : IMAPSaveHandler,
-        "validationHandler" : IMAPValidationHandler,
-        "deleteHandler" : IMAPDeleteHandler,
-        "displayName" : u"IMAP_DESCRIPTION",
-        "description" : _(u"Incoming %(accountType)s mail") % {'accountType': 'IMAP'},
+        "id" : "INCOMINGPanel",
+        "saveHandler" : IncomingSaveHandler,
+        "validationHandler" : IncomingValidationHandler,
+        "deleteHandler" : IncomingDeleteHandler,
+        "displayName" : u"INCOMING_DESCRIPTION",
+        "description" : _(u"Incoming mail"),
         "callbacks" : (
-            ("IMAP_TEST", "OnTestIMAP"),
-        )
+                        ("INCOMING_DISCOVERY", "OnIncomingDiscovery"),
+                      ),
+        "messages" : ("INCOMING_MESSAGE",),
+        "init" : "initIncomingPanel",
     },
-    "POP" : {
+    "OUTGOING" : {
         "fields" : {
-            "POP_DESCRIPTION" : {
+            "OUTGOING_DESCRIPTION" : {
                 "attr" : "displayName",
                 "type" : "string",
                 "required" : True,
-                "default": messages.NEW_ACCOUNT % {'accountType': 'POP'}
+                "default": _(u"New Outgoing Account"),
             },
-            "POP_EMAIL_ADDRESS" : {
+            "OUTGOING_FROM" : {
                 "attr" : "emailAddress",
                 "type" : "string",
             },
-            "POP_FULL_NAME" : {
-                "attr" : "fullName",
-                "type" : "string",
-            },
-            "POP_SERVER" : {
+            "OUTGOING_SERVER" : {
                 "attr" : "host",
                 "type" : "string",
             },
-            "POP_USERNAME" : {
-                "attr" : "username",
-                "type" : "string",
-            },
-            "POP_PASSWORD" : {
-                "attr" : "password",
-                "type" : "string",
-            },
-            "POP_PORT" : {
-                "attr" : "port",
-                "type" : "integer",
-                "default": 143,
-                "required" : True,
-            },
-            "POP_SECURE" : {
-                "attr" : "connectionSecurity",
-                "type" : "radioEnumeration",
-                "buttons" : {
-                    "POP_SECURE_NO" : "NONE",
-                    "POP_TLS" : "TLS",
-                    "POP_SSL" : "SSL",
-                    },
-                "default" : "NONE",
-                "linkedTo" : ("POP_PORT",
-                              { "NONE":"110", "TLS":"110", "SSL":"995" } )
-            },
-            "POP_DEFAULT" : {
-                "type" : "currentPointer",
-                "ns" : "osaf.pim",
-                "pointer" : "currentMailAccount",
-                "exclusive" : True,
-            },
-            "POP_SMTP" : {
-                "type" : "itemRef",
-                "attr" : "defaultSMTPAccount",
-                "kind" : Mail.SMTPAccount,
-            },
-            "POP_LEAVE" : {
-                "attr" : "leaveOnServer",
-                "type" : "boolean",
-            },
-        },
-        "id" : "POPPanel",
-        "saveHandler" : POPSaveHandler,
-        "deleteHandler" : POPDeleteHandler,
-        "displayName" : u"POP_DESCRIPTION",
-        "description" : _(u"Incoming %(accountType)s mail") % {'accountType': 'POP'},
-        "callbacks" : (
-            ("POP_TEST", "OnTestPOP"),
-        )
-    },
-    "SMTP" : {
-        "fields" : {
-            "SMTP_DESCRIPTION" : {
-                "attr" : "displayName",
-                "type" : "string",
-                "required" : True,
-                "default": messages.NEW_ACCOUNT % {'accountType': 'SMTP'}
-            },
-            "SMTP_FROM" : {
-                "attr" : "emailAddress",
-                "type" : "string",
-            },
-            "SMTP_SERVER" : {
-                "attr" : "host",
-                "type" : "string",
-            },
-            "SMTP_PORT" : {
+            "OUTGOING_PORT" : {
                 "attr" : "port",
                 "type" : "integer",
                 "default": 25,
                 "required" : True,
             },
-            "SMTP_SECURE" : {
+            "OUTGOING_SECURE" : {
                 "attr" : "connectionSecurity",
                 "type" : "radioEnumeration",
                 "buttons" : {
-                    "SMTP_SECURE_NO" : "NONE",
-                    "SMTP_SECURE_TLS" : "TLS",
-                    "SMTP_SECURE_SSL" : "SSL",
+                    "OUTGOING_SECURE_NO" : "NONE",
+                    "OUTGOING_SECURE_TLS" : "TLS",
+                    "OUTGOING_SECURE_SSL" : "SSL",
                     },
                 "default" : "NONE",
-                "linkedTo" : ("SMTP_PORT",
-                              { "NONE":"25", "TLS":"25", "SSL":"465" } )
+                "linkedTo" :
+                        ("OUTGOING_PORT", { "NONE":"25", "TLS":"25", "SSL":"465" }),
             },
-            "SMTP_USE_AUTH" : {
+            "OUTGOING_USE_AUTH" : {
                 "attr" : "useAuth",
                 "type" : "boolean",
             },
-            "SMTP_USERNAME" : {
+            "OUTGOING_USERNAME" : {
                 "attr" : "username",
                 "type" : "string",
             },
-            "SMTP_PASSWORD" : {
+            "OUTGOING_PASSWORD" : {
                 "attr" : "password",
                 "type" : "string",
             },
         },
-        "id" : "SMTPPanel",
-        "saveHandler" : SMTPSaveHandler,
-        "deleteHandler" : SMTPDeleteHandler,
-        "displayName" : u"SMTP_DESCRIPTION",
-        "description" : _(u"Outgoing %(accountType)s mail") % {'accountType': 'SMTP'},
-        "callbacks" : (
-            ("SMTP_TEST", "OnTestSMTP"),
-        )
+        "id" : "OUTGOINGPanel",
+        "saveHandler" : OutgoingSaveHandler,
+        "deleteHandler" : OutgoingDeleteHandler,
+        "displayName" : u"OUTGOING_DESCRIPTION",
+        "description" : _(u"Outgoing mail"),
+        "callbacks" : (("OUTGOING_DISCOVERY", "OnOutgoingDiscovery"),),
+        "messages" : ("OUTGOING_MESSAGE",),
     },
-    "WebDAV" : {
+    "SHARING" : {
         "fields" : {
-            "WEBDAV_DESCRIPTION" : {
+            "SHARING_DESCRIPTION" : {
                 "attr" : "displayName",
                 "type" : "string",
                 "required" : True,
-                "default": messages.NEW_ACCOUNT % {'accountType': 'webDAV'}
+                "default": _(u"New Sharing Account"),
             },
-            "WEBDAV_SERVER" : {
+            "SHARING_SERVER" : {
                 "attr" : "host",
                 "type" : "string",
             },
-            "WEBDAV_PATH" : {
+            "SHARING_PATH" : {
                 "attr" : "path",
                 "type" : "string",
             },
-            "WEBDAV_USERNAME" : {
+            "SHARING_USERNAME" : {
                 "attr" : "username",
                 "type" : "string",
             },
-            "WEBDAV_PASSWORD" : {
+            "SHARING_PASSWORD" : {
                 "attr" : "password",
                 "type" : "string",
             },
-            "WEBDAV_PORT" : {
+            "SHARING_PORT" : {
                 "attr" : "port",
                 "type" : "integer",
                 "default": 80,
                 "required" : True,
             },
-            "WEBDAV_USE_SSL" : {
+            "SHARING_USE_SSL" : {
                 "attr" : "useSSL",
                 "type" : "boolean",
-                "linkedTo" : ("WEBDAV_PORT", { True:"443", False:"80" } )
-            },
-            "WEBDAV_DEFAULT" : {
-                "type" : "currentPointer",
-                "ns" : "osaf.sharing",
-                "pointer" : "currentWebDAVAccount",
-                "exclusive" : True,
+                "linkedTo" :
+                        ("SHARING_PORT", { True:"443", False:"80" }),
             },
         },
-        "id" : "WebDAVPanel",
-        "deleteHandler" : WebDAVDeleteHandler,
-        "displayName" : "WEBDAV_DESCRIPTION",
-        "description" : _(u"Sharing %(accountType)s") % {'accountType': 'WebDAV'},
-        "callbacks" : (
-            ("WEBDAV_TEST", "OnTestWebDAV"),
-            ("WEBDAV_SIGNUP", "OnSignUpWebDAV"),
-        )
+        "id" : "SHARINGPanel",
+        "deleteHandler" : SharingDeleteHandler,
+        "displayName" : "SHARING_DESCRIPTION",
+        "description" : _(u"Sharing"),
+        "messages" : ("SHARING_MESSAGE", "SHARING_MESSAGE2"),
     },
 }
 
@@ -413,22 +351,32 @@ class AccountPreferencesDialog(wx.Dialog):
         # and below that is the okCancelSizer
         self.outerSizer = wx.BoxSizer(wx.VERTICAL)
 
-        # innerSizer will have two children to manage: on the left is the
-        # AccountsPanel and on the right is the switchable detail panel
         self.innerSizer = wx.BoxSizer(wx.HORIZONTAL)
         self.accountsPanel = self.resources.LoadPanel(self, "AccountsPanel")
         self.innerSizer.Add(self.accountsPanel, 0, wx.ALIGN_TOP|wx.ALL, 5)
 
         self.outerSizer.Add(self.innerSizer, 0, wx.ALIGN_CENTER|wx.ALL, 5)
+        self.bottomSizer = wx.BoxSizer(wx.HORIZONTAL)
+
+        self.messagesPanel = self.resources.LoadPanel(self, "MessagesPanel")
         self.okCancelPanel = self.resources.LoadPanel(self, "OkCancelPanel")
-        self.outerSizer.Add(self.okCancelPanel, 0,
-         wx.ALIGN_BOTTOM|wx.ALIGN_RIGHT|wx.ALL, 5)
+
+        self.bottomSizer.Add(self.messagesPanel, 0, wx.ALIGN_TOP|wx.ALL, 5)
+        self.bottomSizer.Add(self.okCancelPanel, 0, wx.ALIGN_TOP|wx.ALL, 5)
+
+        self.outerSizer.Add(self.bottomSizer, 0, wx.ALIGN_TOP|wx.ALIGN_LEFT|wx.ALL, 0)
 
         # Load the various account form panels:
         self.panels = {}
         for (key, value) in PANELS.iteritems():
             self.panels[key] = self.resources.LoadPanel(self, value['id'])
             self.panels[key].Hide()
+
+        # These are wxHyperlinkCtrl widgets
+        self.folderLink = wx.xrc.XRCCTRL(self, "INCOMING_FOLDERS_VERBAGE2")
+        self.sharingLink = wx.xrc.XRCCTRL(self.messagesPanel, "SHARING_MESSAGE2")
+        self.folderLink.SetURL(FOLDERS_URL)
+        self.sharingLink.SetURL(SHARING_URL)
 
         self.SetSizer(self.outerSizer)
         self.outerSizer.SetSizeHints(self)
@@ -442,15 +390,25 @@ class AccountPreferencesDialog(wx.Dialog):
         for (key, value) in PANELS.iteritems():
             # store a tuple with account type description, and name
             typeNames.append( (value['description'], key) )
+
         typeNames.sort()
+
         for (description, name) in typeNames:
             newIndex = self.choiceNewType.Append(description)
             self.choiceNewType.SetClientData(newIndex, name)
+
         self.choiceNewType.SetSelection(0)
 
         self.currentIndex = None # the list index of account in detail panel
         self.currentPanelType = None
         self.currentPanel = None # whatever detail panel we swap in
+
+        #XXX There is a bug in the wx code that prevents
+        #    a wx.HyperlinkCtrl from being hidden via
+        #    xrc so the Hide() method is called by
+        #    putting the sharingLink widget in
+        #    the currentMessages list
+        self.currentMessages = (self.sharingLink,)
 
         # data is a list of dictionaries of the form:
         # 'item' => item.itsUUID
@@ -465,11 +423,21 @@ class AccountPreferencesDialog(wx.Dialog):
 
         self.__PopulateAccountsList(account)
 
+        self.Bind(wx.EVT_CHOICE, self.OnToggleIncomingProtocol,
+                  id=wx.xrc.XRCID("INCOMING_PROTOCOL"))
+
+        self.Bind(wx.EVT_CHECKBOX, self.OnIncomingFolders,
+                  id=wx.xrc.XRCID("INCOMING_FOLDERS"))
+
         self.Bind(wx.EVT_BUTTON, self.OnOk, id=wx.ID_OK)
         self.Bind(wx.EVT_BUTTON, self.OnCancel, id=wx.ID_CANCEL)
 
+        self.Bind(wx.EVT_BUTTON, self.OnTestAccount,
+                      id=wx.xrc.XRCID("ACCOUNT_TEST"))
+
         self.Bind(wx.EVT_CHOICE, self.OnNewAccount,
                   id=wx.xrc.XRCID("CHOICE_NEW_ACCOUNT"))
+
         self.Bind(wx.EVT_BUTTON, self.OnDeleteAccount,
                   id=wx.xrc.XRCID("BUTTON_DELETE"))
 
@@ -481,6 +449,10 @@ class AccountPreferencesDialog(wx.Dialog):
         # Setting focus to the accounts list let's us "tab" to the first
         # text field (without this, on the mac, tabbing doesn't work)
         self.accountsList.SetFocus()
+
+    def selectAccount(self, accountIndex):
+        self.accountsList.SetSelection(accountIndex)
+        self.__SwapDetailPanel(accountIndex)
 
     def __PopulateAccountsList(self, account):
         """ Find all account items and put them in the list; also build
@@ -516,7 +488,6 @@ class AccountPreferencesDialog(wx.Dialog):
 
             for (field, desc) in \
              PANELS[item.accountType]['fields'].iteritems():
-
                 if desc['type'] == 'currentPointer':
                     # See if this item is the current item for the given
                     # pointer name, storing a boolean.
@@ -530,6 +501,12 @@ class AccountPreferencesDialog(wx.Dialog):
                         setting = getattr(item, desc['attr']).itsUUID
                     except AttributeError:
                         setting = None
+
+                elif desc['type'] == 'chandlerFolders':
+                    if item.accountProtocol == "IMAP":
+                        setting = {"hasFolders": self.hasChandlerFolders(item)}
+                    else:
+                        setting = {}
 
                 else:
                     # Otherwise store a literal
@@ -547,6 +524,7 @@ class AccountPreferencesDialog(wx.Dialog):
             self.data.append( { "item"   : item.itsUUID,
                                 "values" : values,
                                 "type"   : item.accountType,
+                                "protocol": item.accountProtocol,
                                 "isNew"  : False } )
 
             self.accountsList.Append(item.displayName)
@@ -567,8 +545,10 @@ class AccountPreferencesDialog(wx.Dialog):
                              self.currentPanel,
                              self.data[self.currentIndex]['values'])
 
-        for account in self.data:
+        if DEBUG:
+            counter = 0
 
+        for account in self.data:
             uuid = account['item']
 
             if uuid:
@@ -578,26 +558,18 @@ class AccountPreferencesDialog(wx.Dialog):
             else:
                 # We need to create an account item
 
-                if account['type'] == "IMAP":
+                if account['protocol'] == "IMAP":
                     item = Mail.IMAPAccount(itsView=self.rv)
+                    item.defaultSMTPAccount = Mail.getCurrentSMTPAccount(self.rv)[0]
 
-                elif account['type'] == "POP":
+                elif account['protocol'] == "POP":
                     item = Mail.POPAccount(itsView=self.rv)
+                    item.defaultSMTPAccount = Mail.getCurrentSMTPAccount(self.rv)[0]
 
-                elif account['type'] == "SMTP":
+                elif account['protocol'] == "SMTP":
                     item = Mail.SMTPAccount(itsView=self.rv)
 
-                    #XXX: Temp change that checks if no SMTP Account currently
-                    #     exists and makes the new account the defaultSMTPAccount
-                    #     for the default IMAP ccount
-
-                    if Mail.getCurrentSMTPAccount(self.rv)[0] is None:
-                        mailAccount = Mail.getCurrentMailAccount(self.rv)
-
-                        if mailAccount is not None:
-                            mailAccount.defaultSMTPAccount = item
-
-                elif account['type'] == "WebDAV":
+                elif account['protocol'] == "WebDAV":
                     item = sharing.WebDAVAccount(itsView=self.rv)
 
             values = account['values']
@@ -609,6 +581,15 @@ class AccountPreferencesDialog(wx.Dialog):
                 item = panel["saveHandler"](item, panel['fields'], values)
 
             if item is not None:
+                if DEBUG:
+                    # This stores the account which could have
+                    # changed based on the results of the
+                    # saveHandler to the data list.
+                    # This info is only needed for
+                    # debugging account saving.
+                    self.data[counter]['item'] = item.itsUUID
+                    counter += 1
+
                 # Process each field defined in the PANEL data structure;
                 # applying the values to the appropriate attributes:
 
@@ -627,6 +608,20 @@ class AccountPreferencesDialog(wx.Dialog):
                             setattr(item, desc['attr'],
                                     self.rv.findUUID(values[field]))
 
+                    elif desc['type'] == 'chandlerFolders':
+                       if values['INCOMING_PROTOCOL'] != "IMAP":
+                           continue
+
+                       action = values[field].get("action", None)
+
+                       if action == "ADD" and not \
+                             self.hasChandlerFolders(item):
+                           folderNames = values[field]["folderNames"]
+                           self.addChandlerFolders(item, folderNames)
+
+                       elif action == "REMOVE" and \
+                              self.hasChandlerFolders(item):
+                           self.removeChandlerFolders(item)
                     else:
                         # Otherwise, make the literal assignment:
                         try:
@@ -640,20 +635,55 @@ class AccountPreferencesDialog(wx.Dialog):
 
         for data in self.deletions:
             uuid = data['item']
+
             if uuid:
                 item = self.rv.findUUID(uuid)
+
+                # Remove any folders in the IMAPAccount
+                folders = getattr(item, "folders", None)
+
+                if folders:
+                    for folder in folders:
+                        folders.remove(folder)
+                        folder.delete()
+
                 item.delete()
 
     def __ApplyCancellations(self):
+        self.__StoreFormData(self.currentPanelType,
+                             self.currentPanel,
+                             self.data[self.currentIndex]['values'])
+
         # The only thing we need to do on Cancel is to remove any account items
         # we created this session:
 
-        for accountData in self.data:
-            if accountData['isNew']:
-                uuid = accountData['item']
+        for account in self.data:
+            if account['isNew']:
+                uuid = account['item']
                 item = self.rv.findUUID(uuid)
                 item.delete()
 
+            elif account['type'] == "INCOMING":
+                #If there are pending changes on Chandler IMAP Folders
+                # that have already been carried out on the server then
+                # we need to store those changed values even on a cancel
+                # since the operation was already performed.
+
+                values = account['values']
+
+                if values['INCOMING_PROTOCOL'] != "IMAP":
+                    continue
+
+                item = self.rv.findUUID(account['item'])
+
+                action = values['INCOMING_FOLDERS'].get("action", None)
+
+                if action == "ADD" and not self.hasChandlerFolders(item):
+                    folderNames = values['INCOMING_FOLDERS']["folderNames"]
+                    self.addChandlerFolders(item, folderNames)
+
+                elif action == "REMOVE" and self.hasChandlerFolders(item):
+                    self.removeChandlerFolders(item)
 
     def __Validate(self):
         # Call any custom validation handlers that might be defined
@@ -686,8 +716,7 @@ class AccountPreferencesDialog(wx.Dialog):
                     # Show the invalid panel
                     self.accountsList.SetSelection(i)
                     self.__SwapDetailPanel(i)
-                    application.dialogs.Util.ok(self, "Invalid Entry",
-                                                invalidMessage)
+                    alertError(invalidMessage)
                     return False
 
             i += 1
@@ -726,15 +755,19 @@ class AccountPreferencesDialog(wx.Dialog):
         self.currentIndex = index
         self.currentPanelType = self.data[index]['type']
         self.currentPanel = self.panels[self.currentPanelType]
+
+
+        init = PANELS[self.currentPanelType].get("init", None)
+
         self.__FetchFormData(self.currentPanelType, self.currentPanel,
          self.data[index]['values'])
 
+        if init:
+            cb = getattr(self, init, None)
+            cb and cb()
+
         self.innerSizer.Add(self.currentPanel, 0, wx.ALIGN_TOP|wx.ALL, 5)
         self.currentPanel.Show()
-        self.innerSizer.Layout()
-        self.outerSizer.Layout()
-        self.outerSizer.SetSizeHints(self)
-        self.outerSizer.Fit(self)
 
         # When a text field receives focus, call the handler.
         # When an exclusive radio button is clicked, call another handler.
@@ -794,6 +827,19 @@ class AccountPreferencesDialog(wx.Dialog):
                       getattr(self, callbackReg[1]),
                       id=wx.xrc.XRCID(callbackReg[0]))
 
+        for messageWidget in self.currentMessages:
+            messageWidget.Hide()
+
+        self.currentMessages = []
+
+        for message in PANELS[self.currentPanelType].get('messages', ()):
+             messageWidget = wx.xrc.XRCCTRL(self.messagesPanel, message)
+             messageWidget.Show()
+
+             self.currentMessages.append(messageWidget)
+
+        self.resizeLayout()
+
 
     def __StoreFormData(self, panelType, panel, data):
         # Store data from the wx widgets into the "data" dictionary
@@ -837,6 +883,20 @@ class AccountPreferencesDialog(wx.Dialog):
                     val = None
                 else:
                     val = control.GetClientData(index)
+
+            elif valueType == "chandlerFolders":
+               # The action and folderNames have
+               # already been stored via callbacks
+               # so do not do anything here
+               continue
+
+            elif valueType == "choice":
+                index = control.GetSelection()
+
+                if index == -1:
+                    val = None
+                else:
+                    val = control.GetString(index)
 
             # Handle integers:
             elif valueType == "integer":
@@ -893,6 +953,20 @@ class AccountPreferencesDialog(wx.Dialog):
                 except:
                     pass
 
+            elif valueType == "choice":
+                pos = control.FindString(data[field])
+
+                if pos != wx.NOT_FOUND:
+                    control.SetSelection(pos)
+
+            elif valueType == "chandlerFolders":
+                if data["INCOMING_PROTOCOL"] == "IMAP":
+                    hasFolders = data[field].get("hasFolders", False)
+                    control.SetValue(hasFolders)
+                else:
+                    control.SetValue(False)
+
+
             # Handle itemrefs, which are stored as UUIDs.  We need to find
             # all items of the kind specified in the PANEL, filtering out those
             # which have been marked for deletion, or are inactive.
@@ -946,7 +1020,6 @@ class AccountPreferencesDialog(wx.Dialog):
             elif valueType == "integer":
                 control.SetValue(str(data[field]))
 
-
     def OnOk(self, evt):
         if self.__Validate():
             self.__ApplyChanges()
@@ -954,17 +1027,245 @@ class AccountPreferencesDialog(wx.Dialog):
             if self.modal:
                 self.EndModal(True)
             self.rv.commit()
+
+            if DEBUG:
+                self.debugAccountSaving()
+
             Globals.mailService.refreshMailServiceCache()
             self.Destroy()
 
+    def debugAccountSaving(self):
+        buf = ["\n"]
+        ns_pim = schema.ns('osaf.pim', self.rv)
+        sharing_ns = schema.ns('osaf.sharing', self.rv)
+
+        currentOutgoing = ns_pim.currentSMTPAccount.item
+        currentIncoming = ns_pim.currentMailAccount.item
+        currentSharing =  sharing_ns.currentWebDAVAccount.item
+
+        for account in self.data:
+            item = self.rv.findUUID(account['item'])
+
+            buf.append(item.displayName)
+            buf.append("=" * 35)
+            buf.append("host: %s" % item.host)
+            buf.append("port: %s" % item.port)
+            buf.append("username: %s" % item.username)
+            buf.append("password: %s" % item.password)
+
+            if item.accountType == "SHARING":
+                buf.append("useSSL: %s" % item.useSSL)
+                buf.append("path: %s" % item.path)
+
+                if item == currentSharing:
+                    buf.append("CURRENT: True")
+
+
+            elif item.accountType == "INCOMING":
+                buf.append("protocol %s" % item.accountProtocol)
+                buf.append("security: %s" % item.connectionSecurity)
+                buf.append("name: %s" % getattr(item, "fullName", ""))
+                buf.append("email: %s" % getattr(item, "emailAddress", ""))
+
+                folders = getattr(item, "folders", None)
+
+                if folders:
+                    buf.append("\nFOLDERS:")
+
+                    for folder in folders:
+                        buf.append("\tname: %s" % folder.displayName)
+                        buf.append("\tIMAP name: %s" % folder.folderName)
+                        buf.append("\ttype: %s" % folder.folderType)
+
+                if item == currentIncoming:
+                    buf.append("CURRENT: True")
+
+            elif item.accountType == "OUTGOING":
+                buf.append("security: %s" % item.connectionSecurity)
+                buf.append("useAuth: %s" % item.useAuth)
+                buf.append("email: %s" % getattr(item, "emailAddress", ""))
+
+                if item == currentOutgoing:
+                    buf.append("CURRENT: True")
+
+            buf.append("\n")
+
+        print (u"\n".join(buf)).encode("utf-8")
+
+
     def OnCancel(self, evt):
         self.__ApplyCancellations()
+        self.rv.commit()
         if self.modal:
             self.EndModal(False)
         self.Destroy()
 
-    def OnNewAccount(self, evt):
+    def OnIncomingFolders(self, evt):
+        if Globals.options.offline:
+            return alertOffline()
 
+        cb = wx.xrc.XRCCTRL(self.currentPanel, "INCOMING_FOLDERS")
+        val = cb.GetValue()
+
+        #Unset the value. It will be assigned based on the
+        # results of the create or remove folders action.
+        cb.SetValue(not val)
+
+        if not self.incomingAccountValid():
+            return
+
+        account = self.getIncomingAccount()
+
+        if val:
+            yes = alertYesNo(CREATE_FOLDERS_TITLE,
+                             CREATE_FOLDERS % {'host': account.host})
+
+            if yes:
+                ChandlerIMAPFoldersDialog(account, self.OnFolderCreation)
+        else:
+            yes = alertYesNo(REMOVE_FOLDERS_TITLE,
+                             REMOVE_FOLDERS % {'host': account.host})
+
+            if yes:
+                RemoveChandlerIMAPFoldersDialog(account, self.OnFolderRemoval)
+
+    def OnFolderCreation(self, result):
+        statusCode, folderNames = result
+        cb = wx.xrc.XRCCTRL(self.currentPanel, "INCOMING_FOLDERS")
+
+        # Failure
+        if statusCode == 0:
+            # Since no folders created set the checkbox to False
+            cb.SetValue(False)
+            return
+
+        # It worked so set the checkbox to true
+        cb.SetValue(True)
+
+        data = self.data[self.currentIndex]['values']
+
+        data['INCOMING_FOLDERS']['action'] = "ADD"
+        data['INCOMING_FOLDERS']['folderNames'] = folderNames
+        data['INCOMING_FOLDERS']['hasFolders'] = True
+
+
+    def OnFolderRemoval(self, result):
+        statusCode, folderNames = result
+        cb = wx.xrc.XRCCTRL(self.currentPanel, "INCOMING_FOLDERS")
+
+        # Failure
+        if statusCode == 0:
+            # Since folders still exist set the checkbox to True
+            cb.SetValue(True)
+            return
+
+        # It worked so set the checkbox to false
+        cb.SetValue(False)
+
+        data = self.data[self.currentIndex]['values']
+
+        data['INCOMING_FOLDERS']['action'] = "REMOVE"
+        data['INCOMING_FOLDERS']['folderNames'] = folderNames
+        data['INCOMING_FOLDERS']['hasFolders'] = False
+
+    def OnAutoDiscovery(self, account):
+        if account.accountType == "INCOMING":
+            proto = wx.xrc.XRCCTRL(self.currentPanel, "INCOMING_PROTOCOL")
+            if account.accountProtocol == "IMAP":
+                proto.SetSelection(0)
+            else:
+                proto.SetSelection(1)
+
+            port = wx.xrc.XRCCTRL(self.currentPanel, "INCOMING_PORT")
+            port.SetValue(str(account.port))
+
+            fieldInfo = PANELS[self.currentPanelType]['fields']['INCOMING_SECURE']
+
+            for (button, value) in fieldInfo['buttons'].iteritems():
+                if account.connectionSecurity == value:
+                    control = wx.xrc.XRCCTRL(self.currentPanel, button)
+                    control.SetValue(True)
+                    break
+
+            self.toggleIncomingFolders(account.accountProtocol=="IMAP")
+
+        elif account.accountType == "OUTGOING":
+            port = wx.xrc.XRCCTRL(self.currentPanel, "OUTGOING_PORT")
+            port.SetValue(str(account.port))
+
+            fieldInfo = PANELS[self.currentPanelType]['fields']['OUTGOING_SECURE']
+
+            for (button, value) in fieldInfo['buttons'].iteritems():
+                if account.connectionSecurity == value:
+                    control = wx.xrc.XRCCTRL(self.currentPanel, button)
+                    control.SetValue(True)
+                    break
+        else:
+            # If this code is reached then there is a
+            # bug which needs to be fixed.
+            raise Exception("Internal Exception")
+
+    def OnToggleIncomingProtocol(self, evt):
+        proto = wx.xrc.XRCCTRL(self.currentPanel, "INCOMING_PROTOCOL")
+        port = wx.xrc.XRCCTRL(self.currentPanel, "INCOMING_PORT")
+
+        IMAP = proto.GetSelection() == 0
+
+        fieldInfo = PANELS[self.currentPanelType]['fields']['INCOMING_SECURE']
+
+        connectionSecurity = None
+
+        for (button, value) in fieldInfo['buttons'].iteritems():
+            control = wx.xrc.XRCCTRL(self.currentPanel, button)
+            if control.GetValue():
+                connectionSecurity = value
+                break
+
+        linkedTo = fieldInfo.get('linkedTo', None)
+
+        if linkedTo is not None:
+            imapDict = linkedTo['protocols']["IMAP"][1]
+            popDict  = linkedTo['protocols']["POP"][1]
+
+        if IMAP:
+            if port.GetValue() in popDict.values():
+                port.SetValue(imapDict[connectionSecurity])
+
+            data = self.data[self.currentIndex]['values']
+
+            folders = wx.xrc.XRCCTRL(self.currentPanel, "INCOMING_FOLDERS")
+            hasFolders = data["INCOMING_FOLDERS"].get("hasFolders", False)
+            folders.SetValue(hasFolders)
+
+        else:
+            if port.GetValue() in imapDict.values():
+                port.SetValue(popDict[connectionSecurity])
+
+        self.toggleIncomingFolders(IMAP)
+
+    def initIncomingPanel(self):
+        self.toggleIncomingFolders(self.getIncomingProtocol() == "IMAP", False)
+
+    def toggleIncomingFolders(self, show=True, resize=True):
+        checkBox = wx.xrc.XRCCTRL(self.currentPanel, "INCOMING_FOLDERS")
+        verbage = wx.xrc.XRCCTRL(self.currentPanel, "INCOMING_FOLDERS_VERBAGE")
+        verbageTwo = wx.xrc.XRCCTRL(self.currentPanel, "INCOMING_FOLDERS_VERBAGE2")
+
+        if show:
+            checkBox.Show()
+            verbage.Show()
+            verbageTwo.Show()
+
+        else:
+            checkBox.Hide()
+            verbage.Hide()
+            verbageTwo.Hide()
+
+        if resize:
+            self.resizeLayout()
+
+
+    def OnNewAccount(self, evt):
         selection = self.choiceNewType.GetSelection()
         if selection == 0:
             return
@@ -972,17 +1273,20 @@ class AccountPreferencesDialog(wx.Dialog):
         accountType = self.choiceNewType.GetClientData(selection)
         self.choiceNewType.SetSelection(0)
 
-        if accountType == "IMAP":
+        if accountType == "INCOMING":
             item = Mail.IMAPAccount(itsView=self.rv)
-        elif accountType == "POP":
-            item = Mail.POPAccount(itsView=self.rv)
-        elif accountType == "SMTP":
+            a = _(u"New Incoming Account")
+            p = "IMAP"
+        elif accountType == "OUTGOING":
             item = Mail.SMTPAccount(itsView=self.rv)
-        elif accountType == "WebDAV":
+            a = _(u"New Outgoing Account")
+            p = "SMTP"
+        elif accountType == "SHARING":
             item = sharing.WebDAVAccount(itsView=self.rv)
+            a = _(u"New Sharing Account")
+            p = "WebDAV"
 
-        accountName = (messages.NEW_ACCOUNT % {'accountType': accountType})
-        item.displayName = accountName
+        item.displayName = a
 
         values = { }
 
@@ -994,6 +1298,11 @@ class AccountPreferencesDialog(wx.Dialog):
             elif desc['type'] == 'itemRef':
                 setting = None
 
+            elif desc['type'] == 'chandlerFolders':
+                if p == "IMAP":
+                    setting = {"hasFolders": self.hasChandlerFolders(item)}
+                else:
+                    setting = {}
             else:
                 try:
                     setting = desc['default']
@@ -1005,12 +1314,17 @@ class AccountPreferencesDialog(wx.Dialog):
         self.data.append( { "item" : item.itsUUID,
                             "values" : values,
                             "type" : accountType,
+                            "protocol" : p,
                             "isNew" : True } )
 
-        index = self.accountsList.Append(accountName)
+        index = self.accountsList.Append(a)
         self.accountsList.SetSelection(index)
         self.__SwapDetailPanel(index)
 
+
+    def getSelectedAccount(self):
+        index = self.accountsList.GetSelection()
+        return self.rv.findUUID(self.data[index]['item'])
 
     def OnDeleteAccount(self, evt):
         # First, make sure any values that have been modified in the form
@@ -1020,8 +1334,13 @@ class AccountPreferencesDialog(wx.Dialog):
 
         index = self.accountsList.GetSelection()
         item = self.rv.findUUID(self.data[index]['item'])
+
         deleteHandler = PANELS[item.accountType]['deleteHandler']
         canDelete = deleteHandler(item, self.data[index]['values'], self.data)
+
+        # As long as there is more than one account present
+        # then should allow the deletion and reassingment of 
+        # current account
         if canDelete:
             self.accountsList.Delete(index)
             self.deletions.append(self.data[index])
@@ -1032,124 +1351,240 @@ class AccountPreferencesDialog(wx.Dialog):
             self.accountsList.SetSelection(0)
             self.__SwapDetailPanel(0)
         else:
-            msg =_(u"This account currently may not be deleted because it has been marked as a 'default' account")
-            application.dialogs.Util.ok(self, _(u"Cannot delete default account"),
-                                        msg)
+            type = self.data[index]['type']
 
+            at = None
 
-    def OnTestIMAP(self, evt):
+            if type == "INCOMING":
+                at = _(u"Incoming mail")
+
+            elif type == "OUTGOING":
+                at = _(u"Outgoing mail")
+
+            elif type == "SHARING":
+                at = _(u"Sharing")
+
+            alertError(DEFAULT_ACCOUNT % {'accountType': at})
+
+    def OnTestAccount(self, evt):
+        account = self.getSelectedAccount()
+
+        if account is None:
+            # If this code is reached then there is a
+            # bug which needs to be fixed.
+            raise Exception("Internal Exception")
+
+        if account.accountType == "INCOMING":
+            self.OnTestIncoming()
+        elif account.accountType  == "OUTGOING":
+            self.OnTestOutgoing()
+        elif account.accountType  == "SHARING":
+            self.OnTestSharing()
+        else:
+            # If this code is reached then there is a
+            # bug which needs to be fixed.
+            raise Exception("Internal Exception")
+
+    def OnIncomingDiscovery(self, evt):
+        if Globals.options.offline:
+            return alertOffline()
+
         self.__StoreFormData(self.currentPanelType, self.currentPanel,
-         self.data[self.currentIndex]['values'])
+                             self.data[self.currentIndex]['values'])
 
         data = self.data[self.currentIndex]['values']
 
-        account = schema.ns('osaf.app', self.rv).TestIMAPAccount
-        account.displayName = data['IMAP_DESCRIPTION']
-        account.host = data['IMAP_SERVER']
-        account.port = data['IMAP_PORT']
-        account.connectionSecurity = data['IMAP_SECURE']
-        account.username = data['IMAP_USERNAME']
-        account.password = data['IMAP_PASSWORD']
+        host = data['INCOMING_SERVER']
+
+        if len(host.strip()) == 0:
+            s = wx.xrc.XRCCTRL(self.currentPanel, "INCOMING_SERVER")
+            s.SetFocus()
+            return alertError(HOST_REQUIRED)
+
+        AutoDiscoveryDialog(host, False, self.rv, self.OnAutoDiscovery)
+
+    def OnOutgoingDiscovery(self, evt):
+        if Globals.options.offline:
+            return alertOffline()
+
+        self.__StoreFormData(self.currentPanelType, self.currentPanel,
+                             self.data[self.currentIndex]['values'])
+
+        data = self.data[self.currentIndex]['values']
+
+        host = data['OUTGOING_SERVER']
+
+        if len(host.strip()) == 0:
+            s = wx.xrc.XRCCTRL(self.currentPanel, "OUTGOING_SERVER")
+            s.SetFocus()
+            return alertError(HOST_REQUIRED)
+
+        AutoDiscoveryDialog(host, True, self.rv, self.OnAutoDiscovery)
+
+    def getIncomingAccount(self):
+        self.__StoreFormData(self.currentPanelType, self.currentPanel,
+                             self.data[self.currentIndex]['values'])
+
+        data = self.data[self.currentIndex]['values']
+
+        proto = data["INCOMING_PROTOCOL"]
+
+        if proto == "IMAP":
+             account = schema.ns('osaf.app', self.rv).TestIMAPAccount
+        elif proto == "POP":
+             account = schema.ns('osaf.app', self.rv).TestPOPAccount
+        else:
+            # If this code is reached then there is a
+            # bug which needs to be fixed.
+            raise Exception("Internal Exception")
+
+        account.displayName = data['INCOMING_DESCRIPTION']
+        account.host = data['INCOMING_SERVER']
+        account.port = data['INCOMING_PORT']
+        account.connectionSecurity = data['INCOMING_SECURE']
+        account.username = data['INCOMING_USERNAME']
+        account.password = data['INCOMING_PASSWORD']
 
         self.rv.commit()
 
-        if Globals.options.offline:
-            from osaf.mail import constants
-            wx.GetApp().CallItemMethodAsync("MainView", \
-                                            "alertUser", \
-                                            constants.TEST_OFFLINE)
-        else:
-            AccountTestDialog.TestAccountSettingsDialog("IMAP", account)
+        return account
 
-    def OnTestSMTP(self, evt):
+    def incomingAccountValid(self):
         self.__StoreFormData(self.currentPanelType, self.currentPanel,
-         self.data[self.currentIndex]['values'])
+                             self.data[self.currentIndex]['values'])
 
-        uuid = self.data[self.currentIndex]['item']
+        data = self.data[self.currentIndex]['values']
+
+        host = data['INCOMING_SERVER']
+        port = data['INCOMING_PORT']
+        username = data['INCOMING_USERNAME']
+        password = data['INCOMING_PASSWORD']
+
+        error = False
+
+        if len(host.strip()) == 0 or \
+           len(username.strip()) == 0 or \
+           len(password.strip()) == 0:
+
+           error = True
+
+        try:
+            # Test that the port value is an integer
+            int(port)
+        except:
+            error = True
+
+        if error:
+            alertError(FIELDS_REQUIRED)
+
+        return not error
+
+    def OnTestIncoming(self):
+        if Globals.options.offline:
+            return alertOffline()
+
+        if self.incomingAccountValid():
+            account = self.getIncomingAccount()
+            MailTestDialog(account)
+
+    def outgoingAccountValid(self):
+        self.__StoreFormData(self.currentPanelType, self.currentPanel,
+                             self.data[self.currentIndex]['values'])
+
+        data = self.data[self.currentIndex]['values']
+
+        host = data['OUTGOING_SERVER']
+        port = data['OUTGOING_PORT']
+        useAuth = data['OUTGOING_USE_AUTH']
+        username = data['OUTGOING_USERNAME']
+        password = data['OUTGOING_PASSWORD']
+
+        error = False
+        errorType = 0
+
+        if len(host.strip()) == 0:
+           error = True
+
+        try:
+            # Test that the port value is an integer
+            int(port)
+        except:
+            error = True
+
+        if useAuth:
+            if len(username.strip()) == 0 or \
+               len(password.strip()) == 0:
+                error = True
+                errorType = 1
+
+        if error:
+            if errorType:
+                alertError(FIELDS_REQUIRED)
+
+            else:
+                alertError(FIELDS_REQUIRED_ONE)
+
+        return not error
+
+    def OnTestOutgoing(self):
+        if Globals.options.offline:
+            return alertOffline()
+
+        if not self.outgoingAccountValid():
+            return
+
+        self.__StoreFormData(self.currentPanelType, self.currentPanel,
+                             self.data[self.currentIndex]['values'])
+
         data = self.data[self.currentIndex]['values']
 
         account = schema.ns('osaf.app', self.rv).TestSMTPAccount
-        account.displayName = data['SMTP_DESCRIPTION']
-        account.host = data['SMTP_SERVER']
-        account.port = data['SMTP_PORT']
-        account.connectionSecurity = data['SMTP_SECURE']
-        account.useAuth = data['SMTP_USE_AUTH']
-        account.username = data['SMTP_USERNAME']
-        account.password = data['SMTP_PASSWORD']
+        account.displayName = data['OUTGOING_DESCRIPTION']
+        account.host = data['OUTGOING_SERVER']
+        account.port = data['OUTGOING_PORT']
+        account.connectionSecurity = data['OUTGOING_SECURE']
+        account.useAuth = data['OUTGOING_USE_AUTH']
+        account.username = data['OUTGOING_USERNAME']
+        account.password = data['OUTGOING_PASSWORD']
 
         self.rv.commit()
 
-        if Globals.options.offline:
-            from osaf.mail import constants
-            wx.GetApp().CallItemMethodAsync("MainView", \
-                                            "alertUser", \
-                                             constants.TEST_OFFLINE)
-        else:
-            AccountTestDialog.TestAccountSettingsDialog("SMTP", account)
+        MailTestDialog(account)
 
-    def OnTestPOP(self, evt):
+    def OnTestSharing(self):
         self.__StoreFormData(self.currentPanelType, self.currentPanel,
-         self.data[self.currentIndex]['values'])
+                             self.data[self.currentIndex]['values'])
 
         data = self.data[self.currentIndex]['values']
 
-        account = schema.ns('osaf.app', self.rv).TestPOPAccount
-        account.displayName = data['POP_DESCRIPTION']
-        account.host = data['POP_SERVER']
-        account.port = data['POP_PORT']
-        account.connectionSecurity = data['POP_SECURE']
-        account.leaveOnServer = data['POP_LEAVE']
-        account.username = data['POP_USERNAME']
-        account.password = data['POP_PASSWORD']
+        displayName = data["SHARING_DESCRIPTION"]
+        host = data['SHARING_SERVER']
+        port = data['SHARING_PORT']
+        path = data['SHARING_PATH']
+        username = data['SHARING_USERNAME']
+        password = data['SHARING_PASSWORD']
+        useSSL = data['SHARING_USE_SSL']
 
-        self.rv.commit()
-        if Globals.options.offline:
-            from osaf.mail import constants
-            wx.GetApp().CallItemMethodAsync("MainView", \
-                                            "alertUser", \
-                                            constants.TEST_OFFLINE)
-        else:
-            AccountTestDialog.TestAccountSettingsDialog("POP", account)
+        error = False
 
-    def OnTestWebDAV(self, evt):
-        self.__StoreFormData(self.currentPanelType, self.currentPanel,
-         self.data[self.currentIndex]['values'])
+        if len(host.strip()) == 0 or \
+           len(username.strip()) == 0 or \
+           len(password.strip()) == 0 or \
+           len(path.strip()) == 0:
 
-        data = self.data[self.currentIndex]['values']
+           error = True
 
-        host = data['WEBDAV_SERVER']
-        port = data['WEBDAV_PORT']
-        useSSL = data['WEBDAV_USE_SSL']
-        username = data['WEBDAV_USERNAME']
-        password = data['WEBDAV_PASSWORD']
-        path = data['WEBDAV_PATH']
-        access = sharing.checkAccess(host, port=port, useSSL=useSSL,
-                                    username=username, password=password,
-                                    path=path, repositoryView=self.rv)
-        result = access[0]
-        reason = access[1]
+        try:
+            # Test that the port value is an integer
+            int(port)
+        except:
+            error = True
 
-        if result == sharing.CANT_CONNECT:
-            msg = CANT_CONNECT % {'host': host, 'reason': reason}
+        if error:
+            return alertError(FIELDS_REQUIRED_TWO)
 
-        elif result == sharing.NO_ACCESS:
-            msg = NO_ACCESS % {'host': host}
-        elif result == sharing.READ_ONLY:
-            msg = READ_ONLY 
-        elif result == sharing.READ_WRITE:
-            msg = READ_WRITE
-        elif result == sharing.IGNORE:
-            # Leave msg as None to ignore it
-            msg = None
-        else:
-            # This shouldn't happen
-            msg = UNKNOWN
-
-        if msg is not None:
-            application.dialogs.Util.ok(self, _(u"%(accountType)s Test Results") % {'accountType': 'WebDAV'}, msg)
-
-    def OnSignUpWebDAV(self, evt):
-        webbrowser.open('https://osaf.us/account/new')
+        SharingTestDialog(displayName, host, port, path, username,
+                          password, useSSL, self.rv)
 
     def OnAccountSel(self, evt):
         # Huh? This is always False!
@@ -1174,10 +1609,11 @@ class AccountPreferencesDialog(wx.Dialog):
 
         # Determine current panel
         panel = PANELS[self.currentPanelType]
+        data = self.data[self.currentIndex]['values']
 
         # Scan through fields, seeing if this control corresponds to one
         # If marked as linkedTo, change the linked field
-        ##        "linkedTo" : ("IMAP_PORT", { True:993, False:143 } )
+        ##        "linkedTo" : ("INCOMING_PORT", { True:993, False:143 } )
         for (field, fieldInfo) in panel['fields'].iteritems():
 
             ids = []
@@ -1194,14 +1630,33 @@ class AccountPreferencesDialog(wx.Dialog):
             if control.GetId() in ids:
                 linkedTo = fieldInfo.get('linkedTo', None)
                 if linkedTo is not None:
-                    linkedField = linkedTo[0]
-                    linkedValues = linkedTo[1]
+                    if type(linkedTo) == dict:
+                        allValues = []
+                        for (protocol, linkedFields) in linkedTo['protocols'].iteritems():
+                            for v in linkedFields[1].values():
+                                allValues.append(v)
+
+                        cb = getattr(self, linkedTo['callback'])
+                        res = cb()
+                        linkedTo = linkedTo['protocols'][res]
+                        linkedField = linkedTo[0]
+                        linkedValues = linkedTo[1]
+                    else:
+                        linkedField = linkedTo[0]
+                        linkedValues = linkedTo[1]
+                        allValues = linkedValues.values()
+
+
                     linkedControl = wx.xrc.XRCCTRL(self.currentPanel,
                                                    linkedField)
-                    if linkedControl.GetValue() in (linkedValues.values()):
+                    if linkedControl.GetValue() in allValues:
                         linkedControl.SetValue(linkedValues[value])
                 break
 
+
+    def getIncomingProtocol(self):
+        proto = wx.xrc.XRCCTRL(self.currentPanel, "INCOMING_PROTOCOL")
+        return proto.GetString(proto.GetSelection())
 
     def OnExclusiveRadioButton(self, evt):
         """ When an exclusive attribute (like default) is set on one account,
@@ -1231,7 +1686,7 @@ class AccountPreferencesDialog(wx.Dialog):
                         # Skip the current account
                         if index != self.currentIndex:
 
-                            aPanel = PANELS[accountData['type']]
+                            aPanel = PANELS[accountData['protocol']]
                             for (aField, aFieldInfo) in \
                                 aPanel['fields'].iteritems():
                                 if aFieldInfo.get('type') == 'currentPointer':
@@ -1242,6 +1697,53 @@ class AccountPreferencesDialog(wx.Dialog):
                         index += 1
                     break
 
+    def resizeLayout(self):
+        self.innerSizer.Layout()
+        self.outerSizer.Layout()
+        self.outerSizer.SetSizeHints(self)
+        self.outerSizer.Fit(self)
+
+    def hasChandlerFolders(self, account):
+        found = 0
+
+        for folder in account.folders:
+            name = folder.displayName
+
+            if name == constants.CHANDLER_MAIL_FOLDER or \
+               name == constants.CHANDLER_TASKS_FOLDER or \
+               name == constants.CHANDLER_EVENTS_FOLDER:
+                found += 1
+
+        # All three folders are in the account.folders list
+        return found == 3
+
+    def addChandlerFolders(self, account, folderNames):
+        m = Mail.IMAPFolder(itsView=account.itsView)
+        m.displayName = constants.CHANDLER_MAIL_FOLDER
+        m.folderName  = folderNames[0]
+        m.folderType  = "MAIL"
+
+        t = Mail.IMAPFolder(itsView=account.itsView)
+        t.displayName = constants.CHANDLER_TASKS_FOLDER
+        t.folderName = folderNames[1]
+        t.folderType = "TASK"
+
+        e = Mail.IMAPFolder(itsView=account.itsView)
+        e.displayName = constants.CHANDLER_EVENTS_FOLDER
+        e.folderName = folderNames[2]
+        e.folderType = "EVENT"
+
+        account.folders.extend([m,e,t])
+
+    def removeChandlerFolders(self, account):
+        for folder in account.folders:
+            name = folder.displayName
+
+            if name == constants.CHANDLER_MAIL_FOLDER or \
+               name == constants.CHANDLER_TASKS_FOLDER or \
+               name == constants.CHANDLER_EVENTS_FOLDER:
+               account.folders.remove(folder)
+               folder.delete()
 
 def ShowAccountPreferencesDialog(parent, account=None, rv=None, modal=True):
 
@@ -1255,7 +1757,7 @@ def ShowAccountPreferencesDialog(parent, account=None, rv=None, modal=True):
     resources = wx.xrc.XmlResource(xrcFile)
 
     # Display the dialog:
-    win = AccountPreferencesDialog(parent, messages.ACCOUNT_PREFERENCES,
+    win = AccountPreferencesDialog(parent, _(u"Account Preferences"),
      resources=resources, account=account, rv=rv, modal=modal)
     win.CenterOnScreen()
     if modal:
@@ -1263,3 +1765,13 @@ def ShowAccountPreferencesDialog(parent, account=None, rv=None, modal=True):
     else:
         win.Show()
         return win
+
+def alertOffline():
+    showOKDialog(_(u"Mail Service Offline"), constants.TEST_OFFLINE)
+
+def alertError(msg):
+    showOKDialog(_(u"Account Preferences Error"), msg)
+
+def alertYesNo(title, msg):
+    return showYesNoDialog(title, msg)
+
