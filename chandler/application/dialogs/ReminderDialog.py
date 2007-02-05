@@ -37,12 +37,26 @@ pluralFutureMessages = { DAY: _(u'%(numOf)d days from now'),
                          HOUR: _(u'%(numOf)d hours from now'), 
                          MINUTE: _(u'%(numOf)d minutes from now') }
 
-class ReminderDialog(wx.Dialog):
-    def __init__(self, parent, ID, size=wx.DefaultSize,
-     pos=wx.DefaultPosition, style=wx.DEFAULT_DIALOG_STYLE | wx.STAY_ON_TOP):
+# NOTE: We acutally use a wx.Frame here, instead of a wx.Dialog, so
+# that activating the window will not cause the whole app to be
+# activated.  (Windows and Linux only.  Mac will still activate the
+# whole application...)
 
-        wx.Dialog.__init__(self, parent, ID, name=u'ReminderDialog', pos=pos, 
-                           size=size, style=style, title=_(u"Reminders"))
+# NOTE #2: Using the wx.STAY_ON_TOP flag can be viewed as violating
+# the various style guides because it causes the window to be raised
+# above other apps if Chandler is not the active application.  It
+# would be better to just rely on the RequestUserAttention call below
+# to flash the taskbar icon, but there should probably also be a sound
+# played to make sure the user notices it...  Leaving the STAY_ON_TOP
+# until there is a sound to play.
+
+class ReminderDialog(wx.Frame):
+    def __init__(self, parent, ID, size=wx.DefaultSize,
+                 pos=wx.DefaultPosition, style=wx.DEFAULT_FRAME_STYLE | wx.STAY_ON_TOP):
+
+        wx.Frame.__init__(self, parent, ID, name=u'ReminderDialog', pos=pos, 
+                          size=size, style=style, title=_(u"Reminders"))
+        panel = wx.Panel(self)
         
         # Note that we're not in the process of closing; we'll set this
         # when the widget gets destroyed, letting UpdateList know it can NOP.
@@ -54,7 +68,7 @@ class ReminderDialog(wx.Dialog):
         # Now continue with the normal construction of the dialog
         # contents: a list, then a row of buttons
         sizer = wx.BoxSizer(wx.VERTICAL)
-        listCtrl = wx.ListCtrl(self, -1, size=(400,80), style=wx.LC_REPORT|wx.LC_NO_HEADER)
+        listCtrl = wx.ListCtrl(panel, -1, size=(400,80), style=wx.LC_REPORT|wx.LC_NO_HEADER)
         listCtrl.InsertColumn(0, _(u"title"))
         listCtrl.InsertColumn(1, _(u"event time"))
         listCtrl.SetColumnWidth(0, 250)
@@ -65,15 +79,15 @@ class ReminderDialog(wx.Dialog):
         sizer.Add(listCtrl, 0, wx.ALIGN_CENTER|wx.ALL, 5)
 
         box = wx.BoxSizer(wx.HORIZONTAL)
-        snoozeButton = wx.Button(self, -1, _(u"Snooze 5 minutes"))
+        snoozeButton = wx.Button(panel, -1, _(u"Snooze 5 minutes"))
         snoozeButton.Enable(False)
         snoozeButton.Bind(wx.EVT_BUTTON, self.onSnooze)
         box.Add(snoozeButton, 0, wx.ALIGN_RIGHT|wx.ALL, 5)
-        dismissButton = wx.Button(self, wx.ID_OK, _(u"Dismiss"))
+        dismissButton = wx.Button(panel, wx.ID_OK, _(u"Dismiss"))
         dismissButton.Enable(False)
         dismissButton.Bind(wx.EVT_BUTTON, self.onDismiss)
         box.Add(dismissButton, 0, wx.ALIGN_CENTER|wx.ALL, 5)
-        dismissAllButton = wx.Button(self, wx.ID_OK, _(u"Dismiss All"))
+        dismissAllButton = wx.Button(panel, wx.ID_OK, _(u"Dismiss All"))
         dismissAllButton.Bind(wx.EVT_BUTTON, self.onDismiss)
         box.Add(dismissAllButton, 0, wx.ALIGN_RIGHT|wx.ALL, 5)
         sizer.Add(box, 0, wx.ALIGN_CENTER_VERTICAL|wx.ALL, 5)
@@ -88,11 +102,12 @@ class ReminderDialog(wx.Dialog):
         # any wx attributes
         self.reminderControls = { 'list': listCtrl, 'snooze': snoozeButton, 'dismiss': dismissButton, 'dismissAll': dismissAllButton }
 
-        self.SetSizer(sizer)
-        self.SetAutoLayout(True)
+        panel.SetSizer(sizer)
         sizer.Fit(self)
         self.CenterOnScreen()
         self.Show()
+        self.RequestUserAttention()
+        
     
     def onDestroy(self, event):
         # print "*** destroying"
