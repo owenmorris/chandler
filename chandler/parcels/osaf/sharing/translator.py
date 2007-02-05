@@ -14,7 +14,6 @@ __all__ = [
     'PIMTranslator',
 ]
 
-COSMO_MODE = False
 
 utc = ICUtzinfo.getInstance('UTC')
 oneDay = timedelta(1)
@@ -134,14 +133,6 @@ class PIMTranslator(eim.Translator):
     @model.ItemRecord.importer
     def import_item(self, record):
 
-        if COSMO_MODE:
-            self.loadItemByUUID(
-                record.uuid,
-                pim.ContentItem,
-                displayName=record.title,
-            ) # incomplete
-            return
-
         if record.createdOn not in (eim.NoChange, None):
             # createdOn is a Decimal we need to change to datetime
             naive = datetime.utcfromtimestamp(float(record.createdOn))
@@ -244,13 +235,6 @@ class PIMTranslator(eim.Translator):
 
     @model.EventRecord.importer
     def import_event(self, record):
-
-        if COSMO_MODE:
-            self.loadItemByUUID(
-                record.uuid,
-                pim.EventStamp,
-            ) # incomplete
-            return
 
         start, end, allDay, anyTime = getTimeValues(record)
 

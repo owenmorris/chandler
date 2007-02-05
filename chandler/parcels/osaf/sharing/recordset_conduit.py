@@ -55,25 +55,23 @@ class RecordSetConduit(conduits.BaseConduit):
         sendStats = { 'share' : self.share.itsUUID, 'op' : 'put',
             'added' : [], 'modified' : [], 'removed' : [] }
 
+        send = self.share.mode in ('put', 'both')
+        receive = self.share.mode in ('get', 'both')
 
         translator = self.translator(rv)
-
-        if self.share.contents is None:
-            col = pim.SmartCollection(itsView=rv, displayName="Untitled")
-            shares.SharedItem(col).add()
-            self.share.contents = col
 
         if self.syncToken:
             version = self.itemsMarker.itsVersion
         else:
             version = 0
+            # This is our first sync; if we're already assigned a collection,
+            # that means this is our initial publish; don't receive
+            if self.share.contents is not None:
+                receive = False
 
         remotelyRemoved = set() # The uuids of remotely removed items
         remotelyAdded = set() # The uuids of remotely added items
         localItems = set() # The uuids of all items we're to process
-
-        send = self.share.mode in ('put', 'both')
-        receive = self.share.mode in ('get', 'both')
 
         if receive:
 
@@ -83,6 +81,26 @@ class RecordSetConduit(conduits.BaseConduit):
             inboundDiff, extra = self.serializer.deserialize(text)
             if debug: print "Inbound records", inboundDiff, extra
 
+            if self.share.contents is None:
+                # We're importing a collection; either create it if it
+                # doesn't exist, or grab the matching one we already have.
+                collectionUuid = extra.get('uuid', None)
+                if collectionUuid:
+                    collection = translator.loadItemByUUID(collectionUuid,
+                        pim.SmartCollection)
+                else:
+                    # We weren't provided a collection, so let's create our
+                    # own
+                    collection = pim.SmartCollection(itsView=rv,
+                        displayName="Untitled")
+
+                if not pim.has_stamp(collection, shares.SharedItem):
+                    shares.SharedItem(collection).add()
+
+                self.share.contents = collection
+
+            # If the inbound collection name is provided we change the local
+            # collection name
             name = extra.get('name', None)
             if name:
                 self.share.contents.displayName = name
@@ -255,7 +273,9 @@ class RecordSetConduit(conduits.BaseConduit):
 
         # Send
         if send and toSend:
-            text = self.serializer.serialize(toSend, rootName="collection")
+            # TODO: send the real collection's uuid
+            text = self.serializer.serialize(toSend, rootName="collection",
+                uuid=self.share.contents.itsUUID.str16())
             self.put(text)
             if debug: print "Sent text:", text
         else:
@@ -346,6 +366,10 @@ class InMemoryRecordSetConduit(RecordSetConduit):
     def serverPut(self, path, text):
         recordsets, extra = self.serializer.deserialize(text)
         coll = self._getCollection(path)
+        if extra.has_key("name"):
+            coll["name"] = extra["name"]
+        if extra.has_key("uuid"):
+            coll["uuid"] = extra["uuid"]
         newToken = coll["token"]
         newToken += 1
         for uuid, rs in recordsets.items():
@@ -395,7 +419,11 @@ class InMemoryRecordSetConduit(RecordSetConduit):
                 recordsets[uuid] = rs
 
 
-        text = self.serializer.serialize(recordsets, rootName="collection")
+        extra = { }
+        if coll.has_key("uuid"): extra["uuid"] = coll["uuid"]
+        if coll.has_key("name"): extra["name"] = coll["name"]
+        text = self.serializer.serialize(recordsets, rootName="collection",
+            **extra)
 
         return str(current), text
 

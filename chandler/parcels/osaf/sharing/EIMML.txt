@@ -55,7 +55,7 @@ Serialize and deserialize entire record sets using EIMMLSerializerLite::
 
     >>> sampleLite = '''<?xml version="1.0" encoding="UTF-8"?>
     ...
-    ... <eim:collection a="1" b="2"
+    ... <eim:collection a="1" b="2" uuid="9501de14-1dc9-40d4-a7d4-f289feff8214"
     ... xmlns:eim="http://osafoundation.org/eim"
     ... xmlns:item="http://osafoundation.org/eim/item"
     ... xmlns:event="http://osafoundation.org/eim/event"
@@ -73,7 +73,7 @@ Serialize and deserialize entire record sets using EIMMLSerializerLite::
     >>> recordSets == expectedRecordSets
     True
     >>> extra
-    {'a': '1', 'b': '2'}
+    {'a': '1', 'b': '2', 'uuid': '9501de14-1dc9-40d4-a7d4-f289feff8214'}
 
     >>> text = eimml.EIMMLSerializerLite.serialize(recordSets, name="foo")
 
@@ -142,14 +142,14 @@ Any records in a recordset's exclusions are serialized as deletions::
     >>> recordDeletion = { '8501de14-1dc9-40d4-a7d4-f289feff8214': rs(set([]), set([sharing.model.ItemRecord('8501de14-1dc9-40d4-a7d4-f289feff8214', u'Welcome to Cosmo', u'now', decimal.Decimal("123456789.12"), u'foo@example.com', decimal.Decimal("1164803131"))]))}
     >>> text = eimml.EIMMLSerializer.serialize(recordDeletion)
     >>> text
-    '<ns0:collection xmlns:ns0="http://osafoundation.org/eim"><ns0:recordset uuid="8501de14-1dc9-40d4-a7d4-f289feff8214"><ns1:record ns0:deleted="true" xmlns:ns1="http://osafoundation.org/eim/item"><ns1:uuid ns0:key="true" ns0:type="text">8501de14-1dc9-40d4-a7d4-f289feff8214</ns1:uuid></ns1:record></ns0:recordset></ns0:collection>'
+    '<?xml version=\'1.0\' encoding=\'UTF-8\'?><ns0:collection xmlns:ns0="http://osafoundation.org/eim"><ns0:recordset uuid="8501de14-1dc9-40d4-a7d4-f289feff8214"><ns1:record ns0:deleted="true" xmlns:ns1="http://osafoundation.org/eim/item"><ns1:uuid ns0:key="true" ns0:type="text">8501de14-1dc9-40d4-a7d4-f289feff8214</ns1:uuid></ns1:record></ns0:recordset></ns0:collection>'
 
 To indicate that item has been deleted, pass None instead of a recordset::
 
     >>> itemDeletion = { '8501de14-1dc9-40d4-a7d4-f289feff8214' : None }
     >>> text = eimml.EIMMLSerializer.serialize(itemDeletion)
     >>> text
-    '<ns0:collection xmlns:ns0="http://osafoundation.org/eim"><ns0:recordset uuid="8501de14-1dc9-40d4-a7d4-f289feff8214" ns0:deleted="true" /></ns0:collection>'
+    '<?xml version=\'1.0\' encoding=\'UTF-8\'?><ns0:collection xmlns:ns0="http://osafoundation.org/eim"><ns0:recordset uuid="8501de14-1dc9-40d4-a7d4-f289feff8214" ns0:deleted="true" /></ns0:collection>'
 
 
 
@@ -206,7 +206,7 @@ Doing a "get" with the most recent token returns no changes::
     >>> conduit.syncToken
     '3'
     >>> text
-    '<ns0:collection xmlns:ns0="http://osafoundation.org/eim" />'
+    '<?xml version=\'1.0\' encoding=\'UTF-8\'?><ns0:collection uuid="9501de14-1dc9-40d4-a7d4-f289feff8214" xmlns:ns0="http://osafoundation.org/eim" />'
 
 You can ask for recordsets that have been updated since a previous token was
 created::

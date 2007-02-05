@@ -125,8 +125,7 @@ class EIMInMemoryTestCase(testcase.DualRepositoryTestCase):
         self.share0.create()
         view0.commit(); stats = self.share0.sync(); view0.commit()
         self.assert_(checkStats(stats,
-            ({'added' : 0, 'modified' : 0, 'removed' : 0},
-             {'added' : 1, 'modified' : 0, 'removed' : 0})),
+            ({'added' : 1, 'modified' : 0, 'removed' : 0},)),
             "Sync operation mismatch")
         self.assert_(pim.has_stamp(coll0, sharing.SharedItem))
         self.assert_(pim.has_stamp(item, sharing.SharedItem))
@@ -156,6 +155,8 @@ class EIMInMemoryTestCase(testcase.DualRepositoryTestCase):
         self.assert_(item1.body == u"CHANGED")
         self.assert_(pim.has_stamp(item1, sharing.SharedItem))
         self.assert_(pim.has_stamp(self.share1.contents, sharing.SharedItem))
+        self.assertEqual(self.share0.contents.itsUUID,
+            self.share1.contents.itsUUID)
 
 
 

@@ -177,7 +177,8 @@ class EIMMLSerializer(object):
                     "{%s}recordset" % eimURI, uuid=uuid, **attrs)
 
 
-        return tostring(rootElement)
+        xmlString = tostring(rootElement)
+        return "<?xml version='1.0' encoding='UTF-8'?>%s" % xmlString
 
     @classmethod
     def deserialize(cls, text):
@@ -265,7 +266,8 @@ class EIMMLSerializerLite(object):
                 recordElement = SubElement(recordSetElement,
                     "{%s}record" % (recordURI), **fields)
 
-        return tostring(rootElement)
+        xmlString = tostring(rootElement)
+        return "<?xml version='1.0' encoding='UTF-8'?>%s" % xmlString
 
     @classmethod
     def deserialize(cls, text):
