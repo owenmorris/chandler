@@ -12,6 +12,7 @@
 #   See the License for the specific language governing permissions and
 #   limitations under the License.
 
+import wx
 import tools.QAUITestAppLib as QAUITestAppLib
 import osaf.framework.scripting as scripting
 
@@ -28,29 +29,29 @@ try:
 
     # Do the test in the large calendar
     User.emulate_sidebarClick(App_ns.sidebar, 'Generated3000', overlay=False)
-    User.idle()
 
     # Start at the same date every time
     testdate = datetime(2005, 11, 27, tzinfo=ICUtzinfo.default)
     App_ns.root.SelectedDateChanged(start=testdate)
+    User.idle()
 
-    frame = App_ns.root.widget.GetParent()
+    frame = wx.GetApp().mainFrame
     (x, y) = frame.GetSize()
-    x += 20
-    y += 20
 
     # Test Phase: Action
 
     logger.Start("Resize app in calendar mode")
-    frame.SetSize((x, y))
-    scripting.User.idle()
+    for d in xrange(10, 51, 10):
+        frame.SetSize((x - d, y - d))
+        wx.Yield()
+    User.idle() # Without this we'll quit during last resize
     logger.Stop()
 
     # Test Phase: Verification
 
     logger.SetChecked(True)
-    (bigx, bigy) = frame.GetSize()
-    if (bigx == x and bigy == y):
+    (smallX, smallY) = frame.GetSize()
+    if (smallX + d == x and smallY + d == y):
         logger.ReportPass("Resize app in calendar mode")
     else:
         logger.ReportFailure("Resize app in calendar mode")
