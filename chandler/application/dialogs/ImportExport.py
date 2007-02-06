@@ -83,8 +83,8 @@ class FileChooserWithOptions(wx.Dialog):
 
         sizer = wx.BoxSizer(wx.VERTICAL)
 
-        buttonText = _('Browse')
-        labelText = _('File location: ')
+        buttonText = _('&Browse')
+        labelText = _('&File location: ')
         initialPath = os.path.join(os.path.realpath(os.path.curdir), defaultFile)
         self.filechooser = FileBrowseButton(self, -1, size=(400, -1),
                                    labelText=labelText, buttonText=buttonText,
@@ -120,9 +120,9 @@ class ImportDialog(FileChooserWithOptions):
     def __init__(self, parent, dialogTitle, view):
 
         options = [dict(name=Remindable.reminders.name, checked = True, 
-                        label = _(u"Import reminders")),
+                        label = _(u"Import &reminders")),
                    dict(name=EventStamp.transparency.name, checked = True,
-                        label = _(u"Import event status"))]
+                        label = _(u"Import event &status"))]
         
         FileChooserWithOptions.__init__(
             self, parent, dialogTitle,
@@ -141,7 +141,7 @@ class ImportDialog(FileChooserWithOptions):
         # create a collection chooser
         gs = wx.FlexGridSizer(2, 2, 2, 2)  # rows, cols, hgap, vgap        
         
-        self.chooserLabel = wx.StaticText(self, -1, _(u"Import events into:"))
+        self.chooserLabel = wx.StaticText(self, -1, _(u"Import e&vents into:"))
         gs.Add(self.chooserLabel, 0, wx.ALL, 3)
 
         self.choices = [col for col in sidebarCollection if 
@@ -168,7 +168,7 @@ class ImportDialog(FileChooserWithOptions):
 
         # create a timezone chooser
         
-        self.tzchooserLabel = wx.StaticText(self, -1, _(u"Change timezones to:"))
+        self.tzchooserLabel = wx.StaticText(self, -1, _(u"Change time&zones to:"))
         gs.Add(self.tzchooserLabel, 0, wx.ALL, 3)
 
         info = TimeZoneInfo.get(view)
