@@ -21,13 +21,13 @@ UNTITLED = _(u"Untitled")
 ME = _(u"me")
 
 """Common GUI Stuff. This might come directly from WxWidgets"""
-UNDO   = _(u"Undo")
-REDO   = _(u"Redo")
-CUT    = _(u"Cut")
-COPY   = _(u"Copy")
-PASTE  = _(u"Paste")
-CLEAR  = _(u"Clear")
-SELECT_ALL = _(u"Select All")
+UNDO   = _(u"&Undo")
+REDO   = _(u"&Redo")
+CUT    = _(u"Cu&t")
+COPY   = _(u"&Copy")
+PASTE  = _(u"&Paste")
+CLEAR  = _(u"C&lear")
+SELECT_ALL = _(u"Select &All")
 ERROR = _(u"Error")
 
 """Menu Item / Markup bar button Titles"""
