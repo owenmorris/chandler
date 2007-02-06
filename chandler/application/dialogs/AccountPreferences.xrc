@@ -34,7 +34,7 @@
             <object class="wxStaticText" name="ID_TEXT">
               <size>110,-1</size>
               <style>wxALIGN_RIGHT</style>
-              <label>Description:</label>
+              <label>Descr&amp;iption:</label>
             </object>
           </object>
           <object class="sizeritem">
@@ -50,7 +50,7 @@
             <border>5</border>
             <object class="wxStaticText" name="ID_TEXT">
               <style>wxALIGN_RIGHT</style>
-              <label>Email address:</label>
+              <label>&amp;Email address:</label>
             </object>
           </object>
           <object class="sizeritem">
@@ -67,7 +67,7 @@
             <object class="wxStaticText" name="ID_TEXT">
               <size>110,-1</size>
               <style>wxALIGN_RIGHT</style>
-              <label>Server:</label>
+              <label>&amp;Server:</label>
             </object>
           </object>
           <object class="sizeritem">
@@ -88,7 +88,7 @@
           <object class="sizeritem">
             <flag>wxRIGHT|wxALIGN_RIGHT|wxALIGN_CENTRE_VERTICAL</flag>
             <object class="wxButton" name="OUTGOING_DISCOVERY">
-              <label>Auto-configure...</label>
+              <label>Auto-confi&amp;gure...</label>
               <style></style>
             </object>
             <border>1</border>
@@ -98,7 +98,7 @@
             <border>5</border>
             <object class="wxStaticText" name="ID_TEXT">
               <style>wxALIGN_RIGHT</style>
-              <label>Port:</label>
+              <label>Po&amp;rt:</label>
             </object>
           </object>
           <object class="sizeritem">
@@ -150,7 +150,7 @@
             <flag>wxALIGN_CENTER_VERTICAL|wxALL</flag>
             <border>5</border>
             <object class="wxCheckBox" name="OUTGOING_USE_AUTH">
-              <label>Use Authentication:</label>
+              <label>&amp;Use Authentication:</label>
             </object>
           </object>
           <object class="sizeritem">
@@ -159,7 +159,7 @@
             <object class="wxStaticText" name="ID_TEXT">
               <size>110,-1</size>
               <style>wxALIGN_RIGHT</style>
-              <label>User name:</label>
+              <label>User &amp;name:</label>
             </object>
           </object>
           <object class="sizeritem">
@@ -176,7 +176,7 @@
             <object class="wxStaticText" name="ID_TEXT">
               <size>110,-1</size>
               <style>wxALIGN_RIGHT</style>
-              <label>Password:</label>
+              <label>Pass&amp;word:</label>
             </object>
           </object>
           <object class="sizeritem">
@@ -222,7 +222,7 @@
             <border>5</border>
             <object class="wxStaticText" name="ID_TEXT">
               <style>wxALIGN_RIGHT</style>
-              <label>Description:</label>
+              <label>Descr&amp;iption:</label>
             </object>
           </object>
           <object class="sizeritem">
@@ -238,7 +238,7 @@
             <border>5</border>
             <object class="wxStaticText" name="ID_TEXT">
               <style>wxALIGN_RIGHT</style>
-              <label>Email address:</label>
+              <label>&amp;Email address:</label>
             </object>
           </object>
           <object class="sizeritem">
@@ -254,7 +254,7 @@
             <border>5</border>
             <object class="wxStaticText" name="ID_TEXT">
               <style>wxALIGN_RIGHT</style>
-              <label>Full name:</label>
+              <label>&amp;Full name:</label>
             </object>
           </object>
           <object class="sizeritem">
@@ -270,7 +270,7 @@
             <border>5</border>
             <object class="wxStaticText" name="ID_TEXT">
               <style>wxALIGN_RIGHT</style>
-              <label>Server:</label>
+              <label>&amp;Server:</label>
             </object>
           </object>
           <object class="sizeritem">
@@ -286,7 +286,7 @@
             <border>5</border>
             <object class="wxStaticText" name="ID_TEXT">
               <style>wxALIGN_RIGHT</style>
-              <label>User name:</label>
+              <label>User &amp;name:</label>
             </object>
           </object>
           <object class="sizeritem">
@@ -302,7 +302,7 @@
             <border>5</border>
             <object class="wxStaticText" name="ID_TEXT">
               <style>wxALIGN_RIGHT</style>
-              <label>Password:</label>
+              <label>Pass&amp;word:</label>
             </object>
           </object>
           <object class="sizeritem">
@@ -330,7 +330,7 @@
             <flag>wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL|wxALL</flag>
             <object class="wxStaticText" name="ID_TEXT">
               <style>wxALIGN_RIGHT</style>
-              <label>Protocol:</label>
+              <label>&amp;Protocol:</label>
             </object>
             <border>5</border>
           </object>
@@ -361,7 +361,7 @@
                 <flag>wxRIGHT|wxALIGN_RIGHT|wxALIGN_CENTRE_VERTICAL</flag>
                 <border>5</border>
                 <object class="wxButton" name="INCOMING_DISCOVERY">
-                  <label>Auto-configure...</label>
+                  <label>Auto-confi&amp;gure...</label>
                 </object>
               </object>
             </object>
@@ -383,7 +383,7 @@
             <border>5</border>
             <object class="wxStaticText" name="ID_TEXT">
               <style>wxALIGN_RIGHT</style>
-              <label>Port:</label>
+              <label>Po&amp;rt:</label>
             </object>
           </object>
           <object class="sizeritem">
@@ -499,7 +499,7 @@
             <object class="wxStaticText" name="ID_TEXT">
               <size>110,-1</size>
               <style>wxALIGN_RIGHT</style>
-              <label>Description:</label>
+              <label>Descr&amp;iption:</label>
             </object>
           </object>
           <object class="sizeritem">
@@ -516,7 +516,7 @@
             <object class="wxStaticText" name="ID_TEXT">
               <size>110,-1</size>
               <style>wxALIGN_RIGHT</style>
-              <label>Server:</label>
+              <label>&amp;Server:</label>
             </object>
           </object>
           <object class="sizeritem">
@@ -533,7 +533,7 @@
             <object class="wxStaticText" name="ID_TEXT">
               <size>110,-1</size>
               <style>wxALIGN_RIGHT</style>
-              <label>Path:</label>
+              <label>Pat&amp;h:</label>
             </object>
           </object>
           <object class="sizeritem">
@@ -550,7 +550,7 @@
             <object class="wxStaticText" name="ID_TEXT">
               <size>110,-1</size>
               <style>wxALIGN_RIGHT</style>
-              <label>User name:</label>
+              <label>User &amp;name:</label>
             </object>
           </object>
           <object class="sizeritem">
@@ -567,7 +567,7 @@
             <object class="wxStaticText" name="ID_TEXT">
               <size>110,-1</size>
               <style>wxALIGN_RIGHT</style>
-              <label>Password:</label>
+              <label>Pass&amp;word:</label>
             </object>
           </object>
           <object class="sizeritem">
@@ -585,7 +585,7 @@
             <object class="wxStaticText" name="ID_TEXT">
               <size>110,-1</size>
               <style>wxALIGN_RIGHT</style>
-              <label>Port:</label>
+              <label>Po&amp;rt:</label>
             </object>
           </object>
           <object class="sizeritem">
@@ -620,7 +620,7 @@
         <flag>wxALIGN_CENTER_VERTICAL|wxLEFT|wxRIGHT|wxTOP</flag>
         <border>5</border>
         <object class="wxStaticText" name="ID_TEXT">
-          <label>Accounts:</label>
+          <label>&amp;Accounts:</label>
         </object>
       </object>
       <object class="sizeritem">
@@ -646,7 +646,7 @@
         <flag>wxALIGN_CENTER_VERTICAL|wxALL</flag>
         <border>5</border>
         <object class="wxButton" name="BUTTON_DELETE">
-          <label>Delete account...</label>
+          <label>&amp;Delete account...</label>
         </object>
       </object>
     </object>
@@ -697,7 +697,7 @@
       </object>
       <object class="sizeritem">
         <object class="wxButton" name="ACCOUNT_TEST">
-          <label>Test...</label>
+          <label>&amp;Test...</label>
         </object>
         <flag>wxALL|wxALIGN_CENTRE</flag>
         <border>0</border>
