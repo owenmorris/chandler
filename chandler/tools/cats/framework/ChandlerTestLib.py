@@ -1439,7 +1439,6 @@ class UITestAccounts:
         self.window = None
 
     def GetDefaultAccount(self, type):
-
         pos = -1
 
         for account in self.window.data:
