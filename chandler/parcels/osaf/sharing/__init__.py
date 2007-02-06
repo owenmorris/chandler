@@ -1217,6 +1217,12 @@ def subscribe2(view, url, updateCallback=None, username=None, password=None):
                 account.username = username
                 account.password = password
 
+            # update shareName if it's a subscollection in the account
+            if account.path.strip("/") != parentPath.strip("/"):
+                tail = parentPath.strip("/")[len(account.path.strip("/")):]
+                if tail != "":
+                    shareName = tail + "/" + shareName
+
     inspection = inspect(url, username=username, password=password)
 
     logger.info("Inspection results for %s: %s", url, inspection)
@@ -1427,6 +1433,7 @@ def subscribeCalDAV(view, url, inspection, updateCallback=None, account=None,
 
     if subShare is not None:
         share.follows = subShare
+
 
     share.sync(updateCallback=updateCallback, modeOverride='get')
     share.conduit.getTickets()
