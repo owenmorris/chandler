@@ -375,8 +375,8 @@ class AccountPreferencesDialog(wx.Dialog):
         # These are wxHyperlinkCtrl widgets
         self.folderLink = wx.xrc.XRCCTRL(self, "INCOMING_FOLDERS_VERBAGE2")
         self.sharingLink = wx.xrc.XRCCTRL(self.messagesPanel, "SHARING_MESSAGE2")
-        self.folderLink.SetURL(FOLDERS_URL)
-        self.sharingLink.SetURL(SHARING_URL)
+        #self.folderLink.SetURL(FOLDERS_URL)
+        #self.sharingLink.SetURL(SHARING_URL)
 
         self.SetSizer(self.outerSizer)
         self.outerSizer.SetSizeHints(self)
