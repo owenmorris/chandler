@@ -452,8 +452,7 @@
               </object>
               <object class="sizeritem">
                 <flag>wxALL|wxALIGN_CENTRE|wxALIGN_CENTRE_VERTICAL</flag>
-                <!--object class="wxHyperlinkCtrl" name="INCOMING_FOLDERS_VERBAGE2"-->
-                <object class="wxStaticText" name="INCOMING_FOLDERS_VERBAGE2">
+                <object class="wxHyperlinkCtrl" name="INCOMING_FOLDERS_VERBAGE2">
                   <label>Learn More.</label>
                 </object>
                 <border>10</border>
@@ -678,8 +677,7 @@
         </object>
       </object>
       <object class="sizeritem">
-        <!--object class="wxHyperlinkCtrl" name="SHARING_MESSAGE2"-->
-        <object class="wxStaticText" name="SHARING_MESSAGE2">
+        <object class="wxHyperlinkCtrl" name="SHARING_MESSAGE2">
           <label>SIGN-UP HERE.</label>
         </object>
       </object>
