@@ -62,7 +62,7 @@ REMOVE_FOLDERS = _(u"Chandler will now attempt to remove the\nfollowing IMAP fol
 # Will print out saved account changes
 # before exiting the dialog when set to True
 DEBUG = False
-FOLDERS_URL = "http://wiki.osafoundation.org/bin/view/Projects/ChandlerProductFAQ"
+FOLDERS_URL = "http://wiki.osafoundation.org/Projects/ChandlerProductFAQ"
 SHARING_URL = "https://osaf.us/account/new"
 
 # Special handlers referenced in the PANELS dictionary below:
