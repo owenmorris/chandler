@@ -328,7 +328,7 @@ def restore(rv, filename, testmode=False):
         # smtp accounts
         if sectiontype == u"smtp account":
             account = None
-            makCurrent = False
+            makeCurrent = False
 
             if section.has_key(u"default") and section.as_bool(u"default"):
                 accountRef = schema.ns("osaf.pim", rv).currentSMTPAccount
@@ -503,7 +503,9 @@ def restore(rv, filename, testmode=False):
             account.password = section[u"password"]
             account.port = section.as_int(u"port")
             account.connectionSecurity = section[u"security"]
-            account.deleteOnDownload = section.as_bool(u"del")
+
+            if section.has_key(u"del"):
+                account.deleteOnDownload = section.as_bool(u"del")
 
             if section.has_key(u"address"):
                 emailAddress = pim.mail.EmailAddress.getEmailAddress(rv,
@@ -519,7 +521,7 @@ def restore(rv, filename, testmode=False):
                 uuid = UUID(uuid)
                 smtp = rv.findUUID(uuid)
                 account.defaultSMTPAccount = smtp
-        
+
     for sectionname, section in cfg.iteritems():
         if section.has_key(u"type"):
             sectiontype = section[u"type"]
