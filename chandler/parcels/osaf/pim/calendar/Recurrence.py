@@ -271,8 +271,8 @@ class RecurrenceRule(items.ContentItem):
 
         def coerceIfDatetime(value):
             if isinstance(value, datetime):
-                if convertFloating and value.tzinfo is ICUtzinfo.floating:
-                    value = value.replace(tzinfo=None)
+                if convertFloating and tzinfo is ICUtzinfo.floating:
+                    value = coerceTimeZone(value, tzinfo).replace(tzinfo=None)
                 else:
                     value = coerceTimeZone(value, tzinfo)
             return value
@@ -285,7 +285,7 @@ class RecurrenceRule(items.ContentItem):
                 kwargs[key]=toDateUtil(value)
         if hasattr(self, 'until'):
             kwargs['until'] = coerceIfDatetime(self.calculatedUntil())
-        rule = rrule(dtstart=dtstart, **kwargs)
+        rule = rrule(dtstart=coerceIfDatetime(dtstart), **kwargs)
         if ignoreIsCount or not self.isCount or not hasattr(self, 'until'):
             return rule
         else:

@@ -196,7 +196,7 @@ def itemsToVObject(view, items, cal=None, filters=None):
                 # True because we don't want to use ICUtzinfo.floating
                 cal.vevent_list[-1].rruleset = event.createDateUtilFromRule(False, True)
         except AttributeError:
-            pass
+            logger.error('Failed to export RRULE for %s' % event.itsItem.itsUUID)
         # end of populateEvent function
 
     def populateModifications(event, cal):

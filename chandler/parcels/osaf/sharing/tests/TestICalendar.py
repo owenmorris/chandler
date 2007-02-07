@@ -26,7 +26,7 @@ from osaf import pim, sharing
 import osaf.sharing.ICalendar as ICalendar
 from osaf.pim import ListCollection, Remindable
 import osaf.pim.calendar.Calendar as Calendar
-from osaf.pim.calendar.TimeZone import convertToICUtzinfo
+from osaf.pim.calendar.TimeZone import convertToICUtzinfo, TimeZoneInfo
 import datetime
 import vobject
 import cStringIO
@@ -157,7 +157,7 @@ class ICalendarTestCase(SingleRepositoryTestCase):
         self.assertEqual(cal.vevent.summary.value, event.summary)
         self.share.destroy()
 
-    def testImportRecurrence(self):
+    def testRoundTripRecurrenceCount(self):
         format = self.Import(self.view, u'Recurrence.ics')
         event = sharing.findUID(self.view, '5B30A574-02A3-11DA-AA66-000A95DA3228')
         third = event.getFirstOccurrence().getNextOccurrence().getNextOccurrence()
@@ -170,6 +170,21 @@ class ICalendarTestCase(SingleRepositoryTestCase):
         event = sharing.findUID(self.view, '07f3d6f0-4c04-11da-b671-0013ce40e90f')
         self.assertEqual(event.rruleset.exdates[0], datetime.datetime(2005, 12, 6, 12, 30,
                                                     tzinfo=ICUtzinfo.floating))
+        
+        # test count export, no timezones
+        vcalendar = ICalendar.itemsToVObject(self.view, [event])
+        self.assertEqual(vcalendar.vevent.rruleset._rrule[0]._count, 10)
+
+        # turn on timezones, putting event in Pacific time
+        pacific = ICUtzinfo.getInstance("US/Pacific")
+        TimeZoneInfo.get(self.view).default = pacific
+        schema.ns('osaf.pim', self.view).TimezonePrefs.showUI = True
+        self.assertEqual(event.startTime.tzinfo, pacific)
+        
+        # test count export, with timezones turned on
+        vcalendar = ICalendar.itemsToVObject(self.view, [event])
+        self.assertEqual(vcalendar.vevent.rruleset._rrule[0]._count, 10)
+
 
     def testImportRecurrenceWithTimezone(self):
         format = self.Import(self.view, u'RecurrenceWithTimezone.ics')
