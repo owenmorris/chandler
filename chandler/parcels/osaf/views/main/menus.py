@@ -57,7 +57,7 @@ def makeMainMenus(parcel):
     
             menuItem = cls.template(
                 shortName + 'ColorItem',
-                title = title,
+                title = title, # XXX No keyboard shortcuts
                 icon = shortName + "MenuIcon",
                 menuItemKind = "Check",
                 event = colorEvent)
@@ -94,8 +94,11 @@ def makeMainMenus(parcel):
             if hour == -1:
                 title = _(u"&Automatic")
             else:
-                # XXX The keyboard shortcut is implemented for values < 10 only
-                title = _(u"%(amp)s%(hours)s hours") % {'amp': '&' if hour < 10 else '', 'hours': hour}
+                # XXX The keyboard shortcut is implemented for some values,
+                # XXX but is somewhat questionable if we should do even this,
+                # XXX because to do this in a really localizable way we'd
+                # XXX need to do this with a table with all the values.
+                title = _(u"%(amp)s%(hours)s hours") % {'amp': '&' if 2 < hour < 11  or hour == 24 else '', 'hours': hour}
                 
             menuItem = MenuItem.template(eventName + 'Item',
                                          title = title,
@@ -224,13 +227,13 @@ def makeMainMenus(parcel):
                         menuItemKind = 'Separator'),
                     MenuItem.template('RemoveItem',
                         event = globalBlocks.Remove,
-                        title = _(u'Remove'),
+                        title = _(u'Remo&ve'),
                         accel = platform_delete,                        
                         helpString = _(u'Remove the current selection from the current collection'),
                         wxId = wx.ID_DELETE),                    
                     MenuItem.template('DeleteItem',
                         event = main.Delete,
-                        title = _(u'Delete'),
+                        title = _(u'&Delete'),
                         accel = platform_command_delete,
                         helpString = _(u'Move the current selection to the trash')),
                     MenuItem.template('EditSeparator3',
@@ -242,7 +245,7 @@ def makeMainMenus(parcel):
                         helpString = _(u'Search using the Quick Entry field')),
                     MenuItem.template('EmptyTrashItem',
                         event = main.EmptyTrash,
-                        title = _(u'Empty Trash'),
+                        title = _(u'&Empty Trash'),
                         helpString = _(u'Remove all items from the Trash collection')),
                     ]), # Menu EditMenu
             
@@ -261,7 +264,7 @@ def makeMainMenus(parcel):
                         helpString = _(u'Display data in a Dashboard view')),
                     MenuItem.template('ViewAsTableItem',
                         event = main.ViewAsTable,
-                        title = _(u'View as Ta&ble'),
+                        title = _(u'View as &Table'),
                         menuItemKind = 'Check',
                         helpString = _(u'Display data in a Table view')),
                     MenuItem.template('ViewSeparator1',
@@ -339,7 +342,7 @@ def makeMainMenus(parcel):
                         helpString = _(u'Hide or show section dividers')),
                     MenuItem.template('EnableTimezonesItem',
                         event = main.EnableTimezones,
-                        title = _(u'Use &Timezones'),
+                        title = _(u'Use Time&zones'),
                         menuItemKind = 'Check',
                         helpString = _(u'Hide or show timezones')),
                     ]), # Menu ViewMenu
@@ -394,30 +397,30 @@ def makeMainMenus(parcel):
                         menuItemKind = 'Separator'),
                     MenuItem.template('SendMessageItem',
                         event = main.SendShareItem,
-                        title = messages.SEND,
+                        title = _(u'&Send'),
                         helpString = _(u'Send the selected Mail Message')),
                     MenuItem.template('ItemSeparator2',
                         menuItemKind = 'Separator'),
                     MenuItem.template('StampMessageItem',
                         event = main.FocusStampMessage,
-                        title = messages.STAMP_MAIL,
+                        title = _(u"A&ddress this item"),
                         menuItemKind = 'Check',
                         helpString = messages.STAMP_MAIL_HELP),
                     MenuItem.template('StampTaskItem',
                         event = main.FocusStampTask,
-                        title = messages.STAMP_TASK,
+                        title = _(u"Add to &Task list"),
                         menuItemKind = 'Check',
                         helpString = messages.STAMP_TASK_HELP),
                     MenuItem.template('StampEventItem',
                         event = main.FocusStampCalendar,
-                        title = messages.STAMP_CALENDAR,
+                        title = _(u"Add to &Calendar"),
                         menuItemKind = 'Check',
                         helpString = messages.STAMP_CALENDAR_HELP),
                     MenuItem.template('ItemSeparator3',
                         menuItemKind = 'Separator'),
                     MenuItem.template('NeverShareItem',
                         event = main.FocusTogglePrivate,
-                        title = messages.PRIVATE,
+                        title = _(u"Never s&hare this item"),
                         menuItemKind = 'Check',
                         helpString = _(u'Mark the selected item as private, so it will not be shared')),
                     ]), # Menu ItemMenu
@@ -497,7 +500,7 @@ def makeMainMenus(parcel):
                         helpString = _(u'Share the selected collection')),
                     MenuItem.template('UnpublishSidebarCollectionItem',
                         event = main.UnpublishSidebarCollection,
-                        title = _(u'Unpublish'),
+                        title = _(u'Un&publish'),
                         helpString = _(u'Remove the collection from the sharing server')),
                     MenuItem.template('ManageSidebarCollectionItem',
                         event = main.ManageSidebarCollection,

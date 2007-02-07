@@ -1151,14 +1151,14 @@ class SidebarBlock(Table):
 
             if UserCollection(selectedItem).outOfTheBoxCollection:
                 enabled = False
-                menuTitle = _(u'Keep "%(collection)s" out of %(dashboard)s') % arguments
+                menuTitle = _(u'&Keep "%(collection)s" out of %(dashboard)s') % arguments
             else:
                 enabled = True
                 mine = schema.ns('osaf.pim', self.itsView).mine
                 if selectedItem not in mine.sources:
-                    menuTitle = _(u'Add "%(collection)s" to %(dashboard)s') % arguments
+                    menuTitle = _(u'&Add "%(collection)s" to %(dashboard)s') % arguments
                 else:
-                    menuTitle = _(u'Keep "%(collection)s" out of %(dashboard)s') % arguments
+                    menuTitle = _(u'&Keep "%(collection)s" out of %(dashboard)s') % arguments
 
             event.arguments ['Text'] = menuTitle
             event.arguments['Enable'] = enabled

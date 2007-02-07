@@ -14,7 +14,7 @@
                     <flag>wxALIGN_CENTER_VERTICAL|wxALL</flag>
                     <border>5</border>
                     <object class="wxStaticText" name="ID_TEXT">
-                        <label>Sharing account:</label>
+                        <label>Sharing &amp;account:</label>
                     </object>
                 </object>
                 <object class="sizeritem">
@@ -30,7 +30,7 @@
                     <flag>wxALIGN_CENTER_VERTICAL|wxALL</flag>
                     <border>5</border>
                     <object class="wxStaticText" name="ID_TEXT">
-                        <label>Select collections to restore:</label>
+                        <label>S&amp;elect collections to restore:</label>
                     </object>
                 </object>
                 <object class="sizeritem">
@@ -52,7 +52,7 @@
                             <flag>wxALIGN_CENTER|wxALL</flag>
                             <border>5</border>
                             <object class="wxButton" name="wxID_OK">
-                                <label>Restore</label>
+                                <label>&amp;Restore</label>
                                 <default>1</default>
                             </object>
                         </object>

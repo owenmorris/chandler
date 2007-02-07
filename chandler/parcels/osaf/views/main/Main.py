@@ -1252,9 +1252,9 @@ class MainView(View):
         collection = self.getSidebarSelectedCollection ()
 
         if collection is not None:
-            menuTitle = _(u'Share "%(collectionName)s"...') % {'collectionName': collection.displayName}
+            menuTitle = _(u'S&hare "%(collectionName)s"...') % {'collectionName': collection.displayName}
         else:
-            menuTitle = _(u'Share a collection...')
+            menuTitle = _(u'S&hare a collection...')
 
         event.arguments ['Text'] = menuTitle
         event.arguments['Enable'] = collection is not None and (not sharing.isShared(collection))
@@ -1366,7 +1366,7 @@ class MainView(View):
         if collection is not None:
 
             collName = collection.displayName
-            menuTitle = _(u'Sync "%(collectionName)s"') % \
+            menuTitle = _(u'S&ync "%(collectionName)s"') % \
                 {'collectionName': collName}
             if sharing.isShared(collection):
                 event.arguments['Enable'] = True
@@ -1374,7 +1374,7 @@ class MainView(View):
                 event.arguments['Enable'] = False
         else:
             event.arguments['Enable'] = False
-            menuTitle = _(u'Sync a collection')
+            menuTitle = _(u'S&ync a collection')
         event.arguments ['Text'] = menuTitle
 
 
@@ -1416,16 +1416,16 @@ class MainView(View):
 
     def onTakeOnlineOfflineEventUpdateUI(self, event):
         enable = False
-        menuTitle = _("Toggle online/offline")
+        menuTitle = _("&Toggle online/offline")
 
         collection = self.getSidebarSelectedCollection()
         if collection is not None:
             if sharing.isShared(collection):
                 enable = True
                 if sharing.isOnline(collection):
-                    menuTitle = _("Take offline")
+                    menuTitle = _("&Take offline")
                 else:
-                    menuTitle = _("Take online")
+                    menuTitle = _("&Take online")
 
         event.arguments['Enable'] = enable
         event.arguments ['Text'] = menuTitle
