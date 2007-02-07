@@ -45,7 +45,6 @@ FIELDS_REQUIRED = _(u"The following fields ore required to perform this action:\
 FIELDS_REQUIRED_ONE = _(u"The following fields are required to perform this action:\n\n\tServer\n\tPort\n\n\nPlease correct the error and try again.")
 FIELDS_REQUIRED_TWO = _(u"The following fields ore required to perform this action:\n\n\tServer\n\tPath\n\tUser name\n\tPassword\n\tPort\n\n\nPlease correct the error and try again.")
 
-DEFAULT_ACCOUNT = _(u"This account can not be deleted because it is\nthe default '%(accountType)s' account.")
 HOST_REQUIRED  = _(u"Auto-configure requires a Server name.")
 
 
@@ -454,6 +453,28 @@ class AccountPreferencesDialog(wx.Dialog):
         self.accountsList.SetSelection(accountIndex)
         self.__SwapDetailPanel(accountIndex)
 
+        item = self.rv.findUUID(self.data[accountIndex]['item'])
+
+        isCurrent = False
+
+        if item.accountType == "INCOMING":
+            ns_pim = schema.ns('osaf.pim', item.itsView)
+            isCurrent = item == ns_pim.currentMailAccount.item
+
+        elif item.accountType == "OUTGOING":
+            ns_pim = schema.ns('osaf.pim', item.itsView)
+            isCurrent = item == ns_pim.currentSMTPAccount.item
+
+        elif item.accountType == "SHARING":
+            sharing_ns = schema.ns('osaf.sharing', item.itsView)
+            isCurrent = item == sharing_ns.currentWebDAVAccount.item
+
+        delButton = wx.xrc.XRCCTRL(self, "BUTTON_DELETE")
+
+        #Disable the delete button if the account is the
+        #default.
+        delButton.Enable(not isCurrent)
+
     def __PopulateAccountsList(self, account):
         """ Find all account items and put them in the list; also build
             up a data structure with the applicable attribute values we'll
@@ -533,8 +554,7 @@ class AccountPreferencesDialog(wx.Dialog):
             # End of account loop
 
         if i > 0:
-            self.accountsList.SetSelection(accountIndex)
-            self.__SwapDetailPanel(accountIndex)
+            self.selectAccount(accountIndex)
 
 
     def __ApplyChanges(self):
@@ -714,8 +734,7 @@ class AccountPreferencesDialog(wx.Dialog):
 
                 if invalidMessage:
                     # Show the invalid panel
-                    self.accountsList.SetSelection(i)
-                    self.__SwapDetailPanel(i)
+                    self.selectAccount(i)
                     alertError(invalidMessage)
                     return False
 
@@ -1318,8 +1337,7 @@ class AccountPreferencesDialog(wx.Dialog):
                             "isNew" : True } )
 
         index = self.accountsList.Append(a)
-        self.accountsList.SetSelection(index)
-        self.__SwapDetailPanel(index)
+        self.selectAccount(index)
 
 
     def getSelectedAccount(self):
@@ -1338,9 +1356,6 @@ class AccountPreferencesDialog(wx.Dialog):
         deleteHandler = PANELS[item.accountType]['deleteHandler']
         canDelete = deleteHandler(item, self.data[index]['values'], self.data)
 
-        # As long as there is more than one account present
-        # then should allow the deletion and reassingment of 
-        # current account
         if canDelete:
             self.accountsList.Delete(index)
             self.deletions.append(self.data[index])
@@ -1348,23 +1363,7 @@ class AccountPreferencesDialog(wx.Dialog):
             self.innerSizer.Detach(self.currentPanel)
             self.currentPanel.Hide()
             self.currentIndex = None
-            self.accountsList.SetSelection(0)
-            self.__SwapDetailPanel(0)
-        else:
-            type = self.data[index]['type']
-
-            at = None
-
-            if type == "INCOMING":
-                at = _(u"Incoming mail")
-
-            elif type == "OUTGOING":
-                at = _(u"Outgoing mail")
-
-            elif type == "SHARING":
-                at = _(u"Sharing")
-
-            alertError(DEFAULT_ACCOUNT % {'accountType': at})
+            self.selectAccount(0)
 
     def OnTestAccount(self, evt):
         account = self.getSelectedAccount()
@@ -1591,9 +1590,7 @@ class AccountPreferencesDialog(wx.Dialog):
         # if not evt.IsSelection(): return
 
         sel = evt.GetSelection()
-        control = evt.GetEventObject()
-        control.SetSelection(sel)
-        self.__SwapDetailPanel(sel)
+        self.selectAccount(sel)
 
     def OnFocusGained(self, evt):
         """ Select entire text field contents when focus is gained. """
