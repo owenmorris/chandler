@@ -57,7 +57,7 @@ class AutoSyncPrefs(wx.Dialog):
         sizer = wx.BoxSizer(wx.VERTICAL)
 
         box = wx.BoxSizer(wx.HORIZONTAL)
-        label = wx.StaticText(self, -1, "Synchronize")
+        label = wx.StaticText(self, -1, "&Synchronize")
         box.Add(label, 0, wx.ALIGN_CENTRE|wx.ALL, 5)
         choice = wx.Choice(self, -1, choices=[])
 
