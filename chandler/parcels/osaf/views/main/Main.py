@@ -16,6 +16,7 @@
 from datetime import timedelta
 from time import time
 import wx, os, sys, traceback, logging, re, webbrowser
+import PyLucene
 
 from application import Globals, Printing, schema, Utility
 
@@ -459,7 +460,7 @@ class MainView(View):
                         for collection in sidebarCollection:
                             UserCollection (collection).searchMatches = 0
 
-                        application = wx.GetApp()
+                        app = wx.GetApp()
                         for item in search.processResults(results):
                             if item not in searchResults:
                                 for collection in sidebarCollection:
@@ -468,14 +469,14 @@ class MainView(View):
                                         searchResults.add(item)
                                         # Update the display every so often 
                                         if len (searchResults) % 50 == 0:
-                                            application.propagateAsynchronousNotifications()
-                                            application.Yield()
+                                            app.propagateAsynchronousNotifications()
+                                            app.Yield()
 
                         if len(searchResults) == 0:
                             # For now we'll write a message to the status bar because it's easy
                             # When we get more time to work on search, we should write the message
                             # just below the search box in the toolbar.
-                            wx.GetApp().CallItemMethodAsync("MainView", 'setStatusMessage', _(u"Search found nothing"))
+                            app.CallItemMethodAsync("MainView", 'setStatusMessage', _(u"Search found nothing"))
                     except PyLucene.JavaError, error:
                         message = unicode (error)
                         prefix = u"org.apache.lucene.queryParser.ParseException: "
@@ -484,7 +485,7 @@ class MainView(View):
                         
                         message = _(u"An error occured during search.\n\nThe search engine reported the following error:\n\n" ) + message
                         
-                        Util.ok (None, _(u"Search Error"), message)
+                        application.dialogs.Util.ok (None, _(u"Search Error"), message)
                         showSearchResults = False
 
         block.text = command
