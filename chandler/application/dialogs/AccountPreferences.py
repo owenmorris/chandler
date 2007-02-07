@@ -1611,13 +1611,13 @@ class AccountPreferencesDialog(wx.Dialog):
 
         data = self.data[self.currentIndex]['values']
 
-        displayName = data["SHARING_DESCRIPTION"]
-        host = data['SHARING_SERVER']
-        port = data['SHARING_PORT']
-        path = data['SHARING_PATH']
-        username = data['SHARING_USERNAME']
-        password = data['SHARING_PASSWORD']
-        useSSL = data['SHARING_USE_SSL']
+        displayName = data["DAV_DESCRIPTION"]
+        host = data['DAV_SERVER']
+        port = data['DAV_PORT']
+        path = data['DAV_PATH']
+        username = data['DAV_USERNAME']
+        password = data['DAV_PASSWORD']
+        useSSL = data['DAV_USE_SSL']
 
         error = False
 
