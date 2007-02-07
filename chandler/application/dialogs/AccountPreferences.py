@@ -404,9 +404,17 @@ class AccountPreferencesDialog(wx.Dialog):
         self.messagesPanel = self.resources.LoadPanel(self, "MessagesPanel")
         self.okCancelPanel = self.resources.LoadPanel(self, "OkCancelPanel")
 
-        self.bottomSizer.Add(self.messagesPanel, 0, wx.ALIGN_TOP|wx.ALL, 5)
-        self.bottomSizer.Add(self.okCancelPanel, 0, wx.ALIGN_TOP|wx.ALL, 5)
+        # The tmp panel and tmp sizer are used to force the messagePanel to
+        # maintain a specific size regardless of what text is showing.
+        # There is a bug in the HyperLinkCtrl related to layout that
+        # was preventing using Sizer objects in the messagesPanel.
+        self.tmpSizer = wx.BoxSizer(wx.VERTICAL)
+        self.tmpPanel = self.resources.LoadPanel(self, "TmpPanel")
+        self.tmpSizer.Add(self.messagesPanel, 0, wx.ALIGN_TOP|wx.ALL, 0)
+        self.tmpSizer.Add(self.tmpPanel, 0, wx.ALIGN_TOP|wx.ALL, 0)
+        self.bottomSizer.Add(self.tmpSizer, 0, wx.ALIGN_TOP|wx.ALL, 5)
 
+        self.bottomSizer.Add(self.okCancelPanel, 0, wx.ALIGN_TOP|wx.ALL, 5)
         self.outerSizer.Add(self.bottomSizer, 0, wx.ALIGN_TOP|wx.ALIGN_LEFT|wx.ALL, 0)
 
         # Load the various account form panels:
@@ -418,8 +426,15 @@ class AccountPreferencesDialog(wx.Dialog):
         # These are wxHyperlinkCtrl widgets
         self.folderLink = wx.xrc.XRCCTRL(self, "INCOMING_FOLDERS_VERBAGE2")
         self.sharingLink = wx.xrc.XRCCTRL(self.messagesPanel, "SHARING_MESSAGE2")
+
+        for hyperCtrl in (self.folderLink, self.sharingLink):
+            hyperCtrl.SetNormalColour("#0080ff")
+            hyperCtrl.SetVisitedColour("#0080ff")
+            hyperCtrl.SetHoverColour("#9999cc")
+
         self.folderLink.SetURL(FOLDERS_URL)
         self.sharingLink.SetURL(SHARING_URL)
+
 
         self.SetSizer(self.outerSizer)
         self.outerSizer.SetSizeHints(self)
@@ -518,6 +533,14 @@ class AccountPreferencesDialog(wx.Dialog):
         #Disable the delete button if the account is the
         #default.
         delButton.Enable(not isCurrent)
+
+        # The Morse Code Sharing feature does not yet have
+        # an account test framework in place so disable
+        # the test button.
+        testButton = wx.xrc.XRCCTRL(self, "ACCOUNT_TEST")
+        hasTest = not item.accountType == "SHARING_MORSECODE"
+
+        testButton.Enable(hasTest)
 
     def __PopulateAccountsList(self, account):
         """ Find all account items and put them in the list; also build

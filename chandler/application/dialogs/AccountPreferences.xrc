@@ -49,6 +49,7 @@
             <flag>wxGROW|wxALIGN_CENTER_VERTICAL|wxALL</flag>
             <border>5</border>
             <object class="wxStaticText" name="ID_TEXT">
+              <size>110,-1</size>
               <style>wxALIGN_RIGHT</style>
               <label>&amp;Email address:</label>
             </object>
@@ -78,6 +79,12 @@
               <value></value>
             </object>
           </object>
+          <object class="spacer">
+            <size>0,10</size>
+          </object>
+          <object class="spacer">
+            <size>0,0</size>
+          </object>
           <object class="sizeritem">
             <flag>wxALIGN_CENTER|wxALL</flag>
             <border>5</border>
@@ -91,12 +98,13 @@
               <label>Auto-confi&amp;gure...</label>
               <style></style>
             </object>
-            <border>1</border>
+            <border>5</border>
           </object>
           <object class="sizeritem">
             <flag>wxGROW|wxALIGN_CENTER_VERTICAL|wxALL</flag>
             <border>5</border>
             <object class="wxStaticText" name="ID_TEXT">
+              <size>110,-1</size>
               <style>wxALIGN_RIGHT</style>
               <label>Po&amp;rt:</label>
             </object>
@@ -144,6 +152,7 @@
             <border>5</border>
             <object class="wxStaticText" name="ID_TEXT">
               <label></label>
+              <size>110,-1</size>
             </object>
           </object>
           <object class="sizeritem">
@@ -200,11 +209,13 @@
         <object class="wxFlexGridSizer">
           <cols>2</cols>
           <rows>0</rows>
+          <vgap>0</vgap>
           <hgap>0</hgap>
           <object class="sizeritem">
             <flag>wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL|wxALL</flag>
             <border>5</border>
             <object class="wxStaticText" name="ID_TEXT">
+              <size>110,-1</size>
               <style>wxALIGN_RIGHT</style>
               <label>Account type:</label>
             </object>
@@ -221,6 +232,7 @@
             <flag>wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL|wxALL</flag>
             <border>5</border>
             <object class="wxStaticText" name="ID_TEXT">
+              <size>110,-1</size>
               <style>wxALIGN_RIGHT</style>
               <label>Descr&amp;iption:</label>
             </object>
@@ -237,6 +249,7 @@
             <flag>wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL|wxALL</flag>
             <border>5</border>
             <object class="wxStaticText" name="ID_TEXT">
+              <size>110,-1</size>
               <style>wxALIGN_RIGHT</style>
               <label>&amp;Email address:</label>
             </object>
@@ -253,6 +266,7 @@
             <flag>wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL|wxALL</flag>
             <border>5</border>
             <object class="wxStaticText" name="ID_TEXT">
+              <size>110,-1</size>
               <style>wxALIGN_RIGHT</style>
               <label>&amp;Full name:</label>
             </object>
@@ -269,6 +283,7 @@
             <flag>wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL|wxALL</flag>
             <border>5</border>
             <object class="wxStaticText" name="ID_TEXT">
+              <size>110,-1</size>
               <style>wxALIGN_RIGHT</style>
               <label>&amp;Server:</label>
             </object>
@@ -285,6 +300,7 @@
             <flag>wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL|wxALL</flag>
             <border>5</border>
             <object class="wxStaticText" name="ID_TEXT">
+              <size>110,-1</size>
               <style>wxALIGN_RIGHT</style>
               <label>User &amp;name:</label>
             </object>
@@ -301,6 +317,7 @@
             <flag>wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL|wxALL</flag>
             <border>5</border>
             <object class="wxStaticText" name="ID_TEXT">
+              <size>110,-1</size>
               <style>wxALIGN_RIGHT</style>
               <label>Pass&amp;word:</label>
             </object>
@@ -317,7 +334,7 @@
           <object class="sizeritem">
             <object class="wxStaticText" name="ID_BUFFER">
               <label></label>
-              <size>2,7</size>
+              <size>2,14</size>
             </object>
           </object>
           <object class="sizeritem">
@@ -329,6 +346,7 @@
           <object class="sizeritem">
             <flag>wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL|wxALL</flag>
             <object class="wxStaticText" name="ID_TEXT">
+              <size>110,-1</size>
               <style>wxALIGN_RIGHT</style>
               <label>&amp;Protocol:</label>
             </object>
@@ -347,22 +365,24 @@
                     <item>POP</item>
                   </content>
                 </object>
+                <flag>wxALL|wxALIGN_CENTRE_VERTICAL</flag>
+                <border>5</border>
               </object>
               <object class="sizeritem">
                 <flag>wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL|wxALL</flag>
                 <border>5</border>
                 <object class="wxStaticText" name="ID_TEXT">
-                  <size>63,-1</size>
+                  <size>48,-1</size>
                   <style>wxALIGN_RIGHT</style>
                   <label>      </label>
                 </object>
               </object>
               <object class="sizeritem">
-                <flag>wxRIGHT|wxALIGN_RIGHT|wxALIGN_CENTRE_VERTICAL</flag>
-                <border>5</border>
+                <flag>wxALIGN_CENTRE_VERTICAL</flag>
                 <object class="wxButton" name="INCOMING_DISCOVERY">
                   <label>Auto-confi&amp;gure...</label>
                 </object>
+                <border>5</border>
               </object>
             </object>
           </object>
@@ -382,6 +402,7 @@
             <flag>wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL|wxALL</flag>
             <border>5</border>
             <object class="wxStaticText" name="ID_TEXT">
+              <size>110,-1</size>
               <style>wxALIGN_RIGHT</style>
               <label>Po&amp;rt:</label>
             </object>
@@ -447,15 +468,16 @@
               <object class="sizeritem">
                 <flag>wxALIGN_CENTER_VERTICAL|wxALL</flag>
                 <object class="wxStaticText" name="INCOMING_FOLDERS_VERBAGE">
-                  <label> Set up special I&amp;MAP folders to add items\n to Chandler from your email.</label>
+                  <label>Set up special I&amp;MAP folders to add items\nto Chandler from your email.</label>
                 </object>
+                <border>3</border>
               </object>
               <object class="sizeritem">
-                <flag>wxALL|wxALIGN_CENTRE|wxALIGN_CENTRE_VERTICAL</flag>
+                <flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTRE_VERTICAL</flag>
                 <object class="wxHyperlinkCtrl" name="INCOMING_FOLDERS_VERBAGE2">
                   <label>Learn More.</label>
                 </object>
-                <border>10</border>
+                <border>3</border>
               </object>
             </object>
           </object>
@@ -800,75 +822,84 @@
   </object>
   <object class="wxPanel" name="MessagesPanel">
     <object class="wxBoxSizer">
-      <orient>wxHORIZONTAL</orient>
-      <object class="spacer">
-        <size>15,0</size>
-      </object>
+      <orient>wxVERTICAL</orient>
       <object class="sizeritem">
-        <object class="wxStaticText" name="INCOMING_MESSAGE">
-          <label>Note: Only emails sent from Chandler will be downloaded.</label>
-          <size>375,-1</size>
-          <hidden>1</hidden>
-        </object>
-      </object>
-      <object class="sizeritem">
-        <object class="wxStaticText" name="OUTGOING_MESSAGE">
-          <label></label>
-          <size>375,-1</size>
-          <hidden>1</hidden>
-        </object>
-      </object>
-      <object class="sizeritem">
-        <object class="wxStaticText" name="SHARING_MESSAGE">
-          <label>Don't have a Cosmo Sharing account? </label>
-          <hidden>1</hidden>
-        </object>
-      </object>
-      <object class="sizeritem">
-        <object class="wxHyperlinkCtrl" name="SHARING_MESSAGE2">
-          <label>SIGN-UP HERE.</label>
+        <object class="wxBoxSizer">
+          <orient>wxHORIZONTAL</orient>
+          <object class="sizeritem">
+            <object class="wxStaticText" name="INCOMING_MESSAGE">
+              <label>Note: Only emails sent from Chandler will be downloaded.</label>
+              <size>380,-1</size>
+              <hidden>1</hidden>
+            </object>
+            <flag>wxALL|wxALIGN_CENTRE_VERTICAL</flag>
+          </object>
+          <object class="sizeritem">
+            <object class="wxStaticText" name="OUTGOING_MESSAGE">
+              <label></label>
+              <size>380,-1</size>
+              <hidden>1</hidden>
+            </object>
+            <flag>wxALL|wxALIGN_CENTRE_VERTICAL</flag>
+          </object>
+          <object class="sizeritem">
+            <object class="wxStaticText" name="SHARING_MESSAGE">
+              <label>Don't have a Cosmo Sharing account? </label>
+              <hidden>1</hidden>
+            </object>
+          </object>
+          <object class="sizeritem">
+            <object class="wxHyperlinkCtrl" name="SHARING_MESSAGE2">
+              <label>SIGN-UP HERE.</label>
+            </object>
+          </object>
         </object>
       </object>
     </object>
   </object>
   <object class="wxPanel" name="OkCancelPanel">
     <object class="wxBoxSizer">
+      <orient>wxVERTICAL</orient>
+      <object class="sizeritem">
+        <object class="wxBoxSizer">
+          <orient>wxHORIZONTAL</orient>
+          <object class="sizeritem">
+            <object class="wxButton" name="ACCOUNT_TEST">
+              <label>&amp;Test...</label>
+            </object>
+            <flag>wxALL|wxALIGN_CENTRE_VERTICAL</flag>
+          </object>
+          <object class="spacer">
+            <size>75,-1</size>
+          </object>
+          <object class="sizeritem">
+            <flag>wxALL|wxALIGN_CENTRE_VERTICAL</flag>
+            <object class="wxButton" name="wxID_OK">
+              <label>OK</label>
+              <default>1</default>
+            </object>
+          </object>
+          <object class="spacer">
+            <size>15,0</size>
+          </object>
+          <object class="sizeritem">
+            <flag>wxALL|wxALIGN_CENTRE_VERTICAL</flag>
+            <object class="wxButton" name="wxID_CANCEL">
+              <label>Cancel</label>
+            </object>
+          </object>
+        </object>
+      </object>
+      <object class="spacer">
+        <size>0,15</size>
+      </object>
+    </object>
+  </object>
+  <object class="wxPanel" name="TmpPanel">
+    <object class="wxBoxSizer">
       <orient>wxHORIZONTAL</orient>
-      <object class="sizeritem">
-        <object class="wxStaticText" name="ID_BUFFER">
-          <label></label>
-          <size>60,-1</size>
-        </object>
-        <flag>wxALL|wxALIGN_CENTRE</flag>
-      </object>
-      <object class="sizeritem">
-        <object class="wxButton" name="ACCOUNT_TEST">
-          <label>&amp;Test...</label>
-        </object>
-        <flag>wxALL|wxALIGN_CENTRE</flag>
-        <border>0</border>
-      </object>
-      <object class="sizeritem">
-        <object class="wxStaticText" name="ID_BUFFER">
-          <label></label>
-          <size>60,-1</size>
-        </object>
-        <flag>wxALL|wxALIGN_CENTRE</flag>
-      </object>
-      <object class="sizeritem">
-        <flag>wxALIGN_CENTER|wxALL</flag>
-        <border>10</border>
-        <object class="wxButton" name="wxID_OK">
-          <label>OK</label>
-          <default>1</default>
-        </object>
-      </object>
-      <object class="sizeritem">
-        <flag>wxALIGN_CENTER|wxALL</flag>
-        <border>10</border>
-        <object class="wxButton" name="wxID_CANCEL">
-          <label>Cancel</label>
-        </object>
+      <object class="spacer">
+        <size>380,-1</size>
       </object>
     </object>
   </object>
