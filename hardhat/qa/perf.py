@@ -91,7 +91,11 @@ def drawGraph(data, platforms, filename, size=(132, 132), xLabel='Revision'):
                                 line_style=line_style.black_dash2,
                                 tick_mark=tick_mark.default))
 
-    myArea.draw(myCanvas)
+    try:
+        myArea.draw(myCanvas)
+    except:
+        print data, platforms
+        raise
     
     return True
 
@@ -335,7 +339,7 @@ class perf:
         ('switch_calendar.switch_calendar',                                     1, 'Switch calendar with 3k'),
         ('perflargedatasharing.publish',                                        1, 'Publish calendar with 3k'),
         ('perflargedatasharing.subscribe',                                      1, 'Subscribe to calendar with 3k'),
-        #('resize_app_in_calendar_mode.resize_app_in_calendar_mode',             0.1, 'Resize calendar with 3k'),
+        ('resize_app_in_calendar_mode.resize_app_in_calendar_mode',             0.5, 'Resize calendar with 3k'),
         )
 
     self.PerformanceTBoxes = ['p_' + platform for platform in allPlatforms]
