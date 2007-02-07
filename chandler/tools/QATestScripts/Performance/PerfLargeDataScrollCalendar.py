@@ -49,17 +49,17 @@ try:
     (xStart, yStart) = calendarWidget.GetViewStart()
 
     # Test Phase: Action (the action we are timing)
-    logger.Start("Scroll calendar one unit") # Actually 25 units
-    for units in xrange(yStart + 1, yStart + 25):    
-        calendarWidget.Scroll(0, units)
-        wx.Yield() # Each Yield should result in a single paint to the calendar
+
+    logger.Start("Scroll calendar one unit")
+    calendarWidget.Scroll(0, yStart + 1)
+    calendarWidget.Update() # process only the paint events for this window
     logger.Stop()
 
     # Test Phase: Verification
 
     logger.SetChecked(True)
     (xEnd, yEnd) = calendarWidget.GetViewStart()
-    if (yEnd == units):
+    if (yEnd == yStart + 1):
         logger.ReportPass("On scrolling calendar one unit")
     else:
         logger.ReportFailure("On scrolling calendar one unit")
