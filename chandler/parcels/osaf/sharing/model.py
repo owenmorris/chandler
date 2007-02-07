@@ -50,7 +50,7 @@ class NoteRecord(eim.Record):
 
     uuid = eim.key(ItemRecord.uuid)
     body = eim.field(eim.ClobType)
-    icaluid = eim.field(text256)
+    icalUid = eim.field(text256)
     reminderTime = eim.field(eim.DecimalType(digits=20, decimal_places=0))
 
 

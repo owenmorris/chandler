@@ -165,7 +165,14 @@ class RecordSetConduit(conduits.BaseConduit):
             changedUuid = change[0]
             if changedUuid in self.share.contents:
                 item = rv.findUUID(changedUuid)
-                if debug: print "Examining local item", item, item.itsVersion
+                if debug: print "Locally modified item", item, item.itsVersion
+
+                # If an event, make sure we export the master; occurrences
+                # will be included in the master's recordset
+                if pim.has_stamp(item, pim.EventStamp):
+                    item = pim.EventStamp(item).getMaster().itsItem
+                    if debug: print "Master item", item, item.itsVersion
+
                 uuid = item.itsUUID.str16()
                 localItems.add(uuid)
                 if not self.hasState(uuid):

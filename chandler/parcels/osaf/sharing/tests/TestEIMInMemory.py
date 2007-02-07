@@ -221,9 +221,9 @@ class EIMInMemoryTestCase(testcase.DualRepositoryTestCase):
         self.assert_(not pim.has_stamp(item, pim.EventStamp))
         pim.EventStamp(item).add()
         self.assert_(pim.has_stamp(item, pim.EventStamp))
-        # tzinfo = ICUtzinfo.floating
-        # time0 = datetime.datetime(2007, 1, 26, 12, 0, 0, 0, tzinfo)
-        # pim.EventStamp(item).startTime = time0
+        tzinfo = ICUtzinfo.floating
+        time0 = datetime.datetime(2007, 1, 26, 12, 0, 0, 0, tzinfo)
+        pim.EventStamp(item).startTime = time0
         pim.EventStamp(item).transparency = 'tentative'
         view0.commit(); stats = self.share0.sync(); view0.commit()
         self.assert_(checkStats(stats,
@@ -358,6 +358,7 @@ class EIMInMemoryTestCase(testcase.DualRepositoryTestCase):
 
         # Local unstamping, remote modification - item does not change locally;
         # the remote modification becomes a pending conflict
+
         # First, put the event stamp back
         pim.EventStamp(item).add()
         view0.commit(); stats = self.share0.sync(); view0.commit()
@@ -541,6 +542,10 @@ class EIMInMemoryTestCase(testcase.DualRepositoryTestCase):
             "Sync operation mismatch")
         self.assert_(item not in self.share0.contents)
         self.assert_(item1 not in self.share1.contents)
+
+
+        # TODO: verify that master items are synced when a modification
+        # changes
 
         # self.share0.conduit.dump("at the end")
 

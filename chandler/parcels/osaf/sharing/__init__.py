@@ -392,6 +392,12 @@ def publish(collection, account, classesToInclude=None,
         progressMonitor = None
         callback = None
 
+
+    # If the account knows how to publish, delegate:
+    if hasattr(account, 'publish'):
+        return account.publish(collection, updateCallback=callback)
+
+
     view = collection.itsView
 
     # Stamp the collection
@@ -1549,18 +1555,17 @@ def subscribeEIMXML(view, url, morsecodeUrl, inspection, updateCallback=None,
     share = Share(itsView=view)
     share.mode = shareMode
 
+    # Get the user-facing sharePath from url, e.g.  "/cosmo/pim/collection"
     (useSSL, host, port, path, query, fragment, ticket, sharePath,
         shareName) = splitUrl(url)
-
-    (useSSL, host, port, path, query, fragment, ticket, morsecodePath,
-        shareName) = splitUrl(morsecodeUrl)
 
     if not ticket and account is None:
         # Create a new account
         account = CosmoAccount(itsView=view)
         account.displayName = url
         account.host = host
-        account.path = parentPath
+        account.path = "cosmo" # TODO: See if we can really determine this.
+        # pimPath, morsecodePath, and davPath all have initialValues
         account.useSSL = useSSL
         account.port = port
         account.username = username
@@ -1571,6 +1576,10 @@ def subscribeEIMXML(view, url, morsecodeUrl, inspection, updateCallback=None,
             shareName=shareName, account=account,
             translator=PIMTranslator, serializer=EIMMLSerializer)
     else:
+        # Get the morsecode path from url, e.g.  "/cosmo/mc/collection"
+        (useSSL, host, port, path, query, fragment, ticket, morsecodePath,
+            shareName) = splitUrl(morsecodeUrl)
+
         share.conduit = CosmoConduit(itsParent=share, host=host,
             port=port, sharePath=sharePath, morsecodePath=morsecodePath,
             shareName=shareName,
@@ -1595,9 +1604,6 @@ def subscribeEIMXML(view, url, morsecodeUrl, inspection, updateCallback=None,
 
 
 
-def publish2(collection, account, filters=None, displayName=None,
-    updateCallback=None):
-    pass
 
 
 class ProgressMonitor:

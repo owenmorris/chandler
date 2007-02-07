@@ -62,7 +62,7 @@ def publishSubscribe(logger):
     # Webdav Account Setting
     ap = UITestAccounts(logger)
     ap.Open() # first, open the accounts dialog window
-    ap.GetDefaultAccount("SHARING")
+    ap.GetDefaultAccount("SHARING_DAV")
     ap.TypeValue("displayName", uw("Publish Test WebDAV"))
     ap.TypeValue("host", "osaf.us")
     ap.TypeValue("path", "cosmo/home/demo1")
@@ -1382,11 +1382,15 @@ class UITestAccounts:
                  'protocol': 17, 'password': 13, 
                  'security': 24, 'port': 23, },
 
-        'SHARING':{'displayName': 3, 'host':5, 'path': 7,
+        'SHARING_DAV':{'displayName': 3, 'host':5, 'path': 7,
+                  'username':9, 'password':11, 'port': 13, 'ssl': 14,},
+        'SHARING_MORSECODE':{'displayName': 3, 'host':5, 'path': 7,
                   'username':9, 'password':11, 'port': 13, 'ssl': 14,},
         }
 
-    accountTypeIndex = {'SHARING': 3, 'INCOMING': 1, 'OUTGOING': 2}
+    accountTypeIndex = {
+        'INCOMING': 1, 'OUTGOING': 2,'SHARING_DAV': 3, 'SHARING_MORSECODE': 4
+    }
 
     def __init__(self, logger=None):
         self.view = App_ns.itsView
@@ -1432,7 +1436,7 @@ class UITestAccounts:
 
             item = self.window.rv.findUUID(account['item'])
 
-            if type == "SHARING":
+            if type in ("SHARING_DAV", "SHARING_MORSECODE"):
                 sharing_ns = schema.ns('osaf.sharing', item.itsView)
 
                 if item != sharing_ns.currentWebDAVAccount.item:
@@ -1463,7 +1467,8 @@ class UITestAccounts:
         """
         Create an account of the given type
         @type type : string
-        @param type : an account type (OUTGOING, INCOMING, SHARING)
+        @param type : an account type (OUTGOING, INCOMING, SHARING_DAV,
+            SHARING_MORSECODE)
         """
         self.window.choiceNewType.SetSelection(self.accountTypeIndex[type])
         self.window.OnNewAccount(None)

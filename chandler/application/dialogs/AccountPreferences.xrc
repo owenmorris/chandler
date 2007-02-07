@@ -464,7 +464,7 @@
       </object>
     </object>
   </object>
-  <object class="wxPanel" name="SHARINGPanel">
+  <object class="wxPanel" name="DAVPanel">
     <object class="wxBoxSizer">
       <orient>wxVERTICAL</orient>
       <object class="sizeritem">
@@ -504,7 +504,7 @@
           <object class="sizeritem">
             <flag>wxALIGN_CENTER_VERTICAL|wxALL</flag>
             <border>5</border>
-            <object class="wxTextCtrl" name="SHARING_DESCRIPTION">
+            <object class="wxTextCtrl" name="DAV_DESCRIPTION">
               <size>300,-1</size>
               <value></value>
             </object>
@@ -521,7 +521,7 @@
           <object class="sizeritem">
             <flag>wxALIGN_CENTER_VERTICAL|wxALL</flag>
             <border>5</border>
-            <object class="wxTextCtrl" name="SHARING_SERVER">
+            <object class="wxTextCtrl" name="DAV_SERVER">
               <size>300,-1</size>
               <value></value>
             </object>
@@ -538,7 +538,7 @@
           <object class="sizeritem">
             <flag>wxALIGN_CENTER_VERTICAL|wxALL</flag>
             <border>5</border>
-            <object class="wxTextCtrl" name="SHARING_PATH">
+            <object class="wxTextCtrl" name="DAV_PATH">
               <size>300,-1</size>
               <value></value>
             </object>
@@ -555,7 +555,7 @@
           <object class="sizeritem">
             <flag>wxALIGN_CENTER_VERTICAL|wxALL</flag>
             <border>5</border>
-            <object class="wxTextCtrl" name="SHARING_USERNAME">
+            <object class="wxTextCtrl" name="DAV_USERNAME">
               <size>300,-1</size>
               <value></value>
             </object>
@@ -572,7 +572,7 @@
           <object class="sizeritem">
             <flag>wxALIGN_CENTER_VERTICAL|wxALL</flag>
             <border>5</border>
-            <object class="wxTextCtrl" name="SHARING_PASSWORD">
+            <object class="wxTextCtrl" name="DAV_PASSWORD">
               <size>300,-1</size>
               <style>wxTE_PASSWORD</style>
               <value></value>
@@ -594,7 +594,7 @@
               <object class="sizeritem">
                 <flag>wxALIGN_CENTER|wxALL</flag>
                 <border>5</border>
-                <object class="wxTextCtrl" name="SHARING_PORT">
+                <object class="wxTextCtrl" name="DAV_PORT">
                   <size>60,-1</size>
                   <value></value>
                 </object>
@@ -602,7 +602,155 @@
               <object class="sizeritem">
                 <flag>wxALIGN_CENTER|wxALL</flag>
                 <border>5</border>
-                <object class="wxCheckBox" name="SHARING_USE_SSL">
+                <object class="wxCheckBox" name="DAV_USE_SSL">
+                  <label>Use SSL</label>
+                </object>
+              </object>
+            </object>
+          </object>
+        </object>
+      </object>
+    </object>
+  </object>
+  <object class="wxPanel" name="MORSECODEPanel">
+    <object class="wxBoxSizer">
+      <orient>wxVERTICAL</orient>
+      <object class="sizeritem">
+        <flag>wxALIGN_CENTER|wxALL</flag>
+        <border>5</border>
+        <object class="wxFlexGridSizer">
+          <cols>2</cols>
+          <rows>0</rows>
+          <vgap>0</vgap>
+          <hgap>0</hgap>
+          <object class="sizeritem">
+            <flag>wxALIGN_CENTER|wxALL</flag>
+            <border>5</border>
+            <object class="wxStaticText" name="ID_TEXT">
+              <size>110,-1</size>
+              <style>wxALIGN_RIGHT</style>
+              <label>Account type:</label>
+            </object>
+          </object>
+          <object class="sizeritem">
+            <flag>wxALIGN_CENTER_VERTICAL|wxALL</flag>
+            <border>5</border>
+            <object class="wxStaticText" name="ID_TEXT">
+              <size>300,-1</size>
+              <label>Experimental Cosmo Sharing</label>
+            </object>
+          </object>
+          <object class="sizeritem">
+            <flag>wxALIGN_CENTER|wxALL</flag>
+            <border>5</border>
+            <object class="wxStaticText" name="ID_TEXT">
+              <size>110,-1</size>
+              <style>wxALIGN_RIGHT</style>
+              <label>Descr&amp;iption:</label>
+            </object>
+          </object>
+          <object class="sizeritem">
+            <flag>wxALIGN_CENTER_VERTICAL|wxALL</flag>
+            <border>5</border>
+            <object class="wxTextCtrl" name="MORSECODE_DESCRIPTION">
+              <size>300,-1</size>
+              <value></value>
+            </object>
+          </object>
+          <object class="sizeritem">
+            <flag>wxALIGN_CENTER|wxALL</flag>
+            <border>5</border>
+            <object class="wxStaticText" name="ID_TEXT">
+              <size>110,-1</size>
+              <style>wxALIGN_RIGHT</style>
+              <label>&amp;Server:</label>
+            </object>
+          </object>
+          <object class="sizeritem">
+            <flag>wxALIGN_CENTER_VERTICAL|wxALL</flag>
+            <border>5</border>
+            <object class="wxTextCtrl" name="MORSECODE_SERVER">
+              <size>300,-1</size>
+              <value></value>
+            </object>
+          </object>
+          <object class="sizeritem">
+            <flag>wxALIGN_CENTER|wxALL</flag>
+            <border>5</border>
+            <object class="wxStaticText" name="ID_TEXT">
+              <size>110,-1</size>
+              <style>wxALIGN_RIGHT</style>
+              <label>Pat&amp;h:</label>
+            </object>
+          </object>
+          <object class="sizeritem">
+            <flag>wxALIGN_CENTER_VERTICAL|wxALL</flag>
+            <border>5</border>
+            <object class="wxTextCtrl" name="MORSECODE_PATH">
+              <size>300,-1</size>
+              <value></value>
+            </object>
+          </object>
+          <object class="sizeritem">
+            <flag>wxALIGN_CENTER|wxALL</flag>
+            <border>5</border>
+            <object class="wxStaticText" name="ID_TEXT">
+              <size>110,-1</size>
+              <style>wxALIGN_RIGHT</style>
+              <label>User &amp;name:</label>
+            </object>
+          </object>
+          <object class="sizeritem">
+            <flag>wxALIGN_CENTER_VERTICAL|wxALL</flag>
+            <border>5</border>
+            <object class="wxTextCtrl" name="MORSECODE_USERNAME">
+              <size>300,-1</size>
+              <value></value>
+            </object>
+          </object>
+          <object class="sizeritem">
+            <flag>wxALIGN_CENTER|wxALL</flag>
+            <border>5</border>
+            <object class="wxStaticText" name="ID_TEXT">
+              <size>110,-1</size>
+              <style>wxALIGN_RIGHT</style>
+              <label>Pass&amp;word:</label>
+            </object>
+          </object>
+          <object class="sizeritem">
+            <flag>wxALIGN_CENTER_VERTICAL|wxALL</flag>
+            <border>5</border>
+            <object class="wxTextCtrl" name="MORSECODE_PASSWORD">
+              <size>300,-1</size>
+              <style>wxTE_PASSWORD</style>
+              <value></value>
+            </object>
+          </object>
+          <object class="sizeritem">
+            <flag>wxALIGN_CENTER|wxALL</flag>
+            <border>5</border>
+            <object class="wxStaticText" name="ID_TEXT">
+              <size>110,-1</size>
+              <style>wxALIGN_RIGHT</style>
+              <label>Po&amp;rt:</label>
+            </object>
+          </object>
+          <object class="sizeritem">
+            <flag>wxALIGN_CENTER_VERTICAL|wxALL</flag>
+            <object class="wxBoxSizer">
+              <orient>wxHORIZONTAL</orient>
+              <object class="sizeritem">
+                <flag>wxALIGN_CENTER|wxALL</flag>
+                <border>5</border>
+                <object class="wxTextCtrl" name="MORSECODE_PORT">
+                  <size>60,-1</size>
+                  <value></value>
+                </object>
+              </object>
+              <object class="sizeritem">
+                <flag>wxALIGN_CENTER|wxALL</flag>
+                <border>5</border>
+                <object class="wxCheckBox" name="MORSECODE_USE_SSL">
                   <label>Use SSL</label>
                 </object>
               </object>

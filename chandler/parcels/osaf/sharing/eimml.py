@@ -31,30 +31,44 @@ def serializeValue(typeinfo, value):
 
 @serializeValue.when_type(eim.BytesType)
 def serialize_bytes(typeinfo, value):
+    if value is None:
+        return None, "bytes"
     return base64.b64encode(value), "bytes"
 
 @serializeValue.when_type(eim.IntType)
 def serialize_int(typeinfo, value):
+    if value is None:
+        return None, "integer"
     return str(value), "integer"
 
 @serializeValue.when_type(eim.TextType)
 def serialize_text(typeinfo, value):
+    if value is None:
+        return None, "text"
     return value, "text"
 
 @serializeValue.when_type(eim.BlobType)
 def serialize_blob(typeinfo, value):
+    if value is None:
+        return None, "blob"
     return base64.b64encode(value), "blob"
 
 @serializeValue.when_type(eim.ClobType)
 def serialize_clob(typeinfo, value):
+    if value is None:
+        return None, "clob"
     return value, "clob"
 
 @serializeValue.when_type(eim.DateType)
 def serialize_date(typeinfo, value):
+    if value is None:
+        return None, "datetime"
     return value.isoformat(), "datetime"
 
 @serializeValue.when_type(eim.DecimalType)
 def serialize_decimal(typeinfo, value):
+    if value is None:
+        return None, "decimal"
     return str(value), "decimal"
 
 
@@ -129,11 +143,8 @@ class EIMMLSerializer(object):
                             continue
 
                         else:
-                            if value is not None:
-                                serialized, typeName = serializeValue(
-                                    field.typeinfo, record[field.offset])
-                            else:
-                                serialized = typeName = None
+                            serialized, typeName = serializeValue(
+                                    field.typeinfo, value)
 
                             if isinstance(field, eim.key):
                                 attrs = { keyURI : 'true' }

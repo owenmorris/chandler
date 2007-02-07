@@ -62,7 +62,7 @@ Serialize and deserialize entire record sets using EIMMLSerializerLite::
     ... xmlns:note="http://osafoundation.org/eim/note">
     ... <eim:recordset uuid="8501de14-1dc9-40d4-a7d4-f289feff8214">
     ...    <item:record uuid="8501de14-1dc9-40d4-a7d4-f289feff8214" title="Welcome to Cosmo" triageStatus="now" triageStatusChanged="123456789.12" lastModifiedBy="foo@example.com" createdOn="1164803131" />
-    ...    <note:record uuid="8501de14-1dc9-40d4-a7d4-f289feff8214" body="This is the body" icaluid="1e2d48c0-d66b-494c-bb33-c3d75a1ba66b" reminderTime="1169163900" />
+    ...    <note:record uuid="8501de14-1dc9-40d4-a7d4-f289feff8214" body="This is the body" icalUid="1e2d48c0-d66b-494c-bb33-c3d75a1ba66b" reminderTime="1169163900" />
     ...    <event:record uuid="8501de14-1dc9-40d4-a7d4-f289feff8214" dtstart="20061130T140000" dtend="20061130T150000" location="San Jose" rrule="FREQ=WEEKLY" status="CONFIRMED" />
     ... </eim:recordset>
     ... </eim:collection>'''
@@ -103,7 +103,7 @@ Serialize and deserialize entire record sets using EIMMLSerializer::
     ...     <note:record xmlns:note="http://osafoundation.org/eim/note">
     ...       <note:uuid eim:type="text" eim:key="true"><![CDATA[8501de14-1dc9-40d4-a7d4-f289feff8214]]></note:uuid>
     ...       <note:body eim:type="clob"><![CDATA[This is the body]]></note:body>
-    ...       <note:icaluid eim:type="text"><![CDATA[1e2d48c0-d66b-494c-bb33-c3d75a1ba66b]]></note:icaluid>
+    ...       <note:icalUid eim:type="text"><![CDATA[1e2d48c0-d66b-494c-bb33-c3d75a1ba66b]]></note:icalUid>
     ...       <note:reminderTime eim:type="decimal"><![CDATA[1169163900]]></note:reminderTime>
     ...     </note:record>
     ...     <event:record xmlns:event="http://osafoundation.org/eim/event">
@@ -191,7 +191,7 @@ Send a new item::
     ... xmlns:note="http://osafoundation.org/eim/note">
     ... <eim:recordset uuid="9501de14-1dc9-40d4-a7d4-f289feff8214">
     ...    <item:record uuid="9501de14-1dc9-40d4-a7d4-f289feff8214" title="Welcome to Cosmo" triageStatus="now" triageStatusChanged="123456789.12" createdOn ="1164803131" />
-    ...    <note:record uuid="9501de14-1dc9-40d4-a7d4-f289feff8214" body="This is the body" icaluid="1e2d48c0-d66b-494c-bb33-c3d75a1ba66b" reminderTime="1169163900" />
+    ...    <note:record uuid="9501de14-1dc9-40d4-a7d4-f289feff8214" body="This is the body" icalUid="1e2d48c0-d66b-494c-bb33-c3d75a1ba66b" reminderTime="1169163900" />
     ...    <event:record uuid="9501de14-1dc9-40d4-a7d4-f289feff8214" dtstart="20061130T140000" dtend="20061130T150000" rrule="FREQ=WEEKLY" status="CONFIRMED" />
     ... </eim:recordset>
     ... </eim:records>'''

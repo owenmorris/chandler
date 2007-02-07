@@ -62,7 +62,7 @@ class TestCreateAccounts(ChandlerTestCase):
         ap.SelectValue("security", "SSL")
         ap.SelectValue("protocol", "POP")
 
-        ap.GetDefaultAccount("SHARING")
+        ap.GetDefaultAccount("SHARING_DAV")
         ap.TypeValue("displayName", pWEBDAV)
         ap.TypeValue("host", "osaf.us")
         ap.TypeValue("path", "cosmo/home/demo1")

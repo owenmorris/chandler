@@ -18,7 +18,8 @@ __all__ = [
 ]
 
 from application import schema
-import accounts, conduits, errors, formats, eim, recordset_conduit
+import shares, accounts, conduits, errors, formats, eim, recordset_conduit
+import translator, eimml
 import zanshin
 import urlparse
 import logging
@@ -28,14 +29,55 @@ logger = logging.getLogger(__name__)
 
 class CosmoAccount(accounts.WebDAVAccount):
 
+    # The path attribute we inherit from WebDAVAccount represents the
+    # base path of the Cosmo installation, typically "/cosmo".  The
+    # following attributes store paths relative to WebDAVAccount.path
+
+    pimPath = schema.One(
+        schema.Text,
+        doc = 'Base path on the host to use for the user-facing urls',
+        initialValue = u'pim/collection',
+    )
+
     morsecodePath = schema.One(
         schema.Text,
         doc = 'Base path on the host to use for morsecode publishing',
-        initialValue = u'',
+        initialValue = u'mc/collection',
     )
 
-    # the path attribute we inherit from WebDAVAccount represents the
-    # user-facing URL, typically /cosmo/pim/collection/<uuid>
+    davPath = schema.One(
+        schema.Text,
+        doc = 'Base path on the host to use for DAV publishing',
+        initialValue = u'dav/collection',
+    )
+
+    accountProtocol = schema.One(
+        initialValue = 'Morsecode',
+    )
+
+    accountType = schema.One(
+        initialValue = 'SHARING_MORSECODE',
+    )
+
+    def publish(self, collection, updateCallback=None):
+        rv = self.itsView
+
+        share = shares.Share(itsView=rv, contents=collection)
+        shareName = collection.itsUUID.str16()
+        conduit = CosmoConduit(itsParent=share, shareName=shareName,
+            account=self,
+            translator=translator.PIMTranslator,
+            serializer=eimml.EIMMLSerializer)
+        share.conduit = conduit
+
+        try:
+            share.put(updateCallback=updateCallback)
+        except:
+            # Clean up the Share
+            share.delete(True)
+            raise
+
+        return [share]
 
 
 class CosmoConduit(recordset_conduit.RecordSetConduit, conduits.HTTPMixin):
@@ -52,6 +94,9 @@ class CosmoConduit(recordset_conduit.RecordSetConduit, conduits.HTTPMixin):
         location = self.getMorsecodeLocation()
 
         resp = self._send('GET', location)
+        if resp.status != 200:
+            # TODO: Fix error message
+            raise errors.SharingError("HTTP error %d" % resp.status)
 
         syncTokenHeaders = resp.headers.getHeader('X-MorseCode-SyncToken')
         if syncTokenHeaders:
@@ -70,6 +115,9 @@ class CosmoConduit(recordset_conduit.RecordSetConduit, conduits.HTTPMixin):
             method = 'PUT'
 
         resp = self._send(method, location, text)
+        if resp.status not in (201, 204):
+            # TODO: Fix error message
+            raise errors.SharingError("HTTP error %d" % resp.status)
 
         syncTokenHeaders = resp.headers.getHeader('X-MorseCode-SyncToken')
         if syncTokenHeaders:
@@ -79,6 +127,7 @@ class CosmoConduit(recordset_conduit.RecordSetConduit, conduits.HTTPMixin):
 
 
     def _send(self, methodName, path, body=None):
+        # Caller must check resp.status themselves
 
         handle = self._getServerHandle()
 
@@ -93,13 +142,60 @@ class CosmoConduit(recordset_conduit.RecordSetConduit, conduits.HTTPMixin):
         try:
             return handle.blockUntil(handle.addRequest, request)
 
-            # @@@MOR Should I check the response.status here or in the caller?
-
         except zanshin.webdav.ConnectionError, err:
             raise errors.CouldNotConnect(_(u"Unable to connect to server. Received the following error: %(error)s") % {'error': err})
 
         except M2Crypto.BIO.BIOError, err:
             raise errors.CouldNotConnect(_(u"Unable to connect to server. Received the following error: %(error)s") % {'error': err})
+
+
+    def getLocation(self, privilege=None):
+        """
+        Return the user-facing url of the share
+        """
+
+        (host, port, path, username, password, useSSL) = \
+            self._getSettings()
+        if useSSL:
+            scheme = u"https"
+            defaultPort = 443
+        else:
+            scheme = u"http"
+            defaultPort = 80
+
+        if port == defaultPort:
+            url = u"%s://%s" % (scheme, host)
+        else:
+            url = u"%s://%s:%d" % (scheme, host, port)
+        if self.shareName == '':
+            url = urlparse.urljoin(url, path)
+        else:
+            url = urlparse.urljoin(url, path + "/")
+            url = urlparse.urljoin(url, self.shareName)
+
+        if privilege == 'readonly':
+            if self.ticketReadOnly:
+                url = url + u"?ticket=%s" % self.ticketReadOnly
+        elif privilege == 'readwrite':
+            if self.ticketReadWrite:
+                url = url + u"?ticket=%s" % self.ticketReadWrite
+        elif privilege == 'subscribed':
+            if self.ticket:
+                url = url + u"?ticket=%s" % self.ticket
+
+        return url
+
+    def _getSettings(self):
+        if self.account is None:
+            return (self.host, self.port, self.sharePath.strip("/"),
+                    self.username, self.password, self.useSSL)
+        else:
+            path = self.account.path.strip("/") + "/" + self.account.pimPath
+            return (self.account.host, self.account.port,
+                    path.strip("/"),
+                    self.account.username, self.account.password,
+                    self.account.useSSL)
+
 
 
     def getMorsecodeLocation(self, privilege=None):
@@ -144,8 +240,9 @@ class CosmoConduit(recordset_conduit.RecordSetConduit, conduits.HTTPMixin):
             return (self.host, self.port, self.morsecodePath.strip("/"),
                     self.username, self.password, self.useSSL)
         else:
+            path = self.account.path.strip("/") + "/" + self.account.morsecodePath
             return (self.account.host, self.account.port,
-                    self.account.morsecodePath.strip("/"),
+                    path.strip("/"),
                     self.account.username, self.account.password,
                     self.account.useSSL)
 

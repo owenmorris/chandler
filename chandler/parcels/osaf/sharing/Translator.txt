@@ -81,7 +81,7 @@ Importing:
     >>> rec = sharing.model.NoteRecord(
     ...         uuid='f230dcd4-7c32-4c3f-908b-d92081cc9a89',
     ...         body='This is the body',
-    ...         icaluid=None,
+    ...         icalUid=None,
     ...         reminderTime=None
     ... )
 

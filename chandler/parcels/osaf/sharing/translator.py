@@ -186,10 +186,15 @@ class PIMTranslator(eim.Translator):
         else:
             body = record.body
 
+        if record.icalUid is None:
+            icalUID = eim.NoChange
+        else:
+            icalUID = record.icalUid
+
         self.loadItemByUUID(
             record.uuid,
             pim.Note,
-            icaluid=record.icaluid,
+            icalUID=icalUID,
             body=body
         )
 
@@ -198,7 +203,7 @@ class PIMTranslator(eim.Translator):
         yield model.NoteRecord(
             item.itsUUID,                               # uuid
             item.body,                                  # body
-            getattr(item, "icaluid", None),             # icaluid
+            getattr(item, "icalUID", None),             # icalUid
             None                                        # reminderTime
         )
 

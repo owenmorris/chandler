@@ -284,47 +284,91 @@ PANELS = {
         "callbacks" : (("OUTGOING_DISCOVERY", "OnOutgoingDiscovery"),),
         "messages" : ("OUTGOING_MESSAGE",),
     },
-    "SHARING" : {
+    "SHARING_DAV" : {
         "fields" : {
-            "SHARING_DESCRIPTION" : {
+            "DAV_DESCRIPTION" : {
                 "attr" : "displayName",
                 "type" : "string",
                 "required" : True,
                 "default": _(u"New Sharing Account"),
             },
-            "SHARING_SERVER" : {
+            "DAV_SERVER" : {
                 "attr" : "host",
                 "type" : "string",
             },
-            "SHARING_PATH" : {
+            "DAV_PATH" : {
                 "attr" : "path",
                 "type" : "string",
             },
-            "SHARING_USERNAME" : {
+            "DAV_USERNAME" : {
                 "attr" : "username",
                 "type" : "string",
             },
-            "SHARING_PASSWORD" : {
+            "DAV_PASSWORD" : {
                 "attr" : "password",
                 "type" : "string",
             },
-            "SHARING_PORT" : {
+            "DAV_PORT" : {
                 "attr" : "port",
                 "type" : "integer",
                 "default": 80,
                 "required" : True,
             },
-            "SHARING_USE_SSL" : {
+            "DAV_USE_SSL" : {
                 "attr" : "useSSL",
                 "type" : "boolean",
                 "linkedTo" :
-                        ("SHARING_PORT", { True:"443", False:"80" }),
+                        ("DAV_PORT", { True:"443", False:"80" }),
             },
         },
-        "id" : "SHARINGPanel",
+        "id" : "DAVPanel",
         "deleteHandler" : SharingDeleteHandler,
-        "displayName" : "SHARING_DESCRIPTION",
+        "displayName" : "DAV_DESCRIPTION",
         "description" : _(u"Sharing"),
+        "messages" : ("SHARING_MESSAGE", "SHARING_MESSAGE2"),
+    },
+    "SHARING_MORSECODE" : {
+        "fields" : {
+            "MORSECODE_DESCRIPTION" : {
+                "attr" : "displayName",
+                "type" : "string",
+                "required" : True,
+                "default": _(u"New Experimental Cosmo Account"),
+            },
+            "MORSECODE_SERVER" : {
+                "attr" : "host",
+                "type" : "string",
+            },
+            "MORSECODE_PATH" : {
+                "attr" : "path",
+                "type" : "string",
+                "default": "/cosmo",
+            },
+            "MORSECODE_USERNAME" : {
+                "attr" : "username",
+                "type" : "string",
+            },
+            "MORSECODE_PASSWORD" : {
+                "attr" : "password",
+                "type" : "string",
+            },
+            "MORSECODE_PORT" : {
+                "attr" : "port",
+                "type" : "integer",
+                "default": 80,
+                "required" : True,
+            },
+            "MORSECODE_USE_SSL" : {
+                "attr" : "useSSL",
+                "type" : "boolean",
+                "linkedTo" :
+                        ("MORSECODE_PORT", { True:"443", False:"80" }),
+            },
+        },
+        "id" : "MORSECODEPanel",
+        "deleteHandler" : SharingDeleteHandler,
+        "displayName" : "MORSECODE_DESCRIPTION",
+        "description" : _(u"Sharing (Experimental)"),
         "messages" : ("SHARING_MESSAGE", "SHARING_MESSAGE2"),
     },
 }
@@ -465,7 +509,7 @@ class AccountPreferencesDialog(wx.Dialog):
             ns_pim = schema.ns('osaf.pim', item.itsView)
             isCurrent = item == ns_pim.currentSMTPAccount.item
 
-        elif item.accountType == "SHARING":
+        elif item.accountType in ("SHARING_DAV", "SHARING_MORSECODE"):
             sharing_ns = schema.ns('osaf.sharing', item.itsView)
             isCurrent = item == sharing_ns.currentWebDAVAccount.item
 
@@ -591,6 +635,9 @@ class AccountPreferencesDialog(wx.Dialog):
 
                 elif account['protocol'] == "WebDAV":
                     item = sharing.WebDAVAccount(itsView=self.rv)
+
+                elif account['protocol'] == "Morsecode":
+                    item = sharing.CosmoAccount(itsView=self.rv)
 
             values = account['values']
             panel = PANELS[account['type']]
@@ -1072,7 +1119,7 @@ class AccountPreferencesDialog(wx.Dialog):
             buf.append("username: %s" % item.username)
             buf.append("password: %s" % item.password)
 
-            if item.accountType == "SHARING":
+            if item.accountType in ("SHARING_DAV", "SHARING_MORSECODE"):
                 buf.append("useSSL: %s" % item.useSSL)
                 buf.append("path: %s" % item.path)
 
@@ -1300,10 +1347,14 @@ class AccountPreferencesDialog(wx.Dialog):
             item = Mail.SMTPAccount(itsView=self.rv)
             a = _(u"New Outgoing Account")
             p = "SMTP"
-        elif accountType == "SHARING":
+        elif accountType == "SHARING_DAV":
             item = sharing.WebDAVAccount(itsView=self.rv)
             a = _(u"New Sharing Account")
             p = "WebDAV"
+        elif accountType == "SHARING_MORSECODE":
+            item = sharing.CosmoAccount(itsView=self.rv)
+            a = _(u"New Experimental Cosmo Account")
+            p = "Morsecode"
 
         item.displayName = a
 
@@ -1365,6 +1416,7 @@ class AccountPreferencesDialog(wx.Dialog):
             self.currentIndex = None
             self.selectAccount(0)
 
+
     def OnTestAccount(self, evt):
         account = self.getSelectedAccount()
 
@@ -1377,8 +1429,11 @@ class AccountPreferencesDialog(wx.Dialog):
             self.OnTestIncoming()
         elif account.accountType  == "OUTGOING":
             self.OnTestOutgoing()
-        elif account.accountType  == "SHARING":
-            self.OnTestSharing()
+        elif account.accountType  == "SHARING_DAV":
+            self.OnTestSharingDAV()
+        elif account.accountType  == "SHARING_MORSECODE":
+            pass
+            # TODO: implement Morsecode test
         else:
             # If this code is reached then there is a
             # bug which needs to be fixed.
@@ -1550,7 +1605,7 @@ class AccountPreferencesDialog(wx.Dialog):
 
         MailTestDialog(account)
 
-    def OnTestSharing(self):
+    def OnTestSharingDAV(self):
         self.__StoreFormData(self.currentPanelType, self.currentPanel,
                              self.data[self.currentIndex]['values'])
 

@@ -69,7 +69,7 @@ class WebDAVAccount(pim.ContentItem):
     )
 
     accountType = schema.One(
-        initialValue = 'SHARING',
+        initialValue = 'SHARING_DAV',
     )
     conduits = schema.Sequence(
         conduits.HTTPMixin,
