@@ -315,7 +315,7 @@ def makeCalendarArea(parcel, oldVersion):
         makeArea(parcel, 'CalendarAllDayArea',
             baseClass=CalendarAllDayAreaBlock,
             childrenBlocks=[
-                makeLabel(parcel, _(u'all-day'), borderTop=4),
+                makeLabel(parcel, _(u'&all-day'), borderTop=4),
                 makeSpacer(parcel, width=allDaySpacerWidth),
                 makeEditor(parcel, 'EditAllDay',
                     viewAttribute=pim.EventStamp.allDay.name,
@@ -325,7 +325,7 @@ def makeCalendarArea(parcel, oldVersion):
     startTimeArea = \
         makeArea(parcel, 'CalendarStartTimeArea',
             childrenBlocks=[
-                makeLabel(parcel, _(u'starts'), borderTop=4),
+                makeLabel(parcel, _(u'sta&rts'), borderTop=4),
                 makeSpacer(parcel, width=8),
                 makeEditor(parcel, 'EditCalendarStartDate',
                     viewAttribute=pim.EventStamp.startTime.name,
@@ -348,7 +348,7 @@ def makeCalendarArea(parcel, oldVersion):
     endTimeArea = \
         makeArea(parcel, 'CalendarEndTimeArea',
             childrenBlocks=[
-                makeLabel(parcel, _(u'ends'), borderTop=4),
+                makeLabel(parcel, _(u'en&ds'), borderTop=4),
                 makeSpacer(parcel, width=8),
                 makeEditor(parcel, 'EditCalendarEndDate',
                     viewAttribute=pim.EventStamp.endTime.name,
@@ -372,7 +372,7 @@ def makeCalendarArea(parcel, oldVersion):
         makeArea(parcel, 'CalendarTimeZoneArea',
             baseClass=CalendarTimeZoneAreaBlock,
             childrenBlocks=[
-                makeLabel(parcel, _(u'time zone')),
+                makeLabel(parcel, _(u'time &zone')),
                 makeSpacer(parcel, width=8),
                 makeEditor(parcel, 'EditTimeZone',
                     baseClass=CalendarTimeZoneAEBlock,
@@ -385,7 +385,7 @@ def makeCalendarArea(parcel, oldVersion):
         makeArea(parcel, 'CalendarTransparencyArea',
             baseClass=CalendarTransparencyAreaBlock,
             childrenBlocks=[
-                makeLabel(parcel, _(u'status')),
+                makeLabel(parcel, _(u'stat&us')),
                 makeSpacer(parcel, width=8),
                 makeEditor(parcel, 'EditTransparency',
                     baseClass=CalendarTransparencyAEBlock,
@@ -404,7 +404,7 @@ def makeCalendarArea(parcel, oldVersion):
         makeArea(parcel, 'CalendarRecurrencePopupArea',
             baseClass=CalendarRecurrencePopupAreaBlock,
             childrenBlocks=[
-                makeLabel(parcel, _(u'occurs')),
+                makeLabel(parcel, _(u'&occurs')),
                 makeSpacer(parcel, width=8),
                 makeEditor(parcel, 'EditRecurrence',
                     viewAttribute=pim.EventStamp.rruleset.name,
@@ -502,7 +502,7 @@ def makeMailArea(parcel, oldVersion):
     toArea = \
         makeArea(parcel, 'ToArea',
             childrenBlocks=[
-                makeLabel(parcel, _(u'to')),
+                makeLabel(parcel, _(u'to')), # XXX "&to" conflicts with Test menu
                 makeSpacer(parcel, width=8),
                 makeEditor(parcel, 'EditMailTo',
                     viewAttribute=MailStamp.toAddress.name,
@@ -513,7 +513,7 @@ def makeMailArea(parcel, oldVersion):
     ccArea = \
         makeArea(parcel, 'CcArea',
             childrenBlocks=[
-                makeLabel(parcel, _(u'cc')),
+                makeLabel(parcel, _(u'cc')), # XXX "&cc" conflicts with Collection menu
                 makeSpacer(parcel, width=8),
                 makeEditor(parcel, 'EditMailCc',
                     viewAttribute=MailStamp.ccAddress.name,
@@ -524,7 +524,7 @@ def makeMailArea(parcel, oldVersion):
         makeArea(parcel, 'BccArea',
             baseClass=OutboundOnlyAreaBlock,
             childrenBlocks=[
-                makeLabel(parcel, _(u'bcc')),
+                makeLabel(parcel, _(u'bcc')), # XXX no conflicts with "&bcc" but still does not work because we mess with the controls
                 makeSpacer(parcel, width=8),
                 makeEditor(parcel, 'EditMailBcc',
                     viewAttribute=MailStamp.bccAddress.name,
@@ -549,7 +549,7 @@ def makeMailArea(parcel, oldVersion):
         makeArea(parcel, 'OutboundFromArea',
             baseClass=OutboundOnlyAreaBlock,
             childrenBlocks=[
-                makeLabel(parcel, _(u'send as')),
+                makeLabel(parcel, _(u'send as')), # XXX "&send as" conflicts with Share menu
                 makeSpacer(parcel, width=8),
                 makeEditor(parcel, 'EditMailOutboundFrom',
                     presentationStyle={'format': 'outbound'},
@@ -752,7 +752,7 @@ def makeNoteSubtree(parcel, oldVersion):
         makeArea(parcel, 'ReminderTypeArea',
             baseClass=ReminderTypeAreaBlock,
             childrenBlocks=[
-                makeLabel(parcel, _(u'alarm'), borderTop=5),
+                makeLabel(parcel, _(u'alar&m'), borderTop=5),
                 makeSpacer(parcel, width=8),
                 makeEditor(parcel, 'EditReminderType',
                     baseClass=ReminderAEBlock,
