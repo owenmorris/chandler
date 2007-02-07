@@ -146,17 +146,18 @@ class EIMMLSerializer(object):
                             serialized, typeName = serializeValue(
                                     field.typeinfo, value)
 
+                            attrs = { }
+                            if typeName is not None:
+                                attrs[typeURI] = typeName
+                            if value == "":
+                                attrs["empty"] = "true"
+
                             if isinstance(field, eim.key):
-                                attrs = { keyURI : 'true' }
-                                if typeName is not None:
-                                    attrs[typeURI] = typeName
+                                attrs[keyURI] = "true"
                                 fieldElement = SubElement(recordElement,
                                     "{%s}%s" % (record.URI, field.name),
                                     **attrs)
                             else:
-                                attrs = { }
-                                if typeName is not None:
-                                    attrs[typeURI] = typeName
                                 fieldElement = SubElement(recordElement,
                                     "{%s}%s" % (record.URI, field.name),
                                     **attrs)
@@ -221,11 +222,15 @@ class EIMMLSerializer(object):
                         for fieldElement in recordElement:
                             ns, name = fieldElement.tag[1:].split("}")
                             if field.name == name:
-                                if fieldElement.text is None:
-                                    value = None
+                                empty = fieldElement.get("empty")
+                                if empty and empty.lower() == "true":
+                                    value = ""
                                 else:
-                                    value = deserializeValue(field.typeinfo,
-                                        fieldElement.text)
+                                    if fieldElement.text is None:
+                                        value = None
+                                    else:
+                                        value = deserializeValue(field.typeinfo,
+                                            fieldElement.text)
                                 break
                         else:
                             value = eim.NoChange

@@ -137,6 +137,17 @@ Serialize and deserialize entire record sets using EIMMLSerializer::
     {'name': 'foo'}
 
 
+Fields with empty strings are serialized with an empty="true" attribute on
+their element::
+
+    >>> records = { '8501de14-1dc9-40d4-a7d4-f289feff8214': rs([sharing.model.NoteRecord('8501de14-1dc9-40d4-a7d4-f289feff8214', '', u'1e2d48c0-d66b-494c-bb33-c3d75a1ba66b', decimal.Decimal('1169163900'))])}
+    >>> text = eimml.EIMMLSerializer.serialize(records)
+    >>> text
+    '<?xml version=\'1.0\' encoding=\'UTF-8\'?><ns0:collection xmlns:ns0="http://osafoundation.org/eim"><ns0:recordset uuid="8501de14-1dc9-40d4-a7d4-f289feff8214"><ns1:record xmlns:ns1="http://osafoundation.org/eim/note"><ns1:uuid ns0:key="true" ns0:type="text">8501de14-1dc9-40d4-a7d4-f289feff8214</ns1:uuid><ns1:body empty="true" ns0:type="clob" /><ns1:icalUid ns0:type="text">1e2d48c0-d66b-494c-bb33-c3d75a1ba66b</ns1:icalUid><ns1:reminderTime ns0:type="decimal">1169163900</ns1:reminderTime></ns1:record></ns0:recordset></ns0:collection>'
+    >>> newRecords, extra = eimml.EIMMLSerializer.deserialize(text)
+    >>> records == newRecords
+    True
+
 Any records in a recordset's exclusions are serialized as deletions::
 
     >>> recordDeletion = { '8501de14-1dc9-40d4-a7d4-f289feff8214': rs(set([]), set([sharing.model.ItemRecord('8501de14-1dc9-40d4-a7d4-f289feff8214', u'Welcome to Cosmo', u'now', decimal.Decimal("123456789.12"), u'foo@example.com', decimal.Decimal("1164803131"))]))}

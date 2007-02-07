@@ -94,6 +94,8 @@ def inbound(peer, text, allowDeletion=False, debug=False):
                     shared.states = []
                 if state not in shared.states:
                     shared.states.append(state, peer.itsUUID.str16())
+        else:
+            logger.info("Ignoring old update for %s", uuid)
 
     else: # Deletion
 
