@@ -35,6 +35,7 @@ wxEventTypes = ["EVT_MENU",
                 "EVT_SCROLLWIN_PAGEDOWN",
                 "EVT_SCROLLWIN_THUMBTRACK",
                 "EVT_SCROLLWIN_THUMBRELEASE",
+                "EVT_CHAR",
 
                 "EVT_ACTIVATE",
                 "EVT_SET_FOCUS",
@@ -103,7 +104,6 @@ class Controller (Block.Block):
         if self.includeTests:
             self.lastFocus = None
 
-
     def onIncludeTestsEventUpdateUI (self, event):
         event.arguments['Check'] = self.includeTests
 
@@ -145,11 +145,7 @@ class Controller (Block.Block):
                     # special case for the MainFramee window
                     name = "MainFrame"
                 else:
-                    # Translate events in wx.Grid's GridWindow to wx.Grid
-                    widgetParent = widget.GetParent()
-                    if isinstance (widgetParent, wx.grid.Grid):
-                        name = widgetParent.blockItem.blockName
-                    elif widget == wx.Window_FindFocus():
+                    if widget == wx.Window_FindFocus():
                         name = "__FocusWindow__"
                     else:
                         # We don't recognize the window, so use it's Id
@@ -215,7 +211,12 @@ class Controller (Block.Block):
                         isinstance (sentToWidget, wx.ToolBar)):
 
                     # Find the name of the block that the event was sent to
-                    sentToName = widgetToName (sentToWidget)
+                    # Translate events in wx.Grid's GridWindow to wx.Grid
+                    widgetParent = sentToWidget.GetParent()
+                    if isinstance (widgetParent, wx.grid.Grid):
+                        sentToName = widgetParent.blockItem.blockName
+                    else:
+                        sentToName = widgetToName (sentToWidget)
                     
                     if type (sentToName) is str:
                         # Save dictionary of properties of the event
@@ -245,13 +246,17 @@ class Controller (Block.Block):
                                         newFocusWindow = valueToString (newFocusWindow)
                                     values.append ('"newFocusWindow":' + newFocusWindow)
 
-                                # Record the state of the last widget so we can check
-                                # that the state is the same afer the event is played back
-                                lastSentToWidget = getattr (self, "lastSentToWidget", None)
-                                if lastSentToWidget is not None:
-                                    method = getattr (lastSentToWidget, "GetValue", None)
-                                    if method is not None:
-                                        values.append ('"lastWidgetValue":' + valueToString (method()))
+                                #  Record the state of the last widget so we can check that the state is the same
+                                # afer the event is played back
+                                #  Don't record the last state for EVT_CHAR events. They happen before the previous
+                                # key down event is processed. This causes problems with verification when key down
+                                # events are processed before EVT_CHAR events during playback.
+                                if event.GetEventType() != wx.EVT_CHAR.evtType[0]:
+                                    lastSentToWidget = getattr (self, "lastSentToWidget", None)
+                                    if lastSentToWidget is not None:
+                                        method = getattr (lastSentToWidget, "GetValue", None)
+                                        if method is not None:
+                                            values.append ('"lastWidgetValue":' + valueToString (method()))
 
                                         
                             properties = "{" + ", ".join (values) + "}"

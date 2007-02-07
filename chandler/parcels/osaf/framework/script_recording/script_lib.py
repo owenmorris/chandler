@@ -102,7 +102,7 @@ def ProcessEvent (theClass, properties , attributes):
         if lastSentToWidget is not None:
             method = getattr (lastSentToWidget, "GetValue", None)
             lastWidgetValue = properties.get ("lastWidgetValue", None)
-            if method is not None:
+            if lastWidgetValue is not None and method is not None:
                 value = method()
                 assert value == lastWidgetValue, "widget's value doesn't match the value when the script was recorded"
             else:
@@ -111,17 +111,26 @@ def ProcessEvent (theClass, properties , attributes):
     if not sentToWidget.ProcessEvent (event):
         # Special case key downs
         if eventType is wx.EVT_KEY_DOWN:
-            # Try EmulateKeyPress
-            EmulateKeyPress = getattr(sentToWidget, 'EmulateKeyPress', None)
-            if EmulateKeyPress is not None:
-                EmulateKeyPress (event)
-            else:
-                # If that doesn't work try WriteText
-                writeMethod = getattr(sentToWidget, 'WriteText', None)
-                if writeMethod is not None:
-                    writeMethod (str(chr(event.GetKeyCode())))
-                else:
-                    assert False, "wx.EVT_KEY_DOWN failed"
+            # EmulateKeyPress isn't implemented correctly on for non-windows platform. So for now
+            # we'll special case the grid case and send the event to the gridWindow.
+            # Eventually, it would be nice to spend some time investigating how to implement
+            # EmulateKeyPress correctly on non-windows platforms.
+            processed = False
+            if ('__WXMSW__' not in wx.PlatformInfo and
+                event.m_keyCode in set ([wx.WXK_ESCAPE, wx.WXK_TAB, wx.WXK_RETURN, wx.WXK_NUMPAD_ENTER])):
+                gridWindow = sentToWidget.GetParent()
+                if (gridWindow is not None and
+                    isinstance (gridWindow.GetParent(), wx.grid.Grid)):
+                    event.SetEventObject (gridWindow)
+                    gridWindow.ProcessEvent (event)
+                    processed = True
+
+            if not processed:
+                # Try EmulateKeyPress
+                EmulateKeyPress = getattr(sentToWidget, 'EmulateKeyPress', None)
+                if EmulateKeyPress is not None:
+                    EmulateKeyPress (event)
+
         elif eventType is wx.EVT_CHECKBOX:
             widget.SetValue(not widget.GetValue())
 
