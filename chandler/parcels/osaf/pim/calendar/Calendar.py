@@ -1572,7 +1572,6 @@ class EventStamp(Stamp):
                 self.recurrenceID = self.effectiveStartTime
                 if attr == EventStamp.rruleset.name: # rule change, thus a destructive change
                     oldReminders = list(self.itsItem.reminders)
-                    self.itsItem.reminders.clear()
                     newReminders = []
                     for rem in oldReminders:
                         # Convert absolute-time reminders to delta-time ones
@@ -1587,6 +1586,8 @@ class EventStamp(Stamp):
                             )
                         newReminders.append(newReminder)
                         rem.delete(recursive=True)
+                        
+                    self.itsItem.reminders.clear()
                     self.itsItem.reminders = newReminders
 
             else:

@@ -186,3 +186,39 @@ Exporting:
     >>> records = [r for r in t.exportItem(item) if isinstance(r, sharing.model.EventRecord)]
     >>> records
     [EventRecord('f230dcd4-7c32-4c3f-908b-d92081cc9a89', u';VALUE=DATE-TIME;TZID=US/Pacific:20070201T140000', u';VALUE=DATE-TIME;TZID=US/Pacific:20070201T150000', u'Nowhere', None, None, None, None, u'fyi')]
+
+Recurrence
+- - - - -
+    
+    >>> new_rec = sharing.model.EventRecord(
+    ...             uuid='f230dcd4-7c32-4c3f-908b-d92081cc9a89',
+    ...             dtstart = rec.dtstart,
+    ...             dtend = rec.dtend,
+    ...             location = rec.location,
+    ...             rrule = 'FREQ=WEEKLY;COUNT=5;BYDAY=TU,TH',
+    ...             exrule = None,
+    ...             rdate = ';VALUE=DATE-TIME;TZID=US/Pacific:20070223T140000,20070225T140000',
+    ...             exdate = ';VALUE=DATE-TIME;TZID=US/Pacific:20070206T140000',
+    ...             status = rec.status,
+    ... )
+    
+    >>> rs = sharing.RecordSet([new_rec])
+
+    >>> t.startImport()
+    >>> t.importRecords(rs)
+    >>> t.finishImport()
+    
+    >>> [i.day for i in event.createDateUtilFromRule()]
+    [1, 8, 13, 15, 23, 25]
+    
+    >>> t.startExport()
+    >>> records = [r for r in t.exportItem(item) if isinstance(r, sharing.model.EventRecord)]
+    >>> record = records[0]
+    >>> record.rrule
+    u'FREQ=WEEKLY;COUNT=5;BYDAY=TU,TH'
+    >>> record.exrule is None
+    True
+    >>> record.rdate
+    u';VALUE=DATE-TIME;TZID=US/Pacific:20070223T140000,20070225T140000'
+    >>> record.exdate
+    u';VALUE=DATE-TIME;TZID=US/Pacific:20070206T140000'
