@@ -534,13 +534,6 @@ class AccountPreferencesDialog(wx.Dialog):
         #default.
         delButton.Enable(not isCurrent)
 
-        # The Morse Code Sharing feature does not yet have
-        # an account test framework in place so disable
-        # the test button.
-        testButton = wx.xrc.XRCCTRL(self, "ACCOUNT_TEST")
-        hasTest = not item.accountType == "SHARING_MORSECODE"
-
-        testButton.Enable(hasTest)
 
     def __PopulateAccountsList(self, account):
         """ Find all account items and put them in the list; also build
@@ -1455,8 +1448,7 @@ class AccountPreferencesDialog(wx.Dialog):
         elif account.accountType  == "SHARING_DAV":
             self.OnTestSharingDAV()
         elif account.accountType  == "SHARING_MORSECODE":
-            pass
-            # TODO: implement Morsecode test
+            self.OnTestSharingMorsecode()
         else:
             # If this code is reached then there is a
             # bug which needs to be fixed.
@@ -1662,6 +1654,41 @@ class AccountPreferencesDialog(wx.Dialog):
 
         SharingTestDialog(displayName, host, port, path, username,
                           password, useSSL, self.rv)
+
+    def OnTestSharingMorsecode(self):
+        self.__StoreFormData(self.currentPanelType, self.currentPanel,
+                             self.data[self.currentIndex]['values'])
+
+        data = self.data[self.currentIndex]['values']
+
+        displayName = data["MORSECODE_DESCRIPTION"]
+        host = data['MORSECODE_SERVER']
+        port = data['MORSECODE_PORT']
+        path = data['MORSECODE_PATH']
+        username = data['MORSECODE_USERNAME']
+        password = data['MORSECODE_PASSWORD']
+        useSSL = data['MORSECODE_USE_SSL']
+
+        error = False
+
+        if len(host.strip()) == 0 or \
+           len(username.strip()) == 0 or \
+           len(password.strip()) == 0 or \
+           len(path.strip()) == 0:
+
+           error = True
+
+        try:
+            # Test that the port value is an integer
+            int(port)
+        except:
+            error = True
+
+        if error:
+            return alertError(FIELDS_REQUIRED_TWO)
+
+        SharingTestDialog(displayName, host, port, path, username,
+                          password, useSSL, self.rv, morsecode=True)
 
     def OnAccountSel(self, evt):
         # Huh? This is always False!

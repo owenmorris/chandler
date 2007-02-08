@@ -19,7 +19,7 @@ from PyICU import ICUtzinfo
 from application import schema, dialogs
 from application.Parcel import Reference
 from application.Utility import getDesktopDir, CertificateVerificationError
-from osaf import pim
+from osaf import pim, ChandlerException
 from osaf.pim import isDead, has_stamp
 from osaf.pim.calendar import Calendar
 from osaf.pim.collections import (UnionCollection, DifferenceCollection,
@@ -291,15 +291,19 @@ class BackgroundSyncHandler:
                     _clearError(share)
 
                 except Exception, e:
-                    # print "Exception", e
                     logger.exception("Error syncing collection")
-                    if hasattr(e, 'message'): # Sharing error
-                        msg = e.message
+
+                    if isinstance(e, ChandlerException):
+                        extended = brief = e.message
+                        if e.debugMessage is not None:
+                            extended = "%s %s" % (brief, e.debugMessage)
                     else:
-                        msg = str(e)
-                    _setError(share, msg)
-                    stats.extend( { 'collection' : share.contents.itsUUID,
-                                    'error' : msg } )
+                        extended = brief = str(e)
+
+                    _setError(share, brief)
+
+                    stats.extend( [ { 'collection' : share.contents.itsUUID,
+                                    'error' : extended } ] )
 
         except: # Failed to sync at least one collection; continue on
             logger.exception("Background sync error")

@@ -568,14 +568,21 @@ def getDAVInfo(url, username=None, password=None):
 
         if not cups.privileges:
             ticketInfoNodes = getTicketInfoNodes(resp.body)
-            for node in ticketInfoNodes:
-                ticket = Ticket.parse(node)
-                for privName, value in ticket.privileges.iteritems():
-                    # the ticket privileges dictionary currently doesn't
-                    # have the flexibility to handle namespaces, that should
-                    # probably be added.
-                    if value and (privName, "DAV:") not in cups.privileges:
-                        cups.privileges.append((privName, "DAV:"))
+            if ticketInfoNodes:
+                for node in ticketInfoNodes:
+                    ticket = Ticket.parse(node)
+                    for privName, value in ticket.privileges.iteritems():
+                        # the ticket privileges dictionary currently doesn't
+                        # have the flexibility to handle namespaces, that should
+                        # probably be added.
+                        if value and (privName, "DAV:") not in cups.privileges:
+                            cups.privileges.append((privName, "DAV:"))
+            else:
+                # As Indiana Jones would say, "No ticket".
+                # If the username was provided, and we got this far, then
+                # the username and password is valid.  Assume we have read
+                # and write permission
+                cups.privileges.extend([('write', 'DAV:'), ('read', 'DAV:')])
 
         logger.debug("inspect getDAVinfo cups.privileges: %s", cups.privileges)
         for priv in (('read', "DAV:"), ('write', "DAV:"),

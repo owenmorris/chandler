@@ -40,10 +40,28 @@ class RecordSetConduit(conduits.BaseConduit):
     def sync(self, modeOverride=None, updateCallback=None, forceUpdate=None,
         debug=False):
 
+        rv = self.itsView
+
+        try:
+            stats = self._sync(modeOverride=modeOverride,
+                updateCallback=updateCallback, forceUpdate=forceUpdate,
+                debug=debug)
+
+            rv.commit() # TODO: repo merge function here?
+
+        except:
+            logger.exception("Sharing Error")
+            rv.cancel() # Discard any changes we made
+            raise
+
+        return stats
+
+
+    def _sync(self, modeOverride=None, updateCallback=None, forceUpdate=None,
+        debug=False):
+
         # TODO: handle mode=get
         # TODO: private items
-        # TODO: use remote collection uuid locally when creating collection
-        # TODO: send local collection name and uuid
 
         if debug: print " ================ start of sync ================= "
 
@@ -51,9 +69,9 @@ class RecordSetConduit(conduits.BaseConduit):
 
         stats = []
         receiveStats = { 'share' : self.share.itsUUID, 'op' : 'get',
-            'added' : [], 'modified' : [], 'removed' : [] }
+            'added' : set(), 'modified' : set(), 'removed' : set() }
         sendStats = { 'share' : self.share.itsUUID, 'op' : 'put',
-            'added' : [], 'modified' : [], 'removed' : [] }
+            'added' : set(), 'modified' : set(), 'removed' : set() }
 
         send = self.share.mode in ('put', 'both')
         receive = self.share.mode in ('get', 'both')
@@ -176,7 +194,7 @@ class RecordSetConduit(conduits.BaseConduit):
                 uuid = item.itsUUID.str16()
                 localItems.add(uuid)
                 if not self.hasState(uuid):
-                    sendStats['added'].append(uuid)
+                    sendStats['added'].add(uuid)
                 if uuid in remotelyRemoved:
                     # This remotely removed item was modified locally.
                     # We are going to send the whole item back out.
@@ -219,7 +237,7 @@ class RecordSetConduit(conduits.BaseConduit):
             if send and dSend:
                 toSend[uuid] = dSend
                 if uuid not in sendStats['added']:
-                    sendStats['modified'].append(uuid)
+                    sendStats['modified'].add(uuid)
             if receive and dApply:
                 toApply[uuid] = dApply
 
@@ -231,9 +249,9 @@ class RecordSetConduit(conduits.BaseConduit):
                 if debug: print "Applying:", uuid, rs
                 translator.importRecords(rs)
                 if uuid in remotelyAdded:
-                    receiveStats['added'].append(uuid)
+                    receiveStats['added'].add(uuid)
                 else:
-                    receiveStats['modified'].append(uuid)
+                    receiveStats['modified'].add(uuid)
 
 
             # Make sure any items that came in are added to the collection
@@ -255,7 +273,7 @@ class RecordSetConduit(conduits.BaseConduit):
                     self.share.contents.remove(item)
                     self.removeState(uuid)
                     self.share.removeSharedItem(item)
-                    receiveStats['removed'].append(uuid)
+                    receiveStats['removed'].add(uuid)
                     if debug: print "Locally removing item:", uuid
 
 
@@ -271,7 +289,7 @@ class RecordSetConduit(conduits.BaseConduit):
                 uuid not in remotelyRemoved):
                 if send:
                     toSend[uuid] = None
-                    sendStats['removed'].append(uuid)
+                    sendStats['removed'].add(uuid)
                 self.removeState(uuid)
                 self.share.removeSharedItem(item)
                 if debug: print "Remotely removing item:", uuid
@@ -297,8 +315,12 @@ class RecordSetConduit(conduits.BaseConduit):
 
         if debug: print " ================== end of sync ================= "
 
-        if receive: stats.append(receiveStats)
-        if send: stats.append(sendStats)
+        if receive:
+            receiveStats['applied'] = toApply
+            stats.append(receiveStats)
+        if send:
+            sendStats['sent'] = toSend
+            stats.append(sendStats)
         return stats
 
 

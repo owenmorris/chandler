@@ -96,7 +96,8 @@ class CosmoConduit(recordset_conduit.RecordSetConduit, conduits.HTTPMixin):
         resp = self._send('GET', location)
         if resp.status != 200:
             # TODO: Fix error message
-            raise errors.SharingError("HTTP error %d" % resp.status)
+            raise errors.SharingError("HTTP error %d" % resp.status,
+                debugMessage="Sent [%s], Received [%s]" % (text, resp.body))
 
         syncTokenHeaders = resp.headers.getHeader('X-MorseCode-SyncToken')
         if syncTokenHeaders:
@@ -117,7 +118,8 @@ class CosmoConduit(recordset_conduit.RecordSetConduit, conduits.HTTPMixin):
         resp = self._send(method, location, text)
         if resp.status not in (201, 204):
             # TODO: Fix error message
-            raise errors.SharingError("HTTP error %d" % resp.status)
+            raise errors.SharingError("HTTP error %d" % resp.status,
+                debugMessage="Sent [%s], Received [%s]" % (text, resp.body))
 
         syncTokenHeaders = resp.headers.getHeader('X-MorseCode-SyncToken')
         if syncTokenHeaders:

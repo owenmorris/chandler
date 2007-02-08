@@ -447,3 +447,62 @@ class WebDAVTester(object):
 
         # Success!
         return callMethodInUIThread(callback, (1, (READ_WRITE, None)))
+
+
+class MorsecodeTester(object):
+    def __init__(self, host=None, port=None, path=None, username=None,
+                 password=None, useSSL=False, repositoryView=None):
+
+       self.host = host
+       self.port = port
+       self.path = path
+       self.username = username
+       self.password = password
+       self.useSSL = useSSL
+       self.view = repositoryView
+
+       self.cancel  = False
+
+    def cancelLastRequest(self):
+        self.cancel = True
+
+    def testAccountSettings(self, callback, reconnect, blocking=False):
+        if blocking:
+            return self._testAccountSettings(callback, reconnect)
+
+        # don't block the current thread
+        t = threading.Thread(target=self._testAccountSettings,
+              args=(callback, reconnect))
+
+        t.start()
+
+    def _testAccountSettings(self, callback, reconnect):
+        handle = TestChandlerServerHandle(self.host,
+                                          self.port,
+                                          self.username,
+                                          self.password,
+                                          self.useSSL,
+                                          self.view, reconnect)
+
+        self.path = "/" + self.path.strip("/")
+        usdPath = "%s/cmp/user/%s/service" % (self.path, self.username)
+
+        request = zanshin.http.Request("GET", usdPath, { }, None)
+
+        statusCode, result = handle.execCommand(handle.addRequest, request)
+
+        if self.cancel:
+            return
+
+        if statusCode != 1:
+            # If the request failed or the cert dialog was displayed
+            # then report back to the caller and return
+            return callMethodInUIThread(callback, (statusCode, result))
+
+        if result.status == 200:
+            # Success!
+            return callMethodInUIThread(callback,
+                (1, (READ_WRITE, None)))
+        else:
+            return callMethodInUIThread(callback,
+                (0, (NO_ACCESS, result.status)))

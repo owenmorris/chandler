@@ -17,7 +17,7 @@ from application import Globals
 from i18n import ChandlerMessageFactory as _
 from osaf.mail import constants, autodetect
 from osaf.sharing import accounts
-from osaf.sharing.WebDAV import WebDAVTester
+from osaf.sharing.WebDAV import WebDAVTester, MorsecodeTester
 from osaf.sharing import WebDAV
 from osaf.pim.mail import IMAPAccount, IMAPFolder
 
@@ -89,7 +89,7 @@ class SharingTestDialog(ProgressDialog):
 
     def __init__(self, displayName=None, host=None, port=None,
                  path=None, username=None, password=None,
-                 useSSL=False, view=None):
+                 useSSL=False, view=None, morsecode=False):
 
         self.displayName = displayName
         self.host = host
@@ -99,6 +99,7 @@ class SharingTestDialog(ProgressDialog):
         self.password = password
         self.useSSL = useSSL
         self.view = view
+        self.morsecode = morsecode
 
         self.sharingInstance = None
 
@@ -116,7 +117,10 @@ class SharingTestDialog(ProgressDialog):
         v  = self.view
 
         if self.sharingInstance == None:
-            self.sharingInstance = WebDAVTester(h, p, pa, u, ps, s, v)
+            if self.morsecode:
+                self.sharingInstance = MorsecodeTester(h, p, pa, u, ps, s, v)
+            else:
+                self.sharingInstance = WebDAVTester(h, p, pa, u, ps, s, v)
 
         reconnect = lambda: SharingTestDialog(d, h, p, pa, u, ps, s, v)
 
