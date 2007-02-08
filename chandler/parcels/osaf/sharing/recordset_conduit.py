@@ -283,8 +283,8 @@ class RecordSetConduit(conduits.BaseConduit):
             # TODO: send the real collection's uuid
             text = self.serializer.serialize(toSend, rootName="collection",
                 uuid=self.share.contents.itsUUID.str16())
+            if debug: print "Sending text:", text
             self.put(text)
-            if debug: print "Sent text:", text
         else:
             if debug: print "Nothing to send"
 

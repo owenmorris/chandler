@@ -430,6 +430,10 @@ class PIMTranslator(eim.Translator):
 
         rrule, exrule, rdate, exdate = getRecurrenceFields(event)
 
+        transparency = str(event.transparency).upper()
+        if transparency == "FYI":
+            transparency = "CANCELLED"
+
         yield model.EventRecord(
             event.itsItem.itsUUID,                      # uuid
             toICalendarDateTime(event.startTime, event.allDay, event.anyTime),
@@ -439,7 +443,7 @@ class PIMTranslator(eim.Translator):
             exrule,                                     # exrule
             rdate,                                      # rdate
             exdate,                                     # exdate
-            str(event.transparency)                     # status
+            transparency                                # status
         )
 
 
@@ -449,7 +453,6 @@ class PIMTranslator(eim.Translator):
         if item is not None and item.isLive() and pim.has_stamp(item,
             pim.EventStamp):
             pim.EventStamp(item).remove()
-
 
 
 
