@@ -21,7 +21,6 @@ from application import schema
 import itertools
 import osaf.sharing
 from  osaf.sharing.ICalendar import importICalendarFile, ICalendarImportError
-from osaf.pim.calendar.TimeZone import TimeZoneInfo
 from osaf.framework.blocks.Block import Block
 from osaf.pim import Remindable, EventStamp
 
