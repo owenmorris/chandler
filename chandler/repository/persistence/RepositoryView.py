@@ -79,7 +79,8 @@ class RepositoryView(CView):
     
     CORE_SCHEMA_VERSION = 0x00061700
 
-    def __init__(self, repository, name, version, deferDelete=Default):
+    def __init__(self, repository, name, version,
+                 deferDelete=Default, pruneSize=Default):
         """
         Initializes a repository view.
 
@@ -95,7 +96,11 @@ class RepositoryView(CView):
         if repository is not None:
             if not repository.isOpen():
                 raise RepositoryError, "Repository is not open"
-            self.pruneSize = repository.pruneSize
+
+            if pruneSize is Default:
+                self.pruneSize = repository.pruneSize
+            else:
+                self.pruneSize = pruneSize
 
         super(RepositoryView, self).__init__(repository, name,
                                              RepositoryView.itsUUID)
@@ -1228,13 +1233,14 @@ class RepositoryView(CView):
 
 class OnDemandRepositoryView(RepositoryView):
 
-    def __init__(self, repository, name, version, deferDelete=Default):
+    def __init__(self, repository, name, version,
+                 deferDelete=Default, pruneSize=Default):
 
         if version is None:
             version = repository.store.getVersion()
 
         super(OnDemandRepositoryView, self).__init__(repository, name, version,
-                                                     deferDelete)
+                                                     deferDelete, pruneSize)
 
     def openView(self, version=None, deferDelete=Default):
 

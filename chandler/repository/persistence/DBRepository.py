@@ -832,9 +832,10 @@ class DBRepository(OnDemandRepository):
 
             self.logger.info('closed db in %s', after - before)
 
-    def createView(self, name=None, version=None, deferDelete=Default):
+    def createView(self, name=None, version=None,
+                   deferDelete=Default, pruneSize=Default):
 
-        return DBRepositoryView(self, name, version, deferDelete)
+        return DBRepositoryView(self, name, version, deferDelete, pruneSize)
 
     def startIndexer(self):
 
