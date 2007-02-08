@@ -395,7 +395,7 @@ else
 
                 echo -n `basename $TESTNAME`
                 cd $C_DIR
-                $CHANDLERBIN/release/$RUN_CHANDLER --mvcc --create --catch=tests --profileDir="$PC_DIR" --catsPerfLog="$TIME_LOG" --scriptTimeout=600 --scriptFile="$TESTNAME" &> $TESTLOG
+                $CHANDLERBIN/release/$RUN_CHANDLER --create --catch=tests --profileDir="$PC_DIR" --catsPerfLog="$TIME_LOG" --scriptTimeout=600 --scriptFile="$TESTNAME" &> $TESTLOG
 
                 # scan the test output for the success message "OK"
                 RESULT=`grep '#TINDERBOX# Status = PASSED' $TESTLOG`
@@ -436,7 +436,7 @@ else
 
                     echo -n `basename $TESTNAME`
                     cd $C_DIR
-                    $CHANDLERBIN/release/$RUN_CHANDLER --mvcc --restore="$REPO" --catch=tests --profileDir="$PC_DIR" --catsPerfLog="$TIME_LOG" --scriptTimeout=600 --scriptFile="$TESTNAME" &> $TESTLOG
+                    $CHANDLERBIN/release/$RUN_CHANDLER --restore="$REPO" --catch=tests --profileDir="$PC_DIR" --catsPerfLog="$TIME_LOG" --scriptTimeout=600 --scriptFile="$TESTNAME" &> $TESTLOG
 
                     # scan the test output for the success message "OK"
                     RESULT=`grep '#TINDERBOX# Status = PASSED' $TESTLOG`
@@ -489,11 +489,11 @@ else
             RUNS="1 2 3"
 
             echo Creating new empty repository
-            $CHANDLERBIN/release/$RUN_CHANDLER --mvcc --create --catch=tests --profileDir="$PC_DIR" --scriptTimeout=600 --scriptFile="$CREATEREPO" &> $TESTLOG
+            $CHANDLERBIN/release/$RUN_CHANDLER --create --catch=tests --profileDir="$PC_DIR" --scriptTimeout=600 --scriptFile="$CREATEREPO" &> $TESTLOG
 
             echo -n Timing startup
             for run in $RUNS ; do
-                $TIME -o $PC_DIR/start1.$run.log $CHANDLERBIN/release/$RUN_CHANDLER --mvcc --catch=tests --profileDir="$PC_DIR" --scriptTimeout=600 --scriptFile="$TESTNAME" &> $TESTLOG
+                $TIME -o $PC_DIR/start1.$run.log $CHANDLERBIN/release/$RUN_CHANDLER --catch=tests --profileDir="$PC_DIR" --scriptTimeout=600 --scriptFile="$TESTNAME" &> $TESTLOG
                 cat $PC_DIR/start1.$run.log | sed "s/^Command exited with non-zero status [0-9]\+ //" > $TESTLOG
                 cat $TESTLOG > $PC_DIR/start1.$run.log
                 echo -n \ `<"$PC_DIR/start1.$run.log"`
@@ -503,11 +503,11 @@ else
             echo \ \[$STARTUP\s\]
 
             echo Creating new large repository
-            $CHANDLERBIN/release/$RUN_CHANDLER --mvcc --restore="$REPO" --catch=tests --profileDir="$PC_DIR" --scriptTimeout=600 --scriptFile="$CREATEREPO" &> $TESTLOG
+            $CHANDLERBIN/release/$RUN_CHANDLER --restore="$REPO" --catch=tests --profileDir="$PC_DIR" --scriptTimeout=600 --scriptFile="$CREATEREPO" &> $TESTLOG
 
             echo -n Timing startup with large repository
             for run in $RUNS ; do
-                $TIME -o $PC_DIR/start6.$run.log $CHANDLERBIN/release/$RUN_CHANDLER --mvcc --catch=tests --profileDir="$PC_DIR" --scriptTimeout=600 --scriptFile="$TESTNAME" &> $TESTLOG
+                $TIME -o $PC_DIR/start6.$run.log $CHANDLERBIN/release/$RUN_CHANDLER --catch=tests --profileDir="$PC_DIR" --scriptTimeout=600 --scriptFile="$TESTNAME" &> $TESTLOG
                 cat $PC_DIR/start6.$run.log | sed "s/^Command exited with non-zero status [0-9]\+ //" > $TESTLOG
                 cat $TESTLOG > $PC_DIR/start6.$run.log
                 echo -n \ `<"$PC_DIR/start6.$run.log"`

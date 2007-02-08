@@ -319,7 +319,7 @@ def runPerfSuite():
                 testlist.append(item)
 
         for item in testlist:
-            #$CHANDLERBIN/release/$RUN_CHANDLER --mvcc --create --catch=tests
+            #$CHANDLERBIN/release/$RUN_CHANDLER --create --catch=tests
             #                                   --profileDir="$PC_DIR"
             #                                   --catsPerfLog="$TIME_LOG"
             #                                   --scriptTimeout=600
@@ -330,7 +330,7 @@ def runPerfSuite():
 
             cmd = [os.path.join(options.chandlerBin, 'release', 'RunChandler')]
 
-            cmd += ['--create', '--mvcc', '--catch=tests', '--scriptTimeout=600']
+            cmd += ['--create', '--catch=tests', '--scriptTimeout=600']
             cmd += ['--profileDir="%s"'  % options.profileDir]
             cmd += ['--parcelPath="%s"'  % options.parcelPath]
             cmd += ['--catsPerfLog="%s"' % timeLog]
@@ -343,7 +343,7 @@ def runPerfSuite():
 
         if result == 0:
             for item in testlistLarge:
-                #$CHANDLERBIN/release/$RUN_CHANDLER --mvcc --restore="$REPO" --catch=tests
+                #$CHANDLERBIN/release/$RUN_CHANDLER --restore="$REPO" --catch=tests
                 #                                   --profileDir="$PC_DIR"
                 #                                   --catsPerfLog="$TIME_LOG"
                 #                                   --scriptTimeout=600
@@ -351,7 +351,7 @@ def runPerfSuite():
 
                 cmd = [os.path.join(options.chandlerBin, 'release', 'RunChandler')]
 
-                cmd += ['--mvcc', '--catch=tests', '--scriptTimeout=600']
+                cmd += ['--catch=tests', '--scriptTimeout=600']
                 cmd += ['--restore="%s"'    % repoDir]
                 cmd += ['--profileDir="%s"' % options.profileDir]
                 cmd += ['--parcelPath="%s"' % options.parcelPath]
