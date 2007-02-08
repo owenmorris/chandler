@@ -895,6 +895,8 @@ class DBStore(Store):
         else:
             self._ramdb = False
             self._mvcc = kwds.get('mvcc', False)
+            if self._mvcc:
+                self.repository.logger.info('mvcc is enabled')
 
         txnStatus = 0
         try:

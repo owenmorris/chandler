@@ -255,7 +255,7 @@ COMMAND_LINE_OPTIONS = {
     'backup':     ('',   '--backup',     'b', False, None, 'backup repository before start'),
     'backupdir':  ('',   '--backup-dir', 's', None, None, 'backup repository before start into dir'),
     'repair':     ('',   '--repair',     'b', False, None, 'repair repository before start (currently repairs broken indices)'),
-    'mvcc':       ('',   '--mvcc',       'b', False, 'MVCC', 'run repository with multi version concurrency control'),
+    'nomvcc':     ('',   '--nomvcc',     'b', False, 'NOMVCC', 'run repository without multi version concurrency control'),
     'prune':      ('',   '--prune',      's', '10000', None, 'number of items in a view to prune to after each commit'),
 }
 
@@ -478,7 +478,7 @@ def initRepository(directory, options, allowSchemaView=False):
              'recover': options.recover,
              'exclusive': not options.nonexclusive,
              'memorylog': options.memorylog,
-             'mvcc': options.mvcc,
+             'mvcc': not options.nomvcc,
              'prune': int(options.prune),
              'logdir': options.logdir,
              'datadir': options.datadir,
