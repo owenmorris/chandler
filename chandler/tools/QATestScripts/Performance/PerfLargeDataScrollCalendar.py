@@ -46,23 +46,24 @@ try:
 
     # Fetch the calendar widget
     calendarWidget = App_ns.TimedEvents.widget
-    (xStart, yStart) = calendarWidget.GetViewStart()
+    calendarWidget.Scroll(0, 10) # Start up so we have room to scroll down
+    User.idle()
 
     # Test Phase: Action (the action we are timing)
-
-    logger.Start("Scroll calendar one unit")
-    calendarWidget.Scroll(0, yStart + 1)
-    calendarWidget.Update() # process only the paint events for this window
+    logger.Start("Scroll calendar one unit") # Actually 25 units
+    for units in xrange(1, 25):    
+        calendarWidget.Scroll(0, units)
+        wx.Yield() # Each Yield should result in a single paint to the calendar
     logger.Stop()
 
     # Test Phase: Verification
 
     logger.SetChecked(True)
     (xEnd, yEnd) = calendarWidget.GetViewStart()
-    if (yEnd == yStart + 1):
+    if (yEnd != units):
         logger.ReportPass("On scrolling calendar one unit")
     else:
-        logger.ReportFailure("On scrolling calendar one unit")
+        logger.ReportFailure("On scrolling calendar one unit, expected y=%d, got y=%d" % (units, yEnd))
     logger.Report("Scroll calendar one unit")
 
 finally:
