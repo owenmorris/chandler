@@ -206,7 +206,7 @@ class TestLogger:
         self.Print("")
         self.Print("%s checking report : " %description)
         for failure in self.failureList:
-            self.Print("        - Error : %s" % failure)
+            self.PrintBoth("        - Error : %s" % failure)
         for passed in self.passedList:
             self.Print("        - Ok : %s" % passed)
         if len(self.failureList) == 0 and self.checked:
