@@ -17,7 +17,7 @@ from i18n import ChandlerMessageFactory as _
 from PyICU import DateFormatSymbols, GregorianCalendar
 
 from datetime import date, timedelta
-import calendar
+from calendar import monthrange
 
 VERT_MARGIN = 5
 EXTRA_MONTH_HEIGHT = 4                  # space between month title and days
@@ -59,7 +59,7 @@ def MonthDelta(dt, months):
 
     # careful when going from going from mm/31/yyyy to a month that
     # doesn't have 31 days!
-    (week, maxday) = calendar.monthrange(newYear, newMonth)
+    (week, maxday) = monthrange(newYear, newMonth)
     day = min(maxday, dt.day)
     return date(newYear, newMonth, day)
     
@@ -82,6 +82,7 @@ class PyMiniCalendar(wx.PyControl):
 
         self.Init()
         self.Create(parent, id, *args, **kwds)
+        self.scale = 1.0
 
     def Init(self):
 
@@ -131,7 +132,6 @@ class PyMiniCalendar(wx.PyControl):
                 
         self.hoverDate = None
 
-        # I'm sure this will really get initialized in RecalcGeometry
         self.rowOffset = 0
         self.todayHeight = 0
 
@@ -139,15 +139,12 @@ class PyMiniCalendar(wx.PyControl):
         self.rightArrowRect = None
         self.todayRect = None
 
-        self.normalFont = None
-        self.boldFont = None
         self.lineAboveToday = False
 
         self.Bind(wx.EVT_PAINT, self.OnMiniCalPaint)
         self.Bind(wx.EVT_SIZE, self.OnMiniCalSize)
         self.Bind(wx.EVT_LEFT_DOWN, self.OnClick)
         self.Bind(wx.EVT_LEFT_DCLICK, self.OnDClick)
-
         
     def Create(self, parent, id=-1, pos=wx.DefaultPosition,
                size=wx.DefaultSize, style=0, name="PyMiniCalendar", targetDate=None):
@@ -172,7 +169,7 @@ class PyMiniCalendar(wx.PyControl):
         # platform will use the right one.
         self.SetBackgroundColour(wx.WHITE)
 
-        self.RecalcGeometry()
+        self.CalcGeometry()
 
         return True
     
@@ -206,8 +203,8 @@ class PyMiniCalendar(wx.PyControl):
         retval = True
 
         # XXX WTF is this crazy algebra
-        if ( (lowdate is None) or (self.upperDateLimit is not None and
-                                   lowdate <= self.upperDateLimit)):
+        if ((lowdate is None) or (self.upperDateLimit is not None and
+                                  lowdate <= self.upperDateLimit)):
             self.lowerDateLimit = lowdate
             return True
 
@@ -216,8 +213,8 @@ class PyMiniCalendar(wx.PyControl):
     def SetUpperDateLimit(self, highdate):
 
         # XXX WTF is this crazy algebra
-        if ( (highdate is None) or (self.lowerDateLimit is not None and
-                                    highdate >= self.lowerDateLimit)):
+        if ((highdate is None) or (self.lowerDateLimit is not None and
+                                   highdate >= self.lowerDateLimit)):
             self.upperDateLimit = date
             return True
 
@@ -227,7 +224,7 @@ class PyMiniCalendar(wx.PyControl):
 
         # XXX WTF is this crazy algebra
         if ((lowerdate is None or (upperdate is not None and
-                                  lowerdate <= upperdate)) and
+                                   lowerdate <= upperdate)) and
             (upperdate is None or (lowerdate is not None and
                                    upperdate >= lowerdate))):
             self.lowerDateLimit = lowerdate
@@ -238,10 +235,8 @@ class PyMiniCalendar(wx.PyControl):
 
     def SetBusy(self, busyDate, busy):
         self.busyPercent[busyDate] = busy
-        
 
     # returns a tuple (CAL_HITTEST_XXX...) and then a date, and maybe a weekday
-    
     # returns one of CAL_HITTEST_XXX constants and fills either date or wd
     # with the corresponding value (none for NOWHERE, the date for DAY and wd
     # for HEADER)
@@ -250,9 +245,14 @@ class PyMiniCalendar(wx.PyControl):
         # we need to find out if the hit is on left arrow, on month or
         # on right arrow
 
-        # left arrow?
-        y = pos.y
+        if '__WXMAC__' in wx.PlatformInfo:
+            x, y = self.transform.TransformPoint(pos.x, self.yOffset - pos.y)
+        else:
+            x, y = self.transform.TransformPoint(pos.x, pos.y)
+        pos = wx.Point(int(round(x)), int(round(y)))
+        x, y = pos.x, pos.y
 
+        # left arrow?
         if self.leftArrowRect.Inside(pos):
             lastMonth = MonthDelta(self.firstVisibleDate, -1)
             if self.IsDateInRange(lastMonth):
@@ -260,6 +260,7 @@ class PyMiniCalendar(wx.PyControl):
             else:
                 return (CAL_HITTEST_DECMONTH, self.lowerDateLimit)
 
+        # right arrow?
         if self.rightArrowRect.Inside(pos):
             nextMonth = MonthDelta(self.firstVisibleDate, 1)
             if self.IsDateInRange(nextMonth):
@@ -337,88 +338,143 @@ class PyMiniCalendar(wx.PyControl):
         width = DAYS_PER_WEEK * self.widthCol
         height = self.todayHeight + VERT_MARGIN
 
-        return wx.Size(width,height)
+        return wx.Size(width * self.scale, height * self.scale)
 
     def GetMonthSize(self):
 
         width = DAYS_PER_WEEK * self.widthCol
-        height = WEEKS_TO_DISPLAY * self.heightRow + self.rowOffset + EXTRA_MONTH_HEIGHT
-        return wx.Size(width, height)
+        height = (WEEKS_TO_DISPLAY * self.heightRow + self.rowOffset +
+                  EXTRA_MONTH_HEIGHT)
 
-    def OnMiniCalSize(self, event):
-        self.RecalcGeometry()
-    
+        return wx.Size(width * self.scale, height * self.scale)
+
+    def DrawLine(self, gc, x0, y0, x1, y1):
+
+        return gc.DrawLines(((x0, y0), (x1, y1)))
+
+    def DrawPolygon(self, gc, points, offsetx, offsety, rule):
+
+        points = [(x + offsetx, y + offsety) for x, y in points]
+        points.append(points[0])
+
+        return gc.DrawLines(points, rule)
+        
+    def GetTextExtent(self, gc, dc, text):
+
+        if '__WXGTK__' in wx.PlatformInfo:
+            # on Linux
+            # using dc as gc.GetTextExtent() is not yet implemented
+            # using GetFullTextExtent() as gc.DrawText() is off by baseline
+            w, h, descent, externalLeading = dc.GetFullTextExtent(text)
+            return w, h, h - descent
+        else:
+            w, h = gc.GetTextExtent(text)
+            return w, h, 0
+
+    def DrawText(self, gc, text, x, y, brush, baseline):
+
+        if '__WXGTK__' in wx.PlatformInfo:
+            # on Linux gc.DrawText() is off by the baseline
+            y += baseline
+
+        gc.DrawText(text, x, y, brush)
+
     # event handlers
-    def OnMiniCalPaint(self, event):
-        dc = wx.PaintDC(self)
+    def OnMiniCalSize(self, event):
 
-        self.SetDeviceFont(dc)
+        # force a full redraw as scaling might change (except on mac)
+        if '__WXMAC__' not in wx.PlatformInfo:
+            self.Refresh()
+
+    def OnMiniCalPaint(self, event):
+
+        size = self.GetClientSize()
+        width, height = self.CalcGeometry() # the ideal, unscaled size
+
+        dc = wx.PaintDC(self)
+        gc = wx.GraphicsContext.Create(dc)
+
+        if size.x != width:
+            scale = float(size.x) / float(width)
+            if scale < 0.5:
+                scale = 0.5
+            gc.Scale(scale, scale)
+            self.scale = scale
+        else:
+            self.scale = 1.0
+
+        transform = gc.GetTransform()
+        self.transform = gc.CreateMatrix(*transform.Get())
+        self.yOffset = transform.Get()[-1]  # for hit tests on Mac
+        self.transform.Invert()
+
+        font = self.GetDeviceFont()
+        boldFont = wx.Font(font.GetPointSize(), font.GetFamily(),
+                           font.GetStyle(), wx.BOLD, font.GetUnderlined(), 
+                           font.GetFaceName(), font.GetEncoding())
         y = 0
 
         # draw the sequential month-selector
-        dc.SetBackgroundMode(wx.TRANSPARENT)
-        dc.SetTextForeground(wx.BLACK)
-        dc.SetBrush(wx.TRANSPARENT_BRUSH)
-        dc.SetPen(wx.LIGHT_GREY_PEN)
+        gc.SetBrush(wx.TRANSPARENT_BRUSH)
+        gc.SetPen(wx.LIGHT_GREY_PEN)
         if self.lineAboveToday:
-            dc.DrawLine(0, y, self.GetClientSize().x, y)
-        dc.DrawLine(0, y + self.todayHeight, self.GetClientSize().x, y + self.todayHeight)
-        buttonWidth = self.GetClientSize().x / 5
-        dc.DrawLine(buttonWidth, y, buttonWidth, y + self.todayHeight)
-        dc.DrawLine(buttonWidth * 4, y, buttonWidth * 4, y + self.todayHeight)
+            self.DrawLine(gc, 0, y, width, y)
+        self.DrawLine(gc, 0, y + self.todayHeight,
+                          width, y + self.todayHeight)
+        buttonWidth = width / 5
+        self.DrawLine(gc, buttonWidth, y,
+                          buttonWidth, y + self.todayHeight)
+        self.DrawLine(gc, buttonWidth * 4, y, 
+                          buttonWidth * 4, y + self.todayHeight)
 
         # Get extent of today button
-        self.normalFont = dc.GetFont()
-        self.boldFont = wx.Font(self.normalFont.GetPointSize(), self.normalFont.GetFamily(),
-                                self.normalFont.GetStyle(), wx.BOLD, self.normalFont.GetUnderlined(), 
-                                self.normalFont.GetFaceName(), self.normalFont.GetEncoding())
-        dc.SetFont(self.boldFont)
         todaytext = _(u"Today")
-        (todayw, todayh) = dc.GetTextExtent(todaytext)
+        gc.SetFont(gc.CreateFont(boldFont, wx.BLACK))
+        todayw, todayh, baseline = self.GetTextExtent(gc, dc, todaytext)
 
         # Draw today button
-        self.todayRect = wx.Rect(buttonWidth, y, buttonWidth * 4, self.todayHeight)
-        todayx = ((self.widthCol * DAYS_PER_WEEK) - todayw) / 2
-        todayy = ((self.todayHeight - todayh) / 2) + y
-        dc.DrawText(todaytext, todayx, todayy)
-        dc.SetFont(self.normalFont)
+        self.todayRect = wx.Rect(buttonWidth, y,
+                                 buttonWidth * 4, self.todayHeight)
+        todayx = (buttonWidth * 5 - todayw) / 2
+        todayy = y + (self.todayHeight - todayh) / 2
 
-        # calculate the "month-arrows"
+        self.DrawText(gc, todaytext, todayx, todayy,
+                      gc.CreateBrush(wx.TRANSPARENT_BRUSH), baseline)
 
+        # calculate month arrows
         arrowheight = todayh - 5
 
         leftarrow = [(0, arrowheight / 2),
                      (arrowheight / 2, 0),
                      (arrowheight / 2, arrowheight - 1)]
-
         rightarrow = [(0, 0),
                       (arrowheight / 2, arrowheight / 2),
                       (0, arrowheight - 1)]
 
-        # draw the "month-arrows"
+        # draw month arrows
         arrowy = (self.todayHeight - arrowheight) / 2 + y
         larrowx = (buttonWidth - (arrowheight / 2)) / 2
         rarrowx = (buttonWidth / 2) + buttonWidth * 4
 
-        # Draw left arrow
-        self.leftArrowRect = wx.Rect(0, y, buttonWidth - 1, self.todayHeight)
-        dc.SetBrush(wx.BLACK_BRUSH)
-        dc.SetPen(wx.BLACK_PEN)
-        dc.DrawPolygon(leftarrow, larrowx , arrowy, wx.WINDING_RULE)
-        dc.SetBrush(wx.TRANSPARENT_BRUSH)
+        self.leftArrowRect = wx.Rect(0, y, buttonWidth - 1,
+                                     self.todayHeight)
+        self.rightArrowRect = wx.Rect(buttonWidth * 4 + 1, y, buttonWidth - 1,
+                                      self.todayHeight)
 
-        # Draw right arrow
-        self.rightArrowRect = wx.Rect(buttonWidth * 4 + 1, y, buttonWidth - 1, self.todayHeight)
-        dc.SetBrush(wx.BLACK_BRUSH)
-        dc.SetPen(wx.BLACK_PEN)
-        dc.DrawPolygon(rightarrow, rarrowx , arrowy, wx.WINDING_RULE)
-        dc.SetBrush(wx.TRANSPARENT_BRUSH)
+        pen = wx.Pen(wx.BLACK);
+        pen.SetJoin(wx.JOIN_MITER)
+        gc.SetPen(pen)
+        gc.SetBrush(wx.BLACK_BRUSH)
+
+        self.DrawPolygon(gc, leftarrow, larrowx, arrowy, wx.WINDING_RULE)
+        self.DrawPolygon(gc, rightarrow, rarrowx, arrowy, wx.WINDING_RULE)
 
         y += self.todayHeight
 
         dateToDraw = self.firstVisibleDate
         for i in xrange(MONTHS_TO_DISPLAY):
-            y = self.DrawMonth(dc, dateToDraw, y, True)
+            y = self.DrawMonth(gc, dc, dateToDraw, y, True, font, boldFont,
+                               width, height, transform)
             dateToDraw = MonthDelta(dateToDraw, 1)
 
 
@@ -466,64 +522,16 @@ class PyMiniCalendar(wx.PyControl):
 
     # override some base class virtuals
     def DoGetBestSize(self):
-        self.RecalcGeometry()
 
-        width = DAYS_PER_WEEK * self.widthCol + 2 * SEPARATOR_MARGIN
-        height = (self.todayHeight + VERT_MARGIN +
-                  MONTHS_TO_DISPLAY *
-                  (WEEKS_TO_DISPLAY * self.heightRow +
-                   self.rowOffset + EXTRA_MONTH_HEIGHT) + 17)
-
-        if "__WXMAC__" in wx.PlatformInfo:
-            width += 4
-        elif '__WXMSW__' in wx.PlatformInfo:
-            width += 2
-
-        best = wx.Size(width, height)
-        self.CacheBestSize(best)
-        return best
-
-    # I don't exactly know why we MUST override these, but otherwise
-    # things don't relly lay out.
-    def DoGetPosition(self):
-        result = super(PyMiniCalendar, self).DoGetPosition()
-        return result
-    
-    def DoGetSize(self):
-        result = super(PyMiniCalendar, self).DoGetSize()
-        return result
-    
-    def DoSetSize(self, x, y, width, height, sizeFlags):
-        return super(PyMiniCalendar, self).DoSetSize(x,y,width,height,sizeFlags)
-    
-    def DoMoveWindow(self, x, y, width, height):
-        return super(PyMiniCalendar, self).DoMoveWindow(x,y,width,height)
-
-    def SetDeviceFont(self, dc):
-        font = self.GetFont()
-
-        if "__WXMAC__" in wx.PlatformInfo:
-            font = wx.Font(font.GetPointSize() - 2, font.GetFamily(),
-                              font.GetStyle(), font.GetWeight(), font.GetUnderlined(), font.GetFaceName(), font.GetEncoding())
-            
+        dc = wx.ClientDC(self)
+        font = self.GetDeviceFont()
         dc.SetFont(font)
-
-        
-    
-    def RecalcGeometry(self, dc=None):
-        """
-        (re)calc self.widthCol and self.heightRow
-        """
-        if dc is None:
-            dc = wx.ClientDC(self)
-
-        self.SetDeviceFont(dc)
 
         # determine the column width (we assume that the widest digit
         # plus busy bar is wider than any weekday character (hopefully
         # in any language))
         self.widthCol = 0
-        for day in xrange (1, 32):
+        for day in xrange(1, 32):
             (self.heightRow, width) = dc.GetTextExtent(unicode(day))
             if width > self.widthCol:
                 self.widthCol = width
@@ -535,61 +543,107 @@ class PyMiniCalendar(wx.PyControl):
         self.rowOffset = self.heightRow * 2
         self.todayHeight = self.heightRow + 2
 
-    def DrawMonth(self, dc, startDate, y, highlightDate = False):
+        width, height = self.CalcGeometry()
+        best = wx.Size(width, height)
+        self.CacheBestSize(best)
+
+        return best
+
+    def GetDeviceFont(self):
+        font = self.GetFont()
+
+        if "__WXMAC__" in wx.PlatformInfo:
+            font = wx.Font(font.GetPointSize() - 2, font.GetFamily(),
+                           font.GetStyle(), font.GetWeight(),
+                           font.GetUnderlined(), font.GetFaceName(),
+                           font.GetEncoding())
+         
+        return font
+
+    def CalcGeometry(self):
+        """
+        return best, unscaled, width and size
+        """
+
+        width = DAYS_PER_WEEK * self.widthCol + 2 * SEPARATOR_MARGIN
+        height = (self.todayHeight + VERT_MARGIN +
+                  MONTHS_TO_DISPLAY *
+                  (WEEKS_TO_DISPLAY * self.heightRow +
+                   self.rowOffset + EXTRA_MONTH_HEIGHT) + 17)
+
+        if "__WXMAC__" in wx.PlatformInfo:
+            width += 4
+        elif '__WXMSW__' in wx.PlatformInfo:
+            width += 2
+        
+        return width, height
+
+    def IsExposed(self, x, y, w, h, transform=None):
+
+        if transform is not None:
+            x, y = transform.TransformPoint(x, y)
+            w, h = transform.TransformPoint(w, h)
+
+        return super(PyMiniCalendar, self).IsExposed(x, y, w, h)
+
+    def DrawMonth(self, gc, dc, startDate, y, highlightDate, font, boldFont,
+                  clientWidth, clientHeight, transform):
         """
         draw a single month
         return the updated value of y
         """
-        dc.SetTextForeground(wx.BLACK);
+
+        mainFont = gc.CreateFont(font, self.mainColour)
+        highlightFont = gc.CreateFont(font, self.highlightColour)
+        lightFont = gc.CreateFont(font, self.lightColour)
+        blackFont = gc.CreateFont(boldFont, wx.BLACK)
+        transparentBrush = gc.CreateBrush(wx.TRANSPARENT_BRUSH)
 
         # Get extent of month-name + year
         headertext = _(u'%(currentMonth)s %(currentYear)d') % {
             'currentMonth' : self.months[startDate.month-1],
             'currentYear' : startDate.year }
-        dc.SetFont(self.boldFont)
-        (monthw, monthh) = dc.GetTextExtent(headertext)
+        gc.SetFont(blackFont)
+        monthw, monthh, baseline = self.GetTextExtent(gc, dc, headertext)
 
         # draw month-name centered above weekdays
-        monthx = ((self.widthCol * DAYS_PER_WEEK) - monthw) / 2
+        monthx = (clientWidth - monthw) / 2
         monthy = ((self.heightRow - monthh) / 2) + y + 3
-        dc.DrawText(headertext, monthx,  monthy)
-        dc.SetFont(self.normalFont)
+        self.DrawText(gc, headertext, monthx,  monthy, transparentBrush,
+                      baseline)
 
         y += self.heightRow + EXTRA_MONTH_HEIGHT
 
-        dc.SetPen(wx.BLACK_PEN)
-        dc.DrawRectangle(0,y,DAYS_PER_WEEK*self.widthCol, self.heightRow)
         # draw the week day names
-        if self.IsExposed(0, y, DAYS_PER_WEEK * self.widthCol, self.heightRow):
-            dc.SetBackgroundMode(wx.TRANSPARENT)
-            dc.SetTextForeground(self.colHeaderFg)
-            dc.SetBrush(self.colHeaderBgBrush)
-            dc.SetPen(self.colHeaderBgPen)
+        if self.IsExposed(0, y, DAYS_PER_WEEK * self.widthCol, self.heightRow,
+                          transform):
+            gc.SetFont(gc.CreateFont(font, self.colHeaderFg))
+            gc.SetBrush(self.colHeaderBgBrush)
+            gc.SetPen(self.colHeaderBgPen)
 
             # draw the background
-            dc.DrawRectangle(0, y-1, self.GetClientSize().x, self.heightRow+2)
+            gc.DrawRectangle(0, y-1, clientWidth, self.heightRow+2)
 
             for wd in xrange(DAYS_PER_WEEK):
-                n = wd + self.firstDayOfWeek - 1
-                n %= DAYS_PER_WEEK
-                    
-                (dayw, dayh) = dc.GetTextExtent(self.weekdays[n+1])
-                dc.DrawText(self.weekdays[n+1],
-                            (wd*self.widthCol) + ((self.widthCol- dayw) / 2),
-                            y) # center the day-name
+                n = (wd + self.firstDayOfWeek - 1) % DAYS_PER_WEEK
+                dayw, dayh, baseline = self.GetTextExtent(gc, dc, 
+                                                          self.weekdays[n+1])
+                self.DrawText(gc, self.weekdays[n+1],
+                              (wd*self.widthCol) + ((self.widthCol- dayw) / 2),
+                              y, # center the day-name
+                              transparentBrush, baseline)
 
-        y += (self.heightRow - 1)
+        y += self.heightRow - 1
         
         weekDate = date(startDate.year, startDate.month, 1)
         weekDate = self.FirstDayOfWeek(weekDate)
 
-        dc.SetTextForeground(self.mainColour)
-        # dc.SetTextForeground(wx.RED)    # help us find drawing mistakes
+        gc.SetFont(mainFont)
         
-        for nWeek in xrange(1,WEEKS_TO_DISPLAY+1):
+        for nWeek in xrange(1, WEEKS_TO_DISPLAY+1):
             # if the update region doesn't intersect this row, don't paint it
             if not self.IsExposed(0, y, DAYS_PER_WEEK * self.widthCol,
-                                  self.heightRow - 1):
+                                  self.heightRow - 1, transform):
                 weekDate += timedelta(days=7)
                 y += self.heightRow
                 continue
@@ -605,10 +659,8 @@ class PyMiniCalendar(wx.PyControl):
             for weekDay in xrange(DAYS_PER_WEEK):
 
                 dayStr = str(weekDate.day)
-                width, height = dc.GetTextExtent(dayStr)
+                width, height, baseline = self.GetTextExtent(gc, dc, dayStr)
 
-                changedColours = False
-                changedFont = False
                 columnStart = SEPARATOR_MARGIN + weekDay * self.widthCol
                 x = columnStart + (self.widthCol - width) / 2
 
@@ -618,28 +670,28 @@ class PyMiniCalendar(wx.PyControl):
                     highlightWeek = (self.GetWindowStyle() &
                                      CAL_HIGHLIGHT_WEEK) != 0
 
-                    if self.hoverDate == weekDate or (
-                        (weekDate.month == startDate.month) and   # Only highlight days that fall in the current month
-                        ((highlightWeek and                        # Highlighting week and the week we are drawing matches
-                          (self.CompareWeeks(weekDate, self.selectedDate))) or 
-                         (not highlightWeek and                # Highlighting a single day
-                          (weekDate == self.selectedDate)))):
+                    if (self.hoverDate == weekDate or
+                        # only highlight days that fall in the current month
+                        (weekDate.month == startDate.month and
+                         # highlighting week and the week we are drawing matches
+                         ((highlightWeek and
+                           self.CompareWeeks(weekDate, self.selectedDate)) or 
+                         # highlighting a single day
+                          (not highlightWeek and
+                           weekDate == self.selectedDate)))):
 
                         startX = columnStart
-
                         width = self.widthCol
 
-                        dc.SetTextBackground(self.highlightColour)
-                        dc.SetBrush(self.highlightColourBrush)
+                        gc.SetFont(highlightFont)
+                        gc.SetBrush(self.highlightColourBrush)
 
                         if '__WXMAC__' in wx.PlatformInfo:
-                            dc.SetPen(wx.TRANSPARENT_PEN)
+                            gc.SetPen(wx.TRANSPARENT_PEN)
                         else:
-                            dc.SetPen(self.highlightColourPen)
+                            gc.SetPen(self.highlightColourPen)
 
-                        dc.DrawRectangle(startX, y, width, self.heightRow) 
-
-                        changedColours = True
+                        gc.DrawRectangle(startX, y, width, self.heightRow) 
 
                 # draw free/busy indicator
                 if weekDate.month == startDate.month:
@@ -650,59 +702,48 @@ class PyMiniCalendar(wx.PyControl):
                         YAdjust = 6
                     height = (self.heightRow - YAdjust) * busyPercentage
 
-                    dc.SetTextBackground(self.busyColour)
-                    dc.SetBrush(self.busyColourBrush)
+                    gc.SetBrush(self.busyColourBrush)
 
                     if '__WXMAC__' in wx.PlatformInfo:
-                        dc.SetPen(wx.TRANSPARENT_PEN)
+                        gc.SetPen(wx.TRANSPARENT_PEN)
                     else:
-                        dc.SetPen(self.busyColourPen)
+                        gc.SetPen(self.busyColourPen)
 
-                    dc.DrawRectangle(columnStart + 1,
+                    gc.DrawRectangle(columnStart + 1,
                                      y + self.heightRow - height - 1, 2, height)
-                    changedColours = True
 
                 if (weekDate.month != startDate.month or
                     not self.IsDateInRange(weekDate)):
                     # surrounding week or out-of-range
                     # draw "disabled"
-                    dc.SetTextForeground(self.lightColour)
-                    changedColours = True
+                    gc.SetFont(lightFont)
                 else:
-                    dc.SetBrush(wx.BLACK_BRUSH)
-                    dc.SetPen(wx.BLACK_PEN)
+                    gc.SetBrush(wx.BLACK_BRUSH)
+                    gc.SetPen(wx.BLACK_PEN)
 
                     # today should be printed as bold
                     if weekDate == date.today():
-                        dc.SetFont(self.boldFont)
-                        dc.SetTextForeground(wx.BLACK)
-                        changedFont = True
-                        changedColours = True
+                        gc.SetFont(blackFont)
+                    else:
+                        gc.SetFont(mainFont)
 
                 if '__WXMAC__' in wx.PlatformInfo:
                     YAdjust = 2
                 else:
                     YAdjust = 1
-                dc.DrawText(dayStr, x, y + YAdjust)
-
-                dc.SetBrush(wx.TRANSPARENT_BRUSH)
-
-                if changedColours:
-                    dc.SetTextForeground(self.mainColour)
-                    dc.SetTextBackground(self.GetBackgroundColour())
-
-                if changedFont:
-                    dc.SetFont(self.normalFont)
+                self.DrawText(gc, dayStr, x, y + YAdjust, wx.NullGraphicsBrush,
+                              baseline)
 
                 weekDate += timedelta(days=1)
 
             # draw lines between each set of weeks
             if nWeek <= WEEKS_TO_DISPLAY and nWeek != 1:
-                dc.SetPen(self.lineColourPen)
-                dc.DrawLine(SEPARATOR_MARGIN, y - 1,
-                            self.GetClientSize().x - SEPARATOR_MARGIN,
-                            y - 1)
+                gc.SetPen(self.lineColourPen)
+                self.DrawLine(gc, SEPARATOR_MARGIN, y - 1,
+                              clientWidth - SEPARATOR_MARGIN,
+                              y - 1)
             y += self.heightRow
+
         return y
 
     def SetDateAndNotify(self, date):
@@ -772,9 +813,7 @@ class PyMiniCalendar(wx.PyControl):
         there may be issues with monday/sunday first day of week
         """
         week = self.FirstDayOfWeek(dt).weekday()
-
-        firstWeek = \
-                  date(dt.year, dt.month, 1).weekday()
+        firstWeek = date(dt.year, dt.month, 1).weekday()
 
         return week - firstWeek
 
@@ -783,18 +822,21 @@ class PyMiniCalendar(wx.PyControl):
         """
         get the week (row, in range 1..WEEKS_TO_DISPLAY) for the given date
         """
+        # week of the month
         if useRelative:
-            # week of the month
             return self.GetWeekOfMonth(targetDate)
 
         # week of the year
         targetDate = self.FirstDayOfWeek(targetDate)
-        (year, week, day) = targetDate.isocalendar()
+        year, week, day = targetDate.isocalendar()
+
         return week
 
     def CompareWeeks(self, date1, date2):
-        yearAndWeek = lambda dt: self.FirstDayOfWeek(dt).isocalendar()[:2]
-        return yearAndWeek(date1) == yearAndWeek(date2)
+
+        d1w1 = self.FirstDayOfWeek(date1).isocalendar()[:2]
+        d2w2 = self.FirstDayOfWeek(date2).isocalendar()[:2]
+        return d1w1 == d2w2
 
     def IsDateInRange(self, date):
         """

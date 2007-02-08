@@ -240,8 +240,11 @@ def makeMainView(parcel):
                                    event = main.ReminderTime,
                                    contents=pim_ns.allFutureReminders),
             ApplicationBar,
-            BoxContainer.template('SidebarContainerContainer',
+            SplitterWindow.template('SidebarContainerContainer',
                 border = RectType(4, 0, 0, 0),
+                splitPercentage = 0.15234375,
+                orientationEnum = 'Vertical',
+                splitController = miniCal,
                 childrenBlocks = [
                     SplitterWindow.template('SidebarContainer',
                         stretchFactor = 0.0,

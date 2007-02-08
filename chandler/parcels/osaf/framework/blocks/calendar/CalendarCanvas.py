@@ -2167,7 +2167,9 @@ class wxCalendarControl(wx.Panel, CalendarEventHandler):
 
         # this should be the width of the word "Week" in the column
         # header, plus some padding
-        self.xOffset = 60
+        dc = wx.ClientDC(self)
+        width, height = dc.GetTextExtent(headerLabels[0])
+        self.xOffset = width + 4
         
         # set up initial selection
         weekColumnHeader.SetAttribute(wx.colheader.CH_ATTR_VisibleSelection,

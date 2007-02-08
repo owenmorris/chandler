@@ -332,27 +332,37 @@ class MiniCalendar(CalendarCanvas.CalendarBlock):
         copying = schema.Cloud (byCloud = [previewArea])
     )
 
-    def AdjustSplit(self, windowSize, position):
-        height = windowSize - position
+    def AdjustSplit(self, splitterWindow, windowSize, position):
         widget = getattr (self, 'widget', None)
         if widget is not None:
-            headerHeight = widget.GetHeaderSize().height
-            previewWidget = self.previewArea.widget
-            previewHeight = previewWidget.GetSize()[1]
-            monthHeight = widget.GetMonthSize().height
-
-            newHeight = previewHeight
-            numMonths = 0
-            while (newHeight + 0.5 * monthHeight < height and
-                   numMonths < 3 and
-                   newHeight + monthHeight < windowSize):
-                if numMonths == 0:
-                    newHeight += headerHeight
-                newHeight += monthHeight
-                numMonths += 1
-            height = newHeight
-
-        return windowSize - height
+            if splitterWindow.GetSplitMode() == wx.SPLIT_HORIZONTAL:
+                height = windowSize - position
+                headerHeight = widget.GetHeaderSize().height
+                previewWidget = self.previewArea.widget
+                previewHeight = previewWidget.GetSize()[1]
+                monthHeight = widget.GetMonthSize().height
+    
+                newHeight = previewHeight
+                numMonths = 0
+                while (newHeight + 0.5 * monthHeight < height and
+                       numMonths < 3 and
+                       newHeight + monthHeight < windowSize):
+                    if numMonths == 0:
+                        newHeight += headerHeight
+                    newHeight += monthHeight
+                    numMonths += 1
+                height = newHeight
+                position = windowSize - height
+            else:
+                idealWidth, idealHeight = widget.CalcGeometry()
+                if abs (idealWidth - position) < 25:
+                    position = idealWidth
+                else:
+                    minimum = idealWidth / 2;
+                    if position < minimum:
+                        position = idealWidth / 2
+                
+        return position
 
     def render(self, *args, **kwds):
         super(MiniCalendar, self).render(*args, **kwds)
@@ -456,6 +466,7 @@ class wxPreviewArea(CalendarCanvas.CalendarNotificationHandler, wx.Panel):
         self.Bind(wx.EVT_PAINT, self.OnPaint)
         self.Bind(wx.EVT_LEFT_DCLICK, self.OnDClick)
         self.Bind(wx.EVT_LEFT_DOWN, self.OnClick)
+        self.Bind(wx.EVT_SIZE, self.OnSize)
 
         self.SetWindowStyle(PLATFORM_BORDER)
 
@@ -468,7 +479,14 @@ class wxPreviewArea(CalendarCanvas.CalendarNotificationHandler, wx.Panel):
         self.linkFont = Styles.getFont(linkCharStyle)
         self.labelPosition = -1 # Note that we haven't measured things yet.
 
+    def OnSize(self, event):
+
+        # necessary when sidebar is resized
+        if '__WXMAC__' not in wx.PlatformInfo:
+            self.Refresh()
+
     def OnPaint(self, event):
+
         if not self._avoidDrawing:
             dc = wx.PaintDC(self)
             self.Draw(dc)
@@ -598,9 +616,7 @@ class wxPreviewArea(CalendarCanvas.CalendarNotificationHandler, wx.Panel):
         if self.useToday:
             todayText = _("Today's events")
             dc.SetFont(self.timeFont)
-            titleWidth = dc.GetTextExtent(todayText)[0]
-            xStart = (r.width - titleWidth)/2
-            dc.DrawText(todayText, xStart, y)
+            dc.DrawText(todayText, self.hMargin, y)
             y += self.lineHeight
 
         # Draw each event
@@ -659,8 +675,11 @@ class wxPreviewArea(CalendarCanvas.CalendarNotificationHandler, wx.Panel):
 
     def ChangeHeightAndAdjustContainers(self, newHeight):
         boxContainer = self.GetParent()
-        wxSplitter = self.blockItem.miniCalendar.splitter.widget
-        assert isinstance(wxSplitter, ContainerBlocks.wxSplitterWindow)
+        for splitter in self.blockItem.miniCalendar.splitters:
+            if splitter.orientationEnum == 'Horizontal':
+                break
+        wxSplitter = splitter.widget
+        assert isinstance (wxSplitter, ContainerBlocks.wxSplitterWindow)
 
         currentHeight = self.GetSize()[1]
         heightDelta = currentHeight - newHeight

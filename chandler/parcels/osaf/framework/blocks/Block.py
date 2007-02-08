@@ -116,7 +116,7 @@ class Block(schema.Item):
         initialValue = []
     )
 
-    splitter = schema.One(defaultValue=None) # SplitterWindow.splitter
+    splitters = schema.Sequence(defaultValue=None) # SplitterWindow.splitController
 
     isShown = schema.One(schema.Boolean, initialValue=True)
 
@@ -132,7 +132,7 @@ class Block(schema.Item):
     schema.addClouds(
         copying = schema.Cloud(
             byRef = [contents],
-            byCloud = [childrenBlocks, eventsForNamedLookup, splitter]
+            byCloud = [childrenBlocks, eventsForNamedLookup, splitters]
         )
     )
 

@@ -140,7 +140,7 @@ class wxSplitterWindow(wx.SplitterWindow):
 
         splitController = self.blockItem.splitController
         if splitController is not None:
-            position = splitController.AdjustSplit (windowSize, position)
+            position = splitController.AdjustSplit (self, windowSize, position)
 
         self.SetSashPosition (position)
 
@@ -258,10 +258,10 @@ class SplitterWindow(RectangularChild):
     splitPercentage = schema.One(schema.Float, defaultValue = 0.5)
     allowResize = schema.One(schema.Boolean, initialValue = True)
     orientationEnum = schema.One(
-        orientationEnumType, initialValue = 'Horizontal',
+        orientationEnumType, defaultValue = 'Horizontal',
     )
 
-    splitController = schema.One(inverse=Block.splitter, defaultValue=None)
+    splitController = schema.One(inverse=Block.splitters, defaultValue=None)
   
     schema.addClouds(
         copying = schema.Cloud (byCloud = [splitController])
