@@ -133,7 +133,7 @@ class wxSplitterWindow(wx.SplitterWindow):
             distance = newSize.width
             needsAdjust = oldSize.width != newSize.width
             
-        if needsAdjust:
+        if needsAdjust or hasattr (event, "ForceSize"):
             position = int (distance * blockItem.splitPercentage + 0.5)
             self.AdjustAndSetSashPosition (position)
         event.Skip()
@@ -170,6 +170,17 @@ class wxSplitterWindow(wx.SplitterWindow):
 
     def OnSplitChanged(self, event):
         self.AdjustAndSetSashPosition (event.GetSashPosition())
+        
+        # Add a hack that forces a sash adjustment of the splitter between the
+        # mini calendar and the sidebar when the sash between the sidebar container
+        # and summary/detail view changes.
+        window1 = self.GetWindow1()
+        if window1 is not None:
+            method = getattr (type (window1), "OnSize", None)
+            if method is not None:
+                sizeEvent = wx.SizeEvent (window1.GetSize(), window1.GetId())
+                sizeEvent.ForceSize = True
+                method (window1, sizeEvent)
 
     def wxSynchronizeWidget(self, useHints=False):
         blockItem = self.blockItem
