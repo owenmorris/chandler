@@ -82,7 +82,6 @@ class PyMiniCalendar(wx.PyControl):
 
         self.Init()
         self.Create(parent, id, *args, **kwds)
-        self.scale = 1.0
 
     def Init(self):
 
@@ -337,16 +336,18 @@ class PyMiniCalendar(wx.PyControl):
 
         width = DAYS_PER_WEEK * self.widthCol
         height = self.todayHeight + VERT_MARGIN
+        scale = self.blockItem.scale
 
-        return wx.Size(width * self.scale, height * self.scale)
+        return wx.Size(width * scale, height * scale)
 
     def GetMonthSize(self):
 
         width = DAYS_PER_WEEK * self.widthCol
         height = (WEEKS_TO_DISPLAY * self.heightRow + self.rowOffset +
                   EXTRA_MONTH_HEIGHT)
+        scale = self.blockItem.scale
 
-        return wx.Size(width * self.scale, height * self.scale)
+        return wx.Size(width * scale, height * scale)
 
     def DrawLine(self, gc, x0, y0, x1, y1):
 
@@ -394,14 +395,14 @@ class PyMiniCalendar(wx.PyControl):
         dc = wx.PaintDC(self)
         gc = wx.GraphicsContext.Create(dc)
 
+        scale = 1.0
         if size.x != width:
             scale = float(size.x) / float(width)
             if scale < 0.5:
                 scale = 0.5
             gc.Scale(scale, scale)
-            self.scale = scale
-        else:
-            self.scale = 1.0
+
+        self.blockItem.scale = scale
 
         transform = gc.GetTransform()
         self.transform = gc.CreateMatrix(*transform.Get())

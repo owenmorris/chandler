@@ -123,14 +123,19 @@ class wxSplitterWindow(wx.SplitterWindow):
     def OnSize(self, event):
         newSize = self.GetSize()
         blockItem = self.blockItem
+        oldSize = blockItem.size
         blockItem.size = SizeType (newSize.width, newSize.height)
         
         if blockItem.orientationEnum == "Horizontal":
-            distance = blockItem.size.height
+            distance = newSize.height
+            needsAdjust = oldSize.height != newSize.height
         else:
-            distance = blockItem.size.width
-        position = int (distance * blockItem.splitPercentage + 0.5)
-        self.AdjustAndSetSashPosition (position)
+            distance = newSize.width
+            needsAdjust = oldSize.width != newSize.width
+            
+        if needsAdjust:
+            position = int (distance * blockItem.splitPercentage + 0.5)
+            self.AdjustAndSetSashPosition (position)
         event.Skip()
 
     def AdjustAndSetSashPosition (self, position):
