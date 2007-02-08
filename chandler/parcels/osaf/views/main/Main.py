@@ -262,7 +262,9 @@ class MainView(View):
         quickEntryWidget.SetFocus()
 
     def onQuickEntryEvent (self, event):
-
+        # XXX This needs some refactoring love
+        searchKinds = (_(u'search'), _(u'find'), _(u's'), _(u'f'))
+        
         def processQuickEntry(self, command):
             """
             Parses the text in the quick item entry widget in the toolbar. Creates the items 
@@ -297,27 +299,27 @@ class MainView(View):
                 command = displayName
                 
                 # Set flags depending on its kind
-                if kind == 'search':
+                if kind in searchKinds:
                     return False
                 
-                elif kind == 'task':
+                elif kind in (_(u'task'), _(u't')):
                     taskFlag = True
                     
-                elif kind in ('msg', 'message'):
+                elif kind in (_(u'msg'), _(u'message'), _(u'm')):
                      msgFlag = True
                     
-                elif kind == 'event':
+                elif kind in (_(u'event'), _(u'e')):
                     eventFlag = True
                     
-                elif kind == 'invite':
+                elif kind in (_(u'invite'), _(u'i')):
                     eventFlag = True
                     msgFlag = True
                     
-                elif kind == 'request':
+                elif kind in (_(u'request'), _(u'r')):
                     taskFlag = True
                     msgFlag = True
                     
-                elif kind != 'note':
+                elif kind not in (_(u'note'), _(u'n')):
                     # if command is not 'note' then it is not a valid  command. for eg: '/foo'
                     return False
                     
@@ -436,12 +438,14 @@ class MainView(View):
             # Try to process as a quick entry command
             if len (command) != 0 and not processQuickEntry (self, command):
                 
-                if not command.lower().startswith('/find '):
+                c = command.lower()[:command.find(' ')]
+                
+                if c not in [u'/' + k for k in searchKinds]:
                     # command is not valid
                     quickEntryWidget.SetValue (command + ' ?')
                     wx.GetApp().CallItemMethodAsync("MainView", 'setStatusMessage', _(u"Command entered is not valid"))
                 else:
-                    command = command[6:] # remove '/find '
+                    command = command[len(c) + 1:] # remove '/find '
                     try:
                         sidebar.setShowSearch (True)
                         showSearchResults = True
