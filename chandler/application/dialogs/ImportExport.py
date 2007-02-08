@@ -165,28 +165,8 @@ class ImportDialog(FileChooserWithOptions):
             self.chooser.SetSelection(1)
 
         gs.Add(self.chooser, 0, wx.ALIGN_LEFT, 0)
-
-        # create a timezone chooser
-        
-        self.tzchooserLabel = wx.StaticText(self, -1, _(u"Change time&zones to:"))
-        gs.Add(self.tzchooserLabel, 0, wx.ALL, 3)
-
-        info = TimeZoneInfo.get(view)
-        tzdisplayChoices, self.tzchoices = map(list, (zip(*info.iterTimeZones())))
-        
-        self.tzchoices.insert(0, None)
-        tzdisplayChoices.insert(0, _(u"Preserve timezones"))
-
-        self.tzchoices.insert(1, info.default)
-        tzdisplayChoices.insert(1, _(u"Local timezone"))
-        
-        self.tzchooser = wx.Choice(self, -1, choices = tzdisplayChoices)
-        self.tzchooser.SetSelection(0)
-        
-        gs.Add(self.tzchooser, 0, wx.ALIGN_LEFT, 0)
     
         self.box.Insert(1, gs, 0, wx.LEFT, 16)
-        #self.box.Insert(2, tzchooserBox, 0, wx.LEFT, 16)
 
         self.feedbackBox = wx.BoxSizer(wx.VERTICAL)
         
@@ -210,8 +190,7 @@ class ImportDialog(FileChooserWithOptions):
         self.box.Fit(self)
 
         widgets = (self.filechooser, self.FindWindowById(wx.ID_OK),
-                   self.chooser, self.chooserLabel, self.tzchooser, 
-                   self.tzchooserLabel)
+                   self.chooser, self.chooserLabel)
         for widget in itertools.chain(widgets, self.options.itervalues()):
             widget.Disable()
         
@@ -249,7 +228,6 @@ class ImportDialog(FileChooserWithOptions):
         fullpath = self.filechooser.GetValue()
         (dir, filename) = os.path.split(fullpath)
 
-        tzinfo = self.tzchoices[self.tzchooser.GetSelection()]
         coll = targetCollection = self.choices[self.chooser.GetSelection()]
         filterAttributes = [key for key, val in self.options.iteritems()
                             if not val.IsChecked()]
@@ -264,7 +242,7 @@ class ImportDialog(FileChooserWithOptions):
         try:
             collection = importICalendarFile(fullpath, self.view, coll,
                                              filterAttributes, monitor.callback,
-                                             tzinfo, logger)
+                                             None, logger)
         except ICalendarImportError, e:
             self.fail(unicode(e))
             return False
