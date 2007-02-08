@@ -403,10 +403,14 @@ def restore(rv, filename, testmode=False):
                         withInitialValues=True)
 
             elif account is None:
-                # addInbox = False tells the IMAP account not to
-                # create a default inbox folder in account.folders
-                # since the inbox info wiill come from the ini file.
-                account = pim.mail.IMAPAccount(itsView=rv, addInbox=False)
+                account = pim.mail.IMAPAccount(itsView=rv)
+
+            # Remove any existing folders since the
+            # account will be repopulated with the
+            # folders in the ini file
+            for folder in account.folders:
+                account.folders.remove(folder)
+                folder.delete()
 
             if makeCurrent:
                 schema.ns("osaf.pim", rv).currentMailAccount.item = account
