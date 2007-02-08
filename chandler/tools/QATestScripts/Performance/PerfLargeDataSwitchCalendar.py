@@ -46,7 +46,7 @@ try:
     if clickSucceeded:
         logger.ReportPass("Switch calendar")
     else:
-        logger.ReportFailure("Switch calendar")
+        logger.ReportFailure("Switch calendar, click to switch failed")
     logger.Report("SwitchCalendar")
         
 finally:

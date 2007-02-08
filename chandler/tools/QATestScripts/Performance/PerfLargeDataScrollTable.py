@@ -63,7 +63,7 @@ try:
     if (x == 0 and y == units):
         logger.ReportPass("Scrolled table")
     else:
-        logger.ReportFailure("Scrolled table")
+        logger.ReportFailure("Scrolled table, expected (0, %d), got (%d, %d)" % (units, x, y))
     logger.Report("Scroll table 25 scroll units")
 
 finally:

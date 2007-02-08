@@ -52,7 +52,7 @@ try:
     if App_ns.calendar.calendarControl.rangeStart == testdate:
         logger.ReportPass("Jump calendar by one week")
     else:
-        logger.ReportFailure("Jump calendar by one week")
+        logger.ReportFailure("Jump calendar by one week, expected %s, got %s " % (str(App_ns.calendar.calendarControl.rangeStart), str(testdate)))
     logger.Report("Jump calendar by one week")
         
 finally:

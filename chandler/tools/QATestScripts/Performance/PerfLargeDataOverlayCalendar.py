@@ -46,7 +46,7 @@ try:
     if clickSucceeded:
         logger.ReportPass("Overlay calendar")
     else:
-        logger.ReportFailure("Overlay calendar")
+        logger.ReportFailure("Overlay calendar, slicking on sidebar entry failed")
     logger.Report("OverlayCalendar")
         
 finally:

@@ -54,7 +54,7 @@ try:
     if (smallX + d == x and smallY + d == y):
         logger.ReportPass("Resize app in calendar mode")
     else:
-        logger.ReportFailure("Resize app in calendar mode")
+        logger.ReportFailure("Resize app in calendar mode, expected (%d, %d), got (%d, %d)" % (x - d, y - d, smallX, smallY))
     logger.Report("Resize app in calendar mode")
         
 finally:
