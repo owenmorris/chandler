@@ -21,11 +21,13 @@
 
 #define FUSE_USE_VERSION 26
 
-#include <fuse.h>
 #include <stdio.h>
 #include <string.h>
 #include <errno.h>
 #include <fcntl.h>
+#include <sys/statvfs.h>
+#include <sys/statfs.h>
+#include <fuse/fuse.h>
 
 static PyObject *_mount_NAME;
 static PyObject *start_NAME;
@@ -35,6 +37,7 @@ static PyObject *stat_NAME;
 static PyObject *statvfs_NAME;
 static PyObject *open_NAME;
 static PyObject *create_NAME;
+static PyObject *mknod_NAME;
 static PyObject *read_NAME;
 static PyObject *write_NAME;
 static PyObject *close_NAME;
@@ -405,13 +408,12 @@ static int _t_fuse_getattr(const char *path, struct stat *stbuf)
     return err;
 }
 
-
+#if FUSE_VERSION >= 25
 static int _t_fuse_fgetattr(const char *path, struct stat *stbuf,
                             struct fuse_file_info *fi)
 {
     return _t_fuse_getattr(path, stbuf);
 }
-
 
 static int _t_fuse_statfs(const char *path, struct statvfs *stbuf)
 {
@@ -486,6 +488,77 @@ static int _t_fuse_statfs(const char *path, struct statvfs *stbuf)
     return err;
 }
 
+#else
+
+static int _t_fuse_statfs(const char *path, struct statfs *stbuf)
+{
+    PyGILState_STATE state = PyGILState_Ensure();
+    t_fuse *self = _t_fuse_getself();
+    PyObject *py_path, *result;
+    int err = 0;
+
+    if (!self)
+    {
+        PyGILState_Release(state);
+        return -ESRCH;
+    }
+
+    if (!PyObject_HasAttr((PyObject *) self, statvfs_NAME))
+    {
+        PyGILState_Release(state);
+        return -ENOSYS;
+    }
+
+    py_path = PyString_FromString(path + 1);
+    result = PyObject_CallMethodObjArgs((PyObject *) self, statvfs_NAME,
+                                        py_path, NULL);
+    Py_DECREF(py_path);
+
+    if (!result)
+    {
+        _t_fuse_error(self, statvfs_NAME);
+        err = -ENOENT;
+    }
+    else
+    {
+        memset(stbuf, 0, sizeof(struct statfs));
+        
+        if (result == Py_None)
+            err = -ENOENT;
+        else if (PySequence_Check(result))
+        {
+            PyObject *seq = PySequence_Fast(result, "");
+            int size = PySequence_Fast_GET_SIZE(seq);
+
+            if (size > 0)
+                stbuf->f_bsize = _uint64(PySequence_Fast_GET_ITEM(result, 0));
+            if (size > 1)
+                stbuf->f_frsize = _uint64(PySequence_Fast_GET_ITEM(result, 1));
+            if (size > 2)
+                stbuf->f_blocks = _uint64(PySequence_Fast_GET_ITEM(result, 2));
+            if (size > 3)
+                stbuf->f_bfree = _uint64(PySequence_Fast_GET_ITEM(result, 3));
+            if (size > 4)
+                stbuf->f_bavail = _uint64(PySequence_Fast_GET_ITEM(result, 4));
+            if (size > 5)
+                stbuf->f_files = _uint64(PySequence_Fast_GET_ITEM(result, 5));
+            if (size > 6)
+                stbuf->f_ffree = _uint64(PySequence_Fast_GET_ITEM(result, 6));
+            if (size > 9)
+                stbuf->f_namelen = _uint64(PySequence_Fast_GET_ITEM(result, 9));
+
+            Py_DECREF(seq);
+        }
+
+        Py_DECREF(result);
+    }
+
+    PyErr_Clear();
+    PyGILState_Release(state);
+
+    return err;
+}
+#endif
 
 static int _t_fuse_readdir(const char *path, void *buf, fuse_fill_dir_t filler,
                            off_t offset, struct fuse_file_info *fi)
@@ -601,7 +674,7 @@ static int _t_fuse_open(const char *path, struct fuse_file_info *fi)
     return err;
 }
 
-
+#if FUSE_VERSION >= 25
 static int _t_fuse_create(const char *path, mode_t mode,
                           struct fuse_file_info *fi)
 {
@@ -648,6 +721,55 @@ static int _t_fuse_create(const char *path, mode_t mode,
     return err;
 }
 
+#else
+
+static int _t_fuse_mknod(const char *path, mode_t mode, dev_t dev)
+{
+    PyGILState_STATE state = PyGILState_Ensure();
+    t_fuse *self = _t_fuse_getself();
+    PyObject *py_path, *py_mode, *py_dev, *result;
+    int err = 0;
+
+    if (!self)
+    {
+        PyGILState_Release(state);
+        return -ESRCH;
+    }
+
+    if (!PyObject_HasAttr((PyObject *) self, mknod_NAME))
+    {
+        PyGILState_Release(state);
+        return -ENOSYS;
+    }
+
+    py_path = PyString_FromString(path + 1);
+    py_mode = PyInt_FromLong(mode);
+    py_dev = PyInt_FromLong(dev);
+    result = PyObject_CallMethodObjArgs((PyObject *) self, mknod_NAME,
+                                        py_path, py_mode, py_dev, NULL);
+    Py_DECREF(py_path);
+    Py_DECREF(py_mode);
+    Py_DECREF(py_dev);
+
+    if (!result)
+    {
+        _t_fuse_error(self, mknod_NAME);
+        err = -EACCES;
+    }
+    else
+    {
+        if (!PyObject_IsTrue(result))
+            err = -EACCES;
+
+        Py_DECREF(result);
+    }
+
+    PyErr_Clear();
+    PyGILState_Release(state);
+
+    return err;
+}
+#endif
 
 static int _t_fuse_read(const char *path, char *buf, size_t size, off_t offset,
                         struct fuse_file_info *fi)
@@ -902,7 +1024,7 @@ static int _t_fuse_chmod(const char *path, mode_t mode)
     return err;
 }
 
-
+#if FUSE_VERSION >= 25
 static int _t_fuse_utimens(const char *path, const struct timespec ts[2])
 {
     PyGILState_STATE state = PyGILState_Ensure();
@@ -952,19 +1074,74 @@ static int _t_fuse_utimens(const char *path, const struct timespec ts[2])
     return err;
 }
 
+#else
+
+static int _t_fuse_utime(const char *path, struct utimbuf *buf)
+{
+    PyGILState_STATE state = PyGILState_Ensure();
+    t_fuse *self = _t_fuse_getself();
+    PyObject *py_path, *py_atime, *py_mtime, *result;
+    int err = 0;
+
+    if (!self)
+    {
+        PyGILState_Release(state);
+        return -ESRCH;
+    }
+
+    if (!PyObject_HasAttr((PyObject *) self, utimes_NAME))
+    {
+        PyGILState_Release(state);
+        return 0;
+    }
+
+    py_path = PyString_FromString(path + 1);
+    py_atime = PyFloat_FromDouble((double) buf->actime);
+    py_mtime = PyFloat_FromDouble((double) buf->modtime);
+    result = PyObject_CallMethodObjArgs((PyObject *) self, utimes_NAME,
+                                        py_path, py_atime, py_mtime, NULL);
+    Py_DECREF(py_path);
+    Py_DECREF(py_atime);
+    Py_DECREF(py_mtime);
+
+    if (!result)
+    {
+        _t_fuse_error(self, utimes_NAME);
+        err = -ENOENT;
+    }
+    else
+    {
+        if (!PyObject_IsTrue(result))
+            err = -ENOENT;
+
+        Py_DECREF(result);
+    }
+
+    PyErr_Clear();
+    PyGILState_Release(state);
+
+    return err;
+}
+#endif
+
 static struct fuse_operations t_fuse_ops = {
     .getattr    = _t_fuse_getattr,
-    .fgetattr   = _t_fuse_fgetattr,
     .statfs     = _t_fuse_statfs,
     .readdir    = _t_fuse_readdir,
     .open       = _t_fuse_open,
-    .create     = _t_fuse_create,
     .release    = _t_fuse_release,
     .read       = _t_fuse_read,
     .write      = _t_fuse_write,
     .chown      = _t_fuse_chown,
     .chmod      = _t_fuse_chmod,
+#if FUSE_VERSION >= 25
+    .fgetattr   = _t_fuse_fgetattr,
+    .create     = _t_fuse_create,
     .utimens    = _t_fuse_utimens,
+#else
+    .mknod      = _t_fuse_mknod,
+    .utime      = _t_fuse_utime,
+#endif
 };
 
 static PyObject *t_fuse__mount(t_fuse *self)
@@ -984,7 +1161,11 @@ static PyObject *t_fuse__mount(t_fuse *self)
         self->mounted = 1;
 
         Py_BEGIN_ALLOW_THREADS;
+#if FUSE_VERSION >= 25
         fuse_main(self->argc, self->argv, &t_fuse_ops, NULL);
+#else
+        fuse_main(self->argc, self->argv, &t_fuse_ops);
+#endif
         Py_END_ALLOW_THREADS;
 
         self->mounted = 0;
@@ -1013,6 +1194,7 @@ void _init_fuse(PyObject *m)
         statvfs_NAME = PyString_FromString("statvfs");
         open_NAME = PyString_FromString("open");
         create_NAME = PyString_FromString("create");
+        mknod_NAME = PyString_FromString("mknod");
         close_NAME = PyString_FromString("close");
         read_NAME = PyString_FromString("read");
         write_NAME = PyString_FromString("write");

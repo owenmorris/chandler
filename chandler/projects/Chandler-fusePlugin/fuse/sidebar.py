@@ -129,6 +129,11 @@ class sidebar(FUSE):
                     self.openFiles[path] = ['', 1, flags]
                     return True
 
+        elif flags == os.O_CREAT:  # coming from mknod (FUSE pre 2.5)
+            if path.endswith('.ics'):
+                self.openFiles[path] = ['', 1, 0]
+                return True
+
         return False
 
     def create(self, path, mode):
@@ -137,6 +142,13 @@ class sidebar(FUSE):
             if path.endswith('.ics'):
                 self.openFiles[path] = ['', 1, 0]
                 return True
+
+        return False
+
+    def mknod(self, path, mode):  # FUSE pre 2.5
+
+        if mode & stat.S_IFREG:
+            return True  # actual creation happens in open
 
         return False
         
@@ -186,12 +198,11 @@ class sidebar(FUSE):
         if not os.path.exists(mountpoint):
             os.mkdir(mountpoint)
 
-        options = ['-onoubc', '-onoreadahead']
         if sys.platform == 'darwin':
-            options.append('-ovolname=%s' %(volname))
-            options.append('-oping_diskarb')
-        elif sys.platform == 'linux':
-            options.append('-odirect_io')
+            options = ['-onoubc', '-onoreadahead',
+                       '-ovolname=%s' %(volname), '-oping_diskarb']
+        else:
+            options = ['-odirect_io']
 
         options.append(mountpoint)
 
