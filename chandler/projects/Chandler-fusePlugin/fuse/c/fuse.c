@@ -25,9 +25,12 @@
 #include <string.h>
 #include <errno.h>
 #include <fcntl.h>
+#include <fuse/fuse.h>
+
+#ifdef linux
 #include <sys/statvfs.h>
 #include <sys/statfs.h>
-#include <fuse/fuse.h>
+#endif
 
 static PyObject *_mount_NAME;
 static PyObject *start_NAME;
