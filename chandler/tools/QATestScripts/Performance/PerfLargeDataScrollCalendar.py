@@ -60,7 +60,7 @@ try:
 
     logger.SetChecked(True)
     (xEnd, yEnd) = calendarWidget.GetViewStart()
-    if (yEnd != units):
+    if (yEnd == units):
         logger.ReportPass("On scrolling calendar one unit")
     else:
         logger.ReportFailure("On scrolling calendar one unit, expected y=%d, got y=%d" % (units, yEnd))
