@@ -594,6 +594,69 @@ class MainView(View):
             if cmd == wx.ID_YES:
                 app.PostAsyncEvent(app.restart, restore=path)
 
+    def onCreateRepositoryEvent(self, event):
+        self.switchRepository(True)
+
+    def onSwitchRepositoryEvent(self, event):
+        self.switchRepository(False)
+
+    def switchRepository(self, create=False):
+
+        app = wx.GetApp()
+        self.RepositoryCommitWithStatus()
+        
+        dlg = wx.DirDialog(wx.GetApp().mainFrame, _(u'Switch Repository'),
+                           unicode(Utility.getDesktopDir()),
+                           wx.DD_DEFAULT_STYLE | wx.DD_NEW_DIR_BUTTON)
+        if dlg.ShowModal() == wx.ID_OK:
+            repodir = dlg.GetPath()
+        else:
+            repodir = None
+        dlg.Destroy()
+
+        if repodir is not None:
+            path = os.path.join(repodir, '__repository__')
+            if not os.path.exists(path):
+                if not create:  # cloning the current repository
+                    repository = self.itsView.repository
+                    progressMessage = _(u'Preparing repository...')
+                    repository.logger.info('Preparing repository...')
+                    self.setStatusMessage(progressMessage)
+                    dbHome = repository.backup(path)
+                    successMessage = _(u'Repository is ready')
+                    repository.logger.info('Repository is ready')
+                    self.setStatusMessage(successMessage)
+                    message = _(u"Your current repository was copied to %s and Chandler is setup to use it after restarting. Your current repository will not be affected.\n\nRestart now ?")
+                    restore = dbHome
+                else:
+                    message = _(u"A new repository will be created in %s and Chandler is setup to use it after restart. Your current repository will not be affected.\n\nRestart now ?")
+                    restore = None
+            else:
+                restore = None
+                message = _(u"Chandler is setup to use the repository at %s after restarting. Your current repository will not be affected.\n\nRestart now ?")
+
+            dlg = wx.MessageDialog(app.mainFrame, message %(repodir),
+                                   _(u"Confirm Restart"),
+                                   (wx.YES_NO | wx.YES_DEFAULT |
+                                    wx.ICON_EXCLAMATION))
+            cmd = dlg.ShowModal()
+            dlg.Destroy()
+
+            if cmd == wx.ID_YES:
+
+                prefs = Utility.loadPrefs(Globals.options)
+                if 'options' not in prefs:
+                    prefs['options'] = {}
+                prefs['options']['repodir'] = repodir
+                prefs.write()
+
+                if restore:
+                    app.PostAsyncEvent(app.restart, restore=restore)
+                elif create:
+                    app.PostAsyncEvent(app.restart, create=True)
+                else:
+                    app.PostAsyncEvent(app.restart)
+
     def RepositoryCommitWithStatus (self):
         """
         Do a repository commit with notice posted in the Status bar.

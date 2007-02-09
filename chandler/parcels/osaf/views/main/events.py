@@ -64,8 +64,9 @@ def makeMainEvents(parcel):
 
     BlockEvent.template('AddSharingLogToSidebar').install(parcel)
 
+    BlockEvent.template('SwitchRepository').install(parcel),
+    BlockEvent.template('CreateRepository').install(parcel),
     BlockEvent.template('CompactRepository').install(parcel)
-
     BlockEvent.template('IndexRepository').install(parcel)
 
     BlockEvent.template('UnsubscribeSidebarCollection').install(parcel)

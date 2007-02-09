@@ -119,28 +119,31 @@ class DBRepository(OnDemandRepository):
             self._env.open(self.dbHome, DBEnv.DB_CREATE | flags, 0)
             
         else:
+            dbHome = self.dbHome
             datadir = kwds.get('datadir')
             logdir = kwds.get('logdir')
 
-            if not exists(self.dbHome):
-                os.makedirs(self.dbHome)
-            elif not isdir(self.dbHome):
-                raise ValueError, "%s is not a directory" %(self.dbHome)
+            self.logger.info('creating repository in %s', dbHome)
+
+            if not exists(dbHome):
+                os.makedirs(dbHome)
+            elif not isdir(dbHome):
+                raise ValueError, "%s is not a directory" %(dbHome)
             else:
                 self.delete(datadir, logdir)
 
             if datadir:
-                datadir = join(self.dbHome, datadir)
+                datadir = join(dbHome, datadir)
                 if not exists(datadir):
                     os.makedirs(datadir)
             if logdir:
-                logdir = join(self.dbHome, logdir)
+                logdir = join(dbHome, logdir)
                 if not exists(logdir):
                     os.makedirs(logdir)
 
             self._lockOpen()
             self._env = self._createEnv(True, True, kwds)
-            self._env.open(self.dbHome, DBEnv.DB_CREATE | self.OPEN_FLAGS, 0)
+            self._env.open(dbHome, DBEnv.DB_CREATE | self.OPEN_FLAGS, 0)
 
         self.store = self._createStore()
         kwds['create'] = True
@@ -676,6 +679,8 @@ class DBRepository(OnDemandRepository):
             datadir = kwds.get('datadir')
             logdir = kwds.get('logdir')
             configure = False
+
+            self.logger.info('opening repository in %s', dbHome)
 
             if restore is not None:
                 self.restore(restore, datadir, logdir)
@@ -1347,7 +1352,7 @@ class DBIndexerThread(RepositoryThread):
 
                 if indexVersion < latestVersion:
                     if view is None:
-                        view = repository.createView("Lucene")
+                        view = repository.createView("Lucene", pruneSize=50)
                     while indexVersion < latestVersion:
                         view.refresh(version=indexVersion + 1, notify=False)
                         self._indexVersion(view, indexVersion + 1, store)
