@@ -983,7 +983,7 @@ class RepositoryView(CView):
 
         raise NotImplementedError, "%s.mapChanges" %(type(self))
     
-    def mapHistory(self, fromVersion=0, toVersion=0, history=None):
+    def mapHistory(self, fromVersion=-1, toVersion=0, history=None):
         """
         Generate a change tuple for every committed item change in other views.
 
@@ -1016,6 +1016,27 @@ class RepositoryView(CView):
         """
 
         raise NotImplementedError, "%s.mapHistory" %(type(self))
+
+    def mapHistoryKeys(self, fromVersion=-1, toVersion=0):
+        """
+        Generate a change tuple for every committed item change in other views.
+
+        For each item that was changed and committed in another view a
+        a tuple is generated with the following elements:
+
+            - the UUID of the item
+
+            - the item's committed version for the change
+
+        @param fromVersion: the version to start iterating changes from, the
+        current version by default.
+        @type fromVersion: integer
+        @param toVersion: the version to continue iterating changes to, the
+        latest committed version by default.
+        @type toVersion: integer
+        """
+
+        raise NotImplementedError, "%s.mapHistoryKeys" %(type(self))
 
     def recordChangeNotifications(self):
 

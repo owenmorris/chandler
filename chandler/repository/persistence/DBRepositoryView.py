@@ -757,6 +757,16 @@ class DBRepositoryView(OnDemandRepositoryView):
                             values.append(name)
             yield uItem, version, kind, status, values, references, prevKind
 
+    def mapHistoryKeys(self, fromVersion=-1, toVersion=0):
+
+        store = self.store
+        if fromVersion == -1:
+            fromVersion = self._version
+        if toVersion == 0:
+            toVersion = store.getVersion()
+
+        return store._items.iterHistory(self, fromVersion, toVersion, True)
+
     def _scanHistory(self, oldVersion, toVersion,
                      history, schema_history,
                      refreshes, merges, unloads, deletes):

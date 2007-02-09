@@ -1325,7 +1325,7 @@ class ItemContainer(DBContainer):
                     return
                 yield result
 
-    def iterHistory(self, view, fromVersion, toVersion):
+    def iterHistory(self, view, fromVersion, toVersion, keysOnly=False):
 
         store = self.store
         
@@ -1352,7 +1352,10 @@ class ItemContainer(DBContainer):
                 _self.cursor = cursor = self.openCursor(self._versions)
 
                 keyTypes = (Record.INT, Record.UUID)
-                dataTypes = ItemContainer.ITEM_TYPES
+                if keysOnly:
+                    dataTypes = ()
+                else:
+                    dataTypes = ItemContainer.ITEM_TYPES
                 flags = self._flags
 
                 try:
@@ -1365,17 +1368,21 @@ class ItemContainer(DBContainer):
                         if version > toVersion:
                             break
 
-                        (uKind, status, uParent, x, prevKind,
-                         x, x, x, dirties) = item.data
+                        if keysOnly:
+                            yield uItem, version
 
-                        if status & CItem.DELETED:
-                            dirties = HashTuple()
                         else:
-                            dirties = HashTuple(dirties.data)
+                            (uKind, status, uParent, x, prevKind,
+                             x, x, x, dirties) = item.data
 
-                        yield (uItem, version,
-                               uKind, status, uParent, prevKind,
-                               dirties)
+                            if status & CItem.DELETED:
+                                dirties = HashTuple()
+                            else:
+                                dirties = HashTuple(dirties.data)
+
+                            yield (uItem, version,
+                                   uKind, status, uParent, prevKind,
+                                   dirties)
                         
                         key, item = cursor.next_record(key, item,
                                                        flags, NONE_PAIR)
