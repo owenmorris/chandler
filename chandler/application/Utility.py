@@ -20,6 +20,7 @@ import os, sys, logging, logging.config, logging.handlers, string
 import i18n, schema
 import M2Crypto.Rand as Rand, M2Crypto.threading as m2threading
 from optparse import OptionParser
+from configobj import ConfigObj
 
 from chandlerdb.util.c import UUID, loadUUIDs
 from repository.persistence.DBRepository import DBRepository
@@ -257,6 +258,7 @@ COMMAND_LINE_OPTIONS = {
     'repair':     ('',   '--repair',     'b', False, None, 'repair repository before start (currently repairs broken indices)'),
     'nomvcc':     ('',   '--nomvcc',     'b', False, 'NOMVCC', 'run repository without multi version concurrency control'),
     'prune':      ('',   '--prune',      's', '10000', None, 'number of items in a view to prune to after each commit'),
+    'prefs':      ('',   '--prefs',      's', 'chandler.prefs', None, 'path to prefs file that contains defaults for command line options, relative to profile directory'),
 }
 
 def initDefaults(**kwds):
@@ -339,6 +341,14 @@ def initOptions(**kwds):
 
     # Ensure a profile directory
     initProfileDir(options)
+
+    # Load prefs and override default options from prefs
+    prefs = loadPrefs(options).get('options')
+    if prefs:
+        for name, (shortCmd, longCmd, optionType, defaultValue,
+                   environName, helpText) in COMMAND_LINE_OPTIONS.iteritems():
+            if name in prefs and getattr(options, name) == defaultValue:
+                setattr(options, name, prefs[name])
         
     # Store up the remaining args
     options.args = args
@@ -358,6 +368,15 @@ def initProfileDir(options):
         options.profileDir = os.path.expanduser(profileDir)
     elif not os.path.isdir(options.profileDir):
         createProfileDir(options.profileDir)
+
+
+def loadPrefs(options):
+    """
+    Load the chandler.prefs file as a ConfigObj, in profileDir by default.
+    If prefs file doesn't exist, an ConfigObj is returned.
+    """
+    return ConfigObj(os.path.join(options.profileDir or '.', options.prefs),
+                     encoding='utf-8')
 
 
 def initI18n(options):
@@ -457,7 +476,7 @@ def locateRepositoryDirectory(profileDir, options):
     if options.repodir:
         return os.path.join(options.repodir, '__repository__')
     if profileDir:
-        path = os.sep.join([profileDir, '__repository__'])
+        path = os.path.join(profileDir, '__repository__')
     else:
         path = '__repository__'
     return path
