@@ -485,7 +485,7 @@ class wxPreviewArea(CalendarCanvas.CalendarNotificationHandler, wx.Panel):
 
         # necessary when sidebar is resized
         if '__WXMAC__' not in wx.PlatformInfo:
-            self.Refresh()
+            self.Refresh(False)
 
     def OnPaint(self, event):
 

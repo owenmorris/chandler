@@ -71,6 +71,7 @@ EVT_MINI_CALENDAR_YEAR_CHANGED  = wx.PyEventBinder(wx.NewEventType(), 1)
 EVT_MINI_CALENDAR_UPDATE_BUSY   = wx.PyEventBinder(wx.NewEventType(), 1)
 EVT_MINI_CALENDAR_DOUBLECLICKED = wx.PyEventBinder(wx.NewEventType(), 1)
 
+
 #  ----------------------------------------------------------------------------
 #  wxMiniCalendar: a control allowing the user to pick a date interactively
 #  ----------------------------------------------------------------------------
@@ -385,14 +386,20 @@ class PyMiniCalendar(wx.PyControl):
 
         # force a full redraw as scaling might change (except on mac)
         if '__WXMAC__' not in wx.PlatformInfo:
-            self.Refresh()
+            self.Refresh(False)
 
     def OnMiniCalPaint(self, event):
 
         size = self.GetClientSize()
         width, height = self.CalcGeometry() # the ideal, unscaled size
 
-        dc = wx.PaintDC(self)
+        if '__WXMSW__' in wx.PlatformInfo:
+            dc = wx.BufferedPaintDC(self)
+            dc.SetBackground(wx.Brush(self.GetBackgroundColour()))
+            dc.Clear()
+        else:
+            dc = wx.PaintDC(self)
+        
         gc = wx.GraphicsContext.Create(dc)
 
         scale = 1.0
@@ -773,7 +780,7 @@ class PyMiniCalendar(wx.PyControl):
                 self.GenerateEvents(EVT_MINI_CALENDAR_UPDATE_BUSY)
                 
                 # update the calendar
-                self.Refresh()
+                self.Refresh(False)
                 
     def SetVisibleDateAndNotify(self, newDate, setVisible):
         if setVisible:
@@ -878,7 +885,7 @@ class PyMiniCalendar(wx.PyControl):
         if '__WXMSW__' in wx.PlatformInfo:
             rect.Inflate(0, 1)
 
-        self.RefreshRect(rect)
+        self.RefreshRect(rect, False)
 
     def GetBusy(self, date):
         """
