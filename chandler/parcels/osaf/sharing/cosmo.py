@@ -59,7 +59,7 @@ class CosmoAccount(accounts.WebDAVAccount):
         initialValue = 'SHARING_MORSECODE',
     )
 
-    def publish(self, collection, updateCallback=None):
+    def publish(self, collection, updateCallback=None, filters=None):
         rv = self.itsView
 
         share = shares.Share(itsView=rv, contents=collection)
@@ -68,6 +68,10 @@ class CosmoAccount(accounts.WebDAVAccount):
             account=self,
             translator=translator.PIMTranslator,
             serializer=eimml.EIMMLSerializer)
+
+        if filters:
+            conduit.filters = filters
+
         share.conduit = conduit
 
         try:

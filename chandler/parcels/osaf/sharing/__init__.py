@@ -399,7 +399,8 @@ def publish(collection, account, classesToInclude=None,
 
     # If the account knows how to publish, delegate:
     if hasattr(account, 'publish'):
-        return account.publish(collection, updateCallback=callback)
+        return account.publish(collection, updateCallback=callback,
+            filters=attrsToExclude)
 
 
     view = collection.itsView

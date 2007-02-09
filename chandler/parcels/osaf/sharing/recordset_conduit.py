@@ -35,7 +35,7 @@ class RecordSetConduit(conduits.BaseConduit):
     translator = schema.One(schema.Class)
     serializer = schema.One(schema.Class)
     syncToken = schema.One(schema.Text, defaultValue="")
-    filters = schema.Sequence(schema.Text)
+    filters = schema.Many(schema.Text, initialValue=set())
 
     def sync(self, modeOverride=None, updateCallback=None, forceUpdate=None,
         debug=False):
@@ -171,17 +171,23 @@ class RecordSetConduit(conduits.BaseConduit):
         if debug: print "Conduit marker version:", version
 
         # Add locally changed items
+        locallyChangedUuids = set()
 
-        # This loop loads all items in the collection:
-        #    for item in self.share.contents:
-        #        if item.itsVersion > version:
+        if forceUpdate:
+            # A filter was changed, so we need to publish all items again
+            for item in self.share.contents:
+                locallyChangedUuids.add(item.itsUUID)
 
-        # This loop tries to avoid loading any non-dirty items:
-        # When statistics logging is added, we can verify this loop is doing
-        # what we expect
-        for change in rv.mapHistory(version):
-            changedUuid = change[0]
-            if changedUuid in self.share.contents:
+        else:
+            # This loop tries to avoid loading any non-dirty items:
+            # When statistics logging is added, we can verify this loop is doing
+            # what we expect
+            for change in rv.mapHistory(version):
+                changedUuid = change[0]
+                if changedUuid in self.share.contents:
+                    locallyChangedUuids.add(changedUuid)
+
+        for changedUuid in locallyChangedUuids:
                 item = rv.findUUID(changedUuid)
                 if debug: print "Locally modified item", item, item.itsVersion
 
@@ -216,12 +222,7 @@ class RecordSetConduit(conduits.BaseConduit):
 
 
 
-        filterUris = getattr(self, "filters", None)
-        if filterUris:
-            filter = self.getFilter(filterUris)
-        else:
-            filter = None
-
+        filter = self.getFilter()
 
         # Merge
         toApply = {}

@@ -380,7 +380,7 @@ unfiltered inbound changes are applied::
     (RecordSet(set([]), set([])), RecordSet(set([]), set([])), RecordSet(set([]), set([])))
 
     >>> state
-    State(RecordSet(set([Demo(1, 4, 8)]), set([])), RecordSet(set([]), set([])))
+    State(RecordSet(set([Demo(1, 5, 8)]), set([])), RecordSet(set([]), set([])))
 
 
 Verify that inbound and outbound changes to a filtered field is not considered
@@ -390,7 +390,7 @@ a conflict::
     (RecordSet(set([]), set([])), RecordSet(set([]), set([])), RecordSet(set([]), set([])))
 
     >>> state
-    State(RecordSet(set([Demo(1, 4, 9)]), set([])), RecordSet(set([]), set([])))
+    State(RecordSet(set([Demo(1, 9, 9)]), set([])), RecordSet(set([]), set([])))
 
 
 Verify that conflicts can still be detected when at least one conflicting
@@ -400,7 +400,7 @@ field is not filtered::
     (RecordSet(set([]), set([])), RecordSet(set([]), set([])), RecordSet(set([Demo(1, NoChange, 11)]), set([])))
 
     >>> state
-    State(RecordSet(set([Demo(1, 4, 9)]), set([])), RecordSet(set([Demo(1, NoChange, 11)]), set([])))
+    State(RecordSet(set([Demo(1, 10, 9)]), set([])), RecordSet(set([Demo(1, NoChange, 11)]), set([])))
 
 
 

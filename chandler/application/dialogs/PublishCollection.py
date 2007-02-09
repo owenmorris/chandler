@@ -155,6 +155,7 @@ class PublishCollectionDialog(wx.Dialog):
             name = u"(via ticket)"
         wx.xrc.XRCCTRL(self, "TEXT_ACCOUNT").SetLabel(name)
 
+
         self.UnPubSub = wx.xrc.XRCCTRL(self, "BUTTON_UNPUBLISH")
 
         share = sharing.getShare(self.collection)
@@ -171,7 +172,11 @@ class PublishCollectionDialog(wx.Dialog):
         self.CheckboxShareTriage = wx.xrc.XRCCTRL(self, "CHECKBOX_TRIAGE")
         self.CheckboxShareTriage.Enable(True)
 
-        self.originalFilterAttributes = list(share.filterAttributes)
+        if isinstance(share.conduit, sharing.RecordSetConduit):
+            self.originalFilters = set(share.conduit.filters)
+
+        else:
+            self.originalFilterAttributes = list(share.filterAttributes)
 
         self._loadAttributeFilterState(share)
 
@@ -196,67 +201,123 @@ class PublishCollectionDialog(wx.Dialog):
         self.Destroy()
 
         share = sharing.getShare(self.collection)
-        if share.filterAttributes != self.originalFilterAttributes:
+        needsSync = False
+        if isinstance(share.conduit, sharing.RecordSetConduit):
+            if share.conduit.filters != self.originalFilters:
+                needsSync = True
+        else:
+            if share.filterAttributes != self.originalFilterAttributes:
+                needsSync = True
+
+        if needsSync:
             self.view.commit()
             sharing.scheduleNow(self.view, collection=share.contents,
                                 forceUpdate=True)
 
 
     def _loadAttributeFilterState(self, share):
-        # @@@ Jeffrey: Needs updating for new reminders?
-        self.CheckboxShareAlarms.SetValue(Remindable.reminders.name not in \
-                                          share.filterAttributes)
-        self.CheckboxShareStatus.SetValue(EventStamp.transparency.name not in \
-                                          share.filterAttributes)
-        self.CheckboxShareTriage.SetValue("triageStatus" not in \
-                                          share.filterAttributes)
+
+        if isinstance(share.conduit, sharing.RecordSetConduit):
+
+            self.CheckboxShareAlarms.SetValue('cid:reminders-filter@osaf.us'
+                not in share.conduit.filters)
+            self.CheckboxShareStatus.SetValue('cid:event-status-filter@osaf.us'
+                not in share.conduit.filters)
+            self.CheckboxShareTriage.SetValue('cid:triage-filter@osaf.us'
+                not in share.conduit.filters)
+
+        else:
+            # @@@ Jeffrey: Needs updating for new reminders?
+            self.CheckboxShareAlarms.SetValue(Remindable.reminders.name
+                not in share.filterAttributes)
+            self.CheckboxShareStatus.SetValue(EventStamp.transparency.name
+                not in share.filterAttributes)
+            self.CheckboxShareTriage.SetValue("triageStatus"
+                not in share.filterAttributes)
 
 
     def _getAttributeFilterState(self):
         attrs = []
         if self.publishType == 'collection':
-            # @@@ Jeffrey: Needs updating for new reminders?
-            if not self.CheckboxShareAlarms.GetValue():
-                attrs.append(Remindable.reminders.name)
-            if not self.CheckboxShareStatus.GetValue():
-                attrs.append(EventStamp.transparency.name)
-            if not self.CheckboxShareTriage.GetValue():
-                attrs.append('triageStatus')
-                attrs.append('triageStatusChanged')
+
+            if isinstance(self.currentAccount, sharing.CosmoAccount):
+                attrs = set()
+                if not self.CheckboxShareAlarms.GetValue():
+                    attrs.add('cid:reminders-filter@osaf.us')
+                if not self.CheckboxShareStatus.GetValue():
+                    attrs.add('cid:event-status-filter@osaf.us')
+                if not self.CheckboxShareTriage.GetValue():
+                    attrs.add('cid:triage-filter@osaf.us')
+
+            else:
+                # @@@ Jeffrey: Needs updating for new reminders?
+                if not self.CheckboxShareAlarms.GetValue():
+                    attrs.append(Remindable.reminders.name)
+                if not self.CheckboxShareStatus.GetValue():
+                    attrs.append(EventStamp.transparency.name)
+                if not self.CheckboxShareTriage.GetValue():
+                    attrs.append('triageStatus')
+                    attrs.append('triageStatusChanged')
         return attrs
 
 
     def _saveAttributeFilterState(self, share):
-        # @@@ Jeffrey: Needs updating for new reminders?
-        if not self.CheckboxShareAlarms.GetValue():
-            if Remindable.reminders.name not in share.filterAttributes:
-                share.filterAttributes.append(Remindable.reminders.name)
-        else:
-            if Remindable.reminders.name in share.filterAttributes:
-                share.filterAttributes.remove(Remindable.reminders.name)
 
-        if not self.CheckboxShareStatus.GetValue():
-            if EventStamp.transparency.name not in share.filterAttributes:
-                share.filterAttributes.append(EventStamp.transparency.name)
-        else:
-            if EventStamp.transparency.name in share.filterAttributes:
-                share.filterAttributes.remove(EventStamp.transparency.name)
+        if isinstance(share.conduit, sharing.RecordSetConduit):
 
-        if not self.CheckboxShareTriage.GetValue():
-            if "triageStatus" not in share.filterAttributes:
-                share.filterAttributes.append("triageStatus")
-                share.filterAttributes.append("triageStatusChanged")
-        else:
-            if "triageStatus" in share.filterAttributes:
-                share.filterAttributes.remove("triageStatus")
-                share.filterAttributes.remove("triageStatusChanged")
+            if not self.CheckboxShareAlarms.GetValue():
+                if 'cid:reminders-filter@osaf.us' not in share.conduit.filters:
+                    share.conduit.filters.add('cid:reminders-filter@osaf.us')
+            else:
+                if 'cid:reminders-filter@osaf.us' in share.conduit.filters:
+                    share.conduit.filters.remove('cid:reminders-filter@osaf.us')
 
-        # Make sure no matter what we keep filtering out the attributes that
-        # never belong in the XML fork of a CalDAV share:
-        if EventStamp.allDay.name in share.filterAttributes: # this is such an XML fork
-            for attr in sharing.CALDAVFILTER:
-                if attr not in share.filterAttributes:
-                    share.filterAttributes.append(attr)
+            if not self.CheckboxShareStatus.GetValue():
+                if 'cid:event-status-filter@osaf.us' not in share.conduit.filters:
+                    share.conduit.filters.add('cid:event-status-filter@osaf.us')
+            else:
+                if 'cid:event-status-filter@osaf.us' in share.conduit.filters:
+                    share.conduit.filters.remove('cid:event-status-filter@osaf.us')
+
+            if not self.CheckboxShareTriage.GetValue():
+                if 'cid:triage-filter@osaf.us' not in share.conduit.filters:
+                    share.conduit.filters.add('cid:triage-filter@osaf.us')
+            else:
+                if 'cid:triage-filter@osaf.us' in share.conduit.filters:
+                    share.conduit.filters.remove('cid:triage-filter@osaf.us')
+
+        else:
+            # @@@ Jeffrey: Needs updating for new reminders?
+            if not self.CheckboxShareAlarms.GetValue():
+                if Remindable.reminders.name not in share.filterAttributes:
+                    share.filterAttributes.append(Remindable.reminders.name)
+            else:
+                if Remindable.reminders.name in share.filterAttributes:
+                    share.filterAttributes.remove(Remindable.reminders.name)
+
+            if not self.CheckboxShareStatus.GetValue():
+                if EventStamp.transparency.name not in share.filterAttributes:
+                    share.filterAttributes.append(EventStamp.transparency.name)
+            else:
+                if EventStamp.transparency.name in share.filterAttributes:
+                    share.filterAttributes.remove(EventStamp.transparency.name)
+
+            if not self.CheckboxShareTriage.GetValue():
+                if "triageStatus" not in share.filterAttributes:
+                    share.filterAttributes.append("triageStatus")
+                    share.filterAttributes.append("triageStatusChanged")
+            else:
+                if "triageStatus" in share.filterAttributes:
+                    share.filterAttributes.remove("triageStatus")
+                    share.filterAttributes.remove("triageStatusChanged")
+
+            # Make sure no matter what we keep filtering out the attributes that
+            # never belong in the XML fork of a CalDAV share:
+            if EventStamp.allDay.name in share.filterAttributes:
+                # this is such an XML fork
+                for attr in sharing.CALDAVFILTER:
+                    if attr not in share.filterAttributes:
+                        share.filterAttributes.append(attr)
 
 
 

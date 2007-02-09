@@ -181,9 +181,11 @@ class State(schema.Item):
             print "   pending:", pending
 
         filteredInternal = filter(rsInternal)
-        externalState = agreed + pending + filter(rsExternal)
+        # externalState = agreed + pending + filter(rsExternal)
+        externalState = agreed + pending + rsExternal
 
-        ncd = (filteredInternal - agreed) | (externalState - agreed)
+        ncd = (filteredInternal - agreed) | filter(externalState - agreed)
+        uncd = (filteredInternal - agreed) | (externalState - agreed)
 
         if debug:
             print "   filteredInternal:", filteredInternal
@@ -197,7 +199,7 @@ class State(schema.Item):
         if send:
             externalState += dSend
 
-        agreed += ncd
+        agreed += uncd
 
         pending = externalState - agreed
 
