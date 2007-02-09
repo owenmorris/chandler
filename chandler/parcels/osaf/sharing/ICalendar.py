@@ -402,7 +402,8 @@ attributesUnderstood = ['recurrence-id', 'summary', 'description', 'location',
 parametersUnderstood = ['tzid', 'x-vobj-original-tzid', 'x-osaf-anytime-param']
 
 def itemsFromVObject(view, text, coerceTzinfo = None, filters = None,
-                     monolithic = True, updateCallback=None, stats=None):
+                     monolithic = True, updateCallback=None, stats=None,
+                     silentFailure=False):
     """
     Take a string, create or update items from that stream.
 
@@ -792,15 +793,12 @@ def itemsFromVObject(view, text, coerceTzinfo = None, filters = None,
                 raise
 
             except Exception, e:
-                if __debug__:
+                icalendarLines = text.splitlines()
+                logger.error("Exception when importing icalendar, first 300 lines: \n%s"
+                             % "\n".join(icalendarLines[:300]))
+                logger.exception("import failed to import one event with exception: %s" % str(e))
+                if not silentFailure:
                     raise
-                else:
-                    logger.exception("import failed to import one event with \
-                                     exception: %s" % str(e))
-
-    else:
-        # an empty ics file, what to do?
-        pass
     
     logger.info("...iCalendar import of %d new items, %d updated" % \
      (countNew, countUpdated))
@@ -920,7 +918,8 @@ class ICalendarFormat(formats.ImportExportFormat):
         coerceTzinfo = getattr(self, 'coerceTzinfo', None)
 
         events, calname = itemsFromVObject(view, text, coerceTzinfo, filters,
-                                           monolithic, updateCallback, stats)
+                                           monolithic, updateCallback, stats,
+                                           monolithic)
 
         if monolithic:
             if calname is None:
@@ -950,6 +949,8 @@ class ICalendarFormat(formats.ImportExportFormat):
             return item
 
         else:
+            if len(events) == 0:
+                logger.error("Got no events, icalendar: " + text)
             # if fileStyle isn't single, item must be a collection
             return events[0].getMaster().itsItem
 
