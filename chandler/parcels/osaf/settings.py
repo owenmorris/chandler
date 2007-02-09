@@ -382,12 +382,16 @@ def restore(rv, filename, testmode=False):
                 accountRef = schema.ns("osaf.pim", rv).currentMailAccount
                 current = accountRef.item
 
-                if current.accountProtocol == "IMAP" and \
-                   len(current.host.strip()) == 0 and \
+                if len(current.host.strip()) == 0 and \
                    len(current.password.strip()) == 0 and \
                    len(current.username.strip()) == 0:
+
                    # The current account is empty
-                    account = current
+                    if current.accountProtocol == "IMAP":
+                        account = current
+                    else:
+                        current.isActive = False
+                        makeCurrent = True
                 else:
                     makeCurrent = True
 
@@ -477,12 +481,16 @@ def restore(rv, filename, testmode=False):
                 accountRef = schema.ns("osaf.pim", rv).currentMailAccount
                 current = accountRef.item
 
-                if current.accountProtocol == "POP" and \
-                   len(current.host.strip()) == 0 and \
+                if len(current.host.strip()) == 0 and \
                    len(current.password.strip()) == 0 and \
                    len(current.username.strip()) == 0:
+
                    # The current account is empty
-                    account = current
+                    if current.accountProtocol == "POP":
+                        account = current
+                    else:
+                        current.isActive = False
+                        makeCurrent = True
                 else:
                     makeCurrent = True
 
