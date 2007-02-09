@@ -213,8 +213,10 @@ class EIMInMemoryTestCase(testcase.DualRepositoryTestCase):
             "Sync operation mismatch")
         self.assert_(item.displayName == "displayName changed in 0")
         self.assert_(item.body == "body changed again in 0")
-        sharing.SharedItem(item1).clearConflicts()
-
+        for conflict in sharing.SharedItem(item1).getConflicts():
+            conflict.discard()
+        # Verify that conflicts are removed when discarded
+        self.assertEqual(len(list(sharing.SharedItem(item1).getConflicts())), 0)
 
 
         # Remote stamping - stamp applied locally
@@ -505,7 +507,8 @@ class EIMInMemoryTestCase(testcase.DualRepositoryTestCase):
         self.assertEqual(item.body, "back from the dead")
         # We have pending changes ("modification trumps removal"), so clear
         # them out:
-        sharing.SharedItem(item).clearConflicts()
+        for conflict in sharing.SharedItem(item).getConflicts():
+            conflict.discard()
 
 
 

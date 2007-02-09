@@ -403,6 +403,26 @@ field is not filtered::
     State(RecordSet(set([Demo(1, 10, 9)]), set([])), RecordSet(set([Demo(1, NoChange, 11)]), set([])))
 
 
+Start over, to test that when a filter is removed, the local change that was
+hiding behind the filter is now sent::
+
+    >>> state.set(rs(set([Demo(1,1,1)])), empty)
+    >>> filter = getFilter(['cid:bar-filter@osaf.us'])
+    >>> state.merge(rs([Demo(1, 2, 2)]), rs([Demo(1, 3, nc)]), filter=filter)
+    (RecordSet(set([Demo(1, NoChange, 2)]), set([])), RecordSet(set([]), set([])), RecordSet(set([]), set([])))
+    >>> state
+    State(RecordSet(set([Demo(1, 3, 2)]), set([])), RecordSet(set([]), set([])))
+
+Note how the agreed state reflects the external change above.  Now remove the
+filter and merge::
+
+    >>> state.merge(rs([Demo(1, 2, 2)]))
+    (RecordSet(set([Demo(1, 2, NoChange)]), set([])), RecordSet(set([]), set([])), RecordSet(set([]), set([])))
+    >>> state
+    State(RecordSet(set([Demo(1, 2, 2)]), set([])), RecordSet(set([]), set([])))
+
+See how the local change finally got sent out above.
+
 
 Start over, to test that local deletions get sent::
 
@@ -527,6 +547,11 @@ Sharing an item this way automatically stamps the item as SharedItem.
     >>> pim.has_stamp(item0, sharing.SharedItem)
     True
 
+An item without conflicts has no SharedItem.conflictingStates attribute::
+
+    >>> hasattr(sharing.SharedItem(item0), "conflictingStates")
+    False
+
 An item is imported via the inbound method.
 
     >>> item1 = sharing.inbound(morgen, text)
@@ -552,21 +577,79 @@ Send changes back
     >>> item0.triageStatus
     TriageEnum.now
 
-Conflicts are accessed via statesWithConflicts (until a better API)
+You can quickly see if an item has conflicts by checking for the existence of
+the 'conflictingStates' attribute::
 
     >>> shared0 = sharing.SharedItem(item0)
-    >>> not hasattr(shared0, 'statesWithConflicts')
-    True
+    >>> hasattr(shared0, 'conflictingStates')
+    False
 
     >>> shared1 = sharing.SharedItem(item1)
-    >>> not hasattr(shared1, 'statesWithConflicts')
-    True
+    >>> hasattr(shared1, 'conflictingStates')
+    False
 
-Cause a conflict:
+Cause a conflict::
 
-    >>> item0.displayName = "changed by morgen"
-    >>> item1.displayName = "changed by pje"
+    >>> item0.displayName = u'changed by morgen'
+    >>> item1.displayName = u'changed by pje'
     >>> text = sharing.outbound(pje, item0)
     >>> item1 = sharing.inbound(morgen, text)
-    >>> shared1.getConflicts()
-    [(<Item (new): ...>, RecordSet(set([ItemRecord(u'...', u'changed by morgen', NoChange, ..., NoChange, NoChange)]), set([])))]
+
+See if a conflict exists for this item::
+
+    >>> hasattr(shared1, 'conflictingStates')
+    True
+
+Get the list of conflicts::
+
+    >>> list(shared1.getConflicts())
+    [Something : RecordSet(set([ItemRecord(u'...', u'changed by morgen', NoChange, NoChange, NoChange, NoChange)]), set([]))]
+
+A conflict has two attributes that the UI is going to care about, "field" and
+"value".  At the moment, "field" is always the string "Something", and "value"
+is simply a dumb string conversion of the conflicting recordset.  Soon we will
+break out each conflicting field into its own Conflict object that can be
+applied or discarded independently.
+
+
+You can apply() a conflict, which goes ahead and applies those pending changes
+to the item::
+
+    >>> item1.displayName
+    u'changed by pje'
+
+    >>> for conflict in shared1.getConflicts():
+    ...     conflict.apply()
+
+Verify the pending change was applied::
+
+    >>> item1.displayName
+    u'changed by morgen'
+
+Once applied, conflicts go away::
+
+    >>> hasattr(shared1, 'conflictingStates')
+    False
+    >>> list(shared1.getConflicts())
+    []
+
+Cause a conflict again::
+
+    >>> item0.displayName = u'changed again by morgen'
+    >>> item1.displayName = u'changed again by pje'
+    >>> text = sharing.outbound(pje, item0)
+    >>> item1 = sharing.inbound(morgen, text)
+    >>> list(shared1.getConflicts())
+    [Something : RecordSet(set([ItemRecord(u'...', u'changed again by morgen', NoChange, NoChange, NoChange, NoChange)]), set([]))]
+
+This time discard the conflict::
+
+    >>> for conflict in shared1.getConflicts():
+    ...     conflict.discard()
+
+Again, the conflicts are gone::
+
+    >>> hasattr(shared1, 'conflictingStates')
+    False
+    >>> list(shared1.getConflicts())
+    []

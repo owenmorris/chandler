@@ -24,7 +24,6 @@ __all__ = [
     'inbound',
     'outbound',
     'outboundDeletion',
-    'getPeerState',
 ]
 
 
@@ -58,11 +57,11 @@ def inbound(peer, text, allowDeletion=False, debug=False):
             if not pim.has_stamp(item, shares.SharedItem):
                 shares.SharedItem(item).add()
             shared = shares.SharedItem(item)
-            state = getPeerState(shared, peer)
+            state = shared.getPeerState(peer)
             rsInternal= eim.RecordSet(trans.exportItem(item))
 
         else: # Item doesn't exist yet
-            state = shares.State(itsView=rv, peer=peer)
+            state = shares.State(itsView=rv, peer=peer, itemUUID=uuid)
             rsInternal = eim.RecordSet()
 
         if peerRepoId != state.peerRepoId:
@@ -79,7 +78,7 @@ def inbound(peer, text, allowDeletion=False, debug=False):
             state.peerItemVersion = peerItemVersion
 
             dSend, dApply, pending = state.merge(rsInternal, rsExternal,
-                send=False, receive=True, uuid=uuid, debug=debug)
+                send=False, receive=True, debug=debug)
 
             if dApply:
                 if debug: print "Applying:", uuid, dApply
@@ -89,11 +88,7 @@ def inbound(peer, text, allowDeletion=False, debug=False):
             if item is not None and item.isLive():
                 if not pim.has_stamp(item, shares.SharedItem):
                     shares.SharedItem(item).add()
-                shared = shares.SharedItem(item)
-                if not hasattr(shared, 'states'):
-                    shared.states = []
-                if state not in shared.states:
-                    shared.states.append(state, peer.itsUUID.str16())
+                shares.SharedItem(item).addPeerState(state, peer)
         else:
             logger.info("Ignoring old update for %s", uuid)
 
@@ -102,11 +97,7 @@ def inbound(peer, text, allowDeletion=False, debug=False):
         # Remove the state
         if pim.has_stamp(item, shares.SharedItem):
             shared = shares.SharedItem(item)
-            if hasattr(shared, 'states'):
-                state = shared.states.getByAlias(peer.itsUUID.str16())
-                if state is not None:
-                    shared.states.remove(state)
-                    state.delete(True)
+            shared.removePeerState(peer)
 
         # Remove the item (if allowed)
         if allowDeletion:
@@ -135,11 +126,11 @@ def outbound(peer, item, debug=False):
 
     shared = shares.SharedItem(item)
 
-    # Abort if pending
-    if shared.getConflicts():
+    # Abort if pending conflicts
+    if hasattr(shared, "conflictingStates"):
         raise errors.ConflictsPending(_(u"Conflicts pending"))
 
-    state = getPeerState(shared, peer)
+    state = shared.getPeerState(peer)
 
     # Set agreed state to what we have locally
     state.agreed = rsInternal
@@ -168,18 +159,4 @@ def outboundDeletion(peer, uuid, debug=False):
 
     return serializer.serialize({ uuid : None }, "item")
 
-
-
-def getPeerState(item, peer, create=True):
-
-    peerUuid = peer.itsUUID.str16()
-    state = None
-    if hasattr(item, 'states'):
-        state = item.states.getByAlias(peerUuid)
-    else:
-        item.states = []
-    if state is None and create:
-        state = shares.State(itsView=item.itsItem.itsView, peer=peer)
-        item.states.append(state, peerUuid)
-    return state
 

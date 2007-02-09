@@ -120,8 +120,16 @@ class CosmoConduit(recordset_conduit.RecordSetConduit, conduits.HTTPMixin):
             method = 'PUT'
 
         resp = self._send(method, location, text)
-        if resp.status not in (201, 204):
-            # TODO: Fix error message
+
+        if resp.status in (205, 423):
+            # The collection has either been updated by someone else since
+            # we last did a GET (205) or the collection is in the process of
+            # being updated right now and is locked (423).  In each case, our
+            # reaction is the same -- abort the sync.
+            # TODO: We should try to sync again soon
+            raise errors.TokenMismatch(_(u"Collection updated by someone else"))
+
+        elif resp.status not in (201, 204):
             raise errors.SharingError("HTTP error %d" % resp.status,
                 debugMessage="Sent [%s], Received [%s]" % (text, resp.body))
 

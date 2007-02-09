@@ -17,6 +17,7 @@ __all__ = [
     'OneTimeFileSystemShare',
     'SharedItem',
     'State',
+    'Conflict',
     'getFilter',
     'isShared',
     'isReadOnly',
@@ -26,7 +27,7 @@ __all__ = [
 from application import schema
 from osaf import pim
 from i18n import ChandlerMessageFactory as _
-import errors, eim
+import errors, eim, translator
 from callbacks import *
 import cPickle
 import logging
@@ -47,27 +48,49 @@ class SharedItem(pim.Stamp):
     sharedIn = schema.Sequence(initialValue=[])
     # 'sharedIn' links shared items to their shares
 
-    states = schema.Sequence()
-    # 'states' is used only for p2p sharing, including mail-edit-update.
+    peerStates = schema.Sequence()
+    # 'peerStates' is used only for p2p sharing, including mail-edit-update.
     # It's a ref collection aliased by peer.itsUUID.str16()
     # In Cosmo-based sharing, states are stored in the conduit
 
     conflictingStates = schema.Sequence()
 
     def getConflicts(self):
-        conflicts = [ ]
         for state in getattr(self, 'conflictingStates', []):
-            if state.pending:
-                conflicts.append((state.peer, state.pending))
-        return conflicts
+            for conflict in state.getConflicts():
+                yield conflict
 
 
     def clearConflicts(self):
         for state in getattr(self, 'conflictingStates', []):
-            if state.pending:
-                del state.pending
-                self.conflictingStates.remove(state)
+            state.clearConflicts()
 
+    def addPeerState(self, state, peer):
+        peerUuid = peer.itsUUID.str16()
+        if not hasattr(self, 'peerStates'):
+            self.peerStates = []
+        if state not in self.peerStates:
+            self.peerStates.append(state, peerUuid)
+        state.itemUUID = self.itsItem.itsUUID.str16()
+
+    def getPeerState(self, peer, create=True):
+        peerUuid = peer.itsUUID.str16()
+        state = None
+        if hasattr(self, 'peerStates'):
+            state = self.peerStates.getByAlias(peerUuid)
+        else:
+            self.peerStates = []
+        if state is None and create:
+            state = State(itsView=self.itsItem.itsView, peer=peer,
+                itemUUID=self.itsItem.itsUUID.str16())
+            self.peerStates.append(state, peerUuid)
+        return state
+
+    def removePeerState(self, peer):
+        state = self.getPeerState(peer, create=False)
+        if state is not None:
+            self.peerStates.remove(state)
+            state.delete(True)
 
 
     # In the new sharing world, this method might be obsolete, now that even
@@ -114,14 +137,18 @@ class SharedItem(pim.Stamp):
 
 class State(schema.Item):
 
-    stateFor = schema.One(inverse=SharedItem.states)
-    conflictFor = schema.One(inverse=SharedItem.conflictingStates)
     peer = schema.One(schema.ItemRef)
+    peerStateFor = schema.One(inverse=SharedItem.peerStates)
     peerRepoId = schema.One(schema.Text, initialValue="")
     peerItemVersion = schema.One(schema.Integer, initialValue=-1)
+    itemUUID = schema.One(schema.Text)
+    conflictFor = schema.One(inverse=SharedItem.conflictingStates)
+
+    # Internal
     _agreed = schema.One(schema.Text)
     _pending = schema.One(schema.Text)
 
+    # TODO: add translator here?
 
     def __repr__(self):
         return "State(%r, %r)" % (self.agreed, self.pending)
@@ -159,7 +186,7 @@ class State(schema.Item):
 
 
 
-    def merge(self, rsInternal, rsExternal=None, uuid=None,
+    def merge(self, rsInternal, inboundDiff=eim.RecordSet(),
         send=True, receive=True, filter=None, debug=False):
 
         if filter is None:
@@ -167,77 +194,76 @@ class State(schema.Item):
         else:
             filter = filter.sync_filter
 
-        if rsExternal is None:
-            rsExternal = eim.RecordSet()
-
-        agreed = self.agreed
         pending = self.pending
 
         if debug:
-            print " ----------- Merging item:", uuid
+            print " ----------- Merging item:", self.itemUUID
             print "   rsInternal:", rsInternal
-            print "   rsExternal:", rsExternal
-            print "   agreed:", agreed
+            print "   inboundDiff:", inboundDiff
+            print "   agreed:", self.agreed
             print "   pending:", pending
 
-        filteredInternal = filter(rsInternal)
-        # externalState = agreed + pending + filter(rsExternal)
-        externalState = agreed + pending + rsExternal
+        rsExternal = self.agreed + pending + inboundDiff
+        internalDiff = filter(rsInternal - self.agreed)
+        externalDiff = rsExternal - self.agreed
 
-        ncd = (filteredInternal - agreed) | filter(externalState - agreed)
-        uncd = (filteredInternal - agreed) | (externalState - agreed)
+        ncd = internalDiff | filter(externalDiff)
+        self.agreed += (internalDiff | externalDiff)
 
         if debug:
-            print "   filteredInternal:", filteredInternal
-            print "   externalState:", externalState
+            print "   rsExternal:", rsExternal
             print "   ncd:", ncd
 
-        dSend = self._cleanDiff(externalState, ncd)
+        dSend = self._cleanDiff(rsExternal, ncd)
 
-        dApply = self._cleanDiff(filteredInternal, ncd)
+        dApply = self._cleanDiff(rsInternal, ncd)
 
         if send:
-            externalState += dSend
-
-        agreed += uncd
-
-        pending = externalState - agreed
+            rsExternal += dSend
 
 
-        self.agreed = agreed
-        self.pending = pending
+        self.pending = rsExternal - self.agreed
 
         # Hook up pending conflicts to item
-        if uuid is not None:
-            item = self.itsView.findUUID(uuid)
-            if item is not None:
-                if not pim.has_stamp(item, SharedItem):
-                    SharedItem(item).add()
-                shared = SharedItem(item)
-                if pending:
-                    if not hasattr(shared, 'conflictingStates'):
-                        shared.conflictingStates = []
-                    shared.conflictingStates.add(self)
-                else:
-                    if self in getattr(shared, 'conflictingStates', []):
-                        shared.conflictingStates.remove(self)
-
+        self._updateConflicts()
 
         if debug:
             print " - - - - Results - - - - "
-            print "   agreed:", agreed
+            print "   agreed:", self.agreed
             print "   dSend:", dSend
             print "   dApply:", dApply
-            print "   pending:", pending
+            print "   pending:", self.pending
             print " ----------- End of merge "
 
-        return dSend, dApply, pending
+        return dSend, dApply, self.pending
 
     def _cleanDiff(self, state, diff):
         newState = state + diff
         newState.exclusions = set()
         diff = newState - state
         return diff
+
+    def _updateConflicts(self):
+        # See if we have pending conflicts; if so, make sure we are in the
+        # item's conflictingStates ref collection.  If not, make sure we
+        # aren't.  Also, if we're the last conflict to be removed from the
+        # item, go ahead and delete the conflictingStates attribute.
+        if hasattr(self, "itemUUID"):
+            uuid = self.itemUUID
+            item = self.itsView.findUUID(uuid)
+            if item is not None:
+                if not pim.has_stamp(item, SharedItem):
+                    SharedItem(item).add()
+                shared = SharedItem(item)
+                if self.pending:
+                    if not hasattr(shared, 'conflictingStates'):
+                        shared.conflictingStates = []
+                    shared.conflictingStates.add(self)
+                else:
+                    if self in getattr(shared, 'conflictingStates', []):
+                        shared.conflictingStates.remove(self)
+                        if not shared.conflictingStates:
+                            del shared.conflictingStates
 
 
     def set(self, agreed, pending):
@@ -255,6 +281,62 @@ class State(schema.Item):
             pass
         self.peerItemVersion = -1
 
+    def apply(self, change):
+        trans = translator.PIMTranslator(self.itsView)
+        trans.importRecords(change)
+        self.agreed += change
+        pending = self.pending
+        pending.remove(change)
+        self.pending = pending
+        self._updateConflicts()
+
+    def discard(self, change):
+        pending = self.pending
+        pending.remove(change)
+        self.pending = pending
+        self._updateConflicts()
+
+    def getConflicts(self):
+        # calls translator.explainConflicts(pending)
+        # that will yield a series of tuples (fieldname, fieldvalue, change)
+
+        # TODO: yield a bunch of Conflict objects
+
+        if self.pending:
+            yield Conflict(self, "Something", str(self.pending), self.pending)
+
+
+
+
+
+
+
+
+class Conflict(object):
+
+    def __init__(self, state, field, value, change):
+        self.state = state
+        self.peer = state.peer
+        self.field = field
+        self.value = value
+        self.change = change
+        self.resolved = False
+
+    def __repr__(self):
+        return "%s : %s" % (self.field, self.value)
+
+    def apply(self):
+        if not self.resolved:
+            self.state.apply(self.change)
+            self.resoved = True
+
+    def discard(self):
+        if not self.resolved:
+            self.state.discard(self.change)
+            self.resoved = True
+
+
+
 
 
 def getFilter(filterUris):
@@ -262,8 +344,6 @@ def getFilter(filterUris):
     for uri in filterUris:
         filter += eim.lookupSchemaURI(uri)
     return filter
-
-
 
 
 

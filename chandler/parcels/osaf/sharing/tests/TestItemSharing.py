@@ -66,7 +66,7 @@ class ItemSharingTestCase(testcase.DualRepositoryTestCase):
         shared0 = sharing.SharedItem(item0)
         shared1 = sharing.SharedItem(item1)
 
-        self.assert_(not shared0.getConflicts())
+        self.assert_(not list(shared0.getConflicts()))
 
         # conflict
         item0.displayName = "changed by morgen"
@@ -77,7 +77,8 @@ class ItemSharingTestCase(testcase.DualRepositoryTestCase):
         view1.commit()
         sharing.inbound(morgen, text)
         view1.commit()
-        self.assert_(shared1.getConflicts())
+        conflicts = list(shared1.getConflicts())
+        self.assert_(conflicts)
 
 
         # try sending when there are pending conflicts
@@ -120,21 +121,21 @@ class ItemSharingTestCase(testcase.DualRepositoryTestCase):
         sharing.inbound(morgen, text)
         view1.commit()
         # Examine the conflicts and ensure the 'title' field isn't conflicting
-        peer, conflict = shared1.getConflicts()[0]
-        self.assert_(peer is morgen)
-        record = list(conflict.inclusions)[0]
+        conflicts = list(shared1.getConflicts())
+        self.assert_(conflicts[0].peer is morgen)
+        record = list(conflicts[0].change.inclusions)[0]
         self.assertEqual(record.title, sharing.NoChange)
 
 
         # Verify that an out of sequence update is ignored
-        before = sharing.getPeerState(shared1, morgen, create=False)
+        before = shared1.getPeerState(morgen, create=False)
         beforeAgreed = before.agreed # copy the old agreed recordset
         # item0.displayName is "changed"
         view0.itsVersion = 2 # Back in time
         # Now item0.displayName is "test displayName"
         text = sharing.outbound(pje, item0)
         sharing.inbound(morgen, text, debug=False)
-        after = sharing.getPeerState(shared1, morgen, create=False)
+        after = shared1.getPeerState(morgen, create=False)
         self.assertEqual(beforeAgreed, after.agreed)
 
 if __name__ == "__main__":

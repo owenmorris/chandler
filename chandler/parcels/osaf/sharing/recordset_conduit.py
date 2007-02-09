@@ -231,10 +231,9 @@ class RecordSetConduit(conduits.BaseConduit):
         for uuid in set(rsNewBase) | set(inboundDiff):
             state = self.getState(uuid)
             rsInternal = rsNewBase.get(uuid, eim.RecordSet())
-            rsExternal = inboundDiff.get(uuid, None)
+            rsExternal = inboundDiff.get(uuid, eim.RecordSet())
             dSend, dApply, pending = state.merge(rsInternal, rsExternal,
-                uuid=uuid, send=send, receive=receive, filter=filter,
-                debug=debug)
+                send=send, receive=receive, filter=filter, debug=debug)
             if send and dSend:
                 toSend[uuid] = dSend
                 if uuid not in sendStats['added']:
@@ -334,7 +333,8 @@ class RecordSetConduit(conduits.BaseConduit):
         return state
 
     def newState(self, uuidString):
-        state = shares.State(itsView=self.itsView, peer=self.share)
+        state = shares.State(itsView=self.itsView, peer=self.share,
+            itemUUID=uuidString)
         self.share.states.append(state, uuidString)
         return state
 
