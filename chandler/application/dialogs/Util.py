@@ -587,6 +587,7 @@ class ProgressDialog(wx.Dialog):
 
     TIMEOUT               = 10
     DISPLAY_YES_NO        = False
+    APPLY_SETTINGS        = False
     ALLOW_CANCEL          = True
     SUCCESS_TEXT_SIZE     = (450, 100)
     ERROR_TEXT_SIZE       = (450, 100)
@@ -841,6 +842,16 @@ class ResultsButtonPanel(wx.Panel):
             self.yesButton.SetDefault()
             self.yesButton.Bind(wx.EVT_BUTTON, self.parent.OnYes)
             self.sizer.Add(self.yesButton, 1, wx.ALIGN_RIGHT|wx.ALL, 5)
+
+        elif self.parent.APPLY_SETTINGS == True:
+            self.cButton = wx.Button(self, wx.ID_CANCEL)
+            self.cButton.Bind(wx.EVT_BUTTON, self.parent.OnClose)
+            self.sizer.Add(self.cButton, 0, wx.ALIGN_RIGHT|wx.ALL, 5)
+
+            self.aButton = wx.Button(self, -1, _(u"Apply settings"))
+            self.aButton.SetDefault()
+            self.aButton.Bind(wx.EVT_BUTTON, self.parent.OnApplySettings)
+            self.sizer.Add(self.aButton, 1, wx.ALIGN_RIGHT|wx.ALL, 5)
 
         else:
             self.closeButton = wx.Button(self, -1, _(u"Close Window"))

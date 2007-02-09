@@ -447,7 +447,7 @@
           <object class="sizeritem">
             <object class="wxStaticText" name="ID_BUFFER">
               <label></label>
-              <size>2,10</size>
+              <size>2,14</size>
             </object>
           </object>
           <object class="sizeritem">
@@ -457,28 +457,50 @@
             </object>
           </object>
           <object class="sizeritem">
-            <object class="wxCheckBox" name="INCOMING_FOLDERS">
+            <flag>wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL|wxALL</flag>
+            <border>5</border>
+            <object class="wxStaticText" name="ID_TEXT">
+              <size>110,-1</size>
               <label></label>
+              <style>wxALIGN_RIGHT</style>
             </object>
-            <flag>wxTOP|wxRIGHT|wxALL|wxALIGN_RIGHT</flag>
           </object>
           <object class="sizeritem">
             <object class="wxBoxSizer">
-              <orient>wxVERTICAL</orient>
+              <orient>wxHORIZONTAL</orient>
               <object class="sizeritem">
-                <flag>wxALIGN_CENTER_VERTICAL|wxALL</flag>
+                <object class="wxButton" name="INCOMING_FOLDERS">
+                  <label>Add</label>
+                </object>
+                <flag>wxGROW|wxALIGN_CENTRE_VERTICAL</flag>
+              </object>
+              <object class="spacer">
+                <size>4,-1</size>
+              </object>
+              <object class="sizeritem">
                 <object class="wxStaticText" name="INCOMING_FOLDERS_VERBAGE">
-                  <label>Set up special I&amp;MAP folders to add items\nto Chandler from your email.</label>
+                  <label>Chandler folders. </label>
                 </object>
-                <border>3</border>
+                <flag>wxALIGN_CENTRE_VERTICAL</flag>
               </object>
               <object class="sizeritem">
-                <flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTRE_VERTICAL</flag>
                 <object class="wxHyperlinkCtrl" name="INCOMING_FOLDERS_VERBAGE2">
-                  <label>Learn More.</label>
+                  <label>Learn more.</label>
                 </object>
-                <border>3</border>
+                <flag>wxALIGN_CENTRE_VERTICAL</flag>
               </object>
+            </object>
+          </object>
+          <object class="sizeritem">
+            <object class="wxStaticText" name="INCOMING_FOLDERS_BUFFER">
+              <label></label>
+              <size>2,14</size>
+            </object>
+          </object>
+          <object class="sizeritem">
+            <object class="wxStaticText" name="INCOMING_FOLDERS_BUFFER2">
+              <label></label>
+              <size>0,0</size>
             </object>
           </object>
         </object>
@@ -826,10 +848,13 @@
       <object class="sizeritem">
         <object class="wxBoxSizer">
           <orient>wxHORIZONTAL</orient>
+          <object class="spacer">
+            <size>10,0</size>
+          </object>
           <object class="sizeritem">
             <object class="wxStaticText" name="INCOMING_MESSAGE">
               <label>Note: Only emails sent from Chandler will be downloaded.</label>
-              <size>380,-1</size>
+              <size>370,-1</size>
               <hidden>1</hidden>
             </object>
             <flag>wxALL|wxALIGN_CENTRE_VERTICAL</flag>
@@ -837,7 +862,7 @@
           <object class="sizeritem">
             <object class="wxStaticText" name="OUTGOING_MESSAGE">
               <label></label>
-              <size>380,-1</size>
+              <size>370,-1</size>
               <hidden>1</hidden>
             </object>
             <flag>wxALL|wxALIGN_CENTRE_VERTICAL</flag>

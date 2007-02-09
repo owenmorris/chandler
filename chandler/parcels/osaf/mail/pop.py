@@ -34,15 +34,25 @@ from message import *
 __all__ = ['POPClient']
 
 """
-1. Remove the 'TOP' and 'UIDL' requirements
-2. Add in AUTH LOGIN to twisted pop3client.py
+1. Add in AUTH LOGIN to twisted pop3client.py
 """
+
+# When set to True and in __debug__ mode
+# This flag will signal whether to print
+# the communications between the client
+# and server. This is especially handy
+# when the traffic is encrypted (SSL/TLS).
+DEBUG_CLIENT_SERVER = False
 
 class POPVars(base.DownloadVars):
     def __init__(self):
         super(POPVars, self).__init__()
         self.headerCheckList = []
         self.addedUIDS = False
+
+        # indicates whether the server supports
+        # the optional TOP command
+        self.top = False
 
 class _TwistedPOP3Client(pop3.POP3Client):
     """Overides C{pop3.PO3Client} to add
@@ -76,16 +86,10 @@ class _TwistedPOP3Client(pop3.POP3Client):
             #If we have already timed out then gracefully exit the function
             return defer.succeed(True)
 
-        # Check that the server supports both TOP and UIDL.
-        # Although they are not required by the POP3 Spec
-        # They are common in the majority of POP3 servers.
-        # For Preview Chandler requires that the POP3 Server
-        # support both the 'TOP' and 'UIDL' commands.
-
-        if 'TOP' not in caps:
-            txt = constants.POP_TOP_ERROR
-            return self.delegate.catchErrors(errors.POPException(txt))
-
+        # For Preview the optional UIDL command
+        # is required. It is very hard to
+        # determine what mail has already been
+        # downloaded with out it.
         if 'UIDL' not in caps:
             txt = constants.POP_UIDL_ERROR
             return self.delegate.catchErrors(errors.POPException(txt))
@@ -140,6 +144,18 @@ class _TwistedPOP3Client(pop3.POP3Client):
 
         for w in d:
             w.errback(error)
+
+    def sendLine(self, line):
+        if __debug__ and DEBUG_CLIENT_SERVER:
+            print "C: %s" % line
+
+        return pop3.POP3Client.sendLine(self, line)
+
+    def lineReceived(self, line):
+        if __debug__ and DEBUG_CLIENT_SERVER:
+            print "S: %s" % line
+
+        return pop3.POP3Client.lineReceived(self, line)
 
 class POPClientFactory(base.AbstractDownloadClientFactory):
     """Inherits from C{base.AbstractDownloadClientFactory}
@@ -205,6 +221,10 @@ class POPClient(base.AbstractDownloadClient):
 
         self.vars = POPVars()
 
+        if self.proto._capCache.has_key("TOP"):
+            # The server supports TOP
+            self.vars.top = True
+
         d = self.proto.stat()
         d.addCallbacks(self._serverHasMessages, self.catchErrors)
 
@@ -268,8 +288,12 @@ class POPClient(base.AbstractDownloadClient):
         if len(self.vars.headerCheckList) > 0:
             msgNum, uid = self.vars.headerCheckList.pop(0)
 
-            # This sends a TOP msgNum 0 command to the POP3 server
-            d = self.proto.retrieve(msgNum, lines=0)
+            if self.vars.top:
+                # This sends a TOP msgNum 0 command to the POP3 server
+                d = self.proto.retrieve(msgNum, lines=0)
+            else:
+                d = self.proto.retrieve(msgNum)
+
             d.addCallback(self._isNewChandlerMessage, msgNum, uid)
             d.addErrback(self.catchErrors)
 
@@ -281,15 +305,33 @@ class POPClient(base.AbstractDownloadClient):
 
         return self._actionCompleted()
 
-    def _isNewChandlerMessage(self, msgHeaders, msgNum, uid):
+    def _isNewChandlerMessage(self, msg, msgNum, uid):
         if __debug__:
             trace("_isNewChandlerMessage")
 
-        if "X-Chandler-Mailer: True" in msgHeaders:
-            # This is a Chandler Message so add it to
-            # the list of pending messages to be downloaded
+        if self.vars.top and "X-Chandler-Mailer: True" in msg:
+            # If the server supports top and the msg (which is
+            # a list of message headers) has the Chandler Header flag
+            # in it add it to the pending list
             self.vars.pending.append((msgNum, uid))
 
+        elif not self.vars.top:
+            # In this case message is a list of all headers and body
+            # parts so we join the list and convert it to a Python
+            # email object
+
+            #XXX this case is extremely inefficient since
+            # the same message is downloaded twice if it
+            # contains Chandler Headers.
+            # Post-Preview this will probally be refactored.
+
+            msgText = "\n".join(msg)
+            messageObject = email.message_from_string(msgText)
+
+            if messageObject.get("X-Chandler-Mailer", "") == "True":
+                # This is a Chandler Message so add it to
+                # the list of pending messages to be downloaded
+                self.vars.pending.append((msgNum, uid))
         else:
             # Now that we know that this is not a Chandler message,
             # add it to the seenMessageUIDS list so we don't
@@ -300,8 +342,12 @@ class POPClient(base.AbstractDownloadClient):
         if len(self.vars.headerCheckList) > 0:
             msgNum, uid = self.vars.headerCheckList.pop(0)
 
-            # This sends a TOP msgNum 0 command to the POP3 server
-            d = self.proto.retrieve(msgNum, lines=0)
+            if self.vars.top:
+                # This sends a TOP msgNum 0 command to the POP3 server
+                d = self.proto.retrieve(msgNum, lines=0)
+            else:
+                d = self.proto.retrieve(msgNum)
+
             d.addCallback(self._isNewChandlerMessage, msgNum, uid)
             d.addErrback(self.catchErrors)
 

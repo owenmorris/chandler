@@ -47,7 +47,7 @@ MAIL_PROTOCOL_TIMEOUT_ERROR = _(u"Communication with the Server timed out. Pleas
 DOWNLOAD_NO_MESSAGES = _(u"%(accountName)s: no new messages found")
 DOWNLOAD_MESSAGES = _(u"%(accountName)s: %(numberOfMessages)s messages downloaded to Chandler")
 DOWNLOAD_CHECK_MESSAGES = _(u"%(accountName)s: checking for new mail messages")
-DOWNLOAD_START_MESSAGES = _(u"%(accountName)s: downloading %(numberOfMessages)s messagess)")
+DOWNLOAD_START_MESSAGES = _(u"%(accountName)s: downloading %(numberOfMessages)s messages")
 
 IMAP_START_MESSAGES = _(u"%(accountName)s: downloading %(numberOfMessages)s messages from '%(folderDisplayName)s'")
 
@@ -65,8 +65,6 @@ UPLOAD_SENT = _(u'%(accountName)s: "%(subject)s" sent')
 TEST_OFFLINE = _(u"Chandler is currently offline.\nTo perform this action, Chandler must be in online mode.")
 
 #POP3 error messags
-POP_TOP_ERROR = _(u"The POP3 Server does not support the 'TOP' command.\nThis command is required by Chandler.")
-
 POP_UIDL_ERROR = _(u"The POP3 Server does not support the 'UIDL' command.\nThis command is required by Chandler.")
 
 

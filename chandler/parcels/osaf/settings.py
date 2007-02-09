@@ -425,6 +425,7 @@ def restore(rv, filename, testmode=False):
             account.password = section[u"password"]
             account.port = section.as_int(u"port")
             account.connectionSecurity = section[u"security"]
+            account.isActive = True
 
             if section.has_key(u"address"):
                 emailAddress = pim.mail.EmailAddress.getEmailAddress(rv,
@@ -515,6 +516,7 @@ def restore(rv, filename, testmode=False):
             account.password = section[u"password"]
             account.port = section.as_int(u"port")
             account.connectionSecurity = section[u"security"]
+            account.isActive = True
 
             if section.has_key(u"del"):
                 account.deleteOnDownload = section.as_bool(u"del")

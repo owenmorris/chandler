@@ -172,7 +172,7 @@ class SharingTestDialog(ProgressDialog):
 
 class ChandlerIMAPFoldersDialog(ProgressDialog):
     ALLOW_CANCEL      = False
-    SUCCESS_TEXT_SIZE = (450, 240)
+    SUCCESS_TEXT_SIZE = (525, 240)
 
     def __init__(self, account, callback):
         assert(isinstance(account, IMAPAccount))
@@ -218,21 +218,18 @@ class ChandlerIMAPFoldersDialog(ProgressDialog):
 
     def getSuccessText(self, statusValue):
         return _(u"""\
-The following IMAP folders were create on '%(hostname)s':
+The following folders have been created in your email account:
 
-Chandler Mail - Messages placed in this folder will be
-                downloaded to Chandler and stamped as Mail.
+Chandler Events - Add messages to this folder add them to your Calendar
+Dashboard. Chandler will do its best to parse any date and time information in
+the message.
 
-Chandler Tasks - Messages placed in this folder will be
-                 downloaded to Chandler and stamped as
-                 both a Task and Mail.
+Chandler Mail - Add messages to this folder to add them to your Mail Dashboard.
 
-Chandler Events - Messages placed in this folder will be
-                  downloaded to Chandler and stamped as both
-                  an Event and Mail. The subject and body of
-                  the message are parsed for any datetime
-                  information.
-""") % {"hostname": self.account.host}
+Chandler Tasks - Add messages to this folder to add them to your Tasks
+Dashboard.
+
+All messages added to Chandler folders will show up in your All Dashboard.""")
 
     def getErrorText(self, statusValue):
         return constants.MAIL_PROTOCOL_ERROR % \
@@ -310,11 +307,10 @@ class RemoveChandlerIMAPFoldersDialog(ProgressDialog):
         self.callback((1, value))
 
 class AutoDiscoveryDialog(ProgressDialog):
-    DISPLAY_YES_NO = True
     SUCCESS_TEXT_SIZE = (450, 135)
+    APPLY_SETTINGS = True
 
     def __init__(self, hostname, isOutgoing=False, view=None, callback=None):
-        #XXX add in asserts
         self.hostname = hostname
         self.callback = callback
         self.isOutgoing = isOutgoing
@@ -363,7 +359,7 @@ class AutoDiscoveryDialog(ProgressDialog):
                  {'hostName': self.hostname}
 
     def getSuccessText(self, statusValue):
-        return _(u"\tThe following settings were discovered:\n\n\tType: %(type)s\n\tPort: %(port)s\n\tSecurity: %(security)s\n\nWould you like to keep these settings?") % \
+        return _(u"\tThe following settings were returned:\n\n\tType: %(type)s\n\tPort: %(port)s\n\tSecurity: %(security)s\n") % \
                     {"type": self.discoveredAccount.accountProtocol,
                      "port": self.discoveredAccount.port,
                      "security": self.discoveredAccount.connectionSecurity}
@@ -375,10 +371,9 @@ class AutoDiscoveryDialog(ProgressDialog):
     def OnSuccess(self, value):
         self.discoveredAccount = value
 
-    def OnYes(self, evt):
+    def OnApplySettings(self, evt):
         self.callback(self.discoveredAccount)
         self.OnClose(evt)
-
 
 def showOKDialog(title, msg):
     return showMsgDialog(MsgDialog.OK, title, msg)

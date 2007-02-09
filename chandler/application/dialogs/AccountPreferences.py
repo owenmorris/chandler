@@ -21,7 +21,7 @@ import wx
 import wx.xrc
 
 import application.schema as schema
-from   application import Globals
+from   application import Globals, Utility
 import application.Parcel
 from application.dialogs import Util
 import osaf.pim.mail as Mail
@@ -39,6 +39,9 @@ from AccountPreferencesDialogs import MailTestDialog, \
 
 
 # Localized messages displayed in dialogs
+
+CREATE_TEXT = _(u"Add")
+REMOVE_TEXT = _(u"Remove")
 
 # --- Error Messages ----- #
 FIELDS_REQUIRED = _(u"The following fields ore required to perform this action:\n\n\tServer\n\tUser name\n\tPassword\n\tPort\n\n\nPlease correct the error and try again.")
@@ -419,8 +422,15 @@ class AccountPreferencesDialog(wx.Dialog):
 
         # Load the various account form panels:
         self.panels = {}
+        #isMac = Utility.getPlatformName().startswith("Mac")
+
         for (key, value) in PANELS.iteritems():
             self.panels[key] = self.resources.LoadPanel(self, value['id'])
+
+            #if isMac:
+            #    self.panels[key].SetWindowVariant(wx.WINDOW_VARIANT_LARGE)
+
+
             self.panels[key].Hide()
 
         # These are wxHyperlinkCtrl widgets
@@ -484,7 +494,7 @@ class AccountPreferencesDialog(wx.Dialog):
         self.Bind(wx.EVT_CHOICE, self.OnToggleIncomingProtocol,
                   id=wx.xrc.XRCID("INCOMING_PROTOCOL"))
 
-        self.Bind(wx.EVT_CHECKBOX, self.OnIncomingFolders,
+        self.Bind(wx.EVT_BUTTON, self.OnIncomingFolders,
                   id=wx.xrc.XRCID("INCOMING_FOLDERS"))
 
         self.Bind(wx.EVT_BUTTON, self.OnOk, id=wx.ID_OK)
@@ -1044,9 +1054,12 @@ class AccountPreferencesDialog(wx.Dialog):
             elif valueType == "chandlerFolders":
                 if data["INCOMING_PROTOCOL"] == "IMAP":
                     hasFolders = data[field].get("hasFolders", False)
-                    control.SetValue(hasFolders)
+                    data['INCOMING_FOLDERS']['create'] = not hasFolders
+                    control.SetLabel(self.getButtonVerbage(hasFolders))
+                    control.GetContainingSizer().Layout()
                 else:
-                    control.SetValue(False)
+                    control.SetLabel(CREATE_TEXT)
+                    control.GetContainingSizer().Layout()
 
 
             # Handle itemrefs, which are stored as UUIDs.  We need to find
@@ -1186,19 +1199,16 @@ class AccountPreferencesDialog(wx.Dialog):
         if Globals.options.offline:
             return alertOffline()
 
-        cb = wx.xrc.XRCCTRL(self.currentPanel, "INCOMING_FOLDERS")
-        val = cb.GetValue()
-
-        #Unset the value. It will be assigned based on the
-        # results of the create or remove folders action.
-        cb.SetValue(not val)
-
         if not self.incomingAccountValid():
             return
 
+        data = self.data[self.currentIndex]['values']
+
+        button  = wx.xrc.XRCCTRL(self.currentPanel, "INCOMING_FOLDERS")
+        create  = data['INCOMING_FOLDERS']['create']
         account = self.getIncomingAccount()
 
-        if val:
+        if create:
             yes = alertYesNo(CREATE_FOLDERS_TITLE,
                              CREATE_FOLDERS % {'host': account.host})
 
@@ -1213,19 +1223,21 @@ class AccountPreferencesDialog(wx.Dialog):
 
     def OnFolderCreation(self, result):
         statusCode, folderNames = result
-        cb = wx.xrc.XRCCTRL(self.currentPanel, "INCOMING_FOLDERS")
 
         # Failure
         if statusCode == 0:
-            # Since no folders created set the checkbox to False
-            cb.SetValue(False)
+            # Since no folders created just return
             return
 
-        # It worked so set the checkbox to true
-        cb.SetValue(True)
+        button = wx.xrc.XRCCTRL(self.currentPanel, "INCOMING_FOLDERS")
+
+        # It worked so set the text to remove folders
+        button.SetLabel(REMOVE_TEXT)
+        button.GetContainingSizer().Layout()
 
         data = self.data[self.currentIndex]['values']
 
+        data['INCOMING_FOLDERS']['create'] = False
         data['INCOMING_FOLDERS']['action'] = "ADD"
         data['INCOMING_FOLDERS']['folderNames'] = folderNames
         data['INCOMING_FOLDERS']['hasFolders'] = True
@@ -1233,19 +1245,20 @@ class AccountPreferencesDialog(wx.Dialog):
 
     def OnFolderRemoval(self, result):
         statusCode, folderNames = result
-        cb = wx.xrc.XRCCTRL(self.currentPanel, "INCOMING_FOLDERS")
+        button = wx.xrc.XRCCTRL(self.currentPanel, "INCOMING_FOLDERS")
 
         # Failure
         if statusCode == 0:
-            # Since folders still exist set the checkbox to True
-            cb.SetValue(True)
+            # Since folders still exist just return
             return
 
         # It worked so set the checkbox to false
-        cb.SetValue(False)
+        button.SetLabel(CREATE_TEXT)
+        button.GetContainingSizer().Layout()
 
         data = self.data[self.currentIndex]['values']
 
+        data['INCOMING_FOLDERS']['create'] = True
         data['INCOMING_FOLDERS']['action'] = "REMOVE"
         data['INCOMING_FOLDERS']['folderNames'] = folderNames
         data['INCOMING_FOLDERS']['hasFolders'] = False
@@ -1315,9 +1328,11 @@ class AccountPreferencesDialog(wx.Dialog):
 
             data = self.data[self.currentIndex]['values']
 
-            folders = wx.xrc.XRCCTRL(self.currentPanel, "INCOMING_FOLDERS")
+            button = wx.xrc.XRCCTRL(self.currentPanel, "INCOMING_FOLDERS")
             hasFolders = data["INCOMING_FOLDERS"].get("hasFolders", False)
-            folders.SetValue(hasFolders)
+            data["INCOMING_FOLDERS"]["create"] = not hasFolders
+            button.SetLabel(self.getButtonVerbage(hasFolders))
+            button.GetContainingSizer().Layout()
 
         else:
             if port.GetValue() in imapDict.values():
@@ -1325,23 +1340,27 @@ class AccountPreferencesDialog(wx.Dialog):
 
         self.toggleIncomingFolders(IMAP)
 
+
+    def getButtonVerbage(self, hasFolders):
+        if hasFolders:
+            return REMOVE_TEXT
+        return CREATE_TEXT
+
     def initIncomingPanel(self):
         self.toggleIncomingFolders(self.getIncomingProtocol() == "IMAP", False)
 
     def toggleIncomingFolders(self, show=True, resize=True):
-        checkBox = wx.xrc.XRCCTRL(self.currentPanel, "INCOMING_FOLDERS")
-        verbage = wx.xrc.XRCCTRL(self.currentPanel, "INCOMING_FOLDERS_VERBAGE")
-        verbageTwo = wx.xrc.XRCCTRL(self.currentPanel, "INCOMING_FOLDERS_VERBAGE2")
+        widgets = ("INCOMING_FOLDERS", "INCOMING_FOLDERS_VERBAGE",
+                   "INCOMING_FOLDERS_VERBAGE2", "INCOMING_FOLDERS_BUFFER",
+                   "INCOMING_FOLDERS_BUFFER2")
 
-        if show:
-            checkBox.Show()
-            verbage.Show()
-            verbageTwo.Show()
+        for widgetName in widgets:
+            widget = wx.xrc.XRCCTRL(self.currentPanel, widgetName)
 
-        else:
-            checkBox.Hide()
-            verbage.Hide()
-            verbageTwo.Hide()
+            if show:
+                widget.Show()
+            else:
+                widget.Hide()
 
         if resize:
             self.resizeLayout()
@@ -1861,6 +1880,7 @@ def ShowAccountPreferencesDialog(parent, account=None, rv=None, modal=True):
     # Display the dialog:
     win = AccountPreferencesDialog(parent, _(u"Account Preferences"),
      resources=resources, account=account, rv=rv, modal=modal)
+
     win.CenterOnScreen()
     if modal:
         return win.ShowModal()

@@ -718,6 +718,8 @@ class POPAccount(DownloadAccountBase):
     accountProtocol = "POP"
     accountType = "INCOMING"
 
+
+
     schema.kindInfo(
         description = "A POP Account",
     )
@@ -741,7 +743,7 @@ class POPAccount(DownloadAccountBase):
     actionType = schema.One(
         ProtocolTypeEnum,
         doc = 'The value of this dictates whether the action to perform on the downloaded message',
-        initialValue = 'MAIL',
+        initialValue = 'CHANDLER_HEADERS',
     )
 
     deleteOnDownload = schema.One(
