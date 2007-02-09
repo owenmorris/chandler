@@ -40,6 +40,7 @@ class TestTriageSectioning(ChandlerTestCase):
             
         # Let the display catch up to the items
         self.scripting.User.idle()
+        self.scripting.User.idle()
         
         # Get ready to bang on the dashboard
         dashboardBlock = self.app_ns.DashboardSummaryView
