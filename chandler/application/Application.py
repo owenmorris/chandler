@@ -946,11 +946,21 @@ class wxApplication (wx.App):
         if not __debug__:
             argv.append('-O')
 
+        skip = False
         for arg in sys.argv:
-            if arg not in ('-c', '--create'):
-                if windows and not arg.endswith('"') and ' ' in arg:
-                    arg = '"%s"' %(arg)
-                argv.append(arg)
+            if skip:
+                skip = False
+                continue
+            if arg in ('-c', '--create'):
+                continue
+            if arg in ('-r', '--restore'):
+                skip = True
+                continue
+            if arg.startswith('--restore='):
+                continue
+            if windows and not arg.endswith('"') and ' ' in arg:
+                arg = '"%s"' %(arg)
+            argv.append(arg)
 
         for arg in args:
             if isinstance(arg, unicode):
