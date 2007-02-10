@@ -2200,7 +2200,8 @@ class wxCalendarControl(wx.Panel, CalendarEventHandler):
         self._doDrawingCalculations() #hopefully this is early enough
 
     def MakeTimezoneChoice(self, tzCharacterStyle):
-        widget = tzChoice (self, "TimezoneChoice")
+        #widget = tzChoice (self, "TimezoneChoice")
+        widget = wx.Choice (self)
         font = Styles.getFont(tzCharacterStyle)
         if font is not None:
             widget.SetFont(font)
