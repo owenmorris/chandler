@@ -78,7 +78,7 @@ def publishSubscribe(logger):
     # import events so test will have something to share even when run by itself
     path = os.path.join(os.getenv('CHANDLERHOME'),"tools/QATestScripts/DataFiles")
     # Upcast path to unicode since Sharing requires a unicode path
-    path = unicode(path, 'utf8')
+    path = unicode(path, sys.getfilesystemencoding())
     share = sharing.OneTimeFileSystemShare(path, u'testSharing.ics',
         sharing.ICalendarFormat, itsView=App_ns.itsView)
 
