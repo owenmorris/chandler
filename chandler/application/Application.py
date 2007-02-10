@@ -69,6 +69,30 @@ def mixinAClass (self, myMixinClassImportPath):
             _classesByName [newClassName] = theClass
         self.__class__ = theClass
 
+# If you pass -1 for a widget's id during creation you'll get a unique id, which might differ
+# from run to run. This makes it impossible to find widgets, not associated with blocks, from
+# one run to the next during recorded script playback. So instead, if you use a widget, not
+# associated with a block, that you want to be scriptable you should use getIdForString
+# ("SomeUniqueString") instead of -1. Debugging code will catch non unique strings.
+#
+# You should also call deleteIdForString in the destructor of your widget.
+
+idToString = {}
+StringToId = {}
+
+def newIdForString (string):
+    # Strings must be unique
+    assert not StringToId.has_key (string)
+    id = wx.Window.NewControlId()
+    idToString [id] = string
+    StringToId [string] = id
+    return id
+    
+
+def deleteIdForString (id):
+    del StringToId [idToString [id]]
+    del idToString [id]
+    
 
 class MainThreadCallbackEvent(wx.PyEvent):
     def __init__(self, target, *args, **kwds):

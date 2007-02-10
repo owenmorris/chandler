@@ -18,6 +18,7 @@ from application import schema
 from osaf.framework.blocks import Block, BlockEvent
 from osaf.framework.blocks.MenusAndToolbars import MenuItem
 from i18n import ChandlerMessageFactory as _
+from application.Application import idToString
 
 wxEventClasses = set([wx.CommandEvent,
                       wx.MouseEvent,
@@ -148,8 +149,14 @@ class Controller (Block.Block):
                     if widget == wx.Window_FindFocus():
                         name = "__FocusWindow__"
                     else:
-                        # We don't recognize the window, so use it's Id
-                        name = widget.GetId()
+                        id = widget.GetId()
+                        name = idToString.get (id, None)
+                        if name is None:
+                            # negative ids vary from run to run. So you need to change the
+                            # creation of this widget to register it's id using Application's
+                            # newIdForString
+                            assert id > 0
+                            name = id                            
             else:
                 # We have an associated block, so use it's name
                 name = block.blockName
@@ -213,8 +220,9 @@ class Controller (Block.Block):
                     # Find the name of the block that the event was sent to
                     # Translate events in wx.Grid's GridWindow to wx.Grid
                     widgetParent = sentToWidget.GetParent()
-                    if isinstance (widgetParent, wx.grid.Grid):
-                        sentToName = widgetParent.blockItem.blockName
+                    parentBlockItem = getattr (widgetParent, "blockItem", None)
+                    if isinstance (widgetParent, wx.grid.Grid) and parentBlockItem is not None:
+                        sentToName = parentBlockItem.blockName
                     else:
                         sentToName = widgetToName (sentToWidget)
                     
@@ -257,7 +265,6 @@ class Controller (Block.Block):
                                         method = getattr (lastSentToWidget, "GetValue", None)
                                         if method is not None:
                                             values.append ('"lastWidgetValue":' + valueToString (method()))
-
                                         
                             properties = "{" + ", ".join (values) + "}"
 

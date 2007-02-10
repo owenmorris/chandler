@@ -57,6 +57,7 @@ from bisect import bisect
 import copy
 import logging
 from application import styles as confstyles
+from application.Application import newIdForString, deleteIdForString
 
 from i18n import ChandlerMessageFactory as _
 
@@ -2199,21 +2200,18 @@ class wxCalendarControl(wx.Panel, CalendarEventHandler):
         self._doDrawingCalculations() #hopefully this is early enough
 
     def MakeTimezoneChoice(self, tzCharacterStyle):
-
-        tzChoice = wx.Choice(self)
+        widget = tzChoice (self, "TimezoneChoice")
         font = Styles.getFont(tzCharacterStyle)
         if font is not None:
-            tzChoice.SetFont(font)
+            widget.SetFont(font)
 
         # self.blockItem hasn't been set yet, because
         # CalendarControl.instantiateWidget() hasn't returned.
         # So, we get the repo view from our parent's blockItem.
-        TimeZoneList.buildTZChoiceList(self.GetParent().blockItem.itsView,
-                                       tzChoice)
+        TimeZoneList.buildTZChoiceList (self.GetParent().blockItem.itsView, widget)
 
-        tzChoice.Bind(wx.EVT_CHOICE, self.OnTZChoice)
-
-        return tzChoice
+        widget.Bind(wx.EVT_CHOICE, self.OnTZChoice)
+        return widget
         
     def UpdateHeader(self):
         if self.blockItem.dayMode:
@@ -2505,6 +2503,13 @@ class wxCalendarControl(wx.Panel, CalendarEventHandler):
 
     columns = property(_getColumns)
 
+class tzChoice (wx.Choice):
+    def __init__ (self, parent, name):
+        super (tzChoice, self).__init__(parent, newIdForString (name))
+
+    def __del__(self):
+        deleteIdForString (self.GetId())        
+    
 class CalendarHourMode(schema.Enumeration):
     values="visibleHours", "pixelSize", "auto"
 

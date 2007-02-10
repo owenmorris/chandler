@@ -659,7 +659,7 @@ class Block(schema.Item):
 
     def getWidgetID (self):
         """
-        wxWindows needs a integer for a id. Idss between wx.ID_LOWEST
+        wxWindows needs a integer for a id. Ids between wx.ID_LOWEST
         and wx.ID_HIGHEST are reserved for wxWidgets. Calling wx.NewId
         allocates incremental ids starting at 100. Passing -1 for new IDs
         starting with -1 and decrementing. Some rogue dialogs use IDs

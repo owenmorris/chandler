@@ -14,6 +14,7 @@
 
 import wx
 from osaf.framework.blocks.Block import Block
+from application.Application import StringToId
 
 verifyOn = False
 lastFocus = None
@@ -26,6 +27,7 @@ def ProcessEvent (theClass, properties , attributes):
         """
         Given a name, returns the corresponding widget.
         """
+        sendTo = None
         if type (name) is str:
             if name == "MainFrame":
                 sentTo = application.mainFrame
@@ -37,8 +39,10 @@ def ProcessEvent (theClass, properties , attributes):
                     sentTo = sentTo.widget
                     if isinstance (sentTo, wx.grid.Grid):
                         sentTo = sentTo.GetGridWindow()
-        else:
-            sentTo = wx.Window.FindWindowById (name)
+                else:
+                    name = StringToId [name]
+        if sentTo is None:
+            sentTo = wx.FindWindowById (name)
         return sentTo
 
     application = wx.GetApp()
