@@ -23,12 +23,17 @@ import string
 from optparse import OptionParser
 import build_lib
 
+
+_debug = True
+
+
 def parseOptions():
     _configItems = {
         'mode':      ('-m', '--mode',     's', None,  'distribute release or debug; defaults to trying both'),
-        'buildDir':  ('-b', '--build',    's', '',    'working directory: where temporary distrib files will be processed'),
+        'buildDir':  ('-w', '--work',     's', '',    'working directory: where temporary distrib files will be processed'),
         'outputDir': ('-o', '--output',   's', '',    'output directory: where the final distribution files will be stored'),
         'sourceDir': ('-s', '--source',   's', '',    'chandler directory: where the distribution will be pulled from'),
+        'binDir':    ('-b', '--bin',      's', '',    'chandlerBin directory: where the distribution binaries will be pulled from'),
         'tarball':   ('',   '--tarball',  'b', False, 'create the tarball (or zip) distribution - turns off -D'),
         'dmg':       ('',   '--dmg',      'b', False, 'create the OS X .dmg bundle - turns off -D'),
         'deb':       ('',   '--deb',      'b', False, 'create the debian package - turns off -D'),
@@ -125,7 +130,7 @@ def buildDistributionList(options):
             if options.platformID == 'win':
                 options.distribs = [ 'tarball', 'exe' ]
             else:
-                options.distribs = [ 'tarball', 'dmg' ]
+                options.distribs = [ 'dmg' ]
 
 def buildDistribName(mode, options):
     return 'Chandler_%s_%s_%s' % (options.platformID, mode, options.tag)
@@ -147,9 +152,19 @@ def buildDistributionImage(mode, options):
     if os.access(options.distribDir, os.F_OK):
         build_lib.rmdirs(options.distribDir)
 
-    os.mkdir(options.distribDir)
+    # when we make an osx distribution, we actually need to put it
+    # in a subdirectory (which has a .app extension).  So we set
+    # distribDir locally to that .app dir so that handleManifest()
+    # puts things in the right place.
 
-    return build_lib.handleManifest(options.buildDir, options.outputDir, options.distribDir, manifestFile, options.platformID)
+    if options.platformID == 'iosx' or options.platformID == 'osx':
+        distribDir = os.path.join(options.distribDir, '%s.app' % options.distribName)
+    else:
+        distribDir = options.distribDir
+
+    os.makedirs(distribDir)
+
+    return build_lib.handleManifest(options.buildDir, options.outputDir, distribDir, manifestFile, options.platformID)
 
 def buildTarball(mode, options):
     os.chdir(options.buildDir)
@@ -157,11 +172,11 @@ def buildTarball(mode, options):
     if options.platformID == 'win':
         distribFile = '%s.zip' % options.distribName
 
-        cmd = [ 'zip', '-r', distribFile, options.distribDir ]
+        cmd = [ 'zip', '-r', distribFile, options.distribName ]
     else:
         distribFile = '%s.tar.gz' % options.distribName
 
-        cmd = [ 'tar', 'czf', distribFile, options.distribDir ]
+        cmd = [ 'tar', 'czf', distribFile, options.distribName ]
 
     if os.path.isfile(distribFile):
         os.remove(distribFile)
@@ -177,8 +192,8 @@ def buildDMG(mode, options):
 
     distribFile = '%s.dmg' % options.distribName
 
-    if os.path.isfile(distribFiles):
-        os.remove(distribFiles)
+    if os.path.isfile(distribFile):
+        os.remove(distribFile)
 
     cmd = [ os.path.join(options.toolsDir, 'makediskimage.sh'), options.distribDir ]
 
@@ -192,10 +207,36 @@ def buildEXE(mode, options):
     pass
 
 def buildRPM(mode, options):
-    pass
+    os.chdir(options.buildDir)
+
+    rpmPath   = os.path.join(options.buildDir, 'internal', 'installers', 'rpm')
+    rpmScript = os.path.join(rpmPath, 'makeinstaller.sh')
+    specFile  = os.path.join(rpmPath, 'chandler.spec')
+    version   = '%s.%s' % (options.major, options.minor)
+
+    cmd = [ rpmScript, rpmPath, specFile, options.buildDir, options.distribName, version, options.release ]
+
+    r = build_lib.runCommand(cmd)
+
+    print 'RPM created (%d)' % r
+
+    return '%s.i386.rpm' % options.distribName
+
 
 def buildDEB(mode, options):
-    pass
+    os.chdir(options.buildDir)
+
+    debPath   = os.path.join(options.buildDir, 'internal', 'installers', 'deb')
+    debScript = os.path.join(debPath, 'makeinstaller.sh')
+    version   = '%s.%s' % (options.major, options.minor)
+
+    cmd = [ debScript, debPath, options.buildDir, options.distribName, version, options.release ]
+
+    r = build_lib.runCommand(cmd)
+
+    print 'DEB created (%d)' % r
+
+    return '%s_i386.deb' % options.distribName
 
 
 if __name__ == '__main__':
@@ -204,25 +245,41 @@ if __name__ == '__main__':
 
     options.toolsDir = os.path.abspath(os.path.dirname(__file__))
 
-    if not options.buildDir:
-        options.buildDir = os.path.join(os.environ['HOME'], 'tinderbuild')
-
-    if not options.outputDir:
-        options.outputDir = options.buildDir
-
     if not options.sourceDir:
         if 'CHANDLERHOME' in os.environ:
             options.sourceDir = os.path.realpath(os.environ['CHANDLERHOME'])
         else:
             options.sourceDir = os.getcwd()
 
+            if not os.path.isfile(os.path.join(options.sourceDir, 'version.py')):
+                options.sourceDir = os.path.abspath(os.path.join(options.toolsDir, '..'))
+
     if not os.path.isdir(options.sourceDir):
         print 'Unable to locate source (aka Chandler) directory [%s]' % options.sourceDir
         sys.exit(3)
 
-    if not os.path.isdir(options.buildDir):
-        print 'Unable to locate build (aka tinderbuild) directory [%s]' % options.buildDir
+    if not options.binDir:
+        if 'CHANDLERBIN' in os.environ:
+            options.binDir = os.path.realpath(os.environ['CHANDLERBIN'])
+        else:
+            options.binDir = os.getcwd()
+
+            if not os.path.isfile(os.path.join(options.binDir, 'version.py')):
+                options.binDir = os.path.abspath(os.path.join(options.toolsDir, '..'))
+
+    if not os.path.isdir(options.binDir):
+        print 'Unable to locate bin (aka ChandlerBin) directory [%s]' % options.binDir
         sys.exit(3)
+
+    if not options.buildDir:
+        options.buildDir = os.path.abspath(os.path.join(options.sourceDir, '..'))
+
+    if not os.path.isdir(options.buildDir):
+        print 'Unable to locate build directory [%s]' % options.buildDir
+        sys.exit(3)
+
+    if not options.outputDir:
+        options.outputDir = options.buildDir
 
     if not os.path.isdir(options.outputDir):
         print 'Unable to locate build output directory [%s]' % options.outputDir
@@ -245,24 +302,34 @@ if __name__ == '__main__':
     buildDistributionList(options)
     options.major, options.minor, options.release, options.version = build_lib.versionInformation(options.sourceDir, options.platformName, options.tag)
 
+    if _debug:
+        print options
+
     if len(options.distribs) > 0:
         options.distribFiles = {}
 
         for mode in modes:
-            buildDistributionImage(mode, options)
+            if os.path.isdir(os.path.join(options.binDir, mode)):
+                if buildDistributionImage(mode, options):
+                    options.distribFiles[mode] = []
 
-            options.distribFiles[mode] = []
+                    for build in options.distribs:
+                        if build == 'tarball':
+                            options.distribFiles[mode].append(buildTarball(mode, options))
+                        if build == 'dmg':
+                            options.distribFiles[mode].append(buildDMG(mode, options))
+                        if build == 'exe':
+                            options.distribFiles[mode].append(buildEXE(mode, options))
+                        if build == 'rpm':
+                            options.distribFiles[mode].append(buildRPM(mode, options))
+                        if build == 'deb':
+                            options.distribFiles[mode].append(buildDEB(mode, options))
 
-            for build in options.distribs:
-                if build == 'tarball':
-                    options.distribFiles[mode].append(buildTarball(mode, options))
-                if build == 'dmg':
-                    options.distribFiles[mode].append(buildDMG(mode, options))
-                if build == 'exe':
-                    options.distribFiles[mode].append(buildEXE(mode, options))
-                if build == 'rpm':
-                    options.distribFiles[mode].append(buildRPM(mode, options))
-                if build == 'deb':
-                    options.distribFiles[mode].append(buildDEB(mode, options))
+                    if _debug:
+                        print options.distribFiles[mode]
+                else:
+                    print 'An error occurred during while creating the %s distribution image' % mode
+            else:
+                print 'Skipping %s because the directory is not present' % mode
 
-            print options.distribFiles[mode]
+
