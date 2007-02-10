@@ -57,7 +57,7 @@ from bisect import bisect
 import copy
 import logging
 from application import styles as confstyles
-from application.Application import newIdForString, deleteIdForString
+from application.Application import registerStringForId, unregisterStringForId
 
 from i18n import ChandlerMessageFactory as _
 
@@ -2136,6 +2136,7 @@ class wxCalendarControl(wx.Panel, CalendarEventHandler):
         self.Bind(wx.EVT_BUTTON, self.onGoToNextEvent, self.nextButton)
 
         self.tzChoice = self.MakeTimezoneChoice(tzCharacterStyle)
+        registerStringForId (self.tzChoice.GetId(), "TimezoneChoice")
 
         navigationRow.Add((5,5), 0)
         navigationRow.Add(self.prevButton, 0, wx.ALIGN_CENTER)
@@ -2179,6 +2180,10 @@ class wxCalendarControl(wx.Panel, CalendarEventHandler):
         
         self.SetSizer(sizer)
         self.Layout()
+        
+    def __del__(self):
+        unregisterStringForId ("TimezoneChoice")
+
 
     def OnInit(self):
         self.Bind(wx.EVT_SIZE, self.OnSize)
@@ -2200,19 +2205,18 @@ class wxCalendarControl(wx.Panel, CalendarEventHandler):
         self._doDrawingCalculations() #hopefully this is early enough
 
     def MakeTimezoneChoice(self, tzCharacterStyle):
-        #widget = tzChoice (self, "TimezoneChoice")
-        widget = wx.Choice (self)
+        tzChoice = wx.Choice (self)
         font = Styles.getFont(tzCharacterStyle)
         if font is not None:
-            widget.SetFont(font)
+            tzChoice.SetFont(font)
 
         # self.blockItem hasn't been set yet, because
         # CalendarControl.instantiateWidget() hasn't returned.
         # So, we get the repo view from our parent's blockItem.
-        TimeZoneList.buildTZChoiceList (self.GetParent().blockItem.itsView, widget)
+        TimeZoneList.buildTZChoiceList (self.GetParent().blockItem.itsView, tzChoice)
 
-        widget.Bind(wx.EVT_CHOICE, self.OnTZChoice)
-        return widget
+        tzChoice.Bind(wx.EVT_CHOICE, self.OnTZChoice)
+        return tzChoice
         
     def UpdateHeader(self):
         if self.blockItem.dayMode:
@@ -2504,13 +2508,6 @@ class wxCalendarControl(wx.Panel, CalendarEventHandler):
 
     columns = property(_getColumns)
 
-class tzChoice (wx.Choice):
-    def __init__ (self, parent, name):
-        super (tzChoice, self).__init__(parent, newIdForString (name))
-
-    def __del__(self):
-        deleteIdForString (self.GetId())        
-    
 class CalendarHourMode(schema.Enumeration):
     values="visibleHours", "pixelSize", "auto"
 

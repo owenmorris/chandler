@@ -78,20 +78,18 @@ def mixinAClass (self, myMixinClassImportPath):
 # You should also call deleteIdForString in the destructor of your widget.
 
 idToString = {}
-StringToId = {}
+stringToId = {}
 
-def newIdForString (string):
+def registerStringForId (id, string):
     # Strings must be unique
-    assert not StringToId.has_key (string)
-    id = wx.Window.NewControlId()
+    assert not stringToId.has_key (string)
     idToString [id] = string
-    StringToId [string] = id
-    return id
+    stringToId [string] = id
     
 
-def deleteIdForString (id):
-    del StringToId [idToString [id]]
-    del idToString [id]
+def unregisterStringForId (name):
+    del idToString [stringToId [name]]
+    del stringToId [name]
     
 
 class MainThreadCallbackEvent(wx.PyEvent):

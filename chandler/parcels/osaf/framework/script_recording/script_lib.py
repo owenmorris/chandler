@@ -14,7 +14,7 @@
 
 import wx
 from osaf.framework.blocks.Block import Block
-from application.Application import StringToId
+from application.Application import stringToId
 
 verifyOn = False
 lastFocus = None
@@ -40,7 +40,7 @@ def ProcessEvent (theClass, properties , attributes):
                     if isinstance (sentTo, wx.grid.Grid):
                         sentTo = sentTo.GetGridWindow()
                 else:
-                    name = StringToId [name]
+                    name = stringToId [name]
         if sentTo is None:
             sentTo = wx.FindWindowById (name)
         return sentTo
