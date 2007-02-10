@@ -25,6 +25,16 @@ import fileinput
 import errno
 
 
+def log(msg, logfile=None, error=False):
+    if logfile:
+        logfile.write('%s\n' % msg)
+    else:
+        if error:
+            sys.stderr.write('%s\n' % msg)
+        else:
+            sys.stdout.write('%s\n' % msg)
+
+
 def runCommand(cmd, env=None):
     print 'Calling:', cmd
 

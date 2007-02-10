@@ -33,14 +33,15 @@ from util import killableprocess
 import build_lib
 
 
-modes = ['release', 'debug']
-
     # tests to run if no tests are specified on the command line
 _all_modules = ['application', 'i18n', 'repository', 'osaf']
 
     # global variable to force a exit from the test run
     # even if options.nonstop is True
 _stop_test_run = False
+
+_logfilename = ''
+_logfile     = None
 
     # When the --ignoreEnv option is used the following
     # list of environment variable names will be deleted
@@ -58,6 +59,11 @@ _ignoreEnvNames = [ 'PARCELPATH',
                     'MVCC',
                   ]
 
+
+def log(msg, error=False):
+    build_lib.log(msg, logfile=_logfile, error=error)
+
+
 def parseOptions():
     _configItems = {
         'mode':      ('-m', '--mode',               's', None,  'debug or release; by default attempts both'),
@@ -73,6 +79,7 @@ def parseOptions():
         'single':    ('-t', '--test',               's', '',    'Run single test'),
         'tbox':      ('-T', '--tbox',               'b', False, 'Tinderbox output mode'),
         'noEnv':     ('-i', '--ignoreEnv',          'b', False, 'Ignore environment variables'),
+        'logPath':   ('-l', '--logPath',            's', None,  'Directory where the test run output will be stored'),
         'config':    ('-L', '',                     's', None,  'Custom Chandler logging configuration file'),
         'help':      ('-H', '',                     'b', False, 'Extended help'),
     }
@@ -120,7 +127,7 @@ def buildUnitList(tests):
                not isinstance(item, doctest.DocTestCase):
                 _templist.append(item.id())
             else:
-                print "Skipping %s as it's not a TestCase instance" % item.id()
+                log("Skipping %s as it's not a TestCase instance" % item.id())
 
     return _templist
 
@@ -145,7 +152,7 @@ def buildUnitTestList(args, individual=False):
 
     if len(args) == 0:
         if options.verbose:
-            print 'defaulting to all modules'
+            log('defaulting to all modules')
 
         testlist = _all_modules
     else:
@@ -174,7 +181,7 @@ def doCommand(cmd):
     If during the wait a ctrl-c is pressed kill the cmd's process.
     """
     if options.verbose:
-        print 'Calling:', cmd
+        log('Calling: %s' % cmd)
 
     try:
         p = killableprocess.Popen(' '.join(cmd), shell=True)
@@ -183,7 +190,7 @@ def doCommand(cmd):
     except KeyboardInterrupt:
         _stop_test_run = True
 
-        print '\nKeyboard Interrupt detected, stopping test run\n'
+        log('\nKeyboard Interrupt detected, stopping test run\n')
 
         try:
             r = p.kill(group=True)
@@ -193,13 +200,14 @@ def doCommand(cmd):
 
     return r
 
+
 def doUnitTest(test):
     """
     Run the given test for each of the active modes
     """
     result = 0
 
-    for mode in modes:
+    for mode in options.modes:
         cmd = [ os.path.join(options.chandlerBin, mode, 'RunPython'), './tools/run_tests.py']
 
         if options.verbose:
@@ -214,11 +222,12 @@ def doUnitTest(test):
 
     return result
 
+
 def runUnitSuite(testlist):
     """
     Call doUnitTest with all of the given test names
     """
-    print 'Running tests as a suite'
+    log('Running tests as a suite')
 
     return doUnitTest(' '.join(testlist))
 
@@ -265,6 +274,7 @@ def runUnitTest(testlist, target):
 
     return result
 
+
 def runFuncSuite():
     """
     Run the Functional Test Suite
@@ -274,7 +284,7 @@ def runFuncSuite():
 
     result = 0
 
-    for mode in modes:
+    for mode in options.modes:
         cmd = [os.path.join(options.chandlerBin, mode, 'RunChandler')]
 
         cmd += ['--create', '--catch=tests', '--scriptTimeout=720', '-D1', '-M2']
@@ -293,13 +303,14 @@ def runFuncSuite():
 
     return result
 
+
 def runPerfSuite():
     """
     Run the Performance Test Suite
     """
     result = 0
 
-    if 'release' in modes:
+    if 'release' in options.modes:
         testlist      = []
         testlistLarge = []
 
@@ -363,14 +374,12 @@ def runPerfSuite():
                     break
 
     else:
-        print 'Skipping Performance Tests - release mode not specified'
+        log('Skipping Performance Tests - release mode not specified')
 
     return result
 
 
-if __name__ == '__main__':
-    options = parseOptions()
-
+def checkOptions(options):
     if options.help:
         print __doc__
         sys.exit(2)
@@ -378,30 +387,24 @@ if __name__ == '__main__':
     options.chandlerBin  = os.path.realpath(os.environ['CHANDLERBIN'])
     options.chandlerHome = os.path.realpath(os.environ['CHANDLERHOME'])
 
-    if not os.path.isdir(options.chandlerBin):
-        print 'Unable to locate CHANDLERBIN directory'
-        sys.exit(3)
-
     options.parcelPath = os.path.join(options.chandlerHome, 'tools', 'QATestScripts', 'DataFiles')
     options.profileDir = os.path.join(options.chandlerHome, 'test_profile')
 
-    result   = 0
-    testlist = []
+    if options.logPath is None:
+        options.logPath = options.profileDir
 
-    if options.mode is not None:
-        modes = [options.mode]
+    _logfilename = os.path.join(options.logPath, 'rt.log')
 
-    for item in modes:
-        if not os.path.isdir(os.path.join(options.chandlerBin, item)):
-            modes.remove(item)
-            print 'Requested mode (%s) not availble - ignoring' % item
+    if not os.path.isdir(options.chandlerBin):
+        log('Unable to locate CHANDLERBIN directory', error=True)
+        sys.exit(3)
 
     if options.unitSuite and options.unit:
-        print "both --unit and --unitSuite are specified, but only one of them is allowed at a time."
+        log('both --unit and --unitSuite are specified, but only one of them is allowed at a time.', error = True)
         sys.exit(1)
 
     if options.single and (options.unitSuite or options.unit):
-        print "Single test run (-t) only allowed by itself"
+        log('Single test run (-t) only allowed by itself', error=True)
         sys.exit(1)
 
     if options.noEnv:
@@ -409,7 +412,22 @@ if __name__ == '__main__':
             try:
                 os.unsetenv(item)
             except:
-                print 'Error removing "%s" from the environment' % item
+                log('Unable to remove "%s" from the environment' % item)
+
+
+def runtests(options):
+    result   = 0
+    testlist = []
+
+    if options.mode is None:
+        options.modes = modes = ['release', 'debug']
+    else:
+        options.modes = [ option.mode ]
+
+    for item in options.modes:
+        if not os.path.isdir(os.path.join(options.chandlerBin, item)):
+            options.modes.remove(item)
+            log('Requested mode (%s) not availble - ignoring' % item)
 
     if options.unitSuite or options.unit:
         testlist = buildUnitTestList(options.args, options.unit or len(options.single) > 0)
@@ -429,7 +447,17 @@ if __name__ == '__main__':
     if result == 0 and options.perf:
         result = runPerfSuite()
 
+    return result
+
+
+if __name__ == '__main__':
+    options = parseOptions()
+
+    checkOptions(options)
+
+    result = runtests(options)
+
     if result <> 0:
-        print '\n\nError generated during run: %d' % result
+        log('Error generated during run: %d' % result, error=True)
         sys.exit(result)
 
