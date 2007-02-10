@@ -30,13 +30,14 @@ wxEventTypes = ["EVT_MENU",
                 "EVT_RIGHT_DOWN",
                 "EVT_LEFT_DCLICK",
                 "EVT_RIGHT_DCLICK",
+                "EVT_CHAR",
+                "EVT_CHOICE",
                 "EVT_SCROLLWIN_LINEUP",
                 "EVT_SCROLLWIN_LINEDOWN",
                 "EVT_SCROLLWIN_PAGEUP",
                 "EVT_SCROLLWIN_PAGEDOWN",
                 "EVT_SCROLLWIN_THUMBTRACK",
                 "EVT_SCROLLWIN_THUMBRELEASE",
-                "EVT_CHAR",
 
                 "EVT_ACTIVATE",
                 "EVT_SET_FOCUS",
@@ -168,7 +169,7 @@ class Controller (Block.Block):
                 return '"' + value + '"'
             elif theType is unicode:
                 return 'u"' + value + '"'
-            elif theType is bool:
+            elif theType is bool or theType is int:
                 return str(value)
             else:
                 return value
@@ -212,9 +213,9 @@ class Controller (Block.Block):
             eventType =  getEventType (event)
             if eventType is not None:
                 sentToWidget = event.GetEventObject()
-    
+
                 # Ignore mouse downs in toolbars
-                if not (event.GetEventType() == wx.EVT_LEFT_DOWN.evtType[0] and
+                if not (eventType == 'wx.EVT_LEFT_DOWN' and
                         isinstance (sentToWidget, wx.ToolBar)):
 
                     # Find the name of the block that the event was sent to
@@ -239,6 +240,10 @@ class Controller (Block.Block):
                             values.append ('"eventType":' + eventType)
                             values.append ('"sentTo":' + valueToString (sentToName))
 
+                            # Track selection of choice controls so we can set them on playback
+                            if eventType == "wx.EVT_CHOICE":
+                                values.append ('"selectedItem":' + valueToString (sentToWidget.GetSelection()))
+
                             if self.includeTests:
                                 focusWindow = wx.Window_FindFocus()
                                 if self.lastFocus != focusWindow:
@@ -259,7 +264,7 @@ class Controller (Block.Block):
                                 #  Don't record the last state for EVT_CHAR events. They happen before the previous
                                 # key down event is processed. This causes problems with verification when key down
                                 # events are processed before EVT_CHAR events during playback.
-                                if event.GetEventType() != wx.EVT_CHAR.evtType[0]:
+                                if eventType != 'wx.EVT_CHAR':
                                     lastSentToWidget = getattr (self, "lastSentToWidget", None)
                                     if lastSentToWidget is not None:
                                         method = getattr (lastSentToWidget, "GetValue", None)

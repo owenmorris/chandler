@@ -67,6 +67,10 @@ def ProcessEvent (theClass, properties , attributes):
     if eventType is wx.EVT_CHECKBOX:
         sentToWidget.SetValue(not sentToWidget.GetValue())
 
+    # Special case wx,Choice to set the selection
+    if eventType is wx.EVT_CHOICE:
+        sentToWidget.SetSelection (properties ["selectedItem"])
+
     # Check to see if the correct window has focus
     if verifyOn:
         # Make sure the menu or button is enabled
