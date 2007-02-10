@@ -44,9 +44,9 @@ CREATE_TEXT = _(u"Add")
 REMOVE_TEXT = _(u"Remove")
 
 # --- Error Messages ----- #
-FIELDS_REQUIRED = _(u"The following fields ore required to perform this action:\n\n\tServer\n\tUser name\n\tPassword\n\tPort\n\n\nPlease correct the error and try again.")
+FIELDS_REQUIRED = _(u"The following fields are required to perform this action:\n\n\tServer\n\tUser name\n\tPassword\n\tPort\n\n\nPlease correct the error and try again.")
 FIELDS_REQUIRED_ONE = _(u"The following fields are required to perform this action:\n\n\tServer\n\tPort\n\n\nPlease correct the error and try again.")
-FIELDS_REQUIRED_TWO = _(u"The following fields ore required to perform this action:\n\n\tServer\n\tPath\n\tUser name\n\tPassword\n\tPort\n\n\nPlease correct the error and try again.")
+FIELDS_REQUIRED_TWO = _(u"The following fields are required to perform this action:\n\n\tServer\n\tPath\n\tUser name\n\tPassword\n\tPort\n\n\nPlease correct the error and try again.")
 
 HOST_REQUIRED  = _(u"Auto-configure requires a Server name.")
 
