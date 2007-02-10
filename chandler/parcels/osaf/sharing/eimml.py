@@ -143,24 +143,29 @@ class EIMMLSerializer(object):
                             continue
 
                         else:
-                            serialized, typeName = serializeValue(
-                                    field.typeinfo, value)
 
                             attrs = { }
+
+                            if value is eim.Missing:
+                                serialized, typeName = serializeValue(
+                                        field.typeinfo, None)
+                                attrs["missing"] = "true"
+
+                            else:
+                                serialized, typeName = serializeValue(
+                                        field.typeinfo, value)
+                                if value == "":
+                                    attrs["empty"] = "true"
+
                             if typeName is not None:
                                 attrs[typeURI] = typeName
-                            if value == "":
-                                attrs["empty"] = "true"
 
                             if isinstance(field, eim.key):
                                 attrs[keyURI] = "true"
-                                fieldElement = SubElement(recordElement,
-                                    "{%s}%s" % (record.URI, field.name),
-                                    **attrs)
-                            else:
-                                fieldElement = SubElement(recordElement,
-                                    "{%s}%s" % (record.URI, field.name),
-                                    **attrs)
+
+                            fieldElement = SubElement(recordElement,
+                                "{%s}%s" % (record.URI, field.name),
+                                **attrs)
 
                             fieldElement.text = serialized
 
@@ -223,8 +228,11 @@ class EIMMLSerializer(object):
                             ns, name = fieldElement.tag[1:].split("}")
                             if field.name == name:
                                 empty = fieldElement.get("empty")
+                                missing = fieldElement.get("missing")
                                 if empty and empty.lower() == "true":
                                     value = ""
+                                elif missing and missing.lower() == "true":
+                                    value = eim.Missing
                                 else:
                                     if fieldElement.text is None:
                                         value = None

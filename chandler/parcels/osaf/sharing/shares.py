@@ -285,10 +285,7 @@ class State(schema.Item):
         trans = translator.PIMTranslator(self.itsView)
         trans.importRecords(change)
         self.agreed += change
-        pending = self.pending
-        pending.remove(change)
-        self.pending = pending
-        self._updateConflicts()
+        self.discard(change)
 
     def discard(self, change):
         pending = self.pending
@@ -314,13 +311,14 @@ class State(schema.Item):
 
 class Conflict(object):
 
+    resolved = False
+
     def __init__(self, state, field, value, change):
         self.state = state
         self.peer = state.peer
         self.field = field
         self.value = value
         self.change = change
-        self.resolved = False
 
     def __repr__(self):
         return "%s : %s" % (self.field, self.value)
@@ -328,12 +326,12 @@ class Conflict(object):
     def apply(self):
         if not self.resolved:
             self.state.apply(self.change)
-            self.resoved = True
+            self.resolved = True
 
     def discard(self):
         if not self.resolved:
             self.state.discard(self.change)
-            self.resoved = True
+            self.resolved = True
 
 
 

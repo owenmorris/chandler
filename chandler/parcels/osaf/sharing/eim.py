@@ -17,7 +17,7 @@ __all__ = [
     'IntType', 'BlobType', 'ClobType', 'DecimalType', 'get_converter',
     'add_converter', 'subtype', 'typedef', 'field', 'key', 'NoChange',
     'Record', 'RecordSet', 'lookupSchemaURI', 'Filter', 'Translator',
-    'exporter', 'TimestampType', 'IncompatibleTypes',
+    'exporter', 'TimestampType', 'IncompatibleTypes', 'Missing'
 ]
 from symbols import Symbol  # XXX change this to peak.util.symbols
 from simplegeneric import generic
@@ -656,6 +656,8 @@ class key(field):
 
 NoChange = Symbol('NoChange', __name__)
 
+Missing = Symbol('Missing', __name__)
+
 class Record(tuple):
     __slots__ = ()
     __metaclass__ = RecordClass
@@ -944,6 +946,7 @@ class Translator:
 def create_default_converter(t):
     converter = generic(default_converter)
     converter.when_object(NoChange)(lambda val: val)
+    converter.when_object(Missing)(lambda val: val)
     converter.when_object(None)(lambda val: val)
     get_converter.when_object(t)(lambda ctx: converter)
 

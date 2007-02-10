@@ -8,7 +8,7 @@ First define a record type::
     >>> from application import schema
     >>> from osaf import sharing, pim
     >>> from osaf.sharing import ( eimml, recordset_conduit, State, getFilter,
-    ...                            RecordSet as rs, NoChange as nc )
+    ...     Missing, RecordSet as rs, NoChange as nc )
     >>> from PyICU import ICUtzinfo
     >>> import datetime, decimal
     >>> from repository.persistence.RepositoryView import NullRepositoryView
@@ -163,6 +163,14 @@ To indicate that item has been deleted, pass None instead of a recordset::
     '<?xml version=\'1.0\' encoding=\'UTF-8\'?><ns0:collection xmlns:ns0="http://osafoundation.org/eim"><ns0:recordset uuid="8501de14-1dc9-40d4-a7d4-f289feff8214" ns0:deleted="true" /></ns0:collection>'
 
 
+
+There is a special value, Missing, which gets serialized as missing="true"::
+
+    >>> missing = { '8501de14-1dc9-40d4-a7d4-f289feff8214': rs([sharing.model.NoteRecord('8501de14-1dc9-40d4-a7d4-f289feff8214', Missing, u'1e2d48c0-d66b-494c-bb33-c3d75a1ba66b', decimal.Decimal('1169163900'))])}
+    >>> text = eimml.EIMMLSerializer.serialize(missing)
+    >>> imported, extra = eimml.EIMMLSerializer.deserialize(text)
+    >>> imported
+    {'8501de14-1dc9-40d4-a7d4-f289feff8214': RecordSet(set([NoteRecord(u'8501de14-1dc9-40d4-a7d4-f289feff8214', Missing, u'1e2d48c0-d66b-494c-bb33-c3d75a1ba66b', Decimal("1169163900"))]), set([]))}
 
 
 Inmemory Mock Cosmo
@@ -514,6 +522,25 @@ record has a NoChange value on the filtered field::
 
 
 
+
+
+Make sure Missing values can be merged::
+
+    >>> state.set(rs(set([Demo(1,1,1)])), empty)
+    >>> state.merge(rs([Demo(1, Missing, 2)]))
+    (RecordSet(set([Demo(1, Missing, 2)]), set([])), RecordSet(set([]), set([])), RecordSet(set([]), set([])))
+    >>> state
+    State(RecordSet(set([Demo(1, Missing, 2)]), set([])), RecordSet(set([]), set([])))
+
+    >>> state.merge(rs([Demo(1, Missing, 2)]), rs([Demo(1, 2, Missing)]))
+    (RecordSet(set([]), set([])), RecordSet(set([Demo(1, 2, Missing)]), set([])), RecordSet(set([]), set([])))
+    >>> state
+    State(RecordSet(set([Demo(1, 2, Missing)]), set([])), RecordSet(set([]), set([])))
+
+    >>> state.merge(rs([Demo(1, Missing, 2)]), rs([Demo(1, 3, nc)]))
+    (RecordSet(set([Demo(1, NoChange, 2)]), set([])), RecordSet(set([]), set([])), RecordSet(set([Demo(1, 3, NoChange)]), set([])))
+    >>> state
+    State(RecordSet(set([Demo(1, 2, 2)]), set([])), RecordSet(set([Demo(1, 3, NoChange)]), set([])))
 
 
 
