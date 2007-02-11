@@ -166,43 +166,37 @@ def makeMainView(parcel):
         ToolbarItem.template('ApplicationSeparator3',
             toolbarItemKind = 'Separator')
     ]
-    # Toolbar tools are larger on Linux than other platforms
-    if not '__WX_GTK__' in wx.PlatformInfo:
-        appBarBlocks.extend((
-            ToolbarItem.template('ApplicationBarQuickEntry',
+
+    sendToolbarItem = SendToolbarItem.template('ApplicationBarSendButton',
+                event = main.SendShareItem,
+                bitmap = 'ApplicationBarSend.png',
+                title = messages.SEND,
+                viewAttribute='modifiedFlags',
+                toolbarItemKind = 'Button',
+                helpString = _(u'Send selected message'))
+
+    quickEntry = ToolbarItem.template('ApplicationBarQuickEntry',
                 event = main.QuickEntry,
                 text = u"", # text value displayed in the control
                 toolbarItemKind = 'QuickEntry',
                 size = SizeType (325,-1),
-                helpString = _(u'Quick entry field: enter search string, or command beginning with "/"')),
+                helpString = _(u'Quick entry field: enter search string, or command beginning with "/"'))
+
+    # Toolbar tools are larger on Linux than other platforms
+    if not '__WX_GTK__' in wx.PlatformInfo:
+        appBarBlocks.extend((
+            quickEntry,
             ToolbarItem.template('ApplicationSeparator4',
                 toolbarItemKind = 'Separator'),
-            SendToolbarItem.template('ApplicationBarSendButton',
-                event = main.SendShareItem,
-                bitmap = 'ApplicationBarSend.png',
-                title = messages.SEND,
-                viewAttribute='modifiedFlags',
-                toolbarItemKind = 'Button',
-                helpString = _(u'Send selected message')),
+            sendToolbarItem,
         ))
     else:
         # for Linux make the search field narrower, and move "Send" to the left of it
         appBarBlocks.extend((
-            SendToolbarItem.template('ApplicationBarSendButton',
-                event = main.SendShareItem,
-                bitmap = 'ApplicationBarSend.png',
-                title = messages.SEND,
-                viewAttribute='modifiedFlags',
-                toolbarItemKind = 'Button',
-                helpString = _(u'Send selected message')),
+            sendToolbarItem,
             ToolbarItem.template('ApplicationSeparator4',
                 toolbarItemKind = 'Separator'),
-            ToolbarItem.template('ApplicationBarQuickEntry',
-                event = main.QuickEntry,
-                text = u"", # text value displayed in the control
-                toolbarItemKind = 'QuickEntry',
-                size = SizeType (200,-1),
-                helpString = _(u'Quick entry field: enter search string, or command beginning with "/"'))
+            quickEntry
         ))
 
     ApplicationBar = Toolbar.template(

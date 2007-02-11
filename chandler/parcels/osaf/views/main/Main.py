@@ -1657,3 +1657,9 @@ class MainView(View):
                                          style = wx.DEFAULT_FRAME_STYLE)
             window.ShowTreeOfBlocks (rootBlock)
             window.Show (True)
+
+    def onNeedsUpdateEvent(self, event):
+        pass
+
+    def onNeedsUpdateUpdateUI(self, event):
+        pass

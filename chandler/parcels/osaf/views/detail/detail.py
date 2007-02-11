@@ -134,7 +134,7 @@ class DetailRootBlock(WatchedItemRootBlock, ControlBlocks.ContentItemDetail):
         """
         # finish changes to previous selected item, then do it.
         Block.Block.finishEdits()
-        super(WatchedItemRootBlock, self).onSendShareItemEvent(event)
+        super(DetailRootBlock, self).onSendShareItemEvent(event)
 
     def unRender(self):
         # There's a wx bug on Mac (2857) that causes EVT_KILL_FOCUS events to happen
@@ -175,6 +175,27 @@ class DetailRootBlock(WatchedItemRootBlock, ControlBlocks.ContentItemDetail):
             finally:
                 self.widget.Thaw()
 
+    def getWatchList(self):
+        # Tell us if this item is modified
+        return [ (self.contents, 'lastModified') ]
+
+    def onItemNotification(self, notificationType, data):
+        # super(DetailRootBlock, self).onItemNotification(notificationType, data)
+        self.markClean() # we'll do whatever needs to be done here.
+
+        if notificationType != 'itemChange':
+            return
+        
+        # Ignore notifications during stamping
+        (op, uuid, attributes) = data
+        item = self.itsView.findUUID(uuid, False)
+        if item is None or item.isMutating():
+            #logger.debug("%s: ignoring kind change to %s during stamping.", 
+                         #debugName(self), debugName(item))
+            return
+
+        if pim.has_stamp(item, Mail.MailStamp):
+            wx.GetApp().needsUpdateUI = True
 
 class DetailBranchPointDelegate(BranchPoint.BranchPointDelegate):
     """ 

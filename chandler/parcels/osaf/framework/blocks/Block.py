@@ -1215,6 +1215,10 @@ class RectangularChild (Block):
                                   wx.DefaultPosition, wx.DefaultSize)
 
 class dispatchEnumType(schema.Enumeration):
+    """
+    FocusBubbleUp - seems to mean that control should be passed to the current
+    focus, and then outwards (in the UI hierarchy) from there.
+    """
     values = (
         "ActiveViewBubbleUp",
         "BroadcastInsideMyEventBoundary",
