@@ -65,16 +65,16 @@ def publishSubscribe(testClass):
     ap.Open() # first, open the accounts dialog window
     ap.GetDefaultAccount("SHARING_DAV")
     ap.TypeValue("displayName", uw("Publish Test WebDAV"))
-    ap.TypeValue("host", "osaf.us")
+    ap.TypeValue("host", "qasharing.osafoundation.org")
     ap.TypeValue("path", "cosmo/home/demo1")
     ap.TypeValue("username", "demo1")
     ap.TypeValue("password", "ad3leib5")
-    ap.TypeValue("port", "443")
-    ap.ToggleValue("ssl", True)
+    ap.TypeValue("port", "8080")
+    ap.ToggleValue("ssl", False)
     ap.Ok()
 
     # verification
-    ap.VerifyValues("WebDAV", uw("Publish Test WebDAV"), host = "osaf.us", username = "demo1", password="ad3leib5", port=443)
+    ap.VerifyValues("WebDAV", uw("Publish Test WebDAV"), host = "qasharing.osafoundation.org", username = "demo1", password="ad3leib5", port=8080)
 
     # import events so test will have something to share even when run by itself
     path = os.path.join(Globals.chandlerDirectory,"tools/QATestScripts/DataFiles")
