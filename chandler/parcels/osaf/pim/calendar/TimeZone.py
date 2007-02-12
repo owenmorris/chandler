@@ -47,6 +47,7 @@ def reindexFloatingEvents(view):
     masterUTCKeys = [i for i in UTCKeys if i in keys]
     pim_ns.masterEvents.reindexKeys(masterUTCKeys, 'recurrenceEndNoTZ')
 
+
 class TimeZoneInfo(schema.Item):
     """
     Item that persists:
@@ -59,27 +60,40 @@ class TimeZoneInfo(schema.Item):
         schema.TimeZone,
     )
 
-    @schema.observer(default)
-    def onDefaultChanged(self, op, name):
-        # Repository hook for attribute changes.
-        default = self.default
-        canonicalDefault = self.canonicalTimeZone(default)
-        # Make sure that PyICU's default timezone is synched with
-        # ours
-        if (canonicalDefault is not None and
-            canonicalDefault is not PyICU.ICUtzinfo.floating):
-            PyICU.ICUtzinfo.default = canonicalDefault
-            reindexFloatingEvents(self.itsView)
-        # This next if is required to avoid an infinite recursion!
-        if canonicalDefault is not default:
-            self.default = canonicalDefault
-
     # List of well-known time zones (for populating drop-downs).
     # [i18n] Since ICU doesn't suitably localize strings like 'US/Pacific',
     # we'll have to provide our own translations.
     wellKnownIDs = schema.Sequence(
         schema.Text,
     )
+
+    def __init__(self, *args, **kwds):
+
+        super(TimeZoneInfo, self).__init__(*args, **kwds)
+
+        self.default = PyICU.ICUtzinfo.floating
+        self.watchItem(self, 'onDefaultChanged')
+
+
+    # Called by the watcher registered in __init__().
+    # A watcher is also invoked when the item is refreshed into another view
+    # whereas an observer (afterChange) method is not.
+    # That way, events that need to be re-indexed in that view will be.
+
+    def onDefaultChanged(self, op, uItem, names):
+
+        if 'default' in names:
+            # Repository hook for attribute changes.
+            default = self.default
+            canonicalDefault = self.canonicalTimeZone(default)
+            # Make sure that PyICU's default timezone is synched with ours
+            if (canonicalDefault is not None and
+                canonicalDefault is not PyICU.ICUtzinfo.floating):
+                PyICU.ICUtzinfo.default = canonicalDefault
+                reindexFloatingEvents(self.itsView)
+            # This next if is required to avoid an infinite recursion!
+            if canonicalDefault is not default:
+                self.default = canonicalDefault
 
     @classmethod
     def get(cls, view):
@@ -91,13 +105,6 @@ class TimeZoneInfo(schema.Item):
         """
 
         return schema.ns(__name__, view).defaultInfo
-
-    def __init__(self, *args, **keywds):
-
-        super(TimeZoneInfo, self).__init__(*args, **keywds)
-
-        self.default = PyICU.ICUtzinfo.floating
-
 
     def canonicalTimeZone(self, tzinfo):
         """
