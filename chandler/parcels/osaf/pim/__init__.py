@@ -88,7 +88,7 @@ class FloatingEventFilter(Item):
     def isFloatingEvent(self, view, uuid):
         anyTime, allDay, start = view.findValues(uuid, *_FILTER_ATTRIBUTES)
         return (anyTime or allDay or (start is not None and
-                                     start.tzinfo == ICUtzinfo.floating))
+                                      start.tzinfo == ICUtzinfo.floating))
 
 
 UTC = ICUtzinfo.getInstance("UTC")

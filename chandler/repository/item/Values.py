@@ -337,7 +337,9 @@ class Values(CValues):
         for name, (isRef, newValue) in newChanges[flag].iteritems():
             if not isRef:
                 value = self.get(name, Nil)
-                if newValue != value:
+                if (newValue != value or
+                    (getattr(newValue, 'tzinfo', None) !=
+                     getattr(value, 'tzinfo', None))):
                     if name in dirties:
                         newValue = ask(MergeError.VALUE, name, newValue)
                         conflicts.append((item.itsUUID, name, newValue))

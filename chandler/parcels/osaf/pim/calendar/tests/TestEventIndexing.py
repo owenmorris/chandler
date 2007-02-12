@@ -22,6 +22,8 @@ from application  import schema
 
 import osaf.pim.calendar.Calendar as Calendar
 from osaf.pim.calendar.TimeZone import TimeZoneInfo
+from osaf.pim.calendar import EventStamp
+
 
 class TestEventIndexing(TimeZoneTestCase):
 
@@ -57,7 +59,7 @@ class TestEventIndexing(TimeZoneTestCase):
             self.hawaii))
         
         self.floatingEvent = self._createEvent(datetime(2006, 9, 1, 1, 0,
-                                                tzinfo = self.floating))
+                                                        tzinfo = self.floating))
         
     def testEventIndex(self):
         """Make sure eventsInRange works."""
@@ -77,9 +79,40 @@ class TestEventIndexing(TimeZoneTestCase):
         self.assertEqual(daysEvents[1], self.floatingEvent)
         self.assertEqual(daysEvents[2], self.pacificEvent)
         self.assertEqual(daysEvents[3], self.hawaiiEvent)
+
+    def testMergeTZSameOffset(self):
+        """
+        Verify that when python lies to us about datetime/time values being
+        the same - even though their tzinfo changed to a different tz of same
+        offset - merging still picks up the change.
+        If it doesn't, the floatingEvents collection's index is not maintained
+        properly and check() fails with an index/collection mismatch error.
+        """
+        
+        # return newValue or getattr(item, attribute) 
+        # it makes no difference to this test
+        def mergeFn(code, item, attribute, newValue):
+            return newValue
+
+        main = self.rep.view
+        main.commit()
+        view = self.rep.createView('view')
+
+        self.tzInfoItem.default = self.pacific
+
+        self.floatingEvent.startTime -= timedelta(hours=1)
+        self.assertTrue(main.check(), "main view didn't check out")
+        main.commit()
+
+        floatingEvent = EventStamp(view[self.floatingEvent.itsItem.itsUUID])
+        floatingEvent.startTime = \
+            (floatingEvent.startTime.replace(tzinfo=self.pacific) -
+             timedelta(hours=1))
+        view.commit(mergeFn)
+
+        main.refresh()
+        self.assertTrue(main.check(), "main view didn't check out")
         
 
 if __name__ == "__main__":
     unittest.main()
-
-
