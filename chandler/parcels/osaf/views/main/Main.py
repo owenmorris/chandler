@@ -25,6 +25,7 @@ from application.Application import wxBlockFrameWindow
 import application.Parcel
 
 import application.dialogs.Util
+import application.dialogs.FileTail
 from application.dialogs import ( AccountPreferences, PublishCollection,
     SubscribeCollection, RestoreShares, autosyncprefs, TurnOnTimezones
 )
@@ -1239,10 +1240,9 @@ class MainView(View):
 
     def onShowLogWindowEvent(self, event):
         # Test menu item
-        logs = [
-            os.path.join(Globals.options.profileDir, 'chandler.log'),
-        ]
-        application.dialogs.Util.displayLogWindow(wx.GetApp().mainFrame, logs)
+        logPath = os.path.join(Globals.options.profileDir, 'chandler.log')
+        application.dialogs.FileTail.displayFileTailWindow(
+            wx.GetApp().mainFrame, logPath)
 
     def onSetLoggingLevelCriticalEvent(self, event):
         Utility.setLoggingLevel(logging.CRITICAL)

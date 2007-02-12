@@ -95,6 +95,7 @@ class RecordSetConduit(conduits.BaseConduit):
 
             text = self.get()
             if debug: print "Inbound text:", text
+            logger.debug("Received from server [%s]", text)
 
             inboundDiff, extra = self.serializer.deserialize(text)
             if debug: print "Inbound records", inboundDiff, extra
@@ -236,6 +237,7 @@ class RecordSetConduit(conduits.BaseConduit):
                 send=send, receive=receive, filter=filter, debug=debug)
             if send and dSend:
                 toSend[uuid] = dSend
+                logger.debug("Sending changes for %s [%s]", uuid, dSend)
                 if uuid not in sendStats['added']:
                     sendStats['modified'].add(uuid)
             if receive and dApply:
@@ -247,6 +249,7 @@ class RecordSetConduit(conduits.BaseConduit):
             # Apply
             for uuid, rs in toApply.items():
                 if debug: print "Applying:", uuid, rs
+                logger.debug("Applying changes to %s [%s]", uuid, rs)
                 translator.importRecords(rs)
                 if uuid in remotelyAdded:
                     receiveStats['added'].add(uuid)
@@ -302,9 +305,11 @@ class RecordSetConduit(conduits.BaseConduit):
             text = self.serializer.serialize(toSend, rootName="collection",
                 uuid=self.share.contents.itsUUID.str16())
             if debug: print "Sending text:", text
+            logger.debug("Sending to server [%s]", text)
             self.put(text)
         else:
             if debug: print "Nothing to send"
+            logger.debug("Nothing to send")
 
 
         # Note the repository version number, which will increase at the next

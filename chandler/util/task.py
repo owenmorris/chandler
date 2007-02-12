@@ -30,7 +30,7 @@ class Task(object):
 
     """
 
-    def __init__(self, view):
+    def __init__(self, view=None):
         super(Task, self).__init__()
         self.view = view
 
@@ -87,7 +87,8 @@ class Task(object):
             wx.GetApp().PostAsyncEvent(mainCallback, arg)
 
     def _error(self, failure):
-        self.view.cancel()
+        if self.view is not None:
+            self.view.cancel()
         self.callInMainThread(self.error, failure, done=True)
 
     def _success(self, result):
@@ -99,5 +100,6 @@ class Task(object):
                 return alias + '_duplicate'
             raise NotImplementedError, (code, attribute, value)
         
-        self.view.commit(mergeFunction)
+        if self.view is not None:
+            self.view.commit(mergeFunction)
         self.callInMainThread(self.success, result, done=True)

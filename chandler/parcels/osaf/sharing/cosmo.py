@@ -74,12 +74,7 @@ class CosmoAccount(accounts.WebDAVAccount):
 
         share.conduit = conduit
 
-        try:
-            share.put(updateCallback=updateCallback)
-        except:
-            # Clean up the Share
-            share.delete(True)
-            raise
+        share.put(updateCallback=updateCallback)
 
         return [share]
 
@@ -146,10 +141,16 @@ class CosmoConduit(recordset_conduit.RecordSetConduit, conduits.HTTPMixin):
         handle = self._getServerHandle()
 
         extraHeaders = { }
-        if hasattr(self, 'ticket'):
-            extraHeaders['Ticket'] = self.ticket
-        if hasattr(self, 'syncToken'):
-            extraHeaders['X-MorseCode-SyncToken'] = self.syncToken
+
+        ticket = getattr(self, 'ticket', None)
+        if ticket:
+            extraHeaders['Ticket'] = ticket
+
+        syncToken = getattr(self, 'syncToken', None)
+        if syncToken:
+            extraHeaders['X-MorseCode-SyncToken'] = syncToken
+
+        extraHeaders['Content-Type'] = 'application/eim+xml'
 
         request = zanshin.http.Request(methodName, path, extraHeaders, body)
 
