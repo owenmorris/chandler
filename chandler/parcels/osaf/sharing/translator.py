@@ -237,19 +237,19 @@ class PIMTranslator(eim.Translator):
         else:
             triageStatus = eim.NoChange
 
-        if record.triageStatusChanged not in (eim.NoChange, None):
-            tsc = float(record.triageStatusChanged)
-        else:
-            tsc = eim.NoChange
-
-        self.loadItemByUUID(
+        item = self.loadItemByUUID(
             record.uuid,
             pim.ContentItem,
             displayName=record.title,
             triageStatus=triageStatus,
-            triageStatusChanged=tsc,
             createdOn=createdOn
         ) # incomplete, missing lastModifiedBy
+
+
+        # Need to make sure we set tsc after triageStatus
+        if record.triageStatusChanged not in (eim.NoChange, None):
+            item.triageStatusChanged = float(record.triageStatusChanged)
+
 
 
     @eim.exporter(pim.ContentItem)

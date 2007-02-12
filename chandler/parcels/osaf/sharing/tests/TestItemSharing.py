@@ -121,10 +121,7 @@ class ItemSharingTestCase(testcase.DualRepositoryTestCase):
         sharing.inbound(morgen, text)
         view1.commit()
         # Examine the conflicts and ensure the 'title' field isn't conflicting
-        conflicts = list(shared1.getConflicts())
-        self.assert_(conflicts[0].peer is morgen)
-        record = list(conflicts[0].change.inclusions)[0]
-        self.assertEqual(record.title, sharing.NoChange)
+        self.assert_(not hasattr(shared1, "conflictingStates"))
 
 
         # Verify that an out of sequence update is ignored
