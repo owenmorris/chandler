@@ -129,8 +129,7 @@ class wxTimedEventsCanvas(wxCalendarCanvas):
             for i in self.visibleItems:
                 # clean up visibleItems, removing stale items and events that
                 # have become masters 
-                if (isDead(i.itsItem) or
-                    (i.occurrences is not None and len(i.occurrences) > 0)):
+                if isDead(i.itsItem) or i.isRecurrenceMaster():
                     self.visibleItems.remove(i)
                     removals.append(i.itsItem)
             for canvasItem in self.canvasItemList:

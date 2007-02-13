@@ -1289,11 +1289,6 @@ class CalendarBlock(CollectionCanvas.CollectionBlock):
                     "generateEventsInRange returned an event outside the range."
                 yield event
 
-    def getEventsInCurrentRange(self, *arguments, **keywords):
-        currentRange = self.GetCurrentDateRange()
-        return self.getEventsInRange(currentRange, *arguments, **keywords)
-
-
     def GetCurrentDateRange(self):
         return (self.rangeStart,  self.rangeStart + self.rangeIncrement)
 
