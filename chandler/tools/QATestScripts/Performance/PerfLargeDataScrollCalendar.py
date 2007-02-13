@@ -28,16 +28,24 @@ try:
     # Look at the same date every time -- do this before we import
     # to save time and grief
     
-    # Do the test in the large calendar
-    User.emulate_sidebarClick(App_ns.sidebar, 'Generated3000', overlay=False)
-    User.idle()
-
     testdate = datetime(2005, 12, 14, tzinfo=ICUtzinfo.default)
     App_ns.root.SelectedDateChanged(start=testdate)
     
-    # Load a large calendar so we have events to scroll
-    # NOTE: Don't do this when we restore from backed up repository
-    testView = QAUITestAppLib.UITestView(logger)#, u'Generated3000.ics')
+    # Load overlay calendar
+    if 1:
+        QAUITestAppLib.UITestView(logger, u'overlay-2005-12-14.ics')
+        User.emulate_sidebarClick(App_ns.sidebar, 'overlay', overlay=True)
+        User.idle()
+        
+    # Load a new cal with duplicate IDs to overlay to make some swatches
+    if 1:
+        QAUITestAppLib.UITestView(logger, u'swatches-2005-12-14.ics')
+        User.emulate_sidebarClick(App_ns.sidebar, 'swatches', overlay=False)
+        User.idle()
+
+    # Do the test in the large calendar
+    User.emulate_sidebarClick(App_ns.sidebar, 'Generated3000', overlay=False)
+    User.idle()
 
     # Process idle and paint cycles, make sure we're only
     # measuring scrolling performance, and not accidentally
@@ -50,12 +58,14 @@ try:
     User.idle()
 
     # Test Phase: Action (the action we are timing)
-    logger.Start("Scroll calendar one unit") # Actually 25 units
+    logger.Start("Scroll calendar one unit") # Actually 24 units
     for units in xrange(1, 25):    
         calendarWidget.Scroll(0, units)
         wx.Yield() # Each Yield should result in a single paint to the calendar
     logger.Stop()
 
+    User.idle()
+    
     # Test Phase: Verification
 
     logger.SetChecked(True)
