@@ -459,7 +459,7 @@ class MainView(View):
                         results = view.searchItems (command)
             
                         searchResults = schema.ns('osaf.pim', view).searchResults
-                        searchResults.clear()
+                        searchResults.inclusions.clear()
                         
                         sidebarCollection = schema.ns("osaf.app", self).sidebarCollection
                         for collection in sidebarCollection:
