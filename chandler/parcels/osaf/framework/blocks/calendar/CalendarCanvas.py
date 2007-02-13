@@ -153,19 +153,26 @@ def widgetGuardedCallback(block, function):
 # hue -> colorName mapping
 hueMap = dict((int(v), k) for k, v in confstyles.cfg.items('colors'))
 suffixes = 'GradientLeft', 'GradientRight', 'Outline', 'Text'
+colorCache = {}
 
 def colorValWithDefault(hue, name):
-    hueDegrees = int(hue*360)
-    hueName = hueMap.get(hueDegrees)
-    if hueName is None:
-        # int rounds floats down, try rounding up
-        hueName = hueMap.get(hueDegrees + 1)
-    if hueName is not None:
-        val = confstyles.cfg.get('calendarcanvas', hueName + name)
-        if val is not None:
-            return float(val)
-    return confstyles.cfg.getfloat('calendarcanvas', name)
-
+    try:
+        return colorCache[str(hue) + name]
+    except KeyError:
+        hueDegrees = int(hue*360)
+        hueName = hueMap.get(hueDegrees)
+        if hueName is None:
+            # int rounds floats down, try rounding up
+            hueName = hueMap.get(hueDegrees + 1)
+        if hueName is not None:
+            val = confstyles.cfg.get('calendarcanvas', hueName + name)
+            if val is not None:
+                ret = float(val)
+                colorCache[str(hue) + name] = ret
+                return ret
+        ret = confstyles.cfg.getfloat('calendarcanvas', name)
+        colorCache[str(hue) + name] = ret
+        return ret
 
 def getLozengeTypeColor(hue, lozengeType):
     return rgb2color(*hsv_to_rgb(hue,
@@ -176,8 +183,10 @@ def getLozengeTypeColor(hue, lozengeType):
 def getHueForCollection(collection):
     color = UserCollection(collection).ensureColor().color
     return rgb_to_hsv(*color2rgb(color.red,color.green,color.blue))[0]
-    
+
 class ColorInfo(object):
+    saturatedColorsCache = {}
+    
     def __init__(self, collection):
         # sometimes this happens when getContainingCollection fails to find a collection
         assert collection is not None, "Can't get color for None"
@@ -189,10 +198,14 @@ class ColorInfo(object):
         four RGB colors.
         
         """
-        names = [prefix + suffix for suffix in suffixes]
-                
         def getSaturatedColors(self):
-            return [getLozengeTypeColor(self.hue, name) for name in names]
+            try:
+                return ColorInfo.saturatedColorsCache[prefix]
+            except KeyError:
+                names = [prefix + suffix for suffix in suffixes]    
+                ret = [getLozengeTypeColor(self.hue, name) for name in names]
+                ColorInfo.saturatedColorsCache[prefix] = ret
+                return ret
 
         return property(getSaturatedColors)
     
