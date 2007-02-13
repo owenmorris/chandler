@@ -46,6 +46,7 @@ try:
     # Do the test in the large calendar
     User.emulate_sidebarClick(App_ns.sidebar, 'Generated3000', overlay=False)
     User.idle()
+    import time;time.sleep(1) # Ick, but otherwise the view may jump back to top after scrolling, making the verification fail
 
     # Process idle and paint cycles, make sure we're only
     # measuring scrolling performance, and not accidentally
@@ -64,8 +65,6 @@ try:
         wx.Yield() # Each Yield should result in a single paint to the calendar
     logger.Stop()
 
-    User.idle()
-    
     # Test Phase: Verification
 
     logger.SetChecked(True)
