@@ -7,7 +7,7 @@ PIMTranslator implements the callbacks for converting between items and
 records.
 
     >>> from osaf import sharing, pim
-    >>> from datetime import datetime
+    >>> from datetime import datetime, timedelta
     >>> from decimal import Decimal
     >>> from PyICU import ICUtzinfo
     >>> from repository.persistence.RepositoryView import NullRepositoryView
@@ -211,8 +211,12 @@ Recurrence
     >>> [i.day for i in event.createDateUtilFromRule()]
     [1, 8, 13, 15, 23, 25]
     
+Exporting:
+    
     >>> t.startExport()
     >>> records = [r for r in t.exportItem(item) if isinstance(r, sharing.model.EventRecord)]
+    >>> len(records) == 1
+    True
     >>> record = records[0]
     >>> record.rrule
     u'FREQ=WEEKLY;COUNT=5;BYDAY=TU,TH'
@@ -222,3 +226,45 @@ Recurrence
     u';VALUE=DATE-TIME;TZID=US/Pacific:20070223T140000,20070225T140000'
     >>> record.exdate
     u';VALUE=DATE-TIME;TZID=US/Pacific:20070206T140000'
+    
+Modifications
+- - - - - - -
+
+    >>> mod_rec = sharing.model.EventModificationRecord(
+    ...             masterUuid = 'f230dcd4-7c32-4c3f-908b-d92081cc9a89',
+    ...             recurrenceId = ';VALUE=DATE-TIME;TZID=US/Pacific:20070223T140000',
+    ...             dtstart = sharing.Missing,
+    ...             dtend = sharing.Missing,
+    ...             location = sharing.Missing,
+    ...             status = sharing.Missing,
+    ...             title = "Changed title",
+    ...             body = sharing.Missing,
+    ...             triageStatus = sharing.Missing,
+    ...             triageStatusChanged = sharing.Missing,
+    ...             reminderTime = sharing.Missing,
+    ... )
+
+    >>> rs = sharing.RecordSet([mod_rec])
+
+    >>> t.startImport()
+    >>> t.importRecords(rs)
+    >>> t.finishImport()
+    
+    >>> mod = event.getRecurrenceID(event.startTime + timedelta(22))
+    >>> mod.itsItem.displayName
+    u'Changed title'
+
+Exporting
+- - - - -
+
+    >>> t.startExport()
+    >>> records = [r for r in t.exportItem(item) if isinstance(r, sharing.model.EventModificationRecord)]
+    >>> len(records) == 1
+    True
+    >>> record = records[0]
+    >>> record.dtstart
+    Missing
+    >>> record.dtend
+    Missing
+    >>> record.title
+    u'Changed title'
