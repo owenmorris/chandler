@@ -1208,7 +1208,7 @@ class SidebarBranchPointDelegate(BranchPoint.BranchPointDelegate):
             if key is None:
                 key = wrapInIndexedSelectionCollection (schema.ns('osaf.pim', self.itsView).searchResults)
                 key.displayName = u"Search Results"
-                key.collectionList = []
+                key.collectionList = [key]
                 self.itemTupleKeyToCacheKey ["Search"] = key
 
         else:
