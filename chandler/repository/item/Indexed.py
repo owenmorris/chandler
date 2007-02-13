@@ -243,6 +243,9 @@ class Indexed(object):
                     elif newIndex or value is Nil:
                         if self.__contains__(key, False, True):
                             moves.append(key)
+                    elif not self.__contains__(key, False, True):
+                        # a neighbor key could be dirty but no longer a member
+                        removals.append(key)
                     else:
                         moves.append(key)
                 elif key in index:
