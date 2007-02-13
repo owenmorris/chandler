@@ -667,7 +667,8 @@ class SSSidebarIconButton (SSSidebarButton):
         selectedItem = sidebarBlock.contents.getFirstSelectedItem()
         if (not UserCollection (item).outOfTheBoxCollection and
             ( (selectedItem is not None and UserCollection (selectedItem).outOfTheBoxCollection) or
-              sidebarBlock.filterClass in sidebarBlock.disallowOverlaysForFilterClasses) ):
+              sidebarBlock.filterClass in sidebarBlock.disallowOverlaysForFilterClasses or
+               sidebarBlock.showSearch) ):
             deactive = "Deactive"
         else:
             deactive = ""
