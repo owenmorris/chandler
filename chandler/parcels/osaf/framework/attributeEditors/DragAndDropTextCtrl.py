@@ -27,6 +27,7 @@ from osaf import messages
 import parsedatetime.parsedatetime as parsedatetime
 import parsedatetime.parsedatetime_consts as ptc
 from datetime import date
+from BaseAttributeEditor import NotifyBlockToSaveValue
 
 class DragAndDropTextCtrl(ShownSynchronizer,
                  DragAndDrop.DraggableWidget,

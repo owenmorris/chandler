@@ -19,10 +19,10 @@ Attribute Editors
 __parcel__ = "osaf.framework.attributeEditors"
 
 import wx
-import logging
 from osaf.framework.blocks.Block import ShownSynchronizer, wxRectangularChild
 from DragAndDropTextCtrl import DragAndDropTextCtrl
-
+from BaseAttributeEditor import NotifyBlockToSaveValue
+import logging
 logger = logging.getLogger(__name__)
 
 class AEStaticText(ShownSynchronizer,
@@ -47,21 +47,6 @@ class AEStaticText(ShownSynchronizer,
         """
         self.SetLabel(newValue.replace(u'&', u'&&'))
 
-
-def NotifyBlockToSaveValue(widget):
-    """
-    Notify this widget's block to save its value when we lose focus
-    """
-    # We wish there were a cleaner way to do this notification!
-    try:
-        # if we have a block, and it has a save method, get it
-        saveMethod = widget.blockItem.saveValue
-    except AttributeError:
-        pass
-    else:
-        logger.debug("%s: saving value", getattr(widget.blockItem, 'blockName',
-                                                 widget.blockItem.itsName))
-        saveMethod()
 
 class AENonTypeOverTextCtrl(DragAndDropTextCtrl):
     def __init__(self, *args, **keys):
