@@ -2,7 +2,7 @@
 # This Makefile requires cygwin on Windows
 # It should *not* be made to depend on external/ or internal/
 
-.PHONY: default install-core install distrib clean download downloads build-plugins install-plugin-core rst docs archives
+.PHONY: default install-core install distrib clean download downloads build-plugins rst docs archives eggs
 
 default: install
 
@@ -14,13 +14,14 @@ BUILD_PLUGINS = Chandler-HelloWorldPlugin \
                 Chandler-FlickrPlugin \
                 Chandler-I18nTestsPlugin \
                 Chandler-PhotoPlugin \
-                Chandler-p2pPlugin \
-                EggTranslations-Plugin
+                Chandler-p2pPlugin
 
-PYEGGS = 
+# When a version changes, the ARCHIVES and EGG_ARCHIVES lists below need
+# to be updated.
 
-# When a version changes, the ARCHIVES lists below needs to be updated.
-# these get installed into release or debug
+# EGG_ARCHIVES tar files should must contain only one file, the .egg file
+EGG_ARCHIVES = $(CHANDLERARCHIVES)/eggtranslations-$(SNAP)-0.1-r2-$(BP)1.tar.gz
+
 ARCHIVES = $(CHANDLERARCHIVES)/Launchers-$(SNAP)-0.9-$(BP)5.tar.gz \
            $(CHANDLERARCHIVES)/chandlerdb-$(SNAP)-0.6-$(BP)78.tar.gz \
            $(CHANDLERARCHIVES)/db-$(SNAP)-4.5.20-$(BP)2.tar.gz \
@@ -167,10 +168,9 @@ SETUPTOOLS_BIN  = $(C_BIN)/$(SNAP)
 EASYINSTALL_BIN = $(EASYINSTALL)
 PLUGIN_ABS      = $(PLUGIN_ARCHIVES)
 PLUGIN_INST     = $(C_HOME)
-PYEGG_INST      = $(C_BIN)/$(SITE)
+EGG_INST        = $(C_BIN)/$(SITE)
 PYTHON_BIN      = $(C_BIN)/$(SNAP)/RunPython
 TOOLS           = $(C_HOME)/tools/
-PYEGG_ARCHIVES  = $(CHANDLERARCHIVES)/
 
 #
 # The following cygpaths are all done using
@@ -184,9 +184,8 @@ ifeq ($(OS),Cygwin)
     EASYINSTALL_BIN := $(shell cygpath -wa $(EASYINSTALL))
     PLUGIN_ABS      := $(shell cygpath -aw $(PLUGIN_ARCHIVES))
     PLUGIN_INST     := $(shell cygpath -aw $(C_HOME))
-    PYEGG_INST      := $(shell cygpath -aw $(C_BIN)/$(SITE))
+    EGG_INST        := $(shell cygpath -aw $(C_BIN)/$(SITE))
     TOOLS           := $(shell cygpath -aw $(TOOLS))\\
-    PYEGG_ARCHIVES  := $(shell cygpath -aw $(CHANDLERARCHIVES))\\
     SCRIPTS         := $(shell cygpath -wa $(SCRIPTS))\\
 endif
 
@@ -195,10 +194,10 @@ ARCHIVES_INST = \
                 $(addprefix $(C_BIN)/$(SNAP)/, \
                             $(notdir $(ARCHIVES))))
 
-PYEGGS_INST = \
+EGG_ARCHIVES_INST = \
     $(addsuffix .inst, \
                 $(addprefix $(C_BIN)/$(SNAP)/, \
-                            $(notdir $(PYEGGS))))
+                            $(notdir $(EGG_ARCHIVES))))
 
 downloads: $(ARCHIVES)
 
@@ -222,8 +221,6 @@ $(addprefix distrib-, $(BUILD_PLUGINS)):
       --install-scripts='$(SETUPTOOLS_BIN)' \
       --install-lib='$(PLUGIN_INST)'
 
-#bdist_egg -d ../../$(CHANDLERARCHIVES)
-
 build-plugins: $(addprefix binaries-, $(BUILD_PLUGINS))
 
 distrib-plugins: $(addprefix distrib-, $(BUILD_PLUGINS))
@@ -231,7 +228,7 @@ distrib-plugins: $(addprefix distrib-, $(BUILD_PLUGINS))
 chandler-locale-data:
 	PYTHONPATH='$(PLUGIN_INST)' $(PLUGIN_PYTHON) setup.py egg_info
 
-$(ARCHIVES):
+$(ARCHIVES) $(EGG_ARCHIVES) $(SETUPTOOLS_EGG):
 	mkdir -p $(CHANDLERARCHIVES)
 	$(CURL) $@ $(P_URL)/$(notdir $@)
 
@@ -239,21 +236,16 @@ $(ARCHIVES_INST):
 	tar -C $(C_BIN) -xvzf $(CHANDLERARCHIVES)/$(notdir $(basename $@))
 	touch $@
 
-$(PYEGGS):
-	mkdir -p $(CHANDLERARCHIVES)
-	$(CURL) $@ $(P_URL)/$(notdir $@)
-
-$(PYEGGS_INST):
-	MACOSX_DEPLOYMENT_TARGET= PYTHONPATH='$(PLUGIN_INST)' \
-      $(PYTHON_BIN) -c "from setuptools.command.easy_install import main; main()" \
-      --script-dir='$(SETUPTOOLS_BIN)' \
-      --install-dir='$(PYEGG_INST)' \
-      '$(PYEGG_ARCHIVES)'$(notdir $(basename $@))
+# the .tar.gz for an .egg based system must only contain the .egg file
+# or else we need to filter tar -tzf with | grep '\.egg'
+$(EGG_ARCHIVES_INST):
+	tar -C $(C_BIN) -xvzf $(CHANDLERARCHIVES)/$(notdir $(basename $@))
+	MACOSX_DEPLOYMENT_TARGET= PYTHONPATH='$(PLUGIN_INST)' $(PYTHON_BIN) \
+           -c "from setuptools.command.easy_install import main; main()" \
+           --script-dir='$(SETUPTOOLS_BIN)' \
+           --install-dir='$(EGG_INST)' \
+             '$(EGG_INST)'/$(notdir $(shell tar -tzf $(CHANDLERARCHIVES)/$(notdir $(basename $@))))
 	touch $@
-
-$(SETUPTOOLS_EGG):
-	mkdir -p $(CHANDLERARCHIVES)
-	$(CURL) $@ $(P_URL)/$(notdir $@)
 
 setuptools: $(SETUPTOOLS_EGG)
 	MACOSX_DEPLOYMENT_TARGET= PYTHONPATH='$(PLUGIN_INST)' CHANDLERHOME='$(CHANDLERHOME)' $(PYTHON_BIN) \
@@ -274,23 +266,24 @@ endif
 
 archives: $(ARCHIVES) $(ARCHIVES_INST)
 
-install-core: archives manifest_exe
+eggs: $(EGG_ARCHIVES) $(EGG_ARCHIVES_INST)
 
-install-plugin-core: $(SETUPTOOLS_EGG) $(PYEGGS) setuptools chandler-locale-data $(PYEGGS_INST)
+install-core: archives $(SETUPTOOLS_EGG) setuptools eggs \
+              manifest_exe chandler-locale-data 
 
-plugins: install-plugin-core build-plugins
+plugins: build-plugins
 
-install: install-core plugins
+install: install-core build-plugins
 
-distrib: install-core install-plugin-core distrib-plugins
+distrib: install-core distrib-plugins
 
-download: $(ARCHIVES) $(SETUPTOOLS_EGG) $(PYEGGS)
+download: $(ARCHIVES) $(EGG_ARCHIVES) $(SETUPTOOLS_EGG)
 
 # to install individual binaries, for example: make chandlerdb
 
-$(notdir $(shell echo $(ARCHIVES) | sed "s/-$(SNAP)[^ ]*//g")):
-	$(MAKE) $(shell echo $(ARCHIVES) | sed "s=.*\($(CHANDLERARCHIVES)/$@-[^ ]*\).*=\1=")
-	$(MAKE) $(shell echo $(ARCHIVES_INST) | sed "s=.*\($(C_BIN)/$(SNAP)/$@-[^ ]*\).*=\1=")
+$(notdir $(shell echo $(ARCHIVES) $(EGG_ARCHIVES) | sed "s/-$(SNAP)[^ ]*//g")):
+	$(MAKE) $(shell echo $(ARCHIVES) $(EGG_ARCHIVES) | sed "s=.*\($(CHANDLERARCHIVES)/$@-[^ ]*\).*=\1=")
+	$(MAKE) $(shell echo $(ARCHIVES_INST) $(EGG_ARCHIVES_INST) | sed "s=.*\($(C_BIN)/$(SNAP)/$@-[^ ]*\).*=\1=")
 
 
 ifeq ($(OS),Cygwin)
