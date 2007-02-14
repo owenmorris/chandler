@@ -744,10 +744,14 @@ class wxPreviewArea(CalendarCanvas.CalendarNotificationHandler, wx.Panel):
 
     @staticmethod
     def SortForPreview(event1, event2):
-        if isDead(event1.itsItem) or isDead(event2.itsItem):
+        def bad(stamp_or_item):
+            # reject items if they're dead OR if they've lost their EventStamp
+            item = getattr(stamp_or_item, 'itsItem', stamp_or_item)
+            return isDead(item) or not has_stamp(item, EventStamp)
+        
+        if bad(event1) or bad(event2):
             # sort stale or deleted items first, False < True
-            return cmp(not isDead(event1.itsItem),
-                       not isDead(event2.itsItem))
+            return cmp(not bad(event1), not bad(event2))
         if (event1.anyTime or event1.allDay) and (event2.anyTime or event2.allDay):
             return cmp(event1.summary, event2.summary)
         if event1.anyTime or event1.allDay:

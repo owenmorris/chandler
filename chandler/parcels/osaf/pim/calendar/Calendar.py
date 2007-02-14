@@ -297,16 +297,14 @@ def recurringEventsInRange(view, start, end, filterColl = None,
                           masterEvents, end, 'recurrenceEnd', endIndex,
                           masterEvents, filterColl, '__adhoc__')
     for key in keys:
-        item = view[key]
-        masterEvent = EventStamp(item)
+        masterEvent = EventStamp(view[key])
         for event in masterEvent.getOccurrencesBetween(start, end):
             # One or both of dayItems and timedItems must be
             # True. If both, then there's no need to test the
             # item's day-ness.  If only one is True, then
             # dayItems' value must match the return of
             # isDayEvent.
-            if (not isDead(item) and
-                (event.occurrenceFor is not None) and
+            if ((event.occurrenceFor is not None) and
                 ((dayItems and timedItems) or
                  isDayEvent(event) == dayItems)):
                     yield event
