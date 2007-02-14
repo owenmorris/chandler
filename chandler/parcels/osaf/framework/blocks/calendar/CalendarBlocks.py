@@ -177,6 +177,7 @@ class wxMiniCalendar(DragAndDrop.DropReceiveWidget,
 
                 # Include confirmed events only
                 self._eventsToAdd.update(event for event in addedEvents if
+                                         not isDead(event.itsItem) and 
                                          event.transparency == 'confirmed')
             else:
                 self._eventsToAdd = None
@@ -723,7 +724,8 @@ class wxPreviewArea(CalendarCanvas.CalendarNotificationHandler, wx.Panel):
             addedEvents = self.GetPendingNewEvents((startDay, endDay))
 
             addedEvents = set(item for item in addedEvents
-                                if item.transparency == 'confirmed')
+                              if not isDead(event.itsItem) and 
+                              item.transparency == 'confirmed')
 
             if len(addedEvents) == 0:
                 return # No "interesting" new events

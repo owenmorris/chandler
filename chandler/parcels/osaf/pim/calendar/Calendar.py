@@ -269,10 +269,11 @@ def eventsInRange(view, start, end, filterColl = None, dayItems=True,
                           allEvents, filterColl, '__adhoc__', tzprefs.showUI,
                           longDelta = LONG_TIME, longCollection=longEvents)
     for key in keys:
-        event = EventStamp(view[key])
+        item = view[key]
+        event = EventStamp(item)
         # Should probably assert has_stamp(event, EventStamp)
         if (has_stamp(event, EventStamp) and
-            event.rruleset is None and
+            event.rruleset is None and not isDead(item) and
             ((dayItems and timedItems) or isDayEvent(event) == dayItems)):
             yield event
 
@@ -296,14 +297,16 @@ def recurringEventsInRange(view, start, end, filterColl = None,
                           masterEvents, end, 'recurrenceEnd', endIndex,
                           masterEvents, filterColl, '__adhoc__')
     for key in keys:
-        masterEvent = EventStamp(view[key])
+        item = view[key]
+        masterEvent = EventStamp(item)
         for event in masterEvent.getOccurrencesBetween(start, end):
             # One or both of dayItems and timedItems must be
             # True. If both, then there's no need to test the
             # item's day-ness.  If only one is True, then
             # dayItems' value must match the return of
             # isDayEvent.
-            if ((event.occurrenceFor is not None) and
+            if (not isDead(item) and
+                (event.occurrenceFor is not None) and
                 ((dayItems and timedItems) or
                  isDayEvent(event) == dayItems)):
                     yield event
