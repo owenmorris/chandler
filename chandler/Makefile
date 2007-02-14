@@ -2,7 +2,8 @@
 # This Makefile requires cygwin on Windows
 # It should *not* be made to depend on external/ or internal/
 
-.PHONY: default install-core install distrib clean download downloads build-plugins rst docs archives eggs
+.PHONY: default install-core install distrib clean download downloads \
+	plugins no-plugins distrib-plugins rst docs archives
 
 default: install
 
@@ -16,35 +17,33 @@ BUILD_PLUGINS = Chandler-HelloWorldPlugin \
                 Chandler-PhotoPlugin \
                 Chandler-p2pPlugin
 
-# When a version changes, the ARCHIVES and EGG_ARCHIVES lists below need
-# to be updated.
+# When a version changes, the ARCHIVES lists below need to be updated.
 
-# EGG_ARCHIVES tar files should must contain only one file, the .egg file
-EGG_ARCHIVES = $(CHANDLERARCHIVES)/eggtranslations-$(SNAP)-0.1-r2-$(BP)1.tar.gz
-
-ARCHIVES = $(CHANDLERARCHIVES)/Launchers-$(SNAP)-0.9-$(BP)5.tar.gz \
-           $(CHANDLERARCHIVES)/chandlerdb-$(SNAP)-0.6-$(BP)78.tar.gz \
-           $(CHANDLERARCHIVES)/db-$(SNAP)-4.5.20-$(BP)2.tar.gz \
-           $(CHANDLERARCHIVES)/python-$(SNAP)-2.5-$(BP)4.tar.gz \
-           $(CHANDLERARCHIVES)/epydoc-$(SNAP)-2.1-$(BP)10.tar.gz \
-           $(CHANDLERARCHIVES)/icu-$(SNAP)-3.6-$(BP)1.tar.gz \
-           $(CHANDLERARCHIVES)/openssl-$(SNAP)-0.9.8d-$(BP)1.tar.gz \
-           $(CHANDLERARCHIVES)/m2crypto-$(SNAP)-514-$(BP)1.tar.gz \
-           $(CHANDLERARCHIVES)/pychecker-$(SNAP)-0.8.17-$(BP)1.tar.gz \
-           $(CHANDLERARCHIVES)/PyICU-$(SNAP)-0.6-70-$(BP)1.tar.gz \
-           $(CHANDLERARCHIVES)/PyLucene-$(SNAP)-2.0.0-7-$(BP)1.tar.gz \
-           $(CHANDLERARCHIVES)/twisted-$(SNAP)-r18795-$(BP)1.tar.gz \
-           $(CHANDLERARCHIVES)/wxPython-$(SNAP)-2.8.1.1-r154-$(BP)1.tar.gz \
-           $(CHANDLERARCHIVES)/zope.interface-$(SNAP)-3.3.0b2-r71371-$(BP)1.tar.gz \
-           $(CHANDLERARCHIVES)/dateutil-$(SNAP)-1.1-$(BP)4.tar.gz \
-           $(CHANDLERARCHIVES)/vobject-$(SNAP)-0.4.8-r181-$(BP)1.tar.gz \
-           $(CHANDLERARCHIVES)/zanshin-$(SNAP)-163-$(BP)1.tar.gz \
-           $(CHANDLERARCHIVES)/logilab-astng-$(SNAP)-0.16.3-$(BP)2.tar.gz \
-           $(CHANDLERARCHIVES)/logilab-common-$(SNAP)-0.21.0-$(BP)2.tar.gz \
-           $(CHANDLERARCHIVES)/pylint-$(SNAP)-0.12.2-$(BP)2.tar.gz \
-           $(CHANDLERARCHIVES)/parsedatetime-$(SNAP)-0.8.0-$(BP)2.tar.gz \
-           $(CHANDLERARCHIVES)/configobj-$(SNAP)-4.3.2-$(BP)1.tar.gz \
-           $(CHANDLERARCHIVES)/docutils-$(SNAP)-0.4-$(BP)1.tar.gz
+ARCHIVES = \
+    $(CHANDLERARCHIVES)/Launchers-$(SNAP)-0.9-$(BP)5.tar.gz \
+    $(CHANDLERARCHIVES)/chandlerdb-$(SNAP)-0.6-$(BP)78.tar.gz \
+    $(CHANDLERARCHIVES)/db-$(SNAP)-4.5.20-$(BP)3.tar.gz \
+    $(CHANDLERARCHIVES)/python-$(SNAP)-2.5-$(BP)4.tar.gz \
+    $(CHANDLERARCHIVES)/epydoc-$(SNAP)-2.1-$(BP)10.tar.gz \
+    $(CHANDLERARCHIVES)/icu-$(SNAP)-3.6-$(BP)1.tar.gz \
+    $(CHANDLERARCHIVES)/openssl-$(SNAP)-0.9.8d-$(BP)1.tar.gz \
+    $(CHANDLERARCHIVES)/m2crypto-$(SNAP)-514-$(BP)1.tar.gz \
+    $(CHANDLERARCHIVES)/pychecker-$(SNAP)-0.8.17-$(BP)1.tar.gz \
+    $(CHANDLERARCHIVES)/PyICU-$(SNAP)-0.6-70-$(BP)1.tar.gz \
+    $(CHANDLERARCHIVES)/PyLucene-$(SNAP)-2.0.0-7-$(BP)1.tar.gz \
+    $(CHANDLERARCHIVES)/twisted-$(SNAP)-r18795-$(BP)1.tar.gz \
+    $(CHANDLERARCHIVES)/wxPython-$(SNAP)-2.8.1.1-r154-$(BP)1.tar.gz \
+    $(CHANDLERARCHIVES)/dateutil-$(SNAP)-1.1-$(BP)4.tar.gz \
+    $(CHANDLERARCHIVES)/vobject-$(SNAP)-0.4.8-r181-$(BP)1.tar.gz \
+    $(CHANDLERARCHIVES)/zanshin-$(SNAP)-163-$(BP)1.tar.gz \
+    $(CHANDLERARCHIVES)/logilab-astng-$(SNAP)-0.16.3-$(BP)2.tar.gz \
+    $(CHANDLERARCHIVES)/logilab-common-$(SNAP)-0.21.0-$(BP)2.tar.gz \
+    $(CHANDLERARCHIVES)/pylint-$(SNAP)-0.12.2-$(BP)2.tar.gz \
+    $(CHANDLERARCHIVES)/parsedatetime-$(SNAP)-0.8.0-$(BP)2.tar.gz \
+    $(CHANDLERARCHIVES)/configobj-$(SNAP)-4.3.2-$(BP)1.tar.gz \
+    $(CHANDLERARCHIVES)/docutils-$(SNAP)-0.4-$(BP)1.tar.gz \
+    $(CHANDLERARCHIVES)/eggtranslations-$(SNAP)-0.1-r2-$(BP)2.tar.gz \
+    $(CHANDLERARCHIVES)/zope.interface-$(SNAP)-3.3.0b2-r71371-$(BP)3.tar.gz
 
 OS         = $(shell uname)
 PYTHON_VER = 2.5
@@ -168,7 +167,6 @@ SETUPTOOLS_BIN  = $(C_BIN)/$(SNAP)
 EASYINSTALL_BIN = $(EASYINSTALL)
 PLUGIN_ABS      = $(PLUGIN_ARCHIVES)
 PLUGIN_INST     = $(C_HOME)
-EGG_INST        = $(C_BIN)/$(SITE)
 PYTHON_BIN      = $(C_BIN)/$(SNAP)/RunPython
 TOOLS           = $(C_HOME)/tools/
 
@@ -184,7 +182,6 @@ ifeq ($(OS),Cygwin)
     EASYINSTALL_BIN := $(shell cygpath -wa $(EASYINSTALL))
     PLUGIN_ABS      := $(shell cygpath -aw $(PLUGIN_ARCHIVES))
     PLUGIN_INST     := $(shell cygpath -aw $(C_HOME))
-    EGG_INST        := $(shell cygpath -aw $(C_BIN)/$(SITE))
     TOOLS           := $(shell cygpath -aw $(TOOLS))\\
     SCRIPTS         := $(shell cygpath -wa $(SCRIPTS))\\
 endif
@@ -194,57 +191,35 @@ ARCHIVES_INST = \
                 $(addprefix $(C_BIN)/$(SNAP)/, \
                             $(notdir $(ARCHIVES))))
 
-EGG_ARCHIVES_INST = \
-    $(addsuffix .inst, \
-                $(addprefix $(C_BIN)/$(SNAP)/, \
-                            $(notdir $(EGG_ARCHIVES))))
-
 downloads: $(ARCHIVES)
 
-$(addprefix binaries-, $(BUILD_PLUGINS)):
-	cd $(C_HOME)/projects/$(subst binaries-,,$@); \
+$(addprefix develop-, $(BUILD_PLUGINS)):
+	cd $(C_HOME)/projects/$(subst develop-,,$@); \
     PYTHONPATH='$(PLUGIN_INST)' $(PLUGIN_PYTHON) setup.py develop \
       --script-dir='$(SETUPTOOLS_BIN)' \
       --install-dir='$(PLUGIN_INST)'
 
-#
-# for distribution the egg develop mode has to be turned off
-# and the egg installed in the normal manner
-#
-$(addprefix distrib-, $(BUILD_PLUGINS)):
-	cd $(C_HOME)/projects/$(subst distrib-,,$@); \
+$(addprefix develop-u-, $(BUILD_PLUGINS)):
+	cd $(C_HOME)/projects/$(subst develop-u-,,$@); \
     PYTHONPATH='$(PLUGIN_INST)' $(PLUGIN_PYTHON) setup.py develop -u \
       --script-dir='$(SETUPTOOLS_BIN)' \
       --install-dir='$(PLUGIN_INST)'
-	cd $(C_HOME)/projects/$(subst distrib-,,$@); \
+
+$(addprefix install-, $(BUILD_PLUGINS)):
+	cd $(C_HOME)/projects/$(subst install-,,$@); \
     PYTHONPATH='$(PLUGIN_INST)' $(PLUGIN_PYTHON) setup.py install \
       --install-scripts='$(SETUPTOOLS_BIN)' \
       --install-lib='$(PLUGIN_INST)'
 
-build-plugins: $(addprefix binaries-, $(BUILD_PLUGINS))
-
-distrib-plugins: $(addprefix distrib-, $(BUILD_PLUGINS))
-
 chandler-locale-data:
 	PYTHONPATH='$(PLUGIN_INST)' $(PLUGIN_PYTHON) setup.py egg_info
 
-$(ARCHIVES) $(EGG_ARCHIVES) $(SETUPTOOLS_EGG):
+$(ARCHIVES) $(SETUPTOOLS_EGG):
 	mkdir -p $(CHANDLERARCHIVES)
 	$(CURL) $@ $(P_URL)/$(notdir $@)
 
 $(ARCHIVES_INST):
 	tar -C $(C_BIN) -xvzf $(CHANDLERARCHIVES)/$(notdir $(basename $@))
-	touch $@
-
-# the .tar.gz for an .egg based system must only contain the .egg file
-# or else we need to filter tar -tzf with | grep '\.egg'
-$(EGG_ARCHIVES_INST):
-	tar -C $(C_BIN) -xvzf $(CHANDLERARCHIVES)/$(notdir $(basename $@))
-	MACOSX_DEPLOYMENT_TARGET= PYTHONPATH='$(PLUGIN_INST)' $(PYTHON_BIN) \
-           -c "from setuptools.command.easy_install import main; main()" \
-           --script-dir='$(SETUPTOOLS_BIN)' \
-           --install-dir='$(EGG_INST)' \
-             '$(EGG_INST)'/$(notdir $(shell tar -tzf $(CHANDLERARCHIVES)/$(notdir $(basename $@))))
 	touch $@
 
 setuptools: $(SETUPTOOLS_EGG)
@@ -266,24 +241,27 @@ endif
 
 archives: $(ARCHIVES) $(ARCHIVES_INST)
 
-eggs: $(EGG_ARCHIVES) $(EGG_ARCHIVES_INST)
-
 install-core: archives $(SETUPTOOLS_EGG) setuptools eggs \
               manifest_exe chandler-locale-data 
 
-plugins: build-plugins
+plugins: $(addprefix develop-, $(BUILD_PLUGINS))
 
-install: install-core build-plugins
+no-plugins: $(addprefix develop-u-, $(BUILD_PLUGINS))
+
+distrib-plugins: $(addprefix develop-u-, $(BUILD_PLUGINS)) \
+                 $(addprefix install-, $(BUILD_PLUGINS))
+
+install: install-core plugins
 
 distrib: install-core distrib-plugins
 
-download: $(ARCHIVES) $(EGG_ARCHIVES) $(SETUPTOOLS_EGG)
+download: $(ARCHIVES) $(SETUPTOOLS_EGG)
 
 # to install individual binaries, for example: make chandlerdb
 
-$(notdir $(shell echo $(ARCHIVES) $(EGG_ARCHIVES) | sed "s/-$(SNAP)[^ ]*//g")):
-	$(MAKE) $(shell echo $(ARCHIVES) $(EGG_ARCHIVES) | sed "s=.*\($(CHANDLERARCHIVES)/$@-[^ ]*\).*=\1=")
-	$(MAKE) $(shell echo $(ARCHIVES_INST) $(EGG_ARCHIVES_INST) | sed "s=.*\($(C_BIN)/$(SNAP)/$@-[^ ]*\).*=\1=")
+$(notdir $(shell echo $(ARCHIVES) | sed "s/-$(SNAP)[^ ]*//g")):
+	$(MAKE) $(shell echo $(ARCHIVES) | sed "s=.*\($(CHANDLERARCHIVES)/$@-[^ ]*\).*=\1=")
+	$(MAKE) $(shell echo $(ARCHIVES_INST) | sed "s=.*\($(C_BIN)/$(SNAP)/$@-[^ ]*\).*=\1=")
 
 
 ifeq ($(OS),Cygwin)
