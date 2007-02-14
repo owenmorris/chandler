@@ -106,6 +106,7 @@ class Reminder(schema.Item):
         doc="Should we show this reminder to the user when it goes off?")
     
     reminderItem = schema.One(
+        defaultValue=None,
     )
 
     pendingEntries = schema.Sequence(
@@ -132,11 +133,6 @@ class Reminder(schema.Item):
         )
     )
     
-    def __init__(self, **kwds):
-        reminderItem = kwds.pop('reminderItem', None)
-        super(Reminder, self).__init__(**kwds)
-        self.reminderItem = reminderItem
-        
     def onItemDelete(self, view, deferring):
         if self.pendingEntries:
             pending = list(self.pendingEntries)

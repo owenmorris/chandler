@@ -837,8 +837,9 @@ class EventStamp(Stamp):
                 (self.occurrenceFor is None or onlyReminder)):
                 # Make our own triage status reminder. We could save some
                 # time here by not bothering if this event is in the past.
-                RelativeReminder(itsView=self.itsItem.itsView,
-                                 reminderItem=self.itsItem,
+                reminderItem = self.itsItem.getMembershipItem()
+                RelativeReminder(itsView=reminderItem.itsView,
+                                 reminderItem=reminderItem,
                                  delta=zero_delta, userCreated=False,
                                  promptUser=False)
             
