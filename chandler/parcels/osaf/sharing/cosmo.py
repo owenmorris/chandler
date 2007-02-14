@@ -133,7 +133,15 @@ class CosmoConduit(recordset_conduit.RecordSetConduit, conduits.HTTPMixin):
             self.syncToken = syncTokenHeaders[0]
         # # @@@MOR what if this header is missing?
 
+    def destroy(self):
+        location = self.getMorsecodeLocation()
+        resp = self._send('DELETE', location)
+        if resp.status != 204:
+            raise errors.SharingError("HTTP error %d" % resp.status,
+                debugMessage="Sent [%s], Received [%s]" % (text, resp.body))
 
+    def create(self):
+        pass
 
     def _send(self, methodName, path, body=None):
         # Caller must check resp.status themselves

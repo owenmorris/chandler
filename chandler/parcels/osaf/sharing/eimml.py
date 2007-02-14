@@ -111,7 +111,7 @@ def deserialize_date(typeinfo, text):
 
 
 
-eimURI = "http://osafoundation.org/eim"
+eimURI = "http://osafoundation.org/eim/0"
 keyURI = "{%s}key" % eimURI
 typeURI = "{%s}type" % eimURI
 deletedURI = "{%s}deleted" % eimURI

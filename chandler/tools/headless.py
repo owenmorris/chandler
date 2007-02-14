@@ -344,10 +344,16 @@ def main():
     script = Globals.options.scriptFile
     if script:
         try:
+            if Globals.options.webserver:
+                go()
             if script.endswith('.py'):
                 file = open(script)
                 script = file.read()
                 file.close()
+
+            # Lose the commandline save argv[0], because the script we're
+            # invoking might not like our command line args (like unittests)
+            sys.argv = sys.argv[0:1]
 
             exec script in globals()
         finally:

@@ -34,7 +34,7 @@ remindersFilter = eim.Filter('cid:reminders-filter@osaf.us', u"Reminders")
 
 
 class ItemRecord(eim.Record):
-    URI = "http://osafoundation.org/eim/item"
+    URI = "http://osafoundation.org/eim/item/0"
 
     uuid = eim.key(schema.UUID)
     title = eim.field(text256)
@@ -44,9 +44,16 @@ class ItemRecord(eim.Record):
     createdOn = eim.field(eim.DecimalType(digits=20, decimal_places=0))
 
 
+class ModifiedByRecord(eim.Record):
+    URI = "http://osafoundation.org/eim/modifiedBy/0"
+
+    uuid = eim.key(schema.UUID)
+    userid = eim.key(text256)
+    timestamp = eim.key(eim.DecimalType(digits=12, decimal_places=2))
+
 
 class NoteRecord(eim.Record):
-    URI = "http://osafoundation.org/eim/note"
+    URI = "http://osafoundation.org/eim/note/0"
 
     uuid = eim.key(ItemRecord.uuid)
     body = eim.field(eim.ClobType)
@@ -56,14 +63,14 @@ class NoteRecord(eim.Record):
 
 
 class TaskRecord(eim.Record):
-    URI = "http://osafoundation.org/eim/task"
+    URI = "http://osafoundation.org/eim/task/0"
 
     uuid = eim.key(ItemRecord.uuid)
 
 
 
 class TaskModificationRecord(eim.Record):
-    URI = "http://osafoundation.org/eim/taskModification"
+    URI = "http://osafoundation.org/eim/taskModification/0"
 
     masterUuid = eim.key(ItemRecord.uuid)
     recurrenceId = eim.key(text20)
@@ -71,7 +78,7 @@ class TaskModificationRecord(eim.Record):
 
 
 class EventRecord(eim.Record):
-    URI = "http://osafoundation.org/eim/event"
+    URI = "http://osafoundation.org/eim/event/0"
 
     uuid = eim.key(ItemRecord.uuid)
     dtstart = eim.field(text20)
@@ -87,7 +94,7 @@ class EventRecord(eim.Record):
 
 
 class EventModificationRecord(eim.Record):
-    URI = "http://osafoundation.org/eim/eventModification"
+    URI = "http://osafoundation.org/eim/eventModification/0"
 
     masterUuid = eim.field(ItemRecord.uuid)
     recurrenceId = eim.key(text20)
@@ -107,7 +114,7 @@ class EventModificationRecord(eim.Record):
 
 
 class DisplayAlarmRecord(eim.Record):
-    URI = "http://osafoundation.org/eim/displayAlarm"
+    URI = "http://osafoundation.org/eim/displayAlarm/0"
 
     uuid = eim.key(ItemRecord.uuid)
     description = eim.field(text1024)
@@ -119,7 +126,7 @@ class DisplayAlarmRecord(eim.Record):
 
 
 class MailMessageRecord(eim.Record):
-    URI = "http://osafoundation.org/eim/mail"
+    URI = "http://osafoundation.org/eim/mail/0"
 
     uuid = eim.key(ItemRecord.uuid)
     subject = eim.field(text256)

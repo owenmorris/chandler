@@ -240,6 +240,11 @@ class RecordSetConduit(conduits.BaseConduit):
                 logger.debug("Sending changes for %s [%s]", uuid, dSend)
                 if uuid not in sendStats['added']:
                     sendStats['modified'].add(uuid)
+
+                # TODO:
+                # At this point, if we need to automatically set lastModBy,
+                # we could do it and re-run the merge (or something equiv)
+
             if receive and dApply:
                 toApply[uuid] = dApply
 
@@ -301,9 +306,9 @@ class RecordSetConduit(conduits.BaseConduit):
 
         # Send
         if send and toSend:
-            # TODO: send the real collection's uuid
             text = self.serializer.serialize(toSend, rootName="collection",
-                uuid=self.share.contents.itsUUID.str16())
+                uuid=self.share.contents.itsUUID.str16(),
+                name=self.share.contents.displayName)
             if debug: print "Sending text:", text
             logger.debug("Sending to server [%s]", text)
             self.put(text)

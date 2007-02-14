@@ -56,10 +56,10 @@ Serialize and deserialize entire record sets using EIMMLSerializerLite::
     >>> sampleLite = '''<?xml version="1.0" encoding="UTF-8"?>
     ...
     ... <eim:collection a="1" b="2" uuid="9501de14-1dc9-40d4-a7d4-f289feff8214"
-    ... xmlns:eim="http://osafoundation.org/eim"
-    ... xmlns:item="http://osafoundation.org/eim/item"
-    ... xmlns:event="http://osafoundation.org/eim/event"
-    ... xmlns:note="http://osafoundation.org/eim/note">
+    ... xmlns:eim="http://osafoundation.org/eim/0"
+    ... xmlns:item="http://osafoundation.org/eim/item/0"
+    ... xmlns:event="http://osafoundation.org/eim/event/0"
+    ... xmlns:note="http://osafoundation.org/eim/note/0">
     ... <eim:recordset uuid="8501de14-1dc9-40d4-a7d4-f289feff8214">
     ...    <item:record uuid="8501de14-1dc9-40d4-a7d4-f289feff8214" title="Welcome to Cosmo" triageStatus="now" triageStatusChanged="123456789.12" lastModifiedBy="foo@example.com" createdOn="1164803131" />
     ...    <note:record uuid="8501de14-1dc9-40d4-a7d4-f289feff8214" body="This is the body" icalUid="1e2d48c0-d66b-494c-bb33-c3d75a1ba66b" reminderTime="1169163900" />
@@ -90,9 +90,9 @@ Serialize and deserialize entire record sets using EIMMLSerializer::
 
     >>> sample = '''<?xml version='1.0' encoding='UTF-8'?>
     ...
-    ... <eim:collection name="foo" xmlns:eim="http://osafoundation.org/eim">
+    ... <eim:collection name="foo" xmlns:eim="http://osafoundation.org/eim/0">
     ...   <eim:recordset uuid="8501de14-1dc9-40d4-a7d4-f289feff8214">
-    ...     <item:record xmlns:item="http://osafoundation.org/eim/item">
+    ...     <item:record xmlns:item="http://osafoundation.org/eim/item/0">
     ...       <item:uuid eim:type="text" eim:key="true"><![CDATA[8501de14-1dc9-40d4-a7d4-f289feff8214]]></item:uuid>
     ...       <item:title eim:type="text"><![CDATA[Welcome to Cosmo]]></item:title>
     ...       <item:triageStatus eim:type="text"><![CDATA[now]]></item:triageStatus>
@@ -100,13 +100,13 @@ Serialize and deserialize entire record sets using EIMMLSerializer::
     ...       <item:lastModifiedBy eim:type="text"><![CDATA[foo@example.com]]></item:lastModifiedBy>
     ...       <item:createdOn eim:type="decimal"><![CDATA[1164803131]]></item:createdOn>
     ...     </item:record>
-    ...     <note:record xmlns:note="http://osafoundation.org/eim/note">
+    ...     <note:record xmlns:note="http://osafoundation.org/eim/note/0">
     ...       <note:uuid eim:type="text" eim:key="true"><![CDATA[8501de14-1dc9-40d4-a7d4-f289feff8214]]></note:uuid>
     ...       <note:body eim:type="clob"><![CDATA[This is the body]]></note:body>
     ...       <note:icalUid eim:type="text"><![CDATA[1e2d48c0-d66b-494c-bb33-c3d75a1ba66b]]></note:icalUid>
     ...       <note:reminderTime eim:type="decimal"><![CDATA[1169163900]]></note:reminderTime>
     ...     </note:record>
-    ...     <event:record xmlns:event="http://osafoundation.org/eim/event">
+    ...     <event:record xmlns:event="http://osafoundation.org/eim/event/0">
     ...       <event:uuid eim:type="text" eim:key="true"><![CDATA[8501de14-1dc9-40d4-a7d4-f289feff8214]]></event:uuid>
     ...       <event:dtstart eim:type="text"><![CDATA[20061130T140000]]></event:dtstart>
     ...       <event:dtend eim:type="text"><![CDATA[20061130T150000]]></event:dtend>
@@ -143,7 +143,7 @@ their element::
     >>> records = { '8501de14-1dc9-40d4-a7d4-f289feff8214': rs([sharing.model.NoteRecord('8501de14-1dc9-40d4-a7d4-f289feff8214', '', u'1e2d48c0-d66b-494c-bb33-c3d75a1ba66b', decimal.Decimal('1169163900'))])}
     >>> text = eimml.EIMMLSerializer.serialize(records)
     >>> text
-    '<?xml version=\'1.0\' encoding=\'UTF-8\'?><ns0:collection xmlns:ns0="http://osafoundation.org/eim"><ns0:recordset uuid="8501de14-1dc9-40d4-a7d4-f289feff8214"><ns1:record xmlns:ns1="http://osafoundation.org/eim/note"><ns1:uuid ns0:key="true" ns0:type="text">8501de14-1dc9-40d4-a7d4-f289feff8214</ns1:uuid><ns1:body empty="true" ns0:type="clob" /><ns1:icalUid ns0:type="text">1e2d48c0-d66b-494c-bb33-c3d75a1ba66b</ns1:icalUid><ns1:reminderTime ns0:type="decimal">1169163900</ns1:reminderTime></ns1:record></ns0:recordset></ns0:collection>'
+    '<?xml version=\'1.0\' encoding=\'UTF-8\'?><ns0:collection xmlns:ns0="http://osafoundation.org/eim/0"><ns0:recordset uuid="8501de14-1dc9-40d4-a7d4-f289feff8214"><ns1:record xmlns:ns1="http://osafoundation.org/eim/note/0"><ns1:uuid ns0:key="true" ns0:type="text">8501de14-1dc9-40d4-a7d4-f289feff8214</ns1:uuid><ns1:body empty="true" ns0:type="clob" /><ns1:icalUid ns0:type="text">1e2d48c0-d66b-494c-bb33-c3d75a1ba66b</ns1:icalUid><ns1:reminderTime ns0:type="decimal">1169163900</ns1:reminderTime></ns1:record></ns0:recordset></ns0:collection>'
     >>> newRecords, extra = eimml.EIMMLSerializer.deserialize(text)
     >>> records == newRecords
     True
@@ -153,14 +153,14 @@ Any records in a recordset's exclusions are serialized as deletions::
     >>> recordDeletion = { '8501de14-1dc9-40d4-a7d4-f289feff8214': rs(set([]), set([sharing.model.ItemRecord('8501de14-1dc9-40d4-a7d4-f289feff8214', u'Welcome to Cosmo', u'now', decimal.Decimal("123456789.12"), u'foo@example.com', decimal.Decimal("1164803131"))]))}
     >>> text = eimml.EIMMLSerializer.serialize(recordDeletion)
     >>> text
-    '<?xml version=\'1.0\' encoding=\'UTF-8\'?><ns0:collection xmlns:ns0="http://osafoundation.org/eim"><ns0:recordset uuid="8501de14-1dc9-40d4-a7d4-f289feff8214"><ns1:record ns0:deleted="true" xmlns:ns1="http://osafoundation.org/eim/item"><ns1:uuid ns0:key="true" ns0:type="text">8501de14-1dc9-40d4-a7d4-f289feff8214</ns1:uuid></ns1:record></ns0:recordset></ns0:collection>'
+    '<?xml version=\'1.0\' encoding=\'UTF-8\'?><ns0:collection xmlns:ns0="http://osafoundation.org/eim/0"><ns0:recordset uuid="8501de14-1dc9-40d4-a7d4-f289feff8214"><ns1:record ns0:deleted="true" xmlns:ns1="http://osafoundation.org/eim/item/0"><ns1:uuid ns0:key="true" ns0:type="text">8501de14-1dc9-40d4-a7d4-f289feff8214</ns1:uuid></ns1:record></ns0:recordset></ns0:collection>'
 
 To indicate that item has been deleted, pass None instead of a recordset::
 
     >>> itemDeletion = { '8501de14-1dc9-40d4-a7d4-f289feff8214' : None }
     >>> text = eimml.EIMMLSerializer.serialize(itemDeletion)
     >>> text
-    '<?xml version=\'1.0\' encoding=\'UTF-8\'?><ns0:collection xmlns:ns0="http://osafoundation.org/eim"><ns0:recordset uuid="8501de14-1dc9-40d4-a7d4-f289feff8214" ns0:deleted="true" /></ns0:collection>'
+    '<?xml version=\'1.0\' encoding=\'UTF-8\'?><ns0:collection xmlns:ns0="http://osafoundation.org/eim/0"><ns0:recordset uuid="8501de14-1dc9-40d4-a7d4-f289feff8214" ns0:deleted="true" /></ns0:collection>'
 
 
 
@@ -204,10 +204,10 @@ Send a new item::
     >>> text = '''<?xml version="1.0" encoding="UTF-8"?>
     ...
     ... <eim:records
-    ... xmlns:eim="http://osafoundation.org/eim"
-    ... xmlns:item="http://osafoundation.org/eim/item"
-    ... xmlns:event="http://osafoundation.org/eim/event"
-    ... xmlns:note="http://osafoundation.org/eim/note">
+    ... xmlns:eim="http://osafoundation.org/eim/0"
+    ... xmlns:item="http://osafoundation.org/eim/item/0"
+    ... xmlns:event="http://osafoundation.org/eim/event/0"
+    ... xmlns:note="http://osafoundation.org/eim/note/0">
     ... <eim:recordset uuid="9501de14-1dc9-40d4-a7d4-f289feff8214">
     ...    <item:record uuid="9501de14-1dc9-40d4-a7d4-f289feff8214" title="Welcome to Cosmo" triageStatus="now" triageStatusChanged="123456789.12" createdOn ="1164803131" />
     ...    <note:record uuid="9501de14-1dc9-40d4-a7d4-f289feff8214" body="This is the body" icalUid="1e2d48c0-d66b-494c-bb33-c3d75a1ba66b" reminderTime="1169163900" />
@@ -225,7 +225,7 @@ Doing a "get" with the most recent token returns no changes::
     >>> conduit.syncToken
     '3'
     >>> text
-    '<?xml version=\'1.0\' encoding=\'UTF-8\'?><ns0:collection uuid="9501de14-1dc9-40d4-a7d4-f289feff8214" xmlns:ns0="http://osafoundation.org/eim" />'
+    '<?xml version=\'1.0\' encoding=\'UTF-8\'?><ns0:collection uuid="9501de14-1dc9-40d4-a7d4-f289feff8214" xmlns:ns0="http://osafoundation.org/eim/0" />'
 
 You can ask for recordsets that have been updated since a previous token was
 created::

@@ -16,7 +16,7 @@
 import unittest, sys, os, logging, datetime, time
 from osaf import pim, sharing
 
-from osaf.sharing import recordset_conduit, translator, eimml
+from osaf.sharing import recordset_conduit, translator, eimml, cosmo
 
 from repository.item.Item import Item
 from util import testcase
@@ -25,6 +25,7 @@ from application import schema
 
 logger = logging.getLogger(__name__)
 
+USE_COSMO = False
 
 printStatistics = False
 
@@ -53,17 +54,17 @@ class EIMInMemoryTestCase(testcase.DualRepositoryTestCase):
     def runTest(self):
         self.setUp()
         self.PrepareTestData()
-        self.PrepareShares()
+        if USE_COSMO:
+            self.PrepareCosmoShares()
+        else:
+            self.PrepareShares()
         self.RoundTrip()
 
     def PrepareTestData(self):
 
         view = self.views[0]
-        # create a sandbox root
-        Item("sandbox", view, None)
 
-        sandbox = view.findPath("//sandbox")
-        coll = pim.ListCollection("testCollection", sandbox,
+        self.coll = pim.ListCollection("testCollection", itsView=view,
             displayName="Test Collection")
 
         titles = [
@@ -74,17 +75,16 @@ class EIMInMemoryTestCase(testcase.DualRepositoryTestCase):
 
         count = len(titles)
         for i in xrange(count):
-            n = pim.Note(itsParent=sandbox)
+            n = pim.Note(itsView=view)
             n.displayName = titles[i % count]
             self.uuids[n.itsUUID] = n.displayName
             n.body = u"Here is the body"
-            coll.add(n)
+            self.coll.add(n)
 
     def PrepareShares(self):
 
         view0 = self.views[0]
-        sandbox0 = view0.findPath("//sandbox")
-        coll0 = sandbox0.findPath("testCollection")
+        coll0 = self.coll
         self.assert_(not pim.has_stamp(coll0, sharing.SharedItem))
         conduit = recordset_conduit.InMemoryRecordSetConduit(
             "conduit", itsView=view0,
@@ -96,8 +96,6 @@ class EIMInMemoryTestCase(testcase.DualRepositoryTestCase):
             contents=coll0, conduit=conduit)
         self.assert_(pim.has_stamp(coll0, sharing.SharedItem))
 
-        if self.share0.exists():
-            self.share0.destroy()
 
         view1 = self.views[1]
         conduit = recordset_conduit.InMemoryRecordSetConduit(
@@ -109,15 +107,57 @@ class EIMInMemoryTestCase(testcase.DualRepositoryTestCase):
         self.share1 = sharing.Share("share", itsView=view1,
             conduit=conduit)
 
+    def PrepareCosmoShares(self):
+
+        view0 = self.views[0]
+        coll0 = self.coll
+        self.assert_(not pim.has_stamp(coll0, sharing.SharedItem))
+        account = cosmo.CosmoAccount(itsView=view0,
+            host="bcm.osafoundation.org",
+            port=8080,
+            path="/cosmo",
+            username="test",
+            password="test1",
+            useSSL=False
+        )
+        conduit = cosmo.CosmoConduit(itsView=view0,
+            account=account,
+            shareName=coll0.itsUUID.str16(),
+            translator=translator.PIMTranslator,
+            serializer=eimml.EIMMLSerializer
+        )
+        self.share0 = sharing.Share("share", itsView=view0,
+            contents=coll0, conduit=conduit)
+        self.assert_(pim.has_stamp(coll0, sharing.SharedItem))
+
+
+        view1 = self.views[1]
+        account = cosmo.CosmoAccount(itsView=view1,
+            host="bcm.osafoundation.org",
+            port=8080,
+            path="/cosmo",
+            username="test",
+            password="test1",
+            useSSL=False
+        )
+        conduit = cosmo.CosmoConduit(itsView=view1,
+            account=account,
+            shareName=coll0.itsUUID.str16(),
+            translator=translator.PIMTranslator,
+            serializer=eimml.EIMMLSerializer
+        )
+        self.share1 = sharing.Share("share", itsView=view1,
+            conduit=conduit)
+
     def RoundTrip(self):
 
         view0 = self.views[0]
         view1 = self.views[1]
-        sandbox0 = view0.findPath("//sandbox")
-        coll0 = sandbox0.findPath("testCollection")
+        coll0 = self.coll
 
         item = self.share0.contents.first()
         testUuid = item.itsUUID.str16()
+        item.icalUID = testUuid
 
         self.assert_(not pim.has_stamp(item, sharing.SharedItem))
 
@@ -551,6 +591,8 @@ class EIMInMemoryTestCase(testcase.DualRepositoryTestCase):
         # changes
 
         # self.share0.conduit.dump("at the end")
+
+        self.share0.destroy() # clean up
 
 if __name__ == "__main__":
     unittest.main()

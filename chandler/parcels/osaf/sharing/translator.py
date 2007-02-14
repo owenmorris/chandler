@@ -19,6 +19,13 @@ __all__ = [
 ]
 
 
+"""
+Notes:
+
+Cosmo likes None for empty bodies, and "" for empty locations
+"""
+
+
 utc = ICUtzinfo.getInstance('UTC')
 oneDay = timedelta(1)
 
@@ -47,7 +54,7 @@ def fromTransparency(val):
     return out
 
 def fromLocation(val, view):
-    if val is None:
+    if not val: # None or ""
         return None
     return pim.Location.getLocation(view, val)
 
@@ -277,7 +284,8 @@ class PIMTranslator(eim.Translator):
 
     @model.NoteRecord.importer
     def import_note(self, record):
-        # TODO: REMOVE HACK:
+
+        # TODO: REMOVE HACK: (Cosmo sends None for empty bodies)
         if record.body is None:
             body = ""
         else:
@@ -297,9 +305,16 @@ class PIMTranslator(eim.Translator):
 
     @eim.exporter(pim.Note)
     def export_note(self, item):
+
+        # TODO: REMOVE HACK (Cosmo expects None for empty bodies)
+        if item.body:
+            body = item.body
+        else:
+            body = None
+
         yield model.NoteRecord(
             item.itsUUID,                               # uuid
-            item.body,                                  # body
+            body,                                       # body
             getattr(item, "icalUID", None),             # icalUid
             None                                        # reminderTime
         )
