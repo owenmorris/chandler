@@ -711,12 +711,7 @@ class PyMiniCalendar(wx.PyControl):
                     height = (self.heightRow - YAdjust) * busyPercentage
 
                     gc.SetBrush(self.busyColourBrush)
-
-                    if '__WXMAC__' in wx.PlatformInfo:
-                        gc.SetPen(wx.TRANSPARENT_PEN)
-                    else:
-                        gc.SetPen(self.busyColourPen)
-
+                    gc.SetPen(wx.TRANSPARENT_PEN)
                     gc.DrawRectangle(columnStart + 1,
                                      y + self.heightRow - height - 1, 2, height)
 
