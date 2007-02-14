@@ -269,13 +269,26 @@ class PIMTranslator(eim.Translator):
 
     @eim.exporter(pim.ContentItem)
     def export_item(self, item):
+
+        # TODO: see why many items don't have createdOn
+        if hasattr(item, "createdOn"):
+            created = Decimal(int(time.mktime(item.createdOn.timetuple())))
+        else:
+            created = None
+
+        # TODO: see why some items don't have triageStatusChanged
+        if hasattr(item, "triageStatusChanged"):
+            tsc = Decimal("%.2f" % item.triageStatusChanged)
+        else:
+            tsc = None
+
         yield model.ItemRecord(
             item.itsUUID,                               # uuid
             item.displayName,                           # title
             str(item.triageStatus),                     # triageStatus
-            Decimal("%.2f" % item.triageStatusChanged), # t_s_changed
+            tsc,                                        # t_s_changed
             None,                                       # lastModifiedBy
-            Decimal(int(time.mktime(item.createdOn.timetuple()))) # createdOn
+            created                                     # createdOn
         )
 
 
@@ -497,12 +510,12 @@ class PIMTranslator(eim.Translator):
                 dtend = eim.Missing
             
             if has_change(pim.EventStamp.location.name):
-                location = modification.location.displayName
+                location = mod_event.location.displayName
             else:
                 location = eim.Missing
 
             if has_change(pim.EventStamp.transparency.name):
-                status = str(modification.transparency).upper()
+                status = str(mod_event.transparency).upper()
                 if status == "FYI":
                     status = "CANCELLED"
             else:

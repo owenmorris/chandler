@@ -41,7 +41,10 @@ def save(rv, filename):
         if account.username: # skip account if not configured
             section_name = u"sharing_account_%d" % counter
             cfg[section_name] = {}
-            cfg[section_name][u"type"] = u"webdav account"
+            if isinstance(account, sharing.CosmoAccount):
+                cfg[section_name][u"type"] = u"cosmo account"
+            else:
+                cfg[section_name][u"type"] = u"webdav account"
             cfg[section_name][u"uuid"] = account.itsUUID
             cfg[section_name][u"title"] = account.displayName
             cfg[section_name][u"host"] = account.host
@@ -220,7 +223,7 @@ def restore(rv, filename, testmode=False):
         else:
             sectiontype = ""
         # sharing accounts
-        if sectiontype == u"webdav account":
+        if sectiontype in (u"webdav account", u"cosmo account"):
 
             account = None
             makeCurrent = False
@@ -237,17 +240,22 @@ def restore(rv, filename, testmode=False):
                 else:
                     makeCurrent = True
 
+            if sectiontype == u"webdav account":
+                klass = sharing.WebDAVAccount
+            else:
+                klass = sharing.CosmoAccount
+
             if section.has_key(u"uuid") and account is None:
                 uuid = section[u"uuid"]
                 uuid = UUID(uuid)
                 account = rv.findUUID(uuid)
                 if account is None:
-                    kind = sharing.WebDAVAccount.getKind(rv)
+                    kind = klass.getKind(rv)
                     parent = schema.Item.getDefaultParent(rv)
                     account = kind.instantiateItem(None, parent, uuid,
                         withInitialValues=True)
             elif account is None:
-                account = sharing.WebDAVAccount(itsView=rv)
+                account = klass(itsView=rv)
 
             if makeCurrent:
                 schema.ns("osaf.sharing", rv).currentWebDAVAccount.item = account

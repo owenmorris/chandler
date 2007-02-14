@@ -36,6 +36,8 @@ import zanshin, M2Crypto.BIO, twisted.web.http
 import logging
 import WebDAV
 import urlparse
+import datetime
+from PyICU import ICUtzinfo
 from i18n import ChandlerMessageFactory as _
 
 
@@ -469,8 +471,11 @@ class LinkableConduit(BaseConduit):
             freeBusyShare = sharing_ns.prefs.freeBusyShare
             me = schema.ns("osaf.pim", metaView).currentContact.item
 
+            now = datetime.datetime.now(ICUtzinfo.default)
+
             for share in linkedShares:
                 share.established = True
+                share.lastSynced = now
 
                 # update exclude-from-free-busy for shares if using a CalDAV
                 # conduit and this share was shared by me

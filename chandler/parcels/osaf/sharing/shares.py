@@ -31,6 +31,8 @@ import errors, eim, translator
 from callbacks import *
 import cPickle
 import logging
+import datetime
+from PyICU import ICUtzinfo
 
 logger = logging.getLogger(__name__)
 
@@ -419,6 +421,8 @@ class Share(pim.ContentItem):
         initialValue = u''
     )
 
+    lastSynced = schema.One(schema.DateTimeTZ)
+
     contents = schema.One(inverse=SharedItem.shares, initialValue=None)
     items = schema.Sequence(inverse=SharedItem.sharedIn, initialValue=[])
 
@@ -508,9 +512,11 @@ class Share(pim.ContentItem):
 
     def sync(self, modeOverride=None, updateCallback=None, forceUpdate=None,
         debug=False):
-        return self.conduit.sync(modeOverride=modeOverride,
-                                 updateCallback=updateCallback,
-                                 forceUpdate=forceUpdate, debug=debug)
+        stats = self.conduit.sync(modeOverride=modeOverride,
+                                  updateCallback=updateCallback,
+                                  forceUpdate=forceUpdate, debug=debug)
+        self.lastSynced = datetime.datetime.now(ICUtzinfo.default)
+        return stats
 
     def put(self, updateCallback=None):
         return self.sync(modeOverride='put', updateCallback=updateCallback,

@@ -1207,12 +1207,18 @@ class MainView(View):
 
     def onBackgroundSyncAllEvent(self, event):
         rv = self.itsView
+        # Specifically *not* doing a commit here.  This is to simulate
+        # a scheduled background sync.  Only manually.
         sharing.scheduleNow(rv)
 
     def onBackgroundSyncGetOnlyEvent(self, event):
         rv = self.itsView
         collection = self.getSidebarSelectedCollection()
         if collection is not None:
+
+            # Ensure changes in attribute editors are saved
+            wx.GetApp().mainFrame.SetFocus()
+
             rv.commit()
             sharing.scheduleNow(rv, collection=collection, modeOverride='get')
 
@@ -1423,6 +1429,10 @@ class MainView(View):
         rv = self.itsView
         collection = self.getSidebarSelectedCollection()
         if collection is not None:
+
+            # Ensure changes in attribute editors are saved
+            wx.GetApp().mainFrame.SetFocus()
+
             rv.commit()
             sharing.scheduleNow(rv, collection=collection)
 
@@ -1540,6 +1550,9 @@ class MainView(View):
         if activeShares:
             # Fire off a background syncAll:
 
+            # Ensure changes in attribute editors are saved
+            wx.GetApp().mainFrame.SetFocus()
+
             # To make changes available to sharing thread
             self.RepositoryCommitWithStatus ()
 
@@ -1565,6 +1578,9 @@ class MainView(View):
         activeShares = sharing.checkForActiveShares(view)
         if activeShares:
             # find all the shared collections and sync them.
+
+            # Ensure changes in attribute editors are saved
+            wx.GetApp().mainFrame.SetFocus()
 
             # To make changes available to sharing thread
             self.RepositoryCommitWithStatus ()

@@ -20,9 +20,10 @@ __all__ = [
 from application import schema
 import shares, accounts, conduits, errors, formats, eim, recordset_conduit
 import translator, eimml
-import zanshin
+import zanshin, M2Crypto
 import urlparse
 import logging
+import time
 from i18n import ChandlerMessageFactory as _
 
 logger = logging.getLogger(__name__)
@@ -87,6 +88,23 @@ class CosmoConduit(recordset_conduit.RecordSetConduit, conduits.HTTPMixin):
               'not using an account; sharePath is the user-facing path',
         initialValue = u'',
     )
+
+    def sync(self, modeOverride=None, updateCallback=None, forceUpdate=None,
+        debug=False):
+
+        startTime = time.time()
+        self.networkTime = 0.0
+
+        stats = super(CosmoConduit, self).sync(modeOverride=modeOverride,
+            updateCallback=updateCallback, forceUpdate=forceUpdate,
+            debug=debug)
+
+        endTime = time.time()
+        duration = endTime - startTime
+        logger.info("Sync took %6.2f seconds (network = %6.2f)", duration,
+            self.networkTime)
+
+        return stats
 
     def get(self):
 
@@ -163,7 +181,11 @@ class CosmoConduit(recordset_conduit.RecordSetConduit, conduits.HTTPMixin):
         request = zanshin.http.Request(methodName, path, extraHeaders, body)
 
         try:
-            return handle.blockUntil(handle.addRequest, request)
+            start = time.time()
+            response = handle.blockUntil(handle.addRequest, request)
+            end = time.time()
+            self.networkTime += (end - start)
+            return response
 
         except zanshin.webdav.ConnectionError, err:
             raise errors.CouldNotConnect(_(u"Unable to connect to server. Received the following error: %(error)s") % {'error': err})
