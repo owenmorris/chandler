@@ -200,11 +200,11 @@ class ColorInfo(object):
         """
         def getSaturatedColors(self):
             try:
-                return ColorInfo.saturatedColorsCache[prefix]
+                return ColorInfo.saturatedColorsCache[str(self.hue) + prefix]
             except KeyError:
                 names = [prefix + suffix for suffix in suffixes]    
                 ret = [getLozengeTypeColor(self.hue, name) for name in names]
-                ColorInfo.saturatedColorsCache[prefix] = ret
+                ColorInfo.saturatedColorsCache[str(self.hue) + prefix] = ret
                 return ret
 
         return property(getSaturatedColors)
