@@ -241,7 +241,7 @@ endif
 
 archives: $(ARCHIVES) $(ARCHIVES_INST)
 
-install-core: archives $(SETUPTOOLS_EGG) setuptools eggs \
+install-core: archives $(SETUPTOOLS_EGG) setuptools \
               manifest_exe chandler-locale-data 
 
 plugins: $(addprefix develop-, $(BUILD_PLUGINS))
