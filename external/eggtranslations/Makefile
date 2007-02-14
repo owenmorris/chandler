@@ -1,7 +1,7 @@
 
 VERSION=0.1
 SVN_REVISION=2
-RELVER=$(VERSION)-r$(SVN_REVISION)-$(BRANCH_REV_PREFIX)1
+RELVER=$(VERSION)-r$(SVN_REVISION)-$(BRANCH_REV_PREFIX)2
 EGGTRANSLATIONS=$(BUILD_ROOT)/eggtranslations
 BUILD=build_$(SNAP)
 EGG=EggTranslations-$(subst -,_,$(VERSION))-py$(PYTHON_VER).egg
@@ -32,8 +32,10 @@ eggtranslations-$(VERSION)-expanded: $(SRC).tar.gz
 expand: eggtranslations-$(VERSION)-expanded
 
 binaries: $(BUILD_ROOT)/$(SNAP)/$(SITE)/$(EGG)
+	echo "./$(EGG)" > $(BUILD_ROOT)/$(SNAP)/$(SITE)/EggTranslations.pth
 	tar -C $(BUILD_ROOT) -cvzf $(EGGTRANSLATIONS)/$(TARBALL) \
-                             $(SNAP)/$(SITE)/$(EGG)
+                             $(SNAP)/$(SITE)/$(EGG) \
+                             $(SNAP)/$(SITE)/EggTranslations.pth
 
 install: $(TARBALL)
 	cp -p $(TARBALL) $(CHANDLERARCHIVES)

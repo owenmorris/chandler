@@ -2,10 +2,11 @@
 SVN_VER=r71371
 EGG_VER=3.3.0b2
 VERSION=$(EGG_VER)-$(SVN_VER)
-RELVER=$(VERSION)-$(BRANCH_REV_PREFIX)1
+RELVER=$(VERSION)-$(BRANCH_REV_PREFIX)3
 ZOPE=$(BUILD_ROOT)/zope
 SRC=$(ZOPE)/zope.interface-$(VERSION)
 BUILD=build_$(SNAP)
+EGG=$(notdir $(shell cd $(BUILD_ROOT); find $(SNAP)/$(SITE) -name 'zope.interface-$(EGG_VER)-py$(PYTHON_VER)-*.egg'))
 TARBALL=zope.interface-$(SNAP)-$(RELVER).tar.gz
 
 include $(BUILD_ROOT)/Makefile.inc
@@ -16,10 +17,9 @@ apply:
         fi
 
 build: expand apply
-	cd $(SRC); \
-      MACOSX_DEPLOYMENT_TARGET=$(MACOSX_DEPLOYMENT_TARGET) $(PYTHON) setup.py \
-          build --build-base=$(BUILD) $(DIST_OPT) \
-          install --force
+	cd $(SRC); MACOSX_DEPLOYMENT_TARGET=$(MACOSX_DEPLOYMENT_TARGET) \
+            $(PYTHON) setup.py build --build-base=$(BUILD) $(DIST_OPT) \
+                               install --force
 
 zope.interface-$(VERSION).tar.bz2:
 	$(CURL) http://builds.osafoundation.org/external/zope.interface-$(VERSION).tar.bz2
@@ -33,15 +33,10 @@ zope.interface-$(VERSION)-expanded: zope.interface-$(VERSION).tar.bz2
 expand: zope.interface-$(VERSION)-expanded
 
 binaries: strip
-	# this ln statement will fail if there is more than one match for the
-	# zope.interface egg name pattern
-	ln -sf $(BUILD_ROOT)/$(SNAP)/$(SITE)/$(notdir $(wildcard $(BUILD_ROOT)/$(SNAP)/$(SITE)/zope.interface-$(EGG_VER)-py$(PYTHON_VER)-*.egg))/zope $(BUILD_ROOT)/$(SNAP)/$(SITE)/zope
+	echo "./$(EGG)" > $(BUILD_ROOT)/$(SNAP)/$(SITE)/zope.interface.pth
 	tar -C $(BUILD_ROOT) -cvzf $(ZOPE)/$(TARBALL) \
-                             --exclude tests \
-                             --exclude testing \
-                             --exclude '*.py[co]' \
-                                   $(SNAP)/$(SITE)/zope/__init__.py \
-                                   $(SNAP)/$(SITE)/zope/interface
+                             $(SNAP)/$(SITE)/$(EGG) \
+                             $(SNAP)/$(SITE)/zope.interface.pth
 
 install: $(TARBALL)
 	cp -p $(TARBALL) $(CHANDLERARCHIVES)
