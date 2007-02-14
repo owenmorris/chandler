@@ -1,6 +1,6 @@
 
 VERSION=4.5.20
-RELVER=$(VERSION)-$(BRANCH_REV_PREFIX)2
+RELVER=$(VERSION)-$(BRANCH_REV_PREFIX)3
 DB=$(BUILD_ROOT)/db
 SRC=$(DB)/db-$(VERSION)
 TARBALL=db-$(SNAP)-$(RELVER).tar.gz
@@ -80,8 +80,7 @@ binaries: strip
 endif
 
 apply: expand patches-$(VERSION)
-#	cd $(SRC); patch -Np0 < ../patch.$(VERSION).1; echo ok
-#	cd $(SRC); patch -Np0 < ../patch.$(VERSION).2; echo ok
+	cd $(SRC); patch -Np0 < ../$(VERSION)-mvcc-thaw-crash.diff; echo ok
 	patch -Nup0 < patches-$(VERSION); echo ok
 
 db-$(VERSION).tar.gz:

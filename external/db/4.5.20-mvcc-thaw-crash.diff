@@ -1,0 +1,21 @@
+*** mp/mp_mvcc.c.orig	2 Feb 2007 17:10:17 -0000	12.28
+--- mp/mp_mvcc.c	13 Feb 2007 04:31:14 -0000
+***************
+*** 625,632 ****
+  	if (reorder) {
+  		if (next_bhp != NULL)
+  			__memp_bucket_reorder(dbenv, hp, next_bhp);
+! 		else
+! 			hp->hash_priority = BH_PRIORITY(SH_TAILQ_FIRST(
+  			    &hp->hash_bucket, __bh));
+  	}
+  
+--- 625,632 ----
+  	if (reorder) {
+  		if (next_bhp != NULL)
+  			__memp_bucket_reorder(dbenv, hp, next_bhp);
+! 		else if (!SH_TAILQ_EMPTY(&hp->hash_bucket))
+! 			hp->hash_priority = BH_PRIORITY(SH_TAILQ_FIRSTP(
+  			    &hp->hash_bucket, __bh));
+  	}
+  
