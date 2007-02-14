@@ -1,6 +1,6 @@
 
-VERSION=0.8.0
-RELVER=$(VERSION)-$(BRANCH_REV_PREFIX)2
+VERSION=0.8.3
+RELVER=$(VERSION)-$(BRANCH_REV_PREFIX)1
 PDT=$(BUILD_ROOT)/parsedatetime
 SRC=$(PDT)/parsedatetime-$(VERSION)
 TARBALL=parsedatetime-$(SNAP)-$(RELVER).tar.gz
