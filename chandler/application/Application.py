@@ -1020,7 +1020,12 @@ class wxApplication (wx.App):
             if sys.platform == 'darwin':
                 from chandlerdb.util.c import vfork
                 vfork()
-            os.execl(sys.executable, sys.executable, *argv)
+
+            executable = sys.executable
+            if windows and ' ' in executable:
+                executable = '"%s"' %(executable)
+
+            os.execl(sys.executable, executable, *argv)
         except:
             logger.exception("while restarting")
         finally:
