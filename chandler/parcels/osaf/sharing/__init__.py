@@ -564,7 +564,8 @@ def publish(collection, account, classesToInclude=None,
                         share.conduit.inFreeBusy = True
     
                     share.create()
-    
+                    # bug 8128, this setDisplayName shouldn't be required, but
+                    # cosmo isn't accepting setting displayname in MKCALENDAR
                     share.conduit.setDisplayName(displayName)
     
                     if publishType == 'collection':

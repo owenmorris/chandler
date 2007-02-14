@@ -427,7 +427,13 @@ def formatTime(dt, tzinfo=None, noTZ=False):
 
     return unicode(format.format([formattable], PyICU.FieldPosition()))
 
-    
+
+def serializeTimeZone(tzinfo):
+    """Given a tzinfo class, return a VTIMEZONE in an iCalendar object."""
+    cal = vobject.iCalendar()
+    cal.add(vobject.icalendar.TimezoneComponent(tzinfo=tzinfo))
+    return cal.serialize()
+
 def convertFloatingEvents(view, newTZ):
     """Convert existing floating events to the default timezone.
     

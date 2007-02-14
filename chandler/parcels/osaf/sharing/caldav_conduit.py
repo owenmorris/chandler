@@ -27,6 +27,7 @@ import zanshin, twisted.web.http
 from xml.etree.cElementTree import XML
 from PyICU import ICUtzinfo
 from i18n import ChandlerMessageFactory as _
+from osaf.pim.calendar.TimeZone import serializeTimeZone
 
 import logging
 
@@ -38,10 +39,13 @@ EXCLUDE_ID = zanshin.util.PackElement('exclude-free-busy-rollup', COSMO_NS)
 
 class CalDAVConduit(webdav_conduit.WebDAVConduit):
     ticketFreeBusy = schema.One(schema.Text, initialValue="")
-
+ 
     def _createCollectionResource(self, handle, resource, childName):
-        return handle.blockUntil(resource.createCalendar, childName)
-
+        displayName = self.share.contents.displayName
+        timezone = serializeTimeZone(ICUtzinfo.default)
+        return handle.blockUntil(resource.createCalendar, childName,
+                                 displayName, timezone)
+ 
     def _getDisplayNameForShare(self, share):
         container = self._getContainerResource()
         try:
