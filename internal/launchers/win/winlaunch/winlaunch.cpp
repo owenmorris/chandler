@@ -147,7 +147,7 @@ int APIENTRY WinMain (HINSTANCE hInstance,
 #ifndef _DEBUG
     commandLine += _T("-O ");
 #endif
-    commandLine += chandlerHome + _T("\\Chandler.py ");
+    commandLine += _T("\"") + chandlerHome + _T("\\Chandler.py\" ");
     commandLine += lpCmdLine;
 
     GetStartupInfo (&startupInfo);
