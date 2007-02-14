@@ -2211,7 +2211,6 @@ def parseText(text, locale=None):
 
     loc = str(locale is not None and locale or getLocale())
 
-    cal = parsedatetime.Calendar(ptc.Constants(loc))
     countFlag = 0   #counts the number of date/times in the text
 
     # The tokenizer will split large
@@ -2222,6 +2221,7 @@ def parseText(text, locale=None):
             #More than one date time exists.
             break
         else:
+            cal = parsedatetime.Calendar(ptc.Constants(loc))
             (dt1, dt2, typeFlag) = cal.evalRanges(line)
             if typeFlag != 0:
                 countFlag += 1
