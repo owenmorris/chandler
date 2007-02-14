@@ -1,0 +1,44 @@
+
+VERSION=0.1
+SVN_REVISION=2
+RELVER=$(VERSION)-r$(SVN_REVISION)-$(BRANCH_REV_PREFIX)1
+EGGTRANSLATIONS=$(BUILD_ROOT)/eggtranslations
+BUILD=build_$(SNAP)
+EGG=EggTranslations-$(subst -,_,$(VERSION))-py$(PYTHON_VER).egg
+TARBALL=eggtranslations-$(SNAP)-$(RELVER).tar.gz
+SRC=eggtranslations-$(RELVER)
+
+include $(BUILD_ROOT)/Makefile.inc
+
+build: expand
+	cd $(SRC); \
+	MACOSX_DEPLOYMENT_TARGET=$(MACOSX_DEPLOYMENT_TARGET) \
+            $(PYTHON) setup.py build --build-base=$(BUILD) $(DIST_OPT) \
+                               install --force
+
+eggtranslations-$(VERSION).tar.gz:
+	$(CURL) http://builds.osafoundation.org/external/$@
+
+$(SRC).tar.gz:
+	svn export http://svn.osafoundation.org/eggtranslations/trunk -r $(SVN_REVISION) $(SRC)
+	tar -czf $(SRC).tar.gz $(SRC)
+
+sources: $(SRC).tar.gz
+
+eggtranslations-$(VERSION)-expanded: $(SRC).tar.gz
+	tar -xvzf $(SRC).tar.gz
+	touch eggtranslations-$(VERSION)-expanded
+
+expand: eggtranslations-$(VERSION)-expanded
+
+binaries: $(BUILD_ROOT)/$(SNAP)/$(SITE)/$(EGG)
+	tar -C $(BUILD_ROOT) -cvzf $(EGGTRANSLATIONS)/$(TARBALL) \
+                             $(SNAP)/$(SITE)/$(EGG)
+
+install: $(TARBALL)
+	cp -p $(TARBALL) $(CHANDLERARCHIVES)
+
+ifneq (/,$(SRC)/$(BUILD))
+clean:
+	rm -rf $(SRC)/$(BUILD)
+endif
