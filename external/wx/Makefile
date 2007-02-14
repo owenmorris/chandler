@@ -12,9 +12,18 @@ SVNROOT=http://svn.osafoundation.org/wx/trunk
 include $(BUILD_ROOT)/Makefile.inc
 
 wxPython-r$(SVNVER).tar.gz:
+ifeq ($(WXSVN),)
 	if [ ! -d wxPython-r$(SVNVER) ]; then \
             svn export $(SVNROOT) -r $(SVNVER) wxPython-r$(SVNVER); \
         fi
+else
+	if [ ! -d wxPython-r$(SVNVER) ]; then \
+            pushd $(WXSVN); svn update -r $(SVNVER); popd; \
+            mkdir wxPython-r$(SVNVER) ; \
+            tar -C $(WXSVN) -cf - . --exclude .svn | \
+            tar -C wxPython-r$(SVNVER) -xf - ; \
+        fi
+endif
 	tar -czf $@ wxPython-r$(SVNVER)
 	touch wxPython-r$(SVNVER)-expanded
 

@@ -33,6 +33,7 @@ SYSTEMS=db \
         dateutil \
         m2crypto \
         zanshin \
+        eggtranslations \
         pylint \
         parsedatetime \
         configobj \
