@@ -167,6 +167,11 @@ def makeMainView(parcel):
             toolbarItemKind = 'Separator')
     ]
 
+    # customize for Linux, where toolbar items are extra-wide
+    if not '__WXGTK__' in wx.PlatformInfo:
+        quickEntryWidth = 325
+    else:
+        quickEntryWidth = 150
     sendToolbarItem = SendToolbarItem.template('ApplicationBarSendButton',
                 event = main.SendShareItem,
                 bitmap = 'ApplicationBarSend.png',
@@ -174,29 +179,27 @@ def makeMainView(parcel):
                 viewAttribute='modifiedFlags',
                 toolbarItemKind = 'Button',
                 helpString = _(u'Send selected message'))
-
-    quickEntry = ToolbarItem.template('ApplicationBarQuickEntry',
+    quickEntryItem = ToolbarItem.template('ApplicationBarQuickEntry',
                 event = main.QuickEntry,
                 text = u"", # text value displayed in the control
                 toolbarItemKind = 'QuickEntry',
-                size = SizeType (325,-1),
+                size = SizeType (quickEntryWidth,-1),
                 helpString = _(u'Quick entry field: enter search string, or command beginning with "/"'))
-
     # Toolbar tools are larger on Linux than other platforms
     if not '__WX_GTK__' in wx.PlatformInfo:
         appBarBlocks.extend((
-            quickEntry,
+            quickEntryItem,
             ToolbarItem.template('ApplicationSeparator4',
                 toolbarItemKind = 'Separator'),
             sendToolbarItem,
         ))
     else:
-        # for Linux make the search field narrower, and move "Send" to the left of it
+        # for Linux move "Send" to the left of the quick-entry field
         appBarBlocks.extend((
             sendToolbarItem,
             ToolbarItem.template('ApplicationSeparator4',
                 toolbarItemKind = 'Separator'),
-            quickEntry
+            quickEntryItem
         ))
 
     ApplicationBar = Toolbar.template(
