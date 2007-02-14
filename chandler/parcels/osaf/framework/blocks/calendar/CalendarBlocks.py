@@ -724,7 +724,7 @@ class wxPreviewArea(CalendarCanvas.CalendarNotificationHandler, wx.Panel):
             addedEvents = self.GetPendingNewEvents((startDay, endDay))
 
             addedEvents = set(item for item in addedEvents
-                              if not isDead(event.itsItem) and 
+                              if not isDead(item.itsItem) and 
                               item.transparency == 'confirmed')
 
             if len(addedEvents) == 0:
