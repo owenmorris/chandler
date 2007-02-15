@@ -9,7 +9,7 @@ echo Using %CHANDLERBIN%\release\bin\python.exe %*
 
 path %CHANDLERBIN%\release\bin
 set LC_PATH=%CHANDLERBIN%\release\share\locale
-set PYTHONPATH=%CHANDLERHOME%;%CHANDLERHOME%\parcels
+set PYTHONPATH=%CHANDLERHOME%;%CHANDLERHOME%\parcels;%CHANDLERHOME%\plugins
 if not "%PARCELPATH%"=="" set PYTHONPATH=%PYTHONPATH%;%PARCELPATH%
 
 "%CHANDLERBIN%\release\bin\python.exe" %*
