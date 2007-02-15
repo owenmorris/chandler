@@ -176,7 +176,7 @@ class ICalendarTestCase(SingleRepositoryTestCase):
         self.assertEqual(vcalendar.vevent.rruleset._rrule[0]._count, 10)
 
         # turn on timezones, putting event in Pacific time
-        pacific = ICUtzinfo.getInstance("US/Pacific")
+        pacific = ICUtzinfo.getInstance("America/Los_Angeles")
         TimeZoneInfo.get(self.view).default = pacific
         schema.ns('osaf.pim', self.view).TimezonePrefs.showUI = True
         self.assertEqual(event.startTime.tzinfo, pacific)
@@ -199,14 +199,7 @@ class ICalendarTestCase(SingleRepositoryTestCase):
         # (unless we're suffering from Bug 7023, in which case tzinfos are
         # changed silently, often to GMT, without raising an exception)
         self.assertEqual(event.rruleset.exdates[0].tzinfo,
-                         ICUtzinfo.getInstance('US/Central'))
-        
-        # Bug 6994, EXDATEs need to have ICU timezones, or they won't commit
-        # (unless we're suffering from Bug 7023, in which case tzinfos are
-        # changed silently, often to GMT, without raising an exception)
-        self.assertEqual(event.rruleset.exdates[0].tzinfo,
-                         ICUtzinfo.getInstance('US/Central'))
-        
+                         ICUtzinfo.getInstance('US/Central'))        
 
     def testImportUnusualTzid(self):
         format = self.Import(self.view, u'UnusualTzid.ics')
@@ -214,7 +207,7 @@ class ICalendarTestCase(SingleRepositoryTestCase):
                                 self.view,
                                 '42583280-8164-11da-c77c-0011246e17f0'))
         self.assertEqual(event.startTime.tzinfo,
-                         ICUtzinfo.getInstance('US/Mountain'))
+                         ICUtzinfo.getInstance('America/Denver'))
 
     def testImportReminders(self):
         # @@@ [grant] Check for that reminders end up expired or not, as
@@ -240,11 +233,11 @@ class ICalendarTestCase(SingleRepositoryTestCase):
         self.failUnless(reminder is not None, "No reminder was set")
         self.failUnlessEqual(reminder.absoluteTime,
                              datetime.datetime(2006, 9, 25, 8,
-                                    tzinfo=ICUtzinfo.getInstance('US/Pacific')))
+                                    tzinfo=ICUtzinfo.getInstance('America/Los_Angeles')))
 
 
     def testExportRecurrence(self):
-        eastern = ICUtzinfo.getInstance("US/Eastern")
+        eastern = ICUtzinfo.getInstance("America/New_York")
         start = datetime.datetime(2005,2,1, tzinfo = eastern)
         vevent = vobject.icalendar.RecurringComponent(name='VEVENT')
         vevent.behavior = vobject.icalendar.VEvent
@@ -275,7 +268,7 @@ class ICalendarTestCase(SingleRepositoryTestCase):
         vcalendar = ICalendar.itemsToVObject(self.view, [event])
 
         self.assertEqual(vcalendar.vevent.dtstart.serialize(),
-                         'DTSTART;TZID=US/Eastern:20050201T000000\r\n')
+                         'DTSTART;TZID=America/New_York:20050201T000000\r\n')
         vcalendar.vevent = vcalendar.vevent.transformFromNative()
         self.assertEqual(vcalendar.vevent.rrule.serialize(),
                          'RRULE:FREQ=WEEKLY;UNTIL=20050302T045900Z\r\n')
@@ -293,11 +286,11 @@ class ICalendarTestCase(SingleRepositoryTestCase):
         self.assertEqual(modified.dtstart.serialize(),
                          'DTSTART:20050209T000000\r\n')
         self.assertEqual(modified.recurrence_id.serialize(),
-                         'RECURRENCE-ID;TZID=US/Eastern:20050208T000000\r\n')
+                         'RECURRENCE-ID;TZID=America/New_York:20050208T000000\r\n')
         self.assertEqual(vcalendar.vevent.exdate.serialize(),
-                         'EXDATE;TZID=US/Eastern:20050215T000000\r\n')
+                         'EXDATE;TZID=America/New_York:20050215T000000\r\n')
         vcalendar.behavior.generateImplicitParameters(vcalendar)
-        self.assertEqual(vcalendar.vtimezone.tzid.value, "US/Eastern")
+        self.assertEqual(vcalendar.vtimezone.tzid.value, "America/New_York")
 
     def testImportOracleModification(self):
         # switch to no-timezones mode
@@ -421,7 +414,7 @@ class TimeZoneTestCase(unittest.TestCase):
     def testUS(self):
         zone = self.getICalTzinfo([
             "BEGIN:VTIMEZONE",
-            "TZID:US/Pacific",
+            "TZID:America/Los_Angeles",
             "LAST-MODIFIED:20050817T235129Z",
             "BEGIN:DAYLIGHT",
             "DTSTART:20050403T100000",
@@ -437,7 +430,7 @@ class TimeZoneTestCase(unittest.TestCase):
             "END:STANDARD",
             "END:VTIMEZONE"])
         self.runConversionTest(
-            ICUtzinfo.getInstance("US/Pacific"),
+            ICUtzinfo.getInstance("America/Los_Angeles"),
             zone)
 
             
