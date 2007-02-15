@@ -344,6 +344,7 @@ Section "MainSection" SEC01
   File /r "..\..\..\${DISTRIB_DIR}\repository"
   File /r "..\..\..\${DISTRIB_DIR}\util"
   File /r "..\..\..\${DISTRIB_DIR}\tools"
+  File /r "..\..\..\${DISTRIB_DIR}\plugins"
 
   CreateDirectory "$SMPROGRAMS\Chandler"
   CreateShortCut "$SMPROGRAMS\Chandler\Chandler.lnk" "$INSTDIR\${PRODUCT_BINARY}" "" "$INSTDIR\Chandler.egg-info\resources\icons\Chandler.ico" 
@@ -424,6 +425,7 @@ Section Uninstall
   RMDir /r "$INSTDIR\repository"
   RMDir /r "$INSTDIR\util"
   RMDir /r "$INSTDIR\tools"
+  RMDir /r "$INSTDIR\plugins"
 
   Delete "$INSTDIR\*.*"
 
