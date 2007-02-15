@@ -39,7 +39,7 @@ ARCHIVES = \
     $(CHANDLERARCHIVES)/logilab-astng-$(SNAP)-0.16.3-$(BP)2.tar.gz \
     $(CHANDLERARCHIVES)/logilab-common-$(SNAP)-0.21.0-$(BP)2.tar.gz \
     $(CHANDLERARCHIVES)/pylint-$(SNAP)-0.12.2-$(BP)2.tar.gz \
-    $(CHANDLERARCHIVES)/parsedatetime-$(SNAP)-0.8.3-$(BP)2.tar.gz \
+    $(CHANDLERARCHIVES)/parsedatetime-$(SNAP)-0.8.3-$(BP)1.tar.gz \
     $(CHANDLERARCHIVES)/configobj-$(SNAP)-4.3.2-$(BP)1.tar.gz \
     $(CHANDLERARCHIVES)/docutils-$(SNAP)-0.4-$(BP)1.tar.gz \
     $(CHANDLERARCHIVES)/eggtranslations-$(SNAP)-0.1-r2-$(BP)2.tar.gz \
@@ -62,7 +62,7 @@ ifeq ($(DEBUG),1)
     SNAP         = debug
     DEBUG_SUFFIX = _d
 else
-    SNAP         =release
+    SNAP         = release
     DEBUG_SUFFIX =
 endif
 
@@ -104,19 +104,19 @@ endif
 PLUGIN_ARCHIVES = $(CHANDLERARCHIVES)
 
 ifeq ($(OS),Cygwin)
-    SITE          = $(SNAP)/bin/Lib/site-packages
-    PLATFORM      = windows
-    SCRIPTS       = $(C_BIN)/$(SNAP)/bin/Scripts/
-    RUN_PYTHON    = CHANDLERHOME='$(CHANDLERHOME)' CHANDLERBIN='$(CHANDLERBIN)' $(C_BIN)/$(SNAP)/RunPython.bat
-    SED_MODERN    = -r
+    SITE       = $(SNAP)/bin/Lib/site-packages
+    PLATFORM   = windows
+    SCRIPTS    = $(C_BIN)/$(SNAP)/bin/Scripts/
+    RUN_PYTHON = CHANDLERHOME='$(CHANDLERHOME)' CHANDLERBIN='$(CHANDLERBIN)' $(C_BIN)/$(SNAP)/RunPython.bat
+    SED_MODERN = -r
 else
     ifeq ($(OS),Darwin)
-        FRAMEWORK     = Library/Frameworks/Python.framework/Versions/$(PYTHON_VER)
-        SITE          = $(SNAP)/$(FRAMEWORK)/lib/python$(PYTHON_VER)/site-packages
-        ARCH          = $(shell arch)
-        SCRIPTS       = $(C_BIN)/$(SNAP)/$(FRAMEWORK)/bin/
-        RUN_PYTHON    = MACOSX_DEPLOYMENT_TARGET= CHANDLERHOME=$(CHANDLERHOME) $(C_BIN)/$(SNAP)/RunPython
-        SED_MODERN    = -E
+        FRAMEWORK  = Library/Frameworks/Python.framework/Versions/$(PYTHON_VER)
+        SITE       = $(SNAP)/$(FRAMEWORK)/lib/python$(PYTHON_VER)/site-packages
+        ARCH       = $(shell arch)
+        SCRIPTS    = $(C_BIN)/$(SNAP)/$(FRAMEWORK)/bin/
+        RUN_PYTHON = MACOSX_DEPLOYMENT_TARGET= CHANDLERHOME=$(CHANDLERHOME) $(C_BIN)/$(SNAP)/RunPython
+        SED_MODERN = -E
 
         ifeq ($(ARCH),ppc)
             PLATFORM = macosx
@@ -124,11 +124,11 @@ else
             PLATFORM = maciosx
         endif
     else
-        SITE          = $(SNAP)/lib/python$(PYTHON_VER)/site-packages
-        PLATFORM      = linux
-        SCRIPTS       = $(C_BIN)/$(SNAP)/bin/
-        RUN_PYTHON    = CHANDLERHOME=$(CHANDLERHOME) $(C_BIN)/$(SNAP)/RunPython
-        SED_MODERN    =-r
+        SITE       = $(SNAP)/lib/python$(PYTHON_VER)/site-packages
+        PLATFORM   = linux
+        SCRIPTS    = $(C_BIN)/$(SNAP)/bin/
+        RUN_PYTHON = CHANDLERHOME=$(CHANDLERHOME) $(C_BIN)/$(SNAP)/RunPython
+        SED_MODERN = -r
     endif
 endif
 
@@ -156,8 +156,8 @@ HOST  = builds.osafoundation.org
 URL   = http://$(HOST)/external
 P_URL = $(URL)/$(PLATFORM)
 
-PLUGIN_INST     = $(C_HOME)/plugins
-TOOLS           = $(C_HOME)/tools/
+PLUGIN_INST = $(C_HOME)/plugins
+TOOLS       = $(C_HOME)/tools/
 
 #
 # The following cygpaths are all done using
@@ -165,9 +165,9 @@ TOOLS           = $(C_HOME)/tools/
 # \ escaping that occurs when = is used
 #
 ifeq ($(OS),Cygwin)
-    PLUGIN_INST     := $(shell cygpath -aw $(PLUGIN_INST))
-    TOOLS           := $(shell cygpath -aw $(TOOLS))\\
-    SCRIPTS         := $(shell cygpath -wa $(SCRIPTS))\\
+    PLUGIN_INST := $(shell cygpath -aw $(PLUGIN_INST))
+    TOOLS       := $(shell cygpath -aw $(TOOLS))\\
+    SCRIPTS     := $(shell cygpath -wa $(SCRIPTS))\\
 endif
 
 ARCHIVES_INST = \
@@ -295,20 +295,17 @@ tests:
 
 clean:
 	rm -rf $(C_BIN)/$(SNAP)
-	rm -rf __repository__
-	rm -f chandler.log randpool.dat
 	find . -name '*.py[co]' -delete
 
 distclean: clean
 	rm -rf $(C_BIN)/debug
 	rm -rf $(C_BIN)/release
 	rm -f  $(PLUGIN_INST)/*.egg-link
-	rm -f  $(C_HOME)/*.pth
+	rm -f  $(PLUGIN_INST)/*.pth
 	rm -rf $(C_HOME)/*-py$(PYTHON_VER).egg
 
 realclean: distclean
 	rm -f $(ARCHIVES)
-
 
 relocatable-distro:
 	$(MAKE) -C distrib/relocatable \
