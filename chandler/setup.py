@@ -17,6 +17,7 @@
 
 from setuptools import setup
 
+
 setup(
     name         = "Chandler",
     version      = "0.1",
@@ -24,6 +25,7 @@ setup(
     author_email = "bkirsch@osafoundation.org",
     description  = "Default resource and localization egg for Chandler",
     license      = "Apache License, Version 2.0",
+    test_suite   = 'unittest.TestCase',
     include_package_data = True,
     zip_safe             = True,
     entry_points = {"chandler.parcels": ["Script Recording = osaf.framework.script_recording"]

@@ -25,4 +25,5 @@ setup(name = "Chandler-fusePlugin",
                                           'fuse/c/c.c'],
                                libraries=['fuse'])],
       include_package_data = True,
+      test_suite = "fuse.tests",
       entry_points = {"chandler.parcels": ["fuse = fuse"]})

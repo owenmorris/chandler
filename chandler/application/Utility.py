@@ -668,11 +668,19 @@ def initParcelEnv(chandlerDirectory, path):
             insertionPoint += 1
 
     logger.info("Using PARCELPATH %s" % parcelPath)
+    initPlugins(parcelPath)
 
     return parcelPath
 
 
+def initPlugins(path):
+
+    from Parcel import activate_plugins
+    activate_plugins(path)
+
+
 def initParcels(view, path, namespaces=None):
+
     from Parcel import Manager # Delayed so as not to trigger
                                # early loading of schema.py
 

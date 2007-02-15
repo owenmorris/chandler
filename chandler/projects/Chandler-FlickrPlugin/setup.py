@@ -23,6 +23,7 @@ setup(
     test_suite = "flickr.tests",
     packages = ["flickr"],
     include_package_data = True,
+    install_requires = 'Chandler-PhotoPlugin',
     entry_points = {
         "chandler.parcels": ["Flickr Photo API = flickr"]
     }

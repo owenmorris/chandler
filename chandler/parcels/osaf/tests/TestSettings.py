@@ -28,6 +28,13 @@ logger = logging.getLogger(__name__)
 
 class SettingsTestCase(testcase.SingleRepositoryTestCase):
 
+    def setUp(self):
+
+        super(SettingsTestCase, self).setUp()
+
+        from application.Utility import initPlugins
+        initPlugins(['plugins'])
+
     def runTest(self):
         self.setUp()
         self.dir = os.path.join(os.getenv("CHANDLERHOME") or ".",

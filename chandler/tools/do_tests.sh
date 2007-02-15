@@ -183,9 +183,9 @@ fi
   # the EXCLUDES array is then walked and the length of the
   # directory is calculated - beats doing it by hand and making a mistake
 
-EXCLUDES=("$CHANDLERBIN/release" "$CHANDLERBIN/debug" "$C_DIR/tools" "$C_DIR/util")
-L_EXCLUDES=(0 0 0 0)
-for item in 0 1 2 3 ; do
+EXCLUDES=("$CHANDLERBIN/release" "$CHANDLERBIN/debug" "$C_DIR/tools" "$C_DIR/util" "$C_DIR/projects")
+L_EXCLUDES=(0 0 0 0 0)
+for item in 0 1 2 3 4; do
     L_EXCLUDES[$item]=${#EXCLUDES[$item]}
 done
 
@@ -254,6 +254,7 @@ if [ -n "$TEST_TO_RUN" ]; then
 else
     if [ "$RUN_UNIT" = "yes" ]; then
         DIRS=`find $C_DIR -type d -name tests -print`
+        SETUPS=`find $C_DIR -type f -name 'setup.py' -print`
 
           # this code walks thru all the dirs with "tests" in their name
           # and then compares them to the exclude dir array by
@@ -263,7 +264,7 @@ else
         for item in $DIRS ; do
             FILEPATH=${item%/*}
             EXCLUDED=no
-            for index in 0 1 2 3 ; do
+            for index in 0 1 2 3 4 ; do
                 exclude=${EXCLUDES[$index]}
                 len=${L_EXCLUDES[$index]}
 
@@ -287,7 +288,7 @@ else
                 TESTS=`find $testdir -name 'Test*.py' -print`
 
                 for test in $TESTS ; do
-                	if [ "$CONTINUE" == "true" ]; then
+                    if [ "$CONTINUE" == "true" ]; then
                         if [ "$OSTYPE" = "cygwin" ]; then
                             TESTNAME=`cygpath -w $test`
                         else
@@ -299,7 +300,7 @@ else
                         cd $C_DIR
                         $CHANDLERBIN/$mode/$RUN_PYTHON $TESTNAME 2>&1 | tee $TESTLOG
 
-                          # scan the test output for the success messge "OK"
+                        # scan the test output for the success messge "OK"
                         RESULT=`grep '^OK' $TESTLOG`
 
                         echo - - - - - - - - - - - - - - - - - - - - - - - - - - | tee -a $DOTESTSLOG
@@ -308,7 +309,7 @@ else
                         if [ "$RESULT" = "" ]; then
                             FAILED_TESTS="$FAILED_TESTS ($mode)$TESTNAME"
                             if [ "$FORCE_CONT" != "-F" ]; then
-                            	RUN_FUNCTIONAL="no"
+                                    RUN_FUNCTIONAL="no"
                                 RUN_PERFORMANCE="no"
                                 CONTINUE="false"
                                 echo Skipping further tests due to failure | tee -a $DOTESTSLOG
@@ -317,6 +318,34 @@ else
                     fi
                 done
             done
+
+            for setup in $SETUPS ; do
+                if [ "$CONTINUE" == "true" ]; then
+
+                    TESTNAME=`basename \`dirname $setup\``
+                    echo Running $setup | tee -a $DOTESTSLOG
+
+                    cd `dirname $setup`
+                    $CHANDLERBIN/$mode/$RUN_PYTHON `basename $setup` test 2>&1 | tee $TESTLOG
+                    # scan the test output for the success messge "OK"
+                    RESULT=`grep '^OK' $TESTLOG`
+
+                    echo - - - - - - - - - - - - - - - - - - - - - - - - - - | tee -a $DOTESTSLOG
+                    echo $TESTNAME [$RESULT] | tee -a $DOTESTSLOG
+
+                    if [ "$RESULT" = "" ]; then
+                        FAILED_TESTS="$FAILED_TESTS ($mode)$TESTNAME"
+                        if [ "$FORCE_CONT" != "-F" ]; then
+                                RUN_FUNCTIONAL="no"
+                            RUN_PERFORMANCE="no"
+                            CONTINUE="false"
+                            echo Skipping further tests due to failure | tee -a $DOTESTSLOG
+                        fi
+                    fi
+		fi
+                cd $C_DIR
+            done
+
         done
     fi
 

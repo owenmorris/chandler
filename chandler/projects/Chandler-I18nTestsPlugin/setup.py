@@ -24,6 +24,7 @@ setup(
     author_email = "bkirsch@osafoundation.org",
     description  = "Testing resources and localizations egg for Chandler i18n architecture",
     license      = "Apache License, Version 2.0",
+    test_suite   = "tests",
     include_package_data = True,
     zip_safe             = True,
 )

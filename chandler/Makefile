@@ -44,7 +44,7 @@ ARCHIVES = \
     $(CHANDLERARCHIVES)/docutils-$(SNAP)-0.4-$(BP)1.tar.gz \
     $(CHANDLERARCHIVES)/eggtranslations-$(SNAP)-0.1-r2-$(BP)2.tar.gz \
     $(CHANDLERARCHIVES)/zope.interface-$(SNAP)-3.3.0b2-r71371-$(BP)3.tar.gz \
-    $(CHANDLERARCHIVES)/setuptools-$(SNAP)-0.6c6dev-r53674-$(BP)1.tar.gz
+    $(CHANDLERARCHIVES)/setuptools-$(SNAP)-0.6c6dev-r53794-$(BP)1.tar.gz
 
 OS         = $(shell uname)
 PYTHON_VER = 2.5
@@ -180,14 +180,16 @@ downloads: $(ARCHIVES)
 $(addprefix develop-, $(BUILD_PLUGINS)):
 	mkdir -p '$(PLUGIN_INST)'
 	cd $(C_HOME)/projects/$(subst develop-,,$@); \
-     $(RUN_PYTHON) setup.py develop \
+     $(RUN_PYTHON) setup.py develop -m \
+          --egg-path='../projects/$(subst develop-,,$@)' \
           --script-dir='$(PLUGIN_INST)' \
           --install-dir='$(PLUGIN_INST)'
 
 $(addprefix develop-u-, $(BUILD_PLUGINS)):
 	mkdir -p '$(PLUGIN_INST)'
 	cd $(C_HOME)/projects/$(subst develop-u-,,$@); \
-     $(RUN_PYTHON) setup.py develop -u \
+     $(RUN_PYTHON) setup.py develop -m -u \
+          --egg-path='../projects/$(subst develop-u-,,$@)' \
           --script-dir='$(PLUGIN_INST)' \
           --install-dir='$(PLUGIN_INST)'
 

@@ -19,7 +19,7 @@ setup(name = "Chandler-p2pPlugin",
       version = "0.1",
       description = "Peer to peer collection sharing for Chandler",
       author = "OSAF",
-      #test_suite = "p2p.tests",
+      test_suite = "p2p.tests",
       packages = ["p2p"],
       include_package_data = True,
       entry_points = {"chandler.parcels": ["p2p = p2p"]})

@@ -1,6 +1,21 @@
-import unittest
-import i18n
-import os
+# -*- coding: utf-8 -*-
+#   Copyright (c) 2003-2006 Open Source Applications Foundation
+#
+#   Licensed under the Apache License, Version 2.0 (the "License");
+#   you may not use this file except in compliance with the License.
+#   You may obtain a copy of the License at
+#
+#       http://www.apache.org/licenses/LICENSE-2.0
+#
+#   Unless required by applicable law or agreed to in writing, software
+#   distributed under the License is distributed on an "AS IS" BASIS,
+#   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+#   See the License for the specific language governing permissions and
+#   limitations under the License.
+
+
+import unittest, i18n, os
+
 from i18n import *
 from i18n.i18nmanager import *
 import i18n.i18nmanager as i18nmanager
@@ -33,6 +48,9 @@ class I18nTestCase(unittest.TestCase):
         self.i18nMan._DEFAULT_CATALOG = self.CATALOG
         self.i18nMan._DEFAULT_IMAGE = self.IMG_DIR
         self.i18nMan._DEFAULT_HTML = self.HTML_DIR
+
+        from application.Utility import initPlugins
+        initPlugins(['plugins'])
 
         self.i18nMan.initialize(self.LOCALE_SET, self.INI_FILE)
         self.mf = MessageFactory(self.PROJECT, self.CATALOG)
