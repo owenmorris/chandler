@@ -339,14 +339,8 @@ def kindToMessageObject(mailMessage):
     except AttributeError:
         payload = u""
 
-    event = EventStamp(mailMessage)
-    hasAttachments =  stampedMail.getNumberOfAttachments() > 0
-
-    try:
-        timeDescription = event.getTimeDescription()
-        isEvent = True
-    except AttributeError:
-        isEvent = False
+    isEvent = has_stamp(mailMessage, EventStamp)
+    hasAttachments = stampedMail.getNumberOfAttachments() > 0
 
     if not isEvent and not hasAttachments:
         # There are no attachments or Ical events so just add the
@@ -371,6 +365,8 @@ def kindToMessageObject(mailMessage):
         # completely on some clients...
         # @@@ In formatting the prepended description, I'm adding an extra newline
         # at the end so that Apple Mail will display the .ics attachment on its own line.
+        event = EventStamp(mailMessage)
+        timeDescription = event.getTimeDescription()
         location = unicode(getattr(event, 'location', u''))
         if len(location.strip()) > 0:
             evtDesc =  _(u"When: %(whenValue)s\nWhere: %(locationValue)s") \
