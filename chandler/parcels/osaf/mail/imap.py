@@ -199,16 +199,13 @@ class _TwistedIMAP4Client(imap4.IMAP4Client):
         # The fastmail messaging engine server
         # returns flags on unread messages
         # when a UID FETCH mNum (RFC822) is requested.
-        # This is a bug on the fastmail server side.
+        # This is a bug on the twisted side.
         # The twisted IMAP4Server does not have an API
         # for requesting just the FLAGS and the RFC822.
         # This workaround makes that possible.
         # By requesting the FLAGS everytime we avoid
-        # the case where the server decides on its own
-        # to return FLAGS on unread messages.
-        # The suprise return of FLAGS was resulting
-        # in the Twisted IMAP4Client incorrectly parsing
-        # the returned data.
+        # the case where the server on its own
+        # returns FLAGS on unread messages.
         if 'rfc822' in terms:
             terms['flags'] = True
 
