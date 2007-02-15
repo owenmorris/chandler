@@ -15,15 +15,21 @@
 
 from setuptools import setup, Extension
 
+FUSE=False
+
+extensions = []
+if FUSE:
+    extensions.append(Extension('fuse.c',
+                                sources = ['fuse/c/fuse.c',
+                                           'fuse/c/c.c'],
+                                libraries=['fuse']))
+
 setup(name = "Chandler-fusePlugin",
       version = "0.1",
       description = "file system wrapper for Chandler repository",
       author = "OSAF",
       packages = ["fuse"],
-      ext_modules = [Extension('fuse.c',
-                               sources = ['fuse/c/fuse.c',
-                                          'fuse/c/c.c'],
-                               libraries=['fuse'])],
+      ext_modules = extensions,
       include_package_data = True,
       test_suite = "fuse.tests",
       entry_points = {"chandler.parcels": ["fuse = fuse"]})
