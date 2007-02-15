@@ -368,6 +368,14 @@ def makeCalendarArea(parcel, oldVersion):
                     stretchFactor=0.0,
                     size=SizeType(85, -1))])
 
+    startAndEndTimeArea = \
+        makeArea(parcel, 'CalendarTimeArea',
+            orientationEnum='Vertical',
+            childrenBlocks=[
+                startTimeArea,
+                makeSpacer(parcel, height=1),
+                endTimeArea])
+
     timeZoneArea = \
         makeArea(parcel, 'CalendarTimeZoneArea',
             baseClass=CalendarTimeZoneAreaBlock,
@@ -457,9 +465,7 @@ def makeCalendarArea(parcel, oldVersion):
             childrenBlocks=[
                 allDayArea,
                 makeSpacer(parcel, height=4),
-                startTimeArea,
-                makeSpacer(parcel, height=1),
-                endTimeArea,
+                startAndEndTimeArea,
                 makeSpacer(parcel, height=7,
                            baseClass=CalendarTimeZoneSpacerBlock),
                 timeZoneArea,
