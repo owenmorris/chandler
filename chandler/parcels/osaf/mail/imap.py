@@ -48,6 +48,13 @@ __all__ = ['IMAPClient']
        when downloading an individual mail use the feedparser for performance
 """
 
+# When set to True and in __debug__ mode
+# This flag will signal whether to print
+# the communications between the client
+# and server. This is especially handy
+# when the traffic is encrypted (SSL/TLS).
+DEBUG_CLIENT_SERVER = False
+
 class FolderVars(base.DownloadVars):
     """
        This class contains the non-persisted
@@ -174,6 +181,38 @@ class _TwistedIMAP4Client(imap4.IMAP4Client):
         if not raised:
             d = defer.Deferred().addErrback(self.delegate.catchErrors)
             d.errback(exception)
+
+    def sendLine(self, line):
+        imap4.IMAP4Client.sendLine(self, line)
+
+        if __debug__ and DEBUG_CLIENT_SERVER:
+            print "C: %s" % line
+
+
+    def lineReceived(self, line):
+        imap4.IMAP4Client.lineReceived(self, line)
+
+        if __debug__ and DEBUG_CLIENT_SERVER:
+            print "S: %s" % line
+
+    def _fetch(self, messages, useUID=0, **terms):
+        # The fastmail messaging engine server
+        # returns flags on unread messages
+        # when a UID FETCH mNum (RFC822) is requested.
+        # This is a bug on the fastmail server side.
+        # The twisted IMAP4Server does not have an API
+        # for requesting just the FLAGS and the RFC822.
+        # This workaround makes that possible.
+        # By requesting the FLAGS everytime we avoid
+        # the case where the server decides on its own
+        # to return FLAGS on unread messages.
+        # The suprise return of FLAGS was resulting
+        # in the Twisted IMAP4Client incorrectly parsing
+        # the returned data.
+        if 'rfc822' in terms:
+            terms['flags'] = True
+
+        return imap4.IMAP4Client._fetch(self, messages, useUID, **terms)
 
 class IMAPClientFactory(base.AbstractDownloadClientFactory):
     """
@@ -854,7 +893,6 @@ class IMAPClient(base.AbstractDownloadClient):
         else:
             m = self.vars.pending.pop(0)
 
-            #XXX Can be refined in to the curren d deferred
             return d.addBoth(lambda x: self.proto.fetchMessage(str(m[0]), uid=True
                                      ).addCallback(self._fetchMessage, m
                                      ).addErrback(self.catchErrors)
