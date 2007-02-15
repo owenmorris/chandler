@@ -12,9 +12,9 @@ BUILD_PLUGINS = Chandler-HelloWorldPlugin \
                 Chandler-EVDBPlugin \
                 Chandler-EventLoggerPlugin \
                 Chandler-FeedsPlugin \
+                Chandler-PhotoPlugin \
                 Chandler-FlickrPlugin \
                 Chandler-I18nTestsPlugin \
-                Chandler-PhotoPlugin \
                 Chandler-p2pPlugin
 
 # When a version changes, the ARCHIVES lists below need to be updated.
