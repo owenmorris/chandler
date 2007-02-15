@@ -133,7 +133,7 @@ QUW4hRYWNNbb
         self.assertRaises(Checker.NoCertificate, wrapper.postConnectionVerify, 
                           None, 'example.com')
         
-    def testContextCache(self):
+    def testCertificateCache(self):
         pemRoot = '''-----BEGIN CERTIFICATE-----
 MIIDpzCCAxCgAwIBAgIBADANBgkqhkiG9w0BAQQFADCBmjELMAkGA1UEBhMCVVMx
 CzAJBgNVBAgTAkNBMRYwFAYDVQQHEw1TYW4gRnJhbmNpc2NvMRowGAYDVQQKExFv
@@ -157,9 +157,9 @@ Mi6jbcmKpkTked0C7KzayFkggv/SZtmeibzOjQJbO5WQCRgYuF9t7Rijk7oiAt3U
 3rOIG1GsNPeKaSKyc+Bpqd9phY+fPNsZf8b4
 -----END CERTIFICATE-----'''
         
-        self.assert_(ssl.contextCache is None, 'cache should start empty')
+        self.assert_(ssl.certificateCache == [], 'cache should start empty')
         ssl.getContext(self.rep.view) # set cache
-        self.assert_(ssl.contextCache is not None, 'cache should have an entry after getting a context')
+        self.assert_(ssl.certificateCache != [], 'cache should have an entry after getting a context')
         
         x509 = X509.load_cert_string(pemRoot)
         fingerprint = utils.fingerprint(x509)
@@ -167,19 +167,19 @@ Mi6jbcmKpkTked0C7KzayFkggv/SZtmeibzOjQJbO5WQCRgYuF9t7Rijk7oiAt3U
                                              fingerprint,
                                              constants.TRUST_AUTHENTICITY | constants.TRUST_SERVER,
                                              self.rep.view)
-        self.assert_(ssl.contextCache is None, 'cache should have been cleared after adding a cert')
+        self.assert_(ssl.certificateCache == [], 'cache should have been cleared after adding a cert')
 
         ssl.getContext(self.rep.view) # set cache
         cert.trust = 0
-        self.assert_(ssl.contextCache is None, 'cache should have been cleared after changing cert.trust attribute')
+        self.assert_(ssl.certificateCache == [], 'cache should have been cleared after changing cert.trust attribute')
 
         ssl.getContext(self.rep.view) # set cache
         del cert.trust
-        self.assert_(ssl.contextCache is None, 'cache should have been cleared after deleting cert.trust attribute')
+        self.assert_(ssl.certificateCache == [], 'cache should have been cleared after deleting cert.trust attribute')
 
         ssl.getContext(self.rep.view) # set cache
         cert.delete()
-        self.assert_(ssl.contextCache is None, 'cache should have been cleared after removing a cert')
+        self.assert_(ssl.certificateCache == [], 'cache should have been cleared after removing a cert')
 
 if __name__ == "__main__":
     unittest.main()

@@ -120,9 +120,9 @@ class Certificate(pim.ContentItem):
         on item creation as well as normal attribute change (including
         deletion), but not on item deletion.
         """
-        # XXX Certificate should not need to know about ssl.contextCache
+        # XXX Certificate should not need to know about ssl.certificateCache
         from osaf.framework.certstore import ssl
-        ssl.contextCache = None
+        ssl.certificateCache = []
         
     def onItemDelete(self, view, isDeferring):
         """

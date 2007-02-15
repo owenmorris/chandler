@@ -59,11 +59,11 @@ __all__ = ['loadCertificatesToContext', 'SSLContextError', 'getContext',
            'trusted_until_shutdown_site_certs',
            'trusted_until_shutdown_invalid_site_certs',
            'askTrustServerCertificate',
-           'askIgnoreSSLError', 'contextCache']
+           'askIgnoreSSLError', 'certificateCache']
 
 log = logging.getLogger(__name__)
 
-contextCache = None
+certificateCache = []
 
 def loadCertificatesToContext(repView, ctx):
     """
@@ -72,12 +72,15 @@ def loadCertificatesToContext(repView, ctx):
     @param repView: repository view
     @param ctx:     M2Crypto.SSL.Context
     """
-
-    q = schema.ns('osaf.framework.certstore', repView).sslCertificateQuery
     store = ctx.get_cert_store()
-    for cert in q:
-        store.add_x509(cert.asX509())
-
+    for x509 in certificateCache:
+        store.add_x509(x509)
+    else:
+        q = schema.ns('osaf.framework.certstore', repView).sslCertificateQuery
+        for cert in q:
+            x509 = cert.asX509()
+            store.add_x509(x509)
+            certificateCache.append(x509)
 
 class SSLContextError(utils.CertificateException):
     """
@@ -101,10 +104,6 @@ def getContext(repositoryView, protocol='sslv23', verify=True,
     @param verifyCallback: Function to call for certificate verification.
     @type verifyCallback:  Callback function
     """
-    global contextCache
-    if contextCache is not None:
-        return contextCache
-    
     ctx = SSL.Context(protocol)
 
     # XXX Sometimes we might want to accept any cert, and only use
@@ -142,8 +141,6 @@ def getContext(repositoryView, protocol='sslv23', verify=True,
     if ctx.set_cipher_list('ALL:!ADH:!LOW:!EXP:!MD5:@STRENGTH') != 1:
         log.error('Could not set cipher list')
         raise SSLContextError(_(u'Could not set cipher list'))
-
-    contextCache = ctx
 
     return ctx
 
