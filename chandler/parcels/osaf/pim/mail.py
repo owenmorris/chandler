@@ -456,7 +456,7 @@ class AccountBase(items.ContentItem):
     timeout = schema.One(
         schema.Integer,
         doc = 'The number of seconds before timing out a stalled connection',
-        initialValue = 20,
+        initialValue = 40,
     )
 
     isActive = schema.One(
