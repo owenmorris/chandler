@@ -47,6 +47,10 @@ def reindexFloatingEvents(view):
     masterUTCKeys = [i for i in UTCKeys if i in keys]
     pim_ns.masterEvents.reindexKeys(masterUTCKeys, 'recurrenceEndNoTZ')
 
+def equivalentTZIDs(tzinfo):
+    numEquivalents = PyICU.TimeZone.countEquivalentIDs(tzinfo.tzid)
+    for index in xrange(numEquivalents):
+        yield PyICU.TimeZone.getEquivalentID(tzinfo.tzid, index)
 
 class TimeZoneInfo(schema.Item):
     """
@@ -126,11 +130,7 @@ class TimeZoneInfo(schema.Item):
             if tzinfo.tzid in self.wellKnownIDs:
                 result = tzinfo
             else:
-                numEquivalents = PyICU.TimeZone.countEquivalentIDs(tzinfo.tzid)
-
-                for index in xrange(numEquivalents):
-                    equivName = PyICU.TimeZone.getEquivalentID(tzinfo.tzid, index)
-
+                for equivName in equivalentTZIDs(tzinfo):
                     if equivName in self.wellKnownIDs:
                         result = PyICU.ICUtzinfo.getInstance(equivName)
                         break
@@ -209,12 +209,12 @@ def installParcel(parcel, oldVersion = None):
     _ = lambda x: x
 
     wellKnownIDs = [
-        _(u'US/Hawaii'),
-        _(u'US/Alaska'),
-        _(u'US/Pacific'),
-        _(u'US/Mountain'),
-        _(u'US/Central'),
-        _(u'US/Eastern'),
+        _(u'Pacific/Honolulu'),
+        _(u'America/Anchorage'),
+        _(u'America/Los_Angeles'),
+        _(u'America/Denver'),
+        _(u'America/Chicago'),
+        _(u'America/New_York'),
         _(u'World/Floating'),
     ]
 
@@ -364,7 +364,7 @@ def convertToICUtzinfo(dt, view=None):
                                                dt.year, dt.year + 1):
                     icuTzinfo = test_tzinfo
                     if tzical_tzid is not None:
-                        tzid_mapping[tzical_tzid] = icuTzinfo                    
+                        tzid_mapping[tzical_tzid] = icuTzinfo
                     break
         
     # Here, if we have an unknown timezone, we'll turn
@@ -382,11 +382,19 @@ def shortTZ(dt, tzinfo=None):
     doesn't match tzinfo (tzinfo defaults to PyICU.ICUtzinfo.default)
 
     """
-    if tzinfo is None: tzinfo = PyICU.ICUtzinfo.default
+    if tzinfo is None:
+        tzinfo = PyICU.ICUtzinfo.default
 
     if dt.tzinfo is None or dt.tzinfo is PyICU.ICUtzinfo.floating:
         return u''
     elif dt.tzinfo != tzinfo:
+        # make sure they aren't equivalent
+        if (dt.tzinfo._timezone.getRawOffset() ==
+               tzinfo._timezone.getRawOffset()):
+            for tzid in equivalentTZIDs(tzinfo):
+                if dt.tzinfo.tzid == tzid:
+                    return u''
+            
         name = dt.tzinfo.timezone.getDisplayName(dt.dst(),
                                           dt.tzinfo.timezone.SHORT)
         if not name:

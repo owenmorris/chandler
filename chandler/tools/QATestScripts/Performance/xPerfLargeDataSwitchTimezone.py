@@ -38,16 +38,16 @@ try:
     User.idle()
 
     # Switch the timezone (this is the action we are measuring)
-    logger.Start("Switch timezone to US/Hawaii")
-    QAUITestAppLib.SetChoice(calendarBlock.widget.tzChoice, "US/Hawaii")
+    logger.Start("Switch timezone to Pacific/Honolulu")
+    QAUITestAppLib.SetChoice(calendarBlock.widget.tzChoice, "Pacific/Honolulu")
     User.idle()
     logger.Stop()
 
     # Verification
 
     # @@@ KCP this test could be improved
-    # Currently tests that the default tz is now US/Hawaii
-    if ICUtzinfo.default == ICUtzinfo.getInstance("US/Hawaii"):
+    # Currently tests that the default tz is now Pacific/Honolulu
+    if ICUtzinfo.default == ICUtzinfo.getInstance("Pacific/Honolulu"):
         logger.ReportPass("Timezone switched")
     else:
         logger.ReportFailure("Timezone failed to switch")

@@ -31,7 +31,7 @@ class TestSwitchTimezone(ChandlerTestCase):
         # Find the "canonical timezone" to use in test comparisons
         info = TimeZoneInfo.get(self.app_ns.itsView)
         originalTz = info.canonicalTimeZone(ICUtzinfo.default).tzid
-        switchTz = "US/Hawaii"
+        switchTz = "Pacific/Honolulu"
     
         # Enable timezones so that we can switch from the UI
         self.app_ns.root.EnableTimezones()
@@ -42,7 +42,7 @@ class TestSwitchTimezone(ChandlerTestCase):
         # Test that the new event has indeed inherited the default tz
         timezoneEvent.CheckDisplayedValues(EditTimeZone=(True, originalTz))
     
-        # Change the timezone to US/Hawaii
+        # Change the timezone to Pacific/Honolulu
         QAUITestAppLib.SetChoice(calendarBlock.widget.tzChoice, switchTz)
     
         # Test that the event timezone hasn't changed

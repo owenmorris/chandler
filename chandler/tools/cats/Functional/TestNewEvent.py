@@ -94,10 +94,10 @@ class TestNewEvent(ChandlerTestCase):
         tzPrefs.showUI = True
         event.SetAttr("Setting explicit timezone", 
                   allDay=False,
-                  timeZone="US/Mountain")
+                  timeZone='America/Denver')
         event.CheckDisplayedValues("Changed Timezone",
             HeadlineBlock=(True, uw("Birthday Party")),
-            EditTimeZone=(True, "US/Mountain"),
+            EditTimeZone=(True, 'America/Denver'),
             EditCalendarStartDate=(True, evtDate),
             EditCalendarEndDate=(True, evtDate),
             EditCalendarStartTime=(True,), # could check the time here if I knew the local tz

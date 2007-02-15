@@ -35,7 +35,7 @@ class TestRecurringEvent(ChandlerTestCase):
                            location=uw("Gym"),
                            status="FYI",
                            body=uw("Resolution: exercise daily for optimal health"),
-                           timeZone="US/Central",
+                           timeZone="America/Chicago",
                            recurrence="Daily",
                            recurrenceEnd="03/01/2006")
         
@@ -48,7 +48,7 @@ class TestRecurringEvent(ChandlerTestCase):
                                      "location":uw("Gym"),
                                      "status":"FYI",
                                      "body":uw("Resolution: exercise daily for optimal health"),
-                                     "timeZone":"US/Central",
+                                     "timeZone":"America/Chicago",
                                      "recurrence":"Daily", 
                                      "recurrenceEnd":"3/1/2006"})
     
@@ -60,7 +60,7 @@ class TestRecurringEvent(ChandlerTestCase):
                                  "location":uw("Gym"),
                                  "status":"FYI",
                                  "body":uw("Resolution: exercise daily for optimal health"),
-                                 "timeZone":"US/Central"})
+                                 "timeZone":"America/Chicago"})
     
         # Weekly Event Test
                                 
@@ -74,7 +74,7 @@ class TestRecurringEvent(ChandlerTestCase):
                             location=uw("Phone"),
                             status="FYI",
                             body=uw("Resolution: call home weekly for good family relations"),
-                            timeZone="US/Central",
+                            timeZone="America/Chicago",
                             recurrence="Weekly",
                             recurrenceEnd="03/25/2006")
     
@@ -88,7 +88,7 @@ class TestRecurringEvent(ChandlerTestCase):
                                       "location":uw("Phone"),
                                       "status":"FYI",
                                       "body":uw("Resolution: call home weekly for good family relations"),
-                                      "timeZone":"US/Central",
+                                      "timeZone":"America/Chicago",
                                       "recurrence":"Weekly",
                                       "recurrenceEnd":"3/25/2006"})
     
@@ -100,7 +100,7 @@ class TestRecurringEvent(ChandlerTestCase):
                                   "location":uw("Phone"),
                                   "status":"FYI",
                                   "body":uw("Resolution: call home weekly for good family relations"),
-                                  "timeZone":"US/Central"})
+                                  "timeZone":"America/Chicago"})
                                   
         # Monthly Event Test
                                 
@@ -115,7 +115,7 @@ class TestRecurringEvent(ChandlerTestCase):
                             location=uw("My house"),
                             status="CONFIRMED",
                             body=uw("Resolution: host book club once a month"),
-                            timeZone="US/Central",
+                            timeZone="America/Chicago",
                             recurrence="Monthly",
                             recurrenceEnd="12/31/2006")
                             
@@ -129,7 +129,7 @@ class TestRecurringEvent(ChandlerTestCase):
                                       "location":uw("My house"),
                                       "status":"Confirmed",
                                       "body":uw("Resolution: host book club once a month"),
-                                      "timeZone":"US/Central",
+                                      "timeZone":"America/Chicago",
                                       "recurrence":"Monthly",
                                       "recurrenceEnd":"12/31/2006"})
     
@@ -141,7 +141,7 @@ class TestRecurringEvent(ChandlerTestCase):
                                   "location":uw("My house"),
                                   "status":"CONFIRMED",
                                   "body":uw("Resolution: host book club once a month"),
-                                  "timeZone":"US/Central"})
+                                  "timeZone":"America/Chicago"})
                                   
        # Yearly Event Test
                                 
@@ -155,7 +155,7 @@ class TestRecurringEvent(ChandlerTestCase):
                             location=uw("Downtown"),
                             status="CONFIRMED",
                             body=uw("Resolution: get teeth cleaned once a year"),
-                            timeZone="US/Pacific",
+                            timeZone="America/Los_Angeles",
                             recurrence="Yearly",
                             recurrenceEnd="02/07/2050")
                             
@@ -169,7 +169,7 @@ class TestRecurringEvent(ChandlerTestCase):
                                       "location":uw("Downtown"),
                                       "status":"Confirmed",
                                       "body":uw("Resolution: get teeth cleaned once a year"),
-                                      "timeZone":"US/Pacific",
+                                      "timeZone":"America/Los_Angeles",
                                       "recurrence":"Yearly",
                                       "recurrenceEnd":"2/7/2050"})
     
@@ -181,7 +181,7 @@ class TestRecurringEvent(ChandlerTestCase):
                                   "location":uw("Downtown"),
                                   "status":"CONFIRMED",
                                   "body":uw("Resolution: get teeth cleaned once a year"),
-                                  "timeZone":"US/Pacific"})
+                                  "timeZone":"America/Los_Angeles"})
 
         # switch to the table view, make sure there are appropriate triageStatus
         # modifications.  These tests will fail if run before Feb. 2006 or after

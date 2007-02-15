@@ -32,15 +32,15 @@ class TestDates(ChandlerTestCase):
             #     other locales
         
         dateValues = { 'us': [  # year end transistion
-                              ('12/31/04', '11:30 PM', '1/1/05',   '12:30 AM', 'US/Central'),
+                              ('12/31/04', '11:30 PM', '1/1/05',   '12:30 AM', 'America/Chicago'),
                                 # leap year (feb has 29 days)
-                              ('2/28/04',  '11:30 PM', '2/29/04',  '12:30 AM', 'US/Central'),
+                              ('2/28/04',  '11:30 PM', '2/29/04',  '12:30 AM', 'America/Chicago'),
                                 # leap year (feb has 29 days)
-                              ('2/29/04',  '11:30 PM', '3/1/04',   '12:30 AM', 'US/Central'),
+                              ('2/29/04',  '11:30 PM', '3/1/04',   '12:30 AM', 'America/Chicago'),
                                 # Daylight savings time start
-                              ('4/2/06',   '1:00 AM',  '4/2/06',   '3:00 AM',  'US/Central'),
+                              ('4/2/06',   '1:00 AM',  '4/2/06',   '3:00 AM',  'America/Chicago'),
                                 # Daylight savings time end
-                              ('10/29/06', '2:00 AM',  '10/29/06', '1:00 AM',  'US/Central'),
+                              ('10/29/06', '2:00 AM',  '10/29/06', '1:00 AM',  'America/Chicago'),
                              ],
                      }
     

@@ -87,7 +87,7 @@ class TestMulti(ChandlerTestCase):
         # action -- Stamp as Calendar message
         note.StampAsCalendarEvent(True)
         # action -- Set Event attributes
-        note.SetAttr(startDate="09/12/2006", startTime="6:00 PM", location=uw("Club101"), status="FYI",timeZone="US/Central", recurrence="Daily", recurrenceEnd="10/14/2006")
+        note.SetAttr(startDate="09/12/2006", startTime="6:00 PM", location=uw("Club101"), status="FYI",timeZone="America/Chicago", recurrence="Daily", recurrenceEnd="10/14/2006")
 
         
         # verification -- Collection Display

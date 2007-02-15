@@ -90,12 +90,13 @@ def pickTimeZone(view):
 factory = _
 _ = lambda x: x
 
-TIMEZONE_SHORT_LIST = [_(u'US/Hawaii'),
-                       _(u'US/Alaska'),
-                       _(u'US/Pacific'),
-                       _(u'US/Mountain'),
-                       _(u'US/Central'),
-                       _(u'US/Eastern'),                       
+TIMEZONE_SHORT_LIST = [_(u'Pacific/Honolulu'),
+                       _(u'America/Anchorage'),
+                       _(u'America/Los_Angeles'),
+                       _(u'America/Denver'),
+                       _(u'America/Chicago'),
+                       _(u'America/New_York'),
+                       _(u'World/Floating'),
                        _(u'Europe/London'),
                        _(u'Europe/Paris'),
                        _(u'Asia/Shanghai'),
