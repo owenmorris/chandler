@@ -186,7 +186,7 @@ def makeMainView(parcel):
                 size = SizeType (quickEntryWidth,-1),
                 helpString = _(u'Quick entry field: enter search string, or command beginning with "/"'))
     # Toolbar tools are larger on Linux than other platforms
-    if not '__WX_GTK__' in wx.PlatformInfo:
+    if not '__WXGTK__' in wx.PlatformInfo:
         appBarBlocks.extend((
             quickEntryItem,
             ToolbarItem.template('ApplicationSeparator4',
