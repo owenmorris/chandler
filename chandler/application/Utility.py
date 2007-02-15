@@ -634,6 +634,7 @@ def initParcelEnv(chandlerDirectory, path):
     with "." just as in the syntax of the import statement.
     """
     PARCEL_IMPORT = 'parcels'
+    PLUGIN_IMPORT = 'plugins'
 
     """
     Load the parcels which are contained in the PARCEL_IMPORT directory.
@@ -643,7 +644,9 @@ def initParcelEnv(chandlerDirectory, path):
     """
     parcelPath = []
     parcelPath.append(os.path.join(chandlerDirectory,
-                      PARCEL_IMPORT.replace ('.', os.sep)))
+                      PARCEL_IMPORT.replace('.', os.sep)))
+    parcelPath.append(os.path.join(chandlerDirectory,
+                      PLUGIN_IMPORT.replace('.', os.sep)))
 
     """
     If PARCELPATH env var is set, append those directories to the

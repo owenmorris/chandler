@@ -20,7 +20,7 @@ BUILD_PLUGINS = Chandler-HelloWorldPlugin \
 # When a version changes, the ARCHIVES lists below need to be updated.
 
 ARCHIVES = \
-    $(CHANDLERARCHIVES)/Launchers-$(SNAP)-0.9-$(BP)5.tar.gz \
+    $(CHANDLERARCHIVES)/Launchers-$(SNAP)-0.9-$(BP)6.tar.gz \
     $(CHANDLERARCHIVES)/chandlerdb-$(SNAP)-0.6-$(BP)78.tar.gz \
     $(CHANDLERARCHIVES)/db-$(SNAP)-4.5.20-$(BP)3.tar.gz \
     $(CHANDLERARCHIVES)/python-$(SNAP)-2.5-$(BP)4.tar.gz \
@@ -107,8 +107,6 @@ ifeq ($(OS),Cygwin)
     SITE          = $(SNAP)/bin/Lib/site-packages
     PLATFORM      = windows
     SCRIPTS       = $(C_BIN)/$(SNAP)/bin/Scripts/
-    EASYINSTALL   = $(C_BIN)/$(SNAP)/easy_install.exe
-    PLUGIN_PYTHON = CHANDLERHOME='$(CHANDLERHOME)' CHANDLERBIN='$(CHANDLERBIN)' $(C_BIN)/$(SNAP)/bin/python$(DEBUG_SUFFIX)
     RUN_PYTHON    = CHANDLERHOME='$(CHANDLERHOME)' CHANDLERBIN='$(CHANDLERBIN)' $(C_BIN)/$(SNAP)/RunPython.bat
     SED_MODERN    = -r
 else
@@ -117,9 +115,7 @@ else
         SITE          = $(SNAP)/$(FRAMEWORK)/lib/python$(PYTHON_VER)/site-packages
         ARCH          = $(shell arch)
         SCRIPTS       = $(C_BIN)/$(SNAP)/$(FRAMEWORK)/bin/
-        EASYINSTALL   = MACOSX_DEPLOYMENT_TARGET= $(PYTHON_BIN) $(C_BIN)/$(SNAP)/easy_install
-        PLUGIN_PYTHON = MACOSX_DEPLOYMENT_TARGET= CHANDLERHOME=$(CHANDLERHOME) $(C_BIN)/$(SNAP)/RunPython
-        RUN_PYTHON    = $(C_BIN)/$(SNAP)/RunPython
+        RUN_PYTHON    = MACOSX_DEPLOYMENT_TARGET= CHANDLERHOME=$(CHANDLERHOME) $(C_BIN)/$(SNAP)/RunPython
         SED_MODERN    = -E
 
         ifeq ($(ARCH),ppc)
@@ -131,9 +127,7 @@ else
         SITE          = $(SNAP)/lib/python$(PYTHON_VER)/site-packages
         PLATFORM      = linux
         SCRIPTS       = $(C_BIN)/$(SNAP)/bin/
-        EASYINSTALL   = $(C_BIN)/$(SNAP)/easy_install
-        PLUGIN_PYTHON = CHANDLERHOME=$(CHANDLERHOME) $(C_BIN)/$(SNAP)/RunPython
-        RUN_PYTHON    = $(C_BIN)/$(SNAP)/RunPython
+        RUN_PYTHON    = CHANDLERHOME=$(CHANDLERHOME) $(C_BIN)/$(SNAP)/RunPython
         SED_MODERN    =-r
     endif
 endif
@@ -162,10 +156,7 @@ HOST  = builds.osafoundation.org
 URL   = http://$(HOST)/external
 P_URL = $(URL)/$(PLATFORM)
 
-EASYINSTALL_BIN = $(EASYINSTALL)
-PLUGIN_ABS      = $(PLUGIN_ARCHIVES)
-PLUGIN_INST     = $(C_HOME)
-PYTHON_BIN      = $(C_BIN)/$(SNAP)/RunPython
+PLUGIN_INST     = $(C_HOME)/plugins
 TOOLS           = $(C_HOME)/tools/
 
 #
@@ -174,10 +165,7 @@ TOOLS           = $(C_HOME)/tools/
 # \ escaping that occurs when = is used
 #
 ifeq ($(OS),Cygwin)
-    PYTHON_BIN      := $(C_BIN)/$(SNAP)/bin/python$(DEBUG_SUFFIX)
-    EASYINSTALL_BIN := $(shell cygpath -wa $(EASYINSTALL))
-    PLUGIN_ABS      := $(shell cygpath -aw $(PLUGIN_ARCHIVES))
-    PLUGIN_INST     := $(shell cygpath -aw $(C_HOME))
+    PLUGIN_INST     := $(shell cygpath -aw $(PLUGIN_INST))
     TOOLS           := $(shell cygpath -aw $(TOOLS))\\
     SCRIPTS         := $(shell cygpath -wa $(SCRIPTS))\\
 endif
@@ -190,25 +178,28 @@ ARCHIVES_INST = \
 downloads: $(ARCHIVES)
 
 $(addprefix develop-, $(BUILD_PLUGINS)):
+	mkdir -p '$(PLUGIN_INST)'
 	cd $(C_HOME)/projects/$(subst develop-,,$@); \
-    PYTHONPATH='$(PLUGIN_INST)' $(PLUGIN_PYTHON) setup.py develop \
-      --script-dir='$(PLUGIN_INST)' \
-      --install-dir='$(PLUGIN_INST)'
+     $(RUN_PYTHON) setup.py develop \
+          --script-dir='$(PLUGIN_INST)' \
+          --install-dir='$(PLUGIN_INST)'
 
 $(addprefix develop-u-, $(BUILD_PLUGINS)):
+	mkdir -p '$(PLUGIN_INST)'
 	cd $(C_HOME)/projects/$(subst develop-u-,,$@); \
-    PYTHONPATH='$(PLUGIN_INST)' $(PLUGIN_PYTHON) setup.py develop -u \
-      --script-dir='$(PLUGIN_INST)' \
-      --install-dir='$(PLUGIN_INST)'
+     $(RUN_PYTHON) setup.py develop -u \
+          --script-dir='$(PLUGIN_INST)' \
+          --install-dir='$(PLUGIN_INST)'
 
 $(addprefix install-, $(BUILD_PLUGINS)):
+	mkdir -p '$(PLUGIN_INST)'
 	cd $(C_HOME)/projects/$(subst install-,,$@); \
-    PYTHONPATH='$(PLUGIN_INST)' $(PLUGIN_PYTHON) setup.py install \
-      --install-scripts='$(PLUGIN_INST)' \
-      --install-lib='$(PLUGIN_INST)'
+     $(RUN_PYTHON) setup.py install \
+          --install-scripts='$(PLUGIN_INST)' \
+          --install-lib='$(PLUGIN_INST)'
 
 chandler-locale-data:
-	PYTHONPATH='$(PLUGIN_INST)' $(PLUGIN_PYTHON) setup.py egg_info
+	$(RUN_PYTHON) setup.py egg_info
 
 $(ARCHIVES):
 	mkdir -p $(CHANDLERARCHIVES)

@@ -1352,7 +1352,7 @@ class DBIndexerThread(RepositoryThread):
 
                 if indexVersion < latestVersion:
                     if view is None:
-                        view = repository.createView("Lucene", pruneSize=50)
+                        view = repository.createView("Lucene", pruneSize=400)
                     while indexVersion < latestVersion:
                         view.refresh(version=indexVersion + 1, notify=False)
                         self._indexVersion(view, indexVersion + 1, store)
