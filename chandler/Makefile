@@ -43,7 +43,8 @@ ARCHIVES = \
     $(CHANDLERARCHIVES)/configobj-$(SNAP)-4.3.2-$(BP)1.tar.gz \
     $(CHANDLERARCHIVES)/docutils-$(SNAP)-0.4-$(BP)1.tar.gz \
     $(CHANDLERARCHIVES)/eggtranslations-$(SNAP)-0.1-r2-$(BP)2.tar.gz \
-    $(CHANDLERARCHIVES)/zope.interface-$(SNAP)-3.3.0b2-r71371-$(BP)3.tar.gz
+    $(CHANDLERARCHIVES)/zope.interface-$(SNAP)-3.3.0b2-r71371-$(BP)3.tar.gz \
+    $(CHANDLERARCHIVES)/setuptools-$(SNAP)-0.6c6dev-r53674-$(BP)1.tar.gz
 
 OS         = $(shell uname)
 PYTHON_VER = 2.5
@@ -161,9 +162,6 @@ HOST  = builds.osafoundation.org
 URL   = http://$(HOST)/external
 P_URL = $(URL)/$(PLATFORM)
 
-SETUPTOOLS_EGG  = $(CHANDLERARCHIVES)/setuptools-0.6c4dev_r52887-py$(PYTHON_VER).egg
-SETUPTOOLS_ABS  = $(SETUPTOOLS_EGG)
-SETUPTOOLS_BIN  = $(C_BIN)/$(SNAP)
 EASYINSTALL_BIN = $(EASYINSTALL)
 PLUGIN_ABS      = $(PLUGIN_ARCHIVES)
 PLUGIN_INST     = $(C_HOME)
@@ -176,9 +174,7 @@ TOOLS           = $(C_HOME)/tools/
 # \ escaping that occurs when = is used
 #
 ifeq ($(OS),Cygwin)
-    PYTHON_BIN      := $(SETUPTOOLS_BIN)/bin/python$(DEBUG_SUFFIX)
-    SETUPTOOLS_ABS  := $(shell cygpath -wa $(SETUPTOOLS_EGG))
-    SETUPTOOLS_BIN  := $(shell cygpath -wa $(SETUPTOOLS_BIN))
+    PYTHON_BIN      := $(C_BIN)/$(SNAP)/bin/python$(DEBUG_SUFFIX)
     EASYINSTALL_BIN := $(shell cygpath -wa $(EASYINSTALL))
     PLUGIN_ABS      := $(shell cygpath -aw $(PLUGIN_ARCHIVES))
     PLUGIN_INST     := $(shell cygpath -aw $(C_HOME))
@@ -196,38 +192,31 @@ downloads: $(ARCHIVES)
 $(addprefix develop-, $(BUILD_PLUGINS)):
 	cd $(C_HOME)/projects/$(subst develop-,,$@); \
     PYTHONPATH='$(PLUGIN_INST)' $(PLUGIN_PYTHON) setup.py develop \
-      --script-dir='$(SETUPTOOLS_BIN)' \
+      --script-dir='$(PLUGIN_INST)' \
       --install-dir='$(PLUGIN_INST)'
 
 $(addprefix develop-u-, $(BUILD_PLUGINS)):
 	cd $(C_HOME)/projects/$(subst develop-u-,,$@); \
     PYTHONPATH='$(PLUGIN_INST)' $(PLUGIN_PYTHON) setup.py develop -u \
-      --script-dir='$(SETUPTOOLS_BIN)' \
+      --script-dir='$(PLUGIN_INST)' \
       --install-dir='$(PLUGIN_INST)'
 
 $(addprefix install-, $(BUILD_PLUGINS)):
 	cd $(C_HOME)/projects/$(subst install-,,$@); \
     PYTHONPATH='$(PLUGIN_INST)' $(PLUGIN_PYTHON) setup.py install \
-      --install-scripts='$(SETUPTOOLS_BIN)' \
+      --install-scripts='$(PLUGIN_INST)' \
       --install-lib='$(PLUGIN_INST)'
 
 chandler-locale-data:
 	PYTHONPATH='$(PLUGIN_INST)' $(PLUGIN_PYTHON) setup.py egg_info
 
-$(ARCHIVES) $(SETUPTOOLS_EGG):
+$(ARCHIVES):
 	mkdir -p $(CHANDLERARCHIVES)
 	$(CURL) $@ $(P_URL)/$(notdir $@)
 
 $(ARCHIVES_INST):
 	tar -C $(C_BIN) -xvzf $(CHANDLERARCHIVES)/$(notdir $(basename $@))
 	touch $@
-
-setuptools: $(SETUPTOOLS_EGG)
-	MACOSX_DEPLOYMENT_TARGET= PYTHONPATH='$(PLUGIN_INST)' CHANDLERHOME='$(CHANDLERHOME)' $(PYTHON_BIN) \
-      -c "import sys; sys.path.insert(0,r'$(SETUPTOOLS_ABS)'); from setuptools.command.easy_install import main; main()" \
-      --script-dir='$(SETUPTOOLS_BIN)' \
-      --install-dir='$(PLUGIN_INST)' \
-      '$(SETUPTOOLS_ABS)'
 
 ifeq ($(OS),Cygwin)
 manifest_exe:
@@ -241,8 +230,7 @@ endif
 
 archives: $(ARCHIVES) $(ARCHIVES_INST)
 
-install-core: archives $(SETUPTOOLS_EGG) setuptools \
-              manifest_exe chandler-locale-data 
+install-core: archives manifest_exe chandler-locale-data 
 
 plugins: $(addprefix develop-, $(BUILD_PLUGINS))
 
@@ -255,7 +243,7 @@ install: install-core plugins
 
 distrib: install-core distrib-plugins
 
-download: $(ARCHIVES) $(SETUPTOOLS_EGG)
+download: $(ARCHIVES)
 
 # to install individual binaries, for example: make chandlerdb
 
