@@ -329,8 +329,6 @@ class MiniCalendar(CalendarCanvas.CalendarBlock):
         defaultValue = None
     )
     
-    scale = schema.One(schema.Float, defaultValue = 1.0)
-
     schema.addClouds(
         copying = schema.Cloud (byCloud = [previewArea])
     )

@@ -337,7 +337,7 @@ class PyMiniCalendar(wx.PyControl):
 
         width = DAYS_PER_WEEK * self.widthCol
         height = self.todayHeight + VERT_MARGIN
-        scale = self.blockItem.scale
+        scale = self.calculateScale()
 
         return wx.Size(width * scale, height * scale)
 
@@ -346,7 +346,7 @@ class PyMiniCalendar(wx.PyControl):
         width = DAYS_PER_WEEK * self.widthCol
         height = (WEEKS_TO_DISPLAY * self.heightRow + self.rowOffset +
                   EXTRA_MONTH_HEIGHT)
-        scale = self.blockItem.scale
+        scale = self.calculateScale()
 
         return wx.Size(width * scale, height * scale)
 
@@ -388,9 +388,16 @@ class PyMiniCalendar(wx.PyControl):
         if '__WXMAC__' not in wx.PlatformInfo:
             self.Refresh(False)
 
+    def calculateScale (self):
+        size = self.GetClientSize()
+        width, height = self.CalcGeometry() # the ideal, unscaled size
+        scale = float(size.x) / float(width)
+        if scale < 0.5:
+            scale = 0.5
+        return scale
+
     def OnMiniCalPaint(self, event):
 
-        size = self.GetClientSize()
         width, height = self.CalcGeometry() # the ideal, unscaled size
 
         if '__WXMSW__' in wx.PlatformInfo:
@@ -400,16 +407,10 @@ class PyMiniCalendar(wx.PyControl):
         else:
             dc = wx.PaintDC(self)
         
+        scale = self.calculateScale()
+
         gc = wx.GraphicsContext.Create(dc)
-
-        scale = 1.0
-        if size.x != width:
-            scale = float(size.x) / float(width)
-            if scale < 0.5:
-                scale = 0.5
-            gc.Scale(scale, scale)
-
-        self.blockItem.scale = scale
+        gc.Scale(scale, scale)
 
         transform = gc.GetTransform()
         self.transform = gc.CreateMatrix(*transform.Get())
