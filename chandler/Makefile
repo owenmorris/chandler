@@ -302,7 +302,7 @@ clean:
 distclean: clean
 	rm -rf $(C_BIN)/debug
 	rm -rf $(C_BIN)/release
-	rm -f  $(C_HOME)/*.egg-link
+	rm -f  $(PLUGIN_INST)/*.egg-link
 	rm -f  $(C_HOME)/*.pth
 	rm -rf $(C_HOME)/*-py$(PYTHON_VER).egg
 
