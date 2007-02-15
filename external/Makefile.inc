@@ -59,7 +59,8 @@ endif
 PYTHON_VER=2.5
 
 ifeq ($(OS),Cygwin)
-PYTHON:=$(PREFIX)/bin/$(PYTHON).exe
+PYTHON_BINDIR:=bin
+PYTHON:=$(PREFIX)/$(PYTHON_BINDIR)/$(PYTHON).exe
 SITE=bin/Lib/site-packages
 PLATFORM=windows
 SWIG=$(PREFIX)/bin/swig/swig.exe
@@ -76,7 +77,8 @@ MACOSX_DEPLOYMENT_TARGET=10.4
 endif
 endif
 READLINE_OSX=readline
-PYTHON:=$(PREFIX)/$(FRAMEWORK)/bin/$(PYTHON)
+PYTHON_BINDIR:=$(FRAMEWORK)/bin
+PYTHON:=$(PREFIX)/$(PYTHON_BINDIR)/$(PYTHON)
 SITE=$(FRAMEWORK)/lib/python$(PYTHON_VER)/site-packages
 PLATFORM=macosx
 SWIG=$(PREFIX)/bin/swig
@@ -86,7 +88,8 @@ else
 UPLOAD=builder@builds.osafoundation.org:/www/docs/external/macosx
 endif
 else
-PYTHON:=$(PREFIX)/bin/$(PYTHON)
+PYTHON_BINDIR:=bin
+PYTHON:=$(PREFIX)/$(PYTHON_BINDIR)/$(PYTHON)
 SITE=lib/python$(PYTHON_VER)/site-packages
 PLATFORM=linux
 SWIG=$(PREFIX)/bin/swig
