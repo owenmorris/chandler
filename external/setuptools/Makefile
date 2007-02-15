@@ -26,13 +26,23 @@ setuptools-$(VERSION)-expanded: setuptools-$(VERSION).tar.gz
 
 expand: setuptools-$(VERSION)-expanded
 
+ifeq ($(OS),Cygwin)
 binaries: $(BUILD_ROOT)/$(SNAP)/$(SITE)/$(EGG)
 	echo "./$(EGG)" > $(BUILD_ROOT)/$(SNAP)/$(SITE)/setuptools.pth
 	tar -C $(BUILD_ROOT) -cvzf $(SETUPTOOLS)/$(TARBALL) \
-                             $(SNAP)/$(SITE)/$(EGG) \
-                             $(SNAP)/$(SITE)/setuptools.pth \
-                             $(SNAP)/$(PYTHON_BINDIR)/easy_install \
-                             $(SNAP)/$(PYTHON_BINDIR)/easy_install-$(PYTHON_VER)
+             $(SNAP)/$(SITE)/$(EGG) \
+             $(SNAP)/$(SITE)/setuptools.pth \
+             $(SNAP)/$(PYTHON_BINDIR)/Scripts/easy_install.exe \
+             $(SNAP)/$(PYTHON_BINDIR)/Scripts/easy_install-$(PYTHON_VER).exe
+else
+binaries: $(BUILD_ROOT)/$(SNAP)/$(SITE)/$(EGG)
+	echo "./$(EGG)" > $(BUILD_ROOT)/$(SNAP)/$(SITE)/setuptools.pth
+	tar -C $(BUILD_ROOT) -cvzf $(SETUPTOOLS)/$(TARBALL) \
+             $(SNAP)/$(SITE)/$(EGG) \
+             $(SNAP)/$(SITE)/setuptools.pth \
+             $(SNAP)/$(PYTHON_BINDIR)/easy_install \
+             $(SNAP)/$(PYTHON_BINDIR)/easy_install-$(PYTHON_VER)
+endif
 
 install: $(TARBALL)
 	cp -p $(TARBALL) $(CHANDLERARCHIVES)
