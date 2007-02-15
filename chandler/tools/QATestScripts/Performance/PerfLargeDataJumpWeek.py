@@ -46,6 +46,16 @@ try:
     User.idle()
     logger.Stop()
 
+    testdate = datetime(2005, 11, 27, tzinfo=ICUtzinfo.default)
+    App_ns.root.SelectedDateChanged(start=testdate)
+    User.idle()
+    
+    logger.Start("Jump calendar by one week2")
+    testdate = datetime(2005, 12, 4, tzinfo=ICUtzinfo.default)
+    App_ns.root.SelectedDateChanged(start=testdate)
+    User.idle()
+    logger.Stop()
+
     # Test Phase: Verification
 
     logger.SetChecked(True)

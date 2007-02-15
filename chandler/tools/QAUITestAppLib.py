@@ -1645,7 +1645,7 @@ class UITestView(object):
         else:
             return False
 
-    def SwitchView(self, viewName):
+    def SwitchView(self, viewName, id=''):
         """
         @type viewName : string
         @param viewName : name of the view to select (CalendarView,TaskView,MailView,AllView)
@@ -1663,7 +1663,7 @@ class UITestView(object):
         else:
             return False
         self.state = viewName
-        if self.logger: self.logger.Start("Switch to %s" % viewName)
+        if self.logger: self.logger.Start("Switch to %s%s" % (viewName, id))
         #process the corresponding event
         App_ns.appbar.press(name=button)
         wx.GetApp().Yield()
@@ -1688,11 +1688,11 @@ class UITestView(object):
         """
         self.SwitchView("MailView")
         
-    def SwitchToAllView(self):
+    def SwitchToAllView(self, id=''):
         """
         Switch to the all view
         """
-        self.SwitchView("AllView")
+        self.SwitchView("AllView", id)
     
     def CheckView(self):
         """

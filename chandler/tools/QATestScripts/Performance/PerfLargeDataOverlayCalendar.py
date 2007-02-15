@@ -40,6 +40,16 @@ try:
     User.idle()
     logger.Stop()
 
+    if clickSucceeded:
+        clickSucceeded = User.emulate_sidebarClick(App_ns.sidebar, "Generated3000", overlay=True)
+        User.idle()
+
+    if clickSucceeded:
+        logger.Start("Overlay calendar2")
+        clickSucceeded = User.emulate_sidebarClick(App_ns.sidebar, "Generated3000", overlay=True)
+        User.idle()
+        logger.Stop()
+
     # Test Phase: Verification
 
     logger.SetChecked(True)

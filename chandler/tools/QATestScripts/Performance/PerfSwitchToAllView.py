@@ -28,7 +28,9 @@ try:
     
     # action
     # switch to all view
-    testView.SwitchToAllView()
+    testView.SwitchToAllView() # 1
+    testView.SwitchToCalView()
+    testView.SwitchToAllView(id="2")
 
     # verification
     # for now, we just assume it worked
