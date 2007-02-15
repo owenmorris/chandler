@@ -433,6 +433,32 @@ class TimeZoneTestCase(unittest.TestCase):
             ICUtzinfo.getInstance("America/Los_Angeles"),
             zone)
 
+    def testExchangeUSEastern(self):
+        zone = self.getICalTzinfo([
+            "BEGIN:VTIMEZONE",
+            "TZID:GMT -0500 (Standard) / GMT -0400 (Daylight)",
+            "BEGIN:STANDARD",
+            "DTSTART:16010101T020000",
+            "TZOFFSETFROM:-0400",
+            "TZOFFSETTO:-0500",
+            "RRULE:FREQ=YEARLY;WKST=MO;INTERVAL=1;BYMONTH=11;BYDAY=1SU",
+            "END:STANDARD",
+            "BEGIN:DAYLIGHT",
+            "DTSTART:16010101T020000",
+            "TZOFFSETFROM:-0500",
+            "TZOFFSETTO:-0400",
+            "RRULE:FREQ=YEARLY;WKST=MO;INTERVAL=1;BYMONTH=3;BYDAY=2SU",
+            "END:DAYLIGHT",
+            "END:VTIMEZONE"])
+        # What timezone is chosen unfortunately depends on the order of
+        # timezones in PyICU.  America/Detroit comes before America/New_York
+        # and their TZ transitions are equivalent in the 21st century.
+        # If a view was passed to convertToICUtzinfo, this would be
+        # America/New_York because it's a well known TZID.
+        self.runConversionTest(
+            ICUtzinfo.getInstance("America/Detroit"),
+            zone)
+
             
 class ICalendarMergeTestCase(SingleRepositoryTestCase):
     ETAG = 0

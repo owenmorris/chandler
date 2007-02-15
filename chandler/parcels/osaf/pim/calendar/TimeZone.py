@@ -338,7 +338,7 @@ def convertToICUtzinfo(dt, view=None):
         # offsets and DST transitions match oldTzinfo.  This is painfully
         # inefficient, but we should do it only once per unrecognized timezone,
         # so optimization seems premature.
-        
+        backup = None
         if icuTzinfo is None:
             if view is not None:
                 info = TimeZoneInfo.get(view)
@@ -366,6 +366,23 @@ def convertToICUtzinfo(dt, view=None):
                     if tzical_tzid is not None:
                         tzid_mapping[tzical_tzid] = icuTzinfo
                     break
+                # sadly, with the advent of the new US timezones, Exchange has
+                # chosen to serialize US timezone DST transitions as if they
+                # began in 1601, so we can't rely on dt.year.  So also try
+                # 2007-2008, but treat any matches as a backup, they're
+                # less reliable, since the VTIMEZONE may not define DST
+                # transitions for 2007-2008.  Keep the first match, since we
+                # process well known timezones first, and there's no way to
+                # distinguish between, say, America/Detroit and America/New_York
+                # in the 21st century.
+                if backup is None:
+                    if vobject.icalendar.tzinfo_eq(test_tzinfo, oldTzinfo,
+                                                   2007, 2008):
+                        backup = test_tzinfo
+        if icuTzinfo is None and backup is not None:
+            icuTzinfo = backup            
+            if tzical_tzid is not None:
+                tzid_mapping[tzical_tzid] = icuTzinfo
         
     # Here, if we have an unknown timezone, we'll turn
     # it into a floating datetime
