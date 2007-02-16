@@ -268,7 +268,7 @@ class RecurringEventTest(testcase.SingleRepositoryTestCase):
         calmod = self.event.getFirstOccurrence().getNextOccurrence()
         # @@@triageChange: this fails when triage automatically creates
         # modifications
-        #self.assertEqual(self.event.modifications, None)
+        #self.assertEqual(len(self.event.modifications), 0)
 
         calmod.changeThis('displayName', uw('Modified occurrence'))
 

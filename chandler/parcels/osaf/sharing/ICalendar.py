@@ -200,8 +200,7 @@ def itemsToVObject(view, items, cal=None, filters=None):
         # end of populateEvent function
 
     def populateModifications(event, cal):
-        for modification in itertools.imap(EventStamp,
-                                           event.modifications or []):
+        for modification in itertools.imap(EventStamp, event.modifications):
             if not modification.isTriageOnlyModification():
                 populateEvent(cal.add('vevent'), modification)
         #end helper functions
@@ -512,7 +511,7 @@ def itemsFromVObject(view, text, coerceTzinfo = None, filters = None,
                             # changing the master to a modification with a
                             # different UUID
                             for mod in itertools.imap(EventStamp,
-                                                eventItem.modifications or []):
+                                                      eventItem.modifications):
                                 # [Bug 7019]
                                 # We need to del these because, in the deferred
                                 # delete case, we would have deferred items

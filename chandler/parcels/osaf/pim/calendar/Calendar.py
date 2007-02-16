@@ -62,7 +62,7 @@ from osaf.pim.stamping import Stamp, has_stamp
 from osaf.pim.notes import Note
 from osaf.pim.calendar import Recurrence
 from osaf.pim.collections import FilteredCollection, IndexDefinition
-from chandlerdb.util.c import isuuid
+from chandlerdb.util.c import isuuid, UUID, Empty
 from osaf.pim.reminders import Remindable, Reminder
 
 from TimeZone import formatTime
@@ -75,7 +75,6 @@ import StringIO
 import logging
 from util import tokenizer
 import operator
-from chandlerdb.util.c import UUID
 
 from i18n import ChandlerMessageFactory as _
 
@@ -464,7 +463,7 @@ class EventStamp(Stamp):
 
     transparency = schema.One(
         TimeTransparencyEnum,
-        initialValue="confirmed"
+        defaultValue="confirmed"
     )
 
     location = schema.One(
@@ -501,7 +500,7 @@ class EventStamp(Stamp):
 
     modifications = schema.Sequence(
         doc = "A list of occurrences that have been modified",
-        defaultValue=None,
+        defaultValue=Empty,
     ) # inverse of modificationFor
 
     modificationFor = schema.One(
@@ -1379,7 +1378,7 @@ class EventStamp(Stamp):
         def checkModifications(event):
             """Return the earliest modification coming before event, or event"""
             earliest = event
-            for mod in itertools.imap(EventStamp, master.modifications or []):
+            for mod in itertools.imap(EventStamp, master.modifications):
                 if (mod.effectiveStartTime < earliest.effectiveStartTime or
                     (mod.effectiveStartTime == earliest.effectiveStartTime and
                      mod.recurrenceID  < earliest.recurrenceID)):
@@ -1822,18 +1821,17 @@ class EventStamp(Stamp):
         # is changed on them and they're earlier/later than the relevant
         # times
         lastPastDone = self.getLastPastDone()
-        if master.modifications is not None:
-            for mod in [EventStamp(i) for i in master.modifications]:
-                if (mod != firstOccurrence and (
-                    (mod.itsItem.triageStatus == TriageEnum.done and
-                     lastPastDone is not None and
-                     mod.startTime < lastPastDone) or
-                    (mod.itsItem.triageStatus == TriageEnum.later and
-                     firstFutureLater is not None and 
-                     mod.startTime > firstFutureLater))):
+        for mod in map(EventStamp, master.modifications):
+            if (mod != firstOccurrence and (
+                (mod.itsItem.triageStatus == TriageEnum.done and
+                 lastPastDone is not None and
+                 mod.startTime < lastPastDone) or
+                (mod.itsItem.triageStatus == TriageEnum.later and
+                 firstFutureLater is not None and 
+                 mod.startTime > firstFutureLater))):
 
-                    if mod.isTriageOnlyModification():
-                        mod.unmodify()
+                if mod.isTriageOnlyModification():
+                    mod.unmodify()
 
     def isTriageOnlyModification(self):
         item = self.itsItem
@@ -1931,7 +1929,7 @@ class EventStamp(Stamp):
             # getMaster first.  Ignoring collection membership changes for
             # non-masters prevents painful perpetual loops
             return
-        for event in self.modifications or []:
+        for event in self.modifications:
             # @@@FIXME really slow hack, we could use op to be much more
             # precise about this.
             self._copyCollections(self, event, removeOld=True)

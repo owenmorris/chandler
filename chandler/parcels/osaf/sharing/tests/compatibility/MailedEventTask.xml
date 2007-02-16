@@ -3,8 +3,6 @@
 <MailedEventTask version='3' class='osaf.pim.MailedEventTask' uuid='711cc574-4cff-11db-af32-c2da3320d5d3'>
    <body mimetype='text/plain' encoding='utf-8'></body>
    <createdOn>2006-09-25 18:36:33.571631 US/Pacific</createdOn>
-   <tags>
-   </tags>
    <icalUID>711cc574-4cff-11db-af32-c2da3320d5d3</icalUID>
    <toAddress>
    </toAddress>

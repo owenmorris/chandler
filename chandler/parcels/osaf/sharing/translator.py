@@ -484,7 +484,7 @@ class PIMTranslator(eim.Translator):
             transparency                                # status
         )
         
-        for mod_item in (event.modifications or []):
+        for mod_item in (event.modifications):
             mod_event = pim.EventStamp(mod_item)
             if mod_event.isTriageOnlyModification():
                 # don't treat triage-only modifications as modifications worth

@@ -25,7 +25,7 @@ from application import schema
 from repository.schema.Kind import Kind
 import repository.item.Item as Item
 from chandlerdb.item.ItemError import NoLocalValueForAttributeError
-from chandlerdb.util.c import Nil
+from chandlerdb.util.c import Empty, Nil
 from osaf.pim.reminders import Remindable, isDead
 import logging
 from i18n import ChandlerMessageFactory as _
@@ -131,7 +131,7 @@ class ContentItem(Remindable):
 
     modifiedFlags = schema.Many(
         Modification,
-        initialValue=set([]),
+        defaultValue=Empty,
         description='Used to track the modification state of the item'
     )
     
@@ -197,23 +197,23 @@ class ContentItem(Remindable):
             "merely 'fyi'. This attribute is also used in the mail schema, so "
             "we shouldn't make any changes here that would break e-mail "
             "interoperability features.",
-        initialValue="normal",
+        defaultValue="normal",
     )
 
-    mine = schema.One(schema.Boolean, initialValue=True)
+    mine = schema.One(schema.Boolean, defaultValue=True)
 
-    private = schema.One(schema.Boolean, initialValue=False)
+    private = schema.One(schema.Boolean, defaultValue=False)
 
     read = schema.One(
         schema.Boolean,
-        initialValue=False,
+        defaultValue=False,
         doc="A flag indicating whether the this item has "
             "been 'viewed' by the user"
     )
 
     needsReply = schema.One(
         schema.Boolean,
-        initialValue=False,
+        defaultValue=False,
         doc="A flag indicating that the user wants to reply to this item"
     )
 
@@ -223,17 +223,10 @@ class ContentItem(Remindable):
         doc="DateTime this item was created"
     )
 
-    tags = schema.Sequence(
-        #'Tag',
-        description='All the Tags associated with this ContentItem',
-        #inverse='items',
-        initialValue=[]
-    )
-
     notifications = schema.Sequence(
         #'UserNotification',
         description='All notifications for this ContentItem',
-        initialValue=[]
+        defaultValue=Empty
     )
 
     # "Section" triage status is used for sorting
@@ -293,7 +286,7 @@ class ContentItem(Remindable):
         sharing = schema.Cloud(
             literal = ["displayName", body, createdOn,
                        "description", triageStatus, triageStatusChanged],
-            byValue = ['tags', lastModifiedBy]
+            byValue = [lastModifiedBy]
         ),
         copying = schema.Cloud()
     )
@@ -463,7 +456,10 @@ class ContentItem(Remindable):
                 currentModFlags.remove(Modification.edited)
             del self.error
 
-        currentModFlags.add(modType)
+        if not currentModFlags:
+            self.modifiedFlags = set([modType])
+        else:
+            currentModFlags.add(modType)
         self.lastModification = modType
         self.lastModified = when or datetime.now(ICUtzinfo.default)
         self.lastModifiedBy = who # None => me
@@ -656,32 +652,6 @@ class ContentItem(Remindable):
                 if not isAttrMod(attribute):
                     return False
         return True
-
-
-
-class Tag(ContentItem):
-
-    schema.kindInfo(
-        description =
-            "A generic tag object that can be associated with any ContentItem"
-    )
-
-    items = schema.Sequence(
-        description='All the ContentItems associated with this Tag',
-        inverse=ContentItem.tags,
-        initialValue=[]
-    )
-
-    supertags = schema.Sequence(
-        description='Allows a tag hierarchy',
-        initialValue=[]
-    )
-
-    subtags = schema.Sequence(
-        description='Allows a tag hierarchy',
-        inverse=supertags,
-        initialValue=[]
-    )
 
 
 class Project(ContentItem):

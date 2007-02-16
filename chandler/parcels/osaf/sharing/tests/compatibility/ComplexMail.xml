@@ -7,8 +7,6 @@
          <fullName>Anthony Baxter</fullName>
          <body mimetype='text/plain' encoding='utf-8'></body>
          <createdOn>2006-09-14 12:48:48.000000 US/Pacific</createdOn>
-         <tags>
-         </tags>
          <triageStatus>now</triageStatus>
          <triageStatusChanged>-1158288128.0</triageStatusChanged>
       </EmailAddress>
@@ -31,8 +29,6 @@
          <mimeType>application/octet-stream</mimeType>
          <body mimetype='text/plain' encoding='utf-8'></body>
          <createdOn>2006-09-14 12:48:48.228990 US/Pacific</createdOn>
-         <tags>
-         </tags>
          <triageStatus>now</triageStatus>
          <triageStatusChanged>-1158288128.0</triageStatusChanged>
       </MIMEBinary>
@@ -42,8 +38,6 @@
          <mimeType>text/html</mimeType>
          <body mimetype='text/plain' encoding='utf-8'>Jmx0O2JyJmd0OyBUZXN0IFR3byZsdDsvYnImZ3Q7Cg==</body>
          <createdOn>2006-09-14 12:48:48.232830 US/Pacific</createdOn>
-         <tags>
-         </tags>
          <triageStatus>now</triageStatus>
          <triageStatusChanged>-1158292128.0</triageStatusChanged>
       </MIMEText>
@@ -51,8 +45,6 @@
    <mimeType>message/rfc822</mimeType>
    <body mimetype='text/plain' encoding='utf-8'>VGhpcyBzaG91bGQgYmUgaW4gdGhlIGJvZHkgb2YgdGhlIGVtYWlsCgotLQpBbnRob255IEJheHRlciAgICAgJmx0O2FudGhvbnlAaW50ZXJsaW5rLmNvbS5hdSZndDsKSXQncyBuZXZlciB0b28gbGF0ZSB0byBoYXZlIGEgaGFwcHkgY2hpbGRob29kLgo=</body>
    <createdOn>2006-08-27 12:1:0.000000 US/Pacific</createdOn>
-   <tags>
-   </tags>
    <triageStatus>now</triageStatus>
    <triageStatusChanged>-1158292128.0</triageStatusChanged>
 </MailMessage>

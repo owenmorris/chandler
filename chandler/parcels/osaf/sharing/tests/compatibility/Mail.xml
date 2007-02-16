@@ -7,8 +7,6 @@
          <fullName>Sum Won</fullName>
          <body mimetype='text/plain' encoding='utf-8'></body>
          <createdOn>2006-09-10 17:3:11.000000 US/Pacific</createdOn>
-         <tags>
-         </tags>
          <triageStatus>done</triageStatus>
          <triageStatusChanged>-1158958218.0</triageStatusChanged>
       </EmailAddress>
@@ -19,8 +17,6 @@
          <fullName>Sum Wonelse</fullName>
          <body mimetype='text/plain' encoding='utf-8'></body>
          <createdOn>2006-09-10 17:3:9.000000 US/Pacific</createdOn>
-         <tags>
-         </tags>
          <triageStatus>done</triageStatus>
          <triageStatusChanged>-1158958391.0</triageStatusChanged>
       </EmailAddress>
@@ -33,8 +29,6 @@
    <displayName>This is the subject</displayName>
    <body mimetype='text/plain' encoding='utf-8'>VGhpcyBpcyBhIGhpZ2hseQpwb2lnbmFudCBlbWFpbCBtZXNzYWdlCg==</body>
    <createdOn>2006-08-27 12:1:0.000000 US/Pacific</createdOn>
-   <tags>
-   </tags>
    <triageStatus>later</triageStatus>
    <triageStatusChanged>-1159945337.0</triageStatusChanged>
    <mimeParts>

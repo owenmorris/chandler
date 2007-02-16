@@ -18,7 +18,7 @@
 #
 from items import (
     ContentKind, ContentItem, ImportanceEnum, Group, Principal, 
-    Project, Tag, TriageEnum, getTriageStatusName, getNextTriageStatus,
+    Project, TriageEnum, getTriageStatusName, getNextTriageStatus,
     Modification, UserNotification, isDead
 )
 from collections import (
@@ -59,11 +59,11 @@ class NonOccurrenceFilter(Item):
 
     def isNonOccurrence(self, view, uuid):
         occurrences, modificationFor, occurrenceFor = view.findValues(uuid,
-                           (EventStamp.occurrences.name, None),
+                           (EventStamp.occurrences.name, ()),
                            (EventStamp.modificationFor.name, None),
                            (EventStamp.occurrenceFor.name, None))
 
-        if occurrences is not None and len(occurrences) > 0:
+        if occurrences:
             return True # a master
         elif not modificationFor and occurrenceFor:
             return False # a plain occurrence, not a modification

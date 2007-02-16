@@ -8,16 +8,12 @@ uuid='a54d7ff0-23e2-11db-9020-ae744e613304'>
     <displayName>Somebody working from New York</displayName>
     <body mimetype='text/plain' encoding='utf-8'>V29ya2luZyBmcm9tIE5ldyBZb3JrIGFnYWluIGZyb20gSnVseSAyNCAtIEF1Z3VzdCA0dGggOm8p</body>
     <createdOn>2006-08-04 10:57:8.390711 PST</createdOn>
-    <tags>
-    </tags>
     <fromAddress>
        <EmailAddress class='osaf.pim.mail.EmailAddress' uuid='9a1666b0-23e2-11db-9020-ae744e613304'>
           <emailAddress>foo@example.org</emailAddress>
           <fullName>Somebody Somebody</fullName>
           <body mimetype='text/plain' encoding='utf-8'></body>
           <createdOn>2006-08-04 10:56:49.232181 PST</createdOn>
-          <tags>
-          </tags>
        </EmailAddress>
     </fromAddress>
     <toAddress>
@@ -26,8 +22,6 @@ uuid='a54d7ff0-23e2-11db-9020-ae744e613304'>
           <fullName></fullName>
           <body mimetype='text/plain' encoding='utf-8'></body>
           <createdOn>2006-08-04 10:56:54.796737 PST</createdOn>
-          <tags>
-          </tags>
        </EmailAddress>
     </toAddress>
     <ccAddress>
@@ -43,8 +37,6 @@ uuid='a54d7ff0-23e2-11db-9020-ae744e613304'>
           <mimeType>text/calendar</mimeType>
           <body mimetype='text/plain' encoding='utf-8'>QkVHSU46VkNBTEVOREFSDQpWRVJTSU9OOjIuMA0KTUVUSE9EOlJFUVVFU1QNClBST0RJRDotLy9QWVZPQkpFQ1QvL05PTlNHTUwgVmVyc2lvbiAxLy9FTg0KQkVHSU46VkVWRU5UDQpVSUQ6Y2ZkZTIyY2EtMTIwNy0xMWRiLWE0NDctYTUwMGFmZGNjMGNjDQpEVFNUQVJUO1ZBTFVFPURBVEU6MjAwNjA3MjQNCkRURU5EO1ZBTFVFPURBVEU6MjAwNjA4MDUNCkRFU0NSSVBUSU9OOldvcmtpbmcgZnJvbSBOZXcgWW9yayBhZ2FpbiBmcm9tIEp1bHkgMjQgLSBBdWd1c3QgNHRoIDpvKQ0KU1RBVFVTOkNBTkNFTExFRA0KU1VNTUFSWTpNaW1pIHdvcmtpbmcgZnJvbSBOZXcgWW9yaw0KRU5EOlZFVkVOVA0KRU5EOlZDQUxFTkRBUg0K</body>
           <createdOn>2006-08-04 10:57:8.544080 PST</createdOn>
-          <tags>
-          </tags>
        </MIMEText>
     </mimeParts>
     <mimeType>message/rfc822</mimeType>

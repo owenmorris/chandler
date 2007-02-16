@@ -7,8 +7,6 @@
       <ListCollection class='osaf.pim.collections.ListCollection' uuid='d1511b12-47ea-11db-a812-0016cbca6aed'>
          <body mimetype='text/plain' encoding='utf-8'></body>
          <createdOn>2005-04-11 8:12:33.000000 US/Pacific</createdOn>
-         <tags>
-         </tags>
          <triageStatus>now</triageStatus>
          <triageStatusChanged>-1158191886.0</triageStatusChanged>
       </ListCollection>
@@ -33,8 +31,6 @@
    <displayName>Shared Collection</displayName>
    <body mimetype='text/plain' encoding='utf-8'></body>
    <createdOn>2006-08-27 12:1:0.000000 US/Pacific</createdOn>
-   <tags>
-   </tags>
    <triageStatus>now</triageStatus>
    <triageStatusChanged>-1158704779.0</triageStatusChanged>
 </Share>

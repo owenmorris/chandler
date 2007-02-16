@@ -1826,7 +1826,7 @@ class CommunicationStatus(schema.Annotation):
         (MailStamp.fromMe, False),
         (MailStamp.toMe, False),
         (items.ContentItem.needsReply, False),
-        (items.ContentItem.read, True),
+        (items.ContentItem.read, False),
         (items.ContentItem.error, None)
     )
     status = schema.Calculated(
