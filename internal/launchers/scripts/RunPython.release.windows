@@ -1,6 +1,6 @@
 @echo off
 setlocal
-if "%CHANDLERHOME%"=="" set CHANDLERHOME=%cd%
+if "%CHANDLERHOME%"=="" call :dirname %~dp0.
 if "%CHANDLERBIN%"=="" set CHANDLERBIN=%CHANDLERHOME%
 
 echo CHANDLERHOME is "%CHANDLERHOME%"
@@ -13,4 +13,11 @@ set PYTHONPATH=%CHANDLERHOME%;%CHANDLERHOME%\parcels;%CHANDLERHOME%\plugins
 if not "%PARCELPATH%"=="" set PYTHONPATH=%PYTHONPATH%;%PARCELPATH%
 
 "%CHANDLERBIN%\release\bin\python.exe" %*
+goto end
+
+:dirname
+set CHANDLERHOME=%~dp1
+goto end
+
+:end
 endlocal

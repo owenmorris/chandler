@@ -1,10 +1,14 @@
 @echo off
 setlocal
-if "%CHANDLERHOME%"=="" set CHANDLERHOME=%cd%
+if "%CHANDLERHOME%"=="" call :dirname %~dp0.
 if "%CHANDLERBIN%"=="" set CHANDLERBIN=%CHANDLERHOME%
-cd "%CHANDLERHOME%"
-path %CHANDLERBIN%\debug\bin
-set LC_PATH=%CHANDLERHOME%\debug\share\locale
-set PYTHONPATH=%CHANDLERHOME%;%CHANDLERHOME%\parcels
-"%CHANDLERBIN%"\debug\bin\python_d.exe "%CHANDLERHOME%"\Chandler.py %*
+
+call "%~dp0\RunPython.bat" %OPTIMIZE% "%CHANDLERHOME%\Chandler.py" %*
+goto end
+
+:dirname
+set CHANDLERHOME=%~dp1
+goto end
+
+:end
 endlocal
