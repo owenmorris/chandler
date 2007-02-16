@@ -2,7 +2,7 @@
 
 if [ "$CHANDLERHOME" = "" ]
 then
-    export CHANDLERHOME=`pwd`
+    export CHANDLERHOME=$(dirname "$(dirname "${0}")")
 fi
 
 if [ "$CHANDLERBIN" = "" ]
