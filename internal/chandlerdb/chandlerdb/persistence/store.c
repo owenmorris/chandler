@@ -43,6 +43,7 @@ static PyObject *t_transaction__getTxn(t_transaction *self, void *data);
 static PyMemberDef t_transaction_members[] = {
     { "_status", T_UINT, offsetof(t_transaction, status), 0, "" },
     { "_count", T_UINT, offsetof(t_transaction, count), 0, "" },
+    { "_mvcc", T_UINT, offsetof(t_transaction, mvcc), 0, "" },
     { NULL, 0, 0, 0, NULL }
 };
 
@@ -117,14 +118,14 @@ static PyObject *t_transaction_new(PyTypeObject *type,
 static int t_transaction_init(t_transaction *self,
                               PyObject *args, PyObject *kwds)
 {
-    PyObject *store, *txn;
+    PyObject *store, *txn, *mvcc;
     int status;
 
-    if (!PyArg_ParseTuple(args, "OOi", &store, &txn, &status))
+    if (!PyArg_ParseTuple(args, "OOiO", &store, &txn, &status, &mvcc))
         return -1;
 
     txn = PyObject_CallMethodObjArgs((PyObject *) self, start_NAME,
-                                     store, txn, NULL);
+                                     store, txn, mvcc, NULL);
     if (txn)
     {
         self->txn = txn;

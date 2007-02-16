@@ -87,6 +87,7 @@ typedef struct {
     PyObject *txn;
     int status;
     int count;
+    int mvcc;
 } t_transaction;
 
 typedef struct {
