@@ -866,11 +866,12 @@ class DBRepository(OnDemandRepository):
 
 class DBTransaction(Transaction):
 
-    def start(self, store, _txn):
+    def start(self, store, _txn, _mvcc):
 
         if store._ramdb:
             return None
-        elif store._mvcc:
+        elif _mvcc and store._mvcc:
+            self._mvcc = True
             return store.repository._env.txn_begin(_txn, DBEnv.DB_TXN_SNAPSHOT)
         else:
             return store.repository._env.txn_begin(_txn)
@@ -1166,14 +1167,14 @@ class DBStore(Store):
 
         return self._commits.getCommit(version)
 
-    def startTransaction(self, view, nested=False):
+    def startTransaction(self, view, nested=False, nomvcc=False):
 
         locals = self._threaded
         txn = locals.get('txn')
 
         if txn is None:
             status = Transaction.TXN_STARTED
-            locals['txn'] = DBTransaction(self, None, status)
+            locals['txn'] = DBTransaction(self, None, status, not nomvcc)
         elif nested:
             txns = locals.get('txns')
             if txns is None:
@@ -1181,7 +1182,7 @@ class DBStore(Store):
             else:
                 locals['txns'].append(txn)
             status = Transaction.TXN_STARTED | Transaction.TXN_NESTED
-            locals['txn'] = DBTransaction(self, txn._txn, status)
+            locals['txn'] = DBTransaction(self, txn._txn, status, not nomvcc)
         else:
             status = 0
             txn._count += 1
@@ -1379,8 +1380,8 @@ class DBIndexerThread(RepositoryThread):
                 lock = store.acquireLock()
 
                 try:
-                    txnStatus = view._startTransaction()
-                
+                    txnStatus = view._startTransaction(False, True)
+
                     for (uItem, ver, uKind, status, uParent, pKind,
                          dirties) in items.iterHistory(view, version - 1,
                                                        version):

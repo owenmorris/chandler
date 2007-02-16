@@ -157,9 +157,9 @@ class DBRepositoryView(OnDemandRepositoryView):
 
         return DBLob
 
-    def _startTransaction(self, nested=False):
+    def _startTransaction(self, nested=False, nomvcc=False):
 
-        return self.store.startTransaction(self, nested)
+        return self.store.startTransaction(self, nested, nomvcc)
 
     def _commitTransaction(self, status):
 
