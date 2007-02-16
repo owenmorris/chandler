@@ -89,7 +89,6 @@ src=chandler
 dest=
 Chandler.py
 version.py
-site.py
 LICENSE.txt
 NOTICE.txt
 WingLinuxRelease.wpr
@@ -120,11 +119,4 @@ src=chandler/release
 dest=release
 RunChandler
 RunPython
-
-# Copy the parcel egg files
-recursive=no
-src=chandler
-dest=
-glob=*.pth,*.egg
-egg=chandler
 

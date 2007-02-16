@@ -76,7 +76,6 @@ src=chandler
 dest=Contents/Resources
 Chandler.py
 version.py
-site.py
 LICENSE.txt
 NOTICE.txt
 WingMacDebug.wpr
@@ -122,11 +121,4 @@ recursive=yes
 Headers
 Resources
 Versions
-
-# Copy the parcel egg files
-recursive=no
-src=chandler
-dest=Contents/Resources
-glob=*.pth,*.egg
-egg=chandler
 

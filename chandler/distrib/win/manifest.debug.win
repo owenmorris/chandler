@@ -76,7 +76,6 @@ src=chandler
 dest=
 Chandler.py
 version.py
-site.py
 LICENSE.txt
 NOTICE.txt
 WingWindowsDebug.wpr
@@ -113,11 +112,4 @@ src=chandler/debug
 dest=debug
 RunChandler.bat
 RunPython.bat
-
-# Copy the parcel egg files
-recursive=no
-src=chandler
-dest=
-glob=*.pth,*.egg
-egg=chandler
 
