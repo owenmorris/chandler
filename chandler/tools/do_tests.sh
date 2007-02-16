@@ -183,9 +183,9 @@ fi
   # the EXCLUDES array is then walked and the length of the
   # directory is calculated - beats doing it by hand and making a mistake
 
-EXCLUDES=("$CHANDLERBIN/release" "$CHANDLERBIN/debug" "$C_DIR/tools" "$C_DIR/util" "$C_DIR/projects")
-L_EXCLUDES=(0 0 0 0 0)
-for item in 0 1 2 3 4; do
+EXCLUDES=("$CHANDLERBIN/release" "$CHANDLERBIN/debug" "$C_DIR/tools" "$C_DIR/util" "$C_DIR/projects" "$C_DIR/plugins")
+L_EXCLUDES=(0 0 0 0 0 0)
+for item in 0 1 2 3 4 5; do
     L_EXCLUDES[$item]=${#EXCLUDES[$item]}
 done
 
@@ -254,7 +254,7 @@ if [ -n "$TEST_TO_RUN" ]; then
 else
     if [ "$RUN_UNIT" = "yes" ]; then
         DIRS=`find $C_DIR -type d -name tests -print`
-        SETUPS=`find $C_DIR -type f -name 'setup.py' -print`
+        SETUPS=`find $C_DIR/projects -type f -name 'setup.py' -print`
 
           # this code walks thru all the dirs with "tests" in their name
           # and then compares them to the exclude dir array by
@@ -264,7 +264,7 @@ else
         for item in $DIRS ; do
             FILEPATH=${item%/*}
             EXCLUDED=no
-            for index in 0 1 2 3 4 ; do
+            for index in 0 1 2 3 4 5 ; do
                 exclude=${EXCLUDES[$index]}
                 len=${L_EXCLUDES[$index]}
 
@@ -319,6 +319,12 @@ else
                 done
             done
 
+            if [ "$OSTYPE" = "cygwin" ]; then
+                C_HOME=`cygpath -aw $C_DIR`
+            else
+                C_HOME=$C_DIR
+            fi
+
             for setup in $SETUPS ; do
                 if [ "$CONTINUE" == "true" ]; then
 
@@ -326,7 +332,7 @@ else
                     echo Running $setup | tee -a $DOTESTSLOG
 
                     cd `dirname $setup`
-                    $CHANDLERBIN/$mode/$RUN_PYTHON `basename $setup` test 2>&1 | tee $TESTLOG
+                    CHANDLERHOME=$C_HOME $CHANDLERBIN/$mode/$RUN_PYTHON `basename $setup` test 2>&1 | tee $TESTLOG
                     # scan the test output for the success messge "OK"
                     RESULT=`grep '^OK' $TESTLOG`
 
