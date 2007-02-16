@@ -3,7 +3,7 @@
 
 
 #
-#   Copyright (c) 2006 Open Source Applications Foundation
+#   Copyright (c) 2006-2007 Open Source Applications Foundation
 #   Copyright (c) 2004-2005 Mike Taylor
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
@@ -319,26 +319,31 @@ class perf:
     # target time in seconds
     # official test name
     self.testTimeName = (
-        ('startup',                                                             10, '#1 Startup'),
-        ('new_event_from_file_menu_for_performance.event_creation',             1,  '#2 New event (menu)'),
-        ('new_event_by_double_clicking_in_the_cal_view_for_performance.double_click_in_the_calendar_view', 0.2, '#3 New event (double click)'),
-        ('test_new_calendar_for_performance.collection_creation',               1, '#4 New calendar'),
-        ('importing_3000_event_calendar.import',                                30, '#5 Import 3k event calendar'),
-        ('startup_with_large_calendar',                                         10, '#6 Startup with 3k'),
+        ('startup',                                                            10,   '#1 Startup'),
+        ('new_event_from_file_menu_for_performance.event_creation',             1,   '#2 New event (menu)'),
+        ('new_event_by_double_clicking_in_the_cal_view_for_performance.double_click_in_the_calendar_view', 0.2, '#3 New event (dbl click)'),
+        ('test_new_calendar_for_performance.collection_creation',               1,   '#4 New calendar'),
+        ('importing_3000_event_calendar.import',                               30,   '#5 Import 3k event calendar'),
+        ('startup_with_large_calendar',                                        10,   '#6 Startup with 3k'),
         ('creating_new_event_from_the_file_menu_after_large_data_import.event_creation', 1, '#7 New event (menu) with 3k'),
-        ('creating_a_new_event_in_the_cal_view_after_large_data_import.double_click_in_the_calendar_view', 0.2, '#8 New event (double click) with 3k'),
-        ('creating_a_new_calendar_after_large_data_import.collection_creation', 1, '#9 New calendar with 3k'),
-        ('switching_to_all_view_for_performance.switch_to_allview',             1, 'Switch Views'),
+        ('creating_a_new_event_in_the_cal_view_after_large_data_import.double_click_in_the_calendar_view', 0.2, '#8 New event (dbl click) with 3k'),
+        ('creating_a_new_calendar_after_large_data_import.collection_creation', 1,   '#9 New calendar with 3k'),
+        ('switching_to_all_view_for_performance.switch_to_allview',             1,   'Switch to All View'),
+        ('switching_to_all_view_for_performance.switch_to_allview2',            0.5, 'Switch to All View 2nd time'),
         ('perf_stamp_as_event.change_the_event_stamp',                          0.5, 'Stamp'),
-        ('switching_view_after_importing_large_data.switch_to_allview',         1, 'Switch Views with 3k'),
+        ('switching_view_after_importing_large_data.switch_to_allview',         1,   'Switch Views with 3k'),
+        ('switching_view_after_importing_large_data.switch_to_allview2',        0.5, 'Switch Views with 3k 2nd time'),
         ('stamping_after_large_data_import.change_the_event_stamp',             0.5, 'Stamp with 3k'),
-        ('scroll_calendar_one_unit.scroll_calendar_one_unit',                   1.0, 'Scroll calendar with 3k'),
-        ('scrolling_a_table.scroll_table_25_scroll_units',                      1.0, 'Scroll table with 3k'),
-        ('jump_from_one_week_to_another.jump_calendar_by_one_week',             0.1, 'Jump calendar by one week with 3k'),
-        ('overlay_calendar.overlay_calendar',                                   1, 'Overlay calendar with 3k'),
-        ('switch_calendar.switch_calendar',                                     1, 'Switch calendar with 3k'),
-        ('perflargedatasharing.publish',                                        1, 'Publish calendar with 3k'),
-        ('perflargedatasharing.subscribe',                                      1, 'Subscribe to calendar with 3k'),
+        ('scroll_calendar_one_unit.scroll_calendar_one_unit',                   1,   'Scroll calendar with 3k'),
+        ('scrolling_a_table.scroll_table_25_scroll_units',                      1,   'Scroll table with 3k'),
+        ('jump_from_one_week_to_another.jump_calendar_by_one_week',             0.1, 'Jump week with 3k'),
+        ('jump_from_one_week_to_another.jump_calendar_by_one_week2',            0.1, 'Jump week with 3k 2nd time'),
+        ('overlay_calendar.overlay_calendar',                                   1,   'Overlay calendar with 3k'),
+        ('overlay_calendar.overlay_calendar2',                                  0.5, 'Overlay calendar with 3k 2nd time'),
+        ('switch_calendar.switch_calendar',                                     1,   'Switch calendar with 3k'),
+        ('switch_calendar.switch_calendar2',                                    0.5, 'Switch calendar with 3k 2nd time'),
+        ('perflargedatasharing.publish',                                        1,   'Publish calendar with 3k'),
+        ('perflargedatasharing.subscribe',                                      1,   'Subscribe to calendar with 3k'),
         ('resize_app_in_calendar_mode.resize_app_in_calendar_mode',             0.5, 'Resize calendar with 3k'),
         )
 
@@ -541,6 +546,8 @@ class perf:
         for line in file(datafile):
           try:
             (itemDate, itemTime, testname, revision, runtime) = string.split(string.lower(line[:-1]), '|')
+
+            int(revision) # This will raise for bogus revisions
 
             itemDateTime = datetime.datetime(int(itemDate[:4]), int(itemDate[4:6]), int(itemDate[6:8]), int(itemTime[:2]), int(itemTime[2:4]), int(itemTime[4:6]))
 
