@@ -1094,7 +1094,13 @@ class ChoiceAttributeEditor(BasePermanentAttributeEditor):
         
             try:
                 choiceIndex = self.item.getAttributeAspect(self.attributeName, 'type').values.index(value)
-            except AttributeError:
+            except (AttributeError, ValueError):
+                # @@@ [grant] The ValueError shouldn't really happen here. But
+                # sometimes this code is reached with a value of None, via
+                # BeginControlEdit(): I think that what's going on is that
+                # when you switch items in the detail view, BeginControlEdit()
+                # is called before the various blocks get a chance to
+                # hide themselves via shouldShow().
                 choiceIndex = 0
             control.Select(choiceIndex)
             

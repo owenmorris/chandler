@@ -42,6 +42,15 @@ class StampItem(schema.AnnotationItem):
 
 class StampClass(schema.AnnotationClass):
     """Metaclass for stamp types"""
+
+    def __init__(cls, name, bases, cdict):
+        cls.__initialValues__ = iv = []
+        for name,ob in cdict.items():
+            if isinstance(ob,schema.Descriptor) and hasattr(ob,'initialValue'):
+                iv.append((name, ob.initialValue))
+                del ob.initialValue
+        super(StampClass,cls).__init__(name, bases, cdict)
+
     def _create_schema_item(cls, view):
         return StampItem(None, view['Schema'])
         
@@ -104,6 +113,12 @@ class Stamp(schema.Annotation):
                     
             new_stamp_types = new_stamp_types.union(self.stamp_types)
         
+        for cls in self.__class__.__mro__:
+            # Initialize values for annotation attributes
+            for attr, val in getattr(cls,'__initialValues__',()):
+                if not hasattr(self, attr):
+                    setattr(self, attr, val)
+            
         if self.__use_collection__:
             stamped = schema.itemFor(self.__class__,
                                      self.itsItem.itsView).stampedItems

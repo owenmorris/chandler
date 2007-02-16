@@ -150,6 +150,20 @@ class Descriptor(ActiveDescriptor,CDescriptor):
             if _target_type(cls) and self.inverse is not None:
                 if set_type:
                     self.inverse.type = _target_type(cls)
+                if self.inverse.name is None and self.type is not None:
+                    self.inverse.annotates = (self.type,)
+                    cls = self.owner
+                    self.inverse.activateInClass(
+                        cls, "%s.%s.%s.inverse" % (
+                            parcel_name(cls.__module__), cls.__name__,
+                            self.name.split('.')[-1]
+                        ), False
+                    )
+            if '.' in name and hasattr(self,'initialValue'):
+                raise TypeError(
+                    "anonymous or annotation attribute %r cannot have"
+                    " an initialValue" % self
+                )
 
     def _setattr(self,attr,value):
         """Private routine allowing bypass of normal setattr constraints"""
@@ -260,16 +274,6 @@ class Descriptor(ActiveDescriptor,CDescriptor):
                 setattr(attr,aspect,val)
 
         if not hasattr(self,'otherName') and self.inverse is not None:
-            if self.inverse.name is None:
-                typ = self.type or Base
-                self.inverse.annotates = (typ,)
-                cls = self.owner
-                self.inverse.activateInClass(
-                    cls, "%s.%s.%s.inverse" % (
-                        parcel_name(cls.__module__), cls.__name__,
-                        self.name.split('.')[-1]
-                    ), False
-                )
             attr.otherName = self.inverse.name
 
         if not self._frozen:

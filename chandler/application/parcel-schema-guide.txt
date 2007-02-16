@@ -469,14 +469,25 @@ point to a new attribute descriptor of the desired cardinality (``One`` or
 You *must* set the type of the main attribute (``attendees`` in this case), so
 that the schema API will know what type the anonymous inverse attribute
 should be attached to (``Person`` in this case).  Both sides of the
-bidirectional reference can include a ``description``, ``initialValue``, or any
-of the other standard attribute descriptor arguments.  (See the API Details
-section on `Attribute Descriptors`_, below, for a more complete list.)
+bidirectional reference can include any of the standard attribute descriptor
+arguments.  (See the API Details section on `Attribute Descriptors`_, below,
+for a more complete list.)  You can't, however, define an ``initialValue`` for
+an anonymous attribute::
 
-You can't tell from the example above, but the ``inverse`` attribute actually
-gets attached to the ``Person`` kind, and the ``Joe`` item actually has an
-annotation attribute pointing to ``joes_school``.  You can get, set, or delete
-its value, as long as you know its automatically-generated attribute name::
+    >>> class Course(schema.Item):  # doctest: +NORMALIZE_WHITESPACE
+    ...     teacher = schema.One(
+    ...         Person, inverse=schema.Sequence(initialValue=[])
+    ...     )
+    Traceback (most recent call last):
+      ...
+    TypeError: anonymous or annotation attribute ...teacher.inverse... cannot
+               have an initialValue
+
+By the way, you can't tell from the example above, but the ``inverse``
+attribute actually gets attached to the ``Person`` kind, and the ``Joe`` item
+actually has an annotation attribute pointing to ``joes_school``.  You can get,
+set, or delete its value, as long as you know its automatically-generated
+attribute name::
 
     >>> getattr(Joe, 'application.tests.School.attendees.inverse')
     <School ... Hobart's ...>

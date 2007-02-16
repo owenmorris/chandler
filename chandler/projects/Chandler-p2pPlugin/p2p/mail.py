@@ -57,8 +57,8 @@ def canonize(id, server):
 
 class MailAccount(Account):
 
-    smtp = schema.One(inverse=schema.Sequence())
-    imap = schema.One(inverse=schema.Sequence())
+    smtp = schema.One(schema.Item, inverse=schema.Sequence())
+    imap = schema.One(schema.Item, inverse=schema.Sequence())
 
     def __init__(self, *args, **kwds):
 

@@ -32,7 +32,7 @@ import items, notes, stamping, collections
 import email.Utils as Utils
 import re as re
 import chandlerdb.item.ItemError as ItemError
-from chandlerdb.util.c import UUID
+from chandlerdb.util.c import UUID, Empty
 import PyICU
 
 from i18n import ChandlerMessageFactory as _
@@ -301,7 +301,10 @@ def checkIfToMe(mailStamp, type):
         #invalid type passed
         return
 
-    if found != mailStamp.toMe:
+    # Even though 'toMe' has an initialValue, it may not have
+    # been set when this code is called (e.g. from a schema.observer
+    # during stamp addition).
+    if found != getattr(mailStamp, 'toMe', False):
         mailStamp.toMe = found
 
 def checkIfFromMe(mailStamp, type):
@@ -328,7 +331,10 @@ def checkIfFromMe(mailStamp, type):
         #invalid type passed
         return
 
-    if found != mailStamp.fromMe:
+    # Even though 'fromMe' has an initialValue, it may not have
+    # been set when this code is called (e.g. from a schema.observer
+    # during stamp addition).
+    if found != getattr(mailStamp, 'fromMe', False):
         mailStamp.fromMe = found
 
 def getCurrentSMTPAccount(view, uuid=None, includeInactives=False):
@@ -953,9 +959,6 @@ class MailStamp(stamping.Stamp):
         we need to include attachments by cloud, and not by value.
       - Really not sure what to do with the 'downloadAccount' attribute
         and how it should be included in the cloud.  For now it's byValue.
-      - The modelling of the various subclasses of MIMEBase as Annotations
-        seems artificial. Note, however, that you can't inherit from both
-        Item and Annotation, so this seemed like the way to go.
     """
 
     schema.kindInfo(annotates = notes.Note)
@@ -1092,21 +1095,6 @@ class MailStamp(stamping.Stamp):
         self.isOutbound = True
         self.itsItem.InitOutgoingAttributes()
 
-    # [Bug 6815] Because of schema loading issues, not all
-    # MailStamp's inherited attributes' initialValues are available
-    # at the time the Welcome Note is set up. For 0.7alpha4, we
-    # just cache them here, and set them up in MailStamp.add().
-    # Post-alpha4, this will be revisited, probably by making
-    # MIMEBase derived from ContentItem again.
-    EXTRA_INITIAL_VALUES = {}
-    for cls in MIMEContainer, MIMEBase:
-        for name, ob in cls.__dict__.iteritems():
-            try:
-                EXTRA_INITIAL_VALUES[name] = ob.cdesc.initialValue
-            except AttributeError:
-                pass
-
-
     def add(self):
         """
         Init only the attributes specific to this mixin.
@@ -1121,9 +1109,6 @@ class MailStamp(stamping.Stamp):
         # default the fromAddress to "me"
         if getattr(self, 'fromAddress', None) is None:
             self.fromAddress = EmailAddress.getCurrentMeEmailAddress(self.itsItem.itsView)
-        for name, value in self.EXTRA_INITIAL_VALUES.iteritems():
-            if not hasattr(self, name):
-                setattr(self, name, value)
 
     @schema.observer(dateSent)
     def onDateSentChanged(self, op, name):
@@ -1244,7 +1229,7 @@ class CollectionInvitation(schema.Annotation):
         "send (entries copied to the share object).\n\n"
         "Issue: Bad that we have just one of these per item collection, "
         "though an item collection could have multiple shares post-0.5",
-        initialValue=()
+        defaultValue=Empty,
     ) # inverse of EmailAddress
 
 

@@ -316,9 +316,6 @@ class EventTestCase(SharingTestCase):
         mailMsg = pim.mail.MailStamp(eventItem)
         self.failUnlessEqual(mailMsg.mimeContent, None)
         self.failUnlessEqual(mailMsg.getAttachments(), [])
-        self.failUnlessEqual(list(mailMsg.toAddress), [])
-        self.failUnlessEqual(mailMsg.fromAddress, None)
-        self.failUnlessEqual(mailMsg.replyToAddress, None)
 
 
 class TaskTestCase(SharingTestCase):
