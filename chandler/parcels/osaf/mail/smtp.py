@@ -432,12 +432,17 @@ class SMTPClient(object):
 
         exc = exc.value
 
+        if self.displayedRecoverableSSLErrorDialog(exc, dryRun=True):
+            # Send the message to destroy the progress dialog first. This needs
+            # to be done in this order on Linux because otherwise killing
+            # the progress dialog will also kill the SSL error dialog.
+            # Weird, huh? Welcome to the world of wx...
+            callMethodInUIThread(self.callback, (2, None))
+            
         if not self.displayedRecoverableSSLErrorDialog(exc):
             # Just get the error string do not need the error code
             err = self._getError(exc)[1]
             callMethodInUIThread(self.callback, (0, err))
-        else:
-            callMethodInUIThread(self.callback, (2, None))
 
         self._resetClient()
 
@@ -577,12 +582,13 @@ class SMTPClient(object):
         self.mailMessage.deliveryExtension.deliveryErrors.append(deliveryError)
         self.mailMessage.deliveryExtension.sendFailed()
 
-    def displayedRecoverableSSLErrorDialog(self, err, mailMessage=None):
+    def displayedRecoverableSSLErrorDialog(self, err, mailMessage=None,
+                                           dryRun=False):
         if __debug__:
             trace("displayedRecoverableSSLErrorDialog")
 
-        if self.shuttingDown or Globals.options.offline or \
-           self.cancel:
+        if not dryRun and (self.shuttingDown or Globals.options.offline or \
+           self.cancel):
             return self._resetClient()
 
         if isinstance(err, Utility.CertificateVerificationError):
@@ -595,25 +601,28 @@ class SMTPClient(object):
             # certificate. The main thread will then initiate a retry
             # when the new certificate has been added.
             try:
-                if err.args[0] in ssl.unknown_issuer:
-                    displaySSLCertDialog(err.untrustedCertificates[0],
-                                               self.reconnect)
-                else:
-                    displayIgnoreSSLErrorDialog(err.untrustedCertificates[0],
-                                                      err.args[0],
-                                                      self.reconnect)
+                if not dryRun:
+                    if err.args[0] in ssl.unknown_issuer:
+                        displaySSLCertDialog(err.untrustedCertificates[0],
+                                                   self.reconnect)
+                    else:
+                        displayIgnoreSSLErrorDialog(err.untrustedCertificates[0],
+                                                          err.args[0],
+                                                          self.reconnect)
                 return True
             except Exception, e:
                 # There is a bug in the M2Crypto code that needs to be 
                 # fixed
+                log.exception('This should never happen')
                 return False
 
         elif str(err.__class__) == errors.M2CRYPTO_CHECKER_ERROR:
-            displayIgnoreSSLErrorDialog(err.pem,
-                                        messages.SSL_HOST_MISMATCH % \
-                                        {'expectedHost': err.expectedHost, 
-                                        'actualHost': err.actualHost},
-                                         self.reconnect)
+            if not dryRun:
+                displayIgnoreSSLErrorDialog(err.pem,
+                                            messages.SSL_HOST_MISMATCH % \
+                                            {'expectedHost': err.expectedHost, 
+                                            'actualHost': err.actualHost},
+                                             self.reconnect)
             return True
 
         return False

@@ -419,23 +419,27 @@ class AbstractDownloadClient(object):
             # Reason why verification failed is stored in err.args[0], see
             # codes at http://www.openssl.org/docs/apps/verify.html#DIAGNOSTICS
 
-
             # Post an asynchronous event to the main thread where
             # we ask the user if they would like to trust this
             # certificate. The main thread will then initiate a retry
             # when the new certificate has been added.
             try:
+                if self.callback:
+                    # Send the message to destroy the progress dialog first. This needs
+                    # to be done in this order on Linux because otherwise killing
+                    # the progress dialog will also kill the SSL error dialog.
+                    # Weird, huh? Welcome to the world of wx...
+                    callMethodInUIThread(self.callback, (2, None))
+
                 if err.args[0] in ssl.unknown_issuer:
                     displaySSLCertDialog(err.untrustedCertificates[0], self.reconnect)
                 else:
                     displayIgnoreSSLErrorDialog(err.untrustedCertificates[0], err.args[0],
                                                 self.reconnect)
-
-                if self.callback:
-                    callMethodInUIThread(self.callback, (2, None))
             except Exception, e:
                 # There is a bug in the M2Crypto code which needs
                 # to be fixed.
+                log.exception('This should never happen')
                 from i18n import ChandlerMessageFactory as _
                 callMethodInUIThread(self.callback, (0, _(u"Error in SSL Layer")))
 
@@ -447,13 +451,17 @@ class AbstractDownloadClient(object):
             # the certificate identifies a different host.
             #rc = self.reconnect
 
+            if self.callback:
+                # Send the message to destroy the progress dialog first. This needs
+                # to be done in this order on Linux because otherwise killing
+                # the progress dialog will also kill the SSL error dialog.
+                # Weird, huh? Welcome to the world of wx...
+                callMethodInUIThread(self.callback, (2, None))
+
             displayIgnoreSSLErrorDialog(err.pem,
                                         messages.SSL_HOST_MISMATCH % \
                                           {'expectedHost': err.expectedHost,
                                            'actualHost': err.actualHost}, self.reconnect)
-
-            if self.callback:
-                callMethodInUIThread(self.callback, (2, None))
 
             return self._actionCompleted()
 

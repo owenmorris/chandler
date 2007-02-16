@@ -283,12 +283,14 @@ def createCosmoAccount(host, port=80, useSSL=False,
 
 class TestChandlerServerHandle(ChandlerServerHandle):
     def __init__(self, host=None, port=None, username=None, password=None,
-                 useSSL=False, repositoryView=None, reconnect=None):
+                 useSSL=False, repositoryView=None, reconnect=None,
+                 callback=None):
 
         super(TestChandlerServerHandle, self).__init__(host, port, username,
                                                         password, useSSL,
                                                         repositoryView)
         self.reconnect = reconnect
+        self.callback = callback
 
     def execCommand(self, callable, *args, **keywds):
         try:
@@ -301,26 +303,39 @@ class TestChandlerServerHandle(ChandlerServerHandle):
             # Reason why verification failed is stored in err.args[0], see
             # codes at http://www.openssl.org/docs/apps/verify.html#DIAGNOSTICS
             try:
+                result = (2, None)
+                # Send the message to destroy the progress dialog first. This needs
+                # to be done in this order on Linux because otherwise killing
+                # the progress dialog will also kill the SSL error dialog.
+                # Weird, huh? Welcome to the world of wx...
+                callMethodInUIThread(self.callback, result)
                 if err.args[0] in ssl.unknown_issuer:
                     displaySSLCertDialog(err.untrustedCertificates[0], self.reconnect)
                 else:
                     displayIgnoreSSLErrorDialog(err.untrustedCertificates[0],
                                                 err.args[0], self.reconnect)
 
-                return (2, None)
+                return result
             except Exception, e:
                 # There is a bug in the M2Crypto code which needs
                 # to be fixed.
+                log.exception('This should not happen')
                 return (0, (CANT_CONNECT, _(u"Error in SSL Layer")))
 
         except M2Crypto.SSL.Checker.WrongHost, err:
+            result = (2, None)
+            # Send the message to destroy the progress dialog first. This needs
+            # to be done in this order on Linux because otherwise killing
+            # the progress dialog will also kill the SSL error dialog.
+            # Weird, huh? Welcome to the world of wx...
+            callMethodInUIThread(self.callback, result)
             ssl.askIgnoreSSLError( err.pem,
                     messages.SSL_HOST_MISMATCH % \
                       {'expectedHost': err.expectedHost,
                        'actualHost': err.actualHost},
                        self.reconnect)
 
-            return (2, None)
+            return result
 
         except M2Crypto.BIO.BIOError, error:
             return (0, (CANT_CONNECT, str(err)))
@@ -371,7 +386,8 @@ class WebDAVTester(object):
                                           self.username,
                                           self.password,
                                           self.useSSL,
-                                          self.view, reconnect)
+                                          self.view, reconnect,
+                                          callback=callback)
 
         # Make sure path begins/ends with /
         self.path = self.path.strip("/")
@@ -392,9 +408,7 @@ class WebDAVTester(object):
             return
 
         if statusCode != 1:
-            # If the request failed or the cert dialog was displayed
-            # then report back to the caller and return
-            return callMethodInUIThread(callback, (statusCode, statusValue))
+            return
 
         childNames = set([])
 
@@ -482,7 +496,8 @@ class MorsecodeTester(object):
                                           self.username,
                                           self.password,
                                           self.useSSL,
-                                          self.view, reconnect)
+                                          self.view, reconnect,
+                                          callback=callback)
 
         self.path = "/" + self.path.strip("/")
         usdPath = "%s/cmp/user/%s/service" % (self.path, self.username)
@@ -495,9 +510,7 @@ class MorsecodeTester(object):
             return
 
         if statusCode != 1:
-            # If the request failed or the cert dialog was displayed
-            # then report back to the caller and return
-            return callMethodInUIThread(callback, (statusCode, result))
+            return
 
         if result.status == 200:
             # Success!
