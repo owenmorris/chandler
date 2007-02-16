@@ -282,7 +282,7 @@ class wxAllDayEventsCanvas(wxCalendarCanvas):
 
             if self.coercedCanvasItem is not None:
                 self.coercedCanvasItem = None
-                stampedProxy.allDay = True
+                stampedProxy.anyTime = True
 
     def makeCoercedCanvasItem(self, x, y, item):
         event = Calendar.EventStamp(item)
@@ -589,7 +589,7 @@ class wxAllDayEventsCanvas(wxCalendarCanvas):
         newTime = self.getDateTimeFromPosition(unscrolledPosition)
         newTime = newTime.replace(tzinfo=TimeZoneInfo.get(view).default)
         
-        event = self.CreateEmptyEvent(startTime=newTime, allDay=True,
+        event = self.CreateEmptyEvent(startTime=newTime, allDay=False,
                                       anyTime=True)
 
         self.OnSelectItem(event.itsItem)
