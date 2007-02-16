@@ -19,7 +19,7 @@ from Photos import Photo, PhotoMixin, NewImageEvent
 from application import schema
 from osaf.pim.structs import RectType
 from osaf.pim.notes import Note
-from osaf.views.detail import makeSubtree
+from osaf.views.detail import makeArea, makeSubtree, makeEditor
 from osaf.framework.blocks.MenusAndToolbars import MenuItem
 from i18n import MessageFactory
 
@@ -27,20 +27,16 @@ _ = MessageFactory("Chandler-PhotoPlugin")
 
 def installParcel(parcel, old_version=None):
     blocks = schema.ns('osaf.framework.blocks', parcel)
-    detail = schema.ns('osaf.views.detail', parcel)
 
     makeSubtree(parcel, PhotoMixin, [
-        detail.DetailSynchronizedAttributeEditorBlock.update(
-            parcel, "photo_image",
-            viewAttribute = u"photoBody",
-            position = 0.86,
-            stretchFactor = 1.0,
-            border = RectType(2.0, 2.0, 2.0, 2.0),
-            presentationStyle = blocks.PresentationStyle.update(
-                parcel, "photo_image_presentation",
-                format = "Image"
-            )
-        )])
+        makeEditor(parcel, "PhotoBody",
+            viewAttribute=u"photoBody",
+            stretchFactor=1.0,
+            border=RectType(2.0, 2.0, 2.0, 2.0),
+            position=0.86,           
+            presentationStyle = { 'format': 'Image' }
+        ).install(parcel)
+    ])
 
     # Event to add a new image to the repository
     newImageEvent = NewImageEvent.update(
