@@ -247,6 +247,23 @@ class MainView(View):
         if detailRoot:
             detailRoot.focus()
 
+    # Disabling Printing in Chandler as required by bug 8137 - This is a temporary measure
+    # Simply delete these functions to enable printing
+
+    def onPrintPreviewEventUpdateUI(self, event):
+        # Print Disabled
+        event.arguments['Enable'] = False
+    
+    def onPageSetupEventUpdateUI(self, event):
+        # Print Disabled
+        event.arguments['Enable'] = False
+    
+    def onPrintEventUpdateUI(self, event):
+        # Print Disabled
+        event.arguments['Enable'] = False
+    
+    # End Disabling Printing
+    
     def onPrintPreviewEvent (self, event):
         self.printEvent(1)
 
