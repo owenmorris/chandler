@@ -2531,7 +2531,7 @@ class RelativeReminder(Reminder):
             start = dt - self.delta
 
         elif self.nextPoll != self.farFuture:
-            start = self.nextPoll
+            start = self.nextPoll - self.delta
             
         else:
             return
@@ -2551,7 +2551,7 @@ class RelativeReminder(Reminder):
         if not has_stamp(event, EventStamp):
             interestingEvents = []
         elif event.rruleset is None or _isModReminder(event):
-            if event.startTime >= start:
+            if event.effectiveStartTime >= start:
                 interestingEvents = [event]
             else:
                 interestingEvents = []

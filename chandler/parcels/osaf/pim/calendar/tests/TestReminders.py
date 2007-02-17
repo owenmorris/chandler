@@ -735,6 +735,99 @@ class ReminderTestCase(TestDomainModel.DomainModelTestCase):
         self.failUnless(isDead(startTimeReminder))
         self.failUnlessEqual(newReminder.nextPoll, Reminder.farFuture)
 
+class PendingTuplesTestCase(TestDomainModel.DomainModelTestCase):
+    def setUp(self):
+        super(PendingTuplesTestCase, self).setUp()
+        self.eventTime = datetime.combine(datetime.now().date() +
+                                           timedelta(days=3),
+                                          time(13, 0, tzinfo=ICUtzinfo.default))
+        self.event = CalendarEvent("calendarEventItem", itsView=self.rep.view,
+                              startTime=self.eventTime,
+                              duration=timedelta(hours=1), allDay=False,
+                              anyTime=False)
+        
+    def runNonRecurringTest(self, deltaMinutes):
+        pollTime = self.eventTime.replace(hour=12, minute=15,
+                                          microsecond=213985)
+                              
+        self.event.userReminderInterval = timedelta(minutes=deltaMinutes)
+        
+        # Should have no reminders before the fireDate
+        self.failIf(Reminder.getPendingTuples(self.rep.view, pollTime))
+
+        # Still no reminders just before....
+        pollTime = self.eventTime + timedelta(minutes=deltaMinutes-1,
+                                              microseconds=642202)
+        self.failIf(Reminder.getPendingTuples(self.rep.view, pollTime))
+        
+        # But should have 1 right after!
+        pollTime += timedelta(minutes=1)
+        tuples = Reminder.getPendingTuples(self.rep.view, pollTime)
+        
+        self.failUnlessEqual(len(tuples), 1)
+
+        reminder = self.event.itsItem.getUserReminder()
+
+        self.failUnlessEqual(
+            tuples,
+            [(self.eventTime + timedelta(minutes=deltaMinutes),
+              self.event.itsItem,
+              reminder),]
+        )
+        
+        reminder.dismissItem(self.event.itsItem)
+        
+        self.failIf(Reminder.getPendingTuples(self.rep.view, pollTime))
+
+
+    def testBeforeReminder(self):
+        self.runNonRecurringTest(-15)
+
+    def testAfterReminder(self):
+        self.runNonRecurringTest(+20)
+
+    def runRecurringTest(self, deltaMinutes):
+        pollTime = self.eventTime.replace(hour=12, minute=15,
+                                          microsecond=213985)
+
+
+        # Move the event back in time; we'll make it recur and
+        # check the reminder on the occurrence that corresponds to
+        # self.eventTime.
+        self.event.startTime -= timedelta(days=10)
+        self.event.userReminderInterval = timedelta(minutes=deltaMinutes)
+        
+        ruleItem = RecurrenceRule(None, itsView=self.rep.view, freq='daily')
+        rruleset = RecurrenceRuleSet(None, itsView=self.rep.view,
+                                          rrules=[ruleItem])                                          
+        self.event.rruleset = rruleset
+
+        # Should have no reminders before the fireDate
+        self.failIf(Reminder.getPendingTuples(self.rep.view, pollTime))
+
+        # ... even a fraction of a second before
+        pollTime = self.eventTime + timedelta(minutes=deltaMinutes-1,
+                                              microseconds=653507)
+
+        # But should have 1 right after
+        pollTime += timedelta(minutes=1)
+        tuples = Reminder.getPendingTuples(self.rep.view, pollTime)
+        
+        self.failUnlessEqual(len(tuples), 1)
+        self.failUnlessEqual(tuples[0][0],
+                             self.eventTime + timedelta(minutes=deltaMinutes))
+        self.failUnlessEqual(tuples[0][2], self.event.itsItem.getUserReminder())
+        
+        occurrence = EventStamp(tuples[0][1])
+        self.failUnlessEqual(occurrence.occurrenceFor, self.event.itsItem)
+        self.failUnlessEqual(occurrence.startTime, self.eventTime)
+        
+    def testRecurringBeforeReminder(self):
+        self.runRecurringTest(-10)
+
+    def testRecurringAfterReminder(self):
+        self.runRecurringTest(+60)
+
 if __name__ == "__main__":
     unittest.main()
 
