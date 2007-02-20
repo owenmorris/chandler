@@ -240,6 +240,10 @@ if [ ! "$CHANDLER_UNIT_TEST" = "no" ]; then
                     cd $C_DIR
                     $CHANDLERBIN/$mode/$RUN_PYTHON $TESTNAME &> $T_DIR/test.log
             
+                    if [ "$OSTYPE" = "cygwin" ]; then
+                        dos2unix $T_DIR/test.log
+                    fi
+                      
                       # scan the test output for the success messge "OK"
                     RESULT=`grep '^OK' $T_DIR/test.log`
     
