@@ -1358,7 +1358,12 @@ class wxCalendarCanvas(CalendarNotificationHandler, CollectionCanvas.wxCollectio
     def OnScroll(self, event):
         self.Refresh()
         if not wx.GetApp().ignoreSynchronizeWidget:
-            self.blockItem.scrollY = self.GetViewStart()[1]
+            # The test is a workaround for the fact that Linux sends a 
+            # spurious scroll-to-the-top event when creating the widget.
+            # This means scrolling up to midnight will be persisted
+            # slightly before midnight
+            if not IS_GTK or self.GetViewStart()[1] > 0:
+                self.blockItem.scrollY = self.GetViewStart()[1]
         event.Skip()
 
     def OnSelectItem(self, item):
