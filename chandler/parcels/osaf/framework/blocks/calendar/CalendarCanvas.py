@@ -84,7 +84,8 @@ SWATCH_WIDTH_VECTOR  = vector([SWATCH_WIDTH  + 2*SWATCH_BORDER, 0])
 SWATCH_HEIGHT_VECTOR = vector([0, SWATCH_HEIGHT + 2*SWATCH_BORDER])
 
 IS_MAC = '__WXMAC__' in wx.PlatformInfo
-
+IS_GTK = '__WXGTK__' in wx.PlatformInfo
+    
 # add some space below the time (but on linux there isn't any room)
 if '__WXGTK__' in wx.PlatformInfo:
     TIME_BOTTOM_MARGIN = 0
@@ -1757,6 +1758,11 @@ class wxInPlaceEditor(AttributeEditors.wxEditText):
 
         newSize = wx.Size(size.width, size.height)
 
+        if IS_GTK:
+            # On GTK single-line lozenge text doesn't fit without scroll bars
+            # but everything aligns nicely if the point size is reduced by 1
+            pointSize -= 1
+
         font = wx.Font(pointSize, wx.SWISS, wx.NORMAL, wx.NORMAL)
         self.SetFont(font)
 
@@ -1766,6 +1772,7 @@ class wxInPlaceEditor(AttributeEditors.wxEditText):
             position.x -= 1
             newSize.width += 4
             newSize.height -= 1
+            
 
         self.SetSize(newSize)
         self.Move(position)
