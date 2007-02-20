@@ -409,8 +409,8 @@ class wxApplication (wx.App):
         CheckPlatform()
 
         # Initialize PARCELPATH and sys.path
-        parcelPath = Utility.initParcelEnv(Globals.chandlerDirectory,
-                                           Globals.options.parcelPath)
+        parcelPath, plugins = Utility.initParcelEnv(Globals.options,
+                                                    Globals.chandlerDirectory)
 
         # If the magic metakey is down, run the startup options box; it'll
         # modify Globals.options as necessary.
@@ -474,7 +474,7 @@ class wxApplication (wx.App):
         # Load Parcels
         if splash:
             splash.updateGauge('parcels')
-        Utility.initParcels(view, parcelPath)
+        Utility.initParcels(Globals.options, view, parcelPath, plugins=plugins)
 
         # Now that the parcel world exists, save our locale for next time.
         self.saveLocale()

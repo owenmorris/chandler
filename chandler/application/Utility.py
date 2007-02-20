@@ -207,6 +207,7 @@ def getUserAgent():
 # short opt, long opt, type flag, default value, env var, help text
 COMMAND_LINE_OPTIONS = {
     'parcelPath': ('-p', '--parcelPath', 's', None,  'PARCELPATH', 'Parcel search path'),
+    'pluginPath': (''  , '--pluginPath', 's', 'plugins',  None, 'Plugin search path, relative to CHANDLERHOME'),
     'webserver':  ('-W', '--webserver',  'b', False, 'CHANDLERWEBSERVER', 'Activate the built-in webserver'),
     'profileDir': ('-P', '--profileDir', 's', '',  'PROFILEDIR', 'location of the Chandler user profile directory (relative to CHANDLERHOME)'),
     'testScripts':('-t', '--testScripts','b', False, None, 'run all test scripts'),
@@ -349,6 +350,11 @@ def initOptions(**kwds):
                    environName, helpText) in COMMAND_LINE_OPTIONS.iteritems():
             if name in prefs and getattr(options, name) == defaultValue:
                 setattr(options, name, prefs[name])
+
+    # Resolve pluginPath relative to chandlerDirectory
+    chandlerDirectory = locateChandlerDirectory()
+    options.pluginPath = [os.path.join(chandlerDirectory, path)
+                          for path in options.pluginPath.split(os.pathsep)]
         
     # Store up the remaining args
     options.args = args
@@ -627,14 +633,13 @@ def verifySchema(view):
     return True, version, SCHEMA_VERSION
 
 
-def initParcelEnv(chandlerDirectory, path):
+def initParcelEnv(options, chandlerDirectory):
     """
     PARCEL_IMPORT defines the import directory containing parcels
     relative to chandlerDirectory where os separators are replaced
     with "." just as in the syntax of the import statement.
     """
     PARCEL_IMPORT = 'parcels'
-    PLUGIN_IMPORT = 'plugins'
 
     """
     Load the parcels which are contained in the PARCEL_IMPORT directory.
@@ -645,15 +650,15 @@ def initParcelEnv(chandlerDirectory, path):
     parcelPath = []
     parcelPath.append(os.path.join(chandlerDirectory,
                       PARCEL_IMPORT.replace('.', os.sep)))
-    parcelPath.append(os.path.join(chandlerDirectory,
-                      PLUGIN_IMPORT.replace('.', os.sep)))
+
+    parcelPath.extend(options.pluginPath)
 
     """
     If PARCELPATH env var is set, append those directories to the
     list of places to look for parcels.
     """
-    if path:
-        for directory in path.split(os.pathsep):
+    if options.parcelPath:
+        for directory in options.parcelPath.split(os.pathsep):
             if os.path.isdir(directory):
                 parcelPath.append(directory)
             else:
@@ -668,21 +673,43 @@ def initParcelEnv(chandlerDirectory, path):
             insertionPoint += 1
 
     logger.info("Using PARCELPATH %s" % parcelPath)
-    initPlugins(parcelPath)
+    plugins = initPlugins(options, options.pluginPath)
 
-    return parcelPath
-
-
-def initPlugins(path):
-
-    from Parcel import activate_plugins
-    activate_plugins(path)
+    return parcelPath, plugins
 
 
-def initParcels(view, path, namespaces=None):
+def initPlugins(options, path):
 
-    from Parcel import Manager # Delayed so as not to trigger
-                               # early loading of schema.py
+    from pkg_resources import working_set, Environment
+
+    # if options is passed in, use prefs to determine what to bypass
+    # otherwise all plugins are added to the working_set
+
+    if options is not None:
+        prefs = loadPrefs(options).get('plugins', {})
+    else:
+        prefs = None
+    
+    plugin_env = Environment(path)
+    eggs = []
+
+    for project_name in sorted(plugin_env):
+        if prefs is not None:
+            if prefs.get(project_name) == 'inactive':
+                continue
+        for egg in plugin_env[project_name]:
+            working_set.add(egg)
+            eggs.append(egg)
+            break
+
+    return plugin_env, eggs
+
+
+def initParcels(options, view, path, namespaces=None, plugins=None):
+    
+    # Delayed so as not to trigger early loading of schema.py
+    from Parcel import Manager, load_parcel_from_entrypoint
+    from pkg_resources import ResolutionError
 
     Manager.get(view, path=path).loadParcels(namespaces)
 
@@ -690,6 +717,32 @@ def initParcels(view, path, namespaces=None):
     parcelRoot = view.getRoot("parcels")
     if getattr(parcelRoot, 'version', None) != SCHEMA_VERSION:
         parcelRoot.version = SCHEMA_VERSION
+
+    # Init plugin parcels
+    if plugins is not None:
+
+        # if options is passed-in save which plugins are active in prefs
+        if options is not None:
+            prefs = loadPrefs(options)
+            if 'plugins' not in prefs:
+                prefs['plugins'] = {}
+        else:
+            prefs = None
+
+        plugin_env, eggs = plugins
+        for egg in eggs:
+            for entrypoint in egg.get_entry_map('chandler.parcels').values():
+                try:
+                    entrypoint.require(plugin_env)
+                except ResolutionError:
+                    pass
+                else:
+                    load_parcel_from_entrypoint(view, entrypoint)
+                    if prefs is not None:
+                        prefs['plugins'][egg.key] = 'active'
+                        
+        if prefs is not None:
+            prefs.write()
 
 
 def _randpoolPath(profileDir):

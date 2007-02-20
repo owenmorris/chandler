@@ -219,7 +219,6 @@ class Manager(schema.Item):
 
         if load_plugins:
             # Load egg and plugin parcels
-            activate_plugins(self.path)
             for parcel_ep in loadable_parcels():
                 load_parcel_from_entrypoint(self.itsView, parcel_ep)
 

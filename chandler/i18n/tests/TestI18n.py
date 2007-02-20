@@ -50,7 +50,7 @@ class I18nTestCase(unittest.TestCase):
         self.i18nMan._DEFAULT_HTML = self.HTML_DIR
 
         from application.Utility import initPlugins
-        initPlugins(['plugins'])
+        initPlugins(None, ['plugins'])
 
         self.i18nMan.initialize(self.LOCALE_SET, self.INI_FILE)
         self.mf = MessageFactory(self.PROJECT, self.CATALOG)

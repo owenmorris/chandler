@@ -47,8 +47,8 @@ def startup(**kwds):
 
     Utility.initLogging(Globals.options)
 
-    parcelPath = Utility.initParcelEnv(Globals.chandlerDirectory,
-                                       Globals.options.parcelPath)
+    parcelPath, plugins = Utility.initParcelEnv(Globals.options, 
+                                                Globals.chandlerDirectory)
 
     Globals.options.getPassword = getPassword
     repoDir = Utility.locateRepositoryDirectory(profileDir, Globals.options)
@@ -60,7 +60,7 @@ def startup(**kwds):
         return None
 
     Utility.initCrypto(Globals.options.profileDir)
-    Utility.initParcels(view, parcelPath)
+    Utility.initParcels(Globals.options, view, parcelPath, plugins=plugins)
 
     if Globals.options.createData:
         import util.GenerateItemsFromFile

@@ -13,6 +13,7 @@
 #   limitations under the License.
 
 import logging
+from application.Plugins import PluginMenu
 
 def makeMainMenus(parcel):
 
@@ -609,6 +610,12 @@ def makeMainMenus(parcel):
                         title = u'Activate built-in webserver',
                         helpString = u'Activates the built-in webserver at localhost:1888'),
                     MenuItem.template('TestSeparator4', menuItemKind='Separator'),
+
+                    PluginMenu.template('PluginsMenu',
+                        title=u'Plugins',
+                        helpString=u'Manage Plugins',
+                        childrenBlocks = []),
+
                     Menu.template('RepositoryTestMenu',
                         title=u'&Repository',
                         helpString=u'Repository stuff',

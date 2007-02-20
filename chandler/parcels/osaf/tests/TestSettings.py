@@ -33,7 +33,7 @@ class SettingsTestCase(testcase.SingleRepositoryTestCase):
         super(SettingsTestCase, self).setUp()
 
         from application.Utility import initPlugins
-        initPlugins(['plugins'])
+        initPlugins(None, ['plugins'])
 
     def runTest(self):
         self.setUp()

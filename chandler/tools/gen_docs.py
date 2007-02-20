@@ -34,10 +34,10 @@ def generateModelDocs(options, outputDir=None):
     options.ramdb  = True # force ramdb
     options.create = True # force a repository wipe
 
-    parcelPath = Utility.initParcelEnv(chandlerDir, options.parcelPath)
-    view       = Utility.initRepository(repositoryDir, options)
+    parcelPath, plugins = Utility.initParcelEnv(options, chandlerDir)
+    view = Utility.initRepository(repositoryDir, options)
 
-    Utility.initParcels(view, parcelPath)
+    Utility.initParcels(options, view, parcelPath, plugins=plugins)
 
     if not os.path.isdir(modelDir):
         _mkdirs(modelDir)
