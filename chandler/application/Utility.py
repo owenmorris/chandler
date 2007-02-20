@@ -651,8 +651,6 @@ def initParcelEnv(options, chandlerDirectory):
     parcelPath.append(os.path.join(chandlerDirectory,
                       PARCEL_IMPORT.replace('.', os.sep)))
 
-    parcelPath.extend(options.pluginPath)
-
     """
     If PARCELPATH env var is set, append those directories to the
     list of places to look for parcels.

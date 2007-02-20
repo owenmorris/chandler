@@ -196,9 +196,9 @@ $(addprefix develop-u-, $(BUILD_PLUGINS)):
 $(addprefix install-, $(BUILD_PLUGINS)):
 	mkdir -p '$(PLUGIN_INST)'
 	cd $(C_HOME)/projects/$(subst install-,,$@); \
-     $(RUN_PYTHON) setup.py install \
-          --install-scripts='$(PLUGIN_INST)' \
-          --install-lib='$(PLUGIN_INST)'
+     $(RUN_PYTHON) setup.py easy_install -m \
+          --script-dir='$(PLUGIN_INST)' \
+          --install-dir='$(PLUGIN_INST)' .
 
 chandler-locale-data:
 	$(RUN_PYTHON) setup.py egg_info
