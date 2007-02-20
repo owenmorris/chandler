@@ -270,6 +270,7 @@ class promptUserDialog(wx.Dialog):
         # Store these, using attribute names that hopefully wont collide with
         # any wx attributes
         self.textControl = text
+        text.SetFocus()
 
     def GetValue(self):
         return self.textControl.GetValue()
