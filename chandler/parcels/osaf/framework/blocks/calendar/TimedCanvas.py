@@ -513,7 +513,7 @@ class wxTimedEventsCanvas(wxCalendarCanvas):
             if currentDragItem is event.itsItem:
                 dragState.currentDragBox = canvasItem
 
-        if self.coercedCanvasItem is not None:
+        if self.coercedCanvasItem is not None and dragState is not None:
             canvasItemList.append(self.coercedCanvasItem)
             dragState.currentDragBox = self.coercedCanvasItem
 
