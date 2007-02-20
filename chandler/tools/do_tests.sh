@@ -321,10 +321,10 @@ else
 
             if [ "$OSTYPE" = "cygwin" ]; then
                 C_HOME=`cygpath -aw $C_DIR`
-		PARCELPATH=`cygpath -awp $PARCELPATH:$C_HOME/plugins`
+		PARCELPATH=`cygpath -awp $PARCELPATH:$C_DIR/plugins`
             else
                 C_HOME=$C_DIR
-		PARCELPATH=$PARCELPATH:$C_HOME/plugins
+		PARCELPATH=$PARCELPATH:$C_DIR/plugins
             fi
 
             for setup in $SETUPS ; do
