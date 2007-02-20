@@ -2179,7 +2179,11 @@ class wxCalendarControl(wx.Panel, CalendarEventHandler):
         # header, plus some padding
         dc = wx.ClientDC(self)
         width, height = dc.GetTextExtent(headerLabels[0])
-        self.xOffset = width + 4
+
+        if '__WXGTK__' in wx.PlatformInfo:
+            self.xOffset = width + 12
+        else:
+            self.xOffset = width + 6
         
         # set up initial selection
         weekColumnHeader.SetAttribute(wx.colheader.CH_ATTR_VisibleSelection,
