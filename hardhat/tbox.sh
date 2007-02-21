@@ -87,13 +87,10 @@ echo - + - + - + - + - + - + - + - + - + - + - + - + - + - + - + | tee -a $BUILD
 echo Started `date`                                              | tee -a $BUILDLOG
 echo Setting up script environment                               | tee -a $BUILDLOG
 
-PP_DIR="$C_DIR/tools/QATestScripts/DataFiles"
-
 if [ "$OSTYPE" = "cygwin" ]; then
     RUN_CHANDLER=RunChandler.bat
     RUN_PYTHON=RunPython.bat
     TBOX_UPDATE=`cygpath -w $HH_DIR/tbox_update.py`
-    PP_DIR=`cygpath -w $PP_DIR`
 else
     RUN_CHANDLER=RunChandler
     RUN_PYTHON=RunPython
@@ -126,9 +123,9 @@ fi
   # the EXCLUDES array is then walked and the length of the 
   # directory is calculated - beats doing it by hand and making a mistake
 
-EXCLUDES=("$C_DIR/release" "$C_DIR/debug" "$C_DIR/tools" "$C_DIR/util")
-L_EXCLUDES=(0 0 0 0)
-for item in 0 1 2 3 ; do
+EXCLUDES=("$C_DIR/release" "$C_DIR/debug" "$C_DIR/tools" "$C_DIR/util", "$C_DIR/projects", "$C_DIR/plugins")
+L_EXCLUDES=(0 0 0 0 0 0)
+for item in 0 1 2 3 4 5 ; do
     L_EXCLUDES[$item]=${#EXCLUDES[$item]}
 done
 
@@ -187,6 +184,7 @@ else
 fi
 
 DIRS=`find $C_DIR -type d -name tests -print`
+SETUPS=`find $C_DIR/projects -type f -name 'setup.py' -print`
 
   # this code walks thru all the dirs with "tests" in their name
   # and then compares them to the exclude dir array by
@@ -196,7 +194,7 @@ DIRS=`find $C_DIR -type d -name tests -print`
 for item in $DIRS ; do
     FILEPATH=${item%/*}
     EXCLUDED=no
-    for index in 0 1 2 3 ; do
+    for index in 0 1 2 3 4 5 ; do
         exclude=${EXCLUDES[$index]}
         len=${L_EXCLUDES[$index]}
 
@@ -220,6 +218,12 @@ PERFTEST_RESULT="ok"
   # walk thru all of the test dirs and find the test files
 
 if [ ! "$CHANDLER_UNIT_TEST" = "no" ]; then
+    PP_DIR="$C_DIR/plugins"
+
+    if [ "$OSTYPE" = "cygwin" ]; then
+        PP_DIR=`cygpath -w $PP_DIR`
+    fi
+
     for mode in $MODES ; do
         echo Running $mode unit tests | tee -a $BUILDLOG
     
@@ -238,7 +242,7 @@ if [ ! "$CHANDLER_UNIT_TEST" = "no" ]; then
                     echo Running $TESTNAME | tee -a $BUILDLOG
     
                     cd $C_DIR
-                    $CHANDLERBIN/$mode/$RUN_PYTHON $TESTNAME &> $T_DIR/test.log
+                    PARCELPATH=$PP_DIR $CHANDLERBIN/$mode/$RUN_PYTHON $TESTNAME &> $T_DIR/test.log
             
                     if [ "$OSTYPE" = "cygwin" ]; then
                         dos2unix $T_DIR/test.log
@@ -261,6 +265,32 @@ if [ ! "$CHANDLER_UNIT_TEST" = "no" ]; then
                 fi
             done
         done
+
+        for setup in $SETUPS ; do
+            if [ "$CONTINUE" == "true" ]; then
+                TESTNAME=`basename \`dirname $setup\``
+                echo Running $setup | tee -a $BUILDLOG
+
+                cd `dirname $setup`
+                $CHANDLERBIN/$mode/$RUN_PYTHON `basename $setup` test &> $T_DIR/test.log
+
+                # scan the test output for the success messge "OK"
+                RESULT=`grep '^OK' $T_DIR/test.log`
+
+                echo - - - - - - - - - - - - - - - - - - - - - - - - - - >> $T_DIR/tests.log
+                echo $TESTNAME [$RESULT] >> $T_DIR/tests.log
+                cat $T_DIR/test.log      >> $T_DIR/tests.log
+
+                if [ "$RESULT" != "OK" ]; then
+                    UNITTEST_RESULT="failed"
+                    CHANDLER_FUNCTIONAL_TEST="no"
+                    CHANDLER_PERFORMANCE_TEST="no"
+                    CONTINUE="false"
+                    echo Skipping further tests due to failure | tee -a $BUILDLOG
+                fi
+            fi
+            cd $C_DIR
+        done
     
           # if Functional Tests are needed - walk the CATS directory
           # and create a list of all valid tests
@@ -270,9 +300,12 @@ if [ ! "$CHANDLER_UNIT_TEST" = "no" ]; then
         if [ ! "$CHANDLER_FUNCTIONAL_TEST" = "no" ]; then
             test="$C_DIR/tools/cats/Functional/FunctionalTestSuite.py"
     
+            PP_DIR="$C_DIR/tools/QATestScripts/DataFiles"
+
             if [ "$OSTYPE" = "cygwin" ]; then
                 TESTNAME=`cygpath -w $test`
                 P_DIR=`cygpath -w $C_DIR`
+                PP_DIR=`cygpath -w $PP_DIR`
             else
                 TESTNAME=$test
                 P_DIR=$C_DIR
