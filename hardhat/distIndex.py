@@ -126,7 +126,6 @@ def CreateIndex(buildName, targetDir):
     files = os.listdir(os.path.join("/home/builder/snapshots", targetDir))
     for thisFile in files:
         fileName = os.path.join("/home/builder/snapshots", targetDir, thisFile)
-        urlPath = os.path.join("/chandler/snapshots", targetDir, thisFile)
         if fileName.find("_src_") > 0:
             print "Generating data for ", thisFile
             html += '<strong style="font-size: larger;">'
@@ -136,7 +135,7 @@ def CreateIndex(buildName, targetDir):
             html += ' MD5 checksum: ' + hardhatutil.MD5sum(fileName) + '<br>'
             html += ' SHA checksum: ' + hardhatutil.SHAsum(fileName) + '<br>'
             html += '\n<hr>\n'
-        elif fileName.find("Chan") > 0:
+        elif fileName.lower().find("chandler") > 0:
             print "Generating data for ", thisFile
             html += '<strong style="font-size: larger;">'            
             html += '<a href="' + thisFile + '">' + thisFile + '</a>'
@@ -168,9 +167,11 @@ def CreateSnarfIndex(buildName, buildType, targetDir, distribName):
     html += '</head><body<img src="http://www.osafoundation.org/images/OSAFLogo.gif" alt="[OSAF Logo]">\n'
     html += '<h2>OSAF Server: ' + buildName + '</h2>\n'
 
-    checkpointDir = os.path.join('/www/downloads/cosmo/checkpoints', targetDir)
-    filename      = os.path.join(checkpointDir, distribName)
-    urlPath       = os.path.join("/cosmo/checkpoints", targetDir, distribName)
+    if buildType == "Release":
+        workDir = os.path.join('/www/downloads/cosmo/releases', targetDir)
+    else:
+        workDir = os.path.join('/www/downloads/cosmo/checkpoints', targetDir)
+    filename      = os.path.join(workDir, distribName)
     indexTemplate = 'snarf.index.html'
     lcBuildType   = buildType.lower()
 
@@ -201,15 +202,15 @@ def CreateSnarfIndex(buildName, buildType, targetDir, distribName):
     print "Replaced %i occurrences of plugh with %s" % (n3, lcBuildType)
     print "Replaced %i occurrences of YZZXX with %s" % (n4, distribName)
 
-    fileOut = file(os.path.join(checkpointDir, buildName + "_index.html"), "w")
+    fileOut = file(os.path.join(workDir, buildName + "_index.html"), "w")
     fileOut.write(html)
     fileOut.close()
 
-    fileOut = file(os.path.join(checkpointDir, "id.js"), "w")
+    fileOut = file(os.path.join(workDir, "id.js"), "w")
     fileOut.write(text)
     fileOut.close()
 
-    fileOut = file(os.path.join(checkpointDir, "index.html"), "w")
+    fileOut = file(os.path.join(workDir, "index.html"), "w")
     fileOut.write(index)
     fileOut.close()
 
