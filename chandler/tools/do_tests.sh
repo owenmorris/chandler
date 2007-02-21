@@ -321,10 +321,10 @@ else
 
             if [ "$OSTYPE" = "cygwin" ]; then
                 C_HOME=`cygpath -aw $C_DIR`
-		PARCELPATH=`cygpath -awp $PARCELPATH:$C_DIR/plugins`
+		PARCEL_PATH=`cygpath -awp $PARCELPATH:$C_DIR/plugins`
             else
                 C_HOME=$C_DIR
-		PARCELPATH=$PARCELPATH:$C_DIR/plugins
+		PARCEL_PATH=$PARCELPATH:$C_DIR/plugins
             fi
 
             for setup in $SETUPS ; do
@@ -334,7 +334,7 @@ else
                     echo Running $setup | tee -a $DOTESTSLOG
 
                     cd `dirname $setup`
-                    CHANDLERHOME=$C_HOME $CHANDLERBIN/$mode/$RUN_PYTHON `basename $setup` test 2>&1 | tee $TESTLOG
+                    PARCELPATH=$PARCEL_PATH CHANDLERHOME=$C_HOME $CHANDLERBIN/$mode/$RUN_PYTHON `basename $setup` test 2>&1 | tee $TESTLOG
                     # scan the test output for the success messge "OK"
                     RESULT=`grep '^OK' $TESTLOG`
 
