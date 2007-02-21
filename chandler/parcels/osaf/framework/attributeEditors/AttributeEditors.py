@@ -896,7 +896,13 @@ class EmailAddressAttributeEditor (StringAttributeEditor):
 
         return (addrOnlyString, indicatorString, unrenderedCount)
 
-    def SetAttributeValue(self, item, attributeName, valueString):            
+    def SetAttributeValue(self, item, attributeName, valueString):
+        # For preview, changes to communication fields should apply to all
+        # occurrences, change the master directly
+        item = getattr(item, 'proxiedItem', item)
+        if pim.has_stamp(item, pim.EventStamp):
+            item = pim.EventStamp(item).getMaster().itsItem
+        
         processedAddresses, validAddresses, invalidCount = \
             Mail.EmailAddress.parseEmailAddresses(item.itsView, valueString)
         if invalidCount == 0:

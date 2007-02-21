@@ -504,6 +504,7 @@ class DetailStampButton(DetailSynchronizer, ControlBlocks.StampButton):
     """
     Common base class for the stamping buttons in the Markup Bar.
     """
+    applyToAllOccurrences = False
     
     def getWatchList(self):
         # Tell us if this item's stamps change.
@@ -532,15 +533,34 @@ class DetailStampButton(DetailSynchronizer, ControlBlocks.StampButton):
         # Add or remove the associated Stamp type
         Block.Block.finishEdits()
         item = self.item
+        recurring = False
+        if self.applyToAllOccurrences:
+            # modifications don't inherit stamps from the master, so for a stamp
+            # to be added to all occurrences EventStamp.addStampToAll or
+            # EventStamp.removeStampeFromAll needs to be called
+            item = getattr(item, 'proxiedItem', item)
+            if pim.has_stamp(item, pim.EventStamp):
+                master = pim.EventStamp(item).getMaster()
+                item = master.itsItem
+                recurring = item != self.item
+                
         if item is None or not self._isStampable(item):
             return
 
         stampClass = self.stampClass
-        if pim.has_stamp(item, self.stampClass):
-            stampClass(item).remove()
+        if pim.has_stamp(item, stampClass):
+            if recurring:
+                master.removeStampFromAll(stampClass)
+            else:
+                stampClass(item).remove()
+                
         else:
             startTimeExists = hasattr(item, pim.EventStamp.startTime.name)
-            stampClass(item).add()
+            if recurring:
+                master.addStampToAll(stampClass)
+            else:
+                stampClass(item).add()
+
 
             if stampClass == Mail.MailStamp:
                 #Set the message as outbound.
@@ -569,9 +589,6 @@ class DetailStampButton(DetailSynchronizer, ControlBlocks.StampButton):
                                                        typeFlag)
 
                 
-        #logger.debug("%s: stamping: %s %s to %s", debugName(self), operation, mixinKind, debugName(item))
-        #logger.debug("%s: done stamping: %s %s to %s", debugName(self), operation, mixinKind, debugName(item))
-
     def onButtonPressedEventUpdateUI(self, event):
         item = self.item
         enable = not pim.isDead(item) and self._isStampable(item) and \
@@ -586,6 +603,7 @@ class DetailStampButton(DetailSynchronizer, ControlBlocks.StampButton):
 class MailMessageButtonBlock(DetailStampButton):
     """ Mail Message Stamping button in the Markup Bar. """
     stampClass = Mail.MailStamp
+    applyToAllOccurrences = True
     
 class CalendarStampButtonBlock(DetailStampButton):
     """ Calendar button in the Markup Bar. """
@@ -1950,6 +1968,11 @@ class OutboundEmailAddressAttributeEditor(ChoiceAttributeEditor):
         return value
 
     def SetAttributeValue(self, item, attributeName, valueString):
+        # For preview, changes to communication fields should apply to all
+        # occurrences, change the master directly
+        item = getattr(item, 'proxiedItem', item)
+        if pim.has_stamp(item, pim.EventStamp):
+            item = pim.EventStamp(item).getMaster().itsItem
         # Process the one address we've got.
         processedAddresses, validAddresses, invalidCount = \
             Mail.EmailAddress.parseEmailAddresses(item.itsView, valueString)

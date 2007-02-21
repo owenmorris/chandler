@@ -1036,6 +1036,18 @@ class EventStamp(Stamp):
         else:
             self.__disableRecurrenceChanges()
 
+    def addStampToAll(self, stampClass):
+        master = self.getMaster()
+        stampClass(master).add()
+        for mod in master.modifications or []:
+            stampClass(mod).add()
+
+    def removeStampFromAll(self, stampClass):
+        master = self.getMaster()
+        stampClass(master).remove()
+        for mod in master.modifications or []:
+            stampClass(mod).remove()
+
 
     def _restoreStamps(self, clonedEvent):
         disabledChanges = clonedEvent.__disableRecurrenceChanges()

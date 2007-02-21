@@ -142,7 +142,8 @@ class TestRecurringEvent(ChandlerTestCase):
                                   "status":"CONFIRMED",
                                   "body":uw("Resolution: host book club once a month"),
                                   "timeZone":"America/Chicago"})
-                                  
+        
+            
        # Yearly Event Test
                                 
         # creation
@@ -182,6 +183,25 @@ class TestRecurringEvent(ChandlerTestCase):
                                   "status":"CONFIRMED",
                                   "body":uw("Resolution: get teeth cleaned once a year"),
                                   "timeZone":"America/Los_Angeles"})
+
+        # Test stamping of recurring events        
+        # @@@ unstamping eventness on recurring events is hard to define
+        
+        # Test that the communication stamp applies to all
+        
+        yearlyEvent.StampAsMailMessage(True)
+        self.logger.startAction("Check communication stamp applies to all occurrences")
+        firstOccurrence = pim.EventStamp(yearlyEvent.item).getFirstOccurrence()
+        secondOccurrence = firstOccurrence.getNextOccurrence()
+        if not pim.has_stamp(secondOccurrence, pim.MailStamp):
+            self.logger.endAction(False,
+                            "The second occurrence didn't get the MailStamp")
+
+        yearlyEvent.StampAsMailMessage(False)
+        if pim.has_stamp(secondOccurrence, pim.MailStamp):
+            self.logger.endAction(False,
+                            "The second occurrence didn't lose the MailStamp")
+
 
         # switch to the table view, make sure there are appropriate triageStatus
         # modifications.  These tests will fail if run before Feb. 2006 or after
