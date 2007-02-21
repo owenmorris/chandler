@@ -201,10 +201,27 @@ class TwistedProtocolWrapper(wrapper.TLSProtocolWrapper):
             try:
                 err = store.get_error()
     
-                pem = store.get_current_cert().as_pem()
+                # This would actually give us the certificate we are currently
+                # checking: 
+                #
+                #pem = store.get_current_cert().as_pem()
+                #
+                # However, we want to ask the user what to do about
+                # the actual server certificate, not the other certs in the
+                # chain. While this makes it a little annoying for experts
+                # (we say there was a problem in the chain, and show only the
+                # server cert which itself may have no problems), it makes it
+                # slightly safer because if the users decide to ignore the
+                # error, they ignore only the server certificate errors. If
+                # we showed the CA certificate, the user could accidentally
+                # ok any certificates issued by the bad CA. Now they will
+                # at least be faced with the warning dialog for each actual
+                # server certificate.
+                stack = store.get1_chain()
+                x509 = stack[0]
+                pem = x509.as_pem()
     
                 # Check temporarily trusted certificates
-    
                 if err not in unknown_issuer:
                     # Check if we are temporarily ignoring errors with this
                     # certificate.
@@ -214,24 +231,12 @@ class TwistedProtocolWrapper(wrapper.TLSProtocolWrapper):
                         return 1
                     self.untrustedCertificates.append(pem)
                     return ok
-                else:
-                    # In case of unknown issuer, we only ask the user about
-                    # the actual server certificate, not the CA certificate(s).
-                    stack = store.get1_chain()
-                    x509 = stack[0]
-                    pem = x509.as_pem()
     
                 if pem in trusted_until_shutdown_site_certs:
                     log.debug('Found temporarily trusted site cert')
                     return 1
     
                 # Check permanently trusted certificates
-                # XXX Why does this need to be commit()? refresh() does not
-                # XXX seem pick up changes made in main thread.
-                # Perhaps this should just use the main view (or the main
-                # view should be passed in) and not do any refresh or commit
-                # self.repositoryView.commit()
-    
                 q = schema.ns('osaf.framework.certstore', 
                               self.repositoryView).sslTrustedServerCertificatesQuery
                 for cert in q:
