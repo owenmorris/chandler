@@ -283,11 +283,12 @@ class DetailSynchronizer(Item):
     Mixin class that handles synchronization and notification common to most
     of the blocks in the detail view.
     """
+    hiddenByUser = schema.One(schema.Boolean, initialValue=False)
+
     def __init__(self, *args, **kwds):
         """ 
         detail items keep track of whether or not they should be shown.
         """
-        self.hiddenByUser = False
         super(DetailSynchronizer, self).__init__(*args, **kwds)
 
     def onSetContentsEvent(self, event):

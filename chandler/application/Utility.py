@@ -35,7 +35,7 @@ import version
 # with your name (and some helpful text). The comment's really there just to
 # cause Subversion to warn you of a conflict when you update, in case someone 
 # else changes it at the same time you do (that's why it's on the same line).
-SCHEMA_VERSION = "320" # grant/pje: Disallow initialValue in Annotations
+SCHEMA_VERSION = "321" # rae: hiddenByUser for detail view
 
 logger = None # initialized in initLogging()
 
