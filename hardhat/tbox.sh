@@ -123,7 +123,7 @@ fi
   # the EXCLUDES array is then walked and the length of the 
   # directory is calculated - beats doing it by hand and making a mistake
 
-EXCLUDES=("$C_DIR/release" "$C_DIR/debug" "$C_DIR/tools" "$C_DIR/util", "$C_DIR/projects", "$C_DIR/plugins")
+EXCLUDES=("$C_DIR/release" "$C_DIR/debug" "$C_DIR/tools" "$C_DIR/util" "$C_DIR/projects" "$C_DIR/plugins")
 L_EXCLUDES=(0 0 0 0 0 0)
 for item in 0 1 2 3 4 5 ; do
     L_EXCLUDES[$item]=${#EXCLUDES[$item]}
@@ -218,19 +218,21 @@ PERFTEST_RESULT="ok"
   # walk thru all of the test dirs and find the test files
 
 if [ ! "$CHANDLER_UNIT_TEST" = "no" ]; then
-    PP_DIR="$C_DIR/plugins"
+    PP_DIR="$PARCELPATH:$C_DIR/plugins"
+    C_HOME="$CHANDLERHOME"
 
     if [ "$OSTYPE" = "cygwin" ]; then
-        PP_DIR=`cygpath -w $PP_DIR`
+        PP_DIR=`cygpath -awp $PP_DIR`
+        C_HOME=`cygpath -aw $C_HOME`
     fi
 
     for mode in $MODES ; do
         echo Running $mode unit tests | tee -a $BUILDLOG
-    
+
         CONTINUE="true"
         for testdir in $TESTDIRS ; do
             TESTS=`find $testdir -name 'Test*.py' -print`
-    
+
             for test in $TESTS ; do
                 if [ "$CONTINUE" = "true" ]; then
                     if [ "$OSTYPE" = "cygwin" ]; then
@@ -238,23 +240,23 @@ if [ ! "$CHANDLER_UNIT_TEST" = "no" ]; then
                     else
                         TESTNAME=$test
                     fi
-    
+
                     echo Running $TESTNAME | tee -a $BUILDLOG
-    
+
                     cd $C_DIR
                     PARCELPATH=$PP_DIR $CHANDLERBIN/$mode/$RUN_PYTHON $TESTNAME &> $T_DIR/test.log
-            
+
                     if [ "$OSTYPE" = "cygwin" ]; then
                         dos2unix $T_DIR/test.log
                     fi
-                      
+
                       # scan the test output for the success messge "OK"
                     RESULT=`grep '^OK' $T_DIR/test.log`
-    
+
                     echo - - - - - - - - - - - - - - - - - - - - - - - - - - >> $T_DIR/tests.log
                     echo $TESTNAME [$RESULT] >> $T_DIR/tests.log
                     cat $T_DIR/test.log      >> $T_DIR/tests.log
-    
+
                     if [ "$RESULT" != "OK" ]; then
                         UNITTEST_RESULT="failed"
                         CHANDLER_FUNCTIONAL_TEST="no"
@@ -272,7 +274,7 @@ if [ ! "$CHANDLER_UNIT_TEST" = "no" ]; then
                 echo Running $setup | tee -a $BUILDLOG
 
                 cd `dirname $setup`
-                $CHANDLERBIN/$mode/$RUN_PYTHON `basename $setup` test &> $T_DIR/test.log
+                PARCELPATH=$PP_DIR CHANDLERHOME=$C_HOME $CHANDLERBIN/$mode/$RUN_PYTHON `basename $setup` test &> $T_DIR/test.log
 
                 # scan the test output for the success messge "OK"
                 RESULT=`grep '^OK' $T_DIR/test.log`
@@ -291,15 +293,15 @@ if [ ! "$CHANDLER_UNIT_TEST" = "no" ]; then
             fi
             cd $C_DIR
         done
-    
+
           # if Functional Tests are needed - walk the CATS directory
           # and create a list of all valid tests
-    
+
         echo Running $mode functional tests | tee -a $BUILDLOG
-    
+
         if [ ! "$CHANDLER_FUNCTIONAL_TEST" = "no" ]; then
             test="$C_DIR/tools/cats/Functional/FunctionalTestSuite.py"
-    
+
             PP_DIR="$C_DIR/tools/QATestScripts/DataFiles"
 
             if [ "$OSTYPE" = "cygwin" ]; then
@@ -310,19 +312,19 @@ if [ ! "$CHANDLER_UNIT_TEST" = "no" ]; then
                 TESTNAME=$test
                 P_DIR=$C_DIR
             fi
-    
+
             echo Running $TESTNAME | tee -a $BUILDLOG
-    
+
             cd $C_DIR
             $CHANDLERBIN/$mode/$RUN_CHANDLER --create --nocatch --profileDir="$P_DIR" --parcelPath="$PP_DIR" --scriptTimeout=720  --chandlerTestMask=0 --chandlerTestDebug=1 --scriptFile="$TESTNAME" --chandlerTestLogfile=FunctionalTestSuite.log &> $T_DIR/test.log
-    
+
               # functional tests output a #TINDERBOX# Status = PASSED that we can scan for
             RESULT=`grep "#TINDERBOX# Status = PASSED" $T_DIR/test.log`
-    
+
             echo - - - - - - - - - - - - - - - - - - - - - - - - - - >> $T_DIR/tests.log
             echo $TESTNAME [$RESULT] >> $T_DIR/tests.log
             cat $T_DIR/test.log      >> $T_DIR/tests.log
-    
+
             if [ "$RESULT" != "#TINDERBOX# Status = PASSED" ]; then
                 FUNCTEST_RESULT="failed"
                 CHANDLER_PERFORMANCE_TEST="no"
@@ -349,53 +351,53 @@ if [ "$CHANDLER_PERFORMANCE_TEST" = "yes" ]; then
     if [ "$OSTYPE" = "cygwin" ]; then
         REPO=`cygpath -w $REPO`
     fi
-    
+
     for test in $TESTS ; do
         # Don't run large data tests here
         if [ `echo $test | grep -v PerfLargeData` ]; then
 
-	        TESTNAME=$test
-	        P_DIR=$C_DIR
-	        if [ "$OSTYPE" = "cygwin" ]; then
-	            TESTNAME=`cygpath -w $TESTNAME`
-	            P_DIR=`cygpath -w $P_DIR`
-	        fi
-	
-	        echo Running $TESTNAME | tee -a $BUILDLOG
-	
-	        cd $C_DIR
-	
-	        for run in $RUNS ; do 
-	            T_LOG="$T_DIR/time$run.log"
-	            if [ "$OSTYPE" = "cygwin" ]; then
-	                T_LOG=`cygpath -w $T_LOG`
-	            fi
-	            $CHANDLERBIN/release/$RUN_CHANDLER --create --nocatch --profileDir="$P_DIR" --catsPerfLog="$T_LOG" --scriptTimeout=600 --scriptFile="$TESTNAME" &> $T_DIR/test$run.log
-	            echo `<"$T_LOG"` | tee -a $BUILDLOG
-	        done
-	
-	        # Pick the median
-	        MEDIANTIME=`cat $T_DIR/time1.log $T_DIR/time2.log $T_DIR/time3.log | sort -n | head -n 2 | tail -n 1`        
-	        for run in $RUNS ; do
-	            if [ `cat $T_DIR/time$run.log` = $MEDIANTIME ]; then
-	                cat $T_DIR/test$run.log > $T_DIR/test.log
-	                break
-	            fi
-	        done
-	
-	          # performance tests output a #TINDERBOX# Status = PASSED that we can scan for
-	        RESULT=`grep "#TINDERBOX# Status = PASSED" $T_DIR/test.log`
-	
-	        echo - - - - - - - - - - - - - - - - - - - - - - - - - - >> $T_DIR/tests.log
-	        echo $TESTNAME [$RESULT] >> $T_DIR/tests.log
-	        cat $T_DIR/test.log      >> $T_DIR/tests.log
-	
-	        if [ "$RESULT" != "#TINDERBOX# Status = PASSED" ]; then
-	            PERFTEST_RESULT="failed"
-	        fi
-	    fi
+            TESTNAME=$test
+            P_DIR=$C_DIR
+            if [ "$OSTYPE" = "cygwin" ]; then
+                TESTNAME=`cygpath -w $TESTNAME`
+                P_DIR=`cygpath -w $P_DIR`
+            fi
+
+            echo Running $TESTNAME | tee -a $BUILDLOG
+
+            cd $C_DIR
+
+            for run in $RUNS ; do 
+                T_LOG="$T_DIR/time$run.log"
+                if [ "$OSTYPE" = "cygwin" ]; then
+                    T_LOG=`cygpath -w $T_LOG`
+                fi
+                $CHANDLERBIN/release/$RUN_CHANDLER --create --nocatch --profileDir="$P_DIR" --catsPerfLog="$T_LOG" --scriptTimeout=600 --scriptFile="$TESTNAME" &> $T_DIR/test$run.log
+                echo `<"$T_LOG"` | tee -a $BUILDLOG
+            done
+
+            # Pick the median
+            MEDIANTIME=`cat $T_DIR/time1.log $T_DIR/time2.log $T_DIR/time3.log | sort -n | head -n 2 | tail -n 1`        
+            for run in $RUNS ; do
+                if [ `cat $T_DIR/time$run.log` = $MEDIANTIME ]; then
+                    cat $T_DIR/test$run.log > $T_DIR/test.log
+                    break
+                fi
+            done
+
+              # performance tests output a #TINDERBOX# Status = PASSED that we can scan for
+            RESULT=`grep "#TINDERBOX# Status = PASSED" $T_DIR/test.log`
+
+            echo - - - - - - - - - - - - - - - - - - - - - - - - - - >> $T_DIR/tests.log
+            echo $TESTNAME [$RESULT] >> $T_DIR/tests.log
+            cat $T_DIR/test.log      >> $T_DIR/tests.log
+
+            if [ "$RESULT" != "#TINDERBOX# Status = PASSED" ]; then
+                PERFTEST_RESULT="failed"
+            fi
+        fi
     done
-    
+
     if [ "$RESULT" = "" ]; then
         for test in $TESTS ; do
             FAILED_TESTS="$FAILED_TESTS $test"
@@ -405,49 +407,49 @@ if [ "$CHANDLER_PERFORMANCE_TEST" = "yes" ]; then
         for test in $TESTS ; do
             # Only run the large data tests
             if [ `echo $test | grep PerfLargeData` ]; then
-		        TESTNAME=$test
-		        P_DIR=$C_DIR
-		        if [ "$OSTYPE" = "cygwin" ]; then
-		            TESTNAME=`cygpath -w $TESTNAME`
-		            P_DIR=`cygpath -w $P_DIR`
-		        fi
-		
-		        echo Running $TESTNAME | tee -a $BUILDLOG
-		
-		        cd $C_DIR
-		
-		        for run in $RUNS ; do 
-		            T_LOG="$T_DIR/time$run.log"
-		            if [ "$OSTYPE" = "cygwin" ]; then
-		                T_LOG=`cygpath -w $T_LOG`
-		            fi
-		            $CHANDLERBIN/release/$RUN_CHANDLER --restore="$REPO" --nocatch --profileDir="$P_DIR" --catsPerfLog="$T_LOG" --scriptTimeout=600 --scriptFile="$TESTNAME" &> $T_DIR/test$run.log
-		            echo `<"$T_LOG"` | tee -a $BUILDLOG
-		        done
-		
-		        # Pick the median
-		        MEDIANTIME=`cat $T_DIR/time1.log $T_DIR/time2.log $T_DIR/time3.log | sort -n | head -n 2 | tail -n 1`        
-		        for run in $RUNS ; do
-		            if [ `cat $T_DIR/time$run.log` = $MEDIANTIME ]; then
-		                cat $T_DIR/test$run.log > $T_DIR/test.log
-		                break
-		            fi
-		        done
-		
-		          # performance tests output a #TINDERBOX# Status = PASSED that we can scan for
-		        RESULT=`grep "#TINDERBOX# Status = PASSED" $T_DIR/test.log`
-		
-		        echo - - - - - - - - - - - - - - - - - - - - - - - - - - >> $T_DIR/tests.log
-		        echo $TESTNAME [$RESULT] >> $T_DIR/tests.log
-		        cat $T_DIR/test.log      >> $T_DIR/tests.log
-		
-		        if [ "$RESULT" != "#TINDERBOX# Status = PASSED" ]; then
-		            PERFTEST_RESULT="failed"
-		        fi
-		    fi
-		done
+                TESTNAME=$test
+                P_DIR=$C_DIR
+                if [ "$OSTYPE" = "cygwin" ]; then
+                    TESTNAME=`cygpath -w $TESTNAME`
+                    P_DIR=`cygpath -w $P_DIR`
+                fi
+
+                echo Running $TESTNAME | tee -a $BUILDLOG
+
+                cd $C_DIR
+
+                for run in $RUNS ; do 
+                    T_LOG="$T_DIR/time$run.log"
+                    if [ "$OSTYPE" = "cygwin" ]; then
+                        T_LOG=`cygpath -w $T_LOG`
+                    fi
+                    $CHANDLERBIN/release/$RUN_CHANDLER --restore="$REPO" --nocatch --profileDir="$P_DIR" --catsPerfLog="$T_LOG" --scriptTimeout=600 --scriptFile="$TESTNAME" &> $T_DIR/test$run.log
+                    echo `<"$T_LOG"` | tee -a $BUILDLOG
+                done
+
+                # Pick the median
+                MEDIANTIME=`cat $T_DIR/time1.log $T_DIR/time2.log $T_DIR/time3.log | sort -n | head -n 2 | tail -n 1`        
+                for run in $RUNS ; do
+                    if [ `cat $T_DIR/time$run.log` = $MEDIANTIME ]; then
+                        cat $T_DIR/test$run.log > $T_DIR/test.log
+                        break
+                    fi
+                done
+
+                  # performance tests output a #TINDERBOX# Status = PASSED that we can scan for
+                RESULT=`grep "#TINDERBOX# Status = PASSED" $T_DIR/test.log`
+
+                echo - - - - - - - - - - - - - - - - - - - - - - - - - - >> $T_DIR/tests.log
+                echo $TESTNAME [$RESULT] >> $T_DIR/tests.log
+                cat $T_DIR/test.log      >> $T_DIR/tests.log
+
+                if [ "$RESULT" != "#TINDERBOX# Status = PASSED" ]; then
+                    PERFTEST_RESULT="failed"
+                fi
+            fi
+        done
     fi
-    
+
     echo Running startup time tests | tee -a $BUILDLOG
 
     if [ "$OSTYPE" = "cygwin" ]; then
@@ -473,7 +475,7 @@ if [ "$CHANDLER_PERFORMANCE_TEST" = "yes" ]; then
 
     echo Creating new empty repository | tee -a $BUILDLOG
     $CHANDLERBIN/release/$RUN_CHANDLER --create --nocatch --profileDir="$P_DIR" --scriptTimeout=600 --scriptFile="$CREATEREPO" &> $T_DIR/test.log
-    
+
     echo Timing startup | tee -a $BUILDLOG
     for run in $RUNS ; do
         $TIME -o $T_DIR/start1.$run.log $CHANDLERBIN/release/$RUN_CHANDLER --nocatch --profileDir="$P_DIR" --scriptTimeout=600 --scriptFile="$TESTNAME" &> $T_DIR/test.log
@@ -484,7 +486,7 @@ if [ "$CHANDLER_PERFORMANCE_TEST" = "yes" ]; then
 
     echo Creating new large repository | tee -a $BUILDLOG
     $CHANDLERBIN/release/$RUN_CHANDLER --restore="$REPO" --nocatch --profileDir="$P_DIR" --scriptTimeout=600 --scriptFile="$CREATEREPO" &> $T_DIR/test.log
-    
+
     echo Timing startup | tee -a $BUILDLOG
     for run in $RUNS ; do
         $TIME -o $T_DIR/start6.$run.log $CHANDLERBIN/release/$RUN_CHANDLER --profileDir="$P_DIR" --nocatch --scriptTimeout=600 --scriptFile="$TESTNAME" &> $T_DIR/test.log
@@ -492,12 +494,12 @@ if [ "$CHANDLER_PERFORMANCE_TEST" = "yes" ]; then
         cat $T_DIR/test.log > $T_DIR/start6.$run.log
         echo `<"$T_DIR/start6.$run.log"` | tee -a $BUILDLOG
     done
-    
+
     echo Getting medians from startup runs | tee -a $BUILDLOG
-    
+
     STARTUP=`cat $T_DIR/start1.1.log $T_DIR/start1.2.log $T_DIR/start1.3.log | sort -n | head -n 2 | tail -n 1`        
     STARTUP_LARGE=`cat $T_DIR/start6.1.log $T_DIR/start6.2.log $T_DIR/start6.3.log | sort -n | head -n 2 | tail -n 1`
-    
+
     echo Printing results | tee -a $BUILDLOG
 
     echo - - - - - - - - - - - - - - - - - - - - - - - - - - >> $T_DIR/tests.log
