@@ -50,6 +50,9 @@ DOWNLOAD_CHECK_MESSAGES = _(u"%(accountName)s: checking for new mail messages")
 DOWNLOAD_START_MESSAGES = _(u"%(accountName)s: downloading %(numberOfMessages)s messages")
 
 IMAP_START_MESSAGES = _(u"%(accountName)s: downloading %(numberOfMessages)s messages from '%(folderDisplayName)s'")
+IMAP_SEARCH_MESSAGES = _(u"%(accountName)s: searching through %(numberOfMessages)s messages in your '%(folderDisplayName)s' for Chandler Messages")
+
+IMAP_DELIMITER_ERROR = _(u"Unable to determine the file delimiter of the IMAP Server")
 
 # Translatable message strings for uploads(SMTP)
 UPLOAD_BAD_REPLY_ADDRESS = _(u"The Reply-To Address %(emailAddress)s is not valid")

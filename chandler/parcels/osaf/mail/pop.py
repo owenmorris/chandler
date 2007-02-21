@@ -146,16 +146,23 @@ class _TwistedPOP3Client(pop3.POP3Client):
             w.errback(error)
 
     def sendLine(self, line):
+        pop3.POP3Client.sendLine(self, line)
+
         if __debug__ and DEBUG_CLIENT_SERVER:
             print "C: %s" % line
 
-        return pop3.POP3Client.sendLine(self, line)
+    def rawDataReceived(self, data):
+        pop3.POP3Client.rawDataReceived(self, data)
+
+        if __debug__ and DEBUG_CLIENT_SERVER:
+            print "S: %s" % data
 
     def lineReceived(self, line):
+        pop3.POP3Client.lineReceived(self, line)
+
         if __debug__ and DEBUG_CLIENT_SERVER:
             print "S: %s" % line
 
-        return pop3.POP3Client.lineReceived(self, line)
 
 class POPClientFactory(base.AbstractDownloadClientFactory):
     """Inherits from C{base.AbstractDownloadClientFactory}

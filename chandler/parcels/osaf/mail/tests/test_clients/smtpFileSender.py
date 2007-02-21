@@ -20,7 +20,7 @@ import sys
 
 class TransportInfo:
     hostname  = "localhost"
-    rcpt_to   = ["brian@test.com"]
+    rcpt_to   = ["testuser@kauai.osafoundation.org"]
     mail_from = "brian@test.com"
 
 def sendMail(file):
@@ -31,7 +31,7 @@ def sendMail(file):
     return sendmail(TransportInfo.hostname,
                     TransportInfo.mail_from,
                     TransportInfo.rcpt_to,
-                    data
+                    data, port=2500
                     ).addCallback(_messageSent, file).addErrback(_sendError, file)
 
 def _messageSent(result, file):

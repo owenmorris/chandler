@@ -46,6 +46,8 @@ __all__ = ['IMAPClient']
     2. Will need to just get the basic headers of subject, message id,
        message size to, from, cc. Then have a callback to sync the rest
        when downloading an individual mail use the feedparser for performance
+    3. Could fetch UID's then build a sorted list and use pop to get the newest
+       messages first
 """
 
 # When set to True and in __debug__ mode
@@ -54,6 +56,15 @@ __all__ = ['IMAPClient']
 # and server. This is especially handy
 # when the traffic is encrypted (SSL/TLS).
 DEBUG_CLIENT_SERVER = False
+
+
+# The maximum number of message UID's to
+# include in a search for Chandler Headers.
+MAX_SEARCH_NUM = 650
+
+#Place holder for displaying more info to
+# the user on large mailbox searches
+#MIN_SEARCH_ALERT = 1500
 
 class FolderVars(base.DownloadVars):
     """
@@ -83,6 +94,15 @@ class FolderVars(base.DownloadVars):
         # IMAP folder in the IMAPAccount.folders
         # sequence.
         self.indexNumber = 0
+
+        # The list of UID's to search
+        # for Chandler Headers
+        self.searchUIDs = []
+
+        # The list of UID's of messages
+        # that contain Chandler Headers
+        # and should be downloaded.
+        self.foundUIDs  = []
 
     def getNextUID(self):
         return self.folderItem.lastMessageUID
@@ -188,6 +208,11 @@ class _TwistedIMAP4Client(imap4.IMAP4Client):
         if __debug__ and DEBUG_CLIENT_SERVER:
             print "C: %s" % line
 
+    def rawDataReceived(self, data):
+        imap4.IMAP4Client.rawDataReceived(self, data)
+
+        if __debug__ and DEBUG_CLIENT_SERVER:
+            print "S: %s" % data
 
     def lineReceived(self, line):
         imap4.IMAP4Client.lineReceived(self, line)
@@ -330,7 +355,6 @@ class IMAPClient(base.AbstractDownloadClient):
         return d
 
     def _addFolderToDeferred(self, folder, d):
-
         name, exists, subscribed = folder
 
         if exists:
@@ -368,19 +392,21 @@ class IMAPClient(base.AbstractDownloadClient):
         }
 
         if self.proto._capCache.has_key("CHILDREN"):
+            # This list command will return the mailbox
+            # delimiter for the IMAP4 server
+            # and is needed to add the Chandler folders
+            # under the Inbox.
+            d = self.proto.list("", "")
+            d.addCallback(self._getFolderDelimiter, status)
+
             # Get the list of all directories under the Inbox.
             # The '*" is used instead of the "%" due to an
             # issue with fastmail returning the wrong results
             # with "%" :(
-            d = self.proto.list("INBOX", "*")
+            d.addCallback(lambda x: self.proto.list("INBOX", "*"))
 
             #List the subscribe sub-folders in the Inbox
             lsub = lambda x: self.proto.lsub("INBOX", "*")
-
-            #The folders are children of the Inbox
-            status[m][0] = u"INBOX.%s" % m
-            status[t][0] = u"INBOX.%s" % t
-            status[e][0] = u"INBOX.%s" % e
 
         else:
             # List all root level mailboxes
@@ -395,6 +421,26 @@ class IMAPClient(base.AbstractDownloadClient):
 
         return d
 
+    def _getFolderDelimiter(self, result, status):
+        try:
+            delim = result[0][1]
+        except:
+            # This error should never be raised but a
+            # safeguard is put in place just in case.
+            # Raising an IMAPException will result in
+            # a clearer error message to the user
+            # than just letting the index out of range
+            # error be raised and show to the user.
+            self._raiseException(errors.IMAPException(constants.IMAP_DELIMITER_ERROR))
+
+        m = constants.CHANDLER_MAIL_FOLDER
+        t = constants.CHANDLER_TASKS_FOLDER
+        e = constants.CHANDLER_EVENTS_FOLDER
+
+        #The folders are children of the Inbox
+        status[m][0] = u"INBOX%s%s" % (delim, m)
+        status[t][0] = u"INBOX%s%s" % (delim, t)
+        status[e][0] = u"INBOX%s%s" % (delim, e)
 
     def _updateStatus(self, results, status, type):
         #type 0: list
@@ -683,50 +729,142 @@ class IMAPClient(base.AbstractDownloadClient):
 
             return self._getNextFolder()
 
+        lastUID = 1
+
+        if self.vars.getNextUID() > 0:
+            lastUID = self.vars.getNextUID()
+
+        msgSet = imap4.MessageSet(lastUID, None)
+
         if self.vars.folderItem.folderType == "CHANDLER_HEADERS":
-            lastUID = 1
-            if self.vars.getNextUID() > 0:
-                lastUID = self.vars.getNextUID()
-
-
-            # Find all mail in the folder that contains the header
-            # X-Chandler-Mailer: True, does not contain the \Deleted
-            # flag and is greater than the IMAP UID of the last
-            # message downloaded from the folder.
-            query = imap4.Query(header=('X-Chandler-Mailer', 'True'), undeleted=True,
-                           uid=imap4.MessageSet(lastUID, None))
-
-            d = self.proto.search(query, uid=1)
-
-            d.addCallback(self._searchForChandlerMessages
-                         ).addErrback(self.catchErrors)
-
-            return d
-
-        if self.vars.getNextUID() == 0:
-            msgSet = imap4.MessageSet(1, None)
+            return self.proto.fetchUID(msgSet, uid=1
+                    ).addCallbacks(self._searchForChandlerMessages, self.catchErrors)
         else:
-            msgSet = imap4.MessageSet(self.vars.getNextUID(), None)
+            return self.proto.fetchFlags(msgSet, uid=True
+                       ).addCallback(self._getMessagesFlagsUID
+                       ).addErrback(self.catchErrors)
 
-        return self.proto.fetchFlags(msgSet, uid=True
-                   ).addCallback(self._getMessagesFlagsUID
-                   ).addErrback(self.catchErrors)
-
-    def _searchForChandlerMessages(self, msgUIDs):
+    def _searchForChandlerMessages(self, msgs):
         if __debug__:
             trace("_searchForChandlerHeaders")
 
-        if len(msgUIDs) == 0:
+        for uidDict in msgs.values():
+           self.vars.searchUIDs.append(int(uidDict['UID']))
+
+        # Sort the uids since the ordering returned from the
+        # dict may not be sequential
+        self.vars.searchUIDs.sort()
+
+        size = len(self.vars.searchUIDs)
+
+
+        # Placeholder for displaying additionaly information
+        # to the user when searching a folder with a huge number
+        # of messages
+        #if size > MIN_SEARCH_ALERT:
+        #    print "show an alert that messages will take a while to download"
+
+        if size == 0:
+            # There are no uids greater than the lastUID so
+            # scan the next folder
+            return self._getNextFolder()
+
+        if self.statusMessages:
+            setStatusMessage(constants.IMAP_SEARCH_MESSAGES % \
+                             {'accountName': self.account.displayName,
+                             'folderDisplayName': self.vars.folderItem.displayName,
+                              'numberOfMessages': size})
+
+        # The last position in the sorted searchUIDs list
+        # is the highest uid in the folder.
+        self.vars.lastUID = self.vars.searchUIDs[size-1]
+
+
+        # mset will never be None here since the check to
+        # make sure the self.vars.searchUIDs list is not
+        # empty has already been done a few lines up.
+
+        mset = self._getSearchMessageSet()
+
+        # Find all mail in the folder that contains the header
+        # X-Chandler-Mailer: True, does not contain the \Deleted
+        # flag and is greater than the IMAP UID of the last
+        # message downloaded from the folder.
+
+        query = imap4.Query(header=('X-Chandler-Mailer', 'True'), undeleted=True,
+                            uid=mset)
+
+        return self.proto.search(query, uid=1
+                        ).addCallbacks(self._findChandlerMessages, \
+                                       self.catchErrors)
+
+
+    def _findChandlerMessages(self, msgUIDs):
+        if __debug__:
+            trace("_findChandlerMessages")
+
+        for msgUID in msgUIDs:
+            # Add all messages that match the
+            # search criteria to the foundUIDs
+            # list.
+            self.vars.foundUIDs.append(msgUID)
+
+        mset = self._getSearchMessageSet()
+
+        if mset:
+            query = imap4.Query(header=('X-Chandler-Mailer', 'True'), undeleted=True,
+                                uid=mset)
+
+            return self.proto.search(query, uid=1
+                        ).addCallbacks(self._findChandlerMessages, \
+                                       self.catchErrors)
+
+
+        # This point is reached when self._getSearchMessageSet()
+        # returns None indicating that there are no more message
+        # uids to search for Chandler Headers.
+
+        if len(self.vars.foundUIDs) == 0:
+            # If the search returned no message uids
+            # then first commit the lastUID then
+            # scan the next folder
+            self.vars.setNextUID(self.vars.lastUID + 1)
+            self.view.commit()
             return self._getNextFolder()
 
         msgSet = imap4.MessageSet()
 
-        for uid in msgUIDs:
+        for uid in self.vars.foundUIDs:
             msgSet.add(uid)
 
+        # FYI: Since there are messages to download the incrementing of
+        # the lastUID to highest uid of the searched messages
+        # will automatically get commited.
         return self.proto.fetchFlags(msgSet, uid=True
-                   ).addCallback(self._getMessagesFlagsUID
-                   ).addErrback(self.catchErrors)
+                   ).addCallbacks(self._getMessagesFlagsUID, \
+                                  self.catchErrors)
+
+    def _getSearchMessageSet(self):
+        size = len(self.vars.searchUIDs)
+
+        if size == 0:
+            return None
+
+        num = size > MAX_SEARCH_NUM and \
+              MAX_SEARCH_NUM or \
+              size
+
+        mset = imap4.MessageSet()
+
+        for i in xrange(0, num):
+            mset.add(self.vars.searchUIDs[i])
+
+        # Reduce the list removing all uids that have been
+        # added to the message set
+        self.vars.searchUIDs = self.vars.searchUIDs[num:]
+
+        return mset
+
 
     def _getMessagesFlagsUID(self, msgs):
         if __debug__:
@@ -865,7 +1003,6 @@ class IMAPClient(base.AbstractDownloadClient):
             # flag will be added to the message on the
             # IMAP Server after the corresponding MailStamp
             # has been committed to the Repository.
-
             self.vars.delList.append(curMessage[0])
 
         if self.vars.numDownloaded == self.vars.numToDownload:
