@@ -218,12 +218,12 @@ PERFTEST_RESULT="ok"
   # walk thru all of the test dirs and find the test files
 
 if [ ! "$CHANDLER_UNIT_TEST" = "no" ]; then
+    PP_DIR="$C_DIR/plugins"
+    C_HOME="$C_DIR"
+
     if [ "$OSTYPE" = "cygwin" ]; then
-        PP_DIR=`cygpath -aw $C_DIR/plugins`
-        C_HOME=`cygpath -aw $CHANDLERHOME`
-    else
-        PP_DIR="$C_DIR/plugins"
-        C_HOME="$CHANDLERHOME"
+        PP_DIR=`cygpath -aw $PP_DIR`
+        C_HOME=`cygpath -aw $C_HOME`
     fi
 
     for mode in $MODES ; do
