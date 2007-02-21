@@ -448,6 +448,10 @@ if [ "$CHANDLER_PERFORMANCE_TEST" = "yes" ]; then
                     fi
                 done
 
+                if [ "$OSTYPE" = "cygwin" ]; then
+                    dos2unix $T_DIR/test.log
+                fi
+
                   # performance tests output a #TINDERBOX# Status = PASSED that we can scan for
                 RESULT=`grep "#TINDERBOX# Status = PASSED" $T_DIR/test.log`
 
