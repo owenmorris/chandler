@@ -218,12 +218,12 @@ PERFTEST_RESULT="ok"
   # walk thru all of the test dirs and find the test files
 
 if [ ! "$CHANDLER_UNIT_TEST" = "no" ]; then
-    PP_DIR="$PARCELPATH:$C_DIR/plugins"
-    C_HOME="$CHANDLERHOME"
-
     if [ "$OSTYPE" = "cygwin" ]; then
-        PP_DIR=`cygpath -awp $PP_DIR`
-        C_HOME=`cygpath -aw $C_HOME`
+        PP_DIR=`cygpath -aw $C_DIR/plugins`
+        C_HOME=`cygpath -aw $CHANDLERHOME`
+    else
+        PP_DIR="$C_DIR/plugins"
+        C_HOME="$CHANDLERHOME"
     fi
 
     for mode in $MODES ; do
@@ -275,6 +275,10 @@ if [ ! "$CHANDLER_UNIT_TEST" = "no" ]; then
 
                 cd `dirname $setup`
                 PARCELPATH=$PP_DIR CHANDLERHOME=$C_HOME $CHANDLERBIN/$mode/$RUN_PYTHON `basename $setup` test &> $T_DIR/test.log
+
+                if [ "$OSTYPE" = "cygwin" ]; then
+                    dos2unix $T_DIR/test.log
+                fi
 
                 # scan the test output for the success messge "OK"
                 RESULT=`grep '^OK' $T_DIR/test.log`
