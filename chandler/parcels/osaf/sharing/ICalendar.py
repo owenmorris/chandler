@@ -691,11 +691,7 @@ def itemsFromVObject(view, text, coerceTzinfo = None, filters = None,
                 # finished creating the item
                 itemlist.append(eventItem)
 
-
-            except errors.SharingError:
-                raise
-
-            except Exception, e:
+            except vobject.base.VObjectError, e:
                 icalendarLines = text.splitlines()
                 logger.error("Exception when importing icalendar, first 300 lines: \n%s"
                              % "\n".join(icalendarLines[:300]))
