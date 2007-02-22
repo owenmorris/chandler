@@ -45,7 +45,7 @@ class PluginMenu(Menu):
         for title in sorted(prefs.iterkeys()):
             if not self.hasChild(title):
                 MenuItem(itsName=title, itsParent=self, dynamicParent=self,
-                         event=self.getItemChild('_plugins'),
+                         event=self.getItemChild('_plugins'), parentBlock=self,
                          title=title, blockName=title,
                          menuItemKind='Check')
 
@@ -91,7 +91,9 @@ class PluginMenu(Menu):
         else:
             prefs['plugins'].update(self.prefs)
             self.prefs = prefs['plugins']
+
         prefs.write()
+        self.itsView.commit()
 
     def deactivatePlugin(self, name):
 

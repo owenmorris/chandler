@@ -19,7 +19,7 @@ from datetime import datetime, timedelta
 from os.path import exists, abspath, normpath, join, dirname, basename, isdir
 
 from chandlerdb.util import lock
-from chandlerdb.util.c import Nil, Default, UUID, _hash
+from chandlerdb.util.c import Nil, Default, UUID, _hash, getPlatformName
 from chandlerdb.item.c import CItem, CValues
 from chandlerdb.item.ItemValue import Indexable
 from chandlerdb.persistence.c import DBEnv, DB, Transaction, \
@@ -234,6 +234,7 @@ class DBRepository(OnDemandRepository):
                     db_info.write('encrypted\n')
                 else:
                     db_info.write('not encrypted\n')
+                db_info.write('%s\n' %(getPlatformName()))
             finally:
                 db_info.close()
 
@@ -244,6 +245,7 @@ class DBRepository(OnDemandRepository):
                 db_info = file(join(dbHome, 'DB_INFO'))
                 version = db_info.readline().strip()
                 encrypted = db_info.readline().strip() == 'encrypted'
+                platform = db_info.readline().strip()
                 db_info.close()
             except Exception, e:
                 raise RepositoryVersionError, ("Repository database version could not be determined", e)
@@ -256,6 +258,10 @@ class DBRepository(OnDemandRepository):
 
                 if encrypted and not self._encrypt(env, create, kwds):
                     raise RepositoryPasswordError, True
+
+                if platform != getPlatformName():
+                    raise RepositoryPlatformError, (platform or 'unknown',
+                                                    getPlatformName())
 
         if configure or ramdb:
             env.lk_detect = DBEnv.DB_LOCK_MAXWRITE
@@ -450,6 +456,7 @@ class DBRepository(OnDemandRepository):
 
         if exists(srcHome):
             dbHome = self.dbHome
+            withLogs = False
 
             if exists(dbHome):
                 self.delete(datadir, logdir)
@@ -475,6 +482,7 @@ class DBRepository(OnDemandRepository):
                     if f.endswith('.db'):
                         dstPath = join(datadir, f)
                     elif f.startswith('log.'):
+                        withLogs = True
                         dstPath = join(logdir, f)
                     elif f in ('DB_CONFIG', 'DB_INFO'):
                         dstPath = join(dbHome, f)
@@ -498,6 +506,7 @@ class DBRepository(OnDemandRepository):
                     if f.endswith('.db'):
                         dstPath = datadir
                     elif f.startswith('log.'):
+                        withLogs = True
                         dstPath = logdir
                     elif f in ('DB_CONFIG', 'DB_INFO'):
                         dstPath = dbHome
@@ -521,6 +530,7 @@ class DBRepository(OnDemandRepository):
                     if f.endswith('.db'):
                         dstPath = datadir
                     elif f.startswith('log.'):
+                        withLogs = True
                         dstPath = logdir
                     elif f in ('DB_CONFIG', 'DB_INFO'):
                         dstPath = dbHome
@@ -544,6 +554,26 @@ class DBRepository(OnDemandRepository):
                 if logdir != dbHome:
                     outFile.write('set_lg_dir %s\n' %(logdir))
                 outFile.close()
+
+            try:
+                db_info = file(join(dbHome, 'DB_INFO'))
+                version = db_info.readline().strip()
+                encrypted = db_info.readline().strip()
+                platform = db_info.readline().strip()
+                db_info.close()
+            except Exception, e:
+                raise RepositoryVersionError, ("Restore repository database version could not be determined", e)
+
+            if withLogs and (platform.rsplit('-')[-1:] !=
+                             getPlatformName().rsplit('-')[-1:]):
+                raise RepositoryPlatformError, (platform or 'unknown',
+                                                getPlatformName())
+
+            db_info = file(join(dbHome, 'DB_INFO'), 'w+b')
+            db_info.write("%s\n" %(version))
+            db_info.write("%s\n" %(encrypted))
+            db_info.write("%s\n" %(getPlatformName()))
+            db_info.close()
 
         else:
             raise RepositoryRestoreError, (srcHome, 'does not exist')

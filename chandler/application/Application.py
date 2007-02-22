@@ -23,7 +23,8 @@ from version import version
 
 from chandlerdb.util.c import Nil
 from repository.persistence.RepositoryError import \
-    MergeError, RepositoryVersionError, VersionConflictError
+    MergeError, RepositoryVersionError, RepositoryPlatformError, \
+    VersionConflictError
 
 logger = logging.getLogger(__name__)
 
@@ -449,6 +450,12 @@ class wxApplication (wx.App):
                 view = Utility.initRepository(repoDir, Globals.options)
             else:
                 raise Utility.SchemaMismatchError, e
+        except RepositoryPlatformError, e:
+            if self.ShowPlatformMismatchWindow(e.args[0], e.args[1]):
+                Globals.options.create = True
+                view = Utility.initRepository(repoDir, Globals.options)
+            else:
+                raise
 
         self.repository = view.repository
 
@@ -1173,6 +1180,19 @@ Would you like to remove all data from your repository?
 
         dialog = wx.MessageDialog(None,
                                   message,
+                                  _(u"Cannot open repository"),
+                                  wx.YES_NO | wx.ICON_INFORMATION)
+        response = dialog.ShowModal()
+        dialog.Destroy()
+        return response == wx.ID_YES
+
+    def ShowPlatformMismatchWindow(self, origName, currentName):
+        logger.info("Repository platform mismatch: (orig %s vs now %s)",
+                    origName, currentName)
+
+        message = _(u"Your repository was created by on %(origName)s and cannot be opened on %(currentName)s.  To copy a repository from one platform to another, back it up first, then restore it on the new platform.\n\nWould you like to remove all data from your repository?") %{'origName': origName, 'currentName': currentName}
+
+        dialog = wx.MessageDialog(None, message,
                                   _(u"Cannot open repository"),
                                   wx.YES_NO | wx.ICON_INFORMATION)
         response = dialog.ShowModal()

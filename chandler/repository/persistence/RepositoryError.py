@@ -38,6 +38,13 @@ class RepositoryPasswordError(RepositoryError):
 class RepositoryOpenError(RepositoryError):
     pass
 
+class RepositoryPlatformError(RepositoryOpenError):
+    __doc__ = "Repository was created on %s and cannot be opened on %s"
+
+    def __str__(self):
+        return self.__doc__ %(self.args[0], self.args[1])
+
+
 class RepositoryRunRecoveryError(RepositoryOpenError):
     pass
 
