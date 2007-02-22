@@ -20,7 +20,7 @@ BUILD_PLUGINS = Chandler-HelloWorldPlugin \
 # When a version changes, the ARCHIVES lists below need to be updated.
 
 ARCHIVES = \
-    $(CHANDLERARCHIVES)/Launchers-$(SNAP)-0.9-$(BP)8.tar.gz \
+    $(CHANDLERARCHIVES)/Launchers-$(SNAP)-0.9-$(BP)9.tar.gz \
     $(CHANDLERARCHIVES)/chandlerdb-$(SNAP)-0.6-$(BP)80.tar.gz \
     $(CHANDLERARCHIVES)/db-$(SNAP)-4.5.20-$(BP)3.tar.gz \
     $(CHANDLERARCHIVES)/python-$(SNAP)-2.5-$(BP)4.tar.gz \
