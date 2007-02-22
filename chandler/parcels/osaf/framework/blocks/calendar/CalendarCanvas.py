@@ -147,7 +147,7 @@ def roundToColumnPosition(v, columnList):
 def widgetGuardedCallback(block, function):
     """Call callback function only if the given object has a widget."""
     def callback():
-        if block.widget is not None:
+        if getattr(block, 'widget', None) is not None:
             function()
     return callback
 
