@@ -1514,11 +1514,10 @@ class wxCalendarCanvas(CalendarNotificationHandler, CollectionCanvas.wxCollectio
         """
         view = self.blockItem.itsView
 
-        event = Calendar.CalendarEvent(itsView=view, **initialValues)
+        event = Calendar.CalendarEvent(itsView=view)
         event.InitOutgoingAttributes()
-        # Keep InitOutgoingAttributes from clobbering summary
-        if initialValues.has_key('summary'):
-            event.summary = initialValues['summary']
+        for kv in initialValues.iteritems():
+            setattr(event, *kv)
 
         item = event.itsItem
         self.blockItem.contentsCollection.add(item)

@@ -479,7 +479,7 @@ class DetailTriageButton(DetailSynchronizer, ControlBlocks.Button):
         # this button to reflect the kind of the selected item
         item = self.item
         if item is not None:
-            self.widget.SetState("%s.%s" % (self.icon, item.unpurgedTriageStatus))
+            self.widget.SetState("%s.%s" % (self.icon, item.triageStatus))
 
     def onButtonPressedEvent(self, event):
         oldState = getattr(self.widget, 'currentState', None)
@@ -490,10 +490,16 @@ class DetailTriageButton(DetailSynchronizer, ControlBlocks.Button):
             # always make changeThis changes to recurring events
             item = getattr(self.item, 'proxiedItem', self.item)
             if pim.has_stamp(item, pim.EventStamp):
-                pim.EventStamp(item).changeThis('unpurgedTriageStatus',
-                                                newState)
+                event = pim.EventStamp(item)
+                if not hasattr(item, '_sectionTriageStatus'):
+                    event.changeThis('_sectionTriageStatus', item.triageStatus)
+                    event.changeThis('_sectionTriageStatusChanged', item.triageStatusChanged)
+                event.changeThis('triageStatus', newState)
             else:
-                item.unpurgedTriageStatus = newState
+                if not hasattr(item, '_sectionTriageStatus'):
+                    item._sectionTriageStatus = item.triageStatus
+                    item._sectionTriageStatusChanged = item.triageStatusChanged
+                item.triageStatus = newState
             self.setState()
 
     def onButtonPressedEventUpdateUI(self, event):

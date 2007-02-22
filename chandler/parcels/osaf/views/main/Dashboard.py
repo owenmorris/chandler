@@ -101,8 +101,8 @@ class DashboardBlock(Table):
         # triaging a recurring event can cause later keys to disappear from the
         # collection, which upsets iterkeys, so wrap the iterator in a list
         for key in list(self.contents.iterkeys()):
-            if self.itsView.findValue(key, '_unpurgedTriageStatus', 
+            if self.itsView.findValue(key, '_sectionTriageStatus', 
                                       default=None) is not None:
                 item = self.itsView[key]
-                item.applyUnpurgedTriageStatus()
+                item.purgeSectionTriageStatus()
 

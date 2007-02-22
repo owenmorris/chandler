@@ -630,7 +630,7 @@ def makeMarkupBar(parcel, oldVersion):
                                 icon="TriageDone",
                                 helpString=messages.STAMP_TRIAGE_HELP,
                                 event=buttonPressed,
-                                viewAttribute='unpurgedTriageStatus',
+                                viewAttribute='triageStatus',
                                 stretchFactor=0.0,
                                 minimumSize=SizeType(41, 20))
 

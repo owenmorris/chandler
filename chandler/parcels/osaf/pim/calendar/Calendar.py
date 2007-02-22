@@ -837,10 +837,12 @@ class EventStamp(Stamp):
                 # Make our own triage status reminder. We could save some
                 # time here by not bothering if this event is in the past.
                 reminderItem = self.itsItem.getMembershipItem()
-                RelativeReminder(itsView=reminderItem.itsView,
-                                 reminderItem=reminderItem,
-                                 delta=zero_delta, userCreated=False,
-                                 promptUser=False)
+                tsr = RelativeReminder(itsView=reminderItem.itsView,
+                                       delta=zero_delta, userCreated=False,
+                                       promptUser=False)
+                # Bug 8181: we initialize this field separately, so that
+                # watchers won't fire while the reminder's only partly set up.
+                tsr.reminderItem = reminderItem
             
         # Update our display-date attribute, too
         self.itsItem.updateDisplayDate(op, name)
@@ -1786,6 +1788,24 @@ class EventStamp(Stamp):
 
         return lastPastDone
 
+    def contextualTriageStatus(self):
+        """
+        If we're autotriaging this item, what status should it have?
+        """
+        now = datetime.now(tz=ICUtzinfo.default)
+        if self.effectiveStartTime > now:
+            # Hasn't started yet? it's Later.
+            return TriageEnum.later
+        reminder = self.itsItem.getUserReminder()
+        if reminder is not None and reminder.nextPoll > now:
+            # Doesn't start in the future, but has a reminder there: Later.
+            return TriageEnum.later
+        if self.effectiveEndTime < now:
+            # It already ended - it's done.
+            return TriageEnum.done
+        # It's ongoing: now.
+        return now
+
     def updateTriageStatus(self):
         """
         If appropriate, make sure there's at least one LATER modification in the
@@ -1853,10 +1873,12 @@ class EventStamp(Stamp):
             if attr in (ContentItem.triageStatus.name, 
                         ContentItem.triageStatusChanged.name):
                 continue
-            elif attr == ContentItem._unpurgedTriageStatus.name:
-                # ignore unpurged triage if it matches the local triage status
+            elif attr in (ContentItem._sectionTriageStatus.name,
+                          ContentItem._sectionTriageStatusChanged.name):
+                # ignore unpurged "section" triage if it matches the local triage status
                 if (item.hasLocalAttributeValue(ContentItem.triageStatus.name)
-                    and item._unpurgedTriageStatus == item.triageStatus):
+                    and item._sectionTriageStatus == item.triageStatus
+                    and item._sectionTriageStatusChanged == item.triageStatusChanged):
                         continue
                 else:
                     return False
@@ -1876,7 +1898,9 @@ class EventStamp(Stamp):
         try:
             self.itsItem.collections = []
             for attr in (ContentItem.triageStatus.name, 
-                         ContentItem._unpurgedTriageStatus.name):
+                         ContentItem.triageStatusChanged.name,
+                         ContentItem._sectionTriageStatus.name,
+                         ContentItem._sectionTriageStatusChanged.name):
                 if hasattr(self.itsItem, attr):
                     delattr(self.itsItem, attr)
             self.isGenerated = True
@@ -2145,9 +2169,10 @@ class EventStamp(Stamp):
 
         existing = self.itsItem.getUserReminder()
         if delta is not None:
-            # Make a new reminder
-            retval = RelativeReminder(itsView=self.itsItem.itsView,
-                                      reminderItem=self.itsItem, delta=delta)
+            # Make a new reminder (See bug 8181 for why we set reminderItem
+            # separately)
+            retval = RelativeReminder(itsView=self.itsItem.itsView, delta=delta)
+            retval.reminderItem = self.itsItem
         else:
             retval = None
 
@@ -2368,33 +2393,36 @@ class Occurrence(Note):
                     s.__setattr__('triageStatus', self.calculatedStatus())                    
         s.__setattr__(attr, value)
     
-    def calculatedStatus(self, attribute='triageStatus', fallback=None):
-        if self.hasLocalAttributeValue(attribute):
+    def calculatedStatus(self):
+        # If we have a local value, return it.
+        if self.hasLocalAttributeValue('triageStatus'):
             return self.getAttributeValue(attribute)
-        elif fallback is not None and self.hasLocalAttributeValue(fallback):
-            return self.getAttributeValue(fallback)
+
+        # Otherwise, if we're the master occurrence, get its triageStatus.
         event = EventStamp(self)
         master = event.getMaster()
         if master.effectiveStartTime == event.recurrenceID:
-            return getattr(master.itsItem, attribute, None)
+            return master.itsItem.triageStatus
+
+        # Not the master occurrence: calculate it based on our time.
+        event = EventStamp(self)
+        lastPastDone = event.getLastPastDone()
+        if lastPastDone is None or event.recurrenceID > lastPastDone:
+            return TriageEnum.later
         else:
-            event = EventStamp(self)
-            lastPastDone = event.getLastPastDone()
-            if lastPastDone is None or event.recurrenceID > lastPastDone:
-                return TriageEnum.later
-            else:
-                return TriageEnum.done
+            return TriageEnum.done
     
     @apply
-    def unpurgedTriageStatus():
+    def triageStatus():
         """
-        This is a property in item which masks _unpurgedTriageStatus.  It
-        defaults to triageStatus' value.
+        Override item's triageStatus attribute, to allow us to calculate
+        it for occurrences that don't have it set locally (eg, a triageStatus
+        modification).
         """
         def fget(self):
-            return self.calculatedStatus('_unpurgedTriageStatus','triageStatus')
+            return self.calculatedStatus()
         def fset(self, value):
-            self.__setattr__('_unpurgedTriageStatus', value)
+            self.__setattr__('triageStatus', value)
         return property(fget, fset)
 
     
@@ -2409,7 +2437,7 @@ class Occurrence(Note):
         ContentItem.displayDate.name, ContentItem.displayDateSource.name,
         ContentItem.displayWho.name, ContentItem.displayWhoSource.name,
         ContentItem.appearsIn.name, ContentItem.collections.name,
-        ContentItem._unpurgedTriageStatusChanged.name,
+        ContentItem._sectionTriageStatusChanged.name,
         ContentItem.excludedBy.name,
     )
     
@@ -2633,7 +2661,7 @@ class RelativeReminder(Reminder):
     def reminderFired(self, reminder, when):
         """
         Override of C{ContentItem.reminderFired}: performs a THIS change
-        of triageStatus to now.
+        of triageStatus to Now.
         """
 
         self.changeThis('triageStatus', TriageEnum.now)

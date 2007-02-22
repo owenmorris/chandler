@@ -85,8 +85,8 @@ class SectionedGridDelegate(ControlBlocks.AttributeDelegate):
             return
         
         indexName = self.blockItem.contents.indexName        
-        # @@@ For 0.7alpha4, we only section on triage status
-        if indexName != 'osaf.views.main.summaryblocks.triageStatus': 
+        # @@@ For now, we only section on triage status
+        if indexName != 'osaf.views.main.summaryblocks.triage': 
             return
         self.attributeName = self.currentColumn.attributeName
         
@@ -187,7 +187,7 @@ class SectionedGridDelegate(ControlBlocks.AttributeDelegate):
             # - the number of items in this section
             # - the color name for this section (which may be None)
             # - whether this section is expanded (True) or not (False)
-            # - whether this is the last (triageStatus) column
+            # - whether this is the last (triage status) column
             #
             # Note that this tuple matches the one passed into 
             # SectionAttributeEditor.Draw, below.

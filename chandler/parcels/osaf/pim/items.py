@@ -26,7 +26,7 @@ from repository.schema.Kind import Kind
 import repository.item.Item as Item
 from chandlerdb.item.ItemError import NoLocalValueForAttributeError
 from chandlerdb.util.c import Empty, Nil
-from osaf.pim.reminders import Remindable, isDead
+from osaf.pim.reminders import Remindable, Reminder, isDead
 import logging
 from i18n import ChandlerMessageFactory as _
 from osaf import messages
@@ -229,39 +229,38 @@ class ContentItem(Remindable):
         defaultValue=Empty
     )
 
-    # "Section" triage status is used for sorting
-    triageStatus = schema.One(TriageEnum, defaultValue=TriageEnum.now,
+    # Triage status is used to set (and is changed by) the column cell, 
+    # but is overridden for sorting by _sectionTriageStatus; the
+    # 'Triage' toolbar button removes any _sectionTriageStatus attributes
+    # to force re-sorting.
+    triageStatus = schema.One(TriageEnum, initialValue=TriageEnum.now, 
                               indexed=True)
-    
-    # "unpurged" (aka "color") triage status is used to set (and changed 
-    # by) the column cell, and is pushed to sectionTriageStatus by the 
-    # 'Triage' button.
-    _unpurgedTriageStatus = schema.One(TriageEnum)
+    _sectionTriageStatus = schema.One(TriageEnum)
 
-    # For sorting by how recently the triageStatus values changed, 
+    # For sorting by how recently the triage status values changed, 
     # we keep these attributes, which are the time (in seconds) of the last 
     # change to each, negated for proper order. They're updated automatically 
-    # when the corresponding triage status value is changed by 
-    # setTriageStatus and setUnpurgedTriageStatus, below.
+    # when the corresponding triage status value is changed, by 
+    # setTriageStatus and setSectionTriageStatus, below.
     triageStatusChanged = schema.One(schema.Float)
-    _unpurgedTriageStatusChanged = schema.One(schema.Float)
+    _sectionTriageStatusChanged = schema.One(schema.Float)
     
-    def getUnpurgedTriageStatus(self):
-        result = self.getAttributeValue('_unpurgedTriageStatus', default=None)
+    def getSectionTriageStatus(self):
+        result = self.getAttributeValue('_sectionTriageStatus', default=None)
         if result is None:
             result = self.triageStatus
         return result
 
-    def setUnpurgedTriageStatus(self, value):
-        self._unpurgedTriageStatus = value
+    def setSectionTriageStatus(self, value):
+        self._sectionTriageStatus = value
 
-    unpurgedTriageStatus = schema.Calculated(
-                            TriageEnum,
-                            fset=setUnpurgedTriageStatus,
-                            fget=getUnpurgedTriageStatus,
-                            basedOn=(_unpurgedTriageStatus, triageStatus),
-                            doc="Calculated for edited triageStatus, before"
-                                "user has committed changes")
+    sectionTriageStatus = schema.Calculated(
+        TriageEnum,
+        fset=setSectionTriageStatus,
+        fget=getSectionTriageStatus,
+        basedOn=(_sectionTriageStatus, triageStatus),
+        doc="Calculated for edited sectionTriageStatus, before "
+            "user has committed changes")
 
 
     # ContentItem instances can be put into ListCollections and AppCollections
@@ -580,15 +579,15 @@ class ContentItem(Remindable):
         """
         self._setChangedTime('triageStatusChanged', when=when)
 
-    @schema.observer(_unpurgedTriageStatus)
-    def setUnpurgedTriageStatusChanged(self, op='set', attribute=None, when=None):
-        """ Just like setTriageStatusChanged, but for the unpurged status """
-        self._setChangedTime('_unpurgedTriageStatusChanged', when=when)
+    @schema.observer(_sectionTriageStatus)
+    def setSectionTriageStatusChanged(self, op='set', attribute=None, when=None):
+        """ Just like setTriageStatusChanged, but for the section triage status """
+        self._setChangedTime('_sectionTriageStatusChanged', when=when)
 
     def _setChangedTime(self, attributeName, when=None):
         """
         Common code for setTriageStatusChanged and 
-        setUnpurgedTriageStatusChanged
+        setSectionTriageStatusChanged
         """
         # Don't if we're in the middle of sharing...
         if getattr(self, '_share_importing', False):
@@ -597,18 +596,32 @@ class ContentItem(Remindable):
         when = when or datetime.now(tz=ICUtzinfo.default)
         setattr(self, attributeName, -time.mktime(when.utctimetuple()))
 
-    def applyUnpurgedTriageStatus(self):
-       """ If this item has unpurged status, purge it. """
-       _unpurged = getattr(self, '_unpurgedTriageStatus', None)
-       if _unpurged is not None:
-           self.triageStatus = _unpurged
-           self.triageStatusChanged = self._unpurgedTriageStatusChanged
-           # sadly, on recurring events, _unpurgedTriageStatus may have been
-           # deleted already as a side effect of setting triageStatus above,
-           # so check before deleting
-           if hasattr(self, '_unpurgedTriageStatus'):
-               del self._unpurgedTriageStatus
-           del self._unpurgedTriageStatusChanged
+    def purgeSectionTriageStatus(self):
+        """ 
+        If this item has section status that's overriding its triage
+        status, purge it. 
+        """
+        for attr in ('_sectionTriageStatus', '_sectionTriageStatusChanged'):
+            if hasattr(self, attr):
+                delattr(self, attr)
+
+    def contextualTriageStatus(self):
+        """
+        What triage status value should this item have, assuming we're
+        autotriaging? Will return a TriageEnum value, or None if we can't
+        tell (which probably cause our caller will to not autotriage it).
+        """
+        # All we can triage on is the user-reminder time, if any.
+        # If we don't have one, return None.
+        userReminder = self.getUserReminder(expiredToo=False)
+        if userReminder is None:
+            return None
+        nextTime = userReminder.nextPoll 
+        if nextTime is None or nextTime == Reminder.farFuture:
+            return None
+        
+        # We have one! We're later.
+        return TriageEnum.later
 
     def reminderFired(self, reminder, when):
         """
@@ -626,9 +639,6 @@ class ContentItem(Remindable):
     def getBasedAttributes(self, attribute):
         """ Determine the schema attributes that affect this attribute
         (which might be a Calculated attribute) """
-        # Recurse to handle redirection if necessary
-        attr = self.itsKind.getAttribute(attribute, True)
-
         # If it's Calculated, see what it's based on;
         # otherwise, just return a list containing its own name.
         descriptor = getattr(self.__class__, attribute, None)

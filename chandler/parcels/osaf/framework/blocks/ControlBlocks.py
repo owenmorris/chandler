@@ -455,6 +455,13 @@ class AttributeDelegate (ListDelegate):
                         raise
                 elif attributeName == 'itsKind':
                     typeName = 'Kind'
+                else:
+                    # Is it a Calculated?
+                    descriptor = getattr(item.__class__, attributeName, None)
+                    calculatedType = getattr(descriptor, 'type', None)
+                    if calculatedType is not None:
+                        # It's a Calculated - use the type name
+                        typeName = calculatedType.__name__
             else:
                 try:
                     # to support properties, we get the value, and use its type's name.

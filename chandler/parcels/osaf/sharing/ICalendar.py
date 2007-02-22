@@ -635,7 +635,9 @@ def itemsFromVObject(view, text, coerceTzinfo = None, filters = None,
                     if item is None:
                         
                         item = kind.instantiateItem(None, parent, uuid,
-                            withInitialValues=True, **changesDict)
+                            withInitialValues=True)
+                        for kv in changesDict.iteritems():
+                            setattr(item, *kv)
                         countNew += 1
                         if stats and item.itsUUID not in stats['added']:
                             stats['added'].append(item.itsUUID)
