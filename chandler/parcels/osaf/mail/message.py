@@ -422,15 +422,14 @@ def kindToMessageObject(mailMessage):
                 messageObject.attach(rfc2822Payload)
 
             else:
-                m = email.MIMEText.MIMEText(attachment)
-
-                if m.mimeType == u"text/calendar":
+                if isinstance(attachment, MIMEText) and \
+                    attachment.mimeType == u"text/calendar":
                     icsPayload = MIMENonMultipart('text', 'calendar', \
                                         method='REQUEST', _charset="utf-8")
 
-                    fname = Header.Header(m.filename).encode()
+                    fname = Header.Header(attachment.filename).encode()
                     icsPayload.add_header("Content-Disposition", "attachment", filename=fname)
-                    icsPayload.set_payload(m.data.encode('utf-8'))
+                    icsPayload.set_payload(attachment.data.encode('utf-8'))
                     messageObject.attach(icsPayload)
 
     return messageObject
