@@ -182,6 +182,25 @@ static PyObject *_vfork(PyObject *self)
 }
 #endif
 
+/* 
+ * Return a platform name that can be used for Berkeley DB
+ * compatibility testing.
+ */
+static PyObject *getPlatformName(PyObject *self)
+{
+#if defined(__MACH__) && defined(__i386__)
+    return PyString_FromString("darwin-i386");
+#elif defined(__MACH__) && defined(__ppc__)
+    return PyString_FromString("darwin-ppc");
+#elif defined(linux) && defined(__i386__)
+    return PyString_FromString("linux-i386");
+#elif defined(WIN32) && defined(__i386__)
+    return PyString_FromString("win32-i386");
+#else
+#error "unknown or unsupported platform"
+#endif
+}
+
 static PyMethodDef c_funcs[] = {
     { "isuuid", (PyCFunction) isuuid, METH_O, "isinstance(UUID)" },
     { "_hash", (PyCFunction) hash, METH_VARARGS, "hash bytes" },
@@ -194,6 +213,8 @@ static PyMethodDef c_funcs[] = {
       "pack decimal digits from a tuple into a string, 4 bits each" },
     { "unpackDigits", (PyCFunction) unpackDigits, METH_O,
       "unpack decimal digits from a string into a tuple, 4 bits each" },
+    { "getPlatformName", (PyCFunction) getPlatformName, METH_NOARGS,
+      "return a suitable platform name for Berkeley DB compatibility check" },
 #ifdef __MACH__
     { "vfork", (PyCFunction) _vfork, METH_NOARGS, "" },
 #endif
