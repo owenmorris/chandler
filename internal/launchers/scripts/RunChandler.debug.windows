@@ -1,6 +1,6 @@
 @echo off
 setlocal
-if "%CHANDLERHOME%"=="" call :dirname %~dp0.
+if "%CHANDLERHOME%"=="" call :dirname "%~dp0."
 if "%CHANDLERBIN%"=="" set CHANDLERBIN=%CHANDLERHOME%
 
 call "%~dp0\RunPython.bat" %OPTIMIZE% "%CHANDLERHOME%\Chandler.py" %*
