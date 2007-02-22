@@ -194,7 +194,7 @@ static PyObject *getPlatformName(PyObject *self)
     return PyString_FromString("darwin-ppc");
 #elif defined(linux) && defined(__i386__)
     return PyString_FromString("linux-i386");
-#elif defined(WIN32) && defined(__i386__)
+#elif defined(WINDOWS) && defined(_M_IX86)
     return PyString_FromString("win32-i386");
 #else
 #error "unknown or unsupported platform"
