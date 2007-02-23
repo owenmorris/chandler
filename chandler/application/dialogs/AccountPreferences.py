@@ -35,12 +35,13 @@ from AccountPreferencesDialogs import MailTestDialog, \
                                       RemoveChandlerIMAPFoldersDialog, \
                                       SharingTestDialog, \
                                       showYesNoDialog, \
-                                      showOKDialog
+                                      showOKDialog, \
+                                      showConfigureDialog
 
 
 # Localized messages displayed in dialogs
 
-CREATE_TEXT = _(u"Add")
+CREATE_TEXT = _(u"Configure")
 REMOVE_TEXT = _(u"Remove")
 
 # --- Error Messages ----- #
@@ -54,11 +55,11 @@ HOST_REQUIRED  = _(u"Auto-configure requires a Server name.")
 
 
 # --- Yes No Dialog Messages ----- #
-CREATE_FOLDERS_TITLE = _(u"Create Chandler IMAP Folders")
-CREATE_FOLDERS = _(u"Chandler will now attempt to create the\nfollowing IMAP folders on '%(host)s':\n\n\tChandler Mail\n\tChander Tasks\n\tChandler Events.\n\n Would you like to proceed?")
+CREATE_FOLDERS_TITLE = _(u"Configure Chandler IMAP Folders")
+CREATE_FOLDERS = _(u"Chandler will now attempt to create the following IMAP folders in your account\non '%(host)s':\n\n\tChandler Mail\n\tChander Tasks\n\tChandler Events\n\nIf you have already set up Chandler folders in your account, no new folders\nwill be created.")
 
 REMOVE_FOLDERS_TITLE = _(u"Remove Chandler IMAP Folders")
-REMOVE_FOLDERS = _(u"Chandler will now attempt to remove the\nfollowing IMAP folders on '%(host)s':\n\n\tChandler Mail\n\tChander Tasks\n\tChandler Events.\n\n Would you like to proceed?")
+REMOVE_FOLDERS = _(u"Chandler will now attempt to remove the\nfollowing IMAP folders on '%(host)s':\n\n\tChandler Mail\n\tChander Tasks\n\tChandler Events\n\n Would you like to proceed?")
 
 
 # Will print out saved account changes
@@ -1209,10 +1210,10 @@ class AccountPreferencesDialog(wx.Dialog):
         account = self.getIncomingAccount()
 
         if create:
-            yes = alertYesNo(CREATE_FOLDERS_TITLE,
-                             CREATE_FOLDERS % {'host': account.host})
+            config = showConfigureDialog(CREATE_FOLDERS_TITLE,
+                                  CREATE_FOLDERS % {'host': account.host})
 
-            if yes:
+            if config:
                 ChandlerIMAPFoldersDialog(account, self.OnFolderCreation)
         else:
             yes = alertYesNo(REMOVE_FOLDERS_TITLE,

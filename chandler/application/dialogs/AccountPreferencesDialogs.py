@@ -24,6 +24,7 @@ from osaf.pim.mail import IMAPAccount, IMAPFolder
 __all__ = [
          "showOKDialog",
          "showYesNoDialog",
+         "showConfigureDialog",
          "MailTestDialog",
          "SharingTestDialog",
          "ChandlerIMAPFoldersDialog",
@@ -172,7 +173,6 @@ class SharingTestDialog(ProgressDialog):
 
 class ChandlerIMAPFoldersDialog(ProgressDialog):
     ALLOW_CANCEL      = False
-    SUCCESS_TEXT_SIZE = (525, 240)
 
     def __init__(self, account, callback):
         assert(isinstance(account, IMAPAccount))
@@ -210,15 +210,19 @@ class ChandlerIMAPFoldersDialog(ProgressDialog):
         return constants.MAIL_PROTOCOL_CONNECTION_ERROR
 
     def getTitleText(self):
-        return _(u"Create Chandler IMAP Folders")
+        return _(u"Configure Chandler IMAP Folders")
 
     def getStartText(self):
-        return _(u"Configuring Chandler IMAP Folders on '%(hostName)s'") % \
-                 {'hostName': self.account.host}
+        return _(u"Configuring folders in your account.")
 
     def getSuccessText(self, statusValue):
-        return _(u"""\
-The following folders have been created in your email account:
+        created = statusValue[3]
+
+        if created:
+            self.SUCCESS_TEXT_SIZE = (525, 240)
+
+            return _(u"""\
+The following folders have been created in your account:
 
 Chandler Events - Add messages to this folder add them to your Calendar
 Dashboard. Chandler will do its best to parse any date and time information in
@@ -230,6 +234,9 @@ Chandler Tasks - Add messages to this folder to add them to your Tasks
 Dashboard.
 
 All messages added to Chandler folders will show up in your All Dashboard.""")
+
+        else:
+            return _(u"You have already set up Chandler folders in your account. No new folders were created.")
 
     def getErrorText(self, statusValue):
         return constants.MAIL_PROTOCOL_ERROR % \
@@ -284,8 +291,7 @@ class RemoveChandlerIMAPFoldersDialog(ProgressDialog):
         return _(u"Remove Chandler Folders")
 
     def getStartText(self):
-        return _(u"Removing Chandler IMAP Folders on '%(hostName)s'") % \
-                 {'hostName': self.account.host}
+        return _(u"Removing folders from your account.")
 
     def getSuccessText(self, statusValue):
         return _(u"Chandler IMAP folders have successfully been removed.") % \
@@ -389,6 +395,14 @@ def showMsgDialog(type, title, msg):
     win.Destroy()
     return res
 
+def showConfigureDialog(title, msg):
+    win = ConfigureDialog(title, msg)
+    win.CenterOnScreen()
+    res = win.ShowModal()
+
+    win.Destroy()
+    return res
+
 class MsgDialog(wx.Dialog):
     """
         A MessageDialog that always centers
@@ -440,3 +454,14 @@ class MsgDialog(wx.Dialog):
         elif self.type == self.YES_NO:
             self.buttons.append(wx.Button(self, wx.ID_NO))
             self.buttons.append(wx.Button(self, wx.ID_YES))
+
+class ConfigureDialog(MsgDialog):
+    def __init__(self, title, msg):
+        super(ConfigureDialog, self).__init__(-1, title, msg)
+
+    def OnClick(self, evt):
+        self.EndModal(evt.GetId() != wx.ID_CANCEL)
+
+    def getButtons(self):
+        self.buttons.append(wx.Button(self, wx.ID_CANCEL))
+        self.buttons.append(wx.Button(self, -1, _(u"Configure folders")))

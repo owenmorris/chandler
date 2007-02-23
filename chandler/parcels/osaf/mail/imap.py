@@ -547,7 +547,14 @@ class IMAPClient(base.AbstractDownloadClient):
 
         # Pass the IMAP server folder names back to the 
         # caller.
-        callMethodInUIThread(cb, (1, (m[0], t[0], e[0])))
+        created = False
+
+        for (name, exists, subscribed) in (m, t, e):
+            if not exists or not subscribed:
+                created = True
+                break
+
+        callMethodInUIThread(cb, ( 1, (m[0], t[0], e[0], created)))
 
     def _actionCompleted(self):
        # Reset the total downloaded counter

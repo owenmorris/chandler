@@ -470,7 +470,7 @@
               <orient>wxHORIZONTAL</orient>
               <object class="sizeritem">
                 <object class="wxButton" name="INCOMING_FOLDERS">
-                  <label>Add</label>
+                  <label>Configure</label>
                 </object>
                 <flag>wxGROW|wxALIGN_CENTRE_VERTICAL</flag>
               </object>
