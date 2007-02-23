@@ -25,23 +25,53 @@ import fileinput
 import errno
 
 
-def log(msg, logfile=None, error=False):
-    if logfile:
-        logfile.write('%s\n' % msg)
+_logFilename   = 'hardhat.log'
+_logPrefix     = ''
+_logFile       = None
+_logEcho       = True
+_logEchoErrors = False
+
+
+def initLog(filename, prefix='[hardhat] ', echo=True, echoErrors=False):
+    global _logFilename, _logPrefix, _logFile, _logEcho, _logEchoErrors
+
+    _logFilename   = filename
+    _logEcho       = echo
+    _logEchoErrors = echoErrors
+    _logPrefix     = prefix
+
+    try:
+        _logFile = open(_logFilename, 'w+')
+        result = True
+    except:
+        result = False
+
+    return result
+
+
+def log(msg, error=False):
+    echo = _logEcho
+
+    if _logFile is None:
+        if error or _logEcho:
+            echo = True
     else:
-        if error:
-            sys.stderr.write('%s\n' % msg)
-        else:
-            sys.stdout.write('%s\n' % msg)
+        _logFile.write('%s%s\n' % (_logPrefix, msg))
+
+        if error and _logEchoErrors:
+            sys.stderr.write('%s%s\n' % (_logPrefix, msg))
+
+    if echo:
+        sys.stdout.write('%s%s\n' % (_logPrefix, msg))
 
 
 def runCommand(cmd, env=None):
-    print 'Calling:', cmd
+    log('Calling:', cmd)
 
     p = subprocess.Popen(cmd, env=env, close_fds=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
 
     for line in p.stdout.readlines():
-        print line[:-1]
+        log(line[:-1])
 
     p.wait()
 
@@ -69,7 +99,7 @@ def loadModuleFromFile(modulePath, moduleName):
 
         return module
     else:
-        print 'Unable to load module - %s not found' % modulePath
+        log('Unable to load module - %s not found' % modulePath, error=True)
 
 def versionInformation(chandlerDirectory, platformName, versionTag=None):
     major   = ''
@@ -166,33 +196,33 @@ def handleManifest(buildDir, outputDir, distribDir, manifestFile, platformID):
                     params[name] = value
                     if name == 'src':
                         srcdir = os.path.join(buildDir, value)
-                        print 'src=%s' % srcdir
+                        log('src=%s' % srcdir)
                         #log(buildenv, HARDHAT_MESSAGE, "HardHat", "src=" + srcdir)
                     if name == 'dest':
                         destdir = os.path.join(distribDir, value)
-                        print 'dest=%s' % destdir
+                        log('dest=%s' % destdir)
                         #log(buildenv, HARDHAT_MESSAGE, "HardHat", "dest=" + destdir)
                     if name == 'link':
                         linkdir = value
-                        print 'link=%s' % linkdir
+                        log('link=%s' % linkdir)
                         #log(buildenv, HARDHAT_MESSAGE, "HardHat", "link=" + linkdir)
                     if name == 'glob':
                         params['glob'] = value.split(',')
-                        print 'pattern=%s' % value
+                        log('pattern=%s' % value)
                         #log(buildenv, HARDHAT_MESSAGE, "HardHat", "pattern=" + value)
                     if name == 'recursive':
                         if value == 'yes':
                             params['recursive'] = True
                         else:
                             params['recursive'] = False
-                        print 'recursive=%s' % value
+                        log('recursive=%s' % value)
                         #log(buildenv, HARDHAT_MESSAGE, "HardHat", "recursive=" + value)
                     if name == 'exclude':
                         params['exclude'] = value.split(',')
-                        print 'exclude=%s' % value
+                        log('exclude=%s' % value)
                         #log(buildenv, HARDHAT_MESSAGE, "HardHat", "exclude=" + value)
                     if name == 'egg':
-                        print 'Copying egg related files from %s to %s' % (os.path.join(buildDir, value), destdir)
+                        log('Copying egg related files from %s to %s' % (os.path.join(buildDir, value), destdir))
                         #log(buildenv, HARDHAT_MESSAGE, "HardHat", 'Copying egg related files from %s to %s' % (os.path.join(buildenv['root'], value), destdir))
                         copyEggs(os.path.join(buildDir, value), destdir, params['glob'], params['exclude'])
                 else:
@@ -202,17 +232,17 @@ def handleManifest(buildDir, outputDir, distribDir, manifestFile, platformID):
                             linkpath = os.path.join(linkdir, line)
 
                             if os.path.isdir(srcpath):
-                                print 'linking %s to %s in %s' % (linkpath, line, destdir)
+                                log('linking %s to %s in %s' % (linkpath, line, destdir))
                                 #log(buildenv, HARDHAT_MESSAGE, "HardHat", "linking %s to %s in %s" % (linkpath, line, destdir))
 
                                 mkdirs(destdir)
                                 os.chdir(destdir)
                                 os.symlink(linkpath, line)
                             else:
-                                print 'Linking only allowed for directories'
+                                log('Linking only allowed for directories')
                                 #log(buildenv, hhMsg, "HardHat", "Linking only allowed for directories")
                         else:
-                            print 'Linking only allowed for POSIX systems'
+                            log('Linking only allowed for POSIX systems')
                             #log(buildenv, hhMsg, "HardHat", "Linking only allowed for POSIX systems")
 
                         linkdir = None
@@ -220,13 +250,13 @@ def handleManifest(buildDir, outputDir, distribDir, manifestFile, platformID):
                         abspath = os.path.join(srcdir, line)
 
                         if os.path.isdir(abspath):
-                            print abspath
+                            log(abspath)
                             #log(buildenv, HARDHAT_MESSAGE, "HardHat", abspath)
                             copyto = os.path.join(distribDir, params['dest'], line)
                             copyTree(abspath, copyto, params['recursive'], params['glob'], params['exclude'])
                         else:
                             if os.path.exists(abspath):
-                                print abspath
+                                log(abspath)
                                 #log(buildenv, HARDHAT_MESSAGE, "HardHat", abspath)
                                 copyto = os.path.join(distribDir, params["dest"], line)
                                 createpath = os.path.dirname(copyto)
@@ -237,14 +267,14 @@ def handleManifest(buildDir, outputDir, distribDir, manifestFile, platformID):
                                 else:
                                     shutil.copy(abspath, copyto)
                             else:
-                                print 'File missing [%s]' % abspath
+                                log('File missing [%s]' % abspath)
                                 #log(buildenv, hhMsg, "HardHat", "File missing: " + abspath)
                                 result = False
                                 break
         finally:
             filedata.close()
     else:
-        print 'Unable to locate manifest file [%s]' % manifestFile
+        log('Unable to locate manifest file [%s]' % manifestFile)
 
     return result
 
@@ -283,7 +313,7 @@ def copyTree(srcdir, destdir, recursive, patterns, excludes):
                     else:
                         shutil.copy(match, destdir)
                 except (IOError, os.error), why:
-                    print "Can't copy %s to %s: %s" % (match, destdir, str(why))
+                    log("Can't copy %s to %s: %s" % (match, destdir, str(why)), error=True)
     if recursive:
         for name in os.listdir(srcdir):
             full_name = os.path.join(srcdir, name)
@@ -338,7 +368,7 @@ def copyEggs(srcdir, destdir, patterns, excludes):
                         else:
                             shutil.copy(match, destdir)
                     except (IOError, os.error), why:
-                        print "Can't copy %s to %s: %s" % (match, destdir, str(why))
+                        log("Can't copy %s to %s: %s" % (match, destdir, str(why)), error=True)
 
 def mkdirs(directory, mode=0777):
     try:

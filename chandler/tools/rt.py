@@ -40,9 +40,6 @@ _all_modules = ['application', 'i18n', 'repository', 'osaf']
     # even if options.nonstop is True
 _stop_test_run = False
 
-_logfilename = ''
-_logfile     = None
-
     # When the --ignoreEnv option is used the following
     # list of environment variable names will be deleted
 
@@ -61,7 +58,7 @@ _ignoreEnvNames = [ 'PARCELPATH',
 
 
 def log(msg, error=False):
-    build_lib.log(msg, logfile=_logfile, error=error)
+    build_lib.log(msg, error=error)
 
 
 def parseOptions():
@@ -81,6 +78,7 @@ def parseOptions():
         'noEnv':     ('-i', '--ignoreEnv',          'b', False, 'Ignore environment variables'),
         'logPath':   ('-l', '--logPath',            's', None,  'Directory where the test run output will be stored'),
         'config':    ('-L', '',                     's', None,  'Custom Chandler logging configuration file'),
+        'quiet':     ('-q', '--quiet',              'b', False, 'Mute log echoing to stdout'),
         'help':      ('-H', '',                     'b', False, 'Extended help'),
     }
 
@@ -393,7 +391,7 @@ def checkOptions(options):
     if options.logPath is None:
         options.logPath = options.profileDir
 
-    _logfilename = os.path.join(options.logPath, 'rt.log')
+    buildlib.initLog(os.path.join(options.logPath, 'rt.log'), echo=(not options.quiet))
 
     if not os.path.isdir(options.chandlerBin):
         log('Unable to locate CHANDLERBIN directory', error=True)
