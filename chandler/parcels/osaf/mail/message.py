@@ -176,8 +176,6 @@ def messageTextToKind(view, messageText, indexText=False, compression='bz2'):
                                messageText, compression)
 
 
-quoted_printable_header = ('Content-Transfer-Encoding', 'quoted-printable')
-
 def messageObjectToKind(view, messageObject, messageText=None,
                         indexText=False, compression='bz2'):
     """
@@ -206,9 +204,7 @@ def messageObjectToKind(view, messageObject, messageText=None,
     def importIcalendarPayload(messageObject):
         if messageObject.get_content_type() == "text/calendar":
             import osaf.sharing.ICalendar as ICalendar
-            ics = messageObject.get_payload()
-            if quoted_printable_header in messageObject._headers:
-                ics = email.quoprimime.decodestring(ics)
+            ics = messageObject.get_payload(decode=True)
             try:
                 items = ICalendar.itemsFromVObject(view, ics,
                                                    filters=(Remindable.reminders.name,))[0]
