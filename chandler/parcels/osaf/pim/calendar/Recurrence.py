@@ -593,7 +593,7 @@ class RecurrenceRuleSet(items.ContentItem):
                     dct['weekdays'] = u"".join(daylist)
 
             if rule.interval != 1:
-                dct['interval'] = str(rule.interval)
+                dct['interval'] = " " + str(rule.interval)
                 dct['freq'] = pluralFrequencyMap[freq]
             else:
                 dct['interval'] = u""
@@ -606,7 +606,7 @@ class RecurrenceRuleSet(items.ContentItem):
                 formatter = DateFormat.createDateInstance(DateFormat.kShort)
                 dct['until'] = _(u"until ") + unicode(formatter.format(until))
 
-            return "%(weekdays)severy %(interval)s %(freq)s %(until)s" % dct
+            return "%(weekdays)severy%(interval)s %(freq)s %(until)s" % dct
 
 
     def moveDatesAfter(self, after, delta):

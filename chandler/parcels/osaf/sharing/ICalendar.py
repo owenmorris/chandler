@@ -64,6 +64,20 @@ def translateToTimezone(dt, tzinfo):
     else:
         return dt.astimezone(tzinfo)
 
+
+
+attributesUsedWhenExporting = [EventStamp.location.name,
+                               EventStamp.startTime.name,
+                               EventStamp.duration.name,
+                               EventStamp.anyTime.name,
+                               EventStamp.allDay.name,
+                               EventStamp.transparency.name,
+                               'body', 'displayName',
+                               Remindable.reminders.name,
+                               EventStamp.icalendarProperties.name,
+                               EventStamp.icalendarParameters.name]
+                               
+
 def itemsToVObject(view, items, cal=None, filters=None):
     """
     Iterate through items, add to cal, create a new vcalendar if needed.
@@ -72,6 +86,8 @@ def itemsToVObject(view, items, cal=None, filters=None):
     set all timezones to Pacific.
 
     """
+    if filters is None:
+        filters = [] # we want filters to be iterable
 
     def populateEvent(comp, event):
         """Populate the given vobject vevent with data from event."""
@@ -128,7 +144,7 @@ def itemsToVObject(view, items, cal=None, filters=None):
             comp.dtend = [] # delete the dtend that was added
             
 
-        if not filters or EventStamp.transparency.name not in filters:
+        if EventStamp.transparency.name not in filters:
             try:
                 status = event.transparency.upper()
                 # anytime events should be interpreted as not taking up time,
@@ -152,7 +168,7 @@ def itemsToVObject(view, items, cal=None, filters=None):
         timestamp = datetime.datetime.utcnow()
         comp.add('dtstamp').value = timestamp.replace(tzinfo=utc)
 
-        if not filters or Remindable.reminders.name not in filters:
+        if Remindable.reminders.name not in filters:
             firstReminder = item.getUserReminder()
             if firstReminder is not None:
                 if firstReminder.absoluteTime is not None:
@@ -201,8 +217,10 @@ def itemsToVObject(view, items, cal=None, filters=None):
 
     def populateModifications(event, cal):
         for modification in itertools.imap(EventStamp, event.modifications):
-            if not modification.isTriageOnlyModification():
-                populateEvent(cal.add('vevent'), modification)
+            for attr, val in modification.itsItem.iterModifiedAttributes():
+                if attr in attributesUsedWhenExporting and attr not in filters:
+                    populateEvent(cal.add('vevent'), modification)
+                    break
         #end helper functions
 
     if cal is None:
@@ -319,6 +337,8 @@ def itemsFromVObject(view, text, coerceTzinfo = None, filters = None,
     Return is a tuple (itemlist, calname).
 
     """
+    if filters is None:
+        filters = [] # we want filters to be iterable
     tzprefs = schema.ns("osaf.pim", view).TimezonePrefs
     promptForTimezone = not tzprefs.showUI and tzprefs.showPrompt
     
@@ -560,7 +580,7 @@ def itemsFromVObject(view, text, coerceTzinfo = None, filters = None,
                 change('startTime', dtstart)
                 change('duration', duration)
                 
-                if not filters or EventStamp.transparency.name not in filters:
+                if EventStamp.transparency.name not in filters:
                     change('transparency', status)
                 
                 # DESCRIPTION <-> body  
@@ -573,7 +593,7 @@ def itemsFromVObject(view, text, coerceTzinfo = None, filters = None,
                     
                 # rruleset and userReminderInterval/userReminderTime must be set last
                 changeLast = []
-                if not filters or Remindable.reminders.name not in filters:
+                if Remindable.reminders.name not in filters:
                     if reminderDelta is not None:
                         changeLast.append((EventStamp.userReminderInterval.name, 
                                            reminderDelta))

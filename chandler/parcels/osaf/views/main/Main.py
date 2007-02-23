@@ -735,7 +735,11 @@ class MainView(View):
         self.RepositoryCommitWithStatus()
     
         # get default SMTP account
-        mailToSend = mail.MailStamp(event.arguments['item'])
+        item = event.arguments['item']
+        if pim.has_stamp(item, pim.EventStamp):
+            # for preview, always send the full recurrence set
+            item = pim.EventStamp(item).getMaster().itsItem
+        mailToSend = mail.MailStamp(item)
 
         # determine the account through which we'll send this message;
         # we'll use default SMTP account associated with the first account that's

@@ -215,13 +215,10 @@ def messageObjectToKind(view, messageObject, messageText=None,
                     # We got something - stamp the first thing as a MailMessage
                     # and use it. (If it was an existing event, we'll reuse it.)
                     eventStamp = items[0]
-                    item = eventStamp.itsItem
 
-                    if not has_stamp(item, MailStamp):
-                        mailStamp = MailStamp(item)
-                        mailStamp.add()
-                    else:
-                        mailStamp = MailStamp(item)
+                    if not has_stamp(eventStamp, MailStamp):
+                        eventStamp.addStampToAll(MailStamp)
+                    mailStamp = MailStamp(eventStamp)
 
                     return mailStamp
         return None
@@ -301,11 +298,12 @@ def messageObjectToKind(view, messageObject, messageText=None,
 
 def kindToMessageObject(mailMessage):
     """
-    This method converts a email message string to
+    This method converts an item stamped as MailStamp to an email message
+    string
     a Chandler C{MailMessage} object
 
-    @param mailMessage: A C{email.Message} object representation of a mail message
-    @type mailMessage: C{email.Message}
+    @param mailMessage: A Chandler C{MailMessage}
+    @type mailMessage: C{MailMessage}
 
     @return: C{Message.Message}
     """
@@ -315,7 +313,7 @@ def kindToMessageObject(mailMessage):
 
     messageObject = Message.Message()
     stampedMail = MailStamp(mailMessage)
-
+    
     # Create a messageId if none exists
 
     if not hasValue(stampedMail.messageId):
@@ -366,7 +364,7 @@ def kindToMessageObject(mailMessage):
         # @@@ In formatting the prepended description, I'm adding an extra newline
         # at the end so that Apple Mail will display the .ics attachment on its own line.
         event = EventStamp(mailMessage)
-        timeDescription = event.getTimeDescription()
+        timeDescription = event.timeDescription
         location = unicode(getattr(event, 'location', u''))
         if len(location.strip()) > 0:
             evtDesc =  _(u"When: %(whenValue)s\nWhere: %(locationValue)s") \
