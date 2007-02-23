@@ -274,6 +274,7 @@ class UserChangeProxy(object):
             setattr(proxiedItem, name, value)
             proxiedItem.changeEditState()
         else:
+            event = EventStamp(proxiedItem)
             testedEqual = False
             
             #
@@ -446,7 +447,8 @@ class UserChangeProxy(object):
                 
             
             table = {'this'          : proxiedEvent.changeThis,
-                     'thisandfuture' : proxiedEvent.changeThisAndFuture}
+                     'thisandfuture' : proxiedEvent.changeThisAndFuture,
+                     'all'           : proxiedEvent.changeThisAndFuture}
             table[self.currentlyModifying](name, value)
             
             # If the recurrence change caused our item to get deleted, and
