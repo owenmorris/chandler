@@ -733,7 +733,10 @@ class MainView(View):
     def onSendMailEvent(self, event):
         # commit changes, since we'll be switching to Twisted thread
         self.RepositoryCommitWithStatus()
-    
+
+        if not sharing.ensureAccountSetUp(self.itsView, outboundMail=True):
+            return
+
         # get default SMTP account
         item = event.arguments['item']
         if pim.has_stamp(item, pim.EventStamp):
@@ -1560,7 +1563,7 @@ class MainView(View):
 
         if not (DAVReady or activeShares or inboundMailReady):
             # Nothing is set up -- nudge the user to set up a sharing account
-            sharing.ensureAccountSetUp(view, sharing=True)
+            sharing.ensureAccountSetUp(view, inboundMail=True, sharing=True)
             # Either the user has created a sharing account, or they haven't,
             # but it doesn't matter since there's no shares to sync
             return
@@ -1583,9 +1586,7 @@ class MainView(View):
             if DAVReady:
                 self.setStatusMessage (_(u"No shared collections found"))
 
-        # If mail is set up, fetch it:
-        if inboundMailReady:
-            self.onGetNewMailEvent (event)
+        self.onGetNewMailEvent (event)
 
     def onSyncWebDAVEvent (self, event):
         """
@@ -1620,7 +1621,7 @@ class MainView(View):
     def onGetNewMailEvent (self, event):
         """
         Fetch Mail.
-        
+
         The "File | Sync | Mail" menu item.
         """
 

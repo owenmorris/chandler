@@ -369,7 +369,7 @@ def getCurrentSMTPAccount(view, uuid=None, includeInactives=False):
     """
     Get the default Mail Account
     """
-    parentAccount = schema.ns('osaf.pim', view).currentMailAccount.item
+    parentAccount = getCurrentMailAccount(view)
 
     if parentAccount is not None:
         if hasattr(parentAccount, 'replyToAddress'):
@@ -380,7 +380,10 @@ def getCurrentSMTPAccount(view, uuid=None, includeInactives=False):
         """
         smtpAccount = schema.ns('osaf.pim', view).currentSMTPAccount.item
 
-
+        if not smtpAccount.isSetUp():
+            for item in SMTPAccount.iterItems(view):
+                if item.isSetUp():
+                    return (item, replyToAddress)
     return(smtpAccount, replyToAddress)
 
 
@@ -396,13 +399,17 @@ def getCurrentMailAccount(view, uuid=None):
     @type uuid: C{uuid}
     @return C{IMAPAccount} or C{POPAccount}
     """
-
     if uuid is not None:
-        account = view.findUUID(uuid)
+        return view.findUUID(uuid)
 
     else:
         account = schema.ns('osaf.pim', view).currentMailAccount.item
 
+    if not account.isSetUp():
+        for cls in (IMAPAccount, POPAccount):
+            for item in cls.iterItems(view):
+                if item.isSetUp():
+                    return item
     return account
 
 class ConnectionSecurityEnum(schema.Enumeration):
@@ -540,6 +547,12 @@ class DownloadAccountBase(AccountBase):
                 for item in self.replyToAddress.messagesCc:
                     checkIfToMe(MailStamp(item), 1)
 
+    def isSetUp(self):
+        return self.isActive and \
+               len(self.host.strip()) and \
+               len(self.username.strip()) and \
+               len(self.password.strip())
+
 
 class SMTPAccount(AccountBase):
     accountProtocol = "SMTP"
@@ -630,6 +643,15 @@ class SMTPAccount(AccountBase):
                     checkIfToMe(MailStamp(item), 1)
 
                 self.itsView.commit()
+
+    def isSetUp(self):
+        if self.isActive and \
+           len(self.host.strip()):
+            if self.useAuth:
+                return len(self.username.strip()) and \
+                       len(self.password.strip())
+            return True
+        return False
 
 class IMAPAccount(DownloadAccountBase):
     accountProtocol = "IMAP"
@@ -1657,6 +1679,24 @@ Issues:
         address.
         """
 
+        me = EmailAddress._getMeAddress(view)
+
+        if me is None:
+            for cls in (IMAPAccount, POPAccount):
+                for account in cls.iterItems(view):
+                    if account.isActive and account.replyToAddress and \
+                        account.replyToAddress.emailAddress:
+                        return account.replyToAddress
+
+            for cls in SMTPAccount.iterItems(view):
+                if account.isActive and account.fromAddress and \
+                   account.fromAddress.emailAddress:
+                    return account.fromAddress
+
+        return me
+
+    @classmethod
+    def _getMeAddress(cls, view):
         # See if an IMAP/POP account is configured:
         account = getCurrentMailAccount(view)
         if account is None or not account.replyToAddress or not \
@@ -1670,6 +1710,7 @@ Issues:
                 return account.fromAddress
         else:
             return account.replyToAddress
+
 
 def makeCompareMethod(attrName):
     def compare(self, uuid1, uuid2):

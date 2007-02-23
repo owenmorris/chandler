@@ -1719,20 +1719,24 @@ def _uniqueName(basename, existing):
 
 def isInboundMailSetUp(view):
     """
-    See if the IMAP/POP account has at least the minimum setup needed for
-    sharing (IMAP/POP needs email address).
+    See if the IMAP/POP account has at least the minimum setup needed.
 
     @param view: The repository view object
     @type view: L{repository.persistence.RepositoryView}
     @return: True if the account is set up; False otherwise.
     """
 
-    # Find imap account, and make sure email address is valid
-    account = pim.mail.getCurrentMailAccount(view)
-    if account is not None and account.replyToAddress and account.replyToAddress.emailAddress:
-        return True
-    return False
+    a = pim.mail.getCurrentMailAccount(view)
 
+    return a is not None and a.isSetUp()
+
+def isEmailAddressSetUp(view):
+    me = pim.mail.EmailAddress.getCurrentMeEmailAddress(view)
+
+    if me and me.emailAddress:
+        return True
+
+    return False
 
 def isSMTPSetUp(view):
     """
@@ -1760,13 +1764,14 @@ def isMailSetUp(view):
     @type view: L{repository.persistence.RepositoryView}
     @return: True if the accounts are set up; False otherwise.
     """
-    if isInboundMailSetUp(view) and isSMTPSetUp(view):
+    if isInboundMailSetUp(view) and isSMTPSetUp(view) and \
+       isEmailAddressSetUp(view):
         return True
     return False
 
 
 def ensureAccountSetUp(view, sharing=False, inboundMail=False,
-                       outboundMail=False):
+                       outboundMail=False, emailAddress=False):
     """
     A helper method to make sure the user gets the account info filled out.
 
@@ -1786,8 +1791,9 @@ def ensureAccountSetUp(view, sharing=False, inboundMail=False,
         DAVReady = not sharing or isWebDAVSetUp(view)
         InboundMailReady = not inboundMail or isInboundMailSetUp(view)
         SMTPReady = not outboundMail or isSMTPSetUp(view)
+        EmailReady = not emailAddress or isEmailAddressSetUp(view)
 
-        if DAVReady and InboundMailReady and SMTPReady:
+        if DAVReady and InboundMailReady and SMTPReady and EmailReady:
             return True
 
         msg = _(u"The following account(s) need to be set up:\n\n")
@@ -1795,6 +1801,8 @@ def ensureAccountSetUp(view, sharing=False, inboundMail=False,
             msg += _(u" - WebDAV (collection publishing)\n")
         if not InboundMailReady:
             msg += _(u" - IMAP/POP (inbound email)\n")
+        if not EmailReady:
+            msg += _(u" - At least one email address must be configured\n")
         if not SMTPReady:
             msg += _(u" - SMTP (outbound email)\n")
         msg += _(u"\nWould you like to enter account information now?")
