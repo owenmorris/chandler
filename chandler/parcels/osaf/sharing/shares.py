@@ -284,8 +284,7 @@ class State(schema.Item):
         self.peerItemVersion = -1
 
     def apply(self, change):
-        trans = translator.PIMTranslator(self.itsView)
-        trans.importRecords(change)
+        self.getTranslator().importRecords(change)
         self.agreed += change
         self.discard(change)
 
@@ -296,14 +295,19 @@ class State(schema.Item):
         self._updateConflicts()
 
     def getConflicts(self):
-        # calls translator.explainConflicts(pending)
-        # that will yield a series of tuples (fieldname, fieldvalue, change)
-
-        # TODO: yield a bunch of Conflict objects
-
         if self.pending:
-            yield Conflict(self, "Something", str(self.pending), self.pending)
+            for n,v,c in self.getTranslator().explainConflicts(self.pending):
+                # XXX this currently converts the value to a string or unicode,
+                # but in the future this should be done by formatters in the
+                # EIM framework.  The "%s" craziness is a Python idiom that
+                # leaves strings as strings and unicode as unicode, but
+                # converts everything else to a string.
+                yield Conflict(self, n, "%s" % (v,), c)
 
+    def getTranslator(self):
+        # This is so when we need multiple translator types, we'll still only
+        # have one place to call to get them...
+        return translator.PIMTranslator(self.itsView)
 
 
 

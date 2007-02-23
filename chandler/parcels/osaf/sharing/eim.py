@@ -655,7 +655,6 @@ class key(field):
 
 
 NoChange = Symbol('NoChange', __name__)
-
 Missing = Symbol('Missing', __name__)
 
 class Record(tuple):
@@ -696,7 +695,6 @@ class Record(tuple):
 
         return NoChange
 
-
     def getKey(self):
         return (type(self),) + tuple(
             [self[f.offset] for f in self.__fields__ if isinstance(f,key)]
@@ -722,15 +720,15 @@ class Record(tuple):
                 res.append(new)
         return t(*res)
 
-
-
-
-
-
-
-
-
-
+    def explain(self):
+        cls = type(self)
+        data = [(f.__get__(self) if isinstance(f,key) else NoChange)
+                for f in cls.__fields__]
+        for f, value in zip(cls.__fields__, self[1:]):
+            if not isinstance(f,key) and value is not NoChange:
+                data[f.offset-1] = value
+                yield (f.name, value, cls(*data))
+                data[f.offset-1] = NoChange
 
 
 
@@ -887,12 +885,12 @@ class Translator:
                 for record in exporter(self, item):
                     yield record
 
-
-
-
-
-
-
+    def explainConflicts(self, rs):
+        for r in rs.inclusions:
+            for n,v,r in r.explain():
+                yield n, v, RecordSet([r])
+        for r in rs.exclusions:
+            yield "Deleted", r.getKey(), RecordSet([], [r])
 
 
 

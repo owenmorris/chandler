@@ -25,6 +25,7 @@ Record types are defined by subclassing ``sharing.Record`` and creating
     >>> r1
     Demo(1, u'Foo', u'This is a foo', Decimal("2.50"))
 
+
 Each record type can have an (optional) unique URI, that can be looked up using
 the ``sharing.lookupSchemaURI()`` API:
 
@@ -92,6 +93,17 @@ the record's key fields, in the order they were defined::
 
     >>> Demo2(u'blah', 27, u'foobly', Decimal('16.2')).getKey()
     (<class 'Demo2'>, 27, Decimal("16.2"))
+
+Records also have an ``explain()`` method that yields tuples describing their
+(non-key, non-``NoChange``) contents::
+
+    >>> sorted(r1.explain()) # doctest: +NORMALIZE_WHITESPACE
+    [('description', u'This is a foo', Demo(1, NoChange, u'This is a foo', NoChange)),
+     ('itemName', u'Foo', Demo(1, u'Foo', NoChange, NoChange)),     
+     ('price', Decimal("2.50"), Demo(1, NoChange, NoChange, Decimal("2.50")))]
+
+    >>> sorted(Demo(2, sharing.NoChange, "wah", sharing.NoChange).explain())
+    [('description', u'wah', Demo(2, NoChange, u'wah', NoChange))]
 
 
 Record Sets
@@ -636,7 +648,18 @@ process "diff" records when importing (no need to check for no-change values)::
     42
 
 
+Conflict Management
+-------------------
 
+Translators have an ``explainConflicts()`` method that yields information about
+a recordset for conflict-resolution purposes::
+
+    >>> sorted( t.explainConflicts(sharing.RecordSet([R(1,2)], [R(3,4)])) ) # doctest: +NORMALIZE_WHITESPACE
+    [('Deleted', (<class 'R'>, 3), RecordSet(set([]), set([R(3, 4)]))),
+     ('v',       2,                RecordSet(set([R(1, 2)]), set([])))]
+
+
+TODO: field localization for conflict explanations
 TODO: foreign key refs/ordering
 TODO: rewrite this crazy doctest as a parcel dev tutorial & a sharing reference
 

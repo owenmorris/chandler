@@ -630,7 +630,7 @@ See if a conflict exists for this item::
 Get the list of conflicts::
 
     >>> list(shared1.getConflicts())
-    [Something : RecordSet(set([ItemRecord(u'...', u'changed by morgen', NoChange, NoChange, NoChange, NoChange)]), set([]))]
+    [title : changed by morgen]
 
 A conflict has two attributes that the UI is going to care about, "field" and
 "value".  At the moment, "field" is always the string "Something", and "value"
@@ -667,7 +667,7 @@ Cause a conflict again::
     >>> text = sharing.outbound(pje, item0)
     >>> item1 = sharing.inbound(morgen, text)
     >>> list(shared1.getConflicts())
-    [Something : RecordSet(set([ItemRecord(u'...', u'changed again by morgen', NoChange, NoChange, NoChange, NoChange)]), set([]))]
+    [title : changed again by morgen]
 
 This time discard the conflict::
 
