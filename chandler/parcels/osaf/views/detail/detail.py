@@ -1647,7 +1647,6 @@ class RecurrenceAttributeEditor(ChoiceAttributeEditor):
         # but calling changeThisAndFuture on a proxy's rruleset has the
         # worst of both worlds, it prompts, but the change is irrevocable.
         # So don't use the proxy when changing the rule
-        item = getattr(item, 'proxiedItem', item)
         event = pim.EventStamp(item)
         oldIndex = self.GetAttributeValue(event, attributeName)
         
@@ -1694,7 +1693,7 @@ class RecurrenceAttributeEditor(ChoiceAttributeEditor):
                 del rruleset.rrules.first().until
             rruleset.rrules.first().untilIsDate = True
 
-            event.changeThisAndFuture(pim.EventStamp.rruleset.name, rruleset)
+            event.rruleset = rruleset
             
             assert not newMaster.itsItem.isDeleted()
             

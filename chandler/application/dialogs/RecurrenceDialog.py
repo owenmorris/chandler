@@ -262,12 +262,17 @@ class UserChangeProxy(object):
         return getattr(self.proxiedItem, name)
         
     def __setattr__(self, name, value):
+        
         if name in self.proxyAttributes:
             object.__setattr__(self, name, value)
-        elif (not has_stamp(self.proxiedItem, EventStamp) or
-              EventStamp(self.proxiedItem).rruleset is None):
-            setattr(self.proxiedItem, name, value)
-            self.proxiedItem.changeEditState()
+            return
+            
+        proxiedItem = self.proxiedItem
+
+        if (not has_stamp(proxiedItem, EventStamp) or
+            getattr(proxiedItem, EventStamp.rruleset.name, None) is None):
+            setattr(proxiedItem, name, value)
+            proxiedItem.changeEditState()
         else:
             testedEqual = False
             
@@ -282,8 +287,8 @@ class UserChangeProxy(object):
             #     a change; for example if trying to change the timezone
             #     from your default to floating.
             #
-            if hasattr(self.proxiedItem, name):
-                oldValue = getattr(self.proxiedItem, name)
+            if hasattr(proxiedItem, name):
+                oldValue = getattr(proxiedItem, name)
                 
                 # These will be None for non-datetime values
                 oldTzinfo = getattr(oldValue, 'tzinfo', None)
@@ -295,7 +300,30 @@ class UserChangeProxy(object):
                     
             if testedEqual:
                 pass
-            elif self.currentlyModifying is None:
+            elif self.currentlyModifying is not None:
+                self.propagateChange(name, value)
+            elif name == EventStamp.rruleset.name:
+                if value is None:
+                    # Could alert the user here!
+                    event.removeRecurrence()
+                else:
+                    master = event.getMaster()
+                    change = dict(method=self.propagateChange,
+                                  args=(EventStamp.rruleset.name, value),
+                                  question=_(u'"%(displayName)s" is already a recurring event.\nDo you want to change:'),
+                                  affects_getattr = True,)
+                                  
+                    if event == master.getFirstOccurrence():
+                        change['disabled_buttons'] = ('this', 'future')
+                    else:
+                        change['disabled_buttons'] = ('this', 'all')
+                    
+                    self.changeBuffer.append(change)
+                    # We want to show the dialog immediately in the
+                    # case of changing recurrence, or else the detail
+                    # view will confuse itself.
+                    self.notifyChange(change, False)
+            else:
                 change = dict(method = self.propagateChange,
                               args = (name, value))
                               
@@ -312,9 +340,7 @@ class UserChangeProxy(object):
                         disabled_buttons=('all',)
                     )
 
-                self.delayChange(change)
-            else:
-                self.propagateChange(name, value)
+                self.notifyChange(change)
 
     def addToCollection(self, collection):
         """
@@ -334,7 +360,7 @@ class UserChangeProxy(object):
                               question = _(u'"%(displayName)s" is a recurring event. What do you want to add to the collection:'),
                               disabled_buttons=('future', 'this'))
     
-                self.delayChange(change)
+                self.notifyChange(change)
             
     def removeFromCollection(self, collection, cutting = False):
         """
@@ -360,9 +386,9 @@ class UserChangeProxy(object):
                 change['disabled_buttons']=('future', 'this')
             elif proxiedEvent == master.getFirstOccurrence():
                 change['disabled_buttons']=('future',)
-            self.delayChange(change)
+            self.notifyChange(change)
 
-    def delayChange(self, change):
+    def notifyChange(self, change, delay=True):
         """
         Given a change dict, queue it up and pop up a dialog if necessary
         """
@@ -373,7 +399,10 @@ class UserChangeProxy(object):
             # focus, etc, and popping a new window onscreen seems
             # to get it into a weird state.
             self.dialogUp = True
-            wx.GetApp().PostAsyncEvent(self.runDialog)
+            if delay:
+                wx.GetApp().PostAsyncEvent(self.runDialog)
+            else:
+                self.runDialog()
         
     def runDialog(self):
         # Check in case the dialog somehow got cancelled
