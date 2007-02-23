@@ -335,10 +335,15 @@ class UserChangeProxy(object):
                         disabled_buttons=('all', 'future')
                     )
                 else:
+                    master = event.getMaster()
+                    if event in (master, master.getFirstOccurrence()):
+                        disabled_buttons=('future',)
+                    else:
+                        disabled_buttons=()
                     change.update(
                         question = _(u'"%(displayName)s" is a recurring event. Do you want to change:'),
                         affects_getattr = True,
-                        disabled_buttons=('all',)
+                        disabled_buttons=disabled_buttons
                     )
 
                 self.notifyChange(change)
@@ -448,7 +453,7 @@ class UserChangeProxy(object):
             
             table = {'this'          : proxiedEvent.changeThis,
                      'thisandfuture' : proxiedEvent.changeThisAndFuture,
-                     'all'           : proxiedEvent.changeThisAndFuture}
+                     'all'           : proxiedEvent.changeAll}
             table[self.currentlyModifying](name, value)
             
             # If the recurrence change caused our item to get deleted, and

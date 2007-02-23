@@ -1653,6 +1653,9 @@ class EventStamp(Stamp):
             
         finally:
             if disabledSelf: self.__enableRecurrenceChanges()
+            
+    def changeAll(self, attr=None, value=None):
+        self.getMaster().changeThisAndFuture(attr, value)
 
     def moveCollections(self, fromEvent, toEvent):
         """Move all collection references from one event to another."""
