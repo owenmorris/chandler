@@ -857,10 +857,25 @@ class SSSidebarSharingButton (SSSidebarButton):
 
     def onOverButton (self, item):
         gridWindow = self.buttonOwner.widget.GetGridWindow()
-        errorString = getattr (sharing.getShare(item), "error", False)
         if self.buttonState['overButton']:
-            if errorString:
-                gridWindow.SetToolTipString (errorString)
+            share = sharing.getShare(item)
+            if share is not None:
+                text = getattr (share, "error", False)
+                if not text:
+                    mine = schema.ns('osaf.pim', self.itsView).mine
+                    inMine = item in mine.sources or UserCollection(item).outOfTheBoxCollection
+                    if (sharing.isSharedByMe(share)):
+                        if inMine:
+                            text = _(u"Published share")
+                        else:
+                            text = _(u"Published share that is being kept out of the Dashboard")
+                    else:
+                        if inMine:
+                            text = _(u"Subscription")
+                        else:
+                            text = _(u"Subscription that is being kept out of the Dashboard")
+
+                gridWindow.SetToolTipString (text)
                 gridWindow.GetToolTip().Enable (True)
         else:
             toolTip = gridWindow.GetToolTip()
