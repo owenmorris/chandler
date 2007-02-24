@@ -697,6 +697,21 @@ class SSSidebarIconButton (SSSidebarButton):
 
         return image
 
+    def onOverButton (self, item):
+        gridWindow = self.buttonOwner.widget.GetGridWindow()
+        if self.buttonState['overButton']:
+            if item in self.buttonOwner.checkedItems:
+                text = _(u"Remove overlay")
+            else:
+                text = _(u"Overlay collection")
+            gridWindow.SetToolTipString (text)
+            gridWindow.GetToolTip().Enable (True)
+        else:
+            toolTip = gridWindow.GetToolTip()
+            if toolTip:
+                gridWindow.GetToolTip().Enable (False)
+                gridWindow.SetToolTip (None)
+
 
 class SSSidebarSharingButton (SSSidebarButton):
     def getButtonImage (self, item, mouseOverFlag, isSelected):
