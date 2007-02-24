@@ -120,7 +120,7 @@ def __populateBody(mailStamp, bodyHeader=u"", includeMailHeaders=False, includeE
 
         try:
             r = mailStamp.itsItem
-            
+
             # @@@ [grant] No such method
             alarm = r.getNextReminderTime()
 
@@ -222,7 +222,7 @@ def __actionOnMessage(view, mailStamp, action="REPLY"):
             event = EventStamp(mailStamp.itsItem)
             calendar = ICalendar.itemsToVObject(view, [event],
                            filters=(Remindable.reminders.name,))
-            
+
             # it's possibly more accurate to use a REQUEST method instead of
             # PUBLISH, but as long as we don't include ATTENDEES, this causes
             # problems for iCal, so setting the method to PUBLISH for now (bug 7478)
@@ -380,7 +380,7 @@ def getCurrentSMTPAccount(view, uuid=None, includeInactives=False):
         """
         smtpAccount = schema.ns('osaf.pim', view).currentSMTPAccount.item
 
-        if not smtpAccount.isSetUp():
+        if smtpAccount is None or not smtpAccount.isSetUp():
             for item in SMTPAccount.iterItems(view):
                 if item.isSetUp():
                     return (item, replyToAddress)
@@ -402,10 +402,9 @@ def getCurrentMailAccount(view, uuid=None):
     if uuid is not None:
         return view.findUUID(uuid)
 
-    else:
-        account = schema.ns('osaf.pim', view).currentMailAccount.item
+    account = schema.ns('osaf.pim', view).currentMailAccount.item
 
-    if not account.isSetUp():
+    if account is None or not account.isSetUp():
         for cls in (IMAPAccount, POPAccount):
             for item in cls.iterItems(view):
                 if item.isSetUp():
@@ -1688,7 +1687,7 @@ Issues:
                         account.replyToAddress.emailAddress:
                         return account.replyToAddress
 
-            for cls in SMTPAccount.iterItems(view):
+            for account in SMTPAccount.iterItems(view):
                 if account.isActive and account.fromAddress and \
                    account.fromAddress.emailAddress:
                     return account.fromAddress
