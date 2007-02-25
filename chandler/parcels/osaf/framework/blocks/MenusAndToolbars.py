@@ -565,6 +565,9 @@ class wxMenu(wx.Menu):
     def wxSynchronizeWidget(self, useHints=False):
         self.blockItem.synchronizeItems()
 
+    def displayContextMenu(self):
+        self.blockItem.parentBlock.widget.PopupMenu (self)
+
     def Destroy(self):
         Block.Block.wxOnDestroyWidget (self)
         parentMenu = self.GetParent()

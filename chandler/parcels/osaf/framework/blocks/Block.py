@@ -122,7 +122,7 @@ class Block(schema.Item):
 
     eventBoundary = schema.One(schema.Boolean, initialValue=False)
 
-    contextMenu = schema.One() # XXX ControlBlocks.ContextMenu
+    contextMenu = schema.One() # Menu
 
     blockName = schema.One(schema.Text)
     eventsForNamedLookup = schema.Sequence(defaultValue=None) # XXX BlockEvent
@@ -1202,10 +1202,10 @@ class RectangularChild (Block):
     alignmentEnum = schema.One(alignmentEnumType, initialValue = 'grow')
     stretchFactor = schema.One(schema.Float, initialValue = 1.0)
 
-    def DisplayContextMenu(self, position, data):
+    def displayContextMenu(self, event):
         contextMenu = getattr (self, "contextMenu", None)
         if contextMenu is not None:
-            contextMenu.displayContextMenu(self.widget, position, data)
+            contextMenu.widget.displayContextMenu()
 
     def instantiateWidget(self):
         return wxRectangularChild(self.parentBlock.widget, self.getWidgetID(),

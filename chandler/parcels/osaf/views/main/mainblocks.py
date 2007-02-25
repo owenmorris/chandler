@@ -65,6 +65,19 @@ def makeMainView(parcel):
         parcel, 'sidebarSelectionCollection',
         source = app_ns.sidebarCollection)
 
+    sidebarContextMenu =  Menu.template('SidebarContextMenu',
+                title = _(u'Sidebar'),
+                childrenBlocks = [
+                    MenuItem.template('SidebarNewCollectionItem',
+                        event = main.NewCollection,
+                        title = _(u'&New Collection'),
+                        helpString = _(u'Create a new Collection')),
+                    MenuItem.template('SidebarenameItem',
+                        event = globalBlocks.Rename,
+                        title = _(u'&Rename'),
+                        helpString = _(u'Rename the selected collection')),
+                    ]).install(parcel)
+
     Sidebar = SidebarBlock.template(
         'Sidebar',
         characterStyle = globalBlocks.SidebarRowStyle,
@@ -85,7 +98,9 @@ def makeMainView(parcel):
         filterClass = osaf.pim.calendar.Calendar.EventStamp,
         disallowOverlaysForFilterClasses = [MissingClass,
                                           osaf.pim.mail.MailStamp,
-                                          osaf.pim.tasks.TaskStamp]
+                                          osaf.pim.tasks.TaskStamp],
+        contextMenu = sidebarContextMenu,
+        childrenBlocks = [sidebarContextMenu]
         ).install(parcel)
     Sidebar.contents.selectItem (pim_ns.allCollection)
 

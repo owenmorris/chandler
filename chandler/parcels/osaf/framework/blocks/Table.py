@@ -143,7 +143,6 @@ class wxTable(DragAndDrop.DraggableWidget,
         self.Bind(wx.EVT_KILL_FOCUS, self.OnLoseFocus)
         self.Bind(wx.EVT_SET_FOCUS, self.OnGainFocus)
         self.Bind(wx.grid.EVT_GRID_CELL_BEGIN_DRAG, self.OnItemDrag)
-        self.Bind(wx.grid.EVT_GRID_CELL_RIGHT_CLICK, self.OnRightClick)
         self.Bind(wx.grid.EVT_GRID_COL_SIZE, self.OnColumnDrag)
         self.Bind(wx.grid.EVT_GRID_RANGE_SELECT, self.OnRangeSelect)
         self.Bind(wx.grid.EVT_GRID_LABEL_LEFT_CLICK, self.OnLabelLeftClicked)
@@ -248,6 +247,7 @@ class wxTable(DragAndDrop.DraggableWidget,
         table before initializing it's view so let's first set the view.
         """
         
+        self.Bind(wx.grid.EVT_GRID_CELL_RIGHT_CLICK, self.blockItem.displayContextMenu)
         elementDelegate = self.blockItem.elementDelegate
         if not elementDelegate:
             elementDelegate = 'osaf.framework.blocks.ControlBlocks.AttributeDelegate'
@@ -459,15 +459,6 @@ class wxTable(DragAndDrop.DraggableWidget,
         
         for item in itemList:
             item.addToCollection(collection)
-
-    def OnRightClick(self, event):
-        itemIndex = self.RowToIndex(event.GetRow())
-        if itemIndex == -1:
-            item = []
-        else:
-            item = self.blockItem.contents[itemIndex]
-            
-        self.blockItem.DisplayContextMenu(event.GetPosition(), item)
 
     def OnFilePaste(self):
         for filename in self.fileDataObject.GetFilenames():

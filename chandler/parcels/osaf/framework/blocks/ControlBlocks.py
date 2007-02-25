@@ -167,30 +167,6 @@ class wxChandlerMultiStateButton(MultiStateButton.MultiStateButton):
             event.Skip()
 
 
-class ContextMenu(RectangularChild):
-    def displayContextMenu(self, parentWindow, position, data):
-        menu = wx.Menu()
-        for child in self.childrenBlocks:
-            child.addItem(menu, data)
-        parentWindow.PopupMenu(menu, position)
-        menu.Destroy()
-        
-
-class ContextMenuItem(RectangularChild):
-
-    event = schema.One(BlockEvent)
-    title = schema.One(schema.Text)
-    schema.addClouds(
-        copying = schema.Cloud(byCloud=[event])
-    )
-
-    def addItem(self, wxContextMenu, data):
-        id = self.getWidgetID()
-        self.data = data
-        wxContextMenu.Append(id, self.title)
-        wxContextMenu.Bind(wx.EVT_MENU, wx.GetApp().OnCommand, id=id)
-
-
 class textStyleEnumType(schema.Enumeration):
       values = "PlainText", "RichText"
 

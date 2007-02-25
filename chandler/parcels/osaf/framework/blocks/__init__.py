@@ -40,8 +40,7 @@ from BranchPoint import (
 from Views import View
 
 from ControlBlocks import (
-    AEBlock, Button, ContentItemDetail,
-    ContextMenu, ContextMenuItem, EditText, HTML, ItemDetail,
+    AEBlock, Button, ContentItemDetail, EditText, HTML, ItemDetail,
     ReminderTimer, StaticText, StatusBar, Timer, Tree, PresentationStyle, Column
 )
 
