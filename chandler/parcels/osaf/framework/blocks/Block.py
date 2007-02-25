@@ -1203,12 +1203,9 @@ class RectangularChild (Block):
     stretchFactor = schema.One(schema.Float, initialValue = 1.0)
 
     def DisplayContextMenu(self, position, data):
-        try:
-            self.contextMenu
-        except:
-            return
-        else:
-            self.contextMenu.displayContextMenu(self.widget, position, data)
+        contextMenu = getattr (self, "contextMenu", None)
+        if contextMenu is not None:
+            contextMenu.displayContextMenu(self.widget, position, data)
 
     def instantiateWidget(self):
         return wxRectangularChild(self.parentBlock.widget, self.getWidgetID(),
