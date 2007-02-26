@@ -29,6 +29,9 @@ import wx.grid
 import wx
 
 def makeMainView(parcel):
+    from osaf.views.main.menus import makeColorMenuItems
+    from osaf import usercollections
+    
     repositoryView = parcel.itsView
 
     globalBlocks = schema.ns("osaf.framework.blocks", repositoryView)
@@ -72,10 +75,62 @@ def makeMainView(parcel):
                         event = main.NewCollection,
                         title = _(u'&New Collection'),
                         helpString = _(u'Create a new Collection')),
-                    MenuItem.template('SidebarenameItem',
+                    MenuItem.template('SidebaRenameItem',
                         event = globalBlocks.Rename,
                         title = _(u'&Rename'),
                         helpString = _(u'Rename the selected collection')),
+                    MenuItem.template('SidebaDeleteItem',
+                        event = main.Delete,
+                        title = _(u'&Delete'),
+                        helpString = _(u'Move the current selection to the trash')),
+                    MenuItem.template('SidebaEmptyTrashItem',
+                        event = main.EmptyTrash,
+                        title = _(u'&Empty Trash'),
+                        helpString = _(u'Remove all items from the Trash collection')),
+                    MenuItem.template('SidebarSeparator1',
+                        menuItemKind = 'Separator'),
+                    Menu.template('SidebaCollectionColorMenu',
+                        title = _(u'&Collection Color'),
+                        childrenBlocks = makeColorMenuItems(parcel,
+                                                            MenuItem,
+                                                            usercollections.collectionHues,
+                                                            "Sidebar")),
+                    MenuItem.template('SidebarSeparator2',
+                        menuItemKind = 'Separator'),
+                    MenuItem.template('SidebarToggleMineItem',
+                        event = main.ToggleMine,
+                        title = _(u'Toggle mine/not-mine'),
+                        helpString = _(u'Toggle mine/not-mine')),
+                    MenuItem.template('SidebarSeparator3',
+                        menuItemKind = 'Separator'),
+                    MenuItem.template('SidebarSyncCollectionItem',
+                        event = main.SyncCollection,
+                        title = _(u'Sync'),
+                        helpString = _(u"Synchronize a shared collection")),
+                    MenuItem.template('SidebarTakeOnlineOfflineItem',
+                        event = main.TakeOnlineOffline,
+                        title = _(u'Online/Offline status'),
+                        helpString = _(u"Toggle the collection's online status")),
+                    MenuItem.template('SidebarSharingSubscribeToCollectionItem',
+                        event = main.SharingSubscribeToCollection,
+                        title = _(u'&Subscribe...'),
+                        helpString = _(u'Subscribe to a published collection')),
+                    MenuItem.template('SidebarShareSidebarCollectionItem',
+                        event = main.ShareSidebarCollection,
+                        title = _(u'Publish'),
+                        helpString = _(u'Share the selected collection')),
+                    MenuItem.template('SidebarUnpublishSidebarCollectionItem',
+                        event = main.UnpublishSidebarCollection,
+                        title = _(u'Un&publish'),
+                        helpString = _(u'Remove the collection from the sharing server')),
+                    MenuItem.template('SidebarManageSidebarCollectionItem',
+                        event = main.ManageSidebarCollection,
+                        title = _(u'&Manage share...'),
+                        helpString = _(u'Manage the selected collection')),
+                    MenuItem.template('SidebarCopyCollectionURLItem',
+                        event = main.CopyCollectionURL,
+                        title = _(u'&Copy URL(s) to clipboard'),
+                        helpString = _(u"Copy the selected collection's URL(s) to the clipboard")),
                     ]).install(parcel)
 
     Sidebar = SidebarBlock.template(

@@ -1125,12 +1125,12 @@ class SidebarBlock(Table):
 
     def onCollectionColorEventUpdateUI(self, event):
         # color of the selected collection
-        selectedRanges = self.contents.getSelectionRanges()
-        if selectedRanges is None or len(selectedRanges) != 1:
+        selectedItem = self.contents.getFirstSelectedItem()
+        if (selectedItem is None or
+            len(self.contents.getSelectionRanges()) != 1 or
+            not UserCollection(selectedItem).colorizeIcon):
             event.arguments['Enable'] = False
         else:
-            selectedItem = self.contents.getFirstSelectedItem()
-
             color = getattr(UserCollection(selectedItem), 'color', None)
 
             # the event contains the color, so we need to look at that

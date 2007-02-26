@@ -14,19 +14,55 @@
 
 import logging
 from application.Plugins import PluginMenu
+from application import schema
+import wx
+from colorsys import hsv_to_rgb
+from osaf.pim.structs import ColorType
+from osaf.framework.blocks import ColorEvent
+
+
+def makeColorMenuItems (parcel, theClass, hues, prefix=""):
+    """
+    dynamically creates an array of type 'theClass' based on a list of colors
+    """
+    menuItems = []
+    
+    # make sure that all the events end up in the main parcel
+    parcelLocation = "osaf.views.main"
+    mainParcel = schema.parcel_for_module (parcelLocation, parcel.itsView)
+    nameSpace = schema.ns (parcelLocation, parcel.itsView)
+
+    for shortName, title, hue in hues:
+        
+        eventName = shortName + 'CollectionColor'
+        colorEvent = getattr (nameSpace, eventName, None)
+        if colorEvent is None:
+            rgb = hsv_to_rgb(hue/360.0, 0.5, 1.0)
+            rgb = [int(c*255) for c in rgb] + [255]
+    
+            colorEvent = ColorEvent.template(
+                eventName,
+                dispatchToBlockName = 'Sidebar',
+                color = ColorType (*rgb),
+                methodName = 'onCollectionColorEvent').install (mainParcel)
+
+        menuItem = theClass.template(
+            prefix + shortName + 'ColorItem',
+            title = title, # XXX No keyboard shortcuts
+            icon = shortName + "MenuIcon",
+            menuItemKind = "Check",
+            event = colorEvent)
+        menuItems.append (menuItem)
+
+    return menuItems
 
 def makeMainMenus(parcel):
 
-    from application import schema
-    import wx
-    
     from osaf.framework.blocks import Menu, MenuItem, MenuBar, ColorEvent
     from osaf.framework.blocks.calendar import VisibleHoursEvent
     from i18n import ChandlerMessageFactory as _
     from osaf import messages, pim
-    from osaf.pim.structs import ColorType
     from osaf import usercollections
-    from colorsys import hsv_to_rgb
     from itertools import chain
 
     if '__WXMAC__' in wx.PlatformInfo:
@@ -37,35 +73,6 @@ def makeMainMenus(parcel):
         platform_command_delete = _(u'Ctrl+Del')
 
     
-    def makeColorMenuItems (parcel, cls, hues):
-        """
-        dynamically creates an array of type 'cls' based on a list of colors
-        """
-        menuItems = []
-        
-        # make sure that all the events end up in the main parcel
-        mainParcel = schema.parcel_for_module ("osaf.views.main", repositoryView)
-        for shortName, title, hue in hues:
-            rgb = hsv_to_rgb(hue/360.0, 0.5, 1.0)
-            rgb = [int(c*255) for c in rgb] + [255]
-            color = ColorType (*rgb)
-
-            colorEvent = ColorEvent.template(
-                shortName + 'CollectionColor',
-                dispatchToBlockName = 'Sidebar',
-                color = color,
-                methodName = 'onCollectionColorEvent').install (mainParcel)
-    
-            menuItem = cls.template(
-                shortName + 'ColorItem',
-                title = title, # XXX No keyboard shortcuts
-                icon = shortName + "MenuIcon",
-                menuItemKind = "Check",
-                event = colorEvent)
-            menuItems.append (menuItem)
-
-        return menuItems
-
     def makeVisibleHourMenuItems(parcel):
         """
         Create the 'Visible Hours' submenu. Should look like:
@@ -446,7 +453,6 @@ def makeMainMenus(parcel):
                                                             usercollections.collectionHues)),
                     MenuItem.template('CollectionSeparator2',
                         menuItemKind = 'Separator'),
-                    
                     MenuItem.template('ToggleMineItem',
                         event = main.ToggleMine,
                         title = _(u'Toggle mine/not-mine'),
