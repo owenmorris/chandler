@@ -1056,6 +1056,37 @@ class SidebarBlock(Table):
                 enable = True
         event.arguments['Enable'] = enable
 
+    def onDuplicateEventUpdateUI(self, event):
+        event.arguments['Enable'] = len (self.contents.getSelectionRanges()) != 0
+
+    def onDuplicateEvent(self, event):
+        mine = schema.ns('osaf.pim', self.itsView).mine
+
+        for item in self.contents.iterSelection():
+            inMine = item in mine.sources or UserCollection (item).outOfTheBoxCollection
+            item = item.copy (parent = self.getDefaultParent (self.itsView),
+                              cloudAlias="copying")
+            
+            # Give the copy a new color
+            del UserCollection(item).color
+            UserCollection(item).ensureColor()
+
+            if inMine:
+                mine.addSource (item)
+
+            prefix = _(u"Copy of ");
+            newDisplayName = prefix + item.displayName
+            while True:
+                for theCollection in self.contents:
+                    if theCollection.displayName == newDisplayName:
+                        newDisplayName = prefix + newDisplayName
+                        break
+                else:
+                    item.displayName = newDisplayName
+                    break
+            self.contents.add (item)
+            self.postEventByName ("SelectItemsBroadcast", {'items':[item]})
+
     def ClearCollectionContents(self, collection):
         """
         Remove items that should be removed, delete items that should

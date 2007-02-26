@@ -376,3 +376,8 @@ def makeMainEvents(parcel):
         methodName = 'onViewEvent',
         dispatchToBlockName = 'SidebarBranchPointBlock').install(parcel)
 
+    BlockEvent.template(
+        'DuplicateSidebarSelection',
+        methodName = 'onDuplicateEvent',
+        dispatchToBlockName = 'Sidebar').install(parcel)
+

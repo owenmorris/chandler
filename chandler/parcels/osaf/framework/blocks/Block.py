@@ -1050,8 +1050,11 @@ class BlockDispatchHook (DispatchHook):
             # the active view is typically a splitter, so really
             # we probably want the first child (and even if we
             # don't, the event will bubble up)
-            probableMainView = sidebarBPB.childrenBlocks.first().childrenBlocks.first()
-            bubbleUpCallMethod (probableMainView, methodName, event)
+            probableActiveView = sidebarBPB
+            firstChild = sidebarBPB.childrenBlocks.first()
+            if firstChild is not None:
+                probableActiveView = firstChild.childrenBlocks.first()
+            bubbleUpCallMethod (probableActiveView, methodName, event)
 
         elif __debug__:
             assert (False)
