@@ -394,11 +394,28 @@ static PyObject *t_view_effectDelete(t_view *self)
     {
         PyObject *items = self->deferredDeletes;
         int len = PyList_GET_SIZE(items);
-        int i = -1;
+        int i;
 
         self->status &= ~DEFERDEL;
 
-        while (++i < len) {
+        for (i = 0; i < len; i++) {
+            PyObject *tuple = PyList_GET_ITEM(items, i);
+            PyObject *item = PyTuple_GET_ITEM(tuple, 0);
+
+            if (!(((t_item *) item)->status & (DELETED | SCHEMA)))
+            {
+                PyObject *op = PyTuple_GET_ITEM(tuple, 1);
+                PyObject *args = PyTuple_GET_ITEM(tuple, 2);
+                PyObject *result =
+                    PyObject_CallMethodObjArgs(item, _effectDelete_NAME,
+                                               op, args, NULL);
+                if (!result)
+                    return NULL;
+                Py_DECREF(result);
+            }
+        }
+
+        for (i = 0; i < len; i++) {
             PyObject *tuple = PyList_GET_ITEM(items, i);
             PyObject *item = PyTuple_GET_ITEM(tuple, 0);
 
