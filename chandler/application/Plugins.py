@@ -53,20 +53,63 @@ class PluginMenu(Menu):
 
     def on_pluginsEvent(self, event):
 
+        msg = ''
+        statusBar = Block.findBlockByName('StatusBar')
+        statusBar.setStatusMessage(msg)
+
         name = event.arguments['sender'].itsName
+        plugin_env = pkg_resources.Environment(Globals.options.pluginPath)
 
         if self.prefs.get(name, 'active') == 'active':
-            dlg = wx.MessageDialog(wx.GetApp().mainFrame,
-                                   _(u"All items from plugin %(pluginName)s will be deleted.") %{'pluginName': name}, 
+
+            for egg in plugin_env[name]:
+                break
+            else:
+                return
+
+            for ep in pkg_resources.iter_entry_points('chandler.parcels'):
+                if plugin_env[ep.dist.key]:  # only handle plugin entrypoints
+                    requires = ep.dist.requires(ep.extras)
+                    if egg in pkg_resources.working_set.resolve(requires):
+                        if self.prefs.get(ep.dist.key, 'inactive') == 'active':
+                            dlg = wx.MessageDialog(None,
+                                                   _(u"%(pluginName)s is required by %(eggName)s.\n\n%(eggName)s must be deactivated first.") %{'eggName': ep.dist.egg_name(), 'pluginName': egg.egg_name()},
+                                                   _(u"Error"),
+                                                   wx.OK | wx.ICON_ERROR)
+                            cmd = dlg.ShowModal()
+                            dlg.Destroy()
+                            return
+
+            dlg = wx.MessageDialog(None,
+                                   _(u"All items created by plugin %(pluginName)s will be deleted.") %{'pluginName': egg.egg_name()}, 
                                    _(u"Confirm Deactivation"),
                                    (wx.YES_NO | wx.YES_DEFAULT |
                                     wx.ICON_EXCLAMATION))
             cmd = dlg.ShowModal()
             dlg.Destroy()
             if cmd == wx.ID_YES:
-                self.deactivatePlugin(name)
+                egg = self.deactivatePlugin(name, plugin_env)
+                if egg is not None:
+                    msg = _(u"%(pluginName)s was deactivated.") %{'pluginName': egg.egg_name()}
+                else:
+                    return
+            else:
+                return
+
         else:
-            self.activatePlugin(name)
+            egg, dependencies = self.activatePlugin(name, plugin_env)
+            if egg is not None:
+                if not dependencies:
+                    msg = _(u"%(pluginName)s was activated.") %{'pluginName': egg.egg_name()}
+                else:
+                    msg = _(u"%(pluginName)s and %(pluginNames)s were activated.") %{'pluginName': egg.egg_name(), 'pluginNames': ', '.join([dist.egg_name() for dist in dependencies])}
+            else:
+                return
+
+        # Update the menus
+        wx.GetApp().GetActiveView().rebuildDynamicBlocks()
+
+        statusBar.setStatusMessage(msg)
 
     def on_pluginsEventUpdateUI(self, event):
 
@@ -74,28 +117,35 @@ class PluginMenu(Menu):
         check = self.prefs.get(args['sender'].itsName, 'active') == 'active'
         args['Check'] = check
 
-    def activatePlugin(self, project_name):
+    def activatePlugin(self, project_name, plugin_env):
 
         view = self.itsView
         prefs = Utility.loadPrefs(Globals.options)
-        plugin_env = pkg_resources.Environment(Globals.options.pluginPath)
 
-        entrypoints = []
         for egg in plugin_env[project_name]:
             pkg_resources.working_set.add(egg)
 
             for ep in egg.get_entry_map('chandler.parcels').values():
                 try:
                     ep.require(plugin_env)
+                    requires = egg.requires(ep.extras)
                 except pkg_resources.ResolutionError:
-                    return # log error
-                else:
-                    entrypoints.append((egg.key, ep))
+                    return None, None # log error
             break
+        else:
+            return None, None
 
-        for name, ep in entrypoints:
-            Parcel.load_parcel_from_entrypoint(view, ep)
-            self.prefs[name] = 'active'
+        dependencies = pkg_resources.working_set.resolve(requires)
+
+        for ep in pkg_resources.iter_entry_points('chandler.parcels'):
+            name = ep.dist.key
+            if plugin_env[name]:  # only handle plugin entrypoints
+                if ep.dist == egg or ep.dist in dependencies: 
+                    if self.prefs.get(name, 'inactive') == 'inactive':
+                        Parcel.load_parcel_from_entrypoint(view, ep)
+                        self.prefs[name] = 'active'
+                    else:
+                        dependencies.remove(ep.dist)
 
         if 'plugins' not in prefs:
             prefs['plugins'] = self.prefs
@@ -106,20 +156,17 @@ class PluginMenu(Menu):
         view.commit()
         prefs.write()
 
-        # Update the menus
-        wx.GetApp().GetActiveView().rebuildDynamicBlocks()
+        return egg, dependencies
 
-    def deactivatePlugin(self, project_name):
+    def deactivatePlugin(self, project_name, plugin_env):
 
         view = self.itsView
         prefs = Utility.loadPrefs(Globals.options)
-        plugin_env = pkg_resources.Environment(Globals.options.pluginPath)
 
-        entrypoints = []
         for egg in plugin_env[project_name]:
-            for ep in egg.get_entry_map('chandler.parcels').values():
-                entrypoints.append((egg.key, ep))
             break
+        else:
+            return None
 
         def deleteItems(item):
             for child in item.iterChildren():
@@ -128,12 +175,12 @@ class PluginMenu(Menu):
                 for instance in item.iterItems():
                     instance.delete(True)
 
-        for name, ep in entrypoints:
+        for ep in egg.get_entry_map('chandler.parcels').values():
             parcel = Parcel.find_parcel_from_entrypoint(view, ep)
             if parcel is not None:
                 deleteItems(parcel)
                 parcel.delete(True)
-            self.prefs[name] = 'inactive'
+            self.prefs[ep.dist.key] = 'inactive'
 
         if 'plugins' not in prefs:
             prefs['plugins'] = self.prefs
@@ -144,5 +191,4 @@ class PluginMenu(Menu):
         view.commit()
         prefs.write()
 
-        # Update the menus
-        wx.GetApp().GetActiveView().rebuildDynamicBlocks()
+        return egg

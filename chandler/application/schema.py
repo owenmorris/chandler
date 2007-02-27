@@ -1396,6 +1396,8 @@ def parcel_for_module(moduleName, view):
             raise RuntimeError(
                 "Recursive schema item initialization: "+moduleName
             )
+        if ob.isDeleted():
+            ob = itemFor(ModuleMaker(moduleName), view)   # slow path
         return ob
     except (AttributeError, KeyError):
         return itemFor(ModuleMaker(moduleName), view)   # slow path
@@ -1429,7 +1431,10 @@ def itemFor(obj, view):
         pass
     else:
         if item is not None:
-            return item
+            if item.isDeleted():
+                del view._schema_cache[obj]
+            else:
+                return item
 
     if obj in view._schema_cache:
         item = view._schema_cache[obj]
