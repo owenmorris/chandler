@@ -39,20 +39,20 @@ EXCLUDE_ID = zanshin.util.PackElement('exclude-free-busy-rollup', COSMO_NS)
 
 class CalDAVConduit(webdav_conduit.WebDAVConduit):
     ticketFreeBusy = schema.One(schema.Text, initialValue="")
- 
+
     def _createCollectionResource(self, handle, resource, childName):
         displayName = self.share.contents.displayName
         timezone = serializeTimeZone(ICUtzinfo.default)
         return handle.blockUntil(resource.createCalendar, childName,
                                  displayName, timezone)
- 
+
     def _getDisplayNameForShare(self, share):
         container = self._getContainerResource()
         try:
             result = container.serverHandle.blockUntil(container.getDisplayName)
         except:
             result = ""
-            
+
         return result or super(CalDAVConduit,
                                self)._getDisplayNameForShare(share)
 
@@ -72,39 +72,39 @@ class CalDAVConduit(webdav_conduit.WebDAVConduit):
         """Create the collection as usual, then set cosmoExcludeFreeBusy."""
         super(CalDAVConduit, self).create()
         self.setCosmoExcludeFreeBusy(not self.inFreeBusy)
-        
+
 
     def getCosmoExcludeFreeBusy(self):
         """
         Issue a PROPFIND for cosmo:exclude-free-busy-rollup.
-                
+
         @return: Boolean
         """
         handle, resource = self._getHandleAndResource()
-        
+
         def handlePropfind(response):
             if response.status != twisted.web.http.MULTI_STATUS:
                 raise zanshin.http.HTTPError(
                     status=response.status, message=response.message)
-                
+
             propfindElement = XML(response.body)
-    
+
             for rsrc, props in resource._iterPropfindElement(propfindElement):
                 for prop in props:
                     if (EXCLUDE_ID == prop.tag):
                         return prop.text == 'true'
-    
+
         request = zanshin.webdav.PropfindRequest(
             zanshin.webdav.quote(resource.path), 0, [EXCLUDE_ID], None)
-        
+
         def deferredPropFindCallback():
             return resource._addRequest(request).addCallback(handlePropfind)
-    
+
         return handle.blockUntil(deferredPropFindCallback)
 
     def setCosmoExcludeFreeBusy(self, exclude):
         """Issue a PROPPATCH to set cosmo:exclude-free-busy-rollup to exclude.
-    
+
         @param exclude: a Boolean, should the collection be excluded from 
                         freebusy
         @return: Boolean, success or failure
@@ -114,12 +114,12 @@ class CalDAVConduit(webdav_conduit.WebDAVConduit):
             """
             Return whether the server really did change 
             cosmo:exclude-free-busy-rollup.
-            
+
             """
             result = results.get(EXCLUDE_ID, None)
-            
+
             status = None
-            
+
             # result should be of the form 'HTTP/1.1 200 OK'
             # We want to extract the int value of the 2nd
             # field, if possible,
@@ -130,7 +130,7 @@ class CalDAVConduit(webdav_conduit.WebDAVConduit):
                     # IndexError: no spaces in result
                     # TypeError: field wasn't an int
                     pass
-                
+
             if status in (twisted.web.http.CREATED, twisted.web.http.OK):
                 return True
             else:
@@ -140,7 +140,7 @@ class CalDAVConduit(webdav_conduit.WebDAVConduit):
         propstopatch = {EXCLUDE_ID: exclude and 'true' or 'false'}
         def deferredPropPatchCallback():
             return resource.proppatch(propstopatch).addCallback(handleProppatch)
-        
+
         return handle.blockUntil(deferredPropPatchCallback)
 
     def _getHandleAndResource(self):
@@ -160,7 +160,7 @@ class CalDAVConduit(webdav_conduit.WebDAVConduit):
             ticket.ticketId, ticket.ownerUri)
         self.ticketFreeBusy = ticket.ticketId
 
-        return self.ticketFreeBusy    
+        return self.ticketFreeBusy
 
     def getLocation(self, privilege=None):
         url = super(CalDAVConduit, self).getLocation(privilege)

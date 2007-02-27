@@ -25,7 +25,10 @@ logger = logging.getLogger(__name__)
 
 __all__ = [
     'RecordSetConduit',
-    'InMemoryRecordSetConduit',
+    'DiffRecordSetConduit',
+    'ResourceRecordSetConduit',
+    'InMemoryDiffRecordSetConduit',
+    'InMemoryResourceRecordSetConduit',
 ]
 
 
@@ -78,7 +81,7 @@ class RecordSetConduit(conduits.BaseConduit):
 
         translator = self.translator(rv)
 
-        if self.syncToken:
+        if self.share.established:
             version = self.itemsMarker.itsVersion
         else:
             version = 0
@@ -93,12 +96,8 @@ class RecordSetConduit(conduits.BaseConduit):
 
         if receive:
 
-            text = self.get()
-            if debug: print "Inbound text:", text
-            logger.debug("Received from server [%s]", text)
-
-            inboundDiff, extra = self.serializer.deserialize(text)
-            if debug: print "Inbound records", inboundDiff, extra
+            inbound, extra, isDiff = self.getRecords(debug=debug)
+            if debug: print "Inbound records", inbound, extra
 
             if self.share.contents is None:
                 # We're importing a collection; either create it if it
@@ -125,11 +124,11 @@ class RecordSetConduit(conduits.BaseConduit):
                 self.share.contents.displayName = name
 
             # Add remotely changed items
-            for uuid in inboundDiff.keys():
-                rs = inboundDiff[uuid]
+            for uuid in inbound.keys():
+                rs = inbound[uuid]
                 if rs is None: # skip deletions
                     if debug: print "Inbound removal:", uuid
-                    del inboundDiff[uuid]
+                    del inbound[uuid]
                     remotelyRemoved.add(uuid)
 
                     # Clear out the agreed state and any pending changes, so
@@ -154,16 +153,17 @@ class RecordSetConduit(conduits.BaseConduit):
                             # last sync.  We need to grab its previous state
                             # out of the baseline, apply any pending changes
                             # and the new inbound chagnes to it, and use that
-                            # as the new inboundDiff
+                            # as the new inbound
                             state = self.getState(uuid)
                             rs = state.agreed + state.pending + rs
                             if debug: print "Reconstituting from state:", rs
-                            inboundDiff[uuid] = rs
-                            self.removeState(uuid)
+                            inbound[uuid] = rs
+                            state.clear()
 
 
         else:
-            inboundDiff = {}
+            inbound = {}
+            isDiff = True
 
 
         # Generate records for all local items to be merged -- those that
@@ -229,21 +229,27 @@ class RecordSetConduit(conduits.BaseConduit):
         toApply = {}
         toSend = {}
 
-        for uuid in set(rsNewBase) | set(inboundDiff):
+        for uuid in set(rsNewBase) | set(inbound):
             state = self.getState(uuid)
             rsInternal = rsNewBase.get(uuid, eim.RecordSet())
-            rsExternal = inboundDiff.get(uuid, eim.RecordSet())
+
+            if not isDiff:
+                # Ensure rsExternal is the whole state
+                if not inbound.has_key(uuid): # Not remotely changed
+                    rsExternal = state.agreed + state.pending
+                else:
+                    rsExternal = inbound.get(uuid)
+            else:
+                rsExternal = inbound.get(uuid, eim.RecordSet())
+
             dSend, dApply, pending = state.merge(rsInternal, rsExternal,
-                send=send, receive=receive, filter=filter, debug=debug)
+                isDiff=isDiff, send=send, receive=receive, filter=filter,
+                debug=debug)
             if send and dSend:
                 toSend[uuid] = dSend
                 logger.debug("Sending changes for %s [%s]", uuid, dSend)
                 if uuid not in sendStats['added']:
                     sendStats['modified'].add(uuid)
-
-                # TODO:
-                # At this point, if we need to automatically set lastModBy,
-                # we could do it and re-run the merge (or something equiv)
 
             if receive and dApply:
                 toApply[uuid] = dApply
@@ -263,7 +269,7 @@ class RecordSetConduit(conduits.BaseConduit):
 
 
             # Make sure any items that came in are added to the collection
-            for uuid in inboundDiff:
+            for uuid in inbound:
                 # Add the item to contents
                 item = rv.findUUID(uuid)
                 if item is not None and item.isLive():
@@ -289,6 +295,7 @@ class RecordSetConduit(conduits.BaseConduit):
         # For each item that was in the collection before but is no longer,
         # remove its state; if sending, add an empty recordset to toSend
         # TODO: Optimize by removing item loading
+        statesToRemove = set()
         for state in self.share.states:
             uuid = self.share.states.getAlias(state)
             item = rv.findUUID(uuid)
@@ -298,24 +305,28 @@ class RecordSetConduit(conduits.BaseConduit):
                 if send:
                     toSend[uuid] = None
                     sendStats['removed'].add(uuid)
-                self.removeState(uuid)
-                self.share.removeSharedItem(item)
+                statesToRemove.add(uuid)
                 if debug: print "Remotely removing item:", uuid
 
 
 
         # Send
         if send and toSend:
-            text = self.serializer.serialize(toSend, rootName="collection",
-                uuid=self.share.contents.itsUUID.str16(),
-                name=self.share.contents.displayName)
-            if debug: print "Sending text:", text
-            logger.debug("Sending to server [%s]", text)
-            self.put(text)
+            extra = { 'rootName' : 'collection',
+                      'uuid' : self.share.contents.itsUUID.str16(),
+                      'name' : self.share.contents.displayName
+                    }
+            self.putRecords(toSend, extra, debug=debug)
         else:
             if debug: print "Nothing to send"
             logger.debug("Nothing to send")
 
+
+        for uuid in statesToRemove:
+            if debug: print "REMOVING STATE", uuid
+            self.removeState(uuid)
+            item = rv.findUUID(uuid)
+            self.share.removeSharedItem(item)
 
         # Note the repository version number, which will increase at the next
         # commit
@@ -332,7 +343,6 @@ class RecordSetConduit(conduits.BaseConduit):
             sendStats['sent'] = toSend
             stats.append(sendStats)
         return stats
-
 
 
 
@@ -364,9 +374,125 @@ class RecordSetConduit(conduits.BaseConduit):
             filter += eim.lookupSchemaURI(uri)
         return filter
 
+    def getRecords(self, debug=False):
+        raise NotImplementedError
+
+    def putRecords(self, toSend, debug=False):
+        raise NotImplementedError
+
+    def fileStyle(self):
+        return formats.STYLE_DIRECTORY
+
+class DiffRecordSetConduit(RecordSetConduit):
+
+    def getRecords(self, debug=False):
+        text = self.get()
+        if debug: print "Inbound text:", text
+        logger.debug("Received from server [%s]", text)
+
+        inbound, extra = self.serializer.deserialize(text)
+        return inbound, extra, True
+
+    def putRecords(self, toSend, extra, debug=False):
+        text = self.serializer.serialize(toSend, **extra)
+        if debug: print "Sending text:", text
+        logger.debug("Sending to server [%s]", text)
+        self.put(text)
 
 
 
+class ResourceRecordSetConduit(RecordSetConduit):
+
+    def getRecords(self, debug=False):
+        # Get and return records, extra
+
+        inbound = { }
+        extra = { }
+
+        # get list of remote items, store in dict keyed on path, value = etag
+        self.resources = self.getResources()
+
+        # If one of our local states isn't in the resource list, that means
+        # it's been removed from the server:
+        paths = { }
+        for state in self.share.states:
+            if hasattr(state, 'path'):
+                uuid = self.share.states.getAlias(state)
+                if state.path not in self.resources:
+                    inbound[uuid] = None # indicator of remote deletion
+                else:
+                    paths[state.path] = (uuid, state)
+
+        # Examine old and new etags to see what needs to be fetched:
+        toFetch = set()
+        for path, etag in self.resources.iteritems():
+            if path in paths:
+                state = paths[path][1]
+                if etag != state.etag:
+                    # Need to fetch this path since its etag doesn't match
+                    if debug: print "need to fetch: etag mismatch for %s (%s vs %s)" % (path, state.etag, etag)
+                    toFetch.add(path)
+            else:
+                # Need to fetch this path since we don't yet have it
+                if debug: print "need to fetch: don't yet have %s" % path
+                toFetch.add(path)
+
+        if debug: print "%d resources to get" % len(toFetch)
+
+        for path in toFetch:
+            text, etag = self.getResource(path)
+            records, extra = self.serializer.deserialize(text)
+            for uuid, rs in records.iteritems():
+                inbound[uuid] = rs
+                state = self.getState(uuid)
+                state.path = path
+                state.etag = etag
+
+        return inbound, extra, False
+
+
+    def putRecords(self, toSend, extra, debug=False):
+
+        if debug: print "putRecords [%s]" % toSend
+
+        for uuid, rs in toSend.iteritems():
+            state = self.getState(uuid)
+            path = getattr(state, "path", None)
+            etag = getattr(state, "etag", None)
+
+            if rs is None:
+                # delete the resource
+                if path:
+                    self.deleteResource(path, etag)
+                    if debug: print "Deleting path %s", path
+            else:
+                if not path:
+                    # need to compute a path
+                    path = uuid
+
+                # rs needs to include the entire recordset, not diffs
+                rs = state.agreed + state.pending
+
+                text = self.serializer.serialize({uuid : rs}, **extra)
+                etag = self.putResource(text, path, etag, debug=debug)
+                state.path = path
+                state.etag = etag
+                if debug: print "Put path %s, etag now %s [%s]" % (path,
+                    etag, text)
+
+
+    def newState(self, uuidString):
+        state = ResourceState(itsView=self.itsView, peer=self.share,
+            itemUUID=uuidString)
+        self.share.states.append(state, uuidString)
+        return state
+
+
+
+
+class ResourceState(shares.State):
+    path = schema.One(schema.Text)
+    etag = schema.One(schema.Text)
 
 
 
@@ -375,7 +501,7 @@ class RecordSetConduit(conduits.BaseConduit):
 
 shareDict = { }
 
-class InMemoryRecordSetConduit(RecordSetConduit):
+class InMemoryDiffRecordSetConduit(DiffRecordSetConduit):
 
     def get(self):
         self.syncToken, text = self.serverGet(self.shareName, self.syncToken)
@@ -469,7 +595,7 @@ class InMemoryRecordSetConduit(RecordSetConduit):
 
     def dump(self, text=""):
 
-        print "\nState of InMemoryRecordSetConduit (%s):" % text
+        print "\nState of InMemoryDiffRecordSetConduit (%s):" % text
         for path, coll in shareDict.iteritems():
             print "\nCollection:", path
             print "\n   Latest token:", coll["token"]
@@ -480,3 +606,68 @@ class InMemoryRecordSetConduit(RecordSetConduit):
                         print "       [%d] <Deleted>" % historicToken
                     else:
                         print "       [%d] %s" % (historicToken, diff)
+
+
+
+
+
+
+class InMemoryResourceRecordSetConduit(ResourceRecordSetConduit):
+
+    def getResource(self, path):
+        coll = self._getCollection()
+        if coll['resources'].has_key(path):
+            text, etag = coll['resources'][path]
+            return text, str(etag)
+
+    def putResource(self, text, path, etag=None, debug=False):
+        if etag is None:
+            etag = 0
+        else:
+            etag = int(etag)
+
+        coll = self._getCollection()
+        if coll['resources'].has_key(path):
+            oldText, oldTag = coll['resources'][path]
+            if etag != oldTag:
+                raise errors.TokenMismatch("Mismatched etags on PUT")
+        coll['etag'] += 1
+        coll['resources'][path] = (text, coll['etag'])
+        if debug: print "Put [%s]" % text
+        return str(coll['etag'])
+
+    def deleteResource(self, path, etag=None):
+        if etag is None:
+            etag = 0
+        else:
+            etag = int(etag)
+
+        coll = self._getCollection()
+        if coll['resources'].has_key(path):
+            oldText, oldTag = coll['resources'][path]
+            if etag != oldTag:
+                raise errors.TokenMismatch("Mismatched etags on DELETE")
+            else:
+                del coll['resources'][path]
+
+    def exists(self):
+        return shareDict.has_key(self.shareName)
+
+    def destroy(self):
+        del shareDict[self.shareName]
+
+    def create(self):
+        self._getCollection()
+
+    def getResources(self):
+        resources = { }
+
+        coll = self._getCollection()
+        for path, (text, etag) in coll['resources'].iteritems():
+            resources[path] = str(etag)
+
+        return resources
+
+    def _getCollection(self):
+        return shareDict.setdefault(self.shareName,
+            { "etag" : 0, "resources" : {} })

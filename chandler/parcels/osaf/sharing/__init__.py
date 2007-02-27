@@ -628,15 +628,16 @@ def publish(collection, account, classesToInclude=None,
                     shareName += '.ifb'
                     alias = 'freebusy'
 
-                # We're speaking to a WebDAV server
+                # We're speaking to a WebDAV server -- use EIMML
 
-                # Create a WebDAV conduit / cloudxml or freebusy format
-                share = _newOutboundShare(view, collection,
-                                         classesToInclude=classesToInclude,
-                                         shareName=shareName,
-                                         displayName=displayName,
-                                         account=account,
-                                         publishType=publishType)
+                share = Share(itsView=view, contents=collection)
+                conduit = WebDAVRecordSetConduit(itsParent=share,
+                    shareName=shareName, account=account,
+                    translator=PIMTranslator,
+                    serializer=EIMMLSerializer)
+                share.conduit = conduit
+
+                # TODO: support filters on WebDAV + EIMML
 
                 try:
                     SharedItem(collection).shares.append(share, alias)
@@ -655,7 +656,7 @@ def publish(collection, account, classesToInclude=None,
                 if supportsTickets:
                     share.conduit.createTickets()
 
-                if PUBLISH_MONOLITHIC_ICS:
+                if False and PUBLISH_MONOLITHIC_ICS:
                     icsShareName = u"%s.ics" % shareName
                     icsShare = _newOutboundShare(view, collection,
                                              classesToInclude=classesToInclude,
@@ -1496,12 +1497,17 @@ def subscribeWebDAV(view, url, inspection, updateCallback=None, account=None,
     if account:
         share.conduit = WebDAVConduit(itsParent=share,
             shareName=shareName, account=account)
+
+        share.conduit = WebDAVRecordSetConduit(itsParent=share,
+            account=account, shareName=shareName,
+            translator=PIMTranslator, serializer=EIMMLSerializer)
+
     else:
         (useSSL, host, port, path, query, fragment) = splitUrl(url)
-        share.conduit = WebDAVConduit(itsParent=share, host=host,
-            port=port, sharePath=parentPath, shareName=shareName,
-            useSSL=useSSL, ticket=ticket)
-
+        share.conduit = WebDAVRecordSetConduit(itsParent=share, host=host,
+            port=port, sharePath=sharePath, shareName=shareName,
+            useSSL=useSSL, ticket=ticket,
+            translator=PIMTranslator, serializer=EIMMLSerializer)
 
     share.sync(updateCallback=updateCallback, modeOverride='get')
     share.conduit.getTickets()

@@ -14,19 +14,23 @@
 
 __all__ = [
     'WebDAVConduit',
+    'WebDAVRecordSetConduit',
 ]
 
 import conduits, errors, formats
 import zanshin, M2Crypto.BIO, twisted.web.http, urlparse
+from recordset_conduit import ResourceRecordSetConduit, ResourceState
+
 from i18n import ChandlerMessageFactory as _
+import time
 import logging
 
 logger = logging.getLogger(__name__)
 
 # = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =
 
-class WebDAVConduit(conduits.LinkableConduit, conduits.ManifestEngineMixin,
-    conduits.HTTPMixin):
+
+class DAVConduitMixin(conduits.HTTPMixin):
 
     def _getSharePath(self):
         return "/" + self._getSettings()[2]
@@ -39,7 +43,7 @@ class WebDAVConduit(conduits.LinkableConduit, conduits.ManifestEngineMixin,
             sharePath = u"" # Avoid double-slashes on next line...
         resourcePath = u"%s/%s" % (sharePath, self.shareName)
 
-        if self.share.format.fileStyle() == formats.STYLE_DIRECTORY:
+        if self.share.fileStyle() == formats.STYLE_DIRECTORY:
             resourcePath += "/" + path
 
         resource = serverHandle.getResource(resourcePath)
@@ -49,7 +53,6 @@ class WebDAVConduit(conduits.LinkableConduit, conduits.ManifestEngineMixin,
         return resource
 
     def exists(self):
-        result = super(WebDAVConduit, self).exists()
 
         resource = self._resourceFromPath(u"")
 
@@ -71,9 +74,8 @@ class WebDAVConduit(conduits.LinkableConduit, conduits.ManifestEngineMixin,
         return handle.blockUntil(resource.createCollection, childName)
 
     def create(self):
-        super(WebDAVConduit, self).create()
 
-        style = self.share.format.fileStyle()
+        style = self.share.fileStyle()
 
         if style == formats.STYLE_DIRECTORY:
             url = self.getLocation()
@@ -142,14 +144,11 @@ class WebDAVConduit(conduits.LinkableConduit, conduits.ManifestEngineMixin,
         if self.exists():
             self._deleteItem(u"")
 
-    def open(self):
-        super(WebDAVConduit, self).open()
-
     def _getContainerResource(self):
 
         serverHandle = self._getServerHandle()
 
-        style = self.share.format.fileStyle()
+        style = self.share.fileStyle()
 
         if style == formats.STYLE_DIRECTORY:
             path = self.getLocation()
@@ -164,6 +163,140 @@ class WebDAVConduit(conduits.LinkableConduit, conduits.ManifestEngineMixin,
         if getattr(self, 'ticket', False):
             resource.ticketId = self.ticket
         return resource
+
+
+    def _getResourceList(self, location): # must implement
+        """
+        Return information (etags) about all resources within a collection
+        """
+
+        resourceList = {}
+
+        style = self.share.fileStyle()
+        if style == formats.STYLE_DIRECTORY:
+            shareCollection = self._getContainerResource()
+
+            try:
+                children = self._getServerHandle().blockUntil(
+                                shareCollection.getAllChildren)
+
+            except zanshin.webdav.ConnectionError, err:
+                raise errors.CouldNotConnect(_(u"Unable to connect to server. Received the following error: %(error)s") % {'error': err})
+            except M2Crypto.BIO.BIOError, err:
+                raise errors.CouldNotConnect(_(u"Unable to connect to server. Received the following error: %(error)s") % {'error': err})
+            except zanshin.webdav.WebDAVError, e:
+
+                if e.status == twisted.web.http.NOT_FOUND:
+                    raise errors.NotFound(_(u"Path %(path)s not found") % {'path': shareCollection.path})
+
+                if e.status == twisted.web.http.UNAUTHORIZED:
+                    raise errors.NotAllowed(_(u"Not authorized to get %(path)s") % {'path': shareCollection.path})
+
+                raise errors.SharingError(_(u"The following sharing error occurred: %(error)s") % {'error': e})
+
+
+            for child in children:
+                if child != shareCollection:
+                    path = child.path.split("/")[-1]
+                    etag = child.etag
+                    # if path is empty, it's a subcollection (skip it)
+                    if path:
+                        resourceList[path] = { 'data' : etag }
+
+        elif style == formats.STYLE_SINGLE:
+            resource = self._getServerHandle().getResource(location)
+            if getattr(self, 'ticket', False):
+                resource.ticketId = self.ticket
+            # @@@ [grant] Error handling and reporting here
+            # are sub-optimal
+            try:
+                self._getServerHandle().blockUntil(resource.propfind, depth=0)
+            except zanshin.webdav.ConnectionError, err:
+                raise errors.CouldNotConnect(_(u"Unable to connect to server. Received the following error: %(error)s") % {'error': err})
+            except M2Crypto.BIO.BIOError, err:
+                raise errors.CouldNotConnect(_(u"Unable to connect to server. Received the following error: %(error)s") % {'error': err})
+            except zanshin.webdav.PermissionsError, err:
+                message = _(u"Not authorized to GET %(path)s") % {'path': location}
+                raise errors.NotAllowed(message)
+            #else:
+                #if not exists:
+                #    raise NotFound(_(u"Path %(path)s not found") % {'path': resource.path})
+#
+
+            etag = resource.etag
+            # @@@ [grant] count use resource.path here
+            path = urlparse.urlparse(location)[2]
+            path = path.split("/")[-1]
+            resourceList[path] = { 'data' : etag }
+
+        return resourceList
+
+    def connect(self):
+        self._releaseServerHandle()
+        self._getServerHandle() # @@@ [grant] Probably not necessary
+
+    def disconnect(self):
+        self._releaseServerHandle()
+
+    def createTickets(self):
+        handle = self._getServerHandle()
+        location = self.getLocation()
+        if not location.endswith("/"):
+            location += "/"
+        resource = handle.getResource(location)
+
+        ticket = handle.blockUntil(resource.createTicket)
+        logger.debug("Read Only ticket: %s %s",
+            ticket.ticketId, ticket.ownerUri)
+        self.ticketReadOnly = ticket.ticketId
+
+        ticket = handle.blockUntil(resource.createTicket, write=True)
+        logger.debug("Read Write ticket: %s %s",
+            ticket.ticketId, ticket.ownerUri)
+        self.ticketReadWrite = ticket.ticketId
+
+        return (self.ticketReadOnly, self.ticketReadWrite)
+
+    def getTickets(self):
+        handle = self._getServerHandle()
+        location = self.getLocation()
+        if not location.endswith("/"):
+            location += "/"
+        resource = handle.getResource(location)
+
+        try:
+            tickets = handle.blockUntil(resource.getTickets)
+            for ticket in tickets:
+                if ticket.write:
+                    self.ticketReadWrite = ticket.ticketId
+                elif ticket.read:
+                    self.ticketReadOnly = ticket.ticketId
+
+        except Exception, e:
+            # Couldn't get tickets due to permissions problem, or there were
+            # no tickets
+            pass
+
+    def setDisplayName(self, name):
+        handle = self._getServerHandle()
+        location = self.getLocation()
+        if not location.endswith("/"):
+            location += "/"
+        resource = handle.getResource(location)
+        try:
+            handle.blockUntil(resource.setDisplayName, name)
+        except zanshin.http.HTTPError:
+            # Ignore HTTP errors (like PROPPATCH not being supported)
+            pass
+
+
+
+
+
+
+class WebDAVConduit(conduits.LinkableConduit, DAVConduitMixin,
+    conduits.ManifestEngineMixin):
+    """ Implements the old Conduit interface """
 
     def _putItem(self, item):
         """
@@ -299,127 +432,63 @@ class WebDAVConduit(conduits.LinkableConduit, conduits.ManifestEngineMixin,
         return (item, etag)
 
 
-    def _getResourceList(self, location): # must implement
-        """
-        Return information (etags) about all resources within a collection
-        """
-
-        resourceList = {}
-
-        style = self.share.format.fileStyle()
-        if style == formats.STYLE_DIRECTORY:
-            shareCollection = self._getContainerResource()
-
-            try:
-                children = self._getServerHandle().blockUntil(
-                                shareCollection.getAllChildren)
-
-            except zanshin.webdav.ConnectionError, err:
-                raise errors.CouldNotConnect(_(u"Unable to connect to server. Received the following error: %(error)s") % {'error': err})
-            except M2Crypto.BIO.BIOError, err:
-                raise errors.CouldNotConnect(_(u"Unable to connect to server. Received the following error: %(error)s") % {'error': err})
-            except zanshin.webdav.WebDAVError, e:
-
-                if e.status == twisted.web.http.NOT_FOUND:
-                    raise errors.NotFound(_(u"Path %(path)s not found") % {'path': shareCollection.path})
-
-                if e.status == twisted.web.http.UNAUTHORIZED:
-                    raise errors.NotAllowed(_(u"Not authorized to get %(path)s") % {'path': shareCollection.path})
-
-                raise errors.SharingError(_(u"The following sharing error occurred: %(error)s") % {'error': e})
 
 
-            for child in children:
-                if child != shareCollection:
-                    path = child.path.split("/")[-1]
-                    etag = child.etag
-                    # if path is empty, it's a subcollection (skip it)
-                    if path:
-                        resourceList[path] = { 'data' : etag }
 
-        elif style == formats.STYLE_SINGLE:
-            resource = self._getServerHandle().getResource(location)
-            if getattr(self, 'ticket', False):
-                resource.ticketId = self.ticket
-            # @@@ [grant] Error handling and reporting here
-            # are sub-optimal
-            try:
-                self._getServerHandle().blockUntil(resource.propfind, depth=0)
-            except zanshin.webdav.ConnectionError, err:
-                raise errors.CouldNotConnect(_(u"Unable to connect to server. Received the following error: %(error)s") % {'error': err})
-            except M2Crypto.BIO.BIOError, err:
-                raise errors.CouldNotConnect(_(u"Unable to connect to server. Received the following error: %(error)s") % {'error': err})
-            except zanshin.webdav.PermissionsError, err:
-                message = _(u"Not authorized to GET %(path)s") % {'path': location}
-                raise errors.NotAllowed(message)
-            #else:
-                #if not exists:
-                #    raise NotFound(_(u"Path %(path)s not found") % {'path': resource.path})
-#
 
-            etag = resource.etag
-            # @@@ [grant] count use resource.path here
-            path = urlparse.urlparse(location)[2]
-            path = path.split("/")[-1]
-            resourceList[path] = { 'data' : etag }
+class WebDAVRecordSetConduit(ResourceRecordSetConduit, DAVConduitMixin):
+    """ Implements the new EIM/RecordSet interface """
 
-        return resourceList
+    def sync(self, modeOverride=None, updateCallback=None, forceUpdate=None,
+        debug=False):
 
-    def connect(self):
-        self._releaseServerHandle()
-        self._getServerHandle() # @@@ [grant] Probably not necessary
+        startTime = time.time()
+        self.networkTime = 0.0
 
-    def disconnect(self):
-        self._releaseServerHandle()
+        stats = super(WebDAVRecordSetConduit, self).sync(
+            modeOverride=modeOverride,
+            updateCallback=updateCallback, forceUpdate=forceUpdate,
+            debug=debug)
 
-    def createTickets(self):
-        handle = self._getServerHandle()
+        endTime = time.time()
+        duration = endTime - startTime
+        logger.info("Sync took %6.2f seconds (network = %6.2f)", duration,
+            self.networkTime)
+
+        return stats
+
+    def getResource(self, path):
+        # return text, etag
+        resource = self._resourceFromPath(path)
+        resp = self._getServerHandle().blockUntil(resource.get)
+        text = resp.body
+        etag = resource.etag
+        return text, etag
+
+
+    def putResource(self, text, path, etag=None, debug=False):
+        # return etag
+        resource = self._resourceFromPath(path)
+        self._getServerHandle().blockUntil(resource.put, text, checkETag=False)
+        return resource.etag
+
+
+
+    def deleteResource(self, path, etag=None):
+        resource = self._resourceFromPath(path)
+        resp = self._getServerHandle().blockUntil(resource.delete)
+
+
+    def getResources(self):
+        # return resources{ path : etag }
+
+        resources = { }
         location = self.getLocation()
-        if not location.endswith("/"):
-            location += "/"
-        resource = handle.getResource(location)
+        res = self._getResourceList(location)
+        for path, data in res.iteritems():
+            resources[path] = data['data']
 
-        ticket = handle.blockUntil(resource.createTicket)
-        logger.debug("Read Only ticket: %s %s",
-            ticket.ticketId, ticket.ownerUri)
-        self.ticketReadOnly = ticket.ticketId
+        return resources
 
-        ticket = handle.blockUntil(resource.createTicket, write=True)
-        logger.debug("Read Write ticket: %s %s",
-            ticket.ticketId, ticket.ownerUri)
-        self.ticketReadWrite = ticket.ticketId
 
-        return (self.ticketReadOnly, self.ticketReadWrite)
-
-    def getTickets(self):
-        handle = self._getServerHandle()
-        location = self.getLocation()
-        if not location.endswith("/"):
-            location += "/"
-        resource = handle.getResource(location)
-
-        try:
-            tickets = handle.blockUntil(resource.getTickets)
-            for ticket in tickets:
-                if ticket.write:
-                    self.ticketReadWrite = ticket.ticketId
-                elif ticket.read:
-                    self.ticketReadOnly = ticket.ticketId
-
-        except Exception, e:
-            # Couldn't get tickets due to permissions problem, or there were
-            # no tickets
-            pass
-
-    def setDisplayName(self, name):
-        handle = self._getServerHandle()
-        location = self.getLocation()
-        if not location.endswith("/"):
-            location += "/"
-        resource = handle.getResource(location)
-        try:
-            handle.blockUntil(resource.setDisplayName, name)
-        except zanshin.http.HTTPError:
-            # Ignore HTTP errors (like PROPPATCH not being supported)
-            pass
 

@@ -188,7 +188,7 @@ class State(schema.Item):
 
 
 
-    def merge(self, rsInternal, inboundDiff=eim.RecordSet(),
+    def merge(self, rsInternal, inbound=eim.RecordSet(), isDiff=True,
         send=True, receive=True, filter=None, debug=False):
 
         if filter is None:
@@ -198,16 +198,26 @@ class State(schema.Item):
 
         pending = self.pending
 
+        # We need to set rsExternal to equal the entire external state
+
+        # If we're passing in a diff, apply it to agreed + pending
+        if isDiff:
+            rsExternal = self.agreed + pending + inbound
+
+        else:
+            rsExternal = inbound
+
+        internalDiff = filter(rsInternal - self.agreed)
+        externalDiff = rsExternal - self.agreed
+
         if debug:
             print " ----------- Merging item:", self.itemUUID
             print "   rsInternal:", rsInternal
-            print "   inboundDiff:", inboundDiff
+            print "   isDiff:", isDiff
+            print "   inbound:", inbound
+            print "   externalDiff:", externalDiff
             print "   agreed:", self.agreed
             print "   pending:", pending
-
-        rsExternal = self.agreed + pending + inboundDiff
-        internalDiff = filter(rsInternal - self.agreed)
-        externalDiff = rsExternal - self.agreed
 
         ncd = internalDiff | filter(externalDiff)
         self.agreed += (internalDiff | externalDiff)
@@ -292,6 +302,7 @@ class State(schema.Item):
         pending = self.pending
         pending.remove(change)
         self.pending = pending
+        self.agreed += change
         self._updateConflicts()
 
     def getConflicts(self):
@@ -482,6 +493,12 @@ class Share(pim.ContentItem):
                 SharedItem(contents).add()
 
         super(Share, self).__init__(*args, **kw)
+
+    def fileStyle(self):
+        if getattr(self, "format", None) is not None:
+            return self.format.fileStyle()
+        else:
+            return self.conduit.fileStyle()
 
     def addSharedItem(self, item):
         """ Add an item to the share's sharedIn refcoll, stamping if

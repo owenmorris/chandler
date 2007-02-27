@@ -41,7 +41,7 @@ class InMemoryConduit(conduits.LinkableConduit, conduits.ManifestEngineMixin):
         if self.exists():
             raise errors.AlreadyExists(_(u"Share already exists"))
 
-        style = self.share.format.fileStyle()
+        style = self.share.fileStyle()
         if style == formats.STYLE_DIRECTORY:
             shareDict[self.shareName] = { }
         # Nothing to do if style is SINGLE
@@ -58,7 +58,7 @@ class InMemoryConduit(conduits.LinkableConduit, conduits.ManifestEngineMixin):
     def _getResourceList(self, location):
         fileList = { }
 
-        style = self.share.format.fileStyle()
+        style = self.share.fileStyle()
         if style == formats.STYLE_DIRECTORY:
             for (key, val) in shareDict[self.shareName].iteritems():
                 logger.debug("'remote' resource key (%s) (%s)", key, val[0])

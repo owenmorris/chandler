@@ -88,7 +88,7 @@ class FileSystemConduit(conduits.LinkableConduit, conduits.ManifestEngineMixin):
     def _getResourceList(self, location):
         fileList = {}
 
-        style = self.share.format.fileStyle()
+        style = self.share.fileStyle()
         if style == formats.STYLE_DIRECTORY:
             for filename in os.listdir(location):
                 fullPath = os.path.join(location, filename)
@@ -105,7 +105,7 @@ class FileSystemConduit(conduits.LinkableConduit, conduits.ManifestEngineMixin):
         return fileList
 
     def _getItemFullPath(self, path):
-        style = self.share.format.fileStyle()
+        style = self.share.fileStyle()
         if style == formats.STYLE_DIRECTORY:
             path = os.path.join(self.sharePath, self.shareName, path)
         elif style == formats.STYLE_SINGLE:
@@ -116,7 +116,7 @@ class FileSystemConduit(conduits.LinkableConduit, conduits.ManifestEngineMixin):
     def exists(self):
         super(FileSystemConduit, self).exists()
 
-        style = self.share.format.fileStyle()
+        style = self.share.fileStyle()
         if style == formats.STYLE_DIRECTORY:
             return os.path.isdir(self.getLocation())
         elif style == formats.STYLE_SINGLE:
@@ -133,7 +133,7 @@ class FileSystemConduit(conduits.LinkableConduit, conduits.ManifestEngineMixin):
         if self.sharePath is None or not os.path.isdir(self.sharePath):
             raise errors.Misconfigured(_(u"Share path is not set, or path doesn't exist"))
 
-        style = self.share.format.fileStyle()
+        style = self.share.fileStyle()
         if style == formats.STYLE_DIRECTORY:
             path = self.getLocation()
             if not os.path.exists(path):
@@ -147,7 +147,7 @@ class FileSystemConduit(conduits.LinkableConduit, conduits.ManifestEngineMixin):
         if not self.exists():
             raise errors.NotFound(_(u"%(path)s does not exist") % {'path': path})
 
-        style = self.share.format.fileStyle()
+        style = self.share.fileStyle()
         if style == formats.STYLE_DIRECTORY:
             for filename in os.listdir(path):
                 os.remove(os.path.join(path, filename))

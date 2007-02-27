@@ -655,7 +655,7 @@ class ManifestEngineMixin(pim.ContentItem):
         # they can be shared.
         filterClasses = self._getFilterClasses()
 
-        style = self.share.format.fileStyle()
+        style = self.share.fileStyle()
         if style == formats.STYLE_DIRECTORY:
 
             if resourceList is None:
@@ -1026,7 +1026,7 @@ class ManifestEngineMixin(pim.ContentItem):
         will be used for accessing the manifest and resourceList dicts.
         """
         extension = self.share.format.extension(item)
-        style = self.share.format.fileStyle()
+        style = self.share.fileStyle()
         if style == formats.STYLE_DIRECTORY:
             if isinstance(item, shares.Share):
                 path = self.share.format.shareItemPath()

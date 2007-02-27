@@ -61,7 +61,7 @@ class MultipleSharesTestCase(testcase.DualRepositoryTestCase):
         self.assert_(not pim.has_stamp(coll0a, sharing.SharedItem))
 
         # First share in first repo
-        conduit = recordset_conduit.InMemoryRecordSetConduit(itsView=view0,
+        conduit = recordset_conduit.InMemoryDiffRecordSetConduit(itsView=view0,
             shareName="foo",
             translator=translator.PIMTranslator,
             serializer=eimml.EIMMLSerializer
@@ -75,7 +75,7 @@ class MultipleSharesTestCase(testcase.DualRepositoryTestCase):
 
 
         # Second share in first repo
-        conduit = recordset_conduit.InMemoryRecordSetConduit(itsView=view0,
+        conduit = recordset_conduit.InMemoryDiffRecordSetConduit(itsView=view0,
             shareName="bar",
             translator=translator.PIMTranslator,
             serializer=eimml.EIMMLSerializer
@@ -90,7 +90,7 @@ class MultipleSharesTestCase(testcase.DualRepositoryTestCase):
 
 
         # First share in second repo
-        conduit = recordset_conduit.InMemoryRecordSetConduit(itsView=view1,
+        conduit = recordset_conduit.InMemoryDiffRecordSetConduit(itsView=view1,
             shareName="foo",
             translator=translator.PIMTranslator,
             serializer=eimml.EIMMLSerializer
@@ -99,7 +99,7 @@ class MultipleSharesTestCase(testcase.DualRepositoryTestCase):
 
 
         # Second share in second repo
-        conduit = recordset_conduit.InMemoryRecordSetConduit(itsView=view1,
+        conduit = recordset_conduit.InMemoryDiffRecordSetConduit(itsView=view1,
             shareName="bar",
             translator=translator.PIMTranslator,
             serializer=eimml.EIMMLSerializer

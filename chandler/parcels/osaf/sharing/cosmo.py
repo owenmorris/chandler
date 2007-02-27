@@ -80,7 +80,7 @@ class CosmoAccount(accounts.WebDAVAccount):
         return [share]
 
 
-class CosmoConduit(recordset_conduit.RecordSetConduit, conduits.HTTPMixin):
+class CosmoConduit(recordset_conduit.DiffRecordSetConduit, conduits.HTTPMixin):
 
     morsecodePath = schema.One(
         schema.Text,

@@ -16,7 +16,7 @@
 import unittest, sys, os, logging, datetime, time
 from osaf import pim, sharing
 
-from osaf.sharing import recordset_conduit, translator, eimml, cosmo
+from osaf.sharing import recordset_conduit, translator, eimml
 
 from repository.item.Item import Item
 from util import testcase
@@ -24,8 +24,6 @@ from PyICU import ICUtzinfo
 from application import schema
 
 logger = logging.getLogger(__name__)
-
-USE_COSMO = False
 
 printStatistics = False
 
@@ -49,15 +47,12 @@ def checkStats(stats, expecting):
     return True
 
 
-class EIMInMemoryTestCase(testcase.DualRepositoryTestCase):
+class RoundTripTestCase(testcase.DualRepositoryTestCase):
 
-    def runTest(self):
+    def RoundTripRun(self):
         self.setUp()
         self.PrepareTestData()
-        if USE_COSMO:
-            self.PrepareCosmoShares()
-        else:
-            self.PrepareShares()
+        self.PrepareShares()
         self.RoundTrip()
 
     def PrepareTestData(self):
@@ -81,73 +76,10 @@ class EIMInMemoryTestCase(testcase.DualRepositoryTestCase):
             n.body = u"Here is the body"
             self.coll.add(n)
 
-    def PrepareShares(self):
+    # def PrepareShares(self):
+    #     # Implement this to set up whatever shares/conduits your testing
+    #     pass
 
-        view0 = self.views[0]
-        coll0 = self.coll
-        self.assert_(not pim.has_stamp(coll0, sharing.SharedItem))
-        conduit = recordset_conduit.InMemoryRecordSetConduit(
-            "conduit", itsView=view0,
-            shareName="exportedCollection",
-            translator=translator.PIMTranslator,
-            serializer=eimml.EIMMLSerializer
-        )
-        self.share0 = sharing.Share("share", itsView=view0,
-            contents=coll0, conduit=conduit)
-        self.assert_(pim.has_stamp(coll0, sharing.SharedItem))
-
-
-        view1 = self.views[1]
-        conduit = recordset_conduit.InMemoryRecordSetConduit(
-            "conduit", itsView=view1,
-            shareName="exportedCollection",
-            translator=translator.PIMTranslator,
-            serializer=eimml.EIMMLSerializer
-        )
-        self.share1 = sharing.Share("share", itsView=view1,
-            conduit=conduit)
-
-    def PrepareCosmoShares(self):
-
-        view0 = self.views[0]
-        coll0 = self.coll
-        self.assert_(not pim.has_stamp(coll0, sharing.SharedItem))
-        account = cosmo.CosmoAccount(itsView=view0,
-            host="bcm.osafoundation.org",
-            port=8080,
-            path="/cosmo",
-            username="test",
-            password="test1",
-            useSSL=False
-        )
-        conduit = cosmo.CosmoConduit(itsView=view0,
-            account=account,
-            shareName=coll0.itsUUID.str16(),
-            translator=translator.PIMTranslator,
-            serializer=eimml.EIMMLSerializer
-        )
-        self.share0 = sharing.Share("share", itsView=view0,
-            contents=coll0, conduit=conduit)
-        self.assert_(pim.has_stamp(coll0, sharing.SharedItem))
-
-
-        view1 = self.views[1]
-        account = cosmo.CosmoAccount(itsView=view1,
-            host="bcm.osafoundation.org",
-            port=8080,
-            path="/cosmo",
-            username="test",
-            password="test1",
-            useSSL=False
-        )
-        conduit = cosmo.CosmoConduit(itsView=view1,
-            account=account,
-            shareName=coll0.itsUUID.str16(),
-            translator=translator.PIMTranslator,
-            serializer=eimml.EIMMLSerializer
-        )
-        self.share1 = sharing.Share("share", itsView=view1,
-            conduit=conduit)
 
     def RoundTrip(self):
 
@@ -521,7 +453,6 @@ class EIMInMemoryTestCase(testcase.DualRepositoryTestCase):
         self.assertEqual(item1.body, "back from the dead")
 
 
-
         # Remotely removed, locally modified - item gets put back to server
         # including local mods
         self.share0.contents.remove(item)
@@ -593,6 +524,3 @@ class EIMInMemoryTestCase(testcase.DualRepositoryTestCase):
         # self.share0.conduit.dump("at the end")
 
         self.share0.destroy() # clean up
-
-if __name__ == "__main__":
-    unittest.main()

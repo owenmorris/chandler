@@ -178,7 +178,7 @@ Inmemory Mock Cosmo
 
 You can "send" a recordset::
 
-    >>> conduit = recordset_conduit.InMemoryRecordSetConduit(itsView=rv,
+    >>> conduit = recordset_conduit.InMemoryDiffRecordSetConduit(itsView=rv,
     ...     shareName="test1", serializer=eimml.EIMMLSerializerLite)
     >>> conduit.put(sampleLite)
     >>> conduit.syncToken
