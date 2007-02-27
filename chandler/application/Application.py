@@ -752,6 +752,17 @@ class wxApplication (wx.App):
 
         return wx.ImageFromStream (cStringIO.StringIO(file.read()))
 
+    def GetActiveView (self):
+        # Currently the active view is the view just below the sidebar.
+        # In the future this may change if we allow more than one
+        # active view or applications with active views in places
+        # besides just below the sidebar.
+        from osaf.framework.blocks.Block import Block
+        sidebarBPB = Block.findBlockByName ("SidebarBranchPointBlock")
+        activeView = sidebarBPB.childrenBlocks.first()
+        assert activeView is None or activeView.eventBoundary
+        return activeView
+
     def GetImage (self, name):
         """
         Return None if image isn't found, otherwise loads a bitmap.

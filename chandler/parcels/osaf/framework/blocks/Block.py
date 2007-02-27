@@ -1045,16 +1045,17 @@ class BlockDispatchHook (DispatchHook):
             bubbleUpCallMethod (blockOrWidget, methodName, event)
 
         elif dispatchEnum == 'ActiveViewBubbleUp':
-            sidebarBPB = Block.findBlockByName ("SidebarBranchPointBlock")
+            activeView = wx.GetApp().GetActiveView()
             # This is alecf's hackery, which should be fixed:
-            # the active view is typically a splitter, so really
-            # we probably want the first child (and even if we
-            # don't, the event will bubble up)
-            probableActiveView = sidebarBPB
-            firstChild = sidebarBPB.childrenBlocks.first()
-            if firstChild is not None:
-                probableActiveView = firstChild.childrenBlocks.first()
-            bubbleUpCallMethod (probableActiveView, methodName, event)
+            #
+            # Instead we need a way to specify a block in a tree
+            # of blocks besides the block at top of the tree as the
+            # active view, since the calendar wants to be the
+            # active view but is contained in a tree that has a
+            # splitter at it's root.
+            if activeView is not None:
+                activeView = activeView.childrenBlocks.first()
+            bubbleUpCallMethod (activeView, methodName, event)
 
         elif __debug__:
             assert (False)

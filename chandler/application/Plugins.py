@@ -106,7 +106,8 @@ class PluginMenu(Menu):
         view.commit()
         prefs.write()
 
-        self.restartApp(_(u"Plugin was activated: %s") %(egg.egg_name()))
+        # Update the menus
+        wx.GetApp().GetActiveView().rebuildDynamicBlocks()
 
     def deactivatePlugin(self, project_name):
 
@@ -143,17 +144,5 @@ class PluginMenu(Menu):
         view.commit()
         prefs.write()
 
-        self.restartApp(_(u"Plugin was deactivated: %s.") %(egg.egg_name()))
-
-    def restartApp(self, msg):
-
-        app = wx.GetApp()
-        dlg = wx.MessageDialog(app.mainFrame,
-                               _(u"%s\nChandler will now restart") %(msg),
-                               _(u"Confirm Restart"),
-                               (wx.YES_NO | wx.YES_DEFAULT |
-                                wx.ICON_EXCLAMATION))
-        cmd = dlg.ShowModal()
-        dlg.Destroy()
-        if cmd == wx.ID_YES:
-            app.PostAsyncEvent(app.restart)
+        # Update the menus
+        wx.GetApp().GetActiveView().rebuildDynamicBlocks()
