@@ -157,16 +157,24 @@ class SharingTestDialog(ProgressDialog):
         return msg
 
     def getErrorText(self, statusValue):
-        davCode, errText = statusValue
 
-        if davCode == WebDAV.CANT_CONNECT:
-            txt = errText
+        try:
+            davCode, errText = statusValue
 
-        elif davCode == WebDAV.NO_ACCESS:
-            txt = NO_ACCESS
+            if davCode == WebDAV.CANT_CONNECT:
+                txt = errText
 
-        else:
-            txt = UNKNOWN
+            elif davCode == WebDAV.NO_ACCESS:
+                txt = NO_ACCESS
+
+            else:
+                txt = UNKNOWN
+
+        except ValueError:
+            # If the dialog raised a timeout error then
+            # the statusValue will be a unicode string and
+            # not a tuple containing the dav code as well.
+            txt = statusValue
 
         return constants.MAIL_PROTOCOL_ERROR % \
                         {'hostName': self.host, 'errText': txt}
