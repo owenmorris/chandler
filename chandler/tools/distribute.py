@@ -41,8 +41,7 @@ def parseOptions():
         'deb':       ('',   '--deb',     'b', False, 'only create the debian package'),
         'rpm':       ('',   '--rpm',     'b', False, 'only create the rpm package'),
         'exe':       ('',   '--exe',     'b', False, 'only create the windows .exe installer'),
-        'tag':       ('-t', '--tag',     's', '',    'release name, i.e. "0.7alpha5.dev-r12345-checkpoint20070122"'),
-    }
+        }
     _usage = 'distribute [options]\n\nBundle installed Chandler working directory into a distribution'
 
     parser = OptionParser(version="%prog", usage=_usage)
@@ -135,7 +134,7 @@ def buildDistributionList(options):
                 options.distribs = [ 'dmg' ]
 
 def buildDistribName(mode, options):
-    return 'Chandler_%s_%s_%s' % (options.platformID, mode, options.tag)
+    return 'Chandler_%s_%s_%s' % (options.platformID, mode, options.version_info['version'])
 
 def buildDistributionImage(mode, options):
     if options.platformID == 'iosx':
@@ -151,8 +150,13 @@ def buildDistributionImage(mode, options):
     options.distribName = buildDistribName(mode, options)
     options.distribDir  = os.path.join(options.buildDir, options.distribName)
 
+        # yep - we are removing the directory we are
+        # about ready to create - but we want to ensure
+        # it's truly empty
     if os.access(options.distribDir, os.F_OK):
         rmdirs(options.distribDir)
+
+    os.makedirs(options.distribDir)
 
     # when we make an osx distribution, we actually need to put it
     # in a subdirectory (which has a .app extension).  So we set
@@ -163,8 +167,6 @@ def buildDistributionImage(mode, options):
         distribDir = os.path.join(options.distribDir, '%s.app' % options.distribName)
     else:
         distribDir = options.distribDir
-
-    os.makedirs(distribDir)
 
     return handleManifest(options.buildDir, options.outputDir, distribDir, manifestFile, options.platformID)
 
@@ -214,9 +216,10 @@ def buildRPM(mode, options):
     rpmPath   = os.path.join(options.buildDir, 'internal', 'installers', 'rpm')
     rpmScript = os.path.join(rpmPath, 'makeinstaller.sh')
     specFile  = os.path.join(rpmPath, 'chandler.spec')
-    version   = '%s.%s' % (options.major, options.minor)
+    version   = '%s.%s' % (options.version_info['major'], options.version_info['minor'])
+    release   = options.version_info['release'].replace('-', '_')  # RPM doesn't like '-'
 
-    cmd = [ rpmScript, rpmPath, specFile, options.buildDir, options.distribName, version, options.release ]
+    cmd = [ rpmScript, rpmPath, specFile, options.buildDir, options.distribName, version, release ]
 
     r = runCommand(cmd)
 
@@ -230,9 +233,9 @@ def buildDEB(mode, options):
 
     debPath   = os.path.join(options.buildDir, 'internal', 'installers', 'deb')
     debScript = os.path.join(debPath, 'makeinstaller.sh')
-    version   = '%s.%s' % (options.major, options.minor)
+    version   = '%s.%s' % (options.version_info['major'], options.version_info['minor'])
 
-    cmd = [ debScript, debPath, options.buildDir, options.distribName, version, options.release ]
+    cmd = [ debScript, debPath, options.buildDir, options.distribName, version, options.version_info['release'] ]
 
     r = runCommand(cmd)
 
@@ -311,7 +314,8 @@ if __name__ == '__main__':
 
     buildPlatform(options)
     buildDistributionList(options)
-    options.major, options.minor, options.release, options.version = versionInformation(options.sourceDir, options.platformName, options.tag)
+
+    options.version_info = versionInformation(options.sourceDir, options.platformName)
 
     if _debug:
         log(options)
@@ -335,6 +339,9 @@ if __name__ == '__main__':
                             options.distribFiles[mode].append(buildRPM(mode, options))
                         if build == 'deb':
                             options.distribFiles[mode].append(buildDEB(mode, options))
+
+                    if os.access(options.distribDir, os.F_OK):
+                        rmdirs(options.distribDir)
 
                     if _debug:
                         log(options.distribFiles[mode])
