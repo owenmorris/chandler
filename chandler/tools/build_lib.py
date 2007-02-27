@@ -425,9 +425,3 @@ def rmdirs(directory):
 
         os.rmdir(directory)
 
-
-
-if __name__ == '__main__':
-    print generateVersionData('..', 'iosx')
-    print generateVersionData('..', 'iosx', 'continuousbuild')
-    

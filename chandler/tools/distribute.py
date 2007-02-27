@@ -21,7 +21,7 @@ import sys, os
 import platform
 import string
 from optparse import OptionParser
-from build_lib import initLog, log, rmdirs, handleManifest, runCommand, versionInformation
+from build_lib import initLog, log, rmdirs, handleManifest, runCommand, generateVersionData
 
 
 _debug = True
@@ -41,6 +41,7 @@ def parseOptions():
         'deb':       ('',   '--deb',     'b', False, 'only create the debian package'),
         'rpm':       ('',   '--rpm',     'b', False, 'only create the rpm package'),
         'exe':       ('',   '--exe',     'b', False, 'only create the windows .exe installer'),
+        'tag':       ('-t', '--tag',     's', None,  'continuous build name/tag to add to version information')
         }
     _usage = 'distribute [options]\n\nBundle installed Chandler working directory into a distribution'
 
@@ -315,7 +316,7 @@ if __name__ == '__main__':
     buildPlatform(options)
     buildDistributionList(options)
 
-    options.version_info = versionInformation(options.sourceDir, options.platformName)
+    options.version_info = generateVersionData(options.sourceDir, options.platformName, options.tag)
 
     if _debug:
         log(options)
