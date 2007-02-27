@@ -12,11 +12,13 @@
 #   See the License for the specific language governing permissions and
 #   limitations under the License.
 
-import os, pkg_resources
+import os, pkg_resources, wx
 
 from application import schema, Utility, Globals, Parcel
 from osaf.framework.blocks import Menu, MenuItem, BlockEvent
 from osaf.framework.blocks.Block import Block
+from repository.schema.Kind import Kind
+from i18n import ChandlerMessageFactory as _
 
 
 class PluginMenu(Menu):
@@ -54,7 +56,15 @@ class PluginMenu(Menu):
         name = event.arguments['sender'].itsName
 
         if self.prefs.get(name, 'active') == 'active':
-            self.deactivatePlugin(name)
+            dlg = wx.MessageDialog(wx.GetApp().mainFrame,
+                                   _(u"All items from plugin %(pluginName)s will be deleted.") %{'pluginName': name}, 
+                                   _(u"Confirm Deactivation"),
+                                   (wx.YES_NO | wx.YES_DEFAULT |
+                                    wx.ICON_EXCLAMATION))
+            cmd = dlg.ShowModal()
+            dlg.Destroy()
+            if cmd == wx.ID_YES:
+                self.deactivatePlugin(name)
         else:
             self.activatePlugin(name)
 
@@ -64,13 +74,14 @@ class PluginMenu(Menu):
         check = self.prefs.get(args['sender'].itsName, 'active') == 'active'
         args['Check'] = check
 
-    def activatePlugin(self, name):
+    def activatePlugin(self, project_name):
 
+        view = self.itsView
         prefs = Utility.loadPrefs(Globals.options)
         plugin_env = pkg_resources.Environment(Globals.options.pluginPath)
 
         entrypoints = []
-        for egg in plugin_env[name]:
+        for egg in plugin_env[project_name]:
             pkg_resources.working_set.add(egg)
 
             for ep in egg.get_entry_map('chandler.parcels').values():
@@ -83,7 +94,7 @@ class PluginMenu(Menu):
             break
 
         for name, ep in entrypoints:
-            Parcel.load_parcel_from_entrypoint(self.itsView, ep)
+            Parcel.load_parcel_from_entrypoint(view, ep)
             self.prefs[name] = 'active'
 
         if 'plugins' not in prefs:
@@ -92,9 +103,57 @@ class PluginMenu(Menu):
             prefs['plugins'].update(self.prefs)
             self.prefs = prefs['plugins']
 
+        view.commit()
         prefs.write()
-        self.itsView.commit()
 
-    def deactivatePlugin(self, name):
+        self.restartApp(_(u"Plugin was activated: %s") %(egg.egg_name()))
 
-        print 'deactivate', name
+    def deactivatePlugin(self, project_name):
+
+        view = self.itsView
+        prefs = Utility.loadPrefs(Globals.options)
+        plugin_env = pkg_resources.Environment(Globals.options.pluginPath)
+
+        entrypoints = []
+        for egg in plugin_env[project_name]:
+            for ep in egg.get_entry_map('chandler.parcels').values():
+                entrypoints.append((egg.key, ep))
+            break
+
+        def deleteItems(item):
+            for child in item.iterChildren():
+                deleteItems(child)
+            if isinstance(item, Kind):
+                for instance in item.iterItems():
+                    instance.delete(True)
+
+        for name, ep in entrypoints:
+            parcel = Parcel.find_parcel_from_entrypoint(view, ep)
+            if parcel is not None:
+                deleteItems(parcel)
+                parcel.delete(True)
+            self.prefs[name] = 'inactive'
+
+        if 'plugins' not in prefs:
+            prefs['plugins'] = self.prefs
+        else:
+            prefs['plugins'].update(self.prefs)
+            self.prefs = prefs['plugins']
+
+        view.commit()
+        prefs.write()
+
+        self.restartApp(_(u"Plugin was deactivated: %s.") %(egg.egg_name()))
+
+    def restartApp(self, msg):
+
+        app = wx.GetApp()
+        dlg = wx.MessageDialog(app.mainFrame,
+                               _(u"%s\nChandler will now restart") %(msg),
+                               _(u"Confirm Restart"),
+                               (wx.YES_NO | wx.YES_DEFAULT |
+                                wx.ICON_EXCLAMATION))
+        cmd = dlg.ShowModal()
+        dlg.Destroy()
+        if cmd == wx.ID_YES:
+            app.PostAsyncEvent(app.restart)

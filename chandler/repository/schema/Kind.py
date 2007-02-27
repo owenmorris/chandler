@@ -928,10 +928,11 @@ class Kind(Item):
 
     def _afterSchemaChange(self, op, attrName):
 
-        c = getattr(self, 'c', None)
-        if c is not None:
-            if c.monitorSchema or c.attributesCached:
-                self.flushCaches(attrName)
+        if not self.isDeleting():
+            c = getattr(self, 'c', None)
+            if c is not None:
+                if c.monitorSchema or c.attributesCached:
+                    self.flushCaches(attrName)
 
     def _afterAttributeHashChange(self):
 

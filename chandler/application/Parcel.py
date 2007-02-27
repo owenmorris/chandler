@@ -69,7 +69,7 @@ def load_parcel_from_entrypoint(rv,ep):
             % ep.dist
         )
 
-    old_parcel = rv.findPath('//parcels/'+module_name.replace('.','/'))
+    old_parcel = find_parcel_from_entrypoint(rv,ep)
 
     if old_parcel is None:
         new_parcel = schema.parcel_for_module(module_name, rv)
@@ -90,6 +90,19 @@ def load_parcel_from_entrypoint(rv,ep):
             module.installParcel(new_parcel, old_version)   # upgrade!
 
     return new_parcel
+
+
+def find_parcel_from_entrypoint(rv,ep):
+    """
+    Find the parcel item defined by entrypoint `ep` into repository view `rv`
+
+    `ep` should be an entry point yielded by ``loadable_parcels()``, and `rv`
+    should be a repository view.
+
+    Return `None` if it doesn't exist.
+    """
+
+    return rv.findPath('//parcels/'+ep.module_name.replace('.','/'))
 
 
 #@@@Temporary testing tool written by Morgen -- DJA

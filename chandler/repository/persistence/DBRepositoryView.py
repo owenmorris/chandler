@@ -244,18 +244,15 @@ class DBRepositoryView(OnDemandRepositoryView):
                 for name in kind._iterNotifyAttributes():
                     value = self.findValue(uItem, name, None, version)
                     if isinstance(value, RefList):
-                        refsIterator = value.iterkeys()
-                    else:
-                        continue
-                    otherName = kind.getOtherName(name, None)
-                    for uRef in refsIterator:
-                        watchers = self.findValue(uRef, 'watcher', None, version)
-                        if watchers:
-                            watchers = watchers.get(otherName, None)
+                        otherName = kind.getOtherName(name, None)
+                        for uRef in value.iterkeys():
+                            watchers = self.findValue(uRef, 'watcher', None, version)
                             if watchers:
-                                for watcher in watchers:
-                                    if watcher is not None:
-                                        watcher('changed', 'notification', uRef, otherName, uItem)
+                                watchers = watchers.get(otherName, None)
+                                if watchers:
+                                    for watcher in watchers:
+                                        if watcher is not None:
+                                            watcher('changed', 'notification', uRef, otherName, uItem)
 
             watchers = self._watchers
             if watchers and uItem in watchers:
@@ -272,7 +269,7 @@ class DBRepositoryView(OnDemandRepositoryView):
 
             kind = item.itsKind
             uItem = item.itsUUID
-            if kind is not None:
+            if kind is not None and kind.isLive():
                 kind.extent._collectionChanged('changed', 'notification',
                                                'extent', uItem)
 
@@ -280,7 +277,6 @@ class DBRepositoryView(OnDemandRepositoryView):
                     value = getattr(item, name, None)
                     if value is not None and isinstance(value, RefList):
                         otherName = value._otherName
-                        refs = self.store._refs
                         for uRef in value.iterkeys():
                             watchers = self.findValue(uRef, 'watchers', None, version)
                             if watchers:

@@ -564,8 +564,8 @@ class DBRepository(OnDemandRepository):
             except Exception, e:
                 raise RepositoryVersionError, ("Restore repository database version could not be determined", e)
 
-            if withLogs and (platform.rsplit('-')[-1:] !=
-                             getPlatformName().rsplit('-')[-1:]):
+            if withLogs and (platform.rsplit('-', 1)[-1:] !=
+                             getPlatformName().rsplit('-', 1)[-1:]):
                 raise RepositoryPlatformError, (platform or 'unknown',
                                                 getPlatformName())
 
