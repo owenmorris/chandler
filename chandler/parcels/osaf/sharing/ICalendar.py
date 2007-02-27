@@ -202,7 +202,14 @@ def itemsToVObject(view, items, cal=None, filters=None):
                     # parseParams gives a list of lists of parameters, with the
                     # first element of each list being the name of the
                     # parameter, followed by the parameter values, if any
-                    paramvalues = paramdict.setdefault(paramlist[0].upper(), [])
+                    paramname = paramlist[0].upper()
+                    if paramname.lower() in parametersUnderstood:
+                        # parameters understood by Chandler shouldn't be stored
+                        # in icalendarParameters, but changes to which
+                        # parameters Chandler understands can lead to spurious
+                        # parameters, ignore them
+                        continue
+                    paramvalues = paramdict.setdefault(paramname, [])
                     paramvalues.extend(paramlist[1:])
         
         # logic for serializing rrules needs to move to vobject
