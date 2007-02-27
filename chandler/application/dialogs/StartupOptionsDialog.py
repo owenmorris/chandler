@@ -19,10 +19,12 @@ Provides repository-manipulation tools and a GUI for setting command-line option
 See: http://lists.osafoundation.org/pipermail/chandler-dev/2006-May/005901.html
 """
 
-import os, sys, wx
+import os, sys, wx, tarfile
 from datetime import datetime, timedelta
 from application import Globals
 from application.Utility import getDesktopDir, locateRepositoryDirectory
+from repository.persistence.DBRepository import DBRepository
+
 
 # We can't use the regular localization mechanism because the repository isn't
 # open yet, but we might someday have a better way of doing this, so I'm leaving
@@ -133,7 +135,14 @@ class StartupOptionsDialog(wx.Dialog):
             Globals.options.undo = 'repair'
 
         elif hasattr(self, 'snapshot') and self.snapshot.GetValue():
-            self.makeSnapshot()
+            if self.makeSnapshot():
+                # Quit. Yes, it's weird having an exit point here, but we
+                # only get here at startup before any other UI has been
+                # presented and before twisted has started or the repo is
+                # opened, etc. Plus, this dialog is a developmental hack to
+                # allow us to collect crash info with less impact on users,
+                # so it's worth it - that's all I'm saying. So sue me.
+                sys.exit(0)
             return # user canceled save box - keep going.
 
         elif self.restore.GetValue():
@@ -150,32 +159,44 @@ class StartupOptionsDialog(wx.Dialog):
         self.EndModal(wx.OK)
 
     def makeSnapshot(self):
-        """ Take a snapshot of our repository, then quit. """
-        snapshotPath = wx.FileSelector(_(u"Save snapshot as..."),
-                                     getDesktopDir(),
-                                     _(u"ChandlerSnapshot.tgz"), _(u".tgz"),
-                                     _(u"*.tgz"),
-                                     flags=wx.SAVE|wx.OVERWRITE_PROMPT,
-                                     parent=self)
-        if not snapshotPath:
-            return # user canceled.
-        
-        # Tar up the whole repository directory, a couple of logs, and our
-        # version info.
-        import tarfile
-        snapshot = tarfile.open(snapshotPath, 'w:gz')
-        repoDir = locateRepositoryDirectory(Globals.options.profileDir, Globals.options)
-        snapshot.add(repoDir, ".")
-        snapshot.add("version.py")
-        for log in 'chandler.log', 'twisted.log':
+        """
+        Take a snapshot of our repository.
+
+        Try to do a backup first. If that fails, take a full snapshot of the
+        __repository__ directory instead.
+        """
+
+        tarPath = wx.FileSelector(_(u"Save snapshot as..."),
+                                  getDesktopDir(),
+                                  _(u"ChandlerSnapshot.tgz"), _(u".tgz"),
+                                  _(u"*.tgz"),
+                                  flags=wx.SAVE | wx.OVERWRITE_PROMPT,
+                                  parent=self)
+        if not tarPath:
+            return False # user canceled.
+
+        archive = tarfile.open(tarPath, 'w:gz')
+        repoDir = locateRepositoryDirectory(Globals.options.profileDir,
+                                            Globals.options)
+        try:
+            repository = DBRepository(repoDir)
+            repository.open(recover=True, exclusive=False)
+            repoDir = repository.backup(os.path.join(os.path.dirname(tarPath),
+                                                     '__repository__'))
+            repository.close()
+        except:
+            # if repoDir is unchanged, the original is taken instead
+            pass
+
+        # tar up the backup or the original repoDir + log + prefs + version.py
+        if isinstance(repoDir, unicode):
+            repoDir = repoDir.encode(sys.getfilesystemencoding())
+        archive.add(repoDir, '.')
+        archive.add('version.py')
+        for log in 'chandler.log', 'chandler.prefs':
             logPath = os.path.join(Globals.options.profileDir, log)
             if os.path.isfile(logPath):
-                snapshot.add(logPath, log)
-        snapshot.close()
-        
-        # Quit. Yes, it's weird having an exit point here, but we only get
-        # here at startup before any other UI has been presented and before
-        # twisted has started or the repo is opened, etc. Plus, this dialog is
-        # a developmental hack to allow us to collect crash info with less
-        # impact on users, so it's worth it - that's all I'm saying. So sue me.
-        sys.exit(0)
+                archive.add(logPath, log)
+        archive.close()
+
+        return True
