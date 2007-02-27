@@ -147,6 +147,7 @@ class wxTable(DragAndDrop.DraggableWidget,
         self.Bind(wx.grid.EVT_GRID_RANGE_SELECT, self.OnRangeSelect)
         self.Bind(wx.grid.EVT_GRID_LABEL_LEFT_CLICK, self.OnLabelLeftClicked)
         self.Bind(wx.EVT_KEY_DOWN, self.OnKeyDown)
+        self.Bind(wx.grid.EVT_GRID_CELL_RIGHT_CLICK, self.OnRightClick)
 
         gridWindow = self.GetGridWindow()
         gridWindow.Bind(wx.EVT_PAINT, self.OnPaint)
@@ -167,6 +168,19 @@ class wxTable(DragAndDrop.DraggableWidget,
 
         return super(wxTable, self).Destroy()
 
+    def OnRightClick(self, event):
+        selectedItemIndex = self.RowToIndex (event.GetRow())
+        blockItem = self.blockItem
+        if selectedItemIndex != -1:
+            blockItem.contents.setSelectionRanges([(selectedItemIndex,
+                                          selectedItemIndex)])
+            blockItem.PostSelectItems()
+            # Update the screen before showing the context menu
+            theApp = wx.GetApp()
+            theApp.propagateAsynchronousNotifications()
+            theApp.Yield()
+        blockItem.displayContextMenu(event)
+        
     def OnPaint (self, event):
         # Bug #7117: Don't draw gridWindows who's data has changed but hasn't
         # been synchronized to the widget.
@@ -247,7 +261,6 @@ class wxTable(DragAndDrop.DraggableWidget,
         table before initializing it's view so let's first set the view.
         """
         
-        self.Bind(wx.grid.EVT_GRID_CELL_RIGHT_CLICK, self.blockItem.displayContextMenu)
         elementDelegate = self.blockItem.elementDelegate
         if not elementDelegate:
             elementDelegate = 'osaf.framework.blocks.ControlBlocks.AttributeDelegate'
