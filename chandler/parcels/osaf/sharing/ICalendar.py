@@ -320,7 +320,7 @@ attributesUnderstood = ['recurrence-id', 'summary', 'description', 'location',
                         'valarm', 'dtstamp', 'rrule', 'exrule', 'rdate',
                         'exdate']
 
-parametersUnderstood = ['tzid', 'x-vobj-original-tzid', 'x-osaf-anytime-param']
+parametersUnderstood = ['tzid', 'x-vobj-original-tzid', 'x-osaf-anytime']
 
 def itemsFromVObject(view, text, coerceTzinfo = None, filters = None,
                      monolithic = True, updateCallback=None, stats=None,
