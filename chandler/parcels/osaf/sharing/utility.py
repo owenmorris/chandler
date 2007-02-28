@@ -548,7 +548,11 @@ def getDAVInfo(url, username=None, password=None):
         PackElement("resourcetype"),
     )
 
-    request = PropfindRequest(url, 0, list(properties), {})
+    path = parsedUrl.path
+    if parsedUrl.query:
+        path = "%s?%s" % (path, parsedUrl.query)
+
+    request = PropfindRequest(path, 0, list(properties), {})
 
     d = handle.addRequest(request)
 
@@ -652,7 +656,12 @@ def getHEADInfo(url, username=None, password=None):
             port = 80
 
     handle = ServerHandle(host, port, username, password, useSSL)
-    request = zanshin.http.Request('HEAD', url, None, None)
+
+    path = parsedUrl.path
+    if parsedUrl.query:
+        path = "%s?%s" % (path, parsedUrl.query)
+
+    request = zanshin.http.Request('HEAD', path, None, None)
     d = handle.addRequest(request)
 
     def handleHeadResponse(resp):
@@ -699,7 +708,12 @@ def _getPage(url, username=None, password=None):
             port = 80
 
     handle = ServerHandle(host, port, username, password, useSSL)
-    request = zanshin.http.Request('GET', url, None, None)
+
+    path = parsedUrl.path
+    if parsedUrl.query:
+        path = "%s?%s" % (path, parsedUrl.query)
+
+    request = zanshin.http.Request('GET', path, None, None)
     d = handle.addRequest(request)
 
     def handleGetResponse(resp):
