@@ -1,4 +1,4 @@
-#   Copyright (c) 2003-2006 Open Source Applications Foundation
+#   Copyright (c) 2003-2007 Open Source Applications Foundation
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -26,7 +26,8 @@ from repository.schema.Kind import Kind
 import repository.item.Item as Item
 from chandlerdb.item.ItemError import NoLocalValueForAttributeError
 from chandlerdb.util.c import Empty, Nil
-from osaf.pim.reminders import Remindable, Reminder, isDead
+from osaf.pim.reminders import isDead
+from osaf.pim.triage import Triageable, TriageEnum
 import logging
 from i18n import ChandlerMessageFactory as _
 from osaf import messages
@@ -52,23 +53,6 @@ class ImportanceEnum(schema.Enumeration):
     """
     values = "important", "normal", "fyi"
 
-class TriageEnum(schema.Enumeration):
-    values = { "now": 0 , "later": 5000, "done": 10000 }
-
-triageStatusNames = { TriageEnum.now: _(u"Now"),
-                      TriageEnum.later: _(u"Later"),
-                      TriageEnum.done: _(u"Done")
-                    }
-def getTriageStatusName(value):
-    return triageStatusNames[value]
-
-# Bug 6525: the clicking sequence isn't the sort order
-triageStatusClickSequence = { TriageEnum.now: TriageEnum.done,
-                              TriageEnum.done: TriageEnum.later,
-                              TriageEnum.later: TriageEnum.now }
-def getNextTriageStatus(value):
-    return triageStatusClickSequence[value]
-    
 class Modification(schema.Enumeration):
     """
     Enumeration of the types of modification that are part of
@@ -98,7 +82,7 @@ def cmpTimeAttribute(itemTime, otherTime, useTZ=True):
 
 
 
-class ContentItem(Remindable):
+class ContentItem(Triageable):
     """
     Content Item
 
@@ -229,40 +213,6 @@ class ContentItem(Remindable):
         defaultValue=Empty
     )
 
-    # Triage status is used to set (and is changed by) the column cell, 
-    # but is overridden for sorting by _sectionTriageStatus; the
-    # 'Triage' toolbar button removes any _sectionTriageStatus attributes
-    # to force re-sorting.
-    triageStatus = schema.One(TriageEnum, initialValue=TriageEnum.now, 
-                              indexed=True)
-    _sectionTriageStatus = schema.One(TriageEnum)
-
-    # For sorting by how recently the triage status values changed, 
-    # we keep these attributes, which are the time (in seconds) of the last 
-    # change to each, negated for proper order. They're updated automatically 
-    # when the corresponding triage status value is changed, by 
-    # setTriageStatus and setSectionTriageStatus, below.
-    triageStatusChanged = schema.One(schema.Float)
-    _sectionTriageStatusChanged = schema.One(schema.Float)
-    
-    def getSectionTriageStatus(self):
-        result = self.getAttributeValue('_sectionTriageStatus', default=None)
-        if result is None:
-            result = self.triageStatus
-        return result
-
-    def setSectionTriageStatus(self, value):
-        self._sectionTriageStatus = value
-
-    sectionTriageStatus = schema.Calculated(
-        TriageEnum,
-        fset=setSectionTriageStatus,
-        fget=getSectionTriageStatus,
-        basedOn=(_sectionTriageStatus, triageStatus),
-        doc="Calculated for edited sectionTriageStatus, before "
-            "user has committed changes")
-
-
     # ContentItem instances can be put into ListCollections and AppCollections
     collections = schema.Sequence(notify=True) # inverse=collections.inclusions
 
@@ -283,24 +233,16 @@ class ContentItem(Remindable):
 
     schema.addClouds(
         sharing = schema.Cloud(
-            literal = ["displayName", body, createdOn,
-                       "description", triageStatus, triageStatusChanged],
+            literal = ["displayName", body, createdOn, "description"],
             byValue = [lastModifiedBy]
         ),
         copying = schema.Cloud()
     )
 
     def __init__(self, *args, **kw):
-        triageStatus = kw.pop('triageStatus', None)
         super(ContentItem, self).__init__(*args, **kw)
-        now = None
         if not hasattr(self, 'createdOn'):
-            now = datetime.now(ICUtzinfo.default)
-            self.createdOn = now
-        if triageStatus is not None:
-            self.triageStatus = triageStatus
-        if not hasattr(self, 'triageStatusChanged'):
-            self.setTriageStatusChanged(when=now)
+            self.createdOn = datetime.now(ICUtzinfo.default)
 
     def __str__ (self):
         if self.isStale():
@@ -567,73 +509,6 @@ class ContentItem(Remindable):
     @schema.observer(lastModified)
     def onLastModifiedChanged(self, op, attr):
         self.updateDisplayDate(op, attr)
-
-    @schema.observer(triageStatus)
-    def setTriageStatusChanged(self, op='set', attribute=None, when=None):
-        """
-        Update triageStatusChanged, which is the number of seconds since the
-        epoch that triageStatus was changed, negated for proper sort order.
-        As a schema.observer of triageStatus, it's called automatically, but
-        can also be called directly to set a specific time:
-           item.setTriageStatusChanged(when=someDateTime)
-        """
-        self._setChangedTime('triageStatusChanged', when=when)
-
-    @schema.observer(_sectionTriageStatus)
-    def setSectionTriageStatusChanged(self, op='set', attribute=None, when=None):
-        """ Just like setTriageStatusChanged, but for the section triage status """
-        self._setChangedTime('_sectionTriageStatusChanged', when=when)
-
-    def _setChangedTime(self, attributeName, when=None):
-        """
-        Common code for setTriageStatusChanged and 
-        setSectionTriageStatusChanged
-        """
-        # Don't if we're in the middle of sharing...
-        if getattr(self, '_share_importing', False):
-            return
-
-        when = when or datetime.now(tz=ICUtzinfo.default)
-        setattr(self, attributeName, -time.mktime(when.utctimetuple()))
-
-    def purgeSectionTriageStatus(self):
-        """ 
-        If this item has section status that's overriding its triage
-        status, purge it. 
-        """
-        for attr in ('_sectionTriageStatus', '_sectionTriageStatusChanged'):
-            if hasattr(self, attr):
-                delattr(self, attr)
-
-    def contextualTriageStatus(self):
-        """
-        What triage status value should this item have, assuming we're
-        autotriaging? Will return a TriageEnum value, or None if we can't
-        tell (which probably cause our caller will to not autotriage it).
-        """
-        # All we can triage on is the user-reminder time, if any.
-        # If we don't have one, return None.
-        userReminder = self.getUserReminder(expiredToo=False)
-        if userReminder is None:
-            return None
-        nextTime = userReminder.nextPoll 
-        if nextTime is None or nextTime == Reminder.farFuture:
-            return None
-        
-        # We have one! We're later.
-        return TriageEnum.later
-
-    def reminderFired(self, reminder, when):
-        """
-        Override of C{Remindable.reminderFired}: sets triageStatus
-        to now.
-        """
-        pending = super(ContentItem, self).reminderFired(reminder, when)
-        
-        self.triageStatus = TriageEnum.now
-        self.setTriageStatusChanged(when=when)
-        
-        return pending
 
 
     def getBasedAttributes(self, attribute):

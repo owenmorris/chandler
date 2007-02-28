@@ -1,4 +1,4 @@
-#   Copyright (c) 2003-2006 Open Source Applications Foundation
+#   Copyright (c) 2003-2007 Open Source Applications Foundation
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -19,8 +19,7 @@ from i18n import ChandlerMessageFactory as _
 from osaf.framework.blocks import (ControlBlocks, debugName, DrawingUtilities, 
                                    Styles)
 from osaf.framework.attributeEditors import BaseAttributeEditor
-from osaf.pim import ContentItem
-from osaf.pim.items import getTriageStatusName
+from osaf.pim import ContentItem, getTriageStatusName
 from util.divisions import get_divisions
 
 import logging
