@@ -466,9 +466,21 @@ class wxTable(DragAndDrop.DraggableWidget,
         self.DoDragAndDrop(copyOnly=True)
 
     def AddItems(self, itemList):
-        
-        collection = self.blockItem.GetCurrentContents(writable=True)
-        assert collection, "Can't add items to readonly collection - should block before the drop"
+        """
+        The table's self.contents may contain a collectionList, in
+        case this collection is composed of other collections. In this
+        case, collectionList.first() is the 'primary' collection that
+        should handle adds/deletes and other status updates
+        """
+        collection = self.blockItem.contents
+        if hasattr (collection, 'collectionList'):
+            collection = collection.collectionList.first()
+            
+        # Vefify that we don't have a readonly collection
+        if __debug__:
+            method = getattr (type (collection), "isReadOnly", None)
+            if method is not None:
+                assert not method (collection), "Can't add items to readonly collection - should block before the drop"
         
         for item in itemList:
             item.addToCollection(collection)
@@ -883,23 +895,6 @@ class Table (PimBlocks.FocusEventHandlers, RectangularChild):
                 widget.RegisterDataType (key,
                                          GridCellAttributeRenderer (key),
                                          GridCellAttributeEditor (key))
-
-    def GetCurrentContents(self, writable=False):
-        """
-        The table's self.contents may contain a collectionList, in
-        case this collection is composed of other collections. In this
-        case, collectionList.first() is the 'primary' collection that
-        should handle adds/deletes and other status updates
-        """
-        if hasattr(self.contents, 'collectionList'):
-            collection = self.contents.collectionList.first()
-        else:
-            collection = self.contents
-            
-        # Sometimes you need a non-readonly collection. Should we be
-        # checking if the collection has an 'add' attribute too?
-        if not (writable and collection.isReadOnly()):
-            return collection
 
     def onSetContentsEvent (self, event):
         item = event.arguments ['item']
