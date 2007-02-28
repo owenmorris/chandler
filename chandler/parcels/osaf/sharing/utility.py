@@ -61,6 +61,7 @@ import zanshin.http
 import zanshin.acl as acl
 import twisted.web.http as http
 import xml.etree.cElementTree as ElementTree
+import M2Crypto
 
 logger = logging.getLogger(__name__)
 
