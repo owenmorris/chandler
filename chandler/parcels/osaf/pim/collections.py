@@ -361,22 +361,23 @@ class ContentCollection(ContentItem, Collection):
         If this collection wraps the trash collection, return an equivalent
         collection that doesn't.
         """
-
         return self
 
-    
     def _reIndex(self, op, item, attrName, collectionName, indexName):
         collection = getattr(self, collectionName, None)
         if item in collection:
-            keys = [item.itsUUID]
-            if op in ('set', 'remove') and getattr(item, 'inheritFrom', None) is None:
-                mods = getattr(item, 'inheritTo', None)
-                
+            if op in ('set', 'remove'):
+                mods = item.itsRefs.get('inheritTo')
                 if mods:
-                    keys.extend(mod.itsUUID for mod in mods
-                     if mod in collection and
-                       not mod.hasLocalAttributeValue(attrName))
-            collection.reindexKeys(keys, indexName)
+                    view = item.itsView
+                    keys = [item.itsUUID]
+                    keys.extend(uMod for uMod in mods.iterkeys()
+                                if (uMod in collection and
+                                    not view[uMod].hasLocalAttributeValue(attrName)))
+                    collection.reindexKeys(keys, indexName)
+                    return
+            collection.placeInIndex(item, None, indexName)
+
 
 class KindCollection(ContentCollection):
     """
