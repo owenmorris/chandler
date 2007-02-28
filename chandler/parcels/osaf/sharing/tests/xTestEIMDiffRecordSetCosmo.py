@@ -15,7 +15,7 @@
 
 import unittest, sys, os, logging, datetime, time
 from osaf import pim, sharing
-from round_trip import RoundTripTestCase
+from osaf.sharing.tests.round_trip import RoundTripTestCase
 
 from osaf.sharing import recordset_conduit, translator, eimml, cosmo
 

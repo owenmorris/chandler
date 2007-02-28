@@ -76,10 +76,6 @@ class RoundTripTestCase(testcase.DualRepositoryTestCase):
             n.body = u"Here is the body"
             self.coll.add(n)
 
-    # def PrepareShares(self):
-    #     # Implement this to set up whatever shares/conduits your testing
-    #     pass
-
 
     def RoundTrip(self):
 
@@ -198,6 +194,8 @@ class RoundTripTestCase(testcase.DualRepositoryTestCase):
         tzinfo = ICUtzinfo.floating
         time0 = datetime.datetime(2007, 1, 26, 12, 0, 0, 0, tzinfo)
         pim.EventStamp(item).startTime = time0
+        pim.EventStamp(item).duration = datetime.timedelta(minutes=60)
+        pim.EventStamp(item).anyTime = False
         pim.EventStamp(item).transparency = 'tentative'
         view0.commit(); stats = self.share0.sync(); view0.commit()
         self.assert_(checkStats(stats,
