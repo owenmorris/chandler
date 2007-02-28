@@ -27,7 +27,8 @@ __all__ = [
 from application import schema
 from osaf import pim
 from i18n import ChandlerMessageFactory as _
-import errors, eim, translator
+import errors, eim, translator, model
+from eim import NoChange as nc
 from callbacks import *
 import cPickle
 import logging
@@ -66,6 +67,26 @@ class SharedItem(pim.Stamp):
     def clearConflicts(self):
         for state in getattr(self, 'conflictingStates', []):
             state.clearConflicts()
+
+
+    def generateConflicts(self, **kwds):
+        # TODO: replace this with something that generates more interesting
+        # conflicts
+        if not hasattr(self, 'conflictingStates'):
+            itemUUID = self.itsItem.itsUUID.str16()
+            peer = pim.EmailAddress(itsView=self.itsItem.itsView,
+                emailAddress="conflict@example.com")
+            state = State(itsView=self.itsItem.itsView, peer=peer,
+                itemUUID=itemUUID)
+
+            state.pending = eim.RecordSet([
+                model.ItemRecord(itemUUID, "XYZZY", nc, nc, nc, nc),
+                model.NoteRecord(itemUUID, "PLUGH", nc, nc),
+                model.EventRecord(itemUUID, nc, nc, "San Jose", nc, nc, nc,
+                    nc, nc),
+            ])
+            state.updateConflicts()
+
 
     def addPeerState(self, state, peer):
         peerUuid = peer.itsUUID.str16()
@@ -237,7 +258,7 @@ class State(schema.Item):
         self.pending = rsExternal - self.agreed
 
         # Hook up pending conflicts to item
-        self._updateConflicts()
+        self.updateConflicts()
 
         if debug:
             print " - - - - Results - - - - "
@@ -255,7 +276,7 @@ class State(schema.Item):
         diff = newState - state
         return diff
 
-    def _updateConflicts(self):
+    def updateConflicts(self):
         # See if we have pending conflicts; if so, make sure we are in the
         # item's conflictingStates ref collection.  If not, make sure we
         # aren't.  Also, if we're the last conflict to be removed from the
@@ -303,7 +324,7 @@ class State(schema.Item):
         pending.remove(change)
         self.pending = pending
         self.agreed += change
-        self._updateConflicts()
+        self.updateConflicts()
 
     def getConflicts(self):
         if self.pending:
