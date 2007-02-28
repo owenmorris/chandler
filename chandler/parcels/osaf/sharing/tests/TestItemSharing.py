@@ -47,10 +47,12 @@ class ItemSharingTestCase(testcase.DualRepositoryTestCase):
         pje = schema.Item(itsView=view0, itsName="pje")
         morgen = schema.Item(itsView=view1, itsName="morgen")
 
+        item0.triageStatus = pim.TriageEnum.later
+
         # morgen sends to pje
         self.assert_(not pim.has_stamp(item0, sharing.SharedItem))
         view0.commit()
-        text = sharing.outbound(pje, item0)
+        text = sharing.outbound([pje], item0)
         view0.commit()
         self.assert_(pim.has_stamp(item0, sharing.SharedItem))
 
@@ -62,17 +64,54 @@ class ItemSharingTestCase(testcase.DualRepositoryTestCase):
         self.assert_(pim.has_stamp(item1, sharing.SharedItem))
         self.assertEqual(item1.displayName, "test displayName")
         self.assertEqual(item1.body, "test body")
+        self.assertEqual(item1.triageStatus, pim.TriageEnum.later)
 
         shared0 = sharing.SharedItem(item0)
         shared1 = sharing.SharedItem(item1)
 
         self.assert_(not list(shared0.getConflicts()))
 
+        # verify inbound filters (URIs defined in model.py)
+        filter = sharing.getFilter(['cid:triage-filter@osaf.us'])
+        item0.triageStatus = pim.TriageEnum.now
+        view0.commit()
+        text = sharing.outbound([pje], item0)
+        view0.commit()
+        view1.commit()
+        sharing.inbound(morgen, text, filter=filter)
+        view1.commit()
+        # triageStatus is unchanged because we filtered it on inbound
+        self.assertEqual(item1.triageStatus, pim.TriageEnum.later)
+        self.assert_(not hasattr(shared1, "conflictingStates"))
+
+        item0.triageStatus = pim.TriageEnum.done
+        view0.commit()
+        text = sharing.outbound([pje], item0, filter=filter)
+        view0.commit()
+        view1.commit()
+        sharing.inbound(morgen, text)
+        view1.commit()
+        # triageStatus is unchanged because we filtered it on outbound
+        self.assertEqual(item1.triageStatus, pim.TriageEnum.later)
+        self.assert_(not hasattr(shared1, "conflictingStates"))
+
+        item0.triageStatus = pim.TriageEnum.now
+        view0.commit()
+        text = sharing.outbound([pje], item0)
+        view0.commit()
+        view1.commit()
+        sharing.inbound(morgen, text)
+        view1.commit()
+        # with no filtering, triageStatus is now changed
+        self.assertEqual(item1.triageStatus, pim.TriageEnum.now)
+
+
+
         # conflict
         item0.displayName = "changed by morgen"
         item1.displayName = "changed by pje"
         view0.commit()
-        text = sharing.outbound(pje, item0)
+        text = sharing.outbound([pje], item0)
         view0.commit()
         view1.commit()
         sharing.inbound(morgen, text)
@@ -83,7 +122,7 @@ class ItemSharingTestCase(testcase.DualRepositoryTestCase):
 
         # try sending when there are pending conflicts
         try:
-            sharing.outbound(morgen, item1)
+            sharing.outbound([morgen], item1)
         except sharing.ConflictsPending:
             pass # This is what we're expecting
         else:
@@ -93,7 +132,7 @@ class ItemSharingTestCase(testcase.DualRepositoryTestCase):
 
         # removal
         view0.commit()
-        text = sharing.outboundDeletion(pje, self.uuid)
+        text = sharing.outboundDeletion([pje], self.uuid)
         view0.commit()
         # allowDeletion flag False
         view1.commit()
@@ -106,7 +145,7 @@ class ItemSharingTestCase(testcase.DualRepositoryTestCase):
         self.assert_(view1.findUUID(self.uuid) is None)
 
         # adding item back
-        text = sharing.outbound(pje, item0)
+        text = sharing.outbound([pje], item0)
         item1 = sharing.inbound(morgen, text)
         shared1 = sharing.SharedItem(item1)
         self.assert_(view1.findUUID(self.uuid) is item1)
@@ -115,7 +154,7 @@ class ItemSharingTestCase(testcase.DualRepositoryTestCase):
         item0.displayName = "changed"
         item1.displayName = "changed"
         view0.commit()
-        text = sharing.outbound(pje, item0)
+        text = sharing.outbound([pje], item0)
         view0.commit()
         view1.commit()
         sharing.inbound(morgen, text)
@@ -130,7 +169,7 @@ class ItemSharingTestCase(testcase.DualRepositoryTestCase):
         # item0.displayName is "changed"
         view0.itsVersion = 2 # Back in time
         # Now item0.displayName is "test displayName"
-        text = sharing.outbound(pje, item0)
+        text = sharing.outbound([pje], item0)
         sharing.inbound(morgen, text, debug=False)
         after = shared1.getPeerState(morgen, create=False)
         self.assertEqual(beforeAgreed, after.agreed)

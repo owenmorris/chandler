@@ -562,12 +562,13 @@ back.
     >>> pje = schema.Item(itsView=rv0)
     >>> morgen = schema.Item(itsView=rv1)
 
-An item is serialized to EIMML using the outbound method.  The first argument
-is an item which identifies the peer we're sharing with; the sharing package
-doesn't care what this item is; it could be a Contact item, or email address
-item, etc., as long as it's a persistent Chandler item.
+An item is serialized to EIMML using the outbound method.  The first
+argument is a list of items which identifies the peer(s) we're
+sharing with; the sharing package doesn't care what this item is;
+it could be a Contact item, or email address item, etc., as long
+as it's a persistent Chandler item.
 
-    >>> text = sharing.outbound(pje, item0)
+    >>> text = sharing.outbound([pje], item0)
 
 Sharing an item this way automatically stamps the item as SharedItem.
 
@@ -599,7 +600,7 @@ An item is imported via the inbound method.
 Send changes back
 
     >>> item1.triageStatus = pim.TriageEnum.now
-    >>> text = sharing.outbound(morgen, item1)
+    >>> text = sharing.outbound([morgen], item1)
     >>> item0 = sharing.inbound(pje, text)
     >>> item0.triageStatus
     TriageEnum.now
@@ -619,7 +620,7 @@ Cause a conflict::
 
     >>> item0.displayName = u'changed by morgen'
     >>> item1.displayName = u'changed by pje'
-    >>> text = sharing.outbound(pje, item0)
+    >>> text = sharing.outbound([pje], item0)
     >>> item1 = sharing.inbound(morgen, text)
 
 See if a conflict exists for this item::
@@ -664,7 +665,7 @@ Cause a conflict again::
 
     >>> item0.displayName = u'changed again by morgen'
     >>> item1.displayName = u'changed again by pje'
-    >>> text = sharing.outbound(pje, item0)
+    >>> text = sharing.outbound([pje], item0)
     >>> item1 = sharing.inbound(morgen, text)
     >>> list(shared1.getConflicts())
     [title : changed again by morgen]

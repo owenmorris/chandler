@@ -29,7 +29,7 @@ __all__ = [
 
 # Item-centric peer-to-peer sharing
 
-def inbound(peer, text, allowDeletion=False, debug=False):
+def inbound(peer, text, filter=None, allowDeletion=False, debug=False):
 
     rv = peer.itsView
 
@@ -78,7 +78,8 @@ def inbound(peer, text, allowDeletion=False, debug=False):
             state.peerItemVersion = peerItemVersion
 
             dSend, dApply, pending = state.merge(rsInternal, rsExternal,
-                send=False, receive=True, debug=debug)
+                isDiff=False, send=False, receive=True, filter=filter,
+                debug=debug)
 
             if dApply:
                 if debug: print "Applying:", uuid, dApply
@@ -109,9 +110,14 @@ def inbound(peer, text, allowDeletion=False, debug=False):
 
 
 
-def outbound(peer, item, debug=False):
+def outbound(peers, item, filter=None, debug=False):
 
-    rv = peer.itsView
+    rv = peers[0].itsView
+
+    if filter is None:
+        filter = lambda rs: rs
+    else:
+        filter = filter.sync_filter
 
     # At some point, which serializer and translator to use should be
     # configurable
@@ -119,7 +125,7 @@ def outbound(peer, item, debug=False):
     trans = translator.PIMTranslator(rv)
 
     uuid = item.itsUUID.str16()
-    rsInternal = eim.RecordSet(trans.exportItem(item))
+    rsInternal = filter(eim.RecordSet(trans.exportItem(item)))
 
     if not pim.has_stamp(item, shares.SharedItem):
         shares.SharedItem(item).add()
@@ -130,10 +136,10 @@ def outbound(peer, item, debug=False):
     if hasattr(shared, "conflictingStates"):
         raise errors.ConflictsPending(_(u"Conflicts pending"))
 
-    state = shared.getPeerState(peer)
-
-    # Set agreed state to what we have locally
-    state.agreed = rsInternal
+    for peer in peers:
+        state = shared.getPeerState(peer)
+        # Set agreed state to what we have locally
+        state.agreed = rsInternal
 
     # Repository identifier:
     if rv.repository is not None:
@@ -149,14 +155,10 @@ def outbound(peer, item, debug=False):
 
 
 
-def outboundDeletion(peer, uuid, debug=False):
-
-    rv = peer.itsView
+def outboundDeletion(peers, uuid, debug=False):
 
     # At some point, which serializer and translator to use should be
     # configurable
     serializer = eimml.EIMMLSerializer # only using class methods
 
     return serializer.serialize({ uuid : None }, "item")
-
-
