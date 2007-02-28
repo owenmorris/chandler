@@ -12,13 +12,15 @@
 #   See the License for the specific language governing permissions and
 #   limitations under the License.
 
-import os, pkg_resources, wx
+import os, pkg_resources, wx, webbrowser
 
 from application import schema, Utility, Globals, Parcel
 from osaf.framework.blocks import Menu, MenuItem, BlockEvent
 from osaf.framework.blocks.Block import Block
 from repository.schema.Kind import Kind
 from i18n import ChandlerMessageFactory as _
+
+BROWSE_URL = "http://cheeseshop.python.org/pypi/"
 
 
 class PluginMenu(Menu):
@@ -27,7 +29,8 @@ class PluginMenu(Menu):
 
         super(PluginMenu, self).__init__(*args, **kwds)
 
-        BlockEvent(itsName='_plugins', itsParent=self, blockName='_plugins',
+        BlockEvent(itsName='_plugins', itsParent=self,
+                   blockName='_plugins',
                    dispatchEnum='SendToBlockByReference',
                    destinationBlockReference=self)
 
@@ -41,8 +44,30 @@ class PluginMenu(Menu):
         self.prefs = prefs
 
         for item in self.dynamicChildren:
-            if item.itsName not in prefs:
+            if item.itsName is not None and item.itsName not in prefs:
                 item.delete()
+
+        for block in self.dynamicChildren:
+            if block.blockName == '_browse_menu':
+                break
+        else:
+            for child in self.iterChildren():
+                if getattr(child, 'blockName', None) == '_browse_menu':
+                    self.dynamicChildren.append(child)
+                    break
+            else:
+                MenuItem(itsName=None, itsParent=self,
+                         blockName='_browse_menu',
+                         event=BlockEvent(itsName='_browse', itsParent=self,
+                                          blockName='_browse',
+                                          dispatchEnum='SendToBlockByReference',
+                                          destinationBlockReference=self),
+                         parentBlock=self, dynamicParent=self,
+                         title="Download Plugins")
+                MenuItem(itsName=None, itsParent=self,
+                         blockName='_separator',
+                         parentBlock=self, dynamicParent=self,
+                         menuItemKind='Separator')
 
         for title in sorted(prefs.iterkeys()):
             if not self.hasChild(title):
@@ -50,6 +75,10 @@ class PluginMenu(Menu):
                          event=self.getItemChild('_plugins'), parentBlock=self,
                          title=title, blockName=title,
                          menuItemKind='Check')
+
+    def on_browseEvent(self, event):
+
+        webbrowser.open(BROWSE_URL)
 
     def on_pluginsEvent(self, event):
 
