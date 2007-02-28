@@ -186,13 +186,21 @@ def itemsToVObject(view, items, cal=None, filters=None):
             
             recurrenceid.value = makeDateTimeValue(event.recurrenceID, allDay)
         
-        # this should be changed over in the recurrence branch to distinguish 
-        # between local attributes and attributes on the master, attributes on
-        # the master can be ignored
         if event.icalendarProperties is not None:
             for name, value in event.icalendarProperties.iteritems():
                 prop = comp.add(name)
+
+                # for unrecognized properties, import stores strings, not
+                # native types like datetimes.  So value should just be a
+                # string, not a more complicated python data structure.  Don't
+                # try to transform the value when serializing
                 prop.isNative = False
+                
+                # encoding escapes characters like backslash and comma and
+                # combines list values into a single string.  This was already
+                # done when the icalendar was imported, so don't escape again
+                prop.encoded = True
+                
                 prop.value = value
                 
         if event.icalendarParameters is not None:
