@@ -281,13 +281,16 @@ class MainView(View):
 
     def onQuickEntryEvent (self, event):
         # XXX This needs some refactoring love
-        searchKinds = (_(u'search'), _(u'find'), _(u's'), _(u'f'))
+        searchKinds = (_(u'search'), _(u's'),
+                       _(u'find'), _(u'f'),
+                       _(u'lucene'), _(u'l'))
         
         def processQuickEntry(self, command):
             """
-            Parses the text in the quick item entry widget in the toolbar. Creates the items 
-            depending on the command and adds it to the appropriate collection. Also parses the
-            date/time info and sets the start/end time or the reminder time.
+            Parses the text in the quick item entry widget in the
+            toolbar. Creates the items depending on the command and adds it
+            to the appropriate collection. Also parses the date/time info
+            and sets the start/end time or the reminder time.
             """
             
             msgFlag = False
@@ -464,6 +467,17 @@ class MainView(View):
                     wx.GetApp().CallItemMethodAsync("MainView", 'setStatusMessage', _(u"Command entered is not valid"))
                 else:
                     command = command[len(c) + 1:] # remove '/find '
+
+                    # if /search or /find but not /lucene
+                    # quote special lucene query syntax chars except "
+                    # http://lucene.apache.org/java/docs/queryparsersyntax.html
+                    if not c.startswith('/l'):
+                        def quote(char):
+                            if char in '+-&|!(){}[]^~*?:\\':
+                                return '\\' + char
+                            return char
+                        command = ''.join(quote(char) for char in command)
+                                    
                     try:
                         sidebar.setShowSearch (True)
                         showSearchResults = True
@@ -473,6 +487,7 @@ class MainView(View):
                         # make sure all changes are searchable
                         view.commit()
                         view.repository.notifyIndexer(True)
+                        
                         results = view.searchItems (command)
             
                         searchResults = schema.ns('osaf.pim', view).searchResults
