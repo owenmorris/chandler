@@ -44,7 +44,7 @@ ARCHIVES = \
     $(CHANDLERARCHIVES)/docutils-$(SNAP)-0.4-$(BP)1.tar.gz \
     $(CHANDLERARCHIVES)/eggtranslations-$(SNAP)-0.1-r2-$(BP)2.tar.gz \
     $(CHANDLERARCHIVES)/zope.interface-$(SNAP)-3.3.0b2-r71371-$(BP)3.tar.gz \
-    $(CHANDLERARCHIVES)/setuptools-$(SNAP)-0.6c6dev-r53794-$(BP)1.tar.gz
+    $(CHANDLERARCHIVES)/setuptools-$(SNAP)-0.6c6dev-r53896-$(BP)1.tar.gz
 
 OS         = $(shell uname)
 PYTHON_VER = 2.5
