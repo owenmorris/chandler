@@ -315,7 +315,12 @@ class ICalendarTestCase(SingleRepositoryTestCase):
                          '07FC24E37F395815E0405794071A700C')
         self.assertEqual(vcalendar.vevent.created.value, '20060926T202203Z')
         
-
+    def testMismatchedStartEndTimezones(self):
+        self.Import(self.view, u'start_end_timezones.ics')
+        
+        event = pim.EventStamp(sharing.findUID(self.view,
+                                       'c1ea7e4c-c13f-11db-a49c-a07b7a7d67f5'))
+        self.failUnlessEqual(event.startTime.tzinfo, ICUtzinfo.floating)
 
 
 

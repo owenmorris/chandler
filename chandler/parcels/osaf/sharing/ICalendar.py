@@ -432,10 +432,25 @@ def itemsFromVObject(view, text, coerceTzinfo = None, filters = None,
                         reminderDelta = reminderValue
                 
                 if duration is None:
+                    def getDifference(left, right):
+                        leftIsDate = (type(left) == date)
+                        rightIsDate = (type(right) == date)
+                        
+                        if leftIsDate:
+                            if rightIsDate:
+                                return left - right
+                            else:
+                                left = TimeZone.forceToDateTime(left)
+                                
+                        elif rightIsDate:
+                            right = TimeZone.forceToDateTime(right)
+
+                        return makeNaiveteMatch(left, right.tzinfo) - right
+                        
                     if dtend is not None:
-                        duration = dtend - dtstart
+                        duration = getDifference(dtend, dtstart)
                     elif due is not None: #VTODO case
-                        duration = due - dtstart
+                        duration = getDuration(due, dtstart)
                     elif anyTime or isDate:
                         duration = oneDay
                     else:
