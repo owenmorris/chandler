@@ -879,6 +879,32 @@ class TaskAreaBlock(StampConditionalArea, DetailSynchronizedContentItemDetail):
     pass
 
 
+# Area that shows/hides itself based on the presence/absence of sharing conflicts
+class ConflictText(DetailSynchronizer, ControlBlocks.StaticText):
+    def shouldShow(self, item):
+        superShouldShow = super(ConflictText, self).shouldShow(item)
+        isShowable = False
+        if superShouldShow and pim.has_stamp(item, sharing.SharedItem):
+            try:
+                conflictStates = sharing.SharedItem(item).conflictingStates
+                isShowable = True
+            except AttributeError:
+                pass
+        return isShowable
+
+    def instantiateWidget(self):
+        # create the static text item
+        staticText = super(ConflictText, self).instantiateWidget()
+        if staticText is not None:
+            # clicking on it resolves the conflict
+            # NOTE: this doesn't seem to work..
+            staticText.Bind(wx.EVT_LEFT_DCLICK, self.resolveConflict)
+        return staticText
+
+    def resolveConflict(self, event):
+        # show the dialog here
+        pass
+
 # Classes to support CalendarEvent details - first, areas that show/hide
 # themselves based on readonlyness and attribute values
 

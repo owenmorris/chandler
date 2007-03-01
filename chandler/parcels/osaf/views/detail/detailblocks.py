@@ -613,6 +613,19 @@ def makeMailArea(parcel, oldVersion):
                 # attachmentArea,
             ]).install(parcel)
 
+def makeConflictBar(parcel, oldVersion):
+    blocks = schema.ns("osaf.framework.blocks", parcel.itsView)
+    testText = ConflictText.template('ConflictTestText',
+                                    title=_(u'This item has a conflict'),
+                                    characterStyle=blocks.BigTextStyle,
+                                    stretchFactor=0.0,
+                                    minimumSize=SizeType(300, 18))
+    return makeArea(parcel, 'ConflictBar',
+            position=0.08,
+            childrenBlocks = [
+                testText
+            ]).install(parcel)
+
 def makeMarkupBar(parcel, oldVersion):
     """
     Build the markup bar.
@@ -704,7 +717,7 @@ def makeMarkupBar(parcel, oldVersion):
                                                     privateSwitchButton,
                                                     markupSpacer3,
                                                     readOnlyIcon],
-                                    position=0.0,
+                                    position=0.09,
                                     toolSize=SizeType(30, 18),
                                     separatorWidth=16,
                                     stretchFactor=0.0).install(parcel)
@@ -846,9 +859,13 @@ def makeNoteSubtree(parcel, oldVersion):
                                        event=unreadTimeout,
                                        position=0.999).install(parcel)
     
+    # Make the ConflictBar
+    conflictBar = makeConflictBar(parcel, oldVersion)
+
     # Finally, the subtree. Note that the actual vertical ordering will be
     # determined by the 'position' attribute of each thing in the list.
     makeSubtree(parcel, osaf.pim.Note, [
+        conflictBar,
         parcel['MarkupBar'],
         makeSpacer(parcel, height=6, position=0.01).install(parcel),
         bylineArea,
