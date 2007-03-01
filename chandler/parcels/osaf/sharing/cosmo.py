@@ -292,3 +292,9 @@ class CosmoConduit(recordset_conduit.DiffRecordSetConduit, conduits.HTTPMixin):
                     self.account.useSSL)
 
 
+    def getFilter(self):
+        # This is where we can filter out things we don't want to send to
+        # Cosmo
+        filter = super(CosmoConduit, self).getFilter()
+        filter += eim.lookupSchemaURI('cid:non-standard-ical-filter@osaf.us')
+        return filter

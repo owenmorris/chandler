@@ -160,6 +160,8 @@ Importing:
     ...         rdate = None,
     ...         exdate = None,
     ...         status = 'CANCELLED',
+    ...         icalParameters = None,
+    ...         icalProperties = None
     ... )
 
     >>> rs = sharing.RecordSet([rec])
@@ -185,7 +187,7 @@ Exporting:
     >>> t.startExport()
     >>> records = [r for r in t.exportItem(item) if isinstance(r, sharing.model.EventRecord)]
     >>> records
-    [EventRecord('f230dcd4-7c32-4c3f-908b-d92081cc9a89', u';VALUE=DATE-TIME;TZID=US/Pacific:20070201T140000', u';VALUE=DATE-TIME;TZID=US/Pacific:20070201T150000', u'Nowhere', None, None, None, None, u'CANCELLED')]
+    [EventRecord('f230dcd4-7c32-4c3f-908b-d92081cc9a89', u';VALUE=DATE-TIME;TZID=US/Pacific:20070201T140000', u';VALUE=DATE-TIME;TZID=US/Pacific:20070201T150000', u'Nowhere', None, None, None, None, u'CANCELLED', None, None)]
 
 Recurrence
 - - - - -
@@ -200,6 +202,8 @@ Recurrence
     ...             rdate = ';VALUE=DATE-TIME;TZID=US/Pacific:20070223T140000,20070225T140000',
     ...             exdate = ';VALUE=DATE-TIME;TZID=US/Pacific:20070206T140000',
     ...             status = rec.status,
+    ...             icalParameters = None,
+    ...             icalProperties = None
     ... )
     
     >>> rs = sharing.RecordSet([new_rec])
@@ -242,6 +246,8 @@ Modifications
     ...             triageStatus = sharing.Missing,
     ...             triageStatusChanged = sharing.Missing,
     ...             reminderTime = sharing.Missing,
+    ...             icalParameters = sharing.Missing,
+    ...             icalProperties = sharing.Missing
     ... )
 
     >>> rs = sharing.RecordSet([mod_rec])

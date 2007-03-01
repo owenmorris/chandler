@@ -234,6 +234,7 @@ class State(schema.Item):
         if debug:
             print " ----------- Merging item:", self.itemUUID
             print "   rsInternal:", rsInternal
+            print "   internalDiff:", internalDiff
             print "   isDiff:", isDiff
             print "   inbound:", inbound
             print "   externalDiff:", externalDiff

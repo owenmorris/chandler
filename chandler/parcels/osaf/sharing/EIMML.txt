@@ -67,7 +67,7 @@ Serialize and deserialize entire record sets using EIMMLSerializerLite::
     ... </eim:recordset>
     ... </eim:collection>'''
 
-    >>> expectedRecordSets = { '8501de14-1dc9-40d4-a7d4-f289feff8214': rs([sharing.model.ItemRecord('8501de14-1dc9-40d4-a7d4-f289feff8214', u'Welcome to Cosmo', u'now', decimal.Decimal("123456789.12"), u'foo@example.com', decimal.Decimal("1164803131")), sharing.model.NoteRecord('8501de14-1dc9-40d4-a7d4-f289feff8214', 'This is the body', u'1e2d48c0-d66b-494c-bb33-c3d75a1ba66b', decimal.Decimal('1169163900')), sharing.model.EventRecord('8501de14-1dc9-40d4-a7d4-f289feff8214', u'20061130T140000', u'20061130T150000', u'San Jose', u'FREQ=WEEKLY', None, None, None, u'CONFIRMED')])}
+    >>> expectedRecordSets = { '8501de14-1dc9-40d4-a7d4-f289feff8214': rs([sharing.model.ItemRecord('8501de14-1dc9-40d4-a7d4-f289feff8214', u'Welcome to Cosmo', u'now', decimal.Decimal("123456789.12"), u'foo@example.com', decimal.Decimal("1164803131")), sharing.model.NoteRecord('8501de14-1dc9-40d4-a7d4-f289feff8214', 'This is the body', u'1e2d48c0-d66b-494c-bb33-c3d75a1ba66b', decimal.Decimal('1169163900')), sharing.model.EventRecord('8501de14-1dc9-40d4-a7d4-f289feff8214', u'20061130T140000', u'20061130T150000', u'San Jose', u'FREQ=WEEKLY', None, None, None, u'CONFIRMED', None, None)])}
 
     >>> recordSets, extra = eimml.EIMMLSerializerLite.deserialize(sampleLite)
     >>> recordSets == expectedRecordSets
@@ -116,6 +116,8 @@ Serialize and deserialize entire record sets using EIMMLSerializer::
     ...       <event:rdate eim:type="text" />
     ...       <event:exdate eim:type="text" />
     ...       <event:status eim:type="text"><![CDATA[CONFIRMED]]></event:status>
+    ...       <event:icalParameters eim:type="text" />
+    ...       <event:icalProperties eim:type="text" />
     ...     </event:record>
     ...   </eim:recordset>
     ... </eim:collection>'''
@@ -234,7 +236,7 @@ created::
     >>> text = conduit.get()
     >>> conduit.syncToken
     '3'
-    >>> expectedRecordSets = { '8501de14-1dc9-40d4-a7d4-f289feff8214': rs([sharing.model.ItemRecord('8501de14-1dc9-40d4-a7d4-f289feff8214', u'Welcome to Cosmo', u'now', decimal.Decimal("123456789.12"), u'foo@example.com', decimal.Decimal("1164803131")), sharing.model.NoteRecord('8501de14-1dc9-40d4-a7d4-f289feff8214', 'This is the body', u'1e2d48c0-d66b-494c-bb33-c3d75a1ba66b', decimal.Decimal('1169163900')), sharing.model.EventRecord('8501de14-1dc9-40d4-a7d4-f289feff8214', u'20061130T140000', u'20061130T150000', u'San Jose', u'FREQ=WEEKLY', None, None, None, u'CONFIRMED')]), '9501de14-1dc9-40d4-a7d4-f289feff8214': rs([sharing.model.ItemRecord('9501de14-1dc9-40d4-a7d4-f289feff8214', u'Welcome to Cosmo', u'now', decimal.Decimal("123456789.12"), None, decimal.Decimal("1164803131")), sharing.model.NoteRecord('9501de14-1dc9-40d4-a7d4-f289feff8214', 'This is the body', u'1e2d48c0-d66b-494c-bb33-c3d75a1ba66b', decimal.Decimal('1169163900')), sharing.model.EventRecord('9501de14-1dc9-40d4-a7d4-f289feff8214', u'20061130T140000', u'20061130T150000', None, u'FREQ=WEEKLY', None, None, None, u'CONFIRMED')]) }
+    >>> expectedRecordSets = { '8501de14-1dc9-40d4-a7d4-f289feff8214': rs([sharing.model.ItemRecord('8501de14-1dc9-40d4-a7d4-f289feff8214', u'Welcome to Cosmo', u'now', decimal.Decimal("123456789.12"), u'foo@example.com', decimal.Decimal("1164803131")), sharing.model.NoteRecord('8501de14-1dc9-40d4-a7d4-f289feff8214', 'This is the body', u'1e2d48c0-d66b-494c-bb33-c3d75a1ba66b', decimal.Decimal('1169163900')), sharing.model.EventRecord('8501de14-1dc9-40d4-a7d4-f289feff8214', u'20061130T140000', u'20061130T150000', u'San Jose', u'FREQ=WEEKLY', None, None, None, u'CONFIRMED', None, None)]), '9501de14-1dc9-40d4-a7d4-f289feff8214': rs([sharing.model.ItemRecord('9501de14-1dc9-40d4-a7d4-f289feff8214', u'Welcome to Cosmo', u'now', decimal.Decimal("123456789.12"), None, decimal.Decimal("1164803131")), sharing.model.NoteRecord('9501de14-1dc9-40d4-a7d4-f289feff8214', 'This is the body', u'1e2d48c0-d66b-494c-bb33-c3d75a1ba66b', decimal.Decimal('1169163900')), sharing.model.EventRecord('9501de14-1dc9-40d4-a7d4-f289feff8214', u'20061130T140000', u'20061130T150000', None, u'FREQ=WEEKLY', None, None, None, u'CONFIRMED', None, None)]) }
     >>> recordSets, extra = eimml.EIMMLSerializerLite.deserialize(text)
     >>> recordSets == expectedRecordSets
     True

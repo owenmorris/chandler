@@ -481,7 +481,9 @@ class PIMTranslator(eim.Translator):
             exrule,                                     # exrule
             rdate,                                      # rdate
             exdate,                                     # exdate
-            transparency                                # status
+            transparency,                               # status
+            None,                                       # icalProperties
+            None                                        # icalParameters
         )
         
         for mod_item in (event.modifications):
@@ -538,7 +540,9 @@ class PIMTranslator(eim.Translator):
                 body,
                 eim.Missing,
                 eim.Missing,
-                eim.Missing
+                eim.Missing,
+                None,                                   # icalProperties
+                None                                    # icalParameters
             )
             # TODO: yield a TaskModificationRecord if appropriate
 

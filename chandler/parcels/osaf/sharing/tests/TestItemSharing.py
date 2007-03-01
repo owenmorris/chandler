@@ -49,6 +49,10 @@ class ItemSharingTestCase(testcase.DualRepositoryTestCase):
 
         item0.triageStatus = pim.TriageEnum.later
 
+        pim.EventStamp(item0).add()
+        event = pim.EventStamp(item0)
+        event.anyTime = False
+
         # morgen sends to pje
         self.assert_(not pim.has_stamp(item0, sharing.SharedItem))
         view0.commit()

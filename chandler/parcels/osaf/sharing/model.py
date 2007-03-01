@@ -32,13 +32,17 @@ eventStatusFilter = eim.Filter('cid:event-status-filter@osaf.us',
 
 remindersFilter = eim.Filter('cid:reminders-filter@osaf.us', u"Reminders")
 
+nonStandardICalendarFilter = eim.Filter('cid:non-standard-ical-filter@osaf.us',
+    u"Non-standard iCalendar values")
+
+
 
 
 class ItemRecord(eim.Record):
     URI = "http://osafoundation.org/eim/item/0"
 
     uuid = eim.key(schema.UUID)
-    title = eim.field(text256)
+    title = eim.field(text1024)
     triageStatus = eim.field(text256, [triageFilter])
     triageStatusChanged = eim.field(eim.DecimalType(digits=12, decimal_places=2), [triageFilter])
     lastModifiedBy = eim.field(text256) # storing an email address
@@ -90,6 +94,8 @@ class EventRecord(eim.Record):
     rdate = eim.field(text1024)
     exdate = eim.field(text1024)
     status = eim.field(text256, [eventStatusFilter])
+    icalParameters = eim.field(text1024, [nonStandardICalendarFilter])
+    icalProperties = eim.field(text1024, [nonStandardICalendarFilter])
 
 
 
@@ -108,6 +114,8 @@ class EventModificationRecord(eim.Record):
     triageStatus = eim.field(text256, [triageFilter])
     triageStatusChanged = eim.field(eim.DecimalType(digits=12, decimal_places=2), [triageFilter])
     reminderTime = eim.field(eim.DecimalType(digits=20, decimal_places=0))
+    icalParameters = eim.field(text1024, [nonStandardICalendarFilter])
+    icalProperties = eim.field(text1024, [nonStandardICalendarFilter])
 
 
 
