@@ -20,7 +20,7 @@ from osaf.framework.blocks.Block import Block
 from repository.schema.Kind import Kind
 from i18n import ChandlerMessageFactory as _
 
-BROWSE_URL = "http://cheeseshop.python.org/pypi/"
+BROWSE_URL = "http://cheeseshop.python.org/pypi?:action=browse&c=519"
 
 
 class PluginMenu(Menu):
