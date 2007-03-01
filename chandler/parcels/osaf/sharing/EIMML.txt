@@ -444,7 +444,7 @@ Start over, to test that local deletions get sent::
 Start over, to test that remote deletions get applied::
 
     >>> state.set(rs(set([Demo(1,1,1)])), empty)
-    >>> state.merge(rs([Demo(1, 1, 1)]), rs([], [Demo(1, nc, nc)]))
+    >>> state.merge(rs([Demo(1, 1, 1)]), rs([], [Demo(1, Missing, Missing)]))
     (RecordSet(set([]), set([])), RecordSet(set([]), set([Demo(1, 1, 1)])), RecordSet(set([]), set([])))
 
 
@@ -452,7 +452,7 @@ Start over, to test that remote deletions get applied::
 Start over, to test that local changes and remote deletions get detected::
 
     >>> state.set(rs(set([Demo(1,1,1)])), empty)
-    >>> state.merge(rs([Demo(1, 2, 2)]), rs([], [Demo(1, nc, nc)]))
+    >>> state.merge(rs([Demo(1, 2, 2)]), rs([], [Demo(1, Missing, Missing)]))
     (RecordSet(set([]), set([])), RecordSet(set([]), set([])), RecordSet(set([]), set([Demo(1, 1, 1)])))
 
     >>> state

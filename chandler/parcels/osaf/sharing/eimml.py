@@ -249,6 +249,11 @@ class EIMMLSerializer(object):
 
                     deleted = recordElement.get(deletedURI)
                     if deleted and deleted.lower() == "true":
+                        if record is eim.NoChange:
+                            record = recordClass(*
+                                [eim.Missing if v is eim.NoChange else v
+                                    for v in values]
+                            )
                         exclusions.append(record)
                     else:
                         inclusions.append(record)

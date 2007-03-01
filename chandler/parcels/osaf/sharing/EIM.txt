@@ -25,6 +25,8 @@ Record types are defined by subclassing ``sharing.Record`` and creating
     >>> r1
     Demo(1, u'Foo', u'This is a foo', Decimal("2.50"))
 
+    >>> Demo(1, sharing.NoChange, sharing.NoChange, sharing.NoChange)
+    NoChange
 
 Each record type can have an (optional) unique URI, that can be looked up using
 the ``sharing.lookupSchemaURI()`` API:
@@ -168,6 +170,9 @@ Record Sets
     >>> rs is rs_old
     True
 
+    >>> sharing.RecordSet([sharing.NoChange], [sharing.NoChange])
+    RecordSet(set([]), set([]))
+    
 
 Extracting Nonconflicting Changes
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -333,7 +338,7 @@ You can add fields to an existing filter using the ``+=`` operator::
     >>> Reminders += R.v
 
     >>> Reminders.sync_filter(r1)
-    R(1, NoChange)
+    NoChange
 
 You can also combined filters using ``+=``.  Normally this will be used by
 sharing conduits to construct filters according to the share's filtering
@@ -344,7 +349,7 @@ options::
     >>> conduit_filter += Passwords     # (real code would use lookupSchemaURI)
 
     >>> conduit_filter.sync_filter(r1)
-    R(1, NoChange)
+    NoChange
 
     >>> conduit_filter.sync_filter(r4)
     SomeType(42, NoChange, NoChange, u'blah', NoChange)

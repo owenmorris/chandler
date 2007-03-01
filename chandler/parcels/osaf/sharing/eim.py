@@ -292,10 +292,8 @@ class RecordSet(object):
         self._index, self.inclusions, self.exclusions = {}, set(), set()
         if inclusions or exclusions:
             self.update(inclusions, exclusions)
-
     def __repr__(self):
         return "RecordSet(%r, %r)" % (self.inclusions, self.exclusions)
-
     def __eq__(self, other):
         return (
             isinstance(other, RecordSet) and self.inclusions==other.inclusions
@@ -308,12 +306,14 @@ class RecordSet(object):
     def update(self, inclusions, exclusions, subtract=False):
         ind = self._index
         for r in inclusions:
+            if r is NoChange: continue
             k = r.getKey()
             if k in ind:
                 ind[k] += r
             else:
                 ind[k] = r
         for r in exclusions:
+            if r is NoChange: continue
             k = r.getKey()
             if k in ind:
                 r = ind[k] - r
@@ -538,19 +538,19 @@ def _constructor_for(name, cdict, fields):
         "\n    %s = get_converter(cls.%s)(%s)" % (f.name,f.name,f.name)
         for f in fields
     )
+    nc_check = ' is '.join(f.name for f in fields if not isinstance(f,key))
+    if nc_check: conversions+='\n    if '+nc_check+' is NoChange: return NoChange'
     source = (
         "def __new__(cls, %(args)s):%(conversions)s\n"
         "    return tuple.__new__(cls, (cls, %(args)s))""" % locals()
     )
     # Push the source into the linecache
-    lines = [line+'\n' for line in source.splitlines()]
+    lines = source.splitlines(True)
     linecache.cache[fname] = 0, None, lines, fname
     return compile(source, fname, "exec")
 
-
 class RecordClass(type):
     """Metaclass for records"""
-
     def __new__(meta, name, bases, cdict):
         try:
             Record
@@ -675,7 +675,6 @@ class Record(tuple):
             )
         if other != self:
             res = []
-            changed = False
             for f, new, old in zip(self.__fields__, self[1:], other[1:]):
                 if isinstance(f,key):
                     if old!=new:
@@ -686,14 +685,15 @@ class Record(tuple):
                 elif old==new:
                     res.append(NoChange)
                     continue
-                elif new is not NoChange:
-                    changed = True
                 res.append(new)
 
-            if changed:
-                return t(*res)
+            return t(*res)
 
         return NoChange
+
+
+
+
 
     def getKey(self):
         return (type(self),) + tuple(
@@ -744,7 +744,6 @@ class Record(tuple):
             )
 
         res = []
-        empty = True
 
         for f, new, old in zip(self.__fields__, other[1:], self[1:]):
             if new is NoChange:
@@ -760,13 +759,14 @@ class Record(tuple):
             else:
                 res.append(NoChange)
 
-            # we're still empty if we just put in a NoChange or a key
-            empty = empty and (res[-1] is NoChange or isinstance(f,key))
+        return t(*res)
 
-        if empty:
-            return NoChange
-        else:
-            return t(*res)
+
+
+
+
+
+
 
 
 
@@ -979,7 +979,6 @@ def item_uuid_converter(item):
 add_converter(UUIDType, UUID, uuid_converter)
 add_converter(UUIDType, schema.Item, item_uuid_converter)
 add_converter(UUIDType, str, unicode)
-
 
 
 
