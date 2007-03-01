@@ -504,11 +504,11 @@ class DBNumericIndex(NumericIndex):
 
     def removeKey(self, key):
 
-        if super(DBNumericIndex, self).removeKey(key):
+        removed, selected = super(DBNumericIndex, self).removeKey(key)
+        if removed:
             self._changedKeys[key] = None
-            return True
 
-        return False
+        return removed, selected
 
     def isPersistent(self):
 

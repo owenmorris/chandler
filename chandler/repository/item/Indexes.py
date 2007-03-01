@@ -249,14 +249,17 @@ class NumericIndex(Index):
 
         return kwds
 
-    def insertKey(self, key, afterKey=None):
+    def insertKey(self, key, afterKey=None, selected=False):
 
         self.skipList.insert(key, afterKey)
         self._keyChanged(key)
 
         ranges = self._ranges
         if ranges is not None:
-            ranges.onInsert(key, self.getPosition(key))
+            pos = self.getPosition(key)
+            ranges.onInsert(key, pos)
+            if selected:
+                ranges.selectRange(pos)
 
         super(NumericIndex, self).insertKey(key, afterKey)
 
@@ -289,28 +292,31 @@ class NumericIndex(Index):
 
         for key in keys:
             self.moveKey(key, afterKey, insertMissing)
-            
+
     def removeKey(self, key):
 
         if key in self:
             ranges = self._ranges
             if ranges is not None:
-                ranges.onRemove(key, self.getPosition(key))
+                pos = self.getPosition(key)
+                selected = ranges.isSelected(pos)
+                ranges.onRemove(key, pos)
+            else:
+                selected = False
 
             self.skipList.remove(key)
-            return super(NumericIndex, self).removeKey(key)
+            return super(NumericIndex, self).removeKey(key), selected
 
-        return False
+        return False, False
 
     def removeKeys(self, keys):
 
-        result = False
+        removed = False
 
         for key in keys:
-            if self.removeKey(key):
-                result = True
+            removed, selected = self.removeKey(key)
 
-        return result
+        return removed
 
     def clear(self):
 
@@ -383,19 +389,21 @@ class SortedIndex(DelegatingIndex):
 
         raise NotImplementedError, '%s is abstract' % type(self)
 
-    def insertKey(self, key, ignore=None):
+    def insertKey(self, key, ignore=None, selected=False):
 
         index = self._index
-        index.insertKey(key, index.skipList.after(key, self.compare))
+        index.insertKey(key, index.skipList.after(key, self.compare), selected)
 
     def moveKey(self, key, ignore=None, insertMissing=False):
 
         index = self._index
         if key in index:
-            if not index.removeKey(key):
+            removed, selected = index.removeKey(key)
+            if not removed:
                 if not insertMissing:
                     raise KeyError, key
-        index.insertKey(key, index.skipList.after(key, self.compare))
+
+        index.insertKey(key, index.skipList.after(key, self.compare), selected)
 
         if self._subIndexes:
             view = self._valueMap._getView()
@@ -409,12 +417,19 @@ class SortedIndex(DelegatingIndex):
     def moveKeys(self, keys, ignore=None, insertMissing=False):
 
         index = self._index
+        selection = set()
+
         for key in keys:
-            if not index.removeKey(key):
+            removed, selected = index.removeKey(key)
+            if not removed:
                 if not insertMissing:
                     raise KeyError, key
+            elif selected:
+                selection.add(key)
+
         for key in keys:
-            index.insertKey(key, index.skipList.after(key, self.compare))
+            index.insertKey(key, index.skipList.after(key, self.compare),
+                            key in selection)
 
         if self._subIndexes:
             view = self._valueMap._getView()
