@@ -12,7 +12,7 @@
 #   See the License for the specific language governing permissions and
 #   limitations under the License.
 
-import os, pkg_resources, wx, webbrowser
+import os, pkg_resources, wx, webbrowser, logging
 
 from application import schema, Utility, Globals, Parcel
 from osaf.framework.blocks import Menu, MenuItem, BlockEvent
@@ -21,6 +21,7 @@ from repository.schema.Kind import Kind
 from i18n import ChandlerMessageFactory as _
 
 BROWSE_URL = "http://cheeseshop.python.org/pypi?:action=browse&c=519"
+logger = logging.getLogger(__name__)
 
 
 class PluginMenu(Menu):
@@ -54,6 +55,7 @@ class PluginMenu(Menu):
             for child in self.iterChildren():
                 if getattr(child, 'blockName', None) == '_browse_menu':
                     self.dynamicChildren.append(child)
+                    self.dynamicChildren.append(self.getNextChild(child))
                     break
             else:
                 MenuItem(itsName=None, itsParent=self,
@@ -137,7 +139,6 @@ class PluginMenu(Menu):
 
         # Update the menus
         wx.GetApp().GetActiveView().rebuildDynamicBlocks()
-
         statusBar.setStatusMessage(msg)
 
     def on_pluginsEventUpdateUI(self, event):
@@ -159,7 +160,8 @@ class PluginMenu(Menu):
                     ep.require(plugin_env)
                     requires = egg.requires(ep.extras)
                 except pkg_resources.ResolutionError:
-                    return None, None # log error
+                    logger.exception("Activating %s failed", egg.egg_name())
+                    return None, None
             break
         else:
             return None, None

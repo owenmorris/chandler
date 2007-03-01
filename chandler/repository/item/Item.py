@@ -1841,6 +1841,38 @@ class Item(CItem):
 
         return child
 
+    def getNextChild(self, child):
+
+        nextKey = self._children.nextKey(child.itsUUID)
+        if nextKey is not None:
+            return self.itsView[nextKey]
+
+        return None
+
+    def getFirstChild(self):
+
+        firstKey = self._children.firstKey()
+        if firstKey is not None:
+            return self.itsView[firstKey]
+
+        return None
+
+    def getLastChild(self):
+
+        lastKey = self._children.lastKey()
+        if lastKey is not None:
+            return self.itsView[lastKey]
+
+        return None
+
+    def getPreviousChild(self, child):
+
+        nextKey = self._children.previousKey(child.itsUUID)
+        if nextKey is not None:
+            return self.itsView[nextKey]
+
+        return None
+
     def __getitem__(self, key):
 
         child = self.getItemChild(key)
