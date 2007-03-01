@@ -55,7 +55,7 @@ def locateProfileDir():
     """
 
     def _makeRandomProfileDir(pattern):
-        chars = string.letters + string.digits
+        chars = string.ascii_letters + string.digits
         name = ''.join([chars[ord(c) % len(chars)] for c in os.urandom(8)])
         profileDir = pattern.replace('*', '%s') %(name)
         createProfileDir(profileDir)
