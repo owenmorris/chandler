@@ -2,6 +2,11 @@ This plugin is just an example to show how minimal a plugin project can be.
 It doesn't actually do anything, but is a complete example with a setup
 script and tests.
 
+To download and install the plugin, you can use Chandler's InstallPlugin
+script::
+
+    InstallPlugin Chandler-HelloWorldPlugin
+
 If you want to experiment with its code, you can use::
 
     RunPython setup.py develop
@@ -31,3 +36,8 @@ the original proposal at:
 
  http://lists.osafoundation.org/pipermail/chandler-dev/2006-March/005552.html
 
+The svn sources for this plugin are at:
+
+ http://svn.osafoundation.org/chandler/trunk/chandler/projects/Chandler-HelloWorldPlugin#egg=Chandler_HelloWorldPlugin-dev
+
+and can be retrieved with ``RunPython -m easy_install --editable -b . Chandler_HelloWorldPlugin==dev``.
