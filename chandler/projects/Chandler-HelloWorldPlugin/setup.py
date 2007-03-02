@@ -12,8 +12,6 @@
 #   See the License for the specific language governing permissions and
 #   limitations under the License.
 
-#options = dict(install=dict(install_lib="...", install_scripts="...")
-
 from setuptools import setup
 
 setup(
