@@ -33,13 +33,13 @@ Test rt.py
 
     Run unit tests with --dryrun
     >>> build_lib.runCommand(['python', 'rt.py', '-d', '-u'], timeout=300)   #doctest: +ELLIPSIS
-    /Users/bear/projects/osaf/chandler_trunk/chandler/application/tests/TestAllParcels.py
+    unittest: ...chandler/application/tests/TestAllParcels.py
     ...
     0
 
     Run functional tests with --dryrun
-    >>> build_lib.runCommand(['python', 'rt.py', '-d', '-f'])
-    ['/Users/bear/projects/osaf/chandler_trunk/chandler/release/RunChandler', '--create', '--catch=tests', '--scriptTimeout=720', '-D1', '-M2', '--profileDir="/Users/bear/projects/osaf/chandler_trunk/chandler/test_profile"', '--parcelPath="/Users/bear/projects/osaf/chandler_trunk/chandler/tools/QATestScripts/DataFiles"', '--scriptFile="tools/cats/Functional/FunctionalTestSuite.py"']
+    >>> build_lib.runCommand(['python', 'rt.py', '-d', '-f'])   #doctest: +ELLIPSIS
+    functest: ...tools/cats/Functional/FunctionalTestSuite.py
     0
 """
 

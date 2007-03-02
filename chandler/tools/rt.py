@@ -442,7 +442,8 @@ if __name__ == '__main__':
 
     if options.unit or len(options.single) > 0:
         failed = runUnitTests(options)
-        failed = runPluginTests(options)
+        if not failed and len(options.single) == 0:
+            failed = runPluginTests(options)
 
     if options.funcSuite and not failed:
         failed = runFuncSuite(options)
