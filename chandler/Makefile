@@ -44,7 +44,7 @@ ARCHIVES = \
     $(CHANDLERARCHIVES)/docutils-$(SNAP)-0.4-$(BP)1.tar.gz \
     $(CHANDLERARCHIVES)/eggtranslations-$(SNAP)-0.1-r2-$(BP)2.tar.gz \
     $(CHANDLERARCHIVES)/zope.interface-$(SNAP)-3.3.0b2-r71371-$(BP)3.tar.gz \
-    $(CHANDLERARCHIVES)/setuptools-$(SNAP)-0.6c6dev-r53794-$(BP)1.tar.gz
+    $(CHANDLERARCHIVES)/setuptools-$(SNAP)-0.6c6dev-r54072-$(BP)1.tar.gz
 
 OS         = $(shell uname)
 PYTHON_VER = 2.5
@@ -295,18 +295,18 @@ print-%:
 tests:
 	CHANDLERHOME='$(CHANDLERHOME)' CHANDLERBIN='$(CHANDLERBIN)' $(C_HOME)/tools/do_tests.sh -u
 
-clean:
+distclean:
 	rm -rf $(C_BIN)/$(SNAP)
-	find . -name '*.py[co]' -delete
-
-distclean: clean
-	rm -rf $(C_BIN)/debug
-	rm -rf $(C_BIN)/release
 	rm -f  $(PLUGIN_INST)/*.egg-link
 	rm -f  $(PLUGIN_INST)/*.pth
 	rm -rf $(C_HOME)/*-py$(PYTHON_VER).egg
 
-realclean: distclean
+clean: distclean
+	find . -name '*.py[co]' -delete
+
+realclean: clean
+	rm -rf $(C_BIN)/release
+	rm -rf $(C_BIN)/debug
 	rm -f $(ARCHIVES)
 
 relocatable-distro:
