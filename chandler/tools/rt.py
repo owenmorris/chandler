@@ -68,6 +68,7 @@ def parseOptions():
         'quiet':     ('-q', '--quiet',              'b', False, 'Mute log echoing to stdout'),
         'help':      ('-H', '',                     'b', False, 'Extended help'),
         'dryrun':    ('-d', '--dryrun',             'b', False, 'Do all of the prep work but do not run any tests'),
+        'selftest':  ('',   '--selftest',           'b', False, 'Run self test'),
         #'restored':  ('-R', '--restoredRepository', 'b', False, 'unit tests with restored repository instead of creating new for each test'),
         #'profile':   ('-P', '--profile',            'b', False, 'Profile performance tests'),
         #'tbox':      ('-T', '--tbox',               'b', False, 'Tinderbox output mode'),
@@ -318,6 +319,43 @@ def runFuncSuite(options):
     return failed
 
 
+def runScriptPerfTests(options, testlist):
+    failed = False
+    
+    for item in testlist:
+        #$CHANDLERBIN/release/$RUN_CHANDLER --create --catch=tests
+        #                                   --profileDir="$PC_DIR"
+        #                                   --catsPerfLog="$TIME_LOG"
+        #                                   --scriptTimeout=600
+        #                                   --scriptFile="$TESTNAME" &> $TESTLOG
+
+        if os.path.isfile(timeLog):
+            os.remove(timeLog)
+
+        cmd = [ options.runchandler['release'],
+                '--create', '--catch=tests', '--scriptTimeout=600',
+                '--profileDir=%s'  % options.profileDir,
+                '--parcelPath=%s'  % options.parcelPath,
+                '--catsPerfLog=%s' % timeLog,
+                '--scriptFile=%s'  % item ]
+
+        if options.verbose:
+            log('Running %s' % ' '.join(cmd))
+
+        if options.dryrun:
+            result = 0
+        else:
+            result = build_lib.runCommand(cmd)
+
+        if result != 0:
+            failed = True
+            failedTests.append(' '.join(cmd))
+
+            if not options.noStop:
+                break
+            
+        return failed
+
 def runPerfSuite(options):
     """
     Run the Performance Test Suite
@@ -326,101 +364,54 @@ def runPerfSuite(options):
 
     savePWD = os.getcwd()
 
-    if 'release' in options.modes:
-        testlist      = []
-        testlistLarge = []
-
-        os.chdir(options.chandlerHome)
-
-        timeLog = os.path.join(options.profileDir, 'time.log')
-        repoDir = os.path.join(options.profileDir, '__repository__.001')
-
-        if not options.dryrun:
-            for item in glob.iglob(os.path.join(options.profileDir, '__repository__.0*')):
-                if os.path.isdir(item):
-                    build_util.rmdirs(item)
+    try:
+        if 'release' in options.modes:
+            testlist      = []
+            testlistLarge = []
+    
+            os.chdir(options.chandlerHome)
+    
+            timeLog = os.path.join(options.profileDir, 'time.log')
+            repoDir = os.path.join(options.profileDir, '__repository__.001')
+    
+            if not options.dryrun:
+                for item in glob.iglob(os.path.join(options.profileDir, '__repository__.0*')):
+                    if os.path.isdir(item):
+                        build_util.rmdirs(item)
+                    else:
+                        os.remove(item)
+    
+            for item in glob.iglob(os.path.join(options.chandlerHome, 'tools', 'QATestScripts', 'Performance', 'Perf*.py')):
+                if 'PerfLargeData' in item:
+                    testlistLarge.append(item)
                 else:
-                    os.remove(item)
-
-        for item in glob.iglob(os.path.join(options.chandlerHome, 'tools', 'QATestScripts', 'Performance', 'Perf*.py')):
-            if 'PerfLargeData' in item:
-                testlistLarge.append(item)
-            else:
-                testlist.append(item)
-
-        for item in testlist:
-            #$CHANDLERBIN/release/$RUN_CHANDLER --create --catch=tests
-            #                                   --profileDir="$PC_DIR"
-            #                                   --catsPerfLog="$TIME_LOG"
-            #                                   --scriptTimeout=600
-            #                                   --scriptFile="$TESTNAME" &> $TESTLOG
-
-            if os.path.isfile(timeLog):
-                os.remove(timeLog)
-
-            cmd = [ options.runchandler['release'],
-                    '--create', '--catch=tests', '--scriptTimeout=600',
-                    '--profileDir=%s'  % options.profileDir,
-                    '--parcelPath=%s'  % options.parcelPath,
-                    '--catsPerfLog=%s' % timeLog,
-                    '--scriptFile=%s'  % item ]
-
-            if options.dryrun:
-                log('perftest: %s' % ' '.join(cmd))
-                result = 0
-            else:
-                if options.verbose:
-                    log('Running %s' % ' '.join(cmd))
-
-                result = build_lib.runCommand(cmd)
-
-            if result != 0:
-                failed = True
-                failedTests.append(' '.join(cmd))
-
-                if not options.noStop:
-                    break
-
-        if not failed:
-            for item in testlistLarge:
-                #$CHANDLERBIN/release/$RUN_CHANDLER --restore="$REPO" --catch=tests
-                #                                   --profileDir="$PC_DIR"
-                #                                   --catsPerfLog="$TIME_LOG"
-                #                                   --scriptTimeout=600
-                #                                   --scriptFile="$TESTNAME" &> $TESTLOG
-
-                cmd = [ options.runchandler['release'],
-                        '--catch=tests', '--scriptTimeout=600',
-                        '--restore=%s'    % repoDir,
-                        '--profileDir=%s' % options.profileDir,
-                        '--parcelPath=%s' % options.parcelPath,
-                        '--scriptFile=%s' % item ]
-
-                if options.dryrun:
-                    log('perftest: %s' % ' '.join(cmd))
-                    result = 0
-                else:
-                    if options.verbose:
-                        log('Running %s' % ' '.join(cmd))
-
-                    result = build_lib.runCommand(cmd)
-
-                if result != 0:
+                    testlist.append(item)
+    
+            failed = runScriptPerfTests(options, testlist)
+    
+            if not failed or options.noStop:
+                if runScriptPerfTests(options, testlistLarge):
                     failed = True
-                    failedTests.append(' '.join(cmd))
+                    
+            if not failed or options.noStop:
+                # XXX Startup time tests
+                pass
+            
+        else:
+            log('Skipping Performance Tests - release mode not specified')
 
-                    if not options.noStop:
-                        break
-
-    else:
-        log('Skipping Performance Tests - release mode not specified')
-
-    os.chdir(savePWD)
+    finally:
+        os.chdir(savePWD)
 
     return failed
 
 
 if __name__ == '__main__':
+    if '--selftest' in sys.argv:
+        import doctest
+        doctest.testmod()
+        sys.exit(0)
+    
     options = parseOptions()
 
     if options.mode is None:
