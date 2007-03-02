@@ -144,7 +144,12 @@ def ProcessEvent (theClass, properties , attributes):
 
     lastSentToWidget = sentToWidget
 
-    application.propagateAsynchronousNotifications()
+    # On windows when we propagate notifications while editing a text control
+    # it will end up calling wxSynchronizeWidget in wxTable, which will end the
+    # editing of the table
+    if not isinstance (sentToWidget, wx.TextCtrl):
+        application.propagateAsynchronousNotifications()
+
     application.Yield()
 
 def VerifyOn (verify = True):
