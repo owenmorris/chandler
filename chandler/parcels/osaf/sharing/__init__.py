@@ -396,14 +396,17 @@ def publish(collection, account, classesToInclude=None,
         progressMonitor = None
         callback = None
 
+    view = collection.itsView
 
     # If the account knows how to publish, delegate:
     if hasattr(account, 'publish'):
-        return account.publish(collection, updateCallback=callback,
+        shares = account.publish(collection, updateCallback=callback,
             filters=attrsToExclude)
+        for share in shares:
+            share.sharer = schema.ns("osaf.pim", view).currentContact.item
+        return shares
 
 
-    view = collection.itsView
 
     # Stamp the collection
     if not has_stamp(collection, SharedItem):

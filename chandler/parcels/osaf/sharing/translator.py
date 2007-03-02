@@ -329,9 +329,9 @@ class PIMTranslator(eim.Translator):
         # only apply a modifiedby record if timestamp is more recent than
         # what's on the item already
 
-        existing = getattr(item, "lastModified", 0)
-        if existing:
-            existing = Decimal(int(time.mktime(existing.timetuple())))
+        existing = getattr(item, "lastModified", None)
+        existing = (Decimal(int(time.mktime(existing.timetuple())))
+            if existing else 0)
 
         if record.timestamp > existing:
 
