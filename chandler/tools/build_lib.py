@@ -78,32 +78,30 @@ def runCommand(cmd, env=None, timeout=-1):
     """
     Execute the given command and log all output
 
-        >>> runCommand(['echo', 'yes'])
-        yes
+        Success and failure codes:
+        
+        >>> runCommand(['true'])
         0
-
-        >>> runCommand(['python', 'build_lib_test.py', 'stdout'])
-        stdout
-        0
-
-        >>> runCommand(['python', 'build_lib_test.py', 'stderr'])
-        stderr
-        0
-
-        >>> runCommand(['python', 'build_lib_test.py', 'nonzero'])
-        42
-
-        >>> runCommand(['python', 'build_lib_test.py', 'envtest'], env={'ENVTEST': '42'})
-        42
-        0
-
-        >>> runCommand(['python', 'build_lib_test.py', 'traceback'])    #doctest: +ELLIPSIS
-        Traceback (most recent call last):
-        ...
-        Exception
+        >>> runCommand(['false'])
         1
 
-        >>> runCommand(['python', 'build_lib_test.py', 'timeout'], timeout=5)
+        Interleaved stdout and stderr messages:
+        
+        >>> runCommand(['python', '-c', r'print 1;import sys;sys.stdout.flush();print >>sys.stderr, 2;print 3'])
+        1
+        2
+        3
+        0
+
+        Setting environment variable:
+        
+        >>> runCommand(['python', '-c', 'import os;print os.getenv("ENVTEST")'], env={'ENVTEST': '42'})
+        42
+        0
+
+        Timeout:
+        
+        >>> runCommand(['sleep', '10'], timeout=2)
         -9
     """
     if timeout == -1:
