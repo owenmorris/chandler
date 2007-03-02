@@ -60,11 +60,6 @@ class Contact(items.ContentItem):
         indexed = True,
     )
 
-    itemsLastModified = schema.Sequence(
-        items.ContentItem,
-        doc="List of content items last modified by this user.",
-        inverse=items.ContentItem.lastModifiedBy
-    )
 
     requestedTasks = schema.Sequence(
         doc="List of tasks requested by this user.",

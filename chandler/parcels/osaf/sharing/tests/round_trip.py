@@ -68,9 +68,12 @@ class RoundTripTestCase(testcase.DualRepositoryTestCase):
 
         self.uuids = { }
 
+        tzinfo = ICUtzinfo.floating
+        createdOn = datetime.datetime(2007, 3, 1, 10, 0, 0, 0, tzinfo)
         count = len(titles)
         for i in xrange(count):
             n = pim.Note(itsView=view)
+            n.createdOn = createdOn
             n.displayName = titles[i % count]
             self.uuids[n.itsUUID] = n.displayName
             n.body = u"Here is the body"
@@ -155,6 +158,68 @@ class RoundTripTestCase(testcase.DualRepositoryTestCase):
 
 
 
+
+        # Ensure last-modified is transmitted properly
+
+        # 1) Simple case, only one way:
+        email = "test@example.com"
+        emailAddress = pim.EmailAddress.getEmailAddress(view0, email)
+        tzinfo = ICUtzinfo.floating
+        lastModified = datetime.datetime(2007, 3, 1, 12, 0, 0, 0, tzinfo)
+        item.lastModifiedBy = emailAddress
+        item.lastModified = lastModified
+        view0.commit(); stats = self.share0.sync(); view0.commit()
+        self.assert_(checkStats(stats,
+            ({'added' : 0, 'modified' : 0, 'removed' : 0},
+             {'added' : 0, 'modified' : 1, 'removed' : 0})),
+            "Sync operation mismatch")
+        view1.commit(); stats = self.share1.sync(); view1.commit()
+        self.assert_(checkStats(stats,
+            ({'added' : 0, 'modified' : 1, 'removed' : 0},
+             {'added' : 0, 'modified' : 0, 'removed' : 0})),
+            "Sync operation mismatch")
+        self.assert_(item1.lastModifiedBy.emailAddress == email)
+        self.assert_(item1.lastModified == lastModified)
+
+        # 2) receiving more recent modification:
+        email0 = "test0@example.com"
+        emailAddress0 = pim.EmailAddress.getEmailAddress(view0, email0)
+        lastModified0 = datetime.datetime(2007, 3, 1, 12, 0, 0, 0, tzinfo)
+        item.lastModifiedBy = emailAddress0
+        item.lastModified = lastModified0
+        view0.commit(); stats = self.share0.sync(); view0.commit()
+        self.assert_(checkStats(stats,
+            ({'added' : 0, 'modified' : 0, 'removed' : 0},
+             {'added' : 0, 'modified' : 1, 'removed' : 0})),
+            "Sync operation mismatch")
+        email1 = "test1@example.com"
+        emailAddress1 = pim.EmailAddress.getEmailAddress(view1, email1)
+        lastModified1 = datetime.datetime(2007, 3, 1, 11, 0, 0, 0, tzinfo)
+        item1.lastModifiedBy = emailAddress1
+        item1.lastModified = lastModified1
+        view1.commit(); stats = self.share1.sync(); view1.commit()
+        self.assert_(checkStats(stats,
+            ({'added' : 0, 'modified' : 1, 'removed' : 0},
+             {'added' : 0, 'modified' : 1, 'removed' : 0})),
+            "Sync operation mismatch")
+        # In this case, the mod from view0 is more recent, so applied
+        self.assert_(item1.lastModifiedBy.emailAddress == email0)
+        self.assert_(item1.lastModified == lastModified0)
+
+        # 3) receiving an older modification:
+        view0.commit(); stats = self.share0.sync(); view0.commit()
+        self.assert_(checkStats(stats,
+            ({'added' : 0, 'modified' : 1, 'removed' : 0},
+             {'added' : 0, 'modified' : 0, 'removed' : 0})),
+            "Sync operation mismatch")
+        # In this case, the mod from view1 is out of date, so ignored,
+        # and both clients have email0 and lastModified0
+        self.assert_(item.lastModifiedBy.emailAddress == email0)
+        self.assert_(item.lastModified == lastModified0)
+
+
+
+
         # Local and Remote modification, overlapping and non-overlapping
         # changes - non-overlapping changes apply, overlapping changes
         # become pending for the second syncer
@@ -191,7 +256,6 @@ class RoundTripTestCase(testcase.DualRepositoryTestCase):
         self.assert_(not pim.has_stamp(item, pim.EventStamp))
         pim.EventStamp(item).add()
         self.assert_(pim.has_stamp(item, pim.EventStamp))
-        tzinfo = ICUtzinfo.floating
         time0 = datetime.datetime(2007, 1, 26, 12, 0, 0, 0, tzinfo)
         pim.EventStamp(item).startTime = time0
         pim.EventStamp(item).duration = datetime.timedelta(minutes=60)

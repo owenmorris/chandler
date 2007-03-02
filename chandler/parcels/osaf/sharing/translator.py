@@ -232,8 +232,6 @@ class PIMTranslator(eim.Translator):
 
     # ItemRecord -------------
 
-    # TODO: lastModifiedBy
-
     @model.ItemRecord.importer
     def import_item(self, record):
 
@@ -258,7 +256,7 @@ class PIMTranslator(eim.Translator):
             displayName=record.title,
             triageStatus=triageStatus,
             createdOn=createdOn
-        ) # incomplete, missing lastModifiedBy
+        )
 
 
         # Need to make sure we set tsc after triageStatus
@@ -287,9 +285,67 @@ class PIMTranslator(eim.Translator):
             item.displayName,                           # title
             str(item.triageStatus),                     # triageStatus
             tsc,                                        # t_s_changed
-            None,                                       # lastModifiedBy
             created                                     # createdOn
         )
+
+        # Also export a ModifiedByRecord
+        lastModifiedBy = None
+        if hasattr(item, "lastModifiedBy"):
+            emailAddress = item.lastModifiedBy
+            if emailAddress is not None and emailAddress.emailAddress:
+                lastModifiedBy = emailAddress.emailAddress
+
+        lastModified = getattr(item, "lastModified", None)
+        if lastModified:
+            lastModified = Decimal(
+                int(time.mktime(lastModified.timetuple()))
+            )
+        elif hasattr(item, "createdOn"):
+            lastModified = Decimal(
+                int(time.mktime(item.createdOn.timetuple()))
+            )
+
+
+        yield model.ModifiedByRecord(
+            item.itsUUID,
+            lastModifiedBy,
+            lastModified
+        )
+
+
+
+    # ModifiedByRecord  -------------
+
+    @model.ModifiedByRecord.importer
+    def import_modifiedBy(self, record):
+
+        item = self.loadItemByUUID(record.uuid, pim.ContentItem)
+
+        # only apply a modifiedby record if timestamp is more recent than
+        # what's on the item already
+
+        existing = getattr(item, "lastModified", 0)
+        if existing:
+            existing = Decimal(int(time.mktime(existing.timetuple())))
+
+        if record.timestamp > existing:
+
+            # record.userid can never be NoChange.  None == anonymous
+            if record.userid is None:
+                item.lastModifiedBy = None
+            else:
+                item.lastModifiedBy = pim.EmailAddress.getEmailAddress(self.rv,
+                    record.userid)
+
+            # record.timestamp can never be NoChange, nor None
+            # timestamp is a Decimal we need to change to datetime
+            naive = datetime.utcfromtimestamp(float(record.timestamp))
+            inUTC = naive.replace(tzinfo=utc)
+            # Convert to user's tz:
+            item.lastModified = inUTC.astimezone(ICUtzinfo.default)
+
+
+        # Note: ModifiedByRecords are exported by item
 
 
 

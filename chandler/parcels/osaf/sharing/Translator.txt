@@ -30,7 +30,6 @@ Importing:
     ...         title='Translator test',
     ...         triageStatus='later',
     ...         triageStatusChanged=Decimal("-1167792143.0"),
-    ...         lastModifiedBy='example@example.com',
     ...         createdOn=Decimal("1164803131")
     ... )
 
@@ -55,7 +54,6 @@ Importing:
     >>> item.createdOn == datetime(2006, 11, 29, 12, 25, 31, tzinfo=utc)
     True
 
-TODO: lastModifiedBy
 
 
 Exporting:
@@ -66,9 +64,8 @@ is being used because t-s-c doesn't round-trip precisely)
     >>> t.startExport()
     >>> records = list(t.exportItem(item))
     >>> records
-    [ItemRecord('f230dcd4-7c32-4c3f-908b-d92081cc9a89', u'Translator test', u'later', Decimal("..."), None, Decimal("1164803131"))]
+    [ItemRecord('f230dcd4-7c32-4c3f-908b-d92081cc9a89', u'Translator test', u'later', Decimal("..."), Decimal("1164803131")), ModifiedByRecord('f230dcd4-7c32-4c3f-908b-d92081cc9a89', None, Decimal("..."))]
 
-TODO: lastModifiedBy
 
 
 
@@ -104,7 +101,7 @@ Exporting:
     >>> t.startExport()
     >>> records = list(t.exportItem(item))
     >>> records
-    [ItemRecord('f230dcd4-7c32-4c3f-908b-d92081cc9a89', u'Translator test', u'later', Decimal("..."), None, Decimal("1164803131")), NoteRecord('f230dcd4-7c32-4c3f-908b-d92081cc9a89', u'This is the body', None, None)]
+    [ItemRecord('f230dcd4-7c32-4c3f-908b-d92081cc9a89', u'Translator test', u'later', Decimal("..."), Decimal("1164803131")), ModifiedByRecord('f230dcd4-7c32-4c3f-908b-d92081cc9a89', None, Decimal("...")), NoteRecord('f230dcd4-7c32-4c3f-908b-d92081cc9a89', u'This is the body', None, None)]
 
 TODO: icaluid
 
@@ -140,7 +137,7 @@ Exporting:
     >>> t.startExport()
     >>> records = list(t.exportItem(item))
     >>> records
-    [ItemRecord('f230dcd4-7c32-4c3f-908b-d92081cc9a89', u'Translator test', u'later', Decimal("..."), None, Decimal("1164803131")), NoteRecord('f230dcd4-7c32-4c3f-908b-d92081cc9a89', u'This is the body', None, None), TaskRecord('f230dcd4-7c32-4c3f-908b-d92081cc9a89')]
+    [ItemRecord('f230dcd4-7c32-4c3f-908b-d92081cc9a89', u'Translator test', u'later', Decimal("..."), Decimal("1164803131")), ModifiedByRecord('f230dcd4-7c32-4c3f-908b-d92081cc9a89', None, Decimal("...")), NoteRecord('f230dcd4-7c32-4c3f-908b-d92081cc9a89', u'This is the body', None, None), TaskRecord('f230dcd4-7c32-4c3f-908b-d92081cc9a89')]
 
 EventRecord type
 - - - - - - - -

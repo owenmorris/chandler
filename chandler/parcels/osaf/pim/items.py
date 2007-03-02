@@ -126,9 +126,8 @@ class ContentItem(Triageable):
     )
 
     lastModifiedBy = schema.One(
-        # Contact
-        doc="Link to the contact who last modified the item.",
-        defaultValue=None,
+        doc="Link to the EmailAddress who last modified the item.",
+        defaultValue=None
     )
     
     lastModification = schema.One(

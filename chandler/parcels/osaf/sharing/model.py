@@ -45,7 +45,6 @@ class ItemRecord(eim.Record):
     title = eim.field(text1024)
     triageStatus = eim.field(text256, [triageFilter])
     triageStatusChanged = eim.field(eim.DecimalType(digits=12, decimal_places=2), [triageFilter])
-    lastModifiedBy = eim.field(text256) # storing an email address
     createdOn = eim.field(eim.DecimalType(digits=20, decimal_places=0))
 
 

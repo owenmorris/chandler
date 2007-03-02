@@ -235,17 +235,14 @@ class State(schema.Item):
             print " ----------- Merging item:", self.itemUUID
             print "   rsInternal:", rsInternal
             print "   internalDiff:", internalDiff
-            print "   isDiff:", isDiff
-            print "   inbound:", inbound
             print "   externalDiff:", externalDiff
-            print "   agreed:", self.agreed
-            print "   pending:", pending
+            print "   old agreed:", self.agreed
+            print "   old pending:", pending
 
         ncd = internalDiff | filter(externalDiff)
         self.agreed += (internalDiff | externalDiff)
 
         if debug:
-            print "   rsExternal:", rsExternal
             print "   ncd:", ncd
 
         dSend = self._cleanDiff(rsExternal, ncd)
@@ -263,10 +260,10 @@ class State(schema.Item):
 
         if debug:
             print " - - - - Results - - - - "
-            print "   agreed:", self.agreed
             print "   dSend:", dSend
             print "   dApply:", dApply
-            print "   pending:", self.pending
+            print "   new agreed:", self.agreed
+            print "   new pending:", self.pending
             print " ----------- End of merge "
 
         return dSend, dApply, self.pending

@@ -1346,6 +1346,12 @@ Issues:
         sharing = schema.Cloud(literal = [emailAddress, fullName])
     )
 
+    itemsLastModified = schema.Sequence(
+        items.ContentItem,
+        doc="List of content items last modified by this user.",
+        inverse=items.ContentItem.lastModifiedBy
+    )
+
     def __init__(self, itsName=None, itsParent=None, itsKind=None,
         itsView=None, clone=None, **kw
     ):
