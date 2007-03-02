@@ -28,15 +28,15 @@ setup(
     entry_points = {
         "chandler.parcels": ["Hello World = hello_world"]
     },
-    categories = ["Development Status :: 5 - Production/Stable",
-                  "Environment :: Plugins",
-                  "Framework :: Chandler",
-                  "Intended Audience :: Developers",
-                  "License :: OSI Approved :: Apache Software License",
-                  "Operating System :: OS Independent",
-                  "Programming Language :: Python",
-                  "Topic :: Office/Business :: Groupware",
-                  "Topic :: Software Development :: Documentation"],
+    classifiers = ["Development Status :: 5 - Production/Stable",
+                   "Environment :: Plugins",
+                   "Framework :: Chandler",
+                   "Intended Audience :: Developers",
+                   "License :: OSI Approved :: Apache Software License",
+                   "Operating System :: OS Independent",
+                   "Programming Language :: Python",
+                   "Topic :: Office/Business :: Groupware",
+                   "Topic :: Software Development :: Documentation"],
     long_description = """
 This plugin is just an example to show how minimal a plugin project can be.
 It doesn't actually do anything, but is a complete example with a setup
