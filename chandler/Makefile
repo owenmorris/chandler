@@ -295,18 +295,18 @@ print-%:
 tests:
 	CHANDLERHOME='$(CHANDLERHOME)' CHANDLERBIN='$(CHANDLERBIN)' $(C_HOME)/tools/do_tests.sh -u
 
-clean:
+distclean:
 	rm -rf $(C_BIN)/$(SNAP)
-	find . -name '*.py[co]' -delete
-
-distclean: clean
-	rm -rf $(C_BIN)/debug
-	rm -rf $(C_BIN)/release
 	rm -f  $(PLUGIN_INST)/*.egg-link
 	rm -f  $(PLUGIN_INST)/*.pth
 	rm -rf $(C_HOME)/*-py$(PYTHON_VER).egg
 
-realclean: distclean
+clean: distclean
+	find . -name '*.py[co]' -delete
+
+realclean: clean
+	rm -rf $(C_BIN)/release
+	rm -rf $(C_BIN)/debug
 	rm -f $(ARCHIVES)
 
 relocatable-distro:
