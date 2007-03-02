@@ -24,6 +24,7 @@ import fileinput
 import errno
 import subprocess
 import killableprocess
+import tempfile
 
 
 _logFilename   = 'hardhat.log'
@@ -107,13 +108,13 @@ def runCommand(cmd, env=None, timeout=-1):
     if timeout == -1:
         output = subprocess.PIPE
     else:
-        output = os.tmpfile()
+        output = tempfile.TemporaryFile()
 
     p = killableprocess.Popen(cmd, env=env, stdout=output, stderr=subprocess.STDOUT)
 
     try:
         if timeout == -1:
-            for line in p.stdout.readlines():
+            for line in p.stdout:
                 log(line[:-1])
 
         p.wait(timeout=timeout)
@@ -127,7 +128,7 @@ def runCommand(cmd, env=None, timeout=-1):
 
     if timeout != -1:
         output.seek(0)
-        for line in output.readlines():
+        for line in output:
             log(line[:-1])
 
     return p.returncode
@@ -156,7 +157,7 @@ def getCommand(cmd, echo=False):
     result = ''
     p      = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
 
-    for line in p.stdout.readlines():
+    for line in p.stdout:
         line    = line[:-1]
         result += line
         if echo:
@@ -210,6 +211,7 @@ def generateVersionData(chandlerDirectory, platformName, continuousBuild=None):
                  'release':    getattr(vmodule, 'release',    ''),
                  'revision':   getattr(vmodule, 'revision',   ''),
                  'checkpoint': getattr(vmodule, 'checkpoint', ''),
+                 'version':    getattr(vmodule, 'version',    ''),
                }
 
     versionFile = open(versionFilename, 'a+')
