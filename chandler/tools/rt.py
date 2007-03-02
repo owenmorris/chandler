@@ -151,7 +151,8 @@ def checkOptions(options):
     if options.noEnv:
         for item in _ignoreEnvNames:
             try:
-                os.unsetenv(item)
+                if item in os.environ:
+                    os.environ.pop(item)
             except:
                 log('Unable to remove "%s" from the environment' % item)
 
@@ -172,7 +173,7 @@ def findTestFiles(searchPath, excludeDirs, includePattern):
     return result
 
 
-def buildTestList(options):
+def buildUnitTestList(options):
     excludeDirs = []
 
     if len(options.single) > 0:
@@ -193,7 +194,7 @@ def runUnitTests(options):
     """
     Locate any unit tests (-u) or any of the named test (-t) and run them
     """
-    testlist = buildTestList(options)
+    testlist = buildUnitTestList(options)
     failed   = False
 
     if len(testlist) == 0:
@@ -206,9 +207,12 @@ def runUnitTests(options):
         for mode in options.modes:
             for test in testlist:
                 if options.dryrun:
-                    print test
+                    log('unittest: %s' % test)
                     result = 0
                 else:
+                    if options.verbose:
+                        log('Running %s' % test)
+
                     result = build_lib.runCommand([ options.runpython[mode], test ])
 
                 if result != 0:
@@ -224,6 +228,60 @@ def runUnitTests(options):
     return failed
 
 
+def runPluginTests(options):
+    """
+    Locate any plugin tests (-u)
+    """
+    testlist = findTestFiles(os.path.join(options.chandlerHome, 'projects'), [], 'setup.py')
+    failed   = False
+
+    if len(testlist) == 0:
+        log('No plugin tests found to run')
+    else:
+        saveCWD = os.getcwd()
+
+        for mode in options.modes:
+            for test in testlist:
+                if options.dryrun:
+                    log('plugin: %s' % test)
+                    result = 0
+                else:
+                    if options.verbose:
+                        log('Running %s' % test)
+
+                    #if [ "$OSTYPE" = "cygwin" ]; then
+                    #    C_HOME=`cygpath -aw $C_DIR`
+                    #    PARCEL_PATH=`cygpath -awp $PARCELPATH:$C_DIR/plugins`
+                    #else
+                    #    C_HOME=$C_DIR
+                    #    PARCEL_PATH=$PARCELPATH:$C_DIR/plugins
+                    #fi
+                    #cd `dirname $setup`
+                    #PARCELPATH=$PARCEL_PATH CHANDLERHOME=$C_HOME $CHANDLERBIN/$mode/$RUN_PYTHON
+                    #   `basename $setup` test 2>&1 | tee $TESTLOG
+                    env = os.environ.copy()
+                    env['PARCELPATH']   = os.path.join(options.chandlerHome, 'plugins')
+                    env['CHANDLERHOME'] = options.chandlerHome
+
+                    os.chdir(os.path.dirname(test))
+
+                    result = build_lib.runCommand([ options.runpython[mode], test, 'test' ], env=env)
+
+                if result != 0:
+                    failed = True
+                    failedTests.append(test)
+
+                    if not options.noStop:
+                        break
+
+            if failed and not options.noStop:
+                break
+
+        os.chdir(saveCWD)
+
+    return failed
+
+
 def runFuncSuite(options):
     """
     Run the Functional Test Suite
@@ -234,17 +292,20 @@ def runFuncSuite(options):
     for mode in options.modes:
         cmd = [ options.runchandler[mode],
                 '--create', '--catch=tests', '--scriptTimeout=720', '-D1', '-M2',
-                '--profileDir="%s"' % options.profileDir,
-                '--parcelPath="%s"' % options.parcelPath,
-                '--scriptFile="%s"' % os.path.join('tools', 'cats', 'Functional', 'FunctionalTestSuite.py') ]
+                '--profileDir=%s' % options.profileDir,
+                '--parcelPath=%s' % options.parcelPath,
+                '--scriptFile=%s' % os.path.join(options.chandlerHome, 'tools', 'cats', 'Functional', 'FunctionalTestSuite.py') ]
 
         if options.noStop:
             cmd += [ '-F' ]
 
         if options.dryrun:
-            print cmd
+            log('functest: %s' % ' '.join(cmd))
             result = 0
         else:
+            if options.verbose:
+                log('Running %s' % ' '.join(cmd))
+
             result = build_lib.runCommand(cmd)
 
         if result != 0:
@@ -295,15 +356,18 @@ def runPerfSuite(options):
 
             cmd = [ options.runchandler['release'],
                     '--create', '--catch=tests', '--scriptTimeout=600',
-                    '--profileDir="%s"'  % options.profileDir,
-                    '--parcelPath="%s"'  % options.parcelPath,
-                    '--catsPerfLog="%s"' % timeLog,
-                    '--scriptFile="%s"'  % item ]
+                    '--profileDir=%s'  % options.profileDir,
+                    '--parcelPath=%s'  % options.parcelPath,
+                    '--catsPerfLog=%s' % timeLog,
+                    '--scriptFile=%s'  % item ]
 
             if options.dryrun:
-                print cmd
+                log('perftest: %s' % ' '.join(cmd))
                 result = 0
             else:
+                if options.verbose:
+                    log('Running %s' % ' '.join(cmd))
+
                 result = build_lib.runCommand(cmd)
 
             if result != 0:
@@ -323,15 +387,18 @@ def runPerfSuite(options):
 
                 cmd = [ options.runchandler['release'],
                         '--catch=tests', '--scriptTimeout=600',
-                        '--restore="%s"'    % repoDir,
-                        '--profileDir="%s"' % options.profileDir,
-                        '--parcelPath="%s"' % options.parcelPath,
-                        '--scriptFile="%s"' % item ]
+                        '--restore=%s'    % repoDir,
+                        '--profileDir=%s' % options.profileDir,
+                        '--parcelPath=%s' % options.parcelPath,
+                        '--scriptFile=%s' % item ]
 
                 if options.dryrun:
-                    print cmd
+                    log('perftest: %s' % ' '.join(cmd))
                     result = 0
                 else:
+                    if options.verbose:
+                        log('Running %s' % ' '.join(cmd))
+
                     result = build_lib.runCommand(cmd)
 
                 if result != 0:
@@ -369,6 +436,7 @@ if __name__ == '__main__':
 
     if options.unit or len(options.single) > 0:
         failed = runUnitTests(options)
+        failed = runPluginTests(options)
 
     if options.funcSuite and not failed:
         failed = runFuncSuite(options)

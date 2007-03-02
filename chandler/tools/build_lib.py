@@ -93,6 +93,10 @@ def runCommand(cmd, env=None, timeout=-1):
         >>> runCommand(['python', 'build_lib_test.py', 'nonzero'])
         42
 
+        >>> runCommand(['python', 'build_lib_test.py', 'envtest'], env={'ENVTEST': '42'})
+        42
+        0
+
         >>> runCommand(['python', 'build_lib_test.py', 'traceback'])    #doctest: +ELLIPSIS
         Traceback (most recent call last):
         ...
