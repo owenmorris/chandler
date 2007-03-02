@@ -816,7 +816,7 @@ class DBRepository(OnDemandRepository):
                                         DB_VERSION_PATCH)
                 raise RepositoryDatabaseVersionError, (expected, 'undetermined')
 
-            except DBRunRecoveryError:
+            except (DBRunRecoveryError, MemoryError):
                 self._status |= Repository.CLOSED
                 raise RepositoryRunRecoveryError, recover
 
