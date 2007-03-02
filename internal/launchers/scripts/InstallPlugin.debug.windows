@@ -3,7 +3,7 @@ setlocal
 if "%CHANDLERHOME%"=="" call :dirname "%~dp0."
 if "%CHANDLERBIN%"=="" set CHANDLERBIN=%CHANDLERHOME%
 
-call "%~dp0\RunPython.bat" "%CHANDLERHOME%\Chandler.py" %*
+call "%~dp0\RunPython.bat" -m easy_install --multi-version --install-dir="%CHANDLERHOME%\plugins" %*
 goto end
 
 :dirname

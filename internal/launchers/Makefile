@@ -1,5 +1,5 @@
 
-RELVER=0.9-$(BRANCH_REV_PREFIX)9
+RELVER=0.9-$(BRANCH_REV_PREFIX)10
 LAUNCHERS=$(INTERNAL)/launchers
 SRC=$(LAUNCHERS)
 BUILD=build_$(SNAP)
@@ -7,27 +7,25 @@ TARBALL=Launchers-$(SNAP)-$(RELVER).tar.gz
 
 include ../Makefile.inc
 
-ifeq ($(PLATFORM),windows)
-    SCRIPT_EXTENTION=".bat"
-else
-    SCRIPT_EXTENTION=
-endif
+.PHONY: scripts
 
 ifeq ($(OS),Darwin)
 
-LAUNCHER_FILES=
+SCRIPT_EXTENTION=
 LIB_FILES=
+LAUNCHER_FILES=
+
+build: scripts
 
 clean:
 	rm -f $(CHANDLERBIN)/$(SNAP)/$(TARBALL).inst
 
-build:
-	cp $(LAUNCHERS)/scripts/RunChandler.$(SNAP).$(PLATFORM) $(BUILD_ROOT)/$(SNAP)/RunChandler$(SCRIPT_EXTENTION)
-	cp $(LAUNCHERS)/scripts/RunPython.$(SNAP).$(PLATFORM) $(BUILD_ROOT)/$(SNAP)/RunPython$(SCRIPT_EXTENTION)
-
 endif
 
 ifeq ($(OS),Cygwin)
+
+SCRIPT_EXTENTION=".bat"
+LIB_FILES=$(SNAP)/bin/ms*dll
 
 ifeq ($(DEBUG),1)
 LAUNCHER_FILES=./chandlerDebug.exe
@@ -35,22 +33,21 @@ else
 LAUNCHER_FILES=./chandler.exe
 endif
 
-LIB_FILES=$(SNAP)/bin/ms*dll
-
 ARCHIVE: $(LAUNCHERS)/win/
+
+build: scripts
+	$(MAKE) -C $(LAUNCHERS)/win
 
 clean:
 	$(MAKE) -C win -k DEBUG=$(DEBUG) clean
 	rm -f $(CHANDLERBIN)/$(SNAP)/$(TARBALL).inst
 
-build: 
-	cp $(LAUNCHERS)/scripts/RunChandler.$(SNAP).$(PLATFORM) $(BUILD_ROOT)/$(SNAP)/RunChandler$(SCRIPT_EXTENTION)
-	cp $(LAUNCHERS)/scripts/RunPython.$(SNAP).$(PLATFORM) $(BUILD_ROOT)/$(SNAP)/RunPython$(SCRIPT_EXTENTION)
-	$(MAKE) -C $(LAUNCHERS)/win
-
 endif
 
 ifeq ($(OS),Linux)
+
+SCRIPT_EXTENTION=
+LIB_FILES=
 
 ifeq ($(DEBUG),1)
 LAUNCHER=chandlerDebug
@@ -59,25 +56,29 @@ else
 LAUNCHER=chandler
 LAUNCHER_FILES=./$(LAUNCHER)
 endif
-LIB_FILES=
 
 ARCHIVE: $(LAUNCHERS)/linux/
 
 clean:
 	rm -f $(CHANDLERBIN)/$(SNAP)/$(TARBALL).inst
 
-build:
-	cp $(LAUNCHERS)/scripts/RunChandler.$(SNAP).$(PLATFORM) $(BUILD_ROOT)/$(SNAP)/RunChandler$(SCRIPT_EXTENTION)
-	cp $(LAUNCHERS)/scripts/RunPython.$(SNAP).$(PLATFORM) $(BUILD_ROOT)/$(SNAP)/RunPython$(SCRIPT_EXTENTION)
+build: scripts
 	cp $(LAUNCHERS)/linux/$(LAUNCHER) $(BUILD_ROOT)/$(LAUNCHER)
 
 endif
 
 #  common to all platforms
 
-MANIFEST=$(SNAP)/Run* \
+MANIFEST=$(SNAP)/RunChandler$(SCRIPT_EXTENSION) \
+         $(SNAP)/RunPython$(SCRIPT_EXTENSION) \
+         $(SNAP)/InstallPlugin$(SCRIPT_EXTENSION) \
          $(LAUNCHER_FILES) \
          $(LIB_FILES)
+
+scripts:
+	cp -p $(LAUNCHERS)/scripts/RunChandler.$(SNAP).$(PLATFORM) $(BUILD_ROOT)/$(SNAP)/RunChandler$(SCRIPT_EXTENTION)
+	cp -p $(LAUNCHERS)/scripts/RunPython.$(SNAP).$(PLATFORM) $(BUILD_ROOT)/$(SNAP)/RunPython$(SCRIPT_EXTENTION)
+	cp -p $(LAUNCHERS)/scripts/InstallPlugin.$(SNAP).$(PLATFORM) $(BUILD_ROOT)/$(SNAP)/InstallPlugin$(SCRIPT_EXTENTION)
 
 snap: strip
 	cd $(BUILD_ROOT); \
@@ -88,8 +89,5 @@ install:
 
 realclean: clean
 	rm -f Launchers-debug-*.tar.gz* Launchers-release-*.tar.gz*
-
-upload: $(TARBALL)
-	scp $(TARBALL) $(UPLOAD)
 
 binaries: snap

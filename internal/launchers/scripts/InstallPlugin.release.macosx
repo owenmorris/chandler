@@ -1,0 +1,29 @@
+#!/bin/sh
+
+if [ "$CHANDLERHOME" = "" ]
+then
+    export CHANDLERHOME=$(dirname "$(dirname "${0}")")
+
+    # if CHANDLERHOME was empty and the script is not relative
+    # to it, then try current directory
+    if [ ! -f "$CHANDLERHOME"/Chandler.py ]
+    then
+        export CHANDLERHOME=`pwd`
+    fi
+fi
+
+if [ -f "$CHANDLERHOME"/Chandler.py ]
+then
+    echo "Chandler directory is $CHANDLERHOME"
+else
+    echo "Error:  Please unset the CHANDLERHOME environment variable or"
+    echo "        set it to point to the directory that contains Chandler.py"
+    exit 1
+fi
+
+if [ "$CHANDLERBIN" = "" ]
+then
+    export CHANDLERBIN="$CHANDLERHOME"
+fi
+
+"$CHANDLERBIN"/release/RunPython -m easy_install --multi-version --install-dir="$CHANDLERHOME"/plugins "$@"
