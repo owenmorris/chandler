@@ -21,7 +21,7 @@ import sys, os
 import platform
 import string
 from optparse import OptionParser
-from build_lib import initLog, log, rmdirs, handleManifest, runCommand, generateVersionData
+from build_lib import initLog, log, rmdirs, handleManifest, runCommand, getCommand, generateVersionData, findInPath
 
 
 _debug = True
@@ -177,7 +177,7 @@ def buildTarball(mode, options):
     if options.platformID == 'win':
         distribFile = '%s.zip' % options.distribName
 
-        cmd = [ 'zip', '-r', distribFile, options.distribName ]
+        cmd = [ findInPath(os.environ['PATH'], 'zip'), '-r', distribFile, options.distribName ]
     else:
         distribFile = '%s.tar.gz' % options.distribName
 
@@ -209,7 +209,38 @@ def buildDMG(mode, options):
     return distribFile
 
 def buildEXE(mode, options):
-    pass
+    os.chdir(options.buildDir)
+
+    result     = None
+    nsisBinary = findInPath(os.environ['PATH'], 'makensis.exe')
+
+    if nsisBinary is None:
+        log('Unable to locate makensis.exe in PATH', error=True)
+    else:
+        nsisPath   = os.path.join(options.buildDir, 'internal', 'installers', 'win')
+        nsisScript = os.path.join(nsisPath, 'makeinstaller.sh')
+
+        scriptFile = getCommand(['cygpath', '-aw', os.path.join(nsisPath, 'chandler.nsi')])
+
+        cmd = [ nsisBinary, '/DSNAP_%s' % mode.upper(),
+                            '/DDISTRIB_DIR=%s' % options.distribName,
+                            '/DDISTRIB_VERSION=%s' % options.version_info['version'],
+                            scriptFile ]
+
+        r = runCommand(cmd)
+
+        targetFile = '%s.exe' % options.distribName
+        targetPath = os.path.join(options.buildDir, targetFile)
+
+        if os.path.exists(targetPath):
+            os.remove(targetPath)
+
+        if os.path.exists(os.path.join(nsisPath, 'Setup.exe')):
+            os.rename(os.path.join(nsisPath, 'Setup.exe'), targetPath)
+
+            result = targetPath
+
+    return result
 
 def buildRPM(mode, options):
     os.chdir(options.buildDir)

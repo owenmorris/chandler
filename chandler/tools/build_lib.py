@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-#   Copyright (c) 2006,2007 Open Source Applications Foundation
+#   Copyright (c) 2006-2007 Open Source Applications Foundation
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -17,12 +17,13 @@
 #     Andi, Morgen, Mark, Heikki
 
 import os, sys
-import subprocess
 import glob
 import fnmatch
 import shutil
 import fileinput
 import errno
+import subprocess
+import killableprocess
 
 
 _logFilename   = 'hardhat.log'
@@ -33,6 +34,11 @@ _logEchoErrors = False
 
 
 def initLog(filename, prefix='[hardhat] ', echo=True, echoErrors=False):
+    """
+    Initialize log file and store log parameters
+
+    Note: initLog assumes it is called only once per program
+    """
     global _logFilename, _logPrefix, _logFile, _logEcho, _logEchoErrors
 
     _logFilename   = filename
@@ -50,6 +56,9 @@ def initLog(filename, prefix='[hardhat] ', echo=True, echoErrors=False):
 
 
 def log(msg, error=False):
+    """
+    Output log message to an open log file or to StdOut
+    """
     echo = _logEcho
 
     if _logFile is None:
@@ -65,19 +74,101 @@ def log(msg, error=False):
         sys.stdout.write('%s%s\n' % (_logPrefix, msg))
 
 
-def runCommand(cmd, env=None):
-    log('Calling: %s' % ' '.join(cmd))
+def runCommand(cmd, env=None, timeout=-1):
+    """
+    Execute the given command and log all output
 
-    p = subprocess.Popen(cmd, env=env, close_fds=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+        >>> runCommand(['echo', 'yes'])
+        yes
+        0
 
-    for line in p.stdout.readlines():
-        log(line[:-1])
+        >>> runCommand(['python', 'build_lib_test.py', 'stdout'])
+        stdout
+        0
 
-    p.wait()
+        >>> runCommand(['python', 'build_lib_test.py', 'stderr'])
+        stderr
+        0
+
+        >>> runCommand(['python', 'build_lib_test.py', 'nonzero'])
+        42
+
+        >>> runCommand(['python', 'build_lib_test.py', 'traceback'])    #doctest: +ELLIPSIS
+        Traceback (most recent call last):
+        ...
+        Exception
+        1
+
+        >>> runCommand(['python', 'build_lib_test.py', 'timeout'], timeout=5)
+        -9
+    """
+    if timeout == -1:
+        output = subprocess.PIPE
+    else:
+        output = os.tmpfile()
+
+    p = killableprocess.Popen(cmd, env=env, stdout=output, stderr=subprocess.STDOUT)
+
+    try:
+        if timeout == -1:
+            for line in p.stdout.readlines():
+                log(line[:-1])
+
+        p.wait(timeout=timeout)
+
+    except KeyboardInterrupt:
+        try:
+            p.kill(group=True)
+
+        except OSError:
+            p.wait(30)
+
+    if timeout != -1:
+        output.seek(0)
+        for line in output.readlines():
+            log(line[:-1])
 
     return p.returncode
 
+
+def getCommand(cmd, echo=False):
+    """
+    Quick routine to get the result of a command returned as a string
+    A lot of assumptions built into this code - it assumes the return
+    is going to be on a single line.  When it's processing output it
+    only returns non-blank lines and strips the cr/lf off of them
+
+        Get command output with default echo=False
+        >>> getCommand(['echo', 'no'])
+        'no'
+
+        Get command output and set echo to False
+        >>> getCommand(['echo', 'no'], False)
+        'no'
+
+        Get command output and echo to stdout
+        >>> getCommand(['echo', 'no'], True)
+        no
+        'no'
+    """
+    result = ''
+    p      = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+
+    for line in p.stdout.readlines():
+        line    = line[:-1]
+        result += line
+        if echo:
+            log(line)
+
+    p.wait()
+
+    return result
+
+
 def loadModuleFromFile(modulePath, moduleName):
+    """
+    Load into python the named module and return the module object
+    """
     if os.access(modulePath, os.R_OK):
         moduleFile = open(modulePath)
 
@@ -101,71 +192,26 @@ def loadModuleFromFile(modulePath, moduleName):
     else:
         log('Unable to load module - %s not found' % modulePath, error=True)
 
+
 def generateVersionData(chandlerDirectory, platformName, continuousBuild=None):
+    """
+    Determine the version information from the current version.py file.
+
+    Write any calculated values back to version.py.
+    """
     versionFilename = os.path.join(chandlerDirectory, 'version.py')
 
     vmodule = loadModuleFromFile(versionFilename, "vmodule")
 
-    major      = getattr(vmodule, 'major', '0')
-    minor      = getattr(vmodule, 'minor', '0')
-    release    = getattr(vmodule, 'release', '')
-    revision   = getattr(vmodule, 'revision', None)
-    checkpoint = getattr(vmodule, 'checkpoint', None)
+    _version = { 'major':      getattr(vmodule, 'major',      '0'),
+                 'minor':      getattr(vmodule, 'minor',      '0'),
+                 'release':    getattr(vmodule, 'release',    ''),
+                 'revision':   getattr(vmodule, 'revision',   ''),
+                 'checkpoint': getattr(vmodule, 'checkpoint', ''),
+               }
 
-    _template = '%(major)s.%(minor)s'
-
-    if release == 'dev':
-        _template += '.%(release)s'
-
-        if revision is None:
-            try:
-                p = subprocess.Popen(['svn', 'info'], close_fds=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
-
-                for line in p.stdout.readlines():
-                    line = line[:-1]
-                    if line.lower().startswith('revision: '):
-                        revision = line.split(' ')[1]
-
-                p.wait()
-            except:
-                pass
-
-        if revision is not None:
-            _template += '-r%(revision)s'
-
-        if checkpoint is not None:
-            _template += '-checkpoint%(checkpoint)s'
-    else:
-        if len(release) > 0:
-            _template += '-%(release)s'
-
-    if checkpoint is None:
-        checkpoint = ''
-    if revision is None:
-        revision = ''
-
-    if continuousBuild is not None:
-        _template += '-%s' % continuousBuild
-
-    _version  = { 'major':      major,
-                  'minor':      minor,
-                  'release':    release,
-                  'checkpoint': checkpoint,
-                  'revision':   revision,
-                }
-
-    version = _template % _version
-
-    _version['version']  = version
-    _version['platform'] = platformName
-
-    versionFile = open(versionFilename, 'w')
-
-    versionFile.write('# This file has been generated by the build system\n\n')
-
-    for key in ['major', 'minor', 'release', 'revision', 'checkpoint', 'version', 'platform']:
-        versionFile.write('%s = "%s"\n' % (key, _version[key]))
-
+    versionFile = open(versionFilename, 'a+')
+    versionFile.write('platform = "%s"\n' % platformName)
     versionFile.close()
 
     return _version
@@ -305,6 +351,7 @@ def handleManifest(buildDir, outputDir, distribDir, manifestFile, platformID):
 
     return result
 
+
 def copyTree(srcdir, destdir, recursive, patterns, excludes):
     """
     This function implements a directory-tree copy from one place (srcdir)
@@ -355,6 +402,7 @@ def copyTree(srcdir, destdir, recursive, patterns, excludes):
                 else:
                     copyTree(full_name, os.path.join(destdir, name), True, patterns, excludes)
 
+
 def copyEggs(srcdir, destdir, patterns, excludes):
     os.chdir(srcdir)
     # iterate over the file patterns to be copied
@@ -397,6 +445,7 @@ def copyEggs(srcdir, destdir, patterns, excludes):
                     except (IOError, os.error), why:
                         log("Can't copy %s to %s: %s" % (match, destdir, str(why)), error=True)
 
+
 def mkdirs(directory, mode=0777):
     try:
         os.makedirs(directory, mode)
@@ -404,6 +453,7 @@ def mkdirs(directory, mode=0777):
         # Reraise the error unless it's about an already existing directory
         if err.errno != errno.EEXIST or not os.path.isdir(directory):
             raise
+
 
 def rmdirs(directory):
     if os.path.islink(directory):
@@ -424,4 +474,23 @@ def rmdirs(directory):
                 os.remove(fullname)
 
         os.rmdir(directory)
+
+
+def findInPath(path, fileName):
+    """
+    Find filename in path.
+    """
+    dirs = path.split(os.pathsep)
+    for dir in dirs:
+        if os.path.isfile(os.path.join(dir, fileName)):
+            return os.path.join(dir, fileName)
+        if os.name == 'nt' or sys.platform == 'cygwin':
+            if os.path.isfile(os.path.join(dir, fileName + ".exe")):
+                return os.path.join(dir, fileName + ".exe")
+    return None
+
+
+if __name__ == "__main__":
+    import doctest
+    doctest.testmod()
 
