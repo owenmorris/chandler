@@ -324,9 +324,13 @@ def runPerfSuite(options):
     """
     failed = False
 
+    savePWD = os.getcwd()
+
     if 'release' in options.modes:
         testlist      = []
         testlistLarge = []
+
+        os.chdir(options.chandlerHome)
 
         timeLog = os.path.join(options.profileDir, 'time.log')
         repoDir = os.path.join(options.profileDir, '__repository__.001')
@@ -372,7 +376,7 @@ def runPerfSuite(options):
 
             if result != 0:
                 failed = True
-                failedTests.append(test)
+                failedTests.append(' '.join(cmd))
 
                 if not options.noStop:
                     break
@@ -403,13 +407,15 @@ def runPerfSuite(options):
 
                 if result != 0:
                     failed = True
-                    failedTests.append(test)
+                    failedTests.append(' '.join(cmd))
 
                     if not options.noStop:
                         break
 
     else:
         log('Skipping Performance Tests - release mode not specified')
+
+    os.chdir(savePWD)
 
     return failed
 
