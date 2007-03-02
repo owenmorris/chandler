@@ -43,8 +43,7 @@ class ItemRecord(eim.Record):
 
     uuid = eim.key(schema.UUID)
     title = eim.field(text1024)
-    triageStatus = eim.field(text256, [triageFilter])
-    triageStatusChanged = eim.field(eim.DecimalType(digits=12, decimal_places=2), [triageFilter])
+    triage = eim.field(text256, [triageFilter])
     createdOn = eim.field(eim.DecimalType(digits=20, decimal_places=0))
 
 
@@ -110,8 +109,7 @@ class EventModificationRecord(eim.Record):
     status = eim.field(text256, [eventStatusFilter])
     title = eim.field(text256)
     body = eim.field(eim.ClobType)
-    triageStatus = eim.field(text256, [triageFilter])
-    triageStatusChanged = eim.field(eim.DecimalType(digits=12, decimal_places=2), [triageFilter])
+    triage = eim.field(text256, [triageFilter])
     reminderTime = eim.field(eim.DecimalType(digits=20, decimal_places=0))
     icalParameters = eim.field(text1024, [nonStandardICalendarFilter])
     icalProperties = eim.field(text1024, [nonStandardICalendarFilter])

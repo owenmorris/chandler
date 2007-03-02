@@ -232,6 +232,12 @@ class PIMTranslator(eim.Translator):
 
     # ItemRecord -------------
 
+    codes = {
+        "100" : pim.TriageEnum.now,
+        "200" : pim.TriageEnum.later,
+        "300" : pim.TriageEnum.done,
+    }
+
     @model.ItemRecord.importer
     def import_item(self, record):
 
@@ -244,24 +250,18 @@ class PIMTranslator(eim.Translator):
         else:
             createdOn = eim.NoChange
 
-        if record.triageStatus not in (eim.NoChange, None):
-            # @@@MOR -- is this the right way to get an enum?  (it works)
-            triageStatus = getattr(pim.TriageEnum, record.triageStatus)
-        else:
-            triageStatus = eim.NoChange
-
         item = self.loadItemByUUID(
             record.uuid,
             pim.ContentItem,
             displayName=record.title,
-            triageStatus=triageStatus,
             createdOn=createdOn
         )
 
-
-        # Need to make sure we set tsc after triageStatus
-        if record.triageStatusChanged not in (eim.NoChange, None):
-            item.triageStatusChanged = float(record.triageStatusChanged)
+        if record.triage not in (eim.NoChange, None):
+            code, timestamp, auto = record.triage.split(" ")
+            item.triageStatus = self.codes[code]
+            item.triageStatusChanged = float(timestamp)
+            # TODO: do something with auto
 
 
 
@@ -274,17 +274,22 @@ class PIMTranslator(eim.Translator):
         else:
             created = None
 
-        # TODO: see why some items don't have triageStatusChanged
-        if hasattr(item, "triageStatusChanged"):
-            tsc = Decimal("%.2f" % item.triageStatusChanged)
+        for code, value in self.codes.iteritems():
+            if value == item.triageStatus:
+                break
         else:
-            tsc = None
+            code = "100"
+
+        auto = ("1" if getattr(item, "doAutoTriageOnDateChange", True) else "0")
+
+        triage = "%s %.2f %s" % (
+            code, getattr(item, "triageStatusChanged", 0.0), auto
+        )
 
         yield model.ItemRecord(
             item.itsUUID,                               # uuid
             item.displayName,                           # title
-            str(item.triageStatus),                     # triageStatus
-            tsc,                                        # t_s_changed
+            triage,                                     # triage
             created                                     # createdOn
         )
 
@@ -594,7 +599,6 @@ class PIMTranslator(eim.Translator):
                 status,
                 title,
                 body,
-                eim.Missing,
                 eim.Missing,
                 eim.Missing,
                 None,                                   # icalProperties
