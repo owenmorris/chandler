@@ -684,16 +684,26 @@ def initPlugins(options, path):
     # otherwise all plugins are added to the working_set
 
     if options is not None:
-        prefs = loadPrefs(options).get('plugins', {})
+        prefs = loadPrefs(options)
+        pluginPrefs = prefs.get('plugins', None)
     else:
         prefs = None
+        pluginPrefs = None
     
     plugin_env = Environment(path)
     eggs = []
 
+    # remove uninstalled plugins from prefs
+    if pluginPrefs is not None:
+        for project_name in pluginPrefs.keys():
+            if project_name not in plugin_env:
+                del prefs['plugins'][project_name]
+        prefs.write()
+
+    # add active plugins to working set
     for project_name in sorted(plugin_env):
-        if prefs is not None:
-            if prefs.get(project_name) == 'inactive':
+        if pluginPrefs is not None:
+            if pluginPrefs.get(project_name) == 'inactive':
                 continue
         for egg in plugin_env[project_name]:
             working_set.add(egg)

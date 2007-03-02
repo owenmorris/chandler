@@ -40,4 +40,6 @@ The svn sources for this plugin are at:
 
  http://svn.osafoundation.org/chandler/trunk/chandler/projects/Chandler-HelloWorldPlugin#egg=Chandler_HelloWorldPlugin-dev
 
-and can be retrieved with ``RunPython -m easy_install --editable -b . Chandler_HelloWorldPlugin==dev``.
+and can be retrieved with::
+
+    RunPython -m easy_install --editable -b . Chandler_HelloWorldPlugin==dev
