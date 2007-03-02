@@ -11,7 +11,7 @@ include ../Makefile.inc
 
 ifeq ($(OS),Darwin)
 
-SCRIPT_EXTENTION=
+SCRIPT_EXTENSION=
 LIB_FILES=
 LAUNCHER_FILES=
 
@@ -24,7 +24,7 @@ endif
 
 ifeq ($(OS),Cygwin)
 
-SCRIPT_EXTENTION=".bat"
+SCRIPT_EXTENSION=".bat"
 LIB_FILES=$(SNAP)/bin/ms*dll
 
 ifeq ($(DEBUG),1)
@@ -46,7 +46,7 @@ endif
 
 ifeq ($(OS),Linux)
 
-SCRIPT_EXTENTION=
+SCRIPT_EXTENSION=
 LIB_FILES=
 
 ifeq ($(DEBUG),1)
@@ -76,9 +76,9 @@ MANIFEST=$(SNAP)/RunChandler$(SCRIPT_EXTENSION) \
          $(LIB_FILES)
 
 scripts:
-	cp -p $(LAUNCHERS)/scripts/RunChandler.$(SNAP).$(PLATFORM) $(BUILD_ROOT)/$(SNAP)/RunChandler$(SCRIPT_EXTENTION)
-	cp -p $(LAUNCHERS)/scripts/RunPython.$(SNAP).$(PLATFORM) $(BUILD_ROOT)/$(SNAP)/RunPython$(SCRIPT_EXTENTION)
-	cp -p $(LAUNCHERS)/scripts/InstallPlugin.$(SNAP).$(PLATFORM) $(BUILD_ROOT)/$(SNAP)/InstallPlugin$(SCRIPT_EXTENTION)
+	cp -p $(LAUNCHERS)/scripts/RunChandler.$(SNAP).$(PLATFORM) $(BUILD_ROOT)/$(SNAP)/RunChandler$(SCRIPT_EXTENSION)
+	cp -p $(LAUNCHERS)/scripts/RunPython.$(SNAP).$(PLATFORM) $(BUILD_ROOT)/$(SNAP)/RunPython$(SCRIPT_EXTENSION)
+	cp -p $(LAUNCHERS)/scripts/InstallPlugin.$(SNAP).$(PLATFORM) $(BUILD_ROOT)/$(SNAP)/InstallPlugin$(SCRIPT_EXTENSION)
 
 snap: strip
 	cd $(BUILD_ROOT); \
