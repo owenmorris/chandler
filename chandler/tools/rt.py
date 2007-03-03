@@ -212,7 +212,7 @@ def runUnitTests(options):
                 if options.dryrun:
                     result = 0
                 else:
-                    result = build_lib.runCommand(cmd)
+                    result = build_lib.runCommand(cmd, timeout=600)
 
                 if result != 0:
                     log('***Error exit code=%d' % result)
@@ -267,7 +267,7 @@ def runPluginTests(options):
                         result = 0
                     else:
                         os.chdir(os.path.dirname(test))
-                        result = build_lib.runCommand(cmd, env=env)
+                        result = build_lib.runCommand(cmd, timeout=600, env=env)
 
                     if result != 0:
                         log('***Error exit code=%d' % result)
@@ -312,7 +312,7 @@ def runFuncSuite(options):
         if options.dryrun:
             result = 0
         else:
-            result = build_lib.runCommand(cmd)
+            result = build_lib.runCommand(cmd, timeout=900)
 
         if result != 0:
             log('***Error exit code=%d' % result)
@@ -324,8 +324,7 @@ def runFuncSuite(options):
 
     return failed
 
-
-def runScriptPerfTests(options, testlist):
+def runScriptPerfTests(options, testlist, largeData=False):
     failed = False
 
     for item in testlist:
@@ -335,6 +334,9 @@ def runScriptPerfTests(options, testlist):
         #                                   --scriptTimeout=600
         #                                   --scriptFile="$TESTNAME" &> $TESTLOG
 
+#        if item.find('PerfImport') >= 0:
+#            continue
+
         timeLog = os.path.join(options.profileDir, 'time.log')
 
         if not options.dryrun:
@@ -342,11 +344,17 @@ def runScriptPerfTests(options, testlist):
                 os.remove(timeLog)
 
         cmd = [ options.runchandler['release'],
-                '--create', '--catch=tests', '--scriptTimeout=600',
+                '--catch=tests', '--scriptTimeout=600',
                 '--profileDir=%s'  % options.profileDir,
                 '--parcelPath=%s'  % options.parcelPath,
                 '--catsPerfLog=%s' % timeLog,
                 '--scriptFile=%s'  % item ]
+
+        if not largeData:
+            cmd += ['--create']
+        else:
+            cmd += ['--restore=%s' % os.path.join(options.profileDir, 
+                                                  '__repository__.001')]
 
         if options.verbose:
             log(' '.join(cmd))
@@ -354,18 +362,28 @@ def runScriptPerfTests(options, testlist):
         if options.dryrun:
             result = 0
         else:
-            result = build_lib.runCommand(cmd)
+            # XXX Need to log output
+            result = build_lib.runCommand(cmd, timeout=720)
 
         if result != 0:
-            log('***Error exit code=%d' % result)
+            log('***Error exit code=%d, %s' % (result, item[item.rfind('/') + 1:]))
             failed = True
             failedTests.append(item)
 
             if not options.noStop:
                 break
+        else:
+            if options.dryrun:
+                log(item[item.rfind('/') + 1:] + ' [ 0.00s ]')
+            else:
+                # XXX need to scan output to see if success
+                for line in open(timeLog):
+                    log(item[item.rfind('/') + 1:] + ' [ %ss ]' % line[:-1])
+                    break
+
+    # Need to store logs somewhere so that once all done we can output
 
     return failed
-
 
 def runPerfSuite(options):
     """
@@ -384,7 +402,7 @@ def runPerfSuite(options):
                 os.chdir(options.chandlerHome)
                 for item in glob.glob(os.path.join(options.profileDir, '__repository__.0*')):
                     if os.path.isdir(item):
-                        build_util.rmdirs(item)
+                        build_lib.rmdirs(item)
                     else:
                         os.remove(item)
 
@@ -397,7 +415,7 @@ def runPerfSuite(options):
             failed = runScriptPerfTests(options, testlist)
 
             if not failed or options.noStop:
-                if runScriptPerfTests(options, testlistLarge):
+                if runScriptPerfTests(options, testlistLarge, largeData=True):
                     failed = True
 
             if not failed or options.noStop:
@@ -464,7 +482,11 @@ def main(options):
     >>> options.funcSuite = False
     >>> options.perf      = True
     >>> main(options)
-    /.../RunChandler... --create --catch=tests --scriptTimeout=600 --profileDir=.../test_profile --parcelPath=.../tools/QATestScripts/DataFiles --catsPerfLog=.../test_profile/time.log --scriptFile=.../tools/QATestScripts/Performance/PerfImportCalendar.py
+    /.../RunChandler... --catch=tests --scriptTimeout=600 --profileDir=.../test_profile --parcelPath=.../tools/QATestScripts/DataFiles --catsPerfLog=.../test_profile/time.log --scriptFile=.../tools/QATestScripts/Performance/PerfImportCalendar.py --create
+    PerfImportCalendar.py [ 0.00s ]
+    ...
+    /.../RunChandler... --catch=tests --scriptTimeout=600 --profileDir=.../test_profile --parcelPath=.../tools/QATestScripts/DataFiles --catsPerfLog=.../test_profile/time.log --scriptFile=.../tools/QATestScripts/Performance/PerfLargeDataResizeCalendar.py --restore=.../test_profile/__repository__.001
+    PerfLargeDataResizeCalendar.py [ 0.00s ]
     ...
 
     """
