@@ -521,22 +521,6 @@ class EventStamp(Stamp):
         defaultValue=False
     )
     
-    icalendarProperties = schema.Mapping(
-        schema.Text,
-        defaultValue = None,
-        doc="Original icalendar property name/value pairs not understood "
-            "by Chandler.  Subcomponents (notably VALARMS) aren't stored."
-    )
-
-    icalendarParameters = schema.Mapping(
-        schema.Text,
-        defaultValue = None,
-        doc="property name/parameter pairs for parameters not understood by "
-            "Chandler.  The parameter value is the concatenation of "
-            "paramater key/value pairs, separated by semi-colons, like the "
-            "iCalendar serialization of those parameters"
-    )
-
     recurrenceEnd = schema.One(
         schema.DateTimeTZ,
         defaultValue = None,
@@ -1580,7 +1564,8 @@ class EventStamp(Stamp):
                                 datetime.combine(occurrence.startTime.date(),
                                                  recurrenceTime))
                     
-            setattr(self.itsItem, attr, value)
+            if attr is not None:
+                setattr(self.itsItem, attr, value)
             
             if isFirst:
                 # Make sure master's recurrenceID matches its effectiveStartTime
@@ -1625,7 +1610,8 @@ class EventStamp(Stamp):
                     # is applied to both items. Note that Occurrences get
                     # their rruleset from their masters, so there's no
                     # need to reassign
-                    setattr(newMasterItem, attr, value)
+                    if attr is not None:
+                        setattr(newMasterItem, attr, value)
                     newMaster.startTime = newMaster.recurrenceID = self.recurrenceID
                     if newMaster.occurrenceFor:
                         del newMaster.occurrenceFor #self overrides newMaster

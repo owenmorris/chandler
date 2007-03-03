@@ -95,7 +95,7 @@ def installParcel(parcel, oldVersion=None):
 
     SharingPreferences.update(parcel, "prefs")
     Reference.update(parcel, 'currentWebDAVAccount')
-
+    
     from osaf import startup
     startup.PeriodicTask.update(parcel, "sharingTask",
         invoke="osaf.sharing.BackgroundSyncHandler",
@@ -115,11 +115,11 @@ def installParcel(parcel, oldVersion=None):
     )
 
     
-    # Make a collection of all Events with an icalUID, so that
+    # Make a collection of all Notes with an icalUID, so that
     # we can index it.    
     filterAttribute = pim.Note.icalUID.name
     iCalendarItems = FilteredCollection.update(parcel, 'iCalendarItems',
-        source = Calendar.EventStamp.getCollection(parcel.itsView),
+        source=schema.ns("osaf.pim", parcel.itsView).noteCollection,
         filterExpression="view.hasTrueValues(uuid, '%s')" % (filterAttribute,),
         filterAttributes=[filterAttribute])
     iCalendarItems.addIndex('icalUID', 'value', attribute=filterAttribute)

@@ -24,7 +24,7 @@ import application.Parcel as Parcel
 from application import schema
 from osaf import pim, sharing
 import osaf.sharing.ICalendar as ICalendar
-from osaf.pim import ListCollection, Remindable
+from osaf.pim import ListCollection, Note
 import osaf.pim.calendar.Calendar as Calendar
 from osaf.pim.calendar.TimeZone import convertToICUtzinfo, TimeZoneInfo
 import datetime
@@ -159,7 +159,8 @@ class ICalendarTestCase(SingleRepositoryTestCase):
 
     def testRoundTripRecurrenceCount(self):
         format = self.Import(self.view, u'Recurrence.ics')
-        event = sharing.findUID(self.view, '5B30A574-02A3-11DA-AA66-000A95DA3228')
+        event = pim.EventStamp(sharing.findUID(self.view,
+                                       '5B30A574-02A3-11DA-AA66-000A95DA3228'))
         third = event.getFirstOccurrence().getNextOccurrence().getNextOccurrence()
         self.assertEqual(third.summary, u'\u00FCChanged title')
         self.assertEqual(third.recurrenceID, datetime.datetime(2005, 8, 10, 
@@ -167,7 +168,8 @@ class ICalendarTestCase(SingleRepositoryTestCase):
         # while were at it, test bug 3509, all day event duration is off by one
         self.assertEqual(event.duration, datetime.timedelta(0))
         # make sure we imported the floating EXDATE
-        event = sharing.findUID(self.view, '07f3d6f0-4c04-11da-b671-0013ce40e90f')
+        event = pim.EventStamp(sharing.findUID(self.view,
+                                        '07f3d6f0-4c04-11da-b671-0013ce40e90f'))
         self.assertEqual(event.rruleset.exdates[0], datetime.datetime(2005, 12, 6, 12, 30,
                                                     tzinfo=ICUtzinfo.floating))
         
@@ -188,8 +190,8 @@ class ICalendarTestCase(SingleRepositoryTestCase):
 
     def testImportRecurrenceWithTimezone(self):
         format = self.Import(self.view, u'RecurrenceWithTimezone.ics')
-        event = sharing.findUID(self.view,
-                                  'FF14A660-02A3-11DA-AA66-000A95DA3228')
+        event = pim.EventStamp(sharing.findUID(self.view,
+                                  'FF14A660-02A3-11DA-AA66-000A95DA3228'))
         # THISANDFUTURE change creates a new event, so there's nothing in
         # event.modifications
         mods = [evt for evt in event.modifications if
@@ -213,14 +215,15 @@ class ICalendarTestCase(SingleRepositoryTestCase):
         # @@@ [grant] Check for that reminders end up expired or not, as
         # appropriate.
         format = self.Import(self.view, u'RecurrenceWithAlarm.ics')
-        future = sharing.findUID(self.view, 'RecurringAlarmFuture')
+        future = pim.EventStamp(sharing.findUID(self.view,
+                                'RecurringAlarmFuture'))
         reminder = future.itsItem.getUserReminder()
         # this will start failing in 2015...
         self.assertEqual(reminder.delta, datetime.timedelta(minutes=-5))
         second = future.getFirstOccurrence().getNextOccurrence()
         self.failUnless(second.itsItem.reminders is future.itsItem.reminders)
 
-        past = sharing.findUID(self.view, 'RecurringAlarmPast')
+        past = pim.EventStamp(sharing.findUID(self.view, 'RecurringAlarmPast'))
         reminder = past.itsItem.getUserReminder()
         self.assertEqual(reminder.delta, datetime.timedelta(hours=-1))
         second = past.getFirstOccurrence().getNextOccurrence()
@@ -228,8 +231,8 @@ class ICalendarTestCase(SingleRepositoryTestCase):
 
     def testImportAbsoluteReminder(self):
         format = self.Import(self.view, u'AbsoluteReminder.ics')
-        event = sharing.findUID(self.view, 'I-have-an-absolute-reminder')
-        reminder = event.itsItem.getUserReminder()
+        eventItem = sharing.findUID(self.view, 'I-have-an-absolute-reminder')
+        reminder = eventItem.getUserReminder()
         self.failUnless(reminder is not None, "No reminder was set")
         self.failUnlessEqual(reminder.absoluteTime,
                              datetime.datetime(2006, 9, 25, 8,
@@ -464,7 +467,483 @@ class TimeZoneTestCase(unittest.TestCase):
             ICUtzinfo.getInstance("America/Detroit"),
             zone)
 
+from util.testcase import SingleRepositoryTestCase as NRVTestCase
+class SharingTestCase(NRVTestCase):
+    
+    def setUp(self):
+        super(SharingTestCase, self).setUp()
+        
+        repoView = self.view
+        
+        collection = ListCollection(itsView=repoView, displayName=u"Woo!")
+        collection.subscribers = [] # woo!
+        self.share = sharing.Share(itsView=repoView, contents=collection)
+
+        # Create our format
+        self.share.format = sharing.ICalendarFormat(itsParent=self.share)
+
+    def tearDown(self):
+        
+        self.share.contents.delete(recursive=True)
+        self.share.delete(recursive=True)
+
+        self.share = None
+        
+        super(SharingTestCase, self).tearDown()
+    
+class ImportTodoTestCase(SharingTestCase):
+    
+    def runImport(self, *lines):
+        text = "\r\n".join(lines)
+        
+        return self.share.format.importProcess(self.share.itsView,
+                                               text, item=self.share.contents)
+
+    
+    
+    def testSimple(self):
+        self.runImport(
+            "BEGIN:VCALENDAR",
+            "VERSION:2.0",
+            "CALSCALE:GREGORIAN",
+            "METHOD:PUBLISH",
+            "BEGIN:VTODO",
+            "DTSTART:20060213T000000",
+            "SUMMARY:A ToDo",
+            "UID:4A7707B5-6E87-49ED-8871-7A0BD37F0349",
+            "SEQUENCE:2",
+            "DTSTAMP:20060227T163229Z",
+            "END:VTODO",
+            "END:VCALENDAR"
+        )
+        
+        self.failUnlessEqual(1, len(self.share.contents))
+        
+        item = self.share.contents.first()
+        task = pim.TaskStamp(item)
+        
+        self.failUnless(pim.has_stamp(task, pim.TaskStamp))
+        self.failUnlessEqual(task.summary, u"A ToDo")
+        self.failUnlessEqual(task.itsItem.triageStatus, pim.TriageEnum.now)
+        self.failIf(task.itsItem.needsReply)
+
+    def testDueDate(self):
+        self.runImport(
+            "BEGIN:VCALENDAR",
+            "VERSION:2.0",
+            "CALSCALE:GREGORIAN",
+            "METHOD:PUBLISH",
+            "BEGIN:VTODO",
+            "DTSTART:20060213T000000",
+            "SUMMARY:Deferred ToDo",
+            "STATUS:CANCELLED",
+            "UID:B75093D9-432F-4684-8DB7-744AAB7F747B",
+            "SEQUENCE:4",
+            "DTSTAMP:20060227T203912Z",
+            "DUE;VALUE=DATE:20070121",
+            "END:VTODO",
+            "END:VCALENDAR"
+        )
+        
+        self.failUnlessEqual(1, len(self.share.contents))
+        
+        item = self.share.contents.first()
+        task = pim.TaskStamp(item)
+        
+        self.failUnless(pim.has_stamp(task, pim.TaskStamp))
+        self.failUnless(pim.has_stamp(task, pim.EventStamp))
+        self.failUnlessEqual(task.summary, u"Deferred ToDo")
+        self.failUnlessEqual(pim.EventStamp(task).startTime.date(),
+                             datetime.date(2007, 1, 21))
+        self.failUnlessEqual(task.itsItem.triageStatus, pim.TriageEnum.later)
+
+    def testStatus(self):
+        self.runImport(
+            "BEGIN:VCALENDAR",
+            "VERSION:2.0",
+            "CALSCALE:GREGORIAN",
+            "METHOD:PUBLISH",
+            "BEGIN:VTODO",
+            "DTSTART:20060213T000000",
+            "SUMMARY:ToDone",
+            "DTSTAMP:20060227T203912Z",
+            "UID:DD5D311A-F73F-4611-B463-A5766A1BAE5F",
+            "SEQUENCE:6",
+            "STATUS:COMPLETED",
+            "END:VTODO",
+            "END:VCALENDAR"
+        )
+        
+        self.failUnlessEqual(1, len(self.share.contents))
+        
+        item = self.share.contents.first()
+        task = pim.TaskStamp(item)
+        
+        self.failUnless(pim.has_stamp(task, pim.TaskStamp))
+        self.failUnlessEqual(task.summary, u"ToDone")
+        self.failIf(hasattr(task, 'dueDate'))
+        self.failUnlessEqual(task.itsItem.triageStatus, pim.TriageEnum.done)
+
+    def testStatus(self):
+        self.runImport(
+            "BEGIN:VCALENDAR",
+            "VERSION:2.0",
+            "CALSCALE:GREGORIAN",
+            "METHOD:PUBLISH",
+            "BEGIN:VTODO",
+            "DTSTART:20060213T000000",
+            "SUMMARY:ToDone",
+            "DTSTAMP:20060227T203912Z",
+            "UID:DD5D311A-F73F-4611-B463-A5766A1BAE5F",
+            "SEQUENCE:6",
+            "STATUS:COMPLETED",
+            "END:VTODO",
+            "END:VCALENDAR"
+        )
+        
+        self.failUnlessEqual(1, len(self.share.contents))
+        
+        item = self.share.contents.first()
+        task = pim.TaskStamp(item)
+        
+        self.failUnless(pim.has_stamp(task, pim.TaskStamp))
+        self.failUnlessEqual(task.summary, u"ToDone")
+        self.failIf(hasattr(task, 'dueDate'))
+        self.failUnlessEqual(task.itsItem.triageStatus, pim.TriageEnum.done)
+
+    def testNeedsAction(self):
+        self.runImport(
+            "BEGIN:VCALENDAR",
+            "VERSION:2.0",
+            "CALSCALE:GREGORIAN",
+            "METHOD:PUBLISH",
+            "BEGIN:VTODO",
+            "DTSTART:20060213T000000",
+            "SUMMARY:Really\, do this right away",
+            "DTSTAMP:20060227T203912Z",
+            "UID:1E192668-99F7-4FA1-B1F7-70A05FC8E357",
+            "SEQUENCE:6",
+            "STATUS:NEEDS-ACTION",
+            "END:VTODO",
+            "END:VCALENDAR"
+        )
+        
+        self.failUnlessEqual(1, len(self.share.contents))
+        
+        item = self.share.contents.first()
+        task = pim.TaskStamp(item)
+        
+        self.failUnless(pim.has_stamp(task, pim.TaskStamp))
+        self.failUnlessEqual(task.summary, u"Really, do this right away")
+        self.failIf(hasattr(task, 'dueDate'))
+        self.failUnlessEqual(task.itsItem.triageStatus, pim.TriageEnum.now)
+        self.failUnless(task.itsItem.needsReply)
+
+    def testInProcess(self):
+        self.runImport(
+            "BEGIN:VCALENDAR",
+            "VERSION:2.0",
+            "CALSCALE:GREGORIAN",
+            "METHOD:PUBLISH",
+            "BEGIN:VTODO",
+            "DTSTART:20060213T000000",
+            "SUMMARY:I'm busy!",
+            "DTSTAMP:20060227T203912Z",
+            "UID:48F6177A-3EEF-423B-ABBA-0B506189FD29",
+            "SEQUENCE:1",
+            "STATUS:IN-PROCESS",
+            "END:VTODO",
+            "END:VCALENDAR"
+        )
+        
+        self.failUnlessEqual(1, len(self.share.contents))
+        
+        item = self.share.contents.first()
+        task = pim.TaskStamp(item)
+        
+        self.failUnless(pim.has_stamp(task, pim.TaskStamp))
+        self.failUnlessEqual(task.summary, u"I'm busy!")
+        self.failIf(hasattr(task, 'dueDate'))
+        self.failUnlessEqual(task.itsItem.triageStatus, pim.TriageEnum.now)
+        self.failIf(task.itsItem.needsReply)
+
+    def testCompleted(self):
+        self.runImport(
+            "BEGIN:VCALENDAR",
+            "VERSION:2.0",
+            "CALSCALE:GREGORIAN",
+            "METHOD:PUBLISH",
+            "BEGIN:VTODO",
+            "DTSTART:20060213T000000",
+            "SUMMARY:ToDoneAndWhen",
+            "DTSTAMP:20060227T203912Z",
+            "UID:DD5D311A-F73F-4619-B463-A5766A1BAE5F",
+            "SEQUENCE:6",
+            "STATUS:COMPLETED",
+            "COMPLETED:20060301T010000Z",
+            "END:VTODO",
+            "END:VCALENDAR"
+        )
+        
+        self.failUnlessEqual(1, len(self.share.contents))
+        
+        item = self.share.contents.first()
+        task = pim.TaskStamp(item)
+        
+        self.failUnless(pim.has_stamp(task, pim.TaskStamp))
+        self.failUnlessEqual(task.summary, u"ToDoneAndWhen")
+        self.failIf(hasattr(task, 'dueDate'))
+        self.failUnlessEqual(task.itsItem.triageStatus, pim.TriageEnum.done)
+        self.failUnlessEqual(task.itsItem.triageStatusChanged,
+                             -1141203600.0)
+    def testDescription(self):
+        self.runImport(
+            "BEGIN:VCALENDAR",
+            "VERSION:2.0",
+            "CALSCALE:GREGORIAN",
+            "METHOD:PUBLISH",
+            "BEGIN:VTODO",
+            "UID:2C41172C-6812-4848-A9BA-73A827B06E28",
+            "SEQUENCE:7",
+            "STATUS:COMPLETED",
+            "SUMMARY:To Do",
+            "COMPLETED:20060227T080000Z",
+            "DESCRIPTION:This is a very important TODO:\\n\\n\xe2\x80\xa2 Do one thing\\n\xe2\x80\xa2 Do somet",
+            " hing else",
+            "END:VTODO",
+            "END:VCALENDAR"
+        )
+        
+        self.failUnlessEqual(1, len(self.share.contents))
+        
+        item = self.share.contents.first()
+        task = pim.TaskStamp(item)
+        
+        self.failUnless(pim.has_stamp(task, pim.TaskStamp))
+        self.failUnlessEqual(item.body,
+                u"This is a very important TODO:\n\n\u2022 Do one thing\n\u2022 Do something else")
+        self.failIf(hasattr(task, 'dueDate'))
+        self.failUnlessEqual(item.triageStatus, pim.TriageEnum.done)
+
+
+    def testUpdate(self):
+        self.runImport(
+            "BEGIN:VCALENDAR",
+            "VERSION:2.0",
+            "CALSCALE:GREGORIAN",
+            "METHOD:PUBLISH",
+            "BEGIN:VTODO",
+            "DTSTART:20060214T000000",
+            "SUMMARY:To Do (Initial)",
+            "UID:ED5CAC89-4BEE-4903-8DE8-1AEF6FC1D431",
+            "DTSTAMP:20060227T233332Z",
+            "SEQUENCE:11",
+            "DESCRIPTION:How will I ever get this done?",
+            "END:VTODO",
+            "END:VCALENDAR",
+        )
+        self.runImport(
+            "BEGIN:VCALENDAR",
+            "VERSION:2.0",
+            "CALSCALE:GREGORIAN",
+            "METHOD:PUBLISH",
+            "BEGIN:VTODO",
+            "DTSTART:20060214T000000",
+            "SUMMARY:To Do (Initial)",
+            "UID:ED5CAC89-4BEE-4903-8DE8-1AEF6FC1D431",
+            "DTSTAMP:20060227T233332Z",
+            "SEQUENCE:12",
+            "DESCRIPTION:Phew!",
+            "STATUS:COMPLETED",
+            "DUE;VALUE=DATE:20060327",
+            "END:VTODO",
+            "END:VCALENDAR",
+        )
+        
+        self.failUnlessEqual(1, len(self.share.contents))
+        
+        item = self.share.contents.first()
+        task = pim.TaskStamp(item)
+        
+        self.failUnless(pim.has_stamp(task, pim.TaskStamp))
+        self.failUnless(pim.has_stamp(task, pim.EventStamp))
+        self.failUnlessEqual(item.body, u"Phew!")
+        self.failUnlessEqual(pim.EventStamp(task).startTime.date(),
+                             datetime.date(2006, 3, 27))
+        self.failUnlessEqual(task.itsItem.triageStatus, pim.TriageEnum.done)
+
+
+class ExportTodoTestCase(SharingTestCase):
+    def getExportedTodoComponent(self, **todoParams):
+        """
+        Utility method to reparse the iCalendar content
+        we've generated, so that we can check that it's
+        what we expect.
+        """
+        
+        task = pim.Task(itsView=self.view, **todoParams)
+        self.share.contents.add(task.itsItem)
+        
+        iCalendarContent = self.share.format.exportProcess(self.share)
+
+        self.failUnlessEqual(type(iCalendarContent), str)
+        # Could in general add a check for utf-8 decodability
+
+        io = cStringIO.StringIO(iCalendarContent)
+
+        components = list(vobject.readComponents(io, validate=True))
+        self.failUnlessEqual(len(components), 1,
+                            "exportProcess should create a single calendar")
+        
+        calendar = components[0]
+
+        # We expect exactly one child component ...
+        self.failUnlessEqual(len(list(calendar.components())), 1)
+        
+        vtodo = calendar.vtodo_list[0]
+        self.failUnlessEqual(task.itsItem.icalUID,
+                             vtodo.getChildValue('uid'))
+        
+        return (task, vtodo)
+
+
+
+    def testSimple(self):
+        item, vtodo = self.getExportedTodoComponent(displayName=u'Important')
+
+        self.failUnlessEqual(u'Important', vtodo.getChildValue('summary'))
+        
+
+    def testDueDate(self):
+        task, vtodo = self.getExportedTodoComponent(
+                        displayName=u'Some stupid task',
+                        dueDate=datetime.datetime(2003, 12, 24))
+
+        self.failUnlessEqual(u'Some stupid task',
+                             vtodo.getChildValue('summary'))
+        self.failUnlessEqual(vtodo.getChildValue('due'), task.dueDate.date())
+        
+    def testStatus(self):
+        task, vtodo = self.getExportedTodoComponent(
+                displayName=u'Some completed stupid task',
+                triageStatus=pim.TriageEnum.done,
+                needsReply=True,
+                dueDate=datetime.datetime(2003, 12, 24))
+        
+        self.failUnlessEqual(u'Some completed stupid task',
+                             vtodo.getChildValue('summary'))
+        self.failUnlessEqual(vtodo.getChildValue('due'), task.dueDate.date())
+        
+        self.failUnlessEqual(vtodo.getChildValue('status'), 'completed')
+
+    def testLaterStatus(self):
+        task, vtodo = self.getExportedTodoComponent(
+                displayName=u'Some deferred task',
+                triageStatus=pim.TriageEnum.later)
+                        
+        self.failUnlessEqual(u'Some deferred task',
+                             vtodo.getChildValue('summary'))
+        
+        self.failUnlessEqual(vtodo.getChildValue('status'), u'cancelled')
+        
+    def testNeedsReplyStatus(self):
+        task, vtodo = self.getExportedTodoComponent(
+                displayName=u'Very important, Bob',
+                triageStatus=pim.TriageEnum.now,
+                needsReply=True)
+                
+        self.failUnlessEqual(u'Very important, Bob',
+                             vtodo.getChildValue('summary'))
+        self.failUnlessEqual(u'needs-action',
+                             vtodo.getChildValue('status'))
+        
+    def testDescription(self):
+        body = u"This is a great \u201cdescription\u201d\n"
+        
+        task, vtodo = self.getExportedTodoComponent(
+            displayName = u'Who cares',
+            body = body)
             
+        self.failUnlessEqual(vtodo.getChildValue('description'), body)
+
+
+class ICalUIDTestCase(NRVTestCase):
+
+    def setUp(self):
+        super(ICalUIDTestCase, self).setUp()
+        self.format = sharing.ICalendarFormat(itsView=self.view)
+        
+    def testWrapper(self):
+        task = pim.Task(itsView=self.view, displayName=u"task test")
+        
+        taskItem = task.itsItem
+        
+        # Check that we get back the correct defaultValue.
+        self.failUnlessRaises(AttributeError, getattr, taskItem, 'icalUID')
+        
+        taskItem.icalUID = u'999-9999'
+        getattrUID = getattr(taskItem, Note.icalUID.name)
+        
+        self.failUnlessEqual(u'999-9999', getattrUID)
+        
+    def testCreate(self):
+        eventCreateDict = {
+            'itsView': self.view,
+            'summary': u'event creation test',
+            Note.icalUID.name: u'abcdef',
+            'startTime': datetime.datetime(1996, 11, 11)
+        }
+        event = Calendar.CalendarEvent(**eventCreateDict)
+        
+        self.failUnlessEqual(u'abcdef', event.itsItem.icalUID)
+        
+
+    def testFindEventUID(self):
+        uid = u'123'
+        
+        self.failUnless(sharing.findUID(self.view, uid) is None)
+
+        
+        event = Calendar.CalendarEvent(
+            itsView = self.view,
+            displayName = u"event test",
+            startTime = datetime.datetime(2010, 1, 1, 10),
+            duration = datetime.timedelta(hours=2))
+
+        self.failUnless(sharing.findUID(self.view, uid) is None)
+        
+        item = event.itsItem
+        setattr(item, Note.icalUID.name, uid)
+            
+        self.failUnless(sharing.findUID(self.view, uid) is item)
+        
+    def testDelete(self):
+        task = pim.Task(itsView=self.view)
+        
+        # Set the task's UID ....
+        task.itsItem.icalUID = u'yay'
+        
+        # Delete it ...
+        task.itsItem.delete(recursive=True)
+        
+        # ... and fail if it can still be found
+        self.failIf(sharing.findUID(self.view, u'yay') is not None)
+
+    def testUpdate(self):
+        uid = u'on-a-limo-to-milano-solo-gigolos-dont-nod'
+        
+        task = pim.Task(itsView=self.view)
+        task.itsItem.icalUID = uid
+        
+        event = Calendar.CalendarEvent(itsView=self.view,
+                               startTime=datetime.datetime(2000, 1, 1))
+                               
+        event.itsItem.icalUID = uid
+        del task.itsItem.icalUID # Necessary?
+        
+        self.failUnless(event.itsItem is sharing.findUID(self.view, uid))
+
+
 class ICalendarMergeTestCase(SingleRepositoryTestCase):
     ETAG = 0
     before = None
@@ -551,7 +1030,6 @@ class ICalendarMergeTestCase(SingleRepositoryTestCase):
         self._doSync(
             "BEGIN:VCALENDAR",
             "VERSION:2.0",
-            "PRODID:-//PYVOBJECT//NONSGML Version 1//EN",
             "BEGIN:VEVENT",
             "UID:9cf1f128-c416-11da-9051-000a95d7eed8",
             "DTSTART:20060828T130000",
@@ -604,7 +1082,6 @@ class ICalendarMergeTestCase(SingleRepositoryTestCase):
         self._doSync(
             "BEGIN:VCALENDAR",
             "VERSION:2.0",
-            "PRODID:-//PYVOBJECT//NONSGML Version 1//EN",
             "BEGIN:VEVENT",
             "UID:f60de354-5ef1-11db-ea01-f67872a529d1",
             "DTSTART:20061015T103000",
@@ -619,7 +1096,6 @@ class ICalendarMergeTestCase(SingleRepositoryTestCase):
         self._doSync(
             "BEGIN:VCALENDAR",
             "VERSION:2.0",
-            "PRODID:-//PYVOBJECT//NONSGML Version 1//EN",
             "BEGIN:VEVENT",
             "UID:f60de354-5ef1-11db-ea01-f67872a529d1",
             "DTSTART:20061015T103000",

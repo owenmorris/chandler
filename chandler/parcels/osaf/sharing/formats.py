@@ -51,14 +51,8 @@ def findUID(view, uid):
     Return the master event whose icalUID matched uid, or None.
     """
     iCalendarItems = schema.ns("osaf.sharing", view).iCalendarItems
-    eventItem = indexes.valueLookup(iCalendarItems, 'icalUID',
+    return indexes.valueLookup(iCalendarItems, 'icalUID',
                                     pim.Note.icalUID.name, uid)
-
-    if eventItem is None:
-        return None
-    else:
-        return pim.EventStamp(eventItem).getMaster()
-
 
 class ImportExportFormat(pim.ContentItem):
 

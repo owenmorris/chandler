@@ -74,25 +74,19 @@ class TaskStamp(Stamp):
 
     def InitOutgoingAttributes (self):
         self.itsItem.InitOutgoingAttributes()
-
-    def add(self):
-        """
-          Set up the attributes specific to this mixin.
-        Called when stamping adds these attributes.
-        """
-        
-        super(TaskStamp, self).add()
-        
         # default due date is 1 hour hence
-        # (?) Grant
-        if not hasattr(self, 'dueDate'):
-            self.dueDate = datetime.now(ICUtzinfo.default) + timedelta(hours=1)
+        self.dueDate = datetime.now(ICUtzinfo.default) + timedelta(hours=1)
 
-def Task(*args, **keywds):
-    note = notes.Note(*args, **keywds)
+def Task(*args, **kw):
+    for key in kw.keys():
+        attr = getattr(TaskStamp, key, None)
+        if isinstance(attr, schema.Descriptor):
+            kw[attr.name] = kw[key]
+            del kw[key]
+            
+    
+    note = notes.Note(*args, **kw)
     result = TaskStamp(note)
-
     result.add()
     
-    return result # Set some keywords? Could filter out all the attribut names
-                  # that don't apply to the Note kind
+    return result

@@ -216,7 +216,6 @@ def installParcel(parcel, oldVersion=None):
     # kludge to improve on bug 4144 (not a good long term fix but fine for 0.6)
     allCollection.addIndex('__adhoc__', 'numeric')
 
-
     events = EventStamp.getCollection(view)
     eventComparator = EventComparator.update(parcel, 'eventComparator')
     
@@ -236,9 +235,7 @@ def installParcel(parcel, oldVersion=None):
                     method=(eventComparator, 'cmpEndTimeNoTZ'),
                     monitor=(EventStamp.startTime, EventStamp.allDay,
                              EventStamp.anyTime, EventStamp.duration))
-    
-    EventStamp.addIndex(view, 'icalUID', 'value', attribute=Note.icalUID)
-    
+
     # floatingEvents need to be reindexed in effectiveStart and effectiveEnd
     # when the floating timezone changes
     filterAttributes = [entry[0] for entry in _FILTER_ATTRIBUTES]

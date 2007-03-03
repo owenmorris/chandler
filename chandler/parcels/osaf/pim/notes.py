@@ -23,6 +23,7 @@ import repository.item.Item as Item
 from osaf.pim import items
 from osaf.pim.stamping import Stamp
 from application import schema
+from chandlerdb.util.c import Empty
 from i18n import ChandlerMessageFactory as _
 
 class Note(items.ContentItem):
@@ -33,6 +34,24 @@ class Note(items.ContentItem):
             "set UID to a string representation of UUID, but we need to be "
             "able to import iCalendar events with arbitrary UIDs."
     )
+    
+    icalendarProperties = schema.Mapping(
+        schema.Text,
+        defaultValue=Empty,
+        doc="Original icalendar property name/value pairs not understood "
+            "by Chandler.  Subcomponents (notably VALARMS) aren't stored."
+    )
+
+    icalendarParameters = schema.Mapping(
+        schema.Text,
+        defaultValue=Empty,
+        doc="property name/parameter pairs for parameters not understood by "
+            "Chandler.  The parameter value is the concatenation of "
+            "paramater key/value pairs, separated by semi-colons, like the "
+            "iCalendar serialization of those parameters"
+    )
+
+
 
     schema.addClouds(
         sharing = schema.Cloud(

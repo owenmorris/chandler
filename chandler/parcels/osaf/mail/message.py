@@ -215,7 +215,7 @@ def messageObjectToKind(view, messageObject, messageText=None,
                 if len(items) > 0:
                     # We got something - stamp the first thing as a MailMessage
                     # and use it. (If it was an existing event, we'll reuse it.)
-                    eventStamp = items[0]
+                    eventStamp = EventStamp(items[0])
 
                     if not has_stamp(eventStamp, MailStamp):
                         eventStamp.addStampToAll(MailStamp)
