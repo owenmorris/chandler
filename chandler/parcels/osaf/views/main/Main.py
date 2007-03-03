@@ -550,6 +550,9 @@ class MainView(View):
         # <http://lists.osafoundation.org/pipermail/design/2006-August/005311.html>
         webbrowser.open('http://wiki.osafoundation.org/bin/view/Projects/ChandlerProductFAQ')
 
+    def onFileBugEvent(self, event):
+        webbrowser.open('http://wiki.osafoundation.org/Projects/ReportingBugs')
+
     def onQuitEvent (self, event):
         """
         Close all the windows. Close the mainFrame last since it's the

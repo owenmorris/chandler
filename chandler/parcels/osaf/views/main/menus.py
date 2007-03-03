@@ -801,5 +801,10 @@ def makeMainMenus(parcel):
                         helpString =
                              _(u'Open Chandler FAQ in your web browser'),
                         accel = _(u'Ctrl+?')),
+                     MenuItem.template('FileBugMenuItem',
+                        event = globalBlocks.FileBug,
+                        title = _(u'File a &Bug'),
+                        helpString =
+                             _(u'Open instructions on how to file a bug')),
                     ]) # Menu HelpMenu
             ]).install (parcel) # MenuBar MenuBar
