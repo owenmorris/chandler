@@ -15,6 +15,64 @@
 
 """
 rt.py -- Run Chandler tests
+
+    No parameters given should generate the help output
+
+    >>> import optparse
+    >>> options = optparse.Values()
+    >>> options.noEnv     = False
+    >>> options.dryrun    = True
+    >>> options.mode      = None
+    >>> options.perf      = False
+    >>> options.funcSuite = False
+    >>> options.unit      = False
+    >>> options.single    = ''
+    >>> options.verbose   = False
+    >>> options.noStop    = False
+    >>> options.help      = False
+    >>> main(options)
+    0
+
+    Try and run non-existent test
+
+    >>> options.single = ''
+    >>> main(options)
+    Unit test TestFoo.py not found
+    0
+
+    Try and specify an invalid mode
+
+    >>> options.single = ''
+    >>> options.mode   = 'foo'
+    >>> main(options)
+    foo removed from mode list
+    0
+
+    Run unit tests with --dryrun
+
+    >>> options.mode = None
+    >>> options.unit = True
+    >>> main(options)   #doctest: +ELLIPSIS
+    unittest: ...chandler/application/tests/TestAllParcels.py
+    ...
+    0
+
+    Run functional tests with --dryrun
+
+    >>> options.unit      = False
+    >>> options.funcSuite = True
+    >>> main(options)   #doctest: +ELLIPSIS
+    functest: ...tools/cats/Functional/FunctionalTestSuite.py
+    0
+
+    Run performance tests with --dryrun
+
+    >>> options.funcSuite = False
+    >>> options.perf      = True
+    >>> main(options)   #doctest: +ELLIPSIS
+    Running ...PerfImportCalendar.py
+    ...
+    0
 """
 
 #
@@ -64,8 +122,6 @@ def parseOptions():
         'perf':      ('-p', '--perf',               'b', False, 'Performance tests'),
         'single':    ('-t', '--test',               's', '',    'Run single test'),
         'noEnv':     ('-i', '--ignoreEnv',          'b', False, 'Ignore environment variables'),
-        'logPath':   ('-l', '--logPath',            's', None,  'Directory where the test run output will be stored'),
-        'quiet':     ('-q', '--quiet',              'b', False, 'Mute log echoing to stdout'),
         'help':      ('-H', '',                     'b', False, 'Extended help'),
         'dryrun':    ('-d', '--dryrun',             'b', False, 'Do all of the prep work but do not run any tests'),
         'selftest':  ('',   '--selftest',           'b', False, 'Run self test'),
@@ -100,8 +156,6 @@ def parseOptions():
     (options, args) = parser.parse_args()
     options.args    = args
 
-    checkOptions(options)
-
     return options
 
 
@@ -125,10 +179,7 @@ def checkOptions(options):
     options.parcelPath = os.path.join(options.chandlerHome, 'tools', 'QATestScripts', 'DataFiles')
     options.profileDir = os.path.join(options.chandlerHome, 'test_profile')
 
-    if options.logPath is None:
-        options.logPath = options.profileDir
-
-    build_lib.initLog(os.path.join(options.logPath, 'rt.log'), prefix='', echo=(not options.quiet))
+    #build_lib.initLog(os.path.join(options.logPath, 'rt.log'), prefix='', echo=(not options.quiet))
 
     if not os.path.isdir(options.chandlerBin):
         log('Unable to locate CHANDLERBIN directory', error=True)
@@ -207,14 +258,18 @@ def runUnitTests(options):
     else:
         for mode in options.modes:
             for test in testlist:
+                if options.dryrun or options.verbose:
+                    log('Running %s' % test)
+
                 if options.dryrun:
-                    log('unittest: %s' % test)
                     result = 0
                 else:
-                    if options.verbose:
-                        log('Running %s' % test)
+                    cmd = [ options.runpython[mode], test ]
 
-                    result = build_lib.runCommand([ options.runpython[mode], test ])
+                    if options.verbose:
+                        cmd.append('-v')
+
+                    result = build_lib.runCommand(cmd)
 
                 if result != 0:
                     failed = True
@@ -241,44 +296,49 @@ def runPluginTests(options):
     else:
         saveCWD = os.getcwd()
 
-        for mode in options.modes:
-            for test in testlist:
-                if options.dryrun:
-                    log('plugin: %s' % test)
-                    result = 0
-                else:
-                    if options.verbose:
+        try:
+            for mode in options.modes:
+                for test in testlist:
+                    if options.dryrun or options.verbose:
                         log('Running %s' % test)
 
-                    #if [ "$OSTYPE" = "cygwin" ]; then
-                    #    C_HOME=`cygpath -aw $C_DIR`
-                    #    PARCEL_PATH=`cygpath -awp $PARCELPATH:$C_DIR/plugins`
-                    #else
-                    #    C_HOME=$C_DIR
-                    #    PARCEL_PATH=$PARCELPATH:$C_DIR/plugins
-                    #fi
-                    #cd `dirname $setup`
-                    #PARCELPATH=$PARCEL_PATH CHANDLERHOME=$C_HOME $CHANDLERBIN/$mode/$RUN_PYTHON
-                    #   `basename $setup` test 2>&1 | tee $TESTLOG
-                    env = os.environ.copy()
-                    env['PARCELPATH']   = os.path.join(options.chandlerHome, 'plugins')
-                    env['CHANDLERHOME'] = options.chandlerHome
+                    if options.dryrun:
+                        result = 0
+                    else:
+                        #if [ "$OSTYPE" = "cygwin" ]; then
+                        #    C_HOME=`cygpath -aw $C_DIR`
+                        #    PARCEL_PATH=`cygpath -awp $PARCELPATH:$C_DIR/plugins`
+                        #else
+                        #    C_HOME=$C_DIR
+                        #    PARCEL_PATH=$PARCELPATH:$C_DIR/plugins
+                        #fi
+                        #cd `dirname $setup`
+                        #PARCELPATH=$PARCEL_PATH CHANDLERHOME=$C_HOME $CHANDLERBIN/$mode/$RUN_PYTHON
+                        #   `basename $setup` test 2>&1 | tee $TESTLOG
+                        env = os.environ.copy()
+                        env['PARCELPATH']   = os.path.join(options.chandlerHome, 'plugins')
+                        env['CHANDLERHOME'] = options.chandlerHome
 
-                    os.chdir(os.path.dirname(test))
+                        cmd = [ options.runpython[mode], test, 'test' ]
 
-                    result = build_lib.runCommand([ options.runpython[mode], test, 'test' ], env=env)
+                        if options.verbose:
+                            cmd.append('-v')
 
-                if result != 0:
-                    failed = True
-                    failedTests.append(test)
+                        os.chdir(os.path.dirname(test))
 
-                    if not options.noStop:
-                        break
+                        result = build_lib.runCommand(cmd, env=env)
 
-            if failed and not options.noStop:
-                break
+                    if result != 0:
+                        failed = True
+                        failedTests.append(test)
 
-        os.chdir(saveCWD)
+                        if not options.noStop:
+                            break
+
+                if failed and not options.noStop:
+                    break
+        finally:
+            os.chdir(saveCWD)
 
     return failed
 
@@ -291,22 +351,26 @@ def runFuncSuite(options):
     failed = False
 
     for mode in options.modes:
-        cmd = [ options.runchandler[mode],
-                '--create', '--catch=tests', '--scriptTimeout=720', '-D1', '-M2',
-                '--profileDir=%s' % options.profileDir,
-                '--parcelPath=%s' % options.parcelPath,
-                '--scriptFile=%s' % os.path.join(options.chandlerHome, 'tools', 'cats', 'Functional', 'FunctionalTestSuite.py') ]
+        test = 'FunctionalTestSuite.py'
+        cmd  = [ options.runchandler[mode],
+                 '--create', '--catch=tests', '--scriptTimeout=720', '-D1', '-M2',
+                 '--profileDir=%s' % options.profileDir,
+                 '--parcelPath=%s' % options.parcelPath,
+                 '--scriptFile=%s' % os.path.join(options.chandlerHome, 'tools', 'cats', 'Functional', test) ]
 
         if options.noStop:
             cmd += [ '-F' ]
 
+        if options.verbose:
+            # XXX need to find out what -D -M combination is required for verbose output
+            pass
+
+        if options.dryrun or options.verbose:
+            log('Running %s' % test)
+
         if options.dryrun:
-            log('functest: %s' % ' '.join(cmd))
             result = 0
         else:
-            if options.verbose:
-                log('Running %s' % ' '.join(cmd))
-
             result = build_lib.runCommand(cmd)
 
         if result != 0:
@@ -321,7 +385,7 @@ def runFuncSuite(options):
 
 def runScriptPerfTests(options, testlist):
     failed = False
-    
+
     for item in testlist:
         #$CHANDLERBIN/release/$RUN_CHANDLER --create --catch=tests
         #                                   --profileDir="$PC_DIR"
@@ -329,8 +393,11 @@ def runScriptPerfTests(options, testlist):
         #                                   --scriptTimeout=600
         #                                   --scriptFile="$TESTNAME" &> $TESTLOG
 
-        if os.path.isfile(timeLog):
-            os.remove(timeLog)
+        timeLog = os.path.join(options.profileDir, 'time.log')
+
+        if not options.dryrun:
+            if os.path.isfile(timeLog):
+                os.remove(timeLog)
 
         cmd = [ options.runchandler['release'],
                 '--create', '--catch=tests', '--scriptTimeout=600',
@@ -339,8 +406,8 @@ def runScriptPerfTests(options, testlist):
                 '--catsPerfLog=%s' % timeLog,
                 '--scriptFile=%s'  % item ]
 
-        if options.verbose:
-            log('Running %s' % ' '.join(cmd))
+        if options.dryrun or options.verbose:
+            log('Running %s' % item)
 
         if options.dryrun:
             result = 0
@@ -349,12 +416,13 @@ def runScriptPerfTests(options, testlist):
 
         if result != 0:
             failed = True
-            failedTests.append(' '.join(cmd))
+            failedTests.append(item)
 
             if not options.noStop:
                 break
-            
-        return failed
+
+    return failed
+
 
 def runPerfSuite(options):
     """
@@ -368,35 +436,32 @@ def runPerfSuite(options):
         if 'release' in options.modes:
             testlist      = []
             testlistLarge = []
-    
+
             os.chdir(options.chandlerHome)
-    
-            timeLog = os.path.join(options.profileDir, 'time.log')
-            repoDir = os.path.join(options.profileDir, '__repository__.001')
-    
+
             if not options.dryrun:
                 for item in glob.iglob(os.path.join(options.profileDir, '__repository__.0*')):
                     if os.path.isdir(item):
                         build_util.rmdirs(item)
                     else:
                         os.remove(item)
-    
+
             for item in glob.iglob(os.path.join(options.chandlerHome, 'tools', 'QATestScripts', 'Performance', 'Perf*.py')):
                 if 'PerfLargeData' in item:
                     testlistLarge.append(item)
                 else:
                     testlist.append(item)
-    
+
             failed = runScriptPerfTests(options, testlist)
-    
+
             if not failed or options.noStop:
                 if runScriptPerfTests(options, testlistLarge):
                     failed = True
-                    
+
             if not failed or options.noStop:
                 # XXX Startup time tests
                 pass
-            
+
         else:
             log('Skipping Performance Tests - release mode not specified')
 
@@ -406,13 +471,8 @@ def runPerfSuite(options):
     return failed
 
 
-if __name__ == '__main__':
-    if '--selftest' in sys.argv:
-        import doctest
-        doctest.testmod()
-        sys.exit(0)
-    
-    options = parseOptions()
+def main(options):
+    checkOptions(options)
 
     if options.mode is None:
         options.modes = modes = ['release', 'debug']
@@ -447,4 +507,15 @@ if __name__ == '__main__':
         log('The following tests failed:')
         log('\n'.join(failedTests))
         log('')
+
+
+if __name__ == '__main__':
+    if '--selftest' in sys.argv:
+        import doctest
+        doctest.testmod()
+        sys.exit(0)
+
+    options = parseOptions()
+
+    main(options)
 
