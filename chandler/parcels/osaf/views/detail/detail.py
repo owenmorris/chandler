@@ -1803,13 +1803,18 @@ class RecurrenceEndsAttributeEditor(DateAttributeEditor):
                 self._changeTextQuietly(self.control, "%s ?" % newValueString)
                 return
 
+            if dateValue.date() < event.startTime.date():
+                self._changeTextQuietly(self.control, _(u"too early ?") )
+                return
+                
+
             # set the end timezone to be the same as the event's timezone,
             # unless it's floating.  Allowing a floating recurrence end timezone 
             # has the nonsensical result that the number of occurrences depends
             # on what timezone you view the calendar in if startTime ever 
             # changes to a non-floating timezone.        
             if eventTZ == ICUtzinfo.floating:
-                eventTZ == ICUtzinfo.default            
+                eventTZ == ICUtzinfo.default
 
             value = datetime.combine(dateValue.date(), time(0, tzinfo=eventTZ))
             # don't change the value unless the date the user sees has
