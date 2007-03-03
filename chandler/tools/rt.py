@@ -31,14 +31,12 @@ rt.py -- Run Chandler tests
     >>> options.noStop    = False
     >>> options.help      = False
     >>> main(options)
-    0
 
     Try and run non-existent test
 
-    >>> options.single = ''
+    >>> options.single = 'TestFoo.py'
     >>> main(options)
     Unit test TestFoo.py not found
-    0
 
     Try and specify an invalid mode
 
@@ -46,33 +44,29 @@ rt.py -- Run Chandler tests
     >>> options.mode   = 'foo'
     >>> main(options)
     foo removed from mode list
-    0
 
     Run unit tests with --dryrun
 
     >>> options.mode = None
     >>> options.unit = True
     >>> main(options)   #doctest: +ELLIPSIS
-    unittest: ...chandler/application/tests/TestAllParcels.py
+    Running .../application/tests/TestAllParcels.py
     ...
-    0
 
     Run functional tests with --dryrun
 
     >>> options.unit      = False
     >>> options.funcSuite = True
     >>> main(options)   #doctest: +ELLIPSIS
-    functest: ...tools/cats/Functional/FunctionalTestSuite.py
-    0
+    Running FunctionalTestSuite.py
 
     Run performance tests with --dryrun
 
     >>> options.funcSuite = False
     >>> options.perf      = True
     >>> main(options)   #doctest: +ELLIPSIS
-    Running ...PerfImportCalendar.py
+    Running .../PerfImportCalendar.py
     ...
-    0
 """
 
 #
@@ -437,16 +431,15 @@ def runPerfSuite(options):
             testlist      = []
             testlistLarge = []
 
-            os.chdir(options.chandlerHome)
-
             if not options.dryrun:
-                for item in glob.iglob(os.path.join(options.profileDir, '__repository__.0*')):
+                os.chdir(options.chandlerHome)
+                for item in glob.glob(os.path.join(options.profileDir, '__repository__.0*')):
                     if os.path.isdir(item):
                         build_util.rmdirs(item)
                     else:
                         os.remove(item)
 
-            for item in glob.iglob(os.path.join(options.chandlerHome, 'tools', 'QATestScripts', 'Performance', 'Perf*.py')):
+            for item in glob.glob(os.path.join(options.chandlerHome, 'tools', 'QATestScripts', 'Performance', 'Perf*.py')):
                 if 'PerfLargeData' in item:
                     testlistLarge.append(item)
                 else:
@@ -493,14 +486,17 @@ def main(options):
 
     if options.unit or len(options.single) > 0:
         failed = runUnitTests(options)
-        if not failed and len(options.single) == 0:
-            failed = runPluginTests(options)
+        if (not failed or options.noStop) and len(options.single) == 0:
+            if runPluginTests(options):
+                failed = True
 
-    if options.funcSuite and not failed:
-        failed = runFuncSuite(options)
+    if options.funcSuite and (not failed or options.noStop):
+        if runFuncSuite(options):
+            failed = True
 
-    if options.perf and not failed:
-        failed = runPerfSuite(options)
+    if options.perf and (not failed or options.noStop):
+        if runPerfSuite(options):
+            failed = True
 
     if len(failedTests) > 0:
         log('+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+')
