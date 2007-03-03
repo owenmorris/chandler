@@ -300,22 +300,23 @@ class PIMTranslator(eim.Translator):
             if emailAddress is not None and emailAddress.emailAddress:
                 lastModifiedBy = emailAddress.emailAddress
 
-        lastModified = getattr(item, "lastModified", None)
-        if lastModified:
-            lastModified = Decimal(
-                int(time.mktime(lastModified.timetuple()))
-            )
-        elif hasattr(item, "createdOn"):
-            lastModified = Decimal(
-                int(time.mktime(item.createdOn.timetuple()))
-            )
+        if lastModifiedBy is not None:
 
+            lastModified = getattr(item, "lastModified", None)
+            if lastModified:
+                lastModified = Decimal(
+                    int(time.mktime(lastModified.timetuple()))
+                )
+            elif hasattr(item, "createdOn"):
+                lastModified = Decimal(
+                    int(time.mktime(item.createdOn.timetuple()))
+                )
 
-        yield model.ModifiedByRecord(
-            item.itsUUID,
-            lastModifiedBy,
-            lastModified
-        )
+            yield model.ModifiedByRecord(
+                item.itsUUID,
+                lastModifiedBy,
+                lastModified
+            )
 
 
 

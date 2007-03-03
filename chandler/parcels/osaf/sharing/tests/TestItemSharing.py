@@ -57,7 +57,6 @@ class ItemSharingTestCase(testcase.DualRepositoryTestCase):
         self.assert_(not pim.has_stamp(item0, sharing.SharedItem))
         view0.commit()
         text = sharing.outbound([pje], item0)
-        print text
         view0.commit()
         self.assert_(pim.has_stamp(item0, sharing.SharedItem))
 

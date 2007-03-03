@@ -65,7 +65,13 @@ Serialize and deserialize entire record sets using EIMMLSerializerLite::
     ...    <item:record uuid="8501de14-1dc9-40d4-a7d4-f289feff8214" title="Welcome to Cosmo" triage="100 123456789.12 1" createdOn="1164803131" />
     ...    <modby:record uuid="8501de14-1dc9-40d4-a7d4-f289feff8214" userid="foo@example.com" timestamp="1164803132" />
     ...    <note:record uuid="8501de14-1dc9-40d4-a7d4-f289feff8214" body="This is the body" icalUid="1e2d48c0-d66b-494c-bb33-c3d75a1ba66b" reminderTime="1169163900" />
-    ...    <event:record uuid="8501de14-1dc9-40d4-a7d4-f289feff8214" dtstart="20061130T140000" dtend="20061130T150000" location="San Jose" rrule="FREQ=WEEKLY" status="CONFIRMED" />
+    ...    <event:record uuid="8501de14-1dc9-40d4-a7d4-f289feff8214" dtstart="20061130T140000" dtend="20061130T150000" location="San Jose" rrule="FREQ=WEEKLY" status="CONFIRMED">
+    ...       <event:exrule/>
+    ...       <event:rdate/>
+    ...       <event:exdate/>
+    ...       <event:icalParameters/>
+    ...       <event:icalProperties/>
+    ...    </event:record>
     ... </eim:recordset>
     ... </eim:collection>'''
 
@@ -220,7 +226,14 @@ Send a new item::
     ...    <item:record uuid="9501de14-1dc9-40d4-a7d4-f289feff8214" title="Welcome to Cosmo" triage="100 123456789.12 1" createdOn ="1164803131" />
     ...    <modby:record uuid="9501de14-1dc9-40d4-a7d4-f289feff8214" userid="foo@example.com" timestamp ="1164803132" />
     ...    <note:record uuid="9501de14-1dc9-40d4-a7d4-f289feff8214" body="This is the body" icalUid="1e2d48c0-d66b-494c-bb33-c3d75a1ba66b" reminderTime="1169163900" />
-    ...    <event:record uuid="9501de14-1dc9-40d4-a7d4-f289feff8214" dtstart="20061130T140000" dtend="20061130T150000" rrule="FREQ=WEEKLY" status="CONFIRMED" />
+    ...    <event:record uuid="9501de14-1dc9-40d4-a7d4-f289feff8214" dtstart="20061130T140000" dtend="20061130T150000" rrule="FREQ=WEEKLY" status="CONFIRMED">
+    ...       <event:location/>
+    ...       <event:exrule/>
+    ...       <event:rdate/>
+    ...       <event:exdate/>
+    ...       <event:icalParameters/>
+    ...       <event:icalProperties/>
+    ...    </event:record>
     ... </eim:recordset>
     ... </eim:records>'''
 

@@ -1471,6 +1471,25 @@ def subscribeCalDAV(view, url, inspection, updateCallback=None, account=None,
         ]
         if 'triageStatus' in getattr(subShare, 'filterAttributes', []):
             share.filterAttributes.append('triageStatus')
+        """
+        Why just triageStatus and not triageStatusChanged in the code above?
+        Is that a bug?
+
+        Actually, not a bug.  Just an inconvenience related to
+        having dual-fork shares (.ics and .xml).  What happens is
+        the subShare (.xml fork) gets its filter list from the
+        server, then lets the upper share (.ics) know that triageStatus
+        is or is not being filtered.  As triageStatus is not actually
+        shared via .ics, it doesn't matter to the sharing layer
+        that triageStatusChanged isn't listed in the upper share's
+        filter list.  The real reason I add triageStatus to the
+        upper share's filter list is so the "manage share" dialog
+        can see that the triage status sharing checkbox should be
+        checked or not.  This is what happens when the system is
+        designed for one thing (single-fork shares) and eventually
+        bent to fit a new need (dual-fork shares).  As the dual-fork
+        stuff is going away soon, I wouldn't worry about this.
+        """
 
     try:
         SharedItem(share.contents).shares.append(share, 'main')

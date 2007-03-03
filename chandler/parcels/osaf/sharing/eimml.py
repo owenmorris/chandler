@@ -251,8 +251,8 @@ class EIMMLSerializer(object):
                     if deleted and deleted.lower() == "true":
                         if record is eim.NoChange:
                             record = recordClass(*
-                                [eim.Missing if v is eim.NoChange else v
-                                    for v in values]
+                                [(eim.Missing if v is eim.NoChange else v)
+                                for v in values]
                             )
                         exclusions.append(record)
                     else:
@@ -280,23 +280,65 @@ class EIMMLSerializerLite(object):
         rootElement = Element("{%s}%s" % (eimURI, rootName), **extra)
 
         for uuid, recordSet in recordSets.iteritems():
-            recordSetElement = SubElement(rootElement,
-                "{%s}recordset" % eimURI, uuid=uuid)
 
-            for record in list(recordSet.inclusions):
-                fields = {}
-                for field in record.__fields__:
-                    value = record[field.offset]
-                    if value is not None:
-                        serialized, typeName = serializeValue(field.typeinfo,
-                            record[field.offset])
-                        fields[field.name] = serialized
-                recordURI = record.URI
-                recordElement = SubElement(recordSetElement,
-                    "{%s}record" % (recordURI), **fields)
+            if recordSet is not None:
+
+                recordSetElement = SubElement(rootElement,
+                    "{%s}recordset" % eimURI, uuid=uuid)
+
+                for record in list(recordSet.inclusions):
+
+                    recordElement = SubElement(recordSetElement,
+                        "{%s}record" % (record.URI))
+
+                    for field in record.__fields__:
+                        value = record[field.offset]
+
+                        if value is eim.NoChange:
+                            continue
+
+                        else:
+
+                            if value is eim.Missing:
+                                serialized, typeName = serializeValue(
+                                    field.typeinfo, None)
+                                SubElement(recordElement,
+                                    "{%s}%s" % (record.URI, field.name),
+                                    missing="true")
+
+                            else:
+                                serialized, typeName = serializeValue(
+                                    field.typeinfo, value)
+
+                                if serialized is None:
+                                    SubElement(recordElement,
+                                        "{%s}%s" % (record.URI, field.name))
+
+                                else:
+                                    recordElement.set(field.name, serialized)
+
+                for record in list(recordSet.exclusions):
+                    attrs = { deletedURI : "true"}
+
+                    for field in record.__fields__:
+                        if isinstance(field, eim.key):
+                            value = record[field.offset]
+                            serialized, typeName = serializeValue(
+                                field.typeinfo, record[field.offset])
+                            attrs[field.name] = serialized
+
+                    recordElement = SubElement(recordSetElement,
+                        "{%s}record" % (record.URI), **attrs)
+
+            else: # item deletion indicated
+
+                attrs = { deletedURI : "true" }
+                recordSetElement = SubElement(rootElement,
+                    "{%s}recordset" % eimURI, uuid=uuid, **attrs)
 
         xmlString = tostring(rootElement)
         return "<?xml version='1.0' encoding='UTF-8'?>%s" % xmlString
+
 
     @classmethod
     def deserialize(cls, text):
@@ -308,27 +350,57 @@ class EIMMLSerializerLite(object):
 
         for recordSetElement in rootElement:
             uuid = recordSetElement.get("uuid")
-            records = []
 
-            for recordElement in recordSetElement:
-                ns, name = recordElement.tag[1:].split("}")
+            deleted = recordSetElement.get(deletedURI)
+            if deleted and deleted.lower() == "true":
+                recordSet = None
 
-                recordClass = eim.lookupSchemaURI(ns)
-                if recordClass is None:
-                    continue    # XXX handle error?  logging?
+            else:
+                inclusions = []
+                exclusions = []
 
-                values = []
-                for field in recordClass.__fields__:
-                    value = recordElement.get(field.name)
-                    if value is not None:
-                        value = deserializeValue(field.typeinfo, value)
+                for recordElement in recordSetElement:
+                    ns, name = recordElement.tag[1:].split("}")
+
+                    recordClass = eim.lookupSchemaURI(ns)
+                    if recordClass is None:
+                        continue    # XXX handle error?  logging?
+
+                    values = []
+                    for field in recordClass.__fields__:
+                        value = recordElement.get(field.name)
+                        if value is not None:
+                            value = deserializeValue(field.typeinfo, value)
+                        else:
+                            for fieldElement in recordElement:
+                                ns, name = fieldElement.tag[1:].split("}")
+                                if field.name == name:
+                                    missing = fieldElement.get("missing")
+                                    if missing and missing.lower() == "true":
+                                        value = eim.Missing
+                                    else:
+                                        value = None
+                                    break
+                            else:
+                                value = eim.NoChange
+
+                        values.append(value)
+
+                    record = recordClass(*values)
+
+                    deleted = recordElement.get(deletedURI)
+                    if deleted and deleted.lower() == "true":
+                        if record is eim.NoChange:
+                            record = recordClass(*
+                                [(eim.Missing if v is eim.NoChange else v)
+                                for v in values]
+                            )
+                        exclusions.append(record)
                     else:
-                        value = None
-                    values.append(value)
+                        inclusions.append(record)
 
-                records.append(recordClass(*values))
+                recordSet = eim.RecordSet(inclusions, exclusions)
 
-            recordSet = eim.RecordSet(records)
             recordSets[uuid] = recordSet
 
         return recordSets, dict(rootElement.items())
