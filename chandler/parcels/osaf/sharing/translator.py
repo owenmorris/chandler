@@ -288,7 +288,7 @@ class PIMTranslator(eim.Translator):
 
         yield model.ItemRecord(
             item.itsUUID,                               # uuid
-            item.displayName,                           # title
+            getattr(item, "displayName", ""),           # title
             triage,                                     # triage
             created                                     # createdOn
         )

@@ -486,7 +486,8 @@ subclasses.  The return values, if any, are ignored.
 
 In between the two calls, ``importRecords()`` can be called zero or more times
 to process a ``RecordSet`` object's inclusions (adds/updates) and exclusions
-(deletions).
+(deletions), or ``importRecord()`` can be called zero or more times to process
+a single ``Record`` object.
 
 ::
 
@@ -494,6 +495,9 @@ to process a ``RecordSet`` object's inclusions (adds/updates) and exclusions
     >>> t.startImport()
 
     >>> d = Demo(1,"Foo", "This is a foo", Decimal('2.50'))
+
+    >>> t.importRecord(R(1,2))
+    importing R record: R(1, 2)
 
     >>> t.importRecords(sharing.RecordSet([R(1,2)], [d]))
     importing R record: R(1, 2)

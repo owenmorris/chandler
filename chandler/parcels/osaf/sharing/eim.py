@@ -842,12 +842,16 @@ class Translator:
 
     def importRecords(self, rs):
         for r in rs.inclusions:
-            importer = self.importers.get(type(r))
-            if importer: importer(self, r)
+            self.importRecord(r)
 
         for r in rs.exclusions:
             deleter = self.deleters.get(type(r))
             if deleter: deleter(self, r)
+
+    def importRecord(self, r):
+        importer = self.importers.get(type(r))
+        if importer: importer(self, r)
+
 
     def _exportablesFor(self, item):
         yield item, object

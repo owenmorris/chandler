@@ -15,6 +15,7 @@ from xml.etree.cElementTree import (
 
 __all__ = [
     'EIMMLSerializer',
+    'EIMMLSerializerLite',
 ]
 
 
