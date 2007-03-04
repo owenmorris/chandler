@@ -363,20 +363,25 @@ class ContentCollection(ContentItem, Collection):
         """
         return self
 
-    def _reIndex(self, op, item, attrName, collectionName, indexName):
+    def onCollectionReindex(self, view,
+                            item, attrName, collectionName, indexName):
+        """
+        A reindexing hook for returning extra keys to reindex.
+
+        @param view: the C{item}'s view.
+        @param item: the item that changed.
+        @param attrName: the name of the attribute that changed on C{item}.
+        @param collectionName: the attribute name of the collection to reindex.
+        @param indexName: the name of the index on C{collection} to reindex.
+        @return: a modifiable C{list} of keys to reindex or C{None}.
+        """
         collection = getattr(self, collectionName, None)
         if item in collection:
-            if op in ('set', 'remove'):
-                mods = item.itsRefs.get('inheritTo')
-                if mods:
-                    view = item.itsView
-                    keys = [item.itsUUID]
-                    keys.extend(uMod for uMod in mods.iterkeys()
-                                if (uMod in collection and
-                                    not view[uMod].hasLocalAttributeValue(attrName)))
-                    collection.reindexKeys(keys, indexName)
-                    return
-            collection.placeInIndex(item, None, indexName)
+            mods = item.itsRefs.get('inheritTo')
+            if mods:
+                return [uMod for uMod in mods.iterkeys()
+                        if (uMod in collection and
+                            not view[uMod].hasLocalAttributeValue(attrName))]
 
 
 class KindCollection(ContentCollection):

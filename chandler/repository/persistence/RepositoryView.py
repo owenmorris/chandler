@@ -76,8 +76,9 @@ class RepositoryView(CView):
     # 0.6.21: removed support for 'redirectTo' attribute aspect
     # 0.6.22: added support for 'inheritFrom' instance-specific inheritance
     # 0.6.23: added NilValue type for persisting Empty and Default
+    # 0.6.24: monitor rework to support deferred re-indexing
     
-    CORE_SCHEMA_VERSION = 0x00061700
+    CORE_SCHEMA_VERSION = 0x00061800
 
     def __init__(self, repository, name, version,
                  deferDelete=Default, pruneSize=Default):

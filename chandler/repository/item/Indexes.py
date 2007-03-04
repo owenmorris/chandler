@@ -132,6 +132,10 @@ class NumericIndex(Index):
                 self._ranges = RangeSet(kwds.pop('ranges'))
             self._descending = str(kwds.pop('descending', 'False')) == 'True'
 
+    def validateIndex(self, valid):
+
+        self.skipList.validate(valid)
+
     def setDescending(self, descending=True):
 
         wasDescending = self._descending
@@ -267,12 +271,14 @@ class NumericIndex(Index):
     # if afterKey is Default, don't move the key (insert only)
     # if afterKey is None, move to the beginning of the index
     # if afterKey is Default, don't move the key (insert only)
-    def moveKey(self, key, afterKey=None, insertMissing=False):
+    # if insertMissing is None, raise error if key not present
+    # if insertMissing is False, skip key if key not present
+    def moveKey(self, key, afterKey=None, insertMissing=None):
 
         if key not in self:
             if insertMissing:
                 self.insertKey(key, afterKey)
-            else:
+            elif insertMissing is None:
                 raise KeyError, key
 
         elif afterKey is not Default:
@@ -288,7 +294,7 @@ class NumericIndex(Index):
 
             super(NumericIndex, self).moveKey(key, afterKey)
 
-    def moveKeys(self, keys, afterKey=None, insertMissing=False):
+    def moveKeys(self, keys, afterKey=None, insertMissing=None):
 
         for key in keys:
             self.moveKey(key, afterKey, insertMissing)
@@ -394,16 +400,24 @@ class SortedIndex(DelegatingIndex):
         index = self._index
         index.insertKey(key, index.skipList.after(key, self.compare), selected)
 
-    def moveKey(self, key, ignore=None, insertMissing=False):
+    def moveKey(self, key, ignore=None, insertMissing=None):
 
         index = self._index
+
+        selected = False
+        insert = True
+
         if key in index:
             removed, selected = index.removeKey(key)
             if not removed:
-                if not insertMissing:
+                if insertMissing is None:
                     raise KeyError, key
+                elif not insertMissing:
+                    insert = False
 
-        index.insertKey(key, index.skipList.after(key, self.compare), selected)
+        if insert:
+            index.insertKey(key, index.skipList.after(key, self.compare),
+                            selected)
 
         if self._subIndexes:
             view = self._valueMap._getView()
@@ -411,25 +425,29 @@ class SortedIndex(DelegatingIndex):
                 indexed = getattr(view[uuid], attr)
                 index = indexed.getIndex(name)
                 if key in index:
-                    index.moveKey(key, ignore)
+                    index.moveKey(key, ignore, insertMissing)
                     indexed._setDirty(True)
 
-    def moveKeys(self, keys, ignore=None, insertMissing=False):
+    def moveKeys(self, keys, ignore=None, insertMissing=None):
 
         index = self._index
         selection = set()
+        inserts = []
 
         for key in keys:
             removed, selected = index.removeKey(key)
-            if not removed:
-                if not insertMissing:
-                    raise KeyError, key
-            elif selected:
-                selection.add(key)
+            if removed:
+                inserts.append(key)
+                if selected:
+                    selection.add(key)
+            elif insertMissing is None:
+                raise KeyError, key
+            elif insertMissing:
+                inserts.append(key)
 
-        for key in keys:
-            index.insertKey(key, index.skipList.after(key, self.compare),
-                            key in selection)
+        for key in inserts:
+            afterKey = index.skipList.after(key, self.compare)
+            index.insertKey(key, afterKey, key in selection)
 
         if self._subIndexes:
             view = self._valueMap._getView()
@@ -438,7 +456,7 @@ class SortedIndex(DelegatingIndex):
                 index = indexed.getIndex(name)
                 subKeys = [key for key in keys if key in index]
                 if subKeys:
-                    index.moveKeys(subKeys, ignore)
+                    index.moveKeys(subKeys, ignore, insertMissing)
                     indexed._setDirty(True)
 
     # Used during merging.

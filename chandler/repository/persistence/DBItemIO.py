@@ -781,7 +781,8 @@ class DBItemReader(ItemReader, DBValueReader):
         withSchema = (status & CItem.WITHSCHEMA) != 0
         isContainer = (status & CItem.CONTAINER) != 0
 
-        status &= (CItem.CORESCHEMA | CItem.WITHSCHEMA | CItem.P_WATCHED)
+        status &= (CItem.CORESCHEMA | CItem.WITHSCHEMA | CItem.P_WATCHED |
+                   CItem.SYSMONITOR | CItem.IDXMONITOR)
         watchers = view._watchers
         if watchers and self.uItem in watchers:
             status |= CItem.T_WATCHED

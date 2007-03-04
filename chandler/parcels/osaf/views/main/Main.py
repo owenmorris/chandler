@@ -472,11 +472,8 @@ class MainView(View):
                     # quote special lucene query syntax chars except "
                     # http://lucene.apache.org/java/docs/queryparsersyntax.html
                     if not c.startswith('/l'):
-                        def quote(char):
-                            if char in '+-&|!(){}[]^~*?:\\':
-                                return '\\' + char
-                            return char
-                        command = ''.join(quote(char) for char in command)
+                        command = ''.join(('\\'+char if char in '+-&|!(){}[]^~*?:\\' else char)
+                                          for char in command)
                                     
                     try:
                         sidebar.setShowSearch (True)

@@ -316,13 +316,6 @@ class Item(CItem):
 
         self.removeValue('freeValues', item, name)
 
-    def _reIndex(self, op, item, attrName, collectionName, indexName):
-
-        if op in ('set', 'remove'):
-            collection = getattr(self, collectionName, None)
-            if collection is not None and collection.__contains__(item, True):
-                collection.placeInIndex(item, None, indexName)
-
     def _filteredItemChanged(self, op, item, attribute, name):
 
         if not (item.isDeleting() or self._isNoDirty()):

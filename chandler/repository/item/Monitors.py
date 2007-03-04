@@ -14,6 +14,7 @@
 
 
 from repository.item.Item import Item
+from chandlerdb.util.c import Nil, Default
 
 class Monitors(Item):
 
@@ -107,7 +108,8 @@ class Monitors(Item):
                                monitorClass)
 
         monitor.item = item
-        monitor.method = method
+        if method is not None:
+            monitor.method = method
         monitor.op = op
         monitor.attribute = attribute
         monitor.args = args
@@ -127,11 +129,11 @@ class Monitors(Item):
         return cls._attach(None, item, method, op, attribute, *args, **kwds)
 
     @classmethod
-    def attachIndexMonitor(cls, item, method, op, attribute, *args, **kwds):
+    def attachIndexMonitor(cls, item, op, attribute, *args, **kwds):
 
-        monitor = cls._attach(IndexMonitor, item, method, op, attribute,
+        monitor = cls._attach(IndexMonitor, item, None, op, attribute,
                               *args, **kwds)
-        monitor._status |= Item.SYSMONITOR
+        monitor._status |= Item.SYSMONITOR | Item.IDXMONITOR
 
         return monitor
 
@@ -160,6 +162,24 @@ class Monitor(Item):
         return super(Monitor, self).delete(recursive, deletePolicy, cloudAlias,
                                            True)
 
+    def __call__(self, *args):
+
+        view = self.itsView
+        method = getattr(self.item, self.method)
+        _args = self.args
+        _kwds = self.kwds
+
+        if _args or _kwds:
+            if view._isRecording():
+                view._notifyChange(method, *(args + _args), **_kwds)
+            else:
+                method(*(args + _args), **_kwds)
+        else:
+            if view._isRecording():
+                view._notifyChange(method, *args)
+            else:
+                method(*args)
+
     def getItemIndex(self):
         return None, None, None
 
@@ -170,3 +190,59 @@ class IndexMonitor(Item):
 
         attribute, indexName = self.args
         return self.item.itsUUID, attribute, indexName
+
+    def __call__(self, op, item, attribute):
+
+        view = self.itsView
+
+        if view._isRecording():
+            view._notifyChange(self, op, item, attribute)
+
+        else:
+            attribute, indexName = self.args
+            collection = getattr(self.item, attribute, None)
+
+            if collection is not None:
+                hook = getattr(type(self.item), 'onCollectionReindex', None)
+                if callable(hook):
+                    keys = hook(self.item, view, item, attribute, *self.args)
+                else:
+                    keys = None
+
+                if view.isReindexingDeferred():
+                    _keys = getattr(self, '_keys', None)
+                    if _keys is None:
+                        self.setPinned(True)
+                        self._keys = _keys = set()
+                        index = collection.getIndex(indexName)
+                        index.validateIndex(False)
+                    if item in collection:
+                        _keys.add(item.itsUUID)
+                    if keys:
+                        _keys.update(keys)
+
+                elif item in collection:
+                    if keys:
+                        keys.append(item.itsUUID)
+                        collection.getIndex(indexName).moveKeys(keys)
+                    else:
+                        collection.getIndex(indexName).moveKey(item.itsUUID)
+                    collection._setDirty(True)
+
+                elif keys:
+                    collection.getIndex(indexName).moveKeys(keys)
+                    collection._setDirty(True)
+
+    def reindex(self):
+
+        _keys = getattr(self, '_keys', None)
+        if _keys is not None:
+            self.setPinned(False)
+            del self._keys
+            attribute, indexName = self.args
+            collection = getattr(self.item, attribute, None)
+            if collection is not None:
+                index = collection.getIndex(indexName)
+                index.validateIndex(True)
+                index.moveKeys(_keys)
+                collection._setDirty(True)

@@ -34,18 +34,18 @@ def reindexFloatingEvents(view):
     events = pim_ns.EventStamp.getCollection(view)
     
     floatingKeys = list(pim_ns.floatingEvents.iterkeys())
-    events.reindexKeys(floatingKeys, 'effectiveStart', 'effectiveEnd')
+    events.reindexKeys(floatingKeys, None, 'effectiveStart', 'effectiveEnd')
     
     keys = pim_ns.masterEvents.getIndex('recurrenceEnd')
     
     masterFloatingKeys = [i for i in floatingKeys if i in keys]
-    pim_ns.masterEvents.reindexKeys(masterFloatingKeys, 'recurrenceEnd')
+    pim_ns.masterEvents.reindexKeys(masterFloatingKeys, None, 'recurrenceEnd')
                               
     UTCKeys = list(pim_ns.UTCEvents.iterkeys())
-    events.reindexKeys(UTCKeys, 'effectiveStartNoTZ', 'effectiveEndNoTZ')
+    events.reindexKeys(UTCKeys, None, 'effectiveStartNoTZ', 'effectiveEndNoTZ')
     
     masterUTCKeys = [i for i in UTCKeys if i in keys]
-    pim_ns.masterEvents.reindexKeys(masterUTCKeys, 'recurrenceEndNoTZ')
+    pim_ns.masterEvents.reindexKeys(masterUTCKeys, None, 'recurrenceEndNoTZ')
 
 def equivalentTZIDs(tzinfo):
     numEquivalents = PyICU.TimeZone.countEquivalentIDs(tzinfo.tzid)

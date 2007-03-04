@@ -137,9 +137,9 @@ class Indexed(object):
 
             def _attach(attrName):
                 from repository.item.Monitors import Monitors
-                Monitors.attachIndexMonitor(item, '_reIndex', 'set',
+                Monitors.attachIndexMonitor(item, 'set',
                                             attrName, name, indexName)
-                Monitors.attachIndexMonitor(item, '_reIndex', 'remove',
+                Monitors.attachIndexMonitor(item, 'remove',
                                             attrName, name, indexName)
 
             if monitor is not None:
@@ -440,7 +440,7 @@ class Indexed(object):
 
         raise NotImplementedError, "%s.replaceByIndex" %(type(self))
 
-    def placeInIndex(self, item, after, *indexNames):
+    def placeInIndex(self, item, after, insertMissing, *indexNames):
         """
         Place an item in one or more indexes after another one.
 
@@ -463,11 +463,11 @@ class Indexed(object):
             afterKey = None
 
         for indexName in indexNames:
-            self.getIndex(indexName).moveKey(key, afterKey)
+            self.getIndex(indexName).moveKey(key, afterKey, insertMissing)
 
         self._setDirty(True)
 
-    def reindexKeys(self, keys, *indexNames):
+    def reindexKeys(self, keys, insertMissing, *indexNames):
         """
         Re-index an iterable of keys in one or more indexes.
 
@@ -480,7 +480,7 @@ class Indexed(object):
         """
 
         for indexName in indexNames:
-            self.getIndex(indexName).moveKeys(keys, Default)
+            self.getIndex(indexName).moveKeys(keys, Default, insertMissing)
 
         self._setDirty(True)
 

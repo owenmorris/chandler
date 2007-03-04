@@ -325,7 +325,7 @@ class RefList(LinkedMap, Indexed):
             self.place(key, afterKey)
             self._setDirty()
         else:
-            self.placeInIndex(item, after, *indexNames)
+            self.placeInIndex(item, after, None, *indexNames)
 
     def insertItem(self, item, after, *indexNames):
         """

@@ -12,6 +12,7 @@
 #   See the License for the specific language governing permissions and
 #   limitations under the License.
 
+from __future__ import with_statement
 
 import unittest, os, random
 
@@ -151,6 +152,36 @@ class TestIndexes(RepositoryTestCase):
 
         self._remove()
         self._add()
+
+    def testDeferredReindexing(self):
+
+        view = self.rep.view
+        movies = view.find(self.kh).movies
+        movies.addIndex('t', 'value', attribute='title', ranges=[(0, 1)])
+        movies.addIndex('f', 'string', attributes=('frenchTitle', 'title'),
+                        locale='fr_FR')
+        view.commit()
+
+        m1 = movies.first()
+        m2 = movies.next(m1)
+        with view.reindexingDeferred():
+            m1.title = 'Foo'
+            self.assert_(view.isReindexingDeferred())
+            m2.title = 'Baz'
+            with view.reindexingDeferred() as depth:
+                self.assert_(view.isReindexingDeferred())
+                self.assert_(depth == 2, "depth is %d" %(depth))
+                m1.title = 'Bar'
+                m2.title = 'Baz'
+            self.assert_(view.isReindexingDeferred())
+            try:
+                movies.getIndex('t').getLastKey()
+            except LookupError, e:
+                self.assert_('skiplist' in e.args[0], e.args)
+            m1.frenchTitle = 'Alfred'
+
+        self.assert_(not view.isReindexingDeferred())
+        self.assert_(view.check(), "view does not check out")
 
 
 if __name__ == "__main__":
