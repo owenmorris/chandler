@@ -23,6 +23,10 @@
 
 #include "c.h"
 
+enum sl_flags {
+    SL_INVALID = 0x0001,
+};
+
 static PyObject *get_NAME;
 static PyObject *_keyChanged_NAME;
 static PyObject *exact_NAME, *first_NAME, *last_NAME;
@@ -567,11 +571,13 @@ static PyObject *t_sl_previous(t_sl *self, PyObject *args);
 static PyObject *t_sl_last(t_sl *self, PyObject *args);
 static PyObject *t_sl_after(t_sl *self, PyObject *args);
 static PyObject *t_sl_find(t_sl *self, PyObject *args);
+static PyObject *t_sl_validate(t_sl *self, PyObject *arg);
 
 
 static PyMemberDef t_sl_members[] = {
     { "_head", T_OBJECT, offsetof(t_sl, head), 0, "" },
     { "_tail", T_OBJECT, offsetof(t_sl, tail), 0, "" },
+    { "_flags", T_UINT, offsetof(t_sl, flags), 0, "" },
     { NULL, 0, 0, 0, NULL }
 };
 
@@ -596,6 +602,7 @@ static PyMethodDef t_sl_methods[] = {
     { "last", (PyCFunction) t_sl_last, METH_VARARGS, "" },
     { "after", (PyCFunction) t_sl_after, METH_VARARGS, "" },
     { "find", (PyCFunction) t_sl_find, METH_VARARGS, "" },
+    { "validate", (PyCFunction) t_sl_validate, METH_O, "" },
     { NULL, NULL, 0, NULL }
 };
 
@@ -621,7 +628,6 @@ static PySequenceMethods t_sl_as_sequence = {
     0,                                /* sq_inplace_concat */
     0,                                /* sq_inplace_repeat */
 };
-
 
 static PyTypeObject SkipListType = {
     PyObject_HEAD_INIT(NULL)
@@ -701,6 +707,7 @@ static PyObject *t_sl_new(PyTypeObject *type, PyObject *args, PyObject *kwds)
         self->head = NULL;
         self->tail = NULL;
         self->map = NULL;
+        self->flags = 0;
     }
 
     return (PyObject *) self;
@@ -732,7 +739,8 @@ static int t_sl_init(t_sl *self, PyObject *args, PyObject *kwds)
 
     Py_INCREF(map); Py_XDECREF(self->map);
     self->map = map;
-    
+    self->flags = 0;
+
     return _t_sl_init(self);
 }
 
@@ -778,6 +786,13 @@ static int _t_sl_keyChanged(t_sl *sl, PyObject *key)
 
     Py_DECREF(result);
     return 0;
+}
+
+static PyObject *_t_sl_invalid(t_sl *self)
+{
+    PyErr_SetString(PyExc_LookupError,
+                    "Access to skiplist is denied, it is marked INVALID");
+    return NULL;
 }
 
 static PyObject *t_sl_position(t_sl *self, PyObject *key)
@@ -906,6 +921,9 @@ static PyObject *_t_sl_list_get(t_sl *self, Py_ssize_t position)
 static PyObject *t_sl_list_get(t_sl *self, Py_ssize_t position)
 {
     PyObject *key = _t_sl_list_get(self, position);
+
+    if (self->flags & SL_INVALID)
+        return _t_sl_invalid(self);
 
     if (!key)
         return NULL;
@@ -1514,6 +1532,12 @@ static int _t_sl__place(t_sl *self, int op, PyObject *key, PyObject *afterKey)
     int dist = 0;
     t_node *curr;
 
+    if (self->flags & SL_INVALID)
+    {
+        _t_sl_invalid(self);
+        return -1;
+    }
+
     if (afterKey == Default || afterKey == Nil)
         afterKey = Py_None;
 
@@ -1600,6 +1624,9 @@ static PyObject *t_sl_first(t_sl *self, PyObject *args)
 {
     int level = 1;
 
+    if (self->flags & SL_INVALID)
+        return _t_sl_invalid(self);
+
     if (!PyArg_ParseTuple(args, "|i", &level))
         return NULL;
     else
@@ -1618,6 +1645,9 @@ static PyObject *t_sl_next(t_sl *self, PyObject *args)
 {
     PyObject *key;
     int level = 1;
+
+    if (self->flags & SL_INVALID)
+        return _t_sl_invalid(self);
 
     if (!PyArg_ParseTuple(args, "O|i", &key, &level))
         return NULL;
@@ -1643,6 +1673,9 @@ static PyObject *t_sl_previous(t_sl *self, PyObject *args)
     PyObject *key;
     int level = 1;
 
+    if (self->flags & SL_INVALID)
+        return _t_sl_invalid(self);
+
     if (!PyArg_ParseTuple(args, "O|i", &key, &level))
         return NULL;
     else
@@ -1665,6 +1698,9 @@ static PyObject *t_sl_previous(t_sl *self, PyObject *args)
 static PyObject *t_sl_last(t_sl *self, PyObject *args)
 {
     int level = 1;
+
+    if (self->flags & SL_INVALID)
+        return _t_sl_invalid(self);
 
     if (!PyArg_ParseTuple(args, "|i", &level))
         return NULL;
@@ -1709,6 +1745,9 @@ static PyObject *t_sl_last(t_sl *self, PyObject *args)
 static PyObject *t_sl_after(t_sl *self, PyObject *args)
 {
     PyObject *key, *callable;
+
+    if (self->flags & SL_INVALID)
+        return _t_sl_invalid(self);
 
     if (!PyArg_ParseTuple(args, "OO", &key, &callable))
         return NULL;
@@ -1804,6 +1843,9 @@ static PyObject *t_sl_find(t_sl *self, PyObject *args)
     PyObject *mode, *callable, *match;
     int numArgs, lo, hi;
 
+    if (self->flags & SL_INVALID)
+        return _t_sl_invalid(self);
+
     if (!PyTuple_Check(args))
     {
         PyErr_SetObject(PyExc_TypeError, args);
@@ -1886,6 +1928,16 @@ static PyObject *t_sl_find(t_sl *self, PyObject *args)
     
     Py_INCREF(match);
     return match;
+}
+
+static PyObject *t_sl_validate(t_sl *self, PyObject *arg)
+{
+    if (PyObject_IsTrue(arg))
+        self->flags &= ~SL_INVALID;
+    else
+        self->flags |= SL_INVALID;
+
+    Py_RETURN_NONE;
 }
 
 

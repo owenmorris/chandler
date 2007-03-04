@@ -1659,6 +1659,7 @@ void _init_item(PyObject *m)
             PyDict_SetItemString_Int(dict, "WATCHED", WATCHED);
             PyDict_SetItemString_Int(dict, "SYSMONONLY", SYSMONONLY);
             PyDict_SetItemString_Int(dict, "SYSMONITOR", SYSMONITOR);
+            PyDict_SetItemString_Int(dict, "IDXMONITOR", IDXMONITOR);
 
             PyDict_SetItemString_Int(dict, "VRDIRTY", VRDIRTY);
             PyDict_SetItemString_Int(dict, "DIRTY", DIRTY);

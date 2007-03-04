@@ -249,6 +249,7 @@ void initc(void)
     _init_skiplist(m);
     _init_hashtuple(m);
     _init_nil(m);
+    _init_ctxmgr(m);
 #ifdef WINDOWS
     _init_lock(m);
 #endif

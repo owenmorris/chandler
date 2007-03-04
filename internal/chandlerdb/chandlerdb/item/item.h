@@ -81,7 +81,7 @@ enum {
     NMERGED    = 0x00040000,
     CMERGED    = 0x00080000,
     WITHSCHEMA = 0x00100000,          /* save item with schema */
-
+    IDXMONITOR = 0x00200000,          /* an index monitor */
     MUTATING   = 0x00400000,          /* kind is being removed */
     KDIRTY     = 0x00800000,          /* kind changed */
     P_WATCHED  = 0x01000000,          /* watched, persistently */
@@ -97,7 +97,7 @@ enum {
     VRDIRTY    = VDIRTY | RDIRTY,
     DIRTY      = VDIRTY | RDIRTY | NDIRTY | CDIRTY | KDIRTY,
     MERGED     = VMERGED | RMERGED | NMERGED | CMERGED,
-    SAVEMASK   = (DIRTY | ADIRTY | SYSMONITOR |
+    SAVEMASK   = (DIRTY | ADIRTY | SYSMONITOR | IDXMONITOR |
                   NEW | DELETED | P_WATCHED | TOINDEX |
                   SCHEMA | CORESCHEMA | WITHSCHEMA | CONTAINER),
     WATCHED    = P_WATCHED | T_WATCHED,

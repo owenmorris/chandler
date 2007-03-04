@@ -175,21 +175,15 @@ static PyObject *t_kind_new(PyTypeObject *type, PyObject *args, PyObject *kwds)
 
     if (self)
     {
-        PyObject *noArgs = PyTuple_New(0);
-
         self->kind = NULL;
         self->flags = 0;
         self->descriptors = PyDict_New();
-        self->inheritedSuperKinds =
-            PyObject_Call((PyObject *) &PySet_Type, noArgs, NULL);
-        self->notifyAttributes = 
-            PyObject_Call((PyObject *) &PySet_Type, noArgs, NULL);
+        self->inheritedSuperKinds = PySet_New(NULL);
+        self->notifyAttributes = PySet_New(NULL);
         self->allAttributes = PyDict_New();
         self->allNames = PyDict_New();
         self->inheritedAttributes = PyDict_New();
         self->notFoundAttributes = PyList_New(0);
-
-        Py_DECREF(noArgs);
     }
 
     return (PyObject *) self;

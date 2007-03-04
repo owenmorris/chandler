@@ -39,6 +39,7 @@ def main():
              'chandlerdb/util/skiplist.c',
              'chandlerdb/util/hashtuple.c',
              'chandlerdb/util/nil.c',
+             'chandlerdb/util/ctxmgr.c',
              'rijndael-3.0/rijndael-api-fst.c',
              'rijndael-3.0/rijndael-alg-fst.c',
              'chandlerdb/util/rijndael.c',

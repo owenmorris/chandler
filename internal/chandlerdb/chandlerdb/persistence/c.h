@@ -106,6 +106,7 @@ extern PyTypeObject *CDBEnv;
 extern PyTypeObject *CDBTxn;
 extern PyTypeObject *CDBLock;
 extern PyTypeObject *Record;
+extern PyTypeObject *CtxMgr;
 
 extern PyUUID_Check_fn PyUUID_Check;
 extern PyUUID_Make16_fn PyUUID_Make16;

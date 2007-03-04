@@ -19,6 +19,8 @@
  * a view is also the parent of root items
  */
 
+#include "../util/ctxmgr.h"
+
 typedef struct {
     PyObject_HEAD
     Item_HEAD
@@ -34,6 +36,7 @@ typedef struct {
     PyObject *watchers;
     PyObject *debugOn;
     PyObject *deferredDeletes;
+    t_ctxmgr *deferredIndexingCtx;
 } t_view;
 
 enum {
@@ -60,6 +63,7 @@ enum {
     COMMITREQ  = 0x00100000,
     BADPASSWD  = 0x00200000,
     ENCRYPTED  = 0x00400000,
+    DEFERIDX   = 0x00800000,
 };
 
 

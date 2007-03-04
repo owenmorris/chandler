@@ -1,5 +1,5 @@
 /*
- *  Copyright (c) 2003-2006 Open Source Applications Foundation
+ *  Copyright (c) 2007-2007 Open Source Applications Foundation
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -15,33 +15,18 @@
  */
 
 
-/* from 1 to 16 */
-#define SL_MAXLEVEL 16       
+#ifndef _CTXMGR_H
+#define _CTXMGR_H
 
-enum {
-    SL_INSERT = 0x0001,
-    SL_MOVE   = 0x0002,
-    SL_REMOVE = 0x0004
-};
-
-
-typedef struct {
+typedef struct _ctxmgr {
     PyObject_HEAD
-    PyObject *prevKey;
-    PyObject *nextKey;
-    int dist;
-} t_point;
+    int count;
+    PyObject *target;
+    PyObject *(*enterFn)(PyObject *, struct _ctxmgr *);
+    PyObject *(*exitFn)(PyObject *, struct _ctxmgr *,
+                        PyObject *, PyObject *, PyObject *);
+    PyObject *data;
+} t_ctxmgr;
 
-typedef struct {
-    PyObject_HEAD
-    PyObject *levels;
-    int entryValue;
-} t_node;
 
-typedef struct {
-    PyObject_HEAD
-    PyObject *head;
-    PyObject *tail;
-    PyObject *map;
-    int flags;
-} t_sl;
+#endif /* _CTXMGR_H */

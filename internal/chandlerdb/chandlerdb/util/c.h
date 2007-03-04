@@ -19,6 +19,7 @@
 #include "uuid.h"
 #include "linkedmap.h"
 #include "skiplist.h"
+#include "ctxmgr.h"
 
 extern PyTypeObject *UUID;
 extern PyTypeObject *Key;
@@ -42,6 +43,7 @@ void _init_linkedmap(PyObject *m);
 void _init_skiplist(PyObject *m);
 void _init_hashtuple(PyObject *m);
 void _init_nil(PyObject *m);
+void _init_ctxmgr(PyObject *m);
 
 #ifdef WINDOWS
 PyObject *openHFILE(PyObject *self, PyObject *args);

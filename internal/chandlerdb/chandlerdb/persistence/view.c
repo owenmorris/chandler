@@ -65,6 +65,8 @@ static PyObject *t_view_setSingleton(t_view *self, PyObject *args);
 static PyObject *t_view_invokeMonitors(t_view *self, PyObject *args);
 static PyObject *t_view_debugOn(t_view *self, PyObject *arg);
 static PyObject *t_view__unregisterItem(t_view *self, PyObject *args);
+static PyObject *t_view_isReindexingDeferred(t_view *self);
+static PyObject *t_view_reindexingDeferred(t_view *self);
 
 static Py_ssize_t t_view_dict_length(t_view *self);
 static PyObject *t_view_dict_get(t_view *self, PyObject *key);
@@ -78,10 +80,8 @@ static PyObject *getRoot_NAME;
 static PyObject *_fwalk_NAME;
 static PyObject *findPath_NAME;
 static PyObject *cacheMonitors_NAME;
-static PyObject *method_NAME;
-static PyObject *args_NAME, *kwds_NAME;
-static PyObject *item_NAME;
 static PyObject *MONITORS_PATH;
+static PyObject *reindex_NAME;
 
 static PyMemberDef t_view_members[] = {
     { "_status", T_UINT, offsetof(t_view, status), 0, "view status flags" },
@@ -129,6 +129,8 @@ static PyMethodDef t_view_methods[] = {
     { "invokeMonitors", (PyCFunction) t_view_invokeMonitors, METH_VARARGS, "" },
     { "debugOn", (PyCFunction) t_view_debugOn, METH_O, "" },
     { "_unregisterItem", (PyCFunction) t_view__unregisterItem, METH_VARARGS, "" },
+    { "isReindexingDeferred", (PyCFunction) t_view_isReindexingDeferred, METH_NOARGS, "" },
+    { "reindexingDeferred", (PyCFunction) t_view_reindexingDeferred, METH_NOARGS, "" },
     { NULL, NULL, 0, NULL }
 };
 
@@ -226,6 +228,7 @@ static int t_view_traverse(t_view *self, visitproc visit, void *arg)
     Py_VISIT(self->watchers);
     Py_VISIT(self->debugOn);
     Py_VISIT(self->deferredDeletes);
+    Py_VISIT(self->deferredIndexingCtx);
 
     return 0;
 }
@@ -245,6 +248,7 @@ static int t_view_clear(t_view *self)
     Py_CLEAR(self->watchers);
     Py_CLEAR(self->debugOn);
     Py_CLEAR(self->deferredDeletes);
+    Py_CLEAR(self->deferredIndexingCtx);
 
     return 0;
 }
@@ -887,9 +891,7 @@ static PyObject *_t_view_invokeMonitors(t_view *self, PyObject *args,
 
         for (i = 0; i < size; i++) {
             t_item *monitor = (t_item *) PyList_GetItem(monitors, i);
-            PyObject *monitoringItem, *callable, *result;
-            PyObject *monitorArgs, *monitorKwds;
-            int j, margCount = 0;
+            PyObject *result;
 
             if (monitor->status & (DEFERRING | DELETING))
                 continue;
@@ -899,104 +901,21 @@ static PyObject *_t_view_invokeMonitors(t_view *self, PyObject *args,
             if (userOnly && (monitor->status & SYSMONITOR))
                 continue;
 
-            monitoringItem = PyDict_GetItem(monitor->references->dict,
-                                            item_NAME);
-            if (monitoringItem == NULL)
-                continue;
-
-            if (monitoringItem->ob_type == ItemRef)
-            {
-                monitoringItem = PyObject_Call(monitoringItem, NULL, NULL);
-                if (!monitoringItem)
-                    return NULL;
-            }
-            else
-                Py_INCREF(monitoringItem);
-
-            callable = PyDict_GetItem(monitor->values->dict, method_NAME);
-            if (callable == NULL)
-            {
-                Py_DECREF(args);
-                Py_DECREF(monitoringItem);
-                PyErr_SetObject(PyExc_AttributeError, method_NAME);
-                return NULL;
-            }
-
-            callable = PyObject_GetAttr(monitoringItem, callable);
-            Py_DECREF(monitoringItem);
-            if (callable == NULL)
+            result = PyObject_Call((PyObject *) monitor, args, NULL);
+            if (result == NULL)
             {
                 Py_DECREF(args);
                 return NULL;
             }
 
-            monitorArgs = PyDict_GetItem(monitor->values->dict, args_NAME);
-            if (monitorArgs != NULL)
-                margCount = PySequence_Size(monitorArgs);
-
-            monitorKwds = PyDict_GetItem(monitor->values->dict, kwds_NAME);
-
-            if (self->status & RECORDING)
+            if (!(self->status & RECORDING) &&
+                self->status & DEFERIDX && monitor->status & IDXMONITOR &&
+                PySet_Add(self->deferredIndexingCtx->data,
+                          (PyObject *) monitor) < 0)
             {
-                PyObject *_args = PyTuple_New(argCount + 1 + margCount);
-
-                PyTuple_SET_ITEM(_args, 0, callable);
-                for (j = 0; j < argCount; j++) {
-                    PyObject *o = PyTuple_GET_ITEM(args, j);
-                    Py_INCREF(o);
-                    PyTuple_SET_ITEM(_args, j + 1, o);
-                }
-
-                if (margCount > 0)
-                    for (j = 0; j < margCount; j++) {
-                        PyObject *o = PySequence_GetItem(monitorArgs, j);
-                        PyTuple_SET_ITEM(_args, j + 1 + argCount, o);
-                    }
-
-                result = t_view__notifyChange(self, _args, monitorKwds);
-                Py_DECREF(_args);
-
-                if (result == NULL)
-                {
-                    Py_DECREF(args);
-                    return NULL;
-                }
+                Py_DECREF(args);
+                return NULL;
             }
-            else
-            {
-                PyObject *_args;
-
-                if (margCount > 0)
-                {
-                    _args = PyTuple_New(argCount + margCount);
-
-                    for (j = 0; j < argCount; j++) {
-                        PyObject *o = PyTuple_GET_ITEM(args, j);
-                        Py_INCREF(o);
-                        PyTuple_SET_ITEM(_args, j, o);
-                    }
-                    for (j = 0; j < margCount; j++) {
-                        PyObject *o = PySequence_GetItem(monitorArgs, j);
-                        PyTuple_SET_ITEM(_args, j + argCount, o);
-                    }
-                }
-                else
-                {
-                    _args = args;
-                    Py_INCREF(args);
-                }
-
-                result = PyObject_Call(callable, _args, monitorKwds);
-                Py_DECREF(_args);
-
-                if (result == NULL)
-                {
-                    Py_DECREF(args);
-                    return NULL;
-                }
-            }
-
-            Py_DECREF(result);
         }
     }
 
@@ -1095,6 +1014,108 @@ static PyObject *t_view__unregisterItem(t_view *self, PyObject *args)
 }
 
 
+static PyObject *_t_view_deferidx__enter(PyObject *target, t_ctxmgr *mgr)
+{
+    t_view *self = (t_view *) target;
+
+    if (self->deferredIndexingCtx != mgr)
+    {
+        PyErr_SetString(PyExc_ValueError, "Invalid CtxMgr target");
+        return NULL;
+    }
+
+    if (mgr->count == 0)
+    {
+        mgr->data = PySet_New(NULL);
+        self->status |= DEFERIDX;
+    }
+    mgr->count += 1;
+
+    return PyInt_FromLong(mgr->count);
+}
+
+static PyObject *_t_view_deferidx__exit(PyObject *target, t_ctxmgr *mgr,
+                                        PyObject *type, PyObject *value,
+                                        PyObject *traceback)
+{
+    t_view *self = (t_view *) target;
+
+    if (self->deferredIndexingCtx != mgr)
+    {
+        PyErr_SetString(PyExc_ValueError, "Invalid CtxMgr target");
+        return NULL;
+    }
+
+    if (mgr->count > 0)
+        mgr->count -= 1;
+    
+    if (mgr->count == 0)
+    {
+        PyObject *monitors = PyObject_GetIter(self->deferredIndexingCtx->data);
+        PyObject *monitor;
+
+        self->status &= ~DEFERIDX;
+        Py_CLEAR(self->deferredIndexingCtx);
+
+        if (!monitors)
+            return NULL;
+
+        while ((monitor = PyIter_Next(monitors))) {
+            PyObject *result = PyObject_CallMethodObjArgs(monitor, reindex_NAME,
+                                                          NULL);
+            Py_DECREF(monitor);
+            if (result == NULL)
+                break;
+            else
+                Py_DECREF(result);
+        }
+        Py_DECREF(monitors);
+
+        if (PyErr_Occurred())
+            return NULL;
+    }
+
+    if (type != Py_None)
+        Py_RETURN_FALSE;
+
+    Py_RETURN_TRUE;
+}
+
+static PyObject *t_view_isReindexingDeferred(t_view *self)
+{
+    if (self->status & DEFERIDX)
+        Py_RETURN_TRUE;
+
+    Py_RETURN_FALSE;
+}
+
+static PyObject *t_view_reindexingDeferred(t_view *self)
+{
+    if (self->deferredIndexingCtx)
+    {
+        Py_INCREF(self->deferredIndexingCtx);
+        return (PyObject *) self->deferredIndexingCtx;
+    }
+    else
+    {
+        PyObject *noArgs = PyTuple_New(0);
+        t_ctxmgr *ctxmgr = (t_ctxmgr *) PyObject_Call((PyObject *) CtxMgr,
+                                                      noArgs, NULL);
+        
+        Py_DECREF(noArgs);
+        if (ctxmgr)
+        {
+            ctxmgr->target = (PyObject *) self; Py_INCREF(self);
+            ctxmgr->enterFn = _t_view_deferidx__enter;
+            ctxmgr->exitFn = _t_view_deferidx__exit;
+            self->deferredIndexingCtx = ctxmgr; Py_INCREF(ctxmgr);
+        }
+
+        return (PyObject *) ctxmgr;
+    }
+}
+
+
 void _init_view(PyObject *m)
 {
     if (PyType_Ready(&ViewType) >= 0)
@@ -1118,6 +1139,7 @@ void _init_view(PyObject *m)
             PyDict_SetItemString_Int(dict, "REFRESHING", REFRESHING);
             PyDict_SetItemString_Int(dict, "VERIFY", VERIFY);
             PyDict_SetItemString_Int(dict, "COMMITREQ", COMMITREQ);
+            PyDict_SetItemString_Int(dict, "DEFERIDX", DEFERIDX);
 
             refresh_NAME = PyString_FromString("refresh");
             _effectDelete_NAME = PyString_FromString("_effectDelete");
@@ -1128,10 +1150,7 @@ void _init_view(PyObject *m)
             _fwalk_NAME = PyString_FromString("_fwalk");
             findPath_NAME = PyString_FromString("findPath");
             cacheMonitors_NAME = PyString_FromString("cacheMonitors");
-            method_NAME = PyString_FromString("method");
-            args_NAME = PyString_FromString("args");
-            kwds_NAME = PyString_FromString("kwds");
-            item_NAME = PyString_FromString("item");
+            reindex_NAME = PyString_FromString("reindex");
 
             MONITORS_PATH = PyString_FromString("//Schema/Core/items/Monitors");
             PyDict_SetItemString(dict, "MONITORS", MONITORS_PATH);
