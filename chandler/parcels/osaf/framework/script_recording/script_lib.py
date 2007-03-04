@@ -70,87 +70,90 @@ def ProcessEvent (theClass, properties , attributes):
     # Special case wx,Choice to set the selection
     if eventType is wx.EVT_CHOICE:
         sentToWidget.SetSelection (properties ["selectedItem"])
-
-    # Check to see if the correct window has focus
-    if verifyOn:
-        # Make sure the menu or button is enabled
-        if eventType is wx.EVT_MENU:
-            updateUIEvent = wx.UpdateUIEvent (event.GetId())
-            updateUIEvent.SetEventObject (sentToWidget)
-            sentToWidget.ProcessEvent (updateUIEvent)
-            assert updateUIEvent.GetEnabled() is True, "You're sending a command to a disable menu"
-            
-        focusWindow = wx.Window_FindFocus()
-        newFocusWindow = properties.get ("newFocusWindow", None)
         
-        # Check to makee sure the focus window changes as expected
-        def focusShouldLookLikeNewFocusWindow (focusWindow, newFocusWindow):
-            if type (newFocusWindow) is str:
-                assert focusWindow is NameToWidget (newFocusWindow), "An unexpected window has the focus"
-            else:
-                (theClass, id) = newFocusWindow
-                assert isinstance (focusWindow, theClass), "The window with the focus is of the wrong class"
-                if id > 0:
-                    assert focusWindow.GetId() == id, "Focus window has unexpected id"
-                else:
-                    assert focusWindow.GetId() < 0, "Focus window has unexpected id"
-
-        if lastFocus != focusWindow:
-            assert newFocusWindow is not None, "Focus window unexpectedly changed"
+    # On Windows, EmulateKeyPress seems to cause EVT_CHAR events to occur
+    # so we don't need to process the recorded EVT_CHAR events
+    if not (eventType is wx.EVT_CHAR and '__WXMSW__' in wx.PlatformInfo):
+        # Check to see if the correct window has focus
+        if verifyOn:
+            # Make sure the menu or button is enabled
+            if eventType is wx.EVT_MENU:
+                updateUIEvent = wx.UpdateUIEvent (event.GetId())
+                updateUIEvent.SetEventObject (sentToWidget)
+                sentToWidget.ProcessEvent (updateUIEvent)
+                assert updateUIEvent.GetEnabled() is True, "You're sending a command to a disable menu"
+                
+            focusWindow = wx.Window_FindFocus()
+            newFocusWindow = properties.get ("newFocusWindow", None)
             
-            # And that we get the expected focus window
-            focusShouldLookLikeNewFocusWindow (focusWindow, newFocusWindow)
-
-            lastFocus = focusWindow
-        else:
-            if newFocusWindow is not None:
+            # Check to makee sure the focus window changes as expected
+            def focusShouldLookLikeNewFocusWindow (focusWindow, newFocusWindow):
+                if type (newFocusWindow) is str:
+                    assert focusWindow is NameToWidget (newFocusWindow), "An unexpected window has the focus"
+                else:
+                    (theClass, id) = newFocusWindow
+                    assert isinstance (focusWindow, theClass), "The window with the focus is of the wrong class"
+                    if id > 0:
+                        assert focusWindow.GetId() == id, "Focus window has unexpected id"
+                    else:
+                        assert focusWindow.GetId() < 0, "Focus window has unexpected id"
+    
+            if lastFocus != focusWindow:
+                assert newFocusWindow is not None, "Focus window unexpectedly changed"
+                
+                # And that we get the expected focus window
                 focusShouldLookLikeNewFocusWindow (focusWindow, newFocusWindow)
-
-        # Check to make sure last event caused expected change
-        if lastSentToWidget is not None:
-            method = getattr (lastSentToWidget, "GetValue", None)
-            lastWidgetValue = properties.get ("lastWidgetValue", None)
-            if lastWidgetValue is not None and method is not None:
-                value = method()
-                assert value == lastWidgetValue, "widget's value doesn't match the value when the script was recorded"
+    
+                lastFocus = focusWindow
             else:
-                assert lastWidgetValue is None, "last widget differes from its value when the script was recorded"
-
-    if not sentToWidget.ProcessEvent (event):
-        # Special case key downs
-        if eventType is wx.EVT_KEY_DOWN:
-            # EmulateKeyPress isn't implemented correctly on for non-windows platform. So for now
-            # we'll special case the grid case and send the event to the gridWindow.
-            # Eventually, it would be nice to spend some time investigating how to implement
-            # EmulateKeyPress correctly on non-windows platforms.
-            processed = False
-            if ('__WXMSW__' not in wx.PlatformInfo and
-                event.m_keyCode in set ([wx.WXK_ESCAPE, wx.WXK_TAB, wx.WXK_RETURN, wx.WXK_NUMPAD_ENTER])):
-                gridWindow = sentToWidget.GetParent()
-                if (gridWindow is not None and
-                    isinstance (gridWindow.GetParent(), wx.grid.Grid)):
-                    event.SetEventObject (gridWindow)
-                    gridWindow.ProcessEvent (event)
-                    processed = True
-
-            if not processed:
-                # Try EmulateKeyPress
-                EmulateKeyPress = getattr(sentToWidget, 'EmulateKeyPress', None)
-                if EmulateKeyPress is not None:
-                    EmulateKeyPress (event)
-
-        elif eventType is wx.EVT_CHECKBOX:
-            widget.SetValue(not widget.GetValue())
-
-    lastSentToWidget = sentToWidget
-
-    # On windows when we propagate notifications while editing a text control
-    # it will end up calling wxSynchronizeWidget in wxTable, which will end the
-    # editing of the table
-    if not isinstance (sentToWidget, wx.TextCtrl):
-        application.propagateAsynchronousNotifications()
-
-    application.Yield()
+                if newFocusWindow is not None:
+                    focusShouldLookLikeNewFocusWindow (focusWindow, newFocusWindow)
+    
+            # Check to make sure last event caused expected change
+            if lastSentToWidget is not None:
+                method = getattr (lastSentToWidget, "GetValue", None)
+                lastWidgetValue = properties.get ("lastWidgetValue", None)
+                if lastWidgetValue is not None and method is not None:
+                    value = method()
+                    assert value == lastWidgetValue, "widget's value doesn't match the value when the script was recorded"
+                else:
+                    assert lastWidgetValue is None, "last widget differes from its value when the script was recorded"
+    
+        if not sentToWidget.ProcessEvent (event):
+            # Special case key downs
+            if eventType is wx.EVT_KEY_DOWN:
+                # EmulateKeyPress isn't implemented correctly on for non-windows platform. So for now
+                # we'll special case the grid case and send the event to the gridWindow.
+                # Eventually, it would be nice to spend some time investigating how to implement
+                # EmulateKeyPress correctly on non-windows platforms.
+                # Finally, to be consistent, we'll process the event in the same way on all platforms
+                processed = False
+                if (event.m_keyCode in set ([wx.WXK_ESCAPE, wx.WXK_TAB, wx.WXK_RETURN, wx.WXK_NUMPAD_ENTER])):
+                    gridWindow = sentToWidget.GetParent()
+                    if (gridWindow is not None and
+                        isinstance (gridWindow.GetParent(), wx.grid.Grid)):
+                        event.SetEventObject (gridWindow)
+                        gridWindow.ProcessEvent (event)
+                        processed = True
+    
+                if not processed:
+                    # Try EmulateKeyPress
+                    EmulateKeyPress = getattr(sentToWidget, 'EmulateKeyPress', None)
+                    if EmulateKeyPress is not None:
+                        EmulateKeyPress (event)
+    
+            elif eventType is wx.EVT_CHECKBOX:
+                widget.SetValue(not widget.GetValue())
+    
+        lastSentToWidget = sentToWidget
+    
+        # On windows when we propagate notifications while editing a text control
+        # it will end up calling wxSynchronizeWidget in wxTable, which will end the
+        # editing of the table
+        if not isinstance (sentToWidget, wx.TextCtrl):
+            application.propagateAsynchronousNotifications()
+    
+        application.Yield()
 
 def VerifyOn (verify = True):
     global verifyOn, lastFocus, lastSentToWidget
