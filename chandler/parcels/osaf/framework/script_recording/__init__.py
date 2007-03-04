@@ -167,9 +167,9 @@ class Controller (Block.Block):
         def valueToString (value):
             theType = type (value)
             if theType is str:
-                return '"' + value + '"'
+                return "'" + value.encode('string_escape') + "'"
             elif theType is unicode:
-                return 'u"' + value + '"'
+                return "u'" + value.encode('unicode_escape') + "'"
             elif theType is bool or theType is int:
                 return str(value)
             else:
@@ -234,16 +234,16 @@ class Controller (Block.Block):
                         associatedBlock = Block.Block.idToBlock.get (event.GetId(), None)
                         if associatedBlock is not None:
                             associatedBlock = associatedBlock.blockName
-                            values.append ('"associatedBlock":"' + associatedBlock + '"')
+                            values.append ("'associatedBlock':'" + associatedBlock + "'")
 
                         # Don't record the stop recording event
                         if associatedBlock not in ignoreBlocks:
-                            values.append ('"eventType":' + eventType)
-                            values.append ('"sentTo":' + valueToString (sentToName))
+                            values.append ("'eventType':" + eventType)
+                            values.append ("'sentTo':" + valueToString (sentToName))
 
                             # Track selection of choice controls so we can set them on playback
                             if eventType == "wx.EVT_CHOICE":
-                                values.append ('"selectedItem":' + valueToString (sentToWidget.GetSelection()))
+                                values.append ("'selectedItem':" + valueToString (sentToWidget.GetSelection()))
 
                             # Use mouse up events in text controls to set selection during playback
                             if eventType == 'wx.EVT_LEFT_UP':
@@ -251,7 +251,7 @@ class Controller (Block.Block):
                                     return
                                 (start, end) = sentToWidget.GetSelection()
                                 print start, end
-                                values.append ('"selectionRange": (' +
+                                values.append ("'selectionRange': (" +
                                                valueToString (start) + "," +
                                                valueToString (end) + ')')
 
@@ -268,7 +268,7 @@ class Controller (Block.Block):
                                         newFocusWindow = '(' + getClassName (focusWindow) + ',' + str(focusWindow.GetId()) + ')'
                                     else:
                                         newFocusWindow = valueToString (newFocusWindow)
-                                    values.append ('"newFocusWindow":' + newFocusWindow)
+                                    values.append ("'newFocusWindow':" + newFocusWindow)
 
                                 #  Record the state of the last widget so we can check that the state is the same
                                 # afer the event is played back
@@ -280,7 +280,7 @@ class Controller (Block.Block):
                                     if lastSentToWidget is not None:
                                         method = getattr (lastSentToWidget, "GetValue", None)
                                         if method is not None:
-                                            values.append ('"lastWidgetValue":' + valueToString (method()))
+                                            values.append ("'lastWidgetValue':" + valueToString (method()))
                                         
                             properties = "{" + ", ".join (values) + "}"
 
@@ -289,7 +289,7 @@ class Controller (Block.Block):
                             for (attribute, defaultValue) in classInfo["attributes"]:
                                 value = getattr (event, attribute)
                                 if value != defaultValue:
-                                    values.append ('"%s":%s' % (attribute, valueToString (value)))
+                                    values.append ("'%s':%s" % (attribute, valueToString (value)))
                             attributes = "{" + ", ".join (values) + "}"
                             if self.verifyOn is not self.includeTests:
                                 self.script += "    VerifyOn ("
