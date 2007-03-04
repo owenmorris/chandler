@@ -413,9 +413,10 @@ class wxApplication (wx.App):
         parcelPath, plugins = Utility.initParcelEnv(Globals.options,
                                                     Globals.chandlerDirectory)
 
-        # If the magic metakey is down, run the startup options box; it'll
+        # If a magic metakey is down, run the startup options box; it'll
         # modify Globals.options as necessary.
-        if Globals.options.ask or wx.GetMouseState().ControlDown():
+        if Globals.options.ask or wx.GetMouseState().ControlDown() \
+            or ('__WXMAC__' in wx.PlatformInfo and wx.GetMouseState().AltDown()):
             from application.dialogs.StartupOptionsDialog import StartupOptionsDialog            
             StartupOptionsDialog.run()
 
