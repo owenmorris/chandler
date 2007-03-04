@@ -27,6 +27,7 @@ wxEventClasses = set([wx.CommandEvent,
 wxEventTypes = ["EVT_MENU",
                 "EVT_KEY_DOWN",
                 "EVT_LEFT_DOWN",
+                "EVT_LEFT_UP",
                 "EVT_RIGHT_DOWN",
                 "EVT_LEFT_DCLICK",
                 "EVT_RIGHT_DCLICK",
@@ -236,13 +237,23 @@ class Controller (Block.Block):
                             values.append ('"associatedBlock":"' + associatedBlock + '"')
 
                         # Don't record the stop recording event
-                        if (associatedBlock not in ignoreBlocks):
+                        if associatedBlock not in ignoreBlocks:
                             values.append ('"eventType":' + eventType)
                             values.append ('"sentTo":' + valueToString (sentToName))
 
                             # Track selection of choice controls so we can set them on playback
                             if eventType == "wx.EVT_CHOICE":
                                 values.append ('"selectedItem":' + valueToString (sentToWidget.GetSelection()))
+
+                            # Use mouse up events in text controls to set selection during playback
+                            if eventType == 'wx.EVT_LEFT_UP':
+                                if not isinstance (sentToWidget, wx.TextCtrl):
+                                    return
+                                (start, end) = sentToWidget.GetSelection()
+                                print start, end
+                                values.append ('"selectionRange": (' +
+                                               valueToString (start) + "," +
+                                               valueToString (end) + ')')
 
                             if self.includeTests:
                                 focusWindow = wx.Window_FindFocus()

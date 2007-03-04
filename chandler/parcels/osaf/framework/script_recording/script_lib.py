@@ -120,8 +120,7 @@ def ProcessEvent (theClass, properties , attributes):
                     assert lastWidgetValue is None, "last widget differes from its value when the script was recorded"
     
         if not sentToWidget.ProcessEvent (event):
-            # Special case key downs
-            if eventType is wx.EVT_KEY_DOWN:
+            if eventType is wx.EVT_KEY_DOWN: # Special case key downs
                 # EmulateKeyPress isn't implemented correctly on for non-windows platform. So for now
                 # we'll special case the grid case and send the event to the gridWindow.
                 # Eventually, it would be nice to spend some time investigating how to implement
@@ -142,9 +141,14 @@ def ProcessEvent (theClass, properties , attributes):
                     if EmulateKeyPress is not None:
                         EmulateKeyPress (event)
     
-            elif eventType is wx.EVT_CHECKBOX:
-                widget.SetValue(not widget.GetValue())
-    
+            elif eventType is wx.EVT_CHECKBOX: # Special case check box events
+                sentToWidget.SetValue(not widget.GetValue())
+                    
+            elif eventType is wx.EVT_LEFT_UP: # Special case left up to set selection in text control
+                assert isinstance (sentToWidget, wx.TextCtrl)
+                (start, end) = properties ["selectionRange"]
+                sentToWidget.SetSelection (start, end)
+                    
         lastSentToWidget = sentToWidget
     
         # On windows when we propagate notifications while editing a text control
