@@ -42,16 +42,28 @@ class ItemRecord(eim.Record):
     URI = "http://osafoundation.org/eim/item/0"
 
     uuid = eim.key(schema.UUID)
+
+    # ContentItem.displayName
     title = eim.field(text1024)
+
+    # ContentItem.[triageStatus, triageStatusChanged, doAutoTriageOnDateChange]
     triage = eim.field(text256, [triageFilter])
+
+    # ContentItem.createdOn
     createdOn = eim.field(eim.DecimalType(digits=20, decimal_places=0))
+
+
 
 
 class ModifiedByRecord(eim.Record):
     URI = "http://osafoundation.org/eim/modifiedBy/0"
 
     uuid = eim.key(schema.UUID)
+
+    # ContentItem.lastModifiedBy
     userid = eim.key(text256)
+
+    # ContentItem.lastModified (time)
     timestamp = eim.key(eim.DecimalType(digits=12, decimal_places=2))
 
 
@@ -59,8 +71,14 @@ class NoteRecord(eim.Record):
     URI = "http://osafoundation.org/eim/note/0"
 
     uuid = eim.key(ItemRecord.uuid)
+
+    # ContentItem.body
     body = eim.field(eim.ClobType)
+
+    # Note.icalUid
     icalUid = eim.field(text256)
+
+    # Note.reminders?  (Translator not implemented yet)
     reminderTime = eim.field(eim.DecimalType(digits=20, decimal_places=0))
 
 
@@ -70,6 +88,8 @@ class TaskRecord(eim.Record):
 
     uuid = eim.key(ItemRecord.uuid)
 
+    # Task stamp has no shared attributes, so nothing is shared other than the
+    # fact that an item is stamped as a task or not
 
 
 class TaskModificationRecord(eim.Record):
@@ -84,15 +104,27 @@ class EventRecord(eim.Record):
     URI = "http://osafoundation.org/eim/event/0"
 
     uuid = eim.key(ItemRecord.uuid)
+
+    # EventStamp.[allDay, anyTime, duration, startTime]
     dtstart = eim.field(text20)
     dtend = eim.field(text20)
+
+    # EventStamp.location
     location = eim.field(text256)
+
+    # EventStamp.[recurrenceID, rruleset, etc.]
     rrule = eim.field(text1024)
     exrule = eim.field(text1024)
     rdate = eim.field(text1024)
     exdate = eim.field(text1024)
+
+    # EventStamp.transparency
     status = eim.field(text256, [eventStatusFilter])
+
+    # Note.icalendarParameters
     icalParameters = eim.field(text1024, [nonStandardICalendarFilter])
+
+    # Note.icalendarProperties
     icalProperties = eim.field(text1024, [nonStandardICalendarFilter])
 
 
