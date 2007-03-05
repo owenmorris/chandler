@@ -62,14 +62,14 @@ def parseOptions():
         'verbose':   ('-v', '--verbose',            'b', False, 'Verbose output'),
         'funcSuite': ('-f', '--funcSuite',          'b', False, 'Functional test suite'),
         'perf':      ('-p', '--perf',               'b', False, 'Performance tests'),
-        'single':    ('-t', '--test',               's', '',    'Run single test'),
+        'single':    ('-t', '--test',               's', '',    'Run test(s) (comma separated list)'),
         'noEnv':     ('-i', '--ignoreEnv',          'b', False, 'Ignore environment variables'),
         'help':      ('-H', '',                     'b', False, 'Extended help'),
         'dryrun':    ('-d', '--dryrun',             'b', False, 'Do all of the prep work but do not run any tests'),
         'selftest':  ('',   '--selftest',           'b', False, 'Run self test'),
         #'restored':  ('-R', '--restoredRepository', 'b', False, 'unit tests with restored repository instead of creating new for each test'),
         #'profile':   ('-P', '--profile',            'b', False, 'Profile performance tests'),
-        #'tbox':      ('-T', '--tbox',               'b', False, 'Tinderbox output mode'),
+        'tbox':      ('-T', '--tbox',               'b', False, 'Tinderbox output mode'),
         #'config':    ('-L', '',                     's', None,  'Custom Chandler logging configuration file'),
     }
 
@@ -134,6 +134,15 @@ def checkOptions(options):
         log('Single test run (-t) only allowed by itself', error=True)
         sys.exit(1)
 
+    if options.single:
+        newsingle = []
+        for single in options.single.split(','):
+            if single[-3:] != '.py':
+                newsingle.append(single + '.py')
+            else:
+                newsingle.append(single)
+        options.single = ','.join(newsingle)
+
     options.runpython   = {}
     options.runchandler = {}
 
@@ -157,8 +166,9 @@ def checkOptions(options):
 def findTestFiles(searchPath, excludeDirs, includePattern):
     result = []
 
-    for item in glob.glob(os.path.join(searchPath, includePattern)):
-        result.append(item)
+    for pattern in includePattern.split(','):
+        for item in glob.glob(os.path.join(searchPath, pattern)):
+            result.append(item)
 
     for item in os.listdir(searchPath):
         dirname = os.path.join(searchPath, item)
@@ -334,7 +344,10 @@ def runScriptPerfTests(options, testlist, largeData=False):
         #                                   --scriptTimeout=600
         #                                   --scriptFile="$TESTNAME" &> $TESTLOG
 
-#        if item.find('PerfImport') >= 0:
+#        continue
+#        if not item.find('PerfImport') >= 0:
+#            continue
+#        if not item.find('PerfNewCale') >= 0:
 #            continue
 
         timeLog = os.path.join(options.profileDir, 'time.log')
@@ -377,13 +390,95 @@ def runScriptPerfTests(options, testlist, largeData=False):
                 log(item[item.rfind('/') + 1:] + ' [ 0.00s ]')
             else:
                 # XXX need to scan output to see if success
-                for line in open(timeLog):
-                    log(item[item.rfind('/') + 1:] + ' [ %ss ]' % line[:-1])
-                    break
+                line = open(timeLog).readline()[:-1]
+                log(item[item.rfind('/') + 1:] + ' [ %ss ]' % line)
 
     # Need to store logs somewhere so that once all done we can output
 
     return failed
+
+def runStartupPerfTests(options, timer, largeData=False, repeat=3):
+    # Create test repo
+    log('Creating repository for startup time tests')
+    cmd = [ options.runchandler['release'],
+            '--catch=tests', '--scriptTimeout=60',
+            '--profileDir=%s'  % options.profileDir,
+            '--parcelPath=%s'  % options.parcelPath,
+            '--scriptFile=%s'  % os.path.join(options.chandlerHome, 'tools', 'QATestScripts', 'Performance', 'quit.py') ]
+
+    if not largeData:
+        cmd += ['--create']
+        timeout = 180
+        name = 'Startup'
+    else:
+        cmd += ['--restore=%s' % os.path.join(options.profileDir, 
+                                              '__repository__.001')]
+        timeout = 600
+        name = 'Startup_with_large_calendar'
+    
+    if options.verbose:
+        log(' '.join(cmd))
+
+    if options.dryrun:
+        result = 0
+    else:
+        result = build_lib.runCommand(cmd, timeout=timeout)
+    
+    if result != 0:
+        log('***Error exit code=%d, creating %s repository' % (result, name))
+        return True
+    
+    # Time startup
+    values = []
+    timeLog = os.path.join(options.profileDir, 'time.log')
+    if not options.dryrun:
+        if os.path.isfile(timeLog):
+            os.remove(timeLog)
+
+    cmd = [ timer, r'--format=%e', '-o', timeLog,
+            options.runchandler['release'],
+            '--catch=tests', '--scriptTimeout=60',
+            '--profileDir=%s'  % options.profileDir,
+            '--parcelPath=%s'  % options.parcelPath,
+            '--scriptFile=%s'  % os.path.join(options.chandlerHome, 'tools', 'QATestScripts', 'Performance', 'end.py') ]
+
+    for _ in range(repeat):
+        if options.verbose:
+            log(' '.join(cmd))
+
+        if options.dryrun:
+            result = 0
+        else:
+            result = build_lib.runCommand(cmd, timeout=180)
+            
+        if result == 0:
+            if options.dryrun:
+                line = '0.0'
+            else:
+                line = open(timeLog).readline()[:-1]
+            try:
+                value = float(line)
+            except ValueError, e:
+                log('%s [ %s ]' % (name, str(e)))
+                return True
+            log('%02.2fs' % value)
+            values.append(value)
+        else:
+            log('%s [ failed ]' % name)
+            return True
+    else:
+        values.sort()
+        value = values[repeat/2]
+        if not options.tbox:
+            log('%s [ %02.2fs ]' % (name, value))
+        else:
+            log('%s [#TINDERBOX# Status = PASSED]' % name)
+            log('OSAF_QA: %s | %04d | %02.2fs' % (name, os.getenv('REVISION', 0), value)) # XXX get svn revision
+            log('#TINDERBOX# Testname = %s' % name)
+            log('#TINDERBOX# Status = PASSED')
+            log('#TINDERBOX# Time elapsed = %02.2fs (seconds)' % value)
+        
+    return False
 
 def runPerfSuite(options):
     """
@@ -412,16 +507,33 @@ def runPerfSuite(options):
                 else:
                     testlist.append(item)
 
+            # small repo tests
             failed = runScriptPerfTests(options, testlist)
 
+            # large repo tests
             if not failed or options.noStop:
                 if runScriptPerfTests(options, testlistLarge, largeData=True):
                     failed = True
 
+            # startup tests
             if not failed or options.noStop:
-                # XXX Startup time tests
-                pass
+                if os.name == 'nt' or sys.platform == 'cygwin':
+                    t = 'time.exe'
+                elif sys.platform == 'darwin':
+                    t = 'gtime'
+                    if not build_lib.getCommand(['which', t]):
+                        log('%s not found, skipping startup performance tests' % t)
+                        log('NOTE: %s is not part of OS X, you need to compile one' + \
+                            'yourself (get source from http://directory.fsf.org/time.html)' + \
+                            'or get it from darwinports project.' % t)
+                else:
+                    t = '/usr/bin/time'
 
+                if runStartupPerfTests(options, t):
+                    failed = True
+                if not failed: # Don't continue even if noStop, almost certain these won't work
+                    if runStartupPerfTests(options, t, largeData=True):
+                        failed = True
         else:
             log('Skipping Performance Tests - release mode not specified')
 
@@ -445,6 +557,7 @@ def main(options):
     >>> options.verbose   = True
     >>> options.noStop    = False
     >>> options.help      = False
+    >>> options.tbox      = False
     >>> main(options)
 
     Try and run a test that does not exist
@@ -488,7 +601,11 @@ def main(options):
     /.../RunChandler... --catch=tests --scriptTimeout=600 --profileDir=.../test_profile --parcelPath=.../tools/QATestScripts/DataFiles --catsPerfLog=.../test_profile/time.log --scriptFile=.../tools/QATestScripts/Performance/PerfLargeDataResizeCalendar.py --restore=.../test_profile/__repository__.001
     PerfLargeDataResizeCalendar.py [ 0.00s ]
     ...
-
+    Creating repository for startup time tests
+    /.../RunChandler... --catch=tests --scriptTimeout=60 --profileDir=.../test_profile --parcelPath=.../tools/QATestScripts/DataFiles --scriptFile=.../tools/QATestScripts/Performance/quit.py --create
+    /usr/bin/time --format=%e -o .../test_profile/time.log .../RunChandler... --catch=tests --scriptTimeout=60 --profileDir=.../test_profile --parcelPath=.../tools/QATestScripts/DataFiles --scriptFile=.../tools/QATestScripts/Performance/end.py
+    0.00s
+    ...
     """
     checkOptions(options)
 
@@ -536,7 +653,5 @@ if __name__ == '__main__':
         doctest.testmod(optionflags=doctest.ELLIPSIS)
         sys.exit(0)
 
-    options = parseOptions()
-
-    main(options)
+    main(parseOptions())
 
