@@ -174,7 +174,10 @@ def findTestFiles(searchPath, excludeDirs, includePattern):
     return result
 
 
-def buildUnitTestList(options):
+def buildTestList(options, excludeTools=True):
+    """
+    Build test list from singles or collect all unit tests.
+    """
     excludeDirs = []
 
     if len(options.single) > 0:
@@ -182,7 +185,11 @@ def buildUnitTestList(options):
     else:
         includePattern = 'Test*.py'
 
-    for item in [ 'tools', 'util', 'projects', 'plugins', 'build', 'Chandler.egg-info' ]:
+    exclusions = ['util', 'projects', 'plugins', 'build', 'Chandler.egg-info']
+    if excludeTools:
+        exclusions.append('tools') 
+
+    for item in exclusions:
         excludeDirs.append('%s/%s' % (options.chandlerHome, item))
 
     for item in [ 'release', 'debug' ]:
@@ -191,19 +198,42 @@ def buildUnitTestList(options):
     return findTestFiles(options.chandlerHome, excludeDirs, includePattern)
 
 
-def runUnitTests(options):
+def runSingles(options):
+    """
+    Run the test(s) specified with the options.single parameter.
+    """
+    failed = False
+    tests = buildTestList(options, False)
+    if not tests:
+        log('Test(s) not found')
+    else:
+        for test in tests:
+            dir, name = os.path.split(test)
+            if os.path.split(dir)[1] == 'Functional':
+                if runFuncTest(options, name[:-3]):
+                    failed = True
+            elif name.startswith('Perf'):
+                raise NotImplementedError('Can not run single performance test yet') # XXX single perf test
+            else:
+                if runUnitTests(options, [test]):
+                    failed = True
+    
+            if failed and not options.noStop:
+                break
+    
+    return failed
+
+
+def runUnitTests(options, testlist=None):
     """
     Locate any unit tests (-u) or any of the named test (-t) and run them
     """
-    testlist = buildUnitTestList(options)
+    if testlist is None:
+        testlist = buildTestList(options)
     failed   = False
 
     if len(testlist) == 0:
-        if options.unit:
-            log('No unit tests found to run')
-        else:
-            log('Unit test %s not found' % options.single)
-
+        log('No unit tests found to run')
     else:
         for mode in options.modes:
             for test in testlist:
@@ -289,28 +319,33 @@ def runPluginTests(options):
     return failed
 
 
-def runFuncSuite(options):
+def runFuncTest(options, test='FunctionalTestSuite.py'):
     """
-    Run the Functional Test Suite
+    Run functional test
     """
     # $CHANDLERBIN/$mode/$RUN_CHANDLER --create --catch=tests $FORCE_CONT --profileDir="$PC_DIR" --parcelPath="$PP_DIR" --scriptTimeout=720 --scriptFile="$TESTNAME" -D1 -M2 2>&1 | tee $TESTLOG
     failed = False
 
     for mode in options.modes:
-        test = 'FunctionalTestSuite.py'
         cmd  = [ options.runchandler[mode],
                  '--create', '--catch=tests', '--scriptTimeout=720',
                  '--profileDir=%s' % options.profileDir,
-                 '--parcelPath=%s' % options.parcelPath,
-                 '--scriptFile=%s' % os.path.join(options.chandlerHome, 'tools', 'cats', 'Functional', test) ]
+                 '--parcelPath=%s' % options.parcelPath]
+
+        if test == 'FunctionalTestSuite.py':
+            cmd += ['--scriptFile=%s' % os.path.join(options.chandlerHome, 'tools', 'cats', 'Functional', test)]
+        else:
+            cmd += ['--chandlerTests=%s' % test]
 
         if options.noStop:
             cmd += [ '-F' ]
 
-        if not options.verbose:
-            cmd += ['-D1', '-M2']
-        else:
+        if options.verbose or test != 'FunctionalTestSuite.py':
             cmd += ['-D2', '-M0']
+        elif not options.verbose:
+            cmd += ['-D1', '-M2']
+
+        if options.verbose:
             log(' '.join(cmd))
 
         if options.dryrun:
@@ -425,6 +460,7 @@ def runStartupPerfTests(options, timer, largeData=False, repeat=3):
     
     if result != 0:
         log('***Error exit code=%d, creating %s repository' % (result, name))
+        failedTests.append(name)
         return True
     
     # Time startup
@@ -459,11 +495,13 @@ def runStartupPerfTests(options, timer, largeData=False, repeat=3):
                 value = float(line)
             except ValueError, e:
                 log('%s [ %s ]' % (name, str(e)))
+                failedTests.append(name)
                 return True
             log('%02.2fs' % value)
             values.append(value)
         else:
             log('%s [ failed ]' % name)
+            failedTests.append(name)
             return True
     else:
         values.sort()
@@ -563,7 +601,7 @@ def main(options):
 
     >>> options.single = 'TestFoo.py'
     >>> main(options)
-    Unit test TestFoo.py not found
+    Test(s) not found
 
     Try and specify an invalid mode
 
@@ -626,19 +664,22 @@ def main(options):
 
     failed = False
 
-    if options.unit or len(options.single) > 0:
-        failed = runUnitTests(options)
-        if (not failed or options.noStop) and len(options.single) == 0:
-            if runPluginTests(options):
+    if options.single:
+        failed = runSingles(options)
+    else:
+        if options.unit:
+            failed = runUnitTests(options)
+            if not failed or options.noStop:
+                if runPluginTests(options):
+                    failed = True
+    
+        if options.funcSuite and (not failed or options.noStop):
+            if runFuncTest(options):
                 failed = True
-
-    if options.funcSuite and (not failed or options.noStop):
-        if runFuncSuite(options):
-            failed = True
-
-    if options.perf and (not failed or options.noStop):
-        if runPerfSuite(options):
-            failed = True
+    
+        if options.perf and (not failed or options.noStop):
+            if runPerfSuite(options):
+                failed = True
 
     if len(failedTests) > 0:
         log('+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+')
