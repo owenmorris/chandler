@@ -59,7 +59,7 @@ def setReadOnlyMode(active):
 class Conduit(pim.ContentItem):
     share = schema.One(shares.Share, inverse=shares.Share.conduit)
 
-    def sync(self, modeOverride=None, updateCallback=None, forceUpdate=None,
+    def sync(self, modeOverride=None, activity=None, forceUpdate=None,
         debug=False):
         raise NotImplementedError
 
@@ -92,7 +92,7 @@ class BaseConduit(Conduit):
 
 class LinkableConduit(BaseConduit):
 
-    def sync(self, modeOverride=None, updateCallback=None, forceUpdate=None,
+    def sync(self, modeOverride=None, activity=None, forceUpdate=None,
         debug=False):
         from formats import CloudXMLFormat
         from ICalendar import ICalendarFormat
@@ -114,41 +114,6 @@ class LinkableConduit(BaseConduit):
                 )
                 return True
 
-            # Uncomment to get sharing conflict log messages:
-            # if logger.getEffectiveLevel() <= logging.DEBUG:
-            #     logger.debug("Sharing conflict on item %(item)s, attribute "
-            #         "%(attribute)s: %(local)s vs %(remote)s", {
-            #             'item' : item,
-            #             'attribute' : attribute,
-            #             'local' : unicode(getattr(item, attribute,
-            #                 Nil)).encode('utf8'),
-            #             'remote' : unicode(value).encode('utf8'),
-            #         })
-
-            # @@@MOR Probably not a good idea to create new items inside the
-            # conflict resolution callback.
-            #
-            # Commenting out for now
-            # SharingConflictNotification(itsView=item.itsView,
-            #     displayName="Conflict for attribute %s" % attribute,
-            #     attribute=attribute,
-            #     local=unicode(getattr(item, attribute, None)),
-            #     remote=unicode(value),
-            #     items=[item])
-
-            # if updateCallback:
-            #     updateCallback(
-            #         msg=_(u"Conflict for item '%(name)s' "
-            #         "attribute: %(attribute)s '%(local)s' vs '%(remote)s'") %
-            #         (
-            #             {
-            #                'name' : item.displayName,
-            #                'attribute' : attribute,
-            #                'local' : unicode(getattr(item, attribute, Nil))
-            #                'remote' : unicode(value),
-            #             }
-            #         )
-            #     )
 
             LOCAL_CHANGES_WIN = False
 
@@ -157,6 +122,9 @@ class LinkableConduit(BaseConduit):
             else:
                 return value                         # Change from *this* view
 
+
+        if activity:
+            activity.update(totalWork=None)
 
 
         linkedShares = self.share.getLinkedShares()
@@ -241,8 +209,8 @@ class LinkableConduit(BaseConduit):
                     resource.ticketId = conduit.ticket
 
                 msg = _(u"Getting list of remote items...")
-                if updateCallback and updateCallback(msg=msg):
-                    raise errors.SharingError(_(u"Cancelled by user"))
+                if activity:
+                    activity.update(msg=msg)
 
                 try:
                     # @@@MOR Not all servers handle depty=infinity
@@ -275,9 +243,9 @@ class LinkableConduit(BaseConduit):
                         else:
                             upper.resourceList[name] = { 'data' : etag }
 
-                if not established and modeOverride == 'get' and updateCallback:
+                if not established and modeOverride == 'get' and activity:
                     # An initial subscribe
-                    updateCallback(totalWork=count)
+                    activity.update(totalWork=count)
 
 
             if not modeOverride or modeOverride == 'get':
@@ -298,14 +266,18 @@ class LinkableConduit(BaseConduit):
                             # like 'contents' above, the filterClasses of a master
                             # share needs to be replicated to the slaves:
                             cvShare.filterClasses = filterClasses
-                        stat = share.conduit._get(contentView, share.resourceList,
-                            updateCallback=updateCallback)
+                        stat = share.conduit._get(contentView,
+                            share.resourceList, activity=activity)
                         stats.append(stat)
 
                         # Need to get contents/filterClasses that could have
                         # changed in the contentView:
                         contents = cvShare.contents
                         filterClasses = cvShare.filterClasses
+
+                if activity:
+                    activity.update(msg="Processing changes...",
+                        totalWork=None)
 
                 # Bug 4564 -- half baked calendar events (those with .xml resources
                 # but not .ics resources)
@@ -328,8 +300,8 @@ class LinkableConduit(BaseConduit):
                         if uuid not in stats[1]['modified']:
                             item = contentView.findUUID(uuid)
                             if pim.has_stamp(item, pim.EventStamp):
-                                if updateCallback:
-                                    updateCallback(msg=_(u"Incomplete Event Detected: '%(name)s'") % { 'name': item.displayName } )
+                                if activity:
+                                    activity.update(msg=_(u"Incomplete Event Detected: '%(name)s'") % { 'name': item.displayName } )
 
                                 # This indicates the resource is to be ignored
                                 # during PUT (otherwise we would remove the .xml
@@ -386,6 +358,9 @@ class LinkableConduit(BaseConduit):
                 # Refresh so that we can mess up all the occurrences
                 # reflists by adding all the occurrences generated by
                 # the UI
+                if activity:
+                    activity.update(msg="Refreshing view...",
+                        totalWork=None)
                 contentView.refresh(mergeFunction)
 
                 for event in modifiedRecurringEvents:
@@ -439,8 +414,8 @@ class LinkableConduit(BaseConduit):
             # results in an error.
             if commit and not (not established and modeOverride == 'put'):
 
-                if updateCallback:
-                    updateCallback(msg=_(u"Saving..."))
+                if activity:
+                    activity.update(msg=_(u"Saving..."))
 
                 contentView.commit(mergeFunction)
 
@@ -461,7 +436,7 @@ class LinkableConduit(BaseConduit):
                                                   share.resourceList,
                                                   putStartingVersion,
                                                   putEndingVersion,
-                                                  updateCallback=updateCallback,
+                                                  activity=activity,
                                                   forceUpdate=forceUpdate)
 
                         stats.append(stat)
@@ -518,7 +493,7 @@ class ManifestEngineMixin(pim.ContentItem):
 
 
     def _conditionalPutItem(self, contentView, item, changes,
-        updateCallback=None, forceUpdate=None):
+        activity=None, forceUpdate=None):
         """
         Put an item if it's not on the server or is out of date
         """
@@ -575,9 +550,8 @@ class ManifestEngineMixin(pim.ContentItem):
                 )
             )
 
-            if updateCallback and updateCallback(msg="'%s'" %
-                item.displayName):
-                raise errors.SharingError(_(u"Cancelled by user"))
+            if activity:
+                activity.update(msg="Uploading '%s'" % item.displayName)
 
             # @@@MOR Disabling this for now
             # me = schema.ns('osaf.pim', item.itsView).currentContact.item
@@ -589,6 +563,9 @@ class ManifestEngineMixin(pim.ContentItem):
                 self._addToManifest(self._getItemPath(item), item, data)
                 logger.info("...done, data: %s, version: %d" %
                  (data, item.getVersion()))
+
+                if activity:
+                    activity.update(msg="Uploaded '%s'" % item.displayName)
 
                 cvSelf = contentView[self.itsUUID]
                 cvSelf.share.addSharedItem(item)
@@ -619,7 +596,7 @@ class ManifestEngineMixin(pim.ContentItem):
         return False
 
     def _put(self, contentView, resourceList, startVersion, endVersion,
-             updateCallback=None, forceUpdate=None):
+             activity=None, forceUpdate=None):
         """
         Transfer entire 'contents', transformed, to server.
         """
@@ -637,9 +614,9 @@ class ManifestEngineMixin(pim.ContentItem):
             # contents is either not set, is None, or has no displayName
             contentsName = location
 
-        if updateCallback and updateCallback(msg=_(u"Uploading to "
-            "%(name)s...") % { 'name' : contentsName } ):
-            raise errors.SharingError(_(u"Cancelled by user"))
+        if activity:
+            activity.update(msg=_(u"Uploading to %(name)s...") %
+                { 'name' : contentsName } )
 
         stats = {
             'share' : self.share.itsUUID,
@@ -660,8 +637,8 @@ class ManifestEngineMixin(pim.ContentItem):
 
             if resourceList is None:
                 msg = _(u"Getting list of remote items...")
-                if updateCallback and updateCallback(msg=msg):
-                    raise errors.SharingError(_(u"Cancelled by user"))
+                if activity:
+                    activity.update(msg=msg)
                 self.resourceList = self._getResourceList(location)
             else:
                 self.resourceList = resourceList
@@ -711,8 +688,8 @@ class ManifestEngineMixin(pim.ContentItem):
                                                                filterClasses)
                             ):
 
-                                if updateCallback and updateCallback(msg=_(u"Removing item from server: '%(path)s'") % { 'path' : path }):
-                                    raise errors.SharingError(_(u"Cancelled by user"))
+                                if activity:
+                                    activity.update(msg=_(u"Removing item from server: '%(path)s'") % { 'path' : path })
                                 self._deleteItem(path)
                                 del self.resourceList[path]
                                 removeFromManifest.append(path)
@@ -726,10 +703,13 @@ class ManifestEngineMixin(pim.ContentItem):
                 #     {'manifest':self.manifest})
 
 
+                if activity:
+                    activity.update(totalWork=None)
+
                 for item in cvSelf.share.contents:
 
-                    if updateCallback and updateCallback(work=True):
-                        raise errors.SharingError(_(u"Cancelled by user"))
+                    if activity:
+                        activity.update(msg="Checking for local changes...")
 
                     # Skip private items
                     if item.private:
@@ -745,7 +725,7 @@ class ManifestEngineMixin(pim.ContentItem):
 
                     # Put the item
                     result = self._conditionalPutItem(contentView, item,
-                        changes, updateCallback=updateCallback,
+                        changes, activity=activity,
                         forceUpdate=forceUpdate)
                     if result in ('added', 'modified'):
                         stats[result].append(item.itsUUID)
@@ -753,7 +733,7 @@ class ManifestEngineMixin(pim.ContentItem):
 
             # Put the Share item itself
             result = self._conditionalPutItem(contentView, cvSelf.share,
-                changes, updateCallback=updateCallback,
+                changes, activity=activity,
                 forceUpdate=forceUpdate)
             if result in ('added', 'modified'):
                 stats[result].append(self.share.itsUUID)
@@ -776,7 +756,7 @@ class ManifestEngineMixin(pim.ContentItem):
 
 
     def _conditionalGetItem(self, contentView, itemPath, into=None,
-        updateCallback=None, stats=None):
+        activity=None, stats=None):
         """
         Get an item from the server if we don't yet have it or our copy
         is out of date
@@ -793,9 +773,12 @@ class ManifestEngineMixin(pim.ContentItem):
         if not self._haveLatest(itemPath):
             # logger.info("...getting: %s" % itemPath)
 
+            if activity:
+                activity.update(msg="Downloading %s" % itemPath)
+
             try:
                 (item, data) = self._getItem(contentView, itemPath, into=into,
-                    updateCallback=updateCallback, stats=stats)
+                    activity=activity, stats=stats)
             except errors.MalformedData:
                 # This has already been logged; catch it and return None
                 # to allow the sync to proceed.
@@ -813,9 +796,8 @@ class ManifestEngineMixin(pim.ContentItem):
                 logger.info(debugString.encode('utf8', 'replace'))
 
                 cvSelf.share.addSharedItem(item)
-                if updateCallback and updateCallback(msg="'%s'" %
-                    displayName):
-                    raise errors.SharingError(_(u"Cancelled by user"))
+                if activity:
+                    activity.update(msg="Downloaded '%s'" % displayName)
 
                 return item
 
@@ -828,7 +810,7 @@ class ManifestEngineMixin(pim.ContentItem):
 
 
 
-    def _get(self, contentView, resourceList, updateCallback=None,
+    def _get(self, contentView, resourceList, activity=None,
              getPhrase=None):
         # cvSelf (contentViewSelf) is me as I was in the past
         cvSelf = contentView.findUUID(self.itsUUID)
@@ -845,9 +827,8 @@ class ManifestEngineMixin(pim.ContentItem):
 
         if getPhrase is None:
             getPhrase = _(u"Downloading from %(name)s...")
-        if updateCallback and updateCallback(msg=getPhrase %
-            { 'name' : contentsName } ):
-            raise errors.SharingError(_(u"Cancelled by user"))
+        if activity:
+            activity.update(msg=getPhrase % { 'name' : contentsName } )
 
         view = self.itsView
 
@@ -867,20 +848,18 @@ class ManifestEngineMixin(pim.ContentItem):
 
         if resourceList is None:
             msg = _(u"Getting list of remote items...")
-            if updateCallback and updateCallback(msg=msg):
-                raise errors.SharingError(_(u"Cancelled by user"))
+            if activity:
+                activity.update(msg=msg, totalWork=None)
             self.resourceList = self._getResourceList(location)
-            totalWork = len(self.resourceList)
-            if updateCallback and updateCallback(totalWork=totalWork):
-                raise errors.SharingError(_(u"Cancelled by user"))
-                updateCallback(totalWork=count)
         else:
             # make a copy, because we use it destructively
             self.resourceList = dict(resourceList)
 
-        msg = _(u"Processing...")
-        if updateCallback and updateCallback(msg=msg):
-            raise errors.SharingError(_(u"Cancelled by user"))
+        totalWork = len(self.resourceList)
+
+        msg = _(u"Determining what to fetch...")
+        if activity:
+            activity.update(msg=msg, totalWork=totalWork, workDone=0)
 
         # logger.debug("Resources on server: %(resources)s" %
         #     {'resources':self.resourceList})
@@ -898,11 +877,11 @@ class ManifestEngineMixin(pim.ContentItem):
         if itemPath:
             # Get the file that represents the Share item
 
-            if updateCallback and updateCallback(work=True):
-                raise errors.SharingError(_(u"Cancelled by user"))
+            if activity:
+                activity.update(work=1)
 
             item = self._conditionalGetItem(contentView, itemPath,
-                into=cvSelf.share, updateCallback=updateCallback, stats=stats)
+                into=cvSelf.share, activity=activity, stats=stats)
 
             # Whenever we get an item, mark it seen in our manifest and remove
             # it from the server resource list:
@@ -952,11 +931,11 @@ class ManifestEngineMixin(pim.ContentItem):
             # Conditionally fetch items, and add them to collection
             for itemPath in self.resourceList:
 
-                if updateCallback and updateCallback(work=True):
-                    raise errors.SharingError(_(u"Cancelled by user"))
+                if activity:
+                    activity.update(work=1)
 
                 item = self._conditionalGetItem(contentView, itemPath,
-                    updateCallback=updateCallback, stats=stats)
+                    activity=activity, stats=stats)
 
                 if item is not None:
                     cvSelf.share.contents.add(item)
@@ -992,11 +971,11 @@ class ManifestEngineMixin(pim.ContentItem):
                                 cvSelf.share.contents.remove(item)
                             cvSelf.share.removeSharedItem(item)
                             stats['removed'].append(item.itsUUID)
-                            if updateCallback and updateCallback(
-                                msg=_(u"Removing from collection: '%(name)s'")
-                                % { 'name' : item.displayName }
-                                ):
-                                raise errors.SharingError(_(u"Cancelled by user"))
+                            if activity:
+                                activity.update(msg=_(
+                                    u"Removing from collection: '%(name)s'")
+                                    % { 'name' : item.displayName }
+                                )
 
                 else:
                     logger.info("Removed an unparsable resource manifest entry for %s", unseenPath)
@@ -1175,7 +1154,7 @@ class ManifestEngineMixin(pim.ContentItem):
         """
         pass
 
-    def _getItem(self, contentView, itemPath, into=None, updateCallback=None,
+    def _getItem(self, contentView, itemPath, into=None, activity=None,
                  stats=None):
         """
         Must implement
@@ -1325,7 +1304,7 @@ class SimpleHTTPConduit(LinkableConduit, ManifestEngineMixin, HTTPMixin):
 
     lastModified = schema.One(schema.Text, initialValue = '')
 
-    def _get(self, contentView, resourceList, updateCallback=None):
+    def _get(self, contentView, resourceList, activity=None):
 
         stats = {
             'share' : self.share.itsUUID,
@@ -1338,8 +1317,8 @@ class SimpleHTTPConduit(LinkableConduit, ManifestEngineMixin, HTTPMixin):
         view = self.itsView
 
         location = self.getLocation(privilege='readonly')
-        if updateCallback and updateCallback(msg=_(u"Checking for update: '%(location)s'") % { 'location' : location } ):
-            raise errors.SharingError(_(u"Cancelled by user"))
+        if activity:
+            activity.update(msg=_(u"Checking for update: '%(location)s'") % { 'location' : location } )
 
         self.connect()
         logger.info("Starting GET of %s" % (location))
@@ -1357,13 +1336,13 @@ class SimpleHTTPConduit(LinkableConduit, ManifestEngineMixin, HTTPMixin):
 
             if resp.status == twisted.web.http.NOT_MODIFIED:
                 # The remote resource is as we saw it before
-                if updateCallback and updateCallback(msg=_(u"Not modified")):
-                    raise errors.SharingError(_(u"Cancelled by user"))
+                if activity:
+                    activity.update(msg=_(u"Not modified"))
                 logger.info("...not modified")
                 return stats
 
-            if updateCallback and updateCallback(msg='%s' % location):
-                raise errors.SharingError(_(u"Cancelled by user"))
+            if activity:
+                activity.update(msg='%s' % location)
 
         except zanshin.webdav.ConnectionError, err:
             raise errors.CouldNotConnect(_(u"Unable to connect to server. Received the following error: %(error)s") % {'error': err})
@@ -1378,14 +1357,14 @@ class SimpleHTTPConduit(LinkableConduit, ManifestEngineMixin, HTTPMixin):
             raise errors.NotAllowed(message)
 
         logger.info("...received; processing...")
-        if updateCallback and updateCallback(msg=_(u"Processing: '%s'") % location):
-            raise errors.SharingError(_(u"Cancelled by user"))
+        if activity:
+            activity.update(msg=_(u"Processing: '%s'") % location)
 
         try:
             text = resp.body
             cvSelf = contentView.findUUID(self.itsUUID)
             self.share.format.importProcess(contentView, text,
-                item=cvSelf.share, updateCallback=updateCallback,
+                item=cvSelf.share, activity=activity,
                 stats=stats)
 
             # The share maintains bi-di-refs between Share and Item:

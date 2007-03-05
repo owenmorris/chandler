@@ -23,10 +23,11 @@ from application import schema, Globals
 from i18n import ChandlerMessageFactory as _
 from AccountInfoPrompt import PromptForNewAccountInfo
 import zanshin
+from osaf.activity import *
 
 logger = logging.getLogger(__name__)
 
-MAX_UPDATE_MESSAGE_LENGTH = 50
+MAX_UPDATE_MESSAGE_LENGTH = 55
 
 class SubscribeDialog(wx.Dialog):
 
@@ -108,15 +109,24 @@ class SubscribeDialog(wx.Dialog):
     def accountInfoCallback(self, host, path):
         return PromptForNewAccountInfo(self, host=host, path=path)
 
-    def updateCallback(self, msg=None, percent=None):
-        if msg is not None:
-            msg = msg.replace('\n', ' ')
+    def _updateCallback(self, activity, *args, **kwds):
+        wx.GetApp().PostAsyncEvent(self.updateCallback, activity, *args, **kwds)
+
+    def updateCallback(self, activity, *args, **kwds):
+
+        if 'msg' in kwds:
+            msg = kwds['msg'].replace('\n', ' ')
             # @@@MOR: This is unicode unsafe:
             if len(msg) > MAX_UPDATE_MESSAGE_LENGTH:
                 msg = "%s..." % msg[:MAX_UPDATE_MESSAGE_LENGTH]
             self._showStatus(msg)
-        if percent is not None:
-            self.gauge.SetValue(percent)
+        if 'percent' in kwds:
+            percent = kwds['percent']
+            if percent is None:
+                self.gauge.Pulse()
+            else:
+                self.gauge.SetValue(percent)
+
 
     def _finishedShare(self, uuid):
 
@@ -148,7 +158,10 @@ class SubscribeDialog(wx.Dialog):
         # Commit now to prevent being in the state where the collection
         # has been subscribed to, but we don't remember adding it to the
         # sidebar.
+        self.activity.update(msg="Saving...", totalWork=None)
         self.view.commit()
+        self.activity.completed()
+        self.listener.unregister()
 
         if self.modal:
             self.EndModal(True)
@@ -159,6 +172,10 @@ class SubscribeDialog(wx.Dialog):
     def _shareError(self, err):
 
         viewpool.releaseView(self.taskView)
+
+        if not isinstance(err, ActivityAborted):
+            self.activity.failed(exception=err)
+        self.listener.unregister()
 
         self.subscribeButton.Enable(True)
         self.gauge.SetValue(0)
@@ -188,6 +205,7 @@ class SubscribeDialog(wx.Dialog):
             self._showStatus(_(u"Sharing Error:\n%(error)s") % {'error': err})
 
         self.subscribing = False
+        self._resize()
 
     def _shutdownInitiated(self):
         if self.modal:
@@ -225,12 +243,14 @@ class SubscribeDialog(wx.Dialog):
 
         class ShareTask(task.Task):
 
-            def __init__(task, view, url, username, password, forceFreeBusy):
+            def __init__(task, view, url, username, password, forceFreeBusy,
+                activity):
                 super(ShareTask, task).__init__(view)
                 task.url = url
                 task.username = username
                 task.password = password
                 task.forceFreeBusy = forceFreeBusy
+                task.activity = activity
 
             def error(task, err):
                 self._shareError(err)
@@ -241,25 +261,21 @@ class SubscribeDialog(wx.Dialog):
             def shutdownInitiated(task, arg):
                 self._shutdownInitiated()
 
-            def _updateCallback(task, **kwds):
-                cancel = task.cancelRequested
-                task.callInMainThread(lambda _:self.updateCallback(**_), kwds)
-                return cancel
-
             def run(task):
-                task.cancelRequested = False
-
                 collection = sharing.subscribe(task.view, task.url,
-                    updateCallback=task._updateCallback,
                     username=task.username, password=task.password,
-                    forceFreeBusy=task.forceFreeBusy)
+                    forceFreeBusy=task.forceFreeBusy, activity=task.activity)
 
                 return collection.itsUUID
 
         self.view.commit()
         self.taskView = viewpool.getView(self.view.repository)
+        self.activity = Activity("Subscribe: %s" % url)
         self.currentTask = ShareTask(self.taskView, url, username, password,
-                                     forceFreeBusy)
+                                     forceFreeBusy, self.activity)
+        self.listener = Listener(activity=self.activity,
+            callback=self._updateCallback)
+        self.activity.started()
         self.currentTask.start(inOwnThread=True)
 
 
@@ -291,9 +307,9 @@ class SubscribeDialog(wx.Dialog):
         if not self.statusPanel.IsShown():
             self.mySizer.Add(self.statusPanel, 0, wx.GROW, 5)
             self.statusPanel.Show()
+            self._resize()
 
         self.textStatus.SetLabel(text)
-        self._resize()
 
     def _hideStatus(self):
         if self.statusPanel.IsShown():
@@ -303,13 +319,12 @@ class SubscribeDialog(wx.Dialog):
 
     def _resize(self):
         self.mySizer.Layout()
-        self.mySizer.SetSizeHints(self)
         self.mySizer.Fit(self)
 
 
     def OnCancel(self, evt):
         if self.subscribing:
-            self.currentTask.cancelRequested = True
+            self.activity.abortRequested = True
         else:
             if self.modal:
                 self.EndModal(False)

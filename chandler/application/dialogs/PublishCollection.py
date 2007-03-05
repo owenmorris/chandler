@@ -26,10 +26,11 @@ from i18n import ChandlerMessageFactory as _
 from osaf.pim import Remindable, EventStamp
 from TurnOnTimezones import ShowTurnOnTimezonesDialog, PUBLISH
 import zanshin
+from osaf.activity import *
 
 logger = logging.getLogger(__name__)
 
-MAX_UPDATE_MESSAGE_LENGTH = 50
+MAX_UPDATE_MESSAGE_LENGTH = 55
 
 class PublishCollectionDialog(wx.Dialog):
 
@@ -322,16 +323,23 @@ class PublishCollectionDialog(wx.Dialog):
 
 
 
+    def _updateCallback(self, activity, *args, **kwds):
+        wx.GetApp().PostAsyncEvent(self.updateCallback, activity, *args, **kwds)
 
-    def updateCallback(self, msg=None, percent=None):
-        if msg is not None:
-            msg = msg.replace('\n', ' ')
+    def updateCallback(self, activity, *args, **kwds):
+
+        if 'msg' in kwds:
+            msg = kwds['msg'].replace('\n', ' ')
             # @@@MOR: This is unicode unsafe:
             if len(msg) > MAX_UPDATE_MESSAGE_LENGTH:
                 msg = "%s..." % msg[:MAX_UPDATE_MESSAGE_LENGTH]
             self._showUpdate(msg)
-        if percent is not None:
-            self.gauge.SetValue(percent)
+        if 'percent' in kwds:
+            percent = kwds['percent']
+            if percent is None:
+                self.gauge.Pulse()
+            else:
+                self.gauge.SetValue(percent)
 
     def _shutdownInitiated(self):
         if self.modal:
@@ -366,10 +374,11 @@ class PublishCollectionDialog(wx.Dialog):
 
         class ShareTask(task.Task):
 
-            def __init__(task, view, account, collection):
+            def __init__(task, view, account, collection, activity):
                 super(ShareTask, task).__init__(view)
                 task.accountUUID = account.itsUUID
                 task.collectionUUID = collection.itsUUID
+                task.activity = activity
 
             def error(task, err):
                 self._shareError(err)
@@ -384,13 +393,7 @@ class PublishCollectionDialog(wx.Dialog):
             def shutdownInitiated(task, arg):
                 self._shutdownInitiated()
 
-            def _updateCallback(task, **kwds):
-                cancel = task.cancelRequested
-                task.callInMainThread(lambda _:self.updateCallback(**_), kwds)
-                return cancel
-
             def run(task):
-                task.cancelRequested = False
 
                 account = task.view.find(task.accountUUID)
                 collection = task.view.find(task.collectionUUID)
@@ -410,7 +413,7 @@ class PublishCollectionDialog(wx.Dialog):
                                          attrsToExclude=attrsToExclude,
                                          displayName=displayName,
                                          publishType=self.publishType,
-                                         updateCallback=task._updateCallback)
+                                         activity=task.activity)
 
                 shareUUIDs = [item.itsUUID for item in shares]
                 return shareUUIDs
@@ -418,13 +421,22 @@ class PublishCollectionDialog(wx.Dialog):
         # Run this in its own background thread
         self.view.commit()
         self.taskView = viewpool.getView(self.view.repository)
-        self.currentTask = ShareTask(self.taskView, account, self.collection)
+        self.activity = Activity("Publish: %s" % self.collection.displayName)
+        self.currentTask = ShareTask(self.taskView, account, self.collection,
+            self.activity)
+        self.listener = Listener(activity=self.activity,
+            callback=self._updateCallback)
+        self.activity.started()
         self.done = False
         self.currentTask.start(inOwnThread=True)
 
     def _shareError(self, err):
 
         viewpool.releaseView(self.taskView)
+
+        if not isinstance(err, ActivityAborted):
+            self.activity.failed(exception=err)
+        self.listener.unregister()
 
         # Display the error
         self._hideUpdate()
@@ -469,8 +481,12 @@ class PublishCollectionDialog(wx.Dialog):
 
         viewpool.releaseView(self.taskView)
 
+        self.activity.completed()
+        self.listener.unregister()
+
         # Pull in the changes from sharing view
         self.view.refresh(lambda code, item, attr, val: val)
+
 
         self._showStatus(_(u" done.\n"))
         self._hideUpdate()
@@ -503,7 +519,7 @@ class PublishCollectionDialog(wx.Dialog):
         return True
 
     def OnStopPublish(self, evt):
-        self.currentTask.cancelRequested = True
+        self.activity.abortRequested = True
 
     def OnCancel(self, evt):
         if self.modal:

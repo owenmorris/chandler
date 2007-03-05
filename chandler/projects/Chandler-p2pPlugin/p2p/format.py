@@ -28,7 +28,7 @@ from osaf.mail import utils as mailUtils
 class CloudXMLDiffFormat(formats.CloudXMLFormat):
 
     def _importValues(self, dom, view, element, item, stampClasses,
-                      updateCallback, stats):
+                      activity, stats):
 
         for valueElement in dom.iterElements(element):
             attrs = dom.getAttributes(valueElement)
@@ -126,18 +126,18 @@ class CloudXMLDiffFormat(formats.CloudXMLFormat):
                     pass
 
     def importProcess(self, dom, element, item=None,
-                      updateCallback=None, stats=None):
+                      activity=None, stats=None):
 
         view = self.itsView
         item, stamps, done = self._importItem(dom, view, element,
-                                              item, updateCallback, stats)
+                                              item, activity, stats)
         if done:
             return item
 
         try:
             item._share_importing = True
             self._importValues(dom, view, element, item, stamps,
-                               updateCallback, stats)
+                               activity, stats)
         finally:
             del item._share_importing
 

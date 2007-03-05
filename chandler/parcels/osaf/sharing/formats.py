@@ -220,7 +220,7 @@ class CloudXMLFormat(ImportExportFormat):
         return "share.xml"
 
     def importProcess(self, contentView, text, extension=None, item=None,
-        updateCallback=None, stats=None):
+        activity=None, stats=None):
 
         try:
             root = ElementTree(file=StringIO(text)).getroot()
@@ -233,7 +233,7 @@ class CloudXMLFormat(ImportExportFormat):
 
         try:
             item = self._importElement(ElementTreeDOM(), contentView, root,
-                                       item, updateCallback, stats)
+                                       item, activity, stats)
         except:
             logger.exception("Error during import")
             raise
@@ -553,7 +553,7 @@ class CloudXMLFormat(ImportExportFormat):
 
         return None
 
-    def _importItem(self, dom, view, element, item, updateCallback, stats):
+    def _importItem(self, dom, view, element, item, activity, stats):
 
         kind = None
         kinds = []
@@ -663,7 +663,7 @@ class CloudXMLFormat(ImportExportFormat):
         return item, stampClasses, False
 
     def _importValues(self, dom, view, element, item, stampClasses,
-                      updateCallback, stats):
+                      activity, stats):
 
         attributes = self.share.getSharedAttributes(item.itsKind)
         hasMailStamp = (pim.mail.MailStamp in stampClasses)
@@ -751,7 +751,7 @@ class CloudXMLFormat(ImportExportFormat):
                     children = attrElement.getchildren()
                     if children:
                         valueItem = self._importElement(dom, view,
-                            children[0], updateCallback=updateCallback)
+                            children[0], activity=activity)
                         if valueItem is not None:
                             setattr(targetItem, attrName, valueItem)
 
@@ -759,7 +759,7 @@ class CloudXMLFormat(ImportExportFormat):
                     count = 0
                     for child in attrElement.getchildren():
                         valueItem = self._importElement(dom, view,
-                            child, updateCallback=updateCallback)
+                            child, activity=activity)
                         if valueItem is not None:
                             count += 1
                             targetItem.addValue(attrName, valueItem)
@@ -893,7 +893,7 @@ class CloudXMLFormat(ImportExportFormat):
                 stamp(item).remove()
 
     def _importElement(self, dom, contentView, element, item=None,
-                       updateCallback=None, stats=None):
+                       activity=None, stats=None):
 
         versionString = element.get('version')
         if versionString and versionString != CLOUD_XML_VERSION:
@@ -901,7 +901,7 @@ class CloudXMLFormat(ImportExportFormat):
 
         # Find or create the item being imported
         item, stamps, done = self._importItem(dom, contentView, element,
-                                              item, updateCallback, stats)
+                                              item, activity, stats)
         if done:
             return item
 
@@ -913,7 +913,7 @@ class CloudXMLFormat(ImportExportFormat):
         try:
             # We have an item, now set attributes
             self._importValues(dom, contentView, element, item,
-                               stamps, updateCallback, stats)
+                               stamps, activity, stats)
         finally:
             del item._share_importing
 

@@ -13,6 +13,7 @@
 #   limitations under the License.
 
 from osaf import pim
+from osaf.activity import Activity
 import conduits, errors, formats, eim, shares
 from i18n import ChandlerMessageFactory as _
 import logging
@@ -40,19 +41,21 @@ class RecordSetConduit(conduits.BaseConduit):
     syncToken = schema.One(schema.Text, defaultValue="")
     filters = schema.Many(schema.Text, initialValue=set())
 
-    def sync(self, modeOverride=None, updateCallback=None, forceUpdate=None,
+    def sync(self, modeOverride=None, activity=None, forceUpdate=None,
         debug=False):
 
         rv = self.itsView
 
         try:
             stats = self._sync(modeOverride=modeOverride,
-                updateCallback=updateCallback, forceUpdate=forceUpdate,
+                activity=activity, forceUpdate=forceUpdate,
                 debug=debug)
 
+            if activity:
+                activity.update(msg="Saving...", totalWork=None)
             rv.commit() # TODO: repo merge function here?
 
-        except:
+        except Exception, exception:
             logger.exception("Sharing Error")
             rv.cancel() # Discard any changes we made
             raise
@@ -60,11 +63,17 @@ class RecordSetConduit(conduits.BaseConduit):
         return stats
 
 
-    def _sync(self, modeOverride=None, updateCallback=None, forceUpdate=None,
+    def _sync(self, modeOverride=None, activity=None, forceUpdate=None,
         debug=False):
 
         # TODO: handle mode=get
         # TODO: private items
+
+
+        def _callback(*args, **kwds):
+            if activity:
+                activity.update(*args, **kwds)
+
 
         if debug: print " ================ start of sync ================= "
 
@@ -96,8 +105,13 @@ class RecordSetConduit(conduits.BaseConduit):
 
         if receive:
 
-            inbound, extra, isDiff = self.getRecords(debug=debug)
+            _callback(msg="Fetching changes", totalWork=None)
+            inbound, extra, isDiff = self.getRecords(debug=debug, activity=
+                activity)
             if debug: print "Inbound records", inbound, extra
+
+            inboundCount = len(inbound)
+            _callback(msg="Received %d change(s)" % inboundCount)
 
             if self.share.contents is None:
                 # We're importing a collection; either create it if it
@@ -165,6 +179,7 @@ class RecordSetConduit(conduits.BaseConduit):
             inbound = {}
             isDiff = True
 
+        _callback(msg="Checking for local changes", totalWork=None)
 
         # Generate records for all local items to be merged -- those that
         # have either been changed locally or remotely:
@@ -188,28 +203,36 @@ class RecordSetConduit(conduits.BaseConduit):
                 if changedUuid in self.share.contents:
                     locallyChangedUuids.add(changedUuid)
 
+        localCount = len(locallyChangedUuids)
+        _callback(msg="Found %d local change(s)" % localCount)
+
         for changedUuid in locallyChangedUuids:
-                item = rv.findUUID(changedUuid)
-                if debug: print "Locally modified item", item, item.itsVersion
+            item = rv.findUUID(changedUuid)
+            if debug: print "Locally modified item", item, item.itsVersion
 
-                # If an event, make sure we export the master; occurrences
-                # will be included in the master's recordset
-                if pim.has_stamp(item, pim.EventStamp):
-                    item = pim.EventStamp(item).getMaster().itsItem
-                    if debug: print "Master item", item, item.itsVersion
+            # If an event, make sure we export the master; occurrences
+            # will be included in the master's recordset
+            if pim.has_stamp(item, pim.EventStamp):
+                item = pim.EventStamp(item).getMaster().itsItem
+                if debug: print "Master item", item, item.itsVersion
 
-                uuid = item.itsUUID.str16()
-                localItems.add(uuid)
-                if not self.hasState(uuid):
-                    sendStats['added'].add(uuid)
-                if uuid in remotelyRemoved:
-                    # This remotely removed item was modified locally.
-                    # We are going to send the whole item back out.
-                    remotelyRemoved.remove(uuid)
+            uuid = item.itsUUID.str16()
+            localItems.add(uuid)
+            if not self.hasState(uuid):
+                sendStats['added'].add(uuid)
+            if uuid in remotelyRemoved:
+                # This remotely removed item was modified locally.
+                # We are going to send the whole item back out.
+                remotelyRemoved.remove(uuid)
 
+        localCount = len(localItems)
+        if localCount:
+            _callback(msg="%d recordset(s) to generate" % localCount,
+                totalWork=localCount, workDone=0)
 
         # Compute local records
         rsNewBase = { }
+        i = 0
         for uuid in localItems:
             item = rv.findUUID(uuid)
             if item is not None and item.isLive():
@@ -220,7 +243,9 @@ class RecordSetConduit(conduits.BaseConduit):
                 rs = eim.RecordSet()
                 if debug: print "No local item for:", uuid
             rsNewBase[uuid] = rs
-
+            i += 1
+            _callback(msg="Generated %d of %d recordset(s)" % (i, localCount),
+                work=1)
 
 
         filter = self.getFilter()
@@ -229,7 +254,14 @@ class RecordSetConduit(conduits.BaseConduit):
         toApply = {}
         toSend = {}
 
-        for uuid in set(rsNewBase) | set(inbound):
+        uuids = set(rsNewBase) | set(inbound)
+        mergeCount = len(uuids)
+        if mergeCount:
+            _callback(msg="%d recordset(s) to merge" % mergeCount,
+                totalWork=mergeCount, workDone=0)
+
+        i = 0
+        for uuid in uuids:
             state = self.getState(uuid)
             rsInternal = rsNewBase.get(uuid, eim.RecordSet())
 
@@ -254,10 +286,19 @@ class RecordSetConduit(conduits.BaseConduit):
             if receive and dApply:
                 toApply[uuid] = dApply
 
+            i += 1
+            _callback(msg="Merged %d of %d recordset(s)" % (i, mergeCount),
+                work=1)
 
         if receive:
 
+            applyCount = len(toApply)
+            if applyCount:
+                _callback(msg="%d inbound change(s) to apply" % applyCount,
+                    totalWork=applyCount, workDone=0)
+
             # Apply
+            i = 0
             for uuid, rs in toApply.items():
                 if debug: print "Applying:", uuid, rs
                 logger.debug("Applying changes to %s [%s]", uuid, rs)
@@ -266,6 +307,9 @@ class RecordSetConduit(conduits.BaseConduit):
                     receiveStats['added'].add(uuid)
                 else:
                     receiveStats['modified'].add(uuid)
+                i += 1
+                _callback(msg="Applied %d of %d change(s)" % (i, applyCount),
+                    work=1)
 
 
             # Make sure any items that came in are added to the collection
@@ -308,15 +352,23 @@ class RecordSetConduit(conduits.BaseConduit):
                 statesToRemove.add(uuid)
                 if debug: print "Remotely removing item:", uuid
 
+        removeCount = len(statesToRemove)
+        if removeCount:
+            _callback(msg="%d local removal(s) detected" % removeCount,
+                totalWork=None)
 
 
         # Send
         if send and toSend:
+            sendCount = len(toSend)
+            _callback(msg="Sending %d outbound change(s)" % sendCount,
+                totalWork=None)
+
             extra = { 'rootName' : 'collection',
                       'uuid' : self.share.contents.itsUUID.str16(),
                       'name' : self.share.contents.displayName
                     }
-            self.putRecords(toSend, extra, debug=debug)
+            self.putRecords(toSend, extra, debug=debug, activity=activity)
         else:
             if debug: print "Nothing to send"
             logger.debug("Nothing to send")
@@ -333,6 +385,8 @@ class RecordSetConduit(conduits.BaseConduit):
         self.itemsMarker.setDirty(Item.NDIRTY)
 
         self.share.established = True
+
+        _callback(msg="Done")
 
         if debug: print " ================== end of sync ================= "
 
@@ -374,10 +428,10 @@ class RecordSetConduit(conduits.BaseConduit):
             filter += eim.lookupSchemaURI(uri)
         return filter
 
-    def getRecords(self, debug=False):
+    def getRecords(self, debug=False, activity=None):
         raise NotImplementedError
 
-    def putRecords(self, toSend, debug=False):
+    def putRecords(self, toSend, debug=False, activity=None):
         raise NotImplementedError
 
     def fileStyle(self):
@@ -385,7 +439,7 @@ class RecordSetConduit(conduits.BaseConduit):
 
 class DiffRecordSetConduit(RecordSetConduit):
 
-    def getRecords(self, debug=False):
+    def getRecords(self, debug=False, activity=None):
         text = self.get()
         if debug: print "Inbound text:", text
         logger.debug("Received from server [%s]", text)
@@ -393,7 +447,7 @@ class DiffRecordSetConduit(RecordSetConduit):
         inbound, extra = self.serializer.deserialize(text)
         return inbound, extra, True
 
-    def putRecords(self, toSend, extra, debug=False):
+    def putRecords(self, toSend, extra, debug=False, activity=None):
         text = self.serializer.serialize(toSend, **extra)
         if debug: print "Sending text:", text
         logger.debug("Sending to server [%s]", text)
@@ -403,13 +457,15 @@ class DiffRecordSetConduit(RecordSetConduit):
 
 class ResourceRecordSetConduit(RecordSetConduit):
 
-    def getRecords(self, debug=False):
+    def getRecords(self, debug=False, activity=None):
         # Get and return records, extra
 
         inbound = { }
         extra = { }
 
         # get list of remote items, store in dict keyed on path, value = etag
+        if activity:
+            activity.update(msg="Getting list of resources", totalWork=None)
         self.resources = self.getResources()
 
         # If one of our local states isn't in the resource list, that means
@@ -437,9 +493,18 @@ class ResourceRecordSetConduit(RecordSetConduit):
                 if debug: print "need to fetch: don't yet have %s" % path
                 toFetch.add(path)
 
-        if debug: print "%d resources to get" % len(toFetch)
+        fetchCount = len(toFetch)
+        if debug: print "%d resources to get" % fetchCount
+        if activity:
+            activity.update(msg="%d resources to get" % fetchCount,
+                totalWork=fetchCount, workDone=0)
 
+        i = 0
         for path in toFetch:
+            if activity:
+                i += 1
+                activity.update(msg="Getting %d of %d" % (i, fetchCount),
+                    work=1)
             text, etag = self.getResource(path)
             records, extra = self.serializer.deserialize(text)
             for uuid, rs in records.iteritems():
@@ -451,14 +516,25 @@ class ResourceRecordSetConduit(RecordSetConduit):
         return inbound, extra, False
 
 
-    def putRecords(self, toSend, extra, debug=False):
+    def putRecords(self, toSend, extra, debug=False, activity=None):
 
+        sendCount = len(toSend)
         if debug: print "putRecords [%s]" % toSend
 
+        if activity:
+            activity.update(msg="Sending %d resources" % sendCount,
+                totalWork=sendCount, workDone=0)
+
+        i = 0
         for uuid, rs in toSend.iteritems():
             state = self.getState(uuid)
             path = getattr(state, "path", None)
             etag = getattr(state, "etag", None)
+
+            if activity:
+                i += 1
+                activity.update(msg="Sending %d of %d" % (i, sendCount),
+                    work=1)
 
             if rs is None:
                 # delete the resource

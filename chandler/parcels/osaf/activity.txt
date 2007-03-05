@@ -1,0 +1,110 @@
+
+Activities and Listeners
+------------------------
+
+An Activity object represents a certain job to be performed.  Once instantiated,
+it can be passed to methods performing the work on your behalf.  Those methods
+keep interested parties aprised of the progress by calling the Activity's
+update( ) method, passing in text messages, changes to the total # of units
+of work to be done, or the # of work units just performed.  The Activity will
+calculate a progress percentage based on accomplished/total work units.
+
+A Listener object's "callback" method is called whenever there is progress on
+any Activity by default.  A listener can choose to pay attention to only one
+Activity.
+
+You can let the worker know it should abort by calling the Activity's
+abortRequested() method.  This will set a flag within the Activity.  The next
+time the worker calls the Activity's update( ) method, an ActivityAborted
+exception will raise automatically.
+
+
+    >>> from osaf.activity import *
+
+    >>> def callback(activity, *args, **kwds):
+    ...     print "Received:", activity, args, kwds
+
+    >>> listener = Listener(callback=callback)
+    >>> activity = Activity("Make pancakes")
+
+
+Setting totalWork is optional.  Doing so will allow the Activity to calculate
+progress percentage.  The Listener can examine the kwds for 'percent'::
+
+    >>> activity.started(totalWork=8)
+    Received: Activity('Make pancakes', 0) () {'status': 0, 'totalWork': 8}
+
+    >>> activity.update(msg="sift flour and baking powder", work=2)
+    Received: Activity('Make pancakes', 0) () {'msg': 'sift flour and baking powder', 'work': 2, 'percent': 25}
+
+    >>> activity.update(msg="beat eggs", work=1)
+    Received: Activity('Make pancakes', 0) () {'msg': 'beat eggs', 'work': 1, 'percent': 37}
+
+    >>> activity.update(msg="add milk", work=1)
+    Received: Activity('Make pancakes', 0) () {'msg': 'add milk', 'work': 1, 'percent': 50}
+
+    >>> activity.update(msg="add butter", work=1)
+    Received: Activity('Make pancakes', 0) () {'msg': 'add butter', 'work': 1, 'percent': 62}
+
+    >>> activity.update(msg="cook in pan", work=3)
+    Received: Activity('Make pancakes', 0) () {'msg': 'cook in pan', 'work': 3, 'percent': 100}
+
+    >>> activity.completed()
+    Received: Activity('Make pancakes', -1) () {'status': -1}
+
+
+Leave off the totalWork, and no percentage is computed::
+
+    >>> activity = Activity("Flip a coin")
+
+    >>> activity.started() # unknown amount of work
+    Received: Activity('Flip a coin', 0) () {'status': 0}
+
+    >>> activity.update(msg="landed tails")
+    Received: Activity('Flip a coin', 0) () {'msg': 'landed tails'}
+
+Unregsitering a Listener means it won't get updates::
+
+    >>> listener.unregister()
+
+    >>> activity.update(msg="landed tails")
+
+But you can re-register::
+
+    >>> listener.register()
+
+    >>> activity.update(msg="landed tails")
+    Received: Activity('Flip a coin', 0) () {'msg': 'landed tails'}
+
+    >>> activity.update(msg="landed heads")
+    Received: Activity('Flip a coin', 0) () {'msg': 'landed heads'}
+
+    >>> activity.completed()
+    Received: Activity('Flip a coin', -1) () {'status': -1}
+
+
+Ask the worker to abort by calling the requestAbort( ) method::
+
+    >>> activity = Activity("Jump")
+    >>> activity.started()
+    Received: Activity('Jump', 0) () {'status': 0}
+    >>> activity.update(msg="jump high")
+    Received: Activity('Jump', 0) () {'msg': 'jump high'}
+    >>> activity.requestAbort()
+    >>> activity.update(msg="jump higher")
+    Traceback (most recent call last):
+        ...
+    ActivityAborted: Cancelled by user
+
+    >>> listener.unregister()
+
+A Listener can pay attention to just one Activity if desired:
+
+    >>> activity_1 = Activity("One")
+    >>> activity_2 = Activity("Two")
+    >>> listener = Listener(callback=callback, activity=activity_1)
+    >>> activity_1.started()
+    Received: Activity('One', 0) () {'status': 0}
+    >>> activity_2.started()
+
+Note that nothing happened when activity_2.started()

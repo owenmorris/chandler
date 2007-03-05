@@ -151,6 +151,8 @@ def makeMainEvents(parcel):
 
     BlockEvent.template('ActivateWebserver').install(parcel)
 
+    BlockEvent.template('ShowActivityViewer').install(parcel)
+
     BlockEvent.template('BackgroundSyncAll').install(parcel)
 
     BlockEvent.template('BackgroundSyncGetOnly').install(parcel)
@@ -178,6 +180,8 @@ def makeMainEvents(parcel):
         'ShowHideSidebar',
         methodName = 'onShowHideEvent',
         dispatchToBlockName = 'SidebarContainer').install(parcel)
+
+    BlockEvent.template('ReloadParcels').install(parcel)
 
     BlockEvent.template('ReloadParcels').install(parcel)
 
@@ -245,6 +249,9 @@ def makeMainEvents(parcel):
         dispatchToBlockName = 'Sidebar').install(parcel)
 
     BlockEvent.template('SharingImportDemoCalendar').install(parcel)
+
+    BlockEvent.template('DumpToFile').install(parcel)
+    BlockEvent.template('ReloadFromFile').install(parcel)
 
     BlockEvent.template(
         'ShowHideApplicationBar',

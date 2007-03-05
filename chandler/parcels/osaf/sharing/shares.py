@@ -168,8 +168,8 @@ class State(schema.Item):
     conflictFor = schema.One(inverse=SharedItem.conflictingStates)
 
     # Internal
-    _agreed = schema.One(schema.Text)
-    _pending = schema.One(schema.Text)
+    _agreed = schema.One(schema.Bytes)
+    _pending = schema.One(schema.Bytes)
 
     # TODO: add translator here?
 
@@ -550,20 +550,20 @@ class Share(pim.ContentItem):
     def close(self):
         self.conduit.close()
 
-    def sync(self, modeOverride=None, updateCallback=None, forceUpdate=None,
+    def sync(self, modeOverride=None, activity=None, forceUpdate=None,
         debug=False):
         stats = self.conduit.sync(modeOverride=modeOverride,
-                                  updateCallback=updateCallback,
+                                  activity=activity,
                                   forceUpdate=forceUpdate, debug=debug)
         self.lastSynced = datetime.datetime.now(ICUtzinfo.default)
         return stats
 
-    def put(self, updateCallback=None):
-        return self.sync(modeOverride='put', updateCallback=updateCallback,
+    def put(self, activity=None):
+        return self.sync(modeOverride='put', activity=activity,
                          forceUpdate=None)
 
-    def get(self, updateCallback=None):
-        return self.sync(modeOverride='get', updateCallback=updateCallback)
+    def get(self, activity=None):
+        return self.sync(modeOverride='get', activity=activity)
 
     def exists(self):
         return self.conduit.exists()
@@ -635,14 +635,14 @@ class OneTimeShare(Share):
         self.format.delete(True)
         self.delete(True)
 
-    def put(self, updateCallback=None):
-        super(OneTimeShare, self).put(updateCallback=updateCallback)
+    def put(self, activity=None):
+        super(OneTimeShare, self).put(activity=activity)
         collection = self.contents
         self.remove()
         return collection
 
-    def get(self, updateCallback=None):
-        super(OneTimeShare, self).get(updateCallback=updateCallback)
+    def get(self, activity=None):
+        super(OneTimeShare, self).get(activity=activity)
         collection = self.contents
         self.remove()
         return collection

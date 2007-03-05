@@ -90,7 +90,7 @@ class InMemoryConduit(conduits.LinkableConduit, conduits.ManifestEngineMixin):
 
         return etag
 
-    def _getItem(self, contentView, itemPath, into=None, updateCallback=None,
+    def _getItem(self, contentView, itemPath, into=None, activity=None,
                  stats=None):
 
         view = self.itsView
@@ -99,7 +99,7 @@ class InMemoryConduit(conduits.LinkableConduit, conduits.ManifestEngineMixin):
 
         try:
             item = self.share.format.importProcess(contentView, text,
-                item=into, updateCallback=updateCallback, stats=stats)
+                item=into, activity=activity, stats=stats)
         except errors.MalformedData:
             logger.exception("Failed to parse resource for item %s: '%s'" %
                 (itemPath, text.encode('utf8', 'replace')))

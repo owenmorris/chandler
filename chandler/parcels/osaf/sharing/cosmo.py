@@ -60,7 +60,7 @@ class CosmoAccount(accounts.WebDAVAccount):
         initialValue = 'SHARING_MORSECODE',
     )
 
-    def publish(self, collection, updateCallback=None, filters=None):
+    def publish(self, collection, activity=None, filters=None):
         rv = self.itsView
 
         share = shares.Share(itsView=rv, contents=collection)
@@ -75,7 +75,7 @@ class CosmoAccount(accounts.WebDAVAccount):
 
         share.conduit = conduit
 
-        share.put(updateCallback=updateCallback)
+        share.put(activity=activity)
 
         return [share]
 
@@ -89,14 +89,14 @@ class CosmoConduit(recordset_conduit.DiffRecordSetConduit, conduits.HTTPMixin):
         initialValue = u'',
     )
 
-    def sync(self, modeOverride=None, updateCallback=None, forceUpdate=None,
+    def sync(self, modeOverride=None, activity=None, forceUpdate=None,
         debug=False):
 
         startTime = time.time()
         self.networkTime = 0.0
 
         stats = super(CosmoConduit, self).sync(modeOverride=modeOverride,
-            updateCallback=updateCallback, forceUpdate=forceUpdate,
+            activity=activity, forceUpdate=forceUpdate,
             debug=debug)
 
         endTime = time.time()

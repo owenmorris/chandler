@@ -26,6 +26,7 @@ from osaf.pim.collections import (UnionCollection, DifferenceCollection,
                                   FilteredCollection)
 from i18n import ChandlerMessageFactory as _
 from chandlerdb.util.c import UUID
+from osaf.activity import *
 
 import zanshin, M2Crypto, twisted, re
 
@@ -285,10 +286,13 @@ class BackgroundSyncHandler:
                 callCallbacks(UPDATE, msg="Syncing collection '%s'" %
                     share.contents.displayName)
                 try:
+                    activity = Activity("Sync: %s" % share.contents.displayName)
+                    activity.started()
                     stats.extend(share.sync(modeOverride=modeOverride,
-                                            updateCallback=silentCallback,
+                                            activity=activity,
                                             forceUpdate=forceUpdate))
                     _clearError(share)
+                    activity.completed()
 
                 except Exception, e:
                     logger.exception("Error syncing collection")
@@ -304,6 +308,9 @@ class BackgroundSyncHandler:
 
                     stats.extend( [ { 'collection' : share.contents.itsUUID,
                                     'error' : extended } ] )
+
+                    if not isinstance(e, ActivityAborted):
+                        activity.failed(e)
 
         except: # Failed to sync at least one collection; continue on
             logger.exception("Background sync error")
@@ -356,7 +363,7 @@ class BackgroundSyncHandler:
 
 def publish(collection, account, classesToInclude=None,
             publishType = 'collection',
-            attrsToExclude=None, displayName=None, updateCallback=None):
+            attrsToExclude=None, displayName=None, activity=None):
     """
     Publish a collection, automatically determining which conduits/formats
     to use, and how many
@@ -377,11 +384,6 @@ def publish(collection, account, classesToInclude=None,
                         the collection's displayName will be used as a starting
                         point.  In either case, to avoid collisions with existing
                         collections, '-1', '-2', etc., may be appended.
-    @type updateCallback: method
-    @param updateCallback: An optional callback method, which will get called
-                           periodically during the publishing process.  If the
-                           callback returns True, the publishing operation
-                           will stop
     """
 
     try:
@@ -389,18 +391,15 @@ def publish(collection, account, classesToInclude=None,
     except TypeError: # Some collection classes don't support len( )
         totalWork = len(list(collection))
 
-    if updateCallback:
-        progressMonitor = ProgressMonitor(totalWork, updateCallback)
-        callback = progressMonitor.callback
-    else:
-        progressMonitor = None
-        callback = None
+    if activity:
+        activity.update(totalWork=totalWork)
+
 
     view = collection.itsView
 
     # If the account knows how to publish, delegate:
     if hasattr(account, 'publish'):
-        shares = account.publish(collection, updateCallback=callback,
+        shares = account.publish(collection, activity=activity,
             filters=attrsToExclude)
         for share in shares:
             share.sharer = schema.ns("osaf.pim", view).currentContact.item
@@ -475,7 +474,7 @@ def publish(collection, account, classesToInclude=None,
             shares.append(share)
             share.displayName = collection.displayName
 
-            share.sync(updateCallback=callback)
+            share.sync(activity=activity)
 
         else:
             # the collection should be published
@@ -534,7 +533,7 @@ def publish(collection, account, classesToInclude=None,
                     
                     share.conduit.inFreeBusy = True
                     share.create()
-                    share.put(updateCallback=callback)
+                    share.put(activity=activity)
                 
                 else:
                     # Create a CalDAV conduit / ICalendar format
@@ -602,8 +601,9 @@ def publish(collection, account, classesToInclude=None,
                             share.follows = subShare
     
                             # Since we're publishing twice as many resources:
-                            if progressMonitor:
-                                progressMonitor.totalWork *= 2
+                            if activity:
+                                totalWork *= 2
+                                activity.update(totalWork=totalWork)
     
                         except SharingError:
                             # We're not able to create the subcollection, so
@@ -614,7 +614,7 @@ def publish(collection, account, classesToInclude=None,
                     else:
                         subShare = None
     
-                    share.put(updateCallback=callback)
+                    share.put(activity=activity)
 
                     # tickets after putting
                     if supportsTickets and publishType == 'collection':
@@ -654,7 +654,7 @@ def publish(collection, account, classesToInclude=None,
                     raise SharingError(_(u"Share already exists"))
 
                 share.create()
-                share.put(updateCallback=callback)
+                share.put(activity=activity)
 
                 if supportsTickets:
                     share.conduit.createTickets()
@@ -676,7 +676,7 @@ def publish(collection, account, classesToInclude=None,
                         raise SharingError(_(u"Share already exists"))
 
                     icsShare.create()
-                    icsShare.put(updateCallback=callback)
+                    icsShare.put(activity=activity)
                     if supportsTickets:
                         icsShare.conduit.createTickets()
 
@@ -780,32 +780,59 @@ def unpublishFreeBusy(collection):
             for share in sharing_ns.hiddenEvents.shares:
                 deleteShare(share)
 
-def subscribe(view, url, updateCallback=None, username=None, password=None,
-              forceFreeBusy=False):
 
-    return subscribe2(view, url, updateCallback=updateCallback,
-        username=username, password=password)
-
-def subscribe1(view, url, updateCallback=None, username=None, password=None,
-              forceFreeBusy=False):
-
-
-    if updateCallback:
-        progressMonitor = ProgressMonitor(0, updateCallback)
-        callback = progressMonitor.callback
-    else:
-        progressMonitor = None
-        callback = None
+def subscribe(view, url, activity=None, username=None, password=None,
+    forceFreeBusy=False):
 
     (useSSL, host, port, path, query, fragment, ticket, parentPath,
         shareName) = splitUrl(url)
 
     if ticket:
-        account = None
-    else:
-        account = WebDAVAccount.findMatchingAccount(view, url)
+        account = username = password = None
 
-        if account is None:
+    else:
+        # See if there is an account which matches this url already,
+        # and use the username and password from it (as long as we're
+        # not overriding it with passed-in username/password args)
+
+        account = WebDAVAccount.findMatchingAccount(view, url)
+        if account is not None:
+            # There is a matching account
+            if username is None:
+                # We're not overriding the username/passwd on this account
+                username = account.username
+                password = account.password
+            else:
+                # We're overriding the username/passwd on this account
+                account.username = username
+                account.password = password
+
+            # update shareName if it's a subscollection in the account
+            if account.path.strip("/") != parentPath.strip("/"):
+                tail = parentPath.strip("/")[len(account.path.strip("/")):]
+                if tail != "":
+                    shareName = tail + "/" + shareName
+
+    inspection = inspect(url, username=username, password=password)
+
+    logger.info("Inspection results for %s: %s", url, inspection)
+
+    # TODO: check for "already subscribed"
+    # TODO: upgrade to read-write if provided new ticket
+
+    # Override, because we can't trust .mac to return 'text/calendar'
+    parsedUrl = urlparse.urlsplit(url)
+    if parsedUrl.scheme.startswith('webcal'):
+        inspection['contentType'] = 'text/calendar'
+
+    contentType = inspection.get('contentType', None)
+
+    if contentType:
+        contentType = contentType.split(";")[0]
+
+    if inspection['calendar']: # CalDAV collection
+
+        if not ticket and account is None:
             # Create a new account
             account = WebDAVAccount(itsView=view)
             account.displayName = url
@@ -813,296 +840,373 @@ def subscribe1(view, url, updateCallback=None, username=None, password=None,
             account.path = parentPath
             account.useSSL = useSSL
             account.port = port
-        elif account.path.strip("/") != parentPath.strip("/"):
-            # update shareName if it's a subcollection in the account
-            tail = parentPath.strip("/")[len(account.path.strip("/")):]
-            if tail != "":
-                shareName = tail + "/" + shareName
+            if username is not None:
+                account.username = username
+            if password is not None:
+                account.password = password
 
-        if username is not None:
-            account.username = username
-        if password is not None:
-            account.password = password
+        collection = subscribeCalDAV(view, url, inspection,
+            activity=activity, account=account,
+            parentPath=parentPath, shareName=shareName, ticket=ticket,
+            username=username, password=password)
+        return collection
+
+    elif inspection['collection']: # WebDAV collection
+
+        if not ticket and account is None:
+            # Create a new account
+            account = WebDAVAccount(itsView=view)
+            account.displayName = url
+            account.host = host
+            account.path = parentPath
+            account.useSSL = useSSL
+            account.port = port
+            if username is not None:
+                account.username = username
+            if password is not None:
+                account.password = password
+
+        collection = subscribeWebDAV(view, url, inspection,
+            activity=activity, account=account,
+            parentPath=parentPath, shareName=shareName, ticket=ticket,
+            username=username, password=password)
+        return collection
+
+    elif contentType == "text/html":
+        # parse the webpage for embedded link to real url
+        text = getPage(url, username=username, password=password)
+
+        # getPage needs to raise Forbidden exception, right?
+
+        if text:
+            links = extractLinks(text)
+
+            selfUrl = links['self']
+            if selfUrl is not None:
+                if selfUrl.endswith('forbidden'):
+                    raise NotAllowed(_("You don't have permission"))
+
+                davUrl = links['alternate'].get('text/html', None)
+                if davUrl:
+                    davUrl = urlparse.urlunparse((parsedUrl.scheme,
+                        parsedUrl.netloc, davUrl, "", "", ""))
+
+                morsecodeUrl = links['alternate'].get('text/xml', None)
+                if morsecodeUrl:
+                    morsecodeUrl = urlparse.urlunparse((parsedUrl.scheme,
+                        parsedUrl.netloc, morsecodeUrl, "", "", ""))
+
+                if davUrl and morsecodeUrl:
+
+                    # inspect the dav url this time to get permissions
+                    # TODO: I think username/password is irrelevant here since
+                    # cosmo doesn't support basic auth on the pim url, and
+                    # we *must* have gotten here via ticket
+
+                    # TODO: When Cosmo supports the davUrl, we can inspect
+                    # it for permissions.  For now assume writeability
+                    # inspection = inspect(davUrl, username=username,
+                    #     password=password)
+                    # logger.info("Inspection results for %s: %s", davUrl,
+                    #     inspection)
+                    inspection['priv:write'] = True
+
+                    collection = subscribeEIMXML(view, url, morsecodeUrl,
+                        inspection, activity=activity,
+                        account=account, username=username, password=password)
+                    return collection
+
+        raise errors.SharingError("Can't parse webpage")
+
+    elif contentType == "text/calendar":
+
+        if not ticket and account is None:
+            # Create a new account
+            account = WebDAVAccount(itsView=view)
+            account.displayName = url
+            account.host = host
+            account.path = parentPath
+            account.useSSL = useSSL
+            account.port = port
+            if username is not None:
+                account.username = username
+            if password is not None:
+                account.password = password
+
+        # monolithic .ics file
+        collection = subscribeICS(view, url, inspection,
+            activity=activity, account=account,
+            parentPath=parentPath, shareName=shareName, ticket=ticket,
+            username=username, password=password)
+        return collection
+
+    elif contentType == "application/eim+xml":
+
+        # Note: For now we won't allow a subscription to a morsecode url
+        # with no ticket and no pre-existing CosmoAccount set up,
+        # since creation of a CosmoAccount item requires handshaking
+        # with the server; we can add this later if needed
+
+        # morsecode + eimml recordsets
+        collection = subscribeEIMXML(view, url, inspection,
+            activity=activity, account=account,
+            ticket=ticket, username=username, password=password)
+        return collection
+
+    else:
+        # unknown
+        raise errors.SharingError("Unknown content type")
+
+
+
+
+def subscribeCalDAV(view, url, inspection, activity=None, account=None,
+    parentPath=None, shareName=None, ticket=None,
+    username=None, password=None):
+
+    # Append .chandler to the path
+    parsedUrl = urlparse.urlsplit(url)
+    path = parsedUrl.path
+    if not path.endswith("/"):
+        path += "/"
+    subUrl = urlparse.urlunsplit((parsedUrl.scheme,
+        parsedUrl.netloc, "%s%s/" % (path, SUBCOLLECTION), parsedUrl.query,
+        parsedUrl.fragment))
+
+    try:
+        subInspection = inspect(subUrl, username=username,
+            password=password)
+    except:
+        hasSubCollection = False
+    else:
+        hasSubCollection = True
+
+    shareMode = 'both' if inspection['priv:write'] else 'get'
+
+    share = None
+    subShare = None
+
+    if hasSubCollection:
+        # Here is the Share for the subcollection with cloudXML
+        subShare = Share(itsView=view)
+        subShare.mode = shareMode
+        subShareName = "%s/%s" % (shareName, SUBCOLLECTION)
+
+        if account:
+            subShare.conduit = WebDAVConduit(itsParent=subShare,
+                shareName=subShareName, account=account)
+        else:
+            (useSSL, host, port, path, query, fragment, ticket, parentPath,
+                shareName) = splitUrl(url)
+            subShare.conduit = WebDAVConduit(itsParent=subShare, host=host,
+                port=port, sharePath=parentPath, shareName=subShareName,
+                useSSL=useSSL, ticket=ticket)
+
+        subShare.format = CloudXMLFormat(itsParent=subShare)
+
+        subShare.filterAttributes = []
+        for attr in CALDAVFILTER:
+            subShare.filterAttributes.append(attr)
+
+    share = Share(itsView=view)
+    share.mode = shareMode
+    share.format = CalDAVFormat(itsParent=share)
+    if account:
+        share.conduit = CalDAVConduit(itsParent=share,
+            shareName=shareName, account=account)
+    else:
+        (useSSL, host, port, path, query, fragment, ticket, parentPath,
+            shareName) = splitUrl(url)
+        share.conduit = CalDAVConduit(itsParent=share, host=host,
+            port=port, sharePath=parentPath, shareName=shareName,
+            useSSL=useSSL, ticket=ticket)
+
+    if subShare is not None:
+        share.follows = subShare
+
+
+    share.sync(activity=activity, modeOverride='get')
+    share.conduit.getTickets()
+
+    if subShare is not None:
+        # If this is a partial share, we need to store that fact
+        # into this Share object
+        if hasattr(subShare, 'filterClasses'):
+            share.filterClasses = list(subShare.filterClasses)
+
+        # Because of a bug, we don't really know whether the
+        # publisher of this share intended to share alarms and
+        # event status (transparency).  Let's assume not.  However,
+        # we *can* determine their intention for sharing triage
+        # status.
+        share.filterAttributes = [
+             pim.Remindable.reminders.name,
+             pim.EventStamp.transparency.name
+        ]
+        if 'triageStatus' in getattr(subShare, 'filterAttributes', []):
+            share.filterAttributes.append('triageStatus')
+        """
+        Why just triageStatus and not triageStatusChanged in the code above?
+        Is that a bug?
+
+        Actually, not a bug.  Just an inconvenience related to
+        having dual-fork shares (.ics and .xml).  What happens is
+        the subShare (.xml fork) gets its filter list from the
+        server, then lets the upper share (.ics) know that triageStatus
+        is or is not being filtered.  As triageStatus is not actually
+        shared via .ics, it doesn't matter to the sharing layer
+        that triageStatusChanged isn't listed in the upper share's
+        filter list.  The real reason I add triageStatus to the
+        upper share's filter list is so the "manage share" dialog
+        can see that the triage status sharing checkbox should be
+        checked or not.  This is what happens when the system is
+        designed for one thing (single-fork shares) and eventually
+        bent to fit a new need (dual-fork shares).  As the dual-fork
+        stuff is going away soon, I wouldn't worry about this.
+        """
+
+    try:
+        SharedItem(share.contents).shares.append(share, 'main')
+    except ValueError:
+        # There is already a 'main' share for this collection
+        SharedItem(share.contents).shares.append(share)
+
+    # If free busy has already been published, add the subscribed
+    # collection to publishedFreeBusy if appropriate
+    updatePublishedFreeBusy(share)
+
+    return share.contents
+
+
+
+
+def subscribeWebDAV(view, url, inspection, activity=None, account=None,
+    parentPath=None, shareName=None, ticket=None,
+    username=None, password=None):
+
+    shareMode = 'both' if inspection['priv:write'] else 'get'
+
+    share = Share(itsView=view)
+    share.mode = shareMode
+    share.format = CloudXMLFormat(itsParent=share)
 
     if account:
-        conduit = WebDAVConduit(itsView=view, account=account,
-                                shareName=shareName)
-    else:
-        conduit = WebDAVConduit(itsView=view, host=host, port=port,
-                    sharePath=parentPath, shareName=shareName, useSSL=useSSL,
-                    ticket=ticket)
+        share.conduit = WebDAVConduit(itsParent=share,
+            shareName=shareName, account=account)
 
-    location = conduit.getLocation()
-    for share in Share.iterItems(view):
-        if share.getLocation() == location:
-            if share.established:
-
-                # Compare the tickets (if any) and if different,
-                # interrogate the server to get the new permissions
-                if ticket and getattr(share.conduit, 'ticket', None):
-                    if ticket != share.conduit.ticket:
-                        (shareMode, hasSub, isCal) = interrogate(conduit,
-                            location, ticket=ticket)
-                        share.mode = shareMode
-                        share.conduit.ticket = ticket
-                        if hasSub:
-                            share.follows.mode = shareMode
-                            share.follows.conduit.ticket = ticket
-                        return share.contents
-
-                raise AlreadySubscribed(_(u"Already subscribed"))
-            else:
-                share.delete(True)
-                break
-
-
-    # Shortcut: if it's a .ics file we're subscribing to, it's only
-    # going to be read-only (in 0.6 at least), and we don't need to
-    # mess around with checking Allow headers and the like:
-
-    if url.endswith(".ics"):
-        share = Share(itsView=view)
-        share.format = ICalendarFormat(itsParent=share)
-        share.conduit = SimpleHTTPConduit(itsParent=share,
-                                          shareName=shareName,
-                                          account=account)
-        share.mode = "get"
-        share.filterClasses = \
-            ["osaf.pim.calendar.Calendar.EventStamp"]
-
-        if updateCallback:
-            updateCallback(msg=_(u"Subscribing to calendar..."))
-
-        try:
-            share.get(updateCallback=callback)
-
-            try:
-                SharedItem(share.contents).shares.append(share, 'main')
-            except ValueError:
-                # There is already a 'main' share for this collection
-                SharedItem(share.contents).shares.append(share)
-
-            return share.contents
-
-        except Exception, err:
-            logger.exception("Failed to subscribe to %s", url)
-            # share.delete(True)
-            raise
-
-    # Shortcut: similarly, if it's a .ifb file we're subscribing to, it's
-    # read-only
-
-    elif path.endswith(".ifb"):
-        share = Share(itsView=view)
-        share.format = FreeBusyFileFormat(itsParent=share)
-        share.conduit = SimpleHTTPConduit(itsParent=share,
-                                          host=host,
-                                          port=port,
-                                          useSSL=useSSL,
-                                          shareName=shareName,
-                                          sharePath=parentPath,
-                                          account=account,
-                                          ticket=ticket)
-        share.mode = "get"
-        share.filterClasses = \
-            ["osaf.pim.calendar.Calendar.EventStamp"]
-
-        if updateCallback:
-            updateCallback(msg=_(u"Subscribing to freebusy..."))
-
-        try:
-            share.get(updateCallback=callback)
-
-            try:
-                SharedItem(share.contents).shares.append(share, 'main')
-            except ValueError:
-                # There is already a 'main' share for this collection
-                SharedItem(share.contents).shares.append(share)
-
-            return share.contents
-
-        except Exception, err:
-            logger.exception("Failed to subscribe to %s", url)
-            share.delete(True)
-            raise
-
-    elif forceFreeBusy:
-        share = Share(itsView=view)
-        share.format = FreeBusyFileFormat(itsParent=share)
-        share.conduit = CalDAVFreeBusyConduit(itsParent=share,
-                                              host=host,
-                                              port=port,
-                                              useSSL=useSSL,
-                                              shareName=shareName,
-                                              sharePath=parentPath,
-                                              account=account)
-        if ticket:
-            share.conduit.ticketFreeBusy = ticket
-        share.mode = "get"
-        share.filterClasses = ["osaf.pim.calendar.Calendar.EventStamp"]
-
-        if updateCallback:
-            updateCallback(msg=_(u"Subscribing to freebusy..."))
-
-        try:
-            share.get(updateCallback=callback)
-
-            try:
-                SharedItem(share.contents).shares.append(share, 'main')
-            except ValueError:
-                # There is already a 'main' share for this collection
-                SharedItem(share.contents).shares.append(share)
-
-            return share.contents
-
-        except zanshin.http.HTTPError, err:
-            if not isDead(share):
-                share.delete(True)
-            if err.status == 401:
-                raise NotAllowed(_("You don't have permission"))            
-            else:
-                logger.exception("Failed to subscribe to %s", url)
-                raise 
-            
-        except Exception, err:
-            logger.exception("Failed to subscribe to %s", url)
-            if not isDead(share):
-                share.delete(True)
-            raise
-
-    if updateCallback:
-        updateCallback(msg=_(u"Detecting share settings..."))
-
-    if not location.endswith("/"):
-        location += "/"
-
-    # Interrogate the server to determine permissions, whether there
-    # is a subcollection (.XML fork) and whether this is a calendar
-    # collection
-    (shareMode, hasSubCollection, isCalendar) = interrogate(conduit,
-        location, ticket=ticket)
-
-    if updateCallback:
-        updateCallback(msg=_(u"Share settings detected; ready to subscribe"))
-
-
-    if not isCalendar:
-
-        # Just a WebDAV/XML collection
-
-        share = Share(itsView=view)
-
-        share.mode = shareMode
-
-        share.format = CloudXMLFormat(itsParent=share)
-        if account:
-            share.conduit = WebDAVConduit(itsParent=share,
-                                          shareName=shareName,
-                                          account=account)
-        else:
-            share.conduit = WebDAVConduit(itsParent=share, host=host, port=port,
-                sharePath=parentPath, shareName=shareName, useSSL=useSSL,
-                ticket=ticket)
-
-        try:
-            share.sync(updateCallback=callback, modeOverride='get')
-            share.conduit.getTickets()
-
-            try:
-                SharedItem(share.contents).shares.append(share, 'main')
-            except ValueError:
-                # There is already a 'main' share for this collection
-                SharedItem(share.contents).shares.append(share)
-
-        except Exception, err:
-            logger.exception("Failed to subscribe to %s", url)
-            if not isDead(share):
-                share.delete(True)
-            raise
-
-        return share.contents
+        share.conduit = WebDAVRecordSetConduit(itsParent=share,
+            account=account, shareName=shareName,
+            translator=PIMTranslator, serializer=EIMMLSerializer)
 
     else:
+        (useSSL, host, port, path, query, fragment) = splitUrl(url)
+        share.conduit = WebDAVRecordSetConduit(itsParent=share, host=host,
+            port=port, sharePath=sharePath, shareName=shareName,
+            useSSL=useSSL, ticket=ticket,
+            translator=PIMTranslator, serializer=EIMMLSerializer)
 
-        # This is a CalDAV calendar, possibly containing an XML subcollection
+    share.sync(activity=activity, modeOverride='get')
+    share.conduit.getTickets()
 
-        try:
-            share = None
-            subShare = None
+    try:
+        SharedItem(share.contents).shares.append(share, 'main')
+    except ValueError:
+        # There is already a 'main' share for this collection
+        SharedItem(share.contents).shares.append(share)
 
-            if hasSubCollection:
-                # Here is the Share for the subcollection with cloudXML
-                subShare = Share(itsView=view)
-                subShare.mode = shareMode
-                subShareName = "%s/%s" % (shareName, SUBCOLLECTION)
-
-                if account:
-                    subShare.conduit = WebDAVConduit(itsParent=subShare,
-                                                     shareName=subShareName,
-                                                     account=account)
-                else:
-                    subShare.conduit = WebDAVConduit(itsParent=subShare, host=host,
-                        port=port, sharePath=parentPath, shareName=subShareName,
-                        useSSL=useSSL, ticket=ticket)
-
-                subShare.format = CloudXMLFormat(itsParent=subShare)
-
-                subShare.filterAttributes = []
-                for attr in CALDAVFILTER:
-                    subShare.filterAttributes.append(attr)
-
-            share = Share(itsView=view)
-            share.mode = shareMode
-            share.format = CalDAVFormat(itsParent=share)
-            if account:
-                share.conduit = CalDAVConduit(itsParent=share,
-                                              shareName=shareName,
-                                              account=account)
-            else:
-                share.conduit = CalDAVConduit(itsParent=share, host=host,
-                    port=port, sharePath=parentPath, shareName=shareName,
-                    useSSL=useSSL, ticket=ticket)
-
-            if subShare is not None:
-                share.follows = subShare
-
-            share.sync(updateCallback=callback, modeOverride='get')
-            share.conduit.getTickets()
-
-            if subShare is not None:
-                # If this is a partial share, we need to store that fact
-                # into this Share object
-                if hasattr(subShare, 'filterClasses'):
-                    share.filterClasses = list(subShare.filterClasses)
-
-                # Because of a bug, we don't really know whether the
-                # publisher of this share intended to share alarms and
-                # event status (transparency).  Let's assume not.  However,
-                # we *can* determine their intention for sharing triage
-                # status.
-                share.filterAttributes = [
-                     pim.Remindable.reminders.name,
-                     pim.EventStamp.transparency.name
-                ]
-                if 'triageStatus' in getattr(subShare, 'filterAttributes', []):
-                    share.filterAttributes.append('triageStatus')
-
-            try:
-                SharedItem(share.contents).shares.append(share, 'main')
-            except ValueError:
-                # There is already a 'main' share for this collection
-                SharedItem(share.contents).shares.append(share)
-
-            # If free busy has already been published, add the subscribed
-            # collection to publishedFreeBusy if appropriate
-            updatePublishedFreeBusy(share)
+    return share.contents
 
 
-        except Exception, err:
-            logger.exception("Failed to subscribe to %s", url)
-            raise
 
-        return share.contents
+
+def subscribeICS(view, url, inspection, activity=None,
+    account=None, parentPath=None, shareName=None, ticket=None,
+    username=None, password=None):
+
+    share = Share(itsView=view)
+    share.format = ICalendarFormat(itsParent=share)
+
+    if account:
+        share.conduit = SimpleHTTPConduit(itsParent=share,
+            shareName=shareName, account=account)
+    else:
+        (useSSL, host, port, path, query, fragment) = splitUrl(url)
+        share.conduit = SimpleHTTPConduit(itsParent=share, host=host,
+            port=port, sharePath=parentPath, shareName=shareName,
+            useSSL=useSSL, ticket=ticket)
+
+    share.mode = "get"
+    share.filterClasses = \
+        ["osaf.pim.calendar.Calendar.EventStamp"]
+
+    if activity:
+        activity.update(msg=_(u"Subscribing to calendar..."))
+
+    share.get(activity=activity)
+
+    try:
+        SharedItem(share.contents).shares.append(share, 'main')
+    except ValueError:
+        # There is already a 'main' share for this collection
+        SharedItem(share.contents).shares.append(share)
+
+    return share.contents
+
+
+
+
+def subscribeEIMXML(view, url, morsecodeUrl, inspection, activity=None,
+    account=None, username=None, password=None):
+
+    shareMode = 'both' if inspection['priv:write'] else 'get'
+
+    share = Share(itsView=view)
+    share.mode = shareMode
+
+    # Get the user-facing sharePath from url, e.g.  "/cosmo/pim/collection"
+    (useSSL, host, port, path, query, fragment, ticket, sharePath,
+        shareName) = splitUrl(url)
+
+    if not ticket and account is None:
+        # Create a new account
+        account = CosmoAccount(itsView=view)
+        account.displayName = url
+        account.host = host
+        account.path = "cosmo" # TODO: See if we can really determine this.
+        # pimPath, morsecodePath, and davPath all have initialValues
+        account.useSSL = useSSL
+        account.port = port
+        account.username = username
+        account.password = password
+
+    if account:
+        share.conduit = CosmoConduit(itsParent=share,
+            shareName=shareName, account=account,
+            translator=PIMTranslator, serializer=EIMMLSerializer)
+    else:
+        # Get the morsecode path from url, e.g.  "/cosmo/mc/collection"
+        (useSSL, host, port, path, query, fragment, ticket, morsecodePath,
+            shareName) = splitUrl(morsecodeUrl)
+
+        share.conduit = CosmoConduit(itsParent=share, host=host,
+            port=port, sharePath=sharePath, morsecodePath=morsecodePath,
+            shareName=shareName,
+            useSSL=useSSL, ticket=ticket,
+            translator=PIMTranslator, serializer=EIMMLSerializer)
+
+
+    share.sync(activity=activity, modeOverride='get', debug=True)
+    # share.conduit.getTickets()
+
+    try:
+        SharedItem(share.contents).shares.append(share, 'main')
+    except ValueError:
+        # There is already a 'main' share for this collection
+        SharedItem(share.contents).shares.append(share)
+
+    return share.contents
+
+
 
 
 
@@ -1201,443 +1305,8 @@ def interrogate(conduit, location, ticket=None):
     return (shareMode, hasSubCollection, isCalendar)
 
 
+
 # = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =
-
-
-def subscribe2(view, url, updateCallback=None, username=None, password=None):
-
-    if updateCallback:
-        progressMonitor = ProgressMonitor(0, updateCallback)
-        updateCallback = progressMonitor.callback
-
-    (useSSL, host, port, path, query, fragment, ticket, parentPath,
-        shareName) = splitUrl(url)
-
-    if ticket:
-        account = username = password = None
-
-    else:
-        # See if there is an account which matches this url already,
-        # and use the username and password from it (as long as we're
-        # not overriding it with passed-in username/password args)
-
-        account = WebDAVAccount.findMatchingAccount(view, url)
-        if account is not None:
-            # There is a matching account
-            if username is None:
-                # We're not overriding the username/passwd on this account
-                username = account.username
-                password = account.password
-            else:
-                # We're overriding the username/passwd on this account
-                account.username = username
-                account.password = password
-
-            # update shareName if it's a subscollection in the account
-            if account.path.strip("/") != parentPath.strip("/"):
-                tail = parentPath.strip("/")[len(account.path.strip("/")):]
-                if tail != "":
-                    shareName = tail + "/" + shareName
-
-    inspection = inspect(url, username=username, password=password)
-
-    logger.info("Inspection results for %s: %s", url, inspection)
-
-    # TODO: check for "already subscribed"
-    # TODO: upgrade to read-write if provided new ticket
-
-    # Override, because we can't trust .mac to return 'text/calendar'
-    parsedUrl = urlparse.urlsplit(url)
-    if parsedUrl.scheme.startswith('webcal'):
-        inspection['contentType'] = 'text/calendar'
-
-    contentType = inspection.get('contentType', None)
-
-    if contentType:
-        contentType = contentType.split(";")[0]
-
-    if inspection['calendar']: # CalDAV collection
-
-        if not ticket and account is None:
-            # Create a new account
-            account = WebDAVAccount(itsView=view)
-            account.displayName = url
-            account.host = host
-            account.path = parentPath
-            account.useSSL = useSSL
-            account.port = port
-            if username is not None:
-                account.username = username
-            if password is not None:
-                account.password = password
-
-        collection = subscribeCalDAV(view, url, inspection,
-            updateCallback=updateCallback, account=account,
-            parentPath=parentPath, shareName=shareName, ticket=ticket,
-            username=username, password=password)
-        return collection
-
-    elif inspection['collection']: # WebDAV collection
-
-        if not ticket and account is None:
-            # Create a new account
-            account = WebDAVAccount(itsView=view)
-            account.displayName = url
-            account.host = host
-            account.path = parentPath
-            account.useSSL = useSSL
-            account.port = port
-            if username is not None:
-                account.username = username
-            if password is not None:
-                account.password = password
-
-        collection = subscribeWebDAV(view, url, inspection,
-            updateCallback=updateCallback, account=account,
-            parentPath=parentPath, shareName=shareName, ticket=ticket,
-            username=username, password=password)
-        return collection
-
-    elif contentType == "text/html":
-        # parse the webpage for embedded link to real url
-        text = getPage(url, username=username, password=password)
-
-        # getPage needs to raise Forbidden exception, right?
-
-        if text:
-            links = extractLinks(text)
-
-            selfUrl = links['self']
-            if selfUrl is not None:
-                if selfUrl.endswith('forbidden'):
-                    raise NotAllowed(_("You don't have permission"))
-
-                davUrl = links['alternate'].get('text/html', None)
-                if davUrl:
-                    davUrl = urlparse.urlunparse((parsedUrl.scheme,
-                        parsedUrl.netloc, davUrl, "", "", ""))
-
-                morsecodeUrl = links['alternate'].get('text/xml', None)
-                if morsecodeUrl:
-                    morsecodeUrl = urlparse.urlunparse((parsedUrl.scheme,
-                        parsedUrl.netloc, morsecodeUrl, "", "", ""))
-
-                if davUrl and morsecodeUrl:
-
-                    # inspect the dav url this time to get permissions
-                    # TODO: I think username/password is irrelevant here since
-                    # cosmo doesn't support basic auth on the pim url, and
-                    # we *must* have gotten here via ticket
-
-                    # TODO: When Cosmo supports the davUrl, we can inspect
-                    # it for permissions.  For now assume writeability
-                    # inspection = inspect(davUrl, username=username,
-                    #     password=password)
-                    # logger.info("Inspection results for %s: %s", davUrl,
-                    #     inspection)
-                    inspection['priv:write'] = True
-
-                    collection = subscribeEIMXML(view, url, morsecodeUrl,
-                        inspection, updateCallback=updateCallback,
-                        account=account, username=username, password=password)
-                    return collection
-
-        raise errors.SharingError("Can't parse webpage")
-
-    elif contentType == "text/calendar":
-
-        if not ticket and account is None:
-            # Create a new account
-            account = WebDAVAccount(itsView=view)
-            account.displayName = url
-            account.host = host
-            account.path = parentPath
-            account.useSSL = useSSL
-            account.port = port
-            if username is not None:
-                account.username = username
-            if password is not None:
-                account.password = password
-
-        # monolithic .ics file
-        collection = subscribeICS(view, url, inspection,
-            updateCallback=updateCallback, account=account,
-            parentPath=parentPath, shareName=shareName, ticket=ticket,
-            username=username, password=password)
-        return collection
-
-    elif contentType == "application/eim+xml":
-
-        # Note: For now we won't allow a subscription to a morsecode url
-        # with no ticket and no pre-existing CosmoAccount set up,
-        # since creation of a CosmoAccount item requires handshaking
-        # with the server; we can add this later if needed
-
-        # morsecode + eimml recordsets
-        collection = subscribeEIMXML(view, url, inspection,
-            updateCallback=updateCallback, account=account,
-            ticket=ticket, username=username, password=password)
-        return collection
-
-    else:
-        # unknown
-        raise errors.SharingError("Unknown content type")
-
-
-
-
-def subscribeCalDAV(view, url, inspection, updateCallback=None, account=None,
-    parentPath=None, shareName=None, ticket=None,
-    username=None, password=None):
-
-    # Append .chandler to the path
-    parsedUrl = urlparse.urlsplit(url)
-    path = parsedUrl.path
-    if not path.endswith("/"):
-        path += "/"
-    subUrl = urlparse.urlunsplit((parsedUrl.scheme,
-        parsedUrl.netloc, "%s%s/" % (path, SUBCOLLECTION), parsedUrl.query,
-        parsedUrl.fragment))
-
-    try:
-        subInspection = inspect(subUrl, username=username,
-            password=password)
-    except:
-        hasSubCollection = False
-    else:
-        hasSubCollection = True
-
-    shareMode = 'both' if inspection['priv:write'] else 'get'
-
-    share = None
-    subShare = None
-
-    if hasSubCollection:
-        # Here is the Share for the subcollection with cloudXML
-        subShare = Share(itsView=view)
-        subShare.mode = shareMode
-        subShareName = "%s/%s" % (shareName, SUBCOLLECTION)
-
-        if account:
-            subShare.conduit = WebDAVConduit(itsParent=subShare,
-                shareName=subShareName, account=account)
-        else:
-            (useSSL, host, port, path, query, fragment, ticket, parentPath,
-                shareName) = splitUrl(url)
-            subShare.conduit = WebDAVConduit(itsParent=subShare, host=host,
-                port=port, sharePath=parentPath, shareName=subShareName,
-                useSSL=useSSL, ticket=ticket)
-
-        subShare.format = CloudXMLFormat(itsParent=subShare)
-
-        subShare.filterAttributes = []
-        for attr in CALDAVFILTER:
-            subShare.filterAttributes.append(attr)
-
-    share = Share(itsView=view)
-    share.mode = shareMode
-    share.format = CalDAVFormat(itsParent=share)
-    if account:
-        share.conduit = CalDAVConduit(itsParent=share,
-            shareName=shareName, account=account)
-    else:
-        (useSSL, host, port, path, query, fragment, ticket, parentPath,
-            shareName) = splitUrl(url)
-        share.conduit = CalDAVConduit(itsParent=share, host=host,
-            port=port, sharePath=parentPath, shareName=shareName,
-            useSSL=useSSL, ticket=ticket)
-
-    if subShare is not None:
-        share.follows = subShare
-
-
-    share.sync(updateCallback=updateCallback, modeOverride='get')
-    share.conduit.getTickets()
-
-    if subShare is not None:
-        # If this is a partial share, we need to store that fact
-        # into this Share object
-        if hasattr(subShare, 'filterClasses'):
-            share.filterClasses = list(subShare.filterClasses)
-
-        # Because of a bug, we don't really know whether the
-        # publisher of this share intended to share alarms and
-        # event status (transparency).  Let's assume not.  However,
-        # we *can* determine their intention for sharing triage
-        # status.
-        share.filterAttributes = [
-             pim.Remindable.reminders.name,
-             pim.EventStamp.transparency.name
-        ]
-        if 'triageStatus' in getattr(subShare, 'filterAttributes', []):
-            share.filterAttributes.append('triageStatus')
-        """
-        Why just triageStatus and not triageStatusChanged in the code above?
-        Is that a bug?
-
-        Actually, not a bug.  Just an inconvenience related to
-        having dual-fork shares (.ics and .xml).  What happens is
-        the subShare (.xml fork) gets its filter list from the
-        server, then lets the upper share (.ics) know that triageStatus
-        is or is not being filtered.  As triageStatus is not actually
-        shared via .ics, it doesn't matter to the sharing layer
-        that triageStatusChanged isn't listed in the upper share's
-        filter list.  The real reason I add triageStatus to the
-        upper share's filter list is so the "manage share" dialog
-        can see that the triage status sharing checkbox should be
-        checked or not.  This is what happens when the system is
-        designed for one thing (single-fork shares) and eventually
-        bent to fit a new need (dual-fork shares).  As the dual-fork
-        stuff is going away soon, I wouldn't worry about this.
-        """
-
-    try:
-        SharedItem(share.contents).shares.append(share, 'main')
-    except ValueError:
-        # There is already a 'main' share for this collection
-        SharedItem(share.contents).shares.append(share)
-
-    # If free busy has already been published, add the subscribed
-    # collection to publishedFreeBusy if appropriate
-    updatePublishedFreeBusy(share)
-
-    return share.contents
-
-
-
-
-def subscribeWebDAV(view, url, inspection, updateCallback=None, account=None,
-    parentPath=None, shareName=None, ticket=None,
-    username=None, password=None):
-
-    shareMode = 'both' if inspection['priv:write'] else 'get'
-
-    share = Share(itsView=view)
-    share.mode = shareMode
-    share.format = CloudXMLFormat(itsParent=share)
-
-    if account:
-        share.conduit = WebDAVConduit(itsParent=share,
-            shareName=shareName, account=account)
-
-        share.conduit = WebDAVRecordSetConduit(itsParent=share,
-            account=account, shareName=shareName,
-            translator=PIMTranslator, serializer=EIMMLSerializer)
-
-    else:
-        (useSSL, host, port, path, query, fragment) = splitUrl(url)
-        share.conduit = WebDAVRecordSetConduit(itsParent=share, host=host,
-            port=port, sharePath=sharePath, shareName=shareName,
-            useSSL=useSSL, ticket=ticket,
-            translator=PIMTranslator, serializer=EIMMLSerializer)
-
-    share.sync(updateCallback=updateCallback, modeOverride='get')
-    share.conduit.getTickets()
-
-    try:
-        SharedItem(share.contents).shares.append(share, 'main')
-    except ValueError:
-        # There is already a 'main' share for this collection
-        SharedItem(share.contents).shares.append(share)
-
-    return share.contents
-
-
-
-
-def subscribeICS(view, url, inspection, updateCallback=None,
-    account=None, parentPath=None, shareName=None, ticket=None,
-    username=None, password=None):
-
-    share = Share(itsView=view)
-    share.format = ICalendarFormat(itsParent=share)
-
-    if account:
-        share.conduit = SimpleHTTPConduit(itsParent=share,
-            shareName=shareName, account=account)
-    else:
-        (useSSL, host, port, path, query, fragment) = splitUrl(url)
-        share.conduit = SimpleHTTPConduit(itsParent=share, host=host,
-            port=port, sharePath=parentPath, shareName=shareName,
-            useSSL=useSSL, ticket=ticket)
-
-    share.mode = "get"
-    share.filterClasses = \
-        ["osaf.pim.calendar.Calendar.EventStamp"]
-
-    if updateCallback:
-        updateCallback(msg=_(u"Subscribing to calendar..."))
-
-    share.get(updateCallback=updateCallback)
-
-    try:
-        SharedItem(share.contents).shares.append(share, 'main')
-    except ValueError:
-        # There is already a 'main' share for this collection
-        SharedItem(share.contents).shares.append(share)
-
-    return share.contents
-
-
-
-
-def subscribeEIMXML(view, url, morsecodeUrl, inspection, updateCallback=None,
-    account=None, username=None, password=None):
-
-    shareMode = 'both' if inspection['priv:write'] else 'get'
-
-    share = Share(itsView=view)
-    share.mode = shareMode
-
-    # Get the user-facing sharePath from url, e.g.  "/cosmo/pim/collection"
-    (useSSL, host, port, path, query, fragment, ticket, sharePath,
-        shareName) = splitUrl(url)
-
-    if not ticket and account is None:
-        # Create a new account
-        account = CosmoAccount(itsView=view)
-        account.displayName = url
-        account.host = host
-        account.path = "cosmo" # TODO: See if we can really determine this.
-        # pimPath, morsecodePath, and davPath all have initialValues
-        account.useSSL = useSSL
-        account.port = port
-        account.username = username
-        account.password = password
-
-    if account:
-        share.conduit = CosmoConduit(itsParent=share,
-            shareName=shareName, account=account,
-            translator=PIMTranslator, serializer=EIMMLSerializer)
-    else:
-        # Get the morsecode path from url, e.g.  "/cosmo/mc/collection"
-        (useSSL, host, port, path, query, fragment, ticket, morsecodePath,
-            shareName) = splitUrl(morsecodeUrl)
-
-        share.conduit = CosmoConduit(itsParent=share, host=host,
-            port=port, sharePath=sharePath, morsecodePath=morsecodePath,
-            shareName=shareName,
-            useSSL=useSSL, ticket=ticket,
-            translator=PIMTranslator, serializer=EIMMLSerializer)
-
-
-    share.sync(updateCallback=updateCallback, modeOverride='get', debug=True)
-    # share.conduit.getTickets()
-
-    try:
-        SharedItem(share.contents).shares.append(share, 'main')
-    except ValueError:
-        # There is already a 'main' share for this collection
-        SharedItem(share.contents).shares.append(share)
-
-    return share.contents
-
-
-
-
-
-
-
 
 
 class ProgressMonitor:
@@ -1666,6 +1335,7 @@ class ProgressMonitor:
         msg = kwds.get('msg', None)
 
         return self.updateCallback(msg=msg, percent=percent)
+
 
 
 

@@ -818,7 +818,7 @@ attributesUnderstood = ['recurrence-id', 'summary', 'description', 'location',
 parametersUnderstood = ['tzid', 'x-vobj-original-tzid', 'x-osaf-anytime']
 
 def itemsFromVObject(view, text, coerceTzinfo=None, filters=None,
-                     monolithic=True, updateCallback=None, stats=None,
+                     monolithic=True, activity=None, stats=None,
                      silentFailure=False):
     """
     Take a string, create or update items from that stream.
@@ -859,8 +859,8 @@ def itemsFromVObject(view, text, coerceTzinfo=None, filters=None,
                             getattr(calendar, 'vtodo_list', [])))
 
         numItems = len(vobjects)
-        if updateCallback and monolithic:
-            updateCallback(msg=_(u"Calendar contains %d items") % numItems,
+        if activity and monolithic:
+            activity.update(msg=_(u"Calendar contains %d items") % numItems,
                 totalWork=numItems)
         
         for i, vobj in itertools.chain(vobjects, enumerate(modificationQueue)):
@@ -890,14 +890,12 @@ def itemsFromVObject(view, text, coerceTzinfo=None, filters=None,
                     if stats and item.itsUUID not in stats[statsKey]:
                         stats[statsKey].append(item.itsUUID)
         
-                    if updateCallback:
+                    if activity:
                         msg="'%s'" % (item.displayName,)
                         # the work parameter tells the callback whether progress
                         # should be tracked, this only makes sense if we might have
                         # more than one event.
-                        cancelled = updateCallback(msg=msg, work=monolithic)
-                        if cancelled:
-                            raise errors.SharingError(_(u"Cancelled by user"))
+                        activity.update(msg=msg, work=monolithic)
                 
                     # finished creating the item
                     itemlist.append(item)
@@ -916,7 +914,7 @@ def itemsFromVObject(view, text, coerceTzinfo=None, filters=None,
     return itemlist, calname
 
 
-def updateFreebusyFromVObject(view, text, busyCollection, updateCallback=None):
+def updateFreebusyFromVObject(view, text, busyCollection, activity=None):
     """
     Take a string, create or update freebusy events in busyCollection from that
     stream.
@@ -1015,7 +1013,7 @@ class ICalendarFormat(formats.ImportExportFormat):
                 isinstance(item, Sharing.Share))
 
     def importProcess(self, contentView, text, extension=None, item=None,
-                      updateCallback=None, stats=None):
+                      activity=None, stats=None):
         # the item parameter is so that a share item can be passed in for us
         # to populate.
 
@@ -1029,7 +1027,7 @@ class ICalendarFormat(formats.ImportExportFormat):
         coerceTzinfo = getattr(self, 'coerceTzinfo', None)
 
         events, calname = itemsFromVObject(view, text, coerceTzinfo, filters,
-                                           monolithic, updateCallback, stats,
+                                           monolithic, activity, stats,
                                            monolithic)
 
         def masterEventItem(obj):
@@ -1131,7 +1129,7 @@ class FreeBusyFileFormat(ICalendarFormat):
         return cal.serialize().encode('utf-8')
 
     def importProcess(self, contentView, text, extension=None, item=None,
-                      updateCallback=None, stats=None):
+                      activity=None, stats=None):
         # the item parameter is so that a share item can be passed in for us
         # to populate.
 
@@ -1153,7 +1151,7 @@ class FreeBusyFileFormat(ICalendarFormat):
 
         # something should be done with start and end, eventually
         start, end, calname = updateFreebusyFromVObject(view, text, item, 
-                                                        updateCallback)
+                                                        activity)
 
         if getattr(item, 'displayName', "") == "":
             if calname is None:
@@ -1166,7 +1164,7 @@ class ICalendarImportError(Exception):
     pass
 
 def importICalendarFile(fullpath, view, targetCollection = None,
-                        filterAttributes = None, updateCallback=None,
+                        filterAttributes = None, activity=None,
                         tzinfo = None, logger=None, selectedCollection = False):
     """Import ics file at fullpath into targetCollection.
     
@@ -1203,7 +1201,7 @@ def importICalendarFile(fullpath, view, targetCollection = None,
     before = epoch_time()
     
     try:
-        collection = share.get(updateCallback)
+        collection = share.get(activity=activity)
     except:
         if logger:
             logger.exception("Failed importFile %s" % fullpath)

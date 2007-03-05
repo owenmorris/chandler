@@ -31,12 +31,12 @@ class FileSystemConduit(conduits.LinkableConduit, conduits.ManifestEngineMixin):
             return os.path.join(self.sharePath, self.shareName)
         raise errors.Misconfigured(_(u"A misconfiguration error was encountered"))
 
-    def _get(self, contentView, resourceList, updateCallback=None,
+    def _get(self, contentView, resourceList, activity=None,
              getPhrase=None):
         if getPhrase is None:
             getPhrase = _(u"Importing from %(name)s...")
         return super(FileSystemConduit, self)._get(contentView,
-            resourceList, updateCallback, getPhrase)
+            resourceList, activity, getPhrase)
 
     def _putItem(self, item):
         path = self._getItemFullPath(self._getItemPath(item))
@@ -61,7 +61,7 @@ class FileSystemConduit(conduits.LinkableConduit, conduits.ManifestEngineMixin):
         logger.info("...removing from disk: %s" % path)
         os.remove(path)
 
-    def _getItem(self, contentView, itemPath, into=None, updateCallback=None,
+    def _getItem(self, contentView, itemPath, into=None, activity=None,
         stats=None):
 
         view = self.itsView
@@ -75,7 +75,7 @@ class FileSystemConduit(conduits.LinkableConduit, conduits.ManifestEngineMixin):
         try:
             item = self.share.format.importProcess(contentView, text,
                 extension=extension, item=into,
-                updateCallback=updateCallback, stats=stats)
+                activity=activity, stats=stats)
 
         except errors.MalformedData:
             logger.exception("Failed to parse resource for item %s: '%s'" %

@@ -348,7 +348,7 @@ class MailShare(Share):
                                    account=account)
         self.format = CloudXMLDiffFormat(itsParent=self)
 
-    def sync(self, modeOverride=None, updateCallback=None, forceUpdate=None):
+    def sync(self, modeOverride=None, activity=None, forceUpdate=None):
 
         account = self.conduit.account
         account.login(None)

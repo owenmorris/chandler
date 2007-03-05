@@ -22,6 +22,8 @@ logger = logging.getLogger(__name__)
 
 
 class PickleSerializer(object):
+    """ Serializes to a byte-length string, followed by newline, followed by
+        a pickle string of the specified length """
 
     @classmethod
     def outputRecord(cls, output, record):
@@ -41,7 +43,7 @@ class PickleSerializer(object):
 
 
 def dump(rv, filename, uuids, translator=sharing.PIMTranslator,
-    serializer=PickleSerializer):
+    serializer=PickleSerializer, activity=None):
 
     """ Dumps EIM records to a file """
 
@@ -49,16 +51,27 @@ def dump(rv, filename, uuids, translator=sharing.PIMTranslator,
 
     output = open(filename, "wb")
 
+    if activity:
+        count = len(uuids)
+        activity.update(msg="Dumping %d records" % count, totalWork=count)
+
+    i = 0
     for uuid in uuids:
         for record in trans.exportItem(rv.findUUID(uuid)):
             serializer.outputRecord(output, record)
+            i += 1
+            if activity:
+                activity.update(msg="Dumped %d of %d records" % (i, count),
+                    work=1)
 
     output.close()
+    if activity:
+        activity.update(msg="Dumped %d records" % count)
 
 
 
 def reload(rv, filename, translator=sharing.PIMTranslator,
-    serializer=PickleSerializer):
+    serializer=PickleSerializer, activity=None):
 
     """ Loads EIM records from a file and applies them """
 
@@ -66,12 +79,18 @@ def reload(rv, filename, translator=sharing.PIMTranslator,
     trans.startImport()
 
     input = open(filename, "rb")
+    if activity:
+        activity.update(totalWork=None)
 
+    i = 0
     while True:
         record = serializer.inputRecord(input)
         if not record:
             break
         trans.importRecord(record)
+        i += 1
+        if activity:
+            activity.update(msg="Imported %d records" % i)
 
     input.close()
 

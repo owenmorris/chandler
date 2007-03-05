@@ -97,13 +97,13 @@ def inspect(url, username=None, password=None):
 
 
 
-def sync(collection, modeOverride=None, updateCallback=None,
+def sync(collection, modeOverride=None, activity=None,
          forceUpdate=None):
 
     stats = []
     for share in getSyncableShares(collection.itsView, collection):
         stats.extend(share.sync(modeOverride=modeOverride,
-                                updateCallback=updateCallback))
+                                activity=activity))
     return stats
 
 

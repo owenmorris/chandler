@@ -23,6 +23,7 @@ import osaf.sharing
 from  osaf.sharing.ICalendar import importICalendarFile, ICalendarImportError
 from osaf.framework.blocks.Block import Block
 from osaf.pim import Remindable, EventStamp
+from osaf.activity import *
 
 logger = logging.getLogger(__name__)
 MAX_UPDATE_MESSAGE_LENGTH = 50
@@ -203,13 +204,20 @@ class ImportDialog(FileChooserWithOptions):
         event.Skip(True)
         
     
-    def updateCallback(self, msg = None, percent = None):
-        if percent is not None:
-            self.gauge.SetValue(percent)
-        if msg is not None:
+    def updateCallback(self, activity, *args, **kwds):
+
+        if 'percent' in kwds:
+            percent = kwds['percent']
+            if percent is None:
+                self.gauge.Pulse()
+            else:
+                self.gauge.SetValue(percent)
+
+        if 'msg' in kwds:
+            msg = kwds['msg']
             # @@@MOR: This is unicode unsafe:
             if len(msg) > MAX_UPDATE_MESSAGE_LENGTH:
-                msg = "%s..." % msg[:MAX_UPDATE_MESSAGE_LENGTH]            
+                msg = "%s..." % msg[:MAX_UPDATE_MESSAGE_LENGTH]
             self.progressText.SetLabel(msg)
         theApp = wx.GetApp()
         theApp.updateUIInOnIdle = False
@@ -236,14 +244,21 @@ class ImportDialog(FileChooserWithOptions):
         prefs.import_as_new = targetCollection is None
         prefs.import_dir = dir
 
-        monitor = osaf.sharing.ProgressMonitor(100, self.updateCallback)
-        
+        activity = Activity("Import %s" % filename)
+        listener = Listener(activity=activity, callback=self.updateCallback)
+
         try:
+            activity.started()
             collection = importICalendarFile(fullpath, self.view, coll,
-                                             filterAttributes, monitor.callback,
+                                             filterAttributes, activity,
                                              None, logger)
+            activity.completed()
+
         except ICalendarImportError, e:
+            activity.failed(exception=e)
             self.fail(unicode(e))
             return False
+
+        listener.unregister()
 
         return True # Successful import

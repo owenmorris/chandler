@@ -394,7 +394,7 @@ class WebDAVConduit(conduits.LinkableConduit, DAVConduitMixin,
             except M2Crypto.BIO.BIOError, err:
                 raise errors.CouldNotConnect(_(u"Unable to connect to server. Received the following error: %(error)s") % {'error': err})
 
-    def _getItem(self, contentView, itemPath, into=None, updateCallback=None,
+    def _getItem(self, contentView, itemPath, into=None, activity=None,
                  stats=None):
 
         view = self.itsView
@@ -422,7 +422,7 @@ class WebDAVConduit(conduits.LinkableConduit, DAVConduitMixin,
 
         try:
             item = self.share.format.importProcess(contentView, text,
-                item=into, updateCallback=updateCallback, stats=stats)
+                item=into, activity=activity, stats=stats)
 
         except errors.MalformedData:
             logger.exception("Failed to parse resource for item %s: '%s'" %
@@ -439,7 +439,7 @@ class WebDAVConduit(conduits.LinkableConduit, DAVConduitMixin,
 class WebDAVRecordSetConduit(ResourceRecordSetConduit, DAVConduitMixin):
     """ Implements the new EIM/RecordSet interface """
 
-    def sync(self, modeOverride=None, updateCallback=None, forceUpdate=None,
+    def sync(self, modeOverride=None, activity=None, forceUpdate=None,
         debug=False):
 
         startTime = time.time()
@@ -447,7 +447,7 @@ class WebDAVRecordSetConduit(ResourceRecordSetConduit, DAVConduitMixin):
 
         stats = super(WebDAVRecordSetConduit, self).sync(
             modeOverride=modeOverride,
-            updateCallback=updateCallback, forceUpdate=forceUpdate,
+            activity=activity, forceUpdate=forceUpdate,
             debug=debug)
 
         endTime = time.time()

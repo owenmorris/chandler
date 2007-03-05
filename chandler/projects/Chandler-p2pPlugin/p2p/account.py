@@ -101,5 +101,5 @@ class Share(shares.Share):
     localVersion = schema.One(schema.Long)
     ackPending = schema.One(schema.Boolean, initialValue=False)
 
-    def sync(self, modeOverride=None, updateCallback=None, forceUpdate=None):
+    def sync(self, modeOverride=None, activity=None, forceUpdate=None):
         return self.conduit.account.sync(self)

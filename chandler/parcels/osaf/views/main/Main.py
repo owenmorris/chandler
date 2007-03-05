@@ -27,11 +27,15 @@ import application.Parcel
 import application.dialogs.Util
 import application.dialogs.FileTail
 from application.dialogs import ( AccountPreferences, PublishCollection,
-    SubscribeCollection, RestoreShares, autosyncprefs, TurnOnTimezones
+    SubscribeCollection, RestoreShares, autosyncprefs, TurnOnTimezones,
+    ActivityViewer
 )
 
 from repository.item.Item import MissingClass
-from osaf import pim, sharing, messages, webserver, settings, search
+from osaf import (
+    pim, sharing, messages, webserver, settings, search, dumpreload
+)
+from osaf.activity import *
 
 from osaf.pim import Contact, ContentCollection, mail, Modification
 from osaf.usercollections import UserCollection
@@ -697,7 +701,15 @@ class MainView(View):
         self.setStatusMessage (_(u"committing changes to the repository..."))
 
         Block.finishEdits()
-        self.itsView.commit()
+        activity = Activity("Saving...")
+        activity.started()
+        try:
+            self.itsView.commit()
+            activity.completed()
+        except Exception, e:
+            logger.exception("Commit failed")
+            activity.failed(exception=e)
+            raise
         self.setStatusMessage ('')
 
     def setStatusMessage (self, statusMessage, progressPercentage=-1):
@@ -1141,6 +1153,55 @@ class MainView(View):
 
         SubscribeCollection.Show(wx.GetApp().mainFrame, self.itsView, url=url)
 
+    def onDumpToFileEvent(self, event):
+        wildcard = "%s|*.dump|%s (*.*)|*.*" % (_(u"Dump files"),
+            _(u"All files"))
+
+        dlg = wx.FileDialog(wx.GetApp().mainFrame,
+                            _(u"Dump Items"), "", "chandler.dump", wildcard,
+                            wx.SAVE|wx.OVERWRITE_PROMPT)
+
+        path = None
+        if dlg.ShowModal() == wx.ID_OK:
+            path = dlg.GetPath()
+        dlg.Destroy()
+        if path:
+            activity = Activity("Dump to %s" % path)
+            activity.started()
+            try:
+                uuids = set()
+                for item in pim.ContentItem.iterItems(self.itsView):
+                    uuids.add(item.itsUUID)
+                dumpreload.dump(self.itsView, path, uuids, activity=activity)
+                activity.completed()
+            except Exception, e:
+                logger.exception("Failed to dump file")
+                activity.failed(exception=e)
+            self.setStatusMessage(_(u'Items dumped'))
+
+    def onReloadFromFileEvent(self, event):
+        wildcard = "%s|*.dump|%s (*.*)|*.*" % (_(u"Dump files"),
+            _(u"All files"))
+
+        dlg = wx.FileDialog(wx.GetApp().mainFrame,
+                            _(u"Dump Items"), "", "chandler.dump", wildcard,
+                            wx.OPEN)
+
+        path = None
+        if dlg.ShowModal() == wx.ID_OK:
+            path = dlg.GetPath()
+        dlg.Destroy()
+        if path:
+            activity = Activity("Reload from %s" % path)
+            activity.started()
+            try:
+                dumpreload.reload(self.itsView, path, activity=activity)
+                activity.completed()
+            except Exception, e:
+                logger.exception("Failed to reload file")
+                activity.failed(exception=e)
+            self.setStatusMessage(_(u'Items reloaded'))
+
     def onAddScriptsToSidebarEvent(self, event):
         sidebar = Block.findBlockByName ("Sidebar").contents
         scriptsSet = schema.ns('osaf.framework.scripting',
@@ -1244,6 +1305,9 @@ class MainView(View):
         for server in webserver.Server.iterItems(self.itsView):
             server.startup()
 
+    def onShowActivityViewerEvent(self, event):
+        ActivityViewer.Show()
+
     def onBackgroundSyncAllEvent(self, event):
         rv = self.itsView
         # Specifically *not* doing a commit here.  This is to simulate
@@ -1285,9 +1349,14 @@ class MainView(View):
 
     def onShowLogWindowEvent(self, event):
         # Test menu item
-        logPath = os.path.join(Globals.options.profileDir, 'chandler.log')
-        application.dialogs.FileTail.displayFileTailWindow(
-            wx.GetApp().mainFrame, logPath)
+        logs = [
+            os.path.join(Globals.options.profileDir, 'chandler.log'),
+        ]
+        application.dialogs.Util.displayLogWindow(wx.GetApp().mainFrame, logs)
+
+        # logPath = os.path.join(Globals.options.profileDir, 'chandler.log')
+        # application.dialogs.FileTail.displayFileTailWindow(
+        #     wx.GetApp().mainFrame, logPath)
 
     def onSetLoggingLevelCriticalEvent(self, event):
         Utility.setLoggingLevel(logging.CRITICAL)
