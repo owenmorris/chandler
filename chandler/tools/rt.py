@@ -19,7 +19,6 @@ rt.py -- Run Chandler tests
 
 #
 # TODO Add Signal checks so if main program is halted all child programs are killed
-# TODO Add -U (run all tests in same process) mode
 #
 
 import sys, os
@@ -53,6 +52,7 @@ def parseOptions():
         'mode':      ('-m', '--mode',               's', None,  'debug or release; by default attempts both'),
         'noStop':    ('-C', '--continue',           'b', False, 'Continue even after test failures'),
         'unit':      ('-u', '--unit',               'b', False, 'unit tests each in own process'),
+        'unitSuite': ('-U', '--unitSuite',          'b', False, 'all unit tests in single process'),
         'verbose':   ('-v', '--verbose',            'b', False, 'Verbose output'),
         'funcSuite': ('-f', '--funcSuite',          'b', False, 'Functional test suite'),
         'perf':      ('-p', '--perf',               'b', False, 'Performance tests'),
@@ -258,6 +258,40 @@ def runUnitTests(options, testlist=None):
 
             if failed and not options.noStop:
                 break
+
+    return failed
+
+
+def runUnitSuite(options):
+    """
+    Run all unit tests in a single process
+    """
+    failed = False
+    
+    for mode in options.modes:
+        cmd = [options.runpython[mode],
+               os.path.join(options.chandlerHome, 'tools', 'run_tests.py')]
+
+        if options.verbose:
+            cmd += '-v'
+        
+        cmd += ['application', 'i18n', 'osaf', 'repository']
+
+        if options.verbose:
+            log(' '.join(cmd))
+
+        if options.dryrun:
+            result = 0
+        else:
+            result = build_lib.runCommand(cmd, timeout=3600)
+
+        if result != 0:
+            log('***Error exit code=%d' % result)
+            failed = True
+            failedTests.append('unitSuite')
+
+        if failed and not options.noStop:
+            break
 
     return failed
 
@@ -595,6 +629,7 @@ def main(options):
     >>> options.noStop    = False
     >>> options.help      = False
     >>> options.tbox      = False
+    >>> options.unitSuite = False
     >>> main(options)
 
     Try and run a test that does not exist
@@ -620,9 +655,18 @@ def main(options):
     /.../RunPython... .../projects/Chandler-EVDBPlugin/setup.py test -v
     ...
 
+    Run unitSuite with --dryrun
+
+    >>> options.mode = None
+    >>> options.unit = False
+    >>> options.unitSuite = True
+    >>> main(options)
+    /.../RunPython .../tools/run_tests.py - v application i18n osaf repository
+
     Run functional tests with --dryrun
 
     >>> options.unit      = False
+    >>> options.unitSuite = False
     >>> options.funcSuite = True
     >>> main(options)
     /.../RunChandler... --create --catch=tests --scriptTimeout=720 --profileDir=.../test_profile --parcelPath=.../tools/QATestScripts/DataFiles --scriptFile=.../tools/cats/Functional/FunctionalTestSuite.py -D2 -M0
@@ -672,6 +716,10 @@ def main(options):
             if not failed or options.noStop:
                 if runPluginTests(options):
                     failed = True
+        
+        if options.unitSuite and (not failed or options.noStop):
+            if runUnitSuite(options):
+                failed = True
     
         if options.funcSuite and (not failed or options.noStop):
             if runFuncTest(options):
