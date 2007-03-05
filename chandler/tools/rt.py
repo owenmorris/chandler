@@ -27,9 +27,7 @@ import string
 import glob
 from optparse import OptionParser
 import build_lib
-
-
-global failedTests
+log = build_lib.log
 
 failedTests = []
 
@@ -50,10 +48,6 @@ _ignoreEnvNames = [ 'PARCELPATH',
                   ]
 
 
-def log(msg, error=False):
-    build_lib.log(msg, error=error)
-
-
 def parseOptions():
     _configItems = {
         'mode':      ('-m', '--mode',               's', None,  'debug or release; by default attempts both'),
@@ -68,7 +62,7 @@ def parseOptions():
         'dryrun':    ('-d', '--dryrun',             'b', False, 'Do all of the prep work but do not run any tests'),
         'selftest':  ('',   '--selftest',           'b', False, 'Run self test'),
         #'restored':  ('-R', '--restoredRepository', 'b', False, 'unit tests with restored repository instead of creating new for each test'),
-        #'profile':   ('-P', '--profile',            'b', False, 'Profile performance tests'),
+        'profile':   ('-P', '--profile',            'b', False, 'Profile performance tests with hotshot'),
         'tbox':      ('-T', '--tbox',               'b', False, 'Tinderbox output mode'),
         #'config':    ('-L', '',                     's', None,  'Custom Chandler logging configuration file'),
     }
@@ -350,6 +344,8 @@ def runScriptPerfTests(options, testlist, largeData=False):
 #        if not item.find('PerfNewCale') >= 0:
 #            continue
 
+        name = item[item.rfind('/') + 1:]
+
         timeLog = os.path.join(options.profileDir, 'time.log')
 
         if not options.dryrun:
@@ -362,6 +358,9 @@ def runScriptPerfTests(options, testlist, largeData=False):
                 '--parcelPath=%s'  % options.parcelPath,
                 '--catsPerfLog=%s' % timeLog,
                 '--scriptFile=%s'  % item ]
+
+        if options.profile:
+            cmd += ['--catsProfile=%s.hotshot' % os.path.join(options.profileDir, name[:-3])]
 
         if not largeData:
             cmd += ['--create']
@@ -379,7 +378,7 @@ def runScriptPerfTests(options, testlist, largeData=False):
             result = build_lib.runCommand(cmd, timeout=720)
 
         if result != 0:
-            log('***Error exit code=%d, %s' % (result, item[item.rfind('/') + 1:]))
+            log('***Error exit code=%d, %s' % (result, name))
             failed = True
             failedTests.append(item)
 
@@ -387,11 +386,11 @@ def runScriptPerfTests(options, testlist, largeData=False):
                 break
         else:
             if options.dryrun:
-                log(item[item.rfind('/') + 1:] + ' [ 0.00s ]')
+                log(name + ' [ 0.00s ]')
             else:
                 # XXX need to scan output to see if success
                 line = open(timeLog).readline()[:-1]
-                log(item[item.rfind('/') + 1:] + ' [ %ss ]' % line)
+                log(name + ' [ %ss ]' % line)
 
     # Need to store logs somewhere so that once all done we can output
 
@@ -594,6 +593,7 @@ def main(options):
 
     >>> options.funcSuite = False
     >>> options.perf      = True
+    >>> options.profile   = False
     >>> main(options)
     /.../RunChandler... --catch=tests --scriptTimeout=600 --profileDir=.../test_profile --parcelPath=.../tools/QATestScripts/DataFiles --catsPerfLog=.../test_profile/time.log --scriptFile=.../tools/QATestScripts/Performance/PerfImportCalendar.py --create
     PerfImportCalendar.py [ 0.00s ]
