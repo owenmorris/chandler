@@ -45,6 +45,11 @@ class Movie(Item):
 
         print self, 'onCollectionNotification', op, collection, name, other
 
+    def titleChanged(self, op, name):
+
+        count = getattr(self, '_titleChanged', 0)
+        self._titleChanged = count + 1
+
 
 class Cartoon(Movie):
     pass

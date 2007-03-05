@@ -210,16 +210,16 @@ class IndexMonitor(Item):
                     keys = None
 
                 if view.isReindexingDeferred():
-                    _keys = getattr(self, '_keys', None)
-                    if _keys is None:
+                    deferredKeys = getattr(self, 'deferredKeys', None)
+                    if deferredKeys is None:
                         self.setPinned(True)
-                        self._keys = _keys = set()
+                        self.deferredKeys = deferredKeys = set()
                         index = collection.getIndex(indexName)
                         index.validateIndex(False)
                     if item in collection:
-                        _keys.add(item.itsUUID)
+                        deferredKeys.add(item.itsUUID)
                     if keys:
-                        _keys.update(keys)
+                        deferredKeys.update(keys)
 
                 elif item in collection:
                     if keys:
@@ -235,14 +235,14 @@ class IndexMonitor(Item):
 
     def reindex(self):
 
-        _keys = getattr(self, '_keys', None)
-        if _keys is not None:
+        deferredKeys = getattr(self, 'deferredKeys', None)
+        if deferredKeys is not None:
             self.setPinned(False)
-            del self._keys
+            del self.deferredKeys
             attribute, indexName = self.args
             collection = getattr(self.item, attribute, None)
             if collection is not None:
                 index = collection.getIndex(indexName)
                 index.validateIndex(True)
-                index.moveKeys(_keys)
+                index.moveKeys(deferredKeys)
                 collection._setDirty(True)
