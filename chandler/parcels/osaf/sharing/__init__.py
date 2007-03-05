@@ -1091,9 +1091,6 @@ def subscribeWebDAV(view, url, inspection, activity=None, account=None,
     share.format = CloudXMLFormat(itsParent=share)
 
     if account:
-        share.conduit = WebDAVConduit(itsParent=share,
-            shareName=shareName, account=account)
-
         share.conduit = WebDAVRecordSetConduit(itsParent=share,
             account=account, shareName=shareName,
             translator=PIMTranslator, serializer=EIMMLSerializer)
