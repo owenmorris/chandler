@@ -36,6 +36,7 @@ PyTypeObject *CtxMgr = NULL;
 PyUUID_Check_fn PyUUID_Check = NULL;
 PyUUID_Make16_fn PyUUID_Make16 = NULL;
 _hash_bytes_fn _hash_bytes = NULL;
+CAttribute_invokeAfterChange_fn CAttribute_invokeAfterChange = NULL;
 
 PyObject *PyExc_DBError = NULL;
 PyObject *PyExc_DBLockDeadlockError = NULL;
@@ -167,5 +168,10 @@ void initc(void)
         return;
     LOAD_TYPE(m, CItem);
     LOAD_TYPE(m, ItemRef);
+    Py_DECREF(m);
+
+    if (!(m = PyImport_ImportModule("chandlerdb.schema.c")))
+        return;
+    LOAD_FN(m, CAttribute_invokeAfterChange);
     Py_DECREF(m);
 }

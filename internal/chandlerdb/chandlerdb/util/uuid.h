@@ -14,6 +14,8 @@
  *  limitations under the License.
  */
 
+#ifndef _UUID_H
+#define _UUID_H
 
 typedef struct {
     PyObject_HEAD
@@ -25,3 +27,5 @@ typedef int (*PyUUID_Check_fn)(PyObject *obj);
 /* steals reference to obj */
 typedef PyObject *(*PyUUID_Make16_fn)(PyObject *obj);
 typedef int (*_hash_bytes_fn)(char *obj, int len);
+
+#endif /* _UUID_H */

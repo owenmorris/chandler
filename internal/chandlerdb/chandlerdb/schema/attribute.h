@@ -14,6 +14,8 @@
  *  limitations under the License.
  */
 
+#ifndef _ATTRIBUTE_H
+#define _ATTRIBUTE_H
 
 enum {
     VALUE        = 0x00000001,
@@ -51,3 +53,5 @@ typedef struct {
 
 typedef int (*CAttribute_invokeAfterChange_fn)(t_attribute *, PyObject *,
                                                PyObject *, PyObject *);
+
+#endif /* _ATTRIBUTE_H */

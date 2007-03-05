@@ -67,6 +67,8 @@ static PyObject *t_view_debugOn(t_view *self, PyObject *arg);
 static PyObject *t_view__unregisterItem(t_view *self, PyObject *args);
 static PyObject *t_view_isReindexingDeferred(t_view *self);
 static PyObject *t_view_reindexingDeferred(t_view *self);
+static PyObject *t_view_areObserversDeferred(t_view *self);
+static PyObject *t_view_observersDeferred(t_view *self, PyObject *args);
 
 static Py_ssize_t t_view_dict_length(t_view *self);
 static PyObject *t_view_dict_get(t_view *self, PyObject *key);
@@ -131,6 +133,8 @@ static PyMethodDef t_view_methods[] = {
     { "_unregisterItem", (PyCFunction) t_view__unregisterItem, METH_VARARGS, "" },
     { "isReindexingDeferred", (PyCFunction) t_view_isReindexingDeferred, METH_NOARGS, "" },
     { "reindexingDeferred", (PyCFunction) t_view_reindexingDeferred, METH_NOARGS, "" },
+    { "areObserversDeferred", (PyCFunction) t_view_areObserversDeferred, METH_NOARGS, "" },
+    { "observersDeferred", (PyCFunction) t_view_observersDeferred, METH_VARARGS, "" },
     { NULL, NULL, 0, NULL }
 };
 
@@ -1014,6 +1018,8 @@ static PyObject *t_view__unregisterItem(t_view *self, PyObject *args)
 }
 
 
+/* with view.reindexingDeferred() */
+
 static PyObject *_t_view_deferidx__enter(PyObject *target, t_ctxmgr *mgr)
 {
     t_view *self = (t_view *) target;
@@ -1116,6 +1122,159 @@ static PyObject *t_view_reindexingDeferred(t_view *self)
 }
 
 
+/* with view.observersDeferred(discard=True) */
+
+static PyObject *_t_view_deferobs__enter(PyObject *target, t_ctxmgr *mgr)
+{
+    t_view *self = (t_view *) target;
+
+    if (self->deferredObserversCtx != mgr)
+    {
+        PyErr_SetString(PyExc_ValueError, "Invalid CtxMgr target");
+        return NULL;
+    }
+
+    if (mgr->count == 0)
+    {
+        int discard = mgr->data == Py_True;
+
+        Py_DECREF(mgr->data);
+
+        if (discard)
+        {
+            mgr->data = PyDict_New();
+            self->status |= DEFEROBSD;
+        }
+        else
+        {
+            mgr->data = PyList_New(0);
+            self->status |= DEFEROBSA;
+        }
+    }
+    mgr->count += 1;
+
+    return PyInt_FromLong(mgr->count);
+}
+
+static PyObject *_t_view_deferobs__exit(PyObject *target, t_ctxmgr *mgr,
+                                        PyObject *type, PyObject *value,
+                                        PyObject *traceback)
+{
+    t_view *self = (t_view *) target;
+
+    if (self->deferredObserversCtx != mgr)
+    {
+        PyErr_SetString(PyExc_ValueError, "Invalid CtxMgr target");
+        return NULL;
+    }
+
+    if (mgr->count > 0)
+        mgr->count -= 1;
+    
+    if (mgr->count == 0)
+    {
+        PyObject *calls = self->deferredObserversCtx->data;
+        int status = self->status;
+
+        Py_INCREF(calls);
+        self->status &= ~DEFEROBS;
+        Py_CLEAR(self->deferredObserversCtx);
+
+        if (status & DEFEROBSA)
+        {
+            int i = -1, size = PyList_GET_SIZE(calls);
+
+            while (++i < size) {
+                PyObject *call = PyList_GET_ITEM(calls, i);
+                PyObject *attr = PyTuple_GET_ITEM(call, 0);
+                PyObject *item = PyTuple_GET_ITEM(call, 1);
+                PyObject *op = PyTuple_GET_ITEM(call, 2);
+                PyObject *name = PyTuple_GET_ITEM(call, 3);
+
+                if (CAttribute_invokeAfterChange((t_attribute *) attr,
+                                                 item, op, name) < 0)
+                    break;
+            }
+        }
+        else if (status & DEFEROBSD)
+        {
+            PyObject *call, *op;
+            Py_ssize_t pos = 0;
+
+            while (PyDict_Next(calls, &pos, &call, &op)) {
+                PyObject *attr = PyTuple_GET_ITEM(call, 0);
+                PyObject *item = PyTuple_GET_ITEM(call, 1);
+                PyObject *name = PyTuple_GET_ITEM(call, 2);
+
+                if (CAttribute_invokeAfterChange((t_attribute *) attr,
+                                                 item, op, name) < 0)
+                    break;
+            }
+        }
+
+        Py_DECREF(calls);
+        if (PyErr_Occurred())
+            return NULL;
+    }
+
+    if (type != Py_None)
+        Py_RETURN_FALSE;
+
+    Py_RETURN_TRUE;
+}
+
+static PyObject *t_view_areObserversDeferred(t_view *self)
+{
+    if (self->status & DEFEROBS)
+        Py_RETURN_TRUE;
+
+    Py_RETURN_FALSE;
+}
+
+static PyObject *t_view_observersDeferred(t_view *self, PyObject *args)
+{
+    PyObject *discard = Py_True;
+
+    if (!PyArg_ParseTuple(args, "|O", &discard))
+        return NULL;
+
+    if (discard != Py_True && PyObject_IsTrue(discard))
+        discard = Py_True;
+
+    if (self->deferredObserversCtx)
+    {
+        if ((discard == Py_True && self->status & DEFEROBSA) ||
+            (discard != Py_True && self->status & DEFEROBSD))
+        {
+            PyErr_SetString(PyExc_ValueError,
+                            "nested call with different discard option");
+            return NULL;
+        }
+
+        Py_INCREF(self->deferredObserversCtx);
+        return (PyObject *) self->deferredObserversCtx;
+    }
+    else
+    {
+        PyObject *noArgs = PyTuple_New(0);
+        t_ctxmgr *ctxmgr = (t_ctxmgr *) PyObject_Call((PyObject *) CtxMgr,
+                                                      noArgs, NULL);
+        
+        Py_DECREF(noArgs);
+        if (ctxmgr)
+        {
+            ctxmgr->target = (PyObject *) self; Py_INCREF(self);
+            ctxmgr->data = discard; Py_INCREF(discard);
+            ctxmgr->enterFn = _t_view_deferobs__enter;
+            ctxmgr->exitFn = _t_view_deferobs__exit;
+            self->deferredObserversCtx = ctxmgr; Py_INCREF(ctxmgr);
+        }
+
+        return (PyObject *) ctxmgr;
+    }
+}
+
+
 void _init_view(PyObject *m)
 {
     if (PyType_Ready(&ViewType) >= 0)
@@ -1140,6 +1299,8 @@ void _init_view(PyObject *m)
             PyDict_SetItemString_Int(dict, "VERIFY", VERIFY);
             PyDict_SetItemString_Int(dict, "COMMITREQ", COMMITREQ);
             PyDict_SetItemString_Int(dict, "DEFERIDX", DEFERIDX);
+            PyDict_SetItemString_Int(dict, "DEFEROBSD", DEFEROBSD);
+            PyDict_SetItemString_Int(dict, "DEFEROBSA", DEFEROBSA);
 
             refresh_NAME = PyString_FromString("refresh");
             _effectDelete_NAME = PyString_FromString("_effectDelete");

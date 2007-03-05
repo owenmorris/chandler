@@ -14,6 +14,8 @@
  *  limitations under the License.
  */
 
+#ifndef _RECORD_H
+#define _RECORD_H
 
 typedef struct {
     PyObject_HEAD
@@ -53,3 +55,5 @@ int _t_record_read(t_record *self, unsigned char *data, int len);
 t_record *_t_record_new_read(PyObject *args);
 PyObject *t_record_getData(t_record *self);
 PyObject *t_record_getTypes(t_record *self);
+
+#endif /* _RECORD_H */

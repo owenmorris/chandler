@@ -19,6 +19,9 @@
  * a view is also the parent of root items
  */
 
+#ifndef _VIEW_H
+#define _VIEW_H
+
 #include "../util/ctxmgr.h"
 
 typedef struct {
@@ -37,6 +40,7 @@ typedef struct {
     PyObject *debugOn;
     PyObject *deferredDeletes;
     t_ctxmgr *deferredIndexingCtx;
+    t_ctxmgr *deferredObserversCtx;
 } t_view;
 
 enum {
@@ -64,8 +68,16 @@ enum {
     BADPASSWD  = 0x00200000,
     ENCRYPTED  = 0x00400000,
     DEFERIDX   = 0x00800000,
+    DEFEROBSD  = 0x01000000,  /* defer observers, discarding redundant calls */
+    DEFEROBSA  = 0x02000000,  /* defer observers, keeping all calls */
+};
+
+enum {
+    DEFEROBS   = DEFEROBSD | DEFEROBSA,
 };
 
 
 typedef PyObject *(*_t_view_invokeMonitors_fn)(t_view *, PyObject *,
                                                PyObject *);
+
+#endif /* _VIEW_H */

@@ -881,6 +881,7 @@ static PyObject *_t_item__fireChanges(t_item *self,
     {
         t_kind *c = (t_kind *) ((t_item *) self->kind)->c;
         t_attribute *attr = NULL;
+        t_view *view = (t_view *) self->ref->view;
 
         if (c->flags & DESCRIPTORS_INSTALLED)
         {
@@ -909,8 +910,26 @@ static PyObject *_t_item__fireChanges(t_item *self,
             else
                 return NULL;
         }
-            
-        if (CAttribute_invokeAfterChange(attr, (PyObject *) self, op, name) < 0)
+
+        if (view->status & DEFEROBS)
+        {
+            PyObject *call = NULL;
+
+            if (view->status & DEFEROBSA)
+            {
+                call = PyTuple_Pack(4, attr, self, op, name);
+                PyList_Append(view->deferredObserversCtx->data, call);
+            }
+            else if (view->status & DEFEROBSD)
+            {
+                call = PyTuple_Pack(3, attr, self, name);
+                PyDict_SetItem(view->deferredObserversCtx->data, call, op);
+            }
+
+            Py_XDECREF(call);
+        }
+        else if (CAttribute_invokeAfterChange(attr, (PyObject *) self,
+                                              op, name) < 0)
             return NULL;
     }
 

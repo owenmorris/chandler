@@ -119,4 +119,4 @@ enum {
 
 typedef void (*C_countAccess_fn)(t_item *);
 
-#endif
+#endif /* _ITEM_H */
