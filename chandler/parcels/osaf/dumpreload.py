@@ -15,31 +15,64 @@
 
 """Dump and Reload module"""
 
-import logging, cPickle
+import logging, cPickle, sys
 from osaf import pim, sharing
+from osaf.sharing.eim import uri_registry, RecordClass
+from application import schema
 
 logger = logging.getLogger(__name__)
 
-
+class UnknownRecord(object):
+    """Class representing an unknown record type"""
+    def __init__(self, *args):
+        self.data = args
+        
+    
 class PickleSerializer(object):
     """ Serializes to a byte-length string, followed by newline, followed by
         a pickle string of the specified length """
 
     @classmethod
-    def outputRecord(cls, output, record):
-        text = cPickle.dumps(record)
-        output.write("%d\n" % len(text))
-        output.write(text)
+    def dumper(cls, output):
+        pickler = cPickle.Pickler(output, 2)
+        pickler.persistent_id = cls.persistent_id
+        return pickler.dump
 
     @classmethod
-    def inputRecord(cls, input):
-        line = input.readline()
-        if not line:
-            return None
-        return cPickle.loads(input.read(int(line.strip())))
+    def loader(cls, input):
+        unpickler = cPickle.Unpickler(input)
+        unpickler.persistent_load = cls.persistent_load
+        return unpickler.load
 
+    @staticmethod
+    def persistent_id(ob):
+        if isinstance(ob, RecordClass):
+            # save record classes by URI *and* module
+            return ob.URI, ob.__module__   
 
-
+    @staticmethod
+    def persistent_load((uri, module)):
+        try:
+            return uri_registry[uri]
+        except KeyError:
+            pass
+        # It wasn't in the registry by URI, see if we can import it
+        if module not in sys.modules:
+            try:
+                schema.importString(module)
+            except ImportError:
+                pass
+        try:
+            # Maybe it's in the registry now...
+            return uri_registry[uri]
+        except KeyError:
+            # Create a dummy record type for the object
+            # XXX this really should try some sort of persistent registry
+            #     before falling back to a fake record type
+            #
+            rtype = type("Unknown", (UnknownRecordType,), dict(URI=uri))
+            uri_registry[uri] = rtype
+            return rtype
 
 
 def dump(rv, filename, uuids, translator=sharing.PIMTranslator,
@@ -50,6 +83,7 @@ def dump(rv, filename, uuids, translator=sharing.PIMTranslator,
     trans = translator(rv)
 
     output = open(filename, "wb")
+    dump = serializer.dumper(output)
 
     if activity:
         count = len(uuids)
@@ -58,12 +92,13 @@ def dump(rv, filename, uuids, translator=sharing.PIMTranslator,
     i = 0
     for uuid in uuids:
         for record in trans.exportItem(rv.findUUID(uuid)):
-            serializer.outputRecord(output, record)
+            dump(record)
             i += 1
             if activity:
                 activity.update(msg="Dumped %d of %d records" % (i, count),
                     work=1)
-
+    dump(None)
+    del dump
     output.close()
     if activity:
         activity.update(msg="Dumped %d records" % count)
@@ -82,16 +117,17 @@ def reload(rv, filename, translator=sharing.PIMTranslator,
     if activity:
         activity.update(totalWork=None)
 
+    load = serializer.loader(input)
     i = 0
     while True:
-        record = serializer.inputRecord(input)
+        record = load()
         if not record:
             break
         trans.importRecord(record)
         i += 1
         if activity:
             activity.update(msg="Imported %d records" % i)
-
+    del load
     input.close()
 
     trans.finishImport()

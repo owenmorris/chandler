@@ -691,8 +691,8 @@ class Record(tuple):
 
         return NoChange
 
-
-
+    def __reduce__(self):
+        return self[0], self[1:]
 
 
     def getKey(self):
