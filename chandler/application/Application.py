@@ -1202,18 +1202,16 @@ Would you like to remove all data from your repository?
         logger.info("Repository platform mismatch: (orig %s vs now %s)",
                     origName, currentName)
 
-        message = _(u"Your Chandler data was created on %(origName)s and is incompatible with Chandler on %(currentName)s. To transfer your data over to %(currentName)s:
+        message = _(u"""Your Chandler data was created on %(origName)s and is incompatible with Chandler on %(currentName)s. To transfer your data over to %(currentName)s:
 
-1. On your %(currentName)s computer, start up Chandler and go to the File menu to 'Back up'
-your data. Be sure to pick your own a location for the back up file.
+1. On your %(currentName)s computer, start up Chandler and go to the File menu to 'Back up' your data. Be sure to pick your own a location for the back up file.
 
 2. Move the back up file to your %(currentName)s computer.
 
-3. On your %(currentName)s computer, start up Chandler and select the 'Delete and start
-fresh' option you see below. 
+3. On your %(currentName)s computer, start up Chandler and select the 'Delete and start fresh' option you see below. 
 
 4. Go to the File menu and 'Restore' your data by pointing Chandler to the back
-up file you transferred over from your %(origName)s computer.") %{'origName': origName, 'currentName': currentName}
+up file you transferred over from your %(origName)s computer.""") %{'origName': origName, 'currentName': currentName}
 
         dialog = wx.MessageDialog(None, message,
                                   _(u"Cannot open repository"),
