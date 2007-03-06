@@ -1185,7 +1185,7 @@ class wxApplication (wx.App):
         logger.info("Schema version of repository doesn't match app")
 
         message = \
-_(u"""Your repository was created by an older version of Chandler.  In the future we will support migrating data between versions, but until then, when the schema changes we need to remove all data from your repository.
+_(u"""Your repository was created by an older version of Chandler. In the future we will support migrating data between versions, but until then, when the schema changes we need to remove all data from your repository.
 
 Would you like to remove all data from your repository?
 """)
@@ -1202,7 +1202,18 @@ Would you like to remove all data from your repository?
         logger.info("Repository platform mismatch: (orig %s vs now %s)",
                     origName, currentName)
 
-        message = _(u"Your repository was created by on %(origName)s and cannot be opened on %(currentName)s.  To copy a repository from one platform to another, back it up first, then restore it on the new platform.\n\nWould you like to remove all data from your repository?") %{'origName': origName, 'currentName': currentName}
+        message = _(u"Your Chandler data was created on %(origName)s and is incompatible with Chandler on %(currentName)s. To transfer your data over to %(currentName)s:
+
+1. On your %(currentName)s computer, start up Chandler and go to the File menu to 'Back up'
+your data. Be sure to pick your own a location for the back up file.
+
+2. Move the back up file to your %(currentName)s computer.
+
+3. On your %(currentName)s computer, start up Chandler and select the 'Delete and start
+fresh' option you see below. 
+
+4. Go to the File menu and 'Restore' your data by pointing Chandler to the back
+up file you transferred over from your %(origName)s computer.") %{'origName': origName, 'currentName': currentName}
 
         dialog = wx.MessageDialog(None, message,
                                   _(u"Cannot open repository"),
