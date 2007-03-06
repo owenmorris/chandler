@@ -17,7 +17,7 @@ from setuptools import setup
 
 setup(
     name = "Chandler-AmazonPlugin",
-    version = "0.1",
+    version = "0.2",
     description = "Amazon product search widget for Chandler",
     author = "OSAF",
     test_suite = "amazon.tests",
@@ -25,6 +25,14 @@ setup(
     include_package_data = True,
     entry_points = {
         "chandler.parcels": ["Amazon Web API = amazon"]
-    }
+    },
+    classifiers = ["Development Status :: 3 - Alpha",
+                   "Environment :: Plugins",
+                   "Framework :: Chandler",
+                   "Intended Audience :: Developers",
+                   "License :: OSI Approved :: Apache Software License",
+                   "Operating System :: OS Independent",
+                   "Programming Language :: Python",
+                   "Topic :: Office/Business :: Groupware"],
+    long_description = open('README.txt').read(),
 )
-

@@ -69,7 +69,7 @@ class SubscribeDialog(wx.Dialog):
         grid.Add(label, 0, wx.ALIGN_LEFT|wx.ALL, 5)
 
         self.remoteIdText = wx.TextCtrl(self, -1, u"",
-                                    wx.DefaultPosition, [150, -1])
+                                        wx.DefaultPosition, [150, -1])
         grid.Add(self.remoteIdText, 1, wx.ALIGN_CENTRE|wx.ALL, 5)
 
         sizer.Add(grid, 0, wx.GROW|wx.ALIGN_CENTER_VERTICAL|wx.ALL, 5)

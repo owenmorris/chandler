@@ -31,8 +31,9 @@ class AmazonController(Block.Block):
         @type event: BlockEvent
         @param event: The BlockEvent triggered on NewAmazonCollection command
 
-        @rtype: AmazonCollection or None
-        @return: AmazonCollection for the search keyword or None if search results == 0
+        @rtype: AmazonCollection or C{None}
+        @return: AmazonCollection for the search keyword or C{None}
+                 if search results == 0  
         """
         return AmazonKinds.SearchByKeyword(self.itsView)
 
@@ -43,15 +44,17 @@ class AmazonController(Block.Block):
         @type event: BlockEvent
         @param event: The BlockEvent triggered on NewAmzonWishListEvent command
 
-        @rtype: AmazonCollection or None
-        @return: AmazonCollection for the wishlist or None if search results == 0
+        @rtype: AmazonCollection or C{None}
+        @return: AmazonCollection for the wishlist or None
+                 if search results == 0
         """
         return AmazonKinds.SearchWishListByEmail(self.itsView)
 
+
 class AmazonDetailBlock(Detail.HTMLDetailArea):
     """
-    HTMLDetailArea block which renders an AmazonItem as an HTML page including the Product picture
-    and customer rating.
+    HTMLDetailArea block which renders an AmazonItem as an HTML page
+    including the Product picture and customer rating.
     """
 
     ROW_FONT = "<font face='arial, verdana, helvetica' color='black' size='%s'>%s</font>"
@@ -71,7 +74,7 @@ class AmazonDetailBlock(Detail.HTMLDetailArea):
             return None
 
         HTMLText = u'<html><head><body>\n'
-        HTMLText += "<b>" + self._applyFont(item.ProductName, 3) + "</b><p>\n"
+        HTMLText += "<b>" + self._applyFont(item.productName, 3) + "</b><p>\n"
         HTMLText += "<table cellspacing=2 cellpadding=2 border=0>\n"
         HTMLText += "<tr><td width='30%' valign='top' align='center'><a href='" + str(item.ProductURL) + "'><img src='" + str(item.ImageURL) + "' border=1><br>" + self._applyFont(_(u"More Product Details"), 1) + "</a></td>\n"
         HTMLText += "<td valign='top' align='left'><table width='100%' border=0 cellspacing=2 cellpadding=2>"
@@ -127,14 +130,13 @@ class AmazonDetailBlock(Detail.HTMLDetailArea):
         txt = "&nbsp;("
 
         if int(reviews) == 1:
-             txt += _(u"1 customer review")
+            txt += _(u"1 customer review")
         else:
             txt += _(u"%(numberOf)s customer reviews") % {'numberOf': reviews}
 
         txt += ")"
 
         return self._applyFont(txt)
-
 
     def _getRatingURL(self, rating):
         val = rating.split(".")
@@ -148,5 +150,3 @@ class AmazonDetailBlock(Detail.HTMLDetailArea):
 
     def _applyFont(self, val, size=2):
         return self.ROW_FONT % (size, val)
-
- 

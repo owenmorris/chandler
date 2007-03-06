@@ -12,37 +12,27 @@
 #   See the License for the specific language governing permissions and
 #   limitations under the License.
 
-
 __parcel__ = "amazon"
 
-import amazon
-from amazon import AmazonError
-import application
-import sgmllib
+import amazon, sgmllib, wx, string
+
 from osaf.pim import ContentItem, ListCollection
 from repository.util.URL import URL
-import wx
-from application import schema
+from application import schema, dialogs, Utility, Globals
 from i18n import MessageFactory
-import string
 import AmazonDialog
 
 _ = MessageFactory("Chandler-AmazonPlugin")
 
-amazon.setLicense('0X5N4AEK0PTPMZK1NNG2')
 
 def _isEmpty(text):
-    if text is None or len(string.strip(text)) == 0:
-        return True
-
-    return False
+    return not text or not text.strip()
 
 def _showError(errText):
     theApp = wx.GetApp()
     if theApp is not None:
         application.dialogs.Util.ok(wx.GetApp().mainFrame,
                                     _(u"Amazon Error"), errText)
-
 
 def SearchByKeyword(repView, keywords=None, countryCode=None, category=None):
     """
@@ -91,14 +81,19 @@ def SearchByKeyword(repView, keywords=None, countryCode=None, category=None):
         """
         return None
 
-    try:
-        bags = amazon.searchByKeyword(keywords, locale=countryCode, product_line=category)
-        return _AddToCollection(repView, keywords, countryCode, bags) 
-
-    except (AmazonError, AttributeError), e:
-        dt = {'keywords': keywords}
-        _showError(_(u"No Amazon products were found for keywords '%(keywords)s'") % dt)
-        return None
+    while True:
+        try:
+            bags = amazon.searchByKeyword(keywords, locale=countryCode,
+                                          product_line=category)
+            return _AddToCollection(repView, keywords, countryCode, bags) 
+        except amazon.NoLicenseKey:
+            if AmazonDialog.promptLicense():
+                continue
+            return None
+        except (amazon.AmazonError, AttributeError), e:
+            dt = {'keywords': keywords}
+            _showError(_(u"No Amazon products were found for keywords '%(keywords)s'") % dt)
+            return None
 
 
 def SearchWishListByEmail(repView, emailAddr=None, countryCode=None):
@@ -141,14 +136,19 @@ def SearchWishListByEmail(repView, emailAddr=None, countryCode=None):
     if _isEmpty(emailAddr):
         return None
 
-    try:
-        customerName, bags = amazon.searchWishListByEmail(emailAddr, locale=countryCode)
-        return _AddToCollection(repView, customerName, countryCode, bags) 
-
-    except (AmazonError, AttributeError), e:
-        dt = {'emailAddress': emailAddr}
-        _showError(_(u"No Amazon Wishlist was found for email address '%(emailAddress)s'") % dt)
-        return None
+    while True:
+        try:
+            customerName, bags = \
+                amazon.searchWishListByEmail(emailAddr, locale=countryCode)
+            return _AddToCollection(repView, customerName, countryCode, bags) 
+        except amazon.NoLicenseKey:
+            if AmazonDialog.promptLicense():
+                continue
+            return None
+        except (amazon.AmazonError, AttributeError), e:
+            dt = {'emailAddress': emailAddr}
+            _showError(_(u"No Amazon Wishlist was found for email address '%(emailAddress)s'") % dt)
+            return None
 
 
 def _AddToCollection(repView, text, countryCode, bags):
@@ -188,10 +188,6 @@ def _AddToCollection(repView, text, countryCode, bags):
 
 class AmazonCollection(ListCollection):
     keywords = schema.One(schema.Text)
-
-    myKindID = None
-    myKindPath = "//parcels/osaf/examples/amazon/schema/AmazonCollection"
-
 
     @classmethod
     def getCollection(cls, repView, text, countryCode):
@@ -294,9 +290,6 @@ class AmazonItem(ContentItem):
     AverageCustomerRating = schema.One(schema.Text)
     NumberOfReviews = schema.One(schema.Text)
     
-    myKindID = None
-    myKindPath = "//parcels/osaf/examples/amazon/schema/AmazonItem"
-
     @apply
     def productName():
         def fget(self):
@@ -305,13 +298,11 @@ class AmazonItem(ContentItem):
             self.displayName = value
         return property(fget, fset)
  
-    def __init__(self,*args,**kw):
-        if 'bag' in kw:
-            bag = kw['bag']
-            del kw['bag']
-        else:
-            bag = None
-        super(AmazonItem, self).__init__(*args, **kw)
+    def __init__(self, *args, **kwds):
+
+        bag = kwds.pop('bag', None)
+        super(AmazonItem, self).__init__(*args, **kwds)
+
         if bag:
             self.ProductName = bag.ProductName
             desc = getattr(bag, 'ProductDescription', '')
@@ -334,17 +325,17 @@ class AmazonItem(ContentItem):
             self.ProductURL = URL(bag.URL.encode('ascii'))
             self.ReleaseDate = getattr(bag, 'ReleaseDate','')
 
-            if hasattr(bag,'Authors'):
+            if hasattr(bag, 'Authors'):
                 if type(bag.Authors.Author) == type([]):
                     self.Author = u', '.join(bag.Authors.Author)
                 else:
                     self.Author = bag.Authors.Author
-            elif hasattr(bag,'Directors'):
+            elif hasattr(bag, 'Directors'):
                 if type(bag.Directors.Director) == type([]):
                     self.Author = u', '.join(bag.Directors.Director)
                 else:
                     self.Author = bag.Directors.Director
-            elif hasattr(bag,'Artists'):
+            elif hasattr(bag, 'Artists'):
                 if type(bag.Artists.Artist) == type([]):
                     self.Author = ', '.join(bag.Artists.Artist)
                 else:
@@ -354,14 +345,17 @@ class AmazonItem(ContentItem):
                 # will either have a value or be '' by default
                 self.Author = self.Manufacturer
 
-            if hasattr(bag,'Reviews'):
-                self.AverageCustomerRating = getattr(bag.Reviews, 'AvgCustomerRating', '')
-                self.NumberOfReviews = getattr(bag.Reviews, 'TotalCustomerReviews', '')
+            if hasattr(bag, 'Reviews'):
+                self.AverageCustomerRating = getattr(bag.Reviews,
+                                                     'AvgCustomerRating', '')
+                self.NumberOfReviews = getattr(bag.Reviews,
+                                               'TotalCustomerReviews', '')
             else:
                 self.AverageCustomerRating = ''
                 self.NumberOfReviews = ''
 
             self.displayName = self.ProductName
+
 
 class DisplayNamesItem(schema.Item):
     namesDictionary = schema.Mapping(schema.Text, defaultValue={})
@@ -382,7 +376,8 @@ def _printBag(aBag, level):
 
         if isinstance(val, amazon.Bag):
             _printBag(val, level+1)
-        elif isinstance(val, list) and len(val) > 0 and isinstance(val[0], amazon.Bag):
+        elif (isinstance(val, list) and len(val) > 0 and
+              isinstance(val[0], amazon.Bag)):
             for bag in val:
                 _printBag(bag, level+1)
 
@@ -408,13 +403,12 @@ class _Cleaner(sgmllib.SGMLParser):
             txt += uniText
         return txt
 
+
 def _stripHTML(text):
-  c=_Cleaner()
-  try:
-    c.feed(text)
-  except sgmllib.SGMLParseError:
-    gLogger.add("Unable to parse HTML, can't remove tags")
-    return text
-  else:
-    t=c.cleaned_text()
-    return t
+    c = _Cleaner()
+    try:
+        c.feed(text)
+    except sgmllib.SGMLParseError:
+        return text
+    else:
+        return c.cleaned_text()
