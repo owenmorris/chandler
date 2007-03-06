@@ -8,7 +8,8 @@ from decimal import Decimal
 
 from vobject.base import textLineToContentLine, ContentLine
 from vobject.icalendar import (DateOrDateTimeBehavior, MultiDateBehavior,
-                               RecurringComponent, VEvent)
+                               RecurringComponent, VEvent, timedeltaToString,
+                               stringToDurations)
 import osaf.pim.calendar.TimeZone as TimeZone
 from osaf.pim.calendar.Recurrence import RecurrenceRuleSet, RecurrenceRule
 from dateutil.rrule import rrulestr
@@ -93,27 +94,21 @@ def fromICalendarDateTime(text, multivalued=False):
         start = start[0]
     return (start, allDay, anyTime)
 
+def fromICalendarDuration(text):
+    return stringToDurations(text)[0]    
+
 def getTimeValues(record):
     """
-    Extract start time, end time, and allDay/anyTime from a record.
+    Extract start time and allDay/anyTime from a record.
     """
-    dtstart = record.dtstart
-    dtend   = record.dtend
+    dtstart  = record.dtstart
     start = None
     if dtstart not in noChangeOrMissing:
         start, allDay, anyTime = fromICalendarDateTime(dtstart)
     else:
         allDay = anyTime = start = dtstart
 
-    if dtend not in noChangeOrMissing:
-        end, end_allDay, end_anyTime = fromICalendarDateTime(dtend)
-        if (end_allDay or end_anyTime) and (start is None or end > start):
-            # iCalendar syntax for serializing all day dtends is off by one day
-            end -= oneDay
-    else:
-        end = dtend
-
-    return (start, end, allDay, anyTime)
+    return (start, allDay, anyTime)
 
 dateFormat = "%04d%02d%02d"
 datetimeFormat = "%04d%02d%02dT%02d%02d%02d"
@@ -152,6 +147,23 @@ def toICalendarDateTime(dt_or_dtlist, allDay, anyTime=False):
     output += ':'
     output += ','.join(formatDateTime(dt, allDay, anyTime) for dt in dtlist)
     return output
+
+def toICalendarDuration(delta, allDay=False):
+    """
+    The delta serialization format needs to match Cosmo exactly, so while
+    vobject could do this, we'll want to be more picky about how exactly to
+    serialize deltas.
+    
+    """
+    if allDay:
+        if delta.seconds > 0 or delta.microseconds > 0 or delta.days == 0:
+            # all day events' actual duration always rounds up to the nearest
+            # day, and zero length all day events are actually a full day
+            delta = timedelta(delta.days + 1)
+    # but, for now, just use vobject, since we don't know how ical4j serializes
+    # deltas yet
+    return timedeltaToString(delta)
+    
 
 def getDateUtilRRuleSet(field, value, dtstart):
     """
@@ -428,29 +440,15 @@ class PIMTranslator(eim.Translator):
     @model.EventRecord.importer
     def import_event(self, record):
 
-        start, end, allDay, anyTime = getTimeValues(record)
-
-        if start is not eim.NoChange and end is eim.NoChange:
-            # odd case, Chandler's object model doesn't allow start to
-            # change without changing end
-            item = self.rv.findUUID(record.uuid)
-            if item is not None:
-                end = pim.EventStamp(item).endTime
-
-        # start must be set before endTime, it'd be nice if we could just
-        # serialize duration instead of endTime, avoiding this problem
+        start, allDay, anyTime = getTimeValues(record)
 
         item = self.loadItemByUUID(
-                   record.uuid,
-                   pim.EventStamp,
-                   startTime=start)
-
-        self.loadItemByUUID(
             record.uuid,
             pim.EventStamp,
-            endTime=end,
+            startTime=start,
             allDay=allDay,
             anyTime=anyTime,
+            duration=with_nochange(record.duration, fromICalendarDuration),
             transparency=with_nochange(record.status, fromTransparency),
             location=with_nochange(record.location, fromLocation, self.rv),
         )
@@ -536,7 +534,7 @@ class PIMTranslator(eim.Translator):
             event.itsItem.itsUUID,                      # uuid
             toICalendarDateTime(event.effectiveStartTime,
                                 event.allDay, event.anyTime),
-            toICalendarDateTime(event.effectiveEndTime,
+            toICalendarDuration(event.duration,
                                 event.allDay or event.anyTime),
             location,                                   # location
             rrule,                                      # rrule
@@ -567,11 +565,11 @@ class PIMTranslator(eim.Translator):
                 dtstart = eim.Missing
             
             if has_change(pim.EventStamp.duration.name):
-                dtend = toICalendarDateTime(mod_event.effectiveEndTime,
-                                            mod_event.allDay or
-                                            mod_event.anyTime)
+                duration = toICalendarDuration(mod_event.duration,
+                                               mod_event.allDay or
+                                               mod_event.anyTime)
             else:
-                dtend = eim.Missing
+                duration = eim.Missing
             
             if has_change(pim.EventStamp.location.name):
                 location = mod_event.location.displayName
@@ -595,7 +593,7 @@ class PIMTranslator(eim.Translator):
                 toICalendarDateTime(mod_event.recurrenceID,
                                     event.allDay or event.anyTime),
                 dtstart,
-                dtend,
+                duration,
                 location,
                 status,
                 title,
@@ -655,44 +653,19 @@ class PIMTranslator(eim.Translator):
             
                 
 
-        start, end, allDay, anyTime = getTimeValues(record)
-            
-
-        # endTime works very poorly with recurrence and the underlying duration
-        # model.  So, for example, if the modification is processed first,
-        # the master's duration will default to one hour, but that's not
-        # necessarily the real duration.  If we get the modification first
-        # and there's an endTime but no startTime, or a startTime but no
-        # endTime, duration will just be wrong
-
-        if start not in noChangeOrMissing and end not in noChangeOrMissing:
-            duration = end - start
-        elif start not in noChangeOrMissing or end not in noChangeOrMissing:
-            if occurrence_existed:
-                if start in noChangeOrMissing:
-                    real_start = event.effectiveStartTime
-                    duration = end - real_start
-                else:
-                    real_end = event.effectiveEndTime
-                    real_start = start
-                    if allDay or anyTime:
-                        real_start = TimeZone.forceToDateTime(start.date())
-                    duration = real_end - start                    
-            else:
-                # this is wrong, but it seems like the most graceful failure
-                duration = eim.NoChange
-        else:
-            # end is either NoChange or Missing 
-            duration = end
-
+        start, allDay, anyTime = getTimeValues(record)
+        # stringToDurations always returns a list of timedeltas, which is silly
+        # and should be fixed in vobject
+        
         change(pim.EventStamp.startTime.name, start)
         change(pim.EventStamp.allDay.name, allDay)
         change(pim.EventStamp.anyTime.name, anyTime)
-        change(pim.EventStamp.duration.name, duration)
-
+        
+        change(pim.EventStamp.duration.name, record.duration,
+               fromICalendarDuration)
         change(pim.EventStamp.transparency.name, record.status,
                fromTransparency)
-        change(pim.EventStamp.transparency.name, record.status,
+        change(pim.EventStamp.location.name, record.location,
                fromLocation, self.rv)
         change(pim.ContentItem.displayName.name, record.title)
         change(pim.ContentItem.body.name, record.body)

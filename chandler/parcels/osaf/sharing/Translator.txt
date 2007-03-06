@@ -149,7 +149,7 @@ Importing:
     >>> rec = sharing.model.EventRecord(
     ...         uuid='f230dcd4-7c32-4c3f-908b-d92081cc9a89',
     ...         dtstart = ';VALUE=DATE-TIME;TZID=US/Pacific:20070201T140000',
-    ...         dtend = ';VALUE=DATE-TIME;TZID=US/Pacific:20070201T150000',
+    ...         duration = 'PT1H',
     ...         location = 'Nowhere',
     ...         rrule = None,
     ...         exrule = None,
@@ -183,7 +183,7 @@ Exporting:
     >>> t.startExport()
     >>> records = [r for r in t.exportItem(item) if isinstance(r, sharing.model.EventRecord)]
     >>> records
-    [EventRecord('f230dcd4-7c32-4c3f-908b-d92081cc9a89', u';VALUE=DATE-TIME;TZID=US/Pacific:20070201T140000', u';VALUE=DATE-TIME;TZID=US/Pacific:20070201T150000', u'Nowhere', None, None, None, None, u'CANCELLED', None, None)]
+    [EventRecord('f230dcd4-7c32-4c3f-908b-d92081cc9a89', u';VALUE=DATE-TIME;TZID=US/Pacific:20070201T140000', u'PT1H', u'Nowhere', None, None, None, None, u'CANCELLED', None, None)]
 
 Recurrence
 - - - - -
@@ -191,7 +191,7 @@ Recurrence
     >>> new_rec = sharing.model.EventRecord(
     ...             uuid='f230dcd4-7c32-4c3f-908b-d92081cc9a89',
     ...             dtstart = rec.dtstart,
-    ...             dtend = rec.dtend,
+    ...             duration = rec.duration,
     ...             location = rec.location,
     ...             rrule = 'FREQ=WEEKLY;COUNT=5;BYDAY=TU,TH',
     ...             exrule = None,
@@ -234,7 +234,7 @@ Modifications
     ...             masterUuid = 'f230dcd4-7c32-4c3f-908b-d92081cc9a89',
     ...             recurrenceId = ';VALUE=DATE-TIME;TZID=US/Pacific:20070223T140000',
     ...             dtstart = sharing.Missing,
-    ...             dtend = sharing.Missing,
+    ...             duration = sharing.Missing,
     ...             location = sharing.Missing,
     ...             status = sharing.Missing,
     ...             title = "Changed title",
@@ -265,7 +265,7 @@ Exporting
     >>> record = records[0]
     >>> record.dtstart
     Missing
-    >>> record.dtend
+    >>> record.duration
     Missing
     >>> record.title
     u'Changed title'

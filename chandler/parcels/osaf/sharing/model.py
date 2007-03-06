@@ -107,7 +107,7 @@ class EventRecord(eim.Record):
 
     # EventStamp.[allDay, anyTime, duration, startTime]
     dtstart = eim.field(text20)
-    dtend = eim.field(text20)
+    duration = eim.field(text20)
 
     # EventStamp.location
     location = eim.field(text256)
@@ -136,7 +136,7 @@ class EventModificationRecord(eim.Record):
     masterUuid = eim.field(ItemRecord.uuid)
     recurrenceId = eim.key(text20)
     dtstart = eim.field(text20)
-    dtend = eim.field(text20)
+    duration = eim.field(text20)
     location = eim.field(text256)
     status = eim.field(text256, [eventStatusFilter])
     title = eim.field(text256)
