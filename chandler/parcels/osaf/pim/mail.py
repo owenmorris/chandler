@@ -1,4 +1,4 @@
-#   Copyright (c) 2003-2006 Open Source Applications Foundation
+#   Copyright (c) 2003-2007 Open Source Applications Foundation
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -1412,7 +1412,8 @@ Issues:
         """
 
     @classmethod
-    def getEmailAddress(cls, view, nameOrAddressString, fullName=''):
+    def getEmailAddress(cls, view, nameOrAddressString, fullName='', 
+                        translateMe=True):
         """
         Lookup or create an EmailAddress based on the supplied string.
 
@@ -1453,7 +1454,7 @@ Issues:
         address = nameOrAddressString.strip ().strip(u'?')
 
         # check for "me"
-        if address == messages.ME:
+        if translateMe and (address == messages.ME):
             return cls.getCurrentMeEmailAddress(view)
 
         # if no fullName specified, parse apart the name and address if we can
@@ -1463,7 +1464,7 @@ Issues:
             try:
                 address.index(u'<')
             except ValueError:
-                name = address
+                name = u''
             else:
                 name, address = address.split(u'<')
                 address = address.strip(u'>').strip()
@@ -1472,69 +1473,49 @@ Issues:
                 if name == messages.ME:
                     name = u''
 
-        # check if the address looks like a valid emailAddress
-        isValidAddress = cls.isValidEmailAddress(address)
-        if not isValidAddress:
-            address = None
+        # If we have nothing to search for, give up
+        if address == u'' and name == u'':
+            return None
 
-        """
-        At this point we should have:
-            name - the name to search for, or ''
-            address - the address to search for, or None
-        If the user specified a single word which could also be a valid
-        email address, we could have that word in both the address and
-        name variables.
-        """
-        # @@@DLD - switch on the better queries
-        # Need to override compare operators to use emailAddressesAreEqual,
-        #  deal with name=='' cases, name case sensitivity, etc
-
-        addresses = []
-        for candidate in EmailAddress.iterItems(view):
-            if isValidAddress:
-                if cls.emailAddressesAreEqual(candidate.emailAddress, address):
-                    # found an existing address!
-                    addresses.append(candidate)
-            elif name != u'' and name == candidate.fullName:
-                # full name match
-                addresses.append(candidate)
-
-        # process the result(s)
-        # Hope for a match of both name and address
-        # fall back on a match of the address, then name
-        addressMatch = None
-        nameMatch = None
-        for candidate in addresses:
-            if isValidAddress:
-                if cls.emailAddressesAreEqual(candidate.emailAddress, address):
-                    # found an existing address match
-                    addressMatch = candidate
-            if name != u'' and name == candidate.fullName:
-                # full name match
-                nameMatch = candidate
-                if addressMatch is not None:
-                    # matched both
-                    return addressMatch
+        # See if we have one or more EmailAddress objects that match this.
+        # We look at both name and address, and will ideally find one that
+        # matches both. As we go, collect our matches in a dict, keyed by
+        # the UUID of the matched EmailAddress, whose value is 2 if matched by 
+        # address, 1 if matched by name, or 3 if matched by both. Sort when we're
+        # done, and the last we find is our best match.
+        collection = schema.ns("osaf.pim", view).emailAddressCollection
+        matches = {}
+        for indexName, matchPriority, target in ('emailAddress', 2, address.lower()),  \
+                                                ('fullName', 1, name.lower()):
+            # Don't search if the corresponding attribute is empty
+            if target == u'':
+                continue
+            def comparer(uuid):
+                return cmp(target, view.findValue(uuid, indexName).lower())
+            firstUUID = collection.findInIndex(indexName, 'first', comparer)
+            if firstUUID is None:
+                continue
+            lastUUID = collection.findInIndex(indexName, 'last', comparer)
+            for uuid in collection.iterindexkeys(indexName, firstUUID, lastUUID):
+                matches[uuid] = matches.get(uuid, 0) | matchPriority
+                
+        matchCount = len(matches)
+        if matchCount == 1:
+            # Exactly one match - use it.
+            matchUUID = matches.keys()[0]
+        elif matchCount == 0:
+            # no match - create a new address
+            newAddress = EmailAddress(itsView=view, emailAddress=address,
+                                      fullName=name)
+            return newAddress
         else:
-            # no double-matches found
-            if name == address:
-                name = u''
-            if addressMatch is not None and name == u'':
-                return addressMatch
-            if nameMatch is not None and address is None:
-                return nameMatch
-            if isValidAddress:
-                # make a new EmailAddress
-                if address is None:
-                    address = u""
-                if name is None:
-                    name = u""
-                newAddress = EmailAddress(itsView=view,
-                                          emailAddress=address,
-                                          fullName=name)
-                return newAddress
-            else:
-                return None
+            # multiple matches; sort by the priority value, then use the 
+            # last (best) match.
+            matches = [ (v, uuid) for uuid, v in matches.iteritems() ]
+            matches.sort()
+            matchUUID = matches[-1][1]
+        
+        return view[matchUUID]
 
     @classmethod
     def findEmailAddress(cls, view, emailAddress, collection=None):
@@ -1603,6 +1584,11 @@ Issues:
         This method tests an email address for valid syntax as defined RFC 822.
         The method validates addresses in the form 'John Jones <john@test.com>'
         and 'john@test.com'
+        
+        (Note that we're perfectly happy for EmailAddress items to hold invalid
+        or incomplete addresses; this classmethod is used when we need to ensure that
+        an address is valid. If you want to ensure that a particular EmailAddress
+        object is valid, you can call its isValid method, which'll call this.)
 
         @param emailAddress: A string containing a email address to validate.
         @type emailAddress: C{String}
@@ -1615,16 +1601,24 @@ Issues:
 
         return re.match("^(([^<>()[\]\\.,;:\s@\"]+(\.[^<>()[\]\\.,;:\s@\"]+)*)|(\".+\"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$", emailAddress) is not None
 
+    def isValid(self):
+        """ See if this address looks valid. """
+        return isValidEmailAddress(unicode(self))
+
     @classmethod
     def parseEmailAddresses(cls, view, addressesString):
         """
         Parse the email addresses in addressesString and return
         a tuple with: (the processed string, a list of EmailAddress
         items created/found for those addresses, the number of
-        invalid addresses we found).
+        bad addresses we found).
+        
+        Note: Now that we're no longer checking validity of addresses,
+        invalidCount will always be zero unless the structure of the string
+        is bad (like ",,,")
         """
         # If we got nothing or whitespace, return it as-is.
-        if len(addressesString.strip()) == 0:
+        if addressesString.strip() == u'':
             return (addressesString, [], 0)
 
         validAddresses = []
@@ -1647,7 +1641,7 @@ Issues:
                 validAddresses.append(ea)
 
         # prepare the processed addresses return value
-        processedResultString = ', '.join (processedAddresses)
+        processedResultString = _(u', ').join(processedAddresses)
         return (processedResultString, validAddresses, invalidCount)
 
     @classmethod
@@ -1656,7 +1650,7 @@ Issues:
         This method tests whether two email addresses are the same.
         Addresses can be in the form john@jones.com or John Jones <john@jones.com>.
 
-        The method strips off the username and <> brakets if they exist and
+        The method strips off the username and <> brackets if they exist and
         just compares the actual email addresses for equality. It will not
         look to see if each address is RFC 822 compliant only that the strings
         match. Use C{EmailAddress.isValidEmailAddress} to test for validity.

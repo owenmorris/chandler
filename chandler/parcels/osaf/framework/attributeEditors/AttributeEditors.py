@@ -1,4 +1,4 @@
-#   Copyright (c) 2003-2006 Open Source Applications Foundation
+#   Copyright (c) 2003-2007 Open Source Applications Foundation
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -781,15 +781,18 @@ class EmailAddressAttributeEditor (StringAttributeEditor):
 
     # staticControlDelegate method
     def SetStaticControl(self, control, text):
-        (addrString, indicatorString, count) = self.shortenAddressList(control, text)
+        if self.showingSample:
+            control.SetValue(text)
+        else:            
+            (addrString, indicatorString, count) = self.shortenAddressList(control, text)
 
-        # Unfortunately, static text controls:
-        #   (a) cannot have text appended, and
-        #   (b) do not used styled text
-        # So no different colour for the indicatorString
+            # Unfortunately, static text controls:
+            #   (a) cannot have text appended, and
+            #   (b) do not used styled text
+            # So no different colour for the indicatorString
 
-        # update the static text control with a representation of 'text'
-        control.SetValue(u'%s %s' % (addrString, indicatorString))
+            # update the static text control with a representation of 'text'
+            control.SetValue(u'%s %s' % (addrString, indicatorString))
  
     def GetAttributeValue(self, item, attributeName):
         attrValue = getattr(item, attributeName, None)
