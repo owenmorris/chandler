@@ -1,4 +1,4 @@
-#   Copyright (c) 2003-2006 Open Source Applications Foundation
+#   Copyright (c) 2003-2007 Open Source Applications Foundation
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -615,15 +615,17 @@ def makeMailArea(parcel, oldVersion):
 
 def makeConflictBar(parcel, oldVersion):
     blocks = schema.ns("osaf.framework.blocks", parcel.itsView)
-    testText = ConflictText.template('ConflictTestText',
-                                    title=_(u'This item has a conflict'),
-                                    characterStyle=blocks.BigTextStyle,
-                                    stretchFactor=0.0,
-                                    minimumSize=SizeType(300, 18))
+    conflictButton = ConflictWarning.template('ConflictButton',
+                                    title=_(u'There are pending changes'),
+                                    buttonKind='TextImage',
+                                    # need a better icon
+                                    icon=u'MailErrorRollover.png',
+                                    stretchFactor=1.0,
+                                    minimumSize=SizeType(225, 36))
     return makeArea(parcel, 'ConflictBar',
             position=0.08,
             childrenBlocks = [
-                testText
+                conflictButton
             ]).install(parcel)
 
 def makeMarkupBar(parcel, oldVersion):

@@ -1,4 +1,4 @@
-#   Copyright (c) 2003-2006 Open Source Applications Foundation
+#   Copyright (c) 2003-2007 Open Source Applications Foundation
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -32,6 +32,7 @@ import wx.grid
 import webbrowser # for opening external links
 import PyICU
 from util import MultiStateButton
+from wx.lib.buttons import GenBitmapTextButton
 
 import application.dialogs.ReminderDialog as ReminderDialog
 import application.dialogs.RecurrenceDialog as RecurrenceDialog
@@ -47,7 +48,7 @@ class textAlignmentEnumType(schema.Enumeration):
     values = "Left", "Center", "Right"
 
 class buttonKindEnumType(schema.Enumeration):
-     values = "Text", "Image", "Toggle"
+     values = "Text", "Image", "Toggle", "TextImage"
 
 class Button(RectangularChild):
     characterStyle = schema.One(Styles.CharacterStyle)
@@ -68,12 +69,22 @@ class Button(RectangularChild):
                                 wx.DefaultPosition,
                                 (self.minimumSize.width, self.minimumSize.height))
         elif self.buttonKind == "Image":
-            bitmap = wx.GetApp().GetImage (self.icon)
+            bitmap = wx.GetApp().GetImage(self.icon)
             button = wx.BitmapButton (parentWidget,
                                       id,
                                       bitmap,
                                       wx.DefaultPosition,
                                       (self.minimumSize.width, self.minimumSize.height))
+        elif self.buttonKind == "TextImage":
+            bitmap = wx.GetApp().GetImage(self.icon)
+            button = GenBitmapTextButton(parentWidget,
+                                      id,
+                                      bitmap,
+                                      self.title,
+                                      wx.DefaultPosition,
+                                      (self.minimumSize.width, self.minimumSize.height),
+                                      style = wx.NO_BORDER)
+            button.SetFont(Styles.getFont(getattr(self, "characterStyle", None)))
         elif self.buttonKind == "Toggle":
             button = wx.ToggleButton (parentWidget, 
                                       id, 

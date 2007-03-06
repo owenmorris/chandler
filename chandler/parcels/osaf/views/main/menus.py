@@ -1,4 +1,4 @@
-#   Copyright (c) 2003-2006 Open Source Applications Foundation
+#   Copyright (c) 2003-2007 Open Source Applications Foundation
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -751,6 +751,10 @@ def makeMainMenus(parcel):
                                 event = main.ReloadFromFile,
                                 title = u'Reload items from file...',
                                 helpString = u'Reload items from file'),
+                            MenuItem.template('CreateAConflict',
+                                event = main.CreateConflict,
+                                title = _(u"Create Conflict"),
+                                helpString = _(u'Create an artificial conflict for the selected items')),
                             ]), # Menu ShareMenu
                     Menu.template('SkinsMenu',
                         title = u'S&kins',

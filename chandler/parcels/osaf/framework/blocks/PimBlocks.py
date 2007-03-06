@@ -1,4 +1,4 @@
-#   Copyright (c) 2003-2006 Open Source Applications Foundation
+#   Copyright (c) 2003-2007 Open Source Applications Foundation
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -195,6 +195,24 @@ class FocusEventHandlers(Item):
             enable = isNote and len(set(states)) == 1
             event.arguments['Enable'] = enable
             event.arguments['Check'] = enable and isPrivate
+
+    def onCreateConflictEvent(self, event):
+        selectedItems = self.__getProxiedSelectedItems(event)
+        if len(selectedItems) > 0:
+            # only shared items can have conflicts
+            for item in selectedItems:
+                if has_stamp(item, sharing.SharedItem):
+    	            sharing.SharedItem(item).generateConflicts()
+
+    def onCreateConflictEventUpdateUI(self, event):
+        selectedItems = self.__getSelectedItems()
+        if len(selectedItems) > 0:
+            # Collect the states of all the items, so that we can change all
+            # the items if they're all in the same state.
+            states = [has_stamp(item, sharing.SharedItem) for item in selectedItems]
+            # only enable for Notes and their subclasses (not collections, etc)
+            enable = True in states
+            event.arguments['Enable'] = enable
 
     def onFocusStampEvent(self, event):
         selectedItems = self.__getProxiedSelectedItems(event)

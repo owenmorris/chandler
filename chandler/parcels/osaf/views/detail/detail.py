@@ -1,4 +1,4 @@
-#   Copyright (c) 2004-2006 Open Source Applications Foundation
+#   Copyright (c) 2004-2007 Open Source Applications Foundation
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -880,9 +880,9 @@ class TaskAreaBlock(StampConditionalArea, DetailSynchronizedContentItemDetail):
 
 
 # Area that shows/hides itself based on the presence/absence of sharing conflicts
-class ConflictText(DetailSynchronizer, ControlBlocks.StaticText):
+class ConflictWarning(DetailSynchronizer, ControlBlocks.Button):
     def shouldShow(self, item):
-        superShouldShow = super(ConflictText, self).shouldShow(item)
+        superShouldShow = super(ConflictWarning, self).shouldShow(item)
         isShowable = False
         if superShouldShow and pim.has_stamp(item, sharing.SharedItem):
             try:
@@ -893,13 +893,15 @@ class ConflictText(DetailSynchronizer, ControlBlocks.StaticText):
         return isShowable
 
     def instantiateWidget(self):
-        # create the static text item
-        staticText = super(ConflictText, self).instantiateWidget()
-        if staticText is not None:
+        # create the button
+        button = super(ConflictWarning, self).instantiateWidget()
+        if button is not None:
+            button.SetBackgroundColour('Red') 
+            button.SetForegroundColour('White')
+            button.SetFont(wx.Font(14, wx.SWISS, wx.NORMAL, wx.BOLD, False))
             # clicking on it resolves the conflict
-            # NOTE: this doesn't seem to work..
-            staticText.Bind(wx.EVT_LEFT_DCLICK, self.resolveConflict)
-        return staticText
+            button.Bind(wx.EVT_BUTTON, self.resolveConflict)
+        return button
 
     def resolveConflict(self, event):
         # show the dialog here
