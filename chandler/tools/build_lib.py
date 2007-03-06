@@ -56,7 +56,7 @@ def initLog(filename, prefix='[hardhat] ', echo=True, echoErrors=False):
     return result
 
 
-def log(msg, error=False):
+def log(msg, error=False, newline='\n'):
     """
     Output log message to an open log file or to StdOut
     """
@@ -66,16 +66,17 @@ def log(msg, error=False):
         if error or _logEcho:
             echo = True
     else:
-        _logFile.write('%s%s\n' % (_logPrefix, msg))
+        _logFile.write('%s%s%s' % (_logPrefix, msg, newline))
 
         if error and _logEchoErrors:
-            sys.stderr.write('%s%s\n' % (_logPrefix, msg))
+            sys.stderr.write('%s%s%s' % (_logPrefix, msg, newline))
 
     if echo:
-        sys.stdout.write('%s%s\n' % (_logPrefix, msg))
+        sys.stdout.write('%s%s%s' % (_logPrefix, msg, newline))
+        sys.stdout.flush()
 
 
-def runCommand(cmd, env=None, timeout=-1):
+def runCommand(cmd, env=None, timeout=-1, log=log):
     """
     Execute the given command and log all output
 

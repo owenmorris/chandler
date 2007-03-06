@@ -24,6 +24,7 @@ rt.py -- Run Chandler tests
 import sys, os
 import string
 import glob
+import time
 from optparse import OptionParser
 import build_lib
 log = build_lib.log
@@ -43,7 +44,7 @@ _ignoreEnvNames = [ 'PARCELPATH',
                     'CHANDLERLOGCONFIG',
                     'CHANDLEROFFLINE',
                     'CHANDLERNONEXCLUSIVEREPO',
-                    'MVCC',
+                    'NOMVCC',
                   ]
 
 
@@ -55,6 +56,7 @@ def parseOptions():
         'unitSuite': ('-U', '--unitSuite',          'b', False, 'all unit tests in single process'),
         'verbose':   ('-v', '--verbose',            'b', False, 'Verbose output'),
         'funcSuite': ('-f', '--funcSuite',          'b', False, 'Functional test suite'),
+        'func':      ('-F', '--func',               'b', False, 'Functional tests each in own process'),
         'perf':      ('-p', '--perf',               'b', False, 'Performance tests'),
         'single':    ('-t', '--test',               's', '',    'Run test(s) (comma separated list)'),
         'noEnv':     ('-i', '--ignoreEnv',          'b', False, 'Ignore environment variables'),
@@ -68,8 +70,7 @@ def parseOptions():
     }
 
     # %prog expands to os.path.basename(sys.argv[0])
-    usage  = "usage: %prog [options]\n" + \
-             "       %prog [options] -U module"
+    usage  = "usage: %prog [options]\n"
     parser = OptionParser(usage=usage, version="%prog")
 
     for key in _configItems:
@@ -124,7 +125,9 @@ def checkOptions(options):
         log('Unable to locate CHANDLERBIN directory', error=True)
         sys.exit(3)
 
-    if options.single and options.unit:
+    if options.single and \
+       (options.unit or options.unitSuite or options.funcSuite or \
+        options.func or options.perf):
         log('Single test run (-t) only allowed by itself', error=True)
         sys.exit(1)
 
@@ -266,6 +269,8 @@ def runUnitTests(options, testlist=None):
                     if not options.noStop:
                         break
 
+                log('- + ' * 15)
+
             if failed and not options.noStop:
                 break
 
@@ -302,6 +307,8 @@ def runUnitSuite(options):
 
         if failed and not options.noStop:
             break
+
+        log('- + ' * 15)
 
     return failed
 
@@ -355,6 +362,8 @@ def runPluginTests(options):
                         if not options.noStop:
                             break
 
+                    log('- + ' * 15)
+
                 if failed and not options.noStop:
                     break
         finally:
@@ -405,9 +414,38 @@ def runFuncTest(options, test='FunctionalTestSuite.py'):
             if not options.noStop:
                 break
 
+        log('- + ' * 15)
+
     return failed
 
-def runScriptPerfTests(options, testlist, largeData=False):
+
+def runFuncTestsSingly(options):
+    """
+    Run functional tests each in its own process.
+    """
+    failed = False
+
+    if not options.dryrun:
+        os.chdir(options.chandlerHome)
+
+    testlist = []
+    for item in glob.glob(os.path.join(options.chandlerHome, 'tools', 'cats', 'Functional', 'Test*.py')):
+        testlist.append(os.path.split(item)[1][:-3])
+
+    # XXX How to strip disabled tests?
+
+    for mode in options.modes:
+        for test in testlist:
+            if runFuncTest(options, test):
+                failed = True
+
+            if failed and not options.noStop:
+                return failed
+
+    return failed
+
+
+def runScriptPerfTests(options, testlist, largeData=False, logger=log):
     failed = False
 
     for item in testlist:
@@ -447,7 +485,7 @@ def runScriptPerfTests(options, testlist, largeData=False):
         if options.dryrun:
             result = 0
         else:
-            result = build_lib.runCommand(cmd, timeout=720)
+            result = build_lib.runCommand(cmd, timeout=720, log=logger)
 
         if result != 0:
             log('***Error exit code=%d, %s' % (result, name))
@@ -458,16 +496,22 @@ def runScriptPerfTests(options, testlist, largeData=False):
                 break
         else:
             if options.dryrun:
-                log(name + ' [ 0.00s ]')
+                log(name.ljust(50) + ' | 0.00')
             else:
                 line = open(timeLog).readline()[:-1]
-                log(name + ' [ %ss ]' % line)
+                log(name.ljust(50) + ' | %s' % line)
+        
+        if options.dryrun:
+            log('- + ' * 15)
+        else:
+            logger('- + ' * 15)
 
     return failed
 
-def runStartupPerfTests(options, timer, largeData=False, repeat=3):
+def runStartupPerfTests(options, timer, largeData=False, repeat=3, logger=log):
     # Create test repo
-    log('Creating repository for startup time tests')
+    if options.verbose:
+        log('Creating repository for startup time tests')
     cmd = [ options.runchandler['release'],
             '--catch=tests', '--scriptTimeout=60',
             '--profileDir=%s'  % options.profileDir,
@@ -490,12 +534,17 @@ def runStartupPerfTests(options, timer, largeData=False, repeat=3):
     if options.dryrun:
         result = 0
     else:
-        result = build_lib.runCommand(cmd, timeout=timeout)
-    
+        result = build_lib.runCommand(cmd, timeout=timeout, log=logger)
+
     if result != 0:
         log('***Error exit code=%d, creating %s repository' % (result, name))
         failedTests.append(name)
         return True
+    
+    if options.dryrun:
+        log('- + ' * 15)
+    else:
+        logger('- + ' * 15)
     
     # Time startup
     values = []
@@ -511,6 +560,8 @@ def runStartupPerfTests(options, timer, largeData=False, repeat=3):
             '--parcelPath=%s'  % options.parcelPath,
             '--scriptFile=%s'  % os.path.join(options.chandlerHome, 'tools', 'QATestScripts', 'Performance', 'end.py') ]
 
+    log(name.ljust(30), newline=' ')
+    
     for _ in range(repeat):
         if options.verbose:
             log(' '.join(cmd))
@@ -518,7 +569,7 @@ def runStartupPerfTests(options, timer, largeData=False, repeat=3):
         if options.dryrun:
             result = 0
         else:
-            result = build_lib.runCommand(cmd, timeout=180)
+            result = build_lib.runCommand(cmd, timeout=180, log=logger)
             
         if result == 0:
             if options.dryrun:
@@ -528,21 +579,27 @@ def runStartupPerfTests(options, timer, largeData=False, repeat=3):
             try:
                 value = float(line)
             except ValueError, e:
-                log('%s [ %s ]' % (name, str(e)))
+                log('| %s' % str(e))
                 failedTests.append(name)
                 return True
-            log('%02.2fs' % value)
+            log(('%02.2f' % value).rjust(5), newline=' ')
             values.append(value)
         else:
-            log('%s [ failed ]' % name)
+            log('| failed')
             failedTests.append(name)
             return True
+        
+        if options.dryrun:
+            log('- + ' * 15)
+        else:
+            logger('- + ' * 15)
     else:
         values.sort()
         value = values[repeat/2]
         if not options.tbox:
-            log('%s [ %02.2fs ]' % (name, value))
+            log('| %02.2f'.rjust(10) % value)
         else:
+            log('')
             log('%s [#TINDERBOX# Status = PASSED]' % name)
             log('OSAF_QA: %s | %04d | %02.2fs' % (name, os.getenv('REVISION', 0), value)) # XXX get svn revision
             log('#TINDERBOX# Testname = %s' % name)
@@ -551,30 +608,44 @@ def runStartupPerfTests(options, timer, largeData=False, repeat=3):
         
     return False
 
-def runPerfTests(options, testlist=None):
+
+class DelayedLogger:
+    """
+    Delayed logger can be used to suppress logger calls until later time.
+    """
+    def __init__(self):
+        self.delayed = []
+
+    def __call__(self, *args, **kw):
+        self.delayed.append((args, kw))
+
+    def logAll(self):
+        for args, kw in self.delayed:
+            log(*args, **kw)
+
+
+def runPerfTests(options, tests=None):
     """
     Run the Performance Test Suite
     """
-    # XXX need to log the full output to intermediate file so that we can
-    # XXX first show the condensed form, sleep for 5 seconds, and cat the
-    # XXX full log (like do_tests.sh does).
-    
     failed = False
 
     savePWD = os.getcwd()
 
     try:
         if 'release' in options.modes:
+            delayedLogger = DelayedLogger()
+            
             if not options.dryrun:
                 os.chdir(options.chandlerHome)
-                if testlist is None:
+                if tests is None:
                     for item in glob.glob(os.path.join(options.profileDir, '__repository__.0*')):
                         if os.path.isdir(item):
                             build_lib.rmdirs(item)
                         else:
                             os.remove(item)
 
-            if testlist is None:
+            if tests is None:
                 testlist = []
                 testlistLarge = []
                 testlistStartup = ['startup', 'startup_large']
@@ -584,25 +655,26 @@ def runPerfTests(options, testlist=None):
                     else:
                         testlist.append(item)
             else:
-                newtestlist = []
+                testlist = []
                 testlistLarge = []
                 testlistStartup = []
-                for item in testlist:
+                for item in tests:
                     if 'PerfLargeData' in item:
                         testlistLarge.append(item)
                     elif item in ('startup', 'startup_large'):
                         testlistStartup.append(item)
                     else:
-                        newtestlist.append(item)
-                testlist = newtestlist[:]
+                        testlist.append(item)
 
             # small repo tests
             if testlist:
-                failed = runScriptPerfTests(options, testlist)
+                failed = runScriptPerfTests(options, testlist,
+                                            logger=delayedLogger)
 
             # large repo tests
             if testlistLarge and (not failed or options.noStop):
-                if runScriptPerfTests(options, testlistLarge, largeData=True):
+                if runScriptPerfTests(options, testlistLarge, largeData=True,
+                                      logger=delayedLogger):
                     failed = True
 
             # startup tests
@@ -619,11 +691,21 @@ def runPerfTests(options, testlist=None):
                 else:
                     t = '/usr/bin/time'
 
-                if 'startup' in testlistStartup and runStartupPerfTests(options, t):
+                if 'startup' in testlistStartup and runStartupPerfTests(options, t, logger=delayedLogger):
                     failed = True
                 if not failed: # Don't continue even if noStop, almost certain these won't work
-                    if 'startup_large' in testlistStartup and runStartupPerfTests(options, t, largeData=True):
+                    if 'startup_large' in testlistStartup and runStartupPerfTests(options, t, largeData=True, logger=delayedLogger):
                         failed = True
+
+            if not tests and not options.dryrun:
+                log('Showing performance log in 5 seconds, Ctrl+C to stop tests')
+                try:
+                    time.sleep(5)
+                except KeyboardInterrupt:
+                    sys.exit(0)
+                log('- + ' * 15)
+            
+            delayedLogger.logAll()
         else:
             log('Skipping Performance Tests - release mode not specified')
 
@@ -642,6 +724,7 @@ def main(options):
     >>> options.mode      = None
     >>> options.perf      = False
     >>> options.funcSuite = False
+    >>> options.func      = False
     >>> options.unit      = False
     >>> options.single    = ''
     >>> options.verbose   = True
@@ -651,12 +734,14 @@ def main(options):
     >>> options.unitSuite = False
     >>> options.profile   = False
     >>> main(options)
-
+    False
+    
     Try and run a test that does not exist
 
     >>> options.single = 'TestFoo.py'
     >>> main(options)
     Test(s) not found
+    False
 
     Try different single tests
     
@@ -665,27 +750,37 @@ def main(options):
     >>> options.single = 'TestCrypto'
     >>> main(options)
     /.../RunPython .../application/tests/TestCrypto.py -v
+    - + - + - + - + - + - + - + - + - + - + - + - + - + - + - + 
+    False
     
       unit test and functional test:
       
     >>> options.single = 'TestCrypto,TestSharing'
     >>> main(options)
     /.../RunChandler --create --catch=tests --scriptTimeout=720 --profileDir=.../test_profile --parcelPath=.../tools/QATestScripts/DataFiles --chandlerTests=TestSharing -D2 -M0
+    - + - + - + - + - + - + - + - + - + - + - + - + - + - + - + 
     /.../RunPython .../application/tests/TestCrypto.py -v
+    - + - + - + - + - + - + - + - + - + - + - + - + - + - + - + 
+    False
     
       unit, functional and two perf tests, one of which is a startup test:
       
     >>> options.single = 'TestCrypto,TestSharing,PerfImportCalendar,startup_large'
     >>> main(options)
     /.../RunChandler --catch=tests --scriptTimeout=600 --profileDir=.../test_profile --parcelPath=.../tools/QATestScripts/DataFiles --catsPerfLog=.../test_profile/time.log --scriptFile=.../tools/QATestScripts/Performance/PerfImportCalendar.py --create
-    PerfImportCalendar.py [ 0.00s ]
+    PerfImportCalendar.py                              | 0.00
+    - + - + - + - + - + - + - + - + - + - + - + - + - + - + - + 
     /.../RunChandler --create --catch=tests --scriptTimeout=720 --profileDir=.../test_profile --parcelPath=.../tools/QATestScripts/DataFiles --chandlerTests=TestSharing -D2 -M0
+    - + - + - + - + - + - + - + - + - + - + - + - + - + - + - + 
     /.../RunPython .../application/tests/TestCrypto.py -v
+    - + - + - + - + - + - + - + - + - + - + - + - + - + - + - + 
     Creating repository for startup time tests
     /.../RunChandler... --catch=tests --scriptTimeout=60 --profileDir=.../test_profile --parcelPath=.../tools/QATestScripts/DataFiles --scriptFile=.../tools/QATestScripts/Performance/quit.py --restore=.../test_profile/__repository__.001
-    /usr/bin/time --format=%e -o .../test_profile/time.log .../RunChandler... --catch=tests --scriptTimeout=60 --profileDir=.../test_profile --parcelPath=.../tools/QATestScripts/DataFiles --scriptFile=.../tools/QATestScripts/Performance/end.py
-    0.00s
+    - + - + - + - + - + - + - + - + - + - + - + - + - + - + - + 
+    Startup_with_large_calendar    /usr/bin/time --format=%e -o .../test_profile/time.log .../RunChandler... --catch=tests --scriptTimeout=60 --profileDir=.../test_profile --parcelPath=.../tools/QATestScripts/DataFiles --scriptFile=.../tools/QATestScripts/Performance/end.py
+     0.00 - + - + - + - + - + - + - + - + - + - + - + - + - + - + - + 
     ...
+    False
 
     Try and specify an invalid mode
 
@@ -693,6 +788,7 @@ def main(options):
     >>> options.mode   = 'foo'
     >>> main(options)
     foo removed from mode list
+    False
 
     Run unit tests with --dryrun
 
@@ -703,6 +799,7 @@ def main(options):
     ...
     /.../RunPython... .../projects/Chandler-EVDBPlugin/setup.py test -v
     ...
+    False
 
     Run unitSuite with --dryrun
 
@@ -711,6 +808,8 @@ def main(options):
     >>> options.unitSuite = True
     >>> main(options)
     /.../RunPython .../tools/run_tests.py - v application i18n osaf repository
+    - + - + - + - + - + - + - + - + - + - + - + - + - + - + - + 
+    False
 
     Run functional tests with --dryrun
 
@@ -719,24 +818,38 @@ def main(options):
     >>> options.funcSuite = True
     >>> main(options)
     /.../RunChandler... --create --catch=tests --scriptTimeout=720 --profileDir=.../test_profile --parcelPath=.../tools/QATestScripts/DataFiles --scriptFile=.../tools/cats/Functional/FunctionalTestSuite.py -D2 -M0
+    - + - + - + - + - + - + - + - + - + - + - + - + - + - + - + 
+    False
+    
+    Run functional tests each in its on process
+    >>> options.funcSuite = False
+    >>> options.func      = True
+    >>> main(options)
+    /.../RunChandler... --create --catch=tests --scriptTimeout=720 --profileDir=.../test_profile --parcelPath=.../tools/QATestScripts/DataFiles --chandlerTests=TestCreateAccounts -D2 -M0
+    - + - + - + - + - + - + - + - + - + - + - + - + - + - + - + 
+    ...
+    False
     
     Run performance tests with --dryrun
 
-    >>> options.funcSuite = False
+    >>> options.func      = False
     >>> options.perf      = True
     >>> options.profile   = False
     >>> main(options)
     /.../RunChandler... --catch=tests --scriptTimeout=600 --profileDir=.../test_profile --parcelPath=.../tools/QATestScripts/DataFiles --catsPerfLog=.../test_profile/time.log --scriptFile=.../tools/QATestScripts/Performance/PerfImportCalendar.py --create
-    PerfImportCalendar.py [ 0.00s ]
+    PerfImportCalendar.py                              | 0.00
+    - + - + - + - + - + - + - + - + - + - + - + - + - + - + - + 
     ...
     /.../RunChandler... --catch=tests --scriptTimeout=600 --profileDir=.../test_profile --parcelPath=.../tools/QATestScripts/DataFiles --catsPerfLog=.../test_profile/time.log --scriptFile=.../tools/QATestScripts/Performance/PerfLargeDataResizeCalendar.py --restore=.../test_profile/__repository__.001
-    PerfLargeDataResizeCalendar.py [ 0.00s ]
+    PerfLargeDataResizeCalendar.py                     | 0.00
     ...
     Creating repository for startup time tests
     /.../RunChandler... --catch=tests --scriptTimeout=60 --profileDir=.../test_profile --parcelPath=.../tools/QATestScripts/DataFiles --scriptFile=.../tools/QATestScripts/Performance/quit.py --create
-    /usr/bin/time --format=%e -o .../test_profile/time.log .../RunChandler... --catch=tests --scriptTimeout=60 --profileDir=.../test_profile --parcelPath=.../tools/QATestScripts/DataFiles --scriptFile=.../tools/QATestScripts/Performance/end.py
-    0.00s
+    - + - + - + - + - + - + - + - + - + - + - + - + - + - + - + 
+    Startup                        /usr/bin/time --format=%e -o .../test_profile/time.log .../RunChandler... --catch=tests --scriptTimeout=60 --profileDir=.../test_profile --parcelPath=.../tools/QATestScripts/DataFiles --scriptFile=.../tools/QATestScripts/Performance/end.py
+     0.00 - + - + - + - + - + - + - + - + - + - + - + - + - + - + - + 
     ...
+    False
     """
     checkOptions(options)
 
@@ -774,15 +887,21 @@ def main(options):
             if runFuncTest(options):
                 failed = True
     
+        if options.func and (not failed or options.noStop):
+            if runFuncTestsSingly(options):
+                failed = True
+    
         if options.perf and (not failed or options.noStop):
             if runPerfTests(options):
                 failed = True
 
     if len(failedTests) > 0:
-        log('+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+')
+        log('+-' * 32)
         log('The following tests failed:')
         log('\n'.join(failedTests))
         log('')
+        
+    return failed
 
 
 if __name__ == '__main__':
@@ -791,5 +910,5 @@ if __name__ == '__main__':
         doctest.testmod(optionflags=doctest.ELLIPSIS)
         sys.exit(0)
 
-    main(parseOptions())
-
+    if main(parseOptions()):
+        sys.exit(1)
