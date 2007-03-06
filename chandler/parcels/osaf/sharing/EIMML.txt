@@ -703,3 +703,9 @@ Again, the conflicts are gone::
     False
     >>> list(shared1.getConflicts())
     []
+
+For testing, you can generate fake conflicts::
+
+    >>> shared1.generateConflicts()
+    >>> hasattr(shared1, 'conflictingStates')
+    True

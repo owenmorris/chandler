@@ -431,7 +431,7 @@ class RecordSetConduit(conduits.BaseConduit):
     def getRecords(self, debug=False, activity=None):
         raise NotImplementedError
 
-    def putRecords(self, toSend, debug=False, activity=None):
+    def putRecords(self, toSend, extra, debug=False, activity=None):
         raise NotImplementedError
 
     def fileStyle(self):
