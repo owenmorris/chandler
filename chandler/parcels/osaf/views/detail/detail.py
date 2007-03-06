@@ -2040,11 +2040,6 @@ class OutboundEmailAddressAttributeEditor(ChoiceAttributeEditor):
         
         
 class HTMLDetailArea(DetailSynchronizer, ControlBlocks.ItemDetail):
-    def synchronizeWidget(self, useHints=False):
-        super(HTMLDetailArea, self).synchronizeWidget(useHints)
-        if self.item is not None:
-            self.selection = self.item.proxiedItem
-
     def getHTMLText(self, item):
         return u"<html><body>" + item + u"</body></html>"
 

@@ -173,7 +173,7 @@ class Block(schema.Item):
             event.arguments = arguments
 
             hookListItem = schema.ns (__name__, wx.GetApp().UIRepositoryView).BlockDispatchHookList
-            for hookItem in hookListItem.hooks:
+            for hookItem in list (hookListItem.hooks):
                 hookItem.dispatchEvent (event, Block.depth)
 
             results = event.arguments ['results']
