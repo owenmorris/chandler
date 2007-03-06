@@ -552,6 +552,34 @@ class RecurringEventTest(testcase.SingleRepositoryTestCase):
             7)
 
 
+    def testChangeAllResetsMod(self):
+        self.event.rruleset = self._createRuleSetItem('weekly')
+        first = self.event.getFirstOccurrence()
+        second = first.getNextOccurrence()
+        
+        # Make a THIS change to the 2nd event
+        second.changeThis('displayName', u'A better name...')
+        self.failUnlessEqual(second.summary, u'A better name...')
+        self.failIfEqual(second.summary, second.getNextOccurrence().summary)
+        
+        # ... and now make an ALL change to the 2nd event
+        second.changeAll('displayName', u'The best name!')
+        # ... this should actually change the value for second ...
+        self.failUnlessEqual(second.summary, u'The best name!')
+        # ... and, for example, the next event in the series
+        self.failUnlessEqual(second.summary, second.getNextOccurrence().summary)
+        
+        # Lastly, make a THIS change to the master's occurrence
+        first.changeThis('displayName', u'A new name')
+        # ... followed by an ALL change to the 2nd occurrence
+        second.changeAll('displayName', u'An even bester name')
+        # Make sure the master's occurrence is unchanged
+        self.failUnlessEqual(first.summary, u'A new name')
+        # ... but that the 2nd and 3rd occurrences have changed
+        self.failUnlessEqual(second.summary, u'An even bester name')
+        self.failUnlessEqual(second.summary, second.getNextOccurrence().summary)
+        
+    
     def testRemoveRecurrence(self):
         self.event.rruleset = self._createRuleSetItem('weekly')
         self.event.removeRecurrence()

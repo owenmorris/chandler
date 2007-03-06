@@ -1498,7 +1498,7 @@ class EventStamp(Stamp):
                     if attr == modattr:
                         disabled = self.__disableRecurrenceChanges()
                         try:
-                            setattr(self.itsItem, attr, value)
+                            delattr(self.itsItem, attr)
                         finally:
                             if not disabled: self.__enableRecurrenceChanges()
                         break
@@ -1641,6 +1641,13 @@ class EventStamp(Stamp):
             if disabledSelf: self.__enableRecurrenceChanges()
             
     def changeAll(self, attr=None, value=None):
+        if (attr is not None and self.modificationFor is not None and
+            self.itsItem.hasLocalAttributeValue(attr)):
+            disabled = self.__disableRecurrenceChanges()
+            try:
+                delattr(self.itsItem, attr)
+            finally:
+                if disabled: self.__enableRecurrenceChanges()
         self.getMaster().changeThisAndFuture(attr, value)
 
     def moveCollections(self, fromEvent, toEvent):
