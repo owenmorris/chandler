@@ -1,4 +1,4 @@
-#   Copyright (c) 2003-2006 Open Source Applications Foundation
+#   Copyright (c) 2003-2007 Open Source Applications Foundation
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -68,81 +68,87 @@ def main():
         app = wxApplication(redirect=redirect, useBestVisual=True)
 
         app.MainLoop()
-        sys.exit(getattr(app, 'exitValue', 0))
+
+        return getattr(app, 'exitValue', 0)
 
     if Globals.options.catch != 'normal':
         # When debugging, it's handy to run without the outer exception frame
-        realMain()
+        return realMain()
     else:
-        # The normal way: wrap the app in an exception frame
-        from repository.persistence.RepositoryError \
-            import RepositoryOpenDeniedError, ExclusiveOpenDeniedError
-
         try:
+            # The normal way: wrap the app in an exception frame
+            from repository.persistence.RepositoryError \
+                import RepositoryOpenDeniedError, ExclusiveOpenDeniedError
+
             import logging, wx
             from i18n import ChandlerSafeTranslationMessageFactory as _
-            realMain()
+            return realMain()
 
         except (RepositoryOpenDeniedError, ExclusiveOpenDeniedError):
             # This doesn't seem worth the effor to localize, since we don't have a repository
             # which is necessary for localization.
-            logging.error("Another instance of Chandler currently has the repository open.")
-            dialog = wx.MessageDialog(None,
-                                      _(u"Another instance of Chandler currently has the repository open."),
-                                      _(u"Chandler"), wx.OK | wx.ICON_INFORMATION)
-            dialog.ShowModal()
-            dialog.Destroy()
-            sys.exit(1)
-
-        except Utility.SchemaMismatchError:
-            logging.info("User chose not to clear the repository.  Exiting.")
-            sys.exit(1)
-
-        except:
-            import traceback
-            
-            line1 = "Chandler encountered an unexpected problem while trying to start.\n"
-            
-            type, value, stack = sys.exc_info()
-            backtrace = traceback.format_exception(type, value, stack)
-            
-            longMessage = "".join([line1, "\n"] + backtrace)
-            
-            logging.error(longMessage)
-            
-            if getattr(globals(), 'app', None) is None or wx.GetApp() is None:
-                app = wx.PySimpleApp()
-                app.ignoreSynchronizeWidget = True
-            
             try:
-                # Let's try the best (and most complicated) option
-                # first
-                # See if we already have a window up, and if so, reuse it
-                from application import feedback
-                feedback.destroyAppOnClose = True
-                win = feedback.FeedbackWindow()
-                win.CreateOutputWindow('')
-                for line in backtrace:
-                    win.write(line)
-                if not app.IsMainLoopRunning():
-                    app.MainLoop()
-            except:
-                # Fall back to our custom (but simple) error dialog
-                try:
-                    from application.dialogs.UncaughtExceptionDialog import ErrorDialog
-                    dialog = ErrorDialog(longMessage)
-                except:
-                    # Fall back to MessageDialog
-                    frames = 8
-                    line1 = _(u"Chandler encountered an unexpected problem while trying to start.\n")
-                    line2 = _(u"Here are the bottom %(frames)s frames of the stack:\n") % {'frames': frames - 1}
-                    shortMessage = u"".join([line1, line2, u"\n"])
-                    shortMessage += unicode("".join(backtrace[-frames:]), "UTF-8", "ignore")
-                    dialog = wx.MessageDialog(None, shortMessage, _(u"Chandler"), wx.OK | wx.ICON_INFORMATION)
+                logging.error("Another instance of Chandler currently has the repository open.")
+                dialog = wx.MessageDialog(None,
+                                          _(u"Another instance of Chandler currently has the repository open."),
+                                          _(u"Chandler"), wx.OK | wx.ICON_INFORMATION)
                 dialog.ShowModal()
                 dialog.Destroy()
-            
-            sys.exit(1)
+            finally:
+                return 1
+
+        except Utility.SchemaMismatchError:
+            try:
+                logging.info("User chose not to clear the repository.  Exiting.")
+            finally:
+                return 1
+
+        except:
+            try:
+                import traceback
+                
+                line1 = "Chandler encountered an unexpected problem while trying to start.\n"
+                
+                type, value, stack = sys.exc_info()
+                backtrace = traceback.format_exception(type, value, stack)
+                
+                longMessage = "".join([line1, "\n"] + backtrace)
+                
+                logging.error(longMessage)
+                
+                if getattr(globals(), 'app', None) is None or wx.GetApp() is None:
+                    app = wx.PySimpleApp()
+                    app.ignoreSynchronizeWidget = True
+                
+                try:
+                    # Let's try the best (and most complicated) option
+                    # first
+                    # See if we already have a window up, and if so, reuse it
+                    from application import feedback
+                    feedback.destroyAppOnClose = True
+                    win = feedback.FeedbackWindow()
+                    win.CreateOutputWindow('')
+                    for line in backtrace:
+                        win.write(line)
+                    if not app.IsMainLoopRunning():
+                        app.MainLoop()
+                except:
+                    # Fall back to our custom (but simple) error dialog
+                    try:
+                        from application.dialogs.UncaughtExceptionDialog import ErrorDialog
+                        dialog = ErrorDialog(longMessage)
+                    except:
+                        # Fall back to MessageDialog
+                        frames = 8
+                        line1 = _(u"Chandler encountered an unexpected problem while trying to start.\n")
+                        line2 = _(u"Here are the bottom %(frames)s frames of the stack:\n") % {'frames': frames - 1}
+                        shortMessage = u"".join([line1, line2, u"\n"])
+                        shortMessage += unicode("".join(backtrace[-frames:]), "UTF-8", "ignore")
+                        dialog = wx.MessageDialog(None, shortMessage, _(u"Chandler"), wx.OK | wx.ICON_INFORMATION)
+                    dialog.ShowModal()
+                    dialog.Destroy()
+            finally:
+                return 1
 
     #@@@Temporary testing tool written by Morgen -- DJA
     #import util.timing
@@ -150,4 +156,4 @@ def main():
     #util.timing.results()
 
 if __name__== "__main__":
-    main()
+    sys.exit(main())
