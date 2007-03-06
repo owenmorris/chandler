@@ -195,7 +195,13 @@ def buildTestList(options, excludeTools=True):
     for item in [ 'release', 'debug' ]:
         excludeDirs.append('%s/%s' % (options.chandlerBin, item))
 
-    return findTestFiles(options.chandlerHome, excludeDirs, includePattern)
+    result = findTestFiles(options.chandlerHome, excludeDirs, includePattern)
+
+    for pattern in includePattern.split(','):
+        if pattern in ('startup.py', 'startup_large.py'):
+            result.append(pattern[:-3])
+    
+    return result
 
 
 def runSingles(options):
@@ -213,7 +219,11 @@ def runSingles(options):
                 if runFuncTest(options, name[:-3]):
                     failed = True
             elif name.startswith('Perf'):
-                raise NotImplementedError('Can not run single performance test yet') # XXX single perf test
+                if runPerfTests(options, [test]):
+                    failed = True
+            elif name in ('startup', 'startup_large'):
+                if runPerfTests(options, [name]):
+                    failed = True                
             else:
                 if runUnitTests(options, [test]):
                     failed = True
@@ -541,7 +551,7 @@ def runStartupPerfTests(options, timer, largeData=False, repeat=3):
         
     return False
 
-def runPerfSuite(options):
+def runPerfTests(options, testlist=None):
     """
     Run the Performance Test Suite
     """
@@ -555,33 +565,48 @@ def runPerfSuite(options):
 
     try:
         if 'release' in options.modes:
-            testlist      = []
-            testlistLarge = []
-
             if not options.dryrun:
                 os.chdir(options.chandlerHome)
-                for item in glob.glob(os.path.join(options.profileDir, '__repository__.0*')):
-                    if os.path.isdir(item):
-                        build_lib.rmdirs(item)
-                    else:
-                        os.remove(item)
+                if testlist is None:
+                    for item in glob.glob(os.path.join(options.profileDir, '__repository__.0*')):
+                        if os.path.isdir(item):
+                            build_lib.rmdirs(item)
+                        else:
+                            os.remove(item)
 
-            for item in glob.glob(os.path.join(options.chandlerHome, 'tools', 'QATestScripts', 'Performance', 'Perf*.py')):
-                if 'PerfLargeData' in item:
-                    testlistLarge.append(item)
-                else:
-                    testlist.append(item)
+            if testlist is None:
+                testlist = []
+                testlistLarge = []
+                testlistStartup = ['startup', 'startup_large']
+                for item in glob.glob(os.path.join(options.chandlerHome, 'tools', 'QATestScripts', 'Performance', 'Perf*.py')):
+                    if 'PerfLargeData' in item:
+                        testlistLarge.append(item)
+                    else:
+                        testlist.append(item)
+            else:
+                newtestlist = []
+                testlistLarge = []
+                testlistStartup = []
+                for item in testlist:
+                    if 'PerfLargeData' in item:
+                        testlistLarge.append(item)
+                    elif item in ('startup', 'startup_large'):
+                        testlistStartup.append(item)
+                    else:
+                        newtestlist.append(item)
+                testlist = newtestlist[:]
 
             # small repo tests
-            failed = runScriptPerfTests(options, testlist)
+            if testlist:
+                failed = runScriptPerfTests(options, testlist)
 
             # large repo tests
-            if not failed or options.noStop:
+            if testlistLarge and (not failed or options.noStop):
                 if runScriptPerfTests(options, testlistLarge, largeData=True):
                     failed = True
 
             # startup tests
-            if not failed or options.noStop:
+            if testlistStartup and (not failed or options.noStop):
                 if os.name == 'nt' or sys.platform == 'cygwin':
                     t = 'time.exe'
                 elif sys.platform == 'darwin':
@@ -594,10 +619,10 @@ def runPerfSuite(options):
                 else:
                     t = '/usr/bin/time'
 
-                if runStartupPerfTests(options, t):
+                if 'startup' in testlistStartup and runStartupPerfTests(options, t):
                     failed = True
                 if not failed: # Don't continue even if noStop, almost certain these won't work
-                    if runStartupPerfTests(options, t, largeData=True):
+                    if 'startup_large' in testlistStartup and runStartupPerfTests(options, t, largeData=True):
                         failed = True
         else:
             log('Skipping Performance Tests - release mode not specified')
@@ -624,6 +649,7 @@ def main(options):
     >>> options.help      = False
     >>> options.tbox      = False
     >>> options.unitSuite = False
+    >>> options.profile   = False
     >>> main(options)
 
     Try and run a test that does not exist
@@ -631,6 +657,35 @@ def main(options):
     >>> options.single = 'TestFoo.py'
     >>> main(options)
     Test(s) not found
+
+    Try different single tests
+    
+      single unit test:
+      
+    >>> options.single = 'TestCrypto'
+    >>> main(options)
+    /.../RunPython .../application/tests/TestCrypto.py -v
+    
+      unit test and functional test:
+      
+    >>> options.single = 'TestCrypto,TestSharing'
+    >>> main(options)
+    /.../RunChandler --create --catch=tests --scriptTimeout=720 --profileDir=.../test_profile --parcelPath=.../tools/QATestScripts/DataFiles --chandlerTests=TestSharing -D2 -M0
+    /.../RunPython .../application/tests/TestCrypto.py -v
+    
+      unit, functional and two perf tests, one of which is a startup test:
+      
+    >>> options.single = 'TestCrypto,TestSharing,PerfImportCalendar,startup_large'
+    >>> main(options)
+    /.../RunChandler --catch=tests --scriptTimeout=600 --profileDir=.../test_profile --parcelPath=.../tools/QATestScripts/DataFiles --catsPerfLog=.../test_profile/time.log --scriptFile=.../tools/QATestScripts/Performance/PerfImportCalendar.py --create
+    PerfImportCalendar.py [ 0.00s ]
+    /.../RunChandler --create --catch=tests --scriptTimeout=720 --profileDir=.../test_profile --parcelPath=.../tools/QATestScripts/DataFiles --chandlerTests=TestSharing -D2 -M0
+    /.../RunPython .../application/tests/TestCrypto.py -v
+    Creating repository for startup time tests
+    /.../RunChandler... --catch=tests --scriptTimeout=60 --profileDir=.../test_profile --parcelPath=.../tools/QATestScripts/DataFiles --scriptFile=.../tools/QATestScripts/Performance/quit.py --restore=.../test_profile/__repository__.001
+    /usr/bin/time --format=%e -o .../test_profile/time.log .../RunChandler... --catch=tests --scriptTimeout=60 --profileDir=.../test_profile --parcelPath=.../tools/QATestScripts/DataFiles --scriptFile=.../tools/QATestScripts/Performance/end.py
+    0.00s
+    ...
 
     Try and specify an invalid mode
 
@@ -720,7 +775,7 @@ def main(options):
                 failed = True
     
         if options.perf and (not failed or options.noStop):
-            if runPerfSuite(options):
+            if runPerfTests(options):
                 failed = True
 
     if len(failedTests) > 0:
