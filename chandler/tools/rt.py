@@ -407,12 +407,6 @@ def runScriptPerfTests(options, testlist, largeData=False):
         #                                   --scriptTimeout=600
         #                                   --scriptFile="$TESTNAME" &> $TESTLOG
 
-#        continue
-#        if not item.find('PerfImport') >= 0:
-#            continue
-#        if not item.find('PerfNewCale') >= 0:
-#            continue
-
         name = item[item.rfind('/') + 1:]
 
         timeLog = os.path.join(options.profileDir, 'time.log')
@@ -443,7 +437,6 @@ def runScriptPerfTests(options, testlist, largeData=False):
         if options.dryrun:
             result = 0
         else:
-            # XXX Need to log output
             result = build_lib.runCommand(cmd, timeout=720)
 
         if result != 0:
@@ -457,11 +450,8 @@ def runScriptPerfTests(options, testlist, largeData=False):
             if options.dryrun:
                 log(name + ' [ 0.00s ]')
             else:
-                # XXX need to scan output to see if success
                 line = open(timeLog).readline()[:-1]
                 log(name + ' [ %ss ]' % line)
-
-    # Need to store logs somewhere so that once all done we can output
 
     return failed
 
@@ -555,6 +545,10 @@ def runPerfSuite(options):
     """
     Run the Performance Test Suite
     """
+    # XXX need to log the full output to intermediate file so that we can
+    # XXX first show the condensed form, sleep for 5 seconds, and cat the
+    # XXX full log (like do_tests.sh does).
+    
     failed = False
 
     savePWD = os.getcwd()

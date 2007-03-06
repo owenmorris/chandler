@@ -269,6 +269,7 @@ class TestOutput:
         if result is True:
             self.printOut(u'Success in action.%s.report:: %s' % (self.currentAction['name'], comment), level=0, result=True)
         else:
+            wx.GetApp().exitValue = 1
             self.printOut(u'Failure in action.%s.report :: %s' % (self.currentAction['name'], comment), level=0, result=False)
             self.testHasFailed = True 
         

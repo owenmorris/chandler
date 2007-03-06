@@ -17,6 +17,7 @@ from datetime import datetime, timedelta
 import os, sys, traceback
 import time
 import string
+import wx
 import version
 import application.Globals as Globals
 import osaf.framework.scripting as scripting
@@ -25,7 +26,7 @@ from application import Globals
 
 class FileWatcher:       
     """masquerades as a file so stderr can be directed to it
-         sets a flag if writen to, then passes str to stdout via print"""
+         sets a flag if written to, then passes str to stdout via print"""
     def __init__(self):
         self.text = ''
         self.hadError = False
@@ -205,8 +206,10 @@ class TestLogger:
         self.nbVerif = self.nbVerif + 1
         self.Print("")
         self.Print("%s checking report : " %description)
+        exitValue = None
         for failure in self.failureList:
             self.PrintBoth("        - Error : %s" % failure)
+            exitValue = 1
         for passed in self.passedList:
             self.Print("        - Ok : %s" % passed)
         if len(self.failureList) == 0 and self.checked:
@@ -215,11 +218,17 @@ class TestLogger:
         elif len(self.failureList) == 0 and not self.checked:
             status = "Uncheck"
             self.nbUnchecked = self.nbUnchecked + 1
+            exitValue = 1
         else:
             status = "FAILED"
             self.nbFail = self.nbFail + 1
+            exitValue = 1
         self.Print("Verification = %s" % status)
         self.Print("")
+        
+        if exitValue is not None:
+            wx.GetApp().exitValue = exitValue
+        
         #reset
         self.failureList = []
         self.passedList = []
@@ -308,6 +317,8 @@ class TestLogger:
             self.Print("#TINDERBOX# Time elapsed = %s (seconds)" %elapsed_secs)
             if status == "PASSED":
                 self.PrintTBOX(elapsed)
+            else:
+                wx.GetApp().exitValue = 1
             self.Print("")
             self.Print("*******               End of Report               *******")
             print("#TINDERBOX# Testname = %s" %description)    
@@ -345,5 +356,7 @@ class TestLogger:
             self.Print("Testcase Status = %s" %status)
             if status == "PASSED":
                 self.PrintTBOX(elapsed, "Testcase")
+            else:
+                wx.GetApp().exitValue = 1
             # new testcase inits
             self.Reset()

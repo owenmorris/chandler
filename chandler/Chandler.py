@@ -17,7 +17,7 @@
 Chandler startup
 """
 
-import os, PyLucene
+import os, sys, PyLucene
 from application import Globals, Utility
 
 def main():
@@ -68,6 +68,7 @@ def main():
         app = wxApplication(redirect=redirect, useBestVisual=True)
 
         app.MainLoop()
+        sys.exit(getattr(app, 'exitValue', 0))
 
     if Globals.options.catch != 'normal':
         # When debugging, it's handy to run without the outer exception frame
@@ -91,12 +92,14 @@ def main():
                                       _(u"Chandler"), wx.OK | wx.ICON_INFORMATION)
             dialog.ShowModal()
             dialog.Destroy()
+            sys.exit(1)
 
         except Utility.SchemaMismatchError:
             logging.info("User chose not to clear the repository.  Exiting.")
+            sys.exit(1)
 
         except:
-            import sys, traceback
+            import traceback
             
             line1 = "Chandler encountered an unexpected problem while trying to start.\n"
             
@@ -138,7 +141,8 @@ def main():
                     dialog = wx.MessageDialog(None, shortMessage, _(u"Chandler"), wx.OK | wx.ICON_INFORMATION)
                 dialog.ShowModal()
                 dialog.Destroy()
-
+            
+            sys.exit(1)
 
     #@@@Temporary testing tool written by Morgen -- DJA
     #import util.timing

@@ -201,7 +201,12 @@ def run_script_with_symbols(scriptText, fileName=u"", profiler=None, builtIns=No
             alarm(scriptTimeout)
 
     # now run that script in our predefined scope
-    exec scriptCode in builtIns
+    try:
+        exec scriptCode in builtIns
+    except:
+        wx.GetApp().exitValue = 1
+        raise            
+
 
 def hotkey_script(event, view):
     """
