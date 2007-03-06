@@ -26,7 +26,7 @@ else:
 
 from application import schema, Utility, Globals
 from repository.item.Item import Item
-from repository.persistence.DBRefs import DBRefList
+from repository.util.LinkedMap import LinkedMap
 
 view = None
 app = None
@@ -213,15 +213,11 @@ def _getName(item):
 def ls(arg=None):
     global currentList
 
-    if isinstance(arg, (GeneratorType, DBRefList)):
-        currentList = []
-        for item in arg:
-            currentList.append(item)
+    if isinstance(arg, (GeneratorType, LinkedMap)):
+        currentList = [item for item in arg]
     else:
         item = _argToItem(arg)
-        currentList = []
-        for child in item.iterChildren():
-            currentList.append(child)
+        currentList = [child for child in item.iterChildren()]
 
     currentList.sort(lambda x, y: cmp(_getName(x).lower(), _getName(y).lower()))
 
