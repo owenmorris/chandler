@@ -1109,6 +1109,48 @@ class RepositoryView(CView):
 
         return count
 
+    def dispatchChanges(self, items):
+        """
+        Notify kind extents and collection watchers that items have changed.
+
+        The extents of the changed items' kinds and superkinds notified.
+
+        The collection watchers watching ref collection attributes on the
+        changed items that have their C{notify} aspect set are invoked. This
+        ensures that these collections are notified about the changed items
+        they contain.
+
+        Calling this method is not normally necessary as it is called during
+        L{refresh} on the currently dirty items for which it hasn't been
+        called yet.
+
+        @param items: an iterable of items that changed, to be iterated once.
+        """
+        version = self.itsVersion
+
+        for item in items:
+            kind = item.itsKind
+            uItem = item.itsUUID
+
+            if kind is not None:
+                kind.extent._collectionChanged('changed', 'notification',
+                                               'extent', uItem)
+
+                for name in kind._iterNotifyAttributes():
+                    value = getattr(item, name, None)
+                    if isinstance(value, RefList):
+                        otherName = value._otherName
+                        for uRef in value.iterkeys():
+                            watchers = self.findValue(uRef, 'watchers', None,
+                                                      version)
+                            if watchers:
+                                watchers = watchers.get(otherName, None)
+                                if watchers:
+                                    for watcher in watchers:
+                                        if watcher is not None:
+                                            watcher('changed', 'notification',
+                                                    uRef, otherName, uItem)
+
     def flushNotifications(self):
 
         count = 0
