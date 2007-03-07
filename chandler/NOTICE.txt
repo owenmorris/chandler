@@ -1,4 +1,8 @@
 
+chandler/util/pbkdf2.py
+    # (c) 2004 Matt Johnston <matt @ ucc asn au>
+    # This code may be freely used and modified for any purpose.
+
 Universal feed parser
 chandler/util/feedparser.py
 
