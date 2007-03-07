@@ -511,24 +511,24 @@ class DownloadAccountBase(AccountBase):
     @apply
     def emailAddress():
         def fget(self):
-            if self.replyToAddress:
+            if hasattr(self, "replyToAddress"):
                 return self.replyToAddress.emailAddress
-            return u""
+            return None
 
         def fset(self, value):
-            if self.replyToAddress:
+            if hasattr(self, "replyToAddress"):
                 self.replyToAddress.emailAddress = value
         return property(fget, fset)
 
     @apply
     def fullName():
         def fget(self):
-            if self.replyToAddress:
+            if hasattr(self, "replyToAddress"):
                 return self.replyToAddress.fullName
-            return u""
+            return None
 
         def fset(self, value):
-            if self.replyToAddress:
+            if hasattr(self, "replyToAddress"):
                 self.replyToAddress.fullName = value
         return property(fget, fset)
 
@@ -581,12 +581,12 @@ class SMTPAccount(AccountBase):
     @apply
     def emailAddress():
         def fget(self):
-            if self.fromAddress:
+            if hasattr(self, "fromAddress"):
                 return self.fromAddress.emailAddress
-            return u""
+            return None
 
         def fset(self, value):
-            if self.fromAddress:
+            if hasattr(self, "fromAddress"):
                 self.fromAddress.emailAddress = value
         return property(fget, fset)
 
