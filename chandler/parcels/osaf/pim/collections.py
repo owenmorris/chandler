@@ -1106,6 +1106,20 @@ class IndexedSelectionCollection(SingleSourceWrapperCollection):
             return None
         return self[index]
 
+    def getSelectedItemIfOnlyOneIsSelected(self):
+        """
+        Returns the first selected item if there is only one item selected,
+        otherwise return None
+        """
+        firstItem = None
+        for item in self.iterSelection():
+            if firstItem is None:
+                firstItem = item
+            else:
+                firstItem = None
+                break
+        return firstItem
+
     def isItemSelected(self, item):
         """
         Returns C{True}/C{False} based on if the item is actually

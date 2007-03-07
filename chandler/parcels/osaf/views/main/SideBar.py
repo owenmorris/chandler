@@ -1156,9 +1156,8 @@ class SidebarBlock(Table):
 
     def onCollectionColorEventUpdateUI(self, event):
         # color of the selected collection
-        selectedItem = self.contents.getFirstSelectedItem()
+        selectedItem = self.contents.getSelectedItemIfOnlyOneIsSelected()
         if (selectedItem is None or
-            len(self.contents.getSelectionRanges()) != 1 or
             not UserCollection(selectedItem).colorizeIcon):
             event.arguments['Enable'] = False
         else:
@@ -1170,18 +1169,8 @@ class SidebarBlock(Table):
             event.arguments['Check'] = (color is not None and
                                         color.toTuple() == event.color.toTuple())
 
-    def canRenameSelection(self):
-        result = True
-
-        selectionRanges = self.contents.getSelectionRanges()
-        if selectionRanges is not None and len(self.contents.getSelectionRanges()) == 1:
-            item = self.contents.getFirstSelectedItem()
-            result = UserCollection (item).renameable
-
-        return result
-
     def onRenameEventUpdateUI (self, event):
-        event.arguments['Enable'] = self.canRenameSelection()
+        event.arguments['Enable'] = self.contents.getSelectedItemIfOnlyOneIsSelected() is not None
 
     def onRenameEvent (self, event):
         self.widget.EnableCellEditControl()

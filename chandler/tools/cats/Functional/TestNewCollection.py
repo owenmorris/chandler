@@ -58,7 +58,7 @@ class TestNewCollection(ChandlerTestCase):
         beforeChangeEvent.Check_ItemInCollection("Dashboard", expectedResult=True)
         
         # Change Meeting to stop being in mine
-        sidebar.onToggleMineEvent(QAUITestAppLib.App_ns.ToggleMineItem.event)
+        sidebar.onToggleMineEvent(QAUITestAppLib.App_ns.SidebarToggleMineItem.event)
         
         afterChangeEvent = QAUITestAppLib.UITestItem("Event", self.logger)
         afterChangeEvent.AddCollection(uw("Meeting"))

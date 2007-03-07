@@ -393,3 +393,13 @@ def makeMainEvents(parcel):
         methodName = 'onDuplicateEvent',
         dispatchToBlockName = 'Sidebar').install(parcel)
 
+    BlockEvent.template(
+        'RenameCollection',
+        methodName = 'onRenameEvent',
+        dispatchToBlockName = 'Sidebar').install(parcel),
+    
+    BlockEvent.template(
+        'DeleteCollection',
+        methodName = 'onDeleteEvent',
+        dispatchToBlockName = 'Sidebar').install(parcel),
+    
