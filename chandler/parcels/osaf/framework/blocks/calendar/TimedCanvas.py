@@ -20,7 +20,8 @@ from application import schema
 from datetime import datetime, timedelta, date, time
 from CalendarCanvas import (
     CalendarCanvasItem, CalendarBlock, CalendarSelection,
-    wxCalendarCanvas, roundTo, roundToColumnPosition, widgetGuardedCallback
+    wxCalendarCanvas, roundTo, roundToColumnPosition, widgetGuardedCallback,
+    wxInPlaceEditor
     )
 from CollectionCanvas import DragState
 from PyICU import FieldPosition, DateFormat, ICUtzinfo
@@ -282,6 +283,7 @@ class wxTimedEventsCanvas(wxCalendarCanvas):
 
     def OnInit(self):
         super (wxTimedEventsCanvas, self).OnInit()
+        self.editor = wxInPlaceEditor(self, defocusCallback=self.SetPanelFocus)
 
         self.SetWindowGeometry()
         

@@ -1349,7 +1349,6 @@ class wxCalendarCanvas(CalendarNotificationHandler, CollectionCanvas.wxCollectio
         
     def OnInit(self):
         super(wxCalendarCanvas, self).OnInit()
-        self.editor = wxInPlaceEditor(self, defocusCallback=self.SetPanelFocus)
     
     def OnScroll(self, event):
         self.Refresh()
@@ -1668,7 +1667,8 @@ class wxInPlaceEditor(AttributeEditors.wxEditText):
     event = None
     _unfocusing = False
     
-    def __init__(self, parent, defocusCallback=None, *arguments, **keywords):
+    def __init__(self, parent, defocusCallback=None, allowMultiLine=True,
+                 *arguments, **keywords):
         
         # Windows and Mac add an extra vertical scrollbar for TE_MULTILINE,
         # GTK doesn't. Further, if GTK is not multiline, then the single
@@ -1680,7 +1680,7 @@ class wxInPlaceEditor(AttributeEditors.wxEditText):
         # beyond the size of the editor if TE_NO_VSCROLL and TE_MULTILINE are
         # both set, so on Windows we stick with the a single line for now
         style = wx.NO_BORDER | wx.TE_PROCESS_ENTER | wx.TE_NO_VSCROLL 
-        if '__WXMSW__' not in wx.PlatformInfo:
+        if '__WXMSW__' not in wx.PlatformInfo and allowMultiLine:
             style |= wx.TE_MULTILINE
 
         super(wxInPlaceEditor, self).__init__(parent,

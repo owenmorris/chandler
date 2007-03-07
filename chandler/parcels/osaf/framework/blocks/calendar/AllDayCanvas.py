@@ -21,7 +21,8 @@ from application import schema
 from datetime import datetime, timedelta, date, time
 from CalendarCanvas import (
     CalendarCanvasItem, CalendarBlock, CalendarSelection,
-    wxCalendarCanvas, roundToColumnPosition, widgetGuardedCallback
+    wxCalendarCanvas, roundToColumnPosition, widgetGuardedCallback,
+    wxInPlaceEditor
     )
 from CollectionCanvas import DragState
 from PyICU import GregorianCalendar, ICUtzinfo
@@ -127,6 +128,8 @@ class wxAllDayEventsCanvas(wxCalendarCanvas):
 
     def __init__(self, *arguments, **keywords):
         super (wxAllDayEventsCanvas, self).__init__ (*arguments, **keywords)
+        self.editor = wxInPlaceEditor(self, defocusCallback=self.SetPanelFocus,
+                                      allowMultiLine=False)
         self.autoExpandMode = True #though we start at collapsed height
         self.numEventRows = 0
 
