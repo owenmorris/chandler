@@ -513,7 +513,7 @@ class DownloadAccountBase(AccountBase):
         def fget(self):
             if self.replyToAddress:
                 return self.replyToAddress.emailAddress
-            return None
+            return u""
 
         def fset(self, value):
             if self.replyToAddress:
@@ -525,7 +525,7 @@ class DownloadAccountBase(AccountBase):
         def fget(self):
             if self.replyToAddress:
                 return self.replyToAddress.fullName
-            return None
+            return u""
 
         def fset(self, value):
             if self.replyToAddress:
@@ -583,7 +583,7 @@ class SMTPAccount(AccountBase):
         def fget(self):
             if self.fromAddress:
                 return self.fromAddress.emailAddress
-            return None
+            return u""
 
         def fset(self, value):
             if self.fromAddress:
