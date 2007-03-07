@@ -39,7 +39,8 @@ from notes import Note
 from contacts import Contact, ContactName
 from calendar.Calendar import (
     CalendarEvent, EventStamp, Occurrence, LONG_TIME, zero_delta,
-    EventComparator, Location, RecurrencePattern, RelativeReminder
+    EventComparator, Location, RecurrencePattern, RelativeReminder,
+    TriageStatusReminder,
 )
 from calendar.TimeZone import installParcel as tzInstallParcel
 from calendar.DateTimeUtil import (ampmNames, durationFormat, mediumDateFormat, 
@@ -370,6 +371,8 @@ def installParcel(parcel, oldVersion=None):
     searchResults = SmartCollection.update(
         parcel, 'searchResults',
         displayName = messages.UNTITLED)
+        
+    TriageStatusReminder.update(parcel, 'triageStatusReminder')
 
     tzInstallParcel(parcel)
 
