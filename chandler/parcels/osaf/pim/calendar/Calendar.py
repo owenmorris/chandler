@@ -61,8 +61,7 @@ from osaf.pim.items import ContentItem, cmpTimeAttribute, TriageEnum, isDead
 from osaf.pim.stamping import Stamp, has_stamp
 from osaf.pim.notes import Note
 from osaf.pim.calendar import Recurrence
-from osaf.pim.collections import (ContentCollection, FilteredCollection,
-                                  IndexDefinition)
+from osaf.pim.collections import FilteredCollection, IndexDefinition
 from chandlerdb.util.c import isuuid, UUID, Empty
 from osaf.pim.reminders import Remindable, Reminder
 
@@ -799,6 +798,7 @@ class EventStamp(Stamp):
         except AttributeError:
             pass
         else:
+            triageStatusReminder = None
             onlyReminder = (self.rruleset is None or
                             self.itsItem.hasLocalAttributeValue('reminders'))
             isMaster = (self.occurrenceFor is None and self.rruleset is not None)
@@ -809,12 +809,25 @@ class EventStamp(Stamp):
                 if not hasattr(reminder, 'delta'):
                     continue
                 
+                if (reminder.delta == zero_delta and not reminder.userCreated
+                    and not reminder.promptUser):
+                    triageStatusReminder = reminder
                 if isMaster or onlyReminder:
                     reminder.startTimeChanged(self.itsItem)
                     
-            tsReminder = schema.ns("osaf.pim", self.itsItem.itsView).triageStatusReminder
-            tsReminder.startTimeChanged(self.itsItem)
                     
+            if (triageStatusReminder is None and
+                (self.occurrenceFor is None or onlyReminder)):
+                # Make our own triage status reminder. We could save some
+                # time here by not bothering if this event is in the past.
+                reminderItem = self.itsItem.getMembershipItem()
+                tsr = RelativeReminder(itsView=reminderItem.itsView,
+                                       delta=zero_delta, userCreated=False,
+                                       promptUser=False)
+                # Bug 8181: we initialize this field separately, so that
+                # watchers won't fire while the reminder's only partly set up.
+                tsr.reminderItem = reminderItem
+            
         # Update our display-date attribute, too
         self.itsItem.updateDisplayDate(op, name)
 
@@ -1574,7 +1587,7 @@ class EventStamp(Stamp):
                         newReminders.append(newReminder)
                         rem.delete(recursive=True)
                         
-                    # @@@ [grant] Unneeded?? self.itsItem.reminders.clear()
+                    self.itsItem.reminders.clear()
                     self.itsItem.reminders = newReminders
 
             else:
@@ -2654,104 +2667,4 @@ class RelativeReminder(Reminder):
         # always
         return super(ContentItem, self).reminderFired(reminder, when)
 
-class TriageStatusReminder(RelativeReminder):
-    """
-    Singleton instance that updates triage status on events when their
-    startTime passes.
-    """
-    
-    def updatePending(self, when=None):
-        if when is None:
-            when = datetime.now(ICUtzinfo.default)
-            
-        print '*** %s.updatePending(%s)' % (self, when)
-        
-        # getKeysInRange() isn't quite what we want, because
-        # it cares about events overlapping range, whereas we
-        # only want events whose effectiveStartTime lies within
-        # range
-
-        view = self.itsView
-
-        def yieldEvents(start, finish):
-            pimNs = schema.ns("osaf.pim", view)
-            useTZ = pimNs.TimezonePrefs.showUI
-            
-            if useTZ:
-                startIndex = 'effectiveStart'
-                recurEndIndex ='recurrenceEnd'
-            else:
-                startIndex = 'effectiveStartNoTZ'
-                recurEndIndex = 'recurrenceEndNoTZ'
-
-
-            allEvents = EventStamp.getCollection(view)
-            
-            if start is None:
-                import pdb; pdb.set_trace()
-            
-            if useTZ:
-                timeForCompare = start
-            else:
-                timeForCompare = start.replace(tzinfo=None)
-            
-            def cmpStart(key):
-                testVal = EventStamp._getEffectiveStartTime(key, view)
-                if testVal is None:
-                    return -1 # interpret None as negative infinity
-                # note that we're NOT using >=, if we did, we'd include all day
-                # events starting at the beginning of the next week
-                if not useTZ:
-                    testVal = testVal.replace(tzinfo=None)
-                    
-                return cmp(testVal, timeForCompare)
-
-            firstKey = allEvents.findInIndex(startIndex, 'first', cmpStart)
-            for key, item in allEvents.iterindexitems(startIndex, firstKey):
-                yield EventStamp(item)
-
-            masterEvents = pimNs.masterEvents
-            for key in getKeysInRange(view, start, 'effectiveStartTime',
-                      startIndex, masterEvents, finish, 'recurrenceEnd', recurEndIndex,
-                      masterEvents, None, '__adhoc__'):
-
-                master = EventStamp(view[key])
-                
-                for event in master._generateRule(after=start, before=finish):
-                    if event.modificationFor is None:
-                        yield event
-
-        if self.nextPoll is not None:
-            start = self.nextPoll
-        else:
-            start = when
-            
-        # Now, find all the events in the hour (say) after when
-        oneHourHence = when + timedelta(minutes=60)
-        nextPoll = oneHourHence
-        
-        for event in yieldEvents(start, oneHourHence):
-            effectiveStart = event.effectiveStartTime
-            
-            if effectiveStart <= when:
-                print '*** Changing triageStatus of %s' % (event.itsItem,)
-                event.changeThis()
-                event.itsItem.triageStatus = TriageEnum.now
-                event.itsItem.setTriageStatusChanged(when=effectiveStart)
-            elif effectiveStart < nextPoll:
-                nextPoll = effectiveStart
-                
-        self.nextPoll = nextPoll
-    
-    def startTimeChanged(self, item):
-        if self.nextPoll is not None:
-            event = EventStamp(item)
-            effectiveStart = event.effectiveStartTime
-            
-            if effectiveStart is not None and effectiveStart < self.nextPoll:
-                self.nextPoll = effectiveStart # @@@ ? recurrence
-            
-            
-
-    
 
