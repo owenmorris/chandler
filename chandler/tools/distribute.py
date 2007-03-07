@@ -21,7 +21,8 @@ import sys, os
 import platform
 import string
 from optparse import OptionParser
-from build_lib import initLog, log, rmdirs, handleManifest, runCommand, getCommand, generateVersionData, findInPath
+from build_lib import initLog, log, rmdirs, handleManifest, runCommand, getCommand, \
+                      generateVersionData, findInPath
 
 
 _debug = True
@@ -34,7 +35,6 @@ def parseOptions():
         'outputDir': ('-o', '--output',  's', '',    'output directory: where the final distribution files will be stored'),
         'sourceDir': ('-s', '--source',  's', '',    'chandler directory: where the distribution will be pulled from'),
         'binDir':    ('-b', '--bin',     's', '',    'chandlerBin directory: where the distribution binaries will be pulled from'),
-        'logPath':   ('-l', '--logPath', 's', None,  'Directory where the test run output will be stored'),
         'quiet':     ('-q', '--quiet',   'b', False, 'Mute log echoing to stdout'),
         'tarball':   ('',   '--tarball', 'b', False, 'only create the tarball (or zip) distribution'),
         'dmg':       ('',   '--dmg',     'b', False, 'only create the OS X .dmg bundle'),
@@ -294,11 +294,6 @@ def checkOptions(options):
     if not os.path.isdir(options.buildDir):
         sys.stderror.write('Unable to locate build directory [%s]\n' % options.buildDir)
         sys.exit(3)
-
-    if options.logPath is None:
-        options.logPath = options.buildDir
-
-    initLog(os.path.join(options.logPath, 'hardhat.log'), echo=(not options.quiet))
 
     if not os.path.isdir(options.sourceDir):
         log('Unable to locate source (aka Chandler) directory [%s]' % options.sourceDir, error=True)
