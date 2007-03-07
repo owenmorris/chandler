@@ -1011,9 +1011,6 @@ class wxTimedEventsCanvas(wxCalendarCanvas):
         drawn on the screen
         """
         startX, startY, width = self.getPositionFromDateTime(startTime)
-        deltaY = 0
-        if IS_MAC:
-            deltaY = -1
         
         # calculating height from duration leads to variations in end position
         # when the start time is dragged, so instead calculate the bottom from 
@@ -1025,7 +1022,7 @@ class wxTimedEventsCanvas(wxCalendarCanvas):
                      (24 * days + endTime.hour + endTime.minute/60.0) - startY)
         height = max(height, self.hourHeight / 2 + self.hourHeight % 2)
         
-        return wx.Rect(startX, startY + deltaY, width+1, height+1)
+        return wx.Rect(startX, startY, width+1, height+1)
     
     def GenerateBoundsRects(self, startTime, endTime):
         """

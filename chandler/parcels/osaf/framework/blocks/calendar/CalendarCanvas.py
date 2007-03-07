@@ -507,13 +507,7 @@ class CalendarCanvasItem(CollectionCanvas.CanvasItem):
                                         hasBottomRightRounded, rightSideCutOff)
 
                 # new, smaller itemRect
-                yDelta = 1
-                if IS_MAC and isAnyTimeOrAllDay:
-                    # on non-Mac's timed event's tops and bottoms are offset from
-                    # hour lines by one pixel 
-                    yDelta = 0
-
-                itemRect = wx.Rect(itemRect.x + 1, itemRect.y + yDelta,
+                itemRect = wx.Rect(itemRect.x + 1, itemRect.y + 1,
                                    itemRect.width - 2, itemRect.height - 2)
 
                 if ENABLE_DEVICE_ORIGIN:
@@ -820,8 +814,10 @@ class CalendarCanvasItem(CollectionCanvas.CanvasItem):
             y -= radius
             height += radius
 
+        delta = (-1 if IS_MAC else 0)
+
         # finally draw the clipped rounded rect
-        dc.DrawRoundedRectangle(x,y,width,height,radius)
+        dc.DrawRoundedRectangle(x, y, width+delta, height+delta, radius)
         dash_pattern = [2,1,4,1]
         
         def drawVertical(brush = None):
