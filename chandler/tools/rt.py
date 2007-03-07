@@ -49,6 +49,12 @@ _ignoreEnvNames = [ 'PARCELPATH',
 
 
 def parseOptions():
+    """
+    parse options
+    
+    >>> parseOptions()
+    <Values at ...: {'profile': False, 'noEnv': False, 'dryrun': False, 'help': False, 'unitSuite': False, 'args': [], 'perf': False, 'funcSuite': False, 'single': '', 'tbox': False, 'mode': None, 'selftest': ..., 'func': False, 'noStop': False, 'unit': False, 'verbose': False}>
+    """
     _configItems = {
         'mode':      ('-m', '--mode',               's', None,  'debug or release; by default attempts both'),
         'noStop':    ('-C', '--continue',           'b', False, 'Continue even after test failures'),
@@ -97,6 +103,15 @@ def parseOptions():
 
 
 def checkOptions(options):
+    """
+    Sanity check options. Some options may be changed, and some combinations
+    will be warned about while some combinations will result in program exit.
+    
+    >>> options = parseOptions()
+    >>> checkOptions(options)
+    >>> options
+    <Values at ...: {'noEnv': False, 'help': False, 'single': '', 'unit': False, 'chandlerBin': '...', 'verbose': False, 'perf': False, 'unitSuite': False, 'runchandler': {'debug': '.../debug/RunChandler', 'release': '.../release/RunChandler'}, 'funcSuite': False, 'runpython': {'debug': '.../debug/RunPython', 'release': '.../release/RunPython'}, 'selftest': True, 'profile': False, 'tbox': False, 'dryrun': False, 'toolsDir': '.../tools', 'args': [], 'chandlerHome': '...', 'func': False, 'mode': None, 'profileDir': '.../test_profile', 'noStop': False, 'parcelPath': '.../tools/QATestScripts/DataFiles'}>
+    """
     if options.help:
         print __doc__
         sys.exit(2)
@@ -161,6 +176,19 @@ def checkOptions(options):
 
 
 def findTestFiles(searchPath, excludeDirs, includePattern):
+    """
+    Find test files.
+    
+    @param searchPath:     The path to search files from.
+    @type searchPath:      str
+    @param excludeDirs:    Do not search these directories.
+    @type excludeDirs:     list
+    @param includePattern: Pattern to match files against.
+    @type includePattern:  str
+    
+    >>> findTestFiles('.', [], 'Application.py')
+    [...]
+    """
     result = []
 
     for pattern in includePattern.split(','):
@@ -180,6 +208,40 @@ def findTestFiles(searchPath, excludeDirs, includePattern):
 def buildTestList(options, excludeTools=True):
     """
     Build test list from singles or collect all unit tests.
+    
+    >>> options = parseOptions()
+    >>> checkOptions(options)
+    >>> options.dryrun  = True
+    >>> options.verbose = True
+    
+    Find a unit test:
+    
+    >>> options.single  = 'TestCrypto.py'
+    >>> buildTestList(options)
+    ['.../application/tests/TestCrypto.py']
+    
+    Try to find a functional test:
+    
+    >>> options.single  = 'TestCreateAccounts.py'
+    >>> buildTestList(options)
+    []
+
+    Include tools in search:
+
+    >>> buildTestList(options, excludeTools=False)
+    ['.../tools/cats/Functional/TestCreateAccounts.py']
+    
+    Unit test and perf test:
+    
+    >>> options.single  = 'TestCrypto.py,PerfLargeDataSharing.py'
+    >>> buildTestList(options, False)
+    ['.../tools/QATestScripts/Performance/PerfLargeDataSharing.py', '.../application/tests/TestCrypto.py']
+    
+    Check that we don't look in projects:
+    
+    >>> options.single  = 'TestI18nAmazon.py'
+    >>> buildTestList(options)
+    []
     """
     excludeDirs = []
 
@@ -210,6 +272,53 @@ def buildTestList(options, excludeTools=True):
 def runSingles(options):
     """
     Run the test(s) specified with the options.single parameter.
+
+    >>> options = parseOptions()
+    >>> checkOptions(options)
+    >>> options.dryrun  = True
+    >>> options.verbose = True
+    >>> options.modes   = ['release']
+    
+    >>> options.single  = 'ThisTestDoesNotExist'
+    >>> runSingles(options)
+    Test(s) not found
+    False
+    
+    >>> options.single  = 'TestCrypto.py'
+    >>> runSingles(options)
+    /.../RunPython... .../application/tests/TestCrypto.py -v
+    - + - + - + - + - + - + - + - + - + - + - + - + - + - + - + 
+    False
+
+    >>> options.single  = 'TestCreateAccounts.py'
+    >>> runSingles(options)
+    /.../RunChandler... --create --catch=tests --scriptTimeout=720 --profileDir=.../test_profile --parcelPath=.../tools/QATestScripts/DataFiles --chandlerTests=TestCreateAccounts -D2 -M0
+    - + - + - + - + - + - + - + - + - + - + - + - + - + - + - + 
+    False
+
+    >>> options.single  = 'PerfLargeDataSharing.py'
+    >>> runSingles(options)
+    /.../RunChandler... --catch=tests --scriptTimeout=600 --profileDir=.../test_profile --parcelPath=.../tools/QATestScripts/DataFiles --catsPerfLog=.../test_profile/time.log --scriptFile=.../tools/QATestScripts/Performance/PerfLargeDataSharing.py --restore=.../test_profile/__repository__.001
+    PerfLargeDataSharing.py                            | 0.00
+    - + - + - + - + - + - + - + - + - + - + - + - + - + - + - + 
+    False
+
+    >>> options.single  = 'startup_large.py'
+    >>> runSingles(options)
+    Creating repository for startup time tests
+    /.../RunChandler... --catch=tests --scriptTimeout=60 --profileDir=.../test_profile --parcelPath=.../tools/QATestScripts/DataFiles --scriptFile=.../tools/QATestScripts/Performance/quit.py --restore=.../test_profile/__repository__.001
+    - + - + - + - + - + - + - + - + - + - + - + - + - + - + - + 
+    Startup_with_large_calendar    /usr/bin/time --format=%e -o .../test_profile/time.log .../RunChandler... --catch=tests --scriptTimeout=60 --profileDir=.../test_profile --parcelPath=.../tools/QATestScripts/DataFiles --scriptFile=.../tools/QATestScripts/Performance/end.py
+     0.00 - + - + - + - + - + - + - + - + - + - + - + - + - + - + - + 
+    ...
+    False
+    
+    >>> options.single  = 'TestCrypto.py,TestSchemaAPI.py'
+    >>> runSingles(options)
+    /.../RunPython... .../application/tests/TestCrypto.py -v
+    - + - + - + - + - + - + - + - + - + - + - + - + - + - + - + 
+    /.../RunPython... .../application/tests/TestSchemaAPI.py -v
+    ...
     """
     failed = False
     tests = buildTestList(options, False)
@@ -240,6 +349,30 @@ def runSingles(options):
 def runUnitTests(options, testlist=None):
     """
     Locate any unit tests (-u) or any of the named test (-t) and run them
+    
+    >>> options = parseOptions()
+    >>> checkOptions(options)
+    >>> options.dryrun  = True
+    >>> options.verbose = True
+    >>> options.modes   = ['release']
+    
+    >>> options.unit    = True
+    >>> runUnitTests(options)
+    /.../RunPython... .../repository/tests/TestReferenceAttributes.py -v
+    - + - + - + - + - + - + - + - + - + - + - + - + - + - + - + 
+    /.../RunPython... .../repository/tests/TestMixins.py -v
+    - + - + - + - + - + - + - + - + - + - + - + - + - + - + - + 
+    ...
+    False
+    
+    >>> runUnitTests(options, [])
+    No unit tests found to run
+    False
+    
+    >>> runUnitTests(options, ['foobar'])
+    /.../RunPython... foobar -v
+    - + - + - + - + - + - + - + - + - + - + - + - + - + - + - + 
+    False
     """
     if testlist is None:
         testlist = buildTestList(options)
@@ -601,7 +734,7 @@ def runStartupPerfTests(options, timer, largeData=False, repeat=3, logger=log):
         else:
             log('')
             log('%s [#TINDERBOX# Status = PASSED]' % name)
-            log('OSAF_QA: %s | %04d | %02.2fs' % (name, os.getenv('REVISION', 0), value)) # XXX get svn revision
+            log('OSAF_QA: %s | %s | %02.2fs' % (name, build_lib.generateVersionData(options.chandlerHome, '')['revision'], value))
             log('#TINDERBOX# Testname = %s' % name)
             log('#TINDERBOX# Status = PASSED')
             log('#TINDERBOX# Time elapsed = %02.2fs (seconds)' % value)
@@ -717,22 +850,9 @@ def runPerfTests(options, tests=None):
 
 def main(options):
     """
-    >>> import optparse
-    >>> options = optparse.Values()
-    >>> options.noEnv     = False
-    >>> options.dryrun    = True
-    >>> options.mode      = None
-    >>> options.perf      = False
-    >>> options.funcSuite = False
-    >>> options.func      = False
-    >>> options.unit      = False
-    >>> options.single    = ''
-    >>> options.verbose   = True
-    >>> options.noStop    = False
-    >>> options.help      = False
-    >>> options.tbox      = False
-    >>> options.unitSuite = False
-    >>> options.profile   = False
+    >>> options = parseOptions()
+    >>> options.dryrun  = True
+    >>> options.verbose = True
     >>> main(options)
     False
     
@@ -908,6 +1028,7 @@ if __name__ == '__main__':
     if '--selftest' in sys.argv:
         import doctest
         doctest.testmod(optionflags=doctest.ELLIPSIS)
+        doctest.testmod(build_lib, optionflags=doctest.ELLIPSIS)
         sys.exit(0)
 
     if main(parseOptions()):

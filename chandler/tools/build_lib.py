@@ -95,6 +95,14 @@ def runCommand(cmd, env=None, timeout=-1, log=log):
         3
         0
 
+        Now with timeout:
+
+        >>> runCommand(['python', '-c', r'print 1;import sys;sys.stdout.flush();print >>sys.stderr, 2;print 3'], timeout=5)
+        1
+        2
+        3
+        0
+
         Setting environment variable:
         
         >>> runCommand(['python', '-c', 'import os;print os.getenv("ENVTEST")'], env={'ENVTEST': '42'})
@@ -202,6 +210,9 @@ def generateVersionData(chandlerDirectory, platformName, continuousBuild=None):
     Determine the version information from the current version.py file.
 
     Write any calculated values back to version.py.
+    
+    >>> generateVersionData('.', '')
+    {'major': '...', 'checkpoint': 'None', 'version': '...', 'release': '...', 'minor': '...', 'revision': '...'}
     """
     versionFilename = os.path.join(chandlerDirectory, 'version.py')
 
@@ -497,5 +508,5 @@ def findInPath(path, fileName):
 
 if __name__ == "__main__":
     import doctest
-    doctest.testmod()
+    doctest.testmod(optionflags=doctest.ELLIPSIS)
 
