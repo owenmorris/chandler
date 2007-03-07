@@ -709,7 +709,7 @@ class MainView(View):
             activity.completed()
         except Exception, e:
             logger.exception("Commit failed")
-            self.setStatusMessage("Commit failed with %s" %(e))
+            self.setStatusMessage(_(u"Commit failed, see log for details"))
             activity.failed(exception=e)
             raise
         else:
