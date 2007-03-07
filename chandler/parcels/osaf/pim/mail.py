@@ -285,19 +285,19 @@ def checkIfToMe(mailStamp):
 
     found = False
 
-    if mailStamp.toAddress:
+    if hasattr(mailStamp, "toAddress"):
         for addr in mailStamp.toAddress:
             if EmailAddress.findEmailAddress(view, addr.emailAddress, meAddressCollection):
                 found = True
                 break
 
-    if not found and mailStamp.ccAddress:
+    if not found and hasattr(mailStamp, "ccAddress"):
         for addr in mailStamp.ccAddress:
             if EmailAddress.findEmailAddress(view, addr.emailAddress, meAddressCollection):
                 found = True
                 break
 
-    if not found and mailStamp.bccAddress:
+    if not found and hasattr(mailStamp, "bccAddress"):
         for addr in mailStamp.bccAddress:
             if EmailAddress.findEmailAddress(view, addr.emailAddress, meAddressCollection):
                 found = True
