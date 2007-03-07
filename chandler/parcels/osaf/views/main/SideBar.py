@@ -1477,5 +1477,8 @@ class SidebarBranchPointDelegate(BranchPoint.BranchPointDelegate):
 
     def getView (self, item):
         hints = {}
-        keyUUID = self._mapItemToCacheKeyItem (item, hints).itsUUID
-        return self.keyUUIDToViewTemplatePath.get (keyUUID, None)
+        cachedItem = self._mapItemToCacheKeyItem (item, hints)
+        if cachedItem is not None:
+            keyUUID = cachedItem.itsUUID
+            return self.keyUUIDToViewTemplatePath.get (keyUUID, None)
+        return None

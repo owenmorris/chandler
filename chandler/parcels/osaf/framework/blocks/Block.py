@@ -95,7 +95,9 @@ class Block(schema.Item):
     showBorders = False
 
     contents = schema.One(inverse=Viewable.contentsOwner)
-    contentsCollection = schema.One(ContentItem, defaultValue=None)
+    contentsCollection = schema.One(ContentItem,
+                                    inverse=schema.Sequence(),
+                                    defaultValue=None)
 
     # Blocks instances can be put into ListCollections or AppCollections
     collections = ContentItem.collections
@@ -616,8 +618,9 @@ class Block(schema.Item):
     
     @classmethod
     def wxOnDestroyWidget (theClass, widget):
-        if hasattr (widget, 'blockItem'):
-            widget.blockItem.onDestroyWidget()
+        blockItem = getattr(widget, 'blockItem', None)
+        if blockItem is not None and not blockItem.isStale():
+            blockItem.onDestroyWidget()
 
     def onDestroyWidget (self):
         """

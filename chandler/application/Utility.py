@@ -35,7 +35,7 @@ import version
 # with your name (and some helpful text). The comment's really there just to
 # cause Subversion to warn you of a conflict when you update, in case someone 
 # else changes it at the same time you do (that's why it's on the same line).
-SCHEMA_VERSION = "330" # jeffrey: file a bug menu item
+SCHEMA_VERSION = "331" # vajda: better item deletion support in the UI
 
 logger = None # initialized in initLogging()
 

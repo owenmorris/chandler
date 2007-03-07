@@ -83,7 +83,7 @@ class BranchPointBlock(BoxContainer):
     )
 
     detailItemCollection = schema.One(
-        schema.Item, defaultValue = None
+        schema.Item, defaultValue = None, inverse=schema.Sequence()
     )
 
     selectedItem = schema.One(
