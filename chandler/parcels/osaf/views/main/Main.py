@@ -694,23 +694,26 @@ class MainView(View):
                 else:
                     app.PostAsyncEvent(app.restart)
 
-    def RepositoryCommitWithStatus (self):
+    def RepositoryCommitWithStatus(self):
         """
         Do a repository commit with notice posted in the Status bar.
         """
-        self.setStatusMessage (_(u"committing changes to the repository..."))
+        self.setStatusMessage(_(u"committing changes to the repository..."))
 
         Block.finishEdits()
         activity = Activity("Saving...")
         activity.started()
+
         try:
             self.itsView.commit()
             activity.completed()
         except Exception, e:
             logger.exception("Commit failed")
+            self.setStatusMessage("Commit failed with %s" %(e))
             activity.failed(exception=e)
             raise
-        self.setStatusMessage ('')
+        else:
+            self.setStatusMessage('')
 
     def setStatusMessage (self, statusMessage, progressPercentage=-1):
         """
