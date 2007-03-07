@@ -884,12 +884,8 @@ class ConflictWarning(DetailSynchronizer, ControlBlocks.Button):
     def shouldShow(self, item):
         superShouldShow = super(ConflictWarning, self).shouldShow(item)
         isShowable = False
-        if superShouldShow and pim.has_stamp(item, sharing.SharedItem):
-            try:
-                conflictStates = sharing.SharedItem(item).conflictingStates
-                isShowable = True
-            except AttributeError:
-                pass
+        if superShouldShow and self.hasConflicts():
+            isShowable = True
         return isShowable
 
     def instantiateWidget(self):
@@ -902,6 +898,38 @@ class ConflictWarning(DetailSynchronizer, ControlBlocks.Button):
             # clicking on it resolves the conflict
             button.Bind(wx.EVT_BUTTON, self.resolveConflict)
         return button
+
+    def synchronizeWidget(self, useHints=False):
+        widget = getattr(self, 'widget', None)
+        if widget is not None and self.hasConflicts():
+            conflicts = self.getConflicts()
+            conflictCount = len(conflicts)
+            if conflictCount > 1:
+                widget.SetLabel(_(u'There are %d pending changes') % len(conflicts))
+            else:
+                widget.SetLabel(_(u'There is a pending change'))
+        super(ConflictWarning, self).synchronizeWidget(useHints)
+    
+    def hasConflicts(self):
+        if pim.has_stamp(self.item, sharing.SharedItem):
+            try:
+                conflictStates = sharing.SharedItem(self.item).conflictingStates
+                return True
+            except AttributeError:
+                return False
+
+    def getConflicts(self):
+        conflicts = []
+        try:
+            if pim.has_stamp(self.item, sharing.SharedItem):
+                # access conflictingStates to make sure there are conflicts
+                states = sharing.SharedItem(self.item).conflictingStates
+                # .. *then* use the generator
+                for c in sharing.SharedItem(self.item).getConflicts():
+                    conflicts.append(c)
+        except AttributeError:
+            pass
+        return conflicts
 
     def resolveConflict(self, event):
         # show the dialog here

@@ -616,7 +616,7 @@ def makeMailArea(parcel, oldVersion):
 def makeConflictBar(parcel, oldVersion):
     blocks = schema.ns("osaf.framework.blocks", parcel.itsView)
     conflictButton = ConflictWarning.template('ConflictButton',
-                                    title=_(u'There are pending changes'),
+                                    title=u'',
                                     buttonKind='TextImage',
                                     # need a better icon
                                     icon=u'MailErrorRollover.png',
