@@ -94,3 +94,4 @@ def installParcel(parcel, version=None):
                         invoke="amazon.LicenseTask",
                         interval=timedelta(days=1),
                         run_at_startup=True)
+    LicenseTask(None).run()
