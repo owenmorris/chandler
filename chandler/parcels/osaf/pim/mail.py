@@ -276,7 +276,7 @@ def forwardMessage(view, mailStamp):
     return __actionOnMessage(view, mailStamp, "FORWARD")
 
 
-def checkIfToMe(mailStamp, type):
+def checkIfToMe(mailStamp):
     assert(isinstance(mailStamp, MailStamp))
 
     view = mailStamp.itsItem.itsView
@@ -285,21 +285,23 @@ def checkIfToMe(mailStamp, type):
 
     found = False
 
-    if type == 0:
+    if mailStamp.toAddress:
         for addr in mailStamp.toAddress:
             if EmailAddress.findEmailAddress(view, addr.emailAddress, meAddressCollection):
                 found = True
                 break
 
-    elif type == 1:
-        if mailStamp.ccAddress:
-            for addr in mailStamp.ccAddress:
-                if EmailAddress.findEmailAddress(view, addr.emailAddress, meAddressCollection):
-                    found = True
-                    break
-    else:
-        #invalid type passed
-        return
+    if not found and mailStamp.ccAddress:
+        for addr in mailStamp.ccAddress:
+            if EmailAddress.findEmailAddress(view, addr.emailAddress, meAddressCollection):
+                found = True
+                break
+
+    if not found and mailStamp.bccAddress:
+        for addr in mailStamp.bccAddress:
+            if EmailAddress.findEmailAddress(view, addr.emailAddress, meAddressCollection):
+                found = True
+                break
 
     # Even though 'toMe' has an initialValue, it may not have
     # been set when this code is called (e.g. from a schema.observer
@@ -509,17 +511,25 @@ class DownloadAccountBase(AccountBase):
     @apply
     def emailAddress():
         def fget(self):
-            return self.replyToAddress.emailAddress
+            if self.replyToAddress:
+                return self.replyToAddress.emailAddress
+            return None
+
         def fset(self, value):
-            self.replyToAddress.emailAddress = value
+            if self.replyToAddress:
+                self.replyToAddress.emailAddress = value
         return property(fget, fset)
 
     @apply
     def fullName():
         def fget(self):
-            return self.replyToAddress.fullName
+            if self.replyToAddress:
+                return self.replyToAddress.fullName
+            return None
+
         def fset(self, value):
-            self.replyToAddress.fullName = value
+            if self.replyToAddress:
+                self.replyToAddress.fullName = value
         return property(fget, fset)
 
     @schema.observer(replyToAddress)
@@ -541,10 +551,13 @@ class DownloadAccountBase(AccountBase):
                     checkIfFromMe(MailStamp(item), 1)
 
                 for item in self.replyToAddress.messagesTo:
-                    checkIfToMe(MailStamp(item), 0)
+                    checkIfToMe(MailStamp(item))
 
                 for item in self.replyToAddress.messagesCc:
-                    checkIfToMe(MailStamp(item), 1)
+                    checkIfToMe(MailStamp(item))
+
+                for item in self.replyToAddress.messagesBcc:
+                    checkIfToMe(MailStamp(item))
 
     def isSetUp(self):
         return self.isActive and \
@@ -568,9 +581,13 @@ class SMTPAccount(AccountBase):
     @apply
     def emailAddress():
         def fget(self):
-            return self.fromAddress.emailAddress
+            if self.fromAddress:
+                return self.fromAddress.emailAddress
+            return None
+
         def fset(self, value):
-            self.fromAddress.emailAddress = value
+            if self.fromAddress:
+                self.fromAddress.emailAddress = value
         return property(fget, fset)
 
     port = schema.One(
@@ -636,10 +653,13 @@ class SMTPAccount(AccountBase):
                     checkIfFromMe(MailStamp(item), 1)
 
                 for item in self.fromAddress.messagesTo:
-                    checkIfToMe(MailStamp(item), 0)
+                    checkIfToMe(MailStamp(item))
 
                 for item in self.fromAddress.messagesCc:
-                    checkIfToMe(MailStamp(item), 1)
+                    checkIfToMe(MailStamp(item))
+
+                for item in self.fromAddress.messagesBcc:
+                    checkIfToMe(MailStamp(item))
 
                 self.itsView.commit()
 
@@ -1067,15 +1087,12 @@ class MailStamp(stamping.Stamp):
         else:
             checkIfFromMe(self, 1)
 
-    @schema.observer(toAddress, ccAddress)
+    @schema.observer(toAddress, ccAddress, bccAddress)
     def onToMeChange(self, op, name):
         if op != "set":
             return
 
-        if name.endswith("toAddress"):
-            checkIfToMe(self, 0)
-        else:
-            checkIfToMe(self, 1)
+        checkIfToMe(self)
 
     @schema.observer(toAddress, isOutbound, stamping.Stamp.stamp_types)
     def onAddressChange(self, op, name):
