@@ -284,12 +284,16 @@ def runSingles(options):
     Test(s) not found
     False
     
+    >>> options.modes   = ['release', 'debug']
     >>> options.single  = 'TestCrypto.py'
     >>> runSingles(options)
-    /.../RunPython... .../application/tests/TestCrypto.py -v
+    /.../release/RunPython... .../application/tests/TestCrypto.py -v
+    - + - + - + - + - + - + - + - + - + - + - + - + - + - + - + 
+    /.../debug/RunPython... .../application/tests/TestCrypto.py -v
     - + - + - + - + - + - + - + - + - + - + - + - + - + - + - + 
     False
 
+    >>> options.modes   = ['release']
     >>> options.single  = 'TestCreateAccounts.py'
     >>> runSingles(options)
     /.../RunChandler... --create --catch=tests --scriptTimeout=720 --profileDir=.../test_profile --parcelPath=.../tools/QATestScripts/DataFiles --chandlerTests=TestCreateAccounts -D2 -M0
@@ -369,8 +373,11 @@ def runUnitTests(options, testlist=None):
     No unit tests found to run
     False
     
+    >>> options.modes   = ['release', 'debug']
     >>> runUnitTests(options, ['foobar'])
-    /.../RunPython... foobar -v
+    /.../release/RunPython... foobar -v
+    - + - + - + - + - + - + - + - + - + - + - + - + - + - + - + 
+    /.../debug/RunPython... foobar -v
     - + - + - + - + - + - + - + - + - + - + - + - + - + - + - + 
     False
     """
@@ -413,6 +420,19 @@ def runUnitTests(options, testlist=None):
 def runUnitSuite(options):
     """
     Run all unit tests in a single process
+    
+    >>> options = parseOptions()
+    >>> checkOptions(options)
+    >>> options.dryrun  = True
+    >>> options.verbose = True
+    >>> options.modes   = ['release', 'debug']
+
+    >>> runUnitSuite(options)
+    /.../release/RunPython... .../tools/run_tests.py -v application i18n osaf repository
+    - + - + - + - + - + - + - + - + - + - + - + - + - + - + - + 
+    /.../debug/RunPython... .../tools/run_tests.py -v application i18n osaf repository
+    - + - + - + - + - + - + - + - + - + - + - + - + - + - + - + 
+    False
     """
     failed = False
     
@@ -421,7 +441,7 @@ def runUnitSuite(options):
                os.path.join(options.chandlerHome, 'tools', 'run_tests.py')]
 
         if options.verbose:
-            cmd += '-v'
+            cmd += ['-v']
         
         cmd += ['application', 'i18n', 'osaf', 'repository']
 
@@ -449,6 +469,21 @@ def runUnitSuite(options):
 def runPluginTests(options):
     """
     Locate any plugin tests (-u)
+
+    >>> options = parseOptions()
+    >>> checkOptions(options)
+    >>> options.dryrun  = True
+    >>> options.verbose = True
+    >>> options.modes   = ['release', 'debug']
+
+    >>> runPluginTests(options)
+    /.../release/RunPython... .../projects/Chandler-EVDBPlugin/setup.py test -v
+    - + - + - + - + - + - + - + - + - + - + - + - + - + - + - + 
+    ...
+    /.../debug/RunPython... .../projects/Chandler-EVDBPlugin/setup.py test -v
+    - + - + - + - + - + - + - + - + - + - + - + - + - + - + - + 
+    ...
+    False
     """
     testlist = findTestFiles(os.path.join(options.chandlerHome, 'projects'), [], 'setup.py')
     failed   = False
@@ -508,6 +543,31 @@ def runPluginTests(options):
 def runFuncTest(options, test='FunctionalTestSuite.py'):
     """
     Run functional test
+
+    >>> options = parseOptions()
+    >>> checkOptions(options)
+    >>> options.dryrun  = True
+    >>> options.verbose = True
+    >>> options.modes   = ['release', 'debug']
+
+    >>> runFuncTest(options)
+    /.../release/RunChandler... --create --catch=tests --scriptTimeout=720 --profileDir=.../test_profile --parcelPath=.../tools/QATestScripts/DataFiles --scriptFile=.../tools/cats/Functional/FunctionalTestSuite.py -D2 -M0
+    - + - + - + - + - + - + - + - + - + - + - + - + - + - + - + 
+    /.../debug/RunChandler... --create --catch=tests --scriptTimeout=720 --profileDir=.../test_profile --parcelPath=.../tools/QATestScripts/DataFiles --scriptFile=.../tools/cats/Functional/FunctionalTestSuite.py -D2 -M0
+    - + - + - + - + - + - + - + - + - + - + - + - + - + - + - + 
+    False
+
+    >>> runFuncTest(options, 'TestCreateAccounts.py')
+    /.../release/RunChandler --create --catch=tests --scriptTimeout=720 --profileDir=.../test_profile --parcelPath=.../tools/QATestScripts/DataFiles --chandlerTests=TestCreateAccounts.py -D2 -M0
+    - + - + - + - + - + - + - + - + - + - + - + - + - + - + - + 
+    /.../debug/RunChandler --create --catch=tests --scriptTimeout=720 --profileDir=.../test_profile --parcelPath=.../tools/QATestScripts/DataFiles --chandlerTests=TestCreateAccounts.py -D2 -M0
+    - + - + - + - + - + - + - + - + - + - + - + - + - + - + - + 
+    False
+
+    >>> options.noStop = True
+    >>> runFuncTest(options, 'TestCreateAccounts.py')
+    /.../release/RunChandler --create --catch=tests --scriptTimeout=720 --profileDir=.../test_profile --parcelPath=.../tools/QATestScripts/DataFiles --chandlerTests=TestCreateAccounts.py -F -D2 -M0
+    ...
     """
     # $CHANDLERBIN/$mode/$RUN_CHANDLER --create --catch=tests $FORCE_CONT --profileDir="$PC_DIR" --parcelPath="$PP_DIR" --scriptTimeout=720 --scriptFile="$TESTNAME" -D1 -M2 2>&1 | tee $TESTLOG
     failed = False
@@ -555,11 +615,20 @@ def runFuncTest(options, test='FunctionalTestSuite.py'):
 def runFuncTestsSingly(options):
     """
     Run functional tests each in its own process.
+
+    >>> options = parseOptions()
+    >>> checkOptions(options)
+    >>> options.dryrun  = True
+    >>> options.verbose = True
+    >>> options.modes   = ['release', 'debug']
+
+    >>> runFuncTestsSingly(options)
+    /.../release/RunChandler... --create --catch=tests --scriptTimeout=720 --profileDir=.../test_profile --parcelPath=.../tools/QATestScripts/DataFiles --chandlerTests=TestCreateAccounts -D2 -M0
+    - + - + - + - + - + - + - + - + - + - + - + - + - + - + - + 
+    /.../debug/RunChandler... --create --catch=tests --scriptTimeout=720 --profileDir=.../test_profile --parcelPath=.../tools/QATestScripts/DataFiles --chandlerTests=TestCreateAccounts -D2 -M0
+    ...
     """
     failed = False
-
-    if not options.dryrun:
-        os.chdir(options.chandlerHome)
 
     testlist = []
     for item in glob.glob(os.path.join(options.chandlerHome, 'tools', 'cats', 'Functional', 'Test*.py')):
@@ -567,18 +636,44 @@ def runFuncTestsSingly(options):
 
     # XXX How to strip disabled tests?
 
-    for mode in options.modes:
-        for test in testlist:
-            if runFuncTest(options, test):
-                failed = True
+    for test in testlist:
+        if runFuncTest(options, test):
+            failed = True
 
-            if failed and not options.noStop:
-                return failed
+        if failed and not options.noStop:
+            return failed
 
     return failed
 
 
 def runScriptPerfTests(options, testlist, largeData=False, logger=log):
+    """
+    Run script performance tests.
+    
+    >>> options = parseOptions()
+    >>> checkOptions(options)
+    >>> options.dryrun  = True
+    >>> options.verbose = True
+
+    >>> runScriptPerfTests(options, ['foobar'])
+    /.../release/RunChandler --catch=tests --scriptTimeout=600 --profileDir=.../test_profile --parcelPath=.../tools/QATestScripts/DataFiles --catsPerfLog=.../test_profile/time.log --scriptFile=foobar --create
+    foobar                                             | 0.00
+    - + - + - + - + - + - + - + - + - + - + - + - + - + - + - + 
+    False
+
+    >>> runScriptPerfTests(options, ['foobar'], largeData=True)
+    /.../release/RunChandler --catch=tests --scriptTimeout=600 --profileDir=.../test_profile --parcelPath=.../tools/QATestScripts/DataFiles --catsPerfLog=.../test_profile/time.log --scriptFile=foobar --restore=.../test_profile/__repository__.001
+    foobar                                             | 0.00
+    - + - + - + - + - + - + - + - + - + - + - + - + - + - + - + 
+    False
+    
+    >>> options.profile = True
+    >>> runScriptPerfTests(options, ['foobar.py'])
+    /.../release/RunChandler --catch=tests --scriptTimeout=600 --profileDir=.../test_profile --parcelPath=.../tools/QATestScripts/DataFiles --catsPerfLog=.../test_profile/time.log --scriptFile=foobar.py --catsProfile=.../test_profile/foobar.hotshot --create
+    foobar.py                                          | 0.00
+    - + - + - + - + - + - + - + - + - + - + - + - + - + - + - + 
+    False
+    """
     failed = False
 
     for item in testlist:
@@ -642,6 +737,69 @@ def runScriptPerfTests(options, testlist, largeData=False, logger=log):
     return failed
 
 def runStartupPerfTests(options, timer, largeData=False, repeat=3, logger=log):
+    """
+    Run startup time tests.
+    
+    >>> options = parseOptions()
+    >>> checkOptions(options)
+    >>> options.dryrun  = True
+    >>> options.verbose = True
+    
+    >>> runStartupPerfTests(options, '/usr/bin/time')
+    Creating repository for startup time tests
+    /.../release/RunChandler... --catch=tests --scriptTimeout=60 --profileDir=.../test_profile --parcelPath=.../tools/QATestScripts/DataFiles --scriptFile=.../tools/QATestScripts/Performance/quit.py --create
+    - + - + - + - + - + - + - + - + - + - + - + - + - + - + - + 
+    Startup                        /usr/bin/time --format=%e -o .../test_profile/time.log .../release/RunChandler... --catch=tests --scriptTimeout=60 --profileDir=.../test_profile --parcelPath=.../tools/QATestScripts/DataFiles --scriptFile=.../tools/QATestScripts/Performance/end.py
+     0.00 - + - + - + - + - + - + - + - + - + - + - + - + - + - + - + 
+    /usr/bin/time --format=%e -o .../test_profile/time.log .../release/RunChandler... --catch=tests --scriptTimeout=60 --profileDir=.../test_profile --parcelPath=.../tools/QATestScripts/DataFiles --scriptFile=.../tools/QATestScripts/Performance/end.py
+     0.00 - + - + - + - + - + - + - + - + - + - + - + - + - + - + - + 
+    /usr/bin/time --format=%e -o .../test_profile/time.log .../release/RunChandler... --catch=tests --scriptTimeout=60 --profileDir=.../test_profile --parcelPath=.../tools/QATestScripts/DataFiles --scriptFile=.../tools/QATestScripts/Performance/end.py
+     0.00 - + - + - + - + - + - + - + - + - + - + - + - + - + - + - + 
+      | 0.00
+    False
+
+    >>> runStartupPerfTests(options, '/usr/bin/time', repeat=1)
+    Creating repository for startup time tests
+    /.../release/RunChandler... --catch=tests --scriptTimeout=60 --profileDir=.../test_profile --parcelPath=.../tools/QATestScripts/DataFiles --scriptFile=.../tools/QATestScripts/Performance/quit.py --create
+    - + - + - + - + - + - + - + - + - + - + - + - + - + - + - + 
+    Startup                        /usr/bin/time --format=%e -o .../test_profile/time.log .../release/RunChandler... --catch=tests --scriptTimeout=60 --profileDir=.../test_profile --parcelPath=.../tools/QATestScripts/DataFiles --scriptFile=.../tools/QATestScripts/Performance/end.py
+     0.00 - + - + - + - + - + - + - + - + - + - + - + - + - + - + - + 
+      | 0.00
+    False
+
+    >>> runStartupPerfTests(options, '/usr/bin/time', largeData=True)
+    Creating repository for startup time tests
+    /.../release/RunChandler... --catch=tests --scriptTimeout=60 --profileDir=.../test_profile --parcelPath=.../tools/QATestScripts/DataFiles --scriptFile=.../tools/QATestScripts/Performance/quit.py --restore=.../test_profile/__repository__.001
+    - + - + - + - + - + - + - + - + - + - + - + - + - + - + - + 
+    Startup_with_large_calendar    /usr/bin/time --format=%e -o .../test_profile/time.log .../release/RunChandler --catch=tests --scriptTimeout=60 --profileDir=.../test_profile --parcelPath=.../tools/QATestScripts/DataFiles --scriptFile=.../tools/QATestScripts/Performance/end.py
+     0.00 - + - + - + - + - + - + - + - + - + - + - + - + - + - + - + 
+    /usr/bin/time --format=%e -o .../test_profile/time.log .../release/RunChandler --catch=tests --scriptTimeout=60 --profileDir=.../test_profile --parcelPath=.../tools/QATestScripts/DataFiles --scriptFile=.../tools/QATestScripts/Performance/end.py
+     0.00 - + - + - + - + - + - + - + - + - + - + - + - + - + - + - + 
+    /usr/bin/time --format=%e -o .../test_profile/time.log .../release/RunChandler --catch=tests --scriptTimeout=60 --profileDir=.../test_profile --parcelPath=.../tools/QATestScripts/DataFiles --scriptFile=.../tools/QATestScripts/Performance/end.py
+     0.00 - + - + - + - + - + - + - + - + - + - + - + - + - + - + - + 
+      | 0.00
+    False
+
+    >>> options.tbox = True
+    >>> runStartupPerfTests(options, '/usr/bin/time')
+    Creating repository for startup time tests
+    /.../release/RunChandler... --catch=tests --scriptTimeout=60 --profileDir=.../test_profile --parcelPath=.../tools/QATestScripts/DataFiles --scriptFile=.../tools/QATestScripts/Performance/quit.py --create
+    - + - + - + - + - + - + - + - + - + - + - + - + - + - + - + 
+    Startup                        /usr/bin/time --format=%e -o .../test_profile/time.log .../release/RunChandler... --catch=tests --scriptTimeout=60 --profileDir=.../test_profile --parcelPath=.../tools/QATestScripts/DataFiles --scriptFile=.../tools/QATestScripts/Performance/end.py
+     0.00 - + - + - + - + - + - + - + - + - + - + - + - + - + - + - + 
+    /usr/bin/time --format=%e -o .../test_profile/time.log .../release/RunChandler... --catch=tests --scriptTimeout=60 --profileDir=.../test_profile --parcelPath=.../tools/QATestScripts/DataFiles --scriptFile=.../tools/QATestScripts/Performance/end.py
+     0.00 - + - + - + - + - + - + - + - + - + - + - + - + - + - + - + 
+    /usr/bin/time --format=%e -o .../test_profile/time.log .../release/RunChandler... --catch=tests --scriptTimeout=60 --profileDir=.../test_profile --parcelPath=.../tools/QATestScripts/DataFiles --scriptFile=.../tools/QATestScripts/Performance/end.py
+     0.00 - + - + - + - + - + - + - + - + - + - + - + - + - + - + - + 
+    <BLANKLINE>
+    Startup [#TINDERBOX# Status = PASSED]
+    OSAF_QA: Startup | ... | 0.00
+    #TINDERBOX# Testname = Startup
+    #TINDERBOX# Status = PASSED
+    #TINDERBOX# Time elapsed = 0.00 (seconds)
+    - + - + - + - + - + - + - + - + - + - + - + - + - + - + - + 
+    False
+    """
     # Create test repo
     if options.verbose:
         log('Creating repository for startup time tests')
@@ -732,12 +890,17 @@ def runStartupPerfTests(options, timer, largeData=False, repeat=3, logger=log):
         if not options.tbox:
             log('| %02.2f'.rjust(10) % value)
         else:
+            revision = getattr(build_lib.loadModuleFromFile(os.path.join(options.chandlerHome, 'version.py'), 'vmodule'), 'revision', '')
             log('')
             log('%s [#TINDERBOX# Status = PASSED]' % name)
-            log('OSAF_QA: %s | %s | %02.2fs' % (name, build_lib.generateVersionData(options.chandlerHome, '')['revision'], value))
+            log('OSAF_QA: %s | %s | %02.2f' % (name, revision, value))
             log('#TINDERBOX# Testname = %s' % name)
             log('#TINDERBOX# Status = PASSED')
-            log('#TINDERBOX# Time elapsed = %02.2fs (seconds)' % value)
+            log('#TINDERBOX# Time elapsed = %02.2f (seconds)' % value)
+            if options.dryrun:
+                log('- + ' * 15)
+            else:
+                logger('- + ' * 15)
         
     return False
 
@@ -745,6 +908,13 @@ def runStartupPerfTests(options, timer, largeData=False, repeat=3, logger=log):
 class DelayedLogger:
     """
     Delayed logger can be used to suppress logger calls until later time.
+    
+    >>> logger = DelayedLogger()
+    >>> logger('foobar')
+    >>> logger('barfoo', True)
+    >>> logger.logAll()
+    foobar
+    barfoo
     """
     def __init__(self):
         self.delayed = []
@@ -760,6 +930,38 @@ class DelayedLogger:
 def runPerfTests(options, tests=None):
     """
     Run the Performance Test Suite
+
+    >>> options = parseOptions()
+    >>> checkOptions(options)
+    >>> options.dryrun  = True
+    >>> options.verbose = True
+    >>> options.modes   = ['debug']
+    
+    >>> runPerfTests(options)
+    Skipping Performance Tests - release mode not specified
+    False
+    
+    >>> options.modes   = ['release']
+    >>> runPerfTests(options)
+    /.../release/RunChandler... --catch=tests --scriptTimeout=600 --profileDir=.../test_profile --parcelPath=.../tools/QATestScripts/DataFiles --catsPerfLog=.../test_profile/time.log --scriptFile=.../tools/QATestScripts/Performance/PerfImportCalendar.py --create
+    PerfImportCalendar.py                              | 0.00
+    - + - + - + - + - + - + - + - + - + - + - + - + - + - + - + 
+    ...
+    /.../release/RunChandler --catch=tests --scriptTimeout=600 --profileDir=.../test_profile --parcelPath=.../tools/QATestScripts/DataFiles --catsPerfLog=.../test_profile/time.log --scriptFile=.../tools/QATestScripts/Performance/PerfLargeDataResizeCalendar.py --restore=.../test_profile/__repository__.001
+    PerfLargeDataResizeCalendar.py                     | 0.00
+    - + - + - + - + - + - + - + - + - + - + - + - + - + - + - + 
+    ...
+    Creating repository for startup time tests
+    ...
+    Startup ...
+    ...
+    Creating repository for startup time tests
+    ...
+    Startup_with_large_calendar ...
+    ...
+    Showing performance log in 5 seconds, Ctrl+C to stop tests
+    - + - + - + - + - + - + - + - + - + - + - + - + - + - + - + 
+    False
     """
     failed = False
 
@@ -830,12 +1032,13 @@ def runPerfTests(options, tests=None):
                     if 'startup_large' in testlistStartup and runStartupPerfTests(options, t, largeData=True, logger=delayedLogger):
                         failed = True
 
-            if not tests and not options.dryrun:
+            if not tests:
                 log('Showing performance log in 5 seconds, Ctrl+C to stop tests')
-                try:
-                    time.sleep(5)
-                except KeyboardInterrupt:
-                    sys.exit(0)
+                if not options.dryrun:
+                    try:
+                        time.sleep(5)
+                    except KeyboardInterrupt:
+                        sys.exit(0)
                 log('- + ' * 15)
             
             delayedLogger.logAll()
@@ -927,7 +1130,7 @@ def main(options):
     >>> options.unit = False
     >>> options.unitSuite = True
     >>> main(options)
-    /.../RunPython .../tools/run_tests.py - v application i18n osaf repository
+    /.../RunPython .../tools/run_tests.py -v application i18n osaf repository
     - + - + - + - + - + - + - + - + - + - + - + - + - + - + - + 
     False
 

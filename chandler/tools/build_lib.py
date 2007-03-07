@@ -210,9 +210,6 @@ def generateVersionData(chandlerDirectory, platformName, continuousBuild=None):
     Determine the version information from the current version.py file.
 
     Write any calculated values back to version.py.
-    
-    >>> generateVersionData('.', '')
-    {'major': '...', 'checkpoint': 'None', 'version': '...', 'release': '...', 'minor': '...', 'revision': '...'}
     """
     versionFilename = os.path.join(chandlerDirectory, 'version.py')
 
