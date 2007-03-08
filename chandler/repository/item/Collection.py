@@ -94,3 +94,29 @@ class Collection(Item):
     def getSourceCollection(self):
 
         return self.itsView, (self.itsUUID, self.__collection__)
+
+    def isSubset(self, superset, reasons=None):
+        """
+        Tell if C{self} a subset of C{superset}.
+
+        @param reasons: if specified, contains the C{(subset, superset)} pairs
+                        that caused the predicate to fail.
+        @type reasons: a C{set} or C{None}
+        @return: C{True} or C{False}
+        """
+
+        superset = getattr(superset, superset.__collection__)
+        return getattr(self, self.__collection__).isSubset(superset, reasons)
+
+    def isSuperset(self, subset, reasons=None):
+        """
+        Tell if C{self} a superset of C{subset}.
+
+        @param reasons: if specified, contains the C{(subset, superset)} pairs
+                        that caused the predicate to fail.
+        @type reasons: a C{set} or C{None}
+        @return: C{True} or C{False}
+        """
+
+        subset = getattr(subset, superset.__collection__)
+        return getattr(self, self.__collection__).isSubset(subset, reasons)

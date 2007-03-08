@@ -21,7 +21,7 @@ from datetime import date
 from repository.tests.RepositoryTestCase import RepositoryTestCase
 from repository.persistence.RepositoryError import MergeError
 from repository.util.Path import Path
-from repository.item.Sets import Set
+from repository.item.Sets import Set, KindSet
 from chandlerdb.item.ItemError import ChildNameError
 
 class TestMerge(RepositoryTestCase):
@@ -1010,10 +1010,12 @@ class TestMerge(RepositoryTestCase):
                                          'cineguide.pack')
             main.loadPack(cineguidePack)
             k = main.findPath('//CineGuide/KHepburn')
-            k.movies.addIndex('t', 'value', attribute='title', ranges=[(0, 1)])
             m1 = k.movies.first()
+            m1.director.itsKind.getAttribute('directed').type = m1.itsKind
+            k.set = KindSet(m1.itsKind, True)
+            k.set.addIndex('t', 'value', attribute='title', ranges=[(0, 1)])
             m1.director.directed.addIndex('T', 'subindex',
-                                          superindex=(k, 'movies', 't'))
+                                          superindex=(k, 'set', 't'))
             main.commit()
 
             view = self.rep.createView('view')

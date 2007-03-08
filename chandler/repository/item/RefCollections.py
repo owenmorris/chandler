@@ -183,6 +183,49 @@ class RefList(LinkedMap, Indexed):
 
         return super(RefList, self).__contains__(key.itsUUID)
 
+    def isSubset(self, superset, reasons=None):
+        """
+        Tell if C{self} a subset of C{superset}.
+
+        A ref collection can only be a subset of itself or, when its owning
+        attribute has a C{Kind} set for its C{type} aspect, of any C{KindSet}
+        of that kind or a superkind thereof.
+
+        @param reasons: if specified, contains the C{(subset, superset)} pairs
+                        that caused the predicate to fail.
+        @type reasons: a C{set} or C{None}
+        @return: C{True} or C{False}
+        """
+
+        if self is superset:
+            return True
+
+        return superset.isSuperset(self, reasons)
+
+    def isSuperset(self, subset, reasons=None):
+        """
+        Tell if C{self} a superset of C{subset}.
+
+        A ref collection can only be a superset of itself or of an
+        C{AbstractSet} ultimately based off it.
+
+        @param reasons: if specified, contains the C{(subset, superset)} pairs
+                        that caused the predicate to fail.
+        @type reasons: a C{set} or C{None}
+        @return: C{True} or C{False}
+        """
+
+        if self is subset:
+            return True
+
+        if not isinstance(subset, RefList):
+            return subset.isSubset(self, reasons)
+
+        if reasons is not None:
+            reasons.add((subset, self))
+
+        return False
+
     def extend(self, valueList, _noFireChanges=False):
         """
         As with regular python lists, this method appends all items in the
@@ -652,30 +695,38 @@ class RefList(LinkedMap, Indexed):
         @return: C{True} if no errors were found, {False} otherwise.
         """
 
-        l = len(self)
         logger = self._getView().logger
+        refs = self._owner()._references
 
         if item is not self._owner() or name != self._name:
             logger.error('Ref collection not owned by %s.%s: %s',
                          self._owner, self._name, self)
             return False
         
-        refs = self._owner()._references
-        result = True
+        while True:
+            l = len(self)
+            result = True
+            key = self.firstKey()
+            prevKey = None
 
-        key = self.firstKey()
-        prevKey = None
-        while key is not None and l > 0:
-            try:
-                other = self[key]
-                result = result and refs._checkRef(logger, name, other, repair)
-            except Exception, e:
-                logger.error("Iterator on %s caused %s: %s",
-                             self, e.__class__.__name__, str(e))
-                return False
-            l -= 1
-            prevKey = key
-            key = self.nextKey(key)
+            while key is not None and l > 0:
+                try:
+                    other = self[key]
+                    result = result and refs._checkRef(logger, name, other,
+                                                       repair)
+                    if result is None:  # a key was removed during repair
+                        break
+                except Exception, e:
+                    logger.error("Iterator on %s caused %s: %s",
+                                 self, e.__class__.__name__, str(e))
+                    return False
+                l -= 1
+                prevKey = key
+                key = self.nextKey(key)
+
+            if result is None:          # re-run check because of repair
+                continue
+            break
             
         if l != 0:
             logger.error("Iterator on %s doesn't match length (%d left for %d total)", self, l, len(self))

@@ -845,25 +845,30 @@ class References(Values):
 
             if otherOther is self._item:
                 return True
-            elif (otherOther._isRefs() and not otherOther._isDict() and
-                  self._item in otherOther):
-                return True
-            elif otherOther._isRefs() and otherOther._isDict():
-                return True  # check not yet implemented
+
+            elif otherOther._isRefs():
+                if (otherOther._isDict() or # check not yet implemented
+                    self._item in otherOther):
+                    return True
+
+                logger.error("%s doesn't contain a reference to %s, yet %s.%s references %s",
+                             otherOther, self._item._repr_(),
+                             self._item._repr_(), name, other._repr_())
+                if repair:
+                    logger.warning("Removing dangling ref to %s from %s.%s",
+                                   other._repr_(), self._item._repr_(), name)
+                    self._removeRef(name, other)
+                    return None
+
+            elif isitem(otherOther):
+                logger.error("%s.%s doesn't reference %s.%s but %s",
+                             other._repr_(), otherName, self._item._repr_(),
+                             name, otherOther._repr_())
             else:
-                if otherOther._isRefs():
-                    logger.error("%s doesn't contain a reference to %s, yet %s.%s references %s",
-                                 otherOther, self._item._repr_(),
-                                 self._item._repr_(), name, other._repr_())
-                elif isitem(otherOther):
-                    logger.error("%s.%s doesn't reference %s.%s but %s",
-                                 other._repr_(), otherName, self._item._repr_(),
-                                 name, otherOther._repr_())
-                else:
-                    logger.error("%s.%s doesn't reference %s.%s but %s",
-                                 other._repr_(), otherName, self._item._repr_(),
-                                 name, otherOther)
-                return False
+                logger.error("%s.%s doesn't reference %s.%s but %s",
+                             other._repr_(), otherName, self._item._repr_(),
+                             name, otherOther)
+            return False
 
         return True
 

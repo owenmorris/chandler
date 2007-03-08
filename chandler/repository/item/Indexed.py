@@ -131,6 +131,14 @@ class Indexed(object):
         index = self._createIndex(indexType, **kwds)
 
         if not (view.isLoading() or kwds.get('loading', False)):
+
+            if indexType == 'subindex':
+                uuid, superName, superIndexName = index._super
+                superset = getattr(view[uuid], superName)
+                reasons = set()
+                if not self.isSubset(superset, reasons):
+                    raise ValueError, "To support a subindex, %s must be a subset of %s but %s" %(self, superset, ', '.join("%s.%s is not a subset of %s.%s" %(sub_i, sub_a, sup_i, sup_a) for (sub_i, sub_a), (sup_i, sup_a) in ((sub._getOwner(), sup._getOwner()) for sub, sup in reasons)))
+
             self.fillIndex(index)
             self._setDirty(True) # noFireChanges=True
             monitor = kwds.get('monitor')
@@ -158,9 +166,7 @@ class Indexed(object):
                     _attach(kwds['attribute'])
 
             if indexType == 'subindex':
-                uuid, superName, superIndexName = index._super
-                superIndex = getattr(view[uuid],
-                                     superName).getIndex(superIndexName)
+                superIndex = superset.getIndex(superIndexName)
                 superIndex.addSubIndex(item.itsUUID, name, indexName)
 
         self._indexes[indexName] = index

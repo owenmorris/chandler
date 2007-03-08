@@ -150,7 +150,7 @@ class DBRepositoryView(OnDemandRepositoryView):
     def _unregisterItem(self, item, reloadable):
 
         super(DBRepositoryView, self)._unregisterItem(item, reloadable)
-        if item.isDirty():
+        if self._log and item.isDirty():
             self._log.remove(item)
 
     def _getLobType(self):

@@ -22,6 +22,7 @@ from chandlerdb.item.ItemValue import ItemValue
 from repository.item.Monitors import Monitors
 from repository.item.Indexed import Indexed
 from repository.item.Collection import Collection
+from repository.item.RefCollections import RefList
 
 class AbstractSet(ItemValue, Indexed):
 
@@ -157,6 +158,46 @@ class AbstractSet(ItemValue, Indexed):
     def iterInnerSets(self):
 
         raise NotImplementedError, "%s.iterInnerSets" %(type(self))
+
+    def isSubset(self, superset, reasons=None):
+        """
+        Tell if C{self} a subset of C{superset}.
+
+        @param reasons: if specified, contains the C{(subset, superset)} pairs
+                        that caused the predicate to fail.
+        @type reasons: a C{set} or C{None}
+        @return: C{True} or C{False}
+        """
+
+        raise NotImplementedError, "%s.isSubset" %(type(self))
+
+    def isSuperset(self, subset, reasons=None):
+        """
+        Tell if C{self} a superset of C{subset}.
+
+        @param reasons: if specified, contains the C{(subset, superset)} pairs
+                        that caused the predicate to fail.
+        @type reasons: a C{set} or C{None}
+        @return: C{True} or C{False}
+        """
+        
+        raise NotImplementedError, "%s.isSuperset" %(type(self))
+
+    def _isSourceSubset(self, source, superset, reasons):
+
+        if isinstance(source, AbstractSet):
+            return source.isSubset(superset, reasons)
+
+        uItem, srcAttr = source
+        return getattr(self._view[uItem], srcAttr).isSubset(superset, reasons)
+
+    def _isSourceSuperset(self, source, subset, reasons):
+
+        if isinstance(source, AbstractSet):
+            return source.isSuperset(subset, reasons)
+
+        uItem, srcAttr = source
+        return getattr(self._view[uItem], srcAttr).isSuperset(subset, reasons)
 
     def _iterSourceItems(self):
 
@@ -625,6 +666,20 @@ class EmptySet(AbstractSet):
 
         return iter(())
 
+    def isSubset(self, superset, reasons=None):
+
+        return True
+
+    def isSuperset(self, subset, reasons):
+
+        if isinstance(subset, EmptySet):
+            return True
+
+        if reasons is not None:
+            reasons.add((subset, self))
+
+        return False
+
     def _inspect_(self, indent):
 
         return '%s' %(self._inspect__(indent))
@@ -709,6 +764,14 @@ class Set(AbstractSet):
 
         if isinstance(self._source, AbstractSet):
             yield self._source
+
+    def isSubset(self, superset, reasons=None):
+
+        return self._isSourceSubset(self._source, superset, reasons)
+
+    def isSuperset(self, subset, reasons=None):
+
+        return self._isSourceSuperset(self._source, subset, reasons)
 
     def _inspect_(self, indent):
 
@@ -799,6 +862,16 @@ class BiSet(AbstractSet):
             yield self._left
         if isinstance(self._right, AbstractSet):
             yield self._right
+
+    def isSubset(self, superset, reasons=None):
+
+        return (self._isSourceSubset(self._left, superset, reasons) and
+                self._isSourceSubset(self._right, superset, reasons))
+
+    def isSuperset(self, subset, reasons=None):
+
+        return (self._isSourceSuperset(self._left, subset, reasons) and
+                self._isSourceSuperset(self._right, subset, reasons))
 
     def _inspect_(self, indent):
 
@@ -979,6 +1052,14 @@ class Difference(BiSet):
 
         return None
 
+    def isSubset(self, superset, reasons=None):
+
+        return self._isSourceSubset(self._left, superset, reasons)
+
+    def isSuperset(self, subset, reasons=None):
+
+        return self._isSourceSuperset(self._left, subset, reasons)
+
 
 class MultiSet(AbstractSet):
 
@@ -1058,6 +1139,22 @@ class MultiSet(AbstractSet):
         for source in self._sources:
             if isinstance(source, AbstractSet):
                 yield source
+
+    def isSubset(self, superset, reasons=None):
+
+        for source in self._sources:
+            if not self._isSourceSubset(source, superset, reasons):
+                return False
+
+        return True
+
+    def isSuperset(self, subset, reasons=None):
+
+        for source in self._sources:
+            if not self._isSourceSuperset(source, subset, reasons):
+                return False
+
+        return True
 
     def _inspect_(self, indent):
 
@@ -1294,6 +1391,49 @@ class KindSet(Set):
     def iterInnerSets(self):
 
         return iter(())
+
+    def isSubset(self, superset, reasons=None):
+
+        if self is superset:
+            return True
+
+        if isinstance(superset, KindSet):
+            superKind = self._view[superset._extent].kind
+            if self._view[self._extent].kind.isKindOf(superKind):
+                return True
+
+        elif isinstance(superset, AbstractSet):
+            return superset.isSuperset(subset, reasons)
+
+        if reasons is not None:
+            reasons.add((self, superset))
+
+        return False
+
+    def isSuperset(self, subset, reasons=None):
+
+        if self is subset:
+            return True
+
+        if isinstance(subset, KindSet):
+            subKind = self._view[subset._extent].kind
+            if subKind.isKindOf(self._view[self._extent].kind):
+                return True
+
+        elif isinstance(subset, AbstractSet):
+            return subset.isSubset(self, reasons)
+
+        elif isinstance(subset, RefList):
+            item, attr = subset._getOwner()
+            subKind = item.getAttributeAspect(attr, 'type')
+            if (subKind is not None and
+                subKind.isKindOf(self._view[self._extent].kind)):
+                return True
+
+        if reasons is not None:
+            reasons.add((subset, self))
+
+        return False
 
     def _inspect_(self, indent):
 
