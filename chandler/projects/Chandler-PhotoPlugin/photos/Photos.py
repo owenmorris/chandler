@@ -1,4 +1,4 @@
-#   Copyright (c) 2003-2006 Open Source Applications Foundation
+#   Copyright (c) 2003-2007 Open Source Applications Foundation
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -89,7 +89,7 @@ class PhotoMixin(pim.ContentItem):
                               exif['Image DateTime']))
 
             timestamp = time.mktime(time.strptime(takenString,
-                "%Y:%m:%d %H:%M:%S"))
+                                                  "%Y:%m:%d %H:%M:%S"))
             self.dateTaken = datetime.fromtimestamp(timestamp)
             if self.dateTaken.tzinfo is None:
                 self.dateTaken = self.dateTaken.replace(tzinfo=ICUtzinfo.default)
@@ -124,7 +124,7 @@ class NewImageEvent(NewItemEvent):
     """
     An event used to import a new image from disk.
     """
-    def onNewItem (self):
+    def onNewItem(self):
         """
         Called to create a new Photo.
         """

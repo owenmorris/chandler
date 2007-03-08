@@ -19,7 +19,7 @@ from Photos import Photo, PhotoMixin, NewImageEvent
 from application import schema
 from osaf.pim.structs import RectType
 from osaf.pim.notes import Note
-from osaf.views.detail import makeArea, makeSubtree, makeEditor
+from osaf.views.detail import makeSubtree, makeEditor
 from osaf.framework.blocks.MenusAndToolbars import MenuItem
 from i18n import MessageFactory
 
@@ -43,7 +43,7 @@ def installParcel(parcel, old_version=None):
         parcel, 'NewImage',
         blockName = 'NewImage',
         classParameter = Note,
-        allCollection = schema.ns ('osaf.pim', parcel.itsView).allCollection)
+        allCollection = schema.ns('osaf.pim', parcel.itsView).allCollection)
 
     # Add menu item to Chandler
     MenuItem.update(
@@ -55,4 +55,3 @@ def installParcel(parcel, old_version=None):
         eventsForNamedLookup = [newImageEvent],
         parentBlock = schema.ns('osaf.views.main', parcel).ImportExportMenu)
  
-
