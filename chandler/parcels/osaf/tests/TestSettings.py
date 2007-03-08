@@ -135,9 +135,6 @@ class SettingsTestCase(testcase.SingleRepositoryTestCase):
         self.assertEquals(calPrefs.visibleHours, 24)
         self.assertEquals(calPrefs.hourHeightMode, "visibleHours")
 
-        # verify event logger
-        eventHook = schema.ns("eventLogger", rv).EventLoggingHook
-        self.assert_(eventHook.logging)
 
 
 
