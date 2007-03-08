@@ -158,6 +158,17 @@ def ProcessEvent (theClass, properties , attributes):
             application.propagateAsynchronousNotifications()
     
         application.Yield()
+        
+        # Since scrips don't actually move the cursor and cause wxMouseCaptureLostEvents
+        # to be generated we'll periodically release the capture from all the windows.
+        # Alternatively, it might be better to record and playback wxMouseCaptureLostEvents.
+        while True:
+            capturedWindow = wx.Window.GetCapture()
+            if capturedWindow is not None:
+                capturedWindow.ReleaseMouse()
+            else:
+                break
+            
 
 def VerifyOn (verify = True):
     global verifyOn, lastFocus, lastSentToWidget
