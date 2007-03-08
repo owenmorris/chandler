@@ -142,17 +142,17 @@ class wxTable(DragAndDrop.DraggableWidget,
 
         self.Bind(wx.EVT_KILL_FOCUS, self.OnLoseFocus)
         self.Bind(wx.EVT_SET_FOCUS, self.OnGainFocus)
+        self.Bind(wx.EVT_KEY_DOWN, self.OnKeyDown)
         self.Bind(wx.grid.EVT_GRID_CELL_BEGIN_DRAG, self.OnItemDrag)
         self.Bind(wx.grid.EVT_GRID_COL_SIZE, self.OnColumnDrag)
         self.Bind(wx.grid.EVT_GRID_RANGE_SELECT, self.OnRangeSelect)
         self.Bind(wx.grid.EVT_GRID_LABEL_LEFT_CLICK, self.OnLabelLeftClicked)
-        self.Bind(wx.EVT_KEY_DOWN, self.OnKeyDown)
-        self.Bind(wx.grid.EVT_GRID_CELL_RIGHT_CLICK, self.OnRightClick)
 
         gridWindow = self.GetGridWindow()
         gridWindow.Bind(wx.EVT_PAINT, self.OnPaint)
         gridWindow.Bind(wx.EVT_MOUSE_EVENTS, self.OnMouseEvents)
         gridWindow.Bind(wx.EVT_MOUSE_CAPTURE_LOST, self.OnMouseCaptureLost)
+        gridWindow.Bind(wx.EVT_RIGHT_DOWN, self.OnRightClick)
 
 
     def Destroy(self):
@@ -169,11 +169,12 @@ class wxTable(DragAndDrop.DraggableWidget,
         return super(wxTable, self).Destroy()
 
     def OnRightClick(self, event):
-        selectedItemIndex = self.RowToIndex (event.GetRow())
+        (column, row) = self.__eventToCell(event)
+        selectedItemIndex = self.RowToIndex (row)
         blockItem = self.blockItem
         if selectedItemIndex != -1:
-            blockItem.contents.setSelectionRanges([(selectedItemIndex,
-                                          selectedItemIndex)])
+            blockItem.contents.setSelectionRanges ([(selectedItemIndex,
+                                                     selectedItemIndex)])
             blockItem.PostSelectItems()
             # Update the screen before showing the context menu
             theApp = wx.GetApp()
