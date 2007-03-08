@@ -1288,7 +1288,9 @@ class EventStamp(Stamp):
                 return [master]
             else: return []
             
-        if not inclusive and not master.duration:
+        if not inclusive and not master.duration and not isDayEvent(master):
+            # zero-duration events at midnight aren't found if inclusive is
+            # False and the event's startTime matches start.
             inclusive = True
 
         return list(master._generateRule(after, before, inclusive))
