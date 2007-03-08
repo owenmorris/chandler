@@ -137,7 +137,7 @@ class Indexed(object):
                 superset = getattr(view[uuid], superName)
                 reasons = set()
                 if not self.isSubset(superset, reasons):
-                    raise ValueError, "To support a subindex, %s must be a subset of %s but %s" %(self, superset, ', '.join("%s.%s is not a subset of %s.%s" %(sub_i, sub_a, sup_i, sup_a) for (sub_i, sub_a), (sup_i, sup_a) in ((sub._getOwner(), sup._getOwner()) for sub, sup in reasons)))
+                    raise ValueError, "To support a subindex, %s must be a subset of %s but %s" %(self, superset, ', '.join("%s.%s is not a subset of %s.%s" %(sub_i._repr_(), sub_a, sup_i._repr_(), sup_a) for (sub_i, sub_a), (sup_i, sup_a) in ((sub._getOwner(), sup._getOwner()) for sub, sup in reasons)))
 
             self.fillIndex(index)
             self._setDirty(True) # noFireChanges=True

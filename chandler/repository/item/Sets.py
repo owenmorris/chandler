@@ -863,16 +863,6 @@ class BiSet(AbstractSet):
         if isinstance(self._right, AbstractSet):
             yield self._right
 
-    def isSubset(self, superset, reasons=None):
-
-        return (self._isSourceSubset(self._left, superset, reasons) and
-                self._isSourceSubset(self._right, superset, reasons))
-
-    def isSuperset(self, subset, reasons=None):
-
-        return (self._isSourceSuperset(self._left, subset, reasons) and
-                self._isSourceSuperset(self._right, subset, reasons))
-
     def _inspect_(self, indent):
 
         return '%s%s%s' %(self._inspect__(indent),
@@ -939,6 +929,32 @@ class Union(BiSet):
 
         return None
 
+    def isSubset(self, superset, reasons=None):
+
+        if (self._isSourceSubset(self._left, superset, reasons) or
+            self._isSourceSubset(self._right, superset, reasons)):
+            if reasons:
+                reasons.clear()
+            return True
+
+        if reasons is not None and not reasons:
+            reasons.add((self, superset))
+
+        return False
+
+    def isSuperset(self, subset, reasons=None):
+
+        if (self._isSourceSuperset(self._left, subset, reasons) or
+            self._isSourceSuperset(self._right, subset, reasons)):
+            if reasons:
+                reasons.clear()
+            return True
+
+        if reasons is not None and not reasons:
+            reasons.add((subset, self))
+
+        return False
+
 
 class Intersection(BiSet):
 
@@ -994,6 +1010,16 @@ class Intersection(BiSet):
             return 'remove'
 
         return None
+
+    def isSubset(self, superset, reasons=None):
+
+        return (self._isSourceSubset(self._left, superset, reasons) and
+                self._isSourceSubset(self._right, superset, reasons))
+
+    def isSuperset(self, subset, reasons=None):
+
+        return (self._isSourceSuperset(self._left, subset, reasons) and
+                self._isSourceSuperset(self._right, subset, reasons))
 
 
 class Difference(BiSet):
@@ -1140,22 +1166,6 @@ class MultiSet(AbstractSet):
             if isinstance(source, AbstractSet):
                 yield source
 
-    def isSubset(self, superset, reasons=None):
-
-        for source in self._sources:
-            if not self._isSourceSubset(source, superset, reasons):
-                return False
-
-        return True
-
-    def isSuperset(self, subset, reasons=None):
-
-        for source in self._sources:
-            if not self._isSourceSuperset(source, subset, reasons):
-                return False
-
-        return True
-
     def _inspect_(self, indent):
 
         return '%s%s' %(self._inspect__(indent),
@@ -1229,6 +1239,32 @@ class MultiUnion(MultiSet):
 
         return None
 
+    def isSubset(self, superset, reasons=None):
+
+        for source in self._sources:
+            if self._isSourceSubset(source, superset, reasons):
+                if reasons:
+                    reasons.clear()
+                return True
+
+        if reasons is not None and not reasons:
+            reasons.add((self, superset))
+
+        return False
+
+    def isSuperset(self, subset, reasons=None):
+
+        for source in self._sources:
+            if self._isSourceSuperset(source, subset, reasons):
+                if reasons:
+                    reasons.clear()
+                return True
+
+        if reasons is not None and not reasons:
+            reasons.add((subset, self))
+
+        return False
+
 
 class MultiIntersection(MultiSet):
 
@@ -1300,6 +1336,22 @@ class MultiIntersection(MultiSet):
                         return op
 
         return None
+
+    def isSubset(self, superset, reasons=None):
+
+        for source in self._sources:
+            if not self._isSourceSubset(source, superset, reasons):
+                return False
+
+        return True
+
+    def isSuperset(self, subset, reasons=None):
+
+        for source in self._sources:
+            if not self._isSourceSuperset(source, subset, reasons):
+                return False
+
+        return True
 
 
 class KindSet(Set):
