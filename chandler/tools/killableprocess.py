@@ -93,22 +93,6 @@ if not mswindows:
         pass
 
 class Popen(subprocess.Popen):
-    if not mswindows:
-        # Override __init__ to set a preexec_fn
-        def __init__(self, *args, **kwargs):
-            if len(args) >= 7:
-                raise Exception("Arguments preexec_fn and after must be passed by keyword.")
-
-            real_preexec_fn = kwargs.pop("preexec_fn", None)
-            def setpgid_preexec_fn():
-                os.setpgid(0, 0)
-                if real_preexec_fn:
-                    apply(real_preexec_fn)
-
-            kwargs['preexec_fn'] = setpgid_preexec_fn
-
-            subprocess.Popen.__init__(self, *args, **kwargs)
-
     if mswindows:
         def _execute_child(self, args, executable, preexec_fn, close_fds,
                            cwd, env, universal_newlines, startupinfo,
@@ -216,7 +200,6 @@ class Popen(subprocess.Popen):
                 # time.sleep is interrupted by signals (good!)
                 newtimeout = timeout - time.time() + starttime
                 time.sleep(newtimeout)
-
             self.kill(group)
             signal.signal(signal.SIGCHLD, oldsignal)
             subprocess.Popen.wait(self)

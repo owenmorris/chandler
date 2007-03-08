@@ -76,6 +76,10 @@ def log(msg, error=False, newline='\n'):
         sys.stdout.flush()
 
 
+def setpgid_preexec_fn():
+    os.setpgid(0, 0)
+
+
 def runCommand(cmd, env=None, timeout=-1, log=log):
     """
     Execute the given command and log all output
@@ -110,8 +114,7 @@ def runCommand(cmd, env=None, timeout=-1, log=log):
         0
 
         Timeout:
-        
-        >>> runCommand(['sleep', '10'], timeout=2)
+        >>> runCommand(['sleep', '60'], timeout=5)
         -9
     """
     if timeout == -1:
@@ -119,14 +122,14 @@ def runCommand(cmd, env=None, timeout=-1, log=log):
     else:
         output = tempfile.TemporaryFile()
 
-    p = killableprocess.Popen(cmd, env=env, stdout=output, stderr=subprocess.STDOUT)
+    p = killableprocess.Popen(cmd, env=env, stdout=output, stderr=subprocess.STDOUT, preexec_fn=setpgid_preexec_fn)
 
     try:
         if timeout == -1:
             for line in p.stdout:
                 log(line[:-1])
 
-        p.wait(timeout=timeout)
+        p.wait(timeout=timeout, group=True)
 
     except KeyboardInterrupt:
         try:
