@@ -716,9 +716,8 @@ class RefList(LinkedMap, Indexed):
                                                        repair)
                     if result is None:  # a key was removed during repair
                         break
-                except Exception, e:
-                    logger.error("Iterator on %s caused %s: %s",
-                                 self, e.__class__.__name__, str(e))
+                except:
+                    logger.exception("Iterating %s caused an error", self)
                     return False
                 l -= 1
                 prevKey = key
