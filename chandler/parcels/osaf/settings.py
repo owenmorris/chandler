@@ -201,14 +201,7 @@ def save(rv, filename):
     calPrefs = schema.ns("osaf.framework.blocks.calendar", rv).calendarPrefs
     cfg[u"visible_hours"][u"height_mode"] = calPrefs.hourHeightMode
     cfg[u"visible_hours"][u"num_hours"] = calPrefs.visibleHours
-    
-    # Event Logger
-    cfg[u"event_logger"] = {}
-    eventHook = schema.ns("eventLogger", rv).EventLoggingHook
-    cfg[u"event_logger"][u"type"] = u"event logger"
-    active = eventHook.logging
-    cfg[u"event_logger"][u"active"] = active
-    
+
     cfg.write()
 
 
@@ -562,12 +555,3 @@ def restore(rv, filename, testmode=False):
                 calPrefs.hourHeightMode = section[u"height_mode"]
             if section.has_key(u"num_hours"):
                 calPrefs.visibleHours = section.as_int(u"num_hours")
-        
-        # Event Logger        
-        elif sectionname == u"event_logger":
-            if section.has_key(u"active"):
-                active = section.as_bool(u"active")
-                if active:
-                    eventHook = schema.ns("eventLogger", rv).EventLoggingHook
-                    eventHook.onToggleLoggingEvent(None)
-
