@@ -41,11 +41,6 @@ class ImportCertificateEvent(NewItemEvent):
         return certificate.importCertificateDialog(self.itsView)
 
 def installParcel(parcel, oldVersion=None):
-    # Register an extra attribute editor mapping for one of our types
-    AttributeEditorMapping.register(parcel, 
-        { 'typeEnum': 'osaf.framework.attributeEditors.StringAttributeEditor' },
-        __name__)
-
     blocks    = schema.ns("osaf.framework.blocks", parcel)
     main      = schema.ns("osaf.views.main", parcel)
     # The following trick finds the location of the directory containing
