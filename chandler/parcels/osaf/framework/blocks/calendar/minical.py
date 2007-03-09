@@ -363,21 +363,10 @@ class PyMiniCalendar(wx.PyControl):
         
     def GetTextExtent(self, gc, dc, text):
 
-        if '__WXGTK__' in wx.PlatformInfo:
-            # on Linux
-            # using dc as gc.GetTextExtent() is not yet implemented
-            # using GetFullTextExtent() as gc.DrawText() is off by baseline
-            w, h, descent, externalLeading = dc.GetFullTextExtent(text)
-            return w, h, h - descent
-        else:
-            w, h = gc.GetTextExtent(text)
-            return w, h, 0
+        w, h = gc.GetTextExtent(text)
+        return w, h, 0
 
     def DrawText(self, gc, text, x, y, brush, baseline):
-
-        if '__WXGTK__' in wx.PlatformInfo:
-            # on Linux gc.DrawText() is off by the baseline
-            y += baseline
 
         gc.DrawText(text, x, y, brush)
 
