@@ -814,10 +814,8 @@ class CalendarCanvasItem(CollectionCanvas.CanvasItem):
             y -= radius
             height += radius
 
-        delta = (-1 if IS_MAC else 0)
-
         # finally draw the clipped rounded rect
-        dc.DrawRoundedRectangle(x, y, width+delta, height+delta, radius)
+        dc.DrawRoundedRectangle(x, y, width, height, radius)
         dash_pattern = [2,1,4,1]
         
         def drawVertical(brush = None):
