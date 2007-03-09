@@ -914,7 +914,10 @@ class ConflictWarning(DetailSynchronizer, ControlBlocks.Button):
         if pim.has_stamp(self.item, sharing.SharedItem):
             try:
                 conflictStates = sharing.SharedItem(self.item).conflictingStates
-                return True
+                conflicts = []
+                for c in sharing.SharedItem(self.item).getConflicts():
+                    conflicts.append(c)
+                return True and len(conflicts) > 0
             except AttributeError:
                 return False
 
@@ -933,7 +936,35 @@ class ConflictWarning(DetailSynchronizer, ControlBlocks.Button):
 
     def resolveConflict(self, event):
         # show the dialog here
-        pass
+        dialog = ConflictDialog(self.getConflicts())
+        dialog.CenterOnScreen()
+        dialog.ShowModal()
+        dialog.Destroy()
+
+class ConflictDialog(wx.Dialog):
+    def __init__(self, conflicts):
+        self.conflicts = conflicts
+        wx.Dialog.__init__(self, None, -1, _(u'Conflicts'), size=(450, 100))
+        okButton = wx.Button(self, wx.ID_OK, _(u"Update"), pos=(15, 15))
+        okButton.SetDefault()
+        okButton.Bind(wx.EVT_BUTTON, self.onApplyUpdates)
+        cancelButton = wx.Button(self, wx.ID_CANCEL, _(u"Discard"), pos=(115, 15))
+        cancelButton.Bind(wx.EVT_BUTTON, self.onDiscardUpdates)
+        later = wx.Button(self, 100, _(u"Later"), pos=(215, 15))
+        later.Bind(wx.EVT_BUTTON, self.onLater)
+
+    def onApplyUpdates(self, event):
+        for c in self.conflicts:
+            c.apply()
+        self.Close()
+
+    def onDiscardUpdates(self, event):
+        for c in self.conflicts:
+            c.discard()
+        self.Close()
+
+    def onLater(self, event):
+        self.Close()
 
 # Classes to support CalendarEvent details - first, areas that show/hide
 # themselves based on readonlyness and attribute values
