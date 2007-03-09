@@ -798,7 +798,6 @@ class EventStamp(Stamp):
         except AttributeError:
             pass
         else:
-            triageStatusReminder = None
             onlyReminder = (self.rruleset is None or
                             self.itsItem.hasLocalAttributeValue('reminders'))
             isMaster = (self.occurrenceFor is None and self.rruleset is not None)
@@ -809,25 +808,9 @@ class EventStamp(Stamp):
                 if not hasattr(reminder, 'delta'):
                     continue
                 
-                if (reminder.delta == zero_delta and not reminder.userCreated
-                    and not reminder.promptUser):
-                    triageStatusReminder = reminder
                 if isMaster or onlyReminder:
-                    reminder.startTimeChanged(self.itsItem)
+                    reminder.itemChanged(self.itsItem)
                     
-                    
-            if (triageStatusReminder is None and
-                (self.occurrenceFor is None or onlyReminder)):
-                # Make our own triage status reminder. We could save some
-                # time here by not bothering if this event is in the past.
-                reminderItem = self.itsItem.getMembershipItem()
-                tsr = RelativeReminder(itsView=reminderItem.itsView,
-                                       delta=zero_delta, userCreated=False,
-                                       promptUser=False)
-                # Bug 8181: we initialize this field separately, so that
-                # watchers won't fire while the reminder's only partly set up.
-                tsr.reminderItem = reminderItem
-            
         # Update our display-date attribute, too
         self.itsItem.updateDisplayDate(op, name)
 
@@ -1043,16 +1026,6 @@ class EventStamp(Stamp):
         finally:
             if disabledChanges:
                 clonedEvent.__enableRecurrenceChanges()
-
-    def _cloneEvent(self):
-         # Exclude stamps, since add() does something good here
-        clonedItem = self.itsItem.clone(None, None, ('collections', Stamp.stamp_types.name))
-        clone = EventStamp(clonedItem)
-        self._restoreStamps(clone)
-        
-        clone.updateRecurrenceEnd()
-
-        return clone
 
     def _createOccurrence(self, recurrenceID):
         """
@@ -1589,7 +1562,6 @@ class EventStamp(Stamp):
                         newReminders.append(newReminder)
                         rem.delete(recursive=True)
                         
-                    self.itsItem.reminders.clear()
                     self.itsItem.reminders = newReminders
 
             else:
@@ -1597,11 +1569,22 @@ class EventStamp(Stamp):
                 # occurrence). So, we generate a new master, truncate the old
                 # master before our recurrenceID, and move the occurrences over
                 # accordingly.
-                newMaster = first._cloneEvent()
+                 # Exclude stamps, since add() does something good here
+                newMasterItem = first.itsItem.clone(None, None,
+                                     ('collections', Stamp.stamp_types.name, 'reminders'))
+                newMaster = EventStamp(newMasterItem)
+
                 disabled = newMaster.__disableRecurrenceChanges()
                 
                 try:
-                    newMasterItem = newMaster.itsItem
+                    first._restoreStamps(newMaster)
+                
+                    newMaster.updateRecurrenceEnd()
+                    
+                    for rem in first.itsItem.reminders:
+                        newReminder = rem.copy(cloudAlias="copying")
+                        newReminder.reminderItem = newMasterItem
+        
                     if attr != EventStamp.rruleset.name:
                         newMaster.rruleset = first.rruleset.copy(cloudAlias='copying')
                         newMaster.rruleset.removeDates(datetime.__lt__, recurrenceID)
@@ -2512,7 +2495,8 @@ class RelativeReminder(Reminder):
     relativeTo = EventStamp.effectiveStartTime.name
 
     delta = schema.One(
-        schema.TimeDelta
+        schema.TimeDelta,
+        defaultValue=zero_delta,
     )
     schema.addClouds(
         sharing = schema.Cloud(
@@ -2635,7 +2619,7 @@ class RelativeReminder(Reminder):
         """
         return self._getReminderTime(item) or Reminder.farFuture
         
-    def startTimeChanged(self, item):
+    def itemChanged(self, item):
         if self.nextPoll is None:
             return # We'll get updated later as necessary
             
@@ -2669,4 +2653,144 @@ class RelativeReminder(Reminder):
         # always
         return super(ContentItem, self).reminderFired(reminder, when)
 
+class TriageStatusReminder(RelativeReminder):
+    """
+    Singleton instance that updates triage status on events when their
+    startTime passes.
+    """
+    
+    QUERY_INTERVAL = timedelta(minutes=60)
+    
+    def __init__(self, *args, **kw):
+        kw.setdefault('userCreated', False)
+        kw.setdefault('promptUser', False)
+        super(TriageStatusReminder, self).__init__(*args, **kw)
+    
+    prevPoll = schema.One(
+        schema.DateTimeTZ,
+        doc="When was this reminder last polled?",
+        defaultValue=None,
+    )
+    
+    def installWatcher(self):
+        """
+        Install a watcher on the collection of all events. This is used
+        to make sure that when events' (effective) startTimes change, we
+        will change their triage status to NOW at the right time.
+        """
+        view = self.itsView
+        view.watchCollectionQueue(self, EventStamp.getCollection(view),
+                                  'onCollectionNotification')
+                                          
+    def onCollectionNotification(self, op, collection, name, other):
+        if op in ('changed', 'add'):
+            item = self.itsView[other]
+            if has_stamp(item, EventStamp):
+                self.itemChanged(item)
+        
+
+    def itemChanged(self, item):
+        if self.nextPoll is not None:
+            event = EventStamp(item)
+            possibleNewNextPoll = None
+            if event.rruleset is None:
+                # an ordinary event ... see if we need to reschedule
+                possibleNewNextPoll = event.effectiveStartTime
+            elif event.occurrenceFor is None:
+                # a master
+                occurrence = event.getNextOccurrence(after=self.prevPoll)
+                if occurrence is not None:
+                    possibleNewNextPoll = occurrence.effectiveStartTime
+                
+            if (possibleNewNextPoll is not None and
+                possibleNewNextPoll >= self.prevPoll and
+                possibleNewNextPoll < self.nextPoll):
+                
+                self.nextPoll = possibleNewNextPoll
+                
+
+    
+    def updatePending(self, when=None):
+        if when is None:
+            when = datetime.now(ICUtzinfo.default)
+            
+        # getKeysInRange() isn't quite what we want, because
+        # it cares about events overlapping range, whereas we
+        # only want events whose effectiveStartTime lies within
+        # range
+
+        view = self.itsView
+
+        def yieldEvents(start, finish):
+            pimNs = schema.ns("osaf.pim", view)
+            useTZ = pimNs.TimezonePrefs.showUI
+            
+            if useTZ:
+                startIndex = 'effectiveStart'
+                recurEndIndex ='recurrenceEnd'
+            else:
+                startIndex = 'effectiveStartNoTZ'
+                recurEndIndex = 'recurrenceEndNoTZ'
+
+
+            allEvents = EventStamp.getCollection(view)
+            
+            if useTZ:
+                timeForCompare = start
+            else:
+                timeForCompare = start.replace(tzinfo=None)
+            
+            def cmpStart(key):
+                testVal = EventStamp._getEffectiveStartTime(key, view)
+                if testVal is None:
+                    return -1 # interpret None as negative infinity
+                # note that we're NOT using >=, if we did, we'd include all day
+                # events starting at the beginning of the next week
+                if not useTZ:
+                    testVal = testVal.replace(tzinfo=None)
+                    
+                return cmp(testVal, timeForCompare)
+
+            firstKey = allEvents.findInIndex(startIndex, 'first', cmpStart)
+            for key, item in allEvents.iterindexitems(startIndex, firstKey):
+                event = EventStamp(item)
+                if event.rruleset is None:
+                    yield event
+
+            masterEvents = pimNs.masterEvents
+            for key in getKeysInRange(view, start, 'effectiveStartTime',
+                      startIndex, masterEvents, finish, 'recurrenceEnd', recurEndIndex,
+                      masterEvents, None, '__adhoc__'):
+
+                master = EventStamp(view[key])
+                
+                for event in master._generateRule(after=start, before=finish):
+                    yield event
+
+        if self.nextPoll is not None:
+            start = self.nextPoll
+        else:
+            start = when
+            
+        # Now, find all the events in the hour (say) after when
+        oneHourHence = when + self.QUERY_INTERVAL
+        nextPoll = oneHourHence
+        
+        for event in yieldEvents(start, oneHourHence):
+            effectiveStart = event.effectiveStartTime
+            
+            if effectiveStart <= when:
+                if self.prevPoll is not None and effectiveStart >= self.prevPoll:
+                    event.changeThis()
+                    event.itsItem.triageStatus = TriageEnum.now
+                    event.itsItem.setTriageStatusChanged(when=effectiveStart)
+            elif effectiveStart < nextPoll:
+                nextPoll = effectiveStart
+                
+        self.nextPoll = nextPoll
+        self.prevPoll = when
+            
+            
+
+    
 

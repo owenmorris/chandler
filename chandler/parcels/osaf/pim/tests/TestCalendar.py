@@ -98,9 +98,8 @@ class CalendarTest(TestDomainModel.DomainModelTestCase):
         _verifyCalendarItems(locationItem, recurrenceItem)
 
         # Check cloud membership - event + location
-
         items = calendarEventItem.itsItem.getItemCloud('copying')
-        self.assertEqual(len(items), 3)
+        self.assertEqual(len(items), 2)
 
         # Re-examine items
         self._reopenRepository()

@@ -35,7 +35,7 @@ import version
 # with your name (and some helpful text). The comment's really there just to
 # cause Subversion to warn you of a conflict when you update, in case someone 
 # else changes it at the same time you do (that's why it's on the same line).
-SCHEMA_VERSION = "332" # john: Various fixes for collection menu and sidebar context menu
+SCHEMA_VERSION = "333" # grant: Use a single, shared Reminder for triage status
 
 logger = None # initialized in initLogging()
 
@@ -751,7 +751,6 @@ def initParcels(options, view, path, namespaces=None, plugins=None):
                         
         if prefs is not None:
             prefs.write()
-
 
 def _randpoolPath(profileDir):
     # Return the absolute path for the file that we use to load

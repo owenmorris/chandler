@@ -332,19 +332,10 @@ class RecurringReminderTestCase(TestDomainModel.DomainModelTestCase):
         self.failUnless(self.event.itsItem.reminders is
                         occurrence.itsItem.reminders)
 
-        self.failUnlessEqual(2, len(self.event.itsItem.reminders))
-        
-        # @@@ [grant] Need to redo this for changing absolute or
-        # relative reminders
-        tsReminder = modsReminder = None
-        for rem in self.event.itsItem.reminders:
-            if rem.delta:
-                modsReminder = rem
-            else:
-                tsReminder = rem
+        self.failUnlessEqual(1, len(self.event.itsItem.reminders))
                 
-        self.failIf(modsReminder is None)
-        self.failIf(tsReminder is None)
+        self.failUnlessEqual(len(list(self.event.itsItem.reminders)), 1)
+        modsReminder = self.event.itsItem.reminders.first()
         
         self.failUnlessEqual(modsReminder.delta, self.reminder.delta)
         
@@ -409,10 +400,10 @@ class RecurringReminderTestCase(TestDomainModel.DomainModelTestCase):
         self.failUnlessEqual(occurrence.itsItem.getUserReminder().absoluteTime,
                              occurrence.startTime + timedelta(hours=6))
                              
-        # Check that it has exactly one triage status reminder
-        tsReminders = list(rem for rem in occurrence.itsItem.reminders if
-                           not rem.userCreated and not rem.promptUser)
-        self.failUnlessEqual(len(tsReminders), 1)
+        # Check that there are no non-user-created reminders in the list
+        nonUserReminders = list(rem for rem in occurrence.itsItem.reminders if
+                               not rem.userCreated or not rem.promptUser)
+        self.failUnlessEqual(nonUserReminders, [])
 
 
     def testThisAndFutureModification(self):
@@ -452,6 +443,26 @@ class RecurringReminderTestCase(TestDomainModel.DomainModelTestCase):
         # Check that THIS doesn't modify reminders at all
         self.failUnless(self.event.itsItem.reminders is
                         occurrence.itsItem.reminders)
+                        
+    def DISABLED_testChangeUserReminderTime(self):
+        self.reminder.reminderItem = self.event.itsItem
+        
+        # Get an occurrence 
+        startTime = self.event.startTime + timedelta(days=15)
+        occurrence = self.event.getNextOccurrence(after=startTime)
+        
+        # Make a "custom" reminder
+        reminderTime = startTime.replace(hour=17, minute=0, second=0,
+                                         microsecond=0)
+        occurrence.itsItem.userReminderTime = reminderTime
+        
+        # Check that that made a THIS modification
+        self.failUnless(occurrence.modificationFor)
+        self.failUnless(occurrence.itsItem.hasLocalAttributeValue(Remindable.reminders.name))
+        self.failUnlessEqual(occurrence.itsItem.userReminderTime, reminderTime)
+        self.failUnlessEqual(occurrence.itsItem.displayDate, reminderTime)
+        self.failUnlessEqual(occurrence.itsItem.displayDateSource, 'reminder')
+
 
 class ReminderCollectionsTestCase(TestDomainModel.DomainModelTestCase):
     # Test behaviour of the 'reminders' collections in osaf.pim
@@ -466,15 +477,19 @@ class ReminderCollectionsTestCase(TestDomainModel.DomainModelTestCase):
                                  absoluteTime=self.firstDate)
         self.reminder.reminderItem = self.note
         
-        self.unexpired = schema.ns("osaf.pim", self.rep.view).allFutureReminders
+        pimNs = schema.ns("osaf.pim", self.rep.view)
+        self.tsReminder = pimNs.triageStatusReminder
+        
+        self.unexpired = pimNs.allFutureReminders
         
     def testFireAndDismissReminder(self):
-        self.failUnlessEqual(list(self.unexpired), [self.reminder])
+        self.failUnlessEqual(set(self.unexpired),
+                             set([self.reminder, self.tsReminder]))
         self.reminder.updatePending(self.reminder.absoluteTime)
-        self.failUnlessEqual(list(self.unexpired), [])
+        self.failUnlessEqual(list(self.unexpired), [self.tsReminder])
         
         self.reminder.dismissItem(self.note)
-        self.failUnlessEqual(list(self.unexpired), [])
+        self.failUnlessEqual(list(self.unexpired), [self.tsReminder])
 
     def testPendingEntries(self):
         def getPending():
@@ -482,14 +497,15 @@ class ReminderCollectionsTestCase(TestDomainModel.DomainModelTestCase):
             
             return list(kind.iterItems())
             
-        self.failUnlessEqual(list(self.unexpired), [self.reminder])
+        self.failUnlessEqual(set(self.unexpired),
+                             set([self.tsReminder, self.reminder]))
         self.failUnlessEqual([], getPending())
         self.reminder.updatePending(self.reminder.absoluteTime)
         self.failUnlessEqual([self.reminder.pendingEntries.first()],
                              getPending())
         
         self.reminder.dismissItem(self.note)
-        self.failUnlessEqual(list(self.unexpired), [])
+        self.failUnlessEqual(list(self.unexpired), [self.tsReminder])
         self.failUnlessEqual([], getPending())
         
 class TriageStatusReminderTestCase(TestDomainModel.DomainModelTestCase):
@@ -500,6 +516,7 @@ class TriageStatusReminderTestCase(TestDomainModel.DomainModelTestCase):
                 duration=timedelta(minutes=60),
                 anyTime=False,
                 summary=u"Hour-long event")
+        self.tsReminder = schema.ns("osaf.pim", self.rep.view).triageStatusReminder
 
     def testTriageChange(self):
         # Let's imagine we have a change to triage of later 2 hours before
@@ -509,37 +526,31 @@ class TriageStatusReminderTestCase(TestDomainModel.DomainModelTestCase):
                                                  timedelta(hours=2))
                                           
         reminders = list(self.event.itsItem.reminders)
-        self.failUnlessEqual(1, len(reminders))
+        self.failUnlessEqual([], reminders)
         
-        self.failIf(reminders[0].delta)
+        self.tsReminder.updatePending(self.event.startTime - timedelta(hours=1))
+        self.failUnlessEqual(self.event.startTime, self.tsReminder.nextPoll)
+        self.failIf(self.tsReminder.pendingEntries)
         
-        reminders[0].updatePending(self.event.startTime - timedelta(hours=1))
-        self.failUnlessEqual(self.event.startTime, reminders[0].nextPoll)
-        self.failIf(reminders[0].pendingEntries)
-        
-        reminders[0].updatePending(reminders[0].nextPoll)
+        self.tsReminder.updatePending(self.tsReminder.nextPoll)
         self.failUnlessEqual(self.event.itsItem.triageStatus, TriageEnum.now)
         # @@@ [grant] No way to get triageStatusChanged. Tsk.
         
-        # Now that the reminder has been fired, it should have deleted itself,
-        # since it's not user-generated.
-        self.failUnless(isDead(reminders[0]))
+        # TriageStatusReminders never die ... they just wait for new events
+        self.failIf(isDead(self.tsReminder))
 
     def testPastNoTriageChange(self):
         self.event.itsItem.triageStatus = TriageEnum.done
         self.event.itsItem.setTriageStatusChanged(when=self.event.startTime +
                                                  timedelta(days=2))
                                                  
-        reminders = list(self.event.itsItem.reminders)
-        self.failUnlessEqual(1, len(reminders))
+        self.failUnlessEqual(list(self.event.itsItem.reminders), [])
         
-        self.failIf(reminders[0].delta)
+        self.failIf(self.tsReminder.delta)
 
-        reminders[0].updatePending(self.event.startTime + timedelta(days=3))
+        self.tsReminder.updatePending(self.event.startTime + timedelta(days=3))
         
         self.failUnlessEqual(self.event.itsItem.triageStatus, TriageEnum.done)
-
-        self.failUnless(isDead(reminders[0]))
 
     def testRecurring(self):
         self.event.itsItem.triageStatus = TriageEnum.later
@@ -556,13 +567,13 @@ class TriageStatusReminderTestCase(TestDomainModel.DomainModelTestCase):
                                 rrules=[ruleItem])
                                 
         reminders = list(self.event.itsItem.reminders)
-        self.failUnlessEqual(1, len(reminders))
-        
-        self.failIf(reminders[0].delta)
+        self.failUnlessEqual([], reminders)
 
         # Trigger a triage status change that starts with the 5th occurrence
         fifthStart = self.event.startTime + timedelta(days=4)
-        reminders[0].updatePending(fifthStart)
+        # @@@ [grant] explain
+        self.tsReminder.updatePending(fifthStart - timedelta(minutes=10))
+        self.tsReminder.updatePending(fifthStart)
         fifth = self.event.getRecurrenceID(fifthStart)
         
         self.failUnless(fifth.modificationFor)
@@ -578,10 +589,10 @@ class TriageStatusReminderTestCase(TestDomainModel.DomainModelTestCase):
         self.failUnlessEqual(fifth.getNextOccurrence().itsItem.triageStatus,
                              TriageEnum.later)
         
-        self.failIf(reminders[0].pendingEntries)
+        self.failIf(self.tsReminder.pendingEntries)
         
         # Expire all the pending entries ...
-        reminders[0].updatePending(fifthStart + timedelta(days=7))
+        self.tsReminder.updatePending(fifthStart + timedelta(days=7))
         
         # ... make sure the triage status got set to now
         event = fifth
@@ -590,7 +601,7 @@ class TriageStatusReminderTestCase(TestDomainModel.DomainModelTestCase):
             event = event.getNextOccurrence()
 
         # ... and make sure the reminder got deleted
-        self.failUnless(isDead(reminders[0]))
+        self.failIf(isDead(self.tsReminder))
 
         
 class ReminderTestCase(TestDomainModel.DomainModelTestCase):
@@ -641,16 +652,12 @@ class ReminderTestCase(TestDomainModel.DomainModelTestCase):
         
         # Make sure it all got updated correctly: one pending startTime
         # reminder, one expired relative reminder.
-        self.failUnlessEqual(len(remindable.reminders), 2)
-        self.failUnless(remindable.getUserReminder() is relativeReminder)
+        self.failUnlessEqual(len(remindable.reminders), 1)
+        self.failUnless(remindable.reminders.first() is relativeReminder)
+        self.failUnless(remindable.reminders.first() is
+                        remindable.getUserReminder())
         
-        for rem in remindable.reminders:
-            if not rem.userCreated:
-                startTimeReminder = rem
-                break
-        else:
-            self.fail("No start time reminder found!")
-            
+        startTimeReminder = schema.ns("osaf.pim", self.rep.view).triageStatusReminder
         self.failIf(startTimeReminder.delta)
         startTimeReminder.updatePending(now)
         self.failUnlessEqual(startTimeReminder.nextPoll, shortly)
@@ -706,8 +713,7 @@ class ReminderTestCase(TestDomainModel.DomainModelTestCase):
         self.failUnlessEqual(newReminder.pendingEntries.first().item,
                              remindable)
 
-        self.failUnlessEqual(set(remindable.reminders),
-                             set([newReminder, startTimeReminder]))
+        self.failUnlessEqual(list(remindable.reminders), [newReminder])
         self.failUnless(newReminder.userCreated)
         self.failIf(startTimeReminder.userCreated)
 
@@ -718,8 +724,7 @@ class ReminderTestCase(TestDomainModel.DomainModelTestCase):
         # the startTime reminder)
         self.failUnless(newReminder.isExpired())
         
-        self.failUnlessEqual(set(remindable.reminders),
-                             set([newReminder, startTimeReminder]))
+        self.failUnlessEqual(list(remindable.reminders), [newReminder])
                              
         self.failIf(startTimeReminder.pendingEntries)
         self.failUnlessEqual(startTimeReminder.nextPoll, shortly)
@@ -732,8 +737,12 @@ class ReminderTestCase(TestDomainModel.DomainModelTestCase):
         
         # (Just the expired one - no startTime reminder)
         self.failUnlessEqual(1, len(remindable.reminders))
-        self.failUnless(isDead(startTimeReminder))
         self.failUnlessEqual(newReminder.nextPoll, Reminder.farFuture)
+
+        # The triage status reminder never dies ... ?
+        self.failIf(isDead(startTimeReminder))
+        self.failIfEqual(startTimeReminder.nextPoll, Reminder.farFuture)
+
 
 class PendingTuplesTestCase(TestDomainModel.DomainModelTestCase):
     def setUp(self):

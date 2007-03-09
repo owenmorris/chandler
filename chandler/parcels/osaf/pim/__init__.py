@@ -39,7 +39,8 @@ from notes import Note
 from contacts import Contact, ContactName
 from calendar.Calendar import (
     CalendarEvent, EventStamp, Occurrence, LONG_TIME, zero_delta,
-    EventComparator, Location, RecurrencePattern, RelativeReminder
+    EventComparator, Location, RecurrencePattern, RelativeReminder,
+    TriageStatusReminder,
 )
 from calendar.TimeZone import installParcel as tzInstallParcel
 from calendar.DateTimeUtil import (ampmNames, durationFormat, mediumDateFormat, 
@@ -51,7 +52,7 @@ from mail import EmailAddress, EmailComparator, MailStamp
 from application.Parcel import Reference
 from repository.item.Item import Item
 from PyICU import ICUtzinfo
-from osaf import messages
+from osaf import messages, startup
 import tasks, mail, calendar.Calendar
 from i18n import ChandlerMessageFactory as _
 
@@ -370,8 +371,21 @@ def installParcel(parcel, oldVersion=None):
     searchResults = SmartCollection.update(
         parcel, 'searchResults',
         displayName = messages.UNTITLED)
+        
+    TriageStatusReminder.update(parcel, 'triageStatusReminder')
+    startup.Startup.update(parcel, "installWatchers",
+        invoke=__name__ + ".installWatchers"
+    )
 
     tzInstallParcel(parcel)
+    
+def installWatchers(startup):
+    """
+    Helper function that allows our TriageStatusReminder to watch for
+    changes in Events (and in particular, their startTimes)
+    """
+    from application import schema # we del'ed it below!
+    schema.ns(__name__, startup.itsView).triageStatusReminder.installWatcher()
 
 
 del schema  # don't leave this lying where others might accidentally import it
