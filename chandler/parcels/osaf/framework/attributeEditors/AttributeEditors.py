@@ -18,9 +18,9 @@ Attribute Editors
 """
 __parcel__ = "osaf.framework.attributeEditors"
 
-import os
-import cStringIO
-import wx
+import os, wx, logging
+from cStringIO import StringIO
+
 import osaf.pim as pim
 import osaf.pim.calendar.Calendar as Calendar
 import osaf.pim.mail as Mail
@@ -28,7 +28,6 @@ import repository.item.ItemHandler as ItemHandler
 #from repository.util.Lob import Lob
 from chandlerdb.util.c import Nil
 from osaf.framework.blocks import DrawingUtilities, Styles
-import logging
 #from operator import itemgetter
 from datetime import datetime, timedelta
 from PyICU import ICUError, ICUtzinfo, UnicodeString
@@ -148,7 +147,10 @@ def installParcel(parcel, oldVersion=None):
         'EmailAddress': 'EmailAddressAttributeEditor',
         'Integer': 'RepositoryAttributeEditor',
         'Item': 'ItemNameAttributeEditor',
+        'image/gif': 'LobImageAttributeEditor',
         'image/jpeg': 'LobImageAttributeEditor',
+        'image/png': 'LobImageAttributeEditor',
+        'image/tiff': 'LobImageAttributeEditor',
         'Location': 'LocationAttributeEditor',
         'Text': 'StringAttributeEditor',
         'Text+static': 'StaticStringAttributeEditor',
@@ -310,33 +312,47 @@ class StaticStringAttributeEditor(StringAttributeEditor):
     def isStatic(self, (item, attribute)):
         return True
 
-class LobImageAttributeEditor (BaseAttributeEditor):
 
-    def ReadOnly (self, (item, attribute)):
+class LobImageAttributeEditor(BaseAttributeEditor):
+
+    def ReadOnly(self, (item, attribute)):
         return True
 
     def CreateControl(self, forEditing, readOnly, parentWidget, id,
                       parentBlock, font):
-        return wx.StaticBitmap(parentWidget, id, wx.NullBitmap, (0, 0))
-
-    def __getBitmapFromLob(self, attributeValue):
-        input = attributeValue.getInputStream()
-        data = input.read()
-        input.close()
-        stream = cStringIO.StringIO(data)
-        image = wx.ImageFromStream(stream)
-        # image = image.Scale(width, height)
-        return wx.BitmapFromImage(image)
+        return wx.PyControl(parentWidget, id, (0, 0), (0, 0),
+                            wx.FULL_REPAINT_ON_RESIZE)
 
     def BeginControlEdit(self, item, attributeName, control):
 
         try:
-            bmp = self.__getBitmapFromLob(getattr(item, attributeName))
-        except Exception, e:
-            logger.debug("Couldn't render image (%s)" % str(e))
-            bmp = wx.NullBitmap
+            lob = getattr(item, attributeName)
+            input = lob.getInputStream()
+            stream = StringIO(input.read())
+            input.close()
+            image = wx.ImageFromStream(stream)
+            bitmap = wx.BitmapFromImage(image)
+        except:
+            logger.exception("Couldn't load image")
+            bitmap = wx.NullBitmap
+        
+        def onPaint(event):
+            control = event.GetEventObject()
+            size = control.GetClientSize()
+            bitmapSize = bitmap.GetSize()
+            if bitmapSize.x and bitmapSize.y:
+                scale = min(float(size.x) / float(bitmapSize.x),
+                            float(size.y) / float(bitmapSize.y),
+                            1.0)
+            else:
+                scale = 1.0
+            dc = wx.PaintDC(control)
+            gc = wx.GraphicsContext.Create(dc)
+            gc.Scale(scale, scale)
+            gc.DrawBitmap(bitmap, 0, 0, bitmapSize.x, bitmapSize.y)
 
-        control.SetBitmap(bmp)
+        control.Bind(wx.EVT_PAINT, onPaint)
+
 
 class DateTimeAttributeEditor(StringAttributeEditor):
     def GetAttributeValue(self, item, attributeName):

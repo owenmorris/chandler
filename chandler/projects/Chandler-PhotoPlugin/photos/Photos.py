@@ -134,7 +134,7 @@ class NewImageEvent(NewItemEvent):
             _(u"Choose an image to import"),
             "",
             "",
-            _(u"Images|*.jpg;*.gif;*.png|All files (*.*)|*.*"),
+            _(u"Images|*.gif;*.jpg;*.png;*.tiff|All files (*.*)|*.*"),
             wx.OPEN
         )
 
