@@ -539,10 +539,15 @@ def makeSummaryBlocks(parcel):
         useCompare = kwargs.pop('useCompare', False)
         useMaster = kwargs.pop('useMaster', True)
         baseClass = kwargs.pop('baseClass', pim.AttributeIndexDefinition)
-        baseClass.update(parcel, indexName,
-                         useMaster=useMaster,
-                         attributes=attributes)
+        indexDefinition = baseClass.update(parcel, 
+                                           indexName,
+                                           useMaster=useMaster,
+                                           attributes=attributes)
 
+        # Precreate the master indexes for now
+        if useMaster:
+            indexDefinition.makeMasterIndex()
+            
         # Create the column
         return Column.update(parcel, colName, **kwargs)
 

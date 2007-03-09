@@ -73,21 +73,27 @@ class IndexDefinition(schema.Item):
         Create this index on this collection.
         """
         if self.useMaster:
-            # Create the master index if it doesn't already exist.
-            # For debugging, only index Notes by doing this instead (this won't
-            # work for real because Certificates aren't Notes):
-            # contentItems = schema.ns("osaf.pim", collection.itsView).noteCollection
-            contentItems = schema.ns("osaf.pim", collection.itsView).contentItems
-            if not contentItems.hasIndex(self.itsName):
-                self.makeIndexOn(contentItems)
+            # Make sure the master index exists
+            self.makeMasterIndex()
 
             # Create a subindex that inherits from the master
+            contentItems = schema.ns("osaf.pim", self.itsView).contentItems
             collection.addIndex(self.itsName, 'subindex',
                                 superindex=(contentItems, contentItems.__collection__,
                                             self.itsName))
         else:
             # Create a standalone index
             self.makeIndexOn(collection)
+    
+    def makeMasterIndex(self):
+        """
+        Make the master index for this collection, if it doesn't exist (and if
+        we're supposed to)
+        """
+        if self.useMaster:
+            contentItems = schema.ns("osaf.pim", self.itsView).contentItems
+            if not contentItems.hasIndex(self.itsName):
+                self.makeIndexOn(contentItems)
 
     def makeIndexOn(self, collection):
         """ Create the index we describe on this collection """
