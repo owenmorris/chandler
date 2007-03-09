@@ -130,7 +130,7 @@ class ItemSharingTestCase(testcase.DualRepositoryTestCase):
         except sharing.ConflictsPending:
             pass # This is what we're expecting
         else:
-            raise Exception("We were expecting an ConflictsPending exception")
+            raise Exception("We were expecting a ConflictsPending exception")
 
 
 
@@ -174,7 +174,14 @@ class ItemSharingTestCase(testcase.DualRepositoryTestCase):
         view0.itsVersion = 2 # Back in time
         # Now item0.displayName is "test displayName"
         text = sharing.outbound([pje], item0)
-        sharing.inbound(morgen, text, debug=False)
+
+        try:
+            sharing.inbound(morgen, text, debug=False)
+        except sharing.OutOfSequence:
+            pass # Thisis what we're expecting
+        else:
+            raise Exception("We were expecting an OutOfSequence exception")
+
         after = shared1.getPeerState(morgen, create=False)
         self.assertEqual(beforeAgreed, after.agreed)
 

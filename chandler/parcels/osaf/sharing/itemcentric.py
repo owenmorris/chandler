@@ -91,7 +91,9 @@ def inbound(peer, text, filter=None, allowDeletion=False, debug=False):
                     shares.SharedItem(item).add()
                 shares.SharedItem(item).addPeerState(state, peer)
         else:
-            logger.info("Ignoring old update for %s", uuid)
+            logger.info("Out-of-sequence update for %s", uuid)
+            raise errors.OutOfSequence("Update %d arrived after %d" %
+                (peerItemVersion, state.peerItemVersion))
 
     else: # Deletion
 
