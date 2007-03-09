@@ -328,9 +328,6 @@ class TaskTestCase(SharingTestCase):
         'createdOn':
             datetime.datetime(2006, 8, 27, 12, 1, 0,
                               tzinfo=ICUtzinfo.getInstance("US/Pacific")),
-        'dueDate':
-            datetime.datetime(2006, 9, 12, 13, 0,
-                              tzinfo=ICUtzinfo.getInstance("US/Pacific")),
         'body': u'Here are some fascinating task notes',
         'triageStatus': pim.TriageEnum.later,
         'triageStatusChanged': -1159945337.0
@@ -359,9 +356,6 @@ class TaskTestCase(SharingTestCase):
         self.failUnlessEqual(list(pim.Stamp(taskItem).stamp_types),
                              [pim.TaskStamp])
 
-        # Note: dueDate isn't part of the sharing cloud, so we don't
-        # need to check it.
-        
         # Check that pim.TaskStamp() works on the imported Item.
         task = pim.TaskStamp(taskItem)
 

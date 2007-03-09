@@ -265,15 +265,8 @@ def itemsToVObject(view, items, cal=None, filters=None):
         """Populate the given vobject vtodo with data from task."""
         populateCommon(comp, task.itsItem)
 
-        try:
-            dueDate = task.dueDate
-        except AttributeError:
-            pass
-        else:
-            if dueDate.time().replace(tzinfo=None) == time(0):
-                dueDate = dueDate.date()
-
-            comp.add('due').value = dueDate
+        # @@@ [grant] Once we start writing out Event+Tasks as
+        # VTODO, write out DUE (or maybe DTSTART) here.
 
         if Note.triageStatus.name not in filters:
             triageStatus = task.itsItem.triageStatus

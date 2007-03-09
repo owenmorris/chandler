@@ -54,8 +54,6 @@ class TaskStamp(Stamp):
         inverse = Contact.taskRequests,
     )
 
-    dueDate = schema.One(schema.DateTimeTZ)
-
     # Redirections
     @apply
     def summary():
@@ -74,8 +72,6 @@ class TaskStamp(Stamp):
 
     def InitOutgoingAttributes (self):
         self.itsItem.InitOutgoingAttributes()
-        # default due date is 1 hour hence
-        self.dueDate = datetime.now(ICUtzinfo.default) + timedelta(hours=1)
 
 def Task(*args, **kw):
     for key in kw.keys():

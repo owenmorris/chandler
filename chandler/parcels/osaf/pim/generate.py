@@ -180,7 +180,6 @@ def GenerateTask(view, tzinfo=None):
     task = pim.Task(itsView=view)
     delta = timedelta(days=random.randint(0, 5),
                       hours=random.randint(0, 24))
-    task.dueDate = datetime.today().replace(tzinfo=tzinfo) + delta
     task.summary = random.choice(TITLES)
 
     if TEST_I18N:

@@ -252,8 +252,6 @@ def GenerateTask(view, args):
     if TEST_I18N:
         task.displayName = uw(task.displayName)
 
-    #dueDate
-    task.dueDate = ReturnCompleteDatetime(args[2],args[3])
 
     #collection
     if args[1]=='*': # semi-random data

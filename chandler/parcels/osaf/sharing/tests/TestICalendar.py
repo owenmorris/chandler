@@ -581,7 +581,6 @@ class ImportTodoTestCase(SharingTestCase):
         
         self.failUnless(pim.has_stamp(task, pim.TaskStamp))
         self.failUnlessEqual(task.summary, u"ToDone")
-        self.failIf(hasattr(task, 'dueDate'))
         self.failUnlessEqual(task.itsItem.triageStatus, pim.TriageEnum.done)
 
     def testStatus(self):
@@ -608,7 +607,6 @@ class ImportTodoTestCase(SharingTestCase):
         
         self.failUnless(pim.has_stamp(task, pim.TaskStamp))
         self.failUnlessEqual(task.summary, u"ToDone")
-        self.failIf(hasattr(task, 'dueDate'))
         self.failUnlessEqual(task.itsItem.triageStatus, pim.TriageEnum.done)
 
     def testNeedsAction(self):
@@ -635,7 +633,6 @@ class ImportTodoTestCase(SharingTestCase):
         
         self.failUnless(pim.has_stamp(task, pim.TaskStamp))
         self.failUnlessEqual(task.summary, u"Really, do this right away")
-        self.failIf(hasattr(task, 'dueDate'))
         self.failUnlessEqual(task.itsItem.triageStatus, pim.TriageEnum.now)
         self.failUnless(task.itsItem.needsReply)
 
@@ -663,7 +660,6 @@ class ImportTodoTestCase(SharingTestCase):
         
         self.failUnless(pim.has_stamp(task, pim.TaskStamp))
         self.failUnlessEqual(task.summary, u"I'm busy!")
-        self.failIf(hasattr(task, 'dueDate'))
         self.failUnlessEqual(task.itsItem.triageStatus, pim.TriageEnum.now)
         self.failIf(task.itsItem.needsReply)
 
@@ -692,7 +688,6 @@ class ImportTodoTestCase(SharingTestCase):
         
         self.failUnless(pim.has_stamp(task, pim.TaskStamp))
         self.failUnlessEqual(task.summary, u"ToDoneAndWhen")
-        self.failIf(hasattr(task, 'dueDate'))
         self.failUnlessEqual(task.itsItem.triageStatus, pim.TriageEnum.done)
         self.failUnlessEqual(task.itsItem.triageStatusChanged,
                              -1141203600.0)
@@ -722,7 +717,6 @@ class ImportTodoTestCase(SharingTestCase):
         self.failUnless(pim.has_stamp(task, pim.TaskStamp))
         self.failUnlessEqual(item.body,
                 u"This is a very important TODO:\n\n\u2022 Do one thing\n\u2022 Do something else")
-        self.failIf(hasattr(task, 'dueDate'))
         self.failUnlessEqual(item.triageStatus, pim.TriageEnum.done)
 
 
@@ -781,7 +775,11 @@ class ExportTodoTestCase(SharingTestCase):
         what we expect.
         """
         
-        task = pim.Task(itsView=self.view, **todoParams)
+        task = pim.Task(itsView=self.view)
+        task.InitOutgoingAttributes() # simulate creation in the Chandler UI
+        for attr, value in todoParams.iteritems():
+            setattr(task.itsItem, attr, value)
+
         self.share.contents.add(task.itsItem)
         
         iCalendarContent = self.share.format.exportProcess(self.share)
@@ -816,23 +814,19 @@ class ExportTodoTestCase(SharingTestCase):
 
     def testDueDate(self):
         task, vtodo = self.getExportedTodoComponent(
-                        displayName=u'Some stupid task',
-                        dueDate=datetime.datetime(2003, 12, 24))
+                        displayName=u'Some stupid task')
 
         self.failUnlessEqual(u'Some stupid task',
                              vtodo.getChildValue('summary'))
-        self.failUnlessEqual(vtodo.getChildValue('due'), task.dueDate.date())
         
     def testStatus(self):
         task, vtodo = self.getExportedTodoComponent(
                 displayName=u'Some completed stupid task',
                 triageStatus=pim.TriageEnum.done,
-                needsReply=True,
-                dueDate=datetime.datetime(2003, 12, 24))
+                needsReply=True)
         
         self.failUnlessEqual(u'Some completed stupid task',
                              vtodo.getChildValue('summary'))
-        self.failUnlessEqual(vtodo.getChildValue('due'), task.dueDate.date())
         
         self.failUnlessEqual(vtodo.getChildValue('status'), 'completed')
 
