@@ -53,7 +53,7 @@ def installParcel(parcel, oldVersion=None):
     sharing.WebDAVAccount.update(parcel, 'defaultWebDAVAccount',
         displayName=_(u'Cosmo Sharing Service'),
         host=u'osaf.us',
-        path=u'/cosmo/home/<username>',
+        path=u'/cosmo/dav/<username>',
         username=u'',
         password=u'',
         useSSL=True,
