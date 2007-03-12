@@ -100,6 +100,16 @@ def parseOptions():
     (options, args) = parser.parse_args()
     options.args    = args
 
+    if args:
+        implicitSingle = False
+        for key in _configItems.keys():
+            if getattr(options, key) != _configItems[key][3]:
+                break
+            implicitSingle = True
+        if implicitSingle:
+            options.single = ' '.join(args)
+            options.args = ''
+
     return options
 
 
