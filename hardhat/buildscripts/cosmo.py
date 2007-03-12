@@ -39,10 +39,7 @@ reposModules = [('cosmo',  'cosmo/trunk',),
                ]
 reposBuild   = [('cosmo',  'clean package'),
                ]
-reposTest    = [('cosmo',  'clean compile test'),
-               ]
-reposDist    = [('cosmo',  'clean package', 'dist', 'cosmo*.tar.gz'),
-                #('cosmo',  'clean war:deploy',   None,   None),
+reposTest    = [('cosmo',  'test'),
                ]
 
 def Start(hardhatScript, workingDir, buildVersion, clobber, log, skipTests=False, upload=False, branchID=None, revID=None):
@@ -134,8 +131,6 @@ def Start(hardhatScript, workingDir, buildVersion, clobber, log, skipTests=False
         ret = doTests(workingDir, log)
 
     if sourceChanged:
-        doDistribution(workingDir, log, outputDir, buildVersion, buildVersionEscaped)
-
         changes = "-changes"
     else:
         changes = "-nochanges"
