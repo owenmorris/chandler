@@ -727,7 +727,7 @@ def runScriptPerfTests(options, testlist, largeData=False, logger=log):
         if options.dryrun:
             result = 0
         else:
-            result = build_lib.runCommand(cmd, timeout=720, log=logger)
+            result = build_lib.runCommand(cmd, timeout=720, logger=logger)
 
         if result != 0:
             log('***Error exit code=%d, %s' % (result, name))
@@ -841,7 +841,7 @@ def runStartupPerfTests(options, timer, largeData=False, repeat=3, logger=log):
     if options.dryrun:
         result = 0
     else:
-        result = build_lib.runCommand(cmd, timeout=timeout, log=logger)
+        result = build_lib.runCommand(cmd, timeout=timeout, logger=logger)
 
     if result != 0:
         log('***Error exit code=%d, creating %s repository' % (result, name))
@@ -877,7 +877,7 @@ def runStartupPerfTests(options, timer, largeData=False, repeat=3, logger=log):
         if options.dryrun:
             result = 0
         else:
-            result = build_lib.runCommand(cmd, timeout=180, log=logger)
+            result = build_lib.runCommand(cmd, timeout=180, logger=logger)
 
         if result == 0:
             if options.dryrun:

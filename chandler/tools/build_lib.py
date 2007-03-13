@@ -80,7 +80,7 @@ def setpgid_preexec_fn():
     os.setpgid(0, 0)
 
 
-def runCommand(cmd, env=None, timeout=-1, log=log):
+def runCommand(cmd, env=None, timeout=-1, logger=log):
     """
     Execute the given command and log all output
 
@@ -117,17 +117,25 @@ def runCommand(cmd, env=None, timeout=-1, log=log):
         >>> runCommand(['sleep', '60'], timeout=5)
         -9
     """
-    if timeout == -1:
-        output = subprocess.PIPE
-    else:
-        output = tempfile.TemporaryFile()
+    redirect = True
 
-    p = killableprocess.Popen(cmd, env=env, stdout=output, stderr=subprocess.STDOUT, preexec_fn=setpgid_preexec_fn)
+    if logger == log and _logFile is None:
+        redirect = False
+    else:
+        if timeout == -1:
+            output = subprocess.PIPE
+        else:
+            output = tempfile.TemporaryFile()
+
+    if redirect:
+        p = killableprocess.Popen(cmd, env=env, stdout=output, stderr=subprocess.STDOUT, preexec_fn=setpgid_preexec_fn)
+    else:
+        p = killableprocess.Popen(cmd, env=env, preexec_fn=setpgid_preexec_fn)
 
     try:
-        if timeout == -1:
+        if timeout == -1 and redirect:
             for line in p.stdout:
-                log(line[:-1])
+                logger(line[:-1])
 
         p.wait(timeout=timeout, group=True)
 
@@ -138,10 +146,10 @@ def runCommand(cmd, env=None, timeout=-1, log=log):
         except OSError:
             p.wait(30)
 
-    if timeout != -1:
+    if timeout != -1 and redirect:
         output.seek(0)
         for line in output:
-            log(line[:-1])
+            logger(line[:-1])
 
     return p.returncode
 
