@@ -16,13 +16,7 @@ import wx
 from osaf.framework.blocks.Block import Block
 from application.Application import stringToId
 
-verifyOn = False
-lastFocus = None
-lastSentToWidget = None
-
 def ProcessEvent (theClass, properties , attributes):
-    global verifyOn, lastFocus, lastSentToWidget
-
     def NameToWidget (name):
         """
         Given a name, returns the corresponding widget.
@@ -75,7 +69,7 @@ def ProcessEvent (theClass, properties , attributes):
     # so we don't need to process the recorded EVT_CHAR events
     if not (eventType is wx.EVT_CHAR and '__WXMSW__' in wx.PlatformInfo):
         # Check to see if the correct window has focus
-        if verifyOn:
+        if ProcessEvent.verifyOn:
             # Make sure the menu or button is enabled
             if eventType is wx.EVT_MENU:
                 updateUIEvent = wx.UpdateUIEvent (event.GetId())
@@ -97,21 +91,23 @@ def ProcessEvent (theClass, properties , attributes):
                         assert focusWindow.GetId() == id, "Focus window has unexpected id"
                     else:
                         assert focusWindow.GetId() < 0, "Focus window has unexpected id"
-    
-            if lastFocus != focusWindow:
+
+            if not hasattr (ProcessEvent, "lastFocus"):
+                ProcessEvent.lastFocus = focusWindow
+            if ProcessEvent.lastFocus != focusWindow:
                 assert newFocusWindow is not None, "Focus window unexpectedly changed"
                 
                 # And that we get the expected focus window
                 focusShouldLookLikeNewFocusWindow (focusWindow, newFocusWindow)
     
-                lastFocus = focusWindow
+                ProcessEvent.lastFocus = focusWindow
             else:
                 if newFocusWindow is not None:
                     focusShouldLookLikeNewFocusWindow (focusWindow, newFocusWindow)
     
             # Check to make sure last event caused expected change
-            if lastSentToWidget is not None:
-                method = getattr (lastSentToWidget, "GetValue", None)
+            if ProcessEvent.lastSentToWidget is not None:
+                method = getattr (ProcessEvent.lastSentToWidget, "GetValue", None)
                 lastWidgetValue = properties.get ("lastWidgetValue", None)
                 if lastWidgetValue is not None and method is not None:
                     value = method()
@@ -149,7 +145,7 @@ def ProcessEvent (theClass, properties , attributes):
                 (start, end) = properties ["selectionRange"]
                 sentToWidget.SetSelection (start, end)
                     
-        lastSentToWidget = sentToWidget
+        ProcessEvent.lastSentToWidget = sentToWidget
     
         # On windows when we propagate notifications while editing a text control
         # it will end up calling wxSynchronizeWidget in wxTable, which will end the
@@ -171,8 +167,7 @@ def ProcessEvent (theClass, properties , attributes):
             
 
 def VerifyOn (verify = True):
-    global verifyOn, lastFocus, lastSentToWidget
-    verifyOn = verify
-    if verifyOn:
-        lastFocus = None
-        lastSentToWidget = None
+    ProcessEvent.verifyOn = verify
+    ProcessEvent.lastSentToWidget = None
+    if hasattr (ProcessEvent, "lastFocus"):
+        del ProcessEvent.lastFocus
