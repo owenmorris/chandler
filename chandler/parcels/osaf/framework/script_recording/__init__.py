@@ -65,7 +65,8 @@ class Controller (Block.Block):
             self.script += "from " + __name__ + ".script_lib import ProcessEvent, VerifyOn" + os.linesep + os.linesep
             self.script += "def run():" + os.linesep
             self.verifyOn = None
-            self.lastFocus = None
+            if hasattr (self, "lastFocus"):
+                del self.lastFocus
 
             theApp.filterEventCallables.add (self.FilterEvent)
             theApp.SetCallFilterEvent()
@@ -104,8 +105,6 @@ class Controller (Block.Block):
 
     def onIncludeTestsEvent (self, event):
         self.includeTests = not self.includeTests
-        if self.includeTests:
-            self.lastFocus = None
 
     def onIncludeTestsEventUpdateUI (self, event):
         event.arguments['Check'] = self.includeTests
@@ -257,6 +256,8 @@ class Controller (Block.Block):
 
                             if self.includeTests:
                                 focusWindow = wx.Window_FindFocus()
+                                if not hasattr (self, "lastFocus"):
+                                    self.lastFocus = focusWindow
                                 if self.lastFocus != focusWindow:
                                     
                                     # Keep track of the focus window changes
