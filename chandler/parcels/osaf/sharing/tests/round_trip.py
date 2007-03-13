@@ -39,11 +39,14 @@ def printStats(view, stats):
                 )
         print
 
+checkStatistics = True
+
 def checkStats(stats, expecting):
-    for seen, expected in zip(stats, expecting):
-        for event in ('added', 'modified', 'removed'):
-            if len(seen[event]) != expected[event]:
-                return False
+    if checkStatistics:
+        for seen, expected in zip(stats, expecting):
+            for event in ('added', 'modified', 'removed'):
+                if len(seen[event]) != expected[event]:
+                    return False
     return True
 
 
@@ -159,13 +162,13 @@ class RoundTripTestCase(testcase.DualRepositoryTestCase):
 
 
 
+        tzinfo = ICUtzinfo.floating
         # Ensure last-modified is transmitted properly
 
         # 1) Simple case, only one way:
         email = "test@example.com"
         emailAddress = pim.EmailAddress.getEmailAddress(view0, email)
-        tzinfo = ICUtzinfo.floating
-        lastModified = datetime.datetime(2007, 3, 1, 12, 0, 0, 0, tzinfo)
+        lastModified = datetime.datetime(2030, 3, 1, 12, 0, 0, 0, tzinfo)
         item.lastModifiedBy = emailAddress
         item.lastModified = lastModified
         view0.commit(); stats = self.share0.sync(); view0.commit()
@@ -174,17 +177,17 @@ class RoundTripTestCase(testcase.DualRepositoryTestCase):
              {'added' : 0, 'modified' : 1, 'removed' : 0})),
             "Sync operation mismatch")
         view1.commit(); stats = self.share1.sync(); view1.commit()
+        self.assert_(item1.lastModifiedBy.emailAddress == email)
         self.assert_(checkStats(stats,
             ({'added' : 0, 'modified' : 1, 'removed' : 0},
              {'added' : 0, 'modified' : 0, 'removed' : 0})),
             "Sync operation mismatch")
-        self.assert_(item1.lastModifiedBy.emailAddress == email)
         self.assert_(item1.lastModified == lastModified)
 
         # 2) receiving more recent modification:
         email0 = "test0@example.com"
         emailAddress0 = pim.EmailAddress.getEmailAddress(view0, email0)
-        lastModified0 = datetime.datetime(2007, 3, 1, 12, 0, 0, 0, tzinfo)
+        lastModified0 = datetime.datetime(2030, 3, 1, 12, 0, 0, 0, tzinfo)
         item.lastModifiedBy = emailAddress0
         item.lastModified = lastModified0
         view0.commit(); stats = self.share0.sync(); view0.commit()
@@ -194,7 +197,7 @@ class RoundTripTestCase(testcase.DualRepositoryTestCase):
             "Sync operation mismatch")
         email1 = "test1@example.com"
         emailAddress1 = pim.EmailAddress.getEmailAddress(view1, email1)
-        lastModified1 = datetime.datetime(2007, 3, 1, 11, 0, 0, 0, tzinfo)
+        lastModified1 = datetime.datetime(2030, 3, 1, 11, 0, 0, 0, tzinfo)
         item1.lastModifiedBy = emailAddress1
         item1.lastModified = lastModified1
         view1.commit(); stats = self.share1.sync(); view1.commit()
@@ -219,12 +222,12 @@ class RoundTripTestCase(testcase.DualRepositoryTestCase):
 
 
 
-
         # Local and Remote modification, overlapping and non-overlapping
         # changes - non-overlapping changes apply, overlapping changes
         # become pending for the second syncer
         item.body = u"body changed again in 0"
         item.displayName = u"displayName changed in 0"
+        item.triageStatus = pim.TriageEnum.later
         item1.displayName = u"displayName changed again in 1"
         view0.commit(); stats = self.share0.sync(); view0.commit()
         self.assert_(checkStats(stats,
@@ -237,6 +240,7 @@ class RoundTripTestCase(testcase.DualRepositoryTestCase):
              {'added' : 0, 'modified' : 0, 'removed' : 0})),
             "Sync operation mismatch")
         self.assert_(item1.displayName == "displayName changed again in 1")
+        self.assert_(item1.triageStatus == pim.TriageEnum.later)
         self.assert_(item1.body == "body changed again in 0")
         # TODO: Verify the pending here
         view0.commit(); stats = self.share0.sync(); view0.commit()

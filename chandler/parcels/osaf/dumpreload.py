@@ -75,7 +75,7 @@ class PickleSerializer(object):
             return rtype
 
 
-def dump(rv, filename, uuids, translator=sharing.PIMTranslator,
+def dump(rv, filename, uuids, translator=sharing.DumpTranslator,
     serializer=PickleSerializer, activity=None):
 
     """ Dumps EIM records to a file """
@@ -105,7 +105,7 @@ def dump(rv, filename, uuids, translator=sharing.PIMTranslator,
 
 
 
-def reload(rv, filename, translator=sharing.PIMTranslator,
+def reload(rv, filename, translator=sharing.DumpTranslator,
     serializer=PickleSerializer, activity=None):
 
     """ Loads EIM records from a file and applies them """

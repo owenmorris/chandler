@@ -14,7 +14,7 @@
 
 from application import schema
 from osaf import pim
-from osaf.sharing import eim, model
+from osaf.sharing import eim, model, shares, utility
 from PyICU import ICUtzinfo
 import time
 from datetime import datetime, date, timedelta
@@ -31,6 +31,7 @@ from chandlerdb.util.c import UUID
 
 __all__ = [
     'PIMTranslator',
+    'DumpTranslator',
 ]
 
 
@@ -283,10 +284,10 @@ class PIMTranslator(eim.Translator):
             createdOn=createdOn
         )
 
-        if record.triage not in (eim.NoChange, None):
+        if record.triage not in ("", eim.NoChange, None):
             code, timestamp, auto = record.triage.split(" ")
             item.triageStatus = self.codes[code]
-            item.triageStatusChanged = float(timestamp)
+            item.triageStatusChanged = -float(timestamp)
             # TODO: do something with auto
 
 
@@ -298,7 +299,7 @@ class PIMTranslator(eim.Translator):
         if hasattr(item, "createdOn"):
             created = Decimal(int(time.mktime(item.createdOn.timetuple())))
         else:
-            created = None
+            created = eim.NoChange
 
         for code, value in self.codes.iteritems():
             if value == item.triageStatus:
@@ -308,8 +309,8 @@ class PIMTranslator(eim.Translator):
 
         auto = ("1" if getattr(item, "doAutoTriageOnDateChange", True) else "0")
 
-        triage = "%s %.2f %s" % (
-            code, getattr(item, "triageStatusChanged", 0.0), auto
+        triage = "%s %d %s" % (
+            code, int(-getattr(item, "triageStatusChanged", 0.0)), auto
         )
 
         yield model.ItemRecord(
@@ -360,7 +361,7 @@ class PIMTranslator(eim.Translator):
         existing = (Decimal(int(time.mktime(existing.timetuple())))
             if existing else 0)
 
-        if record.timestamp > existing:
+        if record.timestamp >= existing:
 
             # record.userid can never be NoChange.  None == anonymous
             if record.userid is None:
@@ -417,7 +418,7 @@ class PIMTranslator(eim.Translator):
             item.itsUUID,                               # uuid
             body,                                       # body
             getattr(item, "icalUID", None),             # icalUid
-            None                                        # reminderTime
+            eim.NoChange                                # reminderTime
         )
 
 
@@ -686,6 +687,88 @@ class PIMTranslator(eim.Translator):
         
         # ignore triageStatus, triageStatusChanged, and reminderTime
         
+
+
+
+
+class DumpTranslator(PIMTranslator):
+
+    URI = "cid:dump-translator@osaf.us"
+    version = 1
+    description = u"Translator for Chandler items (PIM and non-PIM)"
+
+
+    @model.ShareRecord.importer
+    def import_share(self, record):
+
+        if record.lastSynced not in (eim.NoChange, None):
+            # lastSynced is a Decimal we need to change to datetime
+            naive = datetime.utcfromtimestamp(float(record.lastSynced))
+            inUTC = naive.replace(tzinfo=utc)
+            # Convert to user's tz:
+            lastSynced = inUTC.astimezone(ICUtzinfo.default)
+        else:
+            lastSynced = eim.NoChange
+
+        if record.contents not in (eim.NoChange, None):
+            # contents is the UUID of a SharedItem
+            contents = self.loadItemByUUID(record.contents,
+                shares.SharedItem).itsItem
+        else:
+            contents = eim.NoChange
+
+
+        share = self.loadItemByUUID(record.uuid,
+            shares.Share,
+            contents=contents,
+            established=True,
+            lastSynced=lastSynced)
+
+
+
+    @eim.exporter(shares.Share)
+    def export_share(self, share):
+
+        if hasattr(share, "lastSynced"):
+            lastSynced = Decimal(int(time.mktime(share.lastSynced.timetuple())))
+        else:
+            lastSynced = None
+
+        yield model.ShareRecord(share.itsUUID,
+            share.getLocation(),
+            None,
+            None,
+            share.contents.itsUUID,
+            1 if (share.contents in
+                schema.ns('osaf.pim', share.itsView).mine.sources) else 0,
+            0 if utility.isSharedByMe(share) else 1,
+            getattr(share, "error", ""),
+            share.mode,
+            lastSynced
+        )
+
+        for state in share.states:
+            yield model.ShareStateRecord(state.itsUUID,
+                share.itsUUID,
+                state.itemUUID,
+                None,
+                None
+            )
+
+    @model.ShareStateRecord.importer
+    def import_sharestate(self, record):
+
+        state = self.loadItemByUUID(record.uuid,
+            shares.State,
+            itemUUID=record.item
+        )
+
+        share = self.loadItemByUUID(record.share, shares.Share)
+        if state not in share.states:
+            share.states.append(state, record.item)
+
+
+
 
 
 def test_suite():

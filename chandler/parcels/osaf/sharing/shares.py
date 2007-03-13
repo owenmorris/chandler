@@ -27,7 +27,7 @@ __all__ = [
 from application import schema
 from osaf import pim
 from i18n import ChandlerMessageFactory as _
-import errors, eim, translator, model
+import errors, eim, model
 from eim import NoChange as nc
 from callbacks import *
 import cPickle
@@ -171,7 +171,6 @@ class State(schema.Item):
     _agreed = schema.One(schema.Bytes)
     _pending = schema.One(schema.Bytes)
 
-    # TODO: add translator here?
 
     def __repr__(self):
         return "State(%r, %r)" % (self.agreed, self.pending)
@@ -337,7 +336,7 @@ class State(schema.Item):
     def getTranslator(self):
         # This is so when we need multiple translator types, we'll still only
         # have one place to call to get them...
-        return translator.PIMTranslator(self.itsView)
+        return eim.lookupSchemaURI("cid:pim-translator@osaf.us")(self.itsView)
 
 
 

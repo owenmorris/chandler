@@ -28,7 +28,7 @@ Importing:
     >>> rec = sharing.model.ItemRecord(
     ...         uuid='f230dcd4-7c32-4c3f-908b-d92081cc9a89',
     ...         title='Translator test',
-    ...         triage='200 1167792143.00 1',
+    ...         triage='200 1167792143 1',
     ...         createdOn=Decimal("1164803131")
     ... )
 
@@ -63,7 +63,7 @@ is being used because t-s-c doesn't round-trip precisely)
     >>> t.startExport()
     >>> records = list(t.exportItem(item))
     >>> records
-    [ItemRecord('f230dcd4-7c32-4c3f-908b-d92081cc9a89', u'Translator test', u'200 1167792143.00 1', Decimal("1164803131"))]
+    [ItemRecord('f230dcd4-7c32-4c3f-908b-d92081cc9a89', u'Translator test', u'200 1167792143 1', Decimal("1164803131"))]
 
 
 
@@ -100,7 +100,7 @@ Exporting:
     >>> t.startExport()
     >>> records = list(t.exportItem(item))
     >>> records
-    [ItemRecord('f230dcd4-7c32-4c3f-908b-d92081cc9a89', u'Translator test', u'200 1167792143.00 1', Decimal("1164803131")), NoteRecord('f230dcd4-7c32-4c3f-908b-d92081cc9a89', u'This is the body', None, None)]
+    [ItemRecord('f230dcd4-7c32-4c3f-908b-d92081cc9a89', u'Translator test', u'200 1167792143 1', Decimal("1164803131")), NoteRecord('f230dcd4-7c32-4c3f-908b-d92081cc9a89', u'This is the body', None, NoChange)]
 
 TODO: icaluid
 
@@ -136,7 +136,7 @@ Exporting:
     >>> t.startExport()
     >>> records = list(t.exportItem(item))
     >>> records
-    [ItemRecord('f230dcd4-7c32-4c3f-908b-d92081cc9a89', u'Translator test', u'200 1167792143.00 1', Decimal("1164803131")), NoteRecord('f230dcd4-7c32-4c3f-908b-d92081cc9a89', u'This is the body', None, None), TaskRecord('f230dcd4-7c32-4c3f-908b-d92081cc9a89')]
+    [ItemRecord('f230dcd4-7c32-4c3f-908b-d92081cc9a89', u'Translator test', u'200 1167792143 1', Decimal("1164803131")), NoteRecord('f230dcd4-7c32-4c3f-908b-d92081cc9a89', u'This is the body', None, NoChange), TaskRecord('f230dcd4-7c32-4c3f-908b-d92081cc9a89')]
 
 EventRecord type
 - - - - - - - -

@@ -113,21 +113,21 @@ class XmlRpcResource(xmlrpc.XMLRPC):
             return True
         return result
 
-    def xmlrpc_setAttribute(self, objectPath, attrName, value, viewName=None):
+    def xmlrpc_setAttribute(self, viewName, objectPath, attrName, value):
         """
         generic setAttribute - assumes the value is a atomic value -
         i.e. a string or an integer or something
         """
         return self.generic_item_call(viewName, setattr_withtype, objectPath, attrName, value)
 
-    def xmlrpc_getAttribute(self, objectPath, attrName, value, viewName=None):
+    def xmlrpc_getAttribute(self, viewName, objectPath, attrName, value):
         """
         generic getAttribute - assumes the resulting value will be an
         atomic value like a string or an integer
         """
         return self.generic_item_call(viewName, getattr, objectPath, attrName, value)
 
-    def xmlrpc_delAttribute(self, objectPath, attrName, viewName=None):
+    def xmlrpc_delAttribute(self, viewName, objectPath, attrName):
         """
         removes an attribute from an object
         """

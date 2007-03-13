@@ -69,7 +69,6 @@ class RecordSetConduit(conduits.BaseConduit):
         # TODO: handle mode=get
         # TODO: private items
 
-
         def _callback(*args, **kwds):
             if activity:
                 activity.update(*args, **kwds)

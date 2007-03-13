@@ -25,6 +25,10 @@ text256 = eim.TextType(size=256)
 text1024 = eim.TextType(size=1024)
 
 
+
+
+# pim items -------------------------------------------------------------------
+
 triageFilter = eim.Filter('cid:triage-filter@osaf.us', u"Triage Status")
 
 eventStatusFilter = eim.Filter('cid:event-status-filter@osaf.us',
@@ -175,3 +179,32 @@ class MailMessageRecord(eim.Record):
 
 
 
+
+
+
+# osaf.sharing internals ------------------------------------------------------
+
+
+class ShareRecord(eim.Record):
+    URI = "http://osafoundation.org/eim/sharing/share/0"
+
+    uuid = eim.key(schema.UUID)
+    url = eim.field(text1024)
+    ticket_rw = eim.field(text1024)
+    ticket_ro = eim.field(text1024)
+    contents = eim.field(schema.UUID)
+    mine = eim.field(eim.IntType)
+    subscribed = eim.field(eim.IntType)
+    error = eim.field(text1024)
+    mode = eim.field(text20)
+    lastSynced = eim.field(eim.DecimalType(digits=20, decimal_places=0))
+
+
+class ShareStateRecord(eim.Record):
+    URI = "http://osafoundation.org/eim/sharing/sharestate/0"
+
+    uuid = eim.key(schema.UUID)
+    share = eim.field(schema.UUID)
+    item = eim.field(schema.UUID)
+    agreed = eim.field(eim.BlobType)
+    pending = eim.field(eim.BlobType)

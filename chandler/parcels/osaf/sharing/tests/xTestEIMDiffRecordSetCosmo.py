@@ -24,6 +24,9 @@ from util import testcase
 from PyICU import ICUtzinfo
 from application import schema
 
+import osaf.sharing.tests.round_trip
+osaf.sharing.tests.round_trip.checkStatistics = False
+
 logger = logging.getLogger(__name__)
 
 class EIMDiffRecordSetCosmoTestCase(RoundTripTestCase):
