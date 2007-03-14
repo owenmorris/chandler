@@ -1208,6 +1208,7 @@ def main(options):
             if not os.path.isdir(os.path.join(options.chandlerBin, mode)):
                 options.modes.remove(mode)
     else:
+        options.mode  = options.mode.strip().lower()
         options.modes = [ options.mode ]
 
         # complain about any missing modes if mode was explicitly stated
