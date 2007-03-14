@@ -321,29 +321,27 @@ class PIMTranslator(eim.Translator):
         )
 
         # Also export a ModifiedByRecord
-        lastModifiedBy = None
+        lastModifiedBy = ""
         if hasattr(item, "lastModifiedBy"):
             emailAddress = item.lastModifiedBy
             if emailAddress is not None and emailAddress.emailAddress:
                 lastModifiedBy = emailAddress.emailAddress
 
-        if lastModifiedBy is not None:
-
-            lastModified = getattr(item, "lastModified", None)
-            if lastModified:
-                lastModified = Decimal(
-                    int(time.mktime(lastModified.timetuple()))
-                )
-            elif hasattr(item, "createdOn"):
-                lastModified = Decimal(
-                    int(time.mktime(item.createdOn.timetuple()))
-                )
-
-            yield model.ModifiedByRecord(
-                item.itsUUID,
-                lastModifiedBy,
-                lastModified
+        lastModified = getattr(item, "lastModified", None)
+        if lastModified:
+            lastModified = Decimal(
+                int(time.mktime(lastModified.timetuple()))
             )
+        elif hasattr(item, "createdOn"):
+            lastModified = Decimal(
+                int(time.mktime(item.createdOn.timetuple()))
+            )
+
+        yield model.ModifiedByRecord(
+            item.itsUUID,
+            lastModifiedBy,
+            lastModified
+        )
 
 
 
@@ -363,8 +361,8 @@ class PIMTranslator(eim.Translator):
 
         if record.timestamp >= existing:
 
-            # record.userid can never be NoChange.  None == anonymous
-            if record.userid is None:
+            # record.userid can never be NoChange.  "" == anonymous
+            if not record.userid:
                 item.lastModifiedBy = None
             else:
                 item.lastModifiedBy = pim.EmailAddress.getEmailAddress(self.rv,

@@ -197,6 +197,8 @@ class EIMMLSerializer(object):
                             attrs = { keyURI : 'true' }
                             if typeName is not None:
                                 attrs[typeURI] = typeName
+                            if value == "":
+                                attrs["empty"] = "true"
                             fieldElement = SubElement(recordElement,
                                 "{%s}%s" % (record.URI, field.name),
                                 **attrs)
@@ -333,17 +335,21 @@ class EIMMLSerializerLite(object):
                                     recordElement.set(field.name, serialized)
 
                 for record in list(recordSet.exclusions):
-                    attrs = { deletedURI : "true"}
+                    recordElement = SubElement(recordSetElement,
+                        "{%s}record" % (record.URI))
+                    recordElement.set(deletedURI, "true")
 
                     for field in record.__fields__:
                         if isinstance(field, eim.key):
                             value = record[field.offset]
                             serialized, typeName = serializeValue(
                                 field.typeinfo, record[field.offset])
-                            attrs[field.name] = serialized
+                            if serialized is None:
+                                SubElement(recordElement,
+                                    "{%s}%s" % (record.URI, field.name))
+                            else:
+                                recordElement.set(field.name, serialized)
 
-                    recordElement = SubElement(recordSetElement,
-                        "{%s}record" % (record.URI), **attrs)
 
             else: # item deletion indicated
 
