@@ -577,7 +577,7 @@ class RecurrenceRuleSet(items.ContentItem):
 
         """
         if self.isComplex():
-            return _(u"complex rule - no description available")
+            return _(u"Custom: No description")
         else:
             rule = self.rrules.first()
             freq = rule.freq
