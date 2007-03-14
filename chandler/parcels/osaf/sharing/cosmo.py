@@ -114,7 +114,7 @@ class CosmoConduit(recordset_conduit.DiffRecordSetConduit, conduits.HTTPMixin):
         if resp.status != 200:
             # TODO: Fix error message
             raise errors.SharingError("HTTP error %d" % resp.status,
-                debugMessage="Sent [%s], Received [%s]" % (text, resp.body))
+                debugMessage="Received [%s]" % resp.body)
 
         syncTokenHeaders = resp.headers.getHeader('X-MorseCode-SyncToken')
         if syncTokenHeaders:

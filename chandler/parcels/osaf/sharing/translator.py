@@ -287,7 +287,7 @@ class PIMTranslator(eim.Translator):
         if record.triage not in ("", eim.NoChange, None):
             code, timestamp, auto = record.triage.split(" ")
             item.triageStatus = self.codes[code]
-            item.triageStatusChanged = -float(timestamp)
+            item.triageStatusChanged = float(timestamp)
             # TODO: do something with auto
 
 
@@ -309,8 +309,8 @@ class PIMTranslator(eim.Translator):
 
         auto = ("1" if getattr(item, "doAutoTriageOnDateChange", True) else "0")
 
-        triage = "%s %d %s" % (
-            code, int(-getattr(item, "triageStatusChanged", 0.0)), auto
+        triage = "%s %.2f %s" % (
+            code, int(getattr(item, "triageStatusChanged", 0.0)), auto
         )
 
         yield model.ItemRecord(
@@ -418,7 +418,7 @@ class PIMTranslator(eim.Translator):
             item.itsUUID,                               # uuid
             body,                                       # body
             getattr(item, "icalUID", None),             # icalUid
-            eim.NoChange                                # reminderTime
+            None                                        # reminderTime
         )
 
 

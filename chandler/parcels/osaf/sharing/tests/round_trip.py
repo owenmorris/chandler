@@ -39,13 +39,18 @@ def printStats(view, stats):
                 )
         print
 
-checkStatistics = True
+cosmo = False
 
 def checkStats(stats, expecting):
-    if checkStatistics:
-        for seen, expected in zip(stats, expecting):
-            for event in ('added', 'modified', 'removed'):
-                if len(seen[event]) != expected[event]:
+    for seen, expected in zip(stats, expecting):
+        for event in ('added', 'modified', 'removed'):
+            count = len(seen[event])
+            expect = expected[event]
+            if isinstance(expect, tuple):
+                if count != expect[1 if cosmo else 0]:
+                    return False
+            else:
+                if count != expect:
                     return False
     return True
 
@@ -162,12 +167,12 @@ class RoundTripTestCase(testcase.DualRepositoryTestCase):
 
 
 
-        tzinfo = ICUtzinfo.floating
         # Ensure last-modified is transmitted properly
 
         # 1) Simple case, only one way:
         email = "test@example.com"
         emailAddress = pim.EmailAddress.getEmailAddress(view0, email)
+        tzinfo = ICUtzinfo.floating
         lastModified = datetime.datetime(2030, 3, 1, 12, 0, 0, 0, tzinfo)
         item.lastModifiedBy = emailAddress
         item.lastModified = lastModified
@@ -187,7 +192,7 @@ class RoundTripTestCase(testcase.DualRepositoryTestCase):
         # 2) receiving more recent modification:
         email0 = "test0@example.com"
         emailAddress0 = pim.EmailAddress.getEmailAddress(view0, email0)
-        lastModified0 = datetime.datetime(2030, 3, 1, 12, 0, 0, 0, tzinfo)
+        lastModified0 = datetime.datetime(2030, 3, 1, 13, 0, 0, 0, tzinfo)
         item.lastModifiedBy = emailAddress0
         item.lastModified = lastModified0
         view0.commit(); stats = self.share0.sync(); view0.commit()
@@ -209,16 +214,19 @@ class RoundTripTestCase(testcase.DualRepositoryTestCase):
         self.assert_(item1.lastModifiedBy.emailAddress == email0)
         self.assert_(item1.lastModified == lastModified0)
 
+        # (Cosmo won't send older modifications, so that is why the stats
+        # are the way they are)
         # 3) receiving an older modification:
         view0.commit(); stats = self.share0.sync(); view0.commit()
         self.assert_(checkStats(stats,
-            ({'added' : 0, 'modified' : 1, 'removed' : 0},
+            ({'added' : 0, 'modified' : (1,0), 'removed' : 0},
              {'added' : 0, 'modified' : 0, 'removed' : 0})),
             "Sync operation mismatch")
         # In this case, the mod from view1 is out of date, so ignored,
         # and both clients have email0 and lastModified0
         self.assert_(item.lastModifiedBy.emailAddress == email0)
         self.assert_(item.lastModified == lastModified0)
+
 
 
 
@@ -235,9 +243,12 @@ class RoundTripTestCase(testcase.DualRepositoryTestCase):
              {'added' : 0, 'modified' : 1, 'removed' : 0})),
             "Sync operation mismatch")
         view1.commit(); stats = self.share1.sync(); view1.commit()
+        # In Cosmo mode, we end up sending a deletion of an old last modified
+        # by record, because of the manner in which Cosmo ignores deletions.
+        # That is why the stats are different between non-Cosmo and Cosmo mode:
         self.assert_(checkStats(stats,
             ({'added' : 0, 'modified' : 1, 'removed' : 0},
-             {'added' : 0, 'modified' : 0, 'removed' : 0})),
+             {'added' : 0, 'modified' : (0,1), 'removed' : 0})),
             "Sync operation mismatch")
         self.assert_(item1.displayName == "displayName changed again in 1")
         self.assert_(item1.triageStatus == pim.TriageEnum.later)

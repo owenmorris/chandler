@@ -25,7 +25,7 @@ from PyICU import ICUtzinfo
 from application import schema
 
 import osaf.sharing.tests.round_trip
-osaf.sharing.tests.round_trip.checkStatistics = False
+osaf.sharing.tests.round_trip.cosmo = True
 
 logger = logging.getLogger(__name__)
 
