@@ -316,6 +316,37 @@ class RecurringEventTest(testcase.SingleRepositoryTestCase):
         self.assertEqual(generated.getNextOccurrence(), evtaskmod)
 
 
+    def testChangeAll(self):
+        self.event.summary = uw("Master Event") #no rruleset, so no modification
+        self.event.rruleset = self._createRuleSetItem('weekly')
+        
+        firstOccurrence = self.event.getFirstOccurrence()
+        secondOccurrence = firstOccurrence.getNextOccurrence()
+        
+        originalStart = self.event.startTime
+        secondStart = secondOccurrence.startTime.replace(hour=10, minute=5)
+        
+        # Try an ALL change to the second event ...
+        secondOccurrence.changeAll(EventStamp.startTime.name, secondStart)
+        
+        # ... make sure that changed the master
+        self.failUnlessEqual(self.event.startTime,
+                             originalStart.replace(hour=10, minute=5))
+        self.failUnlessEqual(secondOccurrence.startTime, secondStart)
+        
+        # Make THIS changes to the 2nd & 3rd events' displayNames
+        thirdOccurrence = secondOccurrence.getNextOccurrence()
+        thirdOccurrence.changeThis('displayName', uw("Not a master!"))
+        secondOccurrence.changeThis('displayName', uw("Also not a master"))
+        
+        thirdOccurrence.changeAll('displayName', uw("Changed, baby"))
+        self.failUnlessEqual(thirdOccurrence.itsItem.displayName,
+                             uw("Changed, baby"))
+        self.failUnlessEqual(self.event.itsItem.displayName,
+                             uw("Changed, baby"))
+        self.failUnlessEqual(secondOccurrence.itsItem.displayName,
+                             uw("Also not a master"))
+
     def testRuleChange(self):
         self.event.rruleset = self._createRuleSetItem('weekly')
         # an automatically generated backup occurrence should exist

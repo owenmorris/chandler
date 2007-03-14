@@ -1626,14 +1626,28 @@ class EventStamp(Stamp):
             if disabledSelf: self.__enableRecurrenceChanges()
             
     def changeAll(self, attr=None, value=None):
-        if (attr is not None and self.modificationFor is not None and
-            self.itsItem.hasLocalAttributeValue(attr)):
+        master = self.getMaster()
+        isStartTime = (attr == EventStamp.startTime.name)
+        if attr is not None:
             disabled = self.__disableRecurrenceChanges()
             try:
-                delattr(self.itsItem, attr)
+                # For startTime, treat the changeAll as a request to
+                # change the delta of all events, so adjust startTime
+                # to be relative to the master.
+                if isStartTime:
+                    delta = value - self.startTime
+                    value = master.startTime + delta
+                    self.startTime = self.recurrenceID
+                else:
+                    # If self is a modification that has a change to
+                    # this event, delete the attribute, since we're
+                    # going to pick up the master's value
+                    if (self.modificationFor is not None and
+                        self.itsItem.hasLocalAttributeValue(attr)):
+                        delattr(self.itsItem, attr)
             finally:
                 if disabled: self.__enableRecurrenceChanges()
-        self.getMaster().changeThisAndFuture(attr, value)
+        master.changeThisAndFuture(attr, value)
 
     def moveCollections(self, fromEvent, toEvent):
         """Move all collection references from one event to another."""
