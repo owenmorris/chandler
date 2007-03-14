@@ -92,19 +92,21 @@ def ProcessEvent (theClass, properties , attributes):
                     else:
                         assert focusWindow.GetId() < 0, "Focus window has unexpected id"
 
-            if not hasattr (ProcessEvent, "lastFocus"):
-                ProcessEvent.lastFocus = focusWindow
-            if ProcessEvent.lastFocus != focusWindow:
-                assert newFocusWindow is not None, "Focus window unexpectedly changed"
-                
-                # And that we get the expected focus window
-                focusShouldLookLikeNewFocusWindow (focusWindow, newFocusWindow)
-    
-                ProcessEvent.lastFocus = focusWindow
-            else:
-                if newFocusWindow is not None:
+            if hasattr (ProcessEvent, "lastFocus"):
+                if ProcessEvent.lastFocus != focusWindow:
+                    assert newFocusWindow is not None, "Focus window unexpectedly changed"
+                    
+                    # And that we get the expected focus window
                     focusShouldLookLikeNewFocusWindow (focusWindow, newFocusWindow)
-    
+        
+                    ProcessEvent.lastFocus = focusWindow
+                else:
+                    if newFocusWindow is not None:
+                        focusShouldLookLikeNewFocusWindow (focusWindow, newFocusWindow)
+            else:
+                if focusWindow is not None:
+                    ProcessEvent.lastFocus = focusWindow
+
             # Check to make sure last event caused expected change
             if ProcessEvent.lastSentToWidget is not None:
                 method = getattr (ProcessEvent.lastSentToWidget, "GetValue", None)
