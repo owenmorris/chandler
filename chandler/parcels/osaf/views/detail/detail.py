@@ -1719,7 +1719,6 @@ class RecurrenceAttributeEditor(ChoiceAttributeEditor):
         """
         Set the value of the attribute given by the value.
         """
-        assert value != RecurrenceAttributeEditor.customIndex
         # Changing the recurrence period on a non-master item could delete 
         # this very 'item'; we'll try to select the "same" occurrence
         # afterwards ...
@@ -1737,6 +1736,8 @@ class RecurrenceAttributeEditor(ChoiceAttributeEditor):
         # as in Bug 5526
         if oldIndex == value:
             return        
+
+        assert value != RecurrenceAttributeEditor.customIndex
         
         master = event.getMaster()
         recurrenceID = event.recurrenceID or event.startTime
