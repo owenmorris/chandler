@@ -268,8 +268,8 @@ def itemsToVObject(view, items, cal=None, filters=None):
         # @@@ [grant] Once we start writing out Event+Tasks as
         # VTODO, write out DUE (or maybe DTSTART) here.
 
-        if Note.triageStatus.name not in filters:
-            triageStatus = task.itsItem.triageStatus
+        if Note._triageStatus.name not in filters:
+            triageStatus = task.itsItem._triageStatus
             
             # VTODO STATUS mapping:
             # ---------------------
@@ -726,7 +726,7 @@ def _importOneVObject(vobj, filters, coerceTzinfo, promptForTimezone,
         
     if TaskStamp in newStamps:
         
-        if Note.triageStatus.name not in filters:
+        if Note._triageStatus.name not in filters:
             # Translate status from iCalendar to TaskStamp/ContentItem
             triageStatus=TriageEnum.now
             
@@ -739,14 +739,14 @@ def _importOneVObject(vobj, filters, coerceTzinfo, promptForTimezone,
             elif status == "cancelled":
                 triageStatus = TriageEnum.later
 
-            change(Note.triageStatus, triageStatus)
-             
+            # @@@ Jeffrey: This may not be right...
+            # Set triageStatus and triageStatusChanged together.
             if completed is not None:
                 if type(completed) == date:
                     completed = TimeZone.forceToDateTime(completed)
-                    
-                changeLast.append(lambda item: 
-                                    item.setTriageStatusChanged(when=completed))
+            changeLast.append(lambda item: item.setTriageStatus(triageStatus, 
+                                                                when=completed))
+            
 
     itemIsNew = (item is None)
             
@@ -804,7 +804,7 @@ def _importOneVObject(vobj, filters, coerceTzinfo, promptForTimezone,
 # attributes to avoid reusing when serializing events that were originally
 # imported
 attributesUnderstood = ['recurrence-id', 'summary', 'description', 'location',
-                        'status', 'duration', 'dtstart', 'dtend', 'uid',
+                        'status', 'duration', 'dtstart', 'dtend', 'uid', 'due',
                         'valarm', 'dtstamp', 'rrule', 'exrule', 'rdate',
                         'exdate']
 

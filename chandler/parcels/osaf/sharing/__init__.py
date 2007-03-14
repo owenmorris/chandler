@@ -1043,8 +1043,8 @@ def subscribeCalDAV(view, url, inspection, activity=None, account=None,
              pim.Remindable.reminders.name,
              pim.EventStamp.transparency.name
         ]
-        if 'triageStatus' in getattr(subShare, 'filterAttributes', []):
-            share.filterAttributes.append('triageStatus')
+        if '_triageStatus' in getattr(subShare, 'filterAttributes', []):
+            share.filterAttributes.append('_triageStatus')
         """
         Why just triageStatus and not triageStatusChanged in the code above?
         Is that a bug?
@@ -1566,9 +1566,13 @@ def fixTriageStatusCallback(share=None, uuids=None):
     Set triageStatus on new 'now' items received from sharing, importing,
     or restore.
     """
+    ## This is only called for old-style sharing, which should mostly be going
+    ## away.  But now that triageStatus sharing includes the
+    ## doAutoTriageOnDateChange flag, do auto-triage on import, even if
+    ## triage status is shared.
     # Don't do this if we're sharing triageStatus (bug 7193)
-    if 'triageStatus' not in share.filterAttributes:
-        return
+    #if '_triageStatus' not in share.filterAttributes:
+        #return
 
     now = datetime.datetime.now(tz=ICUtzinfo.default)
     for u in uuids:
@@ -1577,10 +1581,7 @@ def fixTriageStatusCallback(share=None, uuids=None):
         if Calendar.isRecurring(item):
             continue
         
-        displayDate = getattr(item, 'displayDate', None)
-        if displayDate:
-            item.triageStatus = (displayDate < now and pim.TriageEnum.done
-                                 or pim.TriageEnum.later)
-            item.setTriageStatusChanged(displayDate)
+        item.read = False
+        item.setTriageStatus('auto', popToNow=True)
         
 register(NEWITEMSUNESTABLISHED, fixTriageStatusCallback)

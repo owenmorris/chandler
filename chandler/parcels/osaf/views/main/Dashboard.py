@@ -23,6 +23,7 @@ from osaf.framework.blocks import (Block, debugName, Table,
                                    wxTable, GridCellAttributeEditor, 
                                    GridCellAttributeRenderer, Styles)
 from osaf.framework.attributeEditors import AttributeEditors
+from osaf import pim
 import wx
 import logging
 
@@ -100,9 +101,15 @@ class DashboardBlock(Table):
     def onTriageEvent(self, event):
         # triaging a recurring event can cause later keys to disappear from the
         # collection, which upsets iterkeys, so wrap the iterator in a list
+        recurringEventsHandled = []
+        modificationForAttr = pim.EventStamp.modificationFor.name
         for key in list(self.contents.iterkeys()):
             if self.itsView.findValue(key, '_sectionTriageStatus', 
                                       default=None) is not None:
                 item = self.itsView[key]
                 item.purgeSectionTriageStatus()
-
+            master = self.itsView.findValue(key, modificationForAttr,
+                                            default=None)
+            if master is not None and master not in recurringEventsHandled:
+                recurringEventsHandled.append(master)
+                pim.EventStamp(master).updateTriageStatus()

@@ -201,7 +201,31 @@ class ICalendarTestCase(SingleRepositoryTestCase):
         # (unless we're suffering from Bug 7023, in which case tzinfos are
         # changed silently, often to GMT, without raising an exception)
         self.assertEqual(event.rruleset.exdates[0].tzinfo,
-                         ICUtzinfo.getInstance('US/Central'))        
+                         ICUtzinfo.getInstance('US/Central'))
+
+    def testImportRecurrenceAndTriageStatus(self):
+        format = self.Import(self.view, u'Recurrence.ics')
+        event = pim.EventStamp(sharing.findUID(self.view,
+                                  '5B30A574-02A3-11DA-AA66-000A95DA3228'))
+
+        # test triage of imported recurring event:  There should be a
+        # modification for the master triaged DONE but in the NOW section.
+        # Doing an updateTriageStatus should cause that modification to go
+        # away
+        firstOccurrence = event.getFirstOccurrence()
+        self.assertEqual(firstOccurrence.modificationFor, event.itsItem)
+        self.assertEqual(firstOccurrence.itsItem._triageStatus,
+                         pim.TriageEnum.done)
+        self.assertEqual(firstOccurrence.itsItem._sectionTriageStatus,
+                         pim.TriageEnum.now)
+        
+        event.updateTriageStatus()
+        self.assertEqual(firstOccurrence.modificationFor, None)
+        self.assertEqual(firstOccurrence.itsItem._triageStatus,
+                         pim.TriageEnum.done)
+        sts = getattr(firstOccurrence.itsItem, '_sectionTriageStatus', None)
+        self.assertEqual(sts, None)
+        
 
     def testImportUnusualTzid(self):
         format = self.Import(self.view, u'UnusualTzid.ics')
@@ -690,7 +714,7 @@ class ImportTodoTestCase(SharingTestCase):
         self.failUnlessEqual(task.summary, u"ToDoneAndWhen")
         self.failUnlessEqual(task.itsItem.triageStatus, pim.TriageEnum.done)
         self.failUnlessEqual(task.itsItem.triageStatusChanged,
-                             -1141203600.0)
+                             -1141174800.0)
     def testDescription(self):
         self.runImport(
             "BEGIN:VCALENDAR",
@@ -822,7 +846,7 @@ class ExportTodoTestCase(SharingTestCase):
     def testStatus(self):
         task, vtodo = self.getExportedTodoComponent(
                 displayName=u'Some completed stupid task',
-                triageStatus=pim.TriageEnum.done,
+                _triageStatus=pim.TriageEnum.done,
                 needsReply=True)
         
         self.failUnlessEqual(u'Some completed stupid task',
@@ -833,7 +857,7 @@ class ExportTodoTestCase(SharingTestCase):
     def testLaterStatus(self):
         task, vtodo = self.getExportedTodoComponent(
                 displayName=u'Some deferred task',
-                triageStatus=pim.TriageEnum.later)
+                _triageStatus=pim.TriageEnum.later)
                         
         self.failUnlessEqual(u'Some deferred task',
                              vtodo.getChildValue('summary'))
@@ -843,7 +867,7 @@ class ExportTodoTestCase(SharingTestCase):
     def testNeedsReplyStatus(self):
         task, vtodo = self.getExportedTodoComponent(
                 displayName=u'Very important, Bob',
-                triageStatus=pim.TriageEnum.now,
+                _triageStatus=pim.TriageEnum.now,
                 needsReply=True)
                 
         self.failUnlessEqual(u'Very important, Bob',

@@ -134,9 +134,10 @@ class TestReminderProcessing(ChandlerTestCase):
             
 
     def _makeEvent(self, displayName, startTime):
-        note = pim.Note(itsView=self.app_ns.itsView,
-                     displayName=displayName,
-                     triageStatus=pim.TriageEnum.later)
+        note = pim.Note(itsView=self.app_ns.itsView)
+        note.displayName = displayName
+        note.setTriageStatus(pim.TriageEnum.later)
+        
         self.collection.item.add(note)
         evt = pim.EventStamp(note)
         evt.add()

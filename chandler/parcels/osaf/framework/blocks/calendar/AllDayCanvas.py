@@ -287,6 +287,8 @@ class wxAllDayEventsCanvas(wxCalendarCanvas):
                 self.coercedCanvasItem = None
                 stampedProxy.anyTime = True
 
+            proxy.setTriageStatus('auto')
+
     def makeCoercedCanvasItem(self, x, y, item):
         event = Calendar.EventStamp(item)
         unscrolledPosition = wx.Point(*self.CalcUnscrolledPosition(x, y))

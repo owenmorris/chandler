@@ -47,7 +47,7 @@ class ItemSharingTestCase(testcase.DualRepositoryTestCase):
         pje = schema.Item(itsView=view0, itsName="pje")
         morgen = schema.Item(itsView=view1, itsName="morgen")
 
-        item0.triageStatus = pim.TriageEnum.later
+        item0.setTriageStatus(pim.TriageEnum.later)
 
         pim.EventStamp(item0).add()
         event = pim.EventStamp(item0)
@@ -77,7 +77,7 @@ class ItemSharingTestCase(testcase.DualRepositoryTestCase):
 
         # verify inbound filters (URIs defined in model.py)
         filter = sharing.getFilter(['cid:triage-filter@osaf.us'])
-        item0.triageStatus = pim.TriageEnum.now
+        item0.setTriageStatus(pim.TriageEnum.now)
         view0.commit()
         text = sharing.outbound([pje], item0)
         view0.commit()
@@ -88,7 +88,7 @@ class ItemSharingTestCase(testcase.DualRepositoryTestCase):
         self.assertEqual(item1.triageStatus, pim.TriageEnum.later)
         self.assert_(not hasattr(shared1, "conflictingStates"))
 
-        item0.triageStatus = pim.TriageEnum.done
+        item0.setTriageStatus(pim.TriageEnum.done)
         view0.commit()
         text = sharing.outbound([pje], item0, filter=filter)
         view0.commit()
@@ -99,7 +99,7 @@ class ItemSharingTestCase(testcase.DualRepositoryTestCase):
         self.assertEqual(item1.triageStatus, pim.TriageEnum.later)
         self.assert_(not hasattr(shared1, "conflictingStates"))
 
-        item0.triageStatus = pim.TriageEnum.now
+        item0.setTriageStatus(pim.TriageEnum.now)
         view0.commit()
         text = sharing.outbound([pje], item0)
         view0.commit()

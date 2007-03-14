@@ -32,8 +32,8 @@ class TriageColumnIndexDefinition(pim.MethodIndexDefinition):
     findParams = [
         # We'll return one pair of these or the other, depending on whether
         # sectionTriageStatus exists on the item.
-        ('triageStatus', None),
-        ('triageStatusChanged', 0),
+        ('_triageStatus', None),
+        ('_triageStatusChanged', 0),
         ('_sectionTriageStatus', None),
         ('_sectionTriageStatusChanged', 0),
     ]
@@ -203,24 +203,10 @@ class TriageAttributeEditor(attributeEditors.IconAttributeEditor):
         return "Triage.%s" % value.name
     
     def advanceState(self, item, attributeName):
-        # The goal is to preserve sectionTriageStatus while incrementing
-        # triageStatus (so that the button color changes, but the sort
-        # position remains the same)... We start by copying triageStatus
-        # to sectionTriageStatus if there's no section status yet, then 
-        # we increment triageStatus.
         oldValue = item.triageStatus
         newValue = pim.getNextTriageStatus(oldValue)
-        if pim.has_stamp(item, pim.EventStamp):
-            event = pim.EventStamp(item)
-            if not hasattr(item, '_sectionTriageStatus'):
-                event.changeThis('_sectionTriageStatus', oldValue)
-                event.changeThis('_sectionTriageStatusChanged', item.triageStatusChanged)
-            event.changeThis('triageStatus', newValue)
-        else:
-            if not hasattr(item, '_sectionTriageStatus'):
-                item._sectionTriageStatus = oldValue
-                item._sectionTriageStatusChanged = item.triageStatusChanged
-            item.triageStatus = newValue
+        item.setTriageStatus(newValue, pin=True)
+        item.resetAutoTriageOnDateChange()
 
 class ReminderColumnAttributeEditor(attributeEditors.IconAttributeEditor):    
     def makeStates(self):

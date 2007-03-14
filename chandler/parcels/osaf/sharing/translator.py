@@ -259,11 +259,12 @@ class PIMTranslator(eim.Translator):
 
     # ItemRecord -------------
 
-    codes = {
+    code_to_triagestatus = {
         "100" : pim.TriageEnum.now,
         "200" : pim.TriageEnum.later,
         "300" : pim.TriageEnum.done,
     }
+    triagestatus_to_code = dict([[v, k] for k, v in code_to_triagestatus.items()])
 
     @model.ItemRecord.importer
     def import_item(self, record):
@@ -286,11 +287,9 @@ class PIMTranslator(eim.Translator):
 
         if record.triage not in ("", eim.NoChange, None):
             code, timestamp, auto = record.triage.split(" ")
-            item.triageStatus = self.codes[code]
-            item.triageStatusChanged = float(timestamp)
-            # TODO: do something with auto
-
-
+            item._triageStatus = self.code_to_triagestatus[code]
+            item._triageStatusChanged = float(timestamp)
+            item.doAutoTriageOnDateChange = (auto == "1")
 
     @eim.exporter(pim.ContentItem)
     def export_item(self, item):
@@ -301,17 +300,10 @@ class PIMTranslator(eim.Translator):
         else:
             created = eim.NoChange
 
-        for code, value in self.codes.iteritems():
-            if value == item.triageStatus:
-                break
-        else:
-            code = "100"
-
-        auto = ("1" if getattr(item, "doAutoTriageOnDateChange", True) else "0")
-
-        triage = "%s %.2f %s" % (
-            code, int(getattr(item, "triageStatusChanged", 0.0)), auto
-        )
+        tsCode = self.triagestatus_to_code.get(item._triageStatus, "100")
+        tsChanged = getattr(item, "_triageStatusChanged", 0.0)
+        tsAuto = ("1" if getattr(item, "doAutoTriageOnDateChange", True) else "0")
+        triage = "%s %.2f %s" % (tsCode, tsChanged, tsAuto)
 
         yield model.ItemRecord(
             item.itsUUID,                               # uuid

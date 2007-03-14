@@ -235,7 +235,7 @@ class RoundTripTestCase(testcase.DualRepositoryTestCase):
         # become pending for the second syncer
         item.body = u"body changed again in 0"
         item.displayName = u"displayName changed in 0"
-        item.triageStatus = pim.TriageEnum.later
+        item.setTriageStatus(pim.TriageEnum.later)
         item1.displayName = u"displayName changed again in 1"
         view0.commit(); stats = self.share0.sync(); view0.commit()
         self.assert_(checkStats(stats,

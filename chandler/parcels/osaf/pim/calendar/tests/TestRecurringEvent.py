@@ -1204,7 +1204,8 @@ class RecurringEventTest(testcase.SingleRepositoryTestCase):
         # make the later event now, which should create a new later mod
         for mod in event.modifications:
             if mod.triageStatus == TriageEnum.later:
-                mod.triageStatus = TriageEnum.now
+                mod.setTriageStatus(TriageEnum.now)
+                event.updateTriageStatus()
                 break
 
         assertOneDoneOneLater(event)
@@ -1213,14 +1214,16 @@ class RecurringEventTest(testcase.SingleRepositoryTestCase):
         for mod in event.modifications:
             if mod.triageStatus == TriageEnum.done:
                 doneEvent = mod
-                mod.triageStatus = TriageEnum.now
+                mod.setTriageStatus(TriageEnum.now)
+                event.updateTriageStatus()
                 break
 
         assertOneDoneOneLater(event)
         
         # make the original done event done again, the previously created done
         # mod should stop being a modification
-        doneEvent.triageStatus = TriageEnum.done
+        doneEvent.setTriageStatus(TriageEnum.done)
+        event.updateTriageStatus()
 
         assertOneDoneOneLater(event)
 
@@ -1286,8 +1289,8 @@ class RecurringEventTest(testcase.SingleRepositoryTestCase):
             [self.event.itsItem.itsUUID],
             list(collection.iterkeys(indexDef.itsName))
         )
-        
-        self.event.startTime = datetime.now(ICUtzinfo.default) + timedelta(hours=1)
+        now = datetime.now(ICUtzinfo.default).replace(microsecond=0)
+        self.event.startTime = now + timedelta(hours=1)
 
         # Add a note, with an absolute time reminder in two hours' time
         #  to the collection
@@ -1322,7 +1325,7 @@ class RecurringEventTest(testcase.SingleRepositoryTestCase):
         indexDates = list(item.displayDate for item in
                       collection.iterindexvalues(indexDef.itsName))
         self.failUnlessEqual(indexDates, sorted(indexDates))
-        
+
         # Move the event start times to after the note's reminder time
         self.event.changeThisAndFuture(EventStamp.startTime.name,
                                       self.event.startTime + timedelta(hours=3))
@@ -1330,7 +1333,7 @@ class RecurringEventTest(testcase.SingleRepositoryTestCase):
         indexDates = list(item.displayDate for item in
                       collection.iterindexvalues(indexDef.itsName))
         self.failUnlessEqual(indexDates, sorted(indexDates))
-        
+
         # The first date in the index should be the Note's reminderTime.
         self.failUnlessEqual(indexDates[0], reminderTime)
 

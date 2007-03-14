@@ -34,8 +34,7 @@ class TestTriageSectioning(ChandlerTestCase):
         items = []
         for status in pim.TriageEnum.constants:
             item = QAUITestAppLib.UITestItem("Note", self.logger)
-            if status != pim.TriageEnum.now: # it should default to 'now'!
-                item.item.triageStatus = status
+            item.item.setTriageStatus(status)
             items.append(item)
             
         # Let the display catch up to the items
@@ -67,7 +66,7 @@ class TestTriageSectioning(ChandlerTestCase):
         self.logger.startAction('Check section expansion')
         if sectionRows != goodDefaultSectioning:
             self.logger.endAction(False, "Dashboard not sectioned properly: %r != %r" 
-                                  % (sectionRows, goodExpandedSectioning))
+                                  % (sectionRows, goodDefaultSectioning))
         else:
             self.logger.endAction(True)
         

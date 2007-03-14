@@ -1409,6 +1409,8 @@ class wxCalendarCanvas(CalendarNotificationHandler, CollectionCanvas.wxCollectio
             event.startTime = startTime - timedelta(minutes=30)
             event.duration = timedelta(hours=1)
             event.allDay = event.anyTime = False
+            
+        item.setTriageStatus('auto')
                 
     def GrabFocusHack(self):
         if self.editor.IsShown():
@@ -1516,6 +1518,7 @@ class wxCalendarCanvas(CalendarNotificationHandler, CollectionCanvas.wxCollectio
         self.blockItem.contentsCollection.add(item)
 
         self.OnSelectItem(item)
+        item.setTriageStatus('auto')
 
         view.commit()
         return event

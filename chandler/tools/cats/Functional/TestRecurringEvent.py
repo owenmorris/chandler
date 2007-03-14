@@ -242,20 +242,24 @@ class TestRecurringEvent(ChandlerTestCase):
                 
 
         self.logger.startAction("Check initial modification states.")
-        checkDictNumbers(1, 1, 1)
+        checkDictNumbers(1, 1, 0)
         self.logger.endAction(True)
 
         statuses = getTriageStatusDict(uw("Yearly dentist appointment"))
         changing_item = statuses[pim.TriageEnum.done][0]        
         
         self.logger.startAction("Change a Done to Now.")
-        # This isn't going through the UI, so changes don't need to be purged
         # moved the Done to Now, created a new Done
-        changing_item.triageStatus = pim.TriageEnum.now
-        checkDictNumbers(1, 1, 2)
+        changing_item.setTriageStatus(pim.TriageEnum.now)
+        checkDictNumbers(0, 1, 1)
+        pim.EventStamp(changing_item).updateTriageStatus()
+        # triage changes need to be purged to generate a new Done  
+        checkDictNumbers(1, 1, 1)
         self.logger.endAction(True)
 
         self.logger.startAction("Change the now back to Done.")
-        changing_item.triageStatus = pim.TriageEnum.done
-        checkDictNumbers(1, 1, 1)
+        changing_item.setTriageStatus(pim.TriageEnum.done)
+        checkDictNumbers(2, 1, 0)
+        pim.EventStamp(changing_item).updateTriageStatus()
+        checkDictNumbers(1, 1, 0)
         self.logger.endAction(True)

@@ -394,6 +394,15 @@ class UserChangeProxy(object):
                 change['disabled_buttons']=('future',)
             self.notifyChange(change)
 
+    def setTriageStatus(self, *args, **kwds):
+        """
+        Set triage status only if the proxied item isn't recurring, otherwise
+        let EventStamp manage triage status.
+        """
+        proxiedEvent = EventStamp(self.proxiedItem)
+        if proxiedEvent.rruleset is None:
+            self.proxiedItem.setTriageStatus(*args, **kwds)
+
     def notifyChange(self, change, delay=True):
         """
         Given a change dict, queue it up and pop up a dialog if necessary
@@ -468,7 +477,12 @@ class UserChangeProxy(object):
                 if newEvent is not None:
                     self.proxiedItem = newEvent.itsItem
 
-        self.proxiedItem.changeEditState() # Mark it edited
+        if self.currentlyModifying == 'this':
+            editedItem = self.proxiedItem
+        else:
+            editedItem = EventStamp(self.proxiedItem).getMaster().itsItem
+            
+        editedItem.changeEditState() # Mark it edited
 
     def propagateDeleteOrRemove(self, collection):
         proxiedEvent = EventStamp(self.proxiedItem)

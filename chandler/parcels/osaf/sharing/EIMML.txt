@@ -578,7 +578,8 @@ back.
     >>> rv0 = NullRepositoryView()
     >>> rv1 = NullRepositoryView()
     >>> item0 = pim.Note(itsView=rv0, displayName="test displayName",
-    ...     body="test body", triageStatus=pim.TriageEnum.later)
+    ...     body="test body")
+    >>> item0.setTriageStatus(pim.TriageEnum.later)
     >>> uuid = item0.itsUUID.str16()
     >>> not pim.has_stamp(item0, sharing.SharedItem)
     True
@@ -618,15 +619,15 @@ An item is imported via the inbound method.
     >>> item1.body
     u'test body'
 
-    >>> item1.triageStatus
+    >>> item1._triageStatus
     TriageEnum.later
 
 Send changes back
 
-    >>> item1.triageStatus = pim.TriageEnum.now
+    >>> item1.setTriageStatus(pim.TriageEnum.now)
     >>> text = sharing.outbound([morgen], item1)
     >>> item0 = sharing.inbound(pje, text)
-    >>> item0.triageStatus
+    >>> item0._triageStatus
     TriageEnum.now
 
 You can quickly see if an item has conflicts by checking for the existence of

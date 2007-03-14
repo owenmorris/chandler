@@ -57,12 +57,13 @@ import application
 
 from application import schema
 from osaf.pim.contacts import Contact
-from osaf.pim.items import ContentItem, cmpTimeAttribute, TriageEnum, isDead
+from osaf.pim.triage import Triageable, TriageEnum
+from osaf.pim.items import ContentItem, cmpTimeAttribute, isDead
 from osaf.pim.stamping import Stamp, has_stamp
 from osaf.pim.notes import Note
 from osaf.pim.calendar import Recurrence
 from osaf.pim.collections import FilteredCollection, IndexDefinition
-from chandlerdb.util.c import isuuid, UUID, Empty
+from chandlerdb.util.c import isuuid, UUID, Empty, Nil
 from osaf.pim.reminders import Remindable, Reminder
 
 from TimeZone import formatTime
@@ -1059,6 +1060,16 @@ class EventStamp(Stamp):
         event.__disableRecurrenceChanges()
         for key, value in values.iteritems():
             setattr(item, key, value)
+
+        # set the item's triageStatus explicitly, but don't create a
+        # modification
+        item.setTriageStatus(event.autoTriage())
+
+        # occurrences should all start with a local True value for
+        # doAutoTriageOnDateChange, regardless of what this was set to on the
+        # master
+        item.doAutoTriageOnDateChange = True
+
         event.__enableRecurrenceChanges()
 
         return event
@@ -1445,7 +1456,8 @@ class EventStamp(Stamp):
         if not self.occurrences: # None or empty
             self.getFirstOccurrence()
 
-        self.updateTriageStatus()
+        self.updateTriageStatus(True)
+        self.triageForRecurrenceAddition()
 
     def changeThisAndFuture(self, attr=None, value=None):
         """Modify this and all future events."""
@@ -1564,6 +1576,15 @@ class EventStamp(Stamp):
                         
                     self.itsItem.reminders = newReminders
 
+                    # _grabOccurrence isn't needed after most changes to all
+                    # occurrences, but since rruleset was changed, it needs to
+                    # be called here
+                    master._grabOccurrences(master.occurrences, None, True)
+
+                elif attr in (EventStamp.allDay.name, EventStamp.anyTime.name,
+                        EventStamp.startTime.name):
+                    # update triage status for an effectiveStartTime change
+                    self.updateTriageStatus(True)
             else:
                 # If we're not first, we're an occurrence (and not the master's
                 # occurrence). So, we generate a new master, truncate the old
@@ -1619,8 +1640,9 @@ class EventStamp(Stamp):
 
                 finally:
                     if disabled: newMaster.__enableRecurrenceChanges()
-            
-            master._grabOccurrences(master.occurrences, None, True)
+
+            if not isFirst:
+                master._grabOccurrences(master.occurrences, None, True)
             
         finally:
             if disabledSelf: self.__enableRecurrenceChanges()
@@ -1716,12 +1738,6 @@ class EventStamp(Stamp):
                 self._makeGeneralChange()
                 # Need to copy over the master's stamps ... ew
                 disabled = self.__disableRecurrenceChanges()
-                if attr != 'triageStatus' and \
-                   not self.itsItem.hasLocalAttributeValue('triageStatus'):
-                    # triage status was inherited from the master, it needs to 
-                    # be set locally so the triageStatus index picks up the
-                    # right value.
-                    self.itsItem.triageStatus = self.itsItem.calculatedStatus()
 
                 if not self.itsItem.hasLocalAttributeValue(Stamp.stamp_types.name):
                     Stamp(self).stamp_types = set()
@@ -1746,6 +1762,15 @@ class EventStamp(Stamp):
             setattr(self.itsItem, attr, value)
             if attr is EventStamp.rruleset.name:
                 self.updateRecurrenceEnd()
+            elif attr in (EventStamp.startTime.name, EventStamp.anyTime.name,
+                          EventStamp.allDay.name):
+                if self.modificationFor is not None:
+                    # only do autoTriage for changes to recurring events,
+                    # setTriageStatus should always be called explicitly for
+                    # non-recurring events somewhere else
+                    newTriage = self.autoTriage()
+                    if self.itsItem._triageStatus != newTriage:
+                        self.itsItem.setTriageStatus(newTriage, pin=True)
             if setWithHandlerDisabled and disabled:
                 disabled = self.__enableRecurrenceChanges()               
                 
@@ -1762,46 +1787,103 @@ class EventStamp(Stamp):
             return None
 
         # run backwards through recurrenceIDs till a DONE occurrence is found
-        lastPastDone = None
         rruleset = master.rruleset.createDateUtilFromRule(master.effectiveStartTime)
         earlierRecurrenceID = rruleset.before(now)
         while earlierRecurrenceID is not None:
             pastOccurrence = master.getRecurrenceID(earlierRecurrenceID)
             assert pastOccurrence is not None, "Invalid recurrence-id"
-            if pastOccurrence.modificationFor is None:
-                pastOccurrence.changeThis('triageStatus', TriageEnum.done, True)
-                # changeThis won't set up modificationFor if the triageStatus
-                # is already DONE, so explicitly set modificationFor
-                pastOccurrence.modificationFor = master.itsItem
-                lastPastDone = pastOccurrence.recurrenceID
-                break
-            elif pastOccurrence.itsItem.triageStatus == TriageEnum.done:
-                lastPastDone = pastOccurrence.recurrenceID
-                break
+            if pastOccurrence.effectiveEndTime > now:
+                # it's happening now, it's not done yet
+                pass
+            elif pastOccurrence.modificationFor is None:
+                pastOccurrence.itsItem.setTriageStatus(TriageEnum.done)
+                pastOccurrence.changeThis()
+                return pastOccurrence.recurrenceID
+            elif pastOccurrence.itsItem._triageStatus == TriageEnum.done:
+                return pastOccurrence.recurrenceID
+
+            earlierRecurrenceID = rruleset.before(earlierRecurrenceID)
+
+    def getFirstFutureLater(self):
+        defaultTz = TimeZoneInfo.get(self.itsItem.itsView).default
+        now = datetime.now(defaultTz)        
+        master = self.getMaster()
+        # run through future occurrences to find a LATER
+        for occurrence in master._generateRule(after=now):
+            if occurrence.effectiveStartTime < now:
+                # _generateRule includes events that start in the past but are
+                # ongoing, but this function doesn't want those
+                continue
+            if occurrence.modificationFor is not None:
+                if occurrence.itsItem.triageStatus == TriageEnum.later:
+                    return occurrence.recurrenceID
             else:
-                earlierRecurrenceID = rruleset.before(earlierRecurrenceID)
+                occurrence.itsItem.setTriageStatus(TriageEnum.later)
+                # setTriageStatus won't set up modificationFor, so explicitly
+                # set modificationFor and copy collections
+                return occurrence.recurrenceID
 
-        return lastPastDone
-
-    def contextualTriageStatus(self):
+    def autoTriage(self):
         """
-        If we're autotriaging this item, what status should it have?
+        What triage status should this item have?
         """
+        item = self.itsItem
         now = datetime.now(tz=ICUtzinfo.default)
         if self.effectiveStartTime > now:
             # Hasn't started yet? it's Later.
-            return TriageEnum.later
-        reminder = self.itsItem.getUserReminder()
-        if reminder is not None and reminder.nextPoll > now:
-            # Doesn't start in the future, but has a reminder there: Later.
-            return TriageEnum.later
-        if self.effectiveEndTime < now:
-            # It already ended - it's done.
-            return TriageEnum.done
-        # It's ongoing: now.
-        return now
+            status = TriageEnum.later
+        else:                        
+            reminder = item.getUserReminder()
+            if (reminder is not None and reminder.nextPoll is not None and
+                reminder.nextPoll > now):
+                # Doesn't start in the future, but has a reminder there: Later.
+                status = TriageEnum.later
+            elif self.effectiveEndTime < now:
+                # It already ended - it's done.
+                status = TriageEnum.done
+            else: # It's ongoing: now.
+                status = TriageEnum.now
+        
+        from osaf.framework.blocks.Block import debugName
+        logger.debug("Autotriaging %s to %s", debugName(item), status)
+        return status
 
-    def updateTriageStatus(self):
+    def triageForRecurrenceAddition(self):
+        """
+        When initially adding recurrence, the first occurrence is treated
+        specially, for more info see bug 7904.
+        
+        This method should be called after an initial updateTriageStatus,
+        because subsequent updates may cause the first occurrence to be
+        unmodified.
+        
+        """
+        master = self.getMaster()
+        firstOccurrence = master.getRecurrenceID(master.recurrenceID)
+        if firstOccurrence is None:
+            # This can happen if there's an EXDATE deleting the first occurrence
+            return
+        wasModification = firstOccurrence.modificationFor is not None
+        oldTriageStatus = firstOccurrence.itsItem._triageStatus
+        firstOccurrence.itsItem.copyTriageStatusFrom(master.itsItem)
+        # don't let masters keep their _sectionTriageStatus, if they do it'll
+        # be inherited inappropriately by modifications
+        master.itsItem.purgeSectionTriageStatus()
+        
+        # if the master's triage status was NEW because it was just created, 
+        # don't leave it that way, it's enough to pin it in the NOW section.
+        # Because force isn't set, this will preserve _sectionTriageStatus
+        # if the master happened to be pinned already
+        firstOccurrence.itsItem.setTriageStatus('auto', pin=True)
+        
+        if wasModification and oldTriageStatus == TriageEnum.later:
+            # this occurrence was the token Later occurrence, make sure there's
+            # a new token later
+            if firstOccurrence.itsItem._triageStatus != TriageEnum.later:
+                self.getFirstFutureLater()
+
+
+    def updateTriageStatus(self, checkOccurrences=False):
         """
         If appropriate, make sure there's at least one LATER modification in the
         future and at least one DONE modification in the past.
@@ -1809,53 +1891,33 @@ class EventStamp(Stamp):
         Also collapse DONE and LATER modifications whose only change is to
         triageStatus so only one DONE before now and one LATER after now
         is kept.
-        
-        When auto-triage is distinguished from user-triage, the algorithm may
-        get more complicated.
+
+        If checkOccurrences is True, change triage status for all occurrences,
+        this is used when the effectiveStartTime changes.
         
         """
-        defaultTz = TimeZoneInfo.get(self.itsItem.itsView).default
-        now = datetime.now(defaultTz)
         master = self.getMaster()
-        firstOccurrence = master.getRecurrenceID(master.recurrenceID)
-        if firstOccurrence is None:
-            firstOccurrence = master.getFirstOccurrence()
-        if firstOccurrence is None:
-            # an empty rule, nothing to do
-            return
-        if firstOccurrence.modificationFor is None:
-            # touch the first occurrence, it should always be a modification
-            firstOccurrence.changeThis('triageStatus',
-                                       master.itsItem.triageStatus,
-                                       True)
 
-        firstFutureLater = None
-        # run through future occurrences to find a LATER
-        for occurrence in master._generateRule(after=now):
-            if occurrence.modificationFor is not None:
-                if occurrence.itsItem.triageStatus == TriageEnum.later:
-                    firstFutureLater = occurrence.recurrenceID
-                    break
-            else:
-                occurrence.changeThis('triageStatus', TriageEnum.later, True)
-                # changeThis won't set up modificationFor if the triageStatus
-                # is already LATER, so explicitly set modificationFor
-                occurrence.modificationFor = master.itsItem
-                firstFutureLater = occurrence.recurrenceID
-                break
+        if checkOccurrences:
+            for occurrence in master.occurrences or []:
+                if occurrence.doAutoTriageOnDateChange:
+                    event = EventStamp(occurrence)
+                    event.changeNoModification('_triageStatus',
+                                               event.autoTriage())
 
-        # run through modifications and unmodify them if only triageStatus
-        # is changed on them and they're earlier/later than the relevant
-        # times
+
+        firstFutureLater = self.getFirstFutureLater()
         lastPastDone = self.getLastPastDone()
+        # run through modifications and unmodify them if there only changes
+        # are from autoTriage
         for mod in map(EventStamp, master.modifications):
-            if (mod != firstOccurrence and (
-                (mod.itsItem.triageStatus == TriageEnum.done and
+            item = mod.itsItem
+            if ((item._triageStatus == TriageEnum.done and
                  lastPastDone is not None and
                  mod.startTime < lastPastDone) or
-                (mod.itsItem.triageStatus == TriageEnum.later and
+                (item._triageStatus == TriageEnum.later and
                  firstFutureLater is not None and 
-                 mod.startTime > firstFutureLater))):
+                 mod.startTime > firstFutureLater)):
 
                 if mod.isTriageOnlyModification():
                     mod.unmodify()
@@ -1865,19 +1927,13 @@ class EventStamp(Stamp):
         if self.modificationFor is None:
             return False
         for attr, value in item.iterModifiedAttributes():
-            if attr in (ContentItem.triageStatus.name, 
-                        ContentItem.triageStatusChanged.name):
+            if attr in (Triageable._triageStatus.name, 
+                        Triageable._triageStatusChanged.name,
+                        Triageable.doAutoTriageOnDateChange.name,
+                        Triageable._sectionTriageStatus.name,
+                        Triageable._sectionTriageStatusChanged.name):
                 continue
-            elif attr in (ContentItem._sectionTriageStatus.name,
-                          ContentItem._sectionTriageStatusChanged.name):
-                # ignore unpurged "section" triage if it matches the local triage status
-                if (item.hasLocalAttributeValue(ContentItem.triageStatus.name)
-                    and item._sectionTriageStatus == item.triageStatus
-                    and item._sectionTriageStatusChanged == item.triageStatusChanged):
-                        continue
-                else:
-                    return False
-            else:            
+            else:
                 return False
         
         return True
@@ -1892,10 +1948,8 @@ class EventStamp(Stamp):
         flagStart = self.__disableRecurrenceChanges()
         try:
             self.itsItem.collections = []
-            for attr in (ContentItem.triageStatus.name, 
-                         ContentItem.triageStatusChanged.name,
-                         ContentItem._sectionTriageStatus.name,
-                         ContentItem._sectionTriageStatusChanged.name):
+            for attr in (Triageable._sectionTriageStatus.name,
+                         Triageable._sectionTriageStatusChanged.name):
                 if hasattr(self.itsItem, attr):
                     delattr(self.itsItem, attr)
             self.isGenerated = True
@@ -1908,7 +1962,6 @@ class EventStamp(Stamp):
     @schema.observer(
         ContentItem.displayName, ContentItem.body, ContentItem.lastModified,
         startTime, duration, location, allDay, rruleset, Stamp.stamp_types,
-        ContentItem.triageStatus
     )
     def onEventChanged(self, op, name):
         """
@@ -1929,7 +1982,7 @@ class EventStamp(Stamp):
             # so really this code path only happens if there are changes
             # on a recurrence master, or on a non-recurring event.
             self.changeThisAndFuture(name, self.rruleset)
-        elif name == ContentItem.triageStatus.name:
+        elif name == Triageable._triageStatus.name:
             # just in case this isn't already a modification, make it one
             self.changeThis()
             # go and create a later modification if this change got rid of our
@@ -1938,7 +1991,7 @@ class EventStamp(Stamp):
         else:
             if DEBUG:
                 logger.debug("about to changeThis in onEventChanged(name=%s) for %s", name, str(self))
-                logger.debug("value is: %s", getattr(self, name))
+                logger.debug("value is: %s", getattr(self, name, Nil))
             if self == self.getFirstInRule():
                 if name == EventStamp.duration.name:
                     self.updateRecurrenceEnd()
@@ -2380,32 +2433,11 @@ class Occurrence(Note):
                 if (not attr in cls.LOCAL_ATTRIBUTES and
                     not hasattr(self, EventStamp.IGNORE_CHANGE_ATTR) and
                     self.itsKind.hasAttribute(attr)):
-                    s.__setattr__(EventStamp.modificationFor.name,
-                                  self.inheritFrom)
-                    s.__setattr__(EventStamp.isGenerated.name, False)
-                    # triage status needs to be changed so the triageStatus index
-                    # picks up the right value
-                    s.__setattr__('triageStatus', self.calculatedStatus())                    
+                    # changeThis does various domain model things, sets
+                    # modificationFor, moves collections, and makes sure
+                    # stamp_types isn't inherited
+                    EventStamp(self).changeThis()
         s.__setattr__(attr, value)
-    
-    def calculatedStatus(self):
-        # If we have a local value, return it.
-        if self.hasLocalAttributeValue('triageStatus'):
-            return self.getAttributeValue(attribute)
-
-        # Otherwise, if we're the master occurrence, get its triageStatus.
-        event = EventStamp(self)
-        master = event.getMaster()
-        if master.effectiveStartTime == event.recurrenceID:
-            return master.itsItem.triageStatus
-
-        # Not the master occurrence: calculate it based on our time.
-        event = EventStamp(self)
-        lastPastDone = event.getLastPastDone()
-        if lastPastDone is None or event.recurrenceID > lastPastDone:
-            return TriageEnum.later
-        else:
-            return TriageEnum.done
     
     @apply
     def triageStatus():
@@ -2415,10 +2447,8 @@ class Occurrence(Note):
         modification).
         """
         def fget(self):
-            return self.calculatedStatus()
-        def fset(self, value):
-            self.__setattr__('triageStatus', value)
-        return property(fget, fset)
+            return self._triageStatus
+        return property(fget)
 
     
     def onItemDelete(self, view, deferring):
@@ -2432,8 +2462,9 @@ class Occurrence(Note):
         ContentItem.displayDate.name, ContentItem.displayDateSource.name,
         ContentItem.displayWho.name, ContentItem.displayWhoSource.name,
         ContentItem.appearsIn.name, ContentItem.collections.name,
-        ContentItem._sectionTriageStatusChanged.name,
-        ContentItem.excludedBy.name,
+        Triageable._sectionTriageStatusChanged.name,
+        ContentItem.excludedBy.name, ContentItem.lastModifiedBy.name,
+        ContentItem.lastModification.name, ContentItem.lastModified.name,
     )
     
     IGNORE_ATTRIBUTE_PREFIX = 'osaf.framework'
@@ -2659,9 +2690,7 @@ class RelativeReminder(Reminder):
         Override of C{ContentItem.reminderFired}: performs a THIS change
         of triageStatus to Now.
         """
-
-        self.changeThis('triageStatus', TriageEnum.now)
-        self.setTriageStatusChanged(when=when)
+        self.setTriageStatus(TriageEnum.now, when=when)
         
         # bypass ContentItem, because we want to do a THIS change here
         # always
@@ -2796,8 +2825,9 @@ class TriageStatusReminder(RelativeReminder):
             if effectiveStart <= when:
                 if self.prevPoll is not None and effectiveStart >= self.prevPoll:
                     event.changeThis()
-                    event.itsItem.triageStatus = TriageEnum.now
-                    event.itsItem.setTriageStatusChanged(when=effectiveStart)
+                    event.itsItem.setTriageStatus(TriageEnum.now,
+                                                  when=effectiveStart)
+                    event.getFirstFutureLater()
             elif effectiveStart < nextPoll:
                 nextPoll = effectiveStart
                 

@@ -83,23 +83,25 @@ def dump(rv, filename, uuids, translator=sharing.DumpTranslator,
     trans = translator(rv)
 
     output = open(filename, "wb")
-    dump = serializer.dumper(output)
-
-    if activity:
-        count = len(uuids)
-        activity.update(msg="Dumping %d records" % count, totalWork=count)
-
-    i = 0
-    for uuid in uuids:
-        for record in trans.exportItem(rv.findUUID(uuid)):
-            dump(record)
-            i += 1
-            if activity:
-                activity.update(msg="Dumped %d of %d records" % (i, count),
-                    work=1)
-    dump(None)
-    del dump
-    output.close()
+    try:
+        dump = serializer.dumper(output)
+    
+        if activity:
+            count = len(uuids)
+            activity.update(msg="Dumping %d records" % count, totalWork=count)
+    
+        i = 0
+        for uuid in uuids:
+            for record in trans.exportItem(rv.findUUID(uuid)):
+                dump(record)
+                i += 1
+                if activity:
+                    activity.update(msg="Dumped %d of %d records" % (i, count),
+                        work=1)
+        dump(None)
+        del dump
+    finally:
+        output.close()
     if activity:
         activity.update(msg="Dumped %d records" % count)
 
@@ -114,20 +116,22 @@ def reload(rv, filename, translator=sharing.DumpTranslator,
     trans.startImport()
 
     input = open(filename, "rb")
-    if activity:
-        activity.update(totalWork=None)
-
-    load = serializer.loader(input)
-    i = 0
-    while True:
-        record = load()
-        if not record:
-            break
-        trans.importRecord(record)
-        i += 1
+    try:
         if activity:
-            activity.update(msg="Imported %d records" % i)
-    del load
-    input.close()
+            activity.update(totalWork=None)
+    
+        load = serializer.loader(input)
+        i = 0
+        while True:
+            record = load()
+            if not record:
+                break
+            trans.importRecord(record)
+            i += 1
+            if activity:
+                activity.update(msg="Imported %d records" % i)
+        del load
+    finally:
+        input.close()
 
     trans.finishImport()

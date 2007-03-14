@@ -102,8 +102,8 @@ class RelativeReminderTestCase(TestDomainModel.DomainModelTestCase):
         self.event = CalendarEvent(itsView=self.rep.view,
                 startTime=datetime(2004,8,1,8,tzinfo=ICUtzinfo.default),
                 duration=timedelta(minutes=45), anyTime=False,
-                summary=u"Meet with Very Important Person",
-                triageStatus=TriageEnum.later)
+                summary=u"Meet with Very Important Person")
+        self.event.itsItem.setTriageStatus(TriageEnum.later)
 
         self.reminder = RelativeReminder(itsView=self.rep.view,
                             delta=-timedelta(minutes=20))
@@ -521,9 +521,9 @@ class TriageStatusReminderTestCase(TestDomainModel.DomainModelTestCase):
     def testTriageChange(self):
         # Let's imagine we have a change to triage of later 2 hours before
         # the event
-        self.event.itsItem.triageStatus = TriageEnum.later
-        self.event.itsItem.setTriageStatusChanged(when=self.event.startTime -
-                                                 timedelta(hours=2))
+        self.event.itsItem.setTriageStatus(TriageEnum.later, 
+                                           when=self.event.startTime -
+                                               timedelta(hours=2))
                                           
         reminders = list(self.event.itsItem.reminders)
         self.failUnlessEqual([], reminders)
@@ -540,9 +540,9 @@ class TriageStatusReminderTestCase(TestDomainModel.DomainModelTestCase):
         self.failIf(isDead(self.tsReminder))
 
     def testPastNoTriageChange(self):
-        self.event.itsItem.triageStatus = TriageEnum.done
-        self.event.itsItem.setTriageStatusChanged(when=self.event.startTime +
-                                                 timedelta(days=2))
+        self.event.itsItem.setTriageStatus(TriageEnum.done, 
+                                           when=self.event.startTime +
+                                               timedelta(days=2))
                                                  
         self.failUnlessEqual(list(self.event.itsItem.reminders), [])
         
@@ -553,9 +553,9 @@ class TriageStatusReminderTestCase(TestDomainModel.DomainModelTestCase):
         self.failUnlessEqual(self.event.itsItem.triageStatus, TriageEnum.done)
 
     def testRecurring(self):
-        self.event.itsItem.triageStatus = TriageEnum.later
-        self.event.itsItem.setTriageStatusChanged(when=self.event.startTime +
-                                                 timedelta(days=3))
+        self.event.itsItem.setTriageStatus(TriageEnum.later,
+                                           when=self.event.startTime +
+                                               timedelta(days=3))
 
         # Make our event recurring
         ruleItem = RecurrenceRule(None, itsView=self.rep.view, freq='daily')
@@ -580,14 +580,17 @@ class TriageStatusReminderTestCase(TestDomainModel.DomainModelTestCase):
         self.failUnlessEqual(fifth.itsItem.triageStatus, TriageEnum.now)
         
         self.failUnlessEqual(self.event.getFirstOccurrence().itsItem.triageStatus,
-                             TriageEnum.later)
+                             TriageEnum.done)
 
         self.failIfEqual(self.event.getFirstOccurrence().itsItem.triageStatusChanged,
                          fifth.itsItem.triageStatusChanged)
 
-                             
+        
+        # The occurrence after fifth has always been in the past, and
+        # updatePending, hasn't passed over it, so its triage status has stayed
+        # done.
         self.failUnlessEqual(fifth.getNextOccurrence().itsItem.triageStatus,
-                             TriageEnum.later)
+                             TriageEnum.done)
         
         self.failIf(self.tsReminder.pendingEntries)
         

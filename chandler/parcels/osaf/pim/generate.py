@@ -90,7 +90,7 @@ def GenerateCalendarEvent(view, days=30, tzinfo=ICUtzinfo.floating):
             event.location = Calendar.Location.getLocation(view, random.choice(LOCATIONS))
 
     event.itsItem.importance = random.choice(pim.ImportanceEnum.values)
-    event.itsItem.triageStatus = randomEnum(pim.TriageEnum)
+    event.itsItem.setTriageStatus(randomEnum(pim.TriageEnum))
     return event.itsItem
 
 
@@ -157,7 +157,7 @@ def GenerateMailMessage(view, tzinfo=None):
         body = uw(body)
 
     message.body = body
-    message.itsItem.triageStatus = randomEnum(pim.TriageEnum)
+    message.itsItem.setTriageStatus(randomEnum(pim.TriageEnum))
 
     return message.itsItem
 
@@ -172,7 +172,7 @@ def GenerateNote(view, tzinfo=None):
     delta = timedelta(days=random.randint(0, 5),
                       hours=random.randint(0, 24))
     note.createdOn = datetime.now(tzinfo) + delta
-    note.triageStatus = randomEnum(pim.TriageEnum)
+    note.setTriageStatus(randomEnum(pim.TriageEnum))
     return note
 
 def GenerateTask(view, tzinfo=None):
@@ -185,7 +185,7 @@ def GenerateTask(view, tzinfo=None):
     if TEST_I18N:
         task.summary = uw(task.summary)
 
-    task.itsItem.triageStatus = randomEnum(pim.TriageEnum)
+    task.itsItem.setTriageStatus(randomEnum(pim.TriageEnum))
     return task.itsItem
 
 def GenerateEventTask(view, days=30, tzinfo=None):

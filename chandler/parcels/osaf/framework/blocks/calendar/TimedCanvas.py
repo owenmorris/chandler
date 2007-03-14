@@ -906,6 +906,7 @@ class wxTimedEventsCanvas(wxCalendarCanvas):
             if self.coercedCanvasItem is not None:
                 self.coercedCanvasItem = None
                 stampedProxy.allDay = stampedProxy.anyTime = False
+            proxy.setTriageStatus('auto')
         self.dragState = None
         
     def OnEndDragItem(self):

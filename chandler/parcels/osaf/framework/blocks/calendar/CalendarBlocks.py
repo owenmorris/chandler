@@ -105,6 +105,7 @@ class wxMiniCalendar(DragAndDrop.DropReceiveWidget,
                     event.anyTime = True
                 oldTime = getattr(event, 'startTime', self.hoverDate).timetz()
                 event.startTime = datetime.combine(self.hoverDate, oldTime)
+                proxy.setTriageStatus('auto')
 
         self.hoverDate = None
         self.Refresh()

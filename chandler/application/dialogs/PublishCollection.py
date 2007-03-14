@@ -233,7 +233,7 @@ class PublishCollectionDialog(wx.Dialog):
                 not in share.filterAttributes)
             self.CheckboxShareStatus.SetValue(EventStamp.transparency.name
                 not in share.filterAttributes)
-            self.CheckboxShareTriage.SetValue("triageStatus"
+            self.CheckboxShareTriage.SetValue('_triageStatus'
                 not in share.filterAttributes)
 
 
@@ -257,8 +257,9 @@ class PublishCollectionDialog(wx.Dialog):
                 if not self.CheckboxShareStatus.GetValue():
                     attrs.append(EventStamp.transparency.name)
                 if not self.CheckboxShareTriage.GetValue():
-                    attrs.append('triageStatus')
-                    attrs.append('triageStatusChanged')
+                    attrs.append('_triageStatus')
+                    attrs.append('_triageStatusChanged')
+                    attrs.append('doAutoTriageOnDateChange')
         return attrs
 
 
@@ -304,13 +305,15 @@ class PublishCollectionDialog(wx.Dialog):
                     share.filterAttributes.remove(EventStamp.transparency.name)
 
             if not self.CheckboxShareTriage.GetValue():
-                if "triageStatus" not in share.filterAttributes:
-                    share.filterAttributes.append("triageStatus")
-                    share.filterAttributes.append("triageStatusChanged")
+                if '_triageStatus' not in share.filterAttributes:
+                    share.filterAttributes.append('_triageStatus')
+                    share.filterAttributes.append('_triageStatusChanged')
+                    share.filterAttributes.append('doAutoTriageOnDateChange')
             else:
-                if "triageStatus" in share.filterAttributes:
-                    share.filterAttributes.remove("triageStatus")
-                    share.filterAttributes.remove("triageStatusChanged")
+                if '_triageStatus' in share.filterAttributes:
+                    share.filterAttributes.remove('_triageStatus')
+                    share.filterAttributes.remove('_triageStatusChanged')
+                    share.filterAttributes.remove('_doAutoTriageOnDateChange')
 
             # Make sure no matter what we keep filtering out the attributes that
             # never belong in the XML fork of a CalDAV share:

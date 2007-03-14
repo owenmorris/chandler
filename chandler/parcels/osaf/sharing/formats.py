@@ -410,9 +410,13 @@ class CloudXMLFormat(ImportExportFormat):
 
                 # Since 'displayName' is being renamed 'title', let's keep
                 # existing shares backwards-compatible and continue to read/
-                # write 'displayName':
+                # write 'displayName': (likewise adding the new undercores on
+                # triageStatus and triageStatusChanged)
                 if attrName == 'title':
                     result += "<%s" % 'displayName'
+                elif attrName == '_triageStatus' \
+                     or attrName == '_triageStatusChanged':
+                    result += "<%s" % attrName[1:]
                 else:
                     result += "<%s" % attrXmlName
 
@@ -519,9 +523,13 @@ class CloudXMLFormat(ImportExportFormat):
 
             # Since 'displayName' is being renamed 'title', let's keep
             # existing shares backwards-compatible and continue to read/
-            # write 'displayName':
+            # write 'displayName': (likewise adding the new undercores on
+            # triageStatus and triageStatusChanged)
             if attrName == 'title':
                 result += "</%s>\n" % 'displayName'
+            elif attrName == '_triageStatus' \
+                 or attrName == '_triageStatusChanged':
+                result += "</%s>" % attrName[1:]
             else:
                 result += "</%s>\n" % attrXmlName
 
@@ -676,9 +684,14 @@ class CloudXMLFormat(ImportExportFormat):
                 
             # Since 'displayName' is being renamed 'title', let's keep
             # existing shares backwards-compatible and continue to read/
-            # write 'displayName':
+            # write 'displayName'. (likewise removing the new underscores
+            # from triageStatus and triageStatusChanged)
             if attrName == 'title':
                 elementName = 'displayName'
+            elif attrName == '_triageStatus':
+                elementName = 'triageStatus'
+            elif attrName == '_triageStatusChanged':
+                elementName = 'triageStatusChanged'
             else:
                 lastDot = attrName.rfind(".")
                 if lastDot != -1:

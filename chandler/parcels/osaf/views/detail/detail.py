@@ -485,21 +485,12 @@ class DetailTriageButton(DetailSynchronizer, ControlBlocks.Button):
         oldState = getattr(self.widget, 'currentState', None)
         if oldState != None:
             assert oldState.startswith('Markup.')
+            # always make triage changes apply to the this occurrence
+            item = getattr(self.item, 'proxiedItem', self.item)
             newState = pim.getNextTriageStatus(getattr(pim.TriageEnum,
                                                        oldState[7:]))
-            # always make changeThis changes to recurring events
-            item = getattr(self.item, 'proxiedItem', self.item)
-            if pim.has_stamp(item, pim.EventStamp):
-                event = pim.EventStamp(item)
-                if not hasattr(item, '_sectionTriageStatus'):
-                    event.changeThis('_sectionTriageStatus', item.triageStatus)
-                    event.changeThis('_sectionTriageStatusChanged', item.triageStatusChanged)
-                event.changeThis('triageStatus', newState)
-            else:
-                if not hasattr(item, '_sectionTriageStatus'):
-                    item._sectionTriageStatus = item.triageStatus
-                    item._sectionTriageStatusChanged = item.triageStatusChanged
-                item.triageStatus = newState
+            item.setTriageStatus(newState, pin=True)
+            item.resetAutoTriageOnDateChange()
             self.setState()
 
     def onButtonPressedEventUpdateUI(self, event):
@@ -1488,6 +1479,7 @@ class CalendarDateAttributeEditor(DateAttributeEditor):
                 else:
                     assert False, "this attribute editor is really just for " \
                                   "start or endtime"
+                item.setTriageStatus('auto', pin=True)
                 
             # Refresh the value in place
             self.SetControlValue(self.control, 
@@ -1650,6 +1642,9 @@ class CalendarTimeAttributeEditor(TimeAttributeEditor):
                     event.anyTime = False
                 changed = True
 
+        if changed:
+            item.setTriageStatus('auto', pin=True)
+
         if changed or forceReload:
             # Refresh the value in the control
             self.SetControlValue(self.control, 
@@ -1780,13 +1775,12 @@ class RecurrenceAttributeEditor(ChoiceAttributeEditor):
                 del rruleset.rrules.first().until
             rruleset.rrules.first().untilIsDate = True
 
+            
             event.rruleset = rruleset
             
             assert not newMaster.itsItem.isDeleted()
             
-            # select the new master's occurrence, not the master
-            occurrence = newMaster.getRecurrenceID(newMaster.effectiveStartTime)
-            itemToSelect = occurrence.itsItem
+            itemToSelect = newMaster.getFirstOccurrence().itsItem
         
         # "is" comparison only works after unwrapping proxies
         itemToSelect = getattr(itemToSelect, 'proxiedItem', itemToSelect)
