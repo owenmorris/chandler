@@ -114,6 +114,7 @@ def ProcessEvent (theClass, properties , attributes):
                 if lastWidgetValue is not None and method is not None:
                     value = method()
                     assert value == lastWidgetValue, "widget's value doesn't match the value when the script was recorded"
+                    assert value == 10, "widget's value doesn't match the value when the script was recorded"
                 else:
                     assert lastWidgetValue is None, "last widget differes from its value when the script was recorded"
     

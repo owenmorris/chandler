@@ -252,6 +252,15 @@ def run_startup_script_with_symbols(view, builtIns):
             schema.ns('osaf.app', view).CleanupAfterTests.execute()
 
     # Execute new framework if chandlerTests option is called
+    
+    recordedTest = Globals.options.recordedTest
+    if recordedTest is not None:
+        if not hasattr(Globals, 'test_dict'):
+            from datetime import datetime
+            Globals.test_dict = {'starttime':datetime.now()}
+        from tools.cats.framework.run_recorded import execute_frame
+        execute_frame(recordedTest)
+    
     chandlerTests = Globals.options.chandlerTests
     if chandlerTests:
         logFileName = Globals.options.chandlerTestLogfile
@@ -287,6 +296,7 @@ def run_startup_script_with_symbols(view, builtIns):
             else:
                 run_script_with_symbols(scriptFileText, fileName = fileName,
                                         builtIns=builtIns)
+                                        
 
 global_cats_profiler = None # remember the CATS profiler here
 
