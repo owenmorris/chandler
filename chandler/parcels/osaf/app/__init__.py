@@ -263,7 +263,7 @@ The Chandler Team""") % {'version': version.version}
 
     # The cleanup script, run after all the test scripts
     scripting.Script.update(parcel, 'CleanupAfterTests',
-                            displayName=_(u"CleanupAfterTests"),
+                            displayName=_(u"Cleanup after tests"),
                             creator = osafDev,
                             body=scripting.script_file(u"CleanupAfterTests.py", Scripts.__file__)
                             )
