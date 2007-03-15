@@ -627,8 +627,9 @@ class PyMiniCalendar(wx.PyControl):
                 dayw, dayh, baseline = self.GetTextExtent(gc, dc, 
                                                           self.weekdays[n+1])
                 self.DrawText(gc, self.weekdays[n+1],
-                              (wd*self.widthCol) + ((self.widthCol- dayw) / 2),
-                              y, # center the day-name
+                              (wd*self.widthCol) + SEPARATOR_MARGIN +
+                              ((self.widthCol- dayw) / 2), # center the day-name
+                              y, 
                               transparentBrush, baseline)
 
         y += self.heightRow - 1
