@@ -202,7 +202,7 @@ class FocusEventHandlers(Item):
             # only shared items can have conflicts
             for item in selectedItems:
                 if has_stamp(item, sharing.SharedItem):
-    	            sharing.SharedItem(item).generateConflicts()
+                    sharing.SharedItem(item).generateConflicts()
 
     def onCreateConflictEventUpdateUI(self, event):
         selectedItems = self.__getSelectedItems()

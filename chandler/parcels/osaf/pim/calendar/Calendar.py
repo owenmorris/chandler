@@ -2375,15 +2375,16 @@ def setEventDateTime(item, startTime, endTime, typeFlag):
     and 3 indicates both date and time
     """
     from osaf import pim
-    
+    event = EventStamp(item)
     if (typeFlag == 1) or (typeFlag == 0):
         # No time is present
-        pim.EventStamp(item).anyTime = True
+        event.anyTime = True
     else:
-        pim.EventStamp(item).anyTime = False
+        event.anyTime = False
         
-    pim.EventStamp(item).startTime = startTime
-    pim.EventStamp(item).endTime = endTime
+    event.startTime = startTime
+    event.endTime = endTime
+    item.setTriageStatus('auto', pin=True)
     
 class Occurrence(Note):
     """
