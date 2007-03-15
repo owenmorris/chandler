@@ -266,6 +266,16 @@ class PIMTranslator(eim.Translator):
     }
     triagestatus_to_code = dict([[v, k] for k, v in code_to_triagestatus.items()])
 
+    code_to_modaction = {
+        100 : pim.Modification.edited,
+        200 : pim.Modification.queued,
+        300 : pim.Modification.sent,
+        400 : pim.Modification.updated,
+        500 : pim.Modification.created,
+    }
+    modaction_to_code = dict([[v, k] for k, v in code_to_modaction.items()])
+
+
     @model.ItemRecord.importer
     def import_item(self, record):
 
@@ -329,10 +339,14 @@ class PIMTranslator(eim.Translator):
                 int(time.mktime(item.createdOn.timetuple()))
             )
 
+        lastModification = getattr(item, "lastModification",
+            pim.Modification.created)
+
         yield model.ModifiedByRecord(
             item.itsUUID,
             lastModifiedBy,
-            lastModified
+            lastModified,
+            action = self.modaction_to_code.get(lastModification, 500)
         )
 
 
@@ -367,6 +381,7 @@ class PIMTranslator(eim.Translator):
             # Convert to user's tz:
             item.lastModified = inUTC.astimezone(ICUtzinfo.default)
 
+            item.lastModification = self.code_to_modaction[record.action]
 
         # Note: ModifiedByRecords are exported by item
 

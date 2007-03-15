@@ -17,7 +17,13 @@ from application import schema
 import logging
 logger = logging.getLogger(__name__)
 
-# TODO: MailMessage
+# TODO: MailMessage (bkirsch working on this)
+
+# TODO: Missing attribute, "error" (can go away?)
+# TODO: Missing attribute, "read" (dump/reload only)
+# TODO: Missing attribute, "needsReply" (???)
+# TODO: Missing attribute, "lastModification" (for sharing + dump)
+# TODO: Missing attribute, "modifiedFlags" (???)
 
 
 text20 = eim.TextType(size=20)
@@ -69,6 +75,9 @@ class ModifiedByRecord(eim.Record):
 
     # ContentItem.lastModified (time)
     timestamp = eim.key(eim.DecimalType(digits=12, decimal_places=2))
+
+    # ContentItem.lastModification (action)
+    action = eim.key(eim.IntType)
 
 
 class NoteRecord(eim.Record):

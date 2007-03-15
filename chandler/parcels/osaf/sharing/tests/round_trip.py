@@ -176,18 +176,20 @@ class RoundTripTestCase(testcase.DualRepositoryTestCase):
         lastModified = datetime.datetime(2030, 3, 1, 12, 0, 0, 0, tzinfo)
         item.lastModifiedBy = emailAddress
         item.lastModified = lastModified
+        item.lastModification = pim.Modification.edited
         view0.commit(); stats = self.share0.sync(); view0.commit()
         self.assert_(checkStats(stats,
             ({'added' : 0, 'modified' : 0, 'removed' : 0},
              {'added' : 0, 'modified' : 1, 'removed' : 0})),
             "Sync operation mismatch")
         view1.commit(); stats = self.share1.sync(); view1.commit()
-        self.assert_(item1.lastModifiedBy.emailAddress == email)
         self.assert_(checkStats(stats,
             ({'added' : 0, 'modified' : 1, 'removed' : 0},
              {'added' : 0, 'modified' : 0, 'removed' : 0})),
             "Sync operation mismatch")
+        self.assert_(item1.lastModifiedBy.emailAddress == email)
         self.assert_(item1.lastModified == lastModified)
+        self.assert_(item1.lastModification == pim.Modification.edited)
 
         # 2) receiving more recent modification:
         email0 = "test0@example.com"

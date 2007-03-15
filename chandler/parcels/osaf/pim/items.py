@@ -58,7 +58,8 @@ class Modification(schema.Enumeration):
     Enumeration of the types of modification that are part of
     the edit/update workflows (a.k.a. "Stamping Storyboards")
     """
-    values = { "edited":100, "queued":200, "sent":300, "updated":400 }
+    values = { "edited":100, "queued":200, "sent":300, "updated":400,
+               "created":500 }
 
 # For use in indexing time-related attributes. We only use this for 
 # reminderFireTime here, but CalendarEventMixin uses this a lot more...
