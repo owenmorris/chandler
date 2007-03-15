@@ -381,7 +381,8 @@ class PIMTranslator(eim.Translator):
             # Convert to user's tz:
             item.lastModified = inUTC.astimezone(ICUtzinfo.default)
 
-            item.lastModification = self.code_to_modaction[record.action]
+            if record.action is not eim.NoChange:
+                item.lastModification = self.code_to_modaction[record.action]
 
         # Note: ModifiedByRecords are exported by item
 

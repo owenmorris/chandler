@@ -86,7 +86,7 @@ class ItemSharingTestCase(testcase.DualRepositoryTestCase):
         view1.commit()
         # triageStatus is unchanged because we filtered it on inbound
         self.assertEqual(item1.triageStatus, pim.TriageEnum.later)
-        self.assert_(not hasattr(shared1, "conflictingStates"))
+        self.assert_(not shared1.conflictingStates)
 
         item0.setTriageStatus(pim.TriageEnum.done)
         view0.commit()
@@ -97,7 +97,7 @@ class ItemSharingTestCase(testcase.DualRepositoryTestCase):
         view1.commit()
         # triageStatus is unchanged because we filtered it on outbound
         self.assertEqual(item1.triageStatus, pim.TriageEnum.later)
-        self.assert_(not hasattr(shared1, "conflictingStates"))
+        self.assert_(not shared1.conflictingStates)
 
         item0.setTriageStatus(pim.TriageEnum.now)
         view0.commit()
@@ -164,7 +164,7 @@ class ItemSharingTestCase(testcase.DualRepositoryTestCase):
         sharing.inbound(morgen, text)
         view1.commit()
         # Examine the conflicts and ensure the 'title' field isn't conflicting
-        self.assert_(not hasattr(shared1, "conflictingStates"))
+        self.assert_(not shared1.conflictingStates)
 
 
         # Verify that an out of sequence update is ignored

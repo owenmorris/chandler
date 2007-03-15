@@ -601,9 +601,9 @@ Sharing an item this way automatically stamps the item as SharedItem.
     >>> pim.has_stamp(item0, sharing.SharedItem)
     True
 
-An item without conflicts has no SharedItem.conflictingStates attribute::
+You can check for conflicts using sharing.hasConflicts::
 
-    >>> hasattr(sharing.SharedItem(item0), "conflictingStates")
+    >>> sharing.hasConflicts(item0)
     False
 
 An item is imported via the inbound method.
@@ -631,15 +631,13 @@ Send changes back
     >>> item0._triageStatus
     TriageEnum.now
 
-You can quickly see if an item has conflicts by checking for the existence of
-the 'conflictingStates' attribute::
+You can see if an item has conflicts by calling hasConflicts()::
 
-    >>> shared0 = sharing.SharedItem(item0)
-    >>> hasattr(shared0, 'conflictingStates')
+    >>> sharing.hasConflicts(item0)
     False
 
     >>> shared1 = sharing.SharedItem(item1)
-    >>> hasattr(shared1, 'conflictingStates')
+    >>> sharing.hasConflicts(item1)
     False
 
 Cause a conflict::
@@ -651,7 +649,7 @@ Cause a conflict::
 
 See if a conflict exists for this item::
 
-    >>> hasattr(shared1, 'conflictingStates')
+    >>> sharing.hasConflicts(item1)
     True
 
 Get the list of conflicts::
@@ -672,7 +670,7 @@ to the item::
     >>> item1.displayName
     u'changed by pje'
 
-    >>> for conflict in shared1.getConflicts():
+    >>> for conflict in sharing.getConflicts(item1):
     ...     conflict.apply()
 
 Verify the pending change was applied::
@@ -682,7 +680,7 @@ Verify the pending change was applied::
 
 Once applied, conflicts go away::
 
-    >>> hasattr(shared1, 'conflictingStates')
+    >>> sharing.hasConflicts(item1)
     False
     >>> list(shared1.getConflicts())
     []
@@ -703,7 +701,7 @@ This time discard the conflict::
 
 Again, the conflicts are gone::
 
-    >>> hasattr(shared1, 'conflictingStates')
+    >>> sharing.hasConflicts(item1)
     False
     >>> list(shared1.getConflicts())
     []
@@ -711,5 +709,5 @@ Again, the conflicts are gone::
 For testing, you can generate fake conflicts::
 
     >>> shared1.generateConflicts()
-    >>> hasattr(shared1, 'conflictingStates')
+    >>> sharing.hasConflicts(item1)
     True

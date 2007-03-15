@@ -135,7 +135,7 @@ def outbound(peers, item, filter=None, debug=False):
     shared = shares.SharedItem(item)
 
     # Abort if pending conflicts
-    if hasattr(shared, "conflictingStates"):
+    if shared.conflictingStates:
         raise errors.ConflictsPending(_(u"Conflicts pending"))
 
     for peer in peers:

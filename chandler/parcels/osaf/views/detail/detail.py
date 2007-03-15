@@ -902,28 +902,10 @@ class ConflictWarning(DetailSynchronizer, ControlBlocks.Button):
         super(ConflictWarning, self).synchronizeWidget(useHints)
     
     def hasConflicts(self):
-        if pim.has_stamp(self.item, sharing.SharedItem):
-            try:
-                conflictStates = sharing.SharedItem(self.item).conflictingStates
-                conflicts = []
-                for c in sharing.SharedItem(self.item).getConflicts():
-                    conflicts.append(c)
-                return True and len(conflicts) > 0
-            except AttributeError:
-                return False
+        return sharing.hasConflicts(self.item)
 
     def getConflicts(self):
-        conflicts = []
-        try:
-            if pim.has_stamp(self.item, sharing.SharedItem):
-                # access conflictingStates to make sure there are conflicts
-                states = sharing.SharedItem(self.item).conflictingStates
-                # .. *then* use the generator
-                for c in sharing.SharedItem(self.item).getConflicts():
-                    conflicts.append(c)
-        except AttributeError:
-            pass
-        return conflicts
+        return sharing.getConflicts(self.item)
 
     def resolveConflict(self, event):
         # show the dialog here

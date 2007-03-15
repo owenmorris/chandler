@@ -21,6 +21,8 @@ __all__ = [
     'getFilter',
     'isShared',
     'isReadOnly',
+    'hasConflicts',
+    'getConflicts',
 ]
 
 
@@ -34,6 +36,7 @@ import cPickle
 import logging
 import datetime
 from PyICU import ICUtzinfo
+from chandlerdb.util.c import Empty
 
 logger = logging.getLogger(__name__)
 
@@ -56,23 +59,23 @@ class SharedItem(pim.Stamp):
     # It's a ref collection aliased by peer.itsUUID.str16()
     # In Cosmo-based sharing, states are stored in the conduit
 
-    conflictingStates = schema.Sequence()
+    conflictingStates = schema.Sequence(defaultValue=Empty)
 
     def getConflicts(self):
-        for state in getattr(self, 'conflictingStates', []):
+        for state in self.conflictingStates:
             for conflict in state.getConflicts():
                 yield conflict
 
 
     def clearConflicts(self):
-        for state in getattr(self, 'conflictingStates', []):
+        for state in self.conflictingStates:
             state.clearConflicts()
 
 
     def generateConflicts(self, **kwds):
         # TODO: replace this with something that generates more interesting
         # conflicts
-        if not hasattr(self, 'conflictingStates'):
+        if not self.conflictingStates:
             itemUUID = self.itsItem.itsUUID.str16()
             peer = pim.EmailAddress(itsView=self.itsItem.itsView,
                 emailAddress="conflict@example.com")
@@ -155,6 +158,20 @@ class SharedItem(pim.Stamp):
 
 
 
+def hasConflicts(item):
+    if pim.has_stamp(item, SharedItem):
+        shared = SharedItem(item)
+        if shared.conflictingStates:
+            return True
+    return False
+
+def getConflicts(item):
+    conflicts = []
+    if pim.has_stamp(item, SharedItem):
+        shared = SharedItem(item)
+        for conflict in shared.getConflicts():
+            conflicts.append(conflict)
+    return conflicts
 
 
 
@@ -274,8 +291,7 @@ class State(schema.Item):
     def updateConflicts(self):
         # See if we have pending conflicts; if so, make sure we are in the
         # item's conflictingStates ref collection.  If not, make sure we
-        # aren't.  Also, if we're the last conflict to be removed from the
-        # item, go ahead and delete the conflictingStates attribute.
+        # aren't.
         if hasattr(self, "itemUUID"):
             uuid = self.itemUUID
             item = self.itsView.findUUID(uuid)
@@ -284,14 +300,14 @@ class State(schema.Item):
                     SharedItem(item).add()
                 shared = SharedItem(item)
                 if self.pending:
-                    if not hasattr(shared, 'conflictingStates'):
-                        shared.conflictingStates = []
-                    shared.conflictingStates.add(self)
+                    self.conflictFor = item
+                    # if shared.conflictingStates is Empty:
+                    #     shared.conflictingStates = []
+                    # shared.conflictingStates.add(self)
                 else:
-                    if self in getattr(shared, 'conflictingStates', []):
-                        shared.conflictingStates.remove(self)
-                        if not shared.conflictingStates:
-                            del shared.conflictingStates
+                    self.conflictFor = None
+                    # if self in shared.conflictingStates:
+                    #     shared.conflictingStates.remove(self)
 
 
     def set(self, agreed, pending):
