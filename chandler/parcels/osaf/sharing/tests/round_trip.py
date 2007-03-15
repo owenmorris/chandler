@@ -263,10 +263,15 @@ class RoundTripTestCase(testcase.DualRepositoryTestCase):
             "Sync operation mismatch")
         self.assert_(item.displayName == "displayName changed in 0")
         self.assert_(item.body == "body changed again in 0")
+
+        self.assert_(sharing.hasConflicts(item1))
+        self.assert_(self.share1.hasConflicts())
         for conflict in sharing.SharedItem(item1).getConflicts():
             conflict.discard()
         # Verify that conflicts are removed when discarded
         self.assertEqual(len(list(sharing.SharedItem(item1).getConflicts())), 0)
+        self.assert_(not sharing.hasConflicts(item1))
+        self.assert_(not self.share1.hasConflicts())
 
 
         # Remote stamping - stamp applied locally

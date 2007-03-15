@@ -183,6 +183,8 @@ class State(schema.Item):
     peerItemVersion = schema.One(schema.Integer, initialValue=-1)
     itemUUID = schema.One(schema.Text)
     conflictFor = schema.One(inverse=SharedItem.conflictingStates)
+    share = schema.One()
+    conflictingShare = schema.One()
 
     # Internal
     _agreed = schema.One(schema.Bytes)
@@ -301,13 +303,11 @@ class State(schema.Item):
                 shared = SharedItem(item)
                 if self.pending:
                     self.conflictFor = item
-                    # if shared.conflictingStates is Empty:
-                    #     shared.conflictingStates = []
-                    # shared.conflictingStates.add(self)
+                    if getattr(self, 'share', None):
+                        self.conflictingShare = self.share
                 else:
                     self.conflictFor = None
-                    # if self in shared.conflictingStates:
-                    #     shared.conflictingStates.remove(self)
+                    self.conflictingShare = None
 
 
     def set(self, agreed, pending):
@@ -479,7 +479,10 @@ class Share(pim.ContentItem):
     format = schema.One(initialValue=None)
     # inverse of ImportExportFormat.share
 
-    states = schema.Sequence(State, inverse=schema.One(), initialValue=[])
+    states = schema.Sequence(State,
+        inverse=State.share, initialValue=[])
+    conflictingStates = schema.Sequence(State,
+        inverse=State.conflictingShare, initialValue=[])
 
     sharer = schema.One(
         pim.Contact,
@@ -550,6 +553,8 @@ class Share(pim.ContentItem):
         if not sharedItem.sharedIn:
             SharedItem(item).remove()
 
+    def hasConflicts(self):
+        return True if self.conflictingStates else False
 
     def create(self):
         self.conduit.create()

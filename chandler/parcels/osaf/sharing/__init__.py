@@ -1192,7 +1192,7 @@ def subscribeEIMXML(view, url, morsecodeUrl, inspection, activity=None,
             translator=PIMTranslator, serializer=EIMMLSerializer)
 
 
-    share.sync(activity=activity, modeOverride='get', debug=True)
+    share.sync(activity=activity, modeOverride='get')
     # share.conduit.getTickets()
 
     try:
