@@ -558,15 +558,17 @@ class RecurringEventTest(testcase.SingleRepositoryTestCase):
         first.changeThis(EventStamp.summary.name, uw("New First Summary"))
         
         # ... a THIS startTime change to third
-        third.changeThis(EventStamp.startTime.name,
-                         third.startTime + timedelta(hours=1))
+        thirdStart = third.startTime + timedelta(hours=1)
+        third.changeThis(EventStamp.startTime.name, thirdStart)
+        self.failUnlessEqual(third.startTime, thirdStart)
+        
         # ... and finally a THISANDFUTURE startTime change to first
         first.changeThisAndFuture(EventStamp.startTime.name,
                                   first.startTime + timedelta(hours=-1))
         
-        # Make sure third still has a startTime change
-        self.failUnlessEqual(third.startTime - third.recurrenceID,
-                             timedelta(hours=1))
+        # Make sure third's startTime is unchanged
+        # c.f. https://bugzilla.osafoundation.org/show_bug.cgi?id=8222#c9
+        self.failUnlessEqual(third.startTime, thirdStart)
 
         # Double-check its recurrenceID
         self.failUnlessEqual(

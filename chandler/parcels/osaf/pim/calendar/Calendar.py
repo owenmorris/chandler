@@ -1511,12 +1511,11 @@ class EventStamp(Stamp):
                     
                     for occurrence in itertools.imap(EventStamp,
                                                      first.occurrences or []):
-                        if occurrence.recurrenceID >= recurrenceID:
-                            # don't change start time if its a startTime
-                            # modification
-                            ## holding off on this until a design decision is
-                            ## made
-                            if True:#recurrenceID != occurrence.effectiveStartTime:
+                        occurrenceID = occurrence.recurrenceID
+                        if occurrenceID >= recurrenceID:
+                            if occurrenceID == occurrence.effectiveStartTime:
+                                # don't change start time if its a startTime
+                                # modification
                                 occurrence.changeNoModification(
                                         EventStamp.startTime.name,
                                         occurrence.startTime + startTimeDelta)
