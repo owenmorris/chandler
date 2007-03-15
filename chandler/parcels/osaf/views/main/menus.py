@@ -141,7 +141,7 @@ def makeMainMenus(parcel):
                         helpString = _(u'Export Calendar Events to an iCalendar file')),
                     MenuItem.template('PrefsAccountsItem',
                         event = main.EditAccountPreferences,
-                        title = _(u'&Accounts...'),
+                        title = _(u'&Add account...'),
                         helpString = messages.ACCOUNT_PREFERENCES),
                     MenuItem.template('FileSeparator0',
                         menuItemKind = 'Separator'),
