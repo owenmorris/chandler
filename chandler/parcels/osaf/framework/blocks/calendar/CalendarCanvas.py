@@ -1708,9 +1708,8 @@ class wxInPlaceEditor(AttributeEditors.wxEditText):
     def ResetFocus(self):
         if self.defocusCallback:
             self.defocusCallback()
-        
-    def SaveAndHide(self):
-        self.SaveItem()
+
+    def HideAndResetFocus(self):
         self._unfocusing = True
         self.Hide()
         self.ResetFocus()
@@ -1719,6 +1718,10 @@ class wxInPlaceEditor(AttributeEditors.wxEditText):
         # If an event's title is empty and a user presses enter to begin 
         # editing, SetItem doesn't call SetValue, so empty the buffer
         self.SetValue('') 
+
+    def SaveAndHide(self):
+        self.SaveItem()
+        self.HideAndResetFocus()
 
     def OnEnterPressed(self, event):
         """
@@ -1727,15 +1730,7 @@ class wxInPlaceEditor(AttributeEditors.wxEditText):
         self.SaveAndHide()
 
     def OnEscapePressed(self, event):
-        self.Undo()
-        self._unfocusing = True
-        self.Hide()
-        self.ResetFocus()
-        self._unfocusing = False
-
-        # If an event's title is empty and a user presses enter to begin 
-        # editing, SetItem doesn't call SetValue, so empty the buffer
-        self.SetValue('') 
+        self.HideAndResetFocus()
 
     def OnKillFocus(self, event):
         if self.IsBeingDeleted():
