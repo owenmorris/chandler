@@ -209,7 +209,7 @@ class State(schema.Item):
 
 
     def merge(self, rsInternal, inbound=eim.RecordSet(), isDiff=True,
-        send=True, receive=True, filter=None, debug=False):
+        filter=None, debug=False):
 
         if filter is None:
             filter = lambda rs: rs
@@ -248,9 +248,7 @@ class State(schema.Item):
 
         dApply = self._cleanDiff(rsInternal, ncd)
 
-        if send:
-            rsExternal += dSend
-
+        rsExternal += dSend
 
         self.pending = rsExternal - self.agreed
 

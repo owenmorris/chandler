@@ -78,8 +78,7 @@ def inbound(peer, text, filter=None, allowDeletion=False, debug=False):
             state.peerItemVersion = peerItemVersion
 
             dSend, dApply, pending = state.merge(rsInternal, rsExternal,
-                isDiff=False, send=False, receive=True, filter=filter,
-                debug=debug)
+                isDiff=False, filter=filter, debug=debug)
 
             if dApply:
                 if debug: print "Applying:", uuid, dApply

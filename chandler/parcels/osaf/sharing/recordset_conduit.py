@@ -274,8 +274,7 @@ class RecordSetConduit(conduits.BaseConduit):
                 rsExternal = inbound.get(uuid, eim.RecordSet())
 
             dSend, dApply, pending = state.merge(rsInternal, rsExternal,
-                isDiff=isDiff, send=send, receive=receive, filter=filter,
-                debug=debug)
+                isDiff=isDiff, filter=filter, debug=debug)
             if send and dSend:
                 toSend[uuid] = dSend
                 logger.debug("Sending changes for %s [%s]", uuid, dSend)
