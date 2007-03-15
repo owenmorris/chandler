@@ -29,8 +29,8 @@ import zanshin.webdav
 import zanshin.util
 import zanshin.http
 
-import M2Crypto.BIO
-import M2Crypto.SSL.Checker
+import wx
+import M2Crypto
 import chandlerdb
 import twisted.internet.error as error
 from twisted.internet import reactor
@@ -40,7 +40,6 @@ import application.Utility as Utility
 from osaf.framework.certstore import ssl
 from osaf import messages
 import threading
-import version
 from i18n import ChandlerMessageFactory as _
 from osaf.mail.utils import displayIgnoreSSLErrorDialog, \
                             displaySSLCertDialog, \
@@ -93,7 +92,7 @@ class ChandlerServerHandle(zanshin.webdav.ServerHandle):
     
                 if err.args[0] in ssl.unknown_issuer:
                     handler = lambda: ssl.askTrustServerCertificate(
-                        Globals.wxApplication.UIRepositoryView,
+                        wx.GetApp().UIRepositoryView,
                         err.untrustedCertificates[0], 
                         retry)
                 else:
@@ -113,9 +112,9 @@ class ChandlerServerHandle(zanshin.webdav.ServerHandle):
                     retry)
                 self._handleSSLError(handler, err, callable, *args, **keywds)
     
-            except M2Crypto.BIO.BIOError, error:
+            except M2Crypto.BIO.BIOError, err:
                 # Translate the mysterious M2Crypto.BIO.BIOError
-                raise error.SSLError(error)
+                raise error.SSLError(err)
 
     def _handleSSLError(self, handler, err, callable, *args, **keywds):
         self._reconnect = False
@@ -319,7 +318,7 @@ class TestChandlerServerHandle(ChandlerServerHandle):
             except Exception, e:
                 # There is a bug in the M2Crypto code which needs
                 # to be fixed.
-                log.exception('This should not happen')
+                #log.exception('This should not happen')
                 return (0, (CANT_CONNECT, _(u"Error in SSL Layer")))
 
         except M2Crypto.SSL.Checker.WrongHost, err:
@@ -357,15 +356,15 @@ class WebDAVTester(object):
     def __init__(self, host=None, port=None, path=None, username=None,
                  password=None, useSSL=False, repositoryView=None):
 
-       self.host = host
-       self.port = port
-       self.path = path
-       self.username = username
-       self.password = password
-       self.useSSL = useSSL
-       self.view = repositoryView
-
-       self.cancel  = False
+        self.host = host
+        self.port = port
+        self.path = path
+        self.username = username
+        self.password = password
+        self.useSSL = useSSL
+        self.view = repositoryView
+ 
+        self.cancel  = False
 
     def cancelLastRequest(self):
         self.cancel = True
@@ -467,15 +466,15 @@ class MorsecodeTester(object):
     def __init__(self, host=None, port=None, path=None, username=None,
                  password=None, useSSL=False, repositoryView=None):
 
-       self.host = host
-       self.port = port
-       self.path = path
-       self.username = username
-       self.password = password
-       self.useSSL = useSSL
-       self.view = repositoryView
+        self.host = host
+        self.port = port
+        self.path = path
+        self.username = username
+        self.password = password
+        self.useSSL = useSSL
+        self.view = repositoryView
 
-       self.cancel  = False
+        self.cancel  = False
 
     def cancelLastRequest(self):
         self.cancel = True
@@ -515,7 +514,7 @@ class MorsecodeTester(object):
         if result.status == 200:
             # Success!
             return callMethodInUIThread(callback,
-                (1, (READ_WRITE, None)))
-        else:
-            return callMethodInUIThread(callback,
-                (0, (NO_ACCESS, result.status)))
+                                        (1, (READ_WRITE, None)))
+
+        return callMethodInUIThread(callback,
+                                    (0, (NO_ACCESS, result.status)))
