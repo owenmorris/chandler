@@ -215,7 +215,7 @@ COMMAND_LINE_OPTIONS = {
     'chandlerTests': ('', '--chandlerTests', 's', None, None, 'file:TestClass,file2:TestClass2 to be executed by new framework'),
     'chandlerTestSuite': ('-T', '--chandlerTestSuite', 'b', False, None, 'run the functional test suite'),
     'chandlerTestDebug': ('-D', '--chandlerTestDebug', 's', 0, None, '0=print only failures, 1=print pass and fail, 2=print pass & fail & check repository after each test'),
-    'recordedTest': ('', '--recordedTest', 's', 0, None, 'run a recorded test from the recorded_scripts directory. Use "all" to run full suite.'),
+    'recordedTest': ('', '--recordedTest', 's', None, None, 'run a recorded test from the recorded_scripts directory. Use "all" to run full suite.'),
     'chandlerTestMask': ('-M', '--chandlerTestMask', 's', 3, None, '0=print all, 1=hide reports, 2=also hide actions, 3=also hide test names'),
     'chandlerPerformanceTests': ('', '--chandlerPerformanceTests', 's', None, None, 'file:TestClass,file2:TestClass2 to be executed by performance new framework'),
     'chandlerTestLogfile': ('', '--chandlerTestLogfile', 's', None, None, 'file for chandlerTests output'),
