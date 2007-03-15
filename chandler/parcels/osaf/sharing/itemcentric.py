@@ -64,11 +64,12 @@ def inbound(peer, text, filter=None, allowDeletion=False, debug=False):
             state = shares.State(itsView=rv, peer=peer, itemUUID=uuid)
             rsInternal = eim.RecordSet()
 
-        if peerRepoId != state.peerRepoId:
+        if state.peerRepoId and (peerRepoId != state.peerRepoId):
             # This update is not from the peer repository we last saw.
             # Treat the update is entirely new
             state.clear()
-            state.peerRepoId = peerRepoId
+
+        state.peerRepoId = peerRepoId
 
         # Only process recordsets whose version is greater than the last one
         # we say.  In the case of null-repository-view testing, versions are
