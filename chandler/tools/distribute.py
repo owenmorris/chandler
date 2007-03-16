@@ -326,7 +326,7 @@ def checkOptions(options):
     options.modes = [ 'release', 'debug' ]
 
     if options.mode:
-        s = options.mode.lower()
+        s = options.mode.lower().strip()
 
         if s in options.modes:
             options.modes = [ s ]
