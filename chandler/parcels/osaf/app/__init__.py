@@ -218,7 +218,7 @@ The Chandler Team""") % {'version': version.version}
     # Script to create a new user script item
     newScript = scripting.Script.update(parcel, 'New Script',
                                         displayName=_(u"F1 - Create a New Script"),
-                                        fkey=_(u"F1"),
+                                        fkey= u"F1",
                                         creator = osafDev
                                         )
     newScript.set_file(u"NewScript.py", Scripts.__file__)
@@ -226,14 +226,14 @@ The Chandler Team""") % {'version': version.version}
     # Block Inspector
     scripting.Script.update(parcel, 'Block Inspector',
                             displayName=_(u"F2 - Block under cursor"),
-                            fkey=_(u"F2"),
+                            fkey= u"F2",
                             creator = osafDev, body=scripting.script_file(u"BlockInspector.py", Scripts.__file__)
                             )
 
     # Item Inspector
     scripting.Script.update(parcel, 'Item Inspector',
                             displayName=_(u"F3 - Item selected"),
-                            fkey=_(u"F3"),
+                            fkey= u"F3",
                             creator = osafDev,
                             body=scripting.script_file(u"ItemInspector.py", Scripts.__file__)
                             )
@@ -241,7 +241,7 @@ The Chandler Team""") % {'version': version.version}
     # Browse selected item
     scripting.Script.update(parcel, 'Browse Selected',
                             displayName=_(u"F4 - Browse selected item"),
-                            fkey=_(u"F4"),
+                            fkey= u"F4",
                             creator = osafDev,
                             body=scripting.script_file(u"BrowseSelected.py", Scripts.__file__)
                             )
@@ -271,7 +271,7 @@ The Chandler Team""") % {'version': version.version}
     # Script to paste the clipboard into a new menu item
     newScript = scripting.Script.update(parcel, 'Paste New Item',
                                         displayName=_(u"F5 - Paste new item"),
-                                        fkey=_(u"F5"),
+                                        fkey= u"F5",
                                         creator = osafDev
                                         )
     newScript.set_file(u"PasteNewItem.py", Scripts.__file__)

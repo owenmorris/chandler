@@ -148,8 +148,8 @@ class StartupOptionsDialog(wx.Dialog):
         elif self.restore.GetValue():
             restorePath = wx.FileSelector(_(u"Snapshot to restore?"),
                                           getDesktopDir(),
-                                           u"", _(u".tgz"),
-                                          _(u"*.tgz"),
+                                           u"", u".tgz",
+                                          u"*.tgz",
                                           flags=wx.OPEN|wx.FILE_MUST_EXIST,
                                           parent=self)
             if not restorePath:
@@ -168,8 +168,8 @@ class StartupOptionsDialog(wx.Dialog):
 
         tarPath = wx.FileSelector(_(u"Save snapshot as..."),
                                   getDesktopDir(),
-                                  _(u"ChandlerSnapshot.tgz"), _(u".tgz"),
-                                  _(u"*.tgz"),
+                                  _(u"ChandlerSnapshot.tgz"), u".tgz",
+                                  u"*.tgz",
                                   flags=wx.SAVE | wx.OVERWRITE_PROMPT,
                                   parent=self)
         if not tarPath:

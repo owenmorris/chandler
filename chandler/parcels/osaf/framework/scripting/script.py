@@ -222,7 +222,7 @@ def hotkey_script(event, view):
             and not event.MetaDown()
             and not event.ShiftDown()):
         # try to find the corresponding Script
-        targetFKey = _(u"F%(FunctionKeyNumber)s") % {'FunctionKeyNumber':unicode(keycode-wx.WXK_F1+1)}
+        targetFKey = u"F%(FunctionKeyNumber)s" % {'FunctionKeyNumber':unicode(keycode-wx.WXK_F1+1)}
 
         # maybe we have an existing script?
         script = _findHotKeyScript(targetFKey, view)
