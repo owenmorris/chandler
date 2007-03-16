@@ -17,6 +17,7 @@ import os
 import logging
 from application import Globals
 from datetime import datetime
+import osaf.framework.scripting as scripting
 
 logger = logging.getLogger('recorded_test_framework')
 
@@ -75,3 +76,5 @@ def execute_frame(option_value):
     print '#TINDERBOX# Testname = %s' % Globals.options.recordedTest 
     print '#TINDERBOX# Time elapsed = %s' % str (datetime.now() - Globals.test_dict['starttime'])
     print '#TINDERBOX# Status = %s' % result
+    
+    scripting.app_ns().root.Quit()
