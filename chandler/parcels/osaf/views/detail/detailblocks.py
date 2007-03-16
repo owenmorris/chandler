@@ -493,14 +493,13 @@ def makeCalendarArea(parcel, oldVersion):
  
 def makeMailArea(parcel, oldVersion):
     blocks = schema.ns("osaf.framework.blocks", parcel.itsView)    
-    inboundFromArea = \
-        makeArea(parcel, 'InboundFromArea',
-            baseClass=InboundOnlyAreaBlock,
+    originatorsArea = \
+        makeArea(parcel, 'OriginatorsArea',
             childrenBlocks=[
                 makeLabel(parcel, _(u'from')),
                 makeSpacer(parcel, width=8),
-                makeEditor(parcel, 'EditMailInboundFrom',
-                    viewAttribute=MailStamp.fromAddress.name,
+                makeEditor(parcel, 'EditMailOriginators',
+                    viewAttribute=MailStamp.originators.name,
                     presentationStyle={'editInPlace': True,
                                         'maxLineCount': 3})],
             position=0.1).install(parcel)
@@ -602,7 +601,7 @@ def makeMailArea(parcel, oldVersion):
             orientationEnum='Vertical',
             position=0.1,
             childrenBlocks = [
-                inboundFromArea, 
+                originatorsArea, 
                 toArea,
                 ccArea,
                 bccArea,

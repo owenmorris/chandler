@@ -1038,6 +1038,10 @@ class MailStamp(stamping.Stamp):
     fromAddress = schema.One(
         initialValue = None,
     )
+    
+    # inverse of EmailAddress.messagesOriginator
+    originators = schema.Sequence(initialValue = [])
+    
     # inverse of EmailAddress.messagesReplyTo
     replyToAddress = schema.One(initialValue = None)
 
@@ -1351,6 +1355,13 @@ Issues:
         doc = 'A list of messages with their To: header referring to this address',
         initialValue = [],
         inverse = MailStamp.toAddress,
+    )
+    
+    messagesOriginator = schema.Sequence(
+        MailStamp,
+        doc = 'A list of messages whose "originators" contain this address',
+        initialValue = [],
+        inverse = MailStamp.originators,
     )
 
     inviteeOf = schema.Sequence(
