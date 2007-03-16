@@ -323,18 +323,19 @@ def checkOptions(options):
         log('Source directory [%s] does not point to a Chandler install' % options.sourceDir, error=True)
         sys.exit(3)
 
+    options.modes = [ 'release', 'debug' ]
+
     if options.mode:
         s = options.mode.lower()
 
-        if s in modes:
-            modes = [ s ]
+        if s in options.modes:
+            options.modes = [ s ]
         else:
             log('Invalid mode [%s] specified' % s, error=True)
             sys.exit(3)
 
 
 if __name__ == '__main__':
-    modes   = [ 'release', 'debug' ]
     options = parseOptions()
 
     checkOptions(options)
@@ -350,7 +351,7 @@ if __name__ == '__main__':
     if len(options.distribs) > 0:
         options.distribFiles = {}
 
-        for mode in modes:
+        for mode in options.modes:
             if os.path.isdir(os.path.join(options.binDir, mode)):
                 if buildDistributionImage(mode, options):
                     options.distribFiles[mode] = []
