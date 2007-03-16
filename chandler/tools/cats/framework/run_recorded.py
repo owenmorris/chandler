@@ -34,10 +34,10 @@ for filename in os.listdir(recorded_scripts_dir):
         (filename, extension) = os.path.splitext (filename)
         test_module = __import__(filename)
 
-        # Check for platform exclutions
-        if (not hasattr(test_module, '_platform_exclutions_') or
-                (sys.platform not in test_module._platform_exclutions_ and
-                'all' not in test_module._platform_exclutions_)):
+        # Check for platform exclusions
+        if (not hasattr(test_module, '_platform_exclusions_') or
+                (sys.platform not in test_module._platform_exclusions_ and
+                'all' not in test_module._platform_exclusions_)):
             test_callables[filename] = getattr(test_module, 'run')
 
 sys.path.pop(0)
