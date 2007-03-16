@@ -24,7 +24,7 @@ import application.Parcel as Parcel
 from application import schema
 from osaf import pim, sharing
 import osaf.sharing.ICalendar as ICalendar
-from osaf.pim import ListCollection, Note
+from osaf.pim import ListCollection, Note, Triageable
 import osaf.pim.calendar.Calendar as Calendar
 from osaf.pim.calendar.TimeZone import convertToICUtzinfo, TimeZoneInfo
 import datetime
@@ -713,8 +713,11 @@ class ImportTodoTestCase(SharingTestCase):
         self.failUnless(pim.has_stamp(task, pim.TaskStamp))
         self.failUnlessEqual(task.summary, u"ToDoneAndWhen")
         self.failUnlessEqual(task.itsItem.triageStatus, pim.TriageEnum.done)
+        expectedTSC = datetime.datetime(2006, 3, 1, 1, 0, 0, 0,
+                                        ICalendar.utc)
         self.failUnlessEqual(task.itsItem.triageStatusChanged,
-                             -1141174800.0)
+                             Triageable.makeTriageStatusChangedTime(expectedTSC))
+
     def testDescription(self):
         self.runImport(
             "BEGIN:VCALENDAR",

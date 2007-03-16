@@ -24,7 +24,7 @@ from reminders import (
     isDead
 )
 from triage import (
-    TriageEnum, getTriageStatusName, getNextTriageStatus
+    Triageable, TriageEnum, getTriageStatusName, getNextTriageStatus
 )
 from collections import (
     KindCollection, ContentCollection, DifferenceCollection, UnionCollection,

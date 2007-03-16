@@ -94,7 +94,21 @@ class Triageable(Remindable):
         super(Triageable, self).__init__(*args, **kw)
         if getattr(self, '_triageStatusChanged', None) is None:
             # Make sure the time is set.
-            self._triageStatusChanged = -time.time()
+            self._triageStatusChanged = self.makeTriageStatusChangedTime()
+    
+    @staticmethod
+    def makeTriageStatusChangedTime(when=None):
+        # get a float representation of a time from 'when' (or the current
+        # time if when is None or not passed)
+        if isinstance(when, float):
+            pass # nothing to do
+        elif isinstance(when, datetime):
+            # (mktime wants local time, so make sure 'when' is 
+            # in the local timezone)
+            when = -time.mktime(when.astimezone(ICUtzinfo.default).timetuple())
+        else:
+            when = -time.time()
+        return when
 
     def setTriageStatus(self, newStatus=None, when=None, 
                         pin=False, popToNow=False, force=False):
@@ -202,19 +216,10 @@ class Triageable(Remindable):
         if getattr(self, '_share_importing', False):
             return
 
-        # get a float representation of a time from 'when'
-        if isinstance(when, float):
-            pass # nothing to do
-        elif isinstance(when, datetime):
-            # (mktime wants local time, so make sure 'when' is 
-            # in the local timezone)
-            when = -time.mktime(when.astimezone(ICUtzinfo.default).timetuple())
-        else:
-            when = -time.time()
-
+        tscValue = Triageable.makeTriageStatusChangedTime(when)
         setattr(self, tsAttr, newStatus)
         tscAttr = '_sectionTriageStatusChanged' if section else '_triageStatusChanged'
-        setattr(self, tscAttr, when)
+        setattr(self, tscAttr, tscValue)
     
     def copyTriageStatusFrom(self, item):
         self._triageStatus = item._triageStatus
