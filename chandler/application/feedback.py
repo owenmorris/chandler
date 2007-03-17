@@ -229,11 +229,7 @@ class FeedbackWindow(wx.PyOnDemandOutputWindow):
             import atexit
             atexit.register(restart)
         finally:
-            try:
-                from osaf.framework import scripting
-                scripting.app_ns().root.Quit()
-            except:
-                sys.exit()
+            wx.GetApp().ForceQuit()
 
     def logReport(self, feedbackXML, serverResponse):
         try:

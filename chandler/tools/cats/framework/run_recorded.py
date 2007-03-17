@@ -12,12 +12,11 @@
 #   See the License for the specific language governing permissions and
 #   limitations under the License.
 
-import sys
+import sys, wx
 import os
 import logging
 from application import Globals
 from datetime import datetime
-import osaf.framework.scripting as scripting
 
 logger = logging.getLogger('recorded_test_framework')
 
@@ -77,4 +76,4 @@ def execute_frame(option_value):
     print '#TINDERBOX# Time elapsed = %s' % str (datetime.now() - Globals.test_dict['starttime'])
     print '#TINDERBOX# Status = %s' % result
     
-    scripting.app_ns().root.Quit()
+    wx.GetApp().ForceQuit()

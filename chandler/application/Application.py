@@ -955,6 +955,13 @@ class wxApplication (wx.App):
         """
         self.UIRepositoryView.repository.close()
 
+    def ForceQuit(self):
+        from osaf.framework.blocks.Block import Block
+        try:
+            Block.postEventByNameWithSender ("Quit", {})
+        finally:
+            sys.exit()
+
     def restart(self, *args, **kwds):
         """
         Restart the application.
