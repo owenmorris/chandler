@@ -17,6 +17,7 @@ import os
 import logging
 from application import Globals
 from datetime import datetime
+from osaf.framework.blocks.Block import Block
 
 logger = logging.getLogger('recorded_test_framework')
 
@@ -72,8 +73,18 @@ def execute_frame(option_value):
         if not run_test_by_name(name):
             result = "FAILED"
 
-    print '#TINDERBOX# Testname = %s' % Globals.options.recordedTest 
-    print '#TINDERBOX# Time elapsed = %s' % str (datetime.now() - Globals.test_dict['starttime'])
-    print '#TINDERBOX# Status = %s' % result
-    
-    wx.GetApp().ForceQuit()
+    # Process the Quit message, which will check and cleanup the repository
+    # and do the normal close down of Chandler. Wrap this work in an except
+    # block so we can log failures
+    try:
+        Block.postEventByNameWithSender ("Quit", {})
+    except Exception, e:
+        logger.exception('Chandler "%s" has failed due to traceback' % name)
+        result = "FAILED"
+    finally:
+        print '#TINDERBOX# Testname = %s' % Globals.options.recordedTest 
+        print '#TINDERBOX# Time elapsed = %s' % str (datetime.now() - Globals.test_dict['starttime'])
+        print '#TINDERBOX# Status = %s' % result
+        
+        # Exit in a way that shouldn't cause any failures not to be logged.
+        sys.exit()
