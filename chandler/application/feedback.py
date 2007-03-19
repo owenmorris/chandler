@@ -60,7 +60,28 @@ class FeedbackWindow(wx.PyOnDemandOutputWindow):
         # Make this a Singleton to avoid the problem of multiple feedback
         # windows popping up at the same time
         return self
-    
+
+    def write(self, text):
+
+        app = wx.GetApp()
+        view = getattr(app, 'UIRepositoryView', None)
+        refreshErrors = getattr(view, 'refreshErrors', 0)
+
+        # if more than 3 refreshErrors on view, make frame modal and
+        # disable the "Close" button (bug 8295)
+        self.noContinue(refreshErrors > 3)
+
+        wx.PyOnDemandOutputWindow.write(self, text)
+
+    def noContinue(self, noContinue):
+        
+        if self.frame is None:
+            self.CreateOutputWindow('')
+
+        self.frame.MakeModal(noContinue)
+        self.frame.closeButton.Enable(not noContinue)
+        self.frame.disableFeedback.Enable(not noContinue)
+
     def _fillOptionalSection(self):
         try:    
             # columns

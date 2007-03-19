@@ -306,9 +306,11 @@ class DBRepositoryView(OnDemandRepositoryView):
                         self.logger.exception('%s refresh aborted by error',
                                               self)
                         self._abortTransaction(txnStatus)
+                        self.refreshErrors += 1
                         raise
                     else:
                         self._abortTransaction(txnStatus)
+                        self.refreshErrors = 0
                         return self.itsVersion
             finally:
                 self._status &= ~RepositoryView.REFRESHING
