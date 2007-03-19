@@ -23,6 +23,8 @@
 static PyObject *t_ctxmgr_new(PyTypeObject *self,
                               PyObject *args, PyObject *kwds);
 static void t_ctxmgr_dealloc(t_ctxmgr *self);
+static int t_ctxmgr_traverse(t_ctxmgr *self, visitproc visit, void *arg);
+static int t_ctxmgr_clear(t_ctxmgr *self);
 
 static PyObject *t_ctxmgr_enter(t_ctxmgr *self);
 static PyObject *t_ctxmgr_exit(t_ctxmgr *self, PyObject *args);
@@ -61,10 +63,11 @@ static PyTypeObject CtxMgrType = {
     0,                                         /* tp_getattro */
     0,                                         /* tp_setattro */
     0,                                         /* tp_as_buffer */
-    Py_TPFLAGS_DEFAULT,                        /* tp_flags */
+    (Py_TPFLAGS_DEFAULT |
+     Py_TPFLAGS_HAVE_GC),                      /* tp_flags */
     "CtxMgr type",                             /* tp_doc */
-    0,                                         /* tp_traverse */
-    0,                                         /* tp_clear */
+    (traverseproc)t_ctxmgr_traverse,           /* tp_traverse */
+    (inquiry)t_ctxmgr_clear,                   /* tp_clear */
     0,                                         /* tp_richcompare */
     0,                                         /* tp_weaklistoffset */
     0,                                         /* tp_iter */
@@ -101,9 +104,24 @@ static PyObject *t_ctxmgr_new(PyTypeObject *type,
 
 static void t_ctxmgr_dealloc(t_ctxmgr *self)
 {
+    t_ctxmgr_clear(self);
+    self->ob_type->tp_free((PyObject *) self);    
+}
+
+static int t_ctxmgr_traverse(t_ctxmgr *self, visitproc visit, void *arg)
+{
+    Py_VISIT(self->target);
+    Py_VISIT(self->data);
+
+    return 0;
+}
+
+static int t_ctxmgr_clear(t_ctxmgr *self)
+{
     Py_CLEAR(self->target);
     Py_CLEAR(self->data);
-    self->ob_type->tp_free((PyObject *) self);    
+
+    return 0;
 }
 
 static PyObject *t_ctxmgr_enter(t_ctxmgr *self)

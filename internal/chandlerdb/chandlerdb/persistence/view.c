@@ -100,6 +100,7 @@ static PyMemberDef t_view_members[] = {
     { "_watchers", T_OBJECT, offsetof(t_view, watchers), 0, "" },
     { "_debugOn", T_OBJECT, offsetof(t_view, debugOn), 0, "" },
     { "_deferredDeletes", T_OBJECT, offsetof(t_view, deferredDeletes), 0, "" },
+    { "refreshErrors", T_UINT, offsetof(t_view, refreshErrors), 0, "" },
     { NULL, 0, 0, 0, NULL }
 };
 

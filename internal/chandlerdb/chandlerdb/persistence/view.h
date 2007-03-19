@@ -41,6 +41,7 @@ typedef struct {
     PyObject *deferredDeletes;
     t_ctxmgr *deferredIndexingCtx;
     t_ctxmgr *deferredObserversCtx;
+    int refreshErrors;
 } t_view;
 
 enum {
