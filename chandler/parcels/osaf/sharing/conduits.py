@@ -69,7 +69,7 @@ class BaseConduit(Conduit):
     itemsMarker = schema.One(schema.ItemRef)
 
     sharePath = schema.One(
-        schema.Text,
+        schema.Text, initialValue=u"",
         doc = "The parent 'directory' of the share",
     )
 
@@ -480,7 +480,7 @@ class LinkableConduit(BaseConduit):
 
 
 
-class ManifestEngineMixin(pim.ContentItem):
+class ManifestEngineMixin(BaseConduit):
 
     manifest = schema.Mapping(
         schema.Dictionary,
@@ -1200,7 +1200,7 @@ class ManifestEngineMixin(pim.ContentItem):
 
 
 
-class HTTPMixin(pim.ContentItem):
+class HTTPMixin(BaseConduit):
 
     account = schema.One(initialValue=None)
     host = schema.One(schema.Text, initialValue=u"")

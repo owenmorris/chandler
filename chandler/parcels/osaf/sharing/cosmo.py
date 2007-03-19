@@ -28,7 +28,7 @@ from i18n import ChandlerMessageFactory as _
 
 logger = logging.getLogger(__name__)
 
-class CosmoAccount(accounts.WebDAVAccount):
+class CosmoAccount(accounts.SharingAccount):
 
     # The path attribute we inherit from WebDAVAccount represents the
     # base path of the Cosmo installation, typically "/cosmo".  The

@@ -14,7 +14,10 @@
 
 from application import schema
 from osaf import pim
-from osaf.sharing import eim, model, shares, utility
+from osaf.sharing import (
+    eim, model, shares, utility, accounts, conduits, cosmo, webdav_conduit,
+    recordset_conduit, eimml
+)
 from PyICU import ICUtzinfo
 import time
 from datetime import datetime, date, timedelta
@@ -301,6 +304,9 @@ class PIMTranslator(eim.Translator):
             item._triageStatusChanged = float(timestamp)
             item.doAutoTriageOnDateChange = (auto == "1")
 
+        # TODO: record.hasBeenSent --> item.modifiedFlags
+        # TIDO: record.needsReply
+
     @eim.exporter(pim.ContentItem)
     def export_item(self, item):
 
@@ -311,7 +317,7 @@ class PIMTranslator(eim.Translator):
             created = eim.NoChange
 
         tsCode = self.triagestatus_to_code.get(item._triageStatus, "100")
-        tsChanged = getattr(item, "_triageStatusChanged", 0.0)
+        tsChanged = item._triageStatusChanged or 0.0
         tsAuto = ("1" if getattr(item, "doAutoTriageOnDateChange", True) else "0")
         triage = "%s %.2f %s" % (tsCode, tsChanged, tsAuto)
 
@@ -319,7 +325,9 @@ class PIMTranslator(eim.Translator):
             item.itsUUID,                               # uuid
             getattr(item, "displayName", ""),           # title
             triage,                                     # triage
-            created                                     # createdOn
+            created,                                    # createdOn
+            0,                                          # hasBeenSent (TODO)
+            0                                           # needsReply (TODO)
         )
 
         # Also export a ModifiedByRecord
@@ -704,75 +712,413 @@ class DumpTranslator(PIMTranslator):
     description = u"Translator for Chandler items (PIM and non-PIM)"
 
 
+    # - - Collection  - - - - - - - - - - - - - - - - - - - - - - - - - - -
+    @model.CollectionRecord.importer
+    def import_collection(self, record):
+
+        collection = self.loadItemByUUID(record.uuid,
+            pim.SmartCollection
+        )
+
+        # TODO: figure out why this gets an AttributeError:
+        # if record.mine == 1:
+        #     schema.ns('osaf.pim', self.rv).mine.addSource(collection)
+
+
+    @eim.exporter(pim.SmartCollection)
+    def export_collection(self, collection):
+
+        uuid = collection.itsUUID
+
+        mine = 1 if (collection in
+            schema.ns('osaf.pim', self.rv).mine.sources) else 0
+
+        yield model.CollectionRecord(
+            uuid,
+            mine
+        )
+
+        for item in collection:
+            yield model.CollectionMembershipRecord(
+                collection.itsUUID,
+                item.itsUUID
+            )
+
+    @model.CollectionMembershipRecord.importer
+    def import_collectionmembership(self, record):
+
+        collection = self.loadItemByUUID(record.collection,
+            pim.SmartCollection
+        )
+        item = self.loadItemByUUID(record.item,
+            schema.Item
+        )
+        # TODO: see why collection.add( ) fails
+        # collection.add(item)
+
+
+
+    # - - Sharing-related items - - - - - - - - - - - - - - - - - - - - - -
+
     @model.ShareRecord.importer
     def import_share(self, record):
+
+        share = self.loadItemByUUID(record.uuid,
+            shares.Share,
+            established=True,
+            error=record.error,
+            mode=record.mode
+        )
+
+        if record.contents not in (eim.NoChange, None):
+            # contents is the UUID of a SharedItem
+            share.contents = self.loadItemByUUID(record.contents,
+                shares.SharedItem).itsItem
+
+        if record.conduit not in (eim.NoChange, None):
+            share.conduit = self.loadItemByUUID(record.conduit,
+                conduits.Conduit)
 
         if record.lastSynced not in (eim.NoChange, None):
             # lastSynced is a Decimal we need to change to datetime
             naive = datetime.utcfromtimestamp(float(record.lastSynced))
             inUTC = naive.replace(tzinfo=utc)
             # Convert to user's tz:
-            lastSynced = inUTC.astimezone(ICUtzinfo.default)
-        else:
-            lastSynced = eim.NoChange
+            share.lastSynced = inUTC.astimezone(ICUtzinfo.default)
 
-        if record.contents not in (eim.NoChange, None):
-            # contents is the UUID of a SharedItem
-            contents = self.loadItemByUUID(record.contents,
-                shares.SharedItem).itsItem
-        else:
-            contents = eim.NoChange
-
-
-        share = self.loadItemByUUID(record.uuid,
-            shares.Share,
-            contents=contents,
-            established=True,
-            lastSynced=lastSynced)
-
+        if record.subscribed == 0:
+            share.sharer = schema.ns('osaf.pim', self.rv).currentContact.item
 
 
     @eim.exporter(shares.Share)
     def export_share(self, share):
+
+        uuid = share.itsUUID
+
+        contents = share.contents.itsUUID
+
+        conduit = share.conduit.itsUUID
+
+        subscribed = 0 if utility.isSharedByMe(share) else 1
+
+        error = getattr(share, "error", "")
+
+        mode = share.mode
 
         if hasattr(share, "lastSynced"):
             lastSynced = Decimal(int(time.mktime(share.lastSynced.timetuple())))
         else:
             lastSynced = None
 
-        yield model.ShareRecord(share.itsUUID,
-            share.getLocation(),
-            None,
-            None,
-            share.contents.itsUUID,
-            1 if (share.contents in
-                schema.ns('osaf.pim', share.itsView).mine.sources) else 0,
-            0 if utility.isSharedByMe(share) else 1,
-            getattr(share, "error", ""),
-            share.mode,
+        yield model.ShareRecord(
+            uuid,
+            contents,
+            conduit,
+            subscribed,
+            error,
+            mode,
             lastSynced
         )
 
-        for state in share.states:
-            yield model.ShareStateRecord(state.itsUUID,
-                share.itsUUID,
-                state.itemUUID,
-                None,
-                None
-            )
+
+
+
+
+    @model.ShareConduitRecord.importer
+    def import_shareconduit(self, record):
+        conduit = self.loadItemByUUID(record.uuid,
+            conduits.BaseConduit,
+            sharePath=record.path,
+            shareName=record.name
+        )
+
+    @eim.exporter(conduits.BaseConduit)
+    def export_conduit(self, conduit):
+
+        uuid = conduit.itsUUID
+        path = conduit.sharePath
+        name = conduit.shareName
+
+        yield model.ShareConduitRecord(
+            uuid,
+            path,
+            name
+        )
+
+
+
+
+    @model.ShareRecordSetConduitRecord.importer
+    def import_sharerecordsetconduit(self, record):
+        conduit = self.loadItemByUUID(record.uuid,
+            recordset_conduit.RecordSetConduit,
+        )
+        if record.serializer == "eimml":
+            conduit.serializer = eimml.EIMMLSerializer
+        if record.serializer == "eimml_lite":
+            conduit.serializer = eimml.EIMMLSerializerLite
+
+        if record.filters not in (None, eim.NoChange):
+            for filter in record.filters.split(","):
+                if filter:
+                    conduit.filters.add(filter)
+
+    @eim.exporter(recordset_conduit.RecordSetConduit)
+    def export_recordsetconduit(self, conduit):
+
+        translator = None
+
+        if conduit.serializer is eimml.EIMMLSerializer:
+            serializer = 'eimml'
+        elif conduit.serializer is eimml.EIMMLSerializerLite:
+            serializer = 'eimml_lite'
+
+        filters = ",".join(conduit.filters)
+
+        yield model.ShareRecordSetConduitRecord(
+            conduit.itsUUID,
+            translator,
+            serializer,
+            filters
+        )
+
+
+
+
+    @model.ShareHTTPConduitRecord.importer
+    def import_sharehttpconduit(self, record):
+
+        conduit = self.loadItemByUUID(record.uuid, conduits.HTTPMixin)
+
+        if record.account is not eim.NoChange:
+            if record.account:
+                conduit.account = self.loadItemByUUID(record.account,
+                    accounts.SharingAccount)
+            else:
+                conduit.account = None
+                if record.host is not eim.NoChange:
+                    conduit.host = record.host
+                if record.port is not eim.NoChange:
+                    conduit.port = record.port
+                if record.ssl is not eim.NoChange:
+                    conduit.useSSL = True if record.ssl else False
+                if record.username is not eim.NoChange:
+                    conduit.username = record.username
+                if record.password is not eim.NoChange:
+                    conduit.password = record.password
+        # TODO: url
+        # TODO: ticket_rw
+        # TODO: ticket_ro
+
+    @eim.exporter(conduits.HTTPMixin)
+    def export_httpmixin(self, conduit):
+
+        url = conduit.getLocation()
+
+        ticket_rw = None # TODO
+        ticket_ro = None # TODO
+
+        if conduit.account:
+            account = conduit.account.itsUUID
+            host = None
+            port = None
+            ssl = None
+            username = None
+            password = None
+        else:
+            account = None
+            host = conduit.host
+            port = conduit.port
+            ssl = 1 if conduit.useSSL else 0
+            username = conduit.username
+            password = conduit.password
+
+        yield model.ShareHTTPConduitRecord(
+            conduit.itsUUID,
+            url,
+            ticket_rw,
+            ticket_ro,
+            account,
+            host,
+            port,
+            ssl,
+            username,
+            password
+        )
+
+
+
+
+    @model.ShareCosmoConduitRecord.importer
+    def import_sharecosmoconduit(self, record):
+
+        conduit = self.loadItemByUUID(record.uuid,
+            cosmo.CosmoConduit,
+            morsecodePath = record.morsecodepath
+        )
+
+    @eim.exporter(cosmo.CosmoConduit)
+    def export_cosmoconduit(self, conduit):
+
+        yield model.ShareCosmoConduitRecord(
+            conduit.itsUUID,
+            conduit.morsecodepath
+        )
+
+
+
+    @model.ShareWebDAVConduitRecord.importer
+    def import_sharewebdavconduit(self, record):
+
+        conduit = self.loadItemByUUID(record.uuid,
+            webdav_conduit.WebDAVRecordSetConduit
+        )
+
+    @eim.exporter(webdav_conduit.WebDAVRecordSetConduit)
+    def export_webdavconduit(self, conduit):
+
+        yield model.ShareWebDAVConduitRecord(
+            conduit.itsUUID
+        )
+
+
+
 
     @model.ShareStateRecord.importer
     def import_sharestate(self, record):
 
         state = self.loadItemByUUID(record.uuid,
             shares.State,
+            itemUUID=record.item,
+            peerRepoId=record.peerrepo,
+            peerItemVersion=record.peerversion,
             itemUUID=record.item
         )
 
-        share = self.loadItemByUUID(record.share, shares.Share)
-        if state not in share.states:
-            share.states.append(state, record.item)
+        if record.peer not in (eim.NoChange, None):
+            state.peer = self.loadItemByUUID(record.peer, schema.Item)
 
+        if record.share not in (eim.NoChange, None):
+            share = self.loadItemByUUID(record.share, shares.Share)
+            if state not in share.states:
+                share.states.append(state, record.item)
+
+        # TODO: agreed
+        # TODO: pending
+
+    @eim.exporter(shares.State)
+    def export_state(self, state):
+
+        uuid = state.itsUUID
+        peer = state.peer.itsUUID if getattr(state, "peer", None) else None
+        peerrepo = state.peerRepoId
+        peerversion = state.peerItemVersion
+        share = state.share.itsUUID if getattr(state, "share", None) else None
+        item = getattr(state, "itemUUID", None)
+        agreed = None # TODO
+        pending = None # TODO
+
+        yield model.ShareStateRecord(
+            uuid,
+            peer,
+            peerrepo,
+            peerversion,
+            share,
+            item,
+            agreed,
+            pending
+        )
+
+
+
+    @model.ShareResourceStateRecord.importer
+    def import_shareresourcestate(self, record):
+
+        state = self.loadItemByUUID(record.uuid,
+            recordset_conduit.ResourceState,
+            path=record.path,
+            etag=record.etag
+        )
+
+    @eim.exporter(recordset_conduit.ResourceState)
+    def export_resourcestate(self, state):
+
+        uuid = state.itsUUID
+        path = getattr(state, "path", None)
+        etag = getattr(state, "etag", None)
+
+        yield model.ShareResourceStateRecord(
+            uuid,
+            path,
+            etag
+        )
+
+
+
+    @model.ShareAccountRecord.importer
+    def import_shareaccount(self, record):
+
+        account = self.loadItemByUUID(record.uuid,
+            accounts.SharingAccount,
+            host=record.host,
+            port=record.port,
+            path=record.path,
+            username=record.username,
+            password=record.password,
+        )
+
+        if record.ssl not in (eim.NoChange, None):
+            account.useSSL = True if record.ssl else False
+
+    @eim.exporter(accounts.SharingAccount)
+    def export_shareaccount(self, account):
+
+        yield model.ShareAccountRecord(
+            account.itsUUID,
+            account.host,
+            account.port,
+            1 if account.useSSL else 0,
+            account.path,
+            account.username,
+            account.password
+        )
+
+
+
+
+    @model.ShareWebDAVAccountRecord.importer
+    def import_sharewebdavaccount(self, record):
+
+        account = self.loadItemByUUID(record.uuid,
+            accounts.WebDAVAccount
+        )
+
+    @eim.exporter(accounts.WebDAVAccount)
+    def export_sharewebdavaccount(self, account):
+
+        yield model.ShareWebDAVAccountRecord(account.itsUUID)
+
+
+
+    @model.ShareCosmoAccountRecord.importer
+    def import_sharecosmoaccount(self, record):
+
+        account = self.loadItemByUUID(record.uuid,
+            cosmo.CosmoAccount,
+            pimPath=record.pimpath,
+            morsecodePath=record.morsecodepath,
+            davPath=record.davpath
+        )
+
+    @eim.exporter(cosmo.CosmoAccount)
+    def export_sharecosmoaccount(self, account):
+
+        yield model.ShareCosmoAccountRecord(
+            account.itsUUID,
+            account.pimPath,
+            account.morsecodePath,
+            account.davPath
+        )
 
 
 

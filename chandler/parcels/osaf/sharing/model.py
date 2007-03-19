@@ -19,10 +19,9 @@ logger = logging.getLogger(__name__)
 
 # TODO: MailMessage (bkirsch working on this)
 
-# TODO: Missing attribute, "error" (can go away?)
+# TODO: Missing attribute, "error" (dump/reload only)
 # TODO: Missing attribute, "read" (dump/reload only)
 # TODO: Missing attribute, "needsReply" (???)
-# TODO: Missing attribute, "lastModification" (for sharing + dump)
 # TODO: Missing attribute, "modifiedFlags" (???)
 
 
@@ -36,6 +35,8 @@ text1024 = eim.TextType(size=1024)
 # pim items -------------------------------------------------------------------
 
 triageFilter = eim.Filter('cid:triage-filter@osaf.us', u"Triage Status")
+
+needsReplyFilter = eim.Filter('cid:needs-reply-filter@osaf.us', u"Needs Reply")
 
 eventStatusFilter = eim.Filter('cid:event-status-filter@osaf.us',
     u"Event Status")
@@ -62,7 +63,11 @@ class ItemRecord(eim.Record):
     # ContentItem.createdOn
     createdOn = eim.field(eim.DecimalType(digits=20, decimal_places=0))
 
+    # ContentItem.modifiedFlags
+    hasBeenSent = eim.field(eim.IntType)
 
+    # ContentItem.needsReply
+    needsReply = eim.field(eim.IntType)
 
 
 class ModifiedByRecord(eim.Record):
@@ -191,29 +196,118 @@ class MailMessageRecord(eim.Record):
 
 
 
-# osaf.sharing internals ------------------------------------------------------
+# collection ------------------------------------------------------------------
+
+class CollectionRecord(eim.Record):
+    URI = "http://osafoundation.org/eim/pim/collection/0"
+
+    uuid = eim.key(schema.UUID)
+    mine = eim.field(eim.IntType)
+
+class CollectionMembershipRecord(eim.Record):
+    URI = "http://osafoundation.org/eim/pim/collectionmembership/0"
+
+    collection = eim.key(schema.UUID)
+    item = eim.key(schema.UUID)
+
+
+# osaf.sharing ----------------------------------------------------------------
 
 
 class ShareRecord(eim.Record):
     URI = "http://osafoundation.org/eim/sharing/share/0"
 
     uuid = eim.key(schema.UUID)
-    url = eim.field(text1024)
-    ticket_rw = eim.field(text1024)
-    ticket_ro = eim.field(text1024)
+
     contents = eim.field(schema.UUID)
-    mine = eim.field(eim.IntType)
+    conduit = eim.field(schema.UUID)
     subscribed = eim.field(eim.IntType)
     error = eim.field(text1024)
     mode = eim.field(text20)
     lastSynced = eim.field(eim.DecimalType(digits=20, decimal_places=0))
 
+class ShareConduitRecord(eim.Record):
+    URI = "http://osafoundation.org/eim/sharing/conduit/0"
+
+    uuid = eim.key(schema.UUID)
+    path = eim.field(text1024)
+    name = eim.field(text1024)
+
+class ShareRecordSetConduitRecord(eim.Record):
+    URI = "http://osafoundation.org/eim/sharing/rsconduit/0"
+
+    uuid = eim.key(schema.UUID)
+    translator = eim.field(text1024)
+    serializer = eim.field(text1024)
+    filters = eim.field(text1024)
+
+
+class ShareHTTPConduitRecord(eim.Record):
+    URI = "http://osafoundation.org/eim/sharing/httpconduit/0"
+
+    uuid = eim.key(schema.UUID)
+    url = eim.field(text1024)
+    ticket_rw = eim.field(text1024)
+    ticket_ro = eim.field(text1024)
+
+    account = eim.field(schema.UUID) # if provided, the following are ignored
+    host = eim.field(text256)
+    port = eim.field(eim.IntType)
+    ssl = eim.field(eim.IntType)
+    username = eim.field(text256)
+    password = eim.field(text256)
+
+class ShareCosmoConduitRecord(eim.Record):
+    URI = "http://osafoundation.org/eim/sharing/cosmoconduit/0"
+
+    uuid = eim.key(schema.UUID)
+    morsecodepath = eim.field(text1024) # only if account is None
+
+class ShareWebDAVConduitRecord(eim.Record):
+    URI = "http://osafoundation.org/eim/sharing/webdavconduit/0"
+
+    uuid = eim.key(schema.UUID)
 
 class ShareStateRecord(eim.Record):
     URI = "http://osafoundation.org/eim/sharing/sharestate/0"
 
     uuid = eim.key(schema.UUID)
+    peer = eim.field(schema.UUID)
+    peerrepo = eim.field(text1024)
+    peerversion = eim.field(eim.IntType)
     share = eim.field(schema.UUID)
-    item = eim.field(schema.UUID)
+    item = eim.field(text1024)
     agreed = eim.field(eim.BlobType)
     pending = eim.field(eim.BlobType)
+
+class ShareResourceStateRecord(eim.Record):
+    URI = "http://osafoundation.org/eim/sharing/resourcesharestate/0"
+
+    uuid = eim.key(schema.UUID)
+    path = eim.field(text1024)
+    etag = eim.field(text1024)
+
+
+class ShareAccountRecord(eim.Record):
+    URI = "http://osafoundation.org/eim/sharing/account/0"
+
+    uuid = eim.key(schema.UUID)
+    host = eim.field(text256)
+    port = eim.field(eim.IntType)
+    ssl = eim.field(eim.IntType)
+    path = eim.field(text1024)
+    username = eim.field(text256)
+    password = eim.field(text256)
+
+class ShareWebDAVAccountRecord(eim.Record):
+    URI = "http://osafoundation.org/eim/sharing/webdavaccount/0"
+
+    uuid = eim.key(schema.UUID)
+
+class ShareCosmoAccountRecord(eim.Record):
+    URI = "http://osafoundation.org/eim/sharing/cosmoaccount/0"
+
+    uuid = eim.key(schema.UUID)
+    pimpath = eim.field(text1024) # pim/collection
+    morsecodepath = eim.field(text1024) # mc/collection
+    davpath = eim.field(text1024) # dav/collection

@@ -25,14 +25,8 @@ from i18n import ChandlerMessageFactory as _
 
 logger = logging.getLogger(__name__)
 
-class WebDAVAccount(pim.ContentItem):
-    schema.kindInfo(
-        description="A WebDAV 'Account'\n\n"
-            "Issues:\n"
-            "   Long term we're probably not going to treat WebDAV as an "
-            "account, but rather how a web browser maintains URL-to-ACL "
-            "mappings.\n",
-    )
+class SharingAccount(pim.ContentItem):
+
     username = schema.One(
         schema.Text, initialValue = u'',
     )
@@ -65,12 +59,13 @@ class WebDAVAccount(pim.ContentItem):
     )
 
     accountProtocol = schema.One(
-        initialValue = 'WebDAV',
+        initialValue = '',
     )
 
     accountType = schema.One(
-        initialValue = 'SHARING_DAV',
+        initialValue = '',
     )
+
     conduits = schema.Sequence(
         conduits.HTTPMixin,
         inverse=conduits.HTTPMixin.account
@@ -100,7 +95,7 @@ class WebDAVAccount(pim.ContentItem):
     @classmethod
     def findMatchingAccount(cls, view, url):
         """
-        Find a WebDAV account which corresponds to a URL.
+        Find a Sharing account which corresponds to a URL.
 
         The url being passed in is for a collection -- it will include the
         collection name in the url.  We need to find a webdav account who
@@ -138,3 +133,12 @@ class WebDAVAccount(pim.ContentItem):
 
         return None
 
+class WebDAVAccount(SharingAccount):
+
+    accountProtocol = schema.One(
+        initialValue = 'WebDAV',
+    )
+
+    accountType = schema.One(
+        initialValue = 'SHARING_DAV',
+    )
