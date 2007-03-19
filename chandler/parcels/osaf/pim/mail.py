@@ -1148,9 +1148,13 @@ class MailStamp(stamping.Stamp):
         if getattr(self, 'mimeContent', None) is None:
             self.mimeContent = MIMEContainer(itsView=self.itsItem.itsView,
                                                mimeType='message/rfc822')
-        # default the fromAddress to "me"
+
+        # default the fromAddress and originators to "me"
+        me = EmailAddress.getCurrentMeEmailAddress(self.itsItem.itsView)
         if getattr(self, 'fromAddress', None) is None:
-            self.fromAddress = EmailAddress.getCurrentMeEmailAddress(self.itsItem.itsView)
+            self.fromAddress = me
+        if len(self.originators) == 0 and me is not None:
+            self.originators.append(me)
 
     @schema.observer(dateSent)
     def onDateSentChanged(self, op, name):
