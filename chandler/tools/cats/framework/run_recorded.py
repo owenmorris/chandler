@@ -86,5 +86,9 @@ def execute_frame(option_value):
         print '#TINDERBOX# Time elapsed = %s' % str (datetime.now() - Globals.test_dict['starttime'])
         print '#TINDERBOX# Status = %s' % result
         
+        
         # Exit in a way that shouldn't cause any failures not to be logged.
-        sys.exit()
+        if result == "FAILED":
+            sys.exit(1)
+        else:
+            sys.exit()
