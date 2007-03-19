@@ -534,7 +534,7 @@ def makeSummaryBlocks(parcel):
 	# to do it. (Initially turned on to help Andi with debugging
 	# of bug 8319; turned off again because it made performance 
 	# significantly worse.)
-        # if useMaster: indexDefinition.makeMasterIndex()
+        if useMaster: indexDefinition.makeMasterIndex()
             
         # Create the column
         return Column.update(parcel, colName, **kwargs)
