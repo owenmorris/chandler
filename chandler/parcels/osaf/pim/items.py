@@ -139,7 +139,7 @@ class ContentItem(Triageable):
     def getByline(self):
         lastModification = getattr(self, 'lastModification', None)
         
-        if lastModification is None:
+        if lastModification is None or lastModification == Modification.created:
             fmt = _(u"Created by %(user)s on %(date)s")
         elif lastModification == Modification.edited:
             fmt = _(u"Edited by %(user)s on %(date)s")
