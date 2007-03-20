@@ -102,7 +102,7 @@ class RestoreSharesDialog(wx.Dialog):
 
         except Exception, e:
             self.gauge.SetValue(0)
-            logger.exception(_("Error during discovery of shares"))
+            logger.exception("Error during discovery of shares")
             self.showStatus(_(u"Sharing Error:\n%(error)s") % {'error': e})
 
 

@@ -519,8 +519,8 @@ class PublishCollectionDialog(wx.Dialog):
             self._showStatus(u"%s\n" % urls[0])
         else:
             if self.publishType != 'freebusy':
-                self._showStatus(u"View and Edit: %s\n" % urls[0])
-            self._showStatus(u"View-only: %s\n" % urls[1])
+                self._showStatus(_(u"View and Edit: %s\n") % urls[0])
+            self._showStatus(_(u"View-only: %s\n") % urls[1])
 
         self.buttonPanel.Hide()
         self.mySizer.Detach(self.buttonPanel)
