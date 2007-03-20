@@ -44,7 +44,7 @@ class GetPasswordDialog(wx.Dialog):
             grid = wx.GridSizer(1, 2)
 
         # Enter Password (text control):
-        label = wx.StaticText(self, -1, _m_(u"Enter Password:"))
+        label = wx.StaticText(self, -1, _m_(u"Enter password:"))
         grid.Add(label, 0, wx.ALIGN_LEFT|wx.ALL, 5)
 
         self.passwordText = wx.TextCtrl(self, -1, u"",
@@ -54,7 +54,7 @@ class GetPasswordDialog(wx.Dialog):
 
         if create:
             # Confirm Password (text control):
-            label = wx.StaticText(self, -1, _m_(u"Confirm Password:"))
+            label = wx.StaticText(self, -1, _m_(u"Confirm password:"))
             grid.Add(label, 0, wx.ALIGN_LEFT|wx.ALL, 5)
 
             self.confirmText = wx.TextCtrl(self, -1, u"",

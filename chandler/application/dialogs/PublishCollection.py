@@ -443,7 +443,7 @@ class PublishCollectionDialog(wx.Dialog):
 
         # Display the error
         self._hideUpdate()
-        logger.error("Failed to publish collection")
+        logger.error("Failed to publish collection.")
         try:
             if isinstance(err, zanshin.error.ConnectionError):
                 logger.error("Connection error during publish")
@@ -451,7 +451,7 @@ class PublishCollectionDialog(wx.Dialog):
                 # Note: do not localize the 'startswith' strings -- these need
                 # to match twisted error messages:
                 if err.message.startswith("DNS lookup failed"):
-                    msg = _(u"Unable to look up server's address via DNS")
+                    msg = _(u"Unable to look up server address via DNS")
                 elif err.message.startswith("Connection was refused"):
                     msg = _(u"Connection refused by server")
                 else:
@@ -491,7 +491,7 @@ class PublishCollectionDialog(wx.Dialog):
         self.view.refresh(lambda code, item, attr, val: val)
 
 
-        self._showStatus(_(u" done.\n"))
+        self._showStatus(_(u" Done\n"))
         self._hideUpdate()
 
         if self.publishType == 'freebusy':
@@ -504,8 +504,8 @@ class PublishCollectionDialog(wx.Dialog):
             self._showStatus(u"%s\n" % urls[0])
         else:
             if self.publishType != 'freebusy':
-                self._showStatus(u"Read-write: %s\n" % urls[0])
-            self._showStatus(u"Read-only: %s\n" % urls[1])
+                self._showStatus(u"View and Edit: %s\n" % urls[0])
+            self._showStatus(u"View-only: %s\n" % urls[1])
 
         self.buttonPanel.Hide()
         self.mySizer.Detach(self.buttonPanel)
@@ -610,9 +610,9 @@ class PublishCollectionDialog(wx.Dialog):
         )
 
 type_to_xrc_map = {'collection' :
-                   ('PublishCollection.xrc', _(u"Collection Sharing")),
+                   ('PublishCollection.xrc', _(u"Publish")),
                    'freebusy'   :
-                   ('PublishFreeBusy.xrc', _(u"Publish Free/Busy Information"))}
+                   ('PublishFreeBusy.xrc', _(u"Publish Free/Busy Calendar"))}
 
 def ShowPublishDialog(parent, view=None, collection=None,
                       publishType = 'collection', modal=False, name=None):

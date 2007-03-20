@@ -183,16 +183,16 @@ class SubscribeDialog(wx.Dialog):
         if isinstance(err, sharing.NotAllowed):
             self._showAccountInfo()
         elif isinstance(err, sharing.NotFound):
-            self._showStatus(_(u"That collection was not found"))
+            self._showStatus(_(u"Collection was not found"))
         elif isinstance(err, sharing.AlreadySubscribed):
-            self._showStatus(_(u"You are already subscribed"))
+            self._showStatus(_(u"You are already subscribed to this collection"))
         elif isinstance(err, zanshin.error.ConnectionError):
             logger.error("Connection error during subscribe")
 
             # Note: do not localize the 'startswith' strings -- these need to
             # match twisted error messages:
             if err.message.startswith("DNS lookup failed"):
-                msg = _(u"Unable to look up server's address via DNS")
+                msg = _(u"Unable to look up server address via DNS")
             elif err.message.startswith("Connection was refused by other side"):
                 msg = _(u"Connection refused by server")
             else:
@@ -338,7 +338,7 @@ def Show(parent, view=None, url=None, name=None, modal=False, immediate=False,
     #but can handle unicode
     xrcFile = unicode(xrcFile, sys.getfilesystemencoding())
     resources = wx.xrc.XmlResource(xrcFile)
-    win = SubscribeDialog(parent, _(u"Subscribe to Shared Collection"),
+    win = SubscribeDialog(parent, _(u"Subscribe"),
                           resources=resources, view=view, url=url, name=name,
                           modal=modal, immediate=immediate, mine=mine,
                           publisher=publisher, freebusy=freebusy, color=color)

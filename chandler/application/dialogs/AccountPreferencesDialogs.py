@@ -61,7 +61,7 @@ class MailTestDialog(ProgressDialog):
         return constants.MAIL_PROTOCOL_CONNECTION_ERROR
 
     def getTitleText(self):
-        return _(u"Testing %(accountType)s Account '%(accountName)s'") % \
+        return _(u"Testing %(accountType)s account '%(accountName)s'") % \
                           {'accountType': self.account.accountProtocol,
                            'accountName': self.account.displayName}
 
@@ -80,9 +80,9 @@ class MailTestDialog(ProgressDialog):
 
 
 
-NO_ACCESS    = _(u"Permission denied by server.")
-READ_ONLY    = _(u"This account has read access but not write access.")
-READ_WRITE   = _(u"This account has read/write access.")
+NO_ACCESS    = _(u"Access denied by server.")
+READ_ONLY    = _(u"You have view-only access with this account.")
+READ_WRITE   = _(u"You have view and edit privileges with this account.")
 UNKNOWN      = _(u"Test failed with an unknown response.")
 
 class SharingTestDialog(ProgressDialog):
@@ -218,7 +218,7 @@ class ChandlerIMAPFoldersDialog(ProgressDialog):
         return constants.MAIL_PROTOCOL_CONNECTION_ERROR
 
     def getTitleText(self):
-        return _(u"Configure Chandler IMAP Folders")
+        return _(u"Configure Chandler folders")
 
     def getStartText(self):
         return _(u"Configuring folders in your account.")
@@ -232,9 +232,8 @@ class ChandlerIMAPFoldersDialog(ProgressDialog):
             return _(u"""\
 The following folders have been created in your account:
 
-Chandler Events - Add messages to this folder add them to your Calendar
-Dashboard. Chandler will do its best to parse any date and time information in
-the message.
+Chandler Events - Add messages to this folder to add them to your Calendar
+Dashboard. Chandler will do its best to makes sense of any date and time information in the message.
 
 Chandler Mail - Add messages to this folder to add them to your Mail Dashboard.
 
@@ -244,7 +243,7 @@ Dashboard.
 All messages added to Chandler folders will show up in your All Dashboard.""")
 
         else:
-            return _(u"You have already set up Chandler folders in your account. No new folders were created.")
+            return _(u"You have already set up Chandler folders in this account. No new folders were created.")
 
     def getErrorText(self, statusValue):
         return constants.MAIL_PROTOCOL_ERROR % \
@@ -296,13 +295,13 @@ class RemoveChandlerIMAPFoldersDialog(ProgressDialog):
         return constants.MAIL_PROTOCOL_CONNECTION_ERROR
 
     def getTitleText(self):
-        return _(u"Remove Chandler Folders")
+        return _(u"Remove Chandler folders")
 
     def getStartText(self):
-        return _(u"Removing folders from your account.")
+        return _(u"Removing Chandler folders from this account.")
 
     def getSuccessText(self, statusValue):
-        return _(u"Chandler IMAP folders have successfully been removed.") % \
+        return _(u"Chandler folders have been successfully removed.") % \
                  {"hostname": self.account.host}
 
     def getErrorText(self, statusValue):
@@ -365,7 +364,7 @@ class AutoDiscoveryDialog(ProgressDialog):
         return constants.MAIL_PROTOCOL_CONNECTION_ERROR
 
     def getTitleText(self):
-        return _(u"Autodiscovering  '%(hostname)s'") % \
+        return _(u"Discovering  '%(hostname)s'") % \
                           {'hostname': self.hostname}
 
     def getStartText(self):
@@ -373,13 +372,13 @@ class AutoDiscoveryDialog(ProgressDialog):
                  {'hostName': self.hostname}
 
     def getSuccessText(self, statusValue):
-        return _(u"\tThe following settings were returned:\n\n\tType: %(type)s\n\tPort: %(port)s\n\tSecurity: %(security)s\n") % \
+        return _(u"\tThe following settings were found:\n\n\tType: %(type)s\n\tPort: %(port)s\n\tSecurity: %(security)s\n") % \
                     {"type": self.discoveredAccount.accountProtocol,
                      "port": self.discoveredAccount.port,
                      "security": self.discoveredAccount.connectionSecurity}
 
     def getErrorText(self, statusValue):
-        return _(u"Chandler was unable to Auto-configure account settings\nfor '%(host)s'.") % \
+        return _(u"Chandler was unable to auto-configure account settings\nfor '%(host)s'.") % \
                         {"host": self.hostname}
 
     def OnSuccess(self, value):

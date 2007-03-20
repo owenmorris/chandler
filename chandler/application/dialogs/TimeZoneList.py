@@ -127,7 +127,7 @@ class TimeZoneChooser(wx.Dialog):
         self.view = view
         self.changed = {}
 
-        title = _(u"Choose timezone")
+        title = _(u"Use time zones")
         wx.Dialog.__init__(self, id=-1, name=u'TimeZoneChooser',
                            parent=wx.GetApp().mainFrame,
                            style=wx.DIALOG_MODAL | wx.DEFAULT_DIALOG_STYLE,
@@ -135,7 +135,7 @@ class TimeZoneChooser(wx.Dialog):
         
         self.grid = CustTableGrid(self, view)
         
-        self.viewAll = wx.CheckBox(self, -1, _(u"View all timezones available"))
+        self.viewAll = wx.CheckBox(self, -1, _(u"View all time zones"))
         self.Bind(wx.EVT_CHECKBOX, self.ToggleTable, self.viewAll)
         
         buttonSizer = self.CreateStdDialogButtonSizer(wx.OK|wx.CANCEL)

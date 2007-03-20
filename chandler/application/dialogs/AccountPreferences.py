@@ -45,20 +45,20 @@ CREATE_TEXT = _(u"Configure")
 REMOVE_TEXT = _(u"Remove")
 
 # --- Error Messages ----- #
-FIELDS_REQUIRED = _(u"The following fields are required to perform this action:\n\n\tServer\n\tUser name\n\tPassword\n\tPort\n\n\nPlease correct the error and try again.")
-FIELDS_REQUIRED_ONE = _(u"The following fields are required to perform this action:\n\n\tServer\n\tPort\n\n\nPlease correct the error and try again.")
-FIELDS_REQUIRED_TWO = _(u"The following fields are required to perform this action:\n\n\tServer\n\tPath\n\tUser name\n\tPassword\n\tPort\n\n\nPlease correct the error and try again.")
+FIELDS_REQUIRED = _(u"The following fields are required:\n\n\tServer\n\tUser name\n\tPassword\n\tPort\n\n\nPlease correct the error and try again.")
+FIELDS_REQUIRED_ONE = _(u"The following fields are required:\n\n\tServer\n\tPort\n\n\nPlease correct the error and try again.")
+FIELDS_REQUIRED_TWO = _(u"The following fields are required:\n\n\tServer\n\tPath\n\tUser name\n\tPassword\n\tPort\n\n\nPlease correct the error and try again.")
 
-HOST_REQUIRED  = _(u"Auto-configure requires a Server name.")
+HOST_REQUIRED  = _(u"Auto-configure requires a server name.")
 
 
 
 
 # --- Yes No Dialog Messages ----- #
-CREATE_FOLDERS_TITLE = _(u"Configure Chandler IMAP Folders")
+CREATE_FOLDERS_TITLE = _(u"Configure Chandler folders")
 CREATE_FOLDERS = _(u"Chandler will now attempt to create the following IMAP folders in your account\non '%(host)s':\n\n\tChandler Mail\n\tChander Tasks\n\tChandler Events\n\nIf you have already set up Chandler folders in your account, no new folders\nwill be created.")
 
-REMOVE_FOLDERS_TITLE = _(u"Remove Chandler IMAP Folders")
+REMOVE_FOLDERS_TITLE = _(u"Remove Chandler folders")
 REMOVE_FOLDERS = _(u"Chandler will now attempt to remove the\nfollowing IMAP folders on '%(host)s':\n\n\tChandler Mail\n\tChander Tasks\n\tChandler Events\n\n Would you like to proceed?")
 
 
@@ -161,7 +161,7 @@ PANELS = {
                 "attr" : "displayName",
                 "type" : "string",
                 "required" : True,
-                "default": _(u"New Incoming Account"),
+                "default": _(u"New Incoming Mail Account"),
             },
             "INCOMING_EMAIL_ADDRESS" : {
                 "attr" : "emailAddress",
@@ -239,7 +239,7 @@ PANELS = {
                 "attr" : "displayName",
                 "type" : "string",
                 "required" : True,
-                "default": _(u"New Outgoing Account"),
+                "default": _(u"New Outgoing Mail Account"),
             },
             "OUTGOING_FROM" : {
                 "attr" : "emailAddress",
@@ -1377,11 +1377,11 @@ class AccountPreferencesDialog(wx.Dialog):
 
         if accountType == "INCOMING":
             item = Mail.IMAPAccount(itsView=self.rv)
-            a = _(u"New Incoming Account")
+            a = _(u"New Incoming Mail Account")
             p = "IMAP"
         elif accountType == "OUTGOING":
             item = Mail.SMTPAccount(itsView=self.rv)
-            a = _(u"New Outgoing Account")
+            a = _(u"New Outgoing Mail Account")
             p = "SMTP"
         elif accountType == "SHARING_DAV":
             item = sharing.WebDAVAccount(itsView=self.rv)
@@ -1389,7 +1389,7 @@ class AccountPreferencesDialog(wx.Dialog):
             p = "WebDAV"
         elif accountType == "SHARING_MORSECODE":
             item = sharing.CosmoAccount(itsView=self.rv)
-            a = _(u"New Experimental Cosmo Account")
+            a = _(u"New Chandler Hub Account")
             p = "Morsecode"
 
         item.displayName = a
@@ -1890,10 +1890,10 @@ def ShowAccountPreferencesDialog(parent, account=None, rv=None, modal=True):
         return win
 
 def alertOffline():
-    showOKDialog(_(u"Mail Service Offline"), constants.TEST_OFFLINE)
+    showOKDialog(_(u"Mail service offline"), constants.TEST_OFFLINE)
 
 def alertError(msg):
-    showOKDialog(_(u"Account Preferences Error"), msg)
+    showOKDialog(_(u"Account Preferences error"), msg)
 
 def alertYesNo(title, msg):
     return showYesNoDialog(title, msg)

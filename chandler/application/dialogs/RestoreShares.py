@@ -102,7 +102,7 @@ class RestoreSharesDialog(wx.Dialog):
 
         except Exception, e:
             self.gauge.SetValue(0)
-            logger.exception(_("Error during listing of existing resources"))
+            logger.exception(_("Error during discovery of shares"))
             self.showStatus(_(u"Sharing Error:\n%(error)s") % {'error': e})
 
 
@@ -176,7 +176,7 @@ def Show(parent, view=None):
     #but can handle unicode
     xrcFile = unicode(xrcFile, sys.getfilesystemencoding())
     resources = wx.xrc.XmlResource(xrcFile)
-    win = RestoreSharesDialog(parent, _(u"Restore Shared Collections"),
+    win = RestoreSharesDialog(parent, _(u"Restore shared collections"),
      resources=resources, view=view)
     win.CenterOnScreen()
     win.ShowModal()

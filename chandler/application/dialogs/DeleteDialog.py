@@ -37,14 +37,14 @@ dialogTextData = {
         (_(u"Remove from Dashboard"), 
          _(u"Removing '%(itemName)s' from the Dashboard will move it to the Trash.")),
     DELETE_LAST :
-        (_(u"Only instance of item"),
+        (_(u"Only appearance of item"),
          _(u"Removing '%(itemName)s' from '%(collectionName)s' will move it to the Trash.")),
     IN_READ_ONLY_COLLECTION :
-        (_(u"Read-only item"),
+        (_(u"View-only item"),
          _(u"You cannot delete '%(itemName)s'. "
-           u"It belongs to the read-only collection '%(readOnlyCollectionName)s'.")),
+           u"It belongs to the view-only collection '%(readOnlyCollectionName)s'.")),
     READ_ONLY_SELECTED :
-        (_(u"Read-only collection"),
+        (_(u"View-only collection"),
          _(u"You cannot make changes to '%(collectionName)s'")),
 }
 

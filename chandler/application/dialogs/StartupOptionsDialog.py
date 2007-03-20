@@ -53,7 +53,7 @@ class StartupOptionsDialog(wx.Dialog):
         # method.
         pre = wx.PreDialog()
         style = wx.CAPTION
-        pre.Create(None, -1, _(u"Startup Options for Chandler"), 
+        pre.Create(None, -1, _(u"Start-up options for Chandler"), 
                    wx.DefaultPosition, wx.DefaultSize, style)
 
         # This next step is the most important, it turns this Python
@@ -96,7 +96,7 @@ class StartupOptionsDialog(wx.Dialog):
             
             sizer.AddSpacer((0,8))
             self.snapshot = wx.RadioButton(self, -1, 
-                _(u"Make a snapshot of all data for submitting with a bug report, then exit"))
+                _(u"Make a snapshot of all data to submit with a bug report, then exit"))
             sizer.Add(self.snapshot, flag=wx.ALL, border=5)
             self.snapshot.Bind(wx.EVT_LEFT_DCLICK, self.onButton)
             

@@ -69,8 +69,8 @@ class ReminderDialog(wx.Frame):
         # contents: a list, then a row of buttons
         sizer = wx.BoxSizer(wx.VERTICAL)
         listCtrl = wx.ListCtrl(panel, -1, size=(400,80), style=wx.LC_REPORT|wx.LC_NO_HEADER)
-        listCtrl.InsertColumn(0, _(u"title"))
-        listCtrl.InsertColumn(1, _(u"event time"))
+        listCtrl.InsertColumn(0, _(u"Title"))
+        listCtrl.InsertColumn(1, _(u"Date"))
         listCtrl.SetColumnWidth(0, 250)
         listCtrl.SetColumnWidth(1, 140)
         listCtrl.Bind(wx.EVT_LIST_ITEM_SELECTED, self.onSelectionChanged)
@@ -79,7 +79,7 @@ class ReminderDialog(wx.Frame):
         sizer.Add(listCtrl, 0, wx.ALIGN_CENTER|wx.ALL, 5)
 
         box = wx.BoxSizer(wx.HORIZONTAL)
-        snoozeButton = wx.Button(panel, -1, _(u"Snooze 5 minutes"))
+        snoozeButton = wx.Button(panel, -1, _(u"Snooze for 5 minutes"))
         snoozeButton.Enable(False)
         snoozeButton.Bind(wx.EVT_BUTTON, self.onSnooze)
         box.Add(snoozeButton, 0, wx.ALIGN_RIGHT|wx.ALL, 5)
