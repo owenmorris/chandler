@@ -263,29 +263,6 @@ class DBRepositoryView(OnDemandRepositoryView):
                     for watcher in watchers:
                         watcher('refresh', uItem, names)
 
-    def _dispatchChanges(self, changes):
-
-        for item, version, status, literals, references in changes:
-
-            kind = item.itsKind
-            uItem = item.itsUUID
-            if kind is not None and kind.isLive():
-                kind.extent._collectionChanged('changed', 'notification',
-                                               'extent', uItem)
-
-                for name in kind._iterNotifyAttributes():
-                    value = getattr(item, name, None)
-                    if value is not None and isinstance(value, RefList):
-                        otherName = value._otherName
-                        for uRef in value.iterkeys():
-                            watchers = self.findValue(uRef, 'watchers', None, version)
-                            if watchers:
-                                watchers = watchers.get(otherName, None)
-                                if watchers:
-                                    for watcher in watchers:
-                                        if watcher is not None:
-                                            watcher('changed', 'notification', uRef, otherName, uItem)
-    
     def refresh(self, mergeFn=None, version=None, notify=True):
 
         if not self._status & RepositoryView.REFRESHING:
@@ -718,15 +695,30 @@ class DBRepositoryView(OnDemandRepositoryView):
                     item._status = status
 
                 if item.isDeleted():
-                    yield (item, item._version, status, [], [])
+                    yield (item, item.itsVersion, status, [], [])
                 elif item.isNew():
-                    yield (item, item._version, status,
+                    yield (item, item.itsVersion, status,
                            item._values.keys(),
                            item._references.keys())
                 else:
-                    yield (item, item._version, status,
+                    yield (item, item.itsVersion, status,
                            item._values._getDirties(), 
                            item._references._getDirties())
+
+    def mapChangedItems(self, freshOnly=False):
+
+        if freshOnly:
+            if self._status & RepositoryView.FDIRTY:
+                self._status &= ~RepositoryView.FDIRTY
+            else:
+                return
+
+        for item in list(self._log):   # self._log may change while looping
+            if not freshOnly:
+                yield item
+            elif item.itsStatus & CItem.FDIRTY:
+                item._status &= ~CItem.FDIRTY
+                yield item
     
     def mapHistory(self, fromVersion=-1, toVersion=0, history=None):
 

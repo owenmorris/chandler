@@ -963,8 +963,8 @@ class RepositoryView(CView):
         """
         Generate a change tuple for every item changed in this view.
 
-        For each item that was changed in this view since it last committed
-        a tuple is generated with the following elements:
+        For each item that was changed in this view since it was last
+        committed a tuple is generated with the following elements:
 
             - the item
 
@@ -976,9 +976,23 @@ class RepositoryView(CView):
 
             - a list of changed references attribute names
 
-        @param freshOnly: optionally limit tuple generation to
-        items that were changed since last time this method was called or
-        since the last commit, whichever came last; C{False} by default.
+        @param freshOnly: optionally limit tuple generation to items that
+                          were changed since last time this method was
+                          called or since the last commit, whichever came
+                          last; C{False} by default.
+        @type freshOnly: boolean
+        """
+
+        raise NotImplementedError, "%s.mapChanges" %(type(self))
+    
+    def mapChangedItems(self, freshOnly=False):
+        """
+        Yield every item changed in this view.
+
+        @param freshOnly: optionally yield only items that were changed
+                          since last time this method was called or since
+                          the last commit, whichever came last; C{False} by
+                          default. 
         @type freshOnly: boolean
         """
 
@@ -1102,7 +1116,7 @@ class RepositoryView(CView):
                                 watcher(op, change, collection, name, other)
 
             while self.isDirtyAgain():
-                self._dispatchChanges(self.mapChanges(True))
+                self.dispatchChanges(self.mapChangedItems(True))
 
             if queue.empty():
                 break
