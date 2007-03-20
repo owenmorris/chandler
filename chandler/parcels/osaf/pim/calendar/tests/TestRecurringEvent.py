@@ -1170,7 +1170,7 @@ class RecurringEventTest(testcase.SingleRepositoryTestCase):
 
     def testTriageStatus(self):
         """
-        Make sure recurring events create Done and Later modifications when
+        Make sure recurring events create Done, Now and Later modifications when
         appropriate, and remove Done modifications when there are extras.
         
         """
@@ -1189,16 +1189,21 @@ class RecurringEventTest(testcase.SingleRepositoryTestCase):
         # make the event recur at least twice in the future
         event.rruleset.rrules.first().until = now + timedelta(days=65)
         
-        def assertOneDoneOneLater(evt):
+        def countStatus(evt):
             count = {TriageEnum.done  : 0, 
                      TriageEnum.now   : 0, 
                      TriageEnum.later : 0}
             
             for mod in evt.modifications:
                 count[mod.triageStatus] += 1
+                
+            return (count[TriageEnum.later], count[TriageEnum.done],
+                    count[TriageEnum.now])
 
-            self.assertEqual(count[TriageEnum.later], 1)
-            self.assertEqual(count[TriageEnum.done],  1)
+        def assertOneDoneOneLater(evt):
+            later, done, now = countStatus(evt)
+            self.assertEqual(later, 1)
+            self.assertEqual(done,  1)
 
                 
         assertOneDoneOneLater(event)
@@ -1229,11 +1234,35 @@ class RecurringEventTest(testcase.SingleRepositoryTestCase):
 
         assertOneDoneOneLater(event)
 
+        # create an anyTime series starting two days ago, one modification
+        # should be now
+        event = Calendar.CalendarEvent(None, itsParent=self.sandbox)
+        event.startTime = now - timedelta(days=2)
+        event.anyTime = True
+
+        rruleset = self._createRuleSetItem('daily')
+        rruleset.rrules.first().until = now + timedelta(days=3)
+        #import pdb;pdb.set_trace()
+        event.rruleset = rruleset
         
+        # pre-triage purge, the first occurrence should be DONE (but in the
+        # NOW section), there should be a NOW event for today, and then the 
+        # normal DONE and LATER modifications
+        self.assertEqual(countStatus(event), (1,2,1)) # later, done, now
+        
+        # purge the series
+        for item in event.modifications:
+            item.purgeSectionTriageStatus()
+        event.updateTriageStatus()
+        
+        # The first occurrence should've been removed from the series
+        self.assertEqual(countStatus(event), (1,1,1)) # later, done, now
+        
+
         
     def testEventCollection(self):
         events = EventStamp.getCollection(self.view)
-         
+
         self.failUnless(self.event.itsItem in events)
         
         ruleItem = RecurrenceRule(None, itsParent=self.sandbox, freq='weekly')

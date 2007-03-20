@@ -1804,6 +1804,12 @@ class EventStamp(Stamp):
             earlierRecurrenceID = rruleset.before(earlierRecurrenceID)
 
     def getFirstFutureLater(self):
+        """
+        Return the recurrenceID of the first future LATER event, or None.
+        
+        A side effect is to turn any in progress occurrences into modifications.
+        
+        """
         defaultTz = TimeZoneInfo.get(self.itsItem.itsView).default
         now = datetime.now(defaultTz)        
         master = self.getMaster()
@@ -1811,7 +1817,8 @@ class EventStamp(Stamp):
         for occurrence in master._generateRule(after=now):
             if occurrence.effectiveStartTime < now:
                 # _generateRule includes events that start in the past but are
-                # ongoing, but this function doesn't want those
+                # ongoing.  Make sure such events are modifications
+                occurrence.changeThis()
                 continue
             if occurrence.modificationFor is not None:
                 if occurrence.itsItem.triageStatus == TriageEnum.later:
@@ -1901,9 +1908,8 @@ class EventStamp(Stamp):
             for occurrence in master.occurrences or []:
                 if occurrence.doAutoTriageOnDateChange:
                     event = EventStamp(occurrence)
-                    event.changeNoModification('_triageStatus',
-                                               event.autoTriage())
-
+                    status = event.autoTriage()
+                    event.changeNoModification('_triageStatus', status)
 
         firstFutureLater = self.getFirstFutureLater()
         lastPastDone = self.getLastPastDone()
