@@ -545,14 +545,26 @@ class MainView(View):
             elif isPreview == 2:
                 printObject.OnPageSetup()
 
+    def openURLOrDialog(self, url):
+        try:
+            webbrowser.open(url)
+        except OSError:
+            title = _(u"Browser not found")
+            message = _(u"Chandler couldn't access a browser to open %(url)s.") 
+            application.dialogs.Util.ok(None, title, message % {'url' : url})
+            
     def onHelpEvent(self, event):
         # For now, open the Chandler FAQ page:
         #
         # <http://lists.osafoundation.org/pipermail/design/2006-August/005311.html>
-        webbrowser.open('http://wiki.osafoundation.org/bin/view/Projects/ChandlerProductFAQ')
+        self.openURLOrDialog(
+           'http://wiki.osafoundation.org/bin/view/Projects/ChandlerProductFAQ'
+        )
 
     def onFileBugEvent(self, event):
-        webbrowser.open('http://wiki.osafoundation.org/Projects/ReportingBugs')
+        self.openURLOrDialog.open(
+           'http://wiki.osafoundation.org/Projects/ReportingBugs'
+        )
 
     def onQuitEvent (self, event):
         """
