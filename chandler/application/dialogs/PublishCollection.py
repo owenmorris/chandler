@@ -107,7 +107,7 @@ class PublishCollectionDialog(wx.Dialog):
         collName = self.collection.displayName
 
         self.currentAccount = schema.ns('osaf.sharing',
-            self.view).currentWebDAVAccount.item
+            self.view).currentSharingAccount.item
 
         # Populate the listbox of sharing accounts
         self.accounts = self._getSharingAccounts()
@@ -132,6 +132,8 @@ class PublishCollectionDialog(wx.Dialog):
             self.CheckboxShareStatus.SetValue(False)
             self.CheckboxShareTriage = wx.xrc.XRCCTRL(self, "CHECKBOX_TRIAGE")
             self.CheckboxShareTriage.SetValue(False)
+            self.CheckboxShareReply = wx.xrc.XRCCTRL(self, "CHECKBOX_REPLY")
+            self.CheckboxShareReply.SetValue(False)
 
         self.SetDefaultItem(wx.xrc.XRCCTRL(self, "wxID_OK"))
 
@@ -172,6 +174,8 @@ class PublishCollectionDialog(wx.Dialog):
         self.CheckboxShareStatus.Enable(True)
         self.CheckboxShareTriage = wx.xrc.XRCCTRL(self, "CHECKBOX_TRIAGE")
         self.CheckboxShareTriage.Enable(True)
+        self.CheckboxShareReply = wx.xrc.XRCCTRL(self, "CHECKBOX_REPLY")
+        self.CheckboxShareReply.Enable(True)
 
         if isinstance(share.conduit, sharing.RecordSetConduit):
             self.originalFilters = set(share.conduit.filters)
@@ -226,6 +230,8 @@ class PublishCollectionDialog(wx.Dialog):
                 not in share.conduit.filters)
             self.CheckboxShareTriage.SetValue('cid:triage-filter@osaf.us'
                 not in share.conduit.filters)
+            self.CheckboxShareReply.SetValue('cid:needs-reply-filter@osaf.us'
+                not in share.conduit.filters)
 
         else:
             # @@@ Jeffrey: Needs updating for new reminders?
@@ -249,6 +255,8 @@ class PublishCollectionDialog(wx.Dialog):
                     attrs.add('cid:event-status-filter@osaf.us')
                 if not self.CheckboxShareTriage.GetValue():
                     attrs.add('cid:triage-filter@osaf.us')
+                if not self.CheckboxShareReply.GetValue():
+                    attrs.add('cid:needs-reply-filter@osaf.us')
 
             else:
                 # @@@ Jeffrey: Needs updating for new reminders?
@@ -287,6 +295,13 @@ class PublishCollectionDialog(wx.Dialog):
             else:
                 if 'cid:triage-filter@osaf.us' in share.conduit.filters:
                     share.conduit.filters.remove('cid:triage-filter@osaf.us')
+
+            if not self.CheckboxShareReply.GetValue():
+                if 'cid:needs-reply-filter@osaf.us' not in share.conduit.filters:
+                    share.conduit.filters.add('cid:needs-reply-filter@osaf.us')
+            else:
+                if 'cid:needs-reply-filter@osaf.us' in share.conduit.filters:
+                    share.conduit.filters.remove('cid:needs-reply-filter@osaf.us')
 
         else:
             # @@@ Jeffrey: Needs updating for new reminders?
@@ -605,7 +620,7 @@ class PublishCollectionDialog(wx.Dialog):
     def _getSharingAccounts(self):
         #XXX [i18n] Should this be a localized PyICU sort?
         return sorted(
-            sharing.WebDAVAccount.iterItems(self.view),
+            sharing.SharingAccount.iterItems(self.view),
             key = lambda x: x.displayName.lower()
         )
 

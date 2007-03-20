@@ -151,7 +151,7 @@ def OutgoingDeleteHandler(item, values, data):
 
 def SharingDeleteHandler(item, values, data):
     sharing_ns = schema.ns('osaf.sharing', item.itsView)
-    return not item == sharing_ns.currentWebDAVAccount.item
+    return not item == sharing_ns.currentSharingAccount.item
 
 # Used to map form fields to item attributes:
 PANELS = {
@@ -537,7 +537,7 @@ class AccountPreferencesDialog(wx.Dialog):
 
         elif item.accountType in ("SHARING_DAV", "SHARING_MORSECODE"):
             sharing_ns = schema.ns('osaf.sharing', item.itsView)
-            isCurrent = item == sharing_ns.currentWebDAVAccount.item
+            isCurrent = item == sharing_ns.currentSharingAccount.item
 
         delButton = wx.xrc.XRCCTRL(self, "BUTTON_DELETE")
 
@@ -561,7 +561,7 @@ class AccountPreferencesDialog(wx.Dialog):
                 if item.isActive and hasattr(item, 'displayName'):
                     accounts.append(item)
 
-        for item in sharing.WebDAVAccount.iterItems(self.rv):
+        for item in sharing.SharingAccount.iterItems(self.rv):
             if hasattr(item, 'displayName'):
                 accounts.append(item)
 
@@ -1137,7 +1137,7 @@ class AccountPreferencesDialog(wx.Dialog):
 
         currentOutgoing = ns_pim.currentSMTPAccount.item
         currentIncoming = ns_pim.currentMailAccount.item
-        currentSharing =  sharing_ns.currentWebDAVAccount.item
+        currentSharing =  sharing_ns.currentSharingAccount.item
 
         for account in self.data:
             item = self.rv.findUUID(account['item'])

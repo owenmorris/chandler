@@ -58,7 +58,7 @@ def installParcel(parcel, oldVersion=None):
         password=u'',
         useSSL=True,
         port=443,
-        references=[sharing_ns.currentWebDAVAccount]
+        references=[sharing_ns.currentSharingAccount]
     )
 
     preReply = pim.EmailAddress.update(parcel, 'defaultReplyAddress')

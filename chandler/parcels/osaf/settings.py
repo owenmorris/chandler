@@ -35,7 +35,7 @@ def save(rv, filename):
     cfg.filename = filename
     
     # Sharing accounts
-    currentAccount = schema.ns("osaf.sharing", rv).currentWebDAVAccount.item
+    currentAccount = schema.ns("osaf.sharing", rv).currentSharingAccount.item
     counter = 1
     for account in sharing.WebDAVAccount.iterItems(rv):
         if account.username: # skip account if not configured
@@ -222,7 +222,7 @@ def restore(rv, filename, testmode=False):
             makeCurrent = False
 
             if section.has_key(u"default") and section.as_bool(u"default"):
-                accountRef = schema.ns("osaf.sharing", rv).currentWebDAVAccount
+                accountRef = schema.ns("osaf.sharing", rv).currentSharingAccount
                 current = accountRef.item
 
                 if len(current.password.strip()) == 0 and \
@@ -251,7 +251,7 @@ def restore(rv, filename, testmode=False):
                 account = klass(itsView=rv)
 
             if makeCurrent:
-                schema.ns("osaf.sharing", rv).currentWebDAVAccount.item = account
+                schema.ns("osaf.sharing", rv).currentSharingAccount.item = account
 
             account.displayName = section[u"title"]
             account.host = section[u"host"]

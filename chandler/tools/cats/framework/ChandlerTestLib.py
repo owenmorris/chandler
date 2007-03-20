@@ -1461,7 +1461,7 @@ class UITestAccounts:
             if type in ("SHARING_DAV", "SHARING_MORSECODE"):
                 sharing_ns = schema.ns('osaf.sharing', item.itsView)
 
-                if item != sharing_ns.currentWebDAVAccount.item:
+                if item != sharing_ns.currentSharingAccount.item:
                     continue
 
                 self.window.selectAccount(pos)

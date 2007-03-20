@@ -67,7 +67,7 @@ class SubscribeDialog(wx.Dialog):
             self.textUrl.SetValue(url)
         else:
             account = sharing.schema.ns('osaf.sharing',
-                self.view).currentWebDAVAccount.item
+                self.view).currentSharingAccount.item
             if account:
                 url = account.getLocation()
                 self.textUrl.SetValue(url)

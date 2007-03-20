@@ -60,7 +60,7 @@ class SettingsTestCase(testcase.SingleRepositoryTestCase):
 
         # Get the current Sharing account which should be
         # the "Test Sharing Service" account
-        act = schema.ns("osaf.sharing", rv).currentWebDAVAccount.item
+        act = schema.ns("osaf.sharing", rv).currentSharingAccount.item
         self.assert_(act)
         self.assert_(isinstance(act, sharing.WebDAVAccount))
         self.assertEquals(act.displayName, "Test Sharing Service")

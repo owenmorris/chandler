@@ -809,8 +809,8 @@ class MainView(View):
         # out and we don't.
         if not sharing.ensureAccountSetUp(self.itsView, sharing=True):
             return
-        webdavAccount = schema.ns('osaf.sharing',
-                                   self.itsView).currentWebDAVAccount.item
+        sharingAccount = schema.ns('osaf.sharing',
+                                   self.itsView).currentSharingAccount.item
 
         # commit changes, since we'll be switching to Twisted thread
         self.RepositoryCommitWithStatus()
@@ -827,7 +827,7 @@ class MainView(View):
         ## if isNewShare:
         ##     share = sharing.newOutboundShare(self.itsView,
         ##                                      itemCollection,
-        ##                                      account=webdavAccount)
+        ##                                      account=sharingAccount)
 
         # Copy the invitee list into the share's list. As we go, collect the 
         # addresses we'll notify.

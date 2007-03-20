@@ -95,7 +95,7 @@ class SharingPreferences(schema.Item):
 def installParcel(parcel, oldVersion=None):
 
     SharingPreferences.update(parcel, "prefs")
-    Reference.update(parcel, 'currentWebDAVAccount')
+    Reference.update(parcel, 'currentSharingAccount')
     
     from osaf import startup
     startup.PeriodicTask.update(parcel, "sharingTask",
@@ -1362,7 +1362,7 @@ def _newOutboundShare(view, collection, classesToInclude=None, shareName=None,
 
     if account is None:
         # Find the default WebDAV account
-        account = schema.ns('osaf.sharing', view).currentWebDAVAccount.item
+        account = schema.ns('osaf.sharing', view).currentSharingAccount.item
         if account is None:
             return None
 
@@ -1512,7 +1512,7 @@ def ensureAccountSetUp(view, sharing=False, inboundMail=False,
             """ Returns the defaultSMTPAccount or None"""
             account = pim.mail.getCurrentSMTPAccount(view)
         else:
-            account = schema.ns('osaf.sharing', view).currentWebDAVAccount.item
+            account = schema.ns('osaf.sharing', view).currentSharingAccount.item
 
         response = dialogs.AccountPreferences.ShowAccountPreferencesDialog(
             None, account=account, rv=view)

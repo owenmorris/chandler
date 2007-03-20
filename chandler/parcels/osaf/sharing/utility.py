@@ -425,7 +425,7 @@ def isWebDAVSetUp(view):
     @return: True if accounts are set up; False otherwise.
     """
 
-    account = schema.ns('osaf.sharing', view).currentWebDAVAccount.item
+    account = schema.ns('osaf.sharing', view).currentSharingAccount.item
     if account and account.host and account.username and account.password:
         return True
     else:
