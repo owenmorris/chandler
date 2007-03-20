@@ -609,15 +609,17 @@ class RecurrenceRuleSet(items.ContentItem):
             return "%(weekdays)severy%(interval)s %(freq)s %(until)s" % dct
 
 
-    def moveDatesAfter(self, after, delta):
-        """Move dates (later than "after") in exdates, rdates and
-        until, by delta.
+    def transformDatesAfter(self, after, changeDate):
+        """
+        Transform dates (later than "after") in exdates, rdates and
+        until, by applying the function C{changeDate}.
 
         @param after: Earliest date to move
         @type  after: C{datetime}
 
-        @param delta: Time difference
-        @type  delta: C{timedelta}
+        @param changeDate: Time difference
+        @type  changeDate: C{callable}, taking a C{datetime} and
+                           returning a C{datetime}
 
 
         """
@@ -628,7 +630,7 @@ class RecurrenceRuleSet(items.ContentItem):
                 l = []
                 for dt in datelist:
                     if dt >= after:
-                        l.append(dt + delta)
+                        l.append(changeDate(dt))
                     else:
                         l.append(dt)
                 setattr(self, datetype, l)
@@ -641,7 +643,7 @@ class RecurrenceRuleSet(items.ContentItem):
                     pass
                 else:
                     if until >= after:
-                        rule.until = until + delta
+                        rule.until = changeDate(until)
                 
         del self._ignoreValueChanges
 

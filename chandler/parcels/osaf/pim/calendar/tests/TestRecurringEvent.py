@@ -1093,7 +1093,53 @@ class RecurringEventTest(testcase.SingleRepositoryTestCase):
         second = event.getFirstOccurrence().getNextOccurrence()
         self.failUnless(second.allDay)
         second.changeThis(EventStamp.allDay.name, False)
-        self.failIf(second.allDay)        
+        self.failIf(second.allDay)
+        
+    def testChangeTimeZone(self):
+        event = self.event
+        
+        elLay = ICUtzinfo.getInstance("America/Los_Angeles")
+        enWhy = ICUtzinfo.getInstance("America/New_York")
+        
+        # Create the event in Los Angeles time ...
+        event.startTime = event.startTime.replace(tzinfo=elLay)
+        # ... and make it recur
+        event.rruleset = self._createRuleSetItem('daily')
+        event.rruleset.rrules.first().until = event.startTime + timedelta(days=10)
+        
+        first = event.getFirstOccurrence()
+        third = first.getNextOccurrence().getNextOccurrence()
+        
+        third.changeThisAndFuture(EventStamp.startTime.name,
+                                  third.startTime.replace(tzinfo=enWhy))
+                                  
+        self.failUnlessEqual(third.getMaster().startTime.tzinfo, enWhy)
+        self.failUnlessEqual(third.startTime.tzinfo, enWhy)
+        self.failUnlessEqual(third.getNextOccurrence().recurrenceID.tzinfo,
+                             enWhy)
+
+    def testChangeAllTimeZone(self):
+        event = self.event
+        
+        elLay = ICUtzinfo.getInstance("America/Los_Angeles")
+        enWhy = ICUtzinfo.getInstance("America/New_York")
+        
+        # Create the event in Los Angeles time ...
+        event.startTime = event.startTime.replace(tzinfo=elLay)
+        # ... and make it recur
+        event.rruleset = self._createRuleSetItem('daily')
+        event.rruleset.rrules.first().until = event.startTime + timedelta(days=10)
+        
+        first = event.getFirstOccurrence()
+        third = first.getNextOccurrence().getNextOccurrence()
+        
+        third.changeAll(EventStamp.startTime.name,
+                        third.startTime.replace(tzinfo=enWhy))
+                                  
+        self.failUnlessEqual(self.event.startTime.tzinfo, enWhy)
+        self.failUnlessEqual(third.startTime.tzinfo, enWhy)
+        self.failUnlessEqual(third.getNextOccurrence().recurrenceID.tzinfo,
+                             enWhy)
 
     def testNeverEndingEvents(self):
         ruleItem = RecurrenceRule(None, itsParent=self.sandbox)

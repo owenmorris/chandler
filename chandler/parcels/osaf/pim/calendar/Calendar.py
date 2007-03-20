@@ -1501,27 +1501,49 @@ class EventStamp(Stamp):
         disabledSelf = self.__disableRecurrenceChanges()
         try:
             if attr == EventStamp.startTime.name:
-                startTimeDelta = (value - self.startTime)
-                if first.allDay or first.anyTime:
-                    recurrenceIDDelta = value.date() - self.startTime.date()
-                else:
-                    recurrenceIDDelta = startTimeDelta
-                if startTimeDelta:
-                    self.rruleset.moveDatesAfter(recurrenceID, startTimeDelta)
+                startTimeDelta = (value.replace(tzinfo=None) -
+                                  self.startTime.replace(tzinfo=None))
+                tzChanged = value.tzinfo != self.startTime.tzinfo
+
+                if startTimeDelta or tzChanged:
+                    if first.allDay or first.anyTime:
+                        recurrenceIDDelta = value.date() - self.startTime.date()
+                    else:
+                        recurrenceIDDelta = startTimeDelta
+                
+                    def makeChangeFn(delta, tzChanged):
+                        def change(dt):
+                            if delta:
+                                dt = dt + delta
+                            if tzChanged:
+                                dt = dt.replace(tzinfo=value.tzinfo)
+                            return dt
+                        return change
+                    
+                    changeStart = makeChangeFn(startTimeDelta, tzChanged)
+                    changeRecurrenceID = makeChangeFn(recurrenceIDDelta,
+                                                      tzChanged)
+                    
+                    self.rruleset.transformDatesAfter(recurrenceID, changeStart)
+                
                     
                     for occurrence in itertools.imap(EventStamp,
                                                      first.occurrences or []):
                         occurrenceID = occurrence.recurrenceID
                         if occurrenceID >= recurrenceID:
-                            if occurrenceID == occurrence.effectiveStartTime:
+                            occurrenceStart = occurrence.effectiveStartTime
+                            if (occurrenceID == occurrenceStart and
+                                occurrenceID.tzinfo == occurrenceStart.tzinfo):
                                 # don't change start time if its a startTime
                                 # modification
                                 occurrence.changeNoModification(
-                                        EventStamp.startTime.name,
-                                        occurrence.startTime + startTimeDelta)
+                                    EventStamp.startTime.name,
+                                    changeStart(occurrence.startTime)
+                                )
                             occurrence.changeNoModification(
-                                    EventStamp.recurrenceID.name,
-                                    occurrence.recurrenceID + recurrenceIDDelta)
+                                EventStamp.recurrenceID.name,
+                                changeRecurrenceID(occurrenceID)
+                            )
                 
             elif attr in (EventStamp.allDay.name, EventStamp.anyTime.name):
                 # if startTime changes (and an allDay/anyTime change changes
@@ -1656,8 +1678,11 @@ class EventStamp(Stamp):
                 # change the delta of all events, so adjust startTime
                 # to be relative to the master.
                 if isStartTime:
-                    delta = value - self.startTime
-                    value = master.startTime + delta
+                    delta = (value.replace(tzinfo=None) -
+                             self.startTime.replace(tzinfo=None))
+                    value = (master.startTime + delta).replace(
+                                tzinfo=value.tzinfo)
+                    # Revert self's startTime change (if any)
                     self.startTime = self.recurrenceID
                 else:
                     # If self is a modification that has a change to
