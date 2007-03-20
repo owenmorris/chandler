@@ -679,18 +679,14 @@ class PyMiniCalendar(wx.PyControl):
                           (not highlightWeek and
                            weekDate == self.selectedDate)))):
 
-                        startX = columnStart
+                        startX = columnStart + 1
                         width = self.widthCol
 
                         gc.SetFont(highlightFont)
                         gc.SetBrush(self.highlightColourBrush)
+                        gc.SetPen(self.highlightColourPen)
 
-                        if '__WXMAC__' in wx.PlatformInfo:
-                            gc.SetPen(wx.TRANSPARENT_PEN)
-                        else:
-                            gc.SetPen(self.highlightColourPen)
-
-                        gc.DrawRectangle(startX, y, width, self.heightRow) 
+                        gc.DrawRectangle(startX, y, width, self.heightRow - 2) 
 
                 # draw free/busy indicator
                 if weekDate.month == startDate.month:
@@ -860,17 +856,7 @@ class PyMiniCalendar(wx.PyControl):
         width = DAYS_PER_WEEK * self.widthCol
         height = self.heightRow
 
-        rect = wx.Rect(x,y,width,height)
-        # VZ: for some reason, the selected date seems to occupy more
-        # space under MSW - this is probably some bug in the font size
-        # calculations, but I don't know where exactly. This fix is
-        # ugly and leads to more refreshes than really needed, but
-        # without it the selected days leaves even more ugly
-        # underscores on screen.
-
-        if '__WXMSW__' in wx.PlatformInfo:
-            rect.Inflate(0, 1)
-
+        rect = wx.Rect(x, y, width, height)
         self.RefreshRect(rect, False)
 
     def GetBusy(self, date):
