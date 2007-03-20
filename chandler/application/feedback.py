@@ -242,15 +242,18 @@ class FeedbackWindow(wx.PyOnDemandOutputWindow):
 
     def OnRestart(self, event):
         try:
+            from osaf.framework.blocks.Block import Block
+            import atexit
+
             self.frame.sendButton.Disable()
             self.frame.restartButton.Disable()
             self.frame.closeButton.Disable() 
             self.frame.restartButton.SetLabel(_(u'Restarting...'))
     
-            import atexit
             atexit.register(restart)
+            Block.postEventByNameWithSender ("Quit", {})
         finally:
-            wx.GetApp().ForceQuit()
+            sys.exit()
 
     def logReport(self, feedbackXML, serverResponse):
         try:
