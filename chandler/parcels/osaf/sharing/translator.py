@@ -31,6 +31,7 @@ import osaf.pim.calendar.TimeZone as TimeZone
 from osaf.pim.calendar.Recurrence import RecurrenceRuleSet, RecurrenceRule
 from dateutil.rrule import rrulestr
 from chandlerdb.util.c import UUID
+from osaf.usercollections import UserCollection
 
 __all__ = [
     'PIMTranslator',
@@ -701,8 +702,19 @@ class PIMTranslator(eim.Translator):
         
         # ignore triageStatus, triageStatusChanged, and reminderTime
         
+    def finishExport(self):
+        for record in super(PIMTranslator, self).finishExport():
+            yield record
 
-
+        index = 0
+        for collection in schema.ns("osaf.app", self.rv).sidebarCollection:
+            if not UserCollection (collection).outOfTheBoxCollection:
+                yield model.OTBCollectionMembershipRecord(
+                    "sidebar",
+                    collection.itsUUID,
+                    index
+                )
+                index = index + 1
 
 
 class DumpTranslator(PIMTranslator):
@@ -720,41 +732,75 @@ class DumpTranslator(PIMTranslator):
             pim.SmartCollection
         )
 
-        # TODO: figure out why this gets an AttributeError:
-        # if record.mine == 1:
-        #     schema.ns('osaf.pim', self.rv).mine.addSource(collection)
+        # Temporary hack to work aroud the fact that importers don't properly
+        # call __init__ except in the base class. I think __init__ hasn't been
+        # called if the following condition is True.
+        
+        if (collection.exclusionsCollection is None and
+            not hasattr (collection, "collectionExclusions")):
+            collection._setup()
+
+        if record.mine == 1:
+            schema.ns('osaf.pim', self.rv).mine.addSource(collection)
 
 
     @eim.exporter(pim.SmartCollection)
     def export_collection(self, collection):
 
-        uuid = collection.itsUUID
-
-        mine = 1 if (collection in
-            schema.ns('osaf.pim', self.rv).mine.sources) else 0
-
-        yield model.CollectionRecord(
-            uuid,
-            mine
-        )
-
-        for item in collection:
-            yield model.CollectionMembershipRecord(
+        if (not UserCollection (collection).outOfTheBoxCollection and
+            collection in schema.ns("osaf.app", self.rv).sidebarCollection):
+            
+            yield model.CollectionRecord(
                 collection.itsUUID,
-                item.itsUUID
+                int (collection in schema.ns('osaf.pim', self.rv).mine.sources)
             )
+    
+            index = 0
+            for item in collection:
+                yield model.CollectionMembershipRecord(
+                    collection.itsUUID,
+                    item.itsUUID,
+                    index
+                )
+                index = index + 1
+
+    if __debug__:
+        def indexIsInSequence (self, collection, index):
+            if not hasattr (self, "collectionToIndex"):
+                self.collectionToIndex = {}
+            expectedIndex = self.collectionToIndex.get (collection, 0)
+            self.collectionToIndex[collection] = index + 1
+            return expectedIndex == index
+                
+                
+    @model.OTBCollectionMembershipRecord.importer
+    def import_otb_collectionmembership(self, record):
+
+        nameToOTBCollection = {
+            "sidebar" : schema.ns("osaf.app", self.rv).sidebarCollection,
+        }
+        collection = nameToOTBCollection [record.collectionName]
+        # We're preserving order of items in collections
+        assert (self.indexIsInSequence (collection, record.index))
+            
+        item = self.loadItemByUUID (record.itemUUID, pim.ContentItem )
+        collection.add(item)
+
+
 
     @model.CollectionMembershipRecord.importer
     def import_collectionmembership(self, record):
 
-        collection = self.loadItemByUUID(record.collection,
+        collection = self.loadItemByUUID(record.collectionUUID,
             pim.SmartCollection
         )
-        item = self.loadItemByUUID(record.item,
-            schema.Item
+        # We're preserving order of items in collections
+        assert (self.indexIsInSequence (collection, record.index))
+        
+        item = self.loadItemByUUID(record.itemUUID,
+            pim.ContentItem
         )
-        # TODO: see why collection.add( ) fails
-        # collection.add(item)
+        collection.add(item)
 
 
 

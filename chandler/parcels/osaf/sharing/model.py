@@ -31,7 +31,6 @@ text1024 = eim.TextType(size=1024)
 
 
 
-
 # pim items -------------------------------------------------------------------
 
 triageFilter = eim.Filter('cid:triage-filter@osaf.us', u"Triage Status")
@@ -45,9 +44,6 @@ remindersFilter = eim.Filter('cid:reminders-filter@osaf.us', u"Reminders")
 
 nonStandardICalendarFilter = eim.Filter('cid:non-standard-ical-filter@osaf.us',
     u"Non-standard iCalendar values")
-
-
-
 
 class ItemRecord(eim.Record):
     URI = "http://osafoundation.org/eim/item/0"
@@ -69,7 +65,6 @@ class ItemRecord(eim.Record):
     # ContentItem.needsReply
     needsReply = eim.field(eim.IntType)
 
-
 class ModifiedByRecord(eim.Record):
     URI = "http://osafoundation.org/eim/modifiedBy/0"
 
@@ -83,7 +78,6 @@ class ModifiedByRecord(eim.Record):
 
     # ContentItem.lastModification (action)
     action = eim.key(eim.IntType)
-
 
 class NoteRecord(eim.Record):
     URI = "http://osafoundation.org/eim/note/0"
@@ -99,8 +93,6 @@ class NoteRecord(eim.Record):
     # Note.reminders?  (Translator not implemented yet)
     reminderTime = eim.field(eim.DecimalType(digits=20, decimal_places=0))
 
-
-
 class TaskRecord(eim.Record):
     URI = "http://osafoundation.org/eim/task/0"
 
@@ -109,14 +101,11 @@ class TaskRecord(eim.Record):
     # Task stamp has no shared attributes, so nothing is shared other than the
     # fact that an item is stamped as a task or not
 
-
 class TaskModificationRecord(eim.Record):
     URI = "http://osafoundation.org/eim/taskModification/0"
 
     masterUuid = eim.key(ItemRecord.uuid)
     recurrenceId = eim.key(text20)
-
-
 
 class EventRecord(eim.Record):
     URI = "http://osafoundation.org/eim/event/0"
@@ -145,9 +134,6 @@ class EventRecord(eim.Record):
     # Note.icalendarProperties
     icalProperties = eim.field(text1024, [nonStandardICalendarFilter])
 
-
-
-
 class EventModificationRecord(eim.Record):
     URI = "http://osafoundation.org/eim/eventModification/0"
 
@@ -164,11 +150,6 @@ class EventModificationRecord(eim.Record):
     icalParameters = eim.field(text1024, [nonStandardICalendarFilter])
     icalProperties = eim.field(text1024, [nonStandardICalendarFilter])
 
-
-
-
-
-
 class DisplayAlarmRecord(eim.Record):
     URI = "http://osafoundation.org/eim/displayAlarm/0"
 
@@ -177,9 +158,6 @@ class DisplayAlarmRecord(eim.Record):
     trigger = eim.field(text1024)
     duration = eim.field(text1024)
     repeat = eim.field(eim.IntType)
-
-
-
 
 class MailMessageRecord(eim.Record):
     URI = "http://osafoundation.org/eim/mail/0"
@@ -192,10 +170,6 @@ class MailMessageRecord(eim.Record):
     # other headers?
 
 
-
-
-
-
 # collection ------------------------------------------------------------------
 
 class CollectionRecord(eim.Record):
@@ -205,10 +179,22 @@ class CollectionRecord(eim.Record):
     mine = eim.field(eim.IntType)
 
 class CollectionMembershipRecord(eim.Record):
+    # A membership record for a collection that is not "out of the box"
+    # i.e. created by the user
     URI = "http://osafoundation.org/eim/pim/collectionmembership/0"
 
-    collection = eim.key(schema.UUID)
-    item = eim.key(schema.UUID)
+    collectionUUID = eim.key(schema.UUID)
+    itemUUID = eim.key(schema.UUID)
+    index = eim.key(eim.IntType)
+
+class OTBCollectionMembershipRecord(eim.Record):
+    # A membership record for a collection that is "out of the box"
+    # i.e. in a newly created repository
+    URI = "http://osafoundation.org/eim/pim/OTBcollectionmembership/0"
+
+    collectionName = eim.key(text20)
+    itemUUID = eim.key(schema.UUID)
+    index = eim.key(eim.IntType)
 
 
 # osaf.sharing ----------------------------------------------------------------
