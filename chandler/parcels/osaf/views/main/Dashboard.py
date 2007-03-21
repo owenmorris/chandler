@@ -24,6 +24,7 @@ from osaf.framework.blocks import (Block, debugName, Table,
                                    GridCellAttributeRenderer, Styles)
 from osaf.framework.attributeEditors import AttributeEditors
 from osaf import pim
+from i18n import ChandlerMessageFactory as _
 import wx
 import logging
 
@@ -99,17 +100,34 @@ class DashboardBlock(Table):
             self.synchronizeWidget()
 
     def onTriageEvent(self, event):
+        # Hack for Philippe, disabled until I can talk w/Jeffrey about it...
+        autoTriageToo = wx.GetMouseState().AltDown()
+        if autoTriageToo and wx.MessageBox(
+            _(u"Are you sure you want to reset the triage status of everything in this collection?"),
+            _(u"Automatic triage"), wx.OK | wx.CANCEL | wx.ICON_HAND) != wx.OK:
+            return        
+            
         # triaging a recurring event can cause later keys to disappear from the
         # collection, which upsets iterkeys, so wrap the iterator in a list
-        recurringEventsHandled = []
+        recurringEventsToHandle = set()
         modificationForAttr = pim.EventStamp.modificationFor.name
         for key in list(self.contents.iterkeys()):
-            if self.itsView.findValue(key, '_sectionTriageStatus', 
-                                      default=None) is not None:
-                item = self.itsView[key]
-                item.purgeSectionTriageStatus()
             master = self.itsView.findValue(key, modificationForAttr,
                                             default=None)
-            if master is not None and master not in recurringEventsHandled:
-                recurringEventsHandled.append(master)
-                pim.EventStamp(master).updateTriageStatus()
+            if autoTriageToo \
+               or self.itsView.findValue(key, '_sectionTriageStatus', 
+                                         default=None) is not None:
+                item = self.itsView[key]
+                item.purgeSectionTriageStatus()
+                if autoTriageToo:
+                    if item.hasLocalAttributeValue('doAutoTriageOnDateChange'):
+                        del item.doAutoTriageOnDateChange
+                
+                    if master is None:
+                        item.setTriageStatus('auto')
+                    
+            if master is not None:
+                recurringEventsToHandle.add(master)
+ 
+        for master in recurringEventsToHandle:
+            pim.EventStamp(master).updateTriageStatus(checkOccurrences=autoTriageToo)

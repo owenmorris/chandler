@@ -300,7 +300,20 @@ class RecordSetConduit(conduits.BaseConduit):
             for uuid, rs in toApply.items():
                 if debug: print "Applying:", uuid, rs
                 logger.debug("Applying changes to %s [%s]", uuid, rs)
+
+                # Mark existing items as "unread" now, so that importing can override
+                # it (if we're reloading, f'rinstance)
+                item = rv.findUUID(uuid)
+                if item is not None:
+                    item.read = False
+
                 translator.importRecords(rs)
+                
+                # Set triage status, based on the values we loaded
+                if item is None:
+                    item = rv.findUUID(uuid)
+                item.setTriageStatus('auto', popToNow=True)
+                
                 if uuid in remotelyAdded:
                     receiveStats['added'].add(uuid)
                 else:
