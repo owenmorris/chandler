@@ -81,7 +81,7 @@ class FeedbackWindow(wx.PyOnDemandOutputWindow):
         if noContinue:
             global destroyAppOnClose
             destroyAppOnClose = True
-            self.frame.closeButton.SetLabel(_('&Quit'))
+            self.frame.closeButton.SetLabel(_(u'&Quit'))
         self.frame.disableFeedback.Enable(not noContinue)
 
     def _fillOptionalSection(self):
