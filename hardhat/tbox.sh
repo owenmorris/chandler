@@ -380,7 +380,7 @@ if [ "$CHANDLER_PERFORMANCE_TEST" = "yes" ]; then
                 if [ "$OSTYPE" = "cygwin" ]; then
                     T_LOG=`cygpath -w $T_LOG`
                 fi
-                $CHANDLERBIN/release/$RUN_CHANDLER --create --nocatch --profileDir="$P_DIR" --catsPerfLog="$T_LOG" --scriptTimeout=600 --scriptFile="$TESTNAME" &> $T_DIR/test$run.log
+                $CHANDLERBIN/release/$RUN_CHANDLER --create --nocatch --profileDir="$P_DIR" --catsPerfLog="$T_LOG" --scriptTimeout=1800 --scriptFile="$TESTNAME" &> $T_DIR/test$run.log
                 echo `<"$T_LOG"` | tee -a $BUILDLOG
             done
 
