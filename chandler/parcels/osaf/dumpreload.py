@@ -82,6 +82,8 @@ def dump(rv, filename, uuids, translator=sharing.DumpTranslator,
 
     trans = translator(rv)
 
+    trans.startExport()
+
     output = open(filename, "wb")
     try:
         dump = serializer.dumper(output)
@@ -98,6 +100,16 @@ def dump(rv, filename, uuids, translator=sharing.DumpTranslator,
                 if activity:
                     activity.update(msg="Dumped %d of %d records" % (i, count),
                         work=1)
+
+        if activity:
+            activity.update(totalWork=None) # we don't know upcoming total work
+
+        for record in trans.finishExport():
+            count += 1
+            if activity:
+                activity.update(msg="Dumping additional record")
+            dump(record)
+
         dump(None)
         del dump
     finally:
