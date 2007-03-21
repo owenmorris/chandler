@@ -432,7 +432,7 @@ else
 
                 echo -n `basename $TESTNAME`
                 cd $C_DIR
-                $CHANDLERBIN/release/$RUN_CHANDLER --create --catch=tests --profileDir="$PC_DIR" --catsPerfLog="$TIME_LOG" --scriptTimeout=600 --scriptFile="$TESTNAME" &> $TESTLOG
+                $CHANDLERBIN/release/$RUN_CHANDLER --create --catch=tests --profileDir="$PC_DIR" --catsPerfLog="$TIME_LOG" --scriptTimeout=1800 --scriptFile="$TESTNAME" &> $TESTLOG
 
                 # scan the test output for the success message "OK"
                 RESULT=`grep '#TINDERBOX# Status = PASSED' $TESTLOG`
