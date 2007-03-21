@@ -82,6 +82,10 @@ class SubscribeDialog(wx.Dialog):
         self.checkboxKeepOut = wx.xrc.XRCCTRL(self, "CHECKBOX_KEEPOUT")
         if self.mine:
             self.checkboxKeepOut.SetValue(False)
+        self.checkboxShareAlarms = wx.xrc.XRCCTRL(self, "CHECKBOX_ALARMS")
+        self.checkboxShareStatus = wx.xrc.XRCCTRL(self, "CHECKBOX_STATUS")
+        self.checkboxShareTriage = wx.xrc.XRCCTRL(self, "CHECKBOX_TRIAGE")
+        self.checkboxShareReply = wx.xrc.XRCCTRL(self, "CHECKBOX_REPLY")
         self.forceFreeBusy = wx.xrc.XRCCTRL(self, "CHECKBOX_FORCEFREEBUSY")
 
         # Freebusy Disabled
@@ -106,6 +110,26 @@ class SubscribeDialog(wx.Dialog):
             self.OnSubscribe(None)
 
 
+    def getFilters(self):
+
+        filters = set()
+
+        if not self.checkboxShareAlarms.GetValue():
+            filters.add('cid:reminders-filter@osaf.us')
+        if not self.checkboxShareStatus.GetValue():
+            filters.add('cid:event-status-filter@osaf.us')
+        if not self.checkboxShareTriage.GetValue():
+            filters.add('cid:triage-filter@osaf.us')
+        if not self.checkboxShareReply.GetValue():
+            filters.add('cid:needs-reply-filter@osaf.us')
+
+        if filters:
+            return filters
+        else:
+            return None
+
+
+
     def accountInfoCallback(self, host, path):
         return PromptForNewAccountInfo(self, host=host, path=path)
 
@@ -126,6 +150,7 @@ class SubscribeDialog(wx.Dialog):
                 self.gauge.Pulse()
             else:
                 self.gauge.SetValue(percent)
+
 
 
     def _finishedShare(self, uuid):
@@ -244,13 +269,14 @@ class SubscribeDialog(wx.Dialog):
         class ShareTask(task.Task):
 
             def __init__(task, view, url, username, password, forceFreeBusy,
-                activity):
+                activity, filters):
                 super(ShareTask, task).__init__(view)
                 task.url = url
                 task.username = username
                 task.password = password
                 task.forceFreeBusy = forceFreeBusy
                 task.activity = activity
+                task.filters = filters
 
             def error(task, err):
                 self._shareError(err)
@@ -264,7 +290,8 @@ class SubscribeDialog(wx.Dialog):
             def run(task):
                 collection = sharing.subscribe(task.view, task.url,
                     username=task.username, password=task.password,
-                    forceFreeBusy=task.forceFreeBusy, activity=task.activity)
+                    forceFreeBusy=task.forceFreeBusy, activity=task.activity,
+                    filters=task.filters)
 
                 return collection.itsUUID
 
@@ -272,7 +299,8 @@ class SubscribeDialog(wx.Dialog):
         self.taskView = viewpool.getView(self.view.repository)
         self.activity = Activity("Subscribe: %s" % url)
         self.currentTask = ShareTask(self.taskView, url, username, password,
-                                     forceFreeBusy, self.activity)
+                                     forceFreeBusy, self.activity,
+                                     self.getFilters())
         self.listener = Listener(activity=self.activity,
             callback=self._updateCallback)
         self.activity.started()

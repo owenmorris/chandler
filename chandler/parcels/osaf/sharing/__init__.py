@@ -782,7 +782,7 @@ def unpublishFreeBusy(collection):
 
 
 def subscribe(view, url, activity=None, username=None, password=None,
-    forceFreeBusy=False):
+    filters=None, forceFreeBusy=False):
 
     (useSSL, host, port, path, query, fragment, ticket, parentPath,
         shareName) = splitUrl(url)
@@ -848,7 +848,7 @@ def subscribe(view, url, activity=None, username=None, password=None,
         collection = subscribeCalDAV(view, url, inspection,
             activity=activity, account=account,
             parentPath=parentPath, shareName=shareName, ticket=ticket,
-            username=username, password=password)
+            username=username, password=password, filters=filters)
         return collection
 
     elif inspection['collection']: # WebDAV collection
@@ -869,7 +869,7 @@ def subscribe(view, url, activity=None, username=None, password=None,
         collection = subscribeWebDAV(view, url, inspection,
             activity=activity, account=account,
             parentPath=parentPath, shareName=shareName, ticket=ticket,
-            username=username, password=password)
+            username=username, password=password, filters=filters)
         return collection
 
     elif contentType == "text/html":
@@ -913,7 +913,8 @@ def subscribe(view, url, activity=None, username=None, password=None,
 
                     collection = subscribeEIMXML(view, url, morsecodeUrl,
                         inspection, activity=activity,
-                        account=account, username=username, password=password)
+                        account=account, username=username, password=password,
+                        filters=filters)
                     return collection
 
         raise errors.SharingError("Can't parse webpage")
@@ -937,7 +938,8 @@ def subscribe(view, url, activity=None, username=None, password=None,
         collection = subscribeICS(view, url, inspection,
             activity=activity, account=account,
             parentPath=parentPath, shareName=shareName, ticket=ticket,
-            username=username, password=password)
+            username=username, password=password,
+            filters=filters)
         return collection
 
     elif contentType == "application/eim+xml":
@@ -950,7 +952,8 @@ def subscribe(view, url, activity=None, username=None, password=None,
         # morsecode + eimml recordsets
         collection = subscribeEIMXML(view, url, inspection,
             activity=activity, account=account,
-            ticket=ticket, username=username, password=password)
+            ticket=ticket, username=username, password=password,
+            filters=filters)
         return collection
 
     else:
@@ -962,7 +965,9 @@ def subscribe(view, url, activity=None, username=None, password=None,
 
 def subscribeCalDAV(view, url, inspection, activity=None, account=None,
     parentPath=None, shareName=None, ticket=None,
-    username=None, password=None):
+    username=None, password=None, filters=None):
+
+    # TODO: Use filters parameter when this switches to CalDAV atop EIM
 
     # Append .chandler to the path
     parsedUrl = urlparse.urlsplit(url)
@@ -1082,7 +1087,7 @@ def subscribeCalDAV(view, url, inspection, activity=None, account=None,
 
 def subscribeWebDAV(view, url, inspection, activity=None, account=None,
     parentPath=None, shareName=None, ticket=None,
-    username=None, password=None):
+    username=None, password=None, filters=None):
 
     shareMode = 'both' if inspection['priv:write'] else 'get'
 
@@ -1102,6 +1107,9 @@ def subscribeWebDAV(view, url, inspection, activity=None, account=None,
             useSSL=useSSL, ticket=ticket,
             translator=PIMTranslator, serializer=EIMMLSerializer)
 
+    if filters:
+        share.conduit.filters = filters
+
     share.sync(activity=activity, modeOverride='get')
     share.conduit.getTickets()
 
@@ -1118,7 +1126,9 @@ def subscribeWebDAV(view, url, inspection, activity=None, account=None,
 
 def subscribeICS(view, url, inspection, activity=None,
     account=None, parentPath=None, shareName=None, ticket=None,
-    username=None, password=None):
+    username=None, password=None, filters=None):
+
+    # TODO: Use filters parameter when this switches to ICS atop EIM
 
     share = Share(itsView=view)
     share.format = ICalendarFormat(itsParent=share)
@@ -1153,7 +1163,7 @@ def subscribeICS(view, url, inspection, activity=None,
 
 
 def subscribeEIMXML(view, url, morsecodeUrl, inspection, activity=None,
-    account=None, username=None, password=None):
+    account=None, username=None, password=None, filters=None):
 
     shareMode = 'both' if inspection['priv:write'] else 'get'
 
@@ -1190,6 +1200,9 @@ def subscribeEIMXML(view, url, morsecodeUrl, inspection, activity=None,
             shareName=shareName,
             useSSL=useSSL, ticket=ticket,
             translator=PIMTranslator, serializer=EIMMLSerializer)
+
+    if filters:
+        share.conduit.filters = filters
 
 
     share.sync(activity=activity, modeOverride='get')

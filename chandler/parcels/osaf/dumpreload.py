@@ -131,7 +131,7 @@ def reload(rv, filename, translator=sharing.DumpTranslator,
     try:
         if activity:
             activity.update(totalWork=None)
-    
+
         load = serializer.loader(input)
         i = 0
         while True:
