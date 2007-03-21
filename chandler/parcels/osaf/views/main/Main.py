@@ -1029,13 +1029,13 @@ class MainView(View):
                 (dir, filename) = os.path.split(fullpath)
                 self.setStatusMessage (_(u"Exporting to %(filename)s") % {'filename': filename})
 
-                share = sharing.OneTimeFileSystemShare(dir, filename,
-                    sharing.ICalendarFormat, itsView=self.itsView)
+                share = sharing.OneTimeFileSystemShare(itsView=self.itsView,
+                    filePath=dir, fileName=filename,
+                    formatClass=sharing.ICalendarFormat, contents=collection)
                 if not optionResults[pim.Remindable.reminders.name]:
                     share.filterAttributes.append(pim.Remindable.reminders.name)
                 if not optionResults[pim.EventStamp.transparency.name]:
                     share.filterAttributes.append(pim.EventStamp.transparency.name)
-                share.contents = collection
                 share.put()
                 self.setStatusMessage(_(u"Export completed"))
             except:

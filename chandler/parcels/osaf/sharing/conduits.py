@@ -543,15 +543,17 @@ class ManifestEngineMixin(BaseConduit):
                                 break
 
         if needsUpdate:
+            displayName = getattr(item, "displayName", "")
+
             logger.info("...putting '%s' %s (%d vs %d) (%s)" %
                 (
-                    item.displayName, item.itsUUID, item.getVersion(),
+                    displayName, item.itsUUID, item.getVersion(),
                     self.itemsMarker.getVersion(), reason
                 )
             )
 
             if activity:
-                activity.update(msg="Uploading '%s'" % item.displayName)
+                activity.update(msg="Uploading '%s'" % displayName)
 
             # @@@MOR Disabling this for now
             # me = schema.ns('osaf.pim', item.itsView).currentContact.item
@@ -565,7 +567,7 @@ class ManifestEngineMixin(BaseConduit):
                  (data, item.getVersion()))
 
                 if activity:
-                    activity.update(msg="Uploaded '%s'" % item.displayName)
+                    activity.update(msg="Uploaded '%s'" % displayName)
 
                 cvSelf = contentView[self.itsUUID]
                 cvSelf.share.addSharedItem(item)
@@ -1032,7 +1034,7 @@ class ManifestEngineMixin(BaseConduit):
         may override for custom behavior (e.g. fetching a DAV
         property).
         """
-        return share.displayName
+        return getattr(share, 'displayName', '')
 
 
 

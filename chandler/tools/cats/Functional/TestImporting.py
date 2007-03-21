@@ -35,8 +35,9 @@ class TestImporting(ChandlerTestCase):
         path = os.path.join(Globals.chandlerDirectory,"tools/cats/DataFiles")
         # Upcast path to unicode since Sharing requires a unicode path
         path = unicode(path, sys.getfilesystemencoding())
-        share = sharing.OneTimeFileSystemShare(path, u'importTest.ics',
-            sharing.ICalendarFormat, itsView=self.app_ns.itsView)
+        share = sharing.OneTimeFileSystemShare(itsView=self.app_ns.itsView,
+            filePath=path, fileName=u'importTest.ics',
+            formatClass=sharing.ICalendarFormat)
         
         self.logger.startAction("Import Large Calendar")
         collection = share.get()

@@ -12,9 +12,9 @@
 #   See the License for the specific language governing permissions and
 #   limitations under the License.
 __all__ = [
-    'Share',
     'OneTimeShare',
     'OneTimeFileSystemShare',
+    'Share',
     'SharedItem',
     'State',
     'Conflict',
@@ -517,17 +517,6 @@ class Share(pim.ContentItem):
         copying = schema.Cloud(byCloud=[format, conduit])
     )
 
-    def __init__(self, *args, **kw):
-        defaultDisplayName = getattr(kw.get('contents'),'displayName',u'')
-        kw.setdefault('displayName',defaultDisplayName)
-
-        # Stamp contents as a SharedItem if not already
-        if 'contents' in kw:
-            contents = kw['contents']
-            if contents is not None and not pim.has_stamp(contents, SharedItem):
-                SharedItem(contents).add()
-
-        super(Share, self).__init__(*args, **kw)
 
     def fileStyle(self):
         if getattr(self, "format", None) is not None:
@@ -570,6 +559,11 @@ class Share(pim.ContentItem):
 
     def sync(self, modeOverride=None, activity=None, forceUpdate=None,
         debug=False):
+
+        if(self.contents is not None and
+            not pim.has_stamp(self.contents, SharedItem)):
+            SharedItem(self.contents).add()
+
         stats = self.conduit.sync(modeOverride=modeOverride,
                                   activity=activity,
                                   forceUpdate=forceUpdate, debug=debug)
@@ -636,7 +630,7 @@ class Share(pim.ContentItem):
 
 
 
-
+# = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =
 
 
 class OneTimeShare(Share):
@@ -669,16 +663,26 @@ class OneTimeShare(Share):
 
 
 class OneTimeFileSystemShare(OneTimeShare):
-    def __init__(self, path, itsName, formatclass, itsKind=None, itsView=None,
-                 contents=None):
 
+    formatClass = schema.One(schema.Class)
+    filePath = schema.One(schema.Text)
+    fileName = schema.One(schema.Text)
+
+    def put(self, activity=None):
+        self._prepare()
+        return super(OneTimeFileSystemShare, self).put(activity=activity)
+
+    def get(self, activity=None):
+        self._prepare()
+        return super(OneTimeFileSystemShare, self).get(activity=activity)
+
+    def _prepare(self):
         import filesystem_conduit
-        conduit = filesystem_conduit.FileSystemConduit(
-            itsKind=itsKind, itsView=itsView, sharePath=path, shareName=itsName
+        self.conduit = filesystem_conduit.FileSystemConduit(
+            itsView=self.itsView, sharePath=self.filePath,
+            shareName=self.fileName
         )
-        format  = formatclass(itsView=itsView)
-        super(OneTimeFileSystemShare, self).__init__(
-            itsKind=itsKind, itsView=itsView,
-            contents=contents, conduit=conduit, format=format
-        )
+        self.format = self.formatClass(itsView=self.itsView)
+
+
 

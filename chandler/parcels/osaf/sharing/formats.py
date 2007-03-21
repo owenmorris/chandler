@@ -878,15 +878,14 @@ class CloudXMLFormat(ImportExportFormat):
 
                             if schemaAttr is not None:
                                 value = schemaAttr.name
-                                    
+
                         if isFilterClasses:
                             value = self.CLASS_NAME_TO_STAMP.get(value, value)
 
                         values.append(value)
 
-                    logger.debug("for %s setting %s to %s" % \
-                        (targetItem.displayName.encode('utf8',
-                        'replace'), attrName, values))
+                    logger.debug("for %s setting %s to %s" %
+                        (targetItem.itsUUID, attrName, values))
                     setattr(item, attrName, values)
 
                 elif cardinality == 'dict':

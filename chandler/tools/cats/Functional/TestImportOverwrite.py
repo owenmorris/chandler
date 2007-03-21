@@ -46,8 +46,9 @@ class TestImportOverwrite(ChandlerTestCase):
             os.remove(fullpath)
         #Upcast path to unicode since Sharing requires a unicode path
         path = unicode(path, sys.getfilesystemencoding())
-        share = sharing.OneTimeFileSystemShare(path, 'tempOverwriteTest.ics',
-            sharing.ICalendarFormat, itsView=appView)
+        share = sharing.OneTimeFileSystemShare(itsView=appView,
+            filePath=path, fileName=u'tempOverwriteTest.ics',
+            formatClass=sharing.ICalendarFormat)
 
         collection = pim.ListCollection(itsView=appView)
         # exporting all Events is VERY expensive, it doesn't seem like a good
@@ -66,8 +67,9 @@ class TestImportOverwrite(ChandlerTestCase):
         self.logger.addComment("event changed after export")
     
         #import the original event
-        share = sharing.OneTimeFileSystemShare(path, 'tempOverwriteTest.ics',
-            sharing.ICalendarFormat, itsView=self.app_ns.itsView)
+        share = sharing.OneTimeFileSystemShare(itsView=self.app_ns.itsView,
+            filePath=path, fileName=u'tempOverwriteTest.ics',
+            formatClass=sharing.ICalendarFormat)
         share.get()
         wx.GetApp().Yield()
         self.logger.addComment("Imported exported event")

@@ -1182,8 +1182,9 @@ def importICalendarFile(fullpath, view, targetCollection = None,
         raise ICalendarImportError(_(u"File does not exist, import cancelled."))
     (dir, filename) = os.path.split(fullpath)
     
-    share = shares.OneTimeFileSystemShare(
-        dir, filename, ICalendarFormat, itsView=view, contents = targetCollection
+    share = shares.OneTimeFileSystemShare(itsView=view,
+        filePath=dir, fileName=filename,
+        formatClass=ICalendarFormat, contents=targetCollection
     )
     if tzinfo is not None:
         share.format.coerceTzinfo = tzinfo

@@ -23,12 +23,6 @@ shareDict = { }
 class InMemoryConduit(conduits.LinkableConduit, conduits.ManifestEngineMixin):
     """ A test conduit, storing data in a dictionary """
 
-    def __init__(self, *args, **kw):
-        super(InMemoryConduit, self).__init__(*args, **kw)
-
-        # self.shareDict = kw['shareDict'] # The dictionary to store shares into
-        self.shareName = kw['shareName'] # The name of share within dictionary
-
     def getLocation(self):
         return self.shareName
 

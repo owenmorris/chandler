@@ -58,8 +58,6 @@ class MultipleSharesTestCase(testcase.DualRepositoryTestCase):
         coll0a = view0.findUUID(self.coluuida)
         coll0b = view0.findUUID(self.coluuidb)
 
-        self.assert_(not pim.has_stamp(coll0a, sharing.SharedItem))
-
         # First share in first repo
         conduit = recordset_conduit.InMemoryDiffRecordSetConduit(itsView=view0,
             shareName="foo",
@@ -68,7 +66,6 @@ class MultipleSharesTestCase(testcase.DualRepositoryTestCase):
         )
         self.share0a = sharing.Share(itsView=view0,
             contents=coll0a, conduit=conduit)
-        self.assert_(pim.has_stamp(coll0a, sharing.SharedItem))
 
         if self.share0a.exists():
             self.share0a.destroy()
@@ -82,7 +79,6 @@ class MultipleSharesTestCase(testcase.DualRepositoryTestCase):
         )
         self.share0b = sharing.Share(itsView=view0,
             contents=coll0b, conduit=conduit)
-        self.assert_(pim.has_stamp(coll0b, sharing.SharedItem))
 
         if self.share0b.exists():
             self.share0b.destroy()

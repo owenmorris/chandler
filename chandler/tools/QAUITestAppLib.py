@@ -79,8 +79,9 @@ def publishSubscribe(logger):
     path = os.path.join(os.getenv('CHANDLERHOME'),"tools/QATestScripts/DataFiles")
     # Upcast path to unicode since Sharing requires a unicode path
     path = unicode(path, sys.getfilesystemencoding())
-    share = sharing.OneTimeFileSystemShare(path, u'testSharing.ics',
-        sharing.ICalendarFormat, itsView=App_ns.itsView)
+    share = sharing.OneTimeFileSystemShare(itsView=App_ns.itsView,
+        filePath=path, fileName=u'testSharing.ics',
+        formatClass=sharing.ICalendarFormat)
 
     collection = share.get()
     App_ns.sidebarCollection.add(collection)
@@ -1612,10 +1613,10 @@ class UITestView(object):
             path = os.path.join(os.getenv('CHANDLERHOME'),"tools/QATestScripts/DataFiles")
             #Upcast path to unicode since Sharing requires a unicode path
             path = unicode(path, sys.getfilesystemencoding())
-            share = sharing.OneTimeFileSystemShare(path,
-                            environmentFile,
-                            sharing.ICalendarFormat,
-                            itsView=App_ns.itsView)
+            share = sharing.OneTimeFileSystemShare(itsView=App_ns.itsView,
+                filePath=path,
+                fileName=environmentFile,
+                formatClass=sharing.ICalendarFormat)
             try:
                 self.collection = share.get()
             except:

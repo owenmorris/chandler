@@ -98,6 +98,7 @@ class RoundTripTestCase(testcase.DualRepositoryTestCase):
         testUuid = item.itsUUID.str16()
         item.icalUID = testUuid
 
+        self.assert_(not pim.has_stamp(coll0, sharing.SharedItem))
         self.assert_(not pim.has_stamp(item, sharing.SharedItem))
 
         # Initial publish

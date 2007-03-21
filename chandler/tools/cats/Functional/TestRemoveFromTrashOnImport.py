@@ -52,7 +52,9 @@ class TestRemoveFromTrashOnImport(ChandlerTestCase):
         reportDir = unicode(reportDir, sys.getfilesystemencoding())
         
         #export
-        share = sharing.OneTimeFileSystemShare(reportDir, u'deleteThenImport.ics', sharing.ICalendarFormat, itsView=appView)
+        share = sharing.OneTimeFileSystemShare(itsView=appView,
+            filePath=reportDir, fileName=u'deleteThenImport.ics',
+            formatClass=sharing.ICalendarFormat)
         share.contents = collection.item
         share.put()
         
@@ -61,7 +63,9 @@ class TestRemoveFromTrashOnImport(ChandlerTestCase):
         collection.DeleteCollection()
         
         #import event back in
-        share = sharing.OneTimeFileSystemShare(reportDir, u'deleteThenImport.ics', sharing.ICalendarFormat, itsView=appView)
+        share = sharing.OneTimeFileSystemShare(itsView=appView,
+            filePath=reportDir, fileName=u'deleteThenImport.ics',
+            formatClass=sharing.ICalendarFormat)
         collection = share.get()
         self.app_ns.sidebarCollection.add(collection)
         scripting.User.idle()    
