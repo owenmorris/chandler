@@ -68,18 +68,20 @@ class FeedbackWindow(wx.PyOnDemandOutputWindow):
         refreshErrors = getattr(view, 'refreshErrors', 0)
 
         # if more than 3 refreshErrors on view, make frame modal and
-        # disable the "Close" button (bug 8295)
+        # change the "Close" button to "Quit"
         self.noContinue(refreshErrors > 3)
 
         wx.PyOnDemandOutputWindow.write(self, text)
 
     def noContinue(self, noContinue):
-        
         if self.frame is None:
             self.CreateOutputWindow('')
 
         self.frame.MakeModal(noContinue)
-        self.frame.closeButton.Enable(not noContinue)
+        if noContinue:
+            global destroyAppOnClose
+            destroyAppOnClose = True
+            self.frame.closeButton.SetLabel(_('&Quit'))
         self.frame.disableFeedback.Enable(not noContinue)
 
     def _fillOptionalSection(self):
@@ -226,6 +228,14 @@ class FeedbackWindow(wx.PyOnDemandOutputWindow):
         self.frame.Bind(wx.EVT_BUTTON, self.OnSend, self.frame.sendButton)
         self.frame.Bind(wx.EVT_BUTTON, self.OnRestart, self.frame.restartButton)
 
+    def forceQuit(self):
+        try:
+            # This part is needed to quit on OS X
+            from osaf.framework.blocks.Block import Block
+            Block.postEventByNameWithSender ("Quit", {})
+        finally:
+            sys.exit()
+
     def OnCloseWindow(self, event):
         if self.frame.disableFeedback.IsChecked():
             wx.GetApp().RestoreStdio()
@@ -233,27 +243,20 @@ class FeedbackWindow(wx.PyOnDemandOutputWindow):
         wx.PyOnDemandOutputWindow.OnCloseWindow(self, event)
         activeWindow = None
         if destroyAppOnClose:
-            import sys
-            sys.exit(0)
-            # XXX This would probably be better (we might leak resources with
-            # XXX sys.exit), but causes Python crash            
-            #wx.GetApp().Destroy()
+            self.forceQuit()
         initRuntimeLog(Globals.options.profileDir)
 
     def OnRestart(self, event):
         try:
-            from osaf.framework.blocks.Block import Block
-            import atexit
-
             self.frame.sendButton.Disable()
             self.frame.restartButton.Disable()
             self.frame.closeButton.Disable() 
             self.frame.restartButton.SetLabel(_(u'Restarting...'))
     
+            import atexit
             atexit.register(restart)
-            Block.postEventByNameWithSender ("Quit", {})
         finally:
-            sys.exit()
+            self.forceQuit()
 
     def logReport(self, feedbackXML, serverResponse):
         try:
