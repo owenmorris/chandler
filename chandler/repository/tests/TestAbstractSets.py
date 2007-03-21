@@ -20,8 +20,9 @@ import unittest, os
 
 from repository.tests.RepositoryTestCase import RepositoryTestCase
 from repository.tests.classes.Movie import Movie
-from repository.item.Sets import Union, Intersection, Difference, Set, KindSet
-from repository.item.Sets import MultiUnion, MultiIntersection
+from repository.item.Sets import \
+    Union, Intersection, Difference, Set, KindSet, \
+    MultiUnion, MultiIntersection, ExpressionFilteredSet, EmptySet
 
 
 class movie(Movie):
@@ -36,7 +37,15 @@ class movie(Movie):
         if name != 'watches':
             self.calls.append((op, self, name, other))
         super(movie, self)._collectionChanged(op, change, name, other)
-    
+
+    def onFilteredItemChange(self, view, item, attrName, collectionName):
+
+        collection = getattr(self, collectionName, None)
+        movies = item.itsRefs.get('inheritTo')
+        if movies:
+            return [key for key in movies.iterkeys()
+                    if not view[key].hasLocalAttributeValue(attrName)]
+
 
 class TestAbstractSets(RepositoryTestCase):
     """ Test abstract sets """
@@ -52,8 +61,9 @@ class TestAbstractSets(RepositoryTestCase):
         view.commit()
 
         self.cineguide = view['CineGuide']
-        self.movie = self.cineguide['KHepburn'].movies.first().itsKind
-        self.m1 = self.cineguide['KHepburn'].movies.first()
+        self.kh = self.cineguide['KHepburn']
+        self.movie = self.kh.movies.first().itsKind
+        self.m1 = self.kh.movies.first()
         self.m2 = self.cineguide['m2']
         self.m3 = self.cineguide['m3']
         self.m4 = self.cineguide['m4']
@@ -314,6 +324,23 @@ class TestAbstractSets(RepositoryTestCase):
         self.assert_(self.m2.set.__contains__(w, False, True))
 
         self.assert_(self.rep.view.check(), 'check failed')
+
+    def testFilter(self):
+
+        m = movie('movie', self.cineguide, self.movie)
+        m.set = ExpressionFilteredSet((self.kh, 'movies'),
+                                      "hasattr(view[uuid], 'set')",
+                                      ('set',))
+        m.set.addIndex('n', 'numeric')
+
+        self.assert_(self.m1 not in m.set)
+
+        self.m1.inheritFrom = self.kh
+        self.kh.set = EmptySet()
+        self.assert_(self.m1 in m.set)
+
+        del self.kh.set
+        self.assert_(self.m1 not in m.set)
 
 
 if __name__ == "__main__":

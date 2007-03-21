@@ -129,11 +129,18 @@ class Monitors(Item):
         return cls._attach(None, item, method, op, attribute, *args, **kwds)
 
     @classmethod
-    def attachIndexMonitor(cls, item, op, attribute, *args, **kwds):
+    def attachIndexMonitor(cls, item, op, attribute, *args):
 
-        monitor = cls._attach(IndexMonitor, item, None, op, attribute,
-                              *args, **kwds)
+        monitor = cls._attach(IndexMonitor, item, None, op, attribute, *args)
         monitor._status |= Item.SYSMONITOR | Item.IDXMONITOR
+
+        return monitor
+
+    @classmethod
+    def attachFilterMonitor(cls, item, op, attribute, *args):
+
+        monitor = cls._attach(FilterMonitor, item, None, op, attribute, *args)
+        monitor._status |= Item.SYSMONITOR
 
         return monitor
 
@@ -147,6 +154,15 @@ class Monitors(Item):
                 monitor.delete()
                 break
 
+    @classmethod
+    def detachFilterMonitor(cls, item, op, attribute, *args):
+
+        for monitor in item.monitors:
+            if (isinstance(monitor, FilterMonitor) and monitor.op == op and
+                monitor.attribute == attribute and
+                monitor.args == args):
+                monitor.delete()
+                break
 
     instances = {}
 
@@ -184,12 +200,12 @@ class Monitor(Item):
         return None, None, None
 
 
-class IndexMonitor(Item):
+class IndexMonitor(Monitor):
 
     def getItemIndex(self):
 
-        attribute, indexName = self.args
-        return self.item.itsUUID, attribute, indexName
+        collectionName, indexName = self.args
+        return self.item.itsUUID, collectionName, indexName
 
     def __call__(self, op, item, attribute):
 
@@ -199,13 +215,14 @@ class IndexMonitor(Item):
             view._notifyChange(self, op, item, attribute)
 
         else:
-            attribute, indexName = self.args
-            collection = getattr(self.item, attribute, None)
+            collectionName, indexName = self.args
+            collection = getattr(self.item, collectionName, None)
 
             if collection is not None:
                 hook = getattr(type(self.item), 'onCollectionReindex', None)
                 if callable(hook):
-                    keys = hook(self.item, view, item, attribute, *self.args)
+                    keys = hook(self.item, view, item, attribute,
+                                collectionName, indexName)
                 else:
                     keys = None
 
@@ -239,10 +256,37 @@ class IndexMonitor(Item):
         if deferredKeys is not None:
             self.setPinned(False)
             del self.deferredKeys
-            attribute, indexName = self.args
-            collection = getattr(self.item, attribute, None)
+            collectionName, indexName = self.args
+            collection = getattr(self.item, collectionName, None)
             if collection is not None:
                 index = collection.getIndex(indexName)
                 index.validateIndex(True)
                 index.moveKeys(deferredKeys)
                 collection._setDirty(True)
+
+
+class FilterMonitor(Monitor):
+
+    def __call__(self, op, item, attribute):
+
+        if not (self.item._isNoDirty() or item.isDeleting()):
+            view = self.itsView
+
+            if view._isRecording():
+                view._notifyChange(self, op, item, attribute)
+
+            else:
+                collectionName, = self.args
+                collection = getattr(self.item, collectionName, None)
+
+                if collection is not None:
+                    collection.itemChanged(item.itsUUID, attribute)
+
+                    hook = getattr(type(self.item), 'onFilteredItemChange',
+                                   None)
+                    if callable(hook):
+                        keys = hook(self.item, view, item, attribute,
+                                    collectionName)
+                        if keys:
+                            for key in keys:
+                                collection.itemChanged(key, attribute)

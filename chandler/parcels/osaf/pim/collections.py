@@ -60,7 +60,7 @@ class IndexDefinition(schema.Item):
     @classmethod
     def makeIndexByName(cls, collection, indexName):
         """
-        Find the IndexDefintion with this name and use it to create an index
+        Find the IndexDefinition with this name and use it to create an index
         on this collection
         """
         allDefs = schema.ns("osaf.pim", collection.itsView).allIndexDefinitions
@@ -79,7 +79,8 @@ class IndexDefinition(schema.Item):
             # Create a subindex that inherits from the master
             contentItems = schema.ns("osaf.pim", self.itsView).contentItems
             collection.addIndex(self.itsName, 'subindex',
-                                superindex=(contentItems, contentItems.__collection__,
+                                superindex=(contentItems,
+                                            contentItems.__collection__,
                                             self.itsName))
         else:
             # Create a standalone index
@@ -156,14 +157,14 @@ class IndexDefinition(schema.Item):
                       for fetched in result)
                       
 
-
-class NumericIndexDefinition (IndexDefinition):
+class NumericIndexDefinition(IndexDefinition):
     """
     A class that allows you to build numeric indexes
     """
     def makeIndexOn(self, collection):
         """ Create the index we describe on this collection """
         collection.addIndex(self.itsName, 'numeric')
+
 
 class MethodIndexDefinition(IndexDefinition):
     """
@@ -234,7 +235,6 @@ class MethodIndexDefinition(IndexDefinition):
                                  for tuple in type(self).findValuePairs]
         return super(MethodIndexDefinition, self).__init__(*args, **kw)
 
-        
 
 class AttributeIndexDefinition(MethodIndexDefinition):
     """
@@ -369,8 +369,8 @@ class ContentCollection(ContentItem, Collection):
         """
         return self
 
-    def onCollectionReindex(self, view,
-                            item, attrName, collectionName, indexName):
+    def onCollectionReindex(self, view, item, attrName,
+                            collectionName, indexName):
         """
         A reindexing hook for returning extra keys to reindex.
 
@@ -388,6 +388,27 @@ class ContentCollection(ContentItem, Collection):
                 return [uMod for uMod in mods.iterkeys()
                         if (uMod in collection and
                             not view[uMod].hasLocalAttributeValue(attrName))]
+
+    def onFilteredItemChange(self, view, item, attrName,
+                             collectionName):
+        """
+        A filter hook for returning extra keys for membership changes.
+
+        Collection membership should not be checked in this hook as its
+        role is to return additional keys to consider for addition to or
+        removal from the collection.
+
+        @param view: the C{item}'s view.
+        @param item: the item that changed.
+        @param attrName: the name of the attribute that changed on C{item}.
+        @param collectionName: the attribute name of the collection.
+        @return: a C{list} of keys or C{None}.
+        """
+        collection = getattr(self, collectionName, None)
+        mods = item.itsRefs.get('inheritTo')
+        if mods:
+            return [uMod for uMod in mods.iterkeys()
+                    if not view[uMod].hasLocalAttributeValue(attrName)]
 
 
 class KindCollection(ContentCollection):

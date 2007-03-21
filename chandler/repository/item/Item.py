@@ -316,11 +316,6 @@ class Item(CItem):
 
         self.removeValue('freeValues', item, name)
 
-    def _filteredItemChanged(self, op, item, attribute, name):
-
-        if not (item.isDeleting() or self._isNoDirty()):
-            getattr(self, name).itemChanged(item.itsUUID, attribute)
-
     def _registerWatch(self, watchingItem, cls, key, *args):
 
         watchers = self.getValue('watchers', key, None, None)

@@ -77,8 +77,9 @@ class RepositoryView(CView):
     # 0.6.22: added support for 'inheritFrom' instance-specific inheritance
     # 0.6.23: added NilValue type for persisting Empty and Default
     # 0.6.24: monitor rework to support deferred re-indexing
+    # 0.6.25: monitor rework to support inheritance with filters
     
-    CORE_SCHEMA_VERSION = 0x00061800
+    CORE_SCHEMA_VERSION = 0x00061900
 
     def __init__(self, repository, name, version,
                  deferDelete=Default, pruneSize=Default):

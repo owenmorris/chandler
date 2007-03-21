@@ -1548,8 +1548,8 @@ class FilteredSet(Set):
                 if oldItem is not None:
                     if attrs:
                         def detach(op, name):
-                            Monitors.detach(oldItem, '_filteredItemChanged',
-                                            op, name, oldAttribute)
+                            Monitors.detachFilterMonitor(oldItem, op, name,
+                                                         oldAttribute)
                         for name in attrs:
                             detach('init', name)
                             detach('set', name)
@@ -1557,9 +1557,8 @@ class FilteredSet(Set):
                 if item is not None:
                     if attrs:
                         def attach(op, name):
-                            mon = Monitors.attach(item, '_filteredItemChanged',
-                                                  op, name, attribute)
-                            mon._status |= CItem.SYSMONITOR
+                            Monitors.attachFilterMonitor(item, op, name,
+                                                         attribute)
                         for name in attrs:
                             attach('init', name)
                             attach('set', name)
@@ -1619,7 +1618,7 @@ class ExpressionFilteredSet(FilteredSet):
         super(ExpressionFilteredSet, self).__init__(source, attrs, id)
 
         self.filterExpression = expr
-        self._filter = eval("lambda view, uuid: " + self.filterExpression)
+        self._filter = eval("lambda view, uuid: " + expr)
     
     def filter(self, uuid):
 
