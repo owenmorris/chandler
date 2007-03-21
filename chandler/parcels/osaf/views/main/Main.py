@@ -1192,6 +1192,7 @@ class MainView(View):
             except Exception, e:
                 logger.exception("Failed to dump file")
                 activity.failed(exception=e)
+                raise
             self.setStatusMessage(_(u'Items dumped'))
 
     def onReloadFromFileEvent(self, event):
@@ -1215,6 +1216,7 @@ class MainView(View):
             except Exception, e:
                 logger.exception("Failed to reload file")
                 activity.failed(exception=e)
+                raise
             self.setStatusMessage(_(u'Items reloaded'))
 
     def onAddScriptsToSidebarEvent(self, event):
