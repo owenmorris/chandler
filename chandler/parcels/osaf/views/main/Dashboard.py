@@ -17,6 +17,8 @@
 Stuff related to the dashboard
 """
 
+from __future__ import with_statement
+
 from application import schema
 from osaf import Preferences
 from osaf.framework.blocks import (Block, debugName, Table, 
@@ -106,28 +108,30 @@ class DashboardBlock(Table):
             _(u"Are you sure you want to reset the triage status of everything in this collection?"),
             _(u"Automatic triage"), wx.OK | wx.CANCEL | wx.ICON_HAND) != wx.OK:
             return        
-            
-        # triaging a recurring event can cause later keys to disappear from the
-        # collection, which upsets iterkeys, so wrap the iterator in a list
-        recurringEventsToHandle = set()
-        modificationForAttr = pim.EventStamp.modificationFor.name
-        for key in list(self.contents.iterkeys()):
-            master = self.itsView.findValue(key, modificationForAttr,
-                                            default=None)
-            if autoTriageToo \
-               or self.itsView.findValue(key, '_sectionTriageStatus', 
-                                         default=None) is not None:
-                item = self.itsView[key]
-                item.purgeSectionTriageStatus()
-                if autoTriageToo:
-                    if item.hasLocalAttributeValue('doAutoTriageOnDateChange'):
-                        del item.doAutoTriageOnDateChange
-                
-                    if master is None:
-                        item.setTriageStatus('auto')
-                    
-            if master is not None:
-                recurringEventsToHandle.add(master)
- 
-        for master in recurringEventsToHandle:
-            pim.EventStamp(master).updateTriageStatus(checkOccurrences=autoTriageToo)
+        
+        # Don't thrash all the indexes (until we're done, that is).
+        with self.itsView.observersDeferred():
+            with self.itsView.reindexingDeferred():
+                recurringEventsToHandle = set()
+                modificationForAttr = pim.EventStamp.modificationFor.name
+                for key in self.contents.iterkeys():
+                    master = self.itsView.findValue(key, modificationForAttr,
+                                                    default=None)
+                    if autoTriageToo \
+                       or self.itsView.findValue(key, '_sectionTriageStatus', 
+                                                 default=None) is not None:
+                        item = self.itsView[key]
+                        item.purgeSectionTriageStatus()
+                        if autoTriageToo:
+                            if item.hasLocalAttributeValue('doAutoTriageOnDateChange'):
+                                del item.doAutoTriageOnDateChange
+                        
+                            if master is None:
+                                item.setTriageStatus('auto')
+                            
+                    if master is not None:
+                        recurringEventsToHandle.add(master)
+         
+                for master in recurringEventsToHandle:
+                    pim.EventStamp(master).updateTriageStatus(checkOccurrences=autoTriageToo)
+
