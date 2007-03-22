@@ -90,7 +90,6 @@ class EIMICSInMemoryTestCase(testcase.DualRepositoryTestCase):
 
         view0 = self.views[0]
         coll0 = self.coll
-        self.assert_(not pim.has_stamp(coll0, sharing.SharedItem))
         conduit = recordset_conduit.InMemoryResourceRecordSetConduit(
             "conduit", itsView=view0,
             shareName="exportedCollection",
@@ -99,7 +98,6 @@ class EIMICSInMemoryTestCase(testcase.DualRepositoryTestCase):
         )
         self.share0 = sharing.Share("share", itsView=view0,
             contents=coll0, conduit=conduit)
-        self.assert_(pim.has_stamp(coll0, sharing.SharedItem))
 
 
         view1 = self.views[1]
