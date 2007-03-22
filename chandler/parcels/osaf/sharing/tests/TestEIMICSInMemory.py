@@ -64,14 +64,18 @@ class EIMICSInMemoryTestCase(testcase.DualRepositoryTestCase):
         self.coll = pim.ListCollection("testCollection", itsView=view,
             displayName="Test Collection")
 
-        tzinfo = ICUtzinfo.floating
 
-        titles = [(u"breakfast", datetime(2007, 3, 1, 10, 30, 0, 0, tzinfo))
+        pacific = ICUtzinfo.getInstance('America/Los_Angeles')
+
+        floating = ICUtzinfo.floating
+
+        titles = [(u"breakfast", datetime(2007, 3, 1, 10, 30, 0, 0, floating)),
+                  (u"dinner", datetime(2007, 3, 1, 18, 30, 0, 0, pacific))
                  ]
 
         self.uuids = { }
 
-        createdOn = datetime(2007, 3, 1, 10, 0, 0, 0, tzinfo)
+        createdOn = datetime(2007, 3, 1, 10, 0, 0, 0, floating)
         for title, dt in titles:
             event = pim.CalendarEvent(itsView=view)
             n = event.itsItem
@@ -130,7 +134,7 @@ class EIMICSInMemoryTestCase(testcase.DualRepositoryTestCase):
         self.share0.create()
         view0.commit(); stats = self.share0.sync(); view0.commit()
         self.assert_(checkStats(stats,
-            ({'added' : 1, 'modified' : 0, 'removed' : 0},)),
+            ({'added' : 2, 'modified' : 0, 'removed' : 0},)),
             "Sync operation mismatch")
         self.assert_(pim.has_stamp(coll0, sharing.SharedItem))
         self.assert_(pim.has_stamp(item, sharing.SharedItem))
@@ -147,7 +151,7 @@ class EIMICSInMemoryTestCase(testcase.DualRepositoryTestCase):
         ## Initial subscribe
         view1.commit(); stats = self.share1.sync(); view1.commit()
         self.assert_(checkStats(stats,
-            ({'added' : 1, 'modified' : 0, 'removed' : 0},
+            ({'added' : 2, 'modified' : 0, 'removed' : 0},
              {'added' : 0, 'modified' : 0, 'removed' : 0})),
             "Sync operation mismatch")
 

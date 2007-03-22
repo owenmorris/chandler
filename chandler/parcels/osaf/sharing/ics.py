@@ -65,6 +65,10 @@ def readEventRecord(eventRecordSet, vevents):
 
     # DTSTART is special, it has optional parameters, it can be parsed directly
     vevent.dtstart  = textLineToContentLine("DTSTART" + eventRecordSet.dtstart)
+    tzid = getattr(vevent.dtstart, 'tzid_param', None)
+    # add an appropriate tzinfo to vobject's tzid->tzinfo cache
+    if tzid is not None and vobject.icalendar.getTzid(tzid) is None:
+        vobject.icalendar.registerTzid(tzid, ICUtzinfo.getInstance(tzid))
 
     for name in ['duration', 'status', 'location']:
         eimValue = getattr(eventRecordSet, name)
@@ -79,13 +83,15 @@ def readEventRecord(eventRecordSet, vevents):
 
 def readNoteRecord(noteRecordSet, vevents):
     vevent = getVevent(noteRecordSet, vevents)
-    vevent.add('description').value = noteRecordSet.body
-    vevent.add('uid').value         = noteRecordSet.icalUid
+    if noteRecordSet.body is not None:
+        vevent.add('description').value = noteRecordSet.body
+    vevent.add('uid').value = noteRecordSet.icalUid
     # reminders?
 
 def readItemRecord(itemRecordSet, vevents):
     vevent = getVevent(itemRecordSet, vevents)
-    vevent.add('summary').value = itemRecordSet.title
+    if itemRecordSet.title is not None:
+        vevent.add('summary').value = itemRecordSet.title
 
 recordHandlers = {model.EventRecord : readEventRecord,
                   model.NoteRecord  : readNoteRecord,
@@ -106,7 +112,6 @@ class ICSSerializer(object):
         cal.vevent_list = vevent_mapping.values()
         # add x-wr-calname
         #handle icalproperties and icalparameters and Method (for outlook)
-
         return cal.serialize().encode('utf-8')
 
     @classmethod
