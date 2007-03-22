@@ -1635,7 +1635,7 @@ Issues:
 
     def isValid(self):
         """ See if this address looks valid. """
-        return isValidEmailAddress(unicode(self))
+        return EmailAddress.isValidEmailAddress(unicode(self))
 
     @classmethod
     def parseEmailAddresses(cls, view, addressesString):
