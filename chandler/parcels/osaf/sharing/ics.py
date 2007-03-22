@@ -70,10 +70,14 @@ def readEventRecord(eventRecordSet, vevents):
     if tzid is not None and vobject.icalendar.getTzid(tzid) is None:
         vobject.icalendar.registerTzid(tzid, ICUtzinfo.getInstance(tzid))
 
+    uppers = ['duration']
+
     for name in ['duration', 'status', 'location']:
         eimValue = getattr(eventRecordSet, name)
         if eimValue is not None:
             line = vevent.add(name)
+            if eimValue in uppers:
+                eimValue = eimValue.upper()
             line.value = eimValue
             line.isNative = False
     
