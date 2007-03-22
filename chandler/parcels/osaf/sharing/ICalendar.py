@@ -581,7 +581,7 @@ def _importOneVObject(vobj, filters, coerceTzinfo, promptForTimezone,
                 duration = oneDay
             else:
                 duration = datetime.timedelta(0)
-                        
+
         if isDate:
             dtstart = TimeZone.forceToDateTime(dtstart)
             # convert to Chandler's notion of all day duration
@@ -632,15 +632,21 @@ def _importOneVObject(vobj, filters, coerceTzinfo, promptForTimezone,
                     recurrenceID = convertToICUtzinfo(
                                        makeNaiveteMatch(recurrenceID,
                                        tzinfo), view)
-                    
-                event = EventStamp(item).getRecurrenceID(recurrenceID)
-                if event is None:
+                
+                masterEvent = EventStamp(item)    
+                event = masterEvent.getRecurrenceID(recurrenceID)
+                if event is None and hasattr(masterEvent, 'startTime'):
                     # Some calendars, notably Oracle, serialize
                     # recurrence-id as UTC, which wreaks havoc with 
                     # noTZ mode. So move recurrenceID to the same tzinfo
-                    # as dtstart, bug 6830
-                    tweakedID = recurrenceID.astimezone(ICUtzinfo.default)
-                    event = EventStamp(item).getRecurrenceID(tweakedID)
+                    # as the master's dtstart, bug 6830
+                    masterTzinfo = masterEvent.startTime.tzinfo
+                    tweakedID = recurrenceID.astimezone(masterTzinfo)
+                    event = masterEvent.getRecurrenceID(tweakedID)
+                if event is None:
+                    # just in case the previous didn't work
+                    tweakedID = recurrenceID.astimezone(tzinfo)
+                    event = masterEvent.getRecurrenceID(tweakedID)
                     
                 if event is None:
                     # our recurrenceID didn't match an item we know
