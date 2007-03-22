@@ -12,14 +12,14 @@
 #   See the License for the specific language governing permissions and
 #   limitations under the License.
 
-import os, sys
-import wx
+import os, sys, wx
 from i18n import ChandlerMessageFactory as _
 
 class ConflictDialog(wx.Dialog):
     def __init__(self, conflicts):
         self.conflicts = conflicts
-        wx.Dialog.__init__(self, None, -1, _(u'Pending Changes'), style=wx.DEFAULT_DIALOG_STYLE|wx.RESIZE_BORDER|wx.RESIZE_BOX)
+        wx.Dialog.__init__(self, None, -1, _(u'Pending Changes'),
+            style=wx.DEFAULT_DIALOG_STYLE|wx.RESIZE_BORDER|wx.RESIZE_BOX)
         headingFormat = _(u"There %s %d pending %s")
         areText = _("are")
         isText = _("is")
@@ -31,9 +31,22 @@ class ConflictDialog(wx.Dialog):
         else:
             headingText = headingFormat % (areText, conflictCount, changesText)
         heading = wx.StaticText(self, -1, headingText)
-        listBox = wx.ListBox(self, -1, choices=["%s: %s (%s)" % (x.field, x.value, x.peer) for x in conflicts])
-        changesText = wx.StaticText(self, -1, _(u"Changes will be applied in the order listed above.\n"
-        + "Item cannot be Updated or Synced until changes are applied or discarded"))
+        # Iterate over the items so as to be able to prepend the index.
+        # Otherwise we could use:
+        #   listBox = wx.ListBox(self, -1,
+        #       choices=["%s: %s (%s)" % (x.field, x.value, x.peer)
+        #           for x in conflicts])
+        i=1
+        itemList=[]
+        for c in conflicts:
+            itemList.append("%d. %s: %s (changed by %s)"
+                % (i, c.field.title(), c.value, c.peer))
+            i = i+1
+        listBox = wx.ListBox(self, -1, choices=itemList)
+        changesText = wx.StaticText(self, -1,
+            _(u"Changes will be applied in the order listed above.\n"
+            + "Item cannot be Updated or Synced "
+            + "until changes are applied or discarded"))
         applyButton = wx.Button(self, wx.ID_OK, _(u"Apply Changes"))
         discardButton = wx.Button(self, -1, _(u"Discard Changes"))
         laterButton = wx.Button(self, wx.ID_CANCEL, _(u"Decide Later"))
