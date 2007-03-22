@@ -46,9 +46,14 @@ HOST = 'http://flickr.com'
 API = '/services/rest'
 
 #set these here or using flickr.API_KEY in your application
-API_KEY = '831f4f96fa5bf41fb9ed1317174ebbbe'
+API_KEY = None
 email = None
 password = None
+
+def setLicense(api_key):
+    """set api key"""
+    global API_KEY
+    API_KEY = api_key
 
 class FlickrError(Exception): pass
 

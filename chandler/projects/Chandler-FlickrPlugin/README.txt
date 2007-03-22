@@ -1,4 +1,8 @@
-This plugin provides support for Flickr photo searches by user or tag in Chandler.
+This plugin provides support for Flickr photo searches in Chandler. 
+
+To download and install the plugin, use Chandler's InstallPlugin script::
+
+    InstallPlugin Chandler-FlickrPlugin
 
 If you want to work on its code, you can use::
 
@@ -28,3 +32,10 @@ proposal at:
 
  http://lists.osafoundation.org/pipermail/chandler-dev/2006-March/005552.html
 
+The svn sources for this plugin are at:
+
+ http://svn.osafoundation.org/chandler/trunk/chandler/projects/Chandler-FlickrPlugin#egg=Chandler_FlickrPlugin-dev
+
+and can be retrieved with::
+
+    RunPython -m easy_install --editable -b . Chandler_FlickrPlugin==dev

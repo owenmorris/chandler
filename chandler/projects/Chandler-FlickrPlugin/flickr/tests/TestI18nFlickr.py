@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-#   Copyright (c) 2004-2006 Open Source Applications Foundation
+#   Copyright (c) 2004-2007 Open Source Applications Foundation
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -16,11 +16,9 @@
 
 """ Unit test for flickr i18n I/O """
 
-import unittest
+import os, unittest
 from osaf.pim.tests import TestDomainModel
-import flickr
-import os
-
+from flickr import PhotoCollection, Tag, dialogs, flickr
 
 
 class TestI18nFlickr(TestDomainModel.DomainModelTestCase):
@@ -34,6 +32,7 @@ class TestI18nFlickr(TestDomainModel.DomainModelTestCase):
         self.loadParcel("flickr")
         self.view = self.rep.view
 
+        dialogs.LicenseTask(None).run()
 
     def testI18nOwner(self):
         #Ensure that "trünk"is the displayName for
@@ -72,18 +71,22 @@ class TestI18nFlickr(TestDomainModel.DomainModelTestCase):
 
         self.assertNotEquals(key, None)
 
-        p = flickr.PhotoCollection(itsView = self.view)
+        p = PhotoCollection(itsView = self.view)
 
         if username is not None:
             p.username = username
         elif tag is not None:
-            p.tag = flickr.Tag.getTag(self.view, tag)
+            p.tag = Tag.getTag(self.view, tag)
         else:
-            self.fail("A username or tag must be passed to the _testI18n method")
+            self.fail("A username or tag must be passed to _testI18n()")
 
-        col = p.fillCollectionFromFlickr(self.view)
-        self.assertTrue(self.hasKey(col, key))
-
+        try:
+            col = p.fillCollectionFromFlickr(self.view)
+        except flickr.FlickrError, e:
+            if "api key" not in e.args[0].lower():
+                raise
+        else:
+            self.assertTrue(self.hasKey(col, key))
 
     def hasKey(self, col, key):
         if col is None:

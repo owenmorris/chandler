@@ -34,15 +34,16 @@ class TestFlickr(ChandlerTestCase):
     #    User.emulate_typing("oscon2005")
     
         # this is what we do instead
-        repView = self.app_ns.itsView
+        view = self.app_ns.itsView
         # get a collection of photos from the oscon2005 tag
-        fc = flickr.PhotoCollection(itsView = repView)
-        fc.tag = flickr.Tag.getTag(repView, "oscon2005")
+        fc = flickr.PhotoCollection(itsView = view)
+        fc.tag = flickr.Tag.getTag(view, "oscon2005")
         fc.displayName = uw("oscon2005")
     
         self.logger.startAction('Get a flickr collection by tag')
         try:
-            fc.fillCollectionFromFlickr(repView)
+            fc.fillCollectionFromFlickr(view, 10,
+                                        '831f4f96fa5bf41fb9ed1317174ebbbe')
         except socket.timeout:
             self.logger.endAction(True, "Flickr timed out; skipping test")
         except IOError, e:
