@@ -46,9 +46,10 @@ class Collection(Item):
     def _collectionChanged(self, op, change, name, other):
 
         view = self.itsView
-        watchers = view._watchers.get(self.itsUUID)
-        if watchers and view.SUBSCRIBERS in watchers:
-            view.queueNotification(self, op, change, name, other)
+        if name == self.__collection__:
+            watchers = view._watchers.get(self.itsUUID)
+            if watchers and view.SUBSCRIBERS in watchers: 
+                view.queueNotification(self, op, change, name, other)
 
         super(Collection, self)._collectionChanged(op, change, name, other)
 
