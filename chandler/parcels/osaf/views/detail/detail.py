@@ -22,6 +22,7 @@ import sys
 import application
 import re
 from application import schema
+from application.dialogs import ConflictDialog
 from osaf import pim
 from osaf.framework.attributeEditors import \
      AttributeEditorMapping, DateTimeAttributeEditor, \
@@ -900,7 +901,7 @@ class ConflictWarning(DetailSynchronizer, ControlBlocks.Button):
             else:
                 widget.SetLabel(_(u'There is a pending change'))
         super(ConflictWarning, self).synchronizeWidget(useHints)
-    
+
     def hasConflicts(self):
         return sharing.hasConflicts(self.item)
 
@@ -909,35 +910,11 @@ class ConflictWarning(DetailSynchronizer, ControlBlocks.Button):
 
     def resolveConflict(self, event):
         # show the dialog here
-        dialog = ConflictDialog(self.getConflicts())
+        dialog = ConflictDialog.ConflictDialog(self.getConflicts())
         dialog.CenterOnScreen()
         dialog.ShowModal()
         dialog.Destroy()
-
-class ConflictDialog(wx.Dialog):
-    def __init__(self, conflicts):
-        self.conflicts = conflicts
-        wx.Dialog.__init__(self, None, -1, _(u'Conflicts'), size=(450, 100))
-        okButton = wx.Button(self, wx.ID_OK, _(u"Update"), pos=(15, 15))
-        okButton.SetDefault()
-        okButton.Bind(wx.EVT_BUTTON, self.onApplyUpdates)
-        cancelButton = wx.Button(self, wx.ID_CANCEL, _(u"Discard"), pos=(115, 15))
-        cancelButton.Bind(wx.EVT_BUTTON, self.onDiscardUpdates)
-        later = wx.Button(self, 100, _(u"Later"), pos=(215, 15))
-        later.Bind(wx.EVT_BUTTON, self.onLater)
-
-    def onApplyUpdates(self, event):
-        for c in self.conflicts:
-            c.apply()
-        self.Close()
-
-    def onDiscardUpdates(self, event):
-        for c in self.conflicts:
-            c.discard()
-        self.Close()
-
-    def onLater(self, event):
-        self.Close()
+        self.markDirty()
 
 # Classes to support CalendarEvent details - first, areas that show/hide
 # themselves based on readonlyness and attribute values

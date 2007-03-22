@@ -613,7 +613,6 @@ def makeMailArea(parcel, oldVersion):
             ]).install(parcel)
 
 def makeConflictBar(parcel, oldVersion):
-    blocks = schema.ns("osaf.framework.blocks", parcel.itsView)
     conflictButton = ConflictWarning.template('ConflictButton',
                                     title=u'',
                                     buttonKind='TextImage',

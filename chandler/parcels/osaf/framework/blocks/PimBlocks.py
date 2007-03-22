@@ -203,6 +203,10 @@ class FocusEventHandlers(Item):
             for item in selectedItems:
                 if has_stamp(item, sharing.SharedItem):
                     sharing.SharedItem(item).generateConflicts()
+                    detail = schema.ns("osaf.views.detail", self.itsView)
+                    assert detail is not None
+                    detail.ConflictButton.markDirty()
+                    detail.ConflictButton.synchronizeWidget()
 
     def onCreateConflictEventUpdateUI(self, event):
         selectedItems = self.__getSelectedItems()
