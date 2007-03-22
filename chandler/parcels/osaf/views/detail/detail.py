@@ -873,6 +873,11 @@ class TaskAreaBlock(StampConditionalArea, DetailSynchronizedContentItemDetail):
 
 # Area that shows/hides itself based on the presence/absence of sharing conflicts
 class ConflictWarning(DetailSynchronizer, ControlBlocks.Button):
+    def getWatchList(self):
+        watchList = super(DetailSynchronizer, self).getWatchList()
+        watchList.append((self.item, sharing.SharedItem.conflictingStates.name))
+        return watchList
+
     def shouldShow(self, item):
         superShouldShow = super(ConflictWarning, self).shouldShow(item)
         isShowable = False
