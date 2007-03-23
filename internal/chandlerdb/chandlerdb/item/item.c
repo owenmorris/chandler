@@ -100,6 +100,7 @@ static PyObject *filterItem_NAME;
 static PyObject *_setItem_NAME;
 static PyObject *getAttributeValue_NAME;
 static PyObject *_addItem_NAME;
+static PyObject *invokeAfterChange_NAME;
 
 /* NULL docstrings are set in chandlerdb/__init__.py
  * "" docstrings are missing docstrings
@@ -911,26 +912,41 @@ static PyObject *_t_item__fireChanges(t_item *self,
                 return NULL;
         }
 
-        if (view->status & DEFEROBS)
+        if (attr->flags & AFTERCHANGE)
         {
-            PyObject *call = NULL;
-
-            if (view->status & DEFEROBSA)
+            if (view->status & DEFERNOTIF)
             {
-                call = PyTuple_Pack(4, attr, self, op, name);
-                PyList_Append(view->deferredObserversCtx->data, call);
-            }
-            else if (view->status & DEFEROBSD)
-            {
-                call = PyTuple_Pack(3, attr, self, name);
-                PyDict_SetItem(view->deferredObserversCtx->data, call, op);
-            }
+                PyObject *args = PyTuple_Pack(3, self, op, name);
+                PyObject *method = PyObject_GetAttr((PyObject *) attr,
+                                                    invokeAfterChange_NAME);
+                PyObject *notif = PyTuple_Pack(3, method, args, Py_None);
 
-            Py_XDECREF(call);
+                PyList_Append(view->deferredNotificationsCtx->data, notif);
+                Py_DECREF(notif);
+                Py_DECREF(method);
+                Py_DECREF(args);
+            }
+            else if (view->status & DEFEROBS)
+            {
+                PyObject *call = NULL;
+
+                if (view->status & DEFEROBSA)
+                {
+                    call = PyTuple_Pack(4, attr, self, op, name);
+                    PyList_Append(view->deferredObserversCtx->data, call);
+                }
+                else if (view->status & DEFEROBSD)
+                {
+                    call = PyTuple_Pack(3, attr, self, name);
+                    PyDict_SetItem(view->deferredObserversCtx->data, call, op);
+                }
+
+                Py_XDECREF(call);
+            }
+            else if (CAttribute_invokeAfterChange(attr, (PyObject *) self,
+                                                  op, name) < 0)
+                return NULL;
         }
-        else if (CAttribute_invokeAfterChange(attr, (PyObject *) self,
-                                              op, name) < 0)
-            return NULL;
     }
 
     /* during SYSMONONLY only sys monitors fire */
@@ -1199,7 +1215,8 @@ static PyObject *t_item_setDirty(t_item *self, PyObject *args)
 
 static int invokeWatchers(PyObject *dispatch, PyObject *name,
                           PyObject *op, PyObject *change,
-                          PyObject *item, PyObject *other)
+                          PyObject *item, PyObject *other,
+                          t_view *view)
 {
     PyObject *watchers = PyObject_GetItem(dispatch, name);
 
@@ -1212,18 +1229,33 @@ static int invokeWatchers(PyObject *dispatch, PyObject *name,
         {
             PyObject *watcher;
 
-            while ((watcher = PyIter_Next(iter))) {
-                PyObject *args = PyTuple_Pack(5, op, change, item, name, other);
-                PyObject *obj = PyObject_Call(watcher, args, NULL);
+            if (view->status & DEFERNOTIF)
+                while ((watcher = PyIter_Next(iter))) {
+                    PyObject *args =
+                        PyTuple_Pack(5, op, change, item, name, other);
+                    PyObject *notif =
+                        PyTuple_Pack(3, watcher, args, Py_None);
 
-                Py_DECREF(args);
-                Py_DECREF(watcher);
-                if (!obj)
-                    break;
-                Py_DECREF(obj);
-            }
+                    PyList_Append(view->deferredNotificationsCtx->data, notif);
+                    Py_DECREF(notif);
+                    Py_DECREF(args);
+                    Py_DECREF(watcher);
+                }
+            else
+                while ((watcher = PyIter_Next(iter))) {
+                    PyObject *args =
+                        PyTuple_Pack(5, op, change, item, name, other);
+                    PyObject *result =
+                        PyObject_Call(watcher, args, NULL);
+
+                    Py_DECREF(args);
+                    Py_DECREF(watcher);
+                    if (!result)
+                        break;
+                    Py_DECREF(result);
+                }
+
             Py_DECREF(iter);
-
             if (PyErr_Occurred())
                 return -1;
         }
@@ -1248,7 +1280,7 @@ static PyObject *t_item__collectionChanged(t_item *self, PyObject *args)
     dispatch = PyDict_GetItem(self->references->dict, watchers_NAME);
     if (dispatch && PySequence_Contains(dispatch, name))
         if (invokeWatchers(dispatch, name, op, change,
-                           (PyObject *) self, other) < 0)
+                           (PyObject *) self, other, view) < 0)
             return NULL;
 
     if (view->watchers)
@@ -1257,7 +1289,7 @@ static PyObject *t_item__collectionChanged(t_item *self, PyObject *args)
 
         if (dispatch && PySequence_Contains(dispatch, name))
             if (invokeWatchers(dispatch, name, op, change,
-                               (PyObject *) self, other) < 0)
+                               (PyObject *) self, other, view) < 0)
                 return NULL;
     }
 
@@ -1265,7 +1297,7 @@ static PyObject *t_item__collectionChanged(t_item *self, PyObject *args)
 }
 
 static int invokeItemWatchers(PyObject *dispatch, PyObject *uItem,
-                              PyObject *op, PyObject *names)
+                              PyObject *op, PyObject *names, t_view *view)
 {
     PyObject *watchers = PyObject_GetItem(dispatch, uItem);
 
@@ -1278,16 +1310,28 @@ static int invokeItemWatchers(PyObject *dispatch, PyObject *uItem,
         {
             PyObject *watcher;
 
-            while ((watcher = PyIter_Next(iter))) {
-                PyObject *args = PyTuple_Pack(3, op, uItem, names);
-                PyObject *obj = PyObject_Call(watcher, args, NULL);
+            if (view->status & DEFERNOTIF)
+                while ((watcher = PyIter_Next(iter))) {
+                    PyObject *args = PyTuple_Pack(3, op, uItem, names);
+                    PyObject *notif = PyTuple_Pack(3, watcher, args, Py_None);
 
-                Py_DECREF(args);
-                Py_DECREF(watcher);
-                if (!obj)
-                    break;
-                Py_DECREF(obj);
-            }
+                    PyList_Append(view->deferredNotificationsCtx->data, notif);
+                    Py_DECREF(notif);
+                    Py_DECREF(args);
+                    Py_DECREF(watcher);
+                }
+            else
+                while ((watcher = PyIter_Next(iter))) {
+                    PyObject *args = PyTuple_Pack(3, op, uItem, names);
+                    PyObject *result = PyObject_Call(watcher, args, NULL);
+
+                    Py_DECREF(args);
+                    Py_DECREF(watcher);
+                    if (!result)
+                        break;
+                    Py_DECREF(result);
+                }
+
             Py_DECREF(iter);
 
             if (PyErr_Occurred())
@@ -1305,11 +1349,13 @@ static int _t_item__itemChanged(t_item *self, PyObject *op, PyObject *names)
 
     if (self->status & P_WATCHED)
     {
+        t_view *view = (t_view *) self->ref->view;
         PyObject *dispatch = PyDict_GetItem(self->references->dict,
                                             watchers_NAME);
 
         if (dispatch && PySequence_Contains(dispatch, self->ref->uuid))
-            return invokeItemWatchers(dispatch, self->ref->uuid, op, names);
+            return invokeItemWatchers(dispatch, self->ref->uuid, op, names,
+                                      view);
     }
 
     if (self->status & T_WATCHED)
@@ -1322,7 +1368,8 @@ static int _t_item__itemChanged(t_item *self, PyObject *op, PyObject *names)
                                                 self->ref->uuid);
 
             if (dispatch && PySequence_Contains(dispatch, self->ref->uuid))
-                return invokeItemWatchers(dispatch, self->ref->uuid, op, names);
+                return invokeItemWatchers(dispatch, self->ref->uuid, op, names,
+                                          view);
         }
     }
 
@@ -1708,6 +1755,7 @@ void _init_item(PyObject *m)
             _setItem_NAME = PyString_FromString("_setItem");
             getAttributeValue_NAME = PyString_FromString("getAttributeValue");
             _addItem_NAME = PyString_FromString("_addItem");
+            invokeAfterChange_NAME = PyString_FromString("invokeAfterChange");
         }
     }
 }

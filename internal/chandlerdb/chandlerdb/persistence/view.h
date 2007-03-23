@@ -28,7 +28,6 @@ typedef struct {
     PyObject_HEAD
     Item_HEAD
     PyObject *repository;
-    PyObject *changeNotifications;
     PyObject *registry;
     PyObject *refRegistry;
     PyObject *deletedRegistry;
@@ -41,6 +40,7 @@ typedef struct {
     PyObject *deferredDeletes;
     t_ctxmgr *deferredIndexingCtx;
     t_ctxmgr *deferredObserversCtx;
+    t_ctxmgr *deferredNotificationsCtx;
     int refreshErrors;
 } t_view;
 
@@ -50,7 +50,7 @@ enum {
     LOADING    = 0x00000004,
     COMMITTING = 0x00000008,
     /* FDIRTY  = 0x00000010, from CItem */
-    RECORDING  = 0x00000020,
+    DEFERNOTIF = 0x00000020,  /* defer all change notifications */
     MONITORING = 0x00000040,
     /* STALE   = 0x00000080, from CItem */
     REFRESHING = 0x00000100,

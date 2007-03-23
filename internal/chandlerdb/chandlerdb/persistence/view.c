@@ -30,7 +30,6 @@ static PyObject *t_view_repr(t_view *self);
 static PyObject *t_view__isRepository(t_view *self);
 static PyObject *t_view__isView(t_view *self);
 static PyObject *t_view__isItem(t_view *self);
-static PyObject *t_view__isRecording(t_view *self);
 static PyObject *t_view_isNew(t_view *self);
 static PyObject *t_view_isStale(t_view *self);
 static PyObject *t_view_isRefCounted(t_view *self);
@@ -69,6 +68,9 @@ static PyObject *t_view_isReindexingDeferred(t_view *self);
 static PyObject *t_view_reindexingDeferred(t_view *self);
 static PyObject *t_view_areObserversDeferred(t_view *self);
 static PyObject *t_view_observersDeferred(t_view *self, PyObject *args);
+static PyObject *t_view_areNotificationsDeferred(t_view *self);
+static PyObject *t_view_notificationsDeferred(t_view *self, PyObject *args);
+static PyObject *t_view_cancelDeferredNotifications(t_view *self);
 
 static Py_ssize_t t_view_dict_length(t_view *self);
 static PyObject *t_view_dict_get(t_view *self, PyObject *key);
@@ -90,8 +92,6 @@ static PyMemberDef t_view_members[] = {
     { "repository", T_OBJECT, offsetof(t_view, repository),
       0, "view repository" },
     { "name", T_OBJECT, offsetof(t_view, name), 0, "view name" },
-    { "_changeNotifications", T_OBJECT, offsetof(t_view, changeNotifications),
-      0, "" },
     { "_registry", T_OBJECT, offsetof(t_view, registry), 0, "" },
     { "_refRegistry", T_OBJECT, offsetof(t_view, refRegistry), 0, "" },
     { "_deletedRegistry", T_OBJECT, offsetof(t_view, deletedRegistry), 0, "" },
@@ -100,6 +100,9 @@ static PyMemberDef t_view_members[] = {
     { "_watchers", T_OBJECT, offsetof(t_view, watchers), 0, "" },
     { "_debugOn", T_OBJECT, offsetof(t_view, debugOn), 0, "" },
     { "_deferredDeletes", T_OBJECT, offsetof(t_view, deferredDeletes), 0, "" },
+    { "_deferredIndexingCtx", T_OBJECT, offsetof(t_view, deferredIndexingCtx), READONLY, "" },
+    { "_deferredObserversCtx", T_OBJECT, offsetof(t_view, deferredObserversCtx), READONLY, "" },
+    { "_deferredNotificationsCtx", T_OBJECT, offsetof(t_view, deferredNotificationsCtx), READONLY, "" },
     { "refreshErrors", T_UINT, offsetof(t_view, refreshErrors), 0, "" },
     { NULL, 0, 0, 0, NULL }
 };
@@ -108,7 +111,6 @@ static PyMethodDef t_view_methods[] = {
     { "_isRepository", (PyCFunction) t_view__isRepository, METH_NOARGS, "" },
     { "_isView", (PyCFunction) t_view__isView, METH_NOARGS, "" },
     { "_isItem", (PyCFunction) t_view__isItem, METH_NOARGS, "" },
-    { "_isRecording", (PyCFunction) t_view__isRecording, METH_NOARGS, "" },
     { "isView", (PyCFunction) t_view_isNew, METH_NOARGS, "" },
     { "isStale", (PyCFunction) t_view_isStale, METH_NOARGS, "" },
     { "isRefCounted", (PyCFunction) t_view_isRefCounted, METH_NOARGS, "" },
@@ -136,6 +138,9 @@ static PyMethodDef t_view_methods[] = {
     { "reindexingDeferred", (PyCFunction) t_view_reindexingDeferred, METH_NOARGS, "" },
     { "areObserversDeferred", (PyCFunction) t_view_areObserversDeferred, METH_NOARGS, "" },
     { "observersDeferred", (PyCFunction) t_view_observersDeferred, METH_VARARGS, "" },
+    { "areNotificationsDeferred", (PyCFunction) t_view_areNotificationsDeferred, METH_VARARGS, "" },
+    { "notificationsDeferred", (PyCFunction) t_view_notificationsDeferred, METH_VARARGS, "" },
+    { "cancelDeferredNotifications", (PyCFunction) t_view_cancelDeferredNotifications, METH_NOARGS, "" },
     { NULL, NULL, 0, NULL }
 };
 
@@ -222,7 +227,6 @@ static int t_view_traverse(t_view *self, visitproc visit, void *arg)
 {
     Py_VISIT(self->name);
     Py_VISIT(self->repository);
-    Py_VISIT(self->changeNotifications);
     Py_VISIT(self->registry);
     Py_VISIT(self->refRegistry);
     Py_VISIT(self->deletedRegistry);
@@ -234,6 +238,7 @@ static int t_view_traverse(t_view *self, visitproc visit, void *arg)
     Py_VISIT(self->debugOn);
     Py_VISIT(self->deferredDeletes);
     Py_VISIT(self->deferredIndexingCtx);
+    Py_VISIT(self->deferredNotificationsCtx);
 
     return 0;
 }
@@ -242,7 +247,6 @@ static int t_view_clear(t_view *self)
 {
     Py_CLEAR(self->name);
     Py_CLEAR(self->repository);
-    Py_CLEAR(self->changeNotifications);
     Py_CLEAR(self->registry);
     Py_CLEAR(self->refRegistry);
     Py_CLEAR(self->deletedRegistry);
@@ -254,6 +258,7 @@ static int t_view_clear(t_view *self)
     Py_CLEAR(self->debugOn);
     Py_CLEAR(self->deferredDeletes);
     Py_CLEAR(self->deferredIndexingCtx);
+    Py_CLEAR(self->deferredNotificationsCtx);
 
     return 0;
 }
@@ -283,7 +288,6 @@ static int t_view_init(t_view *self, PyObject *args, PyObject *kwds)
     self->version = 0;
     Py_INCREF(name); self->name = name;
     Py_INCREF(repository); self->repository = repository;
-    Py_INCREF(Py_None); self->changeNotifications = Py_None;
     self->registry = NULL;
     self->refRegistry = NULL;
     self->deletedRegistry = NULL;
@@ -328,14 +332,6 @@ static PyObject *t_view__isView(t_view *self)
 static PyObject *t_view__isItem(t_view *self)
 {
     Py_RETURN_FALSE;
-}
-
-static PyObject *t_view__isRecording(t_view *self)
-{
-    if (self->status & RECORDING)
-        Py_RETURN_TRUE;
-    else
-        Py_RETURN_FALSE;
 }
 
 static PyObject *t_view_isNew(t_view *self)
@@ -556,33 +552,29 @@ static PyObject *t_view__notifyChange(t_view *self, PyObject *args,
 {
     PyObject *callable = PyTuple_GetItem(args, 0); /* borrowed */
     PyObject *callArgs = PyTuple_GetSlice(args, 1, PyTuple_GET_SIZE(args));
-    int ok;
 
-    if (self->status & RECORDING)
+    if (self->status & DEFERNOTIF)
     {
-        int noKwds = kwds == NULL;
-        PyObject *tuple;
+        PyObject *notif = PyTuple_Pack(3, callable, callArgs,
+                                       kwds ? kwds : Py_None);
 
-        if (noKwds)
-            kwds = PyDict_New();
-
-        tuple = PyTuple_Pack(3, callable, callArgs, kwds);
-        ok = PyList_Append(self->changeNotifications, tuple) == 0;
-
-        if (noKwds) {
-            Py_DECREF(kwds);
-        }
-        Py_DECREF(tuple);
+        PyList_Append(self->deferredNotificationsCtx->data, notif) == 0;
+        Py_DECREF(notif);
     }
     else
-        ok = PyObject_Call(callable, callArgs, kwds) != NULL;
+    {
+        PyObject *result = PyObject_Call(callable, callArgs, kwds);
+
+        if (!result)
+        {
+            Py_DECREF(callArgs);
+            return NULL;
+        }
+        Py_DECREF(result);
+    }
 
     Py_DECREF(callArgs);
-
-    if (ok)
-        Py_RETURN_NONE;
-    else
-        return NULL;
+    Py_RETURN_NONE;
 }
 
 
@@ -896,7 +888,6 @@ static PyObject *_t_view_invokeMonitors(t_view *self, PyObject *args,
 
         for (i = 0; i < size; i++) {
             t_item *monitor = (t_item *) PyList_GetItem(monitors, i);
-            PyObject *result;
 
             if (monitor->status & (DEFERRING | DELETING))
                 continue;
@@ -906,20 +897,31 @@ static PyObject *_t_view_invokeMonitors(t_view *self, PyObject *args,
             if (userOnly && (monitor->status & SYSMONITOR))
                 continue;
 
-            result = PyObject_Call((PyObject *) monitor, args, NULL);
-            if (result == NULL)
+            if (self->status & DEFERNOTIF)
             {
-                Py_DECREF(args);
-                return NULL;
-            }
+                PyObject *notif = PyTuple_Pack(3, monitor, args, Py_None);
 
-            if (!(self->status & RECORDING) &&
-                self->status & DEFERIDX && monitor->status & IDXMONITOR &&
-                PySet_Add(self->deferredIndexingCtx->data,
-                          (PyObject *) monitor) < 0)
+                PyList_Append(self->deferredNotificationsCtx->data, notif);
+                Py_DECREF(notif);
+            }
+            else
             {
-                Py_DECREF(args);
-                return NULL;
+                PyObject *result = PyObject_Call((PyObject *) monitor,
+                                                 args, NULL);
+                if (!result)
+                {
+                    Py_DECREF(args);
+                    return NULL;
+                }
+                Py_DECREF(result);
+
+                if (self->status & DEFERIDX && monitor->status & IDXMONITOR &&
+                    PySet_Add(self->deferredIndexingCtx->data,
+                              (PyObject *) monitor) < 0)
+                {
+                    Py_DECREF(args);
+                    return NULL;
+                }
             }
         }
     }
@@ -1276,6 +1278,129 @@ static PyObject *t_view_observersDeferred(t_view *self, PyObject *args)
 }
 
 
+/* with view.notificationsDeferred() */
+
+static PyObject *_t_view_defernotif__enter(PyObject *target, t_ctxmgr *mgr)
+{
+    t_view *self = (t_view *) target;
+
+    if (self->deferredNotificationsCtx != mgr)
+    {
+        PyErr_SetString(PyExc_ValueError, "Invalid CtxMgr target");
+        return NULL;
+    }
+
+    if (mgr->count == 0)
+    {
+        mgr->data = PyList_New(0);
+        self->status |= DEFERNOTIF;
+    }
+    mgr->count += 1;
+
+    return PyInt_FromLong(mgr->count);
+}
+
+static PyObject *_t_view_defernotif__exit(PyObject *target, t_ctxmgr *mgr,
+                                          PyObject *type, PyObject *value,
+                                          PyObject *traceback)
+{
+    t_view *self = (t_view *) target;
+
+    if (self->deferredNotificationsCtx != mgr)
+    {
+        PyErr_SetString(PyExc_ValueError, "Invalid CtxMgr target");
+        return NULL;
+    }
+
+    if (mgr->count > 0)
+        mgr->count -= 1;
+    
+    if (mgr->count == 0)
+    {
+        PyObject *notifs = self->deferredNotificationsCtx->data;
+        int status = self->status;
+
+        Py_INCREF(notifs);
+        self->status &= ~DEFERNOTIF;
+        Py_CLEAR(self->deferredNotificationsCtx);
+
+        if (status & DEFERNOTIF)
+        {
+            int i = -1, size = PyList_GET_SIZE(notifs);
+
+            while (++i < size) {
+                PyObject *notif = PyList_GET_ITEM(notifs, i);
+                PyObject *callable = PyTuple_GET_ITEM(notif, 0);
+                PyObject *args = PyTuple_GET_ITEM(notif, 1);
+                PyObject *kwds = PyTuple_GET_ITEM(notif, 2);
+                PyObject *result = PyObject_Call(callable, args,
+                                                 kwds == Py_None ? NULL : kwds);
+
+                if (!result)
+                    break;
+                Py_DECREF(result);
+            }
+        }
+
+        Py_DECREF(notifs);
+        if (PyErr_Occurred())
+            return NULL;
+    }
+
+    if (type != Py_None)
+        Py_RETURN_FALSE;
+
+    Py_RETURN_TRUE;
+}
+
+static PyObject *t_view_areNotificationsDeferred(t_view *self)
+{
+    if (self->status & DEFERNOTIF)
+        Py_RETURN_TRUE;
+
+    Py_RETURN_FALSE;
+}
+
+static PyObject *t_view_notificationsDeferred(t_view *self, PyObject *args)
+{
+    if (self->deferredNotificationsCtx)
+    {
+        Py_INCREF(self->deferredNotificationsCtx);
+        return (PyObject *) self->deferredNotificationsCtx;
+    }
+    else
+    {
+        PyObject *noArgs = PyTuple_New(0);
+        t_ctxmgr *ctxmgr = (t_ctxmgr *) PyObject_Call((PyObject *) CtxMgr,
+                                                      noArgs, NULL);
+        
+        Py_DECREF(noArgs);
+        if (ctxmgr)
+        {
+            ctxmgr->target = (PyObject *) self; Py_INCREF(self);
+            ctxmgr->enterFn = _t_view_defernotif__enter;
+            ctxmgr->exitFn = _t_view_defernotif__exit;
+            self->deferredNotificationsCtx = ctxmgr; Py_INCREF(ctxmgr);
+        }
+
+        return (PyObject *) ctxmgr;
+    }
+}
+
+static PyObject *t_view_cancelDeferredNotifications(t_view *self)
+{
+    if (self->deferredNotificationsCtx)
+    {
+        PyObject *list = self->deferredNotificationsCtx->data;
+ 
+        PyList_SetSlice(list, 0, PyList_GET_SIZE(list), NULL);
+        Py_RETURN_TRUE;
+    }
+
+    Py_RETURN_FALSE;
+}
+
+
 void _init_view(PyObject *m)
 {
     if (PyType_Ready(&ViewType) >= 0)
@@ -1295,7 +1420,7 @@ void _init_view(PyObject *m)
             PyDict_SetItemString_Int(dict, "COMMITTING", COMMITTING);
             PyDict_SetItemString_Int(dict, "DEFERDEL", DEFERDEL);
             PyDict_SetItemString_Int(dict, "FDIRTY", FDIRTY);
-            PyDict_SetItemString_Int(dict, "RECORDING", RECORDING);
+            PyDict_SetItemString_Int(dict, "DEFERNOTIF", DEFERNOTIF);
             PyDict_SetItemString_Int(dict, "REFRESHING", REFRESHING);
             PyDict_SetItemString_Int(dict, "VERIFY", VERIFY);
             PyDict_SetItemString_Int(dict, "COMMITREQ", COMMITREQ);
