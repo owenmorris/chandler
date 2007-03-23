@@ -33,7 +33,7 @@ class NotifyHandler(schema.Item):
 
         # skip 'changed' entries unless we are looking for changes
         # this is due to mixing of _dispatchChanges in
-        # view.dispatchNotifcations()
+        # view.dispatchQueuedNotifcations()
         for i in range(-1, -(len(self.log)+1), -1):
             rec = self.log[i]
             if op != 'changed' and rec[0] == 'changed':
@@ -134,18 +134,18 @@ class CollectionTests(CollectionTestCase):
 
         # add i to b1
         self.b1.add(self.i)
-        self.view.dispatchNotifications()
+        self.view.dispatchQueuedNotifications()
         self.failUnless(self.nh.checkLog("add", self.b1, self.i))
 
         # add i1 to b2
         self.b2.add(self.i1)
-        self.view.dispatchNotifications()
+        self.view.dispatchQueuedNotifications()
         self.failIf(self.nh.checkLog("add", self.b2, self.i1))
         self.failUnless(self.nh1.checkLog("add", u, self.i1,))
 
         # remove i from b1
         self.b1.remove(self.i)
-        self.view.dispatchNotifications()
+        self.view.dispatchQueuedNotifications()
         self.failIf(self.nh.checkLog("remove", self.b1, self.i1))
         self.failIf(self.nh.checkLog("remove", u, self.i1))        
 
@@ -165,17 +165,17 @@ class CollectionTests(CollectionTestCase):
         self.view.watchCollectionQueue(self.nh2, self.b2, 'queuedChange')
 
         u.addSource(self.b1)
-        self.view.dispatchNotifications()
+        self.view.dispatchQueuedNotifications()
         self.failUnless(self.nh.checkLog("add",u,self.i.itsUUID))
 
         print [ i for i in u ]
         u.addSource(self.b2)
-        self.view.dispatchNotifications()
+        self.view.dispatchQueuedNotifications()
         self.failUnless(self.nh.checkLog("add",u,self.i1.itsUUID))
 
         print [ i for i in u ]
         u.removeSource(self.b2)
-        self.view.dispatchNotifications()
+        self.view.dispatchQueuedNotifications()
         self.failUnless(self.nh.checkLog("remove",u,self.i1.itsUUID))
 
         print [ i for i in u ]
@@ -190,24 +190,24 @@ class CollectionTests(CollectionTestCase):
         self.view.watchCollectionQueue(self.nh1, d, 'queuedChange')
 
         self.b1.add(self.i)
-        self.view.dispatchNotifications()      
+        self.view.dispatchQueuedNotifications()      
         self.failUnless(self.nh.checkLog("add", self.b1, self.i))
         self.failUnless(self.nh1.checkLog("add", d, self.i))
 
         self.b1.add(self.i1)
-        self.view.dispatchNotifications()
+        self.view.dispatchQueuedNotifications()
         self.failUnless(self.nh.checkLog("add", self.b1, self.i1))
         self.failUnless(self.nh1.checkLog("add", d, self.i1))
 
         self.view.watchCollectionQueue(self.nh2, self.b2, 'queuedChange')
         self.b2.add(self.i2)
-        self.view.dispatchNotifications()
+        self.view.dispatchQueuedNotifications()
         self.failUnless(self.nh2.checkLog("add", self.b2, self.i2))
         self.failIf(self.nh1.checkLog("add", d, self.i2))
         self.failIf(self.nh1.checkLog("remove", d, self.i2))
 
         self.b2.add(self.i)
-        self.view.dispatchNotifications()
+        self.view.dispatchQueuedNotifications()
         self.failUnless(self.nh2.checkLog("add", self.b2, self.i))
         self.failUnless(self.nh1.checkLog("remove", d, self.i))
 
@@ -232,29 +232,29 @@ class CollectionTests(CollectionTestCase):
         self.view.watchCollectionQueue(nh3, ic, 'queuedChange')
 
         inclusions.add(self.i)
-        self.view.dispatchNotifications()
+        self.view.dispatchQueuedNotifications()
         self.failUnless(self.nh.checkLog("add", inclusions, self.i))
         self.failIf(nh3.checkLog("add", ic, self.i))
 
         it = OtherSimpleItem(itsView=self.view)
         inclusions.add(it)
-        self.view.dispatchNotifications()
+        self.view.dispatchQueuedNotifications()
         self.failUnless(self.nh.checkLog("add", inclusions, it))
         self.failUnless(nh3.checkLog("add", ic, it))
 
         nancy = SimpleItem("nancy", label=uw("nancy"), itsView=self.view)
-        self.view.dispatchNotifications()
+        self.view.dispatchQueuedNotifications()
         self.failUnless(self.nh1.checkLog("add", rule, nancy))
         self.assertEqual(len(list(rule)), 4)
         self.assertEqual(len(list(ic)), 5)
 
         exclusions.add(self.i2)
-        self.view.dispatchNotifications()
+        self.view.dispatchQueuedNotifications()
         self.failUnless(self.nh2.checkLog("add", exclusions, self.i2))
         self.failUnless(nh3.checkLog("remove", ic, self.i2))
 
         exclusions.remove(self.i2)
-        self.view.dispatchNotifications()
+        self.view.dispatchQueuedNotifications()
         self.failUnless(self.nh2.checkLog("remove", exclusions, self.i2))
         self.failUnless(nh3.checkLog("add", ic, self.i2))
 
@@ -273,12 +273,12 @@ class CollectionTests(CollectionTestCase):
         self.view.watchCollectionQueue(self.nh, k2, 'queuedChange')
 
         i = SimpleItem("new i", itsView=self.view)
-        self.view.dispatchNotifications()       
+        self.view.dispatchQueuedNotifications()       
         self.failUnless(self.nh.checkLog("add", k2, i))
 
         i.delete()
         # note deleting an item Nulls references to it.
-        self.view.dispatchNotifications()
+        self.view.dispatchQueuedNotifications()
         self.failUnless(self.nh.checkLog("remove", k2, i.itsUUID))
 
     def testRecursiveKindCollection(self):
@@ -293,7 +293,7 @@ class CollectionTests(CollectionTestCase):
         i1 = ChildSimpleItem("new child", itsView=self.view)
 
         flags = [isinstance(i,SimpleItem) for i in k ]
-        self.view.dispatchNotifications()
+        self.view.dispatchQueuedNotifications()
         self.failUnless(False not in flags)
 
     def testFilteredCollection(self):
@@ -305,18 +305,18 @@ class CollectionTests(CollectionTestCase):
         self.view.watchCollectionQueue(self.nh1, f1, 'queuedChange')
 
         self.b1.add(self.i)
-        self.view.dispatchNotifications()
+        self.view.dispatchQueuedNotifications()
         self.failUnless(self.nh.checkLog("add", self.b1, self.i))
         self.failIf(self.nh1.checkLog("add", f1, self.i))
 
         self.b1.add(self.i2)
-        self.view.dispatchNotifications()
+        self.view.dispatchQueuedNotifications()
         self.failUnless(self.nh.checkLog("add", self.b1, self.i2))
         self.failIf(self.nh1.checkLog("add", f1, self.i2))
 
         ted = SimpleItem("ted", label=uw("ted"), itsView=self.view)
         self.b1.add(ted)
-        self.view.dispatchNotifications()
+        self.view.dispatchQueuedNotifications()
         self.failUnless(self.nh.checkLog("add", self.b1, ted))
         self.failUnless(self.nh1.checkLog("add", f1, ted))
 
@@ -336,22 +336,22 @@ class CollectionTests(CollectionTestCase):
         self.view.watchCollectionQueue(nh3, f2, 'queuedChange')
 
         fred = SimpleItem("fred", label=uw("fred"), itsView=self.view)
-        self.view.dispatchNotifications()
+        self.view.dispatchQueuedNotifications()
         self.failUnless(self.nh2.checkLog("add", k1, fred))
         self.failUnless(nh3.checkLog("add", f2, fred))
 
         john = SimpleItem("john", label=uw("john"), itsView=self.view)
-        self.view.dispatchNotifications()
+        self.view.dispatchQueuedNotifications()
         self.failUnless(self.nh2.checkLog("add", k1, john))
         self.failUnless(nh3.checkLog("add", f2, john))
 
         karen = SimpleItem("karen", label=uw("karen"), itsView=self.view)
-        self.view.dispatchNotifications()
+        self.view.dispatchQueuedNotifications()
         self.failUnless(self.nh2.checkLog("add", k1, karen))
         self.failUnless(nh3.checkLog("add", f2, karen))
 
         x = SimpleItem("x", label=uw("x"), itsView=self.view)
-        self.view.dispatchNotifications()
+        self.view.dispatchQueuedNotifications()
         self.failUnless(self.nh2.checkLog("add", k1, x))
         self.failIf(nh3.checkLog("add", f2, x))
 
@@ -366,7 +366,7 @@ class CollectionTests(CollectionTestCase):
 
         pos = len(nh3.log)
         # simulate idle loop
-        self.view.dispatchNotifications()
+        self.view.dispatchQueuedNotifications()
 
         #@@@ TODO - the following assert is broken until we have a way of
         # locating the KindCollection for a specific Kind
@@ -410,7 +410,7 @@ class CollectionTests(CollectionTestCase):
 
         self.i.label = uw("xxx")
         print nh3.log
-        self.view.dispatchNotifications()
+        self.view.dispatchQueuedNotifications()
 
         changed = False
         print nh3.log
@@ -422,7 +422,7 @@ class CollectionTests(CollectionTestCase):
         self.assertEqual(self.i.label,uw("xxx"))
 
         delattr(self.i,"label")
-        self.view.dispatchNotifications()
+        self.view.dispatchQueuedNotifications()
 
         self.failUnless(nh3.checkLog("remove", f2, self.i,-2))
         self.failUnless(self.nh2.checkLog("changed", k1, self.i))
@@ -446,18 +446,18 @@ class CollectionTests(CollectionTestCase):
 
         u.addSource(f)
         u.addSource(l)
-        self.view.dispatchNotifications()
+        self.view.dispatchQueuedNotifications()
 
         self.i.label = uw("abcd")
-        self.view.dispatchNotifications()
+        self.view.dispatchQueuedNotifications()
         self.failUnless(self.nh.checkLog('add', u, self.i))
 
         self.i.label = uw("defg")
-        self.view.dispatchNotifications()
+        self.view.dispatchQueuedNotifications()
         self.failUnless(self.nh.checkLog('changed', u, self.i))
 
         self.i.label = uw("a")
-        self.view.dispatchNotifications()
+        self.view.dispatchQueuedNotifications()
         self.failUnless(self.nh.checkLog('remove', u, self.i))
 
     def testNumericIndex(self):

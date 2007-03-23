@@ -12,6 +12,7 @@
 #   See the License for the specific language governing permissions and
 #   limitations under the License.
 
+from __future__ import with_statement
 
 from chandlerdb.util.c import \
     UUID, _hash, _combine, isuuid, Nil, Default, Empty
@@ -102,8 +103,11 @@ class Item(CItem):
     # fire system monitors on all values, initial or set during afterChange
     def _setInitialValues(self, values, fireChanges):
 
-        for name, value in values.iteritems():
-            setattr(self, name, value)
+        # defer all notifications globally so that bi-ref notifs don't fire
+        # until all initial values are set below
+        with self.itsView.notificationsDeferred():
+            for name, value in values.iteritems():
+                setattr(self, name, value)
 
         if fireChanges:
             self._status &= ~Item.NODIRTY

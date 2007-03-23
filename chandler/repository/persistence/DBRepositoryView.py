@@ -12,6 +12,7 @@
 #   See the License for the specific language governing permissions and
 #   limitations under the License.
 
+from __future__ import with_statement
 
 from threading import currentThread
 from datetime import timedelta
@@ -321,9 +322,9 @@ class DBRepositoryView(OnDemandRepositoryView):
 
         elif newVersion == self.itsVersion:
             if notify:
-                self.dispatchNotifications()
+                self.dispatchQueuedNotifications()
             else:
-                self.flushNotifications()
+                self.cancelQueuedNotifications()
             return True
 
         else:
@@ -331,7 +332,7 @@ class DBRepositoryView(OnDemandRepositoryView):
             unloads = [item for item in self._registry.itervalues()
                        if item.itsVersion > newVersion]
             self._refreshItems(newVersion, unloads.__iter__)
-            self.flushNotifications()
+            self.cancelQueuedNotifications()
             return False
 
     def _refreshItems(self, version, items):
@@ -411,127 +412,125 @@ class DBRepositoryView(OnDemandRepositoryView):
         try:
             self._refreshItems(newVersion, unloads.itervalues)
 
-            if merges:
-                self.logger.info('%s merging %d items...', self, len(merges))
-                newChanges = {}
-                changes = {}
-                indexChanges = {}
+            with self.notificationsDeferred():
+                if merges:
+                    self.logger.info('%s merging %d items...',
+                                     self, len(merges))
+                    newChanges = {}
+                    changes = {}
+                    indexChanges = {}
 
-                def _unload(keys):
-                    for uItem in keys():
-                        item = self.find(uItem)
-                        if item is not None:
-                            item.setDirty(0)
-                            item._unloadItem(True, self, False)
+                    def _unload(keys):
+                        for uItem in keys():
+                            item = self.find(uItem)
+                            if item is not None:
+                                item.setDirty(0)
+                                item._unloadItem(True, self, False)
 
-                try:
-                    self.recordChangeNotifications()
+                    try:
+                        for uItem, (dirty, x, dirties) in merges.iteritems():
+                            item = self.find(uItem, False)
+                            newDirty = item.getDirty()
+                            _newChanges = {}
+                            _changes = {}
+                            _indexChanges = {}
+                            newChanges[uItem] = (newDirty, _newChanges)
+                            changes[uItem] = (dirty, _changes)
+                            self._collectChanges(item, newDirty,
+                                                 dirty, HashTuple(dirties),
+                                                 oldVersion, newVersion,
+                                                 _newChanges, _changes,
+                                                 _indexChanges)
+                            if _indexChanges:
+                                indexChanges[uItem] = _indexChanges
+                    except:
+                        self.cancelDeferredNotifications()
+                        self._refreshItems(oldVersion, unloads.itervalues)
+                        raise
 
-                    for uItem, (dirty, uParent, dirties) in merges.iteritems():
-                        item = self.find(uItem, False)
-                        newDirty = item.getDirty()
-                        _newChanges = {}
-                        _changes = {}
-                        _indexChanges = {}
-                        newChanges[uItem] = (newDirty, _newChanges)
-                        changes[uItem] = (dirty, _changes)
-                        self._collectChanges(item, newDirty,
-                                             dirty, HashTuple(dirties),
-                                             oldVersion, newVersion,
-                                             _newChanges, _changes,
-                                             _indexChanges)
-                        if _indexChanges:
-                            indexChanges[uItem] = _indexChanges
+                    try:
+                        verify = (self._status & CView.VERIFY) != 0
+                        if verify:
+                            self._status &= ~CView.VERIFY
 
-                except:
-                    self.discardChangeNotifications()
-                    self._refreshItems(oldVersion, unloads.itervalues)
-                    raise
+                        _unload(merges.iterkeys)
 
-                try:
-                    verify = (self._status & CView.VERIFY) != 0
-                    if verify:
-                        self._status &= ~CView.VERIFY
+                        for uItem, (dirty, x, dirties) in merges.iteritems():
+                            item = self.find(uItem)
+                            newDirty, _newChanges = newChanges[uItem]
+                            dirty, _changes = changes[uItem]
+                            self._applyChanges(item, newDirty,
+                                               dirty, HashTuple(dirties),
+                                               oldVersion, newVersion,
+                                               _newChanges, _changes, mergeFn,
+                                               conflicts, indexChanges,
+                                               dangling)
+                        self._applyIndexChanges(indexChanges, deletes)
 
-                    _unload(merges.iterkeys)
+                        for uItem, name, uRef in dangling:
+                            item = self.find(uItem)
+                            if item is not None:
+                                item._references._removeRef(name, uRef)
 
-                    for uItem, (dirty, uParent, dirties) in merges.iteritems():
-                        item = self.find(uItem)
-                        newDirty, _newChanges = newChanges[uItem]
-                        dirty, _changes = changes[uItem]
-                        self._applyChanges(item, newDirty,
-                                           dirty, HashTuple(dirties),
-                                           oldVersion, newVersion,
-                                           _newChanges, _changes, mergeFn,
-                                           conflicts, indexChanges, dangling)
-                    self._applyIndexChanges(indexChanges, deletes)
+                    except:
+                        if verify:
+                            self._status |= CView.VERIFY
+                        self.logger.exception('%s merge aborted by error', self)
+                        self.cancelDeferredNotifications()
+                        self.cancel()
+                        raise
 
-                    for uItem, name, uRef in dangling:
-                        item = self.find(uItem)
-                        if item is not None:
-                            item._references._removeRef(name, uRef)
+                    else:
+                        if verify:
+                            self._status |= CView.VERIFY
 
-                except:
-                    if verify:
-                        self._status |= CView.VERIFY
-                    self.logger.exception('%s merge aborted by error', self)
-                    self.discardChangeNotifications()
-                    self.cancel()
-                    raise
+                # flush schema caches of changed kinds
+                for (uItem, x, uKind, x, x, x, dirties) in schema_history:
+                    kind = self[uKind]
+                    if kind.isKindOf(kind.getKindKind()):
+                        names = kind._nameTuple(dirties)
+                        if 'superKinds' in names:
+                            self[uItem].flushCaches('superKinds')
+                        elif 'attributes' in names:
+                            self[uItem].flushCaches('attributes')
 
-                else:
-                    if verify:
-                        self._status |= CView.VERIFY
-
-            # flush schema caches of changed kinds
-            for (uItem, version, uKind, status, uParent,
-                 pKind, dirties) in schema_history:
-                kind = self[uKind]
-                if kind.isKindOf(kind.getKindKind()):
-                    names = kind._nameTuple(dirties)
-                    if 'superKinds' in names:
-                        self[uItem].flushCaches('superKinds')
-                    elif 'attributes' in names:
-                        self[uItem].flushCaches('attributes')
-
-            if merges:
-                try:
-                    _changes = []
-                    for uItem, name, newValue in conflicts:
-                        item = self.find(uItem)
-                        if item is not None:
-                            if newValue is Nil:
-                                if hasattr(item, name):
-                                    item.removeAttributeValue(name, None, None,
-                                                              True)
-                                    _changes.append((item, 'remove', name))
-                            else:
-                                item.setAttributeValue(name, newValue,
-                                                       None, None, True, True)
-                                _changes.append((item, 'set', name))
-                    for item, op, name in _changes:
-                        if not item.isStale():
-                            item._fireChanges(op, name)
-                except:
-                    self.logger.exception('%s merge aborted by error', self)
-                    self.discardChangeNotifications()
-                    self.cancel()
-                    raise
-                else:
-                    self.playChangeNotifications()
+                if merges:
+                    try:
+                        _changes = []
+                        for uItem, name, newValue in conflicts:
+                            item = self.find(uItem)
+                            if item is not None:
+                                if newValue is Nil:
+                                    if hasattr(item, name):
+                                        item.removeAttributeValue(name, None,
+                                                                  None, True)
+                                        _changes.append((item, 'remove', name))
+                                else:
+                                    item.setAttributeValue(name, newValue,
+                                                           None, None, True,
+                                                           True)
+                                    _changes.append((item, 'set', name))
+                        for item, op, name in _changes:
+                            if not item.isStale():
+                                item._fireChanges(op, name)
+                    except:
+                        self.logger.exception('%s merge aborted by error', self)
+                        self.cancelDeferredNotifications()
+                        self.cancel()
+                        raise
 
             if notify or merges:
                 before = time()
                 self._dispatchHistory(history, refreshes,
                                       oldVersion, newVersion)
-                count = self.dispatchNotifications()
+                count = self.dispatchQueuedNotifications()
                 duration = time() - before
                 if duration > 1.0:
                     self.logger.warning('%s %d notifications ran in %s',
                                         self, len(history) + count,
                                         timedelta(seconds=duration))
             else:
-                self.flushNotifications()
+                self.cancelQueuedNotifications()
 
             if self._deferredDeletes:
                 count = 0

@@ -337,10 +337,8 @@ class Remindable(schema.Item):
     def setUserReminderTime(self, absoluteTime):
         existing = self.getUserReminder()
         if absoluteTime is not None:
-            # Make a new reminder (See bug 8181 for why we set reminderItem
-            # separately)
-            retval = Reminder(itsView=self.itsView, absoluteTime=absoluteTime)
-            retval.reminderItem = self
+            retval = Reminder(itsView=self.itsView, absoluteTime=absoluteTime,
+                              reminderItem=self)
         else:
             retval = None
 

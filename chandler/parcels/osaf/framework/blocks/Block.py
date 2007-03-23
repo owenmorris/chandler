@@ -276,13 +276,13 @@ class Block(schema.Item):
     def stopNotificationDirt (self):
         assert (self.ignoreNotifications >= 0)
         if self.ignoreNotifications == 0:
-            self.itsView.dispatchNotifications()
+            self.itsView.dispatchQueuedNotifications()
         self.ignoreNotifications = self.ignoreNotifications + 1
 
     def startNotificationDirt (self):
         try:
             if self.ignoreNotifications == 1:
-                self.itsView.dispatchNotifications()
+                self.itsView.dispatchQueuedNotifications()
         finally:
             assert (self.ignoreNotifications > 0)
             self.ignoreNotifications = self.ignoreNotifications - 1

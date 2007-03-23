@@ -186,15 +186,9 @@ class Monitor(Item):
         _kwds = self.kwds
 
         if _args or _kwds:
-            if view._isRecording():
-                view._notifyChange(method, *(args + _args), **_kwds)
-            else:
-                method(*(args + _args), **_kwds)
+            method(*(args + _args), **_kwds)
         else:
-            if view._isRecording():
-                view._notifyChange(method, *args)
-            else:
-                method(*args)
+            method(*args)
 
     def getItemIndex(self):
         return None, None, None
@@ -211,44 +205,40 @@ class IndexMonitor(Monitor):
 
         view = self.itsView
 
-        if view._isRecording():
-            view._notifyChange(self, op, item, attribute)
+        collectionName, indexName = self.args
+        collection = getattr(self.item, collectionName, None)
 
-        else:
-            collectionName, indexName = self.args
-            collection = getattr(self.item, collectionName, None)
+        if collection is not None:
+            hook = getattr(type(self.item), 'onCollectionReindex', None)
+            if callable(hook):
+                keys = hook(self.item, view, item, attribute,
+                            collectionName, indexName)
+            else:
+                keys = None
 
-            if collection is not None:
-                hook = getattr(type(self.item), 'onCollectionReindex', None)
-                if callable(hook):
-                    keys = hook(self.item, view, item, attribute,
-                                collectionName, indexName)
-                else:
-                    keys = None
+            if view.isReindexingDeferred():
+                deferredKeys = getattr(self, 'deferredKeys', None)
+                if deferredKeys is None:
+                    self.setPinned(True)
+                    self.deferredKeys = deferredKeys = set()
+                    index = collection.getIndex(indexName)
+                    index.validateIndex(False)
+                if item in collection:
+                    deferredKeys.add(item.itsUUID)
+                if keys:
+                    deferredKeys.update(keys)
 
-                if view.isReindexingDeferred():
-                    deferredKeys = getattr(self, 'deferredKeys', None)
-                    if deferredKeys is None:
-                        self.setPinned(True)
-                        self.deferredKeys = deferredKeys = set()
-                        index = collection.getIndex(indexName)
-                        index.validateIndex(False)
-                    if item in collection:
-                        deferredKeys.add(item.itsUUID)
-                    if keys:
-                        deferredKeys.update(keys)
-
-                elif item in collection:
-                    if keys:
-                        keys.append(item.itsUUID)
-                        collection.getIndex(indexName).moveKeys(keys)
-                    else:
-                        collection.getIndex(indexName).moveKey(item.itsUUID)
-                    collection._setDirty(True)
-
-                elif keys:
+            elif item in collection:
+                if keys:
+                    keys.append(item.itsUUID)
                     collection.getIndex(indexName).moveKeys(keys)
-                    collection._setDirty(True)
+                else:
+                    collection.getIndex(indexName).moveKey(item.itsUUID)
+                collection._setDirty(True)
+
+            elif keys:
+                collection.getIndex(indexName).moveKeys(keys)
+                collection._setDirty(True)
 
     def reindex(self):
 
@@ -272,21 +262,16 @@ class FilterMonitor(Monitor):
         if not (self.item._isNoDirty() or item.isDeleting()):
             view = self.itsView
 
-            if view._isRecording():
-                view._notifyChange(self, op, item, attribute)
+            collectionName, = self.args
+            collection = getattr(self.item, collectionName, None)
 
-            else:
-                collectionName, = self.args
-                collection = getattr(self.item, collectionName, None)
+            if collection is not None:
+                collection.itemChanged(item.itsUUID, attribute)
 
-                if collection is not None:
-                    collection.itemChanged(item.itsUUID, attribute)
-
-                    hook = getattr(type(self.item), 'onFilteredItemChange',
-                                   None)
-                    if callable(hook):
-                        keys = hook(self.item, view, item, attribute,
-                                    collectionName)
-                        if keys:
-                            for key in keys:
-                                collection.itemChanged(key, attribute)
+                hook = getattr(type(self.item), 'onFilteredItemChange', None)
+                if callable(hook):
+                    keys = hook(self.item, view, item, attribute,
+                                collectionName)
+                    if keys:
+                        for key in keys:
+                            collection.itemChanged(key, attribute)

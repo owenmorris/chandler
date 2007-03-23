@@ -158,7 +158,7 @@ class RepositoryView(CView):
             else:
                 version = 0
 
-        self._notifications = Queue()
+        self._queuedNotifications = Queue()
 
         self._version = long(version)
         self._roots = self._createChildren(self, version == 0)
@@ -243,7 +243,7 @@ class RepositoryView(CView):
                 del repository._threaded.view
             repository._openViews.remove(self)
 
-        self.flushNotifications()
+        self.cancelQueuedNotifications()
         self._clear()
 
         if repository is not None:
@@ -1054,26 +1054,6 @@ class RepositoryView(CView):
 
         raise NotImplementedError, "%s.mapHistoryKeys" %(type(self))
 
-    def recordChangeNotifications(self):
-
-        if not self._isRecording():
-            self._changeNotifications = []
-            self._status |= RepositoryView.RECORDING
-
-    def playChangeNotifications(self):
-
-        if self._isRecording():
-            self._status &= ~RepositoryView.RECORDING
-            for callable, args, kwds in self._changeNotifications:
-                callable(*args, **kwds)
-            self._changeNotifications = None
-
-    def discardChangeNotifications(self):
-
-        if self._isRecording():
-            self._status &= ~RepositoryView.RECORDING
-            self._changeNotifications = None
-
     def _commitMerge(self):
 
         if self._status & CItem.CMERGED:
@@ -1092,12 +1072,17 @@ class RepositoryView(CView):
 
     def queueNotification(self, item, op, change, name, other):
 
-        self._notifications.put((item.itsUUID, op, change, name, other))
+        self._queuedNotifications.put((item.itsUUID, op, change, name, other))
 
-    def dispatchNotifications(self):
+    def dispatchQueuedNotifications(self):
+        """
+        Dispatch queued notifications until queue is empty.
 
+        Changes to items changed since last time this method was called are
+        also dispatched, potentially refilling the notification queue.
+        """
         count = 0
-        queue = self._notifications
+        queue = self._queuedNotifications
 
         while True:
             while not queue.empty():
@@ -1121,6 +1106,19 @@ class RepositoryView(CView):
 
             if queue.empty():
                 break
+
+        return count
+
+    def cancelQueuedNotifications(self):
+        """
+        Clear the notification queue, not dispatching the queued notifications.
+        """
+        count = 0
+        queue = self._queuedNotifications
+
+        while not queue.empty():
+            queue.get()
+            count += 1
 
         return count
 
@@ -1165,17 +1163,6 @@ class RepositoryView(CView):
                                         if watcher is not None:
                                             watcher('changed', 'notification',
                                                     uRef, otherName, uItem)
-
-    def flushNotifications(self):
-
-        count = 0
-        queue = self._notifications
-
-        while not queue.empty():
-            queue.get()
-            count += 1
-
-        return count
 
     def _dispatchHistory(self, history, refreshes, oldVersion, newVersion):
 

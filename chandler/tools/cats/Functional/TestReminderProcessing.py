@@ -255,7 +255,7 @@ class TestReminderProcessing(ChandlerTestCase):
         while True:
             now = datetime.now(tz=ICUtzinfo.default)
 
-            repoView.dispatchNotifications()
+            repoView.dispatchQueuedNotifications()
             scripting.User.idle()
 
             
