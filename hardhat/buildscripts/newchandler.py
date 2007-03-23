@@ -198,22 +198,29 @@ def doTests(hardhatScript, mode, workingDir, outputDir, buildVersion, log):
     testDir = os.path.join(workingDir, "chandler")
     os.chdir(testDir)
 
+    if os.name == 'nt' or sys.platform == 'cygwin':
+        runPython = os.path.join(testDir, mode, 'RunPython.bat')
+    else:
+        runPython = os.path.join(testDir, mode, 'RunPython')
+
     try:
         print "Testing " + mode
         log.write(separator)
         log.write("Testing " + mode + " ...\n")
 
-        cmd = ['./tools/do_tests.sh', '-u', '-m %s' % mode]
+        cmd = [runPython, './tools/rt.py', '-T', '-u', '-m %s' % mode]
 
         outputList = hardhatutil.executeCommandReturnOutput(cmd)
 
         hardhatutil.dumpOutputList(outputList, log)
+        dumpTestLogs(log, testDir)
 
     except hardhatutil.ExternalCommandErrorWithOutputList, e:
         print "unit tests failed", e
         log.write("***Error during unit tests***\n")
         log.write("Test log:\n")
         hardhatutil.dumpOutputList(e.outputList, log)
+        dumpTestLogs(log, testDir)
         if e.args == 0:
             err = ''
         else:
@@ -234,91 +241,46 @@ def doTests(hardhatScript, mode, workingDir, outputDir, buildVersion, log):
     return "success"  # end of doTests( )
 
 
-def dumpTestLogs(log, chandlerLog, FuncTestLog, exitCode=0):
-    # make sure functional test logs are not appended to tinderbox log
-    #if FuncTestLog:
-        #log.write("FunctionalTestSuite.log:\n")
-        #try:
-            #CopyLog(FuncTestLog, log)
-        #except:
-            #pass
-        #log.write(separator)
+def dumpTestLogs(log, chandlerDir):
+    if chandlerDir:
+        logfile = os.path.join(chandlerDir, 'test_profile', 'chandler.log')
 
-    if chandlerLog:
-        log.write("chandler.log: [%s]\n" % chandlerLog)
+        log.write("chandler.log: [%s]\n" % logfile)
         try:
-            CopyLog(chandlerLog, log)
+            CopyLog(logfile, log)
         except:
             pass
         log.write(separator)
 
-    if exitCode == 0:
-        err = ''
-    else:
-        err = '***Error '
-    log.write("%sexit code=%s\n" % (err, exitCode))
-    log.write("NOTE: If the tests themselves passed but the exit code\n")
-    log.write("      reports failure, it means a shutdown problem.\n")
-
 
 def doFunctionalTests(releaseMode, workingDir, log):
     chandlerDir = os.path.join(workingDir,  'chandler')
-    logDir      = os.path.join(chandlerDir, 'test_profile')
-    chandlerLog = os.path.join(logDir,      'chandler.log')
-    FuncTestLog = os.path.join(logDir,      'FunctionalTestSuite.log')
-
-    if buildenv['os'] == 'win':
-        runChandler = 'RunChandler.bat'
-        profileDir  = '`cygpath -aw %s`' % logDir
-    else:
-        runChandler = 'RunChandler'
-        profileDir  = logDir
-
-    if releaseMode == 'debug':
-        runChandler = os.path.join(chandlerDir, 'debug', runChandler)
-    elif releaseMode == 'release':
-        runChandler = os.path.join(chandlerDir, 'release', runChandler)
 
     os.chdir(chandlerDir)
+
+    if os.name == 'nt' or sys.platform == 'cygwin':
+        runPython = os.path.join(chandlerDir, releaseMode, 'RunPython.bat')
+    else:
+        runPython = os.path.join(chandlerDir, releaseMode, 'RunPython')
 
     try:
         print "Running %s Functional Tests" % releaseMode
         log.write(separator)
         log.write("Running %s Functional Tests ...\n" % releaseMode)
 
-        try:
-            os.remove(chandlerLog)
-        except OSError:
-            pass
+        cmd = [runPython, './tools/rt.py', '-T', '-f', '-m %s' % releaseMode]
 
-        args = [runChandler,
-                '--create', '--nocatch',
-                '--profileDir=%s' % profileDir,
-                '--parcelPath=tools/QATestScripts/DataFiles',
-                '--scriptTimeout=900', 
-                '--scriptFile=tools/cats/Functional/FunctionalTestSuite.py',
-               # '--chandlerTestLogfile=FunctionalTestSuite.log', #new framework defaults to no log without this
-                '--chandlerTestDebug=1',
-                '--chandlerTestMask=0',]
-
-        outputList = hardhatutil.executeCommandReturnOutput(args)
-
-        for line in outputList:
-            if line.find('#TINDERBOX# Status = FAIL') >= 0 or \
-               line.find('#TINDERBOX# Status = UNCHECKED') >= 0:
-                raise hardhatutil.ExternalCommandErrorWithOutputList([0, outputList])
+        outputList = hardhatutil.executeCommandReturnOutput(cmd)
 
         hardhatutil.dumpOutputList(outputList, log)
-
-        dumpTestLogs(log, chandlerLog, FuncTestLog)
+        dumpTestLogs(log, chandlerDir)
 
     except hardhatutil.ExternalCommandErrorWithOutputList, e:
         print "functional tests failed", e
         log.write("***Error during functional tests***\n")
 
         hardhatutil.dumpOutputList(e.outputList, log)
-
-        dumpTestLogs(log, chandlerLog, FuncTestLog, e.args)
+        dumpTestLogs(log, chandlerDir)
 
         forceBuildNextCycle(log, workingDir)
 
@@ -342,78 +304,49 @@ def doFunctionalTests(releaseMode, workingDir, log):
 
 def doPerformanceTests(hardhatScript, mode, workingDir, outputDir, buildVersion, log):
     chandlerDir = os.path.join(workingDir, "chandler")
-    testDir     = os.path.join(chandlerDir, 'tools', 'QATestScripts', 'Performance')
-    logDir      = os.path.join(chandlerDir, 'test_profile')
-    chandlerLog = os.path.join(logDir,      'chandler.log')
-    FuncTestLog = os.path.join(logDir,      'FunctionalTestSuite.log')
-
-    if buildenv['version'] == 'debug':
-        python = buildenv['python_d']
-        pythonOpts = ''
-    elif buildenv['version'] == 'release':
-        python = buildenv['python']
-        pythonOpts = '-O'
-
-    if buildenv['os'] == 'win':
-        profileDir  = '`cygpath -aw %s`' % logDir
-    else:
-        profileDir  = logDir
 
     os.chdir(chandlerDir)
 
+    if os.name == 'nt' or sys.platform == 'cygwin':
+        runPython = os.path.join(chandlerDir, releaseMode, 'RunPython.bat')
+    else:
+        runPython = os.path.join(chandlerDir, releaseMode, 'RunPython')
+
     result = 'success'
 
-    testFiles = glob.glob(os.path.join(testDir, 'Perf*.py'))
+    try:
+        cmd = [runPython, './tools/rt.py', '-T', '-p', '-m %s' % releaseMode]
 
-    for testFile in testFiles:
-        args = [python, pythonOpts, os.path.join(chandlerDir, 'Chandler.py'),
-                '--create', '--profileDir=%s' % profileDir, '--scriptFile=%s' % testFile]
+        outputlist = hardhatutil.executeCommandReturnOutput(cmd)
 
-        try:
-            try:
-                os.remove('chandler.log')
-            except OSError:
-                pass
+        hardhatutil.dumpOutputList(outputlist, log)
+        dumpTestLogs(log, chandlerDir)
 
-            outputlist = hardhatutil.executeCommandReturnOutput(args)
-
-            # Hack: find if any line contains '#TINDERBOX# Status = FAILED' and
-            # if so raise the exception to signal test failure
-            for line in outputList:
-                if line.find('#TINDERBOX# Status = FAIL') >= 0 or \
-                   line.find('#TINDERBOX# Status = UNCHECKED') >= 0:
-                    raise hardhatutil.ExternalCommandErrorWithOutputList([0, outputList])
-
-            hardhatutil.dumpOutputList(outputlist, log)
-
-        except hardhatutil.ExternalCommandErrorWithOutputList, e:
-            print "perf tests failed", e
-            log.write("***Error during performance tests***\n")
-            log.write("Test log:\n")
-            hardhatutil.dumpOutputList(e.outputList, log)
-            if e.args == 0:
-                err = ''
-            else:
-                err = '***Error '
-            log.write("%sexit code=%s\n" % (err, e.args))
-            log.write("NOTE: If the tests themselves passed but the exit code\n")
-            log.write("      reports failure, it means a shutdown problem.\n")
-            log.write("chandler.log:\n")
-            try:
-                CopyLog(chandlerLog, log)
-            except:
-                pass
-            forceBuildNextCycle(log, workingDir)
-            return "test_failed"
-        except Exception, e:
-            print "perf tests failed", e
-            log.write("***Error during performance tests***\n")
-            log.write("Exception:\n")
-            log.write(str(e) + "\n")
-            forceBuildNextCycle(log, workingDir)
-            return "test_failed"
+    except hardhatutil.ExternalCommandErrorWithOutputList, e:
+        print "perf tests failed", e
+        log.write("***Error during performance tests***\n")
+        log.write("Test log:\n")
+        hardhatutil.dumpOutputList(e.outputList, log)
+        dumpTestLogs(log, chandlerDir)
+        if e.args == 0:
+            err = ''
         else:
-            log.write("Performance tests exit code=0\n")
+            err = '***Error '
+        log.write("%sexit code=%s\n" % (err, e.args))
+        log.write("NOTE: If the tests themselves passed but the exit code\n")
+        log.write("      reports failure, it means a shutdown problem.\n")
+
+        forceBuildNextCycle(log, workingDir)
+        return "test_failed"
+    except Exception, e:
+        print "perf tests failed", e
+        log.write("***Error during performance tests***\n")
+        log.write("Exception:\n")
+        log.write(str(e) + "\n")
+        forceBuildNextCycle(log, workingDir)
+        return "test_failed"
+    else:
+        log.write("Performance tests exit code=0\n")
 
     return result
 
