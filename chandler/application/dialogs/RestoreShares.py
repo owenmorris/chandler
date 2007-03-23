@@ -132,8 +132,7 @@ class RestoreSharesDialog(wx.Dialog):
 
 
                 SubscribeCollection.Show(None, view=view, url=url,
-                    immediate=True, mine=True, publisher=True,
-                    freebusy=False)
+                    immediate=True, mine=True, publisher=True)
 
                 self.listShares.Deselect(index)
 
