@@ -1337,12 +1337,9 @@ class IconAttributeEditor (BaseAttributeEditor):
         downChanged = isDown != getattr(self, 'wasDown', False)
         advanceStateMethod = getattr(self, 'advanceState', None)
         justClicked = False
-        fullRefresh = None
         if downChanged and advanceStateMethod is not None:
             if isIn and not isDown:
-                # advanceState may change many items, so if it returns a True
-                # value, do a full refresh
-                fullRefresh = advanceStateMethod(item, attributeName)
+                advanceStateMethod(item, attributeName)
                 if toolTipMethod:
                     toolTip = toolTipMethod(item, attributeName)
                     gridWindow.SetToolTipString(toolTip)
@@ -1362,9 +1359,7 @@ class IconAttributeEditor (BaseAttributeEditor):
             del self.justClicked
             
         # Redraw ourselves if necessary
-        if fullRefresh:
-            gridWindow.Refresh()
-        elif inChanged or downChanged:
+        if inChanged or downChanged:
             gridWindow.GetParent().RefreshRect(event.getCellRect())
             
         #logger.debug("IconAttributeEditor (isDown=%s, isIn=%s, %s): %s%s%s",

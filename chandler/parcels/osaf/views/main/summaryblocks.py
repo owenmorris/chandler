@@ -414,7 +414,6 @@ class CommunicationsColumnAttributeEditor(attributeEditors.IconAttributeEditor):
     def advanceState(self, item, attributeName):
         # changes to read/unread/needs reply should apply to all occurrences
         item = getattr(item, 'proxiedItem', item)
-        old_item = item
         item = pim.EventStamp(item).getMaster().itsItem
         
         oldState = self.GetAttributeValue(item, attributeName)
@@ -427,10 +426,6 @@ class CommunicationsColumnAttributeEditor(attributeEditors.IconAttributeEditor):
         else: # make it needs-reply (and make sure it's read).
             item.read = True
             item.needsReply = True
-        if old_item != item:
-            # True return value means refresh the whole widget
-            return True
-            
         
 class TaskColumnAttributeEditor(attributeEditors.IconAttributeEditor):
     def _getStateName(self, isStamped):

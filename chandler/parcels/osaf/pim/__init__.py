@@ -61,6 +61,30 @@ from i18n import ChandlerMessageFactory as _
 
 from application import schema
 
+class MasterEventWatcher(schema.Item):
+    """
+    A C{MasterEventWatcher} is responsible for observing changes to
+    master events, and then propagating notifications to the masters'
+    modifications.
+    
+    See <http://lists.osafoundation.org/pipermail/chandler-dev/2007-January/007537.html>
+    """
+
+    targetCollection = schema.One(ContentCollection)
+    
+    def install(self):
+        """
+        Watch our targetCollection for changes. This is typically called
+        in the UI thread only (via a startup item).
+        """
+        self.itsView.watchCollectionQueue(self, self.targetCollection,
+                                         'onMasterEventChange')
+
+    def onMasterEventChange(self, op, collection, name, other):
+        mods = self.itsView.findValue(other, EventStamp.modifications.name, [])
+        # Propagate via
+        self.itsView.dispatchChanges(iter(mods))
+
 class NonOccurrenceFilter(Item):
 
     def isNonOccurrence(self, view, uuid):
@@ -280,11 +304,14 @@ def installParcel(parcel, oldVersion=None):
         source = events,
         filterExpression = masterFilter,
         filterAttributes = list(filterAttributes))
-
+        
     nonMasterEvents = FilteredCollection.update(parcel, 'nonMasterEvents',
         source = events,
         filterExpression = nonMasterFilter,
         filterAttributes = list(filterAttributes))
+
+    MasterEventWatcher.update(parcel, 'masterEventWatcher',
+        targetCollection=masterEvents)
 
 
     EventStamp.addIndex(masterEvents, "recurrenceEnd", 'method',
@@ -385,8 +412,9 @@ def installWatchers(startup):
     changes in Events (and in particular, their startTimes)
     """
     from application import schema # we del'ed it below!
-    schema.ns(__name__, startup.itsView).triageStatusReminder.installWatcher()
-
+    myNamespace = schema.ns(__name__, startup.itsView)
+    myNamespace.triageStatusReminder.installWatcher()
+    myNamespace.masterEventWatcher.install()
 
 del schema  # don't leave this lying where others might accidentally import it
 
