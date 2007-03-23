@@ -463,7 +463,7 @@ def runUnitSuite(options):
 
     for mode in options.modes:
         cmd = [options.runpython[mode],
-               os.path.join(options.chandlerHome, 'tools', 'run_tests.py')]
+               os.path.join('tools', 'run_tests.py')]
 
         if options.verbose:
             cmd += ['-v']
@@ -605,7 +605,7 @@ def runFuncTest(options, test='FunctionalTestSuite.py'):
                  '--parcelPath=%s' % options.parcelPath]
 
         if test == 'FunctionalTestSuite.py':
-            cmd += ['--scriptFile=%s' % os.path.join(options.chandlerHome, 'tools', 'cats', 'Functional', test)]
+            cmd += ['--scriptFile=%s' % os.path.join('tools', 'cats', 'Functional', test)]
             timeout = 1200
         else:
             cmd += ['--chandlerTests=%s' % test]
@@ -659,7 +659,7 @@ def runFuncTestsSingly(options):
     failed   = False
     testlist = []
 
-    for item in glob.glob(os.path.join(options.chandlerHome, 'tools', 'cats', 'Functional', 'Test*.py')):
+    for item in glob.glob(os.path.join('tools', 'cats', 'Functional', 'Test*.py')):
         testlist.append(os.path.split(item)[1][:-3])
 
     # XXX How to strip disabled tests?
@@ -703,6 +703,7 @@ def runScriptPerfTests(options, testlist, largeData=False, logger=log):
     False
     """
     failed = False
+    l = len(options.chandlerHome) + 1
 
     for item in testlist:
         #$CHANDLERBIN/release/$RUN_CHANDLER --create --catch=tests
@@ -710,6 +711,8 @@ def runScriptPerfTests(options, testlist, largeData=False, logger=log):
         #                                   --catsPerfLog="$TIME_LOG"
         #                                   --scriptTimeout=600
         #                                   --scriptFile="$TESTNAME" &> $TESTLOG
+        if item.startswith(options.chandlerHome):
+            item = item[l:]
 
         name    = item[item.rfind('/') + 1:]
         timeLog = os.path.join(options.profileDir, 'time.log')
@@ -753,9 +756,12 @@ def runScriptPerfTests(options, testlist, largeData=False, logger=log):
             if options.dryrun:
                 log(name.ljust(50) + ' | 0.00')
             else:
-                line = open(timeLog).readline()[:-1]
-                log(name.ljust(50) + ' | %s' % line)
-
+                if os.path.isfile(timeLog):
+                    line = open(timeLog).readline()[:-1]
+                    log(name.ljust(50) + ' | %s' % line)
+                else:
+                    log('timeLog [%s] not found' % timeLog)
+                    log(name.ljust(50) + ' | 0.00')
         if options.dryrun:
             log('- + ' * 15)
         else:
@@ -835,7 +841,7 @@ def runStartupPerfTests(options, timer, largeData=False, repeat=3, logger=log):
             '--catch=tests',
             '--profileDir=%s'  % options.profileDir,
             '--parcelPath=%s'  % options.parcelPath,
-            '--scriptFile=%s'  % os.path.join(options.chandlerHome, 'tools', 'QATestScripts', 'Performance', 'quit.py') ]
+            '--scriptFile=%s'  % os.path.join('tools', 'QATestScripts', 'Performance', 'quit.py') ]
 
     if not largeData:
         cmd += ['--create']
@@ -879,7 +885,7 @@ def runStartupPerfTests(options, timer, largeData=False, repeat=3, logger=log):
             '--catch=tests',
             '--profileDir=%s'  % options.profileDir,
             '--parcelPath=%s'  % options.parcelPath,
-            '--scriptFile=%s'  % os.path.join(options.chandlerHome, 'tools', 'QATestScripts', 'Performance', 'end.py') ]
+            '--scriptFile=%s'  % os.path.join('tools', 'QATestScripts', 'Performance', 'end.py') ]
 
     log(name.ljust(30), newline=' ')
 
@@ -1062,12 +1068,15 @@ def runPerfTests(options, tests=None):
                 else:
                     t = '/usr/bin/time'
 
-                if 'startup' in testlistStartup and runStartupPerfTests(options, t, logger=delayedLogger):
-                    failed = True
-
-                if not failed: # Don't continue even if noStop, almost certain these won't work
-                    if 'startup_large' in testlistStartup and runStartupPerfTests(options, t, largeData=True, logger=delayedLogger):
+                if os.path.isfile(t):
+                    if 'startup' in testlistStartup and runStartupPerfTests(options, t, logger=delayedLogger):
                         failed = True
+
+                    if not failed: # Don't continue even if noStop, almost certain these won't work
+                        if 'startup_large' in testlistStartup and runStartupPerfTests(options, t, largeData=True, logger=delayedLogger):
+                            failed = True
+                else:
+                    log('%s not found, skipping startup performance tests' % t)
 
             if not tests:
                 log('Showing performance log in 5 seconds, Ctrl+C to stop tests')
