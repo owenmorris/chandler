@@ -33,6 +33,8 @@ __all__ = [
 ]
 
 
+recordset_debugging = False
+
 
 class RecordSetConduit(conduits.BaseConduit):
 
@@ -43,6 +45,8 @@ class RecordSetConduit(conduits.BaseConduit):
 
     def sync(self, modeOverride=None, activity=None, forceUpdate=None,
         debug=False):
+
+        debug = recordset_debugging or debug
 
         rv = self.itsView
 
@@ -72,7 +76,6 @@ class RecordSetConduit(conduits.BaseConduit):
         def _callback(*args, **kwds):
             if activity:
                 activity.update(*args, **kwds)
-
 
         if debug: print " ================ start of sync ================= "
 
@@ -517,6 +520,7 @@ class ResourceRecordSetConduit(RecordSetConduit):
                 activity.update(msg="Getting %d of %d" % (i, fetchCount),
                     work=1)
             text, etag = self.getResource(path)
+            if debug: print "Inbound text:", text
             records, extra = self.serializer.deserialize(text)
             for uuid, rs in records.iteritems():
                 inbound[uuid] = rs
@@ -530,7 +534,6 @@ class ResourceRecordSetConduit(RecordSetConduit):
     def putRecords(self, toSend, extra, debug=False, activity=None):
 
         sendCount = len(toSend)
-        if debug: print "putRecords [%s]" % toSend
 
         if activity:
             activity.update(msg="Sending %d resources" % sendCount,
@@ -555,17 +558,19 @@ class ResourceRecordSetConduit(RecordSetConduit):
             else:
                 if not path:
                     # need to compute a path
-                    path = uuid
+                    path = self.getPath(uuid)
 
                 # rs needs to include the entire recordset, not diffs
                 rs = state.agreed + state.pending
 
+                if debug: print "Full resource records:", rs
+
                 text = self.serializer.serialize({uuid : rs}, **extra)
+                if debug: print "Sending text:", text
                 etag = self.putResource(text, path, etag, debug=debug)
                 state.path = path
                 state.etag = etag
-                if debug: print "Put path %s, etag now %s [%s]" % (path,
-                    etag, text)
+                if debug: print "Put path %s, etag now %s" % (path, etag)
 
 
     def newState(self, uuidString):
@@ -575,7 +580,8 @@ class ResourceRecordSetConduit(RecordSetConduit):
         return state
 
 
-
+    def getPath(self, uuid):
+        return uuid
 
 class ResourceState(shares.State):
     path = schema.One(schema.Text)

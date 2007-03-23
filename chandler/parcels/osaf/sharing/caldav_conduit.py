@@ -14,6 +14,7 @@
 
 __all__ = [
     'CalDAVConduit',
+    'CalDAVRecordSetConduit',
     'CalDAVFreeBusyConduit',
     'FreeBusyAnnotation',
 ]
@@ -339,3 +340,24 @@ class CalDAVFreeBusyConduit(CalDAVConduit):
         self._get()
 
 
+
+class CalDAVRecordSetConduit(webdav_conduit.WebDAVRecordSetConduit):
+
+
+    def _createCollectionResource(self, handle, resource, childName):
+        displayName = self.share.contents.displayName
+        timezone = serializeTimeZone(ICUtzinfo.default)
+        return handle.blockUntil(resource.createCalendar, childName,
+                                 displayName, timezone)
+
+    def getCollectionName(self):
+        container = self._getContainerResource()
+        try:
+            result = container.serverHandle.blockUntil(container.getDisplayName)
+        except:
+            result = _(u"Unknown")
+
+        return result
+
+    def getPath(self, uuid):
+        return "%s.ics" % uuid

@@ -49,6 +49,7 @@ from translator import *
 from eimml import *
 from cosmo import *
 from itemcentric import *
+from ics import *
 
 
 logger = logging.getLogger(__name__)
@@ -56,6 +57,8 @@ logger = logging.getLogger(__name__)
 
 # = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =
 # CalDAV settings:
+
+caldav_atop_eim = False
 
 # What to name the CloudXML subcollection on a CalDAV server:
 SUBCOLLECTION = u".chandler"
@@ -530,47 +533,63 @@ def publish(collection, account, classesToInclude=None,
                                               useCalDAV=True)
                     shares.append(share)
                     sharing_ns.hiddenEvents.shares.append(share)
-                    
+
                     share.conduit.inFreeBusy = True
                     share.create()
                     share.put(activity=activity)
-                
+
                 else:
-                    # Create a CalDAV conduit / ICalendar format
-                    # Create a cloudxml subcollection
-                    # or just a freebusy resource
-                    share = _newOutboundShare(view, collection,
-                                             classesToInclude=classesToInclude,
-                                             shareName=shareName,
-                                             displayName=displayName,
-                                             account=account,
-                                             useCalDAV=True,
-                                             publishType=publishType)
-    
-                    if attrsToExclude:
-                        share.filterAttributes = attrsToExclude
-    
+                    if caldav_atop_eim:
+                        share = Share(itsView=view, contents=collection)
+                        conduit = CalDAVRecordSetConduit(itsParent=share,
+                            account=account,
+                            shareName=shareName,
+                            translator=PIMTranslator,
+                            serializer=ICSSerializer)
+                        share.conduit = conduit
+                        if attrsToExclude:
+                            conduit.filters = attrsToExclude
+
+                        share.displayName = displayName or collection.displayName
+                        share.sharer = schema.ns("osaf.pim",
+                                             view).currentContact.item
+
+                    else:
+                        # Create a CalDAV conduit / ICalendar format
+                        # Create a cloudxml subcollection
+                        # or just a freebusy resource
+                        share = _newOutboundShare(view, collection,
+                            classesToInclude=classesToInclude,
+                            shareName=shareName,
+                            displayName=displayName,
+                            account=account,
+                            useCalDAV=True,
+                            publishType=publishType)
+
+                        if attrsToExclude:
+                            share.filterAttributes = attrsToExclude
+
                     try:
                         SharedItem(collection).shares.append(share, alias)
                     except ValueError:
                         # There is already a 'main' share for this collection
                         SharedItem(collection).shares.append(share)
-    
+
                     shares.append(share)
-    
+
                     if share.exists():
                         raise SharingError(_(u"Share already exists"))
-                    
+
                     inFreeBusy = collection in schema.ns('osaf.pim', view).mine.sources
                     if inFreeBusy:
                         share.conduit.inFreeBusy = True
-    
+
                     share.create()
                     # bug 8128, this setDisplayName shouldn't be required, but
                     # cosmo isn't accepting setting displayname in MKCALENDAR
                     share.conduit.setDisplayName(displayName)
     
-                    if publishType == 'collection':
+                    if not caldav_atop_eim and (publishType == 'collection'):
                         # Create a subcollection to contain the cloudXML versions of
                         # the shared items
                         subShareName = u"%s/%s" % (shareName, SUBCOLLECTION)
@@ -637,7 +656,7 @@ def publish(collection, account, classesToInclude=None,
                 conduit = WebDAVRecordSetConduit(itsParent=share,
                     shareName=shareName, account=account,
                     translator=PIMTranslator,
-                    serializer=EIMMLSerializer)
+                    serializer=EIMMLSerializerLite)
                 share.conduit = conduit
 
                 # TODO: support filters on WebDAV + EIMML
@@ -911,7 +930,7 @@ def subscribe(view, url, activity=None, username=None, password=None,
                     #     inspection)
                     inspection['priv:write'] = True
 
-                    collection = subscribeEIMXML(view, url, morsecodeUrl,
+                    collection = subscribeMorsecode(view, url, morsecodeUrl,
                         inspection, activity=activity,
                         account=account, username=username, password=password,
                         filters=filters)
@@ -950,7 +969,7 @@ def subscribe(view, url, activity=None, username=None, password=None,
         # with the server; we can add this later if needed
 
         # morsecode + eimml recordsets
-        collection = subscribeEIMXML(view, url, inspection,
+        collection = subscribeMorsecode(view, url, inspection,
             activity=activity, account=account,
             ticket=ticket, username=username, password=password,
             filters=filters)
@@ -974,17 +993,22 @@ def subscribeCalDAV(view, url, inspection, activity=None, account=None,
     path = parsedUrl.path
     if not path.endswith("/"):
         path += "/"
-    subUrl = urlparse.urlunsplit((parsedUrl.scheme,
-        parsedUrl.netloc, "%s%s/" % (path, SUBCOLLECTION), parsedUrl.query,
-        parsedUrl.fragment))
 
-    try:
-        subInspection = inspect(subUrl, username=username,
-            password=password)
-    except:
+    if caldav_atop_eim:
         hasSubCollection = False
+
     else:
-        hasSubCollection = True
+        subUrl = urlparse.urlunsplit((parsedUrl.scheme,
+            parsedUrl.netloc, "%s%s/" % (path, SUBCOLLECTION), parsedUrl.query,
+            parsedUrl.fragment))
+
+        try:
+            subInspection = inspect(subUrl, username=username,
+                password=password)
+        except:
+            hasSubCollection = False
+        else:
+            hasSubCollection = True
 
     shareMode = 'both' if inspection['priv:write'] else 'get'
 
@@ -1015,16 +1039,40 @@ def subscribeCalDAV(view, url, inspection, activity=None, account=None,
 
     share = Share(itsView=view)
     share.mode = shareMode
-    share.format = CalDAVFormat(itsParent=share)
-    if account:
-        share.conduit = CalDAVConduit(itsParent=share,
-            shareName=shareName, account=account)
+
+    if caldav_atop_eim:
+
+        if account:
+            share.conduit = CalDAVRecordSetConduit(itsParent=share,
+                shareName=shareName,
+                account=account,
+                translator=PIMTranslator,
+                serializer=ICSSerializer)
+        else:
+            (useSSL, host, port, path, query, fragment, ticket, parentPath,
+                shareName) = splitUrl(url)
+            share.conduit = CalDAVRecordSetConduit(itsParent=share,
+                host=host, port=port,
+                sharePath=parentPath, shareName=shareName,
+                useSSL=useSSL, ticket=ticket,
+                translator=PIMTranslator,
+                serializer=ICSSerializer)
+
+        if filters:
+            share.conduit.filters = filters
+
+
     else:
-        (useSSL, host, port, path, query, fragment, ticket, parentPath,
-            shareName) = splitUrl(url)
-        share.conduit = CalDAVConduit(itsParent=share, host=host,
-            port=port, sharePath=parentPath, shareName=shareName,
-            useSSL=useSSL, ticket=ticket)
+        share.format = CalDAVFormat(itsParent=share)
+        if account:
+            share.conduit = CalDAVConduit(itsParent=share,
+                shareName=shareName, account=account)
+        else:
+            (useSSL, host, port, path, query, fragment, ticket, parentPath,
+                shareName) = splitUrl(url)
+            share.conduit = CalDAVConduit(itsParent=share, host=host,
+                port=port, sharePath=parentPath, shareName=shareName,
+                useSSL=useSSL, ticket=ticket)
 
     if subShare is not None:
         share.follows = subShare
@@ -1032,6 +1080,11 @@ def subscribeCalDAV(view, url, inspection, activity=None, account=None,
 
     share.sync(activity=activity, modeOverride='get')
     share.conduit.getTickets()
+
+    if caldav_atop_eim:
+        displayName = share.conduit.getCollectionName()
+        share.contents.displayName = displayName
+        share.displayName = displayName
 
     if subShare is not None:
         # If this is a partial share, we need to store that fact
@@ -1098,14 +1151,14 @@ def subscribeWebDAV(view, url, inspection, activity=None, account=None,
     if account:
         share.conduit = WebDAVRecordSetConduit(itsParent=share,
             account=account, shareName=shareName,
-            translator=PIMTranslator, serializer=EIMMLSerializer)
+            translator=PIMTranslator, serializer=EIMMLSerializerLite)
 
     else:
         (useSSL, host, port, path, query, fragment) = splitUrl(url)
         share.conduit = WebDAVRecordSetConduit(itsParent=share, host=host,
             port=port, sharePath=sharePath, shareName=shareName,
             useSSL=useSSL, ticket=ticket,
-            translator=PIMTranslator, serializer=EIMMLSerializer)
+            translator=PIMTranslator, serializer=EIMMLSerializerLite)
 
     if filters:
         share.conduit.filters = filters
@@ -1162,7 +1215,7 @@ def subscribeICS(view, url, inspection, activity=None,
 
 
 
-def subscribeEIMXML(view, url, morsecodeUrl, inspection, activity=None,
+def subscribeMorsecode(view, url, morsecodeUrl, inspection, activity=None,
     account=None, username=None, password=None, filters=None):
 
     shareMode = 'both' if inspection['priv:write'] else 'get'

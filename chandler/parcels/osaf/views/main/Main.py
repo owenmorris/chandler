@@ -1267,6 +1267,29 @@ class MainView(View):
         event.arguments ['Text'] = menuTitle
         event.arguments ['Enable'] = True
 
+    def onCalDAVAtopEIMEvent(self, event):
+        sharing.caldav_atop_eim = not sharing.caldav_atop_eim
+
+    def onCalDAVAtopEIMEventUpdateUI(self, event):
+        if sharing.caldav_atop_eim:
+            menuTitle = u'Disable CalDAV-atop-EIM'
+        else:
+            menuTitle = u'Enable CalDAV-atop-EIM'
+        event.arguments ['Text'] = menuTitle
+        event.arguments ['Enable'] = True
+
+    def onRecordSetDebuggingEvent(self, event):
+        sharing.recordset_conduit.recordset_debugging = \
+            not sharing.recordset_conduit.recordset_debugging
+
+    def onRecordSetDebuggingEventUpdateUI(self, event):
+        if sharing.recordset_conduit.recordset_debugging:
+            menuTitle = u'Disable RecordSet debugging'
+        else:
+            menuTitle = u'Enable RecordSet debugging'
+        event.arguments ['Text'] = menuTitle
+        event.arguments ['Enable'] = True
+
     def onShowPyShellEvent(self, event):
         # Test menu item
         wx.GetApp().ShowPyShell(withFilling=False)

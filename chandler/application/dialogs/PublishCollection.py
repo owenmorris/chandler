@@ -247,7 +247,8 @@ class PublishCollectionDialog(wx.Dialog):
         attrs = []
         if self.publishType == 'collection':
 
-            if isinstance(self.currentAccount, sharing.CosmoAccount):
+            if (sharing.caldav_atop_eim or
+                isinstance(self.currentAccount, sharing.CosmoAccount)):
                 attrs = set()
                 if not self.CheckboxShareAlarms.GetValue():
                     attrs.add('cid:reminders-filter@osaf.us')

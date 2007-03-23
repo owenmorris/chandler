@@ -74,7 +74,7 @@ def readEventRecord(eventRecordSet, vevents):
 
     for name in ['duration', 'status', 'location']:
         eimValue = getattr(eventRecordSet, name)
-        if eimValue is not None:
+        if eimValue not in ('', None):
             line = vevent.add(name)
             if eimValue in uppers:
                 eimValue = eimValue.upper()
@@ -141,7 +141,7 @@ class ICSSerializer(object):
 
                 summary     = vobj.getChildValue('summary', u"")
                 description = vobj.getChildValue('description')
-                status      = vobj.getChildValue('status', "").lower()
+                status      = vobj.getChildValue('status', "").upper()
                 duration    = vobj.getChildValue('duration')
                 uid         = vobj.getChildValue('uid')
                 dtstart     = vobj.getChildValue('dtstart')

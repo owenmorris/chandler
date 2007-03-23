@@ -63,6 +63,8 @@ def makeMainEvents(parcel):
     BlockEvent.template('AddScriptsToSidebar').install(parcel)
 
     BlockEvent.template('AddSharingLogToSidebar').install(parcel)
+    BlockEvent.template('CalDAVAtopEIM').install(parcel)
+    BlockEvent.template('RecordSetDebugging').install(parcel)
 
     BlockEvent.template('SwitchRepository').install(parcel),
     BlockEvent.template('CreateRepository').install(parcel),

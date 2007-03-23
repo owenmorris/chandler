@@ -412,7 +412,8 @@ class WebDAVConduit(conduits.LinkableConduit, DAVConduitMixin,
             message = _(u"Path %(path)s not found") % {'path': resource.path}
             raise errors.NotFound(message)
 
-        if resp.status == twisted.web.http.UNAUTHORIZED:
+        if resp.status in (twisted.web.http.UNAUTHORIZED,
+                           twisted.web.http.FORBIDDEN):
             message = _(u"Not authorized to GET %(path)s") % {'path': resource.path}
             raise errors.NotAllowed(message)
 
@@ -490,5 +491,5 @@ class WebDAVRecordSetConduit(ResourceRecordSetConduit, DAVConduitMixin):
 
         return resources
 
-
-
+    def getPath(self, uuid):
+        return "%s.xml" % uuid
