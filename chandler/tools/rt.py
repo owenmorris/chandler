@@ -271,7 +271,18 @@ def buildTestList(options, excludeTools=True):
     for item in [ 'release', 'debug' ]:
         excludeDirs.append('%s/%s' % (options.chandlerBin, item))
 
-    result = findTestFiles(options.chandlerHome, excludeDirs, includePattern)
+    tests = findTestFiles(options.chandlerHome, excludeDirs, includePattern)
+
+    # make all of the test paths relative to chandlerHome
+    # this is done to solve in a simple manner the horror that is
+    # cygwin running a windows python binary
+    result = []
+    l      = len(options.chandlerHome) + 1
+    for test in tests:
+        if test.startswith(options.chandlerHome):
+            result.append(test[l:])
+        else:
+            result.append(test)
 
     for pattern in includePattern.split(','):
         if pattern in ('startup.py', 'startup_large.py'):
