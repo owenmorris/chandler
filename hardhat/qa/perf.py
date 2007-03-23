@@ -94,7 +94,7 @@ def drawGraph(data, platforms, filename, size=(132, 132), xLabel='Revision'):
     try:
         myArea.draw(myCanvas)
     except:
-        print data, platforms
+        print data, platforms, filename
         raise
     
     return True
@@ -316,35 +316,41 @@ class perf:
     self.verbose = self._options['verbose']
 
     # all lower case test name  
+    # ideal time in seconds
     # target time in seconds
     # official test name
     self.testTimeName = (
-        ('startup',                                                            10,   '#1 Startup'),
-        ('new_event_from_file_menu_for_performance.event_creation',             1,   '#2 New event (menu)'),
-        ('new_event_by_double_clicking_in_the_cal_view_for_performance.double_click_in_the_calendar_view', 0.2, '#3 New event (dbl click)'),
-        ('test_new_calendar_for_performance.collection_creation',               1,   '#4 New calendar'),
-        ('importing_3000_event_calendar.import',                               30,   '#5 Import 3k event calendar'),
-        ('startup_with_large_calendar',                                        10,   '#6 Startup with 3k'),
-        ('creating_new_event_from_the_file_menu_after_large_data_import.event_creation', 1, '#7 New event (menu) with 3k'),
-        ('creating_a_new_event_in_the_cal_view_after_large_data_import.double_click_in_the_calendar_view', 0.2, '#8 New event (dbl click) with 3k'),
-        ('creating_a_new_calendar_after_large_data_import.collection_creation', 1,   '#9 New calendar with 3k'),
-        ('switching_to_all_view_for_performance.switch_to_allview',             1,   'Switch to All View'),
-        ('switching_to_all_view_for_performance.switch_to_allview2',            0.5, 'Switch to All View 2nd time'),
-        ('perf_stamp_as_event.change_the_event_stamp',                          0.5, 'Stamp'),
-        ('switching_view_after_importing_large_data.switch_to_allview',         1,   'Switch Views with 3k'),
-        ('switching_view_after_importing_large_data.switch_to_allview2',        0.5, 'Switch Views with 3k 2nd time'),
-        ('stamping_after_large_data_import.change_the_event_stamp',             0.5, 'Stamp with 3k'),
-        ('scroll_calendar_one_unit.scroll_calendar_one_unit',                   1,   'Scroll calendar with 3k'),
-        ('scrolling_a_table.scroll_table_25_scroll_units',                      1,   'Scroll table with 3k'),
-        ('jump_from_one_week_to_another.jump_calendar_by_one_week',             0.1, 'Jump week with 3k'),
-        ('jump_from_one_week_to_another.jump_calendar_by_one_week2',            0.1, 'Jump week with 3k 2nd time'),
-        ('overlay_calendar.overlay_calendar',                                   1,   'Overlay calendar with 3k'),
-        ('overlay_calendar.overlay_calendar2',                                  0.5, 'Overlay calendar with 3k 2nd time'),
-        ('switch_calendar.switch_calendar',                                     1,   'Switch calendar with 3k'),
-        ('switch_calendar.switch_calendar2',                                    0.5, 'Switch calendar with 3k 2nd time'),
-        ('perflargedatasharing.publish',                                        1,   'Publish calendar with 3k'),
-        ('perflargedatasharing.subscribe',                                      1,   'Subscribe to calendar with 3k'),
-        ('resize_app_in_calendar_mode.resize_app_in_calendar_mode',             0.5, 'Resize calendar with 3k'),
+        # Ordered based on the primary 0.7 use cases
+        #printed_value,                                                    ideal, acceptable, pretty printed value
+        ('creating_a_new_event_in_the_cal_view_after_large_data_import.double_click_in_the_calendar_view', 0.1, 1, '#8 New event (dbl click) with 3k'),
+        ('stamping_after_large_data_import.change_the_event_stamp',             0.1, 1, 'Stamp with 3k'),
+        ('jump_from_one_week_to_another.jump_calendar_by_one_week2',            0.1, 1, 'Jump week with 3k 2nd time'),
+        ('overlay_calendar.overlay_calendar',                                   0.1, 3, 'Overlay calendar with 3k'),
+        ('overlay_calendar.overlay_calendar2',                                  0.1, 1, 'Overlay calendar with 3k 2nd time'),
+        ('perflargedatasharing.publish',                                        1, 2,   'Publish calendar with 3k'),
+        ('perflargedatasharing.subscribe',                                      1, 2,   'Subscribe to calendar with 3k'),
+        # Quick entry in Dashboard with 3k                                      0.1, 1,
+        # Triage in Dashboard with 3k                                           0.1, 1,
+
+        ('startup',                                                             5, 10,   '#1 Startup'),
+        ('new_event_from_file_menu_for_performance.event_creation',             0.1, 1,   '#2 New event (menu)'),
+        ('new_event_by_double_clicking_in_the_cal_view_for_performance.double_click_in_the_calendar_view', 0.1, 1, '#3 New event (dbl click)'),
+        ('test_new_calendar_for_performance.collection_creation',               0.1, 1,   '#4 New calendar'),
+        ('importing_3000_event_calendar.import',                                30, 60,  '#5 Import 3k event calendar'),
+        ('startup_with_large_calendar',                                         5, 10,   '#6 Startup with 3k'),
+        ('creating_new_event_from_the_file_menu_after_large_data_import.event_creation', 0.1, 1, '#7 New event (menu) with 3k'),
+        ('creating_a_new_calendar_after_large_data_import.collection_creation', 0.1, 1,   '#9 New calendar with 3k'),
+        ('switching_to_all_view_for_performance.switch_to_allview',             0.1, 1,   'Switch to All View'),
+        ('switching_to_all_view_for_performance.switch_to_allview2',            0.1, 1, 'Switch to All View 2nd time'),
+        ('perf_stamp_as_event.change_the_event_stamp',                          0.1, 1, 'Stamp'),
+        ('switching_view_after_importing_large_data.switch_to_allview',         0.1, 2,   'Switch to All View with 3k'),
+        ('switching_view_after_importing_large_data.switch_to_allview2',        0.1, 1, 'Switch to All View with 3k 2nd time'),
+        ('scroll_calendar_one_unit.scroll_calendar_one_unit',                   0.5, 1,   'Scroll calendar with 3k'),
+        ('scrolling_a_table.scroll_table_25_scroll_units',                      0.5, 1,   'Scroll table with 3k'),
+        ('jump_from_one_week_to_another.jump_calendar_by_one_week',             0.1, 3, 'Jump week with 3k'),
+        ('switch_calendar.switch_calendar',                                     0.1, 3,   'Switch calendar with 3k'),
+        ('switch_calendar.switch_calendar2',                                    0.1, 1, 'Switch calendar with 3k 2nd time'),
+        ('resize_app_in_calendar_mode.resize_app_in_calendar_mode',             0.5, 1, 'Resize calendar with 3k'),
         )
 
     self.PerformanceTBoxes = ['p_' + platform for platform in allPlatforms]
@@ -358,57 +364,30 @@ class perf:
         """
         Return the color for the test time.
     
-        Times within std dev of acceptable, no coloring:
-    
-        >>> perf = perf() #doctest: +ELLIPSIS
-        ...
-        >>> perf.colorTime('perf_stamp_as_event', 1, 0.01)
-        'ok'
-        >>> perf.colorTime('perf_stamp_as_event', 1.05, 0.1)
-        'ok'
-        >>> perf.colorTime('perf_stamp_as_event', 0.95, 0.1)
-        'ok'
-
-        No result (0 time):
-    
-        >>> perf.colorTime('perf_stamp_as_event', 0.0, 0.1)
-        'ok'
-
-        Significantly better than acceptable:
-    
-        >>> perf.colorTime('perf_stamp_as_event', 0.95, 0.01)
-        'good'
-    
-        Significantly slower than acceptable:
-    
-        >>> perf.colorTime('perf_stamp_as_event', 1.05, 0.01)
-        'warn'
-        >>> perf.colorTime('perf_stamp_as_event', 2.05, 0.1)
-        'warn'
-    
-        Twice as slow as acceptable:
-    
-        >>> perf.colorTime('perf_stamp_as_event', 2.05, 0.01)
-        'alert'
+        Value within std.dev of better treshold still reported in higher
+        category.
         """
         if testTime == 0:
             return 'ok'
         
-        for (test, targetTime, name) in self.testTimeName:
+        for (test, ideal, acceptable, name) in self.testTimeName:
           if test == testName:
-            acceptable = targetTime
             break
         
-        if testTime < (acceptable - stdDev):
+        # Sanitize ideal and acceptable, taking std.dev into account
+        if ideal - stdDev > 0:
+            ideal = ideal - stdDev
+            
+        if acceptable - stdDev > ideal:
+            acceptable = acceptable - stdDev
+        
+        if testTime < ideal:
             return 'good'
         
-        if testTime > (2 * acceptable + stdDev):
+        if testTime > acceptable:
             return 'alert'
         
-        if testTime > (acceptable + stdDev):
-            return 'warn'
-    
-        return 'ok'
+        return 'warn'
 
   def loadConfiguration(self):
     items = { 'configfile': ('-c', '--config',   's', self._options['configfile'], '', ''),
@@ -640,7 +619,7 @@ class perf:
 
     graphDict = {}
     
-    for (testkey, targetTime, testDisplayName) in self.testTimeName:
+    for (testkey, ideal, targetTime, testDisplayName) in self.testTimeName:
         testitem = tests[testkey]
 
         detailpage.append('<h2 id="%s">%s</h2>\n' % (testkey, testDisplayName))
@@ -799,7 +778,7 @@ class perf:
     
     trendspage = ['<html><head><title>Performance trends for the last %d days</title></head>\n<body><h1>Performance trends for the last %d days</h1>' % (self._options['delta_days'], self._options['delta_days'])]
     trendspage.append('<p><a href="%s">Numerical trends</a></p>' % detailfilename)
-    for (test, targetTime, testDisplayName) in self.testTimeName:
+    for (test, ideal, targetTime, testDisplayName) in self.testTimeName:
       graphPlatform = graphDict[test]
        
       #print  plat2data(graphPlatform, targetTime)
@@ -840,7 +819,7 @@ class perf:
   def _generateSummaryDetailLine(self, platforms, testkey, enddate, testDisplayName, currentValue, previousValue):
       graph = []
       
-      for (test, targetTime, testName) in self.testTimeName:
+      for (test, ideal, targetTime, testName) in self.testTimeName:
         if test == testkey:
             targetAvg = targetTime
             break
@@ -911,7 +890,7 @@ class perf:
     detail.append('<p>Sample Date: %s-%s-%s<br/>\n' % (enddate[:4], enddate[4:6], enddate[6:8]))
     detail.append(time.strftime('<small>Generated %d %b %Y at %H%M %Z</small></p>', time.localtime()))
 
-    for (testkey, targetTime, testDisplayName) in self.testTimeName:
+    for (testkey, ideal, targetTime, testDisplayName) in self.testTimeName:
       if testkey in tests.keys():
         testitem = tests[testkey]
 
@@ -1103,10 +1082,10 @@ class perf:
     tboxfile.write('<div id="tbox">\n')
     tboxfile.write('<table cellspacing="1">\n')
     tboxfile.write('<tr><th rowspan="2">Test (<a href="%s" target="_new">trends</a>)<br/>Latest results as of %s</th><th rowspan="2">0.7<br/>Target</th>' % ('trends.html', latest))
-    tboxfile.write('<th colspan="4">Windows (r%s vs %s)</th>' % (revisions['win'][0].strip(), revisions['win'][1]))
-    tboxfile.write('<th colspan="4">PPC Mac (r%s vs %s)</th>' % (revisions['osx'][0].strip(), revisions['osx'][1]))
-    tboxfile.write('<th colspan="4">Linux (r%s vs %s)</th>' % (revisions['linux'][0].strip(), revisions['linux'][1]))
-    tboxfile.write('<th colspan="4">Intel Mac (r%s vs %s)</th></tr>\n' % (revisions['iosx'][0].strip(), revisions['iosx'][1]))
+    tboxfile.write('<th colspan="4">Windows (r%s vs %s)</th>' % (revisions['win'][0].strip(), revisions['win'][1].strip()))
+    tboxfile.write('<th colspan="4">PPC Mac (r%s vs %s)</th>' % (revisions['osx'][0].strip(), revisions['osx'][1].strip()))
+    tboxfile.write('<th colspan="4">Linux (r%s vs %s)</th>' % (revisions['linux'][0].strip(), revisions['linux'][1].strip()))
+    tboxfile.write('<th colspan="4">Intel Mac (r%s vs %s)</th></tr>\n' % (revisions['iosx'][0].strip(), revisions['iosx'][1].strip()))
     tboxfile.write('<tr>')
     for p in allPlatforms:
         tboxfile.write('<th>time</th><th>&Delta; %</th><th>&Delta; time</th><th>std.dev</th>')
