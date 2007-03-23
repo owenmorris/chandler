@@ -363,6 +363,10 @@ class LinkableConduit(BaseConduit):
                         totalWork=None)
                 contentView.refresh(mergeFunction)
 
+                if activity:
+                    activity.update(msg="Processing recurring events...",
+                        totalWork=None)
+
                 for event in modifiedRecurringEvents:
                     # We really want to patch up master events here,
                     # since they're the ones that own occurrences.
@@ -382,6 +386,10 @@ class LinkableConduit(BaseConduit):
                         if (rruleset is None or rruleset.isDeferred()):
                             occurrence.delete(recursive=True)
 
+
+            if activity:
+                activity.update(msg="Processing callbacks...",
+                    totalWork=None)
 
             newItemsNeedsCalling = needsCalling(NEWITEMS)
             newItemsUnestablishedNeedsCalling = (not linkedShares[0].established and
