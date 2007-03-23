@@ -45,6 +45,11 @@ remindersFilter = eim.Filter('cid:reminders-filter@osaf.us', u"Reminders")
 nonStandardICalendarFilter = eim.Filter('cid:non-standard-ical-filter@osaf.us',
     u"Non-standard iCalendar values")
 
+# Adding this even before bkirsch lands his mail/eim work because I at least
+# need the bccFilter in place for the sub/pub dialogs:
+bccFilter = eim.Filter('cid:bcc-filter@osaf.us', u"BCC:")
+
+
 class ItemRecord(eim.Record):
     URI = "http://osafoundation.org/eim/item/0"
 

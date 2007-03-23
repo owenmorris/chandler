@@ -34,8 +34,7 @@ class SubscribeDialog(wx.Dialog):
     def __init__(self, parent, title, size=wx.DefaultSize,
          pos=wx.DefaultPosition, style=wx.DEFAULT_DIALOG_STYLE,
          resources=None, view=None, url=None, name=None, modal=True,
-         immediate=False, mine=None, publisher=None, freebusy=False,
-         color=None):
+         immediate=False, mine=None, publisher=None, color=None):
 
         wx.Dialog.__init__(self, parent, -1, title, pos, size, style)
 
@@ -46,7 +45,6 @@ class SubscribeDialog(wx.Dialog):
         self.name = name
         self.mine = mine
         self.publisher = publisher
-        self.freebusy = freebusy
         self.color = color
 
         self.mySizer = wx.BoxSizer(wx.VERTICAL)
@@ -86,13 +84,7 @@ class SubscribeDialog(wx.Dialog):
         self.checkboxShareStatus = wx.xrc.XRCCTRL(self, "CHECKBOX_STATUS")
         self.checkboxShareTriage = wx.xrc.XRCCTRL(self, "CHECKBOX_TRIAGE")
         self.checkboxShareReply = wx.xrc.XRCCTRL(self, "CHECKBOX_REPLY")
-        self.forceFreeBusy = wx.xrc.XRCCTRL(self, "CHECKBOX_FORCEFREEBUSY")
-
-        # Freebusy Disabled
-        self.forceFreeBusy.Enable(False)
-
-        if self.freebusy:
-            self.forceFreeBusy.SetValue(True)
+        self.checkboxShareBcc = wx.xrc.XRCCTRL(self, "CHECKBOX_BCC")
 
         self.subscribeButton = wx.xrc.XRCCTRL(self, "wxID_OK")
 
@@ -122,6 +114,8 @@ class SubscribeDialog(wx.Dialog):
             filters.add('cid:triage-filter@osaf.us')
         if not self.checkboxShareReply.GetValue():
             filters.add('cid:needs-reply-filter@osaf.us')
+        if not self.checkboxShareBcc.GetValue():
+            filters.add('cid:bcc-filter@osaf.us')
 
         if filters:
             return filters
@@ -257,8 +251,6 @@ class SubscribeDialog(wx.Dialog):
             username = None
             password = None
 
-        forceFreeBusy = self.forceFreeBusy.GetValue()
-
         self.subscribeButton.Enable(False)
         self.gauge.SetValue(0)
         self.subscribing = True
@@ -268,13 +260,12 @@ class SubscribeDialog(wx.Dialog):
 
         class ShareTask(task.Task):
 
-            def __init__(task, view, url, username, password, forceFreeBusy,
-                activity, filters):
+            def __init__(task, view, url, username, password, activity,
+                filters):
                 super(ShareTask, task).__init__(view)
                 task.url = url
                 task.username = username
                 task.password = password
-                task.forceFreeBusy = forceFreeBusy
                 task.activity = activity
                 task.filters = filters
 
@@ -290,8 +281,7 @@ class SubscribeDialog(wx.Dialog):
             def run(task):
                 collection = sharing.subscribe(task.view, task.url,
                     username=task.username, password=task.password,
-                    forceFreeBusy=task.forceFreeBusy, activity=task.activity,
-                    filters=task.filters)
+                    activity=task.activity, filters=task.filters)
 
                 return collection.itsUUID
 
@@ -299,7 +289,7 @@ class SubscribeDialog(wx.Dialog):
         self.taskView = viewpool.getView(self.view.repository)
         self.activity = Activity("Subscribe: %s" % url)
         self.currentTask = ShareTask(self.taskView, url, username, password,
-                                     forceFreeBusy, self.activity,
+                                     self.activity,
                                      self.getFilters())
         self.listener = Listener(activity=self.activity,
             callback=self._updateCallback)
@@ -359,7 +349,7 @@ class SubscribeDialog(wx.Dialog):
             self.Destroy()
 
 def Show(parent, view=None, url=None, name=None, modal=False, immediate=False,
-         mine=None, publisher=None, freebusy=False, color=None):
+         mine=None, publisher=None, color=None):
     xrcFile = os.path.join(Globals.chandlerDirectory,
      'application', 'dialogs', 'SubscribeCollection.xrc')
     #[i18n] The wx XRC loading method is not able to handle raw 8bit paths
@@ -369,7 +359,7 @@ def Show(parent, view=None, url=None, name=None, modal=False, immediate=False,
     win = SubscribeDialog(parent, _(u"Subscribe"),
                           resources=resources, view=view, url=url, name=name,
                           modal=modal, immediate=immediate, mine=mine,
-                          publisher=publisher, freebusy=freebusy, color=color)
+                          publisher=publisher, color=color)
     win.CenterOnScreen()
     if modal:
         return win.ShowModal()

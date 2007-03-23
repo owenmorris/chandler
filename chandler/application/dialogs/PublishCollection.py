@@ -134,6 +134,8 @@ class PublishCollectionDialog(wx.Dialog):
             self.CheckboxShareTriage.SetValue(False)
             self.CheckboxShareReply = wx.xrc.XRCCTRL(self, "CHECKBOX_REPLY")
             self.CheckboxShareReply.SetValue(False)
+            self.CheckboxShareBcc = wx.xrc.XRCCTRL(self, "CHECKBOX_BCC")
+            self.CheckboxShareBcc.SetValue(False)
 
         self.SetDefaultItem(wx.xrc.XRCCTRL(self, "wxID_OK"))
 
@@ -176,6 +178,8 @@ class PublishCollectionDialog(wx.Dialog):
         self.CheckboxShareTriage.Enable(True)
         self.CheckboxShareReply = wx.xrc.XRCCTRL(self, "CHECKBOX_REPLY")
         self.CheckboxShareReply.Enable(True)
+        self.CheckboxShareBcc = wx.xrc.XRCCTRL(self, "CHECKBOX_BCC")
+        self.CheckboxShareBcc.Enable(True)
 
         if isinstance(share.conduit, sharing.RecordSetConduit):
             self.originalFilters = set(share.conduit.filters)
@@ -232,6 +236,8 @@ class PublishCollectionDialog(wx.Dialog):
                 not in share.conduit.filters)
             self.CheckboxShareReply.SetValue('cid:needs-reply-filter@osaf.us'
                 not in share.conduit.filters)
+            self.CheckboxShareBcc.SetValue('cid:bcc-filter@osaf.us'
+                not in share.conduit.filters)
 
         else:
             # @@@ Jeffrey: Needs updating for new reminders?
@@ -258,6 +264,8 @@ class PublishCollectionDialog(wx.Dialog):
                     attrs.add('cid:triage-filter@osaf.us')
                 if not self.CheckboxShareReply.GetValue():
                     attrs.add('cid:needs-reply-filter@osaf.us')
+                if not self.CheckboxShareBcc.GetValue():
+                    attrs.add('cid:bcc-filter@osaf.us')
 
             else:
                 # @@@ Jeffrey: Needs updating for new reminders?
@@ -303,6 +311,13 @@ class PublishCollectionDialog(wx.Dialog):
             else:
                 if 'cid:needs-reply-filter@osaf.us' in share.conduit.filters:
                     share.conduit.filters.remove('cid:needs-reply-filter@osaf.us')
+
+            if not self.CheckboxShareBcc.GetValue():
+                if 'cid:bcc-filter@osaf.us' not in share.conduit.filters:
+                    share.conduit.filters.add('cid:bcc-filter@osaf.us')
+            else:
+                if 'cid:bcc-filter@osaf.us' in share.conduit.filters:
+                    share.conduit.filters.remove('cid:bcc-filter@osaf.us')
 
         else:
             # @@@ Jeffrey: Needs updating for new reminders?
