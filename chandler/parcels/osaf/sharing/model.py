@@ -106,12 +106,6 @@ class TaskRecord(eim.Record):
     # Task stamp has no shared attributes, so nothing is shared other than the
     # fact that an item is stamped as a task or not
 
-class TaskModificationRecord(eim.Record):
-    URI = "http://osafoundation.org/eim/taskModification/0"
-
-    masterUuid = eim.key(ItemRecord.uuid)
-    recurrenceId = eim.key(text20)
-
 class EventRecord(eim.Record):
     URI = "http://osafoundation.org/eim/event/0"
 
@@ -137,22 +131,6 @@ class EventRecord(eim.Record):
     icalParameters = eim.field(text1024, [nonStandardICalendarFilter])
 
     # Note.icalendarProperties
-    icalProperties = eim.field(text1024, [nonStandardICalendarFilter])
-
-class EventModificationRecord(eim.Record):
-    URI = "http://osafoundation.org/eim/eventModification/0"
-
-    masterUuid = eim.field(ItemRecord.uuid)
-    recurrenceId = eim.key(text20)
-    dtstart = eim.field(text20)
-    duration = eim.field(text20)
-    location = eim.field(text256)
-    status = eim.field(text256, [eventStatusFilter])
-    title = eim.field(text256)
-    body = eim.field(eim.ClobType)
-    triage = eim.field(text256, [triageFilter])
-    reminderTime = eim.field(eim.DecimalType(digits=20, decimal_places=0))
-    icalParameters = eim.field(text1024, [nonStandardICalendarFilter])
     icalProperties = eim.field(text1024, [nonStandardICalendarFilter])
 
 class DisplayAlarmRecord(eim.Record):

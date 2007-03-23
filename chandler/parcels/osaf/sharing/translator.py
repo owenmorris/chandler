@@ -28,6 +28,7 @@ from vobject.icalendar import (DateOrDateTimeBehavior, MultiDateBehavior,
                                RecurringComponent, VEvent, timedeltaToString,
                                stringToDurations)
 import osaf.pim.calendar.TimeZone as TimeZone
+from osaf.pim.calendar.Calendar import Occurrence, EventStamp
 from osaf.pim.calendar.Recurrence import RecurrenceRuleSet, RecurrenceRule
 from dateutil.rrule import rrulestr
 from chandlerdb.util.c import UUID
@@ -50,6 +51,7 @@ utc = ICUtzinfo.getInstance('UTC')
 oneDay = timedelta(1)
 
 noChangeOrMissing = (eim.NoChange, eim.Missing)
+emptyValues = (eim.NoChange, eim.Missing, None)
 
 def with_nochange(value, converter, view=None):
     if value is eim.NoChange:
@@ -104,7 +106,7 @@ def fromICalendarDateTime(text, multivalued=False):
         if tzid is None:
             # RDATEs and EXDATEs won't have an X-VOBJ-ORIGINAL-TZID
             tzid = getattr(line, 'tzid_param', None)
-        if tzid is None:        
+        if tzid is None:
             tzinfo = ICUtzinfo.floating
         else:
             tzinfo = ICUtzinfo.getInstance(tzid)
@@ -209,6 +211,9 @@ def getRecurrenceFields(event):
     or all of which may be None.
     
     """
+    if event.occurrenceFor is not None:
+        # a modifification, recurrence fields should always be Missing
+        return (eim.Missing, eim.Missing, eim.Missing, eim.Missing)
     if event.rruleset is None:
         return (None, None, None, None)
     
@@ -247,9 +252,40 @@ def getRecurrenceFields(event):
         exdate = None
 
     return rrule, exrule, rdate, exdate
+
+def splitUUID(recurrence_aware_uuid):
+    """
+    Split an EIM recurrence UUID.
     
-def missingIfNotChanged(item, attr):
-    if item.hasLocalAttributeValue(attr):
+    Return the tuple (UUID, recurrenceID or None).  UUID will be a string,
+    recurrenceID will be a datetime or None.
+    """
+    recurrenceID, colon, uuid = recurrence_aware_uuid.rpartition(":")
+    if colon != ":":
+        # a plain UUID
+        return (uuid, None)
+    else:
+        return (uuid, fromICalendarDateTime(recurrenceID)[0])
+        
+
+def getUUIDForEIM(item_or_stamp):
+    """
+    If the item is an occurrence, return a special EIM recurrence UUID.
+    """
+    item = getattr(item_or_stamp, 'itsItem', item_or_stamp)
+    if isinstance(item, Occurrence):
+        event = EventStamp(item)
+        master = item.inheritFrom
+        recurrenceID = toICalendarDateTime(event.recurrenceID,
+                                           event.allDay or event.anyTime)
+        return recurrenceID + ":" + str(master.itsUUID)
+    else:
+        return item.itsUUID
+
+def handleEmpty(item, attr):
+    if not hasattr(item, attr):
+        return None
+    if not isinstance(item, Occurrence) or item.hasLocalAttributeValue(attr):
         return getattr(item, attr)
     else:
         return eim.Missing
@@ -279,11 +315,37 @@ class PIMTranslator(eim.Translator):
     }
     modaction_to_code = dict([[v, k] for k, v in code_to_modaction.items()])
 
+    def getRealUUID(self, recurrence_aware_uuid):
+        uuid, recurrenceID = splitUUID(recurrence_aware_uuid)
+        if recurrenceID is not None:
+            item = self.rv.findUUID(uuid)
+            if item is None:
+                item = pim.ContentItem(itsView=self.rv, _uuid=uuid)
+            master = EventStamp(item)
+            if not pim.has_stamp(item, EventStamp):
+                master.add()
+            if getattr(master, 'rruleset', None) is None:
+                # add a dummy RecurrenceRuleSet so event methods treat the event
+                # as a master
+                master.rruleset = RecurrenceRuleSet(None, itsView=self.rv)
+            
+            occurrence = master.getRecurrenceID(recurrenceID)
+            if occurrence is None:
+                occurrence = master._createOccurrence(recurrenceID)
+            
+            uuid = occurrence.itsItem.itsUUID
+        return uuid
+
+    def loadItemByUUID(self, recurrence_aware_uuid, *args, **kwargs):
+        """
+        Override to handle special recurrenceID:uuid uuids.
+        """
+        uuid = self.getRealUUID(recurrence_aware_uuid)
+        return super(PIMTranslator, self).loadItemByUUID(uuid, *args, **kwargs)
 
     @model.ItemRecord.importer
     def import_item(self, record):
-
-        if record.createdOn not in (eim.NoChange, None):
+        if record.createdOn not in emptyValues:
             # createdOn is a Decimal we need to change to datetime
             naive = datetime.utcfromtimestamp(float(record.createdOn))
             inUTC = naive.replace(tzinfo=utc)
@@ -299,34 +361,44 @@ class PIMTranslator(eim.Translator):
             createdOn=createdOn
         )
 
-        if record.triage not in ("", eim.NoChange, None):
+        if record.triage != "" and record.triage not in emptyValues:
             code, timestamp, auto = record.triage.split(" ")
             item._triageStatus = self.code_to_triagestatus[code]
             item._triageStatusChanged = float(timestamp)
             item.doAutoTriageOnDateChange = (auto == "1")
 
         # TODO: record.hasBeenSent --> item.modifiedFlags
-        # TIDO: record.needsReply
+        # TODO: record.needsReply
 
     @eim.exporter(pim.ContentItem)
     def export_item(self, item):
-
+        uuid = getUUIDForEIM(item)
+        
         # TODO: see why many items don't have createdOn
-        if hasattr(item, "createdOn"):
-            created = Decimal(int(time.mktime(item.createdOn.timetuple())))
+        createdOn = handleEmpty(item, 'createdOn')
+        if createdOn is None:
+            createdOn = eim.NoChange
+        elif createdOn not in noChangeOrMissing:
+            createdOn = Decimal(int(time.mktime(item.createdOn.timetuple())))
+        
+        # For modifications, treat triage status as missing if it matches its
+        # automatic state
+        doATODC = getattr(item, "doAutoTriageOnDateChange", True)
+        if (not isinstance(item, Occurrence) or not doATODC or 
+            EventStamp(item).autoTriage() != item._triageStatus):
+    
+            tsCode = self.triagestatus_to_code.get(item._triageStatus, "100")
+            tsChanged = item._triageStatusChanged or 0.0
+            tsAuto = ("1" if doATODC else "0")
+            triage = "%s %.2f %s" % (tsCode, tsChanged, tsAuto)
         else:
-            created = eim.NoChange
-
-        tsCode = self.triagestatus_to_code.get(item._triageStatus, "100")
-        tsChanged = item._triageStatusChanged or 0.0
-        tsAuto = ("1" if getattr(item, "doAutoTriageOnDateChange", True) else "0")
-        triage = "%s %.2f %s" % (tsCode, tsChanged, tsAuto)
+            triage = eim.Missing
 
         yield model.ItemRecord(
-            item.itsUUID,                               # uuid
-            getattr(item, "displayName", ""),           # title
+            uuid,                                       # uuid
+            handleEmpty(item, "displayName"),           # title
             triage,                                     # triage
-            created,                                    # createdOn
+            createdOn,                                  # createdOn
             0,                                          # hasBeenSent (TODO)
             0                                           # needsReply (TODO)
         )
@@ -343,16 +415,14 @@ class PIMTranslator(eim.Translator):
             lastModified = Decimal(
                 int(time.mktime(lastModified.timetuple()))
             )
-        elif hasattr(item, "createdOn"):
-            lastModified = Decimal(
-                int(time.mktime(item.createdOn.timetuple()))
-            )
+        else:
+            lastModified = createdOn
 
         lastModification = getattr(item, "lastModification",
             pim.Modification.created)
 
         yield model.ModifiedByRecord(
-            item.itsUUID,
+            uuid,
             lastModifiedBy,
             lastModified,
             action = self.modaction_to_code.get(lastModification, 500)
@@ -422,17 +492,16 @@ class PIMTranslator(eim.Translator):
 
     @eim.exporter(pim.Note)
     def export_note(self, item):
-
+        uuid = getUUIDForEIM(item)
+        body = handleEmpty(item, 'body')
         # TODO: REMOVE HACK (Cosmo expects None for empty bodies)
-        if item.body:
-            body = item.body
-        else:
+        if body == '':
             body = None
 
         yield model.NoteRecord(
-            item.itsUUID,                               # uuid
+            uuid,                                       # uuid
             body,                                       # body
-            getattr(item, "icalUID", None),             # icalUid
+            handleEmpty(item, "icalUID"),               # icalUid
             None                                        # reminderTime
         )
 
@@ -450,13 +519,13 @@ class PIMTranslator(eim.Translator):
     @eim.exporter(pim.TaskStamp)
     def export_task(self, task):
         yield model.TaskRecord(
-            task.itsItem.itsUUID                   # uuid
+            getUUIDForEIM(task)
         )
 
 
     @model.TaskRecord.deleter
     def delete_task(self, record):
-        item = self.rv.findUUID(record.uuid)
+        item = self.rv.findUUID(self.getRealUUID(record.uuid))
         if item is not None and item.isLive() and pim.has_stamp(item,
             pim.TaskStamp):
             pim.TaskStamp(item).remove()
@@ -474,7 +543,7 @@ class PIMTranslator(eim.Translator):
 
         item = self.loadItemByUUID(
             record.uuid,
-            pim.EventStamp,
+            EventStamp,
             startTime=start,
             allDay=allDay,
             anyTime=anyTime,
@@ -483,7 +552,7 @@ class PIMTranslator(eim.Translator):
             location=with_nochange(record.location, fromLocation, self.rv),
         )
         
-        event = pim.EventStamp(item)
+        event = EventStamp(item)
         
         real_start = event.effectiveStartTime
         
@@ -499,7 +568,7 @@ class PIMTranslator(eim.Translator):
             return
             
 
-        def getRecordSet():
+        def getRuleSet():
             if len(new_rruleset) > 0:
                 return new_rruleset[0]
             elif event.rruleset is not None:
@@ -511,7 +580,7 @@ class PIMTranslator(eim.Translator):
         for ruletype in 'rrule', 'exrule':
             record_field = getattr(record, ruletype)
             if record_field is not eim.NoChange:
-                rruleset = getRecordSet()
+                rruleset = getRuleSet()
                 if record_field is None:
                     # this isn't the right way to delete the existing rules, what is?
                     setattr(rruleset, ruletype + 's', [])
@@ -531,7 +600,7 @@ class PIMTranslator(eim.Translator):
         for datetype in 'rdate', 'exdate':
             record_field = getattr(record, datetype)
             if record_field is not eim.NoChange:
-                rruleset = getRecordSet()
+                rruleset = getRuleSet()
                 if record_field is None:
                     dates = []
                 else:
@@ -547,25 +616,53 @@ class PIMTranslator(eim.Translator):
             event.rruleset = new_rruleset[0]
 
 
-    @eim.exporter(pim.EventStamp)
+    @eim.exporter(EventStamp)
     def export_event(self, event):
-        if getattr(event, 'location', None) is None:
-            location = None
-        else:
-            location = event.location.displayName
+        uuid = getUUIDForEIM(event)
+        item = event.itsItem
+        
+        location = handleEmpty(event, 'location')
+        if location not in emptyValues:
+            location = location.displayName
 
         rrule, exrule, rdate, exdate = getRecurrenceFields(event)
 
-        transparency = str(event.transparency).upper()
-        if transparency == "FYI":
-            transparency = "CANCELLED"
+        transparency = handleEmpty(event, 'transparency')
+        if transparency not in emptyValues:
+            transparency = str(event.transparency).upper()
+            if transparency == "FYI":
+                transparency = "CANCELLED"
+
+        has_change = event.hasLocalAttributeValue
+
+
+        # if recurring, dtstart has changed if allDay or anyTime has a local 
+        # change, or if effectiveStartTime != recurrenceID.
+        if (not isinstance(item, Occurrence) or
+            has_change('allDay') or 
+            has_change('anyTime') or 
+            event.effectiveStartTime != event.recurrenceID):
+            dtstart = toICalendarDateTime(event.effectiveStartTime, 
+                                          event.allDay, event.anyTime)
+        else:
+            dtstart = eim.Missing
+
+        # if recurring, duration has changed if allDay, anyTime, or duration has
+        # a local change
+        if (not isinstance(item, Occurrence) or
+            has_change('allDay') or 
+            has_change('anyTime') or 
+            has_change('duration')):
+            duration = toICalendarDuration(event.duration, 
+                                           event.allDay or event.anyTime)
+        else:
+            duration = eim.Missing
+
 
         yield model.EventRecord(
-            event.itsItem.itsUUID,                      # uuid
-            toICalendarDateTime(event.effectiveStartTime,
-                                event.allDay, event.anyTime),
-            toICalendarDuration(event.duration,
-                                event.allDay or event.anyTime),
+            uuid,                                       # uuid
+            dtstart,                                    # dtstart
+            duration,                                   # duration
             location,                                   # location
             rrule,                                      # rrule
             exrule,                                     # exrule
@@ -576,129 +673,23 @@ class PIMTranslator(eim.Translator):
             None                                        # icalParameters
         )
         
-        for mod_item in (event.modifications):
-            mod_event = pim.EventStamp(mod_item)
-            if mod_event.isTriageOnlyModification():
-                # don't treat triage-only modifications as modifications worth
-                # sharing.  We need the "user-triaged" bit to distinguish
-                # between user triaged (or reminder triaged) and auto-triaged,
-                # this logic will get more sophisticated when that's done.
-                continue
-                        
-            has_change = mod_item.hasLocalAttributeValue
-            
-            if mod_event.effectiveStartTime != mod_event.recurrenceID:
-                dtstart = toICalendarDateTime(mod_event.recurrenceID,
-                                              mod_event.allDay,
-                                              mod_event.anyTime)
-            else:
-                dtstart = eim.Missing
-            
-            if has_change(pim.EventStamp.duration.name):
-                duration = toICalendarDuration(mod_event.duration,
-                                               mod_event.allDay or
-                                               mod_event.anyTime)
-            else:
-                duration = eim.Missing
-            
-            if has_change(pim.EventStamp.location.name):
-                location = mod_event.location.displayName
-            else:
-                location = eim.Missing
-
-            if has_change(pim.EventStamp.transparency.name):
-                status = str(mod_event.transparency).upper()
-                if status == "FYI":
-                    status = "CANCELLED"
-            else:
-                status = eim.Missing
-
-            title = missingIfNotChanged(mod_item, 'displayName')
-            body  = missingIfNotChanged(mod_item, 'body')
-                
-            # todo: triageStatus, triageStatusChanged, reminderTime
-
-            yield model.EventModificationRecord(
-                event.itsItem.itsUUID,                      # master uuid
-                toICalendarDateTime(mod_event.recurrenceID,
-                                    event.allDay or event.anyTime),
-                dtstart,
-                duration,
-                location,
-                status,
-                title,
-                body,
-                eim.Missing,
-                eim.Missing,
-                None,                                   # icalProperties
-                None                                    # icalParameters
-            )
-            # TODO: yield a TaskModificationRecord if appropriate
+        # yield records for each modification if this isn't itself an Occurrence
+        if not isinstance(item, Occurrence):
+            for mod_item in (event.modifications or []):
+                mod_event = EventStamp(mod_item)
+                # auto-triage only modifications shouldn't be shared
+                if not (mod_event.isTriageOnlyModification() and
+                        mod_item._triageStatus == mod_event.autoTriage()):
+                    for record in self.exportItem(mod_item):
+                        yield record
 
     @model.EventRecord.deleter
     def delete_event(self, record):
         item = self.rv.findUUID(record.uuid)
         if item is not None and item.isLive() and pim.has_stamp(item,
-            pim.EventStamp):
-            pim.EventStamp(item).remove()
+            EventStamp):
+            EventStamp(item).remove()
 
-    @model.EventModificationRecord.importer
-    def import_event_modification(self, record):
-        master = self.rv.findUUID(record.masterUuid)
-        if master is None:
-            # Modification records can be processed before master records,
-            # create the master
-            uuid = UUID(record.masterUuid)
-            master = schema.Item(itsView=self.rv, _uuid=uuid)
-            pim.EventStamp.add(masterItem)
-
-        recurrenceId = fromICalendarDateTime(record.recurrenceId)[0]
-            
-        masterEvent = pim.EventStamp(master)
-        event = masterEvent.getRecurrenceID(recurrenceId)
-        if event is None:
-            occurrence_existed = False
-            # the modification doesn't match the existing rule, or the rule
-            # hasn't been set yet
-            event = masterEvent._createOccurrence(recurrenceId)
-        else:
-            occurrence_existed = True
-        
-        item = event.itsItem
-        def change(attr, value, transform=None, view=None):
-            if value is eim.NoChange:
-                pass
-            elif value is eim.Missing:
-                if attr == pim.EventStamp.startTime.name:
-                    event.changeThis('startTime', record.recurrenceId)
-                elif item.hasLocalAttributeValue(attr):
-                    delattr(item, attr)
-            else:
-                if transform is not None:
-                    if view is not None:
-                        value = transform(value, view)
-                    else:
-                        value = transform(value)
-                event.changeThis(attr, value)
-            
-        start, allDay, anyTime = getTimeValues(record)
-        # stringToDurations always returns a list of timedeltas, which is silly
-        # and should be fixed in vobject
-        
-        change(pim.EventStamp.startTime.name, start)
-        change(pim.EventStamp.allDay.name, allDay)
-        change(pim.EventStamp.anyTime.name, anyTime)
-        
-        change(pim.EventStamp.duration.name, record.duration,
-               fromICalendarDuration)
-        change(pim.EventStamp.transparency.name, record.status,
-               fromTransparency)
-        change(pim.EventStamp.location.name, record.location,
-               fromLocation, self.rv)
-        change(pim.ContentItem.displayName.name, record.title)
-        change(pim.ContentItem.body.name, record.body)
-        
-        # ignore triageStatus, triageStatusChanged, and reminderTime
 
 
 class DumpTranslator(PIMTranslator):

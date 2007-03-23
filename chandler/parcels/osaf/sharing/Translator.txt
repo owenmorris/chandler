@@ -229,19 +229,13 @@ Exporting:
 Modifications
 - - - - - - -
 
-    >>> mod_rec = sharing.model.EventModificationRecord(
-    ...             masterUuid = 'f230dcd4-7c32-4c3f-908b-d92081cc9a89',
-    ...             recurrenceId = ';VALUE=DATE-TIME;TZID=US/Pacific:20070223T140000',
-    ...             dtstart = sharing.Missing,
-    ...             duration = sharing.Missing,
-    ...             location = sharing.Missing,
-    ...             status = sharing.Missing,
-    ...             title = "Changed title",
-    ...             body = sharing.Missing,
-    ...             triage = sharing.Missing,
-    ...             reminderTime = sharing.Missing,
-    ...             icalParameters = sharing.Missing,
-    ...             icalProperties = sharing.Missing
+    >>> mod_rec = sharing.model.ItemRecord(
+    ...         uuid=';VALUE=DATE-TIME;TZID=US/Pacific:20070223T140000:f230dcd4-7c32-4c3f-908b-d92081cc9a89',
+    ...         title='Changed title',
+    ...         triage=sharing.Missing,
+    ...         createdOn=sharing.Missing,
+    ...         hasBeenSent=sharing.Missing,
+    ...         needsReply=sharing.Missing
     ... )
 
     >>> rs = sharing.RecordSet([mod_rec])
@@ -258,13 +252,20 @@ Exporting
 - - - - -
 
     >>> t.startExport()
-    >>> records = [r for r in t.exportItem(item) if isinstance(r, sharing.model.EventModificationRecord)]
-    >>> len(records) == 1
+    >>> records = list(t.exportItem(item))
+    >>> mod_event_records = [r for r in records if r.uuid.startswith(';VALUE')
+    ...                      and isinstance(r, sharing.model.EventRecord)]
+    >>> len(mod_event_records) == 1
     True
-    >>> record = records[0]
-    >>> record.dtstart
+    >>> event_record = mod_event_records[0]
+    >>> event_record.dtstart
     Missing
-    >>> record.duration
+    >>> event_record.duration
     Missing
-    >>> record.title
+    >>> mod_item_records = [r for r in records if r.uuid.startswith(';VALUE')
+    ...                      and isinstance(r, sharing.model.ItemRecord)]
+    >>> len(mod_item_records) == 1
+    True
+    >>> item_record = mod_item_records[0]
+    >>> item_record.title
     u'Changed title'
