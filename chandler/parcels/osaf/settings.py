@@ -319,7 +319,7 @@ def restore(rv, filename, testmode=False):
                                              name=title, modal=False,
                                              immediate=True, mine=mine,
                                              publisher=publisher,
-                                             freebusy=freebusy, color=color)
+                                             color=color)
 
     for sectionname, section in cfg.iteritems():
         if section.has_key(u"type"):
