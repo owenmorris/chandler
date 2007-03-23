@@ -26,7 +26,7 @@ from application.dialogs import ConflictDialog
 from osaf import pim
 from osaf.framework.attributeEditors import \
      AttributeEditorMapping, DateTimeAttributeEditor, \
-     DateAttributeEditor, TimeAttributeEditor, \
+     DateAttributeEditor, EmailAddressAttributeEditor, TimeAttributeEditor, \
      ChoiceAttributeEditor, StringAttributeEditor, \
      StaticStringAttributeEditor
 from osaf.framework.blocks import \
@@ -1872,19 +1872,6 @@ class RecurrenceEndsAttributeEditor(DateAttributeEditor):
                         
                 wx.CallAfter(changeRecurrenceEnd, self, item, value)
 
-class BylineAEBlock(DetailSynchronizedAttributeEditorBlock):
-    def shouldShow(self, item):
-        lastMod = getattr(self.item, 'lastModification', None)
-        return (super(BylineAEBlock, self).shouldShow(item) and
-               (not pim.has_stamp(self.item, pim.mail.MailStamp) or
-                not lastMod in (None, pim.Modification.edited)))
-
-    def getWatchList(self):
-        watchList = super(BylineAEBlock, self).getWatchList()
-        watchList.extend(((self.item, pim.Stamp.stamp_types.name),
-                          (self.item, ContentItem.lastModification.name)))
-        return watchList
-
 class ErrorAEBlock(DetailSynchronizedAttributeEditorBlock):
     def shouldShow(self, item):
         error = getattr(self.item, 'error', None)
@@ -1895,45 +1882,52 @@ class ErrorAEBlock(DetailSynchronizedAttributeEditorBlock):
         watchList.append((self.item, pim.ContentItem.error.name),)
         return watchList
 
-class SendAsAreaBlock(BylineAEBlock):
-    """ 
-    This block will only be visible on outbound messages
-    (like the outbound version of 'from', and 'bcc' which won't ever
-    show a value for inbound messages.)
-    """
+class BylineAreaBlock(DetailSynchronizedContentItemDetail):
+    # We use this block class for the byline (the static representation, like
+    # "Sent by Bob Smith on 6/21/06") as well as for the Send As block (the
+    # popup representation, like "Send As [Me]") - they're both visible 
+    # conditioned on whether this is an outgoing unsent message: SendAs if so,
+    # byline if not.
     def shouldShow(self, item):
-        result = not super(SendAsAreaBlock, self).shouldShow(item)
-        print "SendAsAreaBlock.shouldShow(%s): returning %s" % (item, result)
+        if not super(BylineAreaBlock, self).shouldShow(item):
+            return False
+        
+        lastMod = getattr(self.item, 'lastModification', None)
+        isUnsentOutboundMail = (lastMod in (None, 
+                                            pim.Modification.edited, 
+                                            pim.Modification.created,
+                                            pim.Modification.queued) and
+                                pim.has_stamp(item, pim.mail.MailStamp) and
+                                pim.MailStamp(item).fromMe)                                
+        return isUnsentOutboundMail == (self.blockName == 'SendAsArea')
+
+    def getWatchList(self):
+        watchList = super(BylineAreaBlock, self).getWatchList()
+        watchList.extend(((self.item, pim.Stamp.stamp_types.name),
+                          (self.item, pim.MailStamp.fromMe.name),
+                          (self.item, ContentItem.lastModification.name)))
+        return watchList
+                      
+class OriginatorsAEBlock(DetailSynchronizedAttributeEditorBlock):
+    def getWatchList(self):
+        watchList = super(OriginatorsAEBlock, self).getWatchList()
+        watchList.append((self.item, pim.mail.MailStamp.fromAddress.name),)
+        return watchList
+
+class OriginatorsAttributeEditor(EmailAddressAttributeEditor):
+    """
+    We want the "From:" field to display the value from fromAddress if
+    there's no 'originators' values.
+    """
+    def GetAttributeValue(self, item, attributeName):
+        assert attributeName == pim.mail.MailStamp.originators.name
+        result = super(OriginatorsAttributeEditor, 
+            self).GetAttributeValue(item, attributeName)
+        if result == u'':
+            result = super(OriginatorsAttributeEditor, 
+                self).GetAttributeValue(item, pim.mail.MailStamp.fromAddress.name)
         return result
-           
-class OutboundOnlyAreaBlock(MailAreaBlock):
-    """ 
-    This block will only be visible on outbound messages
-    (like the outbound version of 'from', and 'bcc' which won't ever
-    show a value for inbound messages.)
-    """
-    def shouldShow(self, item):
-        return (super(OutboundOnlyAreaBlock, self).shouldShow(item) and
-                pim.mail.MailStamp(item).isOutbound)
-
-    def getWatchList(self):
-        watchList = super(OutboundOnlyAreaBlock, self).getWatchList()
-        watchList.append((self.item, pim.mail.MailStamp.isOutbound.name),)
-        return watchList
-           
-class InboundOnlyAreaBlock(MailAreaBlock):
-    """
-    This block will only be visible on inbound messages
-    (like the inbound version of 'from'.)
-    """
-    def shouldShow(self, item):
-        return (super(InboundOnlyAreaBlock, self).shouldShow(item) and
-                not pim.mail.MailStamp(item).isOutbound)
-
-    def getWatchList(self):
-        watchList = super(InboundOnlyAreaBlock, self).getWatchList()
-        watchList.append((self.item, pim.mail.MailStamp.isOutbound.name),)
-        return watchList
+    
 
 class OutboundEmailAddressAttributeEditor(ChoiceAttributeEditor):
     """

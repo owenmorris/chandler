@@ -1098,24 +1098,34 @@ class MailStamp(stamping.Stamp):
 
         checkIfToMe(self)
 
-    @schema.observer(toAddress, isOutbound, stamping.Stamp.stamp_types)
+    @schema.observer(toAddress, fromAddress, originators, isOutbound, 
+                     stamping.Stamp.stamp_types)
     def onAddressChange(self, op, name):
         self.itsItem.updateDisplayWho(op, name)
 
     def addDisplayWhos(self, whos):
-        # @@@ This code doesn't choose the right 'who' yet, but has enough
-        # context to make the decision here. (If the decision depends
-        # on more attributes, be sure to add them to the schema.observer list
-        # on onAddressChange)
-        if getattr(self, 'toAddress', None) is not None:
-            toText = u", ".join(unicode(x) for x in self.toAddress)
+        """
+        Add tuples to the "whos" list: (priority, "text", source name)
+        """
+        toAddress = getattr(self, 'toAddress', [])
+        if len(toAddress) > 0:
+            toText = u", ".join(unicode(x) for x in toAddress)
             if len(toText) > 0:
-                toPriority = self.isOutbound and 1 or 2
+                toPriority = self.isOutbound and 1 or 3
                 whos.append((toPriority, toText, 'to'))
-        if getattr(self, 'fromAddress', None) is not None:
-            fromText = unicode(self.fromAddress)
+
+        originators = getattr(self, 'originators', [])
+        if len(originators) > 0:
+            originatorsText = u", ".join(unicode(x) for x in originators)
+            if len(originatorsText) > 0:
+                originatorsPriority = self.isOutbound and 2 or 1
+                whos.append((originatorsPriority, originatorsText, 'from'))
+        
+        fromAddress = getattr(self, 'fromAddress', None)
+        if fromAddress is not None:
+            fromText = unicode(fromAddress)
             if len(fromText) > 0:
-                fromPriority = self.isOutbound and 2 or 1
+                fromPriority = self.isOutbound and 3 or 2
                 whos.append((fromPriority, fromText, 'from'))
 
     schema.addClouds(
@@ -1149,12 +1159,10 @@ class MailStamp(stamping.Stamp):
             self.mimeContent = MIMEContainer(itsView=self.itsItem.itsView,
                                                mimeType='message/rfc822')
 
-        # default the fromAddress and originators to "me"
-        me = EmailAddress.getCurrentMeEmailAddress(self.itsItem.itsView)
+        # default the fromAddress to "me"
         if getattr(self, 'fromAddress', None) is None:
-            self.fromAddress = me
-        if len(self.originators) == 0 and me is not None:
-            self.originators.append(me)
+            self.fromAddress = \
+                EmailAddress.getCurrentMeEmailAddress(self.itsItem.itsView)
 
     @schema.observer(dateSent)
     def onDateSentChanged(self, op, name):
@@ -1175,6 +1183,13 @@ class MailStamp(stamping.Stamp):
 
         self.isOutbound = True
         self.parentAccount = account
+        
+        if len(self.originators) == 0:
+            # We've been lazily defaulting the "From:" field to the "Send As" 
+            # value, but now that the message is really heading out, fix
+            # the "From:" field so that subsequent updaters won't do this lazy
+            # defaulting.
+            self.originators.add(self.fromAddress)
 
     def incomingMessage(self, account, type="IMAP"):
         assert isinstance(account, DownloadAccountBase)

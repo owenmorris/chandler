@@ -1,4 +1,4 @@
-#   Copyright (c) 2003-2006 Open Source Applications Foundation
+#   Copyright (c) 2003-2007 Open Source Applications Foundation
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -23,7 +23,7 @@ from detailblocks import (
 )
 
 from detail import (
-    BylineAEBlock,
+    BylineAreaBlock,
     CalendarAllDayAreaBlock,
     EventAreaBlock,
     CalendarConditionalLabelBlock,
@@ -42,10 +42,8 @@ from detail import (
     DetailBranchPointDelegate, 
     EmptyPanelBlock,
     HTMLDetailArea,
-    InboundOnlyAreaBlock,
     MailAreaBlock,
     MailMessageButtonBlock,
-    OutboundOnlyAreaBlock,
     PrivateSwitchButtonBlock, 
     StaticTextLabel, 
     TaskAreaBlock,

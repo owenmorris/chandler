@@ -270,6 +270,7 @@ def registerAttributeEditors(parcel, oldVersion):
         'DateTime+calendarTimeOnly': 'CalendarTimeAttributeEditor',
         'DateTimeTZ+calendarTimeOnly': 'CalendarTimeAttributeEditor',
         'EmailAddress+outbound': 'OutboundEmailAddressAttributeEditor',
+        'EmailAddress+originators': 'OriginatorsAttributeEditor',
         'NoneType+appearsIn': 'AppearsInAttributeEditor',
         'RecurrenceRuleSet+custom': 'RecurrenceCustomAttributeEditor',
         'RecurrenceRuleSet+ends': 'RecurrenceEndsAttributeEditor',
@@ -499,9 +500,11 @@ def makeMailArea(parcel, oldVersion):
                 makeLabel(parcel, _(u'from')),
                 makeSpacer(parcel, width=8),
                 makeEditor(parcel, 'EditMailOriginators',
+                    baseClass=OriginatorsAEBlock,
                     viewAttribute=MailStamp.originators.name,
                     presentationStyle={'editInPlace': True,
-                                        'maxLineCount': 3})],
+                                        'maxLineCount': 3,
+                                        'format' : 'originators' })],
             position=0.1).install(parcel)
 
     toArea = \
@@ -527,7 +530,6 @@ def makeMailArea(parcel, oldVersion):
             position=0.111).install(parcel)
     bccArea = \
         makeArea(parcel, 'BccArea',
-            baseClass=OutboundOnlyAreaBlock,
             childrenBlocks=[
                 makeLabel(parcel, _(u'bcc')), # XXX no conflicts with "&bcc" but still does not work because we mess with the controls
                 makeSpacer(parcel, width=8),
@@ -538,21 +540,9 @@ def makeMailArea(parcel, oldVersion):
             position=0.112,
             border=RectType(0, 0, 6, 6)).install(parcel)
 
-    '''
     sendAsArea = \
-        makeArea(parcel, 'SendAsArea',
-            baseClass=SendAsAreaBlock,
-            childrenBlocks=[
-                makeLabel(parcel, _(u'send as')),
-                makeSpacer(parcel, width=8),
-                makeEditor(parcel, 'EditMailOutboundFrom',
-                    presentationStyle={'format': 'outbound'},
-                    viewAttribute=MailStamp.fromAddress.name)],
-            position=0.113).install(parcel)
-    '''
-    outboundFromArea = \
-        makeArea(parcel, 'OutboundFromArea',
-            baseClass=OutboundOnlyAreaBlock,
+        makeArea(parcel, 'SendAsArea', # Note: this blockname is tested in BylineAreaBlock.shouldShow
+            baseClass=BylineAreaBlock,
             childrenBlocks=[
                 makeLabel(parcel, _(u'send as')), # XXX "&send as" conflicts with Share menu
                 makeSpacer(parcel, width=8),
@@ -605,7 +595,7 @@ def makeMailArea(parcel, oldVersion):
                 toArea,
                 ccArea,
                 bccArea,
-                outboundFromArea,
+                sendAsArea,
                 # @@@ Disabled until we resume work on sharing invitations
                 # acceptShareButton,
                 # @@@ disabled until we rewrite the attachment AE.
@@ -730,9 +720,9 @@ def makeNoteSubtree(parcel, oldVersion):
 
     bylineArea = \
         makeArea(parcel, 'BylineArea',
+            baseClass=BylineAreaBlock,
             childrenBlocks=[
                 makeEditor(parcel, 'BylineBlock',
-                    baseClass=BylineAEBlock,
                     viewAttribute='byline',
                     presentationStyle={'format' : 'static'})],
             position=0.4,
