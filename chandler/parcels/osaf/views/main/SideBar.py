@@ -23,7 +23,8 @@ from osaf.framework.blocks import (
 
 from osaf.pim import (
     ContentCollection, IntersectionCollection, DifferenceCollection,
-    UnionCollection, IndexedSelectionCollection, AppCollection
+    UnionCollection, IndexedSelectionCollection, AppCollection,
+    calendar
     )
 
 from osaf.framework.prompts import promptYesNoCancel
@@ -874,6 +875,14 @@ class SSSidebarSharingButton (SSSidebarButton):
                             text = _(u"Subscription")
                         else:
                             text = _(u"Subscription that is being kept out of the Dashboard")
+
+                    lastSynced = getattr(share, 'lastSynced', None)
+                    if lastSynced is not None:
+                        format = calendar.DateTimeUtil.shortDateFormat.format
+                        syncDay = format(lastSynced)
+                        syncTime = calendar.formatTime(lastSynced)
+                        text += _(u"; Last synced on %s at %s") % (syncDay,
+                            syncTime)
 
                 gridWindow.SetToolTipString (text)
                 gridWindow.GetToolTip().Enable (True)
