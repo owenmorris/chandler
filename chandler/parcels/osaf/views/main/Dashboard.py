@@ -109,10 +109,10 @@ class DashboardBlock(Table):
             _(u"Automatic triage"), wx.OK | wx.CANCEL | wx.ICON_HAND) != wx.OK:
             return        
         
-        # Don't thrash all the indexes (until we're done, that is).
+        # Don't fire all the observers (until we're done, that is).
+        recurringEventsToHandle = set()
         with self.itsView.observersDeferred():
             with self.itsView.reindexingDeferred():
-                recurringEventsToHandle = set()
                 modificationForAttr = pim.EventStamp.modificationFor.name
                 for key in self.contents.iterkeys():
                     master = self.itsView.findValue(key, modificationForAttr,
@@ -132,6 +132,7 @@ class DashboardBlock(Table):
                     if master is not None:
                         recurringEventsToHandle.add(master)
          
-                for master in recurringEventsToHandle:
-                    pim.EventStamp(master).updateTriageStatus(checkOccurrences=autoTriageToo)
+        # (We do this outside the deferrals because this depends on the indexes...
+        for master in recurringEventsToHandle:
+            pim.EventStamp(master).updateTriageStatus(checkOccurrences=autoTriageToo)
 
