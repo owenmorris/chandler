@@ -1186,7 +1186,8 @@ class MainView(View):
             try:
                 uuids = set()
                 for item in schema.Item.iterItems(self.itsView):
-                    uuids.add(item.itsUUID)
+                    if not str(item.itsPath).startswith("//parcels"):
+                        uuids.add(item.itsUUID)
                 dumpreload.dump(self.itsView, path, uuids, activity=activity)
                 activity.completed()
             except Exception, e:

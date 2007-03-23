@@ -187,16 +187,6 @@ class CollectionMembershipRecord(eim.Record):
     itemUUID = eim.key(schema.UUID)
     index = eim.key(eim.IntType)
 
-class OTBCollectionMembershipRecord(eim.Record):
-    # A membership record for a collection that is "out of the box"
-    # i.e. in a newly created repository
-    URI = "http://osafoundation.org/eim/pim/OTBcollectionmembership/0"
-
-    collectionName = eim.key(text20)
-    itemUUID = eim.key(schema.UUID)
-    index = eim.key(eim.IntType)
-
-
 # osaf.sharing ----------------------------------------------------------------
 
 

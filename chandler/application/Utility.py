@@ -35,7 +35,7 @@ import version
 # with your name (and some helpful text). The comment's really there just to
 # cause Subversion to warn you of a conflict when you update, in case someone 
 # else changes it at the same time you do (that's why it's on the same line).
-SCHEMA_VERSION = "340" # morgen: added menu items
+SCHEMA_VERSION = "341" # john: sidebar now gets a fixed UUID for reload to find it
 
 logger = None # initialized in initLogging()
 

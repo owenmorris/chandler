@@ -681,8 +681,6 @@ class PIMTranslator(eim.Translator):
                         value = transform(value)
                 event.changeThis(attr, value)
             
-                
-
         start, allDay, anyTime = getTimeValues(record)
         # stringToDurations always returns a list of timedeltas, which is silly
         # and should be fixed in vobject
@@ -701,20 +699,6 @@ class PIMTranslator(eim.Translator):
         change(pim.ContentItem.body.name, record.body)
         
         # ignore triageStatus, triageStatusChanged, and reminderTime
-        
-    def finishExport(self):
-        for record in super(PIMTranslator, self).finishExport():
-            yield record
-
-        index = 0
-        for collection in schema.ns("osaf.app", self.rv).sidebarCollection:
-            if not UserCollection (collection).outOfTheBoxCollection:
-                yield model.OTBCollectionMembershipRecord(
-                    "sidebar",
-                    collection.itsUUID,
-                    index
-                )
-                index = index + 1
 
 
 class DumpTranslator(PIMTranslator):
@@ -746,17 +730,20 @@ class DumpTranslator(PIMTranslator):
 
     @eim.exporter(pim.SmartCollection)
     def export_collection(self, collection):
-
-        if (not UserCollection (collection).outOfTheBoxCollection and
-            collection in schema.ns("osaf.app", self.rv).sidebarCollection):
-            
-            yield model.CollectionRecord(
-                collection.itsUUID,
-                int (collection in schema.ns('osaf.pim', self.rv).mine.sources)
-            )
+        yield model.CollectionRecord(
+            collection.itsUUID,
+            int (collection in schema.ns('osaf.pim', self.rv).mine.sources)
+        )
+        for record in self.export_collection_memberships (collection):
+            yield record
     
-            index = 0
-            for item in collection:
+
+    def export_collection_memberships(self, collection):
+        index = 0
+        for item in collection:
+            # By default we don't include items that are in
+            # //parcels since they are not created by the user
+            if not str(item.itsPath).startswith("//parcels"):
                 yield model.CollectionMembershipRecord(
                     collection.itsUUID,
                     item.itsUUID,
@@ -764,6 +751,7 @@ class DumpTranslator(PIMTranslator):
                 )
                 index = index + 1
 
+        
     if __debug__:
         def indexIsInSequence (self, collection, index):
             if not hasattr (self, "collectionToIndex"):
@@ -772,34 +760,21 @@ class DumpTranslator(PIMTranslator):
             self.collectionToIndex[collection] = index + 1
             return expectedIndex == index
                 
-                
-    @model.OTBCollectionMembershipRecord.importer
-    def import_otb_collectionmembership(self, record):
-
-        nameToOTBCollection = {
-            "sidebar" : schema.ns("osaf.app", self.rv).sidebarCollection,
-        }
-        collection = nameToOTBCollection [record.collectionName]
-        # We're preserving order of items in collections
-        assert (self.indexIsInSequence (collection, record.index))
-            
-        item = self.loadItemByUUID (record.itemUUID, pim.ContentItem )
-        collection.add(item)
-
-
 
     @model.CollectionMembershipRecord.importer
     def import_collectionmembership(self, record):
 
-        collection = self.loadItemByUUID(record.collectionUUID,
-            pim.SmartCollection
-        )
+        # Temporary work aroud for getting the right class of the sidebar since
+        # loadItemByUUID with the default of SmartCollection throws an exception
+        # in the case of the sidebar
+        
+        collection = self.rv.find (UUID (record.collectionUUID))
+        if collection is None:
+            collection = self.loadItemByUUID (record.collectionUUID, pim.SmartCollection)
         # We're preserving order of items in collections
         assert (self.indexIsInSequence (collection, record.index))
         
-        item = self.loadItemByUUID(record.itemUUID,
-            pim.ContentItem
-        )
+        item = self.loadItemByUUID(record.itemUUID, pim.ContentItem)
         collection.add(item)
 
 
@@ -1166,7 +1141,13 @@ class DumpTranslator(PIMTranslator):
             account.davPath
         )
 
+    def finishExport(self):
+        for record in super(DumpTranslator, self).finishExport():
+            yield record
 
+        # emit the CollectionMembership records for the sidebar collection
+        for record in self.export_collection_memberships (schema.ns("osaf.app", self.rv).sidebarCollection):
+            yield record
 
 
 def test_suite():

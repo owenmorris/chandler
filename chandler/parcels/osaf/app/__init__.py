@@ -20,6 +20,7 @@ from i18n import ChandlerMessageFactory as _
 from PyICU import ICUtzinfo
 from osaf import pim, messages
 from osaf.framework import scripting
+from chandlerdb.util.c import UUID
 
 import version
 
@@ -41,14 +42,18 @@ def installParcel(parcel, oldVersion=None):
         references=[pim_ns.currentContact]
     )
 
-
     # The Sidebar collection
     sidebarListCollection = pim.ListCollection.update(parcel,
         'sidebarCollection',
-        inclusions=[pim_ns.allCollection, pim_ns.inCollection,
-        pim_ns.outCollection, pim_ns.trashCollection]
+        # Hard code the UUID of the sidebar collection so that after a
+        # new repository is created we can still find the sidebar
+        # for dump and reload
+        _uuid = UUID("3c58ae62-d8d6-11db-86bb-0017f2ca1708"),
+        inclusions=[pim_ns.allCollection,
+                    pim_ns.inCollection,
+                    pim_ns.outCollection,
+                    pim_ns.trashCollection]
     )
-
 
     sharing.WebDAVAccount.update(parcel, 'defaultWebDAVAccount',
         displayName=_(u'Cosmo Sharing Service'),
