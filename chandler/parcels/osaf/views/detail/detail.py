@@ -186,7 +186,7 @@ class DetailRootBlock(WatchedItemRootBlock, ControlBlocks.ContentItemDetail):
 
         if notificationType != 'itemChange':
             return
-        
+
         # Ignore notifications during stamping
         (op, uuid, attributes) = data
         item = self.itsView.findUUID(uuid, False)

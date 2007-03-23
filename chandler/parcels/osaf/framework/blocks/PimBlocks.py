@@ -203,20 +203,19 @@ class FocusEventHandlers(Item):
             for item in selectedItems:
                 if has_stamp(item, sharing.SharedItem):
                     sharing.SharedItem(item).generateConflicts()
-                    detail = schema.ns("osaf.views.detail", self.itsView)
-                    assert detail is not None
-                    detail.ConflictButton.markDirty()
-                    detail.ConflictButton.synchronizeWidget()
 
     def onCreateConflictEventUpdateUI(self, event):
         selectedItems = self.__getSelectedItems()
         if len(selectedItems) > 0:
-            # Collect the states of all the items, so that we can change all
-            # the items if they're all in the same state.
+            # Check all the selected items for being shared.
             states = [has_stamp(item, sharing.SharedItem) for item in selectedItems]
-            # only enable for Notes and their subclasses (not collections, etc)
+            # only enable for shared items
             enable = True in states
             event.arguments['Enable'] = enable
+            if enable:
+                event.arguments['Text'] = _(u"Create Conflict")
+            else:
+                event.arguments['Text'] = _(u"Only Shared Items Can Have Conflicts")
 
     def onFocusStampEvent(self, event):
         selectedItems = self.__getProxiedSelectedItems(event)
