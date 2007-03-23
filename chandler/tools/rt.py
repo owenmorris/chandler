@@ -595,8 +595,10 @@ def runFuncTest(options, test='FunctionalTestSuite.py'):
 
         if test == 'FunctionalTestSuite.py':
             cmd += ['--scriptFile=%s' % os.path.join(options.chandlerHome, 'tools', 'cats', 'Functional', test)]
+            timeout = 1200
         else:
             cmd += ['--chandlerTests=%s' % test]
+            timeout = 900
 
         if options.noStop:
             cmd += [ '-F' ]
@@ -612,7 +614,7 @@ def runFuncTest(options, test='FunctionalTestSuite.py'):
         if options.dryrun:
             result = 0
         else:
-            result = build_lib.runCommand(cmd, timeout=900)
+            result = build_lib.runCommand(cmd, timeout=timeout)
 
         if result != 0:
             log('***Error exit code=%d' % result)
