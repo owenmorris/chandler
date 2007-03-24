@@ -965,6 +965,7 @@ class ItemContainer(DBContainer):
     KIND_TYPES = ITEM_TYPES[0:1]
     PARENT_TYPES = ITEM_TYPES[0:3]
     VALUES_TYPES = ITEM_TYPES[0:4]
+    NAME_TYPES = ITEM_TYPES[0:6]
     NO_DIRTIES_TYPES = ITEM_TYPES[0:-1]
 
     def __init__(self, store):
@@ -1016,6 +1017,9 @@ class ItemContainer(DBContainer):
     def saveItem(self, uItem, version, uKind, prevKind, status,
                  uParent, name, moduleName, className,
                  values, dirtyValues, dirtyRefs):
+
+        if not status:
+            import pdb; pdb.set_trace()
 
         record = Record(Record.UUID, uKind,
                         Record.INT, status,
@@ -1229,7 +1233,7 @@ class ItemContainer(DBContainer):
         version, item = self.findItem(view, version, uuid,
                                       ItemContainer.PARENT_TYPES)
         if item is not None:
-            return item[2]
+            return item[-1]
 
         return None
 
@@ -1238,7 +1242,16 @@ class ItemContainer(DBContainer):
         version, item = self.findItem(view, version, uuid,
                                       ItemContainer.KIND_TYPES)
         if item is not None:
-            return item[0]
+            return item[-1]
+
+        return None
+
+    def getItemName(self, view, version, uuid):
+
+        version, item = self.findItem(view, version, uuid,
+                                      ItemContainer.NAME_TYPES)
+        if item is not None:
+            return item[-1]
 
         return None
 

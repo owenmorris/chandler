@@ -1290,6 +1290,23 @@ class RepositoryView(CView):
                 print "%6d: %s %4d %4d 0x%08x" %(version, then,
                                                  viewSize, commitCount, status)
 
+    def printItemChanges(self, item, fromVersion=1, toVersion=0):
+
+        store = self.store
+        prevValues = set()
+        for version, status in store.iterItemVersions(self, item.itsUUID, fromVersion, toVersion):
+            then, viewSize, commitCount, name = store.getCommit(version)
+            reader, uValues = store.loadValues(self, version, item.itsUUID)
+            if name == self.name:
+                currValues = set(uValues)
+                # removed values not included
+                names = [store.loadItemName(self, version, uAttr)
+                         for uAttr in (reader.readAttribute(self, uValue)
+                                       for uValue in currValues - prevValues)]
+                print "%6d 0x%08x %s: %s" %(version, status, name,
+                                            ', '.join(names))
+            prevValues = currValues
+
     itsUUID = UUID('3631147e-e58d-11d7-d3c2-000393db837c')
     SUBSCRIBERS = UUID('4dc81eae-1689-11db-a0ac-0016cbc90838')
 

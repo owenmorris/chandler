@@ -884,6 +884,7 @@ class References(Values):
                 if isitemref(value):
                     logger.error("Dangling reference %s on %s.%s", value,
                                  item._repr_(), key)
+                    result = False
                     continue
                 
             attrCard = item.getAttributeAspect(key, 'cardinality',

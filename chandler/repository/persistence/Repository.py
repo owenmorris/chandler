@@ -245,6 +245,21 @@ class Repository(CRepository):
                                                 viewSize, commitCount, status,
                                                 name)
 
+    def printItemChanges(self, item, fromVersion=1, toVersion=0):
+
+        store = self.store
+        prevValues = set()
+        for version, status in store.iterItemVersions(None, item.itsUUID, fromVersion, toVersion):
+            then, viewSize, commitCount, name = store.getCommit(version)
+            reader, uValues = store.loadValues(None, version, item.itsUUID)
+            currValues = set(uValues)
+            # removed values not included
+            names = [store.loadItemName(None, version, uAttr)
+                     for uAttr in (reader.readAttribute(None, uValue)
+                                   for uValue in currValues - prevValues)]
+            print "%6d 0x%08x %s: %s" %(version, status, name, ', '.join(names))
+            prevValues = currValues
+
     def setDebug(self, debug):
 
         if debug:
@@ -293,8 +308,14 @@ class Store(CStore):
     def loadItem(self, view, version, uuid):
         raise NotImplementedError, "%s.loadItem" %(type(self))
     
+    def loadItemName(self, view, version, uuid):
+        raise NotImplementedError, "%s.loadItemName" %(type(self))
+    
     def loadValue(self, view, version, uuid, name):
         raise NotImplementedError, "%s.loadValue" %(type(self))
+    
+    def loadValues(self, view, version, uuid, names=None):
+        raise NotImplementedError, "%s.loadValues" %(type(self))
     
     def loadRef(self, view, version, uItem, uuid, key):
         raise NotImplementedError, "%s.loadRef" %(type(self))

@@ -1052,6 +1052,10 @@ class DBStore(Store):
 
         return itemReader
 
+    def loadItemName(self, view, version, uuid):
+
+        return self._items.getItemName(view, version, uuid)
+
     def loadValue(self, view, version, uItem, name):
 
         status, uValue = self._items.findValue(view, version, uItem,
@@ -1061,9 +1065,9 @@ class DBStore(Store):
 
         return DBValueReader(self, status, version), uValue
     
-    def loadValues(self, view, version, uItem, names):
+    def loadValues(self, view, version, uItem, names=None):
 
-        hashes = [_hash(name) for name in names]
+        hashes = [_hash(name) for name in names] if names is not None else None
         status, uValues = self._items.findValues(view, version, uItem, hashes)
         if status is None:
             return None, uValues

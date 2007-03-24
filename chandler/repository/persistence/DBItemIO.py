@@ -458,6 +458,13 @@ class DBValueReader(ValueReader):
         self.uItem = None
         self.name = None
 
+    def readAttribute(self, view, uValue):
+
+        store = self.store
+        record = store._values.c.loadValue(uValue, (Record.UUID,), store.txn)
+
+        return record.data[0]
+
     def readValue(self, view, uValue, toIndex=False):
 
         store = self.store
