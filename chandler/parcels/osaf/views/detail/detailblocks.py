@@ -603,13 +603,15 @@ def makeMailArea(parcel, oldVersion):
             ]).install(parcel)
 
 def makeConflictBar(parcel, oldVersion):
+    blocks = schema.ns('osaf.framework.blocks', parcel.itsView)
     conflictButton = ConflictWarning.template('ConflictButton',
                                     title=u'',
+                                    characterStyle = blocks.SummaryPrefixStyle,
                                     buttonKind='TextImage',
                                     # need a better icon
-                                    icon=u'MailErrorRollover.png',
+                                    icon=u'MailErrorRolloverSelected.png',
                                     stretchFactor=1.0,
-                                    minimumSize=SizeType(225, 36))
+                                    minimumSize=SizeType(225, 19))
     return makeArea(parcel, 'ConflictBar',
             position=0.08,
             childrenBlocks = [

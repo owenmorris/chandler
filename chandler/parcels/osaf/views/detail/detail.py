@@ -196,6 +196,9 @@ class DetailRootBlock(WatchedItemRootBlock, ControlBlocks.ContentItemDetail):
             return
 
         if pim.has_stamp(item, Mail.MailStamp):
+            #self.blockItem.postEventByName('UpdateSend')
+            #sendButton = Block.Block.findBlockByName("ApplicationBarSendButton")
+            #sendButton.setState()
             wx.GetApp().needsUpdateUI = True
 
 class DetailBranchPointDelegate(BranchPoint.BranchPointDelegate):
@@ -891,7 +894,6 @@ class ConflictWarning(DetailSynchronizer, ControlBlocks.Button):
         if button is not None:
             button.SetBackgroundColour('Red') 
             button.SetForegroundColour('White')
-            button.SetFont(wx.Font(14, wx.SWISS, wx.NORMAL, wx.BOLD, False))
             # clicking on it resolves the conflict
             button.Bind(wx.EVT_BUTTON, self.resolveConflict)
         return button
@@ -902,9 +904,9 @@ class ConflictWarning(DetailSynchronizer, ControlBlocks.Button):
             conflicts = self.getConflicts()
             conflictCount = len(conflicts)
             if conflictCount > 1:
-                widget.SetLabel(_(u'There are %d pending changes') % len(conflicts))
+                widget.SetLabel(_(u'%d pending changes') % len(conflicts))
             else:
-                widget.SetLabel(_(u'There is a pending change'))
+                widget.SetLabel(_(u'1 pending change'))
         super(ConflictWarning, self).synchronizeWidget(useHints)
 
     def hasConflicts(self):
