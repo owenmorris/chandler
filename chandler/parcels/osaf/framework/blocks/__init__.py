@@ -29,7 +29,7 @@ from Block import (
 
 from ContainerBlocks import (
     BoxContainer, FrameWindow, ScrolledContainer,
-    SplitterWindow, TabbedContainer, ViewContainer
+    SplitterWindow, ViewContainer
 )
 
 from BranchPoint import (

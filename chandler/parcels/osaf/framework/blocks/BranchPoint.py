@@ -31,7 +31,7 @@ substituted within itself, based on some key (like a content item to be
 displayed). The block inherits from this BranchPointBlock class; whenever
 synchronizeWidget happens, the appropriate set of child blocks will be swapped
 in. This mechanism is managed by a BranchPointDelegate object, which can be
-subclassed and/or configured from parcel XML to customize its behavior.
+subclassed and/or configured to customize its behavior.
 """
 
 logger = logging.getLogger(__name__)
