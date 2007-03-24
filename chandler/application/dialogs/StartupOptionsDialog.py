@@ -193,7 +193,8 @@ class StartupOptionsDialog(wx.Dialog):
             repoDir = repoDir.encode(sys.getfilesystemencoding())
         archive.add(repoDir, '.')
         archive.add('version.py')
-        for log in 'chandler.log', 'chandler.prefs':
+        for log in ('chandler.log', 'chandler.log.1', 'chandler.log.2',
+                    'chandler.prefs'):
             logPath = os.path.join(Globals.options.profileDir, log)
             if os.path.isfile(logPath):
                 archive.add(logPath, log)
