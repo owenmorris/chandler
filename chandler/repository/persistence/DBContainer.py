@@ -1018,9 +1018,6 @@ class ItemContainer(DBContainer):
                  uParent, name, moduleName, className,
                  values, dirtyValues, dirtyRefs):
 
-        if not status:
-            import pdb; pdb.set_trace()
-
         record = Record(Record.UUID, uKind,
                         Record.INT, status,
                         Record.UUID, uParent)
