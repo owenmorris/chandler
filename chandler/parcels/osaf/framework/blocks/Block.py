@@ -610,10 +610,12 @@ class Block(schema.Item):
         """
         self.dirtyBlocks.discard(self.itsUUID)
 
-    def isDirty(self):
+    def isBlockDirty(self):
         """
         Return True if we're in the dirty list
         """
+        # This isn't called "isDirty" anymore, because that conflicted with 
+        # CItem's isDirty.
         return self.itsUUID in self.dirtyBlocks
     
     @classmethod
