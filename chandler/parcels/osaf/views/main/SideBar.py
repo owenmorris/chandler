@@ -1242,15 +1242,6 @@ class SidebarBranchPointDelegate(BranchPoint.BranchPointDelegate):
         copying = schema.Cloud(byRef=[itemTupleKeyToCacheKey])
     )
 
-    def _makeBranchForCacheKey(self, keyItem):
-        """
-        Handle a cache miss; build and return a tree-of-blocks for this keyItem.
-        Defaults to using the keyItem itself, copying it if it's in the read-only
-        part of the repository. (This behavior fits with the simple case where
-        the items are views.)
-        """
-        return self._copyItem(keyItem, onlyIfReadOnly=True)
-
     def _mapItemToCacheKeyItem(self, item, hints):
 
         def wrapInIndexedSelectionCollection (key):
@@ -1341,7 +1332,6 @@ class SidebarBranchPointDelegate(BranchPoint.BranchPointDelegate):
                 if key is None:
                     # we don't have a cached version of this key, so we'll
                     # create a new one
-    
                     
                     if len(collectionList) == 1:
                         key = collectionList[0]

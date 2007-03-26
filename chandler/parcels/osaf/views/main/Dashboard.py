@@ -21,9 +21,9 @@ from __future__ import with_statement
 
 from application import schema
 from osaf import Preferences
-from osaf.framework.blocks import (Block, debugName, Table, 
-                                   wxTable, GridCellAttributeEditor, 
-                                   GridCellAttributeRenderer, Styles)
+from osaf.framework.blocks import (
+    Block, debugName, Table,  wxTable, GridCellAttributeEditor, 
+    GridCellAttributeRenderer, Styles, BranchPoint)
 from osaf.framework.attributeEditors import AttributeEditors
 from osaf import pim
 from i18n import ChandlerMessageFactory as _

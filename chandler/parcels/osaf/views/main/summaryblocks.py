@@ -526,9 +526,9 @@ def makeSummaryBlocks(parcel):
                                            attributes=attributes)
 
         # If we want master indexes precreated, here's where
-	# to do it. (Initially turned on to help Andi with debugging
-	# of bug 8319; turned off again because it made performance 
-	# significantly worse.)
+        # to do it. (Initially turned on to help Andi with debugging
+        # of bug 8319; turned off again because it made performance 
+        # significantly worse.)
         if useMaster: indexDefinition.makeMasterIndex()
             
         # Create the column

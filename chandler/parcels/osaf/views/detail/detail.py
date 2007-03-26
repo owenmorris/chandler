@@ -24,14 +24,13 @@ import re
 from application import schema
 from application.dialogs import ConflictDialog
 from osaf import pim
-from osaf.framework.attributeEditors import \
-     AttributeEditorMapping, DateTimeAttributeEditor, \
-     DateAttributeEditor, EmailAddressAttributeEditor, TimeAttributeEditor, \
-     ChoiceAttributeEditor, StringAttributeEditor, \
-     StaticStringAttributeEditor
-from osaf.framework.blocks import \
-     Block, ContainerBlocks, ControlBlocks, MenusAndToolbars, \
-     FocusEventHandlers, BranchPoint, debugName
+from osaf.framework.attributeEditors import (
+     AttributeEditorMapping, DateTimeAttributeEditor, DateAttributeEditor,
+     EmailAddressAttributeEditor, TimeAttributeEditor, ChoiceAttributeEditor,
+     StringAttributeEditor, StaticStringAttributeEditor)
+from osaf.framework.blocks import (
+     Block, ContainerBlocks, ControlBlocks, MenusAndToolbars,
+     FocusEventHandlers, BranchPoint, debugName)
 from osaf import sharing
 import osaf.pim.mail as Mail
 import osaf.pim.items as items
@@ -214,15 +213,6 @@ class DetailBranchPointDelegate(BranchPoint.BranchPointDelegate):
     schema.addClouds(
         copying = schema.Cloud(byRef=[branchStub])
     )
-
-    def _makeBranchForCacheKey(self, keyItem):
-        """ 
-        Handle a cache miss; build and return a tree-of-blocks for this keyItem. 
-        Defaults to using the keyItem itself, copying it if it's in the read-only
-        part of the repository. (This behavior fits with the simple case where
-        the items are views.)
-        """
-        return self._copyItem(keyItem, onlyIfReadOnly=True)
 
     def _mapItemToCacheKeyItem(self, item, hints):
         """ 
