@@ -16,26 +16,23 @@ __parcel__ = "osaf.views.main"
 
 from osaf.framework.blocks import *
 from osaf.views.detail import WatchedItemRootBlock
+import osaf.pim.items as items
 
 class SendToolbarItem(WatchedItemRootBlock, ToolbarItem):
     """
     The "Send"/"Update" toolbar item
     """
-    def synchronizeWidget(self, useHints=False):
-        super(SendToolbarItem, self).synchronizeWidget(useHints)
-        self.setState()
 
-    def setState(self):
+    def setState(self, item):
         # this button to reflect the kind of the selected item
-        item = self.item
         if item is not None:
             # modifiedFlags = { "edited":100, "queued":200, "sent":300, "updated":400 }
-            if 'edited' in item.modifiedFlags:
-                # change the button to "Update"
+            if items.Modification.edited in item.modifiedFlags:
+                # set the button to "Update"
                 pass
-            elif 'sent' in  item.modifiedFlags:
-                # change the button to "Update"
+            elif (items.Modification.sent in item.modifiedFlags) or (items.Modification.queued in item.modifiedFlags):
+                # set the button to disabled "Send"
                 pass
             else:
-                # leave the bitmap as "Send"
+                # set the button to "Send"
                 pass

@@ -180,7 +180,6 @@ class DetailRootBlock(WatchedItemRootBlock, ControlBlocks.ContentItemDetail):
         return [ (self.contents, 'lastModified') ]
 
     def onItemNotification(self, notificationType, data):
-        # super(DetailRootBlock, self).onItemNotification(notificationType, data)
         self.markClean() # we'll do whatever needs to be done here.
 
         if notificationType != 'itemChange':
@@ -195,9 +194,8 @@ class DetailRootBlock(WatchedItemRootBlock, ControlBlocks.ContentItemDetail):
             return
 
         if pim.has_stamp(item, Mail.MailStamp):
-            #self.blockItem.postEventByName('UpdateSend')
-            #sendButton = Block.Block.findBlockByName("ApplicationBarSendButton")
-            #sendButton.setState()
+            sendButton = Block.Block.findBlockByName("ApplicationBarSendButton")
+            sendButton.setState(item)
             wx.GetApp().needsUpdateUI = True
 
 class DetailBranchPointDelegate(BranchPoint.BranchPointDelegate):
