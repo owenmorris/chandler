@@ -50,6 +50,7 @@ static PyObject *t_item__isRefs(t_item *self);
 static PyObject *t_item__isMerged(t_item *self);
 static PyObject *t_item_isWatched(t_item *self);
 static PyObject *t_item_getAttributeAspect(t_item *self, PyObject *args);
+static PyObject *t_item_getLocalAttributeValue(t_item *self, PyObject *args);
 static PyObject *t_item_hasLocalAttributeValue(t_item *self, PyObject *args);
 static PyObject *t_item_hasTrueAttributeValue(t_item *self, PyObject *args);
 static PyObject *t_item__fireChanges(t_item *self, PyObject *args);
@@ -143,6 +144,7 @@ static PyMethodDef t_item_methods[] = {
     { "_isMerged", (PyCFunction) t_item__isMerged, METH_NOARGS, "" },
     { "isWatched", (PyCFunction) t_item_isWatched, METH_NOARGS, "" },
     { "getAttributeAspect", (PyCFunction) t_item_getAttributeAspect, METH_VARARGS, NULL },
+    { "getLocalAttributeValue", (PyCFunction) t_item_getLocalAttributeValue, METH_VARARGS, NULL },
     { "hasLocalAttributeValue", (PyCFunction) t_item_hasLocalAttributeValue, METH_VARARGS, NULL },
     { "hasTrueAttributeValue", (PyCFunction) t_item_hasTrueAttributeValue, METH_VARARGS, NULL },
     { "_fireChanges", (PyCFunction) t_item__fireChanges, METH_VARARGS, "" },
@@ -719,6 +721,47 @@ static PyObject *t_item_getAttributeAspect(t_item *self, PyObject *args)
     return defaultValue;
 }
 
+static PyObject *t_item_getLocalAttributeValue(t_item *self, PyObject *args)
+{
+    PyObject *name, *defaultValue = NULL, *attrDict = NULL;
+    PyObject *value;
+
+    if (!PyArg_ParseTuple(args, "O|OO", &name, &defaultValue, &attrDict))
+        return NULL;
+    
+    if (attrDict != NULL && attrDict != Py_None)
+    {
+        if (!PyObject_TypeCheck(attrDict, CValues))
+        {
+            PyErr_SetObject(PyExc_TypeError, attrDict);
+            return NULL;
+        }
+
+        value = PyDict_GetItem(((t_values *) attrDict)->dict, name);
+    }
+    else if (!(value = PyDict_GetItem(self->values->dict, name)))
+        value = PyDict_GetItem(self->references->dict, name);
+
+    if (value)      /* must match t_values_dict_get */
+    {
+        if (value->ob_type == ItemRef)
+            value = PyObject_Call(value, NULL, NULL);
+        else
+            Py_INCREF(value);
+
+        return value;
+    }
+
+    if (defaultValue)
+    {
+        Py_INCREF(defaultValue);
+        return defaultValue;
+    }
+
+    PyErr_SetObject(PyExc_AttributeError, name);
+    return NULL;
+}
+
 static PyObject *t_item_hasLocalAttributeValue(t_item *self, PyObject *args)
 {
     PyObject *name, *attrDict = NULL;
@@ -740,8 +783,8 @@ static PyObject *t_item_hasLocalAttributeValue(t_item *self, PyObject *args)
         Py_RETURN_FALSE;
     }
 
-    if (PyDict_Contains(((t_values *) self->values)->dict, name) ||
-        PyDict_Contains(((t_values *) self->references)->dict, name))
+    if (PyDict_Contains(self->values->dict, name) ||
+        PyDict_Contains(self->references->dict, name))
         Py_RETURN_TRUE;
 
     Py_RETURN_FALSE;
