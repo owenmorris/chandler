@@ -64,12 +64,8 @@ class SharedItem(pim.Stamp):
     def getConflicts(self):
         for state in self.conflictingStates:
             for conflict in state.getConflicts():
+                conflict.item = self.itsItem
                 yield conflict
-
-
-    def clearConflicts(self):
-        for state in self.conflictingStates:
-            state.clearConflicts()
 
 
     def generateConflicts(self, **kwds):
@@ -79,8 +75,7 @@ class SharedItem(pim.Stamp):
             itemUUID = self.itsItem.itsUUID.str16()
             peer = pim.EmailAddress(itsView=self.itsItem.itsView,
                 emailAddress="conflict@example.com")
-            state = State(itsView=self.itsItem.itsView, peer=peer,
-                itemUUID=itemUUID)
+            state = State(itsView=self.itsItem.itsView, peer=peer)
 
             state.pending = eim.RecordSet([
                 model.ItemRecord(itemUUID, "XYZZY", nc, nc, nc, nc),
@@ -88,7 +83,7 @@ class SharedItem(pim.Stamp):
                 model.EventRecord(itemUUID, nc, nc, "San Jose", nc, nc, nc,
                     nc, nc),
             ])
-            state.updateConflicts()
+            state.updateConflicts(self.itsItem)
 
 
     def addPeerState(self, state, peer):
@@ -97,7 +92,6 @@ class SharedItem(pim.Stamp):
             self.peerStates = []
         if state not in self.peerStates:
             self.peerStates.append(state, peerUuid)
-        state.itemUUID = self.itsItem.itsUUID.str16()
 
     def getPeerState(self, peer, create=True):
         peerUuid = peer.itsUUID.str16()
@@ -107,8 +101,7 @@ class SharedItem(pim.Stamp):
         else:
             self.peerStates = []
         if state is None and create:
-            state = State(itsView=self.itsItem.itsView, peer=peer,
-                itemUUID=self.itsItem.itsUUID.str16())
+            state = State(itsView=self.itsItem.itsView, peer=peer)
             self.peerStates.append(state, peerUuid)
         return state
 
@@ -181,7 +174,6 @@ class State(schema.Item):
     peerStateFor = schema.One(inverse=SharedItem.peerStates)
     peerRepoId = schema.One(schema.Text, initialValue="")
     peerItemVersion = schema.One(schema.Integer, initialValue=-1)
-    itemUUID = schema.One(schema.Text)
     conflictFor = schema.One(inverse=SharedItem.conflictingStates)
     share = schema.One()
     conflictingShare = schema.One()
@@ -250,7 +242,7 @@ class State(schema.Item):
         externalDiff = rsExternal - self.agreed
 
         if debug:
-            print " ----------- Merging item:", self.itemUUID
+            print " ----------- Merging item"
             print "   rsInternal:", rsInternal
             print "   internalDiff:", internalDiff
             print "   externalDiff:", externalDiff
@@ -271,9 +263,6 @@ class State(schema.Item):
 
         self.pending = rsExternal - self.agreed
 
-        # Hook up pending conflicts to item
-        self.updateConflicts()
-
         if debug:
             print " - - - - Results - - - - "
             print "   dSend:", dSend
@@ -290,24 +279,21 @@ class State(schema.Item):
         diff = newState - state
         return diff
 
-    def updateConflicts(self):
+    def updateConflicts(self, item):
         # See if we have pending conflicts; if so, make sure we are in the
         # item's conflictingStates ref collection.  If not, make sure we
         # aren't.
-        if hasattr(self, "itemUUID"):
-            uuid = self.itemUUID
-            item = self.itsView.findUUID(uuid)
-            if item is not None:
-                if not pim.has_stamp(item, SharedItem):
-                    SharedItem(item).add()
-                shared = SharedItem(item)
-                if self.pending:
-                    self.conflictFor = item
-                    if getattr(self, 'share', None):
-                        self.conflictingShare = self.share
-                else:
-                    self.conflictFor = None
-                    self.conflictingShare = None
+        if item is not None:
+            if not pim.has_stamp(item, SharedItem):
+                SharedItem(item).add()
+            shared = SharedItem(item)
+            if self.pending:
+                self.conflictFor = item
+                if getattr(self, 'share', None):
+                    self.conflictingShare = self.share
+            else:
+                self.conflictFor = None
+                self.conflictingShare = None
 
 
     def set(self, agreed, pending):
@@ -335,7 +321,6 @@ class State(schema.Item):
         pending.remove(change)
         self.pending = pending
         self.agreed += change
-        self.updateConflicts()
 
     def getConflicts(self):
         if self.pending:
@@ -368,6 +353,7 @@ class Conflict(object):
         self.field = field
         self.value = value
         self.change = change
+        self.item = None
 
     def __repr__(self):
         return "%s : %s" % (self.field, self.value)
@@ -376,11 +362,15 @@ class Conflict(object):
         if not self.resolved:
             self.state.apply(self.change)
             self.resolved = True
+            if self.item is not None:
+                self.state.updateConflicts(self.item)
 
     def discard(self):
         if not self.resolved:
             self.state.discard(self.change)
             self.resolved = True
+            if self.item is not None:
+                self.state.updateConflicts(self.item)
 
 
 

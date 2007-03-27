@@ -20,6 +20,7 @@ import logging
 from application import schema
 import zanshin
 from repository.item.Item import Item
+from chandlerdb.util.c import UUID
 
 logger = logging.getLogger(__name__)
 
@@ -101,9 +102,9 @@ class RecordSetConduit(conduits.BaseConduit):
             if self.share.contents is not None:
                 receive = False
 
-        remotelyRemoved = set() # The uuids of remotely removed items
-        remotelyAdded = set() # The uuids of remotely added items
-        localItems = set() # The uuids of all items we're to process
+        remotelyRemoved = set() # The aliases of remotely removed items
+        remotelyAdded = set() # The aliases of remotely added items
+        localItems = set() # The aliases of all items we're to process
 
         if receive:
 
@@ -140,40 +141,44 @@ class RecordSetConduit(conduits.BaseConduit):
                 self.share.contents.displayName = name
 
             # Add remotely changed items
-            for uuid in inbound.keys():
-                rs = inbound[uuid]
+            for alias in inbound.keys():
+                rs = inbound[alias]
                 if rs is None: # skip deletions
-                    if debug: print "Inbound removal:", uuid
-                    del inbound[uuid]
-                    remotelyRemoved.add(uuid)
+                    if debug: print "Inbound removal:", alias
+                    del inbound[alias]
+                    remotelyRemoved.add(alias)
 
                     # Clear out the agreed state and any pending changes, so
                     # that if there are local changes, they'll just get sent
                     # back out along with the *complete* state of the item. The
                     # item has already been removed from the server, and we're
                     # putting it back.
-                    self.removeState(uuid)
+                    self.removeState(alias)
 
                 else:
-                    if debug: print "Inbound modification:", uuid
-                    item = rv.findUUID(uuid)
+                    if debug: print "Inbound modification:", alias
+                    uuid = translator.getUUIDForAlias(alias)
+                    if uuid:
+                        item = rv.findUUID(uuid)
+                    else:
+                        item = None
 
                     if item is not None and item.isLive():
                         # An inbound modification to an item we already have
-                        localItems.add(uuid)
+                        localItems.add(alias)
 
                     else:
-                        remotelyAdded.add(uuid)
-                        if self.hasState(uuid):
+                        remotelyAdded.add(alias)
+                        if self.hasState(alias):
                             # This is an item we completely deleted since our
                             # last sync.  We need to grab its previous state
                             # out of the baseline, apply any pending changes
                             # and the new inbound chagnes to it, and use that
                             # as the new inbound
-                            state = self.getState(uuid)
+                            state = self.getState(alias)
                             rs = state.agreed + state.pending + rs
                             if debug: print "Reconstituting from state:", rs
-                            inbound[uuid] = rs
+                            inbound[alias] = rs
                             state.clear()
 
 
@@ -212,20 +217,15 @@ class RecordSetConduit(conduits.BaseConduit):
             item = rv.findUUID(changedUuid)
             if debug: print "Locally modified item", item, item.itsVersion
 
-            # If an event, make sure we export the master; occurrences
-            # will be included in the master's recordset
-            if pim.has_stamp(item, pim.EventStamp):
-                item = pim.EventStamp(item).getMaster().itsItem
-                if debug: print "Master item", item, item.itsVersion
-
+            alias = translator.getAliasForItem(item)
+            localItems.add(alias)
             uuid = item.itsUUID.str16()
-            localItems.add(uuid)
-            if not self.hasState(uuid):
-                sendStats['added'].add(uuid)
-            if uuid in remotelyRemoved:
+            if not self.hasState(alias):
+                sendStats['added'].add(uuid) # stats use uuids, not aliases
+            if alias in remotelyRemoved:
                 # This remotely removed item was modified locally.
                 # We are going to send the whole item back out.
-                remotelyRemoved.remove(uuid)
+                remotelyRemoved.remove(alias)
 
         localCount = len(localItems)
         if localCount:
@@ -235,8 +235,13 @@ class RecordSetConduit(conduits.BaseConduit):
         # Compute local records
         rsNewBase = { }
         i = 0
-        for uuid in localItems:
-            item = rv.findUUID(uuid)
+        for alias in localItems:
+            uuid = translator.getUUIDForAlias(alias)
+            if uuid:
+                item = rv.findUUID(uuid)
+            else:
+                item = None
+
             if item is not None and item.isLive():
                 rs = eim.RecordSet(translator.exportItem(item))
                 self.share.addSharedItem(item)
@@ -244,7 +249,7 @@ class RecordSetConduit(conduits.BaseConduit):
             else:
                 rs = eim.RecordSet()
                 if debug: print "No local item for:", uuid
-            rsNewBase[uuid] = rs
+            rsNewBase[alias] = rs
             i += 1
             _callback(msg="Generated %d of %d recordset(s)" % (i, localCount),
                 work=1)
@@ -256,36 +261,44 @@ class RecordSetConduit(conduits.BaseConduit):
         toApply = {}
         toSend = {}
 
-        uuids = set(rsNewBase) | set(inbound)
-        mergeCount = len(uuids)
+        aliases = set(rsNewBase) | set(inbound)
+        mergeCount = len(aliases)
         if mergeCount:
             _callback(msg="%d recordset(s) to merge" % mergeCount,
                 totalWork=mergeCount, workDone=0)
 
         i = 0
-        for uuid in uuids:
-            state = self.getState(uuid)
-            rsInternal = rsNewBase.get(uuid, eim.RecordSet())
+        for alias in aliases:
+            state = self.getState(alias)
+            rsInternal = rsNewBase.get(alias, eim.RecordSet())
 
             if not isDiff:
                 # Ensure rsExternal is the whole state
-                if not inbound.has_key(uuid): # Not remotely changed
+                if not inbound.has_key(alias): # Not remotely changed
                     rsExternal = state.agreed + state.pending
                 else:
-                    rsExternal = inbound.get(uuid)
+                    rsExternal = inbound.get(alias)
             else:
-                rsExternal = inbound.get(uuid, eim.RecordSet())
+                rsExternal = inbound.get(alias, eim.RecordSet())
 
             dSend, dApply, pending = state.merge(rsInternal, rsExternal,
                 isDiff=isDiff, filter=filter, debug=debug)
+
+            uuid = translator.getUUIDForAlias(alias)
+            if uuid:
+                item = rv.findUUID(uuid)
+            else:
+                item = None
+            state.updateConflicts(item)
+
             if send and dSend:
-                toSend[uuid] = dSend
-                logger.debug("Sending changes for %s [%s]", uuid, dSend)
+                toSend[alias] = dSend
+                logger.debug("Sending changes for %s [%s]", alias, dSend)
                 if uuid not in sendStats['added']:
                     sendStats['modified'].add(uuid)
 
             if receive and dApply:
-                toApply[uuid] = dApply
+                toApply[alias] = dApply
 
             i += 1
             _callback(msg="Merged %d of %d recordset(s)" % (i, mergeCount),
@@ -300,24 +313,34 @@ class RecordSetConduit(conduits.BaseConduit):
 
             # Apply
             i = 0
-            for uuid, rs in toApply.items():
-                if debug: print "Applying:", uuid, rs
-                logger.debug("Applying changes to %s [%s]", uuid, rs)
+            for alias, rs in toApply.items():
+                if debug: print "Applying:", alias, rs
+                logger.debug("Applying changes to %s [%s]", alias, rs)
 
-                # Mark existing items as "unread" now, so that importing can override
-                # it (if we're reloading, f'rinstance)
-                item = rv.findUUID(uuid)
+                uuid = translator.getUUIDForAlias(alias)
+                if uuid:
+                    item = rv.findUUID(uuid)
+                else:
+                    item = None
+
+                # Mark existing items as "unread" now, so that importing can
+                # override it (if we're reloading, f'rinstance)
                 if item is not None:
                     item.read = False
 
                 translator.importRecords(rs)
-                
-                # Set triage status, based on the values we loaded
-                if item is None:
+
+                uuid = translator.getUUIDForAlias(alias)
+                if uuid:
                     item = rv.findUUID(uuid)
-                item.setTriageStatus('auto', popToNow=True)
-                
-                if uuid in remotelyAdded:
+                else:
+                    item = None
+
+                # Set triage status, based on the values we loaded
+                if item is not None:
+                    item.setTriageStatus('auto', popToNow=True)
+
+                if alias in remotelyAdded:
                     receiveStats['added'].add(uuid)
                 else:
                     receiveStats['modified'].add(uuid)
@@ -327,9 +350,14 @@ class RecordSetConduit(conduits.BaseConduit):
 
 
             # Make sure any items that came in are added to the collection
-            for uuid in inbound:
+            for alias in inbound:
+                uuid = translator.getUUIDForAlias(alias)
+                if uuid:
+                    item = rv.findUUID(uuid)
+                else:
+                    item = None
+
                 # Add the item to contents
-                item = rv.findUUID(uuid)
                 if item is not None and item.isLive():
                     if debug: print "Adding to collection:", uuid
                     self.share.contents.add(item)
@@ -339,11 +367,16 @@ class RecordSetConduit(conduits.BaseConduit):
             # For each remote removal, remove the item from the collection
             # locally
             # At this point, we know there were no local modifications
-            for uuid in remotelyRemoved:
-                item = rv.findUUID(uuid)
+            for alias in remotelyRemoved:
+                uuid = translator.getUUIDForAlias(alias)
+                if uuid:
+                    item = rv.findUUID(uuid)
+                else:
+                    item = None
+
                 if item is not None and item in self.share.contents:
                     self.share.contents.remove(item)
-                    self.removeState(uuid)
+                    self.removeState(alias)
                     self.share.removeSharedItem(item)
                     receiveStats['removed'].add(uuid)
                     if debug: print "Locally removing item:", uuid
@@ -355,16 +388,21 @@ class RecordSetConduit(conduits.BaseConduit):
         # TODO: Optimize by removing item loading
         statesToRemove = set()
         for state in self.share.states:
-            uuid = self.share.states.getAlias(state)
-            item = rv.findUUID(uuid)
+            alias = self.share.states.getAlias(state)
+            uuid = translator.getUUIDForAlias(alias)
+            if uuid:
+                item = rv.findUUID(uuid)
+            else:
+                item = None
+
             if (item is None or
                 item not in self.share.contents and
-                uuid not in remotelyRemoved):
+                alias not in remotelyRemoved):
                 if send:
-                    toSend[uuid] = None
+                    toSend[alias] = None
                     sendStats['removed'].add(uuid)
-                statesToRemove.add(uuid)
-                if debug: print "Remotely removing item:", uuid
+                statesToRemove.add(alias)
+                if debug: print "Remotely removing item:", alias
 
         removeCount = len(statesToRemove)
         if removeCount:
@@ -388,11 +426,14 @@ class RecordSetConduit(conduits.BaseConduit):
             logger.debug("Nothing to send")
 
 
-        for uuid in statesToRemove:
-            if debug: print "REMOVING STATE", uuid
-            self.removeState(uuid)
-            item = rv.findUUID(uuid)
-            self.share.removeSharedItem(item)
+        for alias in statesToRemove:
+            if debug: print "REMOVING STATE", alias
+            self.removeState(alias)
+            uuid = translator.getUUIDForAlias(alias)
+            if uuid:
+                item = rv.findUUID(uuid)
+                if item is not None:
+                    self.share.removeSharedItem(item)
 
         # Note the repository version number, which will increase at the next
         # commit
@@ -414,26 +455,26 @@ class RecordSetConduit(conduits.BaseConduit):
 
 
 
-    def getState(self, uuidString):
-        state = self.share.states.getByAlias(uuidString)
+
+    def getState(self, alias):
+        state = self.share.states.getByAlias(alias)
         if state is None:
-            state = self.newState(uuidString)
+            state = self.newState(alias)
         return state
 
-    def newState(self, uuidString):
-        state = shares.State(itsView=self.itsView, peer=self.share,
-            itemUUID=uuidString)
-        self.share.states.append(state, uuidString)
+    def newState(self, alias):
+        state = shares.State(itsView=self.itsView, peer=self.share)
+        self.share.states.append(state, alias)
         return state
 
-    def removeState(self, uuidString):
-        state = self.share.states.getByAlias(uuidString)
+    def removeState(self, alias):
+        state = self.share.states.getByAlias(alias)
         if state is not None:
             self.share.states.remove(state)
             state.delete(True)
 
-    def hasState(self, uuidString):
-        return self.share.states.getByAlias(uuidString) is not None
+    def hasState(self, alias):
+        return self.share.states.getByAlias(alias) is not None
 
 
     def getFilter(self):
@@ -450,6 +491,9 @@ class RecordSetConduit(conduits.BaseConduit):
 
     def fileStyle(self):
         return formats.STYLE_DIRECTORY
+
+
+
 
 class DiffRecordSetConduit(RecordSetConduit):
 
@@ -487,11 +531,11 @@ class ResourceRecordSetConduit(RecordSetConduit):
         paths = { }
         for state in self.share.states:
             if hasattr(state, 'path'):
-                uuid = self.share.states.getAlias(state)
+                alias = self.share.states.getAlias(state)
                 if state.path not in self.resources:
-                    inbound[uuid] = None # indicator of remote deletion
+                    inbound[alias] = None # indicator of remote deletion
                 else:
-                    paths[state.path] = (uuid, state)
+                    paths[state.path] = (alias, state)
 
         # Examine old and new etags to see what needs to be fetched:
         toFetch = set()
@@ -522,9 +566,9 @@ class ResourceRecordSetConduit(RecordSetConduit):
             text, etag = self.getResource(path)
             if debug: print "Inbound text:", text
             records, extra = self.serializer.deserialize(text)
-            for uuid, rs in records.iteritems():
-                inbound[uuid] = rs
-                state = self.getState(uuid)
+            for alias, rs in records.iteritems():
+                inbound[alias] = rs
+                state = self.getState(alias)
                 state.path = path
                 state.etag = etag
 
@@ -540,8 +584,8 @@ class ResourceRecordSetConduit(RecordSetConduit):
                 totalWork=sendCount, workDone=0)
 
         i = 0
-        for uuid, rs in toSend.iteritems():
-            state = self.getState(uuid)
+        for alias, rs in toSend.iteritems():
+            state = self.getState(alias)
             path = getattr(state, "path", None)
             etag = getattr(state, "etag", None)
 
@@ -558,14 +602,14 @@ class ResourceRecordSetConduit(RecordSetConduit):
             else:
                 if not path:
                     # need to compute a path
-                    path = self.getPath(uuid)
+                    path = self.getPath(UUID().str16())
 
                 # rs needs to include the entire recordset, not diffs
                 rs = state.agreed + state.pending
 
                 if debug: print "Full resource records:", rs
 
-                text = self.serializer.serialize({uuid : rs}, **extra)
+                text = self.serializer.serialize({alias : rs}, **extra)
                 if debug: print "Sending text:", text
                 etag = self.putResource(text, path, etag, debug=debug)
                 state.path = path
@@ -573,15 +617,15 @@ class ResourceRecordSetConduit(RecordSetConduit):
                 if debug: print "Put path %s, etag now %s" % (path, etag)
 
 
-    def newState(self, uuidString):
-        state = ResourceState(itsView=self.itsView, peer=self.share,
-            itemUUID=uuidString)
-        self.share.states.append(state, uuidString)
+    def newState(self, alias):
+        state = ResourceState(itsView=self.itsView, peer=self.share)
+        self.share.states.append(state, alias)
         return state
 
 
     def getPath(self, uuid):
         return uuid
+
 
 class ResourceState(shares.State):
     path = schema.One(schema.Text)

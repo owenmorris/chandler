@@ -35,7 +35,7 @@ from chandlerdb.util.c import UUID
 from osaf.usercollections import UserCollection
 
 __all__ = [
-    'PIMTranslator',
+    'SharingTranslator',
     'DumpTranslator',
 ]
 
@@ -54,7 +54,7 @@ noChangeOrMissing = (eim.NoChange, eim.Missing)
 emptyValues = (eim.NoChange, eim.Missing, None)
 
 def with_nochange(value, converter, view=None):
-    if value is eim.NoChange:
+    if value in (eim.NoChange, eim.Missing):
         return value
     if value is None:  # TODO: think about how to handle None
         return eim.NoChange
@@ -290,11 +290,55 @@ def handleEmpty(item, attr):
     else:
         return eim.Missing
 
-class PIMTranslator(eim.Translator):
+
+
+def getAliasForItem(item):
+    if isinstance(item, Occurrence):
+        event = EventStamp(item)
+        master = item.inheritFrom
+        recurrenceID = toICalendarDateTime(event.recurrenceID,
+                                           event.allDay or event.anyTime)
+        return master.itsUUID.str16() + ":" + recurrenceID
+    else:
+        return item.itsUUID.str16()
+
+
+eim.add_converter(model.aliasableUUID, schema.Item, getAliasForItem)
+
+
+class SharingTranslator(eim.Translator):
 
     URI = "cid:pim-translator@osaf.us"
     version = 1
     description = u"Translator for Chandler PIM items"
+
+    def getUUIDForAlias(self, alias):
+        uuid, recurrenceID = splitUUID(alias)
+
+        if recurrenceID is None:
+            return uuid
+
+        # find the occurrence and return itsUUID
+        master = self.rv.findUUID(uuid)
+        if master is not None and pim.has_stamp(master, pim.EventStamp):
+            masterEvent = pim.EventStamp(master)
+            occurrence = masterEvent.getExistingOccurrence(recurrenceID)
+            if occurrence is not None:
+                return occurrence.itsItem.itsUUID.str16()
+
+        return None
+
+
+    def getAliasForItem(self, item):
+        return getAliasForItem(item)
+
+
+    # TODO:
+    """
+    def withItemForUUID(self, ...):
+        uuid = self.getUUIDForAlias(uuid)
+        return super(...).withItemForUUID(...,uuid,...)
+    """
 
 
     # ItemRecord -------------
@@ -328,12 +372,12 @@ class PIMTranslator(eim.Translator):
                 # add a dummy RecurrenceRuleSet so event methods treat the event
                 # as a master
                 master.rruleset = RecurrenceRuleSet(None, itsView=self.rv)
-            
+
             occurrence = master.getRecurrenceID(recurrenceID)
             if occurrence is None:
                 occurrence = master._createOccurrence(recurrenceID)
-            
-            uuid = occurrence.itsItem.itsUUID
+
+            uuid = occurrence.itsItem.itsUUID.str16()
         return uuid
 
     def loadItemByUUID(self, recurrence_aware_uuid, *args, **kwargs):
@@ -341,7 +385,7 @@ class PIMTranslator(eim.Translator):
         Override to handle special recurrenceID:uuid uuids.
         """
         uuid = self.getRealUUID(recurrence_aware_uuid)
-        return super(PIMTranslator, self).loadItemByUUID(uuid, *args, **kwargs)
+        return super(SharingTranslator, self).loadItemByUUID(uuid, *args, **kwargs)
 
     @model.ItemRecord.importer
     def import_item(self, record):
@@ -683,7 +727,7 @@ class PIMTranslator(eim.Translator):
 
 
 
-class DumpTranslator(PIMTranslator):
+class DumpTranslator(SharingTranslator):
 
     URI = "cid:dump-translator@osaf.us"
     version = 1

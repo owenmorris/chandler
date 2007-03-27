@@ -39,7 +39,7 @@ class EIMResourceRecordSetInMemoryTestCase(RoundTripTestCase):
         conduit = recordset_conduit.InMemoryResourceRecordSetConduit(
             "conduit", itsView=view0,
             shareName="exportedCollection",
-            translator=translator.PIMTranslator,
+            translator=translator.SharingTranslator,
             serializer=eimml.EIMMLSerializer
         )
         self.share0 = sharing.Share("share", itsView=view0,
@@ -50,7 +50,7 @@ class EIMResourceRecordSetInMemoryTestCase(RoundTripTestCase):
         conduit = recordset_conduit.InMemoryResourceRecordSetConduit(
             "conduit", itsView=view1,
             shareName="exportedCollection",
-            translator=translator.PIMTranslator,
+            translator=translator.SharingTranslator,
             serializer=eimml.EIMMLSerializer
         )
         self.share1 = sharing.Share("share", itsView=view1,

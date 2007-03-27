@@ -656,6 +656,26 @@ process "diff" records when importing (no need to check for no-change values)::
     >>> a_stamp.data    # value is unchanged
     42
 
+Attributes set to ``sharing.Missing`` are deleted::
+
+    >>> hasattr(a_stamp, 'data')
+    True
+    >>> a_stamp = t.loadItemByUUID(uuid1, DemoStamp, data=sharing.Missing)
+    >>> hasattr(a_stamp, 'data')
+    False
+
+
+In order to support recurrence, translators need to be able to handle the
+lookup of an UUID from an alias value, and to retrieve an alias from an item.
+The default implementation simply uses an item's UUID as its alias::
+
+   >>> t.getAliasForItem(an_item)
+   '0c7c6c5c-4a04-4d5a-8997-2fcef848c92d'
+
+   >>> t.getUUIDForAlias('0c7c6c5c-4a04-4d5a-8997-2fcef848c92d')
+   '0c7c6c5c-4a04-4d5a-8997-2fcef848c92d'
+
+
 
 Conflict Management
 -------------------

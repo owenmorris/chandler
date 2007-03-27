@@ -1,9 +1,9 @@
 
-PIM Translator
---------------
+Translator
+----------
 
 
-PIMTranslator implements the callbacks for converting between items and
+SharingTranslator implements the callbacks for converting between items and
 records.
 
     >>> from osaf import sharing, pim
@@ -14,7 +14,7 @@ records.
     >>> rv = NullRepositoryView()
 
 
-    >>> t = sharing.translator.PIMTranslator(rv)
+    >>> t = sharing.translator.SharingTranslator(rv)
 
 
 ItemRecord type

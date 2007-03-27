@@ -67,7 +67,7 @@ class CosmoAccount(accounts.SharingAccount):
         shareName = collection.itsUUID.str16()
         conduit = CosmoConduit(itsParent=share, shareName=shareName,
             account=self,
-            translator=translator.PIMTranslator,
+            translator=translator.SharingTranslator,
             serializer=eimml.EIMMLSerializer)
 
         if filters:

@@ -36,79 +36,96 @@ def inbound(peer, text, filter=None, allowDeletion=False, debug=False):
     # At some point, which serializer and translator to use should be
     # configurable
     serializer = eimml.EIMMLSerializer # only using class methods
-    trans = translator.PIMTranslator(rv)
+    trans = translator.SharingTranslator(rv)
 
     inbound, extra = serializer.deserialize(text)
-
-    # Only one recordset is allowed
-    if len(inbound) != 1:
-        raise errors.MalformedData(_("Only one recordset allowed"))
 
     peerRepoId = extra.get('repo', None)
     peerItemVersion = int(extra.get('version', '-1'))
 
-    uuid, rsExternal = inbound.items()[0]
+    itemToReturn = None
 
-    item = rv.findUUID(uuid)
+    for alias, rsExternal in inbound.items():
 
-    if rsExternal is not None:
-
-        if item is not None: # Item already exists
-            if not pim.has_stamp(item, shares.SharedItem):
-                shares.SharedItem(item).add()
-            shared = shares.SharedItem(item)
-            state = shared.getPeerState(peer)
-            rsInternal= eim.RecordSet(trans.exportItem(item))
-
-        else: # Item doesn't exist yet
-            state = shares.State(itsView=rv, peer=peer, itemUUID=uuid)
-            rsInternal = eim.RecordSet()
-
-        if state.peerRepoId and (peerRepoId != state.peerRepoId):
-            # This update is not from the peer repository we last saw.
-            # Treat the update is entirely new
-            state.clear()
-
-        state.peerRepoId = peerRepoId
-
-        # Only process recordsets whose version is greater than the last one
-        # we say.  In the case of null-repository-view testing, versions are
-        # always stuck at zero, so process those as well.
-
-        if (peerItemVersion == 0) or (peerItemVersion > state.peerItemVersion):
-            state.peerItemVersion = peerItemVersion
-
-            dSend, dApply, pending = state.merge(rsInternal, rsExternal,
-                isDiff=False, filter=filter, debug=debug)
-
-            if dApply:
-                if debug: print "Applying:", uuid, dApply
-                trans.importRecords(dApply)
-
+        uuid = trans.getUUIDForAlias(alias)
+        if uuid:
             item = rv.findUUID(uuid)
-            if item is not None and item.isLive():
-                if not pim.has_stamp(item, shares.SharedItem):
-                    shares.SharedItem(item).add()
-                shares.SharedItem(item).addPeerState(state, peer)
         else:
-            logger.info("Out-of-sequence update for %s", uuid)
-            raise errors.OutOfSequence("Update %d arrived after %d" %
-                (peerItemVersion, state.peerItemVersion))
-
-    else: # Deletion
-
-        # Remove the state
-        if pim.has_stamp(item, shares.SharedItem):
-            shared = shares.SharedItem(item)
-            shared.removePeerState(peer)
-
-        # Remove the item (if allowed)
-        if allowDeletion:
-            if debug: print "Deleting item:", uuid
-            item.delete(True)
             item = None
 
-    return item
+        if rsExternal is not None:
+
+            if item is not None: # Item already exists
+                if not pim.has_stamp(item, shares.SharedItem):
+                    shares.SharedItem(item).add()
+                shared = shares.SharedItem(item)
+                state = shared.getPeerState(peer)
+                rsInternal= eim.RecordSet(trans.exportItem(item))
+
+            else: # Item doesn't exist yet
+                state = shares.State(itsView=rv, peer=peer)
+                rsInternal = eim.RecordSet()
+
+            if state.peerRepoId and (peerRepoId != state.peerRepoId):
+                # This update is not from the peer repository we last saw.
+                # Treat the update is entirely new
+                state.clear()
+
+            state.peerRepoId = peerRepoId
+
+            # Only process recordsets whose version is greater than the last one
+            # we say.  In the case of null-repository-view testing, versions are
+            # always stuck at zero, so process those as well.
+
+            if ((peerItemVersion == 0) or
+                (peerItemVersion > state.peerItemVersion)):
+
+                state.peerItemVersion = peerItemVersion
+
+                dSend, dApply, pending = state.merge(rsInternal, rsExternal,
+                    isDiff=False, filter=filter, debug=debug)
+
+                state.updateConflicts(item)
+
+                if dApply:
+                    if debug: print "Applying:", uuid, dApply
+                    trans.importRecords(dApply)
+
+                uuid = trans.getUUIDForAlias(alias)
+                if uuid:
+                    item = rv.findUUID(uuid)
+                else:
+                    item = None
+
+                if item is not None and item.isLive():
+                    if not pim.has_stamp(item, shares.SharedItem):
+                        shares.SharedItem(item).add()
+                    shares.SharedItem(item).addPeerState(state, peer)
+
+                    if itemToReturn is None:
+                        itemToReturn = item
+
+            else:
+                logger.info("Out-of-sequence update for %s", uuid)
+                raise errors.OutOfSequence("Update %d arrived after %d" %
+                    (peerItemVersion, state.peerItemVersion))
+
+        else: # Deletion
+
+            if item is not None:
+
+                # Remove the state
+                if pim.has_stamp(item, shares.SharedItem):
+                    shared = shares.SharedItem(item)
+                    shared.removePeerState(peer)
+
+                # Remove the item (if allowed)
+                if allowDeletion:
+                    if debug: print "Deleting item:", uuid
+                    item.delete(True)
+                    item = None
+
+    return itemToReturn
 
 
 
@@ -124,33 +141,44 @@ def outbound(peers, item, filter=None, debug=False):
     # At some point, which serializer and translator to use should be
     # configurable
     serializer = eimml.EIMMLSerializer # only using class methods
-    trans = translator.PIMTranslator(rv)
+    trans = translator.SharingTranslator(rv)
 
-    uuid = item.itsUUID.str16()
-    rsInternal = filter(eim.RecordSet(trans.exportItem(item)))
+    rsInternal = { }
 
-    if not pim.has_stamp(item, shares.SharedItem):
-        shares.SharedItem(item).add()
+    items = [item]
+    version = str(item.itsVersion)
 
-    shared = shares.SharedItem(item)
+    if pim.has_stamp(item, pim.EventStamp):
+        for mod in pim.EventStamp(item).modifications or []:
+            items.append(mod)
 
-    # Abort if pending conflicts
-    if shared.conflictingStates:
-        raise errors.ConflictsPending(_(u"Conflicts pending"))
+    for item in items:
+        alias = trans.getAliasForItem(item)
+        rsInternal[alias] = filter(eim.RecordSet(trans.exportItem(item)))
 
-    for peer in peers:
-        state = shared.getPeerState(peer)
-        # Set agreed state to what we have locally
-        state.agreed = rsInternal
+        if not pim.has_stamp(item, shares.SharedItem):
+            shares.SharedItem(item).add()
 
-    # Repository identifier:
-    if rv.repository is not None:
-        repoId = rv.repository.getSchemaInfo()[0].str16()
-    else:
-        repoId = ""
+        shared = shares.SharedItem(item)
 
-    text = serializer.serialize({uuid : rsInternal}, "item", repo=repoId,
-        version=str(item.itsVersion))
+        # Abort if pending conflicts
+        if shared.conflictingStates:
+            raise errors.ConflictsPending(_(u"Conflicts pending"))
+
+        for peer in peers:
+            state = shared.getPeerState(peer)
+            # Set agreed state to what we have locally
+            state.agreed = rsInternal[alias]
+
+        # Repository identifier:
+        if rv.repository is not None:
+            repoId = rv.repository.getSchemaInfo()[0].str16()
+        else:
+            repoId = ""
+
+
+    text = serializer.serialize(rsInternal, "item", repo=repoId,
+        version=version)
 
     return text
 

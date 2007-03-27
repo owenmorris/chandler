@@ -27,6 +27,9 @@ text20 = eim.TextType(size=20)
 text256 = eim.TextType(size=256)
 text1024 = eim.TextType(size=1024)
 
+aliasableUUID = eim.subtype(eim.UUIDType, size=256)
+
+
 
 
 # pim items -------------------------------------------------------------------
@@ -51,7 +54,7 @@ bccFilter = eim.Filter('cid:bcc-filter@osaf.us', u"BCC:")
 class ItemRecord(eim.Record):
     URI = "http://osafoundation.org/eim/item/0"
 
-    uuid = eim.key(schema.UUID)
+    uuid = eim.key(aliasableUUID)
 
     # ContentItem.displayName
     title = eim.field(text1024)
@@ -71,7 +74,7 @@ class ItemRecord(eim.Record):
 class ModifiedByRecord(eim.Record):
     URI = "http://osafoundation.org/eim/modifiedBy/0"
 
-    uuid = eim.key(schema.UUID)
+    uuid = eim.key(ItemRecord.uuid)
 
     # ContentItem.lastModifiedBy
     userid = eim.key(text256)
@@ -157,7 +160,7 @@ class MailMessageRecord(eim.Record):
 class CollectionRecord(eim.Record):
     URI = "http://osafoundation.org/eim/pim/collection/0"
 
-    uuid = eim.key(schema.UUID)
+    uuid = eim.key(ItemRecord.uuid)
     mine = eim.field(eim.IntType)
 
 class CollectionMembershipRecord(eim.Record):
@@ -166,7 +169,7 @@ class CollectionMembershipRecord(eim.Record):
     URI = "http://osafoundation.org/eim/pim/collectionmembership/0"
 
     collectionUUID = eim.key(schema.UUID)
-    itemUUID = eim.key(schema.UUID)
+    itemUUID = eim.key(aliasableUUID)
     index = eim.key(eim.IntType)
 
 # osaf.sharing ----------------------------------------------------------------
@@ -175,7 +178,7 @@ class CollectionMembershipRecord(eim.Record):
 class ShareRecord(eim.Record):
     URI = "http://osafoundation.org/eim/sharing/share/0"
 
-    uuid = eim.key(schema.UUID)
+    uuid = eim.key(ItemRecord.uuid)
 
     contents = eim.field(schema.UUID)
     conduit = eim.field(schema.UUID)
@@ -187,14 +190,14 @@ class ShareRecord(eim.Record):
 class ShareConduitRecord(eim.Record):
     URI = "http://osafoundation.org/eim/sharing/conduit/0"
 
-    uuid = eim.key(schema.UUID)
+    uuid = eim.key(ItemRecord.uuid)
     path = eim.field(text1024)
     name = eim.field(text1024)
 
 class ShareRecordSetConduitRecord(eim.Record):
     URI = "http://osafoundation.org/eim/sharing/rsconduit/0"
 
-    uuid = eim.key(schema.UUID)
+    uuid = eim.key(ItemRecord.uuid)
     translator = eim.field(text1024)
     serializer = eim.field(text1024)
     filters = eim.field(text1024)
@@ -203,7 +206,7 @@ class ShareRecordSetConduitRecord(eim.Record):
 class ShareHTTPConduitRecord(eim.Record):
     URI = "http://osafoundation.org/eim/sharing/httpconduit/0"
 
-    uuid = eim.key(schema.UUID)
+    uuid = eim.key(ItemRecord.uuid)
     url = eim.field(text1024)
     ticket_rw = eim.field(text1024)
     ticket_ro = eim.field(text1024)
@@ -218,18 +221,18 @@ class ShareHTTPConduitRecord(eim.Record):
 class ShareCosmoConduitRecord(eim.Record):
     URI = "http://osafoundation.org/eim/sharing/cosmoconduit/0"
 
-    uuid = eim.key(schema.UUID)
+    uuid = eim.key(ItemRecord.uuid)
     morsecodepath = eim.field(text1024) # only if account is None
 
 class ShareWebDAVConduitRecord(eim.Record):
     URI = "http://osafoundation.org/eim/sharing/webdavconduit/0"
 
-    uuid = eim.key(schema.UUID)
+    uuid = eim.key(ItemRecord.uuid)
 
 class ShareStateRecord(eim.Record):
     URI = "http://osafoundation.org/eim/sharing/sharestate/0"
 
-    uuid = eim.key(schema.UUID)
+    uuid = eim.key(ItemRecord.uuid)
     peer = eim.field(schema.UUID)
     peerrepo = eim.field(text1024)
     peerversion = eim.field(eim.IntType)
@@ -241,7 +244,7 @@ class ShareStateRecord(eim.Record):
 class ShareResourceStateRecord(eim.Record):
     URI = "http://osafoundation.org/eim/sharing/resourcesharestate/0"
 
-    uuid = eim.key(schema.UUID)
+    uuid = eim.key(ItemRecord.uuid)
     path = eim.field(text1024)
     etag = eim.field(text1024)
 
@@ -249,7 +252,7 @@ class ShareResourceStateRecord(eim.Record):
 class ShareAccountRecord(eim.Record):
     URI = "http://osafoundation.org/eim/sharing/account/0"
 
-    uuid = eim.key(schema.UUID)
+    uuid = eim.key(ItemRecord.uuid)
     host = eim.field(text256)
     port = eim.field(eim.IntType)
     ssl = eim.field(eim.IntType)
@@ -260,12 +263,12 @@ class ShareAccountRecord(eim.Record):
 class ShareWebDAVAccountRecord(eim.Record):
     URI = "http://osafoundation.org/eim/sharing/webdavaccount/0"
 
-    uuid = eim.key(schema.UUID)
+    uuid = eim.key(ItemRecord.uuid)
 
 class ShareCosmoAccountRecord(eim.Record):
     URI = "http://osafoundation.org/eim/sharing/cosmoaccount/0"
 
-    uuid = eim.key(schema.UUID)
+    uuid = eim.key(ItemRecord.uuid)
     pimpath = eim.field(text1024) # pim/collection
     morsecodepath = eim.field(text1024) # mc/collection
     davpath = eim.field(text1024) # dav/collection

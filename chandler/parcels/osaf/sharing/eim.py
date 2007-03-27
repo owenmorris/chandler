@@ -933,10 +933,23 @@ class Translator:
 
         # Set specified attributes, skipping NoChange attrs
         for attr, val in attrs.items():
-            if val is not NoChange:
+            if val is Missing:
+                delattr(item, attr)
+            elif val is not NoChange:
                 setattr(item, attr, val)
 
         return item
+
+        # def decorate(func):
+        #     return func(item)
+        # return decorate
+
+
+    def getUUIDForAlias(self, alias):
+        return alias
+
+    def getAliasForItem(self, item):
+        return item.itsUUID.str16()
 
 
 

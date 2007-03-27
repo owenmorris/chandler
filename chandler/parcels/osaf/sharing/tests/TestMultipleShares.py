@@ -61,7 +61,7 @@ class MultipleSharesTestCase(testcase.DualRepositoryTestCase):
         # First share in first repo
         conduit = recordset_conduit.InMemoryDiffRecordSetConduit(itsView=view0,
             shareName="foo",
-            translator=translator.PIMTranslator,
+            translator=translator.SharingTranslator,
             serializer=eimml.EIMMLSerializer
         )
         self.share0a = sharing.Share(itsView=view0,
@@ -74,7 +74,7 @@ class MultipleSharesTestCase(testcase.DualRepositoryTestCase):
         # Second share in first repo
         conduit = recordset_conduit.InMemoryDiffRecordSetConduit(itsView=view0,
             shareName="bar",
-            translator=translator.PIMTranslator,
+            translator=translator.SharingTranslator,
             serializer=eimml.EIMMLSerializer
         )
         self.share0b = sharing.Share(itsView=view0,
@@ -88,7 +88,7 @@ class MultipleSharesTestCase(testcase.DualRepositoryTestCase):
         # First share in second repo
         conduit = recordset_conduit.InMemoryDiffRecordSetConduit(itsView=view1,
             shareName="foo",
-            translator=translator.PIMTranslator,
+            translator=translator.SharingTranslator,
             serializer=eimml.EIMMLSerializer
         )
         self.share1a = sharing.Share(itsView=view1, conduit=conduit)
@@ -97,7 +97,7 @@ class MultipleSharesTestCase(testcase.DualRepositoryTestCase):
         # Second share in second repo
         conduit = recordset_conduit.InMemoryDiffRecordSetConduit(itsView=view1,
             shareName="bar",
-            translator=translator.PIMTranslator,
+            translator=translator.SharingTranslator,
             serializer=eimml.EIMMLSerializer
         )
         self.share1b = sharing.Share(itsView=view1, conduit=conduit)

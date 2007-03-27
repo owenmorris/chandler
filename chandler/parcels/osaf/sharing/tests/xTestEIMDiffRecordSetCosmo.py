@@ -50,7 +50,7 @@ class EIMDiffRecordSetCosmoTestCase(RoundTripTestCase):
         conduit = cosmo.CosmoConduit(itsView=view0,
             account=account,
             shareName=coll0.itsUUID.str16(),
-            translator=translator.PIMTranslator,
+            translator=translator.SharingTranslator,
             serializer=eimml.EIMMLSerializer
         )
         self.share0 = sharing.Share("share", itsView=view0,
@@ -70,7 +70,7 @@ class EIMDiffRecordSetCosmoTestCase(RoundTripTestCase):
         conduit = cosmo.CosmoConduit(itsView=view1,
             account=account,
             shareName=coll0.itsUUID.str16(),
-            translator=translator.PIMTranslator,
+            translator=translator.SharingTranslator,
             serializer=eimml.EIMMLSerializer
         )
         self.share1 = sharing.Share("share", itsView=view1,

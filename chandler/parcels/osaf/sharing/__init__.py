@@ -544,7 +544,7 @@ def publish(collection, account, classesToInclude=None,
                         conduit = CalDAVRecordSetConduit(itsParent=share,
                             account=account,
                             shareName=shareName,
-                            translator=PIMTranslator,
+                            translator=SharingTranslator,
                             serializer=ICSSerializer)
                         share.conduit = conduit
                         if attrsToExclude:
@@ -655,7 +655,7 @@ def publish(collection, account, classesToInclude=None,
                 share = Share(itsView=view, contents=collection)
                 conduit = WebDAVRecordSetConduit(itsParent=share,
                     shareName=shareName, account=account,
-                    translator=PIMTranslator,
+                    translator=SharingTranslator,
                     serializer=EIMMLSerializerLite)
                 share.conduit = conduit
 
@@ -1046,7 +1046,7 @@ def subscribeCalDAV(view, url, inspection, activity=None, account=None,
             share.conduit = CalDAVRecordSetConduit(itsParent=share,
                 shareName=shareName,
                 account=account,
-                translator=PIMTranslator,
+                translator=SharingTranslator,
                 serializer=ICSSerializer)
         else:
             (useSSL, host, port, path, query, fragment, ticket, parentPath,
@@ -1055,7 +1055,7 @@ def subscribeCalDAV(view, url, inspection, activity=None, account=None,
                 host=host, port=port,
                 sharePath=parentPath, shareName=shareName,
                 useSSL=useSSL, ticket=ticket,
-                translator=PIMTranslator,
+                translator=SharingTranslator,
                 serializer=ICSSerializer)
 
         if filters:
@@ -1151,14 +1151,14 @@ def subscribeWebDAV(view, url, inspection, activity=None, account=None,
     if account:
         share.conduit = WebDAVRecordSetConduit(itsParent=share,
             account=account, shareName=shareName,
-            translator=PIMTranslator, serializer=EIMMLSerializerLite)
+            translator=SharingTranslator, serializer=EIMMLSerializerLite)
 
     else:
         (useSSL, host, port, path, query, fragment) = splitUrl(url)
         share.conduit = WebDAVRecordSetConduit(itsParent=share, host=host,
             port=port, sharePath=sharePath, shareName=shareName,
             useSSL=useSSL, ticket=ticket,
-            translator=PIMTranslator, serializer=EIMMLSerializerLite)
+            translator=SharingTranslator, serializer=EIMMLSerializerLite)
 
     if filters:
         share.conduit.filters = filters
@@ -1242,7 +1242,7 @@ def subscribeMorsecode(view, url, morsecodeUrl, inspection, activity=None,
     if account:
         share.conduit = CosmoConduit(itsParent=share,
             shareName=shareName, account=account,
-            translator=PIMTranslator, serializer=EIMMLSerializer)
+            translator=SharingTranslator, serializer=EIMMLSerializer)
     else:
         # Get the morsecode path from url, e.g.  "/cosmo/mc/collection"
         (useSSL, host, port, path, query, fragment, ticket, morsecodePath,
@@ -1252,7 +1252,7 @@ def subscribeMorsecode(view, url, morsecodeUrl, inspection, activity=None,
             port=port, sharePath=sharePath, morsecodePath=morsecodePath,
             shareName=shareName,
             useSSL=useSSL, ticket=ticket,
-            translator=PIMTranslator, serializer=EIMMLSerializer)
+            translator=SharingTranslator, serializer=EIMMLSerializer)
 
     if filters:
         share.conduit.filters = filters
