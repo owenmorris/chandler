@@ -453,7 +453,7 @@ class RepositoryView(CView):
             item = uItem
 
         if item is not None and item.itsVersion <= version:
-            return item.getAttributeValue(name, None, None, default, True)
+            return item.getLocalAttributeValue(name, default)
 
         reader, uValue = self.repository.store.loadValue(self, version,
                                                          uItem, name)
@@ -501,8 +501,7 @@ class RepositoryView(CView):
             item = uItem
 
         if item is not None:
-            return tuple([item.getAttributeValue(name, None, None,
-                                                 default, True)
+            return tuple([item.getLocalAttributeValue(name, default)
                           for name, default in pairs])
 
         names = (name for name, default in pairs)
