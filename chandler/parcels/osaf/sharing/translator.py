@@ -601,39 +601,34 @@ class SharingTranslator(eim.Translator):
         
         event = EventStamp(item)
         
-        real_start = event.effectiveStartTime
+        if event.occurrenceFor is not None:
+            # modifications don't have recurrence rule information
+            return
         
-        new_rruleset = []
         # notify of recurrence changes once at the end
         if event.rruleset is not None:
             ignoreChanges = getattr(event.rruleset, '_ignoreValueChanges', False)      
             event.rruleset._ignoreValueChanges = True
-        elif (record.rrule in (None, eim.NoChange) and
-              record.rdate in (None, eim.NoChange)):
+        elif (record.rrule in emptyValues and
+              record.rdate in emptyValues):
             # since there's no recurrence currently, avoid creating a rruleset
             # if all the positive recurrence fields are None
             return
             
-
-        def getRuleSet():
-            if len(new_rruleset) > 0:
-                return new_rruleset[0]
-            elif event.rruleset is not None:
-                return event.rruleset
-            else:
-                new_rruleset.append(RecurrenceRuleSet(None, itsView=self.rv))
-                return new_rruleset[0]
+        if event.rruleset is not None:
+            rruleset = event.rruleset
+        else:
+            rruleset = RecurrenceRuleSet(None, itsView=self.rv)
 
         for ruletype in 'rrule', 'exrule':
             record_field = getattr(record, ruletype)
             if record_field is not eim.NoChange:
-                rruleset = getRuleSet()
-                if record_field is None:
+                if record_field in (None, eim.Missing):
                     # this isn't the right way to delete the existing rules, what is?
                     setattr(rruleset, ruletype + 's', [])
                 else:
                     du_rruleset = getDateUtilRRuleSet(ruletype, record_field,
-                                                      real_start)
+                                                      event.effectiveStartTime)
                     rules = getattr(du_rruleset, '_' + ruletype)
                     if rules is None:
                         rules = []
@@ -647,7 +642,6 @@ class SharingTranslator(eim.Translator):
         for datetype in 'rdate', 'exdate':
             record_field = getattr(record, datetype)
             if record_field is not eim.NoChange:
-                rruleset = getRuleSet()
                 if record_field is None:
                     dates = []
                 else:
@@ -655,12 +649,15 @@ class SharingTranslator(eim.Translator):
                                                   multivalued=True)[0]
                 setattr(rruleset, datetype + 's', dates)
 
-        if event.rruleset is not None:
+        if len(rruleset.rrules) == 0 and len(rruleset.rdates) == 0:
+            event.removeRecurrence()
+        elif event.rruleset is not None:
+            # changed existing recurrence
             event.rruleset._ignoreValueChanges = ignoreChanges
             event.cleanRule()
-
-        if len(new_rruleset) > 0:
-            event.rruleset = new_rruleset[0]
+        else:
+            # new recurrence
+            event.rruleset = rruleset
 
 
     @eim.exporter(EventStamp)
