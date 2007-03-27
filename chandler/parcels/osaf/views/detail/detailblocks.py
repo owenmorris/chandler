@@ -610,7 +610,6 @@ def makeConflictBar(parcel, oldVersion):
                                     buttonKind='TextImage',
                                     # need a better icon
                                     icon=u'MailErrorRolloverSelected.png',
-                                    stretchFactor=1.0,
                                     minimumSize=SizeType(225, 19))
     return makeArea(parcel, 'ConflictBar',
             position=0.08,
@@ -687,8 +686,7 @@ def makeMarkupBar(parcel, oldVersion):
                                     minimumSize=SizeType(30, 18))
 
     markupSpacer3 = ControlBlocks.StaticText.template('MarkupSpacer3',
-                                    title=u'',
-                                    stretchFactor=1.0)
+                                    title=u'')
 
     readOnlyIcon = \
         ReadOnlyIconBlock.template('ReadOnlyIcon',

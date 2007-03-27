@@ -24,10 +24,8 @@ import application.dialogs.RecurrenceDialog as RecurrenceDialog
 from osaf.sharing import ChooseFormat
 
 from Block import (
-    RectangularChild,
-    Block,
-    WithoutSynchronizeWidget,
-    IgnoreSynchronizeWidget
+    RectangularChild, Block, WithoutSynchronizeWidget, IgnoreSynchronizeWidget,
+    ShownSynchronizer
     )
 
 from ControlBlocks import Column
@@ -110,6 +108,7 @@ class wxTableData(wx.grid.PyGridTableBase):
 class wxTable(DragAndDrop.DraggableWidget, 
               DragAndDrop.DropReceiveWidget, 
               DragAndDrop.FileOrItemClipboardHandler,
+              ShownSynchronizer,
               wx.grid.Grid):
     def __init__(self, parent, widgetID, characterStyle, headerCharacterStyle, *arguments, **keywords):
         if '__WXMAC__' in wx.PlatformInfo:
@@ -520,7 +519,6 @@ class wxTable(DragAndDrop.DraggableWidget,
             
             # avoid OnRangeSelect
             IgnoreSynchronizeWidget(True, self.ClearSelection)
-            contents = self.blockItem.contents
             for rowStart,rowEnd in self.SelectedRowRanges():
                 # since we're selecting something, we don't need to
                 # auto-select any rows
@@ -535,32 +533,7 @@ class wxTable(DragAndDrop.DraggableWidget,
                 if itemIndex != -1:
                     # we need to do this after the current
                     # wxSynchronizeWidget is over
-                    wx.CallAfter(self.blockItem.PostSelectItems,
-                                 [self.blockItem.contents[itemIndex]])
-        
-        rowHeight = getattr (self.blockItem, "rowHeight", None)
-        if rowHeight is not None:
-            self.SetDefaultRowSize (rowHeight)
-        
-        self.SynchronizeDelegate()
-
-        #Trim/extend the control's rows and update all values
-        if self.blockItem.hideColumnHeadings:
-            self.SetColLabelSize (0)
-        else:
-            self.SetColLabelSize (wx.grid.GRID_DEFAULT_COL_LABEL_HEIGHT)
-
-
-        gridTable = self.GetTable()
-        newColumns = gridTable.GetNumberCols()
-        newRows = gridTable.GetNumberRows()
-
-        oldColumns = self.GetNumberCols()
-        oldRows = self.GetNumberRows()
-        # update the widget to reflect the new or removed rows or
-        # columns. Note that we're only telling the grid HOW MANY rows
-        # or columns to add/remove - the per-cell callbacks will
-        # determine what actual text to display in each cell
+                    wx.CallAfter (blockItem.PostSelectItems, [contents[itemIndex]])
 
         def SendTableMessage(current, new, deleteMessage, addMessage):
             if new == current: return
@@ -573,47 +546,86 @@ class wxTable(DragAndDrop.DraggableWidget,
                                                    new-current) 
             self.ProcessTableMessage (message) 
 
+        super (wxTable, self).wxSynchronizeWidget()
+        blockItem = self.blockItem
+        contents = blockItem.contents
 
-        self.BeginBatch()
-        SendTableMessage(oldRows, newRows,
-                         wx.grid.GRIDTABLE_NOTIFY_ROWS_DELETED,
-                         wx.grid.GRIDTABLE_NOTIFY_ROWS_APPENDED)
-        
-        SendTableMessage(oldColumns, newColumns,
-                         wx.grid.GRIDTABLE_NOTIFY_COLS_DELETED,
-                         wx.grid.GRIDTABLE_NOTIFY_COLS_APPENDED)
-        
-        assert (self.GetNumberCols() == gridTable.GetNumberCols() and
-                self.GetNumberRows() == gridTable.GetNumberRows())
-
-        # Update column widths and sortedness
+        # Initialize __adhoc__ sortedness. Necessary if we don't show the table
+        # when it's empty. When it's not empty we redo the same work below.
+        # We need to get rid of __adhoc__ since it's unnecessarily complicated. -- DJA
         indexName = self.blockItem.contents.indexName
-        for i, column in enumerate(self.blockItem.columns):
-            self.SetColSize (i, column.width)
-            self.ScaleColumn (i, column.scaleColumn)
+        for column in self.blockItem.columns:
             columnIndexName = getattr(column, 'indexName', '__adhoc__')
             if indexName == '__adhoc__' and column.defaultSort:
-                indexName = columnIndexName
-                self.blockItem.contents.setCollectionIndex(indexName)
-            if columnIndexName == indexName:
-                self.SetUseColSortArrows(column.useSortArrows)
-                self.SetSelectedCol(i)
+                self.blockItem.contents.setCollectionIndex(columnIndexName)
+                break
 
-        self.ScaleWidthToFit (self.blockItem.scaleWidthsToFit)
+        if self.blockItem.onEmptyContentsShowHide():
+        
+            rowHeight = getattr (blockItem, "rowHeight", None)
+            if rowHeight is not None:
+                self.SetDefaultRowSize (rowHeight)
+            
+            self.SynchronizeDelegate()
+    
+            #Trim/extend the control's rows and update all values
+            if blockItem.hideColumnHeadings:
+                self.SetColLabelSize (0)
+            else:
+                self.SetColLabelSize (wx.grid.GRID_DEFAULT_COL_LABEL_HEIGHT)
+    
+    
+            gridTable = self.GetTable()
+            newColumns = gridTable.GetNumberCols()
+            newRows = gridTable.GetNumberRows()
+    
+            oldColumns = self.GetNumberCols()
+            oldRows = self.GetNumberRows()
+            # update the widget to reflect the new or removed rows or
+            # columns. Note that we're only telling the grid HOW MANY rows
+            # or columns to add/remove - the per-cell callbacks will
+            # determine what actual text to display in each cell
+        
+            self.BeginBatch()
+            SendTableMessage(oldRows, newRows,
+                             wx.grid.GRIDTABLE_NOTIFY_ROWS_DELETED,
+                             wx.grid.GRIDTABLE_NOTIFY_ROWS_APPENDED)
+            
+            SendTableMessage(oldColumns, newColumns,
+                             wx.grid.GRIDTABLE_NOTIFY_COLS_DELETED,
+                             wx.grid.GRIDTABLE_NOTIFY_COLS_APPENDED)
+            
+            assert (self.GetNumberCols() == gridTable.GetNumberCols() and
+                    self.GetNumberRows() == gridTable.GetNumberRows())
 
-        UpdateSelection(newColumns)
-        self.EndBatch()
-
-        # Update all displayed values
-        gridTable = self.GetTable()
-        message = wx.grid.GridTableMessage (gridTable, wx.grid.GRIDTABLE_REQUEST_VIEW_GET_VALUES) 
-        self.ProcessTableMessage (message)
-        self.ForceRefresh () 
-
-        editAttributeNamed = getattr(self, "editAttributeNamed", None)
-        if editAttributeNamed is not None:
-            del self.editAttributeNamed
-            self.EditAttribute(editAttributeNamed)
+            # Update column widths
+            indexName = contents.indexName
+            for i, column in enumerate(blockItem.columns):
+                self.SetColSize (i, column.width)
+                self.ScaleColumn (i, column.scaleColumn)
+                columnIndexName = getattr(column, 'indexName', '__adhoc__')
+                if indexName == '__adhoc__' and column.defaultSort:
+                    indexName = columnIndexName
+                    contents.setCollectionIndex(indexName)
+                if columnIndexName == indexName:
+                    self.SetUseColSortArrows(column.useSortArrows)
+                    self.SetSelectedCol(i)
+    
+            self.ScaleWidthToFit (blockItem.scaleWidthsToFit)
+    
+            UpdateSelection(newColumns)
+            self.EndBatch()
+    
+            # Update all displayed values
+            gridTable = self.GetTable()
+            message = wx.grid.GridTableMessage (gridTable, wx.grid.GRIDTABLE_REQUEST_VIEW_GET_VALUES) 
+            self.ProcessTableMessage (message)
+            self.ForceRefresh () 
+    
+            editAttributeNamed = getattr(self, "editAttributeNamed", None)
+            if editAttributeNamed is not None:
+                del self.editAttributeNamed
+                self.EditAttribute(editAttributeNamed)
 
 
     def EditAttribute(self, attrName):
@@ -857,12 +869,12 @@ class Table (PimBlocks.FocusEventHandlers, RectangularChild):
                    doc="The default attribute to edit, for instance if "
                    "the user uses the keyboard to activate in-place editing")
     
-    hideColumnHeadings = schema.One(schema.Boolean, initialValue = False)
+    hideColumnHeadings = schema.One(schema.Boolean, defaultValue = False)
     characterStyle = schema.One(Styles.CharacterStyle)
     headerCharacterStyle = schema.One(Styles.CharacterStyle)
     prefixCharacterStyle = schema.One(Styles.CharacterStyle)
 
-    hasGridLines = schema.One(schema.Boolean, initialValue = False)
+    hasGridLines = schema.One(schema.Boolean, defaultValue = False)
     scaleWidthsToFit = schema.One(schema.Boolean, defaultValue = False)
 
     schema.addClouds(
@@ -945,7 +957,8 @@ class Table (PimBlocks.FocusEventHandlers, RectangularChild):
         
     def onSelectAllEvent(self, event):
         self.PostSelectItems(self.contents)
-            
+
+
 # Ewww, yuk.  Blocks and attribute editors are mutually interdependent
 import osaf.framework.attributeEditors
 AttributeEditors = sys.modules['osaf.framework.attributeEditors']

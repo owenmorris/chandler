@@ -106,7 +106,7 @@ class Block(schema.Item):
         schema.Text,
         doc = 'Specifies which attribute of the selected Item should be '
               'associated with this block.',
-        initialValue = u''
+        defaultValue = u''
     )
 
     parentBlock = schema.One(
@@ -115,21 +115,24 @@ class Block(schema.Item):
 
     childrenBlocks = schema.Sequence(
         inverse = parentBlock,
-        initialValue = []
+        initialValue = [] # defaultValue doesn't work for some reason
     )
 
     splitters = schema.Sequence(defaultValue=None) # SplitterWindow.splitController
 
-    isShown = schema.One(schema.Boolean, initialValue=True)
+    isShown = schema.One(schema.Boolean, defaultValue=True)
 
-    eventBoundary = schema.One(schema.Boolean, initialValue=False)
+    eventBoundary = schema.One(schema.Boolean, defaultValue=False)
 
     contextMenu = schema.One() # Menu
 
     blockName = schema.One(schema.Text)
-    eventsForNamedLookup = schema.Sequence(defaultValue=None) # XXX BlockEvent
+
+    eventsForNamedLookup = schema.Sequence(defaultValue=None) # BlockEvent
 
     position = schema.One(schema.Float)  #<!-- for tree-of-blocks sorting -->
+    
+    emptyContentsShow = schema.One(schema.Boolean)
 
     schema.addClouds(
         copying = schema.Cloud(
@@ -720,6 +723,31 @@ class Block(schema.Item):
 
     def onShowHideEventUpdateUI(self, event):
         event.arguments['Check'] = self.isShown
+        
+    def onEmptyContentsShowHide(self):
+        """
+        Helper routine for widgets that are examining emptyContentsShow to decide
+        whether or not to show or hide the widget.
+        
+        If the attrbute emptyContentsShow is False and the contents are empty then
+        the block is hidden. If emptyContentsShow is True and the contents are
+        empty then the block is shown. If the attribute is missing then the block is
+        shown.
+        
+        Returns a result, which when True indicates that the block is shown, otherwise
+        False is returned.
+        """
+        show = getattr (self, "emptyContentsShow", None)
+        if show is None:
+            show = True
+        else:
+            show = (len(self.contents) != 0) ^ show
+            if self.isShown != show:
+                self.isShown = show
+                self.widget.Show (show)
+                self.parentBlock.synchronizeWidget()
+        return show
+
 
     def onAddToViewableCollectionEvent(self, event):
         """
@@ -1205,11 +1233,11 @@ class RectangularChild (Block):
 
     from osaf.pim.structs import SizeType, RectType
 
-    size = schema.One(SizeType, initialValue = SizeType(0, 0))
-    minimumSize = schema.One(SizeType, initialValue = SizeType(-1, -1))
-    border = schema.One(RectType, initialValue = RectType(0.0, 0.0, 0.0, 0.0))
-    alignmentEnum = schema.One(alignmentEnumType, initialValue = 'grow')
-    stretchFactor = schema.One(schema.Float, initialValue = 1.0)
+    size = schema.One(SizeType, defaultValue = SizeType(0, 0))
+    minimumSize = schema.One(SizeType, defaultValue = SizeType(-1, -1))
+    border = schema.One(RectType, defaultValue = RectType(0.0, 0.0, 0.0, 0.0))
+    alignmentEnum = schema.One(alignmentEnumType, defaultValue = 'grow')
+    stretchFactor = schema.One(schema.Float, defaultValue = 1.0)
 
     def displayContextMenu(self, event):
         contextMenu = getattr (self, "contextMenu", None)

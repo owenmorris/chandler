@@ -644,31 +644,39 @@ def makeSummaryBlocks(parcel):
         orientationEnum = "Vertical",
         splitPercentage = 0.65,
         childrenBlocks = [
-            DashboardBlock.template('DashboardSummaryView',
-                contents = pim_ns.allCollection,
-                scaleWidthsToFit = True,
-                columns = [
-                    taskColumn,
-                    commColumn,
-                    whoColumn,
-                    titleColumn,
-                    reminderColumn,
-                    dateColumn,
-                    triageColumn                    
-                ],
-                characterStyle = blocks.SummaryRowStyle,
-                headerCharacterStyle = blocks.SummaryHeaderStyle,
-                prefixCharacterStyle = blocks.SummaryPrefixStyle,
-                sectionLabelCharacterStyle = blocks.SummarySectionLabelStyle,
-                sectionCountCharacterStyle = blocks.SummarySectionCountStyle,
-                rowHeight = 19,
-                elementDelegate = 'osaf.views.main.SectionedGridDelegate',
-                       defaultEditableAttribute = u'displayName',
-                selection = [[0,0]]),
+            BoxContainer.template('DashboardSummaryContainer',
+                orientationEnum = 'Vertical',
+                childrenBlocks = [
+                    DashboardBlock.template('DashboardSummaryView',
+                        contents = pim_ns.allCollection,
+                        scaleWidthsToFit = True,
+                        columns = [
+                            taskColumn,
+                            commColumn,
+                            whoColumn,
+                            titleColumn,
+                            reminderColumn,
+                            dateColumn,
+                            triageColumn                    
+                        ],
+                        characterStyle = blocks.SummaryRowStyle,
+                        headerCharacterStyle = blocks.SummaryHeaderStyle,
+                        prefixCharacterStyle = blocks.SummaryPrefixStyle,
+                        sectionLabelCharacterStyle = blocks.SummarySectionLabelStyle,
+                        sectionCountCharacterStyle = blocks.SummarySectionCountStyle,
+                        rowHeight = 19,
+                        elementDelegate = 'osaf.views.main.SectionedGridDelegate',
+                        defaultEditableAttribute = u'displayName',
+                        emptyContentsShow = False),
+                    HTML.template('EmptyDashBoardView',
+                        text = _(u'<html><body><center>&nbsp;<br>&nbsp;<br>This collection is empty</center></body></html>'),
+                        treatAsURL = False,
+                        emptyContentsShow = True)
+                ]
+            ),
             BranchPointBlock.template('DashboardDetailBranchPointBlock',
-                delegate = detailBranchPointDelegate,
-                )
-            ]).install(parcel) # SplitterWindow DashboardSummaryViewTemplate
+                delegate = detailBranchPointDelegate)
+        ]).install(parcel) # SplitterWindow DashboardSummaryViewTemplate
 
     saveResultsEvent = AddToSidebarEvent.update(
         parcel, 'SaveResults',
@@ -821,7 +829,6 @@ def makeSummaryBlocks(parcel):
                         # SetMinSize() should override?
                         splitPercentage = 0.06,
                         orientationEnum = 'Horizontal',
-                        stretchFactor = 1,
                         calendarControl = MainCalendarControl,
                         childrenBlocks = [
                             calendar.AllDayEventsCanvas.template('AllDayEvents',

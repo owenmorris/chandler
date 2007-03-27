@@ -31,7 +31,6 @@ def installParcel(parcel, oldName=None):
                 'Splitter',
                 eventBoundary=True,
                 splitPercentage=0.5,
-                stretchFactor=1.0,
                 childrenBlocks=[
                     Tree.template(
                         'Tree',

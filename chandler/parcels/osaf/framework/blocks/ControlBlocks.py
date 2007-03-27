@@ -244,22 +244,35 @@ class HtmlWindowWithStatus(wx.html.HtmlWindow):
         # It is empty because we do not want to show the current URL in main frame window title.
         pass
     
-class wxHTML(HtmlWindowWithStatus):
+class wxHTML(ShownSynchronizer, HtmlWindowWithStatus):
     def OnLinkClicked(self, link):
         webbrowser.open(link.GetHref())
 
+    def wxSynchronizeWidget(self, useHints=False):
+        super (wxHTML, self).wxSynchronizeWidget()
+        if self.blockItem.onEmptyContentsShowHide():
+            text = self.blockItem.text
+            if self.blockItem.treatTextAsURL:
+                self.LoadPage (text)
+            else:
+                self.SetPage (text)
 
 class HTML(RectangularChild):
-    url = schema.One(schema.Text)
+    text = schema.One(schema.Text)
+    treatTextAsURL = schema.One(schema.Boolean, defaultValue = False)
 
     def instantiateWidget (self):
-        htmlWindow = wxHTML (self.parentBlock.widget,
-                             self.getWidgetID(),
-                             wx.DefaultPosition,
-                             (self.minimumSize.width, self.minimumSize.height))
-        if self.url:
-            htmlWindow.LoadPage(self.url)
-        return htmlWindow
+       return wxHTML (self.parentBlock.widget,
+                      self.getWidgetID(),
+                      wx.DefaultPosition,
+                      (self.minimumSize.width, self.minimumSize.height))
+
+    def onSetContentsEvent(self, event):
+        self.setContentsOnBlock(event.arguments['item'],
+                                event.arguments['collection'])
+        widget = getattr (self, "widget", None)
+        if widget is not None:
+            widget.wxSynchronizeWidget()
 
 class columnType(schema.Enumeration):
     """

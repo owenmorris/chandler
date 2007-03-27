@@ -31,7 +31,6 @@ def installParcel(parcel, old_version=None):
     makeSubtree(parcel, PhotoMixin, [
         makeEditor(parcel, "PhotoBody",
             viewAttribute=u"photoBody",
-            stretchFactor=1.0,
             border=RectType(2.0, 2.0, 2.0, 2.0),
             position=0.86,           
             presentationStyle = { 'format': 'Image' }
