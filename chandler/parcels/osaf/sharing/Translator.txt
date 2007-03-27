@@ -230,7 +230,7 @@ Modifications
 - - - - - - -
 
     >>> mod_rec = sharing.model.ItemRecord(
-    ...         uuid=';VALUE=DATE-TIME;TZID=US/Pacific:20070223T140000:f230dcd4-7c32-4c3f-908b-d92081cc9a89',
+    ...         uuid='f230dcd4-7c32-4c3f-908b-d92081cc9a89:;VALUE=DATE-TIME;TZID=US/Pacific:20070223T140000',
     ...         title='Changed title',
     ...         triage=sharing.Missing,
     ...         createdOn=sharing.Missing,
@@ -252,20 +252,18 @@ Exporting
 - - - - -
 
     >>> t.startExport()
-    >>> records = list(t.exportItem(item))
-    >>> mod_event_records = [r for r in records if r.uuid.startswith(';VALUE')
-    ...                      and isinstance(r, sharing.model.EventRecord)]
-    >>> len(mod_event_records) == 1
+    >>> records = list(t.exportItem(mod.itsItem))
+    >>> event_records = [r for r in records if isinstance(r, sharing.model.EventRecord)]
+    >>> len(event_records) == 1
     True
-    >>> event_record = mod_event_records[0]
+    >>> event_record = event_records[0]
     >>> event_record.dtstart
     Missing
     >>> event_record.duration
     Missing
-    >>> mod_item_records = [r for r in records if r.uuid.startswith(';VALUE')
-    ...                      and isinstance(r, sharing.model.ItemRecord)]
-    >>> len(mod_item_records) == 1
+    >>> item_records = [r for r in records if isinstance(r, sharing.model.ItemRecord)]
+    >>> len(item_records) == 1
     True
-    >>> item_record = mod_item_records[0]
+    >>> item_record = item_records[0]
     >>> item_record.title
     u'Changed title'

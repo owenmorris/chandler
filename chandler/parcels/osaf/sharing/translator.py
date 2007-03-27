@@ -260,7 +260,7 @@ def splitUUID(recurrence_aware_uuid):
     Return the tuple (UUID, recurrenceID or None).  UUID will be a string,
     recurrenceID will be a datetime or None.
     """
-    recurrenceID, colon, uuid = recurrence_aware_uuid.rpartition(":")
+    uuid, colon, recurrenceID = recurrence_aware_uuid.partition(":")
     if colon != ":":
         # a plain UUID
         return (uuid, None)
@@ -278,7 +278,7 @@ def getUUIDForEIM(item_or_stamp):
         master = item.inheritFrom
         recurrenceID = toICalendarDateTime(event.recurrenceID,
                                            event.allDay or event.anyTime)
-        return recurrenceID + ":" + str(master.itsUUID)
+        return str(master.itsUUID) + ":" + recurrenceID
     else:
         return item.itsUUID
 
@@ -673,16 +673,6 @@ class PIMTranslator(eim.Translator):
             None                                        # icalParameters
         )
         
-        # yield records for each modification if this isn't itself an Occurrence
-        if not isinstance(item, Occurrence):
-            for mod_item in (event.modifications or []):
-                mod_event = EventStamp(mod_item)
-                # auto-triage only modifications shouldn't be shared
-                if not (mod_event.isTriageOnlyModification() and
-                        mod_item._triageStatus == mod_event.autoTriage()):
-                    for record in self.exportItem(mod_item):
-                        yield record
-
     @model.EventRecord.deleter
     def delete_event(self, record):
         item = self.rv.findUUID(record.uuid)
