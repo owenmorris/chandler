@@ -101,8 +101,6 @@ ifeq ($(CHANDLERARCHIVES),)
     CHANDLERARCHIVES = ../downloads
 endif
 
-PLUGIN_ARCHIVES = $(CHANDLERARCHIVES)
-
 ifeq ($(OS),Cygwin)
     SITE       = $(SNAP)/bin/Lib/site-packages
     PLATFORM   = windows

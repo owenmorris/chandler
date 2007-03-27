@@ -1,4 +1,4 @@
-#   Copyright (c) 2006 Open Source Applications Foundation
+#   Copyright (c) 2006-2007 Open Source Applications Foundation
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -19,7 +19,7 @@
 from application import schema
 from i18n import MessageFactory
 
-import urllib, logging
+import urllib, logging, vobject
 from zanshin.util import blockUntil
 import zanshin.webdav
 import osaf.sharing as sharing
@@ -27,11 +27,17 @@ import osaf.pim
 from osaf.usercollections import UserCollection
 from repository.item.Item import MissingClass
 
-APP_KEY = 'CtssgKSFQDrFsBVC'
 logger = logging.getLogger(__name__)
-
-
 _ = MessageFactory("Chandler-EVDBPlugin")
+
+APP_KEY = None
+def setLicense(api_key):
+    """set api key"""
+    global APP_KEY
+    APP_KEY = api_key
+
+class LicenseError(Exception):
+    pass
 
 def GetCollectionFromSearch(repoView, searchTerms):
 
@@ -39,6 +45,9 @@ def GetCollectionFromSearch(repoView, searchTerms):
     # above API.
 
     # ... need the app key (identifies Chandler).
+    if APP_KEY is None:
+        raise LicenseError
+
     query = 'ical?app_key=%s' % (urllib.quote_plus(APP_KEY))
     displayName = "EVDB"
     
@@ -97,8 +106,16 @@ def GetCollectionFromSearch(repoView, searchTerms):
         share.get()
         
         return collection
-    except sharing.TransformationError:
+    except sharing.TransformationFailed:
         return collection
+    except vobject.base.ParseError, e:
+        input = getattr(e, 'input', None)
+        if (isinstance(input, basestring) and
+            "authentication error" in input.lower()):
+            raise LicenseError
+        logger.exception("Error during GET from EVDB")
+        repoView.cancel()
+        raise
     except Exception, e:
         logger.exception("Error during GET from EVDB")
         repoView.cancel()

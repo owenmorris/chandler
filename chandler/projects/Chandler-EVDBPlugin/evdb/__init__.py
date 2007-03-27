@@ -1,4 +1,4 @@
-#   Copyright (c) 2003-2006 Open Source Applications Foundation
+#   Copyright (c) 2003-2007 Open Source Applications Foundation
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -19,6 +19,7 @@ from i18n import MessageFactory
 from osaf import messages, pim
 from osaf.framework.blocks import Block
 from osaf.usercollections import UserCollection
+from dialogs import LicenseTask, promptLicense
 
 import evdb, EVDBDialog
 
@@ -33,9 +34,12 @@ class AddEVDBCollectionEvent(Block.AddToSidebarEvent):
         
         result = None
         
-        if keywords:
+        while keywords:
             try:
                 result = evdb.GetCollectionFromSearch(self.itsView, keywords)
+            except evdb.LicenseError:
+                if promptLicense():
+                    continue
             except Exception, e:
                 Util.ok(None, _(u"EVDB Search"),
                 _(u"An error occurred while fetching events from EVDB:\n%(error)s\n\nSee chandler.log for details.") % {'error': e})
@@ -72,3 +76,5 @@ def installParcel(parcel, version=None):
         eventsForNamedLookup = [NewEVDBCollectionEvent],
         parentBlock = main.ExperimentalMenu,
     )
+
+    LicenseTask(None).run()
