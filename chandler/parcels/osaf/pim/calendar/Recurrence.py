@@ -28,7 +28,7 @@ from datetime import datetime, timedelta
 import dateutil.rrule
 from dateutil.rrule import rrule, rruleset
 from repository.item.PersistentCollections import PersistentList
-from PyICU import ICUtzinfo, DateFormat
+from PyICU import ICUtzinfo, DateFormat, DateFormatSymbols, Calendar
 from TimeZone import coerceTimeZone, forceToDateTime
 from i18n import ChandlerMessageFactory as _
 
@@ -37,7 +37,7 @@ class FrequencyEnum(schema.Enumeration):
     values="yearly","monthly","weekly","daily","hourly","minutely","secondly"
 
 
-# map FrequencyEnums to internationalized singular and plural strings
+# map FrequencyEnums to internationalized singular, plural and adverbial strings
 singularFrequencyMap = dict(yearly  = _(u"year"),
                             monthly = _(u"month"),
                             weekly  = _(u"week"),
@@ -54,6 +54,24 @@ pluralFrequencyMap =   dict(yearly  = _(u"years"),
                             minutely = _(u"minutes"),
                             secondly = _(u"seconds"))
 
+adverbFrequencyMap = dict(yearly  = _(u"yearly"),
+                            monthly = _(u"monthly"),
+                            weekly  = _(u"weekly"),
+                            daily   = _(u"daily"),
+                            hourly  = _(u"hourly"),
+                            minutely = _(u"minutely"),
+                            secondly = _(u"secondly"))
+
+# Formatting strings dictionary: the code builds an index dynamically to pick the right one
+descriptionFormat = {'fs' : _(u"%(frequencyadverb)s"),
+                    'fp' : _(u"every %(interval)s %(frequencyplural)s"),
+                    'fds' : _(u"%(days)s every %(frequencysingular)s"),
+                    'fdp' : _(u"%(days)s every %(interval)s %(frequencyplural)s"),
+                    'fus' : _(u"%(frequencyadverb)s until %(date)s"),
+                    'fup' : _(u"every %(interval)s %(frequencyplural)s until %(date)s"),
+                    'fdus' : _(u"%(days)s every %(frequencysingular)s until %(date)s"),
+                    'fdup' : _(u"%(days)s every %(interval)s %(frequencyplural)s until %(date)s")}
+            
 
 class WeekdayEnum(schema.Enumeration):
     """The names of weekdays.  Values shouldn't be displayed directly."""
@@ -61,13 +79,15 @@ class WeekdayEnum(schema.Enumeration):
            "saturday","sunday"
 
 # map WeekdayEnums to an internationalized abbreviation for display
-weekdayAbbrevMap = dict(monday    = _(u"Mo"),
-                        tuesday   = _(u"Tu"),
-                        wednesday = _(u"We"),
-                        thursday  = _(u"Th"),
-                        friday    = _(u"Fr"),
-                        saturday  = _(u"Sa"),
-                        sunday    = _(u"Su"))
+# [i18n] : use the week days returned by PyICU
+shortWeekdays = DateFormatSymbols().getShortWeekdays()
+weekdayAbbrevMap = dict(monday    = shortWeekdays[Calendar.MONDAY],
+                        tuesday   = shortWeekdays[Calendar.TUESDAY],
+                        wednesday = shortWeekdays[Calendar.WEDNESDAY],
+                        thursday  = shortWeekdays[Calendar.THURSDAY],
+                        friday    = shortWeekdays[Calendar.FRIDAY],
+                        saturday  = shortWeekdays[Calendar.SATURDAY],
+                        sunday    = shortWeekdays[Calendar.SUNDAY])
 
 
 class WeekdayAndPositionStruct(schema.Struct):
@@ -579,34 +599,39 @@ class RecurrenceRuleSet(items.ContentItem):
         if self.isComplex():
             return _(u"No description")
         else:
+            # Get the rule values we can interpret (so far...)
             rule = self.rrules.first()
             freq = rule.freq
             interval = rule.interval
-
-            #@@@ This would be tricky to internationalize, bug 4464
-            dct = {}
-            dct['weekdays'] = u""
-            if freq == 'weekly' and rule.byweekday is not None:
-                daylist = [weekdayAbbrevMap[i.weekday] for i in rule.byweekday]
-                if len(daylist) > 0:
-                    daylist.append(u" ")
-                    dct['weekdays'] = u"".join(daylist)
-
-            if rule.interval != 1:
-                dct['interval'] = " " + str(rule.interval)
-                dct['freq'] = pluralFrequencyMap[freq]
-            else:
-                dct['interval'] = u""
-                dct['freq'] = singularFrequencyMap[freq]
-
             until = rule.calculatedUntil()
-            if until is None:
-                dct['until'] = u""
-            else:
-                formatter = DateFormat.createDateInstance(DateFormat.kShort)
-                dct['until'] = _(u"until ") + unicode(formatter.format(until))
+            days = rule.byweekday
+            
+            # Build the index and argument dictionary
+            # The index must be built in the 'fdus' order
+            index = 'f'
+            dct = {}
+            
+            if freq == 'weekly' and days is not None:
+                index += 'd'
+                daylist = [weekdayAbbrevMap[i.weekday] for i in days]
+                dct['days'] = u" ".join(daylist)
 
-            return "%(weekdays)severy%(interval)s %(freq)s %(until)s" % dct
+            dct['frequencyplural'] = pluralFrequencyMap[freq]
+            dct['frequencysingular'] = singularFrequencyMap[freq]
+            dct['frequencyadverb'] = adverbFrequencyMap[freq]
+
+            if until is not None:
+                index += 'u'
+                formatter = DateFormat.createDateInstance(DateFormat.kShort)
+                dct['date'] = unicode(formatter.format(until))
+            
+            if rule.interval != 1:
+                dct['interval'] = str(rule.interval)
+                index += 'p'
+            else:
+                index += 's'
+
+            return descriptionFormat[index] % dct
 
 
     def transformDatesAfter(self, after, changeDate):
