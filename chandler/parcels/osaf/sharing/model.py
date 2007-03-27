@@ -21,8 +21,6 @@ logger = logging.getLogger(__name__)
 
 # TODO: Missing attribute, "error" (dump/reload only)
 # TODO: Missing attribute, "read" (dump/reload only)
-# TODO: Missing attribute, "needsReply" (???)
-# TODO: Missing attribute, "modifiedFlags" (???)
 
 
 text20 = eim.TextType(size=20)
