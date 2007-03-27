@@ -562,7 +562,7 @@ class MainView(View):
         )
 
     def onFileBugEvent(self, event):
-        self.openURLOrDialog.open(
+        self.openURLOrDialog(
            'http://wiki.osafoundation.org/Projects/ReportingBugs'
         )
 
