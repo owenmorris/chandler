@@ -1,4 +1,4 @@
-#   Copyright (c) 2003-2006 Open Source Applications Foundation
+#   Copyright (c) 2003-2007 Open Source Applications Foundation
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -13,10 +13,10 @@
 #   limitations under the License.
 
 
-from repository.item.Item import Item
+from repository.item.Item import Item, ItemClass, override
 
 
-class CollectionClass(type):
+class CollectionClass(ItemClass):
 
     def __init__(cls, name, bases, clsdict):
 
@@ -25,6 +25,8 @@ class CollectionClass(type):
 
         if '__collection__' in clsdict:         # local
             cls.__delegates__ = clsdict['__collection__'],
+
+        super(CollectionClass, cls).__init__(name, bases, clsdict)
 
 
 class Collection(Item):
@@ -43,6 +45,7 @@ class Collection(Item):
     instance.
     """
 
+    @override(Item)
     def _collectionChanged(self, op, change, name, other):
 
         if name == self.__collection__:

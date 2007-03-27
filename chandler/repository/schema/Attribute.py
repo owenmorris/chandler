@@ -1,4 +1,4 @@
-#   Copyright (c) 2003-2006 Open Source Applications Foundation
+#   Copyright (c) 2003-2007 Open Source Applications Foundation
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -16,7 +16,7 @@
 from chandlerdb.util.c import _hash, _combine, Nil, Default
 from chandlerdb.schema.c import CAttribute
 from chandlerdb.item.ItemError import SchemaError
-from repository.item.Item import Item
+from repository.item.Item import Item, override
 from repository.schema.Kind import Kind
 from repository.schema.TypeHandler import TypeHandler
 
@@ -30,6 +30,7 @@ class Attribute(Item):
         self.c = CAttribute(self)
         self._setInitialValues(values, True)
 
+    @override(Item)
     def _fillItem(self, *args):
 
         super(Attribute, self)._fillItem(*args)

@@ -1,4 +1,4 @@
-#   Copyright (c) 2003-2006 Open Source Applications Foundation
+#   Copyright (c) 2003-2007 Open Source Applications Foundation
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -23,6 +23,7 @@ from repository.tests.classes.Movie import Movie
 from repository.item.Sets import \
     Union, Intersection, Difference, Set, KindSet, \
     MultiUnion, MultiIntersection, ExpressionFilteredSet, EmptySet
+from repository.item.Item import override
 
 
 class movie(Movie):
@@ -32,6 +33,7 @@ class movie(Movie):
         super(movie, self).__init__(*args, **kwds)
         self.calls = []
 
+    @override(Movie)
     def _collectionChanged(self, op, change, name, other):
 
         if name != 'watches':

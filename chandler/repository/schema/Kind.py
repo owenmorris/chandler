@@ -1,4 +1,4 @@
-#   Copyright (c) 2003-2006 Open Source Applications Foundation
+#   Copyright (c) 2003-2007 Open Source Applications Foundation
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -23,7 +23,7 @@ from chandlerdb.item.c import isitem, CItem, isitemref, ItemRef
 from chandlerdb.item.ItemError import NoSuchAttributeError, SchemaError
 from chandlerdb.item.ItemValue import ItemValue
 
-from repository.item.Item import Item, MissingClass
+from repository.item.Item import Item, MissingClass, override
 from repository.item.RefCollections import RefList
 from repository.item.Sets import AbstractSet
 from repository.item.Values import Values, References
@@ -53,6 +53,7 @@ class Kind(Item):
 
         self._status |= Item.SCHEMA
 
+    @override(Item)
     def _fillItem(self, name, parent, kind, uuid, view,
                   values, references, status, version, hooks, update):
 
@@ -1021,6 +1022,7 @@ class Extent(Item):
                 matches.add(key)
                 yield key
 
+    @override(Item)
     def _collectionChanged(self, op, change, name, other, filterKind=None):
 
         view = self.itsView

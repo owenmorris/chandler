@@ -1,4 +1,4 @@
-#   Copyright (c) 2004-2006 Open Source Applications Foundation
+#   Copyright (c) 2004-2007 Open Source Applications Foundation
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -13,11 +13,12 @@
 #   limitations under the License.
 
 
-from repository.item.Item import Item
+from repository.item.Item import Item, override
 from chandlerdb.util.c import Nil, Default
 
 class Monitors(Item):
 
+    @override(Item)
     def _fillItem(self, *args):
 
         super(Monitors, self)._fillItem(*args)
@@ -32,6 +33,7 @@ class Monitors(Item):
 
         view.setSingleton(view.MONITORS, None)
 
+    @override(Item)
     def _collectionChanged(self, op, change, name, other):
 
         if change == 'collection' and name == 'monitors':

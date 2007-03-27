@@ -1,4 +1,4 @@
-#   Copyright (c) 2003-2006 Open Source Applications Foundation
+#   Copyright (c) 2003-2007 Open Source Applications Foundation
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -112,7 +112,8 @@ class TypesTest(RepositoryTestCase.RepositoryTestCase):
                         'Boolean':'True', 'UUID':str(self.attrKind.itsUUID),
                         'ItemRef':str(self.attrKind.itsUUID),
                         'Path':'//Schema/Core/Item', 'NoneType':None,
-                        'Class':'repository.item.Item.Item', 'Enumeration':'ref',
+                        'Class':'repository.tests.TestTypes.TypesTest',
+                        'Enumeration':'ref',
                         'Struct':'ref', 'DateTime':'2004-01-08 12:34:56.15',
                         'TimeDelta':'-8+45.12',
                         'Collection':None, 'Dictionary':'{"a":"b","c":"d"}',

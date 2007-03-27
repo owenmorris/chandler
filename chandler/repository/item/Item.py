@@ -1,4 +1,4 @@
-#   Copyright (c) 2003-2006 Open Source Applications Foundation
+#   Copyright (c) 2003-2007 Open Source Applications Foundation
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -32,10 +32,31 @@ from repository.util.Path import Path
 from repository.util.LinkedMap import LinkedMap
 
 
+def override(cls):
+    def override(method):
+        method.__override__ = cls
+        return method
+    return override
+
+
+class ItemClass(type):
+
+    __finals__ = set(name for name, value in CItem.__dict__.iteritems()
+                     if callable(value) and not name.startswith('__'))
+
+    def __init__(cls, clsName, bases, clsdict):
+
+        for name, value in clsdict.iteritems():
+            if name in ItemClass.__finals__:
+                if not getattr(value, '__override__', Nil) in bases:
+                    raise TypeError, (cls, name, 'is final')
+
+
 class Item(CItem):
     """
     The root class for all items.
     """
+    __metaclass__ = ItemClass
 
     def __init__(self, itsName=None, itsParent=None, itsKind=None,
                  _uuid=None, fireChanges=True, **values):

@@ -1,4 +1,4 @@
-#   Copyright (c) 2003-2006 Open Source Applications Foundation
+#   Copyright (c) 2003-2007 Open Source Applications Foundation
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -26,7 +26,7 @@ from chandlerdb.util.c import \
     _hash, _combine, Nil, Default, Empty, packDigits, unpackDigits, isuuid
 from chandlerdb.persistence.c import Record
 from chandlerdb.item.c import isitem, isitemref
-from repository.item.Item import Item
+from repository.item.Item import Item, override
 from repository.item.PersistentCollections import \
      PersistentList, PersistentDict, PersistentTuple, PersistentSet
 from repository.item.ItemHandler import ValueHandler
@@ -90,6 +90,7 @@ class Type(Item):
         self._status |= Item.SCHEMA
         TypeHandler.typeHandlers[self.itsView][None].types.append(self)
         
+    @override(Item)
     def _fillItem(self, *args):
 
         super(Type, self)._fillItem(*args)
@@ -1026,6 +1027,7 @@ class SchemaEnumValue(EnumValue):
 
 class ConstantEnumeration(Enumeration):
 
+    @override(Enumeration)
     def _fillItem(self, *args):
         super(ConstantEnumeration, self)._fillItem(*args)
         if 'values' in self._values:

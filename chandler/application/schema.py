@@ -1,4 +1,4 @@
-#   Copyright (c) 2003-2006 Open Source Applications Foundation
+#   Copyright (c) 2003-2007 Open Source Applications Foundation
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -15,7 +15,7 @@
 
 from chandlerdb.schema.c import Redirector
 from repository.persistence.RepositoryView import NullRepositoryView
-from repository.item.Item import Item as Base
+from repository.item.Item import Item as Base, ItemClass as BaseClass
 from repository.item.Collection import CollectionClass as BaseCollectionClass
 from repository.schema.Kind import CDescriptor, Kind
 from repository.schema.Attribute import Attribute
@@ -107,10 +107,11 @@ class ActiveDescriptor(object):
 class Activator(type):
     """Metaclass that activates contained ``ActiveDescriptor`` instances"""
 
-    def __init__(cls,name,bases,cdict):
+    def __init__(cls,clsName,bases,cdict):
         for name,ob in cdict.items():
             if isinstance(ob,ActiveDescriptor):
                 ob.activateInClass(cls,name)
+        super(Activator,cls).__init__(clsName,bases,cdict)
 
     def targetType(cls):
         """By default, backreferences to arbitrary classes go nowhere"""
@@ -466,7 +467,7 @@ class Cloud:
         return cloud
 
 
-class ItemClass(Activator):
+class ItemClass(Activator, BaseClass):
     """Metaclass for schema.Item"""
 
     _kind_class = Kind
