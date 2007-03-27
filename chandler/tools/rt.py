@@ -1240,6 +1240,20 @@ def main(options):
 
     failed = False
 
+    try:
+        # Empty the log file so that we won't be confused by old results later
+        f = open(os.path.join(options.profileDir, 'chandler.log'), 'w')
+        f.close()
+    except IOError:
+        pass
+
+    # Remove old perf log files (we leave the the latest)
+    for f in glob.glob(os.path.join(options.profileDir, '*.log.*')):
+        try:
+            os.remove(f)
+        except OSError:
+            pass
+
     if options.single:
         failed = runSingles(options)
     else:
