@@ -96,6 +96,13 @@ class NoteRecord(eim.Record):
     # Note.reminders?  (Translator not implemented yet)
     reminderTime = eim.field(eim.DecimalType(digits=20, decimal_places=0))
 
+    # Note.icalendarProperties
+    icalProperties = eim.field(text1024, [nonStandardICalendarFilter])
+
+    # Note.icalendarParameters
+    icalParameters = eim.field(text1024, [nonStandardICalendarFilter])
+
+
 class TaskRecord(eim.Record):
     URI = "http://osafoundation.org/eim/task/0"
 
@@ -124,12 +131,6 @@ class EventRecord(eim.Record):
 
     # EventStamp.transparency
     status = eim.field(text256, [eventStatusFilter])
-
-    # Note.icalendarParameters
-    icalParameters = eim.field(text1024, [nonStandardICalendarFilter])
-
-    # Note.icalendarProperties
-    icalProperties = eim.field(text1024, [nonStandardICalendarFilter])
 
 class DisplayAlarmRecord(eim.Record):
     URI = "http://osafoundation.org/eim/displayAlarm/0"

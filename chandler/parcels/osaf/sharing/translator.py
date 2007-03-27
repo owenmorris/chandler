@@ -502,7 +502,10 @@ class PIMTranslator(eim.Translator):
             uuid,                                       # uuid
             body,                                       # body
             handleEmpty(item, "icalUID"),               # icalUid
-            None                                        # reminderTime
+            None,                                       # reminderTime
+            None,                                       # icalProperties
+            None                                        # icalParameters
+            
         )
 
 
@@ -669,8 +672,6 @@ class PIMTranslator(eim.Translator):
             rdate,                                      # rdate
             exdate,                                     # exdate
             transparency,                               # status
-            None,                                       # icalProperties
-            None                                        # icalParameters
         )
         
     @model.EventRecord.deleter

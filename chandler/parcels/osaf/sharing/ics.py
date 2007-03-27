@@ -245,6 +245,8 @@ class ICSSerializer(object):
                                             description, # body
                                             uid,         # icalUid
                                             None,        # reminderTime
+                                            None,        # icalProperties
+                                            None,        # icalParameters
                                             ),
                            model.EventRecord(uuid,
                                              dtstart,
@@ -255,8 +257,6 @@ class ICSSerializer(object):
                                              None,   # rdate
                                              None,   # exdate
                                              status, # status
-                                             None,   # icalProperties
-                                             None,   # icalParameters
                                              )]
                 
                 recordSets[uuid] = RecordSet(records)

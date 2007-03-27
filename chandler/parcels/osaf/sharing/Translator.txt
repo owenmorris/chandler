@@ -77,7 +77,9 @@ Importing:
     ...         uuid='f230dcd4-7c32-4c3f-908b-d92081cc9a89',
     ...         body='This is the body',
     ...         icalUid=None,
-    ...         reminderTime=None
+    ...         reminderTime=None,
+    ...         icalProperties=None,
+    ...         icalParameters=None
     ... )
 
     >>> rs = sharing.RecordSet([rec])
@@ -99,7 +101,7 @@ Exporting:
     >>> t.startExport()
     >>> records = list(t.exportItem(item))
     >>> records
-    [ItemRecord('f230dcd4-7c32-4c3f-908b-d92081cc9a89', u'Translator test', u'200 -1167792143.00 1', Decimal("1164803131"), 0, 0), ModifiedByRecord('f230dcd4-7c32-4c3f-908b-d92081cc9a89', u'', Decimal("1164803131"), 500), NoteRecord('f230dcd4-7c32-4c3f-908b-d92081cc9a89', u'This is the body', None, None)]
+    [ItemRecord('f230dcd4-7c32-4c3f-908b-d92081cc9a89', u'Translator test', u'200 -1167792143.00 1', Decimal("1164803131"), 0, 0), ModifiedByRecord('f230dcd4-7c32-4c3f-908b-d92081cc9a89', u'', Decimal("1164803131"), 500), NoteRecord('f230dcd4-7c32-4c3f-908b-d92081cc9a89', u'This is the body', None, None, None, None)]
 
 TODO: icaluid
 
@@ -135,7 +137,7 @@ Exporting:
     >>> t.startExport()
     >>> records = list(t.exportItem(item))
     >>> records
-    [ItemRecord('f230dcd4-7c32-4c3f-908b-d92081cc9a89', u'Translator test', u'200 -1167792143.00 1', Decimal("1164803131"), 0, 0), ModifiedByRecord('f230dcd4-7c32-4c3f-908b-d92081cc9a89', u'', Decimal("1164803131"), 500), NoteRecord('f230dcd4-7c32-4c3f-908b-d92081cc9a89', u'This is the body', None, None), TaskRecord('f230dcd4-7c32-4c3f-908b-d92081cc9a89')]
+    [ItemRecord('f230dcd4-7c32-4c3f-908b-d92081cc9a89', u'Translator test', u'200 -1167792143.00 1', Decimal("1164803131"), 0, 0), ModifiedByRecord('f230dcd4-7c32-4c3f-908b-d92081cc9a89', u'', Decimal("1164803131"), 500), NoteRecord('f230dcd4-7c32-4c3f-908b-d92081cc9a89', u'This is the body', None, None, None, None), TaskRecord('f230dcd4-7c32-4c3f-908b-d92081cc9a89')]
 
 EventRecord type
 - - - - - - - -
@@ -155,8 +157,6 @@ Importing:
     ...         rdate = None,
     ...         exdate = None,
     ...         status = 'CANCELLED',
-    ...         icalParameters = None,
-    ...         icalProperties = None
     ... )
 
     >>> rs = sharing.RecordSet([rec])
@@ -182,7 +182,7 @@ Exporting:
     >>> t.startExport()
     >>> records = [r for r in t.exportItem(item) if isinstance(r, sharing.model.EventRecord)]
     >>> records
-    [EventRecord('f230dcd4-7c32-4c3f-908b-d92081cc9a89', u';VALUE=DATE-TIME;TZID=US/Pacific:20070201T140000', u'PT1H', u'Nowhere', None, None, None, None, u'CANCELLED', None, None)]
+    [EventRecord('f230dcd4-7c32-4c3f-908b-d92081cc9a89', u';VALUE=DATE-TIME;TZID=US/Pacific:20070201T140000', u'PT1H', u'Nowhere', None, None, None, None, u'CANCELLED')]
 
 Recurrence
 - - - - -
@@ -197,8 +197,6 @@ Recurrence
     ...             rdate = ';VALUE=DATE-TIME;TZID=US/Pacific:20070223T140000,20070225T140000',
     ...             exdate = ';VALUE=DATE-TIME;TZID=US/Pacific:20070206T140000',
     ...             status = rec.status,
-    ...             icalParameters = None,
-    ...             icalProperties = None
     ... )
     
     >>> rs = sharing.RecordSet([new_rec])
