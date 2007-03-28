@@ -426,11 +426,13 @@ class RepositoryView(CView):
             - only local values are returned, schema-based inheritance is
               not used to return a non-local value.
 
-            - item references and bi-directional ref collections are
-              returned as UUIDs, they are not actually loaded.
+            - item references are returned as UUIDs, they are not actually 
+              loaded.
+
+            - bi-directional ref collections are returned read-only
 
         If the item does not exist or does not have a value for the given
-        attribute an optional default value is returned or an exception is
+        attribute the optional default value is returned or an exception is
         raised.
 
         To load multiple values for the same item, consider using
@@ -468,57 +470,6 @@ class RepositoryView(CView):
                 return default
 
         return reader.readValue(self, uValue)[1]
-
-    def findValues(self, uItem, *pairs):
-        """
-        Find values for one or more attributes of an item.
-
-        As with L{findValue}, if the item is already loaded, regular
-        attribute value retrieval is used.
-
-        If the item is not loaded, the values for the named attributes are
-        returned, without loading the item, with the following limitations:
-
-            - only local values are returned, schema-based inheritance is
-              not used to return a non-local value.
-
-            - item references and bi-directional ref collections are
-              returned as UUIDs, they are not actually loaded.
-
-        If the item does not exist or does not have a value for the given
-        attribute a default value is returned.
-
-        @param uItem: an item UUID
-        @param pairs: one or more C{(name, default)} tuples for each
-        attribute to retrieve a value for.
-        @return: a tuple of attribute or default values, matching the order
-        of the given C{(name, default)} pairs.
-        """
-
-        if isuuid(uItem):
-            item = self.find(uItem, False)
-        else:
-            item = uItem
-
-        if item is not None:
-            return tuple([item.getLocalAttributeValue(name, default)
-                          for name, default in pairs])
-
-        names = (name for name, default in pairs)
-        reader, uValues = self.repository.store.loadValues(self,
-                                                           self.itsVersion,
-                                                           uItem, names)
-        if reader is None:
-            return tuple([default for name, default in pairs])
-
-        values = []
-        for uValue, (name, default) in izip(uValues, pairs):
-            if uValue is not None:
-                values.append(reader.readValue(self, uValue)[1])
-            else:
-                values.append(default)
-
-        return tuple(values)
 
     def hasValue(self, uItem, name):
         """
