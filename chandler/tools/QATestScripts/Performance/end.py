@@ -1,4 +1,4 @@
-#   Copyright (c) 2003-2006 Open Source Applications Foundation
+#   Copyright (c) 2003-2007 Open Source Applications Foundation
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -12,14 +12,9 @@
 #   See the License for the specific language governing permissions and
 #   limitations under the License.
 
-# Create script file end.py: import sys; sys.exit(0)
-# Create a new repository by starting Chandler with --create
-# Start Chandler 3 times with: time chandler -f end.py
-# Pick the run whose time was in the middle (the "real" time row)
-
+# This is needed on Mac OS X
 import tools.QAUITestAppLib as QAUITestAppLib
-
 QAUITestAppLib.App_ns.root.Quit()
 
-import sys;
-sys.exit(0)
+import os
+os._exit(0)
