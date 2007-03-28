@@ -261,6 +261,33 @@ method that can also be called with a string.
 @return: an item or C{None} if not found
 """)
 
+_install__doc__(CView.findValues, """
+Find values for one or more attributes of an item.
+
+As with L{findValue}, if the item is already loaded, regular
+attribute value retrieval is used.
+
+If the item is not loaded, the values for the named attributes are
+returned, without loading the item, with the following limitations:
+
+    - only local values are returned, schema-based inheritance is
+      not used to return a non-local value.
+
+    - item references are returned as UUIDs, they are not actually 
+      loaded.
+
+    - bi-directional ref collections are returned read-only
+
+If the item does not exist or does not have a value for the given
+attribute the corresponding default value is returned.
+
+@param uItem: an item UUID
+@param pairs: one or more C{(name, default)} tuples for each
+attribute to retrieve a value for.
+@return: a tuple of attribute or default values, matching the order
+of the given C{(name, default)} pairs.
+""")
+
 
 _install__doc__(SkipList, """
 An implementation of a double-linked skip list backed by a map.

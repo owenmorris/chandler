@@ -721,14 +721,12 @@ static PyObject *t_item_getAttributeAspect(t_item *self, PyObject *args)
     return defaultValue;
 }
 
-static PyObject *t_item_getLocalAttributeValue(t_item *self, PyObject *args)
+static PyObject *_t_item_getLocalAttributeValue(t_item *self, PyObject *name,
+                                                PyObject *defaultValue,
+                                                PyObject *attrDict)
 {
-    PyObject *name, *defaultValue = NULL, *attrDict = NULL;
     PyObject *value;
 
-    if (!PyArg_ParseTuple(args, "O|OO", &name, &defaultValue, &attrDict))
-        return NULL;
-    
     if (attrDict != NULL && attrDict != Py_None)
     {
         if (!PyObject_TypeCheck(attrDict, CValues))
@@ -760,6 +758,16 @@ static PyObject *t_item_getLocalAttributeValue(t_item *self, PyObject *args)
 
     PyErr_SetObject(PyExc_AttributeError, name);
     return NULL;
+}
+
+static PyObject *t_item_getLocalAttributeValue(t_item *self, PyObject *args)
+{
+    PyObject *name, *defaultValue = NULL, *attrDict = NULL;
+
+    if (!PyArg_ParseTuple(args, "O|OO", &name, &defaultValue, &attrDict))
+        return NULL;
+
+    return _t_item_getLocalAttributeValue(self, name, defaultValue, attrDict);
 }
 
 static PyObject *t_item_hasLocalAttributeValue(t_item *self, PyObject *args)
@@ -1732,6 +1740,7 @@ void _init_item(PyObject *m)
         if (m)
         {
             PyObject *dict = ItemType.tp_dict;
+            PyObject *cobj;
 
             Py_INCREF(&ItemType);
             PyModule_AddObject(m, "CItem", (PyObject *) &ItemType);
@@ -1799,6 +1808,9 @@ void _init_item(PyObject *m)
             getAttributeValue_NAME = PyString_FromString("getAttributeValue");
             _addItem_NAME = PyString_FromString("_addItem");
             invokeAfterChange_NAME = PyString_FromString("invokeAfterChange");
+
+            cobj = PyCObject_FromVoidPtr(_t_item_getLocalAttributeValue, NULL);
+            PyModule_AddObject(m, "CItem_getLocalAttributeValue", cobj);
         }
     }
 }

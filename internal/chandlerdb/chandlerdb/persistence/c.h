@@ -113,6 +113,7 @@ extern PyUUID_Check_fn PyUUID_Check;
 extern PyUUID_Make16_fn PyUUID_Make16;
 extern _hash_bytes_fn _hash_bytes;
 extern CAttribute_invokeAfterChange_fn CAttribute_invokeAfterChange;
+extern CItem_getLocalAttributeValue_fn CItem_getLocalAttributeValue;
 
 extern PyObject *PyExc_DBError;
 extern PyObject *PyExc_DBLockDeadlockError;

@@ -118,5 +118,7 @@ enum {
 };
 
 typedef void (*C_countAccess_fn)(t_item *);
+typedef PyObject *(*CItem_getLocalAttributeValue_fn)(t_item *, PyObject *,
+                                                     PyObject *, PyObject *);
 
 #endif /* _ITEM_H */

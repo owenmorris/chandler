@@ -71,6 +71,7 @@ static PyObject *t_view_observersDeferred(t_view *self, PyObject *args);
 static PyObject *t_view_areNotificationsDeferred(t_view *self);
 static PyObject *t_view_notificationsDeferred(t_view *self, PyObject *args);
 static PyObject *t_view_cancelDeferredNotifications(t_view *self);
+static PyObject *t_view_findValues(t_view *self, PyObject *args);
 
 static Py_ssize_t t_view_dict_length(t_view *self);
 static PyObject *t_view_dict_get(t_view *self, PyObject *key);
@@ -86,6 +87,8 @@ static PyObject *findPath_NAME;
 static PyObject *cacheMonitors_NAME;
 static PyObject *MONITORS_PATH;
 static PyObject *reindex_NAME;
+static PyObject *loadValues_NAME;
+static PyObject *readValue_NAME;
 
 static PyMemberDef t_view_members[] = {
     { "_status", T_UINT, offsetof(t_view, status), 0, "view status flags" },
@@ -141,6 +144,7 @@ static PyMethodDef t_view_methods[] = {
     { "areNotificationsDeferred", (PyCFunction) t_view_areNotificationsDeferred, METH_VARARGS, "" },
     { "notificationsDeferred", (PyCFunction) t_view_notificationsDeferred, METH_VARARGS, "" },
     { "cancelDeferredNotifications", (PyCFunction) t_view_cancelDeferredNotifications, METH_NOARGS, "" },
+    { "findValues", (PyCFunction) t_view_findValues, METH_VARARGS, "" },
     { NULL, NULL, 0, NULL }
 };
 
@@ -1401,6 +1405,185 @@ static PyObject *t_view_cancelDeferredNotifications(t_view *self)
 }
 
 
+static int _check_pair(PyObject *obj)
+{
+    if (!obj)
+        return -1;
+    
+    if (!PyTuple_Check(obj))
+    {
+        PyErr_SetObject(PyExc_TypeError, obj);
+        return -1;
+    }
+
+    if (PyTuple_GET_SIZE(obj) != 2)
+    {
+        PyErr_SetObject(PyExc_ValueError, obj);
+        return -1;
+    }
+
+    return 0;
+}
+
+static PyObject *t_view_findValues(t_view *self, PyObject *args)
+{
+    PyObject *uItem, *item;
+    PyObject *values = NULL, *names = NULL, *result = NULL;
+    int size, i;
+
+    if (!PyTuple_Check(args))
+    {
+        PyErr_SetObject(PyExc_TypeError, args);
+        return NULL;
+    }
+
+    size = PyTuple_GET_SIZE(args);
+    if (size < 1)
+    {
+        PyErr_SetString(PyExc_ValueError, "missing args");
+        return NULL;
+    }
+
+    uItem = PyTuple_GET_ITEM(args, 0);
+    if (PyUUID_Check(uItem))
+        item = PyDict_GetItem(self->registry, uItem);
+    else if (PyObject_TypeCheck(uItem, CItem))
+        item = uItem;
+    else
+    {
+        PyErr_SetObject(PyExc_TypeError, uItem);
+        return NULL;
+    }
+        
+    values = PyTuple_New(size - 1);
+    if (!values)
+        return NULL;
+
+    if (item != NULL)
+    {
+        for (i = 1; i < size; i++) {
+            PyObject *arg = PyTuple_GET_ITEM(args, i);
+            PyObject *name, *defaultValue, *value;
+
+            if (_check_pair(arg) < 0)
+                goto error;
+
+            name = PyTuple_GET_ITEM(arg, 0);
+            defaultValue = PyTuple_GET_ITEM(arg, 1);
+            value = CItem_getLocalAttributeValue((t_item *) item, name,
+                                                 defaultValue, NULL);
+            if (!value)
+                goto error;
+
+            PyTuple_SET_ITEM(values, i - 1, value);
+        }
+    }
+    else if (PyObject_TypeCheck(self->repository, CRepository))
+    {
+        t_repository *repository = (t_repository *) self->repository;
+        PyObject *reader, *uValues, *version;
+
+        names = PyTuple_New(size - 1);
+        if (!names)
+            return NULL;
+
+        for (i = 1; i < size; i++) {
+            PyObject *arg = PyTuple_GET_ITEM(args, i);
+            PyObject *name;
+
+            if (_check_pair(arg) < 0)
+                goto error;
+
+            name = PyTuple_GET_ITEM(arg, 0);
+            PyTuple_SET_ITEM(names, i - 1, name);
+            Py_INCREF(name);
+        }
+
+        version = PyInt_FromLong(self->version);
+        result = PyObject_CallMethodObjArgs(repository->store, loadValues_NAME,
+                                            self, version, uItem, names, NULL);
+        Py_DECREF(version);
+        Py_CLEAR(names);
+        if (_check_pair(result) < 0)
+            goto error;
+
+        reader = PyTuple_GET_ITEM(result, 0);
+        uValues = PyTuple_GET_ITEM(result, 1);
+
+        if (reader == Py_None)
+        {
+            for (i = 1; i < size; i++) {
+                PyObject *arg = PyTuple_GET_ITEM(args, i);
+                PyObject *defaultValue = PyTuple_GET_ITEM(arg, 1);
+
+                PyTuple_SET_ITEM(values, i - 1, defaultValue);
+                Py_INCREF(defaultValue);
+            }
+        }
+        else
+        {
+            for (i = 1; i < size; i++) {
+                PyObject *uValue = PySequence_GetItem(uValues, i - 1);
+
+                if (!uValue)
+                    goto error;
+
+                if (uValue == Py_None)
+                {
+                    PyObject *arg = PyTuple_GET_ITEM(args, i);
+                    PyObject *defaultValue = PyTuple_GET_ITEM(arg, 1);
+
+                    PyTuple_SET_ITEM(values, i - 1, defaultValue);
+                    Py_INCREF(defaultValue);
+                }
+                else
+                {
+                    PyObject *loadedValue =
+                        PyObject_CallMethodObjArgs(reader, readValue_NAME,
+                                                   self, uValue, NULL);
+                    PyObject *value;
+
+                    if (_check_pair(loadedValue) < 0)
+                    {
+                        Py_XDECREF(loadedValue);
+                        goto error;
+                    }
+
+                    value = PyTuple_GET_ITEM(loadedValue, 1);
+                    PyTuple_SET_ITEM(values, i - 1, value);
+                    Py_INCREF(value);
+
+                    Py_DECREF(loadedValue);
+                }
+
+                Py_DECREF(uValue);
+            }
+        }
+
+        Py_CLEAR(result);
+    }
+    else
+    {
+        for (i = 1; i < size; i++) {
+            PyObject *arg = PyTuple_GET_ITEM(args, i);
+            PyObject *defaultValue = PyTuple_GET_ITEM(arg, 1);
+
+            PyTuple_SET_ITEM(values, i - 1, defaultValue);
+            Py_INCREF(defaultValue);
+        }
+    }
+
+    return values;
+
+  error:
+    Py_CLEAR(values);
+    Py_CLEAR(names);
+    Py_CLEAR(result);
+
+    return NULL;
+}
+
+
 void _init_view(PyObject *m)
 {
     if (PyType_Ready(&ViewType) >= 0)
@@ -1438,6 +1621,8 @@ void _init_view(PyObject *m)
             findPath_NAME = PyString_FromString("findPath");
             cacheMonitors_NAME = PyString_FromString("cacheMonitors");
             reindex_NAME = PyString_FromString("reindex");
+            loadValues_NAME = PyString_FromString("loadValues");
+            readValue_NAME = PyString_FromString("readValue");
 
             MONITORS_PATH = PyString_FromString("//Schema/Core/items/Monitors");
             PyDict_SetItemString(dict, "MONITORS", MONITORS_PATH);
