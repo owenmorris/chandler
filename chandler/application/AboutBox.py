@@ -117,8 +117,8 @@ def _getDefaultHTML():
     "abt":  _("About Chandler"),
     "ex":   _("Experimentally usable calendar"),
     "plat": Utility.getPlatformName(),
-    "ch":   _("Chandler"),
-    "osa":  _("Open Source Applications Foundation"),
+    "ch":   (u"Chandler\u2122"),
+    "osa":  ("Open Source Applications Foundation"),
     "loc":  _("For more info: %(chandlerWebURL)s") % \
            {"chandlerWebURL": "<a href=\"http://chandler.osafoundation.org\">chandler.osafoundation.org</a>"},
     #This is a bummer the % in the width attribute was causing the

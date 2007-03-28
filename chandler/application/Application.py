@@ -1308,7 +1308,7 @@ class StartupSplash(wx.Frame):
         sizer.Add(bitmap, 0, wx.ALIGN_CENTER, 0)
 
         # Add Chandler text
-        text1 = wx.StaticText(self, -1, _(u"Chandler"))
+        text1 = wx.StaticText(self, -1, (u"Chandler\u2122"))
         text1.SetBackgroundColour(wx.WHITE)
         sizer.Add(text1, 1,  wx.ALIGN_CENTER | wx.TOP | wx.BOTTOM, padding)
         text1.SetFont(wx.Font(16, wx.SWISS, wx.NORMAL, wx.BOLD))
@@ -1321,7 +1321,7 @@ class StartupSplash(wx.Frame):
         text2.SetFont(wx.Font(16, wx.SWISS, wx.NORMAL, wx.NORMAL))
 
         # Add OSAF text
-        text3 = wx.StaticText(self, -1, _(u"Open Source Applications Foundation"))
+        text3 = wx.StaticText(self, -1, (u"Open Source Applications Foundation"))
         text3.SetBackgroundColour(wx.WHITE)
         sizer.Add(text3, 1,  wx.ALIGN_CENTER | wx.TOP | wx.BOTTOM, padding)
         text3.SetFont(wx.Font(10, wx.SWISS, wx.NORMAL, wx.NORMAL))
