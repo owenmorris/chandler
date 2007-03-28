@@ -549,7 +549,6 @@ class SharingTranslator(eim.Translator):
             uuid,                                       # uuid
             body,                                       # body
             handleEmpty(item, "icalUID"),               # icalUid
-            None,                                       # reminderTime
             None,                                       # icalProperties
             None                                        # icalParameters
             

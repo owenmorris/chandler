@@ -244,7 +244,6 @@ class ICSSerializer(object):
                            model.NoteRecord(uuid,
                                             description, # body
                                             uid,         # icalUid
-                                            None,        # reminderTime
                                             None,        # icalProperties
                                             None,        # icalParameters
                                             ),

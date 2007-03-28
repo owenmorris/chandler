@@ -96,9 +96,6 @@ class NoteRecord(eim.Record):
     # Note.icalUid
     icalUid = eim.field(text256)
 
-    # Note.reminders?  (Translator not implemented yet)
-    reminderTime = eim.field(eim.DecimalType(digits=20, decimal_places=0))
-
     # Note.icalendarProperties
     icalProperties = eim.field(text1024, [nonStandardICalendarFilter])
 

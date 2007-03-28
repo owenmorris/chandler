@@ -79,7 +79,7 @@ class SharedItem(pim.Stamp):
 
             state.pending = eim.RecordSet([
                 model.ItemRecord(itemUUID, "XYZZY", nc, nc, nc, nc),
-                model.NoteRecord(itemUUID, "PLUGH", nc, nc, nc, nc),
+                model.NoteRecord(itemUUID, "PLUGH", nc, nc, nc),
                 model.EventRecord(itemUUID, nc, nc, "San Jose", nc, nc, nc,
                     nc, nc),
             ])

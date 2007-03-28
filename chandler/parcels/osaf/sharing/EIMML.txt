@@ -64,7 +64,7 @@ Serialize and deserialize entire record sets using EIMMLSerializerLite::
     ... <eim:recordset uuid="8501de14-1dc9-40d4-a7d4-f289feff8214">
     ...    <item:record uuid="8501de14-1dc9-40d4-a7d4-f289feff8214" title="Welcome to Cosmo" triage="100 123456789.12 1" createdOn="1164803131" hasBeenSent="0" needsReply="0" />
     ...    <modby:record uuid="8501de14-1dc9-40d4-a7d4-f289feff8214" userid="foo@example.com" timestamp="1164803132" action="500" />
-    ...    <note:record uuid="8501de14-1dc9-40d4-a7d4-f289feff8214" body="This is the body" icalUid="1e2d48c0-d66b-494c-bb33-c3d75a1ba66b" reminderTime="1169163900" >
+    ...    <note:record uuid="8501de14-1dc9-40d4-a7d4-f289feff8214" body="This is the body" icalUid="1e2d48c0-d66b-494c-bb33-c3d75a1ba66b">
     ...       <note:icalParameters/>
     ...       <note:icalProperties/>
     ...    </note:record>
@@ -76,7 +76,7 @@ Serialize and deserialize entire record sets using EIMMLSerializerLite::
     ... </eim:recordset>
     ... </eim:collection>'''
 
-    >>> expectedRecordSets = { '8501de14-1dc9-40d4-a7d4-f289feff8214': rs([sharing.model.ItemRecord('8501de14-1dc9-40d4-a7d4-f289feff8214', u'Welcome to Cosmo', u'100 123456789.12 1', decimal.Decimal("1164803131"), 0, 0), sharing.model.ModifiedByRecord('8501de14-1dc9-40d4-a7d4-f289feff8214', 'foo@example.com', decimal.Decimal("1164803132"), 500), sharing.model.NoteRecord('8501de14-1dc9-40d4-a7d4-f289feff8214', 'This is the body', u'1e2d48c0-d66b-494c-bb33-c3d75a1ba66b', decimal.Decimal('1169163900'), None, None), sharing.model.EventRecord('8501de14-1dc9-40d4-a7d4-f289feff8214', u'20061130T140000', u'PT1H', u'San Jose', u'FREQ=WEEKLY', None, None, None, u'CONFIRMED')])}
+    >>> expectedRecordSets = { '8501de14-1dc9-40d4-a7d4-f289feff8214': rs([sharing.model.ItemRecord('8501de14-1dc9-40d4-a7d4-f289feff8214', u'Welcome to Cosmo', u'100 123456789.12 1', decimal.Decimal("1164803131"), 0, 0), sharing.model.ModifiedByRecord('8501de14-1dc9-40d4-a7d4-f289feff8214', 'foo@example.com', decimal.Decimal("1164803132"), 500), sharing.model.NoteRecord('8501de14-1dc9-40d4-a7d4-f289feff8214', 'This is the body', u'1e2d48c0-d66b-494c-bb33-c3d75a1ba66b', None, None), sharing.model.EventRecord('8501de14-1dc9-40d4-a7d4-f289feff8214', u'20061130T140000', u'PT1H', u'San Jose', u'FREQ=WEEKLY', None, None, None, u'CONFIRMED')])}
 
     >>> recordSets, extra = eimml.EIMMLSerializerLite.deserialize(sampleLite)
     >>> recordSets == expectedRecordSets
@@ -119,7 +119,6 @@ Serialize and deserialize entire record sets using EIMMLSerializer::
     ...       <note:uuid eim:type="text" eim:key="true"><![CDATA[8501de14-1dc9-40d4-a7d4-f289feff8214]]></note:uuid>
     ...       <note:body eim:type="clob"><![CDATA[This is the body]]></note:body>
     ...       <note:icalUid eim:type="text"><![CDATA[1e2d48c0-d66b-494c-bb33-c3d75a1ba66b]]></note:icalUid>
-    ...       <note:reminderTime eim:type="decimal"><![CDATA[1169163900]]></note:reminderTime>
     ...       <note:icalParameters eim:type="text" />
     ...       <note:icalProperties eim:type="text" />
     ...     </note:record>
@@ -157,10 +156,10 @@ Serialize and deserialize entire record sets using EIMMLSerializer::
 Fields with empty strings are serialized with an empty="true" attribute on
 their element::
 
-    >>> records = { '8501de14-1dc9-40d4-a7d4-f289feff8214': rs([sharing.model.NoteRecord('8501de14-1dc9-40d4-a7d4-f289feff8214', '', u'1e2d48c0-d66b-494c-bb33-c3d75a1ba66b', decimal.Decimal('1169163900'), None, None)])}
+    >>> records = { '8501de14-1dc9-40d4-a7d4-f289feff8214': rs([sharing.model.NoteRecord('8501de14-1dc9-40d4-a7d4-f289feff8214', '', u'1e2d48c0-d66b-494c-bb33-c3d75a1ba66b', None, None)])}
     >>> text = eimml.EIMMLSerializer.serialize(records)
     >>> text
-    '<?xml version=\'1.0\' encoding=\'UTF-8\'?><ns0:collection xmlns:ns0="http://osafoundation.org/eim/0"><ns0:recordset uuid="8501de14-1dc9-40d4-a7d4-f289feff8214"><ns1:record xmlns:ns1="http://osafoundation.org/eim/note/0"><ns1:uuid ns0:key="true" ns0:type="text">8501de14-1dc9-40d4-a7d4-f289feff8214</ns1:uuid><ns1:body empty="true" ns0:type="clob" /><ns1:icalUid ns0:type="text">1e2d48c0-d66b-494c-bb33-c3d75a1ba66b</ns1:icalUid><ns1:reminderTime ns0:type="decimal">1169163900</ns1:reminderTime><ns1:icalProperties ns0:type="text" /><ns1:icalParameters ns0:type="text" /></ns1:record></ns0:recordset></ns0:collection>'
+    '<?xml version=\'1.0\' encoding=\'UTF-8\'?><ns0:collection xmlns:ns0="http://osafoundation.org/eim/0"><ns0:recordset uuid="8501de14-1dc9-40d4-a7d4-f289feff8214"><ns1:record xmlns:ns1="http://osafoundation.org/eim/note/0"><ns1:uuid ns0:key="true" ns0:type="text">8501de14-1dc9-40d4-a7d4-f289feff8214</ns1:uuid><ns1:body empty="true" ns0:type="clob" /><ns1:icalUid ns0:type="text">1e2d48c0-d66b-494c-bb33-c3d75a1ba66b</ns1:icalUid><ns1:icalProperties ns0:type="text" /><ns1:icalParameters ns0:type="text" /></ns1:record></ns0:recordset></ns0:collection>'
     >>> newRecords, extra = eimml.EIMMLSerializer.deserialize(text)
     >>> records == newRecords
     True
@@ -183,11 +182,11 @@ To indicate that item has been deleted, pass None instead of a recordset::
 
 There is a special value, Missing, which gets serialized as missing="true"::
 
-    >>> missing = { '8501de14-1dc9-40d4-a7d4-f289feff8214': rs([sharing.model.NoteRecord('8501de14-1dc9-40d4-a7d4-f289feff8214', Missing, u'1e2d48c0-d66b-494c-bb33-c3d75a1ba66b', decimal.Decimal('1169163900'), None, None)])}
+    >>> missing = { '8501de14-1dc9-40d4-a7d4-f289feff8214': rs([sharing.model.NoteRecord('8501de14-1dc9-40d4-a7d4-f289feff8214', Missing, u'1e2d48c0-d66b-494c-bb33-c3d75a1ba66b', None, None)])}
     >>> text = eimml.EIMMLSerializer.serialize(missing)
     >>> imported, extra = eimml.EIMMLSerializer.deserialize(text)
     >>> imported
-    {'8501de14-1dc9-40d4-a7d4-f289feff8214': RecordSet(set([NoteRecord(u'8501de14-1dc9-40d4-a7d4-f289feff8214', Missing, u'1e2d48c0-d66b-494c-bb33-c3d75a1ba66b', Decimal("1169163900"), None, None)]), set([]))}
+    {'8501de14-1dc9-40d4-a7d4-f289feff8214': RecordSet(set([NoteRecord(u'8501de14-1dc9-40d4-a7d4-f289feff8214', Missing, u'1e2d48c0-d66b-494c-bb33-c3d75a1ba66b', None, None)]), set([]))}
 
 
 Inmemory Mock Cosmo
@@ -229,7 +228,7 @@ Send a new item::
     ... <eim:recordset uuid="9501de14-1dc9-40d4-a7d4-f289feff8214">
     ...    <item:record uuid="9501de14-1dc9-40d4-a7d4-f289feff8214" title="Welcome to Cosmo" triage="100 123456789.12 1" createdOn ="1164803131" hasBeenSent="0" needsReply="0" />
     ...    <modby:record uuid="9501de14-1dc9-40d4-a7d4-f289feff8214" userid="foo@example.com" timestamp="1164803132" action="500" />
-    ...    <note:record uuid="9501de14-1dc9-40d4-a7d4-f289feff8214" body="This is the body" icalUid="1e2d48c0-d66b-494c-bb33-c3d75a1ba66b" reminderTime="1169163900">
+    ...    <note:record uuid="9501de14-1dc9-40d4-a7d4-f289feff8214" body="This is the body" icalUid="1e2d48c0-d66b-494c-bb33-c3d75a1ba66b">
     ...       <note:icalParameters/>
     ...       <note:icalProperties/>
     ...    </note:record>
@@ -261,7 +260,7 @@ created::
     >>> text = conduit.get()
     >>> conduit.syncToken
     '3'
-    >>> expectedRecordSets = { '8501de14-1dc9-40d4-a7d4-f289feff8214': rs([sharing.model.ItemRecord('8501de14-1dc9-40d4-a7d4-f289feff8214', u'Welcome to Cosmo', u'100 123456789.12 1', decimal.Decimal("1164803131"), 0, 0), sharing.model.ModifiedByRecord('8501de14-1dc9-40d4-a7d4-f289feff8214', 'foo@example.com', decimal.Decimal("1164803132"), 500), sharing.model.NoteRecord('8501de14-1dc9-40d4-a7d4-f289feff8214', 'This is the body', u'1e2d48c0-d66b-494c-bb33-c3d75a1ba66b', decimal.Decimal('1169163900'), None, None), sharing.model.EventRecord('8501de14-1dc9-40d4-a7d4-f289feff8214', u'20061130T140000', u'PT1H', u'San Jose', u'FREQ=WEEKLY', None, None, None, u'CONFIRMED')]), '9501de14-1dc9-40d4-a7d4-f289feff8214': rs([sharing.model.ItemRecord('9501de14-1dc9-40d4-a7d4-f289feff8214', u'Welcome to Cosmo', u'100 123456789.12 1', decimal.Decimal("1164803131"), 0, 0), sharing.model.ModifiedByRecord('9501de14-1dc9-40d4-a7d4-f289feff8214', 'foo@example.com', decimal.Decimal("1164803132"), 500), sharing.model.NoteRecord('9501de14-1dc9-40d4-a7d4-f289feff8214', 'This is the body', u'1e2d48c0-d66b-494c-bb33-c3d75a1ba66b', decimal.Decimal('1169163900'), None, None), sharing.model.EventRecord('9501de14-1dc9-40d4-a7d4-f289feff8214', u'20061130T140000', u'PT1H', None, u'FREQ=WEEKLY', None, None, None, u'CONFIRMED')]) }
+    >>> expectedRecordSets = { '8501de14-1dc9-40d4-a7d4-f289feff8214': rs([sharing.model.ItemRecord('8501de14-1dc9-40d4-a7d4-f289feff8214', u'Welcome to Cosmo', u'100 123456789.12 1', decimal.Decimal("1164803131"), 0, 0), sharing.model.ModifiedByRecord('8501de14-1dc9-40d4-a7d4-f289feff8214', 'foo@example.com', decimal.Decimal("1164803132"), 500), sharing.model.NoteRecord('8501de14-1dc9-40d4-a7d4-f289feff8214', 'This is the body', u'1e2d48c0-d66b-494c-bb33-c3d75a1ba66b', None, None), sharing.model.EventRecord('8501de14-1dc9-40d4-a7d4-f289feff8214', u'20061130T140000', u'PT1H', u'San Jose', u'FREQ=WEEKLY', None, None, None, u'CONFIRMED')]), '9501de14-1dc9-40d4-a7d4-f289feff8214': rs([sharing.model.ItemRecord('9501de14-1dc9-40d4-a7d4-f289feff8214', u'Welcome to Cosmo', u'100 123456789.12 1', decimal.Decimal("1164803131"), 0, 0), sharing.model.ModifiedByRecord('9501de14-1dc9-40d4-a7d4-f289feff8214', 'foo@example.com', decimal.Decimal("1164803132"), 500), sharing.model.NoteRecord('9501de14-1dc9-40d4-a7d4-f289feff8214', 'This is the body', u'1e2d48c0-d66b-494c-bb33-c3d75a1ba66b', None, None), sharing.model.EventRecord('9501de14-1dc9-40d4-a7d4-f289feff8214', u'20061130T140000', u'PT1H', None, u'FREQ=WEEKLY', None, None, None, u'CONFIRMED')]) }
     >>> recordSets, extra = eimml.EIMMLSerializerLite.deserialize(text)
     >>> recordSets == expectedRecordSets
     True
