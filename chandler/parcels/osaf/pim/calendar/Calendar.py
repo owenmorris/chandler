@@ -1,4 +1,4 @@
-#   Copyright (c) 2003-2006 Open Source Applications Foundation
+#   Copyright (c) 2003-2007 Open Source Applications Foundation
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -131,9 +131,7 @@ def getKeysInRange(view, startVal, startAttrName, startIndex, startColl,
         else:
             fullName = getattr(EventStamp, attrName).name
             def getFn(uuid, view):
-                t = IndexDefinition.findInheritedValues(view, uuid,
-                                                        (fullName, None))
-                return t[0]
+                return view.findInheritedValues(uuid, (fullName, None))[0]
             return getFn
 
     getStart = getGetFunction(startAttrName)
@@ -712,8 +710,8 @@ class EventStamp(Stamp):
     def _getEffectiveStartTime(uuidOrEvent, view=None):
     
         if isuuid(uuidOrEvent):
-            allDay, anyTime, startTime = IndexDefinition.findInheritedValues(
-                    view, uuidOrEvent,
+            allDay, anyTime, startTime = view.findInheritedValues(
+                    uuidOrEvent,
                     (EventStamp.allDay.name, False),
                     (EventStamp.anyTime.name, False),
                     (EventStamp.startTime.name, None))
@@ -748,8 +746,8 @@ class EventStamp(Stamp):
     @staticmethod
     def _getEffectiveEndTime(uuidOrEvent, view=None):
         if isuuid(uuidOrEvent):
-            allDay, anyTime, startTime, duration = IndexDefinition.findInheritedValues(
-                    view, uuidOrEvent,
+            allDay, anyTime, startTime, duration = view.findInheritedValues(
+                    uuidOrEvent,
                     (EventStamp.allDay.name, None),
                     (EventStamp.anyTime.name, None),
                     (EventStamp.startTime.name, None),
@@ -2371,9 +2369,7 @@ def makeCompareMethod(attr=None, getFn=None, useTZ=True):
     if getFn is None:
         attrName = attr.name
         def getFn(uuid, view):
-            t = IndexDefinition.findInheritedValues(view, uuid,
-                                                    (attrName, None))
-            return t[0]
+            return view.findInheritedValues(uuid, (attrName, None))[0]
     def compare(self, u1, u2):
         view = self.itsView
         v1 = getFn(u1, view)

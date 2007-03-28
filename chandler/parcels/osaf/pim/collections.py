@@ -103,59 +103,6 @@ class IndexDefinition(schema.Item):
             "overrides makeIndexOn"
         )
 
-    def findValues(self, uuid, *pairs):
-        return self.findInheritedValues(self.itsView, uuid, *pairs)
-    
-    @staticmethod
-    def findInheritedValues(view, uuid, *pairs):
-        """
-        Inheritance-aware version of RepositoryView.findValues(), for
-        use in IndexDefinitions, mainly.
-        
-        @param uuid: The UUID to find values for
-        @type uuid: C{UUID}
-        
-        @param pairs: (attribute-name, default-value) pairs to pass to
-                       C{RepositoryView.findValues}
-        @type pairs: iterable
-        
-        @return: A C{tuple} of values for the item with C{uuid}, corresponding
-                 to the attribute names in  C{pairs}. If the item doesn't have
-                 a value for a given attribute, and the item's 'inheritFrom'
-                 attribute is non-None, the inheritFrom's value is used instead.
-                 (If in turn that item doesn't have the value, the 2nd element
-                 of the pair -- the default value -- is what's returned.
-        @rtype: C{tuple}
-        """
-        
-        valuesToFind = [('inheritFrom', None)]
-        # Use Nil, not None here so that we can distinguish
-        # no-value-for-attribute from attribute-value-is-None.
-        valuesToFind.extend((attr, Nil) for attr, default in pairs)
-
-        result = view.findValues(uuid, *valuesToFind)
-        masterUuid = result[0]
-        result = result[1:] # Skip inheritFrom
-        nilValues = []
-        masterValues = []
-        
-        # Go through the returned tuple, and see if any results were
-        # Nil. If they were, we'll need to call view.findValues on
-        # masterUuid (sic).
-        for inputTuple, resultValue in zip(pairs, result):
-            if resultValue is Nil:
-                if masterUuid is None:
-                    nilValues.append(inputTuple[1])
-                else:
-                    masterValues.append(inputTuple)
-        if masterValues:
-            nilValues = view.findValues(masterUuid, *masterValues)
-        
-        iterNilValues = iter(nilValues)
-        
-        return tuple(fetched if fetched is not Nil else iterNilValues.next()
-                      for fetched in result)
-                      
 
 class NumericIndexDefinition(IndexDefinition):
     """
@@ -209,8 +156,9 @@ class MethodIndexDefinition(IndexDefinition):
                 "pim.MethodIndexDefinition is an abstract type; use a " \
                 "subtype that sets findValuePairs"
             )
-        v1 = self.findValues(u1, *self.findValuePairs)
-        v2 = self.findValues(u1, *self.findValuePairs)
+        view = self.itsView
+        v1 = view.findInheritedValues(u1, *self.findValuePairs)
+        v2 = view.findInheritedValues(u1, *self.findValuePairs)
         return cmp(v1, v2)
         
     # @@@ [grant] Unused
@@ -272,10 +220,11 @@ class AttributeIndexDefinition(MethodIndexDefinition):
                 return 1
  
             return cmp(v1, v2)
-        
+
+        view = self.itsView
         for value1, value2 in itertools.izip(
-                         self.findValues(u1, *attrs),
-                         self.findValues(u2, *attrs)):
+                         view.findInheritedValues(u1, *attrs),
+                         view.findInheritedValues(u2, *attrs)):
             result = noneAwareCmp(value1, value2)
             if result:
                 return result

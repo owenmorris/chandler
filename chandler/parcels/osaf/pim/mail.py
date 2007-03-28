@@ -1838,8 +1838,7 @@ class CommunicationStatus(schema.Annotation):
         
         modifiedFlags, lastMod, stampTypes, fromMe, \
         toMe, needsReply, read, error = \
-            collections.IndexDefinition.findInheritedValues(view, uuid,
-                                      *(CommunicationStatus.attributeValues))
+            view.findInheritedValues(uuid, *CommunicationStatus.attributeValues)
 
         result = 0
         

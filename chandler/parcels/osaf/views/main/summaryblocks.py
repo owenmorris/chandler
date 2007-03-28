@@ -44,7 +44,7 @@ class TriageColumnIndexDefinition(pim.MethodIndexDefinition):
         values are the triage attributes listed above; it'll
         remove the pair we're not supposed to use.
         """
-        values = self.findValues(uuid, *params)
+        values = self.itsView.findInheritedValues(uuid, *params)
         # We'll use sectionTriageStatus if it's there, else triageStatus
         if values[-2] is None: # no sectionTriageStatus
             return values[0:-2] # just use triageStatus for ordering.

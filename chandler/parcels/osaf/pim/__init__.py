@@ -146,8 +146,7 @@ class RecurrenceAwareFilter(Item):
         return collection
     
     def matches(self, view, uuid):
-        return IndexDefinition.findInheritedValues(view, uuid,
-                                      type(self).attrAndDefault)[0]
+        return view.findInheritedValues(uuid, type(self).attrAndDefault)[0]
     
 class UnexpiredFilter(Item):
     findValuePair = (Reminder.nextPoll.name, None)
