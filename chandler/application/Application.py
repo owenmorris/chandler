@@ -209,7 +209,7 @@ class wxMainFrame (wxBlockFrameWindow):
         Main window is about to be closed when the application is quitting.
         """
         def displayInfoWhileProcessing (message, method, *args, **kwds):
-            busyInfo = wx.BusyInfo (message)
+            busyInfo = wx.BusyInfo (message, wx.GetApp().mainFrame)
             wx.Yield()
             result = method(*args, **kwds)
             del busyInfo
@@ -239,9 +239,6 @@ class wxMainFrame (wxBlockFrameWindow):
         if __debug__:
             displayInfoWhileProcessing (_("Checking repository..."),
                                         app.UIRepositoryView.check)
-
-        # Preliminary tests point to stopCrypto as the cause for Chandler being slow
-        # to quit besides the debug only checking of the repository
 
         displayInfoWhileProcessing (_("Shutting down mail service..."),
                                     Globals.mailService.shutdown)
