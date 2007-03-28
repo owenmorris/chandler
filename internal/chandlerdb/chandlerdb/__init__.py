@@ -288,6 +288,19 @@ attribute to retrieve a value for.
 of the given C{(name, default)} pairs.
 """)
 
+_install__doc__(CView.findInheritedValues, """
+Similar to L{findValues} but missing values are inherited via C{inheritFrom}.
+
+Missing values are recursively inherited via the item's C{inheritFrom} 
+attribute, if present.
+
+@param uItem: an item UUID
+@param pairs: one or more C{(name, default)} tuples for each
+attribute to retrieve a value for.
+@return: a tuple of attribute or default values, matching the order
+of the given C{(name, default)} pairs.
+""")
+
 
 _install__doc__(SkipList, """
 An implementation of a double-linked skip list backed by a map.

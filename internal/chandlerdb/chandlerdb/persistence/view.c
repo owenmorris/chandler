@@ -72,6 +72,7 @@ static PyObject *t_view_areNotificationsDeferred(t_view *self);
 static PyObject *t_view_notificationsDeferred(t_view *self, PyObject *args);
 static PyObject *t_view_cancelDeferredNotifications(t_view *self);
 static PyObject *t_view_findValues(t_view *self, PyObject *args);
+static PyObject *t_view_findInheritedValues(t_view *self, PyObject *args);
 
 static Py_ssize_t t_view_dict_length(t_view *self);
 static PyObject *t_view_dict_get(t_view *self, PyObject *key);
@@ -89,6 +90,7 @@ static PyObject *MONITORS_PATH;
 static PyObject *reindex_NAME;
 static PyObject *loadValues_NAME;
 static PyObject *readValue_NAME;
+static PyObject *inheritFrom_NAME;
 
 static PyMemberDef t_view_members[] = {
     { "_status", T_UINT, offsetof(t_view, status), 0, "view status flags" },
@@ -145,6 +147,7 @@ static PyMethodDef t_view_methods[] = {
     { "notificationsDeferred", (PyCFunction) t_view_notificationsDeferred, METH_VARARGS, "" },
     { "cancelDeferredNotifications", (PyCFunction) t_view_cancelDeferredNotifications, METH_NOARGS, "" },
     { "findValues", (PyCFunction) t_view_findValues, METH_VARARGS, "" },
+    { "findInheritedValues", (PyCFunction) t_view_findInheritedValues, METH_VARARGS, "" },
     { NULL, NULL, 0, NULL }
 };
 
@@ -1583,6 +1586,137 @@ static PyObject *t_view_findValues(t_view *self, PyObject *args)
     return NULL;
 }
 
+static PyObject *t_view_findInheritedValues(t_view *self, PyObject *args)
+{
+    PyObject *valueArgs, *localValues, *values, *inheritFrom;
+    int size, i;
+
+    if (!PyTuple_Check(args))
+    {
+        PyErr_SetObject(PyExc_TypeError, args);
+        return NULL;
+    }
+
+    size = PyTuple_GET_SIZE(args);
+
+    valueArgs = PyTuple_New(size + 1);
+    if (!valueArgs)
+        return NULL;
+
+    for (i = 0; i < size; i++) {
+        PyObject *arg = PyTuple_GET_ITEM(args, i);
+
+        if (i > 0)
+        {
+            if (_check_pair(arg) < 0)
+            {
+                Py_DECREF(valueArgs);
+                return NULL;
+            }
+            arg = PyTuple_Pack(2, PyTuple_GET_ITEM(arg, 0), Nil);
+        }
+        else
+            Py_INCREF(arg);
+
+        PyTuple_SET_ITEM(valueArgs, i, arg);
+    }
+    PyTuple_SET_ITEM(valueArgs, size,
+                     PyTuple_Pack(2, inheritFrom_NAME, Py_None));
+
+    localValues = t_view_findValues(self, valueArgs);
+    Py_DECREF(valueArgs);
+    if (!localValues)
+        return NULL;
+
+    values = PyTuple_New(size - 1);
+    if (!values)
+    {
+        Py_DECREF(localValues);
+        return NULL;
+    }
+
+    inheritFrom = PyTuple_GET_ITEM(localValues, size - 1);
+    if (inheritFrom == Py_None)
+    {
+        for (i = 1; i < size; i++) {
+            PyObject *value = PyTuple_GET_ITEM(localValues, i - 1);
+
+            if (value == Nil)
+                value = PyTuple_GET_ITEM(PyTuple_GET_ITEM(args, i), 1);
+
+            Py_INCREF(value);
+            PyTuple_SET_ITEM(values, i - 1, value);
+        }
+    }
+    else
+    {
+        int nilCount = 0;
+
+        for (i = 1; i < size; i++) {
+            PyObject *value = PyTuple_GET_ITEM(localValues, i - 1);
+
+            if (value == Nil)
+                nilCount += 1;
+
+            Py_INCREF(value);
+            PyTuple_SET_ITEM(values, i - 1, value);
+        }
+
+        if (nilCount)
+        {
+            PyObject *inheritedValues;
+            int j;
+
+            valueArgs = PyTuple_New(nilCount + 1);
+            if (!valueArgs)
+            {
+                Py_DECREF(localValues);
+                Py_DECREF(values);
+                return NULL;
+            }
+
+            Py_INCREF(inheritFrom);
+            PyTuple_SET_ITEM(valueArgs, 0, inheritFrom);
+
+            for (i = 1, j = 1; i < size; i++) {
+                PyObject *value = PyTuple_GET_ITEM(localValues, i - 1);
+
+                if (value == Nil)
+                {
+                    PyObject *arg = PyTuple_GET_ITEM(args, i);
+                    
+                    Py_INCREF(arg);
+                    PyTuple_SET_ITEM(valueArgs, j++, arg);
+                }
+            }
+
+            inheritedValues = t_view_findInheritedValues(self, valueArgs);
+            Py_DECREF(valueArgs);
+            if (!inheritedValues)
+            {
+                Py_DECREF(localValues);
+                Py_DECREF(values);
+                return NULL;
+            }
+
+            for (i = 1, j = 0; i < size; i++) {
+                PyObject *value = PyTuple_GET_ITEM(localValues, i - 1);
+
+                if (value == Nil)
+                {
+                    value = PyTuple_GET_ITEM(inheritedValues, j++);
+                    Py_INCREF(value);
+                    PyTuple_SetItem(values, i - 1, value);
+                }
+            }
+            Py_DECREF(inheritedValues);
+        }
+    }
+    Py_DECREF(localValues);
+
+    return values;
+}
+
 
 void _init_view(PyObject *m)
 {
@@ -1623,6 +1757,7 @@ void _init_view(PyObject *m)
             reindex_NAME = PyString_FromString("reindex");
             loadValues_NAME = PyString_FromString("loadValues");
             readValue_NAME = PyString_FromString("readValue");
+            inheritFrom_NAME = PyString_FromString("inheritFrom");
 
             MONITORS_PATH = PyString_FromString("//Schema/Core/items/Monitors");
             PyDict_SetItemString(dict, "MONITORS", MONITORS_PATH);
