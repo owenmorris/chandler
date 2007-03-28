@@ -45,8 +45,6 @@ ignore = [wx.WXK_SHIFT, wx.WXK_TAB, wx.WXK_CAPITAL, wx.WXK_SCROLL,
           wx.WXK_WINDOWS_MENU, wx.WXK_HOME, wx.WXK_END]
 ignore.extend([getattr(wx, 'WXK_F' + str(n)) for n in range(1,25)])
 
-MAX_TITLE_IN_MENU = 30
-
 # @@@ These buttons could become a more general utility
 
 class CanvasBitmapButton(wx.lib.buttons.GenBitmapButton):
@@ -693,15 +691,12 @@ class wxCollectionCanvas(DragAndDrop.DropReceiveWidget,
         # only place we use position is in the call to PopupMenu.
         unscrolledPosition = self.CalcUnscrolledPosition(position)
 
-        data = {'collection' : self.blockItem.contentsCollection.displayName}
-
         canvasItem = self.GetCanvasItemAt(unscrolledPosition)
         
         menu = wx.Menu()
 
         if not canvasItem:
-            addTxt = _(u"Create new item in '%(collection)s'") 
-            menuItem = wx.MenuItem(menu, wx.NewId(), addTxt % data)
+            menuItem = wx.MenuItem(menu, wx.NewId(), _(u"New event"))
             menu.AppendItem(menuItem)
             menuItem.Enable(self.blockItem.CanAdd())
             eventcallback = lambda event: self.OnCreateItem(unscrolledPosition)
@@ -712,24 +707,13 @@ class wxCollectionCanvas(DragAndDrop.DropReceiveWidget,
             item = canvasItem.item
             selection = self.blockItem.GetSelection()
             self.OnSelectItem(item)
-            title = item.displayName
             
-            if len(title) > MAX_TITLE_IN_MENU:
-                ellipsis = _(u"...")
-                trim = {'ellipsis' : ellipsis, 
-                        'title' : title[0 : MAX_TITLE_IN_MENU - len(ellipsis)]}
-                title = _(u"%(title)s%(ellipsis)s") % trim
-            data['title'] = title
-            
-            removeTxt = _(u"Remove from '%(collection)s'") 
-            deleteTxt = _(u"Move to Trash") 
-            
-            menuItem = wx.MenuItem(menu, wx.NewId(), removeTxt % data)
+            menuItem = wx.MenuItem(menu, wx.NewId(), _(u"Remove"))
             menu.AppendItem(menuItem)
             menuItem.Enable(self.blockItem.CanRemove())
             menu.Bind(wx.EVT_MENU, self.blockItem.onRemoveEvent, menuItem)
 
-            menuItem = wx.MenuItem(menu, wx.NewId(), deleteTxt % data)
+            menuItem = wx.MenuItem(menu, wx.NewId(), _(u"Delete"))
             menu.AppendItem(menuItem)
             menuItem.Enable(self.blockItem.CanDelete())
             menu.Bind(wx.EVT_MENU, self.blockItem.onDeleteEvent, menuItem)
