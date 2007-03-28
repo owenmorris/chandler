@@ -1184,20 +1184,50 @@ def subscribeICS(view, url, inspection, activity=None,
     # TODO: Use filters parameter when this switches to ICS atop EIM
 
     share = Share(itsView=view)
-    share.format = ICalendarFormat(itsParent=share)
 
-    if account:
-        share.conduit = SimpleHTTPConduit(itsParent=share,
-            shareName=shareName, account=account)
+    if caldav_atop_eim:
+
+        if account:
+            share.conduit = WebDAVMonolithicRecordSetConduit(
+                itsParent=share,
+                shareName=shareName,
+                account=account,
+                translator=SharingTranslator,
+                serializer=ICSSerializer
+            )
+
+        else:
+            (useSSL, host, port, path, query, fragment) = splitUrl(url)
+            share.conduit = WebDAVMonolithicRecordSetConduit(
+                itsParent=share,
+                host=host, port=port,
+                sharePath=parentPath, shareName=shareName,
+                useSSL=useSSL, ticket=ticket,
+                translator=SharingTranslator,
+                serializer=ICSSerializer
+            )
+
+        share.mode = "both" if inspection['priv:write'] else "get"
+        if filters:
+            share.conduit.filters = filters
+
+
     else:
-        (useSSL, host, port, path, query, fragment) = splitUrl(url)
-        share.conduit = SimpleHTTPConduit(itsParent=share, host=host,
-            port=port, sharePath=parentPath, shareName=shareName,
-            useSSL=useSSL, ticket=ticket)
+        share.format = ICalendarFormat(itsParent=share)
 
-    share.mode = "get"
-    share.filterClasses = \
-        ["osaf.pim.calendar.Calendar.EventStamp"]
+        if account:
+            share.conduit = SimpleHTTPConduit(itsParent=share,
+                shareName=shareName, account=account)
+        else:
+            (useSSL, host, port, path, query, fragment) = splitUrl(url)
+            share.conduit = SimpleHTTPConduit(itsParent=share, host=host,
+                port=port, sharePath=parentPath, shareName=shareName,
+                useSSL=useSSL, ticket=ticket)
+
+        share.filterClasses = \
+            ["osaf.pim.calendar.Calendar.EventStamp"]
+
+        share.mode = "get"
 
     if activity:
         activity.update(msg=_(u"Subscribing to calendar..."))

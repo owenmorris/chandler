@@ -1173,6 +1173,8 @@ def importICalendarFile(fullpath, view, targetCollection = None,
 
     """
     from osaf.framework.blocks.Block import Block
+    import translator, ics
+    from osaf import sharing
 
     if selectedCollection:
         targetCollection = Block.findBlockByName("MainView").getSidebarSelectedCollection()
@@ -1187,18 +1189,26 @@ def importICalendarFile(fullpath, view, targetCollection = None,
         raise ICalendarImportError(_(u"File does not exist, import cancelled."))
     (dir, filename) = os.path.split(fullpath)
     
-    share = shares.OneTimeFileSystemShare(itsView=view,
-        filePath=dir, fileName=filename,
-        formatClass=ICalendarFormat, contents=targetCollection
-    )
-    if tzinfo is not None:
-        share.format.coerceTzinfo = tzinfo
-    
-    for key in filterAttributes:
-        share.filterAttributes.append(key)
-    
+    if sharing.caldav_atop_eim:
+        share = shares.OneTimeFileSystemShare(itsView=view,
+            filePath=dir, fileName=filename,
+            translatorClass=translator.SharingTranslator,
+            serializerClass=ics.ICSSerializer,
+            contents=targetCollection
+        )
+        # TODO: filters (and coerceTzinfo?)
+    else:
+        share = shares.OneTimeFileSystemShare(itsView=view,
+            filePath=dir, fileName=filename,
+            formatClass=ICalendarFormat, contents=targetCollection
+        )
+        if tzinfo is not None:
+            share.format.coerceTzinfo = tzinfo
+        for key in filterAttributes:
+            share.filterAttributes.append(key)
+
     before = epoch_time()
-    
+
     try:
         collection = share.get(activity=activity)
     except:

@@ -15,11 +15,14 @@
 __all__ = [
     'WebDAVConduit',
     'WebDAVRecordSetConduit',
+    'WebDAVMonolithicRecordSetConduit',
 ]
 
 import conduits, errors, formats
 import zanshin, M2Crypto.BIO, twisted.web.http, urlparse
-from recordset_conduit import ResourceRecordSetConduit, ResourceState
+from recordset_conduit import (
+    ResourceRecordSetConduit, ResourceState, MonolithicRecordSetConduit
+)
 
 from i18n import ChandlerMessageFactory as _
 import time
@@ -461,7 +464,10 @@ class WebDAVRecordSetConduit(ResourceRecordSetConduit, DAVConduitMixin):
     def getResource(self, path):
         # return text, etag
         resource = self._resourceFromPath(path)
+        start = time.time()
         resp = self._getServerHandle().blockUntil(resource.get)
+        end = time.time()
+        self.networkTime += (end - start)
         text = resp.body
         etag = resource.etag
         return text, etag
@@ -470,7 +476,10 @@ class WebDAVRecordSetConduit(ResourceRecordSetConduit, DAVConduitMixin):
     def putResource(self, text, path, etag=None, debug=False):
         # return etag
         resource = self._resourceFromPath(path)
+        start = time.time()
         self._getServerHandle().blockUntil(resource.put, text, checkETag=False)
+        end = time.time()
+        self.networkTime += (end - start)
         return resource.etag
 
 
@@ -493,3 +502,50 @@ class WebDAVRecordSetConduit(ResourceRecordSetConduit, DAVConduitMixin):
 
     def getPath(self, uuid):
         return "%s.xml" % uuid
+
+
+
+
+
+
+class WebDAVMonolithicRecordSetConduit(MonolithicRecordSetConduit,
+    DAVConduitMixin):
+
+    def sync(self, modeOverride=None, activity=None, forceUpdate=None,
+        debug=False):
+
+        startTime = time.time()
+        self.networkTime = 0.0
+
+        stats = super(WebDAVMonolithicRecordSetConduit, self).sync(
+            modeOverride=modeOverride,
+            activity=activity, forceUpdate=forceUpdate,
+            debug=debug)
+
+        endTime = time.time()
+        duration = endTime - startTime
+        logger.info("Sync took %6.2f seconds (network = %6.2f)", duration,
+            self.networkTime)
+
+        return stats
+
+    def get(self):
+        # TODO: honor etags
+        resource = self._resourceFromPath("")
+        start = time.time()
+        resp = self._getServerHandle().blockUntil(resource.get)
+        end = time.time()
+        self.networkTime += (end - start)
+        text = resp.body
+        self.etag = resource.etag
+        return text
+
+    def put(self, text):
+        # TODO: honor etags
+        resource = self._resourceFromPath("")
+        start = time.time()
+        self._getServerHandle().blockUntil(resource.put, text, checkETag=False)
+        end = time.time()
+        self.networkTime += (end - start)
+        self.etag = resource.etag
+

@@ -633,8 +633,10 @@ class OneTimeShare(Share):
         # collection's shares ref collection
         if self.contents:
             SharedItem(self.contents).shares.remove(self)
-        self.conduit.delete(True)
-        self.format.delete(True)
+        if self.conduit is not None:
+            self.conduit.delete(True)
+        if self.format is not None:
+            self.format.delete(True)
         self.delete(True)
 
     def put(self, activity=None):
@@ -655,6 +657,8 @@ class OneTimeShare(Share):
 class OneTimeFileSystemShare(OneTimeShare):
 
     formatClass = schema.One(schema.Class)
+    translatorClass = schema.One(schema.Class)
+    serializerClass = schema.One(schema.Class)
     filePath = schema.One(schema.Text)
     fileName = schema.One(schema.Text)
 
@@ -668,11 +672,19 @@ class OneTimeFileSystemShare(OneTimeShare):
 
     def _prepare(self):
         import filesystem_conduit
-        self.conduit = filesystem_conduit.FileSystemConduit(
-            itsView=self.itsView, sharePath=self.filePath,
-            shareName=self.fileName
-        )
-        self.format = self.formatClass(itsView=self.itsView)
 
-
+        if hasattr(self, 'formatClass'):
+            self.conduit = filesystem_conduit.FileSystemConduit(
+                itsView=self.itsView, sharePath=self.filePath,
+                shareName=self.fileName
+            )
+            self.format = self.formatClass(itsView=self.itsView)
+        else:
+            self.conduit = \
+                filesystem_conduit.FileSystemMonolithicRecordSetConduit(
+                itsView=self.itsView,
+                sharePath=self.filePath,
+                shareName=self.fileName,
+                translator=self.translatorClass,
+                serializer=self.serializerClass)
 

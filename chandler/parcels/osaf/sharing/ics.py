@@ -174,7 +174,7 @@ class ICSSerializer(object):
                     if dtend is not None:
                         duration = getDifference(dtend, dtstart)
                     elif anyTime or isDate:
-                        duration = oneDay
+                        duration = timedelta(1)
                     else:
                         duration = timedelta(0)
                         

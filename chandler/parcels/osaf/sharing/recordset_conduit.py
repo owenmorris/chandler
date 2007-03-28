@@ -28,8 +28,10 @@ logger = logging.getLogger(__name__)
 __all__ = [
     'RecordSetConduit',
     'DiffRecordSetConduit',
+    'MonolithicRecordSetConduit',
     'ResourceRecordSetConduit',
     'InMemoryDiffRecordSetConduit',
+    'InMemoryMonolithicRecordSetConduit',
     'InMemoryResourceRecordSetConduit',
 ]
 
@@ -88,8 +90,16 @@ class RecordSetConduit(conduits.BaseConduit):
         sendStats = { 'share' : self.share.itsUUID, 'op' : 'put',
             'added' : set(), 'modified' : set(), 'removed' : set() }
 
-        send = self.share.mode in ('put', 'both')
-        receive = self.share.mode in ('get', 'both')
+        if modeOverride:
+            if modeOverride == 'put':
+                send = True
+                receive = False
+            else: # get
+                send = False
+                receive = True
+        else:
+            send = self.share.mode in ('put', 'both')
+            receive = self.share.mode in ('get', 'both')
 
         translator = self.translator(rv)
 
@@ -513,6 +523,46 @@ class DiffRecordSetConduit(RecordSetConduit):
 
 
 
+
+
+class MonolithicRecordSetConduit(RecordSetConduit):
+
+    etag = schema.One(schema.Text, initialValue="")
+
+    def getRecords(self, debug=False, activity=None):
+        text = self.get()
+        if debug: print "Inbound text:", text
+        logger.debug("Received from server [%s]", text)
+
+        if text:
+            inbound, extra = self.serializer.deserialize(text)
+            return inbound, extra, False
+        else:
+            return { }, { }, False
+
+    def putRecords(self, toSend, extra, debug=False, activity=None):
+        # get the full state of every item not being deleted
+        fullToSend = { }
+        for state in self.share.states:
+            alias = self.share.states.getAlias(state)
+            if toSend.has_key(alias) and toSend[alias] is None:
+                pass
+            else:
+                rs = state.agreed + state.pending
+                fullToSend[alias] = rs
+
+        text = self.serializer.serialize(fullToSend, **extra)
+        if debug: print "Sending text:", text
+        logger.debug("Sending to server [%s]", text)
+        self.put(text)
+
+    def fileStyle(self):
+        return formats.STYLE_SINGLE
+
+
+
+
+
 class ResourceRecordSetConduit(RecordSetConduit):
 
     def getRecords(self, debug=False, activity=None):
@@ -747,6 +797,69 @@ class InMemoryDiffRecordSetConduit(DiffRecordSetConduit):
 
 
 
+class InMemoryMonolithicRecordSetConduit(MonolithicRecordSetConduit):
+
+    def get(self):
+        self.etag, text = self.serverGet(self._getPath(), self.etag)
+        return text
+
+    def put(self, text):
+        self.etag = self.serverPut(self._getPath(), text, self.etag)
+
+    def exists(self):
+        return shareDict.has_key(self._getPath())
+
+    def destroy(self):
+        del shareDict[self._getPath()]
+
+    def create(self):
+        self._getCollection(self._getPath())
+
+    def _getPath(self):
+        return "/".join([self.sharePath, self.shareName])
+
+    def _getCollection(self, path):
+        return shareDict.setdefault(path, { "etag" : 0, "text" : None })
+
+
+    def serverPut(self, path, text, etag):
+        if etag:
+            etag = int(etag)
+        else:
+            etag = 0
+
+        coll = self._getCollection(path)
+        current = coll["etag"]
+        if current > etag:
+            raise errors.TokenMismatch("Remote content has been updated")
+
+        coll["text"] = text
+        current += 1
+        coll["etag"] = current
+        return str(current)
+
+
+    def serverGet(self, path, etag):
+
+        if etag:
+            etag = int(etag)
+        else:
+            etag = 0
+
+        coll = self._getCollection(path)
+
+        current = coll["etag"]
+        if etag >= current:
+            # content not modified
+            return str(current), None
+
+        return str(current), coll["text"]
+
+
+
+
+
+
 
 
 class InMemoryResourceRecordSetConduit(ResourceRecordSetConduit):
@@ -808,3 +921,5 @@ class InMemoryResourceRecordSetConduit(ResourceRecordSetConduit):
     def _getCollection(self):
         return shareDict.setdefault(self.shareName,
             { "etag" : 0, "resources" : {} })
+
+

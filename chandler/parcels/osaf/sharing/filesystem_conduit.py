@@ -14,10 +14,11 @@
 
 __all__ = [
     'FileSystemConduit',
+    'FileSystemMonolithicRecordSetConduit',
 ]
 
 import os
-import conduits, formats, errors
+import conduits, formats, errors, recordset_conduit
 from i18n import ChandlerMessageFactory as _
 
 import logging
@@ -164,3 +165,56 @@ class FileSystemConduit(conduits.LinkableConduit, conduits.ManifestEngineMixin):
         if not self.exists():
             raise errors.NotFound(_(u"%(path)s does not exist") % {'path': path})
 
+
+
+
+
+
+class FileSystemMonolithicRecordSetConduit(
+    recordset_conduit.MonolithicRecordSetConduit):
+
+
+    def _getPath(self):
+        return "/".join([self.sharePath, self.shareName])
+
+    def get(self):
+        mtime = float(self.etag) if self.etag else 0.0
+        path = self._getPath()
+        stat = os.stat(path)
+        if mtime <= stat.st_mtime:
+            text = file(path).read()
+            self.etag = str(stat.st_mtime)
+        return text
+
+    def put(self, text):
+        mtime = float(self.etag) if self.etag else 0.0
+        path = self._getPath()
+        try:
+            stat = os.stat(path)
+            lastMod = stat.st_mtime
+        except OSError:
+            lastMod = 0.0
+
+        if mtime < lastMod:
+            raise errors.TokenMismatch("File has been updated")
+
+        # outputting in binary mode to preserve ics CRLF
+        out = file(path, 'wb')
+        out.write(text)
+        out.close()
+        stat = os.stat(path)
+        self.etag = str(stat.st_mtime)
+
+    def exists(self):
+        return os.path.isfile(self._getPath())
+
+    def destroy(self):
+        if not self.exists():
+            raise errors.NotFound(_(u"%(path)s does not exist") %
+                {'path': path})
+
+        os.remove(self._getPath())
+
+    def create(self):
+        if self.exists():
+            raise errors.AlreadyExists(_(u"File already exists"))
