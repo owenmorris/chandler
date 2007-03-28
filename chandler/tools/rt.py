@@ -1059,8 +1059,8 @@ def runPerfTests(options, tests=None):
                 if os.name == 'nt' or sys.platform == 'cygwin':
                     t = 'time.exe'
                 elif sys.platform == 'darwin':
-                    t = 'gtime'
-                    if not build_lib.getCommand(['which', t]):
+                    t = build_lib.getCommand(['which', 'gtime'])
+                    if not t:
                         log('%s not found, skipping startup performance tests' % t)
                         log('NOTE: %s is not part of OS X, you need to compile one' + \
                             'yourself (get source from http://directory.fsf.org/time.html)' + \
