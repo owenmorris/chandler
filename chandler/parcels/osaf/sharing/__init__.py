@@ -917,19 +917,6 @@ def subscribe(view, url, activity=None, username=None, password=None,
 
                 if davUrl and morsecodeUrl:
 
-                    # inspect the dav url this time to get permissions
-                    # TODO: I think username/password is irrelevant here since
-                    # cosmo doesn't support basic auth on the pim url, and
-                    # we *must* have gotten here via ticket
-
-                    # TODO: When Cosmo supports the davUrl, we can inspect
-                    # it for permissions.  For now assume writeability
-                    # inspection = inspect(davUrl, username=username,
-                    #     password=password)
-                    # logger.info("Inspection results for %s: %s", davUrl,
-                    #     inspection)
-                    inspection['priv:write'] = True
-
                     collection = subscribeMorsecode(view, url, morsecodeUrl,
                         inspection, activity=activity,
                         account=account, username=username, password=password,
@@ -1287,9 +1274,7 @@ def subscribeMorsecode(view, url, morsecodeUrl, inspection, activity=None,
     if filters:
         share.conduit.filters = filters
 
-
     share.sync(activity=activity, modeOverride='get')
-    # share.conduit.getTickets()
 
     try:
         SharedItem(share.contents).shares.append(share, 'main')

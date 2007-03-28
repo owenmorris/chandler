@@ -121,6 +121,14 @@ class CosmoConduit(recordset_conduit.DiffRecordSetConduit, conduits.HTTPMixin):
             self.syncToken = syncTokenHeaders[0]
         # # @@@MOR what if this header is missing?
 
+        ticketTypeHeaders = resp.headers.getHeader('X-MorseCode-TicketType')
+        if ticketTypeHeaders:
+            ticketType = ticketTypeHeaders[0]
+            if ticketType == 'read-write':
+                self.share.mode = 'both'
+            elif ticketType == 'read-only':
+                self.share.mode = 'get'
+
         return resp.body
 
     def put(self, text):
