@@ -16,5 +16,5 @@
 import tools.QAUITestAppLib as QAUITestAppLib
 QAUITestAppLib.App_ns.root.Quit()
 
-import os
-os._exit(0)
+import sys
+sys.exit(0)
