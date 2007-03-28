@@ -18,14 +18,16 @@ Classes used for Mail parcel kinds.
 """
 
 __all__ = [
-    'AccountBase', 'CommunicationStatus', 'DownloadAccountBase', 'EmailAddress',
-    'IMAPAccount', 'IMAPDelivery', 'MIMEBase', 'MIMEBinary', 'MIMEContainer', 'MIMENote',
-    'MIMESecurity', 'MIMEText', 'MailDeliveryBase', 'MailDeliveryError',
-    'IMAPFolder', 'ProtocolTypeEnum', 'MailMessage', 'MailStamp',
-    'POPAccount', 'POPDelivery', 'SMTPAccount', 'SMTPDelivery',
+     'CommunicationStatus', 'IMAPAccount',
+     'MIMEBase', 'MIMEBinary', 'MIMEContainer', 'MIMENote',
+    'MIMESecurity', 'MIMEText', 'IMAPFolder',
+    'ProtocolTypeEnum', 'MailMessage', 'MailStamp',
+    'POPAccount', 'SMTPAccount',
     'replyToMessage', 'replyAllToMessage', 'forwardMessage',
-     'getCurrentSMTPAccount', 'getCurrentMailAccount',
-    'ACCOUNT_TYPES']
+     'getCurrentOutgoingAccount', 'getCurrentIncomingAccount',
+     'getCurrentMeEmailAddress', 'getCurrentMeEmailAddresses',
+     'getMessageBody', 'ACCOUNT_TYPES', 'EmailAddress', 'OutgoingAccount',
+     'IncomingAccount']
 
 from application import schema
 import items, notes, stamping, collections
@@ -34,118 +36,414 @@ import re as re
 import chandlerdb.item.ItemError as ItemError
 from chandlerdb.util.c import UUID, Empty
 import PyICU
+from PyICU import ICUtzinfo
 
 from i18n import ChandlerMessageFactory as _
 from osaf import messages
 from repository.persistence.RepositoryError import RepositoryError, VersionConflictError
 from osaf.pim.calendar import EventStamp
-from osaf.pim import Remindable
+from tasks import TaskStamp
+from osaf.pim import Remindable, Modification
+from osaf.pim.calendar.TimeZone import formatTime
+from osaf.pim.calendar.DateTimeUtil import mediumDateFormat, shortTimeFormat, weekdayName
+from datetime import datetime
+from stamping import has_stamp
+from osaf.pim import TriageEnum
+
 
 """
+TODO:
+   1. There are serious optimizations that can be done on addressing
+      fields lookup. There are a number of places where different
+      views of who the recipients of the mail are needed. Each call
+      results in looping through email addresses. This is very
+      inefficient and is increasing upload and download
+      processing times.
 
-ISSUES:
-===========
-1. Why is from check getting called with invalid address and then called again. The first call
-   is always the current me address wierd.
+      Now that addressing logic has been established a
+      fast lookup index needs to be placed on each MailStamp.
+
+      The lookup would be able to filter the different
+      views of the recipient list ie. includeOriginators,
+      includeBcc, includeSender.
+
+      The index would get rebuilt in the onFromMeChange and
+      onToMeChange observer methods.
+
+      During the performance testing phase of Preview, I
+      will consult with Andi Vajda regarding the best
+      Repository types to leverage for quick lookup
+      and optimize the code.
+
+    2. Once the default / current incoming and outgoing mail design logic
+       gets solidfied then no calculations should take place in the
+       getCurrentIncoming and getCurrentOutcoming methonds.
+       The values in the current pointer should be leverage
+       exclusively and an observer added to recalculate the
+       values when account info does change. The same logic
+       that is used to get the me addresses should be
+       leveraged for Incoming and Outgoing accounts.
 """
 
 
-def __populateBody(mailStamp, bodyHeader=u"", includeMailHeaders=False, includeEventInfo=False):
-
-    buffer = [bodyHeader]
-
-    addr = mailStamp.fromAddress
-
-    if includeMailHeaders:
-        buffer.append(u"> From: %s" % EmailAddress.format(mailStamp.fromAddress))
-
-        if mailStamp.replyToAddress:
-            buffer.append(u"> Reply-To: %s" % EmailAddress.format(mailStamp.replyToAddress))
-
-        to = []
-
-        for addr in mailStamp.toAddress:
-            to.append(EmailAddress.format(addr))
-
-        buffer.append(u"> To: %s" % ", ".join(to))
-
-        if len(mailStamp.ccAddress):
-            cc = []
-            for addr in mailStamp.ccAddress:
-                cc.append(EmailAddress.format(addr))
-
-            buffer.append(u"> Cc: %s" % ", ".join(cc))
-
-        m = PyICU.DateFormat.createDateTimeInstance(PyICU.DateFormat.kMedium)
-
-        dateSent = _(u"Sent: %(dateSent)s") % {'dateSent': m.format(mailStamp.dateSent)}
-        buffer.append(u"> %s" % dateSent)
-
-        # add an additional new line
-        buffer.append(u"> ")
-
-    if includeEventInfo:
-        event = EventStamp(mailStamp.itsItem)
-
-        tmpBuffer = []
-        tmpBuffer.append(_(u"Title: %(eventTitle)s") % {'eventTitle': mailStamp.itsItem.displayName})
-
-        try:
-            location = unicode(getattr(event, 'location', u''))
-
-            if len(location.strip()) > 0:
-                tmpBuffer.append(_(u"Location: %(eventLocation)s") % {'eventLocation': location})
-        except AttributeError:
-            pass
-
-        try:
-            date = event.getTimeDescription()
-            tmpBuffer.append(_(u"Date: %(eventDate)s") % {'eventDate': date})
-        except AttributeError:
-            pass
-
-        try:
-            choices = {
-                     u'confirmed': _(u'Confirmed'),
-                     u'tentative': _(u'Tentative'),
-                     u'fyi': _(u'FYI'),
-                      }
-
-            status = choices[event.transparency]
+# Kind - Combinations
+TASK = _(u"Task")
+EVENT = _(u"Event")
+R_EVENT = _(u"Recurring Event")
+A_EVENT = _(u"All-day Event")
+AT_EVENT = _(u"Any-time Event")
+RA_EVENT = _(u"Recurring All-day Event")
+RAT_EVENT = _(u"Recurring Any-time Event")
+MESSAGE = _(u"Message")
+SCHEDULED_TASK = _(u"Scheduled Task (Task + Event)")
+R_SCHEDULED_TASK = _(u"Recurring Scheduled Task")
+A_SCHEDULED_TASK = _(u"All-day Scheduled Task")
+AT_SCHEDULED_TASK = _(u"Any-time Scheduled Task")
 
 
-            tmpBuffer.append(_(u"Status: %(eventStatus)s") % {'eventStatus': status})
-        except AttributeError:
-            pass
+#Event
+E_TITLE = _(u"%(title)s on %(startDateTime)s")
+EL_TITLE = _(u"%(title)s at %(location)s on %(startDateTime)s")
 
-        try:
-            r = mailStamp.itsItem
+#All Day Every Day
+D_TITLE = _(u"%(title)s every day")
+DU_TITLE = _(u"%(title)s every day until %(recurrenceEndDate)s")
+DL_TITLE = _(u"%(title)s at %(location)s every day")
+DUL_TITLE = _(u"%(title)s at %(location)s every day until %(recurrenceEndDate)s")
 
-            # @@@ [grant] No such method
-            alarm = r.getNextReminderTime()
+#Every day at specific times
+DT_TITLE = _(u"%(title)s every day from %(startTime)s to %(endTime)s")
+DTU_TITLE = _(u"%(title)s every day from %(startTime)s to %(endTime)s until %(recurrenceEndDate)s")
+DTL_TITLE = _(u"%(title)s at %(location)s every day from %(startTime)s to %(endTime)s")
+DTUL_TITLE = _(u"%(title)s at %(location)s every day from %(startTime)s to %(endTime)s until %(recurrenceEndDate)s")
 
-            if alarm and len(r.reminders):
-                m = PyICU.DateFormat.createDateTimeInstance(PyICU.DateFormat.kMedium)
-                tmpBuffer.append(_(u"Alarm: %(eventAlarm)s") % {'eventAlarm': m.format(alarm)})
-        except AttributeError:
-            pass
+#All Day Weekly Event
+W_TITLE = _(u"%(title)s every %(dayName)s")
+WU_TITLE = _(u"%(title)s every %(dayName)s until %(recurrenceEndDate)s")
+WL_TITLE = _(u"%(title)s at %(location)s every %(dayName)s")
+WUL_TITLE = _(u"%(title)s at %(location)s every %(dayName)s until %(recurrenceEndDate)s")
 
-        for line in tmpBuffer:
-            # Add the '> ' reply to mail token
-            buffer.append(u"> %s" % line)
+#Weekly Event at specific times
+WT_TITLE = _(u"%(title)s every %(dayName)s from %(startTime)s to %(endTime)s")
+WTU_TITLE = _(u"%(title)s every %(dayName)s from %(starTime)s to %(endTime)s until %(recurrenceEndDate)s")
+WTL_TITLE = _(u"%(title)s at %(location)s every %(dayName)s from %(startTime)s to %(endTime)s")
+WTUL_TITLE = _(u"%(title)s at %(location)s every %(dayName)s from %(startTime)s to %(endTime)s until %(recurrenceEndDate)s")
 
-        buffer.append(u"")
+#All Day Bi-Weekly Event
+B_TITLE = _(u"%(title)s every other %(dayName)s")
+BU_TITLE = _(u"%(title)s every other %(dayName)s until %(recurrenceEndDate)s")
+BL_TITLE = _(u"%(title)s at %(location)s every other %(dayName)s")
+BUL_TITLE = _(u"%(title)s at %(location)s every other %(dayName)s until %(recurrenceEndDate)s")
 
-    origBody = mailStamp.body.split(u"\n")
+#Bi-Weekly Event at specific times
+BT_TITLE = _(u"%(title)s every other %(dayName)s from %(startDateTime)s to %(endDateTime)s")
+BTU_TITLE = _(u"%(title)s every other %(dayName)s from %(startDateTime)s to %(endDateTime)s until %(recurrenceEndDate)s")
+BTL_TITLE = _(u"%(title)s at %(location)s every other %(dayName)s from %(startDateTime)s to %(endDateTime)s")
+BTUL_TITLE = _(u"%(title)s at %(location)s every other %(dayName)s from %(startDateTime)s to %(endDateTime)s until %(recurrenceEndDate)s")
 
-    for line in origBody:
-        if line.startswith(u">"):
-            buffer.append(u">%s" % line)
+#All Day Monthly Event
+M_TITLE = _(u"%(title)s every month on the %(dayOfMonth)s%(abbreviation)s")
+MU_TITLE = _(u"%(title)s every month on the %(dayOfMonth)s%(abbreviation)s until %(recurrenceEndDate)s")
+ML_TITLE = _(u"%(title)s at %(location)s every month on the %(dayOfMonth)s%(abbreviation)s")
+MUL_TITLE = _(u"%(title)s at %(location)s every month on the %(dayOfMonth)s%(abbreviation)s until %(recurrenceEndDate)s")
+
+#Monthly Event at specific times
+#XXX Events can span days which causes issue here
+MT_TITLE = _(u"%(title)s every month on the %(dayOfMonth)s%(abbreviation)s from %(startTime) to %(endTime)s")
+MTU_TITLE = _(u"%(title)s every month on the %(dayOfMonth)s%(abbreviation)s from %(startTime)s to %(endTime)s until %(recurrenceEndDate)s")
+MTL_TITLE = _(u"%(title)s at %(location)s every month on the %(dayOfMonth)s%(abbreviation)s from %(startTime)s to %(endTime)s")
+MTUL_TITLE = _(u"%(title)s at %(location)s every month on the %(dayOfMonth)s%(abbreviation)s from %(startTime)s to %(endTime)s until %(recurrenceEndDate)s")
+
+#All Day Yearly Event
+Y_TITLE = _(u"%(title)s every year on %(startDateTime)s")
+YU_TITLE = _(u"%(title)s every year on %(startDateTime)s until %(recurrenceEndDate)s")
+YL_TITLE = _(u"%(title)s at %(location)s every year on %(startDateTime)s)s")
+YUL_TITLE = _(u"%(title)s at %(location)s every year on %(startDateTime)s until %(recurrenceEndDate)s")
+
+#Yearly Event at specific times
+YT_TITLE = _(u"%(title)s every year on %(startDateTime) to %(endDateTime)s")
+YTU_TITLE = _(u"%(title)s every year on %(startDateTime)s to %(endDateTime)s until %(recurrenceEndDate)s")
+YTL_TITLE = _(u"%(title)s at %(location)s every year on %(startDateTime)s to %(endDateTime)s")
+YTUL_TITLE = _(u"%(title)s at %(location)s every year on %(startDateTime)s to %(endDateTime)s until %(recurrenceEndDate)s")
+
+# Used by PyICU.ChoiceFormat to determine the abbreviation for the day of month ie. 1st or 10th
+DAY_OF_MONTH = _(u"1#st|2#nd|3#rd|4#th|5#th|6#th|7#th|8#th|9#th|10#th|11#th|12#th|13#th|14#th|15#th|16#th|17#th|18#th|19#th|20#th|21#st|22#nd|23#rd|24#th|25#th|26#th|27#th|28#th|29#th|30#th|31#st")
+
+
+def getMessageBody(mailStamp):
+    if not has_stamp(mailStamp.itsItem, EventStamp) and not \
+           has_stamp(mailStamp.itsItem, TaskStamp):
+        #XXX NEED TO BE UPDATED WHEN MORE STAMPING TYPES ADDED
+        # If it is just a mail message then return the
+        # ContentItem body
+        return mailStamp.itsItem.body
+
+    return _(u"""\
+%(sender)s sent you a %(kindCombination)s from Chandler on %(dateSent)s:
+
+From: %(originators)s
+To: %(toAddresses)s%(ccAddressLine)s
+
+%(description)s
+
+%(itemBody)s
+
+""") % getBodyValues(mailStamp)
+
+
+def getForwardBody(mailStamp):
+    return _(u"""\
+
+
+> Begin forwarded %(kindCombination)s:
+> From: %(originators)s
+> To: %(toAddresses)s%(ccAddressLine)s
+> Sent by %(sender)s on %(dateSent)s
+>
+> %(description)s
+>
+%(itemBody)s
+
+""") % getBodyValues(mailStamp, True)
+
+
+def getReplyBody(mailStamp):
+    return _(u"""\
+
+
+> %(sender)s wrote on %(dateSent)s:
+> %(description)s
+>
+%(itemBody)s
+
+""") % getBodyValues(mailStamp, True)
+
+def getBodyValues(mailStamp, addGT=False):
+    if not hasattr(mailStamp, 'dateSent'):
+        from osaf.mail.utils import dateTimeToRFC2822Date
+        mailStamp.dateSent = datetime.now(PyICU.ICUtzinfo.default)
+
+    dateSent = formatTime(mailStamp.dateSent, includeDate=True)
+
+    to = []
+
+    for addr in mailStamp.toAddress:
+        to.append(addr.format())
+
+    cc = []
+
+    for addr in mailStamp.ccAddress:
+        cc.append(addr.format())
+
+    if len(cc):
+        # Cc: is a RFC mail header and does not need
+        # to be localized
+        if addGT:
+            ccLine = u"\n> Cc: %s" % u", ".join(cc)
         else:
-            buffer.append(u"> %s" % line)
+            ccLine = u"\nCc: %s" % u", ".join(cc)
+    else:
+       ccLine = u""
 
-    return u"\n".join(buffer)
+    if addGT:
+        body = mailStamp.itsItem.body.split(u"\n")
+        buffer = []
 
+        for line in body:
+            if line.startswith(u">"):
+                buffer.append(u">%s" % line)
+            else:
+                buffer.append(u"> %s" % line)
+
+        body = u"\n".join(buffer)
+
+    else:
+        body = mailStamp.itsItem.body
+
+    sender = mailStamp.getSender().format()
+
+    originators = []
+
+    for addr in mailStamp.originators:
+        originators.append(addr.format())
+
+    originators = u", ".join(originators)
+
+    return {
+             "sender":  sender,
+             "kindCombination": buildKindCombination(mailStamp),
+             "originators": originators,
+             "toAddresses": u", ".join(to),
+             "ccAddressLine": ccLine,
+             "description": buildItemDescription(mailStamp),
+             "itemBody": body,
+             "dateSent": dateSent,
+           }
+
+
+def buildItemDescription(mailStamp):
+    #XXX Post Preview I will clean up
+    # this logic since there are more
+    # efficient ways to get the
+    # item description strings.
+    # Most likely will use a dict
+    # instead of Globals for localizable strings
+    # then build the key dynamically based on
+    # recurrence frequency / interval and whether
+    # the Event has a location and a recurrence
+    # end date
+
+    item = mailStamp.itsItem
+
+    isEvent = has_stamp(item, EventStamp)
+
+    if isEvent:
+        event = EventStamp(item)
+        recur = getattr(event, 'rruleset', None)
+        noTime = event.allDay or event.anyTime
+
+        location = getattr(event, 'location', u'')
+
+        if location:
+            location = location.displayName.strip()
+
+        startTime = formatTime(event.startTime)
+        endTime   = formatTime(event.endTime)
+        startDateTime = mediumDateFormat.format(event.startTime)
+        endDateTime   = mediumDateFormat.format(event.endTime)
+        useDate   = True
+
+        if startDateTime == endDateTime:
+            useDate = False
+            endDateTime = endTime
+
+        if not noTime:
+            startDateTime = formatTime(event.startTime, includeDate=True)
+            endDateTime = formatTime(event.endTime, includeDate=useDate)
+
+        args = {'title': item.displayName,
+                'startDateTime': startDateTime,
+                'startTime': startTime,
+                'endDateTime': endDateTime,
+                'endTime': endTime,
+                'location': location,
+               }
+
+        if recur:
+            if recur.isComplex():
+                return _(u"complex rule - no description available")
+
+            rule = recur.rrules.first()
+            freq = rule.freq
+            interval = rule.interval
+            until = rule.calculatedUntil()
+
+            args['recurrenceEndDate'] = until and mediumDateFormat.format(until) or u''
+
+            ret = None
+
+            if freq == "daily":
+                if noTime:
+                    if until:
+                        ret = location and DUL_TITLE or DU_TITLE
+                    else:
+                        ret = location and DL_TITLE or D_TITLE
+                else:
+                    if until:
+                        ret = location and DTUL_TITLE or DTU_TITLE
+                    else:
+                        ret = location and DTL_TITLE or DT_TITLE
+
+            elif freq == "weekly":
+                args['dayName'] = weekdayName(event.startTime)
+
+                if noTime:
+                    if until:
+                        if interval == 2:
+                            ret = location and BUL_TITLE or BU_TITLE
+                        else:
+                            ret = location and WUL_TITLE or WU_TITLE
+                    else:
+                        if interval == 2:
+                            ret = location and BL_TITLE or B_TITLE
+                        else:
+                            ret = location and WL_TITLE or W_TITLE
+                else:
+                    if until:
+                        if interval == 2:
+                            ret = location and BTUL_TITLE or BTU_TITLE
+                        else:
+                            ret = location and WTUL_TITLE or WTU_TITLE
+                    else:
+                        if interval == 2:
+                            ret = location and BTL_TITLE or BT_TITLE
+                        else:
+                            ret = location and WTL_TITLE or WT_TITLE
+
+            elif freq == "monthly":
+                num = int(PyICU.SimpleDateFormat(_(u"dd")).format(event.startTime))
+                args['abbreviation'] = PyICU.ChoiceFormat(DAY_OF_MONTH).format(num)
+                args['dayOfMonth'] = num
+
+                if noTime:
+                    if until:
+                        ret = location and MUL_TITLE or MU_TITLE
+                    else:
+                        ret = location and ML_TITLE or M_TITLE
+                else:
+                    if until:
+                        ret = location and MTUL_TITLE or MTU_TITLE
+                    else:
+                        ret = location and MTL_TITLE or MT_TITLE
+
+            elif freq == "yearly":
+                if noTime:
+                    if until:
+                        ret = location and YUL_TITLE or YU_TITLE
+                    else:
+                        ret = location and YL_TITLE or Y_TITLE
+                else:
+                    if until:
+                        ret = location and YTUL_TITLE or YTU_TITLE
+                    else:
+                        ret = location and YTL_TITLE or YT_TITLE
+
+            return ret % args
+
+
+        return (location and EL_TITLE or E_TITLE) % args
+
+
+    return item.displayName
+
+def buildKindCombination(mailStamp):
+
+    item = mailStamp.itsItem
+
+    isEvent = has_stamp(item, EventStamp)
+    isTask  = has_stamp(item, TaskStamp)
+
+    if isEvent:
+        event = EventStamp(item)
+        isAnytime = event.anyTime
+        isAllDay = event.allDay
+        isRecurring = getattr(event, 'rruleset', False)
+
+        if isAllDay:
+            # If it is an all day event then it is
+            # not any time
+            isAnytime = False
+
+        if isRecurring:
+            return isAllDay and (isTask and R_SCHEDULED_TASK or RA_EVENT) or \
+                   isAnytime and (isTask and R_SCHEDULED_TASK or RAT_EVENT) or \
+                   (isTask and R_SCHEDULED_TASK or R_EVENT)
+
+        return isAllDay and (isTask and A_SCHEDULED_TASK or A_EVENT) or \
+               isAnytime and (isTask and AT_SCHEDULED_TASK or AT_EVENT) or \
+               (isTask and SCHEDULED_TASK or EVENT)
+
+    return (isTask and TASK or MESSAGE)
 
 def __actionOnMessage(view, mailStamp, action="REPLY"):
     assert(isinstance(mailStamp, MailStamp))
@@ -154,12 +452,31 @@ def __actionOnMessage(view, mailStamp, action="REPLY"):
     newMailStamp = MailMessage(itsView=view)
     newMailStamp.InitOutgoingAttributes()
 
-    hasEvent = stamping.has_stamp(mailStamp.itsItem, EventStamp)
+    # From the Email 7.0 spec
+    #   Reply
+    #    oldMail.fromAddress = newMail.toAddress
+    #    oldMail.originators if not == to oldMail.fromAddress = newMail.toAddress
+    #   ReplyAll
+    #    oldMail.ToAddress = newMail.toAddress
+    #    oldMail.ccAddress = newMail.ccAddress
 
-    #This could be None
-    newMailStamp.fromAddress = EmailAddress.getCurrentMeEmailAddress(view)
+    #    forward
+    #        oldMail.originators = newMail.orginators
 
     if action == "REPLY" or action == "REPLYALL":
+        #previousSender = mailStamp.getPreviousSender()
+        #newMailStamp.toAddress.append(previousSender)
+
+        sender = mailStamp.getSender()
+        newMailStamp.toAddress.append(sender)
+
+
+        for ea in mailStamp.getOriginators():
+            # Only add valid email addresses to the
+            # toAddress list.
+            if ea != sender:
+                newMailStamp.toAddress.append(ea)
+
         if mailStamp.subject:
             if mailStamp.subject.lower().startswith(u"re: "):
                 newMailStamp.subject = mailStamp.subject
@@ -167,49 +484,30 @@ def __actionOnMessage(view, mailStamp, action="REPLY"):
                 newMailStamp.subject = u"Re: %s" % mailStamp.subject
 
         newMailStamp.inReplyTo = mailStamp.messageId
-        newMailStamp.referencesMID.extend(mailStamp.referencesMID)
+
+        for ref in mailStamp.referencesMID:
+            newMailStamp.referencesMID.append(ref)
+
         newMailStamp.referencesMID.append(mailStamp.messageId)
 
-        m = PyICU.DateFormat.createDateInstance(PyICU.DateFormat.kMedium)
-
-        bodyHeader = u"\n\n"
-
-        addr = mailStamp.fromAddress
-        txt = addr.fullName and addr.fullName or addr.emailAddress
-
-        bodyHeader += _(u"On %(date)s, %(emailAddress)s said:\n") % \
-                       {'date': m.format(mailStamp.dateSent),
-                        'emailAddress': txt}
-
-        newMailStamp.body = __populateBody(mailStamp, bodyHeader, includeEventInfo=hasEvent)
-
-        to = mailStamp.replyToAddress and mailStamp.replyToAddress or \
-             mailStamp.fromAddress
-
-        newMailStamp.toAddress.append(to)
+        newMailStamp.itsItem.body = getReplyBody(mailStamp)
 
         if action == "REPLYALL":
-            addresses = {}
+            for ea in mailStamp.toAddress:
+                newMailStamp.toAddress.append(ea)
 
-            #The from address can be empty if no account info has been
-            #configured
-            if newMailStamp.fromAddress:
-                addresses[newMailStamp.fromAddress.emailAddress] = True
-
-            for addr in newMailStamp.toAddress:
-                addresses[addr.emailAddress] = True
-
-            for addr in mailStamp.toAddress:
-                if not addresses.has_key(addr.emailAddress):
-                    newMailStamp.ccAddress.append(addr)
-                    addresses[addr.emailAddress] = True
-
-            for addr in mailStamp.ccAddress:
-                if not addresses.has_key(addr.emailAddress):
-                    newMailStamp.ccAddress.append(addr)
-                    addresses[addr.emailAddress] = True
+            for ea in mailStamp.ccAddress:
+                newMailStamp.ccAddress.append(ea)
     else:
         #FORWARD CASE
+        # By default the me address gets added to the
+        # originators when the Note is stamped as mail.
+        # So start with a fresh list.
+        newMailStamp.originators = []
+
+        for ea in mailStamp.originators:
+            newMailStamp.originators.append(ea)
+
         if mailStamp.subject:
             if mailStamp.subject.lower().startswith(u"fwd: ") or \
                mailStamp.subject.lower().startswith(u"[fwd: "):
@@ -217,43 +515,7 @@ def __actionOnMessage(view, mailStamp, action="REPLY"):
             else:
                 newMailStamp.subject = u"Fwd: %s" % mailStamp.subject
 
-        if hasEvent:
-            import osaf.sharing.ICalendar as ICalendar
-            event = EventStamp(mailStamp.itsItem)
-            calendar = ICalendar.itemsToVObject(view, [event],
-                           filters=(Remindable.reminders.name,))
-
-            # it's possibly more accurate to use a REQUEST method instead of
-            # PUBLISH, but as long as we don't include ATTENDEES, this causes
-            # problems for iCal, so setting the method to PUBLISH for now (bug 7478)
-            calendar.add('method').value="PUBLISH"
-            ics = calendar.serialize()
-            icsName = u"%s.ics" % mailStamp.itsItem.displayName
-
-            attachment = MIMEText(itsView=view)
-            attachment.filename = icsName
-            attachment.filesize = long(len(ics))
-            attachment.mimeType = "text/calendar"
-            attachment.data = ics
-
-            newMailStamp.mimeContent.mimeParts.append(attachment)
-
-            bodyHeader = _(u"1 attachment: %(attachmentName)s\nType your forward message here:\n\n\nBegin forwarded message:") % {'attachmentName': icsName}
-        else:
-            bodyHeader = _(u"Type your forward message here:\n\nBegin forwarded message:")
-
-        newMailStamp.body = __populateBody(mailStamp, bodyHeader, True, hasEvent)
-
-    #add to dashboard by making mine
-    schema.ns('osaf.pim', view).allCollection.add(newMailStamp.itsItem)
-    newMailStamp.itsItem.mine = True
-
-    try:
-        view.commit()
-    except RepositoryError, e:
-        raise
-    except VersionConflictError, e:
-        raise
+        newMailStamp.itsItem.body = getForwardBody(mailStamp)
 
     return newMailStamp.itsItem
 
@@ -275,37 +537,48 @@ def forwardMessage(view, mailStamp):
     """
     return __actionOnMessage(view, mailStamp, "FORWARD")
 
-
 def checkIfToMe(mailStamp):
     assert(isinstance(mailStamp, MailStamp))
 
+    if getattr(mailStamp, "viaMailService", False):
+        # If the mail was downloaded by the
+        # mail service then it will appear in
+        # the In collection regardless of
+        # whether it has a me address in the
+        # to or cc
+        if not mailStamp.toMe:
+            mailStamp.toMe = True
+
+        return
+
     view = mailStamp.itsItem.itsView
 
-    meAddressCollection = schema.ns("osaf.pim", view).meAddressCollection
+    meEmailAddressCollection = schema.ns("osaf.pim", view).meEmailAddressCollection
 
     found = False
 
     if hasattr(mailStamp, "toAddress"):
         for addr in mailStamp.toAddress:
-            if EmailAddress.findEmailAddress(view, addr.emailAddress, meAddressCollection):
+            if EmailAddress.findEmailAddress(view, addr.emailAddress, meEmailAddressCollection):
                 found = True
                 break
 
     if not found and hasattr(mailStamp, "ccAddress"):
         for addr in mailStamp.ccAddress:
-            if EmailAddress.findEmailAddress(view, addr.emailAddress, meAddressCollection):
+            if EmailAddress.findEmailAddress(view, addr.emailAddress, meEmailAddressCollection):
                 found = True
                 break
 
     if not found and hasattr(mailStamp, "bccAddress"):
         for addr in mailStamp.bccAddress:
-            if EmailAddress.findEmailAddress(view, addr.emailAddress, meAddressCollection):
+            if EmailAddress.findEmailAddress(view, addr.emailAddress, meEmailAddressCollection):
                 found = True
                 break
 
     # Even though 'toMe' has an initialValue, it may not have
     # been set when this code is called (e.g. from a schema.observer
     # during stamp addition).
+
     if found != getattr(mailStamp, 'toMe', False):
         mailStamp.toMe = found
 
@@ -314,21 +587,29 @@ def checkIfFromMe(mailStamp, type):
 
     view = mailStamp.itsItem.itsView
 
-    meAddressCollection = schema.ns("osaf.pim", view).meAddressCollection
+    meEmailAddressCollection = schema.ns("osaf.pim", view).meEmailAddressCollection
 
     found = False
 
     if type == 0:
         if mailStamp.fromAddress is not None and \
            EmailAddress.findEmailAddress(view, mailStamp.fromAddress.emailAddress, \
-                                         meAddressCollection):
+                                         meEmailAddressCollection):
             found = True
 
     elif type == 1:
-        if mailStamp.replyToAddress != None and \
+        if mailStamp.replyToAddress is not None and \
            EmailAddress.findEmailAddress(view, mailStamp.replyToAddress.emailAddress, \
-                                         meAddressCollection):
+                                         meEmailAddressCollection):
             found = True
+
+    elif type == 2:
+        for ea in mailStamp.originators:
+            if ea is not None and \
+               EmailAddress.findEmailAddress(view, ea.emailAddress, \
+                                             meEmailAddressCollection):
+                found = True
+                break
     else:
         #invalid type passed
         return
@@ -339,82 +620,149 @@ def checkIfFromMe(mailStamp, type):
     if found != getattr(mailStamp, 'fromMe', False):
         mailStamp.fromMe = found
 
-def getCurrentSMTPAccount(view, uuid=None, includeInactives=False):
+def getCurrentOutgoingAccount(view):
     """
-    This function returns a tuple containing:
-     1. The an C{SMTPAccount} account
-     2. The ReplyTo C{EmailAddress} associated with the C{SMTPAccounts}
-        parent which will either be a POP or IMAP Acccount.
+    This function returns the default C{OutgoingAccount} account
+    or the first C{OutgoingAccount} found if no default exists.
 
-    @param uuid: The C{uuid} of the C{SMTPAccount}. If no C{uuid} passed will return
-                 the current  C{SMTPAccount}
-    @type uuid: C{uuid}
-    @return C{tuple} in the form (C{SMTPAccount}, C{EmailAddress})
+    @return C{OutgoingAccount} or None
     """
 
-    smtpAccount = None
-    replyToAddress = None
+    outgoingAccount = None
 
-    if uuid is not None:
-        smtpAccount = view.findUUID(uuid)
+    # Get the current SMTP Account
+    outgoingAccount = schema.ns('osaf.pim', view).currentOutgoingAccount.item
 
-        if smtpAccount is not None:
-            for acc in smtpAccount.accounts:
-                if acc.isActive or includeInactives:
-                    if acc.host and acc.username and \
-                       hasattr(acc, 'replyToAddress'):
-                        replyToAddress = acc.replyToAddress
-                        break
+    if outgoingAccount is None or not outgoingAccount.isSetUp():
+        for account in OutgoingAccount.iterItems(view):
+            if account.isSetUp():
+                return account
 
-        return (smtpAccount, replyToAddress)
+    return outgoingAccount
 
+
+def getCurrentIncomingAccount(view):
     """
-    Get the default Mail Account
+    This function returns the current (default) C{IncomingAccount} in the
+    Repository.
+
+    @return C{IncomingAccount} or None
     """
-    parentAccount = getCurrentMailAccount(view)
+    incomingAccount = schema.ns('osaf.pim', view).currentIncomingAccount.item
 
-    if parentAccount is not None:
-        if hasattr(parentAccount, 'replyToAddress'):
-            replyToAddress = parentAccount.replyToAddress
+    if incomingAccount is None or not incomingAccount.isSetUp():
+        for account in IncomingAccount.iterItems(view):
+            if account.isSetUp():
+                return account
 
-        """
-        Get the current SMTP Account
-        """
-        smtpAccount = schema.ns('osaf.pim', view).currentSMTPAccount.item
+    return incomingAccount
 
-        if smtpAccount is None or not smtpAccount.isSetUp():
-            for item in SMTPAccount.iterItems(view):
-                if item.isSetUp():
-                    return (item, replyToAddress)
-    return(smtpAccount, replyToAddress)
+def getCurrentMeEmailAddress(view):
+    return schema.ns('osaf.pim', view).currentMeEmailAddress.item
 
+def getCurrentMeEmailAddresses(view):
+    return schema.ns('osaf.pim', view).currentMeEmailAddresses.item.emailAddresses
 
-def getCurrentMailAccount(view, uuid=None):
+def _recalculateMeEmailAddresses(view):
+    pim_ns =  schema.ns("osaf.pim", view)
+
+    pim_ns.currentMeEmailAddress.item = _calculateCurrentMeEmailAddress(view)
+
+    if pim_ns.currentMeEmailAddresses.item:
+        pim_ns.currentMeEmailAddresses.item.delete()
+
+    ea = EmailAddresses(itsView=view)
+    ea.emailAddresses = _calculateCurrentMeEmailAddresses(view)
+    pim_ns.currentMeEmailAddresses.item = ea
+
+def _calculateCurrentMeEmailAddress(view):
     """
-    This function returns either an C{IMAPAccount} or C{POPAccount} in the
-    Repository. If uuid is not None will try and retrieve the account that
-    has the uuid passed.  Otherwise the method will try and retrieve the
-    current C{IMAPAccount} or C{POPAccount}.
+        Lookup the "me" EmailAddress.
 
-    @param uuid: The C{uuid} of the account.
-                 If no C{uuid} passed will return the current account
-    @type uuid: C{uuid}
-    @return C{IMAPAccount} or C{POPAccount}
+        The "me" is determined as follows:
+            1. Return the default outgoing email address
+            2. Return the first outgoing account containing an email address
+            3. Return the default incoming email address
+            4. Return the first incoming account containing an email address
+            5. Return None
     """
-    if uuid is not None:
-        return view.findUUID(uuid)
+    account = getCurrentOutgoingAccount(view)
 
-    account = schema.ns('osaf.pim', view).currentMailAccount.item
+    if account is not None and account.isSetUp() and \
+       account.fromAddress and account.fromAddress.isValid():
+        return account.fromAddress
 
-    if account is None or not account.isSetUp():
-        for cls in (IMAPAccount, POPAccount):
-            for item in cls.iterItems(view):
-                if item.isSetUp():
-                    return item
-    return account
+    #Loop through till we find an outging account with an emailAddress
+    for account in OutgoingAccount.iterItems(view):
+        if account.isSetUp() and account.fromAddress and \
+           account.fromAddress.isValid():
+            return account.fromAddress
+
+    # No Outgoing accounts found with an email address so try
+    # the Incoming accounts
+    account = getCurrentIncomingAccount(view)
+
+    if account is not None and account.isSetUp() and \
+       account.replyToAddress and \
+       account.replyToAddress.isValid():
+        return account.replyToAddress
+
+    for account in IncomingAccount.iterItems(view):
+        if account.isSetUp() and account.replyToAddress and \
+           account.replyToAddress.isValid():
+            return account.replyToAddress
+
+    return None
+
+def _calculateCurrentMeEmailAddresses(view):
+    """
+      Returns a list of c{EmailAddress} items.
+      The list contains the email addresses
+      for all configured Outgoing and Incoming
+      Accounts.
+
+      The list email address ordering will be determined
+       as follows:
+           1. The default outgoing email address
+           2. Any outgoing account containing an email address
+           3. The default incoming email address
+           4. Any incoming account containing an email address
+    """
+
+    addrs = []
+
+    outgoing = getCurrentOutgoingAccount(view)
+
+    if outgoing is not None and outgoing.isSetUp() and \
+       outgoing.fromAddress and \
+       outgoing.fromAddress.isValid():
+        addrs.append(outgoing.fromAddress)
+
+    for account in OutgoingAccount.iterItems(view):
+        if account.isSetUp() and account.fromAddress and \
+           account.fromAddress.isValid() and \
+           account != outgoing:
+            addrs.append(account.fromAddress)
+
+    incoming = getCurrentIncomingAccount(view)
+
+    if incoming is not None and incoming.isSetUp() and \
+       incoming.replyToAddress and \
+       incoming.replyToAddress.isValid():
+        addrs.append(incoming.replyToAddress)
+
+    for account in IncomingAccount.iterItems(view):
+        if account.isSetUp() and account.replyToAddress and \
+           account.replyToAddress.isValid() and \
+           account != incoming:
+            addrs.append(account.replyToAddress)
+
+    return addrs
+
 
 class ConnectionSecurityEnum(schema.Enumeration):
     values = "NONE", "TLS", "SSL"
+
 
 
 class AccountBase(items.ContentItem):
@@ -462,10 +810,6 @@ class AccountBase(items.ContentItem):
         doc = 'Frequency in seconds',
         initialValue = 300,
     )
-    mailMessages = schema.Sequence(
-        doc = 'Mail Messages sent or retrieved with this account ',
-        initialValue = [],
-    ) # inverse of MailStamp.parentAccount
 
     timeout = schema.One(
         schema.Integer,
@@ -487,16 +831,12 @@ class AccountBase(items.ContentItem):
                 yield item
 
 
-class DownloadAccountBase(AccountBase):
+class IncomingAccount(AccountBase):
+    accountType = "INCOMING"
 
     schema.kindInfo(
         description="Base Account for protocols that download mail",
     )
-
-    defaultSMTPAccount = schema.One(
-        doc = 'Which SMTP account to use for sending mail from this account',
-        initialValue = None,
-    ) # inverse of SMTPAccount.accounts
 
     commitNumber = schema.One(
         schema.Integer,
@@ -511,44 +851,53 @@ class DownloadAccountBase(AccountBase):
     @apply
     def emailAddress():
         def fget(self):
-            if hasattr(self, "replyToAddress"):
+            if getattr(self, "replyToAddress", None) is not None:
                 return self.replyToAddress.emailAddress
             return None
 
         def fset(self, value):
-            if hasattr(self, "replyToAddress"):
-                self.replyToAddress.emailAddress = value
+            if getattr(self, "replyToAddress", None) is None:
+                self.replyToAddress = EmailAddress(itsView=self.itsView)
+
+            self.replyToAddress.emailAddress = value
         return property(fget, fset)
 
     @apply
     def fullName():
         def fget(self):
-            if hasattr(self, "replyToAddress"):
+            if getattr(self, "replyToAddress", None) is not None:
                 return self.replyToAddress.fullName
             return None
 
         def fset(self, value):
-            if hasattr(self, "replyToAddress"):
-                self.replyToAddress.fullName = value
+            if getattr(self, "replyToAddress", None) is None:
+                self.replyToAddress = EmailAddress(itsView=self.itsView)
+
+            self.replyToAddress.fullName = value
+
         return property(fget, fset)
 
     @schema.observer(replyToAddress)
     def onReplyToAddressChange(self, op, name):
-        emailAddress = getattr(self, 'emailAddress', None)
+        if getattr(self, "replyToAddress", None) and self.replyToAddress.isValid():
+            pim_ns =  schema.ns("osaf.pim", self.itsView)
 
-        if emailAddress and EmailAddress.isValidEmailAddress(emailAddress):
-            meAddressCollection = schema.ns("osaf.pim", self.itsView).meAddressCollection
+            meEmailAddressCollection = pim_ns.meEmailAddressCollection
 
-            addr = EmailAddress.findEmailAddress(self.itsView, emailAddress, meAddressCollection)
+            addr = EmailAddress.findEmailAddress(self.itsView, self.replyToAddress.emailAddress,
+                                                 meEmailAddressCollection)
 
             if addr is None:
-                meAddressCollection.append(self.replyToAddress)
+                meEmailAddressCollection.append(self.replyToAddress)
 
                 for item in self.replyToAddress.messagesFrom:
                     checkIfFromMe(MailStamp(item), 0)
 
                 for item in self.replyToAddress.messagesReplyTo:
                     checkIfFromMe(MailStamp(item), 1)
+
+                for item in self.replyToAddress.messagesOriginator:
+                    checkIfFromMe(MailStamp(item), 2)
 
                 for item in self.replyToAddress.messagesTo:
                     checkIfToMe(MailStamp(item))
@@ -559,6 +908,8 @@ class DownloadAccountBase(AccountBase):
                 for item in self.replyToAddress.messagesBcc:
                     checkIfToMe(MailStamp(item))
 
+        _recalculateMeEmailAddresses(self.itsView)
+
     def isSetUp(self):
         return self.isActive and \
                len(self.host.strip()) and \
@@ -566,12 +917,11 @@ class DownloadAccountBase(AccountBase):
                len(self.password.strip())
 
 
-class SMTPAccount(AccountBase):
-    accountProtocol = "SMTP"
+class OutgoingAccount(AccountBase):
     accountType = "OUTGOING"
 
     schema.kindInfo(
-        description="An SMTP Account",
+        description="An Outgoing Account",
     )
 
     fromAddress = schema.One(
@@ -581,24 +931,23 @@ class SMTPAccount(AccountBase):
     @apply
     def emailAddress():
         def fget(self):
-            if hasattr(self, "fromAddress"):
+            if getattr(self, "fromAddress", None) is not None:
                 return self.fromAddress.emailAddress
             return None
 
         def fset(self, value):
-            if hasattr(self, "fromAddress"):
-                self.fromAddress.emailAddress = value
+            if getattr(self, "fromAddress", None) is None:
+                self.fromAddress = EmailAddress(itsView=self.itsView)
+            self.fromAddress.emailAddress = value
+
         return property(fget, fset)
 
-    port = schema.One(
-        schema.Integer,
-        doc = 'The non-SSL port number to use\n\n'
-            "Issues:\n"
-            "   In order to get a custom initialValue for this attribute for an "
-            "SMTPAccount, I defined a 'duplicate' attribute, also named "
-            "'port', which normally would have been inherited from AccountBase\n",
-        initialValue = 25,
+    messageQueue = schema.Sequence(
+        doc = "The Queue of mail messages  to be sent from this account. "
+              "Used primarily for offline mode.",
+        initialValue = [],
     )
+
 
     useAuth = schema.One(
         schema.Boolean,
@@ -606,18 +955,6 @@ class SMTPAccount(AccountBase):
         initialValue = False,
     )
 
-    accounts = schema.Sequence(
-        DownloadAccountBase,
-        doc = 'Which accounts use this SMTP account as their default',
-        initialValue = [],
-        inverse = DownloadAccountBase.defaultSMTPAccount,
-    )
-
-    messageQueue = schema.Sequence(
-        doc = "The Queue of mail messages  to be sent from this account. "
-              "Used primarily for offline mode.",
-        initialValue = [],
-    )
 
     #Commented out for Preview
     #signature = schema.One(
@@ -636,21 +973,23 @@ class SMTPAccount(AccountBase):
 
     @schema.observer(fromAddress)
     def onFromAddressChange(self, op, name):
-        emailAddress = getattr(self, 'emailAddress', None)
+        if getattr(self, "fromAddress", None) and self.fromAddress.isValid():
+            meEmailAddressCollection = schema.ns("osaf.pim", self.itsView).meEmailAddressCollection
 
-        if emailAddress and EmailAddress.isValidEmailAddress(emailAddress):
-            meAddressCollection = schema.ns("osaf.pim", self.itsView).meAddressCollection
-
-            addr = EmailAddress.findEmailAddress(self.itsView, emailAddress, meAddressCollection)
+            addr = EmailAddress.findEmailAddress(self.itsView, self.fromAddress.emailAddress,
+                                                 meEmailAddressCollection)
 
             if addr is None:
-                meAddressCollection.append(self.fromAddress)
+                meEmailAddressCollection.append(self.fromAddress)
 
                 for item in self.fromAddress.messagesFrom:
                     checkIfFromMe(MailStamp(item), 0)
 
                 for item in self.fromAddress.messagesReplyTo:
                     checkIfFromMe(MailStamp(item), 1)
+
+                for item in self.fromAddress.messagesOriginator:
+                    checkIfFromMe(MailStamp(item), 2)
 
                 for item in self.fromAddress.messagesTo:
                     checkIfToMe(MailStamp(item))
@@ -661,7 +1000,7 @@ class SMTPAccount(AccountBase):
                 for item in self.fromAddress.messagesBcc:
                     checkIfToMe(MailStamp(item))
 
-                self.itsView.commit()
+        _recalculateMeEmailAddresses(self.itsView)
 
     def isSetUp(self):
         if self.isActive and \
@@ -672,9 +1011,23 @@ class SMTPAccount(AccountBase):
             return True
         return False
 
-class IMAPAccount(DownloadAccountBase):
+class SMTPAccount(OutgoingAccount):
+    accountProtocol = "SMTP"
+
+    schema.kindInfo(
+        description="An SMTP Account",
+    )
+
+
+    port = schema.One(
+        schema.Integer,
+        doc = 'The non-SSL port number to use',
+        initialValue = 25,
+    )
+
+
+class IMAPAccount(IncomingAccount):
     accountProtocol = "IMAP"
-    accountType = "INCOMING"
 
     schema.kindInfo(
         description = "An IMAP Account",
@@ -744,6 +1097,12 @@ class IMAPFolder(items.ContentItem):
         doc = 'Whether to delete the message after downloading',
         initialValue = False,
     )
+    downloaded = schema.One(
+        schema.Integer,
+        doc = 'The number of messages downloaded to this folder.',
+        initialValue = 0,
+    )
+
 
     downloadMax = schema.One(
         schema.Integer,
@@ -755,17 +1114,9 @@ class IMAPFolder(items.ContentItem):
         IMAPAccount, initialValue = None, inverse = IMAPAccount.folders,
     ) # Inverse ofIMAPAccount.folders sequence
 
-    deliveryExtensions = schema.Sequence(
-        doc = 'Details which IMAPDelivery instances are linked to this folder. This is used as a means to track which mail messages were downloaded from this IMAP folder. An inverse relationship between a MailStamp and a parent account already exists.',
-        initialValue = [],
-    ) # inverse of IMAPDelivery.folder
 
-
-class POPAccount(DownloadAccountBase):
+class POPAccount(IncomingAccount):
     accountProtocol = "POP"
-    accountType = "INCOMING"
-
-
 
     schema.kindInfo(
         description = "A POP Account",
@@ -805,144 +1156,10 @@ class POPAccount(DownloadAccountBase):
         initialValue = 0,
     )
 
-
-class MailDeliveryError(items.ContentItem):
-    schema.kindInfo(
-        description=
-            "Contains the error data associated with a MailDelivery Type"
-    )
-
-    errorCode = schema.One(
+    downloaded = schema.One(
         schema.Integer,
-        doc = 'The Error Code returned by the Delivery Transport',
+        doc = 'The number of messages downloaded to this folder.',
         initialValue = 0,
-    )
-
-    errorString = schema.One(schema.Text, initialValue = u'')
-
-    errorDate = schema.One(schema.DateTime)
-
-    mailDelivery = schema.One(
-        doc = 'The Mail Delivery that cause this error',
-        initialValue = None
-    ) # inverse of MailDeliveryBase.deliveryErrors
-
-
-class MailDeliveryBase(items.ContentItem):
-    schema.kindInfo(
-        description =
-            "Parent kind for delivery-specific attributes of a MailMessage"
-    )
-
-    mailMessage = schema.One(
-        doc = 'Message which this delivery item refers to',
-        initialValue = None,
-    ) # inverse MailStamp.deliveryExtension
-
-    deliveryErrors = schema.Sequence(
-        MailDeliveryError,
-        doc = 'Mail Delivery Errors associated with this transport',
-        initialValue = [],
-        inverse = MailDeliveryError.mailDelivery,
-    )
-
-#Commented out for preview
-#class historyEnum(schema.Enumeration):
-#    values = "QUEUED", "FAILED", "SENT"
-
-#XXX needs to be updated for Edit / Update workflows
-class stateEnum(schema.Enumeration):
-    values = "DRAFT", "QUEUED", "SENT", "FAILED"
-
-
-class SMTPDelivery(MailDeliveryBase):
-
-    schema.kindInfo(
-        description = "Tracks the status of an outgoing message\n\n"
-            "Issues:\n\n"
-            "   Currently the parcel loader can't set a default value for the "
-            "state attribute\n",
-    )
-
-    #Commented out for preview
-    #history = schema.Sequence(
-    #    historyEnum,
-    #    initialValue = [],
-    #)
-    #tries = schema.One(
-    #    schema.Integer,
-    #    doc = 'How many times we have tried to send it',
-    #    initialValue = 0,
-    #)
-
-    state = schema.One(
-        stateEnum,
-        doc = 'The current state of the message\n\n',
-        initialValue = "DRAFT",
-    )
-
-    def sendFailed(self):
-        """
-        Called from the Twisted thread to log errors in Send.
-        """
-        #Commented out for preview
-        #self.history.append("FAILED")
-        #self.tries += 1
-        self.state = "FAILED"
-
-
-    def sendSucceeded(self):
-        """
-        Called from the Twisted thread to log successes in Send.
-        """
-        #self.history.append("SENT")
-        #self.tries += 1
-        self.state = "SENT"
-
-
-class IMAPDelivery(MailDeliveryBase):
-
-    schema.kindInfo(
-        description = "Tracks the state of an inbound message",
-    )
-
-    folder = schema.One(
-        IMAPFolder,
-        doc = "The folder that the message was downloaded from",
-        initialValue = None,
-        inverse = IMAPFolder.deliveryExtensions,
-    )
-
-    uid = schema.One(
-        schema.Long,
-        doc = 'The unique IMAP ID for the message',
-        initialValue = 0L,
-    )
-
-    #Commented out for Preview
-    #namespace = schema.One(
-    #    schema.Text,
-    #    doc = 'The namespace of the message',
-    #    initialValue = u'',
-    #)
-
-    #Commented out for Preview
-    #flags = schema.Sequence(
-    #    schema.Text, initialValue = [],
-    #)
-
-
-class POPDelivery(MailDeliveryBase):
-
-    schema.kindInfo(
-        description = "Tracks the state of an inbound message",
-    )
-
-    #XXX Do pop messages have a UID? Why is it text and not a long
-    uid = schema.One(
-        schema.Text,
-        doc = 'The unique POP ID for the message',
-        initialValue = '',
     )
 
 
@@ -1010,17 +1227,6 @@ class MailStamp(stamping.Stamp):
         defaultValue=None,
     )
 
-    deliveryExtension = schema.One(
-        MailDeliveryBase,
-        initialValue = None,
-        inverse = MailDeliveryBase.mailMessage,
-    )
-
-    isOutbound = schema.One(schema.Boolean, initialValue = False)
-
-    parentAccount = schema.One(
-        AccountBase, initialValue = None, inverse = AccountBase.mailMessages,
-    )
     #Commented out for Preview
     #spamScore = schema.One(schema.Float, initialValue = 0.0)
     rfc2822Message = schema.One(schema.Lob, indexed=False)
@@ -1030,26 +1236,24 @@ class MailStamp(stamping.Stamp):
     messageId = schema.One(schema.Text, initialValue = '')
 
     # inverse of EmailAddress.messagesTo
-    toAddress = schema.Sequence(
-        initialValue = [],
-    )
+    toAddress = schema.Sequence(initialValue = [],)
 
     # inverse of EmailAddress.messagesFrom
-    fromAddress = schema.One(
-        initialValue = None,
-    )
-    
+    fromAddress = schema.One(initialValue = None,)
+
     # inverse of EmailAddress.messagesOriginator
     originators = schema.Sequence(initialValue = [])
-    
+
     # inverse of EmailAddress.messagesReplyTo
     replyToAddress = schema.One(initialValue = None)
+
+    # inverse of EmailAddress.messagesCc
+    ccAddress = schema.Sequence(initialValue = [])
 
     # inverse of EmailAddress.messagesBcc
     bccAddress = schema.Sequence(initialValue = [])
 
-    # inverse of EmailAddress.messagesCc
-    ccAddress = schema.Sequence(initialValue = [])
+
 
     @apply
     def subject():
@@ -1069,9 +1273,10 @@ class MailStamp(stamping.Stamp):
         return schema.Calculated(schema.Text, (items.ContentItem.body,),
                                  fget, fset)
 
+    referencesMID = schema.Sequence(schema.Text, initialValue = [])
+
     inReplyTo = schema.One(schema.Text, indexed=False)
 
-    referencesMID = schema.Sequence(schema.Text, initialValue = [])
 
     headers = schema.Mapping(
         schema.Text, doc = 'Catch-all for headers', initialValue = {},
@@ -1081,15 +1286,242 @@ class MailStamp(stamping.Stamp):
 
     toMe = schema.One(schema.Boolean, initialValue=False, doc = "boolean flag used to signal that the MailStamp instance contains a to or cc address that matches one or more of the me addresses")
 
-    @schema.observer(fromAddress, replyToAddress)
+    viaMailService = schema.One(schema.Boolean, initialValue=False, doc = "boolean flag used to signal that the mail message arrived via the mail service and thus must appear in the In Collection even if the to or cc does not contain a me address")
+
+    isUpdated = schema.One(schema.Boolean, initialValue=False, defaultValue=False, doc = "boolean flag used to signal whether this is a new mail or an update. There is currently no way to determine if the item is an update or new via the content model.")
+
+    fromEIMML = schema.One(schema.Boolean, initialValue=False, defaultValue=False, doc = "boolean flag used to signal whether mail message came from EIMML")
+
+    previousInRecipients = schema.One(schema.Boolean, initialValue=False, defaultValue=False, doc = "boolean flag used to signal whether the previous sender was in any of the addressing fields")
+
+
+    previousSender = schema.One(initialValue = None, doc = "The From: EmailAddress of an incoming message. The address is used to ensure the sender of the message is not lost from the workflow")
+
+
+    def addPreviousSenderToCC(self):
+        """
+            If a previous sender exists
+            and is not referenced in
+            the Chandler from, to, or cc
+            and is not the current sender,
+            add the previous sender to the
+            MailStamp.ccAddress sequence.
+
+            Returns a boolean whether the
+            previous sender was added
+            to the ccAdddress
+        """
+        previousSender = self.getPreviousSender()
+
+        if previousSender is None:
+            return False
+
+        if self.previousInRecipients:
+            # The previous sender was in the
+            # addressing fields at the time of
+            # download.
+            return False
+
+        currentSender = self.getSender()
+
+        if previousSender == currentSender:
+            return False
+
+        # Since the purpose of this action is to make
+        # sure the previous sender does not get
+        # accidentally removed from the Edit / Update
+        # workflow, the bccAddress attribute is ignored
+        # because it won't be seen by all participants.
+        if previousSender not in self.getRecipients(includeBcc=False,
+                                                    includeSender=True):
+            self.ccAddress.append(previousSender)
+            return True
+
+        return False
+
+    def getSendableState(self):
+        """
+          Returns a tuple containing:
+          (statusCode, numberValid, numberInvalid)
+
+          The possilbe status codes are:
+
+             0 = no valid addresses
+             1 = some valid addresses
+             2 = missing a to field
+             3 = all valid addresses
+        """
+
+        # ignore originator
+        # scan to, cc
+        # scan bcc but only for possible not valid addresses
+        # 0 = no valid addresses
+        # 1 = some valid addresses
+        # 2 = missing a to field
+        # 3 = all valid addresses
+
+
+        foundValid = 0
+        foundInvalid = 0
+        foundBccValid = 0
+        foundBccInvalid = 0
+
+        if len(self.toAddress) == 0:
+            # A message must have at least one to
+            # address to send
+            return (2, 0, 0)
+
+        for address in self.toAddress:
+            if address.isValid():
+                foundValid += 1
+            else:
+                foundInvalid += 1
+
+        for address in self.ccAddress:
+            if address.isValid():
+                foundValid += 1
+            else:
+                foundInvalid += 1
+
+        for address in self.bccAddress:
+            if address.isValid():
+                foundBccValid += 1
+            else:
+                foundBccInvalid += 1
+
+        if foundValid == 0 and foundInvalid == 0 and \
+           foundBccValid == 0 and foundBccInvalid == 0:
+            # There are no email addresses in the mail
+            return (0, 0, 0)
+
+
+        if foundValid > 0 and foundInvalid == 0 and \
+           foundBccInvalid == 0:
+           # All addresses are valid
+            return (3, foundValid + foundBccValid, 0)
+
+        if foundValid > 0 or foundBccValid > 0:
+            # At least one address is valid
+            return (1, foundValid + foundBccValid,
+                       foundInvalid + foundBccInvalid)
+
+        return (0, 0, foundInvalid + foundBccInvalid)
+
+
+
+    def getRecipients(self, includeOriginators=True, includeBcc=True, includeSender=False):
+        """
+           Returns a list of all recipents of
+           this MailStamp.
+
+           The method filters out duplicates ie.
+           the same email address in the to and
+           cc.
+
+           The recipents are determined as follows:
+
+           1. All email addresses in the toAddress list
+           2. All email addresses in the ccAddress list
+           3. If includeOriginators is True, all *valid* email
+              addresses in the originators list that are not
+              equal to the current sender unless includeSender
+              is True.
+           4. If includeBcc is True, all email addresses in
+              the bccAddress list
+        """
+
+        sender = self.getSender()
+
+        recipients = []
+
+        for address in self.toAddress:
+            if address not in recipients:
+                recipients.append(address)
+
+        for address in self.ccAddress:
+            if address not in recipients:
+                recipients.append(address)
+
+        if includeOriginators:
+            for address in self.getOriginators():
+                if includeSender and \
+                   address not in recipients:
+                    recipients.append(address)
+
+                elif address != sender and \
+                   address not in recipients:
+                    recipients.append(address)
+
+        if includeBcc:
+            for address in self.bccAddress:
+                if address not in recipients:
+                    recipients.append(address)
+
+        return recipients
+
+
+    def getOriginators(self):
+        originators = []
+
+        for ea in self.originators:
+            if ea is not None and ea.isValid():
+                originators.append(ea)
+
+        return originators
+
+    def getUniqueOriginators(self):
+        """
+           Returns a list of all originators that:
+              1. have a valid email address
+              2. are not in the toAddress list
+              3. are not in the ccAddress list
+              4. are not in the bccAddress list
+              4. are not equal to the sender
+        """
+        recipients  = self.getRecipients(includeOriginators=False)
+        sender      = self.getSender()
+        originators = self.getOriginators()
+
+        res = []
+
+        for originator in originators:
+            if originator not in recipients and \
+               originator != sender:
+                res.append(originator)
+
+        return res
+
+    def getSender(self):
+        return getattr(self, "fromAddress", None)
+
+    def getPreviousSender(self):
+        #XXX This will either be a place holder for
+        # communication status or be kept as an
+        # additional attribute on MailStamp.
+        # The last modified by can be
+        # overwritten by server based sharing
+        # or mail sharing losing the last sender.
+        # Keeping this info in an attribute on
+        # MailStamp works around this issue
+        return getattr(self, "previousSender", None)
+
+    def isSent(self):
+        return items.Modification.sent in self.itsItem.modifiedFlags
+
+    def isAnUpdate(self):
+        return self.isUpdated
+
+    @schema.observer(fromAddress, replyToAddress, originators)
     def onFromMeChange(self, op, name):
         if op != "set":
             return
 
         if name.endswith("fromAddress"):
             checkIfFromMe(self, 0)
-        else:
+        elif name.endswith("replyToAddress"):
             checkIfFromMe(self, 1)
+        else:
+            checkIfFromMe(self, 2)
 
     @schema.observer(toAddress, ccAddress, bccAddress)
     def onToMeChange(self, op, name):
@@ -1098,7 +1530,7 @@ class MailStamp(stamping.Stamp):
 
         checkIfToMe(self)
 
-    @schema.observer(toAddress, fromAddress, originators, isOutbound, 
+    @schema.observer(toAddress, fromAddress, originators, viaMailService,
                      stamping.Stamp.stamp_types)
     def onAddressChange(self, op, name):
         self.itsItem.updateDisplayWho(op, name)
@@ -1111,21 +1543,21 @@ class MailStamp(stamping.Stamp):
         if len(toAddress) > 0:
             toText = u", ".join(unicode(x) for x in toAddress)
             if len(toText) > 0:
-                toPriority = self.isOutbound and 1 or 3
+                toPriority = self.viaMailService and 3 or 1
                 whos.append((toPriority, toText, 'to'))
 
         originators = getattr(self, 'originators', [])
         if len(originators) > 0:
             originatorsText = u", ".join(unicode(x) for x in originators)
             if len(originatorsText) > 0:
-                originatorsPriority = self.isOutbound and 2 or 1
+                originatorsPriority = self.viaMailService and 1 or 2
                 whos.append((originatorsPriority, originatorsText, 'from'))
-        
+
         fromAddress = getattr(self, 'fromAddress', None)
         if fromAddress is not None:
             fromText = unicode(fromAddress)
             if len(fromText) > 0:
-                fromPriority = self.isOutbound and 3 or 2
+                fromPriority = self.viaMailService and 2 or 3
                 whos.append((fromPriority, fromText, 'from'))
 
     schema.addClouds(
@@ -1139,12 +1571,25 @@ class MailStamp(stamping.Stamp):
         ),
     )
 
+    def getHeaders(self):
+        """
+           Returns a Unicode string representation
+           of all mail headers associated with this
+           MailStamp instance.
+        """
+        buf = []
+
+        for (key, val) in self.headers.items():
+            buf.append(u"%s: %s" % (key, val))
+
+        return buf and u"\n".join(buf) or u""
+
+
     def InitOutgoingAttributes(self):
         """
         Init any attributes on ourself that are appropriate for
         a new outgoing item.
         """
-        self.isOutbound = True
         self.itsItem.InitOutgoingAttributes()
 
     def add(self):
@@ -1160,9 +1605,13 @@ class MailStamp(stamping.Stamp):
                                                mimeType='message/rfc822')
 
         # default the fromAddress to "me"
+        me =  getCurrentMeEmailAddress(self.itsItem.itsView)
+
         if getattr(self, 'fromAddress', None) is None:
-            self.fromAddress = \
-                EmailAddress.getCurrentMeEmailAddress(self.itsItem.itsView)
+            self.fromAddress = me
+
+        if len(self.originators) == 0 and me is not None:
+            self.originators.append(me)
 
     @schema.observer(dateSent)
     def onDateSentChanged(self, op, name):
@@ -1173,42 +1622,97 @@ class MailStamp(stamping.Stamp):
         if dateSent is not None:
             dates.append((50, dateSent, 'dateSent'))
 
-    def outgoingMessage(self, account, type='SMTP'):
-        assert type == "SMTP", "Only SMTP currently supported"
+    def outgoingMessage(self):
+        from osaf.mail.utils import createMessageID, \
+                                    dateTimeToRFC2822Date
 
-        assert isinstance(account, SMTPAccount)
 
-        if self.deliveryExtension is None:
-            self.deliveryExtension = SMTPDelivery(itsView=self.itsItem.itsView)
+        mId = getattr(self, "messageId", None)
 
-        self.isOutbound = True
-        self.parentAccount = account
-        
+        if mId:
+            # set the new reply to / references logic
+            # for edit / update workflows.
+            self.inReplyTo = mId
+            self.referencesMID.append(mId)
+
+            # The presence of an mId indicates
+            # an update. There is currently
+            # no way to determine new vs. update
+            # via the content model.
+            self.isUpdated = True
+
+        if self.isAnUpdate():
+            # Adds the previous sender to the
+            # mails cc list if the previous
+            # sender is not already in one of the
+            # addressing fields.
+            self.addPreviousSenderToCC()
+
+            self.previousSender = None
+            self.previousInRecipients = False
+
+        # Overwrite or add a new message Id
+        self.messageId = createMessageID()
+
+        self.dateSent = datetime.now(ICUtzinfo.default)
+        self.dateSentString = dateTimeToRFC2822Date(self.dateSent)
+        self.fromEIMML = False
+
         if len(self.originators) == 0:
-            # We've been lazily defaulting the "From:" field to the "Send As" 
+            # We've been lazily defaulting the "From:" field to the "Send As"
             # value, but now that the message is really heading out, fix
             # the "From:" field so that subsequent updaters won't do this lazy
             # defaulting.
             self.originators.add(self.fromAddress)
 
-    def incomingMessage(self, account, type="IMAP"):
-        assert isinstance(account, DownloadAccountBase)
 
+        if Modification.sent in self.itsItem.modifiedFlags:
+            modFlag = Modification.updated
+        else:
+            modFlag = Modification.sent
+
+        self.itsItem.changeEditState(modFlag, self.getSender(),
+                                     self.dateSent)
+
+    def incomingMessage(self):
         view = self.itsItem.itsView
 
-        if self.deliveryExtension is None:
-            if type == "IMAP":
-                 self.deliveryExtension = IMAPDelivery(itsView=view)
-            elif type == "POP":
-                 self.deliveryExtension = POPDelivery(itsView=view)
+        # Flags to indicate that this message arrived via the
+        # maill service and thus will appear in the In collection
+        # regardless of whether the to or cc of the message
+        # contain a me address.
+        self.viaMailService = True
+        self.toMe = True
 
-        self.isOutbound = False
-        self.parentAccount = account
+        # Flag indicating that the previous sender
+        # was in the addressing fields when the mail
+        # was downloaded. The previous sender
+        # should be add to the cc list if not
+        # in the addressing fields unless the
+        # previous sender was removed by the 
+        # current sender.
+        self.previousInRecipients = self.previousSender in \
+                                      self.getRecipients(includeBcc=False,
+                                                         includeSender=True)
 
         # For Preview we add all downloaded mail via POP and IMAP
         # accounts to the Dashboard.
         schema.ns('osaf.pim', view).allCollection.add(self.itsItem)
+
         self.itsItem.mine = True
+        self.itsItem.read = False
+        self.itsItem.setTriageStatus(TriageEnum.now)
+
+        if not self.fromEIMML:
+            if Modification.sent in self.itsItem.modifiedFlags:
+                modFlag = Modification.updated
+            else:
+                modFlag = Modification.sent
+
+            self.itsItem.changeEditState(modFlag,
+                                         self.getSender(),
+                                         self.dateSent)
+
 
     def getAttachments(self):
         """
@@ -1233,13 +1737,17 @@ class MailStamp(stamping.Stamp):
         (because it's being edited in the UI and is known to be valid,
         and will get saved before sending).
         """
+
+        ##XXX uncomment to simulate Update use case
+        #return "sendable"
+
         # Not outbound?
-        if not self.isOutbound:
+        if self.viaMailService:
             return 'not'
 
         # Already sent?
         try:
-            sent = self.deliveryExtension.state == "SENT"
+            sent = self.isSent()
         except AttributeError:
             sent = False
         if sent:
@@ -1294,6 +1802,11 @@ class CollectionInvitation(schema.Annotation):
     ) # inverse of EmailAddress
 
 
+class EmailAddresses(items.ContentItem):
+       emailAddresses = schema.Sequence(
+        doc = 'List of Email Addresses',
+        initialValue = [],
+    )
 
 class EmailAddress(items.ContentItem):
     """An item that represents a simple email address, plus
@@ -1334,11 +1847,11 @@ Issues:
     #)
 
     accounts = schema.Sequence(
-        DownloadAccountBase,
-        doc = 'A list of Email Accounts that use this Email Address as the '
-              'reply address for mail sent from the account.',
+        OutgoingAccount,
+        doc = 'A list of Outgoing Accounts that use this Email Address as the '
+              'from address for mail sent from the account.',
         initialValue = [],
-        inverse = DownloadAccountBase.replyToAddress,
+        inverse = OutgoingAccount.fromAddress,
     )
 
     messagesBcc = schema.Sequence(
@@ -1375,7 +1888,7 @@ Issues:
         initialValue = [],
         inverse = MailStamp.toAddress,
     )
-    
+
     messagesOriginator = schema.Sequence(
         MailStamp,
         doc = 'A list of messages whose "originators" contain this address',
@@ -1437,26 +1950,50 @@ Issues:
                 return fullName + u' <' + self.emailAddress + u'>'
             else:
                 return fullName
-        elif self is self.getCurrentMeEmailAddress(self.itsView):
+
+        elif self is getCurrentMeEmailAddress(self.itsView):
             return messages.ME
         else:
             return unicode(getattr(self, 'emailAddress', self.itsName) or
                            self.itsUUID.str64())
 
-        """
-        Factory Methods
-        --------------
-        When creating a new EmailAddress, we check for an existing item first.
-        We do look them up in the repository to prevent duplicates, but there's
-        nothing to keep bad ones from accumulating, although repository
-        garbage collection should eventually remove them.
 
-        The "me" entity is used for Items created by the user, and it
-        gets a reasonable emailaddress filled in when a send is done.
+    def format(self, encode=False):
+        if self.fullName is not None and \
+           len(self.fullName.strip()) > 0:
+            if encode:
+                from email.Header import Header
+                return Header(self.fullName).encode() + u" <" + \
+                              self.emailAddress + u">"
+            else:
+                return self.fullName + u" <" + self.emailAddress + u">"
 
-        For performant operations use theEmailAddress.findEmailAddress method
-        which leverages an index.
-        """
+        return self.emailAddress
+
+    def isValid(self):
+        """ See if this address looks valid. """
+
+        if self.emailAddress is None:
+            return False
+
+        return re.match("^(([^<>()[\]\\.,;:\s@\"]+(\.[^<>()[\]\\.,;:\s@\"]+)*)|(\".+\"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$", self.emailAddress) is not None
+
+
+
+    """
+    Factory Methods
+    --------------
+    When creating a new EmailAddress, we check for an existing item first.
+    We do look them up in the repository to prevent duplicates, but there's
+    nothing to keep bad ones from accumulating, although repository
+    garbage collection should eventually remove them.
+
+    The "me" entity is used for Items created by the user, and it
+    gets a reasonable emailaddress filled in when a send is done.
+
+    For performant operations use theEmailAddress.findEmailAddress method
+    which leverages an index.
+    """
 
     @classmethod
     def getEmailAddress(cls, view, nameOrAddressString, fullName='', 
@@ -1502,7 +2039,7 @@ Issues:
 
         # check for "me"
         if translateMe and (address == messages.ME):
-            return cls.getCurrentMeEmailAddress(view)
+            return getCurrentMeEmailAddress(view)
 
         # if no fullName specified, parse apart the name and address if we can
         if fullName != u'':
@@ -1545,7 +2082,7 @@ Issues:
             lastUUID = collection.findInIndex(indexName, 'last', comparer)
             for uuid in collection.iterindexkeys(indexName, firstUUID, lastUUID):
                 matches[uuid] = matches.get(uuid, 0) | matchPriority
-                
+
         matchCount = len(matches)
         if matchCount == 1:
             # Exactly one match - use it.
@@ -1561,7 +2098,7 @@ Issues:
             matches = [ (v, uuid) for uuid, v in matches.iteritems() ]
             matches.sort()
             matchUUID = matches[-1][1]
-        
+
         return view[matchUUID]
 
     @classmethod
@@ -1611,27 +2148,12 @@ Issues:
                     yield match
 
     @classmethod
-    def format(cls, emailAddress, encode=False):
-        assert isinstance(emailAddress, EmailAddress)
-
-        if emailAddress.fullName is not None and \
-           len(emailAddress.fullName.strip()) > 0:
-            if encode:
-                from email.Header import Header
-                return Header(emailAddress.fullName).encode() + u" <" + \
-                              emailAddress.emailAddress + u">"
-            else:
-                return emailAddress.fullName + u" <" + emailAddress.emailAddress + u">"
-
-        return emailAddress.emailAddress
-
-    @classmethod
     def isValidEmailAddress(cls, emailAddress):
         """
         This method tests an email address for valid syntax as defined RFC 822.
         The method validates addresses in the form 'John Jones <john@test.com>'
         and 'john@test.com'
-        
+
         (Note that we're perfectly happy for EmailAddress items to hold invalid
         or incomplete addresses; this classmethod is used when we need to ensure that
         an address is valid. If you want to ensure that a particular EmailAddress
@@ -1648,10 +2170,6 @@ Issues:
 
         return re.match("^(([^<>()[\]\\.,;:\s@\"]+(\.[^<>()[\]\\.,;:\s@\"]+)*)|(\".+\"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$", emailAddress) is not None
 
-    def isValid(self):
-        """ See if this address looks valid. """
-        return EmailAddress.isValidEmailAddress(unicode(self))
-
     @classmethod
     def parseEmailAddresses(cls, view, addressesString):
         """
@@ -1659,7 +2177,7 @@ Issues:
         a tuple with: (the processed string, a list of EmailAddress
         items created/found for those addresses, the number of
         bad addresses we found).
-        
+
         Note: Now that we're no longer checking validity of addresses,
         invalidCount will always be zero unless the structure of the string
         is bad (like ",,,")
@@ -1691,6 +2209,7 @@ Issues:
         processedResultString = _(u', ').join(processedAddresses)
         return (processedResultString, validAddresses, invalidCount)
 
+
     @classmethod
     def emailAddressesAreEqual(cls, emailAddressOne, emailAddressTwo):
         """
@@ -1715,47 +2234,6 @@ Issues:
         emailAddressTwo = Utils.parseaddr(emailAddressTwo)[1]
 
         return emailAddressOne.lower() == emailAddressTwo.lower()
-
-
-    @classmethod
-    def getCurrentMeEmailAddress(cls, view):
-        """
-        Lookup the "me" EmailAddress.
-        The "me" EmailAddress is whichever entry is the current IMAP default
-        address.
-        """
-
-        me = EmailAddress._getMeAddress(view)
-
-        if me is None:
-            for cls in (IMAPAccount, POPAccount):
-                for account in cls.iterItems(view):
-                    if account.isActive and account.replyToAddress and \
-                        account.replyToAddress.emailAddress:
-                        return account.replyToAddress
-
-            for account in SMTPAccount.iterItems(view):
-                if account.isActive and account.fromAddress and \
-                   account.fromAddress.emailAddress:
-                    return account.fromAddress
-
-        return me
-
-    @classmethod
-    def _getMeAddress(cls, view):
-        # See if an IMAP/POP account is configured:
-        account = getCurrentMailAccount(view)
-        if account is None or not account.replyToAddress or not \
-           account.replyToAddress.emailAddress:
-            # No IMAP/POP set up, so check SMTP:
-            account, replyTo = getCurrentSMTPAccount(view)
-            if account is None or not account.fromAddress or not \
-               account.fromAddress.emailAddress:
-                return None
-            else:
-                return account.fromAddress
-        else:
-            return account.replyToAddress
 
 
 def makeCompareMethod(attrName):
@@ -1783,7 +2261,7 @@ class CommunicationStatus(schema.Annotation):
     Generate a value that expresses the communications status of an item, 
     such that the values can be compared for indexing for the communications
     status column of the Dashboard.
-    
+
     The sort terms are:
       1. unread, needs-reply, read
       2. Not mail (and no error), sent mail, error, queued mail, draft mail
@@ -1810,21 +2288,21 @@ class CommunicationStatus(schema.Annotation):
     # 3a:
     # (created has this bit unset)
     # EDITED      =       1
-        
+
     # 3b:
     # OUT         =          1
     # IN          =         1
     # NEITHER     =        1
-    
+
     # 4b:
     # (firsttime has this bit unset)
     # UPDATE      =           1
 
-    
+
     UPDATE, OUT, IN, NEITHER, EDITED, SENT, ERROR, QUEUED, DRAFT, NEEDS_REPLY, READ = (
         1<<n for n in xrange(11)
     )
-    
+
     @staticmethod
     def getItemCommState(itemOrUUID, view=None):
         """ Given an item or a UUID, determine its communications state """
@@ -1835,18 +2313,18 @@ class CommunicationStatus(schema.Annotation):
         else:
             uuid = itemOrUUID.itsUUID
             view = itemOrUUID.itsView
-        
+
         modifiedFlags, lastMod, stampTypes, fromMe, \
         toMe, needsReply, read, error = \
             view.findInheritedValues(uuid, *CommunicationStatus.attributeValues)
 
         result = 0
-        
+
         if MailStamp in stampTypes:
             # update
             if items.Modification.sent in modifiedFlags:
                 result |= CommunicationStatus.UPDATE
-    
+
             # in, out, neither
             if toMe:
                 result |= CommunicationStatus.IN
@@ -1854,7 +2332,7 @@ class CommunicationStatus(schema.Annotation):
                 result |= CommunicationStatus.OUT
             elif not toMe:
                 result |= CommunicationStatus.NEITHER
-                
+
             # queued
             if items.Modification.queued in modifiedFlags:
                 result |= CommunicationStatus.QUEUED
@@ -1872,35 +2350,35 @@ class CommunicationStatus(schema.Annotation):
             # edited
             if items.Modification.edited in modifiedFlags:
                 result |= CommunicationStatus.EDITED
-                
+
         # needsReply
         if needsReply:
             result |= CommunicationStatus.NEEDS_REPLY
-            
+
         # read
         if read:
             result |= CommunicationStatus.READ
-        
+
         # error
         if error:
             result |= CommunicationStatus.ERROR
-    
+
         return result
-    
+
     @staticmethod
     def dump(status):
-        """ 
-        For debugging (and helpful unit-test messages), explain our flags. 
+        """
+        For debugging (and helpful unit-test messages), explain our flags.
         'status' can be a set of flags, an item, or an item UUID.
         """
         if not isinstance(status, int):
             status = CommunicationStatus.getItemCommState(status)
         if status == 0:
             return "(none)"
-        result = [ flagName for flagName in ('UPDATE', 'OUT', 'IN', 
-                                             'NEITHER', 'EDITED', 
+        result = [ flagName for flagName in ('UPDATE', 'OUT', 'IN',
+                                             'NEITHER', 'EDITED',
                                              'SENT', 'QUEUED', 
-                                             'DRAFT', 'NEEDS_REPLY', 
+                                             'DRAFT', 'NEEDS_REPLY',
                                              'READ')
                    if status & getattr(CommunicationStatus, flagName)]
         return '+'.join(result)

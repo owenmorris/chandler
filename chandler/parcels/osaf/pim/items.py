@@ -119,7 +119,7 @@ class ContentItem(Triageable):
         defaultValue=Empty,
         description='Used to track the modification state of the item'
     )
-    
+
     lastModified = schema.One(
         schema.DateTimeTZ,
         doc="DateTime (including timezone) this item was last modified",
@@ -130,7 +130,7 @@ class ContentItem(Triageable):
         doc="Link to the EmailAddress who last modified the item.",
         defaultValue=None
     )
-    
+
     lastModification = schema.One(
         Modification,
         doc="What the last modification was.",
@@ -139,7 +139,7 @@ class ContentItem(Triageable):
 
     def getByline(self):
         lastModification = self.lastModification
-        
+
         if lastModification == Modification.created:
             fmt = _(u"Created by %(user)s on %(date)s")
         elif lastModification == Modification.edited:
@@ -151,15 +151,15 @@ class ContentItem(Triageable):
         else:
             assert False, \
                 "Unrecognized lastModification value %s" % (lastModification,)
-                
+
         user = self.lastModifiedBy or messages.ME
         # fall back to createdOn
         lastModified = (self.lastModified or getattr(self, 'createdOn', None) or
                        datetime.now(ICUtzinfo.default))
-        
+
         shortDateFormat = schema.importString("osaf.pim.shortDateFormat")
         date = shortDateFormat.format(lastModified)
-        
+
         return fmt % dict(user=user, date=date)
         
     error = schema.One(
@@ -389,14 +389,22 @@ class ContentItem(Triageable):
 
         if modType == Modification.sent:
             if Modification.sent in currentModFlags:
-                raise ValueError, "You can't send an item twice"
+                #raise ValueError, "You can't send an item twice"
+                pass
             elif Modification.queued in currentModFlags:
                 currentModFlags.remove(Modification.queued)
         elif modType == Modification.updated:
-            if not Modification.sent in currentModFlags:
-                raise ValueError, "You can't update an item till it's been sent"
-            elif Modification.queued in currentModFlags:
+            #XXX Brian K: an update can occur with out a send.
+            # Case user a sends a item to user b (state == sent)
+            #      user a edits item to user b and adds user c (state == update).
+            # For user c the state of sent was never seen.
+
+            #if not Modification.sent in currentModFlags:
+            #    raise ValueError, "You can't update an item till it's been sent"
+
+            if Modification.queued in currentModFlags:
                 currentModFlags.remove(Modification.queued)
+
         # Clear the edited flag and error on send/update/queue
         if (modType in (Modification.sent, Modification.updated, 
                         Modification.queued)):
@@ -429,13 +437,12 @@ class ContentItem(Triageable):
 
     def getCurrentMeEmailAddress (self):
         """
-          Lookup or create a current "me" EmailAddress.
-        The "me" EmailAddress is whichever one has the current IMAP default address.
+        Lookup or create a current "me" EmailAddress.
         This method is here for convenient access, so users
         don't need to import Mail.
         """
-        from mail import EmailAddress
-        return EmailAddress.getCurrentMeEmailAddress (self.itsView)
+        import mail
+        return mail.getCurrentMeEmailAddress (self.itsView)
 
 
 

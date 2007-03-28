@@ -70,14 +70,13 @@ def installParcel(parcel, oldVersion=None):
 
     preSmtp = pim.mail.SMTPAccount.update(parcel, 'defaultSMTPAccount',
         displayName=_(u'Outgoing mail'),
-        references=[pim_ns.currentSMTPAccount]
+        references=[pim_ns.currentOutgoingAccount]
     )
 
     pim.mail.IMAPAccount.update(parcel, 'defaultIMAPAccount',
         displayName=_(u'Incoming mail'),
         replyToAddress=preReply,
-        defaultSMTPAccount=preSmtp,
-        references=[pim_ns.currentMailAccount]
+        references=[pim_ns.currentIncomingAccount]
     )
 
     testReply = pim.mail.EmailAddress.update(parcel, 'TestReplyAddress')
@@ -91,7 +90,6 @@ def installParcel(parcel, oldVersion=None):
     pim.mail.IMAPAccount.update(parcel, 'TestIMAPAccount',
         displayName=u'Test IMAP mail',
         replyToAddress=testReply,
-        defaultSMTPAccount=testSmtp,
         isActive=False
     )
 

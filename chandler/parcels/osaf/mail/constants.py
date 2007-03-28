@@ -17,13 +17,9 @@
 
 #python imports
 import version
+from PyICU import ChoiceFormat
 
 from i18n import ChandlerMessageFactory as _
-
-DEFAULT_CHARSET = "utf-8"
-LF    = u"\n"
-CR    = u"\r"
-EMPTY = u""
 
 CHANDLER_USERAGENT = "Chandler (%s)" % version.version
 CHANDLER_HEADER_PREFIX = "X-Chandler-"
@@ -45,12 +41,7 @@ MAIL_PROTOCOL_TIMEOUT_ERROR = _(u"Communication with the Server timed out. Pleas
 
 # Translatable message strings for downloads (POP, IMAP)
 DOWNLOAD_NO_MESSAGES = _(u"%(accountName)s: no new messages found")
-DOWNLOAD_MESSAGES = _(u"%(accountName)s: %(numberOfMessages)s messages downloaded to Chandler")
 DOWNLOAD_CHECK_MESSAGES = _(u"%(accountName)s: checking for new mail messages")
-DOWNLOAD_START_MESSAGES = _(u"%(accountName)s: downloading %(numberOfMessages)s messages")
-
-IMAP_START_MESSAGES = _(u"%(accountName)s: downloading %(numberOfMessages)s messages from '%(folderDisplayName)s'")
-IMAP_SEARCH_MESSAGES = _(u"%(accountName)s: searching through %(numberOfMessages)s messages in your '%(folderDisplayName)s' for Chandler Messages")
 
 IMAP_DELIMITER_ERROR = _(u"Unable to determine the file delimiter of the IMAP Server")
 
@@ -71,10 +62,16 @@ TEST_OFFLINE = _(u"Chandler is currently offline.\nTo perform this action, Chand
 POP_UIDL_ERROR = _(u"The POP3 Server does not support the 'UIDL' command.\nThis command is required by Chandler.")
 
 
-#XXX this is all deprecated
-SHARING_HEADER  = "Sharing-URL"
-SHARING_DIVIDER = ";"
-SMTP_SUCCESS = 250
+# ChoiceFormat messages
+#==========================
+DOWNLOAD_CHANDLER_MESSAGES = ChoiceFormat(_(u"1#%(accountName)s: %(numberTotal)s message downloaded to Chandler (%(numberNew)s new, %(numberUpdated)s updated, %(numberIgnored)s ignored).|1<%(accountName)s: %(numberTotal)s messages downloaded to Chandler (%(numberNew)s new, %(numberUpdated)s updated, %(numberIgnored)s ignored)."))
+
+POP_START_MESSAGES = ChoiceFormat(_(u"1#%(accountName)s: downloading %(numberOfMessages)s message ...|1<%(accountName)s: downloading %(numberOfMessages)s messages ..."))
+
+IMAP_START_MESSAGES = ChoiceFormat(_(u"1#%(accountName)s: downloading %(numberOfMessages)s message from '%(folderDisplayName)s'|1<%(accountName)s: downloading %(numberOfMessages)s messages from '%(folderDisplayName)s'"))
+
+IMAP_SEARCH_MESSAGES = ChoiceFormat(_(u"1#%(accountName)s: searching through %(numberOfMessages)s message in your '%(folderDisplayName)s' for a Chandler Message|1<%(accountName)s: searching through %(numberOfMessages)s messages in your '%(folderDisplayName)s' for Chandler Messages"))
+
 
 # Number of seconds to wait to timeout connection for account testing
 TESTING_TIMEOUT = 10

@@ -420,7 +420,7 @@ def shortTZ(dt, tzinfo=None):
             return name
     return u''
 
-def formatTime(dt, tzinfo=None, noTZ=False):
+def formatTime(dt, tzinfo=None, noTZ=False, includeDate=False):
 
     def __setTimeZoneInSubformats(msgFormat, tz):
         subformats = msgFormat.getFormats()
@@ -441,11 +441,18 @@ def formatTime(dt, tzinfo=None, noTZ=False):
         useSameTimeZoneFormat = False
 
     if useSameTimeZoneFormat or noTZ:
-        format = PyICU.MessageFormat("{0,time,short}")
+        if includeDate:
+            format = PyICU.MessageFormat("{0,date,medium} {0,time,short}")
+        else:
+            format = PyICU.MessageFormat("{0,time,short}")
         __setTimeZoneInSubformats(format, tzinfo.timezone)
     else:
         # This string should be localizable
-        format = PyICU.MessageFormat("{0,time,short} {0,time,z}")
+        if includeDate:
+            format = PyICU.MessageFormat("{0,date,medium} {0,time,short} {0,time,z}")
+        else:
+            format = PyICU.MessageFormat("{0,time,short} {0,time,z}")
+
         __setTimeZoneInSubformats(format, dt.tzinfo.timezone)
 
     formattable = PyICU.Formattable(dt, PyICU.Formattable.kIsDate)

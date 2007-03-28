@@ -24,6 +24,7 @@ from datetime import datetime, timedelta
 from PyICU import ICUtzinfo
 from osaf import pim
 import osaf.pim.calendar.Calendar as Calendar
+from osaf.pim import Modification
 import osaf.pim.mail as Mail
 import i18n
 from i18n.tests import uw
@@ -130,15 +131,11 @@ def GenerateMailMessage(view, tzinfo=None):
     message.dateSent = datetime.now(tzinfo)
 
     if outbound:
-        acc = Mail.getCurrentSMTPAccount(view)[0]
-        message.outgoingMessage(acc)
-
-        """Make the Message appear as if it has already been sent"""
-        message.deliveryExtension.sendSucceeded()
+        message.outgoingMessage()
+        message.itsItem.changeEditState(Modification.sent)
 
     else:
-        acc = Mail.getCurrentMailAccount(view)
-        message.incomingMessage(acc)
+        message.incomingMessage()
 
     if type == EVENT:
         Calendar.EventStamp(message).add()

@@ -21,6 +21,7 @@ import twisted.python.failure as failure
 
 #python imports
 import email
+import PyICU
 
 #Chandler imports
 from osaf.pim.mail import IMAPAccount, IMAPFolder
@@ -56,7 +57,6 @@ __all__ = ['IMAPClient']
 # and server. This is especially handy
 # when the traffic is encrypted (SSL/TLS).
 DEBUG_CLIENT_SERVER = False
-
 
 # The maximum number of message UID's to
 # include in a search for Chandler Headers.
@@ -103,6 +103,7 @@ class FolderVars(base.DownloadVars):
         # that contain Chandler Headers
         # and should be downloaded.
         self.foundUIDs  = []
+
 
     def getNextUID(self):
         return self.folderItem.lastMessageUID
@@ -269,8 +270,12 @@ class IMAPClient(base.AbstractDownloadClient):
         super(IMAPClient, self).__init__(view, account)
 
         # This is the total number of mail messages
-        # downloaded for all folders
+        # downloaded for all folders including
+        # new items and updated items
         self.totalDownloaded = 0
+        self.totalNewDownloaded = 0
+        self.totalUpdateDownloaded = 0
+        self.totalIgnoreDownloaded = 0
 
     def createChandlerFolders(self, callback, reconnect):
         if __debug__:
@@ -559,6 +564,9 @@ class IMAPClient(base.AbstractDownloadClient):
     def _actionCompleted(self):
        # Reset the total downloaded counter
         self.totalDownloaded = 0
+        self.totalNewDownloaded = 0
+        self.totalUpdateDownloaded = 0
+        self.totalIgnoreDownloaded = 0
 
         super(IMAPClient, self)._actionCompleted()
 
@@ -577,8 +585,8 @@ class IMAPClient(base.AbstractDownloadClient):
         assert self.account is not None
 
         #Twisted expects 8-bit values so encode the utf-8 username and password
-        username = self.account.username.encode(constants.DEFAULT_CHARSET)
-        password = self.account.password.encode(constants.DEFAULT_CHARSET)
+        username = self.account.username.encode("utf-8")
+        password = self.account.password.encode("utf-8")
 
         self.proto.registerAuthenticator(imap4.CramMD5ClientAuthenticator(username))
         self.proto.registerAuthenticator(imap4.LOGINAuthenticator(username))
@@ -680,9 +688,15 @@ class IMAPClient(base.AbstractDownloadClient):
             # scanned so call actionCompleted
             if self.statusMessages:
                 if self.totalDownloaded > 0:
-                    setStatusMessage(constants.DOWNLOAD_MESSAGES % \
-                                    {'accountName': self.account.displayName,
-                                     'numberOfMessages': self.totalDownloaded})
+                    # This is a PyICU.ChoiceFormat class
+                    txt = constants.DOWNLOAD_CHANDLER_MESSAGES.format(self.totalDownloaded)
+
+                    setStatusMessage(txt % \
+                                     {'accountName': self.account.displayName,
+                                      'numberTotal': self.totalDownloaded,
+                                      'numberNew': self.totalNewDownloaded,
+                                      'numberUpdated': self.totalUpdateDownloaded,
+                                      'numberIgnored': self.totalIgnoreDownloaded})
                 else:
                     setStatusMessage(constants.DOWNLOAD_NO_MESSAGES % \
                                     {'accountName': self.account.displayName})
@@ -727,7 +741,7 @@ class IMAPClient(base.AbstractDownloadClient):
         # Check that we have not already downloaded the max
         # number of messages for the folder
         max = self.vars.folderItem.downloadMax
-        downloaded = len(self.vars.folderItem.deliveryExtensions)
+        downloaded = self.vars.folderItem.downloaded
 
         if max > 0 and max == downloaded:
             if __debug__:
@@ -777,9 +791,12 @@ class IMAPClient(base.AbstractDownloadClient):
             return self._getNextFolder()
 
         if self.statusMessages:
-            setStatusMessage(constants.IMAP_SEARCH_MESSAGES % \
+            # This is a PyICU.ChoiceFormat class
+            txt = constants.IMAP_SEARCH_MESSAGES.format(size)
+
+            setStatusMessage(txt % \
                              {'accountName': self.account.displayName,
-                             'folderDisplayName': self.vars.folderItem.displayName,
+                              'folderDisplayName': self.vars.folderItem.displayName,
                               'numberOfMessages': size})
 
         # The last position in the sorted searchUIDs list
@@ -897,7 +914,7 @@ class IMAPClient(base.AbstractDownloadClient):
             return self._getNextFolder()
 
         max = self.vars.folderItem.downloadMax
-        downloaded = len(self.vars.folderItem.deliveryExtensions)
+        downloaded = self.vars.folderItem.downloaded
 
         if max > 0 and (numPending + downloaded > max):
             # If the number of pending messages exceeds the
@@ -912,7 +929,10 @@ class IMAPClient(base.AbstractDownloadClient):
             numPending = len(self.vars.pending)
 
         if self.statusMessages:
-            setStatusMessage(constants.IMAP_START_MESSAGES % \
+            # This is a PyICU.ChoiceFormat class
+            txt = constants.IMAP_START_MESSAGES.format(numPending)
+
+            setStatusMessage(txt % \
                              {"accountName": self.account.displayName,
                               "numberOfMessages": numPending,
                               "folderDisplayName": self.vars.folderItem.displayName})
@@ -979,25 +999,38 @@ class IMAPClient(base.AbstractDownloadClient):
         messageText = msgs[msg]['RFC822']
 
         #XXX: Need a more performant way to do this
-        messageObject = email.message_from_string(messageText)
+        repMessage = messageTextToKind(self.view, messageText)
 
-        repMessage = messageObjectToKind(self.view, messageObject, messageText)
+        if repMessage:
+            # If the message contained an eimml attachment
+            # that was older then the current state or
+            # contained bogus data then repMessage will be
+            # None and the Mail Service will igore the message.
 
-        if self.vars.folderItem.folderType == "EVENT":
-            parseEventInfo(repMessage)
+            if repMessage.isAnUpdate():
+                # This is an update to an existing Chandler item
+                # so increment the updatecounter
+                self.totalUpdateDownloaded += 1
 
-        elif self.vars.folderItem.folderType == "TASK":
-            parseTaskInfo(repMessage)
+            else:
+                # This is a new Chandler item so increment the
+                # new counter
+                self.totalNewDownloaded += 1
 
-        # Set the message as incoming
-        # XXX the incomingMessage method is
-        # where the mail gets added to the Dashboard
-        # and set as "Mine"
-        repMessage.incomingMessage(self.account)
+            if self.vars.folderItem.folderType == "EVENT":
+                parseEventInfo(repMessage)
 
-        # Save IMAP Delivery info in Repository
-        repMessage.deliveryExtension.folder = self.vars.folderItem
-        repMessage.deliveryExtension.uid = curMessage[0]
+            elif self.vars.folderItem.folderType == "TASK":
+                parseTaskInfo(repMessage)
+
+            repMessage.incomingMessage()
+
+            self.vars.folderItem.downloaded += 1
+
+        else:
+            # The message downloaded contained eimml that
+            # for what ever reason was ignored.
+            self.totalIgnoreDownloaded += 1
 
         self.vars.numDownloaded += 1
 
@@ -1026,7 +1059,8 @@ class IMAPClient(base.AbstractDownloadClient):
             self.vars.totalDownloaded += self.vars.numDownloaded
 
             # Track the total number of messages downloaded for
-            # this IMAP Account
+            # this IMAP Account as well as the total number
+            # of new and updated Chandler items.
             self.totalDownloaded += self.vars.numDownloaded
 
             return d.addBoth(lambda x: self._commitDownloadedMail())

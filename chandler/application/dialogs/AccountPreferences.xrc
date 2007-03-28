@@ -815,11 +815,11 @@
         </object>
       </object>
       <object class="sizeritem">
-        <flag>wxALIGN_CENTER_VERTICAL|wxALL</flag>
+        <flag>wxALL|wxALIGN_CENTRE_VERTICAL</flag>
         <border>5</border>
         <object class="wxListBox" name="ACCOUNTS_LIST">
           <size>240,190</size>
-          <style>wxLB_SINGLE</style>
+          <style>wxLB_SINGLE|wxLB_HSCROLL|wxLB_NEEDED_SB</style>
           <content/>
         </object>
       </object>

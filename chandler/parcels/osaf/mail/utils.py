@@ -132,8 +132,6 @@ def dateIsEmpty(date):
 
     @return: C{True} if the date is empty, False otherwise
     """
-    #XXX: Need to protect this better but having trouble with
-    #     the datetime API
     if date is None or (date.hour == 0 and date.minute == 0 and
                         date.second == 0 and date.microsecond == 0):
         return True

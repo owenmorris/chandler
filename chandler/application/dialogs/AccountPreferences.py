@@ -99,7 +99,7 @@ def IncomingSaveHandler(item, fields, values):
 
         ns_pim = schema.ns('osaf.pim', item.itsView)
 
-        isCurrent = item == ns_pim.currentMailAccount.item
+        isCurrent = item == ns_pim.currentIncomingAccount.item
         oldItem   = item
 
         if newAccountProtocol == "IMAP":
@@ -112,15 +112,14 @@ def IncomingSaveHandler(item, fields, values):
             # bug which needs to be fixed.
             raise Exception("Internal Exception")
 
-        item.defaultSMTPAccount = oldItem.defaultSMTPAccount
-
         if isCurrent:
-            ns_pim.currentMailAccount.item = item
+            ns_pim.currentIncomingAccount.item = item
 
 
     item.replyToAddress = Mail.EmailAddress.getEmailAddress(item.itsView,
                                                             newAddressString,
                                                             newFullName)
+
 
     return item # Returning a non-None item tells the caller to continue
                 # processing this item.
@@ -130,11 +129,12 @@ def IncomingSaveHandler(item, fields, values):
 
 def IncomingDeleteHandler(item, values, data):
     ns_pim = schema.ns('osaf.pim', item.itsView)
-    return not item == ns_pim.currentMailAccount.item
+    return not item == ns_pim.currentIncomingAccount.item
 
 def OutgoingSaveHandler(item, fields, values):
     newAddressString = values['OUTGOING_FROM']
     newFullName = ""
+
 
     item.fromAddress = Mail.EmailAddress.getEmailAddress(item.itsView,
                                                          newAddressString,
@@ -147,7 +147,7 @@ def OutgoingSaveHandler(item, fields, values):
 
 def OutgoingDeleteHandler(item, values, data):
     ns_pim = schema.ns('osaf.pim', item.itsView)
-    return not item == ns_pim.currentSMTPAccount.item
+    return not item == ns_pim.currentOutgoingAccount.item
 
 def SharingDeleteHandler(item, values, data):
     sharing_ns = schema.ns('osaf.sharing', item.itsView)
@@ -519,31 +519,53 @@ class AccountPreferencesDialog(wx.Dialog):
         # text field (without this, on the mac, tabbing doesn't work)
         self.accountsList.SetFocus()
 
+    def isDefaultAccount(self, item):
+        isDefault = False
+
+        if item.accountType == "INCOMING":
+            ns_pim = schema.ns('osaf.pim', item.itsView)
+            isDefault = item == ns_pim.currentIncomingAccount.item
+
+        elif item.accountType == "OUTGOING":
+            ns_pim = schema.ns('osaf.pim', item.itsView)
+            isDefault = item == ns_pim.currentOutgoingAccount.item
+
+        elif item.accountType in ("SHARING_DAV", "SHARING_MORSECODE"):
+            sharing_ns = schema.ns('osaf.sharing', item.itsView)
+
+            isDefault = item == sharing_ns.currentSharingAccount.item
+
+        return isDefault
+
+    def getDefaultAccounts(self):
+        ns_pim = schema.ns('osaf.pim', self.rv)
+        sharing_ns = schema.ns('osaf.sharing', self.rv)
+
+        incoming  = ns_pim.currentIncomingAccount.item
+        outgoing  = ns_pim.currentOutgoingAccount.item
+        sharing   = sharing_ns.currentSharingAccount.item
+
+        return (incoming, outgoing, sharing)
+
+
+    def getAccountName(self, item):
+        if self.isDefaultAccount(item):
+            return _(u"%(accountName)s (Default)") % \
+                       {'accountName': item.displayName}
+
+        return item.displayName
+
     def selectAccount(self, accountIndex):
         self.accountsList.SetSelection(accountIndex)
         self.__SwapDetailPanel(accountIndex)
 
         item = self.rv.findUUID(self.data[accountIndex]['item'])
 
-        isCurrent = False
-
-        if item.accountType == "INCOMING":
-            ns_pim = schema.ns('osaf.pim', item.itsView)
-            isCurrent = item == ns_pim.currentMailAccount.item
-
-        elif item.accountType == "OUTGOING":
-            ns_pim = schema.ns('osaf.pim', item.itsView)
-            isCurrent = item == ns_pim.currentSMTPAccount.item
-
-        elif item.accountType in ("SHARING_DAV", "SHARING_MORSECODE"):
-            sharing_ns = schema.ns('osaf.sharing', item.itsView)
-            isCurrent = item == sharing_ns.currentSharingAccount.item
-
         delButton = wx.xrc.XRCCTRL(self, "BUTTON_DELETE")
 
         #Disable the delete button if the account is the
         #default.
-        delButton.Enable(not isCurrent)
+        delButton.Enable(not self.isDefaultAccount(item))
 
 
     def __PopulateAccountsList(self, account):
@@ -556,19 +578,24 @@ class AccountPreferencesDialog(wx.Dialog):
         accountIndex = 0 # which account to select first
         accounts = []
 
+        #add the default accounts first
+        for item in self.getDefaultAccounts():
+            accounts.append(item)
+
         for cls in (Mail.IMAPAccount, Mail.POPAccount, Mail.SMTPAccount):
             for item in cls.iterItems(self.rv):
-                if item.isActive and hasattr(item, 'displayName'):
+                if item.isActive and hasattr(item, 'displayName') and \
+                    not self.isDefaultAccount(item):
                     accounts.append(item)
 
         for item in sharing.SharingAccount.iterItems(self.rv):
-            if hasattr(item, 'displayName'):
+            if hasattr(item, 'displayName') and not \
+               self.isDefaultAccount(item):
                 accounts.append(item)
 
         i = 0
 
         for item in accounts:
-
             # If an account was passed in, remember its index so we can
             # select it
             if account == item:
@@ -619,7 +646,7 @@ class AccountPreferencesDialog(wx.Dialog):
                                 "protocol": item.accountProtocol,
                                 "isNew"  : False } )
 
-            self.accountsList.Append(item.displayName)
+            self.accountsList.Append(self.getAccountName(item))
 
             i += 1
             # End of account loop
@@ -651,11 +678,9 @@ class AccountPreferencesDialog(wx.Dialog):
 
                 if account['protocol'] == "IMAP":
                     item = Mail.IMAPAccount(itsView=self.rv)
-                    item.defaultSMTPAccount = Mail.getCurrentSMTPAccount(self.rv)[0]
 
                 elif account['protocol'] == "POP":
                     item = Mail.POPAccount(itsView=self.rv)
-                    item.defaultSMTPAccount = Mail.getCurrentSMTPAccount(self.rv)[0]
 
                 elif account['protocol'] == "SMTP":
                     item = Mail.SMTPAccount(itsView=self.rv)
@@ -719,7 +744,15 @@ class AccountPreferencesDialog(wx.Dialog):
                     else:
                         # Otherwise, make the literal assignment:
                         try:
-                            setattr(item, desc['attr'], values[field])
+                            val = values[field]
+
+                            if val is None:
+                                # wx controls require unicode
+                                # or str values and will raise an
+                                # error if passed None
+                                val = u""
+
+                            setattr(item, desc['attr'], val)
                         except AttributeError:
                             pass
 
@@ -824,9 +857,15 @@ class AccountPreferencesDialog(wx.Dialog):
         data = self.data[self.currentIndex]
         accountType = data['type']
         panel = PANELS[accountType]
-        values = self.data[self.currentIndex]['values']
-        return values[panel["displayName"]]
+        values = data['values']
+        item = self.rv.findUUID(data['item'])
+        displayName = values[panel["displayName"]]
 
+        if self.isDefaultAccount(item):
+            return _(u"%(accountName)s (Default)") % \
+                       {'accountName': displayName}
+
+        return displayName
 
     def __SwapDetailPanel(self, index):
         """ Given an index into the account list, store the current panel's
@@ -842,6 +881,7 @@ class AccountPreferencesDialog(wx.Dialog):
 
             self.accountsList.SetString(self.currentIndex,
                                         self.__GetDisplayName(self.currentIndex))
+
             self.innerSizer.Detach(self.currentPanel)
             self.currentPanel.Hide()
 
@@ -1025,7 +1065,10 @@ class AccountPreferencesDialog(wx.Dialog):
 
             # Handle strings:
             if valueType == "string":
-                control.SetValue(data[field])
+                # The control can not accept a None value
+                val = data[field] and data[field] or u""
+
+                control.SetValue(val)
 
             # Handle booleans:
             elif valueType == "boolean":
@@ -1135,8 +1178,8 @@ class AccountPreferencesDialog(wx.Dialog):
         ns_pim = schema.ns('osaf.pim', self.rv)
         sharing_ns = schema.ns('osaf.sharing', self.rv)
 
-        currentOutgoing = ns_pim.currentSMTPAccount.item
-        currentIncoming = ns_pim.currentMailAccount.item
+        currentOutgoing = ns_pim.currentOutgoingAccount.item
+        currentIncoming = ns_pim.currentIncomingAccount.item
         currentSharing =  sharing_ns.currentSharingAccount.item
 
         for account in self.data:
@@ -1423,7 +1466,7 @@ class AccountPreferencesDialog(wx.Dialog):
                             "protocol" : p,
                             "isNew" : True } )
 
-        index = self.accountsList.Append(a)
+        index = self.accountsList.Append(self.getAccountName(item))
         self.selectAccount(index)
 
 

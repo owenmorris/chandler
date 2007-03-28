@@ -51,8 +51,13 @@ class UpdateTestCase(NRVTestCase):
         
     def testUpdate(self):
         item = ContentItem(itsParent=self.sandbox)
-        self.failUnlessRaises(ValueError, item.changeEditState,
-                              Modification.updated)
+        #XXX Brian K: Items can be placed in an updated
+        # state without first being in a sent state.
+        # Users can be added or removed from a edit / update
+        # workflow. Modification state is shared by
+        # all users.
+        #self.failUnlessRaises(ValueError, item.changeEditState,
+        #                      Modification.updated)
                               
         # Mark it as sent ...
         item.changeEditState(Modification.sent)
@@ -114,15 +119,19 @@ class UpdateTestCase(NRVTestCase):
         # ... and that its lastModified got set correctly.
         self.failUnlessEqual(item.lastModified, dt)
 
-        # Check that you can't send twice
+
+
         dt += timedelta(seconds=30)
         item.changeEditState(Modification.sent, when=dt)
         self.failUnlessEqual(set(item.modifiedFlags),
                              set([Modification.sent]))
-                             
-        self.failUnlessRaises(ValueError, item.changeEditState,
-                              Modification.sent)
-        
+
+        # Edit / Update workflows support sending of
+        # the same message multiple times so
+        # commenting out this code
+        #self.failUnlessRaises(ValueError, item.changeEditState,
+        #                      Modification.sent)
+
         # Now, queue again
         dt += timedelta(seconds=30)
         item.changeEditState(Modification.queued, when=dt)
@@ -132,7 +141,7 @@ class UpdateTestCase(NRVTestCase):
         self.failUnlessEqual(item.lastModified, dt)
         self.failUnlessEqual(set(item.modifiedFlags),
                              set([Modification.queued, Modification.sent]))
-                             
+
         # ... and make sure that marking it updated clears the queued flag
         dt += timedelta(seconds=30)
         item.changeEditState(Modification.updated, when=dt)
@@ -165,18 +174,20 @@ class UpdateTestCase(NRVTestCase):
                              set([Modification.sent]))
         # ... and that its lastModified got set correctly.
         self.failUnlessEqual(item.lastModified, dt)
-        
-        # Finally, check that you can't send twice
-        self.failUnlessRaises(ValueError, item.changeEditState, 
-                              Modification.sent)
-                              
+
+        # Edit / Update workflows support sending of
+        # the same message multiple times so
+        # commenting out this code
+        #self.failUnlessRaises(ValueError, item.changeEditState, 
+        #                      Modification.sent)
+
     def testByline(self):
         # @@@ [grant] should add code here to make sure the dependence
         # on en_US locale is made explicit
-    
+
         created = datetime(2004, 12, 11, 11, tzinfo=ICUtzinfo.default)
         item = ContentItem(itsParent=self.sandbox, createdOn=created)
-        
+
         # Make sure you can't _set_ the byline
         self.failUnlessRaises(AttributeError, setattr, item, 'byline', u"Yuck!")
         

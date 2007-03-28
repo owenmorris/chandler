@@ -52,6 +52,8 @@ class DownloadVars(object):
     def __init__(self):
         self.numDownloaded   = 0
         self.numToDownload   = 0
+
+        # the total number of messages downloaded
         self.totalDownloaded = 0
 
         # The list of pending messages to download
@@ -366,6 +368,13 @@ class AbstractDownloadClient(object):
         """
         if __debug__:
             trace("catchErrors")
+
+        #Uncomment for debugging purposes
+        try:
+            raise err
+        except Exception, e:
+            #Capture the error to the logger
+            logging.exception(e)
 
         # Flag that tells the connection factory
         # that the error has been handled

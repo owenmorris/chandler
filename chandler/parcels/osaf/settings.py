@@ -94,7 +94,7 @@ def save(rv, filename):
     counter = 1
     for account in pim.mail.SMTPAccount.iterItems(rv):
         if account.isActive and account.host:
-            currentAccount = schema.ns("osaf.pim", rv).currentSMTPAccount.item
+            currentAccount = schema.ns("osaf.pim", rv).currentOutgoingAccount.item
             section_name = u"smtp_account_%d" % counter
             cfg[section_name] = {}
             cfg[section_name][u"type"] = u"smtp account"
@@ -117,7 +117,7 @@ def save(rv, filename):
             counter += 1
 
     # IMAP accounts
-    currentAccount = schema.ns("osaf.pim", rv).currentMailAccount.item
+    currentAccount = schema.ns("osaf.pim", rv).currentIncomingAccount.item
     counter = 1
     for account in pim.mail.IMAPAccount.iterItems(rv):
         if account.isActive and account.host:
@@ -136,8 +136,7 @@ def save(rv, filename):
 
             cfg[section_name][u"port"] = account.port
             cfg[section_name][u"security"] = account.connectionSecurity
-            if account.defaultSMTPAccount:
-                cfg[section_name][u"smtp"] = account.defaultSMTPAccount.itsUUID
+
             if account is currentAccount:
                 cfg[section_name][u"default"] = u"True"
 
@@ -163,7 +162,7 @@ def save(rv, filename):
             counter += 1
 
     # POP accounts
-    currentAccount = schema.ns("osaf.pim", rv).currentMailAccount.item
+    currentAccount = schema.ns("osaf.pim", rv).currentIncomingAccount.item
     counter = 1
     for account in pim.mail.POPAccount.iterItems(rv):
         if account.isActive and account.host:
@@ -183,12 +182,11 @@ def save(rv, filename):
             cfg[section_name][u"port"] = account.port
             cfg[section_name][u"security"] = account.connectionSecurity
             cfg[section_name][u"del"] = account.deleteOnDownload
-            if account.defaultSMTPAccount:
-                cfg[section_name][u"smtp"] = account.defaultSMTPAccount.itsUUID
+
             if account is currentAccount:
                 cfg[section_name][u"default"] = u"True"
             counter += 1
-            
+
     # Show timezones
     cfg[u"timezones"] = {}
     showTZ = schema.ns("osaf.pim", rv).TimezonePrefs.showUI
@@ -332,7 +330,7 @@ def restore(rv, filename, testmode=False):
             makeCurrent = False
 
             if section.has_key(u"default") and section.as_bool(u"default"):
-                accountRef = schema.ns("osaf.pim", rv).currentSMTPAccount
+                accountRef = schema.ns("osaf.pim", rv).currentOutgoingAccount
                 current = accountRef.item
 
                 if len(current.host.strip()) == 0:
@@ -354,7 +352,7 @@ def restore(rv, filename, testmode=False):
                 account = pim.mail.SMTPAccount(itsView=rv)
 
             if makeCurrent:
-                schema.ns("osaf.pim", rv).currentSMTPAccount.item = account
+                schema.ns("osaf.pim", rv).currentOutgoingAccount.item = account
 
             account.displayName = section[u"title"]
             account.host = section[u"host"]
@@ -380,7 +378,7 @@ def restore(rv, filename, testmode=False):
             makeCurrent = False
 
             if section.has_key(u"default") and section.as_bool(u"default"):
-                accountRef = schema.ns("osaf.pim", rv).currentMailAccount
+                accountRef = schema.ns("osaf.pim", rv).currentIncomingAccount
                 current = accountRef.item
 
                 if len(current.host.strip()) == 0 and \
@@ -418,7 +416,7 @@ def restore(rv, filename, testmode=False):
                 folder.delete()
 
             if makeCurrent:
-                schema.ns("osaf.pim", rv).currentMailAccount.item = account
+                schema.ns("osaf.pim", rv).currentIncomingAccount.item = account
 
             account.displayName = section[u"title"]
             account.host = section[u"host"]
@@ -434,14 +432,8 @@ def restore(rv, filename, testmode=False):
                 account.replyToAddress = emailAddress
 
             if section.has_key(u"default") and section[u"default"]:
-                accountRef = schema.ns("osaf.pim", rv).currentMailAccount
+                accountRef = schema.ns("osaf.pim", rv).currentIncomingAccount
                 accountRef.item = account
-
-            if section.has_key(u"smtp"):
-                uuid = section[u"smtp"]
-                uuid = UUID(uuid)
-                smtp = rv.findUUID(uuid)
-                account.defaultSMTPAccount = smtp
 
             if section.has_key(u"imap_folder_num"):
                 fnum = section.as_int("imap_folder_num")
@@ -480,7 +472,7 @@ def restore(rv, filename, testmode=False):
             makeCurrent = False
 
             if section.has_key(u"default") and section.as_bool(u"default"):
-                accountRef = schema.ns("osaf.pim", rv).currentMailAccount
+                accountRef = schema.ns("osaf.pim", rv).currentIncomingAccount
                 current = accountRef.item
 
                 if len(current.host.strip()) == 0 and \
@@ -509,7 +501,7 @@ def restore(rv, filename, testmode=False):
                 account = pim.mail.POPAccount(itsView=rv)
 
             if makeCurrent:
-                schema.ns("osaf.pim", rv).currentMailAccount.item = account
+                schema.ns("osaf.pim", rv).currentIncomingAccount.item = account
 
             account.displayName = section[u"title"]
             account.host = section[u"host"]
@@ -528,14 +520,8 @@ def restore(rv, filename, testmode=False):
                 account.replyToAddress = emailAddress
 
             if section.has_key(u"default") and section[u"default"]:
-                accountRef = schema.ns("osaf.pim", rv).currentMailAccount
+                accountRef = schema.ns("osaf.pim", rv).currentIncomingAccount
                 accountRef.item = account
-
-            if section.has_key(u"smtp"):
-                uuid = section[u"smtp"]
-                uuid = UUID(uuid)
-                smtp = rv.findUUID(uuid)
-                account.defaultSMTPAccount = smtp
 
     for sectionname, section in cfg.iteritems():
         if section.has_key(u"type"):

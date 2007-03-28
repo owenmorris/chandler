@@ -17,14 +17,12 @@ from application import schema
 import logging
 logger = logging.getLogger(__name__)
 
-# TODO: MailMessage (bkirsch working on this)
-
 # TODO: Missing attribute, "error" (dump/reload only)
 # TODO: Missing attribute, "read" (dump/reload only)
 
-
 text20 = eim.TextType(size=20)
 text256 = eim.TextType(size=256)
+text512 = eim.TextType(size=512)
 text1024 = eim.TextType(size=1024)
 
 aliasableUUID = eim.subtype(eim.UUIDType, size=256)
@@ -46,9 +44,13 @@ remindersFilter = eim.Filter('cid:reminders-filter@osaf.us', u"Reminders")
 nonStandardICalendarFilter = eim.Filter('cid:non-standard-ical-filter@osaf.us',
     u"Non-standard iCalendar values")
 
-# Adding this even before bkirsch lands his mail/eim work because I at least
-# need the bccFilter in place for the sub/pub dialogs:
-bccFilter = eim.Filter('cid:bcc-filter@osaf.us', u"BCC:")
+# MailStamp Filters
+bccFilter = eim.Filter('cid:bcc-filter@osaf.us', u"Bcc Addresses")
+headersFilter = eim.Filter('cid:headers-filter@osaf.us', u"Mail Headers")
+dateSentFilter = eim.Filter('cid:dateSent-filter@osaf.us', u"Date Sent")
+messageIdFilter = eim.Filter('cid:messageId-filter@osaf.us', u"MessageId")
+inReplyToFilter = eim.Filter('cid:inReplyTo-filter@osaf.us', u"InReplyTo")
+referencesFilter = eim.Filter('cid:references-filter@osaf.us', u"InReplyTo")
 
 
 class ItemRecord(eim.Record):
@@ -145,11 +147,25 @@ class MailMessageRecord(eim.Record):
     URI = "http://osafoundation.org/eim/mail/0"
 
     uuid = eim.key(ItemRecord.uuid)
-    subject = eim.field(text256)
-    to = eim.field(text256)
-    cc = eim.field(text256)
-    bcc = eim.field(text256)
-    # other headers?
+    messageId = eim.field(text256, [messageIdFilter])
+    headers = eim.field(eim.ClobType, [headersFilter])
+    # Will contain the RFC 822 from address
+    fromAddress = eim.field(text256)
+    toAddress = eim.field(text1024)
+    ccAddress = eim.field(text1024)
+    bccAddress = eim.field(text1024, [bccFilter])
+
+    # Can contain text or email addresses ie. from The Management Team
+    originators = eim.field(text1024)
+
+    # date sent is populated by MailStamp.dateSentString
+    dateSent = eim.field(text256, [dateSentFilter])
+
+    inReplyTo = eim.field(text256, [inReplyToFilter])
+
+    #The list of message-id's a mail message references
+    # can be quite long and can easily exceed 1024 characters
+    references = eim.field(eim.ClobType, [referencesFilter])
 
 
 # collection ------------------------------------------------------------------

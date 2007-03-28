@@ -12,7 +12,7 @@ class InOutCollectionTests(TestCollections.CollectionTestCase):
 
         self.inCol  = schema.ns('osaf.pim', self.view).inCollection
         self.outCol = schema.ns('osaf.pim', self.view).outCollection
-        self.meCol  = schema.ns("osaf.pim", self.view).meAddressCollection
+        self.meCol  = schema.ns("osaf.pim", self.view).meEmailAddressCollection
 
         self.m1 = MailMessage(itsView=self.view)
         self.m2 = MailMessage(itsView=self.view)

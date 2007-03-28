@@ -1494,7 +1494,7 @@ def _uniqueName(basename, existing):
 # = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =
 # Public methods that belong elsewhere:
 
-def isInboundMailSetUp(view):
+def isIncomingMailSetUp(view):
     """
     See if the IMAP/POP account has at least the minimum setup needed.
 
@@ -1503,19 +1503,16 @@ def isInboundMailSetUp(view):
     @return: True if the account is set up; False otherwise.
     """
 
-    a = pim.mail.getCurrentMailAccount(view)
+    i = pim.mail.getCurrentIncomingAccount(view)
 
-    return a is not None and a.isSetUp()
+    return i is not None and i.isSetUp()
 
 def isEmailAddressSetUp(view):
-    me = pim.mail.EmailAddress.getCurrentMeEmailAddress(view)
+    me = pim.mail.getCurrentMeEmailAddress(view)
 
-    if me and me.emailAddress:
-        return True
+    return me is not None and me.isValid()
 
-    return False
-
-def isSMTPSetUp(view):
+def isOutgoingMailSetUp(view):
     """
     See if SMTP account has at least the minimum setup needed for
     sharing (SMTP needs host).
@@ -1526,11 +1523,9 @@ def isSMTPSetUp(view):
     """
 
     # Find smtp account, and make sure server field is set
-    (smtp, replyTo) = pim.mail.getCurrentSMTPAccount(view)
-    if smtp is not None and smtp.host:
-        return True
-    return False
+    o = pim.mail.getCurrentOutgoingAccount(view)
 
+    return o is not None and o.isSetUp()
 
 def isMailSetUp(view):
     """
@@ -1541,7 +1536,7 @@ def isMailSetUp(view):
     @type view: L{repository.persistence.RepositoryView}
     @return: True if the accounts are set up; False otherwise.
     """
-    if isInboundMailSetUp(view) and isSMTPSetUp(view) and \
+    if isIncomingMailSetUp(view) and isOutgoingMailSetUp(view) and \
        isEmailAddressSetUp(view):
         return True
     return False
@@ -1566,21 +1561,21 @@ def ensureAccountSetUp(view, sharing=False, inboundMail=False,
     while True:
 
         DAVReady = not sharing or isWebDAVSetUp(view)
-        InboundMailReady = not inboundMail or isInboundMailSetUp(view)
-        SMTPReady = not outboundMail or isSMTPSetUp(view)
+        IncomingMailReady = not inboundMail or isIncomingMailSetUp(view)
+        OutgoingMailReady = not outboundMail or isOutgoingMailSetUp(view)
         EmailReady = not emailAddress or isEmailAddressSetUp(view)
 
-        if DAVReady and InboundMailReady and SMTPReady and EmailReady:
+        if DAVReady and IncomingMailReady and OutgoingMailReady and EmailReady:
             return True
 
         msg = _(u"The following account(s) need to be set up:\n\n")
         if not DAVReady:
             msg += _(u" - WebDAV (collection publishing)\n")
-        if not InboundMailReady:
+        if not IncomingMailReady:
             msg += _(u" - IMAP/POP (inbound email)\n")
         if not EmailReady:
             msg += _(u" - At least one email address must be configured\n")
-        if not SMTPReady:
+        if not OutgoingMailReady:
             msg += _(u" - SMTP (outbound email)\n")
         msg += _(u"\nWould you like to enter account information now?")
 
@@ -1588,11 +1583,11 @@ def ensureAccountSetUp(view, sharing=False, inboundMail=False,
         if response == False:
             return False
 
-        if not InboundMailReady:
-            account = pim.mail.getCurrentMailAccount(view)
-        elif not SMTPReady:
-            """ Returns the defaultSMTPAccount or None"""
-            account = pim.mail.getCurrentSMTPAccount(view)
+        if not IncomingMailReady:
+            account = pim.mail.getcurrentIncomingAccount(view)
+        elif not OutgoingMailReady:
+            """ Returns the default SMTP Account or None"""
+            account = pim.mail.getcurrentOutgoingAccount(view)
         else:
             account = schema.ns('osaf.sharing', view).currentSharingAccount.item
 

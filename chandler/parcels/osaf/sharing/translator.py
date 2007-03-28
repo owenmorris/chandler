@@ -20,6 +20,8 @@ from osaf.sharing import (
 )
 from PyICU import ICUtzinfo
 import time
+import email
+from email import Message, Utils
 from datetime import datetime, date, timedelta
 from decimal import Decimal
 
@@ -32,7 +34,9 @@ from osaf.pim.calendar.Calendar import Occurrence, EventStamp
 from osaf.pim.calendar.Recurrence import RecurrenceRuleSet, RecurrenceRule
 from dateutil.rrule import rrulestr
 from chandlerdb.util.c import UUID
+from osaf.pim.mail import EmailAddress
 from osaf.usercollections import UserCollection
+from osaf.mail.utils import getEmptyDate
 
 __all__ = [
     'SharingTranslator',
@@ -52,6 +56,34 @@ oneDay = timedelta(1)
 
 noChangeOrMissing = (eim.NoChange, eim.Missing)
 emptyValues = (eim.NoChange, eim.Missing, None)
+
+def getEmailAddress(view, record):
+    name, email = Utils.parseaddr(record)
+
+    address = EmailAddress.findEmailAddress(view, email)
+
+    if address is None:
+        address = EmailAddress(itsView=view, emailAddress=email,
+                                        fullName=name)
+
+    return address
+
+
+def addEmailAddresses(view, col, record):
+    #, sep list
+    addrs = record.split(u", ")
+
+    for addr in addrs:
+        name, email = Utils.parseaddr(addr)
+
+        address = EmailAddress.findEmailAddress(view, email)
+
+        if address is None:
+            address = EmailAddress(itsView=view, emailAddress=email,
+                                        fullName=name)
+
+        col.append(address)
+
 
 def with_nochange(value, converter, view=None):
     if value in (eim.NoChange, eim.Missing):
@@ -510,6 +542,13 @@ class SharingTranslator(eim.Translator):
                     item.lastModification = \
                         self.code_to_modaction[record.action]
 
+                #XXX Brian K: The modified flags were not getting set properly
+                # without this addition.
+                item.changeEditState(item.lastModification,
+                                     item.lastModifiedBy,
+                                     item.lastModified)
+
+
         # Note: ModifiedByRecords are exported by item
 
 
@@ -579,6 +618,202 @@ class SharingTranslator(eim.Translator):
             pim.TaskStamp):
             pim.TaskStamp(item).remove()
 
+
+
+    #MailMessageRecord
+    @model.MailMessageRecord.importer
+    def import_mail(self, record):
+        #TODO: How to represent attachments?
+
+        mail = self.loadItemByUUID(
+                   record.uuid,
+                   pim.MailStamp,
+                   dateSentString=record.dateSent,
+                   )
+
+        view = mail.itsItem.itsView
+
+        if record.messageId not in noChangeOrMissing:
+            mail.messageId = record.messageId
+
+        if record.inReplyTo not in noChangeOrMissing:
+            mail.inReplyTo = record.inReplyTo
+
+        if record.headers not in noChangeOrMissing:
+            mail.headers = {}
+            headers = record.headers.split(u"\n")
+
+            for header in headers:
+                key, val = header.split(u": ", 1)
+
+                mail.headers[key] = val
+
+        if record.toAddress not in noChangeOrMissing:
+            mail.toAddress = []
+            if record.toAddress:
+                addEmailAddresses(view, mail.toAddress, record.toAddress)
+
+        if record.ccAddress not in noChangeOrMissing:
+            mail.ccAddress = []
+
+            if record.ccAddress:
+                addEmailAddresses(view, mail.ccAddress, record.ccAddress)
+
+        if record.bccAddress not in noChangeOrMissing:
+            mail.bccAddress = []
+
+            if record.bccAddress:
+                addEmailAddresses(view, mail.bccAddress, record.bccAddress)
+
+        if record.fromAddress not in noChangeOrMissing:
+
+           if record.fromAddress:
+                mail.fromAddress = getEmailAddress(view, record.fromAddress)
+           else:
+               mail.fromAddress = None
+
+        # text or email addresses in Chandler from field
+        if record.originators not in noChangeOrMissing:
+            if record.originators:
+                res = EmailAddress.parseEmailAddresses(view, record.originators)
+
+                mail.originators = [ea for ea in res[1]]
+            else:
+                mail.originators = []
+
+        # references mail message id list
+        if record.references not in noChangeOrMissing:
+            mail.referencesMID = []
+
+            refs = record.references.split()
+
+            for ref in refs:
+                ref = ref.strip()
+
+                if ref: mail.referencesMID.append(ref)
+
+        if record.dateSent not in noChangeOrMissing:
+            if record.dateSent.strip():
+                mail.dateSentString = record.dateSent
+
+                timestamp = Utils.parsedate_tz(record.dateSent)
+                mail.dateSent = datetime.fromtimestamp(Utils.mktime_tz(timestamp), \
+                                                       ICUtzinfo.default)
+            else:
+                mail.dateSent = getEmptyDate()
+                mail.dateSentString = u""
+
+
+    @eim.exporter(pim.MailStamp)
+    def export_mail(self, mail):
+        headers = []
+
+        for header in mail.headers:
+            headers.append(u"%s: %s" % (header, mail.headers[header]))
+
+        if headers:
+            headers = u"\n".join(headers)
+        else:
+            headers = None
+
+        toAddress = []
+
+        for addr in mail.toAddress:
+            toAddress.append(addr.format())
+
+        if toAddress:
+            toAddress = u", ".join(toAddress)
+        else:
+            toAddress = None
+
+        ccAddress = []
+
+        for addr in mail.ccAddress:
+            ccAddress.append(addr.format())
+
+        if ccAddress:
+            ccAddress = u", ".join(ccAddress)
+        else:
+            ccAddress = None
+
+        bccAddress = []
+
+        for addr in mail.bccAddress:
+            bccAddress.append(addr.format())
+
+        if bccAddress:
+            bccAddress = u", ".join(bccAddress)
+        else:
+            bccAddress = None
+
+        originators = []
+
+        if hasattr(mail, "originators"):
+            for addr in mail.originators:
+                originators.append(addr.format())
+
+
+        if originators:
+            originators = u", ".join(originators)
+        else:
+            originators = None
+
+        if hasattr(mail, "fromAddress"):
+            fromAddress = mail.fromAddress.format()
+        else:
+            fromAddress = None
+
+
+        references = []
+
+        for ref in mail.referencesMID:
+            ref = ref.strip()
+
+            if ref:
+                references.append(ref)
+
+        if references:
+            references = u" ".join(references)
+        else:
+            references = None
+
+        if hasattr(mail, "inReplyTo"):
+            inReplyTo = mail.inReplyTo
+        else:
+            inReplyTo = None
+
+        if hasattr(mail, "messageId"):
+            messageId = mail.messageId
+        else:
+            messageId = None
+
+        if hasattr(mail, "dateSentString"):
+            dateSent = mail.dateSentString
+        else:
+            dateSent = None
+
+
+        yield model.MailMessageRecord(
+            mail.itsItem.itsUUID,  # uuid
+            messageId,             # messageId
+            headers,               # headers
+            fromAddress,           # fromAddress
+            toAddress,             # toAddress
+            ccAddress,             # ccAddress
+            bccAddress,            # bccAddress
+            originators,           # originators
+            dateSent,              # dateSent
+            inReplyTo,             # inReplyTo
+            references,            # references
+        )
+
+
+    @model.MailMessageRecord.deleter
+    def delete_mail(self, record):
+        item = self.rv.findUUID(record.uuid)
+        if item is not None and item.isLive() and \
+           pim.has_stamp(item, pim.MailStamp):
+            pim.MailStamp(item).remove()
 
 
     # EventRecord -------------

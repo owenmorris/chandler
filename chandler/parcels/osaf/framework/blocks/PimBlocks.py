@@ -155,6 +155,10 @@ class FocusEventHandlers(Item):
             # account picker popup.
             if has_stamp(item, Mail.MailStamp):
                 mailObject = Mail.MailStamp(item)
+                #XXX this should raise an error instead of
+                # adding the me address since that results
+                # in the incorrect sender getting added
+                # which can confuse user
                 if unicode(mailObject.fromAddress).strip() == u'':
                     mailObject.fromAddress = mailObject.getCurrentMeEmailAddress()
 
@@ -269,14 +273,23 @@ class FocusEventHandlers(Item):
         #selection = self.__getSelectedItems()
         #for selectedItem in selection:
         if has_stamp(selectedItem, Mail.MailStamp):
-            # If it is not an outbound message then
-            # it can be replied to or forwarded
-            return not Mail.MailStamp(selectedItem).isOutbound
+            # If the message was received at one point
+            # via the mail service then it can be replied to.
+            # The notion of inbound vs. outbound is no longer
+            # relevant with Edit / Update where a message
+            # can be both.
+            return Mail.MailStamp(selectedItem).viaMailService
         return False
 
     def onReplyOrForwardEvent(self, replyMethod):
         pim_ns = schema.ns('osaf.pim', self.itsView)
         main = schema.ns("osaf.views.main", self.itsView)
+
+        if main.MainView.trashCollectionSelected():
+            # Items can not be created in the Trash
+            # collection
+            return
+
         selection = self.__getSelectedItems()
         replyMessage = None
         replyCollection = None
@@ -288,8 +301,26 @@ class FocusEventHandlers(Item):
                                            Mail.MailStamp(selectedItem))
         # select the outbox collection if there was a reply
         if replyMessage is not None:
-            sidebar = Block.Block.findBlockByName ("Sidebar")
-            sidebar.select(pim_ns.outCollection)
+            inCollection = pim_ns.inCollection
+
+            if main.MainView.getSidebarSelectedCollection() is inCollection:
+                # Replys and Forwards can not be created in the
+                # In collection so move the selected sidebard collection
+                # to the Dashboard
+                sidebar = Block.Block.findBlockByName ("Sidebar")
+                sidebar.select(pim_ns.allCollection)
+
+            #add to dashboard by making mine
+            pim_ns.allCollection.add(replyMessage)
+            replyMessage.mine = True
+
+            collection = main.MainView.getSidebarSelectedCollection()
+
+            # Add the item to the current collection
+            collection.add(replyMessage)
+
+            self.itsView.commit()
+
             # select the last message replied/forwarded
             main.MainView.selectItems([replyMessage])
             # by default the "from" field is selected, which looks funny;

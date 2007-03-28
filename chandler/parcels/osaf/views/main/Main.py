@@ -42,7 +42,6 @@ from osaf.usercollections import UserCollection
 import osaf.pim.generate as generate
 
 from osaf.mail import constants
-import osaf.mail.sharing as MailSharing
 import twisted.internet.error
 
 from util import GenerateItemsFromFile
@@ -84,65 +83,34 @@ class MainView(View):
     onSelectAllEventUpdateUI = _Method_CantEdit
 
     def displayMailError (self, message, account):
-        application.dialogs.Util.mailError(wx.GetApp().mainFrame, self.itsView, message, account)
+        application.dialogs.Util.mailAccountError(wx.GetApp().mainFrame,
+                                                  self.itsView, message, account)
 
-    def displaySMTPSendError(self, mailMessage):
+    def displaySMTPSendError(self, mailMessage, account):
         """
         Called when the SMTP Send generated an error.
         """
-        if mailMessage is not None and mailMessage.isOutbound:
-            """
-            Maybe we should select the message in CPIA?
-            """
-
-            errorStrings = []
-
-            for error in mailMessage.deliveryExtension.deliveryErrors:
-                errorStrings.append(error.errorString)
-
-            if len (errorStrings) == 0:
+        if mailMessage is not None:
+            if getattr(mailMessage.itsItem, "error", None) is None:
                 errorMessage = _(u"An unknown error has occurred")
             else:
                 errorMessage = _(u"An error occurred while sending:\n%(translatedErrorStrings)s") % {
-                                  'translatedErrorStrings': u', '.join(errorStrings)}
-
-            mailMessage.itsItem.error = u', '.join(errorStrings)
-            mailMessage.itsItem.itsView.commit()
+                                  'translatedErrorStrings': mailMessage.itsItem.error}
 
             """
             Clear the status message.
             """
             self.setStatusMessage(u'')
-            self.displayMailError (errorMessage, mailMessage.parentAccount)
+            self.displayMailError (errorMessage, account)
 
-    def displaySMTPSendSuccess (self, mailMessage):
+    def displaySMTPSendSuccess (self, mailMessage, account):
         """
         Called when the SMTP Send was successful.
         """
-        if mailMessage is not None and mailMessage.isOutbound:
+        if mailMessage is not None:
             self.setStatusMessage (constants.UPLOAD_SENT % \
-                                   {'accountName': mailMessage.parentAccount.displayName,
+                                   {'accountName': account.displayName,
                                    'subject': mailMessage.subject})
-            
-        # If this was a sharing invitation, find its collection and remove the
-        # successfully-notified addressees from the invites list.
-        try:
-            (url, collectionName) = MailSharing.getSharingHeaderInfo(mailMessage)
-        except KeyError:
-            pass
-        else:
-            share = sharing.findMatchingShare(self.itsView, url)
-            itemCollection = share.contents
-
-            for addresseeContact in mailMessage.toAddress:
-                invitation = mail.CollectionInvitation(itemCollection)
-                if addresseeContact in invitation.invitees:
-                    invitation.invitees.remove(addresseeContact)
-
-        # Probably need to set who here, to point to the
-        # correct email address?
-        mailMessage.itsItem.changeEditState(Modification.sent)
-        mailMessage.itsItem.itsView.commit()
 
     def onAboutEvent(self, event):
         # The "Help | About Chandler..." menu item
@@ -166,21 +134,39 @@ class MainView(View):
         AccountPreferences.ShowAccountPreferencesDialog(wx.GetApp().mainFrame,
                                                         rv=self.itsView)
 
+    def trashCollectionSelected(self):
+        trashCollection = schema.ns("osaf.pim", self).trashCollection
+
+        if self.getSidebarSelectedCollection() is trashCollection:
+            msg = _(u"New items cannot be created in the Trash collection.")
+
+            promptOk(msg)
+            return True
+
+        return False
+
+
     def onNewItemEvent(self, event):
         # Create a new Content Item
-        
+
+        if self.trashCollectionSelected():
+            # Items can not be created in the
+            # trash collectioon
+            return
+
+
         allCollection = schema.ns('osaf.pim', self).allCollection
         sidebar = Block.findBlockByName("Sidebar")
         classParameter = event.classParameter
 
         if classParameter is MissingClass:
             classParameter = sidebar.filterClass
-            
+
         if issubclass(classParameter, pim.Stamp):
             stampClass = classParameter
         else:
             stampClass = MissingClass
-             
+
         # onNewItem method takes precedence of classParameter
         onNewItemMethod = getattr(event, "onNewItem", None)
         if onNewItemMethod is not None:
@@ -190,12 +176,12 @@ class MainView(View):
         else:
             # A classParameter of MissingClass stamps a Note with the sidebar's
             # filterClass
-        
+
             if classParameter is MissingClass or stampClass is not MissingClass:
                 kindToCreate = pim.Note.getKind(self.itsView)
             else:
                 kindToCreate = classParameter.getKind(self.itsView)
-            
+
             newItem = kindToCreate.newItem(None, None)
 
             if stampClass is not MissingClass:
@@ -217,7 +203,7 @@ class MainView(View):
             not UserCollection(collection).canAdd):
             # Tell the sidebar we want to go to the All collection
             collection = allCollection
-        
+
         # The stampClass is used to specify the viewer
         sidebar.setPreferredClass(stampClass)
 
@@ -288,7 +274,7 @@ class MainView(View):
         searchKinds = (_(u'search'), _(u's'),
                        _(u'find'), _(u'f'),
                        _(u'lucene'), _(u'l'))
-        
+
         def processQuickEntry(self, command):
             """
             Parses the text in the quick item entry widget in the
@@ -296,6 +282,10 @@ class MainView(View):
             to the appropriate collection. Also parses the date/time info
             and sets the start/end time or the reminder time.
             """
+            if self.trashCollectionSelected():
+                # Items can not be created in the
+                # trash collectioon
+                return
             
             msgFlag = False
             eventFlag = False
@@ -784,16 +774,39 @@ class MainView(View):
         if pim.has_stamp(item, pim.EventStamp):
             # for preview, always send the full recurrence set
             item = pim.EventStamp(item).getMaster().itsItem
+
         mailToSend = mail.MailStamp(item)
 
+        code, valid, invalid = mailToSend.getSendableState()
+
+        if code == 0:
+            # 0 = no valid addresses
+            err = _(u"Message can not be sent. You have not entered any valid email addresses.")
+            application.dialogs.Util.ok(wx.GetApp().mainFrame, _(u"Mail Error"), err)
+            return
+
+        elif code == 1:
+            # 1 = some valid addresses
+            if application.dialogs.Util.mailAddressError(wx.GetApp().mainFrame):
+                # Method returns True when the user selects to fix the bad
+                # addresses
+                return
+
+        elif code == 2:
+            # 2 = No to addresses
+            err = _(u"Message can not be sent. A to address is required.")
+            application.dialogs.Util.ok(wx.GetApp().mainFrame, _(u"Mail Error"), err)
+            return
+
+
         # determine the account through which we'll send this message;
-        # we'll use default SMTP account associated with the first account that's
-        # associated with the message's "from" address.
-        fromAddress = mailToSend.fromAddress
-        assert fromAddress is not None and fromAddress.accounts is not None
-        downloadAccount = fromAddress.accounts.first()
-        account = (downloadAccount is not None and downloadAccount.defaultSMTPAccount
-                   or mail.getCurrentSMTPAccount(self.itsView)[0])
+        # we'll use the first outgoing account associated with the message's
+        # sender or the default outgoing account
+        sender = mailToSend.getSender()
+        assert sender is not None and sender.accounts is not None
+        outgoingAccount = sender.accounts.first()
+        account = (outgoingAccount is not None and outgoingAccount
+                   or mail.getCurrentOutgoingAccount(self.itsView))
 
         # Now send the mail
         smtpInstance = Globals.mailService.getSMTPInstance(account)
@@ -867,15 +880,6 @@ class MainView(View):
                 share.delete()
 
             return
-
-        # Send out sharing invites
-        self.setStatusMessage (_(u"inviting %(inviteList)s") % {'inviteList': ", ".join(inviteeStringsList)})
-        MailSharing.sendInvitation(itemCollection.itsView.repository,
-                                   share.conduit.getLocation(), itemCollection,
-                                   inviteeList)
-
-        # Done
-        self.setStatusMessage (_(u"Sharing initiated."))
 
     def onStartProfilerEvent(self, event):
         Block.profileEvents = True
@@ -1696,13 +1700,13 @@ class MainView(View):
 
         # Check account status:
         DAVReady = sharing.isWebDAVSetUp(view)
-        inboundMailReady = sharing.isInboundMailSetUp(view)
+        incomingMailReady = sharing.isIncomingMailSetUp(view)
 
         # Any active shares?  (Even if default WebDAV account not set up,
         # the user could have subscribed with tickets)
         activeShares = sharing.checkForActiveShares(view)
 
-        if not (DAVReady or activeShares or inboundMailReady):
+        if not (DAVReady or activeShares or incomingMailReady):
             # Nothing is set up -- nudge the user to set up a sharing account
             sharing.ensureAccountSetUp(view, inboundMail=True, sharing=True)
             # Either the user has created a sharing account, or they haven't,

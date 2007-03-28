@@ -157,12 +157,12 @@ def promptUser(title, message, defaultValue=""):
 
     return value
 
-def mailError(frame, view, message, account):
+def mailAccountError(frame, view, message, account):
     # importing AccountPreferences imports osaf.sharing, but Util is loaded
     # by a sharing dependency, so to avoid import loops, only import
     # AccountPreferences when we need it
     import AccountPreferences
-    win = mailErrorDialog(frame, message, account)
+    win = MailAccountErrorDialog(frame, message)
     win.CenterOnScreen()
     val = win.ShowModal()
 
@@ -171,21 +171,32 @@ def mailError(frame, view, message, account):
     if val == wx.ID_OK:
        AccountPreferences.ShowAccountPreferencesDialog(frame, account, view)
 
-class mailErrorDialog(wx.Dialog):
-    def __init__(self, parent, message, account):
 
+def mailAddressError(frame):
+    message = _(u"You have addressed this message to invalid email addresses.")
+    win = MailAddressErrorDialog(frame, message)
+    win.CenterOnScreen()
+    val = win.ShowModal()
+
+    win.Destroy()
+
+    if val == wx.ID_OK:
+        return False
+
+    return True
+
+class MailErrorBaseDialog(wx.Dialog):
+    def __init__(self, parent, message):
         size = wx.DefaultSize
         pos = wx.DefaultPosition
         style = wx.DEFAULT_DIALOG_STYLE
-
-        self.account = account
 
         # Instead of calling wx.Dialog.__init__ we precreate the dialog
         # so we can set an extra style that must be set before
         # creation, and then we create the GUI dialog using the Create
         # method.
         pre = wx.PreDialog()
-        pre.Create(parent, -1, account.displayName, pos, size, style)
+        pre.Create(parent, -1, _(u"Mail Error"), pos, size, style)
 
         # This next step is the most important, it turns this Python
         # object into the real wrapper of the dialog (instead of pre)
@@ -200,18 +211,35 @@ class mailErrorDialog(wx.Dialog):
 
         box = wx.BoxSizer(wx.HORIZONTAL)
 
-        btn = wx.Button(self, wx.ID_CANCEL)
-        btn.SetDefault()
-        box.Add(btn, 0, wx.ALIGN_CENTRE|wx.ALL, 5)
-
-        btn = wx.Button(self, wx.ID_OK, _(u" Edit Account Settings "))
-        box.Add(btn, 0, wx.ALIGN_CENTRE|wx.ALL, 5)
+        self.addButtons(box)
 
         sizer.Add(box, 0, wx.ALIGN_RIGHT|wx.ALIGN_CENTER_VERTICAL|wx.ALL, 5)
 
         self.SetSizer(sizer)
         self.SetAutoLayout(True)
         sizer.Fit(self)
+
+    def addButtons(self, sizer):
+        raise NotImplementedError()
+
+class MailAccountErrorDialog(MailErrorBaseDialog):
+    def addButtons(self, sizer):
+        btn = wx.Button(self, wx.ID_CANCEL)
+        btn.SetDefault()
+        sizer.Add(btn, 0, wx.ALIGN_CENTRE|wx.ALL, 5)
+
+        btn = wx.Button(self, wx.ID_OK, _(u" Edit Account Settings "))
+        sizer.Add(btn, 0, wx.ALIGN_CENTRE|wx.ALL, 5)
+
+
+class MailAddressErrorDialog(MailErrorBaseDialog):
+    def addButtons(self, sizer):
+        btn = wx.Button(self, wx.ID_CANCEL, _(u"Fix email addresses"))
+        btn.SetDefault()
+        sizer.Add(btn, 0, wx.ALIGN_CENTRE|wx.ALL, 5)
+
+        btn = wx.Button(self, wx.ID_OK, _(u"Send anyway"))
+        sizer.Add(btn, 0, wx.ALIGN_CENTRE|wx.ALL, 5)
 
 
 class promptUserDialog(wx.Dialog):
@@ -363,7 +391,7 @@ def displayMeAddressDebugWindow(frame, view):
 
     list = []
 
-    meAddressCollection = schema.ns("osaf.pim", view).meAddressCollection
+    meAddressCollection = schema.ns("osaf.pim", view).meEmailAddressCollection
 
     for eAddr in meAddressCollection:
         list.append(eAddr.emailAddress)

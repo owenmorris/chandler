@@ -850,7 +850,7 @@ class UITestItem(object):
             
             sent = None
             #check if an SMTP account is defined
-            account = Mail.getCurrentSMTPAccount(App_ns.itsView)[0]
+            account = Mail.getCurrentOutgoingAccount(App_ns.itsView)
             if account._values['host']=='':
                 self.logger.report(False, name="check if an SMTP account is defined", comment="(On SMTP account) - Host not defined")
             else:
@@ -859,14 +859,11 @@ class UITestItem(object):
                 # wait for mail delivery    
                 while not sent:
                     wx.GetApp().Yield()
-                    try:
-                        sent = mailMessage.deliveryExtension.state
-                    except AttributeError:
-                        sent = None
+                    sent = mailMessage.isSent()
             if timeInfo:
                 self.logger.endAction(True)
             #check mail delivery
-            if sent == "SENT":
+            if sent:
                 self.logger.report(True, name="(On sending message Checking)")
             else:
                 self.logger.report(False, name="(On sending message Checking)")
@@ -1471,7 +1468,7 @@ class UITestAccounts:
             elif type == "OUTGOING":
                 ns_pim = schema.ns('osaf.pim', item.itsView)
 
-                if item != ns_pim.currentSMTPAccount.item:
+                if item != ns_pim.currentOutgoingAccount.item:
                     continue
 
                 self.window.selectAccount(pos)
@@ -1480,7 +1477,7 @@ class UITestAccounts:
             elif type == "INCOMING":
                 ns_pim = schema.ns('osaf.pim', item.itsView)
 
-                if item != ns_pim.currentMailAccount.item:
+                if item != ns_pim.currentIncomingAccount.item:
                     continue
 
                 self.window.selectAccount(pos)

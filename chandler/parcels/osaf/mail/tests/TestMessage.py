@@ -41,7 +41,7 @@ From: bill@home.net
 Cc: jake@now.com
 Date: Mon, 9 Aug 2004 13:55:15 -0700
 Content-Length: 75
-Content-Transfer-Encoding: 8bit
+Content-Transfer-Encoding: 7bit
 Mime-Version: 1.0
 Received: from [192.168.101.37] (w002.z065106067.sjc-ca.dsl.cnc.net [65.106.67.2]) by kahuna.test.com (8.12.8/8.12.8) with ESMTP id i7GKWWpo017020; Mon, 16 Aug 2004 13:32:32 -0700
 References: <9CF0AF12-ED6F-11D8-B611-000A95B076C2@test.com> <7542F892-EF9F-11D8-8048-000A95CA1ECC@test.com> <07A5D499-EFA1-11D8-9F44-000A95D9289E@test.com> <2EE66978-EFB1-11D8-8048-000A95CA1ECC@test.com>
@@ -78,7 +78,7 @@ Date: Fri, 08 Sep 2006 09:16:37 -0700
 From: sir.strawberry@gmail.com
 To: capt.crunch@yahoo.com
 User-Agent: Chandler (0.7alpha3)
-Content-Transfer-Encoding: 8bit
+Content-Transfer-Encoding: 7bit
 Subject: Interview w/ Count Chocula
 MIME-Version: 1.0
 Content-Type: multipart/mixed; boundary="===============0937948688=="
@@ -157,7 +157,7 @@ END:VCALENDAR
         m.subject = "test mail"
         m.headers['Content-Length'] = "75"
         m.headers['Content-Type'] = "text/plain; charset=utf-8; format=flowed"
-        m.headers['Content-Transfer-Encoding'] = "8bit"
+        m.headers['Content-Transfer-Encoding'] = "7bit"
         m.headers['Mime-Version'] = "1.0"
 
         m.headers['Received'] = "from [192.168.101.37] (w002.z065106067.sjc-ca.dsl.cnc.net [65.106.67.2]) by kahuna.test.com (8.12.8/8.12.8) with ESMTP id i7GKWWpo017020; Mon, 16 Aug 2004 13:32:32 -0700"
@@ -237,7 +237,6 @@ END:VCALENDAR
         self.assertEquals(mOne['From'], mTwo['From'])
         self.assertEquals(mOne['To'], mTwo['To'])
         self.assertEquals(mOne['Cc'], mTwo['Cc'])
-        self.assertEquals(mOne['Content-Length'], mTwo['Content-Length'])
         self.assertEquals(mOne['Content-Transfer-Encoding'], mTwo['Content-Transfer-Encoding'])
         self.assertEquals(mOne['Mime-Version'], mTwo['Mime-Version'])
         self.assertEquals(mOne['Subject'], mTwo['Subject'])
@@ -250,7 +249,18 @@ END:VCALENDAR
             if dOne[i] != dTwo[i]:
                self.fail("Dates do not match %s != %s" % (mOne['Date'], mTwo['Date']))
 
-        self.assertEquals(mOne.get_payload(), mTwo.get_payload())
+        if mOne.get_content_maintype() == 'multipart':
+            payloadOne = mOne.get_payload()[0].get_payload(decode=True)
+        else:
+            payloadOne = mOne.get_payload(decode=True)
+
+        if mTwo.get_content_maintype() == 'multipart':
+            payloadTwo = mTwo.get_payload()[0].get_payload(decode=True)
+        else:
+            payloadTwo = mTwo.get_payload(decode=True)
+            payloadTwo += "\r\n\r\n"
+
+        self.assertEquals(payloadOne, payloadTwo)
 
     #XXX: This needs work
     def assertListEquals(self, list1, list2):
@@ -261,7 +271,7 @@ END:VCALENDAR
          for i in range(size):
              self.assertEquals(list1[i], list2[i])
 
-    #XXX:needs woek
+    #XXX: This needs work
     def assertDictEquals(dict1, dict2):
          self.assertEquals(dict1, dict)
          self.assertEquals(dict2, dict)
@@ -290,7 +300,7 @@ END:VCALENDAR
         self.assertTrue(has_stamp(eventMessage, EventStamp))
 
     def testMessageObjectToKind(self):
-        mailKind = message.messageObjectToKind(self.rep.view, self.__getMessageObject(), self.__mail)
+        mailKind = message._messageObjectToKind(self.rep.view, self.__getMessageObject(), self.__mail)
 
         self.assertNotEqual(mailKind, None)
 
@@ -303,7 +313,7 @@ END:VCALENDAR
         self.__compareMessageObjects(mailObject, self.__getMessageObject())
 
     def testKindToMessageObject(self):
-        messageObject = message.kindToMessageObject(self.__getMailMessage())
+        messageObject = message._kindToMessageObject(self.__getMailMessage())
 
         self.__compareMessageObjects(messageObject, self.__getMessageObject())
 

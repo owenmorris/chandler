@@ -50,18 +50,6 @@ class MailTest(TestDomainModel.DomainModelTestCase):
         self.assertEqual(Mail.SMTPAccount.getKind(view),
                          view.find(Path(mailPath, 'SMTPAccount')))
 
-        self.assertEqual(Mail.MailDeliveryError.getKind(view),
-                         view.find(Path(mailPath, 'MailDeliveryError')))
-
-        self.assertEqual(Mail.MailDeliveryBase.getKind(view),
-                         view.find(Path(mailPath, 'MailDeliveryBase')))
-
-        self.assertEqual(Mail.SMTPDelivery.getKind(view),
-                         view.find(Path(mailPath, 'SMTPDelivery')))
-
-        self.assertEqual(Mail.IMAPDelivery.getKind(view),
-                         view.find(Path(mailPath, 'IMAPDelivery')))
-
         self.assertEqual(schema.itemFor(Mail.MIMEBase, view),
                          view.find(Path(mailPath, 'MIMEBase')))
 
@@ -91,13 +79,7 @@ class MailTest(TestDomainModel.DomainModelTestCase):
         accountBaseItem = Mail.AccountBase("accountBaseItem", itsView=view)
         imapAccountItem = Mail.IMAPAccount("imapAccountItem", itsView=view)
         smtpAccountItem = Mail.SMTPAccount("smtpAccountItem", itsView=view)
-        mailDeliveryErrorItem = Mail.MailDeliveryError("mailDeliveryErrorItem",
-                                                       itsView=view)
-        mailDeliveryBaseItem = Mail.MailDeliveryBase("mailDeliveryBaseItem",
-                                                     itsView=view)
-        smtpDeliveryItem = Mail.SMTPDelivery("smtpDeliveryItem", itsView=view)
-        imapDeliveryItem = Mail.IMAPDelivery("imapDeliveryItem", itsView=view)
-        
+
         mimeBaseObject = Mail.MIMEBase("mimeBaseItem", itsView=view)
         mimeNoteObject = Mail.MIMENote("mimeNoteItem", itsView=view)
         mailMessageObject = Mail.MailMessage("mailMessageItem", itsView=view)
@@ -116,18 +98,6 @@ class MailTest(TestDomainModel.DomainModelTestCase):
 
         self.assertEqual(smtpAccountItem.itsKind,
                          Mail.SMTPAccount.getKind(view))
-
-        self.assertEqual(mailDeliveryErrorItem.itsKind,
-                         Mail.MailDeliveryError.getKind(view))
-
-        self.assertEqual(mailDeliveryBaseItem.itsKind,
-                         Mail.MailDeliveryBase.getKind(view))
-
-        self.assertEqual(smtpDeliveryItem.itsKind,
-                         Mail.SMTPDelivery.getKind(view))
-
-        self.assertEqual(imapDeliveryItem.itsKind,
-                         Mail.IMAPDelivery.getKind(view))
 
         self.failUnless(isinstance(mimeBaseObject, Mail.MIMEBase))
         self.failUnless(isinstance(mimeNoteObject, Mail.MIMENote))
@@ -150,13 +120,6 @@ class MailTest(TestDomainModel.DomainModelTestCase):
         smtpAccountItem = self.__populateAccount(smtpAccountItem)
         imapAccountItem = self.__populateAccount(imapAccountItem)
 
-        mailDeliveryErrorItem.errorCode = 25
-        mailDeliveryErrorItem.errorString = uw("Test String")
-        mailDeliveryErrorItem.errorDate = datetime.now(ICUtzinfo.default)
-
-        smtpDeliveryItem.state = "DRAFT"
-        smtpDeliveryItem.deliveryError = mailDeliveryErrorItem
-        imapDeliveryItem.uid = 0
         mimeBaseObject.mimeType = "SGML"
         mimeBinaryObject.mimeType = "APPLICATION"
         mimeTextObject.mimeType = "PLAIN"
@@ -202,7 +165,7 @@ class MailTest(TestDomainModel.DomainModelTestCase):
             account.fullName = uw("test")
             account.replyToAddress = Mail.EmailAddress(itsView=account.itsView)
             account.replyToAddress.emailAddress = "test@test.com"
-            
+
 class MailWhoTestCase(TestDomainModel.DomainModelTestCase):
     def setUp(self):
         super(MailWhoTestCase, self).setUp()
@@ -215,17 +178,17 @@ class MailWhoTestCase(TestDomainModel.DomainModelTestCase):
     def testWho(self):
         msg = Mail.MailMessage(itsView=self.rep.view, subject=u"Hi!")
         msg.toAddress=[self.address]
-        
+
         # Make sure the 'displayWho' field was set correctly
         self.failUnlessEqual(msg.itsItem.displayWho,
                              u"Grant Baillie <grant@example.com>")
-       
+
          # Now, remove the stamp...
         msg.remove()
-        
+
         # ... and check the who field is gone
         self.failUnless (not hasattr (msg.itsItem, 'displayWho'))
-                             
+
     def testNoStamp(self):
         # Make sure that, even if we create a Note with a toAddress,
         # that doesn't show up in the who field
@@ -233,7 +196,7 @@ class MailWhoTestCase(TestDomainModel.DomainModelTestCase):
         notStampedMsg = Mail.MailStamp(note)
         notStampedMsg.toAddress=[self.address]
         self.failUnless (not hasattr (notStampedMsg.itsItem, 'displayWho'))
-        
+
 class CommunicationStatusTestCase(TestDomainModel.DomainModelTestCase):
     def setUp(self):
         super(CommunicationStatusTestCase, self).setUp()
@@ -243,9 +206,9 @@ class CommunicationStatusTestCase(TestDomainModel.DomainModelTestCase):
                         emailAddress=u"kemal@aturk.tr")
         #account = Mail.IMAPAccount(itsView=self.rep.view,
         #                           replyToAddress=self.address)
-        schema.ns('osaf.pim', self.rep.view).meAddressCollection.add(self.address)
+        schema.ns('osaf.pim', self.rep.view).meEmailAddressCollection.add(self.address)
         self.note = Note(itsView=self.rep.view)
-        
+
 
     def testOrder(self):
         self.failUnless(Mail.CommunicationStatus.UPDATE      <
@@ -269,7 +232,7 @@ class CommunicationStatusTestCase(TestDomainModel.DomainModelTestCase):
             "Unexpected communication status: got %s, expected %s" % 
             (Mail.CommunicationStatus.dump(status), 
              Mail.CommunicationStatus.dump(expectedStatus)))
-                        
+
     def testNote(self):
         self.checkStatus(0)
         self.note.changeEditState(Modification.edited)
@@ -278,12 +241,12 @@ class CommunicationStatusTestCase(TestDomainModel.DomainModelTestCase):
         self.checkStatus(0)
         self.note.changeEditState(Modification.edited)
         self.checkStatus(0, 'EDITED')
-        
+
     def testMail(self):
         self.note = Note(itsView=self.rep.view)
         Mail.MailStamp(self.note).add()
         self.checkStatus(0, 'DRAFT', 'NEITHER')
-                        
+
         # Remove the MailStamp; that should make it no longer a Draft
         Mail.MailStamp(self.note).remove()
         self.checkStatus(0)
@@ -311,7 +274,7 @@ class CommunicationStatusTestCase(TestDomainModel.DomainModelTestCase):
 
         self.note.changeEditState(Modification.queued)
         self.checkStatus(inoutFlags, 'QUEUED')        
-                             
+
         self.note.changeEditState(Modification.sent)
         # Check this one -- grant. Is UPDATE supposed to be enabled
         # before you've made edits?
@@ -325,11 +288,11 @@ class CommunicationStatusTestCase(TestDomainModel.DomainModelTestCase):
         # Remove the MailStamp; that should make it no longer a Draft
         mail.remove()
         self.checkStatus(0, 'EDITED')
-        
+
         # Re-add the stamp
         mail.add()
         self.checkStatus(inoutFlags, 'UPDATE')
-                     
+
         # and finally, re-send it
         self.note.changeEditState(Modification.updated)
         self.checkStatus(inoutFlags, 'UPDATE', 'SENT')
@@ -337,12 +300,12 @@ class CommunicationStatusTestCase(TestDomainModel.DomainModelTestCase):
 
     def testOutgoingMail(self):
         self.runMailTest(outgoing=True)
-        
+
     def testIncomingMail(self):
         self.runMailTest(incoming=True)
-        
+
     def testInOutMail(self):
         self.runMailTest(incoming=True, outgoing=True)
-    
+
 if __name__ == "__main__":
     unittest.main()

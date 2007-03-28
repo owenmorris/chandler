@@ -285,12 +285,15 @@ class TestOutput:
         
         Required Argument:
         string: str -- String you wish to write."""
+        if isinstance(string, unicode):
+            string = string.encode("utf8", "ignore")
+
         if self.f is not None:
-            self.f.write(string.encode('raw_unicode_escape'))
+            self.f.write(string)
             self.f.flush()
         
         if self.stdout is not None:
-            self.stdout.write(string.encode('raw_unicode_escape'))
+            self.stdout.write(string)
             self.stdout.flush()
  
     def printOut(self, string, level=0, result=True):

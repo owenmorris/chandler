@@ -116,9 +116,6 @@ class MailService(object):
            any client instances that are associated with
            an inactive or deleted account."""
 
-        #XXX: Could move this in to an item collection notification
-        #     listen for changes on accounts
-
         self.refreshIMAPClientCache()
         self.refreshSMTPClientCache()
         self.refreshPOPClientCache()

@@ -28,12 +28,12 @@ class MessageI18nTest(MailTestCase.MailTestCase):
            in the utf-8 charset encoding off the filesystem
            and converts the bytes to a Chandler
            C{Mail.MailMessage}.
-          
+
            This Chandler c{Mail.MailMessage} is then 
            converted back to bytes for sending.
            The bytes contained in the To, From, Subject,
            and Body payload are compared with the original.
-           
+
            This test confirms that encoded headers
            are decoded to Unicode, The Body is converted
            from bytes to Unicode, and that the headers and
@@ -47,20 +47,16 @@ class MessageI18nTest(MailTestCase.MailTestCase):
 
         msgText = self.__loadTestMessage()
 
-        #The message.messageObjectToKind method will
-        #remove the headers from the c{email.Message} object
-        #as they are encountered. Thus we want to keep a copy
-        #of the original in mOne and pass mTmp to the 
-        #messageObjectToKind method
-        mTmp = email.message_from_string(msgText)
         mOne = email.message_from_string(msgText)
-        messageKind = message.messageObjectToKind(self.rep.view, mTmp, msgText)
-        mTwo  = message.kindToMessageObject(messageKind)
+        messageKind = message._messageObjectToKind(self.rep.view, mOne, msgText)
+        mTwo  = message._kindToMessageObject(messageKind)
 
         self.assertEquals(mOne['To'], mTwo['To'])
         self.assertEquals(mOne['From'], mTwo['From'])
         self.assertEquals(mOne['Subject'], mTwo['Subject'])
-        self.assertEquals(mOne.get_payload(), mTwo.get_payload())
+        o = mOne.get_payload(decode=True)
+        o += "\r\n\r\n"
+        self.assertEquals(o, mTwo.get_payload()[0].get_payload(decode=True))
 
     def __loadTestMessage(self):
         rootdir = os.environ['CHANDLERHOME']
@@ -71,7 +67,7 @@ class MessageI18nTest(MailTestCase.MailTestCase):
         messageText = fp.read()
         fp.close()
 
-        return messageText
+        return message.addCarriageReturn(messageText)
 
     def setUp(self):
         super(MessageI18nTest, self).setUp()

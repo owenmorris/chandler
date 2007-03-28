@@ -183,8 +183,10 @@ def installParcel(parcel, oldVersion=None):
     AllIndexDefinitions.update(parcel, "allIndexDefinitions")
 
     Reference.update(parcel, 'currentContact')
-    Reference.update(parcel, 'currentMailAccount')
-    Reference.update(parcel, 'currentSMTPAccount')
+    Reference.update(parcel, 'currentIncomingAccount')
+    Reference.update(parcel, 'currentOutgoingAccount')
+    Reference.update(parcel, 'currentMeEmailAddress')
+    Reference.update(parcel, 'currentMeEmailAddresses')
 
     trashCollection = ListCollection.update(
         parcel, 'trashCollection',
@@ -349,11 +351,12 @@ def installParcel(parcel, oldVersion=None):
                                     method=(emailComparator, 'cmpFullName'), 
                                     monitor='fullName')
 
-    meAddressCollection = ListCollection.update(
-        parcel, 'meAddressCollection')
+    # Contains all current and former me addresses
+    meEmailAddressCollection = ListCollection.update(
+        parcel, 'meEmailAddressCollection')
 
-    meAddressCollection.addIndex('emailAddress', 'method',
-                                  method=(emailComparator, 'cmpAddress'), 
+    meEmailAddressCollection.addIndex('emailAddress', 'method',
+                                  method=(emailComparator, 'cmpAddress'),
                                   monitor='emailAddress')
 
 

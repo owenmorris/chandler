@@ -541,13 +541,13 @@ class wxApplication (wx.App):
 #        prof.runcall(self.UIRepositoryView.commit)
 #        prof.close()
         self.UIRepositoryView.commit()
-            
+
         # Start the WakeupCaller Service
         Utility.initWakeup(self.UIRepositoryView)
 
         # Start the Chandler Mail Service
 
-        from osaf.mail import MailService
+        from osaf.mail.mailservice import MailService
 
         Globals.mailService = MailService(self.UIRepositoryView)
         Globals.mailService.startup()
@@ -559,7 +559,7 @@ class wxApplication (wx.App):
         if Globals.options.createData:
             import util.GenerateItemsFromFile as GenerateItemsFromFile
             GenerateItemsFromFile.RunScript(self.UIRepositoryView)
-        
+
         # delay calling OnIdle until now
         self.Bind(wx.EVT_IDLE, self.OnIdle)
 

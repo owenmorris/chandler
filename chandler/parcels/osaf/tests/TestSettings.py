@@ -98,7 +98,7 @@ class SettingsTestCase(testcase.SingleRepositoryTestCase):
 
         # Get the current Mail account which should be
         # the pop.example.com account
-        act = schema.ns("osaf.pim", rv).currentMailAccount.item
+        act = schema.ns("osaf.pim", rv).currentIncomingAccount.item
         self.assert_(act)
         self.assert_(isinstance(act, pim.mail.POPAccount))
         self.assertEquals(act.host, "pop.example.com")
