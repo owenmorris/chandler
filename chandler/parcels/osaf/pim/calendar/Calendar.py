@@ -2120,16 +2120,11 @@ class EventStamp(Stamp):
                 event.__disableRecurrenceChanges()
                 event.itsItem.delete()
 
-    def removeRecurrence(self, deleteOccurrences=True):
+    def removeRecurrence(self):
         """
         Remove modifications, rruleset, and all occurrences except master.
 
         The resulting event will occur exactly once.
-        
-        @type deleteOccurrences: C{bool}
-        @param deleteOccurrences: If C{True} (the default), the C{occurrences}
-            attribute will be deleted, while otherwise it will only be cleared.
-            The latter is needed while merging changes during sharing.
         """
         master = self.getMaster()
         rruleset = self.rruleset
@@ -2158,9 +2153,6 @@ class EventStamp(Stamp):
 
         if hasattr(master, 'rruleset'):
             del master.rruleset
-
-        if deleteOccurrences and master.occurrences is not None:
-            del master.occurrences
 
     def isCustomRule(self):
         """Determine if self.rruleset represents a custom rule.

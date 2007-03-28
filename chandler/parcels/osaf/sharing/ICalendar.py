@@ -709,7 +709,7 @@ def _importOneVObject(vobj, filters, coerceTzinfo, promptForTimezone,
                         del mod.occurrenceFor
                         mod.itsItem.delete()
 
-                    event.removeRecurrence(deleteOccurrences=False)
+                    event.removeRecurrence()
                     
                 itemChangeCallback = event.changeThis
 
