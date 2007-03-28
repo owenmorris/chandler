@@ -147,10 +147,6 @@ def Start(hardhatScript, workingDir, buildVersion, clobber, log, skipTests=False
                 if ret != 'success':
                     break
 
-                ret = doFunctionalTests(releaseMode, workingDir, log)
-                if ret != 'success':
-                    break
-
         changes = "-first-run"
     else:
         os.chdir(chanDir)
@@ -187,10 +183,6 @@ def Start(hardhatScript, workingDir, buildVersion, clobber, log, skipTests=False
                 if ret != 'success':
                     break
 
-                ret = doFunctionalTests(releaseMode, workingDir, log)
-                if ret != 'success':
-                    break
-
     return (ret + changes, revisions['chandler'])
 
 
@@ -208,7 +200,7 @@ def doTests(hardhatScript, mode, workingDir, outputDir, buildVersion, log):
         log.write(separator)
         log.write("Testing " + mode + " ...\n")
 
-        cmd = [runPython, './tools/rt.py', '-T', '-u', '-m %s' % mode]
+        cmd = [runPython, './tools/rt.py', '-Ti', '-uf', '-m %s' % mode]
 
         outputList = hardhatutil.executeCommandReturnOutput(cmd)
 
@@ -216,8 +208,8 @@ def doTests(hardhatScript, mode, workingDir, outputDir, buildVersion, log):
         dumpTestLogs(log, testDir)
 
     except hardhatutil.ExternalCommandErrorWithOutputList, e:
-        print "unit tests failed", e
-        log.write("***Error during unit tests***\n")
+        print "tests failed", e
+        log.write("***Error during tests***\n")
         log.write("Test log:\n")
         hardhatutil.dumpOutputList(e.outputList, log)
         dumpTestLogs(log, testDir)
@@ -232,7 +224,7 @@ def doTests(hardhatScript, mode, workingDir, outputDir, buildVersion, log):
         return "test_failed"
     except Exception, e:
         print "a testing error", e
-        doCopyLog("***Error during unit tests***", workingDir, logPath, log)
+        doCopyLog("***Error during tests***", workingDir, logPath, log)
         forceBuildNextCycle(log, workingDir)
         return "test_failed"
     else:
@@ -251,104 +243,6 @@ def dumpTestLogs(log, chandlerDir):
         except:
             pass
         log.write(separator)
-
-
-def doFunctionalTests(releaseMode, workingDir, log):
-    chandlerDir = os.path.join(workingDir,  'chandler')
-
-    os.chdir(chandlerDir)
-
-    if os.name == 'nt' or sys.platform == 'cygwin':
-        runPython = os.path.join(chandlerDir, releaseMode, 'RunPython.bat')
-    else:
-        runPython = os.path.join(chandlerDir, releaseMode, 'RunPython')
-
-    try:
-        print "Running %s Functional Tests" % releaseMode
-        log.write(separator)
-        log.write("Running %s Functional Tests ...\n" % releaseMode)
-
-        cmd = [runPython, './tools/rt.py', '-T', '-f', '-m %s' % releaseMode]
-
-        outputList = hardhatutil.executeCommandReturnOutput(cmd)
-
-        hardhatutil.dumpOutputList(outputList, log)
-        dumpTestLogs(log, chandlerDir)
-
-    except hardhatutil.ExternalCommandErrorWithOutputList, e:
-        print "functional tests failed", e
-        log.write("***Error during functional tests***\n")
-
-        hardhatutil.dumpOutputList(e.outputList, log)
-        dumpTestLogs(log, chandlerDir)
-
-        forceBuildNextCycle(log, workingDir)
-
-        return "test_failed"
-
-    except Exception, e:
-        print "functional tests failed", e
-        log.write("***Error during functional tests***\n")
-        log.write("Exception:\n")
-        log.write(str(e) + "\n")
-
-        forceBuildNextCycle(log, workingDir)
-
-        return "test_failed"
-
-    else:
-        log.write("Functional tests exit code=0\n")
-
-    return "success"
-
-
-def doPerformanceTests(hardhatScript, mode, workingDir, outputDir, buildVersion, log):
-    chandlerDir = os.path.join(workingDir, "chandler")
-
-    os.chdir(chandlerDir)
-
-    if os.name == 'nt' or sys.platform == 'cygwin':
-        runPython = os.path.join(chandlerDir, releaseMode, 'RunPython.bat')
-    else:
-        runPython = os.path.join(chandlerDir, releaseMode, 'RunPython')
-
-    result = 'success'
-
-    try:
-        cmd = [runPython, './tools/rt.py', '-T', '-p', '-m %s' % releaseMode]
-
-        outputlist = hardhatutil.executeCommandReturnOutput(cmd)
-
-        hardhatutil.dumpOutputList(outputlist, log)
-        dumpTestLogs(log, chandlerDir)
-
-    except hardhatutil.ExternalCommandErrorWithOutputList, e:
-        print "perf tests failed", e
-        log.write("***Error during performance tests***\n")
-        log.write("Test log:\n")
-        hardhatutil.dumpOutputList(e.outputList, log)
-        dumpTestLogs(log, chandlerDir)
-        if e.args == 0:
-            err = ''
-        else:
-            err = '***Error '
-        log.write("%sexit code=%s\n" % (err, e.args))
-        log.write("NOTE: If the tests themselves passed but the exit code\n")
-        log.write("      reports failure, it means a shutdown problem.\n")
-
-        forceBuildNextCycle(log, workingDir)
-        return "test_failed"
-    except Exception, e:
-        print "perf tests failed", e
-        log.write("***Error during performance tests***\n")
-        log.write("Exception:\n")
-        log.write(str(e) + "\n")
-        forceBuildNextCycle(log, workingDir)
-        return "test_failed"
-    else:
-        log.write("Performance tests exit code=0\n")
-
-    return result
 
 
 def doDistribution(releaseMode, workingDir, log, outputDir, buildVersion, buildVersionEscaped, hardhatScript):
@@ -448,7 +342,7 @@ def changesInSVN(moduleDir, workingDir, log, revID=None):
     return (changesAtAll, svnRevision)
 
 
-def doInstall(buildmode, workingDir, log, cleanFirst=False):
+def doInstall(buildmode, workingDir, log):
     # for our purposes, we do not really do a build
     # we will update chandler from SVN, and grab new tarballs when they appear
     if buildmode == "debug":
@@ -456,10 +350,7 @@ def doInstall(buildmode, workingDir, log, cleanFirst=False):
     else:
         dbgStr = ""
 
-    if cleanFirst:
-        clean = " clean "
-    else:
-        clean = " "
+    clean = " clean "
 
     moduleDir = os.path.join(workingDir, mainModule)
     os.chdir(moduleDir)
