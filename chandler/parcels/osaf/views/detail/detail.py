@@ -254,7 +254,7 @@ class DetailBranchPointDelegate(BranchPoint.BranchPointDelegate):
             rootBlocks = getattr(subtreeAnnotation, 'rootBlocks', None)
             if rootBlocks is not None:
                 for block in rootBlocks:
-                    entryTobeSorted = (block.getAttributeValue('position', default=sys.maxint), 
+                    entryTobeSorted = (getattr(block, 'position', sys.maxint),
                                        block.itsPath,
                                        self._copyItem(block))
                     decoratedSubtreeList.append(entryTobeSorted) 

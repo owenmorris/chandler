@@ -197,8 +197,8 @@ class Triageable(Remindable):
 
     sectionTriageStatus = schema.Calculated(
         TriageEnum,
-        fget=lambda self: self.getAttributeValue('_sectionTriageStatus', 
-                                                 default=self._triageStatus),
+        fget=lambda self: getattr(self, '_sectionTriageStatus',
+                                  self._triageStatus),
         basedOn=(_sectionTriageStatus, _triageStatus),
         doc="Allow _sectionTriageStatus to override triageStatus")
             

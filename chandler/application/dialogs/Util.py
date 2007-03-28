@@ -1,4 +1,4 @@
-#   Copyright (c) 2004-2006 Open Source Applications Foundation
+#   Copyright (c) 2004-2007 Open Source Applications Foundation
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -86,11 +86,11 @@ class ItemValuesDialog(wx.Dialog):
 
             if valueDict.get("password", False):
                 text = wx.TextCtrl(self, -1,
-                 item.getAttributeValue(valueDict["attr"]),
+                 getattr(item, valueDict["attr"]),
                  wx.DefaultPosition, [400,-1], wx.TE_PASSWORD)
             else:
                 text = wx.TextCtrl(self, -1,
-                 item.getAttributeValue(valueDict["attr"]),
+                 getattr(item, valueDict["attr"]),
                  wx.DefaultPosition, [400,-1])
             box.Add(text, 1, wx.ALIGN_CENTRE|wx.ALL, 5)
 

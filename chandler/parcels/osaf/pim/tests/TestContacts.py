@@ -36,9 +36,7 @@ class ContactsTest(TestDomainModel.DomainModelTestCase):
         self.loadParcel("osaf.pim.contacts")
         def _verifyContactName(name):
             self.assertEqual(name.firstName, uw('Sylvia'))
-            self.assertEqual(name.getAttributeValue('firstName'),uw('Sylvia'))
             self.assertEqual(name.lastName, uw('Plath'))
-            self.assertEqual(name.getAttributeValue('lastName'), uw('Plath'))
 
         # Test the globals
         contactsPath = Path('//parcels/osaf/pim/contacts')

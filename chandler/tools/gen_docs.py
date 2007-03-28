@@ -1,4 +1,4 @@
-#   Copyright (c) 2003-2006 Open Source Applications Foundation
+#   Copyright (c) 2003-2007 Open Source Applications Foundation
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -190,12 +190,12 @@ def _RenderNode(node, urlRoot, depth=1):
 def _getAllClouds(kind):
     """ A generator which returns every cloud for a given kind.  """
 
-    clouds = kind.getAttributeValue('clouds', default=None)
+    clouds = getattr(kind, 'clouds', None)
     if clouds:
         for cloud in clouds:
             yield (cloud, cloud.kind.clouds.getAlias(cloud))
 
-    superKinds = kind.getAttributeValue('superKinds', default=None)
+    superKinds = getattr(kind, 'superKinds', None)
     if superKinds:
         for superKind in superKinds:
             for (cloud, alias) in _getAllClouds(superKind):
@@ -235,11 +235,9 @@ def RenderClouds(kind, urlRoot):
                 result += " (alias '%s')" % alias
             result += " policy '%s'" % endpoint.includePolicy
             if endpoint.includePolicy == "byCloud":
-                if endpoint.getAttributeValue('cloud', default=None) is not \
-                 None:
+                if getattr(endpoint, 'cloud', None) is not None:
                     result += " --&gt; <a href=%s>%s</a>" % (toLink(urlRoot, endpoint.cloud.itsPath), endpoint.cloud.itsName)
-                elif endpoint.getAttributeValue('cloudAlias', default=None) \
-                 is not None:
+                elif getattr(endpoint, 'cloudAlias', None) is not None:
                     result += " to cloud alias '%s'" % endpoint.cloudAlias
             result += "<br>\n"
         result += "</td></tr>\n"
@@ -362,7 +360,7 @@ def RenderItem(item, urlRoot):
         for key in keys:
             attribute, kind = displayedAttrs[key]
             result += oddEvenRow(count)
-            other = attribute.getAttributeValue('otherName', default="")
+            other = getattr(attribute, 'otherName', "")
             if other: other = " (inverse: '%s')" % other
             else: other = ""
             if kind is not item:
@@ -372,7 +370,7 @@ def RenderItem(item, urlRoot):
             result += "<td valign=top><a href=%s>%s</a>%s%s</td>\n" % \
              (toLink(urlRoot, attribute.itsPath), key, inherited, other)
             result += "<td valign=top>%s" % \
-             (attribute.getAttributeValue('description', default = "&nbsp;"))
+             (getattr(attribute, 'description', "&nbsp;"))
             try:
                 issues = attribute.issues
                 result += "<p>Issues:<ul>"
@@ -381,10 +379,9 @@ def RenderItem(item, urlRoot):
                 result += "</ul></p>"
             except: pass
             result += "</td>\n"
-            cardinality = attribute.getAttributeValue('cardinality',
-             default='single')
+            cardinality = getattr(attribute, 'cardinality', 'single')
             result += "<td valign=top>%s</td>\n" % ( cardinality )
-            attrType = attribute.getAttributeValue('type', default=None)
+            attrType = getattr(attribute, 'type', None)
             if attrType:
                 result += "<td valign=top><a href=%s>%s</a></td>\n" % \
                  (toLink(urlRoot, attrType.itsPath), attrType.itsName)
@@ -485,7 +482,7 @@ def RenderItem(item, urlRoot):
             result += "<td valign=top>"
             result += "%s" % name
             result += "</td><td valign=top>"
-            target = item.getAttributeValue(name, default=None)
+            target = getattr(item, name, None)
             if target is not None:
                 result += "<a href=%s>%s</a><br>" % (toLink(urlRoot,
                  target.itsPath), target.itsName)

@@ -1,4 +1,4 @@
-#   Copyright (c) 2004-2006 Open Source Applications Foundation
+#   Copyright (c) 2004-2007 Open Source Applications Foundation
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -15,6 +15,7 @@
 
 __parcel__ = "osaf.framework.blocks"
 
+from chandlerdb.util.c import Nil
 from application import schema
 from application.Application import mixinAClass
 from i18n import ChandlerMessageFactory as _
@@ -74,7 +75,7 @@ class RefCollectionDictionary(schema.Item):
         @return: A C{Tuple} containing C{(item, collection)} or raises an
                  exception if not found.
         """
-        coll = self.getAttributeValue(self.getCollectionSpecifier())
+        coll = getattr(self, self.getCollectionSpecifier())
         if isinstance (key, int):
             if key >= 0:
                 i = coll.first ()
@@ -107,17 +108,14 @@ class RefCollectionDictionary(schema.Item):
         """
         Returns an iterator to the collection attribute.
         """
-        return iter(self.getAttributeValue(self.getCollectionSpecifier()))
+        return iter(getattr(self, self.getCollectionSpecifier()))
 
     def __len__(self):
         """
         @return: C{int} length of the collection attribute.
         """
         # In case our collection doesn't exist return zero
-        try:
-            return len(self.getAttributeValue(self.getCollectionSpecifier()))
-        except AttributeError:
-            return 0
+        return len(getattr(self, self.getCollectionSpecifier(), Nil))
 
     def has_key(self, key):
         """
@@ -133,7 +131,7 @@ class RefCollectionDictionary(schema.Item):
         @type item: C{item}
         @return: C{True} if found, or {False} if not found.
         """
-        coll = self.getAttributeValue(self.getCollectionSpecifier())
+        coll = getattr(self, self.getCollectionSpecifier())
         return coll.get(item.itsUUID) != None
 
     def __getitem__(self, key):
@@ -175,7 +173,7 @@ class RefCollectionDictionary(schema.Item):
         @type item: C{item}
         """
 
-        coll = self.getAttributeValue(self.getCollectionSpecifier())
+        coll = getattr(self, self.getCollectionSpecifier())
         if index is None:
             afterItem = coll.last()
         else:
@@ -194,7 +192,7 @@ class RefCollectionDictionary(schema.Item):
         @type item: C{item}
         """
 
-        coll = self.getAttributeValue(self.getCollectionSpecifier())
+        coll = getattr(self, self.getCollectionSpecifier())
 
         coll.insertItem (item, index)
         coll.setAlias(item, self.itemNameAccessor(item))
@@ -211,7 +209,7 @@ class RefCollectionDictionary(schema.Item):
         coll.remove(itemIndex)
         
     def next(self, item):
-        coll = self.getAttributeValue(self.getCollectionSpecifier())
+        coll = getattr(self, self.getCollectionSpecifier())
         return coll.next (item)
 
 class DynamicBlock(schema.Item):

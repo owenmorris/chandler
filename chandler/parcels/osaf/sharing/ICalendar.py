@@ -12,7 +12,6 @@
 #   See the License for the specific language governing permissions and
 #   limitations under the License.
 
-
 __parcel__ = "osaf.sharing"
 
 __all__ = [
@@ -106,7 +105,7 @@ def itemsToVObject(view, items, cal=None, filters=None):
         attributes common to Events or Tasks).
         """
         
-        if item.getAttributeValue(Note.icalUID.name, default=None) is None:
+        if getattr(item, Note.icalUID.name, None) is None:
             item.icalUID = unicode(item.itsUUID)
         comp.add('uid').value = item.icalUID
 

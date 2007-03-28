@@ -1,4 +1,4 @@
-#   Copyright (c) 2003-2006 Open Source Applications Foundation
+#   Copyright (c) 2003-2007 Open Source Applications Foundation
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -47,14 +47,14 @@ class FeedItemDetail(Detail.HTMLDetailArea):
             # make the html
             HTMLText = u"<html><body>\n\n"
             
-            link = item.getAttributeValue("link", default=None)
+            link = getattr(item, "link", None)
             if link:
                 HTMLText = HTMLText + u"<a href=\"%s\">" % (link)
             HTMLText = HTMLText + u"<h5>%s</h5>" % (displayName)
             if link:
                 HTMLText = HTMLText + u"</a>\n"
                 
-            content = item.getAttributeValue("content", default=None)
+            content = getattr(item, "content", None)
             if content:
                 content = content.getReader().read()
             else:

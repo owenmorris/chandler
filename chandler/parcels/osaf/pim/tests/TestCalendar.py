@@ -46,7 +46,7 @@ class CalendarTest(TestDomainModel.DomainModelTestCase):
                 attrName = getattr(type(event), attrName).name
             except AttributeError:
                 pass
-            return event.itsItem.getAttributeValue(attrName)
+            return getattr(event.itsItem, attrName)
 
         def _verifyCalendarEvent(event):
             self.failUnless(stamping.has_stamp(event, Calendar.EventStamp))
@@ -67,8 +67,6 @@ class CalendarTest(TestDomainModel.DomainModelTestCase):
 
         def _verifyCalendarItems(location, recurrence):
             self.assertEqual(location.displayName, uw("simple location"))
-            self.assertEqual(location.getAttributeValue('displayName'),
-                              uw("simple location"))
 
         # Check that the globals got created by the parcel
         calendarPath = Path('//parcels/osaf/pim/calendar')

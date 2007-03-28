@@ -379,7 +379,7 @@ class CloudXMLFormat(ImportExportFormat):
                 # we're exporting, is just item.
                 targetItem = item
 
-            attrValue = targetItem.getAttributeValue(attrName)
+            attrValue = getattr(targetItem, attrName)
             if attrValue is None:
                 continue
 
@@ -745,7 +745,7 @@ class CloudXMLFormat(ImportExportFormat):
                 # attributes whose value is None. So, don't
                 # remove missing attributes that are missing
                 # the item's value for that attribute is None.
-                if targetItem.getAttributeValue(attrName, default=None) is not None:
+                if getattr(targetItem, attrName, None) is not None:
                     targetItem.removeAttributeValue(attrName)
                 continue
 

@@ -24,7 +24,7 @@ from cStringIO import StringIO
 import osaf.pim as pim
 import osaf.pim.calendar.Calendar as Calendar
 import osaf.pim.mail as Mail
-import repository.item.ItemHandler as ItemHandler
+from repository.schema.TypeHandler import TypeHandler
 #from repository.util.Lob import Lob
 from chandlerdb.util.c import Nil
 from osaf.framework.blocks import DrawingUtilities, Styles
@@ -674,8 +674,7 @@ class RepositoryAttributeEditor (StringAttributeEditor):
         # attempt access as a Chandler attribute first
         attrType = item.getAttributeAspect(attributeName, "type", True)
         if attrType is None:
-            attrType = ItemHandler.ItemHandler.typeHandler(item.itsView,
-                                                           valueString)
+            attrType = TypeHandler.typeHandler(item.itsView, valueString)
 
         # now we can convert the string to the right type
         value = attrType.makeValue (valueString)
@@ -763,13 +762,10 @@ class TimeDeltaAttributeEditor (StringAttributeEditor):
 
 class ContactNameAttributeEditor (StringAttributeEditor):
     def GetAttributeValue (self, item, attributeName):
-        try:
-            contactName = item.getAttributeValue (attributeName)
-        except AttributeError:
-            value = ""
-        else:
-            value = contactName.firstName + ' ' + contactName.lastName
-        return value
+        contactName = getattr(item, attributeName, Nil)
+        if contactName is Nil:
+            return ""
+        return contactName.firstName + ' ' + contactName.lastName
 
 class ContactAttributeEditor (StringAttributeEditor):
     def GetAttributeValue (self, item, attributeName):
@@ -778,9 +774,8 @@ class ContactAttributeEditor (StringAttributeEditor):
             return contact.contactName.firstName + ' ' + \
              contact.contactName.lastName
 
-        try:
-            contacts = item.getAttributeValue (attributeName)
-        except AttributeError:
+        contacts = getattr(item, attributeName, Nil)
+        if contacts is Nil:
             value = ""
         else:
             cardinality = item.getAttributeAspect(attributeName, "cardinality")
