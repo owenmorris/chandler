@@ -29,10 +29,21 @@ class SendToolbarItem(WatchedItemRootBlock, ToolbarItem):
             # modifiedFlags = { "edited":100, "queued":200, "sent":300, "updated":400 }
             if items.Modification.edited in item.modifiedFlags:
                 # set the button to "Update"
-                pass
+                #import pdb;pdb.set_trace()
+                self.setBitmap("ApplicationBarUpdate.png")
             elif (items.Modification.sent in item.modifiedFlags) or (items.Modification.queued in item.modifiedFlags):
                 # set the button to disabled "Send"
-                pass
+                self.setBitmap("ApplicationBarSend.png")
+                # disabled = 1
             else:
                 # set the button to "Send"
-                pass
+                self.setBitmap("ApplicationBarSend.png")
+
+    def setBitmap(self, bitmapName):
+        # get the toolbar
+        tb = self.parentBlock.widget
+        app = wx.GetApp()
+        # get the named bitmap
+        bitmap = app.GetImage(bitmapName)
+        if bitmap is not None:
+            tb.SetToolNormalBitmap(self.toolID, bitmap)

@@ -1025,7 +1025,8 @@ class ToolbarItem(Block.Block, DynamicChild):
 
     def instantiateWidget (self):
         def getBitmaps (self):
-            bitmap = wx.GetApp().GetImage (self.bitmap)
+            app = wx.GetApp()
+            bitmap = app.GetImage (self.bitmap)
             disabledBitmap = getattr (self, 'disabledBitmap', wx.NullBitmap)
             if disabledBitmap is not wx.NullBitmap:
                 disabledBitmap = app.GetImage (disabledBitmap)
