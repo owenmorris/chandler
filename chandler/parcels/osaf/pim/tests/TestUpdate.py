@@ -32,6 +32,8 @@ class UpdateTestCase(NRVTestCase):
         item = ContentItem(
                   itsParent=self.sandbox,
                   createdOn=dt,
+                  lastModification=Modification.created,
+                  lastModified=dt,
                )
                
         # Now, change it to be edited ...
@@ -80,13 +82,13 @@ class UpdateTestCase(NRVTestCase):
                         "Time ran backwards during creation?")
         
         start = datetime.now(ICUtzinfo.default)
-        item.changeEditState(Modification.edited)
+        item.changeEditState(Modification.created)
         end = datetime.now(ICUtzinfo.default)
         
         self.failUnless(start <= item.lastModified <= end,
                         "lastModified not set to datetime.now()?")
 
-        self.failUnlessEqual(item.lastModification, Modification.edited)
+        self.failUnlessEqual(item.lastModification, Modification.created)
         
     def testQueueAndSend(self):
         dt = datetime.now(ICUtzinfo.default)
@@ -180,9 +182,12 @@ class UpdateTestCase(NRVTestCase):
         
         self.failUnlessEqual(item.byline, u"Created by me on 12/11/2004")
         
-        edited = datetime(2006, 12, 31, 22, 11, tzinfo=ICUtzinfo.default)
+        
+        # Explicitly set the state to created ...
+        item.changeEditState(Modification.created)
 
         # Change the state to edited ...
+        edited = datetime(2006, 12, 31, 22, 11, tzinfo=ICUtzinfo.default)
         item.changeEditState(Modification.edited, when=edited)
         self.failUnlessEqual(item.byline, u"Edited by me on 12/31/2006")
 

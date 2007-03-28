@@ -23,7 +23,7 @@ import wx
 from i18n import ChandlerMessageFactory as _
 import logging
 from application import schema
-from osaf.pim import EventStamp, Stamp, has_stamp, isDead
+from osaf.pim import EventStamp, Modification, Stamp, has_stamp, isDead
 
 logger = logging.getLogger(__name__)
 
@@ -213,6 +213,7 @@ class UserChangeProxy(object):
     proxyAttributes = (
         'proxiedItem', 'currentlyModifying', '__class__',
         'dialogUp', 'changeBuffer', 'endCallbacks',
+        'beginSession', 'endSession',
          EventStamp.IGNORE_CHANGE_ATTR,
     )
 
@@ -347,6 +348,18 @@ class UserChangeProxy(object):
                     )
 
                 self.notifyChange(change)
+                
+    def beginSession(self):
+        pass
+        
+    def endSession(self):
+        item = self.proxiedItem
+        
+        if not isDead(item) and has_stamp(item, EventStamp):
+            item = EventStamp(item).getMaster().itsItem
+
+        if item is not None and not item.hasLocalAttributeValue('lastModification'):
+            item.changeEditState(Modification.created)
 
     def addToCollection(self, collection):
         """

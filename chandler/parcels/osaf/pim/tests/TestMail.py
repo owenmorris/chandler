@@ -273,6 +273,10 @@ class CommunicationStatusTestCase(TestDomainModel.DomainModelTestCase):
     def testNote(self):
         self.checkStatus(0)
         self.note.changeEditState(Modification.edited)
+        self.checkStatus(0) # edited has no effect till created
+        self.note.changeEditState(Modification.created)
+        self.checkStatus(0)
+        self.note.changeEditState(Modification.edited)
         self.checkStatus(0, 'EDITED')
         
     def testMail(self):

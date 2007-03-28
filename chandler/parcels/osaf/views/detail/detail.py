@@ -121,12 +121,30 @@ class DetailRootBlock(WatchedItemRootBlock, ControlBlocks.ContentItemDetail):
     by the BranchPointBlock mechanism every time we build a detail view for a
     new distinct item type.
     """
-    def onSetContentsEvent (self, event):
+    
+    def onDestroyWidget(self):
+        item = self.item
+        
+        if item is not None:
+            item.endSession()
+        super(DetailRootBlock, self).onDestroyWidget()
+        
+    def onSetContentsEvent(self, event):
         #logger.debug("%s: onSetContentsEvent: %s, %s", debugName(self), 
                      #event.arguments['item'], event.arguments['collection'])
         Block.Block.finishEdits()
-        self.setContentsOnBlock(event.arguments['item'],
-                                event.arguments['collection'])
+        
+        newItem = event.arguments['item']
+        oldItem = self.item # Actually, a proxy
+        
+        if oldItem not in (None, newItem):
+            oldItem.endSession()
+            
+        self.setContentsOnBlock(newItem, event.arguments['collection'])
+        
+        if newItem is not None:
+            self.item.beginSession()
+        
 
     def onSendShareItemEvent (self, event):
         """

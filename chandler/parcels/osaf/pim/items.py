@@ -133,13 +133,14 @@ class ContentItem(Triageable):
     
     lastModification = schema.One(
         Modification,
-        doc="What the last modification was; None = freshly created item"
+        doc="What the last modification was.",
+        defaultValue=Modification.created,
     )
 
     def getByline(self):
-        lastModification = getattr(self, 'lastModification', None)
+        lastModification = self.lastModification
         
-        if lastModification is None or lastModification == Modification.created:
+        if lastModification == Modification.created:
             fmt = _(u"Created by %(user)s on %(date)s")
         elif lastModification == Modification.edited:
             fmt = _(u"Edited by %(user)s on %(date)s")
@@ -380,6 +381,12 @@ class ContentItem(Triageable):
         
         currentModFlags = self.modifiedFlags
         
+        if (modType == Modification.edited and
+            not self.hasLocalAttributeValue('lastModification')):
+            # skip edits until the item is explicitly marked created
+
+            return
+
         if modType == Modification.sent:
             if Modification.sent in currentModFlags:
                 raise ValueError, "You can't send an item twice"

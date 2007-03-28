@@ -465,8 +465,7 @@ class SharingTranslator(eim.Translator):
         else:
             lastModified = createdOn
 
-        lastModification = getattr(item, "lastModification",
-            pim.Modification.created)
+        lastModification = item.lastModification
 
         yield model.ModifiedByRecord(
             uuid,

@@ -121,7 +121,7 @@ def installParcel(parcel, oldVersion=None):
         anyTime=False,
         creator=osafDev,
         location=pim.Location.update(parcel, "OSAFLocation",
-            displayName=_("Open Source Applications Foundation")
+            displayName=_("Open Source Applications Foundation"),
         ),
     )
     schema.ns('osaf.pim', parcel.itsView).allCollection.add(WelcomeEvent)
@@ -157,6 +157,7 @@ Thank you for trying Chandler. Your feedback is welcome on our mail lists:
 The Chandler Team""") % {'version': version.version}
 
     WelcomeEvent.body = body
+    WelcomeEvent.changeEditState(pim.Modification.created)
 
     # Set up the main web server
     from osaf import webserver
