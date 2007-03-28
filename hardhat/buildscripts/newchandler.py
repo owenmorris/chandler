@@ -201,7 +201,7 @@ def doTests(hardhatScript, mode, workingDir, outputDir, buildVersion, log):
         log.write(separator)
         log.write("Testing " + mode + " ...\n")
 
-        cmd = [pythonProgram, './tools/rt.py', '-Ti', '-uf', '-m %s' % mode]
+        cmd = [pythonProgram, './tools/rt.py', '-Ti', '-ufr', '-m %s' % mode]
 
         outputList = hardhatutil.executeCommandReturnOutput(cmd)
 
