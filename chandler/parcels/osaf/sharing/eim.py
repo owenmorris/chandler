@@ -26,6 +26,9 @@ import linecache, os, decimal, datetime
 from application import schema
 from chandlerdb.util.c import UUID
 from osaf import pim
+import logging
+
+logger = logging.getLogger(__name__)
 
 def exporter(*types):
     """Mark a translator method as exporting the specified item type(s)"""
@@ -850,7 +853,11 @@ class Translator:
 
     def importRecord(self, r):
         importer = self.importers.get(type(r))
-        if importer: importer(self, r)
+        try:
+            if importer: importer(self, r)
+        except:
+            logger.exception("Failed to import %s", r)
+            raise
 
 
     def _exportablesFor(self, item):
@@ -904,6 +911,7 @@ class Translator:
 
 
 
+    # TODO: Remove this
     def loadItemByUUID(self, uuid, itype=schema.Item, **attrs):
         """Load/create/upgrade/stamp item by UUID and type, w/optional attrs"""
 
@@ -931,18 +939,60 @@ class Translator:
                     item.__class__ = itype
                     item.itsKind = itype.getKind(self.rv)
 
-        # Set specified attributes, skipping NoChange attrs
+        # Set specified attributes, skipping NoChange attrs, and deleting
+        # Missing attrs
         for attr, val in attrs.items():
             if val is Missing:
-                delattr(item, attr)
+                if hasattr(item, attr):
+                    delattr(item, attr)
             elif val is not NoChange:
                 setattr(item, attr, val)
 
         return item
 
-        # def decorate(func):
-        #     return func(item)
-        # return decorate
+
+
+
+
+    def withItemForUUID(self, uuid, itype=schema.Item, **attrs):
+        """Load/create/upgrade/stamp item by UUID and type, w/optional attrs"""
+
+        if issubclass(itype, pim.Stamp):
+            stamp = itype(self.loadItemByUUID(uuid, itype.targetType()))
+            if not stamp.stamp_types or itype not in stamp.stamp_types:
+                stamp.add()
+
+            item = stamp    # fall through to attribute-setting below
+
+        else:
+            item = self.rv.findUUID(uuid)
+
+            if item is None:
+                # Create the item
+                if isinstance(uuid, basestring):
+                    uuid = UUID(uuid)
+                item = itype(itsView=self.rv, _uuid=uuid)
+
+            elif not isinstance(item, itype):
+                # Upgrade its type, if compatible
+                if not issubclass(itype, type(item)):
+                    raise IncompatibleTypes(type(item), itype)
+                else:
+                    item.__class__ = itype
+                    item.itsKind = itype.getKind(self.rv)
+
+        # Set specified attributes, skipping NoChange attrs, and deleting
+        # Missing attrs
+        for attr, val in attrs.items():
+            if val is Missing:
+                if hasattr(item, attr):
+                    delattr(item, attr)
+            elif val is not NoChange:
+                setattr(item, attr, val)
+
+        def decorate(func):
+            return func(item)
+        return decorate
 
 
     def getUUIDForAlias(self, alias):

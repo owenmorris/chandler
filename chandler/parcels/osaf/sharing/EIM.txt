@@ -579,6 +579,8 @@ stamp classes can be used as export targets::
 Creating/Updating Items
 -----------------------
 
+TODO: document/test the withItemForUUID method
+
 Importers will usually use the translator's ``loadItemByUUID()`` method to
 create, upgrade the type of, or retrieve an existing item by its UUID.
 

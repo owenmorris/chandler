@@ -333,13 +333,6 @@ class SharingTranslator(eim.Translator):
         return getAliasForItem(item)
 
 
-    # TODO:
-    """
-    def withItemForUUID(self, ...):
-        uuid = self.getUUIDForAlias(uuid)
-        return super(...).withItemForUUID(...,uuid,...)
-    """
-
 
     # ItemRecord -------------
 
@@ -364,7 +357,8 @@ class SharingTranslator(eim.Translator):
         if recurrenceID is not None:
             item = self.rv.findUUID(uuid)
             if item is None:
-                item = pim.ContentItem(itsView=self.rv, _uuid=uuid)
+                uuid = UUID(uuid)
+                item = pim.Note(itsView=self.rv, _uuid=uuid)
             master = EventStamp(item)
             if not pim.has_stamp(item, EventStamp):
                 master.add()
@@ -387,6 +381,14 @@ class SharingTranslator(eim.Translator):
         uuid = self.getRealUUID(recurrence_aware_uuid)
         return super(SharingTranslator, self).loadItemByUUID(uuid, *args, **kwargs)
 
+    def withItemForUUID(self, recurrence_aware_uuid, *args, **kwargs):
+        """
+        Override to handle special recurrenceID:uuid uuids.
+        """
+        uuid = self.getRealUUID(recurrence_aware_uuid)
+        return super(SharingTranslator, self).withItemForUUID(uuid, *args,
+            **kwargs)
+
     @model.ItemRecord.importer
     def import_item(self, record):
         if record.createdOn not in emptyValues:
@@ -398,18 +400,18 @@ class SharingTranslator(eim.Translator):
         else:
             createdOn = eim.NoChange
 
-        item = self.loadItemByUUID(
+        @self.withItemForUUID(
             record.uuid,
             pim.ContentItem,
             displayName=record.title,
             createdOn=createdOn
         )
-
-        if record.triage != "" and record.triage not in emptyValues:
-            code, timestamp, auto = record.triage.split(" ")
-            item._triageStatus = self.code_to_triagestatus[code]
-            item._triageStatusChanged = float(timestamp)
-            item.doAutoTriageOnDateChange = (auto == "1")
+        def do(item):
+            if record.triage != "" and record.triage not in emptyValues:
+                code, timestamp, auto = record.triage.split(" ")
+                item._triageStatus = self.code_to_triagestatus[code]
+                item._triageStatusChanged = float(timestamp)
+                item.doAutoTriageOnDateChange = (auto == "1")
 
         # TODO: record.hasBeenSent --> item.modifiedFlags
         # TODO: record.needsReply
@@ -417,20 +419,21 @@ class SharingTranslator(eim.Translator):
     @eim.exporter(pim.ContentItem)
     def export_item(self, item):
         uuid = getUUIDForEIM(item)
-        
+
         # TODO: see why many items don't have createdOn
-        createdOn = handleEmpty(item, 'createdOn')
-        if createdOn is None:
-            createdOn = eim.NoChange
-        elif createdOn not in noChangeOrMissing:
-            createdOn = Decimal(int(time.mktime(item.createdOn.timetuple())))
-        
+        if not hasattr(item, 'createdOn'):
+            item.createdOn = datetime.now(ICUtzinfo.default)
+
+        # createdOn = handleEmpty(item, 'createdOn')
+        # elif createdOn not in noChangeOrMissing:
+        createdOn = Decimal(int(time.mktime(item.createdOn.timetuple())))
+
         # For modifications, treat triage status as missing if it matches its
         # automatic state
         doATODC = getattr(item, "doAutoTriageOnDateChange", True)
         if (not isinstance(item, Occurrence) or not doATODC or 
             EventStamp(item).autoTriage() != item._triageStatus):
-    
+
             tsCode = self.triagestatus_to_code.get(item._triageStatus, "100")
             tsChanged = item._triageStatusChanged or 0.0
             tsAuto = ("1" if doATODC else "0")
@@ -440,7 +443,7 @@ class SharingTranslator(eim.Translator):
 
         yield model.ItemRecord(
             uuid,                                       # uuid
-            handleEmpty(item, "displayName"),           # title
+            getattr(item, "displayName", ""),           # title
             triage,                                     # triage
             createdOn,                                  # createdOn
             0,                                          # hasBeenSent (TODO)
@@ -479,33 +482,34 @@ class SharingTranslator(eim.Translator):
     @model.ModifiedByRecord.importer
     def import_modifiedBy(self, record):
 
-        item = self.loadItemByUUID(record.uuid, pim.ContentItem)
+        @self.withItemForUUID(record.uuid, pim.ContentItem)
+        def do(item):
+            # only apply a modifiedby record if timestamp is more recent than
+            # what's on the item already
 
-        # only apply a modifiedby record if timestamp is more recent than
-        # what's on the item already
+            existing = getattr(item, "lastModified", None)
+            existing = (Decimal(int(time.mktime(existing.timetuple())))
+                if existing else 0)
 
-        existing = getattr(item, "lastModified", None)
-        existing = (Decimal(int(time.mktime(existing.timetuple())))
-            if existing else 0)
+            if record.timestamp >= existing:
 
-        if record.timestamp >= existing:
+                # record.userid can never be NoChange.  "" == anonymous
+                if not record.userid:
+                    item.lastModifiedBy = None
+                else:
+                    item.lastModifiedBy = \
+                        pim.EmailAddress.getEmailAddress(self.rv, record.userid)
 
-            # record.userid can never be NoChange.  "" == anonymous
-            if not record.userid:
-                item.lastModifiedBy = None
-            else:
-                item.lastModifiedBy = pim.EmailAddress.getEmailAddress(self.rv,
-                    record.userid)
+                # record.timestamp can never be NoChange, nor None
+                # timestamp is a Decimal we need to change to datetime
+                naive = datetime.utcfromtimestamp(float(record.timestamp))
+                inUTC = naive.replace(tzinfo=utc)
+                # Convert to user's tz:
+                item.lastModified = inUTC.astimezone(ICUtzinfo.default)
 
-            # record.timestamp can never be NoChange, nor None
-            # timestamp is a Decimal we need to change to datetime
-            naive = datetime.utcfromtimestamp(float(record.timestamp))
-            inUTC = naive.replace(tzinfo=utc)
-            # Convert to user's tz:
-            item.lastModified = inUTC.astimezone(ICUtzinfo.default)
-
-            if record.action is not eim.NoChange:
-                item.lastModification = self.code_to_modaction[record.action]
+                if record.action is not eim.NoChange:
+                    item.lastModification = \
+                        self.code_to_modaction[record.action]
 
         # Note: ModifiedByRecords are exported by item
 
@@ -527,7 +531,7 @@ class SharingTranslator(eim.Translator):
         else:
             icalUID = record.icalUid
 
-        self.loadItemByUUID(
+        self.withItemForUUID(
             record.uuid,
             pim.Note,
             icalUID=icalUID,
@@ -558,7 +562,7 @@ class SharingTranslator(eim.Translator):
 
     @model.TaskRecord.importer
     def import_task(self, record):
-        self.loadItemByUUID(
+        self.withItemForUUID(
             record.uuid,
             pim.TaskStamp
         )
@@ -588,7 +592,7 @@ class SharingTranslator(eim.Translator):
 
         start, allDay, anyTime = getTimeValues(record)
 
-        item = self.loadItemByUUID(
+        @self.withItemForUUID(
             record.uuid,
             EventStamp,
             startTime=start,
@@ -598,66 +602,68 @@ class SharingTranslator(eim.Translator):
             transparency=with_nochange(record.status, fromTransparency),
             location=with_nochange(record.location, fromLocation, self.rv),
         )
-        
-        event = EventStamp(item)
-        
-        if event.occurrenceFor is not None:
-            # modifications don't have recurrence rule information
-            return
-        
-        # notify of recurrence changes once at the end
-        if event.rruleset is not None:
-            ignoreChanges = getattr(event.rruleset, '_ignoreValueChanges', False)      
-            event.rruleset._ignoreValueChanges = True
-        elif (record.rrule in emptyValues and
-              record.rdate in emptyValues):
-            # since there's no recurrence currently, avoid creating a rruleset
-            # if all the positive recurrence fields are None
-            return
-            
-        if event.rruleset is not None:
-            rruleset = event.rruleset
-        else:
-            rruleset = RecurrenceRuleSet(None, itsView=self.rv)
+        def do(item):
+            event = EventStamp(item)
 
-        for ruletype in 'rrule', 'exrule':
-            record_field = getattr(record, ruletype)
-            if record_field is not eim.NoChange:
-                if record_field in (None, eim.Missing):
-                    # this isn't the right way to delete the existing rules, what is?
-                    setattr(rruleset, ruletype + 's', [])
-                else:
-                    du_rruleset = getDateUtilRRuleSet(ruletype, record_field,
-                                                      event.effectiveStartTime)
-                    rules = getattr(du_rruleset, '_' + ruletype)
-                    if rules is None:
-                        rules = []
-                    itemlist = []
-                    for du_rule in rules:
-                        ruleItem = RecurrenceRule(None, None, None, self.rv)
-                        ruleItem.setRuleFromDateUtil(du_rule)
-                        itemlist.append(ruleItem)
-                    setattr(rruleset, ruletype + 's', itemlist)
-        
-        for datetype in 'rdate', 'exdate':
-            record_field = getattr(record, datetype)
-            if record_field is not eim.NoChange:
-                if record_field is None:
-                    dates = []
-                else:
-                    dates = fromICalendarDateTime(record_field,
-                                                  multivalued=True)[0]
-                setattr(rruleset, datetype + 's', dates)
+            if event.occurrenceFor is not None:
+                # modifications don't have recurrence rule information
+                return
 
-        if len(rruleset.rrules) == 0 and len(rruleset.rdates) == 0:
-            event.removeRecurrence()
-        elif event.rruleset is not None:
-            # changed existing recurrence
-            event.rruleset._ignoreValueChanges = ignoreChanges
-            event.cleanRule()
-        else:
-            # new recurrence
-            event.rruleset = rruleset
+            # notify of recurrence changes once at the end
+            if event.rruleset is not None:
+                ignoreChanges = getattr(event.rruleset, '_ignoreValueChanges',
+                    False)
+                event.rruleset._ignoreValueChanges = True
+            elif (record.rrule in emptyValues and
+                  record.rdate in emptyValues):
+                # since there's no recurrence currently, avoid creating a
+                # rruleset if all the positive recurrence fields are None
+                return
+
+            if event.rruleset is not None:
+                rruleset = event.rruleset
+            else:
+                rruleset = RecurrenceRuleSet(None, itsView=self.rv)
+
+            for ruletype in 'rrule', 'exrule':
+                record_field = getattr(record, ruletype)
+                if record_field is not eim.NoChange:
+                    if record_field in (None, eim.Missing):
+                        # this isn't the right way to delete the existing
+                        # rules, what is?
+                        setattr(rruleset, ruletype + 's', [])
+                    else:
+                        du_rruleset = getDateUtilRRuleSet(ruletype,
+                            record_field, event.effectiveStartTime)
+                        rules = getattr(du_rruleset, '_' + ruletype)
+                        if rules is None:
+                            rules = []
+                        itemlist = []
+                        for du_rule in rules:
+                            ruleItem = RecurrenceRule(None, None, None, self.rv)
+                            ruleItem.setRuleFromDateUtil(du_rule)
+                            itemlist.append(ruleItem)
+                        setattr(rruleset, ruletype + 's', itemlist)
+
+            for datetype in 'rdate', 'exdate':
+                record_field = getattr(record, datetype)
+                if record_field is not eim.NoChange:
+                    if record_field is None:
+                        dates = []
+                    else:
+                        dates = fromICalendarDateTime(record_field,
+                                                      multivalued=True)[0]
+                    setattr(rruleset, datetype + 's', dates)
+
+            if len(rruleset.rrules) == 0 and len(rruleset.rdates) == 0:
+                event.removeRecurrence()
+            elif event.rruleset is not None:
+                # changed existing recurrence
+                event.rruleset._ignoreValueChanges = ignoreChanges
+                event.cleanRule()
+            else:
+                # new recurrence
+                event.rruleset = rruleset
 
 
     @eim.exporter(EventStamp)
@@ -714,7 +720,7 @@ class SharingTranslator(eim.Translator):
             exdate,                                     # exdate
             transparency,                               # status
         )
-        
+
     @model.EventRecord.deleter
     def delete_event(self, record):
         item = self.rv.findUUID(record.uuid)
@@ -735,20 +741,21 @@ class DumpTranslator(SharingTranslator):
     @model.CollectionRecord.importer
     def import_collection(self, record):
 
-        collection = self.loadItemByUUID(record.uuid,
+        @self.withItemForUUID(record.uuid,
             pim.SmartCollection
         )
+        def do(collection):
 
-        # Temporary hack to work aroud the fact that importers don't properly
-        # call __init__ except in the base class. I think __init__ hasn't been
-        # called if the following condition is True.
-        
-        if (collection.exclusionsCollection is None and
-            not hasattr (collection, "collectionExclusions")):
-            collection._setup()
+            # Temporary hack to work aroud the fact that importers don't
+            # properly call __init__ except in the base class. I think
+            # __init__ hasn't been called if the following condition is True.
 
-        if record.mine == 1:
-            schema.ns('osaf.pim', self.rv).mine.addSource(collection)
+            if (collection.exclusionsCollection is None and
+                not hasattr (collection, "collectionExclusions")):
+                collection._setup()
+
+            if record.mine == 1:
+                schema.ns('osaf.pim', self.rv).mine.addSource(collection)
 
 
     @eim.exporter(pim.SmartCollection)
@@ -759,7 +766,7 @@ class DumpTranslator(SharingTranslator):
         )
         for record in self.export_collection_memberships (collection):
             yield record
-    
+
 
     def export_collection_memberships(self, collection):
         index = 0
@@ -774,7 +781,6 @@ class DumpTranslator(SharingTranslator):
                 )
                 index = index + 1
 
-        
     if __debug__:
         def indexIsInSequence (self, collection, index):
             if not hasattr (self, "collectionToIndex"):
@@ -782,7 +788,7 @@ class DumpTranslator(SharingTranslator):
             expectedIndex = self.collectionToIndex.get (collection, 0)
             self.collectionToIndex[collection] = index + 1
             return expectedIndex == index
-                
+
 
     @model.CollectionMembershipRecord.importer
     def import_collectionmembership(self, record):
@@ -790,15 +796,16 @@ class DumpTranslator(SharingTranslator):
         # Temporary work aroud for getting the right class of the sidebar since
         # loadItemByUUID with the default of SmartCollection throws an exception
         # in the case of the sidebar
-        
+
         collection = self.rv.find (UUID (record.collectionUUID))
         if collection is None:
             collection = self.loadItemByUUID (record.collectionUUID, pim.SmartCollection)
         # We're preserving order of items in collections
         assert (self.indexIsInSequence (collection, record.index))
-        
-        item = self.loadItemByUUID(record.itemUUID, pim.ContentItem)
-        collection.add(item)
+
+        @self.withItemForUUID(record.itemUUID, pim.ContentItem)
+        def do(item):
+            collection.add(item)
 
 
 
@@ -807,31 +814,35 @@ class DumpTranslator(SharingTranslator):
     @model.ShareRecord.importer
     def import_share(self, record):
 
-        share = self.loadItemByUUID(record.uuid,
+        @self.withItemForUUID(record.uuid,
             shares.Share,
             established=True,
             error=record.error,
             mode=record.mode
         )
+        def do(share):
+            if record.lastSynced not in (eim.NoChange, None):
+                # lastSynced is a Decimal we need to change to datetime
+                naive = datetime.utcfromtimestamp(float(record.lastSynced))
+                inUTC = naive.replace(tzinfo=utc)
+                # Convert to user's tz:
+                share.lastSynced = inUTC.astimezone(ICUtzinfo.default)
 
-        if record.contents not in (eim.NoChange, None):
-            # contents is the UUID of a SharedItem
-            share.contents = self.loadItemByUUID(record.contents,
-                shares.SharedItem).itsItem
+            if record.subscribed == 0:
+                share.sharer = schema.ns('osaf.pim',
+                    self.rv).currentContact.item
 
-        if record.conduit not in (eim.NoChange, None):
-            share.conduit = self.loadItemByUUID(record.conduit,
-                conduits.Conduit)
+            if record.contents not in (eim.NoChange, None):
+                # contents is the UUID of a SharedItem
+                @self.withItemForUUID(record.contents, shares.SharedItem)
+                def do_contents(sharedItem):
+                    share.contents = sharedItem.itsItem
 
-        if record.lastSynced not in (eim.NoChange, None):
-            # lastSynced is a Decimal we need to change to datetime
-            naive = datetime.utcfromtimestamp(float(record.lastSynced))
-            inUTC = naive.replace(tzinfo=utc)
-            # Convert to user's tz:
-            share.lastSynced = inUTC.astimezone(ICUtzinfo.default)
+            if record.conduit not in (eim.NoChange, None):
+                @self.withItemForUUID(record.conduit, conduits.Conduit)
+                def do_conduit(conduit):
+                    share.conduit = conduit
 
-        if record.subscribed == 0:
-            share.sharer = schema.ns('osaf.pim', self.rv).currentContact.item
 
 
     @eim.exporter(shares.Share)
@@ -870,7 +881,7 @@ class DumpTranslator(SharingTranslator):
 
     @model.ShareConduitRecord.importer
     def import_shareconduit(self, record):
-        conduit = self.loadItemByUUID(record.uuid,
+        self.withItemForUUID(record.uuid,
             conduits.BaseConduit,
             sharePath=record.path,
             shareName=record.name
@@ -894,18 +905,19 @@ class DumpTranslator(SharingTranslator):
 
     @model.ShareRecordSetConduitRecord.importer
     def import_sharerecordsetconduit(self, record):
-        conduit = self.loadItemByUUID(record.uuid,
+        @self.withItemForUUID(record.uuid,
             recordset_conduit.RecordSetConduit,
         )
-        if record.serializer == "eimml":
-            conduit.serializer = eimml.EIMMLSerializer
-        if record.serializer == "eimml_lite":
-            conduit.serializer = eimml.EIMMLSerializerLite
+        def do(conduit):
+            if record.serializer == "eimml":
+                conduit.serializer = eimml.EIMMLSerializer
+            if record.serializer == "eimml_lite":
+                conduit.serializer = eimml.EIMMLSerializerLite
 
-        if record.filters not in (None, eim.NoChange):
-            for filter in record.filters.split(","):
-                if filter:
-                    conduit.filters.add(filter)
+            if record.filters not in (None, eim.NoChange):
+                for filter in record.filters.split(","):
+                    if filter:
+                        conduit.filters.add(filter)
 
     @eim.exporter(recordset_conduit.RecordSetConduit)
     def export_recordsetconduit(self, conduit):
@@ -932,24 +944,26 @@ class DumpTranslator(SharingTranslator):
     @model.ShareHTTPConduitRecord.importer
     def import_sharehttpconduit(self, record):
 
-        conduit = self.loadItemByUUID(record.uuid, conduits.HTTPMixin)
-
-        if record.account is not eim.NoChange:
-            if record.account:
-                conduit.account = self.loadItemByUUID(record.account,
-                    accounts.SharingAccount)
-            else:
-                conduit.account = None
-                if record.host is not eim.NoChange:
-                    conduit.host = record.host
-                if record.port is not eim.NoChange:
-                    conduit.port = record.port
-                if record.ssl is not eim.NoChange:
-                    conduit.useSSL = True if record.ssl else False
-                if record.username is not eim.NoChange:
-                    conduit.username = record.username
-                if record.password is not eim.NoChange:
-                    conduit.password = record.password
+        @self.withItemForUUID(record.uuid, conduits.HTTPMixin)
+        def do(conduit):
+            if record.account is not eim.NoChange:
+                if record.account:
+                    @self.withItemForUUID(record.account,
+                        accounts.SharingAccount)
+                    def do_account(account):
+                        conduit.account = account
+                else:
+                    conduit.account = None
+                    if record.host is not eim.NoChange:
+                        conduit.host = record.host
+                    if record.port is not eim.NoChange:
+                        conduit.port = record.port
+                    if record.ssl is not eim.NoChange:
+                        conduit.useSSL = True if record.ssl else False
+                    if record.username is not eim.NoChange:
+                        conduit.username = record.username
+                    if record.password is not eim.NoChange:
+                        conduit.password = record.password
         # TODO: url
         # TODO: ticket_rw
         # TODO: ticket_ro
@@ -996,7 +1010,7 @@ class DumpTranslator(SharingTranslator):
     @model.ShareCosmoConduitRecord.importer
     def import_sharecosmoconduit(self, record):
 
-        conduit = self.loadItemByUUID(record.uuid,
+        self.withItemForUUID(record.uuid,
             cosmo.CosmoConduit,
             morsecodePath = record.morsecodepath
         )
@@ -1014,7 +1028,7 @@ class DumpTranslator(SharingTranslator):
     @model.ShareWebDAVConduitRecord.importer
     def import_sharewebdavconduit(self, record):
 
-        conduit = self.loadItemByUUID(record.uuid,
+        self.withItemForUUID(record.uuid,
             webdav_conduit.WebDAVRecordSetConduit
         )
 
@@ -1031,21 +1045,24 @@ class DumpTranslator(SharingTranslator):
     @model.ShareStateRecord.importer
     def import_sharestate(self, record):
 
-        state = self.loadItemByUUID(record.uuid,
+        @self.withItemForUUID(record.uuid,
             shares.State,
             itemUUID=record.item,
             peerRepoId=record.peerrepo,
             peerItemVersion=record.peerversion,
             itemUUID=record.item
         )
+        def do(state):
+            if record.peer not in (eim.NoChange, None):
+                @self.withItemForUUID(record.peer, schema.Item)
+                def do_peer(peer):
+                    state.peer = peer
 
-        if record.peer not in (eim.NoChange, None):
-            state.peer = self.loadItemByUUID(record.peer, schema.Item)
-
-        if record.share not in (eim.NoChange, None):
-            share = self.loadItemByUUID(record.share, shares.Share)
-            if state not in share.states:
-                share.states.append(state, record.item)
+            if record.share not in (eim.NoChange, None):
+                @self.withItemForUUID(record.share, shares.Share)
+                def do_share(share):
+                    if state not in share.states:
+                        share.states.append(state, record.item)
 
         # TODO: agreed
         # TODO: pending
@@ -1078,7 +1095,7 @@ class DumpTranslator(SharingTranslator):
     @model.ShareResourceStateRecord.importer
     def import_shareresourcestate(self, record):
 
-        state = self.loadItemByUUID(record.uuid,
+        self.withItemForUUID(record.uuid,
             recordset_conduit.ResourceState,
             path=record.path,
             etag=record.etag
@@ -1102,7 +1119,7 @@ class DumpTranslator(SharingTranslator):
     @model.ShareAccountRecord.importer
     def import_shareaccount(self, record):
 
-        account = self.loadItemByUUID(record.uuid,
+        @self.withItemForUUID(record.uuid,
             accounts.SharingAccount,
             host=record.host,
             port=record.port,
@@ -1110,9 +1127,9 @@ class DumpTranslator(SharingTranslator):
             username=record.username,
             password=record.password,
         )
-
-        if record.ssl not in (eim.NoChange, None):
-            account.useSSL = True if record.ssl else False
+        def do(account):
+            if record.ssl not in (eim.NoChange, None):
+                account.useSSL = True if record.ssl else False
 
     @eim.exporter(accounts.SharingAccount)
     def export_shareaccount(self, account):
@@ -1133,7 +1150,7 @@ class DumpTranslator(SharingTranslator):
     @model.ShareWebDAVAccountRecord.importer
     def import_sharewebdavaccount(self, record):
 
-        account = self.loadItemByUUID(record.uuid,
+        self.withItemForUUID(record.uuid,
             accounts.WebDAVAccount
         )
 
@@ -1147,7 +1164,7 @@ class DumpTranslator(SharingTranslator):
     @model.ShareCosmoAccountRecord.importer
     def import_sharecosmoaccount(self, record):
 
-        account = self.loadItemByUUID(record.uuid,
+        self.withItemForUUID(record.uuid,
             cosmo.CosmoAccount,
             pimPath=record.pimpath,
             morsecodePath=record.morsecodepath,
