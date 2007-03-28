@@ -33,15 +33,16 @@ import os, hardhatutil, hardhatlib, sys, re, glob
 path     = os.environ.get('PATH', os.environ.get('path'))
 whereAmI = os.path.dirname(os.path.abspath(hardhatlib.__file__))
 
-svnProgram   = hardhatutil.findInPath(path, "svn")
-treeName     = "Chandler"
-sleepMinutes = 5
-logPath      = 'hardhat.log'
-separator    = "- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -\n"
+svnProgram    = hardhatutil.findInPath(path, "svn")
+pythonProgram = hardhatutil.findInPath(path, "python")
+treeName      = "Chandler"
+sleepMinutes  = 5
+logPath       = 'hardhat.log'
+separator     = "- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -\n"
 
-reposRoot    = 'http://svn.osafoundation.org/chandler'
-reposModules = ['chandler', 'internal/installers']
-mainModule   = reposModules[0]
+reposRoot     = 'http://svn.osafoundation.org/chandler'
+reposModules  = ['chandler', 'internal/installers']
+mainModule    = reposModules[0]
 
 def Start(hardhatScript, workingDir, buildVersion, clobber, log, skipTests=False, upload=False, branchID=None, revID=None):
 
@@ -188,31 +189,31 @@ def Start(hardhatScript, workingDir, buildVersion, clobber, log, skipTests=False
 
 def doTests(hardhatScript, mode, workingDir, outputDir, buildVersion, log):
     testDir = os.path.join(workingDir, "chandler")
-    os.chdir(testDir)
+    logfile = os.path.join(testDir, 'test_profile', 'chandler.log')
 
-    if os.name == 'nt' or sys.platform == 'cygwin':
-        runPython = os.path.join(testDir, mode, 'RunPython.bat')
-    else:
-        runPython = os.path.join(testDir, mode, 'RunPython')
+    if os.path.isfile(logfile):
+        os.remove(logfile)
+
+    os.chdir(testDir)
 
     try:
         print "Testing " + mode
         log.write(separator)
         log.write("Testing " + mode + " ...\n")
 
-        cmd = [runPython, './tools/rt.py', '-Ti', '-uf', '-m %s' % mode]
+        cmd = [pythonProgram, './tools/rt.py', '-Ti', '-uf', '-m %s' % mode]
 
         outputList = hardhatutil.executeCommandReturnOutput(cmd)
 
         hardhatutil.dumpOutputList(outputList, log)
-        dumpTestLogs(log, testDir)
+        dumpTestLogs(log, logfile)
 
     except hardhatutil.ExternalCommandErrorWithOutputList, e:
         print "tests failed", e
         log.write("***Error during tests***\n")
         log.write("Test log:\n")
         hardhatutil.dumpOutputList(e.outputList, log)
-        dumpTestLogs(log, testDir)
+        dumpTestLogs(log, logfile)
         if e.args == 0:
             err = ''
         else:
@@ -233,10 +234,8 @@ def doTests(hardhatScript, mode, workingDir, outputDir, buildVersion, log):
     return "success"  # end of doTests( )
 
 
-def dumpTestLogs(log, chandlerDir):
-    if chandlerDir:
-        logfile = os.path.join(chandlerDir, 'test_profile', 'chandler.log')
-
+def dumpTestLogs(log, logfile):
+    if logfile:
         log.write("chandler.log: [%s]\n" % logfile)
         try:
             CopyLog(logfile, log)
