@@ -151,6 +151,19 @@ class CosmoConduit(recordset_conduit.DiffRecordSetConduit, conduits.HTTPMixin):
             self.syncToken = syncTokenHeaders[0]
         # # @@@MOR what if this header is missing?
 
+        if method == 'PUT':
+            ticketHeaders = resp.headers.getHeader('X-MorseCode-Ticket')
+            if ticketHeaders:
+                for ticketHeader in ticketHeaders:
+                    mode, ticket = ticketHeader.split('=')
+                    if mode == 'read-only':
+                        self.ticketReadOnly = ticket
+                    if mode == 'read-write':
+                        self.ticketReadWrite = ticket
+            if not self.ticketReadOnly or not self.ticketReadWrite:
+                raise errors.SharingError("Tickets not returned from server")
+
+
     def destroy(self):
         location = self.getMorsecodeLocation()
         resp = self._send('DELETE', location)
@@ -177,6 +190,9 @@ class CosmoConduit(recordset_conduit.DiffRecordSetConduit, conduits.HTTPMixin):
             extraHeaders['X-MorseCode-SyncToken'] = syncToken
 
         extraHeaders['Content-Type'] = 'application/eim+xml'
+
+        if methodName == 'PUT':
+            extraHeaders['X-MorseCode-TicketType'] = 'read-only read-write'
 
         request = zanshin.http.Request(methodName, path, extraHeaders, body)
 
