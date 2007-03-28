@@ -72,6 +72,7 @@ def parseOptions():
         'selftest':  ('',   '--selftest',           'b', False, 'Run self test'),
         'profile':   ('-P', '--profile',            'b', False, 'Profile performance tests with hotshot'),
         'tbox':      ('-T', '--tbox',               'b', False, 'Tinderbox output mode'),
+        'recorded':  ('-r', '--recordedScript',     'b', False, 'Run the Chandler recorded scripts'),
         #'restored':  ('-R', '--restoredRepository', 'b', False, 'unit tests with restored repository instead of creating new for each test'),
         #'config':    ('-L', '',                     's', None,  'Custom Chandler logging configuration file'),
     }
@@ -670,6 +671,49 @@ def runFuncTestsSingly(options):
 
         if failed and not options.noStop:
             return failed
+
+    return failed
+
+
+def runRecordedScripts(options):
+    """
+    Run recorded script tests
+    
+    >>> options = parseOptions()
+    >>> checkOptions(options)
+    >>> options.dryrun  = True
+    >>> options.verbose = True
+    >>> options.modes   = ['release', 'debug']
+    
+    >>> runRecordedScripts(options)
+    /.../release/RunChandler... -n --create --recordedTest all
+    - + - + - + - + - + - + - + - + - + - + - + - + - + - + - + 
+    /.../debug/RunChandler... -n --create --recordedTest all
+    - + - + - + - + - + - + - + - + - + - + - + - + - + - + - + 
+    False
+    """
+    failed = False
+
+    for mode in options.modes:
+        cmd  = [ options.runpython[mode], 'Chandler.py',
+                 '-n', '--create',
+                 '--profileDir=%s' % options.profileDir,
+                 '--recordedTest', 'all' ]
+
+        if options.dryrun:
+            result = 0
+        else:
+            result = build_lib.runCommand(cmd, timeout=1200)
+
+        if result != 0:
+            log('***Error exit code=%d' % result)
+            failed = True
+            failedTests.append('recordedTest all')
+
+            if not options.noStop:
+                break
+
+        log('- + ' * 15)
 
     return failed
 
@@ -1273,6 +1317,10 @@ def main(options):
 
         if options.func and (not failed or options.noStop):
             if runFuncTestsSingly(options):
+                failed = True
+
+        if options.recorded and (not failed or options.noStop):
+            if runRecordedScripts(options):
                 failed = True
 
         if options.perf and (not failed or options.noStop):
