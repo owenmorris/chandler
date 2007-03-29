@@ -245,8 +245,7 @@ def getRecurrenceFields(event):
     """
     if event.occurrenceFor is not None:
         # a modification, recurrence fields should always be Inherit
-        return (eim.Inherit, eim.Inherit, eim.Inherit,
-            eim.Inherit)
+        return (eim.Inherit, eim.Inherit, eim.Inherit, eim.Inherit)
     if event.rruleset is None:
         return (None, None, None, None)
     
@@ -510,29 +509,39 @@ class SharingTranslator(eim.Translator):
         )
 
         reminder = item.getUserReminder()
+
         if reminder is not None:
 
-            trigger = eim.Inherit
-            if reminder.hasLocalAttributeValue('delta'):
-                trigger = toICalendarDuration(reminder.delta)
-            elif reminder.hasLocalAttributeValue('absoluteTime'):
-                trigger = toICalendarDateTime(reminder.absoluteTime, False)
-            
-            
-            if reminder.duration:
-                duration = toICalendarDuration(reminder.duration, False)
-            else:
+            if reminder.reminderItem is item: # this is our reminder
+
+                trigger = None
+                if reminder.hasLocalAttributeValue('delta'):
+                    trigger = toICalendarDuration(reminder.delta)
+                elif reminder.hasLocalAttributeValue('absoluteTime'):
+                    trigger = toICalendarDateTime(reminder.absoluteTime, False)
+
+
+                if reminder.duration:
+                    duration = toICalendarDuration(reminder.duration, False)
+                else:
+                    duration = None
+
+                if reminder.repeat:
+                    repeat = reminder.repeat
+                else:
+                    repeat = None
+
+                description = getattr(reminder, 'description', None)
+                if description is None:
+                    description = "Event Reminder"
+
+            else: # we've inherited this reminder
+
+                description = eim.Inherit
+                trigger = eim.Inherit
                 duration = eim.Inherit
-                
-            if reminder.repeat:
-                repeat = reminder.repeat
-            else:
                 repeat = eim.Inherit
-                
-            description = getattr(reminder, 'description', None)
-            if description is None:
-                description = "Event Reminder"
-        
+
             yield model.DisplayAlarmRecord(
                 item,
                 description,
@@ -540,8 +549,6 @@ class SharingTranslator(eim.Translator):
                 duration,
                 repeat,
             )
-        
-        
 
 
 
@@ -1006,10 +1013,10 @@ class SharingTranslator(eim.Translator):
             EventStamp(item).remove()
 
     # DisplayAlarmRecord -------------
-    
+
     @model.DisplayAlarmRecord.importer
     def import_alarm(self, record):
-        
+
         @self.withItemForUUID(record.uuid, pim.ContentItem)
         def do(item):
             if record.trigger not in noChangeOrInherit:
@@ -1017,7 +1024,7 @@ class SharingTranslator(eim.Translator):
                 # or a pim.RelativeReminder (if a timedelta).
                 kw = dict(itsView=item.itsView)
                 reminderFactory = None
-            
+
                 try:
                     val = fromICalendarDateTime(record.trigger)[0]
                 except:
@@ -1025,7 +1032,7 @@ class SharingTranslator(eim.Translator):
                 else:
                     reminderFactory = pim.Reminder
                     kw.update(absoluteTime=val)
-                    
+
                 if reminderFactory is None:
                     try:
                         val = stringToDurations(record.trigger)[0]
@@ -1034,20 +1041,20 @@ class SharingTranslator(eim.Translator):
                     else:
                         reminderFactory = pim.RelativeReminder
                         kw.update(delta=val)
-                        
+
                 if reminderFactory is not None:
                     item.reminders = [reminderFactory(**kw)]
-                    
-            
+
+
             reminder = item.getUserReminder()
             if reminder is not None:
-                
+
                 if record.description not in noChangeOrInherit:
                     reminder.description = record.description
-                    
+
                 if record.duration not in noChangeOrInherit:
                     reminder.duration = stringToDurations(record.duration)[0]
-                    
+
                 if record.repeat not in noChangeOrInherit:
                     reminder.repeat = record.repeat
 

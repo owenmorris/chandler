@@ -324,7 +324,7 @@ Exporting:
     >>> t.startExport()
     >>> records = list(t.exportItem(item))
     >>> records[2]
-    DisplayAlarmRecord('a9b019a4-d995-11db-f269-0016cbca6aed', u"Don't forget!", u';VALUE=DATE-TIME;TZID=America/New_York:20060304T170000', Inherit, Inherit)
+    DisplayAlarmRecord('a9b019a4-d995-11db-f269-0016cbca6aed', u"Don't forget!", u';VALUE=DATE-TIME;TZID=America/New_York:20060304T170000', None, None)
     
 
 Relative Reminders
@@ -394,7 +394,7 @@ Exporting:
     >>> records[1]
     ModifiedByRecord(...)
     >>> records[2]
-    DisplayAlarmRecord('800644b6-dd73-11db-f79a-0016cbca6aed', u'Time to go!', u'-PT5M', Inherit, Inherit)
+    DisplayAlarmRecord('800644b6-dd73-11db-f79a-0016cbca6aed', u'Time to go!', u'-PT5M', None, None)
     >>> records[3]
     NoteRecord('800644b6-dd73-11db-f79a-0016cbca6aed', ...)
     >>> records[4]
