@@ -202,7 +202,7 @@ def doTests(hardhatScript, mode, workingDir, outputDir, buildVersion, log):
         log.write("Testing " + mode + " ...\n")
         log.write("Logging to %s\n" % logfile)
 
-        cmd = [pythonProgram, './tools/rt.py', '-Ti', '-ufr', '-m %s' % mode]
+        cmd = [pythonProgram, './tools/rt.py', '-Ti', '-uf', '-m %s' % mode]
 
         log.write("cmd: %s\n" % ' '.join(cmd))
 
