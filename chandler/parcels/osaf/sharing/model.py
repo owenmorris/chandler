@@ -175,6 +175,13 @@ class CollectionRecord(eim.Record):
 
     uuid = eim.key(ItemRecord.uuid)
     mine = eim.field(eim.IntType)
+    
+    # We represent color as 4 values instead of 1 integer since eim.IntType is signed
+    # and so far it doesn't seem worth adding a new type for color
+    colorRed = eim.key(eim.IntType)
+    colorGreen = eim.key(eim.IntType)
+    colorBlue = eim.key(eim.IntType)
+    colorAlpha = eim.key(eim.IntType)
 
 class CollectionMembershipRecord(eim.Record):
     # A membership record for a collection that is not "out of the box"

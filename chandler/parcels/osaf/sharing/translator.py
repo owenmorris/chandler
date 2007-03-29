@@ -38,6 +38,7 @@ from chandlerdb.util.c import UUID
 from osaf.pim.mail import EmailAddress
 from osaf.usercollections import UserCollection
 from osaf.mail.utils import getEmptyDate
+from osaf.pim.structs import ColorType
 
 __all__ = [
     'SharingTranslator',
@@ -1111,12 +1112,21 @@ class DumpTranslator(SharingTranslator):
             if record.mine == 1:
                 schema.ns('osaf.pim', self.rv).mine.addSource(collection)
 
+            UserCollection(collection).color = ColorType (record.colorRed,
+                                                          record.colorGreen,
+                                                          record.colorBlue,
+                                                          record.colorAlpha)
 
     @eim.exporter(pim.SmartCollection)
     def export_collection(self, collection):
+        color = UserCollection (collection).color
         yield model.CollectionRecord(
             collection,
-            int (collection in schema.ns('osaf.pim', self.rv).mine.sources)
+            int (collection in schema.ns('osaf.pim', self.rv).mine.sources),
+            color.red,
+            color.green,
+            color.blue,
+            color.alpha
         )
         for record in self.export_collection_memberships (collection):
             yield record
