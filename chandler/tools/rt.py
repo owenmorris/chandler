@@ -252,8 +252,10 @@ def buildTestList(options, excludeTools=True):
     Unit test and perf test:
     
     >>> options.single  = 'TestCrypto.py,PerfLargeDataSharing.py'
-    >>> buildTestList(options, False)
-    ['tools/QATestScripts/Performance/PerfLargeDataSharing.py', 'application/tests/TestCrypto.py']
+    >>> l = buildTestList(options, False)
+    >>> l.sort()
+    >>> l
+    ['application/tests/TestCrypto.py', 'tools/QATestScripts/Performance/PerfLargeDataSharing.py']
     
     Check that we don't look in projects:
     
@@ -393,8 +395,7 @@ def runUnitTests(options, testlist=None):
     
     >>> options.unit    = True
     >>> runUnitTests(options)
-    /.../RunPython... repository/tests/TestReferenceAttributes.py -v
-    - + - + - + - + - + - + - + - + - + - + - + - + - + - + - + 
+    ...
     /.../RunPython... repository/tests/TestMixins.py -v
     - + - + - + - + - + - + - + - + - + - + - + - + - + - + - + 
     ...
@@ -1182,9 +1183,9 @@ def main(options):
     
     >>> options.single = 'TestCrypto,TestSharing'
     >>> main(options)
-    /.../RunChandler --create --catch=tests --profileDir=test_profile --parcelPath=tools/QATestScripts/DataFiles --chandlerTests=TestSharing -D2 -M0
+    /.../RunChandler... --create --catch=tests --profileDir=test_profile --parcelPath=tools/QATestScripts/DataFiles --chandlerTests=TestSharing -D2 -M0
     - + - + - + - + - + - + - + - + - + - + - + - + - + - + - + 
-    /.../RunPython application/tests/TestCrypto.py -v
+    /.../RunPython... application/tests/TestCrypto.py -v
     - + - + - + - + - + - + - + - + - + - + - + - + - + - + - + 
     False
     
@@ -1192,12 +1193,12 @@ def main(options):
     
     >>> options.single = 'TestCrypto,TestSharing,PerfImportCalendar,startup_large'
     >>> main(options)
-    /.../RunChandler --catch=tests --profileDir=test_profile --parcelPath=tools/QATestScripts/DataFiles --catsPerfLog=test_profile/time.log --scriptFile=tools/QATestScripts/Performance/PerfImportCalendar.py --create
+    /.../RunChandler... --catch=tests --profileDir=test_profile --parcelPath=tools/QATestScripts/DataFiles --catsPerfLog=test_profile/time.log --scriptFile=tools/QATestScripts/Performance/PerfImportCalendar.py --create
     PerfImportCalendar.py                              | 0.00
     - + - + - + - + - + - + - + - + - + - + - + - + - + - + - + 
-    /.../RunChandler --create --catch=tests --profileDir=test_profile --parcelPath=tools/QATestScripts/DataFiles --chandlerTests=TestSharing -D2 -M0
+    /.../RunChandler... --create --catch=tests --profileDir=test_profile --parcelPath=tools/QATestScripts/DataFiles --chandlerTests=TestSharing -D2 -M0
     - + - + - + - + - + - + - + - + - + - + - + - + - + - + - + 
-    /.../RunPython application/tests/TestCrypto.py -v
+    /.../RunPython... application/tests/TestCrypto.py -v
     - + - + - + - + - + - + - + - + - + - + - + - + - + - + - + 
     Creating repository for startup time tests
     /.../RunChandler... --catch=tests --profileDir=test_profile --parcelPath=tools/QATestScripts/DataFiles --scriptFile=tools/QATestScripts/Performance/quit.py --restore=test_profile/__repository__.001
