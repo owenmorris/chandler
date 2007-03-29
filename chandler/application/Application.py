@@ -855,6 +855,8 @@ class wxApplication (wx.App):
                             widget = getattr(block, 'widget', None)
                             if widget is not None:
                                 method = getattr (widget, "OnSetBitmapEvent", None)
+                                if method is None:
+                                    method = getattr (block, "OnSetBitmapEvent", None)
                                 if method is not None:
                                     # The UI requires the bitmap to change; there is no SetBitmap()
                                     # method for wx UpdateUIEvents, so just pass the name of the
