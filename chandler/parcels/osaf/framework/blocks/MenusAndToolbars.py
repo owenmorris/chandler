@@ -901,6 +901,15 @@ class wxToolbarItemMixin (object):
             # text fields in the toolbar do not have a GetToolBar() method
             self.GetToolBar().Realize()
 
+    def SetToolbarItemBitmap(self, event, bitmapName):
+        # get the toolbar
+        toolbar = self.GetToolBar()
+        # get the named bitmap
+        bitmap = wx.GetApp().GetImage(bitmapName)
+        if bitmap is not None:
+            toolbar.SetToolNormalBitmap(self.GetId(), bitmap)
+            toolbar.Realize()
+
     def selectTool(self):
         """
         Persist state of ToolbarItems. Currently limited to radio buttons,

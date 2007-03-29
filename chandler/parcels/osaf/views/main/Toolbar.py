@@ -22,15 +22,4 @@ class SendToolbarItem(WatchedItemRootBlock, ToolbarItem):
     """
     The "Send"/"Update" toolbar item
     """
-    def OnSetBitmapEvent(self, event, bitmapName):
-        # get the toolbar
-        # toolbar = self.GetToolbar()?
-        parent = getattr(self, 'parentBlock', None)
-        if parent is not None:
-            toolbar = getattr(parent, 'widget', None)
-            if toolbar is not None:
-                # get the named bitmap
-                bitmap = wx.GetApp().GetImage(bitmapName)
-                if bitmap is not None:
-                    toolbar.SetToolNormalBitmap(self.toolID, bitmap)
-                    toolbar.Realize()
+    pass

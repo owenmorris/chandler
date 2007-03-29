@@ -831,37 +831,35 @@ class wxApplication (wx.App):
                             method = getattr (eventObject, "GetToolState", None)
                             if method is not None:
                                 arguments ['buttonState'] = method (wxID)
-     
+
                     Block.post (blockEvent, arguments, block)
-     
+
                     if updateUIEvent:
                         check = arguments.get ('Check', None)
                         if check is not None:
                             event.Check (check)
                         event.Enable (arguments.get ('Enable', True))
+
+                        widget = getattr(block, 'widget', None)
+
                         text = arguments.get ('Text', None)
-                        if text != None:
+                        if text is not None and widget is not None:
                             event.SetText (text)
                             # Some widgets, e.g. wxToolbarItems don't properly handle
                             # setting the text of buttons, so we'll handle it here by
                             # looking for the method OnSetTextEvent to handle it
-                            widget = getattr(block, 'widget', None)
-                            if widget is not None:
-                                method = getattr (widget, "OnSetTextEvent", None)
-                                if method is not None:
-                                    method (event)
+                            method = getattr (widget, "OnSetTextEvent", None)
+                            if method is not None:
+                                method (event)
+
                         bitmap = arguments.get ('Bitmap', None)
-                        if bitmap is not None:
-                            widget = getattr(block, 'widget', None)
-                            if widget is not None:
-                                method = getattr (widget, "OnSetBitmapEvent", None)
-                                if method is None:
-                                    method = getattr (block, "OnSetBitmapEvent", None)
-                                if method is not None:
-                                    # The UI requires the bitmap to change; there is no SetBitmap()
-                                    # method for wx UpdateUIEvents, so just pass the name of the
-                                    # bitmap as a second parameter to OnSetBitmapEvent()
-                                    method (event, bitmap)
+                        if bitmap is not None and widget is not None:
+                            # menu items can get here, so check for toolbar item method
+                            if getattr (widget, "SetToolbarItemBitmap", None) is not None:
+                                # The UI requires the bitmap to change; there is no SetBitmap()
+                                # method for wx UpdateUIEvents, so just pass the name of the
+                                # bitmap as a second parameter to OnSetBitmapEvent()
+                                widget.SetToolbarItemBitmap(event, bitmap)
                     return
         event.Skip()
 
