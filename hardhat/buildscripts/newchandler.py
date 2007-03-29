@@ -214,7 +214,7 @@ def doTests(hardhatScript, mode, workingDir, outputDir, buildVersion, log):
 
     except hardhatutil.ExternalCommandErrorWithOutputList, e:
         print "tests failed", e
-        log.write("Internal Error during test run: %s\n" % str(e))
+        log.write("***Error during tests***\n")
         log.write("Test log:\n")
         hardhatutil.dumpOutputList(e.outputList, log)
         dumpTestLogs(log, logfile)
@@ -229,7 +229,7 @@ def doTests(hardhatScript, mode, workingDir, outputDir, buildVersion, log):
         return "test_failed"
     except Exception, e:
         print "a testing error", e
-        log.write("Internal Error during test run: %s\n" % str(e))
+        log.write("***Internal Error during test run: %s\n" % str(e))
         doCopyLog("log [" + logPath + "]", workingDir, logPath, log)
         forceBuildNextCycle(log, workingDir)
         return "test_failed"
