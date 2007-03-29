@@ -1026,29 +1026,30 @@ class SharingTranslator(eim.Translator):
         @self.withItemForUUID(record.uuid, pim.ContentItem)
         def do(item):
             if record.trigger not in noChangeOrMissing:
-                # trigger translates to either EventStamp.userReminderInterval,
-                # or Remindable.userReminderTime, depending on whether trigger
-                # is a duration or a date(time).
-                val = None
-                attr = None
+                # trigger translates to either a pim.Reminder (if a date(time),
+                # or a pim.RelativeReminder (if a timedelta).
+                kw = dict(itsView=item.itsView)
+                reminderFactory = None
             
                 try:
                     val = fromICalendarDateTime(record.trigger)[0]
                 except:
                     pass
                 else:
-                    attr = pim.Remindable.userReminderTime
+                    reminderFactory = pim.Reminder
+                    kw.update(absoluteTime=val)
                     
-                if val is None:
+                if reminderFactory is None:
                     try:
                         val = stringToDurations(record.trigger)[0]
                     except:
                         pass
                     else:
-                        attr = EventStamp.userReminderInterval
+                        reminderFactory = pim.RelativeReminder
+                        kw.update(delta=val)
                         
-                if attr is not None:
-                    setattr(item, attr.name, val)
+                if reminderFactory is not None:
+                    item.reminders = [reminderFactory(**kw)]
                     
             
             reminder = item.getUserReminder()

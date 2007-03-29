@@ -340,7 +340,13 @@ Importing:
     ...              hasBeenSent=0,
     ...              needsReply=1
     ... )
-
+    >>> note_rec = sharing.model.NoteRecord(
+    ...         uuid='800644b6-dd73-11db-f79a-0016cbca6aed',
+    ...         body='This is the body',
+    ...         icalUid=None,
+    ...         icalProperties=None,
+    ...         icalParameters=None
+    ... )
     >>> event_rec = sharing.model.EventRecord(
     ...         uuid='800644b6-dd73-11db-f79a-0016cbca6aed',
     ...         dtstart = ';VALUE=DATE-TIME;TZID=US/Pacific:20070516T180000',
@@ -359,12 +365,15 @@ Importing:
     ...         duration=sharing.Missing,
     ...         repeat=sharing.Missing,
     ... )
-    >>> rs = sharing.RecordSet([item_rec, event_rec, relative_alarm_rec])
+    >>> rs = sharing.RecordSet([item_rec, note_rec, event_rec,
+    ...                         relative_alarm_rec])
 
     >>> t.importRecords(rs)
     >>> t.finishImport()
 
     >>> item = rv.findUUID('800644b6-dd73-11db-f79a-0016cbca6aed')
+    >>> pim.has_stamp(item, pim.EventStamp)
+    True
     >>> len(item.reminders)
     1
     >>> item.reminders.first()
