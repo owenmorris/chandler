@@ -22,40 +22,15 @@ class SendToolbarItem(WatchedItemRootBlock, ToolbarItem):
     """
     The "Send"/"Update" toolbar item
     """
-
-    def setState(self, item):
-        # this button to reflect the kind of the selected item
-        if item is not None:
-            # modifiedFlags = { "edited":100, "queued":200, "sent":300, "updated":400 }
-            if items.Modification.edited in item.modifiedFlags:
-                # set the button to "Update"
-                #import pdb;pdb.set_trace()
-                self.setBitmap("ApplicationBarUpdate.png")
-            elif (items.Modification.sent in item.modifiedFlags) or (items.Modification.queued in item.modifiedFlags):
-                # set the button to disabled "Send"
-                self.setBitmap("ApplicationBarSend.png")
-                # disabled = 1
-            else:
-                # set the button to "Send"
-                self.setBitmap("ApplicationBarSend.png")
-
-    def setBitmap(self, bitmapName):
-        # get the toolbar
-        toolbar = self.parentBlock.widget
-        app = wx.GetApp()
-        # get the named bitmap
-        bitmap = app.GetImage(bitmapName)
-        if bitmap is not None:
-            toolbar.SetToolNormalBitmap(self.toolID, bitmap)
-            toolbar.Realize()
-
     def OnSetBitmapEvent(self, event, bitmapName):
         # get the toolbar
         # toolbar = self.GetToolbar()?
-        toolbar = self.parentBlock.widget
-        app = wx.GetApp()
-        # get the named bitmap
-        bitmap = app.GetImage(bitmapName)
-        if bitmap is not None:
-            toolbar.SetToolNormalBitmap(self.toolID, bitmap)
-            toolbar.Realize()
+        parent = getattr(self, 'parentBlock', None)
+        if parent is not None:
+            toolbar = getattr(parent, 'widget', None)
+            if toolbar is not None:
+                # get the named bitmap
+                bitmap = wx.GetApp().GetImage(bitmapName)
+                if bitmap is not None:
+                    toolbar.SetToolNormalBitmap(self.toolID, bitmap)
+                    toolbar.Realize()

@@ -131,6 +131,7 @@ class FocusEventHandlers(Item):
                     #label = _(u"Send to new")                   
                 elif 'sent' in sendStates:
                     label = messages.SENT
+                elif 'not' in sendStates:
                     if len(selectedItems) == 1:
                         item = selectedItems[0]
                         # Check to see if it's been modified
@@ -140,7 +141,7 @@ class FocusEventHandlers(Item):
                             label = messages.UPDATE
                             # use U-shaped Update bitmap
                             bitmap = "ApplicationBarUpdate.png"
-        
+
         event.arguments['Enable'] = enabled
         event.arguments['Text'] = label
         event.arguments['Bitmap'] = bitmap
