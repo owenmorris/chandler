@@ -341,7 +341,7 @@ def runSingles(options):
     Creating repository for startup time tests
     /.../RunChandler... --catch=tests --profileDir=test_profile --parcelPath=tools/QATestScripts/DataFiles --scriptFile=tools/QATestScripts/Performance/quit.py --restore=test_profile/__repository__.001
     - + - + - + - + - + - + - + - + - + - + - + - + - + - + - + 
-    Startup_with_large_calendar    /usr/bin/time --format=%e -o test_profile/time.log .../RunChandler... --catch=tests --profileDir=test_profile --parcelPath=tools/QATestScripts/DataFiles --scriptFile=tools/QATestScripts/Performance/end.py
+    Startup_with_large_calendar    ...time... --format=%e -o test_profile/time.log .../RunChandler... --catch=tests --profileDir=test_profile --parcelPath=tools/QATestScripts/DataFiles --scriptFile=tools/QATestScripts/Performance/end.py
      0.00 - + - + - + - + - + - + - + - + - + - + - + - + - + - + - + 
     ...
     False
@@ -1202,7 +1202,7 @@ def main(options):
     Creating repository for startup time tests
     /.../RunChandler... --catch=tests --profileDir=test_profile --parcelPath=tools/QATestScripts/DataFiles --scriptFile=tools/QATestScripts/Performance/quit.py --restore=test_profile/__repository__.001
     - + - + - + - + - + - + - + - + - + - + - + - + - + - + - + 
-    Startup_with_large_calendar    /usr/bin/time --format=%e -o test_profile/time.log .../RunChandler... --catch=tests --profileDir=test_profile --parcelPath=tools/QATestScripts/DataFiles --scriptFile=tools/QATestScripts/Performance/end.py
+    Startup_with_large_calendar    ...time... --format=%e -o test_profile/time.log .../RunChandler... --catch=tests --profileDir=test_profile --parcelPath=tools/QATestScripts/DataFiles --scriptFile=tools/QATestScripts/Performance/end.py
      0.00 - + - + - + - + - + - + - + - + - + - + - + - + - + - + - + 
     ...
     False
@@ -1271,7 +1271,7 @@ def main(options):
     Creating repository for startup time tests
     /.../RunChandler... --catch=tests --profileDir=test_profile --parcelPath=tools/QATestScripts/DataFiles --scriptFile=tools/QATestScripts/Performance/quit.py --create
     - + - + - + - + - + - + - + - + - + - + - + - + - + - + - + 
-    Startup                        /usr/bin/time --format=%e -o test_profile/time.log .../RunChandler... --catch=tests --profileDir=test_profile --parcelPath=tools/QATestScripts/DataFiles --scriptFile=tools/QATestScripts/Performance/end.py
+    Startup                        ...time... --format=%e -o test_profile/time.log .../RunChandler... --catch=tests --profileDir=test_profile --parcelPath=tools/QATestScripts/DataFiles --scriptFile=tools/QATestScripts/Performance/end.py
      0.00 - + - + - + - + - + - + - + - + - + - + - + - + - + - + - + 
     ...
     False
