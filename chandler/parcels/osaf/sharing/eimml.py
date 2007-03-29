@@ -161,7 +161,7 @@ class EIMMLSerializer(object):
 
                             attrs = { }
 
-                            if value is eim.Missing:
+                            if value is eim.NoModification:
                                 serialized, typeName = serializeValue(
                                         field.typeinfo, None)
                                 attrs["missing"] = "true"
@@ -249,7 +249,7 @@ class EIMMLSerializer(object):
                                 if empty and empty.lower() == "true":
                                     value = ""
                                 elif missing and missing.lower() == "true":
-                                    value = eim.Missing
+                                    value = eim.NoModification
                                 else:
                                     if fieldElement.text is None:
                                         value = None
@@ -268,7 +268,7 @@ class EIMMLSerializer(object):
                     if deleted and deleted.lower() == "true":
                         if record is eim.NoChange:
                             record = recordClass(*
-                                [(eim.Missing if v is eim.NoChange else v)
+                                [(eim.NoModification if v is eim.NoChange else v)
                                 for v in values]
                             )
                         exclusions.append(record)
@@ -316,7 +316,7 @@ class EIMMLSerializerLite(object):
 
                         else:
 
-                            if value is eim.Missing:
+                            if value is eim.NoModification:
                                 serialized, typeName = serializeValue(
                                     field.typeinfo, None)
                                 SubElement(recordElement,
@@ -398,7 +398,7 @@ class EIMMLSerializerLite(object):
                                 if field.name == name:
                                     missing = fieldElement.get("missing")
                                     if missing and missing.lower() == "true":
-                                        value = eim.Missing
+                                        value = eim.NoModification
                                     else:
                                         value = None
                                     break
@@ -413,7 +413,7 @@ class EIMMLSerializerLite(object):
                     if deleted and deleted.lower() == "true":
                         if record is eim.NoChange:
                             record = recordClass(*
-                                [(eim.Missing if v is eim.NoChange else v)
+                                [(eim.NoModification if v is eim.NoChange else v)
                                 for v in values]
                             )
                         exclusions.append(record)
