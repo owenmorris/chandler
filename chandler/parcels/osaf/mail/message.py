@@ -25,7 +25,7 @@ from datetime import datetime
 from PyICU import ICUtzinfo
 
 #Chandler imports
-from osaf.pim.mail import EmailAddress, MailMessage, MIMEText, MIMEBinary, getMessageBody
+from osaf.pim.mail import EmailAddress, MailMessage, MIMEText, MIMEBinary, getMessageBody, getCurrentMeEmailAddresses
 from osaf.pim.calendar.Calendar import parseText, setEventDateTime
 from osaf.pim import has_stamp, TaskStamp, EventStamp, MailStamp, Remindable
 from i18n import ChandlerMessageFactory as _
@@ -258,6 +258,11 @@ def _messageObjectToKind(view, messageObject, messageText=None,
         name, addr = emailUtils.parseaddr(emailAddr)
 
         peer = __getEmailAddress(view, decodeHeader(name), getUnicodeValue(addr))
+
+        if peer in getCurrentMeEmailAddresses(view):
+            # If the Chandler EIMML message is from me then
+            # ignore it.
+            return None
 
         #used for debugging
         #print (u"inbound: %s uuid: %s" % (peer.format(),  peer.itsUUID)).encode("utf8")

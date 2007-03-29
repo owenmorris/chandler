@@ -701,8 +701,8 @@ class IMAPClient(base.AbstractDownloadClient):
                                      {'accountName': self.account.displayName,
                                       'numberTotal': self.totalDownloaded,
                                       'numberNew': self.totalNewDownloaded,
-                                      'numberUpdated': self.totalUpdateDownloaded,
-                                      'numberIgnored': self.totalIgnoreDownloaded})
+                                      'numberUpdates': self.totalUpdateDownloaded,
+                                      'numberDuplicates': self.totalIgnoreDownloaded})
                 else:
                     setStatusMessage(constants.DOWNLOAD_NO_MESSAGES % \
                                     {'accountName': self.account.displayName})

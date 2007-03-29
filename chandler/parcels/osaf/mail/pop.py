@@ -565,8 +565,8 @@ class POPClient(base.AbstractDownloadClient):
                                  {'accountName': self.account.displayName,
                                   'numberTotal': self.vars.totalDownloaded,
                                   'numberNew': self.vars.totalNewDownloaded,
-                                  'numberUpdated': self.vars.totalUpdateDownloaded,
-                                  'numberIgnored': self.vars.totalIgnoreDownloaded})
+                                  'numberUpdates': self.vars.totalUpdateDownloaded,
+                                  'numberDuplicates': self.vars.totalIgnoreDownloaded})
 
         else:
             meth = self._getNextMessageSet
