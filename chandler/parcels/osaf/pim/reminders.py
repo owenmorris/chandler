@@ -123,6 +123,23 @@ class Reminder(schema.Item):
             "Set to reminder.farFuture if this reminder has expired.",
         defaultValue=None,
     )
+    
+    description = schema.One(
+        schema.Text,
+        doc="End-user text description of this reminder. Currently unused by "
+            "Chandler.",
+    )
+
+    duration = schema.One(
+        schema.TimeDelta,
+        doc="Reminder DURATION (a la ICalendar VALARM); unused by Chandler.",
+        defaultValue=timedelta(0),
+    )
+    repeat = schema.One(
+        schema.Integer,
+        doc="Reminder REPEAT (a la ICalendar VALARM); unused by Chandler.",
+        defaultValue=0,
+    )
 
     schema.addClouds(
         sharing = schema.Cloud(

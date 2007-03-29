@@ -185,6 +185,8 @@ Exporting:
 
 Recurrence
 - - - - -
+
+Importing:
     
     >>> new_rec = sharing.model.EventRecord(
     ...             uuid='f230dcd4-7c32-4c3f-908b-d92081cc9a89',
@@ -226,6 +228,8 @@ Exporting:
 Modifications
 - - - - - - -
 
+Importing:
+
     >>> mod_rec = sharing.model.ItemRecord(
     ...         uuid='f230dcd4-7c32-4c3f-908b-d92081cc9a89:;VALUE=DATE-TIME;TZID=US/Pacific:20070223T140000',
     ...         title='Changed title',
@@ -245,8 +249,7 @@ Modifications
     >>> mod.itsItem.displayName
     u'Changed title'
 
-Exporting
-- - - - -
+Exporting:
 
     >>> t.startExport()
     >>> records = list(t.exportItem(mod.itsItem))
@@ -264,3 +267,126 @@ Exporting
     >>> item_record = item_records[0]
     >>> item_record.title
     u'Changed title'
+    
+Custom Reminders
+- - - - - - - - 
+
+Importing:
+
+    >>> t.startImport()
+
+    >>> item_rec = sharing.model.ItemRecord(
+    ...              uuid='a9b019a4-d995-11db-f269-0016cbca6aed',
+    ...              title='Item with reminder',
+    ...              triage='200 -1167792143.00 1',
+    ...              createdOn=Decimal("1164803131"),
+    ...              hasBeenSent=0,
+    ...              needsReply=0
+    ... )
+    >>> alarm_rec = sharing.model.DisplayAlarmRecord(
+    ...               uuid='a9b019a4-d995-11db-f269-0016cbca6aed',
+    ...               description="Don't forget!",
+    ...               trigger=';TZID=America/New_York:20060304T170000',
+    ...               duration="PT1H",
+    ...               repeat=1,
+    ... )
+
+    >>> rs = sharing.RecordSet([item_rec, alarm_rec])
+
+    >>> t.importRecords(rs)
+    >>> t.finishImport()
+
+    >>> item = rv.findUUID('a9b019a4-d995-11db-f269-0016cbca6aed')
+    >>> len(item.reminders)
+    1
+    >>> item.reminders.first()
+    <Reminder (new): ...>
+    >>> item.reminders.first().absoluteTime
+    datetime.datetime(2006, 3, 4, 17, 0, tzinfo=<ICUtzinfo: America/New_York>)
+    >>> item.reminders.first().description
+    u"Don't forget!"
+    
+Exporting:
+
+    >>> t.startExport()
+    >>> records = list(t.exportItem(item))
+    >>> len(records)
+    3
+    >>> records[0]
+    ItemRecord('a9b019a4-d995-11db-f269-0016cbca6aed', u'Item with reminder', u'200 -1167792143.00 1', Decimal("1164803131"), 0, 0)
+    >>> records[1]
+    ModifiedByRecord(...)
+    >>> records[2]
+    DisplayAlarmRecord('a9b019a4-d995-11db-f269-0016cbca6aed', u"Don't forget!", u';VALUE=DATE-TIME;TZID=America/New_York:20060304T170000', u'PT1H', 1)
+    
+    >>> del item.reminders.first().duration
+    >>> del item.reminders.first().repeat
+    >>> t.startExport()
+    >>> records = list(t.exportItem(item))
+    >>> records[2]
+    DisplayAlarmRecord('a9b019a4-d995-11db-f269-0016cbca6aed', u"Don't forget!", u';VALUE=DATE-TIME;TZID=America/New_York:20060304T170000', Missing, Missing)
+    
+
+Relative Reminders
+- - - - - - - - -
+
+Importing:
+
+    >>> item_rec = sharing.model.ItemRecord(
+    ...              uuid='800644b6-dd73-11db-f79a-0016cbca6aed',
+    ...              title='Event Item with reminder',
+    ...              triage='200 -1167792996.00 1',
+    ...              createdOn=Decimal("1164805552"),
+    ...              hasBeenSent=0,
+    ...              needsReply=1
+    ... )
+
+    >>> event_rec = sharing.model.EventRecord(
+    ...         uuid='800644b6-dd73-11db-f79a-0016cbca6aed',
+    ...         dtstart = ';VALUE=DATE-TIME;TZID=US/Pacific:20070516T180000',
+    ...         duration = 'PT1H',
+    ...         location = 'Nowhere',
+    ...         rrule = None,
+    ...         exrule = None,
+    ...         rdate = None,
+    ...         exdate = None,
+    ...         status = 'CONFIRMED',
+    ... )
+    >>> relative_alarm_rec = sharing.model.DisplayAlarmRecord(
+    ...         uuid='800644b6-dd73-11db-f79a-0016cbca6aed',
+    ...         description="Time to go!",
+    ...         trigger='-PT5M',
+    ...         duration=sharing.Missing,
+    ...         repeat=sharing.Missing,
+    ... )
+    >>> rs = sharing.RecordSet([item_rec, event_rec, relative_alarm_rec])
+
+    >>> t.importRecords(rs)
+    >>> t.finishImport()
+
+    >>> item = rv.findUUID('800644b6-dd73-11db-f79a-0016cbca6aed')
+    >>> len(item.reminders)
+    1
+    >>> item.reminders.first()
+    <RelativeReminder (new): ...>
+    >>> item.reminders.first().delta
+    datetime.timedelta(-1, 86100)
+    >>> item.reminders.first().description
+    u'Time to go!'
+    
+Exporting:
+
+    >>> t.startExport()
+    >>> records = list(t.exportItem(item))
+    >>> len(records)
+    5
+    >>> records[0]
+    ItemRecord('800644b6-dd73-11db-f79a-0016cbca6aed', u'Event Item with reminder', u'200 -1167792996.00 1', Decimal("1164805552"), 0, 0)
+    >>> records[1]
+    ModifiedByRecord(...)
+    >>> records[2]
+    DisplayAlarmRecord('800644b6-dd73-11db-f79a-0016cbca6aed', u'Time to go!', u'-PT5M', Missing, Missing)
+    >>> records[3]
+    NoteRecord('800644b6-dd73-11db-f79a-0016cbca6aed', ...)
+    >>> records[4]
+    EventRecord('800644b6-dd73-11db-f79a-0016cbca6aed', ...)

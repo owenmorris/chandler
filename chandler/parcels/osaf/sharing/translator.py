@@ -520,6 +520,40 @@ class SharingTranslator(eim.Translator):
             action = self.modaction_to_code.get(lastModification, 500)
         )
 
+        reminder = item.getUserReminder()
+        if reminder is not None:
+
+            trigger = eim.Missing
+            if reminder.hasLocalAttributeValue('delta'):
+                trigger = toICalendarDuration(reminder.delta)
+            elif reminder.hasLocalAttributeValue('absoluteTime'):
+                trigger = toICalendarDateTime(reminder.absoluteTime, False)
+            
+            
+            if reminder.duration:
+                duration = toICalendarDuration(reminder.duration, False)
+            else:
+                duration = eim.Missing
+                
+            if reminder.repeat:
+                repeat = reminder.repeat
+            else:
+                repeat = eim.Missing
+                
+            description = getattr(reminder, 'description', None)
+            if description is None:
+                description = "Event Reminder"
+        
+            yield model.DisplayAlarmRecord(
+                item.itsUUID,
+                description,
+                trigger,
+                duration,
+                repeat,
+            )
+        
+        
+
 
 
     # ModifiedByRecord  -------------
@@ -984,7 +1018,55 @@ class SharingTranslator(eim.Translator):
             EventStamp):
             EventStamp(item).remove()
 
+    # DisplayAlarmRecord -------------
+    
+    @model.DisplayAlarmRecord.importer
+    def import_alarm(self, record):
+        
+        @self.withItemForUUID(record.uuid, pim.ContentItem)
+        def do(item):
+            if record.trigger not in noChangeOrMissing:
+                # trigger translates to either EventStamp.userReminderInterval,
+                # or Remindable.userReminderTime, depending on whether trigger
+                # is a duration or a date(time).
+                val = None
+                attr = None
+            
+                try:
+                    val = fromICalendarDateTime(record.trigger)[0]
+                except:
+                    pass
+                else:
+                    attr = pim.Remindable.userReminderTime
+                    
+                if val is None:
+                    try:
+                        val = stringToDurations(record.trigger)[0]
+                    except:
+                        pass
+                    else:
+                        attr = EventStamp.userReminderInterval
+                        
+                if attr is not None:
+                    setattr(item, attr.name, val)
+                    
+            
+            reminder = item.getUserReminder()
+            if reminder is not None:
+                
+                if record.description not in noChangeOrMissing:
+                    reminder.description = record.description
+                    
+                if record.duration not in noChangeOrMissing:
+                    reminder.duration = stringToDurations(record.duration)[0]
+                    
+                if record.repeat not in noChangeOrMissing:
+                    reminder.repeat = record.repeat
 
+    @model.DisplayAlarmRecord.deleter
+    def delete_alarm(self, record):
+        item = self.rv.findUUID(record.uuid)
+        item.reminders = []
 
 class DumpTranslator(SharingTranslator):
 

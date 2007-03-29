@@ -138,10 +138,10 @@ class DisplayAlarmRecord(eim.Record):
     URI = "http://osafoundation.org/eim/displayAlarm/0"
 
     uuid = eim.key(ItemRecord.uuid)
-    description = eim.field(text1024)
-    trigger = eim.field(text1024)
-    duration = eim.field(text1024)
-    repeat = eim.field(eim.IntType)
+    description = eim.field(text1024, [remindersFilter])
+    trigger = eim.field(text1024, [remindersFilter])
+    duration = eim.field(text1024, [remindersFilter])
+    repeat = eim.field(eim.IntType, [remindersFilter])
 
 class MailMessageRecord(eim.Record):
     URI = "http://osafoundation.org/eim/mail/0"
