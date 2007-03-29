@@ -227,6 +227,7 @@ PANELS = {
             },
         },
         "id" : "INCOMINGPanel",
+        "order": 0,
         "saveHandler" : IncomingSaveHandler,
         "validationHandler" : IncomingValidationHandler,
         "deleteHandler" : IncomingDeleteHandler,
@@ -286,6 +287,7 @@ PANELS = {
             },
         },
         "id" : "OUTGOINGPanel",
+        "order": 1,
         "saveHandler" : OutgoingSaveHandler,
         "deleteHandler" : OutgoingDeleteHandler,
         "displayName" : u"OUTGOING_DESCRIPTION",
@@ -293,56 +295,14 @@ PANELS = {
         "callbacks" : (("OUTGOING_DISCOVERY", "OnOutgoingDiscovery"),),
         "messages" : ("OUTGOING_MESSAGE",),
     },
-    "SHARING_DAV" : {
-        "fields" : {
-            "DAV_DESCRIPTION" : {
-                "attr" : "displayName",
-                "type" : "string",
-                "required" : True,
-                "default": _(u"New Sharing Account"),
-            },
-            "DAV_SERVER" : {
-                "attr" : "host",
-                "type" : "string",
-            },
-            "DAV_PATH" : {
-                "attr" : "path",
-                "type" : "string",
-            },
-            "DAV_USERNAME" : {
-                "attr" : "username",
-                "type" : "string",
-            },
-            "DAV_PASSWORD" : {
-                "attr" : "password",
-                "type" : "password",
-            },
-            "DAV_PORT" : {
-                "attr" : "port",
-                "type" : "integer",
-                "default": 80,
-                "required" : True,
-            },
-            "DAV_USE_SSL" : {
-                "attr" : "useSSL",
-                "type" : "boolean",
-                "linkedTo" :
-                        ("DAV_PORT", { True:"443", False:"80" }),
-            },
-        },
-        "id" : "DAVPanel",
-        "deleteHandler" : SharingDeleteHandler,
-        "displayName" : "DAV_DESCRIPTION",
-        "description" : _(u"Sharing"),
-        "messages" : ("SHARING_MESSAGE", "SHARING_MESSAGE2"),
-    },
+
     "SHARING_MORSECODE" : {
         "fields" : {
             "MORSECODE_DESCRIPTION" : {
                 "attr" : "displayName",
                 "type" : "string",
                 "required" : True,
-                "default": _(u"New Experimental Cosmo Account"),
+                "default": _(u"New Chandler Hub Sharing"),
             },
             "MORSECODE_SERVER" : {
                 "attr" : "host",
@@ -375,9 +335,55 @@ PANELS = {
             },
         },
         "id" : "MORSECODEPanel",
+        "order": 2,
         "deleteHandler" : SharingDeleteHandler,
         "displayName" : "MORSECODE_DESCRIPTION",
-        "description" : _(u"Sharing (Experimental)"),
+        "description" : _(u"Chandler Hub Sharing"),
+        "messages" : ("SHARING_MESSAGE", "SHARING_MESSAGE2"),
+    },
+
+    "SHARING_DAV" : {
+        "fields" : {
+            "DAV_DESCRIPTION" : {
+                "attr" : "displayName",
+                "type" : "string",
+                "required" : True,
+                "default": _(u"New WebDAV Sharing Account"),
+            },
+            "DAV_SERVER" : {
+                "attr" : "host",
+                "type" : "string",
+            },
+            "DAV_PATH" : {
+                "attr" : "path",
+                "type" : "string",
+            },
+            "DAV_USERNAME" : {
+                "attr" : "username",
+                "type" : "string",
+            },
+            "DAV_PASSWORD" : {
+                "attr" : "password",
+                "type" : "password",
+            },
+            "DAV_PORT" : {
+                "attr" : "port",
+                "type" : "integer",
+                "default": 80,
+                "required" : True,
+            },
+            "DAV_USE_SSL" : {
+                "attr" : "useSSL",
+                "type" : "boolean",
+                "linkedTo" :
+                        ("DAV_PORT", { True:"443", False:"80" }),
+            },
+        },
+        "id" : "DAVPanel",
+        "order": 3,
+        "deleteHandler" : SharingDeleteHandler,
+        "displayName" : "DAV_DESCRIPTION",
+        "description" : _(u"WebDAV Sharing"),
         "messages" : ("SHARING_MESSAGE", "SHARING_MESSAGE2"),
     },
 }
@@ -461,13 +467,23 @@ class AccountPreferencesDialog(wx.Dialog):
 
         # Populate the "new account" listbox:
         typeNames = []
+
         for (key, value) in PANELS.iteritems():
             # store a tuple with account type description, and name
-            typeNames.append( (value['description'], key) )
+            typeNames.append( (value['order'], value['description'], key) )
 
-        typeNames.sort()
+        def compare(x, y):
+            if x[0] == y[0]:
+                return 0
 
-        for (description, name) in typeNames:
+            if x[0] > y[0]:
+                return 1
+
+            return -1
+
+        typeNames.sort(cmp=compare)
+
+        for (order, description, name) in typeNames:
             newIndex = self.choiceNewType.Append(description)
             self.choiceNewType.SetClientData(newIndex, name)
 

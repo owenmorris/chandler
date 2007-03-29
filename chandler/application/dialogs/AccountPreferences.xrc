@@ -548,7 +548,7 @@
             <border>5</border>
             <object class="wxStaticText" name="ID_TEXT">
               <size>300,-1</size>
-              <label>Sharing</label>
+              <label>WebDAV Sharing</label>
             </object>
           </object>
           <object class="sizeritem">
@@ -696,7 +696,7 @@
             <border>5</border>
             <object class="wxStaticText" name="ID_TEXT">
               <size>300,-1</size>
-              <label>Experimental Cosmo Sharing</label>
+              <label>Chandler Hub Sharing</label>
             </object>
           </object>
           <object class="sizeritem">
