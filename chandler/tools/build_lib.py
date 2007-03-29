@@ -128,9 +128,9 @@ def runCommand(cmd, env=None, timeout=-1, logger=log):
             output = tempfile.TemporaryFile()
 
     if redirect:
-        p = killableprocess.Popen(cmd, env=env, stdout=output, stderr=subprocess.STDOUT, preexec_fn=setpgid_preexec_fn)
+        p = killableprocess.Popen(cmd, env=env, stdin=subprocess.PIPE, stdout=output, stderr=subprocess.STDOUT, preexec_fn=setpgid_preexec_fn)
     else:
-        p = killableprocess.Popen(cmd, env=env, preexec_fn=setpgid_preexec_fn)
+        p = killableprocess.Popen(cmd, env=env, stdin=subprocess.PIPE, preexec_fn=setpgid_preexec_fn)
 
     try:
         if timeout == -1 and redirect:
