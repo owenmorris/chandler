@@ -686,19 +686,31 @@ class SharingTranslator(eim.Translator):
             view = self.rv
 
             if record.messageId not in noChangeOrInherit:
-                mail.messageId = record.messageId
+                mail.messageId = record.messageId and \
+                                 record.messageId or u""
 
             if record.inReplyTo not in noChangeOrInherit:
-                mail.inReplyTo = record.inReplyTo
+                mail.inReplyTo = record.inReplyTo and \
+                                 record.inReplyTo or u""
 
             if record.headers not in noChangeOrInherit:
                 mail.headers = {}
-                headers = record.headers.split(u"\n")
 
-                for header in headers:
-                    key, val = header.split(u": ", 1)
+                if record.headers:
+                    headers = record.headers.split(u"\n")
 
-                    mail.headers[key] = val
+                    prevKey = None
+
+                    for header in headers:
+                        try:
+                            key, val = header.split(u": ", 1)
+                            mail.headers[key] = val
+
+                            # Keep the last valid key around
+                            prevKey = key
+                        except:
+                            if prevKey:
+                                mail.headers[prevKey] = header
 
             if record.toAddress not in noChangeOrInherit:
                 mail.toAddress = []
@@ -737,15 +749,16 @@ class SharingTranslator(eim.Translator):
             if record.references not in noChangeOrInherit:
                 mail.referencesMID = []
 
-                refs = record.references.split()
+                if record.references:
+                    refs = record.references.split()
 
-                for ref in refs:
-                    ref = ref.strip()
+                    for ref in refs:
+                        ref = ref.strip()
 
-                    if ref: mail.referencesMID.append(ref)
+                        if ref: mail.referencesMID.append(ref)
 
             if record.dateSent not in noChangeOrInherit:
-                if record.dateSent.strip():
+                if record.dateSent and record.dateSent.strip():
                     mail.dateSentString = record.dateSent
 
                     timestamp = Utils.parsedate_tz(record.dateSent)
