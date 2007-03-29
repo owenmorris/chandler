@@ -570,7 +570,7 @@ class FileOrItemClipboardHandler(ItemClipboardHandler):
             # http://aspn.activestate.com/ASPN/Mail/Message/wxPython-users/1989308
             # composite data objects don't empty their last dragged item,
             # so their data needs to be set to '' by hand.
-            data.SetData(dataFormat, '')
+            data.SetData(self.itemFormat, '')
 
     def OnItemPaste(self):
         rawData = self.itemDataObject.GetData()
