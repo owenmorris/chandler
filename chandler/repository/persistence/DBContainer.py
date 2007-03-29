@@ -1,4 +1,4 @@
-#   Copyright (c) 2003-2006 Open Source Applications Foundation
+#   Copyright (c) 2003-2007 Open Source Applications Foundation
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -46,7 +46,7 @@ class DBContainer(object):
         db = DB(self.store.env)
         db.lorder = 4321
         
-        flags = DB.DB_THREAD | self._flags
+        flags = DB.DB_THREAD
 
         if ramdb:
             name = None
@@ -64,12 +64,9 @@ class DBContainer(object):
 
     def openC(self):
 
-        self.c = CContainer(self._db)
+        self.c = CContainer(self._db, self.store)
 
     def open(self, name, txn, **kwds):
-
-        self._threaded = threading.local()
-        self._flags = 0
 
         self._db = self.openDB(txn, name, kwds.get('dbname', None),
                                kwds.get('ramdb', False),
@@ -97,7 +94,6 @@ class DBContainer(object):
         if self._db is not None:
             self._db.close()
             self._db = None
-        self._threaded = None
 
     def compact(self, txn):
 
@@ -141,7 +137,7 @@ class DBContainer(object):
 
         while True:
             try:
-                return db.get(key, self.store.txn, self._flags, None)
+                return db.get(key, self.store.txn, self.c.flags, None)
             except DBLockDeadlockError:
                 self.store._logDL()
                 if self.store.txn is not None:
@@ -155,95 +151,11 @@ class DBContainer(object):
         while True:
             try:
                 return db.get_record(key, args,
-                                     self.store.txn, self._flags, None)
+                                     self.store.txn, self.c.flags, None)
             except DBLockDeadlockError:
                 self.store._logDL()
                 if self.store.txn is not None:
                     raise
-
-    def openCursor(self, db=None):
-
-        if db is None:
-            db = self._db
-
-        try:
-            cursor = self._threaded.cursors.get(db, None)
-            if cursor is not None:
-                return cursor.dup()
-        except AttributeError:
-            self._threaded.cursors = {}
-        
-        cursor = db.cursor(self.store.txn, self._flags)
-        self._threaded.cursors[db] = cursor
-
-        return cursor
-
-    def closeCursor(self, cursor, db=None):
-
-        if cursor is not None:
-
-            if db is None:
-                db = self._db
-
-            try:
-                if self._threaded.cursors.get(db, None) is cursor:
-                    del self._threaded.cursors[db]
-            except AttributeError:
-                pass
-            except KeyError:
-                pass
-                
-            cursor.close()
-
-    def _readKeyword(self, value, offset):
-
-        len, = unpack('>b', value[offset])
-        offset += 1
-
-        if len == 0:
-            return offset, None
-
-        if len < 0:
-            return offset-len, value[offset:offset-len]
-
-        return offset+len, unicode(value[offset:offset+len], 'utf-8')
-
-    def _readSymbol(self, value, offset):
-
-        len = ord(value[offset])
-        offset += 1
-
-        if len == 0:
-            return offset, None
-
-        return offset+len, value[offset:offset+len]
-
-    def _readValue(self, value, offset):
-
-        code = ord(value[offset])
-        offset += 1
-
-        if code == Record.NONE:
-            return (1, None)
-
-        if code == Record.TRUE:
-            return (1, True)
-
-        if code == Record.FALSE:
-            return (1, False)
-
-        if code == Record.UUID:
-            return (17, UUID(value[offset:offset+16]))
-
-        if code == Record.INT:
-            return (5, unpack('>l', value[offset:offset+4])[0])
-
-        if code == Record.STRING:
-            l, = unpack('>H', value[offset:offset+2])
-            offset += 2
-            return (l + 3, value[offset:offset+l])
-
-        raise ValueError, code
 
 
 class RefContainer(DBContainer):
@@ -276,7 +188,7 @@ class RefContainer(DBContainer):
 
     def openC(self):
 
-        self.c = CRefContainer(self._db)
+        self.c = CRefContainer(self._db, self.store)
 
     def close(self):
 
@@ -305,7 +217,7 @@ class RefContainer(DBContainer):
             def __del__(_self):
 
                 try:
-                    self.closeCursor(_self.cursor, self._history)
+                    self.c.closeCursor(_self.cursor, self._history)
                     store.commitTransaction(view, _self.txnStatus)
                 except:
                     store.repository.logger.exception("in __del__")
@@ -315,14 +227,14 @@ class RefContainer(DBContainer):
             def next(_self):
 
                 _self.txnStatus = store.startTransaction(view)
-                _self.cursor = cursor = self.openCursor(self._history)
+                _self.cursor = cursor = self.c.openCursor(self._history)
                 
                 try:
                     key = Record(Record.UUID, uuid,
                                  Record.INT, fromVersion + 1)
                     keyTypes = RefContainer.KEY_TYPES
                     dataTypes = RefContainer.REF_TYPES
-                    flags = self._flags
+                    flags = self.c.flags
 
                     key, ref = cursor.find_record(key, keyTypes, dataTypes,
                                                   flags, NONE_PAIR)
@@ -382,10 +294,10 @@ class RefContainer(DBContainer):
 
             try:
                 txnStatus = store.startTransaction(view)
-                cursor = self.openCursor()
+                cursor = self.c.openCursor()
 
                 return self.c.find_ref(cursor, uCol, uRef, ~version, types,
-                                       self._flags)
+                                       self.c.flags)
             
             except DBLockDeadlockError:
                 if txnStatus & store.TXN_STARTED:
@@ -395,7 +307,7 @@ class RefContainer(DBContainer):
                     raise
 
             finally:
-                self.closeCursor(cursor)
+                self.c.closeCursor(cursor)
                 store.abortTransaction(view, txnStatus)
 
     def refIterator(self, view, uCol, version):
@@ -408,13 +320,13 @@ class RefContainer(DBContainer):
 
                 _self.cursor = None
                 _self.txnStatus = store.startTransaction(view)
-                _self.cursor = self.openCursor()
+                _self.cursor = self.c.openCursor()
 
             def __del__(_self):
 
                 if _self.cursor is not None:
                     try:
-                        self.closeCursor(_self.cursor)
+                        self.c.closeCursor(_self.cursor)
                         store.commitTransaction(view, _self.txnStatus)
                     except:
                         store.repository.logger.exception("in __del__")
@@ -424,7 +336,7 @@ class RefContainer(DBContainer):
             def close(_self):
 
                 if _self.cursor is not None:
-                    self.closeCursor(_self.cursor)
+                    self.c.closeCursor(_self.cursor)
                     store.commitTransaction(view, _self.txnStatus)
                     _self.cursor = None
                     _self.txnStatus = 0
@@ -433,7 +345,7 @@ class RefContainer(DBContainer):
 
                 try:
                     return self.c.find_ref(_self.cursor, uCol, uRef, ~version,
-                                           RefContainer.REF_TYPES, self._flags)
+                                           RefContainer.REF_TYPES, self.c.flags)
                 except DBLockDeadlockError:
                     if _self.txnStatus & store.TXN_STARTED:
                         store._logDL()
@@ -478,28 +390,28 @@ class RefContainer(DBContainer):
         cursor = None
 
         try:
-            cursor = self.openCursor()
+            cursor = self.c.openCursor()
             key = uCol._uuid
-            value = cursor.set_range(key, self._flags, None)
+            value = cursor.set_range(key, self.c.flags, None)
 
             if not keepOne:
                 while value is not None and value[0].startswith(key):
-                    cursor.delete(self._flags)
+                    cursor.delete(self.c.flags)
                     count += 1
-                    value = cursor.next(self._flags, None)
+                    value = cursor.next(self.c.flags, None)
 
             else:
                 prevRef = None
                 while value is not None and value[0].startswith(key):
                     ref = value[0][16:32]
                     if ref == prevRef or len(value[1]) == 1:
-                        cursor.delete(self._flags)
+                        cursor.delete(self.c.flags)
                         count += 1
                     prevRef = ref
-                    value = cursor.next(self._flags, None)
+                    value = cursor.next(self.c.flags, None)
 
         finally:
-            self.closeCursor(cursor)
+            self.c.closeCursor(cursor)
 
         return count, self.store._names.purgeNames(txn, uCol, keepOne)
 
@@ -508,18 +420,18 @@ class RefContainer(DBContainer):
         cursor = None
 
         try:
-            cursor = self.openCursor()
+            cursor = self.c.openCursor()
             key = uCol._uuid
-            value = cursor.set_range(key, self._flags, None)
+            value = cursor.set_range(key, self.c.flags, None)
 
             while value is not None and value[0].startswith(key):
                 keyVer = ~unpack('>l', value[0][32:36])[0]
                 if keyVer == version:
-                    cursor.delete(self._flags)
-                value = cursor.next(self._flags, None)
+                    cursor.delete(self.c.flags)
+                value = cursor.next(self.c.flags, None)
 
         finally:
-            self.closeCursor(cursor)
+            self.c.closeCursor(cursor)
 
         self.store._names.undoNames(txn, uCol, version)
 
@@ -547,28 +459,28 @@ class NamesContainer(DBContainer):
         cursor = None
 
         try:
-            cursor = self.openCursor()
+            cursor = self.c.openCursor()
             key = uuid._uuid
             prevHash = None
-            value = cursor.set_range(key, self._flags, None)
+            value = cursor.set_range(key, self.c.flags, None)
 
             if not keepOne:
                 while value is not None and value[0].startswith(key):
-                    cursor.delete(self._flags)
+                    cursor.delete(self.c.flags)
                     count += 1
-                    value = cursor.next(self._flags, None)
+                    value = cursor.next(self.c.flags, None)
 
             else:
                 while value is not None and value[0].startswith(key):
                     hash = value[0][16:20]
                     if hash == prevHash or key == value[1]:
-                        cursor.delete(self._flags)
+                        cursor.delete(self.c.flags)
                         count += 1
                     prevHash = hash
-                    value = cursor.next(self._flags, None)
+                    value = cursor.next(self.c.flags, None)
 
         finally:
-            self.closeCursor(cursor)
+            self.c.closeCursor(cursor)
 
         return count
 
@@ -577,19 +489,19 @@ class NamesContainer(DBContainer):
         cursor = None
 
         try:
-            cursor = self.openCursor()
+            cursor = self.c.openCursor()
             key = uuid._uuid
             prevHash = None
-            value = cursor.set_range(key, self._flags, None)
+            value = cursor.set_range(key, self.c.flags, None)
 
             while value is not None and value[0].startswith(key):
                 nameVer = ~unpack('>l', value[0][-4:])[0]
                 if nameVer == version:
-                    cursor.delete(self._flags)
-                value = cursor.next(self._flags, None)
+                    cursor.delete(self.c.flags)
+                value = cursor.next(self.c.flags, None)
 
         finally:
-            self.closeCursor(cursor)
+            self.c.closeCursor(cursor)
 
     def readName(self, view, version, uKey, name):
 
@@ -604,11 +516,11 @@ class NamesContainer(DBContainer):
 
             try:
                 txnStatus = store.startTransaction(view)
-                cursor = self.openCursor()
+                cursor = self.c.openCursor()
                 
                 name = self.c.find_record(cursor, key,
                                           NamesContainer.NAME_TYPES,
-                                          self._flags, None)
+                                          self.c.flags, None)
                 if name is not None:
                     uValue = name[0]
                     if uValue == uKey:    # deleted name
@@ -626,7 +538,7 @@ class NamesContainer(DBContainer):
                     raise
 
             finally:
-                self.closeCursor(cursor)
+                self.c.closeCursor(cursor)
                 store.abortTransaction(view, txnStatus)
 
     def readNames(self, view, version, uKey):
@@ -637,7 +549,7 @@ class NamesContainer(DBContainer):
         key = Record(Record.UUID, uKey)
         keyTypes = NamesContainer.KEY_TYPES
         dataTypes = NamesContainer.NAME_TYPES
-        flags = self._flags
+        flags = self.c.flags
 
         while True:
             txnStatus = 0
@@ -645,7 +557,7 @@ class NamesContainer(DBContainer):
 
             try:
                 txnStatus = store.startTransaction(view)
-                cursor = self.openCursor()
+                cursor = self.c.openCursor()
                 
                 key, name = cursor.find_record(key, keyTypes, dataTypes,
                                                flags, NONE_PAIR)
@@ -677,7 +589,7 @@ class NamesContainer(DBContainer):
                     raise
 
             finally:
-                self.closeCursor(cursor)
+                self.c.closeCursor(cursor)
                 store.abortTransaction(view, txnStatus)
 
 
@@ -732,11 +644,11 @@ class ACLContainer(DBContainer):
 
             try:
                 txnStatus = store.startTransaction(view)
-                cursor = self.openCursor()
+                cursor = self.c.openCursor()
                 
                 acl = self.c.find_record(cursor, key,
                                          ACLContainer.ACL_TYPES,
-                                         self._flags, None)
+                                         self.c.flags, None)
                 if acl is not None:
                     if acl.size == 1:  # deleted acl
                         return None
@@ -757,7 +669,7 @@ class ACLContainer(DBContainer):
                     raise
 
             finally:
-                self.closeCursor(cursor)
+                self.c.closeCursor(cursor)
                 store.abortTransaction(view, txnStatus)
 
 
@@ -805,11 +717,11 @@ class IndexesContainer(DBContainer):
 
             try:
                 txnStatus = store.startTransaction(view)
-                cursor = self.openCursor()
+                cursor = self.c.openCursor()
 
                 entry = self.c.find_record(cursor, key,
                                            IndexesContainer.ENTRY_TYPES,
-                                           self._flags, None)
+                                           self.c.flags, None)
                 if entry is not None:
                     level, entryValue, points = entry.data
                     if level == 0:  # deleted entry
@@ -835,7 +747,7 @@ class IndexesContainer(DBContainer):
                     raise
 
             finally:
-                self.closeCursor(cursor)
+                self.c.closeCursor(cursor)
                 store.abortTransaction(view, txnStatus)
 
     def purgeIndex(self, txn, uIndex, keepOne):
@@ -844,28 +756,28 @@ class IndexesContainer(DBContainer):
         cursor = None
 
         try:
-            cursor = self.openCursor()
+            cursor = self.c.openCursor()
             key = uIndex._uuid
-            value = cursor.set_range(key, self._flags, None)
+            value = cursor.set_range(key, self.c.flags, None)
 
             if not keepOne:
                 while value is not None and value[0].startswith(key):
-                    cursor.delete(self._flags)
+                    cursor.delete(self.c.flags)
                     count += 1
-                    value = cursor.next(self._flags, None)
+                    value = cursor.next(self.c.flags, None)
 
             else:
                 prevRef = None
                 while value is not None and value[0].startswith(key):
                     ref = value[0][16:32]
                     if ref == prevRef or value[1][0] == '\0':
-                        cursor.delete(self._flags)
+                        cursor.delete(self.c.flags)
                         count += 1
                     prevRef = ref
-                    value = cursor.next(self._flags, None)
+                    value = cursor.next(self.c.flags, None)
 
         finally:
-            self.closeCursor(cursor)
+            self.c.closeCursor(cursor)
 
         return count
 
@@ -874,19 +786,19 @@ class IndexesContainer(DBContainer):
         cursor = None
 
         try:
-            cursor = self.openCursor()
+            cursor = self.c.openCursor()
             key = uIndex._uuid
-            value = cursor.set_range(key, self._flags, None)
+            value = cursor.set_range(key, self.c.flags, None)
 
             while value is not None and value[0].startswith(key):
                 keyVer = ~unpack('>l', value[0][32:36])[0]
                 if keyVer == version:
-                    cursor.delete(self._flags)
+                    cursor.delete(self.c.flags)
 
-                value = cursor.next(self._flags, None)
+                value = cursor.next(self.c.flags, None)
 
         finally:
-            self.closeCursor(cursor)
+            self.c.closeCursor(cursor)
 
     def nodeIterator(self, view, uIndex, version):
         
@@ -898,12 +810,12 @@ class IndexesContainer(DBContainer):
 
                 _self.cursor = None
                 _self.txnStatus = store.startTransaction(view)
-                _self.cursor = self.openCursor()
+                _self.cursor = self.c.openCursor()
 
             def __del__(_self):
 
                 try:
-                    self.closeCursor(_self.cursor)
+                    self.c.closeCursor(_self.cursor)
                     store.commitTransaction(view, _self.txnStatus)
                 except:
                     store.repository.logger.exception("in __del__")
@@ -919,7 +831,7 @@ class IndexesContainer(DBContainer):
                 try:
                     entry = self.c.find_record(_self.cursor, key,
                                                IndexesContainer.ENTRY_TYPES,
-                                               self._flags, None)
+                                               self.c.flags, None)
                     if entry is not None:
                         level, entryValue, points = entry.data
                         if level == 0:  # deleted entry
@@ -993,7 +905,7 @@ class ItemContainer(DBContainer):
 
     def openC(self):
 
-        self.c = CItemContainer(self._db)
+        self.c = CItemContainer(self._db, self.store)
 
     def close(self):
 
@@ -1054,12 +966,12 @@ class ItemContainer(DBContainer):
             def __init__(_self):
 
                 _self.txnStatus = store.startTransaction(view)
-                _self.cursor = self.openCursor()
+                _self.cursor = self.c.openCursor()
 
             def __del__(_self):
 
                 try:
-                    self.closeCursor(_self.cursor)
+                    self.c.closeCursor(_self.cursor)
                     store.commitTransaction(view, _self.txnStatus)
                 except:
                     store.repository.logger.exception("in __del__")
@@ -1073,7 +985,7 @@ class ItemContainer(DBContainer):
 
                 try:
                     key, item = self.c.find_record(_self.cursor, key, dataTypes,
-                                                   self._flags, NONE_PAIR, True)
+                                                   self.c.flags, NONE_PAIR, True)
                     if item is not None:
                         return ~key[1], item
 
@@ -1121,10 +1033,10 @@ class ItemContainer(DBContainer):
 
             try:
                 txnStatus = store.startTransaction(view)
-                cursor = self.openCursor()
+                cursor = self.c.openCursor()
 
                 key, item = self.c.find_record(cursor, key, dataTypes,
-                                               self._flags, NONE_PAIR,
+                                               self.c.flags, NONE_PAIR,
                                                True)
                 if item is not None:
                     return ~key[1], item
@@ -1139,7 +1051,7 @@ class ItemContainer(DBContainer):
                     raise
 
             finally:
-                self.closeCursor(cursor)
+                self.c.closeCursor(cursor)
                 store.abortTransaction(view, txnStatus)
 
     def getItemValues(self, version, uuid):
@@ -1274,7 +1186,7 @@ class ItemContainer(DBContainer):
             def __del__(_self):
 
                 try:
-                    self.closeCursor(_self.cursor, self._kinds)
+                    self.c.closeCursor(_self.cursor, self._kinds)
                     store.commitTransaction(view, _self.txnStatus)
                 except:
                     store.repository.logger.exception("in __del__")
@@ -1284,7 +1196,7 @@ class ItemContainer(DBContainer):
             def run(_self):
 
                 _self.txnStatus = store.startTransaction(view)
-                _self.cursor = cursor = self.openCursor(self._kinds)
+                _self.cursor = cursor = self.c.openCursor(self._kinds)
 
                 keyTypes = (Record.UUID, Record.UUID, Record.INT)
                 if keysOnly:
@@ -1292,7 +1204,7 @@ class ItemContainer(DBContainer):
                 else:
                     dataTypes = ItemContainer.NO_DIRTIES_TYPES
 
-                flags = self._flags
+                flags = self.c.flags
 
                 try:
                     key = Record(Record.UUID, uuid)
@@ -1349,7 +1261,7 @@ class ItemContainer(DBContainer):
             def __del__(_self):
 
                 try:
-                    self.closeCursor(_self.cursor, self._versions)
+                    self.c.closeCursor(_self.cursor, self._versions)
                     store.commitTransaction(view, _self.txnStatus)
                 except:
                     store.repository.logger.exception("in __del__")
@@ -1359,14 +1271,14 @@ class ItemContainer(DBContainer):
             def next(_self):
 
                 _self.txnStatus = store.startTransaction(view)
-                _self.cursor = cursor = self.openCursor(self._versions)
+                _self.cursor = cursor = self.c.openCursor(self._versions)
 
                 keyTypes = (Record.INT, Record.UUID)
                 if keysOnly:
                     dataTypes = ()
                 else:
                     dataTypes = ItemContainer.ITEM_TYPES
-                flags = self._flags
+                flags = self.c.flags
 
                 try:
                     key = Record(Record.INT, fromVersion + 1)
@@ -1428,7 +1340,7 @@ class ItemContainer(DBContainer):
             def __del__(_self):
 
                 try:
-                    self.closeCursor(_self.cursor)
+                    self.c.closeCursor(_self.cursor)
                     store.commitTransaction(view, _self.txnStatus)
                 except:
                     store.repository.logger.exception("in __del__")
@@ -1438,11 +1350,11 @@ class ItemContainer(DBContainer):
             def next(_self):
 
                 _self.txnStatus = store.startTransaction(view)
-                _self.cursor = cursor = self.openCursor()
+                _self.cursor = cursor = self.c.openCursor()
 
                 key = ItemContainer.KEY_TYPES
                 item = ItemContainer.VALUES_TYPES
-                flags = self._flags
+                flags = self.c.flags
                 
                 try:
                     while True:
@@ -1489,7 +1401,7 @@ class ItemContainer(DBContainer):
             def __del__(_self):
 
                 try:
-                    self.closeCursor(_self.cursor)
+                    self.c.closeCursor(_self.cursor)
                     store.abortTransaction(view, _self.txnStatus)
                 except:
                     store.repository.logger.exception("in __del__")
@@ -1499,13 +1411,13 @@ class ItemContainer(DBContainer):
             def next(_self):
 
                 _self.txnStatus = store.startTransaction(view)
-                _self.cursor = cursor = self.openCursor()
+                _self.cursor = cursor = self.c.openCursor()
 
                 key = Record(Record.UUID, uItem,
                              Record.INT, ~fromVersion)
                 keyTypes = ItemContainer.KEY_TYPES
                 dataTypes = (Record.UUID, Record.INT)
-                flags = self._flags
+                flags = self.c.flags
 
                 try:
                     key, item = cursor.find_record(key, keyTypes, dataTypes,
@@ -1616,7 +1528,7 @@ class ValueContainer(DBContainer):
 
     def openC(self):
 
-        self.c = CValueContainer(self._db)
+        self.c = CValueContainer(self._db, self.store)
 
     def close(self):
 
@@ -1634,7 +1546,7 @@ class ValueContainer(DBContainer):
     def getSchemaInfo(self, txn=None, open=False):
 
         value = self._version.get(ValueContainer.SCHEMA_KEY,
-                                  txn, self._flags, None)
+                                  txn, self.c.flags, None)
         if value is None:
             raise AssertionError, 'schema record is missing'
 
@@ -1645,7 +1557,7 @@ class ValueContainer(DBContainer):
     def getVersion(self):
 
         value = self._version.get(ValueContainer.VERSION_KEY,
-                                  self.store.txn, self._flags, None)
+                                  self.store.txn, self.c.flags, None)
         if value is None:
             return 0
         else:
@@ -1714,7 +1626,7 @@ class CommitsContainer(DBContainer):
             def __del__(_self):
 
                 try:
-                    self.closeCursor(_self.cursor)
+                    self.c.closeCursor(_self.cursor)
                     store.abortTransaction(view, _self.txnStatus)
                 except:
                     store.repository.logger.exception("in __del__")
@@ -1724,11 +1636,11 @@ class CommitsContainer(DBContainer):
             def next(_self):
 
                 _self.txnStatus = store.startTransaction(view)
-                _self.cursor = self.openCursor()
+                _self.cursor = self.c.openCursor()
                 
                 try:
                     value = _self.cursor.set_range(pack('>l', fromVersion),
-                                                   self._flags, None)
+                                                   self.c.flags, None)
 
                     while value is not None:
                         key, data = value
@@ -1738,7 +1650,7 @@ class CommitsContainer(DBContainer):
 
                         yield version, self._readCommit(data)
 
-                        value = _self.cursor.next(self._flags, None)
+                        value = _self.cursor.next(self.c.flags, None)
 
                     yield False
 

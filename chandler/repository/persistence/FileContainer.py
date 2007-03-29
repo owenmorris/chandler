@@ -1,4 +1,4 @@
-#   Copyright (c) 2004-2006 Open Source Applications Foundation
+#   Copyright (c) 2004-2007 Open Source Applications Foundation
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -94,8 +94,8 @@ class FileContainer(DBContainer):
 
         while True:
             try:
-                cursor = self.openCursor()
-                value = cursor.first(self._flags)
+                cursor = self.c.openCursor()
+                value = cursor.first(self.c.flags)
 
                 while value is not None:
                     value = value[0]
@@ -104,7 +104,7 @@ class FileContainer(DBContainer):
 
                     while True:
                         try:
-                            value = cursor.next(self._flags, None)
+                            value = cursor.next(self.c.flags, None)
                             break
                         except DBLockDeadlockError:
                             self.store._logDL()
@@ -112,7 +112,7 @@ class FileContainer(DBContainer):
                 return results
 
             finally:
-                self.closeCursor(cursor)
+                self.c.closeCursor(cursor)
 
     def openFile(self, name):
 
@@ -216,19 +216,19 @@ class File(object):
         blocks = container._blocks
         
         try:
-            cursor = container.openCursor(blocks)
+            cursor = container.c.openCursor(blocks)
             key = self.getKey()._uuid
             
-            value = cursor.set_range(key, container._flags, None)
+            value = cursor.set_range(key, container.c.flags, None)
             while value is not None and value[0].startswith(key):
                 cursor.delete()
                 count += 1
-                value = cursor.next(container._flags, None)
+                value = cursor.next(container.c.flags, None)
 
             container.delete(self._key)
 
         finally:
-            container.closeCursor(cursor, blocks)
+            container.c.closeCursor(cursor, blocks)
 
         return count
 
@@ -446,7 +446,7 @@ class IndexContainer(FileContainer):
         super(IndexContainer, self).open(name, txn, **kwds)
 
         if kwds.get('create', False):
-            directory = DbDirectory(txn, self._db, self._blocks, self._flags)
+            directory = DbDirectory(txn, self._db, self._blocks, self.c.flags)
             indexWriter = IndexWriter(directory, StandardAnalyzer(), True)
             indexWriter.close()
             directory.close()
@@ -466,7 +466,7 @@ class IndexContainer(FileContainer):
         
     def getDirectory(self):
 
-        return DbDirectory(self.store.txn, self._db, self._blocks, self._flags)
+        return DbDirectory(self.store.txn, self._db, self._blocks, self.c.flags)
 
     def getIndexReader(self):
 
