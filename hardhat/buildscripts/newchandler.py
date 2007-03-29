@@ -200,17 +200,21 @@ def doTests(hardhatScript, mode, workingDir, outputDir, buildVersion, log):
         print "Testing " + mode
         log.write(separator)
         log.write("Testing " + mode + " ...\n")
+        log.write("Logging to %s\n" % logfile)
 
         cmd = [pythonProgram, './tools/rt.py', '-Ti', '-ufr', '-m %s' % mode]
 
+        log.write("cmd: %s\n" % ' '.join(cmd))
+
         outputList = hardhatutil.executeCommandReturnOutput(cmd)
 
+        log.write("command output:\n")
         hardhatutil.dumpOutputList(outputList, log)
         dumpTestLogs(log, logfile)
 
     except hardhatutil.ExternalCommandErrorWithOutputList, e:
         print "tests failed", e
-        log.write("***Error during tests***\n")
+        log.write("Internal Error during test run: %s\n" % str(e))
         log.write("Test log:\n")
         hardhatutil.dumpOutputList(e.outputList, log)
         dumpTestLogs(log, logfile)
@@ -225,7 +229,8 @@ def doTests(hardhatScript, mode, workingDir, outputDir, buildVersion, log):
         return "test_failed"
     except Exception, e:
         print "a testing error", e
-        doCopyLog("***Error during tests***", workingDir, logPath, log)
+        log.write("Internal Error during test run: %s\n" % str(e))
+        doCopyLog("log [" + logPath + "]", workingDir, logPath, log)
         forceBuildNextCycle(log, workingDir)
         return "test_failed"
     else:
