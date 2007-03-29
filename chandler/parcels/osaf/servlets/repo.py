@@ -622,7 +622,9 @@ class ValueRenderer(object):
 
     def Render(self, name):
         value = getattr(self.item, name)
-
+        return self.RenderValue(value, name)
+        
+    def RenderValue(self, value, name=''):
         # we're guaranteed that we'll fall all the way back to Render_object
         if hasattr(value, '__class__'):
             for cls in value.__class__.__mro__:
@@ -720,9 +722,7 @@ class ValueRenderer(object):
 
         itemString += "<ul>"
         for j in value:
-            itemString += ('<li>%s <a href="%s">%s</a><br>\n' %
-                           (getItemName(j),
-                            toLink(j.itsPath), j.itsPath))
+            itemString += ('<li>%s</li>\n' % self.RenderValue(j))
         itemString += "</ul>"
 
         if getattr(value,'_indexes', None):
@@ -922,8 +922,8 @@ def RenderItem(repoView, item):
 
         try:
             itemString = vr.Render(name)
-        except:
-            itemString = "Couldn't render %s" % name
+        except Exception, e:
+            itemString = "Couldn't render %s: <br/><pre>%s</pre>" % (name, traceback.format_exc())
 
         result += MakeValueRow(name, itemString, valueType)
         count += 1
@@ -1195,6 +1195,14 @@ def RenderObject(repoView, theObject, objectPath, label="Object"):
 
 def getItemName(item):
     return clean(getattr(item, 'displayName', None) or item._repr_())
+    name = getattr(item, 'displayName', None)
+    if not name:
+        reprMethod = getattr(item, '_repr_', None)
+        if reprMethod:
+            name = reprMethod()
+        else:
+            name = "%s" % item
+    return clean(name)
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
