@@ -36,6 +36,10 @@ class SubscribeDialog(wx.Dialog):
          resources=None, view=None, url=None, name=None, modal=True,
          immediate=False, mine=None, publisher=None, color=None):
 
+        # for bug #8387
+        if "wxGTK" in wx.PlatformInfo:
+            style |= wx.RESIZE_BORDER
+            
         wx.Dialog.__init__(self, parent, -1, title, pos, size, style)
 
         self.view = view
@@ -52,8 +56,10 @@ class SubscribeDialog(wx.Dialog):
         self.mySizer.Add(self.toolPanel, 0, wx.GROW|wx.ALL, 5)
 
         self.statusPanel = self.resources.LoadPanel(self, "StatusPanel")
+        self.mySizer.Add(self.statusPanel, 0, wx.GROW, 5)
         self.statusPanel.Hide()
         self.accountPanel = self.resources.LoadPanel(self, "UsernamePasswordPanel")
+        self.mySizer.Add(self.accountPanel, 0, wx.GROW, 5)
         self.accountPanel.Hide()
 
         self.SetSizer(self.mySizer)
@@ -306,7 +312,6 @@ class SubscribeDialog(wx.Dialog):
         self._hideStatus()
 
         if not self.accountPanel.IsShown():
-            self.mySizer.Add(self.accountPanel, 0, wx.GROW, 5)
             self.accountPanel.Show()
             self.textUsername.SetFocus()
 
@@ -316,14 +321,12 @@ class SubscribeDialog(wx.Dialog):
 
         if self.accountPanel.IsShown():
             self.accountPanel.Hide()
-            self.mySizer.Detach(self.accountPanel)
             self._resize()
 
     def _showStatus(self, text):
         self._hideAccountInfo()
 
         if not self.statusPanel.IsShown():
-            self.mySizer.Add(self.statusPanel, 0, wx.GROW, 5)
             self.statusPanel.Show()
             self._resize()
 
@@ -332,7 +335,6 @@ class SubscribeDialog(wx.Dialog):
     def _hideStatus(self):
         if self.statusPanel.IsShown():
             self.statusPanel.Hide()
-            self.mySizer.Detach(self.statusPanel)
             self._resize()
 
     def _resize(self):
