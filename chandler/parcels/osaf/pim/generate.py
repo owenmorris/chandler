@@ -132,7 +132,7 @@ def GenerateMailMessage(view, tzinfo=None):
 
     if outbound:
         message.outgoingMessage()
-        message.itsItem.changeEditState(Modification.sent)
+        message.itsItem.changeEditState(Modification.sent, who=M_FROM)
 
     else:
         message.incomingMessage()

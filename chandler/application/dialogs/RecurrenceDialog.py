@@ -24,6 +24,7 @@ from i18n import ChandlerMessageFactory as _
 import logging
 from application import schema
 from osaf.pim import EventStamp, Modification, Stamp, has_stamp, isDead
+from osaf.pim.mail import MailStamp, EmailAddress
 
 logger = logging.getLogger(__name__)
 
@@ -273,7 +274,7 @@ class UserChangeProxy(object):
         if (not has_stamp(proxiedItem, EventStamp) or
             getattr(proxiedItem, EventStamp.rruleset.name, None) is None):
             setattr(proxiedItem, name, value)
-            proxiedItem.changeEditState()
+            self.markEdited(proxiedItem)
         else:
             event = EventStamp(proxiedItem)
             testedEqual = False
@@ -358,8 +359,9 @@ class UserChangeProxy(object):
         if not isDead(item) and has_stamp(item, EventStamp):
             item = EventStamp(item).getMaster().itsItem
 
-        if item is not None and not item.hasLocalAttributeValue('lastModification'):
-            item.changeEditState(Modification.created)
+        if (item is not None and not
+            item.hasLocalAttributeValue('lastModification')):
+            item.changeEditState(Modification.created, who=item.lastModifiedBy)
 
     def addToCollection(self, collection):
         """
@@ -463,6 +465,17 @@ class UserChangeProxy(object):
         if view is not None:
             view.commit()
 
+
+    def markEdited(self, item):
+        who = None
+        
+        if has_stamp(item, MailStamp):
+            who = getattr(item, MailStamp.fromAddress.name, None)
+            
+        if who is None:
+            who = item.getCurrentMeEmailAddress()
+
+        item.changeEditState(who=who)
     
     def propagateChange(self, name, value):
         if has_stamp(self.proxiedItem, EventStamp):
@@ -495,7 +508,7 @@ class UserChangeProxy(object):
         else:
             editedItem = EventStamp(self.proxiedItem).getMaster().itsItem
             
-        editedItem.changeEditState() # Mark it edited
+        self.markEdited(editedItem) # Mark it edited
 
     def propagateDeleteOrRemove(self, collection):
         proxiedEvent = EventStamp(self.proxiedItem)

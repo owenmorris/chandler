@@ -364,6 +364,8 @@ class MainView(View):
             if msgFlag:
                 pim.mail.MailStamp(item).add()
                 pim.mail.MailStamp(item).InitOutgoingAttributes()
+            else:
+                item.InitOutgoingAttributes()
        
             # Set a reminder if the item is not an event but it has time
             if (not eventFlag) and (typeFlag != 0) :

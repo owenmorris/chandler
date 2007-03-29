@@ -136,29 +136,48 @@ class ContentItem(Triageable):
         doc="What the last modification was.",
         defaultValue=Modification.created,
     )
+    
+    BYLINE_FORMATS = {
+        Modification.created: (
+            _(u"Created by %(user)s on %(date)s"),
+            _(u"Created on %(date)s"),
+        ),
+        Modification.edited: (
+            _(u"Edited by %(user)s on %(date)s"),
+            _(u"Edited on %(date)s"),
+        ),
+        Modification.updated: (
+            _(u"Updated by %(user)s on %(date)s"),
+            _(u"Updated on %(date)s"),
+        ),
+        Modification.sent: (
+            _(u"Sent by %(user)s on %(date)s"),
+            _(u"Created on %(date)s"),
+        ),
+    }
+    BYLINE_FORMATS[Modification.queued] = BYLINE_FORMATS[Modification.sent]
+
 
     def getByline(self):
         lastModification = self.lastModification
 
-        if lastModification == Modification.created:
-            fmt = _(u"Created by %(user)s on %(date)s")
-        elif lastModification == Modification.edited:
-            fmt = _(u"Edited by %(user)s on %(date)s")
-        elif lastModification == Modification.updated:
-            fmt = _(u"Updated by %(user)s on %(date)s")
-        elif lastModification in (Modification.queued, Modification.sent):
-            fmt = _(u"Sent by %(user)s on %(date)s")
-        else:
-            assert False, \
-                "Unrecognized lastModification value %s" % (lastModification,)
+        assert lastModification in self.BYLINE_FORMATS
+        
+        fmt, noUserFmt = self.BYLINE_FORMATS[lastModification]
 
-        user = self.lastModifiedBy or messages.ME
         # fall back to createdOn
         lastModified = (self.lastModified or getattr(self, 'createdOn', None) or
                        datetime.now(ICUtzinfo.default))
 
         shortDateFormat = schema.importString("osaf.pim.shortDateFormat")
         date = shortDateFormat.format(lastModified)
+
+        user = self.lastModifiedBy
+        if user:
+             return fmt % dict(user=user.emailAddress, date=date)
+        else:
+             return noUserFmt % dict(date=date)
+
 
         return fmt % dict(user=user, date=date)
         
@@ -263,6 +282,7 @@ class ContentItem(Triageable):
         """ Init any attributes on ourself that are appropriate for
         a new outgoing item.
         """
+        
         try:
             super(ContentItem, self).InitOutgoingAttributes ()
         except AttributeError:
@@ -270,6 +290,9 @@ class ContentItem(Triageable):
 
         # default the displayName
         self.displayName = messages.UNTITLED
+        
+        if not self.hasLocalAttributeValue('lastModifiedBy'):
+            self.lastModifiedBy = self.getCurrentMeEmailAddress()
 
     def ExportItemData(self, clipboardHandler):
         # Create data for this kind of item in the clipboard handler
@@ -367,9 +390,10 @@ class ContentItem(Triageable):
                         the value of C{self.lastModification}.
         @type modType: C{Modification}
         
-        @param who: May be C{None}, which is interpreted as the current user.
+        @param who: May be C{None}, which is interpreted as an anonymous
+                    user (e.g. a "drive-by" sharing user).
                     Used to set the value of {self.lastModifiedBy}.
-        @type who: C{Contact}
+        @type who: C{EmailAddress}
         
         @param when: The date&time of this change. Used to set the value
                      of C{self.lastModified}. The default, C{None}, sets
