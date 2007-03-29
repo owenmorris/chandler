@@ -550,6 +550,40 @@ record has a NoChange value on the filtered field::
 
 
 
+Start over, using a filter that completely filters out an entire record::
+
+    >>> demo3Filter = sharing.Filter('cid:demo3-filter@osaf.us', u"Demo3")
+    >>> class Demo3(sharing.Record):
+    ...     URI = 'cid:eim.test.demo3-record@osaf.us'
+    ...     a = sharing.key(int)
+    ...     b = sharing.field(int, [demo3Filter])
+    ...     c = sharing.field(int, [demo3Filter])
+    >>> osaf.sharing.Demo3 = Demo3
+
+Without a filter, this merge results in a record to send::
+
+    >>> state.set(empty, empty)
+    >>> state.merge(rs([Demo3(1, 1, 1)]))
+    (RecordSet(set([Demo3(1, 1, 1)]), set([])), RecordSet(set([]), set([])), RecordSet(set([]), set([])))
+
+With the filter in place, this merge results in nothing being sent::
+
+    >>> filter = getFilter(['cid:demo3-filter@osaf.us'])
+    >>> state.set(empty, empty)
+    >>> state.merge(rs([Demo3(1, 1, 1)]), filter=filter)
+    (RecordSet(set([]), set([])), RecordSet(set([]), set([])), RecordSet(set([]), set([])))
+
+
+With the filter in place, this merge results in nothing being applied::
+
+    >>> state.set(rs(set([Demo3(1, 1, 1)])), empty)
+    >>> state.merge(rs([Demo3(1, 1, 1)]), rs([Demo3(1, 2, 2)]), filter=filter)
+    (RecordSet(set([]), set([])), RecordSet(set([]), set([])), RecordSet(set([]), set([])))
+
+
+
+
+
 Make sure Missing values can be merged::
 
     >>> state.set(rs(set([Demo(1,1,1)])), empty)
