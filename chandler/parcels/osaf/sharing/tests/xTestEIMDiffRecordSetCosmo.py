@@ -19,6 +19,10 @@ from osaf.sharing.tests.round_trip import RoundTripTestCase
 
 from osaf.sharing import recordset_conduit, translator, eimml, cosmo
 
+from osaf.framework.password import Password
+from osaf.framework.twisted import waitForDeferred
+
+
 from repository.item.Item import Item
 from util import testcase
 from PyICU import ICUtzinfo
@@ -44,9 +48,11 @@ class EIMDiffRecordSetCosmoTestCase(RoundTripTestCase):
             port=8080,
             path="/cosmo",
             username="test",
-            password="test1",
+            password=Password(itsView=view0),
             useSSL=False
         )
+        waitForDeferred(account.password.encryptPassword('test1'))
+
         conduit = cosmo.CosmoConduit(itsView=view0,
             account=account,
             shareName=coll0.itsUUID.str16(),
@@ -55,7 +61,6 @@ class EIMDiffRecordSetCosmoTestCase(RoundTripTestCase):
         )
         self.share0 = sharing.Share("share", itsView=view0,
             contents=coll0, conduit=conduit)
-        self.assert_(pim.has_stamp(coll0, sharing.SharedItem))
 
 
         view1 = self.views[1]
@@ -64,9 +69,11 @@ class EIMDiffRecordSetCosmoTestCase(RoundTripTestCase):
             port=8080,
             path="/cosmo",
             username="test",
-            password="test1",
+            password=Password(itsView=view1),
             useSSL=False
         )
+        waitForDeferred(account.password.encryptPassword('test1'))
+
         conduit = cosmo.CosmoConduit(itsView=view1,
             account=account,
             shareName=coll0.itsUUID.str16(),
