@@ -1039,7 +1039,11 @@ class MainView(View):
             try:
                 (dir, filename) = os.path.split(fullpath)
                 self.setStatusMessage (_(u"Exporting to %(filename)s") % {'filename': filename})
-
+                try:
+                    os.remove(fullpath)
+                except OSError:
+                    pass
+                
                 if sharing.caldav_atop_eim:
                     share = sharing.OneTimeFileSystemShare(
                         itsView=self.itsView,

@@ -1936,7 +1936,7 @@ class EventStamp(Stamp):
 
         firstFutureLater = self.getFirstFutureLater()
         lastPastDone = self.getLastPastDone()
-        # run through modifications and unmodify them if there only changes
+        # run through modifications and unmodify them if their only changes
         # are from autoTriage
         for mod in map(EventStamp, master.modifications):
             item = mod.itsItem

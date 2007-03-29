@@ -314,10 +314,20 @@ def getUUIDForEIM(item_or_stamp):
     else:
         return item.itsUUID
 
-def handleEmpty(item, attr):
+def handleEmpty(item_or_stamp, attr):
+    item = getattr(item_or_stamp, 'itsItem', item_or_stamp)
+    if not isinstance(item_or_stamp, Occurrence):
+        # type(some_Occurrence).attrname is a getter, not a descriptor, so
+        # don't bother changing attr for stamps (it isn't needed anyway in
+        # that case)
+        attr = getattr(type(item_or_stamp), attr).name
+    isOccurrence = isinstance(item, Occurrence)
     if not hasattr(item, attr):
-        return None
-    if not isinstance(item, Occurrence) or item.hasLocalAttributeValue(attr):
+        if not isOccurrence or hasattr(item.inheritFrom, attr):
+            return None
+        else:
+            return eim.Missing
+    if not isOccurrence or item.hasLocalAttributeValue(attr):
         return getattr(item, attr)
     else:
         return eim.Missing
@@ -473,9 +483,13 @@ class SharingTranslator(eim.Translator):
         else:
             triage = eim.Missing
 
+        title = handleEmpty(item, "displayName")
+        if title is None:
+            title = ""
+
         yield model.ItemRecord(
             uuid,                                       # uuid
-            getattr(item, "displayName", ""),           # title
+            title,                                      # title
             triage,                                     # triage
             createdOn,                                  # createdOn
             0,                                          # hasBeenSent (TODO)
@@ -583,11 +597,20 @@ class SharingTranslator(eim.Translator):
         # TODO: REMOVE HACK (Cosmo expects None for empty bodies)
         if body == '':
             body = None
+            
+        # when serializing iCalendar, modifications will incorrectly handle
+        # a None value for icalUID if icalUID and UUID aren't the same, but in 
+        # most cases, icalUID will be identical to UUID, just use None in that
+        # case
+        icalUID = getattr(item, 'icalUID', None)
+        if icalUID == unicode(item.itsUUID):
+            icalUID = None
+
 
         yield model.NoteRecord(
             uuid,                                       # uuid
             body,                                       # body
-            handleEmpty(item, "icalUID"),               # icalUid
+            icalUID,                                    # icalUid
             None,                                       # icalProperties
             None                                        # icalParameters
             

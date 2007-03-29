@@ -38,6 +38,7 @@ def getVevent(recordSet, vevents):
     vevent = vevents.get(uuid)
     if vevent is None:
         vevent = vobject.newFromBehavior('vevent')
+        vevent.isNative = True
         vevents[uuid] = vevent
     return vevent
 
@@ -63,18 +64,26 @@ def UUIDFromICalUID(uid):
 def readEventRecord(eventRecordSet, vevents):
     vevent = getVevent(eventRecordSet, vevents)
 
-    # DTSTART is special, it has optional parameters, it can be parsed directly
-    vevent.dtstart  = textLineToContentLine("DTSTART" + eventRecordSet.dtstart)
-    tzid = getattr(vevent.dtstart, 'tzid_param', None)
-    # add an appropriate tzinfo to vobject's tzid->tzinfo cache
-    if tzid is not None and vobject.icalendar.getTzid(tzid) is None:
-        vobject.icalendar.registerTzid(tzid, ICUtzinfo.getInstance(tzid))
+    uuid, recurrenceID = translator.splitUUID(eventRecordSet.uuid)
+    if recurrenceID is not None:
+        vevent.add('recurrence-id').value = recurrenceID
+        
+    if eventRecordSet.dtstart in translator.emptyValues:
+        if recurrenceID is not None:
+            vevent.add('dtstart').value = recurrenceID
+    else:
+        vevent.dtstart  = textLineToContentLine("DTSTART" +
+                                                eventRecordSet.dtstart)
+        tzid = getattr(vevent.dtstart, 'tzid_param', None)
+        # add an appropriate tzinfo to vobject's tzid->tzinfo cache
+        if tzid is not None and vobject.icalendar.getTzid(tzid) is None:
+            vobject.icalendar.registerTzid(tzid, ICUtzinfo.getInstance(tzid))
 
     uppers = ['duration']
 
     for name in ['duration', 'status', 'location']:
         eimValue = getattr(eventRecordSet, name)
-        if eimValue not in ('', None):
+        if eimValue not in translator.emptyValues:
             line = vevent.add(name)
             if eimValue in uppers:
                 eimValue = eimValue.upper()
@@ -83,18 +92,36 @@ def readEventRecord(eventRecordSet, vevents):
     
     timestamp = datetime.utcnow()
     vevent.add('dtstamp').value = timestamp.replace(tzinfo=utc)
-    #recurrence-id
+    # rruleset
+    for rule_name in ('rrule', 'exrule'):
+        rules = []
+        record_value = getattr(eventRecordSet, rule_name)
+        if record_value not in translator.emptyValues:
+            for rule_value in record_value.split(':'):
+                # EIM concatenates multiple rules with :
+                rules.append(textLineToContentLine(rule_name + ":" + rule_value))
+        vevent.contents[rule_name] = rules
+
+    for date_name in ('rdate', 'exdate'):
+        record_value = getattr(eventRecordSet, date_name)
+        if record_value not in translator.emptyValues:
+            # multiple dates should always be on one line
+            setattr(vevent, date_name, 
+                    textLineToContentLine(date_name + record_value))
 
 def readNoteRecord(noteRecordSet, vevents):
     vevent = getVevent(noteRecordSet, vevents)
-    if noteRecordSet.body is not None:
+    if noteRecordSet.body not in translator.emptyValues:
         vevent.add('description').value = noteRecordSet.body
-    vevent.add('uid').value = noteRecordSet.icalUid
+    uid = noteRecordSet.icalUid
+    if uid in translator.emptyValues:
+        uid, recurrenceID = translator.splitUUID(noteRecordSet.uuid)
+    vevent.add('uid').value = uid
     # reminders?
 
 def readItemRecord(itemRecordSet, vevents):
     vevent = getVevent(itemRecordSet, vevents)
-    if itemRecordSet.title is not None:
+    if itemRecordSet.title not in translator.emptyValues:
         vevent.add('summary').value = itemRecordSet.title
 
 recordHandlers = {model.EventRecord : readEventRecord,
