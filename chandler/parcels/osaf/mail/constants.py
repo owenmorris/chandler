@@ -64,7 +64,7 @@ POP_UIDL_ERROR = _(u"The POP3 Server does not support the 'UIDL' command.\nThis 
 
 # ChoiceFormat messages
 #==========================
-DOWNLOAD_CHANDLER_MESSAGES = ChoiceFormat(_(u"1#%(accountName)s: %(numberTotal)s message downloaded to Chandler (%(numberNew)s New, %(numberUpdates)s Updates, %(numberDuplicates)s Duplicates).|1<%(accountName)s: %(numberTotal)s messages downloaded to Chandler (%(numberNew)s New, %(numberUpdates)s Updates, %(numberDuplicates)s Duplicates)."))
+DOWNLOAD_CHANDLER_MESSAGES = ChoiceFormat(_(u"1#%(accountName)s: %(numberTotal)s message downloaded to Chandler (New: %(numberNew)s, Updates: %(numberUpdates)s, Duplicates %(numberDuplicates)s)|1<%(accountName)s: %(numberTotal)s messages downloaded to Chandler (New: %(numberNew)s, Updates: %(numberUpdates)s, Duplicates: %(numberDuplicates)s)"))
 
 POP_START_MESSAGES = ChoiceFormat(_(u"1#%(accountName)s: downloading %(numberOfMessages)s message ...|1<%(accountName)s: downloading %(numberOfMessages)s messages ..."))
 
