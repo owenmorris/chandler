@@ -116,6 +116,8 @@ class DraggableWidget (object):
         # create the drop source, set up its data
         dropSource = DropSourceWithFeedback(self)
         dataObject = self.CopyData()
+        if not dataObject.GetFormatCount():
+            return wx.DragNone
         dropSource.SetData(dataObject)
 
         # keep some state in a global and self so we can prevent drags into ourself, 
