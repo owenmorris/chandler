@@ -648,6 +648,7 @@ def makeMarkupBar(parcel, oldVersion):
                                         title=messages.STAMP_MAIL,
                                         icon="MarkupMail",
                                         helpString=messages.STAMP_MAIL_HELP,
+                                        unstampedHelpString=messages.UNSTAMP_MAIL_HELP,
                                         event=buttonPressed,
                                         stretchFactor=0.0,
                                         minimumSize=SizeType(30, 18))
@@ -657,6 +658,7 @@ def makeMarkupBar(parcel, oldVersion):
                                 title=messages.STAMP_TASK,
                                 icon="MarkupTask",
                                 helpString=messages.STAMP_TASK_HELP,
+                                unstampedHelpString=messages.UNSTAMP_TASK_HELP,
                                 event=buttonPressed,
                                 stretchFactor=0.0,
                                 minimumSize=SizeType(30, 18))
@@ -666,6 +668,7 @@ def makeMarkupBar(parcel, oldVersion):
                                     title=messages.STAMP_CALENDAR,
                                     icon="MarkupEvent",
                                     helpString=messages.STAMP_CALENDAR_HELP,
+                                    unstampedHelpString=messages.UNSTAMP_CALENDAR_HELP,
                                     event=buttonPressed,
                                     stretchFactor=0.0,
                                     minimumSize=SizeType(30, 18))
@@ -680,6 +683,7 @@ def makeMarkupBar(parcel, oldVersion):
                                     title=messages.PRIVATE,
                                     icon="MarkupPrivate",
                                     helpString=messages.PRIVATE,
+                                    unstampedHelpString=messages.NOT_PRIVATE,
                                     viewAttribute=u'private',
                                     event=buttonPressed,
                                     stretchFactor=0.0,

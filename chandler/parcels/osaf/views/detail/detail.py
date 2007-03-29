@@ -511,6 +511,8 @@ class DetailStampButton(DetailSynchronizer, ControlBlocks.StampButton):
     """
     applyToAllOccurrences = False
 
+    unstampedHelpString = schema.One(schema.Text, initialValue = u'')
+
     def getWatchList(self):
         # Tell us if this item's stamps change.
         return [ (self.item, pim.Stamp.stamp_types.name) ]
@@ -529,6 +531,10 @@ class DetailStampButton(DetailSynchronizer, ControlBlocks.StampButton):
             stampClass = self.stampClass
             if isinstance(item, stampClass.targetType()):
                 stamped = pim.has_stamp(item, stampClass)
+                if stamped:
+                    self.widget.SetToolTipString(self.unstampedHelpString)
+                else:
+                    self.widget.SetToolTipString(self.helpString)
                 self.widget.SetState("%s.%s" % (self.icon,
                                      stamped and "Stamped" or "Unstamped"))
             else:
