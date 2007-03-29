@@ -1,5 +1,5 @@
---- PyICU-0.6-70/Makefile	2006-07-11 13:31:16.000000000 -0700
-+++ PyICU-0.6-70-patched/Makefile	2006-07-11 13:31:14.000000000 -0700
+--- PyICU-0.6-72/Makefile	2006-07-11 13:31:16.000000000 -0700
++++ PyICU-0.6-72-patched/Makefile	2006-07-11 13:31:14.000000000 -0700
 @@ -87,7 +87,7 @@
  ICU_INC=$(PREFIX_ICU)/include
  ICU_LIB=$(PREFIX_ICU)/lib
@@ -9,10 +9,10 @@
  LDFLAGS=-g
  else
  CCFLAGS=-O2
---- PyICU-0.6-70/_PyICU.cpp	2007-01-26 16:03:26.000000000 -0800
-+++ PyICU-0.6-70-patched/_PyICU.cpp	2007-02-07 14:04:02.000000000 -0800
-@@ -37,6 +37,16 @@
- #include "charset.h"
+--- PyICU-0.6-72/_PyICU.cpp	2007-01-26 16:03:26.000000000 -0800
++++ PyICU-0.6-72-patched/_PyICU.cpp	2007-02-07 14:04:02.000000000 -0800
+@@ -38,6 +38,16 @@
+ #include "tzinfo.h"
  
  
 +#ifdef EPRINTF
