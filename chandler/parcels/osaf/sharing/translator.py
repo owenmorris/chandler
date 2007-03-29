@@ -33,6 +33,7 @@ import osaf.pim.calendar.TimeZone as TimeZone
 from osaf.pim.calendar.Calendar import Occurrence, EventStamp
 from osaf.pim.calendar.Recurrence import RecurrenceRuleSet, RecurrenceRule
 from dateutil.rrule import rrulestr
+import dateutil
 from chandlerdb.util.c import UUID
 from osaf.pim.mail import EmailAddress
 from osaf.usercollections import UserCollection
@@ -52,6 +53,7 @@ Cosmo likes None for empty bodies, and "" for empty locations
 
 
 utc = ICUtzinfo.getInstance('UTC')
+du_utc = dateutil.tz.tzutc()
 oneDay = timedelta(1)
 
 noChangeOrInherit = (eim.NoChange, eim.Inherit)
@@ -138,7 +140,9 @@ def fromICalendarDateTime(text, multivalued=False):
         if tzid is None:
             # RDATEs and EXDATEs won't have an X-VOBJ-ORIGINAL-TZID
             tzid = getattr(line, 'tzid_param', None)
-        if tzid is None:
+        if start[0].tzinfo == du_utc:
+            tzinfo = utc
+        elif tzid is None:
             tzinfo = ICUtzinfo.floating
         else:
             tzinfo = ICUtzinfo.getInstance(tzid)
@@ -171,6 +175,7 @@ timedParameter  = ";VALUE=DATE-TIME"
 anyTimeParameter = ";X-OSAF-ANYTIME=TRUE"
 
 def formatDateTime(dt, allDay, anyTime):
+    """Take a date or datetime, format it appropriately for EIM"""
     if allDay or anyTime:
         return dateFormat % dt.timetuple()[:3]
     else:
@@ -243,10 +248,7 @@ def getRecurrenceFields(event):
     or all of which may be None.
     
     """
-    if event.occurrenceFor is not None:
-        # a modification, recurrence fields should always be Inherit
-        return (eim.Inherit, eim.Inherit, eim.Inherit, eim.Inherit)
-    if event.rruleset is None:
+    if event.rruleset is None or event.occurrenceFor is not None:
         return (None, None, None, None)
     
     vobject_event = RecurringComponent()

@@ -222,12 +222,8 @@ class ICSSerializer(object):
 
                 uuid = UUIDFromICalUID(uid)
 
-                # recurrence and reminder code grabbed from ICalendar, not yet
-                # implemented
-                
-                #rruleset    = vobj.rruleset
-                #recurrenceID = vobj.getChildValue('recurrence_id')
-            
+                # reminder code grabbed from ICalendar, not yet implemented
+                            
                 #reminderDelta = None
                 #reminderAbsoluteTime = None
             
@@ -260,6 +256,36 @@ class ICSSerializer(object):
                     #if len(params) > 0:
                         #ignoredParameters[name] = params
 
+                recurrence = {}
+            
+                for rule_name in ('rrule', 'exrule'):
+                    rules = []
+                    for line in vobj.contents.get(rule_name, []):
+                        rules.append(line.value)
+                    recurrence[rule_name] = (":".join(rules) if len(rules) > 0 
+                                             else None)
+            
+                for date_name in ('rdate', 'exdate'):
+                    dates = []
+                    for line in vobj.contents.get(date_name, []):
+                        dates.extend(line.value)
+                    if len(dates) > 0:
+                        dates = [TimeZone.convertToICUtzinfo(dt)
+                                 for dt in dates]
+                        dt_value = translator.toICalendarDateTime(dates, allDay,
+                                                                  anyTime)
+                    else:
+                        dt_value = None
+                    recurrence[date_name] = dt_value
+            
+
+                recurrenceID = vobj.getChildValue('recurrence_id')
+                if recurrenceID is not None:
+                    recurrenceID = TimeZone.convertToICUtzinfo(recurrenceID)
+                    rec_string = translator.toICalendarDateTime(recurrenceID,
+                                                              allDay or anyTime)
+
+                    uuid += ":" + rec_string
 
                 records = [model.ItemRecord(uuid, 
                                             summary, # title
@@ -278,10 +304,10 @@ class ICSSerializer(object):
                                              dtstart,
                                              duration,
                                              location,
-                                             None,   # rrule
-                                             None,   # exrule
-                                             None,   # rdate
-                                             None,   # exdate
+                                             recurrence['rrule'],   # rrule
+                                             recurrence['exrule'],   # exrule
+                                             recurrence['rdate'],   # rdate
+                                             recurrence['exdate'],  # exdate
                                              status, # status
                                              )]
                 

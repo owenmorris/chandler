@@ -355,7 +355,16 @@ class RecordSetConduit(conduits.BaseConduit):
 
                 # Set triage status, based on the values we loaded
                 if item is not None:
-                    item.setTriageStatus('auto', popToNow=True)
+                    event = pim.EventStamp(item)
+                    if event.isRecurrenceMaster():
+                        # if the item that has changed is a master, DON'T set
+                        # triage status on the master, particularly
+                        # _sectionTriageStatus, as that will be inherited by
+                        # occurrences, instead pop all modifications to now
+                        for mod in event.modifications or []:                            
+                            mod.setTriageStatus('auto', popToNow=True)
+                    else:
+                        item.setTriageStatus('auto', popToNow=True)
 
                 if alias in remotelyAdded:
                     receiveStats['added'].add(uuid)
