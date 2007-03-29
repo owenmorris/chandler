@@ -1,5 +1,5 @@
 /*
- *  Copyright (c) 2003-2006 Open Source Applications Foundation
+ *  Copyright (c) 2003-2007 Open Source Applications Foundation
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -99,6 +99,7 @@ typedef struct {
 
 extern PyTypeObject *CView;
 extern PyTypeObject *CRepository;
+extern PyTypeObject *CStore;
 extern PyTypeObject *CItem;
 extern PyTypeObject *ItemRef;
 extern PyTypeObject *CDB;
@@ -140,8 +141,12 @@ int _t_db_read_write_record(DBT *dbt, int offset, void *data, int len,
                             int mode);
 int _t_db_discard(DBT *dbt, int offset, void *data, int len, int mode);
 PyObject *_t_db_make_record(PyObject *types, char *data, int size);
+PyObject *_t_db_cursor(t_db *self, PyObject *txn, int flags);
+PyObject *_t_store_getTxn(t_store *self);
 
 PyObject *t_cursor_new(PyTypeObject *type, PyObject *args, PyObject *kwds);
+PyObject *_t_cursor_dup(t_cursor *self, int flags);
+int _t_cursor_close(t_cursor *self);
 int _t_cursor_init(t_cursor *self, DB *db, DB_TXN *txn, int flags);
 PyObject *t_txn_new(PyTypeObject *type, PyObject *args, PyObject *kwds);
 int _t_txn_init(t_txn *self, DB_ENV *env, DB_TXN *parent, int flags);

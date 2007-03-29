@@ -1,5 +1,5 @@
 /*
- *  Copyright (c) 2003-2006 Open Source Applications Foundation
+ *  Copyright (c) 2003-2007 Open Source Applications Foundation
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -386,7 +386,7 @@ static PyObject *t_store__getThreaded(t_store *self, void *data)
 
 /* txn */
 
-static PyObject *t_store_getTxn(t_store *self, void *data)
+PyObject *_t_store_getTxn(t_store *self)
 {
     PyObject *threaded = _t_store__getThreaded(self);
 
@@ -402,16 +402,24 @@ static PyObject *t_store_getTxn(t_store *self, void *data)
                 return NULL;
             }
 
-            txn = ((t_transaction *) txn)->txn;
-            Py_INCREF(txn);
-
-            return txn;
+            return ((t_transaction *) txn)->txn;
         }
 
-        Py_RETURN_NONE;
+        return Py_None;
     }
 
     return NULL;
+}
+
+static PyObject *t_store_getTxn(t_store *self, void *data)
+{
+    PyObject *result = _t_store_getTxn(self);
+
+    if (!result)
+        return NULL;
+
+    Py_INCREF(result);
+    return result;
 }
 
 
@@ -429,6 +437,7 @@ void _init_store(PyObject *m)
 
             Py_INCREF(&StoreType);
             PyModule_AddObject(m, "CStore", (PyObject *) &StoreType);
+            CStore = &StoreType;
 
             PyDict_SetItemString_Int(dict, "TXN_STARTED", TXN_STARTED);
             PyDict_SetItemString_Int(dict, "TXN_NESTED", TXN_NESTED);

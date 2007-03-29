@@ -32,26 +32,43 @@
 typedef struct {
     PyObject_HEAD
     t_db *db;
+    int flags;
+    t_store *store;
+    PyObject *key;
 } t_container;
 
 
+static int t_container_traverse(t_container *self, visitproc visit, void *arg);
+static int t_container_clear(t_container *self);
 static void t_container_dealloc(t_container *self);
 static PyObject *t_container_new(PyTypeObject *type,
                                  PyObject *args, PyObject *kwds);
 static int t_container_init(t_container *self, PyObject *args, PyObject *kwds);
 
 static PyObject *t_container_find_record(t_container *self, PyObject *args);
+static PyObject *t_container_openCursor(t_container *self, PyObject *args);
+static PyObject *t_container_closeCursor(t_container *self, PyObject *args);
+
+static PyObject *_t_container__getThreaded(t_container *self);
+static PyObject *t_container__getThreaded(t_container *self, void *data);
 
 static PyMemberDef t_container_members[] = {
     { "db", T_OBJECT, offsetof(t_container, db), READONLY, "" },
+    { "flags", T_UINT, offsetof(t_container, flags), 0, "" },
     { NULL, 0, 0, 0, NULL }
 };
 
 static PyMethodDef t_container_methods[] = {
     { "find_record", (PyCFunction) t_container_find_record, METH_VARARGS, NULL },
+    { "openCursor", (PyCFunction) t_container_openCursor, METH_VARARGS, NULL },
+    { "closeCursor", (PyCFunction) t_container_closeCursor, METH_VARARGS, NULL },
     { NULL, NULL, 0, NULL }
 };
 
+static PyGetSetDef t_container_properties[] = {
+    { "_threaded", (getter) t_container__getThreaded, 0, NULL, NULL },
+    { NULL, NULL, NULL, NULL, NULL }
+};
 
 static PyTypeObject ContainerType = {
     PyObject_HEAD_INIT(NULL)
@@ -74,17 +91,19 @@ static PyTypeObject ContainerType = {
     0,                                                   /* tp_getattro */
     0,                                                   /* tp_setattro */
     0,                                                   /* tp_as_buffer */
-    Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE,            /* tp_flags */
+    (Py_TPFLAGS_DEFAULT |
+     Py_TPFLAGS_BASETYPE |
+     Py_TPFLAGS_HAVE_GC),                                /* tp_flags */
     "C Container type",                                  /* tp_doc */
-    0,                                                   /* tp_traverse */
-    0,                                                   /* tp_clear */
+    (traverseproc)t_container_traverse,                  /* tp_traverse */
+    (inquiry)t_container_clear,                          /* tp_clear */
     0,                                                   /* tp_richcompare */
     0,                                                   /* tp_weaklistoffset */
     0,                                                   /* tp_iter */
     0,                                                   /* tp_iternext */
     t_container_methods,                                 /* tp_methods */
     t_container_members,                                 /* tp_members */
-    0,                                                   /* tp_getset */
+    t_container_properties,                              /* tp_getset */
     0,                                                   /* tp_base */
     0,                                                   /* tp_dict */
     0,                                                   /* tp_descr_get */
@@ -96,9 +115,42 @@ static PyTypeObject ContainerType = {
 };
 
 
+static int t_container_traverse(t_container *self, visitproc visit, void *arg)
+{
+    Py_VISIT(self->store);
+    Py_VISIT(self->key);
+
+    return 0;
+}
+
+static int t_container_clear(t_container *self)
+{
+    if (self->key)
+    {
+        PyObject *locals = PyThreadState_GetDict();
+
+        if (locals)
+        {
+            PyObject *threaded = PyDict_GetItem(locals, self->key);
+
+            if (threaded)
+            {
+                Py_INCREF(threaded);
+                PyDict_DelItem(locals, self->key);
+                Py_CLEAR(threaded);
+            }
+        }
+    }
+
+    Py_CLEAR(self->store);
+    Py_CLEAR(self->key);
+
+    return 0;
+}
+
 static void t_container_dealloc(t_container *self)
 {
-    Py_XDECREF(self->db);
+    t_container_clear(self);
     self->ob_type->tp_free((PyObject *) self);
 }
 
@@ -107,14 +159,20 @@ static PyObject *t_container_new(PyTypeObject *type,
 {
     t_container *self = (t_container *) type->tp_alloc(type, 0);
 
+    if (self)
+    {
+        self->key = PyInt_FromLong(_Py_HashPointer(self));
+        self->flags = 0;
+    }
+
     return (PyObject *) self;
 }
 
 static int t_container_init(t_container *self, PyObject *args, PyObject *kwds)
 {
-    PyObject *db;
+    PyObject *db, *store;
 
-    if (!PyArg_ParseTuple(args, "O", &db))
+    if (!PyArg_ParseTuple(args, "OO", &db, &store))
         return -1;
 
     if (!PyObject_TypeCheck(db, CDB))
@@ -123,10 +181,102 @@ static int t_container_init(t_container *self, PyObject *args, PyObject *kwds)
         return -1;
     }
 
+    if (!PyObject_TypeCheck(store, CStore))
+    {
+        PyErr_SetObject(PyExc_TypeError, store);
+        return -1;
+    }
+
     Py_INCREF(db);
     self->db = (t_db *) db;
 
+    Py_INCREF(store);
+    self->store = (t_store *) store;
+
     return 0;
+}
+
+static PyObject *t_container_openCursor(t_container *self, PyObject *args)
+{
+    PyObject *db = Py_None;
+    PyObject *threaded, *cursor, *txn;
+
+    if (!PyArg_ParseTuple(args, "|O", &db))
+        return NULL;
+
+    if (db == Py_None)
+        db = (PyObject *) self->db;
+    else if (!PyObject_TypeCheck(db, CDB))
+    {
+        PyErr_SetObject(PyExc_TypeError, db);
+        return NULL;
+    }
+
+    threaded = _t_container__getThreaded(self);
+    if (!threaded)
+        return NULL;
+
+    cursor = PyDict_GetItem(threaded, db);
+    if (cursor)
+    {
+        if (!PyObject_TypeCheck(cursor, CDBCursor))
+        {
+            PyErr_SetObject(PyExc_TypeError, cursor);
+            return NULL;
+        }
+
+        return _t_cursor_dup((t_cursor *) cursor, self->flags);
+    }
+
+    txn = _t_store_getTxn(self->store);
+    if (!txn)
+        return NULL;
+
+    cursor = _t_db_cursor((t_db *) db, txn, self->flags);
+    if (!cursor)
+        return NULL;
+
+    PyDict_SetItem(threaded, db, cursor);
+
+    return cursor;
+}
+
+static PyObject *t_container_closeCursor(t_container *self, PyObject *args)
+{
+    PyObject *cursor, *db = Py_None;
+    PyObject *threaded;
+
+    if (!PyArg_ParseTuple(args, "O|O", &cursor, &db))
+        return NULL;
+
+    if (cursor == Py_None)
+        Py_RETURN_NONE;
+
+    if (!PyObject_TypeCheck(cursor, CDBCursor))
+    {
+        PyErr_SetObject(PyExc_TypeError, cursor);
+        return NULL;
+    }
+
+    if (db == Py_None)
+        db = (PyObject *) self->db;
+    else if (!PyObject_TypeCheck(db, CDB))
+    {
+        PyErr_SetObject(PyExc_TypeError, db);
+        return NULL;
+    }
+
+    if (_t_cursor_close((t_cursor *) cursor) < 0)
+        return NULL;
+
+    threaded = _t_container__getThreaded(self);
+    if (!threaded)
+        return NULL;
+
+    if (PyDict_GetItem(threaded, db) == cursor)
+        PyDict_DelItem(threaded, db);
+
+    Py_RETURN_NONE;
 }
 
 
@@ -309,6 +459,47 @@ static PyObject *_t_container_associate(t_container *self, PyObject *args,
 
     Py_RETURN_NONE;
 }
+
+
+/* _threaded */
+
+static PyObject *_t_container__getThreaded(t_container *self)
+{
+    PyObject *locals = PyThreadState_GetDict();
+    PyObject *threaded = NULL;
+
+    if (!locals)
+    {
+        PyErr_SetString(PyExc_RuntimeError, "Could not get thread state dict");
+        return NULL;
+    }
+
+    if (self->key)
+        threaded = PyDict_GetItem(locals, self->key);
+
+    if (!threaded)
+    {
+        threaded = PyDict_New();
+        if (!threaded)
+            return NULL;
+
+        PyDict_SetItem(locals, self->key, threaded);
+        Py_DECREF(threaded);
+    }
+
+    return threaded;  /* borrowed reference */
+}
+
+static PyObject *t_container__getThreaded(t_container *self, void *data)
+{
+    PyObject *threaded = _t_container__getThreaded(self);
+
+    if (threaded)
+        Py_INCREF(threaded);
+
+    return threaded;
+}
+
 
 typedef struct {
     t_container container;

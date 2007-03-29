@@ -168,6 +168,24 @@ static int t_cursor_init(t_cursor *self, PyObject *args, PyObject *kwds)
                           flags);
 }
 
+PyObject *_t_cursor_dup(t_cursor *self, int flags)
+{
+    t_cursor *cursor = (t_cursor *) t_cursor_new(&DBCursorType, NULL, NULL);
+    int err;
+
+    Py_BEGIN_ALLOW_THREADS;
+    err = self->dbc->c_dup(self->dbc, &cursor->dbc, flags);
+    Py_END_ALLOW_THREADS;
+
+    if (err)
+    {
+        Py_DECREF(cursor);
+        return raiseDBError(err);
+    }
+
+    return (PyObject *) cursor;
+}
+
 static PyObject *t_cursor_dup(t_cursor *self, PyObject *args)
 {
     int flags = 0;
@@ -177,26 +195,11 @@ static PyObject *t_cursor_dup(t_cursor *self, PyObject *args)
 
     if (!PyArg_ParseTuple(args, "|i", &flags))
         return NULL;
-    else
-    {
-        t_cursor *cursor = (t_cursor *) t_cursor_new(&DBCursorType, NULL, NULL);
-        int err;
 
-        Py_BEGIN_ALLOW_THREADS;
-        err = self->dbc->c_dup(self->dbc, &cursor->dbc, flags);
-        Py_END_ALLOW_THREADS;
-
-        if (err)
-        {
-            Py_DECREF(cursor);
-            return raiseDBError(err);
-        }
-
-        return (PyObject *) cursor;
-    }
+    return _t_cursor_dup(self, flags);
 }
 
-static PyObject *t_cursor_close(t_cursor *self, PyObject *args)
+int _t_cursor_close(t_cursor *self)
 {
     if (self->dbc)
     {
@@ -207,13 +210,25 @@ static PyObject *t_cursor_close(t_cursor *self, PyObject *args)
         Py_END_ALLOW_THREADS;
 
         if (err)
-            return raiseDBError(err);
+        {
+            raiseDBError(err);
+            return -1;
+        }
 
         self->dbc = NULL;
     }
 
+    return 0;
+}
+
+static PyObject *t_cursor_close(t_cursor *self, PyObject *args)
+{
+    if (_t_cursor_close(self) < 0)
+        return NULL;
+
     Py_RETURN_NONE;
 }
+
 
 static PyObject *t_cursor_delete(t_cursor *self, PyObject *args)
 {

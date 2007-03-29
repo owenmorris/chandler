@@ -775,6 +775,21 @@ static PyObject *t_db_delete(t_db *self, PyObject *args)
     }
 }
 
+PyObject *_t_db_cursor(t_db *self, PyObject *txn, int flags)
+{
+    PyObject *cursor = t_cursor_new(CDBCursor, NULL, NULL);
+
+    if (_t_cursor_init((t_cursor *) cursor, self->db,
+                       txn == Py_None ? NULL : ((t_txn *) txn)->txn,
+                       flags) < 0)
+    {
+        Py_DECREF(cursor);
+        return NULL;
+    }
+
+    return cursor;
+}
+
 static PyObject *t_db_cursor(t_db *self, PyObject *args)
 {
     PyObject *txn = Py_None;
@@ -789,19 +804,7 @@ static PyObject *t_db_cursor(t_db *self, PyObject *args)
         return NULL;
     }
 
-    {
-        PyObject *cursor = t_cursor_new(CDBCursor, NULL, NULL);
-
-        if (_t_cursor_init((t_cursor *) cursor, self->db,
-                           txn == Py_None ? NULL : ((t_txn *) txn)->txn,
-                           flags) < 0)
-        {
-            Py_DECREF(cursor);
-            return NULL;
-        }
-
-        return cursor;
-    }
+    return _t_db_cursor(self, txn, flags);
 }
 
 
