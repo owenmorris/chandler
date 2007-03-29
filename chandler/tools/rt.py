@@ -53,8 +53,13 @@ def parseOptions():
     """
     parse options
     
-    >>> parseOptions()
-    <Values at ...: {'profile': False, 'noEnv': False, 'dryrun': False, 'help': False, 'unitSuite': False, 'args': [], 'perf': False, 'funcSuite': False, 'single': '', 'tbox': False, 'mode': None, 'selftest': ..., 'func': False, 'noStop': False, 'unit': False, 'verbose': False}>
+    >>> options = parseOptions()
+    >>> d = eval(str(options))
+    >>> keys = d.keys()
+    >>> keys.sort()
+    >>> for key in keys:
+    ...     print key, d[key],
+    args [] dryrun False func False funcSuite False help False mode None noEnv False noStop False perf False profile False recorded False selftest True single  tbox False unit False unitSuite False verbose False
     """
     _configItems = {
         'mode':      ('-m', '--mode',               's', None,  'debug or release; by default attempts both'),
@@ -121,8 +126,12 @@ def checkOptions(options):
     
     >>> options = parseOptions()
     >>> checkOptions(options)
-    >>> options
-    <Values at ...: {'noEnv': False, 'help': False, 'single': '', 'unit': False, 'chandlerBin': '...', 'verbose': False, 'perf': False, 'unitSuite': False, 'runchandler': {'debug': '.../debug/RunChandler', 'release': '.../release/RunChandler'}, 'funcSuite': False, 'runpython': {'debug': '.../debug/RunPython', 'release': '.../release/RunPython'}, 'selftest': True, 'profile': False, 'tbox': False, 'dryrun': False, 'toolsDir': '.../tools', 'args': [], 'chandlerHome': '...', 'func': False, 'mode': None, 'profileDir': '.../test_profile', 'noStop': False, 'parcelPath': '.../tools/QATestScripts/DataFiles'}>
+    >>> d = eval(str(options))
+    >>> keys = d.keys()
+    >>> keys.sort()
+    >>> for key in keys:
+    ...     print key, d[key],
+    args [] chandlerBin ... chandlerHome ... dryrun False func False funcSuite False help False mode None noEnv False noStop False parcelPath .../tools/QATestScripts/DataFiles perf False profile False profileDir .../test_profile recorded False runchandler {'debug': '.../debug/RunChandler...', 'release': '.../release/RunChandler...'} runpython {'debug': '.../debug/RunPython...', 'release': '.../release/RunPython...'} selftest True single  tbox False toolsDir .../tools unit False unitSuite False verbose False
     """
     if options.help:
         print __doc__
@@ -230,7 +239,7 @@ def buildTestList(options, excludeTools=True):
     
     >>> options.single  = 'TestCrypto.py'
     >>> buildTestList(options)
-    ['.../application/tests/TestCrypto.py']
+    ['application/tests/TestCrypto.py']
     
     Try to find a functional test:
     
@@ -241,13 +250,13 @@ def buildTestList(options, excludeTools=True):
     Include tools in search:
 
     >>> buildTestList(options, excludeTools=False)
-    ['.../tools/cats/Functional/TestCreateAccounts.py']
+    ['tools/cats/Functional/TestCreateAccounts.py']
     
     Unit test and perf test:
     
     >>> options.single  = 'TestCrypto.py,PerfLargeDataSharing.py'
     >>> buildTestList(options, False)
-    ['.../tools/QATestScripts/Performance/PerfLargeDataSharing.py', '.../application/tests/TestCrypto.py']
+    ['tools/QATestScripts/Performance/PerfLargeDataSharing.py', 'application/tests/TestCrypto.py']
     
     Check that we don't look in projects:
     
@@ -310,9 +319,9 @@ def runSingles(options):
     >>> options.modes   = ['release', 'debug']
     >>> options.single  = 'TestCrypto.py'
     >>> runSingles(options)
-    /.../release/RunPython... .../application/tests/TestCrypto.py -v
+    /.../release/RunPython... application/tests/TestCrypto.py -v
     - + - + - + - + - + - + - + - + - + - + - + - + - + - + - + 
-    /.../debug/RunPython... .../application/tests/TestCrypto.py -v
+    /.../debug/RunPython... application/tests/TestCrypto.py -v
     - + - + - + - + - + - + - + - + - + - + - + - + - + - + - + 
     False
     
@@ -325,7 +334,7 @@ def runSingles(options):
     
     >>> options.single  = 'PerfLargeDataSharing.py'
     >>> runSingles(options)
-    /.../RunChandler... --catch=tests --profileDir=.../test_profile --parcelPath=.../tools/QATestScripts/DataFiles --catsPerfLog=.../test_profile/time.log --scriptFile=.../tools/QATestScripts/Performance/PerfLargeDataSharing.py --restore=.../test_profile/__repository__.001
+    /.../RunChandler... --catch=tests --profileDir=.../test_profile --parcelPath=.../tools/QATestScripts/DataFiles --catsPerfLog=.../test_profile/time.log --scriptFile=tools/QATestScripts/Performance/PerfLargeDataSharing.py --restore=.../test_profile/__repository__.001
     PerfLargeDataSharing.py                            | 0.00
     - + - + - + - + - + - + - + - + - + - + - + - + - + - + - + 
     False
@@ -333,18 +342,18 @@ def runSingles(options):
     >>> options.single  = 'startup_large.py'
     >>> runSingles(options)
     Creating repository for startup time tests
-    /.../RunChandler... --catch=tests --profileDir=.../test_profile --parcelPath=.../tools/QATestScripts/DataFiles --scriptFile=.../tools/QATestScripts/Performance/quit.py --restore=.../test_profile/__repository__.001
+    /.../RunChandler... --catch=tests --profileDir=.../test_profile --parcelPath=.../tools/QATestScripts/DataFiles --scriptFile=tools/QATestScripts/Performance/quit.py --restore=.../test_profile/__repository__.001
     - + - + - + - + - + - + - + - + - + - + - + - + - + - + - + 
-    Startup_with_large_calendar    /usr/bin/time --format=%e -o .../test_profile/time.log .../RunChandler... --catch=tests --profileDir=.../test_profile --parcelPath=.../tools/QATestScripts/DataFiles --scriptFile=.../tools/QATestScripts/Performance/end.py
+    Startup_with_large_calendar    /usr/bin/time --format=%e -o .../test_profile/time.log .../RunChandler... --catch=tests --profileDir=.../test_profile --parcelPath=.../tools/QATestScripts/DataFiles --scriptFile=tools/QATestScripts/Performance/end.py
      0.00 - + - + - + - + - + - + - + - + - + - + - + - + - + - + - + 
     ...
     False
     
     >>> options.single  = 'TestCrypto.py,TestSchemaAPI.py'
     >>> runSingles(options)
-    /.../RunPython... .../application/tests/TestCrypto.py -v
+    /.../RunPython... application/tests/TestCrypto.py -v
     - + - + - + - + - + - + - + - + - + - + - + - + - + - + - + 
-    /.../RunPython... .../application/tests/TestSchemaAPI.py -v
+    /.../RunPython... application/tests/TestSchemaAPI.py -v
     ...
     """
     failed = False
@@ -387,9 +396,9 @@ def runUnitTests(options, testlist=None):
     
     >>> options.unit    = True
     >>> runUnitTests(options)
-    /.../RunPython... .../repository/tests/TestReferenceAttributes.py -v
+    /.../RunPython... repository/tests/TestReferenceAttributes.py -v
     - + - + - + - + - + - + - + - + - + - + - + - + - + - + - + 
-    /.../RunPython... .../repository/tests/TestMixins.py -v
+    /.../RunPython... repository/tests/TestMixins.py -v
     - + - + - + - + - + - + - + - + - + - + - + - + - + - + - + 
     ...
     False
@@ -454,9 +463,9 @@ def runUnitSuite(options):
     >>> options.modes   = ['release', 'debug']
     
     >>> runUnitSuite(options)
-    /.../release/RunPython... .../tools/run_tests.py -v application i18n osaf repository
+    /.../release/RunPython... tools/run_tests.py -v application i18n osaf repository
     - + - + - + - + - + - + - + - + - + - + - + - + - + - + - + 
-    /.../debug/RunPython... .../tools/run_tests.py -v application i18n osaf repository
+    /.../debug/RunPython... tools/run_tests.py -v application i18n osaf repository
     - + - + - + - + - + - + - + - + - + - + - + - + - + - + - + 
     False
     """
@@ -578,9 +587,9 @@ def runFuncTest(options, test='FunctionalTestSuite.py'):
     >>> options.modes   = ['release', 'debug']
     
     >>> runFuncTest(options)
-    /.../release/RunChandler... --create --catch=tests --profileDir=.../test_profile --parcelPath=.../tools/QATestScripts/DataFiles --scriptFile=.../tools/cats/Functional/FunctionalTestSuite.py -D2 -M0
+    /.../release/RunChandler... --create --catch=tests --profileDir=.../test_profile --parcelPath=.../tools/QATestScripts/DataFiles --scriptFile=tools/cats/Functional/FunctionalTestSuite.py -D2 -M0
     - + - + - + - + - + - + - + - + - + - + - + - + - + - + - + 
-    /.../debug/RunChandler... --create --catch=tests --profileDir=.../test_profile --parcelPath=.../tools/QATestScripts/DataFiles --scriptFile=.../tools/cats/Functional/FunctionalTestSuite.py -D2 -M0
+    /.../debug/RunChandler... --create --catch=tests --profileDir=.../test_profile --parcelPath=.../tools/QATestScripts/DataFiles --scriptFile=tools/cats/Functional/FunctionalTestSuite.py -D2 -M0
     - + - + - + - + - + - + - + - + - + - + - + - + - + - + - + 
     False
     
@@ -700,6 +709,9 @@ def runRecordedScripts(options):
                  '--profileDir=%s' % options.profileDir,
                  '--parcelPath=%s' % options.parcelPath,
                  '--recordedTest', 'all' ]
+
+        if options.verbose:
+            log(' '.join(cmd))
 
         if options.dryrun:
             result = 0
@@ -826,35 +838,35 @@ def runStartupPerfTests(options, timer, largeData=False, repeat=3, logger=log):
     
     >>> runStartupPerfTests(options, '/usr/bin/time')
     Creating repository for startup time tests
-    /.../release/RunChandler... --catch=tests --profileDir=.../test_profile --parcelPath=.../tools/QATestScripts/DataFiles --scriptFile=.../tools/QATestScripts/Performance/quit.py --create
+    /.../release/RunChandler... --catch=tests --profileDir=.../test_profile --parcelPath=.../tools/QATestScripts/DataFiles --scriptFile=tools/QATestScripts/Performance/quit.py --create
     - + - + - + - + - + - + - + - + - + - + - + - + - + - + - + 
-    Startup                        /usr/bin/time --format=%e -o .../test_profile/time.log .../release/RunChandler... --catch=tests --profileDir=.../test_profile --parcelPath=.../tools/QATestScripts/DataFiles --scriptFile=.../tools/QATestScripts/Performance/end.py
+    Startup                        /usr/bin/time --format=%e -o .../test_profile/time.log .../release/RunChandler... --catch=tests --profileDir=.../test_profile --parcelPath=.../tools/QATestScripts/DataFiles --scriptFile=tools/QATestScripts/Performance/end.py
      0.00 - + - + - + - + - + - + - + - + - + - + - + - + - + - + - + 
-    /usr/bin/time --format=%e -o .../test_profile/time.log .../release/RunChandler... --catch=tests --profileDir=.../test_profile --parcelPath=.../tools/QATestScripts/DataFiles --scriptFile=.../tools/QATestScripts/Performance/end.py
+    /usr/bin/time --format=%e -o .../test_profile/time.log .../release/RunChandler... --catch=tests --profileDir=.../test_profile --parcelPath=.../tools/QATestScripts/DataFiles --scriptFile=tools/QATestScripts/Performance/end.py
      0.00 - + - + - + - + - + - + - + - + - + - + - + - + - + - + - + 
-    /usr/bin/time --format=%e -o .../test_profile/time.log .../release/RunChandler... --catch=tests --profileDir=.../test_profile --parcelPath=.../tools/QATestScripts/DataFiles --scriptFile=.../tools/QATestScripts/Performance/end.py
+    /usr/bin/time --format=%e -o .../test_profile/time.log .../release/RunChandler... --catch=tests --profileDir=.../test_profile --parcelPath=.../tools/QATestScripts/DataFiles --scriptFile=tools/QATestScripts/Performance/end.py
      0.00 - + - + - + - + - + - + - + - + - + - + - + - + - + - + - + 
       | 0.00
     False
     
     >>> runStartupPerfTests(options, '/usr/bin/time', repeat=1)
     Creating repository for startup time tests
-    /.../release/RunChandler... --catch=tests --profileDir=.../test_profile --parcelPath=.../tools/QATestScripts/DataFiles --scriptFile=.../tools/QATestScripts/Performance/quit.py --create
+    /.../release/RunChandler... --catch=tests --profileDir=.../test_profile --parcelPath=.../tools/QATestScripts/DataFiles --scriptFile=tools/QATestScripts/Performance/quit.py --create
     - + - + - + - + - + - + - + - + - + - + - + - + - + - + - + 
-    Startup                        /usr/bin/time --format=%e -o .../test_profile/time.log .../release/RunChandler... --catch=tests --profileDir=.../test_profile --parcelPath=.../tools/QATestScripts/DataFiles --scriptFile=.../tools/QATestScripts/Performance/end.py
+    Startup                        /usr/bin/time --format=%e -o .../test_profile/time.log .../release/RunChandler... --catch=tests --profileDir=.../test_profile --parcelPath=.../tools/QATestScripts/DataFiles --scriptFile=tools/QATestScripts/Performance/end.py
      0.00 - + - + - + - + - + - + - + - + - + - + - + - + - + - + - + 
       | 0.00
     False
     
     >>> runStartupPerfTests(options, '/usr/bin/time', largeData=True)
     Creating repository for startup time tests
-    /.../release/RunChandler... --catch=tests --profileDir=.../test_profile --parcelPath=.../tools/QATestScripts/DataFiles --scriptFile=.../tools/QATestScripts/Performance/quit.py --restore=.../test_profile/__repository__.001
+    /.../release/RunChandler... --catch=tests --profileDir=.../test_profile --parcelPath=.../tools/QATestScripts/DataFiles --scriptFile=tools/QATestScripts/Performance/quit.py --restore=.../test_profile/__repository__.001
     - + - + - + - + - + - + - + - + - + - + - + - + - + - + - + 
-    Startup_with_large_calendar    /usr/bin/time --format=%e -o .../test_profile/time.log .../release/RunChandler --catch=tests --profileDir=.../test_profile --parcelPath=.../tools/QATestScripts/DataFiles --scriptFile=.../tools/QATestScripts/Performance/end.py
+    Startup_with_large_calendar    /usr/bin/time --format=%e -o .../test_profile/time.log .../release/RunChandler --catch=tests --profileDir=.../test_profile --parcelPath=.../tools/QATestScripts/DataFiles --scriptFile=tools/QATestScripts/Performance/end.py
      0.00 - + - + - + - + - + - + - + - + - + - + - + - + - + - + - + 
-    /usr/bin/time --format=%e -o .../test_profile/time.log .../release/RunChandler --catch=tests --profileDir=.../test_profile --parcelPath=.../tools/QATestScripts/DataFiles --scriptFile=.../tools/QATestScripts/Performance/end.py
+    /usr/bin/time --format=%e -o .../test_profile/time.log .../release/RunChandler --catch=tests --profileDir=.../test_profile --parcelPath=.../tools/QATestScripts/DataFiles --scriptFile=tools/QATestScripts/Performance/end.py
      0.00 - + - + - + - + - + - + - + - + - + - + - + - + - + - + - + 
-    /usr/bin/time --format=%e -o .../test_profile/time.log .../release/RunChandler --catch=tests --profileDir=.../test_profile --parcelPath=.../tools/QATestScripts/DataFiles --scriptFile=.../tools/QATestScripts/Performance/end.py
+    /usr/bin/time --format=%e -o .../test_profile/time.log .../release/RunChandler --catch=tests --profileDir=.../test_profile --parcelPath=.../tools/QATestScripts/DataFiles --scriptFile=tools/QATestScripts/Performance/end.py
      0.00 - + - + - + - + - + - + - + - + - + - + - + - + - + - + - + 
       | 0.00
     False
@@ -862,13 +874,13 @@ def runStartupPerfTests(options, timer, largeData=False, repeat=3, logger=log):
     >>> options.tbox = True
     >>> runStartupPerfTests(options, '/usr/bin/time')
     Creating repository for startup time tests
-    /.../release/RunChandler... --catch=tests --profileDir=.../test_profile --parcelPath=.../tools/QATestScripts/DataFiles --scriptFile=.../tools/QATestScripts/Performance/quit.py --create
+    /.../release/RunChandler... --catch=tests --profileDir=.../test_profile --parcelPath=.../tools/QATestScripts/DataFiles --scriptFile=tools/QATestScripts/Performance/quit.py --create
     - + - + - + - + - + - + - + - + - + - + - + - + - + - + - + 
-    Startup                        /usr/bin/time --format=%e -o .../test_profile/time.log .../release/RunChandler... --catch=tests --profileDir=.../test_profile --parcelPath=.../tools/QATestScripts/DataFiles --scriptFile=.../tools/QATestScripts/Performance/end.py
+    Startup                        /usr/bin/time --format=%e -o .../test_profile/time.log .../release/RunChandler... --catch=tests --profileDir=.../test_profile --parcelPath=.../tools/QATestScripts/DataFiles --scriptFile=tools/QATestScripts/Performance/end.py
      0.00 - + - + - + - + - + - + - + - + - + - + - + - + - + - + - + 
-    /usr/bin/time --format=%e -o .../test_profile/time.log .../release/RunChandler... --catch=tests --profileDir=.../test_profile --parcelPath=.../tools/QATestScripts/DataFiles --scriptFile=.../tools/QATestScripts/Performance/end.py
+    /usr/bin/time --format=%e -o .../test_profile/time.log .../release/RunChandler... --catch=tests --profileDir=.../test_profile --parcelPath=.../tools/QATestScripts/DataFiles --scriptFile=tools/QATestScripts/Performance/end.py
      0.00 - + - + - + - + - + - + - + - + - + - + - + - + - + - + - + 
-    /usr/bin/time --format=%e -o .../test_profile/time.log .../release/RunChandler... --catch=tests --profileDir=.../test_profile --parcelPath=.../tools/QATestScripts/DataFiles --scriptFile=.../tools/QATestScripts/Performance/end.py
+    /usr/bin/time --format=%e -o .../test_profile/time.log .../release/RunChandler... --catch=tests --profileDir=.../test_profile --parcelPath=.../tools/QATestScripts/DataFiles --scriptFile=tools/QATestScripts/Performance/end.py
      0.00 - + - + - + - + - + - + - + - + - + - + - + - + - + - + - + 
     <BLANKLINE>
     Startup [#TINDERBOX# Status = PASSED]
@@ -1029,11 +1041,11 @@ def runPerfTests(options, tests=None):
     
     >>> options.modes   = ['release']
     >>> runPerfTests(options)
-    /.../release/RunChandler... --catch=tests --profileDir=.../test_profile --parcelPath=.../tools/QATestScripts/DataFiles --catsPerfLog=.../test_profile/time.log --scriptFile=.../tools/QATestScripts/Performance/PerfImportCalendar.py --create
+    /.../release/RunChandler... --catch=tests --profileDir=.../test_profile --parcelPath=.../tools/QATestScripts/DataFiles --catsPerfLog=.../test_profile/time.log --scriptFile=tools/QATestScripts/Performance/PerfImportCalendar.py --create
     PerfImportCalendar.py                              | 0.00
     - + - + - + - + - + - + - + - + - + - + - + - + - + - + - + 
     ...
-    /.../release/RunChandler --catch=tests --profileDir=.../test_profile --parcelPath=.../tools/QATestScripts/DataFiles --catsPerfLog=.../test_profile/time.log --scriptFile=.../tools/QATestScripts/Performance/PerfLargeDataResizeCalendar.py --restore=.../test_profile/__repository__.001
+    /.../release/RunChandler --catch=tests --profileDir=.../test_profile --parcelPath=.../tools/QATestScripts/DataFiles --catsPerfLog=.../test_profile/time.log --scriptFile=tools/QATestScripts/Performance/PerfLargeDataResizeCalendar.py --restore=.../test_profile/__repository__.001
     PerfLargeDataResizeCalendar.py                     | 0.00
     - + - + - + - + - + - + - + - + - + - + - + - + - + - + - + 
     ...
@@ -1163,7 +1175,7 @@ def main(options):
     
     >>> options.single = 'TestCrypto'
     >>> main(options)
-    /.../RunPython .../application/tests/TestCrypto.py -v
+    /.../RunPython... application/tests/TestCrypto.py -v
     - + - + - + - + - + - + - + - + - + - + - + - + - + - + - + 
     False
     
@@ -1173,7 +1185,7 @@ def main(options):
     >>> main(options)
     /.../RunChandler --create --catch=tests --profileDir=.../test_profile --parcelPath=.../tools/QATestScripts/DataFiles --chandlerTests=TestSharing -D2 -M0
     - + - + - + - + - + - + - + - + - + - + - + - + - + - + - + 
-    /.../RunPython .../application/tests/TestCrypto.py -v
+    /.../RunPython application/tests/TestCrypto.py -v
     - + - + - + - + - + - + - + - + - + - + - + - + - + - + - + 
     False
     
@@ -1181,17 +1193,17 @@ def main(options):
     
     >>> options.single = 'TestCrypto,TestSharing,PerfImportCalendar,startup_large'
     >>> main(options)
-    /.../RunChandler --catch=tests --profileDir=.../test_profile --parcelPath=.../tools/QATestScripts/DataFiles --catsPerfLog=.../test_profile/time.log --scriptFile=.../tools/QATestScripts/Performance/PerfImportCalendar.py --create
+    /.../RunChandler --catch=tests --profileDir=.../test_profile --parcelPath=.../tools/QATestScripts/DataFiles --catsPerfLog=.../test_profile/time.log --scriptFile=tools/QATestScripts/Performance/PerfImportCalendar.py --create
     PerfImportCalendar.py                              | 0.00
     - + - + - + - + - + - + - + - + - + - + - + - + - + - + - + 
     /.../RunChandler --create --catch=tests --profileDir=.../test_profile --parcelPath=.../tools/QATestScripts/DataFiles --chandlerTests=TestSharing -D2 -M0
     - + - + - + - + - + - + - + - + - + - + - + - + - + - + - + 
-    /.../RunPython .../application/tests/TestCrypto.py -v
+    /.../RunPython application/tests/TestCrypto.py -v
     - + - + - + - + - + - + - + - + - + - + - + - + - + - + - + 
     Creating repository for startup time tests
-    /.../RunChandler... --catch=tests --profileDir=.../test_profile --parcelPath=.../tools/QATestScripts/DataFiles --scriptFile=.../tools/QATestScripts/Performance/quit.py --restore=.../test_profile/__repository__.001
+    /.../RunChandler... --catch=tests --profileDir=.../test_profile --parcelPath=.../tools/QATestScripts/DataFiles --scriptFile=tools/QATestScripts/Performance/quit.py --restore=.../test_profile/__repository__.001
     - + - + - + - + - + - + - + - + - + - + - + - + - + - + - + 
-    Startup_with_large_calendar    /usr/bin/time --format=%e -o .../test_profile/time.log .../RunChandler... --catch=tests --profileDir=.../test_profile --parcelPath=.../tools/QATestScripts/DataFiles --scriptFile=.../tools/QATestScripts/Performance/end.py
+    Startup_with_large_calendar    /usr/bin/time --format=%e -o .../test_profile/time.log .../RunChandler... --catch=tests --profileDir=.../test_profile --parcelPath=.../tools/QATestScripts/DataFiles --scriptFile=tools/QATestScripts/Performance/end.py
      0.00 - + - + - + - + - + - + - + - + - + - + - + - + - + - + - + 
     ...
     False
@@ -1221,7 +1233,7 @@ def main(options):
     >>> options.unit = False
     >>> options.unitSuite = True
     >>> main(options)
-    /.../RunPython .../tools/run_tests.py -v application i18n osaf repository
+    /.../RunPython... tools/run_tests.py -v application i18n osaf repository
     - + - + - + - + - + - + - + - + - + - + - + - + - + - + - + 
     False
     
@@ -1231,7 +1243,7 @@ def main(options):
     >>> options.unitSuite = False
     >>> options.funcSuite = True
     >>> main(options)
-    /.../RunChandler... --create --catch=tests --profileDir=.../test_profile --parcelPath=.../tools/QATestScripts/DataFiles --scriptFile=.../tools/cats/Functional/FunctionalTestSuite.py -D2 -M0
+    /.../RunChandler... --create --catch=tests --profileDir=.../test_profile --parcelPath=.../tools/QATestScripts/DataFiles --scriptFile=tools/cats/Functional/FunctionalTestSuite.py -D2 -M0
     - + - + - + - + - + - + - + - + - + - + - + - + - + - + - + 
     False
     
@@ -1250,17 +1262,17 @@ def main(options):
     >>> options.perf      = True
     >>> options.profile   = False
     >>> main(options)
-    /.../RunChandler... --catch=tests --profileDir=.../test_profile --parcelPath=.../tools/QATestScripts/DataFiles --catsPerfLog=.../test_profile/time.log --scriptFile=.../tools/QATestScripts/Performance/PerfImportCalendar.py --create
+    /.../RunChandler... --catch=tests --profileDir=.../test_profile --parcelPath=.../tools/QATestScripts/DataFiles --catsPerfLog=.../test_profile/time.log --scriptFile=tools/QATestScripts/Performance/PerfImportCalendar.py --create
     PerfImportCalendar.py                              | 0.00
     - + - + - + - + - + - + - + - + - + - + - + - + - + - + - + 
     ...
-    /.../RunChandler... --catch=tests --profileDir=.../test_profile --parcelPath=.../tools/QATestScripts/DataFiles --catsPerfLog=.../test_profile/time.log --scriptFile=.../tools/QATestScripts/Performance/PerfLargeDataResizeCalendar.py --restore=.../test_profile/__repository__.001
+    /.../RunChandler... --catch=tests --profileDir=.../test_profile --parcelPath=.../tools/QATestScripts/DataFiles --catsPerfLog=.../test_profile/time.log --scriptFile=tools/QATestScripts/Performance/PerfLargeDataResizeCalendar.py --restore=.../test_profile/__repository__.001
     PerfLargeDataResizeCalendar.py                     | 0.00
     ...
     Creating repository for startup time tests
-    /.../RunChandler... --catch=tests --profileDir=.../test_profile --parcelPath=.../tools/QATestScripts/DataFiles --scriptFile=.../tools/QATestScripts/Performance/quit.py --create
+    /.../RunChandler... --catch=tests --profileDir=.../test_profile --parcelPath=.../tools/QATestScripts/DataFiles --scriptFile=tools/QATestScripts/Performance/quit.py --create
     - + - + - + - + - + - + - + - + - + - + - + - + - + - + - + 
-    Startup                        /usr/bin/time --format=%e -o .../test_profile/time.log .../RunChandler... --catch=tests --profileDir=.../test_profile --parcelPath=.../tools/QATestScripts/DataFiles --scriptFile=.../tools/QATestScripts/Performance/end.py
+    Startup                        /usr/bin/time --format=%e -o .../test_profile/time.log .../RunChandler... --catch=tests --profileDir=.../test_profile --parcelPath=.../tools/QATestScripts/DataFiles --scriptFile=tools/QATestScripts/Performance/end.py
      0.00 - + - + - + - + - + - + - + - + - + - + - + - + - + - + - + 
     ...
     False
