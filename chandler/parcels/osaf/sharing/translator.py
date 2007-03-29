@@ -300,19 +300,6 @@ def splitUUID(recurrence_aware_uuid):
         return (uuid, fromICalendarDateTime(recurrenceID)[0])
         
 
-def getUUIDForEIM(item_or_stamp):
-    """
-    If the item is an occurrence, return a special EIM recurrence UUID.
-    """
-    item = getattr(item_or_stamp, 'itsItem', item_or_stamp)
-    if isinstance(item, Occurrence):
-        event = EventStamp(item)
-        master = item.inheritFrom
-        recurrenceID = toICalendarDateTime(event.recurrenceID,
-                                           event.allDay or event.anyTime)
-        return str(master.itsUUID) + ":" + recurrenceID
-    else:
-        return item.itsUUID
 
 def handleEmpty(item_or_stamp, attr):
     item = getattr(item_or_stamp, 'itsItem', item_or_stamp)
@@ -334,7 +321,8 @@ def handleEmpty(item_or_stamp, attr):
 
 
 
-def getAliasForItem(item):
+def getAliasForItem(item_or_stamp):
+    item = getattr(item_or_stamp, 'itsItem', item_or_stamp)
     if isinstance(item, Occurrence):
         event = EventStamp(item)
         master = item.inheritFrom
@@ -346,6 +334,7 @@ def getAliasForItem(item):
 
 
 eim.add_converter(model.aliasableUUID, schema.Item, getAliasForItem)
+eim.add_converter(model.aliasableUUID, pim.Stamp, getAliasForItem)
 
 
 class SharingTranslator(eim.Translator):
@@ -460,7 +449,6 @@ class SharingTranslator(eim.Translator):
 
     @eim.exporter(pim.ContentItem)
     def export_item(self, item):
-        uuid = getUUIDForEIM(item)
 
         # TODO: see why many items don't have createdOn
         if not hasattr(item, 'createdOn'):
@@ -488,7 +476,7 @@ class SharingTranslator(eim.Translator):
             title = ""
 
         yield model.ItemRecord(
-            uuid,                                       # uuid
+            item,                                       # uuid
             title,                                      # title
             triage,                                     # triage
             createdOn,                                  # createdOn
@@ -514,7 +502,7 @@ class SharingTranslator(eim.Translator):
         lastModification = item.lastModification
 
         yield model.ModifiedByRecord(
-            uuid,
+            item,
             lastModifiedBy,
             lastModified,
             action = self.modaction_to_code.get(lastModification, 500)
@@ -545,7 +533,7 @@ class SharingTranslator(eim.Translator):
                 description = "Event Reminder"
         
             yield model.DisplayAlarmRecord(
-                item.itsUUID,
+                item,
                 description,
                 trigger,
                 duration,
@@ -625,9 +613,8 @@ class SharingTranslator(eim.Translator):
         )
 
     @eim.exporter(pim.Note)
-    def export_note(self, item):
-        uuid = getUUIDForEIM(item)
-        body = handleEmpty(item, 'body')
+    def export_note(self, note):
+        body = handleEmpty(note, 'body')
         # TODO: REMOVE HACK (Cosmo expects None for empty bodies)
         if body == '':
             body = None
@@ -636,13 +623,13 @@ class SharingTranslator(eim.Translator):
         # a None value for icalUID if icalUID and UUID aren't the same, but in 
         # most cases, icalUID will be identical to UUID, just use None in that
         # case
-        icalUID = getattr(item, 'icalUID', None)
-        if icalUID == unicode(item.itsUUID):
+        icalUID = getattr(note, 'icalUID', None)
+        if icalUID == unicode(note.itsUUID):
             icalUID = None
 
 
         yield model.NoteRecord(
-            uuid,                                       # uuid
+            note,                                       # uuid
             body,                                       # body
             icalUID,                                    # icalUid
             None,                                       # icalProperties
@@ -664,7 +651,7 @@ class SharingTranslator(eim.Translator):
     @eim.exporter(pim.TaskStamp)
     def export_task(self, task):
         yield model.TaskRecord(
-            getUUIDForEIM(task)
+            task
         )
 
 
@@ -682,83 +669,83 @@ class SharingTranslator(eim.Translator):
     def import_mail(self, record):
         #TODO: How to represent attachments?
 
-        mail = self.loadItemByUUID(
-                   record.uuid,
-                   pim.MailStamp,
-                   dateSentString=record.dateSent,
-                   )
+        @self.withItemForUUID(
+           record.uuid,
+           pim.MailStamp,
+           dateSentString=record.dateSent,
+        )
+        def do(mail):
+            view = self.rv
 
-        view = mail.itsItem.itsView
+            if record.messageId not in noChangeOrMissing:
+                mail.messageId = record.messageId
 
-        if record.messageId not in noChangeOrMissing:
-            mail.messageId = record.messageId
+            if record.inReplyTo not in noChangeOrMissing:
+                mail.inReplyTo = record.inReplyTo
 
-        if record.inReplyTo not in noChangeOrMissing:
-            mail.inReplyTo = record.inReplyTo
+            if record.headers not in noChangeOrMissing:
+                mail.headers = {}
+                headers = record.headers.split(u"\n")
 
-        if record.headers not in noChangeOrMissing:
-            mail.headers = {}
-            headers = record.headers.split(u"\n")
+                for header in headers:
+                    key, val = header.split(u": ", 1)
 
-            for header in headers:
-                key, val = header.split(u": ", 1)
+                    mail.headers[key] = val
 
-                mail.headers[key] = val
+            if record.toAddress not in noChangeOrMissing:
+                mail.toAddress = []
+                if record.toAddress:
+                    addEmailAddresses(view, mail.toAddress, record.toAddress)
 
-        if record.toAddress not in noChangeOrMissing:
-            mail.toAddress = []
-            if record.toAddress:
-                addEmailAddresses(view, mail.toAddress, record.toAddress)
+            if record.ccAddress not in noChangeOrMissing:
+                mail.ccAddress = []
 
-        if record.ccAddress not in noChangeOrMissing:
-            mail.ccAddress = []
+                if record.ccAddress:
+                    addEmailAddresses(view, mail.ccAddress, record.ccAddress)
 
-            if record.ccAddress:
-                addEmailAddresses(view, mail.ccAddress, record.ccAddress)
+            if record.bccAddress not in noChangeOrMissing:
+                mail.bccAddress = []
 
-        if record.bccAddress not in noChangeOrMissing:
-            mail.bccAddress = []
+                if record.bccAddress:
+                    addEmailAddresses(view, mail.bccAddress, record.bccAddress)
 
-            if record.bccAddress:
-                addEmailAddresses(view, mail.bccAddress, record.bccAddress)
+            if record.fromAddress not in noChangeOrMissing:
 
-        if record.fromAddress not in noChangeOrMissing:
+               if record.fromAddress:
+                    mail.fromAddress = getEmailAddress(view, record.fromAddress)
+               else:
+                   mail.fromAddress = None
 
-           if record.fromAddress:
-                mail.fromAddress = getEmailAddress(view, record.fromAddress)
-           else:
-               mail.fromAddress = None
+            # text or email addresses in Chandler from field
+            if record.originators not in noChangeOrMissing:
+                if record.originators:
+                    res = EmailAddress.parseEmailAddresses(view, record.originators)
 
-        # text or email addresses in Chandler from field
-        if record.originators not in noChangeOrMissing:
-            if record.originators:
-                res = EmailAddress.parseEmailAddresses(view, record.originators)
+                    mail.originators = [ea for ea in res[1]]
+                else:
+                    mail.originators = []
 
-                mail.originators = [ea for ea in res[1]]
-            else:
-                mail.originators = []
+            # references mail message id list
+            if record.references not in noChangeOrMissing:
+                mail.referencesMID = []
 
-        # references mail message id list
-        if record.references not in noChangeOrMissing:
-            mail.referencesMID = []
+                refs = record.references.split()
 
-            refs = record.references.split()
+                for ref in refs:
+                    ref = ref.strip()
 
-            for ref in refs:
-                ref = ref.strip()
+                    if ref: mail.referencesMID.append(ref)
 
-                if ref: mail.referencesMID.append(ref)
+            if record.dateSent not in noChangeOrMissing:
+                if record.dateSent.strip():
+                    mail.dateSentString = record.dateSent
 
-        if record.dateSent not in noChangeOrMissing:
-            if record.dateSent.strip():
-                mail.dateSentString = record.dateSent
-
-                timestamp = Utils.parsedate_tz(record.dateSent)
-                mail.dateSent = datetime.fromtimestamp(Utils.mktime_tz(timestamp), \
-                                                       ICUtzinfo.default)
-            else:
-                mail.dateSent = getEmptyDate()
-                mail.dateSentString = u""
+                    timestamp = Utils.parsedate_tz(record.dateSent)
+                    mail.dateSent = datetime.fromtimestamp(Utils.mktime_tz(timestamp), \
+                                                           ICUtzinfo.default)
+                else:
+                    mail.dateSent = getEmptyDate()
+                    mail.dateSentString = u""
 
 
     @eim.exporter(pim.MailStamp)
@@ -851,7 +838,7 @@ class SharingTranslator(eim.Translator):
 
 
         yield model.MailMessageRecord(
-            mail.itsItem.itsUUID,  # uuid
+            mail,                  # uuid
             messageId,             # messageId
             headers,               # headers
             fromAddress,           # fromAddress
@@ -958,7 +945,6 @@ class SharingTranslator(eim.Translator):
 
     @eim.exporter(EventStamp)
     def export_event(self, event):
-        uuid = getUUIDForEIM(event)
         item = event.itsItem
         
         location = handleEmpty(event, 'location')
@@ -1000,7 +986,7 @@ class SharingTranslator(eim.Translator):
 
 
         yield model.EventRecord(
-            uuid,                                       # uuid
+            event,                                      # uuid
             dtstart,                                    # dtstart
             duration,                                   # duration
             location,                                   # location
@@ -1100,7 +1086,7 @@ class DumpTranslator(SharingTranslator):
     @eim.exporter(pim.SmartCollection)
     def export_collection(self, collection):
         yield model.CollectionRecord(
-            collection.itsUUID,
+            collection,
             int (collection in schema.ns('osaf.pim', self.rv).mine.sources)
         )
         for record in self.export_collection_memberships (collection):
@@ -1114,7 +1100,7 @@ class DumpTranslator(SharingTranslator):
             # //parcels since they are not created by the user
             if not str(item.itsPath).startswith("//parcels"):
                 yield model.CollectionMembershipRecord(
-                    collection.itsUUID,
+                    collection,
                     item.itsUUID,
                     index
                 )
@@ -1187,8 +1173,6 @@ class DumpTranslator(SharingTranslator):
     @eim.exporter(shares.Share)
     def export_share(self, share):
 
-        uuid = share.itsUUID
-
         contents = share.contents.itsUUID
 
         conduit = share.conduit.itsUUID
@@ -1205,7 +1189,7 @@ class DumpTranslator(SharingTranslator):
             lastSynced = None
 
         yield model.ShareRecord(
-            uuid,
+            share,
             contents,
             conduit,
             subscribed,
@@ -1229,12 +1213,11 @@ class DumpTranslator(SharingTranslator):
     @eim.exporter(conduits.BaseConduit)
     def export_conduit(self, conduit):
 
-        uuid = conduit.itsUUID
         path = conduit.sharePath
         name = conduit.shareName
 
         yield model.ShareConduitRecord(
-            uuid,
+            conduit,
             path,
             name
         )
@@ -1271,7 +1254,7 @@ class DumpTranslator(SharingTranslator):
         filters = ",".join(conduit.filters)
 
         yield model.ShareRecordSetConduitRecord(
-            conduit.itsUUID,
+            conduit,
             translator,
             serializer,
             filters
@@ -1331,7 +1314,7 @@ class DumpTranslator(SharingTranslator):
             password = conduit.password
 
         yield model.ShareHTTPConduitRecord(
-            conduit.itsUUID,
+            conduit,
             url,
             ticket_rw,
             ticket_ro,
@@ -1358,7 +1341,7 @@ class DumpTranslator(SharingTranslator):
     def export_cosmoconduit(self, conduit):
 
         yield model.ShareCosmoConduitRecord(
-            conduit.itsUUID,
+            conduit,
             conduit.morsecodepath
         )
 
@@ -1375,7 +1358,7 @@ class DumpTranslator(SharingTranslator):
     def export_webdavconduit(self, conduit):
 
         yield model.ShareWebDAVConduitRecord(
-            conduit.itsUUID
+            conduit
         )
 
 
@@ -1409,7 +1392,6 @@ class DumpTranslator(SharingTranslator):
     @eim.exporter(shares.State)
     def export_state(self, state):
 
-        uuid = state.itsUUID
         peer = state.peer.itsUUID if getattr(state, "peer", None) else None
         peerrepo = state.peerRepoId
         peerversion = state.peerItemVersion
@@ -1419,7 +1401,7 @@ class DumpTranslator(SharingTranslator):
         pending = None # TODO
 
         yield model.ShareStateRecord(
-            uuid,
+            state,
             peer,
             peerrepo,
             peerversion,
@@ -1443,12 +1425,11 @@ class DumpTranslator(SharingTranslator):
     @eim.exporter(recordset_conduit.ResourceState)
     def export_resourcestate(self, state):
 
-        uuid = state.itsUUID
         path = getattr(state, "path", None)
         etag = getattr(state, "etag", None)
 
         yield model.ShareResourceStateRecord(
-            uuid,
+            state,
             path,
             etag
         )
@@ -1474,7 +1455,7 @@ class DumpTranslator(SharingTranslator):
     def export_shareaccount(self, account):
 
         yield model.ShareAccountRecord(
-            account.itsUUID,
+            account,
             account.host,
             account.port,
             1 if account.useSSL else 0,
@@ -1496,7 +1477,7 @@ class DumpTranslator(SharingTranslator):
     @eim.exporter(accounts.WebDAVAccount)
     def export_sharewebdavaccount(self, account):
 
-        yield model.ShareWebDAVAccountRecord(account.itsUUID)
+        yield model.ShareWebDAVAccountRecord(account)
 
 
 
@@ -1514,7 +1495,7 @@ class DumpTranslator(SharingTranslator):
     def export_sharecosmoaccount(self, account):
 
         yield model.ShareCosmoAccountRecord(
-            account.itsUUID,
+            account,
             account.pimPath,
             account.morsecodePath,
             account.davPath
