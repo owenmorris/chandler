@@ -1,4 +1,4 @@
-#   Copyright (c) 2003-2006 Open Source Applications Foundation
+#   Copyright (c) 2003-2007 Open Source Applications Foundation
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -93,7 +93,7 @@ class TimeZoneInfo(schema.Item):
             # Make sure that PyICU's default timezone is synched with ours
             if (canonicalDefault is not None and
                 canonicalDefault is not PyICU.ICUtzinfo.floating):
-                PyICU.ICUtzinfo.default = canonicalDefault
+                PyICU.ICUtzinfo.setDefault(canonicalDefault)
                 reindexFloatingEvents(self.itsView)
             # This next if is required to avoid an infinite recursion!
             if canonicalDefault is not default:
@@ -406,8 +406,8 @@ def shortTZ(dt, tzinfo=None):
         return u''
     elif dt.tzinfo != tzinfo:
         # make sure they aren't equivalent
-        if (dt.tzinfo._timezone.getRawOffset() ==
-               tzinfo._timezone.getRawOffset()):
+        if (dt.tzinfo.timezone.getRawOffset() ==
+               tzinfo.timezone.getRawOffset()):
             for tzid in equivalentTZIDs(tzinfo):
                 if dt.tzinfo.tzid == tzid:
                     return u''

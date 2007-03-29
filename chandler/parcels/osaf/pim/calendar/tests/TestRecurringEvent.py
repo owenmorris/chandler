@@ -1,4 +1,4 @@
-#   Copyright (c) 2005-2006 Open Source Applications Foundation
+#   Copyright (c) 2005-2007 Open Source Applications Foundation
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -1500,7 +1500,7 @@ class NaiveTimeZoneRecurrenceTest(testcase.SingleRepositoryTestCase):
         self._saveTzEnabled = tzPrefs.showUI
 
         # ... and set up the values we want to run the test with
-        ICUtzinfo.default = self.tzinfo
+        ICUtzinfo.setDefault(self.tzinfo)
         tzPrefs.showUI = self.enableTimeZones
 
         # 2006/04/09 05:00 Europe/London == 2006/04/08 US/Pacific
@@ -1524,7 +1524,7 @@ class NaiveTimeZoneRecurrenceTest(testcase.SingleRepositoryTestCase):
         tzPrefs = schema.ns('osaf.pim', self.view).TimezonePrefs
 
         # Put everything back nicely....
-        ICUtzinfo.default = self._saveTzinfo
+        ICUtzinfo.setDefault(self._saveTzinfo)
         tzPrefs.showUI = self._saveTzEnabled
 
         # ... and tip-toe out the room. Move along, nothing to see here.

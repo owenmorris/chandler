@@ -1,4 +1,4 @@
-#   Copyright (c) 2003-2006 Open Source Applications Foundation
+#   Copyright (c) 2003-2007 Open Source Applications Foundation
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -50,7 +50,7 @@ class TestSwitchTimezone(ChandlerTestCase):
     
         # Test that the default timezone has switched
         self.logger.startAction("Verify timezone switched")
-        if ICUtzinfo.default == ICUtzinfo.getInstance(switchTz):
+        if ICUtzinfo.setDefault(ICUtzinfo.getInstance(switchTz)):
             self.logger.endAction(True, "Timezone switched")
         else:
             self.logger.endAction(False, "Timezone failed to switch")

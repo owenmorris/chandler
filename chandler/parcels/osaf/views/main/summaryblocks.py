@@ -1,4 +1,4 @@
-#   Copyright (c) 2003-2006 Open Source Applications Foundation
+#   Copyright (c) 2003-2007 Open Source Applications Foundation
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -46,11 +46,9 @@ class TriageColumnIndexDefinition(pim.MethodIndexDefinition):
         """
         values = self.itsView.findInheritedValues(uuid, *params)
         # We'll use sectionTriageStatus if it's there, else triageStatus
-        if values[-2] is None: # no sectionTriageStatus
+        if values[-2] is None:  # no sectionTriageStatus
             return values[0:-2] # just use triageStatus for ordering.
-        values = list(values) # make it mutable
-        del values[-4:-2] # remove the triageStatus entries
-        return values # return the rest.
+        return values[:-4] + values[-2:] # remove the triageStatus entries
 
     def compare(self, u1, u2):
         def getCompareTuple(uuid):

@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-#   Copyright (c) 2004-2006 My Foundation
+#   Copyright (c) 2005-2007 Open Source Applications Foundation
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -265,8 +265,9 @@ END:VCALENDAR
         super(TestReplyReplyAllForward, self).setUp()
         # Set the default timezone so that we'll get correct
         # format for dates in forwarded messages
-        self.savedTzinfo = ICUtzinfo.default
-        ICUtzinfo.default = ICUtzinfo.getInstance("US/Hawaii")
+
+        defaultTzinfo = ICUtzinfo.getInstance("US/Hawaii")
+        self.savedTzinfo = ICUtzinfo.setDefault(defaultTzinfo)
 
         self.messageOne = message.messageTextToKind(self.rep.view, self.M1)
         self.messageTwo = message.messageTextToKind(self.rep.view, self.M2)
@@ -284,7 +285,7 @@ END:VCALENDAR
 
     def tearDown(self):
         # Restore the default timezone
-        ICUtzinfo.default = self.savedTzinfo
+        ICUtzinfo.setDefault(self.savedTzinfo)
         super(TestReplyReplyAllForward, self).tearDown()
 
 
