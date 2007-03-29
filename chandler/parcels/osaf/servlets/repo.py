@@ -69,7 +69,28 @@ class RepoResource(webserver.AuthenticatedResource):
 
                 prevView = repoView.setCurrentView()
 
-                if not request.postpath or not request.postpath[0]:
+                # deal with "dv" (show the rendered detail view) and "dvitem"
+                # (show the current detail view item) modes.
+                if mode is not None and mode.startswith("dv"):
+                    # Find the rendered detail view - we'll show it or its item.
+                    path = "//parcels/osaf/views/detail/DetailRootBlock"
+                    dvKind = repoView.findPath(path)
+                    renderedDVs = [ dv for dv in dvKind.iterItems(recursive=True)
+                                    if hasattr(dv, 'widget') ]
+                    if not renderedDVs:
+                        # No rendered DVs? Just do a kind query to show that.
+                        mode = 'kindquery'
+                    else:
+                        currentDV = renderedDVs[0]
+                        path = currentDV.itsPath
+                        if mode == 'dvitem':
+                            # Get the current item instead.
+                            dvItem = getattr(currentDV, 'contents', None)
+                            if dvItem is not None:
+                                path = dvItem.itsPath
+                        mode = None
+                    
+                elif not request.postpath or not request.postpath[0]:
                     path = "//"
                 else:
                     path = "//%s" % ("/".join(request.postpath))
@@ -636,19 +657,23 @@ class ValueRenderer(object):
         return self.renderMethod()
 
     def Render_RefList(self, name, value):
-        itemString = "<b>(ref collection)</b><br>\n<ul>"
-        output = []
-        for j in value:
-            alias = value.getAlias(j)
-            if alias:
-                alias = "(alias = '%s')" % alias
-            else:
-                alias = ""
-            output.append('<li><span class="editable">%s</span> <a href=%s>%s</a> %s</li>' % \
-             ( getattr(j, "blockName", getItemName(j)), toLink(j.itsPath), j.itsPath, alias))
-        itemString += ("".join(output))
+        itemString = "<b>(ref collection)</b>"
+        if value:
+            itemString += "\n<ul>"
+            output = []
+            for j in value:
+                alias = value.getAlias(j)
+                if alias:
+                    alias = "(alias = '%s')" % alias
+                else:
+                    alias = ""
+                output.append('<li><span class="editable">%s</span> <a href=%s>%s</a> %s</li>' % \
+                 ( getattr(j, "blockName", getItemName(j)), toLink(j.itsPath), j.itsPath, alias))
+            itemString += ("".join(output))    
+            itemString += "</ul>"
+        else:
+            itemString = "<i>(empty)</i>"
 
-        itemString += "</ul>"
         return itemString
 
     def Render_list(self, name, value):
@@ -659,26 +684,32 @@ class ValueRenderer(object):
                                (j.itsName, toLink(j.itsPath), j.itsPath))
             except:
                 itemString += "<li>%s (%s)</li>\n" % (clean(j), clean(type(j)))
+        else:
+            itemString = "<i>(empty)</i>"
         return itemString
 
     def Render_dict(self, name, value):
-        itemString = ""
-        for key, entryValue in value.iteritems():
-            try:
-                itemString += (
-                    '<span class="editable">%s</span>: %s '
-                    '<a href=%s>%s</a><br>' % 
-                    (key, entryValue.itsName,
-                     toLink(entryValue.itsPath),
-                     entryValue.itsPath))
-            except:
+        if value:
+            itemString = ""
+            for key, entryValue in value.iteritems():
                 try:
-                    itemString += ("%s: %s (%s)<br>" %
-                                   (key, clean(entryValue),
-                                    clean(type(entryValue))))
+                    itemString += (
+                        '<span class="editable">%s</span>: %s '
+                        '<a href=%s>%s</a><br>' % 
+                        (key, entryValue.itsName,
+                         toLink(entryValue.itsPath),
+                         entryValue.itsPath))
                 except:
-                    itemString += "%s: <i>(Can't display)</i> (%s)<br>" % \
-                        (key, clean(type(entryValue)))
+                    try:
+                        itemString += ("%s: %s (%s)<br>" %
+                                       (key, clean(entryValue),
+                                        clean(type(entryValue))))
+                    except:
+                        itemString += "%s: <i>(Can't display)</i> (%s)<br>" % \
+                            (key, clean(type(entryValue)))
+        else:
+            itemString = "<i>(empty)</i>"
+                    
         return itemString
 
     def Render_Lob(self, name, value):
@@ -720,19 +751,28 @@ class ValueRenderer(object):
 
         itemString = "<b>(%s)</b> " % typeName
 
-        itemString += "<ul>"
-        for j in value:
-            itemString += ('<li>%s</li>\n' % self.RenderValue(j))
-        itemString += "</ul>"
+        if value:
+            itemString += "<ul>"
+            for j in value:
+                itemString += ('<li>%s</li>\n' % self.RenderValue(j))
+                #itemString += ('<li>%s <a href="%s">%s</a><br>\n' %
+                               #(getItemName(j),
+                                #toLink(j.itsPath), j.itsPath))
+            itemString += "</ul>"
+        else:
+            itemString += "<i>(empty)</i>"
 
         if getattr(value,'_indexes', None):
             itemString += "<br>Indexes in %s:<ul>\n" % name
-            for indexName in value._indexes:
-                itemString += "<li>" + indexName
-                if value.getRanges(indexName):
-                    itemString += ", ranges: %s" % (value.getRanges(indexName),)
-                itemString += "</li>\n"
-            itemString += "</ul>\n"
+            if value._indexes:
+                for indexName in value._indexes:
+                    itemString += "<li>" + indexName
+                    if value.getRanges(indexName):
+                        itemString += ", ranges: %s" % (value.getRanges(indexName),)
+                    itemString += "</li>\n"
+                itemString += "</ul>\n"
+            else:
+                itemString += "<i>(none)</i>"
 
         return itemString
 
