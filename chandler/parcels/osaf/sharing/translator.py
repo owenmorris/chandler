@@ -1068,10 +1068,16 @@ class SharingTranslator(eim.Translator):
                     reminder.description = record.description
 
                 if record.duration not in noChangeOrInherit:
-                    reminder.duration = stringToDurations(record.duration)[0]
+                    if record.duration is None:
+                        delattr(reminder, 'duration') # has a defaultValue
+                    else:
+                        reminder.duration = stringToDurations(record.duration)[0]
 
                 if record.repeat not in noChangeOrInherit:
-                    reminder.repeat = record.repeat
+                    if record.repeat is None:
+                        reminder.repeat = 0
+                    else:
+                        reminder.repeat = record.repeat
 
     @model.DisplayAlarmRecord.deleter
     def delete_alarm(self, record):
