@@ -183,6 +183,8 @@ def makeMainEvents(parcel):
 
     BlockEvent.template('EditAccountPreferences').install(parcel)
 
+    BlockEvent.template('ProtectPasswords').install(parcel)
+
     #BlockEvent.template('UpdateSend').install(parcel)
 
     BlockEvent.template(

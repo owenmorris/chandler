@@ -51,6 +51,7 @@ import sys
 from twisted.internet import reactor
 import shares
 from osaf import pim
+from osaf.framework.twisted import waitForDeferred
 
 from zanshin.webdav import (
     PropfindRequest, ServerHandle, quote, CALDAV_NAMESPACE
@@ -426,7 +427,7 @@ def isWebDAVSetUp(view):
     """
 
     account = schema.ns('osaf.sharing', view).currentSharingAccount.item
-    if account and account.host and account.username and account.password:
+    if account and account.host and account.username and waitForDeferred(account.password.decryptPassword()):
         return True
     else:
         return False
@@ -461,12 +462,11 @@ def checkForActiveShares(view):
 
 
 def getExistingResources(account):
-
     path = account.path.strip("/")
     handle = WebDAV.ChandlerServerHandle(account.host,
                                          port=account.port,
                                          username=account.username,
-                                         password=account.password,
+                                         password=waitForDeferred(account.password.decryptPassword()),
                                          useSSL=account.useSSL,
                                          repositoryView=account.itsView)
 

@@ -1,4 +1,4 @@
-#   Copyright (c) 2003-2006 Open Source Applications Foundation
+#   Copyright (c) 2003-2007 Open Source Applications Foundation
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -16,19 +16,28 @@
 """Save and Restore Application Settings"""
 
 import logging
+from binascii import hexlify, unhexlify
 from configobj import ConfigObj
 from application import schema
 from osaf import pim, sharing, usercollections
+from osaf.framework.twisted import waitForDeferred
 from osaf.pim.structs import ColorType
-from application.dialogs import SubscribeCollection
+from application.dialogs import SubscribeCollection, Util
+from i18n import ChandlerMessageFactory as _
 from chandlerdb.util.c import UUID
+from osaf.framework import password, MasterPassword
 
 logger = logging.getLogger(__name__)
 
 
 def save(rv, filename):
-    """Save selected settings information, including all sharing accounts
-    and shares (whether published or subscribed), to an INI file"""
+    """
+    Save selected settings information, including all sharing accounts
+    and shares (whether published or subscribed), to an INI file.
+    
+    @param rv:       Repository view
+    @param filename: File to save settings into
+    """
     
     cfg = ConfigObj()
     cfg.encoding = "UTF8"
@@ -50,7 +59,7 @@ def save(rv, filename):
             cfg[section_name][u"host"] = account.host
             cfg[section_name][u"path"] = account.path
             cfg[section_name][u"username"] = account.username
-            cfg[section_name][u"password"] = account.password
+            savePassword(cfg[section_name], account.password)
             cfg[section_name][u"port"] = account.port
             cfg[section_name][u"usessl"] = account.useSSL
             if account is currentAccount:
@@ -103,7 +112,7 @@ def save(rv, filename):
             cfg[section_name][u"host"] = account.host
             cfg[section_name][u"auth"] = account.useAuth
             cfg[section_name][u"username"] = account.username
-            cfg[section_name][u"password"] = account.password
+            savePassword(cfg[section_name], account.password)
 
             if account is currentAccount:
                 cfg[section_name][u"default"] = u"True"
@@ -128,7 +137,7 @@ def save(rv, filename):
             cfg[section_name][u"title"] = account.displayName
             cfg[section_name][u"host"] = account.host
             cfg[section_name][u"username"] = account.username
-            cfg[section_name][u"password"] = account.password
+            savePassword(cfg[section_name], account.password)
 
             if account.replyToAddress:
                 cfg[section_name][u"name"] = account.replyToAddress.fullName
@@ -173,7 +182,7 @@ def save(rv, filename):
             cfg[section_name][u"title"] = account.displayName
             cfg[section_name][u"host"] = account.host
             cfg[section_name][u"username"] = account.username
-            cfg[section_name][u"password"] = account.password
+            savePassword(cfg[section_name], account.password)
 
             if account.replyToAddress:
                 cfg[section_name][u"name"] = account.replyToAddress.fullName
@@ -200,11 +209,33 @@ def save(rv, filename):
     cfg[u"visible_hours"][u"height_mode"] = calPrefs.hourHeightMode
     cfg[u"visible_hours"][u"num_hours"] = calPrefs.visibleHours
 
+    # Master password
+    prefs = schema.ns("osaf.framework.MasterPassword", rv).masterPasswordPrefs
+    cfg[u"master_password"] = {}
+    cfg[u"master_password"][u"masterPassword"] = prefs.masterPassword
+    cfg[u"master_password"][u"timeout"] = prefs.timeout
+
+    # password, we'll just use the master password section as they are tied
+    dummy = schema.ns("osaf.framework.password", rv).passwordPrefs.dummyPassword
+    savePassword(cfg[u"master_password"], dummy, sectionName=u"dummyPassword")
+
     cfg.write()
 
 
-def restore(rv, filename, testmode=False):
-    """Restore accounts and shares from an INI file"""
+def restore(rv, filename, testmode=False, newMaster=''):
+    """
+    Restore accounts and shares from an INI file.
+    
+    @param rv:        repository view
+    @param filename:  Path to INI file to load.
+    @param testmode:  Are we running a test or not
+    @param newMaster: Used in testmode only
+    """
+
+    if not testmode:
+        oldMaster = waitForDeferred(MasterPassword.get(rv))
+    else:
+        oldMaster = ''
 
     cfg = ConfigObj(filename, encoding="UTF8")
 
@@ -223,8 +254,8 @@ def restore(rv, filename, testmode=False):
                 accountRef = schema.ns("osaf.sharing", rv).currentSharingAccount
                 current = accountRef.item
 
-                if len(current.password.strip()) == 0 and \
-                   len(current.username.strip()) == 0:
+                if not hasattr(current.password, 'ciphertext') and \
+                    len(current.username.strip()) == 0:
                    # The current account is empty
                     account = current
 
@@ -245,6 +276,8 @@ def restore(rv, filename, testmode=False):
                     parent = schema.Item.getDefaultParent(rv)
                     account = kind.instantiateItem(None, parent, uuid,
                         withInitialValues=True)
+                    account.password = password.Password(itsView=rv,
+                                                         itsParent=account)
             elif account is None:
                 account = klass(itsView=rv)
 
@@ -255,7 +288,7 @@ def restore(rv, filename, testmode=False):
             account.host = section[u"host"]
             account.path = section[u"path"]
             account.username = section[u"username"]
-            account.password = section[u"password"]
+            restorePassword(account, section)
             account.port = section.as_int(u"port")
             account.useSSL = section.as_bool(u"usessl")
 
@@ -358,7 +391,7 @@ def restore(rv, filename, testmode=False):
             account.host = section[u"host"]
             account.useAuth = section.as_bool(u"auth")
             account.username = section[u"username"]
-            account.password = section[u"password"]
+            restorePassword(account, section)
             account.port = section.as_int(u"port")
             account.connectionSecurity = section[u"security"]
 
@@ -382,7 +415,7 @@ def restore(rv, filename, testmode=False):
                 current = accountRef.item
 
                 if len(current.host.strip()) == 0 and \
-                   len(current.password.strip()) == 0 and \
+                   not hasattr(current.password, 'ciphertext') and \
                    len(current.username.strip()) == 0:
 
                    # The current account is empty
@@ -421,7 +454,7 @@ def restore(rv, filename, testmode=False):
             account.displayName = section[u"title"]
             account.host = section[u"host"]
             account.username = section[u"username"]
-            account.password = section[u"password"]
+            restorePassword(account, section)
             account.port = section.as_int(u"port")
             account.connectionSecurity = section[u"security"]
             account.isActive = True
@@ -476,7 +509,7 @@ def restore(rv, filename, testmode=False):
                 current = accountRef.item
 
                 if len(current.host.strip()) == 0 and \
-                   len(current.password.strip()) == 0 and \
+                   not hasattr(current.password, 'ciphertext') and \
                    len(current.username.strip()) == 0:
 
                    # The current account is empty
@@ -506,7 +539,7 @@ def restore(rv, filename, testmode=False):
             account.displayName = section[u"title"]
             account.host = section[u"host"]
             account.username = section[u"username"]
-            account.password = section[u"password"]
+            restorePassword(account, section)
             account.port = section.as_int(u"port")
             account.connectionSecurity = section[u"security"]
             account.isActive = True
@@ -541,3 +574,105 @@ def restore(rv, filename, testmode=False):
                 calPrefs.hourHeightMode = section[u"height_mode"]
             if section.has_key(u"num_hours"):
                 calPrefs.visibleHours = section.as_int(u"num_hours")
+
+    # Master password, must be done after accounts have been handled
+    restoreMasterPassword(rv, cfg, testmode, oldMaster, newMaster)
+
+
+def savePassword(section, password, sectionName=u"password"):
+    try:
+        section[sectionName] = u"%s|%s|%s" % (hexlify(password.iv), hexlify(password.salt), hexlify(password.ciphertext))
+    except AttributeError:
+        section[sectionName] = u''
+
+
+def restorePassword(account, section, sectionName=u"password"):
+    if not hasattr(account, 'password'):
+        account.password = password.Password(itsView=account.itsView,
+                                             itsParent=account)
+    
+    try:
+        iv, salt, ciphertext = section[sectionName].split('|')
+    except ValueError:
+        # Backwards compatibility
+        waitForDeferred(account.password.encryptPassword(section[sectionName]))
+    else:
+        if iv and salt and ciphertext:
+            try:
+                account.password.iv = unhexlify(iv)
+                account.password.salt = unhexlify(salt)
+                account.password.ciphertext = unhexlify(ciphertext)
+            except TypeError:
+                # Backwards compatibility, somebody had a long password!
+                waitForDeferred(account.password.encryptPassword(section[sectionName]))
+        else:
+            # Backwards compatibility
+            waitForDeferred(account.password.encryptPassword(section[sectionName]))
+
+
+def restoreMasterPassword(rv, cfg, testmode, oldMaster, newMaster):
+    for sectionname, section in cfg.iteritems():
+        if sectionname == u"master_password":
+            prefs = schema.ns("osaf.framework.MasterPassword", rv).masterPasswordPrefs
+            if section.has_key(u"masterPassword"):
+                prefs.masterPassword = section.as_bool(u"masterPassword")
+            if section.has_key(u"timeout"):
+                prefs.timeout = section.as_int(u"timeout")
+            dummy = schema.ns("osaf.framework.password", rv).passwordPrefs.dummyPassword
+            try:
+                iv, salt, ciphertext = section[u"dummyPassword"].split('|')
+                dummy.iv = unhexlify(iv)
+                dummy.salt = unhexlify(salt)
+                dummy.ciphertext = unhexlify(ciphertext)
+            except:
+                # Oops, we are in trouble, can't really do much but reset()
+                # to avoid further problems.
+                logger.exception('settings had master_password section but no dummyPassword; clearing passwords')
+                MasterPassword.reset(rv)
+                break
+            else:
+                # Now let's try to re-encrypt all passwords with the new master
+                # password.
+                waitForDeferred(MasterPassword.clear())
+                if not testmode:
+                    if prefs.masterPassword:
+                        Util.ok(None,
+                                _(u'Settings Master Password'),
+                                _(u'You will need to supply the master password that was used to protect the account passwords in the settings file.'))
+                    
+                    while True:
+                        try:
+                            newMaster = waitForDeferred(MasterPassword.get(rv, testPassword=dummy))
+                            break
+                        except password.NoMasterPassword:
+                            if Util.yesNo(None,
+                                          _(u'Reset Master Password?'),
+                                          _(u'If you do not supply the master password, all passwords will be reset. Reset?')):
+                                MasterPassword.reset(rv)
+                                break
+                            
+                    if newMaster == '':
+                        break
+                
+                for item in password.Password.iterItems(rv):
+                    try:
+                        pw = waitForDeferred(item.decryptPassword(masterPassword=oldMaster))
+                    except password.UninitializedPassword:
+                        # Don't need to re-encrypt uninitialized passwords
+                        continue
+                    except password.DecryptionError:
+                        # Maybe this was one of the new passwords loaded from
+                        # settings, so let's try the new master password
+                        try:
+                            waitForDeferred(item.decryptPassword(masterPassword=newMaster))
+                        except password.DecryptionError:
+                            # Oops, we are in trouble, can't really do much but
+                            # reset() to avoid further problems.
+                            logger.exception('found passwords that could not be decrypted; clearing passwords')
+                            MasterPassword.reset(rv)
+                            break
+                        # Since this is already encrypted with the new
+                        # master password we don't need to re-encrypt
+                        continue
+
+                    waitForDeferred(item.encryptPassword(pw, masterPassword=newMaster))

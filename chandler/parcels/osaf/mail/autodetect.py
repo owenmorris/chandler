@@ -1,5 +1,6 @@
 from application import schema, Globals
 from osaf.pim.mail import SMTPAccount, IMAPAccount, POPAccount
+from osaf.framework.twisted import waitForDeferred
 
 class DiscoveryBase(object):
     SETTINGS = []
@@ -105,7 +106,7 @@ class OutgoingDiscovery(DiscoveryBase):
         #Reset all username and password info
         self.smtpAccount.useAuth  = False
         self.smtpAccount.username = u""
-        self.smtpAccount.password = u""
+        waitForDeferred(self.smtpAccount.password.clear())
 
         self.curAccount = self.smtpAccount
 
@@ -168,7 +169,7 @@ class IncomingDiscovery(DiscoveryBase):
 
         # reset all username and password info
         self.curAccount.username = u""
-        self.curAccount.password = u""
+        waitForDeferred(self.curAccount.password.clear())
 
     def _discoverAccount(self, client):
         client.testAccountSettings(self._testResults, self.reconnect, logIn=False)

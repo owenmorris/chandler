@@ -431,6 +431,7 @@ class MsgDialog(wx.Dialog):
         self.sizer = wx.BoxSizer(wx.VERTICAL)
         self.buttonSizer = wx.BoxSizer(wx.HORIZONTAL)
         self.label = wx.StaticText(self, -1, self.msg)
+        self.label.Wrap(400)
         self.sizer.Add(self.label, 0, wx.ALIGN_LEFT|wx.ALL, 30)
         self.buttons = []
 

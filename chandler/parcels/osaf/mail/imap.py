@@ -586,15 +586,21 @@ class IMAPClient(base.AbstractDownloadClient):
 
         #Twisted expects 8-bit values so encode the utf-8 username and password
         username = self.account.username.encode("utf-8")
-        password = self.account.password.encode("utf-8")
 
-        self.proto.registerAuthenticator(imap4.CramMD5ClientAuthenticator(username))
-        self.proto.registerAuthenticator(imap4.LOGINAuthenticator(username))
+        deferredPassword = self.account.password.decryptPassword()
 
-        return self.proto.authenticate(password
-                     ).addCallback(self.cb
-                     ).addErrback(self.loginClientInsecure, username, password
-                     ).addErrback(self.catchErrors)
+        def callback(password):
+            password = password.encode("utf-8")
+            self.proto.registerAuthenticator(imap4.CramMD5ClientAuthenticator(username))
+            self.proto.registerAuthenticator(imap4.LOGINAuthenticator(username))
+    
+            return self.proto.authenticate(password
+                         ).addCallback(self.cb
+                         ).addErrback(self.loginClientInsecure, username, password
+                         ).addErrback(self.catchErrors)
+         
+        return deferredPassword.addCallback(callback
+                              ).addErrback(self.catchErrors)
 
     def loginClientInsecure(self, error, username, password):
         """

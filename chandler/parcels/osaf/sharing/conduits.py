@@ -29,6 +29,7 @@ from notifications import *
 from callbacks import *
 from application import schema
 from osaf import pim
+from osaf.framework.twisted import waitForDeferred
 from repository.item.Item import Item
 from repository.persistence.RepositoryError import MergeError
 from chandlerdb.util.c import UUID
@@ -1241,7 +1242,7 @@ class HTTPMixin(BaseConduit):
         else:
             return (self.account.host, self.account.port,
                     self.account.path.strip("/"), self.account.username,
-                    self.account.password, self.account.useSSL)
+                    waitForDeferred(self.account.password.decryptPassword()), self.account.useSSL)
 
     def _getServerHandle(self):
         # @@@ [grant] Collections and the trailing / issue.

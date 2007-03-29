@@ -1,4 +1,4 @@
-# Copyright (c) 2003-2006 Open Source Applications FoundationA411
+# Copyright (c) 2003-2007 Open Source Applications Foundation
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -27,6 +27,8 @@ from application.dialogs import Util
 import osaf.pim.mail as Mail
 from osaf.mail import constants
 from osaf import sharing
+from osaf.framework.twisted import waitForDeferred
+from osaf.framework import MasterPassword
 from i18n import ChandlerMessageFactory as _
 from osaf.framework.blocks.Block import Block
 from AccountPreferencesDialogs import MailTestDialog, \
@@ -37,6 +39,7 @@ from AccountPreferencesDialogs import MailTestDialog, \
                                       showYesNoDialog, \
                                       showOKDialog, \
                                       showConfigureDialog
+from osaf.framework import password
 
 
 # Localized messages displayed in dialogs
@@ -112,6 +115,8 @@ def IncomingSaveHandler(item, fields, values):
             # bug which needs to be fixed.
             raise Exception("Internal Exception")
 
+        item.password = password.Password(itsView=item.itsView, itsParent=item)
+
         if isCurrent:
             ns_pim.currentIncomingAccount.item = item
 
@@ -181,7 +186,7 @@ PANELS = {
             },
             "INCOMING_PASSWORD" : {
                 "attr" : "password",
-                "type" : "string",
+                "type" : "password",
             },
 
             "INCOMING_PORT" : {
@@ -277,7 +282,7 @@ PANELS = {
             },
             "OUTGOING_PASSWORD" : {
                 "attr" : "password",
-                "type" : "string",
+                "type" : "password",
             },
         },
         "id" : "OUTGOINGPanel",
@@ -310,7 +315,7 @@ PANELS = {
             },
             "DAV_PASSWORD" : {
                 "attr" : "password",
-                "type" : "string",
+                "type" : "password",
             },
             "DAV_PORT" : {
                 "attr" : "port",
@@ -354,7 +359,7 @@ PANELS = {
             },
             "MORSECODE_PASSWORD" : {
                 "attr" : "password",
-                "type" : "string",
+                "type" : "password",
             },
             "MORSECODE_PORT" : {
                 "attr" : "port",
@@ -627,6 +632,10 @@ class AccountPreferencesDialog(wx.Dialog):
                     else:
                         setting = {}
 
+                elif desc['type'] == 'password':
+                    # XXX Is this really necessary?
+                    setting = item.password
+
                 else:
                     # Otherwise store a literal
                     try:
@@ -690,6 +699,10 @@ class AccountPreferencesDialog(wx.Dialog):
 
                 elif account['protocol'] == "Morsecode":
                     item = sharing.CosmoAccount(itsView=self.rv)
+
+                item.password = password.Password(itsView=self.rv,
+                                                  itsParent=item)
+
 
             values = account['values']
             panel = PANELS[account['type']]
@@ -774,7 +787,8 @@ class AccountPreferencesDialog(wx.Dialog):
                         folders.remove(folder)
                         folder.delete()
 
-                item.delete()
+                item.password.delete()
+                item.delete(recursive=True)
 
     def __ApplyCancellations(self):
         self.__StoreFormData(self.currentPanelType,
@@ -788,7 +802,8 @@ class AccountPreferencesDialog(wx.Dialog):
             if account['isNew']:
                 uuid = account['item']
                 item = self.rv.findUUID(uuid)
-                item.delete()
+                item.password.delete()
+                item.delete(recursive=True)
 
             elif account['type'] == "INCOMING":
                 #If there are pending changes on Chandler IMAP Folders
@@ -893,7 +908,7 @@ class AccountPreferencesDialog(wx.Dialog):
         init = PANELS[self.currentPanelType].get("init", None)
 
         self.__FetchFormData(self.currentPanelType, self.currentPanel,
-         self.data[index]['values'])
+                             self.data[index]['values'])
 
         if init:
             cb = getattr(self, init, None)
@@ -995,6 +1010,12 @@ class AccountPreferencesDialog(wx.Dialog):
 
             control = wx.xrc.XRCCTRL(panel, field)
 
+            # Handle password
+            if valueType == "password":
+                val = control.GetValue().strip()
+                if valueRequired and not val:
+                    continue
+
             # Handle strings:
             if valueType == "string":
                 val = control.GetValue().strip()
@@ -1038,8 +1059,17 @@ class AccountPreferencesDialog(wx.Dialog):
                 except:
                     # Skip if not valid
                     continue
+                
+#            else:
+#                raise ValueError('Unhandled valueType ' + valueType)
 
-            data[field] = val
+            if valueType == 'password':
+                try:
+                    waitForDeferred(data[field].encryptPassword(val, window=self))
+                except password.NoMasterPassword:
+                    pass # Don't change it. Means we can end up with uninitialized passwords.
+            else:
+                data[field] = val
 
 
     def __FetchFormData(self, panelType, panel, data):
@@ -1063,6 +1093,13 @@ class AccountPreferencesDialog(wx.Dialog):
 
             valueType = PANELS[panelType]['fields'][field]['type']
 
+            # Handle passwords
+            if valueType == "password":
+                try:
+                    control.SetValue(waitForDeferred(data[field].decryptPassword(window=self)))
+                except (password.UninitializedPassword, password.NoMasterPassword):
+                    control.SetValue("")
+            
             # Handle strings:
             if valueType == "string":
                 # The control can not accept a None value
@@ -1159,6 +1196,9 @@ class AccountPreferencesDialog(wx.Dialog):
             elif valueType == "integer":
                 control.SetValue(str(data[field]))
 
+#            else:
+#                raise ValueError('Unhandled valueType ' + valueType)
+
     def OnOk(self, evt):
         if self.__Validate():
             self.__ApplyChanges()
@@ -1190,7 +1230,7 @@ class AccountPreferencesDialog(wx.Dialog):
             buf.append("host: %s" % item.host)
             buf.append("port: %s" % item.port)
             buf.append("username: %s" % item.username)
-            buf.append("password: %s" % item.password)
+            buf.append("password: %s" % waitForDeferred(item.password.decryptPassword(window=self)))
 
             if item.accountType in ("SHARING_DAV", "SHARING_MORSECODE"):
                 buf.append("useSSL: %s" % item.useSSL)
@@ -1452,6 +1492,8 @@ class AccountPreferencesDialog(wx.Dialog):
                     setting = {"hasFolders": self.hasChandlerFolders(item)}
                 else:
                     setting = {}
+            elif desc['type'] == 'password':
+                setting = password.Password(itsView=self.rv, itsParent=item)
             else:
                 try:
                     setting = desc['default']
@@ -1494,7 +1536,6 @@ class AccountPreferencesDialog(wx.Dialog):
             self.currentPanel.Hide()
             self.currentIndex = None
             self.selectAccount(0)
-
 
     def OnTestAccount(self, evt):
         account = self.getSelectedAccount()
@@ -1590,13 +1631,16 @@ class AccountPreferencesDialog(wx.Dialog):
         host = data['INCOMING_SERVER']
         port = data['INCOMING_PORT']
         username = data['INCOMING_USERNAME']
-        password = data['INCOMING_PASSWORD']
+        try:
+            pw = waitForDeferred(data['INCOMING_PASSWORD'].decryptPassword(window=self))
+        except (password.UninitializedPassword, password.NoMasterPassword):
+            pw = u''
 
         error = False
 
         if len(host.strip()) == 0 or \
            len(username.strip()) == 0 or \
-           len(password.strip()) == 0:
+           len(pw.strip()) == 0:
 
            error = True
 
@@ -1629,7 +1673,10 @@ class AccountPreferencesDialog(wx.Dialog):
         port = data['OUTGOING_PORT']
         useAuth = data['OUTGOING_USE_AUTH']
         username = data['OUTGOING_USERNAME']
-        password = data['OUTGOING_PASSWORD']
+        try:
+            pw = waitForDeferred(data['OUTGOING_PASSWORD'].decryptPassword(window=self))
+        except (password.UninitializedPassword, password.NoMasterPassword):
+            pw = u''
 
         error = False
         errorType = 0
@@ -1645,7 +1692,7 @@ class AccountPreferencesDialog(wx.Dialog):
 
         if useAuth:
             if len(username.strip()) == 0 or \
-               len(password.strip()) == 0:
+               len(pw.strip()) == 0:
                 error = True
                 errorType = 1
 
@@ -1694,17 +1741,20 @@ class AccountPreferencesDialog(wx.Dialog):
         port = data['DAV_PORT']
         path = data['DAV_PATH']
         username = data['DAV_USERNAME']
-        password = data['DAV_PASSWORD']
+        try:
+            pw = waitForDeferred(data['DAV_PASSWORD'].decryptPassword(window=self))
+        except (password.UninitializedPassword, password.NoMasterPassword):
+            pw = u''
         useSSL = data['DAV_USE_SSL']
 
         error = False
 
         if len(host.strip()) == 0 or \
            len(username.strip()) == 0 or \
-           len(password.strip()) == 0 or \
+           len(pw.strip()) == 0 or \
            len(path.strip()) == 0:
 
-           error = True
+            error = True
 
         try:
             # Test that the port value is an integer
@@ -1716,7 +1766,7 @@ class AccountPreferencesDialog(wx.Dialog):
             return alertError(FIELDS_REQUIRED_TWO)
 
         SharingTestDialog(displayName, host, port, path, username,
-                          password, useSSL, self.rv)
+                          pw, useSSL, self.rv)
 
     def OnTestSharingMorsecode(self):
         self.__StoreFormData(self.currentPanelType, self.currentPanel,
@@ -1729,14 +1779,17 @@ class AccountPreferencesDialog(wx.Dialog):
         port = data['MORSECODE_PORT']
         path = data['MORSECODE_PATH']
         username = data['MORSECODE_USERNAME']
-        password = data['MORSECODE_PASSWORD']
+        try:
+            pw = waitForDeferred(data['MORSECODE_PASSWORD'].decryptPassword(window=self))
+        except (password.UninitializedPassword, password.NoMasterPassword):
+            pw = u''
         useSSL = data['MORSECODE_USE_SSL']
 
         error = False
 
         if len(host.strip()) == 0 or \
            len(username.strip()) == 0 or \
-           len(password.strip()) == 0 or \
+           len(pw.strip()) == 0 or \
            len(path.strip()) == 0:
 
            error = True
@@ -1751,7 +1804,7 @@ class AccountPreferencesDialog(wx.Dialog):
             return alertError(FIELDS_REQUIRED_TWO)
 
         SharingTestDialog(displayName, host, port, path, username,
-                          password, useSSL, self.rv, morsecode=True)
+                          pw, useSSL, self.rv, morsecode=True)
 
     def OnAccountSel(self, evt):
         # Huh? This is always False!

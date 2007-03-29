@@ -24,7 +24,8 @@ from datetime import datetime, timedelta
 from application import Globals
 from application.Utility import getDesktopDir, locateRepositoryDirectory
 from repository.persistence.DBRepository import DBRepository
-
+from osaf.framework import MasterPassword
+from application.dialogs import Util
 
 # We can't use the regular localization mechanism because the repository isn't
 # open yet, but we might someday have a better way of doing this, so I'm leaving
@@ -165,7 +166,6 @@ class StartupOptionsDialog(wx.Dialog):
         Try to do a backup first. If that fails, take a full snapshot of the
         __repository__ directory instead.
         """
-
         tarPath = wx.FileSelector(_(u"Save snapshot as..."),
                                   getDesktopDir(),
                                   _(u"ChandlerSnapshot.tgz"), u".tgz",
@@ -181,6 +181,13 @@ class StartupOptionsDialog(wx.Dialog):
         try:
             repository = DBRepository(repoDir)
             repository.open(recover=True, exclusive=False)
+
+            try:
+                MasterPassword.beforeBackup(repository.view, self)
+            except:
+                Util.ok(self, _(u'Password protection failed'),
+                        _(u'Failed to encrypt passwords.'))
+
             repoDir = repository.backup(os.path.join(os.path.dirname(tarPath),
                                                      '__repository__'))
             repository.close()

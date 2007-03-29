@@ -1,4 +1,4 @@
-#   Copyright (c) 2003-2006 Open Source Applications Foundation
+#   Copyright (c) 2003-2007 Open Source Applications Foundation
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -13,13 +13,12 @@
 #   limitations under the License.
 
 
-import unittest, sys, os, logging, datetime, time
+import unittest, os, logging
 from osaf import pim, sharing, settings
-from repository.item.Item import Item
+from osaf.framework import MasterPassword, password
+from osaf.framework.twisted import waitForDeferred
 from util import testcase
-from PyICU import ICUtzinfo
 from application import schema
-from i18n.tests import uw
 from chandlerdb.util.c import UUID
 
 
@@ -41,7 +40,22 @@ class SettingsTestCase(testcase.SingleRepositoryTestCase):
             "parcels", "osaf", "tests")
         self.restoreSettings()
 
-    def restoreSettings(self):
+        prefs = schema.ns("osaf.framework.MasterPassword",
+                  self.view).masterPasswordPrefs
+        saved = os.path.join(self.dir, 'save.ini')
+        
+        settings.save(self.view, saved)
+        
+        try:
+            self.restoreSettings(filename='save.ini')
+            MasterPassword._change('', 'foo', self.view, prefs)
+            settings.save(self.view, saved)
+            self.restoreSettings(filename='save.ini', masterPassword='foo')
+        finally:
+            os.remove(saved)
+            waitForDeferred(MasterPassword.clear())
+            
+    def restoreSettings(self, filename='settings.ini', masterPassword=''):
 
         rv = self.view
 
@@ -52,8 +66,8 @@ class SettingsTestCase(testcase.SingleRepositoryTestCase):
 
 
         # restore settings
-        settings.restore(rv, os.path.join(self.dir, "settings.ini"),
-                         testmode=True)
+        settings.restore(rv, os.path.join(self.dir, filename),
+                         testmode=True, newMaster=masterPassword)
 
 
         # verify accounts
@@ -68,7 +82,8 @@ class SettingsTestCase(testcase.SingleRepositoryTestCase):
         self.assertEquals(act.useSSL, True)
         self.assertEquals(act.host, "cosmo-demo.osafoundation.org")
         self.assertEquals(act.username, "sharing")
-        self.assertEquals(act.password, "sharing_password")
+        self.assertEquals(waitForDeferred(act.password.decryptPassword(masterPassword=masterPassword)), "sharing_password")
+        self.assertRaises(password.DecryptionError, waitForDeferred, act.password.decryptPassword(masterPassword=masterPassword+'A'))
 
         act = rv.findUUID(UUID("1bfc2a92-53eb-11db-9367-d2f16e571a03"))
         self.assert_(act)
@@ -83,7 +98,7 @@ class SettingsTestCase(testcase.SingleRepositoryTestCase):
         self.assertEquals(act.host, "smtp.example.com")
         self.assertEquals(act.useAuth, True)
         self.assertEquals(act.username, "smtp")
-        self.assertEquals(act.password, "smtp_password")
+        self.assertEquals(waitForDeferred(act.password.decryptPassword(masterPassword=masterPassword)), "smtp_password")
         self.assertEquals(act.port, 465)
         self.assertEquals(act.connectionSecurity, "SSL")
 
@@ -92,7 +107,7 @@ class SettingsTestCase(testcase.SingleRepositoryTestCase):
         self.assert_(isinstance(act, pim.mail.IMAPAccount))
         self.assertEquals(act.host, "imap.example.com")
         self.assertEquals(act.username, "imap")
-        self.assertEquals(act.password, "imap_password")
+        self.assertEquals(waitForDeferred(act.password.decryptPassword(masterPassword=masterPassword)), "imap_password")
         self.assertEquals(act.port, 993)
         self.assertEquals(act.connectionSecurity, "SSL")
 
@@ -103,7 +118,7 @@ class SettingsTestCase(testcase.SingleRepositoryTestCase):
         self.assert_(isinstance(act, pim.mail.POPAccount))
         self.assertEquals(act.host, "pop.example.com")
         self.assertEquals(act.username, "pop")
-        self.assertEquals(act.password, "pop_password")
+        self.assertEquals(waitForDeferred(act.password.decryptPassword(masterPassword=masterPassword)), "pop_password")
         self.assertEquals(act.port, 995)
         self.assertEquals(act.connectionSecurity, "SSL")
 
@@ -134,8 +149,6 @@ class SettingsTestCase(testcase.SingleRepositoryTestCase):
         calPrefs = schema.ns("osaf.framework.blocks.calendar", rv).calendarPrefs
         self.assertEquals(calPrefs.visibleHours, 24)
         self.assertEquals(calPrefs.hourHeightMode, "visibleHours")
-
-
 
 
 if __name__ == "__main__":

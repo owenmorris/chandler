@@ -1,4 +1,4 @@
-#   Copyright (c) 2004-2006 Open Source Applications Foundation
+#   Copyright (c) 2004-2007 Open Source Applications Foundation
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -134,6 +134,12 @@ class MainView(View):
         AccountPreferences.ShowAccountPreferencesDialog(wx.GetApp().mainFrame,
                                                         rv=self.itsView)
 
+    def onProtectPasswordsEvent (self, event):
+        # Triggered from "File | Prefs | Protect Passwords..."
+        from osaf.framework import MasterPassword
+        from osaf.framework.twisted import waitForDeferred
+        waitForDeferred(MasterPassword.change(self.itsView))
+
     def trashCollectionSelected(self):
         trashCollection = schema.ns("osaf.pim", self).trashCollection
 
@@ -144,7 +150,6 @@ class MainView(View):
             return True
 
         return False
-
 
     def onNewItemEvent(self, event):
         # Create a new Content Item
@@ -577,9 +582,11 @@ class MainView(View):
         self.RepositoryCommitWithStatus()
 
     def onBackupRepositoryEvent(self, event):
-
         self.RepositoryCommitWithStatus()
         
+        from osaf.framework import MasterPassword
+        MasterPassword.beforeBackup(self.itsView)
+
         dlg = wx.DirDialog(wx.GetApp().mainFrame, _(u'Backup Repository'),
                            unicode(Utility.getDesktopDir()),
                            wx.DD_DEFAULT_STYLE | wx.DD_NEW_DIR_BUTTON)
@@ -1322,6 +1329,9 @@ class MainView(View):
     def onSaveSettingsEvent(self, event):
         # triggered from "Test | Save Settings" Menu
 
+        from osaf.framework import MasterPassword
+        MasterPassword.beforeBackup(self.itsView)
+
         wildcard = "%s|*.ini|%s (*.*)|*.*" % (_(u"Settings files"),
             _(u"All files"))
 
@@ -1698,20 +1708,33 @@ class MainView(View):
 
         view = self.itsView
 
+        masterPassword = True
+        from osaf.framework import password
         # Check account status:
-        DAVReady = sharing.isWebDAVSetUp(view)
-        incomingMailReady = sharing.isIncomingMailSetUp(view)
+        try:
+            DAVReady = sharing.isWebDAVSetUp(view)
+            incomingMailReady = sharing.isIncomingMailSetUp(view)
+        except password.NoMasterPassword:
+            masterPassword = False
+            DAVReady = False
+            incomingMailReady = False
 
         # Any active shares?  (Even if default WebDAV account not set up,
         # the user could have subscribed with tickets)
         activeShares = sharing.checkForActiveShares(view)
 
-        if not (DAVReady or activeShares or incomingMailReady):
-            # Nothing is set up -- nudge the user to set up a sharing account
-            sharing.ensureAccountSetUp(view, inboundMail=True, sharing=True)
-            # Either the user has created a sharing account, or they haven't,
-            # but it doesn't matter since there's no shares to sync
-            return
+        if not masterPassword:
+            if not activeShares:
+                # Since the user did not give the master password and there are
+                # no ticket subscriptions, we can't sync.
+                return
+        else:
+            if not (DAVReady or activeShares or incomingMailReady):
+                # Nothing is set up -- nudge the user to set up a sharing account
+                sharing.ensureAccountSetUp(view, inboundMail=True, sharing=True)
+                # Either the user has created a sharing account, or they haven't,
+                # but it doesn't matter since there's no shares to sync
+                return
 
         # At least one account is setup, or there are active shares
 
@@ -1731,7 +1754,8 @@ class MainView(View):
             if DAVReady:
                 self.setStatusMessage (_(u"No shared collections found"))
 
-        self.onGetNewMailEvent (event)
+        if incomingMailReady:
+            self.onGetNewMailEvent (event)
 
     def onSyncWebDAVEvent (self, event):
         """

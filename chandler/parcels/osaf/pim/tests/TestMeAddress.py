@@ -20,7 +20,8 @@ import osaf.pim.mail as mail
 from application import schema
 import unittest as unittest
 import TestDomainModel
-
+from osaf.framework import password
+from osaf.framework.twisted import waitForDeferred
 
 class TestMeAddress(TestDomainModel.DomainModelTestCase):
 
@@ -33,7 +34,8 @@ class TestMeAddress(TestDomainModel.DomainModelTestCase):
         IN.host = u"imap.test.com"
         IN.replyToAddress = emailAddress
         IN.username = u"test"
-        IN.password = u"test"
+        IN.password = password.Password(itsView=IN.itsView, itsParent=IN)
+        waitForDeferred(IN.password.encryptPassword(u'test'))
 
         self.calc()
 
@@ -41,7 +43,7 @@ class TestMeAddress(TestDomainModel.DomainModelTestCase):
         IN.host = u""
         IN.replyToAddress = None
         IN.username = u""
-        IN.password = u""
+        waitForDeferred(IN.password.clear())
 
         self.calc()
 
@@ -50,7 +52,8 @@ class TestMeAddress(TestDomainModel.DomainModelTestCase):
         OUT.host = u"host.test.com"
         OUT.fromAddress = emailAddress
         OUT.username = u"test"
-        OUT.password = u"test"
+        OUT.password = password.Password(itsView=OUT.itsView, itsParent=OUT)
+        waitForDeferred(OUT.password.encryptPassword(u'test'))
         OUT.userAuth = True
 
         self.calc()
@@ -59,7 +62,7 @@ class TestMeAddress(TestDomainModel.DomainModelTestCase):
         OUT.host = u""
         OUT.fromAddress = None
         OUT.username = u""
-        OUT.password = u""
+        waitForDeferred(OUT.password.clear())
         OUT.useAuth = False
 
         self.calc()

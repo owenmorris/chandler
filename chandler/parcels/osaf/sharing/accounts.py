@@ -23,6 +23,7 @@ import conduits, utility
 import logging
 import urlparse
 from i18n import ChandlerMessageFactory as _
+from osaf.framework import password
 
 logger = logging.getLogger(__name__)
 
@@ -32,11 +33,9 @@ class SharingAccount(pim.ContentItem):
         schema.Text, initialValue = u'',
     )
     password = schema.One(
-        schema.Text,
+        password.Password,
         description =
-            'Issues: This should not be a simple string. We need some solution for '
-            'encrypting it.\n',
-        initialValue = u'',
+            'Password, encrypted/decrypted using master password.\n',
     )
     host = schema.One(
         schema.Text,

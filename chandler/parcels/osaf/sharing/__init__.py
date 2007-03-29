@@ -20,6 +20,7 @@ from application import schema, dialogs
 from application.Parcel import Reference
 from application.Utility import getDesktopDir, CertificateVerificationError
 from osaf import pim, ChandlerException
+from osaf.framework.twisted import waitForDeferred
 from osaf.pim import isDead, has_stamp
 from osaf.pim.calendar import Calendar
 from osaf.pim.collections import (UnionCollection, DifferenceCollection,
@@ -820,11 +821,11 @@ def subscribe(view, url, activity=None, username=None, password=None,
             if username is None:
                 # We're not overriding the username/passwd on this account
                 username = account.username
-                password = account.password
+                password = waitForDeferred(account.password.decryptPassword())
             else:
                 # We're overriding the username/passwd on this account
                 account.username = username
-                account.password = password
+                waitForDeferred(account.password.encryptPassword(password))
 
             # update shareName if it's a subscollection in the account
             if account.path.strip("/") != parentPath.strip("/"):
@@ -862,7 +863,7 @@ def subscribe(view, url, activity=None, username=None, password=None,
             if username is not None:
                 account.username = username
             if password is not None:
-                account.password = password
+                waitForDeferred(account.password.encryptPassword(password))
 
         collection = subscribeCalDAV(view, url, inspection,
             activity=activity, account=account,
@@ -883,7 +884,7 @@ def subscribe(view, url, activity=None, username=None, password=None,
             if username is not None:
                 account.username = username
             if password is not None:
-                account.password = password
+                waitForDeferred(account.password.encryptPassword(password))
 
         collection = subscribeWebDAV(view, url, inspection,
             activity=activity, account=account,
@@ -938,7 +939,7 @@ def subscribe(view, url, activity=None, username=None, password=None,
             if username is not None:
                 account.username = username
             if password is not None:
-                account.password = password
+                waitForDeferred(account.password.encryptPassword(password))
 
         # monolithic .ics file
         collection = subscribeICS(view, url, inspection,
@@ -1254,7 +1255,7 @@ def subscribeMorsecode(view, url, morsecodeUrl, inspection, activity=None,
         account.useSSL = useSSL
         account.port = port
         account.username = username
-        account.password = password
+        waitForDeferred(account.password.encryptPassword(password))
 
     if account:
         share.conduit = CosmoConduit(itsParent=share,

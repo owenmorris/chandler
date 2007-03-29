@@ -1,4 +1,4 @@
-#   Copyright (c) 2003-2006 Open Source Applications Foundation
+#   Copyright (c) 2003-2007 Open Source Applications Foundation
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -19,7 +19,7 @@ from application.Parcel import Reference
 from i18n import ChandlerMessageFactory as _
 from PyICU import ICUtzinfo
 from osaf import pim, messages
-from osaf.framework import scripting
+from osaf.framework import scripting, password
 from chandlerdb.util.c import UUID
 
 import version
@@ -60,7 +60,7 @@ def installParcel(parcel, oldVersion=None):
         host=u'osaf.us',
         path=u'/cosmo/dav/<username>',
         username=u'',
-        password=u'',
+        password=password.Password.update(parcel, 'defaultWebDAVAccountPassword'),
         useSSL=True,
         port=443,
         references=[sharing_ns.currentSharingAccount]
@@ -70,12 +70,14 @@ def installParcel(parcel, oldVersion=None):
 
     preSmtp = pim.mail.SMTPAccount.update(parcel, 'defaultSMTPAccount',
         displayName=_(u'Outgoing mail'),
+        password=password.Password.update(parcel, 'defaultSMTPAccountPassword'),
         references=[pim_ns.currentOutgoingAccount]
     )
 
     pim.mail.IMAPAccount.update(parcel, 'defaultIMAPAccount',
         displayName=_(u'Incoming mail'),
         replyToAddress=preReply,
+        password=password.Password.update(parcel, 'defaultIMAPAccountPassword'),
         references=[pim_ns.currentIncomingAccount]
     )
 
@@ -84,12 +86,14 @@ def installParcel(parcel, oldVersion=None):
     #[i18n] Test Acccounts are not displayed to the user and do not require localization
     testSmtp = pim.mail.SMTPAccount.update(parcel, 'TestSMTPAccount',
         displayName=u'Test SMTP Account',
+        password=password.Password.update(parcel, 'TestSMTPAccountPassword'),
         isActive=False
     )
 
     pim.mail.IMAPAccount.update(parcel, 'TestIMAPAccount',
         displayName=u'Test IMAP mail',
         replyToAddress=testReply,
+        password=password.Password.update(parcel, 'TestIMAPAccountPassword'),
         isActive=False
     )
 
@@ -97,6 +101,7 @@ def installParcel(parcel, oldVersion=None):
         displayName=u'Test POP mail',
         replyToAddress=testReply,
         defaultSMTPAccount=testSmtp,
+        password=password.Password.update(parcel, 'TestPOPAccountPassword'),
         isActive=False
     )
 

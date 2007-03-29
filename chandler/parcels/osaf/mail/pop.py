@@ -215,15 +215,20 @@ class POPClient(base.AbstractDownloadClient):
 
         # Twisted expects 8-bit values so encode the utf-8 username and password
         username = self.account.username.encode("utf-8")
-        password = self.account.password.encode("utf-8")
+        
+        deferredPassword = self.account.password.decryptPassword()
 
+        def callback(password):
+            password = password.encode("utf-8")
+            d = self.proto.login(username, password)
+            #XXX: Can handle the failed login case here
+            #     and prompt user to re-enter username
+            #     and password.
+            d.addCallbacks(self.cb, self.catchErrors)
+            return d
 
-        d = self.proto.login(username, password)
-        #XXX: Can handle the failed login case here
-        #     and prompt user to re-enter username
-        #     and password.
-        d.addCallbacks(self.cb, self.catchErrors)
-        return d
+        return deferredPassword.addCallback(callback
+                              ).addErrback(self.catchErrors)
 
     def _getMail(self, result):
         if __debug__:

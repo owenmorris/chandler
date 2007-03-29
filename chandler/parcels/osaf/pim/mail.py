@@ -29,6 +29,7 @@ __all__ = [
      'getMessageBody', 'ACCOUNT_TYPES', 'EmailAddress', 'OutgoingAccount',
      'IncomingAccount']
 
+import logging
 from application import schema
 import items, notes, stamping, collections
 import email.Utils as Utils
@@ -50,6 +51,10 @@ from datetime import datetime
 from stamping import has_stamp
 from osaf.pim import TriageEnum
 
+from osaf.framework import password
+from osaf.framework.twisted import waitForDeferred
+
+log = logging.getLogger(__name__)
 
 """
 TODO:
@@ -783,14 +788,10 @@ class AccountBase(items.ContentItem):
         initialValue = u'',
     )
     password = schema.One(
-        schema.Text,
+        password.Password,
         doc = 'This could either be a password or some other sort of '
               'authentication info. We can use it for whatever is needed '
-              'for this account type.\n\n'
-            'Issues:\n'
-            '   This should not be a simple string. We need some solution for '
-            'encrypting it.\n',
-        initialValue = u'',
+              'for this account type.',
     )
     host = schema.One(
         schema.Text,
@@ -914,7 +915,7 @@ class IncomingAccount(AccountBase):
         return self.isActive and \
                len(self.host.strip()) and \
                len(self.username.strip()) and \
-               len(self.password.strip())
+               len(waitForDeferred(self.password.decryptPassword()).strip())
 
 
 class OutgoingAccount(AccountBase):
@@ -1007,7 +1008,7 @@ class OutgoingAccount(AccountBase):
            len(self.host.strip()):
             if self.useAuth:
                 return len(self.username.strip()) and \
-                       len(self.password.strip())
+                       len(waitForDeferred(self.password.decryptPassword()).strip())
             return True
         return False
 

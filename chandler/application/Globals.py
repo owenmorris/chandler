@@ -20,8 +20,8 @@
   Initialized by Application, which must be created before they can be used.
   Don't add to the globals without reviewing the addition.
 """
-
-from Utility import initDefaults
+import thread
+from application.Utility import initDefaults
 
 
 chandlerDirectory = None      # Directory containing chandler executable
@@ -29,3 +29,4 @@ wxApplication = None          # The application object. Use only to test to see 
                               # an application. Use wx.GetApp() to get the application object.
 mailService = None            # Mail Service (IMAP, POP, SMTP)
 options = initDefaults()      # Command line options
+UI_Thread = thread.get_ident()# UI thread ID

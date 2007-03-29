@@ -366,16 +366,18 @@ class SMTPClient(object):
             return self._resetClient()
 
         username         = None
-        password         = None
         authRequired     = False
         securityRequired = False
         heloFallback     = True
 
         if self.account.useAuth:
-            username     = self.account.username
-            password     = self.account.password
-            authRequired = True
-            heloFallback = False
+            username         = self.account.username
+            deferredPassword = self.account.password.decryptPassword()
+            authRequired     = True
+            heloFallback     = False
+        else:
+            deferredPassword = defer.Deferred()
+            deferredPassword.callback(None)
 
         if testing:
             retries = 0
@@ -389,25 +391,28 @@ class SMTPClient(object):
 
         msg = StringIO.StringIO(messageText)
 
-        # Note that we cheat with the context factory here (value=1),
-        # because ssl.connectSSL does it automatically, and in the
-        # case of STARTTLS we override esmtpState_starttls above
-        # to supply the correct SSL context.
-        factory = smtp.ESMTPSenderFactory(username, password, from_addr,
-                                          to_addrs, msg,
-                                          deferred, retries, timeout,
-                                          1, heloFallback, authRequired,
-                                          securityRequired)
-
-        factory.protocol = _TwistedESMTPSender
-        factory.testing  = testing
-
-        if self.account.connectionSecurity == 'SSL':
-            ssl.connectSSL(self.account.host, self.account.port, factory,
-                           self.view)
-        else:
-            ssl.connectTCP(self.account.host, self.account.port, factory,
-                           self.view)
+        def callback(password):
+            # Note that we cheat with the context factory here (value=1),
+            # because ssl.connectSSL does it automatically, and in the
+            # case of STARTTLS we override esmtpState_starttls above
+            # to supply the correct SSL context.
+            factory = smtp.ESMTPSenderFactory(username, password, from_addr,
+                                              to_addrs, msg,
+                                              deferred, retries, timeout,
+                                              1, heloFallback, authRequired,
+                                              securityRequired)
+    
+            factory.protocol = _TwistedESMTPSender
+            factory.testing  = testing
+    
+            if self.account.connectionSecurity == 'SSL':
+                ssl.connectSSL(self.account.host, self.account.port, factory,
+                               self.view)
+            else:
+                ssl.connectTCP(self.account.host, self.account.port, factory,
+                               self.view)
+                
+        deferredPassword.addCallback(callback)
 
     def _testSuccess(self, result):
         if __debug__:

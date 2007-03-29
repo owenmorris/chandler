@@ -22,6 +22,8 @@ import osaf.pim.tests.TestDomainModel as TestDomainModel
 import osaf.pim.mail as Mail
 from osaf.pim import has_stamp, Modification, Note, ContentItem
 from application import schema
+from osaf.framework import password
+from osaf.framework.twisted import waitForDeferred
 
 from datetime import datetime
 from repository.util.Path import Path
@@ -154,7 +156,9 @@ class MailTest(TestDomainModel.DomainModelTestCase):
         # Need to investigate how best to deal with this as 
         # there is no standard. It is server implementation dependent.
         account.username = uw("test")
-        account.password = uw("test")
+        account.password = password.Password(itsView=account.itsView,
+                                             itsParent=account)
+        waitForDeferred(account.password.encryptPassword(uw("test")))
         account.host = uw("test")
 
         if type(account) == Mail.AccountBase:

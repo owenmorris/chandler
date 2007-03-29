@@ -24,6 +24,7 @@ from datetime import datetime, timedelta, time
 from time import mktime, strptime
 from PyICU import ICUtzinfo
 from osaf import pim
+from osaf.framework.twisted import waitForDeferred
 import osaf.pim.mail as Mail
 import osaf.pim.collections as Collection
 from osaf import sharing
@@ -1605,10 +1606,18 @@ class UITestAccounts:
             account = None
 
         if account is not None:
+            from osaf.framework import password
             result = True
             for (key, value) in keys.items():
-                if account._values[key] != value:
-                    self.logger.report(False, name="VerifyValues", comment="Checking %s %s: expected %s, but got %s" % (type, key, value, account._values[key]))
+                if key == 'password':
+                    try:
+                        actualValue = waitForDeferred(account._values[key].decryptPassword())
+                    except password.UninitializedPassword:
+                        actualValue = u''
+                else:
+                    actualValue = account._values[key]
+                if actualValue != value:
+                    self.logger.report(False, name="VerifyValues", comment="Checking %s %s: expected %s, but got %s" % (type, key, value, actualValue))
                     result = False
                 else:
                     self.logger.report(True, name="VerifyValues", comment="Checking %s %s" % (type, key))

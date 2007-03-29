@@ -25,6 +25,7 @@ import urlparse
 import logging
 import time
 from i18n import ChandlerMessageFactory as _
+from osaf.framework.twisted import waitForDeferred
 
 logger = logging.getLogger(__name__)
 
@@ -262,7 +263,7 @@ class CosmoConduit(recordset_conduit.DiffRecordSetConduit, conduits.HTTPMixin):
             path = self.account.path.strip("/") + "/" + self.account.pimPath
             return (self.account.host, self.account.port,
                     path.strip("/"),
-                    self.account.username, self.account.password,
+                    self.account.username, waitForDeferred(self.account.password.decryptPassword()),
                     self.account.useSSL)
 
 
@@ -312,7 +313,7 @@ class CosmoConduit(recordset_conduit.DiffRecordSetConduit, conduits.HTTPMixin):
             path = self.account.path.strip("/") + "/" + self.account.morsecodePath
             return (self.account.host, self.account.port,
                     path.strip("/"),
-                    self.account.username, self.account.password,
+                    self.account.username, waitForDeferred(self.account.password.decryptPassword()),
                     self.account.useSSL)
 
 
