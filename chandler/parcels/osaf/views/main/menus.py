@@ -690,7 +690,7 @@ def makeMainMenus(parcel):
                             MenuItem.template('ShowLogWindowItem',
                                 event = main.ShowLogWindow,
                                 title = u'&Show log window',
-                                helpString = u'Displays the contents of chandler.log and twisted.log'),
+                                helpString = u'Displays the contents of chandler.log'),
                             Menu.template('LoggingLevelMenu',
                                 title = u'Logging level',
                                 helpString = u'Change logging level',
