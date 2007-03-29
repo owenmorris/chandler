@@ -686,9 +686,9 @@ def runRecordedScripts(options):
     >>> options.modes   = ['release', 'debug']
     
     >>> runRecordedScripts(options)
-    /.../release/RunChandler... -n --create --recordedTest all
+    /.../release/RunPython... Chandler.py --create --catch=tests --profileDir=.../test_profile --parcelPath=.../tools/QATestScripts/DataFiles --recordedTest all
     - + - + - + - + - + - + - + - + - + - + - + - + - + - + - + 
-    /.../debug/RunChandler... -n --create --recordedTest all
+    /.../debug/RunPython... Chandler.py --create --catch=tests --profileDir=.../test_profile --parcelPath=.../tools/QATestScripts/DataFiles --recordedTest all
     - + - + - + - + - + - + - + - + - + - + - + - + - + - + - + 
     False
     """
@@ -696,8 +696,9 @@ def runRecordedScripts(options):
 
     for mode in options.modes:
         cmd  = [ options.runpython[mode], 'Chandler.py',
-                 '-n', '--create',
+                 '--create', '--catch=tests',
                  '--profileDir=%s' % options.profileDir,
+                 '--parcelPath=%s' % options.parcelPath,
                  '--recordedTest', 'all' ]
 
         if options.dryrun:
