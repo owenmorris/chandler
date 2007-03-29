@@ -850,6 +850,16 @@ class wxApplication (wx.App):
                                 method = getattr (widget, "OnSetTextEvent", None)
                                 if method is not None:
                                     method (event)
+                        bitmap = arguments.get ('Bitmap', None)
+                        if bitmap is not None:
+                            widget = getattr(block, 'widget', None)
+                            if widget is not None:
+                                method = getattr (widget, "OnSetBitmapEvent", None)
+                                if method is not None:
+                                    # The UI requires the bitmap to change; there is no SetBitmap()
+                                    # method for wx UpdateUIEvents, so just pass the name of the
+                                    # bitmap as a second parameter to OnSetBitmapEvent()
+                                    method (event, bitmap)
                     return
         event.Skip()
 

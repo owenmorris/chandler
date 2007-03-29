@@ -18,7 +18,7 @@ import time
 from osaf import sharing
 import osaf.pim.mail as Mail
 from repository.item.Item import Item
-from osaf.pim import ContentItem, Note, ContentCollection, has_stamp
+from osaf.pim import ContentItem, Note, ContentCollection, has_stamp, Modification
 import application.dialogs.Util as Util
 from i18n import ChandlerMessageFactory as _
 from osaf import messages
@@ -108,8 +108,10 @@ class FocusEventHandlers(Item):
 
     def onSendShareItemEventUpdateUI(self, event):
         """ Generically enable Send-ing. """
+        # default to a disabled "Send" with a send-arrow
         enabled = False
         label = messages.SEND
+        bitmap = "ApplicationBarSend.png"
         selectedItems = self.__getSelectedItems()
         if len(selectedItems) > 0:
             # Collect the states of all the items, so that we can change the
@@ -128,11 +130,20 @@ class FocusEventHandlers(Item):
                     #enabled = True
                     #label = _(u"Send to new")                   
                 elif 'sent' in sendStates:
-                    # All the items we considered have already been sent.
-                    label = _(u"Sent")
+                    label = messages.SENT
+                    if len(selectedItems) == 1:
+                        item = selectedItems[0]
+                        # Check to see if it's been modified
+                        mod = getattr(item, 'lastModification', None)
+                        if mod in (Modification.updated, Modification.edited):
+                            enabled = True
+                            label = messages.UPDATE
+                            # use U-shaped Update bitmap
+                            bitmap = "ApplicationBarUpdate.png"
         
         event.arguments['Enable'] = enabled
         event.arguments['Text'] = label
+        event.arguments['Bitmap'] = bitmap
 
     def onSendShareItemEvent(self, event):
         """ Send or share the selected items """

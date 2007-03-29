@@ -212,8 +212,6 @@ class DetailRootBlock(WatchedItemRootBlock, ControlBlocks.ContentItemDetail):
             return
 
         if pim.has_stamp(item, Mail.MailStamp):
-            sendButton = Block.Block.findBlockByName("ApplicationBarSendButton")
-            sendButton.setState(item)
             wx.GetApp().needsUpdateUI = True
 
 class DetailBranchPointDelegate(BranchPoint.BranchPointDelegate):

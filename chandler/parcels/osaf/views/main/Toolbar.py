@@ -41,9 +41,21 @@ class SendToolbarItem(WatchedItemRootBlock, ToolbarItem):
 
     def setBitmap(self, bitmapName):
         # get the toolbar
-        tb = self.parentBlock.widget
+        toolbar = self.parentBlock.widget
         app = wx.GetApp()
         # get the named bitmap
         bitmap = app.GetImage(bitmapName)
         if bitmap is not None:
-            tb.SetToolNormalBitmap(self.toolID, bitmap)
+            toolbar.SetToolNormalBitmap(self.toolID, bitmap)
+            toolbar.Realize()
+
+    def OnSetBitmapEvent(self, event, bitmapName):
+        # get the toolbar
+        # toolbar = self.GetToolbar()?
+        toolbar = self.parentBlock.widget
+        app = wx.GetApp()
+        # get the named bitmap
+        bitmap = app.GetImage(bitmapName)
+        if bitmap is not None:
+            toolbar.SetToolNormalBitmap(self.toolID, bitmap)
+            toolbar.Realize()

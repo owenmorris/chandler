@@ -32,6 +32,8 @@ ERROR = _(u"Error")
 
 """Menu Item / Markup bar button Titles"""
 SEND = _(u"Send")
+SENT = _(u"Sent")
+UPDATE = _(u"Update")
 REPLY = _(u"Reply")
 REPLY_ALL = _(u"Reply All")
 FORWARD = _(u"Forward")
