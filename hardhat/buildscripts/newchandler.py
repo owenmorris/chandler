@@ -235,13 +235,14 @@ def doTests(hardhatScript, mode, workingDir, outputDir, buildVersion, log):
 
 
 def dumpTestLogs(log, logfile):
-    if logfile:
+    if os.path.isfile(logfile):
         log.write("chandler.log: [%s]\n" % logfile)
-        try:
-            CopyLog(logfile, log)
-        except:
-            pass
-        log.write(separator)
+        for line in open(logfile, 'r'):
+            log.write(line)
+    else:
+        log.write("chandler.log [%s] not found\n" % logfile)
+
+    log.write(separator)
 
 
 def doDistribution(releaseMode, workingDir, log, outputDir, buildVersion, buildVersionEscaped, hardhatScript):
