@@ -233,10 +233,10 @@ Importing:
     >>> mod_rec = sharing.model.ItemRecord(
     ...         uuid='f230dcd4-7c32-4c3f-908b-d92081cc9a89:;VALUE=DATE-TIME;TZID=US/Pacific:20070223T140000',
     ...         title='Changed title',
-    ...         triage=sharing.NoModification,
-    ...         createdOn=sharing.NoModification,
-    ...         hasBeenSent=sharing.NoModification,
-    ...         needsReply=sharing.NoModification
+    ...         triage=sharing.Inherit,
+    ...         createdOn=sharing.Inherit,
+    ...         hasBeenSent=sharing.Inherit,
+    ...         needsReply=sharing.Inherit
     ... )
 
     >>> rs = sharing.RecordSet([mod_rec])
@@ -258,9 +258,9 @@ Exporting:
     True
     >>> event_record = event_records[0]
     >>> event_record.dtstart
-    NoModification
+    Inherit
     >>> event_record.duration
-    NoModification
+    Inherit
     >>> item_records = [r for r in records if isinstance(r, sharing.model.ItemRecord)]
     >>> len(item_records) == 1
     True
@@ -324,7 +324,7 @@ Exporting:
     >>> t.startExport()
     >>> records = list(t.exportItem(item))
     >>> records[2]
-    DisplayAlarmRecord('a9b019a4-d995-11db-f269-0016cbca6aed', u"Don't forget!", u';VALUE=DATE-TIME;TZID=America/New_York:20060304T170000', NoModification, NoModification)
+    DisplayAlarmRecord('a9b019a4-d995-11db-f269-0016cbca6aed', u"Don't forget!", u';VALUE=DATE-TIME;TZID=America/New_York:20060304T170000', Inherit, Inherit)
     
 
 Relative Reminders
@@ -362,8 +362,8 @@ Importing:
     ...         uuid='800644b6-dd73-11db-f79a-0016cbca6aed',
     ...         description="Time to go!",
     ...         trigger='-PT5M',
-    ...         duration=sharing.NoModification,
-    ...         repeat=sharing.NoModification,
+    ...         duration=sharing.Inherit,
+    ...         repeat=sharing.Inherit,
     ... )
     >>> rs = sharing.RecordSet([item_rec, note_rec, event_rec,
     ...                         relative_alarm_rec])
@@ -394,7 +394,7 @@ Exporting:
     >>> records[1]
     ModifiedByRecord(...)
     >>> records[2]
-    DisplayAlarmRecord('800644b6-dd73-11db-f79a-0016cbca6aed', u'Time to go!', u'-PT5M', NoModification, NoModification)
+    DisplayAlarmRecord('800644b6-dd73-11db-f79a-0016cbca6aed', u'Time to go!', u'-PT5M', Inherit, Inherit)
     >>> records[3]
     NoteRecord('800644b6-dd73-11db-f79a-0016cbca6aed', ...)
     >>> records[4]

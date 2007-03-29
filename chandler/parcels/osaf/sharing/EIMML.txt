@@ -8,7 +8,7 @@ First define a record type::
     >>> from application import schema
     >>> from osaf import sharing, pim
     >>> from osaf.sharing import ( eimml, recordset_conduit, State, getFilter,
-    ...     NoModification, RecordSet as rs, NoChange as nc )
+    ...     Inherit, RecordSet as rs, NoChange as nc )
     >>> from PyICU import ICUtzinfo
     >>> import datetime, decimal
     >>> from repository.persistence.RepositoryView import NullRepositoryView
@@ -180,13 +180,13 @@ To indicate that item has been deleted, pass None instead of a recordset::
 
 
 
-There is a special value, NoModification, which gets serialized as missing="true"::
+There is a special value, Inherit, which gets serialized as missing="true"::
 
-    >>> missing = { '8501de14-1dc9-40d4-a7d4-f289feff8214': rs([sharing.model.NoteRecord('8501de14-1dc9-40d4-a7d4-f289feff8214', NoModification, u'1e2d48c0-d66b-494c-bb33-c3d75a1ba66b', None, None)])}
+    >>> missing = { '8501de14-1dc9-40d4-a7d4-f289feff8214': rs([sharing.model.NoteRecord('8501de14-1dc9-40d4-a7d4-f289feff8214', Inherit, u'1e2d48c0-d66b-494c-bb33-c3d75a1ba66b', None, None)])}
     >>> text = eimml.EIMMLSerializer.serialize(missing)
     >>> imported, extra = eimml.EIMMLSerializer.deserialize(text)
     >>> imported
-    {'8501de14-1dc9-40d4-a7d4-f289feff8214': RecordSet(set([NoteRecord(u'8501de14-1dc9-40d4-a7d4-f289feff8214', NoModification, u'1e2d48c0-d66b-494c-bb33-c3d75a1ba66b', None, None)]), set([]))}
+    {'8501de14-1dc9-40d4-a7d4-f289feff8214': RecordSet(set([NoteRecord(u'8501de14-1dc9-40d4-a7d4-f289feff8214', Inherit, u'1e2d48c0-d66b-494c-bb33-c3d75a1ba66b', None, None)]), set([]))}
 
 
 Inmemory Mock Cosmo
@@ -470,7 +470,7 @@ Start over, to test that local deletions get sent::
 Start over, to test that remote deletions get applied::
 
     >>> state.set(rs(set([Demo(1,1,1)])), empty)
-    >>> state.merge(rs([Demo(1, 1, 1)]), rs([], [Demo(1, NoModification, NoModification)]))
+    >>> state.merge(rs([Demo(1, 1, 1)]), rs([], [Demo(1, Inherit, Inherit)]))
     (RecordSet(set([]), set([])), RecordSet(set([]), set([Demo(1, 1, 1)])), RecordSet(set([]), set([])))
 
 
@@ -478,7 +478,7 @@ Start over, to test that remote deletions get applied::
 Start over, to test that local changes and remote deletions get detected::
 
     >>> state.set(rs(set([Demo(1,1,1)])), empty)
-    >>> state.merge(rs([Demo(1, 2, 2)]), rs([], [Demo(1, NoModification, NoModification)]))
+    >>> state.merge(rs([Demo(1, 2, 2)]), rs([], [Demo(1, Inherit, Inherit)]))
     (RecordSet(set([]), set([])), RecordSet(set([]), set([])), RecordSet(set([]), set([Demo(1, 1, 1)])))
 
     >>> state
@@ -584,20 +584,20 @@ With the filter in place, this merge results in nothing being applied::
 
 
 
-Make sure NoModification values can be merged::
+Make sure Inherit values can be merged::
 
     >>> state.set(rs(set([Demo(1,1,1)])), empty)
-    >>> state.merge(rs([Demo(1, NoModification, 2)]))
-    (RecordSet(set([Demo(1, NoModification, 2)]), set([])), RecordSet(set([]), set([])), RecordSet(set([]), set([])))
+    >>> state.merge(rs([Demo(1, Inherit, 2)]))
+    (RecordSet(set([Demo(1, Inherit, 2)]), set([])), RecordSet(set([]), set([])), RecordSet(set([]), set([])))
     >>> state
-    State(RecordSet(set([Demo(1, NoModification, 2)]), set([])), RecordSet(set([]), set([])))
+    State(RecordSet(set([Demo(1, Inherit, 2)]), set([])), RecordSet(set([]), set([])))
 
-    >>> state.merge(rs([Demo(1, NoModification, 2)]), rs([Demo(1, 2, NoModification)]))
-    (RecordSet(set([]), set([])), RecordSet(set([Demo(1, 2, NoModification)]), set([])), RecordSet(set([]), set([])))
+    >>> state.merge(rs([Demo(1, Inherit, 2)]), rs([Demo(1, 2, Inherit)]))
+    (RecordSet(set([]), set([])), RecordSet(set([Demo(1, 2, Inherit)]), set([])), RecordSet(set([]), set([])))
     >>> state
-    State(RecordSet(set([Demo(1, 2, NoModification)]), set([])), RecordSet(set([]), set([])))
+    State(RecordSet(set([Demo(1, 2, Inherit)]), set([])), RecordSet(set([]), set([])))
 
-    >>> state.merge(rs([Demo(1, NoModification, 2)]), rs([Demo(1, 3, nc)]))
+    >>> state.merge(rs([Demo(1, Inherit, 2)]), rs([Demo(1, 3, nc)]))
     (RecordSet(set([Demo(1, NoChange, 2)]), set([])), RecordSet(set([]), set([])), RecordSet(set([Demo(1, 3, NoChange)]), set([])))
     >>> state
     State(RecordSet(set([Demo(1, 2, 2)]), set([])), RecordSet(set([Demo(1, 3, NoChange)]), set([])))

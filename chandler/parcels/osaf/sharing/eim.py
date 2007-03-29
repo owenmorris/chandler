@@ -17,7 +17,7 @@ __all__ = [
     'IntType', 'BlobType', 'ClobType', 'DecimalType', 'get_converter',
     'add_converter', 'subtype', 'typedef', 'field', 'key', 'NoChange',
     'Record', 'RecordSet', 'lookupSchemaURI', 'Filter', 'Translator',
-    'exporter', 'TimestampType', 'IncompatibleTypes', 'NoModification'
+    'exporter', 'TimestampType', 'IncompatibleTypes', 'Inherit'
 ]
 from symbols import Symbol  # XXX change this to peak.util.symbols
 from simplegeneric import generic
@@ -658,7 +658,7 @@ class key(field):
 
 
 NoChange = Symbol('NoChange', __name__)
-NoModification = Symbol('NoModification', __name__)
+Inherit = Symbol('Inherit', __name__)
 
 class Record(tuple):
     __slots__ = ()
@@ -940,9 +940,9 @@ class Translator:
                     item.itsKind = itype.getKind(self.rv)
 
         # Set specified attributes, skipping NoChange attrs, and deleting
-        # NoModification attrs
+        # Inherit attrs
         for attr, val in attrs.items():
-            if val is NoModification:
+            if val is Inherit:
                 if hasattr(item, attr):
                     delattr(item, attr)
             elif val is not NoChange:
@@ -982,9 +982,9 @@ class Translator:
                     item.itsKind = itype.getKind(self.rv)
 
         # Set specified attributes, skipping NoChange attrs, and deleting
-        # NoModification attrs
+        # Inherit attrs
         for attr, val in attrs.items():
-            if val is NoModification:
+            if val is Inherit:
                 if hasattr(item, attr):
                     delattr(item, attr)
             elif val is not NoChange:
@@ -1011,7 +1011,7 @@ class Translator:
 def create_default_converter(t):
     converter = generic(default_converter)
     converter.when_object(NoChange)(lambda val: val)
-    converter.when_object(NoModification)(lambda val: val)
+    converter.when_object(Inherit)(lambda val: val)
     converter.when_object(None)(lambda val: val)
     get_converter.when_object(t)(lambda ctx: converter)
 

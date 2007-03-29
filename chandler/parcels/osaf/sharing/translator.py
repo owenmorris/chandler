@@ -54,8 +54,8 @@ Cosmo likes None for empty bodies, and "" for empty locations
 utc = ICUtzinfo.getInstance('UTC')
 oneDay = timedelta(1)
 
-noChangeOrNoModification = (eim.NoChange, eim.NoModification)
-emptyValues = (eim.NoChange, eim.NoModification, None)
+noChangeOrInherit = (eim.NoChange, eim.Inherit)
+emptyValues = (eim.NoChange, eim.Inherit, None)
 
 def getEmailAddress(view, record):
     name, email = Utils.parseaddr(record)
@@ -86,7 +86,7 @@ def addEmailAddresses(view, col, record):
 
 
 def with_nochange(value, converter, view=None):
-    if value in (eim.NoChange, eim.NoModification):
+    if value in (eim.NoChange, eim.Inherit):
         return value
     if value is None:  # TODO: think about how to handle None
         return eim.NoChange
@@ -156,7 +156,7 @@ def getTimeValues(record):
     """
     dtstart  = record.dtstart
     start = None
-    if dtstart not in noChangeOrNoModification:
+    if dtstart not in noChangeOrInherit:
         start, allDay, anyTime = fromICalendarDateTime(dtstart)
     else:
         allDay = anyTime = start = dtstart
@@ -244,9 +244,9 @@ def getRecurrenceFields(event):
     
     """
     if event.occurrenceFor is not None:
-        # a modification, recurrence fields should always be NoModification
-        return (eim.NoModification, eim.NoModification, eim.NoModification,
-            eim.NoModification)
+        # a modification, recurrence fields should always be Inherit
+        return (eim.Inherit, eim.Inherit, eim.Inherit,
+            eim.Inherit)
     if event.rruleset is None:
         return (None, None, None, None)
     
@@ -314,11 +314,11 @@ def handleEmpty(item_or_stamp, attr):
         if not isOccurrence or hasattr(item.inheritFrom, attr):
             return None
         else:
-            return eim.NoModification
+            return eim.Inherit
     if not isOccurrence or item.hasLocalAttributeValue(attr):
         return getattr(item, attr)
     else:
-        return eim.NoModification
+        return eim.Inherit
 
 
 
@@ -456,10 +456,10 @@ class SharingTranslator(eim.Translator):
             item.createdOn = datetime.now(ICUtzinfo.default)
 
         # createdOn = handleEmpty(item, 'createdOn')
-        # elif createdOn not in noChangeOrNoModification:
+        # elif createdOn not in noChangeOrInherit:
         createdOn = Decimal(int(time.mktime(item.createdOn.timetuple())))
 
-        # For modifications, treat triage status as NoModification if it
+        # For modifications, treat triage status as Inherit if it
         # matches its automatic state
         doATODC = getattr(item, "doAutoTriageOnDateChange", True)
         if (not isinstance(item, Occurrence) or not doATODC or 
@@ -470,7 +470,7 @@ class SharingTranslator(eim.Translator):
             tsAuto = ("1" if doATODC else "0")
             triage = "%s %.2f %s" % (tsCode, tsChanged, tsAuto)
         else:
-            triage = eim.NoModification
+            triage = eim.Inherit
 
         title = handleEmpty(item, "displayName")
         if title is None:
@@ -512,7 +512,7 @@ class SharingTranslator(eim.Translator):
         reminder = item.getUserReminder()
         if reminder is not None:
 
-            trigger = eim.NoModification
+            trigger = eim.Inherit
             if reminder.hasLocalAttributeValue('delta'):
                 trigger = toICalendarDuration(reminder.delta)
             elif reminder.hasLocalAttributeValue('absoluteTime'):
@@ -522,12 +522,12 @@ class SharingTranslator(eim.Translator):
             if reminder.duration:
                 duration = toICalendarDuration(reminder.duration, False)
             else:
-                duration = eim.NoModification
+                duration = eim.Inherit
                 
             if reminder.repeat:
                 repeat = reminder.repeat
             else:
-                repeat = eim.NoModification
+                repeat = eim.Inherit
                 
             description = getattr(reminder, 'description', None)
             if description is None:
@@ -678,13 +678,13 @@ class SharingTranslator(eim.Translator):
         def do(mail):
             view = self.rv
 
-            if record.messageId not in noChangeOrNoModification:
+            if record.messageId not in noChangeOrInherit:
                 mail.messageId = record.messageId
 
-            if record.inReplyTo not in noChangeOrNoModification:
+            if record.inReplyTo not in noChangeOrInherit:
                 mail.inReplyTo = record.inReplyTo
 
-            if record.headers not in noChangeOrNoModification:
+            if record.headers not in noChangeOrInherit:
                 mail.headers = {}
                 headers = record.headers.split(u"\n")
 
@@ -693,24 +693,24 @@ class SharingTranslator(eim.Translator):
 
                     mail.headers[key] = val
 
-            if record.toAddress not in noChangeOrNoModification:
+            if record.toAddress not in noChangeOrInherit:
                 mail.toAddress = []
                 if record.toAddress:
                     addEmailAddresses(view, mail.toAddress, record.toAddress)
 
-            if record.ccAddress not in noChangeOrNoModification:
+            if record.ccAddress not in noChangeOrInherit:
                 mail.ccAddress = []
 
                 if record.ccAddress:
                     addEmailAddresses(view, mail.ccAddress, record.ccAddress)
 
-            if record.bccAddress not in noChangeOrNoModification:
+            if record.bccAddress not in noChangeOrInherit:
                 mail.bccAddress = []
 
                 if record.bccAddress:
                     addEmailAddresses(view, mail.bccAddress, record.bccAddress)
 
-            if record.fromAddress not in noChangeOrNoModification:
+            if record.fromAddress not in noChangeOrInherit:
 
                if record.fromAddress:
                     mail.fromAddress = getEmailAddress(view, record.fromAddress)
@@ -718,7 +718,7 @@ class SharingTranslator(eim.Translator):
                    mail.fromAddress = None
 
             # text or email addresses in Chandler from field
-            if record.originators not in noChangeOrNoModification:
+            if record.originators not in noChangeOrInherit:
                 if record.originators:
                     res = EmailAddress.parseEmailAddresses(view, record.originators)
 
@@ -727,7 +727,7 @@ class SharingTranslator(eim.Translator):
                     mail.originators = []
 
             # references mail message id list
-            if record.references not in noChangeOrNoModification:
+            if record.references not in noChangeOrInherit:
                 mail.referencesMID = []
 
                 refs = record.references.split()
@@ -737,7 +737,7 @@ class SharingTranslator(eim.Translator):
 
                     if ref: mail.referencesMID.append(ref)
 
-            if record.dateSent not in noChangeOrNoModification:
+            if record.dateSent not in noChangeOrInherit:
                 if record.dateSent.strip():
                     mail.dateSentString = record.dateSent
 
@@ -906,7 +906,7 @@ class SharingTranslator(eim.Translator):
             for ruletype in 'rrule', 'exrule':
                 record_field = getattr(record, ruletype)
                 if record_field is not eim.NoChange:
-                    if record_field in (None, eim.NoModification):
+                    if record_field in (None, eim.Inherit):
                         # this isn't the right way to delete the existing
                         # rules, what is?
                         setattr(rruleset, ruletype + 's', [])
@@ -972,7 +972,7 @@ class SharingTranslator(eim.Translator):
             dtstart = toICalendarDateTime(event.effectiveStartTime, 
                                           event.allDay, event.anyTime)
         else:
-            dtstart = eim.NoModification
+            dtstart = eim.Inherit
 
         # if recurring, duration has changed if allDay, anyTime, or duration has
         # a local change
@@ -983,7 +983,7 @@ class SharingTranslator(eim.Translator):
             duration = toICalendarDuration(event.duration, 
                                            event.allDay or event.anyTime)
         else:
-            duration = eim.NoModification
+            duration = eim.Inherit
 
 
         yield model.EventRecord(
@@ -1012,7 +1012,7 @@ class SharingTranslator(eim.Translator):
         
         @self.withItemForUUID(record.uuid, pim.ContentItem)
         def do(item):
-            if record.trigger not in noChangeOrNoModification:
+            if record.trigger not in noChangeOrInherit:
                 # trigger translates to either a pim.Reminder (if a date(time),
                 # or a pim.RelativeReminder (if a timedelta).
                 kw = dict(itsView=item.itsView)
@@ -1042,13 +1042,13 @@ class SharingTranslator(eim.Translator):
             reminder = item.getUserReminder()
             if reminder is not None:
                 
-                if record.description not in noChangeOrNoModification:
+                if record.description not in noChangeOrInherit:
                     reminder.description = record.description
                     
-                if record.duration not in noChangeOrNoModification:
+                if record.duration not in noChangeOrInherit:
                     reminder.duration = stringToDurations(record.duration)[0]
                     
-                if record.repeat not in noChangeOrNoModification:
+                if record.repeat not in noChangeOrInherit:
                     reminder.repeat = record.repeat
 
     @model.DisplayAlarmRecord.deleter

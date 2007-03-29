@@ -712,11 +712,11 @@ process "diff" records when importing (no need to check for no-change values)::
     >>> a_stamp.data    # value is unchanged
     42
 
-Attributes set to ``sharing.NoModification`` are deleted::
+Attributes set to ``sharing.Inherit`` are deleted::
 
     >>> hasattr(a_stamp, 'data')
     True
-    >>> a_stamp = t.loadItemByUUID(uuid1, DemoStamp, data=sharing.NoModification)
+    >>> a_stamp = t.loadItemByUUID(uuid1, DemoStamp, data=sharing.Inherit)
     >>> hasattr(a_stamp, 'data')
     False
 
