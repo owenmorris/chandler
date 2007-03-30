@@ -153,6 +153,9 @@ def makeMainEvents(parcel):
     BlockEvent.template('ShowI18nManagerDebugWindow').install(parcel)
 
     BlockEvent.template('ShowMeAddressCollectionDebugWindow').install(parcel)
+    BlockEvent.template('ShowCurrentMeAddressesDebugWindow').install(parcel)
+    BlockEvent.template('ShowCurrentMeAddressDebugWindow').install(parcel)
+    BlockEvent.template('RecalculateMeAddresses').install(parcel)
 
     BlockEvent.template('ShowLogWindow').install(parcel)
 

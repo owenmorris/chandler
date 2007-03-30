@@ -807,8 +807,24 @@ def makeMainMenus(parcel):
                         childrenBlocks = [
                             MenuItem.template('MeAddressDebugItem',
                                 event = main.ShowMeAddressCollectionDebugWindow,
-                                title = u'Show Me Address Collection',
+                                title = u'Show All Me Addresses',
                                 helpString = u'Displays all active and old me addresses used to determine the fromMe and toMe attributes on Content Item'),
+
+                            MenuItem.template('curentMeAddressesDebugItem',
+                                event = main.ShowCurrentMeAddressesDebugWindow,
+                                title = u'Show Current Me Addresses',
+                                helpString = u'Displays all active me addresses'),
+
+                            MenuItem.template('curentMeAddressDebugItem',
+                                event = main.ShowCurrentMeAddressDebugWindow,
+                                title = u'Show Current Me Address',
+                                helpString = u'Displays the current me address'),
+
+                            MenuItem.template('recalculateEmailAddressItem',
+                                event = main.RecalculateMeAddresses,
+                                title = u'Recalculate Me Addresses',
+                                helpString = u'Loops through the Incoming and Outgoing Accounts and rebuilds the me addresses current pointers'),
+
                             MenuItem.template('MimeTestItem',
                                 event = main.MimeTest,
                                 title = u'Load MIME Torture Tests',

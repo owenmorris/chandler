@@ -1418,8 +1418,17 @@ class MainView(View):
         )
         rv.commit()
 
+    def onRecalculateMeAddressesEvent(self, event):
+        mail._recalculateMeEmailAddresses(self.itsView)
+
     def onShowMeAddressCollectionDebugWindowEvent(self, event):
-        application.dialogs.Util.displayMeAddressDebugWindow(wx.GetApp().mainFrame, self.itsView)
+        application.dialogs.Util.displayAddressDebugWindow(wx.GetApp().mainFrame, self.itsView, 1)
+
+    def onShowCurrentMeAddressesDebugWindowEvent(self, event):
+        application.dialogs.Util.displayAddressDebugWindow(wx.GetApp().mainFrame, self.itsView, 2)
+
+    def onShowCurrentMeAddressDebugWindowEvent(self, event):
+        application.dialogs.Util.displayAddressDebugWindow(wx.GetApp().mainFrame, self.itsView, 3)
 
     def onShowI18nManagerDebugWindowEvent(self, event):
         application.dialogs.Util.displayI18nManagerDebugWindow(wx.GetApp().mainFrame)
