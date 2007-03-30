@@ -343,7 +343,10 @@ class RecordSetConduit(conduits.BaseConduit):
                 # Mark existing items as "unread" now, so that importing can
                 # override it (if we're reloading, f'rinstance)
                 if item is not None:
-                    item.read = False
+                    # unread should never apply to individual occurrences,
+                    # apply this to the master
+                    item_to_change = getattr(item, 'inheritFrom', item)
+                    item_to_change.read = False
 
                 translator.importRecords(rs)
 

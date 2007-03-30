@@ -515,7 +515,10 @@ class SharingTranslator(eim.Translator):
                 if reminder.hasLocalAttributeValue('delta'):
                     trigger = toICalendarDuration(reminder.delta)
                 elif reminder.hasLocalAttributeValue('absoluteTime'):
-                    trigger = toICalendarDateTime(reminder.absoluteTime, False)
+                    # iCalendar Triggers are supposed to be expressed in UTC;
+                    # EIM may not require that but might as well be consistent
+                    reminderTime = reminder.absoluteTime.astimezone(utc)
+                    trigger = toICalendarDateTime(reminderTime, False)
 
 
                 if reminder.duration:
@@ -629,7 +632,7 @@ class SharingTranslator(eim.Translator):
         # a None value for icalUID if icalUID and UUID aren't the same, but in 
         # most cases, icalUID will be identical to UUID, just use None in that
         # case
-        icalUID = getattr(note, 'icalUID', None)
+        icalUID = handleEmpty(note, 'icalUID')
         if icalUID == unicode(note.itsUUID):
             icalUID = None
 
@@ -886,19 +889,37 @@ class SharingTranslator(eim.Translator):
     def import_event(self, record):
 
         start, allDay, anyTime = getTimeValues(record)
+        duration = with_nochange(record.duration, fromICalendarDuration)
+        if (allDay == True or anyTime == True) and duration not in emptyValues:
+            # convert to Chandler's notion of all day duration
+            duration -= oneDay
+        
+        uuid, recurrenceID = splitUUID(record.uuid)
+        if recurrenceID and start in emptyValues:
+            start = recurrenceID
 
         @self.withItemForUUID(
             record.uuid,
             EventStamp,
             startTime=start,
-            allDay=allDay,
-            anyTime=anyTime,
-            duration=with_nochange(record.duration, fromICalendarDuration),
+            duration=duration,
             transparency=with_nochange(record.status, fromTransparency),
             location=with_nochange(record.location, fromLocation, self.rv),
         )
         def do(item):
             event = EventStamp(item)
+
+            # allDay and anyTime shouldn't be set if they match the master
+            master = event.getMaster()
+            if allDay in (True, False) and allDay != master.allDay:
+                event.allDay = allDay
+            elif allDay == eim.Inherit:
+                delattr(event, 'allDay')
+
+            if anyTime in (True, False) and anyTime != master.anyTime:
+                event.anyTime = anyTime
+            elif allDay == eim.Inherit:
+                delattr(event, 'anyTime')
 
             if event.occurrenceFor is not None:
                 # modifications don't have recurrence rule information
@@ -1037,6 +1058,7 @@ class SharingTranslator(eim.Translator):
 
                 try:
                     val = fromICalendarDateTime(record.trigger)[0]
+                    val.astimezone(ICUtzinfo.default)
                 except:
                     pass
                 else:

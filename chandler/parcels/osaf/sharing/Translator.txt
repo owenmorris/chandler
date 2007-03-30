@@ -286,7 +286,7 @@ Importing:
     >>> alarm_rec = sharing.model.DisplayAlarmRecord(
     ...               uuid='a9b019a4-d995-11db-f269-0016cbca6aed',
     ...               description="Don't forget!",
-    ...               trigger=';TZID=America/New_York:20060304T170000',
+    ...               trigger=';VALUE=DATE-TIME:20060304T220000Z',
     ...               duration="PT1H",
     ...               repeat=1,
     ... )
@@ -302,7 +302,7 @@ Importing:
     >>> item.reminders.first()
     <Reminder (new): ...>
     >>> item.reminders.first().absoluteTime
-    datetime.datetime(2006, 3, 4, 17, 0, tzinfo=<ICUtzinfo: America/New_York>)
+    datetime.datetime(2006, 3, 4, 22, 0, tzinfo=<ICUtzinfo: UTC>)
     >>> item.reminders.first().description
     u"Don't forget!"
     
@@ -317,14 +317,14 @@ Exporting:
     >>> records[1]
     ModifiedByRecord(...)
     >>> records[2]
-    DisplayAlarmRecord('a9b019a4-d995-11db-f269-0016cbca6aed', u"Don't forget!", u';VALUE=DATE-TIME;TZID=America/New_York:20060304T170000', u'PT1H', 1)
+    DisplayAlarmRecord('a9b019a4-d995-11db-f269-0016cbca6aed', u"Don't forget!", u';VALUE=DATE-TIME:20060304T220000Z', u'PT1H', 1)
     
     >>> del item.reminders.first().duration
     >>> del item.reminders.first().repeat
     >>> t.startExport()
     >>> records = list(t.exportItem(item))
     >>> records[2]
-    DisplayAlarmRecord('a9b019a4-d995-11db-f269-0016cbca6aed', u"Don't forget!", u';VALUE=DATE-TIME;TZID=America/New_York:20060304T170000', None, None)
+    DisplayAlarmRecord('a9b019a4-d995-11db-f269-0016cbca6aed', u"Don't forget!", u';VALUE=DATE-TIME:20060304T220000Z', None, None)
     
 
 Relative Reminders
