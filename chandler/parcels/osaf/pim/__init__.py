@@ -85,6 +85,7 @@ class MasterEventWatcher(schema.Item):
         # Propagate via
         self.itsView.dispatchChanges(iter(mods))
 
+
 class NonOccurrenceFilter(Item):
 
     def isNonOccurrence(self, view, uuid):
@@ -100,6 +101,13 @@ class NonOccurrenceFilter(Item):
         else:
             return True # non-recurring, or a modification
 
+    def isNotPureOccurrence(self, view, uuid):
+        occurrenceFor, modificationFor = \
+            view.findValues(uuid, (EventStamp.occurrenceFor.name, None),
+                                  (EventStamp.modificationFor.name, None))
+        return not occurrenceFor or modificationFor
+
+
 class LongEventFilter(Item):
 
     def isLongEvent(self, view, uuid):
@@ -111,7 +119,6 @@ _FILTER_ATTRIBUTES = [
     (EventStamp.allDay.name, False),
     (EventStamp.startTime.name, None)
 ]
-
 
 class FloatingEventFilter(Item):
 
@@ -204,18 +211,26 @@ def installParcel(parcel, oldVersion=None):
     mineNotes = IntersectionCollection.update(parcel, 'mineNotes',
                                               sources=[mine, notes])
 
+    nonOccurrenceFilter = NonOccurrenceFilter(None, parcel)
+
     nonRecurringNotes = FilteredCollection.update(parcel, 'nonRecurringNotes',
         source=mineNotes,
-        filterMethod=(NonOccurrenceFilter(None, parcel), 'isNonOccurrence'),
+        filterMethod=(nonOccurrenceFilter, 'isNonOccurrence'),
         filterAttributes=[EventStamp.occurrenceFor.name,
                           EventStamp.modificationFor.name,
                           EventStamp.occurrences.name]
     )
 
-    itemKindCollection = KindCollection.update(
-        parcel, 'contentItems',
+    allContentItems = KindCollection.update(
+        parcel, 'allContentItems',
         kind = ContentItem.getKind(view),
-       recursive=True)
+        recursive=True)
+       
+    contentItems = FilteredCollection.update(parcel, 'contentItems',
+        source=allContentItems,
+        filterMethod=(nonOccurrenceFilter, 'isNotPureOccurrence'),
+        filterAttributes=[EventStamp.occurrenceFor.name,
+                          EventStamp.modificationFor.name])
        
     allReminders = KindCollection.update(
         parcel, 'allReminders', kind=Reminder.getKind(view), recursive=True
