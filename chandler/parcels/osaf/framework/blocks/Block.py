@@ -1153,6 +1153,11 @@ class BaseWidget(object):
                 self.Show (show)
                 blockItem.parentBlock.synchronizeWidget()
 
+    def displayContextMenu(self, event):
+        contextMenu = getattr (self.blockItem, "contextMenu", None)
+        if contextMenu is not None:
+            contextMenu.parentBlock.widget.PopupMenu (contextMenu.widget)
+
 
 # These are the mappings looked up by wxRectangularChild.CalculateWXFlag, below
 _wxFlagMappings = {
@@ -1226,11 +1231,6 @@ class RectangularChild (Block):
     border = schema.One(RectType, defaultValue = RectType(0.0, 0.0, 0.0, 0.0))
     alignmentEnum = schema.One(alignmentEnumType, defaultValue = 'grow')
     stretchFactor = schema.One(schema.Float, defaultValue = 1.0)
-
-    def displayContextMenu(self, event):
-        contextMenu = getattr (self, "contextMenu", None)
-        if contextMenu is not None:
-            contextMenu.widget.displayContextMenu()
 
     def instantiateWidget(self):
         return wxRectangularChild(self.parentBlock.widget, self.getWidgetID(),

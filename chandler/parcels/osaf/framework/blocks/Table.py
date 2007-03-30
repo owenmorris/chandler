@@ -179,7 +179,7 @@ class wxTable(DragAndDrop.DraggableWidget,
             theApp = wx.GetApp()
             theApp.propagateAsynchronousNotifications()
             theApp.Yield()
-        blockItem.displayContextMenu(event)
+        self.displayContextMenu(event)
         
     def OnPaint (self, event):
         # Bug #7117: Don't draw gridWindows who's data has changed but hasn't
