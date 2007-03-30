@@ -549,6 +549,7 @@ def makeMailArea(parcel, oldVersion):
                 makeLabel(parcel, '', baseClass=SendAsLabelBlock), # XXX "&send as" conflicts with Share menu
                 makeSpacer(parcel, width=8),
                 makeEditor(parcel, 'EditMailSendAs',
+                    baseClass=OutboundEmailAddressAEBlock,
                     presentationStyle={'format': 'outbound'},
                     viewAttribute=MailStamp.fromAddress.name)],
             position=0.113).install(parcel)

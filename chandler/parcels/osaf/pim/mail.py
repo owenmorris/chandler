@@ -680,6 +680,11 @@ def _recalculateMeEmailAddresses(view):
     ea.emailAddresses = _calculateCurrentMeEmailAddresses(view)
     pim_ns.currentMeEmailAddresses.item = ea
 
+    #log.critical("currentMeAddress is now '%s'; currentMeAddresses is now: [%s]", 
+                 #(pim_ns.currentMeEmailAddress.item is None and "None" or 
+                  #pim_ns.currentMeEmailAddress.item.emailAddress),
+                 #", ".join(a.emailAddress for a in ea.emailAddresses))
+
 def _calculateCurrentMeEmailAddress(view):
     """
         Lookup the "me" EmailAddress.
