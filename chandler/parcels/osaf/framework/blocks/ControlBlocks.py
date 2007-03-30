@@ -19,7 +19,7 @@ import os, sys
 from application.Application import mixinAClass
 from application import schema
 from Block import ( 
-    Block, RectangularChild, BlockEvent,  ShownSynchronizer, lineStyleEnumType,
+    Block, RectangularChild, BlockEvent,  BaseWidget, lineStyleEnumType,
     logger, debugName, WithoutSynchronizeWidget, IgnoreSynchronizeWidget
 )
 from ContainerBlocks import BoxContainer
@@ -244,13 +244,13 @@ class HtmlWindowWithStatus(wx.html.HtmlWindow):
         # It is empty because we do not want to show the current URL in main frame window title.
         pass
     
-class wxHTML(ShownSynchronizer, HtmlWindowWithStatus):
+class wxHTML(BaseWidget, HtmlWindowWithStatus):
     def OnLinkClicked(self, link):
         webbrowser.open(link.GetHref())
 
     def wxSynchronizeWidget(self, useHints=False):
         super (wxHTML, self).wxSynchronizeWidget()
-        if self.blockItem.onEmptyContentsShowHide():
+        if self.IsShown():
             text = self.blockItem.text
             if self.blockItem.treatTextAsURL:
                 self.LoadPage (text)
@@ -587,7 +587,7 @@ class wxList (DragAndDrop.DraggableWidget,
         self.Select (self.blockItem.contents.index (item))
 
 
-class wxStaticText(ShownSynchronizer, wx.StaticText):
+class wxStaticText(BaseWidget, wx.StaticText):
     pass
 
 class StaticText(RectangularChild):
@@ -623,7 +623,7 @@ class StaticText(RectangularChild):
         return staticText
 
     
-class wxStatusBar (ShownSynchronizer, wx.StatusBar):
+class wxStatusBar (BaseWidget, wx.StatusBar):
     def __init__(self, *arguments, **keyWords):
         super (wxStatusBar, self).__init__ (*arguments, **keyWords)
         self.gauge = wx.Gauge(self, -1, 100, size=(125, 30), style=wx.GA_HORIZONTAL|wx.GA_SMOOTH)

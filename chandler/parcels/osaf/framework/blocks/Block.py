@@ -724,31 +724,6 @@ class Block(schema.Item):
     def onShowHideEventUpdateUI(self, event):
         event.arguments['Check'] = self.isShown
         
-    def onEmptyContentsShowHide(self):
-        """
-        Helper routine for widgets that are examining emptyContentsShow to decide
-        whether or not to show or hide the widget.
-        
-        If the attrbute emptyContentsShow is False and the contents are empty then
-        the block is hidden. If emptyContentsShow is True and the contents are
-        empty then the block is shown. If the attribute is missing then the block is
-        shown.
-        
-        Returns a result, which when True indicates that the block is shown, otherwise
-        False is returned.
-        """
-        show = getattr (self, "emptyContentsShow", None)
-        if show is None:
-            show = True
-        else:
-            show = (len(self.contents) != 0) ^ show
-            if self.isShown != show:
-                self.isShown = show
-                self.widget.Show (show)
-                self.parentBlock.synchronizeWidget()
-        return show
-
-
     def onAddToViewableCollectionEvent(self, event):
         """
         Adds an item to a collection, typically the sidebarCollection, that is viewed
@@ -1157,14 +1132,27 @@ def debugName(thing):
     except:
         return '(unknown)'
 
-class ShownSynchronizer(object):
+class BaseWidget(object):
     """
-    A mixin that handles isShown-ness: Make sure my visibility
+    A mixin that handles basic feature of most widgets, e.g. isShown-ness: Make sure my visibility
     matches my block's.
     """
     def wxSynchronizeWidget(self, useHints=False):
-        if self.blockItem.isShown != self.IsShown():
-            self.Show (self.blockItem.isShown)
+        blockItem = self.blockItem
+        if blockItem.isShown != self.IsShown():
+            self.Show (blockItem.isShown)
+
+        #If the attrbute emptyContentsShow is False and the contents are empty then
+        #the block is hidden. If emptyContentsShow is True and the contents are empty
+        #then the block is shown. If the attribute is missing then the block is shown.
+        show = getattr (blockItem, "emptyContentsShow", None)
+        if show is not None:
+            show = (len(blockItem.contents) != 0) ^ show
+            if blockItem.isShown != show:
+                blockItem.isShown = show
+                self.Show (show)
+                blockItem.parentBlock.synchronizeWidget()
+
 
 # These are the mappings looked up by wxRectangularChild.CalculateWXFlag, below
 _wxFlagMappings = {
@@ -1181,7 +1169,7 @@ _wxFlagMappings = {
     'alignBottomRight': wx.ALIGN_BOTTOM | wx.ALIGN_RIGHT,
 }
 
-class wxRectangularChild (ShownSynchronizer, wx.Panel):
+class wxRectangularChild (BaseWidget, wx.Panel):
     @classmethod
     def CalculateWXBorder(self, block):
         border = 0

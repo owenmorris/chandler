@@ -25,7 +25,7 @@ from osaf.sharing import ChooseFormat
 
 from Block import (
     RectangularChild, Block, WithoutSynchronizeWidget, IgnoreSynchronizeWidget,
-    ShownSynchronizer
+    BaseWidget
     )
 
 from ControlBlocks import Column
@@ -108,7 +108,7 @@ class wxTableData(wx.grid.PyGridTableBase):
 class wxTable(DragAndDrop.DraggableWidget, 
               DragAndDrop.DropReceiveWidget, 
               DragAndDrop.FileOrItemClipboardHandler,
-              ShownSynchronizer,
+              BaseWidget,
               wx.grid.Grid):
     def __init__(self, parent, widgetID, characterStyle, headerCharacterStyle, *arguments, **keywords):
         if '__WXMAC__' in wx.PlatformInfo:
@@ -560,7 +560,7 @@ class wxTable(DragAndDrop.DraggableWidget,
                 self.blockItem.contents.setCollectionIndex(columnIndexName)
                 break
 
-        if self.blockItem.onEmptyContentsShowHide():
+        if self.IsShown():
         
             rowHeight = getattr (blockItem, "rowHeight", None)
             if rowHeight is not None:

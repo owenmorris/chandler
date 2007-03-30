@@ -19,13 +19,13 @@ Attribute Editors
 __parcel__ = "osaf.framework.attributeEditors"
 
 import wx
-from osaf.framework.blocks.Block import ShownSynchronizer, wxRectangularChild
+from osaf.framework.blocks.Block import BaseWidget, wxRectangularChild
 from DragAndDropTextCtrl import DragAndDropTextCtrl
 from BaseAttributeEditor import NotifyBlockToSaveValue
 import logging
 logger = logging.getLogger(__name__)
 
-class AEStaticText(ShownSynchronizer,
+class AEStaticText(BaseWidget,
                    wx.StaticText):
     """ 
     For some reason, wx.StaticText uses GetLabel/SetLabel instead of

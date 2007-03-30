@@ -31,7 +31,7 @@ from osaf.framework.blocks import DrawingUtilities, Styles
 #from operator import itemgetter
 from datetime import datetime, timedelta
 from PyICU import ICUError, ICUtzinfo, UnicodeString
-from osaf.framework.blocks.Block import ShownSynchronizer
+from osaf.framework.blocks.Block import BaseWidget
 #from osaf.pim.items import ContentItem
 from application import schema
 from application.dialogs import RecurrenceDialog, TimeZoneList
@@ -963,7 +963,7 @@ class BasePermanentAttributeEditor (BaseAttributeEditor):
             value = self.GetControlValue (control)
             self.SetAttributeValue (item, attributeName, value)
 
-class AECheckBox(ShownSynchronizer, wx.CheckBox):
+class AECheckBox(BaseWidget, wx.CheckBox):
     pass
 
 class CheckboxAttributeEditor (BasePermanentAttributeEditor):
@@ -1015,7 +1015,7 @@ class CheckboxAttributeEditor (BasePermanentAttributeEditor):
         """
         control.SetValue(bool(value))
 
-class AEChoice(ShownSynchronizer, wx.Choice):
+class AEChoice(BaseWidget, wx.Choice):
     def ActivateInPlace(self):
         """
         Force the pop-up to pop up so the user can select an item.

@@ -782,7 +782,7 @@ class Menu (MenuBar, DynamicChild):
 Toolbar classes.
 """
 
-class wxToolbar (Block.ShownSynchronizer, wx.ToolBar):
+class wxToolbar (Block.BaseWidget, wx.ToolBar):
     def __init__(self, *arguments, **keywords):
         super (wxToolbar, self).__init__ (*arguments, **keywords)
         # keep track of ToolbarItems so we can tell when/how they change in synchronize

@@ -22,18 +22,18 @@ import wx
 from osaf.framework.blocks import DragAndDrop
 import logging
 from datetime import datetime, timedelta
-from osaf.framework.blocks.Block import ShownSynchronizer
+from osaf.framework.blocks.Block import BaseWidget
 from osaf import messages
 import parsedatetime.parsedatetime as parsedatetime
 import parsedatetime.parsedatetime_consts as ptc
 from datetime import date
 from BaseAttributeEditor import NotifyBlockToSaveValue
 
-class DragAndDropTextCtrl(ShownSynchronizer,
-                 DragAndDrop.DraggableWidget,
-                 DragAndDrop.DropReceiveWidget,
-                 DragAndDrop.TextClipboardHandler,
-                 wx.TextCtrl):
+class DragAndDropTextCtrl(BaseWidget,
+                          DragAndDrop.DraggableWidget,
+                          DragAndDrop.DropReceiveWidget,
+                          DragAndDrop.TextClipboardHandler,
+                          wx.TextCtrl):
     def __init__(self, *arguments, **keywords):
         super (DragAndDropTextCtrl, self).__init__ (*arguments, **keywords)
         self.Bind(wx.EVT_MOUSE_EVENTS, self.OnMouseEvents)
