@@ -119,28 +119,17 @@ class FocusEventHandlers(Item):
             sendStates = set([ self.__getSendabilityOf(item) 
                                for item in selectedItems ])
             if len(sendStates) == 1:
-                if 'sendable' in sendStates:
+                result = sendStates.pop()
+                
+                if result == 'send':
                     enabled = True
-                ## @@@ This was used when we showed the collection detail 
-                ## view; it can't happen now.
-                #elif 'sharable' in sendStates:
-                    #enabled = True
-                    #label = _(u"Share")
-                #elif 'resharable' in sendStates:
-                    #enabled = True
-                    #label = _(u"Send to new")                   
-                elif 'sent' in sendStates:
+                elif result == 'update':
+                    enabled = True
+                    label = messages.UPDATE
+                    # use U-shaped Update bitmap
+                    bitmap = "ApplicationBarUpdate.png"
+                elif result == 'sent':
                     label = messages.SENT
-                elif 'not' in sendStates:
-                    if len(selectedItems) == 1:
-                        item = selectedItems[0]
-                        # Check to see if it's been modified
-                        mod = getattr(item, 'lastModification', None)
-                        if mod in (Modification.updated, Modification.edited):
-                            enabled = True
-                            label = messages.UPDATE
-                            # use U-shaped Update bitmap
-                            bitmap = "ApplicationBarUpdate.png"
 
         event.arguments['Enable'] = enabled
         event.arguments['Text'] = label
@@ -158,7 +147,8 @@ class FocusEventHandlers(Item):
             return
 
         sendableItems = [ item for item in selectedItems 
-                          if self.__getSendabilityOf(item) == 'sendable' ]
+                          if self.__getSendabilityOf(item) in ('send', 'update')
+                        ]
         assert list(selectedItems) == sendableItems
 
         for item in sendableItems:

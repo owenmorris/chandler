@@ -1733,32 +1733,39 @@ class MailStamp(stamping.Stamp):
 
     def getSendability(self, ignoreAttr=None):
         """
-        Return whether this item is ready to send: 'sendable', 'sent',
-        or 'not'. if ignoreAttr is specified, don't verify that value
+        Return whether this item is ready to send:
+         'send': Item is sendable, would be a first-time send
+         'update': Item is sendable, would be an update to a previous send
+         'not': Item is not sendable (e.g. not addressed)
+         'sent':  Item is not sendable; it was just sent.
+         
+        If ignoreAttr is specified, don't verify that value
         (because it's being edited in the UI and is known to be valid,
         and will get saved before sending).
         """
-
-        ##XXX uncomment to simulate Update use case
-        #return "sendable"
-
-        # Not outbound?
-        if self.viaMailService:
-            return 'not'
-
-        # Already sent?
-        try:
-            sent = self.isSent()
-        except AttributeError:
-            sent = False
-        if sent:
+        
+        lastModification = self.itsItem.lastModification
+        
+        # You can't send unless you've made changes
+        if (lastModification in (
+                    Modification.sent,
+                    Modification.queued,
+                    Modification.updated
+                ) and not self.itsItem.error):
             return 'sent'
 
         # Addressed?
         # (This test will get more complicated when we add cc, bcc, etc.)
         sendable = ((ignoreAttr == 'toAddress' or len(self.toAddress) > 0) and
                     (ignoreAttr == 'fromAddress' or self.fromAddress is not None))
-        return sendable and 'sendable' or 'not'
+        
+        if not sendable:
+            return 'not'
+            
+        if Modification.sent in self.itsItem.modifiedFlags:
+            return 'update'
+        else:
+            return 'send'
 
 
 def MailMessage(*args, **keywds):
