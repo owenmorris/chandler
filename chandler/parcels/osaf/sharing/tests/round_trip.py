@@ -93,6 +93,34 @@ class RoundTripTestCase(testcase.DualRepositoryTestCase):
             self.coll.add(n)
 
 
+    def _makeRecurringEvent(self, view, contents):
+        # Helper method for recurring event tests ... creates a weekly
+        # recurring event, adds it to contents, and returns the event.
+        
+        # With auto-triage behaviour, using a weekly event makes for more
+        # reproducible behaviour in test cases. With daily events, you
+        # can get differences in creation of modifications depending on what
+        # time of day the test runs relative to the event start times.
+        item = pim.Note(itsView=view)
+        pim.EventStamp(item).add()
+        event = pim.EventStamp(item)
+        
+        event.startTime = datetime.datetime.combine(
+            datetime.datetime.now().date() - datetime.timedelta(days=3),
+            datetime.time(11, 0, tzinfo=ICUtzinfo.default)
+        )
+        event.anyTime = False
+
+        # ...make it recur weekly
+        rrule = RecurrenceRule(itsView=view, untilIsDate=False, freq='weekly')
+        event.rruleset = RecurrenceRuleSet(itsView=view, rrules=[rrule])
+
+        # ...add it to the collection
+        contents.add(item)
+        
+        return event
+
+
     def RoundTrip(self):
 
         view0 = self.views[0]
@@ -639,22 +667,10 @@ class RoundTripTestCase(testcase.DualRepositoryTestCase):
         # Recurrence
         #
 
-        # Start over with a new item
-        item = pim.Note(itsView=view0)
-        pim.EventStamp(item).add()
-        event = pim.EventStamp(item)
-
-        # ...make it recurring daily
-        rrule = RecurrenceRule(itsView=view0)
-        rrule.untilIsDate = False
-        rrule.freq = 'daily'
-        rruleset = RecurrenceRuleSet(itsView=view0)
-        rruleset.addRule(rrule)
-        event.rruleset = rruleset
-
-        # ...add it to the collection
-        self.share0.contents.add(item)
-
+        # Start over with a new recurring event
+        event = self._makeRecurringEvent(view0, self.share0.contents)
+        item = event.itsItem
+        
         view0.commit(); stats = self.share0.sync(); view0.commit()
         view1.commit(); stats = self.share1.sync(); view1.commit()
 
@@ -664,11 +680,124 @@ class RoundTripTestCase(testcase.DualRepositoryTestCase):
 
         self.assertEqual(len(event1.rruleset.rrules), 1)
         rrule = event1.rruleset.rrules.first()
-        self.assertEqual(rrule.freq, 'daily')
+        self.assertEqual(rrule.freq, 'weekly')
+        
+        # sync an event deletion
+        third = event.getFirstOccurrence().getNextOccurrence().getNextOccurrence()
+        thirdRecurrenceID = third.recurrenceID
+        
+        third.deleteThis()
+        view0.commit(); stats = self.share0.sync(); view0.commit()
+        view1.commit(); stats = self.share1.sync(); view1.commit()
+
+        self.failUnlessEqual(event1.getRecurrenceID(thirdRecurrenceID),
+                             None)
+                             
+                             
+        # sync a THISANDFUTURE deletion
+
+        future = event.getNextOccurrence(after=thirdRecurrenceID).getNextOccurrence()
+        future.deleteThisAndFuture()
+        
+
+        # I could fetch all occurrences here, but that could hang if
+        # for some reason the recurrence end date didn't get set during
+        # the sync. So, when checking that the right events got deleted,
+        # we'll query in a 2-year window.
+        start = datetime.datetime.now(ICUtzinfo.default) - datetime.timedelta(days=365)
+        end = start + datetime.timedelta(days=710)
+        
+        def getStartTimes(e):
+            return list(x.startTime
+                           for x in e.getOccurrencesBetween(start, end))
+        
+        # Make sure I did my THISANDFUTURE delete calculation right; the
+        # third event got deleted, so the deleteThisAndFuture starts with
+        # the original 5th occurrence.
+        expectedStartTimes =  [
+             event.startTime,
+             event.startTime + datetime.timedelta(days=7),
+             event.startTime + datetime.timedelta(days=21)
+         ]
+         
+        self.failUnlessEqual(getStartTimes(event), expectedStartTimes)
+
+        view0.commit(); stats = self.share0.sync(); view0.commit()
+        view1.commit(); stats = self.share1.sync(); view1.commit()
+        
+        self.failUnlessEqual(getStartTimes(event1), expectedStartTimes)
+        
+        # sync a THIS displayName modification
+        event = self._makeRecurringEvent(view0, self.share0.contents)
+        item = event.itsItem
+        
+        event.changeAll('displayName', u'This is very original')
+        
+        view0.commit(); stats = self.share0.sync(); view0.commit()
+        view1.commit(); stats = self.share1.sync(); view1.commit()
+        
+        fourth0 = event.getRecurrenceID(event.startTime +
+                                        datetime.timedelta(days=21))
+        fourth0.changeThis('displayName', u'What a singular title')
+
+        view0.commit(); stats = self.share0.sync(); view0.commit()
+        view1.commit(); stats = self.share1.sync(); view1.commit()
+        
+        item1 = view1.findUUID(item.itsUUID)
+        self.assert_(pim.has_stamp(item1, pim.EventStamp))
+        event1 = pim.EventStamp(item1)
+        
+        fourth1 = event1.getRecurrenceID(fourth0.recurrenceID)
+        self.failUnlessEqual(fourth1.itsItem.displayName,
+                             u'What a singular title')
+        self.failUnlessEqual(event1.itsItem.displayName,
+                             u'This is very original')
+        self.failUnlessEqual(fourth1.getNextOccurrence().itsItem.displayName,
+                             u'This is very original')
 
 
-        # TODO: make a modification
-        # TODO: fill out this TODO list
+        """
+        # sync a start-time modification
+        second0 = event.getFirstOccurrence().getNextOccurrence()
+        
+        newStart = second0.startTime + datetime.timedelta(hours=2)
+        second0.changeThis(pim.EventStamp.startTime.name, newStart)
+
+        # sync
+        view0.commit(); stats = self.share0.sync(); view0.commit()
+        view1.commit(); stats = self.share1.sync(); view1.commit()
+        
+        # find the sync'ed second occurrence
+        second1 = event1.getRecurrenceID(second0.recurrenceID)
+        self.failIf(second1 is None, "Missing occurrence after sync")
+        self.failUnless(second1.modificationFor is item1,
+                        "Un- or disconnected modification after sync")
+                        
+        @@@ [grant] This fails!
+
+        self.failUnlessEqual(second1.startTime, newStart,
+                             "startTime not modified correctly")
+        """
+
+        # remove recurrence
+        event.removeRecurrence()
+        
+        view0.commit(); stats = self.share0.sync(); view0.commit()
+        view1.commit(); stats = self.share1.sync(); view1.commit()
+        
+        self.failIf(event1.rruleset is not None,
+                    "recurrence not removed after sync")
+        self.failIf(event1.modifications,
+                    "modifications not removed/cleared after sync")
+        self.failIf(event1.occurrences,
+                    "occurrences not removed/cleared after sync")
+        
+        # TODO: THISANDFUTURE changes.
+        # TODO: different THIS attribute changes.
+        # TODO: deleteThis() local & changeThis() remote.
+        # TODO: change THIS local, THISANDFUTURE remote.
+        # TODO: change recurrence
+        
 
 
 
