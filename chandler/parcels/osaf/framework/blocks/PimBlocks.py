@@ -203,7 +203,7 @@ class FocusEventHandlers(Item):
             event.arguments['Check'] = enable and isPrivate
 
     def onCreateConflictEvent(self, event):
-        selectedItems = self.__getProxiedSelectedItems(event)
+        selectedItems = self.__getSelectedItems()
         if len(selectedItems) > 0:
             # only shared items can have conflicts
             for item in selectedItems:
