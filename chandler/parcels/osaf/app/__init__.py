@@ -284,3 +284,11 @@ The Chandler Team""") % {'version': version.version}
                                         creator = osafDev
                                         )
     newScript.set_file(u"PasteNewItem.py", Scripts.__file__)
+
+    # Print selected item to stdout
+    scripting.Script.update(parcel, 'Print Selected to stdout',
+                            displayName=_(u"F6 - Print selected item to stdout"),
+                            fkey= u"F6",
+                            creator = osafDev,
+                            body=scripting.script_file(u"StdoutSelected.py", Scripts.__file__)
+                            )
