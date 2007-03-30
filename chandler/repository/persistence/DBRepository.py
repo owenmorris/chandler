@@ -837,6 +837,10 @@ class DBRepository(OnDemandRepository):
         status = self._status
         
         if (status & Repository.CLOSED) == 0:
+            
+            #kludge fix for bug 8592
+            sys.modules.setdefault('repository.persistence',None)
+            
             before = datetime.now()
 
             self.stopIndexer()
