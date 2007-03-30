@@ -182,16 +182,18 @@ class ICSSerializer(object):
         nonMasterRecordSets = []
         # masters need to be handled first, so modifications have access to them
         for uuid, recordSet in recordSets.iteritems():
-            uid, recurrenceID = translator.splitUUID(uuid)
-            if recurrenceID is None:
-                masterRecordSets.append( (uuid, recordSet) )
-            else:
-                nonMasterRecordSets.append( (uuid, recordSet) )
+            # skip over record sets with no EventRecord
+            if model.EventRecord in (type(rec) for rec in recordSet.inclusions):
+                uid, recurrenceID = translator.splitUUID(uuid)
+                if recurrenceID is None:
+                    masterRecordSets.append( (uuid, recordSet) )
+                else:
+                    nonMasterRecordSets.append( (uuid, recordSet) )
         
         for uuid, recordSet in chain(masterRecordSets, nonMasterRecordSets):
             for record in recordSet.inclusions:
                 recordHandlers.get(type(record), no_op)(record, vevent_mapping)
-
+            
         cal = vobject.iCalendar()
         cal.vevent_list = vevent_mapping.values()
         # add x-wr-calname
@@ -219,7 +221,7 @@ class ICSSerializer(object):
             if vobj.getChildValue('recurrence_id') is None:
                 masters[uid] = vobj
         
-    
+        
         for vobj in chain(
                                 getattr(calendar, 'vevent_list', []),
                                 #getattr(calendar, 'vtodo_list', []))
