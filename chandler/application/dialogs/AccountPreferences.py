@@ -785,7 +785,6 @@ class AccountPreferencesDialog(wx.Dialog):
                         except AttributeError:
                             pass
 
-
     def __ApplyDeletions(self):
         # Since we don't delete items right away, we need to do it here:
 
@@ -1219,12 +1218,24 @@ class AccountPreferencesDialog(wx.Dialog):
         if self.__Validate():
             self.__ApplyChanges()
             self.__ApplyDeletions()
+
             if self.modal:
                 self.EndModal(True)
+
             self.rv.commit()
 
             if DEBUG:
                 self.debugAccountSaving()
+
+            #Adding a recalulation here fixes a bug
+            # where the recal method was getting called
+            # for new mail accounts before the values
+            # in the PANEL had been assigned to the
+            # account item.
+            #
+            # This was resulting in account.isSetUp()
+            # returning False.
+            Mail._recalculateMeEmailAddresses(self.rv)
 
             Globals.mailService.refreshMailServiceCache()
             self.Destroy()
