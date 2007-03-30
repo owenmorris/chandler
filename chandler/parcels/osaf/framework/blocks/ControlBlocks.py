@@ -606,9 +606,9 @@ class StaticText(RectangularChild):
         if self.textAlignmentEnum == "Left":
             style = wx.ALIGN_LEFT
         elif self.textAlignmentEnum == "Center":
-            style = wx.ALIGN_CENTRE
+            style = wx.ALIGN_CENTRE | wx.ST_NO_AUTORESIZE
         elif self.textAlignmentEnum == "Right":
-            style = wx.ALIGN_RIGHT
+            style = wx.ALIGN_RIGHT | wx.ST_NO_AUTORESIZE
 
         if Block.showBorders:
             style |= wx.SIMPLE_BORDER

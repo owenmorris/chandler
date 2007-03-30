@@ -105,7 +105,7 @@ def makeArea(parcel, name, stretchFactor=None, border=None, minimumSize=None,
                               **kwds)
 
 def makeLabel(parcel, label=u'', borderTop=5, border=None, width=60, 
-              textAlignmentEnum=None, **kwds):
+              baseClass=StaticText, textAlignmentEnum=None, **kwds):
     """
     Make a StaticText label template for use in the detail view.
     
@@ -133,13 +133,13 @@ def makeLabel(parcel, label=u'', borderTop=5, border=None, width=60,
     blocks = schema.ns("osaf.framework.blocks", parcel.itsView)
     border = border or RectType(borderTop, 0, 0, 0)
     textAlignmentEnum = textAlignmentEnum or 'Right'
-    return StaticText.template(uniqueName(parcel, 'Label'),
-                               title=label,
-                               characterStyle=blocks.LabelStyle,
-                               textAlignmentEnum=textAlignmentEnum,
-                               stretchFactor=0.0,
-                               minimumSize=SizeType(width, -1),
-                               border=border, **kwds)
+    return baseClass.template(uniqueName(parcel, 'Label'),
+                              title=label,
+                              characterStyle=blocks.LabelStyle,
+                              textAlignmentEnum=textAlignmentEnum,
+                              stretchFactor=0.0,
+                              minimumSize=SizeType(width, -1),
+                              border=border, **kwds)
 
 def makeSpacer(parcel, size=None, width=-1, height=-1, 
                name=None, baseClass=ControlBlocks.StaticText, **kwds):
@@ -544,9 +544,11 @@ def makeMailArea(parcel, oldVersion):
         makeArea(parcel, 'SendAsArea', # Note: this blockname is tested in BylineAreaBlock.shouldShow
             baseClass=BylineAreaBlock,
             childrenBlocks=[
-                makeLabel(parcel, _(u'send as')), # XXX "&send as" conflicts with Share menu
+                # The SendAsLabelBlock will decide how to label this block
+                # ("send as" vs "edit as"), so don't bother labeling here.
+                makeLabel(parcel, '', baseClass=SendAsLabelBlock), # XXX "&send as" conflicts with Share menu
                 makeSpacer(parcel, width=8),
-                makeEditor(parcel, 'EditMailOutboundFrom',
+                makeEditor(parcel, 'EditMailSendAs',
                     presentationStyle={'format': 'outbound'},
                     viewAttribute=MailStamp.fromAddress.name)],
             position=0.113).install(parcel)

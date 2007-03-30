@@ -654,7 +654,7 @@ class UITestItem(object):
         """
         if self.isMailMessage:
             blockName = (pim.mail.MailStamp(self.item).isOutbound and
-                         "EditMailOutboundFrom" 
+                         "EditMailSendAs" 
                          or "EditMailInboundFrom")
             self.SetEditableBlock(blockName, "from address", fromAdd, 
                                   timeInfo=timeInfo)

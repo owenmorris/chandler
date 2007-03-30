@@ -1890,6 +1890,27 @@ class ErrorAEBlock(DetailSynchronizedAttributeEditorBlock):
         watchList.append((self.item, pim.ContentItem.error.name),)
         return watchList
 
+class SendAsLabelBlock(DetailSynchronizer, ControlBlocks.StaticText):
+    def synchronizeWidget(self, useHints=False):
+        super(SendAsLabelBlock, self).synchronizeWidget(useHints)
+        item = self.item
+        lastMod = getattr(item, 'lastModification', None)
+        if (lastMod in (pim.Modification.edited, pim.Modification.queued) and
+            pim.has_stamp(item, pim.mail.MailStamp) and
+            pim.MailStamp(item).fromMe):
+            label = _(u'Edited by') 
+        else:
+            label = _(u'Send as')
+
+        self.widget.SetLabel(label)
+
+    def getWatchList(self):
+        watchList = super(SendAsLabelBlock, self).getWatchList()
+        watchList.extend(((self.item, pim.Stamp.stamp_types.name),
+                          (self.item, pim.MailStamp.fromMe.name),
+                          (self.item, ContentItem.lastModification.name)))
+        return watchList
+
 class BylineAreaBlock(DetailSynchronizedContentItemDetail):
     # We use this block class for the byline (the static representation, like
     # "Sent by Bob Smith on 6/21/06") as well as for the Send As block (the
@@ -1897,8 +1918,6 @@ class BylineAreaBlock(DetailSynchronizedContentItemDetail):
     # conditioned on whether this is an outgoing unsent message: SendAs if so,
     # byline if not.
     def shouldShow(self, item):
-        #XXX Hack
-        return True
         if not super(BylineAreaBlock, self).shouldShow(item):
             return False
 
@@ -1908,14 +1927,16 @@ class BylineAreaBlock(DetailSynchronizedContentItemDetail):
                                             pim.Modification.created,
                                             pim.Modification.queued) and
                                 pim.has_stamp(item, pim.mail.MailStamp) and
-                                pim.MailStamp(item).fromMe)                                
+                                (pim.MailStamp(item).fromMe or
+                                 getattr(item, pim.MailStamp.fromAddress.name, None) is None))
         return isUnsentOutboundMail == (self.blockName == 'SendAsArea')
 
     def getWatchList(self):
         watchList = super(BylineAreaBlock, self).getWatchList()
         watchList.extend(((self.item, pim.Stamp.stamp_types.name),
                           (self.item, pim.MailStamp.fromMe.name),
-                          (self.item, ContentItem.lastModification.name)))
+                          (self.item, ContentItem.lastModification.name),
+                          (self.item, pim.MailStamp.fromAddress.name)))
         return watchList
 
 class OriginatorsAEBlock(DetailSynchronizedAttributeEditorBlock):
