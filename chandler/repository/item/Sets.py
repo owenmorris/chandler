@@ -1455,7 +1455,7 @@ class KindSet(Set):
                 return True
 
         elif isinstance(superset, AbstractSet):
-            return superset.isSuperset(subset, reasons)
+            return superset.isSuperset(superset, reasons)
 
         if reasons is not None:
             reasons.add((self, superset))

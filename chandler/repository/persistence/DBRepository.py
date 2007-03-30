@@ -13,7 +13,7 @@
 #   limitations under the License.
 
 
-import sys, os, shutil, atexit, cStringIO, time, threading
+import sys, os, shutil, atexit, time, threading
 
 from datetime import datetime, timedelta
 from os.path import exists, abspath, normpath, join, dirname, basename, isdir
