@@ -14,12 +14,13 @@
 
 __all__ = [
     'PasswordError',
-    'UninitializedPassword',
     'DecryptionError',
     'EncryptionError',
     'NoMasterPassword',
     'Password',
 ]
+
+# XXX EIM for Password stuff
 
 # XXX test all scenarios with timeout of 0 second with non-default pw and answer correctly
 # XXX same but cancel dialog; ensure we deal with exception correctly
@@ -37,13 +38,6 @@ from osaf.framework import MasterPassword
 class PasswordError(Exception):
     """
     Abstract base class for password specific errors.
-    """
-
-class UninitializedPassword(PasswordError):
-    """
-    Password has not yet been set
-    
-    The string value should be a localized message.
     """
 
 class NoMasterPassword(PasswordError):
@@ -103,18 +97,17 @@ class Password(schema.Item):
                                  and the user cancels the dialog where we ask for
                                  it.
 
-        @raise UninitializedPassword: UninitializedPassword will be raised if
-                                      this password does not contain an
-                                      encrypted password.
-
         @return: Return password.
         @rtype:  unicode
         """
         try:
             if not self.ciphertext or not self.iv or not self.salt:
-                raise AttributeError
+                return u''
         except AttributeError:
-            raise UninitializedPassword(_(u'Password has not been set'))
+            # We can determine the correct master password by iterating over
+            # passwords, decrypting them, and getting at least one non-empty
+            # password.
+            return u''
         
         if masterPassword is None:
             masterPassword = waitForDeferred(MasterPassword.get(self.itsView, window))
@@ -212,6 +205,16 @@ class Password(schema.Item):
             del self.salt
         except AttributeError:
             pass
+        
+    @runInUIThread
+    def initialized(self):
+        try:
+            if not self.ciphertext or not self.iv or not self.salt:
+                return False
+        except AttributeError:
+            return False
+        
+        return True
 
 
 def _cipherFilter(cipher, inf, outf):

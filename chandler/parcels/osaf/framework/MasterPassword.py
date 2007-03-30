@@ -97,11 +97,12 @@ def get(view, window=None, testPassword=None):
 
         again = False
         for item in passwords:
+            if not waitForDeferred(item.initialized()):
+                continue
+
             try:
                 waitForDeferred(item.decryptPassword(masterPassword=pword))
                 break
-            except password.UninitializedPassword:
-                continue
             except password.DecryptionError:
                 again = True
                 break
@@ -197,11 +198,11 @@ def beforeBackup(view, window=None):
         from osaf.framework import password
         count = 0
         for item in password.Password.iterItems(view):
-            try:
-                if waitForDeferred(item.decryptPassword()).strip():
-                    count += 1
-            except password.UninitializedPassword:
-                pass
+            if not waitForDeferred(item.initialized()):
+                continue
+            
+            if waitForDeferred(item.decryptPassword()):
+                count += 1
         if count == 1: # We will always have at least one, the dummy password
             return
         
@@ -231,12 +232,13 @@ def _change(oldMaster, newMaster, view, prefs):
     try:
         again = False
         for item in password.Password.iterItems(view):
+            if not waitForDeferred(item.initialized()):
+                continue
+
             try:
                 oldPassword = waitForDeferred(item.decryptPassword(masterPassword=oldMaster))
-            except password.UninitializedPassword:
-                continue
             except password.DecryptionError:
-                log.exception('Wrong old master password?')
+                log.info('Wrong old master password?')
                 again = True
                 break
             waitForDeferred(item.encryptPassword(oldPassword, masterPassword=newMaster))

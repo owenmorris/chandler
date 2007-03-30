@@ -1584,15 +1584,11 @@ class UITestAccounts:
             account = None
 
         if account is not None:
-            from osaf.framework import password
             if self.logger: self.logger.SetChecked(True)
             result = True
             for (key, value) in keys.items():
                 if key == 'password':
-                    try:
-                        actualValue = waitForDeferred(account._values[key].decryptPassword())
-                    except password.UninitializedPassword:
-                        actualValue = u''
+                    actualValue = waitForDeferred(account._values[key].decryptPassword())
                 else:
                     actualValue = account._values[key]
                 if actualValue != value:

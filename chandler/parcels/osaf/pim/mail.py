@@ -1012,6 +1012,7 @@ class OutgoingAccount(AccountBase):
             return True
         return False
 
+
 class SMTPAccount(OutgoingAccount):
     accountProtocol = "SMTP"
 

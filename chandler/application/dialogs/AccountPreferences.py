@@ -1113,7 +1113,7 @@ class AccountPreferencesDialog(wx.Dialog):
             if valueType == "password":
                 try:
                     control.SetValue(waitForDeferred(data[field].decryptPassword(window=self)))
-                except (password.UninitializedPassword, password.NoMasterPassword):
+                except password.NoMasterPassword:
                     control.SetValue("")
             
             # Handle strings:
@@ -1649,7 +1649,7 @@ class AccountPreferencesDialog(wx.Dialog):
         username = data['INCOMING_USERNAME']
         try:
             pw = waitForDeferred(data['INCOMING_PASSWORD'].decryptPassword(window=self))
-        except (password.UninitializedPassword, password.NoMasterPassword):
+        except password.NoMasterPassword:
             pw = u''
 
         error = False
@@ -1691,7 +1691,7 @@ class AccountPreferencesDialog(wx.Dialog):
         username = data['OUTGOING_USERNAME']
         try:
             pw = waitForDeferred(data['OUTGOING_PASSWORD'].decryptPassword(window=self))
-        except (password.UninitializedPassword, password.NoMasterPassword):
+        except password.NoMasterPassword:
             pw = u''
 
         error = False
@@ -1759,7 +1759,7 @@ class AccountPreferencesDialog(wx.Dialog):
         username = data['DAV_USERNAME']
         try:
             pw = waitForDeferred(data['DAV_PASSWORD'].decryptPassword(window=self))
-        except (password.UninitializedPassword, password.NoMasterPassword):
+        except password.NoMasterPassword:
             pw = u''
         useSSL = data['DAV_USE_SSL']
 
@@ -1797,7 +1797,7 @@ class AccountPreferencesDialog(wx.Dialog):
         username = data['MORSECODE_USERNAME']
         try:
             pw = waitForDeferred(data['MORSECODE_PASSWORD'].decryptPassword(window=self))
-        except (password.UninitializedPassword, password.NoMasterPassword):
+        except password.NoMasterPassword:
             pw = u''
         useSSL = data['MORSECODE_USE_SSL']
 

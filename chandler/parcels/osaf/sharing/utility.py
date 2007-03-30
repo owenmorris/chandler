@@ -427,10 +427,11 @@ def isWebDAVSetUp(view):
     """
 
     account = schema.ns('osaf.sharing', view).currentSharingAccount.item
-    if account and account.host and account.username and waitForDeferred(account.password.decryptPassword()):
+    if account and account.host and account.username and \
+       waitForDeferred(account.password.decryptPassword()):
         return True
-    else:
-        return False
+    
+    return False
 
 
 

@@ -61,13 +61,13 @@ class PasswordTestCase(TestDomainModel.DomainModelTestCase):
         pw = password.Password(itsView=self.rep.view)
 
         # check that we can't get password yet
-        self.assertRaises(password.UninitializedPassword, waitForDeferred, pw.decryptPassword(masterPassword))
+        self.assertFalse(waitForDeferred(pw.initialized()))
         
-        # Check that empty values lead to UninitializedPassword as well
+        # Check that empty values lead to uninitialized as well
         pw.ciphertext = ''
         pw.iv   = ''
         pw.salt = ''
-        self.assertRaises(password.UninitializedPassword, waitForDeferred, pw.decryptPassword(masterPassword))
+        self.assertFalse(waitForDeferred(pw.initialized()))
         # And that bad values leads to DecryptionError
         pw.ciphertext = \
                   unhexlify('0001efa4bd154ee415b9413a421cedf04359fff945a30e7c115465b1c780a85b65c0e45c')
@@ -124,7 +124,7 @@ class PasswordTestCase(TestDomainModel.DomainModelTestCase):
         
         # clear
         waitForDeferred(pw.clear())
-        self.assertRaises(password.UninitializedPassword, waitForDeferred, pw.decryptPassword(masterPassword))
+        self.assertFalse(waitForDeferred(pw.initialized()))
 
         d = pw.clear()
         self.called = False
@@ -218,12 +218,12 @@ class PasswordTestCase(TestDomainModel.DomainModelTestCase):
         # we should have just one initialized password (the dummy)
         count = 0
         for item in password.Password.iterItems(self.rep.view):
-            try:
-                waitForDeferred(item.decryptPassword(masterPassword=''))
-                self.assertEqual(item.itsName, 'dummyPassword')
-                count += 1
-            except password.UninitializedPassword:
-                pass
+            if not waitForDeferred(item.initialized()):
+                continue
+            
+            waitForDeferred(item.decryptPassword(masterPassword=''))
+            self.assertEqual(item.itsName, 'dummyPassword')
+            count += 1
         self.assertEqual(count, 1)
         
         # quality tests

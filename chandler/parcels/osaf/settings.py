@@ -655,11 +655,12 @@ def restoreMasterPassword(rv, cfg, testmode, oldMaster, newMaster):
                         break
                 
                 for item in password.Password.iterItems(rv):
-                    try:
-                        pw = waitForDeferred(item.decryptPassword(masterPassword=oldMaster))
-                    except password.UninitializedPassword:
+                    if not waitForDeferred(item.initialized()):
                         # Don't need to re-encrypt uninitialized passwords
                         continue
+                    
+                    try:
+                        pw = waitForDeferred(item.decryptPassword(masterPassword=oldMaster))
                     except password.DecryptionError:
                         # Maybe this was one of the new passwords loaded from
                         # settings, so let's try the new master password
