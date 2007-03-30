@@ -32,7 +32,7 @@ class TriageColumnIndexDefinition(pim.MethodIndexDefinition):
     findParams = [
         # We'll return one pair of these or the other, depending on whether
         # sectionTriageStatus exists on the item.
-        ('_triageStatus', None),
+        ('_triageStatus', pim.TriageEnum.now),
         ('_triageStatusChanged', 0),
         ('_sectionTriageStatus', None),
         ('_sectionTriageStatusChanged', 0),

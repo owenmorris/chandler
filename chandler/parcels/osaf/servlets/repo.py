@@ -1178,7 +1178,7 @@ def RenderObject(repoView, theObject, objectPath, label="Object"):
             continue
         try:
             attr = getattr(theObject, name)
-        except AttributeError:
+        except (AttributeError, TypeError):
             continue
         if callable(attr):
             if (name.endswith("Tuple") or not (name.startswith('Get') or name.startswith('Has') or name.startswith('Is'))):
