@@ -46,12 +46,6 @@ __all__ = [
 ]
 
 
-"""
-Notes:
-
-Cosmo likes None for empty bodies, and "" for empty locations
-"""
-
 
 utc = ICUtzinfo.getInstance('UTC')
 du_utc = dateutil.tz.tzutc()
@@ -605,9 +599,8 @@ class SharingTranslator(eim.Translator):
     @model.NoteRecord.importer
     def import_note(self, record):
 
-        # TODO: REMOVE HACK: (Cosmo sends None for empty bodies)
         if record.body is None:
-            body = ""
+            body = eim.Inherit # to delete the attribute
         else:
             body = record.body
 
@@ -625,11 +618,13 @@ class SharingTranslator(eim.Translator):
 
     @eim.exporter(pim.Note)
     def export_note(self, note):
+
         body = handleEmpty(note, 'body')
-        # TODO: REMOVE HACK (Cosmo expects None for empty bodies)
-        if body == '':
+        if note.hasLocalAttributeValue('body'):
+            body = note.body
+        else:
             body = None
-            
+
         # when serializing iCalendar, modifications will incorrectly handle
         # a None value for icalUID if icalUID and UUID aren't the same, but in 
         # most cases, icalUID will be identical to UUID, just use None in that
@@ -645,7 +640,6 @@ class SharingTranslator(eim.Translator):
             icalUID,                                    # icalUid
             None,                                       # icalProperties
             None                                        # icalParameters
-            
         )
 
 
