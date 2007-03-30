@@ -59,7 +59,6 @@ class EncryptionError(PasswordError):
     Failed to encrypt password
     """
 
-
 class Password(schema.Item):
     """
     Secure password storage.
@@ -85,6 +84,8 @@ class Password(schema.Item):
         schema.Bytes,
         doc = 'Salt to be used when deriving key from master password',
     )
+
+    holders = schema.Sequence() # inverse=password.holders
 
     @runInUIThread
     def decryptPassword(self, masterPassword=None, window=None):
@@ -215,6 +216,14 @@ class Password(schema.Item):
             return False
         
         return True
+
+
+# Common attribute for password holders. All kinds referencing it better use
+# the same name for their attribute, currently 'password'.
+passwordAttribute = schema.One(
+    Password,
+    inverse=Password.holders
+)
 
 
 def _cipherFilter(cipher, inf, outf):

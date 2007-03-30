@@ -852,7 +852,7 @@ class UITestItem(object):
             sent = None
             #check if an SMTP account is defined
             account = Mail.getCurrentOutgoingAccount(App_ns.itsView)
-            if account._values['host']=='':
+            if account.itsValues['host']=='':
                 self.logger.report(False, name="check if an SMTP account is defined", comment="(On SMTP account) - Host not defined")
             else:
                 self.logger.report(True, name="(On SMTP account)")
@@ -1609,9 +1609,9 @@ class UITestAccounts:
             result = True
             for (key, value) in keys.items():
                 if key == 'password':
-                    actualValue = waitForDeferred(account._values[key].decryptPassword())
+                    actualValue = waitForDeferred(account.itsRefs[key].decryptPassword())
                 else:
-                    actualValue = account._values[key]
+                    actualValue = account.itsValues[key]
                 if actualValue != value:
                     self.logger.report(False, name="VerifyValues", comment="Checking %s %s: expected %s, but got %s" % (type, key, value, actualValue))
                     result = False

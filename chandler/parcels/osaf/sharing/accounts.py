@@ -32,11 +32,9 @@ class SharingAccount(pim.ContentItem):
     username = schema.One(
         schema.Text, initialValue = u'',
     )
-    password = schema.One(
-        password.Password,
-        description =
-            'Password, encrypted/decrypted using master password.\n',
-    )
+
+    password = password.passwordAttribute
+
     host = schema.One(
         schema.Text,
         doc = 'The hostname of the account',

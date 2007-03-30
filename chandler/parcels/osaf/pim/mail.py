@@ -787,12 +787,9 @@ class AccountBase(items.ContentItem):
         doc = 'The account login name',
         initialValue = u'',
     )
-    password = schema.One(
-        password.Password,
-        doc = 'This could either be a password or some other sort of '
-              'authentication info. We can use it for whatever is needed '
-              'for this account type.',
-    )
+
+    password = password.passwordAttribute
+
     host = schema.One(
         schema.Text,
         doc = 'The hostname of the account',
