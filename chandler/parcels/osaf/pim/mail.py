@@ -673,10 +673,11 @@ def _recalculateMeEmailAddresses(view):
 
     pim_ns.currentMeEmailAddress.item = _calculateCurrentMeEmailAddress(view)
 
-    if pim_ns.currentMeEmailAddresses.item:
-        pim_ns.currentMeEmailAddresses.item.delete()
+    ea = pim_ns.currentMeEmailAddresses.item
 
-    ea = EmailAddresses(itsView=view)
+    if not ea:
+        ea = EmailAddresses(itsView=view)
+
     ea.emailAddresses = _calculateCurrentMeEmailAddresses(view)
     pim_ns.currentMeEmailAddresses.item = ea
 
