@@ -325,6 +325,13 @@ class MultiStateButton(GenBitmapButton):
                     brush = wx.Brush(self.faceDnClr, wx.SOLID)
         return brush
 
+    def SetBitmapLabel(self, bitmap):
+        """
+        Overridden from the base class to always pass False for
+        createOthers param.
+        """
+        super(MultiStateButton, self).SetBitmapLabel(bitmap, False)
+
 # execute with execfile("/Users/rae/work/osaf/rae-button/MultiStateButton.py", { "__name__" :"__main__" })
 # or similar
 if __name__ == "__main__":
