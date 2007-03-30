@@ -23,6 +23,8 @@ from util import testcase
 from PyICU import ICUtzinfo
 from application import schema
 
+from osaf.pim.calendar.Recurrence import RecurrenceRuleSet, RecurrenceRule
+
 logger = logging.getLogger(__name__)
 
 printStatistics = True
@@ -622,9 +624,52 @@ class RoundTripTestCase(testcase.DualRepositoryTestCase):
         self.assert_(item1 not in self.share1.contents)
 
 
-        # TODO: verify that master items are synced when a modification
-        # changes
 
-        # self.share0.conduit.dump("at the end")
+
+        #
+        # Mail items
+        #
+        # TBD
+
+
+
+
+
+        #
+        # Recurrence
+        #
+
+        # Start over with a new item
+        item = pim.Note(itsView=view0)
+        pim.EventStamp(item).add()
+        event = pim.EventStamp(item)
+
+        # ...make it recurring daily
+        rrule = RecurrenceRule(itsView=view0)
+        rrule.untilIsDate = False
+        rrule.freq = 'daily'
+        rruleset = RecurrenceRuleSet(itsView=view0)
+        rruleset.addRule(rrule)
+        event.rruleset = rruleset
+
+        # ...add it to the collection
+        self.share0.contents.add(item)
+
+        view0.commit(); stats = self.share0.sync(); view0.commit()
+        view1.commit(); stats = self.share1.sync(); view1.commit()
+
+        item1 = view1.findUUID(item.itsUUID)
+        self.assert_(pim.has_stamp(item1, pim.EventStamp))
+        event1 = pim.EventStamp(item1)
+
+        self.assertEqual(len(event1.rruleset.rrules), 1)
+        rrule = event1.rruleset.rrules.first()
+        self.assertEqual(rrule.freq, 'daily')
+
+
+        # TODO: make a modification
+        # TODO: fill out this TODO list
+
+
 
         self.share0.destroy() # clean up
