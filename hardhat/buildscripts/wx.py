@@ -359,7 +359,7 @@ def doFunctionalTests(workingDir, log):
                     return "test_failed"
 
         except hardhatutil.ExternalCommandErrorWithOutputList, e:
-            dumpTestLogs(log, chandlerLog, e.args)
+            dumpTestLogs(log, chandlerLog, e.exitCode)
 
             Log('***Error during functional tests***', log)
 

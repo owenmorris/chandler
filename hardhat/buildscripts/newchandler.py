@@ -218,11 +218,11 @@ def doTests(hardhatScript, mode, workingDir, outputDir, buildVersion, log):
         log.write("Test log:\n")
         hardhatutil.dumpOutputList(e.outputList, log)
         dumpTestLogs(log, logfile)
-        if e.args == 0:
+        if e.exitCode == 0:
             err = ''
         else:
             err = '***Error '
-        log.write("%sexit code=%s\n" % (err, e.args))
+        log.write("%sexit code=%s\n" % (err, e.exitCode))
         log.write("NOTE: If the tests themselves passed but the exit code\n")
         log.write("      reports failure, it means a shutdown problem.\n")
         forceBuildNextCycle(log, workingDir)

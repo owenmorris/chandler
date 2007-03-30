@@ -99,7 +99,7 @@ def executeCommandReturnOutputRetry(args):
         print "Retrying command"
         attempt += 1
 
-    raise ExternalCommandError, exitCode
+    raise ExternalCommandError(exitCode)
 
 
 def executeCommandReturnOutput(args):
@@ -132,7 +132,7 @@ def executeCommandReturnOutput(args):
         exitCode = k.close()
         
     if exitCode is not None:
-        raise ExternalCommandErrorWithOutputList, [exitCode, outputList]
+        raise ExternalCommandErrorWithOutputList(exitCode, outputList)
 
     return outputList
 
@@ -154,19 +154,22 @@ class CommandNotFound(Exception):
 class ExternalCommandError(Exception):
     """ Exception thrown an external command exits with nonzero """
 
-    def __init__(self,args=None):
-        self.args = args
+    def __init__(self, exitCode):
+        self.exitCode = exitCode
 
 
 class ExternalCommandErrorWithOutputList(ExternalCommandError):
-    def __init__(self,args=None):
-        if args:
-            self.args = args[0]
-            self.outputList = args[1]
-        else:
-            self.args = args
-            self.outputList = []
-                                                    
+    """
+    External command error with output.
+    
+    @ivar exitCode:   The exit value from the external program.
+    @ivar outputList: The lines of output in a list
+    """
+    def __init__(self, exitCode, outputList):
+        self.exitCode   = exitCode
+        self.outputList = outputList
+
+
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Module import functions
 

@@ -23,9 +23,10 @@ if no code has changed, and an exception is raised if there are problems.
 
 import os, hardhatutil, hardhatlib, sys, re
 
-path       = os.environ.get('PATH', os.environ.get('path'))
-whereAmI   = os.path.dirname(os.path.abspath(hardhatlib.__file__))
-svnProgram = hardhatutil.findInPath(path, "svn")
+path          = os.environ.get('PATH', os.environ.get('path'))
+whereAmI      = os.path.dirname(os.path.abspath(hardhatlib.__file__))
+svnProgram    = hardhatutil.findInPath(path, "svn")
+pythonProgram = hardhatutil.findInPath(path, "python")
 
 treeName     = "Chandler" 
 sleepMinutes = 5
@@ -216,14 +217,21 @@ def doProjectTests(mode, workingDir, outputDir, buildVersion, log):
 
 def doTests(mode, workingDir, outputDir, buildVersion, log):
 
-    testDir = os.path.join(workingDir, "chandler")
+    testDir    = os.path.join(workingDir, "chandler")
+    testLogDir = os.path.join(testDir, 'test_profile')
     os.chdir(testDir)
 
     try:
         print "Testing " + mode
         log.write(separator)
         log.write("Testing " + mode + " ...\n")
-        outputList = hardhatutil.executeCommandReturnOutput(['./tools/do_tests.sh', '-u', '-m %s' % mode])
+        log.write("Logging to %s\n" % testLogDir)
+
+        cmd = [pythonProgram, './tools/rt.py', '-Ti', '-u', '-m %s' % mode]
+
+        log.write("cmd: %s\n" % ' '.join(cmd))
+
+        outputList = hardhatutil.executeCommandReturnOutput(cmd)
         hardhatutil.dumpOutputList(outputList, log)
 
     except hardhatutil.ExternalCommandErrorWithOutputList, e:
@@ -231,23 +239,22 @@ def doTests(mode, workingDir, outputDir, buildVersion, log):
         log.write("***Error during unit tests***\n")
         log.write("Test log:\n")
         hardhatutil.dumpOutputList(e.outputList, log)
-        if e.args == 0:
+        if e.exitCode == 0:
             err = ''
         else:
             err = '***Error '
-        log.write("%sexit code=%s\n" % (err, e.args))
+        log.write("%sexit code=%s\n" % (err, e.exitCode))
         log.write("NOTE: If the tests themselves passed but the exit code\n")
         log.write("      reports failure, it means a shutdown problem.\n")
         forceBuildNextCycle(log, workingDir)
         return "test_failed"
     except Exception, e:
         print "a testing error"
-        doCopyLog("***Error during unit tests***", testDir, 'do_tests.log', log)
-        #doCopyLog("***Error during tests***", workingDir, logPath, log)
+        log.write("***Internal Error during test run: %s\n" % str(e))
+        doCopyLog("***Error during unit tests***", testLogDir, 'chandler.log', log)
         return "test_failed"
     else:
-        doCopyLog("Tests successful", testDir, 'do_tests.log', log)
-        #doCopyLog("Tests successful", workingDir, logPath, log)
+        doCopyLog("Tests successful", testLogDir, 'chandler.log', log)
 
     return "success"  # end of doTests( )
 
@@ -256,7 +263,7 @@ def doDistribution(releaseMode, workingDir, log, outputDir, buildVersion, buildV
     #   Create end-user, developer distributions
     chanDir = os.path.join(workingDir, 'chandler')
     os.chdir(chanDir)
-    
+
     print "Making distribution files for " + releaseMode
     log.write(separator)
     log.write("Making distribution files for " + releaseMode + "\n")
