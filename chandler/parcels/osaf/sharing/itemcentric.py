@@ -23,7 +23,6 @@ logger = logging.getLogger(__name__)
 __all__ = [
     'inbound',
     'outbound',
-    'hasConflict',
     'outboundDeletion',
 ]
 
@@ -182,15 +181,6 @@ def outbound(peers, item, filter=None, debug=False):
         version=version)
 
     return text
-
-def hasConflict(item):
-    if pim.has_stamp(item, shares.SharedItem):
-        shared = shares.SharedItem(item)
-
-        return shared.conflictingStates
-
-    return False
-
 
 
 def outboundDeletion(peers, uuid, debug=False):

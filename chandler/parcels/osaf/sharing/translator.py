@@ -710,7 +710,7 @@ class SharingTranslator(eim.Translator):
                             prevKey = key
                         except:
                             if prevKey:
-                                mail.headers[prevKey] = header
+                                mail.headers[prevKey] += "\n" + header
 
             if record.toAddress not in noChangeOrInherit:
                 mail.toAddress = []

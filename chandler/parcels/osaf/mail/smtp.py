@@ -35,7 +35,7 @@ from repository.persistence.RepositoryView import RepositoryView
 from repository.persistence.RepositoryError \
     import RepositoryError, VersionConflictError
 
-from osaf.sharing import hasConflict, SharedItem, errors as sharingErrors
+from osaf.sharing import hasConflicts, SharedItem, errors as sharingErrors
 
 #Chandler Mail Service imports
 import constants
@@ -258,7 +258,7 @@ class SMTPClient(object):
             if self.mailMessage is not None or Globals.options.offline:
                 newMessage = self._getMailMessage(mailMessageUUID)
 
-                if hasConflict(newMessage.itsItem):
+                if hasConflicts(newMessage.itsItem):
                     # If the new message has a conflict display
                     # a warning to the user and do not
                     # add the message to the queue
@@ -304,7 +304,7 @@ class SMTPClient(object):
 
             self.mailMessage = self._getMailMessage(mailMessageUUID)
 
-            if hasConflict(self.mailMessage.itsItem):
+            if hasConflicts(self.mailMessage.itsItem):
                # If the mail message has a conflict it
                # will not be sent
                 return alertConflictError(self.mailMessage, self.account)

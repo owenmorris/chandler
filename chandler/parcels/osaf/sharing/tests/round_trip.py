@@ -651,17 +651,110 @@ class RoundTripTestCase(testcase.DualRepositoryTestCase):
         self.assert_(item not in self.share0.contents)
         self.assert_(item1 not in self.share1.contents)
 
+        # Test MailMessageRecord
+        #=================================
+
+        # Cache variable values for assert comparison later
+        mId        = u"1234@test.com"
+        inReplyTo  = u"3456@test.com"
+        refHeader  = u"5678@test.com\n 456789@test.com"
+        references  = [u"5678@test.com", "456789@test.com"]
+        subject    = u"\u00FCTest Subject"
+        body       = u"\u00FCTest Body"
+
+        received = u"""Received: from leilani.osafoundation.org (leilani.osafoundation.org [127.0.0.1])
+  by leilani.osafoundation.org (Postfix) with ESMTP id 00D037F537;
+  Thu, 29 Mar 2007 13:22:42 -0700 (PDT)"""
+
+        fromAddr = pim.EmailAddress(itsView=view0, fullName=u"test user",
+                                    emailAddress=u"test@test.com")
+
+        toAddr1 = pim.EmailAddress(itsView=view0, fullName=u"test user1",
+                                    emailAddress=u"test1@test.com")
+
+        toAddr2 = pim.EmailAddress(itsView=view0, fullName=u"test user2",
+                                    emailAddress=u"test2@test.com")
+
+        ccAddr = pim.EmailAddress(itsView=view0, fullName=u"test user3",
+                                    emailAddress=u"test3@test.com")
+
+        bccAddr = pim.EmailAddress(itsView=view0, fullName=u"test user4",
+                                    emailAddress=u"test4@test.com")
+
+        origAddr = pim.EmailAddress(itsView=view0, emailAddress=u"The Management")
+
+        from osaf.mail.utils import dateTimeToRFC2822Date
+
+        dateSent = datetime.datetime.now(ICUtzinfo.default)
+        dateSentString = dateTimeToRFC2822Date(dateSent)
+
+        # Start over with a new item
+        item = pim.Note(itsView=view0)
+        ms = pim.MailStamp(item)
+        ms.add()
+
+        self.share0.contents.add(item)
+
+        #Assign values to the MailStamp on item
+        ms.messageId = mId
+
+        #Populate some random headers
+        ms.headers = {}
+
+        ms.headers['X-Chandler-From'] = u"True"
+        ms.headers['Received'] = received
+        ms.headers["From"] = fromAddr.format()
+        ms.headers["Subject"] = subject
+        ms.headers["In-Reply-To"] = inReplyTo
+        ms.headers["References"] = refHeader
+
+        ms.inReplyTo = inReplyTo
+        ms.referencesMID = references
+        ms.fromAddress = fromAddr
+        ms.toAddress = [toAddr1, toAddr2]
+        ms.ccAddress = [ccAddr]
+        ms.bccAddress = [bccAddr]
+        ms.originators = [origAddr]
+        ms.dateSent = dateSent
+        ms.dateSentString = dateSentString
+        item.displayName = subject
+        item.body = body
+
+        view0.commit()
+        self.share0.sync()
+        view0.commit()
+
+        view1.commit()
+        self.share1.sync()
+        view1.commit()
+
+        item1 = view1.findUUID(item.itsUUID)
+        self.assert_(pim.has_stamp(item1, pim.MailStamp))
+        ms1 = pim.MailStamp(item1)
 
 
-
-        #
-        # Mail items
-        #
-        # TBD
+        self.assertEquals(ms1.messageId, mId)
+        self.assertEquals(ms1.dateSentString, dateSentString)
 
 
+        self.assertEquals(ms1.inReplyTo, inReplyTo)
+        self.assertEquals(ms1.referencesMID, references)
+        self.assertEquals(ms1.fromAddress.format(), fromAddr.format())
+        self.assertEquals(ms1.toAddress.first().format(), toAddr1.format())
+        self.assertEquals(ms1.toAddress.last().format(), toAddr2.format())
+        self.assertEquals(ms1.ccAddress.first().format(), ccAddr.format())
+        self.assertEquals(ms1.bccAddress.first().format(), bccAddr.format())
+        self.assertEquals(ms1.originators.first().format(), origAddr.format())
 
+        self.assertEquals(ms1.headers['X-Chandler-From'], u"True")
+        self.assertEquals(ms1.headers['From'], fromAddr.format())
+        self.assertEquals(ms1.headers['Subject'], subject)
+        self.assertEquals(ms1.headers['In-Reply-To'], inReplyTo)
+        self.assertEquals(ms1.headers['References'], refHeader)
+        self.assertEquals(ms1.headers['Received'], received)
 
+        self.assertEquals(item1.body, body)
+        self.assertEquals(item1.displayName, subject)
 
         #
         # Recurrence

@@ -138,6 +138,58 @@ Exporting:
     >>> records
     [ItemRecord('f230dcd4-7c32-4c3f-908b-d92081cc9a89', u'Translator test', u'200 -1167792143.00 1', Decimal("1164803131"), 0, 0), ModifiedByRecord('f230dcd4-7c32-4c3f-908b-d92081cc9a89', u'', Decimal("1164803131"), 500), NoteRecord('f230dcd4-7c32-4c3f-908b-d92081cc9a89', u'This is the body', None, None, None), TaskRecord('f230dcd4-7c32-4c3f-908b-d92081cc9a89')]
 
+
+MailMessageRecord type
+Importing:
+
+    >>> pim.stamping.has_stamp(item, pim.MailStamp)
+    False
+
+    >>> rec = sharing.model.MailMessageRecord(
+    ...         uuid='f230dcd4-7c32-4c3f-908b-d92081cc9a89',
+    ...         messageId = u'1234@test.com',
+    ...         headers = u'From: test@test.com\nTo: test1@test.com',
+    ...         fromAddress = 'test@test.com',
+    ...         toAddress = 'test1@test.com, test2@test.com',
+    ...         ccAddress = None,
+    ...         bccAddress = None,
+    ...         originators = u'Test User',
+    ...         dateSent = 'Sat, 31 Mar 2007 00:03:34 +0000',
+    ...         inReplyTo = None,
+    ...         references = None,
+    ... )
+
+    >>> rs = sharing.RecordSet([rec])
+
+    >>> t.startImport()
+    >>> t.importRecords(rs)
+    >>> t.finishImport()
+
+    >>> pim.stamping.has_stamp(item, pim.MailStamp)
+    True
+    >>> mail = pim.MailStamp(item)
+    >>> mail.messageId
+    u'1234@test.com'
+    >>> mail.headers['From']
+    u'test@test.com'
+    >>> mail.fromAddress.format()
+    u'test@test.com'
+    >>> mail.toAddress.first().format()
+    u'test1@test.com'
+    >>> mail.originators.first().format()
+    u'Test User'
+    >>> mail.dateSentString
+    u'Sat, 31 Mar 2007 00:03:34 +0000'
+
+
+Exporting:
+
+    >>> t.startExport()
+    >>> records = [r for r in t.exportItem(item) if isinstance(r, sharing.model.MailMessageRecord)]
+    >>> records
+    [MailMessageRecord('f230dcd4-7c32-4c3f-908b-d92081cc9a89', u'1234@test.com', u'To: test1@test.com\nFrom: test@test.com', u'test@test.com', u'test1@test.com, test2@test.com', None, None, u'Test User', u'Sat, 31 Mar 2007 00:03:34 +0000', u'', None)]
+
+
 EventRecord type
 - - - - - - - -
 

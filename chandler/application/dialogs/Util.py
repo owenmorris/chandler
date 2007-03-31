@@ -386,17 +386,29 @@ def displayI18nManagerDebugWindow(frame):
     win.ShowModal()
     win.Destroy()
 
-def displayMeAddressDebugWindow(frame, view):
+def displayAddressDebugWindow(frame, view, type=1):
     from application import schema
+
+    # Types:
+    # =========
+    # 1: meEmailAddressCollection
+    # 2: currentMeEmailAddresses
+    # 3: currenMeEmailAddress
 
     list = []
 
-    meAddressCollection = schema.ns("osaf.pim", view).meEmailAddressCollection
+    if type == 1:
+        collection = schema.ns("osaf.pim", view).meEmailAddressCollection
+    elif type == 2:
+        collection = schema.ns('osaf.pim', view).currentMeEmailAddresses.item.emailAddresses
+    else:
+        collection = [schema.ns('osaf.pim', view).currentMeEmailAddress.item]
 
-    for eAddr in meAddressCollection:
-        list.append(eAddr.emailAddress)
+    for eAddr in collection:
+        if eAddr:
+            list.append(eAddr.emailAddress)
 
-    win = DebugWindow(frame, -1, u"Me Address Collection Debugger",
+    win = DebugWindow(frame, -1, u"Email Address Debugger",
                       u'\n'.join(list), tsize=[400,300])
 
     win.CenterOnScreen()
