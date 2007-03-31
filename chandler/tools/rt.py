@@ -874,7 +874,8 @@ def runScriptPerfTests(options, testlist, largeData=False, repeat=1, logger=log)
                 log(('%02.2f' % stddev([x for x, _y in values])).rjust(6))
                 
                 if not options.dryrun:
-                    value[1].logAll()
+                    for args, kw in value[1].delayed:
+                        logger(*args, **kw)
             except IndexError:
                 if not options.noStop:
                     raise
