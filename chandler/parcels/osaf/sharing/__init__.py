@@ -20,6 +20,7 @@ from application import schema, dialogs
 from application.Parcel import Reference
 from application.Utility import getDesktopDir, CertificateVerificationError
 from osaf import pim, ChandlerException
+from osaf.framework.password import Password
 from osaf.framework.twisted import waitForDeferred
 from osaf.pim import isDead, has_stamp
 from osaf.pim.calendar import Calendar
@@ -863,6 +864,7 @@ def subscribe(view, url, activity=None, username=None, password=None,
             if username is not None:
                 account.username = username
             if password is not None:
+                account.password = Password(itsParent=account)
                 waitForDeferred(account.password.encryptPassword(password))
 
         collection = subscribeCalDAV(view, url, inspection,
@@ -884,6 +886,7 @@ def subscribe(view, url, activity=None, username=None, password=None,
             if username is not None:
                 account.username = username
             if password is not None:
+                account.password = Password(itsParent=account)
                 waitForDeferred(account.password.encryptPassword(password))
 
         collection = subscribeWebDAV(view, url, inspection,
