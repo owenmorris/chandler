@@ -18,9 +18,10 @@ from CalendarCanvas import (
     CalendarContainer,
     CalendarControl, 
     CanvasSplitterWindow,
-    CalendarPrefs,
     VisibleHoursEvent,
 )
+
+from osaf.preferences import CalendarPrefs
 
 from AllDayCanvas import AllDayEventsCanvas
 from TimedCanvas import TimedEventsCanvas

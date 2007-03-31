@@ -64,3 +64,38 @@ class Preferences(schema.Item):
     base class for any and all preferences
     """
     pass
+
+class CalendarHourMode(schema.Enumeration):
+    values="visibleHours", "pixelSize", "auto"
+
+class CalendarPrefs(Preferences):
+    """
+    Calendar preferences - there should be a single global instance of
+    this object accessible at::
+
+        prefs = schema.ns('osaf.framework.blocks.calendar', view).calendarPrefs
+    """
+    hourHeightMode = schema.One(CalendarHourMode, defaultValue="visibleHours",
+                                doc="Chooses which mode to use when setting "
+                                "the hour height.\n"
+                                "'visibleHours' means to show exactly the "
+                                "number of hours in self.visibleHours\n"
+                                "'pixelSize' means it should be exactly the "
+                                "pixel size in self.hourPixelSize\n"
+                                "'auto' means to base it on the size of the "
+                                "font used for drawing")
+
+
+    visibleHours = schema.One(schema.Integer, defaultValue = 10,
+                              doc="Number of hours visible vertically "
+                              "when hourHeightMode is 'visibleHours'")
+    hourPixelSize = schema.One(schema.Integer, defaultValue = 40,
+                               doc="An exact number of pixels for the hour")
+
+    def getHourHeight(self, windowHeight, fontHeight):
+        if self.hourHeightMode == "visibleHours":
+            return windowHeight/self.visibleHours
+        elif self.hourHeightMode == "pixelSize":
+            return self.hourPixelSize
+        else:
+            return (fontHeight+8) * 2

@@ -39,7 +39,7 @@ from osaf.pim.mail import EmailAddress
 from osaf.usercollections import UserCollection
 from osaf.mail.utils import getEmptyDate
 from osaf.pim.structs import ColorType
-
+from osaf.preferences import CalendarPrefs
 __all__ = [
     'SharingTranslator',
     'DumpTranslator',
@@ -1556,6 +1556,48 @@ class DumpTranslator(SharingTranslator):
             account.davPath
         )
 
+    # - - Preference items - - - - - - - - - - - - - - - - - - - - - - - - - -
+    @model.PrefCalendarHourHeightRecord.importer
+    def import_prefcalendarhourheight(self, record):
+        pref = schema.ns('osaf.framework.blocks.calendar', self.rv).calendarPrefs
+        pref.hourHeightMode = record.hourHeightMode
+        pref.visibleHours = record.visibleHours
+
+    @eim.exporter(CalendarPrefs)
+    def export_prefcalendarhourheight(self, pref):
+        if (str(pref.itsPath) == 
+            '//parcels/osaf/framework/blocks/calendar/calendarPrefs'):
+            yield model.PrefCalendarHourHeightRecord(
+                pref,
+                pref.hourHeightMode,
+                pref.visibleHours
+            )
+
+    @model.PrefTimezonesRecord.importer
+    def import_preftimezones(self, record):
+        
+        pref = schema.ns('osaf.pim', self.rv).TimezonePrefs
+        pref.showUI = bool(record.showUI)
+        pref.showPrompt = bool(record.showPrompt)
+
+        tzitem = TimeZone.TimeZoneInfo.get(self.rv)
+        tzitem.default = ICUtzinfo.getInstance(record.default)
+        tzitem.wellKnownIDs = record.wellKnownIDs.split(',')
+
+    @eim.exporter(TimeZone.TZPrefs)
+    def export_preftimezones(self, pref):
+
+        if str(pref.itsPath) == '//parcels/osaf/pim/TimezonePrefs':
+            tzitem = TimeZone.TimeZoneInfo.get(self.rv)
+            yield model.PrefTimezonesRecord(
+                pref,
+                pref.showUI,
+                pref.showPrompt,
+                tzitem.default.tzid,
+                ",".join(tzitem.wellKnownIDs)
+            )
+    
+    # - - Finishing up - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
     def finishExport(self):
         for record in super(DumpTranslator, self).finishExport():
             yield record
@@ -1563,6 +1605,8 @@ class DumpTranslator(SharingTranslator):
         # emit the CollectionMembership records for the sidebar collection
         for record in self.export_collection_memberships (schema.ns("osaf.app", self.rv).sidebarCollection):
             yield record
+            
+
 
 
 def test_suite():

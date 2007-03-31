@@ -50,6 +50,8 @@ from osaf.framework.blocks.Views import View
 from osaf.framework.blocks.calendar import CalendarCanvas
 from osaf.framework.blocks.Block import Block
 
+from osaf.preferences import Preferences
+
 from osaf.framework.prompts import promptOk
 
 import i18n
@@ -1219,7 +1221,8 @@ class MainView(View):
             try:
                 uuids = set()
                 for item in schema.Item.iterItems(self.itsView):
-                    if not str(item.itsPath).startswith("//parcels"):
+                    if (isinstance(item, Preferences) or
+                        not str(item.itsPath).startswith("//parcels")):
                         uuids.add(item.itsUUID)
                 dumpreload.dump(self.itsView, path, uuids, activity=activity)
                 activity.completed()

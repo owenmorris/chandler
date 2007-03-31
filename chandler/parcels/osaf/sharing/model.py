@@ -292,3 +292,22 @@ class ShareCosmoAccountRecord(eim.Record):
     pimpath = eim.field(text1024) # pim/collection
     morsecodepath = eim.field(text1024) # mc/collection
     davpath = eim.field(text1024) # dav/collection
+
+# preferences ----------------------------------------------------------------
+
+class PrefCalendarHourHeightRecord(eim.Record):
+    URI = "http://osafoundation.org/eim/preferences/calendarhourheight/0"
+
+    uuid = eim.key(ItemRecord.uuid)
+    hourHeightMode = eim.field(text20)
+    visibleHours = eim.key(eim.IntType)
+    
+class PrefTimezonesRecord(eim.Record):
+    URI = "http://osafoundation.org/eim/preferences/timezones/0"
+
+    uuid = eim.key(ItemRecord.uuid)
+    showUI = eim.key(eim.IntType)
+    showPrompt = eim.key(eim.IntType)
+    default = eim.field(text256)
+    wellKnownIDs = eim.field(text1024)
+    
