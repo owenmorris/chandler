@@ -288,43 +288,42 @@ class wxTable(DragAndDrop.DraggableWidget,
 
             firstRow = event.GetTopRow()
             lastRow = event.GetBottomRow()
-            indexStart = self.RowToIndex(firstRow)
-            indexEnd = self.RowToIndex(lastRow)
-            if indexStart != -1 and indexEnd != -1:        
-                postSelection = True
-                selectionChanged = False
+            indexStart, indexEnd = self.RangeToIndex(firstRow, lastRow)
 
-                if event.Selecting():
-                    if -1 not in (indexStart, indexEnd) and \
-                       not contents.isSelected((indexStart, indexEnd)):
-                        selectionChanged = True
-                        contents.addSelectionRange((indexStart, indexEnd))
-                elif (firstRow == 0 and lastRow != 0 
-                      and lastRow == self.GetNumberRows()-1):
-                    # this is a special "deselection" event that the
-                    # grid sends us just before selecting another
-                    # single item. This happens just before a user
-                    # simply clicks from one item to another.
+            postSelection = True
+            selectionChanged = False
 
-                    # this allows us to avoid broadcasting an empty
-                    # deselection if the user is just clicking from
-                    # one item to another.
-                    contents.clearSelection()
-                    postSelection = False
-                else:
-                    assert -1 not in (firstRow, lastRow)
-                    if contents.isSelected((indexStart, indexEnd)):
-                        selectionChanged = True
-                        
-                    # we always want to remove the old selection
-                    contents.removeSelectionRange((indexStart, indexEnd))
-                        
-                # possibly broadcast the "new" selection
-                if selectionChanged and postSelection:
-                    gridTable = self.GetTable()
-                    for columnIndex in xrange (gridTable.GetNumberCols()):
-                        self.SetColLabelValue (columnIndex, gridTable.GetColLabelValue (columnIndex))
-                    blockItem.PostSelectItems()
+            if event.Selecting():
+                if -1 not in (indexStart, indexEnd) and \
+                   not contents.isSelected((indexStart, indexEnd)):
+                    selectionChanged = True
+                    contents.addSelectionRange((indexStart, indexEnd))
+            elif (firstRow == 0 and lastRow != 0 
+                  and lastRow == self.GetNumberRows()-1):
+                # this is a special "deselection" event that the
+                # grid sends us just before selecting another
+                # single item. This happens just before a user
+                # simply clicks from one item to another.
+
+                # this allows us to avoid broadcasting an empty
+                # deselection if the user is just clicking from
+                # one item to another.
+                contents.clearSelection()
+                postSelection = False
+            else:
+                assert -1 not in (firstRow, lastRow)
+                if contents.isSelected((indexStart, indexEnd)):
+                    selectionChanged = True
+                    
+                # we always want to remove the old selection
+                contents.removeSelectionRange((indexStart, indexEnd))
+                    
+            # possibly broadcast the "new" selection
+            if selectionChanged and postSelection:
+                gridTable = self.GetTable()
+                for columnIndex in xrange (gridTable.GetNumberCols()):
+                    self.SetColLabelValue (columnIndex, gridTable.GetColLabelValue (columnIndex))
+                blockItem.PostSelectItems()
         finally:
             blockItem.startNotificationDirt()
 

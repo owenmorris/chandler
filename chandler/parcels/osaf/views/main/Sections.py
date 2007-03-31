@@ -274,6 +274,27 @@ class SectionedGridDelegate(ControlBlocks.AttributeDelegate):
                 #assert False, "Couldn't find row for index %s" % itemIndex
         return -1
 
+    def RangeToIndex(self, startRow, endRow):
+        """
+        Translate these rows to collection indexes; make sure the ends point at 
+        actual rows (or return (-1,-1) if there aren't any actual rows in this range)
+        """
+        startIndex = self.RowToIndex(startRow)
+        while startIndex == -1:
+            startRow += 1
+            if startRow >= self.totalRows:
+                return -1, -1
+            startIndex = self.RowToIndex(startRow)
+        
+        endIndex = self.RowToIndex(endRow)
+        while endIndex == -1:
+            endRow -= 1
+            if endRow < startRow:
+                return -1, -1
+            endIndex = self.RowToIndex(endRow)
+            
+        return startIndex, endIndex
+
     def ToggleRow(self, row):
         for (section, (sectionRow, visible, total)) in enumerate(self.sectionRows):
             if row == sectionRow:

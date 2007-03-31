@@ -400,6 +400,12 @@ class ListDelegate (object):
         """
         return itemIndex
 
+    def RangeToIndex(self, startRow, endRow):
+        """
+        Translasted a row range in the grid to a row range in the collection
+        """
+        return self.RowToIndex(startRow), self.RowToIndex(endRow)
+
     def InitElementDelegate(self):
         """
         Called right after the delegate has been mixed in.
