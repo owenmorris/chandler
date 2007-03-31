@@ -113,7 +113,7 @@ def fromICalendarDateTime(text, multivalued=False):
     prefix = 'dtstart' # arbitrary
     if not text.startswith(';'):
         # no parameters
-        prefix =+ ':'
+        prefix += ':'
     line = textLineToContentLine('dtstart' + text)
     if multivalued:
         line.behavior = MultiDateBehavior
@@ -289,8 +289,8 @@ def splitUUID(recurrence_aware_uuid):
     Return the tuple (UUID, recurrenceID or None).  UUID will be a string,
     recurrenceID will be a datetime or None.
     """
-    uuid, colon, recurrenceID = recurrence_aware_uuid.partition(":")
-    if colon != ":":
+    uuid, colon, recurrenceID = recurrence_aware_uuid.partition("::")
+    if colon != "::":
         # a plain UUID
         return (uuid, None)
     else:
@@ -325,7 +325,7 @@ def getAliasForItem(item_or_stamp):
         master = item.inheritFrom
         recurrenceID = toICalendarDateTime(event.recurrenceID,
                                            event.allDay or event.anyTime)
-        return master.itsUUID.str16() + ":" + recurrenceID
+        return master.itsUUID.str16() + "::" + recurrenceID
     else:
         return item.itsUUID.str16()
 

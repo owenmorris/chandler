@@ -361,7 +361,7 @@ class ICSSerializer(object):
                     rec_string = toICalendarDateTime(recurrenceID,
                                                               allDay or anyTime)
 
-                    uuid += ":" + rec_string
+                    uuid += "::" + rec_string
                     master = masters[uid]
                     uid = eim.Inherit
                     if (master.getChildValue('duration') == 

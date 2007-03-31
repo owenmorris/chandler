@@ -283,7 +283,7 @@ Modifications
 Importing:
 
     >>> mod_rec = sharing.model.ItemRecord(
-    ...         uuid='f230dcd4-7c32-4c3f-908b-d92081cc9a89:;VALUE=DATE-TIME;TZID=US/Pacific:20070223T140000',
+    ...         uuid='f230dcd4-7c32-4c3f-908b-d92081cc9a89::;VALUE=DATE-TIME;TZID=US/Pacific:20070223T140000',
     ...         title='Changed title',
     ...         triage=sharing.Inherit,
     ...         createdOn=sharing.Inherit,
