@@ -657,7 +657,7 @@ def publish(collection, account, classesToInclude=None,
                 conduit = WebDAVRecordSetConduit(itsParent=share,
                     shareName=shareName, account=account,
                     translator=SharingTranslator,
-                    serializer=EIMMLSerializerLite)
+                    serializer=EIMMLSerializer)
                 share.conduit = conduit
 
                 # TODO: support filters on WebDAV + EIMML
@@ -1139,14 +1139,14 @@ def subscribeWebDAV(view, url, inspection, activity=None, account=None,
     if account:
         share.conduit = WebDAVRecordSetConduit(itsParent=share,
             account=account, shareName=shareName,
-            translator=SharingTranslator, serializer=EIMMLSerializerLite)
+            translator=SharingTranslator, serializer=EIMMLSerializer)
 
     else:
         (useSSL, host, port, path, query, fragment) = splitUrl(url)
         share.conduit = WebDAVRecordSetConduit(itsParent=share, host=host,
             port=port, sharePath=sharePath, shareName=shareName,
             useSSL=useSSL, ticket=ticket,
-            translator=SharingTranslator, serializer=EIMMLSerializerLite)
+            translator=SharingTranslator, serializer=EIMMLSerializer)
 
     if filters:
         share.conduit.filters = filters

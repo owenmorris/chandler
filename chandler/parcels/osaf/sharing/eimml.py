@@ -287,6 +287,9 @@ class EIMMLSerializer(object):
 
 
 
+# Do not use this class until we can figure out how to properly escape
+# newlines in attribute values.  This may not really work anyway, so this
+# class might go away.
 
 class EIMMLSerializerLite(object):
 
