@@ -1428,7 +1428,49 @@ static int _check_pair(PyObject *obj)
     return 0;
 }
 
-static PyObject *t_view_findValues(t_view *self, PyObject *args)
+static PyObject *_read_value(t_view *self, PyObject *reader,
+                             PyObject *uValues, int i)
+{
+    if (reader == Py_None)
+    {
+        Py_INCREF(Nil);
+        return Nil;
+    }
+    else
+    {
+        PyObject *uValue = PySequence_GetItem(uValues, i);
+        PyObject *loadedValue, *value;
+
+        if (!uValue)
+            return NULL;
+
+        if (uValue == Py_None)
+        {
+            Py_DECREF(uValue);
+            Py_INCREF(Nil);
+            return Nil;
+        }
+
+        loadedValue = PyObject_CallMethodObjArgs(reader, readValue_NAME,
+                                                 self, uValue, NULL);
+        Py_DECREF(uValue);
+
+        if (_check_pair(loadedValue) < 0)
+        {
+            Py_XDECREF(loadedValue);
+            return NULL;
+        }
+
+        value = PyTuple_GET_ITEM(loadedValue, 1);
+        Py_INCREF(value);
+        Py_DECREF(loadedValue);
+
+        return value;
+    }
+}
+
+static PyObject *_t_view_findValues(t_view *self, PyObject *args,
+                                    PyObject **inheritFrom)
 {
     PyObject *uItem, *item;
     PyObject *values = NULL, *names = NULL, *result = NULL;
@@ -1472,13 +1514,20 @@ static PyObject *t_view_findValues(t_view *self, PyObject *args)
                 goto error;
 
             name = PyTuple_GET_ITEM(arg, 0);
-            defaultValue = PyTuple_GET_ITEM(arg, 1);
+            defaultValue = inheritFrom ? Nil : PyTuple_GET_ITEM(arg, 1);
             value = CItem_getLocalAttributeValue((t_item *) item, name,
                                                  defaultValue, NULL);
             if (!value)
                 goto error;
-
             PyTuple_SET_ITEM(values, i - 1, value);
+        }
+        if (inheritFrom)
+        {
+            *inheritFrom =
+                CItem_getLocalAttributeValue((t_item *) item, inheritFrom_NAME,
+                                             Py_None, NULL);
+            if (!*inheritFrom)
+                goto error;
         }
     }
     else if (PyObject_TypeCheck(self->repository, CRepository))
@@ -1486,7 +1535,7 @@ static PyObject *t_view_findValues(t_view *self, PyObject *args)
         t_repository *repository = (t_repository *) self->repository;
         PyObject *reader, *uValues, *version;
 
-        names = PyTuple_New(size - 1);
+        names = PyTuple_New(size - (inheritFrom == NULL));
         if (!names)
             return NULL;
 
@@ -1501,6 +1550,11 @@ static PyObject *t_view_findValues(t_view *self, PyObject *args)
             PyTuple_SET_ITEM(names, i - 1, name);
             Py_INCREF(name);
         }
+        if (inheritFrom)
+        {
+            Py_INCREF(inheritFrom_NAME);
+            PyTuple_SET_ITEM(names, size - 1, inheritFrom_NAME);
+        }
 
         version = PyInt_FromLong(self->version);
         result = PyObject_CallMethodObjArgs(repository->store, loadValues_NAME,
@@ -1513,7 +1567,57 @@ static PyObject *t_view_findValues(t_view *self, PyObject *args)
         reader = PyTuple_GET_ITEM(result, 0);
         uValues = PyTuple_GET_ITEM(result, 1);
 
-        if (reader == Py_None)
+        for (i = 1; i < size; i++) {
+            PyObject *value = _read_value(self, reader, uValues, i - 1);
+
+            if (!value)
+                goto error;
+
+            if (value != Nil)
+                PyTuple_SET_ITEM(values, i - 1, value);
+            else if (inheritFrom)
+                PyTuple_SET_ITEM(values, i - 1, value);
+            else
+            {
+                PyObject *arg = PyTuple_GET_ITEM(args, i);
+                PyObject *defaultValue = PyTuple_GET_ITEM(arg, 1);
+
+                Py_INCREF(defaultValue);
+                Py_DECREF(value);
+                PyTuple_SET_ITEM(values, i - 1, defaultValue);
+            }
+        }
+        if (inheritFrom)
+        {
+            PyObject *value = _read_value(self, reader, uValues, size - 1);
+
+            if (!value)
+                goto error;
+
+            if (value == Nil)
+            {
+                Py_DECREF(Nil);
+                Py_INCREF(Py_None);
+                *inheritFrom = Py_None;
+            }
+            else
+                *inheritFrom = value;
+        }
+
+        Py_CLEAR(result);
+    }
+    else
+    {
+        if (inheritFrom)
+        {
+            for (i = 1; i < size; i++) {
+                Py_INCREF(Nil);
+                PyTuple_SET_ITEM(values, i - 1, Nil);
+            }
+            Py_INCREF(Py_None);
+            *inheritFrom = Py_None;
+        }
+        else
         {
             for (i = 1; i < size; i++) {
                 PyObject *arg = PyTuple_GET_ITEM(args, i);
@@ -1523,62 +1627,13 @@ static PyObject *t_view_findValues(t_view *self, PyObject *args)
                 Py_INCREF(defaultValue);
             }
         }
-        else
-        {
-            for (i = 1; i < size; i++) {
-                PyObject *uValue = PySequence_GetItem(uValues, i - 1);
-
-                if (!uValue)
-                    goto error;
-
-                if (uValue == Py_None)
-                {
-                    PyObject *arg = PyTuple_GET_ITEM(args, i);
-                    PyObject *defaultValue = PyTuple_GET_ITEM(arg, 1);
-
-                    PyTuple_SET_ITEM(values, i - 1, defaultValue);
-                    Py_INCREF(defaultValue);
-                }
-                else
-                {
-                    PyObject *loadedValue =
-                        PyObject_CallMethodObjArgs(reader, readValue_NAME,
-                                                   self, uValue, NULL);
-                    PyObject *value;
-
-                    if (_check_pair(loadedValue) < 0)
-                    {
-                        Py_XDECREF(loadedValue);
-                        goto error;
-                    }
-
-                    value = PyTuple_GET_ITEM(loadedValue, 1);
-                    PyTuple_SET_ITEM(values, i - 1, value);
-                    Py_INCREF(value);
-
-                    Py_DECREF(loadedValue);
-                }
-
-                Py_DECREF(uValue);
-            }
-        }
-
-        Py_CLEAR(result);
-    }
-    else
-    {
-        for (i = 1; i < size; i++) {
-            PyObject *arg = PyTuple_GET_ITEM(args, i);
-            PyObject *defaultValue = PyTuple_GET_ITEM(arg, 1);
-
-            PyTuple_SET_ITEM(values, i - 1, defaultValue);
-            Py_INCREF(defaultValue);
-        }
     }
 
     return values;
 
   error:
+    if (inheritFrom)
+        Py_CLEAR(*inheritFrom);
     Py_CLEAR(values);
     Py_CLEAR(names);
     Py_CLEAR(result);
@@ -1586,9 +1641,14 @@ static PyObject *t_view_findValues(t_view *self, PyObject *args)
     return NULL;
 }
 
+static PyObject *t_view_findValues(t_view *self, PyObject *args)
+{
+    return _t_view_findValues(self, args, NULL);
+}
+
 static PyObject *t_view_findInheritedValues(t_view *self, PyObject *args)
 {
-    PyObject *valueArgs, *localValues, *values, *inheritFrom;
+    PyObject *localValues, *values, *inheritFrom = NULL;
     int size, i;
 
     if (!PyTuple_Check(args))
@@ -1598,33 +1658,7 @@ static PyObject *t_view_findInheritedValues(t_view *self, PyObject *args)
     }
 
     size = PyTuple_GET_SIZE(args);
-
-    valueArgs = PyTuple_New(size + 1);
-    if (!valueArgs)
-        return NULL;
-
-    for (i = 0; i < size; i++) {
-        PyObject *arg = PyTuple_GET_ITEM(args, i);
-
-        if (i > 0)
-        {
-            if (_check_pair(arg) < 0)
-            {
-                Py_DECREF(valueArgs);
-                return NULL;
-            }
-            arg = PyTuple_Pack(2, PyTuple_GET_ITEM(arg, 0), Nil);
-        }
-        else
-            Py_INCREF(arg);
-
-        PyTuple_SET_ITEM(valueArgs, i, arg);
-    }
-    PyTuple_SET_ITEM(valueArgs, size,
-                     PyTuple_Pack(2, inheritFrom_NAME, Py_None));
-
-    localValues = t_view_findValues(self, valueArgs);
-    Py_DECREF(valueArgs);
+    localValues = _t_view_findValues(self, args, &inheritFrom);
     if (!localValues)
         return NULL;
 
@@ -1635,7 +1669,6 @@ static PyObject *t_view_findInheritedValues(t_view *self, PyObject *args)
         return NULL;
     }
 
-    inheritFrom = PyTuple_GET_ITEM(localValues, size - 1);
     if (inheritFrom == Py_None)
     {
         for (i = 1; i < size; i++) {
@@ -1664,19 +1697,20 @@ static PyObject *t_view_findInheritedValues(t_view *self, PyObject *args)
 
         if (nilCount)
         {
-            PyObject *inheritedValues;
+            PyObject *inheritArgs, *inheritedValues;
             int j;
 
-            valueArgs = PyTuple_New(nilCount + 1);
-            if (!valueArgs)
+            inheritArgs = PyTuple_New(nilCount + 1);
+            if (!inheritArgs)
             {
+                Py_DECREF(inheritFrom);
                 Py_DECREF(localValues);
                 Py_DECREF(values);
                 return NULL;
             }
 
             Py_INCREF(inheritFrom);
-            PyTuple_SET_ITEM(valueArgs, 0, inheritFrom);
+            PyTuple_SET_ITEM(inheritArgs, 0, inheritFrom);
 
             for (i = 1, j = 1; i < size; i++) {
                 PyObject *value = PyTuple_GET_ITEM(localValues, i - 1);
@@ -1686,14 +1720,15 @@ static PyObject *t_view_findInheritedValues(t_view *self, PyObject *args)
                     PyObject *arg = PyTuple_GET_ITEM(args, i);
                     
                     Py_INCREF(arg);
-                    PyTuple_SET_ITEM(valueArgs, j++, arg);
+                    PyTuple_SET_ITEM(inheritArgs, j++, arg);
                 }
             }
 
-            inheritedValues = t_view_findInheritedValues(self, valueArgs);
-            Py_DECREF(valueArgs);
+            inheritedValues = t_view_findInheritedValues(self, inheritArgs);
+            Py_DECREF(inheritArgs);
             if (!inheritedValues)
             {
+                Py_DECREF(inheritFrom);
                 Py_DECREF(localValues);
                 Py_DECREF(values);
                 return NULL;
@@ -1712,6 +1747,7 @@ static PyObject *t_view_findInheritedValues(t_view *self, PyObject *args)
             Py_DECREF(inheritedValues);
         }
     }
+    Py_DECREF(inheritFrom);
     Py_DECREF(localValues);
 
     return values;
