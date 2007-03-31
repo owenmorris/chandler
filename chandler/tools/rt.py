@@ -834,7 +834,8 @@ def runScriptPerfTests(options, testlist, largeData=False, repeat=1, logger=log)
             if options.dryrun:
                 result = 0
             else:
-                result = build_lib.runCommand(cmd, timeout=1800, logger=logger)
+                tempLogger = DelayedLogger()
+                result = build_lib.runCommand(cmd, timeout=1800, logger=tempLogger)
     
             if result != 0:
                 log('***Error exit code=%d, %s' % (result, name))
@@ -854,19 +855,29 @@ def runScriptPerfTests(options, testlist, largeData=False, repeat=1, logger=log)
                         value = 0.00
                     
                 log(('%02.2f' % value).rjust(just), newline=' ')
-                values.append(value)
+                if not options.dryrun:
+                    values.append((value, tempLogger))
+                else:
+                    values.append((value, None))
             if options.dryrun:
                 log('- + ' * 15)
             else:
-                logger('- + ' * 15)
+                tempLogger('- + ' * 15)
         else:
-            values.sort()
-            value = values[repeat/2]
-
-            log(' | ', newline='')
-            log(('%02.2f' % value).rjust(6) , newline='')
-            log(u' \u00B1 '.encode('utf8'), newline='') # Unicode PLUS-MINUS SIGN
-            log(('%02.2f' % stddev(values)).rjust(6))
+            try:
+                values.sort()
+                value = values[repeat/2]
+    
+                log(' | ', newline='')
+                log(('%02.2f' % value[0]).rjust(6) , newline='')
+                log(u' \u00B1 '.encode('utf8'), newline='') # Unicode PLUS-MINUS SIGN
+                log(('%02.2f' % stddev([x for x, _y in values])).rjust(6))
+                
+                if not options.dryrun:
+                    value[1].logAll()
+            except IndexError:
+                if not options.noStop:
+                    raise
 
         if failed and not options.noStop:
             break
