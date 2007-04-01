@@ -347,8 +347,10 @@ class RecordSetConduit(conduits.BaseConduit):
                     # apply this to the master
                     item_to_change = getattr(item, 'inheritFrom', item)
                     item_to_change.read = False
-
+                    
+                translator.startImport()
                 translator.importRecords(rs)
+                translator.finishImport()
 
                 uuid = translator.getUUIDForAlias(alias)
                 if uuid:

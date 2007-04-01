@@ -45,6 +45,8 @@ __all__ = [
     'DumpTranslator',
 ]
 
+from application.dialogs.TurnOnTimezones import ShowTurnOnTimezonesDialog
+import wx
 
 
 utc = ICUtzinfo.getInstance('UTC')
@@ -339,6 +341,11 @@ class SharingTranslator(eim.Translator):
     URI = "cid:pim-translator@osaf.us"
     version = 1
     description = u"Translator for Chandler PIM items"
+
+    def startImport(self):
+        super(SharingTranslator, self).startImport()
+        tzprefs = schema.ns("osaf.pim", self.rv).TimezonePrefs
+        self.promptForTimezone = not tzprefs.showUI and tzprefs.showPrompt        
 
     def getUUIDForAlias(self, alias):
         uuid, recurrenceID = splitUUID(alias)
@@ -893,10 +900,22 @@ class SharingTranslator(eim.Translator):
         if (allDay == True or anyTime == True) and duration not in emptyValues:
             # convert to Chandler's notion of all day duration
             duration -= oneDay
-        
+    
         uuid, recurrenceID = splitUUID(record.uuid)
         if recurrenceID and start in emptyValues:
             start = recurrenceID
+
+        if (self.promptForTimezone and start not in emptyValues
+            and start.tzinfo not in (ICUtzinfo.floating, None)):
+            # got a timezoned event, prompt (non-modally) to turn on
+            # timezones
+            app = wx.GetApp()
+            if app is not None:
+                def ShowTimezoneDialogCallback():
+                    ShowTurnOnTimezonesDialog(view=app.UIRepositoryView)
+                app.PostAsyncEvent(ShowTimezoneDialogCallback)
+            self.promptForTimezone = False
+
 
         @self.withItemForUUID(
             record.uuid,
