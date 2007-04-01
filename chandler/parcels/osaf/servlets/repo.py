@@ -591,7 +591,7 @@ def RenderBlock(repoView, block):
     else:
         name = "[no block name]"
 
-    if block.childrenBlocks.refCount(False) == 0:
+    if block.childBlocks.refCount(False) == 0:
         hasChildren = False
     else:
         hasChildren = True
@@ -618,7 +618,7 @@ def RenderBlock(repoView, block):
     if mode == 'horizontal':
         result += '<tr class="block">'
 
-    for child in block.childrenBlocks:
+    for child in block.childBlocks:
         childRender = RenderBlock(repoView, child)
         if mode == 'horizontal':
             result += '<td class="block" valign="top" >%s</td>' % childRender

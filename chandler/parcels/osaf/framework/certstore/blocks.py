@@ -101,7 +101,7 @@ def installParcel(parcel, oldVersion=None):
 
     purposeArea = detail.makeArea(parcel, "PurposeArea",
         position = 0.1,
-        childrenBlocks = [
+        childBlocks = [
             detail.makeLabel(parcel, _(u'purpose')),
             detail.makeSpacer(parcel, width=8),
             detail.makeEditor(parcel, 'PurposeAttribute',
@@ -112,7 +112,7 @@ def installParcel(parcel, oldVersion=None):
     
     trustArea = detail.makeArea(parcel, "TrustArea",
         position = 0.2,
-        childrenBlocks = [
+        childBlocks = [
             detail.makeLabel(parcel, _(u"trust")),
             detail.makeSpacer(parcel, width=8),
             detail.makeEditor(parcel, "TrustAttribute",
@@ -123,7 +123,7 @@ def installParcel(parcel, oldVersion=None):
     
     fingerprintArea = detail.makeArea(parcel, "FingerprintArea",
         position = 0.3,
-        childrenBlocks = [
+        childBlocks = [
             detail.makeLabel(parcel, _(u"fingerprint")),
             detail.makeSpacer(parcel, width=8),
             detail.makeEditor(parcel, "FingerprintLabel",
@@ -134,7 +134,7 @@ def installParcel(parcel, oldVersion=None):
     
     fingerprintAlgArea = detail.makeArea(parcel, "FingerprintAlgArea",
         position = 0.4,
-        childrenBlocks = [
+        childBlocks = [
             detail.makeLabel(parcel, _(u"algorithm")),
             detail.makeSpacer(parcel, width=8),
             detail.makeEditor(parcel, "FingerprintAlgLabel",

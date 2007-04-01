@@ -130,7 +130,7 @@ def makeMainMenus(parcel):
 
     fileMenu =  Menu.template('FileMenu',
                 title = _(u'&File'),
-                childrenBlocks = [
+                childBlocks = [
                     MenuItem.template('ImportIcalendarItem',
                         event = main.ImportIcalendar,
                         title = _(u'&Import...'),
@@ -180,14 +180,14 @@ def makeMainMenus(parcel):
                         menuItemKind = 'Separator'),
                     Menu.template('ImportExportMenu',
                         title = _(u'Import/Export'),
-                        childrenBlocks = [
+                        childBlocks = [
                             ]), # Menu ImportExportMenu
                     ])
 
     if wx.Platform != '__WXMAC__':
-        fileMenu.attrs['childrenBlocks'].append(MenuItem.template('FileSeparator3',
+        fileMenu.attrs['childBlocks'].append(MenuItem.template('FileSeparator3',
                                                          menuItemKind = 'Separator'))
-        fileMenu.attrs['childrenBlocks'].append(MenuItem.template('QuitItem',
+        fileMenu.attrs['childBlocks'].append(MenuItem.template('QuitItem',
                                                         event=globalBlocks.Quit,
                                                         title = _(u'&Quit'),
                                                         accel = _(u'Ctrl+Q'),
@@ -195,11 +195,11 @@ def makeMainMenus(parcel):
                                                         wxId = wx.ID_EXIT))
 
     MenuBar.template('MenuBar',
-        childrenBlocks = [
+        childBlocks = [
             fileMenu,
             Menu.template('EditMenu',
                 title = _(u'&Edit'),
-                childrenBlocks = [
+                childBlocks = [
                     MenuItem.template('UndoItem',
                         event = globalBlocks.Undo,
                         title = messages.UNDO,
@@ -263,7 +263,7 @@ def makeMainMenus(parcel):
             
             Menu.template('ViewMenu',
                 title = _(u'&View'),
-                childrenBlocks = [
+                childBlocks = [
                     MenuItem.template('ViewAsCalendarItem',
                         event = main.ViewAsCalendar,
                         title = _(u'View as &Calendar'),
@@ -316,10 +316,10 @@ def makeMainMenus(parcel):
                     Menu.template('ViewConfigureWindow',
                         title = _(u'Confi&gure window'),
                         helpString = _(u'Configure the window'),
-                        childrenBlocks = [
+                        childBlocks = [
                             Menu.template('VisibleHoursMenu',
                                           title = _(u'&Visible Hours'),
-                                          childrenBlocks = \
+                                          childBlocks = \
                                           makeVisibleHourMenuItems(parcel)),
                             MenuItem.template('ViewToolBarItem',
                                               event = main.ShowHideApplicationBar,
@@ -360,11 +360,11 @@ def makeMainMenus(parcel):
                     ]), # Menu ViewMenu
             Menu.template('ItemMenu',
                 title = _(u'&Item'),
-                childrenBlocks = [
+                childBlocks = [
                     Menu.template('NewItemMenu',
                         title = _(u'&New'),
                         helpString = _(u'Create a new Content Item'),
-                        childrenBlocks = [
+                        childBlocks = [
                             MenuItem.template('NewItemItem',
                                 event = main.NewItem,
                                 title = _(u'New &item'),
@@ -398,12 +398,12 @@ def makeMainMenus(parcel):
                     Menu.template('AddToCollectionMenu',
                         title = _(u'&Add to'),
                         helpString = _(u'Add item to a collection'),
-                        childrenBlocks = [
+                        childBlocks = [
                             ]), # Menu Add to
                     Menu.template('MoveToCollectionMenu',
                         title = _(u'&Move to'),
                         helpString = _(u'Move item to a collection'),
-                        childrenBlocks = [
+                        childBlocks = [
                             ]), # Menu Move to
                     MenuItem.template('ItemSeparator1',
                         menuItemKind = 'Separator'),
@@ -438,7 +438,7 @@ def makeMainMenus(parcel):
                     ]), # Menu ItemMenu
             Menu.template('CollectionMenu',
                 title = _(u'&Collection'),
-                childrenBlocks = [
+                childBlocks = [
                     MenuItem.template('NewCollectionItem',
                         event = main.NewCollection,
                         eventsForNamedLookup = [main.NewCollection],
@@ -466,7 +466,7 @@ def makeMainMenus(parcel):
                         menuItemKind = 'Separator'),
                     Menu.template('CollectionColorMenu',
                         title = _(u'&Collection Color'),
-                        childrenBlocks = makeColorMenuItems(parcel,
+                        childBlocks = makeColorMenuItems(parcel,
                                                             MenuItem,
                                                             usercollections.collectionHues)),
                     MenuItem.template('CollectionSeparator3',
@@ -478,14 +478,14 @@ def makeMainMenus(parcel):
                     ]), # Menu CollectionMenu
             Menu.template('ShareMenu',
                 title = _(u'&Share'),
-                childrenBlocks = [
+                childBlocks = [
                     MenuItem.template('SyncCollectionItem',
                         event = main.SyncCollection,
                         title = _(u'Sync'),
                         helpString = _(u"Synchronize a shared collection")),
                     Menu.template('SyncMenu',
                         title = _(u'Sync &All'),
-                        childrenBlocks = [
+                        childBlocks = [
                             MenuItem.template('SyncAllItem',
                                 event = main.SyncAll,
                                 title = _(u"&All"),
@@ -548,7 +548,7 @@ def makeMainMenus(parcel):
                     
                     Menu.template('FreeBusyMenu',
                         title = _(u'&FreeBusy'),
-                        childrenBlocks = [
+                        childBlocks = [
                             MenuItem.template('SharingPublishFreeBusyItem',
                                               event = main.SharingPublishFreeBusy,
                                               title = _(u'&Publish'),
@@ -565,11 +565,11 @@ def makeMainMenus(parcel):
                     ]), # Menu CollectionMenu
             Menu.template('ExperimentalMenu',
                 title = _(u'&Experimental'),
-                childrenBlocks = [
+                childBlocks = [
                     ]), # Menu ExperimentalMenu
             Menu.template('TestMenu',
                 title = _(u'&Test'),
-                childrenBlocks = [
+                childBlocks = [
                     MenuItem.template('GenerateSomeDataItem',
                         event = main.GenerateContentItems,
                         title = u'&Generate Data',
@@ -642,12 +642,12 @@ def makeMainMenus(parcel):
                     PluginMenu.template('PluginsMenu',
                         title=u'Plugins',
                         helpString=u'Manage Plugins',
-                        childrenBlocks = []),
+                        childBlocks = []),
 
                     Menu.template('RepositoryTestMenu',
                         title=u'&Repository',
                         helpString=u'Repository stuff',
-                        childrenBlocks = [
+                        childBlocks = [
                             MenuItem.template('CheckRepositoryItem',
                                 event = main.CheckRepository,
                                 title = u'C&heck Repository',
@@ -673,7 +673,7 @@ def makeMainMenus(parcel):
                     ]),
                     Menu.template('ProfilingMenu',
                         title=u'&Profiling',
-                        childrenBlocks = [
+                        childBlocks = [
                             MenuItem.template('StartProfilerItem',
                                 event = main.StartProfiler,
                                 title = u'Start Event Profiler',
@@ -686,7 +686,7 @@ def makeMainMenus(parcel):
 
                     Menu.template('LoggingMenu',
                         title=u'&Logging',
-                        childrenBlocks = [
+                        childBlocks = [
                             MenuItem.template('ShowLogWindowItem',
                                 event = main.ShowLogWindow,
                                 title = u'&Show log window',
@@ -694,7 +694,7 @@ def makeMainMenus(parcel):
                             Menu.template('LoggingLevelMenu',
                                 title = u'Logging level',
                                 helpString = u'Change logging level',
-                                childrenBlocks = [
+                                childBlocks = [
                                     MenuItem.template('LoggingLevelCriticalMenuItem',
                                         event = main.SetLoggingLevelCritical,
                                         title = u'Critical',
@@ -725,7 +725,7 @@ def makeMainMenus(parcel):
 
                     Menu.template('I18nMenu',
                         title=u'i18n',
-                        childrenBlocks = [
+                        childBlocks = [
                             MenuItem.template('ShowI18nManagerDebugItem',
                                 event = main.ShowI18nManagerDebugWindow,
                                 title = u'Show I18nManager debug window',
@@ -735,7 +735,7 @@ def makeMainMenus(parcel):
                     Menu.template('ShareTestMenu',
                         title = u'S&haring',
                         helpString = u'Sharing-related test commands',
-                        childrenBlocks = [
+                        childBlocks = [
                             MenuItem.template('EditMyNameItem',
                                 event = main.EditMyName,
                                 title = u'&Edit your name',
@@ -785,7 +785,7 @@ def makeMainMenus(parcel):
                     Menu.template('SkinsMenu',
                         title = u'S&kins',
                         helpString = u'Change user-interface skin',
-                        childrenBlocks = [
+                        childBlocks = [
                             MenuItem.template('ChandlerSkinMenuItem',
                                 event = main.ChooseChandlerMainView,
                                 title = u'Chandler',
@@ -804,7 +804,7 @@ def makeMainMenus(parcel):
                             ]), # Menu SkinsMenu
                     Menu.template('MailTests',
                         title = u'Mail Tests',
-                        childrenBlocks = [
+                        childBlocks = [
                             MenuItem.template('MeAddressDebugItem',
                                 event = main.ShowMeAddressCollectionDebugWindow,
                                 title = u'Show All Me Addresses',
@@ -847,7 +847,7 @@ def makeMainMenus(parcel):
                     ]), # Menu TestMenu
             Menu.template('HelpMenu',
                 title = _(u'&Help'),
-                childrenBlocks = [
+                childBlocks = [
                     MenuItem.template('AboutChandlerItem',
                         event = globalBlocks.About,
                         title = _(u'&About Chandler'),

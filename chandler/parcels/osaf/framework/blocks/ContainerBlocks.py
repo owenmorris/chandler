@@ -46,7 +46,7 @@ class wxBoxContainer (wxRectangularChild):
                                 'Vertical': wx.VERTICAL} [self.blockItem.orientationEnum])
             self.SetSizer (sizer)
         sizer.Clear()
-        for childBlock in self.blockItem.childrenBlocks:
+        for childBlock in self.blockItem.childBlocks:
             if isinstance (childBlock, RectangularChild):
                 widget = getattr (childBlock, "widget", None)
                 if widget is not None:
@@ -90,7 +90,7 @@ class wxScrolledContainer (wx.ScrolledWindow):
         if self.blockItem.isShown:
             sizer = self.GetSizer()
             sizer.Clear()
-            for childBlock in self.blockItem.childrenBlocks:
+            for childBlock in self.blockItem.childBlocks:
                 if childBlock.isShown and isinstance (childBlock, RectangularChild):
                     sizer.Add (childBlock.widget,
                                childBlock.stretchFactor, 
@@ -191,7 +191,7 @@ class wxSplitterWindow(wx.SplitterWindow):
         oldWindow1 = self.GetWindow1()
         oldWindow2 = self.GetWindow2()
 
-        children = [child for child in blockItem.childrenBlocks if not isinstance (child, MenusAndToolbars.DynamicBlock)]
+        children = [child for child in blockItem.childBlocks if not isinstance (child, MenusAndToolbars.DynamicBlock)]
         assert (len (children) >= 1 and
                 len (children) <= 2), "Splitter windows only support one or two non-DynamicBlocks"
 
@@ -318,7 +318,7 @@ class ViewContainer(BoxContainer):
         return wxViewContainer (parentWidget)
     
     def onChoiceEventUpdateUI (self, event):
-        assert len (self.childrenBlocks) == 1
+        assert len (self.childBlocks) == 1
         event.arguments ['Check'] = self.activeView == self.views [event.choice]
 
     def onChoiceEvent (self, event):

@@ -1886,14 +1886,14 @@ class CalendarContainer(BoxContainer):
     def getTimedBlock(self):
         # this is a little bit of a hack, because we know we want to get
         # to the timed events canvas        
-        calendarSplitter = nth(self.childrenBlocks, 1)
-        return nth(calendarSplitter.childrenBlocks, 1)
+        calendarSplitter = nth(self.childBlocks, 1)
+        return nth(calendarSplitter.childBlocks, 1)
 
     def getAllDayBlock(self):
         # this is a little bit of a hack, because we know we want to get
         # to the timed events canvas        
-        calendarSplitter = nth(self.childrenBlocks, 1)
-        return nth(calendarSplitter.childrenBlocks, 0)
+        calendarSplitter = nth(self.childBlocks, 1)
+        return nth(calendarSplitter.childBlocks, 0)
 
         
 class CanvasSplitterWindow(SplitterWindow):
@@ -2412,7 +2412,7 @@ class wxCalendarControl(wx.Panel, CalendarEventHandler):
         # allDay reference in calcontainer or calctrl, but that causes
         # initialization order weirdness
         # ALTERNATIVE: findBlockByName?
-        return list(list(self.blockItem.parentBlock.childrenBlocks)[1].childrenBlocks)[0]
+        return list(list(self.blockItem.parentBlock.childBlocks)[1].childBlocks)[0]
 
     def GetSplitterWidget(self):
         # @@@ Another hack. This will all be refactored soon, I

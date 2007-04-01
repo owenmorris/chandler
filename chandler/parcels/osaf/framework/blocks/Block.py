@@ -113,7 +113,7 @@ class Block(schema.Item):
         defaultValue = None
     )
 
-    childrenBlocks = schema.Sequence(
+    childBlocks = schema.Sequence(
         inverse = parentBlock,
         initialValue = [] # defaultValue doesn't work for some reason
     )
@@ -137,7 +137,7 @@ class Block(schema.Item):
     schema.addClouds(
         copying = schema.Cloud(
             byRef = [contents],
-            byCloud = [childrenBlocks, eventsForNamedLookup, splitters]
+            byCloud = [childBlocks, eventsForNamedLookup, splitters]
         )
     )
 
@@ -252,7 +252,7 @@ class Block(schema.Item):
     def template(theClass, itemName, blockName=None, **attrs):
         """
         Very similar to the default template() routine, except that
-        1) childrenBlocks is used for children
+        1) childBlocks is used for children
         2) the repository name and blockname are unified by default
         3) eventsForNamedLookup is automatically populated
         """
@@ -352,7 +352,7 @@ class Block(schema.Item):
                 if method:
                     method (widget)
 
-                for child in self.childrenBlocks:
+                for child in self.childBlocks:
                     child.render()
 
                 """
@@ -366,7 +366,7 @@ class Block(schema.Item):
                     method (widget)
 
     def unRender (self):
-        for child in self.childrenBlocks:
+        for child in self.childBlocks:
             child.unRender()
         widget = getattr (self, 'widget', None)
 
@@ -854,7 +854,7 @@ class Block(schema.Item):
         candidate = None
         block = self
         while (block):
-            for child in block.childrenBlocks:
+            for child in block.childBlocks:
                 isDynamicChildMethod = getattr (type (child), "isDynamicChild", None)
                 if isDynamicChildMethod is not None:
                     if candidate is None:
@@ -972,7 +972,7 @@ class BlockDispatchHook (DispatchHook):
 
         def broadcast (block, methodName, event, childTest):
             callMethod (block, methodName, event)
-            for child in block.childrenBlocks:
+            for child in block.childBlocks:
                 if childTest (child):
                     broadcast (child, methodName, event, childTest)
 
@@ -1062,7 +1062,7 @@ class BlockDispatchHook (DispatchHook):
             # active view but is contained in a tree that has a
             # splitter at it's root.
             if activeView is not None:
-                activeView = activeView.childrenBlocks.first()
+                activeView = activeView.childBlocks.first()
             bubbleUpCallMethod (activeView, methodName, event)
 
         elif __debug__:
@@ -1432,7 +1432,7 @@ class BlockTemplate(object):
         # all the instantiated children, to be passed to .update
         attrs = self.attrs.copy()
 
-        # this allows childrenBlocks to actually refer to blocks, or
+        # this allows childBlocks to actually refer to blocks, or
         # just to templates
         def install(templateOrBlock):
             if isinstance(templateOrBlock, Block):
@@ -1441,8 +1441,8 @@ class BlockTemplate(object):
 
         # now hook up the children, and replace the templates
         # with the real things
-        if 'childrenBlocks' in attrs:
-            children = [install(t) for t in attrs['childrenBlocks']]
-            attrs['childrenBlocks'] = children
+        if 'childBlocks' in attrs:
+            children = [install(t) for t in attrs['childBlocks']]
+            attrs['childBlocks'] = children
 
         return self.target_class.update(parent, name, **attrs)

@@ -92,7 +92,7 @@ def makeCPIATestMainView (parcel):
         buttonsLabeled = True,
         separatorWidth = 20,
         mainFrameToolbar = True,
-        childrenBlocks = [
+        childBlocks = [
             ToolbarItem.template('ApplicationBarAllButton',
                 event = main.ApplicationBarAll,
                 bitmap = 'ApplicationBarAll.png',
@@ -169,23 +169,23 @@ def makeCPIATestMainView (parcel):
             main.ApplicationBarMail,
             main.ApplicationBarAll,
             ],
-        childrenBlocks = [
+        childBlocks = [
             cpiatest2.MenuBar,
             StatusBar.template('StatusBar'),
             ApplicationBar,
             BoxContainer.template('SidebarContainerContainer',
                 border = RectType(4, 0, 0, 0),
-                childrenBlocks = [
+                childBlocks = [
                     SplitterWindow.template('SidebarContainer',
                         stretchFactor = 0.0,
                         border = RectType(0, 0, 0, 4.0),
                         splitPercentage = 0.42,
                         splitController = miniCal,
-                        childrenBlocks = [
+                        childBlocks = [
                             Sidebar,
                             BoxContainer.template('PreviewAndMiniCalendar',
                                 orientationEnum = 'Vertical',
-                                childrenBlocks = [
+                                childBlocks = [
                                     PreviewArea.template('PreviewArea',
                                         contents = pim_ns.allCollection,
                                         calendarContainer = None,

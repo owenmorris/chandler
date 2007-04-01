@@ -186,7 +186,7 @@ def installParcel(parcel, oldVersion=None):
         # Author area
         detail.makeArea(parcel, "AuthorArea",
             position=0.19,
-            childrenBlocks = [
+            childBlocks = [
                 detail.makeLabel(parcel, _(u"author"), borderTop=2),
                 detail.makeSpacer(parcel, width=8),
                 #field("AuthorAttribute", title=u"author"),
@@ -200,7 +200,7 @@ def installParcel(parcel, oldVersion=None):
         # Category
         detail.makeArea(parcel, "CategoryArea",
             position=0.2,
-            childrenBlocks = [
+            childBlocks = [
                 detail.makeLabel(parcel, _(u"category"), borderTop=2),
                 detail.makeSpacer(parcel, width=8),
                 detail.makeEditor(parcel, "category",
@@ -213,7 +213,7 @@ def installParcel(parcel, oldVersion=None):
         # URL
         detail.makeArea(parcel, "LinkArea", 
             position=0.3,
-            childrenBlocks = [
+            childBlocks = [
                 detail.makeLabel(parcel, _(u"link"), borderTop=2),
                 detail.makeSpacer(parcel, width=8),
                 detail.makeEditor(parcel, "link",
@@ -226,7 +226,7 @@ def installParcel(parcel, oldVersion=None):
         # Date area
         detail.makeArea(parcel, "DateArea",
             position=0.4,
-            childrenBlocks = [
+            childBlocks = [
                 detail.makeLabel(parcel, _(u"date"), borderTop=2),
                 detail.makeSpacer(parcel, width=8),
                 detail.makeEditor(parcel, "date",

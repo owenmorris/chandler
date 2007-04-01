@@ -69,7 +69,7 @@ def BroadcastSelect(item):
     if item is not None:
         selection.append(item)
     sidebarBPB = Block.Block.findBlockByName("SidebarBranchPointBlock")
-    sidebarBPB.childrenBlocks.first().postEventByName(
+    sidebarBPB.childBlocks.first().postEventByName(
        'SelectItemsBroadcast', {'items':selection}
     )
 
@@ -183,7 +183,7 @@ class DetailRootBlock(WatchedItemRootBlock, ControlBlocks.ContentItemDetail):
         """ Do synchronizeWidget recursively, depth-first. """
         def syncInside(block):
             # process from the children up
-            map(syncInside, block.childrenBlocks)
+            map(syncInside, block.childBlocks)
             block.synchronizeWidget()
 
         if self.item is not None:
@@ -283,7 +283,7 @@ class DetailBranchPointDelegate(BranchPoint.BranchPointDelegate):
 
         # Copy our stub block and move the new kids on(to) the block
         branch = self._copyItem(self.branchStub)
-        branch.childrenBlocks.extend([ block for position, path, block in decoratedSubtreeList ])
+        branch.childBlocks.extend([ block for position, path, block in decoratedSubtreeList ])
         return branch
 
 class DetailSynchronizer(Item):

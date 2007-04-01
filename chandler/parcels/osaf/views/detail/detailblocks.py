@@ -297,7 +297,7 @@ def makeCalendarArea(parcel, oldVersion):
 
     locationArea = \
         CalendarLocationAreaBlock.template('CalendarLocationArea',
-            childrenBlocks=[
+            childBlocks=[
                 makeSpacer(parcel, SizeType(0, 22)),
                 makeEditor(parcel, 'CalendarLocation',
                            viewAttribute=pim.EventStamp.location.name,
@@ -315,7 +315,7 @@ def makeCalendarArea(parcel, oldVersion):
     allDayArea = \
         makeArea(parcel, 'CalendarAllDayArea',
             baseClass=CalendarAllDayAreaBlock,
-            childrenBlocks=[
+            childBlocks=[
                 makeLabel(parcel, _(u'&all-day'), borderTop=4),
                 makeSpacer(parcel, width=allDaySpacerWidth),
                 makeEditor(parcel, 'EditAllDay',
@@ -325,7 +325,7 @@ def makeCalendarArea(parcel, oldVersion):
 
     startTimeArea = \
         makeArea(parcel, 'CalendarStartTimeArea',
-            childrenBlocks=[
+            childBlocks=[
                 makeLabel(parcel, _(u'sta&rts'), borderTop=4),
                 makeSpacer(parcel, width=8),
                 makeEditor(parcel, 'EditCalendarStartDate',
@@ -348,7 +348,7 @@ def makeCalendarArea(parcel, oldVersion):
     
     endTimeArea = \
         makeArea(parcel, 'CalendarEndTimeArea',
-            childrenBlocks=[
+            childBlocks=[
                 makeLabel(parcel, _(u'en&ds'), borderTop=4),
                 makeSpacer(parcel, width=8),
                 makeEditor(parcel, 'EditCalendarEndDate',
@@ -372,7 +372,7 @@ def makeCalendarArea(parcel, oldVersion):
     startAndEndTimeArea = \
         makeArea(parcel, 'CalendarTimeArea',
             orientationEnum='Vertical',
-            childrenBlocks=[
+            childBlocks=[
                 startTimeArea,
                 makeSpacer(parcel, height=1),
                 endTimeArea])
@@ -380,7 +380,7 @@ def makeCalendarArea(parcel, oldVersion):
     timeZoneArea = \
         makeArea(parcel, 'CalendarTimeZoneArea',
             baseClass=CalendarTimeZoneAreaBlock,
-            childrenBlocks=[
+            childBlocks=[
                 makeLabel(parcel, _(u'time &zone')),
                 makeSpacer(parcel, width=8),
                 makeEditor(parcel, 'EditTimeZone',
@@ -393,7 +393,7 @@ def makeCalendarArea(parcel, oldVersion):
     transparencyArea = \
         makeArea(parcel, 'CalendarTransparencyArea',
             baseClass=CalendarTransparencyAreaBlock,
-            childrenBlocks=[
+            childBlocks=[
                 makeLabel(parcel, _(u'stat&us')),
                 makeSpacer(parcel, width=8),
                 makeEditor(parcel, 'EditTransparency',
@@ -412,7 +412,7 @@ def makeCalendarArea(parcel, oldVersion):
     recurrencePopupArea = \
         makeArea(parcel, 'CalendarRecurrencePopupArea',
             baseClass=CalendarRecurrencePopupAreaBlock,
-            childrenBlocks=[
+            childBlocks=[
                 makeLabel(parcel, _(u'&occurs')),
                 makeSpacer(parcel, width=8),
                 makeEditor(parcel, 'EditRecurrence',
@@ -430,7 +430,7 @@ def makeCalendarArea(parcel, oldVersion):
     recurrenceCustomArea = \
         makeArea(parcel, 'CalendarRecurrenceCustomArea',
             baseClass=CalendarRecurrenceCustomAreaBlock,
-            childrenBlocks=[
+            childBlocks=[
                 makeLabel(parcel, u'', borderTop=2), # leave label blank.
                 makeSpacer(parcel, width=8),
                 makeEditor(parcel, 'CalCustomValue',
@@ -441,7 +441,7 @@ def makeCalendarArea(parcel, oldVersion):
     recurrenceEndArea = \
         makeArea(parcel, 'CalendarRecurrenceEndArea',
             baseClass=CalendarRecurrenceEndAreaBlock,
-            childrenBlocks=[
+            childBlocks=[
                 makeLabel(parcel, _(u'ends')),
                 makeSpacer(parcel, width=8),
                 makeEditor(parcel, 'EditRecurrenceEnd',
@@ -452,7 +452,7 @@ def makeCalendarArea(parcel, oldVersion):
  
     timeDescriptionArea = \
         makeArea(parcel, 'CalendarTimeDescriptionArea',
-            childrenBlocks=[
+            childBlocks=[
                 makeLabel(parcel, _(u'when'), borderTop=2),
                 makeSpacer(parcel, width=8),
                 makeEditor(parcel, 'TimeDescription',
@@ -463,7 +463,7 @@ def makeCalendarArea(parcel, oldVersion):
     timeEditArea = \
         makeArea(parcel, 'CalendarTimeEditArea',
             orientationEnum='Vertical',
-            childrenBlocks=[
+            childBlocks=[
                 allDayArea,
                 makeSpacer(parcel, height=4),
                 startAndEndTimeArea,
@@ -486,7 +486,7 @@ def makeCalendarArea(parcel, oldVersion):
             baseClass=EventAreaBlock,
             orientationEnum='Vertical',
             position=0.8,
-            childrenBlocks = [
+            childBlocks = [
                 locationArea,
                 makeSpacer(parcel, height=4),
                 #timeDescriptionArea,
@@ -496,7 +496,7 @@ def makeMailArea(parcel, oldVersion):
     blocks = schema.ns("osaf.framework.blocks", parcel.itsView)    
     originatorsArea = \
         makeArea(parcel, 'OriginatorsArea',
-            childrenBlocks=[
+            childBlocks=[
                 makeLabel(parcel, _(u'from')),
                 makeSpacer(parcel, width=8),
                 makeEditor(parcel, 'EditMailOriginators',
@@ -509,7 +509,7 @@ def makeMailArea(parcel, oldVersion):
 
     toArea = \
         makeArea(parcel, 'ToArea',
-            childrenBlocks=[
+            childBlocks=[
                 makeLabel(parcel, _(u'to')), # XXX "&to" conflicts with Test menu
                 makeSpacer(parcel, width=8),
                 makeEditor(parcel, 'EditMailTo',
@@ -520,7 +520,7 @@ def makeMailArea(parcel, oldVersion):
             position=0.11).install(parcel)
     ccArea = \
         makeArea(parcel, 'CcArea',
-            childrenBlocks=[
+            childBlocks=[
                 makeLabel(parcel, _(u'cc')), # XXX "&cc" conflicts with Collection menu
                 makeSpacer(parcel, width=8),
                 makeEditor(parcel, 'EditMailCc',
@@ -530,7 +530,7 @@ def makeMailArea(parcel, oldVersion):
             position=0.111).install(parcel)
     bccArea = \
         makeArea(parcel, 'BccArea',
-            childrenBlocks=[
+            childBlocks=[
                 makeLabel(parcel, _(u'bcc')), # XXX no conflicts with "&bcc" but still does not work because we mess with the controls
                 makeSpacer(parcel, width=8),
                 makeEditor(parcel, 'EditMailBcc',
@@ -543,7 +543,7 @@ def makeMailArea(parcel, oldVersion):
     sendAsArea = \
         makeArea(parcel, 'SendAsArea', # Note: this blockname is tested in BylineAreaBlock.shouldShow
             baseClass=BylineAreaBlock,
-            childrenBlocks=[
+            childBlocks=[
                 # The SendAsLabelBlock will decide how to label this block
                 # ("send as" vs "edit as"), so don't bother labeling here.
                 makeLabel(parcel, '', baseClass=SendAsLabelBlock), # XXX "&send as" conflicts with Share menu
@@ -577,7 +577,7 @@ def makeMailArea(parcel, oldVersion):
     #attachmentArea = \
         #makeArea(parcel, 'AttachmentArea',
             #baseClass=AttachmentAreaBlock,
-            #childrenBlocks=[
+            #childBlocks=[
                 #makeLabel(parcel, _(u'attachments')),
                 #makeSpacer(parcel, width=8),
                 #AttachmentTextFieldBlock.template('AttachmentTextField',
@@ -593,7 +593,7 @@ def makeMailArea(parcel, oldVersion):
             baseClass=MailAreaBlock,
             orientationEnum='Vertical',
             position=0.1,
-            childrenBlocks = [
+            childBlocks = [
                 originatorsArea, 
                 toArea,
                 ccArea,
@@ -616,7 +616,7 @@ def makeConflictBar(parcel, oldVersion):
                                     minimumSize=SizeType(225, 19))
     return makeArea(parcel, 'ConflictBar',
             position=0.08,
-            childrenBlocks = [
+            childBlocks = [
                 conflictButton
             ]).install(parcel)
 
@@ -705,7 +705,7 @@ def makeMarkupBar(parcel, oldVersion):
                                     minimumSize=SizeType(30, 18))
 
     markupBar = ControlBlocks.ContentItemDetail.template('MarkupBar',
-                                    childrenBlocks=[triageStamp,
+                                    childBlocks=[triageStamp,
                                                     markupSpacer1,
                                                     mailMessageButton,
                                                     taskStamp,
@@ -728,7 +728,7 @@ def makeNoteSubtree(parcel, oldVersion):
     bylineArea = \
         makeArea(parcel, 'BylineArea',
             baseClass=BylineAreaBlock,
-            childrenBlocks=[
+            childBlocks=[
                 makeEditor(parcel, 'BylineBlock',
                     viewAttribute='byline',
                     presentationStyle={'format' : 'static'})],
@@ -738,7 +738,7 @@ def makeNoteSubtree(parcel, oldVersion):
     errorArea = \
         makeArea(parcel, 'ErrorArea',
             baseClass=ErrorAEBlock,
-            childrenBlocks=[
+            childBlocks=[
                 makeEditor(parcel, 'ErrorArea',
                     viewAttribute='error',
                     presentationStyle={'format' : 'static'})],
@@ -754,7 +754,7 @@ def makeNoteSubtree(parcel, oldVersion):
                                      'editInPlace': True })
     headlineArea = \
         makeArea(parcel, 'HeadlineArea',
-            childrenBlocks = [
+            childBlocks = [
                 makeSpacer(parcel, SizeType(0,22)),
                 headlineAEBlock],
             position=0.5,
@@ -767,7 +767,7 @@ def makeNoteSubtree(parcel, oldVersion):
     reminderTypeArea = \
         makeArea(parcel, 'ReminderTypeArea',
             baseClass=ReminderTypeAreaBlock,
-            childrenBlocks=[
+            childBlocks=[
                 makeLabel(parcel, _(u'alar&m'), borderTop=5),
                 makeSpacer(parcel, width=8),
                 makeEditor(parcel, 'EditReminderType',
@@ -780,7 +780,7 @@ def makeNoteSubtree(parcel, oldVersion):
     reminderRelativeArea = \
         makeArea(parcel, 'ReminderRelativeArea',
             baseClass=ReminderRelativeAreaBlock,
-            childrenBlocks=[
+            childBlocks=[
                 makeLabel(parcel, u'', borderTop=5),
                 makeSpacer(parcel, width=8),
                 makeEditor(parcel, 'EditReminderUnits',
@@ -801,7 +801,7 @@ def makeNoteSubtree(parcel, oldVersion):
     reminderAbsoluteArea = \
         makeArea(parcel, 'ReminderAbsoluteArea',
             baseClass=ReminderAbsoluteAreaBlock,
-            childrenBlocks=[                
+            childBlocks=[                
                 makeLabel(parcel, u'', borderTop=4),
                 makeSpacer(parcel, width=8),
                 makeEditor(parcel, 'EditReminderDate',
@@ -838,7 +838,7 @@ def makeNoteSubtree(parcel, oldVersion):
         makeArea(parcel, 'AppearsInArea',
             viewAttribute=u'appearsIn',
             border=RectType(0,0,0,0),
-            childrenBlocks=[
+            childBlocks=[
                 # (the label is added as part of the string for now)
                 #makeLabel(parcel, _(u'appears in'), borderTop=2),
                 #makeSpacer(parcel, width=8),

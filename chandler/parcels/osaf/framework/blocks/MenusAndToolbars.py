@@ -248,7 +248,7 @@ class DynamicBlock(schema.Item):
             else:
                 blockList[i:i+1] = (self,)
             if isContainer:
-                for child in self.childrenBlocks:
+                for child in self.childBlocks:
                     child.appendDynamicBlocks (blockList)
 
     def buildDynamicList (self):
@@ -265,7 +265,7 @@ class DynamicBlock(schema.Item):
         blockList = []
         block = self
         while block is not None:
-            for child in block.childrenBlocks:
+            for child in block.childBlocks:
                 method = getattr (type (child), "appendDynamicBlocks", None)
                 if method is not None:
                     method (child, blockList)
@@ -446,7 +446,7 @@ class DynamicContainer(RefCollectionDictionary, DynamicBlock):
     def populateFromStaticChildren (self):
         # copy our static children as a useful starting point
         self.dynamicChildren.clear ()
-        for block in self.childrenBlocks:
+        for block in self.childBlocks:
             self[block.blockName] = block
 
     def ensureDynamicChildren (self):
@@ -455,7 +455,7 @@ class DynamicContainer(RefCollectionDictionary, DynamicBlock):
         subclasses use that hierarchy when they synchronize.
 
         If there is no DynamicChildren built, then initialize it from
-        the childrenBlocks hierarchy.
+        the childBlocks hierarchy.
         """
         if not self.dynamicChildren:
             self.populateFromStaticChildren()
@@ -848,7 +848,7 @@ class wxToolbarItemMixin (object):
 
     ToolbarItems are a CPIA concept, that are roughly equivalent to the
     wx object ToolbarTool.  In CPIA, ToolbarItems are children of Toolbars,
-    (both regular childrenBlocks and dynamicChildren).  But in wxWidgets,
+    (both regular childBlocks and dynamicChildren).  But in wxWidgets,
     a ToolbarTool is not a child of the Toolbar, instead it's added to
     the Toolbar with a special method call (either DoAddTool or AddControl).
 
@@ -915,7 +915,7 @@ class wxToolbarItemMixin (object):
         """
         block = self.blockItem
         if block.toolbarItemKind == "Radio":
-            children = [child for child in block.parentBlock.childrenBlocks]
+            children = [child for child in block.parentBlock.childBlocks]
             blockIndex = children.index (block)
             """
             Unselect all the items in the radio group before this toolbar item.

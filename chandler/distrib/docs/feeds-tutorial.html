@@ -605,10 +605,10 @@ schema for <code>MenuItem</code> and <code>Menu</code> are defined such that if 
 is automatically a child of the <code>Menu</code>. Hence, when <code>CollectionMenu</code>
 is assigned to <code>NewFeedsChannel</code>&#x2019;s <code>parentBlock</code> then
 <code>NewFeedsChannel</code> is also automatically added to the <code>CollectionMenu</code>&#x2019;s
-<code>childrenBlocks</code> and the Repository will maintain the integrity of this relationship.
+<code>childBlocks</code> and the Repository will maintain the integrity of this relationship.
 We are going to see more uses of bidirectional references later in this tutorial. </p>
 
-<p class="callout"><strong>Note:</strong> The <code>parentBlock</code>/<code>childrenBlocks</code>
+<p class="callout"><strong>Note:</strong> The <code>parentBlock</code>/<code>childBlocks</code>
 relationship is true for all elements in the user interface. </p>
 
 </div>
@@ -760,7 +760,7 @@ file and place the following code in function <code>installParcel()</code>:</p>
         # Author area
         detail.makeArea(parcel, "AuthorArea",
             position=0.19,
-            childrenBlocks = [
+            childBlocks = [
                 detail.makeLabel(parcel, _(u"author"), borderTop=2),
                 detail.makeSpacer(parcel, width=8),
                 #field("AuthorAttribute", title=u"author"),
@@ -774,7 +774,7 @@ file and place the following code in function <code>installParcel()</code>:</p>
         # Category
         detail.makeArea(parcel, "CategoryArea",
             position=0.2,
-            childrenBlocks = [
+            childBlocks = [
                 detail.makeLabel(parcel, _(u"category"), borderTop=2),
                 detail.makeSpacer(parcel, width=8),
                 detail.makeEditor(parcel, "category",
@@ -787,7 +787,7 @@ file and place the following code in function <code>installParcel()</code>:</p>
         # URL
         detail.makeArea(parcel, "LinkArea", 
             position=0.3,
-            childrenBlocks = [
+            childBlocks = [
                 detail.makeLabel(parcel, _(u"link"), borderTop=2),
                 detail.makeSpacer(parcel, width=8),
                 detail.makeEditor(parcel, "link",
@@ -800,7 +800,7 @@ file and place the following code in function <code>installParcel()</code>:</p>
         # Date area
         detail.makeArea(parcel, "DateArea",
             position=0.4,
-            childrenBlocks = [
+            childBlocks = [
                 detail.makeLabel(parcel, _(u"date"), borderTop=2),
                 detail.makeSpacer(parcel, width=8),
                 detail.makeEditor(parcel, "date",
@@ -1712,7 +1712,7 @@ def installParcel(parcel, oldVersion=None):
         # Author area
         detail.makeArea(parcel, "AuthorArea",
             position=0.19,
-            childrenBlocks = [
+            childBlocks = [
                 detail.makeLabel(parcel, _(u"author"), borderTop=2),
                 detail.makeSpacer(parcel, width=8),
                 #field("AuthorAttribute", title=u"author"),
@@ -1726,7 +1726,7 @@ def installParcel(parcel, oldVersion=None):
         # Category
         detail.makeArea(parcel, "CategoryArea",
             position=0.2,
-            childrenBlocks = [
+            childBlocks = [
                 detail.makeLabel(parcel, _(u"category"), borderTop=2),
                 detail.makeSpacer(parcel, width=8),
                 detail.makeEditor(parcel, "category",
@@ -1739,7 +1739,7 @@ def installParcel(parcel, oldVersion=None):
         # URL
         detail.makeArea(parcel, "LinkArea", 
             position=0.3,
-            childrenBlocks = [
+            childBlocks = [
                 detail.makeLabel(parcel, _(u"link"), borderTop=2),
                 detail.makeSpacer(parcel, width=8),
                 detail.makeEditor(parcel, "link",
@@ -1752,7 +1752,7 @@ def installParcel(parcel, oldVersion=None):
         # Date area
         detail.makeArea(parcel, "DateArea",
             position=0.4,
-            childrenBlocks = [
+            childBlocks = [
                 detail.makeLabel(parcel, _(u"date"), borderTop=2),
                 detail.makeSpacer(parcel, width=8),
                 detail.makeEditor(parcel, "date",

@@ -70,7 +70,7 @@ def makeMainView(parcel):
 
     sidebarContextMenu =  Menu.template('SidebarContextMenu',
                 title = _(u'Sidebar'),
-                childrenBlocks = [
+                childBlocks = [
                     MenuItem.template('SidebarNewCollectionItem',
                         event = main.NewCollection,
                         title = _(u'&New Collection'),
@@ -97,7 +97,7 @@ def makeMainView(parcel):
                         menuItemKind = 'Separator'),
                     Menu.template('SidebaCollectionColorMenu',
                         title = _(u'&Collection Color'),
-                        childrenBlocks = makeColorMenuItems(parcel,
+                        childBlocks = makeColorMenuItems(parcel,
                                                             MenuItem,
                                                             usercollections.collectionHues,
                                                             "Sidebar")),
@@ -161,7 +161,7 @@ def makeMainView(parcel):
                                           osaf.pim.mail.MailStamp,
                                           osaf.pim.tasks.TaskStamp],
         contextMenu = sidebarContextMenu,
-        childrenBlocks = [sidebarContextMenu]
+        childBlocks = [sidebarContextMenu]
         ).install(parcel)
     Sidebar.contents.selectItem (pim_ns.allCollection)
 
@@ -285,7 +285,7 @@ def makeMainView(parcel):
         buttonsLabeled = True,
         separatorWidth = 20,
         mainFrameToolbar = True,
-        childrenBlocks = appBarBlocks
+        childBlocks = appBarBlocks
     ) # Toolbar ApplicationBar
 
     MainViewInstance = MainView.template(
@@ -306,7 +306,7 @@ def makeMainView(parcel):
             main.ApplicationBarMail,
             main.ApplicationBarAll,
             ],
-        childrenBlocks = [
+        childBlocks = [
             main.MenuBar,
             StatusBar.template('StatusBar'),
             ReminderTimer.template('ReminderTimer',
@@ -318,17 +318,17 @@ def makeMainView(parcel):
                 splitPercentage = 0.15234375,
                 orientationEnum = 'Vertical',
                 splitController = miniCal,
-                childrenBlocks = [
+                childBlocks = [
                     SplitterWindow.template('SidebarContainer',
                         stretchFactor = 0.0,
                         border = RectType(0, 0, 0, 4.0),
                         splitPercentage = 0.42,
                         splitController = miniCal,
-                        childrenBlocks = [
+                        childBlocks = [
                             Sidebar,
                             BoxContainer.template('PreviewAndMiniCalendar',
                                 orientationEnum = 'Vertical',
-                                childrenBlocks = [
+                                childBlocks = [
                                     PreviewArea.template('PreviewArea',
                                         contents = pim_ns.allCollection,
                                         calendarContainer = None,
@@ -367,7 +367,7 @@ def makeMainView(parcel):
         'MainBranchPointBlock',
         detailItem = MainViewInstance,
         selectedItem = MainViewInstance,
-        childrenBlocks = [MainViewInstance],
+        childBlocks = [MainViewInstance],
         delegate = MainBranchPointDelegate).install(parcel)
 
     CPIATestMainView = schema.ns("osaf.views.cpiatest", repositoryView).MainView
@@ -382,7 +382,7 @@ def makeMainView(parcel):
                  'CPIATestMainView' : CPIATestMainView,
                  'CPIATest2MainView' : CPIATest2MainView},
         activeView = MainViewInstance,
-        childrenBlocks = [MainBranchPointBlock])
+        childBlocks = [MainBranchPointBlock])
 
     # Add certstore UI
     schema.synchronize(repositoryView, "osaf.framework.certstore.blocks")

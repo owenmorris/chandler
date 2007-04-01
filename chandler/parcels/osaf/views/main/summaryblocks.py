@@ -641,10 +641,10 @@ def makeSummaryBlocks(parcel):
         eventBoundary = True,
         orientationEnum = "Vertical",
         splitPercentage = 0.65,
-        childrenBlocks = [
+        childBlocks = [
             BoxContainer.template('DashboardSummaryContainer',
                 orientationEnum = 'Vertical',
-                childrenBlocks = [
+                childBlocks = [
                     DashboardBlock.template('DashboardSummaryView',
                         contents = pim_ns.allCollection,
                         scaleWidthsToFit = True,
@@ -689,7 +689,7 @@ def makeSummaryBlocks(parcel):
         splitPercentage = 0.65,
         eventBoundary = True,
         eventsForNamedLookup = [saveResultsEvent],
-        childrenBlocks = [
+        childBlocks = [
             ToolbarItem.template('SaveResultsButton',
                 event = saveResultsEvent,
                 bitmap = 'ApplicationBarSave.png',
@@ -730,7 +730,7 @@ def makeSummaryBlocks(parcel):
         splitPercentage = 0.65,
         eventBoundary = True,
         eventsForNamedLookup = [saveResultsEvent],
-        childrenBlocks = [
+        childBlocks = [
             Table.template('TableSummaryView',
                 contents = pim_ns.allCollection,
                 scaleWidthsToFit = True,
@@ -818,9 +818,9 @@ def makeSummaryBlocks(parcel):
         eventBoundary = True,
         orientationEnum = 'Vertical',
         splitPercentage = 0.65,
-        childrenBlocks = [
+        childBlocks = [
             CalendarContainer.template('CalendarSummaryView',
-                childrenBlocks = [
+                childBlocks = [
                     MainCalendarControlT,
                     CanvasSplitterWindow.template('MainCalendarCanvasSplitter',
                         # as small as possible; AllDayEvents's
@@ -828,7 +828,7 @@ def makeSummaryBlocks(parcel):
                         splitPercentage = 0.06,
                         orientationEnum = 'Horizontal',
                         calendarControl = MainCalendarControl,
-                        childrenBlocks = [
+                        childBlocks = [
                             calendar.AllDayEventsCanvas.template('AllDayEvents',
                                 calendarContainer = CalendarSummaryView),
                             calendar.TimedEventsCanvas.template('TimedEvents',

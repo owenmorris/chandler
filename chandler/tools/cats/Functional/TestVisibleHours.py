@@ -22,7 +22,7 @@ class TestVisibleHours(ChandlerTestCase):
     
         # Find all the children of the Visible Hours menu
         eventsToTest = list(
-            block.event for block in QAUITestAppLib.App_ns.VisibleHoursMenu.childrenBlocks
+            block.event for block in QAUITestAppLib.App_ns.VisibleHoursMenu.childBlocks
             if block.hasLocalAttributeValue('event') # ... exclude separators
             and block.event.visibleHours > 0 # ... and the "auto" item
         )

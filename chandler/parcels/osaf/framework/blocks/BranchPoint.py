@@ -178,7 +178,7 @@ class BranchPointBlock(BoxContainer):
             if detailItem is not None:
                 contents.add(self.detailItem)
 
-        oldView = self.childrenBlocks.first()
+        oldView = self.childBlocks.first()
         treeChanged = newView is not oldView
 
         logger.debug("installTreeOfBlocks %s: treeChanged=%s, detailItemChanged=%s, detailItem=%s",
@@ -195,9 +195,9 @@ class BranchPointBlock(BoxContainer):
                 oldView.unRender()
 
             # attach the new view
-            self.childrenBlocks = []
+            self.childBlocks = []
             if newView is not None:
-                self.childrenBlocks.append(newView)
+                self.childBlocks.append(newView)
 
         if newView is not None:
             def Rerender():

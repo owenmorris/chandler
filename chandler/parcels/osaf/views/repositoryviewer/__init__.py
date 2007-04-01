@@ -26,13 +26,13 @@ def installParcel(parcel, oldName=None):
         size=SizeType(768, 512),
         windowTitle = _(u"Repository Viewer"),
         eventBoundary=True,
-        childrenBlocks = [
+        childBlocks = [
             SplitterWindow.template(
                 'RepositoryView',
                 displayName=u'Repository Viewer',
                 eventBoundary=True,
                 splitPercentage=0.5,
-                childrenBlocks=[
+                childBlocks=[
                     Tree.template(
                         'RepositoryTree',
                         elementDelegate='osaf.views.repositoryviewer.Repository.RepositoryDelegate',
@@ -60,7 +60,7 @@ def installParcel(parcel, oldName=None):
                         minimumSize=SizeType(400,100)),
                     BoxContainer.template('RepositoryItemDetailContainer',
                         border = RectType(4, 0, 0, 0),
-                        childrenBlocks = [
+                        childBlocks = [
                             RepositoryItemDetail.template('RepositoryItemDetail',
                                                           size=SizeType(-1,-1))
                             ])

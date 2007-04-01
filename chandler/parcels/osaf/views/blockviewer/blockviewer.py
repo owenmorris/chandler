@@ -145,7 +145,7 @@ class BlockDelegate (ControlBlocks.ListDelegate):
         if element is None:
             return [self.blockItem.findPath('//parcels/osaf/views/main/MainViewRoot')]
         else:
-            return element.childrenBlocks
+            return element.childBlocks
 
     def GetElementValues(self, element):
         blockName = getattr (element, 'blockName', None)
@@ -173,4 +173,4 @@ class BlockDelegate (ControlBlocks.ListDelegate):
         return cellValues
 
     def ElementHasChildren(self, element):
-        return len (element.childrenBlocks) > 0
+        return len (element.childBlocks) > 0

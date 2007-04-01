@@ -356,7 +356,7 @@ def installParcel(parcel, oldVersion=None):
     detail.makeSubtree(parcel, FlickrPhoto, [
         detail.makeArea(parcel, 'AuthorArea',
                         position=0.6,
-                        childrenBlocks=[
+                        childBlocks=[
                             detail.makeLabel(parcel, _(u'author'), borderTop=4),
                             detail.makeSpacer(parcel, width=6),
                             detail.makeEditor(parcel, 'AuthorAttribute',

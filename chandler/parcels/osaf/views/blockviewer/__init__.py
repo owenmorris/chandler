@@ -26,12 +26,12 @@ def installParcel(parcel, oldName=None):
         size=SizeType(768, 512),
         windowTitle = _(u"Block Viewer"),
         eventBoundary=True,
-        childrenBlocks = [
+        childBlocks = [
             SplitterWindow.template(
                 'Splitter',
                 eventBoundary=True,
                 splitPercentage=0.5,
-                childrenBlocks=[
+                childBlocks=[
                     Tree.template(
                         'Tree',
                         elementDelegate='osaf.views.blockviewer.blockviewer.BlockDelegate',
@@ -58,7 +58,7 @@ def installParcel(parcel, oldName=None):
                     
                     BoxContainer.template('BlockItemDetailContainer',
                         border = RectType(4, 0, 0, 0),
-                        childrenBlocks = [
+                        childBlocks = [
                             BlockItemDetail.template(
                                 'BlockItemDetail',
                                 size=SizeType(-1,-1))

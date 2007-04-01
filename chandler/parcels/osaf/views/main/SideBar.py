@@ -949,7 +949,7 @@ class SidebarBlock(Table):
 
             if filterClass is not MissingClass:
                 toolbar = Block.Block.findBlockByName("ApplicationBar")
-                for button in toolbar.childrenBlocks:
+                for button in toolbar.childBlocks:
                         buttonClass = getattr (button.event, "classParameter", None)
                         if buttonClass is not None and issubclass (filterClass, buttonClass):
                             newFilterStamp = buttonClass

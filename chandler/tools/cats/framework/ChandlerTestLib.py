@@ -762,7 +762,7 @@ class UITestItem(object):
             """Depth first traversal of blocks for a widget that accepts focus."""
             if block.widget.AcceptsFocus():
                 return block
-            for block in block.childrenBlocks():
+            for block in block.childBlocks():
                 if traverse(block) is not None:
                     return block
             return None

@@ -654,7 +654,7 @@ class wxApplication (wx.App):
             # since this code is used mostly for debugging. And in any event,
             # it would be easier to implement a garbage collector.
             def deleteAllBranchCaches (block):
-                for child in block.childrenBlocks:
+                for child in block.childBlocks:
                     deleteAllBranchCaches (child)
                 from osaf.framework.blocks.BranchPoint import BranchPointBlock
                 if isinstance (block, BranchPointBlock):
@@ -757,7 +757,7 @@ class wxApplication (wx.App):
         # besides just below the sidebar.
         from osaf.framework.blocks.Block import Block
         sidebarBPB = Block.findBlockByName ("SidebarBranchPointBlock")
-        activeView = sidebarBPB.childrenBlocks.first()
+        activeView = sidebarBPB.childBlocks.first()
         assert activeView is None or activeView.eventBoundary
         return activeView
 

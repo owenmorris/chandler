@@ -46,7 +46,7 @@ def installParcel(parcel, oldVersion=None):
         parcel, 'HelloWorldBoxContainer',
         orientationEnum = 'Horizontal',
         eventBoundary = True,
-        childrenBlocks=[button, attributeEditorBlock])
+        childBlocks=[button, attributeEditorBlock])
     
     blocks.BranchPoint.ViewableKind(MP3.getKind(repositoryView)).detailView = view
 

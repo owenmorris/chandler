@@ -39,7 +39,7 @@ def installBlocks(parcel, oldVersion=None):
     # -----------
     hotkeyArea = detail.makeArea(parcel, 'HotkeyArea',
                             position=0.6,
-                            childrenBlocks=[
+                            childBlocks=[
                                 detail.makeLabel(parcel, _(u'Hotkey'), borderTop=4),
                                 detail.makeSpacer(parcel, width=6),
                                 detail.makeEditor(parcel, 'EditFKey',
@@ -82,7 +82,7 @@ def installBlocks(parcel, oldVersion=None):
 
     testCheckboxArea = detail.makeArea(parcel, 'TestCheckboxArea',
                             position=0.7,
-                            childrenBlocks=[
+                            childBlocks=[
                                 detail.makeLabel(parcel, _(u'test'), borderTop=4),
                                 detail.makeSpacer(parcel, width=6),
                                 detail.makeEditor(parcel, 'EditTest',
@@ -102,7 +102,7 @@ def installBlocks(parcel, oldVersion=None):
     filePathArea = detail.makeArea(parcel, 'FilePathArea',
                                    baseClass=FilePathAreaBlock,
                                    position=0.8,
-                                   childrenBlocks=[
+                                   childBlocks=[
                                        detail.makeLabel(parcel, _(u'path'), borderTop=4),
                                        detail.makeSpacer(parcel, width=6),
                                        detail.makeEditor(parcel, 'EditFilePath',

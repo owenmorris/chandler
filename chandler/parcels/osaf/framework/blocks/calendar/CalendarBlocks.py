@@ -549,7 +549,7 @@ class wxPreviewArea(CalendarCanvas.CalendarNotificationHandler, wx.Panel):
         elif item is None:
             return
         sidebarBPB = Block.Block.findBlockByName("SidebarBranchPointBlock")
-        sidebarBPB.childrenBlocks.first().postEventByName (
+        sidebarBPB.childBlocks.first().postEventByName (
            'SelectItemsBroadcast', {'items':[item]}
             )
         self.Refresh()
