@@ -89,7 +89,9 @@ def inbound(peer, text, filter=None, allowDeletion=False, debug=False):
 
                 if dApply:
                     if debug: print "Applying:", uuid, dApply
+                    trans.startImport()
                     trans.importRecords(dApply)
+                    trans.finishImport()
 
                 uuid = trans.getUUIDForAlias(alias)
                 if uuid:

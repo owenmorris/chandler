@@ -312,7 +312,10 @@ class State(schema.Item):
         self.peerItemVersion = -1
 
     def apply(self, change):
-        self.getTranslator().importRecords(change)
+        translator = self.getTranslator()
+        translator.startImport()
+        translator.importRecords(change)
+        translator.finishImport()
         self.agreed += change
         self.discard(change)
 
