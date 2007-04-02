@@ -665,7 +665,8 @@ def makeSummaryBlocks(parcel):
                         rowHeight = 19,
                         elementDelegate = 'osaf.views.main.SectionedGridDelegate',
                         defaultEditableAttribute = u'displayName',
-                        emptyContentsShow = False),
+                        emptyContentsShow = False,
+                        contextMenu = "ItemContextMenu"),
                     HTML.template('EmptyDashBoardView',
                         text = _(u'<html><body><center>&nbsp;<br>&nbsp;<br>This collection is empty</center></body></html>'),
                         treatAsURL = False,
@@ -796,7 +797,6 @@ def makeSummaryBlocks(parcel):
     CalendarDetailBranchPointBlock = BranchPointBlock.template(
         'CalendarDetailBranchPointBlock',
         delegate = detailBranchPointDelegate,
-        #contents = detailContentsCollection
         ).install(parcel)
 
     WelcomeEvent = schema.ns('osaf.app', view).WelcomeEvent
@@ -832,7 +832,8 @@ def makeSummaryBlocks(parcel):
                             calendar.AllDayEventsCanvas.template('AllDayEvents',
                                 calendarContainer = CalendarSummaryView),
                             calendar.TimedEventsCanvas.template('TimedEvents',
-                                calendarContainer = CalendarSummaryView)
+                                calendarContainer = CalendarSummaryView,
+                                contextMenu = "ItemContextMenu")
                             ]),
                     ]),
             BranchPointBlock.template('CalendarDetailBranchPointBlock',

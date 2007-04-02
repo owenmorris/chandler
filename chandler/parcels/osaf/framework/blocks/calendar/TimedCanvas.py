@@ -31,7 +31,7 @@ from osaf.pim.calendar.TimeZone import TimeZoneInfo, coerceTimeZone
 
 from time import time as epochtime
 from itertools import chain, islice
-from osaf.framework.blocks.Block import WithoutSynchronizeWidget
+from osaf.framework.blocks.Block import WithoutSynchronizeWidget, BaseWidget
 from osaf.pim.structs import SizeType
 
 from application.dialogs import RecurrenceDialog
@@ -84,7 +84,7 @@ class TimedEventsCanvas(CalendarBlock):
             self.widget.orderLast = []
 
 
-class wxTimedEventsCanvas(wxCalendarCanvas):
+class wxTimedEventsCanvas(BaseWidget, wxCalendarCanvas):
     def __init__(self, parent, *arguments, **keywords):
         super(wxTimedEventsCanvas, self).__init__(parent, *arguments, **keywords)
 

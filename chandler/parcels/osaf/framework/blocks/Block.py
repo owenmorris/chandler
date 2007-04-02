@@ -124,7 +124,7 @@ class Block(schema.Item):
 
     eventBoundary = schema.One(schema.Boolean, defaultValue=False)
 
-    contextMenu = schema.One() # Menu
+    contextMenu = schema.One(schema.Text) # name of context menu
 
     blockName = schema.One(schema.Text)
 
@@ -1156,7 +1156,8 @@ class BaseWidget(object):
     def displayContextMenu(self, event):
         contextMenu = getattr (self.blockItem, "contextMenu", None)
         if contextMenu is not None:
-            contextMenu.parentBlock.widget.PopupMenu (contextMenu.widget)
+            menuBlock = Block.findBlockByName(contextMenu)
+            menuBlock.parentBlock.widget.PopupMenu (menuBlock.widget)
 
 
 # These are the mappings looked up by wxRectangularChild.CalculateWXFlag, below
@@ -1258,8 +1259,10 @@ class BlockEvent(schema.Item):
     destinationBlockReference = schema.One(Block)
     methodName = schema.One(schema.Text)
     blockName = schema.One(schema.Text)
+    menusForEvent = schema.Sequence()
+
     schema.addClouds(
-        copying = schema.Cloud(byRef=[destinationBlockReference])
+        copying = schema.Cloud(byRef=[destinationBlockReference, menusForEvent])
     )
     def __repr__(self):
         # useful for debugging that i've done.  i dunno if event.arguments

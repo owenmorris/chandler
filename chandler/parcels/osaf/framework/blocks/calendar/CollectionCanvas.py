@@ -335,7 +335,6 @@ class wxCollectionCanvas(DragAndDrop.DropReceiveWidget,
         self.Bind(wx.EVT_PAINT, self.OnPaint)
         
         self.Bind(wx.EVT_MOUSE_EVENTS, self.OnMouseEvent)
-        self.Bind(wx.EVT_CONTEXT_MENU, self.OnContextMenu)
 
         self.dragState = self.draggedOutState = self._linuxHackDragState = None
         self.coercedCanvasItem = None
@@ -680,45 +679,6 @@ class wxCollectionCanvas(DragAndDrop.DropReceiveWidget,
             # Pass right clicks, etc onto wx, which can generate
             # EVT_CONTEXT_MENU as appropriate.
             event.Skip()
-
-    def OnContextMenu(self, event):
-    
-        # Event's position is in screen co-ordinates, so convert it
-        position = self.ScreenToClient(event.GetPosition())
-
-        # When doing calculations w.r.t. item positions on the
-        # canvas, we want to use the unscrolled position. The
-        # only place we use position is in the call to PopupMenu.
-        unscrolledPosition = self.CalcUnscrolledPosition(position)
-
-        canvasItem = self.GetCanvasItemAt(unscrolledPosition)
-        
-        menu = wx.Menu()
-
-        if not canvasItem:
-            menuItem = wx.MenuItem(menu, wx.NewId(), _(u"New event"))
-            menu.AppendItem(menuItem)
-            menuItem.Enable(self.blockItem.CanAdd())
-            eventcallback = lambda event: self.OnCreateItem(unscrolledPosition)
-            menu.Bind(wx.EVT_MENU, eventcallback, menuItem)
-
-            self.OnSelectNone(unscrolledPosition)        
-        else:
-            item = canvasItem.item
-            selection = self.blockItem.GetSelection()
-            self.OnSelectItem(item)
-            
-            menuItem = wx.MenuItem(menu, wx.NewId(), _(u"Remove"))
-            menu.AppendItem(menuItem)
-            menuItem.Enable(self.blockItem.CanRemove())
-            menu.Bind(wx.EVT_MENU, self.blockItem.onRemoveEvent, menuItem)
-
-            menuItem = wx.MenuItem(menu, wx.NewId(), _(u"Delete"))
-            menu.AppendItem(menuItem)
-            menuItem.Enable(self.blockItem.CanDelete())
-            menu.Bind(wx.EVT_MENU, self.blockItem.onDeleteEvent, menuItem)
-            
-        self.PopupMenu(menu, position)
 
     def SelectedCanvasItem(self):
         """

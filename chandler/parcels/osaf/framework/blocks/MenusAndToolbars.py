@@ -312,26 +312,29 @@ class DynamicBlock(schema.Item):
 
                 Use 'MenuBar' for the Menu Bar.
                 """
-                locationName = getattr (child, 'location', None)
-                if locationName is None:
-                    locationName = child.parentBlock.blockName
-                bar = containers [locationName]
-
                 operation = child.operation
-                assert child in bar or not bar.has_key (child.blockName), "Child name is already in toolbar"
-                if operation == 'InsertAfter':
-                    # find its position (or None) and insert there (or at the end)
-                    i = bar.index (child.itemLocation)
-                    bar.insertAfter (i, child)
-                elif operation == 'InsertBefore':
-                    i = bar.index (child.itemLocation)
-                    bar.insert (i, child)
-                elif operation == 'Replace':
-                    bar[child.itemLocation] = child
-                elif operation == 'Delete':
-                    # If you get an exception here, it's probably because
-                    # you're trying to remove a bar item that doesn't exist.
-                    del bar[child.itemLocation]
+                locationName = getattr (child, 'location', None)
+
+                if operation != 'None' or locationName is not None:
+                    if locationName is None:
+                        locationName = child.parentBlock.blockName
+                    bar = containers [locationName]
+    
+                    assert child in bar or not bar.has_key (child.blockName), "Child name is already in toolbar"
+                    if operation != 'None':
+                        if operation == 'InsertAfter':
+                            # find its position (or None) and insert there (or at the end)
+                            i = bar.index (child.itemLocation)
+                            bar.insertAfter (i, child)
+                        elif operation == 'InsertBefore':
+                            i = bar.index (child.itemLocation)
+                            bar.insert (i, child)
+                        elif operation == 'Replace':
+                            bar[child.itemLocation] = child
+                        elif operation == 'Delete':
+                            # If you get an exception here, it's probably because
+                            # you're trying to remove a bar item that doesn't exist.
+                            del bar[child.itemLocation]
 
     def synchronizeDynamicBlocks (self):
         """
@@ -701,20 +704,17 @@ class MenuItem (Block.Block, DynamicChild):
 
     menuItemKind = schema.One(menuItemKindEnumType, initialValue = 'Normal')
     accel = schema.One(schema.Text, initialValue = u'')
-    event = schema.One(Block.BlockEvent)
+    event = schema.One(Block.BlockEvent, inverse = Block.BlockEvent.menusForEvent)
     schema.addClouds(
-        copying = schema.Cloud(byCloud = [event])
+        copying = schema.Cloud(byRef = [event])
     )
     icon = schema.One(schema.Text)
     toggleTitle = schema.One(schema.Text, initialValue = u'')
 
     def instantiateWidget (self):
         # We'll need a dynamicParent's widget in order to instantiate
-        try:
-            if isinstance(self.dynamicParent.widget, wxMenu):
-                return wxMenuItem(style=wxMenuItem.CalculateWXStyle(self))
-        except AttributeError:
-            return None
+        assert (isinstance(self.dynamicParent.widget, wxMenu))
+        return wxMenuItem(style=wxMenuItem.CalculateWXStyle(self))
 
 class MenuBar (Block.Block, DynamicContainer):
     def instantiateWidget (self):

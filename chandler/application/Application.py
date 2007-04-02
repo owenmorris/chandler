@@ -490,6 +490,7 @@ class wxApplication (wx.App):
         self.Bind(wx.EVT_WINDOW_DESTROY, self.OnDestroyWindow, id=-1)
         self.Bind(wx.EVT_SHOW, self.OnShow, id=-1)
         self.Bind(wx.EVT_KEY_DOWN, self.OnKeyDown)
+        self.Bind(wx.EVT_CONTEXT_MENU, self.OnContextMenu)
 
         # The Twisted Reactor should be started before other Managers
         # and stopped last.
@@ -772,7 +773,7 @@ class wxApplication (wx.App):
             return wx.BitmapFromImage (rawImage)
 
         return None
-
+    
     def OnCommand(self, event):
         """
         Catch commands and pass them along to the blocks.
@@ -862,6 +863,18 @@ class wxApplication (wx.App):
                                 widget.SetToolbarItemBitmap(bitmap)
                     return
         event.Skip()
+
+    def OnContextMenu(self, event):
+        window = wx.FindWindowAtPointer()
+        while window is not None:
+            blockItem = getattr (window, "blockItem", None)
+            if blockItem is not None:
+                if hasattr (blockItem, "contextMenu"):
+                    blockItem.widget.displayContextMenu(event)
+                    return
+            window = window.GetParent()
+        event.Skip()
+
 
     def OnDestroyWindow(self, event):
         from osaf.framework.blocks.Block import Block

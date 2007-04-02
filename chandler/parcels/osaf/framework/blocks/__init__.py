@@ -96,6 +96,10 @@ def installParcel(parcel, oldName=None):
                                 dispatchEnum = 'FocusBubbleUp',
                                 commitAfterDispatch = True).install(parcel),
 
+            BlockEvent.template('Duplicate',
+                                dispatchEnum = 'FocusBubbleUp',
+                                commitAfterDispatch = True).install(parcel),
+
             BlockEvent.template('Print',
                                 dispatchEnum = 'FocusBubbleUp').install(parcel),
     

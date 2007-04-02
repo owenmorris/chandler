@@ -151,7 +151,9 @@ class wxTable(DragAndDrop.DraggableWidget,
         gridWindow.Bind(wx.EVT_PAINT, self.OnPaint)
         gridWindow.Bind(wx.EVT_MOUSE_EVENTS, self.OnMouseEvents)
         gridWindow.Bind(wx.EVT_MOUSE_CAPTURE_LOST, self.OnMouseCaptureLost)
-        gridWindow.Bind(wx.EVT_RIGHT_DOWN, self.OnRightClick)
+        # It appears that wxGrid gobbles all the mouse events so we never get
+        # context menu events. So bind right down to the context menu handler
+        gridWindow.Bind(wx.EVT_RIGHT_DOWN, wx.GetApp().OnContextMenu)
 
 
     def Destroy(self):
@@ -167,7 +169,7 @@ class wxTable(DragAndDrop.DraggableWidget,
 
         return super(wxTable, self).Destroy()
 
-    def OnRightClick(self, event):
+    def displayContextMenu(self, event):
         (column, row) = self.__eventToCell(event)
         selectedItemIndex = self.RowToIndex (row)
         blockItem = self.blockItem
@@ -179,8 +181,8 @@ class wxTable(DragAndDrop.DraggableWidget,
             theApp = wx.GetApp()
             theApp.propagateAsynchronousNotifications()
             theApp.Yield()
-        self.displayContextMenu(event)
-        
+        super(wxTable, self).displayContextMenu(event)
+
     def OnPaint (self, event):
         # Bug #7117: Don't draw gridWindows who's data has changed but hasn't
         # been synchronized to the widget.

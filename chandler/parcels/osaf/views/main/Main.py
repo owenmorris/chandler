@@ -83,6 +83,7 @@ class MainView(View):
     onUndoEventUpdateUI = _Method_CantEdit
     onRedoEventUpdateUI = _Method_CantEdit
     onSelectAllEventUpdateUI = _Method_CantEdit
+    onDuplicateEventUpdateUI = _Method_CantEdit
 
     def displayMailError (self, message, account):
         application.dialogs.Util.mailAccountError(wx.GetApp().mainFrame,
