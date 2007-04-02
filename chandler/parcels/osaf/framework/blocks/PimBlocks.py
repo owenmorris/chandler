@@ -267,7 +267,14 @@ class FocusEventHandlers(Item):
 
         event.arguments['Enable'] = enable
         # next() won't raise because len(status) is 1
-        event.arguments['Check'] = enable and iter(states).next()
+        # event.arguments['Check'] = enable and iter(states).next()
+        
+        if enable:
+            sender = event.arguments['sender']
+            if iter(states).next():
+                event.arguments['Text'] = sender.toggleTitle
+            else:
+                event.arguments['Text'] = sender.title
 
 
     def CanReplyOrForward(self, selectedItem):

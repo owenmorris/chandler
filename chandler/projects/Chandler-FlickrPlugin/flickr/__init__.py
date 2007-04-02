@@ -26,7 +26,7 @@ from datetime import datetime
 from i18n import MessageFactory
 from osaf import messages
 from osaf.pim.structs import SizeType, RectType
-from osaf.framework.blocks import BlockEvent, MenuItem, AddToSidebarEvent
+from osaf.framework.blocks import BlockEvent, Menu, MenuItem, AddToSidebarEvent
 from osaf.framework.blocks.Block import Block
 from osaf.startup import PeriodicTask
 from datetime import timedelta
@@ -303,37 +303,39 @@ def installParcel(parcel, oldVersion=None):
                                     destinationBlockReference=handler)
 
     # Add menu items to Chandler
-    collectionMenu = schema.ns('osaf.views.main', parcel).ExperimentalMenu
+    demoMenu = schema.ns('osaf.views.main', parcel).ExperimentalMenu
 
-    MenuItem.update(
-        parcel, 'FlickrParcelSeparator',
-        blockName = 'FlickrParcelSeparator',
-        menuItemKind = 'Separator',
-        parentBlock = collectionMenu)
+    flickrMenu = Menu.update(
+        parcel, 'FlickrDemoMenu',
+        blockName = 'FlickrDemoMenu',
+        title = _(u'Flickr'),
+        helpString = _(u'Download Flickr photos'),
+        childrenBlocks = [ ],
+        parentBlock = demoMenu)
 
     MenuItem.update(
         parcel, 'NewFlickrCollectionByOwner',
         blockName = 'NewFlickrCollectionByOwnerMenuItem',
-        title = _(u'New Flickr Collection by Owner'),
+        title = _(u'Create new Flickr collection by Owner...'),
         event = addFlickrCollectionByOwnerEvent,
         eventsForNamedLookup = [addFlickrCollectionByOwnerEvent],
-        parentBlock = collectionMenu)
+        parentBlock = flickrMenu)
  
     MenuItem.update(
         parcel, 'NewFlickrCollectionByTag',
         blockName = 'NewFlickrCollectionByTagMenuItem',
-        title = _(u'New Flickr Collection by Tag'),
+        title = _(u'Create new Flickr collection by Tag...'),
         event = addFlickrCollectionByTagEvent,
         eventsForNamedLookup = [addFlickrCollectionByTagEvent],
-        parentBlock = collectionMenu)
+        parentBlock = flickrMenu)
 
     MenuItem.update(
         parcel, 'UpdateFlickrNow',
         blockName = 'UpdateFlickrNowMenuItem',
-        title = _(u'Update Photo Collections'),
+        title = _(u'Update Flickr collections...'),
         event = updateEvent,
         eventsForNamedLookup = [updateEvent],
-        parentBlock = collectionMenu)
+        parentBlock = flickrMenu)
 
     # The periodic task that adds new photos to the collection in the background
     PeriodicTask.update(

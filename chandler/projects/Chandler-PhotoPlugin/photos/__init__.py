@@ -20,7 +20,7 @@ from application import schema
 from osaf.pim.structs import RectType
 from osaf.pim.notes import Note
 from osaf.views.detail import makeSubtree, makeEditor
-from osaf.framework.blocks.MenusAndToolbars import MenuItem
+from osaf.framework.blocks.MenusAndToolbars import MenuItem, Menu
 from i18n import MessageFactory
 
 _ = MessageFactory("Chandler-PhotoPlugin")
@@ -37,7 +37,7 @@ def installParcel(parcel, old_version=None):
         ).install(parcel)
     ])
 
-    # Event to add a new image to the repository
+     # Event to add a new image to the repository
     newImageEvent = NewImageEvent.update(
         parcel, 'NewImage',
         blockName = 'NewImage',
@@ -45,12 +45,19 @@ def installParcel(parcel, old_version=None):
         allCollection = schema.ns('osaf.pim', parcel.itsView).allCollection)
 
     # Add menu item to Chandler
+    photosMenu = Menu.update(
+        parcel, 'PhotosDemoMenu',
+        blockName = 'PhotosDemoMenuItem',
+        title = _(u'Photos'),
+        helpString = _(u'Import photos'),
+        childrenBlocks = [ ],
+        parentBlock = schema.ns('osaf.views.main', parcel).ExperimentalMenu)
+
     MenuItem.update(
         parcel, 'ImportImageItem',
         blockName = 'ImportImageItemMenuItem',
-        title = _(u'Import an image from disk'),
+        title = _(u'Import image...'),
         helpString = _(u'Import an image from disk'),
         event = newImageEvent,
         eventsForNamedLookup = [newImageEvent],
-        parentBlock = schema.ns('osaf.views.main', parcel).ImportExportMenu)
- 
+        parentBlock = photosMenu)

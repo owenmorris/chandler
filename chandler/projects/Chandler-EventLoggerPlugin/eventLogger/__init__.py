@@ -187,14 +187,11 @@ def installParcel(parcel, old_version=None):
         parcel, 'StartLogging',
         blockName = 'StartLoggingMenuItem',
         menuItemKind = 'Check',
-        title = u'Start Logging',
+        title = u'Log user actions',
         helpString = u'Turn on logging and send result to OSAF',
         event = ToggleLogging,
         eventsForNamedLookup = [ToggleLogging],
-        location = "TestMenu",
-        operation = 'InsertBefore',
-        itemLocation = "WxTestHarnessItem",
-        parentBlock = mainView.MainView)
+        parentBlock = mainView.LoggingMenu)
 
     # The periodic task that uploads logfiles in the background  
     PeriodicTask.update(

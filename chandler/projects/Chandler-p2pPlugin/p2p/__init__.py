@@ -17,7 +17,7 @@ from datetime import timedelta
 from application import schema
 from i18n import MessageFactory
 from osaf.startup import PeriodicTask
-from osaf.framework.blocks import BlockEvent, MenuItem
+from osaf.framework.blocks import BlockEvent, MenuItem, Menu
 
 from dialogs import p2pHandler, setStatusMessage
 from account import findDefaultAccounts, AllGroup
@@ -75,35 +75,37 @@ def installParcel(parcel, version=None):
                                        destinationBlockReference=handler)
 
 
-    # Add a separator to the "Experimental" menu ...
-    MenuItem.update(parcel, 'menuSeparator',
-                    blockName='_p2p_menuSeparator',
-                    menuItemKind='Separator',
-                    parentBlock=main.ExperimentalMenu)
+    # Add to the demo menu
+    p2pMenu = Menu.update(parcel, '_p2p_demoMenu',
+                          blockName='_p2p_demoMenu',
+                          title = _m_(u'Peer to Peer Sharing'),
+                          helpString = _m_(u'Share collections using Jabber or IMAP'),
+                          childrenBlocks = [ ],
+                          parentBlock=main.ExperimentalMenu)
 
     # Add a menu item to the "Experimental" menu to login to a peer network
     MenuItem.update(parcel, "LoginMenuItem",
                     blockName="_p2p_LoginMenuItem",
-                    title=_m_(u"Login to a peer network"),
+                    title=_m_(u"Login to Peer network..."),
                     event=loginEvent,
                     eventsForNamedLookup=[loginEvent],
-                    parentBlock=main.ExperimentalMenu)
+                    parentBlock=p2pMenu)
 
     # ... and, below it, a menu item to p2p subscribe to a collection
     MenuItem.update(parcel, "SubscribeMenuItem",
                     blockName="_p2p_SubscribeMenuItem",
-                    title=_m_(u"Subscribe to a peer collection"),
+                    title=_m_(u"Subscribe to Peer collection..."),
                     event=subscribeEvent,
                     eventsForNamedLookup=[subscribeEvent],
-                    parentBlock=main.ExperimentalMenu)
+                    parentBlock=p2pMenu)
 
     # ... and, below it, a menu item to manage p2p permissions to a collection
     MenuItem.update(parcel, "AccessMenuItem",
                     blockName="_p2p_AccessMenuItem",
-                    title=_m_(u"Grant peer access to ..."),
+                    title=_m_(u"Grant Peer access to ..."),
                     event=accessEvent,
                     eventsForNamedLookup=[accessEvent],
-                    parentBlock=main.ExperimentalMenu)
+                    parentBlock=p2pMenu)
 
     # ... and, below it, a menu item to send a collection via email
     MenuItem.update(parcel, "SendMailMenuItem",
@@ -111,7 +113,7 @@ def installParcel(parcel, version=None):
                     title=_m_(u"Send ... via p2p email"),
                     event=sendMailEvent,
                     eventsForNamedLookup=[sendMailEvent],
-                    parentBlock=main.ExperimentalMenu)
+                    parentBlock=p2pMenu)
 
     # ... and, below it, a menu item to check for p2p email
     MenuItem.update(parcel, "CheckMailMenuItem",
@@ -119,7 +121,7 @@ def installParcel(parcel, version=None):
                     title=_m_(u"Check p2p email"),
                     event=checkMailEvent,
                     eventsForNamedLookup=[checkMailEvent],
-                    parentBlock=main.ExperimentalMenu)
+                    parentBlock=p2pMenu)
 
     PeriodicTask.update(parcel, "loginTask",
                         invoke="p2p.LoginTask",

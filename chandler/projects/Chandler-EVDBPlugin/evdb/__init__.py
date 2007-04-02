@@ -62,19 +62,21 @@ def installParcel(parcel, version=None):
         blockName = 'newEVDBCollectionEvent')
 
     # Add a separator to the "Experimental" menu ...
-    blocks.MenuItem.update(parcel, 'EVDBParcelSeparator',
-                           blockName = 'EVDBParcelSeparator',
-                           menuItemKind = 'Separator',
-                           parentBlock = main.ExperimentalMenu)
+    evdbMenu = blocks.Menu.update(parcel, 'EVDBDemoMenu',
+                                  blockName = 'EVDBDemoMenu',
+                                  title = _(u'EVDB'),
+                                  helpString = _(u'Download EVDB Events'),
+                                  childrenBlocks = [ ],
+                                  parentBlock = main.ExperimentalMenu)
 
     # ... and, below it, a menu item to subscribe to an EVDB
     # calendar.
     blocks.MenuItem.update(parcel, "NewEVDBCollection",
         blockName = "NewEVDBCollectionMenu",
-        title = _(u"Subscribe to EVDB Calendar"),
+        title = _(u"Subscribe to EVDB calendar..."),
         event = NewEVDBCollectionEvent,
         eventsForNamedLookup = [NewEVDBCollectionEvent],
-        parentBlock = main.ExperimentalMenu,
+        parentBlock = evdbMenu,
     )
 
     LicenseTask(None).run()

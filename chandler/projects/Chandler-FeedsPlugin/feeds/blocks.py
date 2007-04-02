@@ -163,18 +163,20 @@ def installParcel(parcel, oldVersion=None):
         blockName = "addFeedCollectionEvent")
     
     # Add a separator to the "Collection" menu ...
-    blocks.MenuItem.update(parcel, "feedsParcelSeparator",
-                           blockName = "feedsParcelSeparator",
-                           menuItemKind = "Separator",
-                           parentBlock = main.ExperimentalMenu)
+    feedsMenu = blocks.Menu.update(parcel, "feedsDemoMenu",
+                                   blockName = "feedsDemoMenu",
+                                   title = _(u'Feeds'),
+                                   helpString = _(u'RSS reader'),
+                                   childrenBlocks = [ ],
+                                   parentBlock = main.ExperimentalMenu)
     
     # ... and, below it, a menu item to subscribe to a RSS feed.
     blocks.MenuItem.update(parcel, "newFeedChannel",
         blockName = "newFeedChannel",
-        title = _(u"New Feed Channel"),
+        title = _(u"Create new feed channel..."),
         event = addFeedCollectionEvent,
         eventsForNamedLookup = [addFeedCollectionEvent],
-        parentBlock = main.ExperimentalMenu,
+        parentBlock = feedsMenu,
     )
     
     # The hierarchy of UI elements for the FeedItem detail view

@@ -35,14 +35,16 @@ def installParcel(parcel, version=None):
     main   = schema.ns('osaf.views.main', parcel)
     detail = schema.ns('osaf.views.detail', parcel)
 
-    blocks.MenuItem.update(parcel, 'AmazonParcelSeparator',
-                           blockName = 'AmazonParcelSeparator',
-                           menuItemKind = 'Separator',
-                           parentBlock = main.ExperimentalMenu)
+    amazonMenu = blocks.Menu.update(parcel, 'AmazonDemoMenu',
+                                    blockName = 'AmazonDemoMenu',
+                                    title = _(u'Amazon'),
+                                    helpString = _(u'Download wishlists from Amazon'),
+                                    childrenBlocks = [ ],
+                                    parentBlock = main.ExperimentalMenu)
 
     blocks.MenuItem.update(parcel, "NewAmazonCollection",
         blockName = "NewAmazonCollectionMenu",
-        title = _(u"Amazon Keyword Search"),
+        title = _(u"Amazon Keyword Search..."),
         event = blocks.BlockEvent.update(parcel, "NewAmazonCollectionEvent",
             blockName = "NewAmazonCollection",
             dispatchEnum = "SendToBlockByReference",
@@ -50,12 +52,12 @@ def installParcel(parcel, version=None):
             commitAfterDispatch = True,
         ),
         eventsForNamedLookup = [parcel["NewAmazonCollectionEvent"]],
-        parentBlock = main.ExperimentalMenu,
+        parentBlock = amazonMenu,
     )
 
     blocks.MenuItem.update(parcel, "NewAmazonWishList",
         blockName = "NewAmazonWishListMenu",
-        title = _(u"Amazon Wish List Search"),
+        title = _(u"Amazon Wish List Search..."),
         event = blocks.BlockEvent.update(parcel, "NewAmazonWishListEvent",
             blockName = "NewAmazonWishList",
             dispatchEnum = "SendToBlockByReference",
@@ -63,7 +65,7 @@ def installParcel(parcel, version=None):
             commitAfterDispatch = True,
         ),
         eventsForNamedLookup = [parcel["NewAmazonWishListEvent"]],
-        parentBlock = main.ExperimentalMenu,
+        parentBlock = amazonMenu,
     )
 
     makeSubtree(parcel, AmazonItem, [

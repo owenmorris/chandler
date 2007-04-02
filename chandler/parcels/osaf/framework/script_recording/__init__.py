@@ -16,7 +16,7 @@
 import os, sys, wx, types
 from application import schema
 from osaf.framework.blocks import Block, BlockEvent
-from osaf.framework.blocks.MenusAndToolbars import MenuItem
+from osaf.framework.blocks.MenusAndToolbars import Menu, MenuItem
 from i18n import ChandlerMessageFactory as _
 from application.Application import idToString
 
@@ -99,9 +99,9 @@ class Controller (Block.Block):
 
     def onToggleRecordingEventUpdateUI (self, event):
         if self.FilterEvent in wx.GetApp().filterEventCallables:
-            event.arguments['Text'] = _(u'Stop Recording')
+            event.arguments['Text'] = _(u'Stop recording')
         else:
-            event.arguments['Text'] = _(u'Record Script')
+            event.arguments['Text'] = _(u'Record script')
 
     def onIncludeTestsEvent (self, event):
         self.includeTests = not self.includeTests
@@ -315,10 +315,12 @@ def installParcel(parcel, old_version=None):
         parcel, 'RecordingController',
         blockName = 'RecordingController')
 
-    MenuItem.update(parcel, 'RecordingScriptSeparator',
-                    blockName = 'RecordingScriptSeparator',
-                    menuItemKind = 'Separator',
-                    parentBlock = main.TestMenu)
+    scriptingMenu = Menu.update(
+        parcel, 'ScriptingMenuItem',
+        blockName = 'ScriptingMenuItem',
+        title = _(u'Scripting'),
+        childrenBlocks = [],
+        parentBlock = main.ToolsMenu)
 
     # Add menu and event to record scripts
     ToggleRecording = BlockEvent.update(
@@ -330,11 +332,11 @@ def installParcel(parcel, old_version=None):
     MenuItem.update(
         parcel, 'RecordingMenuItem',
         blockName = 'RecordingMenuItem',
-        title = _(u'Record Script'),
+        title = _(u'Record script'),
         helpString = _(u'Record commands in Chandler'),
         event = ToggleRecording,
         eventsForNamedLookup = [ToggleRecording],
-        parentBlock = main.TestMenu)
+        parentBlock = scriptingMenu)
 
     # Add menu and event to include testing in script
     IncludeTests = BlockEvent.update(
@@ -347,11 +349,11 @@ def installParcel(parcel, old_version=None):
         parcel, 'IncludeTestsMenuItem',
         menuItemKind = 'Check',
         blockName = 'IncludeTeststMenuItem',
-        title = _(u'Include Tests in Script'),
+        title = _(u'Include tests in script'),
         helpString = _(u"Includes code in the script to verify that the UI's data matches the state when the script was recorded"),
         event = IncludeTests,
         eventsForNamedLookup = [IncludeTests],
-        parentBlock = main.TestMenu)
+        parentBlock = scriptingMenu)
 
     # Add menu and event to play a recording
     PlayScript = BlockEvent.update(
@@ -363,8 +365,8 @@ def installParcel(parcel, old_version=None):
     MenuItem.update(
         parcel, 'PlayScriptMenuItem',
         blockName = 'PlayScriptMenuItem',
-        title = _(u'Play Script'),
+        title = _(u'Play script'),
         helpString = _(u'Playback a script you recorded'),
         event = PlayScript,
         eventsForNamedLookup = [PlayScript],
-        parentBlock = main.TestMenu)
+        parentBlock = scriptingMenu)

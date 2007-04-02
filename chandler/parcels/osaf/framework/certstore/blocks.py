@@ -69,7 +69,7 @@ def installParcel(parcel, oldVersion=None):
         parcel, "CertificateTestMenu",
         blockName = "CertificateTestMenu",
         title = _(u"Certificates"),
-        parentBlock = main.TestMenu)
+        parentBlock = main.ToolsMenu)
 
     blocks.MenuItem.update(
         parcel, "CertificateView",

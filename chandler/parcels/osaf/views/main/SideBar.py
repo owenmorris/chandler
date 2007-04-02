@@ -1205,22 +1205,25 @@ class SidebarBlock(Table):
 
         if selectedItem is None or second is not None:
             event.arguments['Enable'] = False
+            event.arguments['Check'] = False
         else:
             arguments = {'collection': selectedItem.displayName,
                          'dashboard': schema.ns("osaf.pim", self).allCollection.displayName}
+                         
+            menuTitle = _(u'&Keep out of %(dashboard)s') % arguments
 
             if UserCollection(selectedItem).outOfTheBoxCollection:
                 enabled = False
-                menuTitle = _(u'&Keep "%(collection)s" out of %(dashboard)s') % arguments
+                checked = False
             else:
                 enabled = True
                 mine = schema.ns('osaf.pim', self.itsView).mine
                 if selectedItem not in mine.sources:
-                    menuTitle = _(u'&Add "%(collection)s" to %(dashboard)s') % arguments
+                    checked = True
                 else:
-                    menuTitle = _(u'&Keep "%(collection)s" out of %(dashboard)s') % arguments
-
-            event.arguments ['Text'] = menuTitle
+                    checked = False
+            event.arguments['Check'] = checked
+            event.arguments['Text'] = menuTitle
             event.arguments['Enable'] = enabled
 
 class SidebarBranchPointDelegate(BranchPoint.BranchPointDelegate):

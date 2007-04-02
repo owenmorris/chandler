@@ -1191,17 +1191,10 @@ class MainView(View):
                          commonName(other)+'"\t'+ 
                          endpoint+'\t'+ policy)
 
-    def onSharingSubscribeToCollectionEvent(self, event):
+    def onSubscribeToCollectionEvent(self, event):
         # Triggered from "Collection | Subscribe to collection..."
 
         SubscribeCollection.Show(wx.GetApp().mainFrame, self.itsView)
-
-    def onSharingImportDemoCalendarEvent(self, event):
-        # Triggered from "Tests | Import demo calendar..."
-
-        url="http://www.osafoundation.org/0.5/DemoCalendar.ics"
-
-        SubscribeCollection.Show(wx.GetApp().mainFrame, self.itsView, url=url)
 
     def onDumpToFileEvent(self, event):
         wildcard = "%s|*.dump|%s (*.*)|*.*" % (_(u"Dump files"),
@@ -1490,7 +1483,7 @@ class MainView(View):
             return
         RestoreShares.Show(wx.GetApp().mainFrame, self.itsView)
 
-    def onShareSidebarCollectionEvent(self, event):
+    def onPublishCollectionEvent(self, event):
         self._onShareOrManageSidebarCollectionEvent(event)
         
     def onManageSidebarCollectionEvent(self, event):
@@ -1516,35 +1509,48 @@ class MainView(View):
                 view=self.itsView,
                 collection=collection)
 
-    def onShareSidebarCollectionEventUpdateUI (self, event):
+    def onPublishCollectionEventUpdateUI (self, event):
         """
         Update the menu to reflect the selected collection name.
         """
         collection = self.getSidebarSelectedCollection ()
-
-        if collection is not None:
-            menuTitle = _(u'S&hare "%(collectionName)s"...') % {'collectionName': collection.displayName}
-        else:
-            menuTitle = _(u'S&hare a collection...')
-
-        event.arguments ['Text'] = menuTitle
         event.arguments['Enable'] = collection is not None and (not sharing.isShared(collection))
 
     def onManageSidebarCollectionEventUpdateUI (self, event):
         collection = self.getSidebarSelectedCollection ()
         event.arguments['Enable'] = collection is not None and (sharing.isShared(collection))
 
-    def onUnsubscribeSidebarCollectionEvent(self, event):
-        collection = self.getSidebarSelectedCollection ()
-        if collection is not None:
-            sharing.unsubscribe(collection)
+    def onUnshareCollectionEvent(self, event):
+        try:
+            collection = self.getSidebarSelectedCollection ()
+            if collection is not None:
+                share = sharing.getShare(collection)
+                if sharing.isSharedByMe(share):
+                    sharing.unpublish(collection)
+                else:
+                    sharing.unsubscribe(collection)
+        except (sharing.CouldNotConnect, twisted.internet.error.TimeoutError):
+            msg = _(u"Unpublish failed, could not connect to server")
+            self.setStatusMessage(msg)
+        except:
+            msg = _(u"Unsubscribe/Unpublish failed, unknown error")
+            self.setStatusMessage(msg)
+            raise # figure out what the exception is
+        else:
+            msg = _("Unsubscribe/Unpublish succeeded")
+            self.setStatusMessage(msg)
 
-    def onUnsubscribeSidebarCollectionEventUpdateUI(self, event):
+    def onUnshareCollectionEventUpdateUI(self, event):
+        event.arguments['Enable'] = False
         collection = self.getSidebarSelectedCollection ()
         if collection is not None:
             share = sharing.getShare(collection)
-            sharedByMe = sharing.isSharedByMe(share)
-        event.arguments['Enable'] = collection is not None and sharing.isShared(collection) and not sharedByMe
+            if sharing.isShared(collection):
+                event.arguments['Enable'] = True
+                if sharing.isSharedByMe(share):
+                    event.arguments['Text'] = _(u"Unpublish")
+                else:
+                    event.arguments['Text'] = _(u"Unsubscribe")
 
     def _freeBusyShared(self):
         allCollection = schema.ns('osaf.pim', self).allCollection
@@ -1599,29 +1605,6 @@ class MainView(View):
             msg = _("Unpublish succeeded")
             self.setStatusMessage(msg)
             
-    def onUnpublishSidebarCollectionEvent(self, event):
-        try:
-            collection = self.getSidebarSelectedCollection ()
-            if collection is not None:
-                sharing.unpublish(collection)
-        except (sharing.CouldNotConnect, twisted.internet.error.TimeoutError):
-            msg = _(u"Unpublish failed, could not connect to server")
-            self.setStatusMessage(msg)
-        except:
-            msg = _(u"Unpublish failed, unknown error")
-            self.setStatusMessage(msg)
-        else:
-            msg = _("Unpublish succeeded")
-            self.setStatusMessage(msg)
-
-    def onUnpublishSidebarCollectionEventUpdateUI(self, event):
-        collection = self.getSidebarSelectedCollection ()
-        if collection is not None:
-            share = sharing.getShare(collection)
-            sharedByMe = sharing.isSharedByMe(share)
-        event.arguments['Enable'] = collection is not None and sharing.isShared(collection) and sharedByMe
-
-
     def onSyncCollectionEvent (self, event):
         rv = self.itsView
         collection = self.getSidebarSelectedCollection()
@@ -1639,19 +1622,10 @@ class MainView(View):
         """
         collection = self.getSidebarSelectedCollection ()
         if collection is not None:
-
             collName = collection.displayName
-            menuTitle = _(u'S&ync "%(collectionName)s"') % \
+            event.arguments ['Text'] = _(u'%(collectionName)s') % \
                 {'collectionName': collName}
-            if sharing.isShared(collection):
-                event.arguments['Enable'] = True
-            else:
-                event.arguments['Enable'] = False
-        else:
-            event.arguments['Enable'] = False
-            menuTitle = _(u'S&ync a collection')
-        event.arguments ['Text'] = menuTitle
-
+            event.arguments['Enable'] = sharing.isShared(collection)
 
     def onCopyCollectionURLEvent(self, event):
         collection = self.getSidebarSelectedCollection()
@@ -1690,20 +1664,18 @@ class MainView(View):
             self.RepositoryCommitWithStatus ()
 
     def onTakeOnlineOfflineEventUpdateUI(self, event):
-        enable = False
-        menuTitle = _("&Toggle online/offline")
+        event.arguments['Enable'] = False
 
         collection = self.getSidebarSelectedCollection()
         if collection is not None:
-            if sharing.isShared(collection):
-                enable = True
-                if sharing.isOnline(collection):
-                    menuTitle = _("&Take offline")
-                else:
-                    menuTitle = _("&Take online")
+            
+            collName = collection.displayName
+            event.arguments ['Text'] = _(u'%(collectionName)s') % \
+                {'collectionName': collName}
 
-        event.arguments['Enable'] = enable
-        event.arguments ['Text'] = menuTitle
+            if sharing.isShared(collection):
+                event.arguments['Enable'] = True
+                event.arguments['Check'] = not sharing.isOnline(collection)
 
     def onTakeMailOnlineOfflineEvent(self, event):
         if Globals.mailService.isOnline():
@@ -1713,10 +1685,7 @@ class MainView(View):
 
 
     def onTakeMailOnlineOfflineEventUpdateUI(self, event):
-        if Globals.mailService.isOnline():
-            event.arguments ['Text'] = "Take Mail Offline"
-        else:
-            event.arguments ['Text'] = "Take Mail Online"
+        event.arguments ['Check'] = not Globals.mailService.isOnline()
 
     def onSyncAllEvent (self, event):
         """
@@ -1836,15 +1805,6 @@ class MainView(View):
     def onEnableTimezonesEvent(self, event):
         tzPrefs = schema.ns('osaf.pim', self.itsView).TimezonePrefs
         tzPrefs.showUI = not tzPrefs.showUI
-
-    def onEnableSectionsEventUpdateUI(self, event):
-        dashboardPrefs = schema.ns('osaf.views.main', self.itsView).dashboardPrefs
-        event.arguments['Check'] = dashboardPrefs.showSections
-
-    def onEnableSectionsEvent(self, event):
-        dashboardPrefs = schema.ns('osaf.views.main',
-                                    self.itsView).dashboardPrefs
-        dashboardPrefs.showSections = not dashboardPrefs.showSections
 
     def onVisibleHoursEvent(self, event):
         calendarPrefs = schema.ns('osaf.framework.blocks.calendar',

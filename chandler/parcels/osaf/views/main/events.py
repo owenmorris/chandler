@@ -71,7 +71,7 @@ def makeMainEvents(parcel):
     BlockEvent.template('CompactRepository').install(parcel)
     BlockEvent.template('IndexRepository').install(parcel)
 
-    BlockEvent.template('UnsubscribeSidebarCollection').install(parcel)
+    BlockEvent.template('UnshareCollection').install(parcel)
 
     BlockEvent.template('SharingPublishFreeBusy').install(parcel)
 
@@ -91,8 +91,6 @@ def makeMainEvents(parcel):
         'ShowHideStatusBar',
         methodName = 'onShowHideEvent',
         dispatchToBlockName = 'StatusBar').install(parcel)
-
-    BlockEvent.template('EnableSections').install(parcel)
 
     BlockEvent.template('EnableTimezones').install(parcel)
 
@@ -142,7 +140,9 @@ def makeMainEvents(parcel):
         classParameter = osaf.pim.mail.MailStamp,
         dispatchEnum = 'FocusBubbleUp').install(parcel)
 
-    BlockEvent.template('SharingSubscribeToCollection').install(parcel)
+    BlockEvent.template('AddToCollection', dispatchEnum = 'FocusBubbleUp').install(parcel)
+
+    BlockEvent.template('SubscribeToCollection').install(parcel)
 
     BlockEvent.template('CheckRepository').install(parcel)
 
@@ -236,7 +236,7 @@ def makeMainEvents(parcel):
         commitAfterDispatch = True,
         dispatchEnum = 'FocusBubbleUp').install(parcel)
 
-    BlockEvent.template('ShareSidebarCollection').install(parcel)
+    BlockEvent.template('PublishCollection').install(parcel)
 
     BlockEvent.template('StartProfiler').install(parcel)
 
@@ -311,8 +311,6 @@ def makeMainEvents(parcel):
         dispatchToBlockName = 'Sidebar').install(parcel)
 
     BlockEvent.template('EmptyTrash').install(parcel)
-
-    BlockEvent.template('UnpublishSidebarCollection').install(parcel)
 
     BlockEvent.template('MimeTest').install(parcel)
 

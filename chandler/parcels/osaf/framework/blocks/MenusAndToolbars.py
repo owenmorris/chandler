@@ -706,6 +706,7 @@ class MenuItem (Block.Block, DynamicChild):
         copying = schema.Cloud(byCloud = [event])
     )
     icon = schema.One(schema.Text)
+    toggleTitle = schema.One(schema.Text, initialValue = u'')
 
     def instantiateWidget (self):
         # We'll need a dynamicParent's widget in order to instantiate
