@@ -536,10 +536,10 @@ def runPluginTests(options):
     >>> options.modes   = ['release', 'debug']
     
     >>> runPluginTests(options)
-    /.../release/RunPython... .../projects/Chandler-EVDBPlugin/setup.py test -v
+    /.../release/RunPython... setup.py test -v
     - + - + - + - + - + - + - + - + - + - + - + - + - + - + - + 
     ...
-    /.../debug/RunPython... .../projects/Chandler-EVDBPlugin/setup.py test -v
+    /.../debug/RunPython... setup.py test -v
     - + - + - + - + - + - + - + - + - + - + - + - + - + - + - + 
     ...
     False
@@ -551,6 +551,7 @@ def runPluginTests(options):
         log('No plugin tests found to run')
     else:
         saveCWD = os.getcwd()
+        env     = os.environ.copy()
 
         try:
             for mode in options.modes:
@@ -565,12 +566,8 @@ def runPluginTests(options):
                     #cd `dirname $setup`
                     #PARCELPATH=$PARCEL_PATH CHANDLERHOME=$C_HOME $CHANDLERBIN/$mode/$RUN_PYTHON
                     #   `basename $setup` test 2>&1 | tee $TESTLOG
-                    env = os.environ.copy()
 
-                    env['PARCELPATH']   = os.path.join(options.chandlerHome, 'plugins')
-                    env['CHANDLERHOME'] = options.chandlerHome
-
-                    cmd = [ options.runpython[mode], test, 'test' ]
+                    cmd = [ options.runpython[mode], os.path.basename(test), 'test' ]
 
                     if options.verbose:
                         cmd.append('-v')
@@ -580,6 +577,8 @@ def runPluginTests(options):
                         result = 0
                     else:
                         os.chdir(os.path.dirname(test))
+                        env['PARCELPATH'] = os.path.join('..', '..', 'plugins')
+
                         result = build_lib.runCommand(cmd, timeout=600, env=env)
 
                     if result != 0:
@@ -1284,7 +1283,7 @@ def main(options):
     >>> main(options)
     /.../RunPython... .../tests/TestReferenceAttributes.py -v
     ...
-    /.../RunPython... .../projects/Chandler-EVDBPlugin/setup.py test -v
+    /.../RunPython... setup.py test -v
     ...
     False
     
