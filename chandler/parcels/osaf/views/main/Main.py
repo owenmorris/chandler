@@ -998,7 +998,8 @@ class MainView(View):
             return
 
         for item in collection:
-            if pim.has_stamp(item, pim.EventStamp):
+            if (pim.has_stamp(item, pim.EventStamp) or 
+                pim.has_stamp(item, pim.TaskStamp)):
                 break
         else:
             message = _(u"This collection contains no events")

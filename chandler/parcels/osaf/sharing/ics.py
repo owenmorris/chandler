@@ -16,6 +16,7 @@ from osaf.sharing import model, eim, RecordSet, translator
 from osaf.sharing.translator import toICalendarDuration, toICalendarDateTime
 from ICalendar import makeNaiveteMatch
 import vobject
+import time
 from datetime import datetime, timedelta, date
 from PyICU import ICUtzinfo
 from osaf.pim.calendar.TimeZone import convertToICUtzinfo, forceToDateTime
@@ -34,20 +35,47 @@ utc = ICUtzinfo.getInstance('UTC')
 def no_op(*args, **kwds):
     pass
 
-def getVevent(recordSet, vevents):
-    uuid = recordSet.uuid
-    vevent = vevents.get(uuid)
-    if vevent is None:
+class ICalendarExportError(Exception):
+    pass
+
+def prepareVobj(uuid, recordSet, vobjs):
+    """
+    Determine if a recordset is for a vtodo, or a vevent, then create it.
+    
+    Modifications may not have event records OR task records, so for
+    modifications, check what was done for the master.  This relies on 
+    recordsets for masters being processed before modifications.
+    
+    """
+    master_uuid, recurrenceID = translator.splitUUID(uuid)
+    if recurrenceID is None:
+        task, event = hasTaskAndEvent(recordSet)
+    else:
+        if vobjs.get(master_uuid).name.lower() == 'vevent':
+            task, event = False, True
+        else:
+            task, event = True, False
+            
+    if event:
         vevent = vobject.newFromBehavior('vevent')
         vevent.isNative = True
-        vevents[uuid] = vevent
-    return vevent
+        vobjs[uuid] = vevent
+    elif task:
+        vtodo = vobject.newFromBehavior('vtodo')
+        vtodo.isNative = True
+        vobjs[uuid] = vtodo
+    else:
+        raise ICalendarExportError(_(u"Item isn't a task or an event."))
+
+def getVobj(record, vobjs):
+    uuid = record.uuid
+    return vobjs.get(uuid)
 
 """
 Translate data in recordsets into fields in a vevent.
 
-vevents should be a dictionary mapping UUIDs to vobject vevents.  A
-dictionary is needed to handle recurrence, which may generate new vevents.
+vobjs should be a dictionary mapping UUIDs to vobject vobjs.  A
+dictionary is needed to handle recurrence, which may generate new vobjs.
 """
 
 def UUIDFromICalUID(uid):
@@ -67,13 +95,13 @@ def registerTZID(vobj):
     if tzid is not None and vobject.icalendar.getTzid(tzid) is None:
         vobject.icalendar.registerTzid(tzid, ICUtzinfo.getInstance(tzid))
 
-def readEventRecord(eventRecordSet, vevents):
-    vevent = getVevent(eventRecordSet, vevents)
+def readEventRecord(eventRecord, vobjs):
+    vevent = getVobj(eventRecord, vobjs)
     master = None
 
-    uuid, recurrenceID = translator.splitUUID(eventRecordSet.uuid)
+    uuid, recurrenceID = translator.splitUUID(eventRecord.uuid)
     if recurrenceID is not None:
-        master = vevents[uuid]
+        master = vobjs[uuid]
         m_start = master.dtstart
         anyTime = False
         if getattr(m_start, 'value_param', '') == 'DATE':
@@ -83,7 +111,7 @@ def readEventRecord(eventRecordSet, vevents):
             recurrenceID = recurrenceID.replace(tzinfo=None)
         vevent.add('recurrence-id').value = recurrenceID
         
-    if eventRecordSet.dtstart in translator.emptyValues:
+    if eventRecord.dtstart in translator.emptyValues:
         if recurrenceID is not None:
             dtstart = vevent.add('dtstart')
             dtstart.value = recurrenceID
@@ -91,11 +119,11 @@ def readEventRecord(eventRecordSet, vevents):
                 dtstart.x_osaf_anytime_param = "TRUE"
     else:
         vevent.dtstart = textLineToContentLine("DTSTART" +
-                                               eventRecordSet.dtstart)
+                                               eventRecord.dtstart)
         registerTZID(vevent.dtstart)
 
     for name in ['duration', 'status', 'location']:
-        eimValue = getattr(eventRecordSet, name)
+        eimValue = getattr(eventRecord, name)
         if eimValue not in translator.emptyValues:
             line = vevent.add(name)
             line.value = eimValue
@@ -112,7 +140,7 @@ def readEventRecord(eventRecordSet, vevents):
     # rruleset
     for rule_name in ('rrule', 'exrule'):
         rules = []
-        record_value = getattr(eventRecordSet, rule_name)
+        record_value = getattr(eventRecord, rule_name)
         if record_value not in translator.emptyValues:
             for rule_value in record_value.split(':'):
                 # EIM concatenates multiple rules with :
@@ -120,49 +148,79 @@ def readEventRecord(eventRecordSet, vevents):
         vevent.contents[rule_name] = rules
 
     for date_name in ('rdate', 'exdate'):
-        record_value = getattr(eventRecordSet, date_name)
+        record_value = getattr(eventRecord, date_name)
         if record_value not in translator.emptyValues:
             # multiple dates should always be on one line
             setattr(vevent, date_name, 
                     textLineToContentLine(date_name + record_value))
 
-def readNoteRecord(noteRecordSet, vevents):
-    vevent = getVevent(noteRecordSet, vevents)
-    if noteRecordSet.body not in translator.emptyValues:
-        vevent.add('description').value = noteRecordSet.body
-    icalUID = noteRecordSet.icalUid
+
+def readNoteRecord(noteRecord, vobjs):
+    vobj = getVobj(noteRecord, vobjs)
+    if noteRecord.body not in translator.emptyValues:
+        vobj.add('description').value = noteRecord.body
+    icalUID = noteRecord.icalUid
     if icalUID in translator.emptyValues:
         # empty icalUID for a master means use uuid, for a modification it means
         # inherit icalUID
-        uuid, recurrenceID = translator.splitUUID(noteRecordSet.uuid)
+        uuid, recurrenceID = translator.splitUUID(noteRecord.uuid)
         if recurrenceID is None:
             icalUID = uuid
         else:
-            icalUID = vevents[uuid].uid.value
-    vevent.add('uid').value = icalUID
+            icalUID = vobjs[uuid].uid.value
+    vobj.add('uid').value = icalUID
 
 
-def readItemRecord(itemRecordSet, vevents):
-    vevent = getVevent(itemRecordSet, vevents)
-    if itemRecordSet.title not in translator.emptyValues:
-        vevent.add('summary').value = itemRecordSet.title
+triage_code_to_vtodo_status = {
+    "100" : 'in-process',
+    "200" : 'cancelled',
+    "300" : 'completed',
+}
 
-def readAlarmRecord(alarmRecordSet, vevents):
-    vevent = getVevent(alarmRecordSet, vevents)
-    if alarmRecordSet.trigger not in translator.emptyValues:
-        valarm = vevent.add('valarm')
+vtodo_status_to_triage_code = dict((v, k) for 
+                                   k, v in triage_code_to_vtodo_status.items())
+
+def readItemRecord(itemRecord, vobjs):
+    vobj = getVobj(itemRecord, vobjs)
+    if itemRecord.title not in translator.emptyValues:
+        vobj.add('summary').value = itemRecord.title
+
+    if vobj.name.lower() == 'vtodo':
+        # VTODO STATUS mapping:
+        # ---------------------
+        #
+        #  [ICalendar]            [Triage Enum]
+        #  <no value>/IN-PROCESS    now  (needsReply=False)
+        #  NEEDS-ACTION             now  (needsReply=True)
+        #  COMPLETED                done
+        #  CANCELLED                later
+        triage = itemRecord.triage
+        if itemRecord.triage != "" and triage not in translator.emptyValues:
+            code, timestamp, auto = triage.split(" ")
+            status = triage_code_to_vtodo_status[code]
+            if status == 'in-process' and itemRecord.needsReply:
+                status = 'needs-action'
+            status_obj = vobj.add('status')
+            status_obj.value = status.upper()
+            status_obj.x_osaf_changed_param = str(timestamp)
+            status_obj.x_osaf_auto_param = ('TRUE' if auto == '1' else 'FALSE')
+
+def readAlarmRecord(alarmRecord, vobjs):
+    vobj = getVobj(alarmRecord, vobjs)
+    if alarmRecord.trigger not in translator.emptyValues:
+        valarm = vobj.add('valarm')
         try:
-            val = translator.fromICalendarDateTime(alarmRecordSet.trigger)[0]
+            val = translator.fromICalendarDateTime(alarmRecord.trigger)[0]
             valarm.add('trigger').value = val
         except:
             valarm.trigger = textLineToContentLine("TRIGGER:" + 
-                                                   alarmRecordSet.trigger)
-        if alarmRecordSet.description not in translator.emptyValues:
-            valarm.add('description').value = alarmRecordSet.description
-        if alarmRecordSet.repeat not in translator.emptyValues:
-            valarm.add('repeat').value = str(alarmRecordSet.repeat)
-        if alarmRecordSet.duration not in translator.emptyValues:
-            valarm.add('repeat').value = str(alarmRecordSet.duration)
+                                                   alarmRecord.trigger)
+        if alarmRecord.description not in translator.emptyValues:
+            valarm.add('description').value = alarmRecord.description
+        if alarmRecord.repeat not in translator.emptyValues:
+            valarm.add('repeat').value = str(alarmRecord.repeat)
+        if alarmRecord.duration not in translator.emptyValues:
+            valarm.add('repeat').value = str(alarmRecord.duration)
             valarm.repeat.isNative = False
 
 recordHandlers = {model.EventRecord : readEventRecord,
@@ -171,19 +229,32 @@ recordHandlers = {model.EventRecord : readEventRecord,
                   model.DisplayAlarmRecord : readAlarmRecord,
                  }
 
+
+def hasTaskAndEvent(recordSet):
+    task = event = False
+    for rec in recordSet.inclusions:
+        if type(rec) == model.EventRecord:
+            event = True
+        elif type(rec) == model.TaskRecord:
+            task = True
+        if task and event:
+            break
+    return task, event
+
 class ICSSerializer(object):
 
     @classmethod
     def serialize(cls, recordSets, **extra):
         """ Convert a list of record sets to an ICalendar blob """
-        vevent_mapping = {}
+        vobj_mapping = {}
 
         masterRecordSets = []
         nonMasterRecordSets = []
         # masters need to be handled first, so modifications have access to them
         for uuid, recordSet in recordSets.iteritems():
-            # skip over record sets with no EventRecord
-            if model.EventRecord in (type(rec) for rec in recordSet.inclusions):
+            # skip over record sets with neither an EventRecord nor a TaskRecord
+            task, event = hasTaskAndEvent(recordSet)
+            if task or event:
                 uid, recurrenceID = translator.splitUUID(uuid)
                 if recurrenceID is None:
                     masterRecordSets.append( (uuid, recordSet) )
@@ -191,19 +262,23 @@ class ICSSerializer(object):
                     nonMasterRecordSets.append( (uuid, recordSet) )
         
         for uuid, recordSet in chain(masterRecordSets, nonMasterRecordSets):
+            prepareVobj(uuid, recordSet, vobj_mapping)
             for record in recordSet.inclusions:
-                recordHandlers.get(type(record), no_op)(record, vevent_mapping)
+                recordHandlers.get(type(record), no_op)(record, vobj_mapping)
             
         cal = vobject.iCalendar()
-        cal.vevent_list = vevent_mapping.values()
+        cal.vevent_list = [obj for obj in vobj_mapping.values() 
+                           if obj.name.lower() == 'vevent']
+        cal.vtodo_list = [obj for obj in vobj_mapping.values() 
+                           if obj.name.lower() == 'vtodo']
+
         # add x-wr-calname
         #handle icalproperties and icalparameters and Method (for outlook)
         return cal.serialize().encode('utf-8')
 
     @classmethod
     def deserialize(cls, text, silentFailure=True):
-        """ Parse an ICalendar blob into a list of record sets """
-
+        """ Parse an ICalendar blob into a list of record sets """        
         recordSets = {}
         extra = {}
 
@@ -224,7 +299,7 @@ class ICSSerializer(object):
         
         for vobj in chain(
                                 getattr(calendar, 'vevent_list', []),
-                                #getattr(calendar, 'vtodo_list', []))
+                                getattr(calendar, 'vtodo_list', [])
                             ):
             try:
                 recurrenceID = vobj.getChildValue('recurrence_id')
@@ -235,7 +310,7 @@ class ICSSerializer(object):
                 uid          = vobj.getChildValue('uid')
                 dtstart      = vobj.getChildValue('dtstart')
                 location     = vobj.getChildValue('location', eim.NoChange)
-
+                
                 # can't just compare recurrenceID and dtstart, timezone could
                 # have changed, and comparing floating to non-floating would
                 # raise an exception
@@ -249,13 +324,23 @@ class ICSSerializer(object):
                     
                 if status is not eim.NoChange:
                     status = status.upper()
+
+                start_obj = getattr(vobj, 'dtstart', None)
+
+                if dtstart is None:
+                    dtstart = vobj.getChildValue('due')
+                    start_obj = getattr(vobj, 'due', None)
+
                 if dtstart is not None:
-                    anyTimeParam = getattr(vobj.dtstart, 'x_osaf_anytime_param',
+                    anyTimeParam = getattr(start_obj, 'x_osaf_anytime_param',
                                            '')
                     anyTime = anyTimeParam.upper() == 'TRUE'
 
                 isDate = type(dtstart) == date
                 allDay = isDate and not anyTime
+
+                emitTask = (vobj.name == 'VTODO')
+                emitEvent = (dtstart is not None)
                 
                 if duration is None:
                     dtend = vobj.getChildValue('dtend')
@@ -275,8 +360,9 @@ class ICSSerializer(object):
         
                         return makeNaiveteMatch(left, right.tzinfo) - right
                         
-                    if dtend is not None:
+                    if dtend is not None and dtstart is not None:
                         duration = getDifference(dtend, dtstart)
+                            
                     elif anyTime or isDate:
                         duration = timedelta(1)
                     else:
@@ -289,12 +375,12 @@ class ICSSerializer(object):
                     # translator
                     #duration -= oneDay
 
-                    
-                dtstart = convertToICUtzinfo(dtstart)
-
+                if dtstart is not None:
+                    dtstart = convertToICUtzinfo(dtstart)
+                    dtstart = toICalendarDateTime(dtstart, allDay, anyTime)
+    
                 # convert to EIM value
                 duration = toICalendarDuration(duration)                
-                dtstart = toICalendarDateTime(dtstart, allDay, anyTime)
 
                 uuid = UUIDFromICalUID(uid)
 
@@ -379,33 +465,52 @@ class ICSSerializer(object):
                 
                 if uid == uuid:
                     uid = None
+
+                triage = eim.NoChange
+                needsReply = eim.NoChange
+                
+                if emitTask and status is not eim.NoChange:
+                    status = status.lower()
+                    code = vtodo_status_to_triage_code.get(status, "100")
+                    timestamp = getattr(vobj.status, 'x_osaf_changed_param',
+                                        "0.0")
+                    auto = getattr(vobj.status, 'x_osaf_auto_param', 'FALSE')
+                    auto = ("1" if auto == 'TRUE' else "0")
+                    triage =  code + " " + timestamp + " " + auto
                     
+                    needsReply = (1 if status == 'needs-action' else 0)
+                    
+                    # VTODO's status doesn't correspond to EventRecord's status
+                    status = eim.NoChange
                     
 
-
-                records = [model.ItemRecord(uuid, 
-                                            summary,        # title
-                                            eim.NoChange,   # triage
-                                            eim.NoChange,   # createdOn
-                                            eim.NoChange,   # hasBeenSent (TODO)
-                                            eim.NoChange,   # needsReply (TODO)
-                                            ),
-                           model.NoteRecord(uuid,
+                records = [model.NoteRecord(uuid,
                                             description,  # body
                                             uid,          # icalUid
                                             eim.NoChange, # icalProperties
                                             eim.NoChange, # icalParameters
                                             ),
-                           model.EventRecord(uuid,
-                                             dtstart,
-                                             duration,
-                                             location,
-                                             recurrence['rrule'],   # rrule
-                                             recurrence['exrule'],  # exrule
-                                             recurrence['rdate'],   # rdate
-                                             recurrence['exdate'],  # exdate
-                                             status, # status
-                                             )]
+                           model.ItemRecord(uuid, 
+                                            summary,        # title
+                                            triage,         # triage
+                                            eim.NoChange,   # createdOn
+                                            eim.NoChange,   # hasBeenSent (TODO)
+                                            needsReply,     # needsReply (TODO)
+                                            )]
+                if emitEvent:
+                    records.append(model.EventRecord(uuid,
+                                            dtstart,
+                                            duration,
+                                            location,
+                                            recurrence['rrule'],   # rrule
+                                            recurrence['exrule'],  # exrule
+                                            recurrence['rdate'],   # rdate
+                                            recurrence['exdate'],  # exdate
+                                            status, # status
+                                            ))
+                if emitTask:
+                    records.append(model.TaskRecord(uuid))
+                           
                 if valarm is not None:
                     records.append(
                            model.DisplayAlarmRecord(
