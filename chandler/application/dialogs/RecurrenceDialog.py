@@ -24,7 +24,7 @@ from i18n import ChandlerMessageFactory as _
 import logging
 from application import schema
 from osaf.pim import EventStamp, Modification, Stamp, has_stamp, isDead
-from osaf.pim.mail import MailStamp, EmailAddress
+from osaf.pim.mail import MailStamp, EmailAddress, getCurrentMeEmailAddresses
 
 logger = logging.getLogger(__name__)
 
@@ -467,13 +467,37 @@ class UserChangeProxy(object):
 
 
     def markEdited(self, item):
-        who = None
-        
+        me = item.getCurrentMeEmailAddress()
+        who = None # We will mark this message as "edited by" this user.
+    
         if has_stamp(item, MailStamp):
-            who = getattr(item, MailStamp.fromAddress.name, None)
+            # For Mail items, we want to update the From: address to match
+            # something in the user's list of addresses (Bug 8534).
+            message = MailStamp(item)
+            meAddresses = getCurrentMeEmailAddresses(item.itsView)
+            sender = message.getSender()
             
+            if sender in meAddresses:
+                # Already addressed by this user; don't need to do
+                # anything more here.
+                who = sender
+            else:
+                # Try to find a matching recipient; any field will do
+                # (so far as arguments to getRecipients() go, we've already
+                # preferentially included the sender, but should still check
+                # originators & bcc) 
+                for recipient in message.getRecipients():
+                    if recipient in meAddresses:
+                        who = recipient
+                        break
+                else:
+                    # No match in for loop; use the current "me" address
+                    who = me
+                # OK, update the from address
+                message.fromAddress = who
+                    
         if who is None:
-            who = item.getCurrentMeEmailAddress()
+            who = me
 
         item.changeEditState(who=who)
     
