@@ -888,22 +888,21 @@ class wxToolbarItemMixin (object):
         #  so we'll provide a stub for CPIA.
         return True
 
-    def OnSetTextEvent (self, event):
+    def SetToolbarItemText (self, text):
         """
         wxToolbarItems don't properly handle setting the text of buttons, on
-        updateUIEvents, so we'll handle it here with the method OnSetTextEvent.
+        updateUIEvents, so we'll handle it here with the method SetToolbarItemText.
         """
-        self.SetLabel (event.GetText())
+        self.SetLabel (text)
         if getattr(self, 'GetToolBar', None) is not None:
             # text fields in the toolbar do not have a GetToolBar() method
             self.GetToolBar().Realize()
 
-    def SetToolbarItemBitmap(self, event, bitmapName):
-        # get the toolbar
-        toolbar = self.GetToolBar()
+    def SetToolbarItemBitmap(self, bitmapName):
         # get the named bitmap
         bitmap = wx.GetApp().GetImage(bitmapName)
-        if bitmap is not None:
+        if bitmap is not None and getattr(self, 'GetToolBar', None) is not None:
+            toolbar = self.GetToolBar()
             toolbar.SetToolNormalBitmap(self.GetId(), bitmap)
             toolbar.Realize()
 
@@ -940,7 +939,7 @@ class wxToolbarItemMixin (object):
                 children [index].synchronizeWidget()
                 index += 1
 
-    def OnToolEvent (self,event):
+    def OnToolEvent (self, event):
         self.selectTool()
         event.Skip()
 

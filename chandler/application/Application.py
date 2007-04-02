@@ -844,13 +844,12 @@ class wxApplication (wx.App):
 
                         text = arguments.get ('Text', None)
                         if text is not None and widget is not None:
-                            event.SetText (text)
-                            # Some widgets, e.g. wxToolbarItems don't properly handle
-                            # setting the text of buttons, so we'll handle it here by
-                            # looking for the method OnSetTextEvent to handle it
-                            method = getattr (widget, "OnSetTextEvent", None)
-                            if method is not None:
-                                method (event)
+                            # menu items can get here, so check for toolbar item method
+                            if getattr (widget, "SetToolbarItemText", None) is not None:
+                                # Some widgets, e.g. wxToolbarItems don't properly handle
+                                # setting the text of buttons, so we'll handle it here by
+                                # calling SetToolbarItemText
+                                widget.SetToolbarItemText(text)
 
                         bitmap = arguments.get ('Bitmap', None)
                         if bitmap is not None and widget is not None:
@@ -859,7 +858,7 @@ class wxApplication (wx.App):
                                 # The UI requires the bitmap to change; there is no SetBitmap()
                                 # method for wx UpdateUIEvents, so just pass the name of the
                                 # bitmap as a second parameter to OnSetBitmapEvent()
-                                widget.SetToolbarItemBitmap(event, bitmap)
+                                widget.SetToolbarItemBitmap(bitmap)
                     return
         event.Skip()
 
