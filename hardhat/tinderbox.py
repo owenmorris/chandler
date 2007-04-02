@@ -27,11 +27,8 @@ from optparse import OptionParser
 whereAmI    = os.path.dirname(os.path.abspath(hardhatutil.__file__))
 hardhatFile = os.path.join(whereAmI, "hardhat.py")
 
-homeDir   = os.environ['HOME']
-buildDir  = os.path.join(homeDir, "tinderbuild")
-logFile   = os.path.join(buildDir, "build.log")
-HHlogFile = os.path.join(buildDir, "hardhat.log")
-stopFile  = os.path.join(buildDir, "stop")
+homeDir  = os.environ['HOME']
+buildDir = os.path.join(homeDir, "tinderbuild")
 
 fromAddr   = "builds"
 mailtoAddr = "buildreport"
@@ -93,6 +90,9 @@ def main():
     mailtoAddr = options.toAddr
     alertAddr  = options.alertAddr
     buildDir   = options.buildDir
+    logFile    = os.path.join(buildDir, "build.log")
+    HHlogFile  = os.path.join(buildDir, "hardhat.log")
+    stopFile   = os.path.join(buildDir, "stop")
 
     if mailtoAddr.find('@') == -1:
         mailtoAddr += defaultDomain
