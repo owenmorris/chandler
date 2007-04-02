@@ -90,11 +90,9 @@ class Triageable(Remindable):
         ),
     )
 
-    def __init__(self, *args, **kw):
-        super(Triageable, self).__init__(*args, **kw)
-        if getattr(self, '_triageStatusChanged', None) is None:
-            # Make sure the time is set.
-            self._triageStatusChanged = self.makeTriageStatusChangedTime()
+    schema.initialValues(
+        _triageStatusChanged = lambda self: self.makeTriageStatusChangedTime()
+    )
     
     @staticmethod
     def makeTriageStatusChangedTime(when=None):

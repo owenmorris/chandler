@@ -40,11 +40,11 @@ class FlickrPhotoMixin(PhotoMixin):
     """
     A mixin that adds flickr attributes to a Note item
     """
-    flickrID = schema.One (schema.Text)
-    imageURL = schema.One (schema.URL)
-    datePosted = schema.One (schema.DateTime)
-    tags = schema.Sequence ()
-    owner = schema.One (schema.Text)
+    flickrID = schema.One(schema.Text)
+    imageURL = schema.One(schema.URL)
+    datePosted = schema.One(schema.DateTime)
+    tags = schema.Sequence()
+    owner = schema.One(schema.Text)
 
     schema.addClouds(
         sharing = schema.Cloud(
@@ -52,10 +52,7 @@ class FlickrPhotoMixin(PhotoMixin):
         )
     )
 
-    def __init__(self, photo=None, *args, **kwds):
-
-        super(FlickrPhotoMixin,self).__init__(*args,**kwds)
-
+    def _setPhoto(self, photo):
         if photo is not None:
             self.flickrID = photo.id
             self.displayName = photo.title
@@ -73,6 +70,9 @@ class FlickrPhotoMixin(PhotoMixin):
                 self.tags = [Tag.getTag(self.itsView, tag.text)
                              for tag in photo.tags]
 
+    photo = property(None, _setPhoto)
+
+    def __setup__(self):
         self.importFromURL(self.imageURL)
         
     @schema.observer(owner)

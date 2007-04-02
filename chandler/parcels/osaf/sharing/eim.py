@@ -11,7 +11,6 @@
 #   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 #   See the License for the specific language governing permissions and
 #   limitations under the License.
-
 __all__ = [
     'UnknownType', 'typeinfo_for', 'BytesType', 'TextType', 'DateType',
     'IntType', 'BlobType', 'ClobType', 'DecimalType', 'get_converter',
@@ -27,8 +26,18 @@ from application import schema
 from chandlerdb.util.c import UUID
 from osaf import pim
 import logging
-
 logger = logging.getLogger(__name__)
+
+
+
+
+
+
+
+
+
+
+
 
 def exporter(*types):
     """Mark a translator method as exporting the specified item type(s)"""
@@ -70,18 +79,6 @@ def add_converter(context, from_type, converter):
         gf = generic(gf)    # extend base function
         get_converter.when_object(context)(lambda context: gf)
     gf.when_type(from_type)(converter)
-
-
-
-
-
-
-
-
-
-
-
-
 
 class UnknownType(KeyError):
     """An object was not recognized as a type, alias, context, or URI"""
@@ -828,6 +825,7 @@ class Translator:
 
     def __init__(self, rv):
         self.rv = rv
+        self.loadQueue = {}
         self.export_cache = {}
 
     def startImport(self):
@@ -835,6 +833,8 @@ class Translator:
 
     def finishImport(self):
         """Called after an import transaction ends"""
+        if self.loadQueue:
+            raise IncompatibleTypes(self.loadQueue)
 
     def startExport(self):
         """Called before an import transaction begins"""
@@ -859,16 +859,12 @@ class Translator:
             logger.exception("Failed to import %s", r)
             raise
 
-
     def _exportablesFor(self, item):
         yield item, object
 
         if isinstance(item, pim.ContentItem):
             for stamp in pim.Stamp(item).stamps:
                 yield stamp, pim.Stamp
-
-
-
 
     def exportItem(self, item):
         """Export an item and its stamps, if any"""
@@ -904,95 +900,79 @@ class Translator:
             yield "Deleted", r.getKey(), RecordSet([], [r])
 
 
-
-
-
-
-
-
-
-    # TODO: Remove this
-    def loadItemByUUID(self, uuid, itype=schema.Item, **attrs):
-        """Load/create/upgrade/stamp item by UUID and type, w/optional attrs"""
-
-        if issubclass(itype, pim.Stamp):
-            stamp = itype(self.loadItemByUUID(uuid, itype.targetType()))
-            if not stamp.stamp_types or itype not in stamp.stamp_types:
-                stamp.add()
-
-            item = stamp    # fall through to attribute-setting below
-
-        else:
-            item = self.rv.findUUID(uuid)
-
-            if item is None:
-                # Create the item
-                if isinstance(uuid, basestring):
-                    uuid = UUID(uuid)
-                item = itype(itsView=self.rv, _uuid=uuid)
-
-            elif not isinstance(item, itype):
-                # Upgrade its type, if compatible
-                if not issubclass(itype, type(item)):
-                    raise IncompatibleTypes(type(item), itype)
-                else:
-                    item.__class__ = itype
-                    item.itsKind = itype.getKind(self.rv)
-
-        # Set specified attributes, skipping NoChange attrs, and deleting
-        # Inherit attrs
-        for attr, val in attrs.items():
-            if val is Inherit:
-                if hasattr(item, attr):
-                    delattr(item, attr)
-            elif val is not NoChange:
-                setattr(item, attr, val)
-
-        return item
-
-
-
-
-
     def withItemForUUID(self, uuid, itype=schema.Item, **attrs):
         """Load/create/upgrade/stamp item by UUID and type, w/optional attrs"""
+        
+        def setattrs(ob):
+            # Set specified attributes, skipping NoChange attrs, and deleting
+            # Inherit attrs
+            for attr, val in attrs.items():
+                if val is Inherit:
+                    if hasattr(ob, attr):
+                        delattr(ob, attr)
+                elif val is not NoChange:
+                    setattr(ob, attr, val)
 
         if issubclass(itype, pim.Stamp):
-            stamp = itype(self.loadItemByUUID(uuid, itype.targetType()))
-            if not stamp.stamp_types or itype not in stamp.stamp_types:
-                stamp.add()
+            callbacks = [lambda x:None]
+            
+            @self.withItemForUUID(uuid, itype.targetType())
+            def add_stamp(item):
+                stamp = itype(item)
+                if not stamp.stamp_types or itype not in stamp.stamp_types:
+                    stamp.add()
+                setattrs(stamp)
+                while callbacks:
+                    callbacks.pop(0)(stamp)
+                    
+            if callbacks:
+                return callbacks.append    # not fired yet, so use registration
+            else:
+                stamp = itype(self.rv.findUUID(uuid))
+                return lambda func: func(stamp)
+            
+        item = self.rv.findUUID(uuid)
 
-            item = stamp    # fall through to attribute-setting below
+        if item is None:
+            # Create the item
+            if isinstance(uuid, basestring):
+                uuid = UUID(uuid)
+            item = itype(itsView=self.rv, _uuid=uuid)
+            setattrs(item)
+            return lambda func: func(item)
 
-        else:
-            item = self.rv.findUUID(uuid)
+        if isinstance(item, itype):
+            setattrs(item)
+            return lambda func: func(item)
 
-            if item is None:
-                # Create the item
-                if isinstance(uuid, basestring):
-                    uuid = UUID(uuid)
-                item = itype(itsView=self.rv, _uuid=uuid)
+        if not issubclass(itype, type(item)):
+            # Can't load the item yet; put callbacks on the queue
+            callbacks = []
+            self.loadQueue.setdefault(item, []).append((itype, callbacks))
+            return callbacks.append
+           
+        # Upgrade the item type, set attributes, and run setups       
+        old_type = item.__class__
+        item.__class__ = itype
+        item.itsKind = itype.getKind(self.rv)
 
-            elif not isinstance(item, itype):
-                # Upgrade its type, if compatible
-                if not issubclass(itype, type(item)):
-                    raise IncompatibleTypes(type(item), itype)
-                else:
-                    item.__class__ = itype
-                    item.itsKind = itype.getKind(self.rv)
+        setattrs(item)
 
-        # Set specified attributes, skipping NoChange attrs, and deleting
-        # Inherit attrs
-        for attr, val in attrs.items():
-            if val is Inherit:
-                if hasattr(item, attr):
-                    delattr(item, attr)
-            elif val is not NoChange:
-                setattr(item, attr, val)
+        for c,s in itype.__setup__:
+            if (c,s) not in old_type.__setup__:
+                s(item)
 
-        def decorate(func):
-            return func(item)
-        return decorate
+        # run callbacks for any pending types that are now resolved
+        if item in self.loadQueue:
+            q = self.loadQueue[item]
+            for t, cb in q[:]:
+                if isinstance(item, t):
+                    for c in cb: c(item)
+                    q.remove((t,cb))
+                    if not q:
+                        del self.loadQueue[item]
+
+        return lambda func: func(item)
 
 
     def getUUIDForAlias(self, alias):
@@ -1000,12 +980,6 @@ class Translator:
 
     def getAliasForItem(self, item):
         return item.itsUUID.str16()
-
-
-
-
-
-
 
 
 def create_default_converter(t):
@@ -1056,7 +1030,7 @@ def subtype(typeinfo, *args, **kw):
     get_converter.when_object(newti)(lambda ctx:gf)
     return newti
 
-def test_suite():
+def additional_tests():
     import doctest
     return doctest.DocFileSuite(
         'EIM.txt',

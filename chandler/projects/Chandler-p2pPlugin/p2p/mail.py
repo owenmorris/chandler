@@ -60,14 +60,11 @@ class MailAccount(Account):
     smtp = schema.One(schema.Item, inverse=schema.Sequence())
     imap = schema.One(schema.Item, inverse=schema.Sequence())
 
-    def __init__(self, *args, **kwds):
-
-        kwds['protocol'] = 'mail'
-        if not kwds.get('userid'):
-            kwds['userid'] = kwds['imap'].username
-        if not kwds.get('server'):
-            kwds['server'] = kwds['imap'].host
-        super(MailAccount, self).__init__(*args, **kwds)
+    schema.initialValues(
+        protocol = lambda self: 'mail',
+        userid   = lambda self: self.imap.username,
+        server   = lambda self: self.imap.host,
+    )
 
     def isLoggedIn(self):
 
@@ -340,13 +337,11 @@ class MailConduit(Conduit):
 
 class MailShare(Share):
 
-    def __init__(self, view, account, repoId, peerId):
-
-        super(MailShare, self).__init__(itsView=view, repoId=repoId)
-
-        self.conduit = MailConduit(itsParent=self, peerId=peerId,
-                                   account=account)
-        self.format = CloudXMLDiffFormat(itsParent=self)
+    schema.initialValues(
+        conduit = lambda self: MailConduit(itsParent=self, peerId=self.peerId,
+                                   account=self.account),
+        format = lambda self: CloudXMLDiffFormat(itsParent=self)
+    )
 
     def sync(self, modeOverride=None, activity=None, forceUpdate=None):
 

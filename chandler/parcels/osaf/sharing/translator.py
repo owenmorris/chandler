@@ -45,9 +45,6 @@ __all__ = [
     'DumpTranslator',
 ]
 
-from application.dialogs.TurnOnTimezones import ShowTurnOnTimezonesDialog
-import wx
-
 
 utc = ICUtzinfo.getInstance('UTC')
 du_utc = dateutil.tz.tzutc()
@@ -348,10 +345,10 @@ class SharingTranslator(eim.Translator):
         self.promptForTimezone = not tzprefs.showUI and tzprefs.showPrompt        
 
     def getUUIDForAlias(self, alias):
-        uuid, recurrenceID = splitUUID(alias)
+        if '::' not in alias:
+            return alias
 
-        if recurrenceID is None:
-            return uuid
+        uuid, recurrenceID = splitUUID(alias)
 
         # find the occurrence and return itsUUID
         master = self.rv.findUUID(uuid)
@@ -408,13 +405,6 @@ class SharingTranslator(eim.Translator):
 
             uuid = occurrence.itsItem.itsUUID.str16()
         return uuid
-
-    def loadItemByUUID(self, recurrence_aware_uuid, *args, **kwargs):
-        """
-        Override to handle special recurrenceID:uuid uuids.
-        """
-        uuid = self.getRealUUID(recurrence_aware_uuid)
-        return super(SharingTranslator, self).loadItemByUUID(uuid, *args, **kwargs)
 
     def withItemForUUID(self, recurrence_aware_uuid, *args, **kwargs):
         """
@@ -909,8 +899,10 @@ class SharingTranslator(eim.Translator):
             and start.tzinfo not in (ICUtzinfo.floating, None)):
             # got a timezoned event, prompt (non-modally) to turn on
             # timezones
+            import wx
             app = wx.GetApp()
             if app is not None:
+                from application.dialogs.TurnOnTimezones import ShowTurnOnTimezonesDialog
                 def ShowTimezoneDialogCallback():
                     ShowTurnOnTimezonesDialog(view=app.UIRepositoryView)
                 app.PostAsyncEvent(ShowTimezoneDialogCallback)
@@ -1130,27 +1122,17 @@ class DumpTranslator(SharingTranslator):
     # - - Collection  - - - - - - - - - - - - - - - - - - - - - - - - - - -
     @model.CollectionRecord.importer
     def import_collection(self, record):
-
-        @self.withItemForUUID(record.uuid,
-            pim.SmartCollection
-        )
-        def do(collection):
-
-            # Temporary hack to work aroud the fact that importers don't
-            # properly call __init__ except in the base class. I think
-            # __init__ hasn't been called if the following condition is True.
-
-            if (collection.exclusionsCollection is None and
-                not hasattr (collection, "collectionExclusions")):
-                collection._setup()
-
+        @self.withItemForUUID(record.uuid, pim.SmartCollection)
+        def add_source(collection):
             if record.mine == 1:
                 schema.ns('osaf.pim', self.rv).mine.addSource(collection)
 
-            UserCollection(collection).color = ColorType (record.colorRed,
-                                                          record.colorGreen,
-                                                          record.colorBlue,
-                                                          record.colorAlpha)
+        self.withItemForUUID(record.uuid, UserCollection,
+            color = ColorType(
+                record.colorRed, record.colorGreen, record.colorBlue,
+                record.colorAlpha
+            )
+        )
 
     @eim.exporter(pim.SmartCollection)
     def export_collection(self, collection):
@@ -1191,21 +1173,20 @@ class DumpTranslator(SharingTranslator):
 
     @model.CollectionMembershipRecord.importer
     def import_collectionmembership(self, record):
-
-        # Temporary work aroud for getting the right class of the sidebar since
-        # loadItemByUUID with the default of SmartCollection throws an exception
-        # in the case of the sidebar
-
-        collection = self.rv.find (UUID (record.collectionUUID))
-        if collection is None:
-            collection = self.loadItemByUUID (record.collectionUUID, pim.SmartCollection)
-        # We're preserving order of items in collections
-        assert (self.indexIsInSequence (collection, record.index))
-
-        @self.withItemForUUID(record.itemUUID, pim.ContentItem)
-        def do(item):
-            collection.add(item)
-
+        # Assume that non-existent collections should be created as
+        # SmartCollections; otherwise don't upgrade from ContentCollection base
+        # 
+        collectionType = (
+            pim.SmartCollection if self.rv.findUUID(record.collectionUUID) is None
+            else pim.ContentCollection
+        )
+        @self.withItemForUUID(record.collectionUUID, collectionType)
+        def do(collection):               
+            # We're preserving order of items in collections
+            assert (self.indexIsInSequence (collection, record.index))
+            @self.withItemForUUID(record.itemUUID, pim.ContentItem)
+            def do(item):
+                collection.add(item)
 
 
     # - - Sharing-related items - - - - - - - - - - - - - - - - - - - - - -

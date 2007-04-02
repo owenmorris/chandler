@@ -259,11 +259,10 @@ class ContentItem(Triageable):
         copying = schema.Cloud()
     )
 
-    def __init__(self, *args, **kw):
-        super(ContentItem, self).__init__(*args, **kw)
-        if not hasattr(self, 'createdOn'):
-            self.createdOn = datetime.now(ICUtzinfo.default)
-
+    schema.initialValues(
+        createdOn = lambda self: datetime.now(ICUtzinfo.default)
+    )
+    
     def __str__ (self):
         if self.isStale():
             return super(ContentItem, self).__str__()
@@ -622,10 +621,9 @@ class UserNotification(ContentItem):
         doc="DateTime this notification ocurred"
     )
 
-    def __init__(self, *args, **kw):
-        super(UserNotification, self).__init__(*args, **kw)
-        if not hasattr(self, 'timestamp'):
-            self.timestamp = datetime.now(ICUtzinfo.default)
+    schema.initialValues(
+        timestamp = lambda self: datetime.now(ICUtzinfo.default)
+    )
 
     @schema.observer(timestamp)
     def onTimestampChanged(self, op, attr):

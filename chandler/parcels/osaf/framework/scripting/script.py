@@ -45,20 +45,15 @@ class Script(pim.ContentItem):
     filePath = schema.One(schema.Text, initialValue = u'')
     lastSync = schema.One(schema.DateTime)
 
-    def __init__(self, itsName=None, itsParent=None, itsKind=None, itsView=None,
-                 body=None, *args, **keys):
-        defaultName = messages.UNTITLED
-        if itsName is not None:
-            defaultName = unicode(itsName)
-        keys.setdefault('displayName', defaultName)
-        super(Script, self).__init__(
-            itsName, itsParent, itsKind, itsView, *args, **keys
-        )
-        self.lastRan = datetime.now()
-        self.lastSync = self.lastRan
-        if body is not None:
-            self.body = body # property for the body LOB
-        self.private = False # can share scripts
+    schema.initialValues(
+        private = lambda self: False,    # can share scripts
+        displayName = lambda self:
+            # XXX check if itsName is a UUID?
+            unicode(self.itsName) if self.itsName else messages.UNTITLED,
+    )
+
+    def __setup__(self):
+        self.lastRan = self.lastSync = datetime.now()
 
     def execute(self):
         self.sync_file_with_model()

@@ -79,17 +79,13 @@ class BaseConduit(Conduit):
         doc = "The 'directory' name of the share, relative to 'sharePath'",
     )
 
-    def __init__(self, *args, **kw):
+    schema.initialValues(
+        shareName = lambda self: unicode(UUID()),
+        itemsMarker = lambda self: Item('itemsMarker', self, None)
+    )
 
-        if 'shareName' not in kw:
-            kw['shareName'] = unicode(UUID())
-        super(BaseConduit, self).__init__(*args, **kw)
-        self.shareName = self.shareName.strip("/")
-
-        self.itemsMarker = Item('itemsMarker', self, None)
-
-
-
+    # XXX def __init__(self, *args, **kw):
+    # XXX     self.shareName = self.shareName.strip("/")
 
 class LinkableConduit(BaseConduit):
 
@@ -1228,8 +1224,7 @@ class HTTPMixin(BaseConduit):
     ticketReadOnly = schema.One(schema.Text, initialValue="")
     ticketReadWrite = schema.One(schema.Text, initialValue="")
 
-    def __init__(self, *args, **kw):
-        super(HTTPMixin, self).__init__(*args, **kw)
+    def __setup__(self):
         self.onItemLoad() # Get a chance to clear out old connection
 
     def onItemLoad(self, view=None):

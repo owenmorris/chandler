@@ -1053,21 +1053,15 @@ class IMAPAccount(IncomingAccount):
         initialValue = [],
     ) # inverse of IMAPFolder.parentAccount
 
-    def __init__(self, itsName=None, itsParent=None, itsKind=None,
-                itsView=None, clone=None, addInbox=True, **kw):
-
-        super(IMAPAccount, self).__init__(itsName, itsParent, itsKind,
-                                         itsView, **kw)
-
-        if not addInbox:
-            return
-
+    def __setup__(self):
         # Create the Inbox IMAPFolder and add to the account
         # folders collection
-        inbox = IMAPFolder(itsView=self.itsView)
-        inbox.displayName = _(u"Inbox")
-        inbox.folderName  = u"INBOX"
-        inbox.folderType  = "CHANDLER_HEADERS"
+        inbox = IMAPFolder(
+            itsView = self.itsView, 
+            displayName = _(u"Inbox"),
+            folderName  = u"INBOX",
+            folderType  = "CHANDLER_HEADERS",
+        )
         self.folders.append(inbox)
 
 class ProtocolTypeEnum(schema.Enumeration):
@@ -1923,24 +1917,6 @@ Issues:
         doc="List of content items last modified by this user.",
         inverse=items.ContentItem.lastModifiedBy
     )
-
-    def __init__(self, itsName=None, itsParent=None, itsKind=None,
-        itsView=None, clone=None, **kw
-    ):
-        super(EmailAddress, self).__init__(
-            itsName, itsParent, itsKind, itsView, **kw
-        )
-
-        # copy the attributes if a clone was supplied
-        if clone is not None:
-            try:
-                self.emailAddress = clone.emailAddress[:]
-            except AttributeError:
-                pass
-            try:
-                self.fullName = clone.fullName[:]
-            except AttributeError:
-                pass
 
     def __str__(self):
         if self.isStale():

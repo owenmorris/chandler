@@ -648,11 +648,7 @@ class CloudXMLFormat(ImportExportFormat):
                                            icalUID)
 
                 parent = schema.Item.getDefaultParent(view)
-                item = kind.instantiateItem(None, parent, uuid,
-                                            withInitialValues=True)
-                if isinstance(item, pim.SmartCollection):
-                    item._setup()
-
+                item = kind.getItemClass()(itsName=None, itsParent=parent, _uuid=uuid)
             else:
                 item = kind.newItem(None, None)
 

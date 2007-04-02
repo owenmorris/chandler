@@ -47,10 +47,10 @@ Watching for changes
 --------------------
 
 class SomeObject(schema.Item):
-    def __init__(self, *args, **kwds):
-        # persistent prefs ok in __init__ because __init__ is only
-        # called the first time the object is created, not when it
-        # gets restored from the repository
+    def __setup__(self):
+        # persistent prefs ok in __setup__ because __setup__ is only
+        # called when the object is created (or its type is changed),
+        # not when it gets restored from the repository
         self.watchItem(myPrefs, 'onMyPrefChanged')
 
     def onMyPrefChanged(self, op, pref, names):

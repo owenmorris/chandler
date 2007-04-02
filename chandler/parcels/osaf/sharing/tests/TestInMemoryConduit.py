@@ -41,7 +41,7 @@ class InMemoryTestCase(testcase.DualRepositoryTestCase):
         Item("sandbox", view, None)
 
         sandbox = view.findPath("//sandbox")
-        coll = pim.ListCollection("testCollection", sandbox,
+        coll = pim.SmartCollection("testCollection", sandbox,
             displayName=uw("Test Collection"))
 
         names = [

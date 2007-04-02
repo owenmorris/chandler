@@ -164,11 +164,7 @@ class FeedChannel(pim.ListCollection):
 
     feedparser = None
     
-    def __init__(self, *args, **kw):
-        """
-        This method initializes a feed channel.
-        """
-        super(FeedChannel, self).__init__(*args, **kw)
+    def __setup__(self, *args, **kw):
         self.addIndex("link", "value", attribute="link")
         
     def refresh(self, callback=None):
@@ -447,12 +443,9 @@ class FeedItem(pim.ContentItem):
         )
     )
 
-    def __init__(self, *args, **kw):
-        """
-        This method initializes a new feed item.
-        """
-        kw.setdefault("displayName", _(u"No Title"))
-        super(FeedItem, self).__init__(*args, **kw)
+    schema.initialValues(
+        displayName = lambda self: _(u"No Title")
+    )
 
     def _compareLink(self, other):
         """

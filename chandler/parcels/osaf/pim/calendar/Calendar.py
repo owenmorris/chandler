@@ -2722,11 +2722,11 @@ class TriageStatusReminder(RelativeReminder):
     """
     
     QUERY_INTERVAL = timedelta(minutes=60)
-    
-    def __init__(self, *args, **kw):
-        kw.setdefault('userCreated', False)
-        kw.setdefault('promptUser', False)
-        super(TriageStatusReminder, self).__init__(*args, **kw)
+
+    schema.initialValues(
+        userCreated = lambda self: False,
+        promptUser = lambda self: False
+    )
     
     prevPoll = schema.One(
         schema.DateTimeTZ,

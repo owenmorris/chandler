@@ -80,10 +80,9 @@ class JabberAccount(Account):
     password = schema.One(schema.Text)
     resource = schema.One(schema.Text, initialValue='chandler')
 
-    def __init__(self, *args, **kwds):
-
-        kwds['protocol'] = 'jabber'
-        super(JabberAccount, self).__init__(*args, **kwds)
+    schema.initialValues(
+        protocol = lambda self: 'jabber'
+    )
 
     def isLoggedIn(self):
 
@@ -144,13 +143,12 @@ class JabberAccount(Account):
 
 class JabberShare(Share):
 
-    def __init__(self, view, account, repoId, peerId):
+    schema.initialValues(
+        self.conduit = lambda self: JabberConduit(itsParent=self, peerId=peerId,
+                                     account=self.account),
+        self.format = lambda self: CloudXMLDiffFormat(itsParent=self)
+    )
 
-        super(JabberShare, self).__init__(itsView=view, repoId=repoId)
-
-        self.conduit = JabberConduit(itsParent=self, peerId=peerId,
-                                     account=account)
-        self.format = CloudXMLDiffFormat(itsParent=self)
 
 
 class JabberConduit(Conduit):

@@ -883,9 +883,6 @@ class Table (PimBlocks.FocusEventHandlers, RectangularChild):
         )
     )
 
-    def __init__(self, *arguments, **keywords):
-        super (Table, self).__init__ (*arguments, **keywords)
-
     def instantiateWidget (self):
         widget = wxTable (self.parentBlock.widget, 
                           Block.getWidgetID(self),

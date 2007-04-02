@@ -968,10 +968,6 @@ class ItemDetail(RectangularChild):
         copying = schema.Cloud(byRef=[selection])
     )
 
-    def __init__(self, *arguments, **keywords):
-        super (ItemDetail, self).__init__ (*arguments, **keywords)
-        self.selection = None
-
     def instantiateWidget (self):
         return wxItemDetail (self.parentBlock.widget,
                              self.getWidgetID(),

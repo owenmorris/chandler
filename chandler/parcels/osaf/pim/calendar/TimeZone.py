@@ -61,7 +61,7 @@ class TimeZoneInfo(schema.Item):
     """
 
     default = schema.One(
-        schema.TimeZone,
+        schema.TimeZone, initialValue = PyICU.ICUtzinfo.floating
     )
 
     # List of well-known time zones (for populating drop-downs).
@@ -71,11 +71,7 @@ class TimeZoneInfo(schema.Item):
         schema.Text,
     )
 
-    def __init__(self, *args, **kwds):
-
-        super(TimeZoneInfo, self).__init__(*args, **kwds)
-
-        self.default = PyICU.ICUtzinfo.floating
+    def __setup__(self, *args, **kwds):
         self.watchItem(self, 'onDefaultChanged')
 
 

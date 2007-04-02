@@ -26,10 +26,7 @@ logger = logging.getLogger(__name__)
 
 class PluginMenu(Menu):
 
-    def __init__(self, *args, **kwds):
-
-        super(PluginMenu, self).__init__(*args, **kwds)
-
+    def __setup__(self):
         BlockEvent(itsName='_plugins', itsParent=self,
                    blockName='_plugins',
                    dispatchEnum='SendToBlockByReference',

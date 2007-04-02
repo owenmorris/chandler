@@ -76,14 +76,12 @@ class AttributeEditorMapping(schema.Item):
     """
     className = schema.One(schema.Text)
 
-    def __init__(self, *args, **kwds):
+    def __setup__(self):
         """ 
         When we construct an L{AttributeEditorMapping}, we need to make sure
         it gets added to the L{AttributeEditorMappingCollection} that tracks
         them.
         """
-        super(AttributeEditorMapping, self).__init__(*args, **kwds)
-
         aeMappings = schema.ns("osaf.framework.attributeEditors", self.itsView).aeMappings
         aeMappings.editors.append(self, alias=self.itsName)
 

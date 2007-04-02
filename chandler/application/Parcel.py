@@ -263,10 +263,8 @@ class Parcel(schema.Item):
     file = schema.One(schema.Text, initialValue = u'')
     originalValues = schema.Mapping(schema.Dictionary, initialValue = {})
 
-    def __init__(self, *args, **kw):
-        super(Parcel, self).__init__(*args, **kw)
-        self.createdOn = datetime.now()
-        self.modifiedOn = self.createdOn
+    def __setup__(self):
+        self.modifiedOn = self.createdOn = datetime.now()
 
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -

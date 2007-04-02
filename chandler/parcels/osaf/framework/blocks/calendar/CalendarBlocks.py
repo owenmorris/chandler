@@ -423,9 +423,9 @@ class PreviewArea(CalendarCanvas.CalendarBlock):
             byCloud = [miniCalendar])
     )
 
-    def __init__(self, *arguments, **keywords):
-        super(PreviewArea, self).__init__(*arguments, **keywords)
-        self.rangeIncrement = one_day
+    schema.initialValues(
+        rangeIncrement = lambda self: one_day
+    )
 
     def onSelectItemsEvent(self, event):
         self.synchronizeWidget()

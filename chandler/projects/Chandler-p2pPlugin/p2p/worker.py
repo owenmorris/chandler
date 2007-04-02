@@ -81,7 +81,10 @@ class Worker(RepositoryWorker):
                 elif share.repoId == repoId:
                     return share
 
-        share = self.shareClass(view, view[self.client.account], repoId, peerId)
+        share = self.shareClass(
+            itsView=view, account=view[self.client.account],
+            repoId=repoId, peerId=peerId
+        )
         share.contents = collection
         if not has_stamp(collection, SharedItem):
             SharedItem(collection).add()

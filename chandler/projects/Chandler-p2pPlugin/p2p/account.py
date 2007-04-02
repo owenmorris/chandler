@@ -61,12 +61,9 @@ class Account(schema.Item):
 
     _clients = {}
 
-    def __init__(self, *args, **kwds):
-
-        super(Account, self).__init__(*args, **kwds)
-
-        if self.user is None:
-            self.user = User(itsView=self.itsView, name=self.userid)
+    schema.initialValues(
+        user = lambda self: User(itsView=self.itsView, name=self.userid)
+    )
 
     def login(self, printf, autoLogin=False):
         raise NotImplementedError, "%s.login" %(type(self))

@@ -725,6 +725,128 @@ This is what the annotation classes themselves use, to remove an existing
 wrapper before creating a new one.
 
 
+Item Initialization and Setup
+=============================
+
+Item classes are not like ordinary Python classes.  You cannot give them
+``__init__`` methods, for example::
+
+    >>> class CantInit(schema.Item):    # doctest: +NORMALIZE_WHITESPACE
+    ...     def __init__(self):
+    ...         """This will cause an error"""
+    Traceback (most recent call last):
+      ...
+    TypeError: schema.Item subclasses cannot define an __init__ method;
+               define __setup__(self) instead, or use schema.initialValues
+    
+The reason for this is that items need to be dynamically created by Chandler's
+sharing and backup services, which means that there must be a standard calling
+signature for creating items.  Allowing ``__init__`` to be redefined would
+interfere with that.
+
+Of course, if you need a special constructor for your item classes, you can
+always create a classmethod, like so::
+
+    >>> class Foobar(schema.Item):
+    ...     foo = schema.One(schema.Integer)
+    ...     bar = schema.One(schema.Text)
+    ... 
+    ...     @classmethod
+    ...     def twenty(cls, rv, bar):
+    ...         return cls(itsView=rv, foo=20, bar=bar)
+
+    >>> f = Foobar.twenty(rv, u"test")
+    >>> f.foo
+    20
+    >>> f.bar
+    u'test'
+
+But sometimes, you may need initialization to occur even when the default
+constructor is used.  For example, suppose you want to have a ``createdOn``
+timestamp attribute, that is automatically set to the item's creation time.
+
+You can do this using the ``schema.initialValues`` API::
+
+    >>> class Timestamped(schema.Item):
+    ...     createdOn = schema.One(schema.DateTime)
+    ...     schema.initialValues(
+    ...         createdOn = lambda self: datetime.now()
+    ...     )
+
+    >>> Timestamped(itsView=rv)
+    Traceback (most recent call last):
+      ...
+    NameError: global name 'datetime' is not defined
+
+Oops, we forgot to import the datetime module!  Oh well, at least you can see
+that it's trying to call our code.  However, it *won't* call our code if we
+pass in an initial value for the attribute::
+
+    >>> t = Timestamped(itsView=rv, createdOn=None)
+    >>> print t.createdOn
+    None
+
+By the way, another thing you can do with ``schema.initialValues`` is to set
+what should be the initial values for inherited attributes.  For example, if
+we subclass our "foobar" example above::
+
+    >>> class Foobar2(Foobar):
+    ...     schema.initialValues(
+    ...         foo=lambda self: 42,
+    ...         bar=lambda self: u"Ultimate Answer"
+    ...     )
+
+    >>> f=Foobar2(itsView=rv)
+    >>> f.foo, f.bar
+    (42, u'Ultimate Answer')
+
+Notice, by the way, that the keyword arguments to ``initialValues()`` must be
+1-argument callables (usually a lambda expression) that accept the item as an
+argument, and return the value the corresponding attribute should have.  These
+callbacks are invoked in no particular order, but *only* if the item was
+created without specifying a value for the attribute.
+
+Finally, you may sometimes need to update a global data structure, or perform
+some other sort of registration when an item is created.  You can do this using
+a ``__setup__`` method::
+
+    >>> class ItemWithSetup(Foobar2):
+    ...     def __setup__(self):
+    ...         print "being set up with:", self.foo, self.bar
+
+    >>> iws = ItemWithSetup(itsView=rv)
+    being set up with: 42 Ultimate Answer
+
+    >>> iws = ItemWithSetup(itsView=rv, bar=u"nano")
+    being set up with: 42 nano
+
+As you can see, the ``__setup__()`` method is called *after* attribute
+initialization has already taken place.
+
+Note that all of a class' *inherited* ``__setup__`` methods are always called
+*before* that class' ``__setup__`` method::
+
+    >>> class MoreSetup(ItemWithSetup):
+    ...     schema.initialValues(bar = lambda self: "is not the answer")
+    ...     def __setup__(self):
+    ...         print "I have been totally set up, here!"
+
+    >>> ms = MoreSetup(itsView=rv)
+    being set up with: 42 is not the answer
+    I have been totally set up, here!
+
+As you can see, the original ``__setup__`` was called first (using the
+subclass' initial values), even though the subclass ``__setup__`` doesn't
+include a ``super()`` call.  In fact, you must *not* attempt to call
+``__setup__`` directly or as a super call, because it's not really a method::
+
+    >>> ms.__setup__()
+    Traceback (most recent call last):
+      ...
+    TypeError: '__setup__' object is not callable
+
+
+
 --------------------
 Working With Parcels
 --------------------

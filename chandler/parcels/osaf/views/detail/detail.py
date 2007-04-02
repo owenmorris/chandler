@@ -293,12 +293,6 @@ class DetailSynchronizer(Item):
     """
     hiddenByUser = schema.One(schema.Boolean, initialValue=False)
 
-    def __init__(self, *args, **kwds):
-        """ 
-        detail items keep track of whether or not they should be shown.
-        """
-        super(DetailSynchronizer, self).__init__(*args, **kwds)
-
     def onSetContentsEvent(self, event):
          #logger.debug("%s: onSetContentsEvent: %s, %s", debugName(self), 
                      #event.arguments['item'], event.arguments['collection'])

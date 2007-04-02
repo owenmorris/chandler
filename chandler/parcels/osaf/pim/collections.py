@@ -17,7 +17,7 @@ __parcel__ = "osaf.pim"
 
 from application import schema
 
-from chandlerdb.util.c import Default, Nil
+from chandlerdb.util.c import Nil
 from repository.item.Sets import (
     Set, MultiUnion, Union, MultiIntersection, Intersection, Difference,
     KindSet, ExpressionFilteredSet, MethodFilteredSet, EmptySet
@@ -46,14 +46,12 @@ class IndexDefinition(schema.Item):
 
     attributes = schema.Sequence(schema.Text)
 
-    def __init__(self, *args, **kwds):
+    def __setup__(self):
         """
         When we construct an L{IndexDefinition}, we need to make sure
         it gets added to the L{IndexDefinitionCollection} that tracks
         them.
         """
-        super(IndexDefinition, self).__init__(*args, **kwds)
-
         allDefs = schema.ns("osaf.pim", self.itsView).allIndexDefinitions
         allDefs.indexDefinitions.append(self, alias=self.itsName)
 
@@ -175,13 +173,12 @@ class MethodIndexDefinition(IndexDefinition):
             "that overrides compare, or compareValues()"
         )
 
-    def __init__(self, *args, **kw):
+    schema.initialValues(
         # Make the attributes we monitor be the same as the ones we'll
         # fetch in findValues().
-        if not kw.get('attributes', ()):
-            kw['attributes'] = [tuple[0]
-                                 for tuple in type(self).findValuePairs]
-        return super(MethodIndexDefinition, self).__init__(*args, **kw)
+        attributes = lambda self: [tuple[0]
+                                  for tuple in type(self).findValuePairs]
+    )                                 
 
 
 class AttributeIndexDefinition(MethodIndexDefinition):
@@ -379,9 +376,7 @@ class KindCollection(ContentCollection):
     kind = schema.One(schema.TypeReference('//Schema/Core/Kind'))
     recursive = schema.One(schema.Boolean, defaultValue=False)
 
-    def __init__(self, *args, **kwds):
-
-        super(KindCollection, self).__init__(*args, **kwds)
+    def __setup__(self):
         setattr(self, self.__collection__, KindSet(self.kind, self.recursive))
 
 
@@ -421,10 +416,7 @@ class WrapperCollection(ContentCollection):
                               initialValue=[])
     schema.addClouds(copying=schema.Cloud(byCloud=[sources]))
 
-    def __init__(self, *args, **kwds):
-
-        super(WrapperCollection, self).__init__(*args, **kwds)
-
+    def __setup__(self):
         self._sourcesChanged_('add')
         self.watchCollection(self, 'sources', '_sourcesChanged')
 
@@ -486,14 +478,6 @@ class SingleSourceWrapperCollection(WrapperCollection):
     def _delSource(self):
         self.sources.clear()
     source = property(_getSource, _setSource, _delSource)
-
-    def __init__(self, *args, **kwds):
-
-        source = kwds.pop('source', None)
-        if source is not None:
-            kwds['sources'] = [source]
-
-        super(SingleSourceWrapperCollection, self).__init__(*args, **kwds)
 
     def _sourcesChanged_(self, op):
 
@@ -702,12 +686,21 @@ class AppCollection(ContentCollection):
     inclusions = inclusions
 
     # the exclusions used when no exclusions collection is given
-    collectionExclusions = schema.Sequence(inverse=ContentItem.excludedBy)
+    collectionExclusions = schema.Sequence(
+        inverse=ContentItem.excludedBy, initialValue=[]
+    )
 
     exclusionsCollection = schema.One(inverse=ContentCollection.exclusionsFor,
                                       defaultValue = None)
     trashCollection = schema.One(inverse=ContentCollection.trashFor,
                                  defaultValue = None)
+
+    schema.initialValues(
+        # better hope osaf.pim has been loaded!
+        trash = lambda self:
+            schema.ns('osaf.pim', self.itsView).trashCollection,
+        source = lambda self: None, 
+    )
 
     # an AppCollection may have another collection for exclusions and that
     # other collection may be the global trash collection. If no collection
@@ -718,7 +711,21 @@ class AppCollection(ContentCollection):
         if exclusions is None:
             exclusions = self.collectionExclusions
         return exclusions
-    exclusions = property(_getExclusions)
+
+    def _setExclusions(self, exclusions):
+        # Typically we will create a collectionExclusions ref collection;
+        # however, a collection like 'All' will instead want to use the
+        # Trash collection for exclusions
+        if exclusions is None:
+            self.collectionExclusions = []
+            self.exclusionsCollection = None                
+        else:
+            self.exclusionsCollection = exclusions
+            if hasattr(self, 'collectionExclusions'):
+                del self.collectionExclusions
+        self._updateCollection()
+
+    exclusions = property(_getExclusions, _setExclusions)
 
     # an AppCollection may have another collection for trash. If no
     # collection is given for trash, the collection's exclusions is used
@@ -729,7 +736,45 @@ class AppCollection(ContentCollection):
         if trash is None:
             trash = self.exclusions
         return trash
-    trash = property(_getTrash)
+
+    def _setTrash(self, trash):
+        """
+        In general trash should only be the well known Trash
+        collection or None. None indicates that this collection does
+        not participate in Trash-based activities.
+
+        The special value of Default for trash is only a sentinel to
+        let us know that nothing has been passed in and that the
+        default trash should be looked up in osaf.pim. During parcel
+        loading, this allows us to pass the trash into the constructor
+        and avoid trying to look it up in osaf.pim while osaf.pim is
+        being loaded.
+        """
+        # You can designate a certain ListCollection to be used for this
+        # collection's trash; in this case, an additional DifferenceCollection
+        # will be created to remove any trash items from this collection. Any
+        # collections which share a trash get the following benefits:
+        # - Adding an item to the trash will make the item disappear from
+        #   collections sharing that trash collection
+        # - When an item is removed from a collection, it will automatically
+        #   be moved to the trash if it doesn't appear in any collection which
+        #   shares that trash
+        self.trashCollection = trash
+        self._updateCollection()
+
+    trash = property(_getTrash, _setTrash)
+
+    def _getSource(self):
+        return self.__source
+
+    def _setSource(self, source):
+        if hasattr(self, 'source'):
+            self.__source = source
+            self._updateCollection()
+        else:
+            self.__source = source
+
+    source = property(_getSource, _setSource)
 
     # __collection__ denotes a bi-ref set,
     # therefore it must be added to the copying cloud def for it to be copied.
@@ -795,72 +840,36 @@ class AppCollection(ContentCollection):
                     # we couldn't find it anywhere else, so it goes in the trash
                     trash.add(item)
 
-    def __init__(self, itsName=None, itsParent=None,
-                 itsKind=None, itsView=None,
-                 source=None, exclusions=None, trash=Default,
-                 *args, **kwds):
-        super(AppCollection, self).__init__(itsName=itsName,
-                                            itsParent=itsParent,
-                                            itsKind=itsKind,
-                                            itsView=itsView,
-                                            *args, **kwds)
-        self._setup(source, exclusions, trash)
 
-    def _setup(self, source=None, exclusions=None, trash=Default):
-        """
-        Setup all the extra parts of an AppCollection. In general
-        nobody should call this but __init__, but unfortunately
-        sharing creates AppCollections without calling __init__
-        so it should be the only caller of _setup.
+    def __x_setup(self):
+        # XXX this bit of hackery should be removed ASAP
+        self.trash = schema.ns('osaf.pim', self.itsView).trashCollection
+        self.source = None
+        self.__setup__()
 
-        Sets the source, exclusions and trash collections.
+    def __setup__(self):
+        # Ensure that the collection is properly set up
+        self._updateCollection()
 
-        In general trash should only be the well known Trash
-        collection or None. None indicates that this collection does
-        not participate in Trash-based activities.
+    def _updateCollection(self):
+        if not hasattr(self, 'source'):
+            # Can't initialize the collection until the source is known
+            return
 
-        The special value of Default for trash is only a sentinel to
-        let us know that nothing has been passed in and that the
-        default trash should be looked up in osaf.pim. During parcel
-        loading, this allows us to pass the trash into the constructor
-        and avoid trying to look it up in osaf.pim while osaf.pim is
-        being loaded.
-        """
-
-        if trash is Default:
-            # better hope osaf.pim has been loaded!
-            trash = schema.ns('osaf.pim', self.itsView).trashCollection
+        exclusions = self.exclusionsCollection
+        if exclusions is None:
+            exclusions = (self, 'collectionExclusions')
 
         innerSource = (self, 'inclusions')
-        if source is not None:
-            innerSource = Union(source, innerSource)
+        if self.source is not None:
+            innerSource = Union(self.source, innerSource)
 
-        # Typically we will create a collectionExclusions ref collection;
-        # however, a collection like 'All' will instead want to use the
-        # Trash collection for exclusions
-
-        if exclusions is None:
-            self.collectionExclusions = []
-            set = Difference(innerSource, (self, 'collectionExclusions'))
-        else:
-            self.exclusionsCollection = exclusions
-            set = Difference(innerSource, exclusions)
-
-        # You can designate a certain ListCollection to be used for this
-        # collection's trash; in this case, an additional DifferenceCollection
-        # will be created to remove any trash items from this collection. Any
-        # collections which share a trash get the following benefits:
-        # - Adding an item to the trash will make the item disappear from
-        #   collections sharing that trash collection
-        # - When an item is removed from a collection, it will automatically
-        #   be moved to the trash if it doesn't appear in any collection which
-        #   shares that trash
-
+        set = Difference(innerSource, exclusions)
+        trash = self.trashCollection
         if trash is not None:
             set = Difference(set, trash)
-            self.trashCollection = trash
-
         setattr(self, self.__collection__, set)
+
 
     def withoutTrash(self):
         """

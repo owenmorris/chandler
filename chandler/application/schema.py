@@ -27,7 +27,7 @@ import __main__, repository, threading, os, sys
 
 __all__ = [
     'ActiveDescriptor', 'Activator', 'Descriptor', 'itemFor', 'kindInfo',
-    'One', 'Many', 'Sequence', 'Mapping', 'Item', 'ItemClass',
+    'One', 'Many', 'Sequence', 'Mapping', 'Item', 'ItemClass', 'initialValues',
     'importString', 'parcel_for_module', 'TypeReference',
     'Enumeration', 'Cloud', 'Endpoint', 'addClouds', 'Struct',
     'assertResolved', 'Annotation', 'AnnotationItem',
@@ -466,6 +466,9 @@ class Cloud:
             ep.make_endpoint(cloud, alias)
         return cloud
 
+class __setup__(list):
+    """List subclass that makes a better error message when you try to call
+       __setup__ directly."""
 
 class ItemClass(Activator, BaseClass):
     """Metaclass for schema.Item"""
@@ -480,7 +483,31 @@ class ItemClass(Activator, BaseClass):
         if '__default_path__' in cdict:
             if isinstance(cls.__default_path__, basestring):
                 cls.__default_path__ = ItemRoot.fromString(cls.__default_path__)
+        try:
+            Item
+        except NameError:
+            pass
+        else:
+            if '__init__' in cdict:
+                raise TypeError(
+                    "schema.Item subclasses cannot define an __init__ method; "
+                    "define __setup__(self) instead, or use schema.initialValues"
+                )
         super(ItemClass,cls).__init__(name,bases,cdict)
+        ivf = {}       
+        setups = __setup__()    # really just a list
+        for c in cls.__mro__[::-1]:
+            if '__iv_functions__' in c.__dict__:
+                ivf.update(c.__iv_functions__)
+            if '__setup__' in c.__dict__:
+                if c is cls:
+                    setups.append((cls, cdict['__setup__']))                        
+                elif c.__setup__ and c.__setup__[-1][0] is c:
+                    setups.append(c.__setup__[-1])
+
+        cls.__all_ivs__ = ivf.items()
+        cls.__setup__ = setups
+
 
     def _find_schema_item(cls, view):
         parent = view.findPath(ModuleMaker(cls.__module__).getPath())
@@ -644,6 +671,14 @@ class Item(Base):
                     raise TypeError("No such parameter", k, values[k])
 
         super(Item,self).__init__(itsName,itsParent,itsKind,*args,**values)
+
+        for k, v in type(self).__all_ivs__:
+            if k not in values:
+                setattr(self, k, v(self))
+                
+        for c,s in type(self).__setup__:
+            s(self)
+        
 
     @classmethod
     def getDefaultParent(cls, view):
@@ -1065,6 +1100,26 @@ def kindInfo(**attrs):
                     (k, cls._kind_class.__name__)
                 )
         return cls
+
+
+def initialValues(**values):
+    """Declare computed initial values for a class' attributes
+
+    Takes keyword arguments whose names are the attribute names, and whose
+    values are 1-argument callables taking an item and returning the value
+    the attribute should have.  For example::
+
+        class anItem(OtherItem):
+            timestamp = schema.One(schema.DateTime)
+
+            schema.initialValues(
+                timestamp = lambda self: datetime.now(),
+            )
+    """
+    for attr, value in values.items():
+        if not callable(value):
+            raise TypeError("Not a callable", attr, value)
+    _update_info('initialValues', '__iv_functions__', values)
 
 
 def addClouds(**clouds):

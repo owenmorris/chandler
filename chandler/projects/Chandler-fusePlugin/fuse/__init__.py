@@ -28,13 +28,10 @@ MOUNT_NAME='Sidebar'
 
 class fuseHandler(Block):
 
-    def __init__(self, *args, **kwds):
-
+    def __setup__(self):
         self.onItemLoad(None)
-        super(fuseHandler, self).__init__(*args, **kwds)
 
     def onItemLoad(self, view):
-
         self.setPinned(True)
         self.sidebar = None
 

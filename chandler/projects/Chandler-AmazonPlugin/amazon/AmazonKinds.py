@@ -291,70 +291,66 @@ class AmazonItem(ContentItem):
     NumberOfReviews = schema.One(schema.Text)
     
     @apply
-    def productName():
+    def ProductName():
         def fget(self):
             return self.displayName
         def fset(self, value):
             self.displayName = value
         return property(fget, fset)
  
-    def __init__(self, *args, **kwds):
 
-        bag = kwds.pop('bag', None)
-        super(AmazonItem, self).__init__(*args, **kwds)
+    def _setBag(self, bag):
+        self.ProductName = bag.ProductName
+        desc = getattr(bag, 'ProductDescription', '')
 
-        if bag:
-            self.ProductName = bag.ProductName
-            desc = getattr(bag, 'ProductDescription', '')
+        if desc != '':
+            # The HTML is stripped because some descriptions
+            # contain img src links to images as part of the description.
+            # In theory this would be a nice feature but since the wx
+            # HTML widget is slow and does not render till everything is
+            # downloaded it impacts the display of the product considerably.
+            desc = _stripHTML(desc)
 
-            if desc != '':
-                # The HTML is stripped because some descriptions
-                # contain img src links to images as part of the description.
-                # In theory this would be a nice feature but since the wx
-                # HTML widget is slow and does not render till everything is
-                # downloaded it impacts the display of the product considerably.
-                desc = _stripHTML(desc)
+        self.ProductDescription = desc
+        self.Media = getattr(bag, 'Media', '')
+        self.Manufacturer = getattr(bag, 'Manufacturer', '')
+        self.NewPrice = getattr(bag, 'OurPrice', '')
+        self.UsedPrice = getattr(bag, 'UsedPrice', '')
+        self.Availability = getattr(bag, 'Availability', '')
+        self.ImageURL = URL(bag.ImageUrlMedium.encode('ascii'))
+        self.ProductURL = URL(bag.URL.encode('ascii'))
+        self.ReleaseDate = getattr(bag, 'ReleaseDate','')
 
-            self.ProductDescription = desc
-            self.Media = getattr(bag, 'Media', '')
-            self.Manufacturer = getattr(bag, 'Manufacturer', '')
-            self.NewPrice = getattr(bag, 'OurPrice', '')
-            self.UsedPrice = getattr(bag, 'UsedPrice', '')
-            self.Availability = getattr(bag, 'Availability', '')
-            self.ImageURL = URL(bag.ImageUrlMedium.encode('ascii'))
-            self.ProductURL = URL(bag.URL.encode('ascii'))
-            self.ReleaseDate = getattr(bag, 'ReleaseDate','')
-
-            if hasattr(bag, 'Authors'):
-                if type(bag.Authors.Author) == type([]):
-                    self.Author = u', '.join(bag.Authors.Author)
-                else:
-                    self.Author = bag.Authors.Author
-            elif hasattr(bag, 'Directors'):
-                if type(bag.Directors.Director) == type([]):
-                    self.Author = u', '.join(bag.Directors.Director)
-                else:
-                    self.Author = bag.Directors.Director
-            elif hasattr(bag, 'Artists'):
-                if type(bag.Artists.Artist) == type([]):
-                    self.Author = ', '.join(bag.Artists.Artist)
-                else:
-                    self.Author = bag.Artists.Artist
+        if hasattr(bag, 'Authors'):
+            if type(bag.Authors.Author) == type([]):
+                self.Author = u', '.join(bag.Authors.Author)
             else:
-                # If no artist, author, or directory use the Manufacturer which
-                # will either have a value or be '' by default
-                self.Author = self.Manufacturer
-
-            if hasattr(bag, 'Reviews'):
-                self.AverageCustomerRating = getattr(bag.Reviews,
-                                                     'AvgCustomerRating', '')
-                self.NumberOfReviews = getattr(bag.Reviews,
-                                               'TotalCustomerReviews', '')
+                self.Author = bag.Authors.Author
+        elif hasattr(bag, 'Directors'):
+            if type(bag.Directors.Director) == type([]):
+                self.Author = u', '.join(bag.Directors.Director)
             else:
-                self.AverageCustomerRating = ''
-                self.NumberOfReviews = ''
+                self.Author = bag.Directors.Director
+        elif hasattr(bag, 'Artists'):
+            if type(bag.Artists.Artist) == type([]):
+                self.Author = ', '.join(bag.Artists.Artist)
+            else:
+                self.Author = bag.Artists.Artist
+        else:
+            # If no artist, author, or directory use the Manufacturer which
+            # will either have a value or be '' by default
+            self.Author = self.Manufacturer
 
-            self.displayName = self.ProductName
+        if hasattr(bag, 'Reviews'):
+            self.AverageCustomerRating = getattr(bag.Reviews,
+                                                 'AvgCustomerRating', '')
+            self.NumberOfReviews = getattr(bag.Reviews,
+                                           'TotalCustomerReviews', '')
+        else:
+            self.AverageCustomerRating = ''
+            self.NumberOfReviews = ''
+
+    bag = property(None, _setBag)
 
 
 class DisplayNamesItem(schema.Item):

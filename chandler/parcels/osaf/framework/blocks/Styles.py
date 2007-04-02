@@ -49,9 +49,6 @@ class CharacterStyle(Style):
 
     fontName = schema.One(schema.Text, initialValue = '')
 
-    def __init__(self, *arguments, **keywords):
-        super (CharacterStyle, self).__init__ ( *arguments, **keywords)
-
 class ColorStyle(Style):
     """ 
     Class for Color Style

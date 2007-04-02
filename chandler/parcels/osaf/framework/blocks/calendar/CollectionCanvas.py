@@ -1041,9 +1041,6 @@ class CollectionBlock(FocusEventHandlers, Block.RectangularChild):
     hit testing, notifications, and some event handling
     """
 
-    def __init__(self, *arguments, **keywords):
-        super(CollectionBlock, self).__init__(*arguments, **keywords)
-
     # Event handling
     
     def onSetContentsEvent (self, event):

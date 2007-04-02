@@ -1008,20 +1008,16 @@ class CalendarBlock(CollectionCanvas.CollectionBlock):
 
 
     rangeStart = schema.One(schema.DateTime)
-    rangeIncrement = schema.One(schema.TimeDelta)
+    rangeIncrement = schema.One(schema.TimeDelta, initialValue=timedelta(days=7))
     lastHue = schema.One(schema.Float, initialValue = -1.0)
-    dayMode = schema.One(schema.Boolean)
+    dayMode = schema.One(schema.Boolean,initialValue = False)
     calendarContainer = schema.One(schema.Item, required=True)
 
     def getRangeEnd(self):
         return self.rangeStart + self.rangeIncrement	
     rangeEnd = property(getRangeEnd)
 
-    def __init__(self, *arguments, **keywords):
-        super(CalendarBlock, self).__init__(*arguments, **keywords)
-
-        self.rangeIncrement = timedelta(days=7)
-        self.dayMode = False
+    def __setup__(self):
         self.setRange(self.startOfToday())
 
     def render(self, *args, **kwds):
@@ -1811,9 +1807,6 @@ class CalendarContainer(BoxContainer):
                                         ])
     )
 
-    def __init__(self, *arguments, **keywords):
-        super(CalendarContainer, self).__init__(*arguments, **keywords)
-
     def InitializeStyles(self):
 
         # Map styles to fonts
@@ -1917,7 +1910,7 @@ class CanvasSplitterWindow(SplitterWindow):
 
 
 class CalendarControl(CalendarBlock):
-    dayMode = schema.One(schema.Boolean)
+    dayMode = schema.One(schema.Boolean, initialValue=False)
     daysPerView = schema.One(schema.Integer, initialValue=7) #ready to phase out?
     tzCharacterStyle = schema.One(Styles.CharacterStyle)
 
@@ -1929,10 +1922,6 @@ class CalendarControl(CalendarBlock):
     schema.addClouds(
         copying = schema.Cloud(byRef = [tzCharacterStyle])
     )
-
-    def __init__(self, *arguments, **keywords):
-        super(CalendarControl, self).__init__(*arguments, **keywords)
-
 
     def instantiateWidget(self):
         if not self.getHasBeenRendered():

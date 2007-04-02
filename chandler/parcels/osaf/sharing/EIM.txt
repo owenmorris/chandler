@@ -579,11 +579,8 @@ stamp classes can be used as export targets::
 Creating/Updating Items
 -----------------------
 
-
-
 Importers will usually use the translator's ``withItemForUUID()`` decorator
-to create, upgrade the type of, or retrieve an existing item by itsUUID.  This
-method replaces the now deprecated ``loadItemByUUID()`` method.
+to create, upgrade the type of, or retrieve an existing item by itsUUID.
 
     >>> class DemoRecord2(sharing.Record):
     ...     URI = 'cid:eim.test.demo-record2@osaf.us'
@@ -613,7 +610,9 @@ method replaces the now deprecated ``loadItemByUUID()`` method.
     >>> t3 = DemoTranslator3(rv)
     >>> t3.startImport()
 
-withItemForUUID can be called directly to create/update an item::
+``withItemForUUID()`` can be used either as a decorator, or as a standalone
+method, as you can see above.  When called directly, it simply creates or
+updates the item::
 
     >>> uuid = 'ed0277af-18a2-45b1-917d-a55dc75da776'
     >>> t3.importRecord(DemoRecord2(uuid))
@@ -621,48 +620,41 @@ withItemForUUID can be called directly to create/update an item::
     >>> rv.findUUID(uuid)
     <Item (new): ed0277af-18a2-45b1-917d-a55dc75da776>
 
-Or it can be used to decorate a nested method that needs to retrieve the item::
+And when used as a decorator, it calls the decorated function with the item,
+after first upgrading its type if necessary::
 
     >>> t3.importRecord(DemoRecord3(uuid))
     Imported record3 eQ2tWYoEAmN95ZFlT7nqtS
     >>> rv.findUUID(uuid)
     <ContentItem (new): ed0277af-18a2-45b1-917d-a55dc75da776>
 
+If an item of the given UUID already exists, the callback is immediately
+invoked, passing in the (possibly-upgraded) item::
 
-
-TODO: expand documentation and testing of the withItemForUUID method
-
-
-Deprecated:
-
-Importers will usually use the translator's ``loadItemByUUID()`` method to
-create, upgrade the type of, or retrieve an existing item by its UUID.
-
-If an item of the correct UUID exists, it's returned::
-
-    >>> t.loadItemByUUID(theItem.itsUUID) is theItem
+    >>> @t.withItemForUUID(theItem.itsUUID)
+    ... def do_it(item): print item is theItem
     True
-
 
 If it doesn't exist, an item of the specified type (``schema.Item`` by default)
 is created::
 
     >>> uuid1 = '0c7c6c5c-4a04-4d5a-8997-2fcef848c92d'
-    >>> an_item = t.loadItemByUUID(uuid1)
-
-    >>> an_item
+    >>> @t.withItemForUUID(uuid1)
+    ... def do_it(item): print item
     <Item (new): 0c7c6c5c-4a04-4d5a-8997-2fcef848c92d>
 
 If it does exist, but isn't an instance of the specified type, its type is
 upgraded::
 
+    >>> an_item = rv.findUUID(uuid1)
     >>> type(an_item)   # before
     <class 'application.schema.Item'>
 
     >>> an_item.itsKind
     <Kind (new): Item ...>
 
-    >>> t.loadItemByUUID(uuid1, pim.ContentItem)
+    >>> @t.withItemForUUID(uuid1, pim.ContentItem)
+    ... def do_it(item): print repr(item)
     <ContentItem (new): 0c7c6c5c-4a04-4d5a-8997-2fcef848c92d>
 
     >>> type(an_item)   # after
@@ -672,54 +664,73 @@ upgraded::
     <Kind (new): ContentItem ...>
 
 Note, however, that the requested type must be a subclass or superclass of the
-item's current type, or you will get a ``sharing.IncompatibleTypes`` error::
+item's current type, or nothing will happen immediately::
 
     >>> class NonContent(schema.Item):
     ...     pass
 
-    >>> t.loadItemByUUID(uuid1, NonContent)
+    >>> @t.withItemForUUID(uuid1, NonContent)
+    ... def do_it(item): print "loaded", repr(item)
+
+But you will get an ``IncompatibleTypes`` exception when importing is
+finished::
+
+    >>> t.finishImport()   
     Traceback (most recent call last):
       ...
-    IncompatibleTypes: (<class '...ContentItem'>, <class 'NonContent'>)
+    IncompatibleTypes: {<ContentItem...>: [(<class 'NonContent'>, [<function do_it...>])]}
 
-Also note that the item's type is NOT downgraded if the requested type is a
-superclass of the item's existing type.  So, if ``an_item`` is a
+However, if before importing is completed, the same item is given a new type
+that combines both the incompatible type and the item's original type, the
+previously registered callback(s) will be invoked on the upgraded item::
+
+    >>> class Combined(pim.ContentItem, NonContent):
+    ...     """Multiple inheritance saves the day"""
+
+    >>> @t.withItemForUUID(uuid1, Combined)
+    ... def do_it(item): print "mixed!", repr(item)
+    loaded <Combined (new): 0c7c6c5c-4a04-4d5a-8997-2fcef848c92d>
+    mixed! <Combined (new): 0c7c6c5c-4a04-4d5a-8997-2fcef848c92d>
+
+    >>> t.finishImport()    # no error this time
+   
+Note, by the way, that the item's type is NOT downgraded if the requested type
+is a superclass of the item's existing type.  So, if ``an_item`` is a
 ``pim.ContentItem``, asking for a ``schema.Item`` will leave it unchanged::
 
-    >>> t.loadItemByUUID(uuid1, schema.Item)
-    <ContentItem (new): 0c7c6c5c-4a04-4d5a-8997-2fcef848c92d>
+    >>> @t.withItemForUUID(uuid1, schema.Item)
+    ... def do_it(item): print repr(item)
+    <Combined (new): 0c7c6c5c-4a04-4d5a-8997-2fcef848c92d>
 
-If you specify a ``pim.Stamp`` subclass as the item type, a stamp is returned.
-If the item didn't already have a stamp of the given type, it's added for you,
-and the item's type is upgraded to ``pim.ContentItem`` if necessary.  Also, you
-can set attributes on the returned object using keyword arguments::
+If you specify a ``pim.Stamp`` subclass as the item type, a stamp is passed to
+your callback.  If the item didn't already have a stamp of the given type, it's
+added for you, and if necessary, the item's type is upgraded to whatever base
+type the stamp requires (typically ``pim.ContentItem`` or ``pim.Note``).  Also,
+you can set attributes on the returned object using keyword arguments to
+``withItemForUUID()``::
 
     >>> pim.has_stamp(an_item, DemoStamp)   # before
     False
 
-    >>> a_stamp = t.loadItemByUUID(uuid1, DemoStamp, data=42)
+    >>> @t.withItemForUUID(uuid1, DemoStamp, data=42)
+    ... def do_it(stamp): print stamp.data
+    42
 
     >>> pim.has_stamp(an_item, DemoStamp)   # after
     True
 
-    >>> a_stamp.data    # attributes are set from keywords
-    42
-
 Attributes set to ``sharing.NoChange`` are ignored, as this makes it easier to
 process "diff" records when importing (no need to check for no-change values)::
 
-    >>> a_stamp = t.loadItemByUUID(uuid1, DemoStamp, data=sharing.NoChange)
-    >>> a_stamp.data    # value is unchanged
+    >>> @t.withItemForUUID(uuid1, DemoStamp, data=sharing.NoChange)
+    ... def do_it(stamp): print stamp.data  # value is unchanged
     42
 
 Attributes set to ``sharing.Inherit`` are deleted::
 
-    >>> hasattr(a_stamp, 'data')
-    True
-    >>> a_stamp = t.loadItemByUUID(uuid1, DemoStamp, data=sharing.Inherit)
-    >>> hasattr(a_stamp, 'data')
+    >>> @t.withItemForUUID(uuid1, DemoStamp, data=sharing.Inherit)
+    ... def do_it(stamp): print hasattr(stamp, 'data')
     False
-
 
 In order to support recurrence, translators need to be able to handle the
 lookup of an UUID from an alias value, and to retrieve an alias from an item.
@@ -730,7 +741,6 @@ The default implementation simply uses an item's UUID as its alias::
 
    >>> t.getUUIDForAlias('0c7c6c5c-4a04-4d5a-8997-2fcef848c92d')
    '0c7c6c5c-4a04-4d5a-8997-2fcef848c92d'
-
 
 
 Conflict Management

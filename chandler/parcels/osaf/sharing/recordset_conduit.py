@@ -130,19 +130,23 @@ class RecordSetConduit(conduits.BaseConduit):
                 # We're importing a collection; either create it if it
                 # doesn't exist, or grab the matching one we already have.
                 collectionUuid = extra.get('uuid', None)
+
+                def setup_collection(collection):
+                    if not pim.has_stamp(collection, shares.SharedItem):
+                        shares.SharedItem(collection).add()   
+                    self.share.contents = collection
+                    
                 if collectionUuid:
-                    collection = translator.loadItemByUUID(collectionUuid,
-                        pim.SmartCollection)
+                    translator.withItemForUUID(
+                        collectionUuid, pim.SmartCollection
+                    )(setup_collection)
                 else:
                     # We weren't provided a collection, so let's create our
                     # own
-                    collection = pim.SmartCollection(itsView=rv,
-                        displayName="Untitled")
+                    setup_collection(
+                        pim.SmartCollection(itsView=rv, displayName="Untitled")
+                    )
 
-                if not pim.has_stamp(collection, shares.SharedItem):
-                    shares.SharedItem(collection).add()
-
-                self.share.contents = collection
 
             # If the inbound collection name is provided we change the local
             # collection name
