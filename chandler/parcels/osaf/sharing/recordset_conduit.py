@@ -80,7 +80,7 @@ class RecordSetConduit(conduits.BaseConduit):
             if activity:
                 activity.update(*args, **kwds)
 
-        if debug: print " ================ start of sync ================= "
+        if debug: print "\n ================ start of sync ================= "
 
         rv = self.itsView
 
@@ -133,9 +133,9 @@ class RecordSetConduit(conduits.BaseConduit):
 
                 def setup_collection(collection):
                     if not pim.has_stamp(collection, shares.SharedItem):
-                        shares.SharedItem(collection).add()   
+                        shares.SharedItem(collection).add()
                     self.share.contents = collection
-                    
+
                 if collectionUuid:
                     translator.withItemForUUID(
                         collectionUuid, pim.SmartCollection
@@ -235,7 +235,7 @@ class RecordSetConduit(conduits.BaseConduit):
                 item.doAutoTriageOnDateChange):
                 if debug: print "Skipping a triage-only modification", item, item.itsVersion
                 continue
-            
+
             if debug: print "Locally modified item", item, item.itsVersion
 
             alias = translator.getAliasForItem(item)
@@ -302,6 +302,8 @@ class RecordSetConduit(conduits.BaseConduit):
             else:
                 rsExternal = inbound.get(alias, eim.RecordSet())
 
+            if debug: print "\n ----- Merging %s:" % alias
+
             dSend, dApply, pending = state.merge(rsInternal, rsExternal,
                 isDiff=isDiff, filter=filter, debug=debug)
 
@@ -325,6 +327,7 @@ class RecordSetConduit(conduits.BaseConduit):
             _callback(msg="Merged %d of %d recordset(s)" % (i, mergeCount),
                 work=1)
 
+
         if receive:
 
             applyCount = len(toApply)
@@ -335,7 +338,7 @@ class RecordSetConduit(conduits.BaseConduit):
             # Apply
             i = 0
             for alias, rs in toApply.items():
-                if debug: print "Applying:", alias, rs
+                if debug: print "\nApplying:", alias, rs
                 logger.debug("Applying changes to %s [%s]", alias, rs)
 
                 uuid = translator.getUUIDForAlias(alias)
@@ -351,7 +354,9 @@ class RecordSetConduit(conduits.BaseConduit):
                     # apply this to the master
                     item_to_change = getattr(item, 'inheritFrom', item)
                     item_to_change.read = False
-                    
+
+                logger.debug("Importing %s", rs)
+
                 translator.startImport()
                 translator.importRecords(rs)
                 translator.finishImport()
@@ -370,7 +375,7 @@ class RecordSetConduit(conduits.BaseConduit):
                         # triage status on the master, particularly
                         # _sectionTriageStatus, as that will be inherited by
                         # occurrences, instead pop all modifications to now
-                        for mod in event.modifications or []:                            
+                        for mod in event.modifications or []:
                             mod.setTriageStatus('auto', popToNow=True)
                     else:
                         item.setTriageStatus('auto', popToNow=True)
@@ -385,6 +390,8 @@ class RecordSetConduit(conduits.BaseConduit):
 
 
             # Make sure any items that came in are added to the collection
+            _callback(msg="Adding items to collection", totalWork=None)
+
             for alias in inbound:
                 uuid = translator.getUUIDForAlias(alias)
                 if uuid:
@@ -402,6 +409,8 @@ class RecordSetConduit(conduits.BaseConduit):
             # For each remote removal, remove the item from the collection
             # locally
             # At this point, we know there were no local modifications
+            _callback(msg="Removing items from collection", totalWork=None)
+
             for alias in remotelyRemoved:
                 uuid = translator.getUUIDForAlias(alias)
                 if uuid:

@@ -84,8 +84,6 @@ def addEmailAddresses(view, col, record):
 def with_nochange(value, converter, view=None):
     if value in (eim.NoChange, eim.Inherit):
         return value
-    if value is None:  # TODO: think about how to handle None
-        return eim.NoChange
     if view is None:
         return converter(value)
     else:
@@ -288,7 +286,7 @@ def splitUUID(recurrence_aware_uuid):
     Return the tuple (UUID, recurrenceID or None).  UUID will be a string,
     recurrenceID will be a datetime or None.
     """
-    uuid, colon, recurrenceID = recurrence_aware_uuid.partition("::")
+    uuid, colon, recurrenceID = str(recurrence_aware_uuid).partition("::")
     if colon != "::":
         # a plain UUID
         return (uuid, None)
@@ -579,9 +577,13 @@ class SharingTranslator(eim.Translator):
                 # Convert to user's tz:
                 item.lastModified = inUTC.astimezone(ICUtzinfo.default)
 
-                if record.action is not eim.NoChange:
-                    item.lastModification = \
-                        self.code_to_modaction[record.action]
+                try:
+                    if record.action is not eim.NoChange:
+                        item.lastModification = \
+                            self.code_to_modaction[record.action]
+                except:
+                    print record
+                    raise
 
                 #XXX Brian K: The modified flags were not getting set properly
                 # without this addition.
@@ -673,6 +675,8 @@ class SharingTranslator(eim.Translator):
     @model.MailMessageRecord.importer
     def import_mail(self, record):
         #TODO: How to represent attachments?
+
+        print "IMPORT MAIL", record
 
         @self.withItemForUUID(
            record.uuid,

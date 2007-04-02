@@ -244,7 +244,7 @@ class State(schema.Item):
         externalDiff = rsExternal - self.agreed
 
         if debug:
-            print " ----------- Merging item"
+            print " ----------- Beginning merge"
             print "   rsInternal:", rsInternal
             print "   internalDiff:", internalDiff
             print "   externalDiff:", externalDiff
@@ -271,7 +271,7 @@ class State(schema.Item):
             print "   dApply:", dApply
             print "   new agreed:", self.agreed
             print "   new pending:", self.pending
-            print " ----------- End of merge "
+            print " ----------- Merge complete"
 
         return dSend, dApply, self.pending
 
