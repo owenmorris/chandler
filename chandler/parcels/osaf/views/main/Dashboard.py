@@ -27,6 +27,7 @@ from osaf.framework.blocks import (
 from osaf.framework.attributeEditors import AttributeEditors
 from osaf import pim
 from i18n import ChandlerMessageFactory as _
+from chandlerdb.util.c import UUID
 import wx
 import logging
 
@@ -134,5 +135,7 @@ class DashboardBlock(Table):
          
         # (We do this outside the deferrals because this depends on the indexes...
         for master in recurringEventsToHandle:
+            if isinstance(master, UUID):
+                master = self.itsView[master]
             pim.EventStamp(master).updateTriageStatus(checkOccurrences=autoTriageToo)
 
