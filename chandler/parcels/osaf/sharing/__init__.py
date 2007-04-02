@@ -52,6 +52,7 @@ from eimml import *
 from cosmo import *
 from itemcentric import *
 from ics import *
+from serialize import *
 
 
 logger = logging.getLogger(__name__)

@@ -179,7 +179,7 @@ def outbound(peers, item, filter=None, debug=False):
             repoId = ""
 
 
-    text = serializer.serialize(rsInternal, "item", repo=repoId,
+    text = serializer.serialize(rsInternal, rootName="item", repo=repoId,
         version=version)
 
     return text

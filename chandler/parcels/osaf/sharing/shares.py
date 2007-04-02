@@ -64,7 +64,9 @@ class SharedItem(pim.Stamp):
     def getConflicts(self):
         for state in self.conflictingStates:
             for conflict in state.getConflicts():
-                conflict.item = self.itsItem
+                # protect against proxies being passed in
+                item = getattr(self.itsItem, 'proxiedItem', self.itsItem)
+                conflict.item = item
                 yield conflict
 
 
@@ -374,6 +376,7 @@ class Conflict(object):
             self.resolved = True
             if self.item is not None:
                 self.state.updateConflicts(self.item)
+
 
 
 
