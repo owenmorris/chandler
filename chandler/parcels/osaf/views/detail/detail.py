@@ -913,7 +913,8 @@ class ConflictWarning(DetailSynchronizer, ControlBlocks.Button):
     def synchronizeWidget(self, useHints=False):
         widget = getattr(self, 'widget', None)
         if widget is not None and sharing.hasConflicts(self.item):
-            conflicts = sharing.getConflicts(self.item)
+            item = getattr(self.item, 'proxiedItem', self.item)
+            conflicts = sharing.getConflicts(item)
             conflictCount = len(conflicts)
             if conflictCount > 1:
                 widget.SetLabel(_(u'%d pending changes') % len(conflicts))
@@ -923,7 +924,8 @@ class ConflictWarning(DetailSynchronizer, ControlBlocks.Button):
 
     def resolveConflict(self, event):
         # show the dialog here
-        dialog = ConflictDialog.ConflictDialog(sharing.getConflicts(self.item))
+        item = getattr(self.item, 'proxiedItem', self.item)
+        dialog = ConflictDialog.ConflictDialog(sharing.getConflicts(item))
         dialog.CenterOnScreen()
         dialog.ShowModal()
         dialog.Destroy()
