@@ -33,6 +33,8 @@ import os, hardhatutil, hardhatlib, sys, re, glob
 path     = os.environ.get('PATH', os.environ.get('path'))
 whereAmI = os.path.dirname(os.path.abspath(hardhatlib.__file__))
 
+perfMode = (os.environ.get('CHANDLER_PERFORMANCE_TEST') is not None)
+
 svnProgram    = hardhatutil.findInPath(path, "svn")
 pythonProgram = hardhatutil.findInPath(path, "python")
 treeName      = "Chandler"
@@ -105,7 +107,10 @@ def Start(hardhatScript, workingDir, buildVersion, clobber, log, skipTests=False
     buildVersionEscaped = "\'" + buildVersion + "\'"
     buildVersionEscaped = buildVersionEscaped.replace(" ", "|")
 
-    buildModes = ('debug', 'release')
+    if perfMode:
+        buildModes = ('release',)
+    else:
+        buildModes = ('debug', 'release')
 
     revisions = {}
 
@@ -252,22 +257,27 @@ def dumpTestLogs(log, logfile):
 
 def doDistribution(releaseMode, workingDir, log, outputDir, buildVersion, buildVersionEscaped, hardhatScript):
     #   Create end-user, developer distributions
-    print "Making distribution files for " + releaseMode
-    log.write(separator)
-    log.write("Making distribution files for " + releaseMode + "\n")
-    if releaseMode == "debug":
-        distOption = "-dD"
+    if perfMode:
+        print "Skipping distribution (Performance Test Run) for " + releaseMode
+        log.write(separator)
+        log.write("Skipping distribution (Performance Test Run) for " + releaseMode + "\n")
     else:
-        distOption = "-D"
+        print "Making distribution files for " + releaseMode
+        log.write(separator)
+        log.write("Making distribution files for " + releaseMode + "\n")
+        if releaseMode == "debug":
+            distOption = "-dD"
+        else:
+            distOption = "-D"
 
-    try:
-        outputList = hardhatutil.executeCommandReturnOutput(
-         [hardhatScript, "-o", os.path.join(outputDir, buildVersion), distOption, buildVersionEscaped])
-        hardhatutil.dumpOutputList(outputList, log)
-    except Exception, e:
-        doCopyLog("***Error during distribution building*** ", workingDir, logPath, log)
-        forceBuildNextCycle(log, workingDir)
-        raise e
+        try:
+            outputList = hardhatutil.executeCommandReturnOutput(
+             [hardhatScript, "-o", os.path.join(outputDir, buildVersion), distOption, buildVersionEscaped])
+            hardhatutil.dumpOutputList(outputList, log)
+        except Exception, e:
+            doCopyLog("***Error during distribution building*** ", workingDir, logPath, log)
+            forceBuildNextCycle(log, workingDir)
+            raise e
 
 
 def doCopyLog(msg, workingDir, logPath, log):
