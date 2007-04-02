@@ -844,12 +844,13 @@ class wxApplication (wx.App):
 
                         text = arguments.get ('Text', None)
                         if text is not None and widget is not None:
+                            event.SetText (text)
                             # menu items can get here, so check for toolbar item method
-                            if getattr (widget, "SetToolbarItemText", None) is not None:
+                            if getattr (widget, "OnSetTextEvent", None) is not None:
                                 # Some widgets, e.g. wxToolbarItems don't properly handle
                                 # setting the text of buttons, so we'll handle it here by
-                                # calling SetToolbarItemText
-                                widget.SetToolbarItemText(text)
+                                # calling OnSetTextEvent
+                                widget.OnSetTextEvent(event)
 
                         bitmap = arguments.get ('Bitmap', None)
                         if bitmap is not None and widget is not None:
