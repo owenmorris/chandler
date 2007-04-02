@@ -533,7 +533,8 @@ class DiffRecordSetConduit(RecordSetConduit):
         if debug: print "Inbound text:", text
         logger.debug("Received from server [%s]", text)
 
-        inbound, extra = self.serializer.deserialize(text)
+        inbound, extra = self.serializer.deserialize(text,
+                                                     helperView=self.itsView)
         return inbound, extra, True
 
     def putRecords(self, toSend, extra, debug=False, activity=None):
@@ -556,7 +557,8 @@ class MonolithicRecordSetConduit(RecordSetConduit):
         logger.debug("Received from server [%s]", text)
 
         if text:
-            inbound, extra = self.serializer.deserialize(text)
+            inbound, extra = self.serializer.deserialize(text,
+                                                        helperView=self.itsView)
             return inbound, extra, False
         else:
             return { }, { }, False
@@ -636,7 +638,8 @@ class ResourceRecordSetConduit(RecordSetConduit):
                     work=1)
             text, etag = self.getResource(path)
             if debug: print "Inbound text:", text
-            records, extra = self.serializer.deserialize(text)
+            records, extra = self.serializer.deserialize(text,
+                                                        helperView=self.itsView)
             for alias, rs in records.iteritems():
                 inbound[alias] = rs
                 state = self.getState(alias)
@@ -738,7 +741,8 @@ class InMemoryDiffRecordSetConduit(DiffRecordSetConduit):
 
 
     def serverPut(self, path, text):
-        recordsets, extra = self.serializer.deserialize(text)
+        recordsets, extra = self.serializer.deserialize(text,
+                                                       helperView=self.itsView)
         coll = self._getCollection(path)
         if extra.has_key("name"):
             coll["name"] = extra["name"]

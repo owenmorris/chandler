@@ -38,7 +38,7 @@ def inbound(peer, text, filter=None, allowDeletion=False, debug=False):
     serializer = eimml.EIMMLSerializer # only using class methods
     trans = translator.SharingTranslator(rv)
 
-    inbound, extra = serializer.deserialize(text)
+    inbound, extra = serializer.deserialize(text, helperView=rv)
 
     peerRepoId = extra.get('repo', None)
     peerItemVersion = int(extra.get('version', '-1'))

@@ -215,7 +215,7 @@ class EIMMLSerializer(object):
         return "<?xml version='1.0' encoding='UTF-8'?>%s" % xmlString
 
     @classmethod
-    def deserialize(cls, text):
+    def deserialize(cls, text, **kwargs):
         """ Parse XML text into a list of record sets """
 
         rootElement = fromstring(text) # xml parser
@@ -365,7 +365,7 @@ class EIMMLSerializerLite(object):
 
 
     @classmethod
-    def deserialize(cls, text):
+    def deserialize(cls, text, **kwargs):
         """ Parse XML text into a list of record sets """
 
         recordSets = {}

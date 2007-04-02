@@ -23,12 +23,15 @@ from osaf.pim.calendar.TimeZone import convertToICUtzinfo, forceToDateTime
 from chandlerdb.util.c import UUID
 import md5
 from itertools import chain
+import logging
 
 from vobject.base import textLineToContentLine
 
 __all__ = [
     'ICSSerializer',
 ]
+
+logger = logging.getLogger(__name__)
 
 utc = ICUtzinfo.getInstance('UTC')
 
@@ -277,8 +280,13 @@ class ICSSerializer(object):
         return cal.serialize().encode('utf-8')
 
     @classmethod
-    def deserialize(cls, text, silentFailure=True):
-        """ Parse an ICalendar blob into a list of record sets """        
+    def deserialize(cls, text, silentFailure=True, helperView=None):
+        """
+        Parse an ICalendar blob into a list of record sets
+        
+        helperView can be None or a view that will be used to find preferences
+        like what timezones should be used in convertToICUtzinfo.
+        """
         recordSets = {}
         extra = {}
 
@@ -376,7 +384,7 @@ class ICSSerializer(object):
                     #duration -= oneDay
 
                 if dtstart is not None:
-                    dtstart = convertToICUtzinfo(dtstart)
+                    dtstart = convertToICUtzinfo(dtstart, helperView)
                     dtstart = toICalendarDateTime(dtstart, allDay, anyTime)
     
                 # convert to EIM value
@@ -396,7 +404,8 @@ class ICSSerializer(object):
                     
                     if remValue is not None:
                         if type(remValue) is datetime:
-                            icutzinfoValue = convertToICUtzinfo(remValue)
+                            icutzinfoValue = convertToICUtzinfo(remValue,
+                                                                helperView)
                             trigger = toICalendarDateTime(icutzinfoValue, False)
                         else:
                             assert type(remValue) is timedelta
@@ -434,7 +443,8 @@ class ICSSerializer(object):
                     for line in vobj.contents.get(date_name, []):
                         dates.extend(line.value)
                     if len(dates) > 0:
-                        dates = [convertToICUtzinfo(dt) for dt in dates]
+                        dates = [convertToICUtzinfo(dt, helperView)
+                                 for dt in dates]
                         dt_value = toICalendarDateTime(dates, allDay, anyTime)
                     else:
                         dt_value = eim.NoChange
@@ -442,8 +452,14 @@ class ICSSerializer(object):
             
 
                 if recurrenceID is not None:
-                    recurrenceID = convertToICUtzinfo(forceToDateTime(
-                                                                  recurrenceID))
+                    range = getattr(vobj.recurrence_id, 'range_param', 'THIS')
+                    if range != 'THIS':
+                        logger.info("Skipping a THISANDFUTURE or "
+                                    "THISANDPRIOR modification")
+                        continue
+
+                    recurrenceID = forceToDateTime(recurrenceID)
+                    recurrenceID = convertToICUtzinfo(recurrenceID, helperView)
                     rec_string = toICalendarDateTime(recurrenceID,
                                                               allDay or anyTime)
 
