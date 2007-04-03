@@ -32,6 +32,7 @@ if len(_version['build']) > 0:
     svnfile = os.path.join(chandlerDir, '.svn', 'entries')
 
     if os.path.isfile(svnfile):
+        # svn 1.3
         for line in file(svnfile):
             items = line.split('=')
 
@@ -40,6 +41,17 @@ if len(_version['build']) > 0:
 
                 if item.strip().lower() == 'revision':
                     _version['revision'] = value[:-1].strip('">/')
+        
+        # svn 1.4   
+        if _version['revision'] == None:
+            revisions = []
+            for line in file(svnfile):
+                try:
+                    revisions.append(long(line))
+                except ValueError:
+                    pass
+            revisions.sort()
+            _version['revision'] = str(revisions[-1])
 
     if _version['revision'] is not None:
         _template += '-r%(revision)s'
