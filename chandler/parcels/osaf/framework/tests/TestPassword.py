@@ -105,6 +105,8 @@ class PasswordTestCase(TestDomainModel.DomainModelTestCase):
         self._dontBeStupid(pw, '12345678901234567890123456789012345678901234567890123456789012345678901234567890', masterPassword, 320)
         # confirm we can get the password out
         self.assertEqual(waitForDeferred(pw.decryptPassword(masterPassword=masterPassword)), '12345678901234567890123456789012345678901234567890123456789012345678901234567890')
+        waitForDeferred(pw.encryptPassword('A'*959, masterPassword=masterPassword))
+        self.assertRaises(password.PasswordTooLong, waitForDeferred, pw.encryptPassword('A'*960, masterPassword=masterPassword))
 
         # check empty passwords
         waitForDeferred(pw.encryptPassword('', masterPassword=''))

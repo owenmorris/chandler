@@ -58,6 +58,12 @@ class EncryptionError(PasswordError):
     """
     Failed to encrypt password
     """
+    
+class PasswordTooLong(PasswordError):
+    """
+    The password is too long
+    """
+
 
 class Password(schema.Item):
     """
@@ -98,6 +104,8 @@ class Password(schema.Item):
                                  and the user cancels the dialog where we ask for
                                  it.
 
+        @raise PasswordTooLong:  Password is too long.
+
         @return: Return password.
         @rtype:  unicode
         """
@@ -109,6 +117,10 @@ class Password(schema.Item):
             # passwords, decrypting them, and getting at least one non-empty
             # password.
             return u''
+        
+        if len(self.ciphertext) > 1024:
+            waitForDeferred(self.clear())
+            raise PasswordTooLong(_(u'Password is too long'))
         
         if masterPassword is None:
             masterPassword = waitForDeferred(MasterPassword.get(self.itsView, window))
@@ -153,6 +165,8 @@ class Password(schema.Item):
                                  and the user cancels the dialog where we ask for
                                  it.
 
+        @raise PasswordTooLong:  Password is too long.
+
         @param password: The password to store
         @type param:     str or unicode
         """
@@ -191,6 +205,11 @@ class Password(schema.Item):
 
         # encrypt using AES (Rijndael)
         self.ciphertext = encrypt(password + mac, encKey, self.iv)
+
+        if len(self.ciphertext) > 1024:
+            waitForDeferred(self.clear())
+            raise PasswordTooLong(_(u'Password is too long'))
+        
 
     @runInUIThread
     def clear(self):
