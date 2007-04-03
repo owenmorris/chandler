@@ -666,7 +666,8 @@ def makeSummaryBlocks(parcel):
                         elementDelegate = 'osaf.views.main.SectionedGridDelegate',
                         defaultEditableAttribute = u'displayName',
                         emptyContentsShow = False,
-                        contextMenu = "ItemContextMenu"),
+                        contextMenu = "ItemContextMenu",
+                        activeView = True),
                     HTML.template('EmptyDashBoardView',
                         text = _(u'<html><body><center>&nbsp;<br>&nbsp;<br>This collection is empty</center></body></html>'),
                         treatAsURL = False,
@@ -719,7 +720,8 @@ def makeSummaryBlocks(parcel):
                 rowHeight = 19,
                 elementDelegate = 'osaf.framework.blocks.ControlBlocks.AttributeDelegate',
                        defaultEditableAttribute = u'displayName',
-                selection = [[0,0]]),
+                selection = [[0,0]],
+                activeView = True),
             BranchPointBlock.template('SearchResultsSummaryDetailBranchPointBlock',
                 delegate = detailBranchPointDelegate)
         ]
@@ -750,7 +752,8 @@ def makeSummaryBlocks(parcel):
                 rowHeight = 19,
                 elementDelegate = 'osaf.framework.blocks.ControlBlocks.AttributeDelegate',
                        defaultEditableAttribute = u'displayName',
-                selection = [[0,0]]),
+                selection = [[0,0]],
+                activeView = True),
             BranchPointBlock.template('TableSummaryDetailBranchPointBlock',
                 delegate = detailBranchPointDelegate)
         ]
@@ -833,7 +836,8 @@ def makeSummaryBlocks(parcel):
                                 calendarContainer = CalendarSummaryView),
                             calendar.TimedEventsCanvas.template('TimedEvents',
                                 calendarContainer = CalendarSummaryView,
-                                contextMenu = "ItemContextMenu")
+                                contextMenu = "ItemContextMenu",
+                                activeView = True)
                             ]),
                     ]),
             BranchPointBlock.template('CalendarDetailBranchPointBlock',

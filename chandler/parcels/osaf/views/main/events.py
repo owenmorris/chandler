@@ -401,15 +401,24 @@ def makeMainEvents(parcel):
     BlockEvent.template(
         'DuplicateSidebarSelection',
         methodName = 'onDuplicateEvent',
-        dispatchToBlockName = 'Sidebar').install(parcel)
+        dispatchToBlockName = 'Sidebar',
+        commitAfterDispatch = True).install(parcel)
 
     BlockEvent.template(
         'RenameCollection',
         methodName = 'onRenameEvent',
-        dispatchToBlockName = 'Sidebar').install(parcel),
+        dispatchToBlockName = 'Sidebar',
+        commitAfterDispatch = True).install(parcel),
     
     BlockEvent.template(
         'DeleteCollection',
         methodName = 'onDeleteEvent',
-        dispatchToBlockName = 'Sidebar').install(parcel),
+        dispatchToBlockName = 'Sidebar',
+        commitAfterDispatch = True).install(parcel),
+    
+    BlockEvent.template(
+        'DeleteItemInActiveView',
+        methodName = 'onDeleteEvent',
+        dispatchEnum = 'ActiveViewBubbleUp',
+        commitAfterDispatch = True).install(parcel)
     

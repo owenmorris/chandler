@@ -135,7 +135,7 @@ class PluginMenu(Menu):
                 return
 
         # Update the menus
-        wx.GetApp().GetActiveView().rebuildDynamicBlocks()
+        wx.GetApp().activeView.rebuildDynamicBlocks()
         statusBar.setStatusMessage(msg)
 
     def on_pluginsEventUpdateUI(self, event):

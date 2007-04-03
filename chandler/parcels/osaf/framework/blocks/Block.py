@@ -124,6 +124,8 @@ class Block(schema.Item):
 
     eventBoundary = schema.One(schema.Boolean, defaultValue=False)
 
+    activeView = schema.One(schema.Boolean, defaultValue=False)
+
     contextMenu = schema.One(schema.Text) # name of context menu
 
     blockName = schema.One(schema.Text)
@@ -315,7 +317,8 @@ class Block(schema.Item):
             the block in the widget. Undo all this when the widget is destroyed.
             """
             if widget:
-                wx.GetApp().needsUpdateUI = True
+                theApp = wx.GetApp()
+                theApp.needsUpdateUI = True
                 assert self.itsView.isRefCounted(), "repository must be opened with refcounted=True"
                 self.widget = widget
                 
@@ -345,6 +348,10 @@ class Block(schema.Item):
                                                         Block.eventNameToItemUUID)
                 self.addToNameToItemUUIDDictionary ([self],
                                                     Block.blockNameToItemUUID)
+                
+                if self.activeView:
+                    theApp.activeView = self
+
                 if self.eventBoundary:
                     self.rebuildDynamicBlocks()
 
@@ -1053,17 +1060,7 @@ class BlockDispatchHook (DispatchHook):
             bubbleUpCallMethod (blockOrWidget, methodName, event)
 
         elif dispatchEnum == 'ActiveViewBubbleUp':
-            activeView = wx.GetApp().GetActiveView()
-            # This is alecf's hackery, which should be fixed:
-            #
-            # Instead we need a way to specify a block in a tree
-            # of blocks besides the block at top of the tree as the
-            # active view, since the calendar wants to be the
-            # active view but is contained in a tree that has a
-            # splitter at it's root.
-            if activeView is not None:
-                activeView = activeView.childBlocks.first()
-            bubbleUpCallMethod (activeView, methodName, event)
+            bubbleUpCallMethod (wx.GetApp().activeView, methodName, event)
 
         elif __debug__:
             assert (False)
@@ -1253,9 +1250,9 @@ class dispatchEnumType(schema.Enumeration):
     )
 
 class BlockEvent(schema.Item):
-    dispatchEnum = schema.One(dispatchEnumType, initialValue = 'SendToBlockByName')
-    dispatchToBlockName = schema.One(schema.Text, initialValue = 'MainView')
-    commitAfterDispatch = schema.One(schema.Boolean, initialValue = False)
+    dispatchEnum = schema.One(dispatchEnumType, defaultValue = 'SendToBlockByName')
+    dispatchToBlockName = schema.One(schema.Text, defaultValue = 'MainView')
+    commitAfterDispatch = schema.One(schema.Boolean, defaultValue = False)
     destinationBlockReference = schema.One(Block)
     methodName = schema.One(schema.Text)
     blockName = schema.One(schema.Text)

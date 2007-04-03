@@ -298,7 +298,7 @@ class wxViewContainer (wxBoxContainer):
 class ViewContainer(BoxContainer):
     selectionIndex = schema.One (schema.Integer, initialValue = 0)
     views = schema.Mapping(Block, initialValue = {})
-    activeView = schema.One (Block)
+    theActiveView = schema.One (Block)
 
     schema.addClouds(
         copying = schema.Cloud(byRef=[views])
@@ -319,12 +319,12 @@ class ViewContainer(BoxContainer):
     
     def onChoiceEventUpdateUI (self, event):
         assert len (self.childBlocks) == 1
-        event.arguments ['Check'] = self.activeView == self.views [event.choice]
+        event.arguments ['Check'] = self.theActiveView == self.views [event.choice]
 
     def onChoiceEvent (self, event):
         view = self.views [event.choice]
         if view != self.activeView:
-            self.activeView = view
+            self.theActiveView = view
             self.postEventByName ('SelectItemsBroadcast', {'items':[view]})
 
 class wxFrameWindow (wxViewContainer):

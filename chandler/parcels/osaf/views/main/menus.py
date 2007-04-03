@@ -1006,7 +1006,7 @@ def makeMainMenus(parcel):
                         accel = platform_command_delete,                        
                         helpString = _(u'Remove the current selection from the current collection')),                    
                     MenuItem.template('ItemnContextDeleteItem',
-                        event = main.Delete,
+                        event = main.DeleteItemInActiveView,
                         title = _(u'&Delete'),
                         accel = platform_delete,
                         helpString = _(u'Move the current selection to the trash')),
@@ -1050,4 +1050,3 @@ def makeMainMenus(parcel):
                         helpString = _(u'Mark the selected item as private, so it will not be shared')),
 
                     ]).install(parcel)
-

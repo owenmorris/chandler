@@ -311,7 +311,7 @@ def makeMainView(parcel):
         views = {'MainView' : MainViewInstance,
                  'CPIATestMainView' : CPIATestMainView,
                  'CPIATest2MainView' : CPIATest2MainView},
-        activeView = MainViewInstance,
+        theActiveView = MainViewInstance,
         childBlocks = [MainBranchPointBlock])
 
     # Add certstore UI
