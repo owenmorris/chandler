@@ -208,6 +208,8 @@ def doTests(hardhatScript, mode, workingDir, outputDir, buildVersion, log):
         log.write("Logging to %s\n" % logfile)
 
         cmd = [pythonProgram, './tools/rt.py', '-Ti', '-uf', '-m %s' % mode]
+        if perfMode:
+            cmd += ['-p']
 
         log.write("cmd: %s\n" % ' '.join(cmd))
 
