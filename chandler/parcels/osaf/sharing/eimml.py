@@ -140,7 +140,13 @@ class EIMMLSerializer(object):
 
         rootElement = Element("{%s}%s" % (eimURI, rootName), **extra)
 
-        for uuid, recordSet in recordSets.iteritems():
+        # Sorting by uuid here to guarantee we send masters before
+        # modifications (for the benefit of Cosmo).  If we ever change
+        # the recurrenceID uuid scheme, this will have to be updated.
+        uuids = recordSets.keys()
+        uuids.sort()
+        for uuid in uuids:
+            recordSet = recordSets[uuid]
 
             if recordSet is not None:
 

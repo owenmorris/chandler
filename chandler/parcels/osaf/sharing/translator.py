@@ -414,6 +414,12 @@ class SharingTranslator(eim.Translator):
 
     @model.ItemRecord.importer
     def import_item(self, record):
+
+        if record.title is None:
+            title = eim.Inherit # to delete the attribute
+        else:
+            title = record.title
+
         if record.createdOn not in emptyValues:
             # createdOn is a Decimal we need to change to datetime
             naive = datetime.utcfromtimestamp(float(record.createdOn))
@@ -426,7 +432,7 @@ class SharingTranslator(eim.Translator):
         @self.withItemForUUID(
             record.uuid,
             pim.ContentItem,
-            displayName=record.title,
+            displayName=title,
             createdOn=createdOn,
             needsReply=with_nochange(record.needsReply, bool)
         )
@@ -463,9 +469,10 @@ class SharingTranslator(eim.Translator):
         else:
             triage = eim.Inherit
 
-        title = handleEmpty(item, "displayName")
-        if title is None:
-            title = ""
+        if item.hasLocalAttributeValue('displayName'):
+            title = item.displayName
+        else:
+            title = None
 
         yield model.ItemRecord(
             item,                                       # uuid
@@ -617,7 +624,6 @@ class SharingTranslator(eim.Translator):
     @eim.exporter(pim.Note)
     def export_note(self, note):
 
-        body = handleEmpty(note, 'body')
         if note.hasLocalAttributeValue('body'):
             body = note.body
         else:
