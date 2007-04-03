@@ -1690,15 +1690,26 @@ class MainView(View):
                 event.arguments['Enable'] = True
                 event.arguments['Check'] = not sharing.isOnline(collection)
 
+    def onTakeAllOnlineOfflineEventUpdateUI(self, event):
+        event.arguments['Enable'] = False
+
+    def onTakeAllOnlineOfflineEvent(self, event):
+        pass
+
     def onTakeMailOnlineOfflineEvent(self, event):
         if Globals.mailService.isOnline():
             Globals.mailService.takeOffline()
         else:
             Globals.mailService.takeOnline()
 
-
     def onTakeMailOnlineOfflineEventUpdateUI(self, event):
         event.arguments ['Check'] = not Globals.mailService.isOnline()
+
+    def onTakeSharesOnlineOfflineEventUpdateUI(self, event):
+        event.arguments['Enable'] = False
+
+    def onTakeSharesOnlineOfflineEvent(self, event):
+        pass
 
     def onSyncAllEvent (self, event):
         """
