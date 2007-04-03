@@ -82,15 +82,15 @@ class DragAndDropTextCtrl(BaseWidget,
         # @@@ In the future, it might be nice to base this menu
         # on CPIA mechanisms, but we don't need that for now.
         menu = wx.Menu()
-        menu.Append(wx.ID_UNDO, messages.UNDO)
-        menu.Append(wx.ID_REDO, messages.REDO)
+        menu.Append(wx.ID_UNDO)#, messages.UNDO) # wx fills the message automatically
+        menu.Append(wx.ID_REDO)#, messages.REDO)
         menu.AppendSeparator()
-        menu.Append(wx.ID_CUT, messages.CUT)
-        menu.Append(wx.ID_COPY, messages.COPY)
-        menu.Append(wx.ID_PASTE, messages.PASTE)
-        menu.Append(wx.ID_CLEAR, messages.CLEAR)
+        menu.Append(wx.ID_CUT)#, messages.CUT)
+        menu.Append(wx.ID_COPY)#, messages.COPY)
+        menu.Append(wx.ID_PASTE)#, messages.PASTE)
+        menu.Append(wx.ID_CLEAR, messages.CLEAR) # have to use ours for mnemonic
         menu.AppendSeparator()
-        menu.Append(wx.ID_SELECTALL, messages.SELECT_ALL)
+        menu.Append(wx.ID_SELECTALL)#, messages.SELECT_ALL)
 
         if '__WXGTK__' in wx.PlatformInfo:
             # (see note below re: GTK)
