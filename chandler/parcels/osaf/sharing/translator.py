@@ -427,7 +427,8 @@ class SharingTranslator(eim.Translator):
             record.uuid,
             pim.ContentItem,
             displayName=record.title,
-            createdOn=createdOn
+            createdOn=createdOn,
+            needsReply=with_nochange(record.needsReply, bool)
         )
         def do(item):
             if record.triage != "" and record.triage not in emptyValues:
@@ -437,7 +438,6 @@ class SharingTranslator(eim.Translator):
                 item.doAutoTriageOnDateChange = (auto == "1")
 
         # TODO: record.hasBeenSent --> item.modifiedFlags
-        # TODO: record.needsReply
 
     @eim.exporter(pim.ContentItem)
     def export_item(self, item):
@@ -473,7 +473,7 @@ class SharingTranslator(eim.Translator):
             triage,                                     # triage
             createdOn,                                  # createdOn
             0,                                          # hasBeenSent (TODO)
-            0                                           # needsReply (TODO)
+            handleEmpty(item, "needsReply")             # needsReply
         )
 
         # Also export a ModifiedByRecord
