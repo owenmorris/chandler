@@ -1522,37 +1522,40 @@ class MainView(View):
         collection = self.getSidebarSelectedCollection ()
         event.arguments['Enable'] = collection is not None and (sharing.isShared(collection))
 
-    def onUnshareCollectionEvent(self, event):
+    def onUnsubscribeCollectionEvent(self, event):
+        collection = self.getSidebarSelectedCollection ()
+        if collection is not None:
+            sharing.unsubscribe(collection)
+
+    def onUnsubscribeCollectionEventUpdateUI(self, event):
+        # One is allowed to unsubscribe even if one published the collection
+        collection = self.getSidebarSelectedCollection ()
+        event.arguments['Enable'] = collection is not None and sharing.isShared(collection)
+
+    def onUnpublishCollectionEvent(self, event):
         try:
             collection = self.getSidebarSelectedCollection ()
             if collection is not None:
                 share = sharing.getShare(collection)
                 if sharing.isSharedByMe(share):
                     sharing.unpublish(collection)
-                else:
-                    sharing.unsubscribe(collection)
         except (sharing.CouldNotConnect, twisted.internet.error.TimeoutError):
             msg = _(u"Unpublish failed, could not connect to server")
             self.setStatusMessage(msg)
         except:
-            msg = _(u"Unsubscribe/Unpublish failed, unknown error")
+            msg = _(u"Unpublish failed, unknown error")
             self.setStatusMessage(msg)
             raise # figure out what the exception is
         else:
-            msg = _("Unsubscribe/Unpublish succeeded")
+            msg = _("Unpublish succeeded")
             self.setStatusMessage(msg)
 
-    def onUnshareCollectionEventUpdateUI(self, event):
-        event.arguments['Enable'] = False
+    def onUnpublishCollectionEventUpdateUI(self, event):
         collection = self.getSidebarSelectedCollection ()
         if collection is not None:
             share = sharing.getShare(collection)
-            if sharing.isShared(collection):
-                event.arguments['Enable'] = True
-                if sharing.isSharedByMe(share):
-                    event.arguments['Text'] = _(u"Unpublish")
-                else:
-                    event.arguments['Text'] = _(u"Unsubscribe")
+            sharedByMe = sharing.isSharedByMe(share)
+        event.arguments['Enable'] = collection is not None and sharing.isShared(collection) and sharedByMe
 
     def _freeBusyShared(self):
         allCollection = schema.ns('osaf.pim', self).allCollection
@@ -1625,9 +1628,13 @@ class MainView(View):
         collection = self.getSidebarSelectedCollection ()
         if collection is not None:
             collName = collection.displayName
-            event.arguments ['Text'] = _(u'%(collectionName)s') % \
-                {'collectionName': collName}
-            event.arguments['Enable'] = sharing.isShared(collection)
+            sender = event.arguments['sender']
+            if sender.blockName == 'SidebarSyncCollectionItem':
+                event.arguments['Text'] = sender.title
+            else:
+                event.arguments ['Text'] = _(u'%(collectionName)s') % \
+                                           {'collectionName': collName}
+        event.arguments['Enable'] = collection is not None and sharing.isShared(collection)
 
     def onCopyCollectionURLEvent(self, event):
         collection = self.getSidebarSelectedCollection()
@@ -1672,8 +1679,12 @@ class MainView(View):
         if collection is not None:
             
             collName = collection.displayName
-            event.arguments ['Text'] = _(u'%(collectionName)s') % \
-                {'collectionName': collName}
+            sender = event.arguments['sender']
+            if sender.blockName == 'SidebarTakeOnlineOfflineItem':
+                event.arguments['Text'] = sender.title
+            else:
+                event.arguments ['Text'] = _(u'%(collectionName)s') % \
+                                           {'collectionName': collName}
 
             if sharing.isShared(collection):
                 event.arguments['Enable'] = True
