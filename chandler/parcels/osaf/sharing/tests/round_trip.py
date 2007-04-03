@@ -110,6 +110,7 @@ class RoundTripTestCase(testcase.DualRepositoryTestCase):
             datetime.time(11, 0, tzinfo=ICUtzinfo.default)
         )
         event.anyTime = False
+        event.transparency = 'confirmed'
 
         # ...make it recur weekly
         rrule = RecurrenceRule(itsView=view, untilIsDate=False, freq='weekly')
@@ -849,28 +850,26 @@ class RoundTripTestCase(testcase.DualRepositoryTestCase):
                              u'This is very original')
 
 
-        """
-        # sync a start-time modification
-        second0 = event.getFirstOccurrence().getNextOccurrence()
-        
-        newStart = second0.startTime + datetime.timedelta(hours=2)
-        second0.changeThis(pim.EventStamp.startTime.name, newStart)
-
-        # sync
-        view0.commit(); stats = self.share0.sync(); view0.commit()
-        view1.commit(); stats = self.share1.sync(); view1.commit()
-        
-        # find the sync'ed second occurrence
-        second1 = event1.getRecurrenceID(second0.recurrenceID)
-        self.failIf(second1 is None, "Missing occurrence after sync")
-        self.failUnless(second1.modificationFor is item1,
-                        "Un- or disconnected modification after sync")
-                        
-        @@@ [grant] This fails!
-
-        self.failUnlessEqual(second1.startTime, newStart,
-                             "startTime not modified correctly")
-        """
+        if False:
+            # sync a start-time modification
+            second0 = event.getFirstOccurrence().getNextOccurrence()
+            
+            newStart = second0.startTime + datetime.timedelta(hours=2)
+            second0.changeThis(pim.EventStamp.startTime.name, newStart)
+    
+            # sync
+            view0.commit(); stats = self.share0.sync(); view0.commit()
+            view1.commit(); stats = self.share1.sync(); view1.commit()
+            
+            # find the sync'ed second occurrence
+            second1 = event1.getRecurrenceID(second0.recurrenceID)
+            self.failIf(second1 is None, "Missing occurrence after sync")
+            self.failUnless(second1.modificationFor is item1,
+                            "Un- or disconnected modification after sync")
+                            
+            # @@@ [grant] This fails!
+            self.failUnlessEqual(second1.startTime, newStart,
+                                 "startTime not modified correctly")
 
         # remove recurrence
         event.removeRecurrence()
@@ -884,12 +883,181 @@ class RoundTripTestCase(testcase.DualRepositoryTestCase):
                     "modifications not removed/cleared after sync")
         self.failIf(event1.occurrences,
                     "occurrences not removed/cleared after sync")
+
+        # Sync a THISANDFUTURE change.
+        event = self._makeRecurringEvent(view0, self.share0.contents)
+        item = event.itsItem
         
-        # TODO: THISANDFUTURE changes.
-        # TODO: different THIS attribute changes.
-        # TODO: deleteThis() local & changeThis() remote.
-        # TODO: change THIS local, THISANDFUTURE remote.
-        # TODO: change recurrence
+        view0.commit(); stats = self.share0.sync(); view0.commit()
+        view1.commit(); stats = self.share1.sync(); view1.commit()
+        
+        fourth0 = event.getNextOccurrence(
+                        after=event.startTime + datetime.timedelta(days=15))
+        fourth0.changeThisAndFuture('displayName', u'New Title')
+        
+        expectedStartTimes = [
+            event.startTime,
+            event.startTime + datetime.timedelta(days=7),
+            event.startTime + datetime.timedelta(days=14)
+        ]
+        self.failUnlessEqual(getStartTimes(event), expectedStartTimes)
+
+        view0.commit(); stats = self.share0.sync(); view0.commit()
+        view1.commit(); stats = self.share1.sync(); view1.commit()
+        
+        item1 = view1.findUUID(item.itsUUID)
+        fourth1 = pim.EventStamp(
+                        view1.findUUID(fourth0.getMaster().itsItem.itsUUID))
+        
+        self.failUnless(pim.has_stamp(fourth1, pim.EventStamp))
+        self.failUnlessEqual(fourth1, fourth1.getMaster())
+        self.failUnlessEqual(fourth1.rruleset.rrules.first().freq, 'weekly')
+        
+        event1 = pim.EventStamp(item1)
+        self.failUnlessEqual(getStartTimes(event1), expectedStartTimes)
+        self.failUnlessEqual(fourth1.itsItem.displayName, u'New Title')
+
+        
+        # Different THIS attribute changes.
+        event = self._makeRecurringEvent(view0, self.share0.contents)
+        item = event.itsItem
+        
+        view0.commit(); stats = self.share0.sync(); view0.commit()
+        view1.commit(); stats = self.share1.sync(); view1.commit()
+        
+        item1 = view1.findUUID(item.itsUUID)
+        event1 = pim.EventStamp(item1)
+        
+        recurrenceID = event.startTime + datetime.timedelta(days=42)
+        occurrence0 = event.getRecurrenceID(recurrenceID)
+        occurrence1 = event1.getRecurrenceID(recurrenceID)
+        self.failIf(None in (occurrence0, occurrence1))
+
+        # In view0, make the occurrence have a duration of 120 minutes
+        occurrence0.changeThis(pim.EventStamp.duration.name,
+                               datetime.timedelta(minutes=120))
+        # In view1, make its transparency be 'fyi'
+        occurrence1.changeThis(pim.EventStamp.transparency.name, 'fyi')
+                                        
+        view0.commit(); stats = self.share0.sync(); view0.commit()
+        view1.commit(); stats = self.share1.sync(); view1.commit()
+        
+        if False:
+            # [Bug 8665]
+            # https://bugzilla.osafoundation.org/show_bug.cgi?id=8665
+            # @@@ [grant] This fails.
+            # Make sure occurrence1 picked up the duration change
+            occurrence1 = event1.getRecurrenceID(recurrenceID)
+            self.failUnlessEqual(occurrence1.duration,
+                                 datetime.timedelta(minutes=120))
+
+        
+        view0.commit(); stats = self.share0.sync(); view0.commit()
+        
+        if False:
+            # [Bug 8665]
+            # https://bugzilla.osafoundation.org/show_bug.cgi?id=8665
+            # @@@ [grant] This fails.
+            # Make sure the transparency change made it from view1 to view0
+            occurrence0 = event.getRecurrenceID(recurrenceID)
+            self.failUnlessEqual(occurrence0.transparency, 'fyi')
+            self.failIfEqual(event.getFirstOccurrence().transparency, 'fyi')
+        
+        # deleteThis() local & changeThis() remote.
+        event = self._makeRecurringEvent(view0, self.share0.contents)
+        item = event.itsItem
+        
+        view0.commit(); stats = self.share0.sync(); view0.commit()
+        view1.commit(); stats = self.share1.sync(); view1.commit()
+        
+        item1 = view1.findUUID(item.itsUUID)
+        event1 = pim.EventStamp(item1)
+        
+        recurrenceID = event.startTime + datetime.timedelta(days=28)
+        occurrence0 = event.getRecurrenceID(recurrenceID)
+        occurrence1 = event1.getRecurrenceID(recurrenceID)
+
+        occurrence0.changeThis('displayName', u'Woo-hoo')
+        
+        occurrence1.deleteThis()
+        self.failUnless(event1.getRecurrenceID(recurrenceID) is None)
+
+        view0.commit(); stats = self.share0.sync(); view0.commit()
+        view1.commit(); stats = self.share1.sync(); view1.commit()
+        
+        self.failIf(event.getRecurrenceID(recurrenceID) is None)
+        self.failIf(event1.getRecurrenceID(recurrenceID) is None)
+        
+        # Make sure view1 got the displayName modification
+        self.failUnlessEqual(event1.getRecurrenceID(recurrenceID).summary,
+                             u'Woo-hoo')
+        
+        
+
+        # change THIS local, THISANDFUTURE remote.
+        event = self._makeRecurringEvent(view0, self.share0.contents)
+        item = event.itsItem
+        
+        view0.commit(); stats = self.share0.sync(); view0.commit()
+        view1.commit(); stats = self.share1.sync(); view1.commit()
+        
+        item1 = view1.findUUID(item.itsUUID)
+        event1 = pim.EventStamp(item1)
+        
+        futureRecurrenceID = event.startTime + datetime.timedelta(days=56)
+        thisRecurrenceID = futureRecurrenceID + datetime.timedelta(days=7)
+        future0 = event.getRecurrenceID(futureRecurrenceID)
+        this1 = event1.getRecurrenceID(thisRecurrenceID)
+        
+        this1.itsItem.setTriageStatus(pim.TriageEnum.now)
+        self.failUnlessEqual(this1.modificationFor, item1)
+        
+        future0.changeThisAndFuture(pim.EventStamp.transparency.name,
+                                    'tentative')
+        futureUUID = future0.getMaster().itsItem.itsUUID
+        self.failIfEqual(item1.itsUUID, futureUUID)
+
+        view0.commit(); stats = self.share0.sync(); view0.commit()
+        view1.commit(); stats = self.share1.sync(); view1.commit()
+        
+        future1 = pim.EventStamp(view1.findUUID(futureUUID))
+        self.failUnlessEqual(future1, future1.getMaster())
+
+        this1 = future1.getRecurrenceID(thisRecurrenceID)
+        # Make sure we picked up the new master's transparency ...
+        self.failUnlessEqual(this1.transparency, 'tentative')
+        if False:
+            # [Bug 8664]
+            # https://bugzilla.osafoundation.org/show_bug.cgi?id=8664
+            # @@@ [grant] This fails: We need to include this1 as an off-rule
+            # modification in event0, or find a way to record the fact that we
+            # had a THISANDFUTURE change in EIM. Otherwise, we've lost a user
+            # edit.
+            
+            # ... that we didn't lose the triage status modification ...
+            self.failUnlessEqual(this1.itsItem.triageStatus,
+                                 pim.TriageEnum.now)
+            # ... but that the master is unchanged
+            self.failIfEqual(future1.itsItem.triageStatus, pim.TriageEnum.now)
+        
+        # Change recurrence
+        event = self._makeRecurringEvent(view0, self.share0.contents)
+        item = event.itsItem
+        
+        view0.commit(); stats = self.share0.sync(); view0.commit()
+        view1.commit(); stats = self.share1.sync(); view1.commit()
+        
+        item1 = view1.findUUID(item.itsUUID)
+        event1 = pim.EventStamp(item1)
+        
+        event.rruleset.rrules.first().freq = 'daily'
+        view0.commit(); stats = self.share0.sync(); view0.commit()
+        view1.commit(); stats = self.share1.sync(); view1.commit()
+        
+        self.failUnlessEqual(event1.rruleset.rrules.first().freq,
+                            'daily')
+
+        
         
 
 
