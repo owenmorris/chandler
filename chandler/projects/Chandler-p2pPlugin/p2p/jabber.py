@@ -144,9 +144,9 @@ class JabberAccount(Account):
 class JabberShare(Share):
 
     schema.initialValues(
-        self.conduit = lambda self: JabberConduit(itsParent=self, peerId=peerId,
+        conduit = lambda self: JabberConduit(itsParent=self, peerId=peerId,
                                      account=self.account),
-        self.format = lambda self: CloudXMLDiffFormat(itsParent=self)
+        format = lambda self: CloudXMLDiffFormat(itsParent=self)
     )
 
 
