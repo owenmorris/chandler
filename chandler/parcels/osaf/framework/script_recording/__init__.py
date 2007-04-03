@@ -318,7 +318,7 @@ def installParcel(parcel, old_version=None):
     scriptingMenu = Menu.update(
         parcel, 'ScriptingMenuItem',
         blockName = 'ScriptingMenuItem',
-        title = _(u'Scripting'),
+        title = _(u'Scriptin&g'),
         childrenBlocks = [],
         parentBlock = main.ToolsMenu)
 
@@ -332,7 +332,7 @@ def installParcel(parcel, old_version=None):
     MenuItem.update(
         parcel, 'RecordingMenuItem',
         blockName = 'RecordingMenuItem',
-        title = _(u'Record script'),
+        title = _(u'&Record script'),
         helpString = _(u'Record commands in Chandler'),
         event = ToggleRecording,
         eventsForNamedLookup = [ToggleRecording],
@@ -349,7 +349,7 @@ def installParcel(parcel, old_version=None):
         parcel, 'IncludeTestsMenuItem',
         menuItemKind = 'Check',
         blockName = 'IncludeTeststMenuItem',
-        title = _(u'Include tests in script'),
+        title = _(u'&Include tests in script'),
         helpString = _(u"Includes code in the script to verify that the UI's data matches the state when the script was recorded"),
         event = IncludeTests,
         eventsForNamedLookup = [IncludeTests],
@@ -365,7 +365,7 @@ def installParcel(parcel, old_version=None):
     MenuItem.update(
         parcel, 'PlayScriptMenuItem',
         blockName = 'PlayScriptMenuItem',
-        title = _(u'Play script'),
+        title = _(u'&Play script'),
         helpString = _(u'Playback a script you recorded'),
         event = PlayScript,
         eventsForNamedLookup = [PlayScript],

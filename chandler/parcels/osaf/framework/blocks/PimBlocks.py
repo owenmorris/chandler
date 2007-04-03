@@ -400,9 +400,9 @@ class FocusEventHandlers(Item):
             enable = canExecute and len(set(states)) == 1
         event.arguments ['Enable'] = enable
         if enable:
-            menuTitle = _(u'Run "%(name)s"') % { 'name': item.displayName }
+            menuTitle = _(u'&Run "%(name)s"') % { 'name': item.displayName }
         else:
-            menuTitle = _(u'Run a Script')
+            menuTitle = _(u'&Run a Script')
         event.arguments ['Text'] = menuTitle        
 
     def CanDelete(self):

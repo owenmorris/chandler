@@ -316,7 +316,7 @@ def installParcel(parcel, oldVersion=None):
     MenuItem.update(
         parcel, 'NewFlickrCollectionByOwner',
         blockName = 'NewFlickrCollectionByOwnerMenuItem',
-        title = _(u'Create new Flickr collection by Owner...'),
+        title = _(u'Create new Flickr collection by &Owner...'),
         event = addFlickrCollectionByOwnerEvent,
         eventsForNamedLookup = [addFlickrCollectionByOwnerEvent],
         parentBlock = flickrMenu)
@@ -324,7 +324,7 @@ def installParcel(parcel, oldVersion=None):
     MenuItem.update(
         parcel, 'NewFlickrCollectionByTag',
         blockName = 'NewFlickrCollectionByTagMenuItem',
-        title = _(u'Create new Flickr collection by Tag...'),
+        title = _(u'Create new Flickr collection by &Tag...'),
         event = addFlickrCollectionByTagEvent,
         eventsForNamedLookup = [addFlickrCollectionByTagEvent],
         parentBlock = flickrMenu)
@@ -332,7 +332,7 @@ def installParcel(parcel, oldVersion=None):
     MenuItem.update(
         parcel, 'UpdateFlickrNow',
         blockName = 'UpdateFlickrNowMenuItem',
-        title = _(u'Update Flickr collections...'),
+        title = _(u'&Update Flickr collections...'),
         event = updateEvent,
         eventsForNamedLookup = [updateEvent],
         parentBlock = flickrMenu)

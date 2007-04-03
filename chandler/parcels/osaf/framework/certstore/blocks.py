@@ -68,13 +68,13 @@ def installParcel(parcel, oldVersion=None):
     certMenu = blocks.Menu.update(
         parcel, "CertificateTestMenu",
         blockName = "CertificateTestMenu",
-        title = _(u"Certificates"),
+        title = _(u"&Certificates"),
         parentBlock = main.ToolsMenu)
 
     blocks.MenuItem.update(
         parcel, "CertificateView",
         blockName = "CertificateView",
-        title = _(u"Manage Certificates"),
+        title = _(u"&Manage Certificates"),
         event = addCertificateToSidebarEvent,
         eventsForNamedLookup = [addCertificateToSidebarEvent],
         parentBlock = certMenu,
@@ -93,7 +93,7 @@ def installParcel(parcel, oldVersion=None):
     blocks.MenuItem.update(
         parcel, "CertificateImport",
         blockName = "CertificateImport",
-        title = _(u"Import Certificate"),
+        title = _(u"&Import Certificate"),
         event = importCertificateEvent,
         eventsForNamedLookup = [importCertificateEvent],
         parentBlock = certMenu,

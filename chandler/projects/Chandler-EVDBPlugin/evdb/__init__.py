@@ -73,7 +73,7 @@ def installParcel(parcel, version=None):
     # calendar.
     blocks.MenuItem.update(parcel, "NewEVDBCollection",
         blockName = "NewEVDBCollectionMenu",
-        title = _(u"Subscribe to EVDB calendar..."),
+        title = _(u"&Subscribe to EVDB calendar..."),
         event = NewEVDBCollectionEvent,
         eventsForNamedLookup = [NewEVDBCollectionEvent],
         parentBlock = evdbMenu,

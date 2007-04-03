@@ -476,11 +476,11 @@ class p2pHandler(Block):
                 op = 'Grant'
             else:
                 op = 'Revoke'
-            menuTitle = '%s peer access to "%s"' %(op, collection.displayName)
+            menuTitle = '%s peer &access to "%s"' %(op, collection.displayName)
             event.arguments['Enable'] = True
         else:
             event.arguments['Enable'] = False
-            menuTitle = 'Grant peer access to ...'
+            menuTitle = 'Grant peer &access to ...'
 
         event.arguments['Text'] = menuTitle
 
@@ -493,11 +493,11 @@ class p2pHandler(Block):
         collection = sidebar.contents.getFirstSelectedItem()
 
         if collection is not None:
-            menuTitle = 'Send "%s" via p2p email' %(collection.displayName)
+            menuTitle = '&Send "%s" via p2p email' %(collection.displayName)
             event.arguments['Enable'] = True
         else:
             event.arguments['Enable'] = False
-            menuTitle = 'Send ... via p2p email'
+            menuTitle = '&Send ... via p2p email'
 
         event.arguments['Text'] = menuTitle
 

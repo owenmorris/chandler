@@ -62,7 +62,7 @@ class PluginMenu(Menu):
                                           dispatchEnum='SendToBlockByReference',
                                           destinationBlockReference=self),
                          parentBlock=self, dynamicParent=self,
-                         title="Download Plugins")
+                         title="&Download Plugins")
                 MenuItem(itsName=None, itsParent=self,
                          blockName='_separator',
                          parentBlock=self, dynamicParent=self,

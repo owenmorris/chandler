@@ -173,7 +173,7 @@ def installParcel(parcel, oldVersion=None):
     # ... and, below it, a menu item to subscribe to a RSS feed.
     blocks.MenuItem.update(parcel, "newFeedChannel",
         blockName = "newFeedChannel",
-        title = _(u"Create new feed channel..."),
+        title = _(u"&Create new feed channel..."),
         event = addFeedCollectionEvent,
         eventsForNamedLookup = [addFeedCollectionEvent],
         parentBlock = feedsMenu,

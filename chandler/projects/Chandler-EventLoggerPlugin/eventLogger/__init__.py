@@ -187,7 +187,7 @@ def installParcel(parcel, old_version=None):
         parcel, 'StartLogging',
         blockName = 'StartLoggingMenuItem',
         menuItemKind = 'Check',
-        title = u'Log user actions',
+        title = u'Log &user actions',
         helpString = u'Turn on logging and send result to OSAF',
         event = ToggleLogging,
         eventsForNamedLookup = [ToggleLogging],

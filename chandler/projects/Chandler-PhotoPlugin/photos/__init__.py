@@ -56,7 +56,7 @@ def installParcel(parcel, old_version=None):
     MenuItem.update(
         parcel, 'ImportImageItem',
         blockName = 'ImportImageItemMenuItem',
-        title = _(u'Import image...'),
+        title = _(u'&Import image...'),
         helpString = _(u'Import an image from disk'),
         event = newImageEvent,
         eventsForNamedLookup = [newImageEvent],

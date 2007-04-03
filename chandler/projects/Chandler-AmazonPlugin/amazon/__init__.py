@@ -44,7 +44,7 @@ def installParcel(parcel, version=None):
 
     blocks.MenuItem.update(parcel, "NewAmazonCollection",
         blockName = "NewAmazonCollectionMenu",
-        title = _(u"Amazon Keyword Search..."),
+        title = _(u"Amazon &Keyword Search..."),
         event = blocks.BlockEvent.update(parcel, "NewAmazonCollectionEvent",
             blockName = "NewAmazonCollection",
             dispatchEnum = "SendToBlockByReference",
@@ -57,7 +57,7 @@ def installParcel(parcel, version=None):
 
     blocks.MenuItem.update(parcel, "NewAmazonWishList",
         blockName = "NewAmazonWishListMenu",
-        title = _(u"Amazon Wish List Search..."),
+        title = _(u"Amazon &Wish List Search..."),
         event = blocks.BlockEvent.update(parcel, "NewAmazonWishListEvent",
             blockName = "NewAmazonWishList",
             dispatchEnum = "SendToBlockByReference",

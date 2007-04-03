@@ -86,7 +86,7 @@ def installParcel(parcel, version=None):
     # Add a menu item to the "Experimental" menu to login to a peer network
     MenuItem.update(parcel, "LoginMenuItem",
                     blockName="_p2p_LoginMenuItem",
-                    title=_m_(u"Login to Peer network..."),
+                    title=_m_(u"&Login to Peer network..."),
                     event=loginEvent,
                     eventsForNamedLookup=[loginEvent],
                     parentBlock=p2pMenu)
@@ -94,7 +94,7 @@ def installParcel(parcel, version=None):
     # ... and, below it, a menu item to p2p subscribe to a collection
     MenuItem.update(parcel, "SubscribeMenuItem",
                     blockName="_p2p_SubscribeMenuItem",
-                    title=_m_(u"Subscribe to Peer collection..."),
+                    title=_m_(u"S&ubscribe to Peer collection..."),
                     event=subscribeEvent,
                     eventsForNamedLookup=[subscribeEvent],
                     parentBlock=p2pMenu)
@@ -118,7 +118,7 @@ def installParcel(parcel, version=None):
     # ... and, below it, a menu item to check for p2p email
     MenuItem.update(parcel, "CheckMailMenuItem",
                     blockName="_p2p_CheckMailMenuItem",
-                    title=_m_(u"Check p2p email"),
+                    title=_m_(u"&Check p2p email"),
                     event=checkMailEvent,
                     eventsForNamedLookup=[checkMailEvent],
                     parentBlock=p2pMenu)
