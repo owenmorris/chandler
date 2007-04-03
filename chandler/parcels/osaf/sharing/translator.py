@@ -577,13 +577,9 @@ class SharingTranslator(eim.Translator):
                 # Convert to user's tz:
                 item.lastModified = inUTC.astimezone(ICUtzinfo.default)
 
-                try:
-                    if record.action is not eim.NoChange:
-                        item.lastModification = \
-                            self.code_to_modaction[record.action]
-                except:
-                    print record
-                    raise
+                if record.action is not eim.NoChange:
+                    item.lastModification = \
+                        self.code_to_modaction[record.action]
 
                 #XXX Brian K: The modified flags were not getting set properly
                 # without this addition.
@@ -675,8 +671,6 @@ class SharingTranslator(eim.Translator):
     @model.MailMessageRecord.importer
     def import_mail(self, record):
         #TODO: How to represent attachments?
-
-        print "IMPORT MAIL", record
 
         @self.withItemForUUID(
            record.uuid,
