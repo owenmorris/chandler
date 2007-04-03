@@ -230,7 +230,7 @@ def makeMainMenus(parcel):
                     MenuItem.template('CommitView',
                         event = globalBlocks.CommitView,
                         title = _(u'&Save changes'),
-                        #accel = _(u'Ctrl+S'), wx fills this and below entries automatically
+                        accel = _(u'Ctrl+S'),
                         wxId = wx.ID_SAVE),
                     ])
 
@@ -238,7 +238,7 @@ def makeMainMenus(parcel):
         fileMenu.attrs['childBlocks'].append(MenuItem.template('QuitItem',
                                                         event=globalBlocks.Quit,
                                                         title = _(u'&Quit'),
-                                                        #accel = _(u'Ctrl+Q'),
+                                                        accel = _(u'Ctrl+Q'),
                                                         helpString = _(u'Quit Chandler'),
                                                         wxId = wx.ID_EXIT))
 
@@ -265,17 +265,17 @@ def makeMainMenus(parcel):
                     MenuItem.template('CutItem',
                         event = globalBlocks.Cut,
                         title = messages.CUT,
-                        #accel = _(u'Ctrl+X'),
+                        accel = _(u'Ctrl+X'),
                         wxId = wx.ID_CUT),
                     MenuItem.template('CopyItem',
                         event = globalBlocks.Copy,
                         title = messages.COPY,
-                        #accel = _(u'Ctrl+C'),
+                        accel = _(u'Ctrl+C'),
                         wxId = wx.ID_COPY),
                     MenuItem.template('PasteItem',
                         event = globalBlocks.Paste,
                         title = messages.PASTE,
-                        #accel = _(u'Ctrl+V'),
+                        accel = _(u'Ctrl+V'),
                         wxId = wx.ID_PASTE),
                     MenuItem.template('SelectAllItem',
                         event = globalBlocks.SelectAll,
@@ -302,7 +302,7 @@ def makeMainMenus(parcel):
                     MenuItem.template('SearchItem',
                         event = main.Search,
                         title = _(u'&Find'),
-                        #accel = _(u'Ctrl+F'),
+                        accel = _(u'Ctrl+F'),
                         helpString = _(u'Search using the Quick Entry field'),
                         wxId = wx.ID_FIND),
                     ]), # Menu EditMenu
