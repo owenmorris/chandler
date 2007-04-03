@@ -218,7 +218,7 @@ def doTests(hardhatScript, mode, workingDir, outputDir, buildVersion, log):
         dumpTestLogs(log, logfile)
 
     except hardhatutil.ExternalCommandErrorWithOutputList, e:
-        print "tests failed", e
+        print "tests failed", e.exitCode
         log.write("***Error during tests***\n")
         log.write("Test log:\n")
         hardhatutil.dumpOutputList(e.outputList, log)

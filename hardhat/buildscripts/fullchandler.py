@@ -235,7 +235,7 @@ def doTests(mode, workingDir, outputDir, buildVersion, log):
         hardhatutil.dumpOutputList(outputList, log)
 
     except hardhatutil.ExternalCommandErrorWithOutputList, e:
-        print "unit tests failed", e
+        print "unit tests failed", e.exitCode
         log.write("***Error during unit tests***\n")
         log.write("Test log:\n")
         hardhatutil.dumpOutputList(e.outputList, log)
