@@ -442,7 +442,7 @@ Exporting:
     >>> len(records)
     5
     >>> records[0]
-    ItemRecord('800644b6-dd73-11db-f79a-0016cbca6aed', u'Event Item with reminder', u'200 -1167792996.00 1', Decimal("1164805552"), 0, 0)
+    ItemRecord('800644b6-dd73-11db-f79a-0016cbca6aed', u'Event Item with reminder', u'200 -1167792996.00 1', Decimal("1164805552"), 0, 1)
     >>> records[1]
     ModifiedByRecord(...)
     >>> records[2]
