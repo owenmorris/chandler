@@ -17,16 +17,19 @@ A helper class which sets up and tears down dual RamDB repositories
 """
 
 import unittest, os, sys
-from util.testcase import SingleRepositoryTestCase
+from util.testcase import SingleRepositoryTestCase, NRVTestCase
 import repository.persistence.DBRepository as DBRepository
 import repository.item.Item as Item
 import application.Parcel as Parcel
 from application import schema
 from osaf import pim, sharing
 import osaf.sharing.ICalendar as ICalendar
+from osaf.sharing.serialize import serialize, deserialize
+from osaf.sharing import ics, translator
 from osaf.pim import ListCollection, Note, Triageable
 import osaf.pim.calendar.Calendar as Calendar
-from osaf.pim.calendar.TimeZone import convertToICUtzinfo, TimeZoneInfo
+from osaf.pim.calendar.TimeZone import (convertToICUtzinfo, TimeZoneInfo,
+                                        equivalentTZIDs)
 import datetime
 import vobject
 import cStringIO
@@ -34,6 +37,11 @@ from PyICU import ICUtzinfo
 from dateutil import tz
 from osaf.pim.calendar.Recurrence import RecurrenceRule, RecurrenceRuleSet
 from i18n.tests import uw
+
+def getVObjectData(view, events):
+    text = serialize(view, events, translator.SharingTranslator,
+                     ics.ICSSerializer)
+    return vobject.readOne(text)
 
 class ICalendarTestCase(SingleRepositoryTestCase):
 
@@ -52,15 +60,17 @@ class ICalendarTestCase(SingleRepositoryTestCase):
         #sharePath is stored as schema.Text so convert to unicode
         sharePath = unicode(sharePath, sys.getfilesystemencoding())
 
-        sandbox = view.findPath("//sandbox")
-
-        conduit = sharing.FileSystemConduit(itsParent=self.sandbox, sharePath=sharePath,
-                                            shareName=filename)
-        format = ICalendar.ICalendarFormat(itsParent=self.sandbox)
-        self.share = sharing.Share(itsParent=self.sandbox, conduit=conduit,
-                                   format=format)
+        self.share = sharing.shares.OneTimeFileSystemShare(itsView=view, 
+            itsParent=self.sandbox,
+            filePath=sharePath, fileName=filename,
+            translatorClass=translator.SharingTranslator,
+            serializerClass=ics.ICSSerializer
+        )
+        
+        self.share._prepare()
+                                   
         self.share.sync(modeOverride='get')
-        return format
+        ###return format
 
     def testSummaryAndDateTimeImported(self):
         format = self.Import(self.view, u'Chandler.ics')
@@ -70,7 +80,7 @@ class ICalendarTestCase(SingleRepositoryTestCase):
         self.assertEqual(event.summary, u'3 ho\u00FCr event',
                  u"SUMMARY of first VEVENT not imported correctly, displayName is %s"
                  % event.summary)
-        evtime = datetime.datetime(2005,1,1, hour = 23, tzinfo = ICalendar.utc)
+        evtime = datetime.datetime(2005,1,1, hour = 23, tzinfo = ics.utc)
         self.assert_(event.startTime == evtime,
          "startTime not set properly, startTime is %s"
          % event.startTime)
@@ -98,8 +108,8 @@ class ICalendarTestCase(SingleRepositoryTestCase):
         cal = ICalendar.itemsToFreeBusy(self.view, start, end)
         self.assertEqual(cal.vfreebusy.freebusy.value[0][1], datetime.timedelta(1))
 
-    def testItemsToVobject(self):
-        """Tests itemsToVObject, which converts Chandler items to vobject."""
+    def testICSSerializer(self):
+        """Tests serialization of items to icalendar streams."""
         event = Calendar.CalendarEvent(itsView = self.view)
         event.anyTime = False
         event.summary = uw("test")
@@ -107,8 +117,8 @@ class ICalendarTestCase(SingleRepositoryTestCase):
                                             tzinfo=ICUtzinfo.default)
         event.endTime = datetime.datetime(2010, 1, 1, 11,
                                           tzinfo=ICUtzinfo.default)
-
-        cal = ICalendar.itemsToVObject(self.view, [event])
+        
+        cal = getVObjectData(self.view, [event.itsItem])
 
         self.failUnlessEqual(cal.vevent.summary.value, uw("test"),
          u"summary not set properly, summary is %s"
@@ -124,8 +134,8 @@ class ICalendarTestCase(SingleRepositoryTestCase):
         event.startTime = datetime.datetime(2010, 1, 1, 
                                             tzinfo=ICUtzinfo.floating)
         event.allDay = True
-
-        cal = ICalendar.itemsToVObject(self.view, [event])
+        
+        cal = getVObjectData(self.view, [event.itsItem])
 
         self.assert_(cal.vevent.dtstart.value == datetime.date(2010,1,1),
          u"dtstart for allDay event not set properly, dtstart is %s"
@@ -141,21 +151,32 @@ class ICalendarTestCase(SingleRepositoryTestCase):
                                           tzinfo=ICUtzinfo.default)
 
         coll = ListCollection("testcollection", itsParent=self.sandbox)
+        coll.displayName = "test"
         coll.add(event.itsItem)
+        # the view needs to be committed for event to be seen by sync
+        self.view.commit() 
+    
+        
         filename = u"unicode_export.ics"
 
-        conduit = sharing.FileSystemConduit("conduit", sharePath=u".",
-                            shareName=filename, itsView=self.view)
-        format = ICalendar.ICalendarFormat("format", itsView=self.view)
-        self.share = sharing.Share("share",contents=coll, conduit=conduit,
-                                    format=format, itsView=self.view)
-        if self.share.exists():
-            self.share.destroy()
-        self.share.create()
-        self.share.sync(modeOverride='put')
-        cal=vobject.readComponents(file(filename, 'rb')).next()
+        write_share = sharing.OneTimeFileSystemShare(itsView=self.view, 
+            filePath=u".", fileName=filename,
+            translatorClass=translator.SharingTranslator,
+            serializerClass=ics.ICSSerializer, contents=coll
+        )
+        
+        def delFile():
+            try:
+                os.remove(filename)
+            except OSError:
+                pass
+        
+        delFile()
+        write_share.put()
+        
+        cal = vobject.readComponents(file(filename, 'rb')).next()
         self.assertEqual(cal.vevent.summary.value, event.summary)
-        self.share.destroy()
+        delFile()
 
     def testRoundTripRecurrenceCount(self):
         format = self.Import(self.view, u'Recurrence.ics')
@@ -174,7 +195,7 @@ class ICalendarTestCase(SingleRepositoryTestCase):
                                                     tzinfo=ICUtzinfo.floating))
         
         # test count export, no timezones
-        vcalendar = ICalendar.itemsToVObject(self.view, [event])
+        vcalendar = getVObjectData(self.view, [event.itsItem])
         self.assertEqual(vcalendar.vevent.rruleset._rrule[0]._count, 10)
 
         # turn on timezones, putting event in Pacific time
@@ -184,7 +205,7 @@ class ICalendarTestCase(SingleRepositoryTestCase):
         self.assertEqual(event.startTime.tzinfo, pacific)
         
         # test count export, with timezones turned on
-        vcalendar = ICalendar.itemsToVObject(self.view, [event])
+        vcalendar = getVObjectData(self.view, [event.itsItem])
         self.assertEqual(vcalendar.vevent.rruleset._rrule[0]._count, 10)
 
 
@@ -192,10 +213,12 @@ class ICalendarTestCase(SingleRepositoryTestCase):
         format = self.Import(self.view, u'RecurrenceWithTimezone.ics')
         event = pim.EventStamp(sharing.findUID(self.view,
                                   'FF14A660-02A3-11DA-AA66-000A95DA3228'))
-        # THISANDFUTURE change creates a new event, so there's nothing in
-        # event.modifications
         mods = [evt for evt in event.modifications if
                 not pim.EventStamp(evt).isTriageOnlyModification()]
+        # The old ICalendar import code would handle THISANDFUTURE changes by
+        # creating a new series, so there would be no modifications to the
+        # original.  The current code just ignores THISANDFUTURE changes,
+        # so there should still be no modifications
         self.assertEqual(len(mods), 0)
         # Bug 6994, EXDATEs need to have ICU timezones, or they won't commit
         # (unless we're suffering from Bug 7023, in which case tzinfos are
@@ -232,8 +255,8 @@ class ICalendarTestCase(SingleRepositoryTestCase):
         event = pim.EventStamp(sharing.findUID(
                                 self.view,
                                 '42583280-8164-11da-c77c-0011246e17f0'))
-        self.assertEqual(event.startTime.tzinfo,
-                         ICUtzinfo.getInstance('America/Denver'))
+        mountain_time = ICUtzinfo.getInstance('America/Denver')
+        self.assertEqual(event.startTime.tzinfo, mountain_time)
 
     def testImportReminders(self):
         # @@@ [grant] Check for that reminders end up expired or not, as
@@ -292,7 +315,7 @@ class ICalendarTestCase(SingleRepositoryTestCase):
         ruleSetItem.addRule(ruleItem)
         event.rruleset = ruleSetItem
         
-        vcalendar = ICalendar.itemsToVObject(self.view, [event])
+        vcalendar = getVObjectData(self.view, [event.itsItem])
 
         self.assertEqual(vcalendar.vevent.dtstart.serialize(),
                          'DTSTART;TZID=America/New_York:20050201T000000\r\n')
@@ -308,13 +331,17 @@ class ICalendarTestCase(SingleRepositoryTestCase):
 
         nextEvent.getNextOccurrence().deleteThis()
 
-        vcalendar = ICalendar.itemsToVObject(self.view, [event])
-        modified = vcalendar.vevent_list[1]
+        vcalendar = getVObjectData(self.view, [event.itsItem, nextEvent])
+        for ev in vcalendar.vevent_list:
+            if hasattr(ev, 'recurrence_id'):
+                modified = ev
+            else:
+                master = ev
         self.assertEqual(modified.dtstart.serialize(),
                          'DTSTART:20050209T000000\r\n')
         self.assertEqual(modified.recurrence_id.serialize(),
                          'RECURRENCE-ID;TZID=America/New_York:20050208T000000\r\n')
-        self.assertEqual(vcalendar.vevent.exdate.serialize(),
+        self.assertEqual(master.exdate.serialize(),
                          'EXDATE;TZID=America/New_York:20050215T000000\r\n')
         vcalendar.behavior.generateImplicitParameters(vcalendar)
         self.assertEqual(vcalendar.vtimezone.tzid.value, "America/New_York")
@@ -329,7 +356,7 @@ class ICalendarTestCase(SingleRepositoryTestCase):
         self.Import(self.view, u'oracle_mod.ics')
         master = pim.EventStamp(sharing.findUID(self.view,
                                         'abbfc510-4d8f-11db-c525-001346a711f0'))
-        modTime = datetime.datetime(2006, 9, 29, 13, tzinfo=ICalendar.utc)
+        modTime = datetime.datetime(2006, 9, 29, 13, tzinfo=ics.utc)
         changed = master.getRecurrenceID(modTime)
         self.assert_(changed is not None)
         self.assertEqual(changed.itsItem.displayName,
@@ -337,7 +364,7 @@ class ICalendarTestCase(SingleRepositoryTestCase):
         
         # test that a few of the custom fields were preserved when exporting
         
-        vcalendar = ICalendar.itemsToVObject(self.view, [master])
+        vcalendar = getVObjectData(self.view, [master.itsItem])
         self.assertEqual(vcalendar.vevent.organizer.params['X-ORACLE-GUID'][0],
                          '07FC24E37F395815E0405794071A700C')
         self.assertEqual(vcalendar.vevent.created.value, '20060926T202203Z')
@@ -491,39 +518,20 @@ class TimeZoneTestCase(unittest.TestCase):
             ICUtzinfo.getInstance("America/Detroit"),
             zone)
 
-from util.testcase import SingleRepositoryTestCase as NRVTestCase
-class SharingTestCase(NRVTestCase):
-    
+class SharingTestCase(SingleRepositoryTestCase):
     def setUp(self):
         super(SharingTestCase, self).setUp()
-        
-        repoView = self.view
-        
-        collection = ListCollection(itsView=repoView, displayName=u"Woo!")
-        collection.subscribers = [] # woo!
-        self.share = sharing.Share(itsView=repoView, contents=collection)
-
-        # Create our format
-        self.share.format = sharing.ICalendarFormat(itsParent=self.share)
-
-    def tearDown(self):
-        
-        self.share.contents.delete(recursive=True)
-        self.share.delete(recursive=True)
-
-        self.share = None
-        
-        super(SharingTestCase, self).tearDown()
+        self.peer = pim.EmailAddress(itsView=self.view,
+                                     emailAddress="conflict@example.com")
     
 class ImportTodoTestCase(SharingTestCase):
     
     def runImport(self, *lines):
         text = "\r\n".join(lines)
-        
-        return self.share.format.importProcess(self.share.itsView,
-                                               text, item=self.share.contents)
-
-    
+        items = deserialize(self.view, self.peer, text, 
+                            translator.SharingTranslator, ics.ICSSerializer)
+        self.items = items
+        return items
     
     def testSimple(self):
         self.runImport(
@@ -541,9 +549,9 @@ class ImportTodoTestCase(SharingTestCase):
             "END:VCALENDAR"
         )
         
-        self.failUnlessEqual(1, len(self.share.contents))
+        self.failUnlessEqual(1, len(self.items))
         
-        item = self.share.contents.first()
+        item = self.items[0]
         task = pim.TaskStamp(item)
         
         self.failUnless(pim.has_stamp(task, pim.TaskStamp))
@@ -569,9 +577,9 @@ class ImportTodoTestCase(SharingTestCase):
             "END:VCALENDAR"
         )
         
-        self.failUnlessEqual(1, len(self.share.contents))
+        self.failUnlessEqual(1, len(self.items))
         
-        item = self.share.contents.first()
+        item = self.items[0]
         task = pim.TaskStamp(item)
         
         self.failUnless(pim.has_stamp(task, pim.TaskStamp))
@@ -598,9 +606,9 @@ class ImportTodoTestCase(SharingTestCase):
             "END:VCALENDAR"
         )
         
-        self.failUnlessEqual(1, len(self.share.contents))
+        self.failUnlessEqual(1, len(self.items))
         
-        item = self.share.contents.first()
+        item = self.items[0]
         task = pim.TaskStamp(item)
         
         self.failUnless(pim.has_stamp(task, pim.TaskStamp))
@@ -624,9 +632,9 @@ class ImportTodoTestCase(SharingTestCase):
             "END:VCALENDAR"
         )
         
-        self.failUnlessEqual(1, len(self.share.contents))
+        self.failUnlessEqual(1, len(self.items))
         
-        item = self.share.contents.first()
+        item = self.items[0]
         task = pim.TaskStamp(item)
         
         self.failUnless(pim.has_stamp(task, pim.TaskStamp))
@@ -650,9 +658,9 @@ class ImportTodoTestCase(SharingTestCase):
             "END:VCALENDAR"
         )
         
-        self.failUnlessEqual(1, len(self.share.contents))
+        self.failUnlessEqual(1, len(self.items))
         
-        item = self.share.contents.first()
+        item = self.items[0]
         task = pim.TaskStamp(item)
         
         self.failUnless(pim.has_stamp(task, pim.TaskStamp))
@@ -677,9 +685,9 @@ class ImportTodoTestCase(SharingTestCase):
             "END:VCALENDAR"
         )
         
-        self.failUnlessEqual(1, len(self.share.contents))
+        self.failUnlessEqual(1, len(self.items))
         
-        item = self.share.contents.first()
+        item = self.items[0]
         task = pim.TaskStamp(item)
         
         self.failUnless(pim.has_stamp(task, pim.TaskStamp))
@@ -705,16 +713,15 @@ class ImportTodoTestCase(SharingTestCase):
             "END:VCALENDAR"
         )
         
-        self.failUnlessEqual(1, len(self.share.contents))
+        self.failUnlessEqual(1, len(self.items))
         
-        item = self.share.contents.first()
+        item = self.items[0]
         task = pim.TaskStamp(item)
         
         self.failUnless(pim.has_stamp(task, pim.TaskStamp))
         self.failUnlessEqual(task.summary, u"ToDoneAndWhen")
         self.failUnlessEqual(task.itsItem.triageStatus, pim.TriageEnum.done)
-        expectedTSC = datetime.datetime(2006, 3, 1, 1, 0, 0, 0,
-                                        ICalendar.utc)
+        expectedTSC = datetime.datetime(2006, 3, 1, 1, 0, 0, 0, ics.utc)
         self.failUnlessEqual(task.itsItem.triageStatusChanged,
                              Triageable.makeTriageStatusChangedTime(expectedTSC))
 
@@ -736,9 +743,9 @@ class ImportTodoTestCase(SharingTestCase):
             "END:VCALENDAR"
         )
         
-        self.failUnlessEqual(1, len(self.share.contents))
+        self.failUnlessEqual(1, len(self.items))
         
-        item = self.share.contents.first()
+        item = self.items[0]
         task = pim.TaskStamp(item)
         
         self.failUnless(pim.has_stamp(task, pim.TaskStamp))
@@ -781,9 +788,9 @@ class ImportTodoTestCase(SharingTestCase):
             "END:VCALENDAR",
         )
         
-        self.failUnlessEqual(1, len(self.share.contents))
+        self.failUnlessEqual(1, len(self.items))
         
-        item = self.share.contents.first()
+        item = self.items[0]
         task = pim.TaskStamp(item)
         
         self.failUnless(pim.has_stamp(task, pim.TaskStamp))
@@ -791,6 +798,11 @@ class ImportTodoTestCase(SharingTestCase):
         self.failUnlessEqual(item.body, u"Phew!")
         self.failUnlessEqual(pim.EventStamp(task).startTime.date(),
                              datetime.date(2006, 3, 27))
+        # the update causes a (spurious, but such is life) conflict
+        self.failUnlessEqual(task.itsItem.triageStatus, pim.TriageEnum.now)
+        # resolve the conflicts
+        for c in sharing.getConflicts(task.itsItem):
+            c.apply()
         self.failUnlessEqual(task.itsItem.triageStatus, pim.TriageEnum.done)
 
 
@@ -801,15 +813,14 @@ class ExportTodoTestCase(SharingTestCase):
         we've generated, so that we can check that it's
         what we expect.
         """
-        
         task = pim.Task(itsView=self.view)
         task.InitOutgoingAttributes() # simulate creation in the Chandler UI
         for attr, value in todoParams.iteritems():
             setattr(task.itsItem, attr, value)
-
-        self.share.contents.add(task.itsItem)
         
-        iCalendarContent = self.share.format.exportProcess(self.share)
+        iCalendarContent = serialize(self.view, [task.itsItem],
+                                     translator.SharingTranslator,
+                                     ics.ICSSerializer)
 
         self.failUnlessEqual(type(iCalendarContent), str)
         # Could in general add a check for utf-8 decodability
@@ -826,7 +837,7 @@ class ExportTodoTestCase(SharingTestCase):
         self.failUnlessEqual(len(list(calendar.components())), 1)
         
         vtodo = calendar.vtodo_list[0]
-        self.failUnlessEqual(task.itsItem.icalUID,
+        self.failUnlessEqual(task.itsItem.itsUUID.str16(),
                              vtodo.getChildValue('uid'))
         
         return (task, vtodo)
@@ -855,7 +866,7 @@ class ExportTodoTestCase(SharingTestCase):
         self.failUnlessEqual(u'Some completed stupid task',
                              vtodo.getChildValue('summary'))
         
-        self.failUnlessEqual(vtodo.getChildValue('status'), 'completed')
+        self.failUnlessEqual(vtodo.getChildValue('status').lower(), 'completed')
 
     def testLaterStatus(self):
         task, vtodo = self.getExportedTodoComponent(
@@ -865,7 +876,8 @@ class ExportTodoTestCase(SharingTestCase):
         self.failUnlessEqual(u'Some deferred task',
                              vtodo.getChildValue('summary'))
         
-        self.failUnlessEqual(vtodo.getChildValue('status'), u'cancelled')
+        self.failUnlessEqual(vtodo.getChildValue('status').lower(),
+                             u'cancelled')
         
     def testNeedsReplyStatus(self):
         task, vtodo = self.getExportedTodoComponent(
@@ -876,7 +888,7 @@ class ExportTodoTestCase(SharingTestCase):
         self.failUnlessEqual(u'Very important, Bob',
                              vtodo.getChildValue('summary'))
         self.failUnlessEqual(u'needs-action',
-                             vtodo.getChildValue('status'))
+                             vtodo.getChildValue('status').lower())
         
     def testDescription(self):
         body = u"This is a great \u201cdescription\u201d\n"
@@ -889,10 +901,6 @@ class ExportTodoTestCase(SharingTestCase):
 
 
 class ICalUIDTestCase(NRVTestCase):
-
-    def setUp(self):
-        super(ICalUIDTestCase, self).setUp()
-        self.format = sharing.ICalendarFormat(itsView=self.view)
         
     def testWrapper(self):
         task = pim.Task(itsView=self.view, displayName=u"task test")

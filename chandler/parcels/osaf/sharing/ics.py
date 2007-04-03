@@ -20,6 +20,7 @@ import time
 from datetime import datetime, timedelta, date
 from PyICU import ICUtzinfo
 from osaf.pim.calendar.TimeZone import convertToICUtzinfo, forceToDateTime
+from osaf.pim.triage import Triageable
 from chandlerdb.util.c import UUID
 import md5
 from itertools import chain
@@ -91,7 +92,16 @@ def UUIDFromICalUID(uid):
         # generate a 16-byte string we can use for uuid
         uuid = UUID(md5.new(uid).digest())
     return str(uuid)
+
+def pruneDateTimeParam(vobj):
+    """
+    Converting eim fields directly to vobject misses out on pruning defaults
+    like DATE-TIME.
+    """
+    if getattr(vobj, 'value_param', '').upper() == 'DATE-TIME':
+        del vobj.value_param
     
+
 def registerTZID(vobj):
     tzid = getattr(vobj, 'tzid_param', None)
     # add an appropriate tzinfo to vobject's tzid->tzinfo cache
@@ -123,6 +133,7 @@ def readEventRecord(eventRecord, vobjs):
     else:
         vevent.dtstart = textLineToContentLine("DTSTART" +
                                                eventRecord.dtstart)
+        pruneDateTimeParam(vevent.dtstart)
         registerTZID(vevent.dtstart)
 
     for name in ['duration', 'status', 'location']:
@@ -156,6 +167,8 @@ def readEventRecord(eventRecord, vobjs):
             # multiple dates should always be on one line
             setattr(vevent, date_name, 
                     textLineToContentLine(date_name + record_value))
+            pruneDateTimeParam(getattr(vevent, date_name))
+
 
 
 def readNoteRecord(noteRecord, vobjs):
@@ -205,6 +218,10 @@ def readItemRecord(itemRecord, vobjs):
                 status = 'needs-action'
             status_obj = vobj.add('status')
             status_obj.value = status.upper()
+            # rfc2445 allows a COMPLETED which would make sense for
+            # triageStatusChanged if status is completed, but rather than
+            # exporting triageStatusChanged for only DONE items, put it in a
+            # custom parameter
             status_obj.x_osaf_changed_param = str(timestamp)
             status_obj.x_osaf_auto_param = ('TRUE' if auto == '1' else 'FALSE')
 
@@ -335,10 +352,16 @@ class ICSSerializer(object):
 
                 start_obj = getattr(vobj, 'dtstart', None)
 
-                if dtstart is None:
-                    dtstart = vobj.getChildValue('due')
-                    start_obj = getattr(vobj, 'due', None)
+                emitTask = (vobj.name == 'VTODO')
 
+                if dtstart is None or emitTask:
+                    # due takes precedence over dtstart
+                    due = vobj.getChildValue('due')
+                    if due is not None:
+                        dtstart = due
+                        start_obj = getattr(vobj, 'due', None)
+                    
+                anyTime = False
                 if dtstart is not None:
                     anyTimeParam = getattr(start_obj, 'x_osaf_anytime_param',
                                            '')
@@ -347,7 +370,7 @@ class ICSSerializer(object):
                 isDate = type(dtstart) == date
                 allDay = isDate and not anyTime
 
-                emitTask = (vobj.name == 'VTODO')
+                
                 emitEvent = (dtstart is not None)
                 
                 if duration is None:
@@ -488,8 +511,15 @@ class ICSSerializer(object):
                 if emitTask and status is not eim.NoChange:
                     status = status.lower()
                     code = vtodo_status_to_triage_code.get(status, "100")
-                    timestamp = getattr(vobj.status, 'x_osaf_changed_param',
-                                        "0.0")
+                    completed = vobj.getChildValue('completed')
+                    if completed is not None:
+                        if type(completed) == date:
+                            completed = TimeZone.forceToDateTime(completed)
+                        timestamp = str(Triageable.makeTriageStatusChangedTime(
+                                            completed))
+                    else:
+                        timestamp = getattr(vobj.status, 'x_osaf_changed_param',
+                                            "0.0")
                     auto = getattr(vobj.status, 'x_osaf_auto_param', 'FALSE')
                     auto = ("1" if auto == 'TRUE' else "0")
                     triage =  code + " " + timestamp + " " + auto
