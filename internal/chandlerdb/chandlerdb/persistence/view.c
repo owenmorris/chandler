@@ -1,5 +1,5 @@
 /*
- *  Copyright (c) 2003-2006 Open Source Applications Foundation
+ *  Copyright (c) 2003-2007 Open Source Applications Foundation
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -146,8 +146,8 @@ static PyMethodDef t_view_methods[] = {
     { "areNotificationsDeferred", (PyCFunction) t_view_areNotificationsDeferred, METH_VARARGS, "" },
     { "notificationsDeferred", (PyCFunction) t_view_notificationsDeferred, METH_VARARGS, "" },
     { "cancelDeferredNotifications", (PyCFunction) t_view_cancelDeferredNotifications, METH_NOARGS, "" },
-    { "findValues", (PyCFunction) t_view_findValues, METH_VARARGS, "" },
-    { "findInheritedValues", (PyCFunction) t_view_findInheritedValues, METH_VARARGS, "" },
+    { "findValues", (PyCFunction) t_view_findValues, METH_VARARGS, NULL },
+    { "findInheritedValues", (PyCFunction) t_view_findInheritedValues, METH_VARARGS, NULL },
     { NULL, NULL, 0, NULL }
 };
 
@@ -222,7 +222,6 @@ static PyTypeObject ViewType = {
     0,                                                   /* tp_alloc */
     (newfunc)t_view_new,                                 /* tp_new */
 };
-
 
 static void t_view_dealloc(t_view *self)
 {
@@ -1803,4 +1802,3 @@ void _init_view(PyObject *m)
         }
     }
 }
-

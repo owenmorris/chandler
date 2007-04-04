@@ -22,23 +22,28 @@
 
 PyTypeObject *ItemRef = NULL;
 PyTypeObject *CLinkedMap = NULL;
+PyTypeObject *Iterator = NULL;
 PyTypeObject *CItem = NULL;
 PyTypeObject *CValues = NULL;
 PyTypeObject *CKind = NULL;
 PyTypeObject *CAttribute = NULL;
 PyTypeObject *CDescriptor = NULL;
 PyTypeObject *ItemValue = NULL;
+PyTypeObject *PersistentValue = NULL;
 PyTypeObject *StaleItemAttributeError = NULL;
+PyTypeObject *ReadOnlyAttributeError = NULL;
 PyTypeObject *CView = NULL;
 PyObject *Nil = NULL;
 PyObject *Default = NULL;
+PyObject *True_TUPLE = NULL;
+PyObject *Empty_TUPLE = NULL;
 long itemCount = 0;
 
 _t_view_invokeMonitors_fn _t_view_invokeMonitors;
+_t_persistentvalue_init_fn _t_persistentvalue_init;
 PyUUID_Check_fn PyUUID_Check;
 C_countAccess_fn C_countAccess;
 CAttribute_invokeAfterChange_fn CAttribute_invokeAfterChange;
-
 
 static PyObject *isitem(PyObject *self, PyObject *obj)
 {
@@ -138,29 +143,36 @@ void PyDict_SetItemString_Int(PyObject *dict, char *key, int value)
 
 void initc(void)
 {
-    PyObject *m = Py_InitModule3("c", c_funcs, "C item types module");
+    PyObject *module = Py_InitModule3("c", c_funcs, "C item types module");
+    PyObject *m;
 
-    _init_item(m);
-    _init_itemref(m);
-    _init_values(m);
-    _init_indexes(m);
+    True_TUPLE = PyTuple_Pack(1, Py_True);
+    Empty_TUPLE = PyTuple_New(0);
 
     if (!(m = PyImport_ImportModule("chandlerdb.util.c")))
         return;
     LOAD_TYPE(m, CLinkedMap);
+    LOAD_TYPE(m, Iterator);
+    LOAD_TYPE(m, PersistentValue);
     LOAD_FN(m, PyUUID_Check);
+    LOAD_FN(m, _t_persistentvalue_init);
     LOAD_OBJ(m, Nil);
     LOAD_OBJ(m, Default);
     Py_DECREF(m);
 
-    if (!(m = PyImport_ImportModule("chandlerdb.item.ItemValue")))
-        return;
-    LOAD_TYPE(m, ItemValue);
-    Py_DECREF(m);
+    _init_item(module);
+    _init_itemref(module);
+    _init_values(module);
+    _init_indexes(module);
+    _init_itemvalue(module);
+    _init_sequence(module);
+    _init_mapping(module);
+    _init_set(module);
 
     if (!(m = PyImport_ImportModule("chandlerdb.item.ItemError")))
         return;
     LOAD_TYPE(m, StaleItemAttributeError);
+    LOAD_TYPE(m, ReadOnlyAttributeError);
     Py_DECREF(m);
 
     if (!(m = PyImport_ImportModule("chandlerdb.schema.c")))

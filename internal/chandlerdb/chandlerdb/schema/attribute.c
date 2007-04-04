@@ -1,5 +1,5 @@
 /*
- *  Copyright (c) 2003-2006 Open Source Applications Foundation
+ *  Copyright (c) 2003-2007 Open Source Applications Foundation
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -260,9 +260,25 @@ static int t_attribute_init(t_attribute *self, PyObject *args, PyObject *kwds)
 
         if (afterChange != NULL)
         {
-            flags |= AFTERCHANGE;
-            Py_INCREF(afterChange);
-            self->afterChange = afterChange;
+            if (PyObject_TypeCheck(afterChange, PersistentSequence))
+            {
+                PyObject *sequence = ((t_sequence *) afterChange)->sequence;
+
+                if (!PyList_Check(sequence))
+                {
+                    PyErr_SetObject(PyExc_TypeError, sequence);
+                    return -1;
+                }
+
+                flags |= AFTERCHANGE;
+                Py_INCREF(sequence);
+                self->afterChange = sequence;
+            }
+            else
+            {
+                PyErr_SetObject(PyExc_TypeError, afterChange);
+                return -1;
+            }
         }
 
         {
@@ -682,11 +698,19 @@ static int t_attribute__setAfterChange(t_attribute *self, t_values *values,
             Py_XDECREF(self->afterChange);
             self->afterChange = NULL;
         }
-        else if (PyList_Check(afterChange))
+        else if (PyObject_TypeCheck(afterChange, PersistentSequence))
         {
+            PyObject *sequence = ((t_sequence *) afterChange)->sequence;
+
+            if (!PyList_Check(sequence))
+            {
+                PyErr_SetObject(PyExc_TypeError, sequence);
+                return -1;
+            }
+
             self->flags |= AFTERCHANGE;
-            Py_INCREF(afterChange);
-            self->afterChange = afterChange;
+            Py_INCREF(sequence);
+            self->afterChange = sequence;
         }
         else
         {
@@ -888,6 +912,7 @@ void _init_attribute(PyObject *m)
             PyDict_SetItemString_Int(dict, "KIND", KIND);
             PyDict_SetItemString_Int(dict, "NOINHERIT", NOINHERIT);
             PyDict_SetItemString_Int(dict, "SIMPLE", SIMPLE);
+            PyDict_SetItemString_Int(dict, "PURE", PURE);
             PyDict_SetItemString_Int(dict, "DEFAULT", DEFAULT);
             PyDict_SetItemString_Int(dict, "PROCESS", PROCESS);
             PyDict_SetItemString_Int(dict, "CARDINALITY", CARDINALITY);

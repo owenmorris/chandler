@@ -1,5 +1,5 @@
 /*
- *  Copyright (c) 2003-2006 Open Source Applications Foundation
+ *  Copyright (c) 2003-2007 Open Source Applications Foundation
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -105,15 +105,16 @@ enum {
 
 
 enum {
-    V_READONLY  = 0x0001,        /* value is read-only      */
+    V_READONLY  = 0x0001,        /* value is read-only              */
+    V_PURE      = 0x0002,        /* value needs no conversions      */
 
-    /* flags in 0x00f0 are used by the persistence format   */
-    V_INDEXED   = 0x0010,        /* value is indexed        */
-    V_TOINDEX   = 0x0020,        /* value needs indexing    */
+    /* flags in 0x00f0 are used by the persistence format           */
+    V_INDEXED   = 0x0010,        /* value is indexed                */
+    V_TOINDEX   = 0x0020,        /* value needs indexing            */
 
-    V_DIRTY     = 0x0100,        /* value is dirty          */
-    V_TRANSIENT = 0x0200,        /* value is transient      */
-    V_SAVEMASK  = 0x000f,        /* save these flags        */
+    V_DIRTY     = 0x0100,        /* value is dirty                  */
+    V_TRANSIENT = 0x0200,        /* value is transient              */
+    V_SAVEMASK  = 0x000f,        /* save these flags                */
     V_COPYMASK  = V_READONLY | V_TRANSIENT
 };
 

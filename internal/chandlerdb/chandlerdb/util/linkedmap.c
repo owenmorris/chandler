@@ -1,5 +1,5 @@
 /*
- *  Copyright (c) 2003-2006 Open Source Applications Foundation
+ *  Copyright (c) 2003-2007 Open Source Applications Foundation
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -543,7 +543,7 @@ static PyTypeObject LinkedMapType = {
 static void t_lm_dealloc(t_lm *self)
 {
     t_lm_clear(self);
-    self->ob_type->tp_free((PyObject *) self);
+    self->persistentvalue.ob_type->tp_free((PyObject *) self);
 }
 
 static int t_lm_traverse(t_lm *self, visitproc visit, void *arg)
@@ -551,6 +551,8 @@ static int t_lm_traverse(t_lm *self, visitproc visit, void *arg)
     Py_VISIT(self->dict);
     Py_VISIT(self->aliases);
     Py_VISIT(self->head);
+
+    PersistentValue->tp_traverse((PyObject *) self, visit, arg);
 
     return 0;
 }
@@ -560,6 +562,8 @@ static int t_lm_clear(t_lm *self)
     Py_CLEAR(self->dict);
     Py_CLEAR(self->aliases);
     Py_CLEAR(self->head);
+
+    PersistentValue->tp_clear((PyObject *) self);
 
     return 0;
 }
@@ -581,18 +585,30 @@ static PyObject *t_lm_new(PyTypeObject *type, PyObject *args, PyObject *kwds)
 
 static int t_lm_init(t_lm *self, PyObject *args, PyObject *kwds)
 {
-    if (!PyArg_ParseTuple(args, "i", &self->flags))
+    PyObject *view, *link;
+    int flags = 0;
+
+    if (!PyArg_ParseTuple(args, "O|i", &view, &flags))
         return -1;
-    else
+
+    if (_t_persistentvalue_init((t_persistentvalue *) self, view) < 0)
+        return -1;
+
+    link = t_link_new(&LinkType, NULL, NULL);
+    if (!link)
+        return -1;
+
+    if (_t_link_init((t_link *) link, (PyObject *) self, Py_None,
+                     Py_None, Py_None, Py_None, Py_None) < 0)
     {
-        PyObject *link = t_link_new(&LinkType, NULL, NULL);
-
-        _t_link_init((t_link *) link, (PyObject *) self, Py_None,
-                     Py_None, Py_None, Py_None, Py_None);
-
-        Py_XDECREF(self->head);
-        self->head = link;
+        Py_DECREF(link);
+        return -1;
     }
+
+    Py_XDECREF(self->head);
+    self->head = link;
+
+    self->flags |= flags;
 
     return 0;
 }
@@ -909,6 +925,8 @@ static int t_lm___setLastKey(t_lm *self, PyObject *arg, void *data)
 
 void _init_linkedmap(PyObject *m)
 {
+    LinkedMapType.tp_base = PersistentValue;
+
     if (PyType_Ready(&LinkedMapType) >= 0 && PyType_Ready(&LinkType) >= 0)
     {
         if (m)

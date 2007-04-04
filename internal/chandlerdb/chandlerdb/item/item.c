@@ -1,5 +1,5 @@
 /*
- *  Copyright (c) 2003-2006 Open Source Applications Foundation
+ *  Copyright (c) 2003-2007 Open Source Applications Foundation
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -24,7 +24,6 @@ static int t_item_traverse(t_item *self, visitproc visit, void *arg);
 static int t_item_clear(t_item *self);
 static PyObject *t_item_new(PyTypeObject *type, PyObject *args, PyObject *kwds);
 static int t_item_init(t_item *self, PyObject *args, PyObject *kwds);
-static PyObject *t_item_repr(t_item *self);
 static PyObject *t_item_getattro(t_item *self, PyObject *name);
 static int t_item_setattro(t_item *self, PyObject *name, PyObject *value);
 static PyObject *t_item_isNew(t_item *self);
@@ -77,6 +76,7 @@ static PyObject *t_item__getVersion(t_item *self, void *data);
 static int t_item__setVersion(t_item *self, PyObject *value, void *data);
 static PyObject *t_item__getValues(t_item *self, void *data);
 static PyObject *t_item__getRefs(t_item *self, void *data);
+static PyObject *t_item_map_get(t_item *self, PyObject *key);
 
 static PyObject *_setKind_NAME;
 static PyObject *move_NAME;
@@ -102,6 +102,7 @@ static PyObject *_setItem_NAME;
 static PyObject *getAttributeValue_NAME;
 static PyObject *_addItem_NAME;
 static PyObject *invokeAfterChange_NAME;
+static PyObject *getItemChild_NAME;
 
 /* NULL docstrings are set in chandlerdb/__init__.py
  * "" docstrings are missing docstrings
@@ -155,6 +156,13 @@ static PyMethodDef t_item_methods[] = {
     { NULL, NULL, 0, NULL }
 };
 
+static PyMappingMethods t_item_as_mapping = {
+    0,                                /* mp_length          */
+    (binaryfunc)t_item_map_get,       /* mp_subscript       */
+    0,                                /* mp_ass_subscript   */
+};
+
+
 static PyGetSetDef t_item_properties[] = {
     { "itsKind", (getter) t_item__getKind, (setter) t_item__setKind,
       NULL, NULL },
@@ -203,7 +211,7 @@ static PyTypeObject ItemType = {
     (reprfunc)t_item_repr,                     /* tp_repr */
     0,                                         /* tp_as_number */
     0,                                         /* tp_as_sequence */
-    0,                                         /* tp_as_mapping */
+    &t_item_as_mapping,                        /* tp_as_mapping */
     0,                                         /* tp_hash  */
     0,                                         /* tp_call */
     0,                                         /* tp_str */
@@ -345,7 +353,7 @@ static int t_item_init(t_item *self, PyObject *args, PyObject *kwds)
     return 0;
 }
 
-static PyObject *t_item_repr(t_item *self)
+PyObject *t_item_repr(t_item *self)
 {
     if (self->status & RAW)
         return PyString_FromFormat("<raw item at %p>", self);
@@ -393,6 +401,21 @@ static PyObject *t_item_repr(t_item *self)
     }
 }
 
+static PyObject *t_item_map_get(t_item *self, PyObject *key)
+{
+    PyObject *child =
+        PyObject_CallMethodObjArgs((PyObject *) self, getItemChild_NAME,
+                                   key, NULL);
+
+    if (child == Py_None)
+    {
+        Py_DECREF(child);
+        PyErr_SetObject(PyExc_KeyError, key);
+        return NULL;
+    }
+
+    return child;
+}
 
 static PyObject *t_item_getattro(t_item *self, PyObject *name)
 {
@@ -911,6 +934,45 @@ static PyObject *t_item_hasTrueAttributeValue(t_item *self, PyObject *args)
     Py_RETURN_FALSE;
 }
 
+t_attribute *_t_item_get_attr(t_item *self, PyObject *name)
+{
+    t_kind *c = (t_kind *) ((t_item *) self->kind)->c;
+    t_attribute *attr = NULL;
+    
+    if (!c)
+        return NULL;
+
+    if (c->flags & DESCRIPTORS_INSTALLED)
+    {
+        t_descriptor *descriptor = (t_descriptor *)
+            PyDict_GetItem(c->descriptors, name);
+
+        if (!descriptor)
+        {
+            PyErr_SetObject(PyExc_AttributeError, name);
+            return NULL;
+        }
+
+        attr = descriptor->attr;
+    }
+    else
+    {
+        PyObject *attribute =
+            PyObject_CallMethodObjArgs(self->kind, getAttribute_NAME,
+                                       name, Py_False, self, NULL);
+
+        if (attribute)
+        {
+            attr = (t_attribute *) ((t_item *) attribute)->c;
+            Py_DECREF(attribute);
+        }
+        else
+            return NULL;
+    }
+
+    return attr;
+}
+
 static PyObject *_t_item__fireChanges(t_item *self,
                                       PyObject *op, PyObject *name,
                                       PyObject *fireAfterChange)
@@ -931,37 +993,11 @@ static PyObject *_t_item__fireChanges(t_item *self,
     /* fireAfterChange is one of Py_True, Py_False or Default */
     if (fireAfterChange != Py_False && self->kind != Py_None)
     {
-        t_kind *c = (t_kind *) ((t_item *) self->kind)->c;
-        t_attribute *attr = NULL;
+        t_attribute *attr = _t_item_get_attr(self, name);
         t_view *view = (t_view *) self->ref->view;
 
-        if (c->flags & DESCRIPTORS_INSTALLED)
-        {
-            t_descriptor *descriptor = (t_descriptor *)
-                PyDict_GetItem(c->descriptors, name);
-
-            if (!descriptor)
-            {
-                PyErr_SetObject(PyExc_AttributeError, name);
-                return NULL;
-            }
-
-            attr = descriptor->attr;
-        }
-        else
-        {
-            PyObject *attribute =
-                PyObject_CallMethodObjArgs(self->kind, getAttribute_NAME,
-                                           name, Py_False, self, NULL);
-
-            if (attribute)
-            {
-                attr = (t_attribute *) ((t_item *) attribute)->c;
-                Py_DECREF(attribute);
-            }
-            else
-                return NULL;
-        }
+        if (!attr)
+            return NULL;
 
         if (attr->flags & AFTERCHANGE)
         {
@@ -1157,18 +1193,11 @@ static int verify(t_item *self, t_view *view,
     return 0;
 }
 
-static PyObject *t_item_setDirty(t_item *self, PyObject *args)
+int _t_item_setDirty(t_item *self, int dirty,
+                     PyObject *attribute, t_values *attrDict,
+                     int noChanges)
 {
-    PyObject *attribute = Py_None, *result;
-    t_values *attrDict = NULL;
-    int dirty, noChanges = 0;
-
-    if (self->status & NODIRTY)
-        Py_RETURN_FALSE;
-
-    if (!PyArg_ParseTuple(args, "i|OOi", &dirty,
-                          &attribute, &attrDict, &noChanges))
-        return NULL;
+    PyObject *result;
 
     if (dirty)
     {
@@ -1179,22 +1208,22 @@ static PyObject *t_item_setDirty(t_item *self, PyObject *args)
             if (attribute == Py_None)
             {
                 PyErr_SetString(PyExc_ValueError, "attribute is None");
-                return NULL;
+                return -1;
             }
             if (attrDict == NULL)
             {
                 PyErr_SetString(PyExc_ValueError, "attrDict is missing");
-                return NULL;
+                return -1;
             }
             if (!PyObject_TypeCheck(attrDict, CValues))
             {
                 PyErr_SetString(PyExc_TypeError, "attrDict is not a Values");
-                return NULL;
+                return -1;
             }
 
             if (view->status & VERIFY && dirty & VDIRTY &&
                 verify(self, view, attrDict, attribute) < 0)
-                return NULL;
+                return -1;
 
             result = t_values__setDirty(attrDict, attribute);
             Py_DECREF(result);
@@ -1204,7 +1233,7 @@ static PyObject *t_item_setDirty(t_item *self, PyObject *args)
                 result = _t_item__fireChanges(self, set_NAME, attribute,
                                               Default);
                 if (result == NULL)
-                    return NULL;
+                    return -1;
                 Py_DECREF(result);
             }
         }
@@ -1221,12 +1250,13 @@ static PyObject *t_item_setDirty(t_item *self, PyObject *args)
                 result = PyObject_CallMethodObjArgs((PyObject *) view,
                                                     _logItem_NAME, self, NULL);
                 if (!result)
-                    return NULL;
+                    return -1;
 
                 if (PyObject_IsTrue(result))
                 {
+                    Py_DECREF(result);
                     self->status |= dirty;
-                    return result;
+                    return 1;
                 }
 
                 Py_DECREF(result);
@@ -1242,13 +1272,13 @@ static PyObject *t_item_setDirty(t_item *self, PyObject *args)
         result = PyObject_CallMethodObjArgs((PyObject *) self->values,
                                             _clearDirties_NAME, NULL); 
         if (result == NULL)
-            return NULL;
+            return -1;
         Py_DECREF(result);
 
         result = PyObject_CallMethodObjArgs((PyObject *) self->references,
                                             _clearDirties_NAME, NULL);
         if (result == NULL)
-            return NULL;
+            return -1;
         Py_DECREF(result);
 
         if (self->children != NULL && self->children != Py_None)
@@ -1256,10 +1286,33 @@ static PyObject *t_item_setDirty(t_item *self, PyObject *args)
             result = PyObject_CallMethodObjArgs(self->children,
                                                 _clearDirties_NAME, NULL);
             if (result == NULL)
-                return NULL;
+                return -1;
             Py_DECREF(result);
         }
     }
+
+    return 0;
+}
+
+static PyObject *t_item_setDirty(t_item *self, PyObject *args)
+{
+    PyObject *attribute = Py_None;
+    t_values *attrDict = NULL;
+    int dirty, result, noChanges = 0;
+
+    if (self->status & NODIRTY)
+        Py_RETURN_FALSE;
+
+    if (!PyArg_ParseTuple(args, "i|OOi", &dirty,
+                          &attribute, &attrDict, &noChanges))
+        return NULL;
+
+    result = _t_item_setDirty(self, dirty, attribute, attrDict, noChanges);
+    if (result < 0)
+        return NULL;
+
+    if (result)
+        Py_RETURN_TRUE;
 
     Py_RETURN_FALSE;
 }
@@ -1808,6 +1861,7 @@ void _init_item(PyObject *m)
             getAttributeValue_NAME = PyString_FromString("getAttributeValue");
             _addItem_NAME = PyString_FromString("_addItem");
             invokeAfterChange_NAME = PyString_FromString("invokeAfterChange");
+            getItemChild_NAME = PyString_FromString("getItemChild");
 
             cobj = PyCObject_FromVoidPtr(_t_item_getLocalAttributeValue, NULL);
             PyModule_AddObject(m, "CItem_getLocalAttributeValue", cobj);

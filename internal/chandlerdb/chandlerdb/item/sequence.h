@@ -1,5 +1,5 @@
 /*
- *  Copyright (c) 2003-2007 Open Source Applications Foundation
+ *  Copyright (c) 2007 Open Source Applications Foundation
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -14,36 +14,14 @@
  *  limitations under the License.
  */
 
-#ifndef _LINKEDMAP_H
-#define _LINKEDMAP_H
+#ifndef _SEQUENCE_H
+#define _SEQUENCE_H
 
-#include "../util/persistentvalue.h"
-
-typedef struct {
-    PyObject_HEAD
-    PyObject *owner;
-    PyObject *previousKey;
-    PyObject *nextKey;
-    PyObject *value;
-    PyObject *alias;
-    PyObject *otherKey;
-} t_link;
-
+#include "../item/itemvalue.h"
 
 typedef struct {
-    t_persistentvalue persistentvalue;
-    int flags;
-    int count;
-    PyObject *dict;
-    PyObject *aliases;
-    PyObject *head;
-} t_lm;
+    t_itemvalue itemvalue;
+    PyObject *sequence;
+} t_sequence;
 
-
-enum {
-    LM_NEW     = 0x0001,
-    LM_LOAD    = 0x0002,
-    LM_MERGING = 0x0004
-};
-
-#endif /* _LINKEDMAP_H */
+#endif /* _SEQUENCE_H */

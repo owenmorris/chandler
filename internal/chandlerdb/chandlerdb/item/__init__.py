@@ -1,4 +1,4 @@
-#   Copyright (c) 2003-2006 Open Source Applications Foundation
+#   Copyright (c) 2003-2007 Open Source Applications Foundation
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -13,3 +13,13 @@
 #   limitations under the License.
 
 # item package
+
+
+class Indexable(object):
+    'A superclass for values that implement their full text indexing.'    
+
+    def isIndexed(self):
+        raise NotImplementedError, '%s.isIndexed' %(type(self))
+
+    def indexValue(self, view, uItem, uAttribute, uValue, version):
+        raise NotImplementedError, '%s.indexValue' %(type(self))

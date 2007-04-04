@@ -29,7 +29,6 @@ def main():
                'chandlerdb.schema.__init__',
                'chandlerdb.item.__init__',
                'chandlerdb.item.ItemError',
-               'chandlerdb.item.ItemValue',
                'chandlerdb.persistence.__init__']
 
     defines = []
@@ -40,6 +39,8 @@ def main():
              'chandlerdb/util/hashtuple.c',
              'chandlerdb/util/nil.c',
              'chandlerdb/util/ctxmgr.c',
+             'chandlerdb/util/iterator.c',
+             'chandlerdb/util/persistentvalue.c',
              'rijndael-3.0/rijndael-api-fst.c',
              'rijndael-3.0/rijndael-alg-fst.c',
              'chandlerdb/util/rijndael.c',
@@ -66,6 +67,10 @@ def main():
                                 sources=['chandlerdb/item/item.c',
                                          'chandlerdb/item/itemref.c',
                                          'chandlerdb/item/values.c',
+                                         'chandlerdb/item/itemvalue.c',
+                                         'chandlerdb/item/sequence.c',
+                                         'chandlerdb/item/mapping.c',
+                                         'chandlerdb/item/set.c',
                                          'chandlerdb/item/indexes.c',
                                          'chandlerdb/item/c.c']))
 

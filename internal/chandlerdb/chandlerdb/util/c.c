@@ -1,5 +1,5 @@
 /*
- *  Copyright (c) 2003-2006 Open Source Applications Foundation
+ *  Copyright (c) 2003-2007 Open Source Applications Foundation
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -22,6 +22,7 @@
 PyTypeObject *UUID = NULL;
 PyTypeObject *Key = NULL;
 PyTypeObject *Cipher = NULL;
+PyTypeObject *PersistentValue = NULL;
 PyTypeObject *CLinkedMap = NULL;
 PyTypeObject *CLink = NULL;
 PyTypeObject *CPoint = NULL;
@@ -245,11 +246,13 @@ void initc(void)
 
     _init_uuid(m);
     _init_rijndael(m);
+    _init_persistentvalue(m);
     _init_linkedmap(m);
     _init_skiplist(m);
     _init_hashtuple(m);
     _init_nil(m);
     _init_ctxmgr(m);
+    _init_iterator(m);
 #ifdef WINDOWS
     _init_lock(m);
 #endif

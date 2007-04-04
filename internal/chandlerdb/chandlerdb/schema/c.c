@@ -1,5 +1,5 @@
 /*
- *  Copyright (c) 2003-2006 Open Source Applications Foundation
+ *  Copyright (c) 2003-2007 Open Source Applications Foundation
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -27,8 +27,10 @@ PyTypeObject *CItem = NULL;
 PyTypeObject *ItemRef = NULL;
 PyTypeObject *CValues = NULL;
 PyTypeObject *CLinkedMap = NULL;
+PyTypeObject *PersistentSequence = NULL;
 PyObject *PyExc_StaleItemError = NULL;
-PyObject *True_TUPLE, *Empty_TUPLE = NULL;
+PyObject *True_TUPLE = NULL;
+PyObject *Empty_TUPLE = NULL;
 PyObject *Empty = NULL;
 
 static PyObject *countAccess(PyObject *self, t_item *item)
@@ -85,6 +87,7 @@ void initc(void)
     LOAD_TYPE(m, CItem);
     LOAD_TYPE(m, ItemRef);
     LOAD_TYPE(m, CValues);
+    LOAD_TYPE(m, PersistentSequence);
     Py_DECREF(m);
 
     if (!(m = PyImport_ImportModule("chandlerdb.util.c")))

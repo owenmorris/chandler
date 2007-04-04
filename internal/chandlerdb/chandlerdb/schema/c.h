@@ -1,5 +1,5 @@
 /*
- *  Copyright (c) 2003-2006 Open Source Applications Foundation
+ *  Copyright (c) 2003-2007 Open Source Applications Foundation
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -16,6 +16,7 @@
 
 
 #include "../item/item.h"
+#include "../item/sequence.h"
 #include "kind.h"
 #include "attribute.h"
 #include "descriptor.h"
@@ -39,6 +40,7 @@ extern PyTypeObject *CItem;
 extern PyTypeObject *ItemRef;
 extern PyTypeObject *CValues;
 extern PyTypeObject *CLinkedMap;
+extern PyTypeObject *PersistentSequence;
 extern PyObject *PyExc_StaleItemError;
 extern PyObject *True_TUPLE, *Empty_TUPLE;
 extern PyObject *Empty;
