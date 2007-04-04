@@ -631,17 +631,17 @@ after first upgrading its type if necessary::
 If an item of the given UUID already exists, the callback is immediately
 invoked, passing in the (possibly-upgraded) item::
 
-    >>> @t.withItemForUUID(theItem.itsUUID)
-    ... def do_it(item): print item is theItem
-    True
+    >>> @t.withItemForUUID(theItem.itsUUID, displayName="testme")
+    ... def do_it(item): print item is theItem, item.displayName
+    True testme
 
 If it doesn't exist, an item of the specified type (``schema.Item`` by default)
 is created::
 
     >>> uuid1 = '0c7c6c5c-4a04-4d5a-8997-2fcef848c92d'
-    >>> @t.withItemForUUID(uuid1)
-    ... def do_it(item): print item
-    <Item (new): 0c7c6c5c-4a04-4d5a-8997-2fcef848c92d>
+    >>> @t.withItemForUUID(uuid1, displayName="another_test")
+    ... def do_it(item): print item, item.displayName
+    <Item (new): 0c7c6c5c-4a04-4d5a-8997-2fcef848c92d> another_test
 
 If it does exist, but isn't an instance of the specified type, its type is
 upgraded::
@@ -667,9 +667,12 @@ Note, however, that the requested type must be a subclass or superclass of the
 item's current type, or nothing will happen immediately::
 
     >>> class NonContent(schema.Item):
-    ...     pass
+    ...     foo = schema.One(schema.Integer)
+    ...     schema.initialValues(foo=lambda self:99)
+    ...     def __setup__(self):
+    ...         print "NonContent setup", self.foo
 
-    >>> @t.withItemForUUID(uuid1, NonContent)
+    >>> @t.withItemForUUID(uuid1, NonContent, foo=42)
     ... def do_it(item): print "loaded", repr(item)
 
 But you will get an ``IncompatibleTypes`` exception when importing is
@@ -678,7 +681,7 @@ finished::
     >>> t.finishImport()   
     Traceback (most recent call last):
       ...
-    IncompatibleTypes: {<ContentItem...>: [(<class 'NonContent'>, [<function do_it...>])]}
+    IncompatibleTypes: {<ContentItem...>: [(<class 'NonContent'>, [...<function do_it...>])]}
 
 However, if before importing is completed, the same item is given a new type
 that combines both the incompatible type and the item's original type, the
@@ -686,10 +689,17 @@ previously registered callback(s) will be invoked on the upgraded item::
 
     >>> class Combined(pim.ContentItem, NonContent):
     ...     """Multiple inheritance saves the day"""
+    ...     bar = schema.One(schema.Text)
+    ...     schema.initialValues(foo=lambda self:128, bar=lambda self:u"Foo")
+    ...     def __setup__(self):
+    ...         print "Combined setup", self.foo, self.bar
 
-    >>> @t.withItemForUUID(uuid1, Combined)
-    ... def do_it(item): print "mixed!", repr(item)
+    >>> @t.withItemForUUID(uuid1, Combined, bar=u"spam")
+    ... def do_it(item): print item.foo, item.bar; print "mixed!", repr(item)
+    NonContent setup 128
+    Combined setup 128 spam
     loaded <Combined (new): 0c7c6c5c-4a04-4d5a-8997-2fcef848c92d>
+    42 spam
     mixed! <Combined (new): 0c7c6c5c-4a04-4d5a-8997-2fcef848c92d>
 
     >>> t.finishImport()    # no error this time

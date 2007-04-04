@@ -913,15 +913,14 @@ class Translator:
                 elif val is not NoChange:
                     setattr(ob, attr, val)
 
-        if issubclass(itype, pim.Stamp):
-            callbacks = [lambda x:None]
-            
+        callbacks = [setattrs]
+
+        if issubclass(itype, pim.Stamp):           
             @self.withItemForUUID(uuid, itype.targetType())
             def add_stamp(item):
                 stamp = itype(item)
                 if not stamp.stamp_types or itype not in stamp.stamp_types:
                     stamp.add()
-                setattrs(stamp)
                 while callbacks:
                     callbacks.pop(0)(stamp)
                     
@@ -941,13 +940,13 @@ class Translator:
             setattrs(item)
             return lambda func: func(item)
 
+
         if isinstance(item, itype):
             setattrs(item)
             return lambda func: func(item)
 
         if not issubclass(itype, type(item)):
             # Can't load the item yet; put callbacks on the queue
-            callbacks = []
             self.loadQueue.setdefault(item, []).append((itype, callbacks))
             return callbacks.append
            
@@ -956,11 +955,10 @@ class Translator:
         item.__class__ = itype
         item.itsKind = itype.getKind(self.rv)
 
+        ivs, setups = itype._initializers_for(old_type.__mro__)
+        for k,f in ivs: setattr(item, k, f(item))
         setattrs(item)
-
-        for c,s in itype.__setup__:
-            if (c,s) not in old_type.__setup__:
-                s(item)
+        for c,s in setups: s(item)
 
         # run callbacks for any pending types that are now resolved
         if item in self.loadQueue:
@@ -980,6 +978,8 @@ class Translator:
 
     def getAliasForItem(self, item):
         return item.itsUUID.str16()
+
+
 
 
 def create_default_converter(t):

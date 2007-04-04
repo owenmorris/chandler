@@ -840,13 +840,6 @@ class AppCollection(ContentCollection):
                     # we couldn't find it anywhere else, so it goes in the trash
                     trash.add(item)
 
-
-    def __x_setup(self):
-        # XXX this bit of hackery should be removed ASAP
-        self.trash = schema.ns('osaf.pim', self.itsView).trashCollection
-        self.source = None
-        self.__setup__()
-
     def __setup__(self):
         # Ensure that the collection is properly set up
         self._updateCollection()

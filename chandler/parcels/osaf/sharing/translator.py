@@ -1130,13 +1130,10 @@ class DumpTranslator(SharingTranslator):
         def add_source(collection):
             if record.mine == 1:
                 schema.ns('osaf.pim', self.rv).mine.addSource(collection)
-
-        self.withItemForUUID(record.uuid, UserCollection,
-            color = ColorType(
+            UserCollection(collection).color = ColorType(
                 record.colorRed, record.colorGreen, record.colorBlue,
                 record.colorAlpha
             )
-        )
 
     @eim.exporter(pim.SmartCollection)
     def export_collection(self, collection):
