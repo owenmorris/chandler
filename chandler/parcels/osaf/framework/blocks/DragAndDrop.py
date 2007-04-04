@@ -14,6 +14,8 @@
 
 
 import wx
+from application.dialogs.Util import ok
+from i18n import ChandlerMessageFactory as _
 
 """
 Overview of Drag and Drop:
@@ -467,7 +469,12 @@ class ItemClipboardHandler(_ClipboardHandler):
 
     def onCutEvent(self, event):
         result = self.onCopyEvent(event)
-        self._clearItems(cutting=True)
+        # @@@ For preview, work around bug 8019
+        try:
+            self._clearItems(cutting=True)
+        except NotImplementedError:
+            ok(None, _(u"Can't cut"), _("Cannot cut from this collection."))
+
         return result
 
     def _clearItems(self, *args, **kwargs):
