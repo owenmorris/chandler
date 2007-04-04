@@ -817,7 +817,8 @@ class AccountPreferencesDialog(wx.Dialog):
             if account['isNew']:
                 uuid = account['item']
                 item = self.rv.findUUID(uuid)
-                item.password.delete()
+                if hasattr(item, 'password'):
+                    item.password.delete()
                 item.delete(recursive=True)
 
             elif account['type'] == "INCOMING":

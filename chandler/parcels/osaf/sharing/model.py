@@ -261,6 +261,7 @@ class ShareStateRecord(eim.Record):
     agreed = eim.field(eim.BlobType)
     pending = eim.field(eim.BlobType)
 
+
 class ShareResourceStateRecord(eim.Record):
     URI = "http://osafoundation.org/eim/sharing/resourcesharestate/0"
 
@@ -292,6 +293,11 @@ class ShareCosmoAccountRecord(eim.Record):
     pimpath = eim.field(text1024) # pim/collection
     morsecodepath = eim.field(text1024) # mc/collection
     davpath = eim.field(text1024) # dav/collection
+
+class SharePrefsRecord(eim.Record):
+    URI = "http://osafoundation.org/eim/sharing/prefs/0"
+
+    currentAccount = eim.field(schema.UUID) # empty string means no account
 
 # preferences ----------------------------------------------------------------
 

@@ -101,8 +101,18 @@ class SharingPreferences(schema.Item):
 def installParcel(parcel, oldVersion=None):
 
     SharingPreferences.update(parcel, "prefs")
-    Reference.update(parcel, 'currentSharingAccount')
-    
+
+    cur = Reference.update(parcel, 'currentSharingAccount')
+    if cur.item is None:
+        cur.item = WebDAVAccount(itsView=parcel.itsView,
+            displayName=_(u'Cosmo Sharing Service'),
+            host=u'osaf.us', path=u'/cosmo/dav/<username>',
+            username=u'',
+            password=Password(itsView=parcel.itsView),
+            useSSL=True, port=443
+        )
+
+
     from osaf import startup
     startup.PeriodicTask.update(parcel, "sharingTask",
         invoke="osaf.sharing.BackgroundSyncHandler",

@@ -59,10 +59,10 @@ class SettingsTestCase(testcase.SingleRepositoryTestCase):
 
         rv = self.view
 
-        # If we don't load this item now, before restoring settings, it will
-        # get loaded afterwards, which messes up the notion of "current" dav
-        # account
-        act = schema.ns("osaf.app", rv).defaultWebDAVAccount
+        # If we don't load osaf.app now, before restoring settings, it will
+        # get loaded afterwards, which messes up the notion of "current"
+        # accounts
+        schema.ns("osaf.app", rv).me
 
 
         # restore settings

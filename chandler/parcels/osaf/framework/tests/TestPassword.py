@@ -141,6 +141,7 @@ class PasswordTestCase(TestDomainModel.DomainModelTestCase):
         self.loadParcel("osaf.framework.MasterPassword")
         self.loadParcel("osaf.framework.password")
         self.loadParcel("osaf.app") # Include default Passwords in count
+        self.loadParcel("osaf.sharing") # Include default Passwords in count
 
         # Check master password when it is not set
         masterPassword = waitForDeferred(MasterPassword.get(self.rep.view))

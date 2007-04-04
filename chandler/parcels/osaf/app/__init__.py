@@ -55,17 +55,6 @@ def installParcel(parcel, oldVersion=None):
                     pim_ns.trashCollection]
     )
 
-    sharing.WebDAVAccount.update(parcel, 'defaultWebDAVAccount',
-        displayName=_(u'Cosmo Sharing Service'),
-        host=u'osaf.us',
-        path=u'/cosmo/dav/<username>',
-        username=u'',
-        password=password.Password.update(parcel, 'defaultWebDAVAccountPassword'),
-        useSSL=True,
-        port=443,
-        references=[sharing_ns.currentSharingAccount]
-    )
-
     preReply = pim.EmailAddress.update(parcel, 'defaultReplyAddress')
 
     preSmtp = pim.mail.SMTPAccount.update(parcel, 'defaultSMTPAccount',

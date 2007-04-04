@@ -40,6 +40,8 @@ from osaf.usercollections import UserCollection
 from osaf.mail.utils import getEmptyDate
 from osaf.pim.structs import ColorType
 from osaf.preferences import CalendarPrefs
+from osaf.framework.password import Password
+
 __all__ = [
     'SharingTranslator',
     'DumpTranslator',
@@ -1130,21 +1132,30 @@ class DumpTranslator(SharingTranslator):
         def add_source(collection):
             if record.mine == 1:
                 schema.ns('osaf.pim', self.rv).mine.addSource(collection)
-            UserCollection(collection).color = ColorType(
-                record.colorRed, record.colorGreen, record.colorBlue,
-                record.colorAlpha
-            )
+            if record.colorRed is not None:
+                UserCollection(collection).color = ColorType(
+                    record.colorRed, record.colorGreen, record.colorBlue,
+                    record.colorAlpha
+                )
 
     @eim.exporter(pim.SmartCollection)
     def export_collection(self, collection):
-        color = UserCollection (collection).color
+        try:
+            color = UserCollection (collection).color
+            red = color.red
+            green = color.green
+            blue = color.blue
+            alpha = color.alpha
+        except AttributeError: # collection has no color
+            red = green = blue = alpha = None
+            
         yield model.CollectionRecord(
             collection,
             int (collection in schema.ns('osaf.pim', self.rv).mine.sources),
-            color.red,
-            color.green,
-            color.blue,
-            color.alpha
+            red,
+            green,
+            blue,
+            alpha
         )
         for record in self.export_collection_memberships (collection):
             yield record
@@ -1188,6 +1199,8 @@ class DumpTranslator(SharingTranslator):
             @self.withItemForUUID(record.itemUUID, pim.ContentItem)
             def do(item):
                 collection.add(item)
+
+
 
 
     # - - Sharing-related items - - - - - - - - - - - - - - - - - - - - - -
@@ -1398,7 +1411,7 @@ class DumpTranslator(SharingTranslator):
 
         yield model.ShareCosmoConduitRecord(
             conduit,
-            conduit.morsecodepath
+            conduit.morsecodePath
         )
 
 
@@ -1423,12 +1436,25 @@ class DumpTranslator(SharingTranslator):
     @model.ShareStateRecord.importer
     def import_sharestate(self, record):
 
+        if record.agreed is None:
+            agreed = eim.Inherit # perhaps Inherit was better as Missing; I'm
+                                 # using it here to delete the attribute
+        else:
+            agreed = record.agreed
+
+        if record.pending is None:
+            pending = eim.Inherit # perhaps Inherit was better as Missing; I'm
+                                 # using it here to delete the attribute
+        else:
+            pending = record.pending
+
         @self.withItemForUUID(record.uuid,
             shares.State,
             itemUUID=record.item,
             peerRepoId=record.peerrepo,
             peerItemVersion=record.peerversion,
-            itemUUID=record.item
+            _agreed=agreed,
+            _pending=pending,
         )
         def do(state):
             if record.peer not in (eim.NoChange, None):
@@ -1453,8 +1479,8 @@ class DumpTranslator(SharingTranslator):
         peerversion = state.peerItemVersion
         share = state.share.itsUUID if getattr(state, "share", None) else None
         item = getattr(state, "itemUUID", None)
-        agreed = None # TODO
-        pending = None # TODO
+        agreed = getattr(state, "_agreed", None)
+        pending = getattr(state, "_pending", None)
 
         yield model.ShareStateRecord(
             state,
@@ -1501,7 +1527,8 @@ class DumpTranslator(SharingTranslator):
             port=record.port,
             path=record.path,
             username=record.username,
-            password=record.password,
+            # password=record.password,
+            password=Password(itsView=self.rv)
         )
         def do(account):
             if record.ssl not in (eim.NoChange, None):
@@ -1517,7 +1544,7 @@ class DumpTranslator(SharingTranslator):
             1 if account.useSSL else 0,
             account.path,
             account.username,
-            account.password
+            "" # account.password
         )
 
 
@@ -1557,16 +1584,39 @@ class DumpTranslator(SharingTranslator):
             account.davPath
         )
 
+    @model.SharePrefsRecord.importer
+    def import_share_prefs(self, record):
+
+        if record.currentAccount:
+            @self.withItemForUUID(record.currentAccount,
+                accounts.SharingAccount)
+            def set_current(account):
+                ref = schema.ns("osaf.sharing", self.rv).currentSharingAccount
+                ref.item = account
+
+    # Called from finishExport()
+    def export_share_prefs(self):
+
+        ref = schema.ns("osaf.sharing", self.rv).currentSharingAccount
+        if ref.item is None:
+            currentAccount = ""
+        else:
+            currentAccount = ref.item.itsUUID.str16()
+        cur = ref.item
+
+        yield model.SharePrefsRecord(currentAccount)
+
     # - - Preference items - - - - - - - - - - - - - - - - - - - - - - - - - -
     @model.PrefCalendarHourHeightRecord.importer
     def import_prefcalendarhourheight(self, record):
-        pref = schema.ns('osaf.framework.blocks.calendar', self.rv).calendarPrefs
+        pref = schema.ns('osaf.framework.blocks.calendar',
+            self.rv).calendarPrefs
         pref.hourHeightMode = record.hourHeightMode
         pref.visibleHours = record.visibleHours
 
     @eim.exporter(CalendarPrefs)
     def export_prefcalendarhourheight(self, pref):
-        if (str(pref.itsPath) == 
+        if (str(pref.itsPath) ==
             '//parcels/osaf/framework/blocks/calendar/calendarPrefs'):
             yield model.PrefCalendarHourHeightRecord(
                 pref,
@@ -1576,7 +1626,7 @@ class DumpTranslator(SharingTranslator):
 
     @model.PrefTimezonesRecord.importer
     def import_preftimezones(self, record):
-        
+
         pref = schema.ns('osaf.pim', self.rv).TimezonePrefs
         pref.showUI = bool(record.showUI)
         pref.showPrompt = bool(record.showPrompt)
@@ -1597,7 +1647,7 @@ class DumpTranslator(SharingTranslator):
                 tzitem.default.tzid,
                 ",".join(tzitem.wellKnownIDs)
             )
-    
+
     # - - Finishing up - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
     def finishExport(self):
         for record in super(DumpTranslator, self).finishExport():
@@ -1606,7 +1656,10 @@ class DumpTranslator(SharingTranslator):
         # emit the CollectionMembership records for the sidebar collection
         for record in self.export_collection_memberships (schema.ns("osaf.app", self.rv).sidebarCollection):
             yield record
-            
+
+        # sharing
+        for record in self.export_share_prefs():
+            yield record
 
 
 
