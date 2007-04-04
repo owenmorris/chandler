@@ -849,27 +849,24 @@ class RoundTripTestCase(testcase.DualRepositoryTestCase):
         self.failUnlessEqual(fourth1.getNextOccurrence().itsItem.displayName,
                              u'This is very original')
 
+        # sync a start-time modification
+        second0 = event.getFirstOccurrence().getNextOccurrence()
+        
+        newStart = second0.startTime + datetime.timedelta(hours=2)
+        second0.changeThis(pim.EventStamp.startTime.name, newStart)
 
-        if False:
-            # sync a start-time modification
-            second0 = event.getFirstOccurrence().getNextOccurrence()
-            
-            newStart = second0.startTime + datetime.timedelta(hours=2)
-            second0.changeThis(pim.EventStamp.startTime.name, newStart)
-    
-            # sync
-            view0.commit(); stats = self.share0.sync(); view0.commit()
-            view1.commit(); stats = self.share1.sync(); view1.commit()
-            
-            # find the sync'ed second occurrence
-            second1 = event1.getRecurrenceID(second0.recurrenceID)
-            self.failIf(second1 is None, "Missing occurrence after sync")
-            self.failUnless(second1.modificationFor is item1,
-                            "Un- or disconnected modification after sync")
-                            
-            # @@@ [grant] This fails!
-            self.failUnlessEqual(second1.startTime, newStart,
-                                 "startTime not modified correctly")
+        # sync
+        view0.commit(); stats = self.share0.sync(); view0.commit()
+        view1.commit(); stats = self.share1.sync(); view1.commit()
+        
+        # find the sync'ed second occurrence
+        second1 = event1.getRecurrenceID(second0.recurrenceID)
+        self.failIf(second1 is None, "Missing occurrence after sync")
+        self.failUnless(second1.modificationFor is item1,
+                        "Un- or disconnected modification after sync")
+                        
+        self.failUnlessEqual(second1.startTime, newStart,
+                             "startTime not modified correctly")
 
         # remove recurrence
         event.removeRecurrence()
@@ -942,26 +939,18 @@ class RoundTripTestCase(testcase.DualRepositoryTestCase):
         view0.commit(); stats = self.share0.sync(); view0.commit()
         view1.commit(); stats = self.share1.sync(); view1.commit()
         
-        if False:
-            # [Bug 8665]
-            # https://bugzilla.osafoundation.org/show_bug.cgi?id=8665
-            # @@@ [grant] This fails.
-            # Make sure occurrence1 picked up the duration change
-            occurrence1 = event1.getRecurrenceID(recurrenceID)
-            self.failUnlessEqual(occurrence1.duration,
-                                 datetime.timedelta(minutes=120))
+        # Make sure occurrence1 picked up the duration change
+        occurrence1 = event1.getRecurrenceID(recurrenceID)
+        self.failUnlessEqual(occurrence1.duration,
+                             datetime.timedelta(minutes=120))
 
         
         view0.commit(); stats = self.share0.sync(); view0.commit()
         
-        if False:
-            # [Bug 8665]
-            # https://bugzilla.osafoundation.org/show_bug.cgi?id=8665
-            # @@@ [grant] This fails.
-            # Make sure the transparency change made it from view1 to view0
-            occurrence0 = event.getRecurrenceID(recurrenceID)
-            self.failUnlessEqual(occurrence0.transparency, 'fyi')
-            self.failIfEqual(event.getFirstOccurrence().transparency, 'fyi')
+        # Make sure the transparency change made it from view1 to view0
+        occurrence0 = event.getRecurrenceID(recurrenceID)
+        self.failUnlessEqual(occurrence0.transparency, 'fyi')
+        self.failIfEqual(event.getFirstOccurrence().transparency, 'fyi')
         
         # deleteThis() local & changeThis() remote.
         event = self._makeRecurringEvent(view0, self.share0.contents)

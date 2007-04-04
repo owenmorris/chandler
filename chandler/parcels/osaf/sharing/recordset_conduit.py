@@ -291,6 +291,7 @@ class RecordSetConduit(conduits.BaseConduit):
         i = 0
         for alias in aliases:
             state = self.getState(alias)
+
             rsInternal = rsNewBase.get(alias, eim.RecordSet())
 
             if not isDiff:
@@ -304,10 +305,25 @@ class RecordSetConduit(conduits.BaseConduit):
 
             if debug: print "\n ----- Merging %s:" % alias
 
+            uuid = translator.getUUIDForAlias(alias)
+            if not state.agreed and uuid != alias and inbound.has_key(alias):
+                # to fix bug 8665, new inbound modifications are incorrectly
+                # seen as conflicts, set the agreed state in records for new
+                # modifications to be all Inherit values.  Without this, local 
+                # Inherit values will be treated as conflicts
+                inherit_records = []
+                for record in rsInternal.inclusions:
+                    keys = [f for f in record.__fields__ if isinstance(f, eim.key)]
+                    if len(keys) != 1:
+                        continue
+                    non_uuid_fields = len(record.__fields__) - 1
+                    args = (record.uuid,) + non_uuid_fields * (eim.Inherit,)
+                    inherit_records.append(type(record)(*args))
+                state.agreed += eim.RecordSet(inherit_records)
+
             dSend, dApply, pending = state.merge(rsInternal, rsExternal,
                 isDiff=isDiff, filter=filter, debug=debug)
 
-            uuid = translator.getUUIDForAlias(alias)
             if uuid:
                 item = rv.findUUID(uuid)
             else:
