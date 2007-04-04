@@ -310,7 +310,7 @@ static int _t_itemvalue__setOwner(t_itemvalue *self,
 
             if (attr)
             {
-                if (attr->flags & PURE)
+                if (attr->flags & A_PURE)
                     *pure = Py_True;
                 else
                     *pure = Py_False;

@@ -35,7 +35,7 @@ enum {
     INDEXED      = 0x00004000,
     DEFAULT      = 0x00008000,
     AFTERCHANGE  = 0x00010000,
-    PURE         = 0x00020000,
+    A_PURE       = 0x00020000,
 
     ATTRDICT     = VALUE | REF,
     CARDINALITY  = SINGLE | LIST | DICT | SET,
