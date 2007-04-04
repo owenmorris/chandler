@@ -13,6 +13,7 @@
 #   limitations under the License.
 
 
+from application import schema
 import unittest, sys, os, logging
 from osaf import pim, dumpreload, sharing
 from osaf.framework.password import Password
@@ -115,6 +116,18 @@ class DumpReloadTestCase(testcase.DualRepositoryTestCase):
 
 
 
+        # Calendar prefs
+        pref = schema.ns('osaf.pim', view0).TimezonePrefs
+        pref.showUI = True # change from default
+        pref.showPrompt = False # change from default
+
+        pref = schema.ns('osaf.framework.blocks.calendar', view0).calendarPrefs
+        pref.hourHeightMode = "auto"
+        pref.visibleHours = 20
+
+        # TODO: TimeZoneInfo
+
+
 
 
 
@@ -152,6 +165,15 @@ class DumpReloadTestCase(testcase.DualRepositoryTestCase):
                 self.assertEqual(state0.agreed, state1.agreed)
                 self.assertEqual(state0.pending, state1.pending)
 
+            # Verify Calendar prefs
+            pref = schema.ns('osaf.pim', view1).TimezonePrefs
+            self.assertEqual(pref.showUI, True)
+            self.assertEqual(pref.showPrompt, False)
+
+            pref = schema.ns('osaf.framework.blocks.calendar',
+                view1).calendarPrefs
+            self.assertEqual(pref.hourHeightMode, "auto")
+            self.assertEqual(pref.visibleHours, 20)
 
         finally:
             os.remove(filename)

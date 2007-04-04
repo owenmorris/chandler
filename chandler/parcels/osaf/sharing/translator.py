@@ -1206,7 +1206,7 @@ class DumpTranslator(SharingTranslator):
     # - - Sharing-related items - - - - - - - - - - - - - - - - - - - - - -
 
     @model.ShareRecord.importer
-    def import_share(self, record):
+    def import_sharing_share(self, record):
 
         @self.withItemForUUID(record.uuid,
             shares.Share,
@@ -1240,7 +1240,7 @@ class DumpTranslator(SharingTranslator):
 
 
     @eim.exporter(shares.Share)
-    def export_share(self, share):
+    def export_sharing_share(self, share):
 
         contents = share.contents.itsUUID
 
@@ -1272,7 +1272,7 @@ class DumpTranslator(SharingTranslator):
 
 
     @model.ShareConduitRecord.importer
-    def import_shareconduit(self, record):
+    def import_sharing_conduit(self, record):
         self.withItemForUUID(record.uuid,
             conduits.BaseConduit,
             sharePath=record.path,
@@ -1280,7 +1280,7 @@ class DumpTranslator(SharingTranslator):
         )
 
     @eim.exporter(conduits.BaseConduit)
-    def export_conduit(self, conduit):
+    def export_sharing_conduit(self, conduit):
 
         path = conduit.sharePath
         name = conduit.shareName
@@ -1295,7 +1295,7 @@ class DumpTranslator(SharingTranslator):
 
 
     @model.ShareRecordSetConduitRecord.importer
-    def import_sharerecordsetconduit(self, record):
+    def import_sharing_recordset_conduit(self, record):
         @self.withItemForUUID(record.uuid,
             recordset_conduit.RecordSetConduit,
         )
@@ -1311,7 +1311,7 @@ class DumpTranslator(SharingTranslator):
                         conduit.filters.add(filter)
 
     @eim.exporter(recordset_conduit.RecordSetConduit)
-    def export_recordsetconduit(self, conduit):
+    def export_sharing_recordset_conduit(self, conduit):
 
         translator = None
 
@@ -1333,7 +1333,7 @@ class DumpTranslator(SharingTranslator):
 
 
     @model.ShareHTTPConduitRecord.importer
-    def import_sharehttpconduit(self, record):
+    def import_sharing_http_conduit(self, record):
 
         @self.withItemForUUID(record.uuid, conduits.HTTPMixin)
         def do(conduit):
@@ -1360,7 +1360,7 @@ class DumpTranslator(SharingTranslator):
         # TODO: ticket_ro
 
     @eim.exporter(conduits.HTTPMixin)
-    def export_httpmixin(self, conduit):
+    def export_sharing_http_mixin(self, conduit):
 
         url = conduit.getLocation()
 
@@ -1399,7 +1399,7 @@ class DumpTranslator(SharingTranslator):
 
 
     @model.ShareCosmoConduitRecord.importer
-    def import_sharecosmoconduit(self, record):
+    def import_sharing_cosmo_conduit(self, record):
 
         self.withItemForUUID(record.uuid,
             cosmo.CosmoConduit,
@@ -1407,7 +1407,7 @@ class DumpTranslator(SharingTranslator):
         )
 
     @eim.exporter(cosmo.CosmoConduit)
-    def export_cosmoconduit(self, conduit):
+    def export_sharing_cosmo_conduit(self, conduit):
 
         yield model.ShareCosmoConduitRecord(
             conduit,
@@ -1417,14 +1417,14 @@ class DumpTranslator(SharingTranslator):
 
 
     @model.ShareWebDAVConduitRecord.importer
-    def import_sharewebdavconduit(self, record):
+    def import_sharing_webdav_conduit(self, record):
 
         self.withItemForUUID(record.uuid,
             webdav_conduit.WebDAVRecordSetConduit
         )
 
     @eim.exporter(webdav_conduit.WebDAVRecordSetConduit)
-    def export_webdavconduit(self, conduit):
+    def export_sharing_webdav_conduit(self, conduit):
 
         yield model.ShareWebDAVConduitRecord(
             conduit
@@ -1434,7 +1434,7 @@ class DumpTranslator(SharingTranslator):
 
 
     @model.ShareStateRecord.importer
-    def import_sharestate(self, record):
+    def import_sharing_state(self, record):
 
         if record.agreed is None:
             agreed = eim.Inherit # perhaps Inherit was better as Missing; I'm
@@ -1472,7 +1472,7 @@ class DumpTranslator(SharingTranslator):
         # TODO: pending
 
     @eim.exporter(shares.State)
-    def export_state(self, state):
+    def export_sharing_state(self, state):
 
         peer = state.peer.itsUUID if getattr(state, "peer", None) else None
         peerrepo = state.peerRepoId
@@ -1496,7 +1496,7 @@ class DumpTranslator(SharingTranslator):
 
 
     @model.ShareResourceStateRecord.importer
-    def import_shareresourcestate(self, record):
+    def import_sharing_resource_state(self, record):
 
         self.withItemForUUID(record.uuid,
             recordset_conduit.ResourceState,
@@ -1505,7 +1505,7 @@ class DumpTranslator(SharingTranslator):
         )
 
     @eim.exporter(recordset_conduit.ResourceState)
-    def export_resourcestate(self, state):
+    def export_sharing_resource_state(self, state):
 
         path = getattr(state, "path", None)
         etag = getattr(state, "etag", None)
@@ -1519,7 +1519,7 @@ class DumpTranslator(SharingTranslator):
 
 
     @model.ShareAccountRecord.importer
-    def import_shareaccount(self, record):
+    def import_sharing_account(self, record):
 
         @self.withItemForUUID(record.uuid,
             accounts.SharingAccount,
@@ -1535,7 +1535,7 @@ class DumpTranslator(SharingTranslator):
                 account.useSSL = True if record.ssl else False
 
     @eim.exporter(accounts.SharingAccount)
-    def export_shareaccount(self, account):
+    def export_sharing_account(self, account):
 
         yield model.ShareAccountRecord(
             account,
@@ -1551,21 +1551,21 @@ class DumpTranslator(SharingTranslator):
 
 
     @model.ShareWebDAVAccountRecord.importer
-    def import_sharewebdavaccount(self, record):
+    def import_sharing_webdav_account(self, record):
 
         self.withItemForUUID(record.uuid,
             accounts.WebDAVAccount
         )
 
     @eim.exporter(accounts.WebDAVAccount)
-    def export_sharewebdavaccount(self, account):
+    def export_sharing_webdav_account(self, account):
 
         yield model.ShareWebDAVAccountRecord(account)
 
 
 
     @model.ShareCosmoAccountRecord.importer
-    def import_sharecosmoaccount(self, record):
+    def import_sharing_cosmo_account(self, record):
 
         self.withItemForUUID(record.uuid,
             cosmo.CosmoAccount,
@@ -1575,7 +1575,7 @@ class DumpTranslator(SharingTranslator):
         )
 
     @eim.exporter(cosmo.CosmoAccount)
-    def export_sharecosmoaccount(self, account):
+    def export_sharing_cosmo_account(self, account):
 
         yield model.ShareCosmoAccountRecord(
             account,
@@ -1585,7 +1585,7 @@ class DumpTranslator(SharingTranslator):
         )
 
     @model.SharePrefsRecord.importer
-    def import_share_prefs(self, record):
+    def import_sharing_prefs(self, record):
 
         if record.currentAccount:
             @self.withItemForUUID(record.currentAccount,
@@ -1595,18 +1595,18 @@ class DumpTranslator(SharingTranslator):
                 ref.item = account
 
     # Called from finishExport()
-    def export_share_prefs(self):
+    def export_sharing_prefs(self):
 
         ref = schema.ns("osaf.sharing", self.rv).currentSharingAccount
         if ref.item is None:
             currentAccount = ""
         else:
             currentAccount = ref.item.itsUUID.str16()
-        cur = ref.item
 
         yield model.SharePrefsRecord(currentAccount)
 
     # - - Preference items - - - - - - - - - - - - - - - - - - - - - - - - - -
+
     @model.PrefCalendarHourHeightRecord.importer
     def import_prefcalendarhourheight(self, record):
         pref = schema.ns('osaf.framework.blocks.calendar',
@@ -1614,15 +1614,15 @@ class DumpTranslator(SharingTranslator):
         pref.hourHeightMode = record.hourHeightMode
         pref.visibleHours = record.visibleHours
 
-    @eim.exporter(CalendarPrefs)
-    def export_prefcalendarhourheight(self, pref):
-        if (str(pref.itsPath) ==
-            '//parcels/osaf/framework/blocks/calendar/calendarPrefs'):
-            yield model.PrefCalendarHourHeightRecord(
-                pref,
-                pref.hourHeightMode,
-                pref.visibleHours
-            )
+    # Called from finishExport( )
+    def export_prefcalendarhourheight(self):
+        pref = schema.ns('osaf.framework.blocks.calendar',
+            self.rv).calendarPrefs
+
+        yield model.PrefCalendarHourHeightRecord(
+            pref.hourHeightMode,
+            pref.visibleHours
+        )
 
     @model.PrefTimezonesRecord.importer
     def import_preftimezones(self, record):
@@ -1635,18 +1635,18 @@ class DumpTranslator(SharingTranslator):
         tzitem.default = ICUtzinfo.getInstance(record.default)
         tzitem.wellKnownIDs = record.wellKnownIDs.split(',')
 
-    @eim.exporter(TimeZone.TZPrefs)
-    def export_preftimezones(self, pref):
+    # Called from finishExport( )
+    def export_preftimezones(self):
 
-        if str(pref.itsPath) == '//parcels/osaf/pim/TimezonePrefs':
-            tzitem = TimeZone.TimeZoneInfo.get(self.rv)
-            yield model.PrefTimezonesRecord(
-                pref,
-                pref.showUI,
-                pref.showPrompt,
-                tzitem.default.tzid,
-                ",".join(tzitem.wellKnownIDs)
-            )
+        pref = schema.ns('osaf.pim', self.rv).TimezonePrefs
+        tzitem = TimeZone.TimeZoneInfo.get(self.rv)
+        yield model.PrefTimezonesRecord(
+            pref.showUI,
+            pref.showPrompt,
+            tzitem.default.tzid,
+            ",".join(tzitem.wellKnownIDs)
+        )
+
 
     # - - Finishing up - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
     def finishExport(self):
@@ -1654,13 +1654,19 @@ class DumpTranslator(SharingTranslator):
             yield record
 
         # emit the CollectionMembership records for the sidebar collection
-        for record in self.export_collection_memberships (schema.ns("osaf.app", self.rv).sidebarCollection):
+        for record in self.export_collection_memberships(schema.ns("osaf.app",
+            self.rv).sidebarCollection):
             yield record
 
         # sharing
-        for record in self.export_share_prefs():
+        for record in self.export_sharing_prefs():
             yield record
 
+        # calendar prefs
+        for record in self.export_prefcalendarhourheight():
+            yield record
+        for record in self.export_preftimezones():
+            yield record
 
 
 def test_suite():
