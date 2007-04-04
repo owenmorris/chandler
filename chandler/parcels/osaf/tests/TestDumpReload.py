@@ -116,9 +116,11 @@ class DumpReloadTestCase(testcase.DualRepositoryTestCase):
 
 
 
+
+
         try:
 
-            dumpreload.dump(view0, filename, uuids)
+            dumpreload.dump(view0, filename)
             dumpreload.reload(view1, filename)
 
             # Ensure the items are now in view1
@@ -138,6 +140,7 @@ class DumpReloadTestCase(testcase.DualRepositoryTestCase):
                 item1 = view1.findUUID(item0.itsUUID)
                 self.assert_(item1 in coll1)
 
+
             # Verify sharing
             inmemory_share1 = view1.findUUID(inmemory_share0.itsUUID)
             self.assert_(inmemory_share1 is not None)
@@ -146,6 +149,8 @@ class DumpReloadTestCase(testcase.DualRepositoryTestCase):
             for state0 in inmemory_share0.states:
                 state1 = view1.findUUID(state0.itsUUID)
                 self.assert_(state1 in inmemory_share1.states)
+                self.assertEqual(state0.agreed, state1.agreed)
+                self.assertEqual(state0.pending, state1.pending)
 
 
         finally:

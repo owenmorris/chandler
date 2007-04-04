@@ -1214,12 +1214,7 @@ class MainView(View):
             activity = Activity("Dump to %s" % path)
             activity.started()
             try:
-                uuids = set()
-                for item in schema.Item.iterItems(self.itsView):
-                    if (isinstance(item, Preferences) or
-                        not str(item.itsPath).startswith("//parcels")):
-                        uuids.add(item.itsUUID)
-                dumpreload.dump(self.itsView, path, uuids, activity=activity)
+                dumpreload.dump(self.itsView, path, activity=activity)
                 activity.completed()
             except Exception, e:
                 logger.exception("Failed to dump file")

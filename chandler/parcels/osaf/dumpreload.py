@@ -75,10 +75,16 @@ class PickleSerializer(object):
             return rtype
 
 
-def dump(rv, filename, uuids, translator=sharing.DumpTranslator,
+def dump(rv, filename, uuids=None, translator=sharing.DumpTranslator,
     serializer=PickleSerializer, activity=None):
 
     """ Dumps EIM records to a file """
+
+    if uuids is None:
+        uuids = set()
+        for item in schema.Item.iterItems(rv):
+            if not str(item.itsPath).startswith("//parcels"):
+                uuids.add(item.itsUUID)
 
     trans = translator(rv)
 
