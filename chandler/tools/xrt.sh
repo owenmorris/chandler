@@ -28,5 +28,5 @@ DISPLAY=:1 gnome-terminal&
 # time so you can read the results at your leasure.
 # Note that I haven't been able to figure out this sleep thing without
 # the sleep_xrt.sh script.
-DISPLAY=:1 gnome-terminal --geometry=-0-0 --working-directory=`pwd` --command="./tools/sleep_xrt.sh $@"&
+DISPLAY=:1 gnome-terminal --geometry=-0-30 --working-directory=`pwd` --command="./tools/sleep_xrt.sh $*"&
 
