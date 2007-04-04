@@ -1213,10 +1213,17 @@ class MainView(View):
         if path:
             activity = Activity("Dump to %s" % path)
             activity.started()
+            
+            # Don't show the timezone dialog during reload.
+            tzprefs = schema.ns('osaf.pim', self.itsView).TimezonePrefs
+            oldShowPrompt = tzprefs.showPrompt
+            tzprefs.showPrompt = False
+            
             try:
                 dumpreload.dump(self.itsView, path, activity=activity)
                 activity.completed()
             except Exception, e:
+                tzprefs.showPrompt = oldShowPrompt
                 logger.exception("Failed to dump file")
                 activity.failed(exception=e)
                 raise
