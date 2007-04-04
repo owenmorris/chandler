@@ -19,9 +19,8 @@ from chandlerdb.util.c import \
     UUID, _hash, _combine, isuuid, Nil, Default
 from chandlerdb.persistence.c import Record
 from chandlerdb.schema.c import CDescriptor, CAttribute, CKind
-from chandlerdb.item.c import isitem, CItem, isitemref, ItemRef
+from chandlerdb.item.c import isitem, CItem, isitemref, ItemRef, ItemValue
 from chandlerdb.item.ItemError import NoSuchAttributeError, SchemaError
-from chandlerdb.item.ItemValue import ItemValue
 
 from repository.item.Item import Item, MissingClass, override
 from repository.item.RefCollections import RefList

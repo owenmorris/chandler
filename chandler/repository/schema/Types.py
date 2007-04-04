@@ -203,6 +203,9 @@ class Type(Item):
 
 class StringType(Type):
 
+    def getFlags(self):
+        return CAttribute.SIMPLE | CAttribute.PURE
+
     def writeValue(self, itemWriter, record, item, version, value, withSchema):
         record += (Record.STRING, value)
         return 0
@@ -210,9 +213,6 @@ class StringType(Type):
     def readValue(self, itemReader, offset, data, withSchema, view, name,
                   afterLoadHooks):
         return offset+1, data[offset]
-
-    def getFlags(self):
-        return CAttribute.SIMPLE
 
     def typeXML(self, value, generator, withSchema):
         generator.characters(value)
@@ -315,8 +315,10 @@ class Symbol(BString):
 
     illegal = re.compile("[^_a-zA-Z0-9]")
 
-    def _compareTypes(self, other):
+    def getFlags(self):
+        return CAttribute.PURE
 
+    def _compareTypes(self, other):
         return 1
 
     def recognizes(self, value):
@@ -334,9 +336,6 @@ class Symbol(BString):
                   afterLoadHooks):
         return offset+1, data[offset] or ''
 
-    def getFlags(self):
-        return 0
-
 
 class Importable(Symbol):
 
@@ -344,6 +343,9 @@ class Importable(Symbol):
 
 
 class Integer(Type):
+
+    def getFlags(self):
+        return CAttribute.SIMPLE | CAttribute.PURE
 
     def getImplementationType(self):
         return int
@@ -365,14 +367,14 @@ class Integer(Type):
                   afterLoadHooks):
         return offset+1, data[offset]
 
-    def getFlags(self):
-        return CAttribute.SIMPLE
-
     def hashValue(self, value):
         return _hash(pack('>l', value))
 
 
 class Long(Type):
+
+    def getFlags(self):
+        return CAttribute.SIMPLE | CAttribute.PURE
 
     def getImplementationType(self):
         return long
@@ -401,14 +403,14 @@ class Long(Type):
                   afterLoadHooks):
         return offset+1, data[offset]
 
-    def getFlags(self):
-        return CAttribute.SIMPLE
-
     def hashValue(self, value):
         return _hash(pack('>q', value))
 
 
 class Float(Type):
+
+    def getFlags(self):
+        return CAttribute.SIMPLE | CAttribute.PURE
 
     def getImplementationType(self):
         return float
@@ -433,14 +435,14 @@ class Float(Type):
                   afterLoadHooks):
         return offset+1, data[offset]
 
-    def getFlags(self):
-        return CAttribute.SIMPLE
-
     def hashValue(self, value):
         return _hash(pack('>d', value))
 
     
 class Complex(Type):
+
+    def getFlags(self):
+        return CAttribute.PURE
 
     def getImplementationType(self):
         return complex
@@ -467,6 +469,9 @@ class Complex(Type):
                         _hash(pack('>d', value.imag)))
         
 class Decimal(Type):
+
+    def getFlags(self):
+        return CAttribute.PURE
 
     def getImplementationType(self):
         return decimal
@@ -507,6 +512,9 @@ class Decimal(Type):
 
 class Boolean(Type):
 
+    def getFlags(self):
+        return CAttribute.SIMPLE | CAttribute.PURE
+
     def getImplementationType(self):
         return bool
     
@@ -530,9 +538,6 @@ class Boolean(Type):
                   afterLoadHooks):
         return offset+1, data[offset]
 
-    def getFlags(self):
-        return CAttribute.SIMPLE
-
     def hashValue(self, value):
 
         if value == True:
@@ -543,8 +548,10 @@ class Boolean(Type):
 
 class UUID(Type):
 
-    def handlerName(self):
+    def getFlags(self):
+        return CAttribute.SIMPLE | CAttribute.PURE
 
+    def handlerName(self):
         return 'uuid'
 
     def makeValue(self, data):
@@ -588,9 +595,6 @@ class UUID(Type):
                   afterLoadHooks):
         return offset+1, data[offset]
 
-    def getFlags(self):
-        return CAttribute.SIMPLE
-
     def hashValue(self, value):
 
         if value is None:
@@ -601,8 +605,10 @@ class UUID(Type):
 
 class ItemRef(Type):
 
-    def handlerName(self):
+    def getFlags(self):
+        return CAttribute.PROCESS_SET | CAttribute.PURE
 
+    def handlerName(self):
         return 'ref'
     
     def makeValue(self, data):
@@ -657,10 +663,6 @@ class ItemRef(Type):
 
         return offset+1, value
 
-    def getFlags(self):
-
-        return CAttribute.PROCESS_SET
-
     def hashValue(self, value):
 
         if value is None:
@@ -671,8 +673,10 @@ class ItemRef(Type):
 
 class Path(Type):
 
-    def handlerName(self):
+    def getFlags(self):
+        return CAttribute.PURE
 
+    def handlerName(self):
         return 'path'
 
     def makeValue(self, data):
@@ -740,8 +744,10 @@ class Path(Type):
 
 class URL(Type):
 
-    def handlerName(self):
+    def getFlags(self):
+        return CAttribute.PURE
 
+    def handlerName(self):
         return 'url'
 
     def makeValue(self, data):
@@ -794,6 +800,9 @@ class URL(Type):
 
 class NoneType(Type):
 
+    def getFlags(self):
+        return CAttribute.SIMPLE | CAttribute.PURE
+
     def getImplementationType(self):
         return type(None)
 
@@ -819,9 +828,6 @@ class NoneType(Type):
     def readValue(self, itemReader, offset, data, withSchema, view, name,
                   afterLoadHooks):
         return offset+1, data[offset]
-
-    def getFlags(self):
-        return CAttribute.SIMPLE
 
     def hashValue(self, value):
         return 0
@@ -879,6 +885,9 @@ class NilValue(Type):
 
 class Class(Type):
 
+    def getFlags(self):
+        return CAttribute.PURE
+
     def getImplementationType(self):
         return type
 
@@ -904,9 +913,12 @@ class Class(Type):
 
     def hashValue(self, value):
         return _combine(_hash(str(self.itsPath)), _hash(self.makeString(value)))
-        
+
 
 class Enumeration(Type):
+
+    def getFlags(self):
+        return CAttribute.PURE
 
     def getImplementationType(self):
         return str
@@ -1083,6 +1095,9 @@ class ConstantEnumeration(Enumeration):
 
 
 class Struct(Type):
+
+    def getFlags(self):
+        return CAttribute.PURE
 
     def getDefaultValue(self, fieldName):
         return Nil
@@ -1361,8 +1376,7 @@ class DateTime(DateStruct):
 
     # bypass == optimization as it will return True with different timezones
     def getFlags(self):
-
-        return CAttribute.PROCESS_SET
+        return CAttribute.PROCESS_SET | CAttribute.PURE
 
     def getImplementationType(self):
 
@@ -1523,8 +1537,7 @@ class Time(DateStruct):
 
     # bypass == optimization as it will return True with different timezones
     def getFlags(self):
-
-        return CAttribute.PROCESS_SET
+        return CAttribute.PROCESS_SET | CAttribute.PURE
 
     def getImplementationType(self):
 
@@ -1694,12 +1707,13 @@ class TimeDelta(DateStruct):
 
 class TimeZone(Type):
 
-    def getImplementationType(self):
+    def getFlags(self):
+        return CAttribute.PURE
 
+    def getImplementationType(self):
         return ICUtzinfo
 
     def handlerName(self):
-
         return 'tzinfo'
 
     def makeValue(self, data):
@@ -1753,7 +1767,6 @@ class TimeZone(Type):
 class Collection(Type):
 
     def getFlags(self):
-
         return CAttribute.PROCESS_SET
 
     def getParsedValue(self, itemHandler, data):
@@ -1977,6 +1990,8 @@ class Tuple(Collection):
     def _empty(self):
 
         class _tuple(list):
+            def __init__(self):
+                self._sequence = self
             def append(self, value, setDirty=True, ignore=None):
                 super(_tuple, self).append(value)
 

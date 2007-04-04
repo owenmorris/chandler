@@ -277,8 +277,9 @@ def installParcel(parcel, oldVersion=None):
         kind = FlickrPhotoMixin.getKind(parcel.itsView),
         recursive = True)
 
-    flickrPhotosCollection.addIndex('flickrIDIndex', 'attribute',
-                                    attribute='flickrID', compare="__cmp__")
+    if not flickrPhotosCollection.hasIndex('flickrIDIndex'):
+        flickrPhotosCollection.addIndex('flickrIDIndex', 'attribute',
+                                        attribute='flickrID', compare="__cmp__")
 
     # A NewFlickrCollectionEvent that adds a "Owner" collection to the sidebar
     addFlickrCollectionByOwnerEvent = AddFlickrCollectionEvent.update(

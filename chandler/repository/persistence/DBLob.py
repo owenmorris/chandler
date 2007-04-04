@@ -1,4 +1,4 @@
-#   Copyright (c) 2004-2006 Open Source Applications Foundation
+#   Copyright (c) 2004-2007 Open Source Applications Foundation
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -13,7 +13,8 @@
 #   limitations under the License.
 
 
-from chandlerdb.item.ItemValue import ItemValue, Indexable
+from chandlerdb.item.c import ItemValue
+from chandlerdb.item import Indexable
 from chandlerdb.util.c import UUID
 from chandlerdb.persistence.c import Record
 
@@ -26,10 +27,8 @@ class DBLob(Lob, ItemValue):
     def __init__(self, view, *args, **kwds):
 
         Lob.__init__(self, *args, **kwds)
-        ItemValue.__init__(self)
-
+        ItemValue.__init__(self, view, None, None)
         self._uuid = None
-        self._view = view
 
     def _copy(self, item, attribute, copyPolicy, copyFn, key=None):
 
@@ -38,6 +37,11 @@ class DBLob(Lob, ItemValue):
     def _clone(self, item, attribute):
 
         return self.copy(item.itsView, None)
+
+    def _setDirty(self):
+
+        super(DBLob, self)._setDirty()
+        self._dirty = True
 
     def _writeData(self, version, db):
 
@@ -134,8 +138,8 @@ class DBLob(Lob, ItemValue):
                         encryption=None, key=None, iv=None,
                         append=False):
 
-        if self._isReadOnly():
-            raise TypeError, 'Value for %s on %s is read-only' %(self._getAttribute(), self._getItem())
+        if self.isReadOnly():
+            raise TypeError, 'Value for %s on %s is read-only' %(self.itsAttribute, self.itsItem)
 
         return super(DBLob, self).getOutputStream(compression, encryption,
                                                   key, iv, append)

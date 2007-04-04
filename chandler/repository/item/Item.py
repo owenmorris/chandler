@@ -17,8 +17,7 @@ from __future__ import with_statement
 from chandlerdb.util.c import \
     UUID, _hash, _combine, isuuid, Nil, Default, Empty
 from chandlerdb.schema.c import _countAccess
-from chandlerdb.item.c import CItem, isitem, isitemref
-from chandlerdb.item.ItemValue import ItemValue
+from chandlerdb.item.c import CItem, isitem, isitemref, ItemValue
 from chandlerdb.item.ItemError import *
 
 from repository.item.RefCollections import RefList, RefDict
@@ -140,13 +139,6 @@ class Item(CItem):
                     self._fireChanges('init', name, name in values)
             finally:
                 self._status &= ~Item.SYSMONONLY
-
-    def __iter__(self):
-        """
-        (deprecated) Use L{iterChildren} instead.
-        """
-
-        raise DeprecationWarning, 'Use Item.iterChildren() instead'
 
     def _repr_(self):
 
@@ -476,7 +468,7 @@ class Item(CItem):
             value = attribute.c.getAspect('defaultValue', Nil)
             if value is not Nil:
                 if isinstance(value, PersistentCollection):
-                    value.setReadOnly(True)
+                    value._setReadOnly(True)
                 return value
 
             raise NoValueForAttributeError, (self, name)
@@ -1885,13 +1877,6 @@ class Item(CItem):
             return self.itsView[nextKey]
 
         return None
-
-    def __getitem__(self, key):
-
-        child = self.getItemChild(key)
-        if child is not None:
-            return child
-        raise KeyError, key
 
     def isRemote(self):
         """

@@ -124,7 +124,9 @@ class TypesTest(RepositoryTestCase.RepositoryTestCase):
             typeItem = self._find('//Schema/Core/%s' % name)
             actualType = type(typeItem.makeValue(typeStrings[name]))
             implType = typeItem.getImplementationType()
-            self.assert_(actualType == implType or actualType in implType.__bases__)
+            self.assert_(actualType is implType or
+                         getattr(implType, '__proxy_for__', None) is actualType or
+                         actualType in implType.__bases__, name)
 
     def _makeValidValues(self):
         """ create valid values of appropriate types"""

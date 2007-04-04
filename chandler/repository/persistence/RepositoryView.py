@@ -1,4 +1,4 @@
-#   Copyright (c) 2004-2006 Open Source Applications Foundation
+#   Copyright (c) 2004-2007 Open Source Applications Foundation
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -1447,11 +1447,11 @@ class NullRepositoryView(RepositoryView):
     def _createRefList(self, item, name, otherName, dictKey, 
                        readOnly, new, uuid):
 
-        return NullViewRefList(item, name, otherName, dictKey, readOnly)
+        return NullViewRefList(self, item, name, otherName, dictKey, readOnly)
     
     def _createChildren(self, parent, new):
 
-        return Children(parent, new)
+        return Children(self, parent, new)
 
     def _createNumericIndex(self, **kwds):
 
@@ -1585,10 +1585,10 @@ class NullViewLob(Lob):
 
 class NullViewRefList(RefList):
 
-    def __init__(self, item, name, otherName, dictKey, readOnly):
+    def __init__(self, view, item, name, otherName, dictKey, readOnly):
 
-        super(NullViewRefList, self).__init__(item, name, otherName, dictKey,
-                                              readOnly, CLinkedMap.NEW)
+        super(NullViewRefList, self).__init__(view, item, name, otherName,
+                                              dictKey, readOnly, CLinkedMap.NEW)
 
     def _setOwner(self, item, name):
 

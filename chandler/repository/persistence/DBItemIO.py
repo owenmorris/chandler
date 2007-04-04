@@ -1,4 +1,4 @@
-#   Copyright (c) 2005-2006 Open Source Applications Foundation
+#   Copyright (c) 2005-2007 Open Source Applications Foundation
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -19,13 +19,13 @@ from chandlerdb.persistence.c import DBLockDeadlockError, Record
 from chandlerdb.util.c import Nil, Default, Empty, UUID, _hash, isuuid
 from chandlerdb.item.c import isitem, CItem, isitemref, ItemRef, CValues
 from chandlerdb.schema.c import CAttribute
-from chandlerdb.item.ItemValue import Indexable
+from chandlerdb.item import Indexable
 from repository.item.Sets import AbstractSet
 from repository.item.Values import Values, References
 from repository.item.ItemIO import \
     ItemWriter, ItemReader, ItemPurger, ValueReader
 from repository.item.PersistentCollections \
-     import PersistentCollection, PersistentList, PersistentDict, PersistentSet
+     import PersistentList, PersistentDict, PersistentSet
 from repository.item.RefCollections import RefDict
 from repository.schema.TypeHandler import TypeHandler
 from repository.persistence.DBRefs import DBStandAloneRefList
@@ -706,7 +706,7 @@ class DBValueReader(ValueReader):
         for i in xrange(count):
             offset, v = self._readValue(offset, data, withSchema, attrType,
                                         view, name, afterLoadHooks)
-            value.append(v, False, False)
+            value._sequence.append(v)
 
         return offset, value
 
@@ -721,7 +721,7 @@ class DBValueReader(ValueReader):
         for i in xrange(count):
             offset, v = self._readValue(offset, data, withSchema, attrType,
                                         view, name, afterLoadHooks)
-            value.add(v, False, False)
+            value._set.add(v)
 
         return offset, value
 
@@ -738,7 +738,7 @@ class DBValueReader(ValueReader):
                                         view, name, afterLoadHooks)
             offset, v = self._readValue(offset, data, withSchema, attrType,
                                         view, name, afterLoadHooks)
-            value.__setitem__(k, v, False, False)
+            value._mapping[k] = v
 
         return offset, value
 

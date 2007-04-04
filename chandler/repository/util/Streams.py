@@ -517,7 +517,7 @@ class ConcatenatedInputStream(object):
 
     def __init__(self, *streams):
 
-        self._streams = streams
+        self._streams = list(streams)
         self._done = []
 
     def read(self, length=-1):

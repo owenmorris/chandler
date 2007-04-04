@@ -1,4 +1,4 @@
-#   Copyright (c) 2004-2006 Open Source Applications Foundation
+#   Copyright (c) 2004-2007 Open Source Applications Foundation
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -420,7 +420,7 @@ class SortedIndex(DelegatingIndex):
                             selected)
 
         if self._subIndexes:
-            view = self._valueMap._getView()
+            view = self._valueMap.itsView
             for uuid, attr, name in self._subIndexes:
                 indexed = getattr(view[uuid], attr)
                 index = indexed.getIndex(name)
@@ -450,7 +450,7 @@ class SortedIndex(DelegatingIndex):
             index.insertKey(key, afterKey, key in selection)
 
         if self._subIndexes:
-            view = self._valueMap._getView()
+            view = self._valueMap.itsView
             for uuid, attr, name in self._subIndexes:
                 indexed = getattr(view[uuid], attr)
                 index = indexed.getIndex(name)
@@ -466,7 +466,7 @@ class SortedIndex(DelegatingIndex):
 
         if self._index.removeKeys(keys):
             if self._subIndexes:
-                view = self._valueMap._getView()
+                view = self._valueMap.itsView
                 for uuid, attr, name in self._subIndexes:
                     indexed = getattr(view[uuid], attr)
                     index = indexed.getIndex(name)
@@ -676,7 +676,7 @@ class ValueIndex(AttributeIndex):
 
     def compare(self, k0, k1):
 
-        view = self._valueMap._getView()
+        view = self._valueMap.itsView
 
         for v0, v1 in izip(view.findValues(k0, *self._pairs),
                            view.findValues(k1, *self._pairs)):
@@ -858,7 +858,7 @@ class MethodIndex(SortedIndex):
     def compare(self, k0, k1):
 
         uItem, methodName = self._method
-        return getattr(self._valueMap._getView()[uItem], methodName)(k0, k1)
+        return getattr(self._valueMap.itsView[uItem], methodName)(k0, k1)
 
     def _writeValue(self, itemWriter, record, version):
 
@@ -900,7 +900,7 @@ class SubIndex(SortedIndex):
     def compare(self, k0, k1):
 
         uuid, attr, name = self._super
-        index = getattr(self._valueMap._getView()[uuid], attr).getIndex(name)
+        index = getattr(self._valueMap.itsView[uuid], attr).getIndex(name)
 
         # this should only happen during merge (moveKeys)
         if k0 not in index:
@@ -965,7 +965,7 @@ class SubIndex(SortedIndex):
 
         reasons = set()
         if not self._valueMap.isSubset(superValue, reasons):
-            logger.error("To support a subindex, %s must be a subset of %s but %s", self._valueMap, superValue, ', '.join("%s.%s is not a subset of %s.%s" %(sub_i._repr_(), sub_a, sup_i._repr_(), sup_a) for (sub_i, sub_a), (sup_i, sup_a) in ((sub._getOwner(), sup._getOwner()) for sub, sup in reasons)))
+            logger.error("To support a subindex, %s must be a subset of %s but %s", self._valueMap, superValue, ', '.join("%s.%s is not a subset of %s.%s" %(sub_i._repr_(), sub_a, sup_i._repr_(), sup_a) for (sub_i, sub_a), (sup_i, sup_a) in ((sub.itsOwner, sup.itsOwner) for sub, sup in reasons)))
             return False
         
         return result

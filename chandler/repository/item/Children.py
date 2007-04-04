@@ -22,9 +22,9 @@ from repository.util.LinkedMap import LinkedMap
 
 class Children(LinkedMap):
 
-    def __init__(self, item, lmflags):
+    def __init__(self, view, item, lmflags):
 
-        super(Children, self).__init__(lmflags)
+        super(Children, self).__init__(view, lmflags)
 
         self._owner = Nil
         self._setItem(item)
@@ -41,6 +41,7 @@ class Children(LinkedMap):
         if isitem(item):
             item._status |= CItem.CONTAINER
             self._owner = item.itsRef
+            self._view = item.itsView
         elif item is None:
             self._owner = Nil
 

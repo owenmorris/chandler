@@ -1,4 +1,4 @@
-#   Copyright (c) 2004-2006 Open Source Applications Foundation
+#   Copyright (c) 2004-2007 Open Source Applications Foundation
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -15,9 +15,8 @@
 
 from chandlerdb.util.c import \
     UUID, _hash, _combine, isuuid, Nil, Default, Empty
-from chandlerdb.item.c import CValues, CItem, isitem, isitemref
+from chandlerdb.item.c import CValues, CItem, isitem, isitemref, ItemValue
 from chandlerdb.item.ItemError import *
-from chandlerdb.item.ItemValue import ItemValue
 
 from repository.util.Path import Path
 from repository.util.Lob import Lob
@@ -42,10 +41,6 @@ class Values(CValues):
             self._setDirty(name)
 
         self._dict.clear()
-
-    def _getItem(self):
-
-        return self._item
 
     def _setItem(self, item):
 

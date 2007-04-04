@@ -1,4 +1,4 @@
-#   Copyright (c) 2003-2006 Open Source Applications Foundation
+#   Copyright (c) 2003-2007 Open Source Applications Foundation
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -13,8 +13,7 @@
 #   limitations under the License.
 
 
-from chandlerdb.item.c import CItem, isitem
-from chandlerdb.item.ItemValue import ItemValue
+from chandlerdb.item.c import CItem, isitem, ItemValue
 from chandlerdb.item.ItemError import *
 from chandlerdb.util.c import UUID, Nil
 
@@ -283,12 +282,12 @@ class ValueHandler(ContentHandler, TypeHandler):
         if name is None:
             collection = self.collections[-1]
             if isinstance(collection, set):
-                collection.add(value, False, False)
+                collection._set.add(value)
             else:
-                collection.append(value, False, False)
+                collection._sequence.append(value)
         else:
             name = self.makeValue(self.view, attrs.get('nameType', 'str'), name)
-            self.collections[-1].__setitem__(name, value, False, False)
+            self.collections[-1]._mapping[name] = value
 
     def getAttribute(self, name):
 

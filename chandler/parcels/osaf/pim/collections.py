@@ -137,7 +137,7 @@ class MethodIndexDefinition(IndexDefinition):
         # re-indexed properly when they inherit attribute values from
         # their "rich relatives" (ovaltofu's term).
         if not 'inheritFrom' in monitoredAttributes:
-            monitoredAttributes = ['inheritFrom'] + monitoredAttributes
+            monitoredAttributes = ('inheritFrom',) + tuple(monitoredAttributes)
             
         collection.addIndex(self.itsName, 'method',
                             method=(self, 'compare'),

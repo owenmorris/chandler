@@ -1,4 +1,4 @@
-#   Copyright (c) 2003-2006 Open Source Applications Foundation
+#   Copyright (c) 2003-2007 Open Source Applications Foundation
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -13,7 +13,7 @@
 #   limitations under the License.
 
 
-from chandlerdb.item.ItemValue import Indexable
+from chandlerdb.item import Indexable
 from repository.util.Streams import BZ2OutputStream, BZ2InputStream
 from repository.util.Streams import ZlibOutputStream, ZlibInputStream
 from repository.util.Streams import RijndaelOutputStream, RijndaelInputStream

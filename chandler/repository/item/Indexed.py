@@ -1,4 +1,4 @@
-#   Copyright (c) 2003-2006 Open Source Applications Foundation
+#   Copyright (c) 2003-2007 Open Source Applications Foundation
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -33,12 +33,12 @@ class Indexed(object):
     def getIndex(self, indexName):
 
         if self._indexes is None:
-            item, name = self._getOwner()
+            item, name = self.itsOwner
             raise NoSuchIndexError, (item, name, indexName)
 
         index = self._indexes.get(indexName)
         if index is None:
-            item, name = self._getOwner()
+            item, name = self.itsOwner
             raise NoSuchIndexError, (item, name, indexName)
 
         return index
@@ -119,8 +119,8 @@ class Indexed(object):
         @type indexType: a string
         """
 
-        item, name = self._getOwner()
-        view = self._getView()
+        item, name = self.itsOwner
+        view = self.itsView
 
         if self._indexes is not None:
             if indexName in self._indexes:
@@ -137,7 +137,7 @@ class Indexed(object):
                 superset = getattr(view[uuid], superName)
                 reasons = set()
                 if not self.isSubset(superset, reasons):
-                    raise ValueError, "To support a subindex, %s must be a subset of %s but %s" %(self, superset, ', '.join("%s.%s is not a subset of %s.%s" %(sub_i._repr_(), sub_a, sup_i._repr_(), sup_a) for (sub_i, sub_a), (sup_i, sup_a) in ((sub._getOwner(), sup._getOwner()) for sub, sup in reasons)))
+                    raise ValueError, "To support a subindex, %s must be a subset of %s but %s" %(self, superset, ', '.join("%s.%s is not a subset of %s.%s" %(sub_i._repr_(), sub_a, sup_i._repr_(), sup_a) for (sub_i, sub_a), (sup_i, sup_a) in ((sub.itsOwner, sup.itsOwner) for sub, sup in reasons)))
 
             self.fillIndex(index)
             self._setDirty(True) # noFireChanges=True
@@ -265,7 +265,7 @@ class Indexed(object):
     def _createIndex(self, indexType, **kwds):
 
         if indexType == 'numeric':
-            return self._getView()._createNumericIndex(**kwds)
+            return self.itsView._createNumericIndex(**kwds)
 
         cls = __index_classes__.get(indexType)
         if cls is not None:
@@ -275,7 +275,7 @@ class Indexed(object):
 
     def removeIndex(self, indexName):
 
-        item, name = self._getOwner()
+        item, name = self.itsOwner
 
         if self._indexes is None or indexName not in self._indexes:
             raise NoSuchIndexError, (item, name, indexName)
@@ -309,7 +309,7 @@ class Indexed(object):
 
     def _restoreIndexes(self, *ignore):  # extra afterLoad callback view arg
 
-        item, name = self._getOwner()
+        item, name = self.itsOwner
 
         for index in self._indexes.itervalues():
             if index.isPersistent():
@@ -559,7 +559,7 @@ class Indexed(object):
         if item in self:
             return self.getIndex(indexName).getPosition(item.itsUUID)
 
-        ownerItem, name = self._getOwner()
+        ownerItem, name = self.itsOwner
         raise NoSuchItemInCollectionError, (ownerItem, name, item)
 
     def firstInIndex(self, indexName):
@@ -612,7 +612,7 @@ class Indexed(object):
             if key in self:
                 raise
             else:
-                item, name = self._getOwner()
+                item, name = self.itsOwner
                 raise NoSuchItemInCollectionError, (item, name, previous)
 
         if nextKey is not None:
@@ -640,7 +640,7 @@ class Indexed(object):
             if key in self:
                 raise
             else:
-                item, name = self._getOwner()
+                item, name = self.itsOwner
                 raise NoSuchItemInCollectionError, (item, name, next)
 
         if previousKey is not None:

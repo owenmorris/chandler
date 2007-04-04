@@ -393,7 +393,7 @@ OSAF naming conventions)::
     >>> parents.includePolicy
     'byCloud'
     >>> parents.attribute
-    ['parents']
+    <PersistentList: ['parents']>
 
     >>> export = clouds.getByAlias('export')
     >>> list(export.endpoints)
@@ -403,7 +403,7 @@ OSAF naming conventions)::
     >>> children.includePolicy
     'byRef'
     >>> children.attribute
-    ['children']
+    <PersistentList: ['children']>
 
 Instances of an item class can be iterated over using the ``iterItems()`` class
 method::
@@ -637,7 +637,7 @@ Enumerations
     >>> test_role = schema.Descriptor(Importance)
 
     >>> imp.values
-    ['high', 'medium', 'low']
+    <PersistentList: ['high', 'medium', 'low']>
 
     >>> class Rating(Importance):
     ...     values = "good", "bad"

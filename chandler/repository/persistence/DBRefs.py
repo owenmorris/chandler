@@ -1,4 +1,4 @@
-#   Copyright (c) 2004-2006 Open Source Applications Foundation
+#   Copyright (c) 2004-2007 Open Source Applications Foundation
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -14,7 +14,7 @@
 
 from weakref import ref
 
-from chandlerdb.util.c import Nil, UUID, CLink, CLinkedMap
+from chandlerdb.util.c import Nil, UUID, CLink, CLinkedMap, PersistentValue
 from chandlerdb.item.c import isitemref, ItemRef
 from chandlerdb.persistence.c import Record
 from repository.item.Children import Children
@@ -24,13 +24,12 @@ from repository.item.Indexed import Indexed
 from repository.persistence.RepositoryError import MergeError
 
 
-class PersistentRefs(object):
+class PersistentRefs(PersistentValue):
 
     def __init__(self, view):
 
-        super(PersistentRefs, self).__init__()
+        super(PersistentRefs, self).__init__(view)
 
-        self.view = view
         self.store = view.store
         self._changedRefs = Nil
         
@@ -38,7 +37,7 @@ class PersistentRefs(object):
 
         version = self._owner().itsVersion
         nextKey = firstKey or self._firstKey
-        view = self.view
+        view = self.itsView
         refIterator = None
         map = self._dict
 
@@ -79,7 +78,7 @@ class PersistentRefs(object):
 
         version = self._owner().itsVersion
         nextKey = firstKey or self._firstKey
-        view = self.view
+        view = self.itsView
         refIterator = None
         map = self._dict
 
@@ -129,7 +128,7 @@ class PersistentRefs(object):
         uuid = self.uuid
         oldAliases = {}
         for (version, (collection, key),
-             ref) in self.store._refs.iterHistory(self.view, uuid,
+             ref) in self.store._refs.iterHistory(self.itsView, uuid,
                                                   fromVersion, toVersion):
             if key != uuid:
                 if ref is None:
@@ -144,7 +143,7 @@ class PersistentRefs(object):
     def _setItem(self, item):
 
         if not self._flags & self.NEW:
-            ref = self.store._refs.loadRef(self.view, self.uuid,
+            ref = self.store._refs.loadRef(self.itsView, self.uuid,
                                            self._owner().itsVersion, self.uuid,
                                            True)
             if ref is not None:
@@ -152,7 +151,7 @@ class PersistentRefs(object):
 
     def _changeRef(self, key, link, oldAlias=Nil):
 
-        if key is not None and not self.view.isLoading():
+        if key is not None and not self.itsView.isLoading():
             changedRefs = self._changedRefs
             if changedRefs is Nil:
                 self._changedRefs = {key: (0, oldAlias)}
@@ -168,7 +167,7 @@ class PersistentRefs(object):
 
     def _removeRef_(self, key, link):
 
-        if not self.view.isLoading():
+        if not self.itsView.isLoading():
             changedRefs = self._changedRefs
             if changedRefs is Nil:
                 self._changedRefs = {key: (1, link.alias or Nil)}
@@ -205,7 +204,7 @@ class PersistentRefs(object):
         if self._isRemoved(key):
             return None
         
-        return self.store._refs.loadRef(self.view, self.uuid,
+        return self.store._refs.loadRef(self.itsView, self.uuid,
                                         self._owner().itsVersion, key)
 
     def _deleteRef(self, key, version):
@@ -216,7 +215,7 @@ class PersistentRefs(object):
 
         key = None
         if load:
-            view = self.view
+            view = self.itsView
             key = self.store._names.readName(view, view.itsVersion,
                                              self.uuid, alias)
             if key is not None:
@@ -232,7 +231,7 @@ class PersistentRefs(object):
 
     def _applyChanges(self, changes, history, ask):
 
-        view = self.view
+        view = self.itsView
         moves = {}
         done = set()
 
@@ -306,7 +305,6 @@ class PersistentRefs(object):
                 place(key, prevKey)
                 
 
-
 class DBRefList(RefList, PersistentRefs):
 
     def __init__(self, view, item, name, otherName, dictKey,
@@ -315,8 +313,8 @@ class DBRefList(RefList, PersistentRefs):
         self.uuid = uuid or UUID()
 
         PersistentRefs.__init__(self, view)
-        RefList.__init__(self, item, name, otherName, dictKey, readOnly,
-                         (new and CLinkedMap.NEW or 0) | CLinkedMap.LOAD)
+        RefList.__init__(self, view, item, name, otherName, dictKey, readOnly,
+                         (CLinkedMap.NEW if new else 0) | CLinkedMap.LOAD)
 
     def iterkeys(self, excludeIndexes=False, firstKey=None, lastKey=None):
 
@@ -325,10 +323,6 @@ class DBRefList(RefList, PersistentRefs):
     def iteraliases(self, firstKey=None, lastKey=None):
 
         return self._iteraliases(firstKey, lastKey)
-
-    def _getView(self):
-
-        return self.view
 
     def resolveAlias(self, alias, load=True):
 
@@ -440,7 +434,7 @@ class DBStandAloneRefList(DBRefList):
 
     def __iter__(self):
 
-        view = self.view
+        view = self.itsView
         for key in self.iterkeys():
             yield view.find(key)
 
@@ -624,8 +618,8 @@ class DBChildren(Children, PersistentRefs):
         self.uuid = item.itsUUID
 
         PersistentRefs.__init__(self, view)
-        Children.__init__(self, item,
-                          (new and CLinkedMap.NEW or 0) | CLinkedMap.LOAD)
+        Children.__init__(self, view, item,
+                          (CLinkedMap.NEW if new else 0) | CLinkedMap.LOAD)
 
     def iterkeys(self, firstKey=None, lastKey=None):
 
@@ -642,15 +636,15 @@ class DBChildren(Children, PersistentRefs):
             return False
 
         if not self._isRemoved(key):
-            child = self.view.find(key)
+            child = self.itsView.find(key)
             if child is not None or self._flags & CLinkedMap.MERGING:
                 if key not in self._dict:
                     try:
-                        loading = self.view._setLoading(True)
+                        loading = self.itsView._setLoading(True)
                         if not self._loadChild(key, child):
                             return False
                     finally:
-                        self.view._setLoading(loading, True)
+                        self.itsView._setLoading(loading, True)
                 return True
 
         return False
@@ -710,7 +704,7 @@ class DBChildren(Children, PersistentRefs):
 
     def _append(self, child):
 
-        loading = self.view.isLoading()
+        loading = self.itsView.isLoading()
         if loading:
             self._loadChild(child.itsUUID, child)
         else:

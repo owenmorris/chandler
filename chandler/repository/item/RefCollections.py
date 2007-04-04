@@ -1,4 +1,4 @@
-#   Copyright (c) 2003-2006 Open Source Applications Foundation
+#   Copyright (c) 2003-2007 Open Source Applications Foundation
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -30,14 +30,14 @@ class RefList(LinkedMap, Indexed):
     used to name and access the references contained by a ref list.
     """
     
-    def __init__(self, item, name, otherName, dictKey, readOnly, lmflags):
+    def __init__(self, view, item, name, otherName, dictKey, readOnly, lmflags):
         """
         The constructor for this class. A RefList should not be instantiated
         directly but created through the item and attribute it is going to
         be used with instead, as for example with: C{item.name = []}.
         """
         
-        super(RefList, self).__init__(lmflags)
+        super(RefList, self).__init__(view, lmflags)
         self._init_indexed()
         self._owner = Nil
         self._name = name
@@ -151,13 +151,9 @@ class RefList(LinkedMap, Indexed):
             self._owner = Nil
             self._flags &= ~RefList.SETDIRTY
 
-    def _getView(self):
-
-        return self._owner.itsView
-
     def _getOwner(self):
-
         return self._owner(), self._name
+    itsOwner = property(_getOwner)
 
     def __repr__(self):
 
@@ -292,7 +288,7 @@ class RefList(LinkedMap, Indexed):
         Remove all references from this ref collection.
         """
 
-        view = self._owner.itsView
+        view = self.itsView
         for uOther in self.iterkeys():
             other = view.find(uOther)
             if other is not None:
@@ -456,7 +452,7 @@ class RefList(LinkedMap, Indexed):
         link = self._removeRef_(other)
         if link is not None:
             item = self._owner()
-            view = item.itsView
+            view = self.itsView
             view._notifyChange(item._collectionChanged,
                                'remove', 'collection', self._name,
                                other.itsUUID)
@@ -475,7 +471,7 @@ class RefList(LinkedMap, Indexed):
         if ref is None:
             return False
         
-        view = self._owner.itsView
+        view = self.itsView
             
         previousKey, nextKey, alias, otherKey = ref[0:4]
         self._dict[key] = CLink(self, ItemRef(key, view), previousKey, nextKey,
@@ -695,8 +691,8 @@ class RefList(LinkedMap, Indexed):
         @return: C{True} if no errors were found, {False} otherwise.
         """
 
-        logger = self._getView().logger
-        refs = self._owner()._references
+        logger = self.itsView.logger
+        refs = self._owner().itsRefs
 
         if item is not self._owner() or name != self._name:
             logger.error('Ref collection not owned by %s.%s: %s',

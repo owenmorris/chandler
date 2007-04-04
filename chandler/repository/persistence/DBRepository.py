@@ -1,4 +1,4 @@
-#   Copyright (c) 2003-2006 Open Source Applications Foundation
+#   Copyright (c) 2003-2007 Open Source Applications Foundation
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -21,7 +21,7 @@ from os.path import exists, abspath, normpath, join, dirname, basename, isdir
 from chandlerdb.util import lock
 from chandlerdb.util.c import Nil, Default, UUID, _hash, getPlatformName
 from chandlerdb.item.c import CItem, CValues
-from chandlerdb.item.ItemValue import Indexable
+from chandlerdb.item import Indexable
 from chandlerdb.persistence.c import DBEnv, DB, Transaction, \
     DBNoSuchFileError, DBPermissionsError, DBInvalidArgError, \
     DBLockDeadlockError, DBVersionMismatchError, DBRunRecoveryError, \

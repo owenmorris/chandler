@@ -1,4 +1,4 @@
-#   Copyright (c) 2005-2006 Open Source Applications Foundation
+#   Copyright (c) 2005-2007 Open Source Applications Foundation
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -16,9 +16,8 @@
 from itertools import izip
 
 from chandlerdb.util.c import UUID, isuuid, Nil
-from chandlerdb.item.c import CItem
+from chandlerdb.item.c import CItem, ItemValue
 from chandlerdb.persistence.c import CView
-from chandlerdb.item.ItemValue import ItemValue
 from repository.item.Monitors import Monitors
 from repository.item.Indexed import Indexed
 from repository.item.Collection import Collection
@@ -28,10 +27,9 @@ class AbstractSet(ItemValue, Indexed):
 
     def __init__(self, view, id):
 
-        super(AbstractSet, self).__init__()
-        self._init_indexed()
+        super(AbstractSet, self).__init__(view, None, None)
 
-        self._view = view
+        self._init_indexed()
         self._otherName = None
         self.id = id
 
@@ -47,7 +45,7 @@ class AbstractSet(ItemValue, Indexed):
 
     def __getitem__(self, uuid):
 
-        return self._view[uuid]
+        return self.itsView[uuid]
 
     def __eq__(self, value):
 
@@ -85,7 +83,7 @@ class AbstractSet(ItemValue, Indexed):
         if not excludeIndexes:
             index = self._anIndex()
             if index is not None:
-                view = self._view
+                view = self.itsView
                 return (view[key] for key in index)
 
         return self._itervalues(excludeIndexes)
@@ -189,7 +187,7 @@ class AbstractSet(ItemValue, Indexed):
             return source.isSubset(superset, reasons)
 
         uItem, srcAttr = source
-        return getattr(self._view[uItem], srcAttr).isSubset(superset, reasons)
+        return getattr(self.itsView[uItem], srcAttr).isSubset(superset, reasons)
 
     def _isSourceSuperset(self, source, subset, reasons):
 
@@ -197,7 +195,7 @@ class AbstractSet(ItemValue, Indexed):
             return source.isSuperset(subset, reasons)
 
         uItem, srcAttr = source
-        return getattr(self._view[uItem], srcAttr).isSuperset(subset, reasons)
+        return getattr(self.itsView[uItem], srcAttr).isSuperset(subset, reasons)
 
     def _iterSourceItems(self):
 
@@ -211,7 +209,7 @@ class AbstractSet(ItemValue, Indexed):
                 yield source
         else:
             uItem, srcAttr = source
-            srcItem = self._view[uItem]
+            srcItem = self.itsView[uItem]
             yield srcItem, srcAttr
             if recursive:
                 set = getattr(srcItem, srcAttr)
@@ -230,10 +228,6 @@ class AbstractSet(ItemValue, Indexed):
         for item in self:
             print item._repr_()
 
-    def _getView(self):
-
-        return self._view
-
     def _setView(self, view):
 
         self._view = view
@@ -241,7 +235,7 @@ class AbstractSet(ItemValue, Indexed):
     def _prepareSource(self, source):
         
         if isinstance(source, AbstractSet):
-            return source._view, source
+            return source.itsView, source
         elif isinstance(source, Collection):
             return source.getSourceCollection()
         elif isuuid(source[0]):
@@ -256,7 +250,7 @@ class AbstractSet(ItemValue, Indexed):
             return False
 
         if not isinstance(source, AbstractSet):
-            source = getattr(self._view[source[0]], source[1])
+            source = getattr(self.itsView[source[0]], source[1])
 
         return source.__contains__(item, excludeMutating, excludeIndexes)
 
@@ -265,21 +259,21 @@ class AbstractSet(ItemValue, Indexed):
         if isinstance(source, AbstractSet):
             return source
         
-        return getattr(self._view[source[0]], source[1])
+        return getattr(self.itsView[source[0]], source[1])
 
     def _inspectSource(self, source, indent):
 
         if isinstance(source, AbstractSet):
             return source._inspect_(indent)
         
-        return self._view[source[0]]._inspectCollection(source[1], indent)
+        return self.itsView[source[0]]._inspectCollection(source[1], indent)
 
     def _aSourceIndex(self, source):
 
         if isinstance(source, AbstractSet):
             return source._anIndex()
 
-        return getattr(self._view[source[0]], source[1])._anIndex()
+        return getattr(self.itsView[source[0]], source[1])._anIndex()
 
     def _iterSource(self, source, excludeIndexes=False):
 
@@ -287,7 +281,7 @@ class AbstractSet(ItemValue, Indexed):
             for item in source.__iter__(excludeIndexes):
                 yield item
         else:
-            for item in getattr(self._view[source[0]],
+            for item in getattr(self.itsView[source[0]],
                                 source[1]).__iter__(excludeIndexes):
                 yield item
 
@@ -296,7 +290,7 @@ class AbstractSet(ItemValue, Indexed):
         if isinstance(source, AbstractSet):
             return source.iterkeys(excludeIndexes)
 
-        return getattr(self._view[source[0]],
+        return getattr(self.itsView[source[0]],
                        source[1]).iterkeys(excludeIndexes)
 
     def _sourceLen(self, source):
@@ -304,7 +298,7 @@ class AbstractSet(ItemValue, Indexed):
         if isinstance(source, AbstractSet):
             return len(source)
 
-        return len(getattr(self._view[source[0]], source[1]))
+        return len(getattr(self.itsView[source[0]], source[1]))
 
     def _reprSource(self, source, replace):
 
@@ -336,7 +330,7 @@ class AbstractSet(ItemValue, Indexed):
             source._setOwner(item, attribute)
 
         elif item is not oldItem:
-            view = self._view
+            view = self.itsView
             if not view.isLoading():
                 if item is None:
                     sourceItem = view.findUUID(source[0])
@@ -363,7 +357,7 @@ class AbstractSet(ItemValue, Indexed):
 
         elif (sourceName == source[1] and
               (isuuid(sourceOwner) and sourceOwner == source[0] or
-               sourceOwner is self._view[source[0]])):
+               sourceOwner is self.itsView[source[0]])):
             pass
         else:
             op = None
@@ -372,7 +366,7 @@ class AbstractSet(ItemValue, Indexed):
 
     def _collectionChanged(self, op, change, other, local=False):
 
-        item, attribute = self._getOwner()
+        item, attribute = self.itsOwner
         if item is not None:
             if change == 'collection':
 
@@ -386,7 +380,7 @@ class AbstractSet(ItemValue, Indexed):
 
                 if op in ('add', 'remove'):
                     if not (local or self._otherName is None):
-                        otherItem = self._view.find(other)
+                        otherItem = self.itsView.find(other)
                         if otherItem is not None:
                             refs = otherItem._references
                             if op == 'add':
@@ -474,7 +468,7 @@ class AbstractSet(ItemValue, Indexed):
     def copy(self, id=None):
 
         copy = eval(self._repr_())
-        copy._setView(self._view)
+        copy._setView(self.itsView)
         copy.id = id or self.id
         
         return copy
@@ -572,17 +566,17 @@ class AbstractSet(ItemValue, Indexed):
                 ignore=False):
 
         self._owner().add(other)
-        self._view._notifyChange(self._collectionChanged,
-                                 'add', 'collection', other.itsUUID,
-                                 True)
+        self.itsView._notifyChange(self._collectionChanged,
+                                   'add', 'collection', other.itsUUID,
+                                   True)
 
     def _removeRef(self, other, dictKey=None):
 
         if other in self:
             self._owner().remove(other)
-            self._view._notifyChange(self._collectionChanged,
-                                     'remove', 'collection', other.itsUUID,
-                                     True)
+            self.itsView._notifyChange(self._collectionChanged,
+                                       'remove', 'collection', other.itsUUID,
+                                       True)
 
     def _removeRefs(self):
         
@@ -606,16 +600,6 @@ class EmptySet(AbstractSet):
     def __init__(self, id=None):
 
         super(EmptySet, self).__init__(None, id)
-
-    def _setOwner(self, item, attribute):
-
-        result = super(EmptySet, self)._setOwner(item, attribute)
-        if item is None:
-            self._view = None
-        else:
-            self._view = item.itsView
-
-        return result
 
     def __contains__(self, item, excludeMutating=False, excludeIndexes=False):
 
@@ -725,11 +709,11 @@ class Set(AbstractSet):
         
     def _setOwner(self, item, attribute):
 
-        oldItem, oldAttribute = super(Set, self)._setOwner(item, attribute)
+        oldItem, oldAttribute, x = super(Set, self)._setOwner(item, attribute)
         self._setSourceItem(self._source,
                             item, attribute, oldItem, oldAttribute)
 
-        return oldItem, oldAttribute
+        return oldItem, oldAttribute, x
 
     def _setView(self, view):
 
@@ -797,11 +781,11 @@ class BiSet(AbstractSet):
         
     def _setOwner(self, item, attribute):
 
-        oldItem, oldAttribute = super(BiSet, self)._setOwner(item, attribute)
+        oldItem, oldAttribute, x = super(BiSet, self)._setOwner(item, attribute)
         self._setSourceItem(self._left, item, attribute, oldItem, oldAttribute)
         self._setSourceItem(self._right, item, attribute, oldItem, oldAttribute)
 
-        return oldItem, oldAttribute
+        return oldItem, oldAttribute, x
 
     def _setView(self, view):
 
@@ -1108,11 +1092,12 @@ class MultiSet(AbstractSet):
         
     def _setOwner(self, item, attribute):
 
-        oldItem, oldAttribute = super(MultiSet, self)._setOwner(item, attribute)
+        oldItem, oldAttribute, x = super(MultiSet, self)._setOwner(item,
+                                                                   attribute)
         for source in self._sources:
             self._setSourceItem(source, item, attribute, oldItem, oldAttribute)
 
-        return oldItem, oldAttribute
+        return oldItem, oldAttribute, x
 
     def _setView(self, view):
 
@@ -1374,10 +1359,10 @@ class KindSet(Set):
         if item is None:
             return False
 
-        kind = self._view[self._extent].kind
+        kind = self.itsView[self._extent].kind
 
         if isuuid(item):
-            instance = self._view.find(item, False)
+            instance = self.itsView.find(item, False)
             if instance is None:
                 return kind.isKeyForInstance(item, self._recursive)
             else:
@@ -1404,11 +1389,11 @@ class KindSet(Set):
 
     def _itervalues(self, excludeIndexes=False):
 
-        return self._view[self._extent].iterItems(self._recursive)
+        return self.itsView[self._extent].iterItems(self._recursive)
 
     def _iterkeys(self, excludeIndexes=False):
 
-        return self._view[self._extent].iterKeys(self._recursive)
+        return self.itsView[self._extent].iterKeys(self._recursive)
 
     def _repr_(self, replace=None):
 
@@ -1450,8 +1435,8 @@ class KindSet(Set):
             return True
 
         if isinstance(superset, KindSet):
-            superKind = self._view[superset._extent].kind
-            if self._view[self._extent].kind.isKindOf(superKind):
+            superKind = self.itsView[superset._extent].kind
+            if self.itsView[self._extent].kind.isKindOf(superKind):
                 return True
 
         elif isinstance(superset, AbstractSet):
@@ -1468,18 +1453,18 @@ class KindSet(Set):
             return True
 
         if isinstance(subset, KindSet):
-            subKind = self._view[subset._extent].kind
-            if subKind.isKindOf(self._view[self._extent].kind):
+            subKind = self.itsView[subset._extent].kind
+            if subKind.isKindOf(self.itsView[self._extent].kind):
                 return True
 
         elif isinstance(subset, AbstractSet):
             return subset.isSubset(self, reasons)
 
         elif isinstance(subset, RefList):
-            item, attr = subset._getOwner()
+            item, attr = subset.itsOwner
             subKind = item.getAttributeAspect(attr, 'type')
             if (subKind is not None and
-                subKind.isKindOf(self._view[self._extent].kind)):
+                subKind.isKindOf(self.itsView[self._extent].kind)):
                 return True
 
         if reasons is not None:
@@ -1491,7 +1476,7 @@ class KindSet(Set):
 
         return "%s\n%skind: %s" %(self._inspect__(indent),
                                   '  ' * (indent + 1),
-                                  self._view[self._extent].kind.itsPath)
+                                  self.itsView[self._extent].kind.itsPath)
 
 
 class FilteredSet(Set):
@@ -1539,11 +1524,11 @@ class FilteredSet(Set):
 
     def _setOwner(self, item, attribute):
 
-        oldItem, oldAttribute = super(FilteredSet, self)._setOwner(item,
-                                                                   attribute)
+        oldItem, oldAttribute, x = \
+            super(FilteredSet, self)._setOwner(item, attribute)
         
         if item is not oldItem:
-            if not self._view.isLoading():
+            if not self.itsView.isLoading():
                 attrs = self.attributes
                 if oldItem is not None:
                     if attrs:
@@ -1564,7 +1549,7 @@ class FilteredSet(Set):
                             attach('set', name)
                             attach('remove', name)
 
-        return oldItem, oldAttribute
+        return oldItem, oldAttribute, x
 
     def sourceChanged(self, op, change, sourceOwner, sourceName, inner, other,
                       source=None):
@@ -1582,7 +1567,7 @@ class FilteredSet(Set):
                     if other not in index:
                         op = None
                 elif not self.filter(other):
-                    otherItem = self._view.find(other, False)
+                    otherItem = self.itsView.find(other, False)
                     if not (otherItem is None or otherItem.isDeleting()):
                         op = None
 
@@ -1623,7 +1608,7 @@ class ExpressionFilteredSet(FilteredSet):
     def filter(self, uuid):
 
         try:
-            return self._filter(self._view, uuid)
+            return self._filter(self.itsView, uuid)
         except Exception, e:
             e.args = ("Error in filter", self.filterExpression) + e.args
             raise
@@ -1649,7 +1634,7 @@ class MethodFilteredSet(FilteredSet):
     
     def filter(self, uuid):
 
-        view = self._view
+        view = self.itsView
         uItem, methodName = self.filterMethod
 
         return getattr(view[uItem], methodName)(view, uuid)
