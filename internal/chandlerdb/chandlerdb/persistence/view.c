@@ -564,7 +564,7 @@ static PyObject *t_view__notifyChange(t_view *self, PyObject *args,
         PyObject *notif = PyTuple_Pack(3, callable, callArgs,
                                        kwds ? kwds : Py_None);
 
-        PyList_Append(self->deferredNotificationsCtx->data, notif) == 0;
+        PyList_Append(self->deferredNotificationsCtx->data, notif);
         Py_DECREF(notif);
     }
     else
