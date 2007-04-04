@@ -48,7 +48,8 @@ from calendar.DateTimeUtil import (ampmNames, durationFormat, mediumDateFormat,
      weekdayNames, weekdayName)
 from reminders import PendingReminderEntry, Reminder, Remindable
 from tasks import Task, TaskStamp
-from mail import EmailAddress, EmailComparator, MailStamp
+from mail import EmailAddress, EmailComparator, MailStamp, MailPreferences, IMAPAccount, SMTPAccount
+from osaf.framework import password
 from application.Parcel import Reference
 from repository.item.Item import Item
 from PyICU import ICUtzinfo
@@ -66,12 +67,12 @@ class MasterEventWatcher(schema.Item):
     A C{MasterEventWatcher} is responsible for observing changes to
     master events, and then propagating notifications to the masters'
     modifications.
-    
+
     See <http://lists.osafoundation.org/pipermail/chandler-dev/2007-January/007537.html>
     """
 
     targetCollection = schema.One(ContentCollection)
-    
+
     def install(self):
         """
         Watch our targetCollection for changes. This is typically called
@@ -151,23 +152,23 @@ class RecurrenceAwareFilter(Item):
                         filterAttributes=[cls.attrAndDefault[0]],
                     )
         return collection
-    
+
     def matches(self, view, uuid):
         return view.findInheritedValues(uuid, type(self).attrAndDefault)[0]
-    
+
 class UnexpiredFilter(Item):
     findValuePair = (Reminder.nextPoll.name, None)
-    
+
     def notExpired(self, view, uuid):
         nextPoll = view.findValue(uuid, *self.findValuePair)
-        
+
         return nextPoll != Reminder.farFuture
-        
+
     def compare(self, u1, u2):
         view = self.itsView
         np1 = view.findValue(u1, self.findValuePair[0], None)
         np2 = view.findValue(u2, self.findValuePair[0], None)
-        
+
         if np1 == np2:
             return 0
         if np1 is None:
@@ -188,12 +189,32 @@ def installParcel(parcel, oldVersion=None):
     # Create our one collection of indexDefinition mappings; when each gets
     # created, its __init__ will add it to this collection automagically.
     AllIndexDefinitions.update(parcel, "allIndexDefinitions")
-
     Reference.update(parcel, 'currentContact')
-    Reference.update(parcel, 'currentIncomingAccount')
-    Reference.update(parcel, 'currentOutgoingAccount')
+
+    MailPreferences.update(parcel, 'MailPrefs')
     Reference.update(parcel, 'currentMeEmailAddress')
     Reference.update(parcel, 'currentMeEmailAddresses')
+
+    cur = Reference.update(parcel, 'currentIncomingAccount')
+    cur1 = Reference.update(parcel, 'currentOutgoingAccount')
+
+
+    if cur.item is None:
+        cur.item = IMAPAccount(itsView=view,
+            displayName = _(u'Incoming mail'),
+            replyToAddress = EmailAddress(itsView=view),
+            password = password.Password(itsView=view)
+            )
+
+
+    if cur1.item is None:
+        cur1.item = SMTPAccount(itsView=view,
+            displayName = _(u'Outgoing mail'),
+            password = password.Password(itsView=view),
+            )
+
+
+
 
     trashCollection = ListCollection.update(
         parcel, 'trashCollection',
@@ -225,24 +246,24 @@ def installParcel(parcel, oldVersion=None):
         parcel, 'allContentItems',
         kind = ContentItem.getKind(view),
         recursive=True)
-       
+
     contentItems = FilteredCollection.update(parcel, 'contentItems',
         source=allContentItems,
         filterMethod=(nonOccurrenceFilter, 'isNotPureOccurrence'),
         filterAttributes=[EventStamp.occurrenceFor.name,
                           EventStamp.modificationFor.name])
-       
+
     allReminders = KindCollection.update(
         parcel, 'allReminders', kind=Reminder.getKind(view), recursive=True
     )
-    
+
     allFutureReminders = FilteredCollection.update(
         parcel, 'allFutureReminders',
         source=allReminders,
         filterMethod=(UnexpiredFilter(None, parcel), 'notExpired'),
         filterAttributes=[UnexpiredFilter.findValuePair[0]],
     )
-    
+
     allFutureReminders.addIndex('reminderPoll',
         'method', method=(UnexpiredFilter(None, parcel), 'compare'),
         monitor=[UnexpiredFilter.findValuePair[0]])
@@ -259,7 +280,7 @@ def installParcel(parcel, oldVersion=None):
 
     events = EventStamp.getCollection(view)
     eventComparator = EventComparator.update(parcel, 'eventComparator')
-    
+
     EventStamp.addIndex(events, 'effectiveStart', 'method',
                     method=(eventComparator, 'cmpStartTime'),
                     monitor=(EventStamp.startTime, EventStamp.allDay,
@@ -311,16 +332,16 @@ def installParcel(parcel, oldVersion=None):
     longEvents.addIndex('effectiveEndNoTZ', 'subindex',
                         superindex=(events, events.__collection__,
                                     'effectiveEndNoTZ'))
-    
+
     filterAttributes = (EventStamp.rruleset.name, EventStamp.occurrences.name)
     masterFilter = "view.hasTrueValues(uuid, '%s', '%s')" % filterAttributes
     nonMasterFilter = "not " + masterFilter
-    
+
     masterEvents = FilteredCollection.update(parcel, 'masterEvents',
         source = events,
         filterExpression = masterFilter,
         filterAttributes = list(filterAttributes))
-        
+
     nonMasterEvents = FilteredCollection.update(parcel, 'nonMasterEvents',
         source = events,
         filterExpression = nonMasterFilter,
@@ -415,14 +436,14 @@ def installParcel(parcel, oldVersion=None):
     searchResults = SmartCollection.update(
         parcel, 'searchResults',
         displayName = messages.UNTITLED)
-        
+
     TriageStatusReminder.update(parcel, 'triageStatusReminder')
     startup.Startup.update(parcel, "installWatchers",
         invoke=__name__ + ".installWatchers"
     )
 
     tzInstallParcel(parcel)
-    
+
 def installWatchers(startup):
     """
     Helper function that allows our TriageStatusReminder to watch for

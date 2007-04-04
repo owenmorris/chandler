@@ -16,7 +16,7 @@
 from twisted.internet import reactor
 
 #Chandler imports
-from application import Globals
+from application import Globals, schema
 import osaf.pim.mail as Mail
 from repository.persistence.RepositoryError \
     import RepositoryError, VersionConflictError
@@ -84,6 +84,10 @@ class MailService(object):
 
         self._started = True
 
+        if Globals.options.offline:
+            self.takeOffline()
+
+
     def shutdown(self):
         """Shutsdown the MailService and deletes any clients in the
            MailServices cache"""
@@ -98,18 +102,19 @@ class MailService(object):
             self._started = False
 
     def takeOnline(self):
-        Globals.options.offline = False
-        self._view.refresh()
+        schema.ns("osaf.pim", self._view).MailPrefs.isOnline = True
+        self._view.commit()
 
         for account in Mail.SMTPAccount.getActiveAccounts(self._view):
             if len(account.messageQueue):
                 self.getSMTPInstance(account).takeOnline()
 
     def takeOffline(self):
-        Globals.options.offline = True
+        schema.ns("osaf.pim", self._view).MailPrefs.isOnline = False
+        self._view.commit()
 
     def isOnline(self):
-        return not Globals.options.offline
+        return schema.ns("osaf.pim", self._view).MailPrefs.isOnline
 
     def refreshMailServiceCache(self):
         """Refreshs the MailService Cache checking for

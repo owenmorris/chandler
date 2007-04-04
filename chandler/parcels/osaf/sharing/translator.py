@@ -14,6 +14,7 @@
 
 from application import schema
 from osaf import pim
+from osaf.pim import mail
 from osaf.sharing import (
     eim, model, shares, utility, accounts, conduits, cosmo, webdav_conduit,
     recordset_conduit, eimml
@@ -35,9 +36,10 @@ from osaf.pim.calendar.Recurrence import RecurrenceRuleSet, RecurrenceRule
 from dateutil.rrule import rrulestr
 import dateutil
 from chandlerdb.util.c import UUID
+from osaf.framework.twisted import waitForDeferred
 from osaf.pim.mail import EmailAddress
 from osaf.usercollections import UserCollection
-from osaf.mail.utils import getEmptyDate
+from osaf.mail.utils import getEmptyDate, dataToBinary, binaryToData
 from osaf.pim.structs import ColorType
 from osaf.preferences import CalendarPrefs
 from osaf.framework.password import Password
@@ -54,6 +56,10 @@ oneDay = timedelta(1)
 
 noChangeOrInherit = (eim.NoChange, eim.Inherit)
 emptyValues = (eim.NoChange, eim.Inherit, None)
+
+class MessageState(object):
+    FROM_ME, TO_ME, VIA_MAILSERVICE, IS_UPDATED, \
+    FROM_EIMML, PREVIOUS_IN_RECIPIENTS = (1<<n for n in xrange(6))
 
 def getEmailAddress(view, record):
     name, email = Utils.parseaddr(record)
@@ -674,20 +680,312 @@ class SharingTranslator(eim.Translator):
             pim.TaskStamp(item).remove()
 
 
+    @model.MailAccountRecord.importer
+    def import_mail_account(self, record):
+        @self.withItemForUUID(record.uuid,
+            mail.AccountBase,
+            host=record.host,
+            username=record.username,
+            numRetries=record.retries,
+            pollingFrequency=record.frequency,
+            timeout=record.timeout,
+        )
+        def do(account):
+            if record.connectionType not in (eim.NoChange, None):
+                account.connectionSecurity = record.connectionType == 0 and 'NONE' or \
+                                             record.connectionType == 1 and 'TLS' or 'SSL'
+
+            if record.active not in (eim.NoChange, None):
+                account.isActive = record.active == 1
+
+            #XXX PASSWORD
+            if record.password not in (eim.NoChange, None):
+                pwd = Password(itsView=self.rv)
+                pwd.encryptPassword(record.password)
+
+                account.password = pwd
+
+    @eim.exporter(mail.AccountBase)
+    def export_mail_account(self, account):
+        connectionType = 0
+
+        if account.connectionSecurity == "TLS":
+            connectionType = 1
+        elif account.connectionSecurity == "SSL":
+            connectionType = 2
+
+        #XXX PASSWORD
+        password = waitForDeferred(account.password.decryptPassword())
+
+        yield model.MailAccountRecord(
+            account,
+            account.numRetries,
+            account.username,
+            password,
+            account.host,
+            connectionType,
+            account.pollingFrequency,
+            account.timeout,
+            account.isActive and 1 or 0,)
+
+
+    @model.SMTPAccountRecord.importer
+    def import_smtp_account(self, record):
+        @self.withItemForUUID(record.uuid, mail.SMTPAccount)
+        def do(account):
+            if record.useAuth not in (eim.NoChange, None):
+                account.useAuth = record.useAuth == 1
+
+            if record.fromAddress not in (eim.NoChange, None):
+                account.fromAddress = getEmailAddress(self.rv, record.fromAddress)
+
+            if record.port not in (eim.NoChange, None):
+                account.port = record.port
+
+            if record.isDefault not in (eim.NoChange, None) and \
+                record.isDefault:
+                ns = schema.ns("osaf.pim", self.rv)
+
+                oldAccount = ns.currentOutgoingAccount.item
+
+                if oldAccount and not oldAccount.host.strip():
+                    # The current account is empty
+                    oldAccount.isActive = False
+
+                ns.currentOutgoingAccount.item = account
+
+    @eim.exporter(mail.SMTPAccount)
+    def export_smtp_account(self, account):
+        ns = schema.ns("osaf.pim", self.rv)
+
+        if hasattr(account, "fromAddress") and account.fromAddress:
+            fromAddress = account.fromAddress.format()
+        else:
+            fromAddress = None
+
+        isDefault = ns.currentOutgoingAccount.item == account and 1 or 0
+
+        yield model.SMTPAccountRecord(
+            account,
+            fromAddress,
+            account.useAuth and 1 or 0,
+            account.port,
+            isDefault)
+
+        for record in self.export_smtp_account_queue(account):
+            yield record
+
+    def export_smtp_account_queue(self, account):
+        for msg in account.messageQueue:
+            yield model.SMTPAccountQueueRecord(
+                    account,
+                    msg.itsUUID,)
+
+    @model.SMTPAccountQueueRecord.importer
+    def import_smtp_account_queue(self, record):
+        @self.withItemForUUID(record.smtpAccountUUID)
+        def do(account):
+            @self.withItemForUUID(record.itemUUID, pim.ContentItem)
+            def do(item):
+                account.messageQueue.append(item)
+
+    @model.IMAPAccountRecord.importer
+    def import_imap_account(self, record):
+        @self.withItemForUUID(record.uuid, mail.IMAPAccount)
+        def do(account):
+            #The Inbox is created by default so clear it out
+            inbox = account.folders.first()
+            account.folders = []
+            inbox.delete()
+
+            if record.replyToAddress not in (eim.NoChange, None):
+                account.replyToAddress = getEmailAddress(self.rv, record.replyToAddress)
+
+            if record.port not in (eim.NoChange, None):
+                account.port = record.port
+
+            if record.isDefault not in (eim.NoChange, None) and \
+                record.isDefault:
+                ns = schema.ns("osaf.pim", self.rv)
+
+                oldAccount = ns.currentIncomingAccount.item
+
+                if oldAccount and not oldAccount.host.strip():
+                    # The current account is empty
+                    oldAccount.isActive = False
+
+                ns.currentIncomingAccount.item = account
+
+
+    @eim.exporter(mail.IMAPAccount)
+    def export_imap_account(self, account):
+        ns = schema.ns("osaf.pim", self.rv)
+
+        if hasattr(account, "replyToAddress") and account.replyToAddress:
+            replyToAddress = account.replyToAddress.format()
+        else:
+            replyToAddress = None
+
+        isDefault = ns.currentIncomingAccount.item == account and 1 or 0
+
+        yield model.IMAPAccountRecord(account, replyToAddress,
+                                      account.port, isDefault)
+
+        for record in self.export_imap_account_folders(account):
+            yield record
+
+    def export_imap_account_folders(self, account):
+        for folder in account.folders:
+            yield model.IMAPAccountFoldersRecord(
+                    account,
+                    folder.itsUUID,)
+
+    @model.IMAPAccountFoldersRecord.importer
+    def import_imap_account_folders(self, record):
+        @self.withItemForUUID(record.imapAccountUUID)
+        def do(account):
+            @self.withItemForUUID(record.imapFolderUUID, mail.IMAPFolder)
+            def do(folder):
+                account.folders.append(folder)
+
+
+    @model.IMAPFolderRecord.importer
+    def import_imap_folder(self, record):
+        @self.withItemForUUID(record.uuid, mail.IMAPFolder,
+                              folderName=record.name,
+                              folderType=record.type,
+                              lastMessageUID=record.lastUID,
+                              downloaded=record.downloaded,
+                              downloadMax=record.downloadMax)
+        def do(folder):
+            folder.deleteOnDownload = record.delete == 1
+
+
+    @eim.exporter(mail.IMAPFolder)
+    def export_imap_folder(self, folder):
+        yield model.IMAPFolderRecord(
+            folder,
+            folder.folderName,
+            folder.folderType,
+            folder.lastMessageUID,
+            folder.deleteOnDownload and 1 or 0,
+            folder.downloaded,
+            folder.downloadMax,
+        )
+
+    @model.POPAccountRecord.importer
+    def import_pop_account(self, record):
+        @self.withItemForUUID(record.uuid, mail.POPAccount,
+                              actionType=record.type,
+                              downloaded=record.downloaded,
+                              downloadMax=record.downloadMax)
+        def do(account):
+            if record.replyToAddress not in (eim.NoChange, None):
+                account.replyToAddress = getEmailAddress(self.rv, record.replyToAddress)
+
+            if record.delete not in (eim.NoChange, None):
+                account.deleteOnDownload = record.delete == 1
+
+            account.seenMessageUIDS = {}
+
+            if record.seenUIDS not in (eim.NoChange, None):
+                uids = record.seenUIDS.split("\n")
+
+                for uid in uids:
+                    account.seenMessageUIDS[uid] = "True"
+
+            if record.port not in (eim.NoChange, None):
+                account.port = record.port
+
+            if record.isDefault not in (eim.NoChange, None) and \
+                record.isDefault:
+                ns = schema.ns("osaf.pim", self.rv)
+
+                oldAccount = ns.currentIncomingAccount.item
+
+                if oldAccount and not oldAccount.host.strip():
+                    # The current account is empty
+                    oldAccount.isActive = False
+
+                ns.currentIncomingAccount.item = account
+
+
+    @eim.exporter(mail.POPAccount)
+    def export_pop_account(self, account):
+        ns = schema.ns("osaf.pim", self.rv)
+
+        if hasattr(account, "replyToAddress") and account.replyToAddress:
+            replyToAddress = account.replyToAddress.format()
+        else:
+            replyToAddress = None
+
+        seenUIDS = []
+
+        for uid in account.seenMessageUIDS:
+            seenUIDS.append(uid)
+
+        if seenUIDS:
+            seenUIDS = "\n".join(seenUIDS)
+        else:
+            seenUIDS = None
+
+        isDefault = ns.currentIncomingAccount.item == account and 1 or 0
+
+        yield model.POPAccountRecord(
+            account,
+            replyToAddress,
+            account.actionType,
+            account.deleteOnDownload and 1 or 0,
+            account.downloaded,
+            account.downloadMax,
+            seenUIDS,
+            account.port,
+            isDefault,
+        )
+
+
+
+    @model.MailPrefsRecord.importer
+    def import_mail_prefs(self, record):
+        if record.isOnline not in (eim.NoChange, None):
+            isOnline = record.isOnline == 1
+            schema.ns("osaf.pim", self.rv).MailPrefs.isOnline = isOnline
+
+
+        if record.meAddressHistory not in (eim.NoChange, None):
+            col = schema.ns("osaf.pim", self.rv).meEmailAddressCollection
+            addresses = record.meAddressHistory.split("\n")
+
+            for address in addresses:
+                col.append(getEmailAddress(self.rv, address))
+
+    # Called from finishExport()
+    def export_mail_prefs(self):
+        isOnline = schema.ns("osaf.pim", self.rv).MailPrefs.isOnline and 1 or 0
+        col = schema.ns("osaf.pim", self.rv).meEmailAddressCollection
+
+        meAddressHistory = []
+
+        for ea in col:
+            meAddressHistory.append(ea.format())
+
+        if meAddressHistory:
+            meAddressHistory = "\n".join(meAddressHistory)
+        else:
+            meAddressHistory = None
+
+        yield model.MailPrefsRecord(isOnline, meAddressHistory)
+
 
     #MailMessageRecord
     @model.MailMessageRecord.importer
     def import_mail(self, record):
-        #TODO: How to represent attachments?
-
         @self.withItemForUUID(
            record.uuid,
            pim.MailStamp,
            dateSentString=record.dateSent,
         )
         def do(mail):
-            view = self.rv
-
             if record.messageId not in noChangeOrInherit:
                 mail.messageId = record.messageId and \
                                  record.messageId or u""
@@ -718,31 +1016,30 @@ class SharingTranslator(eim.Translator):
             if record.toAddress not in noChangeOrInherit:
                 mail.toAddress = []
                 if record.toAddress:
-                    addEmailAddresses(view, mail.toAddress, record.toAddress)
+                    addEmailAddresses(self.rv, mail.toAddress, record.toAddress)
 
             if record.ccAddress not in noChangeOrInherit:
                 mail.ccAddress = []
 
                 if record.ccAddress:
-                    addEmailAddresses(view, mail.ccAddress, record.ccAddress)
+                    addEmailAddresses(self.rv, mail.ccAddress, record.ccAddress)
 
             if record.bccAddress not in noChangeOrInherit:
                 mail.bccAddress = []
 
                 if record.bccAddress:
-                    addEmailAddresses(view, mail.bccAddress, record.bccAddress)
+                    addEmailAddresses(self.rv, mail.bccAddress, record.bccAddress)
 
             if record.fromAddress not in noChangeOrInherit:
-
                if record.fromAddress:
-                    mail.fromAddress = getEmailAddress(view, record.fromAddress)
+                    mail.fromAddress = getEmailAddress(self.rv, record.fromAddress)
                else:
                    mail.fromAddress = None
 
             # text or email addresses in Chandler from field
             if record.originators not in noChangeOrInherit:
                 if record.originators:
-                    res = EmailAddress.parseEmailAddresses(view, record.originators)
+                    res = EmailAddress.parseEmailAddresses(self.rv, record.originators)
 
                     mail.originators = [ea for ea in res[1]]
                 else:
@@ -770,6 +1067,63 @@ class SharingTranslator(eim.Translator):
                 else:
                     mail.dateSent = getEmptyDate()
                     mail.dateSentString = u""
+
+            if record.mimeContent not in noChangeOrInherit:
+                if record.mimeContent:
+                    # There is no attachment support for
+                    # Preview. This is a place holder for
+                    # future enhancements
+                    pass
+
+            if record.rfc2822Message not in noChangeOrInherit:
+                if record.rfc2822Message:
+                    mail.rfc2822Message = dataToBinary(mail, "rfc2822Message",
+                                                       record.rfc2822Message,
+                                                      'message/rfc822', 'bz2',
+                                                       False)
+
+            if record.previousSender not in noChangeOrInherit:
+               if record.previousSender:
+                    mail.previousSender = getEmailAddress(self.rv, record.previousSender)
+               else:
+                   mail.previousSender = None
+
+            if record.replyToAddress not in noChangeOrInherit:
+               if record.replyToAddress:
+                    mail.replyToAddress = getEmailAddress(self.rv, record.replyToAddress)
+               else:
+                   mail.replyToAddress = None
+
+            if record.messageState not in noChangeOrInherit:
+                if record.messageState & MessageState.FROM_ME:
+                    mail.fromMe = True
+                else:
+                    mail.fromMe = False
+
+                if record.messageState & MessageState.TO_ME:
+                    mail.toMe = True
+                else:
+                    mail.toMe = False
+
+                if record.messageState & MessageState.VIA_MAILSERVICE:
+                    mail.viaMailService = True
+                else:
+                    mail.viaMailService = False
+
+                if record.messageState & MessageState.IS_UPDATED:
+                    mail.isUpdated = True
+                else:
+                    mail.isUpdated = False
+
+                if record.messageState & MessageState.FROM_EIMML:
+                    mail.fromEIMML = True
+                else:
+                    mail.fromEIMML = False
+
+                if record.messageState & MessageState.PREVIOUS_IN_RECIPIENTS:
+                    mail.previousInRecipients = True
+                else:
+                    mail.previousInRecipients = False
 
 
     @eim.exporter(pim.MailStamp)
@@ -816,7 +1170,7 @@ class SharingTranslator(eim.Translator):
 
         originators = []
 
-        if hasattr(mail, "originators"):
+        if getattr(mail, "originators", None) is not None:
             for addr in mail.originators:
                 originators.append(addr.format())
 
@@ -826,10 +1180,10 @@ class SharingTranslator(eim.Translator):
         else:
             originators = None
 
-        if hasattr(mail, "fromAddress"):
+        fromAddress = None
+
+        if getattr(mail, "fromAddress", None) is not None:
             fromAddress = mail.fromAddress.format()
-        else:
-            fromAddress = None
 
 
         references = []
@@ -845,20 +1199,53 @@ class SharingTranslator(eim.Translator):
         else:
             references = None
 
-        if hasattr(mail, "inReplyTo"):
+        inReplyTo = None
+        if getattr(mail, "inReplyTo", None) is not None:
             inReplyTo = mail.inReplyTo
-        else:
-            inReplyTo = None
 
-        if hasattr(mail, "messageId"):
+        messageId = None
+        if getattr(mail, "messageId", None) is not None:
             messageId = mail.messageId
-        else:
-            messageId = None
 
-        if hasattr(mail, "dateSentString"):
+        dateSent = None
+        if getattr(mail, "dateSentString", None) is not None:
             dateSent = mail.dateSentString
-        else:
-            dateSent = None
+
+        # Place holder for attachment support
+        mimeContent = None
+        rfc2822Message = None
+
+        rfc2822Message = None
+        if getattr(mail, "rfc2822Message", None) is not None:
+            rfc2822Message = binaryToData(mail.rfc2822Message)
+
+        previousSender = None
+        if getattr(mail, "previousSender", None) is not None:
+            previousSender = mail.previousSender.format()
+
+        replyToAddress = None
+        if getattr(mail, "replyToAddress", None) is not None:
+            replyToAddress = mail.replyToAddress.format()
+
+        messageState = 0
+
+        if mail.fromMe:
+            messageState |= MessageState.FROM_ME
+
+        if mail.toMe:
+            messageState |= MessageState.TO_ME
+
+        if mail.viaMailService:
+            messageState |= MessageState.VIA_MAILSERVICE
+
+        if mail.isUpdated:
+            messageState |= MessageState.IS_UPDATED
+
+        if mail.fromEIMML:
+            messageState |= MessageState.FROM_EIMML
+
+        if mail.previousInRecipients:
+            messageState |= MessageState.PREVIOUS_IN_RECIPIENTS
 
 
         yield model.MailMessageRecord(
@@ -873,6 +1260,11 @@ class SharingTranslator(eim.Translator):
             dateSent,              # dateSent
             inReplyTo,             # inReplyTo
             references,            # references
+            mimeContent,           #mimeContent
+            rfc2822Message,        #rfc2822Message
+            previousSender,        #previousSender
+            replyToAddress,        #replyToAddress
+            messageState,          #messageState
         )
 
 
@@ -1269,8 +1661,6 @@ class DumpTranslator(SharingTranslator):
 
 
 
-
-
     @model.ShareConduitRecord.importer
     def import_sharing_conduit(self, record):
         self.withItemForUUID(record.uuid,
@@ -1527,6 +1917,7 @@ class DumpTranslator(SharingTranslator):
             port=record.port,
             path=record.path,
             username=record.username,
+            #XXX PASSWORD
             # password=record.password,
             password=Password(itsView=self.rv)
         )
@@ -1544,6 +1935,7 @@ class DumpTranslator(SharingTranslator):
             1 if account.useSSL else 0,
             account.path,
             account.username,
+            #XXX PASSWORD
             "" # account.password
         )
 
@@ -1592,6 +1984,14 @@ class DumpTranslator(SharingTranslator):
                 accounts.SharingAccount)
             def set_current(account):
                 ref = schema.ns("osaf.sharing", self.rv).currentSharingAccount
+
+                oldAccount = ref.item
+
+                if oldAccount and not oldAccount.username.strip() and \
+                 not hasattr(oldAccount.password, 'ciphertext'):
+                    # The current account is empty
+                    oldAccount.delete()
+
                 ref.item = account
 
     # Called from finishExport()
@@ -1661,13 +2061,15 @@ class DumpTranslator(SharingTranslator):
         # sharing
         for record in self.export_sharing_prefs():
             yield record
+        # mail
+        for record in self.export_mail_prefs():
+            yield record
 
         # calendar prefs
         for record in self.export_prefcalendarhourheight():
             yield record
         for record in self.export_preftimezones():
             yield record
-
 
 def test_suite():
     import doctest

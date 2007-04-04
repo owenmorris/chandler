@@ -50,13 +50,13 @@ UPLOAD_BAD_REPLY_ADDRESS = _(u"The Reply-To Address %(emailAddress)s is not vali
 UPLOAD_FROM_REQUIRED = _(u"A From Address is required to send a Mail Message")
 UPLOAD_TO_REQUIRED = _(u"A To Address is required to send an SMTP Mail Message")
 
-UPLOAD_OFFLINE = _(u'%(accountName)s: Chandler is offline, "%(subject)s" queued for sending')
+UPLOAD_OFFLINE = _(u'%(accountName)s: Chandler Mail is offline, "%(subject)s" queued for sending')
 UPLOAD_START = _(u'%(accountName)s: sending "%(subject)s"')
 UPLOAD_SENT = _(u'%(accountName)s: "%(subject)s" sent')
 
 
 # Translatable message strings for account testing
-TEST_OFFLINE = _(u"Chandler is currently offline.\nTo perform this action, Chandler must be in online mode.")
+TEST_OFFLINE = _(u"Chandler Mail is currently offline.\nTo perform this action, Mail must be in online mode.")
 
 #POP3 error messags
 POP_UIDL_ERROR = _(u"The POP3 Server does not support the 'UIDL' command.\nThis command is required by Chandler.")
@@ -64,13 +64,15 @@ POP_UIDL_ERROR = _(u"The POP3 Server does not support the 'UIDL' command.\nThis 
 
 # ChoiceFormat messages
 #==========================
-DOWNLOAD_CHANDLER_MESSAGES = ChoiceFormat(_(u"1#%(accountName)s: %(numberTotal)s message downloaded to Chandler (New: %(numberNew)s, Updates: %(numberUpdates)s, Duplicates %(numberDuplicates)s)|1<%(accountName)s: %(numberTotal)s messages downloaded to Chandler (New: %(numberNew)s, Updates: %(numberUpdates)s, Duplicates: %(numberDuplicates)s)"))
+DOWNLOAD_CHANDLER_MESSAGES = ChoiceFormat(_(u"1#%(accountName)s: %(numberTotal)s message downloaded to Chandler (New: %(numberNew)s, Updates: %(numberUpdates)s, Duplicates: %(numberDuplicates)s)|1<%(accountName)s: %(numberTotal)s messages downloaded to Chandler (New: %(numberNew)s, Updates: %(numberUpdates)s, Duplicates: %(numberDuplicates)s)"))
 
 POP_START_MESSAGES = ChoiceFormat(_(u"1#%(accountName)s: downloading %(numberOfMessages)s message ...|1<%(accountName)s: downloading %(numberOfMessages)s messages ..."))
 
 IMAP_START_MESSAGES = ChoiceFormat(_(u"1#%(accountName)s: downloading %(numberOfMessages)s message from '%(folderDisplayName)s'|1<%(accountName)s: downloading %(numberOfMessages)s messages from '%(folderDisplayName)s'"))
 
 IMAP_SEARCH_MESSAGES = ChoiceFormat(_(u"1#%(accountName)s: searching through %(numberOfMessages)s message in your '%(folderDisplayName)s' for a Chandler Message|1<%(accountName)s: searching through %(numberOfMessages)s messages in your '%(folderDisplayName)s' for Chandler Messages"))
+
+IMAP_INBOX_MISSING = (u"%s(accountName)s is not configured correctly. The account settings contain no Inbox folder.")
 
 
 # Number of seconds to wait to timeout connection for account testing

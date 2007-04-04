@@ -51,6 +51,11 @@ dateSentFilter = eim.Filter('cid:dateSent-filter@osaf.us', u"Date Sent")
 messageIdFilter = eim.Filter('cid:messageId-filter@osaf.us', u"MessageId")
 inReplyToFilter = eim.Filter('cid:inReplyTo-filter@osaf.us', u"InReplyTo")
 referencesFilter = eim.Filter('cid:references-filter@osaf.us', u"InReplyTo")
+mimeContentFilter = eim.Filter('cid:mimeContent-filter@osaf.us', u"MIME Content")
+rfc2822MessageFilter = eim.Filter('cid:rfc2822Message-filter@osaf.us', u"rfc 2822 Message")
+previousSenderFilter = eim.Filter('cid:previousSender-filter@osaf.us', u"Previous Sender")
+replyToAddressFilter = eim.Filter('cid:replyToAddress-filter@osaf.us', u"ReplyTo Address")
+messageStateFilter = eim.Filter('cid:messageState-filter@osaf.us', u"Message State")
 
 
 class ItemRecord(eim.Record):
@@ -143,6 +148,98 @@ class DisplayAlarmRecord(eim.Record):
     duration = eim.field(text1024, [remindersFilter])
     repeat = eim.field(eim.IntType, [remindersFilter])
 
+
+class MailAccountRecord(eim.Record):
+    URI = "http://osafoundation.org/eim/sharing/mailaccount/0"
+
+    uuid = eim.key(ItemRecord.uuid)
+    retries = eim.field(eim.IntType)
+    username = eim.field(text256)
+    password = eim.field(text256)
+    host = eim.field(text256)
+
+    # 0 = None, 1 = TLS, 2 = SSL
+    connectionType = eim.field(eim.IntType)
+    frequency = eim.field(eim.IntType)
+    timeout = eim.field(eim.IntType)
+
+    # 0 = Inactive 1 = Active
+    active = eim.field(eim.IntType)
+
+
+class IMAPAccountFoldersRecord(eim.Record):
+    URI = "http://osafoundation.org/eim/pim/imapaccountfolders/0"
+
+    imapAccountUUID = eim.key(schema.UUID)
+    imapFolderUUID = eim.key(aliasableUUID)
+
+
+class SMTPAccountRecord(eim.Record):
+    URI = "http://osafoundation.org/eim/sharing/smtpccount/0"
+
+    uuid = eim.key(ItemRecord.uuid)
+    fromAddress = eim.field(text256)
+    useAuth = eim.field(eim.IntType)
+    port = eim.field(eim.IntType)
+
+    # 1 = isDefault
+    isDefault = eim.field(eim.IntType)
+
+class SMTPAccountQueueRecord(eim.Record):
+    URI = "http://osafoundation.org/eim/pim/smtpaccountqueue/0"
+
+    smtpAccountUUID = eim.key(schema.UUID)
+    itemUUID = eim.key(aliasableUUID)
+
+class IMAPAccountRecord(eim.Record):
+    URI = "http://osafoundation.org/eim/sharing/imapaccount/0"
+
+    uuid = eim.key(ItemRecord.uuid)
+    replyToAddress = eim.field(text256)
+    port = eim.field(eim.IntType)
+
+    # 1 = isDefault
+    isDefault = eim.field(eim.IntType)
+
+
+class POPAccountRecord(eim.Record):
+    URI = "http://osafoundation.org/eim/sharing/popaccount/0"
+
+    uuid = eim.key(ItemRecord.uuid)
+    replyToAddress = eim.field(text256)
+    type = eim.field(eim.TextType(size=50))
+    delete = eim.field(eim.IntType)
+    downloaded = eim.field(eim.IntType)
+    downloadMax = eim.field(eim.IntType)
+    seenUIDS = eim.field(eim.ClobType)
+    port = eim.field(eim.IntType)
+
+    # 1 = isDefault
+    isDefault = eim.field(eim.IntType)
+
+class IMAPFolderRecord(eim.Record):
+    URI = "http://osafoundation.org/eim/sharing/imapfolder/0"
+
+    uuid = eim.key(ItemRecord.uuid)
+    name = eim.field(text256)
+    type = eim.field(eim.TextType(size=50))
+    lastUID = eim.field(eim.IntType)
+    delete = eim.field(eim.IntType)
+    downloaded = eim.field(eim.IntType)
+    downloadMax = eim.field(eim.IntType)
+
+
+class MailPrefsRecord(eim.Record):
+    URI = "http://osafoundation.org/eim/mail/prefs/0"
+
+    # 1 = online
+    isOnline = eim.field(eim.IntType)
+
+    # Contains all current and old me email addresses
+    # needed to calulate the MailStamp.fromMe and
+    # MailStamp.toMe boolean flags
+    meAddressHistory = eim.field(eim.ClobType)
+
 class MailMessageRecord(eim.Record):
     URI = "http://osafoundation.org/eim/mail/0"
 
@@ -166,6 +263,20 @@ class MailMessageRecord(eim.Record):
     #The list of message-id's a mail message references
     # can be quite long and can easily exceed 1024 characters
     references = eim.field(eim.ClobType, [referencesFilter])
+
+    # Values required for Dump and Reload
+    mimeContent = eim.field(eim.ClobType, [mimeContentFilter])
+    rfc2822Message = eim.field(eim.ClobType, [rfc2822MessageFilter])
+    previousSender = eim.field(text256, [previousSenderFilter])
+    replyToAddress = eim.field(text256, [replyToAddressFilter])
+
+    # Contains bit wise flags indicating state.
+    # A state integer was chosen over individual
+    # boolean fields as a means of decoupling
+    # Chandler mail specific flag requirements from
+    # EIM.
+
+    messageState = eim.field(eim.IntType, [messageStateFilter])
 
 
 # collection ------------------------------------------------------------------

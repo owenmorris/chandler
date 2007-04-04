@@ -286,11 +286,13 @@ def binaryToData(binary):
     Converts a C{Lob} to data.
     """
     assert isinstance(binary, Lob), "Must pass a Lob instance"
-    assert binary.encoding is None, "Encoding must be None for inputstreamr API"
 
     inp = binary.getInputStream()
     data = inp.read()
     inp.close()
+
+    if binary.encoding:
+        return unicode(data, binary.encoding)
 
     return data
 

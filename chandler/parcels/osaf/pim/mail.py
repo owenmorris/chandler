@@ -27,7 +27,7 @@ __all__ = [
      'getCurrentOutgoingAccount', 'getCurrentIncomingAccount',
      'getCurrentMeEmailAddress', 'getCurrentMeEmailAddresses',
      'getMessageBody', 'ACCOUNT_TYPES', 'EmailAddress', 'OutgoingAccount',
-     'IncomingAccount']
+     'IncomingAccount', 'MailPreferences']
 
 import logging
 from application import schema
@@ -40,7 +40,7 @@ import PyICU
 from PyICU import ICUtzinfo
 
 from i18n import ChandlerMessageFactory as _
-from osaf import messages
+from osaf import messages, preferences
 from repository.persistence.RepositoryError import RepositoryError, VersionConflictError
 from osaf.pim.calendar import EventStamp
 from tasks import TaskStamp
@@ -771,13 +771,14 @@ def _calculateCurrentMeEmailAddresses(view):
     return addrs
 
 
+class MailPreferences(preferences.Preferences):
+    isOnline = schema.One(schema.Boolean, initialValue = True)
+
 class ConnectionSecurityEnum(schema.Enumeration):
     values = "NONE", "TLS", "SSL"
 
 
-
 class AccountBase(items.ContentItem):
-
     schema.kindInfo(
         description="The base kind for various account kinds, such as "
                     "IMAP, SMTP, WebDav"
@@ -953,12 +954,6 @@ class OutgoingAccount(AccountBase):
     )
 
 
-    useAuth = schema.One(
-        schema.Boolean,
-        doc = 'Whether or not to use authentication when sending mail',
-        initialValue = False,
-    )
-
 
     #Commented out for Preview
     #signature = schema.One(
@@ -1028,6 +1023,12 @@ class SMTPAccount(OutgoingAccount):
         schema.Integer,
         doc = 'The non-SSL port number to use',
         initialValue = 25,
+    )
+
+    useAuth = schema.One(
+        schema.Boolean,
+        doc = 'Whether or not to use authentication when sending mail',
+        initialValue = False,
     )
 
 
@@ -1157,7 +1158,7 @@ class POPAccount(IncomingAccount):
 
     downloaded = schema.One(
         schema.Integer,
-        doc = 'The number of messages downloaded to this folder.',
+        doc = 'The number of messages downloaded from this account.',
         initialValue = 0,
     )
 
@@ -1809,10 +1810,10 @@ class CollectionInvitation(schema.Annotation):
 
 
 class EmailAddresses(items.ContentItem):
-       emailAddresses = schema.Sequence(
-        doc = 'List of Email Addresses',
-        initialValue = [],
-    )
+     emailAddresses = schema.Sequence(
+     doc = 'List of Email Addresses',
+     initialValue = [],
+   )
 
 class EmailAddress(items.ContentItem):
     """An item that represents a simple email address, plus

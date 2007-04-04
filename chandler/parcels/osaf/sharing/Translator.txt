@@ -157,6 +157,11 @@ Importing:
     ...         dateSent = 'Sat, 31 Mar 2007 00:03:34 +0000',
     ...         inReplyTo = None,
     ...         references = None,
+    ...         mimeContent = None,
+    ...         rfc2822Message = None,
+    ...         previousSender = None,
+    ...         replyToAddress = None,
+    ...         messageState = 0,
     ... )
 
     >>> rs = sharing.RecordSet([rec])
@@ -187,7 +192,7 @@ Exporting:
     >>> t.startExport()
     >>> records = [r for r in t.exportItem(item) if isinstance(r, sharing.model.MailMessageRecord)]
     >>> records
-    [MailMessageRecord('f230dcd4-7c32-4c3f-908b-d92081cc9a89', u'1234@test.com', u'To: test1@test.com\nFrom: test@test.com', u'test@test.com', u'test1@test.com, test2@test.com', None, None, u'Test User', u'Sat, 31 Mar 2007 00:03:34 +0000', u'', None)]
+    [MailMessageRecord('f230dcd4-7c32-4c3f-908b-d92081cc9a89', u'1234@test.com', u'To: test1@test.com\nFrom: test@test.com', u'test@test.com', u'test1@test.com, test2@test.com', None, None, u'Test User', u'Sat, 31 Mar 2007 00:03:34 +0000', u'', None, None, None, None, None, 0)]
 
 
 EventRecord type

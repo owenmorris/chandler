@@ -166,7 +166,7 @@ class SMTPClient(object):
         if __debug__:
             trace("testAccountSettings")
 
-        if Globals.options.offline:
+        if not Globals.mailService.isOnline():
             return self._resetClient()
 
         assert(callback is not None)
@@ -212,7 +212,7 @@ class SMTPClient(object):
             trace("_actionCompleted")
 
         if not self.displayed and not self.shuttingDown and \
-           not Globals.options.offline and not self.cancel:
+           Globals.mailService.isOnline() and not self.cancel:
             if self.mailMessage.itsItem.error:
                  key = "displaySMTPSendError"
             else:
@@ -255,7 +255,7 @@ class SMTPClient(object):
             if self.cancel:
                 return self._resetClient()
 
-            if self.mailMessage is not None or Globals.options.offline:
+            if self.mailMessage is not None or not Globals.mailService.isOnline():
                 newMessage = self._getMailMessage(mailMessageUUID)
 
                 if hasConflicts(newMessage.itsItem):
@@ -295,7 +295,7 @@ class SMTPClient(object):
                     if __debug__:
                         trace("SMTPClient adding to the Queue message: %s" % mailMessageUUID)
 
-                if Globals.options.offline:
+                if not Globals.mailService.isOnline():
                     setStatusMessage(constants.UPLOAD_OFFLINE % \
                                     {'accountName': self.account.displayName,
                                      'subject': newMessage.subject})
@@ -361,7 +361,7 @@ class SMTPClient(object):
         if __debug__:
             trace("_sendingMail")
 
-        if self.shuttingDown or Globals.options.offline or \
+        if self.shuttingDown or not Globals.mailService.isOnline() or \
            self.cancel:
             return self._resetClient()
 
@@ -401,24 +401,24 @@ class SMTPClient(object):
                                               deferred, retries, timeout,
                                               1, heloFallback, authRequired,
                                               securityRequired)
-    
+
             factory.protocol = _TwistedESMTPSender
             factory.testing  = testing
-    
+
             if self.account.connectionSecurity == 'SSL':
                 ssl.connectSSL(self.account.host, self.account.port, factory,
                                self.view)
             else:
                 ssl.connectTCP(self.account.host, self.account.port, factory,
                                self.view)
-                
+
         deferredPassword.addCallback(callback)
 
     def _testSuccess(self, result):
         if __debug__:
             trace("_testSuccess")
 
-        if self.shuttingDown or Globals.options.offline or \
+        if self.shuttingDown or not Globals.mailService.isOnline() or \
            self.cancel:
             return self._resetClient()
 
@@ -430,7 +430,7 @@ class SMTPClient(object):
         if __debug__:
             trace("_testFailure")
 
-        if self.shuttingDown or Globals.options.offline or \
+        if self.shuttingDown or not Globals.mailService.isOnline() or \
            self.cancel:
             return self._resetClient()
 
@@ -459,7 +459,7 @@ class SMTPClient(object):
         if __debug__:
             trace("_mailSuccessCheck")
 
-        if self.shuttingDown or Globals.options.offline or \
+        if self.shuttingDown or not Globals.mailService.isOnline() or \
            self.cancel:
             return self._resetClient()
 
@@ -496,7 +496,7 @@ class SMTPClient(object):
         if __debug__:
             trace("_mailSomeFailed")
 
-        if self.shuttingDown or Globals.options.offline or \
+        if self.shuttingDown or not Globals.mailService.isOnline() or \
            self.cancel:
             return self._resetClient()
 
@@ -522,7 +522,7 @@ class SMTPClient(object):
         if __debug__:
             trace("_mailFailure")
 
-        if self.shuttingDown or Globals.options.offline or \
+        if self.shuttingDown or not Globals.mailService.isOnline() or \
            self.cancel:
             return self._resetClient()
 
@@ -564,7 +564,7 @@ class SMTPClient(object):
         if __debug__:
             trace("displayedRecoverableSSLErrorDialog")
 
-        if not dryRun and (self.shuttingDown or Globals.options.offline or \
+        if not dryRun and (self.shuttingDown or not Globals.mailService.isOnline() or \
            self.cancel):
             return self._resetClient()
 

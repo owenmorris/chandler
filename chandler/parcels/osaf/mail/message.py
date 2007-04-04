@@ -65,7 +65,9 @@ OUTBOUND_FILTERS = getFilter(['cid:triage-filter@osaf.us', 'cid:event-status-fil
                               'cid:reminders-filter@osaf.us', 'cid:bcc-filter@osaf.us',
                               'cid:dateSent-filter@osaf.us', 'cid:headers-filter@osaf.us',
                               'cid:inReplyTo-filter@osaf.us', 'cid:references-filter@osaf.us',
-                              'cid:messageId-filter@osaf.us',])
+                              'cid:messageId-filter@osaf.us', 'cid:mimeContent-filter@osaf.us',
+                              'cid:rfc2822Message-filter@osaf.us', 'cid:previousSender-filter@osaf.us',
+                              'cid:messageState-filter@osaf.us', 'cid:replyToAddress-filter@osaf.us',])
 
 
 

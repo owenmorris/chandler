@@ -55,21 +55,6 @@ def installParcel(parcel, oldVersion=None):
                     pim_ns.trashCollection]
     )
 
-    preReply = pim.EmailAddress.update(parcel, 'defaultReplyAddress')
-
-    preSmtp = pim.mail.SMTPAccount.update(parcel, 'defaultSMTPAccount',
-        displayName=_(u'Outgoing mail'),
-        password=password.Password.update(parcel, 'defaultSMTPAccountPassword'),
-        references=[pim_ns.currentOutgoingAccount]
-    )
-
-    pim.mail.IMAPAccount.update(parcel, 'defaultIMAPAccount',
-        displayName=_(u'Incoming mail'),
-        replyToAddress=preReply,
-        password=password.Password.update(parcel, 'defaultIMAPAccountPassword'),
-        references=[pim_ns.currentIncomingAccount]
-    )
-
     testReply = pim.mail.EmailAddress.update(parcel, 'TestReplyAddress')
 
     #[i18n] Test Acccounts are not displayed to the user and do not require localization

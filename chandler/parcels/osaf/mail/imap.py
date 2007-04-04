@@ -645,23 +645,12 @@ class IMAPClient(base.AbstractDownloadClient):
             return self._actionCompleted()
 
         if self.account.folders.isEmpty():
-            # Since the accounts may have been
-            # saved or restored with a
-            # pre-Preview version of Chandler,
-            # the Mail Service plays nice and
-            # adds the Inbox folder to the
-            # IMAPAccount. This feature
-            # will go away in the future
-            # since not having a folder in the
-            # IMAP account will signal an 
-            # error or a bug.
-            from i18n import ChandlerMessageFactory as _
-            inbox = IMAPFolder(itsView=self.view)
-            inbox.displayName = _(u"Inbox")
-            inbox.folderName  = u"INBOX"
-            inbox.folderType  = "CHANDLER_HEADERS"
-            self.account.folders.append(inbox)
-            self.view.commit()
+            # The account is missing the default
+            # Inbox IMAPFolder.
+            err = constants.IMAP_INBOX_MISSING % \
+                          {'accountName': self.account.displayName}
+
+            self._raiseException(errors.IMAPException(err))
 
         self.vars = FolderVars()
         self.vars.folderItem = self.account.folders.first()

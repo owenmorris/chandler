@@ -1308,7 +1308,7 @@ class AccountPreferencesDialog(wx.Dialog):
         self.Destroy()
 
     def OnIncomingFolders(self, evt):
-        if Globals.options.offline:
+        if not Globals.mailService.isOnline():
             return alertOffline()
 
         if not self.incomingAccountValid():
@@ -1587,7 +1587,7 @@ class AccountPreferencesDialog(wx.Dialog):
             raise Exception("Internal Exception")
 
     def OnIncomingDiscovery(self, evt):
-        if Globals.options.offline:
+        if not Globals.mailService.isOnline():
             return alertOffline()
 
         self.__StoreFormData(self.currentPanelType, self.currentPanel,
@@ -1605,7 +1605,7 @@ class AccountPreferencesDialog(wx.Dialog):
         AutoDiscoveryDialog(host, False, self.rv, self.OnAutoDiscovery)
 
     def OnOutgoingDiscovery(self, evt):
-        if Globals.options.offline:
+        if not Globals.mailService.isOnline():
             return alertOffline()
 
         self.__StoreFormData(self.currentPanelType, self.currentPanel,
@@ -1684,7 +1684,7 @@ class AccountPreferencesDialog(wx.Dialog):
         return not error
 
     def OnTestIncoming(self):
-        if Globals.options.offline:
+        if not Globals.mailService.isOnline():
             return alertOffline()
 
         if self.incomingAccountValid():
@@ -1734,7 +1734,7 @@ class AccountPreferencesDialog(wx.Dialog):
         return not error
 
     def OnTestOutgoing(self):
-        if Globals.options.offline:
+        if not Globals.mailService.isOnline():
             return alertOffline()
 
         if not self.outgoingAccountValid():
@@ -2014,7 +2014,7 @@ def ShowAccountPreferencesDialog(parent, account=None, rv=None, modal=True):
         return win
 
 def alertOffline():
-    showOKDialog(_(u"Mail service offline"), constants.TEST_OFFLINE)
+    showOKDialog(_(u"Mail Service Offline"), constants.TEST_OFFLINE)
 
 def alertError(msg):
     showOKDialog(_(u"Account Preferences error"), msg)

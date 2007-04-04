@@ -251,7 +251,7 @@ class AbstractDownloadClient(object):
         if __debug__:
             trace("testAccountSettings")
 
-        if Globals.options.offline:
+        if not Globals.mailService.isOnline():
             return
 
         assert(callback is not None)
@@ -313,7 +313,7 @@ class AbstractDownloadClient(object):
         #Overidden method
         self._getAccount()
 
-        if Globals.options.offline:
+        if not Globals.mailService.isOnline():
             if self.statusMessages:
                 msg = constants.MAIL_PROTOCOL_OFFLINE % \
                               {"accountName": self.account.displayName}
@@ -388,7 +388,7 @@ class AbstractDownloadClient(object):
 
         # In this case don't try to clean up the transport connection
         # but do reset the client variables
-        if self.shuttingDown or Globals.options.offline or \
+        if self.shuttingDown or not Globals.mailService.isOnline() or \
            self.factory is None:
             self._resetClient()
             return

@@ -667,6 +667,8 @@ class RoundTripTestCase(testcase.DualRepositoryTestCase):
         references  = [u"5678@test.com", "456789@test.com"]
         subject    = u"\u00FCTest Subject"
         body       = u"\u00FCTest Body"
+        rfc2822    = u"From: test@test.com\nTo: test1@test.com\nSubject: \u00FCTest Subject\n\n\u00FCTest Body"
+
 
         received = u"""Received: from leilani.osafoundation.org (leilani.osafoundation.org [127.0.0.1])
   by leilani.osafoundation.org (Postfix) with ESMTP id 00D037F537;
@@ -674,6 +676,9 @@ class RoundTripTestCase(testcase.DualRepositoryTestCase):
 
         fromAddr = pim.EmailAddress(itsView=view0, fullName=u"test user",
                                     emailAddress=u"test@test.com")
+
+        prevAddr = pim.EmailAddress(itsView=view0, fullName=u"test user0",
+                                    emailAddress=u"test0@test.com")
 
         toAddr1 = pim.EmailAddress(itsView=view0, fullName=u"test user1",
                                     emailAddress=u"test1@test.com")
@@ -687,9 +692,12 @@ class RoundTripTestCase(testcase.DualRepositoryTestCase):
         bccAddr = pim.EmailAddress(itsView=view0, fullName=u"test user4",
                                     emailAddress=u"test4@test.com")
 
+        repAddr = pim.EmailAddress(itsView=view0, fullName=u"test user5",
+                                    emailAddress=u"test5@test.com")
+
         origAddr = pim.EmailAddress(itsView=view0, emailAddress=u"The Management")
 
-        from osaf.mail.utils import dateTimeToRFC2822Date
+        from osaf.mail.utils import dateTimeToRFC2822Date, dataToBinary, binaryToData
 
         dateSent = datetime.datetime.now(ICUtzinfo.default)
         dateSentString = dateTimeToRFC2822Date(dateSent)
@@ -717,12 +725,24 @@ class RoundTripTestCase(testcase.DualRepositoryTestCase):
         ms.inReplyTo = inReplyTo
         ms.referencesMID = references
         ms.fromAddress = fromAddr
+        ms.previousSender = prevAddr
+        ms.replyToAddress = repAddr
         ms.toAddress = [toAddr1, toAddr2]
         ms.ccAddress = [ccAddr]
         ms.bccAddress = [bccAddr]
         ms.originators = [origAddr]
         ms.dateSent = dateSent
         ms.dateSentString = dateSentString
+
+        ms.viaMailService = True
+        ms.fromMe = True
+        ms.fromEIMML = True
+        ms.previousInRecipients = True
+
+        ms.rfc2822Message = dataToBinary(ms, "rfc2822Message",
+                                         rfc2822, 'message/rfc822',
+                                         'bz2', False)
+
         item.displayName = subject
         item.body = body
 
@@ -746,6 +766,8 @@ class RoundTripTestCase(testcase.DualRepositoryTestCase):
         self.assertEquals(ms1.inReplyTo, inReplyTo)
         self.assertEquals(ms1.referencesMID, references)
         self.assertEquals(ms1.fromAddress.format(), fromAddr.format())
+        self.assertEquals(ms1.previousSender.format(), prevAddr.format())
+        self.assertEquals(ms1.replyToAddress.format(), repAddr.format())
         self.assertEquals(ms1.toAddress.first().format(), toAddr1.format())
         self.assertEquals(ms1.toAddress.last().format(), toAddr2.format())
         self.assertEquals(ms1.ccAddress.first().format(), ccAddr.format())
@@ -759,8 +781,15 @@ class RoundTripTestCase(testcase.DualRepositoryTestCase):
         self.assertEquals(ms1.headers['References'], refHeader)
         self.assertEquals(ms1.headers['Received'], received)
 
+        self.assertEquals(binaryToData(ms1.rfc2822Message), rfc2822)
+
         self.assertEquals(item1.body, body)
         self.assertEquals(item1.displayName, subject)
+
+        self.assertTrue(ms1.viaMailService)
+        self.assertTrue(ms1.fromMe)
+        self.assertTrue(ms1.fromEIMML)
+        self.assertTrue(ms1.previousInRecipients)
 
         #
         # Recurrence

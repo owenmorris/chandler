@@ -1599,10 +1599,10 @@ def ensureAccountSetUp(view, sharing=False, inboundMail=False,
             return False
 
         if not IncomingMailReady:
-            account = pim.mail.getcurrentIncomingAccount(view)
+            account = pim.mail.getCurrentIncomingAccount(view)
         elif not OutgoingMailReady:
             """ Returns the default SMTP Account or None"""
-            account = pim.mail.getcurrentOutgoingAccount(view)
+            account = pim.mail.getCurrentOutgoingAccount(view)
         else:
             account = schema.ns('osaf.sharing', view).currentSharingAccount.item
 
