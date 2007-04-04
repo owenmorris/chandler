@@ -415,10 +415,40 @@ def makeMainEvents(parcel):
         methodName = 'onDeleteEvent',
         dispatchToBlockName = 'Sidebar',
         commitAfterDispatch = True).install(parcel),
-    
+
     BlockEvent.template(
-        'DeleteItemInActiveView',
+        'DeleteInActiveView',
         methodName = 'onDeleteEvent',
         dispatchEnum = 'ActiveViewBubbleUp',
         commitAfterDispatch = True).install(parcel)
-    
+
+    BlockEvent.template(
+        'RemoveInActiveView',
+        dispatchEnum = 'ActiveViewBubbleUp',
+        methodName = 'onRemoveEvent',
+        commitAfterDispatch = True).install(parcel),
+
+    BlockEvent.template(
+        'CutInActiveView',
+        dispatchEnum = 'ActiveViewBubbleUp',
+        methodName = 'onCutEvent',
+        commitAfterDispatch = True).install(parcel),
+
+    BlockEvent.template(
+        'CopyInActiveView',
+        dispatchEnum = 'ActiveViewBubbleUp',
+        methodName = 'onCopyEvent',
+        commitAfterDispatch = True).install(parcel),
+
+    BlockEvent.template(
+        'DuplicateInActiveView',
+        dispatchEnum = 'ActiveViewBubbleUp',
+        methodName = 'onDuplicateEvent',
+        commitAfterDispatch = True).install(parcel),
+
+    BlockEvent.template(
+        'PasteInActiveView',
+        dispatchEnum = 'ActiveViewBubbleUp',
+        methodName = 'onPasteEvent',
+        commitAfterDispatch = True).install(parcel),
+

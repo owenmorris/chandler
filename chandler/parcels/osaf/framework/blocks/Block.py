@@ -1060,7 +1060,9 @@ class BlockDispatchHook (DispatchHook):
             bubbleUpCallMethod (blockOrWidget, methodName, event)
 
         elif dispatchEnum == 'ActiveViewBubbleUp':
-            bubbleUpCallMethod (wx.GetApp().activeView, methodName, event)
+            activeView = wx.GetApp().activeView
+            blockOrWidget = getattr (activeView, 'widget', activeView)
+            bubbleUpCallMethod (blockOrWidget, methodName, event)
 
         elif __debug__:
             assert (False)
