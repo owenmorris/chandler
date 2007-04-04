@@ -90,7 +90,7 @@ def ProcessEvent (theClass, properties , attributes):
                     if id > 0:
                         assert focusWindow.GetId() == id, "Focus window has unexpected id"
                     else:
-                        assert focusWindow.GetId() < 0, "Focus window has unexpected id"
+                        assert focusWindow.GetId() < 0, "Focus window has unexpected id "
 
             if hasattr (ProcessEvent, "lastFocus"):
                 if ProcessEvent.lastFocus != focusWindow:
