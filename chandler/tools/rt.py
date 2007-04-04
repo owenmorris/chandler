@@ -937,7 +937,7 @@ def runStartupPerfTests(options, timer, largeData=False, repeat=3, logger=log):
      |   0.00 ...   0.00
     <BLANKLINE>
     Startup [#TINDERBOX# Status = PASSED]
-    OSAF_QA: Startup | None | 0.00
+    OSAF_QA: Startup | ... | 0.00
     #TINDERBOX# Testname = Startup
     #TINDERBOX# Status = PASSED
     #TINDERBOX# Time elapsed = 0.00 (seconds)
@@ -1410,7 +1410,6 @@ if __name__ == '__main__':
     if '--selftest' in sys.argv:
         import doctest
         doctest.testmod(optionflags=doctest.ELLIPSIS)
-        doctest.testmod(build_lib, optionflags=doctest.ELLIPSIS)
         sys.exit(0)
 
     if main(parseOptions()):
