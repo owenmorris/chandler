@@ -146,7 +146,6 @@ class DumpReloadTestCase(testcase.DualRepositoryTestCase):
             for state0 in inmemory_share0.states:
                 state1 = view1.findUUID(state0.itsUUID)
                 self.assert_(state1 in inmemory_share1.states)
-                state1.printItem()
 
 
         finally:

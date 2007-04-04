@@ -1479,8 +1479,8 @@ class DumpTranslator(SharingTranslator):
         peerversion = state.peerItemVersion
         share = state.share.itsUUID if getattr(state, "share", None) else None
         item = getattr(state, "itemUUID", None)
-        agreed = getattr(state, "_agreed", None)
-        pending = getattr(state, "_pending", None)
+        agreed = None # getattr(state, "_agreed", None)
+        pending = None # getattr(state, "_pending", None)
 
         yield model.ShareStateRecord(
             state,
