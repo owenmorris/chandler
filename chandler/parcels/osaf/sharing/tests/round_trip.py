@@ -105,9 +105,14 @@ class RoundTripTestCase(testcase.DualRepositoryTestCase):
         pim.EventStamp(item).add()
         event = pim.EventStamp(item)
         
+        # Cosmo converts PST8PDT to America/Los_Angeles, so that breaks
+        # things.  Until we solve that problem, let's use a timezone they
+        # understand
+        pacific = ICUtzinfo.getInstance("America/Los_Angeles")
+
         event.startTime = datetime.datetime.combine(
             datetime.datetime.now().date() - datetime.timedelta(days=3),
-            datetime.time(11, 0, tzinfo=ICUtzinfo.default)
+            datetime.time(11, 0, tzinfo=pacific) # ICUtzinfo.default)
         )
         event.anyTime = False
         event.transparency = 'confirmed'
