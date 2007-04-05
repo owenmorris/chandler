@@ -382,9 +382,11 @@ class DBRepository(OnDemandRepository):
                 break
         os.makedirs(dbHome)
 
+        release = []
         try:
             for view in self.getOpenViews():
-                view._acquireExclusive()
+                if view._acquireExclusive():
+                    release.append(view)
 
             self.checkpoint()
 
@@ -447,7 +449,7 @@ class DBRepository(OnDemandRepository):
                         env.close()
 
         finally:
-            for view in self.getOpenViews():
+            for view in release:
                 view._releaseExclusive()
 
         return dbHome
