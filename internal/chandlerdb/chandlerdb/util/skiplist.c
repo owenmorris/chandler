@@ -572,6 +572,7 @@ static PyObject *t_sl_last(t_sl *self, PyObject *args);
 static PyObject *t_sl_after(t_sl *self, PyObject *args);
 static PyObject *t_sl_find(t_sl *self, PyObject *args);
 static PyObject *t_sl_validate(t_sl *self, PyObject *arg);
+static PyObject *t_sl_isValid(t_sl *self);
 
 
 static PyMemberDef t_sl_members[] = {
@@ -603,6 +604,7 @@ static PyMethodDef t_sl_methods[] = {
     { "after", (PyCFunction) t_sl_after, METH_VARARGS, "" },
     { "find", (PyCFunction) t_sl_find, METH_VARARGS, "" },
     { "validate", (PyCFunction) t_sl_validate, METH_O, "" },
+    { "isValid", (PyCFunction) t_sl_isValid, METH_NOARGS, "" },
     { NULL, NULL, 0, NULL }
 };
 
@@ -1532,12 +1534,6 @@ static int _t_sl__place(t_sl *self, int op, PyObject *key, PyObject *afterKey)
     int dist = 0;
     t_node *curr;
 
-    if (self->flags & SL_INVALID)
-    {
-        _t_sl_invalid(self);
-        return -1;
-    }
-
     if (afterKey == Default || afterKey == Nil)
         afterKey = Py_None;
 
@@ -1938,6 +1934,14 @@ static PyObject *t_sl_validate(t_sl *self, PyObject *arg)
         self->flags |= SL_INVALID;
 
     Py_RETURN_NONE;
+}
+
+static PyObject *t_sl_isValid(t_sl *self)
+{
+    if (self->flags & SL_INVALID)
+        Py_RETURN_FALSE;
+
+    Py_RETURN_TRUE;
 }
 
 

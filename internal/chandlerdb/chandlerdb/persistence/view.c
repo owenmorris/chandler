@@ -66,6 +66,7 @@ static PyObject *t_view_debugOn(t_view *self, PyObject *arg);
 static PyObject *t_view__unregisterItem(t_view *self, PyObject *args);
 static PyObject *t_view_isReindexingDeferred(t_view *self);
 static PyObject *t_view_reindexingDeferred(t_view *self);
+static PyObject *t_view__deferIndexMonitor(t_view *self, PyObject *arg);
 static PyObject *t_view_areObserversDeferred(t_view *self);
 static PyObject *t_view_observersDeferred(t_view *self, PyObject *args);
 static PyObject *t_view_areNotificationsDeferred(t_view *self);
@@ -141,6 +142,7 @@ static PyMethodDef t_view_methods[] = {
     { "_unregisterItem", (PyCFunction) t_view__unregisterItem, METH_VARARGS, "" },
     { "isReindexingDeferred", (PyCFunction) t_view_isReindexingDeferred, METH_NOARGS, "" },
     { "reindexingDeferred", (PyCFunction) t_view_reindexingDeferred, METH_NOARGS, "" },
+    { "_deferIndexMonitor", (PyCFunction) t_view__deferIndexMonitor, METH_O, "" },
     { "areObserversDeferred", (PyCFunction) t_view_areObserversDeferred, METH_NOARGS, "" },
     { "observersDeferred", (PyCFunction) t_view_observersDeferred, METH_VARARGS, "" },
     { "areNotificationsDeferred", (PyCFunction) t_view_areNotificationsDeferred, METH_VARARGS, "" },
@@ -920,14 +922,6 @@ static PyObject *_t_view_invokeMonitors(t_view *self, PyObject *args,
                     return NULL;
                 }
                 Py_DECREF(result);
-
-                if (self->status & DEFERIDX && monitor->status & IDXMONITOR &&
-                    PySet_Add(self->deferredIndexingCtx->data,
-                              (PyObject *) monitor) < 0)
-                {
-                    Py_DECREF(args);
-                    return NULL;
-                }
             }
         }
     }
@@ -1128,6 +1122,17 @@ static PyObject *t_view_reindexingDeferred(t_view *self)
 
         return (PyObject *) ctxmgr;
     }
+}
+
+static PyObject *t_view__deferIndexMonitor(t_view *self, PyObject *arg)
+{
+    if (self->status & DEFERIDX)
+    {
+        if (PySet_Add(self->deferredIndexingCtx->data, arg) < 0)
+            return NULL;
+    }
+
+    Py_RETURN_NONE;    
 }
 
 
