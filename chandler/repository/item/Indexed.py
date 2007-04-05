@@ -56,6 +56,16 @@ class Indexed(object):
 
         return None
 
+    def _reindex(self, index, key):
+
+        item, attribute = self.itsOwner
+        indexes = self._indexes
+        for monitor in getattr(item, 'monitors', Nil):
+            x, x, name = monitor.getItemIndex()
+            if indexes.get(name) is index:
+                monitor('set', item.itsView[key], monitor.attribute)
+                break
+
     def hasIndex(self, name):
         """
         Tell whether this indexed collection has an index by a given name.

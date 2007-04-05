@@ -183,6 +183,24 @@ class TestIndexes(RepositoryTestCase):
         self.assert_(not view.isReindexingDeferred())
         self.assert_(view.check(), "view does not check out")
 
+    def testDeferredReindexingAdd(self):
+
+        view = self.rep.view
+        movies = view.find(self.kh).movies
+        movies.addIndex('t', 'value', attribute='title', ranges=[(0, 1)])
+        movies.addIndex('f', 'string', attributes=('frenchTitle', 'title'),
+                        locale='fr_FR')
+        view.commit()
+        m1 = movies.first()
+        m2 = movies.next(m1)
+        movies.remove(m1)
+
+        with view.reindexingDeferred():
+            m2.title = 'Foo'
+            movies.add(m1)
+
+        self.assert_(view.check())
+
 
 if __name__ == "__main__":
 #    import hotshot

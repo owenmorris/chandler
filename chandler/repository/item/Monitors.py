@@ -229,6 +229,7 @@ class IndexMonitor(Monitor):
                     deferredKeys.add(item.itsUUID)
                 if keys:
                     deferredKeys.update(keys)
+                view._deferIndexMonitor(self)
 
             elif item in collection:
                 if keys:

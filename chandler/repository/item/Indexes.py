@@ -253,9 +253,14 @@ class NumericIndex(Index):
 
         return kwds
 
-    def insertKey(self, key, afterKey=None, selected=False):
+    # key: None -> first, Default -> last
+    def insertKey(self, key, afterKey=Default, selected=False):
 
-        self.skipList.insert(key, afterKey)
+        skipList = self.skipList
+        if afterKey is Default:
+            afterKey = skipList.last()
+
+        skipList.insert(key, afterKey)
         self._keyChanged(key)
 
         super(NumericIndex, self).insertKey(key, afterKey)
@@ -398,7 +403,15 @@ class SortedIndex(DelegatingIndex):
     def insertKey(self, key, ignore=None, selected=False):
 
         index = self._index
-        index.insertKey(key, index.skipList.after(key, self.compare), selected)
+        skipList = index.skipList
+
+        if skipList.isValid():
+            afterKey = skipList.after(key, self.compare)
+            index.insertKey(key, afterKey, selected)
+        else:
+            afterKey = None
+            index.insertKey(key, afterKey, selected)
+            self._valueMap._reindex(self, key)
 
     def moveKey(self, key, ignore=None, insertMissing=None):
 

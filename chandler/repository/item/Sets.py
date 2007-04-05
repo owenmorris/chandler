@@ -15,7 +15,7 @@
 
 from itertools import izip
 
-from chandlerdb.util.c import UUID, isuuid, Nil
+from chandlerdb.util.c import UUID, isuuid, Nil, Default
 from chandlerdb.item.c import CItem, ItemValue
 from chandlerdb.persistence.c import CView
 from repository.item.Monitors import Monitors
@@ -396,7 +396,7 @@ class AbstractSet(ItemValue, Indexed):
                         if op == 'add':
                             for index in self._indexes.itervalues():
                                 if other not in index:
-                                    index.insertKey(other, index.getLastKey())
+                                    index.insertKey(other, Default)
                                     dirty = True
                         else:
                             for index in self._indexes.itervalues():
