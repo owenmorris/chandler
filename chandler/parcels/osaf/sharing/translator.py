@@ -1695,6 +1695,9 @@ class DumpTranslator(SharingTranslator):
             if record.serializer == "eimml_lite":
                 conduit.serializer = eimml.EIMMLSerializerLite
 
+            # if record.translator == "sharing":
+            conduit.translator = SharingTranslator
+
             if record.filters not in (None, eim.NoChange):
                 for filter in record.filters.split(","):
                     if filter:
@@ -1703,7 +1706,7 @@ class DumpTranslator(SharingTranslator):
     @eim.exporter(recordset_conduit.RecordSetConduit)
     def export_sharing_recordset_conduit(self, conduit):
 
-        translator = None
+        translator = "sharing"
 
         if conduit.serializer is eimml.EIMMLSerializer:
             serializer = 'eimml'
@@ -1725,7 +1728,10 @@ class DumpTranslator(SharingTranslator):
     @model.ShareHTTPConduitRecord.importer
     def import_sharing_http_conduit(self, record):
 
-        @self.withItemForUUID(record.uuid, conduits.HTTPMixin)
+        @self.withItemForUUID(record.uuid, conduits.HTTPMixin,
+            ticket=record.ticket,
+            ticketReadWrite=record.ticket_rw,
+            ticketReadOnly=record.ticket_ro)
         def do(conduit):
             if record.account is not eim.NoChange:
                 if record.account:
@@ -1745,17 +1751,13 @@ class DumpTranslator(SharingTranslator):
                         conduit.username = record.username
                     if record.password is not eim.NoChange:
                         conduit.password = record.password
-        # TODO: url
-        # TODO: ticket_rw
-        # TODO: ticket_ro
 
     @eim.exporter(conduits.HTTPMixin)
     def export_sharing_http_mixin(self, conduit):
 
-        url = conduit.getLocation()
-
-        ticket_rw = None # TODO
-        ticket_ro = None # TODO
+        ticket = conduit.ticket
+        ticket_rw = conduit.ticketReadWrite
+        ticket_ro = conduit.ticketReadOnly
 
         if conduit.account:
             account = conduit.account.itsUUID
@@ -1774,7 +1776,7 @@ class DumpTranslator(SharingTranslator):
 
         yield model.ShareHTTPConduitRecord(
             conduit,
-            url,
+            ticket,
             ticket_rw,
             ticket_ro,
             account,
@@ -1834,17 +1836,51 @@ class DumpTranslator(SharingTranslator):
 
         if record.pending is None:
             pending = eim.Inherit # perhaps Inherit was better as Missing; I'm
-                                 # using it here to delete the attribute
+                                  # using it here to delete the attribute
         else:
             pending = record.pending
 
         @self.withItemForUUID(record.uuid,
             shares.State,
-            itemUUID=record.item,
-            peerRepoId=record.peerrepo,
-            peerItemVersion=record.peerversion,
             _agreed=agreed,
             _pending=pending,
+        )
+        def do(state):
+            if record.share not in (eim.NoChange, None):
+                @self.withItemForUUID(record.share, shares.Share)
+                def do_share(share):
+                    if state not in share.states:
+                        share.states.append(state, record.alias)
+
+
+    @eim.exporter(shares.State)
+    def export_sharing_state(self, state):
+
+        share = state.share.itsUUID if getattr(state, "share", None) else None
+        if share is not None:
+            alias = state.share.states.getAlias(state)
+        else:
+            alias = None
+
+        agreed = getattr(state, "_agreed", None)
+        pending = getattr(state, "_pending", None)
+
+        yield model.ShareStateRecord(
+            state,
+            share,
+            alias,
+            agreed,
+            pending
+        )
+
+
+
+    @model.SharePeerStateRecord.importer
+    def import_sharing_peer_state(self, record):
+
+        @self.withItemForUUID(record.uuid, shares.State,
+            peerRepoId=record.peerrepo,
+            peerItemVersion=record.peerversion
         )
         def do(state):
             if record.peer not in (eim.NoChange, None):
@@ -1852,37 +1888,51 @@ class DumpTranslator(SharingTranslator):
                 def do_peer(peer):
                     state.peer = peer
 
-            if record.share not in (eim.NoChange, None):
-                @self.withItemForUUID(record.share, shares.Share)
-                def do_share(share):
-                    if state not in share.states:
-                        share.states.append(state, record.item)
+            if record.item not in (eim.NoChange, None):
+                @self.withItemForUUID(record.item, shares.SharedItem)
+                def do_item(sharedItem):
+                    if state not in sharedItem.peerStates:
+                        sharedItem.peerStates.append(state, record.peer)
 
-        # TODO: agreed
-        # TODO: pending
+    # SharePeerStateRecords are generated in SharedItem's exporter
 
-    @eim.exporter(shares.State)
-    def export_sharing_state(self, state):
 
-        peer = state.peer.itsUUID if getattr(state, "peer", None) else None
-        peerrepo = state.peerRepoId
-        peerversion = state.peerItemVersion
-        share = state.share.itsUUID if getattr(state, "share", None) else None
-        item = getattr(state, "itemUUID", None)
+    @model.ShareSharedInRecord.importer
+    def import_sharing_shared_in(self, record):
 
-        agreed = getattr(state, "_agreed", None)
-        pending = getattr(state, "_pending", None)
+        @self.withItemForUUID(record.item, shares.SharedItem)
+        def do_item(sharedItem):
+            @self.withItemForUUID(record.share, shares.Share)
+            def do_share(share):
+                sharedItem.sharedIn.append(share)
 
-        yield model.ShareStateRecord(
-            state,
-            peer,
-            peerrepo,
-            peerversion,
-            share,
-            item,
-            agreed,
-            pending
-        )
+
+    @eim.exporter(shares.SharedItem)
+    def export_sharing_shared_item(self, sharedItem):
+
+        for share in sharedItem.sharedIn:
+            yield model.ShareSharedInRecord(
+                sharedItem.itsItem,
+                share
+            )
+
+        for state in getattr(sharedItem, "peerStates", []):
+            alias = sharedItem.peerStates.getAlias(state)
+            uuid = state
+            peer = state.peer
+            item = sharedItem.itsItem
+            peerrepo = state.peerRepoId
+            peerversion = state.peerItemVersion
+
+            yield model.SharePeerStateRecord(
+                uuid,
+                peer,
+                item,
+                peerrepo,
+                peerversion
+            )
+
+
 
 
     @model.ShareResourceStateRecord.importer

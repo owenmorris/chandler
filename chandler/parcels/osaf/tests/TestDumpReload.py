@@ -251,6 +251,11 @@ class DumpReloadTestCase(testcase.DualRepositoryTestCase):
                 self.assert_(state1 in inmemory_share1.states)
                 self.assertEqual(state0.agreed, state1.agreed)
                 self.assertEqual(state0.pending, state1.pending)
+            for item0 in coll0:
+                item1 = view1.findUUID(item0.itsUUID)
+                sharedItem1 = sharing.SharedItem(item1)
+                self.assert_(inmemory_share1 in sharedItem1.sharedIn)
+
 
             # Verify Calendar prefs
             pref = schema.ns('osaf.pim', view1).TimezonePrefs

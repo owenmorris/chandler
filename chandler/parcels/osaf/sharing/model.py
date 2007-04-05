@@ -338,7 +338,7 @@ class ShareHTTPConduitRecord(eim.Record):
     URI = "http://osafoundation.org/eim/sharing/httpconduit/0"
 
     uuid = eim.key(ItemRecord.uuid)
-    url = eim.field(text1024)
+    ticket = eim.field(text1024)
     ticket_rw = eim.field(text1024)
     ticket_ro = eim.field(text1024)
 
@@ -364,14 +364,19 @@ class ShareStateRecord(eim.Record):
     URI = "http://osafoundation.org/eim/sharing/sharestate/0"
 
     uuid = eim.key(ItemRecord.uuid)
-    peer = eim.field(schema.UUID)
-    peerrepo = eim.field(text1024)
-    peerversion = eim.field(eim.IntType)
     share = eim.field(schema.UUID)
-    item = eim.field(text1024)
+    alias = eim.field(text1024)
     agreed = eim.field(eim.BlobType)
     pending = eim.field(eim.BlobType)
 
+class SharePeerStateRecord(eim.Record):
+    URI = "http://osafoundation.org/eim/sharing/peerstate/0"
+
+    uuid = eim.key(ItemRecord.uuid)
+    peer = eim.field(schema.UUID)
+    item = eim.field(schema.UUID)
+    peerrepo = eim.field(text1024)
+    peerversion = eim.field(eim.IntType)
 
 class ShareResourceStateRecord(eim.Record):
     URI = "http://osafoundation.org/eim/sharing/resourcesharestate/0"
@@ -380,6 +385,11 @@ class ShareResourceStateRecord(eim.Record):
     path = eim.field(text1024)
     etag = eim.field(text1024)
 
+class ShareSharedInRecord(eim.Record):
+    URI = "http://osafoundation.org/eim/sharing/sharedin/0"
+
+    item = eim.key(schema.UUID)
+    share = eim.key(schema.UUID)
 
 class ShareAccountRecord(eim.Record):
     URI = "http://osafoundation.org/eim/sharing/account/0"
