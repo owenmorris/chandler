@@ -170,9 +170,9 @@ static int t_descriptor_init(t_descriptor *self,
 static t_values *get_attrdict(t_item *item, int flags)
 {
     switch (flags & ATTRDICT) {
-      case VALUE:
+      case A_VALUE:
         return item->values;
-      case REF:
+      case A_REF:
         return item->references;
       default:
         return NULL;
@@ -205,7 +205,7 @@ static PyObject *t_descriptor___get__(t_descriptor *self,
 
             if (attrDict)
             {
-                if (!(flags & PROCESS_GET))
+                if (!(flags & A_PROCESS_GET))
                 {
                     value = PyDict_GetItem(attrDict->dict, self->name);
                     if (value)
@@ -219,7 +219,7 @@ static PyObject *t_descriptor___get__(t_descriptor *self,
                     else
                         found = -1;
                 }
-                else if (flags & REF)
+                else if (flags & A_REF)
                 {
                     value = PyDict_GetItem(attrDict->dict, self->name);
                     if (value)
@@ -240,7 +240,7 @@ static PyObject *t_descriptor___get__(t_descriptor *self,
 
             if (found > 0)
                 item->lastAccess = ++_lastAccess;
-            else if (found < 0 && flags & NOINHERIT)
+            else if (found < 0 && flags & A_NOINHERIT)
             {
                 PyObject *inheritFrom = PyDict_GetItem(item->references->dict,
                                                        inheritFrom_NAME);
@@ -265,7 +265,7 @@ static PyObject *t_descriptor___get__(t_descriptor *self,
                         return NULL;
                     }
                 }
-                else if (flags & DEFAULT)
+                else if (flags & A_DEFAULT)
                 {
                     value = attr->defaultValue;
                     Py_INCREF(value);
@@ -319,7 +319,7 @@ static int t_descriptor___set__(t_descriptor *self,
                 if (value == oldValue)
                     return 0;
 
-                if (flags & SINGLE && !(flags & PROCESS_SET) && oldValue)
+                if (flags & A_SINGLE && !(flags & A_PROCESS_SET) && oldValue)
                 {
                     int eq = PyObject_RichCompareBool(value, oldValue, Py_EQ);
 
@@ -330,7 +330,7 @@ static int t_descriptor___set__(t_descriptor *self,
                 }
             }
 
-            value = PyObject_CallMethodObjArgs((PyObject *) item, setAttributeValue_NAME, self->name, value, attrDict ? (PyObject *) attrDict : Py_None, flags & REF ? attr->otherName : Py_None, Py_True, NULL);
+            value = PyObject_CallMethodObjArgs((PyObject *) item, setAttributeValue_NAME, self->name, value, attrDict ? (PyObject *) attrDict : Py_None, flags & A_REF ? attr->otherName : Py_None, Py_True, NULL);
 
             if (!value)
                 return -1;
@@ -381,7 +381,7 @@ static PyObject *t_descriptor_isValueRequired(t_descriptor *self, t_item *item)
 
         return PyTuple_Pack(2,
                             attrDict ? (PyObject *) attrDict : Py_None,
-                            attrDict && flags & REQUIRED ? Py_True : Py_False);
+                            attrDict && flags & A_REQUIRED ? Py_True : Py_False);
     }
     else
         return PyTuple_Pack(2, Py_None, Py_False);

@@ -868,10 +868,10 @@ static PyObject *t_item_hasTrueAttributeValue(t_item *self, PyObject *args)
                     Py_RETURN_FALSE;
 
                 switch (flags & ATTRDICT) {
-                  case VALUE:
+                  case A_VALUE:
                     attrDict = (PyObject *) self->values;
                     break;
-                  case REF:
+                  case A_REF:
                     attrDict = (PyObject *) self->references;
                     break;
                 }
@@ -898,9 +898,9 @@ static PyObject *t_item_hasTrueAttributeValue(t_item *self, PyObject *args)
                     Py_RETURN_FALSE;
             }
 
-            if (flags & NOINHERIT)
+            if (flags & A_NOINHERIT)
             {
-                if (flags & DEFAULT)
+                if (flags & A_DEFAULT)
                 {
                     value = attr->defaultValue;
                     if (PyObject_TypeCheck(value, CItem) ||
@@ -999,7 +999,7 @@ static PyObject *_t_item__fireChanges(t_item *self,
         if (!attr)
             return NULL;
 
-        if (attr->flags & AFTERCHANGE)
+        if (attr->flags & A_AFTERCHANGE)
         {
             if (view->status & DEFERNOTIF)
             {
@@ -1819,10 +1819,7 @@ void _init_item(PyObject *m)
             PyDict_SetItemString_Int(dict, "ADIRTY", ADIRTY);
             PyDict_SetItemString_Int(dict, "PINNED", PINNED);
             PyDict_SetItemString_Int(dict, "NODIRTY", NODIRTY);
-            PyDict_SetItemString_Int(dict, "VMERGED", VMERGED);
-            PyDict_SetItemString_Int(dict, "RMERGED", RMERGED);
-            PyDict_SetItemString_Int(dict, "NMERGED", NMERGED);
-            PyDict_SetItemString_Int(dict, "CMERGED", CMERGED);
+            PyDict_SetItemString_Int(dict, "MERGED", MERGED);
             PyDict_SetItemString_Int(dict, "MUTATING", MUTATING);
             PyDict_SetItemString_Int(dict, "P_WATCHED", P_WATCHED);
             PyDict_SetItemString_Int(dict, "T_WATCHED", T_WATCHED);
@@ -1834,7 +1831,6 @@ void _init_item(PyObject *m)
 
             PyDict_SetItemString_Int(dict, "VRDIRTY", VRDIRTY);
             PyDict_SetItemString_Int(dict, "DIRTY", DIRTY);
-            PyDict_SetItemString_Int(dict, "MERGED", MERGED);
             PyDict_SetItemString_Int(dict, "SAVEMASK", SAVEMASK);
 
             _setKind_NAME = PyString_FromString("_setKind");

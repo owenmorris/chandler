@@ -76,10 +76,10 @@ enum {
     ADIRTY     = 0x00002000,          /* acl(s) changed */
     PINNED     = 0x00004000,          /* auto-refresh, do not stale */
     NODIRTY    = 0x00008000,          /* turn off dirtying and change firing */
-    VMERGED    = 0x00010000,
-    RMERGED    = 0x00020000,
-    NMERGED    = 0x00040000,
-    CMERGED    = 0x00080000,
+    MERGED     = 0x00010000,
+
+
+
     WITHSCHEMA = 0x00100000,          /* save item with schema */
     IDXMONITOR = 0x00200000,          /* an index monitor */
     MUTATING   = 0x00400000,          /* kind is being removed */
@@ -96,7 +96,6 @@ enum {
 enum {
     VRDIRTY    = VDIRTY | RDIRTY,
     DIRTY      = VDIRTY | RDIRTY | NDIRTY | CDIRTY | KDIRTY,
-    MERGED     = VMERGED | RMERGED | NMERGED | CMERGED,
     SAVEMASK   = (DIRTY | ADIRTY | SYSMONITOR | IDXMONITOR |
                   NEW | DELETED | P_WATCHED | TOINDEX |
                   SCHEMA | CORESCHEMA | WITHSCHEMA | CONTAINER),

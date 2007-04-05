@@ -18,28 +18,28 @@
 #define _ATTRIBUTE_H
 
 enum {
-    VALUE        = 0x00000001,
-    REF          = 0x00000002,
+    A_VALUE        = 0x00000001,
+    A_REF          = 0x00000002,
 
-    REQUIRED     = 0x00000008,
-    PROCESS_GET  = 0x00000010,
-    PROCESS_SET  = 0x00000020,
-    SINGLE       = 0x00000040,
-    LIST         = 0x00000080,
-    DICT         = 0x00000100,
-    SET          = 0x00000200,
-    ALIAS        = 0x00000400,
-    KIND         = 0x00000800,
-    NOINHERIT    = 0x00001000,
-    SIMPLE       = 0x00002000,
-    INDEXED      = 0x00004000,
-    DEFAULT      = 0x00008000,
-    AFTERCHANGE  = 0x00010000,
-    A_PURE       = 0x00020000,
+    A_REQUIRED     = 0x00000008,
+    A_PROCESS_GET  = 0x00000010,
+    A_PROCESS_SET  = 0x00000020,
+    A_SINGLE       = 0x00000040,
+    A_LIST         = 0x00000080,
+    A_DICT         = 0x00000100,
+    A_SET          = 0x00000200,
+    A_ALIAS        = 0x00000400,
+    A_KIND         = 0x00000800,
+    A_NOINHERIT    = 0x00001000,
+    A_SIMPLE       = 0x00002000,
+    A_INDEXED      = 0x00004000,
+    A_DEFAULT      = 0x00008000,
+    A_AFTERCHANGE  = 0x00010000,
+    A_PURE         = 0x00020000,
 
-    ATTRDICT     = VALUE | REF,
-    CARDINALITY  = SINGLE | LIST | DICT | SET,
-    PROCESS      = PROCESS_GET | PROCESS_SET,
+    ATTRDICT     = A_VALUE | A_REF,
+    CARDINALITY  = A_SINGLE | A_LIST | A_DICT | A_SET,
+    PROCESS      = A_PROCESS_GET | A_PROCESS_SET,
 };
 
 typedef struct {
