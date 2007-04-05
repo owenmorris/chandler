@@ -1305,9 +1305,14 @@ class IconAttributeEditor (BaseAttributeEditor):
         if we want the mouse captured for future updates.
         """
         gridWindow = event.GetEventObject()
+        item, attributeName = event.getCellValue()
+
+        # do nothing if we're readonly
+        if self.ReadOnly((item, attributeName)):
+            event.Skip(False)
+            return False
         
         # Note whether the item we were over changed
-        item, attributeName = event.getCellValue()
         isIn = event.isInCell
         rolledOverItem = getattr(self, 'rolledOverItem', None)
         inChanged = (not isIn) or (rolledOverItem is not item)

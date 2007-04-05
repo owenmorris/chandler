@@ -484,6 +484,10 @@ class DetailTriageButton(DetailSynchronizer, ControlBlocks.Button):
             self.widget.SetState("%s.%s" % (self.icon, item.triageStatus))
 
     def onButtonPressedEvent(self, event):
+        # do nothing if we're readonly
+        #if self.ReadOnly((self.item, '_triageStatus')):
+            #return
+
         oldState = getattr(self.widget, 'currentState', None)
         if oldState != None:
             assert oldState.startswith('Markup.')
@@ -496,8 +500,9 @@ class DetailTriageButton(DetailSynchronizer, ControlBlocks.Button):
             self.setState()
 
     def onButtonPressedEventUpdateUI(self, event):
-        pass
-
+        item = self.item
+        enable = item is not None and item.isAttributeModifiable('_triageStatus')
+        event.arguments ['Enable'] = enable
 
 class DetailStampButton(DetailSynchronizer, ControlBlocks.StampButton):
     """
