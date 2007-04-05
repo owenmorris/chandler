@@ -38,11 +38,9 @@ class UpgradeDialog(wx.Dialog):
 
         profileBase = os.path.dirname(os.path.dirname(locateProfileDir()))
         dirlist     = glob.glob(os.path.join(profileBase, '0.7*'))
-        reloadlist  = glob.glob(os.path.join(profileBase, '*.dump.tgz'))
+        reloadlist  = glob.glob(os.path.join(profileBase, 'Chandler*.dump'))
 
-        if os.path.isdir(profileBase) and len(reloadlist) > 0:
-            dialog.reload.SetValue(True)
-        elif len(dirlist) > 0:
+        if len(dirlist) > 0:
             dialog.exitReload.SetValue(True)
         else:
             dialog.normalStartup.SetValue(True)
@@ -81,10 +79,6 @@ class UpgradeDialog(wx.Dialog):
         sizer.Add(self.exitReload, flag=wx.ALL, border=5)
         self.exitReload.Bind(wx.EVT_LEFT_DCLICK, self.onButton)
 
-        self.reload = wx.RadioButton(self, -1, _(u"Reload from a previous Chandler (this can take a few minutes)"))
-        sizer.Add(self.reload, flag=wx.ALL, border=5)
-        self.reload.Bind(wx.EVT_LEFT_DCLICK, self.onButton)
-
         box = wx.BoxSizer(wx.HORIZONTAL)
         okButton = wx.Button(self, wx.OK, _(u"OK"))
         okButton.Bind(wx.EVT_BUTTON, self.onButton)
@@ -99,19 +93,7 @@ class UpgradeDialog(wx.Dialog):
     def onButton(self, event):
         buttonID = event.GetEventObject().GetId()
 
-        if self.reload.GetValue():
-            profileBase = os.path.dirname(os.path.dirname(locateProfileDir()))
-            reloadFile = wx.FileSelector(_(u"Chandler dump file to reload?"),
-                                         profileBase,
-                                          u"", u".dump.tgz",
-                                         u"*.dump.tgz",
-                                         flags=wx.OPEN|wx.FILE_MUST_EXIST,
-                                         parent=self)
-            if not reloadFile:
-                return # user canceled.
-            Globals.options.reload = reloadFile
-
-        elif self.exitReload.GetValue():
+        if self.exitReload.GetValue():
             sys.exit(0)
 
         self.EndModal(wx.OK)
