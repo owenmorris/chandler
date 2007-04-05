@@ -144,6 +144,9 @@ class DetailRootBlock(WatchedItemRootBlock, ControlBlocks.ContentItemDetail):
         
         if newItem is not None:
             self.item.beginSession()
+
+        # make sure other UI is notified about the item changing
+        wx.GetApp().needsUpdateUI = True
         
 
     def onSendShareItemEvent (self, event):
