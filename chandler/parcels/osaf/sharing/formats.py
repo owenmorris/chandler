@@ -379,7 +379,7 @@ class CloudXMLFormat(ImportExportFormat):
                 # we're exporting, is just item.
                 targetItem = item
 
-            attrValue = getattr(targetItem, attrName)
+            attrValue = getattr(targetItem, attrName, None)
             if attrValue is None:
                 continue
 
