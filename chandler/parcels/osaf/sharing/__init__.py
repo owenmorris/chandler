@@ -752,12 +752,18 @@ def updatePublishedFreeBusy(share, fbLocation=None):
 
 def deleteShare(share):
     # Remove from server (or disk, etc.)
-    if share.exists():
+    try:
         share.destroy()
+    except:
+        logger.exception("Error trying to delete shared collection")
+        # Even though we failed to remove the collection, we still need to
+        # clean up the share objects, so continue on
 
     # Clean up sharing-related objects
-    share.conduit.delete(True)
-    share.format.delete(True)
+    if getattr(share, "conduit", None):
+        share.conduit.delete(True)
+    if getattr(share, "format", None):
+        share.format.delete(True)
     share.delete(True)
 
 def unpublish(collection):
