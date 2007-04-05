@@ -1,6 +1,6 @@
 
 Universal feed parser
-chandler/util/feedparser.py
+chandler/projects/Chandler-FeedsPlugin/feeds/feedparser.py
 
     __license__ = """Copyright (c) 2002-2006, Mark Pilgrim, All rights reserved.
 
