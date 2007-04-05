@@ -235,6 +235,16 @@ class Password(schema.Item):
             return False
         
         return True
+    
+    @runInUIThread
+    def recordTuple(self):
+        try:
+            if not self.ciphertext or not self.iv or not self.salt:
+                return '', '', ''
+        except AttributeError:
+            return '', '', ''
+
+        return self.ciphertext, self.iv, self.salt
 
 
 # Common attribute for password holders. All kinds referencing it better use

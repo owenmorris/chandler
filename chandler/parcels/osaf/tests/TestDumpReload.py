@@ -18,6 +18,7 @@ import unittest, sys, os, logging
 from osaf import pim, dumpreload, sharing
 from osaf.pim import mail
 from osaf.framework.password import Password
+from osaf.framework.twisted import waitForDeferred
 from util import testcase
 from PyICU import ICUtzinfo
 import datetime
@@ -113,6 +114,13 @@ class DumpReloadTestCase(testcase.DualRepositoryTestCase):
         inmemory_share0.sync()
         for state in inmemory_share0.states:
             uuids.add(state.itsUUID)
+
+        # passwords
+        pw = Password(itsView=view0)
+        waitForDeferred(pw.encryptPassword('foobar'))
+        uuids.add(pw.itsUUID)
+        # XXX password prefs
+        # XXX passwords as part of accounts
 
         #Mail Accounts
 
@@ -267,6 +275,11 @@ class DumpReloadTestCase(testcase.DualRepositoryTestCase):
             self.assertEqual(pref.hourHeightMode, "auto")
             self.assertEqual(pref.visibleHours, 20)
 
+            # Verify passwords
+            pw1 = view1.findUUID(pw.itsUUID)
+            self.assertEqual(waitForDeferred(pw.decryptPassword()),
+                             waitForDeferred(pw1.decryptPassword()))
+
             #Verify Mail Accounts
 
             imapaccount1 = view1.findUUID(imapaccount0.itsUUID)
@@ -329,7 +342,7 @@ class DumpReloadTestCase(testcase.DualRepositoryTestCase):
                     break
 
             self.assertTrue(found)
-
+            
         finally:
             os.remove(filename)
 

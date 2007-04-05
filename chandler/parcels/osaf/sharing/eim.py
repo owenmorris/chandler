@@ -1004,7 +1004,7 @@ add_converter(DecimalType, decimal.Decimal, decimal.Decimal)
 add_converter(BlobType, str, str)
 add_converter(ClobType, str, unicode)
 add_converter(ClobType, unicode, unicode)
-
+add_converter(BytesType, str, str)
 
 
 

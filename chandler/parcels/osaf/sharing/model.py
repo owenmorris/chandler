@@ -24,6 +24,8 @@ text20 = eim.TextType(size=20)
 text256 = eim.TextType(size=256)
 text512 = eim.TextType(size=512)
 text1024 = eim.TextType(size=1024)
+bytes32 = eim.BytesType(size=32)
+bytes1024 = eim.BytesType(size=1024)
 
 aliasableUUID = eim.subtype(eim.UUIDType, size=256)
 
@@ -149,13 +151,22 @@ class DisplayAlarmRecord(eim.Record):
     repeat = eim.field(eim.IntType, [remindersFilter])
 
 
+class PasswordRecord(eim.Record):
+    URI = "http://osafoundation.org/eim/sharing/password/0"
+
+    uuid = eim.key(ItemRecord.uuid)
+    ciphertext = eim.field(bytes1024)
+    iv = eim.field(bytes32)
+    salt = eim.field(bytes32)
+
+
 class MailAccountRecord(eim.Record):
     URI = "http://osafoundation.org/eim/sharing/mailaccount/0"
 
     uuid = eim.key(ItemRecord.uuid)
     retries = eim.field(eim.IntType)
     username = eim.field(text256)
-    password = eim.field(text256)
+    password = eim.field(text256) # XXX how do I point to PasswordRecord? eim.field(schema.UUID) ?
     host = eim.field(text256)
 
     # 0 = None, 1 = TLS, 2 = SSL
@@ -347,7 +358,7 @@ class ShareHTTPConduitRecord(eim.Record):
     port = eim.field(eim.IntType)
     ssl = eim.field(eim.IntType)
     username = eim.field(text256)
-    password = eim.field(text256)
+    password = eim.field(schema.UUID)
 
 class ShareCosmoConduitRecord(eim.Record):
     URI = "http://osafoundation.org/eim/sharing/cosmoconduit/0"
@@ -400,7 +411,7 @@ class ShareAccountRecord(eim.Record):
     ssl = eim.field(eim.IntType)
     path = eim.field(text1024)
     username = eim.field(text256)
-    password = eim.field(text256)
+    password = eim.field(schema.UUID)
 
 class ShareWebDAVAccountRecord(eim.Record):
     URI = "http://osafoundation.org/eim/sharing/webdavaccount/0"

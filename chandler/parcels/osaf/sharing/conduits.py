@@ -30,6 +30,7 @@ from callbacks import *
 from application import schema
 from osaf import pim
 from osaf.framework.twisted import waitForDeferred
+from osaf.framework.password import passwordAttribute
 from repository.item.Item import Item
 from repository.persistence.RepositoryError import MergeError
 from chandlerdb.util.c import UUID
@@ -1213,7 +1214,7 @@ class HTTPMixin(BaseConduit):
     host = schema.One(schema.Text, initialValue=u"")
     port = schema.One(schema.Integer, initialValue=80)
     username = schema.One(schema.Text, initialValue=u"")
-    password = schema.One(schema.Text, initialValue=u"")
+    password = passwordAttribute
     useSSL = schema.One(schema.Boolean, initialValue=False)
     inFreeBusy = schema.One(schema.Boolean, defaultValue=False)
 
@@ -1232,12 +1233,23 @@ class HTTPMixin(BaseConduit):
 
     def _getSettings(self):
         if self.account is None:
-            return (self.host, self.port, self.sharePath.strip("/"),
-                    self.username, self.password, self.useSSL)
+            password = getattr(self, "password", None)
+            if password:
+                password = waitForDeferred(password.decryptPassword())
+            return (self.host, self.port,
+                    self.sharePath.strip("/"),
+                    self.username,
+                    password,
+                    self.useSSL)
         else:
+            password = getattr(self.account, "password", None)
+            if password:
+                password = waitForDeferred(password.decryptPassword())
             return (self.account.host, self.account.port,
-                    self.account.path.strip("/"), self.account.username,
-                    waitForDeferred(self.account.password.decryptPassword()), self.account.useSSL)
+                    self.account.path.strip("/"),
+                    self.account.username,
+                    password,
+                    self.account.useSSL)
 
     def _getServerHandle(self):
         # @@@ [grant] Collections and the trailing / issue.

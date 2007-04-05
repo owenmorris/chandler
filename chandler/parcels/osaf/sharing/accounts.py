@@ -23,7 +23,7 @@ import conduits, utility
 import logging
 import urlparse
 from i18n import ChandlerMessageFactory as _
-from osaf.framework import password
+from osaf.framework.password import passwordAttribute
 
 logger = logging.getLogger(__name__)
 
@@ -33,7 +33,7 @@ class SharingAccount(pim.ContentItem):
         schema.Text, initialValue = u'',
     )
 
-    password = password.passwordAttribute
+    password = passwordAttribute
 
     host = schema.One(
         schema.Text,

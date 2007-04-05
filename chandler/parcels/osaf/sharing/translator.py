@@ -679,6 +679,20 @@ class SharingTranslator(eim.Translator):
             pim.TaskStamp):
             pim.TaskStamp(item).remove()
 
+    @model.PasswordRecord.importer
+    def import_password(self, record):
+        self.withItemForUUID(
+            record.uuid,
+            Password,
+            ciphertext=record.ciphertext,
+            iv=record.iv,
+            salt=record.salt,
+        )
+
+    @eim.exporter(Password)
+    def export_password(self, password):
+        ciphertext, iv, salt = waitForDeferred(password.recordTuple())
+        yield model.PasswordRecord(password, ciphertext, iv, salt)
 
     @model.MailAccountRecord.importer
     def import_mail_account(self, record):
@@ -1749,8 +1763,10 @@ class DumpTranslator(SharingTranslator):
                         conduit.useSSL = True if record.ssl else False
                     if record.username is not eim.NoChange:
                         conduit.username = record.username
-                    if record.password is not eim.NoChange:
-                        conduit.password = record.password
+                    if record.password not in (eim.NoChange, None):
+                        @self.withItemForUUID(record.password, Password)
+                        def do_password(password):
+                            conduit.password = password
 
     @eim.exporter(conduits.HTTPMixin)
     def export_sharing_http_mixin(self, conduit):
@@ -1851,6 +1867,7 @@ class DumpTranslator(SharingTranslator):
                 def do_share(share):
                     if state not in share.states:
                         share.states.append(state, record.alias)
+                    state.peer = share
 
 
     @eim.exporter(shares.State)
@@ -1966,14 +1983,16 @@ class DumpTranslator(SharingTranslator):
             host=record.host,
             port=record.port,
             path=record.path,
-            username=record.username,
-            #XXX PASSWORD
-            # password=record.password,
-            password=Password(itsView=self.rv)
+            username=record.username
         )
         def do(account):
             if record.ssl not in (eim.NoChange, None):
                 account.useSSL = True if record.ssl else False
+            if record.password not in (eim.NoChange, None):
+                @self.withItemForUUID(record.password, Password)
+                def do_password(password):
+                    account.password = password
+
 
     @eim.exporter(accounts.SharingAccount)
     def export_sharing_account(self, account):
@@ -1985,8 +2004,7 @@ class DumpTranslator(SharingTranslator):
             1 if account.useSSL else 0,
             account.path,
             account.username,
-            #XXX PASSWORD
-            "" # account.password
+            account.password
         )
 
 
@@ -2038,7 +2056,7 @@ class DumpTranslator(SharingTranslator):
                 oldAccount = ref.item
 
                 if oldAccount and not oldAccount.username.strip() and \
-                 not hasattr(oldAccount.password, 'ciphertext'):
+                 not waitForDeferred(oldAccount.password.decryptPassword()).strip():
                     # The current account is empty
                     oldAccount.delete()
 
