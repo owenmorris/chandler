@@ -1788,7 +1788,7 @@ class DumpTranslator(SharingTranslator):
             port = conduit.port
             ssl = 1 if conduit.useSSL else 0
             username = conduit.username
-            password = conduit.password
+            password = getattr(conduit, "password", None)
 
         yield model.ShareHTTPConduitRecord(
             conduit,
@@ -1863,12 +1863,21 @@ class DumpTranslator(SharingTranslator):
         )
         def do(state):
             if record.share not in (eim.NoChange, None):
+
                 @self.withItemForUUID(record.share, shares.Share)
                 def do_share(share):
+
                     if state not in share.states:
                         share.states.append(state, record.alias)
                     state.peer = share
 
+                    if record.conflict_share:
+                        state.conflictingShare = share
+
+            if record.conflict_item:
+                @self.withItemForUUID(record.conflict_item, shares.SharedItem)
+                def do_item(sharedItem):
+                    state.conflictFor = sharedItem.itsItem
 
     @eim.exporter(shares.State)
     def export_sharing_state(self, state):
@@ -1879,6 +1888,9 @@ class DumpTranslator(SharingTranslator):
         else:
             alias = None
 
+        conflict_item = getattr(state, "conflictFor", None)
+        conflict_share = getattr(state, "conflictingShare", None)
+
         agreed = getattr(state, "_agreed", None)
         pending = getattr(state, "_pending", None)
 
@@ -1886,6 +1898,8 @@ class DumpTranslator(SharingTranslator):
             state,
             share,
             alias,
+            conflict_item,
+            conflict_share,
             agreed,
             pending
         )
@@ -2004,7 +2018,7 @@ class DumpTranslator(SharingTranslator):
             1 if account.useSSL else 0,
             account.path,
             account.username,
-            account.password
+            getattr(account, "password", None)
         )
 
 

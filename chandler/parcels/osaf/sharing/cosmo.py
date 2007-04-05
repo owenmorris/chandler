@@ -258,13 +258,20 @@ class CosmoConduit(recordset_conduit.DiffRecordSetConduit, conduits.HTTPMixin):
 
     def _getSettings(self):
         if self.account is None:
+            password = getattr(self, "password", None)
+            if password:
+                password = waitForDeferred(password.decryptPassword())
             return (self.host, self.port, self.sharePath.strip("/"),
-                    self.username, self.password, self.useSSL)
+                    self.username, password, self.useSSL)
         else:
+            password = getattr(self.account, "password", None)
+            if password:
+                password = waitForDeferred(password.decryptPassword())
             path = self.account.path.strip("/") + "/" + self.account.pimPath
             return (self.account.host, self.account.port,
                     path.strip("/"),
-                    self.account.username, waitForDeferred(self.account.password.decryptPassword()),
+                    self.account.username,
+                    password,
                     self.account.useSSL)
 
 
@@ -308,13 +315,20 @@ class CosmoConduit(recordset_conduit.DiffRecordSetConduit, conduits.HTTPMixin):
 
     def _getMorsecodeSettings(self):
         if self.account is None:
+            password = getattr(self, "password", None)
+            if password:
+                password = waitForDeferred(password.decryptPassword())
             return (self.host, self.port, self.morsecodePath.strip("/"),
-                    self.username, self.password, self.useSSL)
+                    self.username, password, self.useSSL)
         else:
+            password = getattr(self.account, "password", None)
+            if password:
+                password = waitForDeferred(password.decryptPassword())
             path = self.account.path.strip("/") + "/" + self.account.morsecodePath
             return (self.account.host, self.account.port,
                     path.strip("/"),
-                    self.account.username, waitForDeferred(self.account.password.decryptPassword()),
+                    self.account.username,
+                    password,
                     self.account.useSSL)
 
 

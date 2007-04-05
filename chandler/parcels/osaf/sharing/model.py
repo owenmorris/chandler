@@ -377,6 +377,8 @@ class ShareStateRecord(eim.Record):
     uuid = eim.key(ItemRecord.uuid)
     share = eim.field(schema.UUID)
     alias = eim.field(text1024)
+    conflict_item = eim.field(schema.UUID)
+    conflict_share = eim.field(schema.UUID)
     agreed = eim.field(eim.BlobType)
     pending = eim.field(eim.BlobType)
 
