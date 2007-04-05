@@ -1,4 +1,4 @@
-#   Copyright (c) 2003-2006 Open Source Applications Foundation
+#   Copyright (c) 2003-2007 Open Source Applications Foundation
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -17,7 +17,7 @@ from setuptools import setup
 
 setup(
     name = "Chandler-FeedsPlugin",
-    version = "0.2",
+    version = "0.3",
     description = "Simple RSS/Atom feed support for Chandler",
     author = "OSAF",
     test_suite = "feeds.tests",
@@ -25,6 +25,14 @@ setup(
     include_package_data = True,
     entry_points = {
         "chandler.parcels": ["RSS/Atom Feeds = feeds"]
-    }
+    },
+    classifiers = ["Development Status :: 3 - Alpha",
+                   "Environment :: Plugins",
+                   "Framework :: Chandler",
+                   "Intended Audience :: Developers",
+                   "License :: OSI Approved :: Apache Software License",
+                   "Operating System :: OS Independent",
+                   "Programming Language :: Python",
+                   "Topic :: Office/Business :: Groupware"],
+    long_description = open('README.txt').read(),
 )
-

@@ -14,7 +14,7 @@
 
 __all__ = ["FeedChannel", "FeedItem"]
 
-__parcel__    = "feeds"
+__parcel__ = "feeds"
 
 import time, logging, urllib
 from datetime import datetime
@@ -286,7 +286,7 @@ class FeedChannel(pim.ListCollection):
         and then fills the channel attributes.
         """
         if self.feedparser is None:
-            from util import feedparser
+            import feedparser
             FeedChannel.feedparser = feedparser
         data = self.feedparser.parse(rawData)
         # For fun, keep the latest copy of the feed inside the channel item
