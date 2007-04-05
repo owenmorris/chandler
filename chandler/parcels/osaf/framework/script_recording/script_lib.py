@@ -167,7 +167,9 @@ def ProcessEvent (theClass, properties , attributes):
                 capturedWindow.ReleaseMouse()
             else:
                 break
-            
+
+        application.Yield()
+
 
 def VerifyOn (verify = True):
     ProcessEvent.verifyOn = verify
