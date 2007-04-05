@@ -484,10 +484,6 @@ class DetailTriageButton(DetailSynchronizer, ControlBlocks.Button):
             self.widget.SetState("%s.%s" % (self.icon, item.triageStatus))
 
     def onButtonPressedEvent(self, event):
-        # do nothing if we're readonly
-        #if self.ReadOnly((self.item, '_triageStatus')):
-            #return
-
         oldState = getattr(self.widget, 'currentState', None)
         if oldState != None:
             assert oldState.startswith('Markup.')
