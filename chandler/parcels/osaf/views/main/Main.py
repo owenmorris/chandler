@@ -771,8 +771,10 @@ class MainView(View):
     def onSendShareItemEventUpdateUI(self, event):
         # If we get asked about this, and it hasn't already been set, there's no selected 
         # item anywhere - disallow sending. Also, make sure the label's set back to "Send"
+        # and the bitmap is set to the send bitmap.
         event.arguments ['Enable'] = False
         event.arguments ['Text'] = messages.SEND
+        event.arguments ['Bitmap'] = "ApplicationBarSend.png"
 
     def onSendMailEvent(self, event):
         # commit changes, since we'll be switching to Twisted thread
