@@ -15,7 +15,7 @@
 
 """Dump and Reload module"""
 
-import logging, cPickle, sys
+import logging, cPickle, sys, os
 from osaf import pim, sharing
 from osaf.sharing.eim import uri_registry, RecordClass
 from application import schema
@@ -77,8 +77,9 @@ class PickleSerializer(object):
 
 def dump(rv, filename, uuids=None, translator=sharing.DumpTranslator,
     serializer=PickleSerializer, activity=None):
-
-    """ Dumps EIM records to a file """
+    """
+    Dumps EIM records to a file, file permissions 0600.
+    """
 
     if uuids is None:
         uuids = set()
@@ -90,7 +91,19 @@ def dump(rv, filename, uuids=None, translator=sharing.DumpTranslator,
 
     trans.startExport()
 
-    output = open(filename, "wb")
+    try:
+        flags = os.O_EXCL | os.O_CREAT | os.O_WRONLY | os.O_BINARY
+    except AttributeError:
+        flags = os.O_EXCL | os.O_CREAT | os.O_WRONLY
+
+    try:
+        # Need to remove the file, otherwise we'll use existing permissions
+        os.remove(filename)
+    except OSError:
+        pass
+    # XXX This will fail if someone created the file after the remove but
+    # XXX before we got here, so the caller should be prepared to handle that.
+    output = os.fdopen(os.open(filename, flags, 0600), 'wb')
     try:
         dump = serializer.dumper(output)
 
