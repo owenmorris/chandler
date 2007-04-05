@@ -258,14 +258,14 @@ class NumericIndex(Index):
         self.skipList.insert(key, afterKey)
         self._keyChanged(key)
 
+        super(NumericIndex, self).insertKey(key, afterKey)
+
         ranges = self._ranges
         if ranges is not None:
             pos = self.getPosition(key)
             ranges.onInsert(key, pos)
             if selected:
                 ranges.selectRange(pos)
-
-        super(NumericIndex, self).insertKey(key, afterKey)
 
     # if afterKey is None, move to the beginning of the index
     # if afterKey is Default, don't move the key (insert only)
