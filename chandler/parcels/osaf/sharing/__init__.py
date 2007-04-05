@@ -841,7 +841,8 @@ def subscribe(view, url, activity=None, username=None, password=None,
 
             # update shareName if it's a subscollection in the account
             if account.path.strip("/") != parentPath.strip("/"):
-                tail = parentPath.strip("/")[len(account.path.strip("/")):]
+                # account path: "a/b", parent path: "a/b/c", tail will be "c"
+                tail = parentPath.strip("/")[len(account.path.strip("/"))+1:]
                 if tail != "":
                     shareName = tail + "/" + shareName
 
