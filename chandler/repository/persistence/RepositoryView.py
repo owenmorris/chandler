@@ -1004,18 +1004,6 @@ class RepositoryView(CView):
 
         raise NotImplementedError, "%s.mapHistoryKeys" %(type(self))
 
-    def _commitMerge(self):
-
-        if self._status & CItem.CMERGED:
-            self._roots._commitMerge()
-
-    def _revertMerge(self):
-
-        if self._status & CItem.CMERGED:
-            self._roots._revertMerge()
-
-        self._status &= ~CItem.MERGED
-
     def getItemVersion(self, version, item):
 
         return self.repository.store.getItemVersion(self, version, item.itsUUID)

@@ -800,6 +800,7 @@ class DBRepositoryView(OnDemandRepositoryView):
         NDIRTY = CItem.NDIRTY
         RDIRTY = CItem.RDIRTY
         VDIRTY = CItem.VDIRTY
+        KDIRTY = CItem.KDIRTY
 
         if newDirty & CDIRTY:
             children = item._children
@@ -829,6 +830,9 @@ class DBRepositoryView(OnDemandRepositoryView):
                                          _newChanges, None, indexChanges,
                                          version, newVersion)
 
+        if newDirty & KDIRTY:
+            newChanges[KDIRTY] = item.itsKind
+
     def _applyChanges(self, item, newDirty, dirty, dirties,
                       version, newVersion, newChanges, changes, mergeFn,
                       conflicts, indexChanges, dangling):
@@ -837,6 +841,8 @@ class DBRepositoryView(OnDemandRepositoryView):
         NDIRTY = CItem.NDIRTY
         RDIRTY = CItem.RDIRTY
         VDIRTY = CItem.VDIRTY
+        KDIRTY = CItem.KDIRTY
+        MERGED = CItem.MERGED
 
         def ask(reason, name, value):
             mergedValue = Default
@@ -849,6 +855,13 @@ class DBRepositoryView(OnDemandRepositoryView):
                     self._e_1_overlap(reason, item, name)
             return mergedValue
 
+        if newDirty & KDIRTY:
+            if newChanges[KDIRTY] is item.itsKind:
+                dirty &= ~KDIRTY
+                newDirty &= ~KDIRTY
+                self.logger.info('new %s was created in earlier transaction',
+                                 item._repr_())
+
         if newDirty & CDIRTY:
             if changes is None:
                 if item._children is None:
@@ -859,7 +872,7 @@ class DBRepositoryView(OnDemandRepositoryView):
                                              changes[CDIRTY], None)
             dirty &= ~CDIRTY
             newDirty &= ~CDIRTY
-            item._status |= (CItem.CMERGED | CDIRTY)
+            item._status |= (MERGED | CDIRTY)
 
         if newDirty & NDIRTY:
             newParent, newName, isDeferred = newChanges[NDIRTY]
@@ -876,16 +889,16 @@ class DBRepositoryView(OnDemandRepositoryView):
             dirty &= ~NDIRTY
             newDirty &= ~NDIRTY
             if isDeferred:
-                item._status |= (CItem.NMERGED | CItem.DEFERRED | NDIRTY)
+                item._status |= (MERGED | CItem.DEFERRED | NDIRTY)
             else:
-                item._status |= (CItem.NMERGED | NDIRTY)
+                item._status |= (MERGED | NDIRTY)
 
         if newDirty & RDIRTY:
             item._references._applyChanges(self, RDIRTY, dirties, ask,
                                            newChanges, changes, None, dangling)
             dirty &= ~RDIRTY
             newDirty &= ~RDIRTY
-            item._status |= (CItem.RMERGED | RDIRTY)
+            item._status |= (MERGED | RDIRTY)
 
         if newDirty & VDIRTY:
             item._references._applyChanges(self, VDIRTY, dirties, ask,
@@ -895,13 +908,13 @@ class DBRepositoryView(OnDemandRepositoryView):
                                        conflicts, indexChanges)
             dirty &= ~VDIRTY
             newDirty &= ~VDIRTY
-            item._status |= (CItem.VMERGED | VDIRTY)
+            item._status |= (MERGED | VDIRTY)
 
         if dirty and newDirty:
             raise VersionConflictError, (item, newDirty, dirty)
 
         if self.isDebug():
-            self.logger.debug('%s merged %s with newer versions, merge status: 0x%0.8x', self, item._repr_(), (item._status & CItem.MERGED))
+            self.logger.debug('%s merged %s with newer versions, merge status: 0x%0.8x', self, item._repr_(), (item._status & MERGED))
 
     def _applyIndexChanges(self, indexChanges, deletes):
 
