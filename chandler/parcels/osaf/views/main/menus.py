@@ -1040,5 +1040,4 @@ def makeMainMenus(parcel):
                         title = _(u"Never s&hare this item"),
                         menuItemKind = 'Check',
                         helpString = _(u'Mark the selected item in the summary view as private, so it will not be shared')),
-
                     ]).install(parcel)

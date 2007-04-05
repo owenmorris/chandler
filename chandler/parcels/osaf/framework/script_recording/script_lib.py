@@ -86,7 +86,8 @@ def ProcessEvent (theClass, properties , attributes):
                     assert focusWindow is NameToWidget (newFocusWindow), "An unexpected window has the focus"
                 else:
                     (theClass, id) = newFocusWindow
-                    assert isinstance (focusWindow, theClass), "The focus window, " + str(focusWindow) + ", is not class " + str (theClass)
+                    
+                    assert isinstance (focusWindow, theClass), "The focus window, " + str(focusWindow) + ", is not class " + str (theClass) + ". Parent window is " + str (focusWindow.GetParent())
                     if id > 0:
                         assert focusWindow.GetId() == id, "Focus window has unexpected id"
                     else:
