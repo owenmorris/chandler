@@ -681,7 +681,7 @@ finished::
     >>> t.finishImport()   
     Traceback (most recent call last):
       ...
-    IncompatibleTypes: {<ContentItem...>: [(<class 'NonContent'>, [...<function do_it...>])]}
+    IncompatibleTypes: {<ContentItem...>: [(<class 'NonContent'>, <Deferred...>)]}
 
 However, if before importing is completed, the same item is given a new type
 that combines both the incompatible type and the item's original type, the

@@ -43,6 +43,7 @@ from osaf.mail.utils import getEmptyDate, dataToBinary, binaryToData
 from osaf.pim.structs import ColorType
 from osaf.preferences import CalendarPrefs
 from osaf.framework.password import Password
+from twisted.internet.defer import Deferred
 
 __all__ = [
     'SharingTranslator',
@@ -390,35 +391,40 @@ class SharingTranslator(eim.Translator):
     }
     modaction_to_code = dict([[v, k] for k, v in code_to_modaction.items()])
 
-    def getRealUUID(self, recurrence_aware_uuid):
-        uuid, recurrenceID = splitUUID(recurrence_aware_uuid)
+    def withRealUUID(self, recurrence_aware_uuid, create=True):
+        master_uuid, recurrenceID = splitUUID(recurrence_aware_uuid)
         if recurrenceID is not None:
-            item = self.rv.findUUID(uuid)
-            if item is None:
-                uuid = UUID(uuid)
-                item = pim.Note(itsView=self.rv, _uuid=uuid)
-            master = EventStamp(item)
-            if not pim.has_stamp(item, EventStamp):
-                master.add()
-            if getattr(master, 'rruleset', None) is None:
-                # add a dummy RecurrenceRuleSet so event methods treat the event
-                # as a master
-                master.rruleset = RecurrenceRuleSet(None, itsView=self.rv)
-
-            occurrence = master.getRecurrenceID(recurrenceID)
-            if occurrence is None:
-                occurrence = master._createOccurrence(recurrenceID)
-
-            uuid = occurrence.itsItem.itsUUID.str16()
-        return uuid
+            acb = self.withItemForUUID(master_uuid, EventStamp)
+            @acb
+            def get_occurrence(master):           
+                if getattr(master, 'rruleset', None) is None:
+                    # add a dummy RecurrenceRuleSet so event methods treat
+                    # the event as a master
+                    master.rruleset = RecurrenceRuleSet(None, itsView=self.rv)
+                occurrence = master.getRecurrenceID(recurrenceID)
+                if occurrence is None:
+                    if create:
+                        occurrence = master._createOccurrence(recurrenceID)
+                    else:
+                        return None
+                return occurrence.itsItem.itsUUID.str16()
+            return acb
+        return master_uuid
 
     def withItemForUUID(self, recurrence_aware_uuid, *args, **kwargs):
         """
         Override to handle special recurrenceID:uuid uuids.
         """
-        uuid = self.getRealUUID(recurrence_aware_uuid)
-        return super(SharingTranslator, self).withItemForUUID(uuid, *args,
-            **kwargs)
+        if '::' in recurrence_aware_uuid:
+            d = Deferred()
+            @self.withRealUUID(recurrence_aware_uuid)
+            def get_occurence(uuid):
+                self.withItemForUUID(uuid, *args, **kwargs)(d.callback)
+            return d.addCallback
+        else:
+            return super(SharingTranslator, self).withItemForUUID(
+                recurrence_aware_uuid, *args, **kwargs
+            )
 
     @model.ItemRecord.importer
     def import_item(self, record):
@@ -674,10 +680,14 @@ class SharingTranslator(eim.Translator):
 
     @model.TaskRecord.deleter
     def delete_task(self, record):
-        item = self.rv.findUUID(self.getRealUUID(record.uuid))
-        if item is not None and item.isLive() and pim.has_stamp(item,
-            pim.TaskStamp):
-            pim.TaskStamp(item).remove()
+        @self.withRealUUID(record.uuid, create=False)
+        def do_delete(uuid):
+            if uuid is not None:
+                item = self.rv.findUUID(uuid)
+                if item is not None and item.isLive() and pim.has_stamp(
+                    item, pim.TaskStamp
+                ):
+                    pim.TaskStamp(item).remove()
 
     @model.PasswordRecord.importer
     def import_password(self, record):
@@ -1702,6 +1712,7 @@ class DumpTranslator(SharingTranslator):
     def import_sharing_recordset_conduit(self, record):
         @self.withItemForUUID(record.uuid,
             recordset_conduit.RecordSetConduit,
+            syncToken=record.syncToken
         )
         def do(conduit):
             if record.serializer == "eimml":
@@ -1729,11 +1740,14 @@ class DumpTranslator(SharingTranslator):
 
         filters = ",".join(conduit.filters)
 
+        syncToken = conduit.syncToken
+
         yield model.ShareRecordSetConduitRecord(
             conduit,
             translator,
             serializer,
-            filters
+            filters,
+            syncToken
         )
 
 

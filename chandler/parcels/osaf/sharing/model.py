@@ -343,6 +343,7 @@ class ShareRecordSetConduitRecord(eim.Record):
     translator = eim.field(text1024)
     serializer = eim.field(text1024)
     filters = eim.field(text1024)
+    syncToken = eim.field(text256)
 
 
 class ShareHTTPConduitRecord(eim.Record):

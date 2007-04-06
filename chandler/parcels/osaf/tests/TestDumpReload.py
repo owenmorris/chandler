@@ -254,6 +254,8 @@ class DumpReloadTestCase(testcase.DualRepositoryTestCase):
             self.assert_(inmemory_share1 is not None)
             self.assertEqual(inmemory_share0.contents.itsUUID,
                 inmemory_share1.contents.itsUUID)
+            self.assertEqual(inmemory_share0.conduit.syncToken,
+                inmemory_share1.conduit.syncToken)
             for state0 in inmemory_share0.states:
                 state1 = view1.findUUID(state0.itsUUID)
                 self.assert_(state1 in inmemory_share1.states)

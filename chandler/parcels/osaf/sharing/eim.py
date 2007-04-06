@@ -25,9 +25,9 @@ import linecache, os, decimal, datetime
 from application import schema
 from chandlerdb.util.c import UUID
 from osaf import pim
+from twisted.internet.defer import Deferred
 import logging
 logger = logging.getLogger(__name__)
-
 
 
 
@@ -240,47 +240,6 @@ class ClobType(TypeInfo):    __slots__ = ()
 
 # define aliases so () is optional for anonymous unsized field types
 [typedef(t, t()) for t in IntType, BlobType, ClobType, DateType, TimestampType]
-
-
-
-
-# Monkeypatch linecache to not throw out lines that don't come from files
-# This patch is only needed for Python 2.4, as identical code is part of
-# the linecache module in Python 2.5.  As soon as we go to 2.5, we can remove
-# all of this code down to the '### END' marker below.
-#
-def checkcache(filename=None):
-    """Discard cache entries that are out of date.
-    (This is not checked upon each call!)"""
-
-    if filename is None:
-        filenames = linecache.cache.keys()
-    else:
-        if filename in linecache.cache:
-            filenames = [filename]
-        else:
-            return
-
-    for filename in filenames:
-        size, mtime, lines, fullname = linecache.cache[filename]
-        if mtime is None:
-            continue   # no-op for files loaded via a __loader__
-        try:
-            stat = os.stat(fullname)
-        except os.error:
-            del linecache.cache[filename]
-            continue
-        if size != stat.st_size or mtime != stat.st_mtime:
-            del linecache.cache[filename]
-
-linecache.checkcache = checkcache
-
-### END
-
-
-
-
-
 
 
 
@@ -912,43 +871,39 @@ class Translator:
                         delattr(ob, attr)
                 elif val is not NoChange:
                     setattr(ob, attr, val)
+            return ob
 
-        callbacks = [setattrs]
-
-        if issubclass(itype, pim.Stamp):           
-            @self.withItemForUUID(uuid, itype.targetType())
+        if issubclass(itype, pim.Stamp):
+            acb = self.withItemForUUID(uuid, itype.targetType())
+            @acb
             def add_stamp(item):
                 stamp = itype(item)
                 if not stamp.stamp_types or itype not in stamp.stamp_types:
                     stamp.add()
-                while callbacks:
-                    callbacks.pop(0)(stamp)
-                    
-            if callbacks:
-                return callbacks.append    # not fired yet, so use registration
-            else:
-                stamp = itype(self.rv.findUUID(uuid))
-                return lambda func: func(stamp)
+                return setattrs(stamp)
+            return acb
             
         item = self.rv.findUUID(uuid)
+        d = Deferred()
+        d.addCallback(setattrs)
 
         if item is None:
             # Create the item
             if isinstance(uuid, basestring):
                 uuid = UUID(uuid)
             item = itype(itsView=self.rv, _uuid=uuid)
-            setattrs(item)
-            return lambda func: func(item)
-
 
         if isinstance(item, itype):
-            setattrs(item)
-            return lambda func: func(item)
+            d.callback(item)
+            return d.addCallback
+
+
+
 
         if not issubclass(itype, type(item)):
             # Can't load the item yet; put callbacks on the queue
-            self.loadQueue.setdefault(item, []).append((itype, callbacks))
-            return callbacks.append
+            self.loadQueue.setdefault(item, []).append((itype, d))
+            return d.addCallback
            
         # Upgrade the item type, set attributes, and run setups       
         old_type = item.__class__
@@ -963,14 +918,15 @@ class Translator:
         # run callbacks for any pending types that are now resolved
         if item in self.loadQueue:
             q = self.loadQueue[item]
-            for t, cb in q[:]:
+            for t, cbd in q[:]:
                 if isinstance(item, t):
-                    for c in cb: c(item)
-                    q.remove((t,cb))
+                    cbd.callback(item)
+                    q.remove((t,cbd))
                     if not q:
                         del self.loadQueue[item]
 
-        return lambda func: func(item)
+        d.callback(item)
+        return d.addCallback
 
 
     def getUUIDForAlias(self, alias):
@@ -978,6 +934,9 @@ class Translator:
 
     def getAliasForItem(self, item):
         return item.itsUUID.str16()
+
+
+
 
 
 

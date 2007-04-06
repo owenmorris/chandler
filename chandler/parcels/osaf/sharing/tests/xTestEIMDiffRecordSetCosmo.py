@@ -44,8 +44,11 @@ class EIMDiffRecordSetCosmoTestCase(RoundTripTestCase):
         coll0 = self.coll
         self.assert_(not pim.has_stamp(coll0, sharing.SharedItem))
         account = cosmo.CosmoAccount(itsView=view0,
-            host="www.letness.org", # host="bcm.osafoundation.org",
+            # host="qacosmo.osafoundation.org",
+            host="www.letness.org",
+            # host="bcm.osafoundation.org",
             port=8080,
+            # port=80,
             path="/cosmo",
             username="test",
             password=Password(itsView=view0),
@@ -65,8 +68,11 @@ class EIMDiffRecordSetCosmoTestCase(RoundTripTestCase):
 
         view1 = self.views[1]
         account = cosmo.CosmoAccount(itsView=view1,
-            host="www.letness.org", # host="bcm.osafoundation.org",
+            # host="qacosmo.osafoundation.org",
+            host="www.letness.org",
+            # host="bcm.osafoundation.org",
             port=8080,
+            # port=80,
             path="/cosmo",
             username="test",
             password=Password(itsView=view1),

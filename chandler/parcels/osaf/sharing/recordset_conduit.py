@@ -231,7 +231,8 @@ class RecordSetConduit(conduits.BaseConduit):
             item = rv.findUUID(changedUuid)
             # modifications that have been changed purely by
             # auto-triage shouldn't have recordsets created for them
-            if (pim.EventStamp(item).isTriageOnlyModification() and 
+            if (isinstance(item, pim.Note) and 
+                pim.EventStamp(item).isTriageOnlyModification() and
                 item.doAutoTriageOnDateChange):
                 if debug: print "Skipping a triage-only modification", item, item.itsVersion
                 continue
