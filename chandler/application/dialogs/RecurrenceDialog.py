@@ -96,7 +96,7 @@ class RecurrenceDialog(wx.Dialog):
               label=u'', name=u'questionText', parent=self)
 
         labels = {self.allButton    : _(u'All events'),
-                  self.futureButton : _(u'All future events'),
+                  self.futureButton : _(u'This and Future events'),
                   self.thisButton   : _(u'Just this event')}
 
         for item, label in labels.iteritems():
@@ -333,7 +333,7 @@ class UserChangeProxy(object):
 
                 if name == Stamp.stamp_types.name:
                     change.update(
-                        question = _(u'"%(displayName)s" is a recurring event. Do you want to stamp:'),
+                        question = _(u'"%(displayName)s" is a recurring event. Do you want to change:'),
                         disabled_buttons=('all', 'future')
                     )
                 else:
