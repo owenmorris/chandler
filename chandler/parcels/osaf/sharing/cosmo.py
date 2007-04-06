@@ -341,4 +341,9 @@ class CosmoConduit(recordset_conduit.DiffRecordSetConduit, conduits.HTTPMixin):
         # Cosmo
         filter = super(CosmoConduit, self).getFilter()
         filter += eim.lookupSchemaURI('cid:non-standard-ical-filter@osaf.us')
+        filter += eim.lookupSchemaURI('cid:mimeContent-filter@osaf.us')
+        filter += eim.lookupSchemaURI('cid:rfc2822Message-filter@osaf.us')
+        filter += eim.lookupSchemaURI('cid:previousSender-filter@osaf.us')
+        filter += eim.lookupSchemaURI('cid:replyToAddress-filter@osaf.us')
+        filter += eim.lookupSchemaURI('cid:messageState-filter@osaf.us')
         return filter
