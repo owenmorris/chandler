@@ -470,6 +470,22 @@ class __setup__(list):
     """List subclass that makes a better error message when you try to call
        __setup__ directly."""
 
+def _initializers_for(cls, skip=()):
+    ivf = {}
+    to_skip = {}
+    setups = __setup__()    # really just a list
+    for c in cls.__mro__[::-1]:
+        if c in skip:
+            if '__iv_functions__' in c.__dict__:
+                to_skip.update(c.__iv_functions__)
+            continue
+        if '__iv_functions__' in c.__dict__:
+            ivf.update(c.__iv_functions__)
+        if '__setup__' in c.__dict__:
+            if c.__setup__ and c.__setup__[-1][0] is c:
+                setups.append(c.__setup__[-1])
+    return [kv for kv in ivf.items() if kv[0] not in to_skip], setups
+
 class ItemClass(Activator, BaseClass):
     """Metaclass for schema.Item"""
 
@@ -496,24 +512,8 @@ class ItemClass(Activator, BaseClass):
         super(ItemClass,cls).__init__(name,bases,cdict)
         if '__setup__' in cdict:
             cls.__setup__ = __setup__([(cls, cdict['__setup__'])])
-        cls.__all_ivs__, cls.__setup__ = cls._initializers_for()
+        cls.__all_ivs__, cls.__setup__ = _initializers_for(cls)
 
-    def _initializers_for(cls, skip=()):
-        ivf = {}
-        to_skip = {}
-        setups = __setup__()    # really just a list
-        for c in cls.__mro__[::-1]:
-            if c in skip:
-                if '__iv_functions__' in c.__dict__:
-                    to_skip.update(c.__iv_functions__)
-                continue
-            if '__iv_functions__' in c.__dict__:
-                ivf.update(c.__iv_functions__)
-            if '__setup__' in c.__dict__:
-                if c.__setup__ and c.__setup__[-1][0] is c:
-                    setups.append(c.__setup__[-1])
-        return [kv for kv in ivf.items() if kv[0] not in to_skip], setups
-        
     def _find_schema_item(cls, view):
         parent = view.findPath(ModuleMaker(cls.__module__).getPath())
         if parent is not None:

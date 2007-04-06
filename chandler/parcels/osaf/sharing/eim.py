@@ -910,7 +910,7 @@ class Translator:
         item.__class__ = itype
         item.itsKind = itype.getKind(self.rv)
 
-        ivs, setups = itype._initializers_for(old_type.__mro__)
+        ivs, setups = schema._initializers_for(itype, old_type.__mro__)
         for k,f in ivs: setattr(item, k, f(item))
         setattrs(item)
         for c,s in setups: s(item)

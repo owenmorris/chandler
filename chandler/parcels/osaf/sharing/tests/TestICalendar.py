@@ -933,8 +933,8 @@ class ICalUIDTestCase(NRVTestCase):
         
         taskItem = task.itsItem
         
-        # Check that we get back the correct defaultValue.
-        self.failUnlessRaises(AttributeError, getattr, taskItem, 'icalUID')
+        # Check that we get back the correct initialValue.
+        self.failUnlessEqual(taskItem.icalUID, str(taskItem.itsUUID))
         
         taskItem.icalUID = u'999-9999'
         getattrUID = getattr(taskItem, Note.icalUID.name)

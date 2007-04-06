@@ -58,6 +58,10 @@ class Note(items.ContentItem):
             literal = [icalUID],
         )
     )
+    
+    schema.initialValues(
+        icalUID=lambda self: unicode(self.itsUUID)
+    )
 
     def InitOutgoingAttributes (self):
         """ Init any attributes on ourself that are appropriate for

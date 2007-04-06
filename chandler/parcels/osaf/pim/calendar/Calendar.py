@@ -568,39 +568,31 @@ class EventStamp(Stamp):
         self.itsItem.InitOutgoingAttributes()
         self.summary = _(u"New Event")
 
+    def initialStartTime(self):
+        defaultTz = TimeZoneInfo.get(self.itsItem.itsView).default
+        now = datetime.now(defaultTz)
+        roundedTime = time(hour=now.hour, minute=(now.minute/30)*30,
+                           tzinfo=defaultTz)
+        return datetime.combine(now, roundedTime)
+        
+    def initialOrganizer(self):
+        return schema.ns("osaf.pim", self.itsItem.itsView).currentContact.item
 
+    schema.initialValues(
+        startTime=initialStartTime,
+        duration=lambda self: timedelta(hours=1),
+        organizer=initialOrganizer,
+    )
 
     def add(self):
         """
-          Init only the attributes specific to this mixin.
-        Called when stamping adds these attributes, and from __init__ above.
+        Init only the attributes specific to this mixin.
         """
         disabled = self.__disableRecurrenceChanges()
         try:
             super(EventStamp, self).add()
         finally:
             if disabled: self.__enableRecurrenceChanges()
-        
-        if not hasattr(self, 'startTime'):
-            # start at the nearest half hour, duration of an hour
-            defaultTz = TimeZoneInfo.get(self.itsItem.itsView).default
-            now = datetime.now(defaultTz)
-            roundedTime = time(hour=now.hour, minute=(now.minute/30)*30,
-                               tzinfo = defaultTz)
-            self.startTime = datetime.combine(now, roundedTime)
-        else:
-            # Give the startTime-observer a chance to create a triageStatus
-            # reminder
-            self.onStartTimeChanged('set', EventStamp.startTime.name)
-        if not hasattr(self, 'duration'):
-            self.duration = timedelta(hours=1)
-
-        # set the organizer to "me"
-        if not hasattr(self, 'organizer'):
-            self.organizer = schema.ns("osaf.pim", self.itsItem.itsView).currentContact.item
-
-        if not hasattr(self.itsItem, 'icalUID'):
-            self.itsItem.icalUID = unicode(self.itsItem.itsUUID)
 
         # TBD - set participants to any existing "who"
         # participants are currently not implemented.

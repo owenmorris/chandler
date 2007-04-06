@@ -2,6 +2,7 @@ from application import schema
 from chandlerdb.item.ItemError import NoLocalValueForAttributeError
 from items import ContentItem
 from collections import ListCollection
+from chandlerdb.util.c import Empty
 
 
 __parcel__ = 'osaf.pim'
@@ -50,6 +51,8 @@ class StampClass(schema.AnnotationClass):
                 iv.append((name, ob.initialValue))
                 del ob.initialValue
         super(StampClass,cls).__init__(name, bases, cdict)
+
+        cls.__all_ivs__, cls.__setup__ = schema._initializers_for(cls)
 
     def _create_schema_item(cls, view):
         return StampItem(None, view['Schema'])
@@ -105,26 +108,43 @@ class Stamp(schema.Annotation):
                 yield t(self)
             
     def add(self):
-        new_stamp_types = set([self.__class__])
+        stampClass = self.__class__
+        new_stamp_types = set([stampClass])
         if self.stamp_types is not None:
-            if self.__class__ in self.stamp_types:
+            if stampClass in self.stamp_types:
                 raise StampAlreadyPresentError, \
                     "Item %r already has stamp %r" % (self.itsItem, self)
                     
             new_stamp_types = new_stamp_types.union(self.stamp_types)
         
-        for cls in self.__class__.__mro__:
+        for attr, callback in stampClass.__all_ivs__:
+            if not hasattr(self, attr):
+                setattr(self, attr, callback(self))
+
+        for cls in stampClass.__mro__:
             # Initialize values for annotation attributes
             for attr, val in getattr(cls,'__initialValues__',()):
                 if not hasattr(self, attr):
                     setattr(self, attr, val)
             
         if self.__use_collection__:
-            stamped = schema.itemFor(self.__class__,
+            stamped = schema.itemFor(stampClass,
                                      self.itsItem.itsView).stampedItems
             stamped.add(self.itsItem.getMembershipItem())
 
+            for cls in stampClass.__mro__:
+                # Initialize values for annotation attributes
+                for attr, val in getattr(cls,'__initialValues__',()):
+                    if not hasattr(self, attr):
+                        setattr(self, attr, val)
+                
+            if self.__use_collection__:
+                stamped = schema.itemFor(stampClass,
+                                         self.itsItem.itsView).stampedItems
+                stamped.add(self.itsItem.getMembershipItem())
+
         self.stamp_types = new_stamp_types
+
 
     def remove(self):
         new_stamp_types = set(self.stamp_types)
