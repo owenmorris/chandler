@@ -25,7 +25,7 @@ import datetime
 from i18n import ChandlerMessageFactory
 
 
-def reindexFloatingEvents(view):
+def reindexFloatingEvents(view, tzinfo):
     """
     When floating timezone changes, floating events need to be reindexed in the
     events collection.
@@ -46,6 +46,15 @@ def reindexFloatingEvents(view):
     
     masterUTCKeys = [i for i in UTCKeys if i in keys]
     pim_ns.masterEvents.reindexKeys(masterUTCKeys, None, 'recurrenceEndNoTZ')
+    
+    # [Bug 8688] Re-calculate until based on new (non-floating) timezone
+    ruleClass = schema.ns("osaf.pim.calendar.Recurrence", view).RecurrenceRule
+    for uuid in ruleClass.getKind(view).iterKeys():
+        until = view.findValue(uuid, 'until', None)
+        
+        if until is not None:
+            view[uuid].until = until.replace(tzinfo=tzinfo)
+        
 
 def equivalentTZIDs(tzinfo):
     numEquivalents = PyICU.TimeZone.countEquivalentIDs(tzinfo.tzid)
@@ -90,7 +99,7 @@ class TimeZoneInfo(schema.Item):
             if (canonicalDefault is not None and
                 canonicalDefault is not PyICU.ICUtzinfo.floating):
                 PyICU.ICUtzinfo.setDefault(canonicalDefault)
-                reindexFloatingEvents(self.itsView)
+                reindexFloatingEvents(self.itsView, canonicalDefault)
             # This next if is required to avoid an infinite recursion!
             if canonicalDefault is not default:
                 self.default = canonicalDefault

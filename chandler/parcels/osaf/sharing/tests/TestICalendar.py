@@ -177,36 +177,62 @@ class ICalendarTestCase(SingleRepositoryTestCase):
         cal = vobject.readComponents(file(filename, 'rb')).next()
         self.assertEqual(cal.vevent.summary.value, event.summary)
         delFile()
-
-    def testRoundTripRecurrenceCount(self):
-        format = self.Import(self.view, u'Recurrence.ics')
-        event = pim.EventStamp(sharing.findUID(self.view,
-                                       '5B30A574-02A3-11DA-AA66-000A95DA3228'))
-        third = event.getFirstOccurrence().getNextOccurrence().getNextOccurrence()
-        self.assertEqual(third.summary, u'\u00FCChanged title')
-        self.assertEqual(third.recurrenceID, datetime.datetime(2005, 8, 10, 
-                                                    tzinfo=ICUtzinfo.floating))
-        # while were at it, test bug 3509, all day event duration is off by one
-        self.assertEqual(event.duration, datetime.timedelta(0))
-        # make sure we imported the floating EXDATE
-        event = pim.EventStamp(sharing.findUID(self.view,
+        
+    def doRoundTripRecurrenceCountTest(self, tzName):
+        from osaf.pim.calendar.TimeZone import TimeZoneInfo
+        
+        tzinfo = TimeZoneInfo.get(self.view)
+        saveTz = tzinfo.default
+        
+        tzinfo.default = ICUtzinfo.getInstance(tzName)
+        
+        try:
+        
+            format = self.Import(self.view, u'Recurrence.ics')
+            event = pim.EventStamp(sharing.findUID(self.view,
+                                        '5B30A574-02A3-11DA-AA66-000A95DA3228'))
+            third = event.getFirstOccurrence().getNextOccurrence().getNextOccurrence()
+            self.assertEqual(third.summary, u'\u00FCChanged title')
+            self.assertEqual(
+                third.recurrenceID,
+                datetime.datetime(2005, 8, 10, tzinfo=ICUtzinfo.floating)
+            )
+            # while were at it, test bug 3509, all day event duration is off by one
+            self.assertEqual(event.duration, datetime.timedelta(0))
+            # make sure we imported the floating EXDATE
+            event = pim.EventStamp(sharing.findUID(self.view,
                                         '07f3d6f0-4c04-11da-b671-0013ce40e90f'))
-        self.assertEqual(event.rruleset.exdates[0], datetime.datetime(2005, 12, 6, 12, 30,
-                                                    tzinfo=ICUtzinfo.floating))
-        
-        # test count export, no timezones
-        vcalendar = getVObjectData(self.view, [event.itsItem])
-        self.assertEqual(vcalendar.vevent.rruleset._rrule[0]._count, 10)
+            self.assertEqual(
+                event.rruleset.exdates[0],
+                datetime.datetime(2005, 12, 6, 12, 30, tzinfo=ICUtzinfo.floating)
+            )
+            
+            # test count export, no timezones
+            vcalendar = getVObjectData(self.view, [event.itsItem])
+            self.assertEqual(vcalendar.vevent.rruleset._rrule[0]._count, 10)
+    
+            # turn on timezones, putting event in Pacific time
+            pacific = ICUtzinfo.getInstance("America/Los_Angeles")
+            TimeZoneInfo.get(self.view).default = pacific
+            schema.ns('osaf.pim', self.view).TimezonePrefs.showUI = True
+            self.assertEqual(event.startTime.tzinfo, pacific)
+            
+            # test count export, with timezones turned on
+            vcalendar = getVObjectData(self.view, [event.itsItem])
+            self.assertEqual(vcalendar.vevent.rruleset._rrule[0]._count, 10)
+            
+        finally:
+            tzinfo.default = saveTz
 
-        # turn on timezones, putting event in Pacific time
-        pacific = ICUtzinfo.getInstance("America/Los_Angeles")
-        TimeZoneInfo.get(self.view).default = pacific
-        schema.ns('osaf.pim', self.view).TimezonePrefs.showUI = True
-        self.assertEqual(event.startTime.tzinfo, pacific)
+    def testRoundTripRecurrenceCount_America_New_York(self):
+        self.doRoundTripRecurrenceCountTest("America/New_York")
         
-        # test count export, with timezones turned on
-        vcalendar = getVObjectData(self.view, [event.itsItem])
-        self.assertEqual(vcalendar.vevent.rruleset._rrule[0]._count, 10)
+    def testRoundTripRecurrenceCount_America_El_Lay(self):
+        self.doRoundTripRecurrenceCountTest("America/Los_Angeles")
+
+    def testRoundTripRecurrenceCount_Antarctica_Vostok(self):
+        """March, little Penguins, march!"""
+        self.doRoundTripRecurrenceCountTest("Antarctica/Vostok")
 
 
     def testImportRecurrenceWithTimezone(self):
