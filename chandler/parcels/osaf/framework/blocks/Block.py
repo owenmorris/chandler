@@ -138,8 +138,8 @@ class Block(schema.Item):
 
     schema.addClouds(
         copying = schema.Cloud(
-            byRef = [contents],
-            byCloud = [childBlocks, eventsForNamedLookup, splitters]
+            byRef = [contents, eventsForNamedLookup],
+            byCloud = [childBlocks, splitters]
         )
     )
 
