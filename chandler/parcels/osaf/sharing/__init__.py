@@ -16,7 +16,7 @@
 import logging, urlparse, datetime
 from PyICU import ICUtzinfo
 
-from application import schema, dialogs
+from application import schema, dialogs, Globals
 from application.Parcel import Reference
 from application.Utility import getDesktopDir, CertificateVerificationError
 from osaf import pim, ChandlerException
@@ -267,6 +267,10 @@ class BackgroundSyncHandler:
             # Simply return the interrupt flag
             return interrupt_flag == IMMEDIATE_STOP
 
+        if Globals.options.offline:
+            # In offline mode, no sharing
+            return True
+
         if running_status != IDLE:
             # busy
             return True
@@ -401,6 +405,9 @@ def publish(collection, account, classesToInclude=None,
                         point.  In either case, to avoid collisions with existing
                         collections, '-1', '-2', etc., may be appended.
     """
+
+    if Globals.options.offline:
+        raise OfflineError(_(u"Offline mode"))
 
     try:
         totalWork = len(collection)
@@ -822,6 +829,9 @@ def unpublishFreeBusy(collection):
 def subscribe(view, url, activity=None, username=None, password=None,
     filters=None, forceFreeBusy=False):
 
+    if Globals.options.offline:
+        raise OfflineError(_(u"Offline mode"))
+    
     (useSSL, host, port, path, query, fragment, ticket, parentPath,
         shareName) = splitUrl(url)
 

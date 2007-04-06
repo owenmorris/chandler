@@ -211,6 +211,8 @@ class SubscribeDialog(wx.Dialog):
             self._showStatus(_(u"Collection was not found"))
         elif isinstance(err, sharing.AlreadySubscribed):
             self._showStatus(_(u"You are already subscribed to this collection"))
+        elif isinstance(err, sharing.OfflineError):
+            self._showStatus(_(u"Application is in offline mode"))
         elif isinstance(err, zanshin.error.ConnectionError):
             logger.error("Connection error during subscribe")
 

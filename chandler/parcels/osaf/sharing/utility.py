@@ -37,7 +37,7 @@ __all__ = [
     'isReadOnly'
 ]
 
-from application import schema
+from application import schema, Globals
 import WebDAV
 import urlparse, base64, datetime
 from PyICU import ICUtzinfo
@@ -395,6 +395,8 @@ def getFreeBusyShare(collection):
 
 def isOnline(collection):
     """ Return the active state of the first share, if any """
+    if Globals.options.offline:
+        return False
     if pim.has_stamp(collection, shares.SharedItem):
         collection = shares.SharedItem(collection)
         for share in collection.shares:

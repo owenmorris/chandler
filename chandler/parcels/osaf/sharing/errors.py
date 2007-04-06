@@ -96,3 +96,8 @@ class OutOfSequence(SharingError):
     Exception raised if an old itemcentric update arrives after a more recent
     One
     """
+
+class OfflineError(SharingError):
+    """
+    Exception raised if attempting to publish or subscribe while in offline mode
+    """

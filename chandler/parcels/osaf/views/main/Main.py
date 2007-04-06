@@ -1198,7 +1198,11 @@ class MainView(View):
     def onSubscribeToCollectionEvent(self, event):
         # Triggered from "Collection | Subscribe to collection..."
 
-        SubscribeCollection.Show(wx.GetApp().mainFrame, self.itsView)
+        if not Globals.options.offline:
+            SubscribeCollection.Show(wx.GetApp().mainFrame, self.itsView)
+
+    def onSubscribeToCollectionEventUpdateUI(self, event):
+        event.arguments['Enable'] = not Globals.options.offline
 
     def onDumpToFileEvent(self, event):
         wildcard = "%s|*.dump|%s (*.*)|*.*" % (_(u"Dump files"),
@@ -1504,7 +1508,7 @@ class MainView(View):
         """
 
         collection = self.getSidebarSelectedCollection()
-        if collection is not None:
+        if collection is not None and not Globals.options.offline:
 
             if (not sharing.isShared(collection) and
                 not sharing.ensureAccountSetUp(self.itsView, sharing=True)):
@@ -1520,11 +1524,15 @@ class MainView(View):
         Update the menu to reflect the selected collection name.
         """
         collection = self.getSidebarSelectedCollection ()
-        event.arguments['Enable'] = collection is not None and (not sharing.isShared(collection))
+        event.arguments['Enable'] = collection is not None and \
+                                    not Globals.options.offline and \
+                                    (not sharing.isShared(collection))
 
     def onManageSidebarCollectionEventUpdateUI (self, event):
         collection = self.getSidebarSelectedCollection ()
-        event.arguments['Enable'] = collection is not None and (sharing.isShared(collection))
+        event.arguments['Enable'] = collection is not None and \
+                                    not Globals.options.offline and \
+                                    (sharing.isShared(collection))
 
     def onUnsubscribeCollectionEvent(self, event):
         collection = self.getSidebarSelectedCollection ()
@@ -1559,7 +1567,9 @@ class MainView(View):
         if collection is not None:
             share = sharing.getShare(collection)
             sharedByMe = sharing.isSharedByMe(share)
-        event.arguments['Enable'] = collection is not None and sharing.isShared(collection) and sharedByMe
+        event.arguments['Enable'] = collection is not None and \
+                                    not Globals.options.offline and \
+                                    sharing.isShared(collection) and sharedByMe
 
     def _freeBusyShared(self):
         allCollection = schema.ns('osaf.pim', self).allCollection
@@ -1617,7 +1627,7 @@ class MainView(View):
     def onSyncCollectionEvent (self, event):
         rv = self.itsView
         collection = self.getSidebarSelectedCollection()
-        if collection is not None:
+        if collection is not None and not Globals.options.offline:
 
             # Ensure changes in attribute editors are saved
             wx.GetApp().mainFrame.SetFocus()
@@ -1638,7 +1648,9 @@ class MainView(View):
             else:
                 event.arguments ['Text'] = _(u'%(collectionName)s') % \
                                            {'collectionName': collName}
-        event.arguments['Enable'] = collection is not None and sharing.isShared(collection)
+        event.arguments['Enable'] = collection is not None and \
+                                    not Globals.options.offline and \
+                                    sharing.isShared(collection)
 
     def onCopyCollectionURLEvent(self, event):
         collection = self.getSidebarSelectedCollection()
@@ -1695,10 +1707,15 @@ class MainView(View):
                 event.arguments['Check'] = not sharing.isOnline(collection)
 
     def onTakeAllOnlineOfflineEventUpdateUI(self, event):
-        event.arguments['Enable'] = False
+        event.arguments['Check'] = Globals.options.offline
 
     def onTakeAllOnlineOfflineEvent(self, event):
-        pass
+        if Globals.options.offline:
+            Globals.options.offline = False
+            Globals.mailService.takeOnline()
+        else:
+            Globals.options.offline = True
+            Globals.mailService.takeOffline()
 
     def onTakeMailOnlineOfflineEvent(self, event):
         if Globals.mailService.isOnline():
@@ -1715,12 +1732,18 @@ class MainView(View):
     def onTakeSharesOnlineOfflineEvent(self, event):
         pass
 
+    def onSyncAllEventUpdateUI(self, event):
+        event.arguments['Enable'] = not Globals.options.offline
+
     def onSyncAllEvent (self, event):
         """
         Synchronize Mail and all sharing.
         The "File | Sync | All" menu item, and the Sync All Toolbar button.
         """
 
+        if Globals.options.offline:
+            return
+        
         view = self.itsView
 
         masterPassword = True
@@ -1772,12 +1795,18 @@ class MainView(View):
         if incomingMailReady:
             self.onGetNewMailEvent (event)
 
+    def onSyncWebDAVEventUpdateUI (self, event):
+        event.arguments['Enable'] = not Globals.options.offline
+
     def onSyncWebDAVEvent (self, event):
         """
         Synchronize WebDAV sharing.
 
         The "File | Sync | Shares" menu item.
         """
+
+        if Globals.options.offline:
+            return
 
         view = self.itsView
 
@@ -1802,12 +1831,18 @@ class MainView(View):
                 return
             self.setStatusMessage (_(u"No shared collections found"))
 
+    def onGetNewMailEventUpdateUI (self, event):
+        event.arguments['Enable'] = Globals.mailService.isOnline()
+
     def onGetNewMailEvent (self, event):
         """
         Fetch Mail.
 
         The "File | Sync | Mail" menu item.
         """
+
+        if Globals.options.offline:
+            return
 
         view = self.itsView
 

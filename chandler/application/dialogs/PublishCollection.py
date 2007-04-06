@@ -476,7 +476,9 @@ class PublishCollectionDialog(wx.Dialog):
         self._hideUpdate()
         logger.error("Failed to publish collection.")
         try:
-            if isinstance(err, zanshin.error.ConnectionError):
+            if isinstance(err, sharing.OfflineError):
+                self._showStatus(_(u"Application is in offline mode"))
+            elif isinstance(err, zanshin.error.ConnectionError):
                 logger.error("Connection error during publish")
 
                 # Note: do not localize the 'startswith' strings -- these need
