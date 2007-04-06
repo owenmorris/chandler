@@ -85,7 +85,7 @@ def parseOptions():
     >>> keys.sort()
     >>> for key in keys:
     ...     print key, d[key],
-    args [] dryrun False func False funcSuite False help False mode None noEnv False noStop False perf False profile False recorded False selftest True single  tbox False unit False unitSuite False verbose False
+    args [] dryrun False func False funcSuite False help False mode None noEnv False noStop False perf False profile False recorded False repeat 0 selftest True single  tbox False unit False unitSuite False verbose False
     """
     _configItems = {
         'mode':      ('-m', '--mode',               's', None,  'debug or release; by default attempts both'),
@@ -104,6 +104,7 @@ def parseOptions():
         'profile':   ('-P', '--profile',            'b', False, 'Profile performance tests with hotshot'),
         'tbox':      ('-T', '--tbox',               'b', False, 'Tinderbox mode'),
         'recorded':  ('-r', '--recordedScript',     'b', False, 'Run the Chandler recorded scripts'),
+        'repeat':    ('',   '--repeat',             'i', 0,     'Number of times to repeat performance test, 1 by default, 3 in Tinderbox mode'),
         #'restored':  ('-R', '--restoredRepository', 'b', False, 'unit tests with restored repository instead of creating new for each test'),
         #'config':    ('-L', '',                     's', None,  'Custom Chandler logging configuration file'),
     }
@@ -120,6 +121,13 @@ def parseOptions():
                               longCmd,
                               dest=key,
                               action='store_true',
+                              default=defaultValue,
+                              help=helpText)
+        elif optionType == 'i':
+            parser.add_option(shortCmd,
+                              longCmd,
+                              dest=key,
+                              type='int',
                               default=defaultValue,
                               help=helpText)
         else:
@@ -157,7 +165,7 @@ def checkOptions(options):
     >>> keys.sort()
     >>> for key in keys:
     ...     print key, d[key],
-    args [] chandlerBin ... chandlerHome ... dryrun False func False funcSuite False help False mode None noEnv False noStop False parcelPath tools/QATestScripts/DataFiles perf False profile False profileDir test_profile recorded False runchandler {'debug': '.../debug/RunChandler...', 'release': '.../release/RunChandler...'} runpython {'debug': '.../debug/RunPython...', 'release': '.../release/RunPython...'} selftest True single  tbox False toolsDir tools unit False unitSuite False verbose False
+    args [] chandlerBin ... chandlerHome ... dryrun False func False funcSuite False help False mode None noEnv False noStop False parcelPath tools/QATestScripts/DataFiles perf False profile False profileDir test_profile recorded False repeat 0 runchandler {'debug': '.../debug/RunChandler...', 'release': '.../release/RunChandler...'} runpython {'debug': '.../debug/RunPython...', 'release': '.../release/RunPython...'} selftest True single  tbox False toolsDir tools unit False unitSuite False verbose False
     """
     if options.help:
         print __doc__
@@ -911,6 +919,8 @@ def runStartupPerfTests(options, timer, largeData=False, repeat=3, logger=log):
     - + - + - + - + - + - + - + - + - + - + - + - + - + - + - + 
     /usr/bin/time --format=%e -o test_profile/time.log /home/heikki/workspace/chandler/release/RunChandler --catch=tests --profileDir=test_profile --parcelPath=tools/QATestScripts/DataFiles --scriptFile=tools/QATestScripts/Performance/end.py
     Startup                             0.00 - + - + - + - + - + - + - + - + - + - + - + - + - + - + - + 
+      0.00 - + - + - + - + - + - + - + - + - + - + - + - + - + - + - + 
+      0.00 - + - + - + - + - + - + - + - + - + - + - + - + - + - + - + 
      |   0.00 ...   0.00
     False
     
@@ -944,6 +954,9 @@ def runStartupPerfTests(options, timer, largeData=False, repeat=3, logger=log):
     - + - + - + - + - + - + - + - + - + - + - + - + - + - + - + 
     False
     """
+    if repeat < 3:
+        repeat = 3 # You can't get an accurate number otherwise
+        
     # Create test repo
     if options.verbose:
         log('Creating repository for startup time tests')
@@ -1159,6 +1172,8 @@ def runPerfTests(options, tests=None):
             repeat = 1
             if options.tbox:
                 repeat = 3
+            elif options.repeat:
+                repeat = options.repeat
                 
             # small repo tests
             if testlist:
@@ -1188,11 +1203,11 @@ def runPerfTests(options, tests=None):
                     t = '/usr/bin/time'
 
                 if os.path.isfile(t):
-                    if 'startup' in testlistStartup and runStartupPerfTests(options, t, logger=delayedLogger):
+                    if 'startup' in testlistStartup and runStartupPerfTests(options, t, repeat=repeat, logger=delayedLogger):
                         failed = True
 
                     if not failed: # Don't continue even if noStop, almost certain these won't work
-                        if 'startup_large' in testlistStartup and runStartupPerfTests(options, t, largeData=True, logger=delayedLogger):
+                        if 'startup_large' in testlistStartup and runStartupPerfTests(options, t, largeData=True, repeat=repeat, logger=delayedLogger):
                             failed = True
                 else:
                     log('time command not found, skipping startup performance tests')
