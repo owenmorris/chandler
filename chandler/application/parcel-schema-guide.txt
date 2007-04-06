@@ -332,7 +332,7 @@ are implemented using repository ``RefCollection`` objects, which aren't quite
 the same as regular Python list objects::
 
     >>> Joe.parents
-    <NullViewRefList: Joe ....parents<->children>
+    <NullViewRefList: <Person... Joe ...>.parents<->children>
 
 ``RefCollection`` objects include some additional functionality (such as
 indexing) that is not otherwise available unless you are using a ``Sequence``

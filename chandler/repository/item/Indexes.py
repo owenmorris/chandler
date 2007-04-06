@@ -400,6 +400,10 @@ class SortedIndex(DelegatingIndex):
 
         raise NotImplementedError, '%s is abstract' % type(self)
 
+    def _reindex(self, key):
+
+        self._valueMap._reindex(self, key)
+
     def insertKey(self, key, ignore=None, selected=False):
 
         index = self._index
@@ -411,7 +415,7 @@ class SortedIndex(DelegatingIndex):
         else:
             afterKey = None
             index.insertKey(key, afterKey, selected)
-            self._valueMap._reindex(self, key)
+            self._reindex(key)
 
     def moveKey(self, key, ignore=None, insertMissing=None):
 
@@ -924,6 +928,12 @@ class SubIndex(SortedIndex):
         skipList = index.skipList
 
         return skipList.position(k0) - skipList.position(k1)
+
+    def _reindex(self, key):
+
+        uuid, attr, name = self._super
+        index = getattr(self._valueMap.itsView[uuid], attr).getIndex(name)
+        index._reindex(key)
 
     def _writeValue(self, itemWriter, record, version):
 

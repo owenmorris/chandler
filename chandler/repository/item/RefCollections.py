@@ -18,7 +18,7 @@ from repository.util.Path import Path
 from repository.util.LinkedMap import LinkedMap
 from repository.item.Indexed import Indexed
 from chandlerdb.item.ItemError import *
-from chandlerdb.item.c import ItemRef
+from chandlerdb.item.c import ItemRef, isitem
 
 
 class RefList(LinkedMap, Indexed):
@@ -157,9 +157,12 @@ class RefList(LinkedMap, Indexed):
 
     def __repr__(self):
 
+        owner = self._owner(True)
+        if isitem(owner):
+            owner = owner._repr_()
+
         return '<%s: %s.%s<->%s>' %(type(self).__name__,
-                                    self._owner(True),
-                                    self._name, self._otherName)
+                                    owner, self._name, self._otherName)
 
     def __contains__(self, key, excludeMutating=False, excludeIndexes=False):
         """
