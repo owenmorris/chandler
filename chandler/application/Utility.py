@@ -369,6 +369,11 @@ def initProfileDir(options):
     Ensure we have the profile directory.
     """
     #XXX: i18n a users home directory can be non-ascii path
+
+    # set flag if the profileDir parameter was passed in (default is '')
+    # this is used downstream by application.CheckIfUpgraded()
+    options.profileDirWasPassedIn = len(options.profileDir) > 0
+
     if not options.profileDir:
         profileDir = locateProfileDir()
         if profileDir is None:
