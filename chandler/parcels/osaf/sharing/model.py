@@ -152,7 +152,7 @@ class DisplayAlarmRecord(eim.Record):
 
 
 class PasswordRecord(eim.Record):
-    URI = "http://osafoundation.org/eim/sharing/password/0"
+    URI = "http://osafoundation.org/eim/password/0"
 
     uuid = eim.key(ItemRecord.uuid)
     ciphertext = eim.field(bytes1024)
@@ -166,7 +166,6 @@ class MailAccountRecord(eim.Record):
     uuid = eim.key(ItemRecord.uuid)
     retries = eim.field(eim.IntType)
     username = eim.field(text256)
-    password = eim.field(text256) # XXX how do I point to PasswordRecord? eim.field(schema.UUID) ?
     host = eim.field(text256)
 
     # 0 = None, 1 = TLS, 2 = SSL
@@ -189,6 +188,7 @@ class SMTPAccountRecord(eim.Record):
     URI = "http://osafoundation.org/eim/sharing/smtpccount/0"
 
     uuid = eim.key(ItemRecord.uuid)
+    password = eim.field(schema.UUID)
     fromAddress = eim.field(text256)
     useAuth = eim.field(eim.IntType)
     port = eim.field(eim.IntType)
@@ -206,6 +206,7 @@ class IMAPAccountRecord(eim.Record):
     URI = "http://osafoundation.org/eim/sharing/imapaccount/0"
 
     uuid = eim.key(ItemRecord.uuid)
+    password = eim.field(schema.UUID)
     replyToAddress = eim.field(text256)
     port = eim.field(eim.IntType)
 
@@ -217,6 +218,7 @@ class POPAccountRecord(eim.Record):
     URI = "http://osafoundation.org/eim/sharing/popaccount/0"
 
     uuid = eim.key(ItemRecord.uuid)
+    password = eim.field(schema.UUID)
     replyToAddress = eim.field(text256)
     type = eim.field(eim.TextType(size=50))
     delete = eim.field(eim.IntType)

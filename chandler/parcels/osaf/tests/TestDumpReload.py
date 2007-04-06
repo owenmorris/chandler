@@ -167,7 +167,7 @@ class DumpReloadTestCase(testcase.DualRepositoryTestCase):
             replyToAddress = imapAddress,
             folders = [testFolder],
         )
-
+        waitForDeferred(imapaccount0.password.encryptPassword('imap4acc0unt0'))
 
         uuids.add(imapaccount0.itsUUID)
 
@@ -184,6 +184,7 @@ class DumpReloadTestCase(testcase.DualRepositoryTestCase):
             isActive = True,
             replyToAddress = popAddress,
         )
+        waitForDeferred(popaccount0.password.encryptPassword('pop4acc0unt0'))
 
         uuids.add(popaccount0.itsUUID)
 
@@ -202,6 +203,7 @@ class DumpReloadTestCase(testcase.DualRepositoryTestCase):
             useAuth = True,
             messageQueue = [queuedMessage0.itsItem],
         )
+        waitForDeferred(smtpaccount0.password.encryptPassword('smtp4acc0unt0'))
 
         # This orphans smtpOldAddress leaving it as
         # an old me address which is stored in the
@@ -294,6 +296,8 @@ class DumpReloadTestCase(testcase.DualRepositoryTestCase):
             self.assertEquals(imapaccount1.timeout, 50)
             self.assertEquals(imapaccount1.isActive, False)
             self.assertEquals(imapaccount1.replyToAddress.format(), imapAddress.format())
+            self.assertEquals(waitForDeferred(imapaccount0.password.decryptPassword()),
+                              waitForDeferred(imapaccount1.password.decryptPassword()))
 
             folder = imapaccount1.folders.first()
             self.assertEquals(folder.displayName, "TestFolder")
@@ -311,6 +315,8 @@ class DumpReloadTestCase(testcase.DualRepositoryTestCase):
             self.assertEquals(popaccount1.timeout, 40)
             self.assertEquals(popaccount1.isActive, True)
             self.assertEquals(popaccount1.replyToAddress.format(), popAddress.format())
+            self.assertEquals(waitForDeferred(popaccount0.password.decryptPassword()),
+                              waitForDeferred(popaccount1.password.decryptPassword()))
 
             smtpaccount1 = view1.findUUID(smtpaccount0.itsUUID)
 
@@ -324,6 +330,8 @@ class DumpReloadTestCase(testcase.DualRepositoryTestCase):
             self.assertEquals(smtpaccount1.isActive, True)
             self.assertEquals(smtpaccount1.useAuth, True)
             self.assertEquals(smtpaccount1.fromAddress.format(), smtpNewAddress.format())
+            self.assertEquals(waitForDeferred(smtpaccount0.password.decryptPassword()),
+                              waitForDeferred(smtpaccount1.password.decryptPassword()))
 
             queuedMessage1 = smtpaccount1.messageQueue[0]
 
