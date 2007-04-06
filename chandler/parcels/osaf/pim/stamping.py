@@ -2,7 +2,6 @@ from application import schema
 from chandlerdb.item.ItemError import NoLocalValueForAttributeError
 from items import ContentItem
 from collections import ListCollection
-from chandlerdb.util.c import Empty
 
 
 __parcel__ = 'osaf.pim'
@@ -132,19 +131,7 @@ class Stamp(schema.Annotation):
                                      self.itsItem.itsView).stampedItems
             stamped.add(self.itsItem.getMembershipItem())
 
-            for cls in stampClass.__mro__:
-                # Initialize values for annotation attributes
-                for attr, val in getattr(cls,'__initialValues__',()):
-                    if not hasattr(self, attr):
-                        setattr(self, attr, val)
-                
-            if self.__use_collection__:
-                stamped = schema.itemFor(stampClass,
-                                         self.itsItem.itsView).stampedItems
-                stamped.add(self.itsItem.getMembershipItem())
-
         self.stamp_types = new_stamp_types
-
 
     def remove(self):
         new_stamp_types = set(self.stamp_types)
