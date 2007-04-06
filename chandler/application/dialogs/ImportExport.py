@@ -24,6 +24,7 @@ from  osaf.sharing.ICalendar import importICalendarFile, ICalendarImportError
 from osaf.framework.blocks.Block import Block
 from osaf.pim import Remindable, EventStamp
 from osaf.activity import *
+from osaf.usercollections import UserCollection
 
 logger = logging.getLogger(__name__)
 MAX_UPDATE_MESSAGE_LENGTH = 50
@@ -145,7 +146,8 @@ class ImportDialog(FileChooserWithOptions):
         gs.Add(self.chooserLabel, 0, wx.ALL, 3)
 
         self.choices = [col for col in sidebarCollection if 
-                        (col not in (trash, selected) and not isReadOnly(col))]
+                        (col is not selected) and not isReadOnly(col) and
+                        not UserCollection(col).outOfTheBoxCollection]
 
         selectNew = schema.ns("osaf.sharing", view).prefs.import_as_new
         if selected == trash or isReadOnly(selected):
@@ -159,6 +161,7 @@ class ImportDialog(FileChooserWithOptions):
         self.choices.insert(0, None) # make choice indices match displayChoice
         
         self.chooser = wx.Choice(self, -1, choices = displayChoices)
+        self.chooser.Bind(wx.EVT_CHOICE, self.OnCollChoice)
         if selectNew:
             self.chooser.SetSelection(0)
         else:
@@ -168,6 +171,10 @@ class ImportDialog(FileChooserWithOptions):
     
         self.box.Insert(1, gs, 0, wx.LEFT, 16)
 
+        self.mine = wx.CheckBox(self, -1, _(u"Keep out of Dashboard"))
+        self.mine.SetValue(True)
+        self.box.Insert(2, self.mine, 0, wx.ALL, 3)
+
         self.feedbackBox = wx.BoxSizer(wx.VERTICAL)
         
         self.gauge = wx.Gauge(self, size=(360, 15))
@@ -176,13 +183,19 @@ class ImportDialog(FileChooserWithOptions):
         self.progressText = wx.StaticText(self, -1, _(u"Starting import"))
         self.feedbackBox.Add(self.progressText, wx.ALIGN_LEFT)
         
-        self.box.Insert(2, self.feedbackBox, 0, wx.ALL | wx.ALIGN_CENTER, 10)
+        self.box.Insert(3, self.feedbackBox, 0, wx.ALL | wx.ALIGN_CENTER, 10)
         self.box.Hide(self.feedbackBox)
         self.box.Fit(self)
 
         self.cancelling = False
         self.view = view
-        
+
+    def OnCollChoice(self, event):
+        if self.chooser.GetSelection() == 0:
+            self.mine.Enable()
+        else:
+            self.mine.Disable()
+
 
     def onOK(self, event):
 
@@ -193,6 +206,8 @@ class ImportDialog(FileChooserWithOptions):
                    self.chooser, self.chooserLabel)
         for widget in itertools.chain(widgets, self.options.itervalues()):
             widget.Disable()
+            
+        self.mine.Disable()
         
         # simplifying wrapper for complicated callbacks from sharing
         if self.importFile():
@@ -252,6 +267,9 @@ class ImportDialog(FileChooserWithOptions):
             collection = importICalendarFile(fullpath, self.view, coll,
                                              filterAttributes, activity,
                                              None, logger)
+            if coll == None and not self.mine.IsChecked():
+                mineCollections = schema.ns('osaf.pim', self.view).mine
+                mineCollections.sources.add(collection)
             activity.completed()
 
         except ICalendarImportError, e:
