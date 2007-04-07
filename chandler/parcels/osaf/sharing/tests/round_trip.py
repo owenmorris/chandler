@@ -766,8 +766,6 @@ class RoundTripTestCase(testcase.DualRepositoryTestCase):
         self.assertEquals(ms1.inReplyTo, inReplyTo)
         self.assertEquals(ms1.referencesMID, references)
         self.assertEquals(ms1.fromAddress.format(), fromAddr.format())
-        self.assertEquals(ms1.previousSender.format(), prevAddr.format())
-        self.assertEquals(ms1.replyToAddress.format(), repAddr.format())
         self.assertEquals(ms1.toAddress.first().format(), toAddr1.format())
         self.assertEquals(ms1.toAddress.last().format(), toAddr2.format())
         self.assertEquals(ms1.ccAddress.first().format(), ccAddr.format())
@@ -781,15 +779,18 @@ class RoundTripTestCase(testcase.DualRepositoryTestCase):
         self.assertEquals(ms1.headers['References'], refHeader)
         self.assertEquals(ms1.headers['Received'], received)
 
-        self.assertEquals(binaryToData(ms1.rfc2822Message), rfc2822)
-
         self.assertEquals(item1.body, body)
         self.assertEquals(item1.displayName, subject)
 
-        self.assertTrue(ms1.viaMailService)
-        self.assertTrue(ms1.fromMe)
-        self.assertTrue(ms1.fromEIMML)
-        self.assertTrue(ms1.previousInRecipients)
+        if not cosmo:
+            # These are not shared over cosmo
+            self.assertEquals(ms1.previousSender.format(), prevAddr.format())
+            self.assertEquals(ms1.replyToAddress.format(), repAddr.format())
+            self.assertEquals(binaryToData(ms1.rfc2822Message), rfc2822)
+            self.assertTrue(ms1.viaMailService)
+            self.assertTrue(ms1.fromMe)
+            self.assertTrue(ms1.fromEIMML)
+            self.assertTrue(ms1.previousInRecipients)
 
         #
         # Recurrence
