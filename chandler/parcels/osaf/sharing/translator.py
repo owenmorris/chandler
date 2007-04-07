@@ -340,21 +340,6 @@ eim.add_converter(model.aliasableUUID, schema.Item, getAliasForItem)
 eim.add_converter(model.aliasableUUID, pim.Stamp, getAliasForItem)
 
 
-def passwordFromRecord(translator, record):
-    # XXX This is a nasty hack that will break at some point, but
-    # XXX we'll need to start with something to dump/reload mail accounts.
-    # XXX This is needed because the mail accounts need to have password set
-    # XXX BEFORE fromAddress is set - there is an observer on fromAddress
-    # XXX which ends up trying to access password member. Now the observer
-    # XXX stuff is probably broken, but also a fair amount of work to fix.
-    pw = []
-    if record.password not in (eim.NoChange, None):
-        @translator.withItemForUUID(record.password, Password)
-        def do_password(password):
-            pw.append(password)
-    return pw[0]
-
-
 class SharingTranslator(eim.Translator):
 
     URI = "cid:pim-translator@osaf.us"
@@ -759,10 +744,15 @@ class SharingTranslator(eim.Translator):
 
     @model.SMTPAccountRecord.importer
     def import_smtp_account(self, record):
-        @self.withItemForUUID(record.uuid,
-                              mail.SMTPAccount,
-                              password=passwordFromRecord(self, record))
+        @self.withItemForUUID(record.uuid, mail.SMTPAccount)
         def do(account):
+            if record.password not in (eim.NoChange, None):
+                @self.withItemForUUID(record.password, Password)
+                def do_password(password):
+                    if hasattr(account, 'password'):                    
+                        account.password.delete()
+                    account.password = password
+
             if record.useAuth not in (eim.NoChange, None):
                 account.useAuth = record.useAuth == 1
 
@@ -822,14 +812,19 @@ class SharingTranslator(eim.Translator):
 
     @model.IMAPAccountRecord.importer
     def import_imap_account(self, record):
-        @self.withItemForUUID(record.uuid,
-                              mail.IMAPAccount,
-                              password=passwordFromRecord(self, record))
+        @self.withItemForUUID(record.uuid, mail.IMAPAccount)
         def do(account):
             #The Inbox is created by default so clear it out
             inbox = account.folders.first()
             account.folders = []
             inbox.delete()
+
+            if record.password not in (eim.NoChange, None):
+                @self.withItemForUUID(record.password, Password)
+                def do_password(password):
+                    if hasattr(account, 'password'):
+                        account.password.delete()
+                    account.password = password
 
             if record.replyToAddress not in (eim.NoChange, None):
                 account.replyToAddress = getEmailAddress(self.rv, record.replyToAddress)
@@ -909,11 +904,17 @@ class SharingTranslator(eim.Translator):
     @model.POPAccountRecord.importer
     def import_pop_account(self, record):
         @self.withItemForUUID(record.uuid, mail.POPAccount,
-                              password=passwordFromRecord(self, record),
                               actionType=record.type,
                               downloaded=record.downloaded,
                               downloadMax=record.downloadMax)
         def do(account):
+            if record.password not in (eim.NoChange, None):
+                @self.withItemForUUID(record.password, Password)
+                def do_password(password):
+                    if hasattr(account, 'password'):
+                        account.password.delete()
+                    account.password = password
+
             if record.replyToAddress not in (eim.NoChange, None):
                 account.replyToAddress = getEmailAddress(self.rv, record.replyToAddress)
 

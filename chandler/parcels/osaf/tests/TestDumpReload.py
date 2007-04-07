@@ -78,8 +78,9 @@ class DumpReloadTestCase(testcase.DualRepositoryTestCase):
             path="/cosmo",
             username="test",
             password=Password(itsView=view0),
-            userSSL=True
+            useSSL=True
         )
+        waitForDeferred(account0.password.encryptPassword('4cc0unt0'))
         uuids.add(account0.itsUUID)
         cosmo_conduit0 = sharing.CosmoConduit(itsView=view0,
             account=account0,
@@ -252,6 +253,15 @@ class DumpReloadTestCase(testcase.DualRepositoryTestCase):
 
 
             # Verify sharing
+            account1 = view1.findUUID(account0.itsUUID)
+            self.assertEquals(account1.host, "chandler.o11n.org")
+            self.assertEquals(account1.port, 1888)
+            self.assertEquals(account1.path, "/cosmo")
+            self.assertEquals(account1.username, "test")
+            self.assertEquals(account1.useSSL, True)
+            self.assertEquals(waitForDeferred(account1.password.decryptPassword()),
+                              '4cc0unt0')
+
             inmemory_share1 = view1.findUUID(inmemory_share0.itsUUID)
             self.assert_(inmemory_share1 is not None)
             self.assertEqual(inmemory_share0.contents.itsUUID,
@@ -296,8 +306,8 @@ class DumpReloadTestCase(testcase.DualRepositoryTestCase):
             self.assertEquals(imapaccount1.timeout, 50)
             self.assertEquals(imapaccount1.isActive, False)
             self.assertEquals(imapaccount1.replyToAddress.format(), imapAddress.format())
-            self.assertEquals(waitForDeferred(imapaccount0.password.decryptPassword()),
-                              waitForDeferred(imapaccount1.password.decryptPassword()))
+            self.assertEquals(waitForDeferred(imapaccount1.password.decryptPassword()),
+                              'imap4acc0unt0')
 
             folder = imapaccount1.folders.first()
             self.assertEquals(folder.displayName, "TestFolder")
@@ -315,8 +325,8 @@ class DumpReloadTestCase(testcase.DualRepositoryTestCase):
             self.assertEquals(popaccount1.timeout, 40)
             self.assertEquals(popaccount1.isActive, True)
             self.assertEquals(popaccount1.replyToAddress.format(), popAddress.format())
-            self.assertEquals(waitForDeferred(popaccount0.password.decryptPassword()),
-                              waitForDeferred(popaccount1.password.decryptPassword()))
+            self.assertEquals(waitForDeferred(popaccount1.password.decryptPassword()),
+                              'pop4acc0unt0')
 
             smtpaccount1 = view1.findUUID(smtpaccount0.itsUUID)
 
@@ -330,8 +340,8 @@ class DumpReloadTestCase(testcase.DualRepositoryTestCase):
             self.assertEquals(smtpaccount1.isActive, True)
             self.assertEquals(smtpaccount1.useAuth, True)
             self.assertEquals(smtpaccount1.fromAddress.format(), smtpNewAddress.format())
-            self.assertEquals(waitForDeferred(smtpaccount0.password.decryptPassword()),
-                              waitForDeferred(smtpaccount1.password.decryptPassword()))
+            self.assertEquals(waitForDeferred(smtpaccount1.password.decryptPassword()),
+                              'smtp4acc0unt0')
 
             queuedMessage1 = smtpaccount1.messageQueue[0]
 
