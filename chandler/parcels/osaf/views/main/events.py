@@ -22,6 +22,7 @@ from osaf.usercollections import UserCollection
 from osaf.framework.blocks import (
     AddToSidebarEvent, BlockEvent, NewItemEvent, NewBlockWindowEvent,
     ClassParameterizedEvent, ChoiceEvent, ViewEvent)
+from osaf.framework.blocks.calendar import CalendarViewEvent
 
 from osaf import pim
 from osaf.framework.blocks.Block import Block
@@ -383,18 +384,20 @@ def makeMainEvents(parcel):
         blockName = 'ShowBlockViewer',
         treeOfBlocks = repositoryViewer.RepositoryViewerFrameWindow)
 
-    ViewEvent.template('ViewAsCalendar',
+    CalendarViewEvent.template('ViewAsDayCalendar',
         viewTemplatePath = 'osaf.views.main.CalendarSummaryViewTemplate',
         methodName = 'onViewEvent',
+        dayMode = True,
+        dispatchToBlockName = 'SidebarBranchPointBlock').install(parcel)
+
+    CalendarViewEvent.template('ViewAsWeekCalendar',
+        viewTemplatePath = 'osaf.views.main.CalendarSummaryViewTemplate',
+        methodName = 'onViewEvent',
+        dayMode = False,
         dispatchToBlockName = 'SidebarBranchPointBlock').install(parcel)
 
     ViewEvent.template('ViewAsDashboard',
         viewTemplatePath = 'osaf.views.main.DashboardSummaryViewTemplate',
-        methodName = 'onViewEvent',
-        dispatchToBlockName = 'SidebarBranchPointBlock').install(parcel)
-
-    ViewEvent.template('ViewAsTable',
-        viewTemplatePath = 'osaf.views.main.TableViewTemplate',
         methodName = 'onViewEvent',
         dispatchToBlockName = 'SidebarBranchPointBlock').install(parcel)
 

@@ -118,6 +118,10 @@ class Block(schema.Item):
         initialValue = [] # defaultValue doesn't work for some reason
     )
 
+    treeController = schema.One()
+
+    treeTop = schema.One(inverse = treeController)
+
     splitters = schema.Sequence(defaultValue=None) # SplitterWindow.splitController
 
     isShown = schema.One(schema.Boolean, defaultValue=True)
@@ -138,7 +142,7 @@ class Block(schema.Item):
 
     schema.addClouds(
         copying = schema.Cloud(
-            byRef = [contents, eventsForNamedLookup],
+            byRef = [contents, eventsForNamedLookup, treeController],
             byCloud = [childBlocks, splitters]
         )
     )
@@ -884,7 +888,6 @@ class Block(schema.Item):
         while (block.parentBlock):
             block = block.parentBlock
         return block.frame
-
 
 class DispatchHook (Block):
     """

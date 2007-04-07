@@ -38,7 +38,7 @@ from application.dialogs import RecurrenceDialog, Util, TimeZoneList
 from osaf.sharing import ChooseFormat, CalDAVFreeBusyConduit, FreeBusyAnnotation
 
 from osaf.framework.blocks import (
-    DragAndDrop, Block, SplitterWindow, Styles, BoxContainer, BlockEvent
+    DragAndDrop, Block, SplitterWindow, Styles, BoxContainer, BlockEvent, ViewEvent
     )
 from osaf.framework.attributeEditors import AttributeEditors
 from osaf.framework.blocks.DrawingUtilities import (DrawWrappedText, Gradients,
@@ -1991,13 +1991,19 @@ class CalendarControl(CalendarBlock):
         self.postDateChanged(self.selectedDate)
         self.synchronizeWidget()
         
-    def onWeekViewEvent(self, event):
-        self.postDayMode(False)
-        self.widget.UpdateHeader()
+    def initializeTree(self, hints):
+        event = hints.get ("event", None)
+        if event is not None:
+            if event.dayMode:
+                self.postDayMode(True, self.selectedDate)
+            else:
+                self.postDayMode(False)
+            widget = getattr (self, "widget", None)
+            if widget is not None:
+                widget.UpdateHeader()
 
-    def onDayViewEvent(self, event):
-        self.postDayMode(True, self.selectedDate)
-        self.widget.UpdateHeader()
+    def onViewEventUpdateUI (self, event):
+        event.arguments ['Check'] = event.dayMode == self.dayMode
 
     def onGoToCalendarItemEvent(self, event):
         """
@@ -2519,3 +2525,12 @@ class VisibleHoursEvent(BlockEvent):
     global CalendarPreferences object as described there.
     """
     visibleHours = schema.One(schema.Integer)
+
+
+class CalendarViewEvent (ViewEvent):
+    """
+    A variation of ViewEvent for the calendar that allows the tree of blocks to
+    be set to day or week view.
+    """
+    dayMode = schema.One(schema.Boolean)
+

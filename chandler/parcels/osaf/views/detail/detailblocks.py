@@ -285,12 +285,11 @@ def registerAttributeEditors(parcel, oldVersion):
 def makeRootStuff(parcel, oldVersion):
     # The BranchPoint mechanism starts each specific detail view by cloning 
     # this stub.
-    detailRoot = DetailRootBlock.template('DetailRoot',
-                                          orientationEnum='Vertical',
-                                          size=SizeType(80, 20),
-                                          minimumSize=SizeType(80, 40),
-                                          eventBoundary=True)
-    detailRoot.install(parcel)
+    DetailRootBlock.template('DetailRoot',
+                             orientationEnum='Vertical',
+                             size=SizeType(80, 20),
+                             minimumSize=SizeType(80, 40),
+                             eventBoundary=True).install(parcel)
 
 def makeCalendarArea(parcel, oldVersion):
     blocks = schema.ns("osaf.framework.blocks", parcel.itsView)

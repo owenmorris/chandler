@@ -19,6 +19,7 @@ from CalendarCanvas import (
     CalendarControl, 
     CanvasSplitterWindow,
     VisibleHoursEvent,
+    CalendarViewEvent
 )
 
 from osaf.preferences import CalendarPrefs
@@ -40,10 +41,7 @@ def installParcel(parcel, oldName=None):
     CalendarPrefs.update(parcel, "calendarPrefs")
 
     # events
-    for eventName in ('GoToNext', 'GoToPrev',
-                      'GoToToday', 'GoToDate',
-                      'DayView', 'WeekView',
-                      'GoToCalendarItem'):
+    for eventName in ('GoToNext','GoToPrev','GoToToday','GoToDate','GoToCalendarItem'):
         BlockEvent.template(eventName,
                             dispatchToBlockName='MainCalendarControl'
                             ).install(parcel)

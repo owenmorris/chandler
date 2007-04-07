@@ -727,38 +727,6 @@ def makeSummaryBlocks(parcel):
         ]
     ).install(parcel) # SplitterWindow SearchResultsViewTemplate
 
-    SplitterWindow.template(
-        'TableViewTemplate',
-        orientationEnum = "Vertical",
-        splitPercentage = 0.65,
-        eventBoundary = True,
-        eventsForNamedLookup = [saveResultsEvent],
-        childBlocks = [
-            Table.template('TableSummaryView',
-                contents = pim_ns.allCollection,
-                scaleWidthsToFit = True,
-                columns = [
-                    taskColumn,
-                    commColumn,
-                    whoColumn,
-                    titleColumn,
-                    reminderColumn,
-                    dateColumn,
-                    triageColumn                    
-                ],
-                characterStyle = blocks.SummaryRowStyle,
-                prefixCharacterStyle = blocks.SummaryPrefixStyle,
-                headerCharacterStyle = blocks.SummaryHeaderStyle,
-                rowHeight = 19,
-                elementDelegate = 'osaf.framework.blocks.ControlBlocks.AttributeDelegate',
-                       defaultEditableAttribute = u'displayName',
-                selection = [[0,0]],
-                activeView = True),
-            BranchPointBlock.template('TableSummaryDetailBranchPointBlock',
-                delegate = detailBranchPointDelegate)
-        ]
-    ).install(parcel)
-
     TimeZoneChange = BlockEvent.template(
         'TimeZoneChange',
         dispatchEnum = 'BroadcastEverywhere').install(parcel)
@@ -804,8 +772,6 @@ def makeSummaryBlocks(parcel):
 
     WelcomeEvent = schema.ns('osaf.app', view).WelcomeEvent
     CalendarDetailBranchPointBlock.selectedItem = WelcomeEvent
-    #detailContentsCollection.clear()
-    #detailContentsCollection.add(WelcomeEvent)
 
     CalendarSummaryView = CalendarContainer.template(
         'CalendarSummaryView',
@@ -821,6 +787,7 @@ def makeSummaryBlocks(parcel):
         eventBoundary = True,
         orientationEnum = 'Vertical',
         splitPercentage = 0.65,
+        treeController = MainCalendarControl,
         childBlocks = [
             CalendarContainer.template('CalendarSummaryView',
                 childBlocks = [

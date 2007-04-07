@@ -60,9 +60,13 @@ class wxBranchPointBlock(wxBoxContainer):
     A widget block that gives its BranchPointBlock a chance to change
     the tree of blocks within it.
     """
-    def wxSynchronizeWidget(self, useHints=False):
-        if self.blockItem.isShown:
-            self.blockItem.installTreeOfBlocks()
+    def wxSynchronizeWidget(self, useHints=False, hints={}):
+        """
+        hints and useHints are completely unreleated. useHints is going to go away soon.
+        """
+        blockItem = self.blockItem
+        if blockItem.isShown:
+            blockItem.installTreeOfBlocks(hints)
         super(wxBranchPointBlock, self).wxSynchronizeWidget()
 
 from Styles import ColorStyle
@@ -104,10 +108,15 @@ class BranchPointBlock(BoxContainer):
     def onViewEvent (self, event):
         # Delegate work to our delegate
         self.delegate.setView (self.selectedItem, event.viewTemplatePath)
-        self.widget.wxSynchronizeWidget()
+        hints = {"event": event}
+        self.widget.wxSynchronizeWidget(False, hints)
 
     def onViewEventUpdateUI (self, event):
-        event.arguments ['Check'] = self.delegate.getView (self.selectedItem) == event.viewTemplatePath
+        checked = event.arguments ['Check'] = self.delegate.getView (self.selectedItem) == event.viewTemplatePath
+        if checked:
+            treeController = getattr (self.childBlocks.first(), "treeController", None)
+            if treeController is not None:
+                treeController.onViewEventUpdateUI (event)
 
     def onSelectItemsEvent (self, event):
         # for the moment, multiple selection means, "select nothing"
@@ -130,7 +139,7 @@ class BranchPointBlock(BoxContainer):
             # eventually results in installTreeOfBlocks()
             widget.wxSynchronizeWidget ()
 
-    def installTreeOfBlocks(self):
+    def installTreeOfBlocks(self, hints):
         """
         If necessary, replace our children with a tree of blocks appropriate
         for our content.
@@ -143,7 +152,6 @@ class BranchPointBlock(BoxContainer):
         """
 
         # Get a cache key from self.selectedItem using the delegate
-        hints = {}
         keyItem = self.delegate._mapItemToCacheKeyItem(
             self.selectedItem, hints)
 
@@ -218,6 +226,9 @@ class BranchPointBlock(BoxContainer):
                 if self.setFocus:
                     newView.postEventByName("SetFocus", {})
 
+            treeController = getattr (newView, "treeController", None)
+            if treeController is not None:
+                treeController.initializeTree (hints)
             IgnoreSynchronizeWidget(False, Rerender)
 
 
