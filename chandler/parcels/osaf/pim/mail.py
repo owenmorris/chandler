@@ -626,7 +626,7 @@ def checkIfFromMe(mailStamp, type):
     if found != getattr(mailStamp, 'fromMe', False):
         mailStamp.fromMe = found
 
-def getCurrentOutgoingAccount(view):
+def getCurrentOutgoingAccount(view, ignorePassword=False):
     """
     This function returns the default C{OutgoingAccount} account
     or the first C{OutgoingAccount} found if no default exists.
@@ -639,15 +639,15 @@ def getCurrentOutgoingAccount(view):
     # Get the current SMTP Account
     outgoingAccount = schema.ns('osaf.pim', view).currentOutgoingAccount.item
 
-    if outgoingAccount is None or not outgoingAccount.isSetUp():
+    if outgoingAccount is None or not outgoingAccount.isSetUp(ignorePassword):
         for account in OutgoingAccount.iterItems(view):
-            if account.isSetUp():
+            if account.isSetUp(ignorePassword):
                 return account
 
     return outgoingAccount
 
 
-def getCurrentIncomingAccount(view):
+def getCurrentIncomingAccount(view, ignorePassword=False):
     """
     This function returns the current (default) C{IncomingAccount} in the
     Repository.
@@ -656,9 +656,9 @@ def getCurrentIncomingAccount(view):
     """
     incomingAccount = schema.ns('osaf.pim', view).currentIncomingAccount.item
 
-    if incomingAccount is None or not incomingAccount.isSetUp():
+    if incomingAccount is None or not incomingAccount.isSetUp(ignorePassword):
         for account in IncomingAccount.iterItems(view):
-            if account.isSetUp():
+            if account.isSetUp(ignorePassword):
                 return account
 
     return incomingAccount
@@ -682,10 +682,13 @@ def _recalculateMeEmailAddresses(view):
     ea.emailAddresses = _calculateCurrentMeEmailAddresses(view)
     pim_ns.currentMeEmailAddresses.item = ea
 
-    #log.critical("currentMeAddress is now '%s'; currentMeAddresses is now: [%s]", 
-                 #(pim_ns.currentMeEmailAddress.item is None and "None" or 
-                  #pim_ns.currentMeEmailAddress.item.emailAddress),
-                 #", ".join(a.emailAddress for a in ea.emailAddresses))
+def _potentialMeAccount(account):
+    """
+       Checks the account settings to confirm
+       that account is active and has a host name
+       filled in.
+    """
+    return account.isActive and len(account.host.strip())
 
 def _calculateCurrentMeEmailAddress(view):
     """
@@ -698,29 +701,29 @@ def _calculateCurrentMeEmailAddress(view):
             4. Return the first incoming account containing an email address
             5. Return None
     """
-    account = getCurrentOutgoingAccount(view)
+    account = getCurrentOutgoingAccount(view, ignorePassword=True)
 
-    if account is not None and account.isSetUp() and \
+    if account is not None and _potentialMeAccount(account) and \
        account.fromAddress and account.fromAddress.isValid():
         return account.fromAddress
 
     #Loop through till we find an outging account with an emailAddress
     for account in OutgoingAccount.iterItems(view):
-        if account.isSetUp() and account.fromAddress and \
+        if _potentialMeAccount(account) and account.fromAddress and \
            account.fromAddress.isValid():
             return account.fromAddress
 
     # No Outgoing accounts found with an email address so try
     # the Incoming accounts
-    account = getCurrentIncomingAccount(view)
+    account = getCurrentIncomingAccount(view, ignorePassword=True)
 
-    if account is not None and account.isSetUp() and \
+    if account is not None and _potentialMeAccount(account) and \
        account.replyToAddress and \
        account.replyToAddress.isValid():
         return account.replyToAddress
 
     for account in IncomingAccount.iterItems(view):
-        if account.isSetUp() and account.replyToAddress and \
+        if _potentialMeAccount(account) and account.replyToAddress and \
            account.replyToAddress.isValid():
             return account.replyToAddress
 
@@ -743,28 +746,28 @@ def _calculateCurrentMeEmailAddresses(view):
 
     addrs = []
 
-    outgoing = getCurrentOutgoingAccount(view)
+    outgoing = getCurrentOutgoingAccount(view, ignorePassword=True)
 
-    if outgoing is not None and outgoing.isSetUp() and \
+    if outgoing is not None and _potentialMeAccount(outgoing) and \
        outgoing.fromAddress and \
        outgoing.fromAddress.isValid():
         addrs.append(outgoing.fromAddress)
 
     for account in OutgoingAccount.iterItems(view):
-        if account.isSetUp() and account.fromAddress and \
+        if _potentialMeAccount(account) and account.fromAddress and \
            account.fromAddress.isValid() and \
            account != outgoing:
             addrs.append(account.fromAddress)
 
-    incoming = getCurrentIncomingAccount(view)
+    incoming = getCurrentIncomingAccount(view, ignorePassword=True)
 
-    if incoming is not None and incoming.isSetUp() and \
+    if incoming is not None and _potentialMeAccount(incoming) and \
        incoming.replyToAddress and \
        incoming.replyToAddress.isValid():
         addrs.append(incoming.replyToAddress)
 
     for account in IncomingAccount.iterItems(view):
-        if account.isSetUp() and account.replyToAddress and \
+        if _potentialMeAccount(account) and account.replyToAddress and \
            account.replyToAddress.isValid() and \
            account != incoming:
             addrs.append(account.replyToAddress)
@@ -916,11 +919,16 @@ class IncomingAccount(AccountBase):
 
         _recalculateMeEmailAddresses(self.itsView)
 
-    def isSetUp(self):
-        return self.isActive and \
+    def isSetUp(self, ignorePassword=False):
+        res = self.isActive and \
                len(self.host.strip()) and \
-               len(self.username.strip()) and \
-               len(waitForDeferred(self.password.decryptPassword()).strip())
+               len(self.username.strip())
+
+        if not ignorePassword:
+            res = res and \
+                  len(waitForDeferred(self.password.decryptPassword()).strip())
+
+        return res
 
 
 class OutgoingAccount(AccountBase):
@@ -1002,14 +1010,17 @@ class OutgoingAccount(AccountBase):
 
         _recalculateMeEmailAddresses(self.itsView)
 
-    def isSetUp(self):
-        if self.isActive and \
-           len(self.host.strip()):
-            if self.useAuth:
-                return len(self.username.strip()) and \
-                       len(waitForDeferred(self.password.decryptPassword()).strip())
-            return True
-        return False
+    def isSetUp(self, ignorePassword=False):
+        res = self.isActive and len(self.host.strip())
+
+        if self.useAuth:
+            res = res and len(self.username.strip())
+
+            if not ignorePassword:
+               rest = res and \
+                      len(waitForDeferred(self.password.decryptPassword()).strip())
+
+        return res
 
 
 class SMTPAccount(OutgoingAccount):
