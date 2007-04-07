@@ -280,14 +280,10 @@ class CommunicationStatusTestCase(TestDomainModel.DomainModelTestCase):
         self.checkStatus(inoutFlags, 'QUEUED')        
 
         self.note.changeEditState(Modification.sent)
-        # Check this one -- grant. Is UPDATE supposed to be enabled
-        # before you've made edits?
-        self.checkStatus(inoutFlags, 'UPDATE', 'SENT')
+        self.checkStatus(inoutFlags, 'SENT')
 
         self.note.changeEditState(Modification.edited)
-        # Check this one -- grant. Is UPDATE supposed to be enabled
-        # before you've made edits
-        self.checkStatus(inoutFlags, 'UPDATE')
+        self.checkStatus(inoutFlags, 'UPDATE', 'DRAFT')
 
         # Remove the MailStamp; that should make it no longer a Draft
         mail.remove()
@@ -295,7 +291,7 @@ class CommunicationStatusTestCase(TestDomainModel.DomainModelTestCase):
 
         # Re-add the stamp
         mail.add()
-        self.checkStatus(inoutFlags, 'UPDATE')
+        self.checkStatus(inoutFlags, 'UPDATE', 'DRAFT')
 
         # and finally, re-send it
         self.note.changeEditState(Modification.updated)

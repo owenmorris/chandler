@@ -35,6 +35,7 @@ import items, notes, stamping, collections
 import email.Utils as Utils
 import re as re
 import chandlerdb.item.ItemError as ItemError
+from chandlerdb.item.c import isitem
 from chandlerdb.util.c import UUID, Empty
 import PyICU
 from PyICU import ICUtzinfo
@@ -2257,6 +2258,10 @@ class CommunicationStatus(schema.Annotation):
       3a. If #2 is not mail: created, edited
       3b. If #2 is mail: out, in, other
       4b. If #2 is mail: firsttime, updated
+      
+    The constants used here map to the dashboard specification for Chandler:
+    
+    <http://svn.osafoundation.org/docs/trunk/docs/specs/rel0_7/Dashboard-0.7.html#comm-states>
     """
     schema.kindInfo(annotates=items.ContentItem)
 
@@ -2282,6 +2287,7 @@ class CommunicationStatus(schema.Annotation):
     # OUT         =          1
     # IN          =         1
     # NEITHER     =        1
+    # (NEITHER is also called NEUTRAL in the spec).
 
     # 4b:
     # (firsttime has this bit unset)
@@ -2296,22 +2302,28 @@ class CommunicationStatus(schema.Annotation):
     def getItemCommState(itemOrUUID, view=None):
         """ Given an item or a UUID, determine its communications state """
 
-        if isinstance(itemOrUUID, UUID):
-            uuid = itemOrUUID
-            assert view is not None, "Need a view for the UUID case!"
-        else:
-            uuid = itemOrUUID.itsUUID
+        if view is None:
             view = itemOrUUID.itsView
+            itemOrUUID = getattr(itemOrUUID, 'proxiedItem', itemOrUUID)
 
         modifiedFlags, lastMod, stampTypes, fromMe, \
         toMe, needsReply, read, error = \
-            view.findInheritedValues(uuid, *CommunicationStatus.attributeValues)
+            view.findInheritedValues(itemOrUUID,
+                                     *CommunicationStatus.attributeValues)
 
         result = 0
 
+        # error
+        if error:
+            result |= CommunicationStatus.ERROR
+
         if MailStamp in stampTypes:
-            # update
-            if items.Modification.sent in modifiedFlags:
+            # update: This means either: we have just
+            # received an update, or it's ready to go
+            # out as an update
+            if (items.Modification.updated == lastMod or
+                (items.Modification.sent != lastMod and
+                items.Modification.sent in modifiedFlags)):
                 result |= CommunicationStatus.UPDATE
 
             # in, out, neither
@@ -2325,15 +2337,13 @@ class CommunicationStatus(schema.Annotation):
             # queued
             if items.Modification.queued in modifiedFlags:
                 result |= CommunicationStatus.QUEUED
-            # update
-            if items.Modification.sent in modifiedFlags:
-                result |= CommunicationStatus.UPDATE
             # sent
             if lastMod in (items.Modification.sent, items.Modification.updated):
                 result |= CommunicationStatus.SENT
-            # draft if it's not one of the above
-            if  result & (CommunicationStatus.SENT | CommunicationStatus.QUEUED
-                          | CommunicationStatus.UPDATE) == 0:
+            # draft if it's not one of sent/queued/error
+            if  result & (CommunicationStatus.SENT |
+                          CommunicationStatus.QUEUED |
+                          CommunicationStatus.ERROR) == 0:
                 result |= CommunicationStatus.DRAFT
         else:
             # edited
@@ -2347,10 +2357,6 @@ class CommunicationStatus(schema.Annotation):
         # read
         if read:
             result |= CommunicationStatus.READ
-
-        # error
-        if error:
-            result |= CommunicationStatus.ERROR
 
         return result
 
