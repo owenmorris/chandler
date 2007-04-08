@@ -108,3 +108,5 @@ class AutoSyncPrefs(wx.Dialog):
         index = self.choice.GetSelection()
         minutes = self.choice.GetClientData(index)
         sharing.setAutoSyncInterval(self.view, minutes)
+        self.view.commit()
+        

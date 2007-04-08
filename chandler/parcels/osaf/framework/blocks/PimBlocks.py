@@ -328,8 +328,6 @@ class FocusEventHandlers(Item):
             # Add the item to the current collection
             collection.add(replyMessage)
 
-            self.itsView.commit()
-
             # select the last message replied/forwarded
             main.MainView.selectItems([replyMessage])
             # by default the "from" field is selected, which looks funny;

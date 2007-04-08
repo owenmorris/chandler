@@ -229,14 +229,6 @@ The Chandler Team""") % {'version': version.version}
                             body=scripting.script_file(u"BrowseSelected.py", Scripts.__file__)
                             )
 
-    # Scripts whose name starts with "test" can all be run through a command-line option
-    scripting.Script.update(parcel, 'Reload Parcels',
-                            displayName=_(u"Test - Reload Parcels"),
-                            #test=True, # @@@ reenable this line when bug 4554 is fixed
-                            creator = osafDev,
-                            body=scripting.script_file(u"ReloadParcels.py", Scripts.__file__)
-                            )
-
     scripting.Script.update(parcel, 'Event Timing',
                             displayName=_(u"Test - Event timing example"),
                             test=True,

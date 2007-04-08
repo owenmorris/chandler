@@ -137,6 +137,7 @@ class RestoreSharesDialog(wx.Dialog):
                 self.listShares.Deselect(index)
 
         self.subscribing = False
+        self.commit()
 
         self.EndModal(True)
 

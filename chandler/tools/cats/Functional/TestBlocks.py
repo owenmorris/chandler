@@ -28,8 +28,6 @@ class TestBlocks(ChandlerTestCase):
         self.logger.report(True, name='CPIATestMainView ')
         self.app_ns.root.ChooseChandlerMainView()
         self.logger.report(True, name='ChandlerMainView')
-        self.app_ns.root.ReloadParcels()
-        self.logger.report(True, name='ReloadParcels')
         self.logger.endAction(True, 'TestBlocks complete')
 
 

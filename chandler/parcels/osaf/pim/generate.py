@@ -321,5 +321,4 @@ def GenerateAllItems(view, count, sidebarCollection=None):
             return fn(*args, **keywds)
         items.append(GenerateItems(view, count, newFn, collections))
 
-    view.commit() 
     return items

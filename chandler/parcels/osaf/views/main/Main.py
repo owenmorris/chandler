@@ -1132,35 +1132,6 @@ class MainView(View):
     def __loadMailTests (self, dir):
         import osaf.mail.utils as utils
         utils.loadMailTests(self.itsView, dir)
-        self.itsView.refresh()
-
-
-    def onReloadParcelsEvent(self, event, traceItem = None):
-        """
-        Reloads the parcels and UI by deleting the UI elements and
-        creating a new set.  Often this operation exposes bugs in the
-        copying cloud where data items referenced by the UI get
-        deleted too.  If this happens, you can get debugging
-        help by passing in a traceItem to view how that item
-        gets included by the cloud.
-        """
-        # pass in an Item to trace, or set it here in the debugger
-        if traceItem is not None:
-            self.TraceMainViewCloud(traceItem)
-
-        theApp = wx.GetApp()
-        theApp.UnRenderMainView ()
-
-        application.Parcel.Manager.get(self.itsView).loadParcels()
-
-        mainViewRoot = theApp.LoadMainViewRoot (delete=True)
-
-        # mainViewRoot needs to refer to its frame and the mainFrame needs to
-        # refert to the mainViewRoot
-        mainViewRoot.frame = theApp.mainFrame
-        theApp.mainFrame.mainViewRoot = mainViewRoot
-
-        theApp.RenderMainView ()
 
     def onReloadStylesEvent(self, event):
         """
@@ -1416,13 +1387,11 @@ class MainView(View):
 
 
     def onEditMyNameEvent(self, event):
-        rv = self.itsView
         application.dialogs.Util.promptForItemValues(None, "Enter your name",
-            schema.ns('osaf.pim', rv).currentContact.item.contactName,
+            schema.ns('osaf.pim', self.itsView).currentContact.item.contactName,
             ( {'attr':'firstName', 'label':'First name' },
               {'attr':'lastName', 'label':'Last name' } )
         )
-        rv.commit()
 
     def onRecalculateMeAddressesEvent(self, event):
         mail._recalculateMeEmailAddresses(self.itsView)
@@ -1851,15 +1820,11 @@ class MainView(View):
         if not sharing.ensureAccountSetUp(view, inboundMail=True):
             return
 
-        view.commit()
-
         for account in mail.IMAPAccount.getActiveAccounts(view):
             Globals.mailService.getIMAPInstance(account).getMail()
 
         for account in mail.POPAccount.getActiveAccounts(view):
             Globals.mailService.getPOPInstance(account).getMail()
-
-        view.refresh()
 
     def onEnableTimezonesEventUpdateUI(self, event):
         tzPrefs = schema.ns('osaf.pim', self.itsView).TimezonePrefs

@@ -108,7 +108,6 @@ def loadMailTests(view, dr):
             mCollection.add(mailStamp.itsItem)
 
         sidebar.add(mCollection)
-        view.commit()
 
     except:
         view.cancel()
