@@ -23,7 +23,7 @@ Note: need to migrate translation logic to a base wx dialog class that can
       handle all the work for sub classes
 """
 
-def promptForItemValues(frame, title, item, attrList):
+def promptForItemValues(title, item, attrList):
     """
     Given an item and a list of attributes, display a modal dialog with
     a text field per attribute, with each field populated directly from
@@ -46,7 +46,7 @@ def promptForItemValues(frame, title, item, attrList):
 
     """
 
-    win = ItemValuesDialog(frame, -1, title, item, attrList)
+    win = ItemValuesDialog(title, item, attrList)
     win.CenterOnScreen()
     val = win.ShowModal()
 
@@ -58,7 +58,7 @@ def promptForItemValues(frame, title, item, attrList):
     return val == wx.ID_OK
 
 class ItemValuesDialog(wx.Dialog):
-    def __init__(self, parent, ID, title, item, attrList, size=wx.DefaultSize,
+    def __init__(self, title, item, attrList, size=wx.DefaultSize,
            pos=wx.DefaultPosition, style=wx.DEFAULT_DIALOG_STYLE):
 
         # Instead of calling wx.Dialog.__init__ we precreate the dialog
@@ -66,7 +66,7 @@ class ItemValuesDialog(wx.Dialog):
         # creation, and then we create the GUI dialog using the Create
         # method.
         pre = wx.PreDialog()
-        pre.Create(parent, ID, title, pos, size, style)
+        pre.Create(None, -1, title, pos, size, style)
 
         # This next step is the most important, it turns this Python
         # object into the real wrapper of the dialog (instead of pre)
@@ -142,7 +142,7 @@ def promptUser(title, message, defaultValue=""):
     @param defaultValue:  A value to populate the text field with
     @type defaultValue:  String
     """
-    win = promptUserDialog(None, -1, title, message, defaultValue)
+    win = promptUserDialog(title, message, defaultValue)
     win.CenterOnScreen()
     val = win.ShowModal()
 
@@ -157,24 +157,24 @@ def promptUser(title, message, defaultValue=""):
 
     return value
 
-def mailAccountError(frame, view, message, account):
+def mailAccountError(view, message, account):
     # importing AccountPreferences imports osaf.sharing, but Util is loaded
     # by a sharing dependency, so to avoid import loops, only import
     # AccountPreferences when we need it
     import AccountPreferences
-    win = MailAccountErrorDialog(frame, message)
+    win = MailAccountErrorDialog(message)
     win.CenterOnScreen()
     val = win.ShowModal()
 
     win.Destroy()
 
     if val == wx.ID_OK:
-       AccountPreferences.ShowAccountPreferencesDialog(frame, account, view)
+       AccountPreferences.ShowAccountPreferencesDialog(account, view)
 
 
-def mailAddressError(frame):
+def mailAddressError():
     message = _(u"You have addressed this message to invalid email addresses.")
-    win = MailAddressErrorDialog(frame, message)
+    win = MailAddressErrorDialog(message)
     win.CenterOnScreen()
     val = win.ShowModal()
 
@@ -186,7 +186,7 @@ def mailAddressError(frame):
     return True
 
 class MailErrorBaseDialog(wx.Dialog):
-    def __init__(self, parent, message):
+    def __init__(self, message):
         size = wx.DefaultSize
         pos = wx.DefaultPosition
         style = wx.DEFAULT_DIALOG_STYLE
@@ -196,7 +196,7 @@ class MailErrorBaseDialog(wx.Dialog):
         # creation, and then we create the GUI dialog using the Create
         # method.
         pre = wx.PreDialog()
-        pre.Create(parent, -1, _(u"Mail Error"), pos, size, style)
+        pre.Create(None, -1, _(u"Mail Error"), pos, size, style)
 
         # This next step is the most important, it turns this Python
         # object into the real wrapper of the dialog (instead of pre)
@@ -243,7 +243,7 @@ class MailAddressErrorDialog(MailErrorBaseDialog):
 
 
 class promptUserDialog(wx.Dialog):
-    def __init__(self, parent, ID, title, message, value, isPassword=False,
+    def __init__(self, title, message, value, isPassword=False,
      size=wx.DefaultSize, pos=wx.DefaultPosition,
      style=wx.DEFAULT_DIALOG_STYLE):
 
@@ -252,7 +252,7 @@ class promptUserDialog(wx.Dialog):
         # creation, and then we create the GUI dialog using the Create
         # method.
         pre = wx.PreDialog()
-        pre.Create(parent, ID, title, pos, size, style)
+        pre.Create(None, -1, title, pos, size, style)
 
         # This next step is the most important, it turns this Python
         # object into the real wrapper of the dialog (instead of pre)
@@ -304,15 +304,15 @@ class promptUserDialog(wx.Dialog):
         return self.textControl.GetValue()
 
 
-def displayLogWindow(frame, logList):
+def displayLogWindow(logList):
 
-    win = LogWindow(frame, -1, logList)
+    win = LogWindow(logList)
     win.CenterOnScreen()
     win.ShowModal()
     win.Destroy()
 
 class LogWindow(wx.Dialog):
-    def __init__(self, parent, ID, logList, size=wx.DefaultSize,
+    def __init__(self, logList, size=wx.DefaultSize,
            pos=wx.DefaultPosition, style=wx.DEFAULT_DIALOG_STYLE):
 
         # Instead of calling wx.Dialog.__init__ we precreate the dialog
@@ -320,7 +320,7 @@ class LogWindow(wx.Dialog):
         # creation, and then we create the GUI dialog using the Create
         # method.
         pre = wx.PreDialog()
-        pre.Create(parent, ID, "Logs", pos, size, style)
+        pre.Create(None, -1, "Logs", pos, size, style)
 
         # This next step is the most important, it turns this Python
         # object into the real wrapper of the dialog (instead of pre)
@@ -378,15 +378,15 @@ class LogWindow(wx.Dialog):
             wx.TheClipboard.Close()
 
 
-def displayI18nManagerDebugWindow(frame):
+def displayI18nManagerDebugWindow():
     import i18n
-    win = DebugWindow(frame, -1, u"I18nManager Resource Debugger",
+    win = DebugWindow(u"I18nManager Resource Debugger",
                       i18n._I18nManager.getDebugString())
     win.CenterOnScreen()
     win.ShowModal()
     win.Destroy()
 
-def displayAddressDebugWindow(frame, view, type=1):
+def displayAddressDebugWindow(view, type=1):
     from application import schema
 
     # Types:
@@ -408,7 +408,7 @@ def displayAddressDebugWindow(frame, view, type=1):
         if eAddr:
             list.append(eAddr.emailAddress)
 
-    win = DebugWindow(frame, -1, u"Email Address Debugger",
+    win = DebugWindow(u"Email Address Debugger",
                       u'\n'.join(list), tsize=[400,300])
 
     win.CenterOnScreen()
@@ -416,7 +416,7 @@ def displayAddressDebugWindow(frame, view, type=1):
     win.Destroy()
 
 class DebugWindow(wx.Dialog):
-    def __init__(self, parent, ID, title, text, size=wx.DefaultSize,
+    def __init__(self, title, text, size=wx.DefaultSize,
            pos=wx.DefaultPosition, style=wx.DEFAULT_DIALOG_STYLE,
            tsize=[600,500]):
 
@@ -425,7 +425,7 @@ class DebugWindow(wx.Dialog):
         # creation, and then we create the GUI dialog using the Create
         # method.
         pre = wx.PreDialog()
-        pre.Create(parent, ID, title, pos, size, style)
+        pre.Create(None, -1, title, pos, size, style)
 
         # This next step is the most important, it turns this Python
         # object into the real wrapper of the dialog (instead of pre)
@@ -466,38 +466,9 @@ class DebugWindow(wx.Dialog):
 # we really should refactor these dialog methods to get rid of all the
 # boilerplate
 
-# A simple "ok/cancel" dialog
-
-def okCancel(parent, caption, message):
-    """
-    Prompt the user with a Ok/Cancel dialog.  
-    Return True if Ok, False if Cancel.
-    @param parent: A wx parent
-    @type parent: wx frame
-    @param caption: The caption string for the dialog
-    @type caption: String
-    @param message:  A message prompting the user for input
-    @type message:  String
-    """
-
-    dlg = wx.MessageDialog(parent, message, caption,
-     wx.OK | wx.CANCEL | wx.ICON_QUESTION)
-
-    val = dlg.ShowModal()
-
-    if val == wx.ID_OK:
-        value = True
-    else:
-        value = False
-
-    dlg.Destroy()
-    return value
-
-
-
 # A simple "yes/no" dialog
 
-def ShowMessageDialog(parent, message, caption, flags, resultsTable=None,
+def ShowMessageDialog(message, caption, flags, resultsTable=None,
                       textTable=None):
     if flags & wx.YES_NO:
         flags |= wx.ICON_QUESTION
@@ -508,9 +479,9 @@ def ShowMessageDialog(parent, message, caption, flags, resultsTable=None,
         caption = _("Chandler")
 
     if textTable is not None:
-        dlg = CustomYesNoLabelDialog(parent, message, caption, flags, textTable)
+        dlg = CustomYesNoLabelDialog(message, caption, flags, textTable)
     else:
-        dlg = wx.MessageDialog(parent, message, caption, flags)
+        dlg = wx.MessageDialog(None, message, caption, flags)
 
     val = dlg.ShowModal()
     dlg.Destroy()
@@ -521,9 +492,9 @@ def ShowMessageDialog(parent, message, caption, flags, resultsTable=None,
         return resultsTable[val]
 
 class CustomYesNoLabelDialog(wx.Dialog):
-    def __init__(self, parent, message, caption, flags, textTable):
+    def __init__(self, message, caption, flags, textTable):
         
-        wx.Dialog.__init__(self, parent, -1, caption)
+        wx.Dialog.__init__(self, None, -1, caption)
         outerSizer = wx.BoxSizer(wx.VERTICAL)
         text = wx.StaticText(self, -1, message)
         text.Wrap(300)
@@ -560,34 +531,6 @@ class CustomYesNoLabelDialog(wx.Dialog):
     def End(self, event):
         self.EndModal(event.GetId())
 
-def yesNo(parent, caption, message):
-    """
-    Prompt the user with a Yes/No dialog.
-    Return True if Yes, False if No.
-    @param parent: A wx parent
-    @type parent: wx frame
-    @param caption: The caption string for the dialog
-    @type caption: String
-    @param message:  A message prompting the user for input
-    @type message:  String
-    """
-
-    return ShowMessageDialog(parent, message, caption,
-                             wx.YES_NO, 
-                            { wx.ID_YES: True,
-                              wx.ID_NO: False,
-                              wx.ID_CANCEL: False})
-
-# A simple yes/no/cancel dialog
-
-def yesNoCancel(parent, caption, message):
-
-    return ShowMessageDialog(parent, message, caption,
-                             wx.YES_NO | wx.CANCEL,
-                             {wx.ID_YES: True,
-                              wx.ID_NO: False,
-                              wx.ID_CANCEL: None})
-
 # A simple file selection dialog
 
 def showFileDialog(parent, message, defaultDir, defaultFile, wildcard, style):
@@ -607,19 +550,6 @@ def showFileDialog(parent, message, defaultDir, defaultFile, wildcard, style):
     return (cmd, dir, filename)
 
 # A simple alert dialog
-
-def ok(parent, caption, message):
-    """
-    Display a message dialog with an OK button
-    @param parent: A wx parent
-    @type parent: wx frame
-    @param caption: The caption string for the dialog
-    @type caption: String
-    @param message:  A message
-    @type message:  String
-    """
-    ShowMessageDialog(parent, message, caption, wx.OK)
-
 
 class ProgressDialog(wx.Dialog):
     ERROR                 = 0

@@ -129,7 +129,7 @@ class TimeZoneChooser(wx.Dialog):
 
         title = _(u"Use time zones")
         wx.Dialog.__init__(self, id=-1, name=u'TimeZoneChooser',
-                           parent=wx.GetApp().mainFrame,
+                           parent=None,
                            style=wx.DIALOG_MODAL | wx.DEFAULT_DIALOG_STYLE,
                            title=title)
         

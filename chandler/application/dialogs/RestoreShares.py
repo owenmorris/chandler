@@ -29,15 +29,14 @@ MAX_UPDATE_MESSAGE_LENGTH = 50
 
 class RestoreSharesDialog(wx.Dialog):
 
-    def __init__(self, parent, title, size=wx.DefaultSize,
+    def __init__(self, title, size=wx.DefaultSize,
          pos=wx.DefaultPosition, style=wx.DEFAULT_DIALOG_STYLE,
          resources=None, view=None):
 
-        wx.Dialog.__init__(self, parent, -1, title, pos, size, style)
+        wx.Dialog.__init__(self, None, -1, title, pos, size, style)
 
         self.view = view
         self.resources = resources
-        self.parent = parent
 
         self.mySizer = wx.BoxSizer(wx.VERTICAL)
         self.toolPanel = self.resources.LoadPanel(self, "Restore")
@@ -131,7 +130,7 @@ class RestoreSharesDialog(wx.Dialog):
             else:
 
 
-                SubscribeCollection.Show(None, view=view, url=url,
+                SubscribeCollection.Show(view=view, url=url,
                     immediate=True, mine=True, publisher=True)
 
                 self.listShares.Deselect(index)
@@ -169,14 +168,14 @@ class RestoreSharesDialog(wx.Dialog):
         else:
             self.EndModal(False)
 
-def Show(parent, view=None):
+def Show(view=None):
     xrcFile = os.path.join(Globals.chandlerDirectory,
      'application', 'dialogs', 'RestoreShares.xrc')
     #[i18n] The wx XRC loading method is not able to handle raw 8bit paths
     #but can handle unicode
     xrcFile = unicode(xrcFile, sys.getfilesystemencoding())
     resources = wx.xrc.XmlResource(xrcFile)
-    win = RestoreSharesDialog(parent, _(u"Restore shared collections"),
+    win = RestoreSharesDialog(_(u"Restore shared collections"),
      resources=resources, view=view)
     win.CenterOnScreen()
     win.ShowModal()

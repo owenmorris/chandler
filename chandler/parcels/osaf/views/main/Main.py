@@ -86,8 +86,7 @@ class MainView(View):
     onDuplicateEventUpdateUI = _Method_CantEdit
 
     def displayMailError (self, message, account):
-        application.dialogs.Util.mailAccountError(wx.GetApp().mainFrame,
-                                                  self.itsView, message, account)
+        application.dialogs.Util.mailAccountError(self.itsView, message, account)
 
     def displaySMTPSendError(self, mailMessage, account):
         """
@@ -134,8 +133,7 @@ class MainView(View):
     def onEditAccountPreferencesEvent (self, event):
         # Triggered from "File | Prefs | Accounts..."
 
-        AccountPreferences.ShowAccountPreferencesDialog(wx.GetApp().mainFrame,
-                                                        rv=self.itsView)
+        AccountPreferences.ShowAccountPreferencesDialog(rv=self.itsView)
 
     def onProtectPasswordsEvent (self, event):
         # Triggered from "File | Prefs | Protect Passwords..."
@@ -521,9 +519,8 @@ class MainView(View):
                         if message.startswith (prefix):
                             message = message [len(prefix):]
                         
-                        message = _(u"An error occured during search.\n\nThe search engine reported the following error:\n\n" ) + message
-                        
-                        application.dialogs.Util.ok (None, _(u"Search Error"), message)
+                        wx.MessageBox (_(u"An error occured during search.\n\nThe search engine reported the following error:\n\n" ) + message,
+                                       _(u"Search Error"))
                         showSearchResults = False
 
         block.text = command
@@ -533,9 +530,8 @@ class MainView(View):
     def printEvent(self, isPreview):
         block = self.findBlockByName ("TimedEvents")
         if block is None:
-            message = _(u"Chandler")
-            title = _(u"Printing is currently only supported when viewing in calendar view.")
-            application.dialogs.Util.ok(None, message, title)
+            wx.MessageBox (_(u"Printing is currently only supported when viewing in calendar view."),
+                           _(u"Chandler"))
         else:
             printObject = Printing.Printing(wx.GetApp().mainFrame, block.widget)
             if isPreview == 1:
@@ -549,9 +545,8 @@ class MainView(View):
         try:
             webbrowser.open(url)
         except OSError:
-            title = _(u"Browser not found")
-            message = _(u"Chandler couldn't access a browser to open %(url)s.") 
-            application.dialogs.Util.ok(None, title, message % {'url' : url})
+            wx.MessageBox (_(u"Chandler couldn't access a browser to open %(url)s.") % {'url' : url},
+                           _(u"Browser not found"))
             
     def onHelpEvent(self, event):
         # For now, open the Chandler FAQ page:
@@ -795,21 +790,21 @@ class MainView(View):
 
         if code == 0:
             # 0 = no valid addresses
-            err = _(u"Message can not be sent. You have not entered any valid email addresses.")
-            application.dialogs.Util.ok(wx.GetApp().mainFrame, _(u"Mail Error"), err)
+            wx.MessageBpx (_(u"Message can not be sent. You have not entered any valid email addresses."),
+                           _(u"Mail Error"))
             return
 
         elif code == 1:
             # 1 = some valid addresses
-            if application.dialogs.Util.mailAddressError(wx.GetApp().mainFrame):
+            if application.dialogs.Util.mailAddressError():
                 # Method returns True when the user selects to fix the bad
                 # addresses
                 return
 
         elif code == 2:
             # 2 = No to addresses
-            err = _(u"Message can not be sent. A to address is required.")
-            application.dialogs.Util.ok(wx.GetApp().mainFrame, _(u"Mail Error"), err)
+            wx.MessageBox (_(u"Message can not be sent. A to address is required."),
+                           _(u"Mail Error"))
             return
 
 
@@ -883,10 +878,9 @@ class MainView(View):
         except sharing.SharingError, err:
             self.setStatusMessage (_(u"Sharing failed."))
 
-            msg = _(u"Couldn't share collection:\n%(errorMessage)s") % {'errorMessage': err.message}
+            wx.MessageBox (_(u"Couldn't share collection:\n%(errorMessage)s") % {'errorMessage': err.message},
+                           _(u"Error"))
 
-            application.dialogs.Util.ok(wx.GetApp().mainFrame,
-                                        _(u"Error"), msg)
 
             if isNewShare:
                 share.conduit.delete()
@@ -980,9 +974,7 @@ class MainView(View):
         # triggered from "File | Import/Export" menu
         prefs = schema.ns("osaf.sharing", self.itsView).prefs
 
-        dialog = ImportExport.ImportDialog(wx.GetApp().mainFrame,
-                                           _(u"Choose a file to import"),
-                                           self.itsView)
+        dialog = ImportExport.ImportDialog(_(u"Choose a file to import"), self.itsView)
         
         ret = dialog.ShowModal()
         if ret == wx.ID_OK:
@@ -1005,13 +997,11 @@ class MainView(View):
                 pim.has_stamp(item, pim.TaskStamp)):
                 break
         else:
-            message = _(u"This collection contains no events")
-            title = _(u"Export cancelled")
-            application.dialogs.Util.ok(None, message, title)
+            wx.MessageBox (_(u"This collection contains no events"),
+                           _(u"Export cancelled"))
             return
 
         if not TurnOnTimezones.ShowTurnOnTimezonesDialog(
-            wx.GetApp().mainFrame,
             self.itsView,
             state=TurnOnTimezones.EXPORT,
             modal=True):
@@ -1031,13 +1021,11 @@ class MainView(View):
                         label = _(u"Export reminders")),
                    dict(name=pim.EventStamp.transparency.name, checked = True,
                         label = _(u"Export event status"))]
-        res = ImportExport.showFileChooserWithOptions(wx.GetApp().mainFrame,
-                                       _(u"Choose a filename to export to"),
-                                            os.path.join(getDesktopDir(),
-                                      u"%s.ics" % (name)),
-                            _(u"iCalendar files|*.ics|All files (*.*)|*.*"),
-                                              wx.SAVE | wx.OVERWRITE_PROMPT, 
-                                                                    options)
+        res = ImportExport.showFileChooserWithOptions(
+            _(u"Choose a filename to export to"),
+            os.path.join(getDesktopDir(), u"%s.ics" % (name)),
+            _(u"iCalendar files|*.ics|All files (*.*)|*.*"),
+            wx.SAVE | wx.OVERWRITE_PROMPT, options)
 
         (ok, fullpath, optionResults) = res
 
@@ -1170,7 +1158,7 @@ class MainView(View):
         # Triggered from "Collection | Subscribe to collection..."
 
         if not Globals.options.offline:
-            SubscribeCollection.Show(wx.GetApp().mainFrame, self.itsView)
+            SubscribeCollection.Show(self.itsView)
 
     def onSubscribeToCollectionEventUpdateUI(self, event):
         event.arguments['Enable'] = not Globals.options.offline
@@ -1398,7 +1386,7 @@ class MainView(View):
 
 
     def onEditMyNameEvent(self, event):
-        application.dialogs.Util.promptForItemValues(None, "Enter your name",
+        application.dialogs.Util.promptForItemValues("Enter your name",
             schema.ns('osaf.pim', self.itsView).currentContact.item.contactName,
             ( {'attr':'firstName', 'label':'First name' },
               {'attr':'lastName', 'label':'Last name' } )
@@ -1408,23 +1396,23 @@ class MainView(View):
         mail._recalculateMeEmailAddresses(self.itsView)
 
     def onShowMeAddressCollectionDebugWindowEvent(self, event):
-        application.dialogs.Util.displayAddressDebugWindow(wx.GetApp().mainFrame, self.itsView, 1)
+        application.dialogs.Util.displayAddressDebugWindow(self.itsView, 1)
 
     def onShowCurrentMeAddressesDebugWindowEvent(self, event):
-        application.dialogs.Util.displayAddressDebugWindow(wx.GetApp().mainFrame, self.itsView, 2)
+        application.dialogs.Util.displayAddressDebugWindow(self.itsView, 2)
 
     def onShowCurrentMeAddressDebugWindowEvent(self, event):
-        application.dialogs.Util.displayAddressDebugWindow(wx.GetApp().mainFrame, self.itsView, 3)
+        application.dialogs.Util.displayAddressDebugWindow(self.itsView, 3)
 
     def onShowI18nManagerDebugWindowEvent(self, event):
-        application.dialogs.Util.displayI18nManagerDebugWindow(wx.GetApp().mainFrame)
+        application.dialogs.Util.displayI18nManagerDebugWindow()
 
     def onShowLogWindowEvent(self, event):
         # Test menu item
         logs = [
             os.path.join(Globals.options.profileDir, 'chandler.log'),
         ]
-        application.dialogs.Util.displayLogWindow(wx.GetApp().mainFrame, logs)
+        application.dialogs.Util.displayLogWindow(logs)
 
         # logPath = os.path.join(Globals.options.profileDir, 'chandler.log')
         # application.dialogs.FileTail.displayFileTailWindow(
@@ -1469,9 +1457,8 @@ class MainView(View):
         autosyncprefs.Show(self.itsView)
 
     def onRestoreSharesEvent(self, event):
-        if not sharing.ensureAccountSetUp(self.itsView, sharing=True):
-            return
-        RestoreShares.Show(wx.GetApp().mainFrame, self.itsView)
+        if sharing.ensureAccountSetUp(self.itsView, sharing=True):
+            RestoreShares.Show(self.itsView)
 
     def onPublishCollectionEvent(self, event):
         self._onShareOrManageSidebarCollectionEvent(event)
@@ -1494,10 +1481,7 @@ class MainView(View):
                 not sharing.ensureAccountSetUp(self.itsView, sharing=True)):
                 return
 
-            mainFrame = wx.GetApp().mainFrame
-            PublishCollection.ShowPublishDialog(mainFrame,
-                view=self.itsView,
-                collection=collection)
+            PublishCollection.ShowPublishDialog(view=self.itsView, collection=collection)
 
     def onPublishCollectionEventUpdateUI (self, event):
         """
@@ -1558,9 +1542,8 @@ class MainView(View):
     def onSharingPublishFreeBusyEvent(self, event):
         if not sharing.ensureAccountSetUp(self.itsView, sharing=True):
             return
-        mainFrame = wx.GetApp().mainFrame
         allCollection = schema.ns('osaf.pim', self).allCollection
-        PublishCollection.ShowPublishDialog(mainFrame, view=self.itsView,
+        PublishCollection.ShowPublishDialog(view=self.itsView,
                                             publishType = 'freebusy',
                                             collection=allCollection)
 

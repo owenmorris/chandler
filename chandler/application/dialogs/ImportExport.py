@@ -29,7 +29,7 @@ from osaf.usercollections import UserCollection
 logger = logging.getLogger(__name__)
 MAX_UPDATE_MESSAGE_LENGTH = 50
 
-def showFileChooserWithOptions(parent, dialogTitle, defaultFile, fileMask,
+def showFileChooserWithOptions(dialogTitle, defaultFile, fileMask,
                               fileMode, optionsList):
     """
     Create a simple file chooser with a list of arbitrary checkbox options.
@@ -56,7 +56,7 @@ def showFileChooserWithOptions(parent, dialogTitle, defaultFile, fileMask,
              a dictionary with keys equal to the name key in optionsList dictionaries and
              values the boolean state of the dialog checkboxes
     """
-    dlg = FileChooserWithOptions(parent, dialogTitle, defaultFile, fileMask,
+    dlg = FileChooserWithOptions(dialogTitle, defaultFile, fileMask,
                                  fileMode, optionsList)
     ret = dlg.ShowModal()
     if ret == wx.ID_OK:
@@ -74,11 +74,11 @@ def showFileChooserWithOptions(parent, dialogTitle, defaultFile, fileMask,
 
 
 class FileChooserWithOptions(wx.Dialog):
-    def __init__(self, parent, dialogTitle, defaultFile, fileMask, fileMode,
+    def __init__(self, dialogTitle, defaultFile, fileMask, fileMode,
                  optionsList):
 
         wx.Dialog.__init__(self, id=-1,
-              name=u'FileChooserWithOptions', parent=parent,
+              name=u'FileChooserWithOptions', parent=None,
               style=wx.DIALOG_MODAL | wx.DEFAULT_DIALOG_STYLE,
               title=dialogTitle)
 
@@ -118,7 +118,7 @@ def isReadOnly(collection):
 
 
 class ImportDialog(FileChooserWithOptions):
-    def __init__(self, parent, dialogTitle, view):
+    def __init__(self, dialogTitle, view):
 
         options = [dict(name=Remindable.reminders.name, checked = True, 
                         label = _(u"Import &reminders")),
@@ -126,7 +126,7 @@ class ImportDialog(FileChooserWithOptions):
                         label = _(u"Import event &status"))]
         
         FileChooserWithOptions.__init__(
-            self, parent, dialogTitle,
+            self, dialogTitle,
             schema.ns("osaf.sharing", view).prefs.import_dir,
             _(u"iCalendar files|*.ics|All files (*.*)|*.*"),
             wx.OPEN, options

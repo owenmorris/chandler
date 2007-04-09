@@ -21,7 +21,6 @@ from osaf import sharing, usercollections
 from util import task, viewpool
 from application import schema, Globals
 from i18n import ChandlerMessageFactory as _
-from AccountInfoPrompt import PromptForNewAccountInfo
 import zanshin
 from osaf.activity import *
 
@@ -31,7 +30,7 @@ MAX_UPDATE_MESSAGE_LENGTH = 55
 
 class SubscribeDialog(wx.Dialog):
 
-    def __init__(self, parent, title, size=wx.DefaultSize,
+    def __init__(self, title, size=wx.DefaultSize,
          pos=wx.DefaultPosition, style=wx.DEFAULT_DIALOG_STYLE,
          resources=None, view=None, url=None, name=None, modal=True,
          immediate=False, mine=None, publisher=None, color=None):
@@ -40,11 +39,10 @@ class SubscribeDialog(wx.Dialog):
         if "wxGTK" in wx.PlatformInfo:
             style |= wx.RESIZE_BORDER
             
-        wx.Dialog.__init__(self, parent, -1, title, pos, size, style)
+        wx.Dialog.__init__(self, None, -1, title, pos, size, style)
 
         self.view = view
         self.resources = resources
-        self.parent = parent
         self.modal = modal
         self.name = name
         self.mine = mine
@@ -128,10 +126,6 @@ class SubscribeDialog(wx.Dialog):
         else:
             return None
 
-
-
-    def accountInfoCallback(self, host, path):
-        return PromptForNewAccountInfo(self, host=host, path=path)
 
     def _updateCallback(self, activity, *args, **kwds):
         wx.GetApp().PostAsyncEvent(self.updateCallback, activity, *args, **kwds)
@@ -352,7 +346,7 @@ class SubscribeDialog(wx.Dialog):
                 self.EndModal(False)
             self.Destroy()
 
-def Show(parent, view=None, url=None, name=None, modal=False, immediate=False,
+def Show(view=None, url=None, name=None, modal=False, immediate=False,
          mine=None, publisher=None, color=None):
     xrcFile = os.path.join(Globals.chandlerDirectory,
      'application', 'dialogs', 'SubscribeCollection.xrc')
@@ -360,7 +354,7 @@ def Show(parent, view=None, url=None, name=None, modal=False, immediate=False,
     #but can handle unicode
     xrcFile = unicode(xrcFile, sys.getfilesystemencoding())
     resources = wx.xrc.XmlResource(xrcFile)
-    win = SubscribeDialog(parent, _(u"Subscribe"),
+    win = SubscribeDialog(_(u"Subscribe"),
                           resources=resources, view=view, url=url, name=name,
                           modal=modal, immediate=immediate, mine=mine,
                           publisher=publisher, color=color)

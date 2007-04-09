@@ -14,7 +14,6 @@
 
 
 import wx
-from application.dialogs.Util import ok
 from i18n import ChandlerMessageFactory as _
 
 """
@@ -473,7 +472,7 @@ class ItemClipboardHandler(_ClipboardHandler):
         try:
             self._clearItems(cutting=True)
         except NotImplementedError:
-            ok(None, _(u"Can't cut"), _("Cannot cut from this collection."))
+            wx.MessageBox (_("Cannot cut from this collection."), _(u"Can't cut"))
 
         return result
 

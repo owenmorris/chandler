@@ -13,7 +13,7 @@
 #   limitations under the License.
 
 
-import logging
+import logging, wx
 import application
 import osaf.views.detail as Detail
 import application.Globals as Globals
@@ -106,9 +106,8 @@ class AddFeedCollectionEvent(Block.AddToSidebarEvent):
                         channel.refresh(callback=calledInTwisted)
                     except:
                         # unable to recreate the feed channel.
-                        application.dialogs.Util.ok(wx.GetApp().mainFrame,
-                                                    _(u"New Channel Error"),
-                                                    _(u"Could not create channel for %(url)s\nCheck the URL and try again.") % {"url": url})
+                        wx.MessageBox (_(u"Could not create channel for %(url)s\nCheck the URL and try again.") % {"url": url},
+                                       _(u"New Channel Error"))
                         
         def calledInTwisted(channelUUID, success):
             """
@@ -139,9 +138,8 @@ class AddFeedCollectionEvent(Block.AddToSidebarEvent):
             channel.refresh(callback=calledInTwisted)
         except:
             # unable to create a new feed channel.
-            application.dialogs.Util.ok(wx.GetApp().mainFrame,
-                _(u"New Channel Error"),
-                _(u"Could not create channel for %(url)s\nCheck the URL and try again.") % {"url": url})
+            wx.MessageBox (_(u"Could not create channel for %(url)s\nCheck the URL and try again.") % {"url": url},
+                           _(u"New Channel Error"))
             return None
         
         # return succesfully

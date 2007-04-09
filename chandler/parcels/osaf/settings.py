@@ -15,14 +15,14 @@
 
 """Save and Restore Application Settings"""
 
-import logging
+import logging, wx
 from binascii import hexlify, unhexlify
 from configobj import ConfigObj
 from application import schema
 from osaf import pim, sharing, usercollections
 from osaf.framework.twisted import waitForDeferred
 from osaf.pim.structs import ColorType
-from application.dialogs import SubscribeCollection, Util
+from application.dialogs import SubscribeCollection
 from i18n import ChandlerMessageFactory as _
 from chandlerdb.util.c import UUID
 from osaf.framework import password, MasterPassword
@@ -346,7 +346,7 @@ def restore(rv, filename, testmode=False, newMaster=''):
                         schema.ns('osaf.pim', rv).mine.addSource(collection)
                     usercollections.UserCollection(collection).color = color
                 else:
-                    SubscribeCollection.Show(None, view=rv, url=url,
+                    SubscribeCollection.Show(view=rv, url=url,
                                              name=title, modal=False,
                                              immediate=True, mine=mine,
                                              publisher=publisher,
@@ -636,18 +636,17 @@ def restoreMasterPassword(rv, cfg, testmode, oldMaster, newMaster):
                 waitForDeferred(MasterPassword.clear())
                 if not testmode:
                     if prefs.masterPassword:
-                        Util.ok(None,
-                                _(u'Settings Master Password'),
-                                _(u'You will need to supply the master password that was used to protect the account passwords in the settings file.'))
-                    
+                        wx.MessageBox(_(u'You will need to supply the master password that was used to protect the account passwords in the settings file.'),
+                                      _(u'Settings Master Password'),
+                                      style = wx.OK)                    
                     while True:
                         try:
                             newMaster = waitForDeferred(MasterPassword.get(rv, testPassword=dummy))
                             break
                         except password.NoMasterPassword:
-                            if Util.yesNo(None,
-                                          _(u'Reset Master Password?'),
-                                          _(u'If you do not supply the master password, all passwords will be reset. Reset?')):
+                            if wx.MessageBox(_(u'If you do not supply the master password, all passwords will be reset. Reset?'),
+                                             _(u'Reset Master Password?'),
+                                             style = wx.YES_NO) == wx.YES:
                                 MasterPassword.reset(rv)
                                 break
                             

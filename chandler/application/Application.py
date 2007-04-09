@@ -1422,9 +1422,9 @@ def CheckPlatform():
         # the test will pass and you're on your own...
         platform = getPlatformName()
     if getPlatformName() != platform:
-        from application.dialogs import Util
         # Prompt the user that we're going to exit
-        Util.ok(None, _(u'Chandler will exit'), _(u'This application has been compiled for another platform. Please download the correct package from OSAF website.'))
+        wx.MessageBox(_(u'This application has been compiled for another platform. Please download the correct package from OSAF website.'),
+                      _(u'Chandler will exit'))
         # Stop the program. Somewhat unclean but since nothing can be done safely
         # or even should be done (could crash anytime), the best is to just exit when
         # we still can...

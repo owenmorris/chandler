@@ -659,9 +659,8 @@ in the constructor and they will be set automatically. Let&#x2019;s take a look 
                         channel.refresh(callback=calledInTwisted)
                     except:
                         # unable to recreate the feed channel.
-                        application.dialogs.Util.ok(wx.GetApp().mainFrame,
-                                                    _(u"New Channel Error"),
-                                                    _(u"Could not create channel for %(url)s\nCheck the URL and try again.") % {"url": url})
+			wx.MessageBox (_(u"Could not create channel for %(url)s\nCheck the URL and try again.") % {"url": url},
+			               _(u"New Channel Error")
                         
         def calledInTwisted(channelUUID, success):
             """
@@ -692,9 +691,8 @@ in the constructor and they will be set automatically. Let&#x2019;s take a look 
             channel.refresh(callback=calledInTwisted)
         except:
             # unable to create a new feed channel.
-            application.dialogs.Util.ok(wx.GetApp().mainFrame,
-                _(u"New Channel Error"),
-                _(u"Could not create channel for %(url)s\nCheck the URL and try again.") % {"url": url})
+        wx.MessageBox (_(u"Could not create channel for %(url)s\nCheck the URL and try again.") % {"url": url},
+                       _(u"New Channel Error"))
             return None
         
         # return succesfully

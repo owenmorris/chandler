@@ -36,14 +36,14 @@ def setStatusMessage(msg):
 
 class SubscribeDialog(wx.Dialog):
 
-    def __init__(self, parent, ID):
+    def __init__(self):
 
         # Instead of calling wx.Dialog.__init__ we precreate the dialog
         # so we can set an extra style that must be set before
         # creation, and then we create the GUI dialog using the Create
         # method.
         pre = wx.PreDialog()
-        pre.Create(parent, ID, _m_(u"Subscribe to peer collection"),
+        pre.Create(None, -1, _m_(u"Subscribe to peer collection"),
                    wx.DefaultPosition, wx.DefaultSize, wx.DEFAULT_DIALOG_STYLE)
 
         # This next step is the most important, it turns this Python
@@ -91,14 +91,14 @@ class SubscribeDialog(wx.Dialog):
 
 class LoginDialog(wx.Dialog):
 
-    def __init__(self, parent, ID, defaultAccounts):
+    def __init__(self, defaultAccounts):
 
         # Instead of calling wx.Dialog.__init__ we precreate the dialog
         # so we can set an extra style that must be set before
         # creation, and then we create the GUI dialog using the Create
         # method.
         pre = wx.PreDialog()
-        pre.Create(parent, ID, _m_(u"Login to a peer network"),
+        pre.Create(None, -1, _m_(u"Login to a peer network"),
                    wx.DefaultPosition, wx.DefaultSize, wx.DEFAULT_DIALOG_STYLE)
 
         # This next step is the most important, it turns this Python
@@ -186,10 +186,10 @@ class LoginDialog(wx.Dialog):
 
 class MailDialog(wx.Dialog):
 
-    def __init__(self, parent, ID, title):
+    def __init__(self, title):
 
         pre = wx.PreDialog()
-        pre.Create(parent, ID, title, wx.DefaultPosition, wx.DefaultSize,
+        pre.Create(None, -1, title, wx.DefaultPosition, wx.DefaultSize,
                    wx.DEFAULT_DIALOG_STYLE)
         self.this = pre.this
 
@@ -234,10 +234,10 @@ class MailDialog(wx.Dialog):
 
 class SendMailDialog(MailDialog):
 
-    def __init__(self, parent, ID, name, view):
+    def __init__(self, name, view):
 
         title = _m_(u'Send "%s" via p2p email' %(name))
-        super(MailDialog, self).__init__(parent, ID, title)
+        super(SendMailDialog, self).__init__(title)
 
         sizer = wx.BoxSizer(wx.VERTICAL)
         grid = wx.GridSizer(3, 2)
@@ -286,9 +286,9 @@ class SendMailDialog(MailDialog):
 
 class CheckMailDialog(MailDialog):
 
-    def __init__(self, parent, ID, view):
+    def __init__(self, view):
 
-        super(MailDialog, self).__init__(parent, ID, _m_(u'Check p2p email'))
+        super(CheckMailDialog, self).__init__(_m_(u'Check p2p email'))
 
         sizer = wx.BoxSizer(wx.VERTICAL)
         grid = wx.GridSizer(3, 2)
@@ -338,8 +338,7 @@ class CheckMailDialog(MailDialog):
 
 def login(view):
 
-    dialog = LoginDialog(wx.GetApp().mainFrame, -1,
-                         findDefaultAccounts(view))
+    dialog = LoginDialog(findDefaultAccounts(view))
     dialog.CenterOnScreen()
 
     if dialog.ShowModal() == wx.ID_OK:
@@ -367,7 +366,7 @@ def subscribe(view):
         login(view)
         return
 
-    dialog = SubscribeDialog(wx.GetApp().mainFrame, -1)
+    dialog = SubscribeDialog()
     dialog.CenterOnScreen()
 
     if dialog.ShowModal() == wx.ID_OK:
@@ -385,7 +384,7 @@ def sendmail(collection):
 
     view = collection.itsView
     name = collection.displayName
-    dialog = SendMailDialog(wx.GetApp().mainFrame, -1, name, view)
+    dialog = SendMailDialog(name, view)
     dialog.CenterOnScreen()
 
     if dialog.ShowModal() == wx.ID_OK:
@@ -419,7 +418,7 @@ def sendmail(collection):
 
 def checkmail(view):
 
-    dialog = CheckMailDialog(wx.GetApp().mainFrame, -1, view)
+    dialog = CheckMailDialog(view)
     dialog.CenterOnScreen()
 
     if dialog.ShowModal() == wx.ID_OK:

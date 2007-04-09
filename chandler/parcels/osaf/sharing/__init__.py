@@ -13,7 +13,7 @@
 #   limitations under the License.
 
 
-import logging, urlparse, datetime
+import logging, urlparse, datetime, wx
 from PyICU import ICUtzinfo
 
 from application import schema, dialogs, Globals
@@ -1589,7 +1589,7 @@ def ensureAccountSetUp(view, sharing=False, inboundMail=False,
             msg += _(u" - SMTP (outbound email)\n")
         msg += _(u"\nWould you like to enter account information now?")
 
-        response = dialogs.Util.yesNo(None, _(u"Account set up"), msg)
+        response = wx.MessageBox(msg, _(u"Account set up"), style = wx.YES_NO) == wx.YES
         if response == False:
             return False
 
@@ -1602,7 +1602,7 @@ def ensureAccountSetUp(view, sharing=False, inboundMail=False,
             account = schema.ns('osaf.sharing', view).currentSharingAccount.item
 
         response = dialogs.AccountPreferences.ShowAccountPreferencesDialog(
-            None, account=account, rv=view)
+            account=account, rv=view)
 
         if response == False:
             return False

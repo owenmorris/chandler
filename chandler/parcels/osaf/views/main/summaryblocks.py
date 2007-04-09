@@ -18,7 +18,6 @@ from osaf.framework.blocks import *
 from osaf import pim
 from osaf.framework import attributeEditors
 from util.MultiStateButton import BitmapInfo, MultiStateBitmapCache
-from application.dialogs import RecurrenceDialog
 from i18n import ChandlerMessageFactory as _
 import wx.grid
 

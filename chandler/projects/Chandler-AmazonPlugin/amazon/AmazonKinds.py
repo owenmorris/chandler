@@ -18,7 +18,7 @@ import amazon, sgmllib, wx, string
 
 from osaf.pim import ContentItem, ListCollection
 from repository.util.URL import URL
-from application import schema, dialogs, Utility, Globals
+from application import schema
 from i18n import MessageFactory
 import AmazonDialog
 
@@ -31,8 +31,7 @@ def _isEmpty(text):
 def _showError(errText):
     theApp = wx.GetApp()
     if theApp is not None:
-        application.dialogs.Util.ok(wx.GetApp().mainFrame,
-                                    _(u"Amazon Error"), errText)
+        wx.MessageBox(errText, _(u"Amazon Error"))
 
 def SearchByKeyword(repView, keywords=None, countryCode=None, category=None):
     """

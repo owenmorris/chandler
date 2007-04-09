@@ -98,7 +98,7 @@ def publishSubscribe(testClass):
     collection = Block.findBlockByName("MainView").getSidebarSelectedCollection()
     if collection is not None:
         publishName = "TestSharing_%s" % str(collection.itsUUID)
-        win = ShowPublishDialog(wx.GetApp().mainFrame, view=App_ns.itsView,
+        win = ShowPublishDialog(view=App_ns.itsView,
                                 collection=collection,
                                 modal=False,
                                 name=publishName)
@@ -148,8 +148,7 @@ def publishSubscribe(testClass):
 
         # Subscribe to the remote collection, forcing the subscribed name to
         # be "testSharing" because it was given a random name when published above.
-        win = SubscribeCollection.Show(wx.GetApp().mainFrame,
-            view=App_ns.itsView, modal=False, name="testSharing")
+        win = SubscribeCollection.Show(view=App_ns.itsView, modal=False, name="testSharing")
         url = win.toolPanel.GetChildren()[1]
         url.SetFocus()
         url.Clear()
@@ -1424,7 +1423,7 @@ class UITestAccounts:
         """
         # Have to do it the hard way since Account Preferences is modal by default
         import application
-        self.window = application.dialogs.AccountPreferences.ShowAccountPreferencesDialog(wx.GetApp().mainFrame, rv=self.view, modal=False)
+        self.window = application.dialogs.AccountPreferences.ShowAccountPreferencesDialog(rv=self.view, modal=False)
         wx.GetApp().Yield()
 
     def Ok(self):

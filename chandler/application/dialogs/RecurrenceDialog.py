@@ -28,9 +28,6 @@ from osaf.pim.mail import MailStamp, EmailAddress, getCurrentMeEmailAddresses
 
 logger = logging.getLogger(__name__)
 
-def create(parent):
-    return RecurrenceDialog(parent)
-
 class RecurrenceDialog(wx.Dialog):
     def _init_coll_buttonSizer_Items(self, parent):
         # generated method
@@ -62,10 +59,10 @@ class RecurrenceDialog(wx.Dialog):
         self.SetAutoLayout(True)
         self.verticalSizer.Fit(self)
 
-    def _init_ctrls(self, prnt):
+    def _init_ctrls(self):
         # generated method
         wx.Dialog.__init__(self, id=-1,
-              name=u'RecurrenceDialog', parent=prnt, pos=wx.Point(533, 294),
+              name=u'RecurrenceDialog', parent=None, pos=wx.Point(533, 294),
               size=wx.Size(443, 121),
               style=wx.DIALOG_MODAL | wx.DEFAULT_DIALOG_STYLE,
               title=_(u'Recurring event change'))
@@ -105,10 +102,10 @@ class RecurrenceDialog(wx.Dialog):
 
         self._init_sizers()
 
-    def __init__(self, parent, proxy, endCallbacks):
+    def __init__(self, proxy, endCallbacks):
         self.proxy = proxy
         self.endCallbacks = endCallbacks
-        self._init_ctrls(parent)
+        self._init_ctrls()
 
         # use the first action to determine the UI
         change = proxy.changeBuffer[0]
@@ -437,7 +434,7 @@ class UserChangeProxy(object):
     def runDialog(self):
         # Check in case the dialog somehow got cancelled
         if self.dialogUp:
-            RecurrenceDialog(wx.GetApp().mainFrame, self, self.endCallbacks)
+            RecurrenceDialog(self, self.endCallbacks)
     
     def propagateBufferChanges(self):
         # Don't make the same change twice. This

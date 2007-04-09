@@ -395,11 +395,11 @@ DEFAULTS = {'string': '', 'integer': 0, 'boolean': False}
 
 class AccountPreferencesDialog(wx.Dialog):
 
-    def __init__(self, parent, title, size=wx.DefaultSize,
+    def __init__(self, title, size=wx.DefaultSize,
          pos=wx.DefaultPosition, style=wx.DEFAULT_DIALOG_STYLE, resources=None,
          account=None, rv=None, modal=True):
 
-        wx.Dialog.__init__(self, parent, -1, title, pos, size, style)
+        wx.Dialog.__init__(self, None, -1, title, pos, size, style)
 
         self.resources = resources
         self.rv = rv
@@ -1991,7 +1991,7 @@ class AccountPreferencesDialog(wx.Dialog):
                account.folders.remove(folder)
                folder.delete()
 
-def ShowAccountPreferencesDialog(parent, account=None, rv=None, modal=True):
+def ShowAccountPreferencesDialog(account=None, rv=None, modal=True):
 
     # Parse the XRC resource file:
     xrcFile = os.path.join(Globals.chandlerDirectory,
@@ -2003,7 +2003,7 @@ def ShowAccountPreferencesDialog(parent, account=None, rv=None, modal=True):
     resources = wx.xrc.XmlResource(xrcFile)
 
     # Display the dialog:
-    win = AccountPreferencesDialog(parent, _(u"Account Preferences"),
+    win = AccountPreferencesDialog(_(u"Account Preferences"),
      resources=resources, account=account, rv=rv, modal=modal)
 
     win.CenterOnScreen()

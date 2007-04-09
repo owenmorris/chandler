@@ -35,7 +35,6 @@ from util import MultiStateButton
 from wx.lib.buttons import GenBitmapTextButton
 
 import application.dialogs.ReminderDialog as ReminderDialog
-import application.dialogs.RecurrenceDialog as RecurrenceDialog
 import Styles
 from datetime import datetime, time, timedelta
 from osaf.pim.calendar import Calendar
@@ -1165,7 +1164,7 @@ class ReminderTimer(Timer):
             reminderDialog = self.widget.reminderDialog
         except AttributeError:
             if createIt:
-                reminderDialog = ReminderDialog.ReminderDialog(wx.GetApp().mainFrame, -1)
+                reminderDialog = ReminderDialog.ReminderDialog()
                 self.widget.reminderDialog = reminderDialog
                 reminderDialog.dismissCallback = self.markDirty
             else:

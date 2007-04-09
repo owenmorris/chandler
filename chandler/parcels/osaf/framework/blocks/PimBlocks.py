@@ -19,7 +19,6 @@ from osaf import sharing
 import osaf.pim.mail as Mail
 from repository.item.Item import Item
 from osaf.pim import ContentItem, Note, ContentCollection, has_stamp, Modification
-import application.dialogs.Util as Util
 from i18n import ChandlerMessageFactory as _
 from osaf import messages
 from osaf.usercollections import UserCollection
@@ -181,7 +180,7 @@ class FocusEventHandlers(Item):
                     caption = _(u"Change the privacy of a shared item?")
                     msg = _(u"Other people may be subscribed to share this item; " \
                             "are you sure you want to mark it as private?")
-                    if Util.yesNo(wx.GetApp().mainFrame, caption, msg):
+                    if wx.MessageBox (msg, caption, style = wx.YES_NO) == wx.YES:
                         break
                     else:
                         return
@@ -462,8 +461,7 @@ class FocusEventHandlers(Item):
                                  {'items': [],
                                   'collection': selectedCollection })
         else:
-            DeleteDialog.ShowDeleteDialog(wx.GetApp().mainFrame,
-                                          view=self.itsView,
+            DeleteDialog.ShowDeleteDialog(view=self.itsView,
                                           selectedCollection=selectedCollection,
                                           itemsAndStates=itemsAndStates)            
 
@@ -493,8 +491,7 @@ class FocusEventHandlers(Item):
                                  {'items': [],
                                   'collection': selectedCollection })
         else:
-            DeleteDialog.ShowDeleteDialog(wx.GetApp().mainFrame,
-                                          view=self.itsView,
+            DeleteDialog.ShowDeleteDialog(view=self.itsView,
                                           selectedCollection=selectedCollection,
                                           itemsAndStates=readonly,
                                           originalAction='delete')            

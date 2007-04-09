@@ -48,15 +48,11 @@ stateData = { IMPORT :
 # spawns lots of non-modal dialogs.
 dialogShowing = False
 
-def ShowTurnOnTimezonesDialog(parent=None, view=None, state=IMPORT,
-                              modal=False):
+def ShowTurnOnTimezonesDialog(view=None, state=IMPORT, modal=False):
     
     if dialogShowing:
         return True
     
-    if parent is None:
-        parent = wx.GetApp().mainFrame
-
     # Check preferences before showing the dialog
     tzprefs = schema.ns('osaf.pim', view).TimezonePrefs
     if tzprefs.showUI or not tzprefs.showPrompt:
@@ -69,7 +65,7 @@ def ShowTurnOnTimezonesDialog(parent=None, view=None, state=IMPORT,
     #but can handle unicode
     xrcFile = unicode(xrcFile, sys.getfilesystemencoding())
     resources = wx.xrc.XmlResource(xrcFile)
-    win = TurnOnTimezonesDialog(parent, resources=resources, view=view,
+    win = TurnOnTimezonesDialog(resources=resources, view=view,
                                 state=state, modal=modal)
     win.CenterOnScreen()
     if modal:
@@ -80,21 +76,20 @@ def ShowTurnOnTimezonesDialog(parent=None, view=None, state=IMPORT,
 
 class TurnOnTimezonesDialog(wx.Dialog):
 
-    def __init__(self, parent, resources=None, view=None, state=IMPORT,
+    def __init__(self, resources=None, view=None, state=IMPORT,
                  modal=True):
         global dialogShowing
         dialogShowing = True
 
         self.resources = resources
         self.view      = view
-        self.parent    = parent
         self.modal     = modal
         self.state     = state
         
         self.changedTimeZone = None
 
         pre = wx.PreDialog()
-        self.resources.LoadOnDialog(pre, parent, "TurnOnTimezonesDialog")
+        self.resources.LoadOnDialog(pre, None, "TurnOnTimezonesDialog")
         self.PostCreate(pre)
 
         self.text     = wx.xrc.XRCCTRL(self, "Text")

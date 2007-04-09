@@ -101,7 +101,7 @@ def GetItemRemovalState(selectedCollection, item, view):
             else:
                 return DELETE_LAST
 
-def ShowDeleteDialog(parent, view=None, selectedCollection=None,
+def ShowDeleteDialog(view=None, selectedCollection=None,
                      itemsAndStates=None, originalAction='remove', modal=True):
     filename = 'DeleteDialog.xrc'
     xrcFile = os.path.join(Globals.chandlerDirectory,
@@ -110,8 +110,7 @@ def ShowDeleteDialog(parent, view=None, selectedCollection=None,
     #but can handle unicode
     xrcFile = unicode(xrcFile, sys.getfilesystemencoding())
     resources = wx.xrc.XmlResource(xrcFile)
-    win = DeleteDialog(parent,
-                       resources=resources,
+    win = DeleteDialog(resources=resources,
                        view=view,
                        selectedCollection=selectedCollection,
                        originalAction=originalAction,
@@ -127,13 +126,12 @@ def ShowDeleteDialog(parent, view=None, selectedCollection=None,
 
 class DeleteDialog(wx.Dialog):
 
-    def __init__(self, parent, resources=None, view=None, 
+    def __init__(self, resources=None, view=None, 
                  selectedCollection=None, originalAction='remove', modal=True,
                  itemsAndStates=None):
 
         self.resources = resources
         self.view = view
-        self.parent = parent
         self.selectedCollection = selectedCollection
         self.modal = modal
         self.itemsAndStates = itemsAndStates
@@ -158,7 +156,7 @@ class DeleteDialog(wx.Dialog):
         self.itemNumber = -1
 
         pre = wx.PreDialog()
-        self.resources.LoadOnDialog(pre, parent, "DeleteDialog")
+        self.resources.LoadOnDialog(pre, None, "DeleteDialog")
         self.PostCreate(pre)
 
         self.text = wx.xrc.XRCCTRL(self, "Text")

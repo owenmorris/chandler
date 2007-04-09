@@ -333,7 +333,7 @@ def installParcel(parcel, oldVersion=None):
     MenuItem.update(
         parcel, 'UpdateFlickrNow',
         blockName = 'UpdateFlickrNowMenuItem',
-        title = _(u'&Update Flickr collections...'),
+        title = _(u'&Update Flickr collections'),
         event = updateEvent,
         eventsForNamedLookup = [updateEvent],
         parentBlock = flickrMenu)

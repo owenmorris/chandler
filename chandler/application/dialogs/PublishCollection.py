@@ -35,16 +35,15 @@ MAX_UPDATE_MESSAGE_LENGTH = 55
 
 class PublishCollectionDialog(wx.Dialog):
 
-    def __init__(self, parent, title, size=wx.DefaultSize,
+    def __init__(self, title, size=wx.DefaultSize,
                  pos=wx.DefaultPosition, style=wx.DEFAULT_DIALOG_STYLE,
                  resources=None, view=None, collection=None,
                  publishType='collection', modal=True,
                  name=None):
 
-        wx.Dialog.__init__(self, parent, -1, title, pos, size, style)
+        wx.Dialog.__init__(self, None, -1, title, pos, size, style)
         self.resources = resources
         self.view = view
-        self.parent = parent
         self.collection = collection    # The collection to share
         self.modal = modal
         self.publishType = publishType
@@ -53,7 +52,7 @@ class PublishCollectionDialog(wx.Dialog):
         self.mySizer = wx.BoxSizer(wx.VERTICAL)
 
         # Turn on timezones
-        notCancelled = ShowTurnOnTimezonesDialog(self, view, modal=True,
+        notCancelled = ShowTurnOnTimezonesDialog(view, modal=True,
                                                  state=PUBLISH)
         if notCancelled == False:
             self.OnCancel(None)
@@ -670,7 +669,7 @@ type_to_xrc_map = {'collection' :
                    'freebusy'   :
                    ('PublishFreeBusy.xrc', _(u"Publish Free/Busy Calendar"))}
 
-def ShowPublishDialog(parent, view=None, collection=None,
+def ShowPublishDialog(view=None, collection=None,
                       publishType = 'collection', modal=False, name=None):
     filename, title = type_to_xrc_map[publishType]
 
@@ -683,8 +682,7 @@ def ShowPublishDialog(parent, view=None, collection=None,
     #but can handle unicode
     xrcFile = unicode(xrcFile, sys.getfilesystemencoding())
     resources = wx.xrc.XmlResource(xrcFile)
-    win = PublishCollectionDialog(parent,
-                                  title,
+    win = PublishCollectionDialog(title,
                                   resources=resources,
                                   view=view,
                                   collection=collection,

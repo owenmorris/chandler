@@ -35,7 +35,6 @@ import logging, string, os, threading
 import wx
 from i18n import ChandlerMessageFactory as _
 from application import schema
-from application.dialogs import Util
 from osaf import Preferences
 from osaf.framework.twisted import runInUIThread, waitForDeferred
 
@@ -46,7 +45,7 @@ _masterPassword = None
 _timer = None
 
 @runInUIThread
-def get(view, window=None, testPassword=None):
+def get(view, testPassword=None):
     """
     Get the master password. If needed, it will be asked from the user.
     
@@ -58,7 +57,6 @@ def get(view, window=None, testPassword=None):
                              it.
 
     @param view:   Repository view.
-    @param window: Optional parent window to be used for dialogs (if needed).
     @return:       deferred
     """
     if _timer is not None:
@@ -85,7 +83,7 @@ def get(view, window=None, testPassword=None):
         passwords = [item for item in password.Password.iterItems(view)]
         
     while True:
-        dlg = GetMasterPasswordDialog(window, prefs.timeout)
+        dlg = GetMasterPasswordDialog(prefs.timeout)
         
         try:
             if dlg.ShowModal() != wx.ID_OK:
@@ -109,9 +107,8 @@ def get(view, window=None, testPassword=None):
         else:
             raise RuntimeError('At least one password was expected to be initialized')
         if again:
-            Util.ok(window,
-                    _(u'Incorrect password'),
-                    _(u'Master password was incorrect, please try again.'))
+            wx.MessageBox (_(u'Master password was incorrect, please try again.'),
+                           _(u'Incorrect password'), style = wx.OK)
             continue
         
         break
@@ -125,14 +122,13 @@ def get(view, window=None, testPassword=None):
 
 
 @runInUIThread
-def change(view, window=None):
+def change(view):
     """
     Set or change the master password.
     
     Safe to call from from a background thread.
 
     @param view:   Repository view.
-    @param window: Optional parent window to be used for dialogs (if needed).
     @return:       deferred
     """
     if _timer is not None:
@@ -146,17 +142,15 @@ def change(view, window=None):
     ret = False
     
     while True:
-        dlg = ChangeMasterPasswordDialog(window,
-                                         changing=prefs.masterPassword,
+        dlg = ChangeMasterPasswordDialog(changing=prefs.masterPassword,
                                          view=view)
         try:
             if dlg.ShowModal() == wx.ID_OK:
                 oldMaster, newMaster = dlg.getMasterPasswords()
     
                 if not _change(oldMaster, newMaster, view, prefs):
-                    Util.ok(window,
-                            _(u'Incorrect password'),
-                            _(u'Old password was incorrect, please try again.'))
+                    wx.MessageBox(_(u'Old password was incorrect, please try again.'),
+                                  _(u'Incorrect password'))
                     continue
                 
                 ret = True
@@ -185,7 +179,7 @@ def clear():
         _timer = None
 
 
-def beforeBackup(view, window=None):
+def beforeBackup(view):
     """
     Call before doing any kind of backup or export of data that includes
     account passwords. Will prompt the user to set their master password
@@ -207,11 +201,9 @@ def beforeBackup(view, window=None):
                 count += 1
         if count == 1: # We will always have at least one, the dummy password
             return
-        
-        if Util.yesNo(window,
-                     _(u'Set Master password?'),
-                     _(u'Anyone who gets access to your data can view your account passwords. Do you want to protect your account passwords by encrypting them with the master password?')):
-            waitForDeferred(change(view, window))
+        if wx.MessageBox(_(u'Anyone who gets access to your data can view your account passwords. Do you want to protect your account passwords by encrypting them with the master password?'),
+                     _(u'Set Master password?'), style = wx.YES_NO) == wx.YES:
+            waitForDeferred(change(view))
 
 
 def _clear():
@@ -299,7 +291,7 @@ class GetMasterPasswordDialog(wx.Dialog):
     """
     Get master password dialog
     """
-    def __init__(self, parent, timeout, size=wx.DefaultSize,
+    def __init__(self, timeout, size=wx.DefaultSize,
                  pos=wx.DefaultPosition, style=wx.DEFAULT_DIALOG_STYLE):
         """
         constructor
@@ -311,7 +303,7 @@ class GetMasterPasswordDialog(wx.Dialog):
         # creation, and then we create the GUI dialog using the Create
         # method.
         pre = wx.PreDialog()
-        pre.Create(parent, -1, _(u'Enter master password'), pos, size, style)
+        pre.Create(None, -1, _(u'Enter master password'), pos, size, style)
 
         # This next step is the most important, it turns this Python
         # object into the real wrapper of the dialog (instead of pre)
@@ -386,7 +378,7 @@ class ChangeMasterPasswordDialog(wx.Dialog):
     """
     Change master password dialog
     """
-    def __init__(self, parent, changing, view, size=wx.DefaultSize,
+    def __init__(self, changing, view, size=wx.DefaultSize,
                  pos=wx.DefaultPosition, style=wx.DEFAULT_DIALOG_STYLE):
         """
         constructor
@@ -405,7 +397,7 @@ class ChangeMasterPasswordDialog(wx.Dialog):
             title = _(u'Change Master Password')
         else:
             title = _(u'Set Master Password')
-        pre.Create(parent, -1, title, pos, size, style)
+        pre.Create(None, -1, title, pos, size, style)
 
         # This next step is the most important, it turns this Python
         # object into the real wrapper of the dialog (instead of pre)
@@ -511,9 +503,9 @@ class ChangeMasterPasswordDialog(wx.Dialog):
         evt.Skip()
 
     def OnReset(self, evt):
-        if Util.yesNo(self,
-                      _(u'Confirm Reset?'),
-                      _(u'Protected information will be deleted.\nAre you sure you want to reset Master Password?')):
+        if wx.MessageBox (_(u'Protected information will be deleted.\nAre you sure you want to reset Master Password?'),
+                          _(u'Confirm Reset?'),
+                          style = wx.YES_NO) == wx.YES:
             try:
                 reset(self.view)
             finally:

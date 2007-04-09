@@ -41,7 +41,6 @@ import osaf.pim.calendar.Recurrence as Recurrence
 from osaf.pim.calendar import TimeZoneInfo
 from osaf.pim.collections import ListCollection
 from osaf.pim import ContentItem
-import application.dialogs.Util as Util
 import application.dialogs.AccountPreferences as AccountPreferences
 import osaf.mail.constants as MailConstants
 #import osaf.mail.sharing as MailSharing
@@ -1674,11 +1673,11 @@ class RecurrenceAttributeEditor(ChoiceAttributeEditor):
             # If the old choice was Custom, make sure the user really wants to
             # lose the custom setting
             if oldChoice == RecurrenceAttributeEditor.customIndex:
-                caption = _(u"Discard custom recurrence?")
                 msg = _(u"The custom recurrence rule on this event will be lost "
                         "if you change it, and you won't be able to restore it."
                         "\n\nAre you sure you want to do this?")
-                if not Util.yesNo(wx.GetApp().mainFrame, caption, msg):
+                caption = _(u"Discard custom recurrence?")
+                if wx.MessageBox(msg, caption, style = wx.YES_NO) == wx.NO:
                     # No: Reselect 'custom' in the menu
                     self.SetControlValue(control, oldChoice)
                     return
@@ -2070,10 +2069,8 @@ class OutboundEmailAddressAttributeEditor(ChoiceAttributeEditor):
         control = event.GetEventObject()
         newChoice = self.GetControlValue(control)
         if len(newChoice) == 0:
-            app = wx.GetApp()
             response = application.dialogs.AccountPreferences.\
-                     ShowAccountPreferencesDialog(app.mainFrame, 
-                                                  account=None, 
+                     ShowAccountPreferencesDialog(account=None, 
                                                   rv=self.item.itsView)
             # rebuild the list in the popup
             self.SetControlValue(control, 

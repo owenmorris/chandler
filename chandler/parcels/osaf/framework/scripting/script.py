@@ -103,12 +103,12 @@ class Script(pim.ContentItem):
                 # model is newer
                 latest = self.modelModTime
                 if fileModTime > self.lastSync:
-                    caption = _(u"Overwrite script file?")
                     msg = _(u"The file associated with this script has been changed,"
                             "\nbut those changes are older than your recent edits.\n\n"
                             "Do you want to overwrite those file changes with your\n"
                             "recent edits of this script?")
-                    if not Util.yesNo(wx.GetApp().mainFrame, caption, msg):
+                    caption = _(u"Overwrite script file?")
+                    if wx.MessageBox(msg, caption, style = wx.YES_NO) == wx.NO:
                         return
                 self.write_file(self.body)
                 fileModTime = datetime.fromtimestamp(os.stat(self.filePath)[8])

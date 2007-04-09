@@ -24,7 +24,7 @@ Note: need to migrate translation logic to a base wx dialog class that can handl
 
 def Show(view):
 
-    win = AutoSyncPrefs(None, -1, "Sync Preferences", view)
+    win = AutoSyncPrefs("Sync Preferences", view)
     win.CenterOnScreen()
     val = win.ShowModal()
 
@@ -37,7 +37,7 @@ def Show(view):
 
 
 class AutoSyncPrefs(wx.Dialog):
-    def __init__(self, parent, ID, title, view, size=wx.DefaultSize,
+    def __init__(self, title, view, size=wx.DefaultSize,
            pos=wx.DefaultPosition, style=wx.DEFAULT_DIALOG_STYLE):
 
         # Instead of calling wx.Dialog.__init__ we precreate the dialog
@@ -45,7 +45,7 @@ class AutoSyncPrefs(wx.Dialog):
         # creation, and then we create the GUI dialog using the Create
         # method.
         pre = wx.PreDialog()
-        pre.Create(parent, ID, title, pos, size, style)
+        pre.Create(None, -1, title, pos, size, style)
 
         # This next step is the most important, it turns this Python
         # object into the real wrapper of the dialog (instead of pre)

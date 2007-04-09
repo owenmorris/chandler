@@ -25,7 +25,6 @@ from application import Globals
 from application.Utility import getDesktopDir, locateRepositoryDirectory
 from repository.persistence.DBRepository import DBRepository
 from osaf.framework import MasterPassword
-from application.dialogs import Util
 
 # We can't use the regular localization mechanism because the repository isn't
 # open yet, but we might someday have a better way of doing this, so I'm leaving
@@ -185,8 +184,8 @@ class StartupOptionsDialog(wx.Dialog):
             try:
                 MasterPassword.beforeBackup(repository.view, self)
             except:
-                Util.ok(self, _(u'Password protection failed'),
-                        _(u'Failed to encrypt passwords.'))
+                wx.MessageBox (_(u'Failed to encrypt passwords.'),
+                                _(u'Password protection failed'))
 
             repoDir = repository.backup(os.path.join(os.path.dirname(tarPath),
                                                      '__repository__'))

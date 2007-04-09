@@ -51,10 +51,10 @@ pluralFutureMessages = { DAY: _(u'%(numOf)d days from now'),
 # until there is a sound to play.
 
 class ReminderDialog(wx.Frame):
-    def __init__(self, parent, ID, size=wx.DefaultSize,
+    def __init__(self, size=wx.DefaultSize,
                  pos=wx.DefaultPosition, style=wx.DEFAULT_FRAME_STYLE | wx.STAY_ON_TOP):
 
-        wx.Frame.__init__(self, parent, ID, name=u'ReminderDialog', pos=pos, 
+        wx.Frame.__init__(self, None, -1, name=u'ReminderDialog', pos=pos, 
                           size=size, style=style, title=_(u"Reminders"))
         panel = wx.Panel(self)
         

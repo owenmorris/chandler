@@ -30,7 +30,7 @@ class DialogPref(Preferences):
     askNextTime = schema.One(schema.Boolean, defaultValue=True)
 
 
-def prefPrompt(message, pref, flags, parent=None, resultsTable=None,
+def prefPrompt(message, pref, flags, resultsTable=None,
                caption=None, textTable=None):
     if pref is not None and not pref.askNextTime:
         if pref.hasLocalAttributeValue('response'):
@@ -38,14 +38,10 @@ def prefPrompt(message, pref, flags, parent=None, resultsTable=None,
         else:
             return None
     
-    if parent is None:
-        parent = wx.GetApp().mainFrame
-
     if caption is None:
         caption = _(u"Chandler")
 
-    return ShowMessageDialog(parent, message, caption, flags, resultsTable,
-                             textTable)
+    return ShowMessageDialog(message, caption, flags, resultsTable, textTable)
 
 
 def promptYesNo(message, pref=None, parent=None, caption=None, textTable=None):

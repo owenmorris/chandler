@@ -20,6 +20,7 @@ from osaf import messages, pim
 from osaf.framework.blocks import Block
 from osaf.usercollections import UserCollection
 from dialogs import LicenseTask, promptLicense
+import wx
 
 import evdb, EVDBDialog
 
@@ -41,13 +42,13 @@ class AddEVDBCollectionEvent(Block.AddToSidebarEvent):
                 if promptLicense():
                     continue
             except Exception, e:
-                Util.ok(None, _(u"EVDB Search"),
-                _(u"An error occurred while fetching events from EVDB:\n%(error)s\n\nSee chandler.log for details.") % {'error': e})
+                wx.MessageBox (_(u"An error occurred while fetching events from EVDB:\n%(error)s\n\nSee chandler.log for details.") % {'error': e},
+                               _(u"EVDB Search"))
             else:
                 if len(list(result)) == 0:
                     result.delete()
                     result = None
-                    Util.ok(None, _(u"EVDB Search"), _(u"No matching events were found."))
+                    wx.MessageBox (_(u"No matching events were found."). _(u"EVDB Search"))
             return result
 
 
