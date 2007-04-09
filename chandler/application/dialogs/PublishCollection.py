@@ -27,6 +27,7 @@ from osaf.pim import Remindable, EventStamp
 from TurnOnTimezones import ShowTurnOnTimezonesDialog, PUBLISH
 import zanshin
 from osaf.activity import *
+import SharingDetails
 
 logger = logging.getLogger(__name__)
 
@@ -84,6 +85,11 @@ class PublishCollectionDialog(wx.Dialog):
         self.textUpdate = wx.xrc.XRCCTRL(self, "TEXT_UPDATE")
         self.gauge = wx.xrc.XRCCTRL(self, "GAUGE")
         self.gauge.SetRange(100)
+
+        self.errorPanel = self.resources.LoadPanel(self, "ErrorPanel")
+        self.errorPanel.Hide()
+        self.Bind(wx.EVT_BUTTON, self.OnErrorDetails,
+                  id=wx.xrc.XRCID("BUTTON_ERROR"))
 
         # Fit all the pieces together
         self.mySizer.Add(self.mainPanel, 0, wx.GROW|wx.ALL, 5)
@@ -154,12 +160,15 @@ class PublishCollectionDialog(wx.Dialog):
         wx.xrc.XRCCTRL(self, "TEXT_MANAGE_COLLNAME").SetLabel(name)
 
         share = sharing.getShare(self.collection)
+        self.share = share
         if share.conduit.account:
             name = share.conduit.account.displayName
         else:
             name = u"(via ticket)"
         wx.xrc.XRCCTRL(self, "TEXT_ACCOUNT").SetLabel(name)
 
+        lastSync = SharingDetails.formatDateTime(share.lastSuccess)
+        wx.xrc.XRCCTRL(self, "TEXT_SUCCESS").SetLabel(lastSync)
 
         self.UnPubSub = wx.xrc.XRCCTRL(self, "BUTTON_UNPUBLISH")
 
@@ -189,6 +198,11 @@ class PublishCollectionDialog(wx.Dialog):
 
         self._loadAttributeFilterState(share)
 
+
+        if getattr(share, "error", None):
+            self._showErrorPanel()
+
+
         self.SetDefaultItem(wx.xrc.XRCCTRL(self, "wxID_OK"))
 
     def OnChangeAccount(self, evt):
@@ -198,6 +212,9 @@ class PublishCollectionDialog(wx.Dialog):
         account = self.accountsControl.GetClientData(accountIndex)
         self.currentAccount = account
 
+
+    def OnErrorDetails(self, evt):
+        SharingDetails.Show(None, self.share)
 
 
     def OnManageDone(self, evt):
@@ -595,6 +612,12 @@ class PublishCollectionDialog(wx.Dialog):
             wx.TheClipboard.SetData(wx.TextDataObject(unicode(urlString)))
             wx.TheClipboard.Close()
 
+    def _showErrorPanel(self):
+        if not self.errorPanel.IsShown():
+            self.mySizer.Add(self.errorPanel, 0, wx.GROW, 5)
+            self.errorPanel.Show()
+        self._resize()
+
     def _clearStatus(self):
             self.textStatus.SetLabel(u"")
 
@@ -650,6 +673,10 @@ type_to_xrc_map = {'collection' :
 def ShowPublishDialog(parent, view=None, collection=None,
                       publishType = 'collection', modal=False, name=None):
     filename, title = type_to_xrc_map[publishType]
+
+    isShared = sharing.isShared(collection)
+    title = _(u"Manage Shared Collection") if isShared else _(u"Publish")
+
     xrcFile = os.path.join(Globals.chandlerDirectory,
                            'application', 'dialogs', filename)
     #[i18n] The wx XRC loading method is not able to handle raw 8bit paths

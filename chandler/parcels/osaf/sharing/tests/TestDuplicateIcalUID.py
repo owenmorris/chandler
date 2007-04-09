@@ -102,7 +102,7 @@ class DuplicateIcalUIDTestCase(testcase.DualRepositoryTestCase):
 
         xml = """<?xml version="1.0" encoding="UTF-8"?>
 
-<CalendarEvent version='2' class='osaf.pim.calendar.Calendar.CalendarEvent' uuid='dc969288-7029-11db-df82-93e0418c9857'>
+<CalendarEvent version='3' class='osaf.pim.calendar.Calendar.CalendarEvent' uuid='dc969288-7029-11db-df82-93e0418c9857'>
 <icalUID>dc969288-7029-11db-df82-93e0418c9857</icalUID>
 <displayName>Event</displayName>
 <body mimetype='text/plain' encoding='utf-8'></body>

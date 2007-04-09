@@ -15,7 +15,7 @@
 
 
 from application import schema
-from osaf.sharing import model, eim
+from osaf.sharing import model, eim, errors
 from osaf.sharing.simplegeneric import generic
 from osaf.pim.calendar.TimeZone import convertToICUtzinfo
 from PyICU import ICUtzinfo
@@ -224,7 +224,11 @@ class EIMMLSerializer(object):
     def deserialize(cls, text, **kwargs):
         """ Parse XML text into a list of record sets """
 
-        rootElement = fromstring(text) # xml parser
+        try:
+            rootElement = fromstring(text) # xml parser
+        except Exception, e:
+            raise errors.MalformedData("Couldn't parse XML (%s)" % str(e),
+                debugMessage=text)
 
         recordSets = {}
         for recordSetElement in rootElement:

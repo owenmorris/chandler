@@ -25,9 +25,9 @@ __all__ = [
     'getConflicts',
 ]
 
-
+import sys
 from application import schema
-from osaf import pim
+from osaf import pim, ChandlerException
 from i18n import ChandlerMessageFactory as _
 import errors, eim, model
 from eim import NoChange as nc
@@ -35,6 +35,7 @@ from callbacks import *
 import cPickle
 import logging
 import datetime
+import traceback
 from PyICU import ICUtzinfo
 from chandlerdb.util.c import Empty
 
@@ -460,11 +461,19 @@ class Share(pim.ContentItem):
 
     error = schema.One(
         schema.Text,
-        doc = 'A message describing the last error; empty string otherwise',
+        doc = 'A message summarizing the last error; empty string otherwise',
         initialValue = u''
     )
 
-    lastSynced = schema.One(schema.DateTimeTZ)
+    errorDetails = schema.One(
+        schema.Text,
+        doc = 'A message detailing the last error; empty string otherwise',
+        initialValue = u''
+    )
+
+    lastAttempt = schema.One(schema.DateTimeTZ)
+    lastSuccess = schema.One(schema.DateTimeTZ)
+    lastStats = schema.Sequence(schema.Dictionary, initialValue=[])
 
     contents = schema.One(inverse=SharedItem.shares, initialValue=None)
     items = schema.Sequence(inverse=SharedItem.sharedIn, initialValue=[])
@@ -560,10 +569,53 @@ class Share(pim.ContentItem):
             not pim.has_stamp(self.contents, SharedItem)):
             SharedItem(self.contents).add()
 
-        stats = self.conduit.sync(modeOverride=modeOverride,
-                                  activity=activity,
-                                  forceUpdate=forceUpdate, debug=debug)
-        self.lastSynced = datetime.datetime.now(ICUtzinfo.default)
+        self.lastAttempt = datetime.datetime.now(ICUtzinfo.default)
+
+        # Clear any previous error
+        for linked in self.getLinkedShares():
+            if hasattr(linked, 'error'):
+                del linked.error
+            if hasattr(linked, 'errorDetails'):
+                del linked.errorDetails
+
+        try:
+            stats = self.conduit.sync(modeOverride=modeOverride,
+                                      activity=activity,
+                                      forceUpdate=forceUpdate, debug=debug)
+            self.lastStats = stats
+            self.lastSuccess = datetime.datetime.now(ICUtzinfo.default)
+
+        except Exception, e:
+
+            logger.exception("Error syncing collection")
+            extended = ""
+            if isinstance(e, ChandlerException):
+                brief = e.message
+                if e.debugMessage is not None:
+                    extended = e.debugMessage
+            else:
+                brief = str(e)
+
+            # Append the stack trace to the error details...
+            stack = "".join(traceback.format_tb(sys.exc_info()[2]))
+            if extended:
+                extended = "%s\n\n%s" % (extended, stack)
+            else:
+                extended = stack
+
+            # @@@MOR: Refactor this and the conduits' sync( ) methods so that
+            # only the cancel/commit happens here.
+
+            # At this point, our view has been cancelled.  Only 'established'
+            # Share items will still be alive here, and those are precisely
+            # the ones we do want to store error messages on:
+            if self.isLive():
+                for linked in self.getLinkedShares():
+                    linked.error = brief
+                    linked.errorDetails = extended
+
+            raise
+
         return stats
 
     def put(self, activity=None):

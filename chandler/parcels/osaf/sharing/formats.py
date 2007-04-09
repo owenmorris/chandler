@@ -640,10 +640,9 @@ class CloudXMLFormat(ImportExportFormat):
                     icalUID = icalElement.text
                     existingEvent = findUID(view, icalUID)
                     if existingEvent is not None:
-                        eventItem = existingEvent.itsItem
                         logger.error("A master event with this icalUID (%s) "
                                      "already exists (%s)",
-                                     icalUID, eventItem.itsUUID)
+                                     icalUID, existingEvent.itsUUID)
                         raise errors.SharingError("Item with duplicate icalUID (%s)" %
                                            icalUID)
 

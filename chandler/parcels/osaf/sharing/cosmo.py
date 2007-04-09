@@ -214,7 +214,8 @@ class CosmoConduit(recordset_conduit.DiffRecordSetConduit, conduits.HTTPMixin):
             start = time.time()
             response = handle.blockUntil(handle.addRequest, request)
             end = time.time()
-            self.networkTime += (end - start)
+            if hasattr(self, 'networkTime'):
+                self.networkTime += (end - start)
             return response
 
         except zanshin.webdav.ConnectionError, err:

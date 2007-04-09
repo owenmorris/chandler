@@ -507,10 +507,10 @@ class RecordSetConduit(conduits.BaseConduit):
         if debug: print " ================== end of sync ================= "
 
         if receive:
-            receiveStats['applied'] = toApply
+            receiveStats['applied'] = str(toApply)
             stats.append(receiveStats)
         if send:
-            sendStats['sent'] = toSend
+            sendStats['sent'] = str(toSend)
             stats.append(sendStats)
         return stats
 

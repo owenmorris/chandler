@@ -208,16 +208,6 @@ def interrupt(graceful=True):
         interrupt_flag = IMMEDIATE_STOP # interrupt current sync( )
 
 
-# = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =
-
-def _setError(share, message):
-    for linked in share.getLinkedShares():
-        linked.error = message
-
-def _clearError(share):
-    for linked in share.getLinkedShares():
-        if hasattr(linked, 'error'):
-            del linked.error
 
 # = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =
 
@@ -311,23 +301,11 @@ class BackgroundSyncHandler:
                     stats.extend(share.sync(modeOverride=modeOverride,
                                             activity=activity,
                                             forceUpdate=forceUpdate))
-                    _clearError(share)
                     activity.completed()
 
                 except Exception, e:
-                    logger.exception("Error syncing collection")
-
-                    if isinstance(e, ChandlerException):
-                        extended = brief = e.message
-                        if e.debugMessage is not None:
-                            extended = "%s %s" % (brief, e.debugMessage)
-                    else:
-                        extended = brief = str(e)
-
-                    _setError(share, brief)
-
                     stats.extend( [ { 'collection' : share.contents.itsUUID,
-                                    'error' : extended } ] )
+                                    'error' : str(e) } ] )
 
                     if not isinstance(e, ActivityAborted):
                         activity.failed(e)

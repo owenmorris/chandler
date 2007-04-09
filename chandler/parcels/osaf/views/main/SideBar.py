@@ -876,7 +876,7 @@ class SSSidebarSharingButton (SSSidebarButton):
                         else:
                             text = _(u"Subscription that is being kept out of the Dashboard")
 
-                    lastSynced = getattr(share, 'lastSynced', None)
+                    lastSynced = getattr(share, 'lastSuccess', None)
                     if lastSynced is not None:
                         format = calendar.DateTimeUtil.shortDateFormat.format
                         syncDay = format(lastSynced)
