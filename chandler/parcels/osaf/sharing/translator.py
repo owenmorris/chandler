@@ -1356,7 +1356,7 @@ class SharingTranslator(eim.Translator):
 
             # allDay and anyTime shouldn't be set if they match the master
             master = event.getMaster()
-            if master is event:
+            if master == event:
                 if allDay in (True, False):
                     event.allDay = allDay
                     # modifications may have been created before the master, so
@@ -1370,7 +1370,7 @@ class SharingTranslator(eim.Translator):
             elif allDay == eim.Inherit:
                 delattr(event, 'allDay')
 
-            if master is event:
+            if master == event:
                 if anyTime in (True, False):                
                     event.anyTime = anyTime
                     # modifications may have been created before the master, so
