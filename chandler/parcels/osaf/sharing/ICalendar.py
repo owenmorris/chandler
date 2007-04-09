@@ -1189,7 +1189,7 @@ def importICalendarFile(fullpath, view, targetCollection = None,
         raise ICalendarImportError(_(u"File does not exist, import cancelled."))
     (dir, filename) = os.path.split(fullpath)
     
-    if sharing.caldav_atop_eim:
+    if True or sharing.caldav_atop_eim:
         share = shares.OneTimeFileSystemShare(itsView=view,
             filePath=dir, fileName=filename,
             translatorClass=translator.SharingTranslator,
