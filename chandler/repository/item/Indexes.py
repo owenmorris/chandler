@@ -404,6 +404,16 @@ class SortedIndex(DelegatingIndex):
 
         self._valueMap._reindex(self, key)
 
+    def validateIndex(self, valid):
+
+        self._index.validateIndex(valid)
+
+        if self._subIndexes:
+            view = self._valueMap.itsView
+            for uuid, attr, name in self._subIndexes:
+                indexed = getattr(view[uuid], attr)
+                index = indexed.getIndex(name).validateIndex(valid)
+
     def insertKey(self, key, ignore=None, selected=False):
 
         index = self._index
