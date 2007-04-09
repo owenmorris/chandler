@@ -19,6 +19,10 @@ import logging, cPickle, sys, os
 from osaf import pim, sharing
 from osaf.sharing.eim import uri_registry, RecordClass
 from application import schema
+from osaf.framework import password, MasterPassword
+from osaf.framework.twisted import waitForDeferred
+from application.dialogs import Util
+from i18n import ChandlerMessageFactory as _
 
 logger = logging.getLogger(__name__)
 
@@ -141,9 +145,13 @@ def dump(rv, filename, uuids=None, translator=sharing.DumpTranslator,
 
 
 def reload(rv, filename, translator=sharing.DumpTranslator,
-    serializer=PickleSerializer, activity=None):
-
+    serializer=PickleSerializer, activity=None, testmode=False):
     """ Loads EIM records from a file and applies them """
+    if not testmode:
+        oldMaster = waitForDeferred(MasterPassword.get(rv))
+    else:
+        oldMaster = ''
+        newMaster = 'secret'
 
     trans = translator(rv)
     trans.startImport()
@@ -168,3 +176,58 @@ def reload(rv, filename, translator=sharing.DumpTranslator,
         input.close()
 
     trans.finishImport()
+
+
+    # Passwords that existed before reload are encrypted with oldMaster, and
+    # passwords that we reloaded are encrypted with newMaster, so now we need
+    # to go through all passwords and re-encrypt all the old ones with
+    # newMaster.
+    
+    # First, let's get the newMaster
+    waitForDeferred(MasterPassword.clear())
+    if not testmode:
+        prefs = schema.ns("osaf.framework.MasterPassword",
+                          rv).masterPasswordPrefs
+        if prefs.masterPassword:
+            Util.ok(None,
+                    _(u'Settings Master Password'),
+                    _(u'You will need to supply the master password that was used to protect the account passwords in the dump file.'))
+        
+        dummy = schema.ns("osaf.framework.password",
+                          rv).passwordPrefs.dummyPassword
+
+        while True:
+            try:
+                newMaster = waitForDeferred(MasterPassword.get(rv, testPassword=dummy))
+                break
+            except password.NoMasterPassword:
+                if Util.yesNo(None,
+                              _(u'Reset Master Password?'),
+                              _(u'If you do not supply the master password, all passwords will be reset. Reset?')):
+                    MasterPassword.reset(rv)
+                    return
+    
+    # Then re-encrypt
+    for item in password.Password.iterItems(rv):
+        if not waitForDeferred(item.initialized()):
+            # Don't need to re-encrypt uninitialized passwords
+            continue
+        
+        try:
+            pw = waitForDeferred(item.decryptPassword(masterPassword=oldMaster))
+        except password.DecryptionError:
+            # Maybe this was one of the new passwords loaded from
+            # dump, so let's try the new master password
+            try:
+                waitForDeferred(item.decryptPassword(masterPassword=newMaster))
+            except password.DecryptionError:
+                # Oops, we are in trouble, can't really do much but
+                # reset() to avoid further problems.
+                logger.exception('found passwords that could not be decrypted; clearing passwords')
+                MasterPassword.reset(rv)
+                break
+            # Since this is already encrypted with the new
+            # master password we don't need to re-encrypt
+            continue
+
+        waitForDeferred(item.encryptPassword(pw, masterPassword=newMaster))

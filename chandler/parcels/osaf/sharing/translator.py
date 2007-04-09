@@ -704,6 +704,32 @@ class SharingTranslator(eim.Translator):
         ciphertext, iv, salt = waitForDeferred(password.recordTuple())
         yield model.PasswordRecord(password, ciphertext, iv, salt)
 
+    @model.PasswordPrefsRecord.importer
+    def import_password_prefs(self, record):
+        # Hard coded UUID so this is enough for the dummyPassword
+        self.withItemForUUID(record.dummyPassword, Password)
+
+        prefs = schema.ns("osaf.framework.MasterPassword",
+                  self.rv).masterPasswordPrefs
+        prefs.masterPassword = bool(record.masterPassword)
+        prefs.timeout = record.timeout
+
+    # Called from finishExport()
+    def export_password_prefs(self):
+        prefs = schema.ns("osaf.framework.password", self.rv).passwordPrefs
+        dummyPassword = prefs.dummyPassword
+        
+        prefs = schema.ns("osaf.framework.MasterPassword",
+                  self.rv).masterPasswordPrefs
+        masterPassword = prefs.masterPassword
+        timeout = prefs.timeout
+
+        yield model.PasswordPrefsRecord(dummyPassword,
+                                        1 if masterPassword else 0,
+                                        timeout)
+        for record in self.export_password(dummyPassword):
+            yield record
+
     @model.MailAccountRecord.importer
     def import_mail_account(self, record):
         @self.withItemForUUID(record.uuid,
@@ -2221,6 +2247,11 @@ class DumpTranslator(SharingTranslator):
             yield record
         for record in self.export_preftimezones():
             yield record
+
+        # passwords prefs
+        for record in self.export_password_prefs():
+            yield record
+
 
 def test_suite():
     import doctest

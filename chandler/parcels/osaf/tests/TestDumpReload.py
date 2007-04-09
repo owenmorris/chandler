@@ -14,15 +14,16 @@
 
 
 from application import schema
-import unittest, sys, os, logging
+import unittest, os, logging
 from osaf import pim, dumpreload, sharing
 from osaf.pim import mail
 from osaf.framework.password import Password
+from osaf.framework import MasterPassword
 from osaf.framework.twisted import waitForDeferred
 from util import testcase
 from PyICU import ICUtzinfo
 import datetime
-
+ 
 logger = logging.getLogger(__name__)
 
 
@@ -30,7 +31,11 @@ class DumpReloadTestCase(testcase.DualRepositoryTestCase):
 
     def runTest(self):
         self.setUp()
-        self.RoundTrip()
+        try:
+            self.RoundTrip()
+        finally:
+            # otherwise test hangs waiting for Timer thread to finish
+            waitForDeferred(MasterPassword.clear())
 
     def RoundTrip(self):
 
@@ -115,13 +120,6 @@ class DumpReloadTestCase(testcase.DualRepositoryTestCase):
         inmemory_share0.sync()
         for state in inmemory_share0.states:
             uuids.add(state.itsUUID)
-
-        # passwords
-        pw = Password(itsView=view0)
-        waitForDeferred(pw.encryptPassword('foobar'))
-        uuids.add(pw.itsUUID)
-        # XXX password prefs
-        # XXX passwords as part of accounts
 
         #Mail Accounts
 
@@ -229,10 +227,20 @@ class DumpReloadTestCase(testcase.DualRepositoryTestCase):
 
         # TODO: TimeZoneInfo
 
+        # passwords
+        pw = Password(itsView=view0)
+        waitForDeferred(pw.encryptPassword('foobar'))
+        uuids.add(pw.itsUUID)
+        # password prefs
+        mpwPrefs = schema.ns("osaf.framework.MasterPassword",
+                             view0).masterPasswordPrefs
+        MasterPassword._change('', 'secret', view0, mpwPrefs)
+        mpwPrefs.timeout = 10
+
         try:
 
             dumpreload.dump(view0, filename)
-            dumpreload.reload(view1, filename)
+            dumpreload.reload(view1, filename, testmode=True)
 
             # Ensure the items are now in view1
             for uuid in uuids:
@@ -251,7 +259,36 @@ class DumpReloadTestCase(testcase.DualRepositoryTestCase):
                 item1 = view1.findUUID(item0.itsUUID)
                 self.assert_(item1 in coll1)
 
+            # Verify passwords
+            pw1 = view1.findUUID(pw.itsUUID)
+            self.assertEqual(waitForDeferred(pw1.decryptPassword('secret')),
+                             'foobar')
+            
+            mpwPrefs1 = schema.ns("osaf.framework.MasterPassword",
+                                  view1).masterPasswordPrefs
+            self.assertEqual(mpwPrefs1.masterPassword, True)
+            self.assertEqual(mpwPrefs1.timeout, 10)
+            
+            pwPrefs1 = schema.ns("osaf.framework.password",
+                                 view1).passwordPrefs
+            self.assertEqual(len(waitForDeferred(pwPrefs1.dummyPassword.decryptPassword('secret'))), 16)
+            self.assertEqual(str(pwPrefs1.dummyPassword.itsUUID),
+                             'dd555441-9ddc-416c-b55a-77b073c7bd15')
+            dummyByUUID = view1.findUUID('dd555441-9ddc-416c-b55a-77b073c7bd15')
+            self.assertEqual(dummyByUUID, pwPrefs1.dummyPassword)
+            
+            count = 0
+            for item in Password.iterItems(view0):
+                waitForDeferred(item.decryptPassword('secret'))
+                count += 1
 
+            count1 = 0
+            for item in Password.iterItems(view1):
+                waitForDeferred(item.decryptPassword('secret'))
+                count1 += 1
+            
+            self.assertEqual(count, count1 + 1) # XXX Shouldn't count==count1?
+                
             # Verify sharing
             account1 = view1.findUUID(account0.itsUUID)
             self.assertEquals(account1.host, "chandler.o11n.org")
@@ -259,7 +296,7 @@ class DumpReloadTestCase(testcase.DualRepositoryTestCase):
             self.assertEquals(account1.path, "/cosmo")
             self.assertEquals(account1.username, "test")
             self.assertEquals(account1.useSSL, True)
-            self.assertEquals(waitForDeferred(account1.password.decryptPassword()),
+            self.assertEquals(waitForDeferred(account1.password.decryptPassword('secret')),
                               '4cc0unt0')
 
             inmemory_share1 = view1.findUUID(inmemory_share0.itsUUID)
@@ -278,7 +315,6 @@ class DumpReloadTestCase(testcase.DualRepositoryTestCase):
                 sharedItem1 = sharing.SharedItem(item1)
                 self.assert_(inmemory_share1 in sharedItem1.sharedIn)
 
-
             # Verify Calendar prefs
             pref = schema.ns('osaf.pim', view1).TimezonePrefs
             self.assertEqual(pref.showUI, True)
@@ -288,11 +324,6 @@ class DumpReloadTestCase(testcase.DualRepositoryTestCase):
                 view1).calendarPrefs
             self.assertEqual(pref.hourHeightMode, "auto")
             self.assertEqual(pref.visibleHours, 20)
-
-            # Verify passwords
-            pw1 = view1.findUUID(pw.itsUUID)
-            self.assertEqual(waitForDeferred(pw.decryptPassword()),
-                             waitForDeferred(pw1.decryptPassword()))
 
             #Verify Mail Accounts
 
@@ -306,7 +337,7 @@ class DumpReloadTestCase(testcase.DualRepositoryTestCase):
             self.assertEquals(imapaccount1.timeout, 50)
             self.assertEquals(imapaccount1.isActive, False)
             self.assertEquals(imapaccount1.replyToAddress.format(), imapAddress.format())
-            self.assertEquals(waitForDeferred(imapaccount1.password.decryptPassword()),
+            self.assertEquals(waitForDeferred(imapaccount1.password.decryptPassword('secret')),
                               'imap4acc0unt0')
 
             folder = imapaccount1.folders.first()
@@ -325,7 +356,7 @@ class DumpReloadTestCase(testcase.DualRepositoryTestCase):
             self.assertEquals(popaccount1.timeout, 40)
             self.assertEquals(popaccount1.isActive, True)
             self.assertEquals(popaccount1.replyToAddress.format(), popAddress.format())
-            self.assertEquals(waitForDeferred(popaccount1.password.decryptPassword()),
+            self.assertEquals(waitForDeferred(popaccount1.password.decryptPassword('secret')),
                               'pop4acc0unt0')
 
             smtpaccount1 = view1.findUUID(smtpaccount0.itsUUID)
@@ -340,7 +371,7 @@ class DumpReloadTestCase(testcase.DualRepositoryTestCase):
             self.assertEquals(smtpaccount1.isActive, True)
             self.assertEquals(smtpaccount1.useAuth, True)
             self.assertEquals(smtpaccount1.fromAddress.format(), smtpNewAddress.format())
-            self.assertEquals(waitForDeferred(smtpaccount1.password.decryptPassword()),
+            self.assertEquals(waitForDeferred(smtpaccount1.password.decryptPassword('secret')),
                               'smtp4acc0unt0')
 
             queuedMessage1 = smtpaccount1.messageQueue[0]
@@ -365,7 +396,6 @@ class DumpReloadTestCase(testcase.DualRepositoryTestCase):
             
         finally:
             os.remove(filename)
-
 
 if __name__ == "__main__":
     unittest.main()

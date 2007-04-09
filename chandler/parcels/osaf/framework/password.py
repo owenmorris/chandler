@@ -18,9 +18,16 @@ __all__ = [
     'EncryptionError',
     'NoMasterPassword',
     'Password',
+    'passwordAttribute',
 ]
 
-# XXX EIM for Password stuff
+"""
+Encrypted passwords.
+
+@var passwordAttribute: Common attribute for password holders. All kinds
+                        referencing it better use the same name for their
+                        attribute, currently 'password'.
+"""
 
 # XXX test all scenarios with timeout of 0 second with non-default pw and answer correctly
 # XXX same but cancel dialog; ensure we deal with exception correctly
@@ -33,6 +40,7 @@ from application import schema
 from osaf import Preferences
 from osaf.framework.twisted import runInUIThread, waitForDeferred
 from osaf.framework import MasterPassword
+from chandlerdb.util.c import UUID
 
 
 class PasswordError(Exception):
@@ -247,8 +255,7 @@ class Password(schema.Item):
         return self.ciphertext, self.iv, self.salt
 
 
-# Common attribute for password holders. All kinds referencing it better use
-# the same name for their attribute, currently 'password'.
+# see module docstring
 passwordAttribute = schema.One(
     Password,
     inverse=Password.holders
@@ -305,7 +312,12 @@ class PasswordPrefs(Preferences):
 
 
 def installParcel(parcel, oldVersion = None):
-    dummyPassword = Password.update(parcel, 'dummyPassword')
+    # Hard code the UUID so that after a new repository is created we can still
+    # find the dummy for dump and reload
+    dummyPassword = Password.update(parcel,
+                                    'dummyPassword',
+                                    _uuid = UUID('dd555441-9ddc-416c-b55a-77b073c7bd15'),
+                                    )
     
     password = ''.join([string.printable[ord(c) % len(string.printable)] \
                         for c in os.urandom(16)])

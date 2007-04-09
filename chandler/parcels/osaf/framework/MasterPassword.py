@@ -106,6 +106,8 @@ def get(view, window=None, testPassword=None):
             except password.DecryptionError:
                 again = True
                 break
+        else:
+            raise RuntimeError('At least one password was expected to be initialized')
         if again:
             Util.ok(window,
                     _(u'Incorrect password'),

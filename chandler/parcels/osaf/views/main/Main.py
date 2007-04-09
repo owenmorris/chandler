@@ -1176,6 +1176,9 @@ class MainView(View):
         event.arguments['Enable'] = not Globals.options.offline
 
     def onDumpToFileEvent(self, event):
+        from osaf.framework import MasterPassword
+        MasterPassword.beforeBackup(self.itsView)
+
         wildcard = "%s|*.dump|%s (*.*)|*.*" % (_(u"Dump files"),
             _(u"All files"))
 

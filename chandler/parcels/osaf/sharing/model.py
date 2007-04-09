@@ -160,6 +160,14 @@ class PasswordRecord(eim.Record):
     salt = eim.field(bytes32)
 
 
+class PasswordPrefsRecord(eim.Record):
+    URI = "http://osafoundation.org/eim/password/prefs/0"
+
+    dummyPassword = eim.field(schema.UUID)
+    masterPassword = eim.field(eim.IntType) # boolean
+    timeout = eim.field(eim.IntType)
+
+
 class MailAccountRecord(eim.Record):
     URI = "http://osafoundation.org/eim/sharing/mailaccount/0"
 

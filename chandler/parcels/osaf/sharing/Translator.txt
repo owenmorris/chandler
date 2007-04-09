@@ -468,30 +468,30 @@ Importing:
     >>> from i18n.tests import uw
     >>> from osaf.framework.twisted import waitForDeferred
     >>> from osaf.framework.password import Password
-    >>> rec = sharing.model.PasswordRecord(
+    >>> pwr = sharing.model.PasswordRecord(
     ...         uuid='ff58a5bc-e72b-44bc-8503-887970ecac6f',
     ...         ciphertext=unhexlify('908ed5801146c55f7305dd8a07fa468f68fd0e3e7e075c6e42a9f922f8f5b461a2d32cc2eda4130085fa27c2a124d89f6e1c004245f3a1f9f101cb9bb30b6bcfe8685d01bffa2e659f567c9d1c44d564e87b469884de3dd070e9611be4666391'),
     ...         iv=unhexlify('2a4c722617afd356bc0dc9c2cb26aa0013fbaf81928769485ed7c01d333f2952'),
     ...         salt=unhexlify('0ee664ffa11c6856d5c6dc553413b6a3ee7d43b3b2c4252c1b8a4ca308387b9c'),
     ... )
-    >>> rec2 = sharing.model.PasswordRecord(
+    >>> pwr2 = sharing.model.PasswordRecord(
     ...         uuid='ff58a5bc-e72b-44bc-8503-887970ecac6e',
     ...         ciphertext='',
     ...         iv='',
     ...         salt='',
     ... )
-    >>> rs = sharing.RecordSet([rec, rec2])
+    >>> rs = sharing.RecordSet([pwr, pwr2])
     >>> t.startImport()
     >>> t.importRecords(rs)
     >>> t.finishImport()
 
     Normal:
-    >>> pw = rv.findUUID(rec.uuid)
+    >>> pw = rv.findUUID(pwr.uuid)
     >>> waitForDeferred(pw.decryptPassword(uw('M0r3 s3cr3t'))) == uw('my secr3t p4ssw0rd')
     True
 
     Uninitialized:
-    >>> pw2 = rv.findUUID(rec2.uuid)
+    >>> pw2 = rv.findUUID(pwr2.uuid)
     >>> waitForDeferred(pw2.initialized())
     False
 
@@ -499,16 +499,49 @@ Exporting:
 
     Normal:
     >>> t.startExport()
-    >>> records = list(t.exportItem(pw))
-    >>> records
+    >>> list(t.exportItem(pw))
     [PasswordRecord('ff58a5bc-e72b-44bc-8503-887970ecac6f', '...', '...', '...')]
 
     Uninitialized:
-    >>> records = list(t.exportItem(Password(itsView=rv)))
-    >>> records
+    >>> list(t.exportItem(Password(itsView=rv)))
     [PasswordRecord('...', '', '', '')]
 
-#XXX Password prefs
+
+PasswordPrefsRecord type
+Importing:
+
+    >>> from application import schema
+    >>> dummy = schema.ns("osaf.framework.password",
+    ...                   rv).passwordPrefs.dummyPassword
+	>>> dummy.ciphertext, dummy.iv, dummy.salt = waitForDeferred(pw.recordTuple())
+    >>> prefsr = sharing.model.PasswordPrefsRecord(
+    ...            dummyPassword='dd555441-9ddc-416c-b55a-77b073c7bd15',
+    ...            masterPassword=1,
+    ...            timeout=10,
+    ... )
+    >>> rs = sharing.RecordSet([prefsr])
+    >>> t.startImport()
+    >>> t.importRecords(rs)
+    >>> t.finishImport()
+
+    >>> dummy = schema.ns("osaf.framework.password",
+    ...                   rv).passwordPrefs.dummyPassword
+    >>> waitForDeferred(dummy.decryptPassword(uw('M0r3 s3cr3t'))) == uw('my secr3t p4ssw0rd')
+    True
+    >>> prefs = schema.ns("osaf.framework.MasterPassword",
+    ...                   rv).masterPasswordPrefs
+    >>> prefs.masterPassword
+    True
+    >>> prefs.timeout
+    10
+    
+Exporting:
+
+    >>> t.startExport()
+
+    >>> list(t.export_password_prefs())
+    [PasswordPrefsRecord('dd555441-9ddc-416c-b55a-77b073c7bd15', 1, 10), PasswordRecord('dd555441-9ddc-416c-b55a-77b073c7bd15', '...', '...', '...')]
+
 
 #XXX MailAccountRecord, IMAPAccountFoldersRecord, SMTPAccountRecord,
 #XXX SMTPAccountQueueRecord, IMAPAccountRecord, POPAccountRecord,
