@@ -186,6 +186,51 @@ have a given stamp:
 >>> MyIndexedStamp(item).remove(); list(MyIndexedStamp.getCollection(newItem.itsView))
 [<ExampleItem: nellie>]
 
+Stamping and initial values
+----------------------------
+
+A ``Stamp`` attribute can define an ``initialValue`` the same way that a
+regular ``Item`` subclass can:
+
+>>> class StampWithInitialValue(Stamp):
+...     schema.kindInfo(annotates=ContentItem)
+...     fun = schema.One(
+...              schema.Text,
+...              initialValue=u"Go have some fun",
+...           )
+
+The ``initialValue`` is only applied when you add the stamp, and not when
+the annotated item is created.
+
+>>> item = ExampleItem(itsView=repoView, displayName=u"fun")
+>>> StampWithInitialValue(item).fun
+Traceback (most recent call last):
+...
+AttributeError: __builtin__.StampWithInitialValue.fun
+>>> StampWithInitialValue(item).add()
+>>> StampWithInitialValue(item).fun
+u'Go have some fun'
+
+You can also use the ``schema.initialValues`` declaration inside a ``Stamp``
+class.
+
+>>> from decimal import Decimal
+>>> class CatStamp(Stamp):
+...     schema.kindInfo(annotates=ContentItem)
+...     kilosOfFur = schema.One(schema.Decimal)
+...     schema.initialValues(
+...         kilosOfFur = lambda self: (Decimal("20.0")
+...                            if self.itsItem.displayName==u"Persian"
+...                            else Decimal("0.1")
+...                      )
+...         )
+>>> rudy = ExampleItem(itsView=repoView, displayName=u"Persian")
+>>> zeke = ExampleItem(itsView=repoView, displayName=u"Tabby")
+>>> CatStamp(rudy).add(); CatStamp(rudy).kilosOfFur
+Decimal("20.0")
+>>> CatStamp(zeke).add(); CatStamp(zeke).kilosOfFur
+Decimal("0.1")
+
 Ref collections and stamping
 ----------------------------
 
