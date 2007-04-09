@@ -1356,30 +1356,14 @@ class SharingTranslator(eim.Translator):
 
             # allDay and anyTime shouldn't be set if they match the master
             master = event.getMaster()
-            if master is event:
-                event.allDay = allDay
-                # modifications may have been created before the master, so
-                # they may have unnecessarily set allDay
-                for mod in master.modifications:
-                    modEvent = EventStamp(mod)
-                    if modEvent.allDay == allDay:
-                        delattr(modEvent, 'allDay')
-            elif allDay in (True, False) and allDay != master.allDay:
+            if allDay in (True, False) and allDay != master.allDay:
                 event.allDay = allDay
             elif allDay == eim.Inherit:
                 delattr(event, 'allDay')
 
-            if master is event:
+            if anyTime in (True, False) and anyTime != master.anyTime:
                 event.anyTime = anyTime
-                # modifications may have been created before the master, so
-                # they may have unnecessarily set anyTime
-                for mod in master.modifications:
-                    modEvent = EventStamp(mod)
-                    if modEvent.anyTime == anyTime:
-                        delattr(modEvent, 'anyTime')
-            elif anyTime in (True, False) and anyTime != master.anyTime:
-                event.anyTime = anyTime
-            elif anyTime == eim.Inherit:
+            elif allDay == eim.Inherit:
                 delattr(event, 'anyTime')
 
             if event.occurrenceFor is not None:
@@ -1568,24 +1552,6 @@ class DumpTranslator(SharingTranslator):
     version = 1
     description = u"Translator for Chandler items (PIM and non-PIM)"
 
-    def exportItem(self, item):
-        """
-        Export an item and its stamps, if any.
-        
-        Recurrence changes:
-        - Avoid exporting occurrences unless they're modifications.
-        - Don't serialize recurrence rule items
-        
-        """
-        if isinstance(item, Occurrence):
-            if not EventStamp(item).modificationFor:
-                return
-        elif isinstance(item, (RecurrenceRule, RecurrenceRuleSet)):
-            return
-                
-        for record in super(DumpTranslator, self).exportItem(item):
-            yield record
-
 
     # - - Collection  - - - - - - - - - - - - - - - - - - - - - - - - - - -
     @model.CollectionRecord.importer
@@ -1628,8 +1594,7 @@ class DumpTranslator(SharingTranslator):
         for item in collection:
             # By default we don't include items that are in
             # //parcels since they are not created by the user
-            if (not str(item.itsPath).startswith("//parcels") and
-                not isinstance(item, Occurrence)):
+            if not str(item.itsPath).startswith("//parcels"):
                 yield model.CollectionMembershipRecord(
                     collection,
                     item.itsUUID,
