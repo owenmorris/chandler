@@ -80,7 +80,7 @@ class PickleSerializer(object):
 
 
 def dump(rv, filename, uuids=None, translator=sharing.DumpTranslator,
-    serializer=PickleSerializer, activity=None):
+    serializer=PickleSerializer, activity=None, obfuscate=False):
     """
     Dumps EIM records to a file, file permissions 0600.
     """
@@ -92,6 +92,7 @@ def dump(rv, filename, uuids=None, translator=sharing.DumpTranslator,
                 uuids.add(item.itsUUID)
 
     trans = translator(rv)
+    trans.obfuscation = obfuscate
 
     trans.startExport()
 

@@ -1175,7 +1175,7 @@ class MainView(View):
     def onSubscribeToCollectionEventUpdateUI(self, event):
         event.arguments['Enable'] = not Globals.options.offline
 
-    def onDumpToFileEvent(self, event):
+    def _dumpFile(self, obfuscate=False):
         from osaf.framework import MasterPassword
         MasterPassword.beforeBackup(self.itsView)
 
@@ -1193,21 +1193,22 @@ class MainView(View):
         if path:
             activity = Activity("Dump to %s" % path)
             activity.started()
-            
-            # Don't show the timezone dialog during reload.
-            tzprefs = schema.ns('osaf.pim', self.itsView).TimezonePrefs
-            oldShowPrompt = tzprefs.showPrompt
-            tzprefs.showPrompt = False
-            
+
             try:
-                dumpreload.dump(self.itsView, path, activity=activity)
+                dumpreload.dump(self.itsView, path, activity=activity,
+                    obfuscate=obfuscate)
                 activity.completed()
             except Exception, e:
-                tzprefs.showPrompt = oldShowPrompt
                 logger.exception("Failed to dump file")
                 activity.failed(exception=e)
                 raise
             self.setStatusMessage(_(u'Items dumped'))
+
+    def onDumpToFileEvent(self, event):
+        self._dumpFile()
+
+    def onObfuscatedDumpToFileEvent(self, event):
+        self._dumpFile(obfuscate=True)
 
     def onReloadFromFileEvent(self, event):
         wildcard = "%s|*.dump|%s (*.*)|*.*" % (_(u"Dump files"),
@@ -1224,10 +1225,17 @@ class MainView(View):
         if path:
             activity = Activity("Reload from %s" % path)
             activity.started()
+
+            # Don't show the timezone dialog during reload.
+            tzprefs = schema.ns('osaf.pim', self.itsView).TimezonePrefs
+            oldShowPrompt = tzprefs.showPrompt
+            tzprefs.showPrompt = False
+
             try:
                 dumpreload.reload(self.itsView, path, activity=activity)
                 activity.completed()
             except Exception, e:
+                tzprefs.showPrompt = oldShowPrompt
                 logger.exception("Failed to reload file")
                 activity.failed(exception=e)
                 raise

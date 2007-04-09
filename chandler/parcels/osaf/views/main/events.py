@@ -276,6 +276,8 @@ def makeMainEvents(parcel):
 
     BlockEvent.template('DumpToFile').install(parcel)
 
+    BlockEvent.template('ObfuscatedDumpToFile').install(parcel)
+
     BlockEvent.template('ReloadFromFile',
                         commitAfterDispatch = True).install(parcel)
 
