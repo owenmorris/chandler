@@ -52,6 +52,7 @@ PyObject *PyExc_DBPermissionsError = NULL;
 PyObject *PyExc_DBVersionMismatchError = NULL;
 PyObject *PyExc_DBRunRecoveryError = NULL;
 
+PyObject *Empty_TUPLE = NULL;
 PyObject *Nil = NULL;
 
 
@@ -125,6 +126,8 @@ void PyDict_SetItemString_Int(PyObject *dict, char *key, int value)
 void initc(void)
 {
     PyObject *m = Py_InitModule3("c", c_funcs, "C repository types module");
+
+    Empty_TUPLE = PyTuple_New(0);
 
     _init_view(m);
     _init_repository(m);

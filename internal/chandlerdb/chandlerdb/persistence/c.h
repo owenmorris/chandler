@@ -126,6 +126,7 @@ extern PyObject *PyExc_DBNotFoundError;
 extern PyObject *PyExc_DBNoSuchFileError;
 extern PyObject *PyExc_DBPermissionsError;
 
+extern PyObject *Empty_TUPLE;
 extern PyObject *Nil;
 
 PyObject *raiseDBError(int err);

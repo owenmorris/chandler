@@ -72,6 +72,8 @@ static PyObject *t_view_observersDeferred(t_view *self, PyObject *args);
 static PyObject *t_view_areNotificationsDeferred(t_view *self);
 static PyObject *t_view_notificationsDeferred(t_view *self, PyObject *args);
 static PyObject *t_view_cancelDeferredNotifications(t_view *self);
+static PyObject *t_view_isCommitDeferred(t_view *self);
+static PyObject *t_view_commitDeferred(t_view *self, PyObject *args);
 static PyObject *t_view_findValues(t_view *self, PyObject *args);
 static PyObject *t_view_findInheritedValues(t_view *self, PyObject *args);
 
@@ -92,6 +94,7 @@ static PyObject *reindex_NAME;
 static PyObject *loadValues_NAME;
 static PyObject *readValue_NAME;
 static PyObject *inheritFrom_NAME;
+static PyObject *commit_NAME;
 
 static PyMemberDef t_view_members[] = {
     { "_status", T_UINT, offsetof(t_view, status), 0, "view status flags" },
@@ -109,6 +112,7 @@ static PyMemberDef t_view_members[] = {
     { "_deferredIndexingCtx", T_OBJECT, offsetof(t_view, deferredIndexingCtx), READONLY, "" },
     { "_deferredObserversCtx", T_OBJECT, offsetof(t_view, deferredObserversCtx), READONLY, "" },
     { "_deferredNotificationsCtx", T_OBJECT, offsetof(t_view, deferredNotificationsCtx), READONLY, "" },
+    { "_deferredCommitCtx", T_OBJECT, offsetof(t_view, deferredCommitCtx), READONLY, "" },
     { "refreshErrors", T_UINT, offsetof(t_view, refreshErrors), 0, "" },
     { NULL, 0, 0, 0, NULL }
 };
@@ -148,6 +152,8 @@ static PyMethodDef t_view_methods[] = {
     { "areNotificationsDeferred", (PyCFunction) t_view_areNotificationsDeferred, METH_VARARGS, "" },
     { "notificationsDeferred", (PyCFunction) t_view_notificationsDeferred, METH_VARARGS, "" },
     { "cancelDeferredNotifications", (PyCFunction) t_view_cancelDeferredNotifications, METH_NOARGS, "" },
+    { "isCommitDeferred", (PyCFunction) t_view_isCommitDeferred, METH_VARARGS, "" },
+    { "commitDeferred", (PyCFunction) t_view_commitDeferred, METH_VARARGS, "" },
     { "findValues", (PyCFunction) t_view_findValues, METH_VARARGS, NULL },
     { "findInheritedValues", (PyCFunction) t_view_findInheritedValues, METH_VARARGS, NULL },
     { NULL, NULL, 0, NULL }
@@ -247,6 +253,7 @@ static int t_view_traverse(t_view *self, visitproc visit, void *arg)
     Py_VISIT(self->deferredDeletes);
     Py_VISIT(self->deferredIndexingCtx);
     Py_VISIT(self->deferredNotificationsCtx);
+    Py_VISIT(self->deferredCommitCtx);
 
     return 0;
 }
@@ -267,6 +274,7 @@ static int t_view_clear(t_view *self)
     Py_CLEAR(self->deferredDeletes);
     Py_CLEAR(self->deferredIndexingCtx);
     Py_CLEAR(self->deferredNotificationsCtx);
+    Py_CLEAR(self->deferredCommitCtx);
 
     return 0;
 }
@@ -1107,11 +1115,9 @@ static PyObject *t_view_reindexingDeferred(t_view *self)
     }
     else
     {
-        PyObject *noArgs = PyTuple_New(0);
         t_ctxmgr *ctxmgr = (t_ctxmgr *) PyObject_Call((PyObject *) CtxMgr,
-                                                      noArgs, NULL);
+                                                      Empty_TUPLE, NULL);
         
-        Py_DECREF(noArgs);
         if (ctxmgr)
         {
             ctxmgr->target = (PyObject *) self; Py_INCREF(self);
@@ -1270,11 +1276,9 @@ static PyObject *t_view_observersDeferred(t_view *self, PyObject *args)
     }
     else
     {
-        PyObject *noArgs = PyTuple_New(0);
         t_ctxmgr *ctxmgr = (t_ctxmgr *) PyObject_Call((PyObject *) CtxMgr,
-                                                      noArgs, NULL);
+                                                      Empty_TUPLE, NULL);
         
-        Py_DECREF(noArgs);
         if (ctxmgr)
         {
             ctxmgr->target = (PyObject *) self; Py_INCREF(self);
@@ -1381,11 +1385,9 @@ static PyObject *t_view_notificationsDeferred(t_view *self, PyObject *args)
     }
     else
     {
-        PyObject *noArgs = PyTuple_New(0);
         t_ctxmgr *ctxmgr = (t_ctxmgr *) PyObject_Call((PyObject *) CtxMgr,
-                                                      noArgs, NULL);
+                                                      Empty_TUPLE, NULL);
         
-        Py_DECREF(noArgs);
         if (ctxmgr)
         {
             ctxmgr->target = (PyObject *) self; Py_INCREF(self);
@@ -1409,6 +1411,108 @@ static PyObject *t_view_cancelDeferredNotifications(t_view *self)
     }
 
     Py_RETURN_FALSE;
+}
+
+
+/* with view.commitDeferred() */
+
+static PyObject *_t_view_defercommit__enter(PyObject *target, t_ctxmgr *mgr)
+{
+    t_view *self = (t_view *) target;
+
+    if (self->deferredCommitCtx != mgr)
+    {
+        PyErr_SetString(PyExc_ValueError, "Invalid CtxMgr target");
+        return NULL;
+    }
+
+    if (mgr->count == 0)
+    {
+        Py_INCREF(Py_None);
+        mgr->data = Py_None;
+        self->status |= DEFERCOMMIT;
+    }
+    mgr->count += 1;
+
+    return PyInt_FromLong(mgr->count);
+}
+
+static PyObject *_t_view_defercommit__exit(PyObject *target, t_ctxmgr *mgr,
+                                           PyObject *type, PyObject *value,
+                                           PyObject *traceback)
+{
+    t_view *self = (t_view *) target;
+
+    if (self->deferredCommitCtx != mgr)
+    {
+        PyErr_SetString(PyExc_ValueError, "Invalid CtxMgr target");
+        return NULL;
+    }
+
+    if (mgr->count > 0)
+        mgr->count -= 1;
+    
+    if (mgr->count == 0)
+    {
+        PyObject *args = self->deferredCommitCtx->data;
+        int status = self->status;
+
+        Py_INCREF(args);
+        self->status &= ~DEFERCOMMIT;
+        Py_CLEAR(self->deferredCommitCtx);
+
+        if (args != Py_None && status & DEFERCOMMIT)
+        {
+            PyObject *method = PyObject_GetAttr((PyObject *) self, commit_NAME);
+            PyObject *result = PyObject_Call(method, args, NULL);
+
+            Py_DECREF(method);
+            if (!result)
+                return NULL;
+            Py_DECREF(result);
+        }
+
+        Py_DECREF(args);
+        if (PyErr_Occurred())
+            return NULL;
+    }
+
+    if (type != Py_None)
+        Py_RETURN_FALSE;
+
+    Py_RETURN_TRUE;
+}
+
+static PyObject *t_view_isCommitDeferred(t_view *self)
+{
+    if (self->status & DEFERCOMMIT)
+        Py_RETURN_TRUE;
+
+    Py_RETURN_FALSE;
+}
+
+static PyObject *t_view_commitDeferred(t_view *self, PyObject *args)
+{
+    if (self->deferredCommitCtx)
+    {
+        Py_INCREF(self->deferredCommitCtx);
+        return (PyObject *) self->deferredCommitCtx;
+    }
+    else
+    {
+        t_ctxmgr *ctxmgr = (t_ctxmgr *) PyObject_Call((PyObject *) CtxMgr,
+                                                      Empty_TUPLE, NULL);
+        
+        if (ctxmgr)
+        {
+            ctxmgr->target = (PyObject *) self; Py_INCREF(self);
+            ctxmgr->enterFn = _t_view_defercommit__enter;
+            ctxmgr->exitFn = _t_view_defercommit__exit;
+            self->deferredCommitCtx = ctxmgr; Py_INCREF(ctxmgr);
+        }
+
+        return (PyObject *) ctxmgr;
+    }
 }
 
 
@@ -1784,6 +1888,7 @@ void _init_view(PyObject *m)
             PyDict_SetItemString_Int(dict, "DEFERIDX", DEFERIDX);
             PyDict_SetItemString_Int(dict, "DEFEROBSD", DEFEROBSD);
             PyDict_SetItemString_Int(dict, "DEFEROBSA", DEFEROBSA);
+            PyDict_SetItemString_Int(dict, "DEFERCOMMIT", DEFERCOMMIT);
 
             refresh_NAME = PyString_FromString("refresh");
             _effectDelete_NAME = PyString_FromString("_effectDelete");
@@ -1798,6 +1903,7 @@ void _init_view(PyObject *m)
             loadValues_NAME = PyString_FromString("loadValues");
             readValue_NAME = PyString_FromString("readValue");
             inheritFrom_NAME = PyString_FromString("inheritFrom");
+            commit_NAME = PyString_FromString("commit");
 
             MONITORS_PATH = PyString_FromString("//Schema/Core/items/Monitors");
             PyDict_SetItemString(dict, "MONITORS", MONITORS_PATH);

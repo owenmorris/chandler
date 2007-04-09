@@ -41,43 +41,44 @@ typedef struct {
     t_ctxmgr *deferredIndexingCtx;
     t_ctxmgr *deferredObserversCtx;
     t_ctxmgr *deferredNotificationsCtx;
+    t_ctxmgr *deferredCommitCtx;
     int refreshErrors;
 } t_view;
 
 
 enum {
-    OPEN       = 0x00000001,
-    REFCOUNTED = 0x00000002,
-    LOADING    = 0x00000004,
-    COMMITTING = 0x00000008,
-    /* FDIRTY  = 0x00000010, from CItem */
-    DEFERNOTIF = 0x00000020,  /* defer all change notifications */
-    MONITORING = 0x00000040,
-    /* STALE   = 0x00000080, from CItem */
-    REFRESHING = 0x00000100,
-    /* CDIRTY  = 0x00000200, from CItem */
-    DEFERDEL   = 0x00000400,
-    BGNDINDEX  = 0x00000800,
-    VERIFY     = 0x00001000,
-    DEBUG      = 0x00002000,
-    RAMDB      = 0x00004000,
-    CLOSED     = 0x00008000,
-    /* VMERGED    = 0x00010000, from CItem */
-    /* RMERGED    = 0x00020000, from CItem */
-    /* NMERGED    = 0x00040000, from CItem */
-    /* CMERGED    = 0x00080000, from CItem */
-    COMMITREQ  = 0x00100000,
-    BADPASSWD  = 0x00200000,
-    ENCRYPTED  = 0x00400000,
-    DEFERIDX   = 0x00800000,
-    DEFEROBSD  = 0x01000000,  /* defer observers, discarding redundant calls */
-    DEFEROBSA  = 0x02000000,  /* defer observers, keeping all calls */
+    OPEN        = 0x00000001,
+    REFCOUNTED  = 0x00000002,
+    LOADING     = 0x00000004,
+    COMMITTING  = 0x00000008,
+    /* FDIRTY   = 0x00000010, from CItem */
+    DEFERNOTIF  = 0x00000020,  /* defer all change notifications */
+    MONITORING  = 0x00000040,
+    /* STALE    = 0x00000080, from CItem */
+    REFRESHING  = 0x00000100,
+    /* CDIRTY   = 0x00000200, from CItem */
+    DEFERDEL    = 0x00000400,
+    BGNDINDEX   = 0x00000800,
+    VERIFY      = 0x00001000,
+    DEBUG       = 0x00002000,
+    RAMDB       = 0x00004000,
+    CLOSED      = 0x00008000,
+    /* VMERGED  = 0x00010000, from CItem */
+    /* RMERGED  = 0x00020000, from CItem */
+    /* NMERGED  = 0x00040000, from CItem */
+    /* CMERGED  = 0x00080000, from CItem */
+    COMMITREQ   = 0x00100000,
+    BADPASSWD   = 0x00200000,
+    ENCRYPTED   = 0x00400000,
+    DEFERIDX    = 0x00800000,
+    DEFEROBSD   = 0x01000000,  /* defer observers, discarding dup. calls */
+    DEFEROBSA   = 0x02000000,  /* defer observers, keeping all calls     */
+    DEFERCOMMIT = 0x04000000,  /* defer commit calls                     */
 };
 
 enum {
     DEFEROBS   = DEFEROBSD | DEFEROBSA,
 };
-
 
 typedef PyObject *(*_t_view_invokeMonitors_fn)(t_view *, PyObject *,
                                                PyObject *);

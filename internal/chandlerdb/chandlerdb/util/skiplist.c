@@ -1768,14 +1768,14 @@ static PyObject *t_sl_after(t_sl *self, PyObject *args)
 
             if (!result)
                 return NULL;
-            if (!PyInt_Check(result))
+            if (!PyInt_CheckExact(result))
             {
                 PyErr_SetObject(PyExc_TypeError, result);
                 Py_DECREF(result);
                 return NULL;
             }
 
-            diff = PyInt_AsLong(result);
+            diff = PyInt_AS_LONG(result);
             Py_DECREF(result);
 
             if (diff == 0)

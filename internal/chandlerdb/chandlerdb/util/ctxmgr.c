@@ -31,7 +31,7 @@ static PyObject *t_ctxmgr_exit(t_ctxmgr *self, PyObject *args);
 
 static PyMemberDef t_ctxmgr_members[] = {
     { "_count", T_UINT, offsetof(t_ctxmgr, count), READONLY, "call depth" },
-    { "_data", T_OBJECT, offsetof(t_ctxmgr, data), READONLY, "ctx data" },
+    { "_data", T_OBJECT, offsetof(t_ctxmgr, data), 0, "ctx data" },
     { NULL, 0, 0, 0, NULL }
 };
 
