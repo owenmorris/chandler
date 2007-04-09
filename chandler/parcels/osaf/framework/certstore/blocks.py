@@ -93,7 +93,7 @@ def installParcel(parcel, oldVersion=None):
     blocks.MenuItem.update(
         parcel, "CertificateImport",
         blockName = "CertificateImport",
-        title = _(u"&Import Certificate"),
+        title = _(u"&Import Certificate..."),
         event = importCertificateEvent,
         eventsForNamedLookup = [importCertificateEvent],
         parentBlock = certMenu,
