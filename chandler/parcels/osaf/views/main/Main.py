@@ -1052,7 +1052,7 @@ class MainView(View):
                 except OSError:
                     pass
                 
-                if sharing.caldav_atop_eim:
+                if True or sharing.caldav_atop_eim:
                     share = sharing.OneTimeFileSystemShare(
                         itsView=self.itsView,
                         filePath=dir, fileName=filename,

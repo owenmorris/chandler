@@ -2476,6 +2476,7 @@ class Occurrence(Note):
         Triageable._sectionTriageStatusChanged.name,
         ContentItem.excludedBy.name, ContentItem.lastModifiedBy.name,
         ContentItem.lastModification.name, ContentItem.lastModified.name,
+        ContentItem.createdOn.name, ContentItem.modifiedFlags.name
     )
     
     IGNORE_ATTRIBUTE_PREFIX = 'osaf.framework'
