@@ -52,8 +52,10 @@ class PublishCollectionDialog(wx.Dialog):
         self.mySizer = wx.BoxSizer(wx.VERTICAL)
 
         # Turn on timezones
-        notCancelled = ShowTurnOnTimezonesDialog(view, modal=True,
-                                                 state=PUBLISH)
+        notCancelled = ShowTurnOnTimezonesDialog(view,
+                                                 modal=True,
+                                                 state=PUBLISH,
+                                                 parent=self)
         if notCancelled == False:
             self.OnCancel(None)
             return

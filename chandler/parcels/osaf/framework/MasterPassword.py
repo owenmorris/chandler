@@ -122,7 +122,7 @@ def get(view, testPassword=None):
 
 
 @runInUIThread
-def change(view):
+def change(view, parent=None):
     """
     Set or change the master password.
     
@@ -150,7 +150,7 @@ def change(view):
     
                 if not _change(oldMaster, newMaster, view, prefs):
                     wx.MessageBox(_(u'Old password was incorrect, please try again.'),
-                                  _(u'Incorrect password'))
+                                  _(u'Incorrect password'), parent=parent)
                     continue
                 
                 ret = True
@@ -179,7 +179,7 @@ def clear():
         _timer = None
 
 
-def beforeBackup(view):
+def beforeBackup(view, parent=None):
     """
     Call before doing any kind of backup or export of data that includes
     account passwords. Will prompt the user to set their master password
@@ -203,7 +203,7 @@ def beforeBackup(view):
             return
         if wx.MessageBox(_(u'Anyone who gets access to your data can view your account passwords. Do you want to protect your account passwords by encrypting them with the master password?'),
                      _(u'Set Master password?'), style = wx.YES_NO) == wx.YES:
-            waitForDeferred(change(view))
+            waitForDeferred(change(view, parent))
 
 
 def _clear():
@@ -505,7 +505,7 @@ class ChangeMasterPasswordDialog(wx.Dialog):
     def OnReset(self, evt):
         if wx.MessageBox (_(u'Protected information will be deleted.\nAre you sure you want to reset Master Password?'),
                           _(u'Confirm Reset?'),
-                          style = wx.YES_NO) == wx.YES:
+                          style = wx.YES_NO, parent=self) == wx.YES:
             try:
                 reset(self.view)
             finally:

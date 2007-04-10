@@ -1618,14 +1618,14 @@ class wxCalendarCanvas(CalendarNotificationHandler, CollectionCanvas.wxCollectio
         For now just give a generic warning.
         Eventually it would be nice to give a specific reason.
         """
-        wx.MessageBox(_(u'This item is read-only. You cannot change the title of read-only items.'), _(u'Warning'))
+        wx.MessageBox(_(u'This item is read-only. You cannot change the title of read-only items.'), _(u'Warning'), parent=self)
 
     def WarnReadOnlyTime(self, items):
         """
         For now just give a generic warning.
         Eventually it would be nice to give a specific reason.
         """
-        wx.MessageBox(_(u'This item is read-only. You cannot change the time of read-only items.'), _(u'Warning'))
+        wx.MessageBox(_(u'This item is read-only. You cannot change the time of read-only items.'), _(u'Warning'), parent=self)
 
     def getColumnForDay(self, dayStart, dayEnd=None):
         """
