@@ -536,16 +536,24 @@ class WebDAVMonolithicRecordSetConduit(MonolithicRecordSetConduit,
         resp = self._getServerHandle().blockUntil(resource.get)
         end = time.time()
         self.networkTime += (end - start)
+        if resp.status != 200:
+            raise errors.SharingError("%s (HTTP status %d)" % (resp.message,
+                resp.status),
+                details="Received [%s]" % resp.body)
+
         text = resp.body
-        self.etag = resource.etag
+        if resource.etag is not None:
+            self.etag = resource.etag
         return text
 
     def put(self, text):
         # TODO: honor etags
         resource = self._resourceFromPath("")
         start = time.time()
-        self._getServerHandle().blockUntil(resource.put, text, checkETag=False)
+        resp = self._getServerHandle().blockUntil(resource.put, text,
+            checkETag=False)
         end = time.time()
         self.networkTime += (end - start)
-        self.etag = resource.etag
+        if resource.etag is not None:
+            self.etag = resource.etag
 

@@ -937,24 +937,11 @@ def subscribe(view, url, activity=None, username=None, password=None,
 
     elif contentType == "text/calendar":
 
-        if not ticket and account is None:
-            # Create a new account
-            account = WebDAVAccount(itsView=view)
-            account.displayName = url
-            account.host = host
-            account.path = parentPath
-            account.useSSL = useSSL
-            account.port = port
-            if username is not None:
-                account.username = username
-            if password is not None:
-                waitForDeferred(account.password.encryptPassword(password))
-
         # monolithic .ics file
         collection = subscribeICS(view, url, inspection,
             activity=activity, account=account,
-            parentPath=parentPath, shareName=shareName, ticket=ticket,
-            username=username, password=password,
+            parentPath=parentPath, shareName=shareName,
+            ticket=ticket, username=username, password=password,
             filters=filters)
         return collection
 
@@ -1151,7 +1138,8 @@ def subscribeWebDAV(view, url, inspection, activity=None, account=None,
             translator=SharingTranslator, serializer=EIMMLSerializer)
 
     else:
-        (useSSL, host, port, path, query, fragment) = splitUrl(url)
+        (useSSL, host, port, path, query, fragment, ticket, parentPath,
+            shareName) = splitUrl(url)
         share.conduit = WebDAVRecordSetConduit(itsParent=share, host=host,
             port=port, sharePath=sharePath, shareName=shareName,
             useSSL=useSSL, ticket=ticket,
@@ -1180,6 +1168,22 @@ def subscribeICS(view, url, inspection, activity=None,
 
     share = Share(itsView=view)
 
+    (useSSL, host, port, path, query, fragment, ticket, parentPath,
+        shareName) = splitUrl(url)
+
+    if not account and not ticket and username:
+        # Create a new account
+        account = WebDAVAccount(itsView=view)
+        account.displayName = url
+        account.host = host
+        account.path = parentPath
+        account.useSSL = useSSL
+        account.port = port
+        account.username = username
+        if password:
+            account.password = Password(itsParent=account)
+            waitForDeferred(account.password.encryptPassword(password))
+
     if account:
         share.conduit = WebDAVMonolithicRecordSetConduit(
             itsParent=share,
@@ -1190,15 +1194,21 @@ def subscribeICS(view, url, inspection, activity=None,
         )
 
     else:
-        (useSSL, host, port, path, query, fragment) = splitUrl(url)
         share.conduit = WebDAVMonolithicRecordSetConduit(
             itsParent=share,
             host=host, port=port,
             sharePath=parentPath, shareName=shareName,
-            useSSL=useSSL, ticket=ticket,
+            useSSL=useSSL,
             translator=SharingTranslator,
             serializer=ICSSerializer
         )
+        if ticket:
+            share.conduit.ticket = ticket
+        if username:
+            share.conduit.username = username
+        if password:
+            share.conduit.password = Password(itsParent=share.conduit)
+            waitForDeferred(share.conduit.password.encryptPassword(password))
 
     share.mode = "both" if inspection['priv:write'] else "get"
     if filters:
