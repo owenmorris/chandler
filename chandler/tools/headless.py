@@ -158,9 +158,9 @@ def _argToItem(arg):
     elif isinstance(arg, Item):
         return arg
 
-    # arg is a string (path, either absolute or relative to currentItem)
+    # arg is a string (UUID, or path either absolute or relative to currentItem)
     else:
-        return currentItem.findPath(arg)
+        return view.findUUID(arg) or currentItem.findPath(arg)
 
 @exportMethod
 def getKind(kindName):
@@ -207,7 +207,7 @@ def pwd():
 
 
 def _getName(item):
-    return (getattr(item, 'displayName', None) or item.itsName)
+    return (getattr(item, 'displayName', None) or item.itsName or "<unknown>")
     
 @exportMethod
 def ls(arg=None):
@@ -262,7 +262,7 @@ This is a version of Chandler which doesn't start up the wx portion
 of the code.  The repository has been opened, and packs and parcels
 loaded. If you want to start Twisted services (including WakeupCallers),
 you need to run the 'go( )' method from the shell.  Once you've
-done that any registered web servlets will then be availalbe at
+done that any registered web servlets will then be available at
 http://localhost:1888/
 
 This script accepts all of the command-line arguments and environment

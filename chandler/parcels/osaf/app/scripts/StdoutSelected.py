@@ -29,5 +29,6 @@ if i is not None:
     print "- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -"
     print "Selected item UUID:", i.itsUUID.str16()
     i.printItem()
+    print "\nFor use in headless.py:\nitem = grab('%s')" % i.itsUUID.str16()
 else:
     print "Couldn't determine selected item"
