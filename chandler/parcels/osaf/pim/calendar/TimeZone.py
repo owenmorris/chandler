@@ -452,7 +452,7 @@ def formatTime(dt, tzinfo=None, noTZ=False, includeDate=False):
         useSameTimeZoneFormat = False
 
     FormatDict = FormatDictParent[useSameTimeZoneFormat or noTZ]
-    formats = FormatDict.get(tzinfo)
+    formats = FormatDict.get((dt.tzinfo, tzinfo))
     if formats is None:
         formats = DateAndNoDateFormats()
         if useSameTimeZoneFormat or noTZ:
@@ -463,9 +463,9 @@ def formatTime(dt, tzinfo=None, noTZ=False, includeDate=False):
                                  "{0,date,medium} {0,time,short} {0,time,z}")
             formats.nodate = PyICU.MessageFormat("{0,time,short} {0,time,z}")
             
-        __setTimeZoneInSubformats(formats.nodate, tzinfo.timezone)
-        __setTimeZoneInSubformats(formats.date, tzinfo.timezone)
-        FormatDict[tzinfo] = formats
+        __setTimeZoneInSubformats(formats.nodate, dt.tzinfo.timezone)
+        __setTimeZoneInSubformats(formats.date, dt.tzinfo.timezone)
+        FormatDict[(dt.tzinfo, tzinfo)] = formats
             
     format = (formats.date if includeDate else formats.nodate)
     
