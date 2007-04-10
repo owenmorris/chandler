@@ -395,10 +395,6 @@ class MiniCalendar(CalendarCanvas.CalendarBlock):
         self.synchronizeWidget()
         self.widget.Refresh()
 
-    def onSelectItemsEvent(self, event):
-        self.synchronizeWidget()
-        self.widget.Refresh()
-
     def onSetContentsEvent(self, event):
         #We want to ignore, because view changes could come in here, and we
         #never want to change our collection
@@ -426,10 +422,6 @@ class PreviewArea(CalendarCanvas.CalendarBlock):
     schema.initialValues(
         rangeIncrement = lambda self: one_day
     )
-
-    def onSelectItemsEvent(self, event):
-        self.synchronizeWidget()
-        #self.widget.Refresh()
 
     def onSetContentsEvent(self, event):
         #We want to ignore, because view changes could come in here, and we

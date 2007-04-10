@@ -407,7 +407,7 @@ class wxCollectionCanvas(DragAndDrop.DropReceiveWidget,
         if c != self._cursorID:
             self.SetCursor(wx.StockCursor(c))
             self._cursorID = c
-            
+
     def _handleDoubleClick(self, unscrolledPosition):
         """
         Handle a double click on the canvas somewhere. Checks to see
@@ -976,8 +976,17 @@ class wxCollectionCanvas(DragAndDrop.DropReceiveWidget,
         """
         Called when the user clicks on an area that isn't an item
         """
-        self.OnSelectItem(None)
-    
+        # When a double click creates an event, a single click is first
+        # registered, which will call SeleectNone.  OnSelectItem calls
+        # postSelectItemsBroadcast, which clears the detail view, but this makes
+        # the detail view flicker if it's a prelude to a double click, and it's
+        # not necessary for the design to clear the detail view.  So clear
+        # selection, but leave the detail view alone.
+        
+        #self.OnSelectItem(None)
+        self.blockItem.GetSelection().clearSelection()
+        self.Refresh()
+        
     def OnBeginDragNone(self):
         return True
         
