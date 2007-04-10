@@ -20,6 +20,7 @@ __all__ = [
 
 import conduits, errors, formats
 import zanshin, M2Crypto.BIO, twisted.web.http, urlparse
+import twisted.internet.error
 from recordset_conduit import (
     ResourceRecordSetConduit, ResourceState, MonolithicRecordSetConduit
 )
@@ -406,6 +407,9 @@ class WebDAVConduit(conduits.LinkableConduit, DAVConduitMixin,
         try:
             resp = self._getServerHandle().blockUntil(resource.get)
 
+        except twisted.internet.error.ConnectionDone, err:
+            errors.annotate(err, _("Server reported incorrect Content-Length for %s" % itemPath), details=str(err))
+            raise
         except zanshin.webdav.ConnectionError, err:
             raise errors.CouldNotConnect(_(u"Unable to connect to server. Received the following error: %(error)s") % {'error': err})
         except M2Crypto.BIO.BIOError, err:
@@ -464,10 +468,30 @@ class WebDAVRecordSetConduit(ResourceRecordSetConduit, DAVConduitMixin):
     def getResource(self, path):
         # return text, etag
         resource = self._resourceFromPath(path)
-        start = time.time()
-        resp = self._getServerHandle().blockUntil(resource.get)
-        end = time.time()
-        self.networkTime += (end - start)
+
+        try:
+            start = time.time()
+            resp = self._getServerHandle().blockUntil(resource.get)
+            end = time.time()
+            self.networkTime += (end - start)
+
+        except twisted.internet.error.ConnectionDone, err:
+            errors.annotate(err, _("Server reported incorrect Content-Length for %s" % path), details=str(err))
+            raise
+        except zanshin.webdav.ConnectionError, err:
+            raise errors.CouldNotConnect(_(u"Unable to connect to server. Received the following error: %(error)s") % {'error': err})
+        except M2Crypto.BIO.BIOError, err:
+            raise errors.CouldNotConnect(_(u"Unable to connect to server. Received the following error: %(error)s") % {'error': err})
+
+        if resp.status == twisted.web.http.NOT_FOUND:
+            message = _(u"Path %(path)s not found") % {'path': resource.path}
+            raise errors.NotFound(message)
+
+        if resp.status in (twisted.web.http.UNAUTHORIZED,
+                           twisted.web.http.FORBIDDEN):
+            message = _(u"Not authorized to GET %(path)s") % {'path': resource.path}
+            raise errors.NotAllowed(message)
+
         text = resp.body
         etag = resource.etag
         return text, etag
