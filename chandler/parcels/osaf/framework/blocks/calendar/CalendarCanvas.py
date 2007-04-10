@@ -1516,7 +1516,7 @@ class wxCalendarCanvas(CalendarNotificationHandler, CollectionCanvas.wxCollectio
         self.OnSelectItem(item)
         item.setTriageStatus('auto')
 
-        #view.commit()
+        view.commit()
         return event
 
 

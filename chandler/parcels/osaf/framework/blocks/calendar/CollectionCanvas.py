@@ -16,6 +16,7 @@
 Canvas block for displaying item collections
 """
 
+from __future__ import with_statement
 __parcel__ = "osaf.framework.blocks.calendar"
 
 import wx
@@ -422,7 +423,8 @@ class wxCollectionCanvas(DragAndDrop.DropReceiveWidget,
         if hitBox:
             self.OnEditItem(hitBox)
         elif self.blockItem.CanAdd():
-            self.OnCreateItem(unscrolledPosition)
+            with self.blockItem.itsView.commitDeferred():
+                self.OnCreateItem(unscrolledPosition)
         else:
             self.WarnReadOnlyAdd(self.blockItem.contents)
             

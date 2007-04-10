@@ -553,14 +553,14 @@ class DBRepositoryView(OnDemandRepositoryView):
             self._version = oldVersion
             raise
 
-    def commit(self, mergeFn=None, notify=True):
+    def commit(self, mergeFn=None, notify=True, afterCommit=None):
 
         status = self._status
 
         if status & RepositoryView.COMMITTING:
             self.logger.warning('%s: skipping recursive commit', self)
         elif status & RepositoryView.DEFERCOMMIT:
-            self._deferredCommitCtx._data = (mergeFn, notify)
+            self._deferredCommitCtx._data = (mergeFn, notify, afterCommit)
         elif status & RepositoryView.REFRESHING:
             self._status |= RepositoryView.COMMITREQ
         elif self._log or self._deletedRegistry:
@@ -673,6 +673,9 @@ class DBRepositoryView(OnDemandRepositoryView):
                     self._releaseExclusive()
 
         self.prune(self.pruneSize)
+
+        if callable(afterCommit):
+            afterCommit()
 
     def _saveItem(self, item, newVersion, itemWriter):
 

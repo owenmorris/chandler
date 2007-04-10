@@ -817,7 +817,7 @@ class RepositoryView(CView):
         
         raise NotImplementedError, "%s.refresh" %(type(self))
 
-    def commit(self, mergeFn=None, notify=True):
+    def commit(self, mergeFn=None, notify=True, afterCommit=None):
         """
         Commit all the changes made to items in this view.
 
@@ -829,6 +829,8 @@ class RepositoryView(CView):
             3. Change and history notifications from the items committed
                are dispatched after the transactions commits if C{notify} is
                {True}, the default.
+            4. After commit is completely done, C{afterCommit} is called if
+               found to be callable.
         """
         
         raise NotImplementedError, "%s.commit" %(type(self))

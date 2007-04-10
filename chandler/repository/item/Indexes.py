@@ -430,12 +430,11 @@ class SortedIndex(DelegatingIndex):
     def moveKey(self, key, ignore=None, insertMissing=None):
 
         index = self._index
-
+        skipList = index.skipList
         selected = False
         insert = True
 
         if key in index:
-            skipList = index.skipList
             prevKey = skipList.previous(key)
             nextKey = skipList.next(key)
             if ((prevKey is None or self.compare(prevKey, key) <= 0) and
@@ -450,8 +449,7 @@ class SortedIndex(DelegatingIndex):
                     insert = False
 
         if insert:
-            index.insertKey(key, index.skipList.after(key, self.compare),
-                            selected)
+            index.insertKey(key, skipList.after(key, self.compare), selected)
 
         if self._subIndexes:
             view = self._valueMap.itsView
