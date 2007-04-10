@@ -25,11 +25,6 @@ static PyObject *abort_NAME;
 static PyObject *commit_NAME;
 static PyObject *txn_NAME;
 
-enum {
-    TXN_STARTED = 0x0001,
-    TXN_NESTED  = 0x0002,
-};
-
 static PyObject *t_transaction_new(PyTypeObject *type,
                                    PyObject *args, PyObject *kwds);
 static void t_transaction_dealloc(t_transaction *self);

@@ -97,6 +97,11 @@ typedef struct {
     PyObject *key;
 } t_store;
 
+enum {
+    TXN_STARTED = 0x0001,
+    TXN_NESTED  = 0x0002,
+};
+
 extern PyTypeObject *CView;
 extern PyTypeObject *CRepository;
 extern PyTypeObject *CStore;
@@ -127,6 +132,7 @@ extern PyObject *PyExc_DBNoSuchFileError;
 extern PyObject *PyExc_DBPermissionsError;
 
 extern PyObject *Empty_TUPLE;
+extern PyObject *None_PAIR;
 extern PyObject *Nil;
 
 PyObject *raiseDBError(int err);

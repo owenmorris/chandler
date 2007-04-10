@@ -1,5 +1,5 @@
 /*
- *  Copyright (c) 2003-2006 Open Source Applications Foundation
+ *  Copyright (c) 2003-2007 Open Source Applications Foundation
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -228,15 +228,20 @@ static Py_ssize_t t_record_length(t_record *self)
     return PyList_GET_SIZE(self->pairs) >> 1;
 }
 
-static PyObject *t_record_item(t_record *self, Py_ssize_t i)
+PyObject *_t_record_item(t_record *self, Py_ssize_t i)
 {
     int count = PyList_GET_SIZE(self->pairs) >> 1;
-    PyObject *value;
 
     if (i < 0)
         i = count + i;
 
-    value = PyList_GetItem(self->pairs, i*2 + 1);
+    return PyList_GetItem(self->pairs, i*2 + 1);
+}
+
+static PyObject *t_record_item(t_record *self, Py_ssize_t i)
+{
+    PyObject *value = _t_record_item(self, i);
+
     if (value)
         Py_INCREF(value);
 

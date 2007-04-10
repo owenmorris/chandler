@@ -53,6 +53,7 @@ PyObject *PyExc_DBVersionMismatchError = NULL;
 PyObject *PyExc_DBRunRecoveryError = NULL;
 
 PyObject *Empty_TUPLE = NULL;
+PyObject *None_PAIR = NULL;
 PyObject *Nil = NULL;
 
 
@@ -128,6 +129,7 @@ void initc(void)
     PyObject *m = Py_InitModule3("c", c_funcs, "C repository types module");
 
     Empty_TUPLE = PyTuple_New(0);
+    None_PAIR = PyTuple_Pack(2, Py_None, Py_None);
 
     _init_view(m);
     _init_repository(m);

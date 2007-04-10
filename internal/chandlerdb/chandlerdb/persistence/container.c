@@ -1,5 +1,5 @@
 /*
- *  Copyright (c) 2003-2006 Open Source Applications Foundation
+ *  Copyright (c) 2003-2007 Open Source Applications Foundation
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -28,6 +28,10 @@
 #include "structmember.h"
 
 #include "c.h"
+
+static PyObject *startTransaction_NAME;
+static PyObject *abortTransaction_NAME;
+static PyObject *_logDL_NAME;
 
 typedef struct {
     PyObject_HEAD
@@ -196,13 +200,9 @@ static int t_container_init(t_container *self, PyObject *args, PyObject *kwds)
     return 0;
 }
 
-static PyObject *t_container_openCursor(t_container *self, PyObject *args)
+static PyObject *_t_container_openCursor(t_container *self, PyObject *db)
 {
-    PyObject *db = Py_None;
     PyObject *threaded, *cursor, *txn;
-
-    if (!PyArg_ParseTuple(args, "|O", &db))
-        return NULL;
 
     if (db == Py_None)
         db = (PyObject *) self->db;
@@ -241,21 +241,28 @@ static PyObject *t_container_openCursor(t_container *self, PyObject *args)
     return cursor;
 }
 
-static PyObject *t_container_closeCursor(t_container *self, PyObject *args)
+static PyObject *t_container_openCursor(t_container *self, PyObject *args)
 {
-    PyObject *cursor, *db = Py_None;
-    PyObject *threaded;
+    PyObject *db = Py_None;
 
-    if (!PyArg_ParseTuple(args, "O|O", &cursor, &db))
+    if (!PyArg_ParseTuple(args, "|O", &db))
         return NULL;
 
+    return _t_container_openCursor(self, db);
+}
+
+static int _t_container_closeCursor(t_container *self,
+                                    PyObject *cursor, PyObject *db)
+{
+    PyObject *threaded;
+
     if (cursor == Py_None)
-        Py_RETURN_NONE;
+        return 0;
 
     if (!PyObject_TypeCheck(cursor, CDBCursor))
     {
         PyErr_SetObject(PyExc_TypeError, cursor);
-        return NULL;
+        return -1;
     }
 
     if (db == Py_None)
@@ -263,18 +270,31 @@ static PyObject *t_container_closeCursor(t_container *self, PyObject *args)
     else if (!PyObject_TypeCheck(db, CDB))
     {
         PyErr_SetObject(PyExc_TypeError, db);
-        return NULL;
+        return -1;
     }
 
     if (_t_cursor_close((t_cursor *) cursor) < 0)
-        return NULL;
+        return -1;
 
     threaded = _t_container__getThreaded(self);
     if (!threaded)
-        return NULL;
+        return -1;
 
     if (PyDict_GetItem(threaded, db) == cursor)
         PyDict_DelItem(threaded, db);
+
+    return 0;
+}
+
+static PyObject *t_container_closeCursor(t_container *self, PyObject *args)
+{
+    PyObject *cursor, *db = Py_None;
+
+    if (!PyArg_ParseTuple(args, "O|O", &cursor, &db))
+        return NULL;
+
+    if (_t_container_closeCursor(self, cursor, db) < 0)
+        return NULL;
 
     Py_RETURN_NONE;
 }
@@ -303,21 +323,20 @@ static int _t_container_read_record(t_data_dbt *dbt, int offset, void *data,
 /* finds a versioned record
  * the version number is assumed to be the last 4 bytes of the key
  */
-static PyObject *t_container_find_record(t_container *self, PyObject *args)
+static PyObject *_t_container_find_record(t_container *self, PyObject *cursor,
+                                          PyObject *keyRecord,
+                                          PyObject *dataTypes,
+                                          int flags, PyObject *defaultValue,
+                                          int returnBoth)
 {
-    PyObject *cursor, *keyRecord, *dataTypes, *defaultValue = NULL;
-    int flags = 0, err, keySize, returnBoth = 0;
     char keyBuffer[256], keyData[256];
+    int err, keySize;
     DBT key;
     t_data_dbt data;
     DBC *dbc;
 
     memset(&key, 0, sizeof(key));
     memset(&data, 0, sizeof(data));
-
-    if (!PyArg_ParseTuple(args, "OOO|iOi", &cursor, &keyRecord, &dataTypes,
-                          &flags, &defaultValue, &returnBoth))
-        return NULL;
 
     if (!PyObject_TypeCheck(cursor, CDBCursor))
     {
@@ -423,6 +442,19 @@ static PyObject *t_container_find_record(t_container *self, PyObject *args)
     return NULL;
 }
 
+static PyObject *t_container_find_record(t_container *self, PyObject *args)
+{
+    PyObject *cursor, *keyRecord, *dataTypes, *defaultValue = NULL;
+    int flags = 0, returnBoth = 0;
+
+    if (!PyArg_ParseTuple(args, "OOO|iOi", &cursor, &keyRecord, &dataTypes,
+                          &flags, &defaultValue, &returnBoth))
+        return NULL;
+
+    return _t_container_find_record(self, cursor, keyRecord, dataTypes,
+                                    flags, defaultValue, returnBoth);
+}
+
 static PyObject *_t_container_associate(t_container *self, PyObject *args,
                                         int (*fn)(DB *, const DBT *, const DBT *, DBT *))
 {
@@ -522,10 +554,8 @@ static PyMemberDef t_value_container_members[] = {
 };
 
 static PyMethodDef t_value_container_methods[] = {
-    { "loadValue", (PyCFunction) t_value_container_loadValue, METH_VARARGS,
-      "loadValue" },
-    { "setIndexed", (PyCFunction) t_value_container_setIndexed, METH_VARARGS,
-      "setIndexed" },
+    { "loadValue", (PyCFunction) t_value_container_loadValue, METH_VARARGS, "loadValue" },
+    { "setIndexed", (PyCFunction) t_value_container_setIndexed, METH_VARARGS, "setIndexed" },
     { NULL, NULL, 0, NULL }
 };
 
@@ -732,8 +762,7 @@ static PyMemberDef t_ref_container_members[] = {
 
 static PyMethodDef t_ref_container_methods[] = {
     { "find_ref", (PyCFunction) t_ref_container_find_ref, METH_VARARGS, NULL },
-    { "associateHistory", (PyCFunction) t_ref_container_associateHistory,
-      METH_VARARGS, NULL },
+    { "associateHistory", (PyCFunction) t_ref_container_associateHistory, METH_VARARGS, NULL },
     { NULL, NULL, 0, NULL }
 };
 
@@ -941,7 +970,8 @@ static PyObject *t_item_container_associateVersion(t_item_container *self,
                                                    PyObject *args);
 static PyObject *t_item_container_setItemStatus(t_item_container *self,
                                                 PyObject *args);
-
+static PyObject *t_item_container_findItem(t_item_container *self,
+                                           PyObject *args);
 
 
 static PyMemberDef t_item_container_members[] = {
@@ -949,12 +979,10 @@ static PyMemberDef t_item_container_members[] = {
 };
 
 static PyMethodDef t_item_container_methods[] = {
-    { "associateKind", (PyCFunction) t_item_container_associateKind,
-      METH_VARARGS, NULL },
-    { "associateVersion", (PyCFunction) t_item_container_associateVersion,
-      METH_VARARGS, NULL },
-    { "setItemStatus", (PyCFunction) t_item_container_setItemStatus,
-      METH_VARARGS, NULL },
+    { "associateKind", (PyCFunction) t_item_container_associateKind, METH_VARARGS, NULL },
+    { "associateVersion", (PyCFunction) t_item_container_associateVersion, METH_VARARGS, NULL },
+    { "setItemStatus", (PyCFunction) t_item_container_setItemStatus, METH_VARARGS, NULL },
+    { "findItem", (PyCFunction) t_item_container_findItem, METH_VARARGS, NULL },
     { NULL, NULL, 0, NULL }
 };
 
@@ -1143,6 +1171,117 @@ static PyObject *t_item_container_setItemStatus(t_item_container *self,
     }
 }
 
+static PyObject *t_item_container_findItem(t_item_container *self,
+                                           PyObject *args)
+{
+    PyObject *view, *uuid, *dataTypes, *key;
+    PyObject *store = (PyObject *) self->container.store;
+    unsigned long version;
+
+    if (!PyArg_ParseTuple(args, "OiOO", &view, &version, &uuid, &dataTypes))
+        return NULL;
+
+    args = Py_BuildValue("(iOii)", R_UUID, uuid, R_INT, ~version);
+    key = PyObject_Call((PyObject *) Record, args, NULL);
+    Py_DECREF(args);
+    if (!key)
+        return NULL;
+
+    while (1) {
+        PyObject *result =
+            PyObject_CallMethodObjArgs(store, startTransaction_NAME,
+                                       view, NULL);
+        PyObject *type = NULL, *value = NULL, *traceback = NULL;
+        PyObject *cursor = NULL, *foundItem = NULL, *status;
+        int txnStatus;
+
+        if (!result)
+            goto done;
+
+        txnStatus = PyInt_AsLong(result);
+        Py_DECREF(result);
+
+        cursor = _t_container_openCursor((t_container *) self, Py_None);
+        if (!cursor)
+            goto error;
+
+        result = _t_container_find_record((t_container *) self, cursor,
+                                          key, dataTypes, self->container.flags,
+                                          None_PAIR, 1);
+        if (!result)
+            goto error;
+
+        if (PyTuple_GET_ITEM(result, 1) == Py_None)
+        {
+            Py_INCREF(None_PAIR);
+            foundItem = None_PAIR;
+        }
+        else
+        {
+            PyObject *keyRecord = PyTuple_GET_ITEM(result, 0);
+            PyObject *itemRecord = PyTuple_GET_ITEM(result, 1);
+            PyObject *itemVer = _t_record_item((t_record *) keyRecord, 1);
+
+            itemVer = PyInt_FromLong(~PyInt_AsLong(itemVer));
+            foundItem = PyTuple_Pack(2, itemVer, itemRecord);
+            Py_DECREF(itemVer);
+
+        }
+        Py_DECREF(result);
+
+      finally:
+        if (cursor)
+        {
+            if (_t_container_closeCursor((t_container *) self,
+                                         cursor, Py_None) < 0)
+            {
+                Py_CLEAR(cursor);
+                Py_CLEAR(foundItem);
+                goto error;
+            }
+            Py_CLEAR(cursor);
+        }
+        status = PyInt_FromLong(txnStatus);
+        result = PyObject_CallMethodObjArgs(store, abortTransaction_NAME,
+                                            view, status, NULL);
+        Py_DECREF(status);
+        if (!result)
+        {
+            Py_CLEAR(foundItem);
+            goto done;
+        }
+        Py_DECREF(result);
+        if (type == NULL)
+            goto done;
+
+      error:
+        if (type == NULL)
+        {
+            PyErr_Fetch(&type, &value, &traceback);
+            goto finally;
+        }
+        if (txnStatus & TXN_STARTED &&
+            PyErr_GivenExceptionMatches(type, PyExc_DBLockDeadlockError))
+        {
+            result = PyObject_CallMethodObjArgs(store, _logDL_NAME, NULL);
+            if (!result)
+                goto done;
+            Py_DECREF(result);
+            Py_DECREF(type);
+            Py_DECREF(value);
+            Py_DECREF(traceback);
+            continue;
+        }
+
+      done:
+        Py_DECREF(key);
+        if (type)
+            PyErr_Restore(type, value, traceback);
+
+        return foundItem;
+    }
+}
+
 
 void _init_container(PyObject *m)
 {
@@ -1168,6 +1307,10 @@ void _init_container(PyObject *m)
             Py_INCREF(&ItemContainerType);
             PyModule_AddObject(m, "CItemContainer",
                                (PyObject *) &ItemContainerType);
+
+            startTransaction_NAME = PyString_FromString("startTransaction");
+            abortTransaction_NAME = PyString_FromString("abortTransaction");
+            _logDL_NAME = PyString_FromString("_logDL");
         }
     }
 }
