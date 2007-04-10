@@ -108,7 +108,7 @@ def get(view, testPassword=None):
             raise RuntimeError('At least one password was expected to be initialized')
         if again:
             wx.MessageBox (_(u'Master password was incorrect, please try again.'),
-                           _(u'Incorrect password'), style = wx.OK)
+                           _(u'Incorrect password'))
             continue
         
         break
