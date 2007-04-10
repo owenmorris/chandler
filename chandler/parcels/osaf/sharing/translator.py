@@ -399,11 +399,11 @@ class SharingTranslator(eim.Translator):
     }
     modaction_to_code = dict([[v, k] for k, v in code_to_modaction.items()])
 
-    def withRealUUID(self, recurrence_aware_uuid, create=True):
+    def deferredUUID(self, recurrence_aware_uuid, create=True):
         master_uuid, recurrenceID = splitUUID(recurrence_aware_uuid)
         if recurrenceID is not None:
-            acb = self.withItemForUUID(master_uuid, EventStamp)
-            @acb
+            d = self.deferredItem(master_uuid, EventStamp)
+            @d.addCallback
             def get_occurrence(master):           
                 if getattr(master, 'rruleset', None) is None:
                     # add a dummy RecurrenceRuleSet so event methods treat
@@ -416,23 +416,18 @@ class SharingTranslator(eim.Translator):
                     else:
                         return None
                 return occurrence.itsItem.itsUUID.str16()
-            return acb
-        return master_uuid
+            return d
+        d = Deferred()
+        d.callback(master_uuid)
+        return d
 
-    def withItemForUUID(self, recurrence_aware_uuid, *args, **kwargs):
+    def deferredItem(self, uuid, *args, **kwargs):
         """
         Override to handle special recurrenceID:uuid uuids.
         """
-        if '::' in recurrence_aware_uuid:
-            d = Deferred()
-            @self.withRealUUID(recurrence_aware_uuid)
-            def get_occurence(uuid):
-                self.withItemForUUID(uuid, *args, **kwargs)(d.callback)
-            return d.addCallback
-        else:
-            return super(SharingTranslator, self).withItemForUUID(
-                recurrence_aware_uuid, *args, **kwargs
-            )
+        if isinstance(uuid, basestring) and '::' in uuid:
+            uuid = self.deferredUUID(uuid)
+        return super(SharingTranslator, self).deferredItem(uuid, *args, **kwargs)
 
     @model.ItemRecord.importer
     def import_item(self, record):
@@ -688,7 +683,8 @@ class SharingTranslator(eim.Translator):
 
     @model.TaskRecord.deleter
     def delete_task(self, record):
-        @self.withRealUUID(record.uuid, create=False)
+        d = self.deferredUUID(record.uuid, create=False)
+        @d.addCallback
         def do_delete(uuid):
             if uuid is not None:
                 item = self.rv.findUUID(uuid)

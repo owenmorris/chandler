@@ -860,50 +860,54 @@ class Translator:
 
 
     def withItemForUUID(self, uuid, itype=schema.Item, **attrs):
-        """Load/create/upgrade/stamp item by UUID and type, w/optional attrs"""
-        
+        return self.deferredItem(uuid, itype, **attrs).addCallback
+
+    def deferredItem(self, uuid, itype=schema.Item, **attrs):
+        """Return deferred for a stamp or item by UUID+type w/optional attrs"""
+        if isinstance(uuid, Deferred):
+            d = Deferred()
+            @uuid.addCallback
+            def uuid_to_item(uuid):
+                if uuid in (None, NoChange):
+                    d.callback(uuid)
+                else:
+                    self.deferredItem(uuid, itype, **attrs).addCallback(d.callback)
+                return uuid
+            return d
+
         def setattrs(ob):
             # Set specified attributes, skipping NoChange attrs, and deleting
             # Inherit attrs
-            for attr, val in attrs.items():
-                if val is Inherit:
-                    if hasattr(ob, attr):
-                        delattr(ob, attr)
-                elif val is not NoChange:
-                    setattr(ob, attr, val)
-            return ob
+            for attr, val in attrs.items(): self.smart_setattr(val, ob, attr)
+            return ob   # return value for deferreds
 
         if issubclass(itype, pim.Stamp):
-            acb = self.withItemForUUID(uuid, itype.targetType())
-            @acb
+            d = self.deferredItem(uuid, itype.targetType())
+            @d.addCallback
             def add_stamp(item):
                 stamp = itype(item)
                 if not stamp.stamp_types or itype not in stamp.stamp_types:
                     stamp.add()
-                return setattrs(stamp)
-            return acb
+                return setattrs(stamp)  # return value for deferreds
+            return d
             
         item = self.rv.findUUID(uuid)
         d = Deferred()
         d.addCallback(setattrs)
-
         if item is None:
             # Create the item
             if isinstance(uuid, basestring):
                 uuid = UUID(uuid)
             item = itype(itsView=self.rv, _uuid=uuid)
-
+            
         if isinstance(item, itype):
             d.callback(item)
-            return d.addCallback
-
-
-
-
+            return d
+            
         if not issubclass(itype, type(item)):
             # Can't load the item yet; put callbacks on the queue
             self.loadQueue.setdefault(item, []).append((itype, d))
-            return d.addCallback
+            return d
            
         # Upgrade the item type, set attributes, and run setups       
         old_type = item.__class__
@@ -926,20 +930,23 @@ class Translator:
                         del self.loadQueue[item]
 
         d.callback(item)
-        return d.addCallback
+        return d
 
+    def smart_setattr(self, val, ob, attr):
+        if val is Inherit:
+            if hasattr(ob, attr): delattr(ob, attr)
+        elif isinstance(val, Deferred):
+            val.addCallback(self.smart_setattr, ob, attr)
+        elif val is not NoChange:
+            setattr(ob, attr, val)
+        return ob   # return value for deferreds
 
     def getUUIDForAlias(self, alias):
         return alias
 
     def getAliasForItem(self, item):
         return item.itsUUID.str16()
-
-
-
-
-
-
+        
 
 def create_default_converter(t):
     converter = generic(default_converter)
@@ -952,7 +959,6 @@ map(create_default_converter,
     [BytesType, TextType, IntType, DateType, TimestampType, BlobType, ClobType,
     DecimalType]
 )
-
 add_converter(IntType, int, int)
 typedef(int, IntType)
 add_converter(TextType, str, unicode)
@@ -965,8 +971,6 @@ add_converter(ClobType, str, unicode)
 add_converter(ClobType, unicode, unicode)
 add_converter(BytesType, str, str)
 
-
-
 UUIDType = TextType("cid:uuid_type@osaf.us", size=36)
 typedef(schema.UUID, UUIDType)
 
@@ -976,10 +980,11 @@ def uuid_converter(uuid):
 def item_uuid_converter(item):
     return str(item.itsUUID)
 
+
+
 add_converter(UUIDType, UUID, uuid_converter)
 add_converter(UUIDType, schema.Item, item_uuid_converter)
 add_converter(UUIDType, str, unicode)
-
 
 
 def subtype(typeinfo, *args, **kw):
@@ -995,11 +1000,6 @@ def additional_tests():
         'EIM.txt',
         optionflags=doctest.ELLIPSIS|doctest.REPORT_ONLY_FIRST_FAILURE,
     )
-
-
-
-
-
 
 
 
