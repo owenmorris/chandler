@@ -38,7 +38,7 @@ dialogTextData = {
          _(u"Removing '%(itemName)s' from the Dashboard will move it to the Trash.")),
     DELETE_LAST :
         (_(u"Only appearance of item"),
-         _(u"Removing '%(itemName)s' from '%(collectionName)s' will move it to the Trash.")),
+         _(u"'%(itemName)s' only appears in '%(collectionName)s'. Removing it will move it to the Trash.")),
     IN_READ_ONLY_COLLECTION :
         (_(u"View-only item"),
          _(u"You cannot delete '%(itemName)s'. "
