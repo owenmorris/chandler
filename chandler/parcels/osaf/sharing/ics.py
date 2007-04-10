@@ -314,6 +314,7 @@ class ICSSerializer(object):
                                                ignoreUnreadable=True):
             if calname is None:
                 calname = calendar.getChildValue('x_wr_calname')
+                extra['name'] = calname
     
         masters = {}
         for vobj in getattr(calendar, 'vevent_list', []):
