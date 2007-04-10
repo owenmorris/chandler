@@ -425,6 +425,12 @@ def shortTZ(dt, tzinfo=None):
             return name
     return u''
 
+
+class DateAndNoDateFormats(object):
+    __slots__ = 'date', 'nodate'
+
+FormatDictParent = {True:{}, False:{}}
+
 def formatTime(dt, tzinfo=None, noTZ=False, includeDate=False):
 
     def __setTimeZoneInSubformats(msgFormat, tz):
@@ -445,21 +451,24 @@ def formatTime(dt, tzinfo=None, noTZ=False, includeDate=False):
     elif dt.tzinfo != tzinfo:
         useSameTimeZoneFormat = False
 
-    if useSameTimeZoneFormat or noTZ:
-        if includeDate:
-            format = PyICU.MessageFormat("{0,date,medium} {0,time,short}")
+    FormatDict = FormatDictParent[useSameTimeZoneFormat or noTZ]
+    formats = FormatDict.get(tzinfo)
+    if formats is None:
+        formats = DateAndNoDateFormats()
+        if useSameTimeZoneFormat or noTZ:
+            formats.date = PyICU.MessageFormat("{0,date,medium} {0,time,short}")
+            formats.nodate = PyICU.MessageFormat("{0,time,short}")
         else:
-            format = PyICU.MessageFormat("{0,time,short}")
-        __setTimeZoneInSubformats(format, tzinfo.timezone)
-    else:
-        # This string should be localizable
-        if includeDate:
-            format = PyICU.MessageFormat("{0,date,medium} {0,time,short} {0,time,z}")
-        else:
-            format = PyICU.MessageFormat("{0,time,short} {0,time,z}")
-
-        __setTimeZoneInSubformats(format, dt.tzinfo.timezone)
-
+            formats.date = PyICU.MessageFormat(
+                                 "{0,date,medium} {0,time,short} {0,time,z}")
+            formats.nodate = PyICU.MessageFormat("{0,time,short} {0,time,z}")
+            
+        __setTimeZoneInSubformats(formats.nodate, tzinfo.timezone)
+        __setTimeZoneInSubformats(formats.date, tzinfo.timezone)
+        FormatDict[tzinfo] = formats
+            
+    format = (formats.date if includeDate else formats.nodate)
+    
     formattable = PyICU.Formattable(dt, PyICU.Formattable.kIsDate)
 
     return unicode(format.format([formattable], PyICU.FieldPosition()))
