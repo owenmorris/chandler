@@ -23,6 +23,7 @@ from application import schema, Globals
 from i18n import ChandlerMessageFactory as _
 import zanshin
 from osaf.activity import *
+import SharingDetails
 
 logger = logging.getLogger(__name__)
 
@@ -188,7 +189,7 @@ class SubscribeDialog(wx.Dialog):
         
         self.subscribing = False
 
-    def _shareError(self, err):
+    def _shareError(self, (err, summary, extended)):
 
         viewpool.releaseView(self.taskView)
 
@@ -224,6 +225,9 @@ class SubscribeDialog(wx.Dialog):
         else:
             logger.error("Error during subscribe")
             self._showStatus(_(u"Sharing Error:\n%(error)s") % {'error': err})
+            text = "%s\n\n%s\n\n%s" % (self.url, summary, extended)
+            SharingDetails.ShowText(None, text, title=_(u"Subscribe Error"))
+
 
         self.subscribing = False
         self._resize()
@@ -238,13 +242,11 @@ class SubscribeDialog(wx.Dialog):
         view = self.view
         url = self.textUrl.GetValue()
         url = url.strip()
+        self.url = url
 
         if " " in url:
             self._showStatus(_(u"Spaces are not allowed in URLs"))
             return
-
-        # if url.startswith('webcal:'):
-        #     url = 'http:' + url[7:]
 
         if self.accountPanel.IsShown():
             username = self.textUsername.GetValue()

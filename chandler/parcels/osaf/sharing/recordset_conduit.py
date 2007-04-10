@@ -39,6 +39,21 @@ __all__ = [
 recordset_debugging = False
 
 
+
+
+
+def mergeFunction(code, item, attribute, value):
+    # 'value' is the one from *this* view
+    # getattr(item, attribute) is the value from a different view
+
+    if code == MergeError.DELETE:
+        return True
+
+    return value # Change from *this* view wins
+
+
+
+
 class RecordSetConduit(conduits.BaseConduit):
 
     translator = schema.One(schema.Class)
@@ -60,7 +75,7 @@ class RecordSetConduit(conduits.BaseConduit):
 
             if activity:
                 activity.update(msg="Saving...", totalWork=None)
-            rv.commit() # TODO: repo merge function here?
+            rv.commit(mergeFunction)
 
         except Exception, exception:
             logger.exception("Sharing Error")
@@ -375,7 +390,13 @@ class RecordSetConduit(conduits.BaseConduit):
                 logger.debug("Importing %s", rs)
 
                 translator.startImport()
-                translator.importRecords(rs)
+
+                try:
+                    translator.importRecords(rs)
+                except Exception, e:
+                    errors.annotate(e, "Record import failed", details=str(rs))
+                    raise
+
                 translator.finishImport()
 
                 uuid = translator.getUUIDForAlias(alias)
@@ -587,9 +608,14 @@ class MonolithicRecordSetConduit(RecordSetConduit):
         logger.debug("Received from server [%s]", text)
 
         if text:
-            inbound, extra = self.serializer.deserialize(text,
-                                                        helperView=self.itsView)
+            try:
+                inbound, extra = self.serializer.deserialize(text,
+                    helperView=self.itsView)
+            except Exception, e:
+                errors.annotate(e, "Failed to deserialize", details=text)
+                raise
             return inbound, extra, False
+
         else:
             return { }, { }, False
 

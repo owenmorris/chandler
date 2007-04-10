@@ -480,7 +480,7 @@ class PublishCollectionDialog(wx.Dialog):
         self.done = False
         self.currentTask.start(inOwnThread=True)
 
-    def _shareError(self, err):
+    def _shareError(self, (err, summary, extended)):
 
         viewpool.releaseView(self.taskView)
 
@@ -507,6 +507,10 @@ class PublishCollectionDialog(wx.Dialog):
                     msg = err.message
             else:
                 msg = err
+
+                text = "%s\n\n%s" % (summary, extended)
+                SharingDetails.ShowText(None, text, title=_(u"Publish Error"))
+
 
             self._showStatus(_(u"\nSharing error:\n%(error)s\n") %
                 {'error': msg})

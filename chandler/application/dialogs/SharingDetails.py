@@ -78,3 +78,9 @@ def Show(parent, share):
 
     win = SharingDetailsFrame(parent, -1, title, u'\n\n'.join(lines))
     win.Show()
+
+
+
+def ShowText(parent, text, title=_(u"Sharing Details")):
+    win = SharingDetailsFrame(parent, -1, title, text)
+    win.Show()

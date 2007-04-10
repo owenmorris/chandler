@@ -797,7 +797,7 @@ def unpublishFreeBusy(collection):
             # Clean up sharing-related objects
             share.conduit.delete(True)
             share.delete(True)
-            
+
             # also stop publishing hiddenEvents
             sharing_ns = schema.ns('osaf.sharing', collection.itsView)
             for share in sharing_ns.hiddenEvents.shares:
@@ -809,7 +809,7 @@ def subscribe(view, url, activity=None, username=None, password=None,
 
     if Globals.options.offline:
         raise OfflineError(_(u"Offline mode"))
-    
+
     (useSSL, host, port, path, query, fragment, ticket, parentPath,
         shareName) = splitUrl(url)
 
@@ -1178,53 +1178,31 @@ def subscribeICS(view, url, inspection, activity=None,
     account=None, parentPath=None, shareName=None, ticket=None,
     username=None, password=None, filters=None):
 
-    # TODO: Use filters parameter when this switches to ICS atop EIM
-
     share = Share(itsView=view)
 
-    if caldav_atop_eim:
-
-        if account:
-            share.conduit = WebDAVMonolithicRecordSetConduit(
-                itsParent=share,
-                shareName=shareName,
-                account=account,
-                translator=SharingTranslator,
-                serializer=ICSSerializer
-            )
-
-        else:
-            (useSSL, host, port, path, query, fragment) = splitUrl(url)
-            share.conduit = WebDAVMonolithicRecordSetConduit(
-                itsParent=share,
-                host=host, port=port,
-                sharePath=parentPath, shareName=shareName,
-                useSSL=useSSL, ticket=ticket,
-                translator=SharingTranslator,
-                serializer=ICSSerializer
-            )
-
-        share.mode = "both" if inspection['priv:write'] else "get"
-        if filters:
-            share.conduit.filters = filters
-
+    if account:
+        share.conduit = WebDAVMonolithicRecordSetConduit(
+            itsParent=share,
+            shareName=shareName,
+            account=account,
+            translator=SharingTranslator,
+            serializer=ICSSerializer
+        )
 
     else:
-        share.format = ICalendarFormat(itsParent=share)
+        (useSSL, host, port, path, query, fragment) = splitUrl(url)
+        share.conduit = WebDAVMonolithicRecordSetConduit(
+            itsParent=share,
+            host=host, port=port,
+            sharePath=parentPath, shareName=shareName,
+            useSSL=useSSL, ticket=ticket,
+            translator=SharingTranslator,
+            serializer=ICSSerializer
+        )
 
-        if account:
-            share.conduit = SimpleHTTPConduit(itsParent=share,
-                shareName=shareName, account=account)
-        else:
-            (useSSL, host, port, path, query, fragment) = splitUrl(url)
-            share.conduit = SimpleHTTPConduit(itsParent=share, host=host,
-                port=port, sharePath=parentPath, shareName=shareName,
-                useSSL=useSSL, ticket=ticket)
-
-        share.filterClasses = \
-            ["osaf.pim.calendar.Calendar.EventStamp"]
-
-        share.mode = "get"
+    share.mode = "both" if inspection['priv:write'] else "get"
+    if filters:
+        share.conduit.filters = filters
 
     if activity:
         activity.update(msg=_(u"Subscribing to calendar..."))

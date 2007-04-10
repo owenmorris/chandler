@@ -565,6 +565,10 @@ class Share(pim.ContentItem):
     def sync(self, modeOverride=None, activity=None, forceUpdate=None,
         debug=False):
 
+        # @@@MOR: Refactor this and the conduits' sync( ) methods so that
+        # only the cancel/commit happens here, once the dual-fork stuff
+        # is removed.
+
         if(self.contents is not None and
             not pim.has_stamp(self.contents, SharedItem)):
             SharedItem(self.contents).add()
@@ -588,30 +592,15 @@ class Share(pim.ContentItem):
         except Exception, e:
 
             logger.exception("Error syncing collection")
-            extended = ""
-            if isinstance(e, ChandlerException):
-                brief = e.message
-                if e.debugMessage is not None:
-                    extended = e.debugMessage
-            else:
-                brief = str(e)
 
-            # Append the stack trace to the error details...
-            stack = "".join(traceback.format_tb(sys.exc_info()[2]))
-            if extended:
-                extended = "%s\n\n%s" % (extended, stack)
-            else:
-                extended = stack
-
-            # @@@MOR: Refactor this and the conduits' sync( ) methods so that
-            # only the cancel/commit happens here.
+            summary, extended = errors.formatException(e)
 
             # At this point, our view has been cancelled.  Only 'established'
             # Share items will still be alive here, and those are precisely
             # the ones we do want to store error messages on:
             if self.isLive():
                 for linked in self.getLinkedShares():
-                    linked.error = brief
+                    linked.error = summary
                     linked.errorDetails = extended
 
             raise

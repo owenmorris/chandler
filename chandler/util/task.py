@@ -18,6 +18,7 @@ from twisted.internet import reactor, defer
 import logging
 from i18n import ChandlerMessageFactory as _
 from repository.persistence.RepositoryError import MergeError
+from osaf import sharing
 
 logger = logging.getLogger(__name__)
 
@@ -65,7 +66,8 @@ class Task(object):
             self._success(result)
         except Exception, e:
             logger.exception("Task failed")
-            self._error(e)
+            summary, extended = sharing.errors.formatException(e)
+            self._error( (e, summary, extended) )
 
         if self.shutdownDeferred:
             self.shutdownDeferred.callback(None)
@@ -86,10 +88,10 @@ class Task(object):
                     f(x)
             wx.GetApp().PostAsyncEvent(mainCallback, arg)
 
-    def _error(self, failure):
+    def _error(self, arg):
         if self.view is not None:
             self.view.cancel()
-        self.callInMainThread(self.error, failure, done=True)
+        self.callInMainThread(self.error, arg, done=True)
 
     def _success(self, result):
 

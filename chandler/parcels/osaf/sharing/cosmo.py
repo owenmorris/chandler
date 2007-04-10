@@ -115,7 +115,7 @@ class CosmoConduit(recordset_conduit.DiffRecordSetConduit, conduits.HTTPMixin):
         if resp.status != 200:
             raise errors.SharingError("%s (HTTP status %d)" % (resp.message,
                 resp.status),
-                debugMessage="Received [%s]" % resp.body)
+                details="Received [%s]" % resp.body)
 
         syncTokenHeaders = resp.headers.getHeader('X-MorseCode-SyncToken')
         if syncTokenHeaders:
@@ -154,7 +154,7 @@ class CosmoConduit(recordset_conduit.DiffRecordSetConduit, conduits.HTTPMixin):
         elif resp.status not in (201, 204):
             raise errors.SharingError("%s (HTTP status %d)" % (resp.message,
                 resp.status),
-                debugMessage="Sent [%s], Received [%s]" % (text, resp.body))
+                details="Sent [%s], Received [%s]" % (text, resp.body))
 
         syncTokenHeaders = resp.headers.getHeader('X-MorseCode-SyncToken')
         if syncTokenHeaders:
@@ -183,7 +183,7 @@ class CosmoConduit(recordset_conduit.DiffRecordSetConduit, conduits.HTTPMixin):
         elif resp.status != 204:
             raise errors.SharingError("%s (HTTP status %d)" %
                 (resp.message, resp.status),
-                debugMessage="Sent [%s], Received [%s]" % (text, resp.body))
+                details="Sent [%s], Received [%s]" % (text, resp.body))
 
     def create(self):
         pass

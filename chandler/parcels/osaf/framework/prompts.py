@@ -48,7 +48,6 @@ def promptYesNo(message, pref=None, parent=None, caption=None, textTable=None):
 
     return prefPrompt(message, pref, 
                       wx.YES_NO,
-                      parent=parent,
                       resultsTable={wx.ID_YES: True,
                                     wx.ID_NO: False},
                       caption=caption,
@@ -59,7 +58,6 @@ def promptYesNoCancel(message, pref=None, parent=None, caption=None,
     
     return prefPrompt(message, pref,
                       wx.YES_NO | wx.CANCEL,
-                      parent=parent,
                       resultsTable={wx.ID_YES: True,
                                     wx.ID_NO: False,
                                     wx.ID_CANCEL: None },
@@ -68,4 +66,4 @@ def promptYesNoCancel(message, pref=None, parent=None, caption=None,
 
 def promptOk(message, pref=None, parent=None, caption=None):
 
-    return prefPrompt(message, pref, wx.OK, parent=parent, caption=caption)
+    return prefPrompt(message, pref, wx.OK, caption=caption)

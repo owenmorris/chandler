@@ -227,8 +227,8 @@ class EIMMLSerializer(object):
         try:
             rootElement = fromstring(text) # xml parser
         except Exception, e:
-            raise errors.MalformedData("Couldn't parse XML (%s)" % str(e),
-                debugMessage=text)
+            errors.annotate(e, "Couldn't parse XML", details=text)
+            raise
 
         recordSets = {}
         for recordSetElement in rootElement:

@@ -12,6 +12,7 @@
 #   See the License for the specific language governing permissions and
 #   limitations under the License.
 
+import traceback, sys
 import logging
 logger = logging.getLogger(__name__)
 
@@ -19,9 +20,48 @@ from osaf import ChandlerException
 from i18n import ChandlerMessageFactory as _
 
 
-class SharingError(ChandlerException):
-    pass
+def annotate(exception, brief, details=""):
+    if not hasattr(exception, 'annotations'):
+        exception.annotations = [ (str(exception), "") ]
 
+    exception.annotations.append( (brief, details) )
+
+
+def formatException(exception):
+    summary = []
+    extended = []
+
+    # Turn the stack and exception into a string
+    stack = "".join(traceback.format_tb(sys.exc_info()[2]))
+    stack += "%s %s" % sys.exc_info()[0:2]
+
+    if hasattr(exception, 'annotations'):
+        # This exception has been annotated along the way
+        for brief, details in exception.annotations[::-1]:
+            summary.append(brief)
+            extended.append(details)
+    else:
+        summary.append(str(exception.message))
+        details = getattr(exception, 'debugMessage', None)
+        if details:
+            extended.append(str(details))
+
+    summary = " | ".join(summary)
+
+    extended.append(stack)
+
+    extended = "\n--\n".join(extended)
+
+    return summary, extended
+
+
+
+class SharingError(ChandlerException):
+    def __init__(self, message, details="", exception=None, debugMessage=None):
+        super(SharingError, self).__init__(message, exception=exception,
+            debugMessage=debugMessage)
+        self.annotations = []
+        annotate(self, message, details=details)
 
 class AlreadyExists(SharingError):
     """
