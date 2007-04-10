@@ -17,6 +17,7 @@ __all__ = [
     'DecryptionError',
     'EncryptionError',
     'NoMasterPassword',
+    'PasswordTooLong',
     'Password',
     'passwordAttribute',
 ]
@@ -99,7 +100,7 @@ class Password(schema.Item):
         doc = 'Salt to be used when deriving key from master password',
     )
 
-    holders = schema.Sequence() # inverse=password.holders
+    holders = schema.Sequence(doc='inverse=password.holders')
 
     @runInUIThread
     def decryptPassword(self, masterPassword=None, window=None):
@@ -324,3 +325,7 @@ def installParcel(parcel, oldVersion = None):
     waitForDeferred(dummyPassword.encryptPassword(password, masterPassword=''))
     
     PasswordPrefs.update(parcel, 'passwordPrefs', dummyPassword=dummyPassword)
+    
+    # This ensures that MasterPassword.installParcel gets called now;
+    # not doing this can lead to weird stale parcel items later on.
+    schema.ns('osaf.framework.MasterPassword', parcel).masterPasswordPrefs
