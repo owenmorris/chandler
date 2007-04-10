@@ -1047,8 +1047,8 @@ class DBStore(Store):
 
     def loadItem(self, view, version, uuid):
 
-        version, item = self._items.findItem(view, version, uuid,
-                                             ItemContainer.NO_DIRTIES_TYPES)
+        version, item = self._items.c.findItem(view, version, uuid,
+                                               ItemContainer.NO_DIRTIES_TYPES)
         if item is None:
             return None
 
@@ -1431,8 +1431,6 @@ class DBIndexerThread(RepositoryThread):
                             else:
                                 dirties = list(dirties)
                             self._indexItem(view, ver, store, uItem, dirties)
-                            items.c.setItemStatus(store.txn, ver, uItem,
-                                                  status & ~CItem.TOINDEX)
                             count += 1
 
                     store.setIndexVersion(version)

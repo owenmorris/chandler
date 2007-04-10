@@ -1020,40 +1020,6 @@ class ItemContainer(DBContainer):
 
         return _finder()
 
-    def findItem(self, view, version, uuid, dataTypes):
-
-        store = self.store
-
-        key = Record(Record.UUID, uuid,
-                     Record.INT, ~version)
-
-        while True:
-            txnStatus = 0
-            cursor = None
-
-            try:
-                txnStatus = store.startTransaction(view)
-                cursor = self.c.openCursor()
-
-                key, item = self.c.find_record(cursor, key, dataTypes,
-                                               self.c.flags, NONE_PAIR,
-                                               True)
-                if item is not None:
-                    return ~key[1], item
-
-                return NONE_PAIR
-
-            except DBLockDeadlockError:
-                if txnStatus & store.TXN_STARTED:
-                    store._logDL()
-                    continue
-                else:
-                    raise
-
-            finally:
-                self.c.closeCursor(cursor)
-                store.abortTransaction(view, txnStatus)
-
     def getItemValues(self, version, uuid):
 
         item = self.get_record(Record(Record.UUID, uuid,
@@ -1078,8 +1044,8 @@ class ItemContainer(DBContainer):
                                           Record.INT, ~version),
                                    ItemContainer.VALUES_TYPES)
         else:
-            version, item = self.findItem(view, version, uItem,
-                                          ItemContainer.VALUES_TYPES)
+            version, item = self.c.findItem(view, version, uItem,
+                                            ItemContainer.VALUES_TYPES)
 
         if item is not None:
             return uValue in item[-1]
@@ -1093,8 +1059,8 @@ class ItemContainer(DBContainer):
                                           Record.INT, ~version),
                                    ItemContainer.VALUES_TYPES)
         else:
-            version, item = self.findItem(view, version, uuid,
-                                          ItemContainer.VALUES_TYPES)
+            version, item = self.c.findItem(view, version, uuid,
+                                            ItemContainer.VALUES_TYPES)
 
         if item is not None:
             i = iter(item[-1].data)
@@ -1118,8 +1084,8 @@ class ItemContainer(DBContainer):
                                           Record.INT, ~version),
                                    ItemContainer.VALUES_TYPES)
         else:
-            version, item = self.findItem(view, version, uuid,
-                                          ItemContainer.VALUES_TYPES)
+            version, item = self.c.findItem(view, version, uuid,
+                                            ItemContainer.VALUES_TYPES)
 
         if item is not None:
             values = item[-1].data
@@ -1139,8 +1105,8 @@ class ItemContainer(DBContainer):
 
     def getItemParentId(self, view, version, uuid):
 
-        version, item = self.findItem(view, version, uuid,
-                                      ItemContainer.PARENT_TYPES)
+        version, item = self.c.findItem(view, version, uuid,
+                                        ItemContainer.PARENT_TYPES)
         if item is not None:
             return item[-1]
 
@@ -1148,8 +1114,8 @@ class ItemContainer(DBContainer):
 
     def getItemKindId(self, view, version, uuid):
 
-        version, item = self.findItem(view, version, uuid,
-                                      ItemContainer.KIND_TYPES)
+        version, item = self.c.findItem(view, version, uuid,
+                                        ItemContainer.KIND_TYPES)
         if item is not None:
             return item[-1]
 
@@ -1157,8 +1123,8 @@ class ItemContainer(DBContainer):
 
     def getItemName(self, view, version, uuid):
 
-        version, item = self.findItem(view, version, uuid,
-                                      ItemContainer.NAME_TYPES)
+        version, item = self.c.findItem(view, version, uuid,
+                                        ItemContainer.NAME_TYPES)
         if item is not None:
             return item[-1]
 
@@ -1166,7 +1132,7 @@ class ItemContainer(DBContainer):
 
     def getItemVersion(self, view, version, uuid):
 
-        version, item = self.findItem(view, version, uuid, Nil)
+        version, item = self.c.findItem(view, version, uuid, Nil)
         if item is not None:
             return version
 

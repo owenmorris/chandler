@@ -463,10 +463,29 @@ class SortedIndex(DelegatingIndex):
     def moveKeys(self, keys, ignore=None, insertMissing=None):
 
         index = self._index
+        skipList = index.skipList
         selection = set()
         inserts = []
+        moves = []
+
+        if not isinstance(keys, set):
+            keys = set(keys)
 
         for key in keys:
+            if key in index:
+                prevKey = skipList.previous(key)
+                nextKey = skipList.next(key)
+                if ((prevKey is None or (prevKey not in keys and
+                                         self.compare(prevKey, key) <= 0)) and
+                    (nextKey is None or (nextKey not in keys and
+                                         self.compare(nextKey, key) >= 0))):
+                    continue
+            moves.append(key)
+
+        if not moves:
+            return
+
+        for key in moves:
             removed, selected = index.removeKey(key)
             if removed:
                 inserts.append(key)
@@ -478,15 +497,15 @@ class SortedIndex(DelegatingIndex):
                 inserts.append(key)
 
         for key in inserts:
-            afterKey = index.skipList.after(key, self.compare)
-            index.insertKey(key, afterKey, key in selection)
+            index.insertKey(key, skipList.after(key, self.compare),
+                            key in selection)
 
         if self._subIndexes:
             view = self._valueMap.itsView
             for uuid, attr, name in self._subIndexes:
                 indexed = getattr(view[uuid], attr)
                 index = indexed.getIndex(name)
-                subKeys = [key for key in keys if key in index]
+                subKeys = [key for key in moves if key in index]
                 if subKeys:
                     index.moveKeys(subKeys, ignore, insertMissing)
                     indexed._setDirty(True)
