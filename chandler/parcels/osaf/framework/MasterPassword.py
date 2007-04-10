@@ -45,7 +45,7 @@ _masterPassword = None
 _timer = None
 
 @runInUIThread
-def get(view, testPassword=None):
+def get(view, parent=None, testPassword=None):
     """
     Get the master password. If needed, it will be asked from the user.
     
@@ -108,7 +108,8 @@ def get(view, testPassword=None):
             raise RuntimeError('At least one password was expected to be initialized')
         if again:
             wx.MessageBox (_(u'Master password was incorrect, please try again.'),
-                           _(u'Incorrect password'))
+                           _(u'Incorrect password'),
+                           parent=parent)
             continue
         
         break
@@ -150,7 +151,8 @@ def change(view, parent=None):
     
                 if not _change(oldMaster, newMaster, view, prefs):
                     wx.MessageBox(_(u'Old password was incorrect, please try again.'),
-                                  _(u'Incorrect password'), parent=parent)
+                                  _(u'Incorrect password'),
+                                  parent=parent)
                     continue
                 
                 ret = True
@@ -202,7 +204,9 @@ def beforeBackup(view, parent=None):
         if count == 1: # We will always have at least one, the dummy password
             return
         if wx.MessageBox(_(u'Anyone who gets access to your data can view your account passwords. Do you want to protect your account passwords by encrypting them with the master password?'),
-                     _(u'Set Master password?'), style = wx.YES_NO) == wx.YES:
+                         _(u'Set Master password?'),
+                         style = wx.YES_NO,
+                         parent=parent) == wx.YES:
             waitForDeferred(change(view, parent))
 
 
@@ -505,7 +509,8 @@ class ChangeMasterPasswordDialog(wx.Dialog):
     def OnReset(self, evt):
         if wx.MessageBox (_(u'Protected information will be deleted.\nAre you sure you want to reset Master Password?'),
                           _(u'Confirm Reset?'),
-                          style = wx.YES_NO, parent=self) == wx.YES:
+                          style = wx.YES_NO,
+                          parent=self) == wx.YES:
             try:
                 reset(self.view)
             finally:
