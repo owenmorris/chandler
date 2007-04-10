@@ -70,10 +70,9 @@ class ICalendarTestCase(SingleRepositoryTestCase):
         self.share._prepare()
                                    
         self.share.sync(modeOverride='get')
-        ###return format
 
     def testSummaryAndDateTimeImported(self):
-        format = self.Import(self.view, u'Chandler.ics')
+        self.Import(self.view, u'Chandler.ics')
         event = pim.EventStamp(sharing.findUID(
                                     self.view,
                                    'BED962E5-6042-11D9-BE74-000A95BB2738'))
@@ -86,7 +85,7 @@ class ICalendarTestCase(SingleRepositoryTestCase):
          % event.startTime)
 
     def testDateImportAsAllDay(self):
-        format = self.Import(self.view, u'AllDay.ics')
+        self.Import(self.view, u'AllDay.ics')
         event = pim.EventStamp(sharing.findUID(self.view, 'testAllDay'))
         self.failUnless(pim.has_stamp(event, pim.EventStamp))
         self.assert_(event.startTime ==
@@ -97,8 +96,22 @@ class ICalendarTestCase(SingleRepositoryTestCase):
          "allDay not set properly for all day event, allDay is %s"
          % event.allDay)
 
+    def testDateValuedExDate(self):
+        self.Import(self.view, u'AllDayRecurrence.ics')
+        event = pim.EventStamp(sharing.findUID(self.view, 'testAllDay'))
+        self.assertEqual(len(event.rruleset.exdates), 2)
+        self.assertEqual(
+            event.rruleset.exdates[0],
+            datetime.datetime(2007, 10, 15, 0, 0, tzinfo=ICUtzinfo.floating)
+        )
+        self.assertEqual(
+            event.rruleset.exdates[1],
+            datetime.datetime(2007, 10, 29, 0, 0, tzinfo=ICUtzinfo.floating)
+        )
+         
+
     def testExportFreeBusy(self):
-        format = self.Import(self.view, u'AllDay.ics')
+        self.Import(self.view, u'AllDay.ics')
         collection = self.share.contents
         schema.ns('osaf.pim', self.view).mine.addSource(collection)
 
@@ -188,7 +201,7 @@ class ICalendarTestCase(SingleRepositoryTestCase):
         
         try:
         
-            format = self.Import(self.view, u'Recurrence.ics')
+            self.Import(self.view, u'Recurrence.ics')
             event = pim.EventStamp(sharing.findUID(self.view,
                                         '5B30A574-02A3-11DA-AA66-000A95DA3228'))
             third = event.getFirstOccurrence().getNextOccurrence().getNextOccurrence()
@@ -236,7 +249,7 @@ class ICalendarTestCase(SingleRepositoryTestCase):
 
 
     def testImportRecurrenceWithTimezone(self):
-        format = self.Import(self.view, u'RecurrenceWithTimezone.ics')
+        self.Import(self.view, u'RecurrenceWithTimezone.ics')
         event = pim.EventStamp(sharing.findUID(self.view,
                                   'FF14A660-02A3-11DA-AA66-000A95DA3228'))
         mods = [evt for evt in event.modifications if
@@ -253,7 +266,7 @@ class ICalendarTestCase(SingleRepositoryTestCase):
                          ICUtzinfo.getInstance('US/Central'))
 
     def testImportRecurrenceAndTriageStatus(self):
-        format = self.Import(self.view, u'Recurrence.ics')
+        self.Import(self.view, u'Recurrence.ics')
         event = pim.EventStamp(sharing.findUID(self.view,
                                   '5B30A574-02A3-11DA-AA66-000A95DA3228'))
 
@@ -277,7 +290,7 @@ class ICalendarTestCase(SingleRepositoryTestCase):
         
 
     def testImportUnusualTzid(self):
-        format = self.Import(self.view, u'UnusualTzid.ics')
+        self.Import(self.view, u'UnusualTzid.ics')
         event = pim.EventStamp(sharing.findUID(
                                 self.view,
                                 '42583280-8164-11da-c77c-0011246e17f0'))
@@ -287,7 +300,7 @@ class ICalendarTestCase(SingleRepositoryTestCase):
     def testImportReminders(self):
         # @@@ [grant] Check for that reminders end up expired or not, as
         # appropriate.
-        format = self.Import(self.view, u'RecurrenceWithAlarm.ics')
+        self.Import(self.view, u'RecurrenceWithAlarm.ics')
         future = pim.EventStamp(sharing.findUID(self.view,
                                 'RecurringAlarmFuture'))
         reminder = future.itsItem.getUserReminder()
@@ -303,7 +316,7 @@ class ICalendarTestCase(SingleRepositoryTestCase):
         self.failUnless(second.itsItem.reminders is past.itsItem.reminders)
 
     def testImportAbsoluteReminder(self):
-        format = self.Import(self.view, u'AbsoluteReminder.ics')
+        self.Import(self.view, u'AbsoluteReminder.ics')
         eventItem = sharing.findUID(self.view, 'I-have-an-absolute-reminder')
         reminder = eventItem.getUserReminder()
         self.failUnless(reminder is not None, "No reminder was set")

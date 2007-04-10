@@ -467,8 +467,9 @@ class ICSSerializer(object):
                     for line in vobj.contents.get(date_name, []):
                         dates.extend(line.value)
                     if len(dates) > 0:
-                        dates = [convertToICUtzinfo(dt, helperView)
-                                 for dt in dates]
+                        if not (allDay or anyTime):
+                            dates = [convertToICUtzinfo(dt, helperView)
+                                     for dt in dates]
                         dt_value = toICalendarDateTime(dates, allDay, anyTime)
                     else:
                         dt_value = eim.NoChange
