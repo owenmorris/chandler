@@ -284,10 +284,7 @@ class ContentItem(Triageable):
         a new outgoing item.
         """
         
-        try:
-            super(ContentItem, self).InitOutgoingAttributes ()
-        except AttributeError:
-            pass
+        super(ContentItem, self).InitOutgoingAttributes ()
 
         # default the displayName
         self.displayName = messages.UNTITLED

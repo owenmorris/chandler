@@ -97,6 +97,9 @@ class DBRepositoryView(OnDemandRepositoryView):
             self._roots._clearDirties()
             self.setDirty(0)
 
+        if self.isCommitDeferred():
+            self._deferredCommitCtx._data = None
+
         self.prune(self.pruneSize)
 
     def queryItems(self, kind=None, attribute=None):
@@ -552,9 +555,13 @@ class DBRepositoryView(OnDemandRepositoryView):
 
     def commit(self, mergeFn=None, notify=True):
 
-        if self._status & RepositoryView.COMMITTING:
+        status = self._status
+
+        if status & RepositoryView.COMMITTING:
             self.logger.warning('%s: skipping recursive commit', self)
-        elif self._status & RepositoryView.REFRESHING:
+        elif status & RepositoryView.DEFERCOMMIT:
+            self._deferredCommitCtx._data = (mergeFn, notify)
+        elif status & RepositoryView.REFRESHING:
             self._status |= RepositoryView.COMMITREQ
         elif self._log or self._deletedRegistry:
             try:

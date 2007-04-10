@@ -254,7 +254,10 @@ class IndexMonitor(Monitor):
             if collection is not None:
                 index = collection.getIndex(indexName)
                 index.validateIndex(True)
-                index.moveKeys(deferredKeys)
+                if len(deferredKeys) == 1:
+                    index.moveKey(deferredKeys.pop())
+                else:
+                    index.moveKeys(deferredKeys)
                 collection._setDirty(True)
 
 

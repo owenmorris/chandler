@@ -435,6 +435,13 @@ class SortedIndex(DelegatingIndex):
         insert = True
 
         if key in index:
+            skipList = index.skipList
+            prevKey = skipList.previous(key)
+            nextKey = skipList.next(key)
+            if ((prevKey is None or self.compare(prevKey, key) <= 0) and
+                (nextKey is None or self.compare(nextKey, key) >= 0)):
+                return
+
             removed, selected = index.removeKey(key)
             if not removed:
                 if insertMissing is None:

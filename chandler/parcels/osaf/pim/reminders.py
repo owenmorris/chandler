@@ -318,6 +318,9 @@ class Remindable(schema.Item):
         )
     )
 
+    def InitOutgoingAttributes(self):
+        pass
+
     def onItemDelete(self, view, deferring):
         for rem in self.reminders:
             rem.delete(recursive=True)

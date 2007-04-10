@@ -88,10 +88,8 @@ class Contact(items.ContentItem):
         """ Init any attributes on ourself that are appropriate for
         a new outgoing item.
         """
-        try:
-            super(Contact, self).InitOutgoingAttributes ()
-        except AttributeError:
-            pass
+
+        super(Contact, self).InitOutgoingAttributes ()
 
         self.contactName = ContactName()
         self.contactName.firstName = ''

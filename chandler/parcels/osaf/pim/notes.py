@@ -67,11 +67,8 @@ class Note(items.ContentItem):
         """ Init any attributes on ourself that are appropriate for
         a new outgoing item.
         """
-        try:
-            super(Note, self).InitOutgoingAttributes ()
-        except AttributeError:
-            pass
 
+        super(Note, self).InitOutgoingAttributes ()
         self.processingStatus = 'processing'
 
     def ExportItemData(self, clipboardHandler):

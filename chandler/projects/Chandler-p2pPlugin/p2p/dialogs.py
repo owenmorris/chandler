@@ -288,7 +288,8 @@ class CheckMailDialog(MailDialog):
 
     def __init__(self, view):
 
-        super(CheckMailDialog, self).__init__(_m_(u'Check p2p email'))
+        title = _m_(u'Check p2p email')        
+        super(CheckMailDialog, self).__init__(title)
 
         sizer = wx.BoxSizer(wx.VERTICAL)
         grid = wx.GridSizer(3, 2)
