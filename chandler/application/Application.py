@@ -506,7 +506,7 @@ class wxApplication (wx.App):
             splash.updateGauge('twisted')
         Utility.initTwisted()
 
-        mainViewRoot = self.LoadMainViewRoot(delete=Globals.options.refreshui)
+        mainViewRoot = schema.ns("osaf.views.main", self.UIRepositoryView).MainViewRoot
 
         # arel: fix for bug involving window size and toolbar on MacOS (bug 3411).
         # The problem is that mainFrame gets resized when it is rendered
@@ -645,43 +645,6 @@ class wxApplication (wx.App):
         else:
             localeInfo.localeName = localeName
         
-    def LoadMainViewRoot (self, delete=False):
-        mainViewRoot = self.UIRepositoryView.findPath('//parcels/osaf/views/main/MainViewRoot')
-
-        if delete:
-            # We need to delete the mainViewRoot. Ideally we'd have automatic
-            # garbage colleciton so that all the garbage resulting from the
-            # deletion of the mainViewRoot would be cleaned up automatically.
-            # However, I haven't been able to convince OSAF of the importance
-            # of automatic garbage collection, so the deletion is going to
-            # be problematic until we implement a garbage collector.
-            #
-            # Currently, I'm going to try deleting all BranchPoint block
-            # delegate's caches, then all the Blocks in the userdata.
-            # Chances are this will leave some lingering garbage, but it's
-            # too difficult to track it down for now, and isn't worth it yet
-            # since this code is used mostly for debugging. And in any event,
-            # it would be easier to implement a garbage collector.
-            def deleteAllBranchCaches (block):
-                for child in block.childBlocks:
-                    deleteAllBranchCaches (child)
-                from osaf.framework.blocks.BranchPoint import BranchPointBlock
-                if isinstance (block, BranchPointBlock):
-                    block.delegate.deleteCopiesFromCache()
-
-            self.UIRepositoryView.refresh()
-            deleteAllBranchCaches(mainViewRoot)
-
-            from osaf.framework.blocks.Block import Block
-
-            for item in self.UIRepositoryView['userdata'].iterChildren():
-                if isinstance (item, Block):
-                    item.delete()
-
-            self.UIRepositoryView.commit()
-
-        return mainViewRoot
-
     def RenderMainView (self):
         from osaf.framework.blocks.Block import Block
 

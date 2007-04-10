@@ -79,10 +79,10 @@ class StartupOptionsDialog(wx.Dialog):
         self.normalStartup.Bind(wx.EVT_LEFT_DCLICK, self.onButton)
 
         if repoExists:
-            self.refreshui = wx.RadioButton(self, -1, 
+            self.repairRecover = wx.RadioButton(self, -1, 
                 _(u"Do internal clean-up, but save my data and preferences"))
-            sizer.Add(self.refreshui, flag=wx.ALL, border=5)
-            self.refreshui.Bind(wx.EVT_LEFT_DCLICK, self.onButton)
+            sizer.Add(self.repairRecover, flag=wx.ALL, border=5)
+            self.repairRecover.Bind(wx.EVT_LEFT_DCLICK, self.onButton)
 
             self.undoRepair = wx.RadioButton(self, -1, 
                 _(u"Discard recent changes until data integrity tests pass"))
@@ -126,8 +126,7 @@ class StartupOptionsDialog(wx.Dialog):
         if hasattr(self, 'create'):
             Globals.options.create = self.create.GetValue()
         
-        if hasattr(self, 'refreshui') and self.refreshui.GetValue():
-            Globals.options.refreshui = True
+        if hasattr(self, 'repairRecover') and self.repairRecover.GetValue():
             Globals.options.repair = True
             Globals.options.recover = True
 

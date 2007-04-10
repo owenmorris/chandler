@@ -254,14 +254,6 @@ class BranchPointDelegate(schema.Item):
     # Dictionary of trees of blocks indexed by cache key UUID
     keyUUIDToBranch = schema.Mapping(Block, initialValue = {})
 
-    def deleteCopiesFromCache(self):
-        defaultParent = self.getDefaultParent (self.itsView)
-        # create the list before iterating because we're modifing the dictionary in the loop
-        for key, item in [tuple for tuple in self.keyUUIDToBranch.iteritems()]:
-            if isitem(item) and item.itsParent == defaultParent:
-                del self.keyUUIDToBranch [key]
-                item.delete (cloudAlias="copying")
-
     def getBranchForKeyItem(self, keyItem):
         """
         Given an item, return the view to be used to display it.

@@ -35,7 +35,7 @@ import version
 # with your name (and some helpful text). The comment's really there just to
 # cause Subversion to warn you of a conflict when you update, in case someone 
 # else changes it at the same time you do (that's why it's on the same line).
-SCHEMA_VERSION = "370" # Morgen: additional sharing metadata
+SCHEMA_VERSION = "371" # John: menu changes and removal of LoadMainViewRoot and friends
 
 logger = None # initialized in initLogging()
 
@@ -234,7 +234,6 @@ COMMAND_LINE_OPTIONS = {
     'catch':      ('',   '--catch',      's', 'normal', 'CHANDLERCATCH', '"normal" leaves outer and test exception handlers in place (the default); "tests" removes the outer one, and "never" removes both.'),
     'wing':       ('-w', '--wing',       'b', False, None, ''),
     'komodo':     ('-k', '--komodo',     'b', False, None, ''),
-    'refreshui':  ('-u', '--refresh-ui', 'b', False, None, 'Refresh the UI from the repository during startup'),
     'locale':     ('-l', '--locale',     's', None,  None, 'Set the default locale'),
     'encrypt':    ('-S', '--encrypt',    'b', False, None, 'Request prompt for password for repository encryption'),
     'nosplash':   ('-N', '--nosplash',   'b', False, 'CHANDLERNOSPLASH', ''),

@@ -101,7 +101,7 @@ class Controller (Block.Block):
         if self.FilterEvent in wx.GetApp().filterEventCallables:
             event.arguments['Text'] = _(u'Stop recording')
         else:
-            event.arguments['Text'] = _(u'Record script')
+            event.arguments['Text'] = _(u'Record script...')
 
     def onIncludeTestsEvent (self, event):
         self.includeTests = not self.includeTests
@@ -365,7 +365,7 @@ def installParcel(parcel, old_version=None):
     MenuItem.update(
         parcel, 'PlayScriptMenuItem',
         blockName = 'PlayScriptMenuItem',
-        title = _(u'&Play script'),
+        title = _(u'&Play script...'),
         helpString = _(u'Playback a script you recorded'),
         event = PlayScript,
         eventsForNamedLookup = [PlayScript],
