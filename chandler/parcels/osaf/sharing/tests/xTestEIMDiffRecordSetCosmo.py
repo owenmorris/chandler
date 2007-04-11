@@ -40,19 +40,23 @@ class EIMDiffRecordSetCosmoTestCase(RoundTripTestCase):
 
     def PrepareShares(self):
 
+        servers = [
+            ("qacosmo.osafoundation.org", 80, False),
+            ("cosmo.letness.org", 8080, False),
+            ("bcm.osafoundation.org", 8080, False),
+        ]
+        server = 1
+
         view0 = self.views[0]
         coll0 = self.coll
         self.assert_(not pim.has_stamp(coll0, sharing.SharedItem))
         account = cosmo.CosmoAccount(itsView=view0,
-            host="qacosmo.osafoundation.org",
-            # host="cosmo.letness.org",
-            # host="bcm.osafoundation.org",
-            # port=8080,
-            port=80,
+            host=servers[server][0],
+            port=servers[server][1],
             path="/cosmo",
             username="test",
             password=Password(itsView=view0),
-            useSSL=False
+            useSSL=servers[server][2]
         )
         waitForDeferred(account.password.encryptPassword('test1'))
 
@@ -68,15 +72,12 @@ class EIMDiffRecordSetCosmoTestCase(RoundTripTestCase):
 
         view1 = self.views[1]
         account = cosmo.CosmoAccount(itsView=view1,
-            host="qacosmo.osafoundation.org",
-            # host="cosmo.letness.org",
-            # host="bcm.osafoundation.org",
-            # port=8080,
-            port=80,
+            host=servers[server][0],
+            port=servers[server][1],
             path="/cosmo",
             username="test",
             password=Password(itsView=view1),
-            useSSL=False
+            useSSL=servers[server][2]
         )
         waitForDeferred(account.password.encryptPassword('test1'))
 
