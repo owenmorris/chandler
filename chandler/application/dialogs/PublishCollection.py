@@ -39,7 +39,7 @@ class PublishCollectionDialog(wx.Dialog):
                  pos=wx.DefaultPosition, style=wx.DEFAULT_DIALOG_STYLE,
                  resources=None, view=None, collection=None,
                  publishType='collection', modal=True,
-                 name=None):
+                 name=None, account=None):
 
         wx.Dialog.__init__(self, None, -1, title, pos, size, style)
         self.resources = resources
@@ -48,6 +48,7 @@ class PublishCollectionDialog(wx.Dialog):
         self.modal = modal
         self.publishType = publishType
         self.name = name
+        self.account = account # use this account, overriding the default
 
         self.mySizer = wx.BoxSizer(wx.VERTICAL)
 
@@ -113,8 +114,11 @@ class PublishCollectionDialog(wx.Dialog):
 
         collName = self.collection.displayName
 
-        self.currentAccount = schema.ns('osaf.sharing',
-            self.view).currentSharingAccount.item
+        if self.account: # use this account overriding the default
+            self.currentAccount = self.account
+        else:
+            self.currentAccount = schema.ns('osaf.sharing',
+                self.view).currentSharingAccount.item
 
         # Populate the listbox of sharing accounts
         self.accounts = self._getSharingAccounts()
@@ -423,6 +427,7 @@ class PublishCollectionDialog(wx.Dialog):
         wx.Yield()
 
         attrsToExclude = self._getAttributeFilterState()
+
         accountIndex = self.accountsControl.GetSelection()
         account = self.accountsControl.GetClientData(accountIndex)
 
@@ -678,7 +683,8 @@ type_to_xrc_map = {'collection' :
                    ('PublishFreeBusy.xrc', _(u"Publish Free/Busy Calendar"))}
 
 def ShowPublishDialog(view=None, collection=None,
-                      publishType = 'collection', modal=False, name=None):
+                      publishType = 'collection', modal=False, name=None,
+                      account=None):
     filename, title = type_to_xrc_map[publishType]
 
     isShared = sharing.isShared(collection)
@@ -696,7 +702,8 @@ def ShowPublishDialog(view=None, collection=None,
                                   collection=collection,
                                   publishType=publishType,
                                   modal=modal,
-                                  name=name)
+                                  name=name,
+                                  account=account)
     win.CenterOnScreen()
     if modal:
         return win.ShowModal()
