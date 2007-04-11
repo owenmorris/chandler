@@ -361,7 +361,9 @@ class PublishCollectionDialog(wx.Dialog):
             else:
                 if '_triageStatus' in share.filterAttributes:
                     share.filterAttributes.remove('_triageStatus')
+                if '_triageStatusChanged' in share.filterAttributes:
                     share.filterAttributes.remove('_triageStatusChanged')
+                if '_doAutoTriageOnDateChange' in share.filterAttributes:
                     share.filterAttributes.remove('_doAutoTriageOnDateChange')
 
             # Make sure no matter what we keep filtering out the attributes that
