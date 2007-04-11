@@ -15,6 +15,7 @@
 import tools.cats.framework.ChandlerTestLib as QAUITestAppLib
 from tools.cats.framework.ChandlerTestCase import ChandlerTestCase
 import flickr
+import httplib
 import socket
 from i18n.tests import uw
 
@@ -50,7 +51,7 @@ class TestFlickr(ChandlerTestCase):
             self.logger.endAction(True, "IOError (%s); skipping test" % str(e))
         except flickr.flickr.FlickrNotFoundError:
             self.logger.endAction(True, "Flickr search returned nothing; skipping test")
-        except flickr.flickr.FlickrError, e:
+        except (flickr.flickr.FlickrError, httplib.HTTPException), e:
             self.logger.endAction(True, "Flickr service error (%s); skipping test" % str(e))
         else:
     

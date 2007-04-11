@@ -15,7 +15,7 @@
 
 __parcel__ = "photos"
 
-import urllib, time, cStringIO, logging, mimetypes
+import urllib2, time, cStringIO, logging, mimetypes
 from datetime import datetime
 from osaf import pim
 from repository.util.URL import URL
@@ -56,7 +56,7 @@ class PhotoMixin(pim.ContentItem):
     def importFromURL(self, url):
         if isinstance(url, URL):
             url = str(url)
-        data = urllib.urlopen(url).read()
+        data = urllib2.urlopen(url).read()
         (mimetype, encoding) = mimetypes.guess_type(url)
         self.photoBody = self.itsView.createLob(data, mimetype=mimetype,
             compression='bz2')

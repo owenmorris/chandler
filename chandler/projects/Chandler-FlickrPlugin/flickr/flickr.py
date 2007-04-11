@@ -39,7 +39,8 @@ __author__ = "James Clarke <james@jamesclarke.info>"
 __version__ = "$Rev: 24 $"
 __copyright__ = "Copyright 2004-5 James Clarke"
 
-from urllib import urlencode, urlopen
+from urllib2 import urlopen
+from urllib import urlencode
 from xml.dom import minidom
 
 HOST = 'http://flickr.com'
