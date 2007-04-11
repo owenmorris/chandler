@@ -89,7 +89,7 @@ class TurnOnTimezonesDialog(wx.Dialog):
         self.changedTimeZone = None
 
         pre = wx.PreDialog()
-        self.resources.LoadOnDialog(pre, parent, None, "TurnOnTimezonesDialog")
+        self.resources.LoadOnDialog(pre, parent, "TurnOnTimezonesDialog")
         self.PostCreate(pre)
 
         self.text     = wx.xrc.XRCCTRL(self, "Text")
