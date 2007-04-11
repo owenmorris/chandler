@@ -351,20 +351,23 @@ def getShare(collection):
 
     return None
 
-def isReadOnly(collection):
+def isReadOnly(item):
     """
     Return C{True} iff participating in only read-only shares.
     """
 
-    if not pim.has_stamp(collection, shares.SharedItem):
+    # If we're not stamped, we're not shared
+    if not pim.has_stamp(item, shares.SharedItem):
         return False
 
-    collection = shares.SharedItem(collection)
+    item = shares.SharedItem(item)
 
-    if not collection.shares:
+    # We might have been shared, see if we still are
+    if not item.sharedIn and not item.shares: # not in any shares
         return False
 
-    for share in collection.shares:
+    # For each share we're in, if *any* are writable, isReadOnly is False
+    for share in chain(item.sharedIn, item.shares):
         if share.mode in ('put', 'both'):
             return False
 
