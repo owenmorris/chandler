@@ -472,9 +472,8 @@ class Block(schema.Item):
                                               'onCollectionNotification')
 
         # Do item subscription, if this block wants us to watch
-        # something and has an onItemNotification method
-        if not (hasattr(type(self), 'onItemNotification') or
-                hasattr(self.widget, 'onItemNotification')):
+        # something and has a subclass of Block's onItemNotification method
+        if type(self).onItemNotification.im_func is Block.onItemNotification.im_func:
             return # no one to notify
         watchList = self.getWatchList()
         if not watchList:
@@ -574,8 +573,7 @@ class Block(schema.Item):
             for (block, attrs) in notifications.items():
                 #logger.debug("Notifying %s of change to '%s'",
                              #debugName(block), "', '".join(attrs))
-                block._sendItemNotificationAndSynchronize('itemChange',
-                                                          (op, uuid, attrs))
+                block.onItemNotification('itemChange', (op, uuid, attrs))
 
     def onCollectionNotification(self, op, collection, name, other):
         """
@@ -583,30 +581,11 @@ class Block(schema.Item):
         """
         if (not self.ignoreNotifications and
             self.itsView is wx.GetApp().UIRepositoryView):
-            self._sendItemNotificationAndSynchronize('collectionChange',
-                                                     (op, collection,
-                                                      name, other))
+            self.onItemNotification('collectionChange', (op, collection, name, other))
 
-    def _sendItemNotificationAndSynchronize(self, notificationType, data):
-        # Note that we need to be sync'd at the next idle.
-        # (this is the normal case on receiving a notification like this, though
-        # an onItemNotificationMethod can call markClean if the next-idle
-        # sync isn't necessary)
+    def onItemNotification (self, notificationType, data):
         self.markDirty()
-
-        # See if the block and/or the widget want to be notified.
-        # (We do both because some of the calendar blocks and widgets both
-        # have handlers)
-        onItemNotification = getattr(type(self), 'onItemNotification', None)
-        if onItemNotification is not None:
-            onItemNotification(self, notificationType, data)
-        if hasattr(self, 'widget'):
-            # (don't look up on type(self.widget) because it's not an Item,
-            # and so doesn't pay a repository lookup penalty)
-            onItemNotification = getattr(self.widget, 'onItemNotification', None)
-            if onItemNotification is not None:
-                onItemNotification(notificationType, data)
-
+    
     idToBlock = {}              # A dictionary mapping wxWidgets Ids to Blocks
     freeWXIds = []              # A list of unused wxWidgets Ids
     dirtyBlocks = set()         # A set of blocks that need to be redrawn in OnIdle

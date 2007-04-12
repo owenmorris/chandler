@@ -168,7 +168,7 @@ class wxMiniCalendar(DragAndDrop.DropReceiveWidget,
             end = minical.MonthDelta(start, 3)
             end = datetime.combine(end, zerotime)
 
-            if useHints and self.HavePendingNewEvents():
+            if self.HavePendingNewEvents():
                 addedEvents = self.GetPendingNewEvents((start, end), expandRecurrence=False)
 
                 # self._eventsToAdd is a set to deal with cases where
@@ -180,6 +180,7 @@ class wxMiniCalendar(DragAndDrop.DropReceiveWidget,
                 self._eventsToAdd.update(event for event in addedEvents if
                                          not isDead(event.itsItem) and 
                                          event.transparency == 'confirmed')
+                self.ClearPendingNewEvents()
             else:
                 self._eventsToAdd = None
 
@@ -711,18 +712,18 @@ class wxPreviewArea(CalendarCanvas.CalendarNotificationHandler, wx.Panel):
         startDay = startDay.replace(tzinfo=ICUtzinfo.default)
         endDay = startDay + one_day
 
-        if useHints and self.HavePendingNewEvents():
+        if self.HavePendingNewEvents():
             addedEvents = self.GetPendingNewEvents((startDay, endDay))
 
             addedEvents = set(item for item in addedEvents
                               if not isDead(item.itsItem) and 
                               item.transparency == 'confirmed')
 
-            if len(addedEvents) == 0:
-                return # No "interesting" new events
             for item in addedEvents:
                 if item not in self.currentDaysItems:
                     self.currentDaysItems.append(item)
+
+            self.ClearPendingNewEvents()
         else:
             inRange = self.blockItem.getEventsInRange((startDay, endDay),
                                               dayItems=True, timedItems=True)

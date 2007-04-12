@@ -159,9 +159,9 @@ class wxAllDayEventsCanvas(wxCalendarCanvas):
         # The only hints we understand are event additions.
         # So, if any other kind of hints have been received,
         # fall back to a full synchronize.
-        if useHints and self.HavePendingNewEvents():
-            addedEvents = \
-                self.GetPendingNewEvents(currentRange)
+        if self.HavePendingNewEvents():
+            addedEvents = self.GetPendingNewEvents(currentRange)
+
             addedEvents = [event for event in addedEvents
                            if Calendar.isDayEvent(event)]
                                 
@@ -178,8 +178,8 @@ class wxAllDayEventsCanvas(wxCalendarCanvas):
 
             if numAdded == 1:
                 self.EditCurrentItem()
-        else:
             self.ClearPendingNewEvents()
+        else:
             self.visibleItems = list(
                 self.blockItem.getEventsInRange(currentRange, dayItems=True))
             self.RefreshCanvasItems(resort=True)

@@ -927,10 +927,10 @@ class CalendarNotificationHandler(object):
     def onItemNotification(self, notificationType, data):
         if (notificationType == 'collectionChange'):
             op, coll, name, uuid = data
-            if op == 'add':
-                self._pendingNewEvents.add(uuid)
-            elif op == 'remove' and uuid in self._pendingNewEvents:
-                self._pendingNewEvents.remove(uuid)
+            op = {"add": "add", "remove":"discard"}.get (op, None)
+            if op is not None:
+                getattr (self._pendingNewEvents, op) (uuid)
+                self.blockItem.markDirty()
 
     def ClearPendingNewEvents(self):
         self._pendingNewEvents = set()
@@ -982,7 +982,7 @@ class CalendarNotificationHandler(object):
         return addedEvents
 
     def HavePendingNewEvents(self):
-        return len(self._pendingNewEvents)>0
+        return len(self._pendingNewEvents) > 0
 
 
 # ATTENTION: do not put mixins here - put them in CollectionBlock
@@ -1326,6 +1326,10 @@ class CalendarBlock(CollectionCanvas.CollectionBlock):
         return (super(CalendarBlock, self).CanAdd() and
                 UserCollection(self.contentsCollection).canAdd)
 
+    def onItemNotification(self, notificationType, data):
+        # Delegate notifications to the block
+        self.widget.onItemNotification(notificationType, data)
+
 # ATTENTION: do not put mixins here - put them in wxCollectionCanvas
 # instead, to keep them more general
 class wxCalendarCanvas(CalendarNotificationHandler, CollectionCanvas.wxCollectionCanvas):
@@ -1654,10 +1658,6 @@ class wxCalendarCanvas(CalendarNotificationHandler, CollectionCanvas.wxCollectio
         self.editor.SetInsertionPoint(0)
         self.editor.SetValue(key)
         self.editor.SetInsertionPointEnd()
-
-    def wxSynchronizeWidget(self, useHints=False):
-        # clear notifications
-        self.ClearPendingNewEvents()
 
 class wxInPlaceEditor(AttributeEditors.wxEditText):
 

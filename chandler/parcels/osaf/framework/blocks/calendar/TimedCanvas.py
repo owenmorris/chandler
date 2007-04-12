@@ -125,7 +125,7 @@ class wxTimedEventsCanvas(BaseWidget, wxCalendarCanvas):
         numAdded = 0 # The events may not be timed, or may fall
                      # outside our range, etc,
                      
-        if useHints and self.HavePendingNewEvents():
+        if self.HavePendingNewEvents():
             removals = []
             for i in self.visibleItems:
                 # clean up visibleItems, removing stale items and events that
@@ -140,7 +140,7 @@ class wxTimedEventsCanvas(BaseWidget, wxCalendarCanvas):
             addedEvents = self.GetPendingNewEvents(currentRange)
             
             defaultTzinfo = ICUtzinfo.default
-            
+
             def fixTimezone(d):
                 if d.tzinfo is None:
                     return d.replace(tzinfo=defaultTzinfo)
@@ -148,7 +148,6 @@ class wxTimedEventsCanvas(BaseWidget, wxCalendarCanvas):
                     return d.astimezone(defaultTzinfo)
                     
             date, nextDate = (fixTimezone(d) for d in currentRange)
-
 
             primaryCollection = self.blockItem.contentsCollection
             
@@ -187,6 +186,7 @@ class wxTimedEventsCanvas(BaseWidget, wxCalendarCanvas):
                 insertInSortedList(self.canvasItemList, canvasItem, 'event')
                 numAdded += 1
 
+            self.ClearPendingNewEvents()
         else:
             self.ClearPendingNewEvents()
             self.visibleItems = list(self.blockItem.getEventsInRange(currentRange, 
