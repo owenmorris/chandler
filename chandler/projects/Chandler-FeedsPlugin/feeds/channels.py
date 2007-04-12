@@ -1,4 +1,4 @@
-#   Copyright (c) 2003-2006 Open Source Applications Foundation
+#   Copyright (c) 2003-2007 Open Source Applications Foundation
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -77,7 +77,7 @@ def setAttribute(self, data, attr, newattr=None):
         type = self.getAttributeAspect(newattr, "type", None)
         if type is not None:
             value = type.makeValue(value)
-        self.setAttributeValue(newattr, value)
+        setattr(self, newattr, value)
 
 def setAttributes(self, data, attributes):
     """

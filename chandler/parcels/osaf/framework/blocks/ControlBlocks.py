@@ -500,7 +500,7 @@ class AttributeDelegate (ListDelegate):
         item = self.blockItem.contents [itemIndex]
         attributeName = self.blockItem.columns[column].attributeName
         assert item.itsKind.hasAttribute (attributeName), "You cannot set a non-Chandler attribute value of an item (like itsKind)"
-        item.setAttributeValue (attributeName, value)
+        setattr(item, attributeName, value)
 
     def GetColumnHeading (self, column, item):
         col = self.blockItem.columns[column]

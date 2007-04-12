@@ -124,8 +124,8 @@ class ItemValuesDialog(wx.Dialog):
     def AssignNewValues(self):
         i = 0
         for (valueDict) in self.chandlerAttrs:
-            self.chandlerItem.setAttributeValue(valueDict["attr"],
-             self.chandlerTextControls[i].GetValue())
+            setattr(self.chandlerItem, valueDict["attr"],
+                    self.chandlerTextControls[i].GetValue())
             i += 1
 
 
