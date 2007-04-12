@@ -1143,7 +1143,7 @@ static PyObject *t_item__fillItem(t_item *self, PyObject *args)
 
     if (!self->parentRef)
     {
-        PyErr_SetString(PyExc_AssertionError, "no parent");
+        PyErr_SetString(PyExc_AssertionError, "item._fillItem(): no parent");
         return NULL;
     }
 

@@ -910,7 +910,8 @@ static PyObject *_t_sl_list_get(t_sl *self, Py_ssize_t position)
             }
         }
 
-        PyErr_SetNone(PyExc_AssertionError);
+        PyErr_SetString(PyExc_AssertionError,
+                        "skiplist array get: unreachable code");
         return NULL;
     }
 }
@@ -1534,7 +1535,8 @@ static int _t_sl__place(t_sl *self, int op, PyObject *key, PyObject *afterKey)
 
     if (!PyObject_Compare(key, afterKey))
     {
-        PyErr_Format(PyExc_AssertionError, "key != afterKey");
+        PyErr_SetString(PyExc_AssertionError,
+                        "skiplist._place(): key != afterKey");
         return -1;
     }
 
@@ -1828,8 +1830,9 @@ static PyObject *t_sl_after(t_sl *self, PyObject *args)
 /* if the skip list is sorted, return a key matching a congruent predicate */
 static PyObject *t_sl_find(t_sl *self, PyObject *args)
 {
-    PyObject *mode, *callable, *match;
-    int numArgs, lo, hi;
+    PyObject *arg, *callable, *match;
+    int numArgs, lo, hi, mode;
+    enum {exact, first, last};
 
     if (self->flags & SL_INVALID)
         return _t_sl_invalid(self);
@@ -1840,15 +1843,27 @@ static PyObject *t_sl_find(t_sl *self, PyObject *args)
         return NULL;
     }
 
-    numArgs = PyTuple_Size(args);
+    numArgs = PyTuple_GET_SIZE(args);
     if (numArgs < 2)
     {
         PyErr_SetString(PyExc_TypeError, "at least 2 arguments required");
         return NULL;
     }
 
-    mode = PyTuple_GetItem(args, 0);
-    callable = PyTuple_GetItem(args, 1);
+    arg = PyTuple_GET_ITEM(args, 0);
+    if (!PyObject_Compare(arg, exact_NAME))
+        mode = exact;
+    else if (!PyObject_Compare(arg, first_NAME))
+        mode = first;
+    else if (!PyObject_Compare(arg, last_NAME))
+        mode = last;
+    else
+    {
+        PyErr_SetObject(PyExc_ValueError, arg);
+        return NULL;
+    }
+        
+    callable = PyTuple_GET_ITEM(args, 1);
 
     lo = 0;
     hi = PyObject_Size(self->map) - 1;
@@ -1890,21 +1905,20 @@ static PyObject *t_sl_find(t_sl *self, PyObject *args)
 
         if (diff == 0)
         {
-            if (!PyObject_Compare(mode, exact_NAME))
-            {
-                Py_INCREF(key);
-                return key;
-            }
-
             match = key;
-        
-            if (!PyObject_Compare(mode, first_NAME))
+            switch (mode) {
+              case exact:
+                Py_INCREF(match);
+                return match;
+              case first:
                 hi = pos - 1;
-            else if (!PyObject_Compare(mode, last_NAME))
+                break;
+              case last:
                 lo = pos + 1;
-            else
-            {
-                PyErr_SetObject(PyExc_ValueError, mode);
+                break;
+              default:
+                PyErr_SetString(PyExc_AssertionError,
+                                "skiplist.find(): unreachable code");
                 return NULL;
             }
         }

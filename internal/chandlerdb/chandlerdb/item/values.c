@@ -1,5 +1,5 @@
 /*
- *  Copyright (c) 2003-2006 Open Source Applications Foundation
+ *  Copyright (c) 2003-2007 Open Source Applications Foundation
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -473,7 +473,7 @@ static PyObject *t_values__getItem(t_values *self, void *data)
 
     if (!ref->item)
     {
-        PyErr_SetString(PyExc_AssertionError, "no item");
+        PyErr_SetString(PyExc_AssertionError, "values._getItem(): no item");
         return NULL;
     }
 

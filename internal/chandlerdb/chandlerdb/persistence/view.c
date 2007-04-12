@@ -999,7 +999,8 @@ int _t_view__unregisterItem(t_view *self, t_item *item, int reloadable)
 
     if (item->ref->view != (PyObject *) self)
     {
-        PyErr_SetObject(PyExc_AssertionError, (PyObject *) item);
+        PyErr_SetString(PyExc_AssertionError,
+                        "view._unregisterItem(): item doesn't belong to view");
         return -1;
     }
 
