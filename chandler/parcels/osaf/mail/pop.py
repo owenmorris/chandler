@@ -615,4 +615,4 @@ class POPClient(base.AbstractDownloadClient):
             self.account = self.view.findUUID(self.accountUUID)
 
         return self.account
- 
+
