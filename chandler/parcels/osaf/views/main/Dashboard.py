@@ -108,19 +108,25 @@ class DashboardBlock(Table):
         if autoTriageToo and wx.MessageBox(
             _(u"Are you sure you want to reset the triage status of everything in this collection?"),
             _(u"Automatic triage"), wx.OK | wx.CANCEL | wx.ICON_HAND) != wx.OK:
-            return        
+            return
         
+        #import hotshot
+        #print 'triaging'
+        #prof = hotshot.Profile('triage.log')
+        #prof.runcall(self._onTriageEvent, event, autoTriageToo)
+        #prof.close()
+        #print 'done triaging'
+    
+    #def _onTriageEvent(self, event, autoTriageToo):        
         # Don't fire all the observers (until we're done, that is).
         recurringEventsToHandle = set()
+        attrsToFind = ((pim.EventStamp.modificationFor.name, None),
+                       ('_sectionTriageStatus', None))
         with self.itsView.observersDeferred():
             with self.itsView.reindexingDeferred():
-                modificationForAttr = pim.EventStamp.modificationFor.name
                 for key in self.contents.iterkeys():
-                    master = self.itsView.findValue(key, modificationForAttr,
-                                                    default=None)
-                    if autoTriageToo \
-                       or self.itsView.findValue(key, '_sectionTriageStatus', 
-                                                 default=None) is not None:
+                    master, sectionTS = self.itsView.findValues(key, *attrsToFind)
+                    if autoTriageToo or sectionTS is not None:
                         item = self.itsView[key]
                         item.purgeSectionTriageStatus()
                         if autoTriageToo:
@@ -138,4 +144,3 @@ class DashboardBlock(Table):
             if isinstance(master, UUID):
                 master = self.itsView[master]
             pim.EventStamp(master).updateTriageStatus(checkOccurrences=autoTriageToo)
-

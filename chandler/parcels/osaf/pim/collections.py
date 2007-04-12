@@ -167,20 +167,6 @@ class MethodIndexDefinition(IndexDefinition):
 
     def compare_init(self, u, vals):
         return self.itsView.findInheritedValues(u, *self.findValuePairs)
-        
-    # @@@ [grant] Unused
-    def compareValues(self, v1, v2):
-        """
-        Override this to implement the comparison between two items. C{v1}
-        and C{v2} are C{tuple} objects; the results of calling C{findValues()}
-        on C{findValuePairs} for the two items in question.
-        """
-        
-        # Maybe this should default to cmp()?
-        raise TypeError(
-            "pim.MethodIndexDefinition is an abstract type; use a subtype " \
-            "that overrides compare, or compareValues()"
-        )
 
     schema.initialValues(
         # Make the attributes we monitor be the same as the ones we'll
