@@ -704,11 +704,16 @@ class wxApplication (wx.App):
                         print indent, name
                         self.PrintTree (window, indent + "  ")
 
+    imageCache = {}
+
     def GetRawImage (self, name):
         """
         Return None if image isn't found, otherwise return the raw image.
         Also look first for platform specific images.
         """
+        entry = wxApplication.imageCache.get(name)
+        if entry is not None:
+            return entry[0]
 
         root, extension = os.path.splitext (name)
 
@@ -718,9 +723,13 @@ class wxApplication (wx.App):
             file = getImage(name)
 
             if file is None:
+                wxApplication.imageCache[name] = [None]
                 return None
 
-        return wx.ImageFromStream (cStringIO.StringIO(file.read()))
+        image = wx.ImageFromStream (cStringIO.StringIO(file.read()))
+        wxApplication.imageCache[name] = [image]
+        
+        return image
 
     def GetImage (self, name):
         """
