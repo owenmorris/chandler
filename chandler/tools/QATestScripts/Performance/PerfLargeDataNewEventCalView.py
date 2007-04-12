@@ -24,10 +24,7 @@ try:
 
     # action
     # double click in the calendar view => event creation or selection
-    import hotshot
-    p=hotshot.Profile("perftest.prof")
-    ev = p.runcall(testView.DoubleClickInCalView)
-    p.close()
+    ev = testView.DoubleClickInCalView()
     
     # verification
     # check the detail view of the created event
