@@ -448,18 +448,11 @@ class Kind(Item):
 
     def getOtherName(self, name, item, default=Default):
 
-        otherNames = self._values.get('otherNames', None)
-        if otherNames is not None:
-            otherName = otherNames.get(name, None)
+        if item is not None:
+            otherName = item.getAttributeAspect(name, 'otherName',
+                                                False, None, None)
         else:
-            otherName = None
-
-        if otherName is None:
-            if item is not None:
-                otherName = item.getAttributeAspect(name, 'otherName',
-                                                    False, None, None)
-            else:
-                otherName = self.getAttribute(name).getAspect('otherName', None)
+            otherName = self.getAttribute(name).getAspect('otherName', None)
 
         if otherName is None:
             if default is not Default:

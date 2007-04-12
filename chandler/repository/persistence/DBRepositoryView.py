@@ -748,12 +748,11 @@ class DBRepositoryView(OnDemandRepositoryView):
             values = []
             references = []
             if kind is not None:
-                for name, attr, k in kind.iterAttributes():
-                    if name in dirties:
-                        if kind.getOtherName(name, None, None) is not None:
-                            references.append(name)
-                        else:
-                            values.append(name)
+                for name in kind._nameTuple(dirties):
+                    if kind.getOtherName(name, None, None) is not None:
+                        references.append(name)
+                    else:
+                        values.append(name)
             yield uItem, version, kind, status, values, references, prevKind
 
     def mapHistoryKeys(self, fromVersion=-1, toVersion=0):

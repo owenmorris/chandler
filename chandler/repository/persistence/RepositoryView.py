@@ -78,8 +78,9 @@ class RepositoryView(CView):
     # 0.6.23: added NilValue type for persisting Empty and Default
     # 0.6.24: monitor rework to support deferred re-indexing
     # 0.6.25: monitor rework to support inheritance with filters
+    # 0.6.26: removed 'otherNames' otherName override from Kind
     
-    CORE_SCHEMA_VERSION = 0x00061900
+    CORE_SCHEMA_VERSION = 0x00061a00
 
     def __init__(self, repository, name, version,
                  deferDelete=Default, pruneSize=Default):
