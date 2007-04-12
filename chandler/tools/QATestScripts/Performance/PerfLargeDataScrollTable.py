@@ -50,8 +50,9 @@ try:
     # completely paint the summary table. Without this the table will show
     # only a handful of entries and we scroll mostly grey, which makes us
     # report that we scrolled very fast. See bug 7457.
+    import time
+    time.sleep(1)
     User.idle()
-    User.idle() # Seems like another one is needed since 4/11/2007
     
     # Test Phase: Action (the action we are timing)
     
