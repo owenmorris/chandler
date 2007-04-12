@@ -13,12 +13,8 @@
 #   limitations under the License.
 
 # The fastest way to cleanly quit Chandler
-import os
 import tools.QAUITestAppLib as QAUITestAppLib
-from application import Globals
-filePath = Globals.options.profileDir
-fileName = "quit.log"
-logger = QAUITestAppLib.QALogger(os.path.join(filePath, fileName), "quit")
+logger = QAUITestAppLib.QALogger("quit.log", "quit")
 logger.Start("quit")
 logger.SetChecked(True)
 logger.Report("quit")
