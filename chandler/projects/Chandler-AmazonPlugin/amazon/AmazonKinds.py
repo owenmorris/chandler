@@ -276,8 +276,8 @@ class AmazonItem(ContentItem):
 
     # When you add/remove/modify attributes here remember to update the
     # corresponding names displayed in the user interface in __init__.py
-    ProductDescription = schema.One(schema.Text)
-    Author = schema.One(schema.Text)
+    ProductDescription = schema.One(schema.Text, indexed=True)
+    Author = schema.One(schema.Text, indexed=True)
     Media = schema.One(schema.Text)
     ReleaseDate = schema.One(schema.Text)
     ImageURL = schema.One(schema.URL)

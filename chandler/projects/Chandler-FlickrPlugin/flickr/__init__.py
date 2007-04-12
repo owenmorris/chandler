@@ -44,7 +44,7 @@ class FlickrPhotoMixin(PhotoMixin):
     imageURL = schema.One(schema.URL)
     datePosted = schema.One(schema.DateTime)
     tags = schema.Sequence()
-    owner = schema.One(schema.Text)
+    owner = schema.One(schema.Text, indexed=True)
 
     schema.addClouds(
         sharing = schema.Cloud(

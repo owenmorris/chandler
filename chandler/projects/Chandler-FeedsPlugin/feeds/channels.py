@@ -18,20 +18,15 @@ __parcel__ = "feeds"
 
 import time, logging, urllib
 from datetime import datetime
-from PyICU import ICUtzinfo, TimeZone
-from osaf.pim.calendar.TimeZone import convertToICUtzinfo
+from PyICU import ICUtzinfo
+from osaf.pim.calendar.TimeZone import convertToICUtzinfo, formatTime
 from dateutil.parser import parse as dateutil_parse
 from application import schema
 from util import indexes
-from xml.sax import SAXParseException
 from osaf import pim
-from osaf.pim.notes import Note
 from i18n import MessageFactory
 from twisted.web import client
 from twisted.internet import reactor
-from osaf.pim.calendar.TimeZone import formatTime
-from repository.util.URL import URL
-from repository.util.Lob import Lob
 
 _ = MessageFactory("Chandler-FeedsPlugin")
 
@@ -45,7 +40,8 @@ def date_parse(s):
     """Parse using dateutil's parse, then convert to ICUtzinfo timezones."""
     return convertToICUtzinfo(dateutil_parse(s))
 
-class FeedUpdateTaskClass:
+
+class FeedUpdateTaskClass(object):
     """
     This class implements a periodic task that checks and reads new feeds
     on 30 minutes interval.
@@ -422,11 +418,11 @@ class FeedItem(pim.ContentItem):
     # FeedItem repository interface
     #
     link = schema.One(schema.URL, initialValue=None)
-    category = schema.One(schema.Text)
-    author = schema.One(schema.Text)
+    category = schema.One(schema.Text, indexed=True)
+    author = schema.One(schema.Text, indexed=True)
     date = schema.One(schema.DateTime)
     channel = schema.One(FeedChannel)
-    content = schema.One(schema.Lob)
+    content = schema.One(schema.Lob, indexed=True)
     updated = schema.One(schema.Boolean)
 
     @apply

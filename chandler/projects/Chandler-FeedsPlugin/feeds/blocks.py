@@ -13,22 +13,21 @@
 #   limitations under the License.
 
 
-import logging, wx
-import application
-import osaf.views.detail as Detail
-import application.Globals as Globals
+import logging, wx, application
+from osaf.views import detail
+from application import schema, dialogs
 import osaf.framework.blocks.Block as Block
 from channels import FeedChannel, FeedItem
 from i18n import MessageFactory
 from osaf import messages
-from application import schema
 from osaf.pim.structs import SizeType, RectType
 
 _ = MessageFactory("Chandler-FeedsPlugin")
 
 logger = logging.getLogger(__name__)
 
-class FeedItemDetail(Detail.HTMLDetailArea):
+
+class FeedItemDetail(detail.HTMLDetailArea):
     """
     This class implements a block for visualizing feed item content.
     """
@@ -88,7 +87,7 @@ class AddFeedCollectionEvent(Block.AddToSidebarEvent):
             
             if not channel.isEstablished and not success:
                 # request a new URL from the user.
-                url = application.dialogs.Util.promptUser(
+                url = dialogs.Util.promptUser(
                     _(u"The provided URL seems to be invalid"),
                     _(u"Enter a URL for the RSS Channel"),
                     defaultValue = unicode(channel.url))
@@ -117,8 +116,7 @@ class AddFeedCollectionEvent(Block.AddToSidebarEvent):
             wx.GetApp().PostAsyncEvent(calledInMainThread, channelUUID, success)
             
         # get a URL from the user, ...
-        import wx
-        url = application.dialogs.Util.promptUser(
+        url = dialogs.Util.promptUser(
             _(u"New Channel"),
             _(u"Enter a URL for the RSS Channel"),
             defaultValue = u"http://")
