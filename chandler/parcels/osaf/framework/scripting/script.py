@@ -181,20 +181,6 @@ def run_script_with_symbols(scriptText, fileName=u"", profiler=None, builtIns=No
     for attr in __all__:
         builtIns[attr] = globals()[attr]
 
-    # Protect against scripts that don't stop, needed especially by
-    # automated tests.
-    scriptTimeout = int(getattr(Globals.options, 'scriptTimeout', 0))
-    if scriptTimeout > 0:
-        try:
-            from signal import signal, alarm, SIGALRM
-        except ImportError:
-            pass    # no alarm on Windows  :(
-        else:
-            def timeout(*args):
-                sys.exit('Timeout error: Script did not finish within %d seconds.' % scriptTimeout)
-            signal(SIGALRM, timeout)
-            alarm(scriptTimeout)
-
     # now run that script in our predefined scope
     try:
         exec scriptCode in builtIns

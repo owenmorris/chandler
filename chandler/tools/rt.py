@@ -636,7 +636,7 @@ def runFuncTest(options, test='FunctionalTestSuite.py'):
     /.../release/RunChandler --create --catch=tests --profileDir=test_profile --parcelPath=tools/QATestScripts/DataFiles --chandlerTests=TestCreateAccounts.py -F -D2 -M0
     ...
     """
-    # $CHANDLERBIN/$mode/$RUN_CHANDLER --create --catch=tests $FORCE_CONT --profileDir="$PC_DIR" --parcelPath="$PP_DIR" --scriptTimeout=720 --scriptFile="$TESTNAME" -D1 -M2 2>&1 | tee $TESTLOG
+    # $CHANDLERBIN/$mode/$RUN_CHANDLER --create --catch=tests $FORCE_CONT --profileDir="$PC_DIR" --parcelPath="$PP_DIR" --scriptFile="$TESTNAME" -D1 -M2 2>&1 | tee $TESTLOG
     failed = False
 
     for mode in options.modes:
@@ -804,7 +804,6 @@ def runScriptPerfTests(options, testlist, largeData=False, repeat=1, logger=log)
         #$CHANDLERBIN/release/$RUN_CHANDLER --create --catch=tests
         #                                   --profileDir="$PC_DIR"
         #                                   --catsPerfLog="$TIME_LOG"
-        #                                   --scriptTimeout=600
         #                                   --scriptFile="$TESTNAME" &> $TESTLOG
         if item.startswith(options.chandlerHome):
             item = item[l:]
