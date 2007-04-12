@@ -93,7 +93,7 @@ class RecurrenceDialog(wx.Dialog):
               label=u'', name=u'questionText', parent=self)
 
         labels = {self.allButton    : _(u'All events'),
-                  self.futureButton : _(u'This and Future events'),
+                  self.futureButton : _(u'Future events'),
                   self.thisButton   : _(u'Just this event')}
 
         for item, label in labels.iteritems():
