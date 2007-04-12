@@ -11,6 +11,7 @@
 #   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 #   See the License for the specific language governing permissions and
 #   limitations under the License.
+from __future__ import with_statement
 __all__ = [
     'UnknownType', 'typeinfo_for', 'BytesType', 'TextType', 'DateType',
     'IntType', 'BlobType', 'ClobType', 'DecimalType', 'get_converter',
@@ -501,7 +502,7 @@ def _constructor_for(name, cdict, fields):
     if nc_check: conversions+='\n    if '+nc_check+' is NoChange: return NoChange'
     source = (
         "def __new__(cls, %(args)s):%(conversions)s\n"
-        "    return tuple.__new__(cls, (cls, %(args)s))""" % locals()
+        "    return tuple.__new__(cls, (cls, %(args)s))\n""" % locals()
     )
     # Push the source into the linecache
     lines = source.splitlines(True)
