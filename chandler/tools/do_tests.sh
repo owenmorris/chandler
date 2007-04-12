@@ -234,7 +234,7 @@ if [ -n "$TEST_TO_RUN" ]; then
                     echo Skipping $TESTNAME in $F_TEST_IGNORE
                 else
                     if echo "$TESTNAME" | grep -q "$F_TEST_DIR" ; then
-                        $CHANDLERBIN/$mode/$RUN_CHANDLER -D2 -M0 --create --catch=tests --profileDir="$PC_DIR" --parcelPath="$PP_DIR" --scriptTimeout=600 --chandlerTests="$TEST_WITHOUT_PATH" 2>&1 | tee $TESTLOG
+                        $CHANDLERBIN/$mode/$RUN_CHANDLER -D2 -M0 --create --catch=tests --profileDir="$PC_DIR" --parcelPath="$PP_DIR" --chandlerTests="$TEST_WITHOUT_PATH" 2>&1 | tee $TESTLOG
                         SUCCESS="#TINDERBOX# Status = PASSED"
                     else
                         $CHANDLERBIN/$mode/$RUN_PYTHON $TESTNAME 2>&1 | tee $TESTLOG
@@ -373,7 +373,7 @@ else
             echo Running $TESTNAME | tee -a $DOTESTSLOG
 
             cd $C_DIR
-            $CHANDLERBIN/$mode/$RUN_CHANDLER --create --catch=tests $FORCE_CONT --profileDir="$PC_DIR" --parcelPath="$PP_DIR" --scriptTimeout=900 --scriptFile="$TESTNAME" -D1 -M2 2>&1 | tee $TESTLOG
+            $CHANDLERBIN/$mode/$RUN_CHANDLER --create --catch=tests $FORCE_CONT --profileDir="$PC_DIR" --parcelPath="$PP_DIR" --scriptFile="$TESTNAME" -D1 -M2 2>&1 | tee $TESTLOG
 
               # scan the test output for the success messge "OK"
             RESULT=`grep '#TINDERBOX# Status = PASSED' $TESTLOG`
@@ -432,7 +432,7 @@ else
 
                 echo -n `basename $TESTNAME`
                 cd $C_DIR
-                $CHANDLERBIN/release/$RUN_CHANDLER --create --catch=tests --profileDir="$PC_DIR" --catsPerfLog="$TIME_LOG" --scriptTimeout=1800 --scriptFile="$TESTNAME" &> $TESTLOG
+                $CHANDLERBIN/release/$RUN_CHANDLER --create --catch=tests --profileDir="$PC_DIR" --catsPerfLog="$TIME_LOG" --scriptFile="$TESTNAME" &> $TESTLOG
 
                 # scan the test output for the success message "OK"
                 RESULT=`grep '#TINDERBOX# Status = PASSED' $TESTLOG`
@@ -473,7 +473,7 @@ else
 
                     echo -n `basename $TESTNAME`
                     cd $C_DIR
-                    $CHANDLERBIN/release/$RUN_CHANDLER --restore="$REPO" --catch=tests --profileDir="$PC_DIR" --catsPerfLog="$TIME_LOG" --scriptTimeout=600 --scriptFile="$TESTNAME" &> $TESTLOG
+                    $CHANDLERBIN/release/$RUN_CHANDLER --restore="$REPO" --catch=tests --profileDir="$PC_DIR" --catsPerfLog="$TIME_LOG" --scriptFile="$TESTNAME" &> $TESTLOG
 
                     # scan the test output for the success message "OK"
                     RESULT=`grep '#TINDERBOX# Status = PASSED' $TESTLOG`
@@ -526,11 +526,11 @@ else
             RUNS="1 2 3"
 
             echo Creating new empty repository
-            $CHANDLERBIN/release/$RUN_CHANDLER --create --catch=tests --profileDir="$PC_DIR" --scriptTimeout=600 --scriptFile="$CREATEREPO" &> $TESTLOG
+            $CHANDLERBIN/release/$RUN_CHANDLER --create --catch=tests --profileDir="$PC_DIR" --scriptFile="$CREATEREPO" &> $TESTLOG
 
             echo -n Timing startup
             for run in $RUNS ; do
-                $TIME -o $PC_DIR/start1.$run.log $CHANDLERBIN/release/$RUN_CHANDLER --catch=tests --profileDir="$PC_DIR" --scriptTimeout=600 --scriptFile="$TESTNAME" &> $TESTLOG
+                $TIME -o $PC_DIR/start1.$run.log $CHANDLERBIN/release/$RUN_CHANDLER --catch=tests --profileDir="$PC_DIR" --scriptFile="$TESTNAME" &> $TESTLOG
                 cat $PC_DIR/start1.$run.log | sed "s/^Command exited with non-zero status [0-9]\+ //" > $TESTLOG
                 cat $TESTLOG > $PC_DIR/start1.$run.log
                 echo -n \ `<"$PC_DIR/start1.$run.log"`
@@ -540,11 +540,11 @@ else
             echo \ \[$STARTUP\s\]
 
             echo Creating new large repository
-            $CHANDLERBIN/release/$RUN_CHANDLER --restore="$REPO" --catch=tests --profileDir="$PC_DIR" --scriptTimeout=600 --scriptFile="$CREATEREPO" &> $TESTLOG
+            $CHANDLERBIN/release/$RUN_CHANDLER --restore="$REPO" --catch=tests --profileDir="$PC_DIR" --scriptFile="$CREATEREPO" &> $TESTLOG
 
             echo -n Timing startup with large repository
             for run in $RUNS ; do
-                $TIME -o $PC_DIR/start6.$run.log $CHANDLERBIN/release/$RUN_CHANDLER --catch=tests --profileDir="$PC_DIR" --scriptTimeout=600 --scriptFile="$TESTNAME" &> $TESTLOG
+                $TIME -o $PC_DIR/start6.$run.log $CHANDLERBIN/release/$RUN_CHANDLER --catch=tests --profileDir="$PC_DIR" --scriptFile="$TESTNAME" &> $TESTLOG
                 cat $PC_DIR/start6.$run.log | sed "s/^Command exited with non-zero status [0-9]\+ //" > $TESTLOG
                 cat $TESTLOG > $PC_DIR/start6.$run.log
                 echo -n \ `<"$PC_DIR/start6.$run.log"`
