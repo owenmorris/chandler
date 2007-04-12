@@ -16,9 +16,12 @@
 #   - acts as performance test #5 Import 3k event calendar
 #   - creates a repository backup for PerfLargeData* tests
 
+from __future__ import with_statement
+
 import tools.QAUITestAppLib as QAUITestAppLib
 import os
 import osaf.pim as pim
+from application import schema
 
 App_ns = app_ns()
 
@@ -71,11 +74,23 @@ try:
         User.emulate_sidebarClick(App_ns.sidebar, largeCollectionName, overlay=True)
         User.idle()
         
+    # Make sure none of our content items have pending triage
+    # (This will make things more consistent in tests we do against this repo)
+    view = App_ns.itsView
+    with view.observersDeferred():
+        with view.reindexingDeferred():
+            contentItems = schema.ns("osaf.pim", view).contentItems
+            for key in contentItems.iterkeys():
+                if view.findValue(key, '_sectionTriageStatus', None) is not None:
+                    item = view[key]
+                    del item._sectionTriageStatus
+                    del item._sectionTriageStatusChanged
+
     # backup
     # - need to commit first so that the collection in the sidebar
     #   gets saved
-    App_ns.itsView.commit()
-    dbHome = App_ns.itsView.repository.backup()
+    view.commit()
+    dbHome = view.repository.backup()
     
     # verification of backup
     if os.path.isdir(dbHome):
