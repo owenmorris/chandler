@@ -234,8 +234,7 @@ class RecordSetConduit(conduits.BaseConduit):
             # This loop tries to avoid loading any non-dirty items:
             # When statistics logging is added, we can verify this loop is doing
             # what we expect
-            for change in rv.mapHistory(version):
-                changedUuid = change[0]
+            for changedUuid, x in rv.mapHistoryKeys(version):
                 if changedUuid in self.share.contents:
                     locallyChangedUuids.add(changedUuid)
 
