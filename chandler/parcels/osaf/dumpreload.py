@@ -15,13 +15,12 @@
 
 """Dump and Reload module"""
 
-import logging, cPickle, sys, os
+import logging, cPickle, sys, os, wx
 from osaf import pim, sharing
 from osaf.sharing.eim import uri_registry, RecordClass
 from application import schema
 from osaf.framework import password, MasterPassword
 from osaf.framework.twisted import waitForDeferred
-from application.dialogs import Util
 from i18n import ChandlerMessageFactory as _
 
 logger = logging.getLogger(__name__)
@@ -190,9 +189,8 @@ def reload(rv, filename, translator=sharing.DumpTranslator,
         prefs = schema.ns("osaf.framework.MasterPassword",
                           rv).masterPasswordPrefs
         if prefs.masterPassword:
-            Util.ok(None,
-                    _(u'Settings Master Password'),
-                    _(u'You will need to supply the master password that was used to protect the account passwords in the dump file.'))
+            wx.MessageBox (_(u'You will need to supply the master password that was used to protect the account passwords in the dump file.'),
+                           _(u'Settings Master Password'))
         
         dummy = schema.ns("osaf.framework.password",
                           rv).passwordPrefs.dummyPassword
@@ -202,9 +200,9 @@ def reload(rv, filename, translator=sharing.DumpTranslator,
                 newMaster = waitForDeferred(MasterPassword.get(rv, testPassword=dummy))
                 break
             except password.NoMasterPassword:
-                if Util.yesNo(None,
-                              _(u'Reset Master Password?'),
-                              _(u'If you do not supply the master password, all passwords will be reset. Reset?')):
+                if wx.MessageBox(_(u'If you do not supply the master password, all passwords will be reset. Reset?'),
+                                 _(u'Reset Master Password?'),
+                                 style = wx.YES_NO) == wx.YES:
                     MasterPassword.reset(rv)
                     return
     
