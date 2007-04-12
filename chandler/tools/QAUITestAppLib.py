@@ -63,11 +63,10 @@ def publishSubscribe(logger):
     # Webdav Account Setting
     ap = UITestAccounts(logger)
     ap.Open() # first, open the accounts dialog window
-    accountName = uw("Publish Test Morsecode")
-    ap.CreateAccount("SHARING_MORSECODE")
-    ap.TypeValue("displayName", accountName)
+    ap.GetDefaultAccount("SHARING_DAV")
+    ap.TypeValue("displayName", uw("Publish Test WebDAV"))
     ap.TypeValue("host", "qasharing.osafoundation.org")
-    ap.TypeValue("path", "cosmo")
+    ap.TypeValue("path", "cosmo/dav/demo1")
     ap.TypeValue("username", "demo1")
     ap.TypeValue("password", "ad3leib5")
     ap.TypeValue("port", "8080")
@@ -75,9 +74,7 @@ def publishSubscribe(logger):
     ap.Ok()
 
     # verification
-    ap.VerifyValues("MORSECODE", accountName,
-        host = "qasharing.osafoundation.org",
-        username = "demo1", password="ad3leib5", port=8080)
+    ap.VerifyValues("WebDAV", uw("Publish Test WebDAV"), displayName = uw("Publish Test WebDAV"), host = "qasharing.osafoundation.org", username = "demo1", password="ad3leib5", port=8080)
 
     # import events so test will have something to share even when run by itself
     path = os.path.join(os.getenv('CHANDLERHOME'),"tools/QATestScripts/DataFiles")
@@ -98,20 +95,11 @@ def publishSubscribe(logger):
     # Sharing dialog
     collection = Block.findBlockByName("MainView").getSidebarSelectedCollection()
     if collection is not None:
-
-        # find the account
-        for account in sharing.CosmoAccount.iterItems(App_ns.itsView):
-            if account.displayName == accountName:
-                break
-        else:
-            raise Exception('Could not find morse code account')
-
         publishName = "TestSharing_%s" % str(collection.itsUUID)
         win = ShowPublishDialog(view=App_ns.itsView,
                                 collection=collection,
                                 modal=False,
-                                name=publishName,
-                                account=account)
+                                name=publishName)
         #Share button call
         
         app = wx.GetApp()
@@ -183,15 +171,17 @@ def publishSubscribe(logger):
         logger.Stop()
         
         scripting.User.idle()
-
-        # Remove the collection from the server
-        collection = sidebarCollectionNamed('testSharing')
-        sharing.unpublish(collection)
-     
+    
         # verification
         if scripting.User.emulate_sidebarClick(App_ns.sidebar, "testSharing"):
             # We need to click twice to move the focus to the sidebar
             scripting.User.emulate_sidebarClick(App_ns.sidebar, "testSharing")
+            # cleanup
+            # cosmo can only handle so many shared calendars
+            # so remove this one when done
+            collection = sidebarCollectionNamed('testSharing')
+            sharing.unpublish(collection)
+            App_ns.root.Remove({'testing' : True})
 
             logger.ReportPass("(On Subscribe collection)")
         else:
@@ -1397,10 +1387,7 @@ class UITestAccounts:
         }
 
     accountTypeIndex = {
-        'INCOMING'          : 1,
-        'OUTGOING'          : 2,
-        'SHARING_MORSECODE' : 3,
-        'SHARING_DAV'       : 4,
+        'INCOMING': 1, 'OUTGOING': 2,'SHARING_DAV': 3, 'SHARING_MORSECODE': 4
     }
 
     def __init__(self, logger=None):
@@ -1582,8 +1569,6 @@ class UITestAccounts:
             iter = Mail.IMAPAccount.iterItems(App_ns.itsView)
         elif type == "WebDAV":
             iter = sharing.WebDAVAccount.iterItems(App_ns.itsView)
-        elif type == "MORSECODE":
-            iter = sharing.CosmoAccount.iterItems(App_ns.itsView)
         elif type == "POP":
             iter = Mail.POPAccount.iterItems(App_ns.itsView)
         else:
