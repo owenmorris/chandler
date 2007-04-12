@@ -867,29 +867,13 @@ class wxApplication (wx.App):
 
         event.Skip()
 
-    def fireAsynchronousNotifications(self):
-        view = self.UIRepositoryView
-
-        try:
-            # Fire set notifications that require mapChanges
-            # and pickup changes from other views
-            view.refresh(_mergeFunction)
-        except:
-            # This exception shuld never happen. However, because of bugs in the repository
-            # during development, it may occur -- and when it does we get a cascade of errors.
-            # S instead we'll handle it by logging an error and raising another exception.
-            logger.exception("Changes cancelled because of refresh error")
-            view.itsVersion -= 1
-            view.refresh()
-            raise
-
     def propagateAsynchronousNotifications(self):
-        self.fireAsynchronousNotifications()
+        view = self.UIRepositoryView
+        view.dispatchQueuedNotifications()
 
         # synchronize dirtied blocks to reflect changes to the data
         from osaf.framework.blocks.Block import Block
         # make the list first in case it gets tweaked during synchronizeWidget
-        view = self.UIRepositoryView
         dirtyBlocks = [view[theUUID] for theUUID in Block.dirtyBlocks]
 
         # synchronize affected widgets
@@ -901,14 +885,15 @@ class wxApplication (wx.App):
 
 
     def OnIdle(self, event):
+        if self.updateUIInOnIdle:
+           self.UIRepositoryView.refresh(_mergeFunction)
+           self.propagateAsynchronousNotifications()
+        
         # Adding a handler for catching a set focus event doesn't catch
         # every change to the focus. It's difficult to preprocess every event
         # so we check for focus changes in OnIdle. Also call UpdateUI when
         # focus changes.
 
-        if self.updateUIInOnIdle:
-            self.propagateAsynchronousNotifications()
-        
         focus = wx.Window_FindFocus()
         if self.focus != focus:
             self.focus = focus

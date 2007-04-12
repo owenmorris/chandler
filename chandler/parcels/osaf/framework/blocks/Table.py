@@ -186,8 +186,9 @@ class wxTable(DragAndDrop.DraggableWidget,
     def OnPaint (self, event):
         # Bug #7117: Don't draw gridWindows who's data has changed but hasn't
         # been synchronized to the widget.
-        wx.GetApp().fireAsynchronousNotifications()
-        if not self.blockItem.isBlockDirty():
+        blockItem = self.blockItem
+        blockItem.itsView.dispatchQueuedNotifications()
+        if not blockItem.isBlockDirty():
             event.Skip()
 
     def OnGainFocus (self, event):
@@ -240,9 +241,9 @@ class wxTable(DragAndDrop.DraggableWidget,
         # and, if the block is dirtied, skip invalidating the
         # selection. We'll eventually draw the the selection
         # anyway since the block is dirtied.
-        wx.GetApp().fireAsynchronousNotifications()
-        block = self.blockItem
-        if not block.isBlockDirty():
+        blockItem = self.blockItem
+        blockItem.itsView.dispatchQueuedNotifications()
+        if not blockItem.isBlockDirty():
             lastRow = self.GetNumberCols() - 1
             
             for rowStart, rowEnd in self.SelectedRowRanges():
@@ -364,8 +365,9 @@ class wxTable(DragAndDrop.DraggableWidget,
         
         # Bug #7320: Don't process mouse events when the gridWindows data has
         # changed but hasn't been synchronized to the widget.
-        wx.GetApp().fireAsynchronousNotifications()
-        if not self.blockItem.isBlockDirty():
+        blockItem = self.blockItem
+        blockItem.itsView.dispatchQueuedNotifications()
+        if not blockItem.isBlockDirty():
             gridWindow = self.GetGridWindow()
 
             def callHandler(cell, isInCell, oldnew):
@@ -396,7 +398,7 @@ class wxTable(DragAndDrop.DraggableWidget,
                 
             # Figure out which cell we're over, and the previous one if any
             cell = self.__eventToCell(event)
-            oldCell = getattr(self.blockItem, "overCell", None)
+            oldCell = getattr(blockItem, "overCell", None)
 
             # Summarize the state on each call
             if False:
@@ -411,7 +413,7 @@ class wxTable(DragAndDrop.DraggableWidget,
             if oldCell is not None:
                 wantsCapture = callHandler(oldCell, oldCell == cell, "old")
                 if not wantsCapture:
-                    del self.blockItem.overCell
+                    del blockItem.overCell
 
             if not wantsCapture:
                 # If the old cell didn't want it, give the current 
@@ -419,28 +421,28 @@ class wxTable(DragAndDrop.DraggableWidget,
                 if oldCell != cell:
                     wantsCapture = callHandler(cell, True, "new")
                     if wantsCapture:
-                        self.blockItem.overCell = cell
+                        blockItem.overCell = cell
 
             # Change mouse capture if necessary. Apparently window.HasCapture
             # isn't reliable, so we track our own capturedness
-            hasCapture = getattr(self.blockItem, 'mouseCaptured', False)
+            hasCapture = getattr(blockItem, 'mouseCaptured', False)
             if wantsCapture:
                 if not hasCapture:
                     #logger.debug("OnMouseEvents: CaptureMouse")
                     gridWindow.CaptureMouse()
-                    self.blockItem.mouseCaptured = True
+                    blockItem.mouseCaptured = True
             elif hasCapture:
                 if gridWindow.HasCapture():
                     #logger.debug("OnMouseEvents: ReleaseMouse")
                     gridWindow.ReleaseMouse()
                 #else:
                     #logger.debug("OnMouseEvents: would ReleaseMouse, but not HasCapture")
-                del self.blockItem.mouseCaptured
+                del blockItem.mouseCaptured
 
     def OnMouseCaptureLost(self, event):
-        if hasattr(self.blockItem, 'mouseCaptured'):
+        if hasattr(blockItem, 'mouseCaptured'):
             #logger.debug("OnMouseCaptureLost: forgetting captured.")
-            del self.blockItem.mouseCaptured
+            del blockItem.mouseCaptured
 
 
     @WithoutSynchronizeWidget

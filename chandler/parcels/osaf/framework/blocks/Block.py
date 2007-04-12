@@ -514,11 +514,8 @@ class Block(schema.Item):
                                                 'onCollectionNotification')
 
         # do item notifications, too, if we had any
-        try:
-            watchedItemAttributes = self.watchedItemAttributes
-        except AttributeError:
-            pass
-        else:
+        watchedItemAttributes = getattr (self, "watchedItemAttributes", None)
+        if watchedItemAttributes is not None:
             for (item, attr) in watchedItemAttributes:
                 self.removeWatch(item, attr)
             del self.watchedItemAttributes
