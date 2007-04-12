@@ -1,5 +1,5 @@
 /*
- *  Copyright (c) 2003-2006 Open Source Applications Foundation
+ *  Copyright (c) 2003-2007 Open Source Applications Foundation
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -14,6 +14,9 @@
  *  limitations under the License.
  */
 
+#ifndef _INDEXES_H
+#define _INDEXES_H
+
 typedef struct {
     PyObject_HEAD
     PyObject *dict;
@@ -21,3 +24,4 @@ typedef struct {
     PyObject *changedKeys;
 } t_index;
 
+#endif /* _INDEXES_H */

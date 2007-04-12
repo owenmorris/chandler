@@ -1004,8 +1004,11 @@ int _t_record_write(t_record *self, unsigned char *data, int len)
           case R_HASH:
             if (offset + 4 > len)
                 goto overflow;
-            i32 = _hash_bytes(PyString_AS_STRING(value),
-                              PyString_GET_SIZE(value));
+            if (PyString_CheckExact(value))
+                i32 = _hash_bytes(PyString_AS_STRING(value),
+                                  PyString_GET_SIZE(value));
+            else
+                i32 = PyInt_AS_LONG(value);
             *((unsigned long *) (data + offset)) = htonl(i32);
             offset += 4;
             break;

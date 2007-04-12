@@ -19,6 +19,7 @@
 
 #include "../item/item.h"
 #include "../util/uuid.h"
+#include "../util/skiplist.h"
 #include "../schema/attribute.h"
 #include "record.h"
 #include "view.h"
@@ -114,6 +115,8 @@ extern PyTypeObject *CDBTxn;
 extern PyTypeObject *CDBLock;
 extern PyTypeObject *Record;
 extern PyTypeObject *CtxMgr;
+extern PyTypeObject *SkipList;
+extern PyTypeObject *SkipList_Node;
 
 extern PyUUID_Check_fn PyUUID_Check;
 extern PyUUID_Make16_fn PyUUID_Make16;

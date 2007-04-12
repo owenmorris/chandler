@@ -33,6 +33,8 @@ PyTypeObject *CDBTxn = NULL;
 PyTypeObject *CDBLock = NULL;
 PyTypeObject *Record = NULL;
 PyTypeObject *CtxMgr = NULL;
+PyTypeObject *SkipList = NULL;
+PyTypeObject *SkipList_Node = NULL;
 
 PyUUID_Check_fn PyUUID_Check = NULL;
 PyUUID_Make16_fn PyUUID_Make16 = NULL;
@@ -169,6 +171,8 @@ void initc(void)
     LOAD_FN(m, _hash_bytes);
     LOAD_OBJ(m, Nil);
     LOAD_TYPE(m, CtxMgr);
+    LOAD_TYPE(m, SkipList);
+    SkipList_Node = (PyTypeObject *) PyObject_GetAttrString(SkipList, "Node");
     Py_DECREF(m);
 
     if (!(m = PyImport_ImportModule("chandlerdb.item.c")))

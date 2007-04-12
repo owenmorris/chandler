@@ -1,5 +1,5 @@
 /*
- *  Copyright (c) 2003-2006 Open Source Applications Foundation
+ *  Copyright (c) 2003-2007 Open Source Applications Foundation
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -14,6 +14,8 @@
  *  limitations under the License.
  */
 
+#ifndef _SKIPLIST_H
+#define _SKIPLIST_H
 
 /* from 1 to 16 */
 #define SL_MAXLEVEL 16       
@@ -35,7 +37,6 @@ typedef struct {
 typedef struct {
     PyObject_HEAD
     PyObject *levels;
-    int entryValue;
 } t_node;
 
 typedef struct {
@@ -45,3 +46,5 @@ typedef struct {
     PyObject *map;
     int flags;
 } t_sl;
+
+#endif /* _SKIPLIST_H */

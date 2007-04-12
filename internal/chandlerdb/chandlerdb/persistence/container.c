@@ -299,7 +299,6 @@ static PyObject *t_container_closeCursor(t_container *self, PyObject *args)
     Py_RETURN_NONE;
 }
 
-
 typedef struct {
     DBT dbt;
     int found;
@@ -530,6 +529,88 @@ static PyObject *t_container__getThreaded(t_container *self, void *data)
         Py_INCREF(threaded);
 
     return threaded;
+}
+
+static PyObject *_t_container_load_record(t_container *self, PyObject *view,
+                                          PyObject *key, PyObject *dataTypes,
+                                          PyObject *defaultValue,
+                                          int returnBoth)
+{
+    PyObject *store = (PyObject *) self->store;
+
+    while (1) {
+        PyObject *result =
+            PyObject_CallMethodObjArgs(store, startTransaction_NAME,
+                                       view, NULL);
+        PyObject *type = NULL, *value = NULL, *traceback = NULL;
+        PyObject *cursor = NULL, *record = NULL, *status;
+        int txnStatus;
+
+        if (!result)
+            goto done;
+
+        txnStatus = PyInt_AsLong(result);
+        Py_DECREF(result);
+
+        cursor = _t_container_openCursor(self, Py_None);
+        if (!cursor)
+            goto error;
+
+        record = _t_container_find_record(self, cursor, key, dataTypes,
+                                          self->flags, defaultValue,
+                                          returnBoth);
+        if (!record)
+            goto error;
+
+      finally:
+        if (cursor)
+        {
+            if (_t_container_closeCursor(self, cursor, Py_None) < 0)
+            {
+                Py_CLEAR(cursor);
+                Py_CLEAR(record);
+                goto error;
+            }
+            Py_CLEAR(cursor);
+        }
+        status = PyInt_FromLong(txnStatus);
+        result = PyObject_CallMethodObjArgs(store, abortTransaction_NAME,
+                                            view, status, NULL);
+        Py_DECREF(status);
+        if (!result)
+        {
+            Py_CLEAR(record);
+            goto done;
+        }
+        Py_DECREF(result);
+        if (type == NULL)
+            goto done;
+
+      error:
+        if (type == NULL)
+        {
+            PyErr_Fetch(&type, &value, &traceback);
+            goto finally;
+        }
+        if (txnStatus & TXN_STARTED &&
+            PyErr_GivenExceptionMatches(type, PyExc_DBLockDeadlockError))
+        {
+            result = PyObject_CallMethodObjArgs(store, _logDL_NAME, NULL);
+            if (!result)
+                goto done;
+            Py_DECREF(result);
+            Py_DECREF(type);
+            Py_DECREF(value);
+            Py_DECREF(traceback);
+            continue;
+        }
+
+      done:
+        if (type)
+            PyErr_Restore(type, value, traceback);
+
+        return record;
+    }
 }
 
 
@@ -1171,11 +1252,44 @@ static PyObject *t_item_container_setItemStatus(t_item_container *self,
     }
 }
 
+/*
+    def findItem(self, view, version, uuid, dataTypes):
+
+        store = self.store
+        key = Record(Record.UUID, uuid,
+                     Record.INT, ~version)
+
+        while True:
+            txnStatus = 0
+            cursor = None
+
+            try:
+                txnStatus = store.startTransaction(view)
+                cursor = self.c.openCursor()
+
+                key, item = self.c.find_record(cursor, key, dataTypes,
+                                               self.c.flags, NONE_PAIR, True)
+                if item is not None:
+                    return ~key[1], item
+
+                return NONE_PAIR
+
+            except DBLockDeadlockError:
+                if txnStatus & store.TXN_STARTED:
+                    store._logDL()
+                    continue
+                else:
+                    raise
+
+            finally:
+                self.c.closeCursor(cursor)
+                store.abortTransaction(view, txnStatus)
+*/
+
 static PyObject *t_item_container_findItem(t_item_container *self,
                                            PyObject *args)
 {
-    PyObject *view, *uuid, *dataTypes, *key;
-    PyObject *store = (PyObject *) self->container.store;
+    PyObject *view, *uuid, *dataTypes, *key, *record, *foundItem;
     unsigned long version;
 
     if (!PyArg_ParseTuple(args, "OiOO", &view, &version, &uuid, &dataTypes))
@@ -1187,99 +1301,253 @@ static PyObject *t_item_container_findItem(t_item_container *self,
     if (!key)
         return NULL;
 
-    while (1) {
-        PyObject *result =
-            PyObject_CallMethodObjArgs(store, startTransaction_NAME,
-                                       view, NULL);
-        PyObject *type = NULL, *value = NULL, *traceback = NULL;
-        PyObject *cursor = NULL, *foundItem = NULL, *status;
-        int txnStatus;
+    record = _t_container_load_record((t_container *) self, view,
+                                      key, dataTypes, None_PAIR, 1);
+    Py_DECREF(key);
+    if (!record)
+        return NULL;
 
-        if (!result)
-            goto done;
-
-        txnStatus = PyInt_AsLong(result);
-        Py_DECREF(result);
-
-        cursor = _t_container_openCursor((t_container *) self, Py_None);
-        if (!cursor)
-            goto error;
-
-        result = _t_container_find_record((t_container *) self, cursor,
-                                          key, dataTypes, self->container.flags,
-                                          None_PAIR, 1);
-        if (!result)
-            goto error;
-
-        if (PyTuple_GET_ITEM(result, 1) == Py_None)
-        {
-            Py_INCREF(None_PAIR);
-            foundItem = None_PAIR;
-        }
-        else
-        {
-            PyObject *keyRecord = PyTuple_GET_ITEM(result, 0);
-            PyObject *itemRecord = PyTuple_GET_ITEM(result, 1);
-            PyObject *itemVer = _t_record_item((t_record *) keyRecord, 1);
-
-            itemVer = PyInt_FromLong(~PyInt_AsLong(itemVer));
-            foundItem = PyTuple_Pack(2, itemVer, itemRecord);
-            Py_DECREF(itemVer);
-
-        }
-        Py_DECREF(result);
-
-      finally:
-        if (cursor)
-        {
-            if (_t_container_closeCursor((t_container *) self,
-                                         cursor, Py_None) < 0)
-            {
-                Py_CLEAR(cursor);
-                Py_CLEAR(foundItem);
-                goto error;
-            }
-            Py_CLEAR(cursor);
-        }
-        status = PyInt_FromLong(txnStatus);
-        result = PyObject_CallMethodObjArgs(store, abortTransaction_NAME,
-                                            view, status, NULL);
-        Py_DECREF(status);
-        if (!result)
-        {
-            Py_CLEAR(foundItem);
-            goto done;
-        }
-        Py_DECREF(result);
-        if (type == NULL)
-            goto done;
-
-      error:
-        if (type == NULL)
-        {
-            PyErr_Fetch(&type, &value, &traceback);
-            goto finally;
-        }
-        if (txnStatus & TXN_STARTED &&
-            PyErr_GivenExceptionMatches(type, PyExc_DBLockDeadlockError))
-        {
-            result = PyObject_CallMethodObjArgs(store, _logDL_NAME, NULL);
-            if (!result)
-                goto done;
-            Py_DECREF(result);
-            Py_DECREF(type);
-            Py_DECREF(value);
-            Py_DECREF(traceback);
-            continue;
-        }
-
-      done:
-        Py_DECREF(key);
-        if (type)
-            PyErr_Restore(type, value, traceback);
-
-        return foundItem;
+    if (PyTuple_GET_ITEM(record, 1) == Py_None)
+    {
+        Py_DECREF(record);
+        Py_INCREF(None_PAIR);
+        foundItem = None_PAIR;
     }
+    else
+    {
+        PyObject *keyRecord = PyTuple_GET_ITEM(record, 0);
+        PyObject *itemRecord = PyTuple_GET_ITEM(record, 1);
+        PyObject *itemVer = _t_record_item((t_record *) keyRecord, 1);
+
+        itemVer = PyInt_FromLong(~PyInt_AsLong(itemVer));
+        foundItem = PyTuple_Pack(2, itemVer, itemRecord);
+        Py_DECREF(itemVer);
+        Py_DECREF(record);
+    }
+
+    return foundItem;
+}
+
+
+typedef struct {
+    t_container container;
+} t_indexes_container;
+
+
+static void t_indexes_container_dealloc(t_indexes_container *self);
+static PyObject *t_indexes_container_new(PyTypeObject *type,
+                                         PyObject *args, PyObject *kwds);
+static int t_indexes_container_init(t_indexes_container *self,
+                                    PyObject *args, PyObject *kwds);
+static PyObject *t_indexes_container_loadKey(t_indexes_container *self,
+                                             PyObject *args);
+
+
+static PyMemberDef t_indexes_container_members[] = {
+    { NULL, 0, 0, 0, NULL }
+};
+
+static PyMethodDef t_indexes_container_methods[] = {
+    { "loadKey", (PyCFunction) t_indexes_container_loadKey, METH_VARARGS, NULL },
+    { NULL, NULL, 0, NULL }
+};
+
+static PyTypeObject IndexesContainerType = {
+    PyObject_HEAD_INIT(NULL)
+    0,                                                   /* ob_size */
+    "chandlerdb.persistence.c.CIndexesContainer",        /* tp_name */
+    sizeof(t_indexes_container),                         /* tp_basicsize */
+    0,                                                   /* tp_itemsize */
+    (destructor)t_indexes_container_dealloc,             /* tp_dealloc */
+    0,                                                   /* tp_print */
+    0,                                                   /* tp_getattr */
+    0,                                                   /* tp_setattr */
+    0,                                                   /* tp_compare */
+    0,                                                   /* tp_repr */
+    0,                                                   /* tp_as_number */
+    0,                                                   /* tp_as_sequence */
+    0,                                                   /* tp_as_mapping */
+    0,                                                   /* tp_hash  */
+    0,                                                   /* tp_call */
+    0,                                                   /* tp_str */
+    0,                                                   /* tp_getattro */
+    0,                                                   /* tp_setattro */
+    0,                                                   /* tp_as_buffer */
+    Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE,            /* tp_flags */
+    "C IndexesContainer type",                           /* tp_doc */
+    0,                                                   /* tp_traverse */
+    0,                                                   /* tp_clear */
+    0,                                                   /* tp_richcompare */
+    0,                                                   /* tp_weaklistoffset */
+    0,                                                   /* tp_iter */
+    0,                                                   /* tp_iternext */
+    t_indexes_container_methods,                         /* tp_methods */
+    t_indexes_container_members,                         /* tp_members */
+    0,                                                   /* tp_getset */
+    &ContainerType,                                      /* tp_base */
+    0,                                                   /* tp_dict */
+    0,                                                   /* tp_descr_get */
+    0,                                                   /* tp_descr_set */
+    0,                                                   /* tp_dictoffset */
+    (initproc)t_indexes_container_init,                  /* tp_init */
+    0,                                                   /* tp_alloc */
+    (newfunc)t_indexes_container_new,                    /* tp_new */
+};
+
+
+static void t_indexes_container_dealloc(t_indexes_container *self)
+{
+    ContainerType.tp_dealloc((PyObject *) self);
+}
+
+static PyObject *t_indexes_container_new(PyTypeObject *type,
+                                         PyObject *args, PyObject *kwds)
+{
+    PyObject *self = ContainerType.tp_new(type, args, kwds);
+
+    return (PyObject *) self;
+}
+
+static int t_indexes_container_init(t_indexes_container *self,
+                                    PyObject *args, PyObject *kwds)
+{
+    return ContainerType.tp_init((PyObject *) self, args, kwds);
+}
+
+/*
+    def loadKey(self, view, uIndex, version, uKey):
+        
+        store = self.store
+        
+        key = Record(Record.UUID, uIndex,
+                     Record.UUID, uKey,
+                     Record.INT, ~version)
+
+        while True:
+            txnStatus = 0
+            cursor = None
+
+            try:
+                txnStatus = store.startTransaction(view)
+                cursor = self.c.openCursor()
+
+                entry = self.c.find_record(cursor, key,
+                                           IndexesContainer.ENTRY_TYPES,
+                                           self.c.flags, None)
+                if entry is not None:
+                    level, points = entry.data
+                    if level == 0:  # deleted entry
+                        return None
+                    
+                    node = SkipList.Node(level)
+
+                    for lvl in xrange(0, level):
+                        point = node[lvl+1]
+                        (point.prevKey, point.nextKey,
+                         point.dist) = points[lvl*3:(lvl+1)*3]
+
+                    return node
+
+                return None
+                        
+            except DBLockDeadlockError:
+                if txnStatus & store.TXN_STARTED:
+                    store._logDL()
+                    continue
+                else:
+                    raise
+
+            finally:
+                self.c.closeCursor(cursor)
+                store.abortTransaction(view, txnStatus)
+*/
+
+static PyObject *t_indexes_container_loadKey(t_indexes_container *self,
+                                             PyObject *args)
+{
+    PyObject *view, *uIndex, *uKey, *record;
+    PyObject *node = NULL, *key, *dataTypes;
+    unsigned long version;
+
+    if (!PyArg_ParseTuple(args, "OOiO", &view, &uIndex, &version, &uKey))
+        return NULL;
+
+    args = Py_BuildValue("(iOiOii)", R_UUID, uIndex, R_UUID, uKey,
+                         R_INT, ~version);
+    key = PyObject_Call((PyObject *) Record, args, NULL);
+    Py_DECREF(args);
+    if (!key)
+        return NULL;
+
+    dataTypes = Py_BuildValue("(ii)", R_BYTE, R_RECORD);
+    record = _t_container_load_record((t_container *) self, view,
+                                      key, dataTypes, Py_None, 0);
+    Py_DECREF(dataTypes);
+    Py_DECREF(key);
+    if (!record)
+        return NULL;
+
+    if (record != Py_None)
+    {
+        PyObject *level = _t_record_item((t_record *) record, 0);
+        t_record *points = (t_record *) _t_record_item((t_record *) record, 1);
+        PyObject *args;
+        int i, lvl;
+
+        if (!level || !points)
+            goto error;
+
+        lvl = PyInt_AsLong(level);
+        if (lvl == 0) /* deleted entry */
+        {
+            Py_DECREF(record);
+            Py_RETURN_NONE;
+        }
+
+        args = PyTuple_Pack(1, level);
+        node = PyObject_Call((PyObject *) SkipList_Node, args, NULL);
+        Py_DECREF(args);
+        if (!node)
+            goto error;
+
+        for (i = 0; i < lvl; i++) {
+            t_point *point = (t_point *)
+                SkipList_Node->tp_as_sequence->sq_item(node, i + 1);
+            PyObject *value;
+
+            if (!point)
+                goto error;
+
+            value = _t_record_item(points, i*3);
+            if (!value)
+                goto error;
+            Py_INCREF(value);
+            point->prevKey = value;
+            
+            value = _t_record_item(points, i*3 + 1);
+            if (!value)
+                goto error;
+            Py_INCREF(value);
+            point->nextKey = value;
+
+            value = _t_record_item(points, i*3 + 2);
+            if (!value)
+                goto error;
+            point->dist = PyInt_AsLong(value);
+
+            Py_DECREF(point);
+        }
+
+        Py_DECREF(record);
+        return node;
+    }
+
+    return record;
+
+  error:
+    Py_DECREF(record);
+    Py_XDECREF(node);
+    return NULL;
 }
 
 
@@ -1288,7 +1556,8 @@ void _init_container(PyObject *m)
     if (PyType_Ready(&ContainerType) >= 0 &&
         PyType_Ready(&ValueContainerType) >= 0 &&
         PyType_Ready(&RefContainerType) >= 0 &&
-        PyType_Ready(&ItemContainerType) >= 0)
+        PyType_Ready(&ItemContainerType) >= 0 &&
+        PyType_Ready(&IndexesContainerType) >= 0)
     {
         if (m)
         {
@@ -1307,6 +1576,10 @@ void _init_container(PyObject *m)
             Py_INCREF(&ItemContainerType);
             PyModule_AddObject(m, "CItemContainer",
                                (PyObject *) &ItemContainerType);
+
+            Py_INCREF(&IndexesContainerType);
+            PyModule_AddObject(m, "CIndexesContainer",
+                               (PyObject *) &IndexesContainerType);
 
             startTransaction_NAME = PyString_FromString("startTransaction");
             abortTransaction_NAME = PyString_FromString("abortTransaction");

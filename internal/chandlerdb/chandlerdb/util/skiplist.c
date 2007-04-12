@@ -1,5 +1,5 @@
 /*
- *  Copyright (c) 2003-2006 Open Source Applications Foundation
+ *  Copyright (c) 2003-2007 Open Source Applications Foundation
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -255,7 +255,6 @@ static int _t_node_check(PyObject *node);
 
 static PyMemberDef t_node_members[] = {
     { "_levels", T_OBJECT, offsetof(t_node, levels), READONLY, "" },
-    { "_entryValue", T_INT, offsetof(t_node, entryValue), 0, "" },
     { NULL, 0, 0, 0, NULL }
 };
 
@@ -356,10 +355,7 @@ static PyObject *t_node_new(PyTypeObject *type, PyObject *args, PyObject *kwds)
     t_node *self = (t_node *) type->tp_alloc(type, 0);
 
     if (self)
-    {
         self->levels = NULL;
-        self->entryValue = 0;
-    }
 
     return (PyObject *) self;
 }
@@ -378,7 +374,6 @@ static int _t_node_init(t_node *self, int level)
 
     Py_XDECREF(self->levels);
     self->levels = levels;
-    self->entryValue = 0;
 
     return 0;
 }
@@ -1740,12 +1735,12 @@ static PyObject *t_sl_last(t_sl *self, PyObject *args)
 /* if the skip list is sorted, return the insertion point for a key */
 static PyObject *t_sl_after(t_sl *self, PyObject *args)
 {
-    PyObject *key, *callable;
+    PyObject *key, *callable, *vals;
 
     if (self->flags & SL_INVALID)
         return _t_sl_invalid(self);
 
-    if (!PyArg_ParseTuple(args, "OO", &key, &callable))
+    if (!PyArg_ParseTuple(args, "OOO", &key, &callable, &vals))
         return NULL;
     else
     {
@@ -1762,7 +1757,7 @@ static PyObject *t_sl_after(t_sl *self, PyObject *args)
             if (!afterKey)
                 return NULL;
 
-            args = PyTuple_Pack(2, key, afterKey);
+            args = PyTuple_Pack(3, key, afterKey, vals);
             result = PyObject_Call(callable, args, NULL);
             Py_DECREF(args);
 
@@ -1787,10 +1782,7 @@ static PyObject *t_sl_after(t_sl *self, PyObject *args)
             if (diff < 0)
                 hi = pos - 1;
             else
-            {
-                pos += 1;
-                lo = pos;
-            }
+                lo = ++pos;
         }
 
         if (pos == 0)
