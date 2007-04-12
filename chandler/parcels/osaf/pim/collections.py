@@ -1,4 +1,4 @@
-#   Copyright (c) 2003-2006 Open Source Applications Foundation
+#   Copyright (c) 2003-2007 Open Source Applications Foundation
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -143,7 +143,7 @@ class MethodIndexDefinition(IndexDefinition):
                             method=(self, 'compare'),
                             monitor=monitoredAttributes)
 
-    def compare(self, u1, u2):
+    def compare(self, u1, u2, vals):
         """
         Compare two items, given their UUIDs. This method fetches (using
         findValues() on the item UUIDs) the pairs specified in the
@@ -155,9 +155,18 @@ class MethodIndexDefinition(IndexDefinition):
                 "subtype that sets findValuePairs"
             )
         view = self.itsView
-        v1 = view.findInheritedValues(u1, *self.findValuePairs)
-        v2 = view.findInheritedValues(u1, *self.findValuePairs)
+        if u1 in vals:
+            v1 = vals[u1]
+        else:
+            v1 = view.findInheritedValues(u1, *self.findValuePairs)
+        if u2 in vals:
+            v2 = vals[u2]
+        else:
+            v2 = view.findInheritedValues(u1, *self.findValuePairs)
         return cmp(v1, v2)
+
+    def compare_init(self, u, vals):
+        return self.itsView.findInheritedValues(u, *self.findValuePairs)
         
     # @@@ [grant] Unused
     def compareValues(self, v1, v2):
@@ -201,8 +210,22 @@ class AttributeIndexDefinition(MethodIndexDefinition):
             self.findValuePairs = tuple(tuples)
         return self.findValuePairs
 
-    def compare(self, u1, u2):
-        attrs = self.getFindValuePairs() 
+    def compare(self, u1, u2, vals):
+        view = self.itsView
+        attrs = Nil
+
+        if u1 in vals:
+            v1s = vals[u1]
+        else:
+            if attrs is Nil:
+                attrs = self.getFindValuePairs() 
+            v1s = view.findInheritedValues(u1, *attrs)
+        if u2 in vals:
+            v2s = vals[u2]
+        else:
+            if attrs is Nil:
+                attrs = self.getFindValuePairs() 
+            v2s = view.findInheritedValues(u2, *attrs)
 
         def noneAwareCmp(v1, v2):
             # ... somewhat stolen from Indexes.py in the repository
@@ -218,14 +241,14 @@ class AttributeIndexDefinition(MethodIndexDefinition):
  
             return cmp(v1, v2)
 
-        view = self.itsView
-        for value1, value2 in itertools.izip(
-                         view.findInheritedValues(u1, *attrs),
-                         view.findInheritedValues(u2, *attrs)):
+        for value1, value2 in itertools.izip(v1s, v2s):
             result = noneAwareCmp(value1, value2)
             if result:
                 return result
         return 0
+
+    def compare_init(self, u, vals):
+        return self.itsView.findInheritedValues(u, *self.getFindValuePairs())
 
 
 class AllIndexDefinitions(schema.Item):

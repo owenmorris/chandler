@@ -49,33 +49,44 @@ class TriageColumnIndexDefinition(pim.MethodIndexDefinition):
             return values[0:-2] # just use triageStatus for ordering.
         return values[:-4] + values[-2:] # remove the triageStatus entries
 
-    def compare(self, u1, u2):
-        def getCompareTuple(uuid):
-            triage, triageChanged = \
-                self.loadIndexValues(uuid, TriageColumnIndexDefinition.findParams)                    
-            return (triage, triageChanged)
-        return cmp(getCompareTuple(u1), getCompareTuple(u2))
+    def getCompareTuple(self, uuid):
+        return self.loadIndexValues(uuid, self.findParams)
+
+    def compare(self, u1, u2, vals):
+        if u1 in vals:
+            v1 = vals[u1]
+        else:
+            v1 = self.getCompareTuple(u1)
+        if u2 in vals:
+            v2 = vals[u2]
+        else:
+            v2 = self.getCompareTuple(u2)
+        return cmp(v1, v2)
+
+    def compare_init(self, u, vals):
+        return self.getCompareTuple(u)
+
 
 class TaskColumnIndexDefinition(TriageColumnIndexDefinition):
     findParams = [
         (pim.Stamp.stamp_types.name, []),
         ('displayName', u''),
     ] + TriageColumnIndexDefinition.findParams
-    def compare(self, u1, u2):
-        def getCompareTuple(uuid):
-            stamp_types, displayName, triage, triageChanged = \
-                self.loadIndexValues(uuid, TaskColumnIndexDefinition.findParams)
-            return (pim.TaskStamp in stamp_types, displayName, triage, triageChanged)
-        return cmp(getCompareTuple(u1), getCompareTuple(u2))
+
+    def getCompareTuple(self, uuid):
+        stamp_types, displayName, triage, triageChanged = \
+            self.loadIndexValues(uuid, self.findParams)
+        return (pim.TaskStamp in stamp_types,
+                displayName, triage, triageChanged)
+
 
 class CommunicationColumnIndexDefinition(TriageColumnIndexDefinition):
-    def compare(self, u1, u2):
-        def getCompareTuple(uuid):                            
-            triage, triageChanged = \
-                self.loadIndexValues(uuid, TriageColumnIndexDefinition.findParams)
-            commState = CommunicationStatus.getItemCommState(uuid, self.itsView)
-            return (commState, triage, triageChanged)
-        return cmp(getCompareTuple(u1), getCompareTuple(u2))
+
+    def getCompareTuple(self, uuid):
+        triage, triageChanged = self.loadIndexValues(uuid, self.findParams)
+        commState = CommunicationStatus.getItemCommState(uuid, self.itsView)
+        return (commState, triage, triageChanged)
+
     
 class CalendarColumnIndexDefinition(TriageColumnIndexDefinition):
     findParams = [
@@ -83,69 +94,66 @@ class CalendarColumnIndexDefinition(TriageColumnIndexDefinition):
         (pim.Remindable.reminders.name, None),
         ('displayDate', pim.Reminder.farFuture),
     ] + TriageColumnIndexDefinition.findParams
-    def compare(self, u1, u2):
-        def getCompareTuple(uuid):
-            stamp_types, reminders, displayDate, triage, triageChanged = \
-                self.loadIndexValues(uuid, CalendarColumnIndexDefinition.findParams)
-            
-            # We need to do this:
-            #   hasUserReminder = item.getUserReminder(expiredToo=True) is not None
-            # while avoiding loading the items. @@@ Note: This code matches the 
-            # implementation of Remindable.getUserReminder - be sure to change 
-            # that if you change this!
-            
-            def hasAUserReminder(remList):
-                if remList is not None:
-                    for reminderUUID in remList.iterkeys():
-                        userCreated = self.itsView.findValue(reminderUUID, 'userCreated', False)
-                        if userCreated:
-                            return True
-                return False
-            hasUserReminder = hasAUserReminder(reminders)
 
-            if hasUserReminder:
-                reminderState = 0
-            elif pim.EventStamp in stamp_types:
-                reminderState = 1
-            else:
-                reminderState = 2
+    def getCompareTuple(self, uuid):
+        stamp_types, reminders, displayDate, triage, triageChanged = \
+            self.loadIndexValues(uuid, self.findParams)
+            
+        # We need to do this:
+        #   hasUserReminder = item.getUserReminder(expiredToo=True) is not None
+        # while avoiding loading the items. @@@ Note: This code matches the 
+        # implementation of Remindable.getUserReminder - be sure to change 
+        # that if you change this!
+            
+        def hasAUserReminder(remList):
+            if remList is not None:
+                for reminderUUID in remList.iterkeys():
+                    userCreated = self.itsView.findValue(reminderUUID, 'userCreated', False)
+                    if userCreated:
+                        return True
+            return False
+        hasUserReminder = hasAUserReminder(reminders)
+
+        if hasUserReminder:
+            reminderState = 0
+        elif pim.EventStamp in stamp_types:
+            reminderState = 1
+        else:
+            reminderState = 2
                 
-            return (reminderState, displayDate, triage, triageChanged)
+        return (reminderState, displayDate, triage, triageChanged)
 
-        return cmp(getCompareTuple(u1), getCompareTuple(u2))
 
 class WhoColumnIndexDefinition(TriageColumnIndexDefinition):
     findParams = [
         ('displayWho', u''),
     ] + TriageColumnIndexDefinition.findParams
-    def compare(self, u1, u2):
-        def getCompareTuple(uuid):
-            displayWho, triage, triageChanged = \
-                self.loadIndexValues(uuid, WhoColumnIndexDefinition.findParams)                    
-            return (displayWho.lower(), triage, triageChanged)
-        return cmp(getCompareTuple(u1), getCompareTuple(u2))
+
+    def getCompareTuple(self, uuid):
+        displayWho, triage, triageChanged = \
+            self.loadIndexValues(uuid, self.findParams)
+        return (displayWho.lower(), triage, triageChanged)
+
 
 class TitleColumnIndexDefinition(TriageColumnIndexDefinition):
     findParams = [
         ('displayName', u''),
     ] + TriageColumnIndexDefinition.findParams
-    def compare(self, u1, u2):
-        def getCompareTuple(uuid):
-            displayName, triage, triageChanged = \
-                self.loadIndexValues(uuid, TitleColumnIndexDefinition.findParams)                    
-            return (displayName.lower(), triage, triageChanged)
-        return cmp(getCompareTuple(u1), getCompareTuple(u2))
+
+    def getCompareTuple(self, uuid):
+        displayName, triage, triageChanged = \
+            self.loadIndexValues(uuid, self.findParams)
+        return (displayName.lower(), triage, triageChanged)
+
 
 class DateColumnIndexDefinition(TriageColumnIndexDefinition):
     findParams = [
         ('displayDate', pim.Reminder.farFuture),
     ] + TriageColumnIndexDefinition.findParams
-    def compare(self, u1, u2):
-        def getCompareTuple(uuid):
-            displayDate, triage, triageChanged = \
-                self.loadIndexValues(uuid, DateColumnIndexDefinition.findParams)                    
-            return (displayDate, triage, triageChanged)
-        return cmp(getCompareTuple(u1), getCompareTuple(u2))
+
+    def getCompareTuple(self, uuid):
+        return self.loadIndexValues(uuid, self.findParams)
+
 
 class WhoAttributeEditor(attributeEditors.StringAttributeEditor):
     def GetTextToDraw(self, item, attributeName):

@@ -510,7 +510,7 @@ class DBNumericIndex(NumericIndex):
 
     def _restore(self, version):
 
-        indexes = self.view.store._indexes
+        indexes = self.view.store._indexes.c
         
         view = self.view
         self._version = version
@@ -532,7 +532,7 @@ class DBNumericIndex(NumericIndex):
                 return None
 
             view = self.view
-            node = view.store._indexes.loadKey(view, self._uuid, version, key)
+            node = view.store._indexes.c.loadKey(view, self._uuid, version, key)
             if node is not None:
                 self[key] = node
 

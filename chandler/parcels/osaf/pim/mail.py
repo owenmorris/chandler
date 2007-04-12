@@ -2238,15 +2238,23 @@ Issues:
 
 
 def makeCompareMethod(attrName):
-    def compare(self, uuid1, uuid2):
-        v1 = self.itsView.findValue(uuid1, attrName).lower()
-        v2 = self.itsView.findValue(uuid2, attrName).lower()
+    def compare(self, u1, u2, vals):
+        if u1 in vals:
+            v1 = vals[u1]
+        else:
+            v1 = self.itsView.findValue(u1, attrName).lower()
+        if u2 in vals:
+            v2 = vals[u2]
+        else:
+            v2 = self.itsView.findValue(u2, attrName).lower()
         return cmp(v1, v2)
-    return compare
+    def compare_init(self, u, vals):
+        return self.itsView.findValue(u, attrName).lower()
+    return compare, compare_init
 
 class EmailComparator(schema.Item):
-    cmpAddress = makeCompareMethod('emailAddress')
-    cmpFullName = makeCompareMethod('fullName')
+    cmpAddress, cmpAddress_init = makeCompareMethod('emailAddress')
+    cmpFullName, cmpFullName_init = makeCompareMethod('fullName')
 
 # Map from account type strings to account types
 

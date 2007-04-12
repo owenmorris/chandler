@@ -23,7 +23,7 @@ from chandlerdb.item.c import CItem, CValues
 from chandlerdb.persistence.c import \
     Record, DB, DBEnv, \
     CContainer, CValueContainer, CRefContainer, CItemContainer, \
-    DBNotFoundError, DBLockDeadlockError, DBNoSuchFileError
+    CIndexesContainer, DBNotFoundError, DBLockDeadlockError, DBNoSuchFileError
 
 from repository.item.Access import ACL, ACE
 from repository.persistence.Repository import Repository
@@ -679,15 +679,17 @@ class IndexesContainer(DBContainer):
                  Record.UUID,     # uKey
                  Record.INT)      # ~version
     ENTRY_TYPES = (Record.BYTE,   # level
-                   Record.INT,    # entry value
                    Record.RECORD) # points
+
+    def openC(self):
+
+        self.c = CIndexesContainer(self._db, self.store)
 
     def saveKey(self, uIndex, version, uKey, node):
 
         if node is not None:
             level = len(node)
-            record = Record(Record.BYTE, level,
-                            Record.INT, node._entryValue)
+            record = Record(Record.BYTE, level)
             pointsRecord = Record()
             for lvl in xrange(1, level + 1):
                 point = node[lvl]
@@ -702,53 +704,6 @@ class IndexesContainer(DBContainer):
                                       Record.UUID, uKey,
                                       Record.INT, ~version),
                                record)
-
-    def loadKey(self, view, uIndex, version, uKey):
-        
-        store = self.store
-        
-        key = Record(Record.UUID, uIndex,
-                     Record.UUID, uKey,
-                     Record.INT, ~version)
-
-        while True:
-            txnStatus = 0
-            cursor = None
-
-            try:
-                txnStatus = store.startTransaction(view)
-                cursor = self.c.openCursor()
-
-                entry = self.c.find_record(cursor, key,
-                                           IndexesContainer.ENTRY_TYPES,
-                                           self.c.flags, None)
-                if entry is not None:
-                    level, entryValue, points = entry.data
-                    if level == 0:  # deleted entry
-                        return None
-                    
-                    node = SkipList.Node(level)
-                    node._entryValue = entryValue
-
-                    for lvl in xrange(0, level):
-                        point = node[lvl+1]
-                        (point.prevKey, point.nextKey,
-                         point.dist) = points[lvl*3:(lvl+1)*3]
-
-                    return node
-
-                return None
-                        
-            except DBLockDeadlockError:
-                if txnStatus & store.TXN_STARTED:
-                    store._logDL()
-                    continue
-                else:
-                    raise
-
-            finally:
-                self.c.closeCursor(cursor)
-                store.abortTransaction(view, txnStatus)
 
     def purgeIndex(self, txn, uIndex, keepOne):
 
@@ -833,12 +788,11 @@ class IndexesContainer(DBContainer):
                                                IndexesContainer.ENTRY_TYPES,
                                                self.c.flags, None)
                     if entry is not None:
-                        level, entryValue, points = entry.data
+                        level, points = entry.data
                         if level == 0:  # deleted entry
                             return None
                     
                         node = SkipList.Node(level)
-                        node._entryValue = entryValue
 
                         for lvl in xrange(0, level):
                             point = node[lvl+1]
@@ -1454,8 +1408,9 @@ class ValueContainer(DBContainer):
     # 0.6.12: added Record C type to serialize into DB
     # 0.6.13: added support for persisting Empty for ref collections
     # 0.6.14: 'descending' bit moved to NumericIndex
+    # 0.6.15: removed unused entryValue field from skip list entries
 
-    FORMAT_VERSION = 0x00060e00
+    FORMAT_VERSION = 0x00060f00
 
     SCHEMA_KEY  = pack('>16sl', Repository.itsUUID._uuid, 0)
     VERSION_KEY = pack('>16sl', Repository.itsUUID._uuid, 1)

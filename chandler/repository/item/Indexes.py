@@ -187,15 +187,6 @@ class NumericIndex(Index):
         if self._ranges is not None:
             self._ranges.unSelectRange(range)
 
-    def getEntryValue(self, key):
-
-        return self[key]._entryValue
-
-    def setEntryValue(self, key, entryValue):
-
-        self[key]._entryValue = entryValue
-        self._keyChanged(key)
-
     def getKey(self, n):
 
         if self._descending:
@@ -396,7 +387,7 @@ class SortedIndex(DelegatingIndex):
 
         return kwds
 
-    def compare(self, k0, k1):
+    def compare(self, k0, k1, vals):
 
         raise NotImplementedError, '%s is abstract' % type(self)
 
@@ -420,7 +411,7 @@ class SortedIndex(DelegatingIndex):
         skipList = index.skipList
 
         if skipList.isValid():
-            afterKey = skipList.after(key, self.compare)
+            afterKey = skipList.after(key, self.compare, {})
             index.insertKey(key, afterKey, selected)
         else:
             afterKey = None
@@ -433,12 +424,13 @@ class SortedIndex(DelegatingIndex):
         skipList = index.skipList
         selected = False
         insert = True
+        vals = {}
 
         if key in index:
             prevKey = skipList.previous(key)
             nextKey = skipList.next(key)
-            if ((prevKey is None or self.compare(prevKey, key) <= 0) and
-                (nextKey is None or self.compare(nextKey, key) >= 0)):
+            if ((prevKey is None or self.compare(key, prevKey, vals) >= 0) and
+                (nextKey is None or self.compare(key, nextKey, vals) <= 0)):
                 return
 
             removed, selected = index.removeKey(key)
@@ -449,7 +441,8 @@ class SortedIndex(DelegatingIndex):
                     insert = False
 
         if insert:
-            index.insertKey(key, skipList.after(key, self.compare), selected)
+            afterKey = skipList.after(key, self.compare, vals)
+            index.insertKey(key, afterKey, selected)
 
         if self._subIndexes:
             view = self._valueMap.itsView
@@ -467,6 +460,7 @@ class SortedIndex(DelegatingIndex):
         selection = set()
         inserts = []
         moves = []
+        vals = {}
 
         if not isinstance(keys, set):
             keys = set(keys)
@@ -475,10 +469,12 @@ class SortedIndex(DelegatingIndex):
             if key in index:
                 prevKey = skipList.previous(key)
                 nextKey = skipList.next(key)
-                if ((prevKey is None or (prevKey not in keys and
-                                         self.compare(prevKey, key) <= 0)) and
-                    (nextKey is None or (nextKey not in keys and
-                                         self.compare(nextKey, key) >= 0))):
+                if ((prevKey is None or
+                     (prevKey not in keys and
+                      self.compare(key, prevKey, vals) >= 0)) and
+                    (nextKey is None or
+                     (nextKey not in keys and
+                      self.compare(key, nextKey, vals) <= 0))):
                     continue
             moves.append(key)
 
@@ -497,8 +493,8 @@ class SortedIndex(DelegatingIndex):
                 inserts.append(key)
 
         for key in inserts:
-            index.insertKey(key, skipList.after(key, self.compare),
-                            key in selection)
+            afterKey = skipList.after(key, self.compare, vals)
+            index.insertKey(key, afterKey, key in selection)
 
         if self._subIndexes:
             view = self._valueMap.itsView
@@ -615,6 +611,7 @@ class SortedIndex(DelegatingIndex):
         size = len(self)
         prevKey = None
         result = True
+        vals = {}
 
         compare = self.compare
         descending = self._descending
@@ -629,9 +626,9 @@ class SortedIndex(DelegatingIndex):
                 break
             if prevKey is not None:
                 if descending:
-                    sorted = compare(prevKey, key) >= 0
+                    sorted = compare(prevKey, key, vals) >= 0
                 else:
-                    sorted = compare(prevKey, key) <= 0
+                    sorted = compare(prevKey, key, vals) <= 0
                 if not sorted:
                     logger.error("Sorted %s index '%s' installed on value '%s' of type %s in attribute '%s' on %s is not sorted properly: value for %s is %s than the value for %s", self.getIndexType(), name, value, type(value), attribute, item._repr_(), repr(prevKey), word, repr(key))
                     result = False
@@ -667,7 +664,7 @@ class AttributeIndex(SortedIndex):
 
         return kwds
 
-    def compare(self, k0, k1):
+    def compare(self, k0, k1, vals):
 
         valueMap = self._valueMap
         i0 = valueMap[k0]
@@ -725,7 +722,7 @@ class ValueIndex(AttributeIndex):
         if not kwds.get('loading', False):
             self._pairs = [(name, None) for name in self._attributes]
 
-    def compare(self, k0, k1):
+    def compare(self, k0, k1, vals):
 
         view = self._valueMap.itsView
 
@@ -800,7 +797,7 @@ class StringIndex(AttributeIndex):
 
         return kwds
 
-    def compare(self, k0, k1):
+    def compare(self, k0, k1, vals):
 
         valueMap = self._valueMap
         i0 = valueMap[k0]
@@ -868,7 +865,7 @@ class CompareIndex(SortedIndex):
 
         return kwds
 
-    def compare(self, k0, k1):
+    def compare(self, k0, k1, vals):
 
         return getattr(self._valueMap[k0], self._compare)(self._valueMap[k1])
 
@@ -906,10 +903,14 @@ class MethodIndex(SortedIndex):
 
         return kwds
 
-    def compare(self, k0, k1):
+    def compare(self, k0, k1, vals):
 
         uItem, methodName = self._method
-        return getattr(self._valueMap.itsView[uItem], methodName)(k0, k1)
+        item = self._valueMap.itsView[uItem]
+        if k0 not in vals:
+            vals[k0] = getattr(item, methodName + '_init')(k0, vals)
+
+        return getattr(item, methodName)(k0, k1, vals)
 
     def _writeValue(self, itemWriter, record, version):
 
@@ -948,7 +949,7 @@ class SubIndex(SortedIndex):
 
         return kwds
 
-    def compare(self, k0, k1):
+    def compare(self, k0, k1, vals):
 
         uuid, attr, name = self._super
         index = getattr(self._valueMap.itsView[uuid], attr).getIndex(name)

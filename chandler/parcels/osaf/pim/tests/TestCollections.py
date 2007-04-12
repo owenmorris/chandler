@@ -1,4 +1,4 @@
-#   Copyright (c) 2003-2006 Open Source Applications Foundation
+#   Copyright (c) 2003-2007 Open Source Applications Foundation
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -823,14 +823,23 @@ class IndexDefinitionTestCase(CollectionTestCase):
 
     class MyMethodIndexDefinition(MethodIndexDefinition):
         callCount = 0
-        def compare(self, u1, u2):
+        def compare(self, u1, u2, vals):
         
             self.callCount += 1
-        
-            v1 = self.itsView.findValue(u1, 'displayName', None)
-            v2 = self.itsView.findValue(u2, 'displayName', None)
+            
+            if u1 in vals:
+                v1 = vals[u1]
+            else:
+                v1 = self.itsView.findValue(u1, 'displayName', None)
+            if u2 in vals:
+                v2 = vals[u2]
+            else:
+                v2 = self.itsView.findValue(u2, 'displayName', None)
             
             return cmp(v1, v2)
+
+        def compare_init(self, u, vals):
+            return self.itsView.findValue(u, 'displayName', None)
 
     def testMethodIndex(self):
 

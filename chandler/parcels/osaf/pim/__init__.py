@@ -164,10 +164,16 @@ class UnexpiredFilter(Item):
 
         return nextPoll != Reminder.farFuture
 
-    def compare(self, u1, u2):
+    def compare(self, u1, u2, vals):
         view = self.itsView
-        np1 = view.findValue(u1, self.findValuePair[0], None)
-        np2 = view.findValue(u2, self.findValuePair[0], None)
+        if u1 in vals:
+            np1 = vals[u1]
+        else:
+            np1 = view.findValue(u1, self.findValuePair[0], None)
+        if u2 in vals:
+            np2 = vals[u2]
+        else:
+            np2 = view.findValue(u2, self.findValuePair[0], None)
 
         if np1 == np2:
             return 0
@@ -176,6 +182,10 @@ class UnexpiredFilter(Item):
         if np2 is None:
             return 1
         return cmp(np1, np2)
+
+    def compare_init(self, u, vals):
+        return self.itsView.findValue(u, self.findValuePair[0], None)
+
 
 class ToMeFilter(RecurrenceAwareFilter):
     attrAndDefault = mail.MailStamp.toMe.name, True

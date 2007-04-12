@@ -2362,21 +2362,29 @@ def makeCompareMethod(attr=None, getFn=None, useTZ=True):
         attrName = attr.name
         def getFn(uuid, view):
             return view.findInheritedValues(uuid, (attrName, None))[0]
-    def compare(self, u1, u2):
+    def compare(self, u1, u2, vals):
         view = self.itsView
-        v1 = getFn(u1, view)
-        v2 = getFn(u2, view)
+        if u1 in vals:
+            v1 = vals[u1]
+        else:
+            v1 = getFn(u1, view)
+        if u2 in vals:
+            v2 = vals[u2]
+        else:
+            v2 = getFn(u2, view)
         return cmpTimeAttribute(v1, v2, useTZ=useTZ)
-    return compare
+    def compare_init(self, u, vals):
+        return getFn(u, self.itsView)
+    return compare, compare_init
         
 class EventComparator(schema.Item):
-    cmpStartTime = makeCompareMethod(getFn=EventStamp._getEffectiveStartTime)
-    cmpEndTime = makeCompareMethod(getFn=EventStamp._getEffectiveEndTime)
-    cmpRecurEnd = makeCompareMethod(attr=EventStamp.recurrenceEnd)
+    cmpStartTime, cmpStartTime_init = makeCompareMethod(getFn=EventStamp._getEffectiveStartTime)
+    cmpEndTime, cmpEndTime_init = makeCompareMethod(getFn=EventStamp._getEffectiveEndTime)
+    cmpRecurEnd, cmpRecurEnd_init = makeCompareMethod(attr=EventStamp.recurrenceEnd)
     # comparisons which strip timezones
-    cmpStartTimeNoTZ = makeCompareMethod(getFn=EventStamp._getEffectiveStartTime, useTZ=False)
-    cmpEndTimeNoTZ = makeCompareMethod(getFn=EventStamp._getEffectiveEndTime, useTZ=False)
-    cmpRecurEndNoTZ = makeCompareMethod(attr=EventStamp.recurrenceEnd, useTZ=False)
+    cmpStartTimeNoTZ, cmpStartTimeNoTZ_init = makeCompareMethod(getFn=EventStamp._getEffectiveStartTime, useTZ=False)
+    cmpEndTimeNoTZ, cmpEndTimeNoTZ_init = makeCompareMethod(getFn=EventStamp._getEffectiveEndTime, useTZ=False)
+    cmpRecurEndNoTZ, cmpRecurEndNoTZ_init = makeCompareMethod(attr=EventStamp.recurrenceEnd, useTZ=False)
 
 def setEventDateTime(item, startTime, endTime, typeFlag):
     """

@@ -86,9 +86,8 @@ class Indexed(object):
         collection mutation operations or by constraints on values.
 
         A collection may have any number of indexes. Each index has a
-        name which is used with the L{getByIndex}, L{getIndexEntryValue},
-        L{setIndexEntryValue}, L{resolveIndex}, L{first}, L{last}, L{next},
-        L{previous} methods.
+        name which is used with the L{getByIndex}, L{resolveIndex},
+        L{first}, L{last}, L{next}, L{previous} methods.
 
         Because the implementation of an index depends on the persistence
         layer, the type of index is chosen with the C{indexType} parameter
@@ -514,39 +513,6 @@ class Indexed(object):
 
         for key in self.iterindexkeys(indexName, first, last):
             yield (key, self[key])
-
-    def getIndexEntryValue(self, indexName, item):
-        """
-        Get an index entry value.
-
-        Each entry in a index may store one integer value. This value is
-        initialized to zero.
-
-        @param indexName: the name of the index
-        @type indexName: a string
-        @param item: the item's whose index entry is to be set
-        @type item: an L{Item<repository.item.Item.Item>} instance
-        @return: the index entry value
-        """
-        
-        return self.getIndex(indexName).getEntryValue(item.itsUUID)
-
-    def setIndexEntryValue(self, indexName, item, value):
-        """
-        Set an index entry value.
-
-        Each index entry may store one integer value.
-
-        @param indexName: the name of the index
-        @type indexName: a string
-        @param item: the item whose index entry is to be set
-        @type item: an L{Item<repository.item.Item.Item>} instance
-        @param value: the value to set
-        @type value: int
-        """
-
-        self.getIndex(indexName).setEntryValue(item.itsUUID, value)
-        self._setDirty()
 
     def resolveIndex(self, indexName, position):
 
