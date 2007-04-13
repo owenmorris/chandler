@@ -329,8 +329,8 @@ class perf:
         ('overlay_calendar.overlay_calendar2',                                  0.1, 1,   'Overlay calendar with 3k 2nd time'),
         ('perflargedatasharing.publish',                                        1, 3,     'Publish calendar with 3k'),
         ('perflargedatasharing.subscribe',                                      1, 3,     'Subscribe to calendar with 3k'),
+        ('dashboard_triage.triaging_items',                                     0.1, 1,   'Triage in Dashboard with 3k'),
         # Quick entry in Dashboard with 3k                                      0.1, 1,
-        # Triage in Dashboard with 3k                                           0.1, 1,
 
         ('startup',                                                             5, 10,    '#1 Startup'),
         ('new_event_from_file_menu_for_performance.event_creation',             0.1, 1,   '#2 New event (menu)'),
