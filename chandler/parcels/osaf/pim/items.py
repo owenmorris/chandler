@@ -229,12 +229,6 @@ class ContentItem(Triageable):
         doc="DateTime this item was created"
     )
 
-    notifications = schema.Sequence(
-        #'UserNotification',
-        description='All notifications for this ContentItem',
-        defaultValue=Empty
-    )
-
     # ContentItem instances can be put into ListCollections and AppCollections
     collections = schema.Sequence(notify=True) # inverse=collections.inclusions
 
@@ -607,33 +601,6 @@ class Group(ContentItem):
                 '"playlists"/"item collections" are modeled.\n'
             '   We need to find a name for these things.\n'
     )
-
-class UserNotification(ContentItem):
-
-    schema.kindInfo(
-        description = "Notifications meant for the user to see"
-    )
-
-    items = schema.Sequence(inverse=ContentItem.notifications)
-
-    timestamp = schema.One(schema.DateTimeTZ,
-        doc="DateTime this notification ocurred"
-    )
-
-    schema.initialValues(
-        timestamp = lambda self: datetime.now(ICUtzinfo.default)
-    )
-
-    @schema.observer(timestamp)
-    def onTimestampChanged(self, op, attr):
-        self.updateDisplayDate(op, attr)
-
-    def addDisplayDates(self, dates, now):
-        super(UserNotification, self).addDisplayDates(dates, now)
-        timestamp = getattr(self, 'timestamp', None)
-        if timestamp is not None:
-            dates.append((40, timestamp, 'timestamp'))
-
 
 class Principal(ContentItem):
     # @@@MOR These should be moved out so that authentication can be made

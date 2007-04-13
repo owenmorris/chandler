@@ -25,7 +25,6 @@ __all__ = [
 ]
 
 import shares, errors, formats, utility
-from notifications import *
 from callbacks import *
 from application import schema
 from osaf import pim
@@ -972,8 +971,6 @@ class ManifestEngineMixin(BaseConduit):
                         if (not filterClasses or
                             self._matchesFilterClasses(item, filterClasses)):
 
-                            SharingNotification(itsView=contentView,
-                                displayName="Removed item from collection")
                             logger.info("...removing %s from collection" % item)
                             if item in cvSelf.share.contents:
                                 cvSelf.share.contents.remove(item)

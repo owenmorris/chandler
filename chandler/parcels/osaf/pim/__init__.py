@@ -18,7 +18,7 @@
 #
 from items import (
     ContentKind, ContentItem, ImportanceEnum, Group, Principal, 
-    Project, Modification, UserNotification
+    Project, Modification
 )
 from reminders import (
     isDead
@@ -437,11 +437,6 @@ def installParcel(parcel, oldVersion=None):
         'allEventsCollection',
          sources=[allCollection, events]
     )
-
-    KindCollection.update(parcel, 'notificationCollection',
-        displayName=_(u"Notifications"),
-        kind=UserNotification.getKind(view),
-        recursive=True).addIndex('timestamp', 'value', attribute='timestamp')
 
     searchResults = SmartCollection.update(
         parcel, 'searchResults',

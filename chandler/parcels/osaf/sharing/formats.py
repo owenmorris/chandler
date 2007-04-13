@@ -22,7 +22,6 @@ __all__ = [
 
 import shares, errors
 from utility import *
-from notifications import *
 import datetime, base64
 from xml.etree.cElementTree import ElementTree, XML
 from application import schema
@@ -653,10 +652,6 @@ class CloudXMLFormat(ImportExportFormat):
 
             if stats and uuid not in stats['added']:
                 stats['added'].append(uuid)
-
-            if isinstance(item, pim.ContentItem):
-                SharingNewItemNotification(itsView=item.itsView,
-                    displayName="New item", items=[item])
 
         else:
             uuid = item.itsUUID
