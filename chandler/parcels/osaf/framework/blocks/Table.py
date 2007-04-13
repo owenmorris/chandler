@@ -497,7 +497,7 @@ class wxTable(DragAndDrop.DraggableWidget,
         ChooseFormat.importEmail(text, self.blockItem.itsView,
                                  selectedCollection=True)
 
-    def wxSynchronizeWidget(self, useHints=False):
+    def wxSynchronizeWidget(self):
         """
           A Grid can't easily redisplay its contents, so we write the following
         helper function to readjust everything after the contents change

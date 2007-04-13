@@ -60,10 +60,7 @@ class wxBranchPointBlock(wxBoxContainer):
     A widget block that gives its BranchPointBlock a chance to change
     the tree of blocks within it.
     """
-    def wxSynchronizeWidget(self, useHints=False, hints={}):
-        """
-        hints and useHints are completely unreleated. useHints is going to go away soon.
-        """
+    def wxSynchronizeWidget(self, hints={}):
         blockItem = self.blockItem
         if blockItem.isShown:
             blockItem.installTreeOfBlocks(hints)

@@ -2266,7 +2266,7 @@ class wxCalendarControl(wx.Panel, CalendarEventHandler):
         self.ResizeHeader()
         event.Skip()
 
-    def wxSynchronizeWidget(self, useHints=False):
+    def wxSynchronizeWidget(self):
         selectedDate = self.blockItem.selectedDate
         startDate = self.blockItem.rangeStart
 

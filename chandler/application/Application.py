@@ -879,7 +879,7 @@ class wxApplication (wx.App):
         # synchronize affected widgets
         for block in dirtyBlocks:
             if block is not None:
-                block.synchronizeWidget(useHints=True)
+                block.synchronizeWidget()
 
         Block.dirtyBlocks = set()
 

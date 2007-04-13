@@ -152,7 +152,7 @@ class wxAllDayEventsCanvas(wxCalendarCanvas):
         self.RefreshCanvasItems(resort=False)
         event.Skip()
 
-    def wxSynchronizeWidget(self, useHints=False):
+    def wxSynchronizeWidget(self):
         #print "%s rebuilding canvas items" % self
         currentRange = self.GetCurrentDateRange()
         

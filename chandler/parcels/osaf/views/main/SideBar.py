@@ -97,7 +97,7 @@ class wxSidebar(wxTable):
             cellRect = wx.Rect (0,0,0,0)
         return cellRect
 
-    def wxSynchronizeWidget(self, useHints=False):
+    def wxSynchronizeWidget(self):
         # clear out old 'checked' items
         sidebar = self.blockItem
 
@@ -106,7 +106,7 @@ class wxSidebar(wxTable):
         for checkedItem in list(sidebar.checkedItems):
             if checkedItem not in sidebar.contents:
                 sidebar.checkedItems.remove (checkedItem)
-        super (wxSidebar, self).wxSynchronizeWidget(useHints)
+        super (wxSidebar, self).wxSynchronizeWidget()
 
     @staticmethod
     def GetRectFromOffsets (rect, offsets):

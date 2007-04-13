@@ -304,8 +304,8 @@ class DetailSynchronizer(Item):
     item = property(fget=Block.Block.getProxiedContents, 
                     doc="Return the selected item, or None")
 
-    def synchronizeWidget(self, useHints=False):
-        super(DetailSynchronizer, self).synchronizeWidget(useHints)
+    def synchronizeWidget(self):
+        super(DetailSynchronizer, self).synchronizeWidget()
         self.show(self.item is not None and self.shouldShow(self.item))
 
     def shouldShow(self, item):
@@ -373,8 +373,8 @@ class UnreadTimer(DetailSynchronizer, ControlBlocks.Timer):
         item = getattr(self, 'item', None)
         self.checkReadState = (item is not None and not item.read)        
 
-    def synchronizeWidget(self, useHints=False):
-        super(DetailSynchronizer, self).synchronizeWidget(useHints)
+    def synchronizeWidget(self):
+        super(DetailSynchronizer, self).synchronizeWidget()
         if getattr(self, 'checkReadState', False):
             self.checkReadState = False
             item = getattr(self, 'item', None) 
@@ -408,8 +408,8 @@ class StaticTextLabel(DetailSynchronizer, ControlBlocks.StaticText):
             self.widget.SetLabel(value)
         return relayout
 
-    def synchronizeWidget(self, useHints=False):
-        super(StaticTextLabel, self).synchronizeWidget(useHints)
+    def synchronizeWidget(self):
+        super(StaticTextLabel, self).synchronizeWidget()
         if self.item is not None:
             self.synchronizeLabel(self.staticTextLabelValue(self.item))
 
@@ -475,8 +475,8 @@ class DetailTriageButton(DetailSynchronizer, ControlBlocks.Button):
             state = state[dotIndex+1:]
         return state
 
-    def synchronizeWidget(self, useHints=False):
-        super(DetailTriageButton, self).synchronizeWidget(useHints)
+    def synchronizeWidget(self):
+        super(DetailTriageButton, self).synchronizeWidget()
         self.setState()
 
     def setState(self):
@@ -519,8 +519,8 @@ class DetailStampButton(DetailSynchronizer, ControlBlocks.StampButton):
         # return the class of this stamp's Mixin Kind (bag of kind-specific attributes)
         raise NotImplementedError, "%s.stampClass()" % (type(self))
 
-    def synchronizeWidget(self, useHints=False):
-        super(DetailStampButton, self).synchronizeWidget(useHints)
+    def synchronizeWidget(self):
+        super(DetailStampButton, self).synchronizeWidget()
 
         # toggle this button to reflect the kind of the selected item
         item = self.item
@@ -625,9 +625,9 @@ class TaskStampButtonBlock(DetailStampButton):
 
 class PrivateSwitchButtonBlock(DetailSynchronizer, ControlBlocks.StampButton):
     """ "Never share" button in the Markup Bar. """
-    def synchronizeWidget(self, useHints=False):
+    def synchronizeWidget(self):
         # toggle this button to reflect the privateness of the selected item        
-        super(PrivateSwitchButtonBlock, self).synchronizeWidget(useHints)
+        super(PrivateSwitchButtonBlock, self).synchronizeWidget()
         if self.item is not None:
             self.widget.SetState("%s.%s" % (self.icon,
                                  self.item.private and "Stamped" or "Unstamped"))
@@ -649,9 +649,9 @@ class ReadOnlyIconBlock(DetailSynchronizer, ControlBlocks.StampButton):
     """
     "Read Only" icon in the Markup Bar.
     """
-    def synchronizeWidget(self, useHints=False):
+    def synchronizeWidget(self):
         # toggle this icon to reflect the read only status of the selected item
-        super(ReadOnlyIconBlock, self).synchronizeWidget(useHints)
+        super(ReadOnlyIconBlock, self).synchronizeWidget()
 
         checked = self.item is not None and sharing.isReadOnly(self.item)
         self.widget.SetState("%s.%s" % (self.icon,
@@ -713,8 +713,8 @@ class EditTextAttribute(DetailSynchronizer, ControlBlocks.EditText):
     def OnFinishChangesEvent(self, event):
         self.saveValue(validate=True)
 
-    def synchronizeWidget(self, useHints=False):
-        super(EditTextAttribute, self).synchronizeWidget(useHints)
+    def synchronizeWidget(self):
+        super(EditTextAttribute, self).synchronizeWidget()
         if self.item is not None:
             self.loadTextValue(self.item)
 
@@ -907,7 +907,7 @@ class ConflictWarning(DetailSynchronizer, ControlBlocks.Button):
             button.Bind(wx.EVT_BUTTON, self.resolveConflict)
         return button
 
-    def synchronizeWidget(self, useHints=False):
+    def synchronizeWidget(self):
         widget = getattr(self, 'widget', None)
         if widget is not None and sharing.hasConflicts(self.item):
             item = getattr(self.item, 'proxiedItem', self.item)
@@ -917,7 +917,7 @@ class ConflictWarning(DetailSynchronizer, ControlBlocks.Button):
                 widget.SetLabel(_(u'%d pending changes') % len(conflicts))
             else:
                 widget.SetLabel(_(u'1 pending change'))
-        super(ConflictWarning, self).synchronizeWidget(useHints)
+        super(ConflictWarning, self).synchronizeWidget()
 
     def resolveConflict(self, event):
         # show the dialog here
@@ -1893,8 +1893,8 @@ class ErrorAEBlock(DetailSynchronizedAttributeEditorBlock):
         return watchList
 
 class SendAsLabelBlock(DetailSynchronizer, ControlBlocks.StaticText):
-    def synchronizeWidget(self, useHints=False):
-        super(SendAsLabelBlock, self).synchronizeWidget(useHints)
+    def synchronizeWidget(self):
+        super(SendAsLabelBlock, self).synchronizeWidget()
         item = self.item
         lastMod = getattr(item, 'lastModification', None)
         if (lastMod in (pim.Modification.edited, pim.Modification.queued) and

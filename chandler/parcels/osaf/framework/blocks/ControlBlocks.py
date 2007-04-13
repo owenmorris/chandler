@@ -247,7 +247,7 @@ class wxHTML(BaseWidget, HtmlWindowWithStatus):
     def OnLinkClicked(self, link):
         webbrowser.open(link.GetHref())
 
-    def wxSynchronizeWidget(self, useHints=False):
+    def wxSynchronizeWidget(self):
         super (wxHTML, self).wxSynchronizeWidget()
         if self.IsShown():
             text = self.blockItem.text
@@ -564,7 +564,7 @@ class wxList (DragAndDrop.DraggableWidget,
             if curIndex is -1:
                 break
 
-    def wxSynchronizeWidget(self, useHints=False):
+    def wxSynchronizeWidget(self):
         self.Freeze()
         self.ClearAll()
         self.SetItemCount (self.GetElementCount())
@@ -638,7 +638,7 @@ class wxStatusBar (BaseWidget, wx.StatusBar):
         self.blockItem.getFrame().SetStatusBar(None)
         super (wxStatusBar, self).Destroy()
         
-    def wxSynchronizeWidget(self, useHints=False):
+    def wxSynchronizeWidget(self):
         super (wxStatusBar, self).wxSynchronizeWidget()
         self.blockItem.getFrame().Layout()
 
@@ -802,7 +802,7 @@ class wxTreeAndList(DragAndDrop.DraggableWidget, DragAndDrop.ItemClipboardHandle
     def OnItemDrag(self, event):
         self.DoDragAndDrop()
         
-    def wxSynchronizeWidget(self, useHints=False):
+    def wxSynchronizeWidget(self):
         def ExpandContainer (self, openedContainers, id):
             try:
                 expand = openedContainers [self.GetItemData(id).GetData()]
@@ -948,7 +948,7 @@ class wxItemDetail(HtmlWindowWithStatus):
             self.blockItem.postEventByName("SelectItemsBroadcast",
                                            {'items':[item]})
 
-    def wxSynchronizeWidget(self, useHints=False):
+    def wxSynchronizeWidget(self):
         blockItem = self.blockItem
         item = getattr (blockItem, "contents",getattr (blockItem, "selection", None))
         if item is not None:
@@ -1309,11 +1309,9 @@ class AEBlock(BoxContainer):
 
         return widget
 
-    def synchronizeWidget(self, useHints=False):
+    def synchronizeWidget(self):
         """
         Override to call the editor to do the synchronization.
-
-        @param useHints: Ignored here for now
         """
         def BeginEdit():
             editor = self.lookupEditor()

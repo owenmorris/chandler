@@ -134,12 +134,12 @@ class wxMiniCalendar(DragAndDrop.DropReceiveWidget,
         self.Bind(wx.EVT_PAINT, self.OnPaint)
 
 
-    def wxSynchronizeWidget(self, useHints=False):
+    def wxSynchronizeWidget(self):
         style = PLATFORM_BORDER
         if isMainCalendarVisible() and not self.blockItem.dayMode:
             style |= minical.CAL_HIGHLIGHT_WEEK
         self.SetWindowStyle(style)
-        self.setFreeBusy(None, useHints)
+        self.setFreeBusy(None)
 
     def OnWXSelectItem(self, event):
         self.blockItem.postEventByName ('SelectedDateChanged',
@@ -157,7 +157,7 @@ class wxMiniCalendar(DragAndDrop.DropReceiveWidget,
         date = datetime.combine(self.GetDate(), time(tzinfo = ICUtzinfo.floating))
         return date
 
-    def setFreeBusy(self, event, useHints=False):
+    def setFreeBusy(self, event):
 
         if self._recalcCount == 0:
             zerotime = time(tzinfo=ICUtzinfo.default)
@@ -696,7 +696,7 @@ class wxPreviewArea(CalendarCanvas.CalendarNotificationHandler, wx.Panel):
             newHeight = drawnHeight + 2*self.vMargin
         self.ChangeHeightAndAdjustContainers(newHeight)
 
-    def wxSynchronizeWidget(self, useHints=False):
+    def wxSynchronizeWidget(self):
         # We now want the preview area to always appear.  If the
         # calendar is visible, however, we always want the preview
         # area to describe today, rather than the currently selected

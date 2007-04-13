@@ -32,7 +32,7 @@ class orientationEnumType(schema.Enumeration):
 
 class wxBoxContainer (wxRectangularChild):
     #import util.autolog; __metaclass__ = util.autolog.LogTheMethods; logMatch = "^On.*"
-    def wxSynchronizeWidget(self, useHints=False):
+    def wxSynchronizeWidget(self):
         super (wxBoxContainer, self).wxSynchronizeWidget ()
 
         colorStyle = getattr (self, 'colorStyle', None)
@@ -86,7 +86,7 @@ class BoxContainer(RectangularChild):
 
     
 class wxScrolledContainer (wx.ScrolledWindow):
-    def wxSynchronizeWidget(self, useHints=False):
+    def wxSynchronizeWidget(self):
         if self.blockItem.isShown:
             sizer = self.GetSizer()
             sizer.Clear()
@@ -183,7 +183,7 @@ class wxSplitterWindow(wx.SplitterWindow):
                 sizeEvent.ForceSize = True
                 method (window1, sizeEvent)
 
-    def wxSynchronizeWidget(self, useHints=False):
+    def wxSynchronizeWidget(self):
         blockItem = self.blockItem
         self.SetSize ((blockItem.size.width, blockItem.size.height))
 

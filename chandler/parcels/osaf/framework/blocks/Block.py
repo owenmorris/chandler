@@ -777,7 +777,7 @@ class Block(schema.Item):
                         method(preferredClass)
         return item
 
-    def synchronizeWidget (self, useHints=False):
+    def synchronizeWidget (self):
         """
         synchronizeWidget's job is to make the wxWidget match the
         state of the data persisted in the block.
@@ -800,7 +800,7 @@ class Block(schema.Item):
         if widget is not None:
             method = getattr (type (widget), 'wxSynchronizeWidget', None)
             if method is not None:
-                IgnoreSynchronizeWidget(True, method, widget, useHints)
+                IgnoreSynchronizeWidget(True, method, widget)
 
     def rebuildDynamicBlocks (self):
         """
@@ -1115,7 +1115,7 @@ class BaseWidget(object):
     A mixin that handles basic feature of most widgets, e.g. isShown-ness: Make sure my visibility
     matches my block's.
     """
-    def wxSynchronizeWidget(self, useHints=False):
+    def wxSynchronizeWidget(self):
         blockItem = self.blockItem
         if blockItem.isShown != self.IsShown():
             self.Show (blockItem.isShown)

@@ -112,7 +112,7 @@ class wxTimedEventsCanvas(BaseWidget, wxCalendarCanvas):
             scrollY = (self.hourHeight * 6) / self.GetScrollPixelsPerUnit()[1]
         self.Scroll(0, scrollY)
 
-    def wxSynchronizeWidget(self, useHints=False):
+    def wxSynchronizeWidget(self):
         self.SetSize ((self.blockItem.size.width, self.blockItem.size.height))
         self.setScroll()
         currentRange = self.GetCurrentDateRange()

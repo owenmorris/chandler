@@ -511,7 +511,7 @@ class wxMenuItem (wx.MenuItem):
             menu.RemoveItem (self)
         del self
 
-    def wxSynchronizeWidget(self, useHints=False):
+    def wxSynchronizeWidget(self):
         # placeholder in case Menu Items change
         pass
 
@@ -563,7 +563,7 @@ class wxMenu(wx.Menu):
     def __init__(self, *arguments, **keywords):
         super (wxMenu, self).__init__ (*arguments, **keywords)
 
-    def wxSynchronizeWidget(self, useHints=False):
+    def wxSynchronizeWidget(self):
         self.blockItem.synchronizeItems()
 
     def Destroy(self):
@@ -659,7 +659,7 @@ class wxMenuBar (wx.MenuBar):
         self.blockItem.getFrame().SetMenuBar(None)
         super (wxMenuBar, self).Destroy()
 
-    def wxSynchronizeWidget(self, useHints=False):
+    def wxSynchronizeWidget(self):
         self.blockItem.synchronizeItems()
 
     """
@@ -787,7 +787,7 @@ class wxToolbar (Block.BaseWidget, wx.ToolBar):
         self.toolItemList = [] # non-persistent list
         self.renderItems = False # controls whether toolbar items are rendered
 
-    def wxSynchronizeWidget(self, useHints=False):
+    def wxSynchronizeWidget(self):
         super (wxToolbar, self).wxSynchronizeWidget()
         self.SetToolBitmapSize((self.blockItem.toolSize.width, self.blockItem.toolSize.height))
         self.SetToolSeparation(self.blockItem.separatorWidth)
@@ -873,7 +873,7 @@ class wxToolbarItemMixin (object):
             parent = self.blockItem.parentBlock
         parent.widget.DeleteTool(self.GetId())
 
-    def wxSynchronizeWidget(self, useHints=False):
+    def wxSynchronizeWidget(self):
         """
         Currently, we only synchronize radio buttons, eventually we
         need to synchronize other kinds, e.g. Text, Combo, and Choice types.
@@ -1110,7 +1110,7 @@ class wxQuickEntry (wxToolbarItemMixin, wx.SearchCtrl):
         block = self.blockItem
         block.post (block.event, {"cancelClicked": True}, sender = block)
 
-    def wxSynchronizeWidget(self, useHints=False):
+    def wxSynchronizeWidget(self):
         super (wxQuickEntry, self).wxSynchronizeWidget()
         self.SetValue (self.blockItem.text)
         self.ShowHideCancelButton()
