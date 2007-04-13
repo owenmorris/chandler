@@ -247,27 +247,12 @@ def restore(rv, filename, testmode=False, newMaster=''):
         # sharing accounts
         if sectiontype in (u"webdav account", u"cosmo account"):
 
-            account = None
-            makeCurrent = False
-
-            if section.has_key(u"default") and section.as_bool(u"default"):
-                accountRef = schema.ns("osaf.sharing", rv).currentSharingAccount
-                current = accountRef.item
-
-                if not hasattr(current.password, 'ciphertext') and \
-                    len(current.username.strip()) == 0:
-                   # The current account is empty
-                    account = current
-
-                else:
-                    makeCurrent = True
-
             if sectiontype == u"webdav account":
                 klass = sharing.WebDAVAccount
             else:
                 klass = sharing.CosmoAccount
 
-            if section.has_key(u"uuid") and account is None:
+            if section.has_key(u"uuid"):
                 uuid = section[u"uuid"]
                 uuid = UUID(uuid)
                 account = rv.findUUID(uuid)
@@ -278,11 +263,10 @@ def restore(rv, filename, testmode=False, newMaster=''):
                         withInitialValues=True)
                     account.password = password.Password(itsView=rv,
                                                          itsParent=account)
-            elif account is None:
-                account = klass(itsView=rv)
 
-            if makeCurrent:
-                schema.ns("osaf.sharing", rv).currentSharingAccount.item = account
+            if section.has_key(u"default") and section.as_bool(u"default"):
+                schema.ns("osaf.sharing",
+                    rv).currentSharingAccount.item = account
 
             account.displayName = section[u"title"]
             account.host = section[u"host"]

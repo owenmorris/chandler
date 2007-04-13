@@ -102,33 +102,7 @@ def installParcel(parcel, oldVersion=None):
 
     SharingPreferences.update(parcel, "prefs")
 
-    cur = Reference.update(parcel, 'currentSharingAccount')
-    if cur.item is None:
-        # This must be our first time because the reference to the current
-        # sharing account has not been assigned.
-
-        # Give the out-of-the-box account items fixed UUIDs so that
-        # reload will update them instead of creating duplicates.
-        # Also create these items outside of //parcels so they get dumped.
-
-        cur.item = WebDAVAccount(itsView=parcel.itsView,
-            _uuid = UUID("8621064a-e9f5-11db-aadb-000a95bb2738"),
-            displayName=_(u'Cosmo Sharing Service'),
-            host=u'osaf.us', path=u'/cosmo/dav/<username>',
-            username=u'',
-            password=Password(itsView=parcel.itsView),
-            useSSL=True, port=443
-        )
-
-        CosmoAccount(itsView=parcel.itsView,
-            _uuid = UUID("86b4ae22-e9f5-11db-aadb-000a95bb2738"),
-            displayName=_(u'Chandler Hub Service'),
-            host=u'qacosmo.osafoundation.org', path=u'/cosmo',
-            username=u'',
-            password=Password(itsView=parcel.itsView),
-            useSSL=False, port=80
-        )
-
+    Reference.update(parcel, 'currentSharingAccount')
 
     from osaf import startup
     startup.PeriodicTask.update(parcel, "sharingTask",
@@ -157,6 +131,30 @@ def installParcel(parcel, oldVersion=None):
         filterExpression="view.hasTrueValues(uuid, '%s')" % (filterAttribute,),
         filterAttributes=[filterAttribute])
     iCalendarItems.addIndex('icalUID', 'value', attribute=filterAttribute)
+
+
+def getDefaultAccount(rv):
+    cur = schema.ns('osaf.sharing', rv).currentSharingAccount
+    if cur.item is None:
+        cur.item = WebDAVAccount(itsView=rv,
+            displayName=_(u'Cosmo Sharing Service'),
+            host=u'osaf.us', path=u'/cosmo/dav/<username>',
+            username=u'',
+            password=Password(itsView=rv),
+            useSSL=True, port=443
+        )
+
+        # Use this one when morsecode becomes the default:
+
+        # CosmoAccount(itsView=parcel.itsView,
+        #     displayName=_(u'Chandler Hub Service'),
+        #     host=u'qacosmo.osafoundation.org', path=u'/cosmo',
+        #     username=u'',
+        #     password=Password(itsView=parcel.itsView),
+        #     useSSL=False, port=80
+        # )
+
+    return cur.item
 
 
 # = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =
@@ -1575,17 +1573,17 @@ def ensureAccountSetUp(view, sharing=False, inboundMail=False,
 
     while True:
 
-        DAVReady = not sharing or isWebDAVSetUp(view)
+        SharingReady = not sharing or isSharingSetUp(view)
         IncomingMailReady = not inboundMail or isIncomingMailSetUp(view)
         OutgoingMailReady = not outboundMail or isOutgoingMailSetUp(view)
         EmailReady = not emailAddress or isEmailAddressSetUp(view)
 
-        if DAVReady and IncomingMailReady and OutgoingMailReady and EmailReady:
+        if SharingReady and IncomingMailReady and OutgoingMailReady and EmailReady:
             return True
 
         msg = _(u"The following account(s) need to be set up:\n\n")
-        if not DAVReady:
-            msg += _(u" - WebDAV (collection publishing)\n")
+        if not SharingReady:
+            msg += _(u" - Sharing\n")
         if not IncomingMailReady:
             msg += _(u" - IMAP/POP (inbound email)\n")
         if not EmailReady:

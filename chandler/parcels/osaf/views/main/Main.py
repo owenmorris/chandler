@@ -1713,14 +1713,14 @@ class MainView(View):
         from osaf.framework import password
         # Check account status:
         try:
-            DAVReady = sharing.isWebDAVSetUp(view)
+            sharingReady = sharing.isSharingSetUp(view)
             incomingMailReady = sharing.isIncomingMailSetUp(view)
         except password.NoMasterPassword:
             masterPassword = False
-            DAVReady = False
+            sharingReady = False
             incomingMailReady = False
 
-        # Any active shares?  (Even if default WebDAV account not set up,
+        # Any active shares?  (Even if default sharing account not set up,
         # the user could have subscribed with tickets)
         activeShares = sharing.checkForActiveShares(view)
 
@@ -1730,7 +1730,7 @@ class MainView(View):
                 # no ticket subscriptions, we can't sync.
                 return
         else:
-            if not (DAVReady or activeShares or incomingMailReady):
+            if not (sharingReady or activeShares or incomingMailReady):
                 # Nothing is set up -- nudge the user to set up a sharing account
                 sharing.ensureAccountSetUp(view, inboundMail=True, sharing=True)
                 # Either the user has created a sharing account, or they haven't,
@@ -1752,7 +1752,7 @@ class MainView(View):
             sharing.scheduleNow(view)
 
         else:
-            if DAVReady:
+            if sharingReady:
                 self.setStatusMessage (_(u"No shared collections found"))
 
         if incomingMailReady:
@@ -1786,7 +1786,7 @@ class MainView(View):
             sharing.scheduleNow(view)
 
         else:
-            if not sharing.isWebDAVSetUp(view):
+            if not sharing.isSharingSetUp(view):
                 # DAV is not set up -- nudge the user to set up sharing account
                 sharing.ensureAccountSetUp(view, sharing=True)
                 # Either way, we don't care if the user actually created an

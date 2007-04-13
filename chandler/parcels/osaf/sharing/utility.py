@@ -28,7 +28,7 @@ __all__ = [
     'isOnline',
     'takeOnline',
     'takeOffline',
-    'isWebDAVSetUp',
+    'isSharingSetUp',
     'getActiveShares',
     'checkForActiveShares',
     'getExistingResources',
@@ -270,7 +270,7 @@ def findMatchingShare(view, url):
     """
     import accounts
 
-    account = accounts.WebDAVAccount.findMatchingAccount(view, url)
+    account = accounts.SharingAccount.findMatchingAccount(view, url)
     if account is None:
         return None
 
@@ -422,9 +422,9 @@ def takeOffline(collection):
 
 
 
-def isWebDAVSetUp(view):
+def isSharingSetUp(view):
     """
-    See if WebDAV is set up.
+    See if a Sharing account is set up.
 
     @param view: The repository view object
     @type view: L{repository.persistence.RepositoryView}
@@ -432,10 +432,9 @@ def isWebDAVSetUp(view):
     """
 
     account = schema.ns('osaf.sharing', view).currentSharingAccount.item
-    if account and account.host and account.username and \
-       waitForDeferred(account.password.decryptPassword()):
+    if account and account.host and account.username:
         return True
-    
+
     return False
 
 

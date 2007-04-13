@@ -560,13 +560,12 @@ class AccountPreferencesDialog(wx.Dialog):
 
     def getDefaultAccounts(self):
         ns_pim = schema.ns('osaf.pim', self.rv)
-        sharing_ns = schema.ns('osaf.sharing', self.rv)
 
         incoming  = ns_pim.currentIncomingAccount.item
         outgoing  = ns_pim.currentOutgoingAccount.item
-        sharing   = sharing_ns.currentSharingAccount.item
+        sharingAccount   = sharing.getDefaultAccount(self.rv)
 
-        return (incoming, outgoing, sharing)
+        return (incoming, outgoing, sharingAccount)
 
 
     def getAccountName(self, item):

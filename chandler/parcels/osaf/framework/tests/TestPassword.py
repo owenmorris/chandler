@@ -141,7 +141,6 @@ class PasswordTestCase(TestDomainModel.DomainModelTestCase):
         self.loadParcel("osaf.framework.MasterPassword")
         self.loadParcel("osaf.framework.password")
         self.loadParcel("osaf.app") # Include default Passwords in count
-        self.loadParcel("osaf.sharing") # Include default Passwords in count
 
         # Check master password when it is not set
         masterPassword = waitForDeferred(MasterPassword.get(self.rep.view))
@@ -214,7 +213,7 @@ class PasswordTestCase(TestDomainModel.DomainModelTestCase):
         count = 0
         for item in password.Password.iterItems(self.rep.view):
             count += 1
-        self.assertEqual(count, 10) # dummy + 2 above + 7 default
+        self.assertEqual(count, 8) # dummy + 2 above + 6 default
         MasterPassword.reset(self.rep.view) # now reset
         self.assertTrue(MasterPassword._masterPassword is None)
         self.assertTrue(MasterPassword._timer is None)
