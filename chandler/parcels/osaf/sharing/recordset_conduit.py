@@ -1017,9 +1017,12 @@ class InMemoryResourceRecordSetConduit(ResourceRecordSetConduit):
 def prettyPrintRecordSetDict(d):
     for uuid, rs in d.iteritems():
         print uuid
-        for record in rs.inclusions:
-            print "   " + str(record)
-        if rs.exclusions:
-            print "   Exclusions:"
-            for record in rs.exclusions:
+        if rs is None:
+            print "   Deletion"
+        else:
+            for record in rs.inclusions:
                 print "   " + str(record)
+            if rs.exclusions:
+                print "   Exclusions:"
+                for record in rs.exclusions:
+                    print "   " + str(record)
