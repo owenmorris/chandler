@@ -214,7 +214,7 @@ class PasswordTestCase(TestDomainModel.DomainModelTestCase):
         count = 0
         for item in password.Password.iterItems(self.rep.view):
             count += 1
-        self.assertEqual(count, 9) # dummy + 2 above + 6 default
+        self.assertEqual(count, 10) # dummy + 2 above + 7 default
         MasterPassword.reset(self.rep.view) # now reset
         self.assertTrue(MasterPassword._masterPassword is None)
         self.assertTrue(MasterPassword._timer is None)
