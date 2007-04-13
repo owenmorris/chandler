@@ -72,7 +72,7 @@ class TimedEventsCanvas(CalendarBlock):
 
     def onTZPrefsChange(self, op, item, names):
         self.widget.SetWindowGeometry()
-        self.widget.wxSynchronizeWidget()
+        self.synchronizeWidget()
 
     def instantiateWidget(self):
         super(TimedEventsCanvas, self).instantiateWidget()
@@ -188,7 +188,6 @@ class wxTimedEventsCanvas(BaseWidget, wxCalendarCanvas):
 
             self.ClearPendingNewEvents()
         else:
-            self.ClearPendingNewEvents()
             self.visibleItems = list(self.blockItem.getEventsInRange(currentRange, 
                                                                     timedItems=True))
 
