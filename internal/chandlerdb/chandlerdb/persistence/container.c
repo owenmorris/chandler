@@ -203,6 +203,7 @@ static int t_container_init(t_container *self, PyObject *args, PyObject *kwds)
 static PyObject *_t_container_openCursor(t_container *self, PyObject *db)
 {
     PyObject *threaded, *cursor, *txn;
+    int flags = self->flags;
 
     if (db == Py_None)
         db = (PyObject *) self->db;
@@ -225,14 +226,16 @@ static PyObject *_t_container_openCursor(t_container *self, PyObject *db)
             return NULL;
         }
 
-        return _t_cursor_dup((t_cursor *) cursor, self->flags);
+        return _t_cursor_dup((t_cursor *) cursor, flags);
     }
 
     txn = _t_store_getTxn(self->store);
     if (!txn)
         return NULL;
+    if (txn != Py_None)
+        flags |= DB_READ_UNCOMMITTED;
 
-    cursor = _t_db_cursor((t_db *) db, txn, self->flags);
+    cursor = _t_db_cursor((t_db *) db, txn, flags);
     if (!cursor)
         return NULL;
 
