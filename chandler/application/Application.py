@@ -886,8 +886,8 @@ class wxApplication (wx.App):
 
     def OnIdle(self, event):
         if self.updateUIInOnIdle:
-           self.UIRepositoryView.refresh(_mergeFunction)
-           self.propagateAsynchronousNotifications()
+            self.UIRepositoryView.refresh(_mergeFunction)
+            self.propagateAsynchronousNotifications()
         
         # Adding a handler for catching a set focus event doesn't catch
         # every change to the focus. It's difficult to preprocess every event
