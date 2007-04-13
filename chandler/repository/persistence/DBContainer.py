@@ -46,7 +46,7 @@ class DBContainer(object):
         db = DB(self.store.env)
         db.lorder = 4321
         
-        flags = DB.DB_THREAD
+        flags = DB.DB_THREAD | DB.DB_READ_UNCOMMITTED
 
         if ramdb:
             name = None

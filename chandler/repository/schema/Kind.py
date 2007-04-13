@@ -973,9 +973,9 @@ class Extent(Item):
                     if item not in changedItems: 
                         yield item
                 if recursive:
-                    subKinds = kind._references.get('subKinds')
+                    subKinds = kind._references.get('subKinds', None)
                     if subKinds:
-                        for item in _query(subKinds):
+                        for item in _query(list(subKinds)):
                             yield item
 
         matches = set()
@@ -1005,7 +1005,7 @@ class Extent(Item):
                 if recursive:
                     subKinds = kind._references.get('subKinds', None)
                     if subKinds:
-                        for key in _query(subKinds):
+                        for key in _query(list(subKinds)):
                             yield key
 
         matches = set()

@@ -908,9 +908,11 @@ class DBTransaction(Transaction):
             return None
         elif _mvcc and store._mvcc:
             self._mvcc = True
-            return store.repository._env.txn_begin(_txn, DBEnv.DB_TXN_SNAPSHOT)
+            flags = DBEnv.DB_TXN_SNAPSHOT | DB.DB_READ_UNCOMMITTED
+            return store.repository._env.txn_begin(_txn, flags)
         else:
-            return store.repository._env.txn_begin(_txn)
+            flags = DB.DB_READ_UNCOMMITTED
+            return store.repository._env.txn_begin(_txn, flags)
 
 
 class DBStore(Store):

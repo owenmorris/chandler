@@ -660,7 +660,7 @@ class RepositoryView(CView):
         """
 
         result = True
-        for root in self.iterRoots():
+        for root in list(self.iterRoots()):
             check = root.check(True, repair)
             result = result and check
 

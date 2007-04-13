@@ -256,7 +256,7 @@ COMMAND_LINE_OPTIONS = {
     'backup':     ('',   '--backup',     'b', False, None, 'backup repository before start'),
     'backupdir':  ('',   '--backup-dir', 's', None, None, 'backup repository before start into dir'),
     'repair':     ('',   '--repair',     'b', False, None, 'repair repository before start (currently repairs broken indices)'),
-    'mvcc':       ('',   '--mvcc',       'b', False, 'MVCC', 'run repository multi version concurrency control'),
+    'mvcc':       ('',   '--mvcc',       'b', True, 'MVCC', 'run repository multi version concurrency control'),
     'nomvcc':     ('',   '--nomvcc',     'b', False, 'NOMVCC', 'run repository without multi version concurrency control'),
     'prune':      ('',   '--prune',      's', '10000', None, 'number of items in a view to prune to after each commit'),
     'prefs':      ('',   '--prefs',      's', 'chandler.prefs', None, 'path to prefs file that contains defaults for command line options, relative to profile directory'),

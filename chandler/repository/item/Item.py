@@ -617,14 +617,26 @@ class Item(CItem):
         if self.isStale():
             raise StaleItemError, self
 
-        if not load:
-            if self._children is not None:
+        if self._children is not None:
+            if not load:
                 for link in self._children._itervalues():
                     yield link.value
+            else:
+                for child in self._children:
+                    yield child
 
-        elif self._children is not None:
-            for child in self._children:
-                yield child
+    def iterChildrenKeys(self, load=True):
+
+        if self.isStale():
+            raise StaleItemError, self
+
+        if self._children is not None:
+            if not load:
+                for uChild in self._children._iterkeys():
+                    yield uChild
+            else:
+                for uChild in self._children.iterkeys():
+                    yield uChild
 
     def iterAttributeValues(self, valuesOnly=False, referencesOnly=False):
         """
@@ -693,6 +705,7 @@ class Item(CItem):
         """
 
         logger = self.itsView.logger
+        view = self.itsView
 
         checkValues = self._values.check(repair)
         checkRefs = self._references.check(repair)
@@ -720,7 +733,8 @@ class Item(CItem):
         
         if self._children is not None:
             l = len(self._children)
-            for child in self.iterChildren():
+            for uChild in list(self.iterChildrenKeys()):
+                child = view[uChild]
                 l -= 1
                 if recursive:
                     check = child.check(True, repair)
