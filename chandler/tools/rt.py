@@ -175,12 +175,12 @@ def checkOptions(options):
         options.verbose = True
 
     if 'CHANDLERHOME' in os.environ:
-        options.chandlerHome = os.path.realpath(os.environ['CHANDLERHOME'])
+        options.chandlerHome = os.environ['CHANDLERHOME']
     else:
         options.chandlerHome = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
 
     if 'CHANDLERBIN' in os.environ:
-        options.chandlerBin = os.path.realpath(os.environ['CHANDLERBIN'])
+        options.chandlerBin = os.environ['CHANDLERBIN']
     else:
         options.chandlerBin = options.chandlerHome
 
