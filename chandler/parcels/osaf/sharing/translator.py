@@ -1889,17 +1889,8 @@ class DumpTranslator(SharingTranslator):
                 accounts.SharingAccount)
             def set_current(account):
                 ref = schema.ns("osaf.sharing", self.rv).currentSharingAccount
-
-                oldAccount = ref.item
-
-                if oldAccount and not oldAccount.username.strip() and \
-                 not waitForDeferred(oldAccount.password.decryptPassword()).strip():
-                    # The current account is empty
-                    if hasattr(oldAccount, 'password'):
-                        oldAccount.password.delete()
-                    oldAccount.delete()
-
                 ref.item = account
+
 
     # Called from finishExport()
     def export_sharing_prefs(self):
