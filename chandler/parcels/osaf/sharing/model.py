@@ -115,7 +115,7 @@ class NoteRecord(eim.Record):
 class TaskRecord(eim.Record):
     URI = "http://osafoundation.org/eim/task/0"
 
-    uuid = eim.key(ItemRecord.uuid)
+    uuid = eim.key(NoteRecord.uuid)
 
     # Task stamp has no shared attributes, so nothing is shared other than the
     # fact that an item is stamped as a task or not
@@ -123,7 +123,7 @@ class TaskRecord(eim.Record):
 class EventRecord(eim.Record):
     URI = "http://osafoundation.org/eim/event/0"
 
-    uuid = eim.key(ItemRecord.uuid)
+    uuid = eim.key(NoteRecord.uuid)
 
     # EventStamp.[allDay, anyTime, duration, startTime]
     dtstart = eim.field(text20)
@@ -144,12 +144,56 @@ class EventRecord(eim.Record):
 class DisplayAlarmRecord(eim.Record):
     URI = "http://osafoundation.org/eim/displayAlarm/0"
 
-    uuid = eim.key(ItemRecord.uuid)
+    uuid = eim.key(EventRecord.uuid)
     description = eim.field(text1024, [remindersFilter])
     trigger = eim.field(text1024, [remindersFilter])
     duration = eim.field(text1024, [remindersFilter])
     repeat = eim.field(eim.IntType, [remindersFilter])
 
+
+class MailMessageRecord(eim.Record):
+    URI = "http://osafoundation.org/eim/mail/0"
+
+    uuid = eim.key(NoteRecord.uuid)
+    messageId = eim.field(text256, [messageIdFilter])
+    headers = eim.field(eim.ClobType, [headersFilter])
+    # Will contain the RFC 822 from address
+    fromAddress = eim.field(text256)
+    toAddress = eim.field(text1024)
+    ccAddress = eim.field(text1024)
+    bccAddress = eim.field(text1024, [bccFilter])
+
+    # Can contain text or email addresses ie. from The Management Team
+    originators = eim.field(text1024)
+
+    # date sent is populated by MailStamp.dateSentString
+    dateSent = eim.field(text256, [dateSentFilter])
+
+    inReplyTo = eim.field(text256, [inReplyToFilter])
+
+    #The list of message-id's a mail message references
+    # can be quite long and can easily exceed 1024 characters
+    references = eim.field(eim.ClobType, [referencesFilter])
+
+    # Values required for Dump and Reload
+    mimeContent = eim.field(eim.ClobType, [mimeContentFilter])
+    rfc2822Message = eim.field(eim.ClobType, [rfc2822MessageFilter])
+    previousSender = eim.field(text256, [previousSenderFilter])
+    replyToAddress = eim.field(text256, [replyToAddressFilter])
+
+    # Contains bit wise flags indicating state.
+    # A state integer was chosen over individual
+    # boolean fields as a means of decoupling
+    # Chandler mail specific flag requirements from
+    # EIM.
+
+    messageState = eim.field(eim.IntType, [messageStateFilter])
+
+
+
+
+
+# From here on down, the record types are not shared with Cosmo  ----------
 
 class PasswordRecord(eim.Record):
     URI = "http://osafoundation.org/eim/password/0"
@@ -260,45 +304,6 @@ class MailPrefsRecord(eim.Record):
     # needed to calulate the MailStamp.fromMe and
     # MailStamp.toMe boolean flags
     meAddressHistory = eim.field(eim.ClobType)
-
-class MailMessageRecord(eim.Record):
-    URI = "http://osafoundation.org/eim/mail/0"
-
-    uuid = eim.key(ItemRecord.uuid)
-    messageId = eim.field(text256, [messageIdFilter])
-    headers = eim.field(eim.ClobType, [headersFilter])
-    # Will contain the RFC 822 from address
-    fromAddress = eim.field(text256)
-    toAddress = eim.field(text1024)
-    ccAddress = eim.field(text1024)
-    bccAddress = eim.field(text1024, [bccFilter])
-
-    # Can contain text or email addresses ie. from The Management Team
-    originators = eim.field(text1024)
-
-    # date sent is populated by MailStamp.dateSentString
-    dateSent = eim.field(text256, [dateSentFilter])
-
-    inReplyTo = eim.field(text256, [inReplyToFilter])
-
-    #The list of message-id's a mail message references
-    # can be quite long and can easily exceed 1024 characters
-    references = eim.field(eim.ClobType, [referencesFilter])
-
-    # Values required for Dump and Reload
-    mimeContent = eim.field(eim.ClobType, [mimeContentFilter])
-    rfc2822Message = eim.field(eim.ClobType, [rfc2822MessageFilter])
-    previousSender = eim.field(text256, [previousSenderFilter])
-    replyToAddress = eim.field(text256, [replyToAddressFilter])
-
-    # Contains bit wise flags indicating state.
-    # A state integer was chosen over individual
-    # boolean fields as a means of decoupling
-    # Chandler mail specific flag requirements from
-    # EIM.
-
-    messageState = eim.field(eim.IntType, [messageStateFilter])
-
 
 # collection ------------------------------------------------------------------
 

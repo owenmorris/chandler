@@ -136,7 +136,11 @@ class RecordSetConduit(conduits.BaseConduit):
             _callback(msg="Fetching changes", totalWork=None)
             inbound, extra, isDiff = self.getRecords(debug=debug, activity=
                 activity)
-            if debug: print "Inbound records", inbound, extra
+            if debug:
+                print "\nInbound records:\n"
+                prettyPrintRecordSetDict(inbound)
+                print "extra:", extra
+                print
 
             inboundCount = len(inbound)
             _callback(msg="Received %d change(s)" % inboundCount)
@@ -220,6 +224,7 @@ class RecordSetConduit(conduits.BaseConduit):
         # Generate records for all local items to be merged -- those that
         # have either been changed locally or remotely:
 
+
         if debug: print "Conduit marker version:", version
 
         # Add locally changed items
@@ -251,7 +256,7 @@ class RecordSetConduit(conduits.BaseConduit):
                 if debug: print "Skipping a triage-only modification", item, item.itsVersion
                 continue
 
-            if debug: print "Locally modified item", item, item.itsVersion
+            if debug: print "Locally modified item", item.itsUUID, item, item.itsVersion
 
             alias = translator.getAliasForItem(item)
             localItems.add(alias)
@@ -278,7 +283,10 @@ class RecordSetConduit(conduits.BaseConduit):
             else:
                 item = None
 
-            if item is not None and item.isLive():
+            if (item is not None and
+                item.isLive() and
+                not pim.EventStamp(item).isGenerated):
+
                 rs = eim.RecordSet(translator.exportItem(item))
                 self.share.addSharedItem(item)
                 if debug: print "Computing local records for live item:", uuid
@@ -321,14 +329,16 @@ class RecordSetConduit(conduits.BaseConduit):
             if debug: print "\n ----- Merging %s:" % alias
 
             uuid = translator.getUUIDForAlias(alias)
-            if not state.agreed and uuid != alias and inbound.has_key(alias):
+            if (uuid is not None and uuid != alias and not state.agreed and
+                inbound.has_key(alias)):
                 # to fix bug 8665, new inbound modifications are incorrectly
                 # seen as conflicts, set the agreed state in records for new
-                # modifications to be all Inherit values.  Without this, local 
+                # modifications to be all Inherit values.  Without this, local
                 # Inherit values will be treated as conflicts
                 inherit_records = []
                 for record in rsInternal.inclusions:
-                    keys = [f for f in record.__fields__ if isinstance(f, eim.key)]
+                    keys = [f for f in record.__fields__
+                            if isinstance(f, eim.key)]
                     if len(keys) != 1:
                         continue
                     non_uuid_fields = len(record.__fields__) - 1
@@ -463,7 +473,6 @@ class RecordSetConduit(conduits.BaseConduit):
                     if debug: print "Locally removing item:", uuid
 
 
-
         # For each item that was in the collection before but is no longer,
         # remove its state; if sending, add an empty recordset to toSend
         # TODO: Optimize by removing item loading
@@ -483,6 +492,7 @@ class RecordSetConduit(conduits.BaseConduit):
                     toSend[alias] = None
                     sendStats['removed'].add(uuid)
                 statesToRemove.add(alias)
+
                 if debug: print "Remotely removing item:", alias
 
         removeCount = len(statesToRemove)
@@ -1003,3 +1013,13 @@ class InMemoryResourceRecordSetConduit(ResourceRecordSetConduit):
             { "etag" : 0, "resources" : {} })
 
 
+
+def prettyPrintRecordSetDict(d):
+    for uuid, rs in d.iteritems():
+        print uuid
+        for record in rs.inclusions:
+            print "   " + str(record)
+        if rs.exclusions:
+            print "   Exclusions:"
+            for record in rs.exclusions:
+                print "   " + str(record)

@@ -153,7 +153,7 @@ class EIMMLSerializer(object):
                 recordSetElement = SubElement(rootElement,
                     "{%s}recordset" % eimURI, uuid=uuid)
 
-                for record in list(recordSet.inclusions):
+                for record in eim.sort_records(recordSet.inclusions):
                     recordElement = SubElement(recordSetElement,
                         "{%s}record" % (record.URI))
 

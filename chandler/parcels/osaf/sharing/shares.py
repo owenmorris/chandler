@@ -607,12 +607,13 @@ class Share(pim.ContentItem):
 
         return stats
 
-    def put(self, activity=None):
+    def put(self, activity=None, forceUpdate=None, debug=False):
         return self.sync(modeOverride='put', activity=activity,
-                         forceUpdate=None)
+                         forceUpdate=forceUpdate, debug=debug)
 
-    def get(self, activity=None):
-        return self.sync(modeOverride='get', activity=activity)
+    def get(self, activity=None, debug=False):
+        return self.sync(modeOverride='get', activity=activity,
+                         debug=debug)
 
     def exists(self):
         return self.conduit.exists()

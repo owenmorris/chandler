@@ -1280,4 +1280,177 @@ records::
     >>> rs
     RecordSet(set([]), set([]))
 
+sort_records(records) will return records such that depenencies occur first::
+
+    >>> class DemoA(sharing.Record):
+    ...     URI = 'cid:eim.test.demoA-record@osaf.us'
+    ...     uuid  = sharing.key(int)
+
+    >>> class DemoB(sharing.Record):
+    ...     URI = 'cid:eim.test.demoB-record@osaf.us'
+    ...     uuid  = sharing.key(DemoA.uuid)
+
+    >>> class DemoC(sharing.Record):
+    ...     URI = 'cid:eim.test.demoC-record@osaf.us'
+    ...     uuid  = sharing.key(DemoB.uuid)
+
+    >>> class DemoD(sharing.Record):
+    ...     URI = 'cid:eim.test.demoD-record@osaf.us'
+    ...     uuid  = sharing.key(DemoC.uuid)
+
+    >>> rA = DemoA(1)
+    >>> rB = DemoB(1)
+    >>> rC = DemoC(1)
+    >>> rD = DemoD(1)
+
+    >>> list(sharing.sort_records( [rA, rB, rC, rD] ))
+    [DemoA(1), DemoB(1), DemoC(1), DemoD(1)]
+    >>> list(sharing.sort_records( [rA, rC, rD, rB] ))
+    [DemoA(1), DemoB(1), DemoC(1), DemoD(1)]
+    >>> list(sharing.sort_records( [rA, rD, rB, rC] ))
+    [DemoA(1), DemoB(1), DemoC(1), DemoD(1)]
+
+    >>> list(sharing.sort_records( [rA, rD, rC, rB] ))
+    [DemoA(1), DemoB(1), DemoC(1), DemoD(1)]
+    >>> list(sharing.sort_records( [rA, rB, rD, rC] ))
+    [DemoA(1), DemoB(1), DemoC(1), DemoD(1)]
+    >>> list(sharing.sort_records( [rA, rC, rB, rD] ))
+    [DemoA(1), DemoB(1), DemoC(1), DemoD(1)]
+
+    >>> list(sharing.sort_records( [rB, rC, rD, rA] ))
+    [DemoA(1), DemoB(1), DemoC(1), DemoD(1)]
+    >>> list(sharing.sort_records( [rB, rD, rA, rC] ))
+    [DemoA(1), DemoB(1), DemoC(1), DemoD(1)]
+    >>> list(sharing.sort_records( [rB, rA, rC, rD] ))
+    [DemoA(1), DemoB(1), DemoC(1), DemoD(1)]
+
+    >>> list(sharing.sort_records( [rB, rA, rD, rC] ))
+    [DemoA(1), DemoB(1), DemoC(1), DemoD(1)]
+    >>> list(sharing.sort_records( [rB, rC, rA, rD] ))
+    [DemoA(1), DemoB(1), DemoC(1), DemoD(1)]
+    >>> list(sharing.sort_records( [rB, rD, rC, rA] ))
+    [DemoA(1), DemoB(1), DemoC(1), DemoD(1)]
+
+    >>> list(sharing.sort_records( [rC, rD, rA, rB] ))
+    [DemoA(1), DemoB(1), DemoC(1), DemoD(1)]
+    >>> list(sharing.sort_records( [rC, rA, rB, rD] ))
+    [DemoA(1), DemoB(1), DemoC(1), DemoD(1)]
+    >>> list(sharing.sort_records( [rC, rB, rD, rA] ))
+    [DemoA(1), DemoB(1), DemoC(1), DemoD(1)]
+
+    >>> list(sharing.sort_records( [rC, rB, rA, rD] ))
+    [DemoA(1), DemoB(1), DemoC(1), DemoD(1)]
+    >>> list(sharing.sort_records( [rC, rD, rB, rA] ))
+    [DemoA(1), DemoB(1), DemoC(1), DemoD(1)]
+    >>> list(sharing.sort_records( [rC, rA, rD, rB] ))
+    [DemoA(1), DemoB(1), DemoC(1), DemoD(1)]
+
+    >>> list(sharing.sort_records( [rD, rA, rB, rC] ))
+    [DemoA(1), DemoB(1), DemoC(1), DemoD(1)]
+    >>> list(sharing.sort_records( [rD, rB, rC, rA] ))
+    [DemoA(1), DemoB(1), DemoC(1), DemoD(1)]
+    >>> list(sharing.sort_records( [rD, rC, rA, rB] ))
+    [DemoA(1), DemoB(1), DemoC(1), DemoD(1)]
+
+    >>> list(sharing.sort_records( [rD, rC, rB, rA] ))
+    [DemoA(1), DemoB(1), DemoC(1), DemoD(1)]
+    >>> list(sharing.sort_records( [rD, rA, rC, rB] ))
+    [DemoA(1), DemoB(1), DemoC(1), DemoD(1)]
+    >>> list(sharing.sort_records( [rD, rB, rA, rC] ))
+    [DemoA(1), DemoB(1), DemoC(1), DemoD(1)]
+
+    >>> list(sharing.sort_records( [rA, rB, rC] ))
+    [DemoA(1), DemoB(1), DemoC(1)]
+    >>> list(sharing.sort_records( [rA, rC, rB] ))
+    [DemoA(1), DemoB(1), DemoC(1)]
+    >>> list(sharing.sort_records( [rB, rA, rC] ))
+    [DemoA(1), DemoB(1), DemoC(1)]
+    >>> list(sharing.sort_records( [rB, rC, rA] ))
+    [DemoA(1), DemoB(1), DemoC(1)]
+    >>> list(sharing.sort_records( [rC, rA, rB] ))
+    [DemoA(1), DemoB(1), DemoC(1)]
+    >>> list(sharing.sort_records( [rC, rB, rA] ))
+    [DemoA(1), DemoB(1), DemoC(1)]
+
+    >>> list(sharing.sort_records( [rA, rB, rD] ))
+    [DemoA(1), DemoB(1), DemoD(1)]
+    >>> list(sharing.sort_records( [rA, rD, rB] ))
+    [DemoA(1), DemoB(1), DemoD(1)]
+    >>> list(sharing.sort_records( [rB, rA, rD] ))
+    [DemoA(1), DemoB(1), DemoD(1)]
+    >>> list(sharing.sort_records( [rB, rD, rA] ))
+    [DemoA(1), DemoB(1), DemoD(1)]
+    >>> list(sharing.sort_records( [rD, rA, rB] ))
+    [DemoA(1), DemoB(1), DemoD(1)]
+    >>> list(sharing.sort_records( [rD, rB, rA] ))
+    [DemoA(1), DemoB(1), DemoD(1)]
+
+
+    >>> list(sharing.sort_records( [rA, rC, rD] ))
+    [DemoA(1), DemoC(1), DemoD(1)]
+    >>> list(sharing.sort_records( [rA, rD, rC] ))
+    [DemoA(1), DemoC(1), DemoD(1)]
+    >>> list(sharing.sort_records( [rC, rA, rD] ))
+    [DemoA(1), DemoC(1), DemoD(1)]
+    >>> list(sharing.sort_records( [rC, rD, rA] ))
+    [DemoA(1), DemoC(1), DemoD(1)]
+    >>> list(sharing.sort_records( [rD, rA, rC] ))
+    [DemoA(1), DemoC(1), DemoD(1)]
+    >>> list(sharing.sort_records( [rD, rC, rA] ))
+    [DemoA(1), DemoC(1), DemoD(1)]
+
+
+    >>> list(sharing.sort_records( [rB, rC, rD] ))
+    [DemoB(1), DemoC(1), DemoD(1)]
+    >>> list(sharing.sort_records( [rB, rD, rC] ))
+    [DemoB(1), DemoC(1), DemoD(1)]
+    >>> list(sharing.sort_records( [rC, rB, rD] ))
+    [DemoB(1), DemoC(1), DemoD(1)]
+    >>> list(sharing.sort_records( [rC, rD, rB] ))
+    [DemoB(1), DemoC(1), DemoD(1)]
+    >>> list(sharing.sort_records( [rD, rB, rC] ))
+    [DemoB(1), DemoC(1), DemoD(1)]
+    >>> list(sharing.sort_records( [rD, rC, rB] ))
+    [DemoB(1), DemoC(1), DemoD(1)]
+
+
+    >>> list(sharing.sort_records( [rA, rB] ))
+    [DemoA(1), DemoB(1)]
+    >>> list(sharing.sort_records( [rB, rA] ))
+    [DemoA(1), DemoB(1)]
+
+    >>> list(sharing.sort_records( [rA, rC] ))
+    [DemoA(1), DemoC(1)]
+    >>> list(sharing.sort_records( [rC, rA] ))
+    [DemoA(1), DemoC(1)]
+
+    >>> list(sharing.sort_records( [rA, rD] ))
+    [DemoA(1), DemoD(1)]
+    >>> list(sharing.sort_records( [rD, rA] ))
+    [DemoA(1), DemoD(1)]
+
+    >>> list(sharing.sort_records( [rB, rC] ))
+    [DemoB(1), DemoC(1)]
+    >>> list(sharing.sort_records( [rC, rB] ))
+    [DemoB(1), DemoC(1)]
+
+    >>> list(sharing.sort_records( [rB, rD] ))
+    [DemoB(1), DemoD(1)]
+    >>> list(sharing.sort_records( [rD, rB] ))
+    [DemoB(1), DemoD(1)]
+
+    >>> list(sharing.sort_records( [rC, rD] ))
+    [DemoC(1), DemoD(1)]
+    >>> list(sharing.sort_records( [rD, rC] ))
+    [DemoC(1), DemoD(1)]
+
+
+    >>> list(sharing.sort_records( [rA] ))
+    [DemoA(1)]
+    >>> list(sharing.sort_records( [rB] ))
+    [DemoB(1)]
+    >>> list(sharing.sort_records( [rC] ))
+    [DemoC(1)]
+    >>> list(sharing.sort_records( [rD] ))
+    [DemoD(1)]
 

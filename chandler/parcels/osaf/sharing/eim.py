@@ -12,13 +12,16 @@
 #   See the License for the specific language governing permissions and
 #   limitations under the License.
 from __future__ import with_statement
+
 __all__ = [
     'UnknownType', 'typeinfo_for', 'BytesType', 'TextType', 'DateType',
     'IntType', 'BlobType', 'ClobType', 'DecimalType', 'get_converter',
     'add_converter', 'subtype', 'typedef', 'field', 'key', 'NoChange',
     'Record', 'RecordSet', 'lookupSchemaURI', 'Filter', 'Translator',
-    'exporter', 'TimestampType', 'IncompatibleTypes', 'Inherit'
+    'exporter', 'TimestampType', 'IncompatibleTypes', 'Inherit',
+    'sort_records',
 ]
+
 from symbols import Symbol  # XXX change this to peak.util.symbols
 from simplegeneric import generic
 from weakref import WeakValueDictionary
@@ -29,9 +32,6 @@ from osaf import pim
 from twisted.internet.defer import Deferred
 import logging
 logger = logging.getLogger(__name__)
-
-
-
 
 
 
@@ -368,18 +368,17 @@ class RecordSet(object):
                  self.exclusions|other.exclusions)
         return rs
 
-''' Partial sketch of a dependency-ordering routine
-
 def sort_records(records):
     """Sort an iterable of records such that dependencies occur first"""
+
     waiting = {}
     seen = {}
 
     def release(key):
-        seen[key] = True
         to_release = [key]
         while to_release:
             key = to_release.pop()
+            seen[key] = True
             if key not in waiting:
                 continue
             for deps, record in waiting[key]:
@@ -389,25 +388,68 @@ def sort_records(records):
                     to_release.append(record.getKey())
             del waiting[key]
 
+    def highest_unseen_parent(k):
+        while 1:
+            p = parent_of(k)
+            if not p or p in seen:
+                return k
+            k = p
+
     for record in records:
         deps = []
         pair = deps, record
         for dep in record.requiresKeys():
             if dep not in seen:
                 waiting.setdefault(dep,[]).append(pair)
+                deps.append(dep)
         if deps:
             continue    # can't process record with outstanding dependencies
-
+        
         yield record    # allow the record to pass, then its dependents
-        for record in release(r.getKey()):
+        for record in release(record.getKey()):
             yield record
 
     while waiting:
         for key in list(waiting):
-            if key not in seen:     # release only unseen root dependencies
-                for record in release(key):
-                    yield record
-'''
+            #import pdb; pdb.set_trace()
+            for record in release(highest_unseen_parent(key)):
+                yield record
+
+
+def parent_of(k):
+    cls = k[0]
+    for f in cls.__fields__:
+        if isinstance(f, key):
+            if isinstance(f.type, key):
+                return (f.type.owner,) + k[1:]
+    else:
+        return None
+        
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 class Filter:
     """Suppress inclusion of specified field(s) in Records and RecordSets"""
@@ -721,12 +763,12 @@ class Record(tuple):
 
         return t(*res)
 
-
-
-
-
-
-
+    def requiresKeys(self):
+        data = {}
+        for f in self.__class__.__fields__:
+            if isinstance(f.type, key):
+                data.setdefault(f.type.owner, []).append(self[f.offset])
+        return [(k,)+tuple(v) for k,v in data.items()]
 
 
 
