@@ -1331,7 +1331,7 @@ class IconAttributeEditor (BaseAttributeEditor):
 
         # Note down-ness changes; eat the event if the downness changed, and
         # trigger an advance if appropriate.
-        isDown = event.LeftIsDown()
+        isDown = event.LeftDown()
         downChanged = isDown != getattr(self, 'wasDown', False)
         advanceStateMethod = getattr(self, 'advanceState', None)
         justClicked = False

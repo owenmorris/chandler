@@ -33,7 +33,6 @@ try:
     # Make sure the test is valid: we should start with no items 
     # with unpurged triage state.
     view = App_ns.itsView
-    dashboardBlock = App_ns.DashboardSummaryView
     contentItems = schema.ns("osaf.pim", view).contentItems
     def countUnpurgedItems():
         return len([key for key in contentItems.iterkeys()
@@ -42,13 +41,29 @@ try:
     if unpurgedCount > 0:
         logger.ReportFailure("Found %d unpurged items before the test" % unpurgedCount)
 
+    # Expand the sections so we have plenty to click on.
+    dashboardBlock = App_ns.DashboardSummaryView
+    dashboardWidget = dashboardBlock.widget
+    dashboardWidget.ExpandSection(1) # Later
+    dashboardWidget.ExpandSection(2) # Done
+    dashboardBlock.synchronizeWidget()
+    User.idle()
+
+    # Where should we hit to click triage column cells?
+    rowHeight = dashboardWidget.GetDefaultRowSize()
+    rowMiddle = rowHeight/2
+    triageColumn = dashboardWidget.GetNumberCols() - 1
+    cellRect = dashboardWidget.CalculateCellRect((triageColumn, 0))
+    triageColMiddle = cellRect.right - (cellRect.width / 2)    
+
     # Change triageStatus on some non-master items in the collection.
     toDo = 10
     done = 0
-    for key in dashboardBlock.contents.iterkeys():
+    for index, key in enumerate(dashboardBlock.contents.iterkeys()):
         item = dashboardBlock.itsView.find(key)
-        if getattr(item, pim.EventStamp.modificationFor.name, None) is not None:
-            item.setTriageStatus(pim.getNextTriageStatus(item.triageStatus), pin=True)
+        if getattr(item, pim.EventStamp.modificationFor.name, None) is None:
+            row = dashboardWidget.IndexToRow(index)
+            User.emulate_click(dashboardWidget, triageColMiddle, (row*rowHeight) + rowMiddle)
             done += 1
             if done == toDo: 
                 break

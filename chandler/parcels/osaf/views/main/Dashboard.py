@@ -1,4 +1,4 @@
-#   Copyright (c) 2003-2006 Open Source Applications Foundation
+#   Copyright (c) 2003-2007 Open Source Applications Foundation
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -32,23 +32,6 @@ import wx
 import logging
 
 logger = logging.getLogger(__name__)
-
-if __debug__:
-    evtNames = {
-        wx.wxEVT_ENTER_WINDOW: 'ENTER_WINDOW',
-        wx.wxEVT_LEAVE_WINDOW: 'LEAVE_WINDOW',
-        wx.wxEVT_LEFT_DOWN: 'LEFT_DOWN',
-        wx.wxEVT_LEFT_UP: 'LEFT_UP',
-        wx.wxEVT_LEFT_DCLICK: 'LEFT_DCLICK',
-        wx.wxEVT_MIDDLE_DOWN: 'MIDDLE_DOWN',
-        wx.wxEVT_MIDDLE_UP: 'MIDDLE_UP',
-        wx.wxEVT_MIDDLE_DCLICK: 'MIDDLE_DCLICK',
-        wx.wxEVT_RIGHT_DOWN: 'RIGHT_DOWN',
-        wx.wxEVT_RIGHT_UP: 'RIGHT_UP',
-        wx.wxEVT_RIGHT_DCLICK: 'RIGHT_DCLICK',
-        wx.wxEVT_MOTION: 'MOTION',
-        wx.wxEVT_MOUSEWHEEL: 'MOUSEWHEEL',
-        }
 
 class DashboardPrefs(Preferences):
 
@@ -136,8 +119,8 @@ class DashboardBlock(Table):
                             if master is None:
                                 item.setTriageStatus('auto')
                             
-                    if master is not None:
-                        recurringEventsToHandle.add(master)
+                        if master is not None:
+                            recurringEventsToHandle.add(master)
          
         # (We do this outside the deferrals because this depends on the indexes...
         for master in recurringEventsToHandle:
