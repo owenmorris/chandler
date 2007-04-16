@@ -517,8 +517,10 @@ class PublishCollectionDialog(wx.Dialog):
             else:
                 msg = err
 
-                text = "%s\n\n%s" % (summary, extended)
-                SharingDetails.ShowText(None, text, title=_(u"Publish Error"))
+                if Globals.options.catch != 'tests':
+                    text = "%s\n\n%s" % (summary, extended)
+                    SharingDetails.ShowText(None, text,
+                        title=_(u"Publish Error"))
 
 
             self._showStatus(_(u"\nSharing error:\n%(error)s\n") %

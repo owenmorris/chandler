@@ -225,8 +225,10 @@ class SubscribeDialog(wx.Dialog):
         else:
             logger.error("Error during subscribe")
             self._showStatus(_(u"Sharing Error:\n%(error)s") % {'error': err})
-            text = "%s\n\n%s\n\n%s" % (self.url, summary, extended)
-            SharingDetails.ShowText(None, text, title=_(u"Subscribe Error"))
+
+            if Globals.options.catch != 'tests':
+                text = "%s\n\n%s\n\n%s" % (self.url, summary, extended)
+                SharingDetails.ShowText(None, text, title=_(u"Subscribe Error"))
 
 
         self.subscribing = False
