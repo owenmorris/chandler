@@ -721,46 +721,43 @@ def runRecordedScripts(options):
     
     >>> options = parseOptions()
     >>> checkOptions(options)
-    >>> options.dryrun = True
+    >>> options.dryrun  = True
     >>> options.verbose = True
-    >>> options.modes = ['debug','release']
-    >>> options.modes = ['release','debug']
+    >>> options.modes   = ['release', 'debug']
+    
     >>> runRecordedScripts(options)
-    /.../release/RunPython... Chandler.py --create --catch=tests --profileDir=test_profile --parcelPath=tools/QATestScripts/DataFiles --recordedTest=...
+    /.../release/RunPython... Chandler.py --create --catch=tests --profileDir=test_profile --parcelPath=tools/QATestScripts/DataFiles --recordedTest all
     - + - + - + - + - + - + - + - + - + - + - + - + - + - + - + 
-    ...
+    /.../debug/RunPython... Chandler.py --create --catch=tests --profileDir=test_profile --parcelPath=tools/QATestScripts/DataFiles --recordedTest all
+    - + - + - + - + - + - + - + - + - + - + - + - + - + - + - + 
+    False
     """
     failed = False
-    testlist = []
-
-    for item in glob.glob(os.path.join('tools', 'cats', 'recorded_scripts', '*.py')):
-        testlist.append(os.path.split(item)[1][:-3])
 
     for mode in options.modes:
-        for test in testlist:
-            cmd  = [ options.runpython[mode], 'Chandler.py',
-                     '--create', '--catch=tests',
-                     '--profileDir=%s' % options.profileDir,
-                     '--parcelPath=%s' % options.parcelPath,
-                     '--recordedTest=%s' % test, ]
-    
-            if options.verbose:
-                log(' '.join(cmd))
-    
-            if options.dryrun:
-                result = 0
-            else:
-                result = build_lib.runCommand(cmd, timeout=1200)
-    
-            if result != 0:
-                log('***Error exit code=%d' % result)
-                failed = True
-                failedTests.append('recordedTest %s' % test)
-    
-                if not options.noStop:
-                    break
-    
-            log('- + ' * 15)
+        cmd  = [ options.runpython[mode], 'Chandler.py',
+                 '--create', '--catch=tests',
+                 '--profileDir=%s' % options.profileDir,
+                 '--parcelPath=%s' % options.parcelPath,
+                 '--recordedTest', 'all' ]
+
+        if options.verbose:
+            log(' '.join(cmd))
+
+        if options.dryrun:
+            result = 0
+        else:
+            result = build_lib.runCommand(cmd, timeout=1200)
+
+        if result != 0:
+            log('***Error exit code=%d' % result)
+            failed = True
+            failedTests.append('recordedTest all')
+
+            if not options.noStop:
+                break
+
+        log('- + ' * 15)
 
     return failed
 
@@ -1426,7 +1423,7 @@ def main(options):
 if __name__ == '__main__':
     if '--selftest' in sys.argv:
         import doctest
-        doctest.testmod(optionflags = doctest.ELLIPSIS | doctest.REPORT_NDIFF)
+        doctest.testmod(optionflags=doctest.ELLIPSIS)
         sys.exit(0)
 
     if main(parseOptions()):
