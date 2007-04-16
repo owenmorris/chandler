@@ -923,18 +923,35 @@ class CalendarNotificationHandler(object):
     def __init__(self, *args, **kwds):
         super(CalendarNotificationHandler, self).__init__(*args, **kwds)
         self._pendingNewEvents = set()
+        self.ClearPendingNewEvents()
 
     def onItemNotification(self, notificationType, data):
+        """
+        Unfortunately, the calendar only handles add events.
+        """        
         if (notificationType == 'collectionChange'):
-            op, coll, name, uuid = data
-            op = {"add": "add", "remove":"discard"}.get (op, None)
-            if op is not None:
-                getattr (self._pendingNewEvents, op) (uuid)
-                self.blockItem.markDirty()
+            blockItem = self.blockItem
+            if self.haveAllAddEvents:
+                
+                op, coll, name, uuid = data
+                if op == "refresh":
+                    if blockItem.find (uuid) in blockItem.contents:
+                        op = "add"
+                    else:
+                        op = "remove"
+
+                if op == "add":
+                    getattr (self._pendingNewEvents, op) (uuid)
+                elif op != "changed":
+                    self._pendingNewEvents = set()
+                    self.haveAllAddEvents = False
+                
+            blockItem.markDirty()
 
     def ClearPendingNewEvents(self):
         self._pendingNewEvents = set()
-        
+        self.haveAllAddEvents = True
+
     def GetPendingNewEvents(self, (startTime, endTime), expandRecurrence=True):
 
         # Helper method for optimizing the display of
