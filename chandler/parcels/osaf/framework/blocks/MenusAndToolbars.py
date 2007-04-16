@@ -894,10 +894,8 @@ class wxToolbarItemMixin (object):
         wxToolbarItems don't properly handle setting the text of buttons, on
         updateUIEvents, so we'll handle it here.
         """
-        self.SetLabel (event.GetText())
-        if getattr(self, 'GetToolBar', None) is not None:
-            # text fields in the toolbar do not have a GetToolBar() method
-            self.GetToolBar().Realize()
+        self.SetLabel(event.GetText())
+        self.SetToolbarItemLabel(event.GetText())
 
     def SetToolbarItemBitmap(self, bitmapName):
         # get the named bitmap
@@ -905,7 +903,12 @@ class wxToolbarItemMixin (object):
         if bitmap is not None and getattr(self, 'GetToolBar', None) is not None:
             toolbar = self.GetToolBar()
             toolbar.SetToolNormalBitmap(self.GetId(), bitmap)
-            toolbar.Realize()
+
+    def SetToolbarItemLabel(self, label):
+        # get the named bitmap
+        if getattr(self, 'GetToolBar', None) is not None:
+            toolbar = self.GetToolBar()
+            toolbar.SetToolLabel(self.GetId(), label)
 
     def selectTool(self):
         """
