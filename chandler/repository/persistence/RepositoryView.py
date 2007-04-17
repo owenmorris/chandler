@@ -153,11 +153,14 @@ class RepositoryView(CView):
 
         repository = self.repository
 
-        if version is None:
-            if repository is not None:
+        if repository is not None:
+            if version is None:
                 version = repository.store.getVersion()
-            else:
+            verify = repository._isVerify()
+        else:
+            if version is None:
                 version = 0
+            verify = False
 
         self._queuedNotifications = Queue()
 
@@ -170,6 +173,9 @@ class RepositoryView(CView):
         self._loadingRegistry = set()
         self._status = ((self._status & RepositoryView.VERIFY) |
                         RepositoryView.OPEN)
+
+        if verify:
+            self._status |= RepositoryView.VERIFY
 
         if deferDelete is Default:
             deferDelete = repository._deferDelete
