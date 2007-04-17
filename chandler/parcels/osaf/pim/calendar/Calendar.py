@@ -53,8 +53,6 @@ class redirector(property):
         property.__init__(self, fset=fset, fget=fget, fdel=fdel,
                           doc="Redirect to '%s'" % (attrName,))
 
-import application
-
 from application import schema
 from osaf.pim.contacts import Contact
 from osaf.pim.triage import Triageable, TriageEnum
@@ -62,20 +60,23 @@ from osaf.pim.items import ContentItem, cmpTimeAttribute, isDead
 from osaf.pim.stamping import Stamp, has_stamp
 from osaf.pim.notes import Note
 from osaf.pim.calendar import Recurrence
-from osaf.pim.collections import FilteredCollection, IndexDefinition
+from osaf.pim.collections import FilteredCollection
 from chandlerdb.util.c import isuuid, UUID, Empty, Nil
 from osaf.pim.reminders import Remindable, Reminder
 
 from TimeZone import formatTime
-from osaf.pim.calendar.TimeZone import coerceTimeZone, TimeZoneInfo
+from osaf.pim.calendar.TimeZone import TimeZoneInfo
 from osaf.pim.calendar import DateTimeUtil
-from PyICU import DateFormat, DateFormatSymbols, ICUtzinfo
+from PyICU import ICUtzinfo
+from time import localtime
 from datetime import datetime, time, timedelta
 import itertools
-import StringIO
 import logging
 from util import tokenizer
 import operator
+import parsedatetime.parsedatetime as parsedatetime
+import parsedatetime.parsedatetime_consts as ptc
+from i18n import getLocale
 
 from i18n import ChandlerMessageFactory as _
 
@@ -2298,13 +2299,6 @@ def parseText(text, locale=None):
     0 indicates no date/time, 1 indicates only date, 2 indicates only time
     and 3 indicates both date and time
     """
-
-    import parsedatetime.parsedatetime as parsedatetime
-    import parsedatetime.parsedatetime_consts as ptc
-    from i18n import getLocale
-    import time
-    import string
-
     loc = str(locale is not None and locale or getLocale())
 
     cal = parsedatetime.Calendar(ptc.Constants(loc))
@@ -2351,7 +2345,7 @@ def parseText(text, locale=None):
     #If no date/time exists or more than one date/time exists,
     #set the date as today's date and time as Anytime
     if (countFlag == 2) or (countFlag == 0):
-        (yr, mth, dy, hr, mn, sec, wd, yd, isdst) = time.localtime()
+        (yr, mth, dy, hr, mn, sec, wd, yd, isdst) = localtime()
         startTime = endTime = datetime(yr, mth, dy, tzinfo=ICUtzinfo.default)
         typeFlag = 0
 
