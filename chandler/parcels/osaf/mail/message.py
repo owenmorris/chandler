@@ -24,6 +24,7 @@ import mimetypes
 from datetime import datetime
 from PyICU import ICUtzinfo
 
+
 #Chandler imports
 from osaf.pim.mail import EmailAddress, MailMessage, MIMEText, MIMEBinary, getMessageBody, getCurrentMeEmailAddresses
 from osaf.pim.calendar.Calendar import parseText, setEventDateTime
@@ -43,18 +44,10 @@ from utils import Counter
 Performance:
    1. Reduce checks when downloading mail
 
-Notes:
-1. ***Need to pay attention for when setting values in Message.Message object as they must 
-   be of type str
-
-XXX: get_param() returns a tuple
-XXX: test_email.py, test_email_codecs.py in email package has good unicode examples
-XXX: Look at Scrubber.py in Mailman package
-XXX: get_filename() unquotes the unicode value
-
 To Do:
 -------
-1. Look at optimizations for Feedparser to prevent memory hogging (might tie in to twisted dataReceived)
+1. Look at optimizations for Feedparser to prevent memory
+   hogging (might tie in to twisted dataReceived).
 2. Look at test_Big5-2 it is not working anymore
 """
 
@@ -338,8 +331,8 @@ def _messageObjectToKind(view, messageObject, messageText=None,
                     if has_stamp(item, EventStamp):
                         EventStamp(item).addStampToAll(MailStamp)
                     else:
-                        MailStamp(item)
-                        item.add()
+                        ms = MailStamp(item)
+                        ms.add()
 
                 mailStamp = MailStamp(item)
 
