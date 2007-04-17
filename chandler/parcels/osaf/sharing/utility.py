@@ -34,7 +34,8 @@ __all__ = [
     'getExistingResources',
     'extractLinks',
     'getPage',
-    'isReadOnly'
+    'isReadOnly',
+    'getOldestVersion'
 ]
 
 from application import schema, Globals
@@ -136,6 +137,19 @@ def getSyncableShares(rv, collection=None):
 
     return syncable
 
+
+
+def getOldestVersion(rv):
+    oldest = rv.itsVersion
+    for share in getSyncableShares(rv):
+        conduit = getattr(share, 'conduit', None)
+        if conduit is not None:
+            marker = getattr(conduit, 'itemsMarker', None)
+            if marker is not None:
+                markerVersion = marker.itsVersion
+                if markerVersion < oldest:
+                    oldest = markerVersion
+    return oldest
 
 
 
