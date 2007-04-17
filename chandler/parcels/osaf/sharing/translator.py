@@ -2353,7 +2353,8 @@ class DumpTranslator(SharingTranslator):
 
         # emit the DashboardMembership records
         for item in schema.ns("osaf.pim", self.rv).allCollection.inclusions:
-            yield model.DashboardMembershipRecord(item)
+            if not str(item.itsPath).startswith("//parcels"):
+                yield model.DashboardMembershipRecord(item)
 
 
         if not self.obfuscation:
