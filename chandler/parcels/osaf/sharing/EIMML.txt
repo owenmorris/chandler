@@ -163,22 +163,21 @@ another.  For instance, NoteRecord's uuid field = eim.key(ItemRecord.uuid)::
     >>> r1 = sharing.model.ItemRecord('1', None, nc, nc, nc, nc)
     >>> r2 = sharing.model.NoteRecord('1', None, nc, nc, nc)
     >>> r3 = sharing.model.EventRecord('1', None, nc, nc, nc, nc, nc, nc, nc)
-    >>> r4 = sharing.model.DisplayAlarmRecord('1', None, nc, nc, nc)
+    >>> r4 = sharing.model.DisplayAlarmRecord('1', nc, None, nc, nc)
     >>> list(sharing.sort_records( [r3, r1, r4, r2] ))
-    [ItemRecord(u'1', None, NoChange, NoChange, NoChange, NoChange), NoteRecord(u'1', None, NoChange, NoChange, NoChange), EventRecord(u'1', None, NoChange, NoChange, NoChange, NoChange, NoChange, NoChange, NoChange), DisplayAlarmRecord(u'1', None, NoChange, NoChange, NoChange)]
+    [ItemRecord(u'1', None, NoChange, NoChange, NoChange, NoChange), NoteRecord(u'1', None, NoChange, NoChange, NoChange), EventRecord(u'1', None, NoChange, NoChange, NoChange, NoChange, NoChange, NoChange, NoChange), DisplayAlarmRecord(u'1', NoChange, None, NoChange, NoChange)]
 
 Sorting works even if not all record types are represented::
 
     >>> list(sharing.sort_records( [r3, r1, r4] ))
-    [ItemRecord(u'1', None, NoChange, NoChange, NoChange, NoChange), EventRecord(u'1', None, NoChange, NoChange, NoChange, NoChange, NoChange, NoChange, NoChange), DisplayAlarmRecord(u'1', None, NoChange, NoChange, NoChange)]
+    [ItemRecord(u'1', None, NoChange, NoChange, NoChange, NoChange), EventRecord(u'1', None, NoChange, NoChange, NoChange, NoChange, NoChange, NoChange, NoChange), DisplayAlarmRecord(u'1', NoChange, None, NoChange, NoChange)]
 
     >>> list(sharing.sort_records( [r4, r3] ))
-    [EventRecord(u'1', None, NoChange, NoChange, NoChange, NoChange, NoChange, NoChange, NoChange), DisplayAlarmRecord(u'1', None, NoChange, NoChange, NoChange)]
+    [EventRecord(u'1', None, NoChange, NoChange, NoChange, NoChange, NoChange, NoChange, NoChange), DisplayAlarmRecord(u'1', NoChange, None, NoChange, NoChange)]
 
     >>> sortedSets = {'1': rs([r4, r1, r3])}
     >>> eimml.EIMMLSerializer.serialize(sortedSets)
-    '<?xml version=\'1.0\' encoding=\'UTF-8\'?><ns0:collection xmlns:ns0="http://osafoundation.org/eim/0"><ns0:recordset uuid="1"><ns1:record xmlns:ns1="http://osafoundation.org/eim/item/0"><ns1:uuid ns0:key="true" ns0:type="text">1</ns1:uuid><ns1:title ns0:type="text" /></ns1:record><ns1:record xmlns:ns1="http://osafoundation.org/eim/event/0"><ns1:uuid ns0:key="true" ns0:type="text">1</ns1:uuid><ns1:dtstart ns0:type="text" /></ns1:record><ns1:record xmlns:ns1="http://osafoundation.org/eim/displayAlarm/0"><ns1:uuid ns0:key="true" ns0:type="text">1</ns1:uuid><ns1:description ns0:type="text" /></ns1:record></ns0:recordset></ns0:collection>'
-
+    '<?xml version=\'1.0\' encoding=\'UTF-8\'?><ns0:collection xmlns:ns0="http://osafoundation.org/eim/0"><ns0:recordset uuid="1"><ns1:record xmlns:ns1="http://osafoundation.org/eim/item/0"><ns1:uuid ns0:key="true" ns0:type="text">1</ns1:uuid><ns1:title ns0:type="text" /></ns1:record><ns1:record xmlns:ns1="http://osafoundation.org/eim/event/0"><ns1:uuid ns0:key="true" ns0:type="text">1</ns1:uuid><ns1:dtstart ns0:type="text" /></ns1:record><ns1:record xmlns:ns1="http://osafoundation.org/eim/displayAlarm/0"><ns1:uuid ns0:key="true" ns0:type="text">1</ns1:uuid><ns1:trigger ns0:type="text" /></ns1:record></ns0:recordset></ns0:collection>'
 
 
 

@@ -350,6 +350,9 @@ eim.add_converter(model.aliasableUUID, pim.Stamp, getAliasForItem)
 # value for event status, so treat None as NoChange
 eim.add_converter(model.EventRecord.status, type(None), lambda x: eim.NoChange)
 
+eim.add_converter(model.DisplayAlarmRecord.description, type(None),
+    lambda x: eim.NoChange)
+
 # Cosmo will generate a value of empty string even if Chandler hasn't provided
 # a value for triage, so treat empty string as NoChange
 def emptyToNoChange(s):
