@@ -1214,10 +1214,28 @@ class AccountPreferencesDialog(wx.Dialog):
 #            else:
 #                raise ValueError('Unhandled valueType ' + valueType)
 
+    def autoDefaultSharingAccount(self):
+        # Since the user is no longer allowed to specify a default sharing
+        # account explicitly, let's at least try the next best thing which
+        # is to take a guess.  Out of the box there is a DAV sharing account
+        # as the default, and it has no username.  If we're still
+        # pointing to this shell of an account on dismissal of this dialog,
+        # look for another sharing account to set as the default.
+        ref = schema.ns('osaf.sharing', self.rv).currentSharingAccount
+        account = ref.item
+        if not account.username:
+            for account in sharing.SharingAccount.iterItems(self.rv):
+                if account.displayName and account.username:
+                    ref.item = account
+                    break
+
+
     def OnOk(self, evt):
         if self.__Validate():
             self.__ApplyChanges()
             self.__ApplyDeletions()
+
+            self.autoDefaultSharingAccount()
 
             if self.modal:
                 self.EndModal(True)
