@@ -197,6 +197,11 @@ class MailMessageRecord(eim.Record):
 
 # From here on down, the record types are not shared with Cosmo  ----------
 
+class PrivateItemRecord(eim.Record):
+    URI = "http://osafoundation.org/eim/pim/private/0"
+    uuid = eim.key(ItemRecord.uuid)
+
+
 class PasswordRecord(eim.Record):
     URI = "http://osafoundation.org/eim/password/0"
 
@@ -331,6 +336,12 @@ class CollectionMembershipRecord(eim.Record):
     itemUUID = eim.key(aliasableUUID)
     index = eim.key(eim.IntType)
 
+class DashboardMembershipRecord(eim.Record):
+    # A membership record for an item which is a direct member of the Dashboard
+    # and not because it happens to be in a "Mine" collection
+    URI = "http://osafoundation.org/eim/pim/dashboardmembership/0"
+    itemUUID = eim.key(aliasableUUID)
+
 # osaf.sharing ----------------------------------------------------------------
 
 
@@ -338,13 +349,14 @@ class ShareRecord(eim.Record):
     URI = "http://osafoundation.org/eim/sharing/share/0"
 
     uuid = eim.key(ItemRecord.uuid)
-
     contents = eim.field(schema.UUID)
     conduit = eim.field(schema.UUID)
     subscribed = eim.field(eim.IntType)
-    error = eim.field(text1024)
+    error = eim.field(eim.ClobType)
+    errorDetails = eim.field(eim.ClobType)
     mode = eim.field(text20)
-    lastSynced = eim.field(eim.DecimalType(digits=20, decimal_places=0))
+    lastSuccess = eim.field(eim.DecimalType(digits=20, decimal_places=0))
+    lastAttempt = eim.field(eim.DecimalType(digits=20, decimal_places=0))
 
 class ShareConduitRecord(eim.Record):
     URI = "http://osafoundation.org/eim/sharing/conduit/0"

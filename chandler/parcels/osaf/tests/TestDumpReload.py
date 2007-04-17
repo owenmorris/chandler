@@ -76,6 +76,29 @@ class DumpReloadTestCase(testcase.DualRepositoryTestCase):
             uuids.add(n.itsUUID)
 
 
+
+        # "Private" items
+        publicNote = pim.Note(itsView=view0, private=False)
+        privateNote = pim.Note(itsView=view0, private=True)
+
+
+        # Mine/Not-Mine/Dashboard
+
+        directlyInDashboard = pim.Note(itsView=view0)
+        dashboard = schema.ns("osaf.pim", view0).allCollection
+        dashboard.add(directlyInDashboard)
+
+        aMineCollection = pim.SmartCollection(itsView=view0)
+        schema.ns('osaf.pim', view0).mine.addSource(aMineCollection)
+        inMine = pim.Note(itsView=view0)
+        aMineCollection.add(inMine)
+
+        aNotMineCollection = pim.SmartCollection(itsView=view0)
+        inNotMine = pim.Note(itsView=view0)
+        aNotMineCollection.add(inNotMine)
+
+
+
         # Sharing related items
         account0 = sharing.CosmoAccount(itsView=view0,
             host="chandler.o11n.org",
@@ -252,6 +275,20 @@ class DumpReloadTestCase(testcase.DualRepositoryTestCase):
                     self.assertEqual(item0.displayName, item1.displayName)
                 if hasattr(item0, 'body'):
                     self.assertEqual(item0.body, item1.body)
+
+            # Verify ContentItem.private
+            self.assert_(view1.findUUID(publicNote.itsUUID).private is False)
+            self.assert_(view1.findUUID(privateNote.itsUUID).private is True)
+
+
+            # Verify Mine/Not-Mine/Dashboard
+            dashboard = schema.ns("osaf.pim", view1).allCollection
+            self.assert_(view1.findUUID(directlyInDashboard.itsUUID) in
+                dashboard.inclusions)
+
+            self.assert_(view1.findUUID(inMine.itsUUID) in dashboard)
+            self.assert_(view1.findUUID(inNotMine.itsUUID) not in dashboard)
+
 
             # Verify collection membership:
             coll1 = view1.findUUID(coll0.itsUUID)

@@ -172,7 +172,10 @@ class PublishCollectionDialog(wx.Dialog):
             name = u"(via ticket)"
         wx.xrc.XRCCTRL(self, "TEXT_ACCOUNT").SetLabel(name)
 
-        lastSync = SharingDetails.formatDateTime(share.lastSuccess)
+        if hasattr(share, 'lastSuccess'):
+            lastSync = SharingDetails.formatDateTime(share.lastSuccess)
+        else:
+            lastSync = _(u"Unknown")
         wx.xrc.XRCCTRL(self, "TEXT_SUCCESS").SetLabel(lastSync)
 
         self.UnPubSub = wx.xrc.XRCCTRL(self, "BUTTON_UNPUBLISH")

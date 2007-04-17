@@ -594,6 +594,14 @@ class SharingTranslator(eim.Translator):
                 repeat,
             )
 
+        if item.private:
+            yield model.PrivateItemRecord(item)
+
+
+
+    @model.PrivateItemRecord.importer
+    def import_privateItem(self, record):
+        self.withItemForUUID(record.uuid, pim.ContentItem, private=True)
 
 
     # ModifiedByRecord  -------------
@@ -1423,6 +1431,14 @@ class DumpTranslator(SharingTranslator):
                 collection.add(item)
 
 
+    @model.DashboardMembershipRecord.importer
+    def import_dashboard_membership(self, record):
+        @self.withItemForUUID(record.itemUUID, pim.ContentItem)
+        def do(item):
+            dashboard = schema.ns("osaf.pim", self.rv).allCollection
+            dashboard.add(item)
+
+
 
 
     # - - Sharing-related items - - - - - - - - - - - - - - - - - - - - - -
@@ -1434,15 +1450,23 @@ class DumpTranslator(SharingTranslator):
             shares.Share,
             established=True,
             error=record.error,
+            errorDetails=record.errorDetails,
             mode=record.mode
         )
         def do(share):
-            if record.lastSynced not in (eim.NoChange, None):
-                # lastSynced is a Decimal we need to change to datetime
-                naive = datetime.utcfromtimestamp(float(record.lastSynced))
+            if record.lastSuccess not in (eim.NoChange, None):
+                # lastSuccess is a Decimal we need to change to datetime
+                naive = datetime.utcfromtimestamp(float(record.lastSuccess))
                 inUTC = naive.replace(tzinfo=utc)
                 # Convert to user's tz:
-                share.lastSynced = inUTC.astimezone(ICUtzinfo.default)
+                share.lastSuccess = inUTC.astimezone(ICUtzinfo.default)
+
+            if record.lastAttempt not in (eim.NoChange, None):
+                # lastAttempt is a Decimal we need to change to datetime
+                naive = datetime.utcfromtimestamp(float(record.lastAttempt))
+                inUTC = naive.replace(tzinfo=utc)
+                # Convert to user's tz:
+                share.lastAttempt = inUTC.astimezone(ICUtzinfo.default)
 
             if record.subscribed == 0:
                 share.sharer = schema.ns('osaf.pim',
@@ -1474,12 +1498,21 @@ class DumpTranslator(SharingTranslator):
 
         error = getattr(share, "error", "")
 
+        errorDetails = getattr(share, "errorDetails", "")
+
         mode = share.mode
 
-        if hasattr(share, "lastSynced"):
-            lastSynced = Decimal(int(time.mktime(share.lastSynced.timetuple())))
+        if hasattr(share, "lastSuccess"):
+            tup = share.lastSuccess.timetuple()
+            lastSuccess = Decimal(int(time.mktime(tup)))
         else:
-            lastSynced = None
+            lastSuccess = None
+
+        if hasattr(share, "lastAttempt"):
+            tup = share.lastAttempt.timetuple()
+            lastAttempt = Decimal(int(time.mktime(tup)))
+        else:
+            lastAttempt = None
 
         yield model.ShareRecord(
             share,
@@ -1487,8 +1520,10 @@ class DumpTranslator(SharingTranslator):
             conduit,
             subscribed,
             error,
+            errorDetails,
             mode,
-            lastSynced
+            lastSuccess,
+            lastAttempt
         )
 
 
@@ -2024,7 +2059,7 @@ class DumpTranslator(SharingTranslator):
 
         yield model.SMTPAccountRecord(
             account,
-            account.password,
+            getattr(account, 'password', None),
             fromAddress,
             account.useAuth and 1 or 0,
             account.port,
@@ -2096,8 +2131,12 @@ class DumpTranslator(SharingTranslator):
 
         isDefault = ns.currentIncomingAccount.item == account and 1 or 0
 
-        yield model.IMAPAccountRecord(account, account.password, replyToAddress,
-                                      account.port, isDefault)
+        yield model.IMAPAccountRecord(
+            account,
+            getattr(account, 'password', None),
+            replyToAddress,
+            account.port,
+            isDefault)
 
         for record in self.export_imap_account_folders(account):
             yield record
@@ -2214,7 +2253,7 @@ class DumpTranslator(SharingTranslator):
 
         yield model.POPAccountRecord(
             account,
-            account.password,
+            getattr(account, 'password', None),
             replyToAddress,
             account.actionType,
             account.deleteOnDownload and 1 or 0,
@@ -2312,12 +2351,17 @@ class DumpTranslator(SharingTranslator):
             self.rv).sidebarCollection):
             yield record
 
+        # emit the DashboardMembership records
+        for item in schema.ns("osaf.pim", self.rv).allCollection.inclusions:
+            yield model.DashboardMembershipRecord(item)
+
 
         if not self.obfuscation:
 
             # sharing
             for record in self.export_sharing_prefs():
                 yield record
+
             # mail
             for record in self.export_mail_prefs():
                 yield record
