@@ -379,6 +379,9 @@ class SharingTranslator(eim.Translator):
         self.promptForTimezone = not tzprefs.showUI and tzprefs.showPrompt
 
     def obfuscate(self, text):
+        if text in (eim.Inherit, eim.NoChange):
+            return text
+
         if text and getattr(self, "obfuscation", False):
             return "X" * len(text)
         else:
@@ -924,10 +927,25 @@ class SharingTranslator(eim.Translator):
 
     @eim.exporter(pim.MailStamp)
     def export_mail(self, mail):
+        # Move to a local variable for a slight performance increase
+        obf = self.obfuscation
+
+        def format(ea):
+            if obf:
+                return u"%s@example.com" % ea.itsUUID
+
+            return ea.format()
+
+
         headers = []
 
+
         for header in mail.headers:
-            headers.append(u"%s: %s" % (header, mail.headers[header]))
+            if obf:
+                headers.append(u"%s: %s" % (header, self.obfuscate(mail.headers[header])))
+
+            else:
+                headers.append(u"%s: %s" % (header, mail.headers[header]))
 
         if headers:
             headers = u"\n".join(headers)
@@ -937,7 +955,7 @@ class SharingTranslator(eim.Translator):
         toAddress = []
 
         for addr in mail.toAddress:
-            toAddress.append(addr.format())
+            toAddress.append(format(addr))
 
         if toAddress:
             toAddress = u", ".join(toAddress)
@@ -947,7 +965,7 @@ class SharingTranslator(eim.Translator):
         ccAddress = []
 
         for addr in mail.ccAddress:
-            ccAddress.append(addr.format())
+            ccAddress.append(format(addr))
 
         if ccAddress:
             ccAddress = u", ".join(ccAddress)
@@ -957,7 +975,7 @@ class SharingTranslator(eim.Translator):
         bccAddress = []
 
         for addr in mail.bccAddress:
-            bccAddress.append(addr.format())
+            bccAddress.append(format(addr))
 
         if bccAddress:
             bccAddress = u", ".join(bccAddress)
@@ -968,7 +986,7 @@ class SharingTranslator(eim.Translator):
 
         if getattr(mail, "originators", None) is not None:
             for addr in mail.originators:
-                originators.append(addr.format())
+                originators.append(format(addr))
 
 
         if originators:
@@ -979,7 +997,7 @@ class SharingTranslator(eim.Translator):
         fromAddress = None
 
         if getattr(mail, "fromAddress", None) is not None:
-            fromAddress = mail.fromAddress.format()
+            fromAddress = format(mail.fromAddress)
 
 
         references = []
@@ -988,7 +1006,11 @@ class SharingTranslator(eim.Translator):
             ref = ref.strip()
 
             if ref:
-                references.append(ref)
+                if obf:
+                    references.append(self.obfuscate(ref))
+
+                else:
+                    references.append(ref)
 
         if references:
             references = u" ".join(references)
@@ -997,11 +1019,17 @@ class SharingTranslator(eim.Translator):
 
         inReplyTo = None
         if getattr(mail, "inReplyTo", None) is not None:
-            inReplyTo = mail.inReplyTo
+            if obf:
+                 inReplyTo = self.obfuscate(mail.inReplyTo)
+            else:
+                inReplyTo = mail.inReplyTo
 
         messageId = None
         if getattr(mail, "messageId", None) is not None:
-            messageId = mail.messageId
+            if obf:
+                messageId = self.obfuscate(mail.messageId)
+            else:
+                messageId = mail.messageId
 
         dateSent = None
         if getattr(mail, "dateSentString", None) is not None:
@@ -1013,15 +1041,18 @@ class SharingTranslator(eim.Translator):
 
         rfc2822Message = None
         if getattr(mail, "rfc2822Message", None) is not None:
-            rfc2822Message = binaryToData(mail.rfc2822Message)
+            if obf:
+                rfc2822Message = self.obfuscate(binaryToData(mail.rfc2822Message))
+            else:
+                rfc2822Message = binaryToData(mail.rfc2822Message)
 
         previousSender = None
         if getattr(mail, "previousSender", None) is not None:
-            previousSender = mail.previousSender.format()
+            previousSender = format(mail.previousSender)
 
         replyToAddress = None
         if getattr(mail, "replyToAddress", None) is not None:
-            replyToAddress = mail.replyToAddress.format()
+            replyToAddress = format(mail.replyToAddress)
 
         messageState = 0
 
