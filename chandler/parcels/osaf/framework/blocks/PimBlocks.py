@@ -204,23 +204,11 @@ class FocusEventHandlers(Item):
     def onCreateConflictEvent(self, event):
         selectedItems = self.__getSelectedItems()
         if len(selectedItems) > 0:
-            # only shared items can have conflicts
             for item in selectedItems:
-                if has_stamp(item, sharing.SharedItem):
-                    sharing.SharedItem(item).generateConflicts()
+                if not has_stamp(item, sharing.SharedItem):
+                    sharing.SharedItem(item).add()
+                sharing.SharedItem(item).generateConflicts()
 
-    def onCreateConflictEventUpdateUI(self, event):
-        selectedItems = self.__getSelectedItems()
-        if len(selectedItems) > 0:
-            # Check all the selected items for being shared.
-            states = [has_stamp(item, sharing.SharedItem) for item in selectedItems]
-            # only enable for shared items
-            enable = True in states
-            event.arguments['Enable'] = enable
-            if enable:
-                event.arguments['Text'] = _(u"Create Conflict")
-            else:
-                event.arguments['Text'] = _(u"Only Shared Items Can Have Conflicts")
 
     def onFocusStampEvent(self, event):
         selectedItems = self.__getProxiedSelectedItems(event)
