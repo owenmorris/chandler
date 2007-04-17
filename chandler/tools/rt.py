@@ -844,6 +844,7 @@ def runScriptPerfTests(options, testlist, largeData=False, repeat=1, logger=log)
                 result = build_lib.runCommand(cmd, timeout=1800, logger=tempLogger)
     
             if result != 0:
+                tempLogger.logAll()
                 log('***Error exit code=%d, %s' % (result, name))
                 failed = True
                 failedTests.append(item)
