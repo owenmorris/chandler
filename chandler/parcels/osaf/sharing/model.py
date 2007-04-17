@@ -80,6 +80,7 @@ class ItemRecord(eim.Record):
     # ContentItem.needsReply
     needsReply = eim.field(eim.IntType)
 
+
 class ModifiedByRecord(eim.Record):
     URI = "http://osafoundation.org/eim/modifiedBy/0"
 
@@ -140,6 +141,7 @@ class EventRecord(eim.Record):
 
     # EventStamp.transparency
     status = eim.field(text256, [eventStatusFilter])
+
 
 class DisplayAlarmRecord(eim.Record):
     URI = "http://osafoundation.org/eim/displayAlarm/0"

@@ -340,6 +340,28 @@ eim.add_converter(model.aliasableUUID, schema.Item, getAliasForItem)
 eim.add_converter(model.aliasableUUID, pim.Stamp, getAliasForItem)
 
 
+
+
+
+
+# Hopefully someday we will be able to remove the following converters:
+
+# Cosmo will generate a value of None even if Chandler hasn't provided a
+# value for event status, so treat None as NoChange
+eim.add_converter(model.EventRecord.status, type(None), lambda x: eim.NoChange)
+
+# Cosmo will generate a value of empty string even if Chandler hasn't provided
+# a value for triage, so treat empty string as NoChange
+def emptyToNoChange(s):
+    return s if s else eim.NoChange
+eim.add_converter(model.ItemRecord.triage, str, emptyToNoChange)
+eim.add_converter(model.ItemRecord.triage, unicode, emptyToNoChange)
+
+
+
+
+
+
 class SharingTranslator(eim.Translator):
 
     URI = "cid:pim-translator@osaf.us"

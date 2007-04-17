@@ -65,6 +65,9 @@ Creating diffs from records::
     >>> r1 - Demo(1, "Foo", "This is NOT a foo", Decimal('2.50'))
     Demo(1, NoChange, u'This is a foo', NoChange)
 
+    >>> r1 - Demo(1, "Foo", sharing.NoChange, Decimal('2.50'))
+    Demo(1, NoChange, u'This is a foo', NoChange)
+
 Record addition (second record overwrites fields in first, unless NoChange,
 as long as keys match::
 

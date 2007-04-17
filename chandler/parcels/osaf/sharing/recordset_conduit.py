@@ -64,7 +64,13 @@ class RecordSetConduit(conduits.BaseConduit):
     def sync(self, modeOverride=None, activity=None, forceUpdate=None,
         debug=False):
 
+        if forceUpdate:
+            # We want to fetch all items from the server, not just changes
+            # since the previous sync
+            self.syncToken = ""
+
         debug = recordset_debugging or debug
+        if debug: print "Syncing"
 
         rv = self.itsView
 

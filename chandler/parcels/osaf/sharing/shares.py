@@ -242,7 +242,7 @@ class State(schema.Item):
             rsExternal = inbound
 
         internalDiff = filter(rsInternal - self.agreed)
-        externalDiff = rsExternal - self.agreed
+        externalDiff = filter(rsExternal - self.agreed)
 
         if debug:
             print " ----------- Beginning merge"
@@ -252,8 +252,8 @@ class State(schema.Item):
             print "   old agreed:", self.agreed
             print "   old pending:", pending
 
-        ncd = internalDiff | filter(externalDiff)
-        self.agreed += (internalDiff | externalDiff)
+        ncd = internalDiff | externalDiff
+        self.agreed += ncd
 
         if debug:
             print "   ncd:", ncd
@@ -264,7 +264,7 @@ class State(schema.Item):
 
         rsExternal += dSend
 
-        self.pending = rsExternal - self.agreed
+        self.pending = filter(rsExternal - self.agreed)
 
         if debug:
             print " - - - - Results - - - - "

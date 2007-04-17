@@ -234,8 +234,11 @@ class PublishCollectionDialog(wx.Dialog):
         share = sharing.getShare(self.collection)
         needsSync = False
         if isinstance(share.conduit, sharing.RecordSetConduit):
-            if share.conduit.filters != self.originalFilters:
-                needsSync = True
+            for filter in self.originalFilters:
+                if filter not in share.conduit.filters:
+                    # A filter has been removed so we need to re-synchronize
+                    needsSync = True
+                    break
         else:
             if share.filterAttributes != self.originalFilterAttributes:
                 needsSync = True

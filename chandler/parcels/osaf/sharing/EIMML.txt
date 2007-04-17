@@ -425,7 +425,7 @@ unfiltered inbound changes are applied::
     (RecordSet(set([]), set([])), RecordSet(set([]), set([])), RecordSet(set([]), set([])))
 
     >>> state
-    State(RecordSet(set([Demo(1, 5, 8)]), set([])), RecordSet(set([]), set([])))
+    State(RecordSet(set([Demo(1, 4, 8)]), set([])), RecordSet(set([]), set([])))
 
 
 Verify that inbound and outbound changes to a filtered field is not considered
@@ -435,7 +435,7 @@ a conflict::
     (RecordSet(set([]), set([])), RecordSet(set([]), set([])), RecordSet(set([]), set([])))
 
     >>> state
-    State(RecordSet(set([Demo(1, 9, 9)]), set([])), RecordSet(set([]), set([])))
+    State(RecordSet(set([Demo(1, 4, 9)]), set([])), RecordSet(set([]), set([])))
 
 
 Verify that conflicts can still be detected when at least one conflicting
@@ -445,7 +445,9 @@ field is not filtered::
     (RecordSet(set([]), set([])), RecordSet(set([]), set([])), RecordSet(set([Demo(1, NoChange, 11)]), set([])))
 
     >>> state
-    State(RecordSet(set([Demo(1, 10, 9)]), set([])), RecordSet(set([Demo(1, NoChange, 11)]), set([])))
+    State(RecordSet(set([Demo(1, 4, 9)]), set([])), RecordSet(set([Demo(1, NoChange, 11)]), set([])))
+
+
 
 
 Start over, to test that when a filter is removed, the local change that was
@@ -456,10 +458,10 @@ hiding behind the filter is now sent::
     >>> state.merge(rs([Demo(1, 2, 2)]), rs([Demo(1, 3, nc)]), filter=filter)
     (RecordSet(set([Demo(1, NoChange, 2)]), set([])), RecordSet(set([]), set([])), RecordSet(set([]), set([])))
     >>> state
-    State(RecordSet(set([Demo(1, 3, 2)]), set([])), RecordSet(set([]), set([])))
+    State(RecordSet(set([Demo(1, 1, 2)]), set([])), RecordSet(set([]), set([])))
 
-Note how the agreed state reflects the external change above.  Now remove the
-filter and merge::
+Note how the agreed state does not contain either the local change or the
+inbound change above.  Now remove the filter and merge::
 
     >>> state.merge(rs([Demo(1, 2, 2)]))
     (RecordSet(set([Demo(1, 2, NoChange)]), set([])), RecordSet(set([]), set([])), RecordSet(set([]), set([])))
@@ -467,6 +469,43 @@ filter and merge::
     State(RecordSet(set([Demo(1, 2, 2)]), set([])), RecordSet(set([]), set([])))
 
 See how the local change finally got sent out above.
+
+
+
+Start over with a filter in place from the start.  Note now the filtered
+portion of the inbound changes are NoChange in the state's agreed rs::
+
+    >>> state.set(empty, empty)
+    >>> filter = getFilter(['cid:bar-filter@osaf.us'])
+    >>> state.merge(empty, rs([Demo(1, 2, 2)]), filter=filter)
+    (RecordSet(set([]), set([])), RecordSet(set([Demo(1, NoChange, 2)]), set([])), RecordSet(set([]), set([])))
+    >>> state
+    State(RecordSet(set([Demo(1, NoChange, 2)]), set([])), RecordSet(set([]), set([])))
+
+Now apply the same inbound change without the filter::
+
+    >>> state.merge(rs([Demo(1,nc,2)]), rs([Demo(1, 2, 2)]))
+    (RecordSet(set([]), set([])), RecordSet(set([Demo(1, 2, NoChange)]), set([])), RecordSet(set([]), set([])))
+    >>> state
+    State(RecordSet(set([Demo(1, 2, 2)]), set([])), RecordSet(set([]), set([])))
+
+Now in reality, the item involved will have some sort of default value for the
+field that was filtered, so lifting the filter in this way will create a
+conflict if the local value is different than the inbound::
+
+    >>> state.set(rs(set([Demo(1,nc,2)])), empty)
+    >>> state.merge(rs([Demo(1,1,2)]), rs([Demo(1, 2, 2)]))
+    (RecordSet(set([]), set([])), RecordSet(set([]), set([])), RecordSet(set([Demo(1, 2, NoChange)]), set([])))
+
+...However, if the local change happens to be the same, then no conflict::
+
+    >>> state.set(rs(set([Demo(1,nc,2)])), empty)
+    >>> state.merge(rs([Demo(1,2,2)]), rs([Demo(1, 2, 2)]))
+    (RecordSet(set([]), set([])), RecordSet(set([]), set([])), RecordSet(set([]), set([])))
+    >>> state
+    State(RecordSet(set([Demo(1, 2, 2)]), set([])), RecordSet(set([]), set([])))
+
+
 
 
 Start over, to test that local deletions get sent::

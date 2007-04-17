@@ -62,7 +62,7 @@ Exporting:
     >>> t.startExport()
     >>> records = list(t.exportItem(item))
     >>> records
-    [ItemRecord('f230dcd4-7c32-4c3f-908b-d92081cc9a89', u'Translator test', u'200 -1167792143.00 1', Decimal("1164803131"), 0, 0), ModifiedByRecord('f230dcd4-7c32-4c3f-908b-d92081cc9a89', u'', Decimal("1164803131"), 500)]
+    [ItemRecord('f230dcd4-7c32-4c3f-908b-d92081cc9a89', u'Translator test', '200 -1167792143.00 1', Decimal("1164803131"), 0, 0), ModifiedByRecord('f230dcd4-7c32-4c3f-908b-d92081cc9a89', u'', Decimal("1164803131"), 500)]
 
 
 
@@ -100,7 +100,7 @@ Exporting:
     >>> t.startExport()
     >>> records = list(t.exportItem(item))
     >>> records
-    [ItemRecord('f230dcd4-7c32-4c3f-908b-d92081cc9a89', u'Translator test', u'200 -1167792143.00 1', Decimal("1164803131"), 0, 0), ModifiedByRecord('f230dcd4-7c32-4c3f-908b-d92081cc9a89', u'', Decimal("1164803131"), 500), NoteRecord('f230dcd4-7c32-4c3f-908b-d92081cc9a89', u'This is the body', None, None, None)]
+    [ItemRecord('f230dcd4-7c32-4c3f-908b-d92081cc9a89', u'Translator test', '200 -1167792143.00 1', Decimal("1164803131"), 0, 0), ModifiedByRecord('f230dcd4-7c32-4c3f-908b-d92081cc9a89', u'', Decimal("1164803131"), 500), NoteRecord('f230dcd4-7c32-4c3f-908b-d92081cc9a89', u'This is the body', None, None, None)]
 
 TODO: icaluid
 
@@ -136,7 +136,7 @@ Exporting:
     >>> t.startExport()
     >>> records = list(t.exportItem(item))
     >>> records
-    [ItemRecord('f230dcd4-7c32-4c3f-908b-d92081cc9a89', u'Translator test', u'200 -1167792143.00 1', Decimal("1164803131"), 0, 0), ModifiedByRecord('f230dcd4-7c32-4c3f-908b-d92081cc9a89', u'', Decimal("1164803131"), 500), NoteRecord('f230dcd4-7c32-4c3f-908b-d92081cc9a89', u'This is the body', None, None, None), TaskRecord('f230dcd4-7c32-4c3f-908b-d92081cc9a89')]
+    [ItemRecord('f230dcd4-7c32-4c3f-908b-d92081cc9a89', u'Translator test', '200 -1167792143.00 1', Decimal("1164803131"), 0, 0), ModifiedByRecord('f230dcd4-7c32-4c3f-908b-d92081cc9a89', u'', Decimal("1164803131"), 500), NoteRecord('f230dcd4-7c32-4c3f-908b-d92081cc9a89', u'This is the body', None, None, None), TaskRecord('f230dcd4-7c32-4c3f-908b-d92081cc9a89')]
 
 
 MailMessageRecord type
@@ -370,7 +370,7 @@ Exporting:
     >>> len(records)
     3
     >>> records[0]
-    ItemRecord('a9b019a4-d995-11db-f269-0016cbca6aed', u'Item with reminder', u'200 -1167792143.00 1', Decimal("1164803131"), 0, 0)
+    ItemRecord('a9b019a4-d995-11db-f269-0016cbca6aed', u'Item with reminder', '200 -1167792143.00 1', Decimal("1164803131"), 0, 0)
     >>> records[1]
     ModifiedByRecord(...)
     >>> records[2]
@@ -447,7 +447,7 @@ Exporting:
     >>> len(records)
     5
     >>> records[0]
-    ItemRecord('800644b6-dd73-11db-f79a-0016cbca6aed', u'Event Item with reminder', u'200 -1167792996.00 1', Decimal("1164805552"), 0, 1)
+    ItemRecord('800644b6-dd73-11db-f79a-0016cbca6aed', u'Event Item with reminder', '200 -1167792996.00 1', Decimal("1164805552"), 0, 1)
     >>> records[1]
     ModifiedByRecord(...)
     >>> records[2]
@@ -546,3 +546,39 @@ Exporting:
 #XXX MailAccountRecord, IMAPAccountFoldersRecord, SMTPAccountRecord,
 #XXX SMTPAccountQueueRecord, IMAPAccountRecord, POPAccountRecord,
 #XXX IMAPFolderRecord, MailPrefsRecord
+
+
+
+
+
+
+
+
+Verify the special converters we put in place for turning None to NoChange
+for event status, and empty string to NoChange for triage are working::
+
+    >>> rec = sharing.model.ItemRecord(
+    ...         uuid='f230dcd4-7c32-4c3f-908b-d92081cc9a89',
+    ...         title='triage test',
+    ...         triage='',
+    ...         createdOn=Decimal("1164803131"),
+    ...         hasBeenSent=0,
+    ...         needsReply=0
+    ... )
+    >>> rec.triage
+    NoChange
+
+    >>> rec = sharing.model.EventRecord(
+    ...         uuid='f230dcd4-7c32-4c3f-908b-d92081cc9a89',
+    ...         dtstart = ';VALUE=DATE-TIME;TZID=US/Pacific:20070201T140000',
+    ...         duration = 'PT1H',
+    ...         location = 'Nowhere',
+    ...         rrule = None,
+    ...         exrule = None,
+    ...         rdate = None,
+    ...         exdate = None,
+    ...         status = None,
+    ... )
+    >>> rec.status
+    NoChange
+
