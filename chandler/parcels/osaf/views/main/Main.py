@@ -1300,6 +1300,10 @@ class MainView(View):
         event.arguments ['Text'] = menuTitle
         event.arguments ['Enable'] = True
 
+    def onInmemoryPublishEvent(self, event):
+        collection = self.getSidebarSelectedCollection()
+        sharing.publish(collection, None)
+
     def onShowPyShellEvent(self, event):
         # Test menu item
         wx.GetApp().ShowPyShell(withFilling=False)

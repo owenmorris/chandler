@@ -413,6 +413,18 @@ def publish(collection, account, classesToInclude=None,
 
     view = collection.itsView
 
+    # If no account passed in, use an inmemory conduit (for development)
+    if account is None:
+        conduit = InMemoryDiffRecordSetConduit(itsView=view,
+            translator=SharingTranslator,
+            serializer=EIMMLSerializer
+        )
+        share = Share(itsView=view, contents=collection, conduit=conduit)
+        share.create()
+        share.sync()
+        share.sharer = schema.ns("osaf.pim", view).currentContact.item
+        return [share]
+
     # If the account knows how to publish, delegate:
     if hasattr(account, 'publish'):
         shares = account.publish(collection, activity=activity,
