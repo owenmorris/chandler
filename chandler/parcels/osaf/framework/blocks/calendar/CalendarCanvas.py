@@ -922,7 +922,6 @@ class CalendarNotificationHandler(object):
     """
     def __init__(self, *args, **kwds):
         super(CalendarNotificationHandler, self).__init__(*args, **kwds)
-        self._pendingNewEvents = set()
         self.ClearPendingNewEvents()
 
     def onItemNotification(self, notificationType, data):
@@ -931,75 +930,100 @@ class CalendarNotificationHandler(object):
         """        
         if (notificationType == 'collectionChange'):
             blockItem = self.blockItem
-            if self.haveAllAddEvents:
-                
-                op, coll, name, uuid = data
-                if op == "refresh":
-                    if blockItem.find (uuid) in blockItem.contents:
-                        op = "add"
-                    else:
-                        op = "remove"
+            op, coll, name, uuid = data
+            if op == "refresh":
+                if blockItem.find(uuid) in blockItem.contents:
+                    op = "add"
+                else:
+                    op = "remove"
 
-                if op == "add":
-                    getattr (self._pendingNewEvents, op) (uuid)
-                elif op != "changed":
-                    self._pendingNewEvents = set()
-                    self.haveAllAddEvents = False
+            if op == 'add':
+                self._pendingNewEvents.add(uuid)
+            elif op == 'remove':
+                self._pendingRemovals.add(uuid)
+            elif op == 'changed':
+                self._pendingChanges.add(uuid)
                 
             blockItem.markDirty()
 
     def ClearPendingNewEvents(self):
         self._pendingNewEvents = set()
-        self.haveAllAddEvents = True
+        self._pendingRemovals  = set()
+        self._pendingChanges   = set()
 
-    def GetPendingNewEvents(self, (startTime, endTime), expandRecurrence=True):
-
-        # Helper method for optimizing the display of
-        # newly created events in various calendar widgets.
-        # (See Bug:4118).
-        # 
-        # The return value will be a list of all the events
-        # (i.e. non-recurring events and individual occurrences of
-        # recurring events) that overlap the range between the datetime
-        # arguments startTime and endTime.
-        # 
-        # The idea is that you can call this from wxSynchronizeWidget(),
-        # and do a full redraw if you get back [], or do less work
-        # if you get a list of events.
-        #
-        # The returned list may be empty (e.g. if an event is added
-        # outside the given range).
-        #
-        # XXX: [grant] This call now occurs too late to trigger a full
-        # redraw. As a result, we're triggering an unnecessary load
-        # of events for the minicalendar in this case.
-        #
-        addedEvents = []
-        for itemUUID in self._pendingNewEvents:
-            try:
-                item = self.blockItem.itsView[itemUUID]
-            except KeyError:
-                # print "Couldn't find new item %s" % itemUUID
-                continue
-                
-            if has_stamp(item, Calendar.EventStamp):
-                event = Calendar.EventStamp(item)
-            
-                if (hasattr(event, 'startTime') and
-                    hasattr(event, 'duration')):
-                    
-                    if expandRecurrence and event.rruleset is not None:
-                        addedEvents.extend(event.getOccurrencesBetween(startTime, endTime))
-                    elif not (event.startTime > endTime or event.endTime < startTime):
-                        addedEvents.append(event)
-                    else:
-                        addedEvents.append(event)
-
-        self._pendingNewEvents = set()
-        return addedEvents
+    def GetPendingEvents(self, events=True):
+        """
+        Return sets of added, removed and changed master events, then clear
+        pending events.
+        
+        """
+        def eventsFromUUIDSet(uuid_set):
+            for itemUUID in uuid_set:
+                try:
+                    item = self.blockItem.itsView[itemUUID]
+                    if isDead(item): continue
+                    if isinstance(item, Calendar.Occurrence):
+                        item = item.inheritFrom
+                    if events:
+                        item = Calendar.EventStamp(item)
+                    yield item
+                except KeyError:
+                    # print "Couldn't find new item %s" % itemUUID
+                    continue
+        
+        addedEvents = set(eventsFromUUIDSet(self._pendingNewEvents))
+        removedEvents = set(eventsFromUUIDSet(self._pendingRemovals))
+        changedEvents = set(eventsFromUUIDSet(self._pendingChanges))
+        
+        ### XXX rename ClearPending, it's not just new events
+        self.ClearPendingNewEvents()
+        
+        return addedEvents, removedEvents, changedEvents
 
     def HavePendingNewEvents(self):
-        return len(self._pendingNewEvents) > 0
+        return (len(self._pendingNewEvents) > 0 or 
+                len(self._pendingChanges) > 0 or
+                len(self._pendingRemovals) > 0)
+
+    def HandleRemoveAndYieldChanged(self, currentRange):
+        """
+        Operate on self.visibleEvents, remove any items that have been changed
+        or removed, yield changes and additions.  For changes to recurring
+        events, yield occurrences in range, not masters.
+        
+        """
+        addedEvents, removedEvents, changedEvents = self.GetPendingEvents(False)
+
+        # remove changed events and added events, then re-add them
+        removedEvents.update(changedEvents)
+        
+        removeIndexes = []
+        for i, event in enumerate(self.visibleEvents):
+            if isDead(event.itsItem) or event.isRecurrenceMaster():
+                removeIndexes.append(i)
+            elif isinstance(event.itsItem, Calendar.Occurrence):
+                master = event.getMaster()
+                if master.itsItem in removedEvents:
+                    removeIndexes.append(i)
+                    # The whole series may not need to be removed, put it
+                    # in changedEvents to be checked
+                    changedEvents.add(master.itsItem)
+            elif event.itsItem in removedEvents:
+                removeIndexes.append(i)
+        
+        for i in reversed(removeIndexes):
+            del self.visibleEvents[i]
+        
+        for item in chain(addedEvents, changedEvents):
+            # skip non-events
+            if (not has_stamp(item, Calendar.EventStamp)):
+                continue
+            master = Calendar.EventStamp(item)
+            if master.rruleset is not None:
+                for ev in master.getOccurrencesBetween(*currentRange):
+                    yield ev
+            elif master.isBetween(*currentRange):
+                yield master
 
 
 # ATTENTION: do not put mixins here - put them in CollectionBlock
@@ -1675,6 +1699,7 @@ class wxCalendarCanvas(CalendarNotificationHandler, CollectionCanvas.wxCollectio
         self.editor.SetInsertionPoint(0)
         self.editor.SetValue(key)
         self.editor.SetInsertionPointEnd()
+
 
 class wxInPlaceEditor(AttributeEditors.wxEditText):
 

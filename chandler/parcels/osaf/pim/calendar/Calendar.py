@@ -540,6 +540,18 @@ class EventStamp(Stamp):
     
     IGNORE_CHANGE_ATTR = "%s.EventStamp.__ignoreValueChange" % (__module__,)
 
+    def __cmp__(self, other):
+        """
+        Compare events based on their effectiveStartTime.  Fall back to
+        comparing UUIDs if the times match.
+        """
+        start_cmp = cmpTimeAttribute(self.effectiveStartTime,
+                                     other.effectiveStartTime)
+        if start_cmp == 0:
+            return cmp(self.itsItem.itsUUID, other.itsItem.itsUUID)
+        else:
+            return start_cmp
+
     @apply
     def summary():
         def fget(self):

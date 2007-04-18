@@ -380,17 +380,15 @@ class UITestItem(object):
                     foundItem = False
                     timedCanvas = App_ns.TimedEvents
                     allDayCanvas = App_ns.AllDayEvents
-                    for canvasItem in reversed(allDayCanvas.widget.canvasItemList):
-                        if canvasItem.item is self.item:
-                            allDayCanvas.widget.OnSelectItem(canvasItem.item)
+                    canvasItem = allDayCanvas.widget.canvasItemDict.get(self.item)
+                    if canvasItem is not None:
+                        allDayCanvas.widget.OnSelectItem(canvasItem.item)
+                        foundItem = True
+                    else:
+                        canvasItem = timedCanvas.widget.canvasItemDict.get(self.item)
+                        if canvasItem is not None:
+                            timedCanvas.widget.OnSelectItem(canvasItem.item)
                             foundItem = True
-                            break
-                    if not foundItem:
-                        for canvasItem in reversed(timedCanvas.widget.canvasItemList):
-                            if canvasItem.item is self.item:
-                                timedCanvas.widget.OnSelectItem(canvasItem.item)
-                                foundItem = True
-                                break
     
                         
             else: # the item is a collection (sidebar selection)
@@ -1769,7 +1767,7 @@ class UITestView(object):
             #and if yes put it in the canvasItem variable
             pos = self.timedCanvas.widget.CalcUnscrolledPosition(click.GetPosition())
             pos.y += 1 # Work around a bug somewhere (appears with r8724)
-            for elem in reversed(self.timedCanvas.widget.canvasItemList):
+            for elem in reversed(self.timedCanvas.widget.drawOrderedCanvasItems):
                 if elem.isHit(pos):
                     canvasItem = elem
                     break
@@ -1799,7 +1797,7 @@ class UITestView(object):
             
             #it's a new event
             if not canvasItem :
-                for elem in reversed(self.timedCanvas.widget.canvasItemList):
+                for elem in reversed(self.timedCanvas.widget.drawOrderedCanvasItems):
                     # It's possible for the event to appear a few pixels
                     # lower than pos, if pos is near a dividing line in
                     # the calendar

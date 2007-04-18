@@ -153,34 +153,29 @@ class wxAllDayEventsCanvas(wxCalendarCanvas):
         event.Skip()
 
     def wxSynchronizeWidget(self):
-        #print "%s rebuilding canvas items" % self
         currentRange = self.GetCurrentDateRange()
         
-        # The only hints we understand are event additions.
-        # So, if any other kind of hints have been received,
-        # fall back to a full synchronize.
+        original_added = set(self._pendingNewEvents)
+        actually_added = set()
+        
         if self.HavePendingNewEvents():
-            addedEvents = self.GetPendingNewEvents(currentRange)
+            something_changed = False
+            for event in self.HandleRemoveAndYieldChanged(currentRange):
+                if Calendar.isDayEvent(event):
+                    something_changed = True
+                    if event not in self.visibleEvents:
+                        self.visibleEvents.append(event)
+                    if event.itsItem.itsUUID in original_added:
+                        actually_added.add(event.itsItem)
 
-            addedEvents = [event for event in addedEvents
-                           if Calendar.isDayEvent(event)]
-                                
-            numAdded = 0
-            
-            for event in addedEvents:
-                
-                if not event in self.visibleItems:
-                    self.visibleItems.append(event)
-                    numAdded += 1
-                
-            if numAdded > 0:
+            if something_changed:
                 self.RefreshCanvasItems(resort=True)
 
-            if numAdded == 1:
+            if len(actually_added) == 1:
                 self.EditCurrentItem()
             self.ClearPendingNewEvents()
         else:
-            self.visibleItems = list(
+            self.visibleEvents = list(
                 self.blockItem.getEventsInRange(currentRange, dayItems=True))
             self.RefreshCanvasItems(resort=True)
 
@@ -219,16 +214,18 @@ class wxAllDayEventsCanvas(wxCalendarCanvas):
                                 rightSideCutOff=cutRight)
 
         unselectedBoxes = []
+        if self.coercedCanvasItem is not None:
+            unselectedBoxes.append(self.canvasItemDict.get(
+                                          self.coercedCanvasItem.event.itsItem))
         
         contents = CalendarSelection(self.blockItem.contents)
         selectedBoxes = []
 
         draggedOutItem = self._getHiddenOrClearDraggedOut()
-        
-        for canvasItem in self.canvasItemList:
-
+        for event in self.visibleEvents:
+            
             # save the selected box to be drawn last
-            item = canvasItem.item
+            item = event.itsItem
             if item == draggedOutItem or isDead(item):
                 # don't render items we're dragging out of the canvas
                 continue      
@@ -236,7 +233,10 @@ class wxAllDayEventsCanvas(wxCalendarCanvas):
             # for some reason, we're getting paint events before
             # widget synchronize events
             if item in contents:
-                if contents.isItemSelected(item):
+                canvasItem = self.canvasItemDict.get(item)
+                if canvasItem is None:
+                    pass
+                elif contents.isItemSelected(item):
                     selectedBoxes.append(canvasItem)
                 else:
                     unselectedBoxes.append(canvasItem)
@@ -392,19 +392,19 @@ class wxAllDayEventsCanvas(wxCalendarCanvas):
         currentRange = self.GetCurrentDateRange()
 
         if resort:
-            self.visibleItems.sort(self.sortByDurationAndStart)
+            self.visibleEvents.sort(self.sortByDurationAndStart)
         
-        self.canvasItemList = []
+        self.canvasItemDict = {}
 
         size = self.GetSize()
 
         oldNumEventRows = self.numEventRows
         if self.blockItem.dayMode:
             # daymode, just stack all the events
-            for row, event in enumerate(self.visibleItems):
+            for row, event in enumerate(self.visibleEvents):
                 if not isDead(event.itsItem):
-                    self.RebuildCanvasItem(event, 0,0, row)
-            self.numEventRows = len(self.visibleItems)
+                    self.RebuildCanvasItem(event.itsItem, 0,0, row)
+            self.numEventRows = len(self.visibleEvents)
             
         else:
             # weekmode: place all the items on a grid without
@@ -431,12 +431,12 @@ class wxAllDayEventsCanvas(wxCalendarCanvas):
             if self.dragState is not None:
                 newTime = self.GetDragAdjustedStartTime(ICUtzinfo.default)
                 # if the dragged item isn't from the allday canvas, it won't
-                # appear in self.visibleItems
+                # appear in self.visibleEvents
                 if self.coercedCanvasItem is not None:
                     event = self.coercedCanvasItem.event
-                    addCanvasItem(event, newTime, newTime + event.duration)
+                    addCanvasItem(event.itsItem, newTime, newTime + event.duration)
 
-            for event in self.visibleItems:
+            for event in self.visibleEvents:
                 if not isDead(event.itsItem):
                     if newTime is not None and \
                        event.itsItem is self.dragState.originalDragBox.item:
@@ -453,7 +453,7 @@ class wxAllDayEventsCanvas(wxCalendarCanvas):
                         start = event.effectiveStartTime
                     
                     end  = start + event.duration
-                    addCanvasItem(event, start, end)
+                    addCanvasItem(event.itsItem, start, end)
 
             self.numEventRows = numEventRows
             
@@ -500,7 +500,7 @@ class wxAllDayEventsCanvas(wxCalendarCanvas):
         @param gridRow is the row (0-based) in the grid
         """
         canvasItem = self.GetCanvasItem(item, dayStart, dayEnd, gridRow)
-        self.canvasItemList.append(canvasItem)
+        self.canvasItemDict[item] = canvasItem
         
         # keep track of the current drag/resize box
         if (self.dragState and

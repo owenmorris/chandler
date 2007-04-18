@@ -169,18 +169,33 @@ class wxMiniCalendar(DragAndDrop.DropReceiveWidget,
             end = datetime.combine(end, zerotime)
 
             if self.HavePendingNewEvents():
-                addedEvents = self.GetPendingNewEvents((start, end), expandRecurrence=False)
+                addedItems, removedItems, changedItems = \
+                           self.GetPendingEvents(False)
+                
+                if len(removedItems) + len(changedItems) > 0:
+                    self._recalcCount += 1
+                else:
+    
+                    # self._eventsToAdd is a set to deal with cases where
+                    # multiple notifications are received for a given
+                    # event.
+                    if self._eventsToAdd is None: self._eventsToAdd = set()
 
-                # self._eventsToAdd is a set to deal with cases where
-                # multiple notifications are received for a given
-                # event.
-                if self._eventsToAdd is None: self._eventsToAdd = set()
+                    for item in addedItems:
+                        if not isDead(item):
+                            if (not has_stamp(item, EventStamp)):
+                                continue
+                            events = []
+                            master = Calendar.EventStamp(item)
+                            if master.rruleset is not None:
+                                for ev in master.getOccurrencesBetween(start, end):
+                                    events.append(ev)
+                            elif master.isBetween(start, end):
+                                events = [master]
+                            for event in events:
+                                if event.transparency == 'confirmed':
+                                    self._eventsToAdd.add(event)
 
-                # Include confirmed events only
-                self._eventsToAdd.update(event for event in addedEvents if
-                                         not isDead(event.itsItem) and 
-                                         event.transparency == 'confirmed')
-                self.ClearPendingNewEvents()
             else:
                 self._eventsToAdd = None
 
@@ -456,7 +471,7 @@ class wxPreviewArea(CalendarCanvas.CalendarNotificationHandler, wx.Panel):
     def __init__(self, parent, id, timeCharStyle, eventCharStyle, linkCharStyle,
                  *arguments, **keywords):
         super(wxPreviewArea, self).__init__(parent, id, *arguments, **keywords)
-        self.currentDaysItems = []
+        self.visibleEvents = []
         self._avoidDrawing = False
         self.Bind(wx.EVT_PAINT, self.OnPaint)
         self.Bind(wx.EVT_LEFT_DCLICK, self.OnDClick)
@@ -492,12 +507,12 @@ class wxPreviewArea(CalendarCanvas.CalendarNotificationHandler, wx.Panel):
         expand/contract line.
         
         """
-        if len(self.currentDaysItems) == 0:
+        if len(self.visibleEvents) == 0:
             return None
         maxEvents = schema.ns("osaf.framework.blocks.calendar",
                      self.blockItem.itsView).previewPrefs.maximumEventsDisplayed
 
-        dayLength = len(self.currentDaysItems)
+        dayLength = len(self.visibleEvents)
 
         pos = (event.GetPosition().y - self.vMargin) / self.lineHeight
         if self.useToday:
@@ -508,8 +523,8 @@ class wxPreviewArea(CalendarCanvas.CalendarNotificationHandler, wx.Panel):
             return -1
         else:
             pos = max(0, pos)
-            pos = min(len(self.currentDaysItems) - 1, pos)
-            return self.currentDaysItems[pos].itsItem
+            pos = min(len(self.visibleEvents) - 1, pos)
+            return self.visibleEvents[pos].itsItem
 
     def ExpandOrContract(self):
         self.maximized = not self.maximized
@@ -549,7 +564,7 @@ class wxPreviewArea(CalendarCanvas.CalendarNotificationHandler, wx.Panel):
 
     def Draw(self, dc):
         """
-        Draw all the items, based on what's in self.currentDaysItems
+        Draw all the items, based on what's in self.visibleEvents
 
         @return the height of all the text drawn
         """
@@ -617,16 +632,16 @@ class wxPreviewArea(CalendarCanvas.CalendarNotificationHandler, wx.Panel):
         # Draw each event
         previewPrefs = schema.ns("osaf.framework.blocks.calendar",
                                  self.blockItem.itsView).previewPrefs
-        for i, event in enumerate(self.currentDaysItems):
+        for i, event in enumerate(self.visibleEvents):
             if isDead(event.itsItem):
                 # This is to fix bug 4322, after removing recurrence,
                 # OnPaint gets called before wxSynchronizeWidget, so
-                # self.currentDaysItems has deleted items in it.
+                # self.visibleEvents has deleted items in it.
                 continue
 
             if (not self.maximized and
                 i == previewPrefs.maximumEventsDisplayed - 1 and
-                len(self.currentDaysItems) - i > 1):
+                len(self.visibleEvents) - i > 1):
                 break
 
             if not (event.allDay or event.anyTime):
@@ -649,13 +664,13 @@ class wxPreviewArea(CalendarCanvas.CalendarNotificationHandler, wx.Panel):
 
             y += self.lineHeight
 
-        if len(self.currentDaysItems) > previewPrefs.maximumEventsDisplayed:
+        if len(self.visibleEvents) > previewPrefs.maximumEventsDisplayed:
             if self.maximized:
                 expandText = _(u"- minimize")
             else:
                 # this is the number of events that are not displayed
                 # in the preview pane because there wasn't enough room
-                numEventsLeft = (len(self.currentDaysItems) -
+                numEventsLeft = (len(self.visibleEvents) -
                                  (previewPrefs.maximumEventsDisplayed - 1))
                 expandText = _(u"+ %(numberOfEvents)d more...") %  \
                                   {'numberOfEvents': numEventsLeft}
@@ -713,24 +728,16 @@ class wxPreviewArea(CalendarCanvas.CalendarNotificationHandler, wx.Panel):
         endDay = startDay + one_day
 
         if self.HavePendingNewEvents():
-            addedEvents = self.GetPendingNewEvents((startDay, endDay))
-
-            addedEvents = set(item for item in addedEvents
-                              if not isDead(item.itsItem) and 
-                              item.transparency == 'confirmed')
-
-            for item in addedEvents:
-                if item not in self.currentDaysItems:
-                    self.currentDaysItems.append(item)
-
-            self.ClearPendingNewEvents()
+            for event in self.HandleRemoveAndYieldChanged((startDay, endDay)):
+                if event.transparency == 'confirmed':
+                    self.visibleEvents.append(event)
         else:
             inRange = self.blockItem.getEventsInRange((startDay, endDay),
                                               dayItems=True, timedItems=True)
-            self.currentDaysItems = [event for event in inRange
+            self.visibleEvents = [event for event in inRange
                                        if event.transparency == "confirmed"]
 
-        self.currentDaysItems.sort(cmp = self.SortForPreview)
+        self.visibleEvents.sort(cmp = self.SortForPreview)
         self.Resize()
 
 

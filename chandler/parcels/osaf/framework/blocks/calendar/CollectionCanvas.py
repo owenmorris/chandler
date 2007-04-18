@@ -114,6 +114,9 @@ class CanvasItem(object):
         else:
             self.event = EventStamp(itemOrEvent)
 
+    def __cmp__(self, other):
+        return cmp(self.event, other.event)
+
     @property
     def item(self):
         return self.event.itsItem
@@ -321,12 +324,12 @@ class wxCollectionCanvas(DragAndDrop.DropReceiveWidget,
         """
         super(wxCollectionCanvas, self).__init__(*arguments, **keywords)
 
-        # canvasItemList is sorted in bottom-up order (in case some events
+        # canvasItemDict is sorted in bottom-up order (in case some events
         #   overlap with each other
         # when drawing, iterate forward to draw bottom items first
         # when handling events, iterate with reversed() to send the events
         #   to the topmose items
-        self.canvasItemList = []
+        self.canvasItemDict = {}
 
         # activeProxy is used to track changes to one recurring event without
         # having to wrap all canvas items in proxies
@@ -356,7 +359,7 @@ class wxCollectionCanvas(DragAndDrop.DropReceiveWidget,
             self._focusWindow.SetFocus()
 
     def GetCanvasItemAt(self, unscrolledPosition):
-        for canvasItem in reversed(self.canvasItemList):
+        for canvasItem in self.canvasItemDict.itervalues():
             if canvasItem.isHit(unscrolledPosition):
                 return canvasItem
         return None
@@ -698,21 +701,10 @@ class wxCollectionCanvas(DragAndDrop.DropReceiveWidget,
             selection.next()
         except StopIteration:
             # great! exactly one item in the iteration
-
-            # find the associated canvasItem. Would be nice if we
-            # had dictionary mapping item->canvasItem, but this is
-            # the first time we've needed it!
-            selectedCanvasItems = [canvasItem
-                                  for canvasItem in self.canvasItemList
-                                  if canvasItem.item == selectedItem]
-
-            # it's possible selecteCanvasItems will be empty if canvasItemList
-            # was out of date.  That's OK, go ahead and return None in that case
-            if len(selectedCanvasItems) == 1:
-                return selectedCanvasItems[0]
-
+            return self.canvasItemDict.get(selectedItem)
 
         return None                     # oops, more than one item selected
+
 
     def EditCurrentItem(self, keyPressed = False):
         currentCanvasItem = self.SelectedCanvasItem()
@@ -722,17 +714,14 @@ class wxCollectionCanvas(DragAndDrop.DropReceiveWidget,
     def GetCanvasItems(self, *items):
         """
         Maps one or more items to their respective canvas items,
-        returning a generator
-
-        this isn't very efficient because its really only used for
-        tests (if we really cared, we would just use a dict which
-        maintains the mapping)
+        returning a generator.
+        
         """
 
         for item in items:
-            for canvasItem in self.canvasItemList:
-                if item == canvasItem.item:
-                    yield canvasItem
+            canvasItem = self.canvasItemDict.get(item)
+            if canvasItem is not None:
+                yield canvasItem
 
     def SaveCharTyped(self, event):
         pass
