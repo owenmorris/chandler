@@ -20,6 +20,7 @@ from osaf.sharing import (
     recordset_conduit, eimml
 )
 from PyICU import ICUtzinfo
+import os
 import time
 import email
 from email import Message, Utils
@@ -383,7 +384,23 @@ class SharingTranslator(eim.Translator):
             return text
 
         if text and getattr(self, "obfuscation", False):
-            return "X" * len(text)
+            def lipsum(length):
+                # Return some text that has properties real text would have.
+                corpus = "Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum." 
+                if length <= len(corpus):
+                    return corpus[:length]
+                # Need to generate some additional stuff...
+                ret = corpus
+                words = corpus.split()
+                import random
+                shuffler = random.Random(1) # fixed seed on purpose
+                while True:
+                    shuffler.shuffle(words)
+                    ret += os.linesep + ' '.join(words)
+                    if len(ret) >= length:
+                        return ret[:length]
+                
+            return lipsum(len(text)) 
         else:
             return text
 
