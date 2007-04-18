@@ -90,6 +90,9 @@ class CosmoConduit(recordset_conduit.DiffRecordSetConduit, conduits.HTTPMixin):
         initialValue = u'',
     )
 
+    chunkSize = schema.One(schema.Integer, defaultValue=100,
+        doc="How many items to send at once")
+
     def sync(self, modeOverride=None, activity=None, forceUpdate=None,
         debug=False):
 
@@ -106,6 +109,43 @@ class CosmoConduit(recordset_conduit.DiffRecordSetConduit, conduits.HTTPMixin):
             self.networkTime)
 
         return stats
+
+    def _putChunk(self, chunk, extra):
+        text = self.serializer.serialize(chunk, **extra)
+        logger.debug("Sending to server [%s]", text)
+        self.put(text)
+
+    def putRecords(self, toSend, extra, debug=False, activity=None):
+
+        if self.chunkSize == 0:
+            self._putChunk(toSend, extra)
+        else:
+            # We need to guarantee that masters are sent before modifications,
+            # so sorting on uuid/recurrenceID:
+            uuids = toSend.keys()
+            uuids.sort()
+
+            chunk = {}
+            chunkNum = 1
+            count = 0
+            for uuid in uuids:
+                count += 1
+                chunk[uuid] = toSend[uuid]
+                if count == self.chunkSize:
+                    if activity:
+                        activity.update(msg="Sending chunk %d" % chunkNum,
+                            totalWork=None)
+                    self._putChunk(chunk, extra)
+                    chunk = {}
+                    count = 0
+                    chunkNum += 1
+            if chunk: # still have some left over
+                if activity:
+                    activity.update(msg="Sending chunk %d" % chunkNum,
+                        totalWork=None)
+                self._putChunk(chunk, extra)
+
+
 
     def get(self):
 
