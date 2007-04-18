@@ -57,18 +57,26 @@ def ProcessEvent (theClass, properties , attributes):
     if associatedBlock is not None:
         event.SetId (Block.findBlockByName (associatedBlock).widget.GetId())
 
-    # Special case clicks on checkboxes to toggle the widget's value
-    if eventType is wx.EVT_CHECKBOX:
-        sentToWidget.SetValue(not sentToWidget.GetValue())
-
-    # Special case wx,Choice to set the selection
-    if eventType is wx.EVT_CHOICE:
-        sentToWidget.SetSelection (properties ["selectedItem"])
-        
+    newFocusWindow = properties.get ("newFocusWindow", None)
+    if newFocusWindow != None:
+        ProcessEvent.newFocusWindow = newFocusWindow
+        ProcessEvent.newFocusWindowClass = properties["newFocusWindowClass"]
+            
     # On Windows, EmulateKeyPress seems to cause EVT_CHAR events to occur
     # so we don't need to process the recorded EVT_CHAR events
     if not (eventType is wx.EVT_CHAR and '__WXMSW__' in wx.PlatformInfo):
-        # Check to see if the correct window has focus
+        # Special case clicks on checkboxes to toggle the widget's value
+        # And special case wx,Choice to set the selection. Both of these
+        # are necessary before the event is processed so the GetValue
+        # validation passes
+        if eventType is wx.EVT_CHECKBOX:
+            sentToWidget.SetValue (not sentToWidget.GetValue())
+
+        # andSpecial case wx,Choice to set the selection
+        elif eventType is wx.EVT_CHOICE:
+            sentToWidget.SetSelection (properties ["selectedItem"])
+            
+        # Do validations
         if ProcessEvent.verifyOn:
             # Make sure the menu or button is enabled
             if eventType is wx.EVT_MENU:
@@ -77,49 +85,44 @@ def ProcessEvent (theClass, properties , attributes):
                 sentToWidget.ProcessEvent (updateUIEvent)
                 assert updateUIEvent.GetEnabled() is True, "You're sending a command to a disable menu"
                 
-            focusWindow = wx.Window_FindFocus()
-            newFocusWindow = properties.get ("newFocusWindow", None)
-            
-            # Check to makee sure the focus window changes as expected
-            def focusShouldLookLikeNewFocusWindow (focusWindow, newFocusWindow):
-                if type (newFocusWindow) is str:
-                    assert focusWindow is NameToWidget (newFocusWindow), "An unexpected window has the focus"
-                else:
-                    (theClass, id) = newFocusWindow
-                    
-                    assert isinstance (focusWindow, theClass), "The focus window, " + str(focusWindow) + ", is not class " + str (theClass) + ". Parent window is " + str (focusWindow.GetParent())
-                    if id > 0:
-                        assert focusWindow.GetId() == id, "Focus window has unexpected id"
+            # Check to makee sure we're focused to the right window
+            newFocusWindow = ProcessEvent.newFocusWindow
+            if newFocusWindow is not None:
+                focusWindow = wx.Window_FindFocus()
+                
+                # On Macintosh there is a setting under SystemPreferences>Keyboar&Mouse>KeyboardShortcuts
+                # neare the bottom of the page titled "Full Keyboard Access" that defaults to
+                # not letting you set the focus to certain controls, e.g. CheckBoxes. So we
+                # don't verify the focus in those cases.
+                if ('__WXMAC__' not in wx.PlatformInfo or
+                    not issubclass (ProcessEvent.newFocusWindowClass, wx.CheckBox)):
+
+                    if type (newFocusWindow) is str:
+                        assert focusWindow is NameToWidget (newFocusWindow), "An unexpected window has the focus"
                     else:
-                        assert focusWindow.GetId() < 0, "Focus window has unexpected id"
-
-            if hasattr (ProcessEvent, "lastFocus"):
-                if ProcessEvent.lastFocus != focusWindow:
-                    assert newFocusWindow is not None, "Focus window unexpectedly changed"
-                    
-                    # And that we get the expected focus window
-                    focusShouldLookLikeNewFocusWindow (focusWindow, newFocusWindow)
+                        assert isinstance (focusWindow, ProcessEvent.newFocusWindowClass), "The focus window, " + str(focusWindow) + ", is not class " + str (theClass) + ". Parent window is " + str (focusWindow.GetParent())
+                        if newFocusWindow > 0:
+                            assert focusWindow.GetId() == newFocusWindow, "Focus window has unexpected id"
+                        else:
+                            assert focusWindow.GetId() < 0, "Focus window has unexpected id"
         
-                    ProcessEvent.lastFocus = focusWindow
-                else:
-                    if newFocusWindow is not None:
-                        focusShouldLookLikeNewFocusWindow (focusWindow, newFocusWindow)
-            else:
-                if focusWindow is not None:
-                    ProcessEvent.lastFocus = focusWindow
-
             # Check to make sure last event caused expected change
             if ProcessEvent.lastSentToWidget is not None:
                 method = getattr (ProcessEvent.lastSentToWidget, "GetValue", None)
                 lastWidgetValue = properties.get ("lastWidgetValue", None)
                 if lastWidgetValue is not None and method is not None:
                     value = method()
-                    assert value == lastWidgetValue, "widget's value doesn't match the value when the script was recorded"
+                    # Special hackery for string that varies depending on Chandler build
+                    if type (value) is unicode and value.startswith (u"Welcome to Chandler 0.7.dev-r"):
+                        assert lastWidgetValue.startswith (u"Welcome to Chandler 0.7.dev-r")
+                    else:
+                        assert value == lastWidgetValue, "widget's value doesn't match the value when the script was recorded"
                 else:
                     assert lastWidgetValue is None, "last widget differes from its value when the script was recorded"
     
         if not sentToWidget.ProcessEvent (event):
-            if eventType is wx.EVT_KEY_DOWN: # Special case key downs
+            # Special case key downs
+            if eventType is wx.EVT_KEY_DOWN:
                 # EmulateKeyPress isn't implemented correctly on for non-windows platform. So for now
                 # we'll special case the grid case and send the event to the gridWindow.
                 # Eventually, it would be nice to spend some time investigating how to implement
@@ -140,16 +143,17 @@ def ProcessEvent (theClass, properties , attributes):
                     if EmulateKeyPress is not None:
                         EmulateKeyPress (event)
     
-            elif eventType is wx.EVT_CHECKBOX: # Special case check box events
-                sentToWidget.SetValue(not widget.GetValue())
-                    
-            elif eventType is wx.EVT_LEFT_UP: # Special case left up to set selection in text control
-                assert isinstance (sentToWidget, wx.TextCtrl)
-                (start, end) = properties ["selectionRange"]
-                sentToWidget.SetSelection (start, end)
-                    
-        ProcessEvent.lastSentToWidget = sentToWidget
+            # Left down changes the focus
+            elif eventType is wx.EVT_LEFT_DOWN:
+                sentToWidget.SetFocus()
     
+        selectionRange = properties.get ("selectionRange", None)
+        if selectionRange is not None:
+            (start, end) = selectionRange
+            sentToWidget.SetSelection (start, end)
+    
+        ProcessEvent.lastSentToWidget = sentToWidget
+        
         # On windows when we propagate notifications while editing a text control
         # it will end up calling wxSynchronizeWidget in wxTable, which will end the
         # editing of the table
@@ -168,11 +172,8 @@ def ProcessEvent (theClass, properties , attributes):
             else:
                 break
 
-        application.Yield()
-
-
 def VerifyOn (verify = True):
     ProcessEvent.verifyOn = verify
     ProcessEvent.lastSentToWidget = None
-    if hasattr (ProcessEvent, "lastFocus"):
-        del ProcessEvent.lastFocus
+    ProcessEvent.newFocusWindow = None
+

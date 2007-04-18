@@ -27,12 +27,12 @@ wxEventClasses = set([wx.CommandEvent,
 wxEventTypes = ["EVT_MENU",
                 "EVT_KEY_DOWN",
                 "EVT_LEFT_DOWN",
-                #"EVT_LEFT_UP", # temporarily comment out to see if tests pass
+                "EVT_LEFT_UP",
                 "EVT_RIGHT_DOWN",
                 "EVT_LEFT_DCLICK",
                 "EVT_RIGHT_DCLICK",
                 "EVT_CHAR",
-                "EVT_CHOICE",
+                    "EVT_CHOICE",
                 "EVT_SCROLLWIN_LINEUP",
                 "EVT_SCROLLWIN_LINEDOWN",
                 "EVT_SCROLLWIN_PAGEUP",
@@ -245,11 +245,8 @@ class Controller (Block.Block):
                                 values.append ("'selectedItem':" + valueToString (sentToWidget.GetSelection()))
 
                             # Use mouse up events in text controls to set selection during playback
-                            if eventType == 'wx.EVT_LEFT_UP':
-                                if not isinstance (sentToWidget, wx.TextCtrl):
-                                    return
+                            if (eventType == 'wx.EVT_LEFT_UP' and isinstance (sentToWidget, wx.TextCtrl)):
                                 (start, end) = sentToWidget.GetSelection()
-                                print start, end
                                 values.append ("'selectionRange': (" +
                                                valueToString (start) + "," +
                                                valueToString (end) + ')')
@@ -266,10 +263,10 @@ class Controller (Block.Block):
                                     # The newFocusWindow is either a blockName or a tupe of class, id
                                     newFocusWindow = widgetToName (focusWindow)
                                     if newFocusWindow == "__FocusWindow__" or type (newFocusWindow) is int:
-                                        newFocusWindow = '(' + getClassName (focusWindow) + ',' + str(focusWindow.GetId()) + ')'
+                                        values.append ("'newFocusWindow':" + str(focusWindow.GetId()))
                                     else:
-                                        newFocusWindow = valueToString (newFocusWindow)
-                                    values.append ("'newFocusWindow':" + newFocusWindow)
+                                        values.append ("'newFocusWindow':" + valueToString (newFocusWindow))
+                                    values.append ("'newFocusWindowClass':" + getClassName (focusWindow))
 
                                 #  Record the state of the last widget so we can check that the state is the same
                                 # afer the event is played back
