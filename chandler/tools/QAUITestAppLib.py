@@ -1737,7 +1737,6 @@ class UITestView(object):
                     # True sends us to the default test date
                     gotoTestDate = "12/24/2005" # Dec has some free days
                 self.GoToDate(gotoTestDate)
-                scripting.User.idle()
 
             self.timedCanvas = App_ns.TimedEvents
             canvasItem = None
