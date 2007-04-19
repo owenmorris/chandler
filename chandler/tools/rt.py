@@ -921,9 +921,9 @@ def runStartupPerfTests(options, timer, largeData=False, repeat=3, logger=log):
     
     >>> runStartupPerfTests(options, '/usr/bin/time', repeat=1)
     Creating repository for startup time tests
-    /.../release/RunChandler... --catch=tests --profileDir=test_profile --parcelPath=tools/QATestScripts/DataFiles --scriptFile=tools/QATestScripts/Performance/quit.py --create
+    /.../RunChandler... --catch=tests --profileDir=test_profile --parcelPath=tools/QATestScripts/DataFiles --scriptFile=tools/QATestScripts/Performance/quit.py --create
     - + - + - + - + - + - + - + - + - + - + - + - + - + - + - + 
-    /usr/bin/time --format=%e -o test_profile/time.log /home/heikki/workspace/chandler/release/RunChandler --catch=tests --profileDir=test_profile --parcelPath=tools/QATestScripts/DataFiles --scriptFile=tools/QATestScripts/Performance/end.py
+    /usr/bin/time --format=%e -o test_profile/time.log /.../RunChandler --catch=tests --profileDir=test_profile --parcelPath=tools/QATestScripts/DataFiles --scriptFile=tools/QATestScripts/Performance/end.py
     Startup                             0.00 - + - + - + - + - + - + - + - + - + - + - + - + - + - + - + 
       0.00 - + - + - + - + - + - + - + - + - + - + - + - + - + - + - + 
       0.00 - + - + - + - + - + - + - + - + - + - + - + - + - + - + - + 
