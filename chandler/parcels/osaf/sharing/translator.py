@@ -268,7 +268,7 @@ def getRecurrenceFields(event):
         
     if hasattr(vobject_event, 'exrule'):
         exrules = vobject_event.exrule_list
-        exrrule = ':'.join(obj.serialize(lineLength=1000)[7:].strip() for obj in exrules)
+        exrule = ':'.join(obj.serialize(lineLength=1000)[7:].strip() for obj in exrules)
     else:
         exrule = None
         
