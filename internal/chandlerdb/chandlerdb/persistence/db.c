@@ -392,7 +392,10 @@ static PyObject *t_db_compact(t_db *self, PyObject *args)
 
     {
         DB_TXN *db_txn = txn == Py_None ? NULL : ((t_txn *) txn)->txn;
+        DB_COMPACT compact;
         int err;
+
+        memset(&compact, 0, sizeof(compact));
 
         Py_BEGIN_ALLOW_THREADS;
         err = self->db->compact(self->db, db_txn,
@@ -401,7 +404,12 @@ static PyObject *t_db_compact(t_db *self, PyObject *args)
         if (err)
             return raiseDBError(err);
 
-        Py_RETURN_NONE;
+        return Py_BuildValue("(IIIII)",
+                             compact.compact_deadlock,
+                             compact.compact_pages_examine,
+                             compact.compact_pages_free,
+                             compact.compact_levels,
+                             compact.compact_pages_truncated);
     }
 }
 
