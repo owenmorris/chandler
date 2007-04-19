@@ -17,7 +17,6 @@ import logging
 logger = logging.getLogger(__name__)
 
 from osaf import ChandlerException
-from i18n import ChandlerMessageFactory as _
 
 
 def annotate(exception, brief, details=""):

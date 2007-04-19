@@ -20,9 +20,7 @@ Provides the user with the option of starting Chandler with reload options
 
 # borrowed almost verbatim from StartupOptionsDialog - any mistakes are mine (bear)
 
-import os, sys, wx, tarfile, glob
-from datetime import datetime, timedelta
-from application import Globals
+import os, sys, wx, glob
 from application.Utility import locateProfileDir
 
 

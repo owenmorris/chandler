@@ -14,15 +14,13 @@
 
 
 
-from application import schema
-from osaf.sharing import model, eim, errors
+from osaf.sharing import eim, errors
 from osaf.sharing.simplegeneric import generic
 from osaf.pim.calendar.TimeZone import convertToICUtzinfo
-from PyICU import ICUtzinfo
-import time, datetime, base64, decimal
+import base64, decimal
 from dateutil.parser import parse as dateutilparser
 from xml.etree.cElementTree import (
-    Element, SubElement, ElementTree, parse, tostring, fromstring
+    Element, SubElement, tostring, fromstring
 )
 
 

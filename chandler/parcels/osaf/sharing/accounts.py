@@ -22,7 +22,6 @@ from osaf import pim
 import conduits, utility
 import logging
 import urlparse
-from i18n import ChandlerMessageFactory as _
 from osaf.framework.password import passwordAttribute
 
 logger = logging.getLogger(__name__)

@@ -1,4 +1,4 @@
-#   Copyright (c) 2004-2006 Open Source Applications Foundation
+#   Copyright (c) 2004-2007 Open Source Applications Foundation
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -20,17 +20,17 @@ from application import schema
 from datetime import datetime, timedelta, date, time
 from CalendarCanvas import (
     CalendarCanvasItem, CalendarBlock, CalendarSelection,
-    wxCalendarCanvas, roundTo, roundToColumnPosition, widgetGuardedCallback,
+    wxCalendarCanvas, roundTo, widgetGuardedCallback,
     wxInPlaceEditor
     )
 from CollectionCanvas import DragState
 from PyICU import FieldPosition, DateFormat, ICUtzinfo
 import osaf.pim.calendar.Calendar as Calendar
-from osaf.pim import isDead, has_stamp
+from osaf.pim import isDead
 from osaf.pim.calendar.TimeZone import TimeZoneInfo, coerceTimeZone
 
 from time import time as epochtime
-from itertools import chain, islice
+from itertools import islice
 from osaf.framework.blocks.Block import WithoutSynchronizeWidget, BaseWidget
 from osaf.pim.structs import SizeType
 import bisect

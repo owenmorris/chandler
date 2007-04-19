@@ -25,17 +25,14 @@ __all__ = [
     'getConflicts',
 ]
 
-import sys
 from application import schema
-from osaf import pim, ChandlerException
-from i18n import ChandlerMessageFactory as _
+from osaf import pim
 import errors, eim, model
 from eim import NoChange as nc
 from callbacks import *
 import cPickle
 import logging
 import datetime
-import traceback
 from PyICU import ICUtzinfo
 from chandlerdb.util.c import Empty
 

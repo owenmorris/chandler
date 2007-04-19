@@ -1,4 +1,4 @@
-#   Copyright (c) 2003-2006 Open Source Applications Foundation
+#   Copyright (c) 2003-2007 Open Source Applications Foundation
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -16,16 +16,14 @@
 __parcel__ = "osaf.framework.blocks"
 
 from Block import (
-    Block, RectangularChild, wxRectangularChild, debugName,
+    Block, RectangularChild, wxRectangularChild,
     WithoutSynchronizeWidget, IgnoreSynchronizeWidget
 )
 from osaf.pim.structs import PositionType, SizeType
-import DragAndDrop, MenusAndToolbars
-from repository.item.Item import Item
+import MenusAndToolbars
 from application import schema
 import wx
-import time
-import util.autolog
+#import util.autolog
 
 class orientationEnumType(schema.Enumeration):
     values = "Horizontal", "Vertical"

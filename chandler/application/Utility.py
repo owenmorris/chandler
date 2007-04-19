@@ -24,7 +24,6 @@ from configobj import ConfigObj
 
 from chandlerdb.util.c import UUID, loadUUIDs
 from repository.persistence.DBRepository import DBRepository
-from repository.persistence.RepositoryView import NullRepositoryView
 from repository.persistence.RepositoryError import \
     VersionConflictError, RepositoryPasswordError, RepositoryVersionError, \
     RepositoryRunRecoveryError

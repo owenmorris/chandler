@@ -1,4 +1,4 @@
-#   Copyright (c) 2003-2006 Open Source Applications Foundation
+#   Copyright (c) 2003-2007 Open Source Applications Foundation
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -16,10 +16,9 @@ from Util import ProgressDialog
 from application import Globals
 from i18n import ChandlerMessageFactory as _
 from osaf.mail import constants, autodetect
-from osaf.sharing import accounts
 from osaf.sharing.WebDAV import WebDAVTester, MorsecodeTester
 from osaf.sharing import WebDAV
-from osaf.pim.mail import IMAPAccount, IMAPFolder
+from osaf.pim.mail import IMAPAccount
 
 __all__ = [
          "showOKDialog",

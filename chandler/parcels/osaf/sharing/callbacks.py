@@ -23,8 +23,6 @@ __all__ = [
     'NEWITEMSUNESTABLISHED',
 ]
 
-from i18n import ChandlerMessageFactory as _
-
 UPDATE = 1
 NEWITEMS = 2
 MODIFIEDITEMS = 3

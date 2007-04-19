@@ -25,29 +25,23 @@ from application import schema
 from application.dialogs import ConflictDialog
 from osaf import pim
 from osaf.framework.attributeEditors import (
-     AttributeEditorMapping, DateTimeAttributeEditor, DateAttributeEditor,
+     AttributeEditorMapping, DateAttributeEditor,
      EmailAddressAttributeEditor, TimeAttributeEditor, ChoiceAttributeEditor,
      StringAttributeEditor, StaticStringAttributeEditor)
 from osaf.framework.blocks import (
-     Block, ContainerBlocks, ControlBlocks, MenusAndToolbars,
+     Block, ContainerBlocks, ControlBlocks,
      FocusEventHandlers, BranchPoint, debugName)
 from osaf import sharing
 import osaf.pim.mail as Mail
-import osaf.pim.items as items
 import osaf.pim.notes as notes
 from osaf.pim.tasks import TaskStamp
 import osaf.pim.calendar.Calendar as Calendar
 import osaf.pim.calendar.Recurrence as Recurrence
 from osaf.pim.calendar import TimeZoneInfo
-from osaf.pim.collections import ListCollection
 from osaf.pim import ContentItem
-import application.dialogs.AccountPreferences as AccountPreferences
-import osaf.mail.constants as MailConstants
 #import osaf.mail.sharing as MailSharing
-import osaf.mail.message as MailMessage
 from repository.item.Item import Item
 import wx
-import sets
 import logging
 from PyICU import ICUError, ICUtzinfo
 from datetime import datetime, time, timedelta

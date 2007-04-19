@@ -13,25 +13,13 @@
 #   limitations under the License.
 
 
-import os, sys, string, traceback
+import sys, string, traceback
 
-from twisted.web import resource
-import repository
-import application
 import re
 from osaf import pim, webserver, sharing
 from osaf.pim.items import ContentItem
 from osaf.pim.collections import ContentCollection
-from repository.item.Item import Item
-from repository.item.Sets import AbstractSet
-from repository.item.PersistentCollections import PersistentSet
-from repository.schema.Kind import Kind
-from repository.schema.Types import Type
 from repository.schema.TypeHandler import TypeHandler
-from repository.util.Lob import Lob
-from repository.util.URL import URL
-from repository.schema.Attribute import Attribute
-from repository.schema.Cloud import Cloud, Endpoint
 from repository.item.RefCollections import RefList
 from repository.item.Sets import \
     Set, MultiUnion, Union, MultiIntersection, Intersection, Difference, \

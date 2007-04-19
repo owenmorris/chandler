@@ -13,12 +13,10 @@
 #   limitations under the License.
 
 from osaf import pim
-from osaf.activity import Activity
 import conduits, errors, formats, eim, shares
 from i18n import ChandlerMessageFactory as _
 import logging
 from application import schema
-import zanshin
 from repository.item.Item import Item
 from chandlerdb.util.c import UUID
 

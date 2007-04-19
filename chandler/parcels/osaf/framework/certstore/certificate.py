@@ -21,18 +21,16 @@ __parcel__ = "osaf.framework.certstore"
 __all__ = ['Certificate', 'importCertificate',
            'importCertificateDialog', 'findCertificate', 'certificatePurpose']
 
-import os, logging, sys
+import os, logging
 
 import wx
 from M2Crypto import X509, m2
 
-import application
 from application import schema
 from osaf import pim
 from application.dialogs import Util
 from i18n import ChandlerMessageFactory as _
 from osaf import messages
-from osaf.pim.collections import FilteredCollection
 from osaf.framework.certstore import utils, dialogs, constants
 
 

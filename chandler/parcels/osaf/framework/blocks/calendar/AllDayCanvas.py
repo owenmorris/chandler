@@ -1,4 +1,4 @@
-#   Copyright (c) 2004-2006 Open Source Applications Foundation
+#   Copyright (c) 2004-2007 Open Source Applications Foundation
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -18,10 +18,10 @@ __parcel__ = "osaf.framework.blocks.calendar"
 import wx
 
 from application import schema
-from datetime import datetime, timedelta, date, time
+from datetime import timedelta
 from CalendarCanvas import (
     CalendarCanvasItem, CalendarBlock, CalendarSelection,
-    wxCalendarCanvas, roundToColumnPosition, widgetGuardedCallback,
+    wxCalendarCanvas, widgetGuardedCallback,
     wxInPlaceEditor
     )
 from CollectionCanvas import DragState
@@ -31,8 +31,6 @@ from osaf.pim import isDead
 
 from application.dialogs import RecurrenceDialog
 from osaf.pim.calendar import Calendar
-
-from itertools import chain
 
 class SparseMatrix(object):
 

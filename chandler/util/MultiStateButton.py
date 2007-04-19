@@ -18,7 +18,6 @@ MultiStateButton class
 
 
 import os
-import sys
 import wx
 from wx.lib.buttons import GenBitmapButton
 

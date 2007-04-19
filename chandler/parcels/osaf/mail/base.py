@@ -19,7 +19,6 @@
 import twisted.internet.reactor as reactor
 import twisted.internet.defer as defer
 import twisted.internet.error as error
-import twisted.protocols.policies as policies
 import twisted.internet.protocol as protocol
 import twisted.python.failure as failure
 from twisted.internet import threads

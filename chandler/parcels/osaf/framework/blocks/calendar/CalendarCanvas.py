@@ -1,4 +1,4 @@
-#   Copyright (c) 2004-2006 Open Source Applications Foundation
+#   Copyright (c) 2004-2007 Open Source Applications Foundation
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -19,15 +19,14 @@ Canvas for calendaring blocks.
 __parcel__ = "osaf.framework.blocks.calendar"
 
 import wx
-import wx.colheader
+from wx import colheader
 
 from osaf.pim import isDead
 from repository.item.Monitors import Monitors
 from repository.item.Item import MissingClass
-from chandlerdb.item.ItemError import NoSuchItemInCollectionError
 
 from datetime import datetime, timedelta, date, time
-from PyICU import GregorianCalendar, DateFormatSymbols, ICUtzinfo, TimeZone
+from PyICU import GregorianCalendar, DateFormatSymbols, ICUtzinfo
 
 from osaf.pim.calendar import (Calendar, TimeZoneInfo, formatTime, DateTimeUtil,
                                shortTZ)
@@ -38,14 +37,13 @@ from application.dialogs import RecurrenceDialog, Util, TimeZoneList
 from osaf.sharing import ChooseFormat, CalDAVFreeBusyConduit, FreeBusyAnnotation
 
 from osaf.framework.blocks import (
-    DragAndDrop, Block, SplitterWindow, Styles, BoxContainer, BlockEvent, ViewEvent
+    SplitterWindow, Styles, BoxContainer, BlockEvent, ViewEvent
     )
 from osaf.framework.attributeEditors import AttributeEditors
 from osaf.framework.blocks.DrawingUtilities import (DrawWrappedText, Gradients,
                 DrawClippedText, color2rgb, rgb2color, vector)
 
 from osaf.framework.blocks.calendar import CollectionCanvas
-from osaf.preferences import CalendarHourMode, CalendarPrefs
 
 from colorsys import rgb_to_hsv, hsv_to_rgb
 
@@ -54,7 +52,6 @@ from application import schema
 from operator import add
 from itertools import islice, chain
 from bisect import bisect
-import copy
 import logging
 from application import styles as confstyles
 from application.Application import registerStringForId, unregisterStringForId
@@ -2200,10 +2197,10 @@ class wxCalendarControl(wx.Panel, CalendarEventHandler):
         
         # finally the last row, with the header
         weekColumnHeader = \
-            self.weekColumnHeader = wx.colheader.ColumnHeader(self)
+            self.weekColumnHeader = colheader.ColumnHeader(self)
         
         # turn this off for now, because our sizing needs to be exact
-        weekColumnHeader.SetAttribute(wx.colheader.CH_ATTR_ProportionalResizing,False)
+        weekColumnHeader.SetAttribute(colheader.CH_ATTR_ProportionalResizing,False)
 
         #these labels get overriden by wxSynchronizeWidget()
         #XXX: [i18n] These Header labels need to leverage PyICU for the display names
@@ -2212,7 +2209,7 @@ class wxCalendarControl(wx.Panel, CalendarEventHandler):
             weekColumnHeader.AppendItem(header, wx.ALIGN_CENTER, 0, bSortEnabled=False)
             
         expandoColumn = len(headerLabels) - 1
-        self.Bind(wx.colheader.EVT_COLUMNHEADER_SELCHANGED,
+        self.Bind(colheader.EVT_COLUMNHEADER_SELCHANGED,
                   self.OnDayColumnSelect, weekColumnHeader)
 
         # this should be the width of the word "Week" in the column
@@ -2226,7 +2223,7 @@ class wxCalendarControl(wx.Panel, CalendarEventHandler):
             self.xOffset = width + 6
         
         # set up initial selection
-        weekColumnHeader.SetAttribute(wx.colheader.CH_ATTR_VisibleSelection,
+        weekColumnHeader.SetAttribute(colheader.CH_ATTR_VisibleSelection,
                                       True)
         sizer.Add(weekColumnHeader, 0, wx.EXPAND)
         

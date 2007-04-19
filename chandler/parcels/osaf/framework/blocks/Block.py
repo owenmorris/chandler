@@ -15,11 +15,9 @@
 
 __parcel__ = "osaf.framework.blocks"
 
-import application.Globals as Globals
 from application import schema
 import application.dialogs.RecurrenceDialog as RecurrenceDialog
 from osaf.pim.items import ContentItem
-from osaf.pim.calendar import Calendar
 from osaf.pim.collections import ContentCollection
 from osaf.usercollections import UserCollection
 from repository.item.Item import MissingClass

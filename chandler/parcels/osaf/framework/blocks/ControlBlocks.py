@@ -15,7 +15,7 @@
 
 __parcel__ = "osaf.framework.blocks"
 
-import os, sys
+import sys
 from application.Application import mixinAClass
 from application import schema
 from Block import ( 
@@ -26,9 +26,9 @@ from ContainerBlocks import BoxContainer
 import DragAndDrop
 from chandlerdb.item.ItemError import NoSuchAttributeError
 import wx
-import wx.html
-import wx.gizmos
-import wx.grid
+from wx import html as wxHtml
+from wx import gizmos as wxGizmos
+from wx import grid as wxGrid
 import webbrowser # for opening external links
 import PyICU
 from util import MultiStateButton
@@ -36,10 +36,8 @@ from wx.lib.buttons import GenBitmapTextButton
 
 import application.dialogs.ReminderDialog as ReminderDialog
 import Styles
-from datetime import datetime, time, timedelta
-from osaf.pim.calendar import Calendar
-from osaf.pim import Reminder, TriageEnum
-from repository.item.Monitors import Monitors
+from datetime import datetime, timedelta
+from osaf.pim import Reminder
 from i18n import ChandlerMessageFactory as _
 
 
@@ -225,7 +223,7 @@ class EditText(RectangularChild):
         editText.SetFont(Styles.getFont(getattr(self, "characterStyle", None)))
         return editText
 
-class HtmlWindowWithStatus(wx.html.HtmlWindow):
+class HtmlWindowWithStatus(wxHtml.HtmlWindow):
     def __init__(self, *arguments, **keywords):
         super (HtmlWindowWithStatus, self).__init__ (*arguments, **keywords)
         # The default setting is to show link URLs in the statusbar of the mainframe.
@@ -330,7 +328,7 @@ class Column(schema.Item):
                        doc="The width of the column, "
                        "relative to other columns")
 
-    scaleColumn = schema.One(schema.Integer, defaultValue = wx.grid.Grid.GRID_COLUMN_NON_SCALABLE)
+    scaleColumn = schema.One(schema.Integer, defaultValue = wxGrid.Grid.GRID_COLUMN_NON_SCALABLE)
     readOnly = schema.One(schema.Boolean, initialValue=False)
     defaultSort = schema.One(schema.Boolean, initialValue=False)
     collapsedSections = schema.Many(schema.Text, initialValue=set())
@@ -711,7 +709,7 @@ class wxTreeAndList(DragAndDrop.DraggableWidget, DragAndDrop.ItemClipboardHandle
         
     @WithoutSynchronizeWidget
     def OnSize(self, event):
-        if isinstance (self, wx.gizmos.TreeListCtrl):
+        if isinstance (self, wxGizmos.TreeListCtrl):
             size = self.GetClientSize()
             widthMinusLastColumn = 0
             assert self.GetColumnCount() > 0, "We're assuming that there is at least one column"
@@ -821,10 +819,10 @@ class wxTreeAndList(DragAndDrop.DraggableWidget, DragAndDrop.ItemClipboardHandle
         # A wx.TreeCtrl won't use columns
         columns = getattr (self.blockItem, 'columns', None);
         if columns is not None:
-            for index in xrange(wx.gizmos.TreeListCtrl.GetColumnCount(self)):
+            for index in xrange(wxGizmos.TreeListCtrl.GetColumnCount(self)):
                 self.RemoveColumn (0)
     
-            info = wx.gizmos.TreeListColumnInfo()
+            info = wxGizmos.TreeListColumnInfo()
             for index in xrange (self.GetColumnCount()):
                 info.SetText (self.GetColumnHeading (index, None))
                 info.SetWidth (columns[index].width)
@@ -892,7 +890,7 @@ class wxTree(wxTreeAndList, wx.TreeCtrl):
     pass
     
 
-class wxTreeList(wxTreeAndList, wx.gizmos.TreeListCtrl):
+class wxTreeList(wxTreeAndList, wxGizmos.TreeListCtrl):
     pass
 
 

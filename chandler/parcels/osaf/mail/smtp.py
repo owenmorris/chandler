@@ -1,4 +1,4 @@
-#   Copyright (c) 2005-2006 Open Source Applications Foundation
+#   Copyright (c) 2005-2007 Open Source Applications Foundation
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -18,7 +18,6 @@ import twisted.mail.smtp as smtp
 import twisted.internet.reactor as reactor
 import twisted.internet.defer as defer
 import twisted.internet.error as error
-import twisted.protocols.policies as policies
 from twisted.internet import threads
 
 #python imports
@@ -28,21 +27,21 @@ import cStringIO as StringIO
 
 #Chandler imports
 from application import Globals, Utility
-from osaf.pim.mail import SMTPAccount, MailStamp, EmailAddress
+from osaf.pim.mail import SMTPAccount, MailStamp
 from osaf.pim import Modification
 from osaf.framework.certstore import ssl
 from repository.persistence.RepositoryView import RepositoryView
 from repository.persistence.RepositoryError \
     import RepositoryError, VersionConflictError
 
-from osaf.sharing import hasConflicts, SharedItem, errors as sharingErrors
+from osaf.sharing import hasConflicts, SharedItem
 
 #Chandler Mail Service imports
 import constants
 import errors
 from utils import *
 from message import kindToMessageText
-import message
+
 
 __all__ = ['SMTPClient']
 

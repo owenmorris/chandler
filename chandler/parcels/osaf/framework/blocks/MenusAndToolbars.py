@@ -20,9 +20,7 @@ from application import schema
 from application.Application import mixinAClass
 from i18n import ChandlerMessageFactory as _
 import Block as Block
-import logging
 import wx
-import os
 
 
 class RefCollectionDictionary(schema.Item):

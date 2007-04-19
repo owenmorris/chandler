@@ -1,4 +1,4 @@
-#   Copyright (c) 2003-2006 Open Source Applications Foundation
+#   Copyright (c) 2003-2007 Open Source Applications Foundation
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -15,13 +15,10 @@
 
 __parcel__ = "osaf.framework.blocks"
 
-import sys
 import wx
-import wx.colheader
-from osaf.framework.blocks import Block
+from wx import colheader
 from application import schema
-from Block import *
-from ContainerBlocks import *
+from Block import RectangularChild
 
 class ColumnHeader (RectangularChild):
     """This class defines a generic ColumnHeader kind."""
@@ -48,15 +45,15 @@ class ColumnHeader (RectangularChild):
     def instantiateWidget(self):
 
         # create widget instance as a child of the parent block's widget.
-        wxColHeaderInstance = wx.colheader.ColumnHeader(self.parentBlock.widget) 
+        wxColHeaderInstance = colheader.ColumnHeader(self.parentBlock.widget) 
         
         # FYI: currently, calendar needs proportional resizing off (false), because sizing needs to be exact
-        wxColHeaderInstance.SetAttribute(wx.colheader.CH_ATTR_ProportionalResizing, self.proportionalResizing) 
+        wxColHeaderInstance.SetAttribute(colheader.CH_ATTR_ProportionalResizing, self.proportionalResizing) 
 
         # set attributes
-        if hasattr(self, "visibleSelection"): wxColHeaderInstance.SetAttribute(wx.colheader.CH_ATTR_VisibleSelection,          self.visibleSelection)
-        if hasattr(self, "proportionalResizing "): wxColHeaderInstance.SetAttribute(wx.colheader.CH_ATTR_ProportionalResizing, self.proportionalResizing )
-        if hasattr(self, "genericRenderer"): wxColHeaderInstance.SetAttribute(wx.colheader.CH_ATTR_GenericRenderer, self.genericRenderer)
+        if hasattr(self, "visibleSelection"): wxColHeaderInstance.SetAttribute(colheader.CH_ATTR_VisibleSelection,          self.visibleSelection)
+        if hasattr(self, "proportionalResizing "): wxColHeaderInstance.SetAttribute(colheader.CH_ATTR_ProportionalResizing, self.proportionalResizing )
+        if hasattr(self, "genericRenderer"): wxColHeaderInstance.SetAttribute(colheader.CH_ATTR_GenericRenderer, self.genericRenderer)
 
         # add columns.
         for header in self.columnHeadings:

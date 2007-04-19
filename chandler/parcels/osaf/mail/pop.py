@@ -1,4 +1,4 @@
-#   Copyright (c) 2005-2006 Open Source Applications Foundation
+#   Copyright (c) 2005-2007 Open Source Applications Foundation
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -18,11 +18,10 @@ import twisted.internet.defer as defer
 import twisted.mail.pop3client as pop3
 
 #python imports
-import email as email
+import email
 
 #Chandler imports
 from osaf.pim.mail import POPAccount
-from osaf.framework.certstore import ssl
 
 #Chandler Mail Service imports
 import errors

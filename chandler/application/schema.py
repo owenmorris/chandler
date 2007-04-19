@@ -14,7 +14,6 @@
 
 
 from chandlerdb.schema.c import Redirector
-from repository.persistence.RepositoryView import NullRepositoryView
 from repository.item.Item import Item as Base, ItemClass as BaseClass
 from repository.item.Collection import CollectionClass as BaseCollectionClass
 from repository.schema.Kind import CDescriptor, Kind
@@ -23,7 +22,7 @@ from repository.schema import Types
 from repository.schema.Cloud import Cloud as _Cloud
 from repository.schema.Cloud import Endpoint as _Endpoint
 from zope.interface.advice import getFrameInfo, addClassAdvisor
-import __main__, repository, threading, os, sys
+import __main__, repository, os, sys
 
 __all__ = [
     'ActiveDescriptor', 'Activator', 'Descriptor', 'itemFor', 'kindInfo',

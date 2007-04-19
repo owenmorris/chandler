@@ -13,13 +13,13 @@
 #   limitations under the License.
 
 
-from application import schema, styles
+from application import schema
 from osaf.framework.blocks import *
 from osaf import pim
 from osaf.framework import attributeEditors
-from util.MultiStateButton import BitmapInfo, MultiStateBitmapCache
+from util.MultiStateButton import BitmapInfo
 from i18n import ChandlerMessageFactory as _
-import wx.grid
+from wx import grid as wxGrid
 
 CommunicationStatus = pim.mail.CommunicationStatus
 
@@ -485,8 +485,6 @@ class TaskColumnAttributeEditor(attributeEditors.IconAttributeEditor):
 
 
 def makeSummaryBlocks(parcel):
-    from application import schema
-    from i18n import ChandlerMessageFactory as _
     from osaf.framework.blocks.calendar import (
         CalendarContainer, CalendarControl, CanvasSplitterWindow,
         AllDayEventsCanvas, TimedEventsCanvas
@@ -543,7 +541,7 @@ def makeSummaryBlocks(parcel):
         stamp=pim.TaskStamp,
         width=iconColumnWidth,
         useSortArrows=False,
-        scaleColumn = wx.grid.Grid.GRID_COLUMN_FIXED_SIZE,
+        scaleColumn = wxGrid.Grid.GRID_COLUMN_FIXED_SIZE,
         readOnly=True,
         indexName='%s.taskStatus' % __name__,
         baseClass=TaskColumnIndexDefinition,
@@ -555,7 +553,7 @@ def makeSummaryBlocks(parcel):
         stamp=pim.mail.MailStamp,
         width=iconColumnWidth,
         useSortArrows=False,
-        scaleColumn = wx.grid.Grid.GRID_COLUMN_FIXED_SIZE,
+        scaleColumn = wxGrid.Grid.GRID_COLUMN_FIXED_SIZE,
         readOnly=True,
         indexName=CommunicationStatus.status.name,
         attributeName=CommunicationStatus.status.name,
@@ -566,7 +564,7 @@ def makeSummaryBlocks(parcel):
     whoColumn = makeColumnAndIndexes('SumColWho',
         heading=_(u'Who'),
         width=100,
-        scaleColumn = wx.grid.Grid.GRID_COLUMN_SCALABLE,
+        scaleColumn = wxGrid.Grid.GRID_COLUMN_SCALABLE,
         readOnly=True,
         indexName='%s.displayWho' % __name__,
         attributeName='displayWho',
@@ -578,7 +576,7 @@ def makeSummaryBlocks(parcel):
     titleColumn = makeColumnAndIndexes('SumColAbout',
         heading=_(u'Title'),
         width=120,
-        scaleColumn = wx.grid.Grid.GRID_COLUMN_SCALABLE,
+        scaleColumn = wxGrid.Grid.GRID_COLUMN_SCALABLE,
         indexName='%s.displayName' % __name__,
         attributeName='displayName',
         baseClass=TitleColumnIndexDefinition,
@@ -590,7 +588,7 @@ def makeSummaryBlocks(parcel):
         stamp = pim.EventStamp,
         useSortArrows = False,
         width = iconColumnWidth,
-        scaleColumn = wx.grid.Grid.GRID_COLUMN_FIXED_SIZE,
+        scaleColumn = wxGrid.Grid.GRID_COLUMN_FIXED_SIZE,
         readOnly = True,
         indexName = '%s.calendarStatus' % __name__,
         baseClass=CalendarColumnIndexDefinition,
@@ -600,7 +598,7 @@ def makeSummaryBlocks(parcel):
     dateColumn = makeColumnAndIndexes('SumColDate',
         heading = _(u'Date'),
         width = 100,
-        scaleColumn = wx.grid.Grid.GRID_COLUMN_SCALABLE,
+        scaleColumn = wxGrid.Grid.GRID_COLUMN_SCALABLE,
         readOnly = True,
         attributeName = 'displayDate',
         attributeSourceName = 'displayDateSource',
@@ -614,7 +612,7 @@ def makeSummaryBlocks(parcel):
         useSortArrows = False,
         defaultSort = True,
         width = 39,
-        scaleColumn = wx.grid.Grid.GRID_COLUMN_FIXED_SIZE,
+        scaleColumn = wxGrid.Grid.GRID_COLUMN_FIXED_SIZE,
         collapsedSections=set([str(pim.TriageEnum.later), str(pim.TriageEnum.done)]), 
         attributeName = 'sectionTriageStatus',
         indexName = '%s.triage' % __name__,
@@ -628,7 +626,7 @@ def makeSummaryBlocks(parcel):
         useSortArrows = False,
         useMaster = False,
         width = 46,
-        scaleColumn = wx.grid.Grid.GRID_COLUMN_SCALABLE,
+        scaleColumn = wxGrid.Grid.GRID_COLUMN_SCALABLE,
         readOnly = True,
         indexName ='%s.rank' % __name__,
         format='rank',

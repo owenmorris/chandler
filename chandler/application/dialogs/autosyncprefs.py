@@ -1,4 +1,4 @@
-#   Copyright (c) 2003-2006 Open Source Applications Foundation
+#   Copyright (c) 2003-2007 Open Source Applications Foundation
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -13,10 +13,9 @@
 #   limitations under the License.
 
 
-import os, sys
 import wx
 from i18n import ChandlerMessageFactory as _
-from osaf import messages, sharing
+from osaf import sharing
 
 """
 Note: need to migrate translation logic to a base wx dialog class that can handle all the work for sub classes
@@ -24,7 +23,7 @@ Note: need to migrate translation logic to a base wx dialog class that can handl
 
 def Show(view):
 
-    win = AutoSyncPrefs("Sync Preferences", view)
+    win = AutoSyncPrefs(_(u"Sync Preferences"), view)
     win.CenterOnScreen()
     val = win.ShowModal()
 
@@ -57,19 +56,19 @@ class AutoSyncPrefs(wx.Dialog):
         sizer = wx.BoxSizer(wx.VERTICAL)
 
         box = wx.BoxSizer(wx.HORIZONTAL)
-        label = wx.StaticText(self, -1, "&Synchronize")
+        label = wx.StaticText(self, -1, _(u"&Synchronize"))
         box.Add(label, 0, wx.ALIGN_CENTRE|wx.ALL, 5)
         choice = wx.Choice(self, -1, choices=[])
 
         interval = sharing.getAutoSyncInterval(view)
 
         choices = [
-            ("Manually", None),
-            ("Every 30 minutes", 30),
-            ("Every hour", 60),
-            ("Every 2 hours", 120),
-            ("Every 6 hours", 360),
-            ("Every day", 1440),
+            (_(u"Manually"), None),
+            (_(u"Every 30 minutes"), 30),
+            (_(u"Every hour"), 60),
+            (_(u"Every 2 hours"), 120),
+            (_(u"Every 6 hours"), 360),
+            (_(u"Every day"), 1440),
         ]
         for (text, minutes) in choices:
             newIndex = choice.Append(text)

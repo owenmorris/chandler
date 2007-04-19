@@ -25,7 +25,7 @@ __all__ = [
 from symbols import Symbol  # XXX change this to peak.util.symbols
 from simplegeneric import generic
 from weakref import WeakValueDictionary
-import linecache, os, decimal, datetime
+import linecache, decimal, datetime
 from application import schema
 from chandlerdb.util.c import UUID
 from osaf import pim

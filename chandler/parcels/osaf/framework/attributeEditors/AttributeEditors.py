@@ -18,7 +18,7 @@ Attribute Editors
 """
 __parcel__ = "osaf.framework.attributeEditors"
 
-import os, wx, logging
+import wx, logging
 from cStringIO import StringIO
 
 import osaf.pim as pim

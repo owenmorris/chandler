@@ -1,4 +1,4 @@
-#   Copyright (c) 2003-2006 Open Source Applications Foundation
+#   Copyright (c) 2003-2007 Open Source Applications Foundation
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -22,10 +22,8 @@ import wx
 from chandlerdb.util.c import Nil
 from osaf.framework.blocks import DrawingUtilities, Styles
 import logging
-from osaf.framework.blocks.Block import debugName
 from application.dialogs import RecurrenceDialog
 from i18n import ChandlerMessageFactory as _
-from BaseAttributeEditor import BaseAttributeEditor
 from AETypeOverTextCtrl import AETypeOverTextCtrl, AENonTypeOverTextCtrl
 from BaseAttributeEditor import BaseAttributeEditor
 

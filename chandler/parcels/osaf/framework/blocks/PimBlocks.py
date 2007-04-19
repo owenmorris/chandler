@@ -14,15 +14,13 @@
 
 
 import wx
-import time
 from osaf import sharing
 import osaf.pim.mail as Mail
 from repository.item.Item import Item
-from osaf.pim import ContentItem, Note, ContentCollection, has_stamp, Modification
+from osaf.pim import Note, ContentCollection, has_stamp
 from i18n import ChandlerMessageFactory as _
 from osaf import messages
-from osaf.usercollections import UserCollection
-from osaf.framework.blocks import Block, BlockEvent, debugName, getProxiedItem
+from osaf.framework.blocks import Block, getProxiedItem
 from application import schema
 from application.dialogs.RecurrenceDialog import getProxy
 import application.dialogs.DeleteDialog as DeleteDialog

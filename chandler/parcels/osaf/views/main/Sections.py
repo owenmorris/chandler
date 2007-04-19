@@ -16,10 +16,10 @@
 import wx
 from application import schema, styles
 from i18n import ChandlerMessageFactory as _
-from osaf.framework.blocks import (ControlBlocks, debugName, DrawingUtilities, 
+from osaf.framework.blocks import (ControlBlocks, DrawingUtilities, 
                                    Styles)
 from osaf.framework.attributeEditors import BaseAttributeEditor
-from osaf.pim import ContentItem, getTriageStatusName
+from osaf.pim import getTriageStatusName
 from util.divisions import get_divisions
 
 import logging

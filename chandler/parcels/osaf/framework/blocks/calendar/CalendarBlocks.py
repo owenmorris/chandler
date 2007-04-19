@@ -1,4 +1,4 @@
-#   Copyright (c) 2003-2006 Open Source Applications Foundation
+#   Copyright (c) 2003-2007 Open Source Applications Foundation
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -19,13 +19,12 @@ Calendar Blocks
 __parcel__ = "osaf.framework.blocks.calendar"
 
 import wx
-import wx.calendar
 import minical
 
 from application import schema
 
 from osaf.framework.blocks import (
-    Block, Styles, DrawingUtilities, ContainerBlocks, DragAndDrop
+    Block, Styles, ContainerBlocks, DragAndDrop
     )
 
 from osaf import Preferences
@@ -33,7 +32,7 @@ import osaf.pim as pim
 import CalendarCanvas
 import osaf.pim.calendar.Calendar as Calendar
 from osaf.pim import EventStamp, has_stamp, isDead
-from datetime import datetime, date, time, timedelta
+from datetime import datetime, time, timedelta
 from PyICU import ICUtzinfo
 from i18n import ChandlerMessageFactory as _
 from application import styles

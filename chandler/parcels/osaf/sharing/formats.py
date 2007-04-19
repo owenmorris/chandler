@@ -23,12 +23,12 @@ __all__ = [
 import shares, errors
 from utility import *
 import datetime, base64
-from xml.etree.cElementTree import ElementTree, XML
+from xml.etree.cElementTree import ElementTree
 from application import schema
 from osaf import pim
 from i18n import ChandlerMessageFactory as _
 import osaf.mail.utils as utils
-from chandlerdb.util.c import UUID, Nil
+from chandlerdb.util.c import UUID
 from cStringIO import StringIO
 from repository.item.Item import Item
 from repository.schema.Types import Type

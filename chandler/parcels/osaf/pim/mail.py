@@ -34,20 +34,17 @@ from application import schema
 import items, notes, stamping, collections
 import email.Utils as Utils
 import re as re
-import chandlerdb.item.ItemError as ItemError
-from chandlerdb.item.c import isitem
-from chandlerdb.util.c import UUID, Empty
+from chandlerdb.util.c import Empty
 import PyICU
 from PyICU import ICUtzinfo
 
 from i18n import ChandlerMessageFactory as _
 from osaf import messages, preferences
-from repository.persistence.RepositoryError import RepositoryError, VersionConflictError
 from osaf.pim.calendar import EventStamp
 from tasks import TaskStamp
-from osaf.pim import Remindable, Modification
+from osaf.pim import Modification
 from osaf.pim.calendar.TimeZone import formatTime
-from osaf.pim.calendar.DateTimeUtil import mediumDateFormat, shortTimeFormat, weekdayName
+from osaf.pim.calendar.DateTimeUtil import mediumDateFormat, weekdayName
 from datetime import datetime
 from stamping import has_stamp
 from osaf.pim import TriageEnum

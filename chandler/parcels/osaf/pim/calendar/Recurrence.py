@@ -1,4 +1,4 @@
-#   Copyright (c) 2003-2006 Open Source Applications Foundation
+#   Copyright (c) 2003-2007 Open Source Applications Foundation
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -24,7 +24,7 @@ __parcel__ = "osaf.pim.calendar"
 
 from application import schema
 from osaf.pim import items
-from datetime import datetime, timedelta
+from datetime import datetime
 import dateutil.rrule
 from dateutil.rrule import rrule, rruleset
 from repository.item.PersistentCollections import PersistentList

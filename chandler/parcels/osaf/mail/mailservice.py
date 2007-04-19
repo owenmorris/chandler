@@ -1,4 +1,4 @@
-#   Copyright (c) 2005-2006 Open Source Applications Foundation
+#   Copyright (c) 2005-2007 Open Source Applications Foundation
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -18,8 +18,6 @@ from twisted.internet import reactor
 #Chandler imports
 from application import Globals, schema
 import osaf.pim.mail as Mail
-from repository.persistence.RepositoryError \
-    import RepositoryError, VersionConflictError
 
 from repository.persistence.RepositoryView import RepositoryView
 

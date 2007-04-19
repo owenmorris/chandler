@@ -13,20 +13,10 @@
 #   limitations under the License.
 
 
-import PyLucene, wx
-from osaf import pim, search
-from i18n import ChandlerMessageFactory as _
-from application import schema
-from application.dialogs import Util
-from osaf.usercollections import UserCollection
 from osaf.framework.blocks import (
     AddToSidebarEvent, BlockEvent, NewItemEvent, NewBlockWindowEvent,
     ClassParameterizedEvent, ChoiceEvent, ViewEvent)
 from osaf.framework.blocks.calendar import CalendarViewEvent
-
-from osaf import pim
-from osaf.framework.blocks.Block import Block
-from repository.item.Item import MissingClass
 
 
 def makeMainEvents(parcel):

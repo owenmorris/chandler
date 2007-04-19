@@ -21,16 +21,12 @@ import wx
 import wx.xrc
 
 import application.schema as schema
-from   application import Globals, Utility
-import application.Parcel
-from application.dialogs import Util
+from   application import Globals
 import osaf.pim.mail as Mail
 from osaf.mail import constants
 from osaf import sharing
 from osaf.framework.twisted import waitForDeferred
-from osaf.framework import MasterPassword
 from i18n import ChandlerMessageFactory as _
-from osaf.framework.blocks.Block import Block
 from AccountPreferencesDialogs import MailTestDialog, \
                                       AutoDiscoveryDialog, \
                                       ChandlerIMAPFoldersDialog, \

@@ -20,15 +20,13 @@ __all__ = [
     'FreeBusyFileFormat',
 ]
 
-import formats, errors, shares, utility
-import application.Parcel
+import formats, shares
 from osaf.pim import (ContentCollection, SmartCollection, Remindable,
                       EventStamp, CalendarEvent, TaskStamp, Note, has_stamp,
                       TriageEnum)
 import osaf.pim.calendar.Calendar as Calendar
 from osaf.pim.calendar.Recurrence import RecurrenceRuleSet
 import osaf.pim.calendar.TimeZone as TimeZone
-import StringIO
 import vobject
 import logging
 import dateutil.tz
@@ -36,8 +34,7 @@ import datetime
 from datetime import date, time
 from time import time as epoch_time
 from PyICU import ICUtzinfo
-import PyICU
-from osaf.pim.calendar.TimeZone import TimeZoneInfo, convertToICUtzinfo
+from osaf.pim.calendar.TimeZone import convertToICUtzinfo
 from application import schema
 import itertools
 from i18n import ChandlerMessageFactory as _

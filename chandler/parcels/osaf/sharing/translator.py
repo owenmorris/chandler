@@ -22,12 +22,11 @@ from osaf.sharing import (
 from PyICU import ICUtzinfo
 import os
 import time
-import email
-from email import Message, Utils
+from email import Utils
 from datetime import datetime, date, timedelta
 from decimal import Decimal
 
-from vobject.base import textLineToContentLine, ContentLine
+from vobject.base import textLineToContentLine
 from vobject.icalendar import (DateOrDateTimeBehavior, MultiDateBehavior,
                                RecurringComponent, VEvent, timedeltaToString,
                                stringToDurations)
@@ -36,13 +35,11 @@ from osaf.pim.calendar.Calendar import Occurrence, EventStamp
 from osaf.pim.calendar.Recurrence import RecurrenceRuleSet, RecurrenceRule
 from dateutil.rrule import rrulestr
 import dateutil
-from chandlerdb.util.c import UUID
 from osaf.framework.twisted import waitForDeferred
 from osaf.pim.mail import EmailAddress
 from osaf.usercollections import UserCollection
 from osaf.mail.utils import getEmptyDate, dataToBinary, binaryToData
 from osaf.pim.structs import ColorType
-from osaf.preferences import CalendarPrefs
 from osaf.framework.password import Password
 from twisted.internet.defer import Deferred
 

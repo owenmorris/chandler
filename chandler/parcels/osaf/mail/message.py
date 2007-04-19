@@ -1,4 +1,4 @@
-#   Copyright (c) 2005-2006 Open Source Applications Foundation
+#   Copyright (c) 2005-2007 Open Source Applications Foundation
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -18,8 +18,7 @@ import email
 from email import Header, Message
 import email.Utils as emailUtils
 from email.MIMENonMultipart import MIMENonMultipart
-from email.MIMEMessage import MIMEMessage
-import logging as logging
+import logging
 import mimetypes
 from datetime import datetime
 from PyICU import ICUtzinfo
@@ -31,8 +30,7 @@ from osaf.pim.calendar.Calendar import parseText, setEventDateTime
 from osaf.pim import has_stamp, TaskStamp, EventStamp, MailStamp, Remindable
 from i18n import ChandlerMessageFactory as _
 #from i18n import getLocale
-from osaf.sharing import (getFilter, errors as sharingErrors, SharedItem, inbound, outbound)
-from application import schema
+from osaf.sharing import (getFilter, errors as sharingErrors, inbound, outbound)
 
 #Chandler Mail Service imports
 import constants

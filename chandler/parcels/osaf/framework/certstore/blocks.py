@@ -20,14 +20,12 @@ Certificate store UI.
 from i18n import ChandlerMessageFactory as _
 
 from osaf.framework.blocks import Block, NewItemEvent
-from osaf.framework.attributeEditors import AttributeEditorMapping
-from osaf.pim.structs import SizeType, RectType
+from osaf.pim.structs import SizeType
 from osaf.pim import KindCollection
 from osaf.usercollections import UserCollection
 from osaf.framework.certstore import certificate
 from repository.item.Item import MissingClass
 from application import schema
-import osaf.views.detail as Detail
 
 
 class ImportCertificateEvent(NewItemEvent):

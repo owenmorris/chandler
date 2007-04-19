@@ -48,14 +48,12 @@ from itertools import chain
 from osaf.sharing import errors
 from HTMLParser import HTMLParser
 import logging
-import sys
-from twisted.internet import reactor
 import shares
 from osaf import pim
 from osaf.framework.twisted import waitForDeferred
 
 from zanshin.webdav import (
-    PropfindRequest, ServerHandle, quote, CALDAV_NAMESPACE
+    PropfindRequest, ServerHandle, CALDAV_NAMESPACE
 )
 from zanshin.util import PackElement
 from zanshin.ticket import Ticket, getTicketInfoNodes

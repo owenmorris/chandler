@@ -22,10 +22,9 @@ from application import Globals, Printing, schema, Utility
 
 from application.AboutBox import AboutBox
 from application.Application import wxBlockFrameWindow
-import application.Parcel
 
 import application.dialogs.Util
-import application.dialogs.FileTail
+#jCaleimport application.dialogs.FileTail
 from application.dialogs import ( AccountPreferences, PublishCollection,
     SubscribeCollection, RestoreShares, autosyncprefs, TurnOnTimezones,
     ActivityViewer
@@ -37,7 +36,7 @@ from osaf import (
 )
 from osaf.activity import *
 
-from osaf.pim import Contact, ContentCollection, mail, Modification
+from osaf.pim import Contact, mail
 from osaf.usercollections import UserCollection
 import osaf.pim.generate as generate
 
@@ -47,14 +46,10 @@ import twisted.internet.error
 from util import GenerateItemsFromFile
 
 from osaf.framework.blocks.Views import View
-from osaf.framework.blocks.calendar import CalendarCanvas
 from osaf.framework.blocks.Block import Block
-
-from osaf.preferences import Preferences
 
 from osaf.framework.prompts import promptOk
 
-import i18n
 from i18n import ChandlerMessageFactory as _
 
 from application.Utility import getDesktopDir

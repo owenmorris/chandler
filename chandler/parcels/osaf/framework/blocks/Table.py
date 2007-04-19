@@ -15,7 +15,8 @@
 
 import sys
 import logging
-import wx.grid
+import wx
+from wx import grid as wxGrid
 
 from application import schema
 from application.Application import mixinAClass
@@ -56,11 +57,11 @@ if __debug__:
         }
 
 
-class wxTableData(wx.grid.PyGridTableBase):
+class wxTableData(wxGrid.PyGridTableBase):
     def __init__(self, *arguments, **keywords):
         super (wxTableData, self).__init__ (*arguments, **keywords)
-        self.defaultRWAttribute = wx.grid.GridCellAttr()
-        self.defaultROAttribute = wx.grid.GridCellAttr()
+        self.defaultRWAttribute = wxGrid.GridCellAttr()
+        self.defaultROAttribute = wxGrid.GridCellAttr()
         self.defaultROAttribute.SetReadOnly (True)
 
     def __del__ (self):
@@ -129,7 +130,7 @@ class wxTable(DragAndDrop.DraggableWidget,
               DragAndDrop.DropReceiveWidget, 
               DragAndDrop.FileOrItemClipboardHandler,
               BaseWidget,
-              wx.grid.Grid):
+              wxGrid.Grid):
     def __init__(self, parent, widgetID, characterStyle, headerCharacterStyle, *arguments, **keywords):
         if '__WXMAC__' in wx.PlatformInfo:
             theStyle=wx.BORDER_SIMPLE
@@ -162,10 +163,10 @@ class wxTable(DragAndDrop.DraggableWidget,
         self.Bind(wx.EVT_KILL_FOCUS, self.OnLoseFocus)
         self.Bind(wx.EVT_SET_FOCUS, self.OnGainFocus)
         self.Bind(wx.EVT_KEY_DOWN, self.OnKeyDown)
-        self.Bind(wx.grid.EVT_GRID_CELL_BEGIN_DRAG, self.OnItemDrag)
-        self.Bind(wx.grid.EVT_GRID_COL_SIZE, self.OnColumnDrag)
-        self.Bind(wx.grid.EVT_GRID_RANGE_SELECT, self.OnRangeSelect)
-        self.Bind(wx.grid.EVT_GRID_LABEL_LEFT_CLICK, self.OnLabelLeftClicked)
+        self.Bind(wxGrid.EVT_GRID_CELL_BEGIN_DRAG, self.OnItemDrag)
+        self.Bind(wxGrid.EVT_GRID_COL_SIZE, self.OnColumnDrag)
+        self.Bind(wxGrid.EVT_GRID_RANGE_SELECT, self.OnRangeSelect)
+        self.Bind(wxGrid.EVT_GRID_LABEL_LEFT_CLICK, self.OnLabelLeftClicked)
 
         gridWindow = self.GetGridWindow()
         gridWindow.Bind(wx.EVT_PAINT, self.OnPaint)
@@ -292,7 +293,7 @@ class wxTable(DragAndDrop.DraggableWidget,
 
         gridTable = wxTableData()
         gridTable.SetView (self)
-        self.SetTable (gridTable, True, selmode=wx.grid.Grid.SelectRows)
+        self.SetTable (gridTable, True, selmode=wxGrid.Grid.SelectRows)
 
         self.EnableGridLines (self.blockItem.hasGridLines)
 
@@ -562,10 +563,10 @@ class wxTable(DragAndDrop.DraggableWidget,
             if new == current: return
             
             if new < current: 
-                message = wx.grid.GridTableMessage(gridTable, deleteMessage,
+                message = wxGrid.GridTableMessage(gridTable, deleteMessage,
                                                    new, current-new) 
             elif new > current: 
-                message = wx.grid.GridTableMessage(gridTable, addMessage,
+                message = wxGrid.GridTableMessage(gridTable, addMessage,
                                                    new-current) 
             self.ProcessTableMessage (message) 
 
@@ -595,7 +596,7 @@ class wxTable(DragAndDrop.DraggableWidget,
             if blockItem.hideColumnHeadings:
                 self.SetColLabelSize (0)
             else:
-                self.SetColLabelSize (wx.grid.GRID_DEFAULT_COL_LABEL_HEIGHT)
+                self.SetColLabelSize (wxGrid.GRID_DEFAULT_COL_LABEL_HEIGHT)
     
     
             gridTable = self.GetTable()
@@ -611,12 +612,12 @@ class wxTable(DragAndDrop.DraggableWidget,
         
             self.BeginBatch()
             SendTableMessage(oldRows, newRows,
-                             wx.grid.GRIDTABLE_NOTIFY_ROWS_DELETED,
-                             wx.grid.GRIDTABLE_NOTIFY_ROWS_APPENDED)
+                             wxGrid.GRIDTABLE_NOTIFY_ROWS_DELETED,
+                             wxGrid.GRIDTABLE_NOTIFY_ROWS_APPENDED)
             
             SendTableMessage(oldColumns, newColumns,
-                             wx.grid.GRIDTABLE_NOTIFY_COLS_DELETED,
-                             wx.grid.GRIDTABLE_NOTIFY_COLS_APPENDED)
+                             wxGrid.GRIDTABLE_NOTIFY_COLS_DELETED,
+                             wxGrid.GRIDTABLE_NOTIFY_COLS_APPENDED)
             
             assert (self.GetNumberCols() == gridTable.GetNumberCols() and
                     self.GetNumberRows() == gridTable.GetNumberRows())
@@ -641,7 +642,7 @@ class wxTable(DragAndDrop.DraggableWidget,
     
             # Update all displayed values
             gridTable = self.GetTable()
-            message = wx.grid.GridTableMessage (gridTable, wx.grid.GRIDTABLE_REQUEST_VIEW_GET_VALUES) 
+            message = wxGrid.GridTableMessage (gridTable, wxGrid.GRIDTABLE_REQUEST_VIEW_GET_VALUES) 
             self.ProcessTableMessage (message)
             self.ForceRefresh () 
     
@@ -779,7 +780,7 @@ class wxTable(DragAndDrop.DraggableWidget,
         """
         return self.blockItem.contents.iterSelection()
 
-class GridCellAttributeRenderer (wx.grid.PyGridCellRenderer):
+class GridCellAttributeRenderer (wxGrid.PyGridCellRenderer):
     def __init__(self, type):
         super (GridCellAttributeRenderer, self).__init__ ()
         self.delegate = AttributeEditors.getSingleton (type)
@@ -793,7 +794,7 @@ class GridCellAttributeRenderer (wx.grid.PyGridCellRenderer):
         assert len(value) != 2 or not value[0].isDeleted()            
         self.delegate.Draw(grid, dc, rect, value, isInSelection)
 
-class GridCellAttributeEditor (wx.grid.PyGridCellEditor):
+class GridCellAttributeEditor (wxGrid.PyGridCellEditor):
     def __init__(self, type):
         super (GridCellAttributeEditor, self).__init__ ()
         self.delegate = AttributeEditors.getSingleton (type)

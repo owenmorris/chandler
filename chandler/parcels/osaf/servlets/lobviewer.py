@@ -15,7 +15,6 @@
 
 import logging
 from osaf import webserver
-from twisted.web import resource
 
 logger = logging.getLogger(__name__)
 

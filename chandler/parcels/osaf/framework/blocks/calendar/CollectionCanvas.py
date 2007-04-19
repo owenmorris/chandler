@@ -1,4 +1,4 @@
-#   Copyright (c) 2004-2006 Open Source Applications Foundation
+#   Copyright (c) 2004-2007 Open Source Applications Foundation
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -23,8 +23,6 @@ import wx
 
 from chandlerdb.item.c import isitemref
 from osaf.framework.blocks import Block, DragAndDrop, FocusEventHandlers
-from application import schema
-from application.dialogs import Util
 from wx.lib import buttons
 from i18n import ChandlerMessageFactory as _
 from time import time as epochtime
@@ -48,7 +46,7 @@ ignore.extend([getattr(wx, 'WXK_F' + str(n)) for n in range(1,25)])
 
 # @@@ These buttons could become a more general utility
 
-class CanvasBitmapButton(wx.lib.buttons.GenBitmapButton):
+class CanvasBitmapButton(buttons.GenBitmapButton):
     """
     Flat bitmap button, no border.
 

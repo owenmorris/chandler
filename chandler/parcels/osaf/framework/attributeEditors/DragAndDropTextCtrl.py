@@ -1,4 +1,4 @@
-#   Copyright (c) 2003-2006 Open Source Applications Foundation
+#   Copyright (c) 2003-2007 Open Source Applications Foundation
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -20,13 +20,9 @@ __parcel__ = "osaf.framework.attributeEditors"
 
 import wx
 from osaf.framework.blocks import DragAndDrop
-import logging
 from datetime import datetime, timedelta
 from osaf.framework.blocks.Block import BaseWidget
 from osaf import messages
-import parsedatetime.parsedatetime as parsedatetime
-import parsedatetime.parsedatetime_consts as ptc
-from datetime import date
 from BaseAttributeEditor import NotifyBlockToSaveValue
 
 class DragAndDropTextCtrl(BaseWidget,

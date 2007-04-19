@@ -18,16 +18,13 @@
 
 __parcel__ = "osaf.pim"
 
-import time
 from datetime import datetime
 
 from application import schema
 from repository.schema.Kind import Kind
-import repository.item.Item as Item
-from chandlerdb.item.ItemError import NoLocalValueForAttributeError
 from chandlerdb.util.c import Empty, Nil
 from osaf.pim.reminders import isDead
-from osaf.pim.triage import Triageable, TriageEnum
+from osaf.pim.triage import Triageable
 import logging
 from i18n import ChandlerMessageFactory as _
 from osaf import messages

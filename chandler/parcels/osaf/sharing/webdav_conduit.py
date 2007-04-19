@@ -22,7 +22,7 @@ import conduits, errors, formats
 import zanshin, M2Crypto.BIO, twisted.web.http, urlparse
 import twisted.internet.error
 from recordset_conduit import (
-    ResourceRecordSetConduit, ResourceState, MonolithicRecordSetConduit
+    ResourceRecordSetConduit, MonolithicRecordSetConduit
 )
 
 from i18n import ChandlerMessageFactory as _

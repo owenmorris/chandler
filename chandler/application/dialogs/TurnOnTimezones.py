@@ -17,7 +17,6 @@ import logging
 import os, sys
 from application import schema, Globals
 from i18n import ChandlerMessageFactory as _
-from application.dialogs.RecurrenceDialog import getProxy
 import TimeZoneList
 from osaf.pim.calendar import TimeZoneInfo
 

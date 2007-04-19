@@ -16,7 +16,6 @@ from osaf.sharing import model, eim, RecordSet, translator
 from osaf.sharing.translator import toICalendarDuration, toICalendarDateTime
 from ICalendar import makeNaiveteMatch
 import vobject
-import time
 from datetime import datetime, timedelta, date
 from PyICU import ICUtzinfo
 from osaf.pim.calendar.TimeZone import convertToICUtzinfo, forceToDateTime

@@ -22,9 +22,8 @@ from __future__ import with_statement
 from application import schema
 from osaf import Preferences
 from osaf.framework.blocks import (
-    Block, debugName, Table,  wxTable, GridCellAttributeEditor, 
-    GridCellAttributeRenderer, Styles, BranchPoint)
-from osaf.framework.attributeEditors import AttributeEditors
+    Block, Table,  wxTable,
+    Styles)
 from osaf import pim
 from i18n import ChandlerMessageFactory as _
 from chandlerdb.util.c import UUID

@@ -12,7 +12,7 @@
 #   See the License for the specific language governing permissions and
 #   limitations under the License.
 
-import os, sys, wx
+import wx
 from i18n import ChandlerMessageFactory as _
 
 class ConflictDialog(wx.Dialog):
@@ -20,16 +20,11 @@ class ConflictDialog(wx.Dialog):
         self.conflicts = conflicts
         wx.Dialog.__init__(self, None, -1, _(u'Pending Changes'),
             style=wx.DEFAULT_DIALOG_STYLE|wx.RESIZE_BORDER|wx.RESIZE_BOX)
-        headingFormat = _(u"There %s %d pending %s")
-        areText = _("are")
-        isText = _("is")
-        changesText = _("changes")
-        changeText = _("change")
         conflictCount = len(conflicts)
         if conflictCount == 1:
-            headingText = headingFormat % (isText, conflictCount, changeText)
+            headingText = _(u"There is one pending change")
         else:
-            headingText = headingFormat % (areText, conflictCount, changesText)
+            headingText = _(u"There are %d pending changes") % conflictCount
         heading = wx.StaticText(self, -1, headingText)
         # Iterate over the items so as to be able to prepend the index.
         # Otherwise we could use:

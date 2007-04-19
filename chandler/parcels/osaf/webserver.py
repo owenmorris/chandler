@@ -1,4 +1,4 @@
-#   Copyright (c) 2003-2006 Open Source Applications Foundation
+#   Copyright (c) 2003-2007 Open Source Applications Foundation
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -16,13 +16,10 @@
 import twisted
 from twisted.web import server, resource, static, script
 from twisted.internet import reactor
-import application
 from application import schema, Globals
 from osaf import pim
-from repository.item.Item import Item
 from repository.item import Access
-from repository.util.ClassLoader import ClassLoader
-import os, sys
+import os
 import logging
 from i18n import ChandlerMessageFactory as _
 

@@ -21,7 +21,7 @@ __all__ = [
 
 import datetime, bisect
 from application import schema
-from osaf import pim, messages
+from osaf import pim
 import webdav_conduit
 import shares
 import zanshin, twisted.web.http

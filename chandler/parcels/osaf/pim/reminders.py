@@ -1,4 +1,4 @@
-#   Copyright (c) 2003-2006 Open Source Applications Foundation
+#   Copyright (c) 2003-2007 Open Source Applications Foundation
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -17,7 +17,7 @@ from application import schema
 from chandlerdb.item.c import isitemref
 from chandlerdb.util.c import Empty
 
-from datetime import datetime, time, timedelta
+from datetime import datetime, timedelta
 from PyICU import ICUtzinfo
 
 import logging

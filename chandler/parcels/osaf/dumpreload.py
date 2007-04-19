@@ -1,4 +1,4 @@
-#   Copyright (c) 2003-2006 Open Source Applications Foundation
+#   Copyright (c) 2003-2007 Open Source Applications Foundation
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -16,7 +16,7 @@
 """Dump and Reload module"""
 
 import logging, cPickle, sys, os, wx
-from osaf import pim, sharing
+from osaf import sharing
 from osaf.sharing.eim import uri_registry, RecordClass
 from application import schema
 from osaf.framework import password, MasterPassword

@@ -12,9 +12,9 @@
 #   See the License for the specific language governing permissions and
 #   limitations under the License.
 
-import os, pkg_resources, wx, webbrowser, logging
+import pkg_resources, wx, webbrowser, logging
 
-from application import schema, Utility, Globals, Parcel
+from application import Utility, Globals, Parcel
 from osaf.framework.blocks import Menu, MenuItem, BlockEvent
 from osaf.framework.blocks.Block import Block
 from repository.schema.Kind import Kind
