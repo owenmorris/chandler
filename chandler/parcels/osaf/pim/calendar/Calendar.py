@@ -302,13 +302,6 @@ def eventsInRange(view, start, end, filterColl = None, dayItems=True,
     
     searchStart, searchEnd = adjustSearchTimes(start, end, tzprefs.showUI)
     
-    if tzprefs.showUI:
-        searchStart = start
-        searchEnd = end
-    else:
-        searchStart = start
-        searchEnd = end
-
     allEvents  = EventStamp.getCollection(view)
     longEvents = schema.ns("osaf.pim", view).longEvents
     keys = getKeysInRange(view, start, 'effectiveStartTime', startIndex,
