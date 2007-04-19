@@ -257,11 +257,14 @@ class SMTPClient(object):
             if self.mailMessage is not None or not Globals.mailService.isOnline():
                 newMessage = self._getMailMessage(mailMessageUUID)
 
-                if hasConflicts(newMessage.itsItem):
-                    # If the new message has a conflict display
-                    # a warning to the user and do not
-                    # add the message to the queue
-                    return alertConflictError(newMessage, self.account)
+                # Commented out for Performance Improvement
+                # The UI Layer should handle all conflict logic
+                # before calling this module
+                #if hasConflicts(newMessage.itsItem):
+                #    # If the new message has a conflict display
+                #    # a warning to the user and do not
+                #    # add the message to the queue
+                #    return alertConflictError(newMessage, self.account)
 
                 try:
                     sending = (self.mailMessage.itsItem is newMessage.itsItem)
@@ -303,10 +306,13 @@ class SMTPClient(object):
 
             self.mailMessage = self._getMailMessage(mailMessageUUID)
 
-            if hasConflicts(self.mailMessage.itsItem):
-               # If the mail message has a conflict it
-               # will not be sent
-                return alertConflictError(self.mailMessage, self.account)
+            # Commented out for Performance Improvement
+            # The UI Layer should handle all conflict logic
+            # before calling this module
+            #if hasConflicts(self.mailMessage.itsItem):
+            #   # If the mail message has a conflict it
+            #   # will not be sent
+            #    return alertConflictError(self.mailMessage, self.account)
 
             setStatusMessage(constants.UPLOAD_START % \
                              {'accountName': self.account.displayName,
@@ -768,18 +774,21 @@ class SMTPClient(object):
         assert m is not None
         return MailStamp(m)
 
-def alertConflictError(mailStamp, account):
-    buf = []
-
-    shared = SharedItem(mailStamp.itsItem)
-
-    for conflict in shared.getConflicts():
-        buf.append("%s: %s" % (conflict.field, conflict.value))
-
-    txt = _(u"Unable to send '%(mailSubject)s' via '%(accountName)s'.\nThe following conflicts exist:\n%(conflicts)s") \
-            % {'mailSubject': mailStamp.subject,
-               'accountName': account.displayName,
-               'conflicts': "\n".join(buf)}
-
-    alert(txt)
+# Commented out for Performance Improvement
+# The UI Layer should handle all conflict logic
+# before calling this module
+#def alertConflictError(mailStamp, account):
+#    buf = []
+#
+#    shared = SharedItem(mailStamp.itsItem)
+#
+#    for conflict in shared.getConflicts():
+#        buf.append("%s: %s" % (conflict.field, conflict.value))
+#
+#    txt = _(u"Unable to send '%(mailSubject)s' via '%(accountName)s'.\nThe following conflicts exist:\n%(conflicts)s") \
+#            % {'mailSubject': mailStamp.subject,
+#               'accountName': account.displayName,
+#               'conflicts': "\n".join(buf)}
+#
+#    alert(txt)
 
