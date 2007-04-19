@@ -461,6 +461,7 @@ class wxTable(DragAndDrop.DraggableWidget,
                 del blockItem.mouseCaptured
 
     def OnMouseCaptureLost(self, event):
+        blockItem = self.blockItem
         if hasattr(blockItem, 'mouseCaptured'):
             #logger.debug("OnMouseCaptureLost: forgetting captured.")
             del blockItem.mouseCaptured
