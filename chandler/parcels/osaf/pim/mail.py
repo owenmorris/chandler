@@ -1014,7 +1014,7 @@ class OutgoingAccount(AccountBase):
             res = res and len(self.username.strip())
 
             if not ignorePassword:
-               rest = res and \
+               res = res and \
                       len(waitForDeferred(self.password.decryptPassword()).strip())
 
         return res
