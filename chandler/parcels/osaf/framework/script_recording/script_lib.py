@@ -21,7 +21,7 @@ def ProcessEvent (theClass, properties , attributes):
         """
         Given a name, returns the corresponding widget.
         """
-        sendTo = None
+        sentTo = None
         if type (name) is str:
             if name == "MainFrame":
                 sentTo = application.mainFrame
