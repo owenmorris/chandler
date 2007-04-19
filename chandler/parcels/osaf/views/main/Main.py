@@ -946,20 +946,21 @@ class MainView(View):
             self.setStatusMessage(errorMessage)
 
     def onCompactRepositoryEvent(self, event):
-        # triggered from "Test | Compact Repository" Menu
+        # triggered from "Tools | Repository | Compact" Menu
         self.RepositoryCommitWithStatus()
         repository = self.itsView.repository
-        progressMessage = _(u'Compacting repository...')
-        repository.logger.info('Compacting repository...')
-        self.setStatusMessage(progressMessage)
-        counts = repository.compact()
+        progressMessage = _(u'Compacting repository... %s %d%%')
+        def progress(stage, percent):
+            stage = _(unicode(stage))
+            self.setStatusMessage(progressMessage %(stage, percent))
+        counts = repository.compact(sharing.getOldestVersion(self.itsView),
+                                    progressFn=progress)
 
-        successMessage = _(u'Reclaimed %(counts)s (items, values, refs, lobs, blocks, names, index entries, lucene documents)') %{ 'counts': counts }
-        repository.logger.info(successMessage)
+        successMessage = _(u'Reclaimed %d items, %d values, %d refs, %d index entries, %d names, %d lobs, %d blocks, %d lucene documents)' %counts)
         self.setStatusMessage(successMessage)
 
     def onIndexRepositoryEvent(self, event):
-        # triggered from "Test | Index Repository" Menu
+        # triggered from "Tools | Repository | Index" Menu
         self.RepositoryCommitWithStatus()
         repository = self.itsView.repository
         repository.notifyIndexer()
@@ -968,7 +969,8 @@ class MainView(View):
         # triggered from "File | Import/Export" menu
         prefs = schema.ns("osaf.sharing", self.itsView).prefs
 
-        dialog = ImportExport.ImportDialog(_(u"Choose a file to import"), self.itsView)
+        dialog = ImportExport.ImportDialog(_(u"Choose a file to import"),
+                                           self.itsView)
         
         ret = dialog.ShowModal()
         if ret == wx.ID_OK:

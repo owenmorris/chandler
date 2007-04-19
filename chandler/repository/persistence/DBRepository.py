@@ -86,7 +86,17 @@ class DBRepository(OnDemandRepository):
                 path = join(self._openDir, name)
                 if not isdir(path):
                     os.remove(path)
-            
+
+    def _enableCheckpoints(self, enabled=True):
+        
+        thread = self._checkpointThread
+        if thread is not None:
+            _enabled = thread.enabled
+            thread.enabled = enabled
+            return _enabled
+
+        return False
+
     def create(self, **kwds):
 
         if not self.isOpen():
@@ -383,11 +393,13 @@ class DBRepository(OnDemandRepository):
         os.makedirs(dbHome)
 
         release = []
+        enabled = None
         try:
             for view in self.getOpenViews():
                 if view._acquireExclusive():
                     release.append(view)
 
+            enabled = self._enableCheckpoints(False)
             self.checkpoint()
 
             for srcPath in self._env.log_archive(DBEnv.DB_ARCH_DATA |
@@ -451,6 +463,8 @@ class DBRepository(OnDemandRepository):
         finally:
             for view in release:
                 view._releaseExclusive()
+            if enabled is not None:
+                self._enableCheckpoints(enabled)
 
         return dbHome
 
@@ -580,14 +594,36 @@ class DBRepository(OnDemandRepository):
         else:
             raise RepositoryRestoreError, (srcHome, 'does not exist')
 
-    def compact(self):
+    def compact(self, toVersion=None, chunk=25000, fromUUID=None,
+                progressFn=Nil):
 
         store = self.store
+        if toVersion is None:
+            toVersion = store.getVersion()            
 
-        itemCount = 0
-        refCount = valueCount = 0
-        lobCount = blockCount = nameCount = indexCount = 0
-        documentCount = 0
+        class _counter(object):
+            class commit(Exception):
+                pass
+            def __init__(_self):
+                _self.running = 0
+                _self.current = (fromUUID, 0)
+            def __getattr__(_self, name):
+                if name.endswith('Count'):
+                    return 0
+                raise AttributeError, name
+            def __setattr__(_self, name, value):
+                _self.__dict__[name] = value
+                if name.endswith('Count'):
+                    _self.running += 1
+                    if _self.running >= chunk:
+                        raise _counter.commit, (name, value)
+
+        counter = _counter()
+
+        self.logger.info("compact(): deleting old records past version %d",
+                         toVersion)
+        stage = "purging old records"
+        progressFn(stage, 0)
 
         while True:
             try:
@@ -599,55 +635,79 @@ class DBRepository(OnDemandRepository):
                 indexReader = store._index.getIndexReader()
                 indexSearcher = store._index.getIndexSearcher()
 
-                prevUUID, keepValues, purger = None, (), None
+                prevUUID = None
+                items = []
 
-                for uuid, version, status, values in store.iterItems(None):
+                def purge():
+                    count = len(items)
+                    if count == 0:
+                        return
+                    uItem, version, status, values = items[-1]
+                    if count == 1 and status & CItem.DELETED == 0:
+                        if counter.current != uItem:
+                            return
+                    purger = DBItemPurger(txn, store,
+                                          indexSearcher, indexReader)
+                    if status & CItem.DELETED == 0:
+                        purger.purgeItem(txn, counter,
+                                         uItem, version, status, values,
+                                         version)
+                        del items[-1]
+                    purger.purgeItems(txn, counter, items)
+                        
+                for item in store._items.iterItems(None, True,
+                                                   counter.current[0]):
+                    uuid = item[0]
                     if uuid == prevUUID:
-                        if purger is None:
-                            purger = DBItemPurger(txn, store, uuid, keepValues,
-                                                  indexSearcher, indexReader,
-                                                  status)
-                        purger.purgeItem(txn, values, version, status)
+                        if item[1] <= toVersion:
+                            items.append(item)
                     else:
-                        if purger is not None:
-                            itemCount += purger.itemCount
-                            refCount += purger.refCount
-                            valueCount += purger.valueCount
-                            lobCount += purger.lobCount
-                            blockCount += purger.blockCount
-                            nameCount += purger.nameCount
-                            indexCount += purger.indexCount
-                            documentCount += purger.documentCount
-                            
-                        if status & CItem.DELETED:
-                            purger = DBItemPurger(txn, store, uuid, (),
-                                                  indexSearcher, indexReader,
-                                                  status)
-                            purger.purgeItem(txn, values, version, status)
-                        else:
-                            purger = None
-
-                        prevUUID, keepValues = uuid, values
-
+                        purge()
+                        del items[:]
+                        items.append(item)
+                        prevUUID = uuid
+                    
+                purge()
                 indexReader.close()
                 indexSearcher.close()
 
                 store.commitTransaction(None, txnStatus)
 
-            except DBLockDeadlockError:
-                self.logger.info('retrying compact aborted by deadlock')
-                store.abortTransaction(None, txnStatus)
+            except _counter.commit, e:
+                uItem, version = counter.current
+                name, value = e.args
+                self.logger.info("compact(): %s %d, %s: %d",
+                                 uItem, version, name, value)
+                store.commitTransaction(None, txnStatus)
+                counter.running = 0
+                del items[:]
+                percent = ord(uItem._uuid[0]) * 256 + ord(uItem._uuid[1])
+                progressFn(stage, 100 - (percent * 100) / 65536)
                 continue
+
+            except DBLockDeadlockError:
+                self.logger.info('retrying compact() aborted by deadlock')
+                store.abortTransaction(None, txnStatus)
+                counter.running = 0
+                del items[:]
+                continue
+
             except:
                 store.abortTransaction(None, txnStatus)
                 raise
+
             else:
                 break
 
-        store.compact()
+        counts = (counter.itemCount, counter.valueCount, counter.refCount,
+                  counter.indexCount, counter.nameCount, 
+                  counter.lobCount, counter.blockCount, counter.documentCount)
+        self.logger.info("compact(): reclaimed %d items, %d values, %d refs, %d index entries, %d names, %d lobs, %d blocks, %d lucene documents)", *counts)
+        progressFn(stage, 100)
 
-        return (itemCount, valueCount, refCount, lobCount, blockCount,
-                nameCount, indexCount, documentCount)
+        store.compact(progressFn)
+
+        return counts
 
     def undo(self, toVersion=None):
 
@@ -878,10 +938,10 @@ class DBRepository(OnDemandRepository):
 
         return DBRepositoryView(self, name, version, deferDelete, pruneSize)
 
-    def startIndexer(self):
+    def startIndexer(self, interval=60):
 
         if self._indexer is None:
-            self._indexer = DBIndexerThread(self)
+            self._indexer = DBIndexerThread(self, interval)
             self._indexer.start()
 
     def stopIndexer(self):
@@ -1001,52 +1061,27 @@ class DBStore(Store):
         self._indexes.detachView(view)
         self._commits.detachView(view)
 
-    def compact(self):
+    def compact(self, progressFn=Nil):
 
-        logger = self.repository.logger
+        stage = "compacting databases"
 
-        def compact(db):
-            while True:
-                try:
-                    txnStatus = self.startTransaction(None, True)
-                    db.compact(self.txn)
-                    self.commitTransaction(None, txnStatus)
-
-                except DBLockDeadlockError:
-                    logger.info('retrying compact aborted by deadlock')
-                    self.abortTransaction(None, txnStatus)
-                    continue
-
-                except MemoryError:
-                    self.abortTransaction(None, txnStatus)
-                    logger.info('compact ran out of memory')
-                    logger.info('retrying non-transacted in the background')
-
-                    class runnable(object):
-                        def __call__(_self):
-                            db.compact(None)
-                            logger.info('background compact completed')
-
-                    thread = threading.Thread(target=runnable())
-                    thread.setDaemon(True)
-                    thread.start()
-
-                except:
-                    self.abortTransaction(None, txnStatus)
-                    raise
-
-                else:
-                    break
-
-        compact(self._items)
-        compact(self._values)
-        compact(self._refs)
-        compact(self._names)
-        compact(self._lobs)
-        compact(self._index)
-        compact(self._acls)
-        compact(self._indexes)
-
+        progressFn(stage, 0)
+        self._items.compact()
+        progressFn(stage, 12)
+        self._values.compact()
+        progressFn(stage, 24)
+        self._refs.compact()
+        progressFn(stage, 36)
+        self._names.compact()
+        progressFn(stage, 48)
+        self._lobs.compact()
+        progressFn(stage, 60)
+        self._index.compact()
+        progressFn(stage, 72)
+        self._acls.compact()
+        progressFn(stage, 84)
+        self._indexes.compact()
+        
     def loadItem(self, view, version, uuid):
 
         version, item = self._items.c.findItem(view, version, uuid,
@@ -1165,9 +1200,9 @@ class DBStore(Store):
         for uItem, uAttr in iterator:
             yield uItem, uAttr
 
-    def iterItems(self, view):
+    def iterItems(self, view, backwards=False):
 
-        return self._items.iterItems(view)
+        return self._items.iterItems(view, backwards)
 
     def iterItemVersions(self, view, uuid, fromVersion=1, toVersion=0):
 
@@ -1306,6 +1341,7 @@ class DBCheckpointThread(threading.Thread):
         self._repository = repository
         self._condition = threading.Condition(threading.Lock())
         self._alive = True
+        self.enabled = True
 
         self.setDaemon(True)
 
@@ -1325,13 +1361,14 @@ class DBCheckpointThread(threading.Thread):
             if not (self._alive and self.isAlive()):
                 break
 
-            try:
-                lock = store.acquireLock()
-                repository.checkpoint()
-                repository.logger.info('%s: %s, completed checkpoint',
-                                       repository, datetime.now())
-            finally:
-                lock = store.releaseLock(lock)
+            if self.enabled:
+                try:
+                    lock = store.acquireLock()
+                    repository.checkpoint()
+                    repository.logger.info('%s: %s, completed checkpoint',
+                                           repository, datetime.now())
+                finally:
+                    lock = store.releaseLock(lock)
 
     def terminate(self):
         
@@ -1349,13 +1386,14 @@ class DBCheckpointThread(threading.Thread):
 
 class DBIndexerThread(RepositoryThread):
 
-    def __init__(self, repository):
+    def __init__(self, repository, interval=60):
 
         super(DBIndexerThread, self).__init__(name='__indexer__')
 
         self._repository = repository
         self._condition = threading.Condition(threading.Lock())
         self._alive = True
+        self.interval = interval
 
         self.setDaemon(True)
 
@@ -1369,7 +1407,7 @@ class DBIndexerThread(RepositoryThread):
         while self._alive:
             condition.acquire()
             if self._alive:
-                condition.wait(60.0)
+                condition.wait(self.interval)
             condition.release()
 
             try:

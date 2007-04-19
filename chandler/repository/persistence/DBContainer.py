@@ -13,9 +13,11 @@
 #   limitations under the License.
 
 
-import sys, threading, time
+import sys, threading
 
 from struct import pack, unpack
+from datetime import timedelta
+from time import time
 
 from chandlerdb.util.c import \
     UUID, isuuid, _hash, HashTuple, Nil, Default, SkipList
@@ -47,6 +49,7 @@ class DBContainer(object):
         db.lorder = 4321
         
         flags = DB.DB_THREAD | DB.DB_READ_UNCOMMITTED
+        self.filename = name
 
         if ramdb:
             name = None
@@ -95,9 +98,24 @@ class DBContainer(object):
             self._db.close()
             self._db = None
 
-    def compact(self, txn):
+    def _compact(self, txn, db, name="main"):
 
-        self._db.compact(txn)
+        logger = self.store.repository.logger
+        filename = self.filename or type(self).__name__
+
+        logger.info("compacting %s's %s db", filename, name)
+
+        before = time()
+        stats = db.compact(txn)
+        duration = time() - before
+
+        logger.info("compacted %s's %s db in %s with %d deadlocks, %d pages examined, %d pages freed, %d levels, %d pages truncated", filename, name, timedelta(seconds=duration), *stats)
+        
+        return stats
+
+    def compact(self, txn=None):
+
+        self._compact(txn, self._db)
 
     def attachView(self, view):
 
@@ -198,10 +216,10 @@ class RefContainer(DBContainer):
 
         super(RefContainer, self).close()
 
-    def compact(self, txn):
+    def compact(self, txn=None):
 
         super(RefContainer, self).compact(txn)
-        self._history.compact(txn)
+        self._compact(txn, self._history, "history")
 
     def iterHistory(self, view, uuid, fromVersion, toVersion, refsOnly=False):
 
@@ -384,36 +402,40 @@ class RefContainer(DBContainer):
 
         iterator.close()
 
-    def purgeRefs(self, txn, uCol, keepOne):
+    def purgeRefs(self, txn, counter, uCol, toVersion=None):
 
-        count = 0
         cursor = None
 
         try:
             cursor = self.c.openCursor()
+            flags = self.c.flags
             key = uCol._uuid
-            value = cursor.set_range(key, self.c.flags, None)
+            value = cursor.set_range(key, flags, None)
 
-            if not keepOne:
+            if toVersion is None:
                 while value is not None and value[0].startswith(key):
-                    cursor.delete(self.c.flags)
-                    count += 1
-                    value = cursor.next(self.c.flags, None)
-
+                    cursor.delete(flags)
+                    counter.refCount += 1
+                    value = cursor.next(flags, None)
             else:
-                prevRef = None
+                prevValue = None
                 while value is not None and value[0].startswith(key):
-                    ref = value[0][16:32]
-                    if ref == prevRef or len(value[1]) == 1:
-                        cursor.delete(self.c.flags)
-                        count += 1
-                    prevRef = ref
-                    value = cursor.next(self.c.flags, None)
-
+                    version = ~unpack('>l', value[0][32:36])[0]
+                    if version < toVersion:
+                        if (prevValue is not None and
+                            prevValue[0][16:32] == value[0][16:32]):
+                            cursor.delete(flags)
+                            counter.refCount += 1
+                        prevValue = value
+                    elif version <= toVersion and len(value[1]) == 1:
+                        cursor.delete(flags)
+                        counter.refCount += 1
+                        prevValue = value
+                    value = cursor.next(flags, None)
         finally:
             self.c.closeCursor(cursor)
 
-        return count, self.store._names.purgeNames(txn, uCol, keepOne)
+        self.store._names.purgeNames(txn, counter, uCol, toVersion)
 
     def undoRefs(self, txn, uCol, version):
 
@@ -453,36 +475,38 @@ class NamesContainer(DBContainer):
                                       Record.INT, ~version),
                                Record(Record.UUID, uuid))
 
-    def purgeNames(self, txn, uuid, keepOne):
+    def purgeNames(self, txn, counter, uuid, toVersion=None):
 
-        count = 0
         cursor = None
 
         try:
             cursor = self.c.openCursor()
+            flags = self.c.flags
             key = uuid._uuid
-            prevHash = None
-            value = cursor.set_range(key, self.c.flags, None)
+            value = cursor.set_range(key, flags, None)
 
-            if not keepOne:
+            if toVersion is None:
                 while value is not None and value[0].startswith(key):
-                    cursor.delete(self.c.flags)
-                    count += 1
-                    value = cursor.next(self.c.flags, None)
-
+                    cursor.delete(flags)
+                    counter.nameCount += 1
+                    value = cursor.next(flags, None)
             else:
+                prevValue = None
                 while value is not None and value[0].startswith(key):
-                    hash = value[0][16:20]
-                    if hash == prevHash or key == value[1]:
-                        cursor.delete(self.c.flags)
-                        count += 1
-                    prevHash = hash
-                    value = cursor.next(self.c.flags, None)
-
+                    version = ~unpack('>l', value[0][-4:])[0]
+                    if version < toVersion:
+                        if (prevValue is not None and
+                            prevValue[0][16:20] == value[0][16:20]):
+                            cursor.delete(flags)
+                            counter.nameCount += 1
+                        prevValue = value
+                    elif version <= toVersion and key == value[1]:
+                        cursor.delete(flags)
+                        counter.nameCount += 1
+                        prevValue = value
+                    value = cursor.next(flags, None)
         finally:
             self.c.closeCursor(cursor)
-
-        return count
 
     def undoNames(self, txn, uuid, version):
 
@@ -705,36 +729,38 @@ class IndexesContainer(DBContainer):
                                       Record.INT, ~version),
                                record)
 
-    def purgeIndex(self, txn, uIndex, keepOne):
+    def purgeIndex(self, txn, counter, uIndex, toVersion=None):
 
-        count = 0
         cursor = None
 
         try:
             cursor = self.c.openCursor()
+            flags = self.c.flags
             key = uIndex._uuid
-            value = cursor.set_range(key, self.c.flags, None)
+            value = cursor.set_range(key, flags, None)
 
-            if not keepOne:
+            if toVersion is None:
                 while value is not None and value[0].startswith(key):
-                    cursor.delete(self.c.flags)
-                    count += 1
-                    value = cursor.next(self.c.flags, None)
-
+                    cursor.delete(flags)
+                    counter.indexCount += 1
+                    value = cursor.next(flags, None)
             else:
-                prevRef = None
+                prevValue = None
                 while value is not None and value[0].startswith(key):
-                    ref = value[0][16:32]
-                    if ref == prevRef or value[1][0] == '\0':
-                        cursor.delete(self.c.flags)
-                        count += 1
-                    prevRef = ref
-                    value = cursor.next(self.c.flags, None)
-
+                    version = ~unpack('>l', value[0][32:36])[0]
+                    if version < toVersion:
+                        if (prevValue is not None and
+                            prevValue[0][16:32] == value[0][16:32]):
+                            cursor.delete(flags)
+                            counter.indexCount += 1
+                        prevValue = value
+                    elif version <= toVersion and len(value[1]) == 1:
+                        cursor.delete(flags)
+                        counter.indexCount += 1
+                        prevValue = value
+                    value = cursor.next(flags, None)
         finally:
             self.c.closeCursor(cursor)
-
-        return count
 
     def undoIndex(self, txn, uIndex, version):
 
@@ -873,12 +899,11 @@ class ItemContainer(DBContainer):
 
         super(ItemContainer, self).close()
 
-    def compact(self, txn):
+    def compact(self, txn=None):
 
         super(ItemContainer, self).compact(txn)
-
-        self._kinds.compact(txn)
-        self._versions.compact(txn)
+        self._compact(txn, self._kinds, "kinds")
+        self._compact(txn, self._versions, "versions")
 
     def saveItem(self, uItem, version, uKind, prevKind, status,
                  uParent, name, moduleName, className,
@@ -986,10 +1011,10 @@ class ItemContainer(DBContainer):
         return dict(values[offset:offset+2]
                     for offset in xrange(0, len(values), 2))
 
-    def purgeItem(self, txn, uuid, version):
+    def purgeItem(self, txn, counter, uuid, version):
 
         self.delete(pack('>16sl', uuid._uuid, ~version), txn)
-        return 1
+        counter.itemCount += 1
 
     def isValue(self, view, version, uItem, uValue, exact=False):
 
@@ -1246,7 +1271,7 @@ class ItemContainer(DBContainer):
                     return
                 yield result
 
-    def iterItems(self, view):
+    def iterItems(self, view, backwards=False, fromUUID=None, fromVersion=0):
 
         store = self.store
         
@@ -1271,15 +1296,26 @@ class ItemContainer(DBContainer):
 
                 _self.txnStatus = store.startTransaction(view)
                 _self.cursor = cursor = self.c.openCursor()
+                if backwards:
+                    next_record = _self.cursor.prev_record
+                else:
+                    next_record = _self.cursor.next_record
 
-                key = ItemContainer.KEY_TYPES
-                item = ItemContainer.VALUES_TYPES
+                keyTypes = ItemContainer.KEY_TYPES
+                itemTypes = ItemContainer.VALUES_TYPES
                 flags = self.c.flags
                 
+                if fromUUID is not None:
+                    key = Record(Record.UUID, fromUUID,
+                                 Record.INT, ~fromVersion)
+                    key, item = cursor.find_record(key, keyTypes, itemTypes,
+                                                   flags, NONE_PAIR)
+                else:
+                    key, item = next_record(keyTypes, itemTypes,
+                                            flags, NONE_PAIR)
+
                 try:
                     while True:
-                        key, item = cursor.next_record(key, item,
-                                                       flags, NONE_PAIR)
                         if item is None:
                             break
 
@@ -1289,7 +1325,8 @@ class ItemContainer(DBContainer):
                         yield (uuid, ~version, status,
                                tuple([uValue for uValue in values.data
                                       if isuuid(uValue)]))
-
+                        key, item = next_record(keyTypes, itemTypes,
+                                                flags, NONE_PAIR)
                     yield False
 
                 except DBLockDeadlockError:
@@ -1459,10 +1496,10 @@ class ValueContainer(DBContainer):
 
         super(ValueContainer, self).close()
 
-    def compact(self, txn):
+    def compact(self, txn=None):
 
         super(ValueContainer, self).compact(txn)
-        self._version.compact(txn)
+        self._compact(txn, self._version, "version")
 
     def getSchemaInfo(self, txn=None, open=False):
 
@@ -1497,11 +1534,10 @@ class ValueContainer(DBContainer):
 
         return version
 
-    def purgeValue(self, txn, uuid):
+    def purgeValue(self, txn, counter, uuid):
 
         self.delete(uuid._uuid, txn)
-        return 1
-
+        counter.valueCount += 1
 
 
 class CommitsContainer(DBContainer):
@@ -1509,7 +1545,7 @@ class CommitsContainer(DBContainer):
     def logCommit(self, view, version, commitCount):
 
         key = pack('>l', version)
-        data = pack('>Qii', long(time.time() * 1000), len(view),
+        data = pack('>Qii', long(time() * 1000), len(view),
                     commitCount) + view.name
 
         self.put(key, data)

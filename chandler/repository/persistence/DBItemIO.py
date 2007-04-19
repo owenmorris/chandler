@@ -950,129 +950,80 @@ class DBItemPurger(ItemPurger):
 
     VALUE_TYPES = DBValueReader.VALUE_TYPES + (Record.RECORD, Record.RECORD)
 
-    def __init__(self, txn, store, uItem, keepValues,
-                 indexSearcher, indexReader, status):
+    def __init__(self, txn, store, indexSearcher, indexReader):
 
         self.store = store
-        self.uItem = uItem
-
-        self.keep = set(keepValues)
         self.done = set()
 
+#        self.documentCount = \
+#            store._index.purgeDocuments(indexSearcher, indexReader,
+#                                        uItem, keepDocuments)
+
+    def purgeItems(self, txn, counter, items):
+
+        for uItem, version, status, values in items:
+            self.purgeItem(txn, counter, uItem, version, status, values)
+
+    def purgeItem(self, txn, counter,
+                  uItem, version, status, values, toVersion=None):
+
+        counter.current = (uItem, version)
         withSchema = (status & CItem.WITHSCHEMA) != 0
-        keepOne = (status & CItem.DELETED) == 0
-        keepDocuments = set()
+        store = self.store
+        done = self.done
 
         record = DBItemPurger.VALUE_TYPES
 
-        for value in keepValues:
-            record = store._values.c.loadValue(value, record, store.txn)
+        for uValue in values:
+            if uValue in done:
+                continue
+
+            record = store._values.c.loadValue(uValue, record, store.txn)
+            if record is None:
+                done.add(uValue)
+                continue
+
             uAttr, vFlags, data, lobs, indexes = record.data
 
-            if withSchema:
-                offset = 1
-            else:
-                offset = 0
-                
+            offset = 1 if withSchema else 0
             flags = data[offset]
             offset += 1
 
-            if flags & DBItemWriter.VALUE:
-                self.keep.update(lobs)
-                if vFlags & CValues.INDEXED:   # full text indexed
-                    keepDocuments.add(uAttr)
-
-            elif flags & DBItemWriter.REF:
-                if flags & DBItemWriter.LIST:
-                    self.keep.add(data[offset])
+            if flags & DBItemWriter.REF:
+                if flags & DBItemWriter.NONE:
+                    pass
+                elif flags & DBItemWriter.LIST:
+                    uuid = data[offset]
+                    if uuid not in done:
+                        store._refs.purgeRefs(txn, counter, uuid, toVersion)
+                        done.add(uuid)
                 elif flags & DBItemWriter.DICT:
                     if withSchema:
                         offset += 1
                     size = data[offset]
                     offset += 1
                     for i in xrange(size):
-                        self.keep.add(data[offset + 1])
+                        uuid = data[offset + 1]
                         offset += 2
-
-            self.keep.update(indexes)
-
-        self.itemCount = 0
-        self.valueCount = self.lobCount = self.blockCount = self.indexCount = 0
-        self.refCount, self.nameCount = \
-            store._refs.purgeRefs(txn, uItem, keepOne)
-        self.documentCount = \
-            store._index.purgeDocuments(indexSearcher, indexReader,
-                                        uItem, keepDocuments)
-
-    def purgeItem(self, txn, values, version, status):
-
-        withSchema = (status & CItem.WITHSCHEMA) != 0
-        store = self.store
-        keep = self.keep
-        done = self.done
-
-        record = DBItemPurger.VALUE_TYPES
-
-        for uValue in values:
-            if not (uValue in keep or uValue in done):
-                record = store._values.c.loadValue(uValue, record, store.txn)
-                uAttr, vFlags, data, lobs, indexes = record.data
-
-                if withSchema:
-                    offset = 1
-                else:
-                    offset = 0
-
-                flags = data[offset]
-                offset += 1
-
-                if flags & DBItemWriter.VALUE:
-                    for uuid in lobs:
-                        if not (uuid in keep or uuid in done):
-                            count = store._lobs.purgeLob(txn, uuid)
-                            self.lobCount += count[0]
-                            self.blockCount += count[1]
-                            done.add(uuid)
-                    for uuid in indexes:
                         if uuid not in done:
-                            self.indexCount += store._indexes.purgeIndex(txn, uuid, uuid in keep)
+                            store._refs.purgeRefs(txn, counter, uuid, toVersion)
                             done.add(uuid)
 
-                elif flags & DBItemWriter.REF:
-                    if flags & DBItemWriter.NONE:
-                        continue
-                    if flags & DBItemWriter.LIST:
-                        uuid = data[offset]
-                        if uuid not in done:
-                            count = store._refs.purgeRefs(txn, uuid,
-                                                          uuid in keep)
-                            self.refCount += count[0]
-                            self.nameCount += count[1]
-                            done.add(uuid)
-                    elif flags & DBItemWriter.DICT:
-                        if withSchema:
-                            offset += 1
-                        size = data[offset]
-                        offset += 1
-                        for i in xrange(size):
-                            uuid = data[offset + 1]
-                            offset += 2
-                            if uuid not in done:
-                                count = store._refs.purgeRefs(txn, uuid,
-                                                              uuid in keep)
-                                self.refCount += count[0]
-                                self.nameCount += count[1]
-                                done.add(uuid)
-                    if flags & (DBItemWriter.LIST | DBItemWriter.SET):
-                        for uuid in indexes:
-                            if uuid not in done:
-                                self.indexCount += store._indexes.purgeIndex(txn, uuid, uuid in keep)
-                                done.add(uuid)
+            for uuid in lobs:
+                if uuid not in done:
+                    store._lobs.purgeLob(txn, counter, uuid, toVersion)
+                    done.add(uuid)
+            for uuid in indexes:
+                if uuid not in done:
+                    store._indexes.purgeIndex(txn, counter, uuid, toVersion)
+                    done.add(uuid)
 
-                self.valueCount += store._values.purgeValue(txn, uValue)
-                done.add(uValue)
+            if toVersion is None:
+                store._values.purgeValue(txn, counter, uValue)
+            done.add(uValue)
 
-        self.itemCount += store._items.purgeItem(txn, self.uItem, version)
+        if toVersion is None:
+            store._items.purgeItem(txn, counter, uItem, version)
 
 
 class DBItemUndo(object):

@@ -53,6 +53,11 @@ class FileContainer(DBContainer):
 
         super(FileContainer, self).close()
 
+    def compact(self, txn=None):
+
+        super(FileContainer, self).compact(txn)
+        self._compact(txn, self._blocks)
+
     def createFile(self, name):
 
         return OutputStream(self, name, True)
@@ -135,12 +140,13 @@ class FileContainer(DBContainer):
 
 class LOBContainer(FileContainer):
 
-    def purgeLob(self, txn, uLob):
+    def purgeLob(self, txn, counter, uLob, toVersion=None):
     
         count = self.deleteFile(uLob._uuid)
         self.delete(uLob._uuid, txn)
 
-        return 1, count
+        counter.fileCount += 1
+        counter.blockCount += count
 
 
 class File(object):

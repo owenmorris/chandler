@@ -249,7 +249,7 @@ COMMAND_LINE_OPTIONS = {
     'datadir':    ('', '--datadir', 's', None, None, 'Specify a directory for database files (relative to the __repository__ directory'),
     'repodir':    ('', '--repodir', 's', None, None, "Specify a home directory for the __repository__ directory (relative to the profile directory)"),
     'nodeferdelete':   ('', '--nodeferdelete','b', False, None, 'do not defer item deletions in all views by default'),
-    'indexer':    ('-i', '--indexer',    's', 'background', None, 'Run Lucene indexing in the background or foreground'),
+    'indexer':    ('-i', '--indexer',    's', '60', None, 'Run Lucene indexing in the background every 60s, in the foreground or none'),
     'uuids':      ('-U', '--uuids',      's', None, None, 'use a file containing a bunch of pre-generated UUIDs'),
     'undo':       ('',   '--undo',       's', None, None, 'undo <n> versions or until <check> or <repair> passes'),
     'backup':     ('',   '--backup',     'b', False, None, 'backup repository before start'),
@@ -585,13 +585,7 @@ def initRepository(directory, options, allowSchemaView=False):
     view = repository.view
     schema.initRepository(view)
 
-    if options.indexer == 'background':   # the default
-        # don't run PyLucene indexing in the main view
-        view.setBackgroundIndexed(True)
-        # but in the repository's background indexer
-        repository.startIndexer()
-
-    elif options.indexer == 'foreground':
+    if options.indexer == 'foreground':
         # do nothing, indexing happens during commit
         pass
 
@@ -601,7 +595,19 @@ def initRepository(directory, options, allowSchemaView=False):
         # don't start an indexer
 
     else:
-        raise ValueError, ("--indexer", options.indexer)
+        if options.indexer == 'background':  # backwards compat
+            options.indexer = 60
+        else:
+            options.indexer = int(options.indexer)
+
+        if options.indexer:
+            # don't run PyLucene indexing in the main view
+            view.setBackgroundIndexed(True)
+            # but in the repository's background indexer
+            repository.startIndexer(options.indexer)
+        else:
+            # no interval == foreground
+            pass
 
     if options.debugOn:
         debugOn = view.classLoader.loadClass(options.debugOn)
