@@ -72,7 +72,7 @@ class UpgradeDialog(wx.Dialog):
         sizer.Add(self.normalStartup, flag=wx.ALL, border=5)
         self.normalStartup.Bind(wx.EVT_LEFT_DCLICK, self.onButton)
 
-        self.exitReload = wx.RadioButton(self, -1, _(u"Exit Chandler and create a dump of your previous vesion"))
+        self.exitReload = wx.RadioButton(self, -1, _(u"Exit Chandler and create a dump of your previous version"))
         sizer.Add(self.exitReload, flag=wx.ALL, border=5)
         self.exitReload.Bind(wx.EVT_LEFT_DCLICK, self.onButton)
 
