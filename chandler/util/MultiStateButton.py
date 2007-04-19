@@ -44,7 +44,6 @@ class MultiStateBitmapCache(dict):
         states can be added at any time.
         """
         firstFoundState = None
-        found = False
         for entry in multibitmaps:
             stateName = None
             paths = {}

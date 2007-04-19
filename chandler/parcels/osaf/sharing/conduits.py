@@ -608,7 +608,6 @@ class ManifestEngineMixin(BaseConduit):
         Transfer entire 'contents', transformed, to server.
         """
 
-        view = self.itsView
         cvSelf = contentView[self.itsUUID]
 
         location = self.getLocation()
@@ -1328,8 +1327,6 @@ class SimpleHTTPConduit(LinkableConduit, ManifestEngineMixin, HTTPMixin):
             'modified' : [],
             'removed' : []
         }
-
-        view = self.itsView
 
         location = self.getLocation(privilege='readonly')
         if activity:

@@ -28,10 +28,7 @@ from repository.item.Item import MissingClass
 import wx.grid
 import wx
 
-def makeMainView(parcel):
-    from osaf.views.main.menus import makeColorMenuItems
-    from osaf import usercollections
-    
+def makeMainView(parcel):    
     repositoryView = parcel.itsView
 
     globalBlocks = schema.ns("osaf.framework.blocks", repositoryView)

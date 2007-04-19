@@ -179,14 +179,10 @@ class OpenFileButton(Detail.DetailSynchronizer, ControlBlocks.Button):
         if not self._item.body:
             # no script body, open and overwrite existing model data
             title = _(u"Open a script file")
-            message = _(u"Open an existing script file, or choose a name\n"
-                        "for a new file for this script.")
             flags = wx.OPEN
         else:
             # model data exists, we need a place to write it
             title =_(u"Save this script file as")
-            message = _(u"Choose an existing script file, or enter a name\n"
-                        "for a new file for this script.")
             flags = wx.SAVE | wx.OVERWRITE_PROMPT
 
         if self._item.filePath:
@@ -213,7 +209,6 @@ class OpenFileButton(Detail.DetailSynchronizer, ControlBlocks.Button):
 
         if cmd == wx.ID_OK:
             preferFile = len(self._item.body) == 0
-            writeFile = not preferFile
             self._item.filePath = os.path.join(dir, fileName)
             self._item.sync_file_with_model(preferFile=preferFile)
             resyncEvent = schema.ns('osaf.views.detail', self).Resynchronize

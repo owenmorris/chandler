@@ -36,7 +36,6 @@ class UpgradeDialog(wx.Dialog):
 
         profileBase = os.path.dirname(os.path.dirname(locateProfileDir()))
         dirlist     = glob.glob(os.path.join(profileBase, '0.7*'))
-        reloadlist  = glob.glob(os.path.join(profileBase, 'Chandler*.dump'))
 
         if len(dirlist) > 0:
             dialog.exitReload.SetValue(True)
@@ -89,8 +88,6 @@ class UpgradeDialog(wx.Dialog):
         self.CenterOnScreen()
 
     def onButton(self, event):
-        buttonID = event.GetEventObject().GetId()
-
         if self.exitReload.GetValue():
             sys.exit(0)
 

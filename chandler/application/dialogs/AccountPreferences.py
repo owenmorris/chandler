@@ -99,7 +99,6 @@ def IncomingSaveHandler(item, fields, values):
         ns_pim = schema.ns('osaf.pim', item.itsView)
 
         isCurrent = item == ns_pim.currentIncomingAccount.item
-        oldItem   = item
 
         if newAccountProtocol == "IMAP":
             item = Mail.IMAPAccount(itsView=item.itsView)
@@ -1329,7 +1328,6 @@ class AccountPreferencesDialog(wx.Dialog):
 
         data = self.data[self.currentIndex]['values']
 
-        button  = wx.xrc.XRCCTRL(self.currentPanel, "INCOMING_FOLDERS")
         create  = data['INCOMING_FOLDERS']['create']
         account = self.getIncomingAccount()
 
@@ -1868,7 +1866,6 @@ class AccountPreferencesDialog(wx.Dialog):
 
         # Determine current panel
         panel = PANELS[self.currentPanelType]
-        data = self.data[self.currentIndex]['values']
 
         # Scan through fields, seeing if this control corresponds to one
         # If marked as linkedTo, change the linked field

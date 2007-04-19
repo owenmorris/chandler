@@ -2208,7 +2208,6 @@ class wxCalendarControl(wx.Panel, CalendarEventHandler):
         for header in headerLabels:
             weekColumnHeader.AppendItem(header, wx.ALIGN_CENTER, 0, bSortEnabled=False)
             
-        expandoColumn = len(headerLabels) - 1
         self.Bind(colheader.EVT_COLUMNHEADER_SELCHANGED,
                   self.OnDayColumnSelect, weekColumnHeader)
 
@@ -2282,7 +2281,6 @@ class wxCalendarControl(wx.Panel, CalendarEventHandler):
         drawInfo = self
         self.weekColumnHeader.Freeze()
         for (i,width) in enumerate(drawInfo.columnWidths):
-            originPt = (0, 0)
             extentPt = self.weekColumnHeader.GetItemSize(i)
             extentPt.width = width
             self.weekColumnHeader.SetItemSize(i, extentPt)
@@ -2338,7 +2336,6 @@ class wxCalendarControl(wx.Panel, CalendarEventHandler):
 
         self.monthText.SetLabel(monthText)
 
-        today = date.today()
         # ICU makes this list 1-based, 1st element is an empty string, so that
         # shortWeekdays[Calendar.SUNDAY] == 'short name for sunday'
         shortWeekdays = dateFormatSymbols.getShortWeekdays()

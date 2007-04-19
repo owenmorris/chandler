@@ -100,7 +100,6 @@ class Script(pim.ContentItem):
                 self.set_body_quietly(self.file_contents(self.filePath))
             elif writeFile or fileModTime < self.modelModTime:
                 # model is newer
-                latest = self.modelModTime
                 if fileModTime > self.lastSync:
                     msg = _(u"The file associated with this script has been changed,"
                             "\nbut those changes are older than your recent edits.\n\n"

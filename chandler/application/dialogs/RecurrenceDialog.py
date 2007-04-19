@@ -551,7 +551,6 @@ class UserChangeProxy(object):
         """
         pim_ns = schema.ns('osaf.pim', self.proxiedItem.itsView)
         trash = pim_ns.trashCollection
-        allCollection = pim_ns.allCollection
         masterItem = EventStamp(self.proxiedItem).getMaster().itsItem
         if collection == trash:
             collection.add(masterItem)

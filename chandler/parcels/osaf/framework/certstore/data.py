@@ -25,8 +25,7 @@ def loadCerts(parcel, moduleName, filename=u'cacert.pem'):
     import os, sys
     import logging
 
-    from M2Crypto import X509, util
-    from M2Crypto.EVP import MessageDigest
+    from M2Crypto import X509
 
     log = logging.getLogger(__name__)
 

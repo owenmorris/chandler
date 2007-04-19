@@ -121,7 +121,6 @@ class StartupOptionsDialog(wx.Dialog):
         self.CenterOnScreen()
             
     def onButton(self, event):
-        buttonID = event.GetEventObject().GetId()
         if hasattr(self, 'create'):
             Globals.options.create = self.create.GetValue()
         

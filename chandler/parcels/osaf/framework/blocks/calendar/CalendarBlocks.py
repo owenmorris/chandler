@@ -220,7 +220,6 @@ class wxMiniCalendar(DragAndDrop.DropReceiveWidget,
 
         endDate = minical.MonthDelta(startDate, 3)
 
-        numDays = (endDate - startDate).days
         busyFractions = {}
         defaultTzinfo = ICUtzinfo.default
 
@@ -570,12 +569,9 @@ class wxPreviewArea(CalendarCanvas.CalendarNotificationHandler, wx.Panel):
         # Set up drawing & clipping
 
         unselectedColor = styles.cfg.get('preview', 'UnSelectedText')
-        selectedColor =   styles.cfg.get('preview', 'SelectedText')
 
         unselectedBackground = styles.cfg.get('preview',
                                               'UnSelectedTextBackground')
-        selectedBackground =   styles.cfg.get('preview',
-                                              'SelectedTextBackground')
 
         dc.Clear()
         brush =  wx.Brush(unselectedBackground, wx.SOLID)
@@ -623,7 +619,7 @@ class wxPreviewArea(CalendarCanvas.CalendarNotificationHandler, wx.Panel):
         y = self.vMargin
         # Draw title if appropriate
         if self.useToday:
-            todayText = _("Today's events")
+            todayText = _(u"Today's events")
             dc.SetFont(self.timeFont)
             dc.DrawText(todayText, self.hMargin, y)
             y += self.lineHeight

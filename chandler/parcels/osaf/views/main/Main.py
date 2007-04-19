@@ -729,7 +729,6 @@ class MainView(View):
         disappear.
         """
 
-        app = wx.GetApp()
         Block.findBlockByName('StatusBar').setStatusMessage (statusMessage, progressPercentage)
 
     def alertUser(self, message):

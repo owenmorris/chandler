@@ -625,8 +625,8 @@ class RecurrenceRuleSet(items.ContentItem):
                 formatter = DateFormat.createDateInstance(DateFormat.kShort)
                 dct['date'] = unicode(formatter.format(until))
             
-            if rule.interval != 1:
-                dct['interval'] = str(rule.interval)
+            if interval != 1:
+                dct['interval'] = str(interval)
                 index += 'p'
             else:
                 index += 's'

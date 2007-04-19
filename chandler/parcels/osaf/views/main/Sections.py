@@ -387,7 +387,6 @@ class SectionAttributeEditor(BaseAttributeEditor):
         dc.SetPen(wx.TRANSPARENT_PEN)
 
         sectionBackgroundColor = styles.cfg.get('summary', 'SectionBackground')
-        sectionLabelColor = styles.cfg.get('summary', 'SectionLabel')
         sectionCountColor = styles.cfg.get('summary', 'SectionCount')
         sectionSampleColor = colorName and styles.cfg.get('summary', 
                                 'SectionSample_%s_%s' % (attributeName, colorName)) or None

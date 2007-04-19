@@ -87,7 +87,6 @@ class InMemoryConduit(conduits.LinkableConduit, conduits.ManifestEngineMixin):
     def _getItem(self, contentView, itemPath, into=None, activity=None,
                  stats=None):
 
-        view = self.itsView
         text = shareDict[self.shareName][itemPath][1]
         logger.debug("Getting text %s" % text)
 

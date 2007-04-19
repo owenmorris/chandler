@@ -359,7 +359,6 @@ class ContentCollection(ContentItem, Collection):
         @param collectionName: the attribute name of the collection.
         @return: a C{list} of keys or C{None}.
         """
-        collection = getattr(self, collectionName, None)
         mods = item.itsRefs.get('inheritTo')
         if mods:
             return [uMod for uMod in mods.iterkeys()

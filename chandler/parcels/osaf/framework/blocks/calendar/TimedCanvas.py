@@ -119,8 +119,6 @@ class wxTimedEventsCanvas(BaseWidget, wxCalendarCanvas):
         currentRange = self.GetCurrentDateRange()
         self._doDrawingCalculations()
 
-        block = self.blockItem
-
         original_added = set(self._pendingNewEvents)
         actually_added = set()
         

@@ -1403,7 +1403,6 @@ def CheckIfUpgraded(profileDir, repoDir, createRepo):
 
     upgraded    = False
     profileBase = os.path.dirname(os.path.dirname(profileDir))
-    profileName = os.path.basename(profileDir)
 
     dirlist = glob.glob(os.path.join(profileBase, 'Chandler*.dump'))
 

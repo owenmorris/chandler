@@ -65,8 +65,6 @@ class FileSystemConduit(conduits.LinkableConduit, conduits.ManifestEngineMixin):
     def _getItem(self, contentView, itemPath, into=None, activity=None,
         stats=None):
 
-        view = self.itsView
-
         # logger.info("Getting item: %s" % itemPath)
         path = self._getItemFullPath(itemPath)
 

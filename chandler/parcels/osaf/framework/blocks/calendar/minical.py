@@ -1,4 +1,4 @@
-#   Copyright (c) 2003-2006 Open Source Applications Foundation
+#   Copyright (c) 2003-2007 Open Source Applications Foundation
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -200,8 +200,6 @@ class PyMiniCalendar(wx.PyControl):
     # ---------------------------------------------
 
     def SetLowerDateLimit(self, lowdate):
-        retval = True
-
         # XXX WTF is this crazy algebra
         if ((lowdate is None) or (self.upperDateLimit is not None and
                                   lowdate <= self.upperDateLimit)):
@@ -289,7 +287,7 @@ class PyMiniCalendar(wx.PyControl):
 
         week = 0
         found = False
-        lastWeek = False
+        #lastWeek = False
         for month in xrange(MONTHS_TO_DISPLAY):
             if (y > (initialHeight + month * monthHeight + headerHeight) and
                 y < (initialHeight + (month + 1) * monthHeight)):
@@ -298,8 +296,8 @@ class PyMiniCalendar(wx.PyControl):
                         month * monthHeight -
                         headerHeight) / self.heightRow
                 found = True
-                if week == (WEEKS_TO_DISPLAY - 1):
-                    lastWeek = True
+                #if week == (WEEKS_TO_DISPLAY - 1):
+                #    lastWeek = True
                 break
 
         if wday >= DAYS_PER_WEEK or not found:

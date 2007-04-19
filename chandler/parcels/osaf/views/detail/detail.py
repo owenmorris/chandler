@@ -1093,10 +1093,10 @@ class ReminderTypeAttributeEditor(ChoiceAttributeEditor):
         or 'custom')
         """
         # Populate the menu if necessary
-        existingSelectionIndex = control.GetSelection()
-        existingValue = (existingSelectionIndex != wx.NOT_FOUND) \
-                      and control.GetClientData(existingSelectionIndex) \
-                      or None
+        #existingSelectionIndex = control.GetSelection()
+        #existingValue = (existingSelectionIndex != wx.NOT_FOUND) \
+        #              and control.GetClientData(existingSelectionIndex) \
+        #              or None
         isEvent = pim.has_stamp(self.item, pim.EventStamp)
 
         # @@@ For now, always rebuild the list, so we can remove or add the 

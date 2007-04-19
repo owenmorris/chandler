@@ -782,7 +782,6 @@ class SSSidebarSharingButton (SSSidebarButton):
         one.
         """
         imagePrefix = "Sidebar" + self.buttonName
-        notMine = ""
         mouseOver = ""
         mouseDown = ""
         imageSuffix = ".png"
@@ -1000,7 +999,6 @@ class SidebarBlock(Table):
         shouldClearCollection = True
         pim_ns = schema.ns('osaf.pim', self.itsView)
         mine = pim_ns.mine
-        allCollection = pim_ns.allCollection
 
         mineMessage = _(u'Would you like to delete just the collection or the '
                         u'collection and the items within it as well?')

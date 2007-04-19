@@ -405,7 +405,6 @@ class StringAttributeEditor (BaseAttributeEditor):
         # the popup off of that; this has the side benefit that if our view gets 
         # unrendered, this widget will be destroyed automatically.
         topLevelWindow = wx.GetTopLevelParent(self.control)
-        parentWindow = None
         p = self.control
         while p is not topLevelWindow:
             # We'd better not hit a widget w/buffering before we find the view!

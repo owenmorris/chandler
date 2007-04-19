@@ -795,7 +795,6 @@ class TranslatorClass(type):
                         "Translator classes must have a `%s` attribute of"
                         " type `%s`" % (attr, t.__name__)
                     )
-            message = "Translator classes must have a `URI` attribute"
 
         cls = type.__new__(meta, name, bases, cdict)
         registerURI(cdict.get('URI'), cls, None)

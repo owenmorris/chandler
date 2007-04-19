@@ -71,7 +71,6 @@ class RepositoryItemDetail(ControlBlocks.ItemDetail):
             if reference == None:
                 return "(None)"
 
-            url = reference.itsPath
             kind = reference.itsKind
             if kind is not None:
                 kind = kind.itsName

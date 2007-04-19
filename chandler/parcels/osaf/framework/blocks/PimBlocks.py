@@ -286,7 +286,6 @@ class FocusEventHandlers(Item):
 
         selection = self.__getSelectedItems()
         replyMessage = None
-        replyCollection = None
         # Note that this skips over any non-inbox items, so you
         # *could* select-all-reply
         for selectedItem in selection:

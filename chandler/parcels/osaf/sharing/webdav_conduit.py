@@ -401,7 +401,6 @@ class WebDAVConduit(conduits.LinkableConduit, DAVConduitMixin,
     def _getItem(self, contentView, itemPath, into=None, activity=None,
                  stats=None):
 
-        view = self.itsView
         resource = self._resourceFromPath(itemPath)
 
         try:

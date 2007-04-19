@@ -1499,8 +1499,8 @@ class EventStamp(Stamp):
         # So, from now on, either self is a master, or it's an occurrence that
         # doesn't correspond to the master.
         
-        startChanging = attr in (EventStamp.startTime.name,
-                                 )
+        #startChanging = attr in (EventStamp.startTime.name,
+        #                         )
         disabledSelf = self.__disableRecurrenceChanges()
         try:
             if attr == EventStamp.startTime.name:
@@ -1956,18 +1956,19 @@ class EventStamp(Stamp):
                     mod.unmodify()
 
     def isTriageOnlyModification(self):
-        item = self.itsItem
         if self.modificationFor is None:
             return False
+        names = (Triageable._triageStatus.name, 
+                 Triageable._triageStatusChanged.name,
+                 Triageable.doAutoTriageOnDateChange.name,
+                 Triageable._sectionTriageStatus.name,
+                 Triageable._sectionTriageStatusChanged.name)
+        item = self.itsItem
         for attr, value in item.iterModifiedAttributes():
-            if attr in (Triageable._triageStatus.name, 
-                        Triageable._triageStatusChanged.name,
-                        Triageable.doAutoTriageOnDateChange.name,
-                        Triageable._sectionTriageStatus.name,
-                        Triageable._sectionTriageStatusChanged.name):
+            if attr in names:
                 continue
-            else:
-                return False
+
+            return False
         
         return True
                         
@@ -2059,7 +2060,6 @@ class EventStamp(Stamp):
         
         """
         
-        rrulesetItem = getattr(self, 'rruleset', None)
         first = self.getFirstInRule()
         first._grabOccurrences(first.occurrences, None, True)
         first.updateRecurrenceEnd()
@@ -2398,7 +2398,6 @@ def setEventDateTime(item, startTime, endTime, typeFlag):
     typeFlag = 0 indicates no date/time, 1 indicates only date, 2 indicates only time
     and 3 indicates both date and time
     """
-    from osaf import pim
     event = EventStamp(item)
     if (typeFlag == 1) or (typeFlag == 0):
         # No time is present

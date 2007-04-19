@@ -742,7 +742,6 @@ class wxTable(DragAndDrop.DraggableWidget,
         # (that probably can't be fixed until ItemCollection
         # becomes Collection and notifications work again)
 
-        newRowSelection = 0
         contents = blockItem.contents
         newSelectedItemIndex = -1
         for selectionStart,selectionEnd in selectionRanges:

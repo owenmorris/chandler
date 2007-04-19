@@ -440,7 +440,6 @@ def publish(collection, account, classesToInclude=None,
         SharedItem(collection).add()
 
     conduit = WebDAVConduit(itsView=view, account=account)
-    path = account.path.strip("/")
 
     # Interrogate the server associated with the account
 
@@ -1676,7 +1675,6 @@ def fixTriageStatusCallback(share=None, uuids=None):
     #if '_triageStatus' not in share.filterAttributes:
         #return
 
-    now = datetime.datetime.now(tz=ICUtzinfo.default)
     for u in uuids:
         item = share.itsView.find(u)
         # @@@ bug 6700: Can't do this for recurring events for now.

@@ -67,7 +67,7 @@ class TypeReference:
     """Reference a core schema type (e.g. Integer) by its repository path"""
 
     def __init__(self,path):
-        called_from_here = sys._getframe(1).f_globals is globals()
+        #called_from_here = sys._getframe(1).f_globals is globals()
         self.path = path
         self.__name__ = path.split('/')[-1]
 
@@ -771,7 +771,7 @@ class AnnotationClass(type):
             if isinstance(attr,Redirector):
                 itemFor(attr.cdesc, view)     # ensure all attributes exist
 
-        targetClass = cls.targetType()
+        #targetClass = cls.targetType()
         kind = itemFor(cls.targetType(), view)
         for alias, cloud_def in cls.__dict__.get('__kind_clouds__',{}).items():
             cloud_def.make_cloud(kind,alias)

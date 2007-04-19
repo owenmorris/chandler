@@ -56,10 +56,10 @@ def makeColorMenuItems (parcel, theClass, hues, prefix=""):
 
 def makeMainMenus(parcel):
 
-    from osaf.framework.blocks import Menu, MenuItem, MenuBar, ColorEvent
+    from osaf.framework.blocks import Menu, MenuItem, MenuBar
     from osaf.framework.blocks.calendar import VisibleHoursEvent
     from i18n import ChandlerMessageFactory as _
-    from osaf import messages, pim
+    from osaf import messages
     from osaf import usercollections
     from itertools import chain
 
