@@ -330,7 +330,6 @@ class wxAllDayEventsCanvas(wxCalendarCanvas):
             return
 
         event  = dragState.originalDragBox.event
-        origin = dragState.originalDragBox.GetDragOrigin()
 
         currentDate  = self.getDayFromPosition(dragState.currentPosition)
         originalDate = self.getDayFromPosition(dragState._originalPosition)
@@ -394,7 +393,7 @@ class wxAllDayEventsCanvas(wxCalendarCanvas):
         
         self.canvasItemDict = {}
 
-        size = self.GetSize()
+        self.size = self.GetSize()
 
         oldNumEventRows = self.numEventRows
         if self.blockItem.dayMode:
