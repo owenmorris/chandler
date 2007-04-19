@@ -41,11 +41,11 @@ def reindexFloatingEvents(view, tzinfo):
     masterFloatingKeys = [i for i in floatingKeys if i in keys]
     pim_ns.masterEvents.reindexKeys(masterFloatingKeys, None, 'recurrenceEnd')
                               
-    UTCKeys = list(pim_ns.UTCEvents.iterkeys())
-    events.reindexKeys(UTCKeys, None, 'effectiveStartNoTZ', 'effectiveEndNoTZ')
+    #UTCKeys = list(pim_ns.UTCEvents.iterkeys())
+    #events.reindexKeys(UTCKeys, None, 'effectiveStartNoTZ', 'effectiveEndNoTZ')
     
-    masterUTCKeys = [i for i in UTCKeys if i in keys]
-    pim_ns.masterEvents.reindexKeys(masterUTCKeys, None, 'recurrenceEndNoTZ')
+    #masterUTCKeys = [i for i in UTCKeys if i in keys]
+    #pim_ns.masterEvents.reindexKeys(masterUTCKeys, None, 'recurrenceEndNoTZ')
     
     # [Bug 8688] Re-calculate until based on new (non-floating) timezone
     ruleClass = schema.ns("osaf.pim.calendar.Recurrence", view).RecurrenceRule
@@ -189,8 +189,8 @@ class TZPrefs(Preferences):
         # Sync up the default timezone (i.e. the one used when
         # creating new events).
         if self.showUI:
-            convertFloatingEvents(self.itsView, PyICU.ICUtzinfo.default)
             timeZoneInfo.default = PyICU.ICUtzinfo.default
+            convertFloatingEvents(self.itsView, PyICU.ICUtzinfo.default)
         else:
             timeZoneInfo.default = PyICU.ICUtzinfo.floating
 

@@ -299,14 +299,6 @@ def installParcel(parcel, oldVersion=None):
                     method=(eventComparator, 'cmpEndTime'),
                     monitor=(EventStamp.startTime, EventStamp.allDay,
                              EventStamp.anyTime, EventStamp.duration))
-    EventStamp.addIndex(events, 'effectiveStartNoTZ', 'method',
-                    method=(eventComparator, 'cmpStartTimeNoTZ'),
-                    monitor=(EventStamp.startTime, EventStamp.allDay,
-                             EventStamp.anyTime))
-    EventStamp.addIndex(events, 'effectiveEndNoTZ', 'method',
-                    method=(eventComparator, 'cmpEndTimeNoTZ'),
-                    monitor=(EventStamp.startTime, EventStamp.allDay,
-                             EventStamp.anyTime, EventStamp.duration))
 
     # floatingEvents need to be reindexed in effectiveStart and effectiveEnd
     # when the floating timezone changes
@@ -333,15 +325,9 @@ def installParcel(parcel, oldVersion=None):
     longEvents.addIndex('effectiveStart', 'subindex',
                         superindex=(events, events.__collection__,
                                     'effectiveStart'))
-    longEvents.addIndex('effectiveStartNoTZ', 'subindex',
-                        superindex=(events, events.__collection__,
-                                    'effectiveStartNoTZ'))
     longEvents.addIndex('effectiveEnd', 'subindex',
                         superindex=(events, events.__collection__,
                                     'effectiveEnd'))
-    longEvents.addIndex('effectiveEndNoTZ', 'subindex',
-                        superindex=(events, events.__collection__,
-                                    'effectiveEndNoTZ'))
 
     filterAttributes = (EventStamp.rruleset.name, EventStamp.occurrences.name)
     masterFilter = "view.hasTrueValues(uuid, '%s', '%s')" % filterAttributes
@@ -365,16 +351,9 @@ def installParcel(parcel, oldVersion=None):
                         method=(eventComparator, 'cmpRecurEnd'),
                         monitor=(EventStamp.recurrenceEnd,))
 
-    EventStamp.addIndex(masterEvents, "recurrenceEndNoTZ", 'method',
-                        method=(eventComparator, 'cmpRecurEndNoTZ'),
-                        monitor=(EventStamp.recurrenceEnd))
-
     EventStamp.addIndex(masterEvents, 'effectiveStart', 'subindex',
                           superindex=(events, events.__collection__,
                                       'effectiveStart'))
-    EventStamp.addIndex(masterEvents, 'effectiveStartNoTZ', 'subindex',
-                          superindex=(events, events.__collection__,
-                                      'effectiveStartNoTZ'))
 
     locations = KindCollection.update(
         parcel, 'locations',

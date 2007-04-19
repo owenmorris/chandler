@@ -178,5 +178,71 @@ class CalendarTest(TestDomainModel.DomainModelTestCase):
         generate.GenerateItems(view, 100, generate.GenerateCalendarEvent, days=100)
         view.commit()
 
+class AdjustTimesTestCase(unittest.TestCase):
+
+    def setUp(self):
+        self.start = datetime(2006, 4, 21,
+                             tzinfo=ICUtzinfo.getInstance("Europe/Paris"))
+        self.end = self.start + timedelta(days=1)
+
+        self.dt1 = datetime(2006, 4, 21, 3,
+                            tzinfo=ICUtzinfo.getInstance("Asia/Vladivostok"))
+
+        self.dt2 = datetime(2006, 4, 20, 22,
+                            tzinfo=ICUtzinfo.getInstance("Pacific/Pitcairn"))
+                       
+
+    def testWithTimeZones(self):
+        showTZUI = True
+        adjustStart, adjustEnd = Calendar.adjustSearchTimes(
+                                                self.start, self.end, showTZUI)
+                                                            
+        self.failUnlessEqual(adjustStart, self.start,
+                             "If showTZUI is True, shouldn't adjust start")
+        self.failUnlessEqual(adjustEnd, self.end,
+                             "If showTZUI is True, shouldn't adjust end")
+        
+        expected = [self.dt1, adjustStart, self.dt2, adjustEnd]
+        sortedTimes = sorted(expected)
+        self.failUnlessEqual(sortedTimes, expected,
+                            "Misordered datetimes: got %s; expected %s" % (
+                                expected, sortedTimes))
+                                
+    def testWithoutTimeZones(self):
+        showTZUI = False
+        adjustStart, adjustEnd = Calendar.adjustSearchTimes(
+                                                self.start, self.end, showTZUI)
+
+        self.failIfEqual(adjustStart, self.start,
+                             "If showTZUI is False, should adjust start")
+        self.failIfEqual(adjustEnd, self.end,
+                             "If showTZUI is False, should adjust end")
+
+        expected = [adjustStart, self.dt2, self.start, self.dt1, self.end,
+                    adjustEnd]
+        sortedTimes = sorted(expected,
+                             key = lambda dt: dt.replace(tzinfo=None))
+        self.failUnlessEqual(sortedTimes, expected,
+                            "Misordered datetimes: got %s; expected %s" % (
+                                expected, sortedTimes))
+                                
+    def testNone(self):
+        showTZUI = False
+
+        adjustStart, adjustEnd = Calendar.adjustSearchTimes(
+                                                self.start, None, showTZUI)
+        self.failUnless(adjustEnd is None)
+        self.failIf(adjustStart is None)
+        self.failIfEqual(adjustStart, self.start,
+                             "If showTZUI is False, should adjust start")
+
+        adjustStart, adjustEnd = Calendar.adjustSearchTimes(
+                                                None, self.end, showTZUI)
+        self.failUnless(adjustStart is None)
+        self.failIf(adjustEnd is None)
+        self.failIfEqual(adjustEnd, self.end,
+                             "If showTZUI is False, should adjust end")
+     
+
 if __name__ == "__main__":
     unittest.main()

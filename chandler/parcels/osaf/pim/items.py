@@ -58,28 +58,6 @@ class Modification(schema.Enumeration):
     values = { "edited":100, "queued":200, "sent":300, "updated":400,
                "created":500 }
 
-# For use in indexing time-related attributes. We only use this for 
-# reminderFireTime here, but CalendarEventMixin uses this a lot more...
-def cmpTimeAttribute(itemTime, otherTime, useTZ=True):
-    """Compare itemTime and otherTime, ignore timezones if useTZ is False."""
-    if otherTime is None:
-        if itemTime is None:
-            # both attributes are None, so item and other compare as equal
-            return 0
-        else:
-            return -1
-    elif not useTZ:
-        otherTime = otherTime.replace(tzinfo = None)
-
-    if itemTime is None:
-        return 1
-    elif not useTZ:
-        itemTime = itemTime.replace(tzinfo = None)
-
-    return cmp(itemTime, otherTime)
-
-
-
 class ContentItem(Triageable):
     """
     Content Item

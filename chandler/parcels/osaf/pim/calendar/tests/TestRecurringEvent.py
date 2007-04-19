@@ -134,7 +134,7 @@ class RecurringEventTest(testcase.SingleRepositoryTestCase):
         # now test recurrence
         event.rruleset = self._createRuleSetItem('weekly')
         def testBetween(expectedLength):        
-            eventsBetween = list(event.getOccurrencesBetween(rangeStart, rangeEnd))
+            eventsBetween = list(event.getOccurrencesBetween(rangeStart, rangeEnd, True))
             self.assertEqual(len(eventsBetween), expectedLength)
             # @@@triageChange: this fails when triage automatically creates
             # modifications
@@ -162,7 +162,7 @@ class RecurringEventTest(testcase.SingleRepositoryTestCase):
         makeThisAndFutureChange('allDay', True)
         testBetween(0)
         
-        # zero duration eventss
+        # zero duration events
         makeThisAndFutureChange('duration', timedelta(0))
         makeThisAndFutureChange('startTime', rangeStart)
         testBetween(1)

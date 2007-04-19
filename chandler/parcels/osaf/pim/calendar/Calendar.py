@@ -56,7 +56,7 @@ class redirector(property):
 from application import schema
 from osaf.pim.contacts import Contact
 from osaf.pim.triage import Triageable, TriageEnum
-from osaf.pim.items import ContentItem, cmpTimeAttribute, isDead
+from osaf.pim.items import ContentItem, isDead
 from osaf.pim.stamping import Stamp, has_stamp
 from osaf.pim.notes import Note
 from osaf.pim.calendar import Recurrence
@@ -231,6 +231,47 @@ def isDayEvent(event):
     @type event: C{EventStamp}
     """
     return getattr(event, 'anyTime', False) or getattr(event, 'allDay', False)
+    
+def adjustSearchTimes(start, end, showTZUI):
+    """
+    In many cases, we want to find all events within a range of C{datetime}
+    values, This includes API like L{eventsInRange}, L{recurringEventsInRange},
+    L{iterBusyInfo} and L{EventStamp.getOccurrencesBetween}.
+    
+    However, the set of events we return depends on how we are
+    comparing event start- and end-times. (When timezones have been disabled
+    in the Chandler UI, we're supposed to compare them without regard to
+    timezone (or, by stripping out the C{tzinfo}), while otherwise we just
+    do normal C{datetime} comparison).
+
+    So, in the case where timezones have been disabled in the UI, we cope
+    with this by expanding the range of our searches, and making sure we
+    only return events that fall within the original requested range. This
+    function does that adjustment.
+    
+    @param start: Lower bound of search range, or C{None}
+    @type start: C{datetime}
+    
+    @param end: Upper bound of search range, or C{None}
+    @type end: C{datetime}
+    
+    @param showTZUI: Whether the user has enabled display of timezones in the UI
+    @type showTZUI: C{bool}
+    
+    @return: If C{showTZUI} is C{True}, the adjusted C{start} and C{end}
+             are returned. ((C{None} values are not adjusted).
+             
+             In the case where C{showTZUI} is C{False}, the input values
+             are returned.
+             
+    @rtype: C{tuple}
+    """
+    if not showTZUI:
+        if start is not None:
+            start -= timedelta(days=1)
+        if end is not None:
+            end += timedelta(days=1)
+    return start, end
 
 def eventsInRange(view, start, end, filterColl = None, dayItems=True,
                   timedItems=True):
@@ -253,13 +294,20 @@ def eventsInRange(view, start, end, filterColl = None, dayItems=True,
     items from that list. This gives us two lists, which we intersect.
 
     """
+    
     tzprefs = schema.ns('osaf.pim', view).TimezonePrefs
+
+    startIndex = 'effectiveStart'
+    endIndex   = 'effectiveEnd'
+    
+    searchStart, searchEnd = adjustSearchTimes(start, end, tzprefs.showUI)
+    
     if tzprefs.showUI:
-        startIndex = 'effectiveStart'
-        endIndex   = 'effectiveEnd'
+        searchStart = start
+        searchEnd = end
     else:
-        startIndex = 'effectiveStartNoTZ'
-        endIndex   = 'effectiveEndNoTZ'
+        searchStart = start
+        searchEnd = end
 
     allEvents  = EventStamp.getCollection(view)
     longEvents = schema.ns("osaf.pim", view).longEvents
@@ -273,26 +321,26 @@ def eventsInRange(view, start, end, filterColl = None, dayItems=True,
         # Should probably assert has_stamp(event, EventStamp)
         if (has_stamp(event, EventStamp) and
             event.rruleset is None and not isDead(item) and
+            event.isBetween(start, end) and
             ((dayItems and timedItems) or isDayEvent(event) == dayItems)):
             yield event
 
-def recurringEventsInRange(view, start, end, filterColl = None,
-                           dayItems = True, timedItems = True):
+def recurringEventsInRange(view, start, end, filterColl=None,
+                           dayItems=True, timedItems=True):
     """
     Yield all recurring events between start and end that appear in filterColl.
     """
 
     tzprefs = schema.ns('osaf.pim', view).TimezonePrefs
-    if tzprefs.showUI:
-        startIndex = 'effectiveStart'
-        endIndex   = 'recurrenceEnd'
-    else:
-        startIndex = 'effectiveStartNoTZ'
-        endIndex   = 'recurrenceEndNoTZ'
+
+    searchStart, searchEnd = adjustSearchTimes(start, end, tzprefs.showUI)
+
+    startIndex = 'effectiveStart'
+    endIndex   = 'recurrenceEnd'
 
     pim_ns = schema.ns("osaf.pim", view)
     masterEvents = pim_ns.masterEvents
-    keys = getKeysInRange(view, start, 'effectiveStartTime', startIndex,
+    keys = getKeysInRange(view, searchStart, 'effectiveStartTime', startIndex,
                           masterEvents, end, 'recurrenceEnd', endIndex,
                           masterEvents, filterColl, '__adhoc__')
     for key in keys:
@@ -310,20 +358,16 @@ def recurringEventsInRange(view, start, end, filterColl = None,
                     
 def iterBusyInfo(view, start, end, filterColl=None):
     tzprefs = schema.ns('osaf.pim', view).TimezonePrefs
-    if tzprefs.showUI:
-        startIndex = 'effectiveStart'
-        endIndex   = 'effectiveEnd'
-        recurEndIndex   = 'recurrenceEnd'
-    else:
-        startIndex = 'effectiveStartNoTZ'
-        endIndex   = 'effectiveEndNoTZ'
-        recurEndIndex   = 'recurrenceEndNoTZ'
+    searchStart, searchEnd = adjustSearchTimes(start, end, tzprefs.showUI)
 
+    startIndex = 'effectiveStart'
+    endIndex   = 'effectiveEnd'
+    recurEndIndex   = 'recurrenceEnd'
 
     allEvents  = EventStamp.getCollection(view)
     longEvents = schema.ns("osaf.pim", view).longEvents
-    keys = getKeysInRange(view, start, 'effectiveStartTime', startIndex,
-                          allEvents, end, 'effectiveEndTime', endIndex,
+    keys = getKeysInRange(view, searchStart, 'effectiveStartTime', startIndex,
+                          allEvents, searchEnd, 'effectiveEndTime', endIndex,
                           allEvents, filterColl, '__adhoc__', tzprefs.showUI,
                           longDelta = LONG_TIME, longCollection=longEvents)
     for key in keys:
@@ -334,7 +378,7 @@ def iterBusyInfo(view, start, end, filterColl=None):
                 yield fb
 
     masterEvents = schema.ns("osaf.pim", view).masterEvents
-    keys = getKeysInRange(view, start, 'effectiveStartTime', startIndex,
+    keys = getKeysInRange(view, searchStart, 'effectiveStartTime', startIndex,
                           masterEvents, end, 'recurrenceEnd', recurEndIndex,
                           masterEvents, filterColl, '__adhoc__')
 
@@ -545,12 +589,18 @@ class EventStamp(Stamp):
         Compare events based on their effectiveStartTime.  Fall back to
         comparing UUIDs if the times match.
         """
-        start_cmp = cmpTimeAttribute(self.effectiveStartTime,
-                                     other.effectiveStartTime)
-        if start_cmp == 0:
+        selfTime = self.effectiveStartTime
+        otherTime = other.effectiveStartTime
+        
+        if otherTime == selfTime:
             return cmp(self.itsItem.itsUUID, other.itsItem.itsUUID)
+        elif otherTime is None:
+            return 1
+        elif selfTime is None:
+            return -1
         else:
-            return start_cmp
+            #datetime.__cmp__ isn't forgiving of None
+            return cmp(selfTime, otherTime)
 
     @apply
     def summary():
@@ -910,30 +960,32 @@ class EventStamp(Stamp):
         else:
             masterEvent = type(self)(self.occurrenceFor).getMaster()
         return masterEvent
-
-    def __getDatetimePrepFunction(self):
-        """
-        This method returns a function that prepares datetimes for comparisons
-        according to the user's global timezone preference settings. This
-        is important because "naive timezone mode" can re-order events; e.g.
-        in US timezones, an event that falls at 2AM GMT Sunday will be treated
-        as occurring on Sunday in naive mode, but Saturday in non-naive.
-        [cf Bug 5598].
-        """
-
-        if schema.ns('osaf.pim', self.itsItem.itsView).TimezonePrefs.showUI:
-            # If timezones are enabled, just return the original
-            # datetime.
-            def prepare(dt):
-                return dt
+        
+    @staticmethod
+    def _isBetween(self, after, before, inclusive, showUI):
+        # Broken out into a staticmethod to avoid recalculating showUI
+        if showUI:
+            lte = datetime.__le__
+            lt = datetime.__lt__
         else:
-            # If timezones are disabled, convert all timezones to
-            # floating.
-            def prepare(dt):
-                return dt.replace(tzinfo=ICUtzinfo.floating)
+            def lte(dt1, dt2):
+                return dt1.replace(tzinfo=None) <= dt2.replace(tzinfo=None)
+            def lt(dt1, dt2):
+                return dt1.replace(tzinfo=None) < dt2.replace(tzinfo=None)
+        
+        if inclusive:
+            beforecompare = lte
+        else:
+            beforecompare = lt
 
-        return prepare
-
+        if self.effectiveStartTime == self.effectiveEndTime:
+            aftercompare = lte
+        else:
+            aftercompare = lt
+            
+        return ((before is None or beforecompare(self.effectiveStartTime, 
+                                                 before)) and
+                (after  is None or  aftercompare(after, self.effectiveEndTime)))
 
     def isBetween(self, after=None, before=None, inclusive=True):
         """Whether self is between after and before.
@@ -951,25 +1003,10 @@ class EventStamp(Stamp):
         @rtype: C{bool}
 
         """
-        prepDatetime = self.__getDatetimePrepFunction()
-        def lte(dt1, dt2):
-            return prepDatetime(dt1) <= prepDatetime(dt2)
-        def lt(dt1, dt2):
-            return prepDatetime(dt1) < prepDatetime(dt2)
+        showUI = schema.ns('osaf.pim', self.itsItem.itsView).TimezonePrefs.showUI
         
-        if inclusive:
-            beforecompare = lte
-        else:
-            beforecompare = lt
-
-        if self.effectiveStartTime == self.effectiveEndTime:
-            aftercompare = lte
-        else:
-            aftercompare = lt
-            
-        return ((before is None or beforecompare(self.effectiveStartTime, 
-                                                 before)) and
-                (after  is None or  aftercompare(after, self.effectiveEndTime)))
+        return self._isBetween(self, after, before, inclusive, showUI)
+                               
 
     def createDateUtilFromRule(self, ignoreIsCount = True, convertFloating=False):
         """Construct a dateutil.rrule.rruleset from self.rruleset.
@@ -1128,16 +1165,17 @@ class EventStamp(Stamp):
 
     def _generateRule(self, after=None, before=None, inclusive=False,
                       occurrenceCreator=_createOccurrence):
-        """Yield all occurrences in this rule."""
-        first = self.getMaster()
-        prepDatetime = self.__getDatetimePrepFunction()
+        """Yield occurrences in this rule."""
         
-        #if after is None:
-        #    event = first.getFirstOccurrence()
         #
-        #    if event is None:
-        #        return # No occurrences
+        # Timezone behaviour: This method does not pay any attention to
+        # the user's TimeZone preferences; i.e. all comparisons use
+        # tzinfo, regardless of that setting. If you need to call
+        # _generateRule() with after or before, call adjustSearchTimes()
+        # first.
         
+        first = self.getMaster()
+
         if self.rruleset is None:
             return
 
@@ -1167,16 +1205,9 @@ class EventStamp(Stamp):
         else:
             start = self.effectiveStartTime
 
-        prepStart = prepDatetime(start)
-        
-        if (self.effectiveStartTime.tzinfo != prepDatetime(self.effectiveStartTime).tzinfo):
-            if after is not None:
-                after = after.replace(tzinfo=self.effectiveStartTime.tzinfo)
-            start = start.replace(tzinfo=self.effectiveStartTime.tzinfo)
-
         def iterRecurrenceIDs():
             if after is not None:
-                if (exact or (inclusive and (prepDatetime(after) <= prepStart))):
+                if (exact or (inclusive and (after <= start))):
                     if after in ruleset:
                         yield after
 
@@ -1192,8 +1223,7 @@ class EventStamp(Stamp):
                         current = None
 
                 while ((current is not None) and
-                       ((before is None) or
-                        (prepDatetime(current) < prepDatetime(before)))):
+                       (before is None or current < before)):
                     #print '*** yielding current=%s' % (current,)
                     yield current
                     current = ruleset.after(current)
@@ -1207,8 +1237,7 @@ class EventStamp(Stamp):
             knownOccurrence = self.getExistingOccurrence(recurrenceID)
 
             # yield all the matching modifications
-            while mods and (prepDatetime(mods[0].effectiveStartTime)
-                            < prepDatetime(recurrenceID)):
+            while mods and (mods[0].effectiveStartTime < recurrenceID):
                 yield mods.pop(0)
 
             if knownOccurrence is None:
@@ -1252,7 +1281,7 @@ class EventStamp(Stamp):
     def getOccurrencesBetween(self, after, before, inclusive=False):
         """Return a list of events ordered by startTime.
 
-        Get events starting on or before "before", ending on or after "after".
+        Get events starting on or before "after", ending on or after "before".
         Generate any events needing generating.
 
         @param after: Earliest end time allowed
@@ -1268,19 +1297,27 @@ class EventStamp(Stamp):
         @rtype: C{list} containing 0 or more C{EventStamp}s
 
         """
+        showUI = schema.ns('osaf.pim', self.itsItem.itsView).TimezonePrefs.showUI
         master = self.getMaster()
-
+        result = []
+        
         if not master.hasLocalAttributeValue('rruleset'):
-            if master.isBetween(after, before, inclusive):
-                return [master]
-            else: return []
+            if EventStamp._isBetween(master, after, before, inclusive, showUI):
+                result.append(master)
+        else:
+            if not inclusive and not master.duration and not isDayEvent(master):
+                # zero-duration events at midnight aren't found if inclusive is
+                # False and the event's startTime matches start.
+                inclusive = True
             
-        if not inclusive and not master.duration and not isDayEvent(master):
-            # zero-duration events at midnight aren't found if inclusive is
-            # False and the event's startTime matches start.
-            inclusive = True
+            searchAfter, searchBefore = adjustSearchTimes(after, before, showUI)
+            for event in master._generateRule(searchAfter, searchBefore,
+                                              inclusive):
+                if EventStamp._isBetween(event, after, before, inclusive, showUI):
+                    result.append(event)
+        
 
-        return list(master._generateRule(after, before, inclusive))
+        return result
         
     def iterBusyInfo(self, after, before):
 
@@ -1332,10 +1369,11 @@ class EventStamp(Stamp):
         if existing is not None:
             return existing
 
-        # no existing matches, see if one can be generated:
-        for occurrence in self.getOccurrencesBetween(recurrenceID,recurrenceID,True):
-            if occurrence.recurrenceID == recurrenceID:
-                return occurrence
+        # no existing matches, see if this occurrence matches the rruleset:
+        rruleset = self.createDateUtilFromRule()
+        recurrenceID = recurrenceID.astimezone(self.effectiveStartTime.tzinfo)
+        if recurrenceID in rruleset:
+            return self._createOccurrence(recurrenceID)
 
         # no match
         return None
@@ -1564,7 +1602,7 @@ class EventStamp(Stamp):
                 # startTimes of the occurrences, since their effectiveStartTime
                 # will still be calculated correctly.
                     if value:
-                        recurrenceTime = time(0, tzinfo=first.startTime.tzinfo)
+                        recurrenceTime = time(0, tzinfo=ICUtzinfo.floating)
                     else:
                         recurrenceTime = first.startTime.timetz()
     
@@ -2363,7 +2401,7 @@ def parseText(text, locale=None):
 
     return startTime, endTime, countFlag, typeFlag
 
-def makeCompareMethod(attr=None, getFn=None, useTZ=True):
+def makeCompareMethod(attr=None, getFn=None):
     if getFn is None:
         attrName = attr.name
         def getFn(uuid, view):
@@ -2378,7 +2416,18 @@ def makeCompareMethod(attr=None, getFn=None, useTZ=True):
             v2 = vals[u2]
         else:
             v2 = getFn(u2, view)
-        return cmpTimeAttribute(v1, v2, useTZ=useTZ)
+
+        if v2 is None:
+            if v1 is None:
+                # both attributes are None, so item and other compare as equal
+                return 0
+            else:
+                return -1
+        if v1 is None:
+            return 1
+
+        return cmp(v1, v2)
+
     def compare_init(self, u, vals):
         return getFn(u, self.itsView)
     return compare, compare_init
@@ -2387,10 +2436,6 @@ class EventComparator(schema.Item):
     cmpStartTime, cmpStartTime_init = makeCompareMethod(getFn=EventStamp._getEffectiveStartTime)
     cmpEndTime, cmpEndTime_init = makeCompareMethod(getFn=EventStamp._getEffectiveEndTime)
     cmpRecurEnd, cmpRecurEnd_init = makeCompareMethod(attr=EventStamp.recurrenceEnd)
-    # comparisons which strip timezones
-    cmpStartTimeNoTZ, cmpStartTimeNoTZ_init = makeCompareMethod(getFn=EventStamp._getEffectiveStartTime, useTZ=False)
-    cmpEndTimeNoTZ, cmpEndTimeNoTZ_init = makeCompareMethod(getFn=EventStamp._getEffectiveEndTime, useTZ=False)
-    cmpRecurEndNoTZ, cmpRecurEndNoTZ_init = makeCompareMethod(attr=EventStamp.recurrenceEnd, useTZ=False)
 
 def setEventDateTime(item, startTime, endTime, typeFlag):
     """
@@ -2789,24 +2834,20 @@ class TriageStatusReminder(RelativeReminder):
 
         view = self.itsView
 
-        def yieldEvents(start, finish):
+        def yieldEvents(start, end):
             pimNs = schema.ns("osaf.pim", view)
             useTZ = pimNs.TimezonePrefs.showUI
             
-            if useTZ:
-                startIndex = 'effectiveStart'
-                recurEndIndex ='recurrenceEnd'
-            else:
-                startIndex = 'effectiveStartNoTZ'
-                recurEndIndex = 'recurrenceEndNoTZ'
-
+            startIndex = 'effectiveStart'
+            recurEndIndex ='recurrenceEnd'
 
             allEvents = EventStamp.getCollection(view)
             
-            if useTZ:
-                timeForCompare = start
-            else:
-                timeForCompare = start.replace(tzinfo=None)
+            searchStart, searchEnd = adjustSearchTimes(start, end, useTZ)
+            
+            if not useTZ:
+                start = start.replace(tzinfo=None)
+                end = end.replace(tzinfo=None)
             
             def cmpStart(key):
                 testVal = EventStamp._getEffectiveStartTime(key, view)
@@ -2814,26 +2855,26 @@ class TriageStatusReminder(RelativeReminder):
                     return -1 # interpret None as negative infinity
                 # note that we're NOT using >=, if we did, we'd include all day
                 # events starting at the beginning of the next week
-                if not useTZ:
-                    testVal = testVal.replace(tzinfo=None)
-                    
-                return cmp(testVal, timeForCompare)
+                return cmp(testVal, searchStart)
 
             firstKey = allEvents.findInIndex(startIndex, 'first', cmpStart)
             for key, item in allEvents.iterindexitems(startIndex, firstKey):
                 event = EventStamp(item)
                 if event.rruleset is None:
-                    yield event
+                    if useTZ or start <= event.effectiveStartTime.replace(tzinfo=None) <= end:
+                        yield event
 
             masterEvents = pimNs.masterEvents
-            for key in getKeysInRange(view, start, 'effectiveStartTime',
-                      startIndex, masterEvents, finish, 'recurrenceEnd', recurEndIndex,
-                      masterEvents, None, '__adhoc__'):
+            for key in getKeysInRange(view, searchStart, 'effectiveStartTime',
+                      startIndex, masterEvents, searchEnd, 'recurrenceEnd',
+                      recurEndIndex, masterEvents, None, '__adhoc__'):
 
                 master = EventStamp(view[key])
                 
-                for event in master._generateRule(after=start, before=finish):
-                    yield event
+                for event in master._generateRule(after=searchStart,
+                                                  before=searchEnd):
+                    if useTZ or start <= event.effectiveStartTime.replace(tzinfo=None) <= end:
+                        yield event
 
         if self.nextPoll is not None:
             start = self.nextPoll
