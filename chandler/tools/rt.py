@@ -842,13 +842,13 @@ def runScriptPerfTests(options, testlist, largeData=False, repeat=1, logger=log)
             else:
                 tempLogger = DelayedLogger()
                 result = build_lib.runCommand(cmd, timeout=1800, logger=tempLogger)
-    
+
             if result != 0:
                 tempLogger.logAll()
                 log('***Error exit code=%d, %s' % (result, name))
                 failed = True
                 failedTests.append(item)
-    
+
                 if not options.noStop:
                     break
             else:
@@ -858,9 +858,14 @@ def runScriptPerfTests(options, testlist, largeData=False, repeat=1, logger=log)
                     if os.path.isfile(timeLog):
                         value = float(open(timeLog).readline()[:-1])
                     else:
-                        log('timeLog [%s] not found' % timeLog)
-                        value = 0.00
-                    
+                        log('\ntimeLog [%s] not found' % timeLog)
+
+                        failed = True
+                        failedTests.append(item)
+
+                        if not options.noStop:
+                            break
+
                 log(('%02.2f' % value).rjust(just), newline=' ')
                 if not options.dryrun:
                     values.append((value, tempLogger))
