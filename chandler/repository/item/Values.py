@@ -766,8 +766,6 @@ class References(Values):
 
     def _hashValues(self):
 
-        item = self._item
-        kind = item._kind
         hash = 0
 
         names = self.keys()
