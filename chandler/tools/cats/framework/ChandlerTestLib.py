@@ -56,6 +56,9 @@ def sidebarCollectionNamed(name):
     return None
 
 
+# This is the version used for functional tests.  The one for perf testing is
+# in tools/QAUITestAppLib.py, so don't forget to update that copy.
+
 def publishSubscribe(testClass):
     """
     A function to publish and subscribe a collection.
