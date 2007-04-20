@@ -231,7 +231,7 @@ class DBRepository(OnDemandRepository):
         env = DBEnv()
 
         if not ramdb and kwds.get('mvcc', False):
-            env.tx_max = 256
+            env.tx_max = 1024
 
         if configure and not ramdb:
             db_info = file(join(dbHome, 'DB_INFO'), 'w+b')

@@ -78,8 +78,9 @@ class RepositoryView(CView):
     # 0.6.24: monitor rework to support deferred re-indexing
     # 0.6.25: monitor rework to support inheritance with filters
     # 0.6.26: removed 'otherNames' otherName override from Kind
+    # 0.7.0: rolling over to version 0.7
     
-    CORE_SCHEMA_VERSION = 0x00061a00
+    CORE_SCHEMA_VERSION = 0x00070000
 
     def __init__(self, repository, name, version,
                  deferDelete=Default, pruneSize=Default):
