@@ -15,12 +15,12 @@
 
 import sys, os, shutil, atexit, time, threading
 
-from datetime import datetime, timedelta
+from datetime import datetime
 from os.path import exists, abspath, normpath, join, dirname, basename, isdir
 
 from chandlerdb.util import lock
 from chandlerdb.util.c import Nil, Default, UUID, _hash, getPlatformName
-from chandlerdb.item.c import CItem, CValues
+from chandlerdb.item.c import CItem
 from chandlerdb.item import Indexable
 from chandlerdb.persistence.c import DBEnv, DB, Transaction, \
     DBNoSuchFileError, DBPermissionsError, DBInvalidArgError, \
@@ -28,13 +28,12 @@ from chandlerdb.persistence.c import DBEnv, DB, Transaction, \
     DB_VERSION_MAJOR, DB_VERSION_MINOR, DB_VERSION_PATCH
 
 from repository.schema.TypeHandler import TypeHandler
-from repository.util.SAX import XMLGenerator
 from repository.persistence.Repository import \
     Repository, OnDemandRepository, Store, RepositoryThread
 from repository.persistence.RepositoryError import *
 from repository.persistence.DBRepositoryView import DBRepositoryView
 from repository.persistence.DBContainer import \
-    DBContainer, RefContainer, NamesContainer, ACLContainer, IndexesContainer, \
+    RefContainer, NamesContainer, ACLContainer, IndexesContainer, \
     ItemContainer, ValueContainer, CommitsContainer
 from repository.persistence.FileContainer import IndexContainer, LOBContainer
 from repository.persistence.DBItemIO import \

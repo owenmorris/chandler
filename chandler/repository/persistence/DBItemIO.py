@@ -13,11 +13,9 @@
 #   limitations under the License.
 
 
-from struct import pack, unpack
-
 from chandlerdb.persistence.c import DBLockDeadlockError, Record
-from chandlerdb.util.c import Nil, Default, Empty, UUID, _hash, isuuid
-from chandlerdb.item.c import isitem, CItem, isitemref, ItemRef, CValues
+from chandlerdb.util.c import Nil, Empty, UUID, _hash, isuuid
+from chandlerdb.item.c import CItem, isitemref, ItemRef, CValues
 from chandlerdb.schema.c import CAttribute
 from chandlerdb.item import Indexable
 from repository.item.Sets import AbstractSet
@@ -30,7 +28,7 @@ from repository.item.RefCollections import RefDict
 from repository.schema.TypeHandler import TypeHandler
 from repository.persistence.DBRefs import DBStandAloneRefList
 from repository.persistence.RepositoryError import \
-        LoadError, LoadValueError, MergeError, SaveValueError
+        LoadError, LoadValueError
     
 
 class DBItemWriter(ItemWriter):

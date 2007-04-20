@@ -14,7 +14,6 @@
 
 
 from chandlerdb.item.c import CItem
-from repository.util.SAX import XMLGenerator
 
 
 class ItemWriter(object):

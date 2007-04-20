@@ -13,13 +13,12 @@
 #   limitations under the License.
 
 
-from struct import pack, unpack
 from itertools import izip
 from traceback import format_exc
 
 from chandlerdb.item.c import CIndex, DelegatingIndex
 from chandlerdb.persistence.c import Record
-from chandlerdb.util.c import Nil, Default, SkipList, CLinkedMap
+from chandlerdb.util.c import Nil, Default, SkipList
 from PyICU import Collator, Locale
   
 from repository.util.RangeSet import RangeSet

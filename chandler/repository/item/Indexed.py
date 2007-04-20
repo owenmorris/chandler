@@ -13,7 +13,6 @@
 #   limitations under the License.
 
 
-from chandlerdb.item.c import CItem
 from chandlerdb.persistence.c import Record
 from chandlerdb.item.ItemError import *
 from chandlerdb.util.c import Nil, Default

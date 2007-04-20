@@ -15,7 +15,6 @@
 
 from chandlerdb.util.c import _hash, _combine, Nil, Default
 from chandlerdb.schema.c import CAttribute
-from chandlerdb.item.ItemError import SchemaError
 from repository.item.Item import Item, override
 from repository.schema.Kind import Kind
 from repository.schema.TypeHandler import TypeHandler

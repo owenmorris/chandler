@@ -22,13 +22,11 @@ from chandlerdb.item.ItemError import *
 
 from repository.item.RefCollections import RefList, RefDict
 from repository.item.Values import Values, References
-from repository.item.Access import ACL
 from repository.item.PersistentCollections import \
      PersistentCollection, PersistentList, PersistentDict, \
      PersistentTuple, PersistentSet
 
 from repository.util.Path import Path
-from repository.util.LinkedMap import LinkedMap
 
 
 def override(cls):

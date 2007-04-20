@@ -20,7 +20,7 @@ from chandlerdb.util.c import \
 from chandlerdb.persistence.c import Record
 from chandlerdb.schema.c import CDescriptor, CAttribute, CKind
 from chandlerdb.item.c import isitem, CItem, isitemref, ItemRef, ItemValue
-from chandlerdb.item.ItemError import NoSuchAttributeError, SchemaError
+from chandlerdb.item.ItemError import NoSuchAttributeError
 
 from repository.item.Item import Item, MissingClass, override
 from repository.item.RefCollections import RefList

@@ -18,19 +18,16 @@ from threading import currentThread
 from datetime import timedelta
 from time import time, sleep
 
-from chandlerdb.item.c import CItem, isitem
+from chandlerdb.item.c import CItem
 from chandlerdb.util.c import isuuid, Nil, Default, HashTuple
 from chandlerdb.persistence.c import CView, DBLockDeadlockError
 
 from repository.item.RefCollections import RefList
-from repository.item.Indexed import Indexed
-from repository.item.Sets import AbstractSet
 from repository.schema.Kind import Kind
 from repository.persistence.RepositoryError \
      import RepositoryError, MergeError, VersionConflictError
 from repository.persistence.RepositoryView \
      import RepositoryView, OnDemandRepositoryView
-from repository.persistence.Repository import Repository
 from repository.persistence.DBLob import DBLob
 from repository.persistence.DBRefs import DBRefList, DBChildren, DBNumericIndex
 from repository.persistence.DBItemIO import DBItemWriter

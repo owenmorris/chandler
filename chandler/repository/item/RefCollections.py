@@ -13,8 +13,7 @@
 #   limitations under the License.
 
 
-from chandlerdb.util.c import UUID, _hash, _combine, CLink, CLinkedMap, Nil
-from repository.util.Path import Path
+from chandlerdb.util.c import _hash, _combine, CLink, CLinkedMap, Nil
 from repository.util.LinkedMap import LinkedMap
 from repository.item.Indexed import Indexed
 from chandlerdb.item.ItemError import *

@@ -16,7 +16,6 @@
 import logging, sys, gc, threading, os, time
 
 from Queue import Queue
-from itertools import izip
 from heapq import heapify, heappop
 
 from chandlerdb.util.c import UUID, isuuid, Nil, Default, CLinkedMap

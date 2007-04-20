@@ -14,12 +14,11 @@
 
 
 from chandlerdb.util.c import \
-    UUID, _hash, _combine, isuuid, Nil, Default, Empty
+    _hash, _combine, isuuid, Nil, Default, Empty
 from chandlerdb.item.c import CValues, CItem, isitem, isitemref, ItemValue
 from chandlerdb.item.ItemError import *
 
 from repository.util.Path import Path
-from repository.util.Lob import Lob
 from repository.item.RefCollections import RefList, RefDict
 from repository.item.Indexed import Indexed
 from repository.schema.TypeHandler import TypeHandler

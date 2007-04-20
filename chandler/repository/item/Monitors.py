@@ -14,7 +14,6 @@
 
 
 from repository.item.Item import Item, override
-from chandlerdb.util.c import Nil, Default
 
 class Monitors(Item):
 

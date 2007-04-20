@@ -14,7 +14,6 @@
 
 
 from chandlerdb.item.c import ItemValue
-from chandlerdb.item import Indexable
 from chandlerdb.util.c import UUID
 from chandlerdb.persistence.c import Record
 

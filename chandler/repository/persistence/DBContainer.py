@@ -13,19 +13,17 @@
 #   limitations under the License.
 
 
-import sys, threading
-
 from struct import pack, unpack
 from datetime import timedelta
 from time import time
 
 from chandlerdb.util.c import \
-    UUID, isuuid, _hash, HashTuple, Nil, Default, SkipList
-from chandlerdb.item.c import CItem, CValues
+    UUID, isuuid, HashTuple, Nil, Default, SkipList
+from chandlerdb.item.c import CItem
 from chandlerdb.persistence.c import \
-    Record, DB, DBEnv, \
+    Record, DB, \
     CContainer, CValueContainer, CRefContainer, CItemContainer, \
-    CIndexesContainer, DBNotFoundError, DBLockDeadlockError, DBNoSuchFileError
+    CIndexesContainer, DBNotFoundError, DBLockDeadlockError
 
 from repository.item.Access import ACL, ACE
 from repository.persistence.Repository import Repository

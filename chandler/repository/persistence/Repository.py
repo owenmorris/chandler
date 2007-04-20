@@ -1,4 +1,4 @@
-#   Copyright (c) 2004-2006 Open Source Applications Foundation
+#   Copyright (c) 2004-2007 Open Source Applications Foundation
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -15,9 +15,8 @@
 
 import sys, logging, threading, PyLucene, time, Queue
 
-from chandlerdb.util.c import Nil, Default
+from chandlerdb.util.c import Default
 from chandlerdb.persistence.c import CRepository, CStore
-from repository.item.Item import Item
 from repository.persistence.RepositoryView import RepositoryView
 from repository.persistence.RepositoryView import OnDemandRepositoryView
 from repository.persistence.RepositoryError import RepositoryError

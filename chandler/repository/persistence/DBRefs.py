@@ -15,7 +15,7 @@
 from weakref import ref
 
 from chandlerdb.util.c import Nil, UUID, CLink, CLinkedMap, PersistentValue
-from chandlerdb.item.c import isitemref, ItemRef
+from chandlerdb.item.c import ItemRef
 from chandlerdb.persistence.c import Record
 from repository.item.Children import Children
 from repository.item.RefCollections import RefList
