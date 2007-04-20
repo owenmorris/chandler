@@ -80,7 +80,8 @@ try:
     with view.observersDeferred():
         with view.reindexingDeferred():
             contentItems = schema.ns("osaf.pim", view).contentItems
-            for key in contentItems.iterkeys():
+            keys = [k for k in contentItems.iterkeys()]
+            for key in keys[1:]: # Leave one so we'll always have 3 sections in summary view
                 if view.findValue(key, '_sectionTriageStatus', None) is not None:
                     item = view[key]
                     del item._sectionTriageStatus
