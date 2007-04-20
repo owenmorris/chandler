@@ -116,20 +116,20 @@ class ContentItem(Triageable):
     
     BYLINE_FORMATS = {
         Modification.created: (
-            _(u"Created by %(user)s on %(date)s"),
-            _(u"Created on %(date)s"),
+            _(u"created by %(user)s on %(date)s"),
+            _(u"created on %(date)s"),
         ),
         Modification.edited: (
-            _(u"Edited by %(user)s on %(date)s"),
-            _(u"Edited on %(date)s"),
+            _(u"edited by %(user)s on %(date)s"),
+            _(u"edited on %(date)s"),
         ),
         Modification.updated: (
-            _(u"Updated by %(user)s on %(date)s"),
-            _(u"Updated on %(date)s"),
+            _(u"updated by %(user)s on %(date)s"),
+            _(u"updated on %(date)s"),
         ),
         Modification.sent: (
-            _(u"Sent by %(user)s on %(date)s"),
-            _(u"Created on %(date)s"),
+            _(u"sent by %(user)s on %(date)s"),
+            _(u"created on %(date)s"),
         ),
     }
     BYLINE_FORMATS[Modification.queued] = BYLINE_FORMATS[Modification.sent]
