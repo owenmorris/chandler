@@ -80,12 +80,13 @@ try:
     with view.observersDeferred():
         with view.reindexingDeferred():
             contentItems = schema.ns("osaf.pim", view).contentItems
-            keys = [k for k in contentItems.iterkeys()]
+            keys = [k for k in contentItems.iterkeys() if view.findValue(k, '_sectionTriageStatus', None) is not None]
+            if view.findValue(keys[0], '_sectionTriageStatus', None) != pim.TriageEnum.now:
+                logger.ReportFailure('First row was expected to have triage status NOW')
             for key in keys[1:]: # Leave one so we'll always have 3 sections in summary view
-                if view.findValue(key, '_sectionTriageStatus', None) is not None:
-                    item = view[key]
-                    del item._sectionTriageStatus
-                    del item._sectionTriageStatusChanged
+                item = view[key]
+                del item._sectionTriageStatus
+                del item._sectionTriageStatusChanged
 
     # backup
     # - need to commit first so that the collection in the sidebar
