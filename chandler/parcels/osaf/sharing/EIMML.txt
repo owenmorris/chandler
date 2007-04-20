@@ -756,8 +756,6 @@ remotely, then remove it remotely::
 
     >>> state.merge(rs(set([Demo(1,1,1), Demo2(1,1,1)])), rs(set([Demo(1,1,1), Demo2(1,1,1)])), send=False)
     (RecordSet(set([]), set([])), RecordSet(set([]), set([])), RecordSet(set([]), set([])))
-    >>> state
-    State(RecordSet(set([Demo(1, 1, 1), Demo2(1, 1, 1)]), set([])), RecordSet(set([]), set([])))
 
     >>> state.merge(rs(set([Demo(1,1,1), Demo2(1,1,1)])), rs(set([]), set([Demo2(1,1,1)])), send=False)
     (RecordSet(set([]), set([])), RecordSet(set([]), set([Demo2(1, 1, 1)])), RecordSet(set([]), set([])))
