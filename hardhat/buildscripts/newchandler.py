@@ -192,28 +192,26 @@ def Start(hardhatScript, workingDir, buildVersion, clobber, log, skipTests=False
     return (ret + changes, revisions['chandler'])
 
 
-def doTests(hardhatScript, mode, workingDir, outputDir, buildVersion, log):
+def runTest(workingDir, log, cmd, test):
+    failed  = False
     testDir = os.path.join(workingDir, "chandler")
-    logfile = os.path.join(testDir, 'test_profile', 'chandler.log')
+
+    if test == 'u':
+        logfile = os.path.join(testDir, 'chandler.log')
+    else:
+        logfile = os.path.join(testDir, 'test_profile', 'chandler.log')
 
     if os.path.isfile(logfile):
         os.remove(logfile)
 
     os.chdir(testDir)
 
+    log.write("Logging to %s\n" % logfile)
+
     try:
-        print "Testing " + mode
-        log.write(separator)
-        log.write("Testing " + mode + " ...\n")
-        log.write("Logging to %s\n" % logfile)
-
-        cmd = [pythonProgram, './tools/rt.py', '-Ti', '-urf', '-m %s' % mode]
-        if perfMode:
-            cmd += ['-p']
-
         log.write("cmd: %s\n" % ' '.join(cmd))
 
-        outputList = hardhatutil.executeCommandReturnOutput(cmd)
+        outputList = hardhatutil.executeCommandReturnOutput(cmd + ['-%s' % test])
 
         log.write("command output:\n")
         hardhatutil.dumpOutputList(outputList, log)
@@ -233,15 +231,33 @@ def doTests(hardhatScript, mode, workingDir, outputDir, buildVersion, log):
         log.write("NOTE: If the tests themselves passed but the exit code\n")
         log.write("      reports failure, it means a shutdown problem.\n")
         forceBuildNextCycle(log, workingDir)
-        return "test_failed"
+        failed = True
     except Exception, e:
         print "a testing error", e
         log.write("***Internal Error during test run: %s\n" % str(e))
         doCopyLog("log [" + logPath + "]", workingDir, logPath, log)
         forceBuildNextCycle(log, workingDir)
-        return "test_failed"
-    else:
-        doCopyLog("Tests successful", workingDir, logPath, log)
+        failed = True
+
+    return failed
+
+
+def doTests(hardhatScript, mode, workingDir, outputDir, buildVersion, log):
+    print "Testing " + mode
+    log.write(separator)
+    log.write("Testing " + mode + " ...\n")
+
+    cmd   = [pythonProgram, './tools/rt.py', '-Ti', '-m %s' % mode]
+    tests = [ 'u', 'r', 'f' ]
+
+    if perfMode:
+        tests += [ 'p' ]
+
+    for test in tests:
+        if runTest(workingDir, log, cmd, test):
+            return "test-failed"
+
+    doCopyLog("Tests successful", workingDir, logPath, log)
 
     return "success"  # end of doTests( )
 
