@@ -118,6 +118,7 @@ class SharedItem(pim.Stamp):
     # would be held as pending conflicts.
 
     def isAttributeModifiable(self, attribute):
+
         # fast path -- item is unshared; have at it!
         if not self.sharedIn:
             return True
@@ -128,26 +129,12 @@ class SharedItem(pim.Stamp):
         # those inbound shares are read-only, but none of those shares
         # actually *share* that attribute (i.e., it's being filtered either
         # by sharing cloud or explicit filter), then it's modifiable.
-        me = schema.ns("osaf.pim", self.itsItem.itsView).currentContact.item
-        basedAttributeNames = None # we'll look these up if necessary
-        isSharedInAnyReadOnlyShares = False
-        for share in self.sharedIn:
-            if getattr(share, 'sharer', None) is not me:   # inbound share
-                if share.mode in ('put', 'both'):   # writable share
-                    return True
-                else:                               # read-only share
-                    # We found a read-only share; this attribute isn't
-                    # modifiable if it's one of the attributes shared for
-                    # this item in this share. (First, map this attribute to
-                    # the 'real' attributes it depends on, if we haven't yet.)
-                    if basedAttributeNames is None:
-                        basedAttributeNames = self.itsItem.getBasedAttributes(attribute)
-                    for attr in basedAttributeNames:
-                        # @@@MOR: Should this be self.itsKind or self.itsItem.itsKind?
-                        if attr in share.getSharedAttributes(self.itsItem.itsKind):
-                            isSharedInAnyReadOnlyShares = True
 
-        return not isSharedInAnyReadOnlyShares
+        for share in self.sharedIn:
+            if share.isAttributeModifiable(self.itsItem, attribute):
+                return True
+
+        return False
 
 
 
@@ -220,7 +207,7 @@ class State(schema.Item):
 
 
     def merge(self, rsInternal, inbound=eim.RecordSet(), isDiff=True,
-        filter=None, debug=False):
+        filter=None, send=True, debug=False):
 
         if filter is None:
             filter = lambda rs: rs
@@ -240,6 +227,7 @@ class State(schema.Item):
 
         internalDiff = filter(rsInternal - self.agreed)
         externalDiff = filter(rsExternal - self.agreed)
+        ncd = internalDiff | externalDiff
 
         if debug:
             print " ----------- Beginning merge"
@@ -248,20 +236,34 @@ class State(schema.Item):
             print "   externalDiff:", externalDiff
             print "   old agreed:", self.agreed
             print "   old pending:", pending
-
-        ncd = internalDiff | externalDiff
-        self.agreed += ncd
-
-        if debug:
             print "   ncd:", ncd
 
-        dSend = self._cleanDiff(rsExternal, ncd)
+        if send:
+            self.agreed += ncd
+            dSend = self._cleanDiff(rsExternal, ncd)
+            rsExternal += dSend
+            self.pending = filter(rsExternal - self.agreed)
+        else:
+            # 'send' is False which means we don't want internal changes from
+            # reaching self.agreed or dSend.  We *do* want to be alerted to
+            # conflicts between internal and external changes, however.  To
+            # do this, we generate a recordset representing how things would
+            # be if the external changes won, and another recordset
+            # representing how things would be if the internal changes won,
+            # and we diff the two.
+
+            extWins = self.agreed + internalDiff + externalDiff + self.pending
+            intWins = self.agreed + externalDiff + self.pending + internalDiff
+            if debug:
+                print "   extWins:", extWins
+                print "   intWins:", intWins
+            self.pending = filter(extWins - intWins)
+
+            self.agreed = filter(rsExternal)
+            dSend = eim.RecordSet()
 
         dApply = self._cleanDiff(rsInternal, ncd)
 
-        rsExternal += dSend
-
-        self.pending = filter(rsExternal - self.agreed)
 
         if debug:
             print " - - - - Results - - - - "
@@ -661,6 +663,15 @@ class Share(pim.ContentItem):
             shares.append(follower)
 
         return shares
+
+    def isAttributeModifiable(self, item, attribute):
+
+        if hasattr(self.conduit, 'isAttributeModifiable'):
+            return self.conduit.isAttributeModifiable(item, attribute)
+        else:
+            return True
+
+
 
 
 

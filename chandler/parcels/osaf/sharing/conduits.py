@@ -290,7 +290,6 @@ class LinkableConduit(BaseConduit):
                 if hybrid:
                     # This is a hybrid share, XML + ICS
                     share0 = metaView.findUUID(linkedShares[0].itsUUID)
-                    share1 = metaView.findUUID(linkedShares[1].itsUUID)
 
                     for uuid in stats[0]['added']:
                         item = contentView.findUUID(uuid)
@@ -482,6 +481,20 @@ class LinkableConduit(BaseConduit):
 
         return stats
 
+
+    def isAttributeModifiable(self, item, attribute):
+        share = self.share
+
+        if utility.isSharedByMe(share) or share.mode in ('put', 'both'):
+            return True
+
+        # In old style shares, an attribute isn't modifiable if it's one
+        # of the attributes shared for this item in this share
+        for attr in item.getBasedAttributes(attribute):
+            if attr in share.getSharedAttributes(item.itsKind):
+                return False
+
+        return True
 
 
 

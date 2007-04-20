@@ -13,7 +13,7 @@
 #   limitations under the License.
 
 from osaf import pim
-import conduits, errors, formats, eim, shares
+import conduits, errors, formats, eim, shares, model
 from i18n import ChandlerMessageFactory as _
 import logging
 from application import schema
@@ -351,7 +351,22 @@ class RecordSetConduit(conduits.BaseConduit):
                 state.agreed += eim.RecordSet(inherit_records)
 
             dSend, dApply, pending = state.merge(rsInternal, rsExternal,
-                isDiff=isDiff, filter=filter, debug=debug)
+                isDiff=isDiff, filter=filter, send=send, debug=debug)
+
+
+            if not send:
+                # Cosmo doesn't give us deletions for ModifiedByRecords and
+                # that messes with the no-send aspect of the merge function
+                # because old ModByRecords aren't cleaned out.
+                modByToRemove = set()
+                for record in state.agreed.inclusions:
+                    if isinstance(record, model.ModifiedByRecord):
+                        modByToRemove.add(record)
+                agreed = state.agreed
+                for record in modByToRemove:
+                    agreed.inclusions.remove(record)
+                state.agreed = agreed
+
 
             if uuid:
                 item = rv.findUUID(uuid)
@@ -588,6 +603,11 @@ class RecordSetConduit(conduits.BaseConduit):
         return formats.STYLE_DIRECTORY
 
 
+    def isAttributeModifiable(self, item, attribute):
+        # recordset conduits allow any attribute to be modifiable without
+        # interfering with external changes (they are merged and checked for
+        # conflicts)
+        return True
 
 
 class DiffRecordSetConduit(RecordSetConduit):

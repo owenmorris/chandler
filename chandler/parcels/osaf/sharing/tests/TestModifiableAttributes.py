@@ -37,6 +37,7 @@ class TestModifiableAttributes(testcase.NRVTestCase):
         # Add the subject to a read-only share:
 
         share_ro = sharing.Share(itsView=view)
+        share_ro.conduit = sharing.LinkableConduit(itsParent=share_ro)
         share_ro.mode = 'get'
 
         share_ro.addSharedItem(e1)
@@ -59,6 +60,7 @@ class TestModifiableAttributes(testcase.NRVTestCase):
         # Now also add the subject to a read-write share:
 
         share_rw = sharing.Share(itsView=view)
+        share_rw.conduit = sharing.LinkableConduit(itsParent=share_rw)
         share_rw.mode = 'both'
 
         share_rw.addSharedItem(e1)
