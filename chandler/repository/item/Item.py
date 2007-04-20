@@ -1443,7 +1443,6 @@ class Item(CItem):
     def _delete(self, view, recursive, deletePolicy, _noFireChanges, _keepRoot):
 
         refs = self._references
-        values = self._values
         others = set()
 
         self.setDirty(Item.NDIRTY)

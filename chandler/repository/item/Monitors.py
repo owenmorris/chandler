@@ -181,7 +181,6 @@ class Monitor(Item):
 
     def __call__(self, *args):
 
-        view = self.itsView
         method = getattr(self.item, self.method)
         _args = self.args
         _kwds = self.kwds

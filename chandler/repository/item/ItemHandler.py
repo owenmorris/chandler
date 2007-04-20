@@ -792,7 +792,6 @@ class ItemsHandler(ContentHandler):
                     return
             
             if tag == 'item':
-                item = self.itemHandler.item
                 self.items.append(self.itemHandler.item)
                 self.itemHandler.endDocument()
                 self.itemHandler = None

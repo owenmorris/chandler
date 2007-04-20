@@ -205,13 +205,11 @@ class DBItemWriter(ItemWriter):
             indexable = False
 
         if attribute is None:
-            uAttr = DBItemWriter.NOITEM
             attrCard = 'single'
             attrType = None
             if indexed is None:
                 indexed = False
         else:
-            uAttr = attribute.itsUUID
             c = attribute.c
             attrCard = c.cardinality
             attrType = attribute.type
@@ -511,7 +509,6 @@ class DBValueReader(ValueReader):
 
             elif flags & DBItemWriter.DICT:
                 if withSchema:
-                    otherName = data[offset + 1]
                     offset += 2
                 else:
                     offset += 1

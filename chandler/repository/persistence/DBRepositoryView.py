@@ -70,8 +70,6 @@ class DBRepositoryView(OnDemandRepositoryView):
 
     def cancel(self):
 
-        refCounted = self.isRefCounted()
-
         for item in self._log:
             item.setDirty(0)
             item._unloadItem(not item.isNew(), self, False)

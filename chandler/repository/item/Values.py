@@ -208,7 +208,6 @@ class Values(CValues):
         for name in names:
             if kind is not None:
                 attribute = kind.getAttribute(name, False, item)
-                c = attribute.c
             else:
                 attribute = None
 
@@ -769,14 +768,12 @@ class References(Values):
 
         item = self._item
         kind = item._kind
-        view = item.itsView
         hash = 0
 
         names = self.keys()
         names.sort()
 
         for name in names:
-            attribute = kind.getAttribute(name, False, item)
             hash = _combine(hash, _hash(name))
             value = self[name]
                 

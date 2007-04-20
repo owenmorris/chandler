@@ -513,7 +513,6 @@ class NamesContainer(DBContainer):
         try:
             cursor = self.c.openCursor()
             key = uuid._uuid
-            prevHash = None
             value = cursor.set_range(key, self.c.flags, None)
 
             while value is not None and value[0].startswith(key):
