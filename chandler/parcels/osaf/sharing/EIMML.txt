@@ -666,14 +666,14 @@ local changes.
 
 A local change does not appear in toSend nor in the state's "agreed"::
 
-    >>> state.merge(rs([Demo(1, 2, 1)]), send=False)
+    >>> state.merge(rs([Demo(1, 2, 1)]), readOnly=True)
     (RecordSet(set([]), set([])), RecordSet(set([]), set([])), RecordSet(set([]), set([])))
     >>> state
     State(RecordSet(set([Demo(1, 1, 1)]), set([])), RecordSet(set([]), set([])))
 
 An external change *does* appear in toApply and the state's "agreed"::
 
-    >>> state.merge(rs([Demo(1, 1, 1)]), rs([Demo(1, 2, 2)]), send=False)
+    >>> state.merge(rs([Demo(1, 1, 1)]), rs([Demo(1, 2, 2)]), readOnly=True)
     (RecordSet(set([]), set([])), RecordSet(set([Demo(1, 2, 2)]), set([])), RecordSet(set([]), set([])))
     >>> state
     State(RecordSet(set([Demo(1, 2, 2)]), set([])), RecordSet(set([]), set([])))
@@ -681,7 +681,7 @@ An external change *does* appear in toApply and the state's "agreed"::
 A local change coupled with a non-overlapping external change results in the
 external change getting applied to "agreed"::
 
-    >>> state.merge(rs([Demo(1, 3, 2)]), rs([Demo(1, 2, 3)]), send=False)
+    >>> state.merge(rs([Demo(1, 3, 2)]), rs([Demo(1, 2, 3)]), readOnly=True)
     (RecordSet(set([]), set([])), RecordSet(set([Demo(1, NoChange, 3)]), set([])), RecordSet(set([]), set([])))
     >>> state
     State(RecordSet(set([Demo(1, 2, 3)]), set([])), RecordSet(set([]), set([])))
@@ -690,7 +690,7 @@ A local change coupled with an overlapping external change results in the
 external change getting applied to "agreed", and the conflict appears in
 "pending"::
 
-    >>> state.merge(rs([Demo(1, 4, 3)]), rs([Demo(1, 5, 3)]), send=False)
+    >>> state.merge(rs([Demo(1, 4, 3)]), rs([Demo(1, 5, 3)]), readOnly=True)
     (RecordSet(set([]), set([])), RecordSet(set([]), set([])), RecordSet(set([Demo(1, 5, NoChange)]), set([])))
     >>> state
     State(RecordSet(set([Demo(1, 5, 3)]), set([])), RecordSet(set([Demo(1, 5, NoChange)]), set([])))
@@ -699,7 +699,7 @@ Discarding the conflicts, the conflicts should not reappear.  First verifying
 this with no changes::
 
     >>> state.set(rs(set([Demo(1,5,3)])), empty)
-    >>> state.merge(rs([Demo(1, 5, 3)]), send=False)
+    >>> state.merge(rs([Demo(1, 5, 3)]), readOnly=True)
     (RecordSet(set([]), set([])), RecordSet(set([]), set([])), RecordSet(set([]), set([])))
     >>> state
     State(RecordSet(set([Demo(1, 5, 3)]), set([])), RecordSet(set([]), set([])))
@@ -707,7 +707,7 @@ this with no changes::
 Now verifying that a local change will not result in a conflict (nor state
 change)::
 
-    >>> state.merge(rs([Demo(1, 6, 3)]), send=False)
+    >>> state.merge(rs([Demo(1, 6, 3)]), readOnly=True)
     (RecordSet(set([]), set([])), RecordSet(set([]), set([])), RecordSet(set([]), set([])))
     >>> state
     State(RecordSet(set([Demo(1, 5, 3)]), set([])), RecordSet(set([]), set([])))
@@ -715,7 +715,7 @@ change)::
 A new identical external change coupled with our previously-made local change
 *should not* result in a conflict, but it should update the state::
 
-    >>> state.merge(rs([Demo(1, 6, 3)]), rs([Demo(1, 6, 3)]), send=False)
+    >>> state.merge(rs([Demo(1, 6, 3)]), rs([Demo(1, 6, 3)]), readOnly=True)
     (RecordSet(set([]), set([])), RecordSet(set([]), set([])), RecordSet(set([]), set([])))
     >>> state
     State(RecordSet(set([Demo(1, 6, 3)]), set([])), RecordSet(set([]), set([])))
@@ -723,7 +723,7 @@ A new identical external change coupled with our previously-made local change
 A local change coupled with an overlapping external change should generate
 a conflict and the state should reflect the external change::
 
-    >>> state.merge(rs([Demo(1, 7, 3)]), rs([Demo(1, 8, 3)]), send=False)
+    >>> state.merge(rs([Demo(1, 7, 3)]), rs([Demo(1, 8, 3)]), readOnly=True)
     (RecordSet(set([]), set([])), RecordSet(set([]), set([])), RecordSet(set([Demo(1, 8, NoChange)]), set([])))
     >>> state
     State(RecordSet(set([Demo(1, 8, 3)]), set([])), RecordSet(set([Demo(1, 8, NoChange)]), set([])))
@@ -731,38 +731,48 @@ a conflict and the state should reflect the external change::
 Making local and external changes to another field should add a new conflict
 while keeping the old one too:
 
-    >>> state.merge(rs([Demo(1, 7, 4)]), rs([Demo(1, 8, 5)]), send=False)
+    >>> state.merge(rs([Demo(1, 7, 4)]), rs([Demo(1, 8, 5)]), readOnly=True)
     (RecordSet(set([]), set([])), RecordSet(set([]), set([])), RecordSet(set([Demo(1, 8, 5)]), set([])))
     >>> state
     State(RecordSet(set([Demo(1, 8, 5)]), set([])), RecordSet(set([Demo(1, 8, 5)]), set([])))
 
 Applying one part of pending changes should make that conflict go away::
 
-    >>> state.merge(rs([Demo(1, 8, 3)]), send=False)
+    >>> state.merge(rs([Demo(1, 8, 3)]), readOnly=True)
     (RecordSet(set([]), set([])), RecordSet(set([]), set([])), RecordSet(set([Demo(1, NoChange, 5)]), set([])))
     >>> state
     State(RecordSet(set([Demo(1, 8, 5)]), set([])), RecordSet(set([Demo(1, NoChange, 5)]), set([])))
 
+We have a pending conflict; now cause another conflict on the same field::
+
+    >>> state.merge(rs([Demo(1, 7, 6)]), rs([Demo(1, 8, 7)]), readOnly=True)
+    (RecordSet(set([]), set([])), RecordSet(set([]), set([])), RecordSet(set([Demo(1, NoChange, 7)]), set([])))
+    >>> state
+    State(RecordSet(set([Demo(1, 8, 7)]), set([])), RecordSet(set([Demo(1, NoChange, 7)]), set([])))
 
 Ensure record removal works too, by adding a new record locally, then also
 remotely, then remove it remotely::
 
     >>> state.set(rs(set([Demo(1,1,1)])), empty)
 
-    >>> state.merge(rs(set([Demo(1,1,1), Demo2(1,1,1)])), empty, send=False)
+    >>> state.merge(rs(set([Demo(1,1,1), Demo2(1,1,1)])), empty, readOnly=True)
     (RecordSet(set([]), set([])), RecordSet(set([]), set([])), RecordSet(set([]), set([])))
     >>> state
     State(RecordSet(set([Demo(1, 1, 1)]), set([])), RecordSet(set([]), set([])))
 
-    >>> state.merge(rs(set([Demo(1,1,1), Demo2(1,1,1)])), rs(set([Demo(1,1,1), Demo2(1,1,1)])), send=False)
+    >>> state.merge(rs(set([Demo(1,1,1), Demo2(1,1,1)])), rs(set([Demo(1,1,1), Demo2(1,1,1)])), readOnly=True)
     (RecordSet(set([]), set([])), RecordSet(set([]), set([])), RecordSet(set([]), set([])))
     >>> state.agreed == rs(set([Demo(1, 1, 1), Demo2(1, 1, 1)]))
     True
     >>> state.pending == empty
     True
 
-    >>> state.merge(rs(set([Demo(1,1,1), Demo2(1,1,1)])), rs(set([]), set([Demo2(1,1,1)])), send=False)
+    >>> state.merge(rs(set([Demo(1,1,1), Demo2(1,1,1)])), rs(set([]), set([Demo2(1,1,1)])), readOnly=True)
     (RecordSet(set([]), set([])), RecordSet(set([]), set([Demo2(1, 1, 1)])), RecordSet(set([]), set([])))
+
+
+
+
 
 
 

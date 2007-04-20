@@ -207,7 +207,7 @@ class State(schema.Item):
 
 
     def merge(self, rsInternal, inbound=eim.RecordSet(), isDiff=True,
-        filter=None, send=True, debug=False):
+        filter=None, readOnly=False, debug=False):
 
         if filter is None:
             filter = lambda rs: rs
@@ -238,13 +238,12 @@ class State(schema.Item):
             print "   old pending:", pending
             print "   ncd:", ncd
 
-        if send:
-            self.agreed += ncd
-            dSend = self._cleanDiff(rsExternal, ncd)
-            rsExternal += dSend
-            self.pending = filter(rsExternal - self.agreed)
-        else:
-            # 'send' is False which means we don't want internal changes from
+        if readOnly:
+            # This allows a read-only subscriber to maintain local changes
+            # that only conflict when someone else makes a conflicting change,
+            # and not *every* time they sync.
+
+            # We don't want internal changes from
             # reaching self.agreed or dSend.  We *do* want to be alerted to
             # conflicts between internal and external changes, however.  To
             # do this, we generate a recordset representing how things would
@@ -252,8 +251,8 @@ class State(schema.Item):
             # representing how things would be if the internal changes won,
             # and we diff the two.
 
-            extWins = self.agreed + internalDiff + externalDiff + self.pending
-            intWins = self.agreed + externalDiff + self.pending + internalDiff
+            extWins = self.agreed + internalDiff + self.pending + externalDiff
+            intWins = self.agreed + self.pending + externalDiff + internalDiff
             if debug:
                 print "   extWins:", extWins
                 print "   intWins:", intWins
@@ -261,6 +260,12 @@ class State(schema.Item):
 
             self.agreed = filter(rsExternal)
             dSend = eim.RecordSet()
+
+        else:
+            self.agreed += ncd
+            dSend = self._cleanDiff(rsExternal, ncd)
+            rsExternal += dSend
+            self.pending = filter(rsExternal - self.agreed)
 
         dApply = self._cleanDiff(rsInternal, ncd)
 

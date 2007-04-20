@@ -350,8 +350,9 @@ class RecordSetConduit(conduits.BaseConduit):
                     inherit_records.append(type(record)(*args))
                 state.agreed += eim.RecordSet(inherit_records)
 
+            readOnly = not send
             dSend, dApply, pending = state.merge(rsInternal, rsExternal,
-                isDiff=isDiff, filter=filter, send=send, debug=debug)
+                isDiff=isDiff, filter=filter, readOnly=readOnly, debug=debug)
 
 
             if not send:
