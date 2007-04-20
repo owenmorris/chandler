@@ -103,7 +103,7 @@ class BranchPointBlock(BoxContainer):
         # Delegate work to our delegate
         self.delegate.setView (self.selectedItem, event.viewTemplatePath)
         hints = {"event": event}
-        self.widget.wxSynchronizeWidget(False, hints)
+        self.widget.wxSynchronizeWidget(hints)
 
     def onViewEventUpdateUI (self, event):
         checked = event.arguments ['Check'] = self.delegate.getView (self.selectedItem) == event.viewTemplatePath
