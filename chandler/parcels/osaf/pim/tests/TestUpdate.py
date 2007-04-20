@@ -194,7 +194,7 @@ class UpdateTestCase(NRVTestCase):
         # Make sure you can't _set_ the byline
         self.failUnlessRaises(AttributeError, setattr, item, 'byline', u"Yuck!")
         
-        self.failUnlessEqual(item.byline, u"Created on 12/11/2004")
+        self.failUnlessEqual(item.byline, u"created on 12/11/2004")
         
         
         # Explicitly set the state to created ...
@@ -204,23 +204,23 @@ class UpdateTestCase(NRVTestCase):
         edited = datetime(2006, 12, 31, 22, 11, tzinfo=ICUtzinfo.default)
         item.changeEditState(Modification.edited, when=edited, who=email)
         self.failUnlessEqual(item.byline,
-                             u"Edited by totoro@example.com on 12/31/2006")
+                             u"edited by totoro@example.com on 12/31/2006")
 
         # Change the state to queued ...
         item.changeEditState(Modification.queued, when=edited, who=email)
         self.failUnlessEqual(item.byline,
-                             u"Sent by totoro@example.com on 12/31/2006")
+                             u"sent by totoro@example.com on 12/31/2006")
         
         # Now, sent ...
         sent = datetime(2036, 1, 12, 2, 15, tzinfo=ICUtzinfo.default)
         item.changeEditState(Modification.sent, when=sent, who=email)
         self.failUnlessEqual(item.byline,
-                             u"Sent by totoro@example.com on 1/12/2036")
+                             u"sent by totoro@example.com on 1/12/2036")
 
         # Lastly, updated ...
         updated = datetime(2007, 5, 17, 4, 22, 53, tzinfo=ICUtzinfo.default)
         item.changeEditState(Modification.updated, when=updated)
-        self.failUnlessEqual(item.byline, u"Updated on 5/17/2007")
+        self.failUnlessEqual(item.byline, u"updated on 5/17/2007")
 
     def testError(self):
         item = ContentItem(itsParent=self.sandbox)
