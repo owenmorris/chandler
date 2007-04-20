@@ -691,7 +691,7 @@ int _t_record_inplace_concat(t_record *self, PyObject *args)
           case R_RECORD:
             if (value->ob_type == Record)
             {
-                size += 6;
+                size += 8;
                 size += PyList_GET_SIZE(((t_record *) value)->pairs) >> 1;
                 size += ((t_record *) value)->size;
             }
@@ -1070,17 +1070,17 @@ int _t_record_write(t_record *self, unsigned char *data, int len)
               t_record *record = (t_record *) value;
               PyObject *pairs = record->pairs;
               int count = PyList_GET_SIZE(pairs);
+              int c32 = count >> 1;
               int v;
 
-              i16 = count >> 1;
-              if (offset + i16 + record->size + 6 > len)
+              if (offset + c32 + record->size + 8 > len)
                   goto overflow;
 
-              i32 = record->size + i16 + 2;
+              i32 = record->size + c32 + 4;
               *(unsigned long *) (data + offset) = htonl(i32);
               offset += 4;
-              *(unsigned short *) (data + offset) = htons(i16);
-              offset += 2;
+              *(unsigned long *) (data + offset) = htonl(c32);
+              offset += 4;
 
               for (v = 0; v < count; v += 2) {
                   PyObject *vtype = PyList_GET_ITEM(pairs, v);
@@ -1158,10 +1158,10 @@ static int _t_record_read_string(t_record *self, int *offset, PyObject **v,
 
 static PyObject *_t_record_unpack(unsigned char *data, int len)
 {
-    int count = ntohs(*(unsigned short *) data);
+    int count = ntohl(*(unsigned long *) data);
     PyObject *vtypes = PyTuple_New(count);
     t_record *record;
-    int i, offset = 2;
+    int i, offset = 4;
 
     if (!vtypes)
         return NULL;
