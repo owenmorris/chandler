@@ -255,7 +255,7 @@ def doTests(hardhatScript, mode, workingDir, outputDir, buildVersion, log):
 
     for test in tests:
         if runTest(workingDir, log, cmd, test):
-            return "test-failed"
+            return "test_failed"
 
     doCopyLog("Tests successful", workingDir, logPath, log)
 
