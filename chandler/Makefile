@@ -32,7 +32,7 @@ ARCHIVES = \
     $(CHANDLERARCHIVES)/PyICU-$(SNAP)-0.6-72-$(BP)1.tar.gz \
     $(CHANDLERARCHIVES)/PyLucene-$(SNAP)-2.0.0-7-$(BP)1.tar.gz \
     $(CHANDLERARCHIVES)/twisted-$(SNAP)-r18795-$(BP)1.tar.gz \
-    $(CHANDLERARCHIVES)/wxPython-$(SNAP)-2.8.2.0-r163-$(BP)1.tar.gz \
+    $(CHANDLERARCHIVES)/wxPython-$(SNAP)-2.8.2.0-r164-$(BP)1.tar.gz \
     $(CHANDLERARCHIVES)/dateutil-$(SNAP)-1.1-$(BP)4.tar.gz \
     $(CHANDLERARCHIVES)/vobject-$(SNAP)-0.4.8-r185-$(BP)1.tar.gz \
     $(CHANDLERARCHIVES)/zanshin-$(SNAP)-163-$(BP)1.tar.gz \
