@@ -62,115 +62,126 @@ def ProcessEvent (theClass, properties , attributes):
         ProcessEvent.newFocusWindow = newFocusWindow
         ProcessEvent.newFocusWindowClass = properties["newFocusWindowClass"]
             
-    # On Windows, EmulateKeyPress seems to cause EVT_CHAR events to occur
-    # so we don't need to process the recorded EVT_CHAR events
-    if not (eventType is wx.EVT_CHAR and '__WXMSW__' in wx.PlatformInfo):
-        # Special case clicks on checkboxes to toggle the widget's value
-        # And special case wx,Choice to set the selection. Both of these
-        # are necessary before the event is processed so the GetValue
-        # validation passes
-        if eventType is wx.EVT_CHECKBOX:
-            sentToWidget.SetValue (not sentToWidget.GetValue())
+    # Special case clicks on checkboxes to toggle the widget's value
+    # And special case wx,Choice to set the selection. Both of these
+    # are necessary before the event is processed so the GetValue
+    # validation passes
+    if eventType is wx.EVT_CHECKBOX:
+        sentToWidget.SetValue (not sentToWidget.GetValue())
 
-        # andSpecial case wx,Choice to set the selection
-        elif eventType is wx.EVT_CHOICE:
-            sentToWidget.SetSelection (properties ["selectedItem"])
+    # andSpecial case wx,Choice to set the selection
+    elif eventType is wx.EVT_CHOICE:
+        sentToWidget.SetSelection (properties ["selectedItem"])
+
+    # A bug in wxWidgets on Windows stores the wrong value for m_rawCode in wx.EVT_CHAR
+    # Since the correct valus is stored in wx.EVT_KEY_DOWN and wx.EVT_KEY_DOWN
+    # precedes wx.EVT_KEY_DOWN, we'll cache it for the next wx.EVT_KEY_DOWN
+    # Raw key codes are only used on Windows. There they correspond to virtual
+    # keycodes. For this reason we record scripts on Windows to play back on the
+    # other platforms.
+    if eventType is wx.EVT_KEY_DOWN:
+        ProcessEvent.last_rawCode = event.m_rawCode
+
+    # Do validations
+    if ProcessEvent.verifyOn:
+        # Make sure the menu or button is enabled
+        if eventType is wx.EVT_MENU:
+            updateUIEvent = wx.UpdateUIEvent (event.GetId())
+            updateUIEvent.SetEventObject (sentToWidget)
+            sentToWidget.ProcessEvent (updateUIEvent)
+            assert updateUIEvent.GetEnabled() is True, "You're sending a command to a disable menu"
             
-        # Do validations
-        if ProcessEvent.verifyOn:
-            # Make sure the menu or button is enabled
-            if eventType is wx.EVT_MENU:
-                updateUIEvent = wx.UpdateUIEvent (event.GetId())
-                updateUIEvent.SetEventObject (sentToWidget)
-                sentToWidget.ProcessEvent (updateUIEvent)
-                assert updateUIEvent.GetEnabled() is True, "You're sending a command to a disable menu"
-                
-            # Check to makee sure we're focused to the right window
-            newFocusWindow = ProcessEvent.newFocusWindow
-            if newFocusWindow is not None:
-                focusWindow = wx.Window_FindFocus()
-                
-                # On Macintosh there is a setting under SystemPreferences>Keyboar&Mouse>KeyboardShortcuts
-                # neare the bottom of the page titled "Full Keyboard Access" that defaults to
-                # not letting you set the focus to certain controls, e.g. CheckBoxes. So we
-                # don't verify the focus in those cases.
-                if ('__WXMAC__' not in wx.PlatformInfo or
-                    not issubclass (ProcessEvent.newFocusWindowClass, wx.CheckBox)):
+        # Check to makee sure we're focused to the right window
+        newFocusWindow = ProcessEvent.newFocusWindow
+        if newFocusWindow is not None:
+            focusWindow = wx.Window_FindFocus()
+            
+            # On Macintosh there is a setting under SystemPreferences>Keyboar&Mouse>KeyboardShortcuts
+            # neare the bottom of the page titled "Full Keyboard Access" that defaults to
+            # not letting you set the focus to certain controls, e.g. CheckBoxes. So we
+            # don't verify the focus in those cases.
+            if ('__WXMAC__' not in wx.PlatformInfo or
+                not issubclass (ProcessEvent.newFocusWindowClass, wx.CheckBox)):
 
-                    if type (newFocusWindow) is str:
-                        assert focusWindow is NameToWidget (newFocusWindow), "An unexpected window has the focus"
-                    else:
-                        assert isinstance (focusWindow, ProcessEvent.newFocusWindowClass), "The focus window, " + str(focusWindow) + ", is not class " + str (theClass) + ". Parent window is " + str (focusWindow.GetParent())
-                        if newFocusWindow > 0:
-                            assert focusWindow.GetId() == newFocusWindow, "Focus window has unexpected id"
-                        else:
-                            assert focusWindow.GetId() < 0, "Focus window has unexpected id"
-        
-            # Check to make sure last event caused expected change
-            if ProcessEvent.lastSentToWidget is not None:
-                method = getattr (ProcessEvent.lastSentToWidget, "GetValue", None)
-                lastWidgetValue = properties.get ("lastWidgetValue", None)
-                if lastWidgetValue is not None and method is not None:
-                    value = method()
-                    # Special hackery for string that varies depending on Chandler build
-                    if type (value) is unicode and value.startswith (u"Welcome to Chandler 0.7.dev-r"):
-                        assert lastWidgetValue.startswith (u"Welcome to Chandler 0.7.dev-r")
-                    else:
-                        assert value == lastWidgetValue, "widget's value doesn't match the value when the script was recorded"
+                if type (newFocusWindow) is str:
+                    assert focusWindow is NameToWidget (newFocusWindow), "An unexpected window has the focus"
                 else:
-                    assert lastWidgetValue is None, "last widget differes from its value when the script was recorded"
+                    assert isinstance (focusWindow, ProcessEvent.newFocusWindowClass), "The focus window, " + str(focusWindow) + ", is not class " + str (theClass) + ". Parent window is " + str (focusWindow.GetParent())
+                    if newFocusWindow > 0:
+                        assert focusWindow.GetId() == newFocusWindow, "Focus window has unexpected id"
+                    else:
+                        assert focusWindow.GetId() < 0, "Focus window has unexpected id"
     
-        if not sentToWidget.ProcessEvent (event):
-            # Special case key downs
-            if eventType is wx.EVT_KEY_DOWN:
-                # EmulateKeyPress isn't implemented correctly on for non-windows platform. So for now
-                # we'll special case the grid case and send the event to the gridWindow.
-                # Eventually, it would be nice to spend some time investigating how to implement
-                # EmulateKeyPress correctly on non-windows platforms.
-                # Finally, to be consistent, we'll process the event in the same way on all platforms
-                processed = False
-                if (event.m_keyCode in set ([wx.WXK_ESCAPE, wx.WXK_TAB, wx.WXK_RETURN, wx.WXK_NUMPAD_ENTER])):
-                    gridWindow = sentToWidget.GetParent()
-                    if (gridWindow is not None and
-                        isinstance (gridWindow.GetParent(), wx.grid.Grid)):
-                        event.SetEventObject (gridWindow)
-                        gridWindow.ProcessEvent (event)
-                        processed = True
-    
-                if not processed:
-                    # Try EmulateKeyPress
-                    EmulateKeyPress = getattr(sentToWidget, 'EmulateKeyPress', None)
-                    if EmulateKeyPress is not None:
-                        EmulateKeyPress (event)
-    
-            # Left down changes the focus
-            elif eventType is wx.EVT_LEFT_DOWN:
-                sentToWidget.SetFocus()
-    
-        selectionRange = properties.get ("selectionRange", None)
-        if selectionRange is not None:
-            (start, end) = selectionRange
-            sentToWidget.SetSelection (start, end)
-    
-        ProcessEvent.lastSentToWidget = sentToWidget
-        
-        # On windows when we propagate notifications while editing a text control
-        # it will end up calling wxSynchronizeWidget in wxTable, which will end the
-        # editing of the table
-        if not isinstance (sentToWidget, wx.TextCtrl):
-            application.propagateAsynchronousNotifications()
-    
-        application.Yield()
-        
-        # Since scrips don't actually move the cursor and cause wxMouseCaptureLostEvents
-        # to be generated we'll periodically release the capture from all the windows.
-        # Alternatively, it might be better to record and playback wxMouseCaptureLostEvents.
-        while True:
-            capturedWindow = wx.Window.GetCapture()
-            if capturedWindow is not None:
-                capturedWindow.ReleaseMouse()
+        # Check to make sure last event caused expected change
+        if ProcessEvent.lastSentToWidget is not None:
+            method = getattr (ProcessEvent.lastSentToWidget, "GetValue", None)
+            lastWidgetValue = properties.get ("lastWidgetValue", None)
+            if lastWidgetValue is not None and method is not None:
+                value = method()
+                # Special hackery for string that varies depending on Chandler build
+                if type (value) is unicode and value.startswith (u"Welcome to Chandler 0.7.dev-r"):
+                    assert lastWidgetValue.startswith (u"Welcome to Chandler 0.7.dev-r")
+                else:
+                     assert value == lastWidgetValue, "widget's value doesn't match the value when the script was recorded"
             else:
-                break
+                assert lastWidgetValue is None, "last widget differes from its value when the script was recorded"
+
+    if not sentToWidget.ProcessEvent (event):
+        # Special case key downs
+        if eventType is wx.EVT_CHAR:
+            # EmulateKeyPress isn't implemented correctly on for non-windows platform. So for now
+            # we'll special case the grid case and send the event to the gridWindow.
+            # Eventually, it would be nice to spend some time investigating how to implement
+            # EmulateKeyPress correctly on non-windows platforms.
+            # Finally, to be consistent, we'll process the event in the same way on all platforms
+            processed = False
+            if (event.m_keyCode in set ([wx.WXK_ESCAPE, wx.WXK_TAB, wx.WXK_RETURN, wx.WXK_NUMPAD_ENTER])):
+                gridWindow = sentToWidget.GetParent()
+                if (gridWindow is not None and
+                    isinstance (gridWindow.GetParent(), wx.grid.Grid)):
+                    event.SetEventObject (gridWindow)
+                    gridWindow.ProcessEvent (event)
+                    processed = True
+
+            if not processed:
+                # Try EmulateKeyPress
+                EmulateKeyPress = getattr(sentToWidget, 'EmulateKeyPress', None)
+                if EmulateKeyPress is not None:
+
+                    # A bug in wxWidgets on Windows stores the wrong value for m_rawCode in wx.EVT_CHAR
+                    # Since the correct valus is stored in wx.EVT_KEY_DOWN and wx.EVT_KEY_DOWN
+                    # precedes wx.EVT_KEY_DOWN, we'll cache it for the next wx.EVT_KEY_DOWN
+                    event.m_rawCode = ProcessEvent.last_rawCode
+                    EmulateKeyPress (event)
+
+        # Left down changes the focus
+        elif eventType is wx.EVT_LEFT_DOWN:
+            sentToWidget.SetFocus()
+
+    selectionRange = properties.get ("selectionRange", None)
+    if selectionRange is not None:
+        (start, end) = selectionRange
+        sentToWidget.SetSelection (start, end)
+
+    ProcessEvent.lastSentToWidget = sentToWidget
+    
+    # On windows when we propagate notifications while editing a text control
+    # it will end up calling wxSynchronizeWidget in wxTable, which will end the
+    # editing of the table
+    if not isinstance (sentToWidget, wx.TextCtrl):
+        application.propagateAsynchronousNotifications()
+
+    application.Yield()
+    
+    # Since scrips don't actually move the cursor and cause wxMouseCaptureLostEvents
+    # to be generated we'll periodically release the capture from all the windows.
+    # Alternatively, it might be better to record and playback wxMouseCaptureLostEvents.
+    while True:
+        capturedWindow = wx.Window.GetCapture()
+        if capturedWindow is not None:
+            capturedWindow.ReleaseMouse()
+        else:
+            break
 
 def VerifyOn (verify = True):
     ProcessEvent.verifyOn = verify
