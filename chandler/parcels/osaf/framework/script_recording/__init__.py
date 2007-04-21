@@ -15,16 +15,36 @@
 
 import os, sys, wx, types
 from application import schema
-from osaf.framework.blocks import Block, BlockEvent
+from osaf.framework.blocks import Block, BlockEvent, Table
 from osaf.framework.blocks.MenusAndToolbars import Menu, MenuItem
 from i18n import ChandlerMessageFactory as _
 from application.Application import idToString
+from osaf.views.detail import DetailSynchronizedAttributeEditorBlock
 
-wxEventClasses = set([wx.CommandEvent,
-                      wx.MouseEvent,
-                      wx.KeyEvent])
+wxEventClasseInfo = {wx.CommandEvent: {"attributes": ()},
+                     wx.MouseEvent: {"attributes": ("m_altDown",
+                                                    "m_controlDown",
+                                                    "m_leftDown",
+                                                    "m_middleDown",
+                                                    "m_rightDown",
+                                                    "m_metaDown",
+                                                    "m_shiftDown",
+                                                    "m_x",
+                                                    "m_y",
+                                                    "m_wheelRotation",
+                                                    "m_wheelDelta",
+                                                    "m_linesPerAction")},
+                     wx.KeyEvent: {"attributes": ("m_rawCode",
+                                                  "m_altDown",
+                                                  "m_controlDown",
+                                                  "m_keyCode",
+                                                  "m_metaDown",
+                                                  "m_shiftDown",
+                                                  "m_x",
+                                                  "m_y",
+                                                  "UnicodeKey")} }
 
-wxEventTypes = ["EVT_MENU",
+wxEventTypes = ("EVT_MENU",
                 "EVT_KEY_DOWN",
                 "EVT_LEFT_DOWN",
                 "EVT_LEFT_UP",
@@ -32,7 +52,7 @@ wxEventTypes = ["EVT_MENU",
                 "EVT_LEFT_DCLICK",
                 "EVT_RIGHT_DCLICK",
                 "EVT_CHAR",
-                    "EVT_CHOICE",
+                "EVT_CHOICE",
                 "EVT_SCROLLWIN_LINEUP",
                 "EVT_SCROLLWIN_LINEDOWN",
                 "EVT_SCROLLWIN_PAGEUP",
@@ -43,13 +63,31 @@ wxEventTypes = ["EVT_MENU",
                 "EVT_ACTIVATE",
                 "EVT_SET_FOCUS",
                 "EVT_BUTTON",
-                "EVT_CHECKBOX"]
+                "EVT_CHECKBOX")
 
-ignoreBlocks = set (["RecordingMenuItem",
-                     "IncludeTeststMenuItem"])
+ignoreBlocks = set (("RecordingMenuItem",
+                     "IncludeTeststMenuItem"))
 
-wxEventClasseInfo = {}
 wxEventTypeReverseMapping = {}
+
+def getClassName (theClass):
+    # Introspect the name of the class
+    module = theClass.__module__
+    if module == "wx._core":
+        module = "wx"
+    return module + '.' + theClass.__name__
+
+for (theClass, values) in wxEventClasseInfo.iteritems():
+    values ["className"] = getClassName (theClass)
+    newInstance = theClass()
+    defaultValues = []
+    for attribute in values ["attributes"]:
+        defaultValues.append (getattr (newInstance, attribute))
+    values ["defaultValues"] = defaultValues    
+
+for eventTypeName in wxEventTypes:
+    eventType = wx.__dict__[eventTypeName]
+    wxEventTypeReverseMapping [eventType.evtType[0]] = "wx." + eventTypeName
 
 class Controller (Block.Block):
     """
@@ -174,43 +212,8 @@ class Controller (Block.Block):
             else:
                 return value
 
-        def getClassName (theObject):
-            # Introspect the name of the class
-            theClass = theObject.__class__
-            module = theClass.__module__
-            if module == "wx._core":
-                module = "wx"
-            return module + '.' + theClass.__name__
-
-        def getClassInfo (theObject):
-            theClass = theObject.__class__
-            classInfo =  wxEventClasseInfo.get (theClass, None)
-            if classInfo is None:
-                
-                classInfo = {"className": getClassName (theObject)}
-                
-                # Introspect the class's attribute and their default values
-                newInstance = theClass()
-                attributes = []
-                classDict = theClass.__dict__
-                for (key, value) in classDict.iteritems():
-                    if (key.startswith ("m_") and type (value) is property):
-                        defaultValue = getattr (newInstance, key)
-                        attributes.append ((key, defaultValue))
-                classInfo ["attributes"] = attributes
-    
-                wxEventClasseInfo [theClass] = classInfo
-            return classInfo
-    
-        def getEventType (event):
-            if len (wxEventTypeReverseMapping) == 0:
-                for eventTypeName in wxEventTypes:
-                    eventType = wx.__dict__[eventTypeName]
-                    wxEventTypeReverseMapping [eventType.evtType[0]] = "wx." + eventTypeName
-            return wxEventTypeReverseMapping.get (event.GetEventType(), None)
-    
-        if event.__class__ in wxEventClasses:
-            eventType =  getEventType (event)
+        if event.__class__ in wxEventClasseInfo:
+            eventType = wxEventTypeReverseMapping.get (event.GetEventType(), None)
             if eventType is not None:
                 sentToWidget = event.GetEventObject()
 
@@ -222,7 +225,9 @@ class Controller (Block.Block):
                     # Translate events in wx.Grid's GridWindow to wx.Grid
                     widgetParent = sentToWidget.GetParent()
                     parentBlockItem = getattr (widgetParent, "blockItem", None)
-                    if isinstance (widgetParent, wx.grid.Grid) and parentBlockItem is not None:
+
+                    if (parentBlockItem is not None and
+                        (isinstance (parentBlockItem, Table) or isinstance (parentBlockItem, DetailSynchronizedAttributeEditorBlock))):
                         sentToName = parentBlockItem.blockName
                     else:
                         sentToName = widgetToName (sentToWidget)
@@ -266,7 +271,7 @@ class Controller (Block.Block):
                                         values.append ("'newFocusWindow':" + str(focusWindow.GetId()))
                                     else:
                                         values.append ("'newFocusWindow':" + valueToString (newFocusWindow))
-                                    values.append ("'newFocusWindowClass':" + getClassName (focusWindow))
+                                    values.append ("'newFocusWindowClass':" + getClassName (focusWindow.__class__))
 
                                 #  Record the state of the last widget so we can check that the state is the same
                                 # afer the event is played back
@@ -283,8 +288,8 @@ class Controller (Block.Block):
                             properties = "{" + ", ".join (values) + "}"
 
                             values = []
-                            classInfo = getClassInfo (event)
-                            for (attribute, defaultValue) in classInfo["attributes"]:
+                            classInfo = wxEventClasseInfo [event.__class__]
+                            for (attribute, defaultValue) in zip (classInfo["attributes"], classInfo["defaultValues"]):
                                 value = getattr (event, attribute)
                                 if value != defaultValue:
                                     values.append ("'%s':%s" % (attribute, valueToString (value)))
