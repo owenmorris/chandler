@@ -15,6 +15,7 @@
 import wx
 from osaf.framework.blocks.Block import Block
 from application.Application import stringToId
+from osaf.framework.attributeEditors.AETypeOverTextCtrl import AETypeOverTextCtrl
 
 def ProcessEvent (theClass, properties , attributes):
     def NameToWidget (name):
@@ -33,6 +34,10 @@ def ProcessEvent (theClass, properties , attributes):
                     sentTo = sentTo.widget
                     if isinstance (sentTo, wx.grid.Grid):
                         sentTo = sentTo.GetGridWindow()
+                    elif isinstance (sentTo, AETypeOverTextCtrl):
+                          firstChild = sentTo.GetChildren()[0]
+                          if isinstance (firstChild, wx.TextCtrl):
+                              sentTo = firstChild
                 else:
                     name = stringToId [name]
         if sentTo is None:
