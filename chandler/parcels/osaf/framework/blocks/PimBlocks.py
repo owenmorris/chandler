@@ -198,6 +198,9 @@ class FocusEventHandlers(Item):
             enable = isNote and len(set(states)) == 1
             event.arguments['Enable'] = enable
             event.arguments['Check'] = enable and isPrivate
+        else:
+            event.arguments['Enable'] = False
+            event.arguments['Check'] = False
 
     def onCreateConflictEvent(self, event):
         selectedItems = self.__getSelectedItems()
