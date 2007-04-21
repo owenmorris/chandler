@@ -127,32 +127,24 @@ def ProcessEvent (theClass, properties , attributes):
                 assert lastWidgetValue is None, "last widget differes from its value when the script was recorded"
 
     if not sentToWidget.ProcessEvent (event):
-        # Special case key downs
-        if eventType is wx.EVT_CHAR:
-            # EmulateKeyPress isn't implemented correctly on for non-windows platform. So for now
-            # we'll special case the grid case and send the event to the gridWindow.
-            # Eventually, it would be nice to spend some time investigating how to implement
-            # EmulateKeyPress correctly on non-windows platforms.
-            # Finally, to be consistent, we'll process the event in the same way on all platforms
-            processed = False
-            if (event.m_keyCode in set ([wx.WXK_ESCAPE, wx.WXK_TAB, wx.WXK_RETURN, wx.WXK_NUMPAD_ENTER])):
-                gridWindow = sentToWidget.GetParent()
-                if (gridWindow is not None and
-                    isinstance (gridWindow.GetParent(), wx.grid.Grid)):
-                    event.SetEventObject (gridWindow)
-                    gridWindow.ProcessEvent (event)
-                    processed = True
+        if (eventType is wx.EVT_KEY_DOWN and
+            event.m_keyCode in set ((wx.WXK_ESCAPE, wx.WXK_TAB, wx.WXK_RETURN, wx.WXK_NUMPAD_ENTER))):
+            # Special case key downs that end edits in the grid
+            gridWindow = sentToWidget.GetParent()
+            if (gridWindow is not None and
+                isinstance (gridWindow.GetParent(), wx.grid.Grid)):
+                event.SetEventObject (gridWindow)
+                gridWindow.ProcessEvent (event)
 
-            if not processed:
-                # Try EmulateKeyPress
-                EmulateKeyPress = getattr(sentToWidget, 'EmulateKeyPress', None)
-                if EmulateKeyPress is not None:
-
-                    # A bug in wxWidgets on Windows stores the wrong value for m_rawCode in wx.EVT_CHAR
-                    # Since the correct valus is stored in wx.EVT_KEY_DOWN and wx.EVT_KEY_DOWN
-                    # precedes wx.EVT_KEY_DOWN, we'll cache it for the next wx.EVT_KEY_DOWN
-                    event.m_rawCode = ProcessEvent.last_rawCode
-                    EmulateKeyPress (event)
+        elif eventType is wx.EVT_CHAR:
+            # Try EmulateKeyPress
+            EmulateKeyPress = getattr(sentToWidget, 'EmulateKeyPress', None)
+            if EmulateKeyPress is not None:
+                # A bug in wxWidgets on Windows stores the wrong value for m_rawCode in wx.EVT_CHAR
+                # Since the correct valus is stored in wx.EVT_KEY_DOWN and wx.EVT_KEY_DOWN
+                # precedes wx.EVT_KEY_DOWN, we'll cache it for the next wx.EVT_KEY_DOWN
+                event.m_rawCode = ProcessEvent.last_rawCode
+                EmulateKeyPress (event)
 
         # Left down changes the focus
         elif eventType is wx.EVT_LEFT_DOWN:
