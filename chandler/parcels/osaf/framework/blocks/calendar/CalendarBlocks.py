@@ -720,15 +720,15 @@ class wxPreviewArea(CalendarCanvas.CalendarNotificationHandler, wx.Panel):
             self.useToday = False
             startDay = minical.widget.getSelectedDate()
         startDay = startDay.replace(tzinfo=ICUtzinfo.default)
-        endDay = startDay + one_day
+        range = (startDay, startDay + one_day)
 
         if self.HavePendingNewEvents():
-            for event in self.HandleRemoveAndYieldChanged((startDay, endDay)):
-                if event.transparency == 'confirmed':
+            for op, event in self.HandleRemoveAndYieldChanged(range):
+                if op in ('add','change') and event.transparency == 'confirmed':
                     self.visibleEvents.append(event)
         else:
-            inRange = self.blockItem.getEventsInRange((startDay, endDay),
-                                              dayItems=True, timedItems=True)
+            inRange = self.blockItem.getEventsInRange(range, dayItems=True,
+                                                      timedItems=True)
             self.visibleEvents = [event for event in inRange
                                        if event.transparency == "confirmed"]
 

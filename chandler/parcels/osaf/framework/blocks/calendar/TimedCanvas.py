@@ -119,17 +119,16 @@ class wxTimedEventsCanvas(BaseWidget, wxCalendarCanvas):
         currentRange = self.GetCurrentDateRange()
         self._doDrawingCalculations()
 
-        original_added = set(self._pendingNewEvents)
-        actually_added = set()
+        added = 0
         
         if self.HavePendingNewEvents():
-            for event in self.HandleRemoveAndYieldChanged(currentRange):
-                if not Calendar.isDayEvent(event):
+            for op, event in self.HandleRemoveAndYieldChanged(currentRange):
+                if op in ('add', 'change') and not Calendar.isDayEvent(event):
                     if event not in self.visibleEvents:
                         bisect.insort(self.visibleEvents, event)
                     self.MakeOneCanvasItem(event)
-                    if event.itsItem.itsUUID in original_added:
-                        actually_added.add(event.itsItem)
+                    if op == 'add':
+                        added += 1
         else:
             self.ClearPendingNewEvents()
             self.visibleEvents = list(self.blockItem.getEventsInRange(
@@ -139,8 +138,7 @@ class wxTimedEventsCanvas(BaseWidget, wxCalendarCanvas):
         self.RealignCanvasItems()
         self.Refresh()
 
-        if len(actually_added) == 1 and getattr(self, 'justCreatedCanvasItem',
-                                                None):
+        if added == 1 and getattr(self, 'justCreatedCanvasItem', None):
             self.OnSelectItem(self.justCreatedCanvasItem.item)
             self.justCreatedCanvasItem = None
             self.EditCurrentItem()

@@ -50,7 +50,7 @@ from colorsys import rgb_to_hsv, hsv_to_rgb
 from application import schema
 
 from operator import add
-from itertools import islice, chain
+from itertools import islice, chain, izip, repeat
 from bisect import bisect
 import logging
 from application import styles as confstyles
@@ -985,8 +985,9 @@ class CalendarNotificationHandler(object):
     def HandleRemoveAndYieldChanged(self, currentRange):
         """
         Operate on self.visibleEvents, remove any items that have been changed
-        or removed, yield changes and additions.  For changes to recurring
-        events, yield occurrences in range, not masters.
+        or removed from self.visibleItems, yield (op, event), where op is
+        'add', 'change', or 'remove'.  For changes to recurring events, yield
+        occurrences in range, not masters.
         
         """
         addedEvents, removedEvents, changedEvents = self.GetPendingEvents(False)
@@ -997,30 +998,36 @@ class CalendarNotificationHandler(object):
         removeIndexes = []
         for i, event in enumerate(self.visibleEvents):
             if isDead(event.itsItem) or event.isRecurrenceMaster():
+                yield ('remove', event)
                 removeIndexes.append(i)
             elif isinstance(event.itsItem, Calendar.Occurrence):
                 master = event.getMaster()
                 if master.itsItem in removedEvents:
+                    yield ('remove', master)
                     removeIndexes.append(i)
                     # The whole series may not need to be removed, put it
                     # in changedEvents to be checked
                     changedEvents.add(master.itsItem)
             elif event.itsItem in removedEvents:
+                yield ('remove', event)
                 removeIndexes.append(i)
         
         for i in reversed(removeIndexes):
             del self.visibleEvents[i]
+
+        added   = izip(repeat('add'),    addedEvents)
+        changed = izip(repeat('change'), changedEvents)
         
-        for item in chain(addedEvents, changedEvents):
+        for op, item in chain(added, changed):
             # skip non-events
             if (not has_stamp(item, Calendar.EventStamp)):
                 continue
             master = Calendar.EventStamp(item)
             if master.rruleset is not None:
                 for ev in master.getOccurrencesBetween(*currentRange):
-                    yield ev
+                    yield op, ev
             elif master.isBetween(*currentRange):
-                yield master
+                yield op, master
 
 
 # ATTENTION: do not put mixins here - put them in CollectionBlock

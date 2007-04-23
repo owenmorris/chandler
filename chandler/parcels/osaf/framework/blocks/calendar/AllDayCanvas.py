@@ -153,23 +153,22 @@ class wxAllDayEventsCanvas(wxCalendarCanvas):
     def wxSynchronizeWidget(self):
         currentRange = self.GetCurrentDateRange()
         
-        original_added = set(self._pendingNewEvents)
-        actually_added = set()
+        added = set()
         
         if self.HavePendingNewEvents():
             something_changed = False
-            for event in self.HandleRemoveAndYieldChanged(currentRange):
+            for op, event in self.HandleRemoveAndYieldChanged(currentRange):
+                something_changed = True
                 if Calendar.isDayEvent(event):
-                    something_changed = True
                     if event not in self.visibleEvents:
                         self.visibleEvents.append(event)
-                    if event.itsItem.itsUUID in original_added:
-                        actually_added.add(event.itsItem)
+                    if op == 'add':
+                        added.add(event.itsItem)
 
             if something_changed:
                 self.RefreshCanvasItems(resort=True)
 
-            if len(actually_added) == 1:
+            if len(added) == 1:
                 self.EditCurrentItem()
             self.ClearPendingNewEvents()
         else:
