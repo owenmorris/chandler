@@ -13,12 +13,13 @@ Record Types and Fields
 Record types are defined by subclassing ``sharing.Record`` and creating
 ``sharing.key`` and ``sharing.field`` attributes to describe their layout::
 
+    >>> Text500 = sharing.TextType(size=500)
     >>> class Demo(sharing.Record):
     ...     URI = 'cid:eim.test.demo-record@osaf.us'
     ...     itemNumber  = sharing.key(int)
     ...     itemName    = sharing.field(sharing.TextType(size=50))
-    ...     description = sharing.field(sharing.TextType(size=500))
-    ...     price       = sharing.field(sharing.DecimalType(None, 6, 2))
+    ...     description = sharing.field(Text500)
+    ...     price       = sharing.field(sharing.DecimalType(None, 6, 2), u"Price", str)
 
     >>> r1 = Demo(1,"Foo", "This is a foo", Decimal('2.50'))
 
@@ -103,12 +104,35 @@ Records also have an ``explain()`` method that yields tuples describing their
 (non-key, non-``NoChange``) contents::
 
     >>> sorted(r1.explain()) # doctest: +NORMALIZE_WHITESPACE
-    [('description', u'This is a foo', Demo(1, NoChange, u'This is a foo', NoChange)),
-     ('itemName', u'Foo', Demo(1, u'Foo', NoChange, NoChange)),     
-     ('price', Decimal("2.50"), Demo(1, NoChange, NoChange, Decimal("2.50")))]
+    [(u'Price', '2.50', Demo(1, NoChange, NoChange, Decimal("2.50"))),
+     ('description', u'This is a foo', Demo(1, NoChange, u'This is a foo', NoChange)),
+     ('itemName', u'Foo', Demo(1, u'Foo', NoChange, NoChange))]
 
     >>> sorted(Demo(2, sharing.NoChange, "wah", sharing.NoChange).explain())
     [('description', u'wah', Demo(2, NoChange, u'wah', NoChange))]
+
+Notice that the unicode string "Price" and its associated value were generated
+using the unicode title and formatter that were registered with the price field
+when it was created.  You can also explicitly register formatters for specific
+fields or field types, and they will be used to "explain" the item::
+
+    >>> @sharing.format_field.when_object(Demo.itemName)
+    ... def format_itemName(field, value):
+    ...     return "%s (%s)" % (value, field.name)
+
+    >>> @sharing.format_field.when_object(Text500)
+    ... def format_Text500(field, value):
+    ...     return "This text can be a maximum of 500 bytes in UTF-8"
+
+    >>> sorted(r1.explain()) # doctest: +NORMALIZE_WHITESPACE
+    [(u'Price', '2.50', Demo(1, NoChange, NoChange, Decimal("2.50"))),
+     ('description', 'This text can be a maximum of 500 bytes in UTF-8',
+       Demo(1, NoChange, u'This is a foo', NoChange)),
+     ('itemName', u'Foo (itemName)', Demo(1, u'Foo', NoChange, NoChange))]
+    
+If you do not register a title with a field when you create it, the field's
+name is used instead.  If there is no formatter registered for the specific
+field or its typeinfo, field's raw value is used unchanged.
 
 
 Record Sets
@@ -287,10 +311,10 @@ fields::
     >>> class SomeType(sharing.Record):
     ...     URI = 'cid:SomeType-for-eim@osaf.us'
     ...     foo = sharing.key(int)
-    ...     bar = sharing.field(t50, [Reminders, Passwords])
-    ...     baz = sharing.field(d62, [Reminders])
+    ...     bar = sharing.field(t50, filters=[Reminders, Passwords])
+    ...     baz = sharing.field(d62, filters=[Reminders])
     ...     spam  = sharing.field(t500)
-    ...     pin = sharing.field(int, [Passwords])
+    ...     pin = sharing.field(int, filters=[Passwords])
 
 These fields are then suppressed whenever you take the ``sync_filter()`` of an
 applicable record::

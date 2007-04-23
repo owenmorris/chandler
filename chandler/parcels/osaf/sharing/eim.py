@@ -19,7 +19,7 @@ __all__ = [
     'add_converter', 'subtype', 'typedef', 'field', 'key', 'NoChange',
     'Record', 'RecordSet', 'lookupSchemaURI', 'Filter', 'Translator',
     'exporter', 'TimestampType', 'IncompatibleTypes', 'Inherit',
-    'sort_records',
+    'sort_records', 'format_field',
 ]
 
 from symbols import Symbol  # XXX change this to peak.util.symbols
@@ -32,7 +32,6 @@ from osaf import pim
 from twisted.internet.defer import Deferred
 import logging
 logger = logging.getLogger(__name__)
-
 
 
 
@@ -411,7 +410,6 @@ def sort_records(records):
 
     while waiting:
         for key in list(waiting):
-            #import pdb; pdb.set_trace()
             for record in release(highest_unseen_parent(key)):
                 yield record
 
@@ -618,11 +616,12 @@ class RecordClass(type):
 _field_num = 1
 
 class field(object):
-    __slots__ = "owner", "name", "type", "typeinfo", "seq", "offset", "filters"
-
-    def __init__(self, type, filters=()):
+    __slots__ = "owner", "name", "type", "typeinfo", "seq", "offset", "filters", "title"
+    def __init__(self, type, title=None, formatter=None, filters=()):
         global _field_num
         self.owner = self.name = None
+        self.title = title
+        if formatter: format_field.when_object(self)(lambda s,v: formatter(v))
         self.type = type
         self.typeinfo = typeinfo_for(type)
         self.seq = _field_num = _field_num + 1
@@ -644,17 +643,16 @@ class field(object):
             return self
         return ob[self.offset]
 
+
 @typeinfo_for.when_type(field)
 def return_typeinfo(context):
     return context.typeinfo
 
-
 class key(field):
     """Primary key field (can't be filtered)"""
     __slots__ = filters = ()
-    def __init__(self, type):
-        field.__init__(self, type)
-
+    def __init__(self, type, title=None, formatter=None):
+        field.__init__(self, type, title, formatter)
 
 NoChange = Symbol('NoChange', __name__)
 Inherit = Symbol('Inherit', __name__)
@@ -729,7 +727,7 @@ class Record(tuple):
         for f, value in zip(cls.__fields__, self[1:]):
             if not isinstance(f,key) and value is not NoChange:
                 data[f.offset-1] = value
-                yield (f.name, value, cls(*data))
+                yield (f.title or f.name, format_field(f, value), cls(*data))
                 data[f.offset-1] = NoChange
 
 
@@ -817,6 +815,7 @@ class TranslatorClass(type):
                 for k, v in t.__dict__.get(regname, {}).items():
                    reg.setdefault(k, v)
         return cls
+
 
 
 class Translator:
@@ -1028,6 +1027,15 @@ add_converter(UUIDType, UUID, uuid_converter)
 add_converter(UUIDType, schema.Item, item_uuid_converter)
 add_converter(UUIDType, str, unicode)
 
+@generic
+def format_field(context, value):
+    """Format a value based on a field or typeinfo"""
+    return value
+
+@format_field.when_type(field)
+def format_field_by_type(context, value):
+    """Fall back to the field's typeinfo"""
+    return format_field(context.typeinfo, value)
 
 def subtype(typeinfo, *args, **kw):
     """XXX"""
@@ -1042,15 +1050,6 @@ def additional_tests():
         'EIM.txt',
         optionflags=doctest.ELLIPSIS|doctest.REPORT_ONLY_FIRST_FAILURE,
     )
-
-
-
-
-
-
-
-
-
 
 
 

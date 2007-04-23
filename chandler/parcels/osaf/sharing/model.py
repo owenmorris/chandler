@@ -69,7 +69,7 @@ class ItemRecord(eim.Record):
     title = eim.field(text1024)
 
     # ContentItem.[triageStatus, triageStatusChanged, doAutoTriageOnDateChange]
-    triage = eim.field(text256, [triageFilter])
+    triage = eim.field(text256, filters=[triageFilter])
 
     # ContentItem.createdOn
     createdOn = eim.field(eim.DecimalType(digits=20, decimal_places=0))
@@ -107,10 +107,10 @@ class NoteRecord(eim.Record):
     icalUid = eim.field(text256)
 
     # Note.icalendarProperties
-    icalProperties = eim.field(text1024, [nonStandardICalendarFilter])
+    icalProperties = eim.field(text1024, filters=[nonStandardICalendarFilter])
 
     # Note.icalendarParameters
-    icalParameters = eim.field(text1024, [nonStandardICalendarFilter])
+    icalParameters = eim.field(text1024, filters=[nonStandardICalendarFilter])
 
 
 class TaskRecord(eim.Record):
@@ -140,48 +140,48 @@ class EventRecord(eim.Record):
     exdate = eim.field(text1024)
 
     # EventStamp.transparency
-    status = eim.field(text256, [eventStatusFilter])
+    status = eim.field(text256, filters=[eventStatusFilter])
 
 
 class DisplayAlarmRecord(eim.Record):
     URI = "http://osafoundation.org/eim/displayAlarm/0"
 
     uuid = eim.key(EventRecord.uuid)
-    description = eim.field(text1024, [remindersFilter])
-    trigger = eim.field(text1024, [remindersFilter])
-    duration = eim.field(text1024, [remindersFilter])
-    repeat = eim.field(eim.IntType, [remindersFilter])
+    description = eim.field(text1024, filters=[remindersFilter])
+    trigger = eim.field(text1024, filters=[remindersFilter])
+    duration = eim.field(text1024, filters=[remindersFilter])
+    repeat = eim.field(eim.IntType, filters=[remindersFilter])
 
 
 class MailMessageRecord(eim.Record):
     URI = "http://osafoundation.org/eim/mail/0"
 
     uuid = eim.key(NoteRecord.uuid)
-    messageId = eim.field(text256, [messageIdFilter])
-    headers = eim.field(eim.ClobType, [headersFilter])
+    messageId = eim.field(text256, filters=[messageIdFilter])
+    headers = eim.field(eim.ClobType, filters=[headersFilter])
     # Will contain the RFC 822 from address
     fromAddress = eim.field(text256)
     toAddress = eim.field(text1024)
     ccAddress = eim.field(text1024)
-    bccAddress = eim.field(text1024, [bccFilter])
+    bccAddress = eim.field(text1024, filters=[bccFilter])
 
     # Can contain text or email addresses ie. from The Management Team
     originators = eim.field(text1024)
 
     # date sent is populated by MailStamp.dateSentString
-    dateSent = eim.field(text256, [dateSentFilter])
+    dateSent = eim.field(text256, filters=[dateSentFilter])
 
-    inReplyTo = eim.field(text256, [inReplyToFilter])
+    inReplyTo = eim.field(text256, filters=[inReplyToFilter])
 
     #The list of message-id's a mail message references
     # can be quite long and can easily exceed 1024 characters
-    references = eim.field(eim.ClobType, [referencesFilter])
+    references = eim.field(eim.ClobType, filters=[referencesFilter])
 
     # Values required for Dump and Reload
-    mimeContent = eim.field(eim.ClobType, [mimeContentFilter])
-    rfc2822Message = eim.field(eim.ClobType, [rfc2822MessageFilter])
-    previousSender = eim.field(text256, [previousSenderFilter])
-    replyToAddress = eim.field(text256, [replyToAddressFilter])
+    mimeContent = eim.field(eim.ClobType, filters=[mimeContentFilter])
+    rfc2822Message = eim.field(eim.ClobType, filters=[rfc2822MessageFilter])
+    previousSender = eim.field(text256, filters=[previousSenderFilter])
+    replyToAddress = eim.field(text256, filters=[replyToAddressFilter])
 
     # Contains bit wise flags indicating state.
     # A state integer was chosen over individual
@@ -189,7 +189,7 @@ class MailMessageRecord(eim.Record):
     # Chandler mail specific flag requirements from
     # EIM.
 
-    messageState = eim.field(eim.IntType, [messageStateFilter])
+    messageState = eim.field(eim.IntType, filters=[messageStateFilter])
 
 
 

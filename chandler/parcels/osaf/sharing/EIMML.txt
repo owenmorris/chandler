@@ -297,8 +297,8 @@ the inbound changes that are pending due to conflict::
     >>> class Demo(sharing.Record):
     ...     URI = 'cid:eim.test.demo-record@osaf.us'
     ...     foo = sharing.key(int)
-    ...     bar = sharing.field(int, [barFilter])
-    ...     baz = sharing.field(int, [bazFilter])
+    ...     bar = sharing.field(int, filters=[barFilter])
+    ...     baz = sharing.field(int, filters=[bazFilter])
     >>> osaf.sharing.Demo = Demo
 
     >>> state = State(itsView=rv)
@@ -555,8 +555,8 @@ Start over, adding two records (one of a new record type)::
     >>> class Demo2(sharing.Record):
     ...     URI = 'cid:eim.test.demo2-record@osaf.us'
     ...     foo = sharing.key(int)
-    ...     bar = sharing.field(int, [barFilter])
-    ...     baz = sharing.field(int, [bazFilter])
+    ...     bar = sharing.field(int, filters=[barFilter])
+    ...     baz = sharing.field(int, filters=[bazFilter])
     >>> osaf.sharing.Demo2 = Demo2
 
     >>> state.set(rs(set([Demo(1,1,1), Demo2(1,2,2)])), empty)
@@ -605,8 +605,8 @@ Start over, using a filter that completely filters out an entire record::
     >>> class Demo3(sharing.Record):
     ...     URI = 'cid:eim.test.demo3-record@osaf.us'
     ...     a = sharing.key(int)
-    ...     b = sharing.field(int, [demo3Filter])
-    ...     c = sharing.field(int, [demo3Filter])
+    ...     b = sharing.field(int, filters=[demo3Filter])
+    ...     c = sharing.field(int, filters=[demo3Filter])
     >>> osaf.sharing.Demo3 = Demo3
 
 Without a filter, this merge results in a record to send::
