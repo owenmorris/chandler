@@ -125,6 +125,13 @@ class CosmoConduit(recordset_conduit.DiffRecordSetConduit, conduits.HTTPMixin):
             uuids = toSend.keys()
             uuids.sort()
 
+            numUuids = len(uuids)
+            numChunks = numUuids / self.chunkSize
+            if numChunks % self.chunkSize:
+                numChunks += 1
+            if activity:
+                activity.update(totalWork=numChunks, workDone=0)
+
             chunk = {}
             chunkNum = 1
             count = 0
@@ -133,17 +140,23 @@ class CosmoConduit(recordset_conduit.DiffRecordSetConduit, conduits.HTTPMixin):
                 chunk[uuid] = toSend[uuid]
                 if count == self.chunkSize:
                     if activity:
-                        activity.update(msg="Sending chunk %d" % chunkNum,
-                            totalWork=None)
+                        activity.update(msg="Sending chunk %d of %d" %
+                            (chunkNum, numChunks))
                     self._putChunk(chunk, extra)
+                    if activity:
+                        activity.update(msg="Sent chunk %d of %d" %
+                            (chunkNum, numChunks), work=1)
                     chunk = {}
                     count = 0
                     chunkNum += 1
             if chunk: # still have some left over
                 if activity:
-                    activity.update(msg="Sending chunk %d" % chunkNum,
-                        totalWork=None)
+                    activity.update(msg="Sending chunk %d of %d" %
+                        (chunkNum, numChunks))
                 self._putChunk(chunk, extra)
+                if activity:
+                    activity.update(msg="Sent chunk %d of %d" %
+                        (chunkNum, numChunks), work=1)
 
 
 

@@ -73,8 +73,6 @@ def Show(parent, share):
     if hasattr(share, "errorDetails"):
         add(_(u"Last error details: "))
         add(share.errorDetails)
-    add(_(u"Last statistics: "))
-    add(str(share.lastStats))
 
     win = SharingDetailsFrame(parent, -1, title, u'\n\n'.join(lines))
     win.Show()

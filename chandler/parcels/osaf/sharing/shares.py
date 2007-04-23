@@ -569,7 +569,13 @@ class Share(pim.ContentItem):
             stats = self.conduit.sync(modeOverride=modeOverride,
                                       activity=activity,
                                       forceUpdate=forceUpdate, debug=debug)
-            self.lastStats = stats
+
+            # Not sure we need to keep the last stats around.  It's just more
+            # data to persist.  If it ends up being helpful we can put it back
+            # in:
+
+            # self.lastStats = stats
+
             self.lastSuccess = datetime.datetime.now(ICUtzinfo.default)
 
         except Exception, e:
