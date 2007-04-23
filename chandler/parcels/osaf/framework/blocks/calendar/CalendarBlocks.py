@@ -618,7 +618,7 @@ class wxPreviewArea(CalendarCanvas.CalendarNotificationHandler, wx.Panel):
 
         y = self.vMargin
         # Draw title if appropriate
-        if self.useToday:
+        if self.useToday and len(self.visibleEvents) > 0:
             todayText = _(u"Today's events")
             dc.SetFont(self.timeFont)
             dc.DrawText(todayText, self.hMargin, y)
