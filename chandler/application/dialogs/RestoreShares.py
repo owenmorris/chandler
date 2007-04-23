@@ -56,8 +56,7 @@ class RestoreSharesDialog(wx.Dialog):
         self.gauge = wx.xrc.XRCCTRL(self, "GAUGE")
         self.gauge.SetRange(100)
 
-        self.currentAccount = sharing.schema.ns('osaf.sharing',
-            self.view).currentSharingAccount.item
+        self.currentAccount = sharing.getDefaultAccount(self.view)
         self.choiceAccounts.Clear()
         accounts = sorted(sharing.WebDAVAccount.iterItems(view),
                           key = lambda x: x.displayName.lower())

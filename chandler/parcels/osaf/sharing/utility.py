@@ -28,7 +28,6 @@ __all__ = [
     'isOnline',
     'takeOnline',
     'takeOffline',
-    'isSharingSetUp',
     'getActiveShares',
     'checkForActiveShares',
     'getExistingResources',
@@ -431,23 +430,6 @@ def takeOffline(collection):
             share.active = False
 
 
-
-
-
-def isSharingSetUp(view):
-    """
-    See if a Sharing account is set up.
-
-    @param view: The repository view object
-    @type view: L{repository.persistence.RepositoryView}
-    @return: True if accounts are set up; False otherwise.
-    """
-
-    account = schema.ns('osaf.sharing', view).currentSharingAccount.item
-    if account and account.host and account.username:
-        return True
-
-    return False
 
 
 

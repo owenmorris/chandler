@@ -69,8 +69,7 @@ class SubscribeDialog(wx.Dialog):
         if url is not None:
             self.textUrl.SetValue(url)
         else:
-            account = sharing.schema.ns('osaf.sharing',
-                self.view).currentSharingAccount.item
+            account = sharing.getDefaultAccount(self.view)
             if account:
                 url = account.getLocation()
                 self.textUrl.SetValue(url)

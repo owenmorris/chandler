@@ -130,6 +130,9 @@ class SharingAccount(pim.ContentItem):
 
         return None
 
+    def isSetUp(self):
+        return bool(self.host and self.username)
+
 class WebDAVAccount(SharingAccount):
 
     accountProtocol = schema.One(

@@ -558,7 +558,9 @@ class AccountPreferencesDialog(wx.Dialog):
 
         incoming  = ns_pim.currentIncomingAccount.item
         outgoing  = ns_pim.currentOutgoingAccount.item
-        sharingAccount   = sharing.getDefaultAccount(self.rv)
+        sharingAccount = sharing.getDefaultAccount(self.rv)
+        if sharingAccount is None:
+            sharingAccount = sharing.createDefaultAccount(self.rv)
 
         return (incoming, outgoing, sharingAccount)
 

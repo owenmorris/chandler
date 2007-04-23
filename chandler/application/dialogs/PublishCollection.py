@@ -117,8 +117,7 @@ class PublishCollectionDialog(wx.Dialog):
         if self.account: # use this account overriding the default
             self.currentAccount = self.account
         else:
-            self.currentAccount = schema.ns('osaf.sharing',
-                self.view).currentSharingAccount.item
+            self.currentAccount = sharing.getDefaultAccount(self.view)
 
         # Populate the listbox of sharing accounts
         self.accounts = self._getSharingAccounts()

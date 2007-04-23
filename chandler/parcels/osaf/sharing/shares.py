@@ -19,8 +19,6 @@ __all__ = [
     'State',
     'Conflict',
     'getFilter',
-    'isShared',
-    'isReadOnly',
     'hasConflicts',
     'getConflicts',
 ]
@@ -396,25 +394,6 @@ def getFilter(filterUris):
 
 
 
-
-def isShared(item):
-    return pim.has_stamp(item, SharedItem)
-
-def isReadOnly(item):
-    """
-    Examine all the shares this item participates in; if any of those
-    shares are writable the item is not readonly.  If all the shares
-    are read-only the item is readonly.
-    """
-    if not isShared(item):
-        return False
-
-    sharedItem = SharedItem(item)
-    if hasattr(sharedItem, 'sharedIn'):
-        for share in self.sharedIn:
-            if share.mode in ('put', 'both'):
-                return False
-    return True
 
 
 

@@ -135,6 +135,17 @@ def installParcel(parcel, oldVersion=None):
 
 def getDefaultAccount(rv):
     cur = schema.ns('osaf.sharing', rv).currentSharingAccount
+    account = cur.item
+    if account and account.isSetUp():
+        return account
+    for account in SharingAccount.iterItems(rv):
+        if account.isSetUp():
+            return account
+    return None
+
+
+def createDefaultAccount(rv):
+    cur = schema.ns('osaf.sharing', rv).currentSharingAccount
     if cur.item is None:
         cur.item = WebDAVAccount(itsView=rv,
             displayName=_(u'Cosmo Sharing Service'),
@@ -156,6 +167,12 @@ def getDefaultAccount(rv):
 
     return cur.item
 
+
+def isSharingSetUp(view):
+    for account in SharingAccount.iterItems(view):
+        if account.isSetUp():
+            return True
+    return False
 
 # = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =
 
