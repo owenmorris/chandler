@@ -153,7 +153,7 @@ class wxAllDayEventsCanvas(wxCalendarCanvas):
     def wxSynchronizeWidget(self):
         currentRange = self.GetCurrentDateRange()
         
-        added = set()
+        added = 0
         
         if self.HavePendingNewEvents():
             something_changed = False
@@ -163,12 +163,12 @@ class wxAllDayEventsCanvas(wxCalendarCanvas):
                     if event not in self.visibleEvents:
                         self.visibleEvents.append(event)
                     if op == 'add':
-                        added.add(event.itsItem)
+                        added += 1
 
             if something_changed:
                 self.RefreshCanvasItems(resort=True)
 
-            if len(added) == 1:
+            if added == 1:
                 self.EditCurrentItem()
             self.ClearPendingNewEvents()
         else:
