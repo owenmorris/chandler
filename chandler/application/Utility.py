@@ -681,12 +681,10 @@ def initParcelEnv(options, chandlerDirectory):
             insertionPoint += 1
 
     logger.info("Using PARCELPATH %s" % parcelPath)
-    plugins = initPlugins(options, options.pluginPath)
-
-    return parcelPath, plugins
+    return parcelPath
 
 
-def initPlugins(options, path):
+def initPluginEnv(options, path):
 
     from pkg_resources import working_set, Environment
 
@@ -723,11 +721,10 @@ def initPlugins(options, path):
     return plugin_env, eggs
 
 
-def initParcels(options, view, path, namespaces=None, plugins=None):
+def initParcels(options, view, path, namespaces=None):
     
     # Delayed so as not to trigger early loading of schema.py
-    from Parcel import Manager, load_parcel_from_entrypoint
-    from pkg_resources import ResolutionError
+    from Parcel import Manager
 
     Manager.get(view, path=path).loadParcels(namespaces)
 
@@ -736,31 +733,35 @@ def initParcels(options, view, path, namespaces=None, plugins=None):
     if getattr(parcelRoot, 'version', None) != SCHEMA_VERSION:
         parcelRoot.version = SCHEMA_VERSION
 
-    # Init plugin parcels
-    if plugins is not None:
 
-        # if options is passed-in save which plugins are active in prefs
-        if options is not None:
-            prefs = loadPrefs(options)
-            if 'plugins' not in prefs:
-                prefs['plugins'] = {}
-        else:
-            prefs = None
+def initPlugins(options, view, plugin_env, eggs):
 
-        plugin_env, eggs = plugins
-        for egg in eggs:
-            for entrypoint in egg.get_entry_map('chandler.parcels').values():
-                try:
-                    entrypoint.require(plugin_env)
-                except ResolutionError:
-                    pass
-                else:
-                    load_parcel_from_entrypoint(view, entrypoint)
-                    if prefs is not None:
-                        prefs['plugins'][egg.key] = 'active'
+    # Delayed so as not to trigger early loading of schema.py
+    from Parcel import load_parcel_from_entrypoint
+    from pkg_resources import ResolutionError
+
+    # if options is passed-in save which plugins are active in prefs
+    if options is not None:
+        prefs = loadPrefs(options)
+        if 'plugins' not in prefs:
+            prefs['plugins'] = {}
+    else:
+        prefs = None
+
+    for egg in eggs:
+        for entrypoint in egg.get_entry_map('chandler.parcels').values():
+            try:
+                entrypoint.require(plugin_env)
+            except ResolutionError:
+                pass
+            else:
+                load_parcel_from_entrypoint(view, entrypoint)
+                if prefs is not None:
+                    prefs['plugins'][egg.key] = 'active'
                         
-        if prefs is not None:
-            prefs.write()
+    if prefs is not None:
+        prefs.write()
+
 
 def _randpoolPath(profileDir):
     # Return the absolute path for the file that we use to load

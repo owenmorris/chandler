@@ -17,14 +17,11 @@ from datetime import timedelta
 from time import time
 import wx, os, sys, traceback, logging, re, webbrowser
 import PyLucene
+import application.dialogs.Util
 
 from application import Globals, Printing, schema, Utility
-
 from application.AboutBox import AboutBox
 from application.Application import wxBlockFrameWindow
-
-import application.dialogs.Util
-#jCaleimport application.dialogs.FileTail
 from application.dialogs import ( AccountPreferences, PublishCollection,
     SubscribeCollection, RestoreShares, autosyncprefs, TurnOnTimezones,
     ActivityViewer
@@ -1413,7 +1410,7 @@ class MainView(View):
             os.path.join(Globals.options.profileDir, 'chandler.log'),
         ]
         application.dialogs.Util.displayLogWindow(logs)
-
+        # import application.dialogs.FileTail
         # logPath = os.path.join(Globals.options.profileDir, 'chandler.log')
         # application.dialogs.FileTail.displayFileTailWindow(
         #     wx.GetApp().mainFrame, logPath)

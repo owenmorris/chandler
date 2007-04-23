@@ -327,7 +327,9 @@ class wxApplication (wx.App):
         # Unless --nocatch is used, Python's sys.stderr is already overriden
         # by the feedback window setup at this point.
 
-        if not Globals.options.stderr:
+        options = Globals.options
+
+        if not options.stderr:
 
             class _stderr(object):
                 def __init__(self, stderr):
@@ -374,7 +376,7 @@ class wxApplication (wx.App):
         #
         # Eventually when we get Python egg based localization
         # implemented, this constraint may change
-        Utility.initI18n(Globals.options)
+        Utility.initI18n(options)
 
         util.timing.begin("wxApplication OnInit") #@@@Temporary testing tool written by Morgen -- DJA
 
@@ -399,7 +401,7 @@ class wxApplication (wx.App):
 
         sys.displayhook = _displayHook
 
-        assert Globals.wxApplication == None, "We can have only one application"
+        assert Globals.wxApplication is None, "We can have only one application"
         Globals.wxApplication = self
         self.updateUIInOnIdle = True
         
@@ -407,12 +409,13 @@ class wxApplication (wx.App):
         CheckPlatform()
 
         # Initialize PARCELPATH and sys.path
-        parcelPath, plugins = Utility.initParcelEnv(Globals.options,
-                                                    Globals.chandlerDirectory)
+        parcelPath = Utility.initParcelEnv(options, Globals.chandlerDirectory)
+        pluginEnv, pluginEggs = Utility.initPluginEnv(options,
+                                                      options.pluginPath)
 
         # If a magic metakey is down, run the startup options box; it'll
-        # modify Globals.options as necessary.
-        if Globals.options.ask or wx.GetMouseState().ControlDown() \
+        # modify options as necessary.
+        if options.ask or wx.GetMouseState().ControlDown() \
             or ('__WXMAC__' in wx.PlatformInfo and wx.GetMouseState().AltDown()):
             from application.dialogs.StartupOptionsDialog import StartupOptionsDialog            
             StartupOptionsDialog.run()
@@ -420,7 +423,7 @@ class wxApplication (wx.App):
         # Splash Screen:
         # don't show the splash screen when nosplash is set
         splash = None
-        if not Globals.options.nosplash:
+        if not options.nosplash:
             splashBitmap = self.GetImage("splash.png")
             splash = StartupSplash(None, splashBitmap)
             splash.Show()
@@ -429,37 +432,37 @@ class wxApplication (wx.App):
         # Crypto initialization
         if splash:
             splash.updateGauge('crypto')
-        Utility.initCrypto(Globals.options.profileDir)
+        Utility.initCrypto(options.profileDir)
 
         # The repository opening code was moved to a method so that it can
         # be called again if there is a schema mismatch and the user chooses
         # to reopen the repository in create mode.
         if splash:
             splash.updateGauge('repository')
-        repoDir = Utility.locateRepositoryDirectory(Globals.options.profileDir, Globals.options)
+        repoDir = Utility.locateRepositoryDirectory(options.profileDir, options)
 
         # Check if this Chandler is an upgrade, will stop the program if backup needed
         # must be done right before initRepository() so it has a fighting chance of
         # detecting the first run after a new install
-        if not Globals.options.profileDirWasPassedIn and \
-           CheckIfUpgraded(Globals.options.profileDir, repoDir, Globals.options.create):
+        if not options.profileDirWasPassedIn and \
+           CheckIfUpgraded(options.profileDir, repoDir, options.create):
             from application.dialogs.UpgradeDialog import UpgradeDialog
             UpgradeDialog.run()
 
         try:
             from application.dialogs.GetPasswordDialog import getPassword
-            Globals.options.getPassword = getPassword
-            view = Utility.initRepository(repoDir, Globals.options)
+            options.getPassword = getPassword
+            view = Utility.initRepository(repoDir, options)
         except RepositoryVersionError, e:
             if self.ShowSchemaMismatchWindow():
-                Globals.options.create = True
-                view = Utility.initRepository(repoDir, Globals.options)
+                options.create = True
+                view = Utility.initRepository(repoDir, options)
             else:
                 raise Utility.SchemaMismatchError, e
         except RepositoryPlatformError, e:
             if self.ShowPlatformMismatchWindow(e.args[0], e.args[1]):
-                Globals.options.create = True
-                view = Utility.initRepository(repoDir, Globals.options)
+                options.create = True
+                view = Utility.initRepository(repoDir, options)
             else:
                 raise
 
@@ -471,8 +474,8 @@ class wxApplication (wx.App):
             if self.ShowSchemaMismatchWindow():
                 # Blow away the repository
                 self.repository.close()
-                Globals.options.create = True
-                view = Utility.initRepository(repoDir, Globals.options)
+                options.create = True
+                view = Utility.initRepository(repoDir, options)
                 self.repository = view.repository
             else:
                 raise Utility.SchemaMismatchError, (repoVersion, schemaVersion)
@@ -487,7 +490,8 @@ class wxApplication (wx.App):
         # Load Parcels
         if splash:
             splash.updateGauge('parcels')
-        Utility.initParcels(Globals.options, view, parcelPath, plugins=plugins)
+        Utility.initParcels(options, view, parcelPath)
+        Utility.initPlugins(options, view, pluginEnv, pluginEggs)
 
         # Now that the parcel world exists, save our locale for next time.
         self.saveLocale()
@@ -545,10 +549,6 @@ class wxApplication (wx.App):
         self.RenderMainView()
 
         wx.Yield()
-#        import hotshot
-#        prof = hotshot.Profile('commit.log')
-#        prof.runcall(self.UIRepositoryView.commit)
-#        prof.close()
         self.UIRepositoryView.commit()
 
         # Start the WakeupCaller Service
@@ -565,7 +565,7 @@ class wxApplication (wx.App):
             splash.Destroy()
 
         # data loading script execution
-        if Globals.options.createData:
+        if options.createData:
             import util.GenerateItemsFromFile as GenerateItemsFromFile
             GenerateItemsFromFile.RunScript(self.UIRepositoryView)
 

@@ -1,4 +1,4 @@
-#   Copyright (c) 2003-2006 Open Source Applications Foundation
+#   Copyright (c) 2003-2007 Open Source Applications Foundation
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -47,8 +47,10 @@ def startup(**kwds):
 
     Utility.initLogging(Globals.options)
 
-    parcelPath, plugins = Utility.initParcelEnv(Globals.options, 
-                                                Globals.chandlerDirectory)
+    parcelPath = Utility.initParcelEnv(Globals.options, 
+                                       Globals.chandlerDirectory)
+    pluginEnv, pluginEggs = Utility.initPluginEnv(Globals.options,
+                                                  Globals.options.pluginPath)
 
     Globals.options.getPassword = getPassword
     repoDir = Utility.locateRepositoryDirectory(profileDir, Globals.options)
@@ -60,7 +62,8 @@ def startup(**kwds):
         return None
 
     Utility.initCrypto(Globals.options.profileDir)
-    Utility.initParcels(Globals.options, view, parcelPath, plugins=plugins)
+    Utility.initParcels(Globals.options, view, parcelPath)
+    Utility.initPlugins(Globals.options, view, pluginEnv, pluginEggs)
 
     if Globals.options.createData:
         import util.GenerateItemsFromFile

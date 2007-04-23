@@ -12,7 +12,7 @@
 #   See the License for the specific language governing permissions and
 #   limitations under the License.
 
-import pkg_resources, wx, webbrowser, logging
+import os, pkg_resources, wx, webbrowser, logging
 
 from application import Utility, Globals, Parcel
 from osaf.framework.blocks import Menu, MenuItem, BlockEvent
@@ -45,14 +45,24 @@ class PluginMenu(Menu):
             if item.itsName is not None and item.itsName not in prefs:
                 item.delete()
 
+        browse_found = False
+        separator_found = False
+
         for block in self.dynamicChildren:
             if block.blockName == '_browse_menu':
-                break
-        else:
+                browse_found = True
+            elif block.blockName == '_separator':
+                separator_found = True
+
+        if not browse_found:
             for child in self.iterChildren():
                 if getattr(child, 'blockName', None) == '_browse_menu':
-                    self.dynamicChildren.append(child)
-                    self.dynamicChildren.append(self.getNextChild(child))
+                    self.dynamicChildren.append(child)  # _browse_menu
+                    child = self.getNextChild(child)
+                    self.dynamicChildren.append(child)  # _install_menu
+                    child = self.getNextChild(child)
+                    self.dynamicChildren.append(child)  # _separator
+                    separator_found = True
                     break
             else:
                 MenuItem(itsName=None, itsParent=self,
@@ -62,13 +72,23 @@ class PluginMenu(Menu):
                                           dispatchEnum='SendToBlockByReference',
                                           destinationBlockReference=self),
                          parentBlock=self, dynamicParent=self,
-                         title="&Download Plugins")
+                         title="Download Plugins")
+                MenuItem(itsName=None, itsParent=self,
+                         blockName='_install_menu',
+                         event=BlockEvent(itsName='_install', itsParent=self,
+                                          blockName='_install',
+                                          dispatchEnum='SendToBlockByReference',
+                                          destinationBlockReference=self),
+                         parentBlock=self, dynamicParent=self,
+                         title="Install Plugins")
+
+        for title in sorted(prefs.iterkeys()):
+            if not separator_found:
                 MenuItem(itsName=None, itsParent=self,
                          blockName='_separator',
                          parentBlock=self, dynamicParent=self,
                          menuItemKind='Separator')
-
-        for title in sorted(prefs.iterkeys()):
+                separator_found = True
             if not self.hasChild(title):
                 MenuItem(itsName=title, itsParent=self, dynamicParent=self,
                          event=self.getItemChild('_plugins'), parentBlock=self,
@@ -78,6 +98,35 @@ class PluginMenu(Menu):
     def on_browseEvent(self, event):
 
         webbrowser.open(BROWSE_URL)
+
+    def on_installEvent(self, event):
+
+        app = wx.GetApp()
+        dlg = wx.FileDialog(app.mainFrame, _(u"Install Plugin"), "", "",
+                            "%s|*.tar.gz|%s (*.*)|*.*" % (_(u"tar/gz archives"),
+                                                          _(u"All files")),
+                            wx.OPEN)
+        if dlg.ShowModal() == wx.ID_OK:
+            archive = dlg.GetPath()
+        else:
+            archive = None
+        dlg.Destroy()
+
+        if archive is not None:
+            options = Globals.options
+            pluginsDir = options.pluginPath[0]
+            if not os.path.exists(pluginsDir):
+                os.makedirs(pluginsDir)
+
+            from setuptools.command.easy_install import main
+            main(['--multi-version', '--install-dir', pluginsDir, archive])
+
+            env, eggs = Utility.initPluginEnv(options, options.pluginPath)
+            Utility.initPlugins(options, self.itsView, env, eggs)
+
+            self.ensureDynamicChildren()
+            app.activeView.rebuildDynamicBlocks()
+            self.itsView.commit()
 
     def on_pluginsEvent(self, event):
 

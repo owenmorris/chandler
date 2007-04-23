@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-#   Copyright (c) 2003-2006 Open Source Applications Foundation
+#   Copyright (c) 2003-2007 Open Source Applications Foundation
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -20,8 +20,6 @@ from i18n import *
 from i18n.i18nmanager import *
 import i18n.i18nmanager as i18nmanager
 from i18n import wxMessageFactory as w
-
-this_module = "i18n.tests.TestI18n"
 
 class I18nTestCase(unittest.TestCase):
     PROJECT = u"Chandler.i18n_test"
@@ -48,9 +46,6 @@ class I18nTestCase(unittest.TestCase):
         self.i18nMan._DEFAULT_CATALOG = self.CATALOG
         self.i18nMan._DEFAULT_IMAGE = self.IMG_DIR
         self.i18nMan._DEFAULT_HTML = self.HTML_DIR
-
-        from application.Utility import initPlugins
-        initPlugins(None, ['plugins'])
 
         self.i18nMan.initialize(self.LOCALE_SET, self.INI_FILE)
         self.mf = MessageFactory(self.PROJECT, self.CATALOG)
