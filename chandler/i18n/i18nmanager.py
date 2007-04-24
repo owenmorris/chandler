@@ -902,7 +902,7 @@ def convertPyICULocale(iculocale):
 
       @return: c{str} ISO locale code
     """
-    assert(isistance(icuLocale, Locale))
+    assert(isinstance(iculocale, Locale))
 
     langCode = iculocale.getLanguage()
     countryCode = iculocale.getCountry()
