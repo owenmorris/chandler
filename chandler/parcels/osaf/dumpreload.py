@@ -73,7 +73,7 @@ class PickleSerializer(object):
             # XXX this really should try some sort of persistent registry
             #     before falling back to a fake record type
             #
-            rtype = type("Unknown", (UnknownRecordType,), dict(URI=uri))
+            rtype = type("Unknown", (UnknownRecord,), dict(URI=uri))
             uri_registry[uri] = rtype
             return rtype
 
