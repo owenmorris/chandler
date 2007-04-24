@@ -161,7 +161,7 @@ class Block(schema.Item):
     depth = 0                      # Recursive post depth
 
     @classmethod
-    def post (self, event, arguments, sender=None):
+    def post (theClass, event, arguments, sender=None):
         """
         Events that are posted by the block pass along the block
         that sent it.
@@ -200,7 +200,7 @@ class Block(schema.Item):
         A variant of post that looks up the event to post by name and
         includes a sender, which may be None
         """
-        assert Block.eventNameToItemUUID.has_key (eventName), "Event name %s not found in %s" % (eventName, self)
+        assert Block.eventNameToItemUUID.has_key (eventName), "Event name %s not found" % eventName
         list = Block.eventNameToItemUUID [eventName]
         event = wx.GetApp().UIRepositoryView.findUUID (list [0])
         return theClass.post (event, args, sender)
@@ -402,8 +402,12 @@ class Block(schema.Item):
                         if widget in parentsChildren:
                             numberChildren = len (parentsChildren)
 
+
             method = getattr (type(widget), 'Destroy', None)
             if method is not None:
+                # set widgetIsBeingDeleted on the widget so that event recording's can identify
+                # widgets that are being deleted.
+                widget.widgetIsBeingDeleted = True
                 method (widget)
 
             if __debug__:
@@ -1153,7 +1157,7 @@ _wxFlagMappings = {
 
 class wxRectangularChild (BaseWidget, wx.Panel):
     @classmethod
-    def CalculateWXBorder(self, block):
+    def CalculateWXBorder(theClass, block):
         border = 0
         spacerRequired = False
         for edge in (block.border.top, block.border.left, block.border.bottom, block.border.right):

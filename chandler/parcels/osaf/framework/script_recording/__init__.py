@@ -217,10 +217,8 @@ class Controller (Block.Block):
             if eventType is not None:
                 sentToWidget = event.GetEventObject()
 
-                # Ignore mouse downs in toolbars
-                if not (eventType == 'wx.EVT_LEFT_DOWN' and
-                        isinstance (sentToWidget, wx.ToolBar)):
-
+                # Ignore events on widgets that are being deleted
+                if not getattr (sentToWidget, "widgetIsBeingDeleted", False):
                     # Find the name of the block that the event was sent to
                     # Translate events in wx.Grid's GridWindow to wx.Grid
                     widgetParent = sentToWidget.GetParent()
