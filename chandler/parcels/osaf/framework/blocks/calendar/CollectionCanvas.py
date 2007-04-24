@@ -1078,6 +1078,6 @@ class CollectionBlock(FocusEventHandlers, Block.RectangularChild):
     def CanAdd(self):
         return not sharing.isReadOnly(self.contentsCollection)
 
-    def GetSelection():
+    def GetSelection(self):
         # by default, selection is managed by the collection itself
         return self.contents
