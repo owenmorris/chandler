@@ -946,14 +946,17 @@ class MainView(View):
         # triggered from "Tools | Repository | Compact" Menu
         self.RepositoryCommitWithStatus()
         repository = self.itsView.repository
-        progressMessage = _(u'Compacting repository... %s %d%%')
+        progressMessage = _(u'Compacting repository... %d%%')
+
         def progress(stage, percent):
-            stage = _(unicode(stage))
-            self.setStatusMessage(progressMessage %(stage, percent))
+            #@bkirsch: removed stage from status bar message
+            # since the value was not localizable.
+            self.setStatusMessage(progressMessage % (percent))
+
         counts = repository.compact(sharing.getOldestVersion(self.itsView),
                                     progressFn=progress)
 
-        successMessage = _(u'Reclaimed %d items, %d values, %d refs, %d index entries, %d names, %d lobs, %d blocks, %d lucene documents)' %counts)
+        successMessage = _(u'Reclaimed %d items, %d values, %d refs, %d index entries, %d names, %d lobs, %d blocks, %d lucene documents') % counts
         self.setStatusMessage(successMessage)
 
     def onIndexRepositoryEvent(self, event):

@@ -39,9 +39,7 @@ class ConflictDialog(wx.Dialog):
             i = i+1
         listBox = wx.ListBox(self, -1, choices=itemList)
         changesText = wx.StaticText(self, -1,
-            _(u"Changes will be applied in the order listed above.\n"
-            + "Item cannot be Updated or Synced "
-            + "until changes are applied or discarded"))
+            _(u"Changes will be applied in the order listed above.\nItem cannot be Updated or Synced until changes are applied or discarded"))
         applyButton = wx.Button(self, wx.ID_OK, _(u"Apply Changes"))
         discardButton = wx.Button(self, -1, _(u"Discard Changes"))
         laterButton = wx.Button(self, wx.ID_CANCEL, _(u"Decide Later"))

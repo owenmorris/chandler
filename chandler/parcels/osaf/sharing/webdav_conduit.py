@@ -407,7 +407,7 @@ class WebDAVConduit(conduits.LinkableConduit, DAVConduitMixin,
             resp = self._getServerHandle().blockUntil(resource.get)
 
         except twisted.internet.error.ConnectionDone, err:
-            errors.annotate(err, _("Server reported incorrect Content-Length for %s" % itemPath), details=str(err))
+            errors.annotate(err, _("Server reported incorrect Content-Length for %s") % itemPath, details=str(err))
             raise
         except zanshin.webdav.ConnectionError, err:
             raise errors.CouldNotConnect(_(u"Unable to connect to server. Received the following error: %(error)s") % {'error': err})
@@ -475,7 +475,7 @@ class WebDAVRecordSetConduit(ResourceRecordSetConduit, DAVConduitMixin):
             self.networkTime += (end - start)
 
         except twisted.internet.error.ConnectionDone, err:
-            errors.annotate(err, _("Server reported incorrect Content-Length for %s" % path), details=str(err))
+            errors.annotate(err, _("Server reported incorrect Content-Length for %s") % path, details=str(err))
             raise
         except zanshin.webdav.ConnectionError, err:
             raise errors.CouldNotConnect(_(u"Unable to connect to server. Received the following error: %(error)s") % {'error': err})
