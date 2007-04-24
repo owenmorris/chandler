@@ -152,28 +152,30 @@ def main():
         print "Tinderbuild:  Build failed"
         log.write("Tinderbuild:  Build failed\n")
         status = "build_failed"
-        log.close()
 
-        log = open(logFile, "r")
-        logContents = log.read()
-        log.close()
-        SendMail(fromAddr, alertAddr, startTime, buildName, "The build failed", treeName, None, svnRevision)
-        SendMail(fromAddr, mailtoAddr, startTime, buildName, status, treeName, logContents, svnRevision)
-        log = open(logFile, "w")
+        alertStatus = 'The build failed'
+        # log.close()
+        # log = open(logFile, "r")
+        # logContents = log.read()
+        # log.close()
+        # SendMail(fromAddr, alertAddr, startTime, buildName, "The build failed", treeName, None, svnRevision)
+        # SendMail(fromAddr, mailtoAddr, startTime, buildName, status, treeName, logContents, svnRevision)
+        # log = open(logFile, "w")
 
     except Exception, e:
         print e
         print "Build failed"
         log.write("Build failed\n")
         status = "build_failed"
-        log.close()
 
-        log = open(logFile, "r")
-        logContents = log.read()
-        log.close()
-        SendMail(fromAddr, alertAddr, startTime, buildName, "The build failed", treeName, None, svnRevision)
-        SendMail(fromAddr, mailtoAddr, startTime, buildName, status, treeName, logContents, svnRevision)
-        log = open(logFile, "w")
+        alertStatus = 'The build failed'
+        # log.close()
+        # log = open(logFile, "r")
+        # logContents = log.read()
+        # log.close()
+        # SendMail(fromAddr, alertAddr, startTime, buildName, "The build failed", treeName, None, svnRevision)
+        # SendMail(fromAddr, mailtoAddr, startTime, buildName, status, treeName, logContents, svnRevision)
+        # log = open(logFile, "w")
 
     else:
         if ret == "success-nochanges":
@@ -189,6 +191,7 @@ def main():
                 log.write("There were changes, and the tests were successful\n")
 
             status = "success"
+            alertStatus = status
 
             srcDir = os.path.join(buildDir, "output", buildVersion)
             newDir = os.path.join(outputDir, buildVersion)
@@ -235,14 +238,14 @@ def main():
             log.write("The build failed\n")
             status = "build_failed"
 
-            log.close()
-
-            log = open(logFile, "r")
-            logContents = log.read()
-            log.close()
-            SendMail(fromAddr, alertAddr, startTime, buildName, "The build failed", treeName, None, svnRevision)
-            SendMail(fromAddr, mailtoAddr, startTime, buildName, status, treeName, logContents, svnRevision)
-            log = open(logFile, "w")
+            alertStatus = 'The build failed'
+            # log.close()
+            # log = open(logFile, "r")
+            # logContents = log.read()
+            # log.close()
+            # SendMail(fromAddr, alertAddr, startTime, buildName, "The build failed", treeName, None, svnRevision)
+            # SendMail(fromAddr, mailtoAddr, startTime, buildName, status, treeName, logContents, svnRevision)
+            # log = open(logFile, "w")
 
         elif ret[:11] == "test_failed":
             print "Tests failed"
@@ -255,14 +258,14 @@ def main():
             else:
                 UploadToStaging(nowString, log, rsyncProgram, options.rsyncServer)
 
-            log.close()
-
-            log = open(logFile, "r")
-            logContents = log.read()
-            log.close()
-            SendMail(fromAddr, alertAddr, startTime, buildName, "Unit tests failed", treeName, None, svnRevision)
-            SendMail(fromAddr, mailtoAddr, startTime, buildName, status, treeName, logContents, svnRevision)
-            log = open(logFile, "w")
+            alertStatus = 'Unit tests failed'
+            # log.close()
+            # log = open(logFile, "r")
+            # logContents = log.read()
+            # log.close()
+            # SendMail(fromAddr, alertAddr, startTime, buildName, "Unit tests failed", treeName, None, svnRevision)
+            # SendMail(fromAddr, mailtoAddr, startTime, buildName, status, treeName, logContents, svnRevision)
+            # log = open(logFile, "w")
 
         else:
             print "There were no changes"
@@ -284,6 +287,7 @@ def main():
             print "exception during log flush and close"
             print e
 
+        SendMail(fromAddr, alertAddr, startTime, buildName, alertStatus, treeName, None, svnRevision)
         SendMail(fromAddr, mailtoAddr, startTime, buildName, status, treeName, logContents, svnRevision)
 
         if sleepMinutes:
