@@ -23,13 +23,17 @@ from PyICU import ICUtzinfo
 import logging
 logger = logging.getLogger(__name__)
 
+DEAD_FLAGS = (schema.Item.STALE | schema.Item.DELETING | schema.Item.DEFERRING |
+              schema.Item.DEFERRED)
+
 def isDead(item):
     """
     Return True if the item is None, an itemref, stale, or deferred.
     
     """
-    return (item is None or isitemref(item) or item.isStale() or
-            item.isDeferred())
+    return (item is None or isitemref(item) or
+            (item.itsStatus & DEAD_FLAGS) != 0
+           )
 
 
 class PendingReminderEntry(schema.Item):
