@@ -173,7 +173,7 @@ class Triageable(Remindable):
                         reminder = self.getUserReminder()
                         if reminder is not None \
                            and reminder.nextPoll != reminder.farFuture \
-                           and reminder.nextPoll > now:
+                           and reminder.nextPoll > datetime.now(ICUtzinfo.default):
                             from osaf.framework.blocks.Block import debugName
                             logger.debug("Autotriaging %s to LATER", 
                                          debugName(self))
