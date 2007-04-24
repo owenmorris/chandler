@@ -38,8 +38,8 @@ try:
         return len([key for key in contentItems.iterkeys()
                     if view.findValue(key, '_sectionTriageStatus', None) is not None])
     unpurgedCount = countUnpurgedItems()
-    if unpurgedCount > 0:
-        logger.ReportFailure("Found %d unpurged items before the test" % unpurgedCount)
+    if unpurgedCount != 1:
+        raise AssertionError("Found %d unpurged items before the test" % unpurgedCount)
 
     # Expand the sections so we have plenty to click on.
     dashboardBlock = App_ns.DashboardSummaryView
