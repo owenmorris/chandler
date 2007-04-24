@@ -127,7 +127,7 @@ class CosmoConduit(recordset_conduit.DiffRecordSetConduit, conduits.HTTPMixin):
 
             numUuids = len(uuids)
             numChunks = numUuids / self.chunkSize
-            if numChunks % self.chunkSize:
+            if numUuids % self.chunkSize:
                 numChunks += 1
             if activity:
                 activity.update(totalWork=numChunks, workDone=0)
