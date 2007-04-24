@@ -172,7 +172,7 @@ class ImportDialog(FileChooserWithOptions):
         self.box.Insert(1, gs, 0, wx.LEFT, 16)
 
         self.mine = wx.CheckBox(self, -1, _(u"Keep out of Dashboard"))
-        self.mine.SetValue(True)
+        self.mine.SetValue(False)
         self.box.Insert(2, self.mine, 0, wx.ALL, 3)
 
         self.feedbackBox = wx.BoxSizer(wx.VERTICAL)
