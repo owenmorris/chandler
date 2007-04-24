@@ -275,16 +275,16 @@ class Controller (Block.Block):
 
                                 #  Record the state of the last widget so we can check that the state is the same
                                 # afer the event is played back
-                                #  Don't record the last state for EVT_CHAR events. They happen before the previous
-                                # key down event is processed. This causes problems with verification when key down
-                                # events are processed before EVT_CHAR events during playback.
-                                if eventType != 'wx.EVT_CHAR':
-                                    lastSentToWidget = getattr (self, "lastSentToWidget", None)
-                                    if lastSentToWidget is not None:
-                                        method = getattr (lastSentToWidget, "GetValue", None)
-                                        if method is not None:
-                                            values.append ("'lastWidgetValue':" + valueToString (method()))
-                                        
+                                lastSentToWidget = getattr (self, "lastSentToWidget", None)
+                                if lastSentToWidget is not None and not isinstance (lastSentToWidget, wx._core._wxPyDeadObject):
+                                    method = getattr (lastSentToWidget, "GetValue", None)
+                                    if method is not None:
+                                        values.append ("'lastWidgetValue':" + valueToString (method()))
+                                    
+                                # Keep track of the last widget so we can record the change in Value and
+                                # verify it during playbeck.
+                                self.lastSentToWidget = sentToWidget
+ 
                             properties = "{" + ", ".join (values) + "}"
 
                             values = []
@@ -305,7 +305,6 @@ class Controller (Block.Block):
                                                                                  properties ,
                                                                                  attributes,
                                                                                  os.linesep))
-                            self.lastSentToWidget = sentToWidget
                     # Comment in for testing
                     #else:
                         #print "unnamed block with id", sentToName, sentToWidget

@@ -118,19 +118,27 @@ def ProcessEvent (theClass, properties , attributes):
                         assert focusWindow.GetId() < 0, "Focus window has unexpected id"
     
         # Check to make sure last event caused expected change
-        if ProcessEvent.lastSentToWidget is not None:
-            method = getattr (ProcessEvent.lastSentToWidget, "GetValue", None)
-            lastWidgetValue = properties.get ("lastWidgetValue", None)
-            if lastWidgetValue is not None and method is not None:
-                value = method()
-                # Special hackery for string that varies depending on Chandler build
-                if type (value) is unicode and value.startswith (u"Welcome to Chandler 0.7.dev-r"):
-                    assert lastWidgetValue.startswith (u"Welcome to Chandler 0.7.dev-r")
-                else:
-                     assert value == lastWidgetValue, "widget's value doesn't match the value when the script was recorded"
-            else:
-                assert lastWidgetValue is None, "last widget differes from its value when the script was recorded"
 
+        lastSentToWidget = ProcessEvent.lastSentToWidget
+        if lastSentToWidget is not None and not isinstance (lastSentToWidget, wx._core._wxPyDeadObject):
+            GetValueMethod = getattr (lastSentToWidget, "GetValue", None)
+        else:
+            GetValueMethod = None
+
+        assert properties.has_key ("lastWidgetValue") == (GetValueMethod is not None), "widget's value existance doesn't match existance when the script was recorded"
+
+        if GetValueMethod is not None:
+            value = GetValueMethod()
+            lastWidgetValue = properties ["lastWidgetValue"]
+            # Special hackery for string that varies depending on Chandler build
+            if type (value) is unicode and value.startswith (u"Welcome to Chandler 0.7.dev-r"):
+                assert lastWidgetValue.startswith (u"Welcome to Chandler 0.7.dev-r")
+            else:
+                 assert value == lastWidgetValue, "widget's value doesn't match the value when the script was recorded"
+
+        # Keep track of the last widget. Use Id because widget can be deleted
+        ProcessEvent.lastSentToWidget = sentToWidget
+        
     if not sentToWidget.ProcessEvent (event):
         if (eventType is wx.EVT_KEY_DOWN and
             event.m_keyCode in set ((wx.WXK_ESCAPE, wx.WXK_TAB, wx.WXK_RETURN, wx.WXK_NUMPAD_ENTER))):
@@ -160,8 +168,6 @@ def ProcessEvent (theClass, properties , attributes):
         (start, end) = selectionRange
         sentToWidget.SetSelection (start, end)
 
-    ProcessEvent.lastSentToWidget = sentToWidget
-    
     # On windows when we propagate notifications while editing a text control
     # it will end up calling wxSynchronizeWidget in wxTable, which will end the
     # editing of the table
