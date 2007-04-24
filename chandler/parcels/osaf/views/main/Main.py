@@ -203,7 +203,7 @@ class MainView(View):
             collection = allCollection
 
         # The stampClass is used to specify the viewer
-        sidebar.setPreferredClass(stampClass)
+        sidebar.setPreferredClass(stampClass, keepMissing=True)
 
         if not collection in sidebar.contents and event.collectionAddEvent is not None:
             Block.post(event.collectionAddEvent, {}, self)

@@ -938,8 +938,9 @@ class SidebarBlock(Table):
         self.postEventByName("SelectItemsBroadcast",
                              {'items':list(self.contents.iterSelection())})
 
-    def setPreferredClass(self, filterClass):
-        if self.filterClass != filterClass:
+    def setPreferredClass(self, filterClass, keepMissing=False):
+        if (self.filterClass != filterClass and
+            (not keepMissing or self.filterClass is not MissingClass)):
 
             # We need to update the click state of the toolbar as well.
             # By default we'll switch to all
