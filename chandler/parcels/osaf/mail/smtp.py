@@ -26,6 +26,7 @@ import cStringIO as StringIO
 #PyICU imports
 
 #Chandler imports
+import messages
 from application import Globals, Utility
 from osaf.pim.mail import SMTPAccount, MailStamp
 from osaf.pim import Modification
