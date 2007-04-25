@@ -269,7 +269,6 @@ class MultiStateButton(GenBitmapButton):
             refresh = True
         if refresh:
             self.Refresh()
-            self.Update()
 
     def _RolloverStart(self, event):
         """
@@ -282,8 +281,6 @@ class MultiStateButton(GenBitmapButton):
             if rolloverBitmap is not None:
                 self.SetBitmapLabel(rolloverBitmap)
                 self.Refresh()
-                # will the app need this call to Update?
-                self.Update()
 
     def _RolloverFinish(self, event):
         """
@@ -297,8 +294,6 @@ class MultiStateButton(GenBitmapButton):
                     "invalid state '" + self.currentState + "' is missing 'normal' bitmap"
                 self.SetBitmapLabel(stateBitmaps.normal)
                 self.Refresh()
-                # will the app need this call to Update?
-                self.Update()
 
     def GetBackgroundBrush(self, dc):
         # override the GenBitmapButton GetBackgroundBrush(), which assumes you
