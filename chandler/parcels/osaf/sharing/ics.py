@@ -21,6 +21,7 @@ from PyICU import ICUtzinfo
 from osaf.pim.calendar.TimeZone import convertToICUtzinfo, forceToDateTime
 from osaf.pim.triage import Triageable
 from chandlerdb.util.c import UUID
+from i18n import ChandlerMessageFactory as _
 import md5
 from itertools import chain
 import logging
