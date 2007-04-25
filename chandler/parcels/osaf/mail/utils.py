@@ -27,6 +27,8 @@ from datetime import datetime
 from PyICU import ICUtzinfo
 import sys
 import sgmllib
+from twisted.mail import smtp
+from chandlerdb.util.c import UUID
 
 #Chandler imports
 import application.Globals as Globals
@@ -238,7 +240,12 @@ def createMessageID():
 
     @return: String containing the unique message id
     """
-    return Utils.make_msgid()
+    # The twisted.mail.smtp module
+    # contains a cached DNS name. There
+    # is a large performance increase in
+    # not looking up this value each time a
+    # a messageID is created.
+    return "%s@%s" % (UUID().str16(), smtp.DNSNAME)
 
 
 def hasValue(value):
