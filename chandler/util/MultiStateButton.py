@@ -293,7 +293,8 @@ class MultiStateButton(GenBitmapButton):
             stateBitmaps = self.bitmapCache[self.currentState]
             # only do all this if there was actually a rollover
             if getattr(stateBitmaps, "rollover", None) is not None:
-                assert getattr(stateBitmaps, "normal", None) is not None, "invalid state '" + inStateName + "' is missing 'normal' bitmap"
+                assert getattr(stateBitmaps, "normal", None) is not None, \
+                    "invalid state '" + self.currentState + "' is missing 'normal' bitmap"
                 self.SetBitmapLabel(stateBitmaps.normal)
                 self.Refresh()
                 # will the app need this call to Update?
