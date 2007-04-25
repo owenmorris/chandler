@@ -1143,10 +1143,6 @@ class DBStore(Store):
 
         return self._names.readName(view, version, key, name)
 
-    def readNames(self, view, version, key):
-
-        return self._names.readNames(view, version, key)
-
     def loadACL(self, view, version, uuid, name):
 
         return self._acls.readACL(view, version, uuid, name)

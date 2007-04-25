@@ -593,7 +593,7 @@ class NamesContainer(DBContainer):
                         break
 
                     if hash != currentHash and ~nameVer <= version:
-                        currentHash = nameHash
+                        currentHash = hash
                         uValue = name[0]
                         if uValue != uKey:    # !deleted name
                             results.append(uValue)
@@ -1016,7 +1016,7 @@ class ItemContainer(DBContainer):
     def isValue(self, view, version, uItem, uValue, exact=False):
 
         if exact:
-            item = self.get_record(Record(Record.UUID, uuid,
+            item = self.get_record(Record(Record.UUID, uItem,
                                           Record.INT, ~version),
                                    ItemContainer.VALUES_TYPES)
         else:

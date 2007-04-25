@@ -444,8 +444,8 @@ class Endpoint(Item):
                     getKeys(cloud)
 
         elif policy == 'byMethod':
-            results.extend(getattr(view[key], self.method)(keys, references,
-                                                           cloudAlias))
+            results.extend(getattr(self.itsView[key],
+                                   self.method)(keys, references, cloudAlias))
 
         elif policy == 'none':
             pass

@@ -122,5 +122,5 @@ class Collection(Item):
         @return: C{True} or C{False}
         """
 
-        subset = getattr(subset, superset.__collection__)
+        subset = getattr(subset, subset.__collection__)
         return getattr(self, self.__collection__).isSubset(subset, reasons)
