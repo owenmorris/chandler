@@ -44,7 +44,7 @@ class InMemoryConduit(conduits.LinkableConduit, conduits.ManifestEngineMixin):
         super(InMemoryConduit, self).destroy()
 
         if not self.exists():
-            raise NotFound(_(u"Share does not exist"))
+            raise errors.NotFound(_(u"Share does not exist"))
 
         del shareDict[self.shareName]
 

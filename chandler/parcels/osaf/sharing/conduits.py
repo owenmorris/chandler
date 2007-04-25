@@ -32,7 +32,7 @@ from osaf.framework.twisted import waitForDeferred
 from osaf.framework.password import passwordAttribute
 from repository.item.Item import Item
 from repository.persistence.RepositoryError import MergeError
-from chandlerdb.util.c import UUID
+from chandlerdb.util.c import UUID, Nil
 import zanshin, M2Crypto.BIO, twisted.web.http
 import logging
 import WebDAV
