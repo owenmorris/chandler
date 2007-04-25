@@ -1199,13 +1199,13 @@ class UITestItem(object):
                 else:
                     self.logger.report(True, name="Check_Object", comment="(On body Checking)")
             elif field == "fromAddress": # from address checking
-                f = "%s" %pim.mail.MailStamp(item).fromAddress
+                f = "%s" %pim.mail.MailStamp(self.item).fromAddress
                 if not value == f :
                     self.logger.report(False, name="Check_Object", comment="(On from address Checking) || object from address = %s ; expected from address = %s" % (f, value))
                 else:
                     self.logger.report(True, name="Check_Object", comment="(On from address Checking)")
             elif field == "toAddress": # to address checking
-                t = "%s" % pim.mail.MailStamp(item).toAddress
+                t = "%s" % pim.mail.MailStamp(self.item).toAddress
                 if not value == t :
                     self.logger.report(False, name="Check_Object", comment="(On to address Checking) || object to address = %s ; expected to address = %s" % (t, value))
                 else:
