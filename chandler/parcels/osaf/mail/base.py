@@ -566,10 +566,9 @@ class AbstractDownloadClient(object):
         def _tryCommit():
             try:
                 self.view.commit()
-            except RepositoryError, e:
-                raise
-
             except VersionConflictError, e1:
+                raise
+            except RepositoryError, e:
                 raise
 
         d = threads.deferToThread(_tryCommit)

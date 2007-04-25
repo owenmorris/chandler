@@ -194,13 +194,13 @@ class SMTPClient(object):
         def _tryCommit():
             try:
                 self.view.commit()
-            except RepositoryError, e:
-                #Place holder for commit rollback
-                trace(e)
-                raise
             except VersionConflictError, e1:
                 #Place holder for commit rollback
                 trace(e1)
+                raise
+            except RepositoryError, e:
+                #Place holder for commit rollback
+                trace(e)
                 raise
 
         d = threads.deferToThread(_tryCommit)
