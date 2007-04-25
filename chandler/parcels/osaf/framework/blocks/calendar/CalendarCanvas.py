@@ -1359,11 +1359,6 @@ class CalendarBlock(CollectionCanvas.CollectionBlock):
         
         return defaultCollection
         
-    def setCurrentCalendarColor(self, color):
-
-        # contentsCollection is the currently selected collection
-        UserCollection(self.contentsCollection).color = ColorType(*color)
-
     def GetSelection(self):
         return CalendarSelection(self.contents)
 
