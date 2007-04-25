@@ -1444,8 +1444,9 @@ class ValueContainer(DBContainer):
     # 0.6.14: 'descending' bit moved to NumericIndex
     # 0.6.15: removed unused entryValue field from skip list entries
     # 0.7.1: record value count widened to 32 bit
+    # 0.7.2: any sorted index may now have a super-index
 
-    FORMAT_VERSION = 0x00070100
+    FORMAT_VERSION = 0x00070200
 
     SCHEMA_KEY  = pack('>16sl', Repository.itsUUID._uuid, 0)
     VERSION_KEY = pack('>16sl', Repository.itsUUID._uuid, 1)

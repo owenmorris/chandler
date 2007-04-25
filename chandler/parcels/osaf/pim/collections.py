@@ -143,7 +143,7 @@ class MethodIndexDefinition(IndexDefinition):
                             method=(self, 'compare'),
                             monitor=monitoredAttributes)
 
-    def compare(self, u1, u2, vals):
+    def compare(self, index, u1, u2, vals):
         """
         Compare two items, given their UUIDs. This method fetches (using
         findValues() on the item UUIDs) the pairs specified in the
@@ -165,14 +165,14 @@ class MethodIndexDefinition(IndexDefinition):
             v2 = view.findInheritedValues(u1, *self.findValuePairs)
         return cmp(v1, v2)
 
-    def compare_init(self, u, vals):
+    def compare_init(self, index, u, vals):
         return self.itsView.findInheritedValues(u, *self.findValuePairs)
 
     schema.initialValues(
         # Make the attributes we monitor be the same as the ones we'll
         # fetch in findValues().
         attributes = lambda self: [tuple[0]
-                                  for tuple in type(self).findValuePairs]
+                                   for tuple in type(self).findValuePairs]
     )                                 
 
 
@@ -196,7 +196,7 @@ class AttributeIndexDefinition(MethodIndexDefinition):
             self.findValuePairs = tuple(tuples)
         return self.findValuePairs
 
-    def compare(self, u1, u2, vals):
+    def compare(self, index, u1, u2, vals):
         view = self.itsView
         attrs = Nil
 
@@ -233,7 +233,7 @@ class AttributeIndexDefinition(MethodIndexDefinition):
                 return result
         return 0
 
-    def compare_init(self, u, vals):
+    def compare_init(self, index, u, vals):
         return self.itsView.findInheritedValues(u, *self.getFindValuePairs())
 
 

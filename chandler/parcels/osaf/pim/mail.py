@@ -2235,7 +2235,7 @@ Issues:
 
 
 def makeCompareMethod(attrName):
-    def compare(self, u1, u2, vals):
+    def compare(self, index, u1, u2, vals):
         if u1 in vals:
             v1 = vals[u1]
         else:
@@ -2245,7 +2245,7 @@ def makeCompareMethod(attrName):
         else:
             v2 = self.itsView.findValue(u2, attrName).lower()
         return cmp(v1, v2)
-    def compare_init(self, u, vals):
+    def compare_init(self, index, u, vals):
         return self.itsView.findValue(u, attrName).lower()
     return compare, compare_init
 

@@ -2399,7 +2399,7 @@ def makeCompareMethod(attr=None, getFn=None):
         attrName = attr.name
         def getFn(uuid, view):
             return view.findInheritedValues(uuid, (attrName, None))[0]
-    def compare(self, u1, u2, vals):
+    def compare(self, index, u1, u2, vals):
         view = self.itsView
         if u1 in vals:
             v1 = vals[u1]
@@ -2421,7 +2421,7 @@ def makeCompareMethod(attr=None, getFn=None):
 
         return cmp(v1, v2)
 
-    def compare_init(self, u, vals):
+    def compare_init(self, index, u, vals):
         return getFn(u, self.itsView)
     return compare, compare_init
         

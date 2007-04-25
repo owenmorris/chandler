@@ -370,6 +370,11 @@ class SortedIndex(DelegatingIndex):
         
         super(SortedIndex, self).__init__(index, **kwds)
 
+        if not kwds.get('loading', False):
+            if 'superindex' in kwds:
+                item, attr, name = kwds.pop('superindex')
+                self._super = (item.itsUUID, attr, name)
+
         self._valueMap = valueMap
         self._subIndexes = None
 
@@ -380,6 +385,9 @@ class SortedIndex(DelegatingIndex):
     def getInitKeywords(self):
 
         kwds = self._index.getInitKeywords()
+
+        if hasattr(self, '_super'):
+            kwds['superindex'] = self._super
 
         if self._subIndexes:
             kwds['subindexes'] = self._subIndexes
@@ -392,7 +400,12 @@ class SortedIndex(DelegatingIndex):
 
     def _reindex(self, key):
 
-        self._valueMap._reindex(self, key)
+        if hasattr(self, '_super'):
+            uuid, attr, name = self._super
+            index = getattr(self._valueMap.itsView[uuid], attr).getIndex(name)
+            index._reindex(key)
+        else:
+            self._valueMap._reindex(self, key)
 
     def validateIndex(self, valid):
 
@@ -408,6 +421,11 @@ class SortedIndex(DelegatingIndex):
 
         index = self._index
         skipList = index.skipList
+
+        superindex = self.getSuperIndex()
+        if superindex is not None and superindex._valueMap is self._valueMap:
+            if key not in superindex:
+                superindex.insertKey(key, ignore, selected)
 
         if skipList.isValid():
             afterKey = skipList.after(key, self.compare, {})
@@ -531,6 +549,15 @@ class SortedIndex(DelegatingIndex):
 
         self._index._writeValue(itemWriter, record, version)
 
+        if hasattr(self, '_super'):
+            uuid, attr, name = self._super
+            record += (Record.BOOLEAN, True,
+                       Record.UUID, uuid,
+                       Record.SYMBOL, attr,
+                       Record.SYMBOL, name)
+        else:
+            record += (Record.BOOLEAN, False)
+
         if self._subIndexes:
             record += (Record.SHORT, len(self._subIndexes))
             for uuid, attr, name in self._subIndexes:
@@ -543,6 +570,14 @@ class SortedIndex(DelegatingIndex):
     def _readValue(self, itemReader, offset, data):
 
         offset = self._index._readValue(itemReader, offset, data)
+
+        isSubIndex = data[offset]
+        offset += 1
+
+        if isSubIndex:
+            # uuid, attr, name
+            self._super = data[offset:offset+3]
+            offset += 3
 
         count = data[offset]
         offset += 1
@@ -557,6 +592,14 @@ class SortedIndex(DelegatingIndex):
             self._subIndexes = None
 
         return offset
+
+    def getSuperIndex(self):
+        
+        if hasattr(self, '_super'):
+            uuid, attr, name = self._super
+            return getattr(self._valueMap.itsView[uuid], attr).getIndex(name)
+            
+        return None
 
     def addSubIndex(self, uuid, attr, name):
 
@@ -575,6 +618,38 @@ class SortedIndex(DelegatingIndex):
         result = self._index._checkIndex(self, logger, name, value,
                                          item, attribute, count, repair)
 
+        if hasattr(self, '_super'):
+            uuid, attr, superName = self._super
+
+            superItem = item.itsView.find(uuid)
+            if superItem is None:
+                logger.error("Item %s, owner of superindex '%s' of index '%s' installed on value '%s' in attribute '%s' on %s, was not found", uuid, superName, name, value, attribute, item._repr_())
+                return False
+
+            superValue = getattr(superItem, attr, Nil)
+            if superValue is Nil:
+                logger.error("Attribute '%s' of %s, owner of superindex '%s' of index '%s' installed on value '%s' in attribute '%s' on %s, was not found", attr, superItem._repr_(), superName, name, value, attribute, item._repr_())
+                return False
+
+            indexes = getattr(superValue, '_indexes', Nil)
+            if indexes is Nil:
+                logger.error("Value %s of attribute '%s' of %s, owner of superindex '%s' of index '%s' installed on value '%s' in attribute '%s' on %s, is not of a type that can have indexes: %s", superValue, attr, superItem._repr_(), superName, name, value, attribute, item._repr_(), type(superValue))
+                return False
+
+            if indexes is None:
+                index = None
+            else:
+                index = indexes.get(superName)
+
+            if index is None:
+                logger.error("Value %s of attribute '%s' of %s, owner of superindex '%s' of index '%s' installed on value '%s' in attribute '%s' on %s, has no index named '%s'", superValue, attr, superItem._repr_(), superName, name, value, attribute, item._repr_(), superName)
+                return False
+
+            reasons = set()
+            if not self._valueMap.isSubset(superValue, reasons):
+                logger.error("To support a subindex, %s must be a subset of %s but %s", self._valueMap, superValue, ', '.join("%s.%s is not a subset of %s.%s" %(sub_i._repr_(), sub_a, sup_i._repr_(), sup_a) for (sub_i, sub_a), (sup_i, sup_a) in ((sub.itsOwner, sup.itsOwner) for sub, sup in reasons)))
+                return False
+        
         if self._subIndexes:
             for uuid, attr, subName in self._subIndexes:
                 subItem = item.itsView.find(uuid)
@@ -907,9 +982,9 @@ class MethodIndex(SortedIndex):
         uItem, methodName = self._method
         item = self._valueMap.itsView[uItem]
         if k0 not in vals:
-            vals[k0] = getattr(item, methodName + '_init')(k0, vals)
+            vals[k0] = getattr(item, methodName + '_init')(self, k0, vals)
 
-        return getattr(item, methodName)(k0, k1, vals)
+        return getattr(item, methodName)(self, k0, k1, vals)
 
     def _writeValue(self, itemWriter, record, version):
 
@@ -929,25 +1004,10 @@ class MethodIndex(SortedIndex):
 
 class SubIndex(SortedIndex):
 
-    def __init__(self, valueMap, index, **kwds):
-
-        super(SubIndex, self).__init__(valueMap, index, **kwds)
-
-        if not kwds.get('loading', False):
-            item, attr, name = kwds.pop('superindex')
-            self._super = (item.itsUUID, attr, name)
-
     def getIndexType(self):
 
         return 'subindex'
     
-    def getInitKeywords(self):
-
-        kwds = super(SubIndex, self).getInitKeywords()
-        kwds['superindex'] = self._super
-
-        return kwds
-
     def compare(self, k0, k1, vals):
 
         uuid, attr, name = self._super
@@ -962,70 +1022,6 @@ class SubIndex(SortedIndex):
         skipList = index.skipList
 
         return skipList.position(k0) - skipList.position(k1)
-
-    def _reindex(self, key):
-
-        uuid, attr, name = self._super
-        index = getattr(self._valueMap.itsView[uuid], attr).getIndex(name)
-        index._reindex(key)
-
-    def _writeValue(self, itemWriter, record, version):
-
-        super(SubIndex, self)._writeValue(itemWriter, record, version)
-
-        uuid, attr, name = self._super
-        record += (Record.UUID, uuid,
-                   Record.SYMBOL, attr,
-                   Record.SYMBOL, name)
-
-    def _readValue(self, itemReader, offset, data):
-
-        offset = super(SubIndex, self)._readValue(itemReader, offset, data)
-
-        # uuid, attr, name
-        self._super = data[offset:offset+3]
-
-        return offset + 3
-
-    def _checkIndex(self, _index, logger, name, value, item, attribute, count,
-                    repair):
-
-        result = super(SubIndex, self)._checkIndex(_index, logger, name, value,
-                                                   item, attribute, count,
-                                                   repair)
-
-        uuid, attr, superName = self._super
-
-        superItem = item.itsView.find(uuid)
-        if superItem is None:
-            logger.error("Item %s, owner of superindex '%s' of index '%s' installed on value '%s' in attribute '%s' on %s, was not found", uuid, superName, name, value, attribute, item._repr_())
-            return False
-
-        superValue = getattr(superItem, attr, Nil)
-        if superValue is Nil:
-            logger.error("Attribute '%s' of %s, owner of superindex '%s' of index '%s' installed on value '%s' in attribute '%s' on %s, was not found", attr, superItem._repr_(), superName, name, value, attribute, item._repr_())
-            return False
-
-        indexes = getattr(superValue, '_indexes', Nil)
-        if indexes is Nil:
-            logger.error("Value %s of attribute '%s' of %s, owner of superindex '%s' of index '%s' installed on value '%s' in attribute '%s' on %s, is not of a type that can have indexes: %s", superValue, attr, superItem._repr_(), superName, name, value, attribute, item._repr_(), type(superValue))
-            return False
-
-        if indexes is None:
-            index = None
-        else:
-            index = indexes.get(superName)
-
-        if index is None:
-            logger.error("Value %s of attribute '%s' of %s, owner of superindex '%s' of index '%s' installed on value '%s' in attribute '%s' on %s, has no index named '%s'", superValue, attr, superItem._repr_(), superName, name, value, attribute, item._repr_(), superName)
-            return False
-
-        reasons = set()
-        if not self._valueMap.isSubset(superValue, reasons):
-            logger.error("To support a subindex, %s must be a subset of %s but %s", self._valueMap, superValue, ', '.join("%s.%s is not a subset of %s.%s" %(sub_i._repr_(), sub_a, sup_i._repr_(), sup_a) for (sub_i, sub_a), (sup_i, sup_a) in ((sub.itsOwner, sup.itsOwner) for sub, sup in reasons)))
-            return False
-        
-        return result
 
 
 __index_classes__ = { 'attribute': AttributeIndex,

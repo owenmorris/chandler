@@ -52,7 +52,7 @@ class TriageColumnIndexDefinition(pim.MethodIndexDefinition):
     def getCompareTuple(self, uuid):
         return self.loadIndexValues(uuid, self.findParams)
 
-    def compare(self, u1, u2, vals):
+    def compare(self, index, u1, u2, vals):
         if u1 in vals:
             v1 = vals[u1]
         else:
@@ -63,7 +63,7 @@ class TriageColumnIndexDefinition(pim.MethodIndexDefinition):
             v2 = self.getCompareTuple(u2)
         return cmp(v1, v2)
 
-    def compare_init(self, u, vals):
+    def compare_init(self, index, u, vals):
         return self.getCompareTuple(u)
 
 

@@ -823,7 +823,7 @@ class IndexDefinitionTestCase(CollectionTestCase):
 
     class MyMethodIndexDefinition(MethodIndexDefinition):
         callCount = 0
-        def compare(self, u1, u2, vals):
+        def compare(self, index, u1, u2, vals):
         
             self.callCount += 1
             
@@ -838,7 +838,7 @@ class IndexDefinitionTestCase(CollectionTestCase):
             
             return cmp(v1, v2)
 
-        def compare_init(self, u, vals):
+        def compare_init(self, index, u, vals):
             return self.itsView.findValue(u, 'displayName', None)
 
     def testMethodIndex(self):

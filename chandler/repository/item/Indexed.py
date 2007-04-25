@@ -136,11 +136,12 @@ class Indexed(object):
         else:
             self._indexes = {}
 
+        isSubIndex = 'superindex' in kwds
         index = self._createIndex(indexType, **kwds)
 
         if not (view.isLoading() or kwds.get('loading', False)):
 
-            if indexType == 'subindex':
+            if isSubIndex:
                 uuid, superName, superIndexName = index._super
                 superset = getattr(view[uuid], superName)
                 reasons = set()
@@ -173,7 +174,7 @@ class Indexed(object):
                 else:
                     _attach(kwds['attribute'])
 
-            if indexType == 'subindex':
+            if isSubIndex:
                 superIndex = superset.getIndex(superIndexName)
                 superIndex.addSubIndex(item.itsUUID, name, indexName)
 
@@ -289,7 +290,7 @@ class Indexed(object):
             raise NoSuchIndexError, (item, name, indexName)
 
         index = self._indexes[indexName]
-        if index.getIndexType() == 'subindex':
+        if hasattr(index, '_super'):
             uuid, superName, superIndexName = index._super
             try:
                 superValue = getattr(item.itsView[uuid], superName)

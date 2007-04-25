@@ -164,7 +164,7 @@ class UnexpiredFilter(Item):
 
         return nextPoll != Reminder.farFuture
 
-    def compare(self, u1, u2, vals):
+    def compare(self, index, u1, u2, vals):
         view = self.itsView
         if u1 in vals:
             np1 = vals[u1]
@@ -183,7 +183,7 @@ class UnexpiredFilter(Item):
             return 1
         return cmp(np1, np2)
 
-    def compare_init(self, u, vals):
+    def compare_init(self, index, u, vals):
         return self.itsView.findValue(u, self.findValuePair[0], None)
 
 
