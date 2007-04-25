@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 
-#   Copyright (c) 2003-2006 Open Source Applications Foundation
+#   Copyright (c) 2003-2007 Open Source Applications Foundation
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -16,58 +16,52 @@
 
 
 import hardhatutil, time, os, sys
+import traceback
 
-whereAmI = os.path.dirname(os.path.abspath(hardhatutil.__file__))
-
-homeDir = os.environ['HOME']
-buildDir = os.path.join(homeDir, "tinderbuild")
-stopFile = os.path.join(buildDir, "stop")
+def dumpException():
+    t, v, tb = sys.exc_info()
+    print time.strftime('%H:%M on %A, %d %B')
+    print ''.join(traceback.format_exception(t, v, tb))
 
 def main():
-    curDir = os.path.abspath(os.getcwd())
-    path = os.environ.get('PATH', os.environ.get('path'))
-    svnProgram = hardhatutil.findInPath(path, "svn")
+    whereAmI    = os.path.dirname(os.path.abspath(hardhatutil.__file__))
+    curDir      = os.path.abspath(os.getcwd())
+    path        = os.environ.get('PATH')
+    homeDir     = os.environ.get('HOME')
+    buildDir    = os.path.join(homeDir, 'tinderbuild')
+    svnProgram  = hardhatutil.findInPath(path, 'svn')
+
+    tboxScript  = os.path.join(curDir, 'tinderbox.py')
+    buildScript = ' '.join(sys.argv[1:])
+    stopFile    = os.path.join(buildDir, 'stop')
 
     if os.path.exists(stopFile):
         os.remove(stopFile)
 
-    go = 1
-    firstRound = 1
-
-    while go:
+    while True:
         os.chdir(curDir)
 
-        #if not firstRound:
-        #    print "Sleeping 5 minutes"
-        #    time.sleep(5 * 60)
+        print '[ cycle ] %s :: checking for hardhat svn updates' % time.strftime("%Y-%m-%d %H:%M:%S")
 
-        nowString = time.strftime("%Y-%m-%d %H:%M:%S")
-        
-        # check SVN for any new hardhat script
         try:
-            # bring this hardhat directory up to date
-            outputList = hardhatutil.executeCommandReturnOutputRetry(
-             [svnProgram, "-q", "update"])
+            outputList = hardhatutil.executeCommandReturnOutputRetry([svnProgram, '-q', 'update'])
             hardhatutil.dumpOutputList(outputList)
         except:
-            raise TinderbuildError, "Error updating HardHat"
-        
+            print '[ cycle ] %s :: Exception raised during svn update'  % time.strftime("%Y-%m-%d %H:%M:%S")
+            dumpException()
+            break
+
+        print '[ cycle ] %s :: Running %s %s' % (time.strftime("%Y-%m-%d %H:%M:%S"), tboxScript, buildScript)
         try:
-            # launch the real build script
-            outputList = hardhatutil.executeCommandReturnOutput(
-             [os.path.join(curDir, 'tinderbox.py'), ' '.join(sys.argv[1:])])
+            outputList = hardhatutil.executeCommandReturnOutput([tboxScript, buildScript])
             hardhatutil.dumpOutputList(outputList)
-        except:
-            raise TinderbuildError, "Failed to launch build script"
+
+        except hardhatutil.ExternalCommandErrorWithOutputList, e:
+            print '[ cycle ] %s :: Exception during tinderbox run [%d]' % (time.strftime("%Y-%m-%d %H:%M:%S"), e.exitCode)
+            hardhatutil.dumpOutputList(e.outputList)
+            break
 
         if os.path.exists(stopFile):
-            go = 0
-
-        firstRound = 0
-
-
-class TinderbuildError(Exception):
-    def __init__(self, args=None):
-        self.args = args
+            break
 
 main()

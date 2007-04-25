@@ -30,16 +30,23 @@ hardhatFile = os.path.join(whereAmI, "hardhat.py")
 homeDir  = os.environ['HOME']
 buildDir = os.path.join(homeDir, "tinderbuild")
 
-fromAddr   = "builds"
-mailtoAddr = "buildreport"
-alertAddr  = "buildman"
-adminAddr  = "builds"
+fromAddr    = "builds"
+mailtoAddr  = "buildreport"
+alertAddr   = "buildman"
+adminAddr   = "builds"
+projectName = ""
 
 defaultDomain      = "@osafoundation.org"
 defaultRsyncServer = "192.168.101.25"      #  IP of current server
 
+def logit(msg, log=None):
+    print '[%s] %s :: %s' % (projectName, time.strftime("%Y-%m-%d %H:%M:%S"), msg)
+
+    if log is not None:
+        log.write('%s\n' % msg)
+
 def main():
-    global buildscriptFile, buildDir, fromAddr, mailtoAddr, alertAddr, adminAddr, defaultDomain, defaultRsyncServer
+    global buildscriptFile, buildDir, fromAddr, mailtoAddr, alertAddr, adminAddr, defaultDomain, defaultRsyncServer, projectName
 
       # this is a sane default - the "true" value is pulled from the module being built
     treeName = "Chandler"
@@ -84,15 +91,16 @@ def main():
         parser.print_help()
         parser.error("You must at least provide a name for your build")
 
-    curDir     = os.path.abspath(os.getcwd())
-    buildName  = args[0]
-    fromAddr  += defaultDomain
-    mailtoAddr = options.toAddr
-    alertAddr  = options.alertAddr
-    buildDir   = options.buildDir
-    logFile    = os.path.join(buildDir, "build.log")
-    HHlogFile  = os.path.join(buildDir, "hardhat.log")
-    stopFile   = os.path.join(buildDir, "stop")
+    curDir      = os.path.abspath(os.getcwd())
+    buildName   = args[0]
+    fromAddr   += defaultDomain
+    mailtoAddr  = options.toAddr
+    alertAddr   = options.alertAddr
+    buildDir    = options.buildDir
+    logFile     = os.path.join(buildDir, "build.log")
+    HHlogFile   = os.path.join(buildDir, "hardhat.log")
+    stopFile    = os.path.join(buildDir, "stop")
+    projectName = buildName
 
     if mailtoAddr.find('@') == -1:
         mailtoAddr += defaultDomain
@@ -127,12 +135,10 @@ def main():
     buildVersion = hardhatutil.RemovePunctuation(nowString)
     svnRevision  = ""
 
-    print "Starting:", nowString, buildVersion, buildDir
-
     os.chdir(curDir)
 
     log = open(logFile, "w")
-    log.write("Start: " + nowString + "\n")
+    logit("Start: %s %s %s" % (nowString, buildVersion, buildDir), log)
 
     try:
         # load (or reload) the buildscript file for the project
@@ -143,138 +149,101 @@ def main():
 
         SendMail(fromAddr, mailtoAddr, startTime, buildName, "building", treeName, None, "")
 
+        logit('Calling build module', log)
+
         (ret, svnRevision) = mod.Start(hardhatFile, buildDir, buildVersion, 0, log,
                                        upload=options.uploadStaging, skipTests=options.skipTests, 
                                        revID=options.revID, branchID=options.branchID)
 
-    except TinderbuildError, e:
-        print e
-        print "Tinderbuild:  Build failed"
-        log.write("Tinderbuild:  Build failed\n")
-        status = "build_failed"
+        logit('Build module returned [%s, %s]' % (ret, svnRevision), log)
 
+    except TinderbuildError, e:
+        logit('TinderbuildError [%s]' % str(e), log)
+
+        status      = "build_failed"
         alertStatus = 'The build failed'
-        # log.close()
-        # log = open(logFile, "r")
-        # logContents = log.read()
-        # log.close()
-        # SendMail(fromAddr, alertAddr, startTime, buildName, "The build failed", treeName, None, svnRevision)
-        # SendMail(fromAddr, mailtoAddr, startTime, buildName, status, treeName, logContents, svnRevision)
-        # log = open(logFile, "w")
 
     except Exception, e:
-        print e
-        print "Build failed"
-        log.write("Build failed\n")
-        status = "build_failed"
+        logit('Exception [%s]' % str(e), log)
 
+        status      = "build_failed"
         alertStatus = 'The build failed'
-        # log.close()
-        # log = open(logFile, "r")
-        # logContents = log.read()
-        # log.close()
-        # SendMail(fromAddr, alertAddr, startTime, buildName, "The build failed", treeName, None, svnRevision)
-        # SendMail(fromAddr, mailtoAddr, startTime, buildName, status, treeName, logContents, svnRevision)
-        # log = open(logFile, "w")
 
     else:
         if ret == "success-nochanges":
-            print "There were no changes, and the tests were successful"
-            log.write("There were no changes, and the tests were successful\n")
-            status = "success"
+            logit('There were no changes, and the tests were successful', log)
+            status      = "success"
+            alertStatus = status
         elif ret == "success-changes" or ret == "success-first-run":
             if ret == "success-first-run":
-                print "First run of tinderbox, and the tests were successful"
-                log.write("First run of tinderbox, and the tests were successful\n")
+                logit('First run of tinderbox, and the tests were successful', log)
             else:
-                print "There were changes, and the tests were successful"
-                log.write("There were changes, and the tests were successful\n")
+                logit('There were changes, and the tests were successful', log)
 
-            status = "success"
+            status      = "success"
             alertStatus = status
 
             srcDir = os.path.join(buildDir, "output", buildVersion)
             newDir = os.path.join(outputDir, buildVersion)
 
             if os.path.exists(srcDir):
-                print "Renaming " + srcDir + " to " + newDir
-                log.write("Renaming " + srcDir + " to " + newDir + "\n")
+                logit('Renaming %s to %s' % (srcDir, newDir), log)
                 os.rename(os.path.join(buildDir, "output", buildVersion), newDir)
+
                 if os.path.exists(outputDir+os.sep+"index.html"):
                     os.remove(outputDir+os.sep+"index.html")
                 if os.path.exists(outputDir+os.sep+"time.js"):
                     os.remove(outputDir+os.sep+"time.js")
-                print "Calling CreateIndex with " + newDir
-                log.write("Calling CreateIndex with " + newDir + "\n")
+
+                logit('Calling CreateIndex with %s' % newDir, log)
                 CreateIndex(treeName, outputDir, buildVersion, nowString, buildName)
-                print "Calling RotateDirectories"
-                log.write("Calling RotateDirectories\n")
+
+                logit('Calling RotateDirectories', log)
                 RotateDirectories(outputDir)
 
             buildNameNoSpaces = buildName.replace(" ", "")
 
             if skipRsync:
-                print "skipping rsync"
-                log.write("skipping rsync")
+                logit("skipping rsync", log)
             else:
-                print "Rsyncing..."
-                log.write('rsync -e "ssh -l builder" -avzp ' + outputDir + os.sep + ' ' +
-                          options.rsyncServer + ':continuous/' +
-                          buildNameNoSpaces)
-                outputList = hardhatutil.executeCommandReturnOutputRetry(
-                 [rsyncProgram, "-e", '"ssh -l builder"', "-avzp",
-                 outputDir + os.sep,
-                 options.rsyncServer + ":continuous/" + buildNameNoSpaces])
+                cmd = [ rsyncProgram, '-e', '"ssh -l builder"', '-avzp', outputDir + os.sep,
+                        "%s:continuous/%s" % (options.rsyncServer, buildNameNoSpaces) ]
+
+                logit(' '.join(cmd), log)
+
+                outputList = hardhatutil.executeCommandReturnOutputRetry(cmd)
                 hardhatutil.dumpOutputList(outputList, log)
 
             if not uploadStaging:
-                print "skipping rsync to staging area"
-                log.write("skipping rsync to staging area")
+                logit("skipping rsync to staging area", log)
             else:
                 UploadToStaging(nowString, log, rsyncProgram, options.rsyncServer)
 
         elif ret[:12] == "build_failed":
-            print "The build failed"
-            log.write("The build failed\n")
-            status = "build_failed"
-
+            status      = "build_failed"
             alertStatus = 'The build failed'
-            # log.close()
-            # log = open(logFile, "r")
-            # logContents = log.read()
-            # log.close()
-            # SendMail(fromAddr, alertAddr, startTime, buildName, "The build failed", treeName, None, svnRevision)
-            # SendMail(fromAddr, mailtoAddr, startTime, buildName, status, treeName, logContents, svnRevision)
-            # log = open(logFile, "w")
+
+            logit(alertStatus, log)
 
         elif ret[:11] == "test_failed":
-            print "Tests failed"
-            log.write("Tests failed\n")
-            status = "test_failed"
+            status      = "test_failed"
+            alertStatus = 'Unit tests failed'
+
+            logit(alertStatus, log)
 
             if not uploadStaging:
-                print "skipping rsync to staging area"
-                log.write("skipping rsync to staging area")
+                logit("skipping rsync to staging area", log)
             else:
                 UploadToStaging(nowString, log, rsyncProgram, options.rsyncServer)
 
-            alertStatus = 'Unit tests failed'
-            # log.close()
-            # log = open(logFile, "r")
-            # logContents = log.read()
-            # log.close()
-            # SendMail(fromAddr, alertAddr, startTime, buildName, "Unit tests failed", treeName, None, svnRevision)
-            # SendMail(fromAddr, mailtoAddr, startTime, buildName, status, treeName, logContents, svnRevision)
-            # log = open(logFile, "w")
-
         else:
-            print "There were no changes"
-            log.write("There were no changes in SVN\n")
-            status = "not_running"
+            logit("There were no changes in SVN", log)
+            status      = "not_running"
+            alertStatus = status
 
         SendUUIDFile(buildDir, scpProgram, fromAddr, buildName, log)
 
-        log.write( "End = " + time.strftime("%Y-%m-%d %H:%M:%S") + "\n")
+        logit("End", log)
 
         try:
             log.close()
@@ -282,16 +251,20 @@ def main():
             maillog = open(logFile, "r")
             logContents = maillog.read()
             maillog.close()
-            nowTime = str(int(time.time()))
         except e:
             print "exception during log flush and close"
             print e
 
+        nowTime = str(int(time.time()))
+
+        logit('Sending alert email [%s]' % alertStatus)
         SendMail(fromAddr, alertAddr, startTime, buildName, alertStatus, treeName, None, svnRevision)
+
+        logit('Sending tbox email [%s]' % status)
         SendMail(fromAddr, mailtoAddr, startTime, buildName, status, treeName, logContents, svnRevision)
 
         if sleepMinutes:
-            print "Sleeping %d minutes" % sleepMinutes
+            logit('Sleeping %d minutes' % sleepMinutes)
             time.sleep(sleepMinutes * 60)
 
 
@@ -302,8 +275,7 @@ def SendUUIDFile(buildDir, scpProgram, fromAddr, buildName, log):
     files = glob.glob('uuid_*.txt')
 
     if len(files) > 0:
-        print "Sending UUID files to server..."
-        log.write("Sending UUID files to server [%s]\n" % ", ".join(files))
+        logit("Sending UUID files to server [%s]" % ", ".join(files), log)
 
         subject = "[tbox UUID] from %s" % buildName
         msg     = ("From: %s\r\nTo: %s\r\nSubject: %s\r\n\r\n" % (fromAddr, andiAddr, subject))
@@ -335,8 +307,7 @@ def UploadToStaging(nowString, log, rsyncProgram, rsyncServer):
     timestamp = timestamp.replace(" ", "")
 
     if not os.path.isdir(timestamp):
-        print "skipping rsync to staging area, no dir", timestamp
-        log.write("skipping rsync to staging area, no dir\n")
+        logit("skipping rsync to staging area, no dir %s" % timestamp, log)
     else:
         if os.name == 'nt' or sys.platform == 'cygwin':
             buildplatform = 'windows'
@@ -348,26 +319,22 @@ def UploadToStaging(nowString, log, rsyncProgram, rsyncServer):
         else:
             buildplatform = 'linux'
 
-        print "Rsyncing to staging area..."
-        log.write('rsync -e ssh -avzp ' + timestamp + ' ' +
-                  rsyncServer + ':staging/' +
-                  buildplatform)
-        outputList = hardhatutil.executeCommandReturnOutputRetry(
-         [rsyncProgram, "-e", "ssh", "-avzp",
-         timestamp,
-         rsyncServer + ":staging/" + buildplatform])
+        cmd = [ rsyncProgram, "-e", "ssh", "-avzp", timestamp,
+                "%s:staging/%s" % (rsyncServer, buildplatform) ]
+        logit('Syncing to staging area: %s' % ' '.join(cmd), log)
+
+        outputList = hardhatutil.executeCommandReturnOutputRetry(cmd)
         hardhatutil.dumpOutputList(outputList, log)
 
         completedFile = timestamp + os.sep + "completed"
         open(completedFile, "w").close()
 
-        log.write('rsync -e ssh -avzp ' + completedFile + ' ' +
-                  rsyncServer + ':staging/' +
-                  buildplatform + "/" + timestamp)
-        outputList = hardhatutil.executeCommandReturnOutputRetry(
-         [rsyncProgram, "-e", "ssh", "-avzp",
-         completedFile,
-         rsyncServer + ":staging/" + buildplatform + "/" + timestamp])
+        cmd = [ rsyncProgram, "-e", "ssh", "-avzp", completedFile,
+                "%s:staging/%s/%s" % (rsyncServer, buildplatform, timestamp)]
+
+        logit(' '.join(cmd), log)
+
+        outputList = hardhatutil.executeCommandReturnOutputRetry(cmd)
         hardhatutil.dumpOutputList(outputList, log)
 
         hardhatutil.rmdirRecursive(timestamp)
@@ -376,6 +343,7 @@ def UploadToStaging(nowString, log, rsyncProgram, rsyncServer):
 def SendMail(fromAddr, toAddr, startTime, buildName, status, treeName, logContents, svnRevision):
     nowTime  = str(int(time.time()))
     subject = "[tinderbox] " + status + " from " + buildName
+
     msg  = ("From: %s\r\nTo: %s\r\nSubject: %s\r\n\r\n" % (fromAddr, toAddr, subject))
     msg += "tinderbox: tree: " + treeName + "\n"
     msg += "tinderbox: buildname: " + buildName + "\n"
