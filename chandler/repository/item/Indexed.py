@@ -220,20 +220,34 @@ class Indexed(object):
             _indexChanges = {}
 
             for indexName, index in indexes.iteritems():
-                _indexChanges[indexName] = (dict(index._iterChanges()),
+                _indexChanges[indexName] = [False, dict(index._iterChanges()),
                                             index.getIndexType(),
-                                            index.getInitKeywords())
+                                            index.getInitKeywords()]
 
             if _indexChanges:
                 indexChanges[name] = _indexChanges
 
-    def _applyIndexChanges(self, view, indexChanges, deletes):
+    def _applyIndexChanges(self, view, indexChanges,
+                           name, _indexChanges, deletes):
 
-        indexes = self._indexes
-        if indexes is None:
-            self._indexes = indexes = {}
+        done, __indexChanges, type, kwds = _indexChanges
+        if not done:
+            _indexChanges[0] = done = True
 
-        for name, (_indexChanges, type, kwds) in indexChanges.iteritems():
+            if 'superindex' in kwds:
+                uItem, attr, superName = kwds['superindex']
+                superChanges = indexChanges.get(uItem)
+                if superChanges is not None:
+                    superChanges = superChanges.get(attr)
+                    if superChanges is not None:
+                        superChanges = superChanges.get(superName)
+                        if superChanges is not None:
+                            getattr(view[uItem], attr)._applyIndexChanges(view, indexChanges, superName, superChanges, deletes)
+
+            indexes = self._indexes
+            if indexes is None:
+                self._indexes = indexes = {}
+
             index = indexes.get(name)
             if index is None:
                 if 'ranges' in kwds:
@@ -248,7 +262,7 @@ class Indexed(object):
             removals = []
             moves = []
 
-            for key, value in _indexChanges.iteritems():
+            for key, value in __indexChanges.iteritems():
                 if value is not None:
                     item = view.find(key)
                     if item is None:
@@ -268,8 +282,6 @@ class Indexed(object):
 
             index.removeKeys(removals)
             index.moveKeys(moves, Default, True)
-
-        self._setDirty(True)
 
     def _createIndex(self, indexType, **kwds):
 

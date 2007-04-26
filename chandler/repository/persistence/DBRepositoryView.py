@@ -926,9 +926,12 @@ class DBRepositoryView(OnDemandRepositoryView):
             item = self.find(uItem, False)
             if item is None and uItem not in deletes:
                 raise AssertionError, (uItem, "item not found")
-            for name, __indexChanges in _indexChanges.iteritems():
-                getattr(item, name)._applyIndexChanges(self, __indexChanges,
-                                                       deletes)
+            for attr, __indexChanges in _indexChanges.iteritems():
+                value = getattr(item, attr)
+                for name, ___indexChanges in __indexChanges.iteritems():
+                    value._applyIndexChanges(self, indexChanges, name,
+                                             ___indexChanges, deletes)
+                value._setDirty(True)
 
     def _e_1_delete(self, uItem, uKind, oldVersion, newVersion):
 

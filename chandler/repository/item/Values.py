@@ -371,14 +371,14 @@ class Values(CValues):
                 else:
                     continue
 
-                _indexChanges = (dict(index._iterChanges()),
+                _indexChanges = [False, dict(index._iterChanges()),
                                  index.getIndexType(),
-                                 index.getInitKeywords())
+                                 index.getInitKeywords()]
                 _changes[indexName] = _indexChanges
-                _changes = _indexChanges[0]
+                _changes = _indexChanges[1]
 
             else:
-                _changes = _changes[indexName][0]
+                _changes = _changes[indexName][1]
 
             if item.itsUUID not in _changes:
                 view.logger.info('Adding %s to changes of index %s of %s on %s',
