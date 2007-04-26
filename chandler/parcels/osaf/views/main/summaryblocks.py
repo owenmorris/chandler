@@ -20,6 +20,7 @@ from osaf.framework import attributeEditors
 from util.MultiStateButton import BitmapInfo
 from i18n import ChandlerMessageFactory as _
 from wx import grid as wxGrid
+from chandlerdb.util.c import Nil
 
 CommunicationStatus = pim.mail.CommunicationStatus
 
@@ -28,29 +29,23 @@ CommunicationStatus = pim.mail.CommunicationStatus
 # Most fall back on the triage ordering if their primary terms are equal;
 # they inherit from this:
 class TriageColumnIndexDefinition(pim.MethodIndexDefinition):
-    findParams = [
+    findParams = (
         # We'll return one pair of these or the other, depending on whether
         # sectionTriageStatus exists on the item.
         ('_triageStatus', pim.TriageEnum.now),
         ('_triageStatusChanged', 0),
         ('_sectionTriageStatus', None),
         ('_sectionTriageStatusChanged', 0),
-    ]
-
-    def loadIndexValues(self, uuid, params):
-        """ 
-        Like findValues, except it assumes that the last four 
-        values are the triage attributes listed above; it'll
-        remove the pair we're not supposed to use.
-        """
-        values = self.itsView.findInheritedValues(uuid, *params)
-        # We'll use sectionTriageStatus if it's there, else triageStatus
-        if values[-2] is None:  # no sectionTriageStatus
-            return values[0:-2] # just use triageStatus for ordering.
-        return values[:-4] + values[-2:] # remove the triageStatus entries
+    )
 
     def getCompareTuple(self, uuid):
-        return self.loadIndexValues(uuid, self.findParams)
+        """
+        Load all four triage values, but return only the pair 
+        we're supposed to use.
+        """
+        values = self.itsView.findInheritedValues(uuid, *self.findParams)
+        # We'll use sectionTriageStatus if it's there, else triageStatus
+        return values[0:2] if values[2] is None else values[2:4]
 
     def compare(self, index, u1, u2, vals):
         if u1 in vals:
@@ -66,38 +61,95 @@ class TriageColumnIndexDefinition(pim.MethodIndexDefinition):
     def compare_init(self, index, u, vals):
         return self.getCompareTuple(u)
 
-
-class TaskColumnIndexDefinition(TriageColumnIndexDefinition):
-    findParams = [
-        (pim.Stamp.stamp_types.name, []),
-        ('displayName', u''),
-    ] + TriageColumnIndexDefinition.findParams
-
+class DelegatingIndexDefinition(pim.MethodIndexDefinition):
+    """
+    Base class for indexes that fall back on the triagestatus index
+    if their own comparison comes up equal
+    """
     def getCompareTuple(self, uuid):
-        stamp_types, displayName, triage, triageChanged = \
-            self.loadIndexValues(uuid, self.findParams)
-        return (pim.TaskStamp in stamp_types,
-                displayName, triage, triageChanged)
+        return self.itsView.findInheritedValues(uuid, *self.findParams)
 
+    def compare(self, index, u1, u2, vals):
+        if u1 in vals:
+            v1 = vals[u1]
+        else:
+            v1 = self.getCompareTuple(u1)
+        if u2 in vals:
+            v2 = vals[u2]
+        else:
+            v2 = self.getCompareTuple(u2)
+        result = cmp(v1, v2)
+        
+        if not result:
+            # compare subindex position instead; we cache it under a stringized
+            # version of the UUID
+            u1p = str(u1)
+            if u1p in vals:
+                v1 = vals[u1p]
+            else:
+                v1 = vals['position'](u1)
+            u2p = str(u2)
+            if u2p in vals:
+                v2 = vals[u2p]
+            else:
+                v2 = vals['position'](u2)
+            result = v1 - v2
+        return result
 
-class CommunicationColumnIndexDefinition(TriageColumnIndexDefinition):
+    def compare_init(self, index, u, vals):
+        positionMethod = index.getSuperIndex().skipList.position
+        vals['position'] = positionMethod
+        vals[str(u)] = positionMethod(u)
+        return self.getCompareTuple(u)
 
-    def getCompareTuple(self, uuid):
-        triage, triageChanged = self.loadIndexValues(uuid, self.findParams)
-        commState = CommunicationStatus.getItemCommState(uuid, self.itsView)
-        return (commState, triage, triageChanged)
-
+    def makeIndexOn(self, collection):
+        """ Create the index we describe on this collection """
+        
+        monitoredAttributes = (self.attributes or [])
+        
+        # We need to include inheritFrom in the attributes we monitor,
+        # else (especially at Occurrence creation time) items don't get
+        # re-indexed properly when they inherit attribute values from
+        # their "rich relatives" (ovaltofu's term).
+        if not 'inheritFrom' in monitoredAttributes:
+            monitoredAttributes = ('inheritFrom',) + tuple(monitoredAttributes)
+        
+        # @@@ This could be generalized to delegate to indexes other than
+        # our own triagestatus index, but since this is all we need for now,
+        # put off building the extra infrastructure.
+        collection.addIndex(self.itsName, 'method',
+                            method=(self, 'compare'),
+                            superindex=(collection,
+                                        collection.__collection__,
+                                        "%s.triage" % __name__),
+                            monitor=monitoredAttributes)
     
-class CalendarColumnIndexDefinition(TriageColumnIndexDefinition):
+class TaskColumnIndexDefinition(DelegatingIndexDefinition):
     findParams = [
-        (pim.Stamp.stamp_types.name, []),
+        (pim.Stamp.stamp_types.name, Nil),
+        ('displayName', u''),
+    ]
+    def getCompareTuple(self, uuid):
+        stamp_types, displayName = \
+            self.itsView.findInheritedValues(uuid, *self.findParams)
+        return (pim.TaskStamp in stamp_types, displayName)
+
+
+class CommunicationColumnIndexDefinition(DelegatingIndexDefinition):
+    def getCompareTuple(self, uuid):
+        commState = CommunicationStatus.getItemCommState(uuid, self.itsView)
+        return (commState,)
+    
+class CalendarColumnIndexDefinition(DelegatingIndexDefinition):
+    findParams = (
+        (pim.Stamp.stamp_types.name, Nil),
         (pim.Remindable.reminders.name, None),
         ('displayDate', pim.Reminder.farFuture),
-    ] + TriageColumnIndexDefinition.findParams
+    )
 
     def getCompareTuple(self, uuid):
-        stamp_types, reminders, displayDate, triage, triageChanged = \
-            self.loadIndexValues(uuid, self.findParams)
+        stamp_types, reminders, displayDate = \
+            self.itsView.findInheritedValues(uuid, *self.findParams)
             
         # We need to do this:
         #   hasUserReminder = item.getUserReminder(expiredToo=True) is not None
@@ -121,39 +173,33 @@ class CalendarColumnIndexDefinition(TriageColumnIndexDefinition):
         else:
             reminderState = 2
                 
-        return (reminderState, displayDate, triage, triageChanged)
+        return (reminderState, displayDate)
 
 
-class WhoColumnIndexDefinition(TriageColumnIndexDefinition):
-    findParams = [
+class WhoColumnIndexDefinition(DelegatingIndexDefinition):
+    findParams = (
         ('displayWho', u''),
-    ] + TriageColumnIndexDefinition.findParams
+    )
 
     def getCompareTuple(self, uuid):
-        displayWho, triage, triageChanged = \
-            self.loadIndexValues(uuid, self.findParams)
-        return (displayWho.lower(), triage, triageChanged)
+        displayWho, = self.itsView.findInheritedValues(uuid, *self.findParams)
+        return (displayWho.lower(),)
 
 
-class TitleColumnIndexDefinition(TriageColumnIndexDefinition):
-    findParams = [
+class TitleColumnIndexDefinition(DelegatingIndexDefinition):
+    findParams = (
         ('displayName', u''),
-    ] + TriageColumnIndexDefinition.findParams
+    )
 
     def getCompareTuple(self, uuid):
-        displayName, triage, triageChanged = \
-            self.loadIndexValues(uuid, self.findParams)
-        return (displayName.lower(), triage, triageChanged)
+        displayName, = self.itsView.findInheritedValues(uuid, *self.findParams)
+        return (displayName.lower(),)
 
 
-class DateColumnIndexDefinition(TriageColumnIndexDefinition):
-    findParams = [
+class DateColumnIndexDefinition(DelegatingIndexDefinition):
+    findParams = (
         ('displayDate', pim.Reminder.farFuture),
-    ] + TriageColumnIndexDefinition.findParams
-
-    def getCompareTuple(self, uuid):
-        return self.loadIndexValues(uuid, self.findParams)
-
+    )
 
 class WhoAttributeEditor(attributeEditors.StringAttributeEditor):
     def GetTextToDraw(self, item, attributeName):
@@ -535,6 +581,20 @@ def makeSummaryBlocks(parcel):
         # Create the column
         return Column.update(parcel, colName, **kwargs)
 
+    # We have to build the triage column first, because the other columns 
+    # delegate to its index
+    triageColumn = makeColumnAndIndexes('SumColTriage',
+        icon = 'ColHTriageStatus',
+        useSortArrows = False,
+        defaultSort = True,
+        width = 39,
+        scaleColumn = wxGrid.Grid.GRID_COLUMN_FIXED_SIZE,
+        collapsedSections=set([str(pim.TriageEnum.later), str(pim.TriageEnum.done)]), 
+        attributeName = 'sectionTriageStatus',
+        indexName = '%s.triage' % __name__,
+        baseClass=TriageColumnIndexDefinition,
+        attributes=list(dict(TriageColumnIndexDefinition.findParams)))
+        
     taskColumn = makeColumnAndIndexes('SumColTask',
         icon='ColHTask',
         valueType = 'stamp',
@@ -558,8 +618,7 @@ def makeSummaryBlocks(parcel):
         indexName=CommunicationStatus.status.name,
         attributeName=CommunicationStatus.status.name,
         baseClass=CommunicationColumnIndexDefinition,
-        attributes=list(dict(TriageColumnIndexDefinition.findParams)) + \
-                   list(dict(pim.mail.CommunicationStatus.attributeValues)),)
+        attributes=list(dict(pim.mail.CommunicationStatus.attributeValues)),)
 
     whoColumn = makeColumnAndIndexes('SumColWho',
         heading=_(u'Who'),
@@ -607,18 +666,6 @@ def makeSummaryBlocks(parcel):
         attributes=list(dict(DateColumnIndexDefinition.findParams)) + \
                    ['displayDateSource'])
 
-    triageColumn = makeColumnAndIndexes('SumColTriage',
-        icon = 'ColHTriageStatus',
-        useSortArrows = False,
-        defaultSort = True,
-        width = 39,
-        scaleColumn = wxGrid.Grid.GRID_COLUMN_FIXED_SIZE,
-        collapsedSections=set([str(pim.TriageEnum.later), str(pim.TriageEnum.done)]), 
-        attributeName = 'sectionTriageStatus',
-        indexName = '%s.triage' % __name__,
-        baseClass=TriageColumnIndexDefinition,
-        attributes=list(dict(TriageColumnIndexDefinition.findParams)))
-        
     rankColumn = makeColumnAndIndexes('SumColRank',
         heading = _(u'Rank'),
         valueType = 'None',
