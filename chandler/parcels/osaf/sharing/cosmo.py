@@ -211,6 +211,13 @@ class CosmoConduit(recordset_conduit.DiffRecordSetConduit, conduits.HTTPMixin):
             # TODO: We should try to sync again soon
             raise errors.TokenMismatch(_(u"Collection updated by someone else"))
 
+        elif resp.status == 409:
+            # Trying to publish a collection but the uuid of that collection
+            # is already on the server
+            raise errors.AlreadyExists("%s (HTTP status %d)" %
+                (resp.message, resp.status),
+                details="Collection already exists on server")
+
         elif resp.status not in (201, 204):
             raise errors.SharingError("%s (HTTP status %d)" % (resp.message,
                 resp.status),
