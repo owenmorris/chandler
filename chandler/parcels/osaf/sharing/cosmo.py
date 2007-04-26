@@ -76,7 +76,17 @@ class CosmoAccount(accounts.SharingAccount):
 
         share.conduit = conduit
 
-        share.put(activity=activity)
+        try:
+            share.put(activity=activity)
+        except:
+            # If a cosmo publish fails, it could be that we were able to
+            # create the collection with the first chunk, but a later chunk
+            # failed.  Let's clean up by trying to delete the collection from
+            # cosmo.  If the destroy fails, that's okay -- it probably means
+            # the collection didn't really get created because the initial
+            # failure was during the first chunk.
+            conduit.destroy(silent=True)
+            raise
 
         return [share]
 
@@ -234,16 +244,17 @@ class CosmoConduit(recordset_conduit.DiffRecordSetConduit, conduits.HTTPMixin):
                 raise errors.SharingError("Tickets not returned from server")
 
 
-    def destroy(self):
+    def destroy(self, silent=False):
         location = self.getMorsecodeLocation()
         resp = self._send('DELETE', location)
-        if resp.status == 404:
-            raise errors.NotFound("Collection not found at %s" %
-                location)
-        elif resp.status != 204:
-            raise errors.SharingError("%s (HTTP status %d)" %
-                (resp.message, resp.status),
-                details="Received [%s]" % resp.body)
+        if not silent:
+            if resp.status == 404:
+                raise errors.NotFound("Collection not found at %s" %
+                    location)
+            elif resp.status != 204:
+                raise errors.SharingError("%s (HTTP status %d)" %
+                    (resp.message, resp.status),
+                    details="Received [%s]" % resp.body)
 
     def create(self):
         pass
