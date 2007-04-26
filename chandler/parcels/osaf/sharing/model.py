@@ -14,6 +14,7 @@
 
 import eim
 from application import schema
+from i18n import ChandlerMessageFactory as _
 import logging
 logger = logging.getLogger(__name__)
 
@@ -81,6 +82,18 @@ class ItemRecord(eim.Record):
     needsReply = eim.field(eim.IntType)
 
 
+triage_code_map = {
+    "100" : _(u'Now'),
+    "200" : _(u'Later'),
+    "300" : _(u'Done'),
+}
+@eim.format_field.when_object(ItemRecord.triage)
+def format_item_triage(field, value):
+    code, timestamp, auto = value.split(" ")
+    return triage_code_map.get(code, _('Unknown'))
+
+
+
 class ModifiedByRecord(eim.Record):
     URI = "http://osafoundation.org/eim/modifiedBy/0"
 
@@ -141,6 +154,18 @@ class EventRecord(eim.Record):
 
     # EventStamp.transparency
     status = eim.field(text256, filters=[eventStatusFilter])
+
+
+event_status_map = {
+    'cancelled' : _(u'FYI'),
+    'confirmed' : _(u'Confirmed'),
+    'tentative' : _(u'Tentative'),
+}
+@eim.format_field.when_object(EventRecord.status)
+def format_event_status(field, value):
+    return event_status_map.get(value.lower(), _('Unknown'))
+
+
 
 
 class DisplayAlarmRecord(eim.Record):
