@@ -172,6 +172,7 @@ class Triageable(Remindable):
                         # have a future reminder. Otherwise, leave things be.
                         reminder = self.getUserReminder()
                         if reminder is not None \
+                           and reminder.nextPoll is not None \
                            and reminder.nextPoll != reminder.farFuture \
                            and reminder.nextPoll > datetime.now(ICUtzinfo.default):
                             from osaf.framework.blocks.Block import debugName
