@@ -76,17 +76,7 @@ class CosmoAccount(accounts.SharingAccount):
 
         share.conduit = conduit
 
-        try:
-            share.put(activity=activity)
-        except:
-            # If a cosmo publish fails, it could be that we were able to
-            # create the collection with the first chunk, but a later chunk
-            # failed.  Let's clean up by trying to delete the collection from
-            # cosmo.  If the destroy fails, that's okay -- it probably means
-            # the collection didn't really get created because the initial
-            # failure was during the first chunk.
-            conduit.destroy(silent=True)
-            raise
+        share.put(activity=activity)
 
         return [share]
 
