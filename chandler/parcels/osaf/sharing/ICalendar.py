@@ -1005,7 +1005,7 @@ class ICalendarFormat(formats.ImportExportFormat):
     def acceptsItem(self, item):
         return (has_stamp(item, EventStamp) or
                 has_stamp(item, TaskStamp) or
-                isinstance(item, Sharing.Share))
+                isinstance(item, shares.Share))
 
     def importProcess(self, contentView, text, extension=None, item=None,
                       activity=None, stats=None):

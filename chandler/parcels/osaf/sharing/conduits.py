@@ -84,8 +84,20 @@ class BaseConduit(Conduit):
         itemsMarker = lambda self: Item('itemsMarker', self, None)
     )
 
-    # XXX def __init__(self, *args, **kw):
-    # XXX     self.shareName = self.shareName.strip("/")
+    def isAttributeModifiable(self, item, attribute):
+        share = self.share
+
+        if utility.isSharedByMe(share) or share.mode in ('put', 'both'):
+            return True
+
+        # In old style shares, an attribute isn't modifiable if it's one
+        # of the attributes shared for this item in this share
+        for attr in item.getBasedAttributes(attribute):
+            if attr in share.getSharedAttributes(item.itsKind):
+                return False
+
+        return True
+
 
 class LinkableConduit(BaseConduit):
 
@@ -481,20 +493,6 @@ class LinkableConduit(BaseConduit):
 
         return stats
 
-
-    def isAttributeModifiable(self, item, attribute):
-        share = self.share
-
-        if utility.isSharedByMe(share) or share.mode in ('put', 'both'):
-            return True
-
-        # In old style shares, an attribute isn't modifiable if it's one
-        # of the attributes shared for this item in this share
-        for attr in item.getBasedAttributes(attribute):
-            if attr in share.getSharedAttributes(item.itsKind):
-                return False
-
-        return True
 
 
 

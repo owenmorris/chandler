@@ -1184,7 +1184,7 @@ def subscribeWebDAV(view, url, inspection, activity=None, account=None,
         (useSSL, host, port, path, query, fragment, ticket, parentPath,
             shareName) = splitUrl(url)
         share.conduit = WebDAVRecordSetConduit(itsParent=share, host=host,
-            port=port, sharePath=sharePath, shareName=shareName,
+            port=port, sharePath=parentPath, shareName=shareName,
             useSSL=useSSL, ticket=ticket,
             translator=SharingTranslator, serializer=EIMMLSerializer)
 

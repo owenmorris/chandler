@@ -236,7 +236,7 @@ class CosmoConduit(recordset_conduit.DiffRecordSetConduit, conduits.HTTPMixin):
         elif resp.status != 204:
             raise errors.SharingError("%s (HTTP status %d)" %
                 (resp.message, resp.status),
-                details="Sent [%s], Received [%s]" % (text, resp.body))
+                details="Received [%s]" % resp.body)
 
     def create(self):
         pass

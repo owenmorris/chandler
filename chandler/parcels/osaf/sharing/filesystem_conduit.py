@@ -207,11 +207,12 @@ class FileSystemMonolithicRecordSetConduit(
         return os.path.isfile(self._getPath())
 
     def destroy(self):
+        path = self._getPath()
         if not self.exists():
             raise errors.NotFound(_(u"%(path)s does not exist") %
                 {'path': path})
 
-        os.remove(self._getPath())
+        os.remove(path)
 
     def create(self):
         if self.exists():

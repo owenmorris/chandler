@@ -18,6 +18,7 @@ from i18n import ChandlerMessageFactory as _
 import logging
 from application import schema
 from repository.item.Item import Item
+from repository.persistence.RepositoryError import MergeError
 from chandlerdb.util.c import UUID
 
 logger = logging.getLogger(__name__)
