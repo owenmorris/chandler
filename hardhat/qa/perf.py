@@ -360,12 +360,15 @@ class perf:
       for key in self._options:
         print '\t%s: [%r]' % (key, self._options[key])
 
-  def colorTime(self, testName, testTime, stdDev):
+  def colorTime(self, testName, testTime, stdDev, acceptableMultiplier=1.0):
         """
         Return the color for the test time.
     
         Value within std.dev of better treshold still reported in higher
         category.
+        
+        acceptableMultiplier allows us to have different acceptable values
+        for certain platforms, for example the super slow PPC Mac.
         """
         if testTime == 0:
             return 'ok'
@@ -373,6 +376,8 @@ class perf:
         for (test, ideal, acceptable, name) in self.testTimeName:
           if test == testName:
             break
+        
+        acceptable = acceptable * acceptableMultiplier
         
         # Sanitize ideal and acceptable, taking std.dev into account
         if ideal - stdDev > 0:
@@ -843,7 +848,11 @@ class perf:
           c_perc = 0
 
         s         = colorDelta(current, previous, stdDev)
-        timeClass = self.colorTime(testkey, current, stdDev)
+        if key == 'osx':
+            mult = 2.0
+        else:
+            mult = 1.0
+        timeClass = self.colorTime(testkey, current, stdDev, mult)
 
         graph.append('%s | %s | %s | %s | %02.3f | %02.3f | %03.1f\n' % (enddate, key, testkey, revision, current, c_diff, c_perc))
 
@@ -1081,7 +1090,7 @@ class perf:
 
     tboxfile.write('<div id="tbox">\n')
     tboxfile.write('<table cellspacing="1">\n')
-    tboxfile.write('<tr><th rowspan="2">Test (<a href="%s" target="_new">trends</a>)<br/>Latest results as of %s</th><th rowspan="2">0.7<br/>Target</th>' % ('trends.html', latest))
+    tboxfile.write('<tr><th rowspan="2">Test (<a href="%s" target="_new">trends</a>)<br/>Latest results as of %s</th><th rowspan="2">0.7 <a href="http://wiki.osafoundation.org/Projects/PerformanceProject#double" target="_new">*</a><br/>Target</th>' % ('trends.html', latest))
     tboxfile.write('<th colspan="4">Windows (r%s vs %s)</th>' % (revisions['win'][0].strip(), revisions['win'][1].strip()))
     tboxfile.write('<th colspan="4">PPC Mac (r%s vs %s)</th>' % (revisions['osx'][0].strip(), revisions['osx'][1].strip()))
     tboxfile.write('<th colspan="4">Linux (r%s vs %s)</th>' % (revisions['linux'][0].strip(), revisions['linux'][1].strip()))
