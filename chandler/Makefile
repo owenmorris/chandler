@@ -29,7 +29,7 @@ ARCHIVES = \
     $(CHANDLERARCHIVES)/openssl-$(SNAP)-0.9.8d-$(BP)1.tar.gz \
     $(CHANDLERARCHIVES)/m2crypto-$(SNAP)-520-$(BP)1.tar.gz \
     $(CHANDLERARCHIVES)/pychecker-$(SNAP)-0.8.17-$(BP)1.tar.gz \
-    $(CHANDLERARCHIVES)/PyICU-$(SNAP)-0.6-72-$(BP)1.tar.gz \
+    $(CHANDLERARCHIVES)/PyICU-$(SNAP)-0.6-74-$(BP)1.tar.gz \
     $(CHANDLERARCHIVES)/PyLucene-$(SNAP)-2.0.0-7-$(BP)1.tar.gz \
     $(CHANDLERARCHIVES)/twisted-$(SNAP)-r18795-$(BP)1.tar.gz \
     $(CHANDLERARCHIVES)/wxPython-$(SNAP)-2.8.2.0-r164-$(BP)1.tar.gz \
