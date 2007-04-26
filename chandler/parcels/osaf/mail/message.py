@@ -736,6 +736,7 @@ def __parseHeaders(view, messageObject, m):
     m.fromAddress = None
     m.previousSender = None
     m.headers = {}
+    m.referencesMID = []
 
     if messageObject['References']:
         refList = messageObject['References'].split()
