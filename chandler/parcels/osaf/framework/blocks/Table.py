@@ -209,7 +209,12 @@ class wxTable(DragAndDrop.DraggableWidget,
         # been synchronized to the widget.
         blockItem = self.blockItem
         blockItem.itsView.dispatchQueuedNotifications()
-        if not blockItem.isBlockDirty():
+        if blockItem.isBlockDirty():
+            # When we want to ignore the paint we must create a PaintDC otherwise
+            # wxWidgets will just keep asking us to Paint and we'll never get to
+            # OnIdle, which will synchronize the widget and let us paint for real.
+            dc = wx.PaintDC(self.GetGridWindow())
+        else:
             event.Skip()
 
     def OnGainFocus (self, event):
