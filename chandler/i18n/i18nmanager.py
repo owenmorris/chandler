@@ -334,7 +334,7 @@ class I18nManager(EggTranslations):
             # of the locales in the locale set then default to
             # English to prevent wxPython and PyICU from localizing
             # while Chandler is displaying English text.
-            primaryLocale = "en"
+            primaryLocale = "en_US"
 
             if fallback:
                 for lc in self._localeSet:
