@@ -105,9 +105,10 @@ def ProcessEvent (theClass, properties , attributes):
             # neare the bottom of the page titled "Full Keyboard Access" that defaults to
             # not letting you set the focus to certain controls, e.g. CheckBoxes. So we
             # don't verify the focus in those cases.
-            if ('__WXMAC__' not in wx.PlatformInfo or
-                not issubclass (ProcessEvent.newFocusWindowClass, wx.CheckBox)):
-
+            #
+            # On Linux events sent to toolbar cause the focus window to become None
+            if not ( ('__WXMAC__' in wx.PlatformInfo and issubclass (ProcessEvent.newFocusWindowClass, wx.CheckBox)) or
+                     ('__WXGTK__' in wx.PlatformInfo and isinstance (sentToWidget, wx.ToolBar)) ):
                 if type (newFocusWindow) is str:
                     assert focusWindow is NameToWidget (newFocusWindow), "An unexpected window has the focus"
                 else:
