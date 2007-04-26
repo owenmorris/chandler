@@ -1,0 +1,56 @@
+Return-Path: <bkirsch@osafoundation.org>
+X-Original-To: demo3@osafoundation.org
+Delivered-To: demo3@osafoundation.org
+Received: from laweleka.osafoundation.org (laweleka.osafoundation.org [204.152.186.98])
+	by leilani.osafoundation.org (Postfix) with ESMTP id 257AB7FA31
+	for <demo3@osafoundation.org>; Fri, 13 Apr 2007 14:18:05 -0700 (PDT)
+Received: from localhost (laweleka.osafoundation.org [127.0.0.1])
+	by laweleka.osafoundation.org (Postfix) with ESMTP id 2E0AD142256
+	for <demo3@osafoundation.org>; Fri, 13 Apr 2007 14:17:10 -0700 (PDT)
+X-Virus-Scanned: by amavisd-new and clamav at osafoundation.org
+X-Spam-Score: 1.194
+X-Spam-Level: *
+X-Spam-Status: No, score=1.194 tagged_above=-50 required=4 tests=[AWL=-0.666,
+	BAYES_00=-2.599, RCVD_IN_NJABL_DUL=1.946, SPF_FAIL=1.142,
+	UPPERCASE_75_100=1.371]
+Received: from laweleka.osafoundation.org ([127.0.0.1])
+	by localhost (laweleka.osafoundation.org [127.0.0.1]) (amavisd-new, port 10024)
+	with ESMTP id Cmz046nUfoqx for <demo3@osafoundation.org>;
+	Fri, 13 Apr 2007 14:17:10 -0700 (PDT)
+Received: from [192.168.1.106] (udp159810uds.hawaiiantel.net [72.235.35.147])
+	(using TLSv1 with cipher AES128-SHA (128/128 bits))
+	(No client certificate requested)
+	by laweleka.osafoundation.org (Postfix) with ESMTP id DB505142254
+	for <demo3@osafoundation.org>; Fri, 13 Apr 2007 14:17:09 -0700 (PDT)
+Mime-Version: 1.0 (Apple Message framework v752.3)
+Content-Transfer-Encoding: 7bit
+Message-Id: <B911A066-52B0-4534-9BB2-9F628DEB3DE6@osafoundation.org>
+Content-Type: text/plain; charset=US-ASCII; delsp=yes; format=flowed
+To: OSAF Demo Account <demo3@osafoundation.org>
+From: Brian Kirsch <bkirsch@osafoundation.org>
+Subject: Chandler Task Folder Test
+Date: Fri, 13 Apr 2007 11:17:00 -1000
+X-Mailer: Apple Mail (2.752.3)
+
+TEST TEST TEST TEST TEST TEST TEST TEST TEST TEST TEST TEST TEST TEST  
+TEST TEST TEST TEST TEST TEST TEST TEST TEST TEST TEST TEST TEST TEST  
+TEST TEST TEST TEST TEST TEST TEST TEST TEST TEST TEST TEST TEST TEST  
+TEST TEST TEST TEST TEST TEST TEST TEST TEST TEST TEST TEST TEST TEST  
+TEST TEST TEST TEST TEST TEST TEST TEST TEST TEST TEST TEST TEST TEST  
+TEST TEST TEST TEST TEST TEST TEST TEST TEST TEST TEST TEST TEST TEST  
+TEST TEST TEST TEST TEST TEST TEST TEST TEST TEST TEST TEST TEST TEST  
+TEST TEST TEST TEST TEST TEST TEST TEST TEST TEST TEST TEST TEST TEST  
+TEST TEST TEST TEST TEST TEST TEST TEST TEST TEST TEST TEST TEST TEST  
+TEST TEST TEST TEST TEST TEST TEST TEST TEST TEST TEST TEST TEST TEST  
+TEST TEST TEST TEST TEST TEST TEST TEST TEST TEST TEST TEST TEST TEST  
+TEST TEST TEST TEST TEST TEST TEST TEST TEST TEST TEST TEST TEST TEST  
+TEST TEST TEST TEST TEST TEST TEST TEST TEST TEST TEST TEST TEST TEST  
+TEST TEST TEST TEST TEST TEST TEST TEST TEST TEST TEST TEST TEST TEST  
+TEST TEST TEST TEST TEST TEST TEST TEST TEST TEST TEST TEST TEST TEST  
+TEST TEST TEST TEST TEST TEST TEST TEST TEST TEST TEST TEST TEST TEST  
+TEST TEST TEST TEST TEST TEST TEST TEST TEST TEST TEST TEST TEST TEST  
+TEST TEST TEST TEST TEST TEST TEST TEST TEST TEST TEST TEST TEST TEST  
+TEST TEST TEST TEST TEST TEST TEST TEST TEST TEST TEST TEST TEST TEST  
+TEST TEST TEST TEST TEST TEST TEST TEST TEST TEST TEST TEST TEST TEST  
+TEST TEST TEST TEST TEST TEST TEST TEST TEST TEST TEST TEST TEST TEST  
+TEST TEST TEST TEST TEST TEST
