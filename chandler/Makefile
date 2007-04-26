@@ -19,6 +19,7 @@ BUILD_PLUGINS = Chandler-HelloWorldPlugin \
 
 # When a version changes, the ARCHIVES lists below need to be updated.
 
+
 ARCHIVES = \
     $(CHANDLERARCHIVES)/Launchers-$(SNAP)-0.9-$(BP)10.tar.gz \
     $(CHANDLERARCHIVES)/chandlerdb-$(SNAP)-0.7-$(BP)1.tar.gz \
@@ -42,7 +43,7 @@ ARCHIVES = \
     $(CHANDLERARCHIVES)/parsedatetime-$(SNAP)-0.8.3-$(BP)1.tar.gz \
     $(CHANDLERARCHIVES)/configobj-$(SNAP)-4.3.2-$(BP)1.tar.gz \
     $(CHANDLERARCHIVES)/docutils-$(SNAP)-0.4-$(BP)1.tar.gz \
-    $(CHANDLERARCHIVES)/eggtranslations-$(SNAP)-0.1-r2-$(BP)2.tar.gz \
+    $(CHANDLERARCHIVES)/eggtranslations-$(SNAP)-1.0-r9-$(BP)1.tar.gz \
     $(CHANDLERARCHIVES)/zope.interface-$(SNAP)-3.3.0b2-r71371-$(BP)3.tar.gz \
     $(CHANDLERARCHIVES)/setuptools-$(SNAP)-0.6c6dev-r54072-$(BP)1.tar.gz
 

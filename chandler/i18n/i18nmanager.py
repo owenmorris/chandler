@@ -214,7 +214,7 @@ class I18nManager(EggTranslations):
          the translation fallback will try each locale in the set
          in order till a resource or translation is encountered.
 
-         Note: For Beta  only the primary locale will be used.
+         Note: For Preview only the primary locale will be used.
 
          The discoverLocaleSet method can raise the following
          exceptions:
@@ -310,10 +310,11 @@ class I18nManager(EggTranslations):
 
           @type fallback: c{boolean}
         """
-
         self._testing = False
 
-        if localeSet is None:
+        discover = localeSet is None
+
+        if discover:
             localeSet = self.discoverLocaleSet()
 
         else:
@@ -327,7 +328,33 @@ class I18nManager(EggTranslations):
 
         super(I18nManager, self).setLocaleSet(localeSet, fallback)
 
-        primaryLocale = self._localeSet[0]
+        if discover:
+            # The Chandler gettext strings are written in English.
+            # If there is not an .mo translation file loaded for any
+            # of the locales in the locale set then default to
+            # English to prevent wxPython and PyICU from localizing
+            # while Chandler is displaying English text.
+            primaryLocale = "en"
+
+            if fallback:
+                for lc in self._localeSet:
+                    if self.hasTranslation(self._DEFAULT_PROJECT, self._DEFAULT_CATALOG, lc):
+                        primaryLocale = lc
+                        break
+
+            else:
+                lc = self._localeSet[0]
+
+                if self.hasTranslation(self._DEFAULT_PROJECT, self._DEFAULT_CATALOG, lc):
+                    primaryLocale = lc
+
+        else:
+            # If one of more locales are passed
+            # (command line) then set the
+            # locale of PyICU, wxPython, and
+            # Python regardless of whether
+            # Chandler provides a localization.
+            primaryLocale = self._localeSet[0]
 
         if wxIsAvailable():
             setWxLocale(primaryLocale, self)
@@ -339,7 +366,6 @@ class I18nManager(EggTranslations):
         # Reset the resource lookup cache
         self._lookupCache = None
         self._lookupCache = {}
-
 
     def getText(self, project, name, txt, *args):
         """
