@@ -194,7 +194,14 @@ class CosmoConduit(recordset_conduit.DiffRecordSetConduit, conduits.HTTPMixin):
         else:
             method = 'PUT'
 
+        tries = 3
         resp = self._send(method, location, text)
+        while resp.status == 503:
+            tries -= 1
+            if tries == 0:
+                msg = _(u"Server busy.  Try again later. (HTTP status 503)")
+                raise errors.SharingError(msg)
+            resp = self._send(method, location, text)
 
         if resp.status in (205, 423):
             # The collection has either been updated by someone else since
