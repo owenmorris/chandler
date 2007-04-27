@@ -84,11 +84,6 @@ class SubscribeDialog(wx.Dialog):
         self.checkboxKeepOut = wx.xrc.XRCCTRL(self, "CHECKBOX_KEEPOUT")
         if self.mine:
             self.checkboxKeepOut.SetValue(False)
-        self.checkboxShareAlarms = wx.xrc.XRCCTRL(self, "CHECKBOX_ALARMS")
-        self.checkboxShareStatus = wx.xrc.XRCCTRL(self, "CHECKBOX_STATUS")
-        self.checkboxShareTriage = wx.xrc.XRCCTRL(self, "CHECKBOX_TRIAGE")
-        self.checkboxShareReply = wx.xrc.XRCCTRL(self, "CHECKBOX_REPLY")
-        self.checkboxShareBcc = wx.xrc.XRCCTRL(self, "CHECKBOX_BCC")
 
         self.subscribeButton = wx.xrc.XRCCTRL(self, "wxID_OK")
 
@@ -107,24 +102,11 @@ class SubscribeDialog(wx.Dialog):
 
 
     def getFilters(self):
-
         filters = set()
-
-        if not self.checkboxShareAlarms.GetValue():
-            filters.add('cid:reminders-filter@osaf.us')
-        if not self.checkboxShareStatus.GetValue():
-            filters.add('cid:event-status-filter@osaf.us')
-        if not self.checkboxShareTriage.GetValue():
-            filters.add('cid:triage-filter@osaf.us')
-        if not self.checkboxShareReply.GetValue():
-            filters.add('cid:needs-reply-filter@osaf.us')
-        if not self.checkboxShareBcc.GetValue():
-            filters.add('cid:bcc-filter@osaf.us')
-
-        if filters:
-            return filters
-        else:
-            return None
+        filters.add('cid:reminders-filter@osaf.us')
+        filters.add('cid:needs-reply-filter@osaf.us')
+        filters.add('cid:bcc-filter@osaf.us')
+        return filters
 
 
     def _updateCallback(self, activity, *args, **kwds):
