@@ -457,10 +457,11 @@ class LinkableConduit(BaseConduit):
 
                         stats.append(stat)
 
-            sources = schema.ns('osaf.pim', metaView).mine.sources
+            pim_ns = schema.ns('osaf.pim', metaView)
+            sources = pim_ns.mine.sources
             sharing_ns = schema.ns('osaf.sharing', metaView)
             freeBusyShare = sharing_ns.prefs.freeBusyShare
-            me = schema.ns("osaf.pim", metaView).currentContact.item
+            me = pim_ns.currentContact.item
 
             now = datetime.datetime.now(ICUtzinfo.default)
 

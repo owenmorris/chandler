@@ -295,7 +295,8 @@ def eventsInRange(view, start, end, filterColl = None, dayItems=True,
 
     """
     
-    tzprefs = schema.ns('osaf.pim', view).TimezonePrefs
+    pim_ns = schema.ns('osaf.pim', view)
+    tzprefs = pim_ns.TimezonePrefs
 
     startIndex = 'effectiveStart'
     endIndex   = 'effectiveEnd'
@@ -303,7 +304,7 @@ def eventsInRange(view, start, end, filterColl = None, dayItems=True,
     searchStart, searchEnd = adjustSearchTimes(start, end, tzprefs.showUI)
     
     allEvents  = EventStamp.getCollection(view)
-    longEvents = schema.ns("osaf.pim", view).longEvents
+    longEvents = pim_ns.longEvents
     keys = getKeysInRange(view, start, 'effectiveStartTime', startIndex,
                           allEvents, end,'effectiveEndTime', endIndex,
                           allEvents, filterColl, '__adhoc__', tzprefs.showUI,
@@ -324,14 +325,14 @@ def recurringEventsInRange(view, start, end, filterColl=None,
     Yield all recurring events between start and end that appear in filterColl.
     """
 
-    tzprefs = schema.ns('osaf.pim', view).TimezonePrefs
+    pim_ns = schema.ns("osaf.pim", view)
+    tzprefs = pim_ns.TimezonePrefs
 
     searchStart, searchEnd = adjustSearchTimes(start, end, tzprefs.showUI)
 
     startIndex = 'effectiveStart'
     endIndex   = 'recurrenceEnd'
 
-    pim_ns = schema.ns("osaf.pim", view)
     masterEvents = pim_ns.masterEvents
     keys = getKeysInRange(view, searchStart, 'effectiveStartTime', startIndex,
                           masterEvents, end, 'recurrenceEnd', endIndex,
@@ -350,7 +351,8 @@ def recurringEventsInRange(view, start, end, filterColl=None,
                     yield event
                     
 def iterBusyInfo(view, start, end, filterColl=None):
-    tzprefs = schema.ns('osaf.pim', view).TimezonePrefs
+    pim_ns = schema.ns('osaf.pim', view)
+    tzprefs = pim_ns.TimezonePrefs
     searchStart, searchEnd = adjustSearchTimes(start, end, tzprefs.showUI)
 
     startIndex = 'effectiveStart'
@@ -358,7 +360,7 @@ def iterBusyInfo(view, start, end, filterColl=None):
     recurEndIndex   = 'recurrenceEnd'
 
     allEvents  = EventStamp.getCollection(view)
-    longEvents = schema.ns("osaf.pim", view).longEvents
+    longEvents = pim_ns.longEvents
     keys = getKeysInRange(view, searchStart, 'effectiveStartTime', startIndex,
                           allEvents, searchEnd, 'effectiveEndTime', endIndex,
                           allEvents, filterColl, '__adhoc__', tzprefs.showUI,
@@ -370,7 +372,7 @@ def iterBusyInfo(view, start, end, filterColl=None):
             for fb in event.iterBusyInfo(start, end):
                 yield fb
 
-    masterEvents = schema.ns("osaf.pim", view).masterEvents
+    masterEvents = pim_ns.masterEvents
     keys = getKeysInRange(view, searchStart, 'effectiveStartTime', startIndex,
                           masterEvents, end, 'recurrenceEnd', recurEndIndex,
                           masterEvents, filterColl, '__adhoc__')

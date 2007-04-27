@@ -159,9 +159,7 @@ class BranchPointBlock(BoxContainer):
         if keyItem is None:
             detailItem = None
         else:
-            """
-              Seems like we should always mark new views with an event boundary
-            """
+            # Seems like we should always mark new views with an event boundary
             assert newView is None or newView.eventBoundary
             detailItem = self.delegate._getContentsForBranch(newView,
                                                              self.selectedItem,
@@ -199,9 +197,7 @@ class BranchPointBlock(BoxContainer):
                 oldView.unRender()
 
             # attach the new view
-            self.childBlocks = []
-            if newView is not None:
-                self.childBlocks.append(newView)
+            self.childBlocks = [newView] if newView is not None else []
 
         if newView is not None:
             def Rerender():

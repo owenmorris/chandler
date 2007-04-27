@@ -272,7 +272,7 @@ class wxMiniCalendar(DragAndDrop.DropReceiveWidget,
                                        midnightStart + timedelta(day + 1))
                         duration = dayEnd - dayStart
                         # @@@ Wrong for multiday events -- Grant
-                        hours = duration.seconds / (60 * 60) + 24*duration.days
+                        hours = duration.seconds / 3600 + 24*duration.days
 
                     # We set a minimum "Busy" value of 0.25 for any
                     # day with a confirmed event.
@@ -287,9 +287,10 @@ class wxMiniCalendar(DragAndDrop.DropReceiveWidget,
             # existing values for all the dates of events
             # we're about to add
             for newEvent in self._eventsToAdd:
-                offset = (newEvent.startTime.date() - startDate).days
+                newEventStartTimeDate = newEvent.startTime.date()
+                offset = (newEventStartTimeDate - startDate).days
 
-                busyFractions[offset] = self.GetBusy(newEvent.startTime.date())
+                busyFractions[offset] = self.GetBusy(newEventStartTimeDate)
 
             # Now, update them all
             for newEvent in self._eventsToAdd:

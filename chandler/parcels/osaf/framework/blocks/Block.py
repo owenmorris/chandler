@@ -26,6 +26,7 @@ import logging
 
 logger = logging.getLogger(__name__)
 
+theApp = wx.GetApp()
 
 def getProxiedItem(item):
     """
@@ -56,7 +57,7 @@ def WithoutSynchronizeWidget(method):
                                       # end up calling OnSomeEvent
     """
     def with_sync(*args, **kwds):
-        if not wx.GetApp().ignoreSynchronizeWidget:
+        if not theApp.ignoreSynchronizeWidget:
             method(*args, **kwds)
 
     return with_sync
@@ -71,13 +72,12 @@ def IgnoreSynchronizeWidget(syncValue, method, *args, **kwds):
 
     This will block wxSynchronizeWidget calls
     """
-    app = wx.GetApp()
-    oldIgnoreSynchronizeWidget = app.ignoreSynchronizeWidget
-    app.ignoreSynchronizeWidget = syncValue
+    oldIgnoreSynchronizeWidget = theApp.ignoreSynchronizeWidget
+    theApp.ignoreSynchronizeWidget = syncValue
     try:
         result = method(*args, **kwds)
     finally:
-        app.ignoreSynchronizeWidget = oldIgnoreSynchronizeWidget
+        theApp.ignoreSynchronizeWidget = oldIgnoreSynchronizeWidget
 
     return result
 
@@ -181,7 +181,7 @@ class Block(schema.Item):
             arguments ['results'] = None
             event.arguments = arguments
 
-            hookListItem = schema.ns (__name__, wx.GetApp().UIRepositoryView).BlockDispatchHookList
+            hookListItem = schema.ns (__name__, theApp.UIRepositoryView).BlockDispatchHookList
             for hookItem in list (hookListItem.hooks):
                 hookItem.dispatchEvent (event, Block.depth)
 
@@ -202,7 +202,7 @@ class Block(schema.Item):
         """
         assert Block.eventNameToItemUUID.has_key (eventName), "Event name %s not found" % eventName
         list = Block.eventNameToItemUUID [eventName]
-        event = wx.GetApp().UIRepositoryView.findUUID (list [0])
+        event = theApp.UIRepositoryView.findUUID (list [0])
         return theClass.post (event, args, sender)
 
     def postEventByName (self, eventName, args):
@@ -219,7 +219,7 @@ class Block(schema.Item):
     def findBlockByName (theClass, name):
         list = Block.blockNameToItemUUID.get (name, None)
         if list is not None:
-            return wx.GetApp().UIRepositoryView.find (list[0])
+            return theApp.UIRepositoryView.find (list[0])
         else:
             return None
 
@@ -227,7 +227,7 @@ class Block(schema.Item):
     def findBlockEventByName (theClass, name):
         list = Block.eventNameToItemUUID.get (name, None)
         if list is not None:
-            return wx.GetApp().UIRepositoryView.find (list[0])
+            return theApp.UIRepositoryView.find (list[0])
         else:
             return None
 
@@ -314,12 +314,9 @@ class Block(schema.Item):
         method = getattr (type (self), "instantiateWidget", None)
         if method:
             widget = IgnoreSynchronizeWidget(True, method, self)
-            """
-            Store a non persistent pointer to the widget in the block. Store a pointer to
-            the block in the widget. Undo all this when the widget is destroyed.
-            """
+            # Store a non persistent pointer to the widget in the block. Store a pointer to
+            # the block in the widget. Undo all this when the widget is destroyed.
             if widget:
-                theApp = wx.GetApp()
                 theApp.needsUpdateUI = True
                 assert self.itsView.isRefCounted(), "repository must be opened with refcounted=True"
                 self.widget = widget
@@ -329,21 +326,16 @@ class Block(schema.Item):
                     method (self.blockName)
 
                 widget.blockItem = self
-                """
-                After the blocks are wired up, call OnInit if it exists.
-                """
-                method = getattr (type (widget), "OnInit", None)
+                # After the blocks are wired up, call OnInit if it exists.
+                widgetType = type (widget)
+                method = getattr (widgetType, "OnInit", None)
                 if method:
                     method (widget)
 
-                """
-                Subscribe to changes on our contents if appropriate.
-                """
+                # Subscribe to changes on our contents if appropriate.
                 self.watchForChanges()
 
-                """
-                Add events to name lookup dictionary.
-                """
+                # Add events to name lookup dictionary.
                 eventsForNamedLookup = self.eventsForNamedLookup
                 if eventsForNamedLookup is not None:
                     self.addToNameToItemUUIDDictionary (eventsForNamedLookup,
@@ -357,20 +349,18 @@ class Block(schema.Item):
                 if self.eventBoundary:
                     self.rebuildDynamicBlocks()
 
-                method = getattr (type (widget), "Freeze", None)
+                method = getattr (widgetType, "Freeze", None)
                 if method:
                     method (widget)
 
                 for child in self.childBlocks:
                     child.render()
 
-                """
-                After the blocks are wired up give the window a chance
-                to synchronize itself to any persistent state.
-                """
+                # After the blocks are wired up give the window a chance
+                # to synchronize itself to any persistent state.
                 IgnoreSynchronizeWidget(False, self.synchronizeWidget)
 
-                method = getattr (type (widget), "Thaw", None)
+                method = getattr (widgetType, "Thaw", None)
                 if method:
                     method (widget)
 
@@ -434,7 +424,7 @@ class Block(schema.Item):
     if __debug__:
         @classmethod
         def dumpWatches(cls):
-            view = wx.GetApp().UIRepositoryView
+            view = theApp.UIRepositoryView
             for (uuid, attrDict) in Block.watchingItems.items():
                 i = view.findUUID(uuid, False)
                 print debugName(i or uuid)
@@ -579,7 +569,7 @@ class Block(schema.Item):
         When our item collection has changed, we need to synchronize.
         """
         if (not self.ignoreNotifications and
-            self.itsView is wx.GetApp().UIRepositoryView):
+            self.itsView is theApp.UIRepositoryView):
             self.onItemNotification('collectionChange', (op, collection, name, other))
 
     def onItemNotification (self, notificationType, data):
@@ -652,7 +642,7 @@ class Block(schema.Item):
 
         self.markClean() # Discard any pending notifications
 
-        wx.GetApp().needsUpdateUI = True
+        theApp.needsUpdateUI = True
 
     def getWidgetID (self):
         """
@@ -725,7 +715,7 @@ class Block(schema.Item):
         collection = getattr (schema.ns ("osaf.app", self.itsView), event.collectionName)
 
         #Scripting expects the event to return the item that were added
-        if onNewItemMethod:
+        if onNewItemMethod is not None:
             item = onNewItemMethod (event)
         else:
             item = event.item
@@ -740,7 +730,7 @@ class Block(schema.Item):
             if event.disambiguateDisplayName:
                 displayName = item.displayName
                 newDisplayName = displayName
-                suffix = 1;
+                suffix = 1
                 while True:
                     for theCollection in collection:
                         if theCollection.displayName == newDisplayName:
@@ -809,9 +799,6 @@ class Block(schema.Item):
         The MainViewRoot's lastDynamicBlock: the last block synched
         lastDynamicBlock: C{DynamicBlock}, or C{False} for no previous block,
         or C{True} for forced resync.
-
-        @param self: the new view
-        @type self: C{Block}
         """
         def synchToDynamicBlock (block, isChild):
             """
@@ -832,17 +819,15 @@ class Block(schema.Item):
 
             block.synchronizeDynamicBlocks ()
 
-        """
-        Cruise up the parent hierarchy looking for the first
-        block that can act as a DynamicChild or DynamicContainer
-        (Menu, MenuBar, ToolbarItem, etc).
-        If it's a child, or it's not the same Block found the last time
-        the focus changed (or if we are forcing a rebuild) then we need
-        to rebuild the Dynamic Containers.
-        """
+        # Cruise up the parent hierarchy looking for the first
+        # block that can act as a DynamicChild or DynamicContainer
+        # (Menu, MenuBar, ToolbarItem, etc).
+        # If it's a child, or it's not the same Block found the last time
+        # the focus changed (or if we are forcing a rebuild) then we need
+        # to rebuild the Dynamic Containers.
         candidate = None
         block = self
-        while (block):
+        while block:
             for child in block.childBlocks:
                 isDynamicChildMethod = getattr (type (child), "isDynamicChild", None)
                 if isDynamicChildMethod is not None:
@@ -1041,7 +1026,7 @@ class BlockDispatchHook (DispatchHook):
             bubbleUpCallMethod (blockOrWidget, methodName, event)
 
         elif dispatchEnum == 'ActiveViewBubbleUp':
-            activeView = wx.GetApp().activeView
+            activeView = theApp.activeView
             blockOrWidget = getattr (activeView, 'widget', activeView)
             bubbleUpCallMethod (blockOrWidget, methodName, event)
 
@@ -1054,7 +1039,7 @@ class BlockDispatchHook (DispatchHook):
             event.arguments['Text'] != title):
             event.arguments['Text'] += '\t' + event.arguments['Accel']
         if commitAfterDispatch:
-            wx.GetApp().UIRepositoryView.commit()
+            theApp.UIRepositoryView.commit()
 
 
 def debugName(thing):

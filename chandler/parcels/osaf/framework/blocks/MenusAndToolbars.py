@@ -22,6 +22,7 @@ from i18n import ChandlerMessageFactory as _
 import Block as Block
 import wx
 
+theApp = wx.GetApp()
 
 class RefCollectionDictionary(schema.Item):
     """
@@ -389,7 +390,7 @@ class DynamicBlock(schema.Item):
             bar.synchronizeWidget()
 
         # Since menus have changed, we need to reissue UpdateUI events
-        wx.GetApp().needsUpdateUI = True
+        theApp.needsUpdateUI = True
 
 
 class operationEnumType(schema.Enumeration):
@@ -469,9 +470,8 @@ class wxMenuItem (wx.MenuItem):
 
     def OnInit(self):
         if hasattr(self.blockItem, 'icon'):
-            app = wx.GetApp()
             uncheckedbitmap = \
-                app.GetImage(self.blockItem.icon + ".png")
+                theApp.GetImage(self.blockItem.icon + ".png")
             if uncheckedbitmap:
                 if '__WXMAC__' in wx.PlatformInfo:
                     # the mac already shows checkmarks next to menu
@@ -479,7 +479,7 @@ class wxMenuItem (wx.MenuItem):
                     checkedbitmap = uncheckedbitmap
                 else:
                     checkedbitmap = \
-                        app.GetImage(self.blockItem.icon + "Checked.png")
+                        theApp.GetImage(self.blockItem.icon + "Checked.png")
                     if not checkedbitmap:
                         checkedbitmap = uncheckedbitmap
                 self.SetBitmaps(checkedbitmap, uncheckedbitmap)
@@ -897,7 +897,7 @@ class wxToolbarItemMixin (object):
 
     def SetToolbarItemBitmap(self, bitmapName):
         # get the named bitmap
-        bitmap = wx.GetApp().GetImage(bitmapName)
+        bitmap = theApp.GetImage(bitmapName)
         if bitmap is not None and getattr(self, 'GetToolBar', None) is not None:
             toolbar = self.GetToolBar()
             toolbar.SetToolNormalBitmap(self.GetId(), bitmap)
@@ -1032,11 +1032,10 @@ class ToolbarItem(Block.Block, DynamicChild):
 
     def instantiateWidget (self):
         def getBitmaps (self):
-            app = wx.GetApp()
-            bitmap = app.GetImage (self.bitmap)
+            bitmap = theApp.GetImage (self.bitmap)
             disabledBitmap = getattr (self, 'disabledBitmap', wx.NullBitmap)
             if disabledBitmap is not wx.NullBitmap:
-                disabledBitmap = app.GetImage (disabledBitmap)
+                disabledBitmap = theApp.GetImage (disabledBitmap)
             return bitmap, disabledBitmap
 
         tool = None
@@ -1104,7 +1103,7 @@ class wxQuickEntry (wxToolbarItemMixin, wx.SearchCtrl):
         self.ShowHideCancelButton()
         self.SetDescriptiveText(_(u'Create new item'))
         self.Bind(wx.EVT_SEARCHCTRL_CANCEL_BTN, self.OnCancelButton)
-        self.Bind(wx.EVT_TEXT_ENTER, wx.GetApp().OnCommand)
+        self.Bind(wx.EVT_TEXT_ENTER, theApp.OnCommand)
         self.Bind(wx.EVT_TEXT, self.OnUpdateButtons)
                   
     def OnCancelButton (self, event):

@@ -446,8 +446,8 @@ class RecurrenceRuleSet(items.ContentItem):
         """If the RuleSet changes, update the associated event."""
         if not getattr(self, '_ignoreValueChanges', False):
             if self.hasLocalAttributeValue('events'):
+                pimNs = schema.ns("osaf.pim", self.itsView)
                 for eventItem in self.events:
-                    pimNs = schema.ns("osaf.pim", self.itsView)
                     pimNs.EventStamp(eventItem).getFirstInRule().cleanRule()
                     # assume we have only one conceptual event per rrule
                     break

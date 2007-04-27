@@ -1307,8 +1307,8 @@ class SidebarBranchPointDelegate(BranchPoint.BranchPointDelegate):
                 # Their inclusion in collectionList would be duplicated by
                 # the inclusion of the allCollection and would invalidate
                 # the resulting union.
+                pim_ns = schema.ns('osaf.pim', self.itsView)
                 if len(collectionList) > 1:
-                    pim_ns = schema.ns('osaf.pim', self.itsView)
                     if pim_ns.allCollection in collectionList:
                         mineCollections = pim_ns.mine.sources
                         collectionList = [c for c in collectionList
@@ -1350,9 +1350,8 @@ class SidebarBranchPointDelegate(BranchPoint.BranchPointDelegate):
                         # filtering on calendar in the dashboard is a special case,
                         # we can't filter out both master events and intersect
                         # with events, so filter on nonMasterEvents
-                        nonMasterEvents = schema.ns("osaf.pim", self.itsView).nonMasterEvents
                         newKey = IntersectionCollection(itsView=self.itsView,
-                                                        sources=[key, nonMasterEvents])
+                                                        sources=[key, pim_ns.nonMasterEvents])
                         UserCollection(newKey).dontDisplayAsCalendar = UserCollection(key).dontDisplayAsCalendar
                         displayName += u" filtered by non-master events"
                         newKey.displayName = displayName
@@ -1379,10 +1378,9 @@ class SidebarBranchPointDelegate(BranchPoint.BranchPointDelegate):
                         # decoupled, this will need to be reworked.
                         if (filterClass is not pim.EventStamp or 
                             UserCollection(key).dontDisplayAsCalendar):
-                            masterEvents = schema.ns("osaf.pim", self.itsView).masterEvents
             
                             newKey = DifferenceCollection(itsView=self.itsView,
-                                                          sources=[key, masterEvents])
+                                                          sources=[key, pim_ns.masterEvents])
                             UserCollection(newKey).dontDisplayAsCalendar = \
                                 UserCollection(key).dontDisplayAsCalendar
                             displayName += u" minus master events"
@@ -1395,14 +1393,12 @@ class SidebarBranchPointDelegate(BranchPoint.BranchPointDelegate):
                     key.displayName = displayName
                     key.collectionList = collectionList
                 else: # if key is None
-                    """
-                    We found the key, but we might still need to reorder
-                    collectionList. The list is kept sorted by the order
-                    of the collections as they overlay one another in the
-                    Calendar.  We don't bother to reorder when we're
-                    looking up a collection that isn't displayed in the
-                    summary view.
-                    """
+                    # We found the key, but we might still need to reorder
+                    # collectionList. The list is kept sorted by the order
+                    # of the collections as they overlay one another in the
+                    # Calendar.  We don't bother to reorder when we're
+                    # looking up a collection that isn't displayed in the
+                    # summary view.
                     if item in sidebar.contents.iterSelection():
                         for new, old in zip(key.collectionList, collectionList):
                             if new is not old:

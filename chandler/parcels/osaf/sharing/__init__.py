@@ -116,8 +116,9 @@ def installParcel(parcel, oldVersion=None):
     )
 
     publishedFreeBusy = UnionCollection.update(parcel, 'publishedFreeBusy')
+    pim_ns = schema.ns('osaf.pim', parcel.itsView)
     hiddenEvents = DifferenceCollection.update(parcel, "hiddenEvents",
-        sources=[schema.ns('osaf.pim', parcel.itsView).allEventsCollection,
+        sources=[pim_ns.allEventsCollection,
             publishedFreeBusy],
         displayName = 'Unpublished Freebusy Events'
     )
@@ -127,7 +128,7 @@ def installParcel(parcel, oldVersion=None):
     # we can index it.    
     filterAttribute = pim.Note.icalUID.name
     iCalendarItems = FilteredCollection.update(parcel, 'iCalendarItems',
-        source=schema.ns("osaf.pim", parcel.itsView).noteCollection,
+        source=pim_ns.noteCollection,
         filterExpression="view.hasTrueValues(uuid, '%s')" % (filterAttribute,),
         filterAttributes=[filterAttribute])
     iCalendarItems.addIndex('icalUID', 'value', attribute=filterAttribute)
@@ -430,6 +431,7 @@ def publish(collection, account, classesToInclude=None,
 
     view = collection.itsView
 
+    pim_ns = schema.ns("osaf.pim", view)
     # If no account passed in, use an inmemory conduit (for development)
     if account is None:
         conduit = InMemoryDiffRecordSetConduit(itsView=view,
@@ -439,7 +441,7 @@ def publish(collection, account, classesToInclude=None,
         share = Share(itsView=view, contents=collection, conduit=conduit)
         share.create()
         share.sync()
-        share.sharer = schema.ns("osaf.pim", view).currentContact.item
+        share.sharer = pim_ns.currentContact.item
         return [share]
 
     # If the account knows how to publish, delegate:
@@ -447,7 +449,7 @@ def publish(collection, account, classesToInclude=None,
         shares = account.publish(collection, activity=activity,
             filters=attrsToExclude)
         for share in shares:
-            share.sharer = schema.ns("osaf.pim", view).currentContact.item
+            share.sharer = pim_ns.currentContact.item
         return shares
 
 
@@ -592,8 +594,7 @@ def publish(collection, account, classesToInclude=None,
                             conduit.filters = attrsToExclude
 
                         share.displayName = displayName or collection.displayName
-                        share.sharer = schema.ns("osaf.pim",
-                                             view).currentContact.item
+                        share.sharer = pim_ns.currentContact.item
 
                     else:
                         # Create a CalDAV conduit / ICalendar format
@@ -621,7 +622,7 @@ def publish(collection, account, classesToInclude=None,
                     if share.exists():
                         raise SharingError(_(u"Share already exists"))
 
-                    inFreeBusy = collection in schema.ns('osaf.pim', view).mine.sources
+                    inFreeBusy = collection in pim_ns.mine.sources
                     if inFreeBusy:
                         share.conduit.inFreeBusy = True
 
