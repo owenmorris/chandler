@@ -44,13 +44,16 @@ class RangeSet(object):
 
     def _getRange (self, range):
         # Private method. selectRange and unSelectRange only accepts
-        # ranges of an int or a tuple of length 2 of int.
+        # ranges of an int, a long, or a tuple of length 2 of int.
         rangeType = type (range)
-        assert (rangeType == int or
+        assert (rangeType in (int, long) or
                 (rangeType == tuple and len (range) == 2))
 
-        if rangeType == int:
+        if rangeType is int:
             range = (range, range)
+        elif rangeType is long:
+            range = (int(range), int(range))
+
         if range[0] < 0 or range[1] < 0:
             # Support negative array indexing like Python
             leftEdge = range [0]
