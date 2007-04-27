@@ -649,15 +649,15 @@ class ReadOnlyIconBlock(DetailSynchronizer, ControlBlocks.StampButton):
 
         checked = self.item is not None and sharing.isReadOnly(self.item)
         self.widget.SetState("%s.%s" % (self.icon,
-                             checked and "Unstamped" or "Stamped"))
+                                        "Stamped" if checked else "Unstamped"))
 
     def onButtonPressedEvent(self, event):
         # We don't actually allow the read only state to be toggled
         pass
 
     def onButtonPressedEventUpdateUI(self, event):
-        enable = self.item is not None and sharing.isReadOnly(self.item)
-        event.arguments ['Enable'] = enable        
+        """Never enable the read-only icon's event (don't let it be clicked)."""
+        event.arguments ['Enable'] = True
 
 class EditTextAttribute(DetailSynchronizer, ControlBlocks.EditText):
     """
