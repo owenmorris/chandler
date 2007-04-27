@@ -843,6 +843,9 @@ class Translator:
         """Called after an import transaction ends"""
         return ()
 
+    def resolveConflicts(self, conflicts):
+        """Called after finishExport"""
+
     def importRecords(self, rs):
         for r in rs.inclusions:
             self.importRecord(r)

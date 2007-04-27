@@ -411,7 +411,7 @@ class RoundTripTestCase(testcase.DualRepositoryTestCase):
         # DisplayAlarmRecords even for items that don't have them
         self.assert_(checkStats(stats,
             ({'added' : 0, 'modified' : 0, 'removed' : 0},
-             {'added' : 0, 'modified' : (0,1), 'removed' : 0})),
+             {'added' : 0, 'modified' : (1,2), 'removed' : 0})),
             "Sync operation mismatch")
 
 
@@ -423,7 +423,7 @@ class RoundTripTestCase(testcase.DualRepositoryTestCase):
         # The cosmo-specific modified count might be due to cosmo sending
         # DisplayAlarmRecords even for items that don't have them
         self.assert_(checkStats(stats,
-            ({'added' : 0, 'modified' : (0,1), 'removed' : 0},
+            ({'added' : 0, 'modified' : (1,2), 'removed' : 0},
              {'added' : 0, 'modified' : 1, 'removed' : 0})),
             "Sync operation mismatch")
         view1.commit(); stats = self.share1.sync(); view1.commit()
@@ -434,7 +434,7 @@ class RoundTripTestCase(testcase.DualRepositoryTestCase):
         view0.commit(); stats = self.share0.sync(); view0.commit()
         self.assert_(checkStats(stats,
             ({'added' : 0, 'modified' : 1, 'removed' : 0},
-             {'added' : 0, 'modified' : 0, 'removed' : 0})),
+             {'added' : 0, 'modified' : 1, 'removed' : 0})),
             "Sync operation mismatch")
         self.assert_(pim.has_stamp(item, pim.EventStamp))
         self.assert_(pim.has_stamp(item, pim.TaskStamp))
@@ -498,11 +498,11 @@ class RoundTripTestCase(testcase.DualRepositoryTestCase):
         view1.commit(); stats = self.share1.sync(); view1.commit()
         self.assert_(checkStats(stats,
             ({'added' : 0, 'modified' : 0, 'removed' : 0},
-             {'added' : 0, 'modified' : 0, 'removed' : 0})),
+             {'added' : 0, 'modified' : 1, 'removed' : 0})),
             "Sync operation mismatch")
         view0.commit(); stats = self.share0.sync(); view0.commit()
         self.assert_(checkStats(stats,
-            ({'added' : 0, 'modified' : 0, 'removed' : 0},
+            ({'added' : 0, 'modified' : 1, 'removed' : 0},
              {'added' : 0, 'modified' : 0, 'removed' : 0})),
             "Sync operation mismatch")
         self.assert_(not pim.has_stamp(item1, pim.EventStamp))

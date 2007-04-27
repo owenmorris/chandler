@@ -16,6 +16,7 @@ from osaf import pim
 import conduits, errors, formats, eim, shares, model
 from i18n import ChandlerMessageFactory as _
 import logging
+from itertools import chain
 from application import schema
 from repository.item.Item import Item
 from repository.persistence.RepositoryError import MergeError
@@ -92,9 +93,6 @@ class RecordSetConduit(conduits.BaseConduit):
 
     def _sync(self, modeOverride=None, activity=None, forceUpdate=None,
         debug=False):
-
-        # TODO: handle mode=get
-        # TODO: private items
 
         def _callback(*args, **kwds):
             if activity:
@@ -309,6 +307,7 @@ class RecordSetConduit(conduits.BaseConduit):
         # Merge
         toApply = {}
         toSend = {}
+        toAutoResolve = {}
 
         aliases = set(rsNewBase) | set(inbound)
         mergeCount = len(aliases)
@@ -385,6 +384,9 @@ class RecordSetConduit(conduits.BaseConduit):
             if receive and dApply:
                 toApply[alias] = dApply
 
+            if receive and pending:
+                toAutoResolve[alias] = pending
+
             i += 1
             _callback(msg="Merged %d of %d recordset(s)" % (i, mergeCount),
                 work=1)
@@ -398,6 +400,7 @@ class RecordSetConduit(conduits.BaseConduit):
                     totalWork=applyCount, workDone=0)
 
             # Apply
+            translator.startImport()
             i = 0
             for alias, rs in toApply.items():
                 if debug: print "\nApplying:", alias, rs
@@ -419,15 +422,12 @@ class RecordSetConduit(conduits.BaseConduit):
 
                 logger.debug("Importing %s", rs)
 
-                translator.startImport()
 
                 try:
                     translator.importRecords(rs)
                 except Exception, e:
                     errors.annotate(e, "Record import failed", details=str(rs))
                     raise
-
-                translator.finishImport()
 
                 uuid = translator.getUUIDForAlias(alias)
                 if uuid:
@@ -455,6 +455,22 @@ class RecordSetConduit(conduits.BaseConduit):
                 i += 1
                 _callback(msg="Applied %d of %d change(s)" % (i, applyCount),
                     work=1)
+
+
+            translator.finishImport()
+
+            # Auto-resolve conflicts
+            conflicts = []
+            for alias, rs in toAutoResolve.items():
+                uuid = translator.getUUIDForAlias(alias)
+                if uuid:
+                    item = rv.findUUID(uuid)
+                    if item is not None:
+                        for conflict in shares.SharedItem(item).getConflicts():
+                            conflicts.append(conflict)
+
+            translator.resolveConflicts(conflicts)
+
 
 
             # Make sure any items that came in are added to the collection
@@ -647,7 +663,8 @@ class MonolithicRecordSetConduit(RecordSetConduit):
                 inbound, extra = self.serializer.deserialize(text,
                     helperView=self.itsView)
             except Exception, e:
-                errors.annotate(e, "Failed to deserialize", details=text)
+                errors.annotate(e, "Failed to deserialize",
+                    details=text.decode('utf-8'))
                 raise
             return inbound, extra, False
 

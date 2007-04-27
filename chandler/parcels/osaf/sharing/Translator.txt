@@ -66,6 +66,67 @@ Exporting:
 
 
 
+Autoresolving Conflicts:
+
+To test this, we need a State object whose baseline 'agreed' contains the old
+values of the item::
+
+    >>> state = sharing.State(itsView=rv, peer=None)
+    >>> state.set(sharing.RecordSet(records), sharing.RecordSet())
+
+Next we make a local triageStatusChanged change::
+
+    >>> item._triageStatusChanged = -1167792300.0
+    >>> records = list(t.exportItem(item))
+
+...and also an "external" triageStatusChanged change::
+
+    >>> delta = [sharing.model.ItemRecord('f230dcd4-7c32-4c3f-908b-d92081cc9a89', sharing.NoChange, '200 -1167792400.0 1', sharing.NoChange, sharing.NoChange, sharing.NoChange)]
+
+Do the merge and we get a conflict::
+
+    >>> state.merge(sharing.RecordSet(records), sharing.RecordSet(delta))
+    (RecordSet(set([]), set([])), RecordSet(set([]), set([])), RecordSet(set([ItemRecord(u'f230dcd4-7c32-4c3f-908b-d92081cc9a89', NoChange, '200 -1167792400.0 1', NoChange, NoChange, NoChange)]), set([])))
+    >>> state.updateConflicts(item)
+    >>> sharing.getConflicts(item)
+    [triage : Later]
+
+Run the auto-resolve code, and the conflicts go away::
+
+    >>> t.resolveConflicts(list(sharing.getConflicts(item)))
+    >>> sharing.getConflicts(item)
+    []
+
+
+Make sure that a triage status conflict is indeed kept as a conflict::
+
+    >>> state = sharing.State(itsView=rv, peer=None)
+    >>> state.set(sharing.RecordSet(records), sharing.RecordSet())
+
+Next we make a local triageStatus change::
+
+    >>> item._triageStatus = pim.TriageEnum.now
+    >>> records = list(t.exportItem(item))
+
+...and also an "external" triageStatus change::
+
+    >>> delta = [sharing.model.ItemRecord('f230dcd4-7c32-4c3f-908b-d92081cc9a89', sharing.NoChange, '300 -1167792400.0 1', sharing.NoChange, sharing.NoChange, sharing.NoChange)]
+
+Do the merge and we get a conflict::
+
+    >>> state.merge(sharing.RecordSet(records), sharing.RecordSet(delta))
+    (RecordSet(set([]), set([])), RecordSet(set([]), set([])), RecordSet(set([ItemRecord(u'f230dcd4-7c32-4c3f-908b-d92081cc9a89', NoChange, '300 -1167792400.0 1', NoChange, NoChange, NoChange)]), set([])))
+    >>> state.updateConflicts(item)
+    >>> sharing.getConflicts(item)
+    [triage : Done]
+
+Run the auto-resolve code, and the conflicts do not go away::
+
+    >>> t.resolveConflicts(list(sharing.getConflicts(item)))
+    >>> sharing.getConflicts(item)
+    [triage : Done]
+
+
 
 
 NoteRecord type
@@ -100,7 +161,7 @@ Exporting:
     >>> t.startExport()
     >>> records = list(t.exportItem(item))
     >>> records
-    [ItemRecord('f230dcd4-7c32-4c3f-908b-d92081cc9a89', u'Translator test', '200 -1167792143.00 1', Decimal("1164803131"), 0, 0), ModifiedByRecord('f230dcd4-7c32-4c3f-908b-d92081cc9a89', u'', Decimal("1164803131"), 500), NoteRecord('f230dcd4-7c32-4c3f-908b-d92081cc9a89', u'This is the body', None, None, None)]
+    [ItemRecord('f230dcd4-7c32-4c3f-908b-d92081cc9a89', u'Translator test', '100 -1167792400.00 1', Decimal("1164803131"), 0, 0), ModifiedByRecord('f230dcd4-7c32-4c3f-908b-d92081cc9a89', u'', Decimal("1164803131"), 500), NoteRecord('f230dcd4-7c32-4c3f-908b-d92081cc9a89', u'This is the body', None, None, None)]
 
 TODO: icaluid
 
@@ -136,7 +197,7 @@ Exporting:
     >>> t.startExport()
     >>> records = list(t.exportItem(item))
     >>> records
-    [ItemRecord('f230dcd4-7c32-4c3f-908b-d92081cc9a89', u'Translator test', '200 -1167792143.00 1', Decimal("1164803131"), 0, 0), ModifiedByRecord('f230dcd4-7c32-4c3f-908b-d92081cc9a89', u'', Decimal("1164803131"), 500), NoteRecord('f230dcd4-7c32-4c3f-908b-d92081cc9a89', u'This is the body', None, None, None), TaskRecord('f230dcd4-7c32-4c3f-908b-d92081cc9a89')]
+    [ItemRecord('f230dcd4-7c32-4c3f-908b-d92081cc9a89', u'Translator test', '100 -1167792400.00 1', Decimal("1164803131"), 0, 0), ModifiedByRecord('f230dcd4-7c32-4c3f-908b-d92081cc9a89', u'', Decimal("1164803131"), 500), NoteRecord('f230dcd4-7c32-4c3f-908b-d92081cc9a89', u'This is the body', None, None, None), TaskRecord('f230dcd4-7c32-4c3f-908b-d92081cc9a89')]
 
 
 MailMessageRecord type
