@@ -880,12 +880,6 @@ class MainView(View):
 
             return
 
-    def onStartProfilerEvent(self, event):
-        Block.profileEvents = True
-
-
-    def onStopProfilerEvent(self, event):
-        Block.profileEvents = False
     # Test Methods
 
     def getSidebarSelectedCollection (self, private=False):

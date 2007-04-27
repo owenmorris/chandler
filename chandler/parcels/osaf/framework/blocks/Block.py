@@ -153,11 +153,6 @@ class Block(schema.Item):
     #See Bug #5219
     wxId = schema.One (schema.Integer, defaultValue=0)
 
-    # event profiler (class attributes)
-    profileEvents = False          # Make "True" to profile events
-    __profilerActive = False       # to prevent reentrancy, if the profiler is currently active
-    __profiler = None              # The hotshot profiler
-
     depth = 0                      # Recursive post depth
 
     @classmethod
@@ -870,28 +865,6 @@ class DispatcHookList (schema.Item):
 class BlockDispatchHook (DispatchHook):
     def dispatchEvent (self, event, depth):
 
-        def callProfiledMethod(blockOrWidget, methodName, event):
-            """
-            Wrap callNamedMethod with a profiler runcall().
-            """
-            if not Block.__profilerActive:
-                # create profiler lazily
-                if not Block.__profiler:
-                    import hotshot
-                    Block.__profiler = hotshot.Profile('Events.prof')
-
-                Block.__profilerActive = True
-                try:
-                    #
-                    # run the call inside the profiler
-                    #
-                    return Block.__profiler.runcall(callNamedMethod, blockOrWidget, methodName, event)
-                finally:
-                    # make sure that we turn off reentrancy check no matter what
-                    Block.__profilerActive = False
-            else:
-                return callNamedMethod(blockOrWidget, methodName, event)
-
         def callNamedMethod (blockOrWidget, methodName, event):
             """
             Call method named methodName on block or widget.
@@ -910,13 +883,6 @@ class BlockDispatchHook (DispatchHook):
                 event.arguments ['results'] = member (blockOrWidget, event)
                 return True
 
-        if Block.profileEvents:
-            # We're profiling, use the wrapper
-            callMethod = callProfiledMethod
-        else:
-            # Not profiling, use the straight-up call
-            callMethod = callNamedMethod
-
         def bubbleUpCallMethod (blockOrWidget, methodName, event):
             """
             Call a method on a block or widget or if it doesn't handle it
@@ -924,7 +890,7 @@ class BlockDispatchHook (DispatchHook):
             """
             event.arguments ['continueBubbleUp'] = False # default to stop bubbling
             while (blockOrWidget):
-                if callMethod (blockOrWidget, methodName, event): # method called?
+                if callNamedMethod (blockOrWidget, methodName, event): # method called?
                     if event.arguments ['continueBubbleUp']: # overwrote the default?
                         event.arguments ['continueBubbleUp'] = False # reset the default
                     else:
@@ -944,14 +910,12 @@ class BlockDispatchHook (DispatchHook):
 
 
         def broadcast (block, methodName, event, childTest):
-            callMethod (block, methodName, event)
+            callNamedMethod (block, methodName, event)
             for child in block.childBlocks:
                 if childTest (child):
                     broadcast (child, methodName, event, childTest)
 
-        """
-        Construct method name based upon the type of the event.
-        """
+        # Construct method name based upon the type of the event.
         try:
             methodName = event.methodName
         except AttributeError:
@@ -980,19 +944,19 @@ class BlockDispatchHook (DispatchHook):
 
         dispatchEnum = event.dispatchEnum
         if dispatchEnum == 'SendToBlockByReference':
-            callMethod (event.destinationBlockReference, methodName, event)
+            callNamedMethod (event.destinationBlockReference, methodName, event)
 
         elif dispatchEnum == 'SendToSender':
             block = event.arguments['sender']
             assert block is not None
-            callMethod (block, methodName, event)
+            callNamedMethod (block, methodName, event)
 
         elif dispatchEnum == 'SendToBlockByName':
             block = Block.findBlockByName(event.dispatchToBlockName)
             if not block and event.arguments.has_key('UpdateUI'):
                 event.arguments['Enable'] = False
             else:
-                callMethod (block, methodName, event)
+                callNamedMethod (block, methodName, event)
 
         elif dispatchEnum == 'BroadcastInsideMyEventBoundary':
             block = event.arguments['sender']

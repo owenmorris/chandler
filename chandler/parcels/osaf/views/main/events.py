@@ -195,8 +195,6 @@ def makeMainEvents(parcel):
 
     BlockEvent.template('ManageSidebarCollection').install(parcel)
 
-    BlockEvent.template('StopProfiler').install(parcel)
-
     BlockEvent.template('ShowPyShell').install(parcel)
 
     BlockEvent.template('SaveSettings').install(parcel)
@@ -244,8 +242,6 @@ def makeMainEvents(parcel):
                                      dispatchToBlockName = 'Sidebar').install(parcel)
 
     BlockEvent.template('PublishCollection').install(parcel)
-
-    BlockEvent.template('StartProfiler').install(parcel)
 
     BlockEvent.template('SetLoggingLevelCritical').install(parcel)
 
