@@ -40,10 +40,19 @@ class StaleItemError(ValueError, ItemError):
 
 
 class DirtyItemError(ValueError, ItemError):
+    pass
+
+class ItemUnloadError(DirtyItemError):
     __doc__ = "%s has unsaved changes and cannot be unloaded"
 
     def __str__(self):
         return self.__doc__ %(self.getItem()._repr_())
+
+class ChangeDuringCommitError(DirtyItemError):
+    __doc__ = "change to %s while its view is committing: %s"
+
+    def __str__(self):
+        return self.__doc__ %(self.getItem()._repr_(), self.args[1])
 
     
 class InvalidChildError(ValueError, ItemError):

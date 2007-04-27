@@ -74,6 +74,7 @@ enum {
     DEFEROBSD   = 0x01000000,  /* defer observers, discarding dup. calls */
     DEFEROBSA   = 0x02000000,  /* defer observers, keeping all calls     */
     DEFERCOMMIT = 0x04000000,  /* defer commit calls                     */
+    COMMITLOCK  = 0x08000000,  /* view locked during commit              */
 };
 
 enum {

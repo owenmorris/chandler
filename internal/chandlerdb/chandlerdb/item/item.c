@@ -1203,6 +1203,16 @@ int _t_item_setDirty(t_item *self, int dirty,
     {
         t_view *view = (t_view *) self->ref->view;
 
+        if (view->status & COMMITLOCK)
+        {
+            PyObject *args = PyTuple_Pack(2, self, view);
+
+            PyErr_SetObject((PyObject *) ChangeDuringCommitError, args);
+            Py_DECREF(args);
+
+            return -1;
+        }
+
         if (dirty & VRDIRTY)
         {
             if (attribute == Py_None)
