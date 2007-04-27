@@ -15,6 +15,7 @@
 
 import application.schema as schema
 from osaf import Preferences
+from osaf.pim.stamping import has_stamp
 
 import PyICU
 import dateutil.tz
@@ -487,16 +488,25 @@ def convertFloatingEvents(view, newTZ):
     someone else's events and are intended to be floating. 
         
     """
-    from osaf import sharing # yikes, need a suggestion here ~morgen
-
     pim_ns = schema.ns("osaf.pim", view)
+    sharing_ns = schema.ns("osaf.sharing", view)
+    
+    EventStamp = pim_ns.EventStamp
     # put all floating events in a list, because we can't iterate over 
     # floatingEvents while we remove items from it
     for item in list(pim_ns.floatingEvents):
-        event = pim_ns.EventStamp(item)
+        event = EventStamp(item)
         # not all items are actually floating, some will be all day, but those
         # events still have a floating startTime, might as well put them in
         # the right timezone if they're changed to timed events
-        # if item.sharedIn is None or len(item.sharedIn) == 0:
-        if not sharing.isShared(item):
-            event.startTime = event.startTime.replace(tzinfo=newTZ)
+        if not sharing_ns.isShared(event):
+            event.changeNoModification(EventStamp.startTime.name,
+                                       event.startTime.replace(tzinfo=newTZ))
+            for occurrence in event.occurrences or []:
+                ev = EventStamp(occurrence)
+                change = ev.changeNoModification
+                change(EventStamp.recurrenceID.name,
+                       ev.recurrenceID.replace(tzinfo=newTZ))
+                if ev.startTime.tzinfo == PyICU.ICUtzinfo.floating:
+                    change(EventStamp.startTime.name,
+                           ev.startTime.replace(tzinfo=newTZ))

@@ -423,12 +423,16 @@ class FloatingEventTestCase(SingleRepositoryTestCase):
         
         nonFloatingOccurrence = master.getNextOccurrence(
             after=datetime(2007, 5, 2, tzinfo=ICUtzinfo.floating))
-            
+
+        
         nonFloatingOccurrence.changeThis(
             EventStamp.startTime.name,
             nonFloatingOccurrence.startTime.replace(tzinfo=gayParee)
         )
-        
+
+        titleMod = nonFloatingOccurrence.getNextOccurrence()
+        titleMod.itsItem.summary = "yabba dabba doo"
+                
         self.tzprefs.showUI = True
         
         tzItem = TimeZoneInfo.get(self.view)
@@ -450,12 +454,10 @@ class FloatingEventTestCase(SingleRepositoryTestCase):
             # Everything but the modification we just made should have
             # the default timezone set for startTime ...
             if event != nonFloatingOccurrence:
-                self.failUnlessEqual(event.startTime.tzinfo,
-                                     ICUtzinfo.default)
+                self.failUnlessEqual(event.startTime.tzinfo, ICUtzinfo.default)
                                      
-            # ... but recurrenceIDs should always have the master's tzinfo
-            self.failIfEqual(event.recurrenceID.tzinfo,
-                             ICUtzinfo.default)
+            # and recurrenceIDs should always have the master's tzinfo
+            self.failUnlessEqual(event.recurrenceID.tzinfo, ICUtzinfo.default)
 
         # ... and the shared item's tzinfo should not have changed
         self.failUnlessEqual(sharedFloating.startTime.tzinfo,
