@@ -163,6 +163,10 @@ def main():
         status      = "build_failed"
         alertStatus = 'The build failed'
 
+    except hardhatutil.ExternalCommandErrorWithOutputList, e:
+        logit('External command error [%d]' % e.exitCode, log)
+        hardhatutil.dumpOutputList(e.outputList, log)
+
     except Exception, e:
         logit('Exception [%s]' % str(e), log)
 
