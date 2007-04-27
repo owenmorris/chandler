@@ -22,7 +22,7 @@ class RepositoryError(ValueError):
     __doc__ = "All repository related exceptions go here"
 
 
-class RepositoryLockNotGrantedError:
+class RepositoryLockNotGrantedError(RepositoryError):
     pass
 
 class ExclusiveOpenDeniedError(RepositoryLockNotGrantedError):

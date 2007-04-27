@@ -2125,7 +2125,7 @@ class Item(CItem):
     def _unloadItem(self, reloadable, view, clean=True):
 
         if clean and self.isDirty():
-            raise DirtyItemError, self
+            raise ItemUnloadError, self
 
         if hasattr(type(self), 'onItemUnload'):
             self.onItemUnload(view, clean)

@@ -577,6 +577,7 @@ class DBRepositoryView(OnDemandRepositoryView):
                             self._commitTransaction(txnStatus)
                         else:
                             self._abortTransaction(txnStatus)
+                            self._status &= ~RepositoryView.COMMITLOCK
                     return store.releaseLock(lock), 0
         
                 while True:
@@ -594,7 +595,9 @@ class DBRepositoryView(OnDemandRepositoryView):
                             self.effectDelete()
 
                         if self._deferDelete:
-                            self._status |= self.DEFERDEL
+                            self._status |= RepositoryView.DEFERDEL
+
+                        self._status |= RepositoryView.COMMITLOCK
 
                         count = len(self._log) + len(self._deletedRegistry)
                         if count > 500:
@@ -650,6 +653,7 @@ class DBRepositoryView(OnDemandRepositoryView):
                 if self._deletedRegistry:
                     self._deletedRegistry.clear()
 
+                self._status &= ~RepositoryView.COMMITLOCK
                 after = time()
 
                 if count > 0:
