@@ -650,13 +650,23 @@ class ReadOnlyIconBlock(DetailSynchronizer, ControlBlocks.StampButton):
         checked = self.item is not None and sharing.isReadOnly(self.item)
         self.widget.SetState("%s.%s" % (self.icon,
                                         "Stamped" if checked else "Unstamped"))
+        if not checked:
+            self.widget.SetToolTipString("")
 
     def onButtonPressedEvent(self, event):
         # We don't actually allow the read only state to be toggled
         pass
 
     def onButtonPressedEventUpdateUI(self, event):
-        """Never enable the read-only icon's event (don't let it be clicked)."""
+        """
+        Always enable the read-only icon's event.  This causes it to be
+        clickable (and the click does nothing), which isn't great, but that
+        seems preferable to not displaying a tooltip, which is what happens at
+        least on Windows if the button is disabled.
+        
+        Read-only doesn't really need to be a StampButton, it could be plain
+        button that gets hidden in most cases.
+        """
         event.arguments ['Enable'] = True
 
 class EditTextAttribute(DetailSynchronizer, ControlBlocks.EditText):
