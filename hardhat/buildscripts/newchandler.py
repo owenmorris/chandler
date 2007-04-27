@@ -292,11 +292,18 @@ def doDistribution(releaseMode, workingDir, log, outputDir, buildVersion, buildV
             outputList = hardhatutil.executeCommandReturnOutput(
              [hardhatScript, "-o", os.path.join(outputDir, buildVersion), distOption, buildVersionEscaped])
             hardhatutil.dumpOutputList(outputList, log)
+
+        except hardhatutil.ExternalCommandErrorWithOutputList, e:
+            print "distribution failed", e.exitCode
+            log.write("***Error during distribution***\n")
+            hardhatutil.dumpOutputList(e.outputList, log)
+            forceBuildNextCycle(log, workingDir)
+            raise e
+
         except Exception, e:
             doCopyLog("***Error during distribution building*** ", workingDir, logPath, log)
             forceBuildNextCycle(log, workingDir)
             raise e
-
 
 def doCopyLog(msg, workingDir, logPath, log):
     # hardhat scripts should leave harhat.log behind both on success and
