@@ -172,7 +172,8 @@ void initc(void)
     LOAD_OBJ(m, Nil);
     LOAD_TYPE(m, CtxMgr);
     LOAD_TYPE(m, SkipList);
-    SkipList_Node = (PyTypeObject *) PyObject_GetAttrString(SkipList, "Node");
+    SkipList_Node = (PyTypeObject *)
+        PyObject_GetAttrString((PyObject *) SkipList, "Node");
     Py_DECREF(m);
 
     if (!(m = PyImport_ImportModule("chandlerdb.item.c")))
