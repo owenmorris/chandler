@@ -1836,7 +1836,6 @@ class UITestView(object):
             self.logger.addComment("Double click")
             if not canvasItem:
                 self.logger.report(False, name="DoubleClickInCalView", comment="The event has not been created or selected")
-                self.logger.Report()
                 return
                    
             #create the corresponding UITestItem object
