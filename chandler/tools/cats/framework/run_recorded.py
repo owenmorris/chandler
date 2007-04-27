@@ -18,6 +18,7 @@ import logging
 from application import Globals
 from datetime import datetime
 from osaf.framework.blocks.Block import Block
+from tools.cats.framework.TestOutput import _inSeconds 
 
 logger = logging.getLogger('recorded_test_framework')
 
@@ -83,7 +84,7 @@ def execute_frame(option_value):
         result = "FAILED"
     finally:
         print '#TINDERBOX# Testname = %s' % Globals.options.recordedTest 
-        print '#TINDERBOX# Time elapsed = %s' % str (datetime.now() - Globals.test_dict['starttime'])
+        print '#TINDERBOX# Time elapsed = %0.2f (seconds)' % _inSeconds((datetime.now() - Globals.test_dict['starttime']))
         print '#TINDERBOX# Status = %s' % result
         
         
