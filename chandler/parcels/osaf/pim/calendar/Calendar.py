@@ -2562,13 +2562,16 @@ class Occurrence(Note):
                             self.getUserReminder()):
                             continue
                     elif attr == Stamp.stamp_types.name:
-                        # Ignore SharedItem stamp on the master
+                        # Ignore SharedItem stamp
                         my_stamps = set(Stamp(self).stamp_types)
-                        master_stamps = set()
-                        for stamp in Stamp(masterEvent).stamp_types:
+                        master_stamps = set(Stamp(masterEvent).stamp_types)
+                        changes = my_stamps.symmetric_difference(master_stamps)
+                        real_stamp_change = False
+                        for stamp in changes:
                             if stamp.__name__ != 'SharedItem':
-                                master_stamps.add(stamp)
-                        if my_stamps == master_stamps:
+                                real_stamp_change = True
+                                break
+                        if not real_stamp_change:
                             continue
 
                     yield attr, value
