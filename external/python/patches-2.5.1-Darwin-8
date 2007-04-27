@@ -1,6 +1,6 @@
---- Python-2.5/configure	2006-09-04 19:54:42.000000000 -0700
-+++ Python-2.5-patched/configure	2006-12-03 17:58:03.000000000 -0800
-@@ -10834,16 +10834,24 @@
+--- Python-2.5.1/configure	2006-09-04 19:54:42.000000000 -0700
++++ Python-2.5.1-patched/configure	2006-12-03 17:58:03.000000000 -0800
+@@ -10850,16 +10850,24 @@
  echo "$as_me:$LINENO: result: $enable_toolbox_glue" >&5
  echo "${ECHO_T}$enable_toolbox_glue" >&6
  

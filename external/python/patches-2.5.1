@@ -1,5 +1,5 @@
---- Python-2.5/Makefile.pre.in	2006-07-30 09:20:10.000000000 -0700
-+++ Python-2.5-patched/Makefile.pre.in	2006-12-01 12:22:56.000000000 -0800
+--- Python-2.5.1/Makefile.pre.in	2006-07-30 09:20:10.000000000 -0700
++++ Python-2.5.1-patched/Makefile.pre.in	2006-12-01 12:22:56.000000000 -0800
 @@ -706,17 +706,17 @@
  	plat-mac/lib-scriptpackages/SystemEvents \
  	plat-mac/lib-scriptpackages/Terminal 
@@ -19,8 +19,8 @@
  	@for i in $(SCRIPTDIR) $(LIBDEST); \
  	do \
  		if test ! -d $(DESTDIR)$$i; then \
---- Python-2.5/setup.py	2006-12-01 12:25:43.000000000 -0800
-+++ Python-2.5-patched/setup.py	2006-12-01 12:25:56.000000000 -0800
+--- Python-2.5.1/setup.py	2006-12-01 12:25:43.000000000 -0800
++++ Python-2.5.1-patched/setup.py	2006-12-01 12:25:56.000000000 -0800
 @@ -601,18 +601,18 @@
  
          # Sleepycat Berkeley DB interface.  http://www.sleepycat.com
@@ -30,7 +30,7 @@
          # a release.  Most open source OSes come with one or more
          # versions of BerkeleyDB already installed.
  
--        max_db_ver = (4, 4)
+-        max_db_ver = (4, 5)
 -        min_db_ver = (3, 3)
 +        max_db_ver = (0, 0)
 +        min_db_ver = (0, 0)
@@ -42,8 +42,8 @@
              '/usr/include/db4',
              '/usr/local/include/db4',
              '/opt/sfw/include/db4',
---- Python-2.5/Mac/Makefile.in	2006-06-11 13:23:29.000000000 -0700
-+++ Python-2.5-patched/Mac/Makefile.in	2006-12-01 12:29:27.000000000 -0800
+--- Python-2.5.1/Mac/Makefile.in	2006-06-11 13:23:29.000000000 -0700
++++ Python-2.5.1-patched/Mac/Makefile.in	2006-12-01 12:29:27.000000000 -0800
 @@ -39,18 +39,17 @@
  	Resources/English.lproj/Documentation \
  	Resources/English.lproj/Documentation/doc \

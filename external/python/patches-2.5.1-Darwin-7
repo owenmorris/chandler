@@ -1,6 +1,6 @@
---- Python-2.5/configure	Mon Sep  4 19:54:42 2006
-+++ Python-2.5-patched/configure	Sat Dec  2 15:56:55 2006
-@@ -10858,17 +10858,17 @@
+--- Python-2.5.1/configure	Mon Sep  4 19:54:42 2006
++++ Python-2.5.1-patched/configure	Sat Dec  2 15:56:55 2006
+@@ -10874,17 +10874,17 @@
    Darwin/*)
      gcc_version=`gcc -v 2>&1 |  grep version | cut -d\  -f3`
      if test ${gcc_version} '<' 4.0

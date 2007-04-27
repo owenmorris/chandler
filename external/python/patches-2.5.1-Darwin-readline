@@ -1,5 +1,5 @@
---- Python-2.5/Modules/Setup.dist	2006-08-06 00:26:21.000000000 -0700
-+++ Python-2.5-patched/Modules/Setup.dist	2006-12-01 12:32:00.000000000 -0800
+--- Python-2.5.1/Modules/Setup.dist	2006-08-06 00:26:21.000000000 -0700
++++ Python-2.5.1-patched/Modules/Setup.dist	2006-12-01 12:32:00.000000000 -0800
 @@ -144,28 +144,29 @@
  #PURE_INCLS=-I/usr/local/include
  #PURE_STUBLIBS=-L/usr/local/lib -lpurify_stubs -lquantify_stubs
