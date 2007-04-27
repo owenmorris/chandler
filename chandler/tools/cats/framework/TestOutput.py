@@ -476,35 +476,35 @@ class TestOutput:
         
     def Start(self, string):
         
-        self.printOut(u'DEPRICATED LOGGER FUNCTION', level=0, result=False)
+        self.printOut(u'DEPRECATED LOGGER FUNCTION', level=0, result=False)
         
     def Stop(self):
         
-        self.printOut(u'DEPRICATED LOGGER FUNCTION', level=0, result=False)
+        self.printOut(u'DEPRECATED LOGGER FUNCTION', level=0, result=False)
         
     def Print(self, string):
         
-        self.printOut(u'DEPRICATED LOGGER FUNCTION', level=0, result=False)
+        self.printOut(u'DEPRECATED LOGGER FUNCTION', level=0, result=False)
         
     def Report(self, string):
         
-        self.printOut(u'DEPRICATED LOGGER FUNCTION', level=0, result=False)
+        self.printOut(u'DEPRECATED LOGGER FUNCTION', level=0, result=False)
         
     def ReportPass(self, string):
         
-        self.printOut(u'DEPRICATED LOGGER FUNCTION', level=0, result=False)
+        self.printOut(u'DEPRECATED LOGGER FUNCTION', level=0, result=False)
         
     def ReportFailure(self, string):
         
-        self.printOut(u'DEPRICATED LOGGER FUNCTION', level=0, result=False)
+        self.printOut(u'DEPRECATED LOGGER FUNCTION', level=0, result=False)
         
     def SetChecked(self, string):
         
-        self.printOut(u'DEPRICATED LOGGER FUNCTION', level=0, result=False)   
+        self.printOut(u'DEPRECATED LOGGER FUNCTION', level=0, result=False)   
         
     def Close(self):
         
-        self.printOut(u'DEPRICATED LOGGER FUNCTION', level=0, result=False)
+        self.printOut(u'DEPRECATED LOGGER FUNCTION', level=0, result=False)
         
     def calculateReport(self, reportList):
         
