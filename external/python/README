@@ -12,20 +12,19 @@ To experiment with different python versions
 Upgrading python build
 ----------------------
 
- review patch files and refresh patches as needed.
-
  On Windows:
    - upgrade the vc++ project files to 7.1
       Note: 2.4.1 may already be 7.1 - open them in 7.1 to verify
    - copy them into win32/$(VERSION)
+   - copy the previous version's readline.vcproj file into win32/$(VERSION)
    - edit bz2.vcproj to remove the VCPreLinkEventTool checking for bzip2
       Note: ensure you get both instances (debug and release)
    - disable the _bsddb, _ssl, _testcapi, _tkinter, winsound, win9xpopen,
-     _ctypes_test, _sqlite3, projects 
-   - make
+     _ctypes_test, _sqlite3 projects 
 
- On other OS:
-   - make
+ On all OSs:
+   - review patch files and refresh patches as needed.
+
 
 Deprecated Notes:
   For windows prior to 2.4.3 you also needed to do the following:

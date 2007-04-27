@@ -51,7 +51,7 @@
  	ProjectSection(ProjectDependencies) = postProject
  		{CF7AC3D1-E2DF-41D2-BEA6-1E2556CDEA26} = {CF7AC3D1-E2DF-41D2-BEA6-1E2556CDEA26}
  	EndProjectSection
-@@ -155,16 +160,22 @@
+@@ -147,16 +151,22 @@
  		{AC557788-6354-43F7-BE05-C9C8C59A344A}.Debug.ActiveCfg = Debug|Win32
  		{AC557788-6354-43F7-BE05-C9C8C59A344A}.Debug.Build.0 = Debug|Win32
  		{AC557788-6354-43F7-BE05-C9C8C59A344A}.Release.ActiveCfg = Release|Win32
