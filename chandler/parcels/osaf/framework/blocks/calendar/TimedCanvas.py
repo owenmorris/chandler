@@ -70,7 +70,7 @@ class TimedEventsCanvas(CalendarBlock):
         self.widget.SetWindowGeometry()
         self.widget.RealignCanvasItems()
         self.widget.Refresh()
-        
+
     def onTZPrefsChange(self, op, item, names):
         self.widget.SetWindowGeometry()
         self.synchronizeWidget()
@@ -83,10 +83,6 @@ class TimedEventsCanvas(CalendarBlock):
         super(TimedEventsCanvas, self).setRange(date)
         if getattr(self, 'widget', None):
             self.widget.orderLast = []
-
-    def onItemNotification(self, notificationType, data):
-        pass # all notifications handled by container
-
 
 
 class wxTimedEventsCanvas(BaseWidget, wxCalendarCanvas):
@@ -116,70 +112,36 @@ class wxTimedEventsCanvas(BaseWidget, wxCalendarCanvas):
             # window sizes.
             scrollY = (self.hourHeight * 6) / self.GetScrollPixelsPerUnit()[1]
         self.Scroll(0, scrollY)
-        
-    def wxHandleChanges(self, changes):
-        self.SetSize((self.blockItem.size.width, self.blockItem.size.height))
-        self.setScroll()
-        self._doDrawingCalculations()
-        
 
-        something_changed = False
-        rebuild_canvas_items = False
+    def wxSynchronizeWidget(self):
+        self.SetSize ((self.blockItem.size.width, self.blockItem.size.height))
+        self.setScroll()
+        currentRange = self.GetCurrentDateRange()
+        self._doDrawingCalculations()
+
         added = 0
         
-        for op, event in changes:
-            isDayEvent = Calendar.isDayEvent(event)
-            if op in ('add', 'change'):
-                if isDayEvent:
-                    op = 'remove' # If something becomes allDay, remove it
-                                  # from visibleEvents
-                    
-            if op == 'remove':
-                if event in self.visibleEvents:
-                    something_changed = True
-                    rebuild_canvas_items = True
-                    self.visibleEvents.remove(event)
-            else:
-                if not event in self.visibleEvents:
-                    something_changed = True
+        if self.HavePendingNewEvents():
+            for op, event in self.HandleRemoveAndYieldChanged(currentRange):
+                if op in ('add', 'change') and not Calendar.isDayEvent(event):
+                    if event not in self.visibleEvents:
+                        bisect.insort(self.visibleEvents, event)
+                    self.MakeOneCanvasItem(event)
                     if op == 'add':
                         added += 1
-                    self.visibleEvents.append(event)
+        else:
+            self.ClearPendingNewEvents()
+            self.visibleEvents = list(self.blockItem.getEventsInRange(
+                                                 currentRange, timedItems=True))
+            self.MakeCanvasItems(resort=True)
 
-                elif op == 'change':
-                    something_changed = True
-
-                self.MakeOneCanvasItem(event)
-
-
-        if something_changed:
-            self.visibleEvents.sort()
-            if rebuild_canvas_items:
-                self.RebuildCanvasItems()
-            else:
-                self.RealignCanvasItems()
-            self.Refresh()
+        self.RealignCanvasItems()
+        self.Refresh()
 
         if added == 1 and getattr(self, 'justCreatedCanvasItem', None):
             self.OnSelectItem(self.justCreatedCanvasItem.item)
             self.justCreatedCanvasItem = None
             self.EditCurrentItem()
-
-    def wxSynchronizeWidget(self):
-        self.SetSize((self.blockItem.size.width, self.blockItem.size.height))
-        self.setScroll()
-        self._doDrawingCalculations()
-
-        container = self.blockItem.calendarContainer.widget
-        
-        self.visibleEvents = list(
-            event for event in container.visibleEvents
-                if not Calendar.isDayEvent(event)
-            )
-        self.MakeCanvasItems(resort=True)
-
-        self.RealignCanvasItems()
-        self.Refresh()
 
     @WithoutSynchronizeWidget
     def OnSize(self, event):

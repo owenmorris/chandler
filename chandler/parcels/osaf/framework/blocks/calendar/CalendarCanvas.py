@@ -37,7 +37,7 @@ from application.dialogs import RecurrenceDialog, Util, TimeZoneList
 from osaf.sharing import ChooseFormat, CalDAVFreeBusyConduit, FreeBusyAnnotation
 
 from osaf.framework.blocks import (
-    ContainerBlocks, SplitterWindow, Styles, BoxContainer, BlockEvent, ViewEvent
+    SplitterWindow, Styles, BoxContainer, BlockEvent, ViewEvent
     )
 from osaf.framework.attributeEditors import AttributeEditors
 from osaf.framework.blocks.DrawingUtilities import (DrawWrappedText, Gradients,
@@ -919,12 +919,12 @@ class CalendarNotificationHandler(object):
     """
     def __init__(self, *args, **kwds):
         super(CalendarNotificationHandler, self).__init__(*args, **kwds)
-        self.ClearPendingEventChanges()
+        self.ClearPendingNewEvents()
 
     def onItemNotification(self, notificationType, data):
         """
         Unfortunately, the calendar only handles add events.
-        """
+        """        
         if (notificationType == 'collectionChange'):
             blockItem = self.blockItem
             op, coll, name, uuid = data
@@ -934,135 +934,105 @@ class CalendarNotificationHandler(object):
                 else:
                     op = "remove"
 
-            existingChange = self._pending.get(uuid)
-            
-            if existingChange == op:
-                return # already got this one
-            
-            if existingChange is None:
-                self._pending[uuid] = op
-            elif op == 'add':
-                self._pending[uuid] = op
+            if op == 'add':
+                self._pendingNewEvents.add(uuid)
             elif op == 'remove':
-                if existingChange == 'add':
-                    del self._pending[uuid]
-                else: # i.e. 'change'
-                    self._pending[uuid] = op
+                self._pendingRemovals.add(uuid)
             elif op == 'changed':
-                pass
-                # we know existingChange is 'add' or 'remove', but really
-                # we want those to prevail.
+                self._pendingChanges.add(uuid)
                 
             blockItem.markDirty()
 
-    def ClearPendingEventChanges(self):
-        self._pending = dict() # will lose the order of adds, etc
+    def ClearPendingNewEvents(self):
+        self._pendingNewEvents = set()
+        self._pendingRemovals  = set()
+        self._pendingChanges   = set()
 
-    def GetPendingChanges(self, events=True):
+    def GetPendingEvents(self, events=True):
         """
         Return sets of added, removed and changed master events, then clear
         pending events.
         
         """
-        def translateUUID(uuid):
-            try:
-                item = self.blockItem.itsView[uuid]
-                if not isDead(item):
+        def eventsFromUUIDSet(uuid_set):
+            for itemUUID in uuid_set:
+                try:
+                    item = self.blockItem.itsView[itemUUID]
+                    if isDead(item): continue
                     if isinstance(item, Calendar.Occurrence):
                         item = item.inheritFrom
                     if events:
                         item = Calendar.EventStamp(item)
-                    return item
-            except KeyError:
-                # print "Couldn't find new item %s" % itemUUID
-                pass
+                    yield item
+                except KeyError:
+                    # print "Couldn't find new item %s" % itemUUID
+                    continue
         
-        added = set()
-        removed = set()
-        changed = set()
+        addedEvents = set(eventsFromUUIDSet(self._pendingNewEvents))
+        removedEvents = set(eventsFromUUIDSet(self._pendingRemovals))
+        changedEvents = set(eventsFromUUIDSet(self._pendingChanges))
         
-        for uuid, change in self._pending.iteritems():
-            itemOrEvent = translateUUID(uuid)
-            
-            if itemOrEvent is not None:
-                if change == 'add':
-                    added.add(itemOrEvent)
-                elif change == 'remove':
-                    removed.add(itemOrEvent)
-                elif change == 'changed':
-                    changed.add(itemOrEvent)
+        ### XXX rename ClearPending, it's not just new events
+        self.ClearPendingNewEvents()
+        
+        return addedEvents, removedEvents, changedEvents
 
-        
-        self.ClearPendingEventChanges()
-        
-        return added, removed, changed
-
-    def HasPendingEventChanges(self):
-        return (len(self._pending) > 0)
+    def HavePendingNewEvents(self):
+        return (len(self._pendingNewEvents) > 0 or 
+                len(self._pendingChanges) > 0 or
+                len(self._pendingRemovals) > 0)
 
     def HandleRemoveAndYieldChanged(self, currentRange):
         """
         Operate on self.visibleEvents, remove any items that have been changed
-        or removed from self.visibleEvents, yield (op, event), where op is
+        or removed from self.visibleItems, yield (op, event), where op is
         'add', 'change', or 'remove'.  For changes to recurring events, yield
         occurrences in range, not masters.
         
         """
-        addedItems, removedItems, changedItems = self.GetPendingChanges(False)
+        addedEvents, removedEvents, changedEvents = self.GetPendingEvents(False)
+
+        # remove changed events and added events, then re-add them
+        removedEvents.update(changedEvents)
         
-        newVisibleEvents = []
-        for event in self.visibleEvents:
-            remove = (
-                isDead(event.itsItem) or
-                (event.itsItem in removedItems) or
-                not has_stamp(event, Calendar.EventStamp) or
-                not event.isBetween(*currentRange) or
-                event.isRecurrenceMaster() 
-            )
-            
-            if not remove and isinstance(event.itsItem, Calendar.Occurrence):
+        removeIndexes = []
+        for i, event in enumerate(self.visibleEvents):
+            if isDead(event.itsItem) or event.isRecurrenceMaster():
+                yield ('remove', event)
+                removeIndexes.append(i)
+            elif isinstance(event.itsItem, Calendar.Occurrence):
                 master = event.getMaster()
-                remove = (master.itsItem in removedItems or
-                          not event.isBetween(*currentRange))
-                
-            if remove:
-                yield 'remove', event
-            else:
-                newVisibleEvents.append(event)
+                if master.itsItem in removedEvents:
+                    yield ('remove', master)
+                    removeIndexes.append(i)
+                    # The whole series may not need to be removed, put it
+                    # in changedEvents to be checked
+                    changedEvents.add(master.itsItem)
+            elif event.itsItem in removedEvents:
+                yield ('remove', event)
+                removeIndexes.append(i)
         
-        added   = izip(repeat('add'),    addedItems)
-        changed = izip(repeat('change'), changedItems)
+        for i in reversed(removeIndexes):
+            del self.visibleEvents[i]
+
+        added   = izip(repeat('add'),    addedEvents)
+        changed = izip(repeat('change'), changedEvents)
         
         for op, item in chain(added, changed):
             # skip non-events
-            if not has_stamp(item, Calendar.EventStamp):
+            if (not has_stamp(item, Calendar.EventStamp)):
                 continue
-            
-            event = Calendar.EventStamp(item)
-                
-            if event.rruleset is not None:
-                for ev in event.getOccurrencesBetween(*currentRange):
-                    if not ev in newVisibleEvents:
-                        newVisibleEvents.append(ev)
+            master = Calendar.EventStamp(item)
+            if master.rruleset is not None:
+                for ev in master.getOccurrencesBetween(*currentRange):
                     yield op, ev
-            elif event.isBetween(*currentRange):
-                if not event in newVisibleEvents:
-                    newVisibleEvents.append(event)
-                yield op, event
-            else:
-                for index, visibleEvent in enumerate(newVisibleEvents):
-                    if visibleEvent == event:
-                        del newVisibleEvents[index]
-                        yield 'remove', event
-                        break
+            elif master.isBetween(*currentRange):
+                yield op, master
 
-        newVisibleEvents.sort()
-        self.visibleEvents = newVisibleEvents
-        
 
 # ATTENTION: do not put mixins here - put them in CollectionBlock
 # instead, to keep them more general
-class CalendarRangeBlock(CollectionCanvas.CollectionBlock):
+class CalendarBlock(CollectionCanvas.CollectionBlock):
     """
     Abstract block used as base Kind for Calendar related blocks.
 
@@ -1084,16 +1054,167 @@ class CalendarRangeBlock(CollectionCanvas.CollectionBlock):
 
     rangeStart = schema.One(schema.DateTime)
     rangeIncrement = schema.One(schema.TimeDelta, initialValue=timedelta(days=7))
-    dayMode = schema.One(schema.Boolean,initialValue=False)
+    lastHue = schema.One(schema.Float, initialValue = -1.0)
+    dayMode = schema.One(schema.Boolean,initialValue = False)
+    calendarContainer = schema.One(schema.Item, required=True)
 
-
-    @property
-    def rangeEnd(self):
+    def getRangeEnd(self):
         return self.rangeStart + self.rangeIncrement	
+    rangeEnd = property(getRangeEnd)
 
     def __setup__(self):
         self.setRange(self.startOfToday())
 
+    def render(self, *args, **kwds):
+        super(CalendarBlock, self).render(*args, **kwds)
+        Monitors.attach(self, 'onColorChanged', 'set', 'osaf.usercollections.UserCollection.color')
+
+    def onDestroyWidget(self, *args, **kwds):
+        Monitors.detach(self, 'onColorChanged', 'set', 'osaf.usercollections.UserCollection.color')
+        super(CalendarBlock, self).onDestroyWidget(*args, **kwds)
+        
+    #This is interesting. By Bug 3415 we want to reset the cal block's current
+    #date to today at each chandler startup. CPIA has no general mechanism for
+    #this, it assumes you want to persist everything. But we need CPIA
+    #persistence because these blocks get render/unrender()'d all the time. So
+    #we sign up for full repo persistence, but have to break it once per
+    #session.
+
+    #We do this by checking a class variable inside instantiateWidget()
+    #(3-line boilerplate). We know the variable will be initialized only once
+    #at chandler startup (module import time), so we then set it to True
+    #thereafter.
+    
+    #Additional complication: we want each calendar block subclass to keep
+    #track of whether it's been rendered or not -- as opposed to keeping track
+    #of whether and cal block has been rendered. Therefore, in a subclass, ONLY
+    #view and manipulate using the methods!
+    
+    # Envisioned usage is that a class gets instantiated/rendered multiple
+    # times, but only one instance at one time.
+
+    _beenRendered = False
+    @classmethod
+    def setHasBeenRendered(cls):
+        """
+        This says this class has been rendered during this session.
+        """
+        cls._beenRendered = True
+    @classmethod
+    def getHasBeenRendered(cls):
+        """
+        Has this class been rendered during this session?
+        """
+        return cls._beenRendered
+
+    @staticmethod
+    def startOfToday():
+        today = date.today()
+        start = time(tzinfo=ICUtzinfo.default)
+        return datetime.combine(today, start)
+
+
+    def instantiateWidget(self):
+        if not self.getHasBeenRendered():
+            self.setRange( datetime.now().date() )
+            self.setHasBeenRendered()
+
+    # Event handling
+
+    def onTimeZoneChangeEvent(self, event):
+        self.synchronizeWidget()
+
+    def onColorChanged(self, op, item, attribute):
+        try:
+            collections = getattr(self.contents, 'collectionList',
+                                  [self.contents])
+            if item in collections:
+                self.widget.RefreshCanvasItems(resort=False)
+        except AttributeError:
+            # sometimes self.contents hasn't been set yet, or the
+            # widget hasn't been rendered yet, or the widget doesn't
+            # support RefreshCanvasItems. That's fine.
+            return
+
+    def EnsureIndexes(self):
+        # events needs to have an index or iterindexkeys will load items,
+        # is that true?
+        Calendar.ensureIndexed(self.contents)
+        
+    def setContentsOnBlock(self, *args, **kwds):
+        super(CalendarBlock, self).setContentsOnBlock(*args, **kwds)
+
+        self.EnsureIndexes()
+
+    def onDayModeEvent(self, event):
+        self.closeEditor()
+        self.dayMode = event.arguments['dayMode']
+        if self.dayMode:
+            self.rangeIncrement = timedelta(days=1)
+            newDay = event.arguments['newDay']
+            if newDay is not None:
+                self.setRange(newDay)
+        else:
+            self.rangeIncrement = timedelta(days=7)
+            self.setRange(self.rangeStart)
+        self.synchronizeWidget()
+
+    def onSelectedDateChangedEvent(self, event):
+        """
+        Sets the selected date range and synchronizes the widget.
+
+        @param event: event sent on selected date changed event.
+                      event.arguments['start']: start of the newly selected date range
+        @type event: osaf.framework.blocks.Block.BlockEvent.
+                     event.arguments['start']: C{datetime}
+        """
+        self.setRange(event.arguments['start'])
+        self.synchronizeWidget()
+
+    def postDateChanged(self, newdate=None):
+        """
+        Convenience method for changing the selected date.
+        """
+        if newdate is None:
+            newdate = self.rangeStart
+
+        self.postEventByName ('SelectedDateChanged',{'start':newdate})
+
+    def postDayMode(self, dayMode, newDay=None):
+        """
+        Convenience method for changing between day and week mode.
+        """
+        self.postEventByName ('DayMode', {'dayMode': dayMode, 'newDay' : newDay})
+        
+    def getFreeBusyCollections(self):
+        """
+        Convenience method, returns any selected or overlaid collections
+        whose conduit is a CalDAVFreeBusyConduit.
+
+        """
+        hits = []
+        try:
+            collections = getattr(self.contents, 'collectionList',
+                                  [self.contents])
+        except AttributeError:
+            # sometimes self.contents hasn't been set yet. That's fine.
+            return hits
+        
+        for collection in collections:
+            shares = getattr(collection, 'shares', [])
+            for share in shares:
+                if isinstance(share.conduit, CalDAVFreeBusyConduit):
+                    hits.append(collection)
+                    break
+        
+        return hits
+
+    def closeEditor(self):
+        if (getattr(self, 'widget', None) and 
+            getattr(self.widget, 'GrabFocusHack', None)):
+            self.widget.GrabFocusHack()
+
+    # Managing the date range
 
     def setRange(self, date):
         """
@@ -1104,10 +1225,12 @@ class CalendarRangeBlock(CollectionCanvas.CollectionBlock):
         @param date: date to include
         @type date: datetime
         """
+        self.closeEditor()
         date = datetime.combine(date, time(tzinfo=ICUtzinfo.floating))
 
         if self.dayMode:
             self.rangeStart = date
+            number = 1
         else:
             calendar = GregorianCalendar()
             calendar.setTimeZone(ICUtzinfo.default.timezone)
@@ -1115,25 +1238,31 @@ class CalendarRangeBlock(CollectionCanvas.CollectionBlock):
             delta = timedelta(days=(calendar.get(calendar.DAY_OF_WEEK) -
                                     calendar.getFirstDayOfWeek()))
             self.rangeStart = date - delta
-            
-    def GetCurrentDateRange(self):
-        return (self.rangeStart,  self.rangeStart + self.rangeIncrement)
-
-    @staticmethod
-    def startOfToday():
-        today = date.today()
-        start = time(tzinfo=ICUtzinfo.default)
-        return datetime.combine(today, start)
-
-    def EnsureIndexes(self):
-        # events needs to have an index or iterindexkeys will load items,
-        # is that true?
-        Calendar.ensureIndexed(self.contents)
+            number = 7
         
-    def setContentsOnBlock(self, *args, **kwds):
-        super(CalendarRangeBlock, self).setContentsOnBlock(*args, **kwds)
+        # get an extra day on either side of the displayed range, because
+        # timezone displayed could be earlier or later than UTC
+        fb_date = self.rangeStart.date() - timedelta(1)
+        dates = [fb_date + n * timedelta(1) for n in range(number + 2)]
+ 
+        for col in self.getFreeBusyCollections():
+            annotation = FreeBusyAnnotation(col)
+            for date in dates:
+                annotation.addDateNeeded(self.itsView, date)    
 
-        self.EnsureIndexes()
+    def incrementRange(self):
+        """
+        Increments the calendar's current range.
+        """
+        self.closeEditor()
+        self.rangeStart += self.rangeIncrement
+
+    def decrementRange(self):
+        """
+        Decrements the calendar's current range.
+        """
+        self.closeEditor()
+        self.rangeStart -= self.rangeIncrement
 
     # Get items from the collection
 
@@ -1196,186 +1325,8 @@ class CalendarRangeBlock(CollectionCanvas.CollectionBlock):
                     "generateEventsInRange returned an event outside the range."
                 yield event
 
-    def onDayModeEvent(self, event):
-        self.dayMode = event.arguments['dayMode']
-        if self.dayMode:
-            self.rangeIncrement = timedelta(days=1)
-            newDay = event.arguments['newDay']
-            if newDay is not None:
-                self.setRange(newDay)
-        else:
-            self.rangeIncrement = timedelta(days=7)
-            self.setRange(self.rangeStart)
-        self.synchronizeWidget()
-
-    def onSelectedDateChangedEvent(self, event):
-        """
-        Sets the selected date range and synchronizes the widget.
-
-        @param event: event sent on selected date changed event.
-                      event.arguments['start']: start of the newly selected date range
-        @type event: osaf.framework.blocks.Block.BlockEvent.
-                     event.arguments['start']: C{datetime}
-        """
-        self.setRange(event.arguments['start'])
-        self.synchronizeWidget()
-
-
-
-class CalendarBlock(CalendarRangeBlock):
-    lastHue = schema.One(schema.Float, initialValue = -1.0)
-    calendarContainer = schema.One(schema.Item, required=True)
-
-    def render(self, *args, **kwds):
-        super(CalendarBlock, self).render(*args, **kwds)
-        Monitors.attach(self, 'onColorChanged', 'set', 'osaf.usercollections.UserCollection.color')
-
-    def onDestroyWidget(self, *args, **kwds):
-        Monitors.detach(self, 'onColorChanged', 'set', 'osaf.usercollections.UserCollection.color')
-        super(CalendarBlock, self).onDestroyWidget(*args, **kwds)
-        
-    #This is interesting. By Bug 3415 we want to reset the cal block's current
-    #date to today at each chandler startup. CPIA has no general mechanism for
-    #this, it assumes you want to persist everything. But we need CPIA
-    #persistence because these blocks get render/unrender()'d all the time. So
-    #we sign up for full repo persistence, but have to break it once per
-    #session.
-
-    #We do this by checking a class variable inside instantiateWidget()
-    #(3-line boilerplate). We know the variable will be initialized only once
-    #at chandler startup (module import time), so we then set it to True
-    #thereafter.
-    
-    #Additional complication: we want each calendar block subclass to keep
-    #track of whether it's been rendered or not -- as opposed to keeping track
-    #of whether and cal block has been rendered. Therefore, in a subclass, ONLY
-    #view and manipulate using the methods!
-    
-    # Envisioned usage is that a class gets instantiated/rendered multiple
-    # times, but only one instance at one time.
-
-    _beenRendered = False
-    @classmethod
-    def setHasBeenRendered(cls):
-        """
-        This says this class has been rendered during this session.
-        """
-        cls._beenRendered = True
-    @classmethod
-    def getHasBeenRendered(cls):
-        """
-        Has this class been rendered during this session?
-        """
-        return cls._beenRendered
-
-    def instantiateWidget(self):
-        if not self.getHasBeenRendered():
-            self.setRange( datetime.now().date() )
-            self.setHasBeenRendered()
-
-    # Event handling
-    def onDayModeEvent(self, event):
-        self.closeEditor()
-        super(CalendarBlock, self).onDayModeEvent(event)
-
-    def onTimeZoneChangeEvent(self, event):
-        self.synchronizeWidget()
-
-    def onColorChanged(self, op, item, attribute):
-        try:
-            collections = getattr(self.contents, 'collectionList',
-                                  [self.contents])
-            if item in collections:
-                self.widget.RefreshCanvasItems(resort=False)
-        except AttributeError:
-            # sometimes self.contents hasn't been set yet, or the
-            # widget hasn't been rendered yet, or the widget doesn't
-            # support RefreshCanvasItems. That's fine.
-            return
-
-    def postDateChanged(self, newdate=None):
-        """
-        Convenience method for changing the selected date.
-        """
-        if newdate is None:
-            newdate = self.rangeStart
-
-        self.postEventByName ('SelectedDateChanged',{'start':newdate})
-
-    def postDayMode(self, dayMode, newDay=None):
-        """
-        Convenience method for changing between day and week mode.
-        """
-        self.postEventByName ('DayMode', {'dayMode': dayMode, 'newDay' : newDay})
-        
-    def getFreeBusyCollections(self):
-        """
-        Convenience method, returns any selected or overlaid collections
-        whose conduit is a CalDAVFreeBusyConduit.
-
-        """
-        hits = []
-        try:
-            collections = getattr(self.contents, 'collectionList',
-                                  [self.contents])
-        except AttributeError:
-            # sometimes self.contents hasn't been set yet. That's fine.
-            return hits
-        
-        for collection in collections:
-            shares = getattr(collection, 'shares', [])
-            for share in shares:
-                if isinstance(share.conduit, CalDAVFreeBusyConduit):
-                    hits.append(collection)
-                    break
-        
-        return hits
-
-    def closeEditor(self):
-        if (getattr(self, 'widget', None) and 
-            getattr(self.widget, 'GrabFocusHack', None)):
-            self.widget.GrabFocusHack()
-
-    # Managing the date range
-
-    def setRange(self, date):
-        """
-        Sets the range to include the given date, given the current view.
-        For week view, it will start the range at the beginning of the week.
-        For day view, it will set the range to start at the given date
-
-        @param date: date to include
-        @type date: datetime
-        """
-        self.closeEditor()
-        
-        super(CalendarBlock, self).setRange(date)
-        
-        number = 1 if self.dayMode else 7
-        
-        # get an extra day on either side of the displayed range, because
-        # timezone displayed could be earlier or later than UTC
-        fb_date = self.rangeStart.date() - timedelta(1)
-        dates = [fb_date + n * timedelta(1) for n in range(number + 2)]
- 
-        for col in self.getFreeBusyCollections():
-            annotation = FreeBusyAnnotation(col)
-            for date in dates:
-                annotation.addDateNeeded(self.itsView, date)    
-
-    def incrementRange(self):
-        """
-        Increments the calendar's current range.
-        """
-        self.closeEditor()
-        self.rangeStart += self.rangeIncrement
-
-    def decrementRange(self):
-        """
-        Decrements the calendar's current range.
-        """
-        self.closeEditor()
-        self.rangeStart -= self.rangeIncrement
+    def GetCurrentDateRange(self):
+        return (self.rangeStart,  self.rangeStart + self.rangeIncrement)
 
     def getContainingCollection(self, item, defaultCollection=None):
         """
@@ -1415,9 +1366,13 @@ class CalendarBlock(CalendarRangeBlock):
         return (super(CalendarBlock, self).CanAdd() and
                 UserCollection(self.contentsCollection).canAdd)
 
+    def onItemNotification(self, notificationType, data):
+        # Delegate notifications to the block
+        self.widget.onItemNotification(notificationType, data)
+
 # ATTENTION: do not put mixins here - put them in wxCollectionCanvas
 # instead, to keep them more general
-class wxCalendarCanvas(CollectionCanvas.wxCollectionCanvas):
+class wxCalendarCanvas(CalendarNotificationHandler, CollectionCanvas.wxCollectionCanvas):
     """
     Base class for all calendar canvases - handles basic item selection,
     date ranges, and so forth.
@@ -1500,6 +1455,17 @@ class wxCalendarCanvas(CollectionCanvas.wxCollectionCanvas):
     def GrabFocusHack(self):
         if self.editor.IsShown():
             self.editor.SaveAndHide()
+
+    def onItemNotification(self, notificationType, data):
+        # Work around bug 6137 and bug 3727: If an item changes
+        # while we're editing it, finish editing.
+        if (notificationType == 'collectionChange'):
+            op, coll, name, uuid = data
+            if op == 'changed' and self.editor.event is not None and \
+               self.editor.event.itsItem.itsUUID == uuid and \
+               not self.belongsOnCanvas(self.editor.event.itsItem):
+                self.GrabFocusHack()
+        super(wxCalendarCanvas, self).onItemNotification(notificationType, data)
 
     def belongsOnCanvas(self, item):
         # Return False if this item no longer belongs on this canvas
@@ -1860,77 +1826,12 @@ class wxInPlaceEditor(AttributeEditors.wxEditText):
         self.Hide()
         event.Skip()
 
-class wxCalendarContainer(ContainerBlocks.wxBoxContainer,
-                          CalendarNotificationHandler):
-    def __init__(self, *args, **kw):
-        ContainerBlocks.wxBoxContainer.__init__(self, *args, **kw)
-        CalendarNotificationHandler.__init__(self)
         
-    def calendarBlockWidgets(self):
-        for block in (self.blockItem.getAllDayBlock(),
-                      self.blockItem.getTimedBlock()):
-            widget = getattr(block, 'widget', None)
-            
-            if widget is not None:
-                yield widget
-
-    visibleEvents = ()
-    
-    def wxSynchronizeWidget(self):
-        ContainerBlocks.wxBoxContainer.wxSynchronizeWidget(self)
-        
-        currentRange = self.blockItem.GetCurrentDateRange()
-        
-        if self.HasPendingEventChanges():
-            # In the pending changes case, we update our visibleEvents
-            # list, and then make our canvases do wxHandleChanges
-        
-            changes = list(self.HandleRemoveAndYieldChanged(currentRange))
-
-            assert sorted(self.visibleEvents) == self.visibleEvents
-            assert not self.HasPendingEventChanges()
-
-            def syncWidget(w):
-                w.wxHandleChanges(changes)
-        else:
-            # Otherwise, reload visibleEvents, and have our canvases do
-            # wxSynchronizeWidget
-            self.visibleEvents = sorted(
-                    self.blockItem.getEventsInRange(currentRange, dayItems=True,
-                                                    timedItems=True))
-
-            def syncWidget(w):
-                w.wxSynchronizeWidget()
-                
-        for widget in self.calendarBlockWidgets():
-            syncWidget(widget)
-        
-    def onItemNotification(self, notificationType, data):
-        # Work around bug 6137 and bug 3727: If an item changes
-        # while we're editing it, finish editing.
-        if (notificationType == 'collectionChange'):
-            op, coll, name, uuid = data
-            if op == 'changed':
-                for widgie in self.calendarBlockWidgets():
-                    editor = widgie.editor
-                    if (editor.event is not None and
-                        editor.event.itsItem.itsUUID == uuid and
-                        not widgie.belongsOnCanvas(editor.event.itsItem)):
-                        
-                        widgie.GrabFocusHack()
-
-        super(wxCalendarContainer, self).onItemNotification(notificationType,
-                                                            data)
-
-        
-class CalendarContainer(CalendarRangeBlock):
+class CalendarContainer(BoxContainer):
     """
-    The high level container that holds:
+    The highlevel container that holds:
     - the controller
     - the various canvases
-    
-    This block is responsible for handling notifications for both the
-    all-day and timed canvases, and for propagating changes to them.
     """
     calendarControl = schema.One(schema.Item, required=True)
 
@@ -1938,10 +1839,6 @@ class CalendarContainer(CalendarRangeBlock):
     eventLabelStyle = schema.One(Styles.CharacterStyle, required=True)
     eventTimeStyle = schema.One(Styles.CharacterStyle, required=True)
     legendStyle = schema.One(Styles.CharacterStyle, required=True)
-    bufferedDraw = schema.One(schema.Boolean, defaultValue=False)
-    orientationEnum = schema.One(
-        ContainerBlocks.orientationEnumType, initialValue = 'Horizontal',
-    )
 
     schema.addClouds(
         copying = schema.Cloud(byRef = [monthLabelStyle,
@@ -1984,14 +1881,7 @@ class CalendarContainer(CalendarRangeBlock):
     def instantiateWidget(self):
         self.InitializeStyles()
         
-        w = wxCalendarContainer(self.parentBlock.widget,
-                           self.getWidgetID(),
-                           wx.DefaultPosition,
-                           wx.DefaultSize,
-                           style=wxCalendarContainer.CalculateWXStyle(self))
-        if self.bufferedDraw:
-            w.SetExtraStyle (wx.WS_EX_BUFFERED_DRAW)
-
+        w = super(CalendarContainer, self).instantiateWidget()
         if IS_MAC:
             w.SetWindowStyle(wx.BORDER_SIMPLE)
         else:
@@ -2001,10 +1891,6 @@ class CalendarContainer(CalendarRangeBlock):
         w.SetMinSize((8*45, -1))
 
         return w
-
-    def onItemNotification(self, notificationType, data):
-        # Delegate notifications to the block
-        self.widget.onItemNotification(notificationType, data)
 
     def onNewItemEvent(self, event):
         """
@@ -2244,30 +2130,21 @@ class CalendarControl(CalendarBlock):
     def onSelectItemsEvent(self, event):
         newSelection = event.arguments['items']
 
-        # [grant] This works around an issue where
-        # CalendarContainer.postSelectItemsBroadcast() posts an event
-        # before its containees have a contents. Probably there's a
-        # better way to handle this (e.g. by only having the container
-        # ever have a contents) ...
-        contents = getattr(self, 'contents', None)
-        
         # probably should account for the selection being identical to
         # the current selection
-        
-        if contents is not None:
 
-            contents = CalendarSelection(contents)
-            contents.clearSelection()
-    
-            if newSelection:
-                for item in newSelection:
-                    # Clicks in the preview area may result in selecting an item
-                    # not in contents, ignore such items
-                    if item in contents:
-                        contents.selectItem(item)
-    
-            if hasattr(self, 'widget'):
-                self.widget.Refresh()
+        contents = CalendarSelection(self.contents)
+        contents.clearSelection()
+
+        if newSelection:
+            for item in newSelection:
+                # Clicks in the preview area may result in selecting an item
+                # not in contents, ignore such items
+                if item in contents:
+                    contents.selectItem(item)
+
+        if hasattr(self, 'widget'):
+            self.widget.Refresh()
 
 class wxCalendarControl(wx.Panel, CalendarEventHandler):
     """
@@ -2327,7 +2204,7 @@ class wxCalendarControl(wx.Panel, CalendarEventHandler):
         # turn this off for now, because our sizing needs to be exact
         weekColumnHeader.SetAttribute(colheader.CH_ATTR_ProportionalResizing,False)
 
-        #these labels get overridden by wxSynchronizeWidget()
+        #these labels get overriden by wxSynchronizeWidget()
         #XXX: [i18n] These Header labels need to leverage PyICU for the display names
         headerLabels = [_(u"Week"), "S", "M", "Tu", "W", "Th", "F", "S", '']
         for header in headerLabels:

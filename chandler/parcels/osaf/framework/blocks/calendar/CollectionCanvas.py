@@ -1001,7 +1001,7 @@ class CollectionBlock(FocusEventHandlers, Block.RectangularChild):
 
     # Event handling
     
-    def onSetContentsEvent(self, event):
+    def onSetContentsEvent (self, event):
         """
         Here would be a good place to make sure that items selected in
         the old contents are also selected in the new contents.
