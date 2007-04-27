@@ -167,9 +167,9 @@ class wxMiniCalendar(DragAndDrop.DropReceiveWidget,
             end = minical.MonthDelta(start, 3)
             end = datetime.combine(end, zerotime)
 
-            if self.HavePendingNewEvents():
+            if self.HasPendingEventChanges():
                 addedItems, removedItems, changedItems = \
-                           self.GetPendingEvents(False)
+                           self.GetPendingChanges(False)
                 
                 if len(removedItems) + len(changedItems) > 0:
                     self._recalcCount += 1
@@ -722,7 +722,7 @@ class wxPreviewArea(CalendarCanvas.CalendarNotificationHandler, wx.Panel):
         startDay = startDay.replace(tzinfo=ICUtzinfo.default)
         range = (startDay, startDay + one_day)
 
-        if self.HavePendingNewEvents():
+        if self.HasPendingEventChanges():
             for op, event in self.HandleRemoveAndYieldChanged(range):
                 if op in ('add','change') and event.transparency == 'confirmed':
                     self.visibleEvents.append(event)

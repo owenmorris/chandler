@@ -120,6 +120,10 @@ class AllDayEventsCanvas(CalendarBlock):
     def instantiateWidget(self):
         super(AllDayEventsCanvas, self).instantiateWidget()
         return wxAllDayEventsCanvas(self.parentBlock.widget)
+        
+    def onItemNotification(self, notificationType, data):
+        pass # all notifications handled by container
+
 
 class wxAllDayEventsCanvas(wxCalendarCanvas):
     legendBorderWidth = 1
@@ -150,33 +154,48 @@ class wxAllDayEventsCanvas(wxCalendarCanvas):
         self.RefreshCanvasItems(resort=False)
         event.Skip()
 
-    def wxSynchronizeWidget(self):
-        currentRange = self.GetCurrentDateRange()
-        
+    def wxHandleChanges(self, changes):
+        something_changed = False
+        rebuild_canvas_items = False
         added = 0
         
-        if self.HavePendingNewEvents():
-            something_changed = False
-            for op, event in self.HandleRemoveAndYieldChanged(currentRange):
-                something_changed = True
-                if Calendar.isDayEvent(event):
-                    if event not in self.visibleEvents:
-                        self.visibleEvents.append(event)
+        for op, event in changes:
+            isDayEvent = Calendar.isDayEvent(event)
+            if op in ('add', 'change'):
+                if not isDayEvent:
+                    op = 'remove' # If something becomes allDay, remove it
+                                  # from visibleEvents
+                    
+            if op == 'remove':
+                if event in self.visibleEvents:
+                    something_changed = True
+                    rebuild_canvas_items = True
+                    self.visibleEvents.remove(event)
+            else:
+                if not event in self.visibleEvents:
+                    something_changed = True
                     if op == 'add':
                         added += 1
+                    self.visibleEvents.append(event)
 
-            if something_changed:
-                self.RefreshCanvasItems(resort=True)
+                elif op == 'change':
+                    something_changed = True
 
-            if added == 1:
-                self.EditCurrentItem()
-            self.ClearPendingNewEvents()
-        else:
-            self.visibleEvents = list(
-                self.blockItem.getEventsInRange(currentRange, dayItems=True))
+
+        if something_changed:
             self.RefreshCanvasItems(resort=True)
 
-            
+        if added == 1:
+            self.EditCurrentItem()
+
+    def wxSynchronizeWidget(self):
+        container = self.blockItem.calendarContainer.widget
+        
+        self.visibleEvents = list(
+            event for event in container.visibleEvents
+                if Calendar.isDayEvent(event)
+            )
+        self.RefreshCanvasItems(resort=True)
 
     def DrawBackground(self, dc):
         drawInfo = self.blockItem.calendarContainer.calendarControl.widget
