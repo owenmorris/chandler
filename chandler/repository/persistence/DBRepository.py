@@ -631,10 +631,11 @@ class DBRepository(OnDemandRepository):
                     raise AssertionError, 'no transaction started'
                 txn = store.txn
 
-                indexReader = store._index.getIndexReader()
-                indexSearcher = store._index.getIndexSearcher()
+                indexReader = Nil
+                indexSearcher = Nil
 
                 prevUUID = None
+                nextVersion = None
                 items = []
 
                 def purge():
@@ -645,30 +646,47 @@ class DBRepository(OnDemandRepository):
                     if count == 1 and status & CItem.DELETED == 0:
                         if counter.current != uItem:
                             return
-                    purger = DBItemPurger(txn, store,
-                                          indexSearcher, indexReader)
+                    purger = DBItemPurger(txn, store)
                     if status & CItem.DELETED == 0:
+                        purger.purgeDocuments(txn, counter, uItem, version,
+                                              indexSearcher, indexReader,
+                                              version)
                         purger.purgeItem(txn, counter,
                                          uItem, version, status, values,
                                          version)
                         del items[-1]
-                    purger.purgeItems(txn, counter, items)
-                        
-                for item in store._items.iterItems(None, True,
-                                                   counter.current[0]):
-                    uuid = item[0]
-                    if uuid == prevUUID:
-                        if item[1] <= toVersion:
-                            items.append(item)
                     else:
-                        purge()
-                        del items[:]
-                        items.append(item)
-                        prevUUID = uuid
-                    
-                purge()
-                indexReader.close()
-                indexSearcher.close()
+                        # gets at documents via a Lucene query, not by reaching
+                        # through values. nextVersion prevents a reborn item's
+                        # docs from being purged.
+                        purger.purgeDocuments(txn, counter, uItem, version,
+                                              indexSearcher, indexReader,
+                                              nextVersion)
+                    purger.purgeItems(txn, counter, items)
+
+                try:
+                    indexReader = store._index.getIndexReader()
+                    indexSearcher = store._index.getIndexSearcher()
+                        
+                    for item in store._items.iterItems(None, True,
+                                                       counter.current[0]):
+                        uuid = item[0]
+                        version = item[1]
+                        if uuid == prevUUID:
+                            if version <= toVersion:
+                                items.append(item)
+                            else:
+                                nextVersion = version
+                        else:
+                            purge()
+                            del items[:]
+                            items.append(item)
+                            prevUUID = uuid
+                    purge()
+
+                finally:
+                    indexReader.close()
+                    indexSearcher.close()
 
                 store.commitTransaction(None, txnStatus)
 

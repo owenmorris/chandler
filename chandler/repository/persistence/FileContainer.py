@@ -619,38 +619,26 @@ class IndexContainer(FileContainer):
 
         return _iterator()
 
-    def purgeDocuments(self, indexSearcher, indexReader, uItem, keeps):
+    def purgeDocuments(self, txn, counter, indexSearcher, indexReader,
+                       uItem, toVersion=None):
 
         term = Term("item", uItem.str64())
 
-        if keeps:
-            count = 0
-            prevs = {}
-
-            for hit in indexSearcher.search(TermQuery(term)):
-                id = hit.getId()
-                doc = hit.getDocument()
-                uAttr = UUID(doc['attribute'])
-
-                if uAttr in keeps:
-                    ver = long(doc['version'])
-                    prev = prevs.get(uAttr)
-
-                    if prev is None:
-                        prevs[uAttr] = (id, ver)
-                    elif ver > prev[1]:
-                        indexReader.deleteDocument(prev[0])
-                        count += 1
-                        prevs[uAttr] = (id, ver)
-
-                else:
-                    indexReader.deleteDocument(id)
-                    count += 1
+        if toVersion is None:
+            counter.documentCount += indexReader.deleteDocuments(term)
 
         else:
-            count = indexReader.deleteDocuments(term)
+            x, keep = self.store._items.findValues(None, toVersion,
+                                                   uItem, None, True)
+            keep = set(keep)
 
-        return count
+            for hit in indexSearcher.search(TermQuery(term)):
+                doc = hit.getDocument()
+                ver = long(doc['version'])
+
+                if ver <= toVersion and UUID(doc['value']) not in keep:
+                    indexReader.deleteDocument(hit.getId())
+                    counter.documentCount += 1
 
     def undoDocuments(self, indexSearcher, indexReader, uItem, version):
 

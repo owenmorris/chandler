@@ -945,19 +945,23 @@ class DBItemPurger(ItemPurger):
 
     VALUE_TYPES = DBValueReader.VALUE_TYPES + (Record.RECORD, Record.RECORD)
 
-    def __init__(self, txn, store, indexSearcher, indexReader):
+    def __init__(self, txn, store):
 
         self.store = store
         self.done = set()
 
-#        self.documentCount = \
-#            store._index.purgeDocuments(indexSearcher, indexReader,
-#                                        uItem, keepDocuments)
+    def purgeDocuments(self, txn, counter, uItem, version,
+                       indexSearcher, indexReader, toVersion=None):
 
-    def purgeItems(self, txn, counter, items):
+        self.store._index.purgeDocuments(txn, counter,
+                                         indexSearcher, indexReader,
+                                         uItem, toVersion)
+
+    def purgeItems(self, txn, counter, items, toVersion=None):
 
         for uItem, version, status, values in items:
-            self.purgeItem(txn, counter, uItem, version, status, values)
+            self.purgeItem(txn, counter, uItem, version, status, values,
+                           toVersion)
 
     def purgeItem(self, txn, counter,
                   uItem, version, status, values, toVersion=None):
