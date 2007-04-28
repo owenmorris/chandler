@@ -13,6 +13,7 @@
 #   limitations under the License.
 
 import wx
+from osaf import sharing
 from i18n import ChandlerMessageFactory as _
 
 class ConflictDialog(wx.Dialog):
@@ -34,8 +35,13 @@ class ConflictDialog(wx.Dialog):
         i=1
         itemList=[]
         for c in conflicts:
-            itemList.append("%d. %s: %s (changed by %s)"
-                % (i, c.field.title(), c.value, c.peer))
+            fmt = "%d. %s: %s"
+            if c.peer:
+                if isinstance(c.peer, sharing.Share):
+                    fmt += " (changed on server)"
+                else:
+                    fmt += " (changed by %s)" % c.peer
+            itemList.append(fmt % (i, c.field.title(), c.value))
             i = i+1
         listBox = wx.ListBox(self, -1, choices=itemList)
         changesText = wx.StaticText(self, -1,

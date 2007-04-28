@@ -46,6 +46,8 @@ from twisted.internet.defer import Deferred
 __all__ = [
     'SharingTranslator',
     'DumpTranslator',
+    'fromICalendarDateTime',
+    'fromICalendarDuration',
 ]
 
 
@@ -390,8 +392,10 @@ class SharingTranslator(eim.Translator):
 
             if isinstance(record, model.ItemRecord):
 
-                if conflict.field.lower() == 'triage': # TODO: bad; another way?
-
+                if conflict.field.lower() == 'triage status':
+                    # TODO: There has to be a better way to determine which
+                    # field has the conflict, besides using the human readable
+                    # name, especially since this is localizable
                     item = conflict.item
                     codeIn, tscIn, autoIn = record.triage.split(" ")
 
@@ -410,6 +414,18 @@ class SharingTranslator(eim.Translator):
                             item.doAutoTriageOnDateChange = False
 
                         conflict.discard()
+
+                elif conflict.field.lower() == 'created on':
+                    # Instead of having conflicts for createdOn, apply the
+                    # oldest value
+                    naive = datetime.utcfromtimestamp(float(record.createdOn))
+                    inUTC = naive.replace(tzinfo=utc)
+                    # Convert to user's tz:
+                    createdOn = inUTC.astimezone(ICUtzinfo.default)
+                    if createdOn < item.createdOn:
+                        item.createdOn = createdOn
+
+                    conflict.discard()
 
 
 

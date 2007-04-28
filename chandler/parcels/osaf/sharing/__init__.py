@@ -47,6 +47,7 @@ from WebDAV import *
 from ICalendar import *
 from callbacks import *
 from eim import *
+from model import *
 from translator import *
 from eimml import *
 from cosmo import *
@@ -1531,6 +1532,55 @@ def _uniqueName(basename, existing):
         name = "%s-%d" % (basename, counter)
         counter += 1
     return name
+
+
+# = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =
+# Formatters for conflicts (not sure where these should live yet)
+
+
+triage_code_map = {
+    "100" : _(u'Now'),
+    "200" : _(u'Later'),
+    "300" : _(u'Done'),
+}
+@format_field.when_object(ItemRecord.triage)
+def format_item_triage(field, value):
+    code, timestamp, auto = value.split(" ")
+    return triage_code_map.get(code, _('Unknown'))
+
+
+event_status_map = {
+    'cancelled' : _(u'FYI'),
+    'confirmed' : _(u'Confirmed'),
+    'tentative' : _(u'Tentative'),
+}
+@format_field.when_object(EventRecord.status)
+def format_event_status(field, value):
+    return event_status_map.get(value.lower(), _('Unknown'))
+
+
+
+@format_field.when_object(EventRecord.dtstart)
+def format_event_dtstart(field, value):
+    start, allDay, anyTime = fromICalendarDateTime(value)
+    s = str(start)
+    if allDay:
+        s = "%s (all day)" % s
+    if anyTime:
+        s = "%s (any time)" % s
+    return s
+
+
+@format_field.when_object(EventRecord.duration)
+def format_event_duration(field, value):
+    duration = fromICalendarDuration(value)
+    return "%s (hh:mm:ss)" % duration
+
+
+
+
+
+
 
 
 # = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =

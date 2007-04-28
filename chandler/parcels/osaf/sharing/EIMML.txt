@@ -862,7 +862,7 @@ See if a conflict exists for this item::
 Get the list of conflicts::
 
     >>> list(shared1.getConflicts())
-    [title : changed by morgen]
+    [Title : changed by morgen]
 
 A conflict has two attributes that the UI is going to care about, "field" and
 "value".  At the moment, "field" is always the string "Something", and "value"
@@ -899,7 +899,7 @@ Cause a conflict again::
     >>> text = sharing.outbound([pje], item0)
     >>> item1 = sharing.inbound(morgen, text)
     >>> list(shared1.getConflicts())
-    [title : changed again by morgen]
+    [Title : changed again by morgen]
 
 This time discard the conflict::
 
