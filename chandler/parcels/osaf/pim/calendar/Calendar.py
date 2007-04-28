@@ -1736,7 +1736,7 @@ class EventStamp(Stamp):
         fromItem = fromEvent.itsItem.getMembershipItem()
         toItem = toEvent.itsItem.getMembershipItem()
 
-        for collection in getattr(fromItem, 'collections', []):
+        for collection in getattr(fromItem, 'collections', Nil):
             collection.add(toItem)
             collection.remove(fromItem)
 
@@ -1750,8 +1750,8 @@ class EventStamp(Stamp):
         if toEvent.occurrenceFor is None or toEvent.modificationFor is None:
             toItem = toItem.getMembershipItem()
             
-        fromCollections = getattr(fromItem, 'collections', [])
-        
+        fromCollections = getattr(fromItem, 'collections', Nil)
+
         # We really, really want modifications to get their
         # own copy of collections, so that the biref doesn't
         # get all messed up
@@ -1759,7 +1759,7 @@ class EventStamp(Stamp):
             toItem.collections = []
             
         if removeOld:
-            for collection in getattr(toItem, 'collections', []):
+            for collection in getattr(toItem, 'collections', Nil):
                 if collection not in fromCollections:
                     collection.remove(toItem)
         

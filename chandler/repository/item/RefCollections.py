@@ -444,15 +444,13 @@ class RefList(LinkedMap, Indexed):
             for index in self._indexes.itervalues():
                 index.removeKey(key)
 
-        link = super(RefList, self).__delitem__(key)
-        self._setDirty()
-
-        return link
+        return super(RefList, self).__delitem__(key)
 
     def _removeRef(self, other, dictKey=None):
 
         link = self._removeRef_(other)
         if link is not None:
+            self._setDirty()
             item = self._owner()
             view = self.itsView
             view._notifyChange(item._collectionChanged,
