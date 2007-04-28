@@ -700,6 +700,8 @@ class ValueRenderer(object):
                     
         return itemString
 
+    Render_RefDict = Render_dict
+
     def Render_Lob(self, name, value):
         itemString = ""
         mimeType = value.mimetype
