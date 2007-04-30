@@ -2337,9 +2337,10 @@ class CommunicationStatus(schema.Annotation):
             # update: This means either: we have just
             # received an update, or it's ready to go
             # out as an update
-            if (items.Modification.updated == lastMod or
-                (items.Modification.sent != lastMod and
-                items.Modification.sent in modifiedFlags)):
+            modification = items.Modification
+            if (modification.updated == lastMod or
+                (modification.sent != lastMod and
+                modification.sent in modifiedFlags)):
                 result |= CommunicationStatus.UPDATE
 
             # in, out, neither
@@ -2351,10 +2352,10 @@ class CommunicationStatus(schema.Annotation):
                 result |= CommunicationStatus.NEITHER
 
             # queued
-            if items.Modification.queued in modifiedFlags:
+            if modification.queued in modifiedFlags:
                 result |= CommunicationStatus.QUEUED
             # sent
-            if lastMod in (items.Modification.sent, items.Modification.updated):
+            if lastMod in (modification.sent, modification.updated):
                 result |= CommunicationStatus.SENT
             # draft if it's not one of sent/queued/error
             if  result & (CommunicationStatus.SENT |
