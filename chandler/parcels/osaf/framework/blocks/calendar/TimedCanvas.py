@@ -127,6 +127,7 @@ class wxTimedEventsCanvas(BaseWidget, wxCalendarCanvas):
         added = 0
         
         for op, event in changes:
+            # don't assume this is a live item, it may be remove of a stale item
             if op in ('add', 'change'):
                 if Calendar.isDayEvent(event):
                     op = 'remove' # If something becomes allDay, remove it
