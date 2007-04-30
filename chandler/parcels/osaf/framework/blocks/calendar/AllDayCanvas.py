@@ -160,9 +160,8 @@ class wxAllDayEventsCanvas(wxCalendarCanvas):
         added = 0
         
         for op, event in changes:
-            isDayEvent = Calendar.isDayEvent(event)
             if op in ('add', 'change'):
-                if not isDayEvent:
+                if not Calendar.isDayEvent(event):
                     op = 'remove' # If something becomes allDay, remove it
                                   # from visibleEvents
                     

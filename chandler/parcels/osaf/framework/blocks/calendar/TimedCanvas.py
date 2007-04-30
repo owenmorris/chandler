@@ -121,16 +121,14 @@ class wxTimedEventsCanvas(BaseWidget, wxCalendarCanvas):
         self.SetSize((self.blockItem.size.width, self.blockItem.size.height))
         self.setScroll()
         self._doDrawingCalculations()
-        
 
         something_changed = False
         rebuild_canvas_items = False
         added = 0
         
         for op, event in changes:
-            isDayEvent = Calendar.isDayEvent(event)
             if op in ('add', 'change'):
-                if isDayEvent:
+                if Calendar.isDayEvent(event):
                     op = 'remove' # If something becomes allDay, remove it
                                   # from visibleEvents
                     
