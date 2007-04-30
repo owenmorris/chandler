@@ -367,6 +367,8 @@ def isReadOnly(item):
     Return C{True} iff participating in only read-only shares.
     """
 
+    item = getattr(item, 'inheritFrom', item)
+
     # If we're not stamped, we're not shared
     if not pim.has_stamp(item, shares.SharedItem):
         return False
