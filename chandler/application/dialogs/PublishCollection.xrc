@@ -132,7 +132,7 @@
             </object>
         </object>
         <object class="sizeritem">
-            <flag>wxALIGN_CENTER_VERTICAL|wxALL</flag>
+            <flag>wxGROW|wxALIGN_CENTER_VERTICAL|wxLEFT|wxRIGHT</flag>
             <border>10</border>
             <object class="wxStaticText" name="TEXT_STATUS">
                 <label></label>
