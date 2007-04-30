@@ -249,7 +249,8 @@ COMMAND_LINE_OPTIONS = {
     'datadir':    ('', '--datadir', 's', None, None, 'Specify a directory for database files (relative to the __repository__ directory'),
     'repodir':    ('', '--repodir', 's', None, None, "Specify a home directory for the __repository__ directory (relative to the profile directory)"),
     'nodeferdelete':   ('', '--nodeferdelete','b', False, None, 'do not defer item deletions in all views by default'),
-    'indexer':    ('-i', '--indexer',    's', '60', None, 'Run Lucene indexing in the background every 60s, in the foreground or none'),
+    'indexer':    ('-i', '--indexer',    's', '90', None, 'Run Lucene indexing in the background every 90s, in the foreground or none'),
+    'checkpoints': ('', '--checkpoints', 's', '10', None, 'Checkpoint the repository in the background every 10min, or none'),
     'uuids':      ('-U', '--uuids',      's', None, None, 'use a file containing a bunch of pre-generated UUIDs'),
     'undo':       ('',   '--undo',       's', None, None, 'undo <n> versions or until <check> or <repair> passes'),
     'backup':     ('',   '--backup',     'b', False, None, 'backup repository before start'),
@@ -499,6 +500,11 @@ def initRepository(directory, options, allowSchemaView=False):
         loadUUIDs([UUID(uuid.strip()) for uuid in input if len(uuid) > 1])
         input.close()
 
+    if options.checkpoints == 'none':
+        options.checkpoints = None
+    else:
+        options.checkpoints = int(options.checkpoints) # minutes
+
     repository = DBRepository(directory)
 
     kwds = { 'stderr': options.stderr,
@@ -513,6 +519,7 @@ def initRepository(directory, options, allowSchemaView=False):
              'datadir': options.datadir,
              'nodeferdelete': options.nodeferdelete,
              'refcounted': True,
+             'checkpoints': options.checkpoints,
              'logged': not not options.logging,
              'verify': options.verify or __debug__ }
 
@@ -598,7 +605,7 @@ def initRepository(directory, options, allowSchemaView=False):
         if options.indexer == 'background':  # backwards compat
             options.indexer = 60
         else:
-            options.indexer = int(options.indexer)
+            options.indexer = int(options.indexer) # seconds
 
         if options.indexer:
             # don't run PyLucene indexing in the main view

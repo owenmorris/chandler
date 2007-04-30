@@ -105,7 +105,7 @@ class DBRepository(OnDemandRepository):
             if kwds.get('ramdb', False):
                 self._status |= Repository.RAMDB
 
-            self._afterOpen()
+            self._afterOpen(**kwds)
 
     def _create(self, **kwds):
 
@@ -901,14 +901,16 @@ class DBRepository(OnDemandRepository):
 
             self._status |= Repository.OPEN
             self._status &= ~Repository.BADPASSWD
-            self._afterOpen()
+            self._afterOpen(**kwds)
 
-    def _afterOpen(self):
+    def _afterOpen(self, **kwds):
 
         if (self._status & Repository.RAMDB) == 0:
             self._touchOpenFile()
-            self._checkpointThread = DBCheckpointThread(self)
-            self._checkpointThread.start()
+            interval = kwds.get('checkpoints', 10)
+            if interval:
+                self._checkpointThread = DBCheckpointThread(self, interval)
+                self._checkpointThread.start()
 
     def close(self):
 
@@ -1347,14 +1349,16 @@ class DBStore(Store):
 
 class DBCheckpointThread(threading.Thread):
 
-    def __init__(self, repository):
+    def __init__(self, repository, interval=10):  # minutes
 
         super(DBCheckpointThread, self).__init__()
 
         self._repository = repository
         self._condition = threading.Condition(threading.Lock())
         self._alive = True
+
         self.enabled = True
+        self.interval = interval
 
         self.setDaemon(True)
 
@@ -1365,10 +1369,13 @@ class DBCheckpointThread(threading.Thread):
         condition = self._condition
         lock = None
 
+        repository.logger.info("%s: checkpointing every %d minutes",
+                               repository, self.interval)
+
         while self._alive:
             condition.acquire()
             if self._alive:
-                condition.wait(600.0)
+                condition.wait(self.interval * 60.0) # seconds
             condition.release()
 
             if not (self._alive and self.isAlive()):

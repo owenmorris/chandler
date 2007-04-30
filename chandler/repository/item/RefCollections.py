@@ -425,13 +425,13 @@ class RefList(LinkedMap, Indexed):
         @type item: an C{Item} instance
         """
 
-        self._owner()._references._removeValue(self._name, item,
-                                               self._otherName, self._dictKey)
+        self._owner().itsRefs._removeValue(self._name, item,
+                                           self._otherName, self._dictKey)
             
     def __delitem__(self, key):
 
-        self._owner()._references._removeValue(self._name, self[key],
-                                               self._otherName, self._dictKey)
+        self._owner().itsRefs._removeValue(self._name, self[key],
+                                           self._otherName, self._dictKey)
 
     def _removeRef_(self, other):
 
