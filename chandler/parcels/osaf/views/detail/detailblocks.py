@@ -306,7 +306,7 @@ def makeCalendarArea(parcel, oldVersion):
             minimumSize=SizeType(300,10),
             border=RectType(0, 6, 0, 6))
 
-    if '__WXMSW__' in wx.PlatformInfo:
+    if wx.Platform == "__WXMSW__":
         allDaySpacerWidth = 8
     else:
         allDaySpacerWidth = 6

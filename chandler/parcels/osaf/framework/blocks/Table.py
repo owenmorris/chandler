@@ -132,7 +132,7 @@ class wxTable(DragAndDrop.DraggableWidget,
               BaseWidget,
               wxGrid.Grid):
     def __init__(self, parent, widgetID, characterStyle, headerCharacterStyle, *arguments, **keywords):
-        if '__WXMAC__' in wx.PlatformInfo:
+        if wx.Platform == "__WXMAC__":
             theStyle=wx.BORDER_SIMPLE
         else:
             theStyle=wx.BORDER_STATIC

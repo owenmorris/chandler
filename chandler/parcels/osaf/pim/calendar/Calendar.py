@@ -137,6 +137,10 @@ def getKeysInRange(view, startVal, startAttrName, startIndex, startColl,
 
     getStart = getGetFunction(startAttrName)
     getEnd = getGetFunction(endAttrName)
+    endSubStartVal = endVal - startVal
+    if not useTZ:
+        endValNoTZ = endVal.replace(tzinfo=None)
+        startValNoTZ = startVal.replace(tzinfo=None)
     
     # callbacks to use for searching the indexes
     def mStart(key, delta=None):
@@ -144,7 +148,7 @@ def getKeysInRange(view, startVal, startAttrName, startIndex, startColl,
         if delta is None:
             delta = zero_delta
         else:
-            delta = delta + endVal - startVal
+            delta = delta + endSubStartVal
         testVal = getStart(key, view)
         if testVal is None:
             return -1 # interpret None as negative infinity
@@ -154,7 +158,7 @@ def getKeysInRange(view, startVal, startAttrName, startIndex, startColl,
             if endVal - delta > testVal:
                 return 0
         else:
-            if endVal.replace(tzinfo=None) - delta > testVal.replace(tzinfo=None):
+            if endValNoTZ - delta > testVal.replace(tzinfo=None):
                 return 0
         return -1
 
@@ -163,7 +167,7 @@ def getKeysInRange(view, startVal, startAttrName, startIndex, startColl,
         if delta is None:
             delta = zero_delta
         else:
-            delta = delta + endVal - startVal
+            delta = delta + endSubStartVal
 
         testVal = getEnd(key, view)
 
@@ -180,7 +184,7 @@ def getKeysInRange(view, startVal, startAttrName, startIndex, startColl,
             if compare(startVal + delta, testVal):
                 return 0
         else:
-            if compare(startVal.replace(tzinfo=None) + delta,
+            if compare(startValNoTZ + delta,
                        testVal.replace(tzinfo=None)):
                 return 0
         return 1

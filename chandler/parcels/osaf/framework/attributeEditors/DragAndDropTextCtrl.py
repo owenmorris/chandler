@@ -88,7 +88,7 @@ class DragAndDropTextCtrl(BaseWidget,
         menu.AppendSeparator()
         menu.Append(wx.ID_SELECTALL)#, messages.SELECT_ALL)
 
-        if '__WXGTK__' in wx.PlatformInfo:
+        if wx.Platform == '__WXGTK__':
             # (see note below re: GTK)
             menu.Bind(wx.EVT_MENU, self.OnMenuChoice)
             menu.Bind(wx.EVT_UPDATE_UI, self.OnMenuUpdateUI)
@@ -101,7 +101,7 @@ class DragAndDropTextCtrl(BaseWidget,
 
     # GTK's popup handling seems totally broken (our menu does pop up,
     # but the enabling and actual execution don't happen). So, do our own.
-    if '__WXGTK__' in wx.PlatformInfo:
+    if wx.Platform == '__WXGTK__':
         popupHandlers = {
             # (FYI: these are method names, and so should not be localized.)
             wx.ID_UNDO: 'Undo',
@@ -205,7 +205,7 @@ class DragAndDropTextCtrl(BaseWidget,
         """
         Bug 5717, OnDelete shouldn't be active in a text ctrl on Mac.
         """
-        event.arguments['Enable'] = '__WXMAC__' not in wx.PlatformInfo
+        event.arguments['Enable'] = wx.Platform == '__WXMAC__'
 
     def onRemoveEvent(self, event):
         # I tried the following code, but it didn't work. Perhaps it's

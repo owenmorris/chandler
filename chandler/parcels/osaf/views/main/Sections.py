@@ -28,7 +28,7 @@ logger = logging.getLogger(__name__)
 # Drawing geometry
 margin = 10
 swatchWidth = 25
-swatchHeight = '__WXMAC__' in wx.PlatformInfo and 8 or 10
+swatchHeight = wx.Platform == "__WXMAC__" and 8 or 10
 
 class SectionedGridDelegate(ControlBlocks.AttributeDelegate):
 

@@ -80,11 +80,11 @@ SWATCH_SEPARATION = 2
 SWATCH_WIDTH_VECTOR  = vector([SWATCH_WIDTH  + 2*SWATCH_BORDER, 0])
 SWATCH_HEIGHT_VECTOR = vector([0, SWATCH_HEIGHT + 2*SWATCH_BORDER])
 
-IS_MAC = '__WXMAC__' in wx.PlatformInfo
-IS_GTK = '__WXGTK__' in wx.PlatformInfo
+IS_MAC = wx.Platform == '__WXMAC__'
+IS_GTK = wx.Platform == '__WXGTK__'
     
 # add some space below the time (but on linux there isn't any room)
-if '__WXGTK__' in wx.PlatformInfo:
+if IS_GTK:
     TIME_BOTTOM_MARGIN = 0
 else:
     TIME_BOTTOM_MARGIN = 2
@@ -1752,7 +1752,7 @@ class wxInPlaceEditor(AttributeEditors.wxEditText):
         # beyond the size of the editor if TE_NO_VSCROLL and TE_MULTILINE are
         # both set, so on Windows we stick with the a single line for now
         style = wx.NO_BORDER | wx.TE_PROCESS_ENTER | wx.TE_NO_VSCROLL 
-        if '__WXMSW__' not in wx.PlatformInfo and allowMultiLine:
+        if wx.Platform == "__WXMSW__" and allowMultiLine:
             style |= wx.TE_MULTILINE
 
         super(wxInPlaceEditor, self).__init__(parent,
@@ -2349,7 +2349,7 @@ class wxCalendarControl(wx.Panel, CalendarEventHandler):
         dc = wx.ClientDC(self)
         width, height = dc.GetTextExtent(headerLabels[0])
 
-        if '__WXGTK__' in wx.PlatformInfo:
+        if IS_GTK:
             self.xOffset = width + 12
         else:
             self.xOffset = width + 6

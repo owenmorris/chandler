@@ -28,6 +28,8 @@ from repository.persistence.RepositoryError import \
 
 logger = logging.getLogger(__name__)
 
+wxWindow_FindFocus = wx.Window_FindFocus
+
 # SCHEMA_VERSION has moved to Utility.py
 
 #@@@Temporary testing tool written by Morgen -- DJA
@@ -171,7 +173,7 @@ class wxMainFrame (wxBlockFrameWindow):
 
         self.Bind(wx.EVT_CLOSE, self.OnClose)
 
-        if '__WXMSW__' in wx.PlatformInfo:
+        if wx.Platform == "__WXMSW__":
             # From the wxWidgets documentation:
             # wxToolBar95: Note that this toolbar paints tools to reflect system-wide colours.
             # If you use more than 16 colours in your tool bitmaps, you may wish to suppress
@@ -416,7 +418,7 @@ class wxApplication (wx.App):
         # If a magic metakey is down, run the startup options box; it'll
         # modify options as necessary.
         if options.ask or wx.GetMouseState().ControlDown() \
-            or ('__WXMAC__' in wx.PlatformInfo and wx.GetMouseState().AltDown()):
+            or (wx.Platform == '__WXMAC__' and wx.GetMouseState().AltDown()):
             from application.dialogs.StartupOptionsDialog import StartupOptionsDialog            
             StartupOptionsDialog.run()
 
@@ -586,7 +588,7 @@ class wxApplication (wx.App):
 
         # Set focus so OnIdle won't trigger an unnecessary UpdateWindowUI the
         # first time through. -- DJA
-        self.focus = wx.Window_FindFocus()
+        self.focus = wxWindow_FindFocus()
 
 
         # Register sharing activity to be sent to the status bar
@@ -600,7 +602,7 @@ class wxApplication (wx.App):
         # Fix for Bugs 3720, 3722, 5046, and 5650.  Sets the focus to
         # the first focusable widget in the frame, and also forces a
         # UpdateUI of the menus so the accelerator table will get built.
-        if '__WXGTK__' in wx.PlatformInfo:
+        if wx.Platform == '__WXGTK__':
             def afterInit():
                 self.mainFrame.GetChildren()[0].SetFocus()
                 self.mainFrame.UpdateWindowUI(wx.UPDATE_UI_RECURSE)
@@ -759,10 +761,10 @@ class wxApplication (wx.App):
             # a textctrl then we *must* Skip the event otherwise the
             # text control will either do nothing, or will treat it as
             # a Delete key instead.
-            if '__WXMAC__' in wx.PlatformInfo and \
+            if wx.Platform == '__WXMAC__' and \
                    event.GetEventType() == wx.EVT_MENU.evtType[0] and \
                    getattr(block, 'accel', None) == "Back" and \
-                   isinstance(wx.Window.FindFocus(), (wx.TextCtrl, wx.ComboBox)):
+                   isinstance(wxWindow_FindFocus(), (wx.TextCtrl, wx.ComboBox)):
                 event.Skip()
                 return
 
@@ -784,7 +786,7 @@ class wxApplication (wx.App):
             #level parent of whatever window has the focus
     
             if ((0 < wxID < wx.ID_LOWEST) or
-                not isinstance (wx.GetTopLevelParent(wx.Window.FindFocus()), wx.Dialog)):
+                not isinstance (wx.GetTopLevelParent(wxWindow_FindFocus()), wx.Dialog)):
 
                 updateUIEvent = event.GetEventType() == wx.EVT_UPDATE_UI.evtType[0]
                 blockEvent = getattr (block, 'event', None)
@@ -894,7 +896,7 @@ class wxApplication (wx.App):
         # so we check for focus changes in OnIdle. Also call UpdateUI when
         # focus changes.
 
-        focus = wx.Window_FindFocus()
+        focus = wxWindow_FindFocus()
         if self.focus != focus:
             self.focus = focus
             self.needsUpdateUI = True

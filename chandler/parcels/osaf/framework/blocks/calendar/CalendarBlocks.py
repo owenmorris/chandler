@@ -39,7 +39,7 @@ from application import styles
 
 from application.dialogs import RecurrenceDialog
 
-if '__WXMAC__' in wx.PlatformInfo:
+if wx.Platform == '__WXMAC__':
     PLATFORM_BORDER = wx.BORDER_NONE
 else:
     PLATFORM_BORDER = wx.BORDER_STATIC
@@ -122,7 +122,7 @@ class wxMiniCalendar(DragAndDrop.DropReceiveWidget,
         # want a line separating the minicalendar and preview area,
         # bug 4273.  On Mac, the preview area and the minicalendar
         # don't have their own borders, so also draw the line.
-        self.lineAboveToday = not '__WXMSW__' in wx.PlatformInfo
+        self.lineAboveToday = not wx.Platform == "__WXMSW__"
 
         self.Bind(minical.EVT_MINI_CALENDAR_SEL_CHANGED,
                   self.OnWXSelectItem)
@@ -450,7 +450,7 @@ class PreviewArea(CalendarCanvas.CalendarBlock):
         if not self.getHasBeenRendered():
             self.setRange( datetime.now().date() )
             self.setHasBeenRendered()
-        if '__WXMAC__' in wx.PlatformInfo:
+        if wx.Platform == '__WXMAC__':
             # on the Mac, borders around the minical and preview area look weird,
             # but we want one around our parent.  Modifying our parent is quite
             # a hack, but it works rather nicely.
@@ -475,7 +475,8 @@ class wxPreviewArea(CalendarCanvas.CalendarNotificationHandler, wx.Panel):
         self.Bind(wx.EVT_PAINT, self.OnPaint)
         self.Bind(wx.EVT_LEFT_DCLICK, self.OnDClick)
         self.Bind(wx.EVT_LEFT_DOWN, self.OnClick)
-        self.Bind(wx.EVT_SIZE, self.OnSize)
+        if wx.Platform == '__WXMAC__':
+            self.Bind(wx.EVT_SIZE, self.OnSize)
 
         self.SetWindowStyle(PLATFORM_BORDER)
 
@@ -488,10 +489,10 @@ class wxPreviewArea(CalendarCanvas.CalendarNotificationHandler, wx.Panel):
         self.linkFont = Styles.getFont(linkCharStyle)
         self.labelPosition = -1 # Note that we haven't measured things yet.
 
-    def OnSize(self, event):
-
-        # necessary when sidebar is resized
-        if '__WXMAC__' not in wx.PlatformInfo:
+    if wx.Platform == '__WXMAC__':
+        def OnSize(self, event):
+    
+            # necessary when sidebar is resized
             self.Refresh(False)
 
     def OnPaint(self, event):

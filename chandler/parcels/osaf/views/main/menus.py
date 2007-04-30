@@ -63,7 +63,7 @@ def makeMainMenus(parcel):
     from osaf import usercollections
     from itertools import chain
 
-    if '__WXMAC__' in wx.PlatformInfo:
+    if wx.Platform == '__WXMAC__':
         platform_remove = _(u'Back')
         platform_delete = _(u'Ctrl+Back')
     else:

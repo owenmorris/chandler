@@ -220,9 +220,9 @@ class StringAttributeEditor (BaseAttributeEditor):
             bindToControl.Bind(wx.EVT_LEFT_DOWN, self.onClick)
 
             # hack to work around bug 5669 until the underlying wx bug is fixed.
-            if '__WXMAC__' in wx.PlatformInfo: 
+            if wx.Platform == "__WXMAC__": 
                 def showhide(ctrl):
-                    if ctrl and ctrl.IsShown():
+                    if ctrl is not None and ctrl.IsShown():
                         ctrl.Hide()
                         ctrl.Show()
                 wx.CallAfter(showhide, control)
@@ -296,7 +296,7 @@ class StringAttributeEditor (BaseAttributeEditor):
                         alreadyChanged = True
                         # workaround for bug 3085 - changed text starts with copy of sample
                         #  due to multiple calls to this method
-                        if '__WXGTK__' in wx.PlatformInfo:
+                        if wx.Platform == '__WXGTK__':
                             if currentText.startswith(self.sampleText):
                                 currentText = currentText.replace(self.sampleText,'',1)
                                 alreadyChanged = False
@@ -666,11 +666,11 @@ class wxAutoCompleter(wx.ListBox):
     # For now, measuring the font isn't working well;
     # use these 'adjustments'
     # @@@ ugh: ought to find a better way than this!
-    if '__WXMAC__' in wx.PlatformInfo:
+    if wx.Platform == '__WXMAC__':
         totalSlop = 5
         unitSlop = 4
         defaultBorderStyle = wx.STATIC_BORDER
-    elif '__WXGTK__' in wx.PlatformInfo:
+    elif wx.Platform == '__WXGTK__':
         totalSlop = 2
         unitSlop = 4        
         defaultBorderStyle = wx.SIMPLE_BORDER

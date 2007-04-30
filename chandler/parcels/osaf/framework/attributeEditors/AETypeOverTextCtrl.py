@@ -205,7 +205,7 @@ class AETypeOverTextCtrl(wxRectangularChild):
             self.otherControl = shownControl
             self._resize()
             self.Thaw()
-            if '__WXGTK__' in wx.PlatformInfo:
+            if wx.Platform == '__WXGTK__':
                 self.GetGrandParent().Refresh()
 
     def _resize(self):

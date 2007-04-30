@@ -37,7 +37,7 @@ class SubscribeDialog(wx.Dialog):
          immediate=False, mine=None, publisher=None, color=None):
 
         # for bug #8387
-        if "wxGTK" in wx.PlatformInfo:
+        if wx.Platform == "__WXGTK__":
             style |= wx.RESIZE_BORDER
             
         wx.Dialog.__init__(self, None, -1, title, pos, size, style)

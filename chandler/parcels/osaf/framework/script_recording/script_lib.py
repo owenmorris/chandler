@@ -107,8 +107,8 @@ def ProcessEvent (theClass, properties , attributes):
             # don't verify the focus in those cases.
             #
             # On Linux events sent to toolbar cause the focus window to become None
-            if not ( ('__WXMAC__' in wx.PlatformInfo and issubclass (ProcessEvent.newFocusWindowClass, wx.CheckBox)) or
-                     ('__WXGTK__' in wx.PlatformInfo and isinstance (sentToWidget, wx.ToolBar)) ):
+            if not ( (wx.Platform == "__WXMAC__" and issubclass (ProcessEvent.newFocusWindowClass, wx.CheckBox)) or
+                     (wx.Platform == "__WXGTK__" and isinstance (sentToWidget, wx.ToolBar)) ):
                 if type (newFocusWindow) is str:
                     assert focusWindow is NameToWidget (newFocusWindow), "An unexpected window has the focus"
                 else:

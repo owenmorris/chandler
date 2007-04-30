@@ -387,7 +387,7 @@ def restart():
         while '-c' in args:
             args.remove('-c')
         
-        if '__WXGTK__' in wx.PlatformInfo and \
+        if wx.Platform == '__WXGTK__' and \
             Globals.options.locale is None:
             # Restarted Chandler fails to find locale, so
             # work around that issue by explicitly adding

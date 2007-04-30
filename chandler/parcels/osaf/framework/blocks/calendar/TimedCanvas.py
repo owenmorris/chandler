@@ -37,7 +37,7 @@ import bisect
 
 from application.dialogs import RecurrenceDialog
 
-IS_MAC = '__WXMAC__' in wx.PlatformInfo
+IS_MAC = wx.Platform == "__WXMAC__"
 
 class TimedEventsCanvas(CalendarBlock):
 
@@ -461,9 +461,9 @@ class wxTimedEventsCanvas(BaseWidget, wxCalendarCanvas):
         self.RealignCanvasItems()
 
     def MakeOneCanvasItem(self, event):
-        primaryCollection = self.blockItem.contentsCollection
         if isDead(event.itsItem):
             return None
+        primaryCollection = self.blockItem.contentsCollection
         collection = self.blockItem.getContainingCollection(event.itsItem, 
                                                             primaryCollection)
         canvasItem = TimedCanvasItem(collection, primaryCollection,
@@ -484,14 +484,14 @@ class wxTimedEventsCanvas(BaseWidget, wxCalendarCanvas):
             canvasItem = self.MakeOneCanvasItem(event)
 
         dragState = self.dragState
-        if self.coercedCanvasItem is not None and dragState is not None:
-            dragState.currentDragBox = self.coercedCanvasItem        
-        elif (dragState and
-              dragState.currentDragBox):
-            currentDragItem = dragState.currentDragBox.item
-            event = Calendar.EventStamp(currentDragItem)
-            if event in self.visibleEvents:
-                dragState.currentDragBox = self.canvasItemDict[currentDragItem]
+        if dragState is not None:
+            if self.coercedCanvasItem is not None:
+                dragState.currentDragBox = self.coercedCanvasItem        
+            elif dragState.currentDragBox:
+                currentDragItem = dragState.currentDragBox.item
+                event = Calendar.EventStamp(currentDragItem)
+                if event in self.visibleEvents:
+                    dragState.currentDragBox = self.canvasItemDict[currentDragItem]
 
 
 

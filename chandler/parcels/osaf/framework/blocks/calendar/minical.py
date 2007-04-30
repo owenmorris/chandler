@@ -36,8 +36,21 @@ CAL_HITTEST_INCMONTH = 4
 CAL_HITTEST_DECMONTH = 5
 CAL_HITTEST_SURROUNDING_WEEK = 6
 
-
 CAL_HIGHLIGHT_WEEK         = 0x0008 # select an entire week at a time
+
+if wx.Platform == "__WXMAC__":
+    WIDTH_CORRECTION = 4
+    Y_ADJUSTMENT_BIG = 7
+    Y_ADJUSTMENT_SMALL = 2
+elif wx.Platform == "__WXMSW__":
+    WIDTH_CORRECTION = 2
+    Y_ADJUSTMENT_BIG = 6
+    Y_ADJUSTMENT_SMALL = 1
+else:
+    WIDTH_CORRECTION = 0
+    Y_ADJUSTMENT_BIG = 6
+    Y_ADJUSTMENT_SMALL = 1
+
 
 def MonthDelta(dt, months):
     """
@@ -59,7 +72,7 @@ def MonthDelta(dt, months):
 
     # careful when going from going from mm/31/yyyy to a month that
     # doesn't have 31 days!
-    (week, maxday) = monthrange(newYear, newMonth)
+    maxday = monthrange(newYear, newMonth)[1]
     day = min(maxday, dt.day)
     return date(newYear, newMonth, day)
     
@@ -142,7 +155,8 @@ class PyMiniCalendar(wx.PyControl):
         self.lineAboveToday = False
 
         self.Bind(wx.EVT_PAINT, self.OnMiniCalPaint)
-        self.Bind(wx.EVT_SIZE, self.OnMiniCalSize)
+        if wx.Platform != "__WXMAC__":
+            self.Bind(wx.EVT_SIZE, self.OnMiniCalSize)
         self.Bind(wx.EVT_LEFT_DOWN, self.OnClick)
         self.Bind(wx.EVT_LEFT_DCLICK, self.OnDClick)
         
@@ -243,7 +257,7 @@ class PyMiniCalendar(wx.PyControl):
         # we need to find out if the hit is on left arrow, on month or
         # on right arrow
 
-        if '__WXMAC__' in wx.PlatformInfo:
+        if wx.Platform == '__WXMAC__':
             x, y = self.transform.TransformPoint(pos.x, self.yOffset - pos.y)
         else:
             x, y = self.transform.TransformPoint(pos.x, pos.y)
@@ -369,25 +383,22 @@ class PyMiniCalendar(wx.PyControl):
         gc.DrawText(text, x, y, brush)
 
     # event handlers
-    def OnMiniCalSize(self, event):
-
-        # force a full redraw as scaling might change (except on mac)
-        if '__WXMAC__' not in wx.PlatformInfo:
+    if wx.Platform != "__WXMAC__":
+        def OnMiniCalSize(self, event):    
+            # force a full redraw as scaling might change (except on mac)
             self.Refresh(False)
 
     def calculateScale (self):
         size = self.GetClientSize()
-        width, height = self.CalcGeometry() # the ideal, unscaled size
+        width = self.CalcGeometry()[0] # the ideal, unscaled size
         scale = float(size.x) / float(width)
-        if scale < 0.5:
-            scale = 0.5
-        return scale
+        return scale if scale > 0.5 else 0.5
 
     def OnMiniCalPaint(self, event):
 
         width, height = self.CalcGeometry() # the ideal, unscaled size
 
-        if '__WXMSW__' in wx.PlatformInfo:
+        if wx.Platform == "__WXMSW__":
             dc = wx.BufferedPaintDC(self)
             dc.SetBackground(wx.Brush(self.GetBackgroundColour()))
             dc.Clear()
@@ -545,33 +556,31 @@ class PyMiniCalendar(wx.PyControl):
 
         return best
 
-    def GetDeviceFont(self):
-        font = self.GetFont()
-
-        if "__WXMAC__" in wx.PlatformInfo:
+    if wx.Platform == '__WXMAC__':
+        def GetDeviceFont(self):
+            font = self.GetFont()
+    
             font = wx.Font(font.GetPointSize() - 2, font.GetFamily(),
                            font.GetStyle(), font.GetWeight(),
                            font.GetUnderlined(), font.GetFaceName(),
                            font.GetEncoding())
-         
-        return font
-
+             
+            return font
+    else:
+        def GetDeviceFont(self):
+            return self.GetFont()
+        
     def CalcGeometry(self):
         """
         return best, unscaled, width and size
         """
 
-        width = DAYS_PER_WEEK * self.widthCol + 2 * SEPARATOR_MARGIN
+        width = DAYS_PER_WEEK * self.widthCol + 2 * SEPARATOR_MARGIN + WIDTH_CORRECTION
         height = (self.todayHeight + VERT_MARGIN +
                   MONTHS_TO_DISPLAY *
                   (WEEKS_TO_DISPLAY * self.heightRow +
                    self.rowOffset + EXTRA_MONTH_HEIGHT) + 17)
 
-        if "__WXMAC__" in wx.PlatformInfo:
-            width += 4
-        elif '__WXMSW__' in wx.PlatformInfo:
-            width += 2
-        
         return width, height
 
     def IsExposed(self, x, y, w, h, transform=None):
@@ -689,11 +698,7 @@ class PyMiniCalendar(wx.PyControl):
                 # draw free/busy indicator
                 if weekDate.month == startDate.month:
                     busyPercentage = self.GetBusy(weekDate)
-                    if '__WXMAC__' in wx.PlatformInfo:
-                        YAdjust = 7
-                    else:
-                        YAdjust = 6
-                    height = (self.heightRow - YAdjust) * busyPercentage
+                    height = (self.heightRow - Y_ADJUSTMENT_BIG) * busyPercentage
 
                     gc.SetBrush(self.busyColourBrush)
                     gc.SetPen(wx.TRANSPARENT_PEN)
@@ -715,11 +720,8 @@ class PyMiniCalendar(wx.PyControl):
                     else:
                         gc.SetFont(mainFont)
 
-                if '__WXMAC__' in wx.PlatformInfo:
-                    YAdjust = 2
-                else:
-                    YAdjust = 1
-                self.DrawText(gc, dayStr, x, y + YAdjust, wx.NullGraphicsBrush,
+                self.DrawText(gc, dayStr, x, y + Y_ADJUSTMENT_SMALL,
+                              wx.NullGraphicsBrush,
                               baseline)
 
                 weekDate += timedelta(days=1)

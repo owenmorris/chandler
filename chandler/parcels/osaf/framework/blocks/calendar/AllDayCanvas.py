@@ -518,10 +518,11 @@ class wxAllDayEventsCanvas(wxCalendarCanvas):
         self.canvasItemDict[item] = canvasItem
         
         # keep track of the current drag/resize box
-        if (self.dragState and
-            self.dragState.currentDragBox and
-            self.dragState.currentDragBox.item == item):
-            self.dragState.currentDragBox = canvasItem
+        dragState = self.dragState
+        if (dragState is not None and
+            dragState.currentDragBox and
+            dragState.currentDragBox.item == item):
+            dragState.currentDragBox = canvasItem
 
     @staticmethod
     def DayOfWeekNumber(datetime):

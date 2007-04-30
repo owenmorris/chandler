@@ -31,12 +31,12 @@ from osaf import sharing
 
 # temporary hack because Mac/Linux force BitmapButtons to
 # have some specific borders
-def GetPlatformBorder():
-    if '__WXMAC__' in wx.PlatformInfo:
-        return 3
-    if '__WXGTK__' in wx.PlatformInfo:
-        return  5
-    return 0
+if wx.Platform == '__WXMAC__':
+    PLATFORM_BORDER_PIXELS = 6
+elif wx.Platform == '__WXGTK__':
+    PLATFORM_BORDER_PIXELS =  10
+else:
+    PLATFORM_BORDER_PIXELS = 0
 
 ignore = [wx.WXK_SHIFT, wx.WXK_TAB, wx.WXK_CAPITAL, wx.WXK_SCROLL,
           wx.WXK_ESCAPE, wx.WXK_NUMLOCK, wx.WXK_PAUSE, wx.WXK_PAGEDOWN,
@@ -65,8 +65,6 @@ class CanvasBitmapButton(buttons.GenBitmapButton):
         @type name: unicode
         """
 
-        self.forcedBorder = GetPlatformBorder()
-
         app = wx.GetApp()
         bitmap = app.GetImage (name + ".png")
         super(CanvasBitmapButton, self).__init__(parent, -1,
@@ -84,8 +82,8 @@ class CanvasBitmapButton(buttons.GenBitmapButton):
         """
         #@@@ This copies CanvasTextButton.UpdateSize - to be fixed after 0.5
         bitmap = self.GetBitmapLabel()
-        width = bitmap.GetWidth() + self.forcedBorder*2
-        height = bitmap.GetHeight() + self.forcedBorder*2
+        width = bitmap.GetWidth() + PLATFORM_BORDER_PIXELS
+        height = bitmap.GetHeight() + PLATFORM_BORDER_PIXELS
         self.SetMinSize(wx.Size(width, height))
 
 class CanvasItem(object):
@@ -315,6 +313,12 @@ class wxCollectionCanvas(DragAndDrop.DropReceiveWidget,
     @type dragState: DragState
     """
 
+    if wx.GetApp() is not None:
+        # Pre-create cursors so that we don't need to re-create them over and
+        # over them in perf critical paths.
+        defaultCursor = wx.StockCursor(wx.CURSOR_DEFAULT)
+        sizensCursor =  wx.StockCursor(wx.CURSOR_SIZENS)
+
     def __init__(self, *arguments, **keywords):
         """
         Same arguments as wx.ScrolledWindow
@@ -341,7 +345,7 @@ class wxCollectionCanvas(DragAndDrop.DropReceiveWidget,
         self.dragState = self.draggedOutState = self._linuxHackDragState = None
         self.coercedCanvasItem = None
 
-        self._cursorID = wx.CURSOR_DEFAULT
+        self.cursor = wxCollectionCanvas.defaultCursor
         
     def OnInit(self):
         # _focusWindow is used because wxPanel is much happier if it
@@ -400,15 +404,15 @@ class wxCollectionCanvas(DragAndDrop.DropReceiveWidget,
         """
         hitBox = self.GetCanvasItemAt(unscrolledPosition)
         if hitBox and hitBox.isHitResize(unscrolledPosition):
-            c = wx.CURSOR_SIZENS
+            c = wxCollectionCanvas.sizensCursor
         else:
-            c = wx.CURSOR_DEFAULT
+            c = wxCollectionCanvas.defaultCursor
         # Only change the cursor if we currently have a different one.
         # This removes some cursor flicker on wxGTK for some
         # platforms.
-        if c != self._cursorID:
-            self.SetCursor(wx.StockCursor(c))
-            self._cursorID = c
+        if c != self.cursor:
+            self.SetCursor(c)
+            self.cursor = c
 
     def _handleDoubleClick(self, unscrolledPosition):
         """
@@ -473,7 +477,7 @@ class wxCollectionCanvas(DragAndDrop.DropReceiveWidget,
 
         unscrolledPosition = wx.Point(*self.CalcUnscrolledPosition(x, y))
         dragResult = wx.DragMove
-        if self.dragState:
+        if self.dragState is not None:
             if self.IsValidDragPosition(unscrolledPosition):
                 self.dragState.HandleDrag(unscrolledPosition)
         else:
@@ -535,7 +539,7 @@ class wxCollectionCanvas(DragAndDrop.DropReceiveWidget,
             self.dragState = None
             self.coercedCanvasItem = None
             
-        elif self.dragState:
+        elif self.dragState is not None:
             # Linux gives a spurious OnLeave, so save position just in case
             self.dragState._linuxHackPosition = self.dragState.currentPosition
             self.dragState.DragOut()
@@ -613,8 +617,8 @@ class wxCollectionCanvas(DragAndDrop.DropReceiveWidget,
                     
                     self.dragState.ResetDrag()
                     self.dragState = None
-                    self.SetCursor(wx.StockCursor(wx.CURSOR_DEFAULT))
-                    self._cursorID = wx.CURSOR_DEFAULT
+                    self.SetCursor(wxCollectionCanvas.defaultCursor)
+                    self.cursor = wxCollectionCanvas.defaultCursor
                     self.RefreshCanvasItems(resort=False)            
                     
             event.Skip()
@@ -634,8 +638,8 @@ class wxCollectionCanvas(DragAndDrop.DropReceiveWidget,
         if event.Moving():
             self._updateCursor(unscrolledPosition)
         
-        # checks if the event iself is from dragging the mouse
-        elif self.dragState and event.Dragging():
+        # checks if the event itself is from dragging the mouse
+        elif self.dragState is not None and event.Dragging():
             if not self.dragState.draggable:
                 self.WarnReadOnlyTime([self.dragState.currentDragBox.item])
                 event.Skip()
@@ -657,7 +661,7 @@ class wxCollectionCanvas(DragAndDrop.DropReceiveWidget,
 
         elif event.LeftDClick():
             # cancel/stop any drag in progress
-            if self.dragState:
+            if self.dragState is not None:
                 self.dragState.HandleDragEnd()
                 self.dragState = None
             self._handleDoubleClick(unscrolledPosition)
@@ -670,7 +674,7 @@ class wxCollectionCanvas(DragAndDrop.DropReceiveWidget,
             # we need to make sure we have a  dragState, because we
             # sometimes get extra LeftUp's if the user does a
             # double-click and drag
-            if self.dragState:
+            if self.dragState is not None:
                 
                 # We want to set focus only if a drag isn't in progress
                 if not self.dragState._dragStarted:
@@ -741,7 +745,7 @@ class wxCollectionCanvas(DragAndDrop.DropReceiveWidget,
         # fix ugly bug 2749 - for some reason "BACK" isn't propagating
         # up to the menu when the _focusWindow has focus
         
-        if ('__WXMAC__' in wx.PlatformInfo and 
+        if (wx.Platform == '__WXMAC__' and 
             (keyCode in (wx.WXK_BACK, wx.WXK_DELETE))):
             # Fix bug 6126: make sure we can delete before calling
             # onDeleteEvent (and eat the key event either way).

@@ -141,7 +141,7 @@ def emulate_typing(string, ctrlFlag = False, altFlag = False, shiftFlag = False)
                     emulateMethod = getattr(widget, 'EmulateKeyPress',
                                             lambda k: False)
 
-                    if ('__WXMSW__' in wx.PlatformInfo or
+                    if (wx.Platform == "__WXMSW__" or
                         not emulateMethod(keyPress)): # emulate worked?
                         # try calling WriteText
                         writeMethod = getattr(widget, 'WriteText', None)

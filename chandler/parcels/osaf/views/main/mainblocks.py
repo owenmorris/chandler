@@ -169,7 +169,7 @@ def makeMainView(parcel):
     ]
 
     # customize for Linux, where toolbar items are extra-wide
-    if not '__WXGTK__' in wx.PlatformInfo:
+    if wx.Platform != '__WXGTK__':
         quickEntryWidth = 325
     else:
         quickEntryWidth = 150
@@ -187,7 +187,7 @@ def makeMainView(parcel):
                 size = SizeType (quickEntryWidth,-1),
                 helpString = _(u'Quick entry field: enter search string, or command beginning with "/"'))
     # Toolbar tools are larger on Linux than other platforms
-    if not '__WXGTK__' in wx.PlatformInfo:
+    if wx.Platform != '__WXGTK__':
         appBarBlocks.extend((
             quickEntryItem,
             ToolbarItem.template('ApplicationSeparator4',

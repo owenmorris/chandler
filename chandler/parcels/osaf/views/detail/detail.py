@@ -2098,7 +2098,7 @@ class EmptyPanelBlock(ControlBlocks.ContentItemDetail):
     def instantiateWidget(self):
         # Make a box with a sunken border - wxBoxContainer will take care of
         # getting the background color from our attribute.
-        style = '__WXMAC__' in wx.PlatformInfo \
+        style = wx.Platform == '__WXMAC__' \
               and wx.BORDER_SIMPLE or wx.BORDER_STATIC
         widget = ContainerBlocks.wxBoxContainer(self.parentBlock.widget, -1,
                                                 wx.DefaultPosition, 
