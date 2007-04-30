@@ -412,16 +412,7 @@ class RecordSetConduit(conduits.BaseConduit):
                 else:
                     item = None
 
-                # Mark existing items as "unread" now, so that importing can
-                # override it (if we're reloading, f'rinstance)
-                if item is not None:
-                    # unread should never apply to individual occurrences,
-                    # apply this to the master
-                    item_to_change = getattr(item, 'inheritFrom', item)
-                    item_to_change.read = False
-
                 logger.debug("Importing %s", rs)
-
 
                 try:
                     translator.importRecords(rs)
@@ -435,8 +426,9 @@ class RecordSetConduit(conduits.BaseConduit):
                 else:
                     item = None
 
-                # Set triage status, based on the values we loaded
                 if item is not None:
+
+                    # Set triage status, based on the values we loaded
                     event = pim.EventStamp(item)
                     if event.isRecurrenceMaster():
                         # if the item that has changed is a master, DON'T set
@@ -447,6 +439,15 @@ class RecordSetConduit(conduits.BaseConduit):
                             mod.setTriageStatus('auto', popToNow=True)
                     else:
                         item.setTriageStatus('auto', popToNow=True)
+
+                    # Per bug 8809:
+                    # Set "read" state to True if this is an initial subscribe
+                    # but False otherwise.  self.share.established is False
+                    # during an initial subscribe and True on subsequent
+                    # syncs.  Also, make sure we apply this to the master item:
+                    item_to_change = getattr(item, 'inheritFrom', item)
+                    item_to_change.read = not self.share.established
+
 
                 if alias in remotelyAdded:
                     receiveStats['added'].add(uuid)

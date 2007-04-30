@@ -174,7 +174,7 @@ class RoundTripTestCase(testcase.DualRepositoryTestCase):
         item1 = view1.findUUID(testUuid)
         self.assert_(item1 in self.share1.contents)
         self.assert_(item1.body == u"CHANGED")
-        self.assert_(item1.read == False)
+        self.assert_(item1.read == True)
         self.assert_(pim.has_stamp(item1, sharing.SharedItem))
         self.assert_(pim.has_stamp(self.share1.contents, sharing.SharedItem))
         self.assertEqual(self.share0.contents.itsUUID,
