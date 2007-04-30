@@ -189,6 +189,10 @@ def ProcessEvent (theClass, properties , attributes):
             capturedWindow.ReleaseMouse()
         else:
             break
+    
+    # Throw in an extra yield for linux to see if rare failure of focus window error goes away
+    if wx.Platform == "__WXGTK__":
+        application.Yield()
 
 def VerifyOn (verify = True):
     ProcessEvent.verifyOn = verify
