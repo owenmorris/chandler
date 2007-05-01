@@ -245,7 +245,7 @@ class DBRepositoryView(OnDemandRepositoryView):
                     if isinstance(value, RefList):
                         otherName = kind.getOtherName(name, None)
                         for uRef in value.iterkeys():
-                            watchers = self.findValue(uRef, 'watcher', None, version)
+                            watchers = self.findValue(uRef, 'watchers', None, version)
                             if watchers:
                                 watchers = watchers.get(otherName, None)
                                 if watchers:
