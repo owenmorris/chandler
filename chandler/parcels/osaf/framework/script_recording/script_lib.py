@@ -180,6 +180,7 @@ def ProcessEvent (theClass, properties , attributes):
     if not isinstance (sentToWidget, wx.TextCtrl):
         application.propagateAsynchronousNotifications()
 
+    wx.WakeUpIdle()
     application.Yield()
     
     # Since scrips don't actually move the cursor and cause wxMouseCaptureLostEvents
@@ -192,10 +193,6 @@ def ProcessEvent (theClass, properties , attributes):
         else:
             break
     
-    # Throw in an extra yield for linux to see if rare failure of focus window error goes away
-    if wx.Platform == "__WXGTK__":
-        application.Yield()
-
 def VerifyOn (verify = True):
     ProcessEvent.verifyOn = verify
     ProcessEvent.lastSentToWidget = None
