@@ -19,6 +19,9 @@ import wx
 class TestVisibleHours(ChandlerTestCase):
 
     def startTest(self):
+        # Creating a collection switches us to calendar view where we
+        # do the actual test
+        QAUITestAppLib.UITestItem("Collection", self.logger)
     
         # Find all the children of the Visible Hours menu
         eventsToTest = list(
@@ -46,7 +49,6 @@ class TestVisibleHours(ChandlerTestCase):
             relativeTime = widget.getRelativeTimeFromPosition(
                               None, wx.Point(0, rect.height))
             widgetHours = int((float(relativeTime.seconds)/3600.0) + 0.5)
-            
             
             # ... and double-check it's working
             if widgetHours != event.visibleHours:
