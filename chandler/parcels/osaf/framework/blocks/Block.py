@@ -465,10 +465,24 @@ class Block(schema.Item):
         watchList = self.getWatchList()
         if not watchList:
             return # nothing to watch
+            
+        def iterItemsAndAttributes():
+            # When watching for changes on an item, we want to
+            # react to changes in the item it inherits from, as
+            # well. This makes sure that the detail view responds
+            # correctly to 'ALL' changes on recurring events, for
+            # example.
+            for item, attr in watchList:
+                yield item, attr
+                
+                inheritee = getattr(item, 'inheritFrom', None)
+            
+                if inheritee is not item and inheritee is not None:
+                    yield inheritee, attr
 
         assert not hasattr(self, 'watchedItemAttributes')
         watchedItemAttributes = set()
-        for (item, attr) in watchList:
+        for item, attr in iterItemsAndAttributes():
             if attr:
                 watchedItemAttributes.add((item, attr))
                 self.addWatch(item, attr)
