@@ -88,9 +88,8 @@ class Indexed(object):
         name which is used with the L{getByIndex}, L{resolveIndex},
         L{first}, L{last}, L{next}, L{previous} methods.
 
-        Because the implementation of an index depends on the persistence
-        layer, the type of index is chosen with the C{indexType} parameter
-        which can have one of the following values:
+        The type of index to create is specified with the C{indexType}
+        parameter. It can have one of the following values:
 
             - C{numeric}: a simple index reflecting the sequence of mutation
               operations.
@@ -113,10 +112,46 @@ class Indexed(object):
               context of this index, C{i0 > i1}, a negative number if C{i0 <
               i1}, or zero if C{i0 == i1}.
 
+            - C{method}: as with C{compare}, an index sorted on the return
+              value of a method invoked on a third party item. The method is
+              a comparison method whose item and name are provided as a
+              tuple with the C{method} keyword. Two methods are expected to
+              be implemented on the third party item: the named method and
+              another method with that name suffixed with C{_init}. The
+              named method is expected to accept four arguments: the index
+              object, the two C{UUID} keys being compared, C{k0} and C{k1},
+              and C{vals}, a C{dict} that can be used to cache values for
+              the keys the method will be invoked with. C{vals} always
+              contains the value for C{k0} since it is returned by the
+              C{_init} suffixed method which is invoked first with the index
+              object, C{k0} and C{vals}. The comparison method should check
+              C{vals} for values for C{k0} and C{k1} as it is normally
+              faster to do this check than to compute or fetch the actual
+              values from the database.
+
+            - C{subindex}: an index that is a subset of another index whose
+              keys are following the order of the superindex. The set the
+              subindex is indexing must be a subset of the set the
+              superindex is indexing.
+
         By default, the C{attribute} and C{string} indexes monitor the
         attribute by which they are sorted in order to remain sorted. Which
-        attribute(s) are monitored can be overriden by specifying one or
-        more attribute names via the C{monitor} keyword.
+        attribute(s) are monitored may be overridden for these types of
+        indexes with the C{monitor} keyword. Likewise, which attributes to
+        monitor for the C{compare} and C{method} types of indexes can be
+        specified with one or more attribute names in a tuple via the
+        C{monitor} keyword.
+
+        In addition to the C{subindex} type of index, the C{compare} or
+        C{method} types of indexes can be defined as the subindex of another
+        index as long as it indexes a subset of the set indexed by the
+        chosen superindex in the same order. This has the advantage that the
+        subindex no longer has to monitor the attribute(s) that are used to
+        sort the superindex as the superindex will reindex its subindexes as
+        needed. The superindex is specified via the C{superindex}
+        keyword. The methods used to compute the comparison values of two
+        keys can use the difference in the keys' positions in the superindex
+        instead of computing a more expensive comparison value.
 
         The C{attribute} and C{string} sorted indexes treat a missing or
         C{None} value as infinitely large.

@@ -82,8 +82,8 @@ class RepositoryView(CView):
     
     CORE_SCHEMA_VERSION = 0x00070000
 
-    def __init__(self, repository, name, version,
-                 deferDelete=Default, pruneSize=Default):
+    def __init__(self, repository, name=None, version=None,
+                 deferDelete=Default, pruneSize=Default, notify=True):
         """
         Initializes a repository view.
 
@@ -107,7 +107,7 @@ class RepositoryView(CView):
 
         super(RepositoryView, self).__init__(repository, name,
                                              RepositoryView.itsUUID)
-        self.openView(version, deferDelete)
+        self.openView(version, deferDelete, notify)
         
     def setCurrentView(self):
         """
@@ -143,7 +143,7 @@ class RepositoryView(CView):
 
         return self['Schema']['Core']['Lob'].makeValue(data, *args, **kwds)
 
-    def openView(self, version=None, deferDelete=Default):
+    def openView(self, version=None, deferDelete=Default, notify=Default):
         """
         Open this repository view.
 
@@ -162,6 +162,16 @@ class RepositoryView(CView):
                 version = 0
             verify = False
 
+        if verify:  # set VERIFY bit, clearing others
+            self._status = RepositoryView.VERIFY
+        else:       # leave VERIFY bit as is, clearing others
+            self._status &= RepositoryView.VERIFY
+
+        if notify is True:
+            self._status &= ~RepositoryView.DONTNOTIFY
+        elif notify is False:
+            self._status |= RepositoryView.DONTNOTIFY
+
         self._queuedNotifications = Queue()
 
         self._version = long(version)
@@ -171,11 +181,7 @@ class RepositoryView(CView):
         self._deletedRegistry = {}
         self._instanceRegistry = {}
         self._loadingRegistry = set()
-        self._status = ((self._status & RepositoryView.VERIFY) |
-                        RepositoryView.OPEN)
-
-        if verify:
-            self._status |= RepositoryView.VERIFY
+        self._status |= RepositoryView.OPEN
 
         if deferDelete is Default:
             deferDelete = repository._deferDelete
@@ -1263,21 +1269,23 @@ class RepositoryView(CView):
 
 class OnDemandRepositoryView(RepositoryView):
 
-    def __init__(self, repository, name, version,
-                 deferDelete=Default, pruneSize=Default):
+    def __init__(self, repository, name=None, version=None,
+                 deferDelete=Default, pruneSize=Default, notify=Default):
 
         if version is None:
             version = repository.store.getVersion()
 
         super(OnDemandRepositoryView, self).__init__(repository, name, version,
-                                                     deferDelete, pruneSize)
+                                                     deferDelete, pruneSize,
+                                                     notify)
 
-    def openView(self, version=None, deferDelete=Default):
+    def openView(self, version=None, deferDelete=Default, notify=Default):
 
         self._exclusive = threading.RLock()
         self._hooks = []
         
-        super(OnDemandRepositoryView, self).openView(version, deferDelete)
+        super(OnDemandRepositoryView, self).openView(version, deferDelete,
+                                                     notify)
 
     def isNew(self):
 
@@ -1413,17 +1421,17 @@ class OnDemandRepositoryView(RepositoryView):
 
 class NullRepositoryView(RepositoryView):
 
-    def __init__(self, verify=False):
+    def __init__(self, name=None, verify=False):
 
-        super(NullRepositoryView, self).__init__(None, "null view", 0, False)
-
+        super(NullRepositoryView, self).__init__(None, name, 0,
+                                                 False, False)
         if verify:
             self._status |= RepositoryView.VERIFY
 
-    def openView(self, version=None, deferDelete=Default):
+    def openView(self, version=None, deferDelete=Default, notify=Default):
 
         self._logger = logging.getLogger(__name__)
-        super(NullRepositoryView, self).openView(version, False)
+        super(NullRepositoryView, self).openView(version, False, notify)
 
     def setCurrentView(self):
 

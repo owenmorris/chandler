@@ -35,12 +35,12 @@ from repository.persistence.DBItemIO import DBItemWriter
 
 class DBRepositoryView(OnDemandRepositoryView):
 
-    def openView(self, version=None, deferDelete=Default):
+    def openView(self, version=None, deferDelete=Default, notify=Default):
 
         self._log = set()
         self._indexWriter = None
 
-        super(DBRepositoryView, self).openView(version, deferDelete)
+        super(DBRepositoryView, self).openView(version, deferDelete, notify)
 
     def _clear(self):
 
@@ -262,7 +262,7 @@ class DBRepositoryView(OnDemandRepositoryView):
                     for watcher in watchers:
                         watcher('refresh', uItem, names)
 
-    def refresh(self, mergeFn=None, version=None, notify=True):
+    def refresh(self, mergeFn=None, version=None, notify=Default):
 
         if not self._status & RepositoryView.REFRESHING:
             try:
@@ -298,9 +298,12 @@ class DBRepositoryView(OnDemandRepositoryView):
         else:
             self.logger.warning('%s skipping recursive refresh', self)
 
-    def _refresh(self, mergeFn=None, version=None, notify=True):
+    def _refresh(self, mergeFn=None, version=None, notify=Default):
 
         store = self.store
+
+        if notify is Default:
+            notify = self._status & RepositoryView.DONTNOTIFY == 0
 
         if not version:
             newVersion = store.getVersion()
@@ -548,7 +551,7 @@ class DBRepositoryView(OnDemandRepositoryView):
             self._version = oldVersion
             raise
 
-    def commit(self, mergeFn=None, notify=True, afterCommit=None):
+    def commit(self, mergeFn=None, notify=Default, afterCommit=None):
 
         status = self._status
 
