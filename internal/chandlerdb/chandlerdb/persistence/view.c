@@ -1891,6 +1891,7 @@ void _init_view(PyObject *m)
             PyDict_SetItemString_Int(dict, "DEFEROBSA", DEFEROBSA);
             PyDict_SetItemString_Int(dict, "DEFERCOMMIT", DEFERCOMMIT);
             PyDict_SetItemString_Int(dict, "COMMITLOCK", COMMITLOCK);
+            PyDict_SetItemString_Int(dict, "DONTNOTIFY", DONTNOTIFY);
 
             refresh_NAME = PyString_FromString("refresh");
             _effectDelete_NAME = PyString_FromString("_effectDelete");

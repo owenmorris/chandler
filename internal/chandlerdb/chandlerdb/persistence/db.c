@@ -399,7 +399,7 @@ static PyObject *t_db_compact(t_db *self, PyObject *args)
 
         Py_BEGIN_ALLOW_THREADS;
         err = self->db->compact(self->db, db_txn,
-                                NULL, NULL, NULL, flags, NULL);
+                                NULL, NULL, &compact, flags, NULL);
         Py_END_ALLOW_THREADS;
         if (err)
             return raiseDBError(err);

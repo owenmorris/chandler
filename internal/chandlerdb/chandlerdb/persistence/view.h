@@ -63,10 +63,10 @@ enum {
     DEBUG       = 0x00002000,
     RAMDB       = 0x00004000,
     CLOSED      = 0x00008000,
-    /* VMERGED  = 0x00010000, from CItem */
-    /* RMERGED  = 0x00020000, from CItem */
-    /* NMERGED  = 0x00040000, from CItem */
-    /* CMERGED  = 0x00080000, from CItem */
+    /* MERGED   = 0x00010000, from CItem */
+
+
+
     COMMITREQ   = 0x00100000,
     BADPASSWD   = 0x00200000,
     ENCRYPTED   = 0x00400000,
@@ -75,6 +75,7 @@ enum {
     DEFEROBSA   = 0x02000000,  /* defer observers, keeping all calls     */
     DEFERCOMMIT = 0x04000000,  /* defer commit calls                     */
     COMMITLOCK  = 0x08000000,  /* view locked during commit              */
+    DONTNOTIFY  = 0x10000000,  /* invert notify default to False         */
 };
 
 enum {
