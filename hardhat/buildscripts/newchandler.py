@@ -252,6 +252,8 @@ def doTests(hardhatScript, mode, workingDir, outputDir, buildVersion, log):
 
     if perfMode:
         tests += [ 'p' ]
+    else:
+        tests += [ 'F' ]
 
     for test in tests:
         if runTest(workingDir, log, cmd, test):
