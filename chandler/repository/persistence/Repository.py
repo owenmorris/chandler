@@ -138,8 +138,7 @@ class Repository(CRepository):
         pass
 
     def createView(self, name=None, version=None,
-                   deferDelete=Default,
-                   pruneSize=Default):
+                   deferDelete=Default, pruneSize=Default, notify=Default):
         """
         Create a repository view.
 
@@ -284,10 +283,10 @@ class OnDemandRepository(Repository):
     """
 
     def createView(self, name=None, version=None,
-                   deferDelete=Default, pruneSize=Default):
+                   deferDelete=Default, pruneSize=Default, notify=Default):
 
         return OnDemandRepositoryView(self, name, version,
-                                      deferDelete, pruneSize)
+                                      deferDelete, pruneSize, notify)
 
 
 class Store(CStore):

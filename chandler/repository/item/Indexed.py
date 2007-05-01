@@ -142,19 +142,19 @@ class Indexed(object):
         specified with one or more attribute names in a tuple via the
         C{monitor} keyword.
 
+        The C{attribute} and C{string} sorted indexes treat a missing or
+        C{None} value as infinitely large.
+
         In addition to the C{subindex} type of index, the C{compare} or
         C{method} types of indexes can be defined as the subindex of another
         index as long as it indexes a subset of the set indexed by the
         chosen superindex in the same order. This has the advantage that the
         subindex no longer has to monitor the attribute(s) that are used to
         sort the superindex as the superindex will reindex its subindexes as
-        needed. The superindex is specified via the C{superindex}
-        keyword. The methods used to compute the comparison values of two
+        needed. The methods used to compute the comparison values of two
         keys can use the difference in the keys' positions in the superindex
-        instead of computing a more expensive comparison value.
-
-        The C{attribute} and C{string} sorted indexes treat a missing or
-        C{None} value as infinitely large.
+        instead of computing a more expensive comparison value. The
+        superindex is specified with the C{superindex} keyword.
 
         @param indexName: the name of the index
         @type indexName: a string
