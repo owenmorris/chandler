@@ -44,8 +44,8 @@ from calendar.Calendar import (
 )
 from calendar.TimeZone import installParcel as tzInstallParcel
 from calendar.DateTimeUtil import (ampmNames, durationFormat, mediumDateFormat, 
-     monthNames, sampleDate, sampleTime, shortDateFormat, shortTimeFormat, 
-     weekdayNames, weekdayName)
+     monthNames, sampleDate, sampleTime, shortDateFormat, shortDateTimeFormat, 
+     shortTimeFormat, weekdayNames, weekdayName)
 from reminders import PendingReminderEntry, Reminder, Remindable
 from tasks import Task, TaskStamp
 from mail import EmailAddress, EmailComparator, MailStamp, MailPreferences, IMAPAccount, SMTPAccount

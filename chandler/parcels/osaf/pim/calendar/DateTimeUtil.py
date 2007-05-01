@@ -102,11 +102,28 @@ def forceFourDigitDates(formatter):
         formatter.dateFormat.applyPattern(pattern.replace('yy','yyyy'))
     return formatter
 
+def forceTwoDigitDates(formatter):
+    #""" If this formatter isn't using a 2-digit year, force it to. """
+    pattern = formatter.dateFormat.toPattern()
+    if pattern.find('yyyy') != -1:
+        formatter.dateFormat.applyPattern(pattern.replace('yyyy','yy'))
+    return formatter
+
+def forceNoSeconds(formatter):
+    #""" If this formatter includes seconds, remove them. """
+    pattern = formatter.dateFormat.toPattern()
+    secondsIndex = pattern.find('ss') 
+    if secondsIndex != -1:
+        formatter.dateFormat.applyPattern(pattern[:secondsIndex-1] +
+                                          pattern[secondsIndex+2:])
+    return formatter
 
 shortDateFormat = forceFourDigitDates(DatetimeFormatter(
     PyICU.DateFormat.createDateInstance(PyICU.DateFormat.kShort)))
 mediumDateFormat = forceFourDigitDates(DatetimeFormatter(
     PyICU.DateFormat.createDateInstance(PyICU.DateFormat.kMedium)))                        
+shortDateTimeFormat = forceTwoDigitDates(forceNoSeconds(DatetimeFormatter(
+    PyICU.DateFormat.createDateTimeInstance(PyICU.DateFormat.kShort))))
 shortTimeFormat = DatetimeFormatter(
     PyICU.DateFormat.createTimeInstance(PyICU.DateFormat.kShort))
 durationFormat = PyICU.SimpleDateFormat(_(u"H:mm"))

@@ -146,14 +146,19 @@ class ContentItem(Triageable):
         lastModified = (self.lastModified or getattr(self, 'createdOn', None) or
                        datetime.now(ICUtzinfo.default))
 
-        shortDateFormat = schema.importString("osaf.pim.shortDateFormat")
-        date = shortDateFormat.format(lastModified)
+        shortDateTimeFormat = schema.importString("osaf.pim.shortDateTimeFormat")
+        date = shortDateTimeFormat.format(lastModified)
 
         user = self.lastModifiedBy
         if user:
-             return fmt % dict(user=user.emailAddress, date=date)
+            userLabel = unicode(user.emailAddress)
+            # Per bug 8855: Only display the first portion of the address
+            atIndex = userLabel.find(_(u"@"))
+            if atIndex != -1:
+                userLabel = userLabel[:atIndex]
+            return fmt % dict(user=userLabel, date=date)
         else:
-             return noUserFmt % dict(date=date)
+            return noUserFmt % dict(date=date)
 
 
         return fmt % dict(user=user, date=date)
@@ -259,7 +264,7 @@ class ContentItem(Triageable):
         self.displayName = messages.UNTITLED
         
         if not self.hasLocalAttributeValue('lastModifiedBy'):
-            self.lastModifiedBy = self.getCurrentMeEmailAddress()
+            self.lastModifiedBy = self.getMyModifiedByAddress()
 
     def ExportItemData(self, clipboardHandler):
         # Create data for this kind of item in the clipboard handler
@@ -435,6 +440,20 @@ class ContentItem(Triageable):
         import mail
         return mail.getCurrentMeEmailAddress (self.itsView)
 
+    def getMyModifiedByAddress(self):
+        """
+        Get an EmailAddress that represents the local user, for
+        storing in lastModifiedBy after a local change.
+        """
+        me = self.getCurrentMeEmailAddress()
+        if not me: # Email not configured...
+            # Get the user name associated with the default sharing account
+            sharingAccount = schema.ns('osaf.sharing', self.itsView).\
+                             currentSharingAccount.item
+            if sharingAccount is not None:
+                import mail
+                me = mail.EmailAddress.getEmailAddress(self.itsView, sharingAccount.username)
+        return me
 
 
     def _updateCommonAttribute(self, attributeName, sourceAttributeName,

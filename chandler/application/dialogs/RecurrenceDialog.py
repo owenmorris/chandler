@@ -494,7 +494,7 @@ class UserChangeProxy(object):
                 message.fromAddress = who
                     
         if who is None:
-            who = me
+            who = item.getMyModifiedByAddress()
 
         item.changeEditState(who=who)
     
