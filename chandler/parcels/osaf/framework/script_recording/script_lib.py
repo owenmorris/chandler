@@ -112,10 +112,10 @@ def ProcessEvent (theClass, properties , attributes):
                 if type (newFocusWindow) is str:
                     assert focusWindow is NameToWidget (newFocusWindow), "An unexpected window has the focus"
                 else:
-                    assert isinstance (focusWindow, ProcessEvent.newFocusWindowClass),\
-                           "The focus window, " + str(focusWindow) + \
-                           ", is not class " + str (ProcessEvent.newFocusWindowClass) + \
-                           ". Parent window is " +  str (focusWindow.GetParent())
+                    assert isinstance (focusWindow, ProcessEvent.newFocusWindowClass), (
+                           "The focus window, " + str(focusWindow) +
+                           ", is not class " + str (ProcessEvent.newFocusWindowClass) +
+                           ". Parent window is " +  str (focusWindow.GetParent()) )
                     if newFocusWindow > 0:
                         assert focusWindow.GetId() == newFocusWindow, "Focus window has unexpected id"
                     else:
@@ -138,7 +138,9 @@ def ProcessEvent (theClass, properties , attributes):
             if type (value) is unicode and value.startswith (u"Welcome to Chandler 0.7.dev-r"):
                 assert lastWidgetValue.startswith (u"Welcome to Chandler 0.7.dev-r")
             else:
-                 assert value == lastWidgetValue, "widget's value doesn't match the value when the script was recorded"
+                 assert value == lastWidgetValue, (
+                        "widget's value, \"" + str(value) +
+                        "\", doesn't match the value when the script was recorded: \"" + str (lastWidgetValue) + '"' )
 
         # Keep track of the last widget. Use Id because widget can be deleted
         ProcessEvent.lastSentToWidget = sentToWidget
