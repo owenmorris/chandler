@@ -128,10 +128,12 @@ class Triageable(Remindable):
         to pop the item to the top of the Now section (again, only if force
         if the item already has section status).
         """
-        # Don't autotriage unless the flag says we should.
-        if newStatus == 'auto' and not self.doAutoTriageOnDateChange:
+        # Don't autotriage unless the flag says we should. (We keep going if we
+        # also want to pop-to-now, though)
+        if newStatus == 'auto' and not popToNow \
+           and not self.doAutoTriageOnDateChange:
             from osaf.framework.blocks.Block import debugName
-            logger.debug("Not Autotriaging %s", debugName(self))
+            #logger.debug("Not Autotriaging %s", debugName(self))
             return
 
         # Don't reindex or notify until we're done with these changes
@@ -144,12 +146,16 @@ class Triageable(Remindable):
                                                True, force)
                 elif popToNow:
                     from osaf.framework.blocks.Block import debugName
-                    logger.debug("Popping %s to Now", debugName(self))
+                    #logger.debug("Popping %s to Now", debugName(self))
                     self.__setTriageAttributes(TriageEnum.now, None,
                                                True, force)
                     
                 # Autotriage if we're supposed to.
                 if newStatus == 'auto':
+                    # Skip out if we're not supposed to.
+                    if not self.doAutoTriageOnDateChange:
+                        return 
+                    
                     # Give our stamps a chance to autotriage
                     newStatus = None
                     from stamping import Stamp
@@ -176,8 +182,8 @@ class Triageable(Remindable):
                            and reminder.nextPoll != reminder.farFuture \
                            and reminder.nextPoll > datetime.now(ICUtzinfo.default):
                             from osaf.framework.blocks.Block import debugName
-                            logger.debug("Autotriaging %s to LATER", 
-                                         debugName(self))
+                            #logger.debug("Autotriaging %s to LATER", 
+                                         #debugName(self))
                             newStatus = TriageEnum.later
                     
                 # If we were given, or calculated, a triage status, set it.
