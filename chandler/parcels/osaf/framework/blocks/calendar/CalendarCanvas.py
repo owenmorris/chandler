@@ -923,7 +923,7 @@ class CalendarNotificationHandler(object):
 
     def onItemNotification(self, notificationType, data):
         """
-        Unfortunately, the calendar only handles add events.
+        Handle add, change and remove.
         """
         if (notificationType == 'collectionChange'):
             blockItem = self.blockItem

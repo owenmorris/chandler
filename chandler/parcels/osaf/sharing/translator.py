@@ -98,6 +98,8 @@ def with_nochange(value, converter, view=None):
     else:
         return converter(value, view)
 
+def datetimes_really_equal(dt1, dt2):
+    return dt1.tzinfo == dt2.tzinfo and dt1 == dt2
 
 ### Event field conversion functions
 # incomplete
@@ -1328,7 +1330,8 @@ class SharingTranslator(eim.Translator):
         if (not isinstance(item, Occurrence) or
             has_change('allDay') or 
             has_change('anyTime') or 
-            event.effectiveStartTime != event.recurrenceID):
+            not datetimes_really_equal(event.effectiveStartTime,
+                                       event.recurrenceID)):
             dtstart = toICalendarDateTime(event.effectiveStartTime, 
                                           event.allDay, event.anyTime)
         else:
