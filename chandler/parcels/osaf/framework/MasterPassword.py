@@ -307,7 +307,7 @@ class GetMasterPasswordDialog(wx.Dialog):
         # creation, and then we create the GUI dialog using the Create
         # method.
         pre = wx.PreDialog()
-        pre.Create(None, -1, _(u'Enter master password'), pos, size, style)
+        pre.Create(None, -1, _(u'Password Protection'), pos, size, style)
 
         # This next step is the most important, it turns this Python
         # object into the real wrapper of the dialog (instead of pre)
@@ -397,11 +397,7 @@ class ChangeMasterPasswordDialog(wx.Dialog):
         # method.
         pre = wx.PreDialog()
         self.view = view
-        if changing:
-            title = _(u'Change Master Password')
-        else:
-            title = _(u'Set Master Password')
-        pre.Create(None, -1, title, pos, size, style)
+        pre.Create(None, -1, _(u'Password Protection'), pos, size, style)
 
         # This next step is the most important, it turns this Python
         # object into the real wrapper of the dialog (instead of pre)
@@ -416,7 +412,7 @@ class ChangeMasterPasswordDialog(wx.Dialog):
         sizer = wx.BoxSizer(wx.VERTICAL)
 
         # Static text
-        message = _(u'Sensitive information, such as email and sharing account passwords, are protected with a master password. Do not forget the master password or the protected information will be lost.')
+        message = _(u'Sensitive information, such as email and sharing account passwords, are protected with a master password.')
         label = wx.StaticText(self, -1, message)
         label.Wrap(400)
         sizer.Add(label, 0, wx.ALIGN_LEFT|wx.ALL, 5)
@@ -433,7 +429,11 @@ class ChangeMasterPasswordDialog(wx.Dialog):
         else:
             grid = wx.GridSizer(3, 2)
 
-        label = wx.StaticText(self, -1, _(u'Master pass&word:'))
+        if changing:
+            message = _(u'New master pass&word:')
+        else:
+            message = _(u'Master pass&word:')
+        label = wx.StaticText(self, -1, message)
         grid.Add(label, 0, wx.ALIGN_RIGHT|wx.ALL, 5)
         self.newMaster = wx.TextCtrl(self, -1, '', wx.DefaultPosition, [150, -1],
                                      wx.TE_PASSWORD)
@@ -456,14 +456,23 @@ class ChangeMasterPasswordDialog(wx.Dialog):
 
         sizer.Add(grid, 0, wx.ALIGN_LEFT|wx.ALL, 5)
 
-        # buttons
+        message = _(u'Do not forget the master password or the protected information will be lost.')
+        label = wx.StaticText(self, -1, message)
+        label.Wrap(400)
+        sizer.Add(label, 0, wx.ALIGN_LEFT|wx.ALL, 5)
+
+         # buttons
         box = wx.BoxSizer(wx.HORIZONTAL)
 
         if changing:
             self.reset = wx.Button(self, -1, _(u'&Reset Master Password...'))
             box.Add(self.reset, 0, wx.ALIGN_RIGHT|wx.ALL, 5)
 
-        self.ok = wx.Button(self, wx.ID_OK)
+        if changing:
+            message = _(u'Change Master Passw&ord')
+        else:
+            message = _(u'Pr&otect Passwords')
+        self.ok = wx.Button(self, wx.ID_OK, message)
         box.Add(self.ok, 0, wx.ALIGN_RIGHT|wx.ALL, 5)
         self.ok.Disable()
 
