@@ -190,7 +190,6 @@ def publishSubscribe(testClass):
             # XXX case this is safe, so just ignore. This seems to be needed
             # XXX on Linux only.
             pass
-        testClass.logger.endAction(True)
 
         scripting.User.idle()
 
@@ -202,8 +201,9 @@ def publishSubscribe(testClass):
         if scripting.User.emulate_sidebarClick(App_ns.sidebar, "testSharing"):
             # We need to click twice to move the focus to the sidebar
             scripting.User.emulate_sidebarClick(App_ns.sidebar, "testSharing")
-            # cleanup
-            App_ns.root.Remove({'testing' : True}) # @@@MOR: what does this do?
+            # cleanup; remove the testSharing collection
+            App_ns.root.Remove({'testing' : True})
+            testClass.logger.endAction(True, "(On Subscribe collection)")
         else:
             testClass.logger.endAction(False, "(On Subscribe collection)")
 

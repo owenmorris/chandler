@@ -697,15 +697,11 @@ def runFuncTestsSingly(options):
     /.../debug/RunChandler... --create --catch=tests --profileDir=test_profile --parcelPath=tools/QATestScripts/DataFiles --chandlerTests=TestCreateAccounts -D2 -M0
     ...
     """
+    from cats.Functional import tests
+
     failed   = False
-    testlist = []
-
-    for item in glob.glob(os.path.join('tools', 'cats', 'Functional', 'Test*.py')):
-        testlist.append(os.path.split(item)[1][:-3])
-
-    # XXX How to strip disabled tests?
-
-    for test in testlist:
+    
+    for test, _c in tests.tests_to_run:
         if runFuncTest(options, test):
             failed = True
 

@@ -28,4 +28,8 @@ from repository.item.Item import MissingClass
 class TestSharing(ChandlerTestCase):
 
     def startTest(self):
+        # If we don't have this there'll be a mysterious error:
+        # AttributeError: 'Panel' object has no attribute 'GetValue'
+        QAUITestAppLib.UITestItem("Collection", self.logger)
+
         QAUITestAppLib.publishSubscribe(self)

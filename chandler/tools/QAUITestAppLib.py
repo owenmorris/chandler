@@ -191,7 +191,7 @@ def publishSubscribe(logger):
         if scripting.User.emulate_sidebarClick(App_ns.sidebar, "testSharing"):
             # We need to click twice to move the focus to the sidebar
             scripting.User.emulate_sidebarClick(App_ns.sidebar, "testSharing")
-            # cleanup
+            # cleanup; remove the testSharing collection
             App_ns.root.Remove({'testing' : True})
             logger.ReportPass("(On Subscribe collection)")
         else:
