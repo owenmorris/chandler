@@ -917,6 +917,14 @@ class CalendarNotificationHandler(object):
     """
     Mixin to a wx class to deal with item notifications.
     """
+    
+    # set membership testing is much faster than tuple membership testing
+    notification_tracked_attributes = set( (
+      Calendar.EventStamp.startTime.name, 'displayName',
+      Calendar.EventStamp.duration.name, Calendar.EventStamp.anyTime.name,
+      Calendar.EventStamp.allDay.name, Calendar.EventStamp.transparency.name,
+      'osaf.framework.blocks.BranchPointBlock.selectedItem.inverse'))
+        
     def __init__(self, *args, **kwds):
         super(CalendarNotificationHandler, self).__init__(*args, **kwds)
         self.ClearPendingEventChanges()
@@ -928,6 +936,7 @@ class CalendarNotificationHandler(object):
         if (notificationType == 'collectionChange'):
             blockItem = self.blockItem
             op, coll, name, uuid, dirties = data
+            
             if op == "refresh":
                 if blockItem.find(uuid) in blockItem.contents:
                     op = "add"
@@ -938,6 +947,17 @@ class CalendarNotificationHandler(object):
             
             if existingChange == op:
                 return # already got this one
+
+            if op == 'changed' and len(dirties) > 0:
+                meaningful_change = False
+                for attr in dirties:
+                    if attr in self.notification_tracked_attributes:
+                        meaningful_change = True
+                        break
+                if not meaningful_change:
+                    # don't bother marking as dirty for changes to attributes
+                    # that don't affect rendering 
+                    return            
             
             if existingChange is None:
                 self._pending[uuid] = op

@@ -237,6 +237,7 @@ class DetailBranchPointDelegate(BranchPoint.BranchPointDelegate):
 
         # The normal case: we have an item, so use its Kind
         # as the key.
+        item = getattr(item, 'inheritFrom', item)
         return item.itsKind
 
     def _makeBranchForCacheKey(self, keyItem):
@@ -1688,6 +1689,11 @@ class RecurrenceAttributeEditor(ChoiceAttributeEditor):
 
             self.SetAttributeValue(self.item, self.attributeName, 
                                    newChoice)
+
+            # a bunch of new occurrences were just created, might as well commit
+            # them now rather than making some later commit take a surprisingly
+            # long time
+            self.item.itsView.commit()
 
     def GetAttributeValue(self, item, attributeName):
         index = RecurrenceAttributeEditor.mapRecurrenceFrequency(item)

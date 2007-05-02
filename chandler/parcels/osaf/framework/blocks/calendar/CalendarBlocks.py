@@ -29,7 +29,7 @@ from osaf.framework.blocks import (
 
 from osaf import Preferences
 import osaf.pim as pim
-import CalendarCanvas
+from CalendarCanvas import CalendarBlock, CalendarNotificationHandler
 import osaf.pim.calendar.Calendar as Calendar
 from osaf.pim import EventStamp, has_stamp, isDead
 from datetime import datetime, time, timedelta
@@ -49,7 +49,7 @@ one_day = timedelta(1)
 
 class wxMiniCalendar(DragAndDrop.DropReceiveWidget,
                      DragAndDrop.ItemClipboardHandler,
-                     CalendarCanvas.CalendarNotificationHandler,
+                     CalendarNotificationHandler,
                      minical.PyMiniCalendar,
                      ):
 
@@ -66,6 +66,12 @@ class wxMiniCalendar(DragAndDrop.DropReceiveWidget,
      # Note that _recalcCount wins over _eventsToAdd. That's
      # because more general changes (i.e. ones we don't know
      # how to optimize) require a full recalculation.
+
+    # don't track selections changes and title changes
+    notification_tracked_attributes = \
+        CalendarNotificationHandler.notification_tracked_attributes - set(
+            ('osaf.framework.blocks.BranchPointBlock.selectedItem.inverse',
+             'displayName'))
 
     def OnHover(self, x, y, dragResult):
         """
@@ -338,7 +344,7 @@ def isMainCalendarVisible():
         return False
 
 
-class MiniCalendar(CalendarCanvas.CalendarBlock):
+class MiniCalendar(CalendarBlock):
     dayMode = schema.One(schema.Boolean, initialValue = True)
 
     previewArea = schema.One(
@@ -415,10 +421,14 @@ class MiniCalendar(CalendarCanvas.CalendarBlock):
         #never want to change our collection
         pass
 
+    def onItemNotification(self, notificationType, data):
+        # Delegate notifications to the block
+        self.widget.onItemNotification(notificationType, data)
+
 class PreviewPrefs(Preferences):
     maximumEventsDisplayed = schema.One(schema.Integer, initialValue=5)
 
-class PreviewArea(CalendarCanvas.CalendarBlock):
+class PreviewArea(CalendarBlock):
     timeCharacterStyle = schema.One(Styles.CharacterStyle)
     eventCharacterStyle = schema.One(Styles.CharacterStyle)
     linkCharacterStyle = schema.One(Styles.CharacterStyle)
@@ -461,11 +471,20 @@ class PreviewArea(CalendarCanvas.CalendarBlock):
                              eventCharStyle = self.eventCharacterStyle,
                              linkCharStyle = self.linkCharacterStyle)
 
+    def onItemNotification(self, notificationType, data):
+        # Delegate notifications to the block
+        self.widget.onItemNotification(notificationType, data)
 
-class wxPreviewArea(CalendarCanvas.CalendarNotificationHandler, wx.Panel):
+
+class wxPreviewArea(CalendarNotificationHandler, wx.Panel):
     vMargin = 4 # space above & below text
     hMargin = 6 # space on sides
     midMargin = 6 # space between time & date
+
+    # don't track selection changes
+    notification_tracked_attributes = \
+        CalendarNotificationHandler.notification_tracked_attributes - set(
+            ('osaf.framework.blocks.BranchPointBlock.selectedItem.inverse',))
 
     def __init__(self, parent, id, timeCharStyle, eventCharStyle, linkCharStyle,
                  *arguments, **keywords):
