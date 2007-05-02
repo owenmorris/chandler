@@ -1023,9 +1023,10 @@ class RepositoryView(CView):
 
         return self.repository.store.getItemVersion(self, version, item.itsUUID)
 
-    def queueNotification(self, item, op, change, name, other):
+    def queueNotification(self, item, op, change, name, other, dirties):
 
-        self._queuedNotifications.put((item.itsUUID, op, change, name, other))
+        self._queuedNotifications.put((item.itsUUID, op, change, name,
+                                       other, dirties))
 
     def dispatchQueuedNotifications(self):
         """
@@ -1039,7 +1040,7 @@ class RepositoryView(CView):
 
         while True:
             while not queue.empty():
-                uItem, op, change, name, other = queue.get()
+                uItem, op, change, name, other, dirties = queue.get()
                 count += 1
 
                 watchers = self._watchers.get(uItem)
@@ -1052,7 +1053,8 @@ class RepositoryView(CView):
                             continue
                         else:
                             for watcher in watchers:
-                                watcher(op, change, collection, name, other)
+                                watcher(op, change, collection, name,
+                                        other, dirties)
 
             while self.isDirtyAgain():
                 self.dispatchChanges(self.mapChangedItems(True))
@@ -1075,7 +1077,7 @@ class RepositoryView(CView):
 
         return count
 
-    def dispatchChanges(self, items):
+    def dispatchChanges(self, items, dirties=()):
         """
         Notify kind extents and collection watchers that items have changed.
 
@@ -1096,11 +1098,28 @@ class RepositoryView(CView):
 
         for item in items:
             kind = item.itsKind
-            uItem = item.itsUUID
 
             if kind is not None:
+                uItem = item.itsUUID
+
+                if item.isDirty():
+                    _dirties = item.itsValues._getDirties()
+                    _dirties.extend(item.itsRefs._getDirties())
+                else:
+                    _dirties = ()
+
+                if dirties:
+                    if _dirties:
+                        _dirties = dirties + tuple(_dirties)
+                    else:
+                        _dirties = dirties
+                elif _dirties:
+                    _dirties = tuple(_dirties)
+                else:
+                    _dirties = ()
+
                 kind.extent._collectionChanged('changed', 'notification',
-                                               'extent', uItem)
+                                               'extent', uItem, _dirties)
 
                 for name in kind._iterNotifyAttributes():
                     value = getattr(item, name, None)
@@ -1115,7 +1134,8 @@ class RepositoryView(CView):
                                     for watcher in watchers:
                                         if watcher is not None:
                                             watcher('changed', 'notification',
-                                                    uRef, otherName, uItem)
+                                                    uRef, otherName,
+                                                    uItem, _dirties)
 
     def _dispatchHistory(self, history, refreshes, oldVersion, newVersion):
 
@@ -1640,10 +1660,10 @@ class TransientWatchCollection(TransientWatch):
         super(TransientWatchCollection, self).__init__(view, watchingItem)
         self.methodName = methodName
         
-    def __call__(self, op, change, owner, name, other):
+    def __call__(self, op, change, owner, name, other, dirties):
 
         getattr(self.view[self.watchingItem],
-                self.methodName)(op, owner, name, other)
+                self.methodName)(op, owner, name, other, dirties)
 
     def compare(self, methodName):
 
@@ -1657,14 +1677,15 @@ class TransientWatchKind(TransientWatch):
         super(TransientWatchKind, self).__init__(view, watchingItem)
         self.methodName = methodName
         
-    def __call__(self, op, change, owner, name, other):
+    def __call__(self, op, change, owner, name, other, dirties):
 
         if isuuid(owner):
             kind = self.view[owner].kind
         else:
             kind = owner.kind
 
-        getattr(self.view[self.watchingItem], self.methodName)(op, kind, other)
+        getattr(self.view[self.watchingItem],
+                self.methodName)(op, kind, other, dirties)
 
     def compare(self, methodName):
 
@@ -1678,9 +1699,10 @@ class TransientWatchItem(TransientWatch):
         super(TransientWatchItem, self).__init__(view, watchingItem)
         self.methodName = methodName
         
-    def __call__(self, op, uItem, names):
+    def __call__(self, op, uItem, dirties):
 
-        getattr(self.view[self.watchingItem], self.methodName)(op, uItem, names)
+        getattr(self.view[self.watchingItem],
+                self.methodName)(op, uItem, dirties)
 
     def compare(self, methodName):
 

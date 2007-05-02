@@ -432,11 +432,13 @@ class References(Values):
 
             if value._isRefs():
                 view._notifyChange(item._collectionChanged,
-                                   'add', 'collection', name, other.itsUUID)
+                                   'add', 'collection', name,
+                                   other.itsUUID, ())
 
             if otherValue._isRefs():
                 view._notifyChange(other._collectionChanged,
-                                   'add', 'collection', otherName, item.itsUUID)
+                                   'add', 'collection', otherName,
+                                   item.itsUUID, ())
 
         elif other in (None, Empty):
             self._setRef(name, other, otherName, cardinality,
@@ -489,7 +491,7 @@ class References(Values):
             if fireChanges:
                 item.itsView._notifyChange(item._collectionChanged,
                                            'add', 'collection', name,
-                                           other.itsUUID)
+                                           other.itsUUID, ())
                 
         else:
             self[name] = value = other

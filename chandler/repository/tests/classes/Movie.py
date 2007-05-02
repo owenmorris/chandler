@@ -1,4 +1,4 @@
-#   Copyright (c) 2003-2006 Open Source Applications Foundation
+#   Copyright (c) 2003-2007 Open Source Applications Foundation
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -32,18 +32,18 @@ class Movie(Item):
 
         print 'copied', self.title, 'from', original.itsUUID
 
-    def kindChanged(self, op, kind, item):
+    def kindChanged(self, op, kind, item, dirties):
 
         self.monitorAttribute = 'kind'
-        print self, 'kindChanged', op, self, kind, item
+        print self, 'kindChanged', op, self, kind, item, dirties
 
-    def itemChanged(self, op, item, names):
+    def itemChanged(self, op, item, dirties):
 
-        print self, 'itemChanged', op, item, names
+        print self, 'itemChanged', op, item, dirties
 
-    def onCollectionNotification(self, op, collection, name, other):
+    def onCollectionNotification(self, op, collection, name, other, dirties):
 
-        print self, 'onCollectionNotification', op, collection, name, other
+        print self, 'onCollectionNotification', op, collection, name, other, dirties
 
     def titleChanged(self, op, name):
 

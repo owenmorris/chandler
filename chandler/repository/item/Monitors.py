@@ -33,7 +33,7 @@ class Monitors(Item):
         view.setSingleton(view.MONITORS, None)
 
     @override(Item)
-    def _collectionChanged(self, op, change, name, other):
+    def _collectionChanged(self, op, change, name, other, dirties):
 
         if change == 'collection' and name == 'monitors':
             if op == 'remove':
@@ -42,7 +42,8 @@ class Monitors(Item):
                 if other is self:
                     raise TypeError, "Monitors dispatcher cannot have monitors"
 
-        super(Monitors, self)._collectionChanged(op, change, name, other)
+        super(Monitors, self)._collectionChanged(op, change, name,
+                                                 other, dirties)
                             
     def cacheMonitors(self):
 

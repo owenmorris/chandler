@@ -428,7 +428,7 @@ class WrapperCollection(ContentCollection):
         self._sourcesChanged_('add')
         self.watchCollection(self, 'sources', '_sourcesChanged')
 
-    def _sourcesChanged(self, op, item, attribute, sourceId):
+    def _sourcesChanged(self, op, item, attribute, sourceId, dirties):
 
         if op in ('add', 'remove'):
             view = self.itsView
@@ -442,7 +442,8 @@ class WrapperCollection(ContentCollection):
                 assert actualSource is not None
                 for uuid in source.iterkeys():
                     view._notifyChange(sourceChanged, 'add', 'collection',
-                                       source, name, False, uuid, actualSource)
+                                       source, name, False, uuid, dirties,
+                                       actualSource)
 
             elif op == 'remove':
                 set = getattr(self, self.__collection__)
@@ -451,7 +452,8 @@ class WrapperCollection(ContentCollection):
                 assert actualSource is not None
                 for uuid in source.iterkeys():
                     view._notifyChange(sourceChanged, 'remove', 'collection',
-                                       source, name, False, uuid, actualSource)
+                                       source, name, False, uuid, dirties,
+                                       actualSource)
                 set = self._sourcesChanged_(op)
 
     def addSource(self, source):
@@ -570,7 +572,7 @@ class IntersectionCollection(WrapperCollection):
     least two ContentCollections.
     """
 
-    def _sourcesChanged(self, op, item, attribute, sourceId):
+    def _sourcesChanged(self, op, item, attribute, sourceId, dirties):
 
         if op in ('add', 'remove'):
             view = self.itsView
@@ -587,12 +589,13 @@ class IntersectionCollection(WrapperCollection):
                         if uuid not in sourceSet:
                             view._notifyChange(_collectionChanged,
                                                'remove', 'collection',
-                                               name, uuid)
+                                               name, uuid, ())
                 set = self._sourcesChanged_(op)
                 if wasEmpty and not isinstance(set, EmptySet):
                     for uuid in set.iterkeys():
                         view._notifyChange(_collectionChanged,
-                                           'add', 'collection', name, uuid)
+                                           'add', 'collection',
+                                           name, uuid, ())
 
             elif (op == 'remove' and
                   not isinstance(getattr(self, name), EmptySet)):
@@ -601,12 +604,14 @@ class IntersectionCollection(WrapperCollection):
                 if isinstance(set, EmptySet):
                     for uuid in sourceSet.iterkeys():
                         view._notifyChange(_collectionChanged,
-                                           'remove', 'collection', name, uuid)
+                                           'remove', 'collection',
+                                           name, uuid, ())
                 else:
                     for uuid in set.iterkeys():
                         if uuid not in sourceSet:
                             view._notifyChange(_collectionChanged,
-                                               'add', 'collection', name, uuid)
+                                               'add', 'collection',
+                                               name, uuid, ())
 
     def _sourcesChanged_(self, op):
 

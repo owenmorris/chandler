@@ -573,13 +573,13 @@ class Block(schema.Item):
                              #debugName(block), "', '".join(attrs))
                 block.onItemNotification('itemChange', (op, uuid, attrs))
 
-    def onCollectionNotification(self, op, collection, name, other):
+    def onCollectionNotification(self, op, collection, name, other, dirties):
         """
         When our item collection has changed, we need to synchronize.
         """
         if (not self.ignoreNotifications and
             self.itsView is theApp.UIRepositoryView):
-            self.onItemNotification('collectionChange', (op, collection, name, other))
+            self.onItemNotification('collectionChange', (op, collection, name, other, dirties))
 
     def onItemNotification (self, notificationType, data):
         self.markDirty()

@@ -115,7 +115,7 @@ class Item(CItem):
         if fireChanges and itsKind is not None:
             self.itsView._notifyChange(itsKind.extent._collectionChanged,
                                        'add', 'collection', 'extent',
-                                       self.itsUUID)
+                                       self.itsUUID, ())
 
     # fire afterChange methods on initial keyword values
     # fire system monitors on all values, initial or set during afterChange
@@ -636,7 +636,8 @@ class Item(CItem):
                 for uChild in self._children.iterkeys():
                     yield uChild
 
-    def iterAttributeValues(self, valuesOnly=False, referencesOnly=False):
+    def iterAttributeValues(self, valuesOnly=False, referencesOnly=False,
+                            changedOnly=False):
         """
         Return a generator of C{(name, value)} tuples for iterating over
         Chandler attribute values of this item. 
@@ -650,18 +651,23 @@ class Item(CItem):
         """
 
         if not referencesOnly:
-            for name, value in self._values._dict.iteritems():
-                if isitemref(value):
-                    value = value(True)
-                yield name, value
+            values = self.itsValues
+            for name, value in values._dict.iteritems():
+                if not changedOnly or value._isDirty(name):
+                    if isitemref(value):
+                        value = value(True)
+                    yield name, value
 
         if not valuesOnly:
-            for name, ref in self._references._dict.iteritems():
-                if isitemref(ref):
-                    ref = ref()
-                yield name, ref
+            refs = self.itsRefs
+            for name, ref in refs._dict.iteritems():
+                if not changedOnly or refs._isDirty(name):
+                    if isitemref(ref):
+                        ref = ref()
+                    yield name, ref
 
-    def iterAttributeNames(self, valuesOnly=False, referencesOnly=False):
+    def iterAttributeNames(self, valuesOnly=False, referencesOnly=False,
+                           changedOnly=False):
         """
         Return a generator of attribute names for iterating over
         Chandler attributes of this item. 
@@ -675,12 +681,16 @@ class Item(CItem):
         """
 
         if not referencesOnly:
-            for name in self._values._dict.iterkeys():
-                yield name
+            values = self.itsValues
+            for name in values._dict.iterkeys():
+                if not changedOnly or values._isDirty(name):
+                    yield name
 
         if not valuesOnly:
-            for name in self._references._dict.iterkeys():
-                yield name
+            refs = self.itsRefs
+            for name in refs._dict.iterkeys():
+                if not changedOnly or refs._isDirty(name):
+                    yield name
 
     def check(self, recursive=False, repair=False):
         """
@@ -1278,7 +1288,8 @@ class Item(CItem):
             hook(view)
         if kind is not None:
             view._notifyChange(kind.extent._collectionChanged,
-                               'add', 'collection', 'extent', item.itsUUID)
+                               'add', 'collection', 'extent',
+                               item.itsUUID, ())
         if hasattr(cls, 'onItemCopy'):
             item.onItemCopy(view, self)
 
@@ -1318,7 +1329,8 @@ class Item(CItem):
             hook(view)
         if kind is not None:
             view._notifyChange(kind.extent._collectionChanged,
-                               'add', 'collection', 'extent', item.itsUUID)
+                               'add', 'collection', 'extent',
+                               item.itsUUID, ())
         if hasattr(cls, 'onItemClone'):
             item.onItemClone(view, self)
 
@@ -1411,7 +1423,7 @@ class Item(CItem):
         if self.itsKind is not None:
             view._notifyChange(self.itsKind.extent._collectionChanged,
                                'remove', 'collection', 'extent',
-                               self.itsUUID, None)
+                               self.itsUUID, ())
 
         for name in refs.keys():
             policy = (deletePolicy or
@@ -1573,7 +1585,7 @@ class Item(CItem):
             if prevKind is not None:
                 view._notifyChange(prevKind.extent._collectionChanged,
                                    'remove', 'collection', 'extent',
-                                   self.itsUUID, kind)
+                                   self.itsUUID, (), kind)
 
                 if kind is None:
                     self._values.clear()
@@ -1606,8 +1618,8 @@ class Item(CItem):
                 kind._setupClass(self.__class__)
                 kind.getInitialValues(self, False)
                 view._notifyChange(kind.extent._collectionChanged,
-                                   'add', 'collection', 'extent', self.itsUUID,
-                                   prevKind)
+                                   'add', 'collection', 'extent',
+                                   self.itsUUID, (), prevKind)
                 if self.isWatched():
                     view._notifyChange(self._itemChanged,
                                        'set', ('itsKind',))
@@ -2283,10 +2295,10 @@ class WatchSet(Watch):
         super(WatchSet, self).__init__(watchingItem)
         self.attribute = attribute
         
-    def __call__(self, op, change, owner, name, other):
+    def __call__(self, op, change, owner, name, other, dirties):
         
         set = getattr(self.watchingItem, self.attribute)
-        set.sourceChanged(op, change, owner, name, False, other)
+        set.sourceChanged(op, change, owner, name, False, other, dirties)
 
     def compare(self, attribute):
 
@@ -2302,9 +2314,10 @@ class WatchCollection(Watch):
         super(WatchCollection, self).__init__(watchingItem)
         self.methodName = methodName
         
-    def __call__(self, op, change, owner, name, other):
+    def __call__(self, op, change, owner, name, other, dirties):
 
-        getattr(self.watchingItem, self.methodName)(op, owner, name, other)
+        getattr(self.watchingItem,
+                self.methodName)(op, owner, name, other, dirties)
 
     def compare(self, methodName):
 
@@ -2320,14 +2333,14 @@ class WatchKind(Watch):
         super(WatchKind, self).__init__(watchingItem)
         self.methodName = methodName
         
-    def __call__(self, op, change, owner, name, other):
+    def __call__(self, op, change, owner, name, other, dirties):
 
         if isuuid(owner):
             kind = self.itsView[owner].kind
         else:
             kind = owner.kind
 
-        getattr(self.watchingItem, self.methodName)(op, kind, other)
+        getattr(self.watchingItem, self.methodName)(op, kind, other, dirties)
 
     def compare(self, methodName):
 
@@ -2343,9 +2356,9 @@ class WatchItem(Watch):
         super(WatchItem, self).__init__(watchingItem)
         self.methodName = methodName
         
-    def __call__(self, op, uItem, names):
+    def __call__(self, op, uItem, dirties):
 
-        getattr(self.watchingItem, self.methodName)(op, uItem, names)
+        getattr(self.watchingItem, self.methodName)(op, uItem, dirties)
 
     def compare(self, methodName):
 

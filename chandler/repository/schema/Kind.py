@@ -259,7 +259,7 @@ class Kind(Item):
         if fireChanges:
             self.itsView._notifyChange(self.extent._collectionChanged,
                                        'add', 'collection', 'extent',
-                                       item.itsUUID)
+                                       item.itsUUID, ())
 
         return item
             
@@ -1015,7 +1015,8 @@ class Extent(Item):
                 yield key
 
     @override(Item)
-    def _collectionChanged(self, op, change, name, other, filterKind=None):
+    def _collectionChanged(self, op, change, name, other, dirties,
+                           filterKind=None):
 
         view = self.itsView
         callable = Item._collectionChanged
@@ -1027,20 +1028,22 @@ class Extent(Item):
                 filterKindIDs = filterKind.getInheritedSuperKindIDs()
                 if not (kind is filterKind or
                         kind.itsUUID in filterKindIDs):
-                    callable(self, op, change, name, other)
+                    callable(self, op, change, name, other, dirties)
                     for superKindID in kind.getInheritedSuperKindIDs():
                         superKind = view[superKindID]
                         if not (superKind is filterKind or
                                 superKindID in filterKindIDs):
-                            callable(superKind.extent, op, change, name, other)
+                            callable(superKind.extent, op, change, name, other,
+                                     dirties)
 
             else:
-                callable(self, op, change, name, other)
+                callable(self, op, change, name, other, dirties)
                 for superKindID in kind.getInheritedSuperKindIDs():
-                    callable(view[superKindID].extent, op, change, name, other)
+                    callable(view[superKindID].extent, op, change, name, other,
+                             dirties)
 
         else:
-            callable(self, op, change, name, other)
+            callable(self, op, change, name, other, dirties)
 
 
 class DelegateDescriptor(object):

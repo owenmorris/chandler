@@ -34,11 +34,11 @@ class movie(Movie):
         self.calls = []
 
     @override(Movie)
-    def _collectionChanged(self, op, change, name, other):
+    def _collectionChanged(self, op, change, name, other, dirties):
 
         if name != 'watches':
             self.calls.append((op, self, name, other))
-        super(movie, self)._collectionChanged(op, change, name, other)
+        super(movie, self)._collectionChanged(op, change, name, other, dirties)
 
     def onFilteredItemChange(self, view, item, attrName, collectionName):
 

@@ -208,21 +208,19 @@ class DBRepositoryView(OnDemandRepositoryView):
                 kind = self.find(pKind)
                 if kind is not None:
                     kind.extent._collectionChanged('refresh', 'collection',
-                                                   'extent', uItem)
+                                                   'extent', uItem, ())
 
             kind = self.find(uKind)
-            names = None
             if kind is not None:
+                names = dirtyNames()
                 kind.extent._collectionChanged('refresh', 'collection',
-                                               'extent', uItem)
+                                               'extent', uItem, names)
 
                 watchers = self.findValue(uItem, 'watchers', None, version)
                 if watchers:
                     isNew = (status & CItem.NEW) != 0
                     for attribute, watchers in watchers.iteritems():
                         if watchers:
-                            if names is None:
-                                names = dirtyNames()
                             if isuuid(attribute):  # item watchers
                                 for watcher in watchers:
                                     if watcher is not None:
@@ -238,7 +236,7 @@ class DBRepositoryView(OnDemandRepositoryView):
                                     if uRef in refreshes:
                                         for watcher in watchers:
                                             if watcher is not None:
-                                                watcher('refresh', 'collection', uItem, attribute, uRef)
+                                                watcher('refresh', 'collection', uItem, attribute, uRef, ())
 
                 for name in kind._iterNotifyAttributes():
                     value = self.findValue(uItem, name, None, version)
@@ -251,14 +249,12 @@ class DBRepositoryView(OnDemandRepositoryView):
                                 if watchers:
                                     for watcher in watchers:
                                         if watcher is not None:
-                                            watcher('changed', 'notification', uRef, otherName, uItem)
+                                            watcher('changed', 'notification', uRef, otherName, uItem, names)
 
             watchers = self._watchers
             if watchers and uItem in watchers:
                 watchers = watchers[uItem].get(uItem)
                 if watchers:
-                    if names is None:
-                        names = dirtyNames()
                     for watcher in watchers:
                         watcher('refresh', uItem, names)
 

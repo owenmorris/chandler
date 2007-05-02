@@ -2797,7 +2797,7 @@ class TriageStatusReminder(RelativeReminder):
         view.watchCollectionQueue(self, EventStamp.getCollection(view),
                                   'onCollectionNotification')
                                           
-    def onCollectionNotification(self, op, collection, name, other):
+    def onCollectionNotification(self, op, collection, name, other, dirties):
         if op in ('changed', 'add'):
             item = self.itsView[other]
             if has_stamp(item, EventStamp):

@@ -81,10 +81,10 @@ class MasterEventWatcher(schema.Item):
         self.itsView.watchCollectionQueue(self, self.targetCollection,
                                          'onMasterEventChange')
 
-    def onMasterEventChange(self, op, collection, name, other):
+    def onMasterEventChange(self, op, collection, name, other, dirties):
         mods = self.itsView.findValue(other, EventStamp.modifications.name, [])
         # Propagate via
-        self.itsView.dispatchChanges(iter(mods))
+        self.itsView.dispatchChanges(iter(mods), dirties)
 
 
 class NonOccurrenceFilter(Item):

@@ -37,7 +37,7 @@ class AbstractSet(ItemValue, Indexed):
         raise NotImplementedError, "%s.__contains__" %(type(self))
 
     def sourceChanged(self, op, change, sourceOwner, sourceName, inner, other,
-                      source=None):
+                      dirties, source=None):
         raise NotImplementedError, "%s.sourceChanged" %(type(self))
 
     def __repr__(self):
@@ -345,7 +345,7 @@ class AbstractSet(ItemValue, Indexed):
             source._setView(view)
 
     def _sourceChanged(self, source, op, change,
-                       sourceOwner, sourceName, other, actualSource):
+                       sourceOwner, sourceName, other, dirties, actualSource):
 
         if isinstance(source, AbstractSet):
             if actualSource is not None:
@@ -353,7 +353,7 @@ class AbstractSet(ItemValue, Indexed):
                     op = None
             else:
                 op = source.sourceChanged(op, change, sourceOwner, sourceName,
-                                          True, other)
+                                          True, other, dirties)
 
         elif (sourceName == source[1] and
               (isuuid(sourceOwner) and sourceOwner == source[0] or
@@ -364,7 +364,7 @@ class AbstractSet(ItemValue, Indexed):
 
         return op
 
-    def _collectionChanged(self, op, change, other, local=False):
+    def _collectionChanged(self, op, change, other, dirties, local=False):
 
         item, attribute = self.itsOwner
         if item is not None:
@@ -412,7 +412,7 @@ class AbstractSet(ItemValue, Indexed):
                 else:
                     raise ValueError, op
 
-            item._collectionChanged(op, change, attribute, other)
+            item._collectionChanged(op, change, attribute, other, dirties)
 
     def removeByIndex(self, indexName, position):
 
@@ -567,16 +567,16 @@ class AbstractSet(ItemValue, Indexed):
 
         self._owner().add(other)
         self.itsView._notifyChange(self._collectionChanged,
-                                   'add', 'collection', other.itsUUID,
-                                   True)
+                                   'add', 'collection',
+                                   other.itsUUID, (), True)
 
     def _removeRef(self, other, dictKey=None):
 
         if other in self:
             self._owner().remove(other)
             self.itsView._notifyChange(self._collectionChanged,
-                                       'remove', 'collection', other.itsUUID,
-                                       True)
+                                       'remove', 'collection',
+                                       other.itsUUID, (), True)
 
     def _removeRefs(self):
         
@@ -633,8 +633,8 @@ class EmptySet(AbstractSet):
 
         return "%s(%s)" %(type(self).__name__, self._reprSourceId(replace))
         
-    def sourceChanged(self, op, change, sourceOwner, sourceName, inner, other,
-                      source=None):
+    def sourceChanged(self, op, change, sourceOwner, sourceName, inner,
+                      other, dirties, source=None):
 
         return None
 
@@ -720,19 +720,20 @@ class Set(AbstractSet):
         super(Set, self)._setView(view)
         self._setSourceView(self._source, view)
 
-    def sourceChanged(self, op, change, sourceOwner, sourceName, inner, other,
-                      source=None):
+    def sourceChanged(self, op, change, sourceOwner, sourceName, inner,
+                      other, dirties, source=None):
 
         if change == 'collection':
             op = self._sourceChanged(self._source, op, change,
-                                     sourceOwner, sourceName, other, source)
+                                     sourceOwner, sourceName, other, dirties,
+                                     source)
 
         elif change == 'notification':
             if other not in self:
                 op = None
 
         if not (inner is True or op is None):
-            self._collectionChanged(op, change, other)
+            self._collectionChanged(op, change, other, dirties)
 
         return op
 
@@ -797,16 +798,16 @@ class BiSet(AbstractSet):
 
         raise NotImplementedError, "%s._op" %(type(self))
 
-    def sourceChanged(self, op, change, sourceOwner, sourceName, inner, other,
-                      source=None):
+    def sourceChanged(self, op, change, sourceOwner, sourceName, inner,
+                      other, dirties, source=None):
 
         if change == 'collection':
             leftOp = self._sourceChanged(self._left, op, change,
-                                         sourceOwner, sourceName, other,
-                                         source)
+                                         sourceOwner, sourceName,
+                                         other, dirties, source)
             rightOp = self._sourceChanged(self._right, op, change,
-                                          sourceOwner, sourceName, other,
-                                          source)
+                                          sourceOwner, sourceName,
+                                          other, dirties, source)
             if op == 'refresh':
                 op = self._op(leftOp, rightOp, other) or 'refresh'
             else:
@@ -817,7 +818,7 @@ class BiSet(AbstractSet):
                 op = None
 
         if not (inner is True or op is None):
-            self._collectionChanged(op, change, other)
+            self._collectionChanged(op, change, other, dirties)
 
         return op
 
@@ -1109,12 +1110,13 @@ class MultiSet(AbstractSet):
 
         raise NotImplementedError, "%s._op" %(type(self))
 
-    def sourceChanged(self, op, change, sourceOwner, sourceName, inner, other,
-                      source=None):
+    def sourceChanged(self, op, change, sourceOwner, sourceName, inner,
+                      other, dirties, source=None):
 
         if change == 'collection':
             ops = [self._sourceChanged(_source, op, change,
-                                       sourceOwner, sourceName, other, source)
+                                       sourceOwner, sourceName,
+                                       other, dirties, source)
                    for _source in self._sources]
             if op == 'refresh':
                 op = self._op(ops, other) or 'refresh'
@@ -1126,7 +1128,7 @@ class MultiSet(AbstractSet):
                 op = None
 
         if not (inner is True or op is None):
-            self._collectionChanged(op, change, other)
+            self._collectionChanged(op, change, other, dirties)
 
         return op
 
@@ -1401,19 +1403,20 @@ class KindSet(Set):
                                         self._extent.str64(), self._recursive,
                                         self._reprSourceId(replace))
         
-    def sourceChanged(self, op, change, sourceOwner, sourceName, inner, other,
-                      source=None):
+    def sourceChanged(self, op, change, sourceOwner, sourceName, inner,
+                      other, dirties, source=None):
 
         if change == 'collection':
             op = self._sourceChanged(self._source, op, change,
-                                     sourceOwner, sourceName, other, source)
+                                     sourceOwner, sourceName,
+                                     other, dirties, source)
 
         elif change == 'notification':
             if other not in self:
                 op = None
 
         if not (inner is True or op is None):
-            self._collectionChanged(op, change, other)
+            self._collectionChanged(op, change, other, dirties)
 
         return op
 
@@ -1551,12 +1554,13 @@ class FilteredSet(Set):
 
         return oldItem, oldAttribute, x
 
-    def sourceChanged(self, op, change, sourceOwner, sourceName, inner, other,
-                      source=None):
+    def sourceChanged(self, op, change, sourceOwner, sourceName, inner,
+                      other, dirties, source=None):
 
         if change == 'collection':
             op = self._sourceChanged(self._source, op, change,
-                                     sourceOwner, sourceName, other, source)
+                                     sourceOwner, sourceName,
+                                     other, dirties, source)
 
             if op == 'add':
                 if not self.filter(other):
@@ -1576,7 +1580,7 @@ class FilteredSet(Set):
                 op = None
 
         if not (inner is True or op is None):
-            self._collectionChanged(op, change, other)
+            self._collectionChanged(op, change, other, dirties)
 
         return op
 
@@ -1591,9 +1595,9 @@ class FilteredSet(Set):
                 contains = None
                 
             if matched and not contains is True:
-                self._collectionChanged('add', 'collection', other)
+                self._collectionChanged('add', 'collection', other, ())
             elif not matched and not contains is False:
-                self._collectionChanged('remove', 'collection', other)
+                self._collectionChanged('remove', 'collection', other, ())
 
 
 class ExpressionFilteredSet(FilteredSet):

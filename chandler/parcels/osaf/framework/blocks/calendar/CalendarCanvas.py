@@ -927,7 +927,7 @@ class CalendarNotificationHandler(object):
         """
         if (notificationType == 'collectionChange'):
             blockItem = self.blockItem
-            op, coll, name, uuid = data
+            op, coll, name, uuid, dirties = data
             if op == "refresh":
                 if blockItem.find(uuid) in blockItem.contents:
                     op = "add"
@@ -1917,7 +1917,7 @@ class wxCalendarContainer(ContainerBlocks.wxBoxContainer,
         # Work around bug 6137 and bug 3727: If an item changes
         # while we're editing it, finish editing.
         if (notificationType == 'collectionChange'):
-            op, coll, name, uuid = data
+            op, coll, name, uuid, dirties = data
             if op == 'changed':
                 for widgie in self.calendarBlockWidgets():
                     editor = widgie.editor

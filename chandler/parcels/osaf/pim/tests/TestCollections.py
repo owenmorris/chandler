@@ -42,7 +42,7 @@ class NotifyHandler(schema.Item):
                 continue
             return rec[0] == op and (rec[3] == other or rec[3] == other.itsUUID)
 
-    def queuedChange(self, op, collection, name, other):
+    def queuedChange(self, op, collection, name, other, dirties):
         if name != 'watches':
             self.log.append((op, collection, name, other))
 
