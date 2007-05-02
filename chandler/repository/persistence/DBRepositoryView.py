@@ -35,12 +35,14 @@ from repository.persistence.DBItemIO import DBItemWriter
 
 class DBRepositoryView(OnDemandRepositoryView):
 
-    def openView(self, version=None, deferDelete=Default, notify=Default):
+    def openView(self, version=None, deferDelete=Default, notify=Default,
+                 mergeFn=None):
 
         self._log = set()
         self._indexWriter = None
 
-        super(DBRepositoryView, self).openView(version, deferDelete, notify)
+        super(DBRepositoryView, self).openView(version, deferDelete, notify,
+                                               mergeFn)
 
     def _clear(self):
 
@@ -367,6 +369,8 @@ class DBRepositoryView(OnDemandRepositoryView):
 
     def _refreshForwards(self, mergeFn, newVersion, notify):
 
+        if mergeFn is None:
+            mergeFn = self._mergeFn
         mergeDeletes = []
 
         scan = True

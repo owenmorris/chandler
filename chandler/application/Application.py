@@ -21,10 +21,10 @@ from i18n import ChandlerMessageFactory as _, getImage, getLocaleSet
 import schema, feedback
 from version import version
 
-from chandlerdb.util.c import Nil
 from repository.persistence.RepositoryError import \
-    MergeError, RepositoryVersionError, RepositoryPlatformError, \
-    VersionConflictError
+    RepositoryVersionError, RepositoryPlatformError, VersionConflictError
+from repository.persistence.RepositoryView import otherViewWins
+
 
 logger = logging.getLogger(__name__)
 
@@ -219,7 +219,7 @@ class wxMainFrame (wxBlockFrameWindow):
 
         def commit(view):
             try:
-                view.commit(_mergeFunction)
+                view.commit()
             except VersionConflictError, e:
                 logger.exception(e)
 
@@ -279,25 +279,6 @@ class wxMainFrame (wxBlockFrameWindow):
 
         self.Destroy()
 
-
-#
-# The merge function used during some of the refreshes in this module
-# You can choose which view wins by uncommenting the appropriate
-# return statement.
-# Nil means 'no value for the attribute'
-#
-
-def _mergeFunction(code, item, attribute, value):
-
-    if code == MergeError.DELETE:
-        return True                             # Let the item delete 
-                                                # in the other view win
-
-    return getattr(item, attribute, Nil)        # Let changes from
-                                                # other views win
-
-    # return value                              # Let changes from the
-                                                # main view win
 
 # We'll create a singleton item to remember our locale, to detect changes.
 class LocaleInfo(schema.Item):
@@ -483,6 +464,7 @@ class wxApplication (wx.App):
                 raise Utility.SchemaMismatchError, (repoVersion, schemaVersion)
 
         self.UIRepositoryView = view
+        view.setMergeFn(otherViewWins)
 
         # If the locale changed, force index rebuild. (We'll save the locale
         # below if it changed - we'll need the parcels loaded for that)
@@ -888,7 +870,7 @@ class wxApplication (wx.App):
 
     def OnIdle(self, event):
         if self.updateUIInOnIdle:
-            self.UIRepositoryView.refresh(_mergeFunction)
+            self.UIRepositoryView.refresh()
             self.propagateAsynchronousNotifications()
         
         # Adding a handler for catching a set focus event doesn't catch
@@ -1057,7 +1039,7 @@ class wxApplication (wx.App):
         """
         from osaf.framework.blocks.Block import Block
 
-        self.UIRepositoryView.refresh () # bring changes across from the other thread/view
+        self.UIRepositoryView.refresh() # bring changes across from the other thread/view
 
         # unwrap the target item and find the method to call
 

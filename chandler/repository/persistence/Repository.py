@@ -138,7 +138,8 @@ class Repository(CRepository):
         pass
 
     def createView(self, name=None, version=None,
-                   deferDelete=Default, pruneSize=Default, notify=Default):
+                   deferDelete=Default, pruneSize=Default, notify=Default,
+                   mergeFn=None):
         """
         Create a repository view.
 
@@ -152,7 +153,8 @@ class Repository(CRepository):
         @type name: a string
         """
 
-        return RepositoryView(self, name, version, deferDelete, pruneSize)
+        return RepositoryView(self, name, version, deferDelete, pruneSize,
+                              notify, mergeFn)
 
     def getCurrentView(self, create=True):
         """
@@ -283,10 +285,12 @@ class OnDemandRepository(Repository):
     """
 
     def createView(self, name=None, version=None,
-                   deferDelete=Default, pruneSize=Default, notify=Default):
+                   deferDelete=Default, pruneSize=Default, notify=Default,
+                   mergeFn=None):
 
         return OnDemandRepositoryView(self, name, version,
-                                      deferDelete, pruneSize, notify)
+                                      deferDelete, pruneSize, notify,
+                                      mergeFn)
 
 
 class Store(CStore):

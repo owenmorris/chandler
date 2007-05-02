@@ -32,6 +32,48 @@ from repository.item.Indexes import NumericIndex
 from repository.item.RefCollections import RefList
 
 
+def otherViewWins(code, item, attribute, value):
+    """
+    "Other view wins" merge function.
+
+    A merge function to use with
+    L{refresh<repository.persistence.RepositoryView.refresh>} or
+    L{commit<repository.persistence.RepositoryView.commit>} to let the
+    changes that are coming in during refresh to win a conflict over the
+    calling view's changes.
+    """
+
+    if code == MergeError.DELETE:
+        return True                             # Let the item delete 
+                                                # in the other view win
+
+    return getattr(item, attribute, Nil)        # Let changes from
+                                                # other views win
+
+
+def thisViewWins(code, item, attribute, value):
+    """
+    "This view wins" merge function.
+
+    A merge function to use with
+    L{refresh<repository.persistence.RepositoryView.refresh>} or
+    L{commit<repository.persistence.RepositoryView.commit>} to let this
+    view's changes win a conflict over the changes that coming in during
+    refresh.
+
+    However, if an item was deleted in another view, and this view has
+    changes on it, they still will be lost to the other view.
+    """
+
+    if code == MergeError.DELETE:
+        return True                             # Let the item delete 
+                                                # in the other view win
+
+    return value                                # Let changes from the
+                                                # this view win
+
+
+
 class RepositoryView(CView):
     """
     This class implements the cache for loaded items. Changes to items in a
@@ -83,7 +125,8 @@ class RepositoryView(CView):
     CORE_SCHEMA_VERSION = 0x00070000
 
     def __init__(self, repository, name=None, version=None,
-                 deferDelete=Default, pruneSize=Default, notify=True):
+                 deferDelete=Default, pruneSize=Default, notify=True,
+                 mergeFn=None):
         """
         Initializes a repository view.
 
@@ -107,7 +150,8 @@ class RepositoryView(CView):
 
         super(RepositoryView, self).__init__(repository, name,
                                              RepositoryView.itsUUID)
-        self.openView(version, deferDelete, notify)
+        self._mergeFn = None
+        self.openView(version, deferDelete, notify, mergeFn)
         
     def setCurrentView(self):
         """
@@ -143,7 +187,8 @@ class RepositoryView(CView):
 
         return self['Schema']['Core']['Lob'].makeValue(data, *args, **kwds)
 
-    def openView(self, version=None, deferDelete=Default, notify=Default):
+    def openView(self, version=None, deferDelete=Default, notify=Default,
+                 mergeFn=None):
         """
         Open this repository view.
 
@@ -172,6 +217,9 @@ class RepositoryView(CView):
         elif notify is False:
             self._status |= RepositoryView.DONTNOTIFY
 
+        if mergeFn is not None:
+            self.setMergeFn(mergeFn)
+
         self._queuedNotifications = Queue()
 
         self._version = long(version)
@@ -198,6 +246,10 @@ class RepositoryView(CView):
             repository._openViews.append(self)
 
         self._loadSchema()
+
+    def setMergeFn(self, mergeFn):
+
+        self._mergeFn = mergeFn
 
     def _loadSchema(self):
 
@@ -1290,22 +1342,24 @@ class RepositoryView(CView):
 class OnDemandRepositoryView(RepositoryView):
 
     def __init__(self, repository, name=None, version=None,
-                 deferDelete=Default, pruneSize=Default, notify=Default):
+                 deferDelete=Default, pruneSize=Default, notify=Default,
+                 mergeFn=None):
 
         if version is None:
             version = repository.store.getVersion()
 
         super(OnDemandRepositoryView, self).__init__(repository, name, version,
                                                      deferDelete, pruneSize,
-                                                     notify)
+                                                     notify, mergeFn)
 
-    def openView(self, version=None, deferDelete=Default, notify=Default):
+    def openView(self, version=None, deferDelete=Default, notify=Default,
+                 mergeFn=None):
 
         self._exclusive = threading.RLock()
         self._hooks = []
         
         super(OnDemandRepositoryView, self).openView(version, deferDelete,
-                                                     notify)
+                                                     notify, mergeFn)
 
     def isNew(self):
 
@@ -1448,10 +1502,12 @@ class NullRepositoryView(RepositoryView):
         if verify:
             self._status |= RepositoryView.VERIFY
 
-    def openView(self, version=None, deferDelete=Default, notify=Default):
+    def openView(self, version=None, deferDelete=Default, notify=Default,
+                 mergeFn=None):
 
         self._logger = logging.getLogger(__name__)
-        super(NullRepositoryView, self).openView(version, False, notify)
+        super(NullRepositoryView, self).openView(version, False, notify,
+                                                 mergeFn)
 
     def setCurrentView(self):
 
