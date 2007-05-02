@@ -1329,7 +1329,7 @@ static PyObject *t_item_setDirty(t_item *self, PyObject *args)
 
 static int invokeWatchers(PyObject *dispatch, PyObject *name,
                           PyObject *op, PyObject *change,
-                          PyObject *item, PyObject *other,
+                          PyObject *item, PyObject *other, PyObject *dirties,
                           t_view *view)
 {
     PyObject *watchers = PyObject_GetItem(dispatch, name);
@@ -1346,7 +1346,7 @@ static int invokeWatchers(PyObject *dispatch, PyObject *name,
             if (view->status & DEFERNOTIF)
                 while ((watcher = PyIter_Next(iter))) {
                     PyObject *args =
-                        PyTuple_Pack(5, op, change, item, name, other);
+                        PyTuple_Pack(6, op, change, item, name, other, dirties);
                     PyObject *notif =
                         PyTuple_Pack(3, watcher, args, Py_None);
 
@@ -1358,7 +1358,7 @@ static int invokeWatchers(PyObject *dispatch, PyObject *name,
             else
                 while ((watcher = PyIter_Next(iter))) {
                     PyObject *args =
-                        PyTuple_Pack(5, op, change, item, name, other);
+                        PyTuple_Pack(6, op, change, item, name, other, dirties);
                     PyObject *result =
                         PyObject_Call(watcher, args, NULL);
 
@@ -1382,19 +1382,19 @@ static int invokeWatchers(PyObject *dispatch, PyObject *name,
 
 static PyObject *t_item__collectionChanged(t_item *self, PyObject *args)
 {
-    PyObject *op, *change, *name, *other, *dispatch;
+    PyObject *op, *change, *name, *other, *dirties, *dispatch;
     t_view *view = (t_view *) self->ref->view;
 
     if (self->status & NODIRTY)
         Py_RETURN_NONE;
 
-    if (!PyArg_ParseTuple(args, "OOOO", &op, &change, &name, &other))
+    if (!PyArg_ParseTuple(args, "OOOOO", &op, &change, &name, &other, &dirties))
         return NULL;
 
     dispatch = PyDict_GetItem(self->references->dict, watchers_NAME);
     if (dispatch && PySequence_Contains(dispatch, name))
         if (invokeWatchers(dispatch, name, op, change,
-                           (PyObject *) self, other, view) < 0)
+                           (PyObject *) self, other, dirties, view) < 0)
             return NULL;
 
     if (view->watchers)
@@ -1403,7 +1403,7 @@ static PyObject *t_item__collectionChanged(t_item *self, PyObject *args)
 
         if (dispatch && PySequence_Contains(dispatch, name))
             if (invokeWatchers(dispatch, name, op, change,
-                               (PyObject *) self, other, view) < 0)
+                               (PyObject *) self, other, dirties, view) < 0)
                 return NULL;
     }
 
