@@ -338,19 +338,21 @@ class I18nManager(EggTranslations):
 
             if fallback:
                 for lc in self._localeSet:
-                    if self.hasTranslation(self._DEFAULT_PROJECT, self._DEFAULT_CATALOG, lc):
+                    if lc.startswith("en") or \
+                        self.hasTranslation(self._DEFAULT_PROJECT, self._DEFAULT_CATALOG, lc):
                         primaryLocale = lc
                         break
 
             else:
                 lc = self._localeSet[0]
 
-                if self.hasTranslation(self._DEFAULT_PROJECT, self._DEFAULT_CATALOG, lc):
+                if lc.startswith("en") or \
+                  self.hasTranslation(self._DEFAULT_PROJECT, self._DEFAULT_CATALOG, lc):
                     primaryLocale = lc
 
         else:
             # If one of more locales are passed
-            # (command line) then set the
+            # (command line or prefs) then set the
             # locale of PyICU, wxPython, and
             # Python regardless of whether
             # Chandler provides a localization.
