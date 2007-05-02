@@ -65,13 +65,18 @@ def run_tests(tests, debug=testDebug, mask=testMask, logName=logFileName):
     """Method to execute cats tests, must be in Functional directory."""
     
     logger = TestOutput(stdout=True, debug=debug, mask=mask, logName=logName) 
-    logger.startSuite(name='ChandlerFunctionalTestSuite')
+    testList = tests.split(',')
+    
+    if len(testList) < 2:
+        logger.startSuite(name = testList[0].split(':')[0])
+    else:
+        logger.startSuite(name='ChandlerFunctionalTestSuite')
     
     # We'll normally run individual tests with an exception wrapper; 
     # --catch=never will turn it off, so that a debugger can stop on 
     # uncaught exceptions.
     runner = Globals.options.catch != 'never' and run_test_wrapped or run_test
-    for paramSet in tests.split(','):
+    for paramSet in testList:
         runner(logger, paramSet)
         if haltOnFailure and logger.testHasFailed:
             logger.report(False, 'Suite halted on test failure')
