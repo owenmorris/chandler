@@ -181,7 +181,7 @@ def ProcessEvent (theClass, properties , attributes):
         application.propagateAsynchronousNotifications()
 
     wx.WakeUpIdle()
-    application.Yield()
+    wx.SafeYield()
     
     # Since scrips don't actually move the cursor and cause wxMouseCaptureLostEvents
     # to be generated we'll periodically release the capture from all the windows.
