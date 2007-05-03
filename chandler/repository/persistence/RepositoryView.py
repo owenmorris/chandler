@@ -12,7 +12,7 @@
 #   See the License for the specific language governing permissions and
 #   limitations under the License.
 
-
+from __future__ import with_statement
 import logging, sys, gc, threading, os, time
 
 from Queue import Queue
@@ -333,6 +333,7 @@ class RepositoryView(CView):
 
         if self._monitors:
             self._monitors.clear()
+            self.MONITORING = False
         if self._watchers:
             self._watchers.clear()
 
@@ -1152,7 +1153,6 @@ class RepositoryView(CView):
             kind = item.itsKind
 
             if kind is not None:
-                uItem = item.itsUUID
 
                 if item.isDirty():
                     _dirties = item.itsValues._getDirties(True)
@@ -1170,6 +1170,7 @@ class RepositoryView(CView):
                 else:
                     continue
 
+                uItem = item.itsUUID
                 kind.extent._collectionChanged('changed', 'notification',
                                                'extent', uItem, _dirties)
 
@@ -1331,6 +1332,20 @@ class RepositoryView(CView):
                 print "%6d 0x%08x %s: %s" %(version, status, name,
                                             ', '.join(names))
             prevValues = currValues
+
+    def reindex(self, items, *attributes):
+        
+        if not self.MONITORING:
+            self.getSingleton(self.MONITORS).cacheMonitors()
+
+        with self.reindexingDeferred():
+            for item in items:
+                for attribute in attributes:
+                    monitors = self._monitors.get('set', Nil).get(attribute)
+                    if monitors:
+                        for monitor in monitors:
+                            monitor('set', item, attribute)
+
 
     itsUUID = UUID('3631147e-e58d-11d7-d3c2-000393db837c')
     SUBSCRIBERS = UUID('4dc81eae-1689-11db-a0ac-0016cbc90838')
