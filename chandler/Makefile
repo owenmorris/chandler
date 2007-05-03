@@ -22,7 +22,7 @@ BUILD_PLUGINS = Chandler-HelloWorldPlugin \
 
 ARCHIVES = \
     $(CHANDLERARCHIVES)/Launchers-$(SNAP)-0.9-$(BP)10.tar.gz \
-    $(CHANDLERARCHIVES)/chandlerdb-$(SNAP)-0.7-$(BP)4.tar.gz \
+    $(CHANDLERARCHIVES)/chandlerdb-$(SNAP)-0.7-$(BP)5.tar.gz \
     $(CHANDLERARCHIVES)/db-$(SNAP)-4.5.20-$(BP)3.tar.gz \
     $(CHANDLERARCHIVES)/python-$(SNAP)-2.5.1-$(BP)1.tar.gz \
     $(CHANDLERARCHIVES)/epydoc-$(SNAP)-2.1-$(BP)10.tar.gz \

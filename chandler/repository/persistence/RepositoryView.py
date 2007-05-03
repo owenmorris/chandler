@@ -1155,8 +1155,8 @@ class RepositoryView(CView):
                 uItem = item.itsUUID
 
                 if item.isDirty():
-                    _dirties = item.itsValues._getDirties()
-                    _dirties.extend(item.itsRefs._getDirties())
+                    _dirties = item.itsValues._getDirties(True)
+                    _dirties.extend(item.itsRefs._getDirties(True))
                 else:
                     _dirties = ()
 
@@ -1168,7 +1168,7 @@ class RepositoryView(CView):
                 elif _dirties:
                     _dirties = tuple(_dirties)
                 else:
-                    _dirties = ()
+                    continue
 
                 kind.extent._collectionChanged('changed', 'notification',
                                                'extent', uItem, _dirties)

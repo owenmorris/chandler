@@ -111,11 +111,6 @@ class Values(CValues):
         else:
             _flags[key] = flags
 
-    def _getDirties(self):
-
-        return [ key for key, flags in self._flags.iteritems()
-                 if flags & Values.DIRTY ]
-
     def _clearValueDirties(self):
 
         # clearing according to flags is not enough, flags not set on new items
