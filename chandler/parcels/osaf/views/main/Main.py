@@ -1189,6 +1189,11 @@ class MainView(View):
         self._dumpFile(obfuscate=True)
 
     def onReloadFromFileEvent(self, event):
+        if wx.MessageBox(_(u"Reloading will remove all current data and replace it with new data in the dump file. Are you sure you want to proceed?"),
+                         _(u"Reload"),
+                         style=wx.YES_NO) != wx.YES:
+            return
+        
         wildcard = "%s|*.dump|%s (*.*)|*.*" % (_(u"Dump files"),
             _(u"All files"))
 
@@ -1201,24 +1206,8 @@ class MainView(View):
             path = dlg.GetPath()
         dlg.Destroy()
         if path:
-            activity = Activity("Reload from %s" % path)
-            activity.started()
-
-            # Don't show the timezone dialog during reload.
-            tzprefs = schema.ns('osaf.pim', self.itsView).TimezonePrefs
-            oldShowPrompt = tzprefs.showPrompt
-            tzprefs.showPrompt = False
-
-            try:
-                dumpreload.reload(self.itsView, path, activity=activity)
-                activity.completed()
-            except Exception, e:
-                tzprefs.showPrompt = oldShowPrompt
-                logger.exception("Failed to reload file")
-                activity.failed(exception=e)
-                raise
-            self.setStatusMessage(_(u'Items reloaded'))
-
+            wx.GetApp().restart(reload=path)
+            
     def onAddScriptsToSidebarEvent(self, event):
         sidebar = Block.findBlockByName ("Sidebar").contents
         scriptsSet = schema.ns('osaf.framework.scripting',
@@ -1284,9 +1273,9 @@ class MainView(View):
 
     def onRecordSetDebuggingEventUpdateUI(self, event):
         if sharing.recordset_conduit.recordset_debugging:
-            menuTitle = u'Disable RecordSet debugging'
+            menuTitle = _(u'Disable RecordSet &debugging')
         else:
-            menuTitle = u'Enable RecordSet debugging'
+            menuTitle = _(u'Enable RecordSet &debugging')
         event.arguments ['Text'] = menuTitle
         event.arguments ['Enable'] = True
 

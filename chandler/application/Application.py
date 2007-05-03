@@ -427,7 +427,7 @@ class wxApplication (wx.App):
         # Check if this Chandler is an upgrade, will stop the program if backup needed
         # must be done right before initRepository() so it has a fighting chance of
         # detecting the first run after a new install
-        if not options.profileDirWasPassedIn and \
+        if not options.reload and not options.profileDirWasPassedIn and \
            CheckIfUpgraded(options.profileDir, repoDir, options.create):
             from application.dialogs.UpgradeDialog import UpgradeDialog
             UpgradeDialog.run()
@@ -590,9 +590,38 @@ class wxApplication (wx.App):
                 self.mainFrame.UpdateWindowUI(wx.UPDATE_UI_RECURSE)
             wx.CallAfter(afterInit)
         
+        if Globals.options.reload is not None:
+            wx.CallAfter(self.reload)
+
         util.timing.end("wxApplication OnInit") #@@@Temporary testing tool written by Morgen -- DJA
 
         return True    # indicates we succeeded with initialization
+
+    def reload(self):
+        from osaf.activity import *
+        from osaf import dumpreload
+        from osaf.framework.blocks.Block import Block
+
+        activity = Activity(_(u"Reload from %s") % Globals.options.reload)
+        activity.started()
+
+        # Don't show the timezone dialog during reload.
+        tzprefs = schema.ns('osaf.pim', self.UIRepositoryView).TimezonePrefs
+        oldShowPrompt = tzprefs.showPrompt
+        tzprefs.showPrompt = False
+
+        try:
+            dumpreload.reload(self.UIRepositoryView, Globals.options.reload, 
+                              activity=activity)
+            activity.completed()
+        except Exception, e:
+            tzprefs.showPrompt = oldShowPrompt
+            logger.exception("Failed to reload file")
+            activity.failed(exception=e)
+            raise
+
+        setStatusMessage = Block.findBlockByName('StatusBar').setStatusMessage
+        self.PostAsyncEvent(setStatusMessage, _(u'Items reloaded'))
 
     def localeChanged(self):
         """

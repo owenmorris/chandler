@@ -227,6 +227,7 @@ COMMAND_LINE_OPTIONS = {
     'ramdb':      ('-m', '--ramdb',      'b', False, None, ''),
     'restore':    ('-r', '--restore',    's', None,  None, 'repository backup to restore from before repository open'),
     'recover':    ('-R', '--recover',    'b', False, None, 'open repository with recovery'),
+    'reload':     ('',   '--reload',     's', None, None, 'reload a dump file, will clear repository first'),
     # --nocatch is deprecated and will be removed soon: use --catch=tests or --catch=never instead
     'nocatch':    ('-n', '--nocatch',    'b', False, 'CHANDLERNOCATCH', ''),
     'catch':      ('',   '--catch',      's', 'normal', 'CHANDLERCATCH', '"normal" leaves outer and test exception handlers in place (the default); "tests" removes the outer one, and "never" removes both.'),
@@ -358,6 +359,11 @@ def initOptions(**kwds):
         
     # Store up the remaining args
     options.args = args
+
+    # --reload implies a few other changes:
+    if options.reload:
+        options.create = True
+        options.restore = None
 
     return options
 

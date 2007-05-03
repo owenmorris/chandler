@@ -386,6 +386,8 @@ def restart():
             args.remove('--create')
         while '-c' in args:
             args.remove('-c')
+        while '--reload' in args:
+            args.remove('--reload')
         
         if wx.Platform == '__WXGTK__' and \
             Globals.options.locale is None:
