@@ -588,7 +588,10 @@ class SharingTranslator(eim.Translator):
         if item.hasLocalAttributeValue('displayName'):
             title = item.displayName
         else:
-            title = None
+            if isinstance(item, Occurrence):
+                title = eim.Inherit
+            else:
+                title = None
 
         yield model.ItemRecord(
             item,                                       # uuid
@@ -751,7 +754,10 @@ class SharingTranslator(eim.Translator):
         if note.hasLocalAttributeValue('body'):
             body = note.body
         else:
-            body = None
+            if isinstance(note, Occurrence):
+                body = eim.Inherit
+            else:
+                body = None
 
         # when serializing iCalendar, modifications will incorrectly handle
         # a None value for icalUID if icalUID and UUID aren't the same, but in 
