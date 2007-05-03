@@ -104,17 +104,18 @@ enum {
 
 
 enum {
-    V_READONLY  = 0x0001,        /* value is read-only              */
-    V_PURE      = 0x0002,        /* value needs no conversions      */
+    V_READONLY   = 0x0001,        /* value is read-only              */
+    V_PURE       = 0x0002,        /* value needs no conversions      */
 
-    /* flags in 0x00f0 are used by the persistence format           */
-    V_INDEXED   = 0x0010,        /* value is indexed                */
-    V_TOINDEX   = 0x0020,        /* value needs indexing            */
+    /* flags in 0x00f0 are used by the persistence format            */
+    V_INDEXED    = 0x0010,        /* value is indexed                */
+    V_TOINDEX    = 0x0020,        /* value needs indexing            */
 
-    V_DIRTY     = 0x0100,        /* value is dirty                  */
-    V_TRANSIENT = 0x0200,        /* value is transient              */
-    V_SAVEMASK  = 0x000f,        /* save these flags                */
-    V_COPYMASK  = V_READONLY | V_TRANSIENT
+    V_DIRTY      = 0x0100,        /* value is dirty                  */
+    V_TRANSIENT  = 0x0200,        /* value is transient              */
+    V_DIRTYAGAIN = 0x0400,        /* value is dirty again            */
+    V_SAVEMASK   = 0x000f,        /* save these flags                */
+    V_COPYMASK   = V_READONLY | V_TRANSIENT
 };
 
 typedef void (*C_countAccess_fn)(t_item *);
