@@ -290,8 +290,15 @@ class RefList(LinkedMap, Indexed):
         Remove all references from this ref collection.
         """
 
+        # The first item is removed from the collection until it is empty.
+        # This makes it possible for other items to be removed as side-effects
+        # of a removal without throwing off the iteration (bug 9004).
+
         view = self.itsView
-        for uOther in self.iterkeys():
+        while True:
+            uOther = self.firstKey()
+            if uOther is None:
+                break
             other = view.find(uOther)
             if other is not None:
                 self.remove(other)
@@ -300,7 +307,10 @@ class RefList(LinkedMap, Indexed):
 
     def _clearRefs(self):
 
-        for other in self:
+        while True:
+            other = self.first()
+            if other is None:
+                break
             otherValue = getattr(other, self._otherName, None)
             if otherValue is None:
                 self._removeRef(other)
