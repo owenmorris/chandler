@@ -360,12 +360,13 @@ class perf:
       for key in self._options:
         print '\t%s: [%r]' % (key, self._options[key])
 
-  def colorTime(self, testName, testTime, stdDev, acceptableMultiplier=1.0):
+  def colorTime(self, testName, testTime, stdDev, acceptableMultiplier=1.0,
+                values=None):
         """
         Return the color for the test time.
     
         Value within std.dev of better treshold still reported in higher
-        category.
+        category, or if values passed in, color based on the 80th percentile.
         
         acceptableMultiplier allows us to have different acceptable values
         for certain platforms, for example the super slow PPC Mac.
@@ -379,19 +380,25 @@ class perf:
         
         acceptable = acceptable * acceptableMultiplier
         
-        # Sanitize ideal and acceptable, taking std.dev into account
-        if ideal - stdDev > 0:
-            ideal = ideal - stdDev
-            
-        if acceptable - stdDev > ideal:
-            acceptable = acceptable - stdDev
+        if values is None:
+            # Sanitize ideal and acceptable, taking std.dev into account
+            if ideal - stdDev > 0:
+                ideal = ideal - stdDev
+                
+            if acceptable - stdDev > ideal:
+                acceptable = acceptable - stdDev
+        
+        else:
+            # Use the 80th percentile as testTime
+            values.sort()
+            testTime = values[int(round(0.8 * float(len(values))))]
         
         if testTime < ideal:
             return 'good'
         
         if testTime > acceptable:
             return 'alert'
-        
+
         return 'warn'
 
   def loadConfiguration(self):
@@ -852,7 +859,7 @@ class perf:
             mult = 2.0
         else:
             mult = 1.0
-        timeClass = self.colorTime(testkey, current, stdDev, mult)
+        timeClass = self.colorTime(testkey, current, stdDev, mult, platforms[key]['values'])
 
         graph.append('%s | %s | %s | %s | %02.3f | %02.3f | %03.1f\n' % (enddate, key, testkey, revision, current, c_diff, c_perc))
 
