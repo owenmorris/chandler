@@ -394,11 +394,12 @@ class SharingTranslator(eim.Translator):
 
             if isinstance(record, model.ItemRecord):
 
+                item = conflict.item
+
                 if conflict.field.lower() == 'triage status':
                     # TODO: There has to be a better way to determine which
                     # field has the conflict, besides using the human readable
                     # name, especially since this is localizable
-                    item = conflict.item
                     codeIn, tscIn, autoIn = record.triage.split(" ")
 
                     if self.code_to_triagestatus[codeIn] == item.triageStatus:
