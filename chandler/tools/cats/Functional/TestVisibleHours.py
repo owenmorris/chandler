@@ -46,9 +46,12 @@ class TestVisibleHours(ChandlerTestCase):
             # displaying
             widget = QAUITestAppLib.App_ns.TimedEvents.widget
             rect = widget.GetClientRect()
+            if event.visibleHours == 24:
+                import pdb; pdb.set_trace()
             relativeTime = widget.getRelativeTimeFromPosition(
                               None, wx.Point(0, rect.height))
-            widgetHours = int((float(relativeTime.seconds)/3600.0) + 0.5)
+            widgetHours = int(float(relativeTime.seconds)/3600.0 +
+                               24.0 * relativeTime.days + 0.5)
             
             # ... and double-check it's working
             if widgetHours != event.visibleHours:

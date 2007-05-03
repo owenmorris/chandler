@@ -28,25 +28,24 @@ from i18n import ChandlerMessageFactory
 
 def reindexFloatingEvents(view, tzinfo):
     """
-    When floating timezone changes, floating events need to be reindexed in the
-    events collection.
+    When the user's default timezone changes, datetime values with a floating
+    timezone may compare differently with non-floating datetimes than before.
+    So, we need to resort some indexes if they did comparison of floating
+    datetimes. At the moment, the only way we let floating datetimes creep into
+    indexes is via C{EventStamp.startTime}, C{EventStamp.recurrenceEnd} and
+    C{ContentItem.displayDate} (the latter being computed in some cases from
+    the first).
     """
     pim_ns = schema.ns("osaf.pim", view)
+    EventStamp = pim_ns.EventStamp
+    
+    attrs = (EventStamp.startTime.name, EventStamp.recurrenceEnd.name,
+            'displayDate')
+    
+    # Ask the view to trigger reindexing for all the above attributes, for
+    # all floating events. This should cover the cases above.
+    view.reindex(pim_ns.floatingEvents, *attrs)
     events = pim_ns.EventStamp.getCollection(view)
-    
-    floatingKeys = list(pim_ns.floatingEvents.iterkeys())
-    events.reindexKeys(floatingKeys, None, 'effectiveStart', 'effectiveEnd')
-    
-    keys = pim_ns.masterEvents.getIndex('recurrenceEnd')
-    
-    masterFloatingKeys = [i for i in floatingKeys if i in keys]
-    pim_ns.masterEvents.reindexKeys(masterFloatingKeys, None, 'recurrenceEnd')
-                              
-    #UTCKeys = list(pim_ns.UTCEvents.iterkeys())
-    #events.reindexKeys(UTCKeys, None, 'effectiveStartNoTZ', 'effectiveEndNoTZ')
-    
-    #masterUTCKeys = [i for i in UTCKeys if i in keys]
-    #pim_ns.masterEvents.reindexKeys(masterUTCKeys, None, 'recurrenceEndNoTZ')
     
     # [Bug 8688] Re-calculate until based on new (non-floating) timezone
     ruleClass = schema.ns("osaf.pim.calendar.Recurrence", view).RecurrenceRule
