@@ -1930,7 +1930,7 @@ class wxCalendarContainer(ContainerBlocks.wxBoxContainer,
         # some cases it causes sync of the sub-widgets, and we only want
         # this to happen when self.visibleEvents is in a consistent
         # state.
-        if not pendingChanges:
+        if not pendingChanges or not self.GetSizer():
             ContainerBlocks.wxBoxContainer.wxSynchronizeWidget(self)
         
     def onItemNotification(self, notificationType, data):
