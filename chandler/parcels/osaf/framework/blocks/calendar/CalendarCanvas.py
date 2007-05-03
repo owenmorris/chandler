@@ -416,13 +416,12 @@ class CalendarCanvasItem(CollectionCanvas.CanvasItem):
         item = self.event.getMaster().itsItem
         return item.isAttributeModifiable(Calendar.EventStamp.summary.name)
     
-    def SetTimeHeight(self, dc, styles, timeString = 'DummyValue'):
+    def SetTimeHeight(self, styles):
         """Initialize timeHeight for displaying edit window."""
         if Calendar.isDayEvent(self.event):                
             self.timeHeight = 0
         else:
-            timeHeight = dc.GetFullTextExtent(timeString,
-                                              styles.eventTimeFont)[1]
+            timeHeight = Styles.getMeasurements(styles.eventTimeFont).height
             minAvailableSpace = timeHeight*2 + TIME_BOTTOM_MARGIN + \
                                 self.textOffset.y*2
             if (self.GetBoundsRects()[0].height < minAvailableSpace):
@@ -479,7 +478,7 @@ class CalendarCanvasItem(CollectionCanvas.CanvasItem):
                         timeString = formatTime(startTime, noTZ=True)
                     else:
                         timeString = self.timeString
-                    timeHeight = self.SetTimeHeight(dc, styles, timeString)
+                    timeHeight = self.SetTimeHeight(styles)
 
                 if timeHeight > 0:
                     radius = NORMAL_RADIUS
@@ -1483,7 +1482,7 @@ class wxCalendarCanvas(CollectionCanvas.wxCollectionCanvas):
         
         styles = self.blockItem.calendarContainer
         if canvasItem.timeHeight == 0:
-            canvasItem.SetTimeHeight(wx.ClientDC(self), styles)        
+            canvasItem.SetTimeHeight(styles)        
         
         position = self.CalcScrolledPosition(canvasItem.GetEditorPosition())
         size = canvasItem.GetMaxEditorSize()
