@@ -253,12 +253,12 @@ class DBRepositoryView(OnDemandRepositoryView):
                                         if watcher is not None:
                                             watcher('changed', 'notification', uRef, otherName, uItem, names)
 
-            watchers = self._watchers
-            if watchers and uItem in watchers:
-                watchers = watchers[uItem].get(uItem)
-                if watchers:
-                    for watcher in watchers:
-                        watcher('refresh', uItem, names)
+                watchers = self._watchers
+                if watchers and uItem in watchers:
+                    watchers = watchers[uItem].get(uItem)
+                    if watchers:
+                        for watcher in watchers:
+                            watcher('refresh', uItem, names)
 
     def refresh(self, mergeFn=None, version=None, notify=Default):
 

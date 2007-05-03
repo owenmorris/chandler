@@ -1334,16 +1334,28 @@ class RepositoryView(CView):
             prevValues = currValues
 
     def reindex(self, items, *attributes):
+        """
+        Reindex items in attribute-sorted indexes in bulk.
+
+        Normally, reindexing is triggered when attributes change by the
+        monitors watching them. This method should only be used in special
+        circumstances where a change outside of attributes could have an
+        effect on the indexing of items.
+
+        For example, in Chandler, when the current timezone changes, all
+        floating events need to be reindexed via this API as the timezone
+        change is not detected by a change in attributes.
+        """
         
         if not self.MONITORING:
             self.getSingleton(self.MONITORS).cacheMonitors()
-
-        with self.reindexingDeferred():
-            for item in items:
-                for attribute in attributes:
-                    monitors = self._monitors.get('set', Nil).get(attribute)
-                    if monitors:
-                        for monitor in monitors:
+        
+        monitors = self._monitors.get('set')
+        if monitors:
+            with self.reindexingDeferred():
+                for item in items:
+                    for attribute in attributes:
+                        for monitor in monitors.get(attribute, Nil):
                             monitor('set', item, attribute)
 
 
