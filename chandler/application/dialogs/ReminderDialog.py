@@ -134,23 +134,24 @@ class ReminderDialog(wx.Frame):
     def UpdateList(self, reminderTuples):
         """ Update our reminder list; return info about our next firing.
         
-        We return a tuple containing a time (or None) and a flag that indicates
-        whether this dialog should stay open. If we've still got reminders 
-        displayed, this'll be a minute from now (so we can update their "when" 
-        column) and the flag will be True; if not, it'll be when the next 
-        reminder is due.
+        We return a tuple containing a time (or None), an item (or None), and 
+        a flag that indicates whether this dialog should stay open. If we've 
+        still got reminders displayed, this'll be a minute from now (so we can 
+        update their "when" column) and the flag will be True; if not, it'll 
+        be when the next reminder is due.
         """
 
         # Don't do anything if we're responding to an update after our 
         # widget's been destroyed.
         if self.reminderClosing:
-            return (None, False)
+            return (None, None, False)
         
         selectedReminders = list(self.getListItems(True))
         listCtrl = self.reminderControls['list']
         listCtrl.DeleteAllItems()
         self.remindersInList = {}
         nextReminderTime = pim.Reminder.farFuture
+        nextReminderItem = None
         for t in reminderTuples:
             (reminderTime, remindable, reminder) = t
             if reminderTime < datetime.now(ICUtzinfo.default):
@@ -174,6 +175,7 @@ class ReminderDialog(wx.Frame):
             else:
                 # This reminder is still in the future.
                 nextReminderTime = reminderTime
+                nextReminderItem = remindable
                 break
 
         # If we have stuff, but nothing selected, select the first thing
@@ -190,7 +192,7 @@ class ReminderDialog(wx.Frame):
         if not closeIt:
             now = datetime.now(ICUtzinfo.default)
             nextReminderTime = now + timedelta(seconds=(60-now.second))
-        return (nextReminderTime, closeIt)
+        return (nextReminderTime, nextReminderItem, closeIt)
 
     def RelativeDateTimeMessage(self, eventTime):
         """ Build a message expressing relative time to this time, 

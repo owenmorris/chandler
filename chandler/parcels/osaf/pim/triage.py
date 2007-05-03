@@ -132,7 +132,7 @@ class Triageable(Remindable):
         # also want to pop-to-now, though)
         if newStatus == 'auto' and not popToNow \
            and not self.doAutoTriageOnDateChange:
-            from osaf.framework.blocks.Block import debugName
+            #from osaf.framework.blocks.Block import debugName
             #logger.debug("Not Autotriaging %s", debugName(self))
             return
 
@@ -145,7 +145,7 @@ class Triageable(Remindable):
                                                self._triageStatusChanged,
                                                True, force)
                 elif popToNow:
-                    from osaf.framework.blocks.Block import debugName
+                    #from osaf.framework.blocks.Block import debugName
                     #logger.debug("Popping %s to Now", debugName(self))
                     self.__setTriageAttributes(TriageEnum.now, None,
                                                True, force)
@@ -181,8 +181,8 @@ class Triageable(Remindable):
                            and reminder.nextPoll is not None \
                            and reminder.nextPoll != reminder.farFuture \
                            and reminder.nextPoll > datetime.now(ICUtzinfo.default):
-                            from osaf.framework.blocks.Block import debugName
-                            #logger.debug("Autotriaging %s to LATER", 
+                            #from osaf.framework.blocks.Block import debugName
+                            #logger.debug("Autotriaging %s to LATER for reminder", 
                                          #debugName(self))
                             newStatus = TriageEnum.later
                     

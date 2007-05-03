@@ -1169,6 +1169,8 @@ class ReminderTypeAttributeEditor(ChoiceAttributeEditor):
 
         self.control.blockItem.watchForChanges()
 
+        item.setTriageStatus('auto', pin=True)
+
         if False:
             active = "\n  ".join(unicode(r) for r in remindable.reminders) or "None"
             logger.debug("Reminders on %s:\n  Expired:\n    %s", 
@@ -1203,6 +1205,7 @@ class ReminderScaleAttributeEditor(ChoiceAttributeEditor):
             return # unchanged
 
         setattr(item, attributeName, scaleTimeDelta(units, value, isAfter))
+        item.setTriageStatus('auto', pin=True)
 
     def GetControlValue(self, control):
         choiceIndex = control.GetSelection()
@@ -1253,6 +1256,7 @@ class ReminderUnitsAttributeEditor(StringAttributeEditor):
         if units != value:
             setattr(item, pim.EventStamp.userReminderInterval.name,
                     scaleTimeDelta(value, scale, isAfter))
+            item.setTriageStatus('auto', pin=True)
 
 class TransparencyConditionalBlock(EventConditionalArea):
     def shouldShow(self, item):

@@ -1905,8 +1905,10 @@ class EventStamp(Stamp):
             status = TriageEnum.later
         else:                        
             reminder = item.getUserReminder()
-            if (reminder is not None and reminder.nextPoll is not None and
-                reminder.nextPoll > now):
+            reminderTime = (reminder is not None
+                            and reminder.getReminderTime(item)
+                            or Reminder.distantPast)
+            if reminderTime > now:
                 # Doesn't start in the future, but has a reminder there: Later.
                 status = TriageEnum.later
             elif self.effectiveEndTime < now:
@@ -1916,7 +1918,7 @@ class EventStamp(Stamp):
                 status = TriageEnum.now
         
         from osaf.framework.blocks.Block import debugName
-        logger.debug("Autotriaging %s to %s", debugName(item), status)
+        #logger.debug("Autotriaging %s to %s as event", debugName(item), status)
         return status
 
     def triageForRecurrenceAddition(self):

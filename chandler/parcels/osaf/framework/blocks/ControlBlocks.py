@@ -1060,11 +1060,11 @@ class Timer(Block):
             elif millisecondsUntilFiring > sys.maxint:
                 millisecondsUntilFiring = sys.maxint
 
-            logger.warning("*** setFiringTime: will fire at %s in %s minutes" 
-                         % (when, millisecondsUntilFiring / 60000))
+            #logger.warning("*** setFiringTime: will fire at %s in %s minutes" 
+                         #% (when, millisecondsUntilFiring / 60000))
             timer.Start(millisecondsUntilFiring, True)
         else:
-            logger.warning("*** setFiringTime: No new time.")
+            #logger.warning("*** setFiringTime: No new time.")
             pass
 
 class ReminderTimer(Timer):
@@ -1073,14 +1073,14 @@ class ReminderTimer(Timer):
     """
     
     def synchronizeWidget (self, *args, **kwds):
-        logger.warning("*** Synchronizing ReminderTimer widget!")
+        #logger.warning("*** Synchronizing ReminderTimer widget!")
         super(ReminderTimer, self).synchronizeWidget(*args, **kwds)
         if not wx.GetApp().ignoreSynchronizeWidget:
             self.primeReminderTimer()
     
     def onReminderTimeEvent(self, event):
         # Run the reminders dialog and re-queue our timer if necessary
-        logger.warning("*** Got reminders time event!")
+        #logger.warning("*** Got reminders time event!")
         self.primeReminderTimer()
 
     def primeReminderTimer(self):
@@ -1094,6 +1094,7 @@ class ReminderTimer(Timer):
         
         self._inPrimeReminderTimer = True
         now = datetime.now(PyICU.ICUtzinfo.default)
+        nextReminderItem = None
         
         try:
             mainFrame = wx.GetApp().mainFrame
@@ -1106,8 +1107,8 @@ class ReminderTimer(Timer):
                 pending = Reminder.getPendingTuples(self.itsView, now)
                 if pending:
                     def processReminder((reminderTime, remindable, reminder)):
-                        logger.warning("*** now-ing %s due to %s", 
-                                       debugName(remindable), reminder)
+                        #logger.warning("*** now-ing %s due to %s", 
+                                       #debugName(remindable), reminder)
                         assert not reminder.isDeleted()
                         if reminder.promptUser:
                             return True # this should appear in the list.
@@ -1126,15 +1127,13 @@ class ReminderTimer(Timer):
                     # let it update itself. It'll tell us when it wants us to fire next, 
                     # or whether we should close it now.
                                         
-                    (nextReminderTime, closeIt) = reminderDialog.UpdateList(pending)
+                    (nextReminderTime, nextReminderItem, closeIt) = reminderDialog.UpdateList(pending)
                 else:
                     # Or not.
-                    (nextReminderTime, closeIt) = (None, True)
+                    (nextReminderTime, nextReminderItem, closeIt) = (None, None, True)
             if nextReminderTime is None:
                 # The dialog didn't give us a time to fire; we'll fire at the
                 # next non-pending reminder's time.
-                
-                nextReminderTime = None
                 reminders = schema.ns('osaf.pim', self.itsView).allFutureReminders
                 
                 firstReminder = reminders.firstInIndex('reminderPoll')
@@ -1142,6 +1141,7 @@ class ReminderTimer(Timer):
                     nextReminderTime = firstReminder.nextPoll
                     
                     if nextReminderTime is not None:
+                        nextReminderItem = firstReminder.reminderItem
                         break
                          
                      
@@ -1151,6 +1151,10 @@ class ReminderTimer(Timer):
     
             if closeIt:
                 self.closeReminderDialog()
+
+            #logger.warning("*** next reminder due %s for %s", 
+                           #nextReminderTime, 
+                           #debugName(nextReminderItem))
             self.setFiringTime(nextReminderTime)
 
         finally:
@@ -1177,10 +1181,6 @@ class ReminderTimer(Timer):
         else:
             del self.widget.reminderDialog
             reminderDialog.Destroy()
-
-    def setFiringTime(self, when):
-        logger.warning("*** next reminder due %s", when)
-        super(ReminderTimer, self).setFiringTime(when)
 
 class PresentationStyle(schema.Item):
     """ 

@@ -74,11 +74,14 @@ class Reminder(schema.Item):
     defined in Calendar.py on as RelativeReminder. This resolves some
     unfortunate circular import dependency issues we had in the past.
     """
-    # Make a value we can use for distant (or invalid) reminder times
+    # Make values we can use for distant (or invalid) reminder times
     farFuture = datetime.max
     if farFuture.tzinfo is None:
         farFuture = farFuture.replace(tzinfo=ICUtzinfo.default)
-
+    distantPast = datetime.min
+    if distantPast.tzinfo is None:
+        distantPast = distantPast.replace(tzinfo=ICUtzinfo.default)
+    
     absoluteTime = schema.One(
         schema.DateTimeTZ,
         defaultValue=None,
