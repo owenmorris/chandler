@@ -72,7 +72,7 @@ class PluginMenu(Menu):
                                           dispatchEnum='SendToBlockByReference',
                                           destinationBlockReference=self),
                          parentBlock=self, dynamicParent=self,
-                         title="Download Plugins")
+                         title=_(u"&Download Plugins"))
                 MenuItem(itsName=None, itsParent=self,
                          blockName='_install_menu',
                          event=BlockEvent(itsName='_install', itsParent=self,
@@ -80,7 +80,7 @@ class PluginMenu(Menu):
                                           dispatchEnum='SendToBlockByReference',
                                           destinationBlockReference=self),
                          parentBlock=self, dynamicParent=self,
-                         title="Install Plugins")
+                         title=_(u"I&nstall Plugins"))
 
         for title in sorted(prefs.iterkeys()):
             if not separator_found:

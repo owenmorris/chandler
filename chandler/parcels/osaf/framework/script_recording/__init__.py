@@ -137,9 +137,9 @@ class Controller (Block.Block):
 
     def onToggleRecordingEventUpdateUI (self, event):
         if self.FilterEvent in wx.GetApp().filterEventCallables:
-            event.arguments['Text'] = _(u'Stop recording')
+            event.arguments['Text'] = _(u'Stop &recording')
         else:
-            event.arguments['Text'] = _(u'Record script...')
+            event.arguments['Text'] = _(u'&Record script...')
 
     def onIncludeTestsEvent (self, event):
         self.includeTests = not self.includeTests
@@ -331,7 +331,7 @@ def installParcel(parcel, old_version=None):
     MenuItem.update(
         parcel, 'RecordingMenuItem',
         blockName = 'RecordingMenuItem',
-        title = _(u'&Record script'),
+        title = _(u'&Record script'), # see onToggleRecordingEventUpdateUI
         helpString = _(u'Record commands in Chandler'),
         event = ToggleRecording,
         eventsForNamedLookup = [ToggleRecording],
@@ -348,7 +348,7 @@ def installParcel(parcel, old_version=None):
         parcel, 'IncludeTestsMenuItem',
         menuItemKind = 'Check',
         blockName = 'IncludeTeststMenuItem',
-        title = _(u'&Include tests in script'),
+        title = _(u'I&nclude tests in script'),
         helpString = _(u"Includes code in the script to verify that the UI's data matches the state when the script was recorded"),
         event = IncludeTests,
         eventsForNamedLookup = [IncludeTests],
