@@ -121,14 +121,23 @@ class RecordSetConduit(conduits.BaseConduit):
 
         translator = self.translator(rv)
 
+        allowNameChange = True
+
         if self.share.established:
             version = self.itemsMarker.itsVersion
         else:
             version = 0
             # This is our first sync; if we're already assigned a collection,
             # that means this is our initial publish; don't receive
+            # This isn't true for icalendar import into an existing collection,
+            # bug 9007, so make sure send is True before setting receive False
             if self.share.contents is not None:
-                receive = False
+                if send:
+                    receive = False
+                else:
+                    # when importing into an existing collection, don't change
+                    # the collection name
+                    allowNameChange = False
 
         remotelyRemoved = set() # The aliases of remotely removed items
         remotelyAdded = set() # The aliases of remotely added items
@@ -173,7 +182,7 @@ class RecordSetConduit(conduits.BaseConduit):
             # If the inbound collection name is provided we change the local
             # collection name
             name = extra.get('name', None)
-            if name:
+            if name and allowNameChange:
                 self.share.contents.displayName = name
 
             # Add remotely changed items
