@@ -675,13 +675,20 @@ class wxCollectionCanvas(DragAndDrop.DropReceiveWidget,
             # sometimes get extra LeftUp's if the user does a
             # double-click and drag
             if self.dragState is not None:
-                
-                # We want to set focus only if a drag isn't in progress
-                if not self.dragState._dragStarted:
-                    self.SetPanelFocus()
+
+                moved = self.dragState._originalPosition - unscrolledPosition
+                if moved[0]*moved[0] + moved[1] * moved[1] > 16:                
+                    # We want to set focus only if a drag isn't in progress
+                    if not self.dragState._dragStarted:
+                        self.SetPanelFocus()
+    
+                    self.dragState.HandleDragEnd()
+                    self.dragState = None
+                else:
+                    # no need to redraw, so don't call HandleDragEnd()
+                    if self.dragState._dragStarted:
+                        self.dragState.StopDragTimer()
                     
-                self.dragState.HandleDragEnd()
-                self.dragState = None
         else:
             # Pass right clicks, etc onto wx, which can generate
             # EVT_CONTEXT_MENU as appropriate.
@@ -939,12 +946,19 @@ class wxCollectionCanvas(DragAndDrop.DropReceiveWidget,
         Subclasses can override to handle item selection.
         """
         selection = self.blockItem.GetSelection()
+        selectionWasEmpty = selection.isSelectionEmpty()
         if item:
             selection.setSelectionToItem(item)
         else:
             selection.clearSelection()
         self.blockItem.postSelectItemsBroadcast()
-        self.Refresh()
+        if selectionWasEmpty:
+            # there's no need to call Refresh, postSelectItemsBroadcast will
+            # cause notifications to force a redraw UNLESS selection was empty
+            # from clicking outside a lozenge, but the selected item didn't
+            # change in the rest of the system.  In that case nothing changes
+            # in the repository, so do a redraw.
+            self.Refresh()
 
     def OnAddToSelection(self, item):
         blockItem = self.blockItem
