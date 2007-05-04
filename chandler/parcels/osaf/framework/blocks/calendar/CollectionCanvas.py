@@ -688,6 +688,7 @@ class wxCollectionCanvas(DragAndDrop.DropReceiveWidget,
                     # no need to redraw, so don't call HandleDragEnd()
                     if self.dragState._dragStarted:
                         self.dragState.StopDragTimer()
+                    self.dragState = None
                     
         else:
             # Pass right clicks, etc onto wx, which can generate
