@@ -894,8 +894,16 @@ class wxCollectionCanvas(DragAndDrop.DropReceiveWidget,
 
         # Sometimes we get empty regions to paint,
         # like when you mouseover the scrollbar
-        if self.GetUpdateRegion().IsEmpty():
+        updateRegion = self.GetUpdateRegion()
+        if updateRegion.IsEmpty():
             return
+
+        updateRect = updateRegion.Box
+        for child in self.GetChildren():
+            if child.IsShown() and child.GetRect().ContainsRect(updateRect):
+                # On windows, every time the cursor blinks, the wx.TextCtrl is
+                # dirtied, we don't need to redraw!
+                return
 
         self.PrepareDC(dc)
         self.DrawCanvas(dc)
