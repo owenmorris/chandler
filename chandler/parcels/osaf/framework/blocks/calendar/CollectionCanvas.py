@@ -675,13 +675,12 @@ class wxCollectionCanvas(DragAndDrop.DropReceiveWidget,
             # sometimes get extra LeftUp's if the user does a
             # double-click and drag
             if self.dragState is not None:
+                # We want to set focus only if a drag isn't in progress
+                if not self.dragState._dragStarted:
+                    self.SetPanelFocus()
 
                 moved = self.dragState._originalPosition - unscrolledPosition
-                if moved[0]*moved[0] + moved[1] * moved[1] > 16:                
-                    # We want to set focus only if a drag isn't in progress
-                    if not self.dragState._dragStarted:
-                        self.SetPanelFocus()
-    
+                if moved[0]*moved[0] + moved[1] * moved[1] > 16:                    
                     self.dragState.HandleDragEnd()
                     self.dragState = None
                 else:
