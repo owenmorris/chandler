@@ -598,7 +598,7 @@ class wxApplication (wx.App):
         return True    # indicates we succeeded with initialization
 
     def reload(self):
-        from osaf.activity import *
+        from osaf.activity import Activity
         from osaf import dumpreload
         from osaf.framework.blocks.Block import Block
 
