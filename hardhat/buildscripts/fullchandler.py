@@ -97,6 +97,9 @@ def Start(hardhatScript, workingDir, buildVersion, clobber, log, skipTests=False
     buildVersionEscaped = "\'" + buildVersion + "\'"
     buildVersionEscaped = buildVersionEscaped.replace(" ", "|")
 
+    clean = ''
+    ret   = 'success'
+
     if not os.path.exists(chanDir):
           # Initialize sources
         print "Setup source tree..."
@@ -104,7 +107,6 @@ def Start(hardhatScript, workingDir, buildVersion, clobber, log, skipTests=False
 
         svnChanges   = {}
         svnRevisions = {}
-        clean        = ''
 
         for module in reposModules:
             svnSource = os.path.join(reposRoot, reposBase, module)
@@ -120,29 +122,33 @@ def Start(hardhatScript, workingDir, buildVersion, clobber, log, skipTests=False
             svnChanges[module] = True
 
         for releaseMode in releaseModes:
-            doBuild(releaseMode, workingDir, log, svnChanges, clean)
+            ret = doBuild(releaseMode, workingDir, log, svnChanges, clean)
 
-            if upload:
-                doUploadToStaging(releaseMode, workingDir, buildVersion, log)
+            if ret == 'success':
+                if upload:
+                    doUploadToStaging(releaseMode, workingDir, buildVersion, log)
+            else:
+                break
 
             clean = 'clean'
 
-        for releaseMode in releaseModes:
-            doDistribution(releaseMode, workingDir, log, outputDir, buildVersion, buildVersionEscaped, hardhatScript)
-
-        if skipTests:
-            ret = 'success'
-        else:
+        if ret == 'success':
             for releaseMode in releaseModes:
-                #ret = doProjectTests(releaseMode, workingDir,
-                #                     outputDir, buildVersion, log)
-                #if ret != 'success':
-                #    break
+                doDistribution(releaseMode, workingDir, log, outputDir, buildVersion, buildVersionEscaped, hardhatScript)
 
-                ret = doTests(releaseMode, workingDir,
-                              outputDir, buildVersion, log)
-                if ret != 'success':
-                    break
+            if skipTests:
+                ret = 'success'
+            else:
+                for releaseMode in releaseModes:
+                    #ret = doProjectTests(releaseMode, workingDir,
+                    #                     outputDir, buildVersion, log)
+                    #if ret != 'success':
+                    #    break
+
+                    ret = doTests(releaseMode, workingDir,
+                                  outputDir, buildVersion, log)
+                    if ret != 'success':
+                        break
 
         changes = "-first-run"
     else:
@@ -155,33 +161,36 @@ def Start(hardhatScript, workingDir, buildVersion, clobber, log, skipTests=False
             log.write("Changes in SVN require build\n")
             changes = "-changes"
             clean   = 'realclean'
-            for releaseMode in releaseModes:        
-                doBuild(releaseMode, workingDir, log, svnChanges, clean)
 
-                if upload:
-                    doUploadToStaging(releaseMode, workingDir, buildVersion, log)
+            for releaseMode in releaseModes:
+                ret = doBuild(releaseMode, workingDir, log, svnChanges, clean)
 
-                clean = 'clean'
+                if ret != 'success':
+                    break
+                else:
+                    if upload:
+                        doUploadToStaging(releaseMode, workingDir, buildVersion, log)
 
-        if svnChanges['external'] or svnChanges['internal'] or svnChanges['chandler']:
+                    clean = 'clean'
+
+        if ret == 'success' and (svnChanges['external'] or svnChanges['internal'] or svnChanges['chandler']):
             log.write("Changes in SVN require making distributions\n")
-            changes = "-changes"            
-            for releaseMode in releaseModes:        
+            changes = "-changes"
+            for releaseMode in releaseModes:
                 doDistribution(releaseMode, workingDir, log, outputDir, buildVersion, buildVersionEscaped, hardhatScript)
 
         else:
             log.write("No changes\n")
             changes = "-nochanges"
 
-        # do tests
-        if skipTests:
-            ret = 'success'
-        else:
-            for releaseMode in releaseModes:   
-                ret = doTests(releaseMode, workingDir,
-                              outputDir, buildVersion, log)
-                if ret != 'success':
-                    break
+        if ret == 'success':
+            # do tests
+            if not skipTests:
+                for releaseMode in releaseModes:   
+                    ret = doTests(releaseMode, workingDir,
+                                  outputDir, buildVersion, log)
+                    if ret != 'success':
+                        break
 
     os.chdir(workingDir + '/external')
 
@@ -419,6 +428,8 @@ def doBuild(buildmode, workingDir, log, svnChanges, clean='realclean'):
     log.write('Setting BUILD_ROOT=' + buildRoot + '\n')
     os.putenv('BUILD_ROOT', buildRoot)
 
+    ret = 'build_failed'
+
     try:
         for module in reposModules:
             print module, "..."
@@ -456,15 +467,20 @@ def doBuild(buildmode, workingDir, log, svnChanges, clean='realclean'):
 
             log.write(separator)
 
+        ret = 'success'
+
     except hardhatutil.ExternalCommandErrorWithOutputList, e:
         print "build error"
         log.write("***Error during build***\n")
         log.write(separator)
         log.write("Build log:" + "\n")
         hardhatutil.dumpOutputList(e.outputList, log)
-        log.write(separator)
-        forceBuildNextCycle(log, workingDir)
-        raise e
+        if e.exitCode == 0:
+            err = ''
+        else:
+            err = '***Error '
+        log.write("%sexit code=%s\n" % (err, e.exitCode))
+
     except Exception, e:
         print "build error"
         log.write("***Error during build***\n")
@@ -472,8 +488,8 @@ def doBuild(buildmode, workingDir, log, svnChanges, clean='realclean'):
         log.write("No build log!\n")
         log.write(separator)
         forceBuildNextCycle(log, workingDir)
-        raise e
 
+    return ret
 
 def forceBuildNextCycle(log, workingDir):
     doRealclean(log, workingDir)
