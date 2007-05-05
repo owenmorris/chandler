@@ -35,14 +35,28 @@ from repository.persistence.DBItemIO import DBItemWriter
 
 class DBRepositoryView(OnDemandRepositoryView):
 
+    def __init__(self, repository, name=None, version=None,
+                 deferDelete=Default, pruneSize=Default, notify=Default,
+                 mergeFn=None, mvcc=True):
+
+        super(DBRepositoryView, self).__init__(repository, name, version,
+                                               deferDelete, pruneSize, notify,
+                                               mergeFn)
+        self.useMVCC(mvcc)
+
     def openView(self, version=None, deferDelete=Default, notify=Default,
-                 mergeFn=None):
+                 mergeFn=None, mvcc=True):
 
         self._log = set()
         self._indexWriter = None
+        self._mvcc = mvcc
 
         super(DBRepositoryView, self).openView(version, deferDelete, notify,
                                                mergeFn)
+
+    def useMVCC(self, mvcc):
+
+        self._mvcc = mvcc
 
     def _clear(self):
 
@@ -158,9 +172,9 @@ class DBRepositoryView(OnDemandRepositoryView):
 
         return DBLob
 
-    def _startTransaction(self, nested=False, nomvcc=False):
+    def _startTransaction(self, nested=False, readOnly=True):
 
-        return self.store.startTransaction(self, nested, nomvcc)
+        return self.store.startTransaction(self, nested, readOnly)
 
     def _commitTransaction(self, status):
 
@@ -269,7 +283,7 @@ class DBRepositoryView(OnDemandRepositoryView):
                 while True:
                     txnStatus = 0
                     try:
-                        txnStatus = self._startTransaction(False)
+                        txnStatus = self._startTransaction()
                         forwards = self._refresh(mergeFn, version, notify)
                     except DBLockDeadlockError:
                         self.logger.info('%s retrying refresh aborted by deadlock (thread: %s)', self, currentThread().getName())
@@ -608,13 +622,13 @@ class DBRepositoryView(OnDemandRepositoryView):
                                              self, count)
 
                         if count > 0:
-                            txnStatus = self._startTransaction(True)
+                            txnStatus = self._startTransaction(True, False)
                             if txnStatus == 0:
                                 raise AssertionError, 'no transaction started'
 
                             newVersion = store.nextVersion()
 
-                            itemWriter = DBItemWriter(store)
+                            itemWriter = DBItemWriter(store, self)
                             for item in self._log:
                                 size += self._saveItem(item, newVersion,
                                                        itemWriter)
@@ -624,6 +638,7 @@ class DBRepositoryView(OnDemandRepositoryView):
                             if self.isDirty():
                                 size += self._roots._saveValues(newVersion)
 
+                        store.saveViewStatus(newVersion, self)
                         store.logCommit(self, newVersion, count)
                         lock, txnStatus = finish(True)
                         break

@@ -15,7 +15,7 @@
 
 import sys, os, shutil, atexit, time, threading
 
-from datetime import datetime
+from datetime import datetime, timedelta
 from os.path import exists, abspath, normpath, join, dirname, basename, isdir
 
 from chandlerdb.util import lock
@@ -688,7 +688,7 @@ class DBRepository(OnDemandRepository):
                     indexReader.close()
                     indexSearcher.close()
 
-                store.commitTransaction(None, txnStatus)
+                store._values.purgeViewStatus(txn, counter, toVersion)
 
             except _counter.commit, e:
                 uItem, version = counter.current
@@ -714,6 +714,7 @@ class DBRepository(OnDemandRepository):
                 raise
 
             else:
+                store.commitTransaction(None, txnStatus)
                 break
 
         counts = (counter.itemCount, counter.valueCount, counter.refCount,
@@ -954,10 +955,10 @@ class DBRepository(OnDemandRepository):
 
     def createView(self, name=None, version=None,
                    deferDelete=Default, pruneSize=Default, notify=Default,
-                   mergeFn=None):
+                   mergeFn=None, mvcc=True):
 
         return DBRepositoryView(self, name, version,
-                                deferDelete, pruneSize, notify, mergeFn)
+                                deferDelete, pruneSize, notify, mergeFn, mvcc)
 
     def startIndexer(self, interval=60):
 
@@ -1249,6 +1250,15 @@ class DBStore(Store):
 
         return self._index.setIndexVersion(version)
 
+    def saveViewStatus(self, version, view):
+
+        return self._values.saveViewStatus(version,
+                                           view._status & view.SAVEMASK)
+
+    def getViewStatus(self, version):
+
+        return self._values.getViewStatus(version)
+
     def logCommit(self, view, version, commitSize):
 
         self._commits.logCommit(view, version, commitSize)
@@ -1261,22 +1271,24 @@ class DBStore(Store):
 
         return self._commits.getCommit(version)
 
-    def startTransaction(self, view, nested=False, nomvcc=False):
+    def startTransaction(self, view, nested=False, readOnly=True):
 
         locals = self._threaded
         txn = locals.get('txn')
+        mvcc = readOnly and (view._mvcc if view is not None else True)
 
         if txn is None:
             status = Transaction.TXN_STARTED
-            locals['txn'] = DBTransaction(self, None, status, not nomvcc)
+            locals['txn'] = DBTransaction(self, None, status, mvcc)
         elif nested:
+            self.repository.logger.warning("%s: nesting transaction", view)
             txns = locals.get('txns')
             if txns is None:
                 locals['txns'] = [txn]
             else:
                 locals['txns'].append(txn)
             status = Transaction.TXN_STARTED | Transaction.TXN_NESTED
-            locals['txn'] = DBTransaction(self, txn._txn, status, not nomvcc)
+            locals['txn'] = DBTransaction(self, txn._txn, status, mvcc)
         else:
             status = 0
             txn._count += 1
@@ -1360,7 +1372,7 @@ class DBCheckpointThread(threading.Thread):
         self._alive = True
 
         self.enabled = True
-        self.interval = interval
+        self.interval = interval * 60.0
 
         self.setDaemon(True)
 
@@ -1372,25 +1384,37 @@ class DBCheckpointThread(threading.Thread):
         lock = None
 
         repository.logger.info("%s: checkpointing every %d minutes",
-                               repository, self.interval)
+                               repository, self.interval / 60)
+        last = time.time()
+
+        def checkpoint(before):
+            try:
+                lock = store.acquireLock()
+                repository.checkpoint()
+                after = time.time()
+                duration = after - before
+                repository.logger.info('%s: %s, completed checkpoint in %s',
+                                       repository, datetime.now(),
+                                       timedelta(seconds=duration))
+            finally:
+                lock = store.releaseLock(lock)
+            return after
 
         while self._alive:
             condition.acquire()
             if self._alive:
-                condition.wait(self.interval * 60.0) # seconds
+                condition.wait(60.0) # seconds
             condition.release()
 
             if not (self._alive and self.isAlive()):
                 break
 
             if self.enabled:
-                try:
-                    lock = store.acquireLock()
-                    repository.checkpoint()
-                    repository.logger.info('%s: %s, completed checkpoint',
-                                           repository, datetime.now())
-                finally:
-                    lock = store.releaseLock(lock)
+                before = time.time()
+                if before - last > self.interval:
+                    last = checkpoint(before)
+                elif len(repository._env.log_archive(DBEnv.DB_ARCH_LOG)) >= 8:
+                    last = checkpoint(before)
 
     def terminate(self):
         
@@ -1455,9 +1479,10 @@ class DBIndexerThread(RepositoryThread):
 
                 if indexVersion < latestVersion:
                     if view is None:
-                        view = repository.createView("Lucene", pruneSize=400)
+                        view = repository.createView("Lucene", pruneSize=400,
+                                                     notify=False)
                     while indexVersion < latestVersion:
-                        view.refresh(version=indexVersion + 1, notify=False)
+                        view.refresh(version=indexVersion + 1)
                         self._indexVersion(view, indexVersion + 1, store)
                         indexVersion += 1
             finally:
@@ -1482,18 +1507,20 @@ class DBIndexerThread(RepositoryThread):
                 lock = store.acquireLock()
 
                 try:
-                    txnStatus = view._startTransaction(False, True)
+                    txnStatus = view._startTransaction(False, False)
 
-                    for (uItem, ver, uKind, status, uParent, pKind,
-                         dirties) in items.iterHistory(view, version - 1,
-                                                       version):
-                        if status & CItem.TOINDEX:
-                            if status & CItem.NEW:
-                                dirties = None
-                            else:
-                                dirties = list(dirties)
-                            self._indexItem(view, ver, store, uItem, dirties)
-                            count += 1
+                    if store.getViewStatus(version) & view.TOINDEX:
+                        for (uItem, ver, uKind, status, uParent, pKind,
+                             dirties) in items.iterHistory(view, version - 1,
+                                                           version):
+                            if status & CItem.TOINDEX:
+                                if status & CItem.NEW:
+                                    dirties = None
+                                else:
+                                    dirties = list(dirties)
+                                self._indexItem(view, ver, store,
+                                                uItem, dirties)
+                                count += 1
 
                     store.setIndexVersion(version)
                     view._commitTransaction(txnStatus)
@@ -1542,7 +1569,6 @@ class DBIndexerThread(RepositoryThread):
                         store._index.indexValue(view._getIndexWriter(),
                                                 valueType.makeUnicode(value),
                                                 uItem, uAttr, uValue, version)
-                    store._values.c.setIndexed(store.txn, uValue)
 
     def notify(self, wait=False):
 

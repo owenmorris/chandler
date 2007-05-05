@@ -33,13 +33,14 @@ from repository.persistence.RepositoryError import \
 
 class DBItemWriter(ItemWriter):
 
-    def __init__(self, store):
+    def __init__(self, store, view):
 
         super(DBItemWriter, self).__init__()
 
         self.store = store
         self.valueBuffer = []
         self.dataBuffer = []
+        self.toindex = view.isBackgroundIndexed()
 
     def writeItem(self, item, version):
 
@@ -216,13 +217,10 @@ class DBItemWriter(ItemWriter):
             if indexed is None:
                 indexed = c.indexed
 
-        if indexed:
-            if view.isBackgroundIndexed():
-                flags |= CValues.TOINDEX
-                item._status |= CItem.TOINDEX
-                indexed = False
-            else:
-                flags |= CValues.INDEXED
+        if indexed and self.toindex:
+            flags |= CValues.TOINDEX
+            item._status |= CItem.TOINDEX
+            indexed = False
 
         record = Record(Record.UUID, attribute.itsUUID,
                         Record.BYTE, flags)
@@ -1100,9 +1098,9 @@ class DBItemUndo(object):
                         for uIndex in indexes:
                             _indexes.undoIndex(txn, uIndex, version)
     
-                _values.purgeValue(txn, uValue)
+                _values.purgeValue(txn, None, uValue)
         
         _refs.undoRefs(txn, uItem, version) # children
         store._index.undoDocuments(indexSearcher, indexReader, uItem, version)
 
-        _items.purgeItem(txn, uItem, version)
+        _items.purgeItem(txn, None, uItem, version)

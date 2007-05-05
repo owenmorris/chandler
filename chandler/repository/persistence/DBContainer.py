@@ -1011,7 +1011,8 @@ class ItemContainer(DBContainer):
     def purgeItem(self, txn, counter, uuid, version):
 
         self.delete(pack('>16sl', uuid._uuid, ~version), txn)
-        counter.itemCount += 1
+        if counter is not None:
+            counter.itemCount += 1
 
     def isValue(self, view, version, uItem, uValue, exact=False):
 
@@ -1445,11 +1446,13 @@ class ValueContainer(DBContainer):
     # 0.6.15: removed unused entryValue field from skip list entries
     # 0.7.1: record value count widened to 32 bit
     # 0.7.2: any sorted index may now have a super-index
+    # 0.7.3: added saving of persistent view status bits
 
-    FORMAT_VERSION = 0x00070200
+    FORMAT_VERSION = 0x00070300
 
     SCHEMA_KEY  = pack('>16sl', Repository.itsUUID._uuid, 0)
     VERSION_KEY = pack('>16sl', Repository.itsUUID._uuid, 1)
+    VIEW_KEY    = pack('>16sl', Repository.itsUUID._uuid, 2)
 
     def __init__(self, store):
 
@@ -1511,6 +1514,20 @@ class ValueContainer(DBContainer):
 
         return UUID(versionId), format, schema
         
+    def saveViewStatus(self, version, status):
+
+        self._version.put(pack('>20sl', ValueContainer.VIEW_KEY, version),
+                          pack('>l', status), self.store.txn)
+
+    def getViewStatus(self, version):
+
+        key = pack('>20sl', ValueContainer.VIEW_KEY, version)
+        value = self._version.get(key, self.store.txn, self.c.flags, None)
+        if value is None:
+            return 0
+
+        return unpack('>l', value)[0]
+
     def getVersion(self):
 
         value = self._version.get(ValueContainer.VERSION_KEY,
@@ -1536,7 +1553,33 @@ class ValueContainer(DBContainer):
     def purgeValue(self, txn, counter, uuid):
 
         self.delete(uuid._uuid, txn)
-        counter.valueCount += 1
+        if counter is not None:
+            counter.valueCount += 1
+
+    def purgeViewStatus(self, txn, counter, toVersion):
+
+        try:
+            key = ValueContainer.VIEW_KEY
+            cursor = self.c.openCursor(self._version)
+            flags = self.c.flags
+            value = cursor.set_range(key, flags, None)
+            
+            if toVersion is None:
+                while value is not None and value[0].startswith(key):
+                    cursor.delete(flags)
+                    counter.valueCount += 1
+                    value = cursor.next(flags, None)
+            else:
+                while value is not None and value[0].startswith(key):
+                    version = unpack('>l', value[0][20:24])[0]
+                    if version < toVersion:
+                        value = cursor.delete(flags)
+                        counter.valueCount += 1
+                        value = cursor.next(flags, None)
+                    else:
+                        break
+        finally:
+            self.c.closeCursor(cursor)
 
 
 class CommitsContainer(DBContainer):
