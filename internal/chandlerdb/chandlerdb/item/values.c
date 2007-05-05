@@ -586,7 +586,6 @@ void _init_values(PyObject *m)
             CValues = &ValuesType;
 
             PyDict_SetItemString_Int(dict, "READONLY", V_READONLY);
-            PyDict_SetItemString_Int(dict, "INDEXED", V_INDEXED);
             PyDict_SetItemString_Int(dict, "TOINDEX", V_TOINDEX);
             PyDict_SetItemString_Int(dict, "DIRTY", V_DIRTY);
             PyDict_SetItemString_Int(dict, "DIRTYAGAIN", V_DIRTYAGAIN);

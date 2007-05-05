@@ -639,7 +639,6 @@ static PyMemberDef t_value_container_members[] = {
 
 static PyMethodDef t_value_container_methods[] = {
     { "loadValue", (PyCFunction) t_value_container_loadValue, METH_VARARGS, "loadValue" },
-    { "setIndexed", (PyCFunction) t_value_container_setIndexed, METH_VARARGS, "setIndexed" },
     { NULL, NULL, 0, NULL }
 };
 
@@ -759,67 +758,6 @@ static PyObject *t_value_container_loadValue(t_value_container *self,
           default:
             return raiseDBError(err);
         }
-    }
-}
-
-static PyObject *t_value_container_setIndexed(t_value_container *self,
-                                              PyObject *args)
-{
-    PyObject *txn, *uValue;
-
-    if (!PyArg_ParseTuple(args, "OO", &txn, &uValue))
-        return NULL;
-
-    if (txn != Py_None && !PyObject_TypeCheck(txn, CDBTxn))
-    {
-        PyErr_SetObject(PyExc_TypeError, txn);
-        return NULL;
-    }
-
-    if (!PyUUID_Check(uValue))
-    {
-        PyErr_SetObject(PyExc_TypeError, uValue);
-        return NULL;
-    }
-
-    {
-        DB_TXN *db_txn = txn == Py_None ? NULL : ((t_txn *) txn)->txn;
-        DB *db = (((t_container *) self)->db)->db;
-        DBT key, data;
-        unsigned char vFlags;
-        int err;
-
-        memset(&key, 0, sizeof(key));
-        key.data = PyString_AS_STRING(((t_uuid *) uValue)->uuid);
-        key.size = PyString_GET_SIZE(((t_uuid *) uValue)->uuid);
-        
-        memset(&data, 0, sizeof(data));
-        data.flags = DB_DBT_USERMEM | DB_DBT_PARTIAL;
-        data.doff = 16;
-        data.dlen = 1;
-        data.ulen = 1;
-        data.data = &vFlags;
-
-        Py_BEGIN_ALLOW_THREADS;
-        err = db->get(db, db_txn, &key, &data, 0);
-        Py_END_ALLOW_THREADS;
-
-        if (!err)
-        {
-            vFlags &= ~V_TOINDEX;
-            vFlags |= V_INDEXED;
-        }
-        else
-            return raiseDBError(err);
-
-        Py_BEGIN_ALLOW_THREADS;
-        err = db->put(db, db_txn, &key, &data, 0);
-        Py_END_ALLOW_THREADS;
-
-        if (!err)
-            Py_RETURN_NONE;
-        else
-            return raiseDBError(err);
     }
 }
 

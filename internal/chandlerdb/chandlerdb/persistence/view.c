@@ -483,7 +483,7 @@ static PyObject *t_view_cancelDelete(t_view *self)
 
 static PyObject *t_view_isBackgroundIndexed(t_view *self)
 {
-    if (self->status & BGNDINDEX)
+    if (self->status & TOINDEX)
         Py_RETURN_TRUE;
     else
         Py_RETURN_FALSE;
@@ -494,9 +494,9 @@ static PyObject *t_view_setBackgroundIndexed(t_view *self, PyObject *arg)
     PyObject *value = t_view_isBackgroundIndexed(self);
 
     if (PyObject_IsTrue(arg))
-        self->status |= BGNDINDEX;
+        self->status |= TOINDEX;
     else
-        self->status &= ~BGNDINDEX;
+        self->status &= ~TOINDEX;
 
     return value;
 }
@@ -1882,6 +1882,8 @@ void _init_view(PyObject *m)
             PyDict_SetItemString_Int(dict, "COMMITTING", COMMITTING);
             PyDict_SetItemString_Int(dict, "DEFERDEL", DEFERDEL);
             PyDict_SetItemString_Int(dict, "FDIRTY", FDIRTY);
+            PyDict_SetItemString_Int(dict, "CDIRTY", CDIRTY);
+            PyDict_SetItemString_Int(dict, "STALE", STALE);
             PyDict_SetItemString_Int(dict, "DEFERNOTIF", DEFERNOTIF);
             PyDict_SetItemString_Int(dict, "REFRESHING", REFRESHING);
             PyDict_SetItemString_Int(dict, "VERIFY", VERIFY);
@@ -1892,6 +1894,8 @@ void _init_view(PyObject *m)
             PyDict_SetItemString_Int(dict, "DEFERCOMMIT", DEFERCOMMIT);
             PyDict_SetItemString_Int(dict, "COMMITLOCK", COMMITLOCK);
             PyDict_SetItemString_Int(dict, "DONTNOTIFY", DONTNOTIFY);
+            PyDict_SetItemString_Int(dict, "TOINDEX", TOINDEX);
+            PyDict_SetItemString_Int(dict, "SAVEMASK", W_SAVEMASK);
 
             refresh_NAME = PyString_FromString("refresh");
             _effectDelete_NAME = PyString_FromString("_effectDelete");
