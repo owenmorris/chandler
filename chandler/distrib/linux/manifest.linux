@@ -120,10 +120,3 @@ dest=release
 RunChandler
 RunPython
 
-# Grab plugins
-src=chandler
-dest=
-recursive=yes
-glob=*
-plugins
-

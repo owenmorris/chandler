@@ -122,10 +122,3 @@ Headers
 Resources
 Versions
 
-# Grab plugins
-src=chandler
-dest=
-recursive=yes
-glob=*
-plugins
-
