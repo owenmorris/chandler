@@ -781,7 +781,7 @@ class MainView(View):
 
         if code == 0:
             # 0 = no valid addresses
-            wx.MessageBpx (_(u"Message can not be sent. You have not entered any valid email addresses."),
+            wx.MessageBox (_(u"Message can not be sent. You have not entered any valid email addresses."),
                            _(u"Mail Error"))
             return
 
