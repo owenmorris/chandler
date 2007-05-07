@@ -89,7 +89,8 @@ def decodeHeader(header, charset="utf-8"):
         buf = [b[0].decode(b[1] or 'ascii') for b in h]
         return u''.join(buf)
 
-    except(UnicodeError, UnicodeDecodeError, LookupError):
+    except(UnicodeError, UnicodeDecodeError, LookupError, \
+           email.errors.HeaderParseError):
         return unicode("".join(header.splitlines()), charset, 'ignore')
 
 def getUnicodeValue(val, charset="utf-8", ignore=False):
