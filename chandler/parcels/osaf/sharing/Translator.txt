@@ -9,7 +9,9 @@ records.
     >>> from osaf import sharing, pim
     >>> from datetime import datetime, timedelta
     >>> from decimal import Decimal
-    >>> from PyICU import ICUtzinfo
+    >>> from PyICU import ICUtzinfo, TimeZone
+    >>> TimeZone.setDefault(ICUtzinfo.getInstance(
+    ...                              "America/Los_Angeles").timezone)
     >>> from repository.persistence.RepositoryView import NullRepositoryView
     >>> rv = NullRepositoryView()
 
@@ -266,7 +268,7 @@ Importing:
     
     >>> rec = sharing.model.EventRecord(
     ...         uuid='f230dcd4-7c32-4c3f-908b-d92081cc9a89',
-    ...         dtstart = ';VALUE=DATE-TIME;TZID=US/Pacific:20070201T140000',
+    ...         dtstart = ';VALUE=DATE-TIME;TZID=America/Los_Angeles:20070201T140000',
     ...         duration = 'PT1H',
     ...         location = 'Nowhere',
     ...         rrule = None,
@@ -290,7 +292,7 @@ Importing:
     >>> event.location.displayName
     u'Nowhere'
     >>> event.startTime
-    datetime.datetime(2007, 2, 1, 14, 0, tzinfo=<ICUtzinfo: US/Pacific>)
+    datetime.datetime(2007, 2, 1, 14, 0, tzinfo=<ICUtzinfo: America/Los_Angeles>)
     >>> event.duration
     datetime.timedelta(0, 3600)
 
@@ -299,7 +301,7 @@ Exporting:
     >>> t.startExport()
     >>> records = [r for r in t.exportItem(item) if isinstance(r, sharing.model.EventRecord)]
     >>> records
-    [EventRecord('f230dcd4-7c32-4c3f-908b-d92081cc9a89', u';VALUE=DATE-TIME;TZID=US/Pacific:20070201T140000', u'PT1H', u'Nowhere', None, None, None, None, u'CANCELLED')]
+    [EventRecord('f230dcd4-7c32-4c3f-908b-d92081cc9a89', u';VALUE=DATE-TIME;TZID=America/Los_Angeles:20070201T140000', u'PT1H', u'Nowhere', None, None, None, None, u'CANCELLED')]
 
 Recurrence
 - - - - -
@@ -313,8 +315,8 @@ Importing:
     ...             location = rec.location,
     ...             rrule = 'FREQ=WEEKLY;COUNT=5;BYDAY=TU,TH',
     ...             exrule = None,
-    ...             rdate = ';VALUE=DATE-TIME;TZID=US/Pacific:20070223T140000,20070225T140000',
-    ...             exdate = ';VALUE=DATE-TIME;TZID=US/Pacific:20070206T140000',
+    ...             rdate = ';VALUE=DATE-TIME;TZID=America/Los_Angeles:20070223T140000,20070225T140000',
+    ...             exdate = ';VALUE=DATE-TIME;TZID=America/Los_Angeles:20070206T140000',
     ...             status = rec.status,
     ... )
 
@@ -339,9 +341,9 @@ Exporting:
     >>> record.exrule is None
     True
     >>> record.rdate
-    u';VALUE=DATE-TIME;TZID=US/Pacific:20070223T140000,20070225T140000'
+    u';VALUE=DATE-TIME;TZID=America/Los_Angeles:20070223T140000,20070225T140000'
     >>> record.exdate
-    u';VALUE=DATE-TIME;TZID=US/Pacific:20070206T140000'
+    u';VALUE=DATE-TIME;TZID=America/Los_Angeles:20070206T140000'
 
 Modifications
 - - - - - - -
@@ -349,7 +351,7 @@ Modifications
 Importing:
 
     >>> mod_rec = sharing.model.ItemRecord(
-    ...         uuid='f230dcd4-7c32-4c3f-908b-d92081cc9a89::;VALUE=DATE-TIME;TZID=US/Pacific:20070223T140000',
+    ...         uuid='f230dcd4-7c32-4c3f-908b-d92081cc9a89::;VALUE=DATE-TIME;TZID=America/Los_Angeles:20070223T140000',
     ...         title='Changed title',
     ...         triage=sharing.Inherit,
     ...         createdOn=sharing.Inherit,
@@ -420,7 +422,7 @@ Importing:
     >>> item.reminders.first()
     <Reminder (new): ...>
     >>> item.reminders.first().absoluteTime
-    datetime.datetime(2006, 3, 4, 14, 0, tzinfo=<ICUtzinfo: US/Pacific>)
+    datetime.datetime(2006, 3, 4, 14, 0, tzinfo=<ICUtzinfo: America/Los_Angeles>)
     >>> item.reminders.first().description
     u"Don't forget!"
     
@@ -467,7 +469,7 @@ Importing:
     ... )
     >>> event_rec = sharing.model.EventRecord(
     ...         uuid='800644b6-dd73-11db-f79a-0016cbca6aed',
-    ...         dtstart = ';VALUE=DATE-TIME;TZID=US/Pacific:20070516T180000',
+    ...         dtstart = ';VALUE=DATE-TIME;TZID=America/Los_Angeles:20070516T180000',
     ...         duration = 'PT1H',
     ...         location = 'Nowhere',
     ...         rrule = None,
@@ -631,7 +633,7 @@ for event status, and empty string to NoChange for triage are working::
 
     >>> rec = sharing.model.EventRecord(
     ...         uuid='f230dcd4-7c32-4c3f-908b-d92081cc9a89',
-    ...         dtstart = ';VALUE=DATE-TIME;TZID=US/Pacific:20070201T140000',
+    ...         dtstart = ';VALUE=DATE-TIME;TZID=America/Los_Angeles:20070201T140000',
     ...         duration = 'PT1H',
     ...         location = 'Nowhere',
     ...         rrule = None,
