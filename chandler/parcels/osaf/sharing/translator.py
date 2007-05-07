@@ -1390,7 +1390,7 @@ class SharingTranslator(eim.Translator):
 
                 try:
                     val = fromICalendarDateTime(record.trigger)[0]
-                    val.astimezone(ICUtzinfo.default)
+                    val = val.astimezone(ICUtzinfo.default)
                 except:
                     pass
                 else:

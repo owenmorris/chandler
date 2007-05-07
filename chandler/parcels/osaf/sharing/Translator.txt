@@ -420,7 +420,7 @@ Importing:
     >>> item.reminders.first()
     <Reminder (new): ...>
     >>> item.reminders.first().absoluteTime
-    datetime.datetime(2006, 3, 4, 22, 0, tzinfo=<ICUtzinfo: UTC>)
+    datetime.datetime(2006, 3, 4, 14, 0, tzinfo=<ICUtzinfo: US/Pacific>)
     >>> item.reminders.first().description
     u"Don't forget!"
     
