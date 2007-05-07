@@ -780,7 +780,7 @@ def updatePublishedFreeBusy(share, fbLocation=None):
         share.contents != sharing_ns.hiddenEvents):
             published.addSource(share.contents)
 
-def deleteShare(share):
+def destroyShare(share):
     # Remove from server (or disk, etc.)
     try:
         share.destroy()
@@ -788,13 +788,18 @@ def deleteShare(share):
         logger.exception("Error trying to delete shared collection")
         # Even though we failed to remove the collection, we still need to
         # clean up the share objects, so continue on
+    deleteShare(share)
 
+
+def deleteShare(share):
     # Clean up sharing-related objects
     if getattr(share, "conduit", None):
         share.conduit.delete(True)
     if getattr(share, "format", None):
         share.format.delete(True)
-    share.delete(True)
+    for state in getattr(share, "states", []):
+        state.delete(True)
+    share.delete(recursive=True)
 
 def unpublish(collection):
     """
@@ -807,8 +812,8 @@ def unpublish(collection):
 
     if has_stamp(collection, SharedItem):
         for share in SharedItem(collection).shares:
-            deleteShare(share)
-            
+            destroyShare(share)
+
         sharing_ns = schema.ns('osaf.sharing', collection.itsView)
         if collection in sharing_ns.publishedFreeBusy.sources:
             sharing_ns.publishedFreeBusy.removeSource(collection)
@@ -831,7 +836,7 @@ def unpublishFreeBusy(collection):
     if share is not None:
         # .ifb share, delete it
         if share.contents == collection:
-            deleteShare(share)
+            destroyShare(share)
         # CalDAV parent collection for live data, deleting would be BAD
         else:
             # remove freebusy ticket from the collection
@@ -846,7 +851,7 @@ def unpublishFreeBusy(collection):
             # also stop publishing hiddenEvents
             sharing_ns = schema.ns('osaf.sharing', collection.itsView)
             for share in sharing_ns.hiddenEvents.shares:
-                deleteShare(share)
+                destroyShare(share)
 
 
 def subscribe(view, url, activity=None, username=None, password=None,
@@ -1335,7 +1340,7 @@ def unsubscribe(collection):
     if has_stamp(collection, SharedItem):
         collection = SharedItem(collection)
         for share in collection.shares:
-            share.delete(recursive=True, cloudAlias='copying')
+            deleteShare(share)
 
 
 def interrogate(conduit, location, ticket=None):
