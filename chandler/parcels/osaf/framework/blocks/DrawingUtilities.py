@@ -106,7 +106,7 @@ def DrawWrappedText(dc, text, rect, measurements=None):
     rectRight = rectX + rectWidth
     rectBottom = rectY + rectHeight
 
-    # we hit this if if you narrow the main window enough:
+    # we hit this if you narrow the main window enough:
     # assert rectHeight >= lineHeight, "Don't have enough room to write anything (have %d, need %d)" % (rectHeight, lineHeight)
     if rectHeight < lineHeight: return 0 # Can't draw anything    
     
@@ -115,7 +115,7 @@ def DrawWrappedText(dc, text, rect, measurements=None):
         # accumulate text to be written on a line
         thisLine = u''
         for word in line.split():
-            width, ignored = dc.GetTextExtent(word)
+            width = dc.GetTextExtent(word)[0]
 
             # if we wrapped but we still can't fit the word,
             # just truncate it    
@@ -137,7 +137,8 @@ def DrawWrappedText(dc, text, rect, measurements=None):
             # if we're out of vertical space, just return
             if (y + lineHeight > rectBottom):
                 assert thisLine == u'', "shouldn't have any more to draw"
-                return y - rectY # total height
+                return
+                #return y - rectY # total height
 
             availableWidth = rectRight - x
             if width > availableWidth:
@@ -154,7 +155,7 @@ def DrawWrappedText(dc, text, rect, measurements=None):
         if thisLine:
             dc.DrawText(thisLine, rectX, y)        
         y += lineHeight
-    return y - rectY # total height
+    #return y - rectY # total height
 
 
 def DrawClippedText(dc, word, x, y, maxWidth, wordWidth = -1):
@@ -172,7 +173,7 @@ def DrawClippedText(dc, word, x, y, maxWidth, wordWidth = -1):
     """
     if wordWidth < 0:
         # do some initial measurements
-        wordWidth, wordHeight = dc.GetTextExtent(word)
+        wordWidth = dc.GetTextExtent(word)[0]
 
     # this is easy, so catch this early
     if wordWidth <= maxWidth:
@@ -181,14 +182,14 @@ def DrawClippedText(dc, word, x, y, maxWidth, wordWidth = -1):
 
     # take a guess at how long the word should be
     testLength = (maxWidth*100/wordWidth)*len(word)/100
-    wordWidth, wordHeight = dc.GetTextExtent(word[0:testLength])
+    wordWidth = dc.GetTextExtent(word[0:testLength])[0]
 
     # now check if the guessed length actually fits
     if wordWidth < maxWidth:
         # yep, it fit!
         # keep increasing word until it won't fit
         for newLen in range(testLength, len(word)+1, 1):
-            wordWidth, wordHeight = dc.GetTextExtent(word[0:newLen])
+            wordWidth = dc.GetTextExtent(word[0:newLen])[0]
             if wordWidth > maxWidth:
                 dc.DrawText(word[0:newLen-1], x, y)
                 return
@@ -197,7 +198,7 @@ def DrawClippedText(dc, word, x, y, maxWidth, wordWidth = -1):
         # no, it didn't fit
         # keep shrinking word until it fits
         for newLen in range(testLength, 0, -1):
-            wordWidth,wordHeight = dc.GetTextExtent(word[0:newLen])
+            wordWidth = dc.GetTextExtent(word[0:newLen])[0]
             if wordWidth <= maxWidth:
                 dc.DrawText(word[0:newLen], x,y)
                 return
