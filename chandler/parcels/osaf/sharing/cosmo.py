@@ -19,15 +19,20 @@ __all__ = [
 
 from application import schema
 import shares, accounts, conduits, errors, formats, eim, recordset_conduit
-import translator, eimml
+import translator, eimml, WebDAV
 import zanshin, M2Crypto
 import urlparse
 import logging
 import time
 from i18n import ChandlerMessageFactory as _
 from osaf.framework.twisted import waitForDeferred
+from xml.etree.cElementTree import fromstring
 
 logger = logging.getLogger(__name__)
+
+
+mcURI = "http://osafoundation.org/mc/"
+
 
 class CosmoAccount(accounts.SharingAccount):
 
@@ -79,6 +84,55 @@ class CosmoAccount(accounts.SharingAccount):
         share.put(activity=activity)
 
         return [share]
+
+    def getPublishedShares(self):
+        path = self.path.strip("/")
+        if path:
+            path = "/%s" % path
+        path = "%s/mc/user/%s" % (path, self.username)
+        handle = WebDAV.ChandlerServerHandle(self.host, self.port,
+            username=self.username,
+            password=waitForDeferred(self.password.decryptPassword()),
+            useSSL=self.useSSL, repositoryView=self.itsView)
+
+        extraHeaders = {}
+        body = None
+        request = zanshin.http.Request('GET', path, extraHeaders, body)
+
+        try:
+            resp = handle.blockUntil(handle.addRequest, request)
+        except zanshin.webdav.ConnectionError, err:
+            raise errors.CouldNotConnect(_(u"Unable to connect to server. Received the following error: %(error)s") % {'error': err})
+
+        except M2Crypto.BIO.BIOError, err:
+            raise errors.CouldNotConnect(_(u"Unable to connect to server. Received the following error: %(error)s") % {'error': err})
+
+        if resp.status != 200:
+            raise errors.SharingError("%s (HTTP status %d)" % (resp.message,
+                resp.status),
+                details="Received [%s]" % resp.body)
+
+
+        info = []
+
+        rootElement = fromstring(resp.body)
+        for colElement in rootElement:
+            uuid = colElement.get("uuid")
+            href = colElement.get("href")
+            name = _("Untitled")
+            tickets = []
+            for subElement in colElement:
+                if subElement.tag == "{%s}name" % mcURI:
+                    name = subElement.text
+                elif subElement.tag == "{%s}ticket" % mcURI:
+                    ticket = subElement.text
+                    ticketType = subElement.get("type")
+                    tickets.append( (ticket, ticketType) )
+
+            info.append( (name, uuid, href, tickets) )
+
+        return info
+
 
 
 class CosmoConduit(recordset_conduit.DiffRecordSetConduit, conduits.HTTPMixin):

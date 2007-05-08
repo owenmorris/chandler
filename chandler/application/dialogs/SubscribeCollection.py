@@ -34,7 +34,8 @@ class SubscribeDialog(wx.Dialog):
     def __init__(self, title, size=wx.DefaultSize,
          pos=wx.DefaultPosition, style=wx.DEFAULT_DIALOG_STYLE,
          resources=None, view=None, url=None, name=None, modal=True,
-         immediate=False, mine=None, publisher=None, color=None):
+         immediate=False, mine=None, publisher=None, color=None,
+         tickets=None):
 
         # for bug #8387
         if wx.Platform == "__WXGTK__":
@@ -49,6 +50,7 @@ class SubscribeDialog(wx.Dialog):
         self.mine = mine
         self.publisher = publisher
         self.color = color
+        self.tickets = tickets
 
         self.mySizer = wx.BoxSizer(wx.VERTICAL)
         self.toolPanel = self.resources.LoadPanel(self, "Subscribe")
@@ -155,6 +157,15 @@ class SubscribeDialog(wx.Dialog):
 
         if self.color:
             usercollections.UserCollection(collection).color = self.color
+
+        if self.tickets:
+            for ticket, ticketType in self.tickets:
+                if ticketType == "read-only":
+                    for share in sharing.SharedItem(collection).shares:
+                        share.conduit.ticketReadOnly = ticket
+                elif ticketType == "read-write":
+                    for share in sharing.SharedItem(collection).shares:
+                        share.conduit.ticketReadWrite = ticket
 
         # Commit now to prevent being in the state where the collection
         # has been subscribed to, but we don't remember adding it to the
@@ -331,7 +342,7 @@ class SubscribeDialog(wx.Dialog):
             self.Destroy()
 
 def Show(view=None, url=None, name=None, modal=False, immediate=False,
-         mine=None, publisher=None, color=None):
+         mine=None, publisher=None, color=None, tickets=None):
     xrcFile = os.path.join(Globals.chandlerDirectory,
      'application', 'dialogs', 'SubscribeCollection.xrc')
     #[i18n] The wx XRC loading method is not able to handle raw 8bit paths
@@ -341,7 +352,7 @@ def Show(view=None, url=None, name=None, modal=False, immediate=False,
     win = SubscribeDialog(_(u"Subscribe"),
                           resources=resources, view=view, url=url, name=name,
                           modal=modal, immediate=immediate, mine=mine,
-                          publisher=publisher, color=color)
+                          publisher=publisher, color=color, tickets=tickets)
     win.CenterOnScreen()
     if modal:
         return win.ShowModal()

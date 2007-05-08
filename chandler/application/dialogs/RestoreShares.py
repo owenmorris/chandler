@@ -58,7 +58,7 @@ class RestoreSharesDialog(wx.Dialog):
 
         self.currentAccount = sharing.getDefaultAccount(self.view)
         self.choiceAccounts.Clear()
-        accounts = sorted(sharing.WebDAVAccount.iterItems(view),
+        accounts = sorted(sharing.SharingAccount.iterItems(view),
                           key = lambda x: x.displayName.lower())
 
         for account in accounts:
@@ -93,10 +93,17 @@ class RestoreSharesDialog(wx.Dialog):
         self.listShares.Clear()
         try:
             self.showStatus(_(u"Getting list of shares..."))
-            existing = sharing.getExistingResources(self.currentAccount)
-            self.hideStatus()
-            for name in existing:
-                self.listShares.Append(name)
+            if isinstance(self.currentAccount, sharing.CosmoAccount):
+                self.shares = self.currentAccount.getPublishedShares()
+                self.hideStatus()
+                for name, uuid, href, tickets in self.shares:
+                    self.listShares.Append(name)
+
+            else:
+                existing = sharing.getExistingResources(self.currentAccount)
+                self.hideStatus()
+                for name in existing:
+                    self.listShares.Append(name)
 
         except Exception, e:
             self.gauge.SetValue(0)
@@ -120,19 +127,22 @@ class RestoreSharesDialog(wx.Dialog):
 
         for index in indexes:
 
-            name =  self.listShares.GetString(index)
-            url = accountUrl + name
-            share = sharing.findMatchingShare(view, url)
-            if share is not None:
-                # Skip it, but deselect first
-                self.listShares.Deselect(index)
+            if isinstance(self.currentAccount, sharing.CosmoAccount):
+                name, uuid, href, tickets = self.shares[index]
+                url = "%smc/%s" % (self.currentAccount.getLocation( ), href)
             else:
+                name =  self.listShares.GetString(index)
+                url = accountUrl + name
+                tickets = None
 
-
+            share = sharing.findMatchingShare(view, url)
+            if share is None:
                 SubscribeCollection.Show(view=view, url=url,
-                    immediate=True, mine=True, publisher=True)
-
+                    immediate=True, mine=True, publisher=True,
+                    tickets=tickets)
                 self.listShares.Deselect(index)
+
+
 
         self.subscribing = False
         view.commit()

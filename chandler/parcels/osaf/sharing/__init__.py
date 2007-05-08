@@ -871,7 +871,7 @@ def subscribe(view, url, activity=None, username=None, password=None,
         # and use the username and password from it (as long as we're
         # not overriding it with passed-in username/password args)
 
-        account = WebDAVAccount.findMatchingAccount(view, url)
+        account = SharingAccount.findMatchingAccount(view, url)
         if account is not None:
             # There is a matching account
             if username is None:
@@ -1003,9 +1003,9 @@ def subscribe(view, url, activity=None, username=None, password=None,
         # with the server; we can add this later if needed
 
         # morsecode + eimml recordsets
-        collection = subscribeMorsecode(view, url, inspection,
+        collection = subscribeMorsecode(view, url, url, inspection,
             activity=activity, account=account,
-            ticket=ticket, username=username, password=password,
+            username=username, password=password,
             filters=filters)
         return collection
 
