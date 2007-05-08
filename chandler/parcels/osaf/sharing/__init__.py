@@ -140,8 +140,14 @@ def getDefaultAccount(rv):
     account = cur.item
     if account and account.isSetUp():
         return account
-    for account in SharingAccount.iterItems(rv):
+    # Give preference to Cosmo accounts
+    for account in CosmoAccount.iterItems(rv):
         if account.isSetUp():
+            cur.item = account
+            return account
+    for account in WebDAVAccount.iterItems(rv):
+        if account.isSetUp():
+            cur.item = account
             return account
     return None
 
@@ -149,23 +155,13 @@ def getDefaultAccount(rv):
 def createDefaultAccount(rv):
     cur = schema.ns('osaf.sharing', rv).currentSharingAccount
     if cur.item is None:
-        cur.item = WebDAVAccount(itsView=rv,
-            displayName=_(u'Cosmo Sharing Service'),
-            host=u'osaf.us', path=u'/cosmo/dav/<username>',
+        cur.item = CosmoAccount(itsView=rv,
+            displayName=_(u'Chandler Hub Service'),
+            host=u'qacosmo.osafoundation.org', path=u'/cosmo',
             username=u'',
             password=Password(itsView=rv),
-            useSSL=True, port=443
+            useSSL=False, port=80
         )
-
-        # Use this one when morsecode becomes the default:
-
-        # CosmoAccount(itsView=parcel.itsView,
-        #     displayName=_(u'Chandler Hub Service'),
-        #     host=u'qacosmo.osafoundation.org', path=u'/cosmo',
-        #     username=u'',
-        #     password=Password(itsView=parcel.itsView),
-        #     useSSL=False, port=80
-        # )
 
     return cur.item
 

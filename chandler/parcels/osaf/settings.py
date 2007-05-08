@@ -265,8 +265,10 @@ def restore(rv, filename, testmode=False, newMaster=''):
                                                          itsParent=account)
 
             if section.has_key(u"default") and section.as_bool(u"default"):
-                schema.ns("osaf.sharing",
-                    rv).currentSharingAccount.item = account
+                # Don't allow webdav accounts to be the default
+                if sectiontype != u"webdav account":
+                    schema.ns("osaf.sharing",
+                        rv).currentSharingAccount.item = account
 
             account.displayName = section[u"title"]
             account.host = section[u"host"]

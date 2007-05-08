@@ -69,7 +69,7 @@ class SettingsTestCase(testcase.SingleRepositoryTestCase):
         # the "Test Sharing Service" account
         act = schema.ns("osaf.sharing", rv).currentSharingAccount.item
         self.assert_(act)
-        self.assert_(isinstance(act, sharing.WebDAVAccount))
+        self.assert_(isinstance(act, sharing.CosmoAccount))
         self.assertEquals(act.displayName, "Test Sharing Service")
         self.assertEquals(act.port, 443)
         self.assertEquals(act.useSSL, True)
