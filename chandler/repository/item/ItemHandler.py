@@ -626,12 +626,16 @@ class ItemHandler(ValueHandler):
 
     def _setKind(self, view):
 
-        if self.item._kind is None:
+        item = self.item
+        if item._kind is None:
             self.kind = view.find(self.kindRef)
             if self.kind is None:
                 raise ValueError, 'Kind %s not found' %(self.kindRef)
             else:
-                self.item._kind = self.kind
+                item._kind = self.kind
+                # give ItemValue instances another chance to cache schema info
+                item.itsValues._setItem(item)
+                item.itsRefs._setItem(item)
 
     def parentEnd(self, itemHandler, attrs):
 

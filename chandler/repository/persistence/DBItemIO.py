@@ -849,19 +849,23 @@ class DBItemReader(ItemReader, DBValueReader):
 
     def _setKind(self, view):
 
-        if self.item._kind is None:
+        item = self.item
+        if item._kind is None:
             try:
                 kind = view[self.uKind]
             except KeyError:
                 raise LoadError, (self.name or self.uItem,
                                   "kind not found: %s" %(uuid))
             else:
-                self.item._kind = kind
-                cls = type(self.item)
+                item._kind = kind
+                cls = type(item)
                 if not kind._setupClass(cls):
                     # run _setupClass again after load completes
                     # because of recursive load error
                     view._hooks.append(lambda view: kind._setupClass(cls))
+                # give ItemValue instances another chance to cache schema info
+                item.itsValues._setItem(item)
+                item.itsRefs._setItem(item)
 
     def _parent(self, uuid, withSchema, view, afterLoadHooks):
 

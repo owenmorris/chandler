@@ -44,7 +44,6 @@ class Values(CValues):
     def _setItem(self, item):
 
         self._item = item
-
         for name, value in self._dict.iteritems():
             if isinstance(value, ItemValue):
                 value._setOwner(item, name)
