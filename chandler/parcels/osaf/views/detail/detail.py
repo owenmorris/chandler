@@ -1740,7 +1740,7 @@ class RecurrenceAttributeEditor(ChoiceAttributeEditor):
                 itemToSelect = master.itsItem
             elif not firstOccurrence.itsItem.isDeleted():
                 itemToSelect = firstOccurrence.itsItem
-        else:
+        else:           
             if (recurrenceID == master.recurrenceID and 
                 event.modificationFor is None):
                 newMaster = master
@@ -1766,8 +1766,7 @@ class RecurrenceAttributeEditor(ChoiceAttributeEditor):
 
 
             event.rruleset = rruleset
-            newMaster.deleteOffRuleOccurrences()
-            
+
             assert not newMaster.itsItem.isDeleted()
 
             itemToSelect = newMaster.getFirstOccurrence().itsItem
