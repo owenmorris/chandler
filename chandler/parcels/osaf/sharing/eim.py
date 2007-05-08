@@ -22,7 +22,7 @@ __all__ = [
     'sort_records', 'format_field',
 ]
 
-from symbols import Symbol  # XXX change this to peak.util.symbols
+from symbols import Symbol, NOT_GIVEN  # XXX change this to peak.util.symbols
 from simplegeneric import generic
 from weakref import WeakValueDictionary
 import linecache, decimal, datetime
@@ -578,11 +578,21 @@ class RecordClass(type):
         exec _constructor_for(name, cdict, fields) in globals(), cdict
 
         cls = type.__new__(meta, name, bases, cdict)
+        defaults = []
         for n,f in enumerate(fields):
             f.owner = cls
             f.offset = n+1
             for ff in f.filters: ff += f    # add fields to filters
+            if f.default is NOT_GIVEN:
+                if defaults:
+                    raise TypeError(
+                        "Can't have required fields after optional ones: "
+                        + name + '.' + f.name
+                    )
+            else:
+                defaults.append(f.default)
 
+        cdict['__new__'].func_defaults = tuple(defaults)
         registerURI(cdict.get('URI'), cls, message)
         return cls
 
@@ -603,26 +613,16 @@ class RecordClass(type):
 
 
 
-
-
-
-
-
-
-
-
-
-
 _field_num = 1
 
 class field(object):
-    __slots__ = "owner", "name", "type", "typeinfo", "seq", "offset", "filters", "title"
-    def __init__(self, type, title=None, formatter=None, filters=()):
+    __slots__ = "owner", "name", "type", "typeinfo", "seq", "offset", "filters", "title", "default"
+    def __init__(self, type, title=None, formatter=None, filters=(), default=NOT_GIVEN):
         global _field_num
         self.owner = self.name = None
         self.title = title
         if formatter: format_field.when_object(self)(lambda s,v: formatter(v))
-        self.type = type
+        self.type, self.default = type, default
         self.typeinfo = typeinfo_for(type)
         self.seq = _field_num = _field_num + 1
         if filters or not hasattr(self, 'filters'):
@@ -651,8 +651,8 @@ def return_typeinfo(context):
 class key(field):
     """Primary key field (can't be filtered)"""
     __slots__ = filters = ()
-    def __init__(self, type, title=None, formatter=None):
-        field.__init__(self, type, title, formatter)
+    def __init__(self, type, title=None, formatter=None, default=NOT_GIVEN):
+        field.__init__(self, type, title, formatter, default=default)
 
 NoChange = Symbol('NoChange', __name__)
 Inherit = Symbol('Inherit', __name__)
@@ -820,9 +820,7 @@ class TranslatorClass(type):
 
 class Translator:
     """Base class for import/export between Items and Records"""
-
     __metaclass__ = TranslatorClass
-
     def __init__(self, rv):
         self.rv = rv
         self.loadQueue = {}
@@ -849,7 +847,6 @@ class Translator:
     def importRecords(self, rs):
         for r in rs.inclusions:
             self.importRecord(r)
-
         for r in rs.exclusions:
             deleter = self.deleters.get(type(r))
             if deleter: deleter(self, r)

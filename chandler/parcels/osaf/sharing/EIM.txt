@@ -70,7 +70,7 @@ Creating diffs from records::
     Demo(1, NoChange, u'This is a foo', NoChange)
 
 Record addition (second record overwrites fields in first, unless NoChange,
-as long as keys match::
+as long as keys match)::
 
     >>> diff1 = Demo(1, "Bar", sharing.NoChange, Decimal('1.29'))
     >>> diff2 = Demo(1, sharing.NoChange, "This is NOT a foo", Decimal('2.50'))
@@ -133,6 +133,39 @@ fields or field types, and they will be used to "explain" the item::
 If you do not register a title with a field when you create it, the field's
 name is used instead.  If there is no formatter registered for the specific
 field or its typeinfo, field's raw value is used unchanged.
+
+
+
+Extending Existing Record Types
+-------------------------------
+
+If you are adding new fields to a record type that has previously been used
+to dump records, you must always add them *after* any existing fields, and
+give them default values::
+
+    >>> class Demo3(sharing.Record):
+    ...     URI         = 'cid:eim.Demo3@osaf.us'
+    ...     itemName    = sharing.field(sharing.TextType(size=50))
+    ...     itemNumber  = sharing.key(int)
+    ...     description = sharing.field(sharing.TextType(size=500))
+    ...     price       = sharing.field(
+    ...         sharing.DecimalType(None, 6, 2), default=Decimal('49.99')
+    ...     )
+    >>> Demo3('test', 27, 'blah').price
+    Decimal("49.99")
+
+Note that you can't specify any optional fields (i.e., ones with default
+values) before required ones::
+
+    >>> class Demo4(sharing.Record):
+    ...     URI         = 'cid:eim.Demo4@osaf.us'
+    ...     itemName    = sharing.field(sharing.TextType(size=50))
+    ...     itemNumber  = sharing.key(int)
+    ...     description = sharing.field(sharing.TextType(size=500), default="blah")
+    ...     price       = sharing.field(sharing.DecimalType(None, 6, 2))
+    Traceback (most recent call last):
+      ...
+    TypeError: Can't have required fields after optional ones: Demo4.price
 
 
 Record Sets
