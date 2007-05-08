@@ -1940,8 +1940,7 @@ class BylineAreaBlock(DetailSynchronizedContentItemDetail):
         lastMod = getattr(self.item, 'lastModification', None)
         isUnsentOutboundMail = (lastMod in (None, 
                                             pim.Modification.edited, 
-                                            pim.Modification.created,
-                                            pim.Modification.queued) and
+                                            pim.Modification.created) and
                                 pim.has_stamp(item, pim.mail.MailStamp) and
                                 (pim.MailStamp(item).fromMe or
                                  getattr(item, pim.MailStamp.fromAddress.name, None) is None))

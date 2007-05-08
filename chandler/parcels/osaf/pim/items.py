@@ -129,11 +129,13 @@ class ContentItem(Triageable):
         ),
         Modification.sent: (
             _(u"sent by %(user)s on %(date)s"),
-            _(u"created on %(date)s"),
+            _(u"sent on %(date)s"),
+        ),
+        Modification.queued: (
+            _(u"queued by %(user)s on %(date)s"),
+            _(u"queued on %(date)s"),
         ),
     }
-    BYLINE_FORMATS[Modification.queued] = BYLINE_FORMATS[Modification.sent]
-
 
     def getByline(self):
         lastModification = self.lastModification
@@ -533,6 +535,12 @@ class ContentItem(Triageable):
     @schema.observer(lastModified)
     def onLastModifiedChanged(self, op, attr):
         self.updateDisplayDate(op, attr)
+
+
+    @schema.observer(error)
+    def onErrorChanged(self, op, attr):
+        if getattr(self, 'error', None) is not None:
+            self.setTriageStatus(None, popToNow=True, force=True)
 
 
     def getBasedAttributes(self, attribute):
