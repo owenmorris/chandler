@@ -1027,19 +1027,17 @@ class wxApplication (wx.App):
         self.UIRepositoryView.repository.close()
 
         try:
-            if sys.platform == 'darwin':
-                from chandlerdb.util.c import vfork
-                vfork()
-
             executable = sys.executable
             if windows and ' ' in executable:
                 executable = '"%s"' %(executable)
 
+            if sys.platform == 'darwin':
+                os.fork()
             os.execl(sys.executable, executable, *argv)
         except:
             logger.exception("while restarting")
         finally:
-            os._exit(0)
+            sys.exit(0)
 
     def OnMainThreadCallbackEvent(self, event):
         """
