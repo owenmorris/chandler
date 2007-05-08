@@ -1440,6 +1440,22 @@ class EventStamp(Stamp):
             if flagStart:
                 self.__enableRecurrenceChanges()
 
+    def _safeDelete(self):
+        """
+        Handle the finicky order of attribute deletion for deleting individual
+        recurring events.
+        """
+        self.__disableRecurrenceChanges()
+        del self.rruleset
+        del self.occurrenceFor
+        del self.modificationFor
+        # I'm not sure why we need to do explicitly delve into collections, but
+        # keeping it for stability's sake - jeffrey
+        for coll in list(getattr(self.itsItem, 'appearsIn', ())):
+            if self.itsItem in getattr(coll, 'inclusions', ()):
+                coll.inclusions.remove(self.itsItem)
+        self.itsItem.delete()
+
     def _grabOccurrences(self, occurrences, attrName, deleteIfNotMatching):
         """
         An internal method called when occurrences are being reassigned
@@ -1449,7 +1465,8 @@ class EventStamp(Stamp):
         @param occurrences: The Occurrences whose master should become self
         @type occurrences: iterable or None
         
-        @param deleteIfNotMatching: If set to True, objects in occurrences that
+        @param deleteIfNotMatching: If set to True, non-modifications and
+                                    triage-only modifications that
                                     don't match the self's rruleset are
                                     deleted. (This is for the changed recurrence
                                     case).
@@ -1481,15 +1498,11 @@ class EventStamp(Stamp):
                         occurrence.itsItem.hasLocalAttributeValue(attrName)):
                         delattr(occurrence.itsItem, attrName)
                         
-                elif deleteIfNotMatching:
-                    occurrence.__disableRecurrenceChanges()
-                    del occurrence.rruleset
-                    del occurrence.occurrenceFor
-                    del occurrence.modificationFor
-                    for coll in list(getattr(occurrence.itsItem, 'appearsIn', ())):
-                        if occurrence.itsItem in getattr(coll, 'inclusions', ()):
-                            coll.inclusions.remove(occurrence.itsItem)
-                    occurrence.itsItem.delete()
+                elif deleteIfNotMatching and (
+                                occurrence.modificationFor is None or 
+                                (occurrence.isTriageOnlyModification() and
+                                 occurrence.itsItem.doAutoTriageOnDateChange)):
+                    occurrence._safeDelete()
             finally:
                 if disabled:
                     occurrence.__enableRecurrenceChanges()
@@ -1498,6 +1511,22 @@ class EventStamp(Stamp):
 
         self.updateTriageStatus(True)
         self.triageForRecurrenceAddition()
+
+    def deleteOffRuleOccurrences(self):
+        """
+        Delete all modifications that don't match the current recurrence rule.
+        
+        Changes to recurrence will call _grabOccurrences, which will delete
+        triage-only modifications and occurrences that are off rule, but not
+        all off-rule modifications.
+        """
+        rruleset = self.createDateUtilFromRule()
+        selfItem = self.itsItem
+        
+        for modification in itertools.imap(EventStamp,
+                                           self.modifications or Nil):
+            if modification.recurrenceID not in rruleset:
+                modification._safeDelete()
 
     def changeThisAndFuture(self, attr=None, value=None):
         """Modify this and all future events."""
@@ -2095,10 +2124,10 @@ class EventStamp(Stamp):
     def cleanRule(self):
         """
         Delete generated occurrences in the current rule and any out of date
-        modifications.
+        triage-only modifications.  To delete all off-rule modifications, use
+        deleteOffRuleOccurrences.
         
         """
-        
         first = self.getFirstInRule()
         first._grabOccurrences(first.occurrences, None, True)
         first.updateRecurrenceEnd()

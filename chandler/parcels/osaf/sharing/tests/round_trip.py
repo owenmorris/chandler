@@ -1034,6 +1034,8 @@ class RoundTripTestCase(testcase.DualRepositoryTestCase):
         this1 = event1.getRecurrenceID(thisRecurrenceID)
         
         this1.itsItem.setTriageStatus(pim.TriageEnum.now)
+        this1.itsItem.resetAutoTriageOnDateChange()
+
         self.failUnlessEqual(this1.modificationFor, item1)
         
         future0.changeThisAndFuture(pim.EventStamp.transparency.name,
@@ -1046,23 +1048,17 @@ class RoundTripTestCase(testcase.DualRepositoryTestCase):
         
         future1 = pim.EventStamp(view1.findUUID(futureUUID))
         self.failUnlessEqual(future1, future1.getMaster())
+        
+        self.failUnlessEqual(this1.modificationFor, item1)
+        # ... that we didn't lose the triage status modification ...
+        self.failUnlessEqual(this1.itsItem.triageStatus,
+                             pim.TriageEnum.now)
 
-        this1 = future1.getRecurrenceID(thisRecurrenceID)
-        # Make sure we picked up the new master's transparency ...
-        self.failUnlessEqual(this1.transparency, 'tentative')
-        if False:
-            # [Bug 8664]
-            # https://bugzilla.osafoundation.org/show_bug.cgi?id=8664
-            # @@@ [grant] This fails: We need to include this1 as an off-rule
-            # modification in event0, or find a way to record the fact that we
-            # had a THISANDFUTURE change in EIM. Otherwise, we've lost a user
-            # edit.
-            
-            # ... that we didn't lose the triage status modification ...
-            self.failUnlessEqual(this1.itsItem.triageStatus,
-                                 pim.TriageEnum.now)
-            # ... but that the master is unchanged
-            self.failIfEqual(future1.itsItem.triageStatus, pim.TriageEnum.now)
+        # ... but that the first occurrence is unchanged.  This used to check
+        # the master's triage status, but the master's triage status isn't used
+        # in the UI, so compare instead to the first occurrence
+        self.failIfEqual(future1.getFirstOccurrence().itsItem.triageStatus,
+                         pim.TriageEnum.now)
         
         # Change recurrence
         event = self._makeRecurringEvent(view0, self.share0.contents)
