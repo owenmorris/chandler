@@ -680,19 +680,19 @@ def makeMarkupBar(parcel, oldVersion):
                                     stretchFactor=0.0,
                                     minimumSize=SizeType(30, 18))
 
-    privateSwitchButton = \
-        PrivateSwitchButtonBlock.template('PrivateSwitchButton',
-                                    title=messages.PRIVATE,
-                                    icon="MarkupPrivate",
-                                    helpString=messages.PRIVATE,
-                                    unstampedHelpString=messages.NOT_PRIVATE,
-                                    viewAttribute=u'private',
-                                    event=buttonPressed,
-                                    stretchFactor=0.0,
-                                    minimumSize=SizeType(30, 18))
-
-    markupSpacer3 = ControlBlocks.StaticText.template('MarkupSpacer3',
-                                    title=u'')
+    # Per bug 8999, we're hiding this for now.
+    #privateSwitchButton = \
+        #PrivateSwitchButtonBlock.template('PrivateSwitchButton',
+                                    #title=messages.PRIVATE,
+                                    #icon="MarkupPrivate",
+                                    #helpString=messages.PRIVATE,
+                                    #unstampedHelpString=messages.NOT_PRIVATE,
+                                    #viewAttribute=u'private',
+                                    #event=buttonPressed,
+                                    #stretchFactor=0.0,
+                                    #minimumSize=SizeType(30, 18))
+    #markupSpacer3 = ControlBlocks.StaticText.template('MarkupSpacer3',
+                                    #title=u'')
 
     readOnlyIcon = \
         ReadOnlyIconBlock.template('ReadOnlyIcon',
@@ -710,8 +710,9 @@ def makeMarkupBar(parcel, oldVersion):
                                                     taskStamp,
                                                     calendarStamp,
                                                     markupSpacer2,
-                                                    privateSwitchButton,
-                                                    markupSpacer3,
+                                                    # hidden per bug 8999
+                                                    #privateSwitchButton,
+                                                    #markupSpacer3,
                                                     readOnlyIcon],
                                     position=0.09,
                                     toolSize=SizeType(30, 18),
