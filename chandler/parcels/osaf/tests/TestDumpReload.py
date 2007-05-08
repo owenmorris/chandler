@@ -76,6 +76,10 @@ class DumpReloadTestCase(testcase.DualRepositoryTestCase):
             uuids.add(n.itsUUID)
 
 
+        # Read/unread items
+        readNote = pim.Note(itsView=view0, read=True)
+        unreadNote = pim.Note(itsView=view0, read=False)
+
 
         # "Private" items
         publicNote = pim.Note(itsView=view0, private=False)
@@ -275,6 +279,10 @@ class DumpReloadTestCase(testcase.DualRepositoryTestCase):
                     self.assertEqual(item0.displayName, item1.displayName)
                 if hasattr(item0, 'body'):
                     self.assertEqual(item0.body, item1.body)
+
+            # Verify ContentItem.read
+            self.assert_(view1.findUUID(readNote.itsUUID).read is True)
+            self.assert_(view1.findUUID(unreadNote.itsUUID).read is False)
 
             # Verify ContentItem.private
             self.assert_(view1.findUUID(publicNote.itsUUID).private is False)

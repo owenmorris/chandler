@@ -409,6 +409,7 @@ class CosmoConduit(recordset_conduit.DiffRecordSetConduit, conduits.HTTPMixin):
         # This is where we can filter out things we don't want to send to
         # Cosmo
         filter = super(CosmoConduit, self).getFilter()
+        filter += eim.lookupSchemaURI('cid:read-filter@osaf.us')
         filter += eim.lookupSchemaURI('cid:non-standard-ical-filter@osaf.us')
         filter += eim.lookupSchemaURI('cid:mimeContent-filter@osaf.us')
         filter += eim.lookupSchemaURI('cid:rfc2822Message-filter@osaf.us')

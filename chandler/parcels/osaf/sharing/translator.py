@@ -556,7 +556,8 @@ class SharingTranslator(eim.Translator):
             pim.ContentItem,
             displayName=title,
             createdOn=createdOn,
-            needsReply=with_nochange(record.needsReply, bool)
+            needsReply=with_nochange(record.needsReply, bool),
+            read=with_nochange(record.read, bool)
         )
         def do(item):
             if record.triage != "" and record.triage not in emptyValues:
@@ -605,7 +606,8 @@ class SharingTranslator(eim.Translator):
             triage,                                     # triage
             createdOn,                                  # createdOn
             0,                                          # hasBeenSent (TODO)
-            handleEmpty(item, "needsReply")             # needsReply
+            handleEmpty(item, "needsReply"),            # needsReply
+            handleEmpty(item, "read"),                  # read
         )
 
         # Also export a ModifiedByRecord
@@ -1444,6 +1446,12 @@ class DumpTranslator(SharingTranslator):
     version = 1
     description = u"Translator for Chandler items (PIM and non-PIM)"
 
+    approvedClasses = (
+        pim.Note, Password, pim.SmartCollection, shares.Share,
+        conduits.BaseConduit, shares.State, accounts.SharingAccount,
+        mail.AccountBase, mail.IMAPFolder
+    )
+
     def exportItem(self, item):
         """
         Export an item and its stamps, if any.
@@ -1453,11 +1461,13 @@ class DumpTranslator(SharingTranslator):
         - Don't serialize recurrence rule items
 
         """
-        if isinstance(item, Occurrence):
+
+        if not isinstance(item, self.approvedClasses):
+            return
+
+        elif isinstance(item, Occurrence):
             if not EventStamp(item).modificationFor:
                 return
-        elif isinstance(item, (RecurrenceRule, RecurrenceRuleSet)):
-            return
 
         for record in super(DumpTranslator, self).exportItem(item):
             yield record

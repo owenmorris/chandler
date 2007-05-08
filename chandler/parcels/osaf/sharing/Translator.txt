@@ -33,7 +33,8 @@ Importing:
     ...         triage='200 -1167792143.00 1',
     ...         createdOn=Decimal("1164803131"),
     ...         hasBeenSent=0,
-    ...         needsReply=0
+    ...         needsReply=0,
+    ...         read=0,
     ... )
 
     >>> rs = sharing.RecordSet([rec])
@@ -64,7 +65,7 @@ Exporting:
     >>> t.startExport()
     >>> records = list(t.exportItem(item))
     >>> records
-    [ItemRecord('f230dcd4-7c32-4c3f-908b-d92081cc9a89', u'Translator test', '200 -1167792143.00 1', Decimal("1164803131"), 0, 0), ModifiedByRecord('f230dcd4-7c32-4c3f-908b-d92081cc9a89', u'', Decimal("1164803131"), 500)]
+    [ItemRecord('f230dcd4-7c32-4c3f-908b-d92081cc9a89', u'Translator test', '200 -1167792143.00 1', Decimal("1164803131"), 0, 0, 0), ModifiedByRecord('f230dcd4-7c32-4c3f-908b-d92081cc9a89', u'', Decimal("1164803131"), 500)]
 
 
 
@@ -83,12 +84,12 @@ Next we make a local triageStatusChanged change::
 
 ...and also an "external" triageStatusChanged change::
 
-    >>> delta = [sharing.model.ItemRecord('f230dcd4-7c32-4c3f-908b-d92081cc9a89', sharing.NoChange, '200 -1167792400.0 1', sharing.NoChange, sharing.NoChange, sharing.NoChange)]
+    >>> delta = [sharing.model.ItemRecord('f230dcd4-7c32-4c3f-908b-d92081cc9a89', sharing.NoChange, '200 -1167792400.0 1', sharing.NoChange, sharing.NoChange, sharing.NoChange, sharing.NoChange)]
 
 Do the merge and we get a conflict::
 
     >>> state.merge(sharing.RecordSet(records), sharing.RecordSet(delta))
-    (RecordSet(set([]), set([])), RecordSet(set([]), set([])), RecordSet(set([ItemRecord(u'f230dcd4-7c32-4c3f-908b-d92081cc9a89', NoChange, '200 -1167792400.0 1', NoChange, NoChange, NoChange)]), set([])))
+    (RecordSet(set([]), set([])), RecordSet(set([]), set([])), RecordSet(set([ItemRecord(u'f230dcd4-7c32-4c3f-908b-d92081cc9a89', NoChange, '200 -1167792400.0 1', NoChange, NoChange, NoChange, NoChange)]), set([])))
     >>> state.updateConflicts(item)
     >>> sharing.getConflicts(item)
     [Triage status : Later]
@@ -112,12 +113,12 @@ Next we make a local triageStatus change::
 
 ...and also an "external" triageStatus change::
 
-    >>> delta = [sharing.model.ItemRecord('f230dcd4-7c32-4c3f-908b-d92081cc9a89', sharing.NoChange, '300 -1167792400.0 1', sharing.NoChange, sharing.NoChange, sharing.NoChange)]
+    >>> delta = [sharing.model.ItemRecord('f230dcd4-7c32-4c3f-908b-d92081cc9a89', sharing.NoChange, '300 -1167792400.0 1', sharing.NoChange, sharing.NoChange, sharing.NoChange, sharing.NoChange)]
 
 Do the merge and we get a conflict::
 
     >>> state.merge(sharing.RecordSet(records), sharing.RecordSet(delta))
-    (RecordSet(set([]), set([])), RecordSet(set([]), set([])), RecordSet(set([ItemRecord(u'f230dcd4-7c32-4c3f-908b-d92081cc9a89', NoChange, '300 -1167792400.0 1', NoChange, NoChange, NoChange)]), set([])))
+    (RecordSet(set([]), set([])), RecordSet(set([]), set([])), RecordSet(set([ItemRecord(u'f230dcd4-7c32-4c3f-908b-d92081cc9a89', NoChange, '300 -1167792400.0 1', NoChange, NoChange, NoChange, NoChange)]), set([])))
     >>> state.updateConflicts(item)
     >>> sharing.getConflicts(item)
     [Triage status : Done]
@@ -163,7 +164,7 @@ Exporting:
     >>> t.startExport()
     >>> records = list(t.exportItem(item))
     >>> records
-    [ItemRecord('f230dcd4-7c32-4c3f-908b-d92081cc9a89', u'Translator test', '100 -1167792400.00 1', Decimal("1164803131"), 0, 0), ModifiedByRecord('f230dcd4-7c32-4c3f-908b-d92081cc9a89', u'', Decimal("1164803131"), 500), NoteRecord('f230dcd4-7c32-4c3f-908b-d92081cc9a89', u'This is the body', None, None, None)]
+    [ItemRecord('f230dcd4-7c32-4c3f-908b-d92081cc9a89', u'Translator test', '100 -1167792400.00 1', Decimal("1164803131"), 0, 0, 0), ModifiedByRecord('f230dcd4-7c32-4c3f-908b-d92081cc9a89', u'', Decimal("1164803131"), 500), NoteRecord('f230dcd4-7c32-4c3f-908b-d92081cc9a89', u'This is the body', None, None, None)]
 
 TODO: icaluid
 
@@ -199,7 +200,7 @@ Exporting:
     >>> t.startExport()
     >>> records = list(t.exportItem(item))
     >>> records
-    [ItemRecord('f230dcd4-7c32-4c3f-908b-d92081cc9a89', u'Translator test', '100 -1167792400.00 1', Decimal("1164803131"), 0, 0), ModifiedByRecord('f230dcd4-7c32-4c3f-908b-d92081cc9a89', u'', Decimal("1164803131"), 500), NoteRecord('f230dcd4-7c32-4c3f-908b-d92081cc9a89', u'This is the body', None, None, None), TaskRecord('f230dcd4-7c32-4c3f-908b-d92081cc9a89')]
+    [ItemRecord('f230dcd4-7c32-4c3f-908b-d92081cc9a89', u'Translator test', '100 -1167792400.00 1', Decimal("1164803131"), 0, 0, 0), ModifiedByRecord('f230dcd4-7c32-4c3f-908b-d92081cc9a89', u'', Decimal("1164803131"), 500), NoteRecord('f230dcd4-7c32-4c3f-908b-d92081cc9a89', u'This is the body', None, None, None), TaskRecord('f230dcd4-7c32-4c3f-908b-d92081cc9a89')]
 
 
 MailMessageRecord type
@@ -356,7 +357,8 @@ Importing:
     ...         triage=sharing.Inherit,
     ...         createdOn=sharing.Inherit,
     ...         hasBeenSent=sharing.Inherit,
-    ...         needsReply=sharing.Inherit
+    ...         needsReply=sharing.Inherit,
+    ...         read=sharing.Inherit,
     ... )
 
     >>> rs = sharing.RecordSet([mod_rec])
@@ -401,7 +403,8 @@ Importing:
     ...              triage='200 -1167792143.00 1',
     ...              createdOn=Decimal("1164803131"),
     ...              hasBeenSent=0,
-    ...              needsReply=0
+    ...              needsReply=0,
+    ...              read=0,
     ... )
     >>> alarm_rec = sharing.model.DisplayAlarmRecord(
     ...               uuid='a9b019a4-d995-11db-f269-0016cbca6aed',
@@ -433,7 +436,7 @@ Exporting:
     >>> len(records)
     3
     >>> records[0]
-    ItemRecord('a9b019a4-d995-11db-f269-0016cbca6aed', u'Item with reminder', '200 -1167792143.00 1', Decimal("1164803131"), 0, 0)
+    ItemRecord('a9b019a4-d995-11db-f269-0016cbca6aed', u'Item with reminder', '200 -1167792143.00 1', Decimal("1164803131"), 0, 0, 0)
     >>> records[1]
     ModifiedByRecord(...)
     >>> records[2]
@@ -458,7 +461,8 @@ Importing:
     ...              triage='200 -1167792996.00 1',
     ...              createdOn=Decimal("1164805552"),
     ...              hasBeenSent=0,
-    ...              needsReply=1
+    ...              needsReply=1,
+    ...              read=0,
     ... )
     >>> note_rec = sharing.model.NoteRecord(
     ...         uuid='800644b6-dd73-11db-f79a-0016cbca6aed',
@@ -510,7 +514,7 @@ Exporting:
     >>> len(records)
     5
     >>> records[0]
-    ItemRecord('800644b6-dd73-11db-f79a-0016cbca6aed', u'Event Item with reminder', '200 -1167792996.00 1', Decimal("1164805552"), 0, 1)
+    ItemRecord('800644b6-dd73-11db-f79a-0016cbca6aed', u'Event Item with reminder', '200 -1167792996.00 1', Decimal("1164805552"), 0, 1, 0)
     >>> records[1]
     ModifiedByRecord(...)
     >>> records[2]
@@ -626,7 +630,8 @@ for event status, and empty string to NoChange for triage are working::
     ...         triage='',
     ...         createdOn=Decimal("1164803131"),
     ...         hasBeenSent=0,
-    ...         needsReply=0
+    ...         needsReply=0,
+    ...         read=0,
     ... )
     >>> rec.triage
     NoChange

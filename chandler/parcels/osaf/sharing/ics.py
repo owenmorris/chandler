@@ -527,7 +527,7 @@ class ICSSerializer(object):
                     triage =  code + " " + timestamp + " " + auto
                     
                     needsReply = (1 if status == 'needs-action' else 0)
-                    
+
                     # VTODO's status doesn't correspond to EventRecord's status
                     status = eim.NoChange
                     
@@ -544,6 +544,7 @@ class ICSSerializer(object):
                                             eim.NoChange,   # createdOn
                                             eim.NoChange,   # hasBeenSent (TODO)
                                             needsReply,     # needsReply (TODO)
+                                            eim.NoChange,   # read
                                             )]
                 if emitEvent:
                     records.append(model.EventRecord(uuid,

@@ -1687,9 +1687,13 @@ class MainView(View):
         The "File | Sync | All" menu item, and the Sync All Toolbar button.
         """
 
+        # Commit changes, making them available to other views like mail
+        # and sharing
+        self.RepositoryCommitWithStatus ()
+
         if Globals.options.offline:
             return
-        
+
         view = self.itsView
 
         masterPassword = True
@@ -1728,9 +1732,6 @@ class MainView(View):
 
             # Ensure changes in attribute editors are saved
             wx.GetApp().mainFrame.SetFocus()
-
-            # To make changes available to sharing thread
-            self.RepositoryCommitWithStatus ()
 
             sharing.scheduleNow(view)
 

@@ -18,8 +18,6 @@ from i18n import ChandlerMessageFactory as _
 import logging
 logger = logging.getLogger(__name__)
 
-# TODO: Missing attribute, "error" (dump/reload only)
-# TODO: Missing attribute, "read" (dump/reload only)
 
 text20 = eim.TextType(size=20)
 text256 = eim.TextType(size=256)
@@ -38,6 +36,8 @@ aliasableUUID = eim.subtype(eim.UUIDType, size=256)
 triageFilter = eim.Filter('cid:triage-filter@osaf.us', u"Triage Status")
 
 needsReplyFilter = eim.Filter('cid:needs-reply-filter@osaf.us', u"Needs Reply")
+
+readFilter = eim.Filter('cid:read-filter@osaf.us', u"Has Been Read")
 
 eventStatusFilter = eim.Filter('cid:event-status-filter@osaf.us',
     u"Event Status")
@@ -81,6 +81,10 @@ class ItemRecord(eim.Record):
 
     # ContentItem.needsReply
     needsReply = eim.field(eim.IntType, _(u"Needs reply"))
+
+    # ContentItem.read
+    read = eim.field(eim.IntType, _(u"Has been read"), filters=[readFilter],
+        default=0)
 
 
 

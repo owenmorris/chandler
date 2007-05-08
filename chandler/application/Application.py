@@ -618,6 +618,16 @@ class wxApplication (wx.App):
             tzprefs.showPrompt = oldShowPrompt
             logger.exception("Failed to reload file")
             activity.failed(exception=e)
+            if isinstance(e, TypeError):
+                msg = _(u"Incompatible dump file. Unable to reload.")
+            elif isinstance(e, EOFError):
+                msg = _(u"Incomplete dump file. Unable to reload.")
+            else:
+                msg = _(u"Unable to reload file.  See chandler.log for details.")
+            dialog = wx.MessageDialog(None, msg,
+                _(u"Chandler"), wx.OK | wx.ICON_INFORMATION)
+            dialog.ShowModal()
+            dialog.Destroy()
             raise
 
         setStatusMessage = Block.findBlockByName('StatusBar').setStatusMessage

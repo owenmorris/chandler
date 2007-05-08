@@ -76,7 +76,7 @@ class SharedItem(pim.Stamp):
             state = State(itsView=self.itsItem.itsView, peer=peer)
 
             state.pending = eim.RecordSet([
-                model.ItemRecord(itemUUID, "An alterative title", nc, nc, nc, nc),
+                model.ItemRecord(itemUUID, "An alterative title", nc, nc, nc, nc, nc),
                 model.NoteRecord(itemUUID, "A different note", nc, nc, nc),
                 model.EventRecord(itemUUID, nc, nc, "San Jose", nc, nc, nc,
                     nc, nc),
