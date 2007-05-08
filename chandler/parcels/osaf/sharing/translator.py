@@ -21,7 +21,7 @@ from osaf.sharing import (
 )
 from PyICU import ICUtzinfo
 import os
-import time
+import calendar
 from email import Utils
 from datetime import datetime, date, timedelta
 from decimal import Decimal
@@ -100,6 +100,18 @@ def with_nochange(value, converter, view=None):
 
 def datetimes_really_equal(dt1, dt2):
     return dt1.tzinfo == dt2.tzinfo and dt1 == dt2
+
+def datetimeToDecimal(dt):
+    
+    tt = dt.utctimetuple()
+    return Decimal(int(calendar.timegm(tt)))
+
+def decimalToDatetime(decimal):
+        naive = datetime.utcfromtimestamp(float(decimal))
+        inUTC = naive.replace(tzinfo=utc)
+        # Convert to user's tz:
+        return inUTC.astimezone(ICUtzinfo.default)
+
 
 ### Event field conversion functions
 # incomplete
@@ -421,10 +433,7 @@ class SharingTranslator(eim.Translator):
                 elif conflict.field.lower() == 'created on':
                     # Instead of having conflicts for createdOn, apply the
                     # oldest value
-                    naive = datetime.utcfromtimestamp(float(record.createdOn))
-                    inUTC = naive.replace(tzinfo=utc)
-                    # Convert to user's tz:
-                    createdOn = inUTC.astimezone(ICUtzinfo.default)
+                    createdOn = decimalToDatetime(record.createdOn)
                     if createdOn < item.createdOn:
                         item.createdOn = createdOn
 
@@ -538,10 +547,7 @@ class SharingTranslator(eim.Translator):
 
         if record.createdOn not in emptyValues:
             # createdOn is a Decimal we need to change to datetime
-            naive = datetime.utcfromtimestamp(float(record.createdOn))
-            inUTC = naive.replace(tzinfo=utc)
-            # Convert to user's tz:
-            createdOn = inUTC.astimezone(ICUtzinfo.default)
+            createdOn = decimalToDatetime(record.createdOn)
         else:
             createdOn = eim.NoChange
 
@@ -570,7 +576,7 @@ class SharingTranslator(eim.Translator):
 
         # createdOn = handleEmpty(item, 'createdOn')
         # elif createdOn not in noChangeOrInherit:
-        createdOn = Decimal(int(time.mktime(item.createdOn.timetuple())))
+        createdOn = datetimeToDecimal(item.createdOn)
 
         # For modifications, treat triage status as Inherit if it
         # matches its automatic state
@@ -611,9 +617,7 @@ class SharingTranslator(eim.Translator):
 
         lastModified = getattr(item, "lastModified", None)
         if lastModified:
-            lastModified = Decimal(
-                int(time.mktime(lastModified.timetuple()))
-            )
+            lastModified = datetimeToDecimal(lastModified)
         else:
             lastModified = createdOn
 
@@ -692,8 +696,7 @@ class SharingTranslator(eim.Translator):
             # what's on the item already
 
             existing = getattr(item, "lastModified", None)
-            existing = (Decimal(int(time.mktime(existing.timetuple())))
-                if existing else 0)
+            existing = datetimeToDecimal(existing) if existing else 0
 
             if record.timestamp >= existing:
 
@@ -706,10 +709,7 @@ class SharingTranslator(eim.Translator):
 
                 # record.timestamp can never be NoChange, nor None
                 # timestamp is a Decimal we need to change to datetime
-                naive = datetime.utcfromtimestamp(float(record.timestamp))
-                inUTC = naive.replace(tzinfo=utc)
-                # Convert to user's tz:
-                item.lastModified = inUTC.astimezone(ICUtzinfo.default)
+                item.lastModified = decimalToDatetime(record.timestamp)
 
                 if record.action is not eim.NoChange:
                     item.lastModification = \
@@ -1565,17 +1565,11 @@ class DumpTranslator(SharingTranslator):
         def do(share):
             if record.lastSuccess not in (eim.NoChange, None):
                 # lastSuccess is a Decimal we need to change to datetime
-                naive = datetime.utcfromtimestamp(float(record.lastSuccess))
-                inUTC = naive.replace(tzinfo=utc)
-                # Convert to user's tz:
-                share.lastSuccess = inUTC.astimezone(ICUtzinfo.default)
+                share.lastSuccess = decimalToDatetime(record.lastSuccess)
 
             if record.lastAttempt not in (eim.NoChange, None):
                 # lastAttempt is a Decimal we need to change to datetime
-                naive = datetime.utcfromtimestamp(float(record.lastAttempt))
-                inUTC = naive.replace(tzinfo=utc)
-                # Convert to user's tz:
-                share.lastAttempt = inUTC.astimezone(ICUtzinfo.default)
+                share.lastAttempt = decimalToDatetime(record.lastAttempt)
 
             if record.subscribed == 0:
                 share.sharer = schema.ns('osaf.pim',
@@ -1612,14 +1606,12 @@ class DumpTranslator(SharingTranslator):
         mode = share.mode
 
         if hasattr(share, "lastSuccess"):
-            tup = share.lastSuccess.timetuple()
-            lastSuccess = Decimal(int(time.mktime(tup)))
+            lastSuccess = datetimeToDecimal(share.lastSuccess)
         else:
             lastSuccess = None
 
         if hasattr(share, "lastAttempt"):
-            tup = share.lastAttempt.timetuple()
-            lastAttempt = Decimal(int(time.mktime(tup)))
+            lastAttempt = datetimeToDecimal(share.lastSuccess)
         else:
             lastAttempt = None
 
