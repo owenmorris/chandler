@@ -936,41 +936,49 @@ static PyObject *t_item_hasTrueAttributeValue(t_item *self, PyObject *args)
 
 t_attribute *_t_item_get_attr(t_item *self, PyObject *name)
 {
-    t_kind *c = (t_kind *) ((t_item *) self->kind)->c;
-    t_attribute *attr = NULL;
-    
-    if (!c)
-        return NULL;
-
-    if (c->flags & DESCRIPTORS_INSTALLED)
+    if (!self->kind || self->kind == Py_None)
     {
-        t_descriptor *descriptor = (t_descriptor *)
-            PyDict_GetItem(c->descriptors, name);
-
-        if (!descriptor)
-        {
-            PyErr_SetObject(PyExc_AttributeError, name);
-            return NULL;
-        }
-
-        attr = descriptor->attr;
+        PyErr_SetObject((PyObject *) KindlessItemError, (PyObject *) self);
+        return NULL;
     }
     else
     {
-        PyObject *attribute =
-            PyObject_CallMethodObjArgs(self->kind, getAttribute_NAME,
-                                       name, Py_False, self, NULL);
+        t_kind *c = (t_kind *) ((t_item *) self->kind)->c;
+        t_attribute *attr = NULL;
+    
+        if (!c)
+            return NULL;
 
-        if (attribute)
+        if (c->flags & DESCRIPTORS_INSTALLED)
         {
-            attr = (t_attribute *) ((t_item *) attribute)->c;
-            Py_DECREF(attribute);
+            t_descriptor *descriptor = (t_descriptor *)
+                PyDict_GetItem(c->descriptors, name);
+
+            if (!descriptor)
+            {
+                PyErr_SetObject(PyExc_AttributeError, name);
+                return NULL;
+            }
+
+            attr = descriptor->attr;
         }
         else
-            return NULL;
-    }
+        {
+            PyObject *attribute =
+                PyObject_CallMethodObjArgs(self->kind, getAttribute_NAME,
+                                           name, Py_False, self, NULL);
 
-    return attr;
+            if (attribute)
+            {
+                attr = (t_attribute *) ((t_item *) attribute)->c;
+                Py_DECREF(attribute);
+            }
+            else
+                return NULL;
+        }
+
+        return attr;
+    }
 }
 
 static PyObject *_t_item__fireChanges(t_item *self,
@@ -1509,6 +1517,9 @@ static PyObject *t_item__itemChanged(t_item *self, PyObject *args)
 static PyObject *t_item__getKind(t_item *self, void *data)
 {
     PyObject *kind = self->kind;
+
+    if (!kind)
+        Py_RETURN_NONE;
 
     if (kind != Py_None && ((t_item *) kind)->status & STALE)
     {

@@ -153,7 +153,7 @@ class StaleItemAttributeError(AttributeError, ItemError):
 
 
 class KindlessItemError(TypeError, ItemError):
-    __doc__ = "Item is kindless"
+    __doc__ = "Item has no kind"
 
     def __str__(self):
         return self.getItem()._repr_()

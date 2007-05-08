@@ -304,7 +304,7 @@ static int _t_itemvalue__setOwner(t_itemvalue *self,
         Py_XDECREF(self->persistentvalue.view);
         self->persistentvalue.view = view;
 
-        if (*pure == Py_None)
+        if (*pure == Py_None && ((t_item *) item)->kind != Py_None)
         {
             t_attribute *attr = _t_item_get_attr((t_item *) item, attribute);
 
