@@ -953,7 +953,6 @@ class Table (PimBlocks.FocusEventHandlers, RectangularChild):
         if editAttributeNamed is not None:
             self.widget.EnableCellEditControl (False)
             self.widget.editAttributeNamed = editAttributeNamed
-        wx.GetApp().needsUpdateUI = True
 
     def PostSelectItems(self, items = None):
         if items is None:
