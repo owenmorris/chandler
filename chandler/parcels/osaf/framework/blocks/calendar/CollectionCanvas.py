@@ -619,7 +619,7 @@ class wxCollectionCanvas(DragAndDrop.DropReceiveWidget,
                     self.dragState = None
                     self.SetCursor(wxCollectionCanvas.defaultCursor)
                     self.cursor = wxCollectionCanvas.defaultCursor
-                    self.RefreshCanvasItems(resort=False)            
+                    self.RefreshCanvasItems(resort=False)
                     
             event.Skip()
             return
@@ -954,19 +954,25 @@ class wxCollectionCanvas(DragAndDrop.DropReceiveWidget,
         Subclasses can override to handle item selection.
         """
         selection = self.blockItem.GetSelection()
-        selectionWasEmpty = selection.isSelectionEmpty()
+        # usually there's no need to call Refresh, postSelectItemsBroadcast will
+        # cause notifications to force a redraw.  But if selection was empty
+        # from clicking outside a lozenge, the selected item didn't
+        # change in the rest of the system.  In that case nothing changes
+        # in the repository, so do a redraw.        
+        shouldRefresh = selection.isSelectionEmpty()
+        
         if item:
             selection.setSelectionToItem(item)
+            shouldRefresh |= (getattr(item, 'inheritFrom', None) is not None and 
+                              EventStamp(item).modificationFor is None)
         else:
             selection.clearSelection()
+
         self.blockItem.postSelectItemsBroadcast()
-        if selectionWasEmpty:
-            # there's no need to call Refresh, postSelectItemsBroadcast will
-            # cause notifications to force a redraw UNLESS selection was empty
-            # from clicking outside a lozenge, but the selected item didn't
-            # change in the rest of the system.  In that case nothing changes
-            # in the repository, so do a redraw.
+        
+        if shouldRefresh:
             self.Refresh()
+
 
     def OnAddToSelection(self, item):
         blockItem = self.blockItem

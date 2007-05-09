@@ -1464,7 +1464,6 @@ class wxCalendarCanvas(CollectionCanvas.wxCollectionCanvas):
         event.Skip()
 
     def OnSelectItem(self, item):
-        super(wxCalendarCanvas, self).OnSelectItem(item)
         # tell the sidebar to select the collection that contains
         # this event - makes the sidebar track the "current" calendar
         # as well as update the gradients correctly
@@ -1473,6 +1472,12 @@ class wxCalendarCanvas(CollectionCanvas.wxCollectionCanvas):
             if (collection is not None and
                 collection is not self.blockItem.contentsCollection):
                 self.blockItem.SelectCollectionInSidebar(collection)
+        
+        # the parent OnSelectItem will actually select the item, do this
+        # after the sidebar collection changes because the wider selection
+        # system treats the selection of Occurrences (which aren't in the
+        # collection) as selecting None, bug 9033
+        super(wxCalendarCanvas, self).OnSelectItem(item)
 
 
     def OnEditItem(self, canvasItem):
