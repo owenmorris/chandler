@@ -622,6 +622,7 @@ def makeConflictBar(parcel, oldVersion):
     return makeArea(parcel, 'ConflictBar',
             position=0.08,
             childBlocks = [
+                makeSpacer(parcel, SizeType(9,0)),
                 conflictButton
             ]).install(parcel)
 
