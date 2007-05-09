@@ -63,6 +63,8 @@ static PyObject *t_env_get_lg_dir(t_env *self, void *data);
 static int t_env_set_lg_dir(t_env *self, PyObject *value, void *data);
 static PyObject *t_env_get_tx_max(t_env *self, void *data);
 static int t_env_set_tx_max(t_env *self, PyObject *value, void *data);
+static PyObject *t_env_get_txn_timeout(t_env *self, void *data);
+static int t_env_set_txn_timeout(t_env *self, PyObject *value, void *data);
 
 static char *_t_env_encode_path(char *path, int len, PyObject **string);
 static PyObject *_t_env_decode_path(const char *path);
@@ -138,6 +140,9 @@ static PyGetSetDef t_env_properties[] = {
     { "tx_max",
       (getter) t_env_get_tx_max, (setter) t_env_set_tx_max,
       "tx max", NULL },
+    { "txn_timeout",
+      (getter) t_env_get_txn_timeout, (setter) t_env_set_txn_timeout,
+      "txn timeout", NULL },
     { NULL, NULL, NULL, NULL, NULL }
 };
 
@@ -1250,6 +1255,41 @@ static int t_env_set_tx_max(t_env *self, PyObject *value, void *data)
 
     return 0;
 }
+
+
+/* txn_timeout */
+
+static PyObject *t_env_get_txn_timeout(t_env *self, void *data)
+{
+    db_timeout_t txn_timeout;
+    int err = self->db_env->get_timeout(self->db_env, &txn_timeout,
+                                        DB_SET_TXN_TIMEOUT);
+
+    if (err)
+        return raiseDBError(err);
+
+    return PyLong_FromUnsignedLong(txn_timeout);
+}
+
+static int t_env_set_txn_timeout(t_env *self, PyObject *value, void *data)
+{
+    db_timeout_t txn_timeout = value ? PyLong_AsUnsignedLong(value) : 0;
+    int err;
+
+    if (txn_timeout < 0 && PyErr_Occurred())
+        return -1;
+
+    err = self->db_env->set_timeout(self->db_env, txn_timeout,
+                                    DB_SET_TXN_TIMEOUT);
+    if (err)
+    {
+        raiseDBError(err);
+        return -1;
+    }
+
+    return 0;
+}
+
 
 
 void _init_env(PyObject *m)

@@ -425,7 +425,7 @@ void _init_store(PyObject *m)
     {
         if (m)
         {
-            PyObject *dict = TransactionType.tp_dict;
+            PyObject *dict;
 
             Py_INCREF(&TransactionType);
             PyModule_AddObject(m, "Transaction", (PyObject *) &TransactionType);
@@ -434,6 +434,11 @@ void _init_store(PyObject *m)
             PyModule_AddObject(m, "CStore", (PyObject *) &StoreType);
             CStore = &StoreType;
 
+            dict = TransactionType.tp_dict;
+            PyDict_SetItemString_Int(dict, "TXN_STARTED", TXN_STARTED);
+            PyDict_SetItemString_Int(dict, "TXN_NESTED", TXN_NESTED);
+
+            dict = StoreType.tp_dict;
             PyDict_SetItemString_Int(dict, "TXN_STARTED", TXN_STARTED);
             PyDict_SetItemString_Int(dict, "TXN_NESTED", TXN_NESTED);
 

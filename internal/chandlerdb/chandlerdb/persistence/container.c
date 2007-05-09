@@ -226,14 +226,12 @@ static PyObject *_t_container_openCursor(t_container *self, PyObject *db)
             return NULL;
         }
 
-        return _t_cursor_dup((t_cursor *) cursor, flags);
+        return _t_cursor_dup((t_cursor *) cursor, 0);
     }
 
     txn = _t_store_getTxn(self->store);
     if (!txn)
         return NULL;
-    if (txn != Py_None)
-        flags |= DB_READ_UNCOMMITTED;
 
     cursor = _t_db_cursor((t_db *) db, txn, flags);
     if (!cursor)
@@ -602,9 +600,9 @@ static PyObject *_t_container_load_record(t_container *self, PyObject *view,
             if (!result)
                 goto done;
             Py_DECREF(result);
-            Py_DECREF(type);
-            Py_DECREF(value);
-            Py_DECREF(traceback);
+            Py_CLEAR(type);
+            Py_CLEAR(value);
+            Py_CLEAR(traceback);
             continue;
         }
 
@@ -629,8 +627,6 @@ static int t_value_container_init(t_value_container *self,
                                   PyObject *args, PyObject *kwds);
 static PyObject *t_value_container_loadValue(t_value_container *self,
                                              PyObject *args);
-static PyObject *t_value_container_setIndexed(t_value_container *self,
-                                              PyObject *args);
 
 
 static PyMemberDef t_value_container_members[] = {
@@ -747,7 +743,7 @@ static PyObject *t_value_container_loadValue(t_value_container *self,
         int err;
 
         Py_BEGIN_ALLOW_THREADS;
-        err = db->get(db, db_txn, &key, &data, 0);
+        err = db->get(db, db_txn, &key, &data, self->container.flags);
         Py_END_ALLOW_THREADS;
 
         switch (err) {
@@ -1174,7 +1170,7 @@ static PyObject *t_item_container_setItemStatus(t_item_container *self,
         data.data = &value;
 
         Py_BEGIN_ALLOW_THREADS;
-        err = db->get(db, db_txn, &key, &data, 0);
+        err = db->get(db, db_txn, &key, &data, self->container.flags);
         Py_END_ALLOW_THREADS;
 
         if (!err)
