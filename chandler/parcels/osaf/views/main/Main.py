@@ -1497,7 +1497,19 @@ class MainView(View):
             if collection is not None:
                 share = sharing.getShare(collection)
                 if sharing.isSharedByMe(share):
-                    sharing.unpublish(collection)
+                    dialog = wx.MessageDialog(None,
+                        _(u"Are you sure you want to remove the collection from the server?"),
+                        _(u"Unpublish Confirmation"),
+                        wx.YES_NO | wx.ICON_INFORMATION)
+                    response = dialog.ShowModal()
+                    dialog.Destroy()
+                    if response == wx.ID_YES:
+                        msg = _("Unpublishing...")
+                        self.setStatusMessage(msg)
+                        sharing.unpublish(collection)
+                        msg = _("Unpublish succeeded")
+                        self.setStatusMessage(msg)
+
         except (sharing.CouldNotConnect, twisted.internet.error.TimeoutError):
             msg = _(u"Unpublish failed, could not connect to server")
             self.setStatusMessage(msg)
@@ -1505,9 +1517,6 @@ class MainView(View):
             msg = _(u"Unpublish failed, unknown error")
             self.setStatusMessage(msg)
             raise # figure out what the exception is
-        else:
-            msg = _("Unpublish succeeded")
-            self.setStatusMessage(msg)
 
     def onUnpublishCollectionEventUpdateUI(self, event):
         collection = self.getSidebarSelectedCollection ()
