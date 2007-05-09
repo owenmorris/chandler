@@ -602,7 +602,7 @@ class wxApplication (wx.App):
         from osaf import dumpreload
         from osaf.framework.blocks.Block import Block
 
-        activity = Activity(_(u"Reload from %s") % Globals.options.reload)
+        activity = Activity(_(u"Reload from %(path)s") % {'path': unicode(Globals.options.reload, sys.getfilesystemencoding())})
         activity.started()
 
         # Don't show the timezone dialog during reload.
