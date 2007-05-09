@@ -161,7 +161,7 @@ def main():
         logit('TinderbuildError [%s]' % str(e), log)
 
         status      = "build_failed"
-        alertStatus = 'The build failed'
+        #alertStatus = 'The build failed'
 
     except hardhatutil.ExternalCommandErrorWithOutputList, e:
         logit('External command error [%d]' % e.exitCode, log)
@@ -171,13 +171,13 @@ def main():
         logit('Exception [%s]' % str(e), log)
 
         status      = "build_failed"
-        alertStatus = 'The build failed'
+        #alertStatus = 'The build failed'
 
     else:
         if ret == "success-nochanges":
             logit('There were no changes, and the tests were successful', log)
             status      = "success"
-            alertStatus = status
+            #alertStatus = status
         elif ret == "success-changes" or ret == "success-first-run":
             if ret == "success-first-run":
                 logit('First run of tinderbox, and the tests were successful', log)
@@ -185,7 +185,7 @@ def main():
                 logit('There were changes, and the tests were successful', log)
 
             status      = "success"
-            alertStatus = status
+            #alertStatus = status
 
             srcDir = os.path.join(buildDir, "output", buildVersion)
             newDir = os.path.join(outputDir, buildVersion)
@@ -225,15 +225,15 @@ def main():
 
         elif ret[:12] == "build_failed":
             status      = "build_failed"
-            alertStatus = 'The build failed'
+            #alertStatus = 'The build failed'
 
-            logit(alertStatus, log)
+            logit('The build failed', log)
 
         elif ret[:11] == "test_failed":
             status      = "test_failed"
-            alertStatus = 'Unit tests failed'
+            #alertStatus = 'Unit tests failed'
 
-            logit(alertStatus, log)
+            logit('Unit tests failed', log)
 
             if not uploadStaging:
                 logit("skipping rsync to staging area", log)
@@ -243,7 +243,7 @@ def main():
         else:
             logit("There were no changes in SVN", log)
             status      = "not_running"
-            alertStatus = status
+            #alertStatus = status
 
         SendUUIDFile(buildDir, scpProgram, fromAddr, buildName, log)
 
@@ -261,8 +261,8 @@ def main():
 
         nowTime = str(int(time.time()))
 
-        logit('Sending alert email [%s]' % alertStatus)
-        SendMail(fromAddr, alertAddr, startTime, buildName, alertStatus, treeName, None, svnRevision)
+        #logit('Sending alert email [%s]' % alertStatus)
+        #SendMail(fromAddr, alertAddr, startTime, buildName, alertStatus, treeName, None, svnRevision)
 
         logit('Sending tbox email [%s]' % status)
         SendMail(fromAddr, mailtoAddr, startTime, buildName, status, treeName, logContents, svnRevision)
