@@ -1,17 +1,10 @@
 #!/bin/sh
 
+unset DYLD_LIBRARY_PATH DYLD_FRAMEWORK_PATH
+unset PYTHONHOME PYTHONBIN PYTHON_VER
+unset CHANDLERHOME CHANDLERBIN
+
 cd "$(dirname "${0}")"
-execdir="$PWD"           
-executable="${execdir}/python"
+execdir="$PWD"
 resdir="$(dirname "${execdir}")/Resources"
-main="${resdir}/Chandler.py"
-DYLD_LIBRARY_PATH="$resdir/lib"
-export DYLD_LIBRARY_PATH
-DYLD_FRAMEWORK_PATH="$resdir/Library/Frameworks"
-export DYLD_FRAMEWORK_PATH
-PYTHONPATH="$resdir"
-export PYTHONPATH
-PYTHONHOME="$resdir/Library/Frameworks/Python.framework/Versions/2.5"
-export PYTHONHOME
-cd "${resdir}"
-exec "${executable}" "${main}" "$@"
+exec "${resdir}/debug/RunChandler"

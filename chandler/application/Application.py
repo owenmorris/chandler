@@ -981,8 +981,11 @@ class wxApplication (wx.App):
                      C{'--backup --restore=path --mvcc'}
         """
 
-        encoding = sys.getfilesystemencoding()
         windows = os.name == 'nt'
+        mac = sys.platform == 'darwin'
+        linux = sys.platform.startswith('linux')
+
+        encoding = sys.getfilesystemencoding()
         argv = []
 
         if not __debug__:
@@ -1026,7 +1029,7 @@ class wxApplication (wx.App):
                 arg = '--%s=%s' %(name, value)
             argv.append(arg)
 
-        if sys.platform.startswith('linux'):
+        if linux:
             for arg in argv:
                 if arg in ('-l', '--locale'):
                     break
@@ -1041,9 +1044,13 @@ class wxApplication (wx.App):
             if windows and ' ' in executable:
                 executable = '"%s"' %(executable)
 
-            if sys.platform == 'darwin':
+            if mac:
                 os.fork()
             os.execl(sys.executable, executable, *argv)
+        except OSError, e:
+            from errno import EOPNOTSUPP
+            if not mac or e.args[0] != EOPNOTSUPP:
+                logger.exception("while restarting")
         except:
             logger.exception("while restarting")
         finally:

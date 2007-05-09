@@ -29,11 +29,6 @@ dest=Contents/Resources/Library/Frameworks/Python.framework/Versions/2.5
 glob=*
 Python
 
-# Grab python executable file
-src=chandler/debug/Library/Frameworks/Python.framework/Versions/2.5/Resources/Python.app/Contents/MacOS
-dest=Contents/MacOS
-python
-
 # Grab wx, db and gcj libs
 src=chandler/debug
 dest=Contents/Resources
