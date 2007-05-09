@@ -173,6 +173,10 @@ def installParcel(parcel, oldName=None):
 
     CharacterStyle.update(parcel, "SidebarRowStyle", fontFamily="DefaultUIFont", fontSize=12)
 
+    CharacterStyle.update(parcel, "DetailConflictStyle", fontFamily="DefaultUIFont",
+        fontSize=10, fontStyle = "bold"
+    )
+
     defaultDispatchHook = BlockDispatchHook.update(parcel, "DefaultDispatchHook")
     
     DispatcHookList.update(parcel, "BlockDispatchHookList",

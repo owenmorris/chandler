@@ -509,7 +509,8 @@ def makeMailArea(parcel, oldVersion):
     toArea = \
         makeArea(parcel, 'ToArea',
             childBlocks=[
-                makeLabel(parcel, _(u'to')), # XXX "&to" conflicts with Test menu
+                # XXX "&to" conflicts with Test menu
+                makeLabel(parcel, _(u'to')),
                 makeSpacer(parcel, width=8),
                 makeEditor(parcel, 'EditMailTo',
                     viewAttribute=MailStamp.toAddress.name,
@@ -520,7 +521,8 @@ def makeMailArea(parcel, oldVersion):
     ccArea = \
         makeArea(parcel, 'CcArea',
             childBlocks=[
-                makeLabel(parcel, _(u'cc')), # XXX "&cc" conflicts with Collection menu
+                # XXX "&cc" conflicts with Collection menu
+                makeLabel(parcel, _(u'cc')),
                 makeSpacer(parcel, width=8),
                 makeEditor(parcel, 'EditMailCc',
                     viewAttribute=MailStamp.ccAddress.name,
@@ -530,7 +532,9 @@ def makeMailArea(parcel, oldVersion):
     bccArea = \
         makeArea(parcel, 'BccArea',
             childBlocks=[
-                makeLabel(parcel, _(u'bcc')), # XXX no conflicts with "&bcc" but still does not work because we mess with the controls
+                # XXX no conflicts with "&bcc" but still does not work
+                # because we mess with the controls
+                makeLabel(parcel, _(u'bcc')),
                 makeSpacer(parcel, width=8),
                 makeEditor(parcel, 'EditMailBcc',
                     viewAttribute=MailStamp.bccAddress.name,
@@ -540,12 +544,14 @@ def makeMailArea(parcel, oldVersion):
             border=RectType(0, 0, 6, 6)).install(parcel)
 
     sendAsArea = \
-        makeArea(parcel, 'SendAsArea', # Note: this blockname is tested in BylineAreaBlock.shouldShow
+        makeArea(parcel, 'SendAsArea',
+        # Note: this blockname is tested in BylineAreaBlock.shouldShow
             baseClass=BylineAreaBlock,
             childBlocks=[
                 # The SendAsLabelBlock will decide how to label this block
                 # ("send as" vs "edit as"), so don't bother labeling here.
-                makeLabel(parcel, '', baseClass=SendAsLabelBlock), # XXX "&send as" conflicts with Share menu
+                # XXX "&send as" conflicts with Share menu
+                makeLabel(parcel, '', baseClass=SendAsLabelBlock),
                 makeSpacer(parcel, width=8),
                 makeEditor(parcel, 'EditMailSendAs',
                     baseClass=OutboundEmailAddressAEBlock,
@@ -608,7 +614,7 @@ def makeConflictBar(parcel, oldVersion):
     blocks = schema.ns('osaf.framework.blocks', parcel.itsView)
     conflictButton = ConflictWarning.template('ConflictButton',
                                     title=u'',
-                                    characterStyle = blocks.SummaryPrefixStyle,
+                                    characterStyle = blocks.DetailConflictStyle,
                                     buttonKind='TextImage',
                                     # need a better icon
                                     icon=u'MailErrorRolloverSelected.png',

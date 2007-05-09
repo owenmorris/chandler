@@ -919,9 +919,9 @@ class ConflictWarning(DetailSynchronizer, ControlBlocks.Button):
             conflicts = sharing.getConflicts(item)
             conflictCount = len(conflicts)
             if conflictCount > 1:
-                widget.SetLabel(_(u'%d pending changes') % len(conflicts))
+                widget.SetLabel(_(u'%d PENDING CHANGES') % len(conflicts))
             else:
-                widget.SetLabel(_(u'1 pending change'))
+                widget.SetLabel(_(u'1 PENDING CHANGE'))
         super(ConflictWarning, self).synchronizeWidget()
 
     def resolveConflict(self, event):
