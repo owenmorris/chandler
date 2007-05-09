@@ -53,6 +53,7 @@ class DBContainer(object):
             name = None
             dbname = None
         elif mvcc:
+            self.store.repository.logger.info('%s db opened with mvcc', dbname)
             flags |= DB.DB_MULTIVERSION
             
         if create:
@@ -72,15 +73,17 @@ class DBContainer(object):
         self._db = self.openDB(txn, name, kwds.get('dbname', None),
                                kwds.get('ramdb', False),
                                kwds.get('create', False),
-                               kwds.get('mvcc', False))
+                               False)
         self.openC()
+        if txn is not None:
+            self.c.flags = DB.DB_READ_UNCOMMITTED
 
     def openIndex(self, name, dbname, txn, **kwds):
 
         index = self.openDB(txn, name, dbname,
                             kwds.get('ramdb', False),
                             kwds.get('create', False),
-                            kwds.get('mvcc', False))
+                            False)
 
         self.associateIndex(index, dbname, txn)
 
@@ -1530,8 +1533,13 @@ class ValueContainer(DBContainer):
 
     def getVersion(self):
 
+        # use degree 2 isolation to not read uncommitted version change
+        txn = self.store.txn
+        flags = self.c.flags
+        if txn is not None:
+            flags = (flags & ~DB.DB_READ_UNCOMMITTED) | DB.DB_READ_COMMITTED
         value = self._version.get(ValueContainer.VERSION_KEY,
-                                  self.store.txn, self.c.flags, None)
+                                  txn, flags, None)
         if value is None:
             return 0
         else:

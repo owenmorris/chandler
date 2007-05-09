@@ -429,6 +429,7 @@ class DBRepositoryView(OnDemandRepositoryView):
 
             with self.notificationsDeferred():
                 if merges:
+                    before = time()
                     self.logger.info('%s merging %d items...',
                                      self, len(merges))
                     newChanges = {}
@@ -533,6 +534,12 @@ class DBRepositoryView(OnDemandRepositoryView):
                         self.cancelDeferredNotifications()
                         self.cancel()
                         raise
+
+                    duration = time() - before
+                    if duration > 1.0:
+                        self.logger.warning('%s merged %d items in %s',
+                                            self, len(merges),
+                                            timedelta(seconds=duration))
 
             if notify or merges:
                 before = time()
