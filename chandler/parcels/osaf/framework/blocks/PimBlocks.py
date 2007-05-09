@@ -266,17 +266,12 @@ class FocusEventHandlers(Item):
 
 
     def CanReplyOrForward(self, selectedItem):
-        pim_ns = schema.ns('osaf.pim', self.itsView)
-        #selection = self.__getSelectedItems()
-        #for selectedItem in selection:
-        if has_stamp(selectedItem, Mail.MailStamp):
-            # If the message was received at one point
-            # via the mail service then it can be replied to.
-            # The notion of inbound vs. outbound is no longer
-            # relevant with Edit / Update where a message
-            # can be both.
-            return Mail.MailStamp(selectedItem).viaMailService
-        return False
+        # We used to test for whether the message had ever been
+        # received by the mail service ("in", sort of), but Mimi
+        # thinks outgoing messages should be replyable too.
+        # return has_stamp(selectedItem, Mail.MailStamp) and \
+        #        Mail.MailStamp(selectedItem).viaMailService
+        return has_stamp(selectedItem, Mail.MailStamp)
 
     def onReplyOrForwardEvent(self, replyMethod):
         pim_ns = schema.ns('osaf.pim', self.itsView)
@@ -329,17 +324,13 @@ class FocusEventHandlers(Item):
 
     def onReplyOrForwardEventUpdateUI(self, event):
         selection = self.__getSelectedItems()
-        # Note that this looks for *any* reply/forward-able message
-        for selectedItem in selection:
-            if self.CanReplyOrForward(selectedItem):
-                event.arguments['Enable'] = True
-                break
-        else:
-            event.arguments['Enable'] = False
-        # until we can get this called properly at item selection time,
-        # always enable
-        event.arguments['Enable'] = True
-
+        enabled = len(selection) > 0
+        if enabled:
+            for selectedItem in selection:
+                if not self.CanReplyOrForward(selectedItem):
+                    enabled = False
+                    break
+        event.arguments['Enable'] = enabled
 
     def onReplyEvent(self, event):
         self.onReplyOrForwardEvent(Mail.replyToMessage)
