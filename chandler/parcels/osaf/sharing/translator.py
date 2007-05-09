@@ -1432,7 +1432,7 @@ class SharingTranslator(eim.Translator):
 
     @model.DisplayAlarmRecord.deleter
     def delete_alarm(self, record):
-        item = self.rv.findUUID(record.uuid)
+        item = self.rv.findUUID(self.getUUIDForAlias(record.uuid))
         item.reminders = []
 
 
