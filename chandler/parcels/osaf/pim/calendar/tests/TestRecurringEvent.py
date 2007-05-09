@@ -219,18 +219,19 @@ class RecurringEventTest(testcase.SingleRepositoryTestCase):
 
         # create a modification to be automatically deleted
         fourth.summary = uw("changed title")
+        
+        simpleOccurrence = fourth.getNextOccurrence()
 
         second.cleanRule()
-        # @@@triageChange: this fails when triage automatically creates
-        # modifications       
-        #self.assertEqual(len(self.event.occurrences), 4)
 
         self.event.rruleset.rrules.first().until = thirdStart
+        
+        # changing the rule doesn't delete off-rule modifications
+        self.assert_(fourth.itsItem in self.event.occurrences)
+        self.assert_(simpleOccurrence.itsItem not in self.event.occurrences)
 
-        # @@@triageChange: this fails when triage automatically creates
-        # modifications     
-        #changing the rule should delete our modified fourth
-        #self.assertEqual(len(self.event.occurrences), 3)
+        self.event.deleteOffRuleModifications()
+
         self.assert_(fourth.itsItem not in self.event.occurrences)
 
 
