@@ -623,7 +623,7 @@ def makeConflictBar(parcel, oldVersion):
             position=0.08,
             childBlocks = [
                 makeSpacer(parcel, SizeType(9,0)),
-                conflictButton
+                conflictButton,
             ]).install(parcel)
 
 def makeMarkupBar(parcel, oldVersion):
@@ -870,6 +870,8 @@ def makeNoteSubtree(parcel, oldVersion):
     # determined by the 'position' attribute of each thing in the list.
     makeSubtree(parcel, osaf.pim.Note, [
         conflictBar,
+        makeSpacer(parcel, height=10, baseClass=ConflictSpacerBlock,
+                   position=0.089999).install(parcel),
         parcel['MarkupBar'],
         makeSpacer(parcel, height=6, position=0.01).install(parcel),
         bylineArea,

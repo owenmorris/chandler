@@ -897,21 +897,26 @@ class TaskAreaBlock(TaskConditionalBehavior,
                     DetailSynchronizedContentItemDetailBlock):
     pass
 
-# Clickable area that shows/hides itself based on the presence/absence 
-# of sharing conflicts
-class ConflictWarningButton(DetailSynchronizedBehavior, ControlBlocks.Button):
-    def getWatchList(self):
-        watchList = super(ConflictWarningButton, self).getWatchList()
-        watchList.append((self.item, sharing.SharedItem.conflictingStates.name))
-        return watchList
-
+class ConflictConditionalBehaviour(Item):
     def shouldShow(self, item):
-        superShouldShow = super(ConflictWarningButton, self).shouldShow(item)
+        superShouldShow = super(ConflictConditionalBehaviour, self).shouldShow(item)
         isShowable = False
         if superShouldShow and sharing.hasConflicts(self.item):
             isShowable = True
         return isShowable
 
+    def getWatchList(self):
+        watchList = super(ConflictConditionalBehaviour, self).getWatchList()
+        watchList.append((self.item, sharing.SharedItem.conflictingStates.name))
+        return watchList
+
+class ConflictSpacerBlock(ConflictConditionalBehaviour, SynchronizedSpacerBlock):
+    pass
+
+# Clickable area that shows/hides itself based on the presence/absence 
+# of sharing conflicts
+class ConflictWarningButton(ConflictConditionalBehaviour,
+                            DetailSynchronizedBehavior, ControlBlocks.Button):
     def instantiateWidget(self):
         # create the button
         button = super(ConflictWarningButton, self).instantiateWidget()
