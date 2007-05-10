@@ -2095,7 +2095,9 @@ class DumpTranslator(SharingTranslator):
     def export_sharing_prefs(self):
 
         ref = schema.ns("osaf.sharing", self.rv).currentSharingAccount
-        if ref.item is None:
+        # Personal parcel items don't get dumped, so skip dumping the
+        # current account uuid if it lives in //parcels
+        if ref.item is None or str(ref.item.itsPath).startswith("//parcels"):
             currentAccount = ""
         else:
             currentAccount = ref.item.itsUUID.str16()
