@@ -13,7 +13,7 @@
 #   limitations under the License.
 
 
-import logging, wx, application
+import logging, wx
 from osaf.views import detail
 from application import schema, dialogs
 import osaf.framework.blocks.Block as Block
@@ -41,7 +41,7 @@ class FeedItemDetail(detail.HTMLDetailArea):
         if item is not None:
             displayName = getattr(item, 'displayName', None)
             if displayName is None:
-                displayname =u"<" + messages.UNTITLED + u">"
+                displayName =u"<" + messages.UNTITLED + u">"
                 
             # make the html
             HTMLText = u"<html><body>\n\n"
@@ -106,7 +106,8 @@ class AddFeedCollectionEvent(Block.AddToSidebarEvent):
                     except:
                         # unable to recreate the feed channel.
                         wx.MessageBox (_(u"Could not create channel for %(url)s\nCheck the URL and try again.") % {"url": url},
-                                       _(u"New Channel Error"))
+                                       _(u"New Channel Error"),
+                                       parent=wx.GetApp().mainFrame)
                         
         def calledInTwisted(channelUUID, success):
             """
@@ -137,7 +138,8 @@ class AddFeedCollectionEvent(Block.AddToSidebarEvent):
         except:
             # unable to create a new feed channel.
             wx.MessageBox (_(u"Could not create channel for %(url)s\nCheck the URL and try again.") % {"url": url},
-                           _(u"New Channel Error"))
+                           _(u"New Channel Error"),
+                           parent=wx.GetApp().mainFrame)
             return None
         
         # return succesfully

@@ -43,12 +43,15 @@ class AddEVDBCollectionEvent(Block.AddToSidebarEvent):
                     continue
             except Exception, e:
                 wx.MessageBox (_(u"An error occurred while fetching events from EVDB:\n%(error)s\n\nSee chandler.log for details.") % {'error': e},
-                               _(u"EVDB Search"))
+                               _(u"EVDB Search"),
+                               parent=wx.GetApp().mainFrame)
             else:
                 if len(list(result)) == 0:
                     result.delete()
                     result = None
-                    wx.MessageBox (_(u"No matching events were found."). _(u"EVDB Search"))
+                    wx.MessageBox (_(u"No matching events were found."),
+                                   _(u"EVDB Search"),
+                                   parent=wx.GetApp().mainFrame)
             return result
 
 

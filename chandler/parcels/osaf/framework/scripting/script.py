@@ -106,7 +106,8 @@ class Script(pim.ContentItem):
                             "Do you want to overwrite those file changes with your\n"
                             "recent edits of this script?")
                     caption = _(u"Overwrite script file?")
-                    if wx.MessageBox(msg, caption, style = wx.YES_NO) == wx.NO:
+                    if wx.MessageBox(msg, caption, style = wx.YES_NO,
+                                     parent = wx.GetApp().mainFrame) == wx.NO:
                         return
                 self.write_file(self.body)
                 fileModTime = datetime.fromtimestamp(os.stat(self.filePath)[8])

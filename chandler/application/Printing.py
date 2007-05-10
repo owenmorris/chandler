@@ -67,7 +67,10 @@ class Printing(object):
         if not printSuccess:
             printError = printer.GetLastError()
             if ((printError != wx.PRINTER_CANCELLED) and (printError != 0)):
-                wx.MessageBox(_(u"There was a problem printing.\nPerhaps your current printer is not set correctly?"), _(u"Printing"), wx.OK)
+                wx.MessageBox(_(u"There was a problem printing.\nPerhaps your current printer is not set correctly?"),
+                              _(u"Printing"),
+                              wx.OK,
+                              parent=wx.GetApp().mainFrame)
         else:
             self.printData = wx.PrintData( printer.GetPrintDialogData().GetPrintData() )
         printout.Destroy()

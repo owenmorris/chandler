@@ -334,10 +334,12 @@ def importCertificateDialog(repView):
             dlg.Destroy()
 
         except utils.CertificateException, e:
-            wx.MessageBox (e.__unicode__(), messages.ERROR)
+            wx.MessageBox (e.__unicode__(), messages.ERROR,
+                           parent=wx.GetApp().mainFrame)
 
         except Exception, e:
             log.exception(e)
             wx.MessageBox (_(u"Could not add certificate from: %(path)s\nCheck the path and try again.") % {'path': path},
-                           messages.ERROR)
+                           messages.ERROR,
+                           parent=wx.GetApp().mainFrame)
     return certificate

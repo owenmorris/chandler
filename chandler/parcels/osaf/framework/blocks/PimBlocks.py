@@ -178,7 +178,8 @@ class FocusEventHandlers(Item):
                     caption = _(u"Change the privacy of a shared item?")
                     msg = _(u"Other people may be subscribed to share this item; " \
                             "are you sure you want to mark it as private?")
-                    if wx.MessageBox (msg, caption, style = wx.YES_NO) == wx.YES:
+                    if wx.MessageBox (msg, caption, style = wx.YES_NO,
+                                      parent = wx.GetApp().mainFrame) == wx.YES:
                         break
                     else:
                         return

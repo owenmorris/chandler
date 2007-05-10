@@ -623,7 +623,8 @@ def restoreMasterPassword(rv, cfg, testmode, oldMaster, newMaster):
                 if not testmode:
                     if prefs.masterPassword:
                         wx.MessageBox(_(u'You will need to supply the master password that was used to protect the account passwords in the settings file.'),
-                                      _(u'Settings Master Password'))                    
+                                      _(u'Settings Master Password'),
+                                      parent = wx.GetApp().mainFrame)                    
                     while True:
                         try:
                             newMaster = waitForDeferred(MasterPassword.get(rv, testPassword=dummy))
@@ -631,7 +632,8 @@ def restoreMasterPassword(rv, cfg, testmode, oldMaster, newMaster):
                         except password.NoMasterPassword:
                             if wx.MessageBox(_(u'If you do not supply the master password, all passwords will be reset. Reset?'),
                                              _(u'Reset Master Password?'),
-                                             style = wx.YES_NO) == wx.YES:
+                                             style = wx.YES_NO,
+                                             parent = wx.GetApp().mainFrame) == wx.YES:
                                 MasterPassword.reset(rv)
                                 break
                             

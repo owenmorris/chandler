@@ -249,7 +249,8 @@ class AddFlickrCollectionEvent(AddToSidebarEvent):
                     if "api key" in e.args[0].lower():
                         if promptLicense():
                             continue
-                    wx.MessageBox(unicode(e))
+                    wx.MessageBox(unicode(e), _(u"Flickr Error"),
+                                  parent=wx.GetApp().mainFrame)
                     photoCollection.delete()
                     photoCollection = None
                     break

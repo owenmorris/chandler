@@ -512,7 +512,8 @@ class MainView(View):
                             message = message [len(prefix):]
                         
                         wx.MessageBox (_(u"An error occured during search.\n\nThe search engine reported the following error:\n\n" ) + message,
-                                       _(u"Search Error"))
+                                       _(u"Search Error"),
+                                       parent=wx.GetApp().mainFrame)
                         showSearchResults = False
 
         block.text = command
@@ -523,7 +524,8 @@ class MainView(View):
         block = self.findBlockByName ("TimedEvents")
         if block is None:
             wx.MessageBox (_(u"Printing is currently only supported when viewing in calendar view."),
-                           _(u"Chandler"))
+                           _(u"Chandler"),
+                           parent=wx.GetApp().mainFrame)
         else:
             printObject = Printing.Printing(wx.GetApp().mainFrame, block.widget)
             if isPreview == 1:
@@ -538,7 +540,8 @@ class MainView(View):
             webbrowser.open(url)
         except OSError:
             wx.MessageBox (_(u"Chandler couldn't access a browser to open %(url)s.") % {'url' : url},
-                           _(u"Browser not found"))
+                           _(u"Browser not found"),
+                           parent=wx.GetApp().mainFrame)
             
     def onHelpEvent(self, event):
         # For now, open the Chandler FAQ page:
@@ -782,7 +785,8 @@ class MainView(View):
         if code == 0:
             # 0 = no valid addresses
             wx.MessageBox (_(u"Message can not be sent. You have not entered any valid email addresses."),
-                           _(u"Mail Error"))
+                           _(u"Mail Error"),
+                           parent=wx.GetApp().mainFrame)
             return
 
         elif code == 1:
@@ -795,7 +799,8 @@ class MainView(View):
         elif code == 2:
             # 2 = No to addresses
             wx.MessageBox (_(u"Message can not be sent. A to address is required."),
-                           _(u"Mail Error"))
+                           _(u"Mail Error"),
+                           parent=wx.GetApp().mainFrame)
             return
 
 
@@ -870,7 +875,8 @@ class MainView(View):
             self.setStatusMessage (_(u"Sharing failed."))
 
             wx.MessageBox (_(u"Couldn't share collection:\n%(errorMessage)s") % {'errorMessage': err.message},
-                           _(u"Error"))
+                           _(u"Error"),
+                           parent=wx.GetApp().mainFrame)
 
 
             if isNewShare:
@@ -988,7 +994,8 @@ class MainView(View):
                 break
         else:
             wx.MessageBox (_(u"This collection contains no events"),
-                           _(u"Export cancelled"))
+                           _(u"Export cancelled"),
+                           parent=wx.GetApp().mainFrame)
             return
 
         if not TurnOnTimezones.ShowTurnOnTimezonesDialog(
@@ -1191,7 +1198,8 @@ class MainView(View):
     def onReloadFromFileEvent(self, event):
         if wx.MessageBox(_(u"Reloading will remove all current data and replace it with new data in the dump file. Are you sure you want to proceed?"),
                          _(u"Reload"),
-                         style=wx.YES_NO) != wx.YES:
+                         style=wx.YES_NO,
+                         parent=wx.GetApp().mainFrame) != wx.YES:
             return
         
         wildcard = "%s|*.dump|%s (*.*)|*.*" % (_(u"Dump files"),

@@ -1705,7 +1705,8 @@ class RecurrenceAttributeEditor(ChoiceAttributeEditor):
                         "if you change it, and you won't be able to restore it."
                         "\n\nAre you sure you want to do this?")
                 caption = _(u"Discard custom recurrence?")
-                if wx.MessageBox(msg, caption, style = wx.YES_NO) == wx.NO:
+                if wx.MessageBox(msg, caption, style = wx.YES_NO,
+                                 parent=wx.GetApp().mainFrame) == wx.NO:
                     # No: Reselect 'custom' in the menu
                     self.SetControlValue(control, oldChoice)
                     return

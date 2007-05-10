@@ -107,6 +107,8 @@ def get(view, parent=None, testPassword=None):
         else:
             raise RuntimeError('At least one password was expected to be initialized')
         if again:
+            if parent is None:
+                parent = wx.GetApp().mainFrame
             wx.MessageBox (_(u'Master password was incorrect, please try again.'),
                            _(u'Incorrect password'),
                            parent=parent)
@@ -150,6 +152,9 @@ def change(view, parent=None):
                 oldMaster, newMaster = dlg.getMasterPasswords()
     
                 if not _change(oldMaster, newMaster, view, prefs):
+                    if parent is None:
+                        parent = wx.GetApp().mainFrame
+
                     wx.MessageBox(_(u'Old password was incorrect, please try again.'),
                                   _(u'Incorrect password'),
                                   parent=parent)
@@ -203,6 +208,8 @@ def beforeBackup(view, parent=None):
                 count += 1
         if count == 1: # We will always have at least one, the dummy password
             return
+        if parent is None:
+            parent = wx.GetApp().mainFrame    
         if wx.MessageBox(_(u'Anyone who gets access to your data can view your account passwords. Do you want to protect your account passwords by encrypting them with the master password?'),
                          _(u'Set Master password?'),
                          style = wx.YES_NO,

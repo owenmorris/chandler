@@ -89,7 +89,8 @@ class DashboardBlock(Table):
         autoTriageToo = wx.GetMouseState().AltDown()
         if autoTriageToo and wx.MessageBox(
             _(u"Are you sure you want to reset the triage status of everything in this collection?"),
-            _(u"Automatic triage"), wx.OK | wx.CANCEL | wx.ICON_HAND) != wx.OK:
+            _(u"Automatic triage"), wx.OK | wx.CANCEL | wx.ICON_HAND,
+            parent=wx.GetApp().mainFrame) != wx.OK:
             return
         
         #import hotshot

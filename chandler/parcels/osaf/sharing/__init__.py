@@ -1650,6 +1650,7 @@ def ensureAccountSetUp(view, sharing=False, inboundMail=False,
     @type view: L{repository.persistence.RepositoryView}
     @return: True if accounts are set up; False otherwise.
     """
+    parent = wx.GetApp().mainFrame
 
     while True:
 
@@ -1672,7 +1673,7 @@ def ensureAccountSetUp(view, sharing=False, inboundMail=False,
             msg += _(u" - SMTP (outbound email)\n")
         msg += _(u"\nWould you like to enter account information now?")
 
-        response = wx.MessageBox(msg, _(u"Account set up"), style = wx.YES_NO) == wx.YES
+        response = wx.MessageBox(msg, _(u"Account set up"), style = wx.YES_NO, parent=parent) == wx.YES
         if response == False:
             return False
 

@@ -1023,8 +1023,10 @@ class SidebarBlock(Table):
                         return
     
                 else:
-                    if wx.MessageBox (notMineMessage % dataDict, _(u"Delete collection"),
-                                            style = wx.OK | wx.CANCEL) != wx.OK:
+                    if wx.MessageBox (notMineMessage % dataDict,
+                                      _(u"Delete collection"),
+                                      style = wx.OK | wx.CANCEL,
+                                      parent = wx.GetApp().mainFrame) != wx.OK:
                         return
 
         def deleteItem(collection):

@@ -31,7 +31,7 @@ def _isEmpty(text):
 def _showError(errText):
     theApp = wx.GetApp()
     if theApp is not None:
-        wx.MessageBox(errText, _(u"Amazon Error"))
+        wx.MessageBox(errText, _(u"Amazon Error"), parent=wx.GetApp().mainFrame)
 
 def SearchByKeyword(repView, keywords=None, countryCode=None, category=None):
     """
