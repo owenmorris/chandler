@@ -309,13 +309,18 @@ def splitUUID(recurrence_aware_uuid):
     Return the tuple (UUID, recurrenceID or None).  UUID will be a string,
     recurrenceID will be a datetime or None.
     """
-    uuid, colon, recurrenceID = str(recurrence_aware_uuid).partition("::")
-    if colon != "::":
-        # a plain UUID
-        return (uuid, None)
-    else:
-        return (uuid, fromICalendarDateTime(recurrenceID)[0])
+    pseudo_uuid = str(recurrence_aware_uuid)
+    # tolerate old-style, double-colon pseudo-uuids
+    position = pseudo_uuid.find('::')
+    if position != -1:
+        return (pseudo_uuid[:position],
+                fromICalendarDateTime(pseudo_uuid[position + 2:])[0])
+    position = pseudo_uuid.find(':')
+    if position != -1:
+        return (pseudo_uuid[:position],
+                fromICalendarDateTime(pseudo_uuid[position:])[0])
         
+    return (pseudo_uuid, None)
 
 
 def handleEmpty(item_or_stamp, attr):
@@ -343,9 +348,12 @@ def getAliasForItem(item_or_stamp):
     if isinstance(item, Occurrence):
         event = EventStamp(item)
         master = item.inheritFrom
-        recurrenceID = toICalendarDateTime(event.recurrenceID,
-                                           event.allDay or event.anyTime)
-        return master.itsUUID.str16() + "::" + recurrenceID
+        dateValue = event.allDay or event.anyTime
+        recurrenceID = event.recurrenceID
+        if recurrenceID.tzinfo != ICUtzinfo.floating and not dateValue:
+            recurrenceID = recurrenceID.astimezone(utc)
+        recurrenceID = formatDateTime(recurrenceID, dateValue, dateValue)
+        return master.itsUUID.str16() + ":" + recurrenceID
     else:
         return item.itsUUID.str16()
 
@@ -468,7 +476,7 @@ class SharingTranslator(eim.Translator):
             return text
 
     def getUUIDForAlias(self, alias):
-        if '::' not in alias:
+        if ':' not in alias:
             return alias
 
         uuid, recurrenceID = splitUUID(alias)
@@ -533,7 +541,7 @@ class SharingTranslator(eim.Translator):
         """
         Override to handle special recurrenceID:uuid uuids.
         """
-        if isinstance(uuid, basestring) and '::' in uuid:
+        if isinstance(uuid, basestring) and ':' in uuid:
             uuid = self.deferredUUID(uuid)
         return super(SharingTranslator, self).deferredItem(uuid, *args, **kwargs)
 
@@ -634,48 +642,49 @@ class SharingTranslator(eim.Translator):
 
         reminder = item.getUserReminder()
 
-        if reminder is not None:
+        if reminder is None:
+            description = None
+            trigger = None
+            duration = None
+            repeat = None
 
-            if reminder.reminderItem is item: # this is our reminder
+        elif reminder.reminderItem is item: # this is our reminder
+            trigger = None
+            if reminder.hasLocalAttributeValue('delta'):
+                trigger = toICalendarDuration(reminder.delta)
+            elif reminder.hasLocalAttributeValue('absoluteTime'):
+                # iCalendar Triggers are supposed to be expressed in UTC;
+                # EIM may not require that but might as well be consistent
+                reminderTime = reminder.absoluteTime.astimezone(utc)
+                trigger = toICalendarDateTime(reminderTime, False)
 
-                trigger = None
-                if reminder.hasLocalAttributeValue('delta'):
-                    trigger = toICalendarDuration(reminder.delta)
-                elif reminder.hasLocalAttributeValue('absoluteTime'):
-                    # iCalendar Triggers are supposed to be expressed in UTC;
-                    # EIM may not require that but might as well be consistent
-                    reminderTime = reminder.absoluteTime.astimezone(utc)
-                    trigger = toICalendarDateTime(reminderTime, False)
+            if reminder.duration:
+                duration = toICalendarDuration(reminder.duration, False)
+            else:
+                duration = None
 
+            if reminder.repeat:
+                repeat = reminder.repeat
+            else:
+                repeat = None
 
-                if reminder.duration:
-                    duration = toICalendarDuration(reminder.duration, False)
-                else:
-                    duration = None
+            description = getattr(reminder, 'description', None)
+            if description is None:
+                description = "Event Reminder"
 
-                if reminder.repeat:
-                    repeat = reminder.repeat
-                else:
-                    repeat = None
+        else: # we've inherited this reminder
+            description = eim.Inherit
+            trigger = eim.Inherit
+            duration = eim.Inherit
+            repeat = eim.Inherit
 
-                description = getattr(reminder, 'description', None)
-                if description is None:
-                    description = "Event Reminder"
-
-            else: # we've inherited this reminder
-
-                description = eim.Inherit
-                trigger = eim.Inherit
-                duration = eim.Inherit
-                repeat = eim.Inherit
-
-            yield model.DisplayAlarmRecord(
-                item,
-                description,
-                trigger,
-                duration,
-                repeat,
-            )
+        yield model.DisplayAlarmRecord(
+            item,
+            description,
+            trigger,
+            duration,
+            repeat,
+        )
 
         if item.private:
             yield model.PrivateItemRecord(item)
@@ -1241,7 +1250,7 @@ class SharingTranslator(eim.Translator):
                 delattr(event, 'allDay')
 
             if master == event:
-                if anyTime in (True, False):                
+                if anyTime in (True, False):
                     event.anyTime = anyTime
                     # modifications may have been created before the master, so
                     # they may have unnecessarily set anyTime
@@ -1268,7 +1277,7 @@ class SharingTranslator(eim.Translator):
                 # since there's no recurrence currently, avoid creating a
                 # rruleset if all the positive recurrence fields are None
                 return
-
+            
             if event.rruleset is not None:
                 rruleset = event.rruleset
             else:
@@ -1306,13 +1315,27 @@ class SharingTranslator(eim.Translator):
 
             if len(rruleset.rrules) == 0 and len(rruleset.rdates) == 0:
                 event.removeRecurrence()
-            elif event.rruleset is not None:
-                # changed existing recurrence
-                event.rruleset._ignoreValueChanges = ignoreChanges
-                event.cleanRule()
             else:
-                # new recurrence
-                event.rruleset = rruleset
+                if event.rruleset is not None:
+                    # changed existing recurrence
+                    event.rruleset._ignoreValueChanges = ignoreChanges
+                    event.cleanRule()
+                else:
+                    # new recurrence
+                    event.rruleset = rruleset
+                # search through modifications in case they were created before
+                # the master, if they're timezoned they'll have recurrenceID in
+                # UTC, worse, if they inherit startTime it'll be in UTC
+                tzinfo = event.effectiveStartTime.tzinfo
+                if tzinfo != ICUtzinfo.floating:
+                    for mod in event.modifications:
+                        mod = EventStamp(mod)
+                        recurrenceID = mod.recurrenceID
+                        if recurrenceID.tzinfo == utc:
+                            mod.recurrenceID = recurrenceID.astimezone(tzinfo)
+                        if (mod.startTime.tzinfo == utc and
+                            mod.startTime == recurrenceID):
+                            mod.startTime = mod.startTime.astimezone(tzinfo)
 
 
     @eim.exporter(EventStamp)
@@ -1384,7 +1407,12 @@ class SharingTranslator(eim.Translator):
 
         @self.withItemForUUID(record.uuid, pim.ContentItem)
         def do(item):
-            if record.trigger not in noChangeOrInherit:
+            # Rather than simply leaving out a DisplayAlarmRecord, we're using
+            # a trigger value of None to indicate there is no alarm:
+            if record.trigger is None:
+                item.reminders = []
+
+            elif record.trigger not in noChangeOrInherit:
                 # trigger translates to either a pim.Reminder (if a date(time),
                 # or a pim.RelativeReminder (if a timedelta).
                 kw = dict(itsView=item.itsView)

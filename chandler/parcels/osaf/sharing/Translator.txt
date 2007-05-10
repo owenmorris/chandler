@@ -65,8 +65,7 @@ Exporting:
     >>> t.startExport()
     >>> records = list(t.exportItem(item))
     >>> records
-    [ItemRecord('f230dcd4-7c32-4c3f-908b-d92081cc9a89', u'Translator test', '200 -1167792143.00 1', Decimal("1164803131"), 0, 0, 0), ModifiedByRecord('f230dcd4-7c32-4c3f-908b-d92081cc9a89', u'', Decimal("1164803131"), 500)]
-
+    [ItemRecord('f230dcd4-7c32-4c3f-908b-d92081cc9a89', u'Translator test', '200 -1167792143.00 1', Decimal("1164803131"), 0, 0, 0), ModifiedByRecord('f230dcd4-7c32-4c3f-908b-d92081cc9a89', u'', Decimal("1164803131"), 500), DisplayAlarmRecord('f230dcd4-7c32-4c3f-908b-d92081cc9a89', NoChange, None, None, None)]
 
 
 Autoresolving Conflicts:
@@ -164,7 +163,7 @@ Exporting:
     >>> t.startExport()
     >>> records = list(t.exportItem(item))
     >>> records
-    [ItemRecord('f230dcd4-7c32-4c3f-908b-d92081cc9a89', u'Translator test', '100 -1167792400.00 1', Decimal("1164803131"), 0, 0, 0), ModifiedByRecord('f230dcd4-7c32-4c3f-908b-d92081cc9a89', u'', Decimal("1164803131"), 500), NoteRecord('f230dcd4-7c32-4c3f-908b-d92081cc9a89', u'This is the body', None, None, None)]
+    [ItemRecord('f230dcd4-7c32-4c3f-908b-d92081cc9a89', u'Translator test', '100 -1167792400.00 1', Decimal("1164803131"), 0, 0, 0), ModifiedByRecord('f230dcd4-7c32-4c3f-908b-d92081cc9a89', u'', Decimal("1164803131"), 500), DisplayAlarmRecord('f230dcd4-7c32-4c3f-908b-d92081cc9a89', NoChange, None, None, None), NoteRecord('f230dcd4-7c32-4c3f-908b-d92081cc9a89', u'This is the body', None, None, None)]
 
 TODO: icaluid
 
@@ -200,7 +199,7 @@ Exporting:
     >>> t.startExport()
     >>> records = list(t.exportItem(item))
     >>> records
-    [ItemRecord('f230dcd4-7c32-4c3f-908b-d92081cc9a89', u'Translator test', '100 -1167792400.00 1', Decimal("1164803131"), 0, 0, 0), ModifiedByRecord('f230dcd4-7c32-4c3f-908b-d92081cc9a89', u'', Decimal("1164803131"), 500), NoteRecord('f230dcd4-7c32-4c3f-908b-d92081cc9a89', u'This is the body', None, None, None), TaskRecord('f230dcd4-7c32-4c3f-908b-d92081cc9a89')]
+    [ItemRecord('f230dcd4-7c32-4c3f-908b-d92081cc9a89', u'Translator test', '100 -1167792400.00 1', Decimal("1164803131"), 0, 0, 0), ModifiedByRecord('f230dcd4-7c32-4c3f-908b-d92081cc9a89', u'', Decimal("1164803131"), 500), DisplayAlarmRecord('f230dcd4-7c32-4c3f-908b-d92081cc9a89', NoChange, None, None, None), NoteRecord('f230dcd4-7c32-4c3f-908b-d92081cc9a89', u'This is the body', None, None, None), TaskRecord('f230dcd4-7c32-4c3f-908b-d92081cc9a89')]
 
 
 MailMessageRecord type

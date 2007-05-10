@@ -122,6 +122,13 @@ def readEventRecord(eventRecord, vobjs):
             anyTime = (getattr(m_start, 'x_osaf_anytime_param', '') == 'TRUE')
         elif recurrenceID.tzinfo == ICUtzinfo.floating:
             recurrenceID = recurrenceID.replace(tzinfo=None)
+        elif recurrenceID.tzinfo == utc:
+            # convert UTC recurrence-id (which is legal, but unusual in
+            # iCalendar) to the master's dtstart timezone
+            tzid = getattr(m_start, 'tzid_param', None)
+            if tzid is not None:
+                tzinfo = ICUtzinfo.getInstance(tzid)
+                recurrenceID = recurrenceID.astimezone(tzinfo)
         vevent.add('recurrence-id').value = recurrenceID
         
     if eventRecord.dtstart in translator.emptyValues:
@@ -435,7 +442,7 @@ class ICSSerializer(object):
                             assert type(remValue) is timedelta
                             trigger = toICalendarDuration(remValue)
                 
-                ## Custom properties/parameters                                           
+                ## Custom properties/parameters
                 #ignoredProperties = {}
                 #ignoredParameters = {}
                 #for line in vobj.lines():
@@ -482,13 +489,16 @@ class ICSSerializer(object):
                         logger.info("Skipping a THISANDFUTURE or "
                                     "THISANDPRIOR modification")
                         continue
-
+                    
+                    dateValue = allDay or anyTime
                     recurrenceID = forceToDateTime(recurrenceID)
                     recurrenceID = convertToICUtzinfo(recurrenceID, helperView)
-                    rec_string = toICalendarDateTime(recurrenceID,
-                                                              allDay or anyTime)
+                    if recurrenceID.tzinfo is not ICUtzinfo.floating:
+                        recurrenceID = recurrenceID.astimezone(utc)
+                    rec_string = translator.formatDateTime(recurrenceID,
+                                                           dateValue, dateValue)
 
-                    uuid += "::" + rec_string
+                    uuid += ":" + rec_string
                     master = masters[uid]
                     uid = eim.Inherit
                     if (master.getChildValue('duration') == 
