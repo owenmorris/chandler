@@ -979,9 +979,10 @@ class DBItemPurger(ItemPurger):
             if uValue in done:
                 continue
 
-            record = store._values.c.loadValue(uValue, record, store.txn)
+            record = store._values.c.loadValue(uValue, record, txn)
             if record is None:
                 done.add(uValue)
+                record = DBItemPurger.VALUE_TYPES
                 continue
 
             uAttr, vFlags, data, lobs, indexes = record.data

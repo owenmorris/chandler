@@ -46,7 +46,7 @@ class DBContainer(object):
         db = DB(self.store.env)
         db.lorder = 4321
         
-        flags = DB.DB_THREAD | DB.DB_READ_UNCOMMITTED
+        flags = DB.DB_THREAD
         self.filename = name
 
         if ramdb:
@@ -55,7 +55,9 @@ class DBContainer(object):
         elif mvcc:
             self.store.repository.logger.info('%s db opened with mvcc', dbname)
             flags |= DB.DB_MULTIVERSION
-            
+        else:
+            flags |= DB.DB_READ_UNCOMMITTED
+
         if create:
             flags |= DB.DB_CREATE
 
@@ -409,7 +411,7 @@ class RefContainer(DBContainer):
 
         try:
             cursor = self.c.openCursor()
-            flags = self.c.flags
+            flags = self.c.flags & ~DB.DB_READ_UNCOMMITTED
             key = uCol._uuid
             value = cursor.set_range(key, flags, None)
 
@@ -444,14 +446,15 @@ class RefContainer(DBContainer):
 
         try:
             cursor = self.c.openCursor()
+            flags = self.c.flags & ~DB.DB_READ_UNCOMMITTED
             key = uCol._uuid
-            value = cursor.set_range(key, self.c.flags, None)
+            value = cursor.set_range(key, flags, None)
 
             while value is not None and value[0].startswith(key):
                 keyVer = ~unpack('>l', value[0][32:36])[0]
                 if keyVer == version:
-                    cursor.delete(self.c.flags)
-                value = cursor.next(self.c.flags, None)
+                    cursor.delete(flags)
+                value = cursor.next(flags, None)
 
         finally:
             self.c.closeCursor(cursor)
@@ -482,7 +485,7 @@ class NamesContainer(DBContainer):
 
         try:
             cursor = self.c.openCursor()
-            flags = self.c.flags
+            flags = self.c.flags & ~DB.DB_READ_UNCOMMITTED
             key = uuid._uuid
             value = cursor.set_range(key, flags, None)
 
@@ -515,14 +518,15 @@ class NamesContainer(DBContainer):
 
         try:
             cursor = self.c.openCursor()
+            flags = self.c.flags & ~DB.DB_READ_UNCOMMITTED
             key = uuid._uuid
-            value = cursor.set_range(key, self.c.flags, None)
+            value = cursor.set_range(key, flags, None)
 
             while value is not None and value[0].startswith(key):
                 nameVer = ~unpack('>l', value[0][-4:])[0]
                 if nameVer == version:
-                    cursor.delete(self.c.flags)
-                value = cursor.next(self.c.flags, None)
+                    cursor.delete(flags)
+                value = cursor.next(flags, None)
 
         finally:
             self.c.closeCursor(cursor)
@@ -735,7 +739,7 @@ class IndexesContainer(DBContainer):
 
         try:
             cursor = self.c.openCursor()
-            flags = self.c.flags
+            flags = self.c.flags & ~DB.DB_READ_UNCOMMITTED
             key = uIndex._uuid
             value = cursor.set_range(key, flags, None)
 
@@ -768,15 +772,15 @@ class IndexesContainer(DBContainer):
 
         try:
             cursor = self.c.openCursor()
+            flags = self.c.flags & ~DB.DB_READ_UNCOMMITTED
             key = uIndex._uuid
-            value = cursor.set_range(key, self.c.flags, None)
+            value = cursor.set_range(key, flags, None)
 
             while value is not None and value[0].startswith(key):
                 keyVer = ~unpack('>l', value[0][32:36])[0]
                 if keyVer == version:
-                    cursor.delete(self.c.flags)
-
-                value = cursor.next(self.c.flags, None)
+                    cursor.delete(flags)
+                value = cursor.next(flags, None)
 
         finally:
             self.c.closeCursor(cursor)
@@ -1569,7 +1573,7 @@ class ValueContainer(DBContainer):
         try:
             key = ValueContainer.VIEW_KEY
             cursor = self.c.openCursor(self._version)
-            flags = self.c.flags
+            flags = self.c.flags & ~DB.DB_READ_UNCOMMITTED
             value = cursor.set_range(key, flags, None)
             
             if toVersion is None:
