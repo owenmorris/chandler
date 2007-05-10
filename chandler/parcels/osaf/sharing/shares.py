@@ -229,12 +229,13 @@ class State(schema.Item):
 
         if debug:
             print " ----------- Beginning merge"
-            print "   rsInternal:", rsInternal
-            print "   internalDiff:", internalDiff
-            print "   externalDiff:", externalDiff
-            print "   old agreed:", self.agreed
-            print "   old pending:", pending
-            print "   ncd:", ncd
+            print "   old agreed:", self.agreed, "\n"
+            print "   old pending:", pending, "\n"
+            print "   rsInternal:", rsInternal, "\n"
+            print "   internalDiff:", internalDiff, "\n"
+            print "   rsExternal:", rsExternal, "\n"
+            print "   externalDiff:", externalDiff, "\n"
+            print "   ncd:", ncd, "\n"
 
         if readOnly:
             # This allows a read-only subscriber to maintain local changes
