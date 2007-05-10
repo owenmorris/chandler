@@ -477,7 +477,6 @@ class ChangeMasterPasswordDialog(wx.Dialog):
         self.ok.Disable()
 
         btn = wx.Button(self, wx.ID_CANCEL)
-        btn.SetDefault()
         box.Add(btn, 0, wx.ALIGN_RIGHT|wx.ALL, 5)
         btn.SetFocus()
 
@@ -507,8 +506,13 @@ class ChangeMasterPasswordDialog(wx.Dialog):
         evt.Skip()
 
     def OnConfirmKeyPress(self, evt):
+        try:
+            oldMaster = self.oldMaster.GetValue()
+        except AttributeError:
+            oldMaster = True
+        
         if self.newMaster.GetValue() == self.confirmMaster.GetValue() and \
-           len(self.newMaster.GetValue()) > 0:
+           len(self.newMaster.GetValue()) > 0 and oldMaster:
             self.ok.Enable()
             self.ok.SetDefault()
         else:
