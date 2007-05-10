@@ -155,14 +155,14 @@ class FileSynchronizedAttributeEditor(AttributeEditors.StringAttributeEditor):
             # update the file data too
             item.sync_file_with_model()
 
-class FilePathAreaBlock(Detail.DetailSynchronizedContentItemDetail):
+class FilePathAreaBlock(Detail.DetailSynchronizedContentItemDetailBlock):
     """
     Block to show (or hide) the File Path area of the script.
     """
     def shouldShow(self, item):
         return len(item.filePath) > 0
 
-class OpenFileButton(Detail.DetailSynchronizer, ControlBlocks.Button):
+class OpenFileButton(Detail.DetailSynchronizedBehavior, ControlBlocks.Button):
     """
     Block to show (or hide) the "Open File" button, and
     to handle that event.

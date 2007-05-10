@@ -283,7 +283,7 @@ class DetailBranchPointDelegate(BranchPoint.BranchPointDelegate):
         branch.childBlocks.extend([ block for position, path, block in decoratedSubtreeList ])
         return branch
 
-class DetailSynchronizer(Item):
+class DetailSynchronizedBehavior(Item):
     """
     Mixin class that handles synchronization and notification common to most
     of the blocks in the detail view.
@@ -300,7 +300,7 @@ class DetailSynchronizer(Item):
                     doc="Return the selected item, or None")
 
     def synchronizeWidget(self):
-        super(DetailSynchronizer, self).synchronizeWidget()
+        super(DetailSynchronizedBehavior, self).synchronizeWidget()
         self.show(self.item is not None and self.shouldShow(self.item))
 
     def shouldShow(self, item):
@@ -348,15 +348,16 @@ class DetailSynchronizer(Item):
                      #debugName(self), debugName(changedItem))
         self.synchronizeWidget()
 
-class SynchronizedSpacerBlock(DetailSynchronizer, ControlBlocks.StaticText):
+class SynchronizedSpacerBlock(DetailSynchronizedBehavior, 
+                              ControlBlocks.StaticText):
     """
     Generic Spacer Block class.
     """
 
-class UnreadTimer(DetailSynchronizer, ControlBlocks.Timer):
+class UnreadTimerBlock(DetailSynchronizedBehavior, ControlBlocks.Timer):
     """ A timer that sets the "read" attribute on any item we display. """
     def onSetContentsEvent(self, event):
-        super(UnreadTimer, self).onSetContentsEvent(event)
+        super(UnreadTimerBlock, self).onSetContentsEvent(event)
 
         # If this item isn't 'read' yet,
         # @@@ and isn't a recurrence (see bug 6702),
@@ -369,7 +370,7 @@ class UnreadTimer(DetailSynchronizer, ControlBlocks.Timer):
         self.checkReadState = (item is not None and not item.read)        
 
     def synchronizeWidget(self):
-        super(DetailSynchronizer, self).synchronizeWidget()
+        super(DetailSynchronizedBehavior, self).synchronizeWidget()
         if getattr(self, 'checkReadState', False):
             self.checkReadState = False
             item = getattr(self, 'item', None) 
@@ -391,7 +392,8 @@ class UnreadTimer(DetailSynchronizer, ControlBlocks.Timer):
             logger.debug("Clearing unread flag for %s", debugName(item))
             item.read = True
 
-class StaticTextLabel(DetailSynchronizer, ControlBlocks.StaticText):
+class StaticTextLabelBlock(DetailSynchronizedBehavior, 
+                           ControlBlocks.StaticText):
     def staticTextLabelValue(self, item):
         theLabel = self.title
         return theLabel
@@ -404,14 +406,15 @@ class StaticTextLabel(DetailSynchronizer, ControlBlocks.StaticText):
         return relayout
 
     def synchronizeWidget(self):
-        super(StaticTextLabel, self).synchronizeWidget()
+        super(StaticTextLabelBlock, self).synchronizeWidget()
         if self.item is not None:
             self.synchronizeLabel(self.staticTextLabelValue(self.item))
 
-class DetailSynchronizedContentItemDetail(DetailSynchronizer, ControlBlocks.ContentItemDetail):
+class DetailSynchronizedContentItemDetailBlock(DetailSynchronizedBehavior, 
+                                               ControlBlocks.ContentItemDetail):
     pass
 
-class DetailSynchronizedAttributeEditorBlock(DetailSynchronizer,
+class DetailSynchronizedAttributeEditorBlock(DetailSynchronizedBehavior,
                                              ControlBlocks.AEBlock):
     """
     A L{ControlBlocks.AEBlock} that participates in detail view synchronization.
@@ -423,7 +426,7 @@ class DetailSynchronizedAttributeEditorBlock(DetailSynchronizer,
     def OnFinishChangesEvent(self, event):
         self.saveValue(validate=True)
 
-class DetailTriageButton(DetailSynchronizer, ControlBlocks.Button):
+class DetailTriageButtonBlock(DetailSynchronizedBehavior, ControlBlocks.Button):
     """
     A button that controls the triage state of an item
     """
@@ -471,7 +474,7 @@ class DetailTriageButton(DetailSynchronizer, ControlBlocks.Button):
         return state
 
     def synchronizeWidget(self):
-        super(DetailTriageButton, self).synchronizeWidget()
+        super(DetailTriageButtonBlock, self).synchronizeWidget()
         self.setState()
 
     def setState(self):
@@ -497,7 +500,8 @@ class DetailTriageButton(DetailSynchronizer, ControlBlocks.Button):
         enable = item is not None and item.isAttributeModifiable('_triageStatus')
         event.arguments ['Enable'] = enable
 
-class DetailStampButton(DetailSynchronizer, ControlBlocks.StampButton):
+class DetailStampButtonBlock(DetailSynchronizedBehavior, 
+                             ControlBlocks.StampButton):
     """
     Common base class for the stamping buttons in the Markup Bar.
     """
@@ -515,7 +519,7 @@ class DetailStampButton(DetailSynchronizer, ControlBlocks.StampButton):
         raise NotImplementedError, "%s.stampClass()" % (type(self))
 
     def synchronizeWidget(self):
-        super(DetailStampButton, self).synchronizeWidget()
+        super(DetailStampButtonBlock, self).synchronizeWidget()
 
         # toggle this button to reflect the kind of the selected item
         item = self.item
@@ -605,20 +609,21 @@ class DetailStampButton(DetailSynchronizer, ControlBlocks.StampButton):
 
         return item.isItemOf(notes.Note.getKind(self.itsView))
 
-class MailMessageButtonBlock(DetailStampButton):
+class MailMessageButtonBlock(DetailStampButtonBlock):
     """ Mail Message Stamping button in the Markup Bar. """
     stampClass = Mail.MailStamp
     applyToAllOccurrences = True
 
-class CalendarStampButtonBlock(DetailStampButton):
+class CalendarStampButtonBlock(DetailStampButtonBlock):
     """ Calendar button in the Markup Bar. """
     stampClass = Calendar.EventStamp
 
-class TaskStampButtonBlock(DetailStampButton):
+class TaskStampButtonBlock(DetailStampButtonBlock):
     """ Task button in the Markup Bar. """
     stampClass = TaskStamp
 
-class PrivateSwitchButtonBlock(DetailSynchronizer, ControlBlocks.StampButton):
+class PrivateSwitchButtonBlock(DetailSynchronizedBehavior, 
+                               ControlBlocks.StampButton):
     """ "Never share" button in the Markup Bar. """
     def synchronizeWidget(self):
         # toggle this button to reflect the privateness of the selected item        
@@ -640,7 +645,7 @@ class PrivateSwitchButtonBlock(DetailSynchronizer, ControlBlocks.StampButton):
         enable = item is not None and item.isAttributeModifiable('displayName')
         event.arguments ['Enable'] = enable
 
-class ReadOnlyIconBlock(DetailSynchronizer, ControlBlocks.StampButton):
+class ReadOnlyIconBlock(DetailSynchronizedBehavior, ControlBlocks.StampButton):
     """
     "Read Only" icon in the Markup Bar.
     """
@@ -670,13 +675,14 @@ class ReadOnlyIconBlock(DetailSynchronizer, ControlBlocks.StampButton):
         """
         event.arguments ['Enable'] = True
 
-class EditTextAttribute(DetailSynchronizer, ControlBlocks.EditText):
+class EditTextAttributeBlock(DetailSynchronizedBehavior, 
+                             ControlBlocks.EditText):
     """
     EditText field connected to some attribute of a ContentItem
     Override LoadAttributeIntoWidget, SaveAttributeFromWidget in subclasses.
     """
     def instantiateWidget(self):
-        widget = super(EditTextAttribute, self).instantiateWidget()
+        widget = super(EditTextAttributeBlock, self).instantiateWidget()
         # We need to save off the changed widget's data into the block periodically
         # Hopefully OnLoseFocus is getting called every time we lose focus.
         widget.Bind(wx.EVT_KILL_FOCUS, self.onLoseFocus)
@@ -719,7 +725,7 @@ class EditTextAttribute(DetailSynchronizer, ControlBlocks.EditText):
         self.saveValue(validate=True)
 
     def synchronizeWidget(self):
-        super(EditTextAttribute, self).synchronizeWidget()
+        super(EditTextAttributeBlock, self).synchronizeWidget()
         if self.item is not None:
             self.loadTextValue(self.item)
 
@@ -732,13 +738,13 @@ class EditTextAttribute(DetailSynchronizer, ControlBlocks.EditText):
        raise NotImplementedError, "%s.LoadAttributeIntoWidget()" % (type(self))
 
 # @@@ Needs to be rewritten as an attribute editor when attachments become important again.
-#class AttachmentAreaBlock(DetailSynchronizedContentItemDetail):
+#class AttachmentAreaBlock(DetailSynchronizedContentItemDetailBlock):
     #"""
     #An area visible only when the item (a mail message) has attachments.
     #"""
     #def shouldShow (self, item):
         #return super(AttachmentAreaBlock, self).shouldShow(item) and  item is not None and item.hasAttachments()
-#class AttachmentTextFieldBlock(EditTextAttribute):
+#class AttachmentTextFieldBlock(EditTextAttributeBlock):
     #"""
     #A read-only list of email attachments, for now.
     #"""
@@ -756,7 +762,7 @@ class EditTextAttribute(DetailSynchronizer, ControlBlocks.EditText):
 
 
 # @@@ disabled until we start using this UI again
-#class AcceptShareButtonBlock(DetailSynchronizer, ControlBlocks.Button):
+#class AcceptShareButtonBlock(DetailSynchronizedBehavior, ControlBlocks.Button):
     #def shouldShow(self, item):
         #showIt = False
         #if item is not None and not pim.mail.MailStamp(item).isOutbound and super(AcceptShareButtonBlock, self).shouldShow(item):
@@ -835,11 +841,11 @@ class AppearsInAttributeEditor(StaticStringAttributeEditor):
                % {'collectionNames': collectionNames }
 
 # Classes to support blocks that are only shown if the item has a particular
-# stamp class
-class StampConditionalArea(Item):
+# stamp
+class StampConditionalBehavior(Item):
     """
-    An C{Item} subclass designed to mixed in with a
-    C{DetailSynchronizedContentItemDetail} block. Its C{shouldShow()} method
+    An C{Item} subclass designed to mixed in with a block that also has
+    C{DetailSynchronizedBehavior} mixed into it. Its C{shouldShow()} method
     only allows items that have a certain stamp. If you subclass to add extra
     conditions in C{shouldShow()}, make sure to check C{super}'s value
     first.
@@ -851,52 +857,56 @@ class StampConditionalArea(Item):
     stampClass = None
 
     def shouldShow(self, item):
-        return (self.stampClass is not None and
-                pim.has_stamp(item, self.stampClass))
+        assert self.stampClass is not None
+        return super(StampConditionalBehavior, self).shouldShow(item) and \
+               pim.has_stamp(item, self.stampClass)
 
     def getWatchList(self):
-        watchList = super(StampConditionalArea, self).getWatchList()
+        watchList = super(StampConditionalBehavior, self).getWatchList()
         watchList.extend(((self.item, pim.Stamp.stamp_types.name),),)
         return watchList
 
-class MailConditionalArea(StampConditionalArea):
+class MailConditionalBehavior(StampConditionalBehavior):
     """
-    A C{StampConditionalArea} subclass that checks for
+    A C{StampConditionalBehavior} subclass that checks for
     C{osaf.pim.mail.MailStamp}"
     """
     stampClass = pim.mail.MailStamp
 
-class EventConditionalArea(StampConditionalArea):
+class EventConditionalBehavior(StampConditionalBehavior):
     """
-    A C{StampConditionalArea} subclass that checks for C{osaf.pim.EventStamp}"
+    A C{StampConditionalBehavior} subclass that checks for C{osaf.pim.EventStamp}"
     """
     stampClass = pim.EventStamp
 
-class TaskConditionalArea(StampConditionalArea):
+class TaskConditionalBehavior(StampConditionalBehavior):
     """
-    A C{StampConditionalArea} subclass that checks for C{osaf.pim.TaskStamp}"
+    A C{StampConditionalBehavior} subclass that checks for C{osaf.pim.TaskStamp}"
     """
     stampClass = pim.TaskStamp
 
-class MailAreaBlock(MailConditionalArea, DetailSynchronizedContentItemDetail):
+class MailAreaBlock(MailConditionalBehavior, 
+                    DetailSynchronizedContentItemDetailBlock):
     pass
 
-class EventAreaBlock(EventConditionalArea, DetailSynchronizedContentItemDetail):
+class EventAreaBlock(EventConditionalBehavior, 
+                     DetailSynchronizedContentItemDetailBlock):
     pass
 
-class TaskAreaBlock(StampConditionalArea, DetailSynchronizedContentItemDetail):
+class TaskAreaBlock(TaskConditionalBehavior, 
+                    DetailSynchronizedContentItemDetailBlock):
     pass
 
-
-# Area that shows/hides itself based on the presence/absence of sharing conflicts
-class ConflictWarning(DetailSynchronizer, ControlBlocks.Button):
+# Clickable area that shows/hides itself based on the presence/absence 
+# of sharing conflicts
+class ConflictWarningButton(DetailSynchronizedBehavior, ControlBlocks.Button):
     def getWatchList(self):
-        watchList = super(DetailSynchronizer, self).getWatchList()
+        watchList = super(ConflictWarningButton, self).getWatchList()
         watchList.append((self.item, sharing.SharedItem.conflictingStates.name))
         return watchList
 
     def shouldShow(self, item):
-        superShouldShow = super(ConflictWarning, self).shouldShow(item)
+        superShouldShow = super(ConflictWarningButton, self).shouldShow(item)
         isShowable = False
         if superShouldShow and sharing.hasConflicts(self.item):
             isShowable = True
@@ -904,7 +914,7 @@ class ConflictWarning(DetailSynchronizer, ControlBlocks.Button):
 
     def instantiateWidget(self):
         # create the button
-        button = super(ConflictWarning, self).instantiateWidget()
+        button = super(ConflictWarningButton, self).instantiateWidget()
         if button is not None:
             button.SetBackgroundColour('Red') 
             button.SetForegroundColour('White')
@@ -922,7 +932,7 @@ class ConflictWarning(DetailSynchronizer, ControlBlocks.Button):
                 widget.SetLabel(_(u'%d PENDING CHANGES') % len(conflicts))
             else:
                 widget.SetLabel(_(u'1 PENDING CHANGE'))
-        super(ConflictWarning, self).synchronizeWidget()
+        super(ConflictWarningButton, self).synchronizeWidget()
 
     def resolveConflict(self, event):
         # show the dialog here
@@ -936,7 +946,8 @@ class ConflictWarning(DetailSynchronizer, ControlBlocks.Button):
 # Classes to support CalendarEvent details - first, areas that show/hide
 # themselves based on readonlyness and attribute values
 
-class CalendarAllDayAreaBlock(DetailSynchronizedContentItemDetail):
+class CalendarAllDayAreaBlock(EventConditionalBehavior, 
+                              DetailSynchronizedContentItemDetailBlock):
     def shouldShow(self, item):
         return (super(CalendarAllDayAreaBlock, self).shouldShow(item) and
             item.isAttributeModifiable(pim.EventStamp.allDay.name))
@@ -946,7 +957,8 @@ class CalendarAllDayAreaBlock(DetailSynchronizedContentItemDetail):
         watchList.append((self.item, pim.EventStamp.allDay.name))
         return watchList
 
-class CalendarLocationAreaBlock(EventAreaBlock):
+class CalendarLocationAreaBlock(EventConditionalBehavior, 
+                                DetailSynchronizedContentItemDetailBlock):
     def shouldShow(self, item):
         attributeName = pim.EventStamp.location.name
         return (super(CalendarLocationAreaBlock, self).shouldShow(item) and 
@@ -958,25 +970,26 @@ class CalendarLocationAreaBlock(EventAreaBlock):
         watchList.append((self.item, pim.EventStamp.location.name))
         return watchList
 
-class TimeConditionalBlock(EventAreaBlock):
+class TimeConditionalBehavior(EventConditionalBehavior):
     def shouldShow(self, item):
         event = pim.EventStamp(item)
-        return (super(TimeConditionalBlock, self).shouldShow(item) and
+        return (super(TimeConditionalBehavior, self).shouldShow(item) and
                 not event.allDay and
                 (item.isAttributeModifiable(pim.EventStamp.startTime.name)
                 or not event.anyTime))
 
     def getWatchList(self):
-        watchList = super(TimeConditionalBlock, self).getWatchList()
+        watchList = super(TimeConditionalBehavior, self).getWatchList()
         watchList.extend(((self.item, pim.EventStamp.allDay.name), 
                           (self.item, pim.EventStamp.anyTime.name)))
         return watchList
 
-class CalendarConditionalLabelBlock(TimeConditionalBlock, StaticTextLabel):
+class CalendarConditionalLabelBlock(TimeConditionalBehavior, 
+                                    StaticTextLabelBlock):
     pass    
 
-class CalendarTimeAEBlock(TimeConditionalBlock,
-                           DetailSynchronizedAttributeEditorBlock):
+class CalendarTimeAEBlock(TimeConditionalBehavior,
+                          DetailSynchronizedAttributeEditorBlock):
     pass
 
 #
@@ -1037,7 +1050,7 @@ def getReminderType(item):
     deltaMinutes = timeDeltaMinutes(delta)
     return deltaMinutes > 0 and 'after' or 'before'
 
-class ReminderConditionalBlock(Item):
+class ReminderConditionalBehavior(Item):
     def shouldShow(self, item):
         # Don't show if we have no reminder and the user can't add one.
         if item is None:
@@ -1047,34 +1060,34 @@ class ReminderConditionalBlock(Item):
                 item.isAttributeModifiable(pim.Remindable.reminders.name))
 
     def getWatchList(self):
-        watchList = super(ReminderConditionalBlock, self).getWatchList()
+        watchList = super(ReminderConditionalBehavior, self).getWatchList()
         watchList.extend([(self.item, pim.Remindable.reminders.name)])
         return watchList
 
-class ReminderSpacerBlock(ReminderConditionalBlock,
+class ReminderSpacerBlock(ReminderConditionalBehavior,
                           SynchronizedSpacerBlock):
     pass
 
-class ReminderTypeAreaBlock(ReminderConditionalBlock,
-                            DetailSynchronizedContentItemDetail):
+class ReminderTypeAreaBlock(ReminderConditionalBehavior,
+                            DetailSynchronizedContentItemDetailBlock):
     def getWatchList(self):
         watchList = super(ReminderTypeAreaBlock, self).getWatchList()
         watchList.extend([(self.item, pim.Stamp.stamp_types.name),])
         return watchList
 
-class ReminderRelativeAreaBlock(ReminderConditionalBlock,
-                                DetailSynchronizedContentItemDetail):
+class ReminderRelativeAreaBlock(ReminderConditionalBehavior,
+                                DetailSynchronizedContentItemDetailBlock):
     def shouldShow(self, item):
         return (super(ReminderRelativeAreaBlock, self).shouldShow(item) and
                 (getReminderType(item) in ('before', 'after')))
 
-class ReminderAbsoluteAreaBlock(ReminderConditionalBlock,
-                                DetailSynchronizedContentItemDetail):
+class ReminderAbsoluteAreaBlock(ReminderConditionalBehavior,
+                                DetailSynchronizedContentItemDetailBlock):
     def shouldShow(self, item):
         return (super(ReminderAbsoluteAreaBlock, self).shouldShow(item) and
                 (getReminderType(item) == 'custom'))
 
-class ReminderAEBlock(ReminderConditionalBlock,
+class ReminderAEBlock(ReminderConditionalBehavior,
                       DetailSynchronizedAttributeEditorBlock):
     def getWatchList(self):
         watchList = super(ReminderAEBlock, self).getWatchList()
@@ -1258,11 +1271,11 @@ class ReminderUnitsAttributeEditor(StringAttributeEditor):
                     scaleTimeDelta(value, scale, isAfter))
             item.setTriageStatus('auto', pin=True)
 
-class TransparencyConditionalBlock(EventConditionalArea):
+class TransparencyConditionalBehavior(EventConditionalBehavior):
     def shouldShow(self, item):
         # don't show for anyTime or @time events (but do show for allDay
         # events, which happen to be anyTime too)
-        if not super(TransparencyConditionalBlock, self).shouldShow(item):
+        if not super(TransparencyConditionalBehavior, self).shouldShow(item):
             return False
         event = pim.EventStamp(item)
         if event.allDay:
@@ -1270,30 +1283,30 @@ class TransparencyConditionalBlock(EventConditionalArea):
         return (not event.anyTime) and bool(event.duration)
 
     def getWatchList(self):
-        watchList = super(TransparencyConditionalBlock, self).getWatchList()
+        watchList = super(TransparencyConditionalBehavior, self).getWatchList()
         watchList.extend(((self.item, pim.EventStamp.anyTime.name), 
                           (self.item, pim.EventStamp.allDay.name), 
                           (self.item, pim.EventStamp.duration.name)))
         return watchList
 
-class CalendarTransparencySpacerBlock(TransparencyConditionalBlock, 
+class CalendarTransparencySpacerBlock(TransparencyConditionalBehavior, 
                                       SynchronizedSpacerBlock):
     pass
 
-class CalendarTransparencyAreaBlock(TransparencyConditionalBlock, 
-                                    DetailSynchronizedContentItemDetail):
+class CalendarTransparencyAreaBlock(TransparencyConditionalBehavior, 
+                                    DetailSynchronizedContentItemDetailBlock):
     pass
 
-class CalendarTransparencyAEBlock(EventConditionalArea,
+class CalendarTransparencyAEBlock(EventConditionalBehavior,
                                   DetailSynchronizedAttributeEditorBlock):
     pass
 
 
 
-class TimeZoneConditionalBlock(EventConditionalArea):
+class TimeZoneConditionalBehavior(EventConditionalBehavior):
     def shouldShow(self, item):
         # Only show for events
-        if not super(TimeZoneConditionalBlock, self).shouldShow(item):
+        if not super(TimeZoneConditionalBehavior, self).shouldShow(item):
             return False
         # allDay and anyTime items never show the timezone popup
         event = pim.EventStamp(item)
@@ -1305,19 +1318,19 @@ class TimeZoneConditionalBlock(EventConditionalArea):
         return tzPrefs.showUI
 
     def getWatchList(self):
-        watchList = super(TimeZoneConditionalBlock, self).getWatchList()
+        watchList = super(TimeZoneConditionalBehavior, self).getWatchList()
         tzPrefs = schema.ns('osaf.pim', self.itsView).TimezonePrefs
         watchList.extend(((self.item, pim.EventStamp.allDay.name),
                           (self.item, pim.EventStamp.anyTime.name),
                           (tzPrefs, 'showUI')))
         return watchList
 
-class CalendarTimeZoneSpacerBlock(TimeZoneConditionalBlock, 
+class CalendarTimeZoneSpacerBlock(TimeZoneConditionalBehavior, 
                                   SynchronizedSpacerBlock):
     pass
 
-class CalendarTimeZoneAreaBlock(TimeZoneConditionalBlock, 
-                                DetailSynchronizedContentItemDetail):
+class CalendarTimeZoneAreaBlock(TimeZoneConditionalBehavior, 
+                                DetailSynchronizedContentItemDetailBlock):
     pass
 
 class CalendarTimeZoneAEBlock(DetailSynchronizedAttributeEditorBlock):
@@ -1327,7 +1340,7 @@ class CalendarTimeZoneAEBlock(DetailSynchronizedAttributeEditorBlock):
         watchList.append((timezones, 'wellKnownIDs'))
         return watchList
 
-class RecurrenceConditionalBlock(EventConditionalArea):
+class RecurrenceConditionalBehavior(EventConditionalBehavior):
     # Centralize the recurrence blocks' visibility decisions. Subclass will
     # declare a visibilityFlags class member composed of these bit values:
     showPopup = 1 # Show the area containing the popup
@@ -1336,7 +1349,7 @@ class RecurrenceConditionalBlock(EventConditionalArea):
 
     def recurrenceVisibility(self, item):
         result = 0
-        if super(RecurrenceConditionalBlock, self).shouldShow(item):
+        if super(RecurrenceConditionalBehavior, self).shouldShow(item):
             freq = RecurrenceAttributeEditor.mapRecurrenceFrequency(item)
             modifiable = item.isAttributeModifiable(pim.EventStamp.rruleset.name)
 
@@ -1365,12 +1378,13 @@ class RecurrenceConditionalBlock(EventConditionalArea):
 
     def shouldShow(self, item):
         assert self.visibilityFlags
-        return (self.recurrenceVisibility(item) & self.visibilityFlags) != 0
+        return super(RecurrenceConditionalBehavior, self).shouldShow(item) \
+               and (self.recurrenceVisibility(item) & self.visibilityFlags) != 0
 
     def getWatchList(self):
-        watchList = super(RecurrenceConditionalBlock, self).getWatchList()
+        watchList = super(RecurrenceConditionalBehavior, self).getWatchList()
         watchList.append((self.item, pim.EventStamp.rruleset.name))
-        if self.visibilityFlags & RecurrenceConditionalBlock.showEnds:
+        if self.visibilityFlags & RecurrenceConditionalBehavior.showEnds:
             event = pim.EventStamp(self.item)
             try:
                 firstRRule = event.rruleset.rrules.first()
@@ -1380,31 +1394,31 @@ class RecurrenceConditionalBlock(EventConditionalArea):
                 watchList.append((firstRRule, 'until'))
         return watchList
 
-class CalendarRecurrencePopupSpacerBlock(RecurrenceConditionalBlock,
+class CalendarRecurrencePopupSpacerBlock(RecurrenceConditionalBehavior,
                                          SynchronizedSpacerBlock):
-    visibilityFlags = RecurrenceConditionalBlock.showPopup
+    visibilityFlags = RecurrenceConditionalBehavior.showPopup
 
-class CalendarRecurrencePopupAreaBlock(RecurrenceConditionalBlock,
-                                       DetailSynchronizedContentItemDetail):
-    visibilityFlags = RecurrenceConditionalBlock.showPopup
+class CalendarRecurrencePopupAreaBlock(RecurrenceConditionalBehavior,
+                                       DetailSynchronizedContentItemDetailBlock):
+    visibilityFlags = RecurrenceConditionalBehavior.showPopup
 
-class CalendarRecurrenceSpacer2Area(RecurrenceConditionalBlock,
-                                    DetailSynchronizer, 
+class CalendarRecurrenceSpacer2Area(RecurrenceConditionalBehavior,
+                                    DetailSynchronizedBehavior, 
                                     ControlBlocks.StaticText):
-    visibilityFlags = RecurrenceConditionalBlock.showPopup | \
-                    RecurrenceConditionalBlock.showEnds
+    visibilityFlags = RecurrenceConditionalBehavior.showPopup | \
+                    RecurrenceConditionalBehavior.showEnds
 
-class CalendarRecurrenceCustomSpacerBlock(RecurrenceConditionalBlock,
+class CalendarRecurrenceCustomSpacerBlock(RecurrenceConditionalBehavior,
                                           SynchronizedSpacerBlock):
-    visibilityFlags = RecurrenceConditionalBlock.showCustom
+    visibilityFlags = RecurrenceConditionalBehavior.showCustom
 
-class CalendarRecurrenceCustomAreaBlock(RecurrenceConditionalBlock,
-                                        DetailSynchronizedContentItemDetail):
-    visibilityFlags = RecurrenceConditionalBlock.showCustom
+class CalendarRecurrenceCustomAreaBlock(RecurrenceConditionalBehavior,
+                                        DetailSynchronizedContentItemDetailBlock):
+    visibilityFlags = RecurrenceConditionalBehavior.showCustom
 
-class CalendarRecurrenceEndAreaBlock(RecurrenceConditionalBlock,
-                                     DetailSynchronizedContentItemDetail):
-    visibilityFlags = RecurrenceConditionalBlock.showEnds
+class CalendarRecurrenceEndAreaBlock(RecurrenceConditionalBehavior,
+                                     DetailSynchronizedContentItemDetailBlock):
+    visibilityFlags = RecurrenceConditionalBehavior.showEnds
 
 # Attribute editor customizations
 
@@ -1907,7 +1921,7 @@ class ErrorAEBlock(DetailSynchronizedAttributeEditorBlock):
         watchList.append((self.item, pim.ContentItem.error.name),)
         return watchList
 
-class SendAsLabelBlock(DetailSynchronizer, ControlBlocks.StaticText):
+class SendAsLabelBlock(DetailSynchronizedBehavior, ControlBlocks.StaticText):
     def synchronizeWidget(self):
         super(SendAsLabelBlock, self).synchronizeWidget()
         item = self.item
@@ -1928,7 +1942,7 @@ class SendAsLabelBlock(DetailSynchronizer, ControlBlocks.StaticText):
                           (self.item, ContentItem.lastModification.name)))
         return watchList
 
-class BylineAreaBlock(DetailSynchronizedContentItemDetail):
+class BylineAreaBlock(DetailSynchronizedContentItemDetailBlock):
     # We use this block class for the byline (the static representation, like
     # "Sent by Bob Smith on 6/21/06") as well as for the Send As block (the
     # popup representation, like "Send As [Me]") - they're both visible 
@@ -2096,7 +2110,7 @@ class OutboundEmailAddressAttributeEditor(ChoiceAttributeEditor):
                                    newChoice)
 
 
-class HTMLDetailArea(DetailSynchronizer, ControlBlocks.ItemDetail):
+class HTMLDetailArea(DetailSynchronizedBehavior, ControlBlocks.ItemDetail):
     def getHTMLText(self, item):
         return u"<html><body>" + item + u"</body></html>"
 

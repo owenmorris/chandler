@@ -612,13 +612,13 @@ def makeMailArea(parcel, oldVersion):
 
 def makeConflictBar(parcel, oldVersion):
     blocks = schema.ns('osaf.framework.blocks', parcel.itsView)
-    conflictButton = ConflictWarning.template('ConflictButton',
-                                    title=u'',
-                                    characterStyle = blocks.DetailConflictStyle,
-                                    buttonKind='TextImage',
-                                    # need a better icon
-                                    icon=u'MailErrorRolloverSelected.png',
-                                    minimumSize=SizeType(225, 19))
+    conflictButton = ConflictWarningButton.template('ConflictButton',
+            title=u'',
+            characterStyle = blocks.DetailConflictStyle,
+            buttonKind='TextImage',
+            # need a better icon
+            icon=u'MailErrorRolloverSelected.png',
+            minimumSize=SizeType(225, 19))
     return makeArea(parcel, 'ConflictBar',
             position=0.08,
             childBlocks = [
@@ -638,14 +638,14 @@ def makeMarkupBar(parcel, oldVersion):
 
     # The buttons.
     triageStamp = \
-        DetailTriageButton.template('TriageStamp',
-                                title=messages.STAMP_TRIAGE,
-                                icon="TriageDone",
-                                helpString=messages.STAMP_TRIAGE_HELP,
-                                event=buttonPressed,
-                                viewAttribute='triageStatus',
-                                stretchFactor=0.0,
-                                minimumSize=SizeType(41, 20))
+        DetailTriageButtonBlock.template('TriageStamp',
+                                         title=messages.STAMP_TRIAGE,
+                                         icon="TriageDone",
+                                         helpString=messages.STAMP_TRIAGE_HELP,
+                                         event=buttonPressed,
+                                         viewAttribute='triageStatus',
+                                         stretchFactor=0.0,
+                                         minimumSize=SizeType(41, 20))
 
     markupSpacer1 = ControlBlocks.StaticText.template('MarkupSpacer1',
                                     title=u'',
@@ -674,13 +674,13 @@ def makeMarkupBar(parcel, oldVersion):
 
     calendarStamp = \
         CalendarStampButtonBlock.template('CalendarStamp',
-                                    title=messages.STAMP_CALENDAR,
-                                    icon="MarkupEvent",
-                                    helpString=messages.STAMP_CALENDAR_HELP,
-                                    unstampedHelpString=messages.UNSTAMP_CALENDAR_HELP,
-                                    event=buttonPressed,
-                                    stretchFactor=0.0,
-                                    minimumSize=SizeType(30, 18))
+                                title=messages.STAMP_CALENDAR,
+                                icon="MarkupEvent",
+                                helpString=messages.STAMP_CALENDAR_HELP,
+                                unstampedHelpString=messages.UNSTAMP_CALENDAR_HELP,
+                                event=buttonPressed,
+                                stretchFactor=0.0,
+                                minimumSize=SizeType(30, 18))
 
     markupSpacer2 = ControlBlocks.StaticText.template('MarkupSpacer2',
                                     title=u'',
@@ -817,7 +817,7 @@ def makeNoteSubtree(parcel, oldVersion):
                     presentationStyle={'format': 'dateOnly'},
                     stretchFactor=0.0,
                     size=SizeType(75, -1)),
-                StaticTextLabel.template('ReminderAtLabel',
+                StaticTextLabelBlock.template('ReminderAtLabel',
                     title=_(u'at'),
                     characterStyle=blocks.LabelStyle,
                     textAlignmentEnum='Center',
@@ -859,9 +859,9 @@ def makeNoteSubtree(parcel, oldVersion):
     # A timer block we use for triggering "unread' -> 'read'
     unreadTimeout = BlockEvent.template('UnreadTimeout',
                                         dispatchEnum = 'SendToSender').install(parcel)
-    unreadTimer = UnreadTimer.template("unreadTimerBlock",
-                                       event=unreadTimeout,
-                                       position=0.999).install(parcel)
+    unreadTimer = UnreadTimerBlock.template("unreadTimerBlock",
+                                            event=unreadTimeout,
+                                            position=0.999).install(parcel)
     
     # Make the ConflictBar
     conflictBar = makeConflictBar(parcel, oldVersion)
