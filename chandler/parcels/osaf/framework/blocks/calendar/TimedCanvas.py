@@ -531,11 +531,14 @@ class wxTimedEventsCanvas(BaseWidget, wxCalendarCanvas):
 
         contents = CalendarSelection(self.blockItem.contents)
 
+        draggedOutItem = self._getHiddenOrClearDraggedOut()
+
         for canvasItem in self.drawOrderedCanvasItems:
             # drawOrderedCanvasItems can be out of date if another view deletes
             # an item (isDead() will be True), or if a RefreshCanvasItems
             # hasn't yet occurred after a deletion.
-            if isDead(canvasItem.item) or canvasItem.item not in contents:
+            item = canvasItem.item
+            if isDead(item) or item not in contents or item == draggedOutItem:
                 continue
             selected = contents.isItemSelected(canvasItem.item)
             canvasItem.Draw(dc, styles, selected)
@@ -552,12 +555,10 @@ class wxTimedEventsCanvas(BaseWidget, wxCalendarCanvas):
         orderLastMap  = {}
         contents = CalendarSelection(self.blockItem.contents)
 
-        draggedOutItem = self._getHiddenOrClearDraggedOut()
-
         for event in self.visibleEvents:
             item = event.itsItem
             
-            if item is draggedOutItem or isDead(item):
+            if isDead(item):
                 # don't render deleted items or items we're dragging out of the
                 # canvas
                 continue

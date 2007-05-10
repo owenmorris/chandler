@@ -919,7 +919,7 @@ class CalendarNotificationHandler(object):
     
     # set membership testing is much faster than tuple membership testing
     notification_tracked_attributes = set( (
-      Calendar.EventStamp.startTime.name, 'displayName',
+      Calendar.EventStamp.startTime.name, 'displayName', 'appearsIn',
       Calendar.EventStamp.duration.name, Calendar.EventStamp.anyTime.name,
       Calendar.EventStamp.allDay.name, Calendar.EventStamp.transparency.name,
       'osaf.framework.blocks.BranchPointBlock.selectedItem.inverse'))
