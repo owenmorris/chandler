@@ -200,6 +200,6 @@ def installParcel(parcel, old_version=None):
         parentBlock = mainView.LoggingMenu)
 
     # The periodic task that uploads logfiles in the background  
-    PeriodicTask.update(parcel, 'uploadTask',
-                        run_at_startup=True,
-                        interval=timedelta(minutes=15))
+    UploadTask.update(parcel, 'uploadTask',
+                      run_at_startup=True,
+                      interval=timedelta(minutes=15))
