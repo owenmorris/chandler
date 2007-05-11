@@ -527,13 +527,21 @@ class ContentItem(Triageable):
     def updateDisplayWho(self, op, attr):
         self._updateCommonAttribute('displayWho', 'displayWhoSource', self.addDisplayWhos)
 
+    def addDisplayDates(self, dates, now):
+        super(ContentItem, self).addDisplayDates(dates, now)
+        # Add our creation and last-mod dates, if they exist.
+        for importance, attr in (999, "lastModified"), (1000, "createdOn"):
+            v = getattr(self, attr, None)
+            if v is not None:
+                dates.append((importance, v, attr))
+        
     def updateDisplayDate(self, op, attr):
         now = datetime.now(tz=ICUtzinfo.default)
         self._updateCommonAttribute('displayDate', 'displayDateSource',
                                     self.addDisplayDates, [now])
 
-    @schema.observer(lastModified)
-    def onLastModifiedChanged(self, op, attr):
+    @schema.observer(lastModified, createdOn)
+    def onCreatedOrLastModifiedChanged(self, op, attr):
         self.updateDisplayDate(op, attr)
 
 
