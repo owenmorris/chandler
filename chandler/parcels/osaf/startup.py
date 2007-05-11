@@ -120,7 +120,7 @@ class Startup(schema.Item):
 # Threads and Tasks
 # -----------------
 
-def fork_item(item_or_view, name=None, version=None):
+def fork_item(item_or_view, **kwds):
     """
     Return a version of `item_or_view` that's in a new repository view
 
@@ -132,20 +132,18 @@ def fork_item(item_or_view, name=None, version=None):
     view before calling this function, so the new view will see an up-to-date
     version of any items it loads.
 
-    The optional `name` and `version` parameters are passed through to the
-    repository's ``createView()`` method, so you can use them to give the
-    view a name or set its target version.  Also, note that you can call
-    ``fork_item()`` on a view just to create a new view for the same
-    repository; you don't have to pass in an actual item.
+    The optional `kwds` parameters are passed through to the repository's
+    ``createView()`` method, so you can use them to configure the view.
+    Also, note that you can call ``fork_item()`` on a view just to create a
+    new view for the same repository; you don't have to pass in an actual
+    item.
     """
     view = item_or_view.itsView
     if view.repository is None:
         return item_or_view     # for NullRepositoryView, use old item
 
-    new_view = view.repository.createView(
-        name or getattr(item_or_view, 'itsName', None),
-        version
-        )
+    kwds.setdefault('name', item_or_view.itsName)
+    new_view = view.repository.createView(**kwds)
     item = new_view.findUUID(item_or_view.itsUUID)
 
     if item is None:
@@ -291,13 +289,31 @@ class PeriodicTask(TwistedTask):
             self.interval = interval
         self._with_runner(lambda r: r.reschedule(interval))
 
+    def invokeTarget(self, target):
+        """
+        Run a target in the reactor thread.
+        """
+        run_reactor()
+        reactor.callFromThread(target, self.fork(self))
+
+    def fork(self):
+        """
+        Fork task item for running
+
+        By default, a new repository view is created via ``fork_item`` and an
+        instance for this task in this new view is returned. This method may
+        be overriden to customize or bypass view creation by returning this
+        item directly.
+        """
+        return fork_item(self)
+
     def _with_runner(self, f):
         uuid = self.itsUUID
         def callback():
             try:
                 runner = TaskRunner._cache[uuid]
             except KeyError:
-                runner = TaskRunner(fork_item(self))
+                runner = TaskRunner(self.fork())
             f(runner)
         reactor.callFromThread(callback)
 
@@ -377,5 +393,3 @@ def stop_reactor():
         if _reactor_thread.isAlive():
             _reactor_thread.join()
         _reactor_thread = None
-
-

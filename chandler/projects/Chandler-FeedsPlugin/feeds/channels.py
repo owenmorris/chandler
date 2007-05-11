@@ -27,6 +27,7 @@ from osaf import pim
 from i18n import MessageFactory
 from twisted.web import client
 from twisted.internet import reactor
+from osaf.startup import PeriodicTask, fork_item
 
 _ = MessageFactory("Chandler-FeedsPlugin")
 
@@ -41,30 +42,40 @@ def date_parse(s):
     return convertToICUtzinfo(dateutil_parse(s))
 
 
-class FeedUpdateTaskClass(object):
+class UpdateTask(PeriodicTask):
     """
     This class implements a periodic task that checks and reads new feeds
     on 30 minutes interval.
     """
-    
-    def __init__(self, item):
-        """
-        This method initializes a periodic task for updating feeds.
-        """
-        # store our parcels view
-        self.view = item.itsView
+
+    # target is periodic task
+    def getTarget(self):
+        return self
+
+    # target is already constructed as self
+    def __call__(self, periodicTask):
+        return self
+
+    # create a view called Feeds and keep it around 500 items in size
+    def fork(self, item):
+        return fork_item(item, name="Feeds", pruneSize=500, notify=False)
         
+    # target implementation
     def run(self):
         """
         This method implements a periodic task for updating feeds.
         """
         # update our view
-        self.view.refresh(notify=False)
+        view = self.itsView
+        view.refresh(notify=False)
+
         # call refresh on all followed feed channels
-        for channel in FeedChannel.iterItems(self.view):
+        for channel in FeedChannel.iterItems(view):
             channel.refresh()
+
         # return true to keep the timer running
         return True
+
 
 def setAttribute(self, data, attr, newattr=None):
     """

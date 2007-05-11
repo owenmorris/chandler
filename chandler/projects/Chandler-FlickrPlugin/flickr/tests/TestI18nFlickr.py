@@ -32,8 +32,6 @@ class TestI18nFlickr(TestDomainModel.DomainModelTestCase):
         self.loadParcel("flickr")
         self.view = self.rep.view
 
-        dialogs.LicenseTask(None).run()
-
     def testI18nOwner(self):
         #Ensure that "trünk"is the displayName for
         #a photo for username "osaftestüser"

@@ -13,6 +13,7 @@
 #   limitations under the License.
 
 
+from datetime import timedelta
 from application import schema
 import application.dialogs.Util as Util
 from i18n import MessageFactory
@@ -83,4 +84,7 @@ def installParcel(parcel, version=None):
         parentBlock = evdbMenu,
     )
 
-    LicenseTask(None).run()
+    # The periodic task that sets the EVDB's API key
+    LicenseTask.update(parcel, "licenseTask",
+                       run_at_startup=True,
+                       interval=timedelta(days=1))

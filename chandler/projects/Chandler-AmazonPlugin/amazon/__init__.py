@@ -20,7 +20,6 @@ from AmazonDialog import LicenseTask
 
 from application import schema
 from osaf.views.detail import makeSubtree
-from osaf.startup import PeriodicTask
 from osaf.pim.structs import SizeType, RectType
 from i18n import MessageFactory
 
@@ -92,8 +91,6 @@ def installParcel(parcel, version=None):
                            'AverageCustomerRating': _(u'Average Customer Review'),
                            'NumberOfReviews': _(u'Number of people who reviewed the item')})
 
-    PeriodicTask.update(parcel, "licenseTask",
-                        invoke="amazon.LicenseTask",
-                        interval=timedelta(days=1),
-                        run_at_startup=True)
-    LicenseTask(None).run()
+    LicenseTask.update(parcel, "licenseTask",
+                       run_at_startup=True,
+                       interval=timedelta(days=1))

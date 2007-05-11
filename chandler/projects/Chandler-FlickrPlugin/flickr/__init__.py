@@ -22,14 +22,13 @@ from photos import PhotoMixin
 from osaf.pim.collections import KindCollection
 from repository.util.URL import URL
 from repository.item.Item import MissingClass
-from datetime import datetime
+from datetime import datetime, timedelta
 from i18n import MessageFactory
 from osaf import messages
 from osaf.pim.structs import SizeType, RectType
 from osaf.framework.blocks import BlockEvent, Menu, MenuItem, AddToSidebarEvent
 from osaf.framework.blocks.Block import Block
-from osaf.startup import PeriodicTask
-from datetime import timedelta
+from osaf.startup import PeriodicTask, fork_item
 from osaf.usercollections import UserCollection
 from PyICU import ICUtzinfo
 
@@ -181,22 +180,33 @@ class PhotoCollection(pim.ListCollection):
         view.commit()
 
 
-class UpdateTask(object):
+class UpdateTask(PeriodicTask):
     """
-    Wakeup caller is periodically add more items to the PhotoCollections.
+    Periodically add more items to the PhotoCollections.
     """
-    def __init__(self, item):
-        self.view = item.itsView.repository.createView("Flickr")
 
+    # the target is the periodic task
+    def getTarget(self):
+        return self
+
+    # the target is already constructed as self
+    def __call__(self, periodictTask):
+        return self
+
+    # create a view called Flickr and keep it around 500 items in size
+    def fork(self):
+        return fork_item(self, name='Flickr', pruneSize=500, notify=False)
+
+    # target implementation
     def run(self):
-        # We need the view for most repository operations
-        self.view.refresh(notify=False)
+        view = self.itsView
+        view.refresh()
 
         # Go through all the PhotoCollections and update those that
         # have fillInBackground set. fillCollectionFromFlickr commits
-        for collection in PhotoCollection.iterItems(self.view):
+        for collection in PhotoCollection.iterItems(view):
             if collection.fillInBackground:
-                collection.fillCollectionFromFlickr(self.view)
+                collection.fillCollectionFromFlickr(view)
 
         return True
 
@@ -340,18 +350,14 @@ def installParcel(parcel, oldVersion=None):
         parentBlock = flickrMenu)
 
     # The periodic task that adds new photos to the collection in the background
-    PeriodicTask.update(
-        parcel, 'FlickrUpdateTask',
-        invoke = 'flickr.UpdateTask',
-        run_at_startup = True,
-        interval = timedelta(minutes=60))
+    UpdateTask.update(parcel, 'updateTask',
+                      run_at_startup=True,
+                      interval=timedelta(minutes=60))
 
     # The periodic task that sets the Flickr's API key
-    PeriodicTask.update(parcel, "licenseTask",
-                        invoke="flickr.LicenseTask",
-                        interval=timedelta(days=1),
-                        run_at_startup=True)
-    LicenseTask(None).run()
+    LicenseTask.update(parcel, "licenseTask",
+                       run_at_startup=True,
+                       interval=timedelta(days=1))
 
     # The detail view used to display a flickrPhoto
     blocks = schema.ns('osaf.framework.blocks', parcel)

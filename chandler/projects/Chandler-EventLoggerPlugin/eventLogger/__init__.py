@@ -1,4 +1,4 @@
-#   Copyright (c) 2003-2006 Open Source Applications Foundation
+#   Copyright (c) 2003-2007 Open Source Applications Foundation
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -19,7 +19,7 @@ from application import schema
 from application import Globals
 from osaf.framework.blocks import DispatchHook, BlockEvent
 from osaf.framework.blocks.MenusAndToolbars import MenuItem
-from osaf.startup import PeriodicTask
+from osaf.startup import PeriodicTask, fork_item
 from osaf.sharing.WebDAV import ChandlerServerHandle
 from zanshin.http import Request
 from string import joinfields
@@ -101,17 +101,23 @@ class EventLoggingDispatchHook (DispatchHook):
         self.logger.debug("%s - %s - %s - %s" % (event.blockName, event.arguments, item_name, collection_name))
 
 
-class UploadTask(object):
+class UploadTask(PeriodicTask):
     """
-    PeriodicTasks require that we use a non-persistent Python object
     """
-    def __init__(self, item):
-        self.rv = item.itsView
-        logger.info("Installing Parcel")
+    # the target is the periodic task
+    def getTarget(self):
+        return self
 
+    # the target is already constructed as self
+    def __call__(self, periodicTask):
+        return self
+
+    # create a view and keep it around 250 items in size
+    def fork(self, item):
+        return fork_item(item, notify=False, pruneSize=250)
+
+    # target implementation
     def run(self):
-        logger.info("receiveWakeupCall()")
-
         if os.path.isdir (logDir):
             dirList = os.listdir(logDir)
             for file in dirList:
@@ -122,7 +128,6 @@ class UploadTask(object):
                     logger.info("Trying to upload %s", fname)
                     self.uploadFile(fname)
         return True
-
 
     def uploadFile(self, filename):
         """
@@ -163,7 +168,8 @@ class UploadTask(object):
             os.remove(fname)          
             logger.info("Successfully uploaded %s", fname)
         else:
-            logger.info("Failed up upload %s - %s:%s", fname, response.status, response.message)
+            logger.info("Failed up upload %s - %s:%s", fname, response.status,
+                        response.message)
 
     def uploadFailure(self, fobject, fname):
         logger.info("Failed to upload %s\n%s", fname, fobject)
@@ -194,10 +200,6 @@ def installParcel(parcel, old_version=None):
         parentBlock = mainView.LoggingMenu)
 
     # The periodic task that uploads logfiles in the background  
-    PeriodicTask.update(
-        parcel, 'eventLoggerUploadTask',
-        invoke = 'eventLogger.UploadTask',
-        run_at_startup = True,
-        active = True,
-        interval = timedelta(minutes=15))
-
+    PeriodicTask.update(parcel, 'uploadTask',
+                        run_at_startup=True,
+                        interval=timedelta(minutes=15))

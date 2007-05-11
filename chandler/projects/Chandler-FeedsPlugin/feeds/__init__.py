@@ -1,4 +1,4 @@
-#   Copyright (c) 2003-2006 Open Source Applications Foundation
+#   Copyright (c) 2003-2007 Open Source Applications Foundation
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -12,7 +12,7 @@
 #   See the License for the specific language governing permissions and
 #   limitations under the License.
 
-from channels import *
+from channels import UpdateTask
 
 def installParcel(parcel, oldName=None):
     """
@@ -21,11 +21,11 @@ def installParcel(parcel, oldName=None):
     from application import schema
     from osaf import startup
     from datetime import timedelta
+
     # start a periodic task
-    startup.PeriodicTask.update(parcel, "FeedUpdateTask",
-        invoke="feeds.channels.FeedUpdateTaskClass",
-        run_at_startup=True,
-        interval=timedelta(minutes=30)
-    )
+    UpdateTask.update(parcel, "updateTask",
+                      run_at_startup=True,
+                      interval=timedelta(minutes=30))
+
     # load our blocks parcel, too
     schema.synchronize(parcel.itsView, "feeds.blocks")

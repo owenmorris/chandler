@@ -18,24 +18,35 @@ import wx, webbrowser
 from evdb import setLicense
 from application import Utility, Globals
 from i18n import MessageFactory
+from osaf.startup import PeriodicTask
 
 LICENSE_URL="http://api.eventful.com/keys/"
 PLUGIN_NAME="Chandler-EVDBPlugin"
 _m_ = MessageFactory(PLUGIN_NAME)
 
 
-class LicenseTask(object):
-    
-    def __init__(self, item):
-        pass
-        
+class LicenseTask(PeriodicTask):
+
+    # target is periodic task
+    def getTarget(self):
+        return self
+
+    # target is already constructed as self
+    def __call__(self, periodicTask):
+        return self
+
+    # target needs no view of its own
+    def fork(self):
+        return self
+
+    # target implementation
     def run(self):
         prefs = Utility.loadPrefs(Globals.options).get(PLUGIN_NAME)
         if prefs is not None:
             license = prefs.get('license')
             if license:
                 setLicense(license)
-        return True
+        return False # no need to run again
 
 
 class LicenseDialog(wx.Dialog):
