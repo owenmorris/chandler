@@ -32,58 +32,54 @@ class RepoResource(webserver.AuthenticatedResource):
 
         cookies = request.received_cookies
 
-        try: # Outer try to render any exceptions
+        try:
 
-            try: # Inner try/finally to handle restoration of current view
+            mode = request.args.get('mode', [None])[0]
 
-                mode = request.args.get('mode', [None])[0]
+            # First check args, then check cookie for view to use:
+            viewName = request.args.get('view', [cookies.get('view', None)])[0]
 
-                # First check args, then check cookie for view to use:
-                viewName = request.args.get('view', [cookies.get('view', None)])[0]
+            # The Server item will give us the repositoryView during
+            # startup.  Set it to be the current view and restore the
+            # previous view when we're done.
+            repoView = self.repositoryView
 
-                # The Server item will give us the repositoryView during
-                # startup.  Set it to be the current view and restore the
-                # previous view when we're done.
-                repoView = self.repositoryView
+            # See if we need to override, using a different view
+            if viewName:
+                for view in repoView.views:
+                    if view.name == viewName:
+                        repoView = view
+                        break
 
-                # See if we need to override, using a different view
-                if viewName:
-                    for view in repoView.views:
-                        if view.name == viewName:
-                            repoView = view
-                            break
+            request.addCookie("view", repoView.name, path="/repo")
 
-                request.addCookie("view", repoView.name, path="/repo")
-
-                prevView = repoView.setCurrentView()
-
-                # deal with "dv" (show the rendered detail view) and "dvitem"
-                # (show the current detail view item) modes.
-                if mode is not None and mode.startswith("dv"):
-                    # Find the rendered detail view - we'll show it or its item.
-                    path = "//parcels/osaf/views/detail/DetailRootBlock"
-                    dvKind = repoView.findPath(path)
-                    renderedDVs = [ dv for dv in dvKind.iterItems(recursive=True)
-                                    if hasattr(dv, 'widget') ]
-                    if not renderedDVs:
-                        # No rendered DVs? Just do a kind query to show that.
-                        mode = 'kindquery'
-                    else:
-                        currentDV = renderedDVs[0]
-                        path = currentDV.itsPath
-                        if mode == 'dvitem':
-                            # Get the current item instead.
-                            dvItem = getattr(currentDV, 'contents', None)
-                            if dvItem is not None:
-                                path = dvItem.itsPath
-                        mode = None
-                    
-                elif not request.postpath or not request.postpath[0]:
-                    path = "//"
+            # deal with "dv" (show the rendered detail view) and "dvitem"
+            # (show the current detail view item) modes.
+            if mode is not None and mode.startswith("dv"):
+                # Find the rendered detail view - we'll show it or its item.
+                path = "//parcels/osaf/views/detail/DetailRootBlock"
+                dvKind = repoView.findPath(path)
+                renderedDVs = [ dv for dv in dvKind.iterItems(recursive=True)
+                                if hasattr(dv, 'widget') ]
+                if not renderedDVs:
+                    # No rendered DVs? Just do a kind query to show that.
+                    mode = 'kindquery'
                 else:
-                    path = "//%s" % ("/".join(request.postpath))
+                    currentDV = renderedDVs[0]
+                    path = currentDV.itsPath
+                    if mode == 'dvitem':
+                        # Get the current item instead.
+                        dvItem = getattr(currentDV, 'contents', None)
+                        if dvItem is not None:
+                            path = dvItem.itsPath
+                    mode = None
+                
+            elif not request.postpath or not request.postpath[0]:
+                path = "//"
+            else:
+                path = "//%s" % ("/".join(request.postpath))
 
-                result = \
+            result = \
 """<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
 <html>
 <head>
@@ -101,107 +97,103 @@ class RepoResource(webserver.AuthenticatedResource):
 <body onload="onDocumentLoad()">
 """                 % (request.path, repoView.name)
 
-                result += """
+            result += """
 <p class="footer">Repository view: <b>%s</b> |
 <a href="/repo/?mode=views">switch</a> |
 <a href="#" onclick="commit()">commit</a></p>
 <div id="status-area">[status]</div>
 """ % repoView.name
 
-                if mode == "kindquery":
-                    item = repoView.findPath(path)
-                    result += "<div>"
-                    result += RenderKindQuery(repoView, item)
-                    result += "</div>"
+            if mode == "kindquery":
+                item = repoView.findPath(path)
+                result += "<div>"
+                result += RenderKindQuery(repoView, item)
+                result += "</div>"
 
-                elif mode == "views":
-                    result = RenderViews(repoView)
+            elif mode == "views":
+                result = RenderViews(repoView)
 
-                elif mode == "search":
-                    text = request.args.get('text', [None])[0]
-                    result += RenderSearchResults(repoView, text)
+            elif mode == "search":
+                text = request.args.get('text', [None])[0]
+                result += RenderSearchResults(repoView, text)
 
-                elif mode == "blocks":
-                    item = repoView.findPath(path)
-                    path = '<a href="%s">[top]</a>' % toLink("/")
-                    i = 2
-                    for part in item.itsPath[1:-1]:
-                        path += ' &gt; <a href="%s">%s</a>' % (toLink(item.itsPath[:i]), part)
-                        i += 1
+            elif mode == "blocks":
+                item = repoView.findPath(path)
+                path = '<a href="%s">[top]</a>' % toLink("/")
+                i = 2
+                for part in item.itsPath[1:-1]:
+                    path += ' &gt; <a href="%s">%s</a>' % (toLink(item.itsPath[:i]), part)
+                    i += 1
 
-                    name = item.itsName
-                    if name is None:
-                        name = unicode(item.itsUUID)
-                    result += '<div class="path">%s &gt; <span class="itemname"><a href="%s">%s</a></span> | <a href="%s">Render attributes</a></div>' % (path, toLink(item.itsPath), name, toLink(item.itsPath))
+                name = item.itsName
+                if name is None:
+                    name = unicode(item.itsUUID)
+                result += '<div class="path">%s &gt; <span class="itemname"><a href="%s">%s</a></span> | <a href="%s">Render attributes</a></div>' % (path, toLink(item.itsPath), name, toLink(item.itsPath))
 
-                    result += RenderBlock(repoView, item)
+                result += RenderBlock(repoView, item)
 
-                elif mode == "object":
-                    fields = []
-                    item = None
-                    itemPath = path
-                    # The path is like: //path/to/item/field/field
-                    # Separate out the fields until we find the item.
-                    while True:
-                        item = repoView.findPath(itemPath)
-                        if item is None:
-                            lastSlash = itemPath.rfind('/')
-                            if (lastSlash == -1):
-                                break;
-                            field = itemPath[(lastSlash + 1):]
-                            fields.insert(0, field)
-                            itemPath = itemPath[:lastSlash]
-                        else:
-                            break
-
+            elif mode == "object":
+                fields = []
+                item = None
+                itemPath = path
+                # The path is like: //path/to/item/field/field
+                # Separate out the fields until we find the item.
+                while True:
+                    item = repoView.findPath(itemPath)
                     if item is None:
-                        result += "<h3>Item not found: %s</h3>" % clean(path)
-                        result = result.encode('utf-8', 'replace')
-                        return result
+                        lastSlash = itemPath.rfind('/')
+                        if (lastSlash == -1):
+                            break;
+                        field = itemPath[(lastSlash + 1):]
+                        fields.insert(0, field)
+                        itemPath = itemPath[:lastSlash]
+                    else:
+                        break
 
-                    if len(fields) == 0:
-                        # No fields - just go render the item.
-                        return RenderItem(repoView, item)
+                if item is None:
+                    result += "<h3>Item not found: %s</h3>" % clean(path)
+                    result = result.encode('utf-8', 'replace')
+                    return result
 
-                    # Drill down to the field we want
-                    theValue = item
-                    for f in fields:
-                        try:
-                            theValue = _getObjectValue(theValue, f)
-                        except:
-                            result += "<h3>Unable to get %s on %s</h3>" % (clean(f), clean(theValue))
-                            return result.encode('utf-8', 'replace')
-                    result += "<div>"
-                    result += RenderObject(repoView, theValue, path)
-                    result += "</div>"
+                if len(fields) == 0:
+                    # No fields - just go render the item.
+                    return RenderItem(repoView, item)
 
-                elif mode == "inheritance":
-                    result += RenderInheritance(repoView)
+                # Drill down to the field we want
+                theValue = item
+                for f in fields:
+                    try:
+                        theValue = _getObjectValue(theValue, f)
+                    except:
+                        result += "<h3>Unable to get %s on %s</h3>" % (clean(f), clean(theValue))
+                        return result.encode('utf-8', 'replace')
+                result += "<div>"
+                result += RenderObject(repoView, theValue, path)
+                result += "</div>"
 
-                elif path != "//":
-                    item = repoView.findPath(path)
-                    if item is None:
-                        result += "<h3>Item not found: %s</h3>" % path
-                        result = result.encode('utf-8', 'replace')
-                        return result
+            elif mode == "inheritance":
+                result += RenderInheritance(repoView)
 
-                    result += "<div>"
-                    result += RenderItem(repoView, item)
-                    result += "</div>"
-                else:
-                    result += RenderSearchForm(repoView)
-                    result += "<p>"
-                    result += RenderRoots(repoView)
-                    result += "<p>"
-                    result += RenderKinds(repoView)
-                    result += "<p>"
-                    result += RenderAllClouds(repoView)
+            elif path != "//":
+                item = repoView.findPath(path)
+                if item is None:
+                    result += "<h3>Item not found: %s</h3>" % path
+                    result = result.encode('utf-8', 'replace')
+                    return result
 
-            finally: # inner try
-                if prevView:
-                    prevView.setCurrentView()
+                result += "<div>"
+                result += RenderItem(repoView, item)
+                result += "</div>"
+            else:
+                result += RenderSearchForm(repoView)
+                result += "<p>"
+                result += RenderRoots(repoView)
+                result += "<p>"
+                result += RenderKinds(repoView)
+                result += "<p>"
+                result += RenderAllClouds(repoView)
 
-        except Exception, e: # outer try
+        except Exception, e: 
             result = "<html>Caught a %s exception: %s<br> %s</html>" % (type(e), e, "<br>".join(traceback.format_tb(sys.exc_traceback)))
 
         return result.encode('utf-8', 'replace')
