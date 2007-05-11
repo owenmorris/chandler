@@ -442,16 +442,7 @@ class RecordSetConduit(conduits.BaseConduit):
                     # but we'll always "pop to Now".
                     newTriageStatus = 'auto' if 'cid:triage-filter@osaf.us' in self.filters \
                                       else None
-                    event = pim.EventStamp(item)
-                    if pim.has_stamp(item, pim.EventStamp) and event.isRecurrenceMaster():
-                        # if the item that has changed is a master, DON'T set
-                        # triage status on the master, particularly
-                        # _sectionTriageStatus, as that will be inherited by
-                        # occurrences, instead pop all modifications to now
-                        for mod in event.modifications or []:
-                            mod.setTriageStatus(newTriageStatus, popToNow=True)
-                    else:
-                        item.setTriageStatus(newTriageStatus, popToNow=True)
+                    pim.setTriageStatus(item, newTriageStatus, popToNow=True)
 
                     # Per bug 8809:
                     # Set "read" state to True if this is an initial subscribe

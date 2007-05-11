@@ -40,7 +40,7 @@ from contacts import Contact, ContactName
 from calendar.Calendar import (
     CalendarEvent, EventStamp, Occurrence, LONG_TIME, zero_delta,
     EventComparator, Location, RecurrencePattern, RelativeReminder,
-    TriageStatusReminder,
+    TriageStatusReminder, setTriageStatus
 )
 from calendar.TimeZone import installParcel as tzInstallParcel
 from calendar.DateTimeUtil import (ampmNames, durationFormat, mediumDateFormat, 

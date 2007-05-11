@@ -2935,7 +2935,22 @@ class TriageStatusReminder(RelativeReminder):
         self.nextPoll = nextPoll
         self.prevPoll = when
             
-            
-
-    
+def setTriageStatus(item, *args, **kwds):
+    """
+    Set triage status on this item, which might be a recurring event: if
+    it is, we'll need to triage its modifications individually.
+    """
+    if has_stamp(item, EventStamp):
+        event = EventStamp(item)
+        if event.isRecurrenceMaster():
+            # if the item that has changed is a master, DON'T set
+            # triage status on the master, particularly
+            # _sectionTriageStatus, as that will be inherited by
+            # occurrences, instead pop all modifications to now
+            for mod in event.modifications or []:
+                mod.setTriageStatus(*args, **kwds)
+            return
+        
+    # Not an event, or not a master - do it normally.
+    item.setTriageStatus(*args, **kwds)
 
