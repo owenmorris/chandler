@@ -138,7 +138,7 @@ class wxMiniCalendar(DragAndDrop.DropReceiveWidget,
                   self.setFreeBusy)
         self.Bind(wx.EVT_PAINT, self.OnPaint)
 
-
+    
     def wxSynchronizeWidget(self):
         style = PLATFORM_BORDER
         if isMainCalendarVisible() and not self.blockItem.dayMode:
@@ -179,6 +179,7 @@ class wxMiniCalendar(DragAndDrop.DropReceiveWidget,
                 
                 if len(removedItems) + len(changedItems) > 0:
                     self._recalcCount += 1
+                    self._eventsToAdd = None
                 else:
     
                     # self._eventsToAdd is a set to deal with cases where
@@ -190,16 +191,15 @@ class wxMiniCalendar(DragAndDrop.DropReceiveWidget,
                         if not isDead(item):
                             if (not has_stamp(item, EventStamp)):
                                 continue
-                            events = []
-                            master = Calendar.EventStamp(item)
-                            if master.rruleset is not None:
-                                for ev in master.getOccurrencesBetween(start, end):
-                                    events.append(ev)
-                            elif master.isBetween(start, end):
-                                events = [master]
-                            for event in events:
-                                if event.transparency == 'confirmed':
-                                    self._eventsToAdd.add(event)
+                            event = Calendar.EventStamp(item)
+                            if event.rruleset is not None:
+                                # new recurring events should 
+                                self._recalcCount += 1
+                                self._eventsToAdd = None
+                                break
+                            elif (event.isBetween(start, end) and 
+                                  event.transparency == 'confirmed'):
+                                self._eventsToAdd.add(event)
 
             else:
                 self._eventsToAdd = None
