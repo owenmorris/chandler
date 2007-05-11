@@ -112,7 +112,15 @@ RunPython
 src=chandler/release/Library/Frameworks/Python.framework
 dest=Contents/Resources/Library/Frameworks/Python.framework
 recursive=yes
-Headers
-Resources
 Versions
+
+# create symlink of the Headers dir
+dest=Contents/Resources/release/Library/Frameworks/Python.framework
+link=Versions/Current/
+Headers
+
+# create symlink of the Resources dir
+dest=Contents/Resources/release/Library/Frameworks/Python.framework
+link=Versions/Current/
+Resources
 
