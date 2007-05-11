@@ -1040,7 +1040,7 @@ class EventStamp(Stamp):
 
     def onItemDelete(self, view, deferring):
         """If self is the master of a recurring event, call removeRecurrence."""
-        if self.occurrenceFor is None:
+        if self.rruleset is not None:
             self.removeRecurrence()
         else:
             self.__disableRecurrenceChanges()
