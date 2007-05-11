@@ -57,8 +57,8 @@ class UpdateTask(PeriodicTask):
         return self
 
     # create a view called Feeds and keep it around 500 items in size
-    def fork(self, item):
-        return fork_item(item, name="Feeds", pruneSize=500, notify=False)
+    def fork(self):
+        return fork_item(self, name="Feeds", pruneSize=500, notify=False)
         
     # target implementation
     def run(self):

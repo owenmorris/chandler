@@ -113,8 +113,8 @@ class UploadTask(PeriodicTask):
         return self
 
     # create a view and keep it around 250 items in size
-    def fork(self, item):
-        return fork_item(item, notify=False, pruneSize=250)
+    def fork(self):
+        return fork_item(self, notify=False, pruneSize=250)
 
     # target implementation
     def run(self):

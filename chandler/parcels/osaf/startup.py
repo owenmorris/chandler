@@ -294,7 +294,7 @@ class PeriodicTask(TwistedTask):
         Run a target in the reactor thread.
         """
         run_reactor()
-        reactor.callFromThread(target, self.fork(self))
+        reactor.callFromThread(target, self.fork())
 
     def fork(self):
         """
