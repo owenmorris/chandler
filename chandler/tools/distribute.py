@@ -328,6 +328,9 @@ def checkOptions(options):
         log('Source directory [%s] does not point to a Chandler install' % options.sourceDir, error=True)
         sys.exit(3)
 
+    if options.tag is not None:
+        options.tag = options.tag.strip()
+
     options.modes = [ 'release', 'debug' ]
 
     if options.mode:
