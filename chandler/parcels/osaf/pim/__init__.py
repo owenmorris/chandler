@@ -360,7 +360,7 @@ def installParcel(parcel, oldVersion=None):
         kind = Location.getKind(view),
         recursive = True)
 
-    locations.addIndex('locationName', 'attribute', attribute = 'displayName')
+    locations.addIndex('locationName', 'value', attribute='displayName')
 
     mailCollection = mail.MailStamp.getCollection(view)
 

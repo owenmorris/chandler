@@ -1349,7 +1349,8 @@ class ItemContainer(DBContainer):
                     return
                 yield result
 
-    def iterVersions(self, view, uItem, fromVersion=1, toVersion=0):
+    def iterVersions(self, view, uItem, fromVersion=1, toVersion=0,
+                     backwards=False):
 
         store = self.store
         
@@ -1374,6 +1375,10 @@ class ItemContainer(DBContainer):
 
                 _self.txnStatus = store.startTransaction(view)
                 _self.cursor = cursor = self.c.openCursor()
+                if backwards:
+                    next_record = _self.cursor.next_record
+                else:
+                    next_record = _self.cursor.prev_record
 
                 key = Record(Record.UUID, uItem,
                              Record.INT, ~fromVersion)
@@ -1395,14 +1400,19 @@ class ItemContainer(DBContainer):
                             break
 
                         version = ~version
-                        if toVersion and version > toVersion:
-                            break
 
-                        if version >= fromVersion:
-                            yield version, item[1]
+                        if backwards:
+                            if toVersion and version < toVersion:
+                                break
+                            if version <= fromVersion:
+                                yield version, item[1]
+                        else:
+                            if toVersion and version > toVersion:
+                                break
+                            if version >= fromVersion:
+                                yield version, item[1]
 
-                        key, item = cursor.prev_record(key, item,
-                                                       flags, NONE_PAIR)
+                        key, item = next_record(key, item, flags, NONE_PAIR)
 
                     yield False
 

@@ -185,6 +185,14 @@ class Repository(CRepository):
 
         store = self.store
         prevValues = set()
+
+        if fromVersion > 1:
+            for version, status in store.iterItemVersions(None, item.itsUUID, fromVersion - 1, 0, True):
+                then, viewSize, commitCount, name = store.getCommit(version)
+                reader, uValues = store.loadValues(None, version, item.itsUUID)
+                prevValues = set(uValues)
+                break
+
         for version, status in store.iterItemVersions(None, item.itsUUID, fromVersion, toVersion):
             then, viewSize, commitCount, name = store.getCommit(version)
             reader, uValues = store.loadValues(None, version, item.itsUUID)

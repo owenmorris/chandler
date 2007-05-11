@@ -474,8 +474,6 @@ class SortedIndex(DelegatingIndex):
 
         index = self._index
         skipList = index.skipList
-        selection = set()
-        inserts = []
         moves = []
         vals = {}
 
@@ -497,6 +495,9 @@ class SortedIndex(DelegatingIndex):
 
         if not moves:
             return
+
+        inserts = []
+        selection = set()
 
         for key in moves:
             removed, selected = index.removeKey(key)
@@ -800,8 +801,17 @@ class ValueIndex(AttributeIndex):
 
         view = self._valueMap.itsView
 
-        for v0, v1 in izip(view.findValues(k0, *self._pairs),
-                           view.findValues(k1, *self._pairs)):
+        if k0 in vals:
+            v0s = vals[k0]
+        else:
+            v0s = vals[k0] = view.findValues(k0, *self._pairs)
+
+        if k1 in vals:
+            v1s = vals[k1]
+        else:
+            v1s = view.findValues(k1, *self._pairs)
+
+        for v0, v1 in izip(v0s, v1s):
             if v0 is v1:
                 continue
 

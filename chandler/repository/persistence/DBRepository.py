@@ -1222,9 +1222,11 @@ class DBStore(Store):
 
         return self._items.iterItems(view, backwards)
 
-    def iterItemVersions(self, view, uuid, fromVersion=1, toVersion=0):
+    def iterItemVersions(self, view, uuid, fromVersion=1, toVersion=0,
+                         backwards=False):
 
-        return self._items.iterVersions(view, uuid, fromVersion, toVersion)
+        return self._items.iterVersions(view, uuid, fromVersion, toVersion,
+                                        backwards)
 
     def getItemVersion(self, view, version, uuid):
 

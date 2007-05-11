@@ -968,6 +968,7 @@ class IndexedSelectionCollection(SingleSourceWrapperCollection):
             else:
                 IndexDefinition.makeIndexByName(self, indexName)
             self.setRanges(indexName, [])
+
         return self.getIndex(indexName)
 
     def setCollectionIndex(self, newIndexName, toggleDescending=False):

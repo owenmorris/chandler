@@ -291,8 +291,6 @@ class RepositoryView(CView):
 
         repository = self.repository
         if repository is not None:
-            if getattr(repository._threaded, 'view', None) is self:
-                del repository._threaded.view
             repository._openViews.remove(self)
 
         self.cancelQueuedNotifications()
@@ -1307,6 +1305,14 @@ class RepositoryView(CView):
 
         store = self.store
         prevValues = set()
+
+        if fromVersion > 1:
+            for version, status in store.iterItemVersions(self, item.itsUUID, fromVersion - 1, 0, True):
+                then, viewSize, commitCount, name = store.getCommit(version)
+                reader, uValues = store.loadValues(self, version, item.itsUUID)
+                prevValues = set(uValues)
+                break
+                
         for version, status in store.iterItemVersions(self, item.itsUUID, fromVersion, toVersion):
             then, viewSize, commitCount, name = store.getCommit(version)
             reader, uValues = store.loadValues(self, version, item.itsUUID)
