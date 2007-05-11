@@ -114,6 +114,7 @@ static PyMemberDef t_view_members[] = {
     { "_deferredNotificationsCtx", T_OBJECT, offsetof(t_view, deferredNotificationsCtx), READONLY, "" },
     { "_deferredCommitCtx", T_OBJECT, offsetof(t_view, deferredCommitCtx), READONLY, "" },
     { "refreshErrors", T_UINT, offsetof(t_view, refreshErrors), 0, "" },
+    { "pruneSize", T_UINT, offsetof(t_view, pruneSize), 0, "" },
     { NULL, 0, 0, 0, NULL }
 };
 

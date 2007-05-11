@@ -43,6 +43,7 @@ typedef struct {
     t_ctxmgr *deferredNotificationsCtx;
     t_ctxmgr *deferredCommitCtx;
     int refreshErrors;
+    int pruneSize;
 } t_view;
 
 
