@@ -80,19 +80,19 @@ def setpgid_preexec_fn():
     os.setpgid(0, 0)
 
 
-def runCommand(cmd, env=None, timeout=-1, logger=log):
+def runCommand(cmd, env=None, timeout=-1, logger=log, semaphorePath=None):
     """
     Execute the given command and log all output
 
         Success and failure codes:
-        
+
         >>> runCommand(['true'])
         0
         >>> runCommand(['false'])
         1
 
         Interleaved stdout and stderr messages:
-        
+
         >>> runCommand(['python', '-c', r'print 1;import sys;sys.stdout.flush();print >>sys.stderr, 2;print 3'])
         1
         2
@@ -108,7 +108,7 @@ def runCommand(cmd, env=None, timeout=-1, logger=log):
         0
 
         Setting environment variable:
-        
+
         >>> runCommand(['python', '-c', 'import os;print os.getenv("ENVTEST")'], env={'ENVTEST': '42'})
         42
         0
@@ -126,6 +126,12 @@ def runCommand(cmd, env=None, timeout=-1, logger=log):
             output = subprocess.PIPE
         else:
             output = tempfile.TemporaryFile()
+
+    if semaphorePath is not None:
+        try:
+            os.remove(semaphorePath)
+        except OSError:
+            pass
 
     if redirect:
         p = killableprocess.Popen(cmd, env=env, stdin=subprocess.PIPE, stdout=output, stderr=subprocess.STDOUT, preexec_fn=setpgid_preexec_fn)
@@ -151,7 +157,15 @@ def runCommand(cmd, env=None, timeout=-1, logger=log):
         for line in output:
             logger(line[:-1])
 
-    return p.returncode
+    result = p.returncode
+
+    if not p.returncode and semaphorePath is not None and os.path.isfile(semaphorePath):
+        try:
+            result = int(open(semaphorePath).read())
+        except IOError:
+            pass
+
+    return result
 
 
 def getCommand(cmd, echo=False):
