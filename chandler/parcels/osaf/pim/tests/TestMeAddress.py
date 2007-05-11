@@ -26,8 +26,8 @@ from osaf.framework.twisted import waitForDeferred
 class TestMeAddress(TestDomainModel.DomainModelTestCase):
 
     def calc(self):
-        pim_ns =  schema.ns("osaf.pim", self.rep.view)
-        pim_ns.currentMeEmailAddress.item = mail._calculateCurrentMeEmailAddress(self.rep.view)
+        pim_ns =  schema.ns("osaf.pim", self.view)
+        pim_ns.currentMeEmailAddress.item = mail._calculateCurrentMeEmailAddress(self.view)
 
     def addIncoming(self, IN, emailAddress):
         IN.isActive = True
@@ -85,7 +85,7 @@ class TestMeAddress(TestDomainModel.DomainModelTestCase):
         #
         # 5. Return None
 
-        v = self.rep.view
+        v = self.view
         e = EmailAddress
 
 
@@ -168,7 +168,7 @@ class TestMeAddress(TestDomainModel.DomainModelTestCase):
 
 
     def compareAddresses(self, ea, testFullName=True):
-        me = getCurrentMeEmailAddress(self.rep.view)
+        me = getCurrentMeEmailAddress(self.view)
 
         if testFullName:
             self.assertEquals(me.fullName, ea.fullName)

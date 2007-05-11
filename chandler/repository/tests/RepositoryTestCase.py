@@ -54,17 +54,18 @@ class RepositoryTestCase(TestCase):
                           refcounted=True)
             self.rep.logger.setLevel(self.logLevel)
             self.rep.logger.info('Using preloaded repository')
+            self.view = view = self.rep.createView("Test")
         else:
             self.rep.create(ramdb=self.ramdb,
                             refcounted=True)
             self.rep.logger.setLevel(self.logLevel)
-            self.rep.view.loadPack(self.chandlerPack)
-            self.rep.view.commit()
 
-        view = self.rep.view
+            self.view = view = self.rep.createView("Test")
+            view.loadPack(self.chandlerPack)
+            view.commit()
 
-        self.manager = \
-            ParcelManager.get(view, [os.path.join(self.rootdir, 'parcels')])
+        self.manager = ParcelManager.get(view, [os.path.join(self.rootdir,
+                                                             'parcels')])
 
     def setUp(self, ramdb=True):
         self._setup(ramdb)
@@ -80,23 +81,21 @@ class RepositoryTestCase(TestCase):
             self.rep.delete()
 
     def _reopenRepository(self):
-        self.rep.view.commit()
+        view = self.view
+        view.commit()
 
         if self.ramdb:
-            self.rep.view.closeView()
-            self.rep.view.openView()
+            view.closeView()
+            view.openView()
         else:
             self.rep.close()
             self.rep = DBRepository(os.path.join(self.testdir,
                                                  '__repository__'))
             self.rep.open()
+            self.view = view = self.rep.createView()
 
-        self.manager = \
-         ParcelManager.get(self.rep.view, \
-         path=[os.path.join(self.rootdir, 'parcels')])
-
-    def _find(self, path):
-        return self.rep.view.findPath(path)
+        self.manager = ParcelManager.get(view, [os.path.join(self.rootdir,
+                                                             'parcels')])
 
     def loadParcel(self, namespace):
         self.loadParcels([namespace])
@@ -109,7 +108,7 @@ class RepositoryTestCase(TestCase):
 
     # Repository specific assertions
     def assertIsRoot(self, item):
-        self.assert_(item in list(self.rep.view.iterRoots()))
+        self.assert_(item in list(item.itsView.iterRoots()))
 
     def assertItemPathEqual(self, item, string):
         self.assertEqual(str(item.itsPath), string)

@@ -1,4 +1,4 @@
-#   Copyright (c) 2003-2006 Open Source Applications Foundation
+#   Copyright (c) 2003-2007 Open Source Applications Foundation
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -27,7 +27,7 @@ class TestMove(RepositoryTestCase):
     def setUp(self):
 
         super(TestMove, self).setUp()
-        view = self.rep.view
+        view = self.view
 
         cineguidePack = os.path.join(self.testdir, 'data', 'packs',
                                      'cineguide.pack')
@@ -35,7 +35,7 @@ class TestMove(RepositoryTestCase):
         
     def move(self, withCommit):
 
-        view = self.rep.view
+        view = self.view
         if withCommit:
             view.commit()
             

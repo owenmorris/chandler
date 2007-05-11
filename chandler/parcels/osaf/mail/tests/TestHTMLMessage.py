@@ -1,4 +1,4 @@
-#   Copyright (c) 2004-2006 Open Source Applications Foundation
+#   Copyright (c) 2004-2007 Open Source Applications Foundation
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -58,7 +58,7 @@ Content-Transfer-Encoding: 7bit
 </html>
 """
     def testHTMLMessage(self):
-        mailStamp = message.messageTextToKind(self.rep.view, self.M)
+        mailStamp = message.messageTextToKind(self.view, self.M)
         self.assertEquals(mailStamp.body.strip(), \
                         u"Start of Body\n  \nMore text in red")
 

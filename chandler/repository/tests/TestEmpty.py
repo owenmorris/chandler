@@ -1,4 +1,4 @@
-#   Copyright (c) 2004-2006 Open Source Applications Foundation
+#   Copyright (c) 2004-2007 Open Source Applications Foundation
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -24,14 +24,14 @@ class TestEmpty(RepositoryTestCase):
         
         super(TestEmpty, self).setUp()
 
-        view = self.rep.view
+        view = self.view
         cineguidePack = os.path.join(self.testdir, 'data', 'packs',
                                      'cineguide.pack')
         view.loadPack(cineguidePack)
 
     def testSetOtherSide(self):
 
-        view = self.rep.view
+        view = self.view
 
         k = view.findPath('//CineGuide/KHepburn')
         m1 = k.movies.first()
@@ -52,7 +52,7 @@ class TestEmpty(RepositoryTestCase):
 
     def testDefaultValue(self):
 
-        view = self.rep.view
+        view = self.view
 
         k = view.findPath('//CineGuide/KHepburn')
         m1 = k.movies.first()

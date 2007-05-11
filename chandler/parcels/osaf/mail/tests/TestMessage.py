@@ -1,4 +1,4 @@
-#   Copyright (c) 2004-2006 Open Source Applications Foundation
+#   Copyright (c) 2004-2007 Open Source Applications Foundation
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -132,7 +132,7 @@ END:VCALENDAR
         if self.__mailMessage is not None:
             return self.__mailMessage
 
-        view = self.rep.view
+        view = self.view
         m = Mail.MailMessage(itsView=view)
         m.fromAddress = Mail.EmailAddress(itsView=view)
         m.fromAddress.emailAddress = "bill@home.net"
@@ -288,19 +288,19 @@ END:VCALENDAR
              self.assertEquals(dict1[l1[i]], dict2[l2[i]])
 
     def testMessageTextToKind(self):
-        mailKind = message.messageTextToKind(self.rep.view, self.__getMessageText())
+        mailKind = message.messageTextToKind(self.view, self.__getMessageText())
 
         self.assertNotEqual(mailKind, None)
 
         self.__compareMailMessages(mailKind, self.__getMailMessage())
 
     def testMessageWithEvent(self):
-        eventMessage = message.messageTextToKind(self.rep.view, self.__getMultipartMessageText())
+        eventMessage = message.messageTextToKind(self.view, self.__getMultipartMessageText())
         self.assertTrue(has_stamp(eventMessage, MailStamp))
         self.assertTrue(has_stamp(eventMessage, EventStamp))
 
     def testMessageObjectToKind(self):
-        mailKind = message._messageObjectToKind(self.rep.view, self.__getMessageObject(), self.__mail)
+        mailKind = message._messageObjectToKind(self.view, self.__getMessageObject(), self.__mail)
 
         self.assertNotEqual(mailKind, None)
 

@@ -1,4 +1,4 @@
-#   Copyright (c) 2003-2006 Open Source Applications Foundation
+#   Copyright (c) 2003-2007 Open Source Applications Foundation
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -234,7 +234,7 @@ class ReminderDialog(wx.Frame):
         dismissSelection = event.GetEventObject() is self.reminderControls['dismiss']
         for (reminderTime, remindable, reminder) in self.getListItems(dismissSelection):
             reminder.dismissItem(remindable)
-        wx.GetApp().repository.view.commit()
+        wx.GetApp().UIRepositoryView.commit()
         if self.dismissCallback is not None:
             self.dismissCallback()
 
@@ -242,7 +242,7 @@ class ReminderDialog(wx.Frame):
         """ Snooze the selected reminders for five minutes """
         for (reminderTime, remindable, reminder) in self.getListItems(True):
             reminder.snoozeItem(remindable, timedelta(minutes=5))
-        wx.GetApp().repository.view.commit()
+        wx.GetApp().UIRepositoryView.commit()
         if self.dismissCallback is not None:
             self.dismissCallback()
 

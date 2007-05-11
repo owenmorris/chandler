@@ -36,12 +36,12 @@ class TypesTest(RepositoryTestCase.RepositoryTestCase):
     def setUp(self):
         super(TypesTest, self).setUp()
 
-        view = self.rep.view
-        self.kind = self._find(self._KIND_KIND)
-        self.itemKind = self._find(self._ITEM_KIND)
+        view = self.view
+        self.kind = view.findPath(self._KIND_KIND)
+        self.itemKind = view.findPath(self._ITEM_KIND)
         self.attrKind = self.itemKind.itsParent['Attribute']
         self.newKind = self.kind.newItem('newKind', view)
-        self.typeKind = self._find('//Schema/Core/Type')
+        self.typeKind = view.findPath('//Schema/Core/Type')
 
         self.typenames=['String', 'Symbol', 'Integer', 'Long', 'Float',
                         'Complex', 'Boolean', 'UUID', 'ItemRef', 'Path',
@@ -55,7 +55,7 @@ class TypesTest(RepositoryTestCase.RepositoryTestCase):
         for a in self.typenames:
             tempAtt = Attribute('%sAttribute' % a, view, self.attrKind)
             classobj = eval('repository.schema.Types.%s' % a)
-            typeItem = self._find('//Schema/Core/%s' % a)
+            typeItem = view.findPath('//Schema/Core/%s' % a)
             self.types[a] = typeItem
             tempAtt.type = typeItem
             self.atts[a] = tempAtt
@@ -96,8 +96,9 @@ class TypesTest(RepositoryTestCase.RepositoryTestCase):
                           'Lob':'repository.persistence.DBLob.DBLob' }
         excludes = ['NoneType','Enumeration','Struct','Collection']
 
+        view = self.view
         for n in [ x for x in self.typenames if x not in excludes ]:
-            t = self._find("//Schema/Core/%s" % n)
+            t = view.findPath("//Schema/Core/%s" % n)
             # types in the list below have no impls -- abstract classes
             if t is not None:
                 self.assert_(t.getImplementationType() is eval(implTypeNames[n]))
@@ -120,8 +121,9 @@ class TypesTest(RepositoryTestCase.RepositoryTestCase):
                         'List':'["one", "two", 3]', 'Lob':'lob' }
         excludes = [ 'NoneType','Enumeration','Struct','Collection' ]
 
+        view = self.view
         for name in [ x for x in typeStrings if x not in excludes ]:
-            typeItem = self._find('//Schema/Core/%s' % name)
+            typeItem = view.findPath('//Schema/Core/%s' % name)
             actualType = type(typeItem.makeValue(typeStrings[name]))
             implType = typeItem.getImplementationType()
             self.assert_(actualType is implType or
@@ -134,7 +136,7 @@ class TypesTest(RepositoryTestCase.RepositoryTestCase):
         class myStruct(object):
             __slots__ = ('name', 'rank')
             
-        view = self.rep.view
+        view = self.view
         self.uuid = self.attrKind.itsUUID
         self.uuidString = str(self.uuid)
         self.pathString = '//Schema/Core/Item'
@@ -202,12 +204,13 @@ class TypesTest(RepositoryTestCase.RepositoryTestCase):
         excludes = [ 'NoneType', 'Collection', 'Enumeration', 'Struct',
                      'Lob' ]
 
+        view = self.view
         for name in [ x for x in typeValues if x not in excludes ]:
-            typeItem = self._find('//Schema/Core/%s' % name)
+            typeItem = view.findPath('//Schema/Core/%s' % name)
             try:
                 self.assert_(typeItem.makeString(typeValues[name]) is not None)
 
-                typeItem = self._find('//Schema/Core/%s' % name)
+                typeItem = view.findPath('//Schema/Core/%s' % name)
                 self.assert_(typeItem.makeValue(typeStrings[name]) is not None)
 
                 self.assertEquals(typeItem.makeValue(typeItem.makeString(typeValues[name])), typeValues[name])
@@ -252,11 +255,12 @@ class TypesTest(RepositoryTestCase.RepositoryTestCase):
                        'List':(["one", "two", "3"], ["abcde"]),
                        'Lob':(self.lob, [123]) }
 
+        view = self.view
         for name in typeValues:
             goodValue, badValues = typeValues[name]
 #            print name, goodValue, badValues
             if goodValue != None:
-                typeItem = self._find('//Schema/Core/%s' % name)
+                typeItem = view.findPath('//Schema/Core/%s' % name)
                 # special case Enum
                 if name == 'Enumeration':
                     typeItem = self.enum
@@ -287,7 +291,8 @@ class TypesTest(RepositoryTestCase.RepositoryTestCase):
 
         self._makeValidValues()
 
-        typeKind = self._find('//Schema/Core/Type')
+        view = self.view
+        typeKind = view.findPath('//Schema/Core/Type')
 
         # build up lists of types as expected values for findTypes calls
         stringTypes = [ self.types['String'], self.types['Symbol'] ]
@@ -299,7 +304,7 @@ class TypesTest(RepositoryTestCase.RepositoryTestCase):
         itemRefTypes = [ self.types['ItemRef'] ]
         uuidTypes = [ self.types['UUID'] ]
         pathTypes = [ self.types['Path'] ]
-        noneTypes = [ self._find('//Schema/Core/None'), self.types['Path'], self.types['ItemRef'], self.types['UUID'] ]
+        noneTypes = [ view.findPath('//Schema/Core/None'), self.types['Path'], self.types['ItemRef'], self.types['UUID'] ]
         classTypes = [ self.types['Class'] ]
         enumTypes = [ self.types['Enumeration'] ]
         structTypes = [ self.types['Struct'] ]

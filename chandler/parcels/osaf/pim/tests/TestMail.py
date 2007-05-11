@@ -1,4 +1,4 @@
-#   Copyright (c) 2003-2006 Open Source Applications Foundation
+#   Copyright (c) 2003-2007 Open Source Applications Foundation
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -41,7 +41,7 @@ class MailTest(TestDomainModel.DomainModelTestCase):
 
         # Test the globals
         mailPath = Path('//parcels/osaf/pim/mail')
-        view = self.rep.view
+        view = self.view
 
         self.assertEqual(Mail.AccountBase.getKind(view),
                          view.find(Path(mailPath, 'AccountBase')))
@@ -140,7 +140,7 @@ class MailTest(TestDomainModel.DomainModelTestCase):
         mailMessageObject.replyToAddress = emailAddressItem
 
         self._reopenRepository()
-        view = self.rep.view
+        view = self.view
 
         contentItemParent = view.findPath("//userdata")
         mailMessageItem = contentItemParent.getItemChild("mailMessageItem")
@@ -175,12 +175,12 @@ class MailWhoTestCase(TestDomainModel.DomainModelTestCase):
         super(MailWhoTestCase, self).setUp()
         self.loadParcel("osaf.pim.mail")
         self.address = Mail.EmailAddress(
-                        itsView=self.rep.view,
+                        itsView=self.view,
                         fullName=u"Grant Baillie",
                         emailAddress=u"grant@example.com")
 
     def testWho(self):
-        msg = Mail.MailMessage(itsView=self.rep.view, subject=u"Hi!")
+        msg = Mail.MailMessage(itsView=self.view, subject=u"Hi!")
         msg.toAddress=[self.address]
 
         # Make sure the 'displayWho' field was set correctly
@@ -196,7 +196,7 @@ class MailWhoTestCase(TestDomainModel.DomainModelTestCase):
     def testNoStamp(self):
         # Make sure that, even if we create a Note with a toAddress,
         # that doesn't show up in the who field
-        note = Note(itsView=self.rep.view)
+        note = Note(itsView=self.view)
         notStampedMsg = Mail.MailStamp(note)
         notStampedMsg.toAddress=[self.address]
         self.failUnless (not hasattr (notStampedMsg.itsItem, 'displayWho'))
@@ -205,13 +205,13 @@ class CommunicationStatusTestCase(TestDomainModel.DomainModelTestCase):
     def setUp(self):
         super(CommunicationStatusTestCase, self).setUp()
         self.address = Mail.EmailAddress(
-                        itsView=self.rep.view,
+                        itsView=self.view,
                         fullName=u"Mr. President",
                         emailAddress=u"kemal@aturk.tr")
-        #account = Mail.IMAPAccount(itsView=self.rep.view,
+        #account = Mail.IMAPAccount(itsView=self.view,
         #                           replyToAddress=self.address)
-        schema.ns('osaf.pim', self.rep.view).meEmailAddressCollection.add(self.address)
-        self.note = Note(itsView=self.rep.view)
+        schema.ns('osaf.pim', self.view).meEmailAddressCollection.add(self.address)
+        self.note = Note(itsView=self.view)
 
 
     def testOrder(self):
@@ -247,7 +247,7 @@ class CommunicationStatusTestCase(TestDomainModel.DomainModelTestCase):
         self.checkStatus(0, 'EDITED')
 
     def testMail(self):
-        self.note = Note(itsView=self.rep.view)
+        self.note = Note(itsView=self.view)
         Mail.MailStamp(self.note).add()
         self.checkStatus(0, 'DRAFT', 'NEITHER')
 
@@ -258,7 +258,7 @@ class CommunicationStatusTestCase(TestDomainModel.DomainModelTestCase):
 
     def runMailTest(self, incoming=False, outgoing=False):
 
-        self.note = Note(itsView=self.rep.view)
+        self.note = Note(itsView=self.view)
 
         mail = Mail.MailStamp(self.note)
         mail.add()

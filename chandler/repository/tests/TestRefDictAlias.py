@@ -1,4 +1,4 @@
-#   Copyright (c) 2004-2006 Open Source Applications Foundation
+#   Copyright (c) 2004-2007 Open Source Applications Foundation
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -29,9 +29,9 @@ class RefListAliasTest(RepositoryTestCase.RepositoryTestCase):
     # return True instead of the Item.
 
     def _createBlockKind(self, cardinality):
-        view = self.rep.view
-        kind = self._find('//Schema/Core/Kind')
-        itemKind = self._find('//Schema/Core/Item')
+        view = self.view
+        kind = view.findPath('//Schema/Core/Kind')
+        itemKind = view.findPath('//Schema/Core/Item')
         attrKind = itemKind.itsParent['Attribute']
 
         # blockKind has a 'blocks' reference collection, and an inverse 'blockParent'
@@ -55,9 +55,9 @@ class RefListAliasTest(RepositoryTestCase.RepositoryTestCase):
         for item in itemList:
             itemUUIDs.append(item.itsUUID)
 
-        self.rep.view.commit()
+        self.view.commit()
         self._reopenRepository()
-        view = self.rep.view
+        view = self.view
         
         # reincarnate the items
         newList = []
@@ -66,7 +66,7 @@ class RefListAliasTest(RepositoryTestCase.RepositoryTestCase):
         return newList
         
     def testRefListAlias(self):
-        view = self.rep.view
+        view = self.view
         # create some blocks to work with
         blockKind = self._createBlockKind('list')
         aBlock = blockKind.newItem('aBlock', view)

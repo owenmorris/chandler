@@ -1,4 +1,4 @@
-#   Copyright (c) 2003-2006 Open Source Applications Foundation
+#   Copyright (c) 2003-2007 Open Source Applications Foundation
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -28,7 +28,7 @@ from osaf.pim.calendar import EventStamp
 class TestEventIndexing(TimeZoneTestCase):
 
     def _createEvent(self, startTime):
-        event = Calendar.CalendarEvent(None, itsView=self.rep.view)
+        event = Calendar.CalendarEvent(None, itsView=self.view)
         event.startTime = startTime
         event.endTime = event.startTime + timedelta(hours=1)
         event.anyTime = False
@@ -38,10 +38,10 @@ class TestEventIndexing(TimeZoneTestCase):
     def setUp(self):
         super(TestEventIndexing, self).setUp()
 
-        self.tzInfoItem = TimeZoneInfo.get(self.rep.view)
+        self.tzInfoItem = TimeZoneInfo.get(self.view)
         # eventsInRange will treat all timezones as equivalent unless timezone
         # display is turned on
-        self.tzprefs = schema.ns('osaf.pim', self.rep.view).TimezonePrefs
+        self.tzprefs = schema.ns('osaf.pim', self.view).TimezonePrefs
         self.tzprefs.showUI = True
         
         self.pacific  = PyICU.ICUtzinfo.getInstance("US/Pacific")
@@ -63,7 +63,7 @@ class TestEventIndexing(TimeZoneTestCase):
         
     def testEventIndex(self):
         """Make sure eventsInRange works."""
-        daysEvents = list(Calendar.eventsInRange(self.rep.view, self.midnight,
+        daysEvents = list(Calendar.eventsInRange(self.view, self.midnight,
                                                  self.midnight + timedelta(1))) 
         self.assertEqual(daysEvents[0], self.pacificEvent)
         self.assertEqual(daysEvents[1], self.floatingEvent)
@@ -72,7 +72,7 @@ class TestEventIndexing(TimeZoneTestCase):
     def testReorderFloating(self):
         """Changes to floating time should cause events to be reindexed."""
         self.tzInfoItem.default = self.eastern
-        daysEvents = list(Calendar.eventsInRange(self.rep.view, self.midnight,
+        daysEvents = list(Calendar.eventsInRange(self.view, self.midnight,
                                                  self.midnight + timedelta(1)))
         #print [i.startTime for i in daysEvents]
         self.assertEqual(daysEvents[0], self.easternEvent)
@@ -94,7 +94,7 @@ class TestEventIndexing(TimeZoneTestCase):
         def mergeFn(code, item, attribute, newValue):
             return newValue
 
-        main = self.rep.view
+        main = self.view
         main.commit()
         view = self.rep.createView('view')
 

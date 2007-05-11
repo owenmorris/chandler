@@ -1,4 +1,4 @@
-#   Copyright (c) 2003-2006 Open Source Applications Foundation
+#   Copyright (c) 2003-2007 Open Source Applications Foundation
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -134,7 +134,7 @@ class StampingTest(TestDomainModel.DomainModelTestCase):
         # @@@ Also make sure the default imap account is loaded, in order to
         # have a "me" EmailAddress
         self.loadParcel("osaf.mail")
-        view = self.rep.view
+        view = self.view
         
         # Get the stamp kinds
         mailStamp = Mail.MailStamp
@@ -306,7 +306,7 @@ class StampingTest(TestDomainModel.DomainModelTestCase):
     def testStampWelcomeNote(self):
         
         # Look up the welcome note ...
-        welcome = schema.ns("osaf.app", self.rep.view).WelcomeEvent
+        welcome = schema.ns("osaf.app", self.view).WelcomeEvent
         
         # stamp it as a mail ...
         stampedWelcome = Mail.MailStamp(welcome)

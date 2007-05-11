@@ -29,7 +29,7 @@ class TestAfterChange(RepositoryTestCase):
 
         super(TestAfterChange, self).setUp()
 
-        view = self.rep.view
+        view = self.view
         cineguidePack = os.path.join(self.testdir, 'data', 'packs',
                                      'cineguide.pack')
         self.kh = Path('//CineGuide/KHepburn')
@@ -40,7 +40,7 @@ class TestAfterChange(RepositoryTestCase):
 
     def testInvoke(self):
         
-        view = self.rep.view
+        view = self.view
         m1 = view.find(self.kh).movies.first()
         m1._titleChanged = 0
 
@@ -49,7 +49,7 @@ class TestAfterChange(RepositoryTestCase):
 
     def testDeferredInvoke(self):
         
-        view = self.rep.view
+        view = self.view
         m1 = view.find(self.kh).movies.first()
         m1._titleChanged = 0
 
@@ -64,7 +64,7 @@ class TestAfterChange(RepositoryTestCase):
 
     def testDeferredInvokeNoDiscard(self):
         
-        view = self.rep.view
+        view = self.view
         m1 = view.find(self.kh).movies.first()
         m1._titleChanged = 0
 

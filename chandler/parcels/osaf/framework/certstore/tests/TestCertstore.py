@@ -1,4 +1,4 @@
-#   Copyright (c) 2005-2006 Open Source Applications Foundation
+#   Copyright (c) 2005-2007 Open Source Applications Foundation
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -99,7 +99,7 @@ rZehs7GgIFvKMquNzxPwHynD
     def testPreloadedCertificates(self):
         self.loadParcel("osaf.framework.certstore.data")
         
-        view = self.rep.view
+        view = self.view
         rootCerts = FilteredCollection('rootCertsQuery',
                                        itsView=view,
                                        source=utils.getExtent(certificate.Certificate, view, exact=True),
@@ -139,9 +139,9 @@ rZehs7GgIFvKMquNzxPwHynD
         certificate.importCertificate(x509,
                                       fingerprint,
                                       trust,
-                                      self.rep.view)
+                                      self.view)
         
-        view = self.rep.view
+        view = self.view
 
         matchingCerts = FilteredCollection('fpCertQuery' + fingerprint,
                                            itsView=view,

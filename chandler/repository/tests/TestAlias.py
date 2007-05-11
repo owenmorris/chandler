@@ -1,4 +1,4 @@
-#   Copyright (c) 2003-2006 Open Source Applications Foundation
+#   Copyright (c) 2003-2007 Open Source Applications Foundation
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -34,21 +34,22 @@ class AliasTest(RepositoryTestCase.RepositoryTestCase):
     def setUp(self):
         super(AliasTest, self).setUp()
 
-        view = self.rep.view
-        self.kind = self._find(self._KIND_KIND)
-        self.itemKind = self._find(self._ITEM_KIND)
+        view = self.view
+
+        self.kind = view.findPath(self._KIND_KIND)
+        self.itemKind = view.findPath(self._ITEM_KIND)
         self.attrKind = self.itemKind.itsParent['Attribute']
         self.newKind = self.kind.newItem('newKind', view)
-        self.typeKind = self._find('//Schema/Core/Type')
+        self.typeKind = view.findPath('//Schema/Core/Type')
 
-        self.aliasKind = self._find('//Schema/Core/Alias')
+        self.aliasKind = view.findPath('//Schema/Core/Alias')
 
         self.alias = self.aliasKind.newItem('alias', view)
 
-        self.dateTimeType = self._find('//Schema/Core/DateTime')
+        self.dateTimeType = view.findPath('//Schema/Core/DateTime')
         self.alias.addValue('types',self.dateTimeType)
 
-        self.intType = self._find('//Schema/Core/Integer')
+        self.intType = view.findPath('//Schema/Core/Integer')
         self.alias.addValue('types',self.intType)
 
         self.dateTimeString = '2004-01-08 12:34:56-0800'

@@ -387,7 +387,7 @@ class RecurringEventTest(testcase.SingleRepositoryTestCase):
         self.assertEqual(occurs[0].startTime, threeWeeks)
         self.assertEqual(occurs[1].startTime,
                          datetime(2005, 8, 15, 13, tzinfo=ICUtzinfo.default))
-        self.view.repository.check()
+        self.view.check()
 
     def testRuleSetChangeThisAndFuture(self):
         # Make a ruleset change the way the detail view does it

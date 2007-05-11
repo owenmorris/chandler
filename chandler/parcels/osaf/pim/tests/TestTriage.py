@@ -21,7 +21,7 @@ from PyICU import ICUtzinfo
 class TriageTest(TestDomainModel.DomainModelTestCase):
     def setUp(self):
         super(TriageTest, self).setUp()
-        view = self.rep.view
+        view = self.view
         self.item = Note("triageTestItem", itsView=view)
         pass
 

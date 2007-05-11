@@ -34,7 +34,8 @@ class AllParcelsTestCase(ParcelLoaderTestCase.ParcelLoaderTestCase):
         util.timing.end("application.TestAllParcels")
         util.timing.results(verbose=False)
 
-        self.assert_( self.rep.check(), "Repository check failed -- see chandler.log" )
+        self.assert_(self.view.check(),
+                     "Repository check failed -- see chandler.log" )
 
 if __name__ == "__main__":
     unittest.main()

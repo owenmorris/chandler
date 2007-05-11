@@ -1,4 +1,4 @@
-#   Copyright (c) 2003-2006 Open Source Applications Foundation
+#   Copyright (c) 2003-2007 Open Source Applications Foundation
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -45,7 +45,7 @@ class ContentItemTest(DomainModelTestCase):
     def testContentItem(self):
 
         self.loadParcel("osaf.pim")
-        view = self.rep.view
+        view = self.view
 
         # Check that the globals got created by the parcel
         self.assert_(items.ContentItem.getDefaultParent(view))
@@ -54,7 +54,7 @@ class ContentItemTest(DomainModelTestCase):
         self.assert_(items.Group.getKind(view))
 
         # Construct a sample item
-        view = self.rep.view
+        view = self.view
         genericContentItem = items.ContentItem("genericContentItem",
                                                       itsView=view)
         genericProject = items.Project("genericProject", itsView=view)

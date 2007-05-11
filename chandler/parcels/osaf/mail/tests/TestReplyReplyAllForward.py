@@ -269,10 +269,10 @@ END:VCALENDAR
         defaultTzinfo = ICUtzinfo.getInstance("US/Hawaii")
         self.savedTzinfo = ICUtzinfo.setDefault(defaultTzinfo)
 
-        self.messageOne = message.messageTextToKind(self.rep.view, self.M1)
-        self.messageTwo = message.messageTextToKind(self.rep.view, self.M2)
-        self.messageThree = message.messageTextToKind(self.rep.view, self.M3)
-        self.messageFour = message.messageTextToKind(self.rep.view, self.M4)
+        self.messageOne = message.messageTextToKind(self.view, self.M1)
+        self.messageTwo = message.messageTextToKind(self.view, self.M2)
+        self.messageThree = message.messageTextToKind(self.view, self.M3)
+        self.messageFour = message.messageTextToKind(self.view, self.M4)
 
         self.assertTrue(isinstance(self.messageOne, MailStamp))
         self.assertTrue(isinstance(self.messageTwo, MailStamp))
@@ -291,62 +291,62 @@ END:VCALENDAR
 
     def _createMeAddress(self):
         from application import schema
-        account = SMTPAccount(itsView=self.rep.view)
+        account = SMTPAccount(itsView=self.view)
         account.host = u"test.com"
 
-        me = EmailAddress(itsView=self.rep.view)
+        me = EmailAddress(itsView=self.view)
         me.fullName = "Test User"
         me.emailAddress = "test@test.com"
         account.fromAddress = me
 
-        schema.ns('osaf.pim', self.rep.view).currentOutgoingAccount.item = account
+        schema.ns('osaf.pim', self.view).currentOutgoingAccount.item = account
 
     def testEventReplyLogic(self):
-        newMessage = MailStamp(replyToMessage(self.rep.view, self.messageFour))
+        newMessage = MailStamp(replyToMessage(self.view, self.messageFour))
         self.assertTrue(u"> Title: (ü): My ICS Summary" in newMessage.body)
         self.assertTrue(u"> demo3@test.com wrote on Oct 5, 2006 10:11 AM:" in newMessage.body)
 
     def testEventForwardLogic(self):
-        newMessage = MailStamp(forwardMessage(self.rep.view, self.messageFour))
+        newMessage = MailStamp(forwardMessage(self.view, self.messageFour))
         self.assertTrue(u"> Title: (ü): My ICS Summary" in newMessage.body)
         self.assertTrue(u"> Begin forwarded All-day Event:" in newMessage.body)
 
     def testReLogic(self):
-        newMessage = MailStamp(replyToMessage(self.rep.view, self.messageTwo))
+        newMessage = MailStamp(replyToMessage(self.view, self.messageTwo))
 
         #Since the original message already started with "Re: " in subject
         #they should be an exact match
         self.assertEquals(newMessage.subject, self.messageTwo.subject)
 
-        newMessage = MailStamp(replyToMessage(self.rep.view, self.messageOne))
+        newMessage = MailStamp(replyToMessage(self.view, self.messageOne))
 
         #Tests that an Re: was added to subject
         self.assertEquals(newMessage.subject, "Re: test mail")
 
     def testFwdLogic(self):
-        newMessage = MailStamp(forwardMessage(self.rep.view, self.messageThree))
+        newMessage = MailStamp(forwardMessage(self.view, self.messageThree))
 
         #Since the original message already started with "[Fwd: " in subject
         #they should be an exact match
         self.assertEquals(newMessage.subject, self.messageThree.subject)
 
-        newMessage = MailStamp(forwardMessage(self.rep.view, self.messageOne))
+        newMessage = MailStamp(forwardMessage(self.view, self.messageOne))
 
         #Tests that an Fwd: was added to subject
         self.assertEquals(newMessage.subject, "Fwd: test mail")
 
     def testReplyBody(self):
-        newMessage = MailStamp(replyToMessage(self.rep.view, self.messageOne))
+        newMessage = MailStamp(replyToMessage(self.view, self.messageOne))
 
         self.assertTrue(u"> bill@home.net wrote on Aug 9, 2004 10:55 AM:" in newMessage.body)
 
     def testInReplyTo(self):
-        newMessage = MailStamp(replyToMessage(self.rep.view, self.messageOne))
+        newMessage = MailStamp(replyToMessage(self.view, self.messageOne))
 
         self.assertEquals(getattr(newMessage, "inReplyTo", None), u"<E1Bu9Jy-0007u1-9d@test.com>")
 
     def testReferences(self):
-        newMessage = MailStamp(replyToMessage(self.rep.view, self.messageOne))
+        newMessage = MailStamp(replyToMessage(self.view, self.messageOne))
 
         ref = [
                 u"<9CF0AF12-ED6F-11D8-B611-000A95B076C2@test.com>",
@@ -359,7 +359,7 @@ END:VCALENDAR
         self.assertEquals(newMessage.referencesMID, ref)
 
     def testToAddress(self):
-        newMessage = MailStamp(replyToMessage(self.rep.view, self.messageOne))
+        newMessage = MailStamp(replyToMessage(self.view, self.messageOne))
 
         #Did the from address of original mail become the to address
         self.assertEquals(len(newMessage.toAddress), 1)
@@ -368,7 +368,7 @@ END:VCALENDAR
             self.assertEquals(addr.emailAddress, u"bill@home.net")
 
     def testCCAddress(self):
-        newMessage = MailStamp(replyAllToMessage(self.rep.view, self.messageOne))
+        newMessage = MailStamp(replyAllToMessage(self.view, self.messageOne))
 
         #The from 'me' address has not been assigned so "test@test.com"
         #should show up in CC list
@@ -386,7 +386,7 @@ END:VCALENDAR
         #for from is set with current me
 
         self._createMeAddress()
-        newMessage = MailStamp(forwardMessage(self.rep.view, self.messageTwo))
+        newMessage = MailStamp(forwardMessage(self.view, self.messageTwo))
 
         fwdBody = u'> One possibility that\'s easy to implement (at least easier than the \n> sidebar work we\'re doing for 0.7) is to put a "view selector" in the \n> summary view, perhaps at the top using a toolbar like we do for stamping \n> in the detail view. Each summary view would have it\'s own selector so \n> whenever you went to a particular summary view you\'d get the last view \n> you chose.\n> \n> Jack\n> \n> Dummy User wrote:\n>> +1\n>>\n>> I heartily agree that this is the right design. After discussing it \n>> briefly with Philippe, I think this would address some of his concerns \n>> as well. The design we have today is a compromise in the face of \n>> limited resources and limited time. As a result, a view selector that \n>> is independent of the App Area has been relegated to our long list of \n>> \'right designs that we can\'t do for Beta\'.\n>>\n>> Some of the things we would need to make the view selector design work \n>> include:\n>>\n>> + Custom toolbar across the top of the sidebar, summary and detail \n>> view panes. \n>> + Split pane view (a la iCal) with the ability to display a summary \n>> table view and a calendar view at the same time.\n>>\n>> momo\n>>\n>> On Sep 6, 2006, at 6:50 PM, Dummy Test wrote:\n>>\n>>> Hi HTTTT:\n>>>\n>>> The latest design spec says that Calendar View is only shown for user \n>>> collections.\n>>>\n>>> Personally, my preference would be to be able to see any collection \n>>> (or combination of collections) through any view, i.e. let the user \n>>> choose the view.\n>>>\n>>> Jack\n>>>\n>>> Test Hyyy wrote:\n>>>> I am somewhat confused about the new dashboard and default view. I look\n>>>> at the toolbar and see that calendar is selected, and I see (and can\n>>>> create) more events, yet I don\'t see the calendar view. I look at View\n>>>> menu, which has the Calendar entry selected. Looking through the other\n>>>> menus I have no idea how to get a calendar view.\n>>>>\n>>>> The only reason why I actually know calendar view works and how to get\n>>>> to it was by reading Jack\'s checkins comments where he mentioned that\n>>>> you need to create a collection. And that still does not show the\n>>>> dashboard items in the calendar view.\n>>>>\n>>>> And now that I have a collection of my own and the dashboard, clicking\n>>>> between them switches between table view and calendar view even though\n>>>> both show events.\n>>>>\n>>>> I am not sure what would be the best way to change this, but the current\n>>>> situation feels like a wrong approach.\n>>>>\n>>>> I think I would expect a PIM to start with a calendar view.\n>>>>\n>>>> I also think that Dashboard acts so differently from all the other\n>>>> collections in the sidebar that I don\'t think it should be in the\n>>>> sidebar at all. I think it should be a new button on the toolbar.\n>>>>\n>>>>   \n>>>> ------------------------------------------------------------------------\n>>>> _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _\n>>>>\n>>>> My Foundation "Design" mailing list\n>>>> http://lists.test.com/mailman/listinfo/design\n>>>>   \n>>> _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _\n>>>\n>>> My Foundation "Design" mailing list\n>>> http://lists.test.com/mailman/listinfo/design\n>'
 

@@ -1,4 +1,4 @@
-#   Copyright (c) 2005-2006 Open Source Applications Foundation
+#   Copyright (c) 2005-2007 Open Source Applications Foundation
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -27,7 +27,7 @@ class TestParcelPerf(RepositoryTestCase.RepositoryTestCase):
         self.loadParcels( ['osaf.pim.contacts'] )
         util.timing.end("application.tests.testParcelPerf.testContacts-load")
 
-        view = self.rep.view
+        view = self.view
         util.timing.begin("application.tests.testParcelPerf.testContacts-generate")
         generate.GenerateItems(view, 100, generate.GenerateContact)
         util.timing.end("application.tests.testParcelPerf.testContacts-generate")
@@ -45,7 +45,7 @@ class TestParcelPerf(RepositoryTestCase.RepositoryTestCase):
         self.loadParcels( ['osaf.pim.calendar'] )
         util.timing.end("application.tests.testParcelPerf.testCalendarEvents-load")
 
-        view = self.rep.view
+        view = self.view
         util.timing.begin("application.tests.testParcelPerf.testCalendarEvents-generate")
         generate.GenerateItems(view, 100, generate.GenerateCalendarEvent)
         util.timing.end("application.tests.testParcelPerf.testCalendarEvents-generate")
@@ -66,14 +66,14 @@ class TestParcelPerf(RepositoryTestCase.RepositoryTestCase):
             return count
 
         self.loadParcels(['osaf.pim'])
-        view = self.rep.view
+        view = self.view
         view.commit()
 
         ##TODO SHOULD NOT RUN IN RAMDB
         self._reopenRepository()
         util.timing.reset()
         util.timing.begin("repository.tests.TestLoadAll")
-        count = load(self.rep.view)
+        count = load(self.view)
         util.timing.end("repository.tests.TestLoadAll")
         util.timing.results(verbose=False)
 

@@ -1,4 +1,4 @@
-#   Copyright (c) 2004-2006 Open Source Applications Foundation
+#   Copyright (c) 2004-2007 Open Source Applications Foundation
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -36,7 +36,7 @@ class TestMerge(RepositoryTestCase):
 
         super(TestMerge, self).setUp()
 
-        view = self.rep.view
+        view = self.view
         item = view.find(TestMerge.itemPath)
         kind = view.find(TestMerge.kindPath)
         attribute = view.find(TestMerge.attributePath)
@@ -66,14 +66,13 @@ class TestMerge(RepositoryTestCase):
         
     def merge(self, o, m):
 
-        main = self.rep.view
+        main = self.view
         pm = main['p']
         km = main.find(TestMerge.cPath)
         am = []
 
         oc = [c.itsName for c in pm.iterChildren()]
         view = self.rep.createView('view')
-        main = self.rep.setCurrentView(view)
 
         po = view['p']
         ko = view.find(TestMerge.cPath)
@@ -82,7 +81,6 @@ class TestMerge(RepositoryTestCase):
             ao.append(ko.newItem('ao_%02d' %(i), po))
         view.commit()
 
-        view = self.rep.setCurrentView(main)
         for i in xrange(m):
             am.append(km.newItem('am_%02d' %(i), pm))
         main.commit()
@@ -112,7 +110,7 @@ class TestMerge(RepositoryTestCase):
  
     def mergeRefs(self, o, m):
 
-        main = self.rep.view
+        main = self.view
         pm = main['p']
         cm = main['cm']
         km = main.find(TestMerge.cPath)
@@ -121,7 +119,6 @@ class TestMerge(RepositoryTestCase):
         oc = [c.itsName for c in pm.ap]
         
         view = self.rep.createView('view')
-        main = self.rep.setCurrentView(view)
 
         po = view['p']
         co = view['co']
@@ -134,7 +131,6 @@ class TestMerge(RepositoryTestCase):
             ao.append(c)
         view.commit()
 
-        view = self.rep.setCurrentView(main)
         for i in xrange(m):
             c = km.newItem('am_%02d' %(i), cm)
             c.ac = pm
@@ -167,7 +163,7 @@ class TestMerge(RepositoryTestCase):
  
     def rename(self, o_name, m_name):
 
-        main = self.rep.view
+        main = self.view
         pm = main['p']
         km = main.find(TestMerge.cPath)
 
@@ -175,20 +171,18 @@ class TestMerge(RepositoryTestCase):
         main.commit()
         
         view = self.rep.createView('view')
-        main = self.rep.setCurrentView(view)
 
         po = view['p']
         co = po['child']
         co.rename(o_name)
         view.commit()
 
-        view = self.rep.setCurrentView(main)
         cm.rename(m_name)
         main.commit()
 
     def move(self, o_name, m_name):
 
-        main = self.rep.view
+        main = self.view
         pm = main['p']
         km = main.find(TestMerge.cPath)
 
@@ -200,31 +194,29 @@ class TestMerge(RepositoryTestCase):
         main.commit()
         
         view = self.rep.createView('view')
-        main = self.rep.setCurrentView(view)
 
         po = view['p']
         co = po['child']
         co.move(view[o_name])
         view.commit()
 
-        view = self.rep.setCurrentView(main)
         cm.move(main[m_name])
         main.commit()
 
     def test1Merge1(self):
-        view = self.rep.view
+        view = self.view
         view.find(TestMerge.cPath).newItem('c0', view['p'])
         view.commit()
         self.merge(1, 1)
 
     def test1Merge2(self):
-        view = self.rep.view
+        view = self.view
         view.find(TestMerge.cPath).newItem('c0', view['p'])
         view.commit()
         self.merge(2, 2)
 
     def test1MergeN(self):
-        view = self.rep.view
+        view = self.view
         view.find(TestMerge.cPath).newItem('c0', view['p'])
         view.commit()
         self.merge(5, 8)
@@ -268,14 +260,13 @@ class TestMerge(RepositoryTestCase):
             self.setLoggerLevel(level)
 
     def testCreateSameName(self):
+        main = self.view
         view = self.rep.createView('view')
-        main = self.rep.setCurrentView(view)
         po = view['p']
         ko = view.find(TestMerge.cPath)
         ko.newItem('foo', po)
         view.commit()
         
-        view = self.rep.setCurrentView(main)
         pm = main['p']
         km = main.find(TestMerge.cPath)
         km.newItem('foo', pm)
@@ -291,7 +282,7 @@ class TestMerge(RepositoryTestCase):
             self.setLoggerLevel(level)
 
     def testRenameDifferentSameName(self):
-        main = self.rep.view
+        main = self.view
         pm = main['p']
         km = main.find(TestMerge.cPath)
         km.newItem('foo', pm)
@@ -299,12 +290,11 @@ class TestMerge(RepositoryTestCase):
         main.commit()
         
         view = self.rep.createView('view')
-        main = self.rep.setCurrentView(view)
+
         po = view['p']
         po['foo'].rename('baz')
         view.commit()
         
-        view = self.rep.setCurrentView(main)
         pm = main['p']
         pm['bar'].rename('baz')
 
@@ -321,7 +311,7 @@ class TestMerge(RepositoryTestCase):
             self.setLoggerLevel(level)
 
     def testMoveFirst(self):
-        main = self.rep.view
+        main = self.view
         pm = main['p']
         km = main.find(TestMerge.cPath)
         km.newItem('foo', pm)
@@ -331,12 +321,11 @@ class TestMerge(RepositoryTestCase):
         main.commit()
         
         view = self.rep.createView('view')
-        main = self.rep.setCurrentView(view)
+
         po = view['p']
         po.placeChild(po['i1'], None)
         view.commit()
         
-        view = self.rep.setCurrentView(main)
         pm = main['p']
         pm.placeChild(pm['i2'], None)
         main.commit()
@@ -347,7 +336,7 @@ class TestMerge(RepositoryTestCase):
 
     def testChange1Remove1(self):
 
-        main = self.rep.view
+        main = self.view
         pm = main['p']
         km = main.find(TestMerge.cPath)
         km.newItem('q', main)
@@ -358,12 +347,11 @@ class TestMerge(RepositoryTestCase):
         main.commit()
         
         view = self.rep.createView('view')
-        main = self.rep.setCurrentView(view)
+
         po = view['p']
         po.placeChild(po['i1'], None)
         view.commit()
         
-        view = self.rep.setCurrentView(main)
         pm = main['p']
         qm = main['q']
 
@@ -381,7 +369,7 @@ class TestMerge(RepositoryTestCase):
 
     def testRemove1Change1(self):
 
-        main = self.rep.view
+        main = self.view
         pm = main['p']
         km = main.find(TestMerge.cPath)
         km.newItem('q', main)
@@ -392,13 +380,12 @@ class TestMerge(RepositoryTestCase):
         main.commit()
         
         view = self.rep.createView('view')
-        main = self.rep.setCurrentView(view)
+
         po = view['p']
         qo = view['q']
         po['i1'].move(qo)
         view.commit()
         
-        view = self.rep.setCurrentView(main)
         pm = main['p']
 
         pm.placeChild(pm['i1'], None)
@@ -408,7 +395,7 @@ class TestMerge(RepositoryTestCase):
 
     def testRemove1ChangeOther(self):
 
-        main = self.rep.view
+        main = self.view
         pm = main['p']
         km = main.find(TestMerge.cPath)
         km.newItem('q', main)
@@ -419,13 +406,12 @@ class TestMerge(RepositoryTestCase):
         main.commit()
         
         view = self.rep.createView('view')
-        main = self.rep.setCurrentView(view)
+
         po = view['p']
         qo = view['q']
         po['i1'].move(qo)
         view.commit()
         
-        view = self.rep.setCurrentView(main)
         pm = main['p']
         pm['foo'].rename('baz')
         main.commit()
@@ -436,21 +422,19 @@ class TestMerge(RepositoryTestCase):
 
     def testMergeNoOverlapRefCollections(self):
 
-        main = self.rep.view
+        main = self.view
         cineguidePack = os.path.join(self.testdir, 'data', 'packs',
                                      'cineguide.pack')
         main.loadPack(cineguidePack)
         main.commit()
 
         view = self.rep.createView('view')
-        main = self.rep.setCurrentView(view)
 
         k = view.findPath('//CineGuide/KHepburn')
         m = k.movies.first()
         m.actors.clear()
         view.commit()
         
-        view = self.rep.setCurrentView(main)
         k = main.findPath('//CineGuide/KHepburn')
         m = k.movies.first()
         m.writers.clear()
@@ -460,21 +444,19 @@ class TestMerge(RepositoryTestCase):
 
     def testMergeOverlapRefCollections1(self):
 
-        main = self.rep.view
+        main = self.view
         cineguidePack = os.path.join(self.testdir, 'data', 'packs',
                                      'cineguide.pack')
         main.loadPack(cineguidePack)
         main.commit()
 
         view = self.rep.createView('view')
-        main = self.rep.setCurrentView(view)
 
         k = view.findPath('//CineGuide/KHepburn')
         m = k.movies.first()
         m.actors.clear()
         view.commit()
 
-        view = self.rep.setCurrentView(main)
         k = main.findPath('//CineGuide/KHepburn')
         m = k.movies.first()
         m.actors.clear()
@@ -484,14 +466,13 @@ class TestMerge(RepositoryTestCase):
 
     def testMergeOverlapRefCollections2(self):
 
-        main = self.rep.view
+        main = self.view
         cineguidePack = os.path.join(self.testdir, 'data', 'packs',
                                      'cineguide.pack')
         main.loadPack(cineguidePack)
         main.commit()
 
         view = self.rep.createView('view')
-        main = self.rep.setCurrentView(view)
 
         k = view.findPath('//CineGuide/KHepburn')
         vl = len(k.movies)
@@ -505,7 +486,6 @@ class TestMerge(RepositoryTestCase):
         k.movies.placeItem(m3, None)
         view.commit()
 
-        view = self.rep.setCurrentView(main)
         k = main.findPath('//CineGuide/KHepburn')
         ml = len(k.movies)
         m1 = k.movies.first()
@@ -530,21 +510,19 @@ class TestMerge(RepositoryTestCase):
 
     def testMergeNoOverlapRV(self):
 
-        main = self.rep.view
+        main = self.view
         cineguidePack = os.path.join(self.testdir, 'data', 'packs',
                                      'cineguide.pack')
         main.loadPack(cineguidePack)
         main.commit()
 
         view = self.rep.createView('view')
-        main = self.rep.setCurrentView(view)
 
         k = view.findPath('//CineGuide/KHepburn')
         m = k.movies.first()
         m.title = 'changed title'
         view.commit()
         
-        view = self.rep.setCurrentView(main)
         k = main.findPath('//CineGuide/KHepburn')
         m = k.movies.first()
         k.movies.clear()
@@ -555,21 +533,19 @@ class TestMerge(RepositoryTestCase):
 
     def testMergeNoOverlapVR(self):
 
-        main = self.rep.view
+        main = self.view
         cineguidePack = os.path.join(self.testdir, 'data', 'packs',
                                      'cineguide.pack')
         main.loadPack(cineguidePack)
         main.commit()
 
         view = self.rep.createView('view')
-        main = self.rep.setCurrentView(view)
 
         k = view.findPath('//CineGuide/KHepburn')
         m = k.movies.first()
         m.writers.clear()
         view.commit()
         
-        view = self.rep.setCurrentView(main)
         k = main.findPath('//CineGuide/KHepburn')
         m = k.movies.first()
         m.title = 'changed title'
@@ -581,14 +557,13 @@ class TestMerge(RepositoryTestCase):
 
     def testMergeNoOverlapVRSingle(self):
 
-        main = self.rep.view
+        main = self.view
         cineguidePack = os.path.join(self.testdir, 'data', 'packs',
                                      'cineguide.pack')
         main.loadPack(cineguidePack)
         main.commit()
 
         view = self.rep.createView('view')
-        main = self.rep.setCurrentView(view)
 
         m2 = view.findPath('//CineGuide/m2')
         m4 = view.findPath('//CineGuide/m4')
@@ -596,7 +571,6 @@ class TestMerge(RepositoryTestCase):
         view.commit()
         self.assert_(view.check(), 'view check failed')
         
-        view = self.rep.setCurrentView(main)
         m2 = main.findPath('//CineGuide/m2')
         m2.title = 'changed title'
         main.commit()
@@ -610,14 +584,13 @@ class TestMerge(RepositoryTestCase):
 
     def testMergeNoOverlapVRMulti(self):
 
-        main = self.rep.view
+        main = self.view
         cineguidePack = os.path.join(self.testdir, 'data', 'packs',
                                      'cineguide.pack')
         main.loadPack(cineguidePack)
         main.commit()
 
         view = self.rep.createView('view')
-        main = self.rep.setCurrentView(view)
 
         k = view.findPath('//CineGuide/KHepburn')
         m6 = view.findPath('//CineGuide/m6')
@@ -626,7 +599,6 @@ class TestMerge(RepositoryTestCase):
         view.commit()
         self.assert_(view.check(), 'view check failed')
         
-        view = self.rep.setCurrentView(main)
         m6 = main.findPath('//CineGuide/m6')
         m6.title = 'changed title'
         main.commit()
@@ -642,21 +614,19 @@ class TestMerge(RepositoryTestCase):
         def onItemMerge(_self, code, attribute, value):
             return value
 
-        main = self.rep.view
+        main = self.view
         cineguidePack = os.path.join(self.testdir, 'data', 'packs',
                                      'cineguide.pack')
         main.loadPack(cineguidePack)
         main.commit()
 
         view = self.rep.createView('view')
-        main = self.rep.setCurrentView(view)
 
         k = view.findPath('//CineGuide/KHepburn')
         m = k.movies.first()
         m.title = 'changed title in view'
         view.commit()
         
-        view = self.rep.setCurrentView(main)
         k = main.findPath('//CineGuide/KHepburn')
         m = k.movies.first()
         m.title = 'changed title in main'
@@ -669,21 +639,19 @@ class TestMerge(RepositoryTestCase):
 
     def testMergeOverlapVSame(self):
 
-        main = self.rep.view
+        main = self.view
         cineguidePack = os.path.join(self.testdir, 'data', 'packs',
                                      'cineguide.pack')
         main.loadPack(cineguidePack)
         main.commit()
 
         view = self.rep.createView('view')
-        main = self.rep.setCurrentView(view)
 
         k = view.findPath('//CineGuide/KHepburn')
         m = k.movies.first()
         m.title = 'changed title'
         view.commit()
         
-        view = self.rep.setCurrentView(main)
         k = main.findPath('//CineGuide/KHepburn')
         m = k.movies.first()
         m.title = 'changed title'
@@ -693,21 +661,19 @@ class TestMerge(RepositoryTestCase):
 
     def testMergeOverlapVDifferentNoCallback(self):
 
-        main = self.rep.view
+        main = self.view
         cineguidePack = os.path.join(self.testdir, 'data', 'packs',
                                      'cineguide.pack')
         main.loadPack(cineguidePack)
         main.commit()
 
         view = self.rep.createView('view')
-        main = self.rep.setCurrentView(view)
 
         k = view.findPath('//CineGuide/KHepburn')
         m = k.movies.first()
         m.title = 'changed title'
         view.commit()
         
-        view = self.rep.setCurrentView(main)
         k = main.findPath('//CineGuide/KHepburn')
         m = k.movies.first()
         m.title = 'changed title again'
@@ -728,21 +694,19 @@ class TestMerge(RepositoryTestCase):
         def mergeFn(code, item, attribute, value):
             return item.getAttributeValue(attribute)
 
-        main = self.rep.view
+        main = self.view
         cineguidePack = os.path.join(self.testdir, 'data', 'packs',
                                      'cineguide.pack')
         main.loadPack(cineguidePack)
         main.commit()
 
         view = self.rep.createView('view')
-        main = self.rep.setCurrentView(view)
 
         k = view.findPath('//CineGuide/KHepburn')
         m = k.movies.first()
         m.title = 'changed title'
         view.commit()
         
-        view = self.rep.setCurrentView(main)
         k = main.findPath('//CineGuide/KHepburn')
         m = k.movies.first()
         m.title = 'changed title again'
@@ -753,14 +717,13 @@ class TestMerge(RepositoryTestCase):
 
     def testMergeOverlapRSame(self):
 
-        main = self.rep.view
+        main = self.view
         cineguidePack = os.path.join(self.testdir, 'data', 'packs',
                                      'cineguide.pack')
         main.loadPack(cineguidePack)
         main.commit()
 
         view = self.rep.createView('view')
-        main = self.rep.setCurrentView(view)
 
         k = view.findPath('//CineGuide/KHepburn')
         m1 = k.movies.first()
@@ -768,7 +731,6 @@ class TestMerge(RepositoryTestCase):
         m1.director = m2.director
         view.commit()
         
-        view = self.rep.setCurrentView(main)
         k = main.findPath('//CineGuide/KHepburn')
         m1 = k.movies.first()
         m2 = k.movies.next(m1)
@@ -780,14 +742,13 @@ class TestMerge(RepositoryTestCase):
 
     def testMergeOverlapRDifferent(self):
 
-        main = self.rep.view
+        main = self.view
         cineguidePack = os.path.join(self.testdir, 'data', 'packs',
                                      'cineguide.pack')
         main.loadPack(cineguidePack)
         main.commit()
 
         view = self.rep.createView('view')
-        main = self.rep.setCurrentView(view)
 
         k = view.findPath('//CineGuide/KHepburn')
         m1 = k.movies.first()
@@ -795,7 +756,6 @@ class TestMerge(RepositoryTestCase):
         m1.director = m2.director
         view.commit()
         
-        view = self.rep.setCurrentView(main)
         k = main.findPath('//CineGuide/KHepburn')
         m1 = k.movies.first()
         m2 = k.movies.next(m1)
@@ -819,14 +779,13 @@ class TestMerge(RepositoryTestCase):
         def mergeFn(code, item, attribute, newValue):
             return newValue
 
-        main = self.rep.view
+        main = self.view
         cineguidePack = os.path.join(self.testdir, 'data', 'packs',
                                      'cineguide.pack')
         main.loadPack(cineguidePack)
         main.commit()
 
         view = self.rep.createView('view')
-        main = self.rep.setCurrentView(view)
 
         k = view.findPath('//CineGuide/KHepburn')
         m1 = k.movies.first()
@@ -834,7 +793,6 @@ class TestMerge(RepositoryTestCase):
         m1.director = m2.director
         view.commit()
         
-        view = self.rep.setCurrentView(main)
         k = main.findPath('//CineGuide/KHepburn')
         m1 = k.movies.first()
         m2 = k.movies.next(m1)
@@ -848,7 +806,7 @@ class TestMerge(RepositoryTestCase):
 
     def testMergeOverlapIndexes(self):
 
-        main = self.rep.view
+        main = self.view
         cineguidePack = os.path.join(self.testdir, 'data', 'packs',
                                      'cineguide.pack')
         main.loadPack(cineguidePack)
@@ -858,7 +816,6 @@ class TestMerge(RepositoryTestCase):
         main.commit()
 
         view = self.rep.createView('view')
-        main = self.rep.setCurrentView(view)
 
         k = view.findPath('//CineGuide/KHepburn')
         m1 = k.movies.first()
@@ -866,7 +823,6 @@ class TestMerge(RepositoryTestCase):
         m1.title = 'Foo'
         view.commit()
         
-        view = self.rep.setCurrentView(main)
         k = main.findPath('//CineGuide/KHepburn')
         m1 = k.movies.first()
         m2 = k.movies.next(m1)
@@ -880,7 +836,7 @@ class TestMerge(RepositoryTestCase):
 
     def makeC0(self):
 
-        view = self.rep.view
+        view = self.view
         p = view['p']
         cm = view['cm']
         c0 = view.find(TestMerge.cPath).newItem('c0', cm)
@@ -889,21 +845,21 @@ class TestMerge(RepositoryTestCase):
 
     def testRefs1Merge1(self):
 
-        view = self.rep.view
+        view = self.view
         self.makeC0()
         self.mergeRefs(1, 1)
         self.assert_(view.check(), 'view did not check out')
 
     def testRefs1Merge2(self):
 
-        view = self.rep.view
+        view = self.view
         self.makeC0()
         self.mergeRefs(2, 2)
         self.assert_(view.check(), 'view did not check out')
 
     def testRefs1MergeN(self):
 
-        view = self.rep.view
+        view = self.view
         self.makeC0()
         self.mergeRefs(5, 8)
         self.assert_(view.check(), 'view did not check out')
@@ -914,14 +870,13 @@ class TestMerge(RepositoryTestCase):
             oldValue = getattr(item, attribute)
             return newValue
 
-        main = self.rep.view
+        main = self.view
         cineguidePack = os.path.join(self.testdir, 'data', 'packs',
                                      'cineguide.pack')
         main.loadPack(cineguidePack)
         main.commit()
 
         view = self.rep.createView('view')
-        main = self.rep.setCurrentView(view)
 
         k = view.findPath('//CineGuide/KHepburn')
         c = k.itsParent
@@ -929,7 +884,6 @@ class TestMerge(RepositoryTestCase):
         c['m2'].next = m1
         view.commit()
         
-        view = self.rep.setCurrentView(main)
         k = main.findPath('//CineGuide/KHepburn')
         c = k.itsParent
         c['m2'].next = c['m4']
@@ -943,14 +897,13 @@ class TestMerge(RepositoryTestCase):
             oldValue = getattr(item, attribute)
             return oldValue
 
-        main = self.rep.view
+        main = self.view
         cineguidePack = os.path.join(self.testdir, 'data', 'packs',
                                      'cineguide.pack')
         main.loadPack(cineguidePack)
         main.commit()
 
         view = self.rep.createView('view')
-        main = self.rep.setCurrentView(view)
 
         k = view.findPath('//CineGuide/KHepburn')
         c = k.itsParent
@@ -958,7 +911,6 @@ class TestMerge(RepositoryTestCase):
         c['m2'].next = m1
         view.commit()
         
-        view = self.rep.setCurrentView(main)
         k = main.findPath('//CineGuide/KHepburn')
         c = k.itsParent
         c['m2'].next = c['m4']
@@ -968,14 +920,13 @@ class TestMerge(RepositoryTestCase):
 
     def testMergeSetVRef(self):
 
-        main = self.rep.view
+        main = self.view
         cineguidePack = os.path.join(self.testdir, 'data', 'packs',
                                      'cineguide.pack')
         main.loadPack(cineguidePack)
         main.commit()
 
         view = self.rep.createView('view')
-        main = self.rep.setCurrentView(view)
 
         k = view.findPath('//CineGuide/KHepburn')
         c = k.itsParent
@@ -983,7 +934,6 @@ class TestMerge(RepositoryTestCase):
         m1.title = 'foo'
         view.commit()
         
-        view = self.rep.setCurrentView(main)
         k = main.findPath('//CineGuide/KHepburn')
         c = k.itsParent
         m1 = k.movies.first()
@@ -1005,7 +955,7 @@ class TestMerge(RepositoryTestCase):
 #        input.close()
         
         try:
-            main = self.rep.view
+            main = self.view
             cineguidePack = os.path.join(self.testdir, 'data', 'packs',
                                          'cineguide.pack')
             main.loadPack(cineguidePack)
@@ -1019,7 +969,6 @@ class TestMerge(RepositoryTestCase):
             main.commit()
 
             view = self.rep.createView('view')
-            main = self.rep.setCurrentView(view)
 
             k = view.findPath('//CineGuide/KHepburn')
             c = k.itsParent
@@ -1027,7 +976,6 @@ class TestMerge(RepositoryTestCase):
             m1.title = 'Foo'
             view.commit()
         
-            view = self.rep.setCurrentView(main)
             k = main.findPath('//CineGuide/KHepburn')
             c = k.itsParent
             m1 = k.movies.first()
@@ -1060,14 +1008,13 @@ class TestMerge(RepositoryTestCase):
                 return True
             return newValue
 
-        main = self.rep.view
+        main = self.view
         cineguidePack = os.path.join(self.testdir, 'data', 'packs',
                                      'cineguide.pack')
         main.loadPack(cineguidePack)
         main.commit()
 
         view = self.rep.createView('view')
-        main = self.rep.setCurrentView(view)
 
         k = view.findPath('//CineGuide/KHepburn')
         c = k.itsParent
@@ -1075,7 +1022,6 @@ class TestMerge(RepositoryTestCase):
         m1.delete()
         view.commit()
         
-        view = self.rep.setCurrentView(main)
         main.deferDelete()
         k = main.findPath('//CineGuide/KHepburn')
         m1 = k.movies.first()
@@ -1099,21 +1045,19 @@ class TestMerge(RepositoryTestCase):
 
     def testMergeAddIndexDelete(self):
 
-        main = self.rep.view
+        main = self.view
         cineguidePack = os.path.join(self.testdir, 'data', 'packs',
                                      'cineguide.pack')
         main.loadPack(cineguidePack)
         main.commit()
 
         view = self.rep.createView('view')
-        main = self.rep.setCurrentView(view)
 
         k = view.findPath('//CineGuide/KHepburn')
         m1 = k.movies.first()
         m1.delete()
         view.commit()
         
-        view = self.rep.setCurrentView(main)
         k = main.findPath('//CineGuide/KHepburn')
         k.movies.addIndex('new', 'numeric')
 
@@ -1122,7 +1066,7 @@ class TestMerge(RepositoryTestCase):
 
     def testMergeAddIndexElsewhereDelete(self):
 
-        main = self.rep.view
+        main = self.view
         cineguidePack = os.path.join(self.testdir, 'data', 'packs',
                                      'cineguide.pack')
         main.loadPack(cineguidePack)
@@ -1134,14 +1078,12 @@ class TestMerge(RepositoryTestCase):
         main.commit()
 
         view = self.rep.createView('view')
-        main = self.rep.setCurrentView(view)
 
         k = view.findPath('//CineGuide/KHepburn')
         m1 = k.movies.first()
         m1.delete()
         view.commit()
         
-        view = self.rep.setCurrentView(main)
         k = main.findPath('//CineGuide/KHepburn')
         m1 = k.movies.first()
         m2 = k.movies.next(m1)
@@ -1155,7 +1097,7 @@ class TestMerge(RepositoryTestCase):
 
     def testMergeDeleteValueChangeRefs(self):
 
-        main = self.rep.view
+        main = self.view
         cineguidePack = os.path.join(self.testdir, 'data', 'packs',
                                      'cineguide.pack')
         main.loadPack(cineguidePack)
@@ -1166,7 +1108,6 @@ class TestMerge(RepositoryTestCase):
         main.commit()
 
         view = self.rep.createView('view')
-        main = self.rep.setCurrentView(view)
 
         k = view.findPath('//CineGuide/KHepburn')
         m1 = view.findPath('//CineGuide/m1')
@@ -1176,7 +1117,6 @@ class TestMerge(RepositoryTestCase):
         k.movies.remove(k.movies.first())
         view.commit()
         
-        view = self.rep.setCurrentView(main)
         k = main.findPath('//CineGuide/KHepburn')
         del k.movies
 
@@ -1191,7 +1131,7 @@ class TestMerge(RepositoryTestCase):
                 return True
             return getattr(item, attribute, newValue)
 
-        main = self.rep.view
+        main = self.view
         cineguidePack = os.path.join(self.testdir, 'data', 'packs',
                                      'cineguide.pack')
         main.loadPack(cineguidePack)
@@ -1200,13 +1140,11 @@ class TestMerge(RepositoryTestCase):
         main.commit()
 
         view = self.rep.createView('view')
-        main = self.rep.setCurrentView(view)
 
         k = view.findPath('//CineGuide/KHepburn')
         k.movies.first().title = 'View Changed Title'
         view.commit()
 
-        view = self.rep.setCurrentView(main)
         k = main.findPath('//CineGuide/KHepburn')
         k.movies.first().title = 'Main Changed Title'
         main.commit(mergeFn)
@@ -1220,7 +1158,7 @@ class TestMerge(RepositoryTestCase):
                 return True
             return newValue
 
-        main = self.rep.view
+        main = self.view
         cineguidePack = os.path.join(self.testdir, 'data', 'packs',
                                      'cineguide.pack')
         main.loadPack(cineguidePack)
@@ -1231,7 +1169,6 @@ class TestMerge(RepositoryTestCase):
         main.commit()
 
         view = self.rep.createView('view')
-        main = self.rep.setCurrentView(view)
 
         movies = view.findPath('//CineGuide/KHepburn').movies
         m1 = movies.first()
@@ -1242,7 +1179,6 @@ class TestMerge(RepositoryTestCase):
         m3.set.addIndex('t', 'attribute', attribute='title')
         view.commit()
 
-        view = self.rep.setCurrentView(main)
         movies = main.findPath('//CineGuide/KHepburn').movies
         m1 = movies.first()
         m2 = movies.next(m1)
@@ -1254,7 +1190,7 @@ class TestMerge(RepositoryTestCase):
 
     def testMergeMergeIndexShuffle(self):
 
-        main = self.rep.view
+        main = self.view
         cineguidePack = os.path.join(self.testdir, 'data', 'packs',
                                      'cineguide.pack')
         main.loadPack(cineguidePack)
@@ -1265,7 +1201,6 @@ class TestMerge(RepositoryTestCase):
         main.commit()
 
         view = self.rep.createView('view')
-        main = self.rep.setCurrentView(view)
 
         k = view.findPath('//CineGuide/KHepburn')
         ml = k.movies.last()
@@ -1274,7 +1209,6 @@ class TestMerge(RepositoryTestCase):
         mdv.delete()
         view.commit()
         
-        view = self.rep.setCurrentView(main)
         k = main.findPath('//CineGuide/KHepburn')
         ml = k.movies.last()
         mp = k.movies.previous(ml)

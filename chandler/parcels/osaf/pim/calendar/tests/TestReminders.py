@@ -1,4 +1,4 @@
-#   Copyright (c) 2003-2006 Open Source Applications Foundation
+#   Copyright (c) 2003-2007 Open Source Applications Foundation
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -26,8 +26,8 @@ class AbsoluteReminderTestCase(TestDomainModel.DomainModelTestCase):
     def setUp(self):
         super(AbsoluteReminderTestCase, self).setUp()
         self.reminderTime = datetime(2007,5,11,13,tzinfo=ICUtzinfo.default)
-        self.item = ContentItem(itsView=self.rep.view)
-        self.reminder = Reminder(itsView=self.rep.view,
+        self.item = ContentItem(itsView=self.view)
+        self.reminder = Reminder(itsView=self.view,
                             absoluteTime=self.reminderTime)
 
 
@@ -99,13 +99,13 @@ class RelativeReminderTestCase(TestDomainModel.DomainModelTestCase):
 
     def setUp(self):
         super(RelativeReminderTestCase, self).setUp()
-        self.event = CalendarEvent(itsView=self.rep.view,
+        self.event = CalendarEvent(itsView=self.view,
                 startTime=datetime(2004,8,1,8,tzinfo=ICUtzinfo.default),
                 duration=timedelta(minutes=45), anyTime=False,
                 summary=u"Meet with Very Important Person")
         self.event.itsItem.setTriageStatus(TriageEnum.later)
 
-        self.reminder = RelativeReminder(itsView=self.rep.view,
+        self.reminder = RelativeReminder(itsView=self.view,
                             delta=-timedelta(minutes=20))
 
 
@@ -209,12 +209,12 @@ class RelativeReminderTestCase(TestDomainModel.DomainModelTestCase):
         self.failIf(item.reminders)
         
     def testAddRecurrence(self):
-        ruleItem = RecurrenceRule(None, itsView=self.rep.view, freq='daily')
-        rruleset = RecurrenceRuleSet(None, itsView=self.rep.view,
+        ruleItem = RecurrenceRule(None, itsView=self.view, freq='daily')
+        rruleset = RecurrenceRuleSet(None, itsView=self.view,
                                           rrules=[ruleItem])
                                           
         self.reminderTime = datetime(2004,11,1,12,22,3,tzinfo=ICUtzinfo.default)
-        self.reminder = Reminder(itsView=self.rep.view,
+        self.reminder = Reminder(itsView=self.view,
                                  absoluteTime=self.reminderTime)
 
         self.event.itsItem.reminders = [self.reminder]
@@ -241,19 +241,19 @@ class RecurringReminderTestCase(TestDomainModel.DomainModelTestCase):
     # @@@ [grant] Need to test anyTime
     def setUp(self):
         super(RecurringReminderTestCase, self).setUp()
-        self.event = CalendarEvent(itsView=self.rep.view,
+        self.event = CalendarEvent(itsView=self.view,
                 startTime=datetime(2007,1,4,12,5,tzinfo=ICUtzinfo.default),
                 duration=timedelta(minutes=55),
                 anyTime=False,
                 summary=u"Meet with Highly Unusual Person")
 
-        self.reminder = RelativeReminder(itsView=self.rep.view,
+        self.reminder = RelativeReminder(itsView=self.view,
                             delta=-timedelta(minutes=20))
                             
-        ruleItem = RecurrenceRule(None, itsView=self.rep.view, freq='daily')
+        ruleItem = RecurrenceRule(None, itsView=self.view, freq='daily')
         ruleItem.until = datetime(2007,1,23,tzinfo=ICUtzinfo.default)
         ruleItem.untilIsDate = False
-        self.event.rruleset = RecurrenceRuleSet(None, itsView=self.rep.view,
+        self.event.rruleset = RecurrenceRuleSet(None, itsView=self.view,
                                 rrules=[ruleItem])
 
 
@@ -468,16 +468,16 @@ class ReminderCollectionsTestCase(TestDomainModel.DomainModelTestCase):
     # Test behaviour of the 'reminders' collections in osaf.pim
     def setUp(self):
         super(ReminderCollectionsTestCase, self).setUp()
-        self.note = Note(itsView=self.rep.view,
+        self.note = Note(itsView=self.view,
                 displayName=u"I am so very notable")
 
         
         self.firstDate = datetime(2004, 11, 3, 9, 25, tzinfo=ICUtzinfo.default)
-        self.reminder = Reminder(itsView=self.rep.view,
+        self.reminder = Reminder(itsView=self.view,
                                  absoluteTime=self.firstDate)
         self.reminder.reminderItem = self.note
         
-        pimNs = schema.ns("osaf.pim", self.rep.view)
+        pimNs = schema.ns("osaf.pim", self.view)
         self.tsReminder = pimNs.triageStatusReminder
         
         self.unexpired = pimNs.allFutureReminders
@@ -493,7 +493,7 @@ class ReminderCollectionsTestCase(TestDomainModel.DomainModelTestCase):
 
     def testPendingEntries(self):
         def getPending():
-            kind = PendingReminderEntry.getKind(self.rep.view)
+            kind = PendingReminderEntry.getKind(self.view)
             
             return list(kind.iterItems())
             
@@ -511,12 +511,12 @@ class ReminderCollectionsTestCase(TestDomainModel.DomainModelTestCase):
 class TriageStatusReminderTestCase(TestDomainModel.DomainModelTestCase):
     def setUp(self):
         super(TriageStatusReminderTestCase, self).setUp()
-        self.event = CalendarEvent(itsView=self.rep.view,
+        self.event = CalendarEvent(itsView=self.view,
                 startTime=datetime(2005,11,4,16,tzinfo=ICUtzinfo.default),
                 duration=timedelta(minutes=60),
                 anyTime=False,
                 summary=u"Hour-long event")
-        self.tsReminder = schema.ns("osaf.pim", self.rep.view).triageStatusReminder
+        self.tsReminder = schema.ns("osaf.pim", self.view).triageStatusReminder
 
     def testTriageChange(self):
         # Let's imagine we have a change to triage of later 2 hours before
@@ -558,12 +558,12 @@ class TriageStatusReminderTestCase(TestDomainModel.DomainModelTestCase):
                                                timedelta(days=3))
 
         # Make our event recurring
-        ruleItem = RecurrenceRule(None, itsView=self.rep.view, freq='daily')
+        ruleItem = RecurrenceRule(None, itsView=self.view, freq='daily')
         ruleItem.until = datetime.combine(
                     self.event.startTime + timedelta(days=6),
                     time(0, tzinfo=ICUtzinfo.default))
         ruleItem.untilIsDate = True
-        self.event.rruleset = RecurrenceRuleSet(None, itsView=self.rep.view,
+        self.event.rruleset = RecurrenceRuleSet(None, itsView=self.view,
                                 rrules=[ruleItem])
                                 
         reminders = list(self.event.itsItem.reminders)
@@ -612,7 +612,7 @@ class ReminderTestCase(TestDomainModel.DomainModelTestCase):
         # Make an event in the past (so it won't have a startTime reminder)
         # and add an expired absolute reminder to it.
         pastTime = datetime(2005,3,8,12,00, tzinfo = ICUtzinfo.default)
-        anEvent = CalendarEvent("calendarEventItem", itsView=self.rep.view,
+        anEvent = CalendarEvent("calendarEventItem", itsView=self.view,
                                 startTime=pastTime,
                                 duration=timedelta(hours=1),
                                 allDay=False, anyTime=False)
@@ -660,7 +660,7 @@ class ReminderTestCase(TestDomainModel.DomainModelTestCase):
         self.failUnless(remindable.reminders.first() is
                         remindable.getUserReminder())
         
-        startTimeReminder = schema.ns("osaf.pim", self.rep.view).triageStatusReminder
+        startTimeReminder = schema.ns("osaf.pim", self.view).triageStatusReminder
         self.failIf(startTimeReminder.delta)
         startTimeReminder.updatePending(now)
         self.failUnlessEqual(startTimeReminder.nextPoll, shortly)
@@ -753,7 +753,7 @@ class PendingTuplesTestCase(TestDomainModel.DomainModelTestCase):
         self.eventTime = datetime.combine(datetime.now().date() +
                                            timedelta(days=3),
                                           time(13, 0, tzinfo=ICUtzinfo.default))
-        self.event = CalendarEvent("calendarEventItem", itsView=self.rep.view,
+        self.event = CalendarEvent("calendarEventItem", itsView=self.view,
                               startTime=self.eventTime,
                               duration=timedelta(hours=1), allDay=False,
                               anyTime=False)
@@ -765,16 +765,16 @@ class PendingTuplesTestCase(TestDomainModel.DomainModelTestCase):
         self.event.userReminderInterval = timedelta(minutes=deltaMinutes)
         
         # Should have no reminders before the fireDate
-        self.failIf(Reminder.getPendingTuples(self.rep.view, pollTime))
+        self.failIf(Reminder.getPendingTuples(self.view, pollTime))
 
         # Still no reminders just before....
         pollTime = self.eventTime + timedelta(minutes=deltaMinutes-1,
                                               microseconds=642202)
-        self.failIf(Reminder.getPendingTuples(self.rep.view, pollTime))
+        self.failIf(Reminder.getPendingTuples(self.view, pollTime))
         
         # But should have 1 right after!
         pollTime += timedelta(minutes=1)
-        tuples = Reminder.getPendingTuples(self.rep.view, pollTime)
+        tuples = Reminder.getPendingTuples(self.view, pollTime)
         
         self.failUnlessEqual(len(tuples), 1)
 
@@ -789,7 +789,7 @@ class PendingTuplesTestCase(TestDomainModel.DomainModelTestCase):
         
         reminder.dismissItem(self.event.itsItem)
         
-        self.failIf(Reminder.getPendingTuples(self.rep.view, pollTime))
+        self.failIf(Reminder.getPendingTuples(self.view, pollTime))
 
 
     def testBeforeReminder(self):
@@ -809,13 +809,13 @@ class PendingTuplesTestCase(TestDomainModel.DomainModelTestCase):
         self.event.startTime -= timedelta(days=10)
         self.event.userReminderInterval = timedelta(minutes=deltaMinutes)
         
-        ruleItem = RecurrenceRule(None, itsView=self.rep.view, freq='daily')
-        rruleset = RecurrenceRuleSet(None, itsView=self.rep.view,
+        ruleItem = RecurrenceRule(None, itsView=self.view, freq='daily')
+        rruleset = RecurrenceRuleSet(None, itsView=self.view,
                                           rrules=[ruleItem])                                          
         self.event.rruleset = rruleset
 
         # Should have no reminders before the fireDate
-        self.failIf(Reminder.getPendingTuples(self.rep.view, pollTime))
+        self.failIf(Reminder.getPendingTuples(self.view, pollTime))
 
         # ... even a fraction of a second before
         pollTime = self.eventTime + timedelta(minutes=deltaMinutes-1,
@@ -823,7 +823,7 @@ class PendingTuplesTestCase(TestDomainModel.DomainModelTestCase):
 
         # But should have 1 right after
         pollTime += timedelta(minutes=1)
-        tuples = Reminder.getPendingTuples(self.rep.view, pollTime)
+        tuples = Reminder.getPendingTuples(self.view, pollTime)
         
         self.failUnlessEqual(len(tuples), 1)
         self.failUnlessEqual(tuples[0][0],

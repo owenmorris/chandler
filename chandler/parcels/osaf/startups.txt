@@ -523,14 +523,15 @@ repository views can't be forked::
 
 First, we'll create an item we want to fork::
 
-    >>> anItem = schema.Item("Demo", rep.view)
+    >>> view = rep.createView()
+    >>> anItem = schema.Item("Demo", view)
     >>> anItem
     <Item (new): Demo ...>
 
 Then, we'll commit the repository, because otherwise our item won't be visible
 in the new view::
 
-    >>> rep.view.commit()
+    >>> view.commit()
 
 And now we can fork the item::
 

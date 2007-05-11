@@ -1,4 +1,4 @@
-#   Copyright (c) 2003-2006 Open Source Applications Foundation
+#   Copyright (c) 2003-2007 Open Source Applications Foundation
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -30,7 +30,7 @@ class TestDelete(RepositoryTestCase):
 
         super(TestDelete, self).setUp()
 
-        view = self.rep.view
+        view = self.view
         cineguidePack = os.path.join(self.testdir, 'data', 'packs',
                                      'cineguide.pack')
         view.loadPack(cineguidePack)
@@ -41,7 +41,7 @@ class TestDelete(RepositoryTestCase):
         util.timing.reset()
 
         self._reopenRepository()
-        view = self.rep.view
+        view = self.view
         k = view.findPath('//CineGuide/KHepburn')
         util.timing.reset()
         for m in k.movies:
@@ -53,14 +53,14 @@ class TestDelete(RepositoryTestCase):
         self.assert_(view.check())
 
         self._reopenRepository()
-        self.assert_(self.rep.view.check())
+        self.assert_(self.view.check())
 
         util.timing.results(verbose=False)
 
     def testCloudDelete(self):
 
         util.timing.reset()
-        view = self.rep.view
+        view = self.view
         k = view.findPath('//CineGuide/KHepburn')
         util.timing.begin("repository.tests.TestDelete.testCloudDelete")
         k.delete(cloudAlias='remote')
@@ -68,7 +68,7 @@ class TestDelete(RepositoryTestCase):
         view.commit()
         view.check()
         self._reopenRepository()
-        self.rep.view.check()
+        self.view.check()
 
         util.timing.results(verbose=False)
         

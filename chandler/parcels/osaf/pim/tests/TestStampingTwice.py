@@ -1,4 +1,4 @@
-#   Copyright (c) 2003-2006 Open Source Applications Foundation
+#   Copyright (c) 2003-2007 Open Source Applications Foundation
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -37,7 +37,7 @@ class StampingTest(TestDomainModel.DomainModelTestCase):
         self.loadParcel("osaf.pim")
         # @@@ Also make sure the default imap account is loaded, in order to
         # have a "me" EmailAddress
-        view = self.rep.view
+        view = self.view
 
         # Get the stamp kinds
         taskStamp = TaskStamp

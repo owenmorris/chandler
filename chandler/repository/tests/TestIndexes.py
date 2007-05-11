@@ -1,4 +1,4 @@
-#   Copyright (c) 2004-2006 Open Source Applications Foundation
+#   Copyright (c) 2004-2007 Open Source Applications Foundation
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -29,7 +29,7 @@ class TestIndexes(RepositoryTestCase):
 
         super(TestIndexes, self).setUp()
 
-        view = self.rep.view
+        view = self.view
         cineguidePack = os.path.join(self.testdir, 'data', 'packs',
                                      'cineguide.pack')
         self.kh = Path('//CineGuide/KHepburn')
@@ -39,7 +39,7 @@ class TestIndexes(RepositoryTestCase):
 
     def testNumeric(self):
 
-        view = self.rep.view
+        view = self.view
         movies = view.find(self.kh).movies
         keys = movies.keys()
         i = random.randint(0, len(keys) - 1)
@@ -47,7 +47,7 @@ class TestIndexes(RepositoryTestCase):
         self.assert_(movies.getByIndex('n', i) is movies[keys[i]])
 
         self._reopenRepository()
-        view = self.rep.view
+        view = self.view
 
         movies = view.find(self.kh).movies
         keys = movies.keys()
@@ -57,7 +57,7 @@ class TestIndexes(RepositoryTestCase):
 
     def testPlace(self):
 
-        view = self.rep.view
+        view = self.view
         movies = view.find(self.kh).movies
 
         i = random.randint(0, len(movies) - 1)
@@ -80,7 +80,7 @@ class TestIndexes(RepositoryTestCase):
             self.assert_(movies.getByIndex('n', i) is mj)
 
         self._reopenRepository()
-        view = self.rep.view
+        view = self.view
 
         movies = view.find(self.kh).movies
         if j > i:
@@ -92,7 +92,7 @@ class TestIndexes(RepositoryTestCase):
         
     def _remove(self):
 
-        view = self.rep.view
+        view = self.view
         movies = view.find(self.kh).movies
 
         keys = movies.keys()
@@ -113,7 +113,7 @@ class TestIndexes(RepositoryTestCase):
 
     def _add(self):
 
-        view = self.rep.view
+        view = self.view
         movies = view.find(self.kh).movies
 
         keys = movies.keys()
@@ -155,7 +155,7 @@ class TestIndexes(RepositoryTestCase):
 
     def testDeferredReindexing(self):
 
-        view = self.rep.view
+        view = self.view
         movies = view.find(self.kh).movies
         movies.addIndex('t', 'value', attribute='title', ranges=[(0, 1)])
         movies.addIndex('f', 'string', attributes=('frenchTitle', 'title'),
@@ -185,7 +185,7 @@ class TestIndexes(RepositoryTestCase):
 
     def testDeferredReindexingAdd(self):
 
-        view = self.rep.view
+        view = self.view
         movies = view.find(self.kh).movies
         movies.addIndex('t', 'value', attribute='title', ranges=[(0, 1)])
         movies.addIndex('f', 'string', attributes=('frenchTitle', 'title'),

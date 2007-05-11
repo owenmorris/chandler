@@ -1,4 +1,4 @@
-#   Copyright (c) 2003-2006 Open Source Applications Foundation
+#   Copyright (c) 2003-2007 Open Source Applications Foundation
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -30,9 +30,9 @@ class ItemsTest(RepositoryTestCase.RepositoryTestCase):
 
     def testItemParentChild(self):
         """Test basic attribute functionality, focusing on parent-child relationships"""
-        view = self.rep.view
+        view = self.view
         # Test find()
-        kind = self._find('//Schema/Core/Item')
+        kind = view.findPath('//Schema/Core/Item')
         self.assert_(kind is not None)
 
         # Test itsName
@@ -111,8 +111,8 @@ class ItemsTest(RepositoryTestCase.RepositoryTestCase):
 
         # now write what we've done and read it back
         self._reopenRepository()
-        view = self.rep.view
-        item = self._find('//test')
+        view = self.view
+        item = view.findPath('//test')
         child1 = item['child1']
         child2 = item['child2']
         self.assertIsRoot(item)
@@ -121,7 +121,7 @@ class ItemsTest(RepositoryTestCase.RepositoryTestCase):
         self.assert_(item.hasChild('child2'))
 
         # Test item renaming, itsName
-        kind = self._find('//Schema/Core/Item')
+        kind = view.findPath('//Schema/Core/Item')
         child3 = Item('busted', item, kind)
         self.assertEqual(child3.itsName, 'busted')
         child3.itsName = 'busted'
@@ -152,8 +152,8 @@ class ItemsTest(RepositoryTestCase.RepositoryTestCase):
 
         # now write what we've done and read it back
         self._reopenRepository()
-        view = self.rep.view
-        item = self._find('//test')
+        view = self.view
+        item = view.findPath('//test')
         child1 = item['child1']
         child2 = item['child2']
         child3 = child2['child3']
@@ -170,8 +170,8 @@ class ItemsTest(RepositoryTestCase.RepositoryTestCase):
         
         # now write what we've done and read it back
         self._reopenRepository()
-        view = self.rep.view
-        item = self._find('//test')
+        view = self.view
+        item = view.findPath('//test')
         child1 = item['child1']
         child2 = item['child2']
         child3 = view['child3']
@@ -182,7 +182,7 @@ class ItemsTest(RepositoryTestCase.RepositoryTestCase):
 
     def testAttributeIteration(self):
         """Test iteration over attributes"""
-        kind = self._find('//Schema/Core/Kind')
+        kind = self.view.findPath('//Schema/Core/Kind')
         self.assert_(kind is not None)
 
         # Test iterating over literal attributes

@@ -1,4 +1,4 @@
-#   Copyright (c) 2003-2006 Open Source Applications Foundation
+#   Copyright (c) 2003-2007 Open Source Applications Foundation
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -36,14 +36,14 @@ class RepositoryTest(RepositoryTestCase.RepositoryTestCase):
         pass
 
     def testHasRoot(self):
-        view = self.rep.view
+        view = self.view
         self.assert_(view.hasRoot('Schema'))
         self.assert_(view.hasRoot('Packs'))
         pass
 
     def testGetRoot(self):
 
-        view = self.rep.view
+        view = self.view
         root = view.getRoot('Packs')
         #TODO these should use UUID's
         self.assert_(root.itsName == 'Packs')
@@ -55,7 +55,7 @@ class RepositoryTest(RepositoryTestCase.RepositoryTestCase):
         """ Make sure the roots of the repository are correct"""
 
         # (The parcel manager sticks the //parcels root in there)
-        view = self.rep.view
+        view = self.view
         for root in view.iterRoots():
             self.assert_(root.itsName in ['Schema', 'Packs', 'parcels', 'Queries', 'userdata'])
 
@@ -64,7 +64,7 @@ class RepositoryTest(RepositoryTestCase.RepositoryTestCase):
             print path
             print x.itsName
 
-        view = self.rep.view
+        view = self.view
         view.walk(Path('//Schema/Core/Parcel'), callme)
 #TODO what's a resonable test here?
         pass
@@ -73,7 +73,7 @@ class RepositoryTest(RepositoryTestCase.RepositoryTestCase):
         """ Make sure we can run find """
         util.timing.reset()
         util.timing.begin("repository.tests.TestRepository.testFind")
-        view = self.rep.view
+        view = self.view
         kind = view.findPath('//Schema/Core/Kind')
         util.timing.end("repository.tests.TestRepository.testFind")
         util.timing.results(verbose=False)
@@ -87,12 +87,12 @@ class RepositoryTest(RepositoryTestCase.RepositoryTestCase):
 #        pass
 
     def testCheck(self):
-        view = self.rep.view
+        view = self.view
         self.assert_(view.check())
 
     def testGetUUID(self):
         #TODO -- can't rely on UUID to be the same
-        view = self.rep.view
+        view = self.view
         self.assert_(view.itsUUID is not None)
 
 if __name__ == "__main__":

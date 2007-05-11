@@ -58,7 +58,7 @@ class PasswordTestCase(TestDomainModel.DomainModelTestCase):
         self.assertEqual(masterPassword, unicode(masterPassword.encode('utf8'), 'utf8'))
         
         # create
-        pw = password.Password(itsView=self.rep.view)
+        pw = password.Password(itsView=self.view)
 
         # check that we can't get password yet
         self.assertFalse(waitForDeferred(pw.initialized()))
@@ -143,11 +143,11 @@ class PasswordTestCase(TestDomainModel.DomainModelTestCase):
         self.loadParcel("osaf.app") # Include default Passwords in count
 
         # Check master password when it is not set
-        masterPassword = waitForDeferred(MasterPassword.get(self.rep.view))
+        masterPassword = waitForDeferred(MasterPassword.get(self.view))
         self.assertEqual(masterPassword, '')
 
         prefs = schema.ns("osaf.framework.MasterPassword",
-                          self.rep.view).masterPasswordPrefs
+                          self.view).masterPasswordPrefs
 
         # check prefs
         self.assertEqual(prefs.masterPassword, False)
@@ -156,45 +156,45 @@ class PasswordTestCase(TestDomainModel.DomainModelTestCase):
         prefs.masterPassword = True
 
         # make sure that get at least tries to use wx, and creates MasterPassword
-        self.assertRaises(wx.PyNoAppError, waitForDeferred, MasterPassword.get(self.rep.view))
+        self.assertRaises(wx.PyNoAppError, waitForDeferred, MasterPassword.get(self.view))
         self.assertTrue(MasterPassword._masterPassword is None)
         self.assertTrue(MasterPassword._timer is None)
 
         # make sure we get the password ok when it's set
         MasterPassword._masterPassword = 'pass'
-        self.assertEqual(waitForDeferred(MasterPassword.get(self.rep.view)), 'pass')
+        self.assertEqual(waitForDeferred(MasterPassword.get(self.view)), 'pass')
         
         # timeout
         prefs.timeout = 1.0/60.0 # 1 second
         MasterPassword._setTimedPassword('pass', 1)
-        self.assertEqual(waitForDeferred(MasterPassword.get(self.rep.view)), 'pass')
+        self.assertEqual(waitForDeferred(MasterPassword.get(self.view)), 'pass')
         time.sleep(1.1)
         # XXX Don't know how to test timeout, _clear is called and d.addCallback has been called
         # XXX but what do we need to do to process those callbacks?
-        #self.assertRaises(wx.PyNoAppError, waitForDeferred, MasterPassword.get(self.rep.view))
+        #self.assertRaises(wx.PyNoAppError, waitForDeferred, MasterPassword.get(self.view))
         prefs.timeout = 15
 
         waitForDeferred(MasterPassword.clear())
         
         # make sure that change at least tries to use wx, and creates MasterPassword
-        self.assertRaises(wx.PyNoAppError, waitForDeferred, MasterPassword.change(self.rep.view))
+        self.assertRaises(wx.PyNoAppError, waitForDeferred, MasterPassword.change(self.view))
         self.assertTrue(MasterPassword._masterPassword is None)
         self.assertTrue(MasterPassword._timer is None)
 
         # change for real
         # make some passwords to change
-        pw1 = password.Password(itsView=self.rep.view)
-        pw2 = password.Password(itsView=self.rep.view)
+        pw1 = password.Password(itsView=self.view)
+        pw2 = password.Password(itsView=self.view)
         waitForDeferred(pw1.encryptPassword('foobar', masterPassword=''))
         waitForDeferred(pw2.encryptPassword('barfoo', masterPassword=''))
         # try with bad old password first
         self.assertFalse(MasterPassword._change('dont know',
                                                 'secret',
-                                                self.rep.view,
+                                                self.view,
                                                 prefs))
         # now change
         self.assertTrue(MasterPassword._change('', 'secret',
-                                               self.rep.view,
+                                               self.view,
                                                prefs))
         # verify that the new password works
         self.assertEqual(waitForDeferred(pw1.decryptPassword(masterPassword='secret')), u'foobar')
@@ -211,15 +211,15 @@ class PasswordTestCase(TestDomainModel.DomainModelTestCase):
 
         # reset
         count = 0
-        for item in password.Password.iterItems(self.rep.view):
+        for item in password.Password.iterItems(self.view):
             count += 1
         self.assertEqual(count, 8) # dummy + 2 above + 6 default
-        MasterPassword.reset(self.rep.view) # now reset
+        MasterPassword.reset(self.view) # now reset
         self.assertTrue(MasterPassword._masterPassword is None)
         self.assertTrue(MasterPassword._timer is None)
         # we should have just one initialized password (the dummy)
         count = 0
-        for item in password.Password.iterItems(self.rep.view):
+        for item in password.Password.iterItems(self.view):
             if not waitForDeferred(item.initialized()):
                 continue
             

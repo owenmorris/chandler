@@ -1,4 +1,4 @@
-#   Copyright (c) 2004-2006 Open Source Applications Foundation
+#   Copyright (c) 2004-2007 Open Source Applications Foundation
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -47,7 +47,7 @@ class TestSSL(TestDomainModel.DomainModelTestCase):
         Utility.stopCrypto(self.profileDir)
 
     def testCertificateVerification(self):
-        ctx = ssl.getContext(self.rep.view)
+        ctx = ssl.getContext(self.view)
         conn1 = SSL.Connection(ctx)
         #conn2 = SSL.Connection(ctx)#XXX Why can't I reuse the connection?
 
@@ -120,7 +120,7 @@ QUW4hRYWNNbb
         x509 = X509.load_cert_string(pemSite)
 
         factory = protocol.ClientFactory()
-        wrapper = ssl.TwistedProtocolWrapper(self.rep.view,
+        wrapper = ssl.TwistedProtocolWrapper(self.view,
                                              'tlsv1',
                                              factory,
                                              policies.WrappingFactory(factory),
@@ -158,7 +158,7 @@ Mi6jbcmKpkTked0C7KzayFkggv/SZtmeibzOjQJbO5WQCRgYuF9t7Rijk7oiAt3U
 -----END CERTIFICATE-----'''
         
         self.assert_(ssl.certificateCache == [], 'cache should start empty')
-        ssl.getContext(self.rep.view) # set cache
+        ssl.getContext(self.view) # set cache
         self.assert_(ssl.certificateCache != [], 'cache should have an entry after getting a context')
         
         x509 = X509.load_cert_string(pemRoot)
@@ -166,18 +166,18 @@ Mi6jbcmKpkTked0C7KzayFkggv/SZtmeibzOjQJbO5WQCRgYuF9t7Rijk7oiAt3U
         cert = certificate.importCertificate(x509,
                                              fingerprint,
                                              constants.TRUST_AUTHENTICITY | constants.TRUST_SERVER,
-                                             self.rep.view)
+                                             self.view)
         self.assert_(ssl.certificateCache == [], 'cache should have been cleared after adding a cert')
 
-        ssl.getContext(self.rep.view) # set cache
+        ssl.getContext(self.view) # set cache
         cert.trust = 0
         self.assert_(ssl.certificateCache == [], 'cache should have been cleared after changing cert.trust attribute')
 
-        ssl.getContext(self.rep.view) # set cache
+        ssl.getContext(self.view) # set cache
         del cert.trust
         self.assert_(ssl.certificateCache == [], 'cache should have been cleared after deleting cert.trust attribute')
 
-        ssl.getContext(self.rep.view) # set cache
+        ssl.getContext(self.view) # set cache
         cert.delete()
         self.assert_(ssl.certificateCache == [], 'cache should have been cleared after removing a cert')
 

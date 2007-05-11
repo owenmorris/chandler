@@ -1,4 +1,4 @@
-#   Copyright (c) 2003-2006 Open Source Applications Foundation
+#   Copyright (c) 2003-2007 Open Source Applications Foundation
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -53,9 +53,10 @@ class TestRepositoryBasic(unittest.TestCase):
         util.timing.reset()
         util.timing.begin("repository.TestRepositoryBasic.testCreate")
         self.rep.create()
+        self.view = view = self.rep.createView()
         util.timing.end("repository.TestRepositoryBasic.testCreate")
         util.timing.results(verbose=False)
-        self.assert_(self.rep.view.check())
+        self.assert_(self.view.check())
         self.assert_(self.rep.isOpen())
 
     def testDestroy(self):
@@ -67,16 +68,14 @@ class TestRepositoryBasic(unittest.TestCase):
 
     def testLoadPack(self):
         """ Minimal test to ensure that we can load packs
-TODO is there more pack testing we need to do?
         """
         self.rep.create()
-        self.assert_(self.rep.view.check())
         util.timing.reset()
         util.timing.begin("repository.TestRepositoryBasic.testLoadPack")
-        self.rep.getCurrentView()
+        view = self.rep.createView()
         util.timing.end("repository.TestRepositoryBasic.testLoadPack")
         util.timing.results(verbose=False)
-        self.assert_(self.rep.view.check())
+        self.assert_(view.check())
     
     def tearDown(self):
         self.rep.close()

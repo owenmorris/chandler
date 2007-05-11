@@ -153,19 +153,6 @@ class RepositoryView(CView):
         self._mergeFn = None
         self.openView(version, deferDelete, notify, mergeFn)
         
-    def setCurrentView(self):
-        """
-        Make this view the current view for the current thread.
-
-        The repository gets the current view from the current thread. This
-        method should be used to select this view as the current one for the
-        current thread.
-
-        @return: the view that was current for the thread before this call.
-        """
-
-        return self.repository.setCurrentView(self)
-
     def _isNullView(self):
 
         return False
@@ -1323,8 +1310,8 @@ class RepositoryView(CView):
         for version, status in store.iterItemVersions(self, item.itsUUID, fromVersion, toVersion):
             then, viewSize, commitCount, name = store.getCommit(version)
             reader, uValues = store.loadValues(self, version, item.itsUUID)
+            currValues = set(uValues)
             if name == self.name:
-                currValues = set(uValues)
                 # removed values not included
                 names = [store.loadItemName(self, version, uAttr)
                          for uAttr in (reader.readAttribute(self, uValue)
@@ -1535,10 +1522,6 @@ class NullRepositoryView(RepositoryView):
         self._logger = logging.getLogger(__name__)
         super(NullRepositoryView, self).openView(version, False, notify,
                                                  mergeFn)
-
-    def setCurrentView(self):
-
-        raise AssertionError, "Null view cannot be made current"
 
     def refresh(self, mergeFn=None):
         

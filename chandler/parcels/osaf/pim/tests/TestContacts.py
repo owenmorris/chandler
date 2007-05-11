@@ -1,4 +1,4 @@
-#   Copyright (c) 2003-2006 Open Source Applications Foundation
+#   Copyright (c) 2003-2007 Open Source Applications Foundation
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -40,7 +40,7 @@ class ContactsTest(TestDomainModel.DomainModelTestCase):
 
         # Test the globals
         contactsPath = Path('//parcels/osaf/pim/contacts')
-        view = self.rep.view
+        view = self.view
 
         self.assertEqual(Contact.getKind(view),
                          view.find(Path(contactsPath, 'Contact')))
@@ -62,7 +62,7 @@ class ContactsTest(TestDomainModel.DomainModelTestCase):
         _verifyContactName(contactNameItem)
 
         self._reopenRepository()
-        view = self.rep.view
+        view = self.view
 
         contentItemParent = view.findPath("//userdata")
 
@@ -73,7 +73,7 @@ class ContactsTest(TestDomainModel.DomainModelTestCase):
 
         self.loadParcels(["osaf.pim.contacts", "osaf.pim.mail"])
 
-        view = self.rep.view
+        view = self.view
         generate.GenerateItems(view, 100, generate.GenerateContact)
         view.commit()
 

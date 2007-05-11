@@ -76,9 +76,8 @@ class CollectionTestCase(unittest.TestCase):
         self.repoDir = os.path.join(self.chandlerDir, '__repository__')
 
         rep = DBRepository(self.repoDir)
-        kwds = { 'create': True, 'refcounted':True, 'ramdb':True }
-        rep.create(**kwds)
-        view = rep.view
+        rep.create(create=True, refcounted=True, ramdb=True)
+        view = rep.createView()
 
         if view.getRoot("Schema") is None:
             view.loadPack(os.path.join(self.chandlerDir, 'repository', 'packs', 'schema.pack'))
@@ -652,14 +651,14 @@ class TestCollections(RepositoryTestCase):
 
         super(TestCollections, self).setUp()
 
-        view = self.rep.view
+        view = self.view
         cineguidePack = os.path.join(self.testdir, 'data', 'packs',
                                      'cineguide.pack')
         view.loadPack(cineguidePack)
 
     def testIntersectionSourceChanges(self):
 
-        view = self.rep.view
+        view = self.view
 
         k = view['CineGuide']['KHepburn']
         k.movies.addIndex('n', 'numeric')

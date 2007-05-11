@@ -1,4 +1,4 @@
-#   Copyright (c) 2003-2006 Open Source Applications Foundation
+#   Copyright (c) 2003-2007 Open Source Applications Foundation
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -41,7 +41,7 @@ class NotesTest(TestDomainModel.DomainModelTestCase):
 
         # Test the globals
         notesPath = Path('//parcels/osaf/pim')
-        view = self.rep.view
+        view = self.view
 
         self.assertEqual(pim.Note.getKind(view),
                          view.find(Path(notesPath, 'Note')))
@@ -60,7 +60,7 @@ class NotesTest(TestDomainModel.DomainModelTestCase):
         _verifyNote(noteItem)
 
         self._reopenRepository()
-        view = self.rep.view
+        view = self.view
         contentItemParent = view.findPath("//userdata")
 
         noteItem = contentItemParent.getItemChild("noteItem")

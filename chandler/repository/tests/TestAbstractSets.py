@@ -58,7 +58,7 @@ class TestAbstractSets(RepositoryTestCase):
 
         cineguidePack = os.path.join(self.testdir, 'data', 'packs',
                                      'cineguide.pack')
-        view = self.rep.view
+        view = self.view
         view.loadPack(cineguidePack)
         view.commit()
 
@@ -273,7 +273,7 @@ class TestAbstractSets(RepositoryTestCase):
         view.findPath('//CineGuide/m4').writers.last().delete()
         view.commit()
 
-        self.rep.view.refresh()
+        self.view.refresh()
         self.assert_(w not in m.set)
         self.assert_(len(m.set) == size - 1)
 
@@ -290,7 +290,7 @@ class TestAbstractSets(RepositoryTestCase):
         view.findPath('//CineGuide/m4').writers.last().delete()
         view.commit()
 
-        self.rep.view.refresh()
+        self.view.refresh()
         self.assert_(w.itsUUID not in m.set)
         self.assert_(len(m.set) == size - 1)
 
@@ -325,7 +325,7 @@ class TestAbstractSets(RepositoryTestCase):
         self.assert_(self.m3.set.__contains__(w, False, True))
         self.assert_(self.m2.set.__contains__(w, False, True))
 
-        self.assert_(self.rep.view.check(), 'check failed')
+        self.assert_(self.view.check(), 'check failed')
 
     def testFilter(self):
 

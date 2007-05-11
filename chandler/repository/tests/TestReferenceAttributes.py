@@ -1,4 +1,4 @@
-#   Copyright (c) 2003-2006 Open Source Applications Foundation
+#   Copyright (c) 2003-2007 Open Source Applications Foundation
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -27,11 +27,12 @@ class ReferenceAttributesTest(AttributeTestCase.AttributeTestCase):
     # support functions for testListReferenceAttributes and testDictReferenceAttributes
     def _findManagerAndEmployees(self, mPath, e1Path, e2Path, e3Path, e4Path):
         """Use find to retrieve our test data from the repository """
-        manager = self._find(mPath)
-        emp1 = self._find(e1Path)
-        emp2 = self._find(e2Path)
-        emp3 = self._find(e3Path)
-        emp4 = self._find(e4Path)
+        view = self.view
+        manager = view.findPath(mPath)
+        emp1 = view.findPath(e1Path)
+        emp2 = view.findPath(e2Path)
+        emp3 = view.findPath(e3Path)
+        emp4 = view.findPath(e4Path)
         return (manager, [emp1, emp2, emp3, emp4])
 
     def _checkManagerAndEmployees(self, m, es):
@@ -46,13 +47,13 @@ class ReferenceAttributesTest(AttributeTestCase.AttributeTestCase):
 
         # now write what we've done and read it back
         self._reopenRepository()
-        view = self.rep.view
-        managerKind = self._find('//manager')
+        view = self.view
+        managerKind = view.findPath('//manager')
         employeesAttribute = managerKind.getAttribute('employees')
         self.assertEquals(employeesAttribute.cardinality, 'list')
         self.assertEquals(employeesAttribute.getAttributeValue('otherName'),
                           'manager')        
-        employeeKind = self._find('//employee')
+        employeeKind = view.findPath('//employee')
         managerAttribute = employeeKind.getAttribute('manager')
         self.assertEquals(managerAttribute.otherName,'employees')
 
@@ -72,7 +73,7 @@ class ReferenceAttributesTest(AttributeTestCase.AttributeTestCase):
 
         # now write what we've done and read it back
         self._reopenRepository()
-        view = self.rep.view
+        view = self.view
         managerKind = view['manager']
         employeeKind = view['employee']
         (manager, [emp1, emp2, emp3, emp4]) = self._findManagerAndEmployees('//boss','//employee1','//employee2','//employee3','//employee4')
@@ -113,11 +114,11 @@ class ReferenceAttributesTest(AttributeTestCase.AttributeTestCase):
 
     def testSubAttributes(self):
         """Test attributes which have sub attributes (subAttributes and superAttribute attributes)"""
-        itemKind = self._find('//Schema/Core/Item')
+        view = self.view
+        itemKind = view.findPath('//Schema/Core/Item')
         self.assert_(itemKind is not None)
         attr_name = 'references'
         
-        view = self.rep.view
         item = Item('item1', view, itemKind)
         attrKind = itemKind.itsParent['Attribute']
 
@@ -144,7 +145,8 @@ class ReferenceAttributesTest(AttributeTestCase.AttributeTestCase):
 
         # now write what we've done and read it back
         self._reopenRepository()
-        item = self._find('//item1')
+        view = self.view
+        item = view.findPath('//item1')
         itemKind = item.itsKind
         testAttr = itemKind.getAttribute(attr_name)
 

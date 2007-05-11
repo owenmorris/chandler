@@ -1,4 +1,4 @@
-#   Copyright (c) 2003-2006 Open Source Applications Foundation
+#   Copyright (c) 2003-2007 Open Source Applications Foundation
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -31,9 +31,9 @@ class KindTest(RepositoryTestCase.RepositoryTestCase):
     def setUp(self):
         super(KindTest, self).setUp()
 
-        view = self.rep.view
-        self.kind = self._find("//Schema/Core/Kind")
-        self.itemKind = self._find("//Schema/Core/Item")
+        view = self.view
+        self.kind = view.findPath("//Schema/Core/Kind")
+        self.itemKind = view.findPath("//Schema/Core/Item")
         self.attrKind = self.itemKind.itsParent['Attribute']
 
         self.kind1 = self.kind.newItem('kind1', view)
@@ -117,7 +117,7 @@ class KindTest(RepositoryTestCase.RepositoryTestCase):
     def testRekinding(self):
         # rekind an item
         
-        view = self.rep.view
+        view = self.view
         item = self.kind2.newItem('item', view)
         item.k2a2 = 'foo'
         self.assert_(item.k2a2 == 'foo')

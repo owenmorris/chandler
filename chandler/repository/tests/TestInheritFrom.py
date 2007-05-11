@@ -1,4 +1,4 @@
-#   Copyright (c) 2004-2006 Open Source Applications Foundation
+#   Copyright (c) 2004-2007 Open Source Applications Foundation
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -22,14 +22,14 @@ class TestInheritFrom(RepositoryTestCase):
         
         super(TestInheritFrom, self).setUp()
 
-        view = self.rep.view
+        view = self.view
         cineguidePack = os.path.join(self.testdir, 'data', 'packs',
                                      'cineguide.pack')
         view.loadPack(cineguidePack)
 
     def testList(self):
 
-        view = self.rep.view
+        view = self.view
 
         k = view.findPath('//CineGuide/KHepburn')
         butlerKind = view.findPath('//Schema/CineGuide/Kinds/Butler')

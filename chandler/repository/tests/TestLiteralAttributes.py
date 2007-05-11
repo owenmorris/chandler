@@ -1,4 +1,4 @@
-#   Copyright (c) 2003-2006 Open Source Applications Foundation
+#   Copyright (c) 2003-2007 Open Source Applications Foundation
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -26,14 +26,14 @@ class TestLiteralAttributes(RepositoryTestCase.RepositoryTestCase):
     """ Test Literal Attributes """
 
     def testLiteralAttributes(self):
-        view = self.rep.view
+        view = self.view
         """Test basic features of literal attributes"""
-        kind = self._find('//Schema/Core/Kind')
-        itemKind = self._find('//Schema/Core/Item')
+        kind = view.findPath('//Schema/Core/Kind')
+        itemKind = view.findPath('//Schema/Core/Item')
         self.assert_(itemKind is not None)
-        attrKind = self._find('//Schema/Core/Attribute')
+        attrKind = view.findPath('//Schema/Core/Attribute')
         self.assert_(attrKind is not None)
-        stringType = self._find('//Schema/Core/String')
+        stringType = view.findPath('//Schema/Core/String')
         self.assert_(stringType is not None)
 
         attr = attrKind.newItem('testAttr', itemKind, type=stringType)
@@ -74,7 +74,7 @@ class TestLiteralAttributes(RepositoryTestCase.RepositoryTestCase):
     def testListMultis(self):
         """Test list valued literal attributes """
 
-        view = self.rep.view
+        view = self.view
 
         def verifyItem(i):
             """verify that a list valued literal attribute has the right values"""
@@ -106,8 +106,8 @@ class TestLiteralAttributes(RepositoryTestCase.RepositoryTestCase):
             self.assertEquals(i.strings[3], 'Goofy')
             
         
-        kind = self._find('//Schema/Core/Kind')                
-        itemKind = self._find('//Schema/Core/Item')            
+        kind = view.findPath('//Schema/Core/Kind')                
+        itemKind = view.findPath('//Schema/Core/Item')            
         myKind = kind.newItem('listKind', view)
                                                                   
         # create an attribute with cardinality list and add to the kind
@@ -132,7 +132,7 @@ class TestLiteralAttributes(RepositoryTestCase.RepositoryTestCase):
         
         # now write what we've done and read it back
         self._reopenRepository()
-        item = self._find('//item')
+        item = view.findPath('//item')
         verifyItem(item)
 
         #test removeValue by removing values and checking
@@ -155,7 +155,7 @@ class TestLiteralAttributes(RepositoryTestCase.RepositoryTestCase):
 
         # now write what we've done and read it back
         self._reopenRepository()
-        item = self._find('//item')
+        item = view.findPath('//item')
         self.failIf(item.hasValue('strings', 'Mickey'))
         self.failIf(item.hasValue('strings', 'Goofy'))
         self.failIf(item.hasValue('strings', 'Donald'))
@@ -165,7 +165,7 @@ class TestLiteralAttributes(RepositoryTestCase.RepositoryTestCase):
     def testDictMultis(self):
         """Test dictionary valued literal attributes"""
 
-        view = self.rep.view
+        view = self.view
 
         def verifyItem(i):
             """ verify that a dictionayr value literal attribute contains the right data"""
@@ -196,8 +196,8 @@ class TestLiteralAttributes(RepositoryTestCase.RepositoryTestCase):
             self.assertEquals(i.strings['Goofy'], 'Dog')
 
         
-        kind = self._find('//Schema/Core/Kind')                
-        itemKind = self._find('//Schema/Core/Item')            
+        kind = view.findPath('//Schema/Core/Kind')                
+        itemKind = view.findPath('//Schema/Core/Item')            
         myKind = kind.newItem('dictKind', view)
                                                                   
         # create an attribute with cardinality dict and add to the kind
@@ -221,8 +221,8 @@ class TestLiteralAttributes(RepositoryTestCase.RepositoryTestCase):
         
         # now write what we've done and read it back
         self._reopenRepository()
-        view = self.rep.view
-        item = self._find('//item')
+        view = self.view
+        item = view.findPath('//item')
         verifyItem(item)
 
         #test removeValue by removing values and checking
@@ -245,7 +245,7 @@ class TestLiteralAttributes(RepositoryTestCase.RepositoryTestCase):
 
         # now write what we've done and read it back
         self._reopenRepository()
-        item = self._find('//item')
+        item = view.findPath('//item')
         self.failIf('Mickey' in item.strings)
         self.failIf('Minnie' in item.strings)
         self.failIf('Goofy' in item.strings)

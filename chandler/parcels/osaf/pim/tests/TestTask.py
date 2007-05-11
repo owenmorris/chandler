@@ -1,4 +1,4 @@
-#   Copyright (c) 2003-2006 Open Source Applications Foundation
+#   Copyright (c) 2003-2007 Open Source Applications Foundation
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -41,7 +41,7 @@ class TaskTest(TestDomainModel.DomainModelTestCase):
         self.loadParcel("osaf.pim.tasks")
 
         # Check that the globals got created by the parcel
-        view = self.rep.view
+        view = self.view
         taskPath = Path('//parcels/osaf/pim/tasks')
         self.failIfEqual(schema.itemFor(TaskStamp, view), None)
         self.failIfEqual(view.find(Path(taskPath, 'TaskStamp')), None)
@@ -55,7 +55,7 @@ class TaskTest(TestDomainModel.DomainModelTestCase):
         task.itsItem.importance = "important"
 
         self._reopenRepository()
-        view = self.rep.view
+        view = self.view
 
         contentItemParent = view.findPath("//userdata")
 

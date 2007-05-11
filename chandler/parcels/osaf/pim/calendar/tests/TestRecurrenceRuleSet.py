@@ -58,7 +58,7 @@ class RecurrenceRuleTest(TestDomainModel.DomainModelTestCase):
         self.assertEqual(rruleset[-1], self.weekly['end'])
 
     def _createBasicItem(self, freq):
-        ruleItem = RecurrenceRule(None, itsView=self.rep.view)
+        ruleItem = RecurrenceRule(None, itsView=self.view)
         ruleItem.until = getattr(self, freq)['end']
         if freq == 'weekly':
             self.assertEqual(ruleItem.freq, 'weekly', 
@@ -86,7 +86,7 @@ class RecurrenceRuleTest(TestDomainModel.DomainModelTestCase):
         ruleItem = self._createBasicItem('weekly')
         rrule = ruleItem.createDateUtilFromRule(self.weekly['start'])
         self._testRRule('weekly', rrule)
-        self.rep.check()
+        self.view.check()
 
         # Every other week in which Tuesday or Thursday falls on the 5th or 8th
         # of the month, for 4 occurrences.  Yes, this is absurd :)
@@ -125,7 +125,7 @@ class RecurrenceRuleTest(TestDomainModel.DomainModelTestCase):
 
     def testInfiniteRuleItem(self):
         """Test that infinite RecurrenceRules work."""
-        ruleItem = RecurrenceRule(None, itsView=self.rep.view)
+        ruleItem = RecurrenceRule(None, itsView=self.view)
         #default frequency is weekly
         rule = ruleItem.createDateUtilFromRule(self.start)
         self.assertEqual(rule[149],
@@ -133,7 +133,7 @@ class RecurrenceRuleTest(TestDomainModel.DomainModelTestCase):
 
     def testTwoRuleSet(self):
         """Test two RecurrenceRules composed into a RuleSet."""
-        ruleSetItem = RecurrenceRuleSet(None, itsView=self.rep.view)
+        ruleSetItem = RecurrenceRuleSet(None, itsView=self.view)
         ruleItem = self._createBasicItem('weekly')
         ruleSetItem.addRule(ruleItem)
         ruleSet = ruleSetItem.createDateUtilFromRule(self.start)
@@ -149,7 +149,7 @@ class RecurrenceRuleTest(TestDomainModel.DomainModelTestCase):
         ruleSet = dateutil.rrule.rruleset()
         for freq in 'weekly', 'monthly':
             ruleSet.rrule(self._createBasicDateUtil(freq))
-        ruleSetItem = RecurrenceRuleSet(None, itsView=self.rep.view)
+        ruleSetItem = RecurrenceRuleSet(None, itsView=self.view)
         ruleSetItem.setRuleFromDateUtil(ruleSet)
         self._testCombined(ruleSetItem.createDateUtilFromRule(self.start))
 
@@ -166,7 +166,7 @@ class RecurrenceRuleTest(TestDomainModel.DomainModelTestCase):
             ruleSet.rrule(self._createBasicDateUtil(freq))
         ruleSet.rdate(self.start + timedelta(days=1))
         ruleSet.rdate(self.start + timedelta(days=2))
-        ruleSetItem = RecurrenceRuleSet(None, itsView=self.rep.view)
+        ruleSetItem = RecurrenceRuleSet(None, itsView=self.view)
         ruleSetItem.setRuleFromDateUtil(ruleSet)
 
         self.assertEqual(ruleSetItem.rdates[0], self.start + timedelta(days=1))
@@ -182,7 +182,7 @@ class RecurrenceRuleTest(TestDomainModel.DomainModelTestCase):
         for freq in 'weekly', 'monthly':
             ruleSet.rrule(self._createBasicDateUtil(freq))
         ruleSet.exdate(self.start)
-        ruleSetItem = RecurrenceRuleSet(None, itsView=self.rep.view)
+        ruleSetItem = RecurrenceRuleSet(None, itsView=self.view)
         ruleSetItem.setRuleFromDateUtil(ruleSet)
         identityTransformed = ruleSetItem.createDateUtilFromRule(self.start)
         self.assertNotEqual(self.start, identityTransformed[0])
@@ -194,7 +194,7 @@ class RecurrenceRuleTest(TestDomainModel.DomainModelTestCase):
         exrule = dateutil.rrule.rrule(WEEKLY, count=10, dtstart=self.start)
         ruleSet.exrule(exrule)
 
-        ruleSetItem = RecurrenceRuleSet(None, itsView=self.rep.view)
+        ruleSetItem = RecurrenceRuleSet(None, itsView=self.view)
         ruleSetItem.setRuleFromDateUtil(ruleSet)
         identityTransformed = ruleSetItem.createDateUtilFromRule(self.start)
         # The monthly rule dates aren't in the exclusion rule
@@ -207,7 +207,7 @@ class RecurrenceRuleTest(TestDomainModel.DomainModelTestCase):
         """dateutil sometimes sets bymonthday, byweekday, and bymonth based on
            dtstart, we want to avoid persisting this spurious data.
         """
-        ruleItem = RecurrenceRule(None, itsView=self.rep.view)
+        ruleItem = RecurrenceRule(None, itsView=self.view)
         weeklyRule = dateutil.rrule.rrule(dateutil.rrule.WEEKLY)
         ruleItem.setRuleFromDateUtil(weeklyRule)
         self.failIf(ruleItem.hasLocalAttributeValue('byweekday'))

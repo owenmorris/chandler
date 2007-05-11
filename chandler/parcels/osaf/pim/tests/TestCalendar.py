@@ -1,4 +1,4 @@
-#   Copyright (c) 2003-2006 Open Source Applications Foundation
+#   Copyright (c) 2003-2007 Open Source Applications Foundation
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -70,7 +70,7 @@ class CalendarTest(TestDomainModel.DomainModelTestCase):
 
         # Check that the globals got created by the parcel
         calendarPath = Path('//parcels/osaf/pim/calendar')
-        view = self.rep.view
+        view = self.view
 
         self.assertEqual(schema.itemFor(Calendar.EventStamp, view),
                          view.find(Path(calendarPath, 'EventStamp')))
@@ -101,7 +101,7 @@ class CalendarTest(TestDomainModel.DomainModelTestCase):
 
         # Re-examine items
         self._reopenRepository()
-        view = self.rep.view
+        view = self.view
         contentItemParent = view.findPath("//userdata")
 
         calendarEventItem = Calendar.EventStamp(
@@ -118,7 +118,7 @@ class CalendarTest(TestDomainModel.DomainModelTestCase):
         self.loadParcel("osaf.pim.calendar")
 
         # Test getting duration, setting endTime
-        view = self.rep.view
+        view = self.view
         firstEvent = Calendar.CalendarEvent(itsView=view)
         firstEvent.anyTime = False
         firstEvent.startTime = datetime(2003, 2, 1, 10, tzinfo=ICUtzinfo.default)
@@ -159,7 +159,7 @@ class CalendarTest(TestDomainModel.DomainModelTestCase):
 
         self.loadParcel("osaf.pim.calendar")
 
-        view = self.rep.view
+        view = self.view
         event = Calendar.CalendarEvent(itsView=view)
         item = event.itsItem
         path = item.itsPath
@@ -174,7 +174,7 @@ class CalendarTest(TestDomainModel.DomainModelTestCase):
 
         self.loadParcel("osaf.pim.calendar")
 
-        view = self.rep.view
+        view = self.view
         generate.GenerateItems(view, 100, generate.GenerateCalendarEvent, days=100)
         view.commit()
 

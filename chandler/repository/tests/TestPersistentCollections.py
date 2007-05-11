@@ -1,4 +1,4 @@
-#   Copyright (c) 2003-2006 Open Source Applications Foundation
+#   Copyright (c) 2003-2007 Open Source Applications Foundation
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -31,7 +31,7 @@ class TestPersistentCollections(RepositoryTestCase):
     def setUp(self):
 
         super(TestPersistentCollections, self).setUp()
-        view = self.rep.view
+        view = self.view
 
         collectionsPack = os.path.join(self.testdir, 'data', 'packs',
                                        'collections.pack')
@@ -42,7 +42,7 @@ class TestPersistentCollections(RepositoryTestCase):
 
     def testXML(self):
 
-        view = self.rep.view
+        view = self.view
         strings = view.findPath('//Collections/Strings')
 
         value = strings.listOfStrings
@@ -90,7 +90,7 @@ class TestPersistentCollections(RepositoryTestCase):
         self.assert_(item.list.index(item) == 4)
         self.assert_(item.list.count(item) == 1)
 
-        view = self.rep.view
+        view = self.view
         view.check()
 
     def testList(self):
@@ -108,7 +108,7 @@ class TestPersistentCollections(RepositoryTestCase):
         self._testList(item, values)
 
         self._reopenRepository()
-        view = self.rep.view
+        view = self.view
         item = view.findPath('//Collections/foo')
         values = [1, 2, 3, 4, item, [item, 5]]
         self._testList(item, values)
@@ -133,7 +133,7 @@ class TestPersistentCollections(RepositoryTestCase):
         self.assert_('b' in item.dictionary)
         self.assert_(2 in item.dictionary['list'])
 
-        view = self.rep.view
+        view = self.view
         view.check()
 
     def testDictionary(self):
@@ -151,7 +151,7 @@ class TestPersistentCollections(RepositoryTestCase):
         self._testDictionary(item, values)
 
         self._reopenRepository()
-        view = self.rep.view
+        view = self.view
         item = view.findPath('//Collections/foo')
         values = {'a': 1, 'b': 2, 'c': 3, 'i': item, 'list': [item, 2]}
         self._testDictionary(item, values)
@@ -174,7 +174,7 @@ class TestPersistentCollections(RepositoryTestCase):
         self.assert_(4 in item.tuple)
         self.assert_(5 in item.tuple[5])
 
-        view = self.rep.view
+        view = self.view
         view.check()
 
     def testTuple(self):
@@ -192,7 +192,7 @@ class TestPersistentCollections(RepositoryTestCase):
         self._testTuple(item, values)
 
         self._reopenRepository()
-        view = self.rep.view
+        view = self.view
         item = view.findPath('//Collections/foo')
         values = (1, 2, 3, 4, item, (item, 5))
         self._testTuple(item, values)
@@ -213,7 +213,7 @@ class TestPersistentCollections(RepositoryTestCase):
         self.assert_(item in item.set)
         self.assert_(4 in item.set)
 
-        view = self.rep.view
+        view = self.view
         view.check()
 
     def testSet(self):
@@ -231,7 +231,7 @@ class TestPersistentCollections(RepositoryTestCase):
         self._testSet(item, values)
 
         self._reopenRepository()
-        view = self.rep.view
+        view = self.view
         item = view.findPath('//Collections/foo')
         values = set((1, 2, 3, 4, item, (item, 5)))
         self._testSet(item, values)

@@ -1,4 +1,4 @@
-#   Copyright (c) 2003-2006 Open Source Applications Foundation
+#   Copyright (c) 2003-2007 Open Source Applications Foundation
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -29,7 +29,7 @@ class TimeZoneTestCase(RepositoryTestCase):
     def setUp(self):
         super(TimeZoneTestCase, self).setUp(True)
         ICUTimeZone.setDefault(ICUTimeZone.createTimeZone("America/Los_Angeles"))
-        self.tzInfoItem = TimeZoneInfo.get(self.rep.view)
+        self.tzInfoItem = TimeZoneInfo.get(self.view)
 
     def testGetTimeZone(self):
         self.failIfEqual(self.tzInfoItem.default, None)
@@ -57,20 +57,20 @@ class CanonicalTimeZoneTestCase(RepositoryTestCase):
 
     def testEquivalent(self):
         tz = ICUtzinfo.getInstance("PST")
-        canonicalTz = TimeZoneInfo.get(self.rep.view).canonicalTimeZone(tz)
+        canonicalTz = TimeZoneInfo.get(self.view).canonicalTimeZone(tz)
 
         self.failUnlessEqual(canonicalTz.tzid, "America/Los_Angeles")
 
     def testNew(self):
         tz = ICUtzinfo.getInstance("America/Caracas")
-        info = TimeZoneInfo.get(self.rep.view)
+        info = TimeZoneInfo.get(self.view)
         canonicalTz = info.canonicalTimeZone(tz)
 
         self.failUnless(canonicalTz is tz)
         self.failUnless(tz.tzid in info.wellKnownIDs)
 
     def testNone(self):
-        info = TimeZoneInfo.get(self.rep.view)
+        info = TimeZoneInfo.get(self.view)
         canonicalTz = info.canonicalTimeZone(None)
 
         self.failUnless(canonicalTz is ICUtzinfo.floating)
@@ -78,7 +78,7 @@ class CanonicalTimeZoneTestCase(RepositoryTestCase):
 class KnownTimeZonesTestCase(RepositoryTestCase):
     def setUp(self):
         super(KnownTimeZonesTestCase, self).setUp(True)
-        self.info = TimeZoneInfo.get(self.rep.view)
+        self.info = TimeZoneInfo.get(self.view)
 
     def testKnownTimeZones(self):
         numZones = 0
@@ -95,13 +95,13 @@ class PersistenceTestCase(RepositoryTestCase):
 
     def testGetTimeZone(self):
         # [Bug 5209] The timezone now defaults to floating
-        defaultTzItem = TimeZoneInfo.get(self.rep.view)
+        defaultTzItem = TimeZoneInfo.get(self.view)
 
         self.failUnlessEqual(defaultTzItem.default,
                              ICUtzinfo.floating)
 
     def testPerView(self):
-        defaultTzItemOne = TimeZoneInfo.get(self.rep.view)
+        defaultTzItemOne = TimeZoneInfo.get(self.view)
         defaultTzItemTwo = TimeZoneInfo.get(self.rep.createView('two'))
 
         self.failIf(defaultTzItemOne is defaultTzItemTwo)
@@ -111,7 +111,7 @@ class PersistenceTestCase(RepositoryTestCase):
         #
         # - Load the repo (Done in setUp())
         # - Get the repo's default DefaultTimeZone
-        view = self.rep.view
+        view = self.view
         defaultTzItem = TimeZoneInfo.get(view)
         # - Change the default DefaultTimeZone
         defaultTzItem.default = ICUtzinfo.getInstance("GMT")
@@ -125,7 +125,7 @@ class PersistenceTestCase(RepositoryTestCase):
 
         # - Reopen the repo
         self._reopenRepository()
-        view = self.rep.view
+        view = self.view
         self.manager = None
 
         # - Now check the default timezone
@@ -145,11 +145,11 @@ class PersistenceTestCase(RepositoryTestCase):
         """
         pacific = ICUTimeZone.createTimeZone("America/Los_Angeles")
         ICUTimeZone.setDefault(pacific)
-        tzprefs = schema.ns('osaf.pim', self.rep.view).TimezonePrefs
+        tzprefs = schema.ns('osaf.pim', self.view).TimezonePrefs
         tzprefs.showUI = False
         
         start = datetime(2007, 1, 17, 13, tzinfo=ICUtzinfo.floating)
-        event = CalendarEvent(None, itsView=self.rep.view)
+        event = CalendarEvent(None, itsView=self.view)
         event.startTime = start
         
         tzprefs.showUI = True        

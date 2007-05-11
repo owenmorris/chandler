@@ -1,4 +1,4 @@
-#   Copyright (c) 2004-2006 Open Source Applications Foundation
+#   Copyright (c) 2004-2007 Open Source Applications Foundation
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -48,7 +48,7 @@ class MessageI18nTest(MailTestCase.MailTestCase):
         msgText = self.__loadTestMessage()
 
         mOne = email.message_from_string(msgText)
-        messageKind = message._messageObjectToKind(self.rep.view, mOne, msgText)
+        messageKind = message._messageObjectToKind(self.view, mOne, msgText)
         mTwo  = message._kindToMessageObject(messageKind)
 
         self.assertEquals(mOne['To'], mTwo['To'])

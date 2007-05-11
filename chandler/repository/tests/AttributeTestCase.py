@@ -1,4 +1,4 @@
-#   Copyright (c) 2003-2006 Open Source Applications Foundation
+#   Copyright (c) 2003-2007 Open Source Applications Foundation
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -26,19 +26,22 @@ class AttributeTestCase(RepositoryTestCase.RepositoryTestCase):
     """
     
     def _createManagerAndEmployeeKinds(self, type):
-        kind = self._find('//Schema/Core/Kind')
-        itemKind = self._find('//Schema/Core/Item')
+
+        view = self.view
+
+        kind = view.findPath('//Schema/Core/Kind')
+        itemKind = view.findPath('//Schema/Core/Item')
         attrKind = itemKind.itsParent['Attribute']
 
-        managerKind = kind.newItem('manager', self.rep.view)
-        employeesAttribute = Attribute('employees',managerKind, attrKind)
+        managerKind = kind.newItem('manager', view)
+        employeesAttribute = Attribute('employees', managerKind, attrKind)
         employeesAttribute.cardinality = type
         employeesAttribute.otherName = 'manager'
         managerKind.addValue('attributes',
-                             employeesAttribute,alias='employees')
-        employeeKind = kind.newItem('employee', self.rep.view)
-        managerAttribute = Attribute('manager',employeeKind, attrKind)
+                             employeesAttribute, alias='employees')
+        employeeKind = kind.newItem('employee', view)
+        managerAttribute = Attribute('manager', employeeKind, attrKind)
         managerAttribute.otherName = 'employees'
-        employeeKind.addValue('attributes',
-                              managerAttribute,alias='manager')
-        return (managerKind, employeeKind)
+        employeeKind.addValue('attributes', managerAttribute, alias='manager')
+
+        return managerKind, employeeKind

@@ -567,8 +567,9 @@ def initRepository(directory, options, allowSchemaView=False):
         dbHome = repository.backup()
         repository.logger.info("Repository was backed up into %s", dbHome)
 
+    view = repository.createView()
+
     if options.repair:
-        view = repository.view
         schema.initRepository(view)
         if view.check(True):
             view.commit()
@@ -576,7 +577,6 @@ def initRepository(directory, options, allowSchemaView=False):
     if options.undo:
         if options.undo in ('check', 'repair'):
             repair = options.undo == 'repair'
-            view = repository.view
             while view.itsVersion > 0L:
                 schema.initRepository(view)
                 if view.check(repair):
@@ -595,7 +595,6 @@ def initRepository(directory, options, allowSchemaView=False):
             if toVersion >= 0L:
                 repository.undo(toVersion)
 
-    view = repository.view
     schema.initRepository(view)
 
     if options.indexer == 'foreground':

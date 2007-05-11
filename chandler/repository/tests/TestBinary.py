@@ -1,4 +1,4 @@
-#   Copyright (c) 2003-2006 Open Source Applications Foundation
+#   Copyright (c) 2003-2007 Open Source Applications Foundation
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -28,14 +28,14 @@ class TestBinary(RepositoryTestCase):
 
         super(TestBinary, self).setUp()
 
-        view = self.rep.view
+        view = self.view
         cineguidePack = os.path.join(self.testdir, 'data', 'packs',
                                      'cineguide.pack')
         view.loadPack(cineguidePack)
         view.commit()
 
     def testBZ2Compressed(self):
-        khepburn = self._find('//CineGuide/KHepburn')
+        khepburn = self.view.findPath('//CineGuide/KHepburn')
         self.assert_(khepburn is not None)
 
         largeBinary = os.path.join(self.testdir, 'data', 'khepltr.jpg')
@@ -62,7 +62,7 @@ class TestBinary(RepositoryTestCase):
 
         self._reopenRepository()
 
-        khepburn = self._find('//CineGuide/KHepburn')
+        khepburn = self.view.findPath('//CineGuide/KHepburn')
         self.assert_(khepburn is not None)
 
         input = file(largeBinary, 'rb')
@@ -75,7 +75,7 @@ class TestBinary(RepositoryTestCase):
         self.assert_(data == picture)
 
     def testZlibCompressed(self):
-        khepburn = self._find('//CineGuide/KHepburn')
+        khepburn = self.view.findPath('//CineGuide/KHepburn')
         self.assert_(khepburn is not None)
 
         largeBinary = os.path.join(self.testdir, 'data', 'khepltr.jpg')
@@ -102,7 +102,7 @@ class TestBinary(RepositoryTestCase):
 
         self._reopenRepository()
 
-        khepburn = self._find('//CineGuide/KHepburn')
+        khepburn = self.view.findPath('//CineGuide/KHepburn')
         self.assert_(khepburn is not None)
 
         input = file(largeBinary, 'rb')
@@ -115,7 +115,7 @@ class TestBinary(RepositoryTestCase):
         self.assert_(data == picture)
 
     def testUncompressed(self):
-        khepburn = self._find('//CineGuide/KHepburn')
+        khepburn = self.view.findPath('//CineGuide/KHepburn')
         self.assert_(khepburn is not None)
 
         largeBinary = os.path.join(self.testdir, 'data', 'khepltr.jpg')
@@ -137,7 +137,7 @@ class TestBinary(RepositoryTestCase):
 
         self._reopenRepository()
 
-        khepburn = self._find('//CineGuide/KHepburn')
+        khepburn = self.view.findPath('//CineGuide/KHepburn')
         self.assert_(khepburn is not None)
 
         input = file(largeBinary, 'rb')

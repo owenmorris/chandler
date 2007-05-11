@@ -30,7 +30,6 @@ class TestI18nFlickr(TestDomainModel.DomainModelTestCase):
 
         super(TestI18nFlickr, self)._openRepository(self)
         self.loadParcel("flickr")
-        self.view = self.rep.view
 
     def testI18nOwner(self):
         #Ensure that "trünk"is the displayName for

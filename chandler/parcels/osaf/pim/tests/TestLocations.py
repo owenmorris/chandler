@@ -1,4 +1,4 @@
-#   Copyright (c) 2004-2006 Open Source Applications Foundation
+#   Copyright (c) 2004-2007 Open Source Applications Foundation
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -35,7 +35,7 @@ class LocationsTest(TestDomainModel.DomainModelTestCase):
 
         # Test the globals
         locationsPath = Path('//parcels/osaf/pim/calendar')
-        view = self.rep.view
+        view = self.view
 
         self.assertEqual(Calendar.Location.getKind(view),
                          view.find(Path(locationsPath, 'Location')))

@@ -1,4 +1,4 @@
-#   Copyright (c) 2003-2006 Open Source Applications Foundation
+#   Copyright (c) 2003-2007 Open Source Applications Foundation
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -29,7 +29,7 @@ class TestBZ2(RepositoryTestCase):
 
         super(TestBZ2, self).setUp()
 
-        view = self.rep.view
+        view = self.view
         cineguidePack = os.path.join(self.testdir, 'data', 'packs',
                                      'cineguide.pack')
         view.loadPack(cineguidePack)
@@ -37,7 +37,7 @@ class TestBZ2(RepositoryTestCase):
 
     def appended(self, compression):
 
-        view = self.rep.view
+        view = self.view
         khepburn = view.findPath('//CineGuide/KHepburn')
         movie = khepburn.movies.first()
         self.assert_(movie is not None)
@@ -63,7 +63,7 @@ class TestBZ2(RepositoryTestCase):
         writer.close()
 
         self._reopenRepository()
-        view = self.rep.view
+        view = self.view
 
         khepburn = view.findPath('//CineGuide/KHepburn')
         movie = khepburn.movies.first()

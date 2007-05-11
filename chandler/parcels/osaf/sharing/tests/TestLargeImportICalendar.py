@@ -1,4 +1,4 @@
-#   Copyright (c) 2003-2006 Open Source Applications Foundation
+#   Copyright (c) 2003-2007 Open Source Applications Foundation
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -26,7 +26,7 @@ class TestLargeImport(RepositoryTestCase):
                                 'parcels', 'osaf', 'sharing', 'tests')
 
             share = sharing.shares.OneTimeFileSystemShare(
-                itsView=self.rep.view, 
+                itsView=self.view, 
                 filePath=path, fileName=u"3kevents.ics",
                 translatorClass=sharing.translator.SharingTranslator,
                 serializerClass=sharing.ics.ICSSerializer

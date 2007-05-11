@@ -177,9 +177,10 @@ class StartupOptionsDialog(wx.Dialog):
         try:
             repository = DBRepository(repoDir)
             repository.open(recover=True, exclusive=False)
+            view = repository.createView()
 
             try:
-                MasterPassword.beforeBackup(repository.view, self)
+                MasterPassword.beforeBackup(view, self)
             except:
                 wx.MessageBox (_(u'Failed to encrypt passwords.'),
                                _(u'Password protection failed'),

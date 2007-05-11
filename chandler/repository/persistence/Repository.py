@@ -156,73 +156,9 @@ class Repository(CRepository):
         return RepositoryView(self, name, version, deferDelete, pruneSize,
                               notify, mergeFn)
 
-    def getCurrentView(self, create=True):
-        """
-        Get the current repository view.
-
-        Each thread may have a current repository view. If the current
-        thread has no repository view, this method creates and sets one for
-        it if C{create} is C{True}, the default.
-
-        @param create: create a view if none exists for the current
-        thread, C{True} by default
-        @type create: boolean
-        """
-
-        try:
-            return self._threaded.view
-
-        except AttributeError:
-            if create:
-                view = self.createView()
-                self.setCurrentView(view)
-
-                return view
-
-        return None
-
-    def setCurrentView(self, view):
-        """
-        Set the current view for the current thread.
-
-        @param view: a repository view
-        @type view: a L{RepositoryView<repository.persistence.RepositoryView.RepositoryView>} instance
-        @return: the view that was current for the thread before this call.
-        """
-
-        if view is not None and view.repository is not self:
-            raise RepositoryError, 'Repository does not own view: %s' %(view)
-
-        previous = self.getCurrentView(False)
-        self._threaded.view = view
-
-        return previous
-
     def getOpenViews(self):
 
         return self._openViews
-
-    def dir(self, item=None, path=None):
-        """
-        Print all item paths in the repository, a debugging feature.
-
-        See L{RepositoryView.dir
-        <repository.persistence.RepositoryView.RepositoryView.dir>}
-        for more details.
-        """
-
-        self.view.dir(item, path)
-
-    def check(self):
-        """
-        Runs repository consistency checks on the current view.
-
-        See L{RepositoryView.check
-        <repository.persistence.RepositoryView.RepositoryView.check>}
-        for more details.
-        """
-        
-        return self.view.check()
 
     def isNew(self):
 
@@ -273,9 +209,12 @@ class Repository(CRepository):
 
         return self.store.getSchemaInfo()
 
+    def getVersion(self):
+
+        return self.store.getVersion()
+
 
     itsUUID = RepositoryView.itsUUID
-    view = property(getCurrentView, setCurrentView)
     views = property(getOpenViews)
 
 
