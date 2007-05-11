@@ -369,11 +369,11 @@ class AbstractDownloadClient(object):
             trace("catchErrors")
 
         #Uncomment for debugging purposes
-        try:
-            raise err
-        except Exception, e:
-            #Capture the error to the logger
-            logging.exception(e)
+        #try:
+        #    raise err
+        #except Exception, e:
+        #    #Capture the error to the logger
+        #    logging.exception(e)
 
         # Flag that tells the connection factory
         # that the error has been handled
