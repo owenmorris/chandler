@@ -22,6 +22,12 @@ Upgrading python build
    - disable the _bsddb, _ssl, _testcapi, _tkinter, winsound, win9xpopen,
      _ctypes_test, _sqlite3 projects 
 
+ On Mac:
+   - to get Chandler.app to display as 'Chandler' and not 'Python' in the 
+     menubar, Python.app's Info.plist and InfoPlist.strings are patched to
+     set both CFBundleName and CFBundleDisplayName to 'Chandler'.
+     Use diff -ua on InfoPlist.strings to force it to be seen as text.
+
  On all OSs:
    - review patch files and refresh patches as needed.
 
