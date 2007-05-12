@@ -147,6 +147,8 @@ class SubscribeDialog(wx.Dialog):
             me = schema.ns("osaf.pim", self.view).currentContact.item
             for share in sharing.SharedItem(collection).shares:
                 share.sharer = me
+                if share.mode == 'get':
+                    share.mode = 'both'
 
         # Put this collection into "My items" if not checked:
         if not self.checkboxKeepOut.GetValue() or self.mine:
