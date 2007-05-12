@@ -58,6 +58,7 @@ static PyObject *t_view__getStore(t_view *self, void *data);
 static PyObject *t_view__getLogger(t_view *self, void *data);
 static PyObject *t_view__getMONITORING(t_view *self, void *data);
 static int t_view__setMONITORING(t_view *self, PyObject *value, void *data);
+static PyObject *t_view_get(t_view *self, PyObject *arg);
 static PyObject *t_view_find(t_view *self, PyObject *args);
 static PyObject *t_view_getSingleton(t_view *self, PyObject *key);
 static PyObject *t_view_setSingleton(t_view *self, PyObject *args);
@@ -139,6 +140,7 @@ static PyMethodDef t_view_methods[] = {
     { "_setVerify", (PyCFunction) t_view__setVerify, METH_O, "" },
     { "getLogger", (PyCFunction) t_view_getLogger, METH_NOARGS, "" },
     { "_notifyChange", (PyCFunction) t_view__notifyChange, METH_VARARGS|METH_KEYWORDS, "" },
+    { "get", (PyCFunction) t_view_get, METH_O, NULL },
     { "find", (PyCFunction) t_view_find, METH_VARARGS, NULL },
     { "getSingleton", (PyCFunction) t_view_getSingleton, METH_O, NULL },
     { "setSingleton", (PyCFunction) t_view_setSingleton, METH_VARARGS, "" },
@@ -751,6 +753,31 @@ static PyObject *t_view_dict_get(t_view *self, PyObject *key)
 
     PyErr_SetObject(PyExc_TypeError, key);
     return NULL;
+}
+
+
+static PyObject *t_view_get(t_view *self, PyObject *key)
+{
+    if (PyUUID_Check(key))
+    {
+        PyObject *item = PyDict_GetItem(self->registry, key);
+
+        if (item)
+        {
+            Py_INCREF(item);
+            return item;
+        }
+
+        Py_RETURN_NONE;
+    }
+    else if (PyString_Check(key) || PyUnicode_Check(key))
+        return PyObject_CallMethodObjArgs((PyObject *) self,
+                                          getRoot_NAME, key, NULL);
+    else
+    {
+        PyErr_SetObject(PyExc_TypeError, key);
+        return NULL;
+    }
 }
 
 
