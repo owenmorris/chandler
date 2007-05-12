@@ -1563,15 +1563,23 @@ class FilteredSet(Set):
                                      other, dirties, source)
 
             if op == 'add':
-                if not self.filter(other):
+                index = self._anIndex()
+                if index is not None and other in index:
                     op = None
+                elif not self.filter(other):
+                    op = None
+                else:
+                    otherItem = self.itsView.get(other)
+                    if not (otherItem is None or not otherItem.isDeferring()):
+                        op = None
+
             elif op == 'remove':
                 index = self._anIndex()
                 if index is not None:
                     if other not in index:
                         op = None
                 elif not self.filter(other):
-                    otherItem = self.itsView.find(other, False)
+                    otherItem = self.itsView.get(other)
                     if not (otherItem is None or otherItem.isDeleting()):
                         op = None
 
@@ -1595,7 +1603,9 @@ class FilteredSet(Set):
                 contains = None
                 
             if matched and not contains is True:
-                self._collectionChanged('add', 'collection', other, ())
+                item = self.itsView.get(other)
+                if item is None or not item.isDeferring():
+                    self._collectionChanged('add', 'collection', other, ())
             elif not matched and not contains is False:
                 self._collectionChanged('remove', 'collection', other, ())
 
