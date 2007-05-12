@@ -141,11 +141,15 @@ def getOldestVersion(rv):
     for share in getSyncableShares(rv):
         conduit = getattr(share, 'conduit', None)
         if conduit is not None:
-            marker = getattr(conduit, 'itemsMarker', None)
-            if marker is not None:
-                markerVersion = marker.itsVersion
-                if markerVersion < oldest:
-                    oldest = markerVersion
+            if hasattr(conduit, 'lastVersion'):
+                if conduit.lastVersion < oldest:
+                    oldest = conduit.lastVerions
+            else:
+                marker = getattr(conduit, 'itemsMarker', None)
+                if marker is not None:
+                    markerVersion = marker.itsVersion
+                    if markerVersion < oldest:
+                        oldest = markerVersion
     return oldest
 
 

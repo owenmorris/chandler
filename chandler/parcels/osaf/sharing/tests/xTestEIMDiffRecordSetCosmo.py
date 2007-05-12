@@ -46,7 +46,7 @@ class EIMDiffRecordSetCosmoTestCase(RoundTripTestCase):
             ("bcm.osafoundation.org", 8080, False),
             ("localhost", 8080, False),
         ]
-        server = 1
+        server = 3
 
         view0 = self.views[0]
         coll0 = self.coll

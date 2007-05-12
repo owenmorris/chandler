@@ -441,9 +441,11 @@ class SharingTranslator(eim.Translator):
                 elif conflict.field.lower() == 'created on':
                     # Instead of having conflicts for createdOn, apply the
                     # oldest value
-                    createdOn = decimalToDatetime(record.createdOn)
-                    if createdOn < item.createdOn:
-                        item.createdOn = createdOn
+
+                    if record.createdOn not in emptyValues:
+                        createdOn = decimalToDatetime(record.createdOn)
+                        if createdOn < item.createdOn:
+                            item.createdOn = createdOn
 
                     conflict.discard()
 

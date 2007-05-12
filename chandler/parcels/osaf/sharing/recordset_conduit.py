@@ -60,6 +60,7 @@ class RecordSetConduit(conduits.BaseConduit):
     serializer = schema.One(schema.Class)
     syncToken = schema.One(schema.Text, defaultValue="")
     filters = schema.Many(schema.Text, initialValue=set())
+    lastVersion = schema.One(schema.Long, initialValue=0)
 
     def sync(self, modeOverride=None, activity=None, forceUpdate=None,
         debug=False):
@@ -82,6 +83,7 @@ class RecordSetConduit(conduits.BaseConduit):
             if activity:
                 activity.update(msg="Saving...", totalWork=None)
             rv.commit(mergeFunction)
+            if debug: print "View version is now:", rv.itsVersion
 
         except Exception, exception:
             logger.exception("Sharing Error")
@@ -124,7 +126,9 @@ class RecordSetConduit(conduits.BaseConduit):
         allowNameChange = True
 
         if self.share.established:
-            version = self.itemsMarker.itsVersion
+            if debug:
+                print "Previous sync included up to version:", self.lastVersion
+            version = self.lastVersion + 1
         else:
             version = 0
             # This is our first sync; if we're already assigned a collection,
@@ -138,6 +142,10 @@ class RecordSetConduit(conduits.BaseConduit):
                     # when importing into an existing collection, don't change
                     # the collection name
                     allowNameChange = False
+
+        if debug:
+            print "Current view version:", rv.itsVersion
+
 
         remotelyRemoved = set() # The aliases of remotely removed items
         remotelyAdded = set() # The aliases of remotely added items
@@ -193,12 +201,13 @@ class RecordSetConduit(conduits.BaseConduit):
                     del inbound[alias]
                     remotelyRemoved.add(alias)
 
-                    # Clear out the agreed state and any pending changes, so
-                    # that if there are local changes, they'll just get sent
-                    # back out along with the *complete* state of the item. The
-                    # item has already been removed from the server, and we're
-                    # putting it back.
-                    self.removeState(alias)
+                    # Since this item was remotely removed, all pending
+                    # changes should go away.
+                    if self.hasState(alias):
+                        state = self.getState(alias)
+                        if hasattr(state, "_pending"):
+                            del state._pending
+
 
                 else:
                     if debug: print "Inbound modification:", alias
@@ -237,8 +246,6 @@ class RecordSetConduit(conduits.BaseConduit):
         # have either been changed locally or remotely:
 
 
-        if debug: print "Conduit marker version:", version
-
         # Add locally changed items
         locallyChangedUuids = set()
 
@@ -251,9 +258,18 @@ class RecordSetConduit(conduits.BaseConduit):
             # This loop tries to avoid loading any non-dirty items:
             # When statistics logging is added, we can verify this loop is doing
             # what we expect
-            for changedUuid, x in rv.mapHistoryKeys(version):
+            for changedUuid, x in rv.mapHistoryKeys(fromVersion=version,
+                toVersion=rv.itsVersion):
                 if changedUuid in self.share.contents:
                     locallyChangedUuids.add(changedUuid)
+
+            if debug:
+                for changedUuid in locallyChangedUuids:
+                    print "----"
+                    print "Item Changes for", changedUuid, rv.findUUID(changedUuid).displayName
+                    rv.repository.printItemChanges(rv.findUUID(changedUuid),
+                        fromVersion=version, toVersion=rv.itsVersion)
+
 
         localCount = len(locallyChangedUuids)
         _callback(msg="Found %d local change(s)" % localCount)
@@ -275,10 +291,6 @@ class RecordSetConduit(conduits.BaseConduit):
             uuid = item.itsUUID.str16()
             if not self.hasState(alias):
                 sendStats['added'].add(uuid) # stats use uuids, not aliases
-            if alias in remotelyRemoved:
-                # This remotely removed item was modified locally.
-                # We are going to send the whole item back out.
-                remotelyRemoved.remove(alias)
 
         localCount = len(localItems)
         if localCount:
@@ -385,6 +397,18 @@ class RecordSetConduit(conduits.BaseConduit):
             state.updateConflicts(item)
 
             if send and dSend:
+
+                if alias in remotelyRemoved:
+                    # This was removed remotely, but we have local changes.
+                    # We need to send the entire state of the item, not just
+                    # a diff.  Also, remove the alias from remotelyRemoved
+                    # so that the item doesn't get removed from the collection
+                    # further down.
+                    if debug:
+                        print "Remotely removed item has local changes:", alias
+                    dSend = state.agreed
+                    remotelyRemoved.remove(alias)
+
                 toSend[alias] = dSend
                 logger.debug("Sending changes for %s [%s]", alias, dSend)
                 if uuid not in sendStats['added']:
@@ -568,9 +592,8 @@ class RecordSetConduit(conduits.BaseConduit):
                 if item is not None:
                     self.share.removeSharedItem(item)
 
-        # Note the repository version number, which will increase at the next
-        # commit
-        self.itemsMarker.setDirty(Item.NDIRTY)
+        # Note the repository version number
+        self.lastVersion = rv.itsVersion
 
         self.share.established = True
 

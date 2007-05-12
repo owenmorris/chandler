@@ -890,7 +890,11 @@ def subscribe(view, url, activity=None, username=None, password=None,
 
     logger.info("Inspection results for %s: %s", url, inspection)
 
-    # TODO: check for "already subscribed"
+
+    for share in Share.iterItems(view):
+        if url == share.getLocation("subscribed"):
+            raise AlreadySubscribed(_("Already subscribed"))
+
     # TODO: upgrade to read-write if provided new ticket
 
     # Override, because we can't trust .mac to return 'text/calendar'
@@ -1298,6 +1302,7 @@ def subscribeMorsecode(view, url, morsecodeUrl, inspection, activity=None,
         account.useSSL = useSSL
         account.port = port
         account.username = username
+        account.password = Password(itsParent=account)
         waitForDeferred(account.password.encryptPassword(password))
 
     if account:

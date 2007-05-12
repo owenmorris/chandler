@@ -606,7 +606,7 @@ class RoundTripTestCase(testcase.DualRepositoryTestCase):
         view1.commit(); stats = self.share1.sync(); view1.commit()
         self.assert_(checkStats(stats,
             ({'added' : 0, 'modified' : 0, 'removed' : 0},
-             {'added' : 1, 'modified' : 0, 'removed' : 0})),
+             {'added' : 0, 'modified' : 1, 'removed' : 0})),
             "Sync operation mismatch")
         view0.commit(); stats = self.share0.sync(); view0.commit()
         self.assert_(checkStats(stats,
@@ -622,6 +622,38 @@ class RoundTripTestCase(testcase.DualRepositoryTestCase):
             conflict.discard()
 
 
+        # Remotely removed, locally modified -- but with a change that is
+        # not something that's shared, like "error".  Item does not get put
+        # back to server
+        self.share0.contents.remove(item)
+        self.assert_(item not in self.share0.contents)
+        view0.commit(); stats = self.share0.sync(); view0.commit()
+        self.assert_(checkStats(stats,
+            ({'added' : 0, 'modified' : 0, 'removed' : 0},
+             {'added' : 0, 'modified' : 0, 'removed' : 1})),
+            "Sync operation mismatch")
+        item1.error = "foo"
+        view1.commit(); stats = self.share1.sync(); view1.commit()
+        self.assert_(checkStats(stats,
+            ({'added' : 0, 'modified' : 0, 'removed' : 1},
+             {'added' : 0, 'modified' : 0, 'removed' : 0})),
+            "Sync operation mismatch")
+        self.assert_(item1 not in self.share1.contents)
+        # Put the item back in for the next test
+        self.share0.contents.add(item)
+        view0.commit(); stats = self.share0.sync(); view0.commit()
+        self.assert_(checkStats(stats,
+            ({'added' : 0, 'modified' : 0, 'removed' : 0},
+             {'added' : 1, 'modified' : 0, 'removed' : 0})),
+            "Sync operation mismatch")
+        view1.commit(); stats = self.share1.sync(); view1.commit()
+        self.assert_(checkStats(stats,
+            ({'added' : 0, 'modified' : 0, 'removed' : 0},
+             {'added' : 0, 'modified' : 0, 'removed' : 0})),
+            "Sync operation mismatch")
+        self.assert_(item1 in self.share1.contents)
+
+
 
         # Remotely modified, locally removed - item gets put back into local
         # collection with remote state.
@@ -634,7 +666,7 @@ class RoundTripTestCase(testcase.DualRepositoryTestCase):
         self.share1.contents.remove(item1)
         view1.commit(); stats = self.share1.sync(); view1.commit()
         self.assert_(checkStats(stats,
-            ({'added' : 0, 'modified' : 1, 'removed' : 0},
+            ({'added' : 0, 'modified' : 0, 'removed' : 0},
              {'added' : 0, 'modified' : 0, 'removed' : 0})),
             "Sync operation mismatch")
         self.assert_(item1 in self.share1.contents)

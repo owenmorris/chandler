@@ -518,8 +518,9 @@ class Share(pim.ContentItem):
             necessary """
         if not pim.has_stamp(item, SharedItem):
             SharedItem(item).add()
-        sharedItem = SharedItem(item)
-        sharedItem.sharedIn = self
+        if item not in self.items:
+            sharedItem = SharedItem(item)
+            sharedItem.sharedIn = self
 
     def removeSharedItem(self, item):
         """ Remove an item from the share's sharedIn refcoll, unstamping if
