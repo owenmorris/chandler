@@ -147,13 +147,19 @@ class ICalendarTestCase(SingleRepositoryTestCase):
         event.startTime = datetime.datetime(2010, 1, 1, 
                                             tzinfo=ICUtzinfo.floating)
         event.allDay = True
-        
+        event.duration = datetime.timedelta(1)
+        self.assertEqual(event.effectiveEndTime - event.effectiveStartTime,
+                         datetime.timedelta(2))
         cal = getVObjectData(self.view, [event.itsItem])
 
         self.assert_(cal.vevent.dtstart.value == datetime.date(2010,1,1),
          u"dtstart for allDay event not set properly, dtstart is %s"
          % cal.vevent.summary.value)
-         # test bug 3509, all day event duration is off by one
+        
+        # test bug 9137, multi-day all-day events with
+        # duration modulo 1 day == 0 are serialized as 1 day instead of 2
+        self.assertEqual(cal.vevent.duration.value, datetime.timedelta(2))
+        # test bug 3509, all day event duration is off by one
 
     def testWriteICalendarUnicodeBug3338(self):
         event = Calendar.CalendarEvent(itsView = self.view)

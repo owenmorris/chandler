@@ -229,10 +229,8 @@ def toICalendarDuration(delta, allDay=False):
     
     """
     if allDay:
-        if delta.seconds > 0 or delta.microseconds > 0 or delta.days == 0:
-            # all day events' actual duration always rounds up to the nearest
-            # day, and zero length all day events are actually a full day
-            delta = timedelta(delta.days + 1)
+        # all day events' actual duration always rounds up to the nearest day
+        delta = timedelta(delta.days + 1)
     # but, for now, just use vobject, since we don't know how ical4j serializes
     # deltas yet
     return timedeltaToString(delta)
