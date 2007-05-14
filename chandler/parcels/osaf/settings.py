@@ -46,7 +46,7 @@ def save(rv, filename):
     # Sharing accounts
     currentAccount = schema.ns("osaf.sharing", rv).currentSharingAccount.item
     counter = 1
-    for account in sharing.WebDAVAccount.iterItems(rv):
+    for account in sharing.SharingAccount.iterItems(rv):
         if account.username: # skip account if not configured
             section_name = u"sharing_account_%d" % counter
             cfg[section_name] = {}
