@@ -302,6 +302,28 @@ def getRecurrenceFields(event):
 
     return rrule, exrule, rdate, exdate
 
+def fixTimezoneOnModification(modification, tzinfo=None):
+    """
+    Set timezone on occurrence equal to master to correct for inherited
+    UTC timezone values.
+    
+    If a tzinfo is passed in, convert recurrenceID (and possibly startTime)
+    to that tzinfo, otherwise use the master's timezone.
+    
+    """
+    mod = EventStamp(modification)
+    if tzinfo is None:
+        master = mod.occurrenceFor
+        assert master is not None
+        tzinfo = EventStamp(master).effectiveStartTime.tzinfo
+    if tzinfo != ICUtzinfo.floating and tzinfo != utc:
+        recurrenceID = mod.recurrenceID
+        if recurrenceID.tzinfo == utc:
+            mod.recurrenceID = recurrenceID.astimezone(tzinfo)
+        if (mod.startTime.tzinfo == utc and
+            mod.startTime == recurrenceID):
+            mod.startTime = mod.startTime.astimezone(tzinfo)    
+
 def splitUUID(recurrence_aware_uuid):
     """
     Split an EIM recurrence UUID.
@@ -527,6 +549,10 @@ class SharingTranslator(eim.Translator):
                     # add a dummy RecurrenceRuleSet so event methods treat
                     # the event as a master
                     master.rruleset = RecurrenceRuleSet(None, itsView=self.rv)
+                    # Some event methods won't work if a master doesn't have
+                    # a rruleset, but import_event's modification fixing needs
+                    # to know if the real master's event has been processed
+                    master._fake = True
                 occurrence = master.getRecurrenceID(recurrenceID)
                 if occurrence is None:
                     if create:
@@ -1238,6 +1264,8 @@ class SharingTranslator(eim.Translator):
             # allDay and anyTime shouldn't be set if they match the master
             master = event.getMaster()
             if master == event:
+                if hasattr(master, '_fake'):
+                    del master._fake
                 if allDay in (True, False):
                     event.allDay = allDay
                     # modifications may have been created before the master, so
@@ -1246,12 +1274,7 @@ class SharingTranslator(eim.Translator):
                         modEvent = EventStamp(mod)
                         if modEvent.allDay == allDay:
                             delattr(modEvent, 'allDay')
-            elif allDay in (True, False) and allDay != master.allDay:
-                event.allDay = allDay
-            elif allDay == eim.Inherit:
-                delattr(event, 'allDay')
 
-            if master == event:
                 if anyTime in (True, False):
                     event.anyTime = anyTime
                     # modifications may have been created before the master, so
@@ -1260,13 +1283,27 @@ class SharingTranslator(eim.Translator):
                         modEvent = EventStamp(mod)
                         if modEvent.anyTime == anyTime:
                             delattr(modEvent, 'anyTime')
-            elif anyTime in (True, False) and anyTime != master.anyTime:
-                event.anyTime = anyTime
-            elif anyTime == eim.Inherit:
-                delattr(event, 'anyTime')
+                            
+            else:
+                # a modification
+                fakeMaster = getattr(master, '_fake', False)
 
-            if event.occurrenceFor is not None:
-                # modifications don't have recurrence rule information
+                # set attributes that may want to be inherited.
+                if allDay in (True, False) and (fakeMaster or
+                                                allDay != master.allDay):
+                    event.allDay = allDay
+                elif allDay == eim.Inherit:
+                    delattr(event, 'allDay')
+    
+                if anyTime in (True, False) and (fakeMaster or
+                                                 anyTime != master.anyTime):
+                    event.anyTime = anyTime
+                elif anyTime == eim.Inherit:
+                    delattr(event, 'anyTime')
+                        
+                if not fakeMaster:
+                    fixTimezoneOnModification(event)
+                # modifications don't have recurrence rule information, so stop
                 return
 
             # notify of recurrence changes once at the end
@@ -1331,14 +1368,7 @@ class SharingTranslator(eim.Translator):
                 tzinfo = event.effectiveStartTime.tzinfo
                 if tzinfo != ICUtzinfo.floating:
                     for mod in event.modifications:
-                        mod = EventStamp(mod)
-                        recurrenceID = mod.recurrenceID
-                        if recurrenceID.tzinfo == utc:
-                            mod.recurrenceID = recurrenceID.astimezone(tzinfo)
-                        if (mod.startTime.tzinfo == utc and
-                            mod.startTime == recurrenceID):
-                            mod.startTime = mod.startTime.astimezone(tzinfo)
-
+                        fixTimezoneOnModification(mod, tzinfo)
 
     @eim.exporter(EventStamp)
     def export_event(self, event):
