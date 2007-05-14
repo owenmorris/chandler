@@ -498,8 +498,10 @@ class MorsecodeTester(object):
                                           self.view, reconnect,
                                           callback=callback)
 
-        self.path = "/" + self.path.strip("/")
-        usdPath = "%s/cmp/user/%s/service" % (self.path, self.username)
+        path = self.path.strip("/")
+        if path:
+            path = "/" + path
+        usdPath = "%s/cmp/user/%s/service" % (path, self.username)
 
         request = zanshin.http.Request("GET", usdPath, { }, None)
 

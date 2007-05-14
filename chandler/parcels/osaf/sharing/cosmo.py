@@ -216,9 +216,9 @@ class CosmoConduit(recordset_conduit.DiffRecordSetConduit, conduits.HTTPMixin):
 
     def get(self):
 
-        location = self.getMorsecodeLocation()
+        path = self.getMorsecodePath()
 
-        resp = self._send('GET', location)
+        resp = self._send('GET', path)
         if resp.status != 200:
             raise errors.SharingError("%s (HTTP status %d)" % (resp.message,
                 resp.status),
@@ -241,7 +241,7 @@ class CosmoConduit(recordset_conduit.DiffRecordSetConduit, conduits.HTTPMixin):
 
     def put(self, text):
 
-        location = self.getMorsecodeLocation()
+        path = self.getMorsecodePath()
 
         if self.syncToken:
             method = 'POST'
@@ -249,13 +249,13 @@ class CosmoConduit(recordset_conduit.DiffRecordSetConduit, conduits.HTTPMixin):
             method = 'PUT'
 
         tries = 3
-        resp = self._send(method, location, text)
+        resp = self._send(method, path, text)
         while resp.status == 503:
             tries -= 1
             if tries == 0:
                 msg = _(u"Server busy.  Try again later. (HTTP status 503)")
                 raise errors.SharingError(msg)
-            resp = self._send(method, location, text)
+            resp = self._send(method, path, text)
 
         if resp.status in (205, 423):
             # The collection has either been updated by someone else since
@@ -296,12 +296,12 @@ class CosmoConduit(recordset_conduit.DiffRecordSetConduit, conduits.HTTPMixin):
 
 
     def destroy(self, silent=False):
-        location = self.getMorsecodeLocation()
-        resp = self._send('DELETE', location)
+        path = self.getMorsecodePath()
+        resp = self._send('DELETE', path)
         if not silent:
             if resp.status == 404:
                 raise errors.NotFound("Collection not found at %s" %
-                    location)
+                    path)
             elif resp.status != 204:
                 raise errors.SharingError("%s (HTTP status %d)" %
                     (resp.message, resp.status),
@@ -403,41 +403,18 @@ class CosmoConduit(recordset_conduit.DiffRecordSetConduit, conduits.HTTPMixin):
 
 
 
-    def getMorsecodeLocation(self, privilege=None):
+    def getMorsecodePath(self, privilege=None):
         """
-        Return the morsecode url of the share
+        Return the morsecode path of the share
         """
 
-        (host, port, path, username, password, useSSL) = \
-            self._getMorsecodeSettings()
-        if useSSL:
-            scheme = u"https"
-            defaultPort = 443
-        else:
-            scheme = u"http"
-            defaultPort = 80
+        path = self._getMorsecodeSettings()[2]
+        if path:
+            path = "/" + path
+        if self.shareName:
+            path = "%s/%s" % (path, self.shareName)
 
-        if port == defaultPort:
-            url = u"%s://%s" % (scheme, host)
-        else:
-            url = u"%s://%s:%d" % (scheme, host, port)
-        if self.shareName == '':
-            url = urlparse.urljoin(url, path)
-        else:
-            url = urlparse.urljoin(url, path + "/")
-            url = urlparse.urljoin(url, self.shareName)
-
-        if privilege == 'readonly':
-            if self.ticketReadOnly:
-                url = url + u"?ticket=%s" % self.ticketReadOnly
-        elif privilege == 'readwrite':
-            if self.ticketReadWrite:
-                url = url + u"?ticket=%s" % self.ticketReadWrite
-        elif privilege == 'subscribed':
-            if self.ticket:
-                url = url + u"?ticket=%s" % self.ticket
-
-        return url
+        return path
 
 
     def _getMorsecodeSettings(self):
