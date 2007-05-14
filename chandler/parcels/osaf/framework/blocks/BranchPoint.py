@@ -207,6 +207,11 @@ class BranchPointBlock(BoxContainer):
                     newView.postEventByName("SetContents", {
                         'item': detailItem,
                         'collection': self.detailItemCollection})
+                if treeChanged and self.blockName == 'SidebarBranchPointBlock':
+                    # the mini-calendar and preview area track whether a
+                    # calendar view or table view is displayed, send an event
+                    # when the displayed summary view changes
+                    newView.postEventByName("ViewChanging", {})
 
                 if not hasattr (newView, "widget"):
                     newView.render()

@@ -922,6 +922,7 @@ class CalendarNotificationHandler(object):
       Calendar.EventStamp.startTime.name, 'displayName', 'appearsIn',
       Calendar.EventStamp.duration.name, Calendar.EventStamp.anyTime.name,
       Calendar.EventStamp.allDay.name, Calendar.EventStamp.transparency.name,
+      Calendar.EventStamp.rruleset.name,
       'osaf.framework.blocks.BranchPointBlock.selectedItem.inverse'))
         
     def __init__(self, *args, **kwds):
@@ -942,6 +943,18 @@ class CalendarNotificationHandler(object):
                 else:
                     op = "remove"
 
+            if op == "add":
+                # deleting Occurrences can have the perverse effect of causing
+                # the Occurrence to be temporarily added to the All collection
+                # (because as they're deleted they lose their occurrenceFor
+                # attribute, which makes them non-recurring), ignore those adds
+                
+                # get only returns loaded items but in the case we're interested
+                # in the item will already be loaded
+                item = self.blockItem.itsView.get(uuid)
+                if item is not None and isDead(item):
+                    return
+            
             existingChange = self._pending.get(uuid)
             
             if existingChange == op:

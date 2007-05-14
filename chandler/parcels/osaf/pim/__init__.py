@@ -251,7 +251,8 @@ def installParcel(parcel, oldVersion=None):
                           EventStamp.modificationFor.name,
                           EventStamp.occurrences.name]
     )
-
+    nonRecurringNotes.addIndex('__adhoc__', 'numeric')
+    
     allContentItems = KindCollection.update(
         parcel, 'allContentItems',
         kind = ContentItem.getKind(view),

@@ -168,6 +168,7 @@ def makeCPIATestMainView (parcel):
             main.ApplicationBarTask,
             main.ApplicationBarMail,
             main.ApplicationBarAll,
+            main.ViewChanging,
             ],
         childBlocks = [
             cpiatest2.MenuBar,

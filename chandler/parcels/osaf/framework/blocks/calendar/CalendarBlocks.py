@@ -61,7 +61,7 @@ class wxMiniCalendar(DragAndDrop.DropReceiveWidget,
     # In the case of adding new events, we may be able to get away
     # with just updating a few days on the minicalendar. In those
     # cases, _eventsToAdd will be non-None.
-    _eventsToAdd = None
+    _eventsToAdd = set()
 
      # Note that _recalcCount wins over _eventsToAdd. That's
      # because more general changes (i.e. ones we don't know
@@ -135,16 +135,28 @@ class wxMiniCalendar(DragAndDrop.DropReceiveWidget,
         self.Bind(minical.EVT_MINI_CALENDAR_DOUBLECLICKED,
                   self.OnWXDoubleClick)
         self.Bind(minical.EVT_MINI_CALENDAR_UPDATE_BUSY,
-                  self.setFreeBusy)
+                  self.forceFreeBusyUpdate)
         self.Bind(wx.EVT_PAINT, self.OnPaint)
 
     
     def wxSynchronizeWidget(self):
+        self.setWeeklyOrDaily()
+        self.setFreeBusy()
+
+    def setWeeklyOrDaily(self):
+        """
+        Change the window style to daily or weekly, as appropriate.
+        
+        Return True if the style changed.
+        
+        """
         style = PLATFORM_BORDER
         if isMainCalendarVisible() and not self.blockItem.dayMode:
             style |= minical.CAL_HIGHLIGHT_WEEK
-        self.SetWindowStyle(style)
-        self.setFreeBusy(None)
+        if self.GetWindowStyle() != style:
+            self.SetWindowStyle(style)
+            return True
+        return False
 
     def OnWXSelectItem(self, event):
         self.blockItem.postEventByName ('SelectedDateChanged',
@@ -162,7 +174,10 @@ class wxMiniCalendar(DragAndDrop.DropReceiveWidget,
         date = datetime.combine(self.GetDate(), time(tzinfo = ICUtzinfo.floating))
         return date
 
-    def setFreeBusy(self, event):
+    def forceFreeBusyUpdate(self, event):
+        self._recalcCount += 1
+
+    def setFreeBusy(self):
 
         if self._recalcCount == 0:
             zerotime = time(tzinfo=ICUtzinfo.default)
@@ -179,14 +194,8 @@ class wxMiniCalendar(DragAndDrop.DropReceiveWidget,
                 
                 if len(removedItems) + len(changedItems) > 0:
                     self._recalcCount += 1
-                    self._eventsToAdd = None
+                    self._eventsToAdd.clear()
                 else:
-    
-                    # self._eventsToAdd is a set to deal with cases where
-                    # multiple notifications are received for a given
-                    # event.
-                    if self._eventsToAdd is None: self._eventsToAdd = set()
-
                     for item in addedItems:
                         if not isDead(item):
                             if (not has_stamp(item, EventStamp)):
@@ -195,16 +204,16 @@ class wxMiniCalendar(DragAndDrop.DropReceiveWidget,
                             if event.rruleset is not None:
                                 # new recurring events should 
                                 self._recalcCount += 1
-                                self._eventsToAdd = None
+                                self._eventsToAdd.clear()
                                 break
                             elif (event.isBetween(start, end) and 
                                   event.transparency == 'confirmed'):
                                 self._eventsToAdd.add(event)
 
             else:
-                self._eventsToAdd = None
+                self._eventsToAdd.clear()
 
-        if self._eventsToAdd is None:
+        if self._eventsToAdd:
             self._recalcCount += 1
 
         if self._recalcCount or self._eventsToAdd:
@@ -215,12 +224,12 @@ class wxMiniCalendar(DragAndDrop.DropReceiveWidget,
         event.Skip(True)
 
     def _checkRedraw(self):
-        if self._recalcCount > 0 or self._eventsToAdd is not None:
+        if self._recalcCount > 0 or len(self._eventsToAdd) > 0:
             self._recalcCount = 0
-            self._doDrawing()
-            self._eventsToAdd = None
+            self._doBusyCalculations()
+            self._eventsToAdd.clear()
 
-    def _doDrawing(self):
+    def _doBusyCalculations(self):
 
         startDate = self.GetStartDate()
 
@@ -288,7 +297,7 @@ class wxMiniCalendar(DragAndDrop.DropReceiveWidget,
 
                     busyFractions[offset + day] = min(fraction, 1.0)
 
-        if self._eventsToAdd is not None:
+        if len(self._eventsToAdd) > 0:
             # First, set up busyFractions to contain the
             # existing values for all the dates of events
             # we're about to add
@@ -306,7 +315,6 @@ class wxMiniCalendar(DragAndDrop.DropReceiveWidget,
             for offset, busy in busyFractions.iteritems():
                 eventDate = startDate + timedelta(days=offset)
                 self.SetBusy(eventDate, busy)
-
         else:
 
             # Largely, this code is stolen from CalendarCanvas.py; it
@@ -335,17 +343,16 @@ class wxMiniCalendar(DragAndDrop.DropReceiveWidget,
 
 
 def isMainCalendarVisible():
-    # Heuristic: is the appbar calendar button selected (depressed)?
-    calendarButton = Block.Block.findBlockByName("ApplicationBarEventButton")
-    try:
-        return calendarButton.selected
-    except AttributeError:
-        # Toolbar isn't rendered yet
-        return False
+    sidebarBPB = Block.Block.findBlockByName("SidebarBranchPointBlock")
+    if sidebarBPB is None:
+        return True
+    tableView = 'osaf.views.main.DashboardSummaryViewTemplate'
+    return sidebarBPB.delegate.getView(sidebarBPB.selectedItem) != tableView
+
 
 
 class MiniCalendar(CalendarBlock):
-    dayMode = schema.One(schema.Boolean, initialValue = True)
+    dayMode = schema.One(schema.Boolean, initialValue = False)
 
     previewArea = schema.One(
         defaultValue = None
@@ -413,8 +420,8 @@ class MiniCalendar(CalendarBlock):
 
     def onDayModeEvent(self, event):
         self.dayMode = event.arguments['dayMode']
-        self.synchronizeWidget()
-        self.widget.Refresh()
+        if self.widget.setWeeklyOrDaily():
+            self.widget.Refresh()
 
     def onSetContentsEvent(self, event):
         #We want to ignore, because view changes could come in here, and we
@@ -424,6 +431,10 @@ class MiniCalendar(CalendarBlock):
     def onItemNotification(self, notificationType, data):
         # Delegate notifications to the block
         self.widget.onItemNotification(notificationType, data)
+
+    def onViewChangingEvent(self, event):
+        self.synchronizeWidget()
+        self.widget.Refresh()
 
 class PreviewPrefs(Preferences):
     maximumEventsDisplayed = schema.One(schema.Integer, initialValue=5)
@@ -475,6 +486,8 @@ class PreviewArea(CalendarBlock):
         # Delegate notifications to the block
         self.widget.onItemNotification(notificationType, data)
 
+    def onViewChangingEvent(self, event):
+        self.synchronizeWidget()
 
 class wxPreviewArea(CalendarNotificationHandler, wx.Panel):
     vMargin = 4 # space above & below text

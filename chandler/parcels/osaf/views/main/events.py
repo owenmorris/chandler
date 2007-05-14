@@ -111,6 +111,9 @@ def makeMainEvents(parcel):
     BlockEvent.template('CreateConflict',
                         dispatchEnum = 'FocusBubbleUp',
                         commitAfterDispatch = True).install(parcel)
+    
+    BlockEvent.template('ViewChanging',
+                        dispatchEnum = 'BroadcastEverywhere').install(parcel)
 
     # "Item" menu events
     BlockEvent.template('FocusTogglePrivate',
