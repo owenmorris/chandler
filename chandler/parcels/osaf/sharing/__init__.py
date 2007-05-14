@@ -157,10 +157,10 @@ def createDefaultAccount(rv):
     if cur.item is None:
         cur.item = CosmoAccount(itsView=rv,
             displayName=_(u'Chandler Hub Service'),
-            host=u'qacosmo.osafoundation.org', path=u'/cosmo',
+            host=u'hub.chandlerproject.org', path=u'/',
             username=u'',
             password=Password(itsView=rv),
-            useSSL=False, port=80
+            useSSL=True, port=443
         )
 
     return cur.item
