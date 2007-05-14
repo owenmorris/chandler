@@ -22,5 +22,5 @@ goto end
 :end
 endlocal
 
-echo %ERRORLEVEL% > %CHANDLERHOME%\rt_exit_code
+echo %ERRORLEVEL% > "%CHANDLERHOME%"\rt_exit_code
 
