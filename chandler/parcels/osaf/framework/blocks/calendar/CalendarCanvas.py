@@ -1041,21 +1041,21 @@ class CalendarNotificationHandler(object):
         
         """
         addedItems, removedItems, changedItems = self.GetPendingChanges(False)
-        
+        inclusive = dict(inclusive=False)
         newVisibleEvents = []
         for event in self.visibleEvents:
             remove = (
                 isDead(event.itsItem) or
                 (event.itsItem in removedItems) or
                 not has_stamp(event, Calendar.EventStamp) or
-                not event.isBetween(*currentRange) or
+                not event.isBetween(*currentRange, **inclusive) or
                 event.isRecurrenceMaster() 
             )
             
             if not remove and isinstance(event.itsItem, Calendar.Occurrence):
                 master = event.getMaster()
                 remove = (master.itsItem in removedItems or
-                          not event.isBetween(*currentRange))
+                          not event.isBetween(*currentRange, **inclusive))
                 
             if remove:
                 yield 'remove', event
@@ -1077,7 +1077,7 @@ class CalendarNotificationHandler(object):
                     if not ev in newVisibleEvents:
                         newVisibleEvents.append(ev)
                     yield op, ev
-            elif event.isBetween(*currentRange):
+            elif event.isBetween(*currentRange, **inclusive):
                 if not event in newVisibleEvents:
                     newVisibleEvents.append(event)
                 yield op, event
