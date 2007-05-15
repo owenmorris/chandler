@@ -645,7 +645,8 @@ class AccountPreferencesDialog(wx.Dialog):
                         setting = {}
 
                 elif desc['type'] == 'password':
-                    # XXX Is this really necessary?
+                    if not hasattr(item, 'password'):
+                        item.password = password.Password(itsParent=item)
                     setting = item.password
 
                 else:
