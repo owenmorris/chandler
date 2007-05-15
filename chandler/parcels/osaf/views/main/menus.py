@@ -649,7 +649,7 @@ def makeMainMenus(parcel):
                                 helpString = u'run check() on the main view'),
                             MenuItem.template('CheckAndRepairRepositoryItem',
                                 event = main.CheckAndRepairRepository,
-                                title = u'Check and &Repair',
+                                title = u'C&heck and Repair',
                                 helpString = u'run check(True) on the main view'),
                             MenuItem.template('CompactRepositoryItem',
                                 event = main.CompactRepository,
