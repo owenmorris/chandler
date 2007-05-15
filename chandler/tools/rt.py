@@ -1210,7 +1210,7 @@ def runPerfTests(options, tests=None):
                         log('time.exe not found, skipping startup performance tests')
                 elif sys.platform == 'darwin':
                     t = build_lib.getCommand(['which', 'gtime'])
-                    if not t:
+                    if t.startswith("no gtime"):
                         log('gtime not found, skipping startup performance tests')
                         log('NOTE: gtime is not part of OS X, you need to compile one' + \
                             'yourself (get source from http://directory.fsf.org/time.html)' + \
