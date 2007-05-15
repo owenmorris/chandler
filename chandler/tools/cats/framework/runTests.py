@@ -25,6 +25,7 @@ from tools.cats.framework.TestOutput import TestOutput
 import os, sys
 from application import Globals
 import osaf.framework.scripting as scripting
+from osaf.framework.blocks.Block import Block
 
 functional_dir = os.path.join(Globals.chandlerDirectory,"tools/cats/Functional")
 testDebug = Globals.options.chandlerTestDebug
@@ -66,6 +67,9 @@ def run_tests(tests, debug=testDebug, mask=testMask, logName=logFileName):
     
     logger = TestOutput(stdout=True, debug=debug, mask=mask, logName=logName) 
     testList = tests.split(',')
+    statusBar = Block.findBlockByName("StatusBar")
+    totalTests = len(tests.split(','))
+    curTest = 0
     
     if len(testList) < 2:
         logger.startSuite(name = testList[0].split(':')[0])
@@ -76,7 +80,9 @@ def run_tests(tests, debug=testDebug, mask=testMask, logName=logFileName):
     # --catch=never will turn it off, so that a debugger can stop on 
     # uncaught exceptions.
     runner = Globals.options.catch != 'never' and run_test_wrapped or run_test
-    for paramSet in testList:
+    for paramSet in testList:       
+        curTest += 1
+        statusBar.setStatusMessage("Test %d of %d %s" % (curTest, totalTests, paramSet.split(":")[0]))
         runner(logger, paramSet)
         if haltOnFailure and logger.testHasFailed:
             logger.report(False, 'Suite halted on test failure')
