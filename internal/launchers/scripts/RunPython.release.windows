@@ -20,6 +20,6 @@ set CHANDLERHOME=%~dp1
 goto end
 
 :end
-echo %ERRORLEVEL% > "%CHANDLERHOME%"\rt_exit_code
-endlocal
+endlocal & exit /B %ERRORLEVEL%
+
 
