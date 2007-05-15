@@ -1196,10 +1196,8 @@ _(u"""Your repository was created by an older version of Chandler. In the future
 Would you like to remove all data from your repository?
 """)
 
-        dialog = wx.MessageDialog(None,
-                                  message,
-                                  _(u"Cannot open repository"),
-                                  wx.YES_NO | wx.ICON_INFORMATION)
+        dialog = wx.MessageDialog(None, message, _(u"Cannot open repository"),
+            wx.YES_NO | wx.ICON_INFORMATION | wx.NO_DEFAULT)
         response = dialog.ShowModal()
         dialog.Destroy()
         return response == wx.ID_YES
