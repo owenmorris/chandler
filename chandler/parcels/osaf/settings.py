@@ -231,6 +231,7 @@ def restore(rv, filename, testmode=False, newMaster=''):
     @param testmode:  Are we running a test or not
     @param newMaster: Used in testmode only
     """
+    subscribes = []
 
     if not testmode:
         oldMaster = waitForDeferred(MasterPassword.get(rv))
@@ -323,20 +324,7 @@ def restore(rv, filename, testmode=False, newMaster=''):
                 else:
                     color = None
 
-                if testmode:
-                    # Fake the subscribes so unit tests don't have to
-                    # access the network
-                    collection = pim.SmartCollection(itsView=rv)
-                    collection.displayName = title
-                    if mine:
-                        schema.ns('osaf.pim', rv).mine.addSource(collection)
-                    usercollections.UserCollection(collection).color = color
-                else:
-                    SubscribeCollection.Show(view=rv, url=url,
-                                             name=title, modal=False,
-                                             immediate=True, mine=mine,
-                                             publisher=publisher,
-                                             color=color)
+                subscribes.append((url, title, mine, publisher, color))
 
     for sectionname, section in cfg.iteritems():
         if section.has_key(u"type"):
@@ -563,6 +551,23 @@ def restore(rv, filename, testmode=False, newMaster=''):
 
     # Master password, must be done after accounts have been handled
     restoreMasterPassword(rv, cfg, testmode, oldMaster, newMaster)
+
+    # Subscribe
+    for url, title, mine, publisher, color in subscribes:
+        if testmode:
+            # Fake the subscribes so unit tests don't have to
+            # access the network
+            collection = pim.SmartCollection(itsView=rv)
+            collection.displayName = title
+            if mine:
+                schema.ns('osaf.pim', rv).mine.addSource(collection)
+            usercollections.UserCollection(collection).color = color
+        else:
+            SubscribeCollection.Show(view=rv, url=url,
+                                     name=title, modal=False,
+                                     immediate=True, mine=mine,
+                                     publisher=publisher,
+                                     color=color)
 
 
 def savePassword(section, password, sectionName=u"password"):
