@@ -850,7 +850,8 @@ def makeSummaryBlocks(parcel):
                         calendarControl = MainCalendarControl,
                         childBlocks = [
                             calendar.AllDayEventsCanvas.template('AllDayEvents',
-                                calendarContainer = CalendarSummaryView),
+                                calendarContainer = CalendarSummaryView,
+                                contextMenu = "ItemContextMenu"),
                             calendar.TimedEventsCanvas.template('TimedEvents',
                                 calendarContainer = CalendarSummaryView,
                                 contextMenu = "ItemContextMenu",

@@ -433,8 +433,7 @@ class wxCollectionCanvas(DragAndDrop.DropReceiveWidget,
         else:
             self.WarnReadOnlyAdd(self.blockItem.contents)
             
-    def _handleLeftClick(self, unscrolledPosition,
-                         multipleSelection):
+    def _handleClick(self, unscrolledPosition, multipleSelection):
         """
         Handle a single left click, potentially hitting an item
 
@@ -464,7 +463,12 @@ class wxCollectionCanvas(DragAndDrop.DropReceiveWidget,
                 
         else:
             self.OnSelectNone(unscrolledPosition)
+            
+        return hitBox
 
+    def _handleLeftClick(self, unscrolledPosition,
+                         multipleSelection):
+        hitBox = self._handleClick(unscrolledPosition, multipleSelection)
         # create a drag state for resize dragging
         self._initiateDrag(hitBox, unscrolledPosition)
 
@@ -688,10 +692,16 @@ class wxCollectionCanvas(DragAndDrop.DropReceiveWidget,
                     if self.dragState._dragStarted:
                         self.dragState.StopDragTimer()
                     self.dragState = None
+        
+        elif event.RightUp():
+            # select the right clicked item before popping up a context menu
+            self._handleClick(unscrolledPosition, False)
+            self.Refresh()
+            # Pass right clicks, etc onto wx, which can generate
+            # EVT_CONTEXT_MENU as appropriate.            
+            event.Skip()
                     
         else:
-            # Pass right clicks, etc onto wx, which can generate
-            # EVT_CONTEXT_MENU as appropriate.
             event.Skip()
 
     def SelectedCanvasItem(self):

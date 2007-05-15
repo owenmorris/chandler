@@ -24,6 +24,7 @@ from CalendarCanvas import (
     wxCalendarCanvas, widgetGuardedCallback,
     wxInPlaceEditor
     )
+from osaf.framework.blocks.Block import BaseWidget
 from CollectionCanvas import DragState
 from PyICU import GregorianCalendar, ICUtzinfo
 from osaf.pim.calendar.TimeZone import TimeZoneInfo
@@ -125,7 +126,7 @@ class AllDayEventsCanvas(CalendarBlock):
         pass # all notifications handled by container
 
 
-class wxAllDayEventsCanvas(wxCalendarCanvas):
+class wxAllDayEventsCanvas(BaseWidget, wxCalendarCanvas):
     legendBorderWidth = 1
 
     def __init__(self, *arguments, **keywords):
