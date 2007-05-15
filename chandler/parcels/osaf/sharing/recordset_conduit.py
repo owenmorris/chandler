@@ -562,7 +562,7 @@ class RecordSetConduit(conduits.BaseConduit):
 
         # Send if there is something to send or even if this is just an
         # initial publish of an empty collection:
-        if send and toSend or not self.share.established:
+        if send and (toSend or not self.share.established):
             sendCount = len(toSend)
             _callback(msg="Sending %d outbound change(s)" % sendCount,
                 totalWork=None)
