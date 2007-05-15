@@ -1276,14 +1276,16 @@ class MainView(View):
         event.arguments ['Enable'] = True
 
     def onRecordSetDebuggingEvent(self, event):
-        sharing.recordset_conduit.recordset_debugging = \
-            not sharing.recordset_conduit.recordset_debugging
+        if sharing.logger.level == 10:
+            sharing.logger.level = 0
+        else:
+            sharing.logger.level = 10
 
     def onRecordSetDebuggingEventUpdateUI(self, event):
-        if sharing.recordset_conduit.recordset_debugging:
-            menuTitle = _(u'Disable RecordSet &debugging')
+        if sharing.logger.level == 10:
+            menuTitle = _(u'Set sharing logging level to normal')
         else:
-            menuTitle = _(u'Enable RecordSet &debugging')
+            menuTitle = _(u'Set sharing logging level to debug')
         event.arguments ['Text'] = menuTitle
         event.arguments ['Enable'] = True
 

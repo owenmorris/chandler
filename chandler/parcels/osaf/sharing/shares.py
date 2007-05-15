@@ -227,15 +227,14 @@ class State(schema.Item):
         externalDiff = filter(rsExternal - self.agreed)
         ncd = internalDiff | externalDiff
 
-        if debug:
-            print " ----------- Beginning merge"
-            print "   old agreed:", self.agreed, "\n"
-            print "   old pending:", pending, "\n"
-            print "   rsInternal:", rsInternal, "\n"
-            print "   internalDiff:", internalDiff, "\n"
-            print "   rsExternal:", rsExternal, "\n"
-            print "   externalDiff:", externalDiff, "\n"
-            print "   ncd:", ncd, "\n"
+        logger.debug("----------- Beginning merge")
+        logger.debug("   old agreed: %s", self.agreed)
+        logger.debug("   old pending: %s", pending)
+        logger.debug("   rsInternal: %s", rsInternal)
+        logger.debug("   internalDiff: %s", internalDiff)
+        logger.debug("   rsExternal: %s", rsExternal)
+        logger.debug("   externalDiff: %s", externalDiff)
+        logger.debug("   ncd: %s", ncd)
 
         if readOnly:
             # This allows a read-only subscriber to maintain local changes
@@ -252,9 +251,8 @@ class State(schema.Item):
 
             extWins = self.agreed + internalDiff + self.pending + externalDiff
             intWins = self.agreed + self.pending + externalDiff + internalDiff
-            if debug:
-                print "   extWins:", extWins
-                print "   intWins:", intWins
+            logger.debug("   extWins: %s", extWins)
+            logger.debug("   intWins: %s", intWins)
             self.pending = filter(extWins - intWins)
 
             self.agreed = filter(rsExternal)
@@ -269,13 +267,12 @@ class State(schema.Item):
         dApply = self._cleanDiff(rsInternal, ncd)
 
 
-        if debug:
-            print " - - - - Results - - - - "
-            print "   dSend:", dSend
-            print "   dApply:", dApply
-            print "   new agreed:", self.agreed
-            print "   new pending:", self.pending
-            print " ----------- Merge complete"
+        logger.debug(" - - - - Results - - - - ")
+        logger.debug("   dSend: %s", dSend)
+        logger.debug("   dApply: %s", dApply)
+        logger.debug("   new agreed: %s", self.agreed)
+        logger.debug("   new pending: %s", self.pending)
+        logger.debug(" ----------- Merge complete")
 
         return dSend, dApply, self.pending
 

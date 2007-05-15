@@ -88,7 +88,7 @@ def inbound(peer, text, filter=None, allowDeletion=False, debug=False):
                 state.updateConflicts(item)
 
                 if dApply:
-                    if debug: print "Applying:", uuid, dApply
+                    logger.debug("Applying: %s %s", uuid, dApply)
                     trans.startImport()
                     trans.importRecords(dApply)
                     trans.finishImport()
@@ -123,7 +123,7 @@ def inbound(peer, text, filter=None, allowDeletion=False, debug=False):
 
                 # Remove the item (if allowed)
                 if allowDeletion:
-                    if debug: print "Deleting item:", uuid
+                    logger.debug("Deleting item: %s", uuid)
                     item.delete(True)
                     item = None
 

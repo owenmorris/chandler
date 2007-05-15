@@ -71,7 +71,6 @@ class RecordSetConduit(conduits.BaseConduit):
             self.syncToken = ""
 
         debug = recordset_debugging or debug
-        if debug: print "Syncing"
 
         rv = self.itsView
 
@@ -83,7 +82,7 @@ class RecordSetConduit(conduits.BaseConduit):
             if activity:
                 activity.update(msg="Saving...", totalWork=None)
             rv.commit(mergeFunction)
-            if debug: print "View version is now:", rv.itsVersion
+            logger.debug("View version is now: %s", rv.itsVersion)
 
         except Exception, exception:
             logger.exception("Sharing Error")
@@ -100,7 +99,7 @@ class RecordSetConduit(conduits.BaseConduit):
             if activity:
                 activity.update(*args, **kwds)
 
-        if debug: print "\n ================ start of sync ================= "
+        logger.debug("================ start of sync =================")
 
         rv = self.itsView
 
@@ -126,8 +125,8 @@ class RecordSetConduit(conduits.BaseConduit):
         allowNameChange = True
 
         if self.share.established:
-            if debug:
-                print "Previous sync included up to version:", self.lastVersion
+            logger.debug("Previous sync included up to version: %s",
+                self.lastVersion)
             version = self.lastVersion + 1
         else:
             version = 0
@@ -143,8 +142,7 @@ class RecordSetConduit(conduits.BaseConduit):
                     # the collection name
                     allowNameChange = False
 
-        if debug:
-            print "Current view version:", rv.itsVersion
+        logger.debug("Current view version: %s", rv.itsVersion)
 
 
         remotelyRemoved = set() # The aliases of remotely removed items
@@ -156,11 +154,8 @@ class RecordSetConduit(conduits.BaseConduit):
             _callback(msg="Fetching changes", totalWork=None)
             inbound, extra, isDiff = self.getRecords(debug=debug, activity=
                 activity)
-            if debug:
-                print "\nInbound records:\n"
-                prettyPrintRecordSetDict(inbound)
-                print "extra:", extra
-                print
+            logger.debug("Inbound records: %s", inbound)
+            logger.debug("'Extra': %s", extra)
 
             inboundCount = len(inbound)
             _callback(msg="Received %d change(s)" % inboundCount)
@@ -197,7 +192,7 @@ class RecordSetConduit(conduits.BaseConduit):
             for alias in inbound.keys():
                 rs = inbound[alias]
                 if rs is None: # skip deletions
-                    if debug: print "Inbound removal:", alias
+                    logger.debug("Inbound removal: %s", alias)
                     del inbound[alias]
                     remotelyRemoved.add(alias)
 
@@ -210,7 +205,7 @@ class RecordSetConduit(conduits.BaseConduit):
 
 
                 else:
-                    if debug: print "Inbound modification:", alias
+                    logger.debug("Inbound modification: %s", alias)
                     uuid = translator.getUUIDForAlias(alias)
                     if uuid:
                         item = rv.findUUID(uuid)
@@ -231,7 +226,7 @@ class RecordSetConduit(conduits.BaseConduit):
                             # as the new inbound
                             state = self.getState(alias)
                             rs = state.agreed + state.pending + rs
-                            if debug: print "Reconstituting from state:", rs
+                            logger.debug("Reconstituting from state: %s", rs)
                             inbound[alias] = rs
                             state.clear()
 
@@ -263,12 +258,11 @@ class RecordSetConduit(conduits.BaseConduit):
                 if changedUuid in self.share.contents:
                     locallyChangedUuids.add(changedUuid)
 
-            if debug:
-                for changedUuid in locallyChangedUuids:
-                    print "----"
-                    print "Item Changes for", changedUuid, rv.findUUID(changedUuid).displayName
-                    rv.repository.printItemChanges(rv.findUUID(changedUuid),
-                        fromVersion=version, toVersion=rv.itsVersion)
+            # for changedUuid in locallyChangedUuids:
+            #     print "----"
+            #     print "Item Changes for", changedUuid, rv.findUUID(changedUuid).displayName
+            #     rv.repository.printItemChanges(rv.findUUID(changedUuid),
+            #         fromVersion=version, toVersion=rv.itsVersion)
 
 
         localCount = len(locallyChangedUuids)
@@ -278,13 +272,14 @@ class RecordSetConduit(conduits.BaseConduit):
             item = rv.findUUID(changedUuid)
             # modifications that have been changed purely by
             # auto-triage shouldn't have recordsets created for them
-            if (isinstance(item, pim.Note) and 
+            if (isinstance(item, pim.Note) and
                 pim.EventStamp(item).isTriageOnlyModification() and
                 item.doAutoTriageOnDateChange):
-                if debug: print "Skipping a triage-only modification", item, item.itsVersion
+                logger.debug("Skipping a triage-only modification: %s",
+                    changedUuid)
                 continue
 
-            if debug: print "Locally modified item", item.itsUUID, item, item.itsVersion
+            logger.debug("Locally modified item: %s", item.itsUUID)
 
             alias = translator.getAliasForItem(item)
             localItems.add(alias)
@@ -313,10 +308,10 @@ class RecordSetConduit(conduits.BaseConduit):
 
                 rs = eim.RecordSet(translator.exportItem(item))
                 self.share.addSharedItem(item)
-                if debug: print "Computing local records for live item:", uuid
+                logger.debug("Computing local records for live item: %s", uuid)
             else:
                 rs = eim.RecordSet()
-                if debug: print "No local item for:", uuid
+                logger.debug("No local item for: %s", uuid)
             rsNewBase[alias] = rs
             i += 1
             _callback(msg="Generated %d of %d recordset(s)" % (i, localCount),
@@ -351,7 +346,7 @@ class RecordSetConduit(conduits.BaseConduit):
             else:
                 rsExternal = inbound.get(alias, eim.RecordSet())
 
-            if debug: print "\n ----- Merging %s:" % alias
+            logger.debug("----- Merging %s:", alias)
 
             uuid = translator.getUUIDForAlias(alias)
             if (uuid is not None and uuid != alias and not state.agreed and
@@ -404,8 +399,8 @@ class RecordSetConduit(conduits.BaseConduit):
                     # a diff.  Also, remove the alias from remotelyRemoved
                     # so that the item doesn't get removed from the collection
                     # further down.
-                    if debug:
-                        print "Remotely removed item has local changes:", alias
+                    logger.debug("Remotely removed item has local changes: %s",
+                        alias)
                     dSend = state.agreed
                     remotelyRemoved.remove(alias)
 
@@ -436,7 +431,6 @@ class RecordSetConduit(conduits.BaseConduit):
             translator.startImport()
             i = 0
             for alias, rs in toApply.items():
-                if debug: print "\nApplying:", alias, rs
                 logger.debug("Applying changes to %s [%s]", alias, rs)
 
                 uuid = translator.getUUIDForAlias(alias)
@@ -514,7 +508,6 @@ class RecordSetConduit(conduits.BaseConduit):
 
                 # Add the item to contents
                 if item is not None and item.isLive():
-                    if debug: print "Adding to collection:", uuid
                     self.share.contents.add(item)
                     self.share.addSharedItem(item)
 
@@ -536,7 +529,7 @@ class RecordSetConduit(conduits.BaseConduit):
                     self.removeState(alias)
                     self.share.removeSharedItem(item)
                     receiveStats['removed'].add(uuid)
-                    if debug: print "Locally removing item:", uuid
+                    logger.debug("Locally removing item: %s", uuid)
 
 
         # For each item that was in the collection before but is no longer,
@@ -559,7 +552,7 @@ class RecordSetConduit(conduits.BaseConduit):
                     sendStats['removed'].add(uuid)
                 statesToRemove.add(alias)
 
-                if debug: print "Remotely removing item:", alias
+                logger.debug("Remotely removing item: %s", alias)
 
         removeCount = len(statesToRemove)
         if removeCount:
@@ -579,12 +572,11 @@ class RecordSetConduit(conduits.BaseConduit):
                     }
             self.putRecords(toSend, extra, debug=debug, activity=activity)
         else:
-            if debug: print "Nothing to send"
             logger.debug("Nothing to send")
 
 
         for alias in statesToRemove:
-            if debug: print "REMOVING STATE", alias
+            logger.debug("Removing state: %s", alias)
             self.removeState(alias)
             uuid = translator.getUUIDForAlias(alias)
             if uuid:
@@ -599,7 +591,7 @@ class RecordSetConduit(conduits.BaseConduit):
 
         _callback(msg="Done")
 
-        if debug: print " ================== end of sync ================= "
+        logger.debug("================== end of sync =================")
 
         if receive:
             receiveStats['applied'] = str(toApply)
@@ -660,7 +652,6 @@ class DiffRecordSetConduit(RecordSetConduit):
 
     def getRecords(self, debug=False, activity=None):
         text = self.get()
-        if debug: print "Inbound text:", text
         logger.debug("Received from server [%s]", text)
 
         inbound, extra = self.serializer.deserialize(text,
@@ -669,7 +660,6 @@ class DiffRecordSetConduit(RecordSetConduit):
 
     def putRecords(self, toSend, extra, debug=False, activity=None):
         text = self.serializer.serialize(toSend, **extra)
-        if debug: print "Sending text:", text
         logger.debug("Sending to server [%s]", text)
         self.put(text)
 
@@ -683,7 +673,6 @@ class MonolithicRecordSetConduit(RecordSetConduit):
 
     def getRecords(self, debug=False, activity=None):
         text = self.get()
-        if debug: print "Inbound text:", text
         logger.debug("Received from server [%s]", text)
 
         if text:
@@ -711,7 +700,6 @@ class MonolithicRecordSetConduit(RecordSetConduit):
                 fullToSend[alias] = rs
 
         text = self.serializer.serialize(fullToSend, **extra)
-        if debug: print "Sending text:", text
         logger.debug("Sending to server [%s]", text)
         self.put(text)
 
@@ -753,15 +741,16 @@ class ResourceRecordSetConduit(RecordSetConduit):
                 state = paths[path][1]
                 if etag != state.etag:
                     # Need to fetch this path since its etag doesn't match
-                    if debug: print "need to fetch: etag mismatch for %s (%s vs %s)" % (path, state.etag, etag)
+                    logger.debug("Need to fetch: etag mismatch for %s "
+                        "(%s vs %s)", path, state.etag, etag)
                     toFetch.add(path)
             else:
                 # Need to fetch this path since we don't yet have it
-                if debug: print "need to fetch: don't yet have %s" % path
+                logger.debug("Need to fetch: don't yet have %s", path)
                 toFetch.add(path)
 
         fetchCount = len(toFetch)
-        if debug: print "%d resources to get" % fetchCount
+        logger.debug("%d resources to get", fetchCount)
         if activity:
             activity.update(msg="%d resources to get" % fetchCount,
                 totalWork=fetchCount, workDone=0)
@@ -773,7 +762,7 @@ class ResourceRecordSetConduit(RecordSetConduit):
                 activity.update(msg="Getting %d of %d" % (i, fetchCount),
                     work=1)
             text, etag = self.getResource(path)
-            if debug: print "Inbound text:", text
+            logger.debug("Received from server [%s]", text)
             records, extra = self.serializer.deserialize(text,
                                                         helperView=self.itsView)
             for alias, rs in records.iteritems():
@@ -808,7 +797,7 @@ class ResourceRecordSetConduit(RecordSetConduit):
                 # delete the resource
                 if path:
                     self.deleteResource(path, etag)
-                    if debug: print "Deleting path %s", path
+                    logger.debug("Deleting path %s", path)
             else:
                 if not path:
                     # need to compute a path
@@ -817,14 +806,14 @@ class ResourceRecordSetConduit(RecordSetConduit):
                 # rs needs to include the entire recordset, not diffs
                 rs = state.agreed + state.pending
 
-                if debug: print "Full resource records:", rs
+                logger.debug("Full resource records: %s", rs)
 
                 text = self.serializer.serialize({alias : rs}, **extra)
-                if debug: print "Sending text:", text
+                logger.debug("Sending to server [%s]", text)
                 etag = self.putResource(text, path, etag, debug=debug)
                 state.path = path
                 state.etag = etag
-                if debug: print "Put path %s, etag now %s" % (path, etag)
+                logger.debug("Put path %s, etag now %s", path, etag)
 
 
     def newState(self, alias):
@@ -1044,7 +1033,7 @@ class InMemoryResourceRecordSetConduit(ResourceRecordSetConduit):
                 raise errors.TokenMismatch("Mismatched etags on PUT")
         coll['etag'] += 1
         coll['resources'][path] = (text, coll['etag'])
-        if debug: print "Put [%s]" % text
+        logger.debug("Put [%s]", text)
         return str(coll['etag'])
 
     def deleteResource(self, path, etag=None):

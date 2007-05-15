@@ -90,7 +90,7 @@ def deserialize(rv, peer, text, translator, serializer, filter=None,
             state.updateConflicts(item)
 
             if dApply:
-                if debug: print "Applying:", uuid, dApply
+                logger.debug("Applying: %s %s", uuid, dApply)
                 trans.startImport()
                 trans.importRecords(dApply)
                 trans.finishImport()
