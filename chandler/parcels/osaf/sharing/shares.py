@@ -204,8 +204,11 @@ class State(schema.Item):
 
 
 
-    def merge(self, rsInternal, inbound=eim.RecordSet(), isDiff=True,
+    def merge(self, rsInternal, inbound=None, isDiff=True,
         filter=None, readOnly=False, debug=False):
+
+        if inbound is None:
+            inbound = eim.RecordSet()
 
         if filter is None:
             filter = lambda rs: rs

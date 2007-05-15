@@ -171,7 +171,10 @@ class CosmoConduit(recordset_conduit.DiffRecordSetConduit, conduits.HTTPMixin):
 
     def putRecords(self, toSend, extra, debug=False, activity=None):
 
-        if self.chunkSize == 0:
+        # If not chunking, send the whole thing.  Also, if toSend is an empty
+        # dict, we still want to send to the server in order to create an
+        # empty collection (hence the "or not toSend"):
+        if self.chunkSize == 0 or not toSend:
             self._putChunk(toSend, extra)
         else:
             # We need to guarantee that masters are sent before modifications,
