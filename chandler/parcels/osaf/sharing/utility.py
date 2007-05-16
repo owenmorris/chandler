@@ -66,14 +66,14 @@ logger = logging.getLogger(__name__)
 
 
 
-def inspect(url, username=None, password=None):
+def inspect(rv, url, username=None, password=None):
 
     # Twisted doesn't understand "webcal:"
     if url.startswith('webcal'):
         url = 'http' + url[6:]
 
     try:
-        return zanshin.util.blockUntil(getDAVInfo, url, username=username,
+        return zanshin.util.blockUntil(getDAVInfo, rv, url, username=username,
             password=password)
 
     except zanshin.http.HTTPError, e:
@@ -84,8 +84,8 @@ def inspect(url, username=None, password=None):
             raise errors.NotFound("Not found (%s)" % e.message)
         else:
             # just try to HEAD the resource
-            return zanshin.util.blockUntil(getHEADInfo, url, username=username,
-                password=password)
+            return zanshin.util.blockUntil(getHEADInfo, rv, url,
+                username=username, password=password)
 
     except zanshin.webdav.ConnectionError, e:
         raise errors.CouldNotConnect(_(u"Unable to connect to server. Received the following error: %(error)s") % {'error': e})
@@ -510,7 +510,7 @@ def getExistingResources(account):
 # = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =
 
 
-def getDAVInfo(url, username=None, password=None):
+def getDAVInfo(rv, url, username=None, password=None):
     """
     Returns a deferred to a dict, describing various DAV properties of
     the URL. The deferred may errback if the resource doesn't support DAV.
@@ -544,7 +544,8 @@ def getDAVInfo(url, username=None, password=None):
         else:
             port = 80
 
-    handle = WebDAV.ChandlerServerHandle(host, port, username, password, useSSL)
+    handle = WebDAV.ChandlerServerHandle(host, port, username, password, useSSL,
+        repositoryView=rv)
 
     properties = (
         PackElement("current-user-privilege-set"),
@@ -626,7 +627,7 @@ def getDAVInfo(url, username=None, password=None):
 
 
 
-def getHEADInfo(url, username=None, password=None):
+def getHEADInfo(rv, url, username=None, password=None):
     """
     Returns a deferred to a dict, describing various DAV properties of
     the URL. The deferred may errback if the resource doesn't support DAV.
@@ -660,7 +661,8 @@ def getHEADInfo(url, username=None, password=None):
         else:
             port = 80
 
-    handle = WebDAV.ChandlerServerHandle(host, port, username, password, useSSL)
+    handle = WebDAV.ChandlerServerHandle(host, port, username, password, useSSL,
+        repositoryView=rv)
 
     path = parsedUrl.path
     if parsedUrl.query:
@@ -691,12 +693,12 @@ def getHEADInfo(url, username=None, password=None):
 
     return d.addCallback(handleHeadResponse)
 
-def getPage(url, username=None, password=None):
-    return zanshin.util.blockUntil(_getPage, url, username=username,
+def getPage(rv, url, username=None, password=None):
+    return zanshin.util.blockUntil(_getPage, rv, url, username=username,
         password=password)
 
 
-def _getPage(url, username=None, password=None):
+def _getPage(rv, url, username=None, password=None):
     """
     Returns a deferred to a string
     """
@@ -712,7 +714,8 @@ def _getPage(url, username=None, password=None):
         else:
             port = 80
 
-    handle = WebDAV.ChandlerServerHandle(host, port, username, password, useSSL)
+    handle = WebDAV.ChandlerServerHandle(host, port, username, password, useSSL,
+        repositoryView=rv)
 
     path = parsedUrl.path
     if parsedUrl.query:

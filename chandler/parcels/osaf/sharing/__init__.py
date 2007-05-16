@@ -886,7 +886,7 @@ def subscribe(view, url, activity=None, username=None, password=None,
                 if tail != "":
                     shareName = tail + "/" + shareName
 
-    inspection = inspect(url, username=username, password=password)
+    inspection = inspect(view, url, username=username, password=password)
 
     logger.info("Inspection results for %s: %s", url, inspection)
 
@@ -953,7 +953,7 @@ def subscribe(view, url, activity=None, username=None, password=None,
 
     elif contentType == "text/html":
         # parse the webpage for embedded link to real url
-        text = getPage(url, username=username, password=password)
+        text = getPage(view, url, username=username, password=password)
 
         # getPage needs to raise Forbidden exception, right?
 
@@ -1037,7 +1037,7 @@ def subscribeCalDAV(view, url, inspection, activity=None, account=None,
             parsedUrl.fragment))
 
         try:
-            subInspection = inspect(subUrl, username=username,
+            subInspection = inspect(view, subUrl, username=username,
                 password=password)
         except:
             hasSubCollection = False
