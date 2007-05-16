@@ -1422,7 +1422,8 @@ class UITestAccounts:
                   'username':9, 'password':11, 'port': 13, 'ssl': 14,},
         'SHARING_MORSECODE':{'displayName': 3, 'host':5, 'path': 7,
                   'username':9, 'password':11, 'port': 13, 'ssl': 14,},
-        'SHARING_HUB':{'displayName': 3, 'username':5, 'password':7, 'port': 9, 'ssl': 10,},
+        'SHARING_HUB':{'displayName': 3, 'username':5, 'password':7,
+                  'port': 9, 'ssl': 10,},
         }
 
     accountTypeIndex = {
