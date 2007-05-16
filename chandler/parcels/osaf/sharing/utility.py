@@ -544,7 +544,7 @@ def getDAVInfo(url, username=None, password=None):
         else:
             port = 80
 
-    handle = ServerHandle(host, port, username, password, useSSL)
+    handle = WebDAV.ChandlerServerHandle(host, port, username, password, useSSL)
 
     properties = (
         PackElement("current-user-privilege-set"),
@@ -660,7 +660,7 @@ def getHEADInfo(url, username=None, password=None):
         else:
             port = 80
 
-    handle = ServerHandle(host, port, username, password, useSSL)
+    handle = WebDAV.ChandlerServerHandle(host, port, username, password, useSSL)
 
     path = parsedUrl.path
     if parsedUrl.query:
@@ -712,7 +712,7 @@ def _getPage(url, username=None, password=None):
         else:
             port = 80
 
-    handle = ServerHandle(host, port, username, password, useSSL)
+    handle = WebDAV.ChandlerServerHandle(host, port, username, password, useSSL)
 
     path = parsedUrl.path
     if parsedUrl.query:
