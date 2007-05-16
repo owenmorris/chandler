@@ -118,8 +118,21 @@ class PluginMenu(Menu):
             if not os.path.exists(pluginsDir):
                 os.makedirs(pluginsDir)
 
-            from setuptools.command.easy_install import main
-            main(['--multi-version', '--install-dir', pluginsDir, archive])
+            try:
+                from setuptools.command.easy_install import main
+                from distutils.log import _global_log
+
+                # patch distutils' logger with logging's
+                # distutils logging levels happen to be one tenth of logging's
+                def log(level, msg, args):
+                    logger.log(level * 10, msg, *args)
+
+                _log = _global_log._log
+                _global_log._log = log
+
+                main(['--multi-version', '--install-dir', pluginsDir, archive])
+            finally:
+                _global_log._log = _log
 
             env, eggs = Utility.initPluginEnv(options, options.pluginPath)
             Utility.initPlugins(options, self.itsView, env, eggs)
