@@ -1931,9 +1931,9 @@ class AccountPreferencesDialog(wx.Dialog):
             error = True
 
         if error:
-            return alertError(FIELDS_REQUIRED_THREE)
+            return alertError(FIELDS_REQUIRED_THREE, self)
 
-        SharingTestDialog(displayName, host, port, path, username,
+        SharingTestDialog(self, displayName, host, port, path, username,
                           pw, useSSL, self.rv, morsecode=True)
 
     def OnAccountSel(self, evt):
