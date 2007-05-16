@@ -2124,11 +2124,27 @@ class EventStamp(Stamp):
 
     def cleanRule(self):
         """
+        Do bookkeeping triggered by changes to the recurrence rule.
+        
         Delete generated occurrences in the current rule and any out of date
         triage-only modifications.  To delete all off-rule modifications, use
         deleteOffRuleModifications.
         
         """
+        # when an attribute on master.rruleset changes, an observer on 
+        # RecurrenceRuleSet calls cleanRule (or, in sharing, cleanRule is
+        # called explicitly).  master.rruleset doesn't change, but conceptually
+        # its changed.  The calendar and minicalendar are watching for
+        # master.rruleset changes, queue asynchronous notifications as if
+        # master.rruleset changed
+        view = self.itsItem.itsView
+        for collection in getattr(self.itsItem, 'appearsIn', Nil):
+            view.queueNotification(
+                collection, 'changed', 'notification', 
+                collection.__collection__, self.itsItem.itsUUID,
+                (EventStamp.rruleset.name,)
+            )
+
         first = self.getFirstInRule()
         first._grabOccurrences(first.occurrences, None, True)
         first.updateRecurrenceEnd()
