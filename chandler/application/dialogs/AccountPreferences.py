@@ -436,7 +436,8 @@ class AccountPreferencesDialog(wx.Dialog):
          pos=wx.DefaultPosition, style=wx.DEFAULT_DIALOG_STYLE, resources=None,
          account=None, rv=None, modal=True):
 
-        wx.Dialog.__init__(self, None, -1, title, pos, size, style)
+        wx.Dialog.__init__(self, wx.GetApp().mainFrame, -1, title, pos, size,
+                           style)
 
         self.resources = resources
         self.rv = rv
@@ -914,7 +915,7 @@ class AccountPreferencesDialog(wx.Dialog):
                 if invalidMessage:
                     # Show the invalid panel
                     self.selectAccount(i)
-                    alertError(invalidMessage)
+                    alertError(invalidMessage, self)
                     return False
 
             i += 1
@@ -1369,7 +1370,7 @@ class AccountPreferencesDialog(wx.Dialog):
 
     def OnIncomingFolders(self, evt):
         if not Globals.mailService.isOnline():
-            return alertOffline()
+            return alertOffline(self)
 
         if not self.incomingAccountValid():
             return
@@ -1381,16 +1382,18 @@ class AccountPreferencesDialog(wx.Dialog):
 
         if create:
             config = showConfigureDialog(CREATE_FOLDERS_TITLE,
-                                  CREATE_FOLDERS % {'host': account.host})
+                                  CREATE_FOLDERS % {'host': account.host},
+                                  self)
 
             if config:
-                ChandlerIMAPFoldersDialog(account, self.OnFolderCreation)
+                ChandlerIMAPFoldersDialog(self, account, self.OnFolderCreation)
         else:
-            yes = alertYesNo(REMOVE_FOLDERS_TITLE,
-                             REMOVE_FOLDERS % {'host': account.host})
+            yes = showYesNoDialog(REMOVE_FOLDERS_TITLE,
+                                  REMOVE_FOLDERS % {'host': account.host},
+                                  self)
 
             if yes:
-                RemoveChandlerIMAPFoldersDialog(account, self.OnFolderRemoval)
+                RemoveChandlerIMAPFoldersDialog(self, account, self.OnFolderRemoval)
 
     def OnFolderCreation(self, result):
         statusCode, folderNames = result
@@ -1653,7 +1656,7 @@ class AccountPreferencesDialog(wx.Dialog):
 
     def OnIncomingDiscovery(self, evt):
         if not Globals.mailService.isOnline():
-            return alertOffline()
+            return alertOffline(self)
 
         self.__StoreFormData(self.currentPanelType, self.currentPanel,
                              self.data[self.currentIndex]['values'])
@@ -1665,13 +1668,13 @@ class AccountPreferencesDialog(wx.Dialog):
         if len(host.strip()) == 0:
             s = wx.xrc.XRCCTRL(self.currentPanel, "INCOMING_SERVER")
             s.SetFocus()
-            return alertError(HOST_REQUIRED)
+            return alertError(HOST_REQUIRED, self)
 
-        AutoDiscoveryDialog(host, False, self.rv, self.OnAutoDiscovery)
+        AutoDiscoveryDialog(self, host, False, self.rv, self.OnAutoDiscovery)
 
     def OnOutgoingDiscovery(self, evt):
         if not Globals.mailService.isOnline():
-            return alertOffline()
+            return alertOffline(self)
 
         self.__StoreFormData(self.currentPanelType, self.currentPanel,
                              self.data[self.currentIndex]['values'])
@@ -1683,9 +1686,9 @@ class AccountPreferencesDialog(wx.Dialog):
         if len(host.strip()) == 0:
             s = wx.xrc.XRCCTRL(self.currentPanel, "OUTGOING_SERVER")
             s.SetFocus()
-            return alertError(HOST_REQUIRED)
+            return alertError(HOST_REQUIRED, self)
 
-        AutoDiscoveryDialog(host, True, self.rv, self.OnAutoDiscovery)
+        AutoDiscoveryDialog(self, host, True, self.rv, self.OnAutoDiscovery)
 
     def getIncomingAccount(self):
         self.__StoreFormData(self.currentPanelType, self.currentPanel,
@@ -1744,17 +1747,17 @@ class AccountPreferencesDialog(wx.Dialog):
             error = True
 
         if error:
-            alertError(FIELDS_REQUIRED)
+            alertError(FIELDS_REQUIRED, self)
 
         return not error
 
     def OnTestIncoming(self):
         if not Globals.mailService.isOnline():
-            return alertOffline()
+            return alertOffline(self)
 
         if self.incomingAccountValid():
             account = self.getIncomingAccount()
-            MailTestDialog(account)
+            MailTestDialog(self, account)
 
     def outgoingAccountValid(self):
         self.__StoreFormData(self.currentPanelType, self.currentPanel,
@@ -1791,16 +1794,16 @@ class AccountPreferencesDialog(wx.Dialog):
 
         if error:
             if errorType:
-                alertError(FIELDS_REQUIRED)
+                alertError(FIELDS_REQUIRED, self)
 
             else:
-                alertError(FIELDS_REQUIRED_ONE)
+                alertError(FIELDS_REQUIRED_ONE, self)
 
         return not error
 
     def OnTestOutgoing(self):
         if not Globals.mailService.isOnline():
-            return alertOffline()
+            return alertOffline(self)
 
         if not self.outgoingAccountValid():
             return
@@ -1821,7 +1824,7 @@ class AccountPreferencesDialog(wx.Dialog):
 
         self.rv.commit()
 
-        MailTestDialog(account)
+        MailTestDialog(self, account)
 
     def OnTestSharingDAV(self):
         self.__StoreFormData(self.currentPanelType, self.currentPanel,
@@ -1856,9 +1859,9 @@ class AccountPreferencesDialog(wx.Dialog):
             error = True
 
         if error:
-            return alertError(FIELDS_REQUIRED_TWO)
+            return alertError(FIELDS_REQUIRED_TWO, self)
 
-        SharingTestDialog(displayName, host, port, path, username,
+        SharingTestDialog(self, displayName, host, port, path, username,
                           pw, useSSL, self.rv)
 
     def OnTestSharingMorsecode(self):
@@ -1894,9 +1897,9 @@ class AccountPreferencesDialog(wx.Dialog):
             error = True
 
         if error:
-            return alertError(FIELDS_REQUIRED_TWO)
+            return alertError(FIELDS_REQUIRED_TWO, self)
 
-        SharingTestDialog(displayName, host, port, path, username,
+        SharingTestDialog(self, displayName, host, port, path, username,
                           pw, useSSL, self.rv, morsecode=True)
 
     def OnTestSharingHub(self):
@@ -2104,19 +2107,17 @@ def ShowAccountPreferencesDialog(account=None, rv=None, modal=True):
     win = AccountPreferencesDialog(_(u"Account Preferences"),
      resources=resources, account=account, rv=rv, modal=modal)
 
-    win.CenterOnScreen()
+    if wx.Platform == '__WXMAC__':
+        win.CenterOnParent()
+
     if modal:
         return win.ShowModal()
     else:
         win.Show()
         return win
 
-def alertOffline():
-    showOKDialog(_(u"Mail Service Offline"), constants.TEST_OFFLINE)
+def alertOffline(parent):
+    showOKDialog(_(u"Mail Service Offline"), constants.TEST_OFFLINE, parent)
 
-def alertError(msg):
-    showOKDialog(_(u"Account Preferences error"), msg)
-
-def alertYesNo(title, msg):
-    return showYesNoDialog(title, msg)
-
+def alertError(msg, parent):
+    showOKDialog(_(u"Account Preferences error"), msg, parent)

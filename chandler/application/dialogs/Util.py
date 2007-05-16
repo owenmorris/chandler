@@ -563,7 +563,7 @@ class ProgressDialog(wx.Dialog):
     SUCCESS_TEXT_SIZE     = (450, 100)
     ERROR_TEXT_SIZE       = (450, 100)
 
-    def __init__(self):
+    def __init__(self, parent):
         st = wx.DEFAULT_DIALOG_STYLE
 
         if not self.ALLOW_CANCEL:
@@ -572,7 +572,7 @@ class ProgressDialog(wx.Dialog):
             # manually
             st = st & ~wx.CLOSE_BOX
 
-        super(ProgressDialog, self).__init__(None, -1, self.getTitleText(),
+        super(ProgressDialog, self).__init__(parent, -1, self.getTitleText(),
                                              style=st)
 
         self.sizer = wx.BoxSizer(wx.VERTICAL)
@@ -593,7 +593,8 @@ class ProgressDialog(wx.Dialog):
     def initDialog(self):
         #    custom logic
         self.layoutDialog()
-        self.CenterOnScreen()
+        if wx.Platform == '__WXMAC__':
+            self.CenterOnParent()
         self.ShowModal()
 
     def layoutDialog(self):

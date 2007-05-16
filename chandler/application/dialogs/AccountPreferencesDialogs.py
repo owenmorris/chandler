@@ -34,12 +34,12 @@ __all__ = [
 class MailTestDialog(ProgressDialog):
     TIMEOUT = constants.TESTING_TIMEOUT
 
-    def __init__(self, account):
+    def __init__(self, parent, account):
         #XXX add in asserts
         self.account = account
         self.mailInstance = None
 
-        super(MailTestDialog, self).__init__()
+        super(MailTestDialog, self).__init__(parent)
         self.initDialog()
 
     def performAction(self):
@@ -49,8 +49,9 @@ class MailTestDialog(ProgressDialog):
             self.mailInstance = m(self.account)
 
         a  = self.account
+        parent = self.GetParent()
 
-        reconnect = lambda: MailTestDialog(a)
+        reconnect = lambda: MailTestDialog(parent, a)
         self.mailInstance.testAccountSettings(self.OnActionComplete, reconnect)
 
     def cancelAction(self):
@@ -87,7 +88,7 @@ UNKNOWN      = _(u"Test failed with an unknown response.")
 class SharingTestDialog(ProgressDialog):
     TIMEOUT = 60
 
-    def __init__(self, displayName=None, host=None, port=None,
+    def __init__(self, parent, displayName=None, host=None, port=None,
                  path=None, username=None, password=None,
                  useSSL=False, view=None, morsecode=False):
 
@@ -103,7 +104,7 @@ class SharingTestDialog(ProgressDialog):
 
         self.sharingInstance = None
 
-        super(SharingTestDialog, self).__init__()
+        super(SharingTestDialog, self).__init__(parent)
         self.initDialog()
 
     def performAction(self):
@@ -115,6 +116,7 @@ class SharingTestDialog(ProgressDialog):
         ps = self.password
         s  = self.useSSL
         v  = self.view
+        parent = self.GetParent()
 
         if self.sharingInstance == None:
             if self.morsecode:
@@ -122,7 +124,7 @@ class SharingTestDialog(ProgressDialog):
             else:
                 self.sharingInstance = WebDAVTester(h, p, pa, u, ps, s, v)
 
-        reconnect = lambda: SharingTestDialog(d, h, p, pa, u, ps, s, v)
+        reconnect = lambda: SharingTestDialog(parent, d, h, p, pa, u, ps, s, v)
 
         self.sharingInstance.testAccountSettings(self.OnActionComplete,
                                                 reconnect)
@@ -181,7 +183,7 @@ class SharingTestDialog(ProgressDialog):
 class ChandlerIMAPFoldersDialog(ProgressDialog):
     ALLOW_CANCEL      = False
 
-    def __init__(self, account, callback):
+    def __init__(self, parent, account, callback):
         assert(isinstance(account, IMAPAccount))
 
         self.TIMEOUT = account.timeout
@@ -189,7 +191,7 @@ class ChandlerIMAPFoldersDialog(ProgressDialog):
         self.callback = callback
         self.mailInstance = None
 
-        super(ChandlerIMAPFoldersDialog, self).__init__()
+        super(ChandlerIMAPFoldersDialog, self).__init__(parent)
         self.initDialog()
 
     def performAction(self):
@@ -197,8 +199,9 @@ class ChandlerIMAPFoldersDialog(ProgressDialog):
 
         a  = self.account
         cb = self.callback
+        parent = self.GetParent()
 
-        reconnect = lambda: ChandlerIMAPFoldersDialog(a, cb)
+        reconnect = lambda: ChandlerIMAPFoldersDialog(parent, a, cb)
         self.mailInstance.createChandlerFolders(self.OnActionComplete, reconnect)
 
     def cancelAction(self):
@@ -258,7 +261,7 @@ All messages added to Chandler folders will show up in your All Dashboard.""")
 class RemoveChandlerIMAPFoldersDialog(ProgressDialog):
     ALLOW_CANCEL      = False
 
-    def __init__(self, account, callback):
+    def __init__(self, parent, account, callback):
         assert(isinstance(account, IMAPAccount))
 
         self.TIMEOUT = account.timeout
@@ -266,7 +269,7 @@ class RemoveChandlerIMAPFoldersDialog(ProgressDialog):
         self.callback = callback
         self.mailInstance = None
 
-        super(RemoveChandlerIMAPFoldersDialog, self).__init__()
+        super(RemoveChandlerIMAPFoldersDialog, self).__init__(parent)
         self.initDialog()
 
     def performAction(self):
@@ -274,8 +277,9 @@ class RemoveChandlerIMAPFoldersDialog(ProgressDialog):
 
         a  = self.account
         cb = self.callback
+        parent = self.Getparent()
 
-        reconnect = lambda: RemoveChandlerIMAPFoldersDialog(a, cb)
+        reconnect = lambda: RemoveChandlerIMAPFoldersDialog(parent, a, cb)
         self.mailInstance.removeChandlerFolders(self.OnActionComplete, reconnect)
 
     def cancelAction(self):
@@ -322,7 +326,8 @@ class AutoDiscoveryDialog(ProgressDialog):
     SUCCESS_TEXT_SIZE = (450, 135)
     APPLY_SETTINGS = True
 
-    def __init__(self, hostname, isOutgoing=False, view=None, callback=None):
+    def __init__(self, parent, hostname, isOutgoing=False, view=None,
+                 callback=None):
         self.hostname = hostname
         self.callback = callback
         self.isOutgoing = isOutgoing
@@ -335,7 +340,7 @@ class AutoDiscoveryDialog(ProgressDialog):
         else:
             self.TIMEOUT = 35 #35 seconds
 
-        super(AutoDiscoveryDialog, self).__init__()
+        super(AutoDiscoveryDialog, self).__init__(parent)
         self.initDialog()
 
     def performAction(self):
@@ -343,8 +348,9 @@ class AutoDiscoveryDialog(ProgressDialog):
         v = self.view
         o = self.isOutgoing
         c = self.callback
+        parent = self.GetParent()
 
-        reconnect = lambda: AutoDiscoveryDialog(h, o, v, c)
+        reconnect = lambda: AutoDiscoveryDialog(parent, h, o, v, c)
 
         if o:
             self.discoverInstance = autodetect.OutgoingDiscovery(h, self.OnActionComplete,
@@ -387,23 +393,25 @@ class AutoDiscoveryDialog(ProgressDialog):
         self.callback(self.discoveredAccount)
         self.OnClose(evt)
 
-def showOKDialog(title, msg):
-    return showMsgDialog(MsgDialog.OK, title, msg)
+def showOKDialog(title, msg, parent):
+    return showMsgDialog(MsgDialog.OK, title, msg, parent)
 
-def showYesNoDialog(title, msg):
-    return showMsgDialog(MsgDialog.YES_NO, title, msg)
+def showYesNoDialog(title, msg, parent):
+    return showMsgDialog(MsgDialog.YES_NO, title, msg, parent)
 
-def showMsgDialog(type, title, msg):
-    win = MsgDialog(type, title, msg)
-    win.CenterOnScreen()
+def showMsgDialog(type, title, msg, parent):
+    win = MsgDialog(parent, type, title, msg)
+    if wx.Platform == '__WXMAC__':
+        win.CenterOnParent()
     res = win.ShowModal()
 
     win.Destroy()
     return res
 
-def showConfigureDialog(title, msg):
-    win = ConfigureDialog(title, msg)
-    win.CenterOnScreen()
+def showConfigureDialog(title, msg, parent):
+    win = ConfigureDialog(parent, title, msg)
+    if wx.Platform == '__WXMAC__':
+        win.CenterOnParent()
     res = win.ShowModal()
 
     win.Destroy()
@@ -421,8 +429,8 @@ class MsgDialog(wx.Dialog):
     OK = 1
     YES_NO = 2
 
-    def __init__(self, type, title, msg):
-        super(MsgDialog, self).__init__(None, -1, title)
+    def __init__(self, parent, type, title, msg):
+        super(MsgDialog, self).__init__(parent, -1, title)
         self.title = title
         self.msg = msg
         self.type = type
@@ -463,8 +471,8 @@ class MsgDialog(wx.Dialog):
             self.buttons.append(wx.Button(self, wx.ID_YES))
 
 class ConfigureDialog(MsgDialog):
-    def __init__(self, title, msg):
-        super(ConfigureDialog, self).__init__(-1, title, msg)
+    def __init__(self, parent, title, msg):
+        super(ConfigureDialog, self).__init__(parent, -1, title, msg)
 
     def OnClick(self, evt):
         self.EndModal(evt.GetId() != wx.ID_CANCEL)
