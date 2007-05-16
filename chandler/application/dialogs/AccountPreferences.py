@@ -799,7 +799,8 @@ class AccountPreferencesDialog(wx.Dialog):
                         folders.remove(folder)
                         folder.delete()
 
-                item.password.delete()
+                if hasattr(item, 'password'):
+                    item.password.delete()
                 item.delete(recursive=True)
 
     def __ApplyCancellations(self):
