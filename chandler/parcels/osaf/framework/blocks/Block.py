@@ -340,6 +340,9 @@ class Block(schema.Item):
                 
                 if self.activeView:
                     theApp.activeView = self
+                    method = getattr(self, 'activeViewChanged', None)
+                    if method is not None:
+                        method()
 
                 if self.eventBoundary:
                     self.rebuildDynamicBlocks()

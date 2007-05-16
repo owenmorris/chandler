@@ -343,17 +343,18 @@ class wxMiniCalendar(DragAndDrop.DropReceiveWidget,
 
 
 def isMainCalendarVisible():
-    sidebarBPB = Block.Block.findBlockByName("SidebarBranchPointBlock")
-    if sidebarBPB is None:
-        return True
-    tableView = 'osaf.views.main.DashboardSummaryViewTemplate'
-    return sidebarBPB.delegate.getView(sidebarBPB.selectedItem) != tableView
-
-
+    activeView = getattr(wx.GetApp(), 'activeView', None)
+    if activeView is not None:
+        return isinstance(wx.GetApp().activeView, CalendarBlock)
+    else:
+        return False
 
 class MiniCalendar(CalendarBlock):
     dayMode = schema.One(schema.Boolean, initialValue = False)
-
+    
+    dashboardView = schema.Sequence(defaultValue=None)
+    calendarView = schema.Sequence(defaultValue=None)
+    
     previewArea = schema.One(
         defaultValue = None
     )
@@ -432,7 +433,7 @@ class MiniCalendar(CalendarBlock):
         # Delegate notifications to the block
         self.widget.onItemNotification(notificationType, data)
 
-    def onViewChangingEvent(self, event):
+    def activeViewChanged(self):
         self.synchronizeWidget()
         self.widget.Refresh()
 
@@ -486,7 +487,7 @@ class PreviewArea(CalendarBlock):
         # Delegate notifications to the block
         self.widget.onItemNotification(notificationType, data)
 
-    def onViewChangingEvent(self, event):
+    def activeViewChanged(self):
         self.synchronizeWidget()
 
 class wxPreviewArea(CalendarNotificationHandler, wx.Panel):

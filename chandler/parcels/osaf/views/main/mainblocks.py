@@ -230,7 +230,6 @@ def makeMainView(parcel):
             main.ApplicationBarTask,
             main.ApplicationBarMail,
             main.ApplicationBarAll,
-            main.ViewChanging,
             ],
         childBlocks = [
             main.MenuBar,

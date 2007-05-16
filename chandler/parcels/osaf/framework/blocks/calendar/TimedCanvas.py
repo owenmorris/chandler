@@ -40,8 +40,17 @@ from application.dialogs import RecurrenceDialog
 IS_MAC = wx.Platform == "__WXMAC__"
 
 class TimedEventsCanvas(CalendarBlock):
-
+    from CalendarBlocks import MiniCalendar
+    
+    miniCalendar = schema.One(inverse=MiniCalendar.calendarView,
+                              defaultValue=None)
     scrollY = schema.One(schema.Integer, initialValue = -1)
+
+    schema.addClouds(
+        copying = schema.Cloud(
+            byRef = [miniCalendar]
+        )
+    )
 
     def onSetFocusEvent (self, event):
         self.widget.SetFocus()
@@ -86,6 +95,12 @@ class TimedEventsCanvas(CalendarBlock):
 
     def onItemNotification(self, notificationType, data):
         pass # all notifications handled by container
+
+    def activeViewChanged(self):
+        if self.miniCalendar is not None:
+            self.miniCalendar.activeViewChanged()
+            self.miniCalendar.previewArea.activeViewChanged()
+        
 
 
 

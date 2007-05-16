@@ -43,6 +43,10 @@ class DashboardBlock(Table):
     This class works with the expectation that the delegate is the
     SectionedGridDelegate from the Sections module.
     """
+    from osaf.framework.blocks.calendar.CalendarBlocks import MiniCalendar
+    
+    miniCalendar = schema.One(inverse=MiniCalendar.dashboardView,
+                              defaultValue=None)
 
     # A few extra character styles
     sectionLabelCharacterStyle = schema.One(Styles.CharacterStyle)
@@ -50,7 +54,8 @@ class DashboardBlock(Table):
     
     schema.addClouds(
         copying = schema.Cloud(
-            byRef = [sectionLabelCharacterStyle, sectionCountCharacterStyle]
+            byRef = [sectionLabelCharacterStyle, sectionCountCharacterStyle,
+                     miniCalendar]
         )
     )
 
@@ -127,3 +132,8 @@ class DashboardBlock(Table):
             if isinstance(master, UUID):
                 master = self.itsView[master]
             pim.EventStamp(master).updateTriageStatus(checkOccurrences=autoTriageToo)
+
+    def activeViewChanged(self):
+        if self.miniCalendar is not None:
+            self.miniCalendar.activeViewChanged()
+            self.miniCalendar.previewArea.activeViewChanged()

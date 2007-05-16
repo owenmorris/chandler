@@ -717,6 +717,7 @@ def makeSummaryBlocks(parcel):
                         defaultEditableAttribute = u'displayName',
                         emptyContentsShow = False,
                         contextMenu = "ItemContextMenu",
+                        miniCalendar = main.MiniCalendar,
                         activeView = True),
                     HTML.template('EmptyDashBoardView',
                         text = _(u'<html><body><center>&nbsp;<br>&nbsp;<br>This collection is empty</center></body></html>'),
@@ -855,6 +856,7 @@ def makeSummaryBlocks(parcel):
                             calendar.TimedEventsCanvas.template('TimedEvents',
                                 calendarContainer = CalendarSummaryView,
                                 contextMenu = "ItemContextMenu",
+                                miniCalendar = main.MiniCalendar,
                                 activeView = True)
                             ]),
                     ]),
