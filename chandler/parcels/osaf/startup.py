@@ -15,10 +15,13 @@
 
 """Extension Point for Application Startup"""
 
+import threading, logging
+
+from datetime import datetime, timedelta
+from weakref import WeakValueDictionary
+
 from application import schema
 from repository.persistence.Repository import RepositoryThread
-import threading, datetime, logging
-from weakref import WeakValueDictionary
 
 __all__ = [
     'Startup', 'Thread', 'TwistedTask', 'PeriodicTask',
@@ -196,7 +199,7 @@ class TaskRunner(object):
     def __init__(self, item):
         self.uuid = item.itsUUID
         self._cache[self.uuid] = self
-        self.subject = item.getTarget()(item)
+        self.subject = item._get_target()(item)
         self.interval = item.interval
         self.runlock = threading.Lock()
         self.running = True
@@ -241,6 +244,7 @@ class TaskRunner(object):
             reactor.callInThread, self.run_once
         )
 
+        return interval
 
 
 class PeriodicTask(TwistedTask):
@@ -250,7 +254,7 @@ class PeriodicTask(TwistedTask):
 
     interval = schema.One(
         schema.TimeDelta,
-        initialValue = datetime.timedelta(0),
+        initialValue = timedelta(0),
     )
 
     run_at_startup = schema.One(
@@ -262,16 +266,11 @@ class PeriodicTask(TwistedTask):
         """
         Start our wrapper in the reactor thread
         """
-        run_at_startup = self.run_at_startup    # don't hold references to item
-        interval = self.interval
-
-        def start_running(runner):
-            runner.reschedule(interval)
-            if run_at_startup:
-                runner.run_once()
-
         run_reactor()
-        self._with_runner(start_running)
+
+        self.reschedule()
+        if self.run_at_startup:
+            self.run_once()
 
     def run_once(self, *args, **kwds):
         """Request to run the task once, immediately"""
@@ -288,6 +287,7 @@ class PeriodicTask(TwistedTask):
         else:
             self.interval = interval
         self._with_runner(lambda r: r.reschedule(interval))
+        return interval
 
     def invokeTarget(self, target):
         """
@@ -307,6 +307,9 @@ class PeriodicTask(TwistedTask):
         """
         return fork_item(self)
 
+    def _get_target(self):
+        return self.getTarget()
+
     def _with_runner(self, f):
         uuid = self.itsUUID
         def callback():
@@ -318,7 +321,54 @@ class PeriodicTask(TwistedTask):
         reactor.callFromThread(callback)
 
 
+class DurableTask(PeriodicTask):
+    """
+    A PeriodicTask that persists last run time across sessions.
 
+    This class makes it possible to schedule tasks over a longer period of
+    time than the application is typically expected to be continuously
+    running for. The last run time is persisted across sessions preventing
+    the task's run interval from being reset when the application is
+    restarted.
+    """
+
+    lastRun = schema.One(
+        schema.DateTime,
+        initialValue = datetime.now(),
+    )
+
+    def reschedule(self, interval=None):
+        """
+        Reschedule the next occurrence of the task.
+
+        Interval represents the maximum amount of time to wait since the 
+        last run.
+        """
+        if interval is None:
+            interval = self.interval
+        else:
+            self.interval = interval
+
+        interval -= max(timedelta(0), datetime.now() - self.lastRun)
+        self._with_runner(lambda r: r.reschedule(interval))
+
+        return interval
+
+    def _get_target(self):
+
+        # this class wraps the actual target so that lastRun can be
+        # set and interval can be adjusted after the first run.
+        class _target(object):
+            def __init__(_self, item):
+                _self.subject = self.getTarget()(item)
+            def run(_self, *args, **kwds):
+                self.lastRun = datetime.now()  # doesn't include run time
+                self.itsView.commit()
+                if _self.subject.run(*args, **kwds):
+                    self.reschedule()  # reschedule with full interval
+                return False           # bypass auto-rescheduling
+
+        return _target
 
 
 # ------------------

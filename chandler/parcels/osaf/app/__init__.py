@@ -12,22 +12,21 @@
 #   See the License for the specific language governing permissions and
 #   limitations under the License.
 
-import datetime, os
+import datetime, os, wx
 
+import version
 from application import schema
 from application.Parcel import Reference
 from i18n import ChandlerMessageFactory as _
 from PyICU import ICUtzinfo
-from osaf import pim, messages
+from osaf import pim, messages, startup, sharing
 from osaf.framework import scripting, password
 from chandlerdb.util.c import UUID
 
-import version
 
 def installParcel(parcel, oldVersion=None):
 
     import scripts as Scripts
-    from osaf import sharing, startup
     from osaf.framework import scripting
 
     pim_ns = schema.ns('osaf.pim', parcel)
@@ -57,7 +56,8 @@ def installParcel(parcel, oldVersion=None):
 
     testReply = pim.mail.EmailAddress.update(parcel, 'TestReplyAddress')
 
-    #[i18n] Test Acccounts are not displayed to the user and do not require localization
+    # [i18n] Test Accounts are not displayed to the user and 
+    # do not require localization
     testSmtp = pim.mail.SMTPAccount.update(parcel, 'TestSMTPAccount',
         displayName=u'Test SMTP Account',
         password=password.Password.update(parcel, 'TestSMTPAccountPassword'),
@@ -258,3 +258,114 @@ The Chandler Team""") % {'version': version.version}
                             creator = osafDev,
                             body=scripting.script_file(u"StdoutSelected.py", Scripts.__file__)
                             )
+
+    CompactTask.update(parcel, 'compactTask')
+
+
+class CompactTask(startup.DurableTask):
+    """
+    A DurableTask that compacts the repository once a week.
+
+    The actual compaction happens inside main UI view and blocks.
+    The user is presented with a dialog asking to confirm the compaction.
+    If declined, the compaction is rescheduled for the next day.
+    """
+
+    REGULAR_INTERVAL = datetime.timedelta(days=7)
+    RETRY_INTERVAL = datetime.timedelta(days=1)
+    MIN_VERSIONS = 1
+
+    lastCompact = schema.One(
+        schema.DateTime,
+        initialValue = datetime.datetime.now(),
+    )
+
+    lastVersion = schema.One(
+        schema.Integer,
+        initialValue = 0,
+    )
+
+    def __setup__(self):
+        self.interval = CompactTask.REGULAR_INTERVAL
+
+    # the target is the periodic task
+    def getTarget(self):
+        return self
+
+    # the target is already constructed as self
+    def __call__(self, task):
+        return self
+
+    def fork(self):
+        return startup.fork_item(self, pruneSize=300, notify=False)
+
+    def reschedule(self, interval=None):
+        interval = super(CompactTask, self).reschedule(interval)
+        self.itsView.logger.info("Repository compacting scheduled in %s",
+                                 interval)
+        return interval
+
+    # target implementation
+    def run(self, *args, **kwds):
+
+        app = wx.GetApp()
+        if app is None:   # no UI, retry later
+            self.reschedule(CompactTask.RETRY_INTERVAL)
+            self.itsView.commit()
+        else:
+            app.PostAsyncEvent(app.UIRepositoryView[self.itsUUID].compact)
+
+        return False # bypass auto-rescheduling
+
+    # compacting should block and be done in the MainThread
+    # this method must run in the MainThread via app.PostAsyncEvent()
+    def compact(self):
+
+        view = self.itsView   # view is MainThread view
+        view.refresh()
+
+        toVersion = sharing.getOldestVersion(view) 
+        versions = toVersion - self.lastVersion
+
+        if versions < CompactTask.MIN_VERSIONS:  # nothing much to do
+            view.logger.info("Only %d versions to compact, skipping", versions)
+            self.reschedule(CompactTask.REGULAR_INTERVAL)
+            view.commit()
+            return
+
+        dlg = wx.MessageDialog(wx.GetApp().mainFrame,
+                               _(u"Your repository hasn't been compacted since %(since)s and has %(versions)d versions that should be compacted. This operation may take a while but improves performance.") %{ 'since': self.lastCompact, 'versions': versions },
+                               _(u"Confirm Repository Compact"),
+                               (wx.YES_NO | wx.YES_DEFAULT |
+                                wx.ICON_EXCLAMATION))
+        cmd = dlg.ShowModal()
+        dlg.Destroy()
+        if cmd != wx.ID_YES:
+            self.reschedule(CompactTask.RETRY_INTERVAL)
+            view.commit()
+            return
+
+        from osaf.framework.blocks.Block import Block
+        setStatusMessage = Block.findBlockByName('StatusBar').setStatusMessage
+        progressMessage = _(u'Compacting repository (stage %d)... %d%%')
+        stages = set()
+
+        def progress(stage, percent):
+            stages.add(stage)
+            setStatusMessage(progressMessage %(len(stages), percent))
+
+        try:
+            counts = view.repository.compact(toVersion, progressFn=progress)
+        except:
+            view.logger.exception()
+            setStatusMessage(_u("Compacting failed, see chandler.log"))
+            self.reschedule(CompactTask.RETRY_INTERVAL)
+        else:
+            setStatusMessage(_(u'Reclaimed %d items, %d values, %d refs, %d index entries, %d names, %d lobs, %d blocks, %d lucene documents') %(counts))
+            self.lastVersion = int(toVersion)
+            self.lastCompact = datetime.datetime.now()
+            self.reschedule(CompactTask.REGULAR_INTERVAL)
+
+        view.commit()
+
+

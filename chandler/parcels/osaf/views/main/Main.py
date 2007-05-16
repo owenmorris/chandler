@@ -944,20 +944,7 @@ class MainView(View):
 
     def onCompactRepositoryEvent(self, event):
         # triggered from "Tools | Repository | Compact" Menu
-        self.RepositoryCommitWithStatus()
-        repository = self.itsView.repository
-        progressMessage = _(u'Compacting repository... %d%%')
-
-        def progress(stage, percent):
-            #@bkirsch: removed stage from status bar message
-            # since the value was not localizable.
-            self.setStatusMessage(progressMessage % (percent))
-
-        counts = repository.compact(sharing.getOldestVersion(self.itsView),
-                                    progressFn=progress)
-
-        successMessage = _(u'Reclaimed %d items, %d values, %d refs, %d index entries, %d names, %d lobs, %d blocks, %d lucene documents') % counts
-        self.setStatusMessage(successMessage)
+        schema.ns('osaf.app', self.itsView).compactTask.run_once()
 
     def onIndexRepositoryEvent(self, event):
         # triggered from "Tools | Repository | Index" Menu
