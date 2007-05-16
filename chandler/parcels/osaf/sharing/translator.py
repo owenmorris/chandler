@@ -550,7 +550,7 @@ class SharingTranslator(eim.Translator):
                     # Some event methods won't work if a master doesn't have
                     # a rruleset, but import_event's modification fixing needs
                     # to know if the real master's event has been processed
-                    master._fake = True
+                    master.itsItem._fake = True
                 occurrence = master.getRecurrenceID(recurrenceID)
                 if occurrence is None:
                     if create:
@@ -1262,8 +1262,8 @@ class SharingTranslator(eim.Translator):
             # allDay and anyTime shouldn't be set if they match the master
             master = event.getMaster()
             if master == event:
-                if hasattr(master, '_fake'):
-                    del master._fake
+                if hasattr(master.itsItem, '_fake'):
+                    del master.itsItem._fake
                 if allDay in (True, False):
                     event.allDay = allDay
                     # modifications may have been created before the master, so
@@ -1284,7 +1284,7 @@ class SharingTranslator(eim.Translator):
                             
             else:
                 # a modification
-                fakeMaster = getattr(master, '_fake', False)
+                fakeMaster = getattr(master.itsItem, '_fake', False)
 
                 # set attributes that may want to be inherited.
                 if allDay in (True, False) and (fakeMaster or
