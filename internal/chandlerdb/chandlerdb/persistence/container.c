@@ -226,7 +226,8 @@ static PyObject *_t_container_openCursor(t_container *self, PyObject *db)
             return NULL;
         }
 
-        return _t_cursor_dup((t_cursor *) cursor, 0);
+        if (((t_cursor *) cursor)->dbc)
+            return _t_cursor_dup((t_cursor *) cursor, 0);
     }
 
     txn = _t_store_getTxn(self->store);
