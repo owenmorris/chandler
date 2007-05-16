@@ -56,7 +56,7 @@ class Button(RectangularChild):
     event = schema.One(BlockEvent)
     helpString = schema.One(schema.Text, initialValue = u'')
 
-    def instantiateWidget(self):
+    def instantiateWidget(self, drawstyle={}):
         id = self.getWidgetID()
         parentWidget = self.parentBlock.widget
         if self.buttonKind == "Text":
@@ -80,7 +80,8 @@ class Button(RectangularChild):
                                       self.title,
                                       wx.DefaultPosition,
                                       (self.minimumSize.width, self.minimumSize.height),
-                                      style = wx.NO_BORDER)
+                                      style = wx.NO_BORDER,
+                                      drawstyle = drawstyle)
             button.SetFont(Styles.getFont(getattr(self, "characterStyle", None)))
         elif self.buttonKind == "Toggle":
             button = wx.ToggleButton (parentWidget, 

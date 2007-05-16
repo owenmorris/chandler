@@ -919,7 +919,11 @@ class ConflictWarningButton(ConflictConditionalBehaviour,
                             DetailSynchronizedBehavior, ControlBlocks.Button):
     def instantiateWidget(self):
         # create the button
-        button = super(ConflictWarningButton, self).instantiateWidget()
+        drawstyle = {
+            "text-align": "left",
+            "indent": 6
+        }
+        button = super(ConflictWarningButton, self).instantiateWidget(drawstyle)
         if button is not None:
             button.SetBackgroundColour('Red') 
             button.SetForegroundColour('White')
