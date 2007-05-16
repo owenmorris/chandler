@@ -435,7 +435,9 @@ class MiniCalendar(CalendarBlock):
 
     def activeViewChanged(self):
         self.synchronizeWidget()
-        self.widget.Refresh()
+        widget = getattr(self, 'widget', None)
+        if widget is not None:
+            widget.Refresh()
 
 class PreviewPrefs(Preferences):
     maximumEventsDisplayed = schema.One(schema.Integer, initialValue=5)
