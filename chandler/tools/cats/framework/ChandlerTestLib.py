@@ -1422,13 +1422,15 @@ class UITestAccounts:
                   'username':9, 'password':11, 'port': 13, 'ssl': 14,},
         'SHARING_MORSECODE':{'displayName': 3, 'host':5, 'path': 7,
                   'username':9, 'password':11, 'port': 13, 'ssl': 14,},
+        'SHARING_HUB':{'displayName': 3, 'username':5, 'password':7, 'port': 9, 'ssl': 10,},
         }
 
     accountTypeIndex = {
         'INCOMING'          : 1,
         'OUTGOING'          : 2,
-        'SHARING_MORSECODE' : 3,
-        'SHARING_DAV'       : 4,
+        'SHARING_HUB'       : 3,
+        'SHARING_MORSECODE' : 4,
+        'SHARING_DAV'       : 5,
     }
 
     def __init__(self, logger):
@@ -1476,7 +1478,7 @@ class UITestAccounts:
 
             item = self.window.rv.findUUID(account['item'])
 
-            if type in ("SHARING_DAV", "SHARING_MORSECODE"):
+            if type in ("SHARING_DAV", "SHARING_MORSECODE", "SHARING_HUB"):
                 sharing_ns = schema.ns('osaf.sharing', item.itsView)
 
                 if item != sharing_ns.currentSharingAccount.item:
@@ -1508,7 +1510,7 @@ class UITestAccounts:
         Create an account of the given type
         @type type : string
         @param type : an account type (OUTGOING, INCOMING, SHARING_DAV,
-            SHARING_MORSECODE)
+            SHARING_MORSECODE, SHARING_HUB)
         """
         self.window.choiceNewType.SetSelection(self.accountTypeIndex[type])
         self.window.OnNewAccount(None)
