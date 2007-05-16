@@ -74,14 +74,14 @@ def publishSubscribe(testClass):
     ap.TypeValue("path", "cosmo")
     ap.TypeValue("username", "demo1")
     ap.TypeValue("password", "ad3leib5")
-    ap.TypeValue("port", "8080")
-    ap.ToggleValue("ssl", False)
+    ap.TypeValue("port", "443")
+    ap.ToggleValue("ssl", True)
     ap.Ok()
 
     # verification
     ap.VerifyValues("MORSECODE", accountName,
         host = "qasharing.osafoundation.org",
-        username = "demo1", password="ad3leib5", port=8080)
+        username = "demo1", password="ad3leib5", port=443)
 
     # import events so test will have something to share even when run by itself
     path = os.path.join(Globals.chandlerDirectory,
