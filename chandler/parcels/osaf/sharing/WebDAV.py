@@ -336,7 +336,7 @@ class TestChandlerServerHandle(ChandlerServerHandle):
 
             return result
 
-        except M2Crypto.BIO.BIOError, error:
+        except M2Crypto.BIO.BIOError, err:
             return (0, (CANT_CONNECT, str(err)))
 
         except zanshin.webdav.ConnectionError, err:

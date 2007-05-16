@@ -467,6 +467,11 @@ class ShareCosmoAccountRecord(eim.Record):
     morsecodepath = eim.field(text1024) # mc/collection
     davpath = eim.field(text1024) # dav/collection
 
+class ShareHubAccountRecord(eim.Record):
+    URI = "http://osafoundation.org/eim/sharing/hubaccount/0"
+
+    uuid = eim.key(ItemRecord.uuid)
+
 class SharePrefsRecord(eim.Record):
     URI = "http://osafoundation.org/eim/sharing/prefs/0"
 

@@ -14,6 +14,7 @@
 
 __all__ = [
     'CosmoAccount',
+    'HubAccount',
     'CosmoConduit',
 ]
 
@@ -132,6 +133,14 @@ class CosmoAccount(accounts.SharingAccount):
             info.append( (name, uuid, href, tickets) )
 
         return info
+
+
+class HubAccount(CosmoAccount):
+    host = schema.One(schema.Text, initialValue="hub.chandlerproject.org")
+    path = schema.One(schema.Text, initialValue="/")
+    port = schema.One(schema.Integer, initialValue=443)
+    useSSL = schema.One(schema.Boolean, initialValue=True)
+    accountType = schema.One(schema.Text, initialValue='SHARING_HUB')
 
 
 

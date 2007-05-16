@@ -128,6 +128,14 @@ class DumpReloadTestCase(testcase.DualRepositoryTestCase):
         uuids.add(cosmo_share0.itsUUID)
 
 
+        hub_account0 = sharing.HubAccount(itsView=view0,
+            username="test",
+            password=Password(itsView=view0),
+        )
+        waitForDeferred(hub_account0.password.encryptPassword('4cc0unt0'))
+        uuids.add(hub_account0.itsUUID)
+
+
         inmemory_conduit0 = sharing.InMemoryDiffRecordSetConduit(itsView=view0,
             shareName="in_memory",
             translator=sharing.SharingTranslator,
@@ -343,6 +351,9 @@ class DumpReloadTestCase(testcase.DualRepositoryTestCase):
             self.assertEquals(account1.useSSL, True)
             self.assertEquals(waitForDeferred(account1.password.decryptPassword('secret')),
                               '4cc0unt0')
+
+            hub_account1 = view1.findUUID(hub_account0.itsUUID)
+            self.assert_(isinstance(hub_account0, sharing.HubAccount))
 
             inmemory_share1 = view1.findUUID(inmemory_share0.itsUUID)
             self.assert_(inmemory_share1 is not None)

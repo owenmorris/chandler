@@ -50,7 +50,9 @@ def save(rv, filename):
         if account.username: # skip account if not configured
             section_name = u"sharing_account_%d" % counter
             cfg[section_name] = {}
-            if isinstance(account, sharing.CosmoAccount):
+            if isinstance(account, sharing.HubAccount):
+                cfg[section_name][u"type"] = u"hub account"
+            elif isinstance(account, sharing.CosmoAccount):
                 cfg[section_name][u"type"] = u"cosmo account"
             else:
                 cfg[section_name][u"type"] = u"webdav account"
@@ -246,10 +248,12 @@ def restore(rv, filename, testmode=False, newMaster=''):
         else:
             sectiontype = ""
         # sharing accounts
-        if sectiontype in (u"webdav account", u"cosmo account"):
+        if sectiontype in (u"webdav account", u"cosmo account", u"hub account"):
 
             if sectiontype == u"webdav account":
                 klass = sharing.WebDAVAccount
+            elif sectiontype == u"hub account":
+                klass = sharing.HubAccount
             else:
                 klass = sharing.CosmoAccount
 

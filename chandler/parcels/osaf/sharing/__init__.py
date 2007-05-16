@@ -155,12 +155,9 @@ def getDefaultAccount(rv):
 def createDefaultAccount(rv):
     cur = schema.ns('osaf.sharing', rv).currentSharingAccount
     if cur.item is None:
-        cur.item = CosmoAccount(itsView=rv,
-            displayName=_(u'Chandler Hub Service'),
-            host=u'hub.chandlerproject.org', path=u'/',
-            username=u'',
-            password=Password(itsView=rv),
-            useSSL=True, port=443
+        cur.item = HubAccount(itsView=rv,
+            displayName=_(u'Chandler Hub sharing'),
+            username=u'', password=Password(itsView=rv),
         )
 
     return cur.item

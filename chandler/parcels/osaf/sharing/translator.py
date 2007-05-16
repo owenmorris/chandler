@@ -2110,6 +2110,22 @@ class DumpTranslator(SharingTranslator):
             account.davPath
         )
 
+
+
+    @model.ShareHubAccountRecord.importer
+    def import_sharing_hub_account(self, record):
+
+        self.withItemForUUID(record.uuid, cosmo.HubAccount)
+
+    @eim.exporter(cosmo.HubAccount)
+    def export_sharing_hub_account(self, account):
+
+        if self.obfuscation: return
+
+        yield model.ShareHubAccountRecord(account)
+
+
+
     @model.SharePrefsRecord.importer
     def import_sharing_prefs(self, record):
 

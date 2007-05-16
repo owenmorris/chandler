@@ -38,6 +38,12 @@ from AccountPreferencesDialogs import MailTestDialog, \
 from osaf.framework import password
 
 
+hub_hostname = "hub.chandlerproject.org"
+hub_path = "/"
+hub_port = 443
+hub_use_ssl = True
+
+
 # Localized messages displayed in dialogs
 
 CREATE_TEXT = _(u"Configure")
@@ -47,6 +53,7 @@ REMOVE_TEXT = _(u"Remove")
 FIELDS_REQUIRED = _(u"The following fields are required:\n\n\tServer\n\tUser name\n\tPassword\n\tPort\n\n\nPlease correct the error and try again.")
 FIELDS_REQUIRED_ONE = _(u"The following fields are required:\n\n\tServer\n\tPort\n\n\nPlease correct the error and try again.")
 FIELDS_REQUIRED_TWO = _(u"The following fields are required:\n\n\tServer\n\tPath\n\tUser name\n\tPassword\n\tPort\n\n\nPlease correct the error and try again.")
+FIELDS_REQUIRED_THREE = _(u"The following fields are required:\n\n\tUser name\n\tPassword\n\tPort\n\n\nPlease correct the error and try again.")
 
 HOST_REQUIRED  = _(u"Auto-configure requires a server name.")
 
@@ -65,7 +72,7 @@ REMOVE_FOLDERS = _(u"Chandler will now attempt to remove the\nfollowing IMAP fol
 # before exiting the dialog when set to True
 DEBUG = False
 FOLDERS_URL = "http://wiki.osafoundation.org/Projects/ChandlerProductFAQ"
-SHARING_URL = "https://osaf.us/account/new"
+SHARING_URL = "http://hub.chandlerproject.org/signup"
 
 # Special handlers referenced in the PANELS dictionary below:
 
@@ -291,13 +298,50 @@ PANELS = {
         "messages" : ("OUTGOING_MESSAGE",),
     },
 
+    "SHARING_HUB" : {
+        "fields" : {
+            "HUBSHARING_DESCRIPTION" : {
+                "attr" : "displayName",
+                "type" : "string",
+                "required" : True,
+                "default": _(u"Chandler Hub sharing"),
+            },
+            "HUBSHARING_USERNAME" : {
+                "attr" : "username",
+                "type" : "string",
+            },
+            "HUBSHARING_PASSWORD" : {
+                "attr" : "password",
+                "type" : "password",
+            },
+            "HUBSHARING_PORT" : {
+                "attr" : "port",
+                "type" : "integer",
+                "default": 443,
+                "required" : True,
+            },
+            "HUBSHARING_USE_SSL" : {
+                "attr" : "useSSL",
+                "type" : "boolean",
+                "linkedTo" :
+                        ("HUBSHARING_PORT", { True:"443", False:"80" }),
+            },
+        },
+        "id" : "HUBSHARINGPanel",
+        "order": 2,
+        "deleteHandler" : SharingDeleteHandler,
+        "displayName" : "HUBSHARING_DESCRIPTION",
+        "description" : _(u"Chandler Hub sharing"),
+        "messages" : ("SHARING_MESSAGE", "SHARING_MESSAGE2"),
+    },
+
     "SHARING_MORSECODE" : {
         "fields" : {
             "MORSECODE_DESCRIPTION" : {
                 "attr" : "displayName",
                 "type" : "string",
                 "required" : True,
-                "default": _(u"New Chandler Hub Sharing"),
+                "default": _(u"Chandler Server sharing"),
             },
             "MORSECODE_SERVER" : {
                 "attr" : "host",
@@ -330,11 +374,10 @@ PANELS = {
             },
         },
         "id" : "MORSECODEPanel",
-        "order": 2,
+        "order": 3,
         "deleteHandler" : SharingDeleteHandler,
         "displayName" : "MORSECODE_DESCRIPTION",
-        "description" : _(u"Chandler Hub Sharing"),
-        "messages" : ("SHARING_MESSAGE", "SHARING_MESSAGE2"),
+        "description" : _(u"Chandler Server sharing"),
     },
 
     "SHARING_DAV" : {
@@ -375,11 +418,10 @@ PANELS = {
             },
         },
         "id" : "DAVPanel",
-        "order": 3,
+        "order": 4,
         "deleteHandler" : SharingDeleteHandler,
         "displayName" : "DAV_DESCRIPTION",
         "description" : _(u"WebDAV Sharing"),
-        "messages" : ("SHARING_MESSAGE", "SHARING_MESSAGE2"),
     },
 }
 
@@ -546,7 +588,8 @@ class AccountPreferencesDialog(wx.Dialog):
             ns_pim = schema.ns('osaf.pim', item.itsView)
             isDefault = item == ns_pim.currentOutgoingAccount.item
 
-        elif item.accountType in ("SHARING_DAV", "SHARING_MORSECODE"):
+        elif item.accountType in ("SHARING_DAV", "SHARING_MORSECODE",
+            "SHARING_HUB"):
             sharing_ns = schema.ns('osaf.sharing', item.itsView)
 
             isDefault = item == sharing_ns.currentSharingAccount.item
@@ -1276,7 +1319,8 @@ class AccountPreferencesDialog(wx.Dialog):
             buf.append("username: %s" % item.username)
             buf.append("password: %s" % waitForDeferred(item.password.decryptPassword(window=self)))
 
-            if item.accountType in ("SHARING_DAV", "SHARING_MORSECODE"):
+            if item.accountType in ("SHARING_DAV", "SHARING_MORSECODE",
+                "SHARING_HUB"):
                 buf.append("useSSL: %s" % item.useSSL)
                 buf.append("path: %s" % item.path)
 
@@ -1515,7 +1559,11 @@ class AccountPreferencesDialog(wx.Dialog):
             p = "WebDAV"
         elif accountType == "SHARING_MORSECODE":
             item = sharing.CosmoAccount(itsView=self.rv)
-            a = _(u"New Chandler Hub Account")
+            a = _(u"Chandler Server sharing")
+            p = "Morsecode"
+        elif accountType == "SHARING_HUB":
+            item = sharing.HubAccount(itsView=self.rv)
+            a = _(u"Chandler Hub sharing")
             p = "Morsecode"
 
         item.displayName = a
@@ -1596,6 +1644,8 @@ class AccountPreferencesDialog(wx.Dialog):
             self.OnTestSharingDAV()
         elif account.accountType  == "SHARING_MORSECODE":
             self.OnTestSharingMorsecode()
+        elif account.accountType  == "SHARING_HUB":
+            self.OnTestSharingHub()
         else:
             # If this code is reached then there is a
             # bug which needs to be fixed.
@@ -1845,6 +1895,40 @@ class AccountPreferencesDialog(wx.Dialog):
 
         if error:
             return alertError(FIELDS_REQUIRED_TWO)
+
+        SharingTestDialog(displayName, host, port, path, username,
+                          pw, useSSL, self.rv, morsecode=True)
+
+    def OnTestSharingHub(self):
+        self.__StoreFormData(self.currentPanelType, self.currentPanel,
+                             self.data[self.currentIndex]['values'])
+
+        data = self.data[self.currentIndex]['values']
+
+        displayName = data["HUBSHARING_DESCRIPTION"]
+        host = hub_hostname
+        port = data['HUBSHARING_PORT']
+        useSSL = data['HUBSHARING_USE_SSL']
+        path = hub_path
+        username = data['HUBSHARING_USERNAME']
+        try:
+            pw = waitForDeferred(data['HUBSHARING_PASSWORD'].decryptPassword(window=self))
+        except password.NoMasterPassword:
+            pw = u''
+
+        error = False
+
+        if len(username.strip()) == 0 or len(pw.strip()) == 0:
+            error = True
+
+        try:
+            # Test that the port value is an integer
+            int(port)
+        except:
+            error = True
+
+        if error:
+            return alertError(FIELDS_REQUIRED_THREE)
 
         SharingTestDialog(displayName, host, port, path, username,
                           pw, useSSL, self.rv, morsecode=True)
