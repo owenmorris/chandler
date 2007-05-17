@@ -89,7 +89,11 @@ def save(rv, filename):
             urls = sharing.getUrls(share)
             if sharing.isSharedByMe(share):
                 cfg[section_name][u"publisher"] = u"True"
-                cfg[section_name][u"url"] = share.getLocation()
+                if isinstance(share.conduit, sharing.CosmoConduit):
+                    c = share.conduit
+                    cfg[section_name][u"url"] = c.getLocation(morsecode=True)
+                else:
+                    cfg[section_name][u"url"] = share.getLocation()
             else:
                 cfg[section_name][u"publisher"] = u"False"
                 url = share.getLocation()

@@ -231,7 +231,12 @@ class CosmoConduit(recordset_conduit.DiffRecordSetConduit, conduits.HTTPMixin):
         path = self.getMorsecodePath()
 
         resp = self._send('GET', path)
-        if resp.status != 200:
+        if resp.status == 401:
+            raise errors.NotAllowed("%s (HTTP status %d)" % (resp.message,
+                resp.status),
+                details="Received [%s]" % resp.body)
+
+        elif resp.status != 200:
             raise errors.SharingError("%s (HTTP status %d)" % (resp.message,
                 resp.status),
                 details="Received [%s]" % resp.body)
@@ -359,13 +364,18 @@ class CosmoConduit(recordset_conduit.DiffRecordSetConduit, conduits.HTTPMixin):
             raise errors.CouldNotConnect(_(u"Unable to connect to server. Received the following error: %(error)s") % {'error': err})
 
 
-    def getLocation(self, privilege=None):
+    def getLocation(self, privilege=None, morsecode=False):
         """
         Return the user-facing url of the share
         """
 
-        (host, port, path, username, password, useSSL) = \
-            self._getSettings()
+        if morsecode:
+            f = self._getMorsecodeSettings
+        else:
+            f = self._getSettings
+
+        (host, port, path, username, password, useSSL) = f()
+
         if useSSL:
             scheme = u"https"
             defaultPort = 443

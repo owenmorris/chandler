@@ -980,6 +980,21 @@ def subscribe(view, url, activity=None, username=None, password=None,
                         filters=filters)
                     return collection
 
+            # See if this was a "pim/collection" URL, and try the "mc" version
+            try:
+                index = url.index("pim/collection")
+                url = url.replace("pim/collection", "mc/collection", 1)
+
+                collection = subscribeMorsecode(view, url, url, inspection,
+                    activity=activity,
+                    account=account, username=username, password=password,
+                    filters=filters)
+                return collection
+
+            except ValueError:
+                # oh well, I can't find subscription information
+                pass
+
         raise errors.SharingError("Can't parse webpage")
 
     elif contentType == "text/calendar":
@@ -1300,12 +1315,15 @@ def subscribeMorsecode(view, url, morsecodeUrl, inspection, activity=None,
         account.port = port
         account.username = username
         account.password = Password(itsParent=account)
-        waitForDeferred(account.password.encryptPassword(password))
+        if password:
+            waitForDeferred(account.password.encryptPassword(password))
 
     if account:
         share.conduit = CosmoConduit(itsParent=share,
             shareName=shareName, account=account,
             translator=SharingTranslator, serializer=EIMMLSerializer)
+
+
     else:
         # Get the morsecode path from url, e.g.  "/cosmo/mc/collection"
         (useSSL, host, port, path, query, fragment, ticket, morsecodePath,
@@ -1321,6 +1339,17 @@ def subscribeMorsecode(view, url, morsecodeUrl, inspection, activity=None,
         share.conduit.filters = filters
 
     share.sync(activity=activity, modeOverride='get')
+
+    if account:
+        # Retrieve tickets
+        shares = account.getPublishedShares()
+        for name, uuid, href, tickets in shares:
+            if uuid == share.contents.itsUUID.str16():
+                for ticket, ticketType in tickets:
+                    if ticketType == 'read-only':
+                        share.conduit.ticketReadOnly = ticket
+                    elif ticketType == 'read-write':
+                        share.conduit.ticketReadWrite = ticket
 
     try:
         SharedItem(share.contents).shares.append(share, 'main')
