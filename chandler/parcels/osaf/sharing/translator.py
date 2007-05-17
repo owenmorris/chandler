@@ -51,6 +51,7 @@ __all__ = [
 ]
 
 
+
 utc = ICUtzinfo.getInstance('UTC')
 du_utc = dateutil.tz.tzutc()
 oneDay = timedelta(1)
@@ -1504,6 +1505,14 @@ class DumpTranslator(SharingTranslator):
     version = 1
     description = u"Translator for Chandler items (PIM and non-PIM)"
 
+
+    # Mapping for well-known names to/from their current repository path
+    path_to_name = {
+        "//parcels/osaf/app/sidebarCollection" : "@sidebar",
+    }
+    name_to_path = dict([[v, k] for k, v in path_to_name.items()])
+
+
     approvedClasses = (
         pim.Note, Password, pim.SmartCollection, shares.Share,
         conduits.BaseConduit, shares.State, accounts.SharingAccount,
@@ -1569,13 +1578,20 @@ class DumpTranslator(SharingTranslator):
 
     def export_collection_memberships(self, collection):
         index = 0
+
+        # For well-known collections, use their well-known name rather than
+        # their UUID
+        collectionID = self.path_to_name.get(str(collection.itsPath),
+            collection.itsUUID.str16())
+
         for item in collection:
             # By default we don't include items that are in
             # //parcels since they are not created by the user
+
             if (not str(item.itsPath).startswith("//parcels") and
                 not isinstance(item, Occurrence)):
                 yield model.CollectionMembershipRecord(
-                    collection,
+                    collectionID,
                     item.itsUUID,
                     index
                 )
@@ -1592,20 +1608,38 @@ class DumpTranslator(SharingTranslator):
 
     @model.CollectionMembershipRecord.importer
     def import_collectionmembership(self, record):
-        # Assume that non-existent collections should be created as
-        # SmartCollections; otherwise don't upgrade from ContentCollection base
-        # 
-        collectionType = (
-            pim.SmartCollection if self.rv.findUUID(record.collectionUUID) is None
-            else pim.ContentCollection
-        )
-        @self.withItemForUUID(record.collectionUUID, collectionType)
-        def do(collection):               
+
+        id = record.collectionID
+
+        # Map old hard-coded sidebar UUID to its well-known name
+        if id == "3c58ae62-d8d6-11db-86bb-0017f2ca1708":
+            id = "@sidebar"
+
+        id = self.name_to_path.get(id, id)
+
+        if id.startswith("//"):
+            collection = self.rv.findPath(id)
             # We're preserving order of items in collections
-            assert (self.indexIsInSequence (collection, record.index))
+            # assert (self.indexIsInSequence (collection, record.index))
             @self.withItemForUUID(record.itemUUID, pim.ContentItem)
             def do(item):
                 collection.add(item)
+
+        else:
+            # Assume that non-existent collections should be created as
+            # SmartCollections; otherwise don't upgrade from ContentCollection
+            # base
+            collectionType = (
+                pim.SmartCollection if self.rv.findUUID(id) is None
+                else pim.ContentCollection
+            )
+            @self.withItemForUUID(id, collectionType)
+            def do(collection):
+                # We're preserving order of items in collections
+                # assert (self.indexIsInSequence (collection, record.index))
+                @self.withItemForUUID(record.itemUUID, pim.ContentItem)
+                def do(item):
+                    collection.add(item)
 
 
     @model.DashboardMembershipRecord.importer

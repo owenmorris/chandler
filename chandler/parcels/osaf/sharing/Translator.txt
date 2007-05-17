@@ -7,6 +7,7 @@ SharingTranslator implements the callbacks for converting between items and
 records.
 
     >>> from osaf import sharing, pim
+    >>> from application.Parcel import Parcel
     >>> from datetime import datetime, timedelta
     >>> from decimal import Decimal
     >>> from PyICU import ICUtzinfo, TimeZone
@@ -613,6 +614,61 @@ Exporting:
 #XXX SMTPAccountQueueRecord, IMAPAccountRecord, POPAccountRecord,
 #XXX IMAPFolderRecord, MailPrefsRecord
 
+
+
+Verify the special behavior in collection membership record, where a collection
+is specified either by well-known name, by UUID, or by repository path::
+
+    >>> d = sharing.translator.DumpTranslator(rv)
+
+By well-known name::
+    >>> p = Parcel(itsParent=rv.findPath("//parcels/osaf"), itsName="app")
+    >>> sidebar = pim.ListCollection(itsParent=p, itsName="sidebarCollection")
+    >>> note = pim.Note(itsView=rv)
+    >>> rec = sharing.model.CollectionMembershipRecord(
+    ...         collectionID="@sidebar",
+    ...         itemUUID=note.itsUUID,
+    ...         index=0,
+    ... )
+    >>> rs = sharing.RecordSet([rec])
+    >>> d.startImport()
+    >>> d.importRecords(rs)
+    >>> d.finishImport()
+    >>> note in sidebar
+    True
+
+    >>> list(d.export_collection_memberships(sidebar))
+    [CollectionMembershipRecord(u'@sidebar', '...', 0)]
+
+By UUID::
+    >>> parcels = rv.findPath("//parcels")
+    >>> collection = pim.SmartCollection(itsParent=parcels, itsName="testColl")
+    >>> note = pim.Note(itsView=rv)
+    >>> rec = sharing.model.CollectionMembershipRecord(
+    ...         collectionID=collection.itsUUID.str16(),
+    ...         itemUUID=note.itsUUID,
+    ...         index=0,
+    ... )
+    >>> rs = sharing.RecordSet([rec])
+    >>> d.startImport()
+    >>> d.importRecords(rs)
+    >>> d.finishImport()
+    >>> note in collection
+    True
+
+By path (although this likely won't be used)::
+    >>> note = pim.Note(itsView=rv)
+    >>> rec = sharing.model.CollectionMembershipRecord(
+    ...         collectionID='//parcels/testColl',
+    ...         itemUUID=note.itsUUID,
+    ...         index=1,
+    ... )
+    >>> rs = sharing.RecordSet([rec])
+    >>> d.startImport()
+    >>> d.importRecords(rs)
+    >>> d.finishImport()
+    >>> note in collection
+    True
 
 
 

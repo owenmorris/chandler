@@ -341,7 +341,7 @@ class CollectionMembershipRecord(eim.Record):
     # i.e. created by the user
     URI = "http://osafoundation.org/eim/pim/collectionmembership/0"
 
-    collectionUUID = eim.key(schema.UUID)
+    collectionID = eim.key(text256) # "well-known" name or UUID string
     itemUUID = eim.key(aliasableUUID)
     index = eim.key(eim.IntType)
 
