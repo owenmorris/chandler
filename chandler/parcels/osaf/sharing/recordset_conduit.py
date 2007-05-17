@@ -458,8 +458,9 @@ class RecordSetConduit(conduits.BaseConduit):
                     # Set triage status, based on the values we loaded
                     # We'll only autotriage if we're not sharing triage status,
                     # but we'll always "pop to Now".
-                    newTriageStatus = 'auto' if 'cid:triage-filter@osaf.us' in self.filters \
-                                      else None
+                    autoDateTriage = extra.get('forceDateTriage', False) or \
+                                     'cid:triage-filter@osaf.us' in self.filters
+                    newTriageStatus = 'auto' if autoDateTriage else None
                     pim.setTriageStatus(item, newTriageStatus, popToNow=True)
 
                     # Per bug 8809:
@@ -699,7 +700,8 @@ class MonolithicRecordSetConduit(RecordSetConduit):
             else:
                 rs = state.agreed + state.pending
                 fullToSend[alias] = rs
-
+        
+        extra['monolithic'] = True
         text = self.serializer.serialize(fullToSend, **extra)
         logger.debug("Sending to server [%s]", text)
         self.put(text)

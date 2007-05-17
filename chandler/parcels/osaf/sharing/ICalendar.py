@@ -1214,8 +1214,10 @@ def importICalendarFile(fullpath, view, targetCollection = None,
         raise ICalendarImportError(_(u"Problem with the file, import cancelled."))
 
     if targetCollection is None:
-        name = "".join(filename.split('.')[0:-1]) or filename
-        collection.displayName = name
+        collectionName = getattr(collection, 'displayName', 'Untitled')
+        if collectionName == 'Untitled':
+            name = "".join(filename.split('.')[0:-1]) or filename
+            collection.displayName = name
         schema.ns("osaf.app", view).sidebarCollection.add(collection)
         sideBarBlock = Block.findBlockByName('Sidebar')
         sideBarBlock.postEventByName ("SelectItemsBroadcast",

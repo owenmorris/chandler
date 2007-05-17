@@ -294,13 +294,23 @@ class ICSSerializer(object):
                 recordHandlers.get(type(record), no_op)(record, vobj_mapping)
             
         cal = vobject.iCalendar()
-        cal.vevent_list = [obj for obj in vobj_mapping.values() 
+        cal.vevent_list = [obj for obj in vobj_mapping.values()
                            if obj.name.lower() == 'vevent']
-        cal.vtodo_list = [obj for obj in vobj_mapping.values() 
+        cal.vtodo_list = [obj for obj in vobj_mapping.values()
                            if obj.name.lower() == 'vtodo']
 
-        # add x-wr-calname
-        #handle icalproperties and icalparameters and Method (for outlook)
+        name = extra.get('name')
+        if name is not None:
+            cal.add('x-wr-calname').value = name
+            
+        monolithic = extra.get('monolithic', False)
+        if monolithic:
+            # don't add a METHOD to CalDAV serializations, because CalDAV
+            # forbids them, but do add one when serializing monolithic ics files
+            # because Outlook requires them (bug 7121)
+            cal.add('method').value = "PUBLISH"
+            
+        #handle icalproperties and icalparameters
         return cal.serialize().encode('utf-8')
 
     @classmethod
@@ -312,7 +322,7 @@ class ICSSerializer(object):
         like what timezones should be used in convertToICUtzinfo.
         """
         recordSets = {}
-        extra = {}
+        extra = {'forceDateTriage' : True}
 
         calname = None
     
