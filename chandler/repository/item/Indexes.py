@@ -604,20 +604,22 @@ class SortedIndex(DelegatingIndex):
 
     def addSubIndex(self, uuid, attr, name):
 
+        subIndex = (uuid, attr, name)
+
         if self._subIndexes is None:
-            self._subIndexes = set([(uuid, attr, name)])
-        else:
-            self._subIndexes.add((uuid, attr, name))
+            self._subIndexes = set([subIndex])
+            self._valueMap._setDirty(True)
+        elif subIndex not in self._subIndexes:
+            self._subIndexes.add(subIndex)
+            self._valueMap._setDirty(True)
 
     def removeSubIndex(self, uuid, attr, name):
         
         self._subIndexes.remove((uuid, attr, name))
+        self._valueMap._setDirty(True)
 
     def _checkIndex(self, _index, logger, name, value, item, attribute, count,
                     repair):
-
-        result = self._index._checkIndex(self, logger, name, value,
-                                         item, attribute, count, repair)
 
         if hasattr(self, '_super'):
             uuid, attr, superName = self._super
@@ -646,11 +648,18 @@ class SortedIndex(DelegatingIndex):
                 logger.error("Value %s of attribute '%s' of %s, owner of superindex '%s' of index '%s' installed on value '%s' in attribute '%s' on %s, has no index named '%s'", superValue, attr, superItem._repr_(), superName, name, value, attribute, item._repr_(), superName)
                 return False
 
+            subIndexes = getattr(index, '_subIndexes', Nil)
+            if (subIndexes is None or
+                (item.itsUUID, attribute, name) not in subIndexes):
+                logger.error("%s superindex (%s, %s, %s) of %s index (%s, %s, %s) has no subindex entry for it'", index.getIndexType(), superItem._repr_(), attr, superName, self.getIndexType(), item._repr_(), attribute, name)
+                return False
+
             reasons = set()
             if not self._valueMap.isSubset(superValue, reasons):
                 logger.error("To support a subindex, %s must be a subset of %s but %s", self._valueMap, superValue, ', '.join("%s.%s is not a subset of %s.%s" %(sub_i._repr_(), sub_a, sup_i._repr_(), sup_a) for (sub_i, sub_a), (sup_i, sup_a) in ((sub.itsOwner, sup.itsOwner) for sub, sup in reasons)))
                 return False
         
+        result = True
         if self._subIndexes:
             for uuid, attr, subName in self._subIndexes:
                 subItem = item.itsView.find(uuid)
@@ -679,7 +688,11 @@ class SortedIndex(DelegatingIndex):
                     logger.error("Value %s of attribute '%s' of %s, owner of subindex '%s' of index '%s' installed on value '%s' in attribute '%s' on %s, has no index named '%s'", subValue, attr, subItem._repr_(), subName, name, value, attribute, item._repr_(), subName)
                     result = False
 
-        return result
+        if not result:
+            return False
+
+        return self._index._checkIndex(self, logger, name, value,
+                                       item, attribute, count, repair)
 
     def _checkIterateIndex(self, logger, name, value, item, attribute, repair):
 

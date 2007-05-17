@@ -510,36 +510,27 @@ class DBRepositoryView(OnDemandRepositoryView):
                         elif 'attributes' in names:
                             self[uItem].flushCaches('attributes')
 
-                if merges:
-                    try:
-                        _changes = []
-                        for uItem, name, newValue in conflicts:
-                            item = self.find(uItem)
-                            if item is not None:
-                                if newValue is Nil:
-                                    if hasattr(item, name):
-                                        item.removeAttributeValue(name, None,
-                                                                  None, True)
-                                        _changes.append((item, 'remove', name))
-                                else:
-                                    item.setAttributeValue(name, newValue,
-                                                           None, None, True,
-                                                           True)
-                                    _changes.append((item, 'set', name))
-                        for item, op, name in _changes:
-                            if not item.isStale():
-                                item._fireChanges(op, name)
-                    except:
-                        self.logger.exception('%s merge aborted by error', self)
-                        self.cancelDeferredNotifications()
-                        self.cancel()
-                        raise
+            # notifs are re-enabled
+            if merges:
+                try:
+                    for uItem, name, newValue in conflicts:
+                        item = self.find(uItem)
+                        if item is not None:
+                            if newValue is Nil:
+                                if hasattr(item, name):
+                                    delattr(item, name)
+                            else:
+                                setattr(item, name, newValue)
+                except:
+                    self.logger.exception('%s merge aborted by error', self)
+                    self.cancel()
+                    raise
 
-                    duration = time() - before
-                    if duration > 1.0:
-                        self.logger.warning('%s merged %d items in %s',
-                                            self, len(merges),
-                                            timedelta(seconds=duration))
+                duration = time() - before
+                if duration > 1.0:
+                    self.logger.warning('%s merged %d items in %s',
+                                        self, len(merges),
+                                        timedelta(seconds=duration))
 
             if notify or merges:
                 before = time()

@@ -294,6 +294,26 @@ class Indexed(object):
                 if 'ranges' in kwds:
                     index.setRanges(())  # bug 7123
 
+            if 'superindex' in kwds: # bug 7324
+                item, attr = index._valueMap.itsOwner
+                uItem, superAttr, superName = index._super
+                superset = getattr(view[uItem], superAttr)
+                superIndex = superset.getIndex(superName)
+                superIndex.addSubIndex(item.itsUUID, attr, name)
+
+            if 'subindexes' in kwds: # bug 7324
+                if index._subIndexes is None:
+                    index._subIndexes = set()
+                for subIndex in kwds['subindexes']:
+                    uItem, attr, subName = subIndex
+                    item = view.find(uItem, False)
+                    if item is not None:
+                        indexed = getattr(item, attr, Nil)
+                        if indexed is not Nil:
+                            indexes = getattr(indexed, '_indexes', None)
+                            if indexes and subName in indexes:
+                                index._subIndexes.add(subIndex)
+
             removals = []
             moves = []
 

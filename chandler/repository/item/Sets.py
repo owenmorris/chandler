@@ -916,16 +916,8 @@ class Union(BiSet):
 
     def isSubset(self, superset, reasons=None):
 
-        if (self._isSourceSubset(self._left, superset, reasons) or
-            self._isSourceSubset(self._right, superset, reasons)):
-            if reasons:
-                reasons.clear()
-            return True
-
-        if reasons is not None and not reasons:
-            reasons.add((self, superset))
-
-        return False
+        return (self._isSourceSubset(self._left, superset, reasons) and
+                self._isSourceSubset(self._right, superset, reasons))
 
     def isSuperset(self, subset, reasons=None):
 
@@ -998,8 +990,13 @@ class Intersection(BiSet):
 
     def isSubset(self, superset, reasons=None):
 
-        return (self._isSourceSubset(self._left, superset, reasons) and
-                self._isSourceSubset(self._right, superset, reasons))
+        if (self._isSourceSubset(self._left, superset, reasons) or
+            self._isSourceSubset(self._right, superset, reasons)):
+            if reasons:
+                reasons.clear()
+            return True
+
+        return False
 
     def isSuperset(self, subset, reasons=None):
 
@@ -1229,15 +1226,10 @@ class MultiUnion(MultiSet):
     def isSubset(self, superset, reasons=None):
 
         for source in self._sources:
-            if self._isSourceSubset(source, superset, reasons):
-                if reasons:
-                    reasons.clear()
-                return True
+            if not self._isSourceSubset(source, superset, reasons):
+                return False
 
-        if reasons is not None and not reasons:
-            reasons.add((self, superset))
-
-        return False
+        return True
 
     def isSuperset(self, subset, reasons=None):
 
@@ -1327,10 +1319,15 @@ class MultiIntersection(MultiSet):
     def isSubset(self, superset, reasons=None):
 
         for source in self._sources:
-            if not self._isSourceSubset(source, superset, reasons):
-                return False
+            if self._isSourceSubset(source, superset, reasons):
+                if reasons:
+                    reasons.clear()
+                return True
 
-        return True
+        if reasons is not None and not reasons:
+            reasons.add((self, superset))
+
+        return False
 
     def isSuperset(self, subset, reasons=None):
 

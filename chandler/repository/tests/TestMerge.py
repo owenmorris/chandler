@@ -21,7 +21,7 @@ from datetime import date
 from repository.tests.RepositoryTestCase import RepositoryTestCase
 from repository.persistence.RepositoryError import MergeError
 from repository.util.Path import Path
-from repository.item.Sets import Set, KindSet
+from repository.item.Sets import Set, KindSet, Intersection
 from chandlerdb.item.ItemError import ChildNameError
 
 class TestMerge(RepositoryTestCase):
@@ -1224,6 +1224,47 @@ class TestMerge(RepositoryTestCase):
         lb.remove(mdm.itsUUID)
 
         self.assert_(lb == la, 'numeric index shuffled')
+        self.assert_(main.check(), 'main view did not check out')
+
+    def testMergeNewSuperIndex(self):
+
+        def mergeFn(code, item, attribute, newValue):
+            if code == MergeError.DELETE:
+                return True
+            return newValue
+
+        main = self.view
+        cineguidePack = os.path.join(self.testdir, 'data', 'packs',
+                                     'cineguide.pack')
+        main.loadPack(cineguidePack)
+        movies = main.findPath('//CineGuide/KHepburn').movies
+        m1 = movies.first()
+        m2 = movies.next(m1)
+        m3 = movies.next(m2)
+        m3.set = Set((movies._owner(), 'movies'))
+        main.commit()
+
+        view = self.rep.createView('view')
+
+        movies = view.findPath('//CineGuide/KHepburn').movies
+        m1 = movies.first()
+        m2 = movies.next(m1)
+        m2.set = Intersection((m3, 'set'), (m1.director, 'directed'))
+        m3 = movies.next(m2)
+        m1.title = 'View Changed Title'
+        m3.set.addIndex('t', 'attribute', attribute='title')
+        view.commit()
+
+        movies = main.findPath('//CineGuide/KHepburn').movies
+        m1 = movies.first()
+        m2 = movies.next(m1)
+        m2.set = Intersection((m3, 'set'), (m1.director, 'directed'))
+        m3 = movies.next(m2)
+        m3.set.addIndex('t', 'attribute', attribute='title')
+        m2.set.addIndex('s', 'subindex', superindex=(m3, 'set', 't'))
+        m1.title = 'Main Changed Title'
+        main.commit(mergeFn)
+
         self.assert_(main.check(), 'main view did not check out')
 
 
