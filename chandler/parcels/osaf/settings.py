@@ -71,7 +71,8 @@ def save(rv, filename):
     # Subscriptions
     mine = schema.ns("osaf.pim", rv).mine
     counter = 1
-    for col in pim.ContentCollection.iterItems(rv):
+    sidebar = schema.ns("osaf.app", rv).sidebarCollection
+    for col in sidebar:
         share = sharing.getShare(col)
         if share:
             section_name = u"share_%d" % counter
@@ -572,7 +573,7 @@ def restore(rv, filename, testmode=False, newMaster=''):
             usercollections.UserCollection(collection).color = color
         else:
             SubscribeCollection.Show(view=rv, url=url,
-                                     name=title, modal=False,
+                                     name=title, modal=True,
                                      immediate=True, mine=mine,
                                      publisher=publisher,
                                      color=color)

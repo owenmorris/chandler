@@ -137,7 +137,7 @@ class RestoreSharesDialog(wx.Dialog):
 
             share = sharing.findMatchingShare(view, url)
             if share is None:
-                SubscribeCollection.Show(view=view, url=url,
+                SubscribeCollection.Show(view=view, url=url, modal=True,
                     immediate=True, mine=True, publisher=True,
                     tickets=tickets)
                 self.listShares.Deselect(index)
