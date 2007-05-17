@@ -143,7 +143,7 @@ def getOldestVersion(rv):
         if conduit is not None:
             if hasattr(conduit, 'lastVersion'):
                 if conduit.lastVersion < oldest:
-                    oldest = conduit.lastVerions
+                    oldest = conduit.lastVersion
             else:
                 marker = getattr(conduit, 'itemsMarker', None)
                 if marker is not None:
