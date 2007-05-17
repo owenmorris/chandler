@@ -458,10 +458,9 @@ be run immediately using the ``run_once()`` method::
 and that we can change the interval of a running ``PeriodicTask``, using the
 ``reschedule()`` method::
 
-    >>> counter.reschedule(
+    >>> interval = counter.reschedule(
     ...     timedelta(microseconds=1)
     ... ); wait_until(lambda: run_count==5)
-    datetime.timedelta(0, 0, 1)
     run() call 3 running ... in <RepositoryThread(RepositoryPoolThread...)>
     run() call 4 running ... in <RepositoryThread(RepositoryPoolThread...)>
     run() call 5 running ... in <RepositoryThread(RepositoryPoolThread...)>
@@ -472,8 +471,7 @@ provide an interval argument to ``reschedule()``, it defaults to the current
 ``interval`` of the ``PeriodicTask`` you called it on::
 
     >>> counter.stop()
-    >>> counter.reschedule(); wait_until(lambda: run_count==6)
-    datetime.timedelta(0, 0, 1)
+    >>> interval = counter.reschedule(); wait_until(lambda: run_count==6)
     __init__ running ... in <RepositoryThread(reactor,...)>
     run() call 6 running ... in <RepositoryThread(RepositoryPoolThread...)>
 
