@@ -425,7 +425,7 @@ static PyObject *t_item_getattro(t_item *self, PyObject *name)
     {
         t_kind *c = (t_kind *) ((t_item *) kind)->c;
 
-        if (c->flags & DESCRIPTORS_INSTALLED)
+        if (c->flags & K_DESCRIPTORS_INSTALLED)
         {
             PyObject *dsc = PyDict_GetItem(c->descriptors, name);
 
@@ -460,7 +460,7 @@ static int t_item_setattro(t_item *self, PyObject *name, PyObject *value)
     {
         t_kind *c = (t_kind *) ((t_item *) kind)->c;
 
-        if (c->flags & DESCRIPTORS_INSTALLED)
+        if (c->flags & K_DESCRIPTORS_INSTALLED)
         {
             PyObject *dsc = PyDict_GetItem(c->descriptors, name);
 
@@ -661,7 +661,7 @@ static PyObject *t_item_getAttributeAspect(t_item *self, PyObject *args)
         PyObject *descriptor = NULL;
         PyObject *attribute;
 
-        if (c->flags & DESCRIPTORS_INSTALLED)
+        if (c->flags & K_DESCRIPTORS_INSTALLED)
             descriptor = PyDict_GetItem(c->descriptors, name);
         
         if (descriptor)
@@ -827,7 +827,7 @@ static int get_attr_flags(t_item *item, PyObject *name, t_kind *c,
     t_descriptor *descriptor = NULL;
     t_attribute *attribute;
 
-    if (c->flags & DESCRIPTORS_INSTALLED)
+    if (c->flags & K_DESCRIPTORS_INSTALLED)
         descriptor = (t_descriptor *) PyDict_GetItem(c->descriptors, name);
 
     if (descriptor == NULL)
@@ -855,7 +855,7 @@ static PyObject *t_item_hasTrueAttributeValue(t_item *self, PyObject *args)
 
         c = (t_kind *) ((t_item *) self->kind)->c;
 
-        if (c->flags & ATTRIBUTES_CACHED)
+        if (c->flags & K_ATTRIBUTES_CACHED)
         {
             t_attribute *attr = NULL;
             int flags = 0;
@@ -949,7 +949,7 @@ t_attribute *_t_item_get_attr(t_item *self, PyObject *name)
         if (!c)
             return NULL;
 
-        if (c->flags & DESCRIPTORS_INSTALLED)
+        if (c->flags & K_DESCRIPTORS_INSTALLED)
         {
             t_descriptor *descriptor = (t_descriptor *)
                 PyDict_GetItem(c->descriptors, name);

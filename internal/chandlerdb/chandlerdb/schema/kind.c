@@ -40,6 +40,8 @@ static int t_kind_setDescriptorsInstalled(t_kind *self, PyObject *arg,
 static PyObject *t_kind_getDescriptorsInstalling(t_kind *self, void *data);
 static int t_kind_setDescriptorsInstalling(t_kind *self, PyObject *arg,
                                           void *data);
+static PyObject *t_kind_getNotify(t_kind *self, void *data);
+static int t_kind_setNotify(t_kind *self, PyObject *arg, void *data);
 
 
 static PyMemberDef t_kind_members[] = {
@@ -85,6 +87,10 @@ static PyGetSetDef t_kind_properties[] = {
     { "descriptorsInstalling",
       (getter) t_kind_getDescriptorsInstalling,
       (setter) t_kind_setDescriptorsInstalling,
+      NULL, NULL },
+    { "notify",
+      (getter) t_kind_getNotify,
+      (setter) t_kind_setNotify,
       NULL, NULL },
     { NULL, NULL, NULL, NULL, NULL }
 };
@@ -210,7 +216,7 @@ static PyObject *t_kind_getAttribute(t_kind *self, PyObject *args)
     if (!PyArg_ParseTuple(args, "OO", &item, &name))
         return NULL;
 
-    if (self->flags & DESCRIPTORS_INSTALLED)
+    if (self->flags & K_DESCRIPTORS_INSTALLED)
     {
         t_descriptor *descriptor = (t_descriptor *)
             PyDict_GetItem(self->descriptors, name);
@@ -232,7 +238,7 @@ static PyObject *t_kind_getAttribute(t_kind *self, PyObject *args)
 
 static PyObject *t_kind_getMonitorSchema(t_kind *self, void *data)
 {
-    if (self->flags & MONITOR_SCHEMA)
+    if (self->flags & K_MONITOR_SCHEMA)
         Py_RETURN_TRUE;
 
     Py_RETURN_FALSE;
@@ -241,9 +247,9 @@ static PyObject *t_kind_getMonitorSchema(t_kind *self, void *data)
 static int t_kind_setMonitorSchema(t_kind *self, PyObject *arg, void *data)
 {
     if (arg && PyObject_IsTrue(arg))
-        self->flags |= MONITOR_SCHEMA;
+        self->flags |= K_MONITOR_SCHEMA;
     else
-        self->flags &= ~MONITOR_SCHEMA;
+        self->flags &= ~K_MONITOR_SCHEMA;
 
     return 0;
 }
@@ -253,7 +259,7 @@ static int t_kind_setMonitorSchema(t_kind *self, PyObject *arg, void *data)
 
 static PyObject *t_kind_getAttributesCached(t_kind *self, void *data)
 {
-    if (self->flags & ATTRIBUTES_CACHED)
+    if (self->flags & K_ATTRIBUTES_CACHED)
         Py_RETURN_TRUE;
 
     Py_RETURN_FALSE;
@@ -262,9 +268,9 @@ static PyObject *t_kind_getAttributesCached(t_kind *self, void *data)
 static int t_kind_setAttributesCached(t_kind *self, PyObject *arg, void *data)
 {
     if (arg && PyObject_IsTrue(arg))
-        self->flags |= ATTRIBUTES_CACHED;
+        self->flags |= K_ATTRIBUTES_CACHED;
     else
-        self->flags &= ~ATTRIBUTES_CACHED;
+        self->flags &= ~K_ATTRIBUTES_CACHED;
 
     return 0;
 }
@@ -274,7 +280,7 @@ static int t_kind_setAttributesCached(t_kind *self, PyObject *arg, void *data)
 
 static PyObject *t_kind_getSuperKindsCached(t_kind *self, void *data)
 {
-    if (self->flags & SUPERKINDS_CACHED)
+    if (self->flags & K_SUPERKINDS_CACHED)
         Py_RETURN_TRUE;
 
     Py_RETURN_FALSE;
@@ -283,9 +289,9 @@ static PyObject *t_kind_getSuperKindsCached(t_kind *self, void *data)
 static int t_kind_setSuperKindsCached(t_kind *self, PyObject *arg, void *data)
 {
     if (arg && PyObject_IsTrue(arg))
-        self->flags |= SUPERKINDS_CACHED;
+        self->flags |= K_SUPERKINDS_CACHED;
     else
-        self->flags &= ~SUPERKINDS_CACHED;
+        self->flags &= ~K_SUPERKINDS_CACHED;
 
     return 0;
 }
@@ -295,7 +301,7 @@ static int t_kind_setSuperKindsCached(t_kind *self, PyObject *arg, void *data)
 
 static PyObject *t_kind_getDescriptorsInstalled(t_kind *self, void *data)
 {
-    if (self->flags & DESCRIPTORS_INSTALLED)
+    if (self->flags & K_DESCRIPTORS_INSTALLED)
         Py_RETURN_TRUE;
 
     Py_RETURN_FALSE;
@@ -305,9 +311,9 @@ static int t_kind_setDescriptorsInstalled(t_kind *self, PyObject *arg,
                                           void *data)
 {
     if (arg && PyObject_IsTrue(arg))
-        self->flags |= DESCRIPTORS_INSTALLED;
+        self->flags |= K_DESCRIPTORS_INSTALLED;
     else
-        self->flags &= ~DESCRIPTORS_INSTALLED;
+        self->flags &= ~K_DESCRIPTORS_INSTALLED;
 
     return 0;
 }
@@ -317,7 +323,7 @@ static int t_kind_setDescriptorsInstalled(t_kind *self, PyObject *arg,
 
 static PyObject *t_kind_getDescriptorsInstalling(t_kind *self, void *data)
 {
-    if (self->flags & DESCRIPTORS_INSTALLING)
+    if (self->flags & K_DESCRIPTORS_INSTALLING)
         Py_RETURN_TRUE;
 
     Py_RETURN_FALSE;
@@ -327,9 +333,30 @@ static int t_kind_setDescriptorsInstalling(t_kind *self, PyObject *arg,
                                           void *data)
 {
     if (arg && PyObject_IsTrue(arg))
-        self->flags |= DESCRIPTORS_INSTALLING;
+        self->flags |= K_DESCRIPTORS_INSTALLING;
     else
-        self->flags &= ~DESCRIPTORS_INSTALLING;
+        self->flags &= ~K_DESCRIPTORS_INSTALLING;
+
+    return 0;
+}
+
+
+/* notify */
+
+static PyObject *t_kind_getNotify(t_kind *self, void *data)
+{
+    if (self->flags & K_NOTIFY)
+        Py_RETURN_TRUE;
+
+    Py_RETURN_FALSE;
+}
+
+static int t_kind_setNotify(t_kind *self, PyObject *arg, void *data)
+{
+    if (arg && PyObject_IsTrue(arg))
+        self->flags |= K_NOTIFY;
+    else
+        self->flags &= ~K_NOTIFY;
 
     return 0;
 }
