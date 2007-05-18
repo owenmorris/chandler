@@ -1252,14 +1252,15 @@ class DBStore(Store):
 
         return self._index.setIndexVersion(version)
 
-    def saveViewStatus(self, version, view):
+    def saveViewData(self, version, view):
 
-        return self._values.saveViewStatus(version,
-                                           view._status & view.SAVEMASK)
+        return self._values.saveViewData(version,
+                                         view._status & view.SAVEMASK,
+                                         view._newIndexes)
 
-    def getViewStatus(self, version):
+    def getViewData(self, version):
 
-        return self._values.getViewStatus(version)
+        return self._values.getViewData(version)
 
     def logCommit(self, view, version, commitSize):
 
@@ -1510,8 +1511,8 @@ class DBIndexerThread(RepositoryThread):
 
                 try:
                     txnStatus = view._startTransaction(False, False)
-
-                    if store.getViewStatus(version) & view.TOINDEX:
+                    status, newIndexes = store.getViewData(version)
+                    if status & view.TOINDEX:
                         for (uItem, ver, uKind, status, uParent, pKind,
                              dirties) in items.iterHistory(view, version - 1,
                                                            version):

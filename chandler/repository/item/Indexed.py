@@ -48,10 +48,12 @@ class Indexed(object):
             for name in self._indexes.keys():
                 self.removeIndex(name)
 
-    def _anIndex(self):
+    def _anIndex(self, exclude=Nil):
 
         if self._indexes:
-            return self._indexes.itervalues().next()
+            for index in self._indexes.itervalues():
+                if index not in exclude:
+                    return index
 
         return None
 
@@ -212,6 +214,8 @@ class Indexed(object):
             if isSubIndex:
                 superIndex = superset.getIndex(superIndexName)
                 superIndex.addSubIndex(item.itsUUID, name, indexName)
+
+            view._newIndexes.append((item.itsUUID, name, indexName))
 
         self._indexes[indexName] = index
         return index
@@ -374,6 +378,14 @@ class Indexed(object):
             monitor.delete()
 
         del self._indexes[indexName]
+
+        index = (item.itsUUID, name, indexName)
+        newIndexes = item.itsView._newIndexes
+        for i in xrange(len(newIndexes)):
+            if newIndexes[i] == index:
+                del newIndexes[i]
+                break
+
         self._setDirty(True) # noFireChanges=True
 
     def fillIndex(self, index, excludeIndexes=False):

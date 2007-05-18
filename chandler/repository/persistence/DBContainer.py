@@ -1464,12 +1464,12 @@ class ValueContainer(DBContainer):
     # 0.7.1: record value count widened to 32 bit
     # 0.7.2: any sorted index may now have a super-index
     # 0.7.3: added saving of persistent view status bits
+    # 0.7.4: added saving of references to new indexes on view record
 
-    FORMAT_VERSION = 0x00070300
+    FORMAT_VERSION = 0x00070400
 
     SCHEMA_KEY  = pack('>16sl', Repository.itsUUID._uuid, 0)
     VERSION_KEY = pack('>16sl', Repository.itsUUID._uuid, 1)
-    VIEW_KEY    = pack('>16sl', Repository.itsUUID._uuid, 2)
 
     def __init__(self, store):
 
@@ -1531,19 +1531,33 @@ class ValueContainer(DBContainer):
 
         return UUID(versionId), format, schema
         
-    def saveViewStatus(self, version, status):
+    def saveViewData(self, version, status, newIndexes):
 
-        self._version.put(pack('>20sl', ValueContainer.VIEW_KEY, version),
-                          pack('>l', status), self.store.txn)
+        record = Record(Record.INT, status)
+        indexRecord = Record()
+        for uItem, attr, name in newIndexes:
+            indexRecord += (Record.UUID, uItem,
+                            Record.SYMBOL, attr,
+                            Record.SYMBOL, name)
+        record += (Record.RECORD, indexRecord)
 
-    def getViewStatus(self, version):
+        self.put_record(Record(Record.UUID, Repository.itsUUID,
+                               Record.INT, 2,                    # VIEW_KEY
+                               Record.INT, version),
+                        record,
+                        self._version)
 
-        key = pack('>20sl', ValueContainer.VIEW_KEY, version)
-        value = self._version.get(key, self.store.txn, self.c.flags, None)
+    def getViewData(self, version):
+
+        value = self.get_record(Record(Record.UUID, Repository.itsUUID,
+                                       Record.INT, 2,            # VIEW_KEY
+                                       Record.INT, version),
+                                (Record.INT, Record.RECORD),
+                                self._version)
         if value is None:
-            return 0
+            return 0, []
 
-        return unpack('>l', value)[0]
+        return value[0], [value[1][i:i+3] for i in xrange(0, len(value[1]), 3)]
 
     def getVersion(self):
 

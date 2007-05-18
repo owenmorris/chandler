@@ -510,6 +510,13 @@ class DBRepositoryView(OnDemandRepositoryView):
                         elif 'attributes' in names:
                             self[uItem].flushCaches('attributes')
 
+            # synchronize new indexes with changes
+            status, newIndexes = self.store.getViewData(newVersion)
+            if newIndexes:
+                self._updateIndexes(newIndexes, list(self._log))
+            if self._newIndexes:
+                self._updateIndexes(self._newIndexes, refreshes)
+
             # notifs are re-enabled
             if merges:
                 try:
@@ -532,7 +539,7 @@ class DBRepositoryView(OnDemandRepositoryView):
                                         self, len(merges),
                                         timedelta(seconds=duration))
 
-            if notify or merges:
+            if notify:
                 before = time()
                 self._dispatchHistory(history, refreshes,
                                       oldVersion, newVersion)
@@ -636,7 +643,13 @@ class DBRepositoryView(OnDemandRepositoryView):
                             if self.isDirty():
                                 size += self._roots._saveValues(newVersion)
 
-                        store.saveViewStatus(newVersion, self)
+                        newIndexes = self._newIndexes
+                        for i in xrange(len(newIndexes) - 1, -1, -1):
+                            uItem = newIndexes[i][0]
+                            if self.get(uItem) is None:
+                                del newIndexes[i]
+
+                        store.saveViewData(newVersion, self)
                         store.logCommit(self, newVersion, count)
                         lock, txnStatus = finish(True)
                         break
@@ -668,6 +681,8 @@ class DBRepositoryView(OnDemandRepositoryView):
 
                 if self._deletedRegistry:
                     self._deletedRegistry.clear()
+
+                del self._newIndexes[:]
 
                 self._status &= ~RepositoryView.COMMITLOCK
                 after = time()

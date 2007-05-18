@@ -370,14 +370,6 @@ class AbstractSet(ItemValue, Indexed):
         if item is not None:
             if change == 'collection':
 
-                if op == 'refresh' and self._indexes:
-                    indexed = other in self._anIndex()
-                    contains = self.__contains__(other, False, True)
-                    if indexed and not contains:
-                        op = 'remove'
-                    elif contains and not indexed:
-                        op = 'add'
-
                 if op in ('add', 'remove'):
                     if not (local or self._otherName is None):
                         otherItem = self.itsView.find(other)

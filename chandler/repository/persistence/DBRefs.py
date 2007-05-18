@@ -142,7 +142,7 @@ class PersistentRefs(PersistentValue):
 
     def _setItem(self, item):
 
-        if not self._flags & self.NEW:
+        if not self._flags & CLinkedMap.NEW:
             ref = self.store._refs.loadRef(self.itsView, self.uuid,
                                            self._owner().itsVersion, self.uuid,
                                            True)

@@ -29,6 +29,7 @@ from repository.persistence.RepositoryError import *
 from repository.item.Item import Item, MissingClass
 from repository.item.Children import Children
 from repository.item.Indexes import NumericIndex
+from repository.item.Indexed import Indexed
 from repository.item.RefCollections import RefList
 
 
@@ -208,6 +209,7 @@ class RepositoryView(CView):
             self.setMergeFn(mergeFn)
 
         self._queuedNotifications = Queue()
+        self._newIndexes = []
 
         self._version = long(version)
         self._roots = self._createChildren(self, version == 0)
@@ -1351,6 +1353,37 @@ class RepositoryView(CView):
                         for monitor in monitors.get(attribute, Nil):
                             monitor('set', item, attribute)
 
+    def _updateIndexes(self, newIndexes, items):
+        
+        indexes = []
+        excludes = set()
+
+        for uItem, attr, name in newIndexes:
+            item = self.find(uItem)
+            if item is not None and item.isLive():
+                indexed = getattr(item, attr, None)
+                if isinstance(indexed, Indexed):
+                    if indexed.hasIndex(name):
+                        index = indexed.getIndex(name)
+                        indexes.append((indexed, index))
+                        excludes.add(index)
+
+        for item in items:
+            uItem = item.itsUUID
+            for indexed, index in indexes:
+                anIndex = indexed._anIndex(excludes)
+                if anIndex is not None:
+                    if uItem in anIndex:
+                        if uItem not in index:
+                            index.insertKey(uItem)
+                    else:
+                        index.removeKey(uItem)
+                elif indexed.__contains__(item, False, True):
+                    if uItem not in index:
+                        index.insertKey(uItem)
+                else:
+                    index.removeKey(uItem)
+                        
 
     itsUUID = UUID('3631147e-e58d-11d7-d3c2-000393db837c')
     SUBSCRIBERS = UUID('4dc81eae-1689-11db-a0ac-0016cbc90838')
