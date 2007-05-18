@@ -871,6 +871,11 @@ class SharingTranslator(eim.Translator):
                   self.rv).masterPasswordPrefs
         prefs.masterPassword = bool(record.masterPassword)
         prefs.timeout = record.timeout
+        protect = getattr(record, "protect", 0)
+        if protect == 1:
+            prefs.protect = True
+        elif protect == 2:
+            prefs.protect = False
 
     # Called from finishExport()
     def export_password_prefs(self):
@@ -884,10 +889,18 @@ class SharingTranslator(eim.Translator):
                   self.rv).masterPasswordPrefs
         masterPassword = prefs.masterPassword
         timeout = prefs.timeout
+        protect = getattr(prefs, "protect", None)
+        if protect is None:
+            protect = 0
+        elif protect == True:
+            protect = 1
+        elif protect == False:
+            protect = 2
 
         yield model.PasswordPrefsRecord(dummyPassword,
                                         1 if masterPassword else 0,
-                                        timeout)
+                                        timeout,
+                                        protect)
         for record in self.export_password(dummyPassword):
             yield record
 

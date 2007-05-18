@@ -35,6 +35,7 @@ import logging, string, os, threading
 import wx
 from i18n import ChandlerMessageFactory as _
 from application import schema
+from application.dialogs import Util
 from osaf import Preferences
 from osaf.framework.twisted import runInUIThread, waitForDeferred
 
@@ -209,13 +210,32 @@ def beforeBackup(view, parent=None):
         if count == 1: # We will always have at least one, the dummy password
             return
         if parent is None:
-            parent = wx.GetApp().mainFrame    
-        if wx.MessageBox(_(u'Anyone who gets access to your data can view your account passwords. Do you want to protect your account passwords by encrypting them with the master password?'),
-                         _(u'Set Master password?'),
-                         style = wx.YES_NO,
-                         parent=parent) == wx.YES:
-            waitForDeferred(change(view, parent))
+            parent = wx.GetApp().mainFrame
 
+        # Check if the user has set a persistent preference on what to do
+        protect = getattr(prefs, 'protect', None)
+        if protect is not None:
+            if protect:
+                waitForDeferred(change(view, parent))
+            return
+        
+        dlg = Util.checkboxUserDialog(parent,
+                                     _(u'Protect Passwords?'),
+                                     _(u'Anyone who gets access to your data can view your account passwords. Do you want to protect your account passwords by encrypting them with the master password?'),
+                                     value = _(u'Never ask again.'))
+        try:
+            val = dlg.ShowModal()
+            neverAskAgain = dlg.GetValue()
+            
+            if val == wx.ID_YES:
+                waitForDeferred(change(view, parent))
+                if neverAskAgain:
+                    prefs.protect = True
+            else:
+                if neverAskAgain:
+                    prefs.protect = False
+        finally:
+            dlg.Destroy()
 
 def _clear():
     # Helper to really clear the master password
@@ -627,6 +647,11 @@ class MasterPasswordPrefs(Preferences):
         schema.Integer,
         initialValue = 15,
         doc = 'Timeout, in minutes, for the master password'
+    )
+
+    protect = schema.One(
+        schema.Boolean,
+        doc = 'Unset: ask the user, True: automatically protect, False: no protection'
     )
 
 

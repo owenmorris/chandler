@@ -585,6 +585,7 @@ Importing:
     ...            dummyPassword='dd555441-9ddc-416c-b55a-77b073c7bd15',
     ...            masterPassword=1,
     ...            timeout=10,
+    ...            protect=0
     ... )
     >>> rs = sharing.RecordSet([prefsr])
     >>> t.startImport()
@@ -601,13 +602,15 @@ Importing:
     True
     >>> prefs.timeout
     10
+    >>> hasattr(prefs, "protect")
+    False
     
 Exporting:
 
     >>> t.startExport()
 
     >>> list(t.export_password_prefs())
-    [PasswordPrefsRecord('dd555441-9ddc-416c-b55a-77b073c7bd15', 1, 10), PasswordRecord('dd555441-9ddc-416c-b55a-77b073c7bd15', '...', '...', '...')]
+    [PasswordPrefsRecord('dd555441-9ddc-416c-b55a-77b073c7bd15', 1, 10, 0), PasswordRecord('dd555441-9ddc-416c-b55a-77b073c7bd15', '...', '...', '...')]
 
 
 #XXX MailAccountRecord, IMAPAccountFoldersRecord, SMTPAccountRecord,

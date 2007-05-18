@@ -304,6 +304,77 @@ class promptUserDialog(wx.Dialog):
         return self.textControl.GetValue()
 
 
+class checkboxUserDialog(wx.Dialog):
+    def __init__(self, parent, title, message, value,
+     size=wx.DefaultSize, pos=wx.DefaultPosition,
+     style=wx.DEFAULT_DIALOG_STYLE):
+
+        # Instead of calling wx.Dialog.__init__ we precreate the dialog
+        # so we can set an extra style that must be set before
+        # creation, and then we create the GUI dialog using the Create
+        # method.
+        pre = wx.PreDialog()
+        pre.Create(parent, -1, title, pos, size, style)
+
+        # This next step is the most important, it turns this Python
+        # object into the real wrapper of the dialog (instead of pre)
+        # as far as the wxPython extension is concerned.
+        self.this = pre.this
+
+        # Now continue with the normal construction of the dialog
+        # contents
+        sizer = wx.BoxSizer(wx.VERTICAL)
+        label = wx.StaticText(self, -1, message)
+        label.Wrap(400)
+        sizer.Add(label, 0, wx.ALIGN_CENTER|wx.ALL, 5)
+
+        # [ [ checkboxctrl ]        [ buttonctrl buttonctr ] ]
+
+        row = wx.BoxSizer(wx.HORIZONTAL)
+
+        box = wx.BoxSizer(wx.HORIZONTAL)
+
+        checkbox = wx.CheckBox(self, -1, value, wx.DefaultPosition)
+
+        box.Add(checkbox, 1, wx.ALIGN_LEFT|wx.ALL, 5)
+
+        row.Add(box, 1, wx.ALIGN_LEFT|wx.GROW|wx.ALIGN_CENTER_VERTICAL|wx.ALL, 5)
+
+        # line = wx.StaticLine(self, -1, size=(20,-1), style=wx.LI_HORIZONTAL)
+        # sizer.Add(line, 0, wx.GROW|wx.ALIGN_CENTER_VERTICAL|wx.RIGHT|wx.TOP, 5)
+
+        box = wx.BoxSizer(wx.HORIZONTAL)
+
+        btn = wx.Button(self, wx.ID_YES)
+        btn.SetDefault()
+        box.Add(btn, 0, wx.ALIGN_CENTRE|wx.ALL, 5)
+
+        btn = wx.Button(self, wx.ID_NO)
+        box.Add(btn, 0, wx.ALIGN_CENTRE|wx.ALL, 5)
+
+        row.Add(box, 0, wx.ALIGN_RIGHT|wx.ALIGN_CENTER_VERTICAL|wx.ALL, 5)
+        sizer.Add(row, 0, wx.GROW|wx.ALL, 5)
+
+        self.SetSizer(sizer)
+        self.SetAutoLayout(True)
+        sizer.Fit(self)
+
+        # Store these, using attribute names that hopefully wont collide with
+        # any wx attributes
+        self.checkbox = checkbox
+        #if wx.Platform != '__WXMAC__':
+        #    checkbox.SetFocus()
+
+        self.Bind(wx.EVT_BUTTON, self.End, id=wx.ID_YES)
+        self.Bind(wx.EVT_BUTTON, self.End, id=wx.ID_NO)
+
+    def End(self, event):
+        self.EndModal(event.GetId())
+
+    def GetValue(self):
+        return self.checkbox.GetValue()
+
+
 def displayLogWindow(logList):
 
     win = LogWindow(logList)

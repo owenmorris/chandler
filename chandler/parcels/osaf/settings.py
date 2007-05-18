@@ -221,6 +221,8 @@ def save(rv, filename):
     cfg[u"master_password"] = {}
     cfg[u"master_password"][u"masterPassword"] = prefs.masterPassword
     cfg[u"master_password"][u"timeout"] = prefs.timeout
+    if hasattr(prefs, "protect"):
+        cfg[u"master_password"][u"protect"] = prefs.protect
 
     # password, we'll just use the master password section as they are tied
     dummy = schema.ns("osaf.framework.password", rv).passwordPrefs.dummyPassword
@@ -618,6 +620,8 @@ def restoreMasterPassword(rv, cfg, testmode, oldMaster, newMaster):
                 prefs.masterPassword = section.as_bool(u"masterPassword")
             if section.has_key(u"timeout"):
                 prefs.timeout = section.as_int(u"timeout")
+            if section.has_key(u"protect"):
+                prefs.timeout = section.as_bool(u"protect")
             dummy = schema.ns("osaf.framework.password", rv).passwordPrefs.dummyPassword
             try:
                 iv, salt, ciphertext = section[u"dummyPassword"].split('|')
