@@ -22,7 +22,7 @@ import sys
 import application
 import re
 from application import schema
-from application.dialogs import ConflictDialog
+from application.dialogs import ConflictDialog, RecurrenceDialog
 from osaf import pim
 from osaf.framework.attributeEditors import (
      AttributeEditorMapping, DateAttributeEditor,
@@ -65,6 +65,7 @@ def BroadcastSelect(item):
     sidebarBPB.childBlocks.first().postEventByName(
        'SelectItemsBroadcast', {'items':selection}
     )
+    
 
 class WatchedItemRootBlock(FocusEventHandlers):
     """
@@ -136,6 +137,12 @@ class DetailRootBlock(WatchedItemRootBlock, ControlBlocks.ContentItemDetail):
         self.setContentsOnBlock(newItem, event.arguments['collection'])
         
         if newItem is not None:
+            # Register with the RecurrenceDialog, so that hitting
+            # the [Cancel] button causes the detail view to redraw
+            # properly.
+            callback = self.widgetGuardedCallback(self.synchronizeWidgetDeep)
+            RecurrenceDialog.getProxy(u'ui', newItem, endCallback=callback)
+
             self.item.beginSession()
 
         # make sure other UI is notified about the item changing

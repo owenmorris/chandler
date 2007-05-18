@@ -80,8 +80,7 @@ def IgnoreSynchronizeWidget(syncValue, method, *args, **kwds):
         theApp.ignoreSynchronizeWidget = oldIgnoreSynchronizeWidget
 
     return result
-
-
+    
 class Viewable(schema.Annotation):
     """Make ContentItems viewable"""
     schema.kindInfo(annotates=ContentItem)
@@ -269,6 +268,14 @@ class Block(schema.Item):
         return BlockTemplate(theClass, itemName,
                              blockName=blockName or itemName,
                              **attrs)
+
+    def widgetGuardedCallback(self, function):
+        """Call callback function only if the receiving block has a widget."""
+        def callback():
+            if getattr(self, 'widget', None) is not None:
+                function()
+        callback.__name__ = function.__name__
+        return callback
 
     # Controls whether or not notifications will dirty the block.
     ignoreNotifications = property(

@@ -178,7 +178,6 @@ def getProxy(context, obj, createNew=True, endCallback=None):
             logger.info('creating proxy in context: %s, for uuid: %s' % (context, obj.itsUUID))
             proxy = UserChangeProxy(obj)
             _proxies[context] = (obj.itsUUID, proxy)
-            return proxy
         else:
             return obj
     else:
@@ -198,12 +197,12 @@ def getProxy(context, obj, createNew=True, endCallback=None):
         # @@@ [grant] unnecessary in the stamping-as-annotation world
         proxy.__class__ = obj.__class__
 
-        # sometimes a cancel requires that some UI element needs to
-        # be "reset" to the original state.. so queue up the cancel changes
-        if (endCallback is not None and
-            endCallback not in proxy.endCallbacks):
-            proxy.endCallbacks.append(endCallback)
-        return proxy
+    # sometimes a cancel requires that some UI element needs to
+    # be "reset" to the original state.. so queue up the cancel changes
+    if (endCallback is not None and
+        endCallback not in proxy.endCallbacks):
+        proxy.endCallbacks.append(endCallback)
+    return proxy
 
 class UserChangeProxy(object):
     """Proxy which records user changes to an item, by marking them at commit time."""

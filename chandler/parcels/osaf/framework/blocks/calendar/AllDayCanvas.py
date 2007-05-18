@@ -21,8 +21,7 @@ from application import schema
 from datetime import timedelta
 from CalendarCanvas import (
     CalendarCanvasItem, CalendarBlock, CalendarSelection,
-    wxCalendarCanvas, widgetGuardedCallback,
-    wxInPlaceEditor
+    wxCalendarCanvas, wxInPlaceEditor
     )
 from osaf.framework.blocks.Block import BaseWidget
 from CollectionCanvas import DragState
@@ -288,8 +287,8 @@ class wxAllDayEventsCanvas(BaseWidget, wxCalendarCanvas):
         if not currentCanvasItem.CanDrag():
             return
 
-        callback = widgetGuardedCallback(self.blockItem,
-                                         self.wxSynchronizeWidget)
+        callback = self.blockItem.widgetGuardedCallback(
+                                               self.wxSynchronizeWidget)
         proxy = RecurrenceDialog.getProxy(u'ui', currentCanvasItem.item,
                                           endCallback=callback)
         

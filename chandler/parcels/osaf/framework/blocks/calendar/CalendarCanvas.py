@@ -37,7 +37,8 @@ from application.dialogs import RecurrenceDialog, Util, TimeZoneList
 from osaf.sharing import ChooseFormat, CalDAVFreeBusyConduit, FreeBusyAnnotation
 
 from osaf.framework.blocks import (
-    ContainerBlocks, SplitterWindow, Styles, BoxContainer, BlockEvent, ViewEvent
+    ContainerBlocks, SplitterWindow, Styles, BoxContainer, BlockEvent,
+    ViewEvent
     )
 from osaf.framework.attributeEditors import AttributeEditors
 from osaf.framework.blocks.DrawingUtilities import (DrawWrappedText, Gradients,
@@ -140,13 +141,6 @@ def roundToColumnPosition(v, columnList):
         return columnList[0]
     else:
         return columnList[-1]
-
-def widgetGuardedCallback(block, function):
-    """Call callback function only if the given object has a widget."""
-    def callback():
-        if getattr(block, 'widget', None) is not None:
-            function()
-    return callback
 
 # hue -> colorName mapping
 hueMap = dict((int(v), k) for k, v in confstyles.cfg.items('colors'))

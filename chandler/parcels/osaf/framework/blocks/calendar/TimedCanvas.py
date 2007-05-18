@@ -20,7 +20,7 @@ from application import schema
 from datetime import datetime, timedelta, date, time
 from CalendarCanvas import (
     CalendarCanvasItem, CalendarBlock, CalendarSelection,
-    wxCalendarCanvas, roundTo, widgetGuardedCallback,
+    wxCalendarCanvas, roundTo,
     wxInPlaceEditor
     )
 from CollectionCanvas import DragState
@@ -871,8 +871,8 @@ class wxTimedEventsCanvas(BaseWidget, wxCalendarCanvas):
 
         currentCanvasItem.startTime = currentCanvasItem.endTime = None
 
-        callback = widgetGuardedCallback(self.blockItem,
-                                         self.wxSynchronizeWidget)
+        callback = self.blockItem.widgetGuardedCallback(
+                                             self.wxSynchronizeWidget)
         proxy = RecurrenceDialog.getProxy(u'ui', currentCanvasItem.item,
                                           endCallback=callback)
         
