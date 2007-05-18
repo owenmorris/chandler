@@ -40,7 +40,7 @@ policy_values = (
 )
 
 default_schema = {
-    Kind: ('description',),
+    Kind: ('description', 'notify'),
     Base: ('description',)
 }
 

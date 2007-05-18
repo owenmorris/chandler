@@ -122,8 +122,9 @@ class RepositoryView(CView):
     # 0.6.25: monitor rework to support inheritance with filters
     # 0.6.26: removed 'otherNames' otherName override from Kind
     # 0.7.0: rolling over to version 0.7
+    # 0.7.1: added 'notify' attribute to Kind, like Attribute's
     
-    CORE_SCHEMA_VERSION = 0x00070000
+    CORE_SCHEMA_VERSION = 0x00070100
 
     def __init__(self, repository, name=None, version=None,
                  deferDelete=Default, pruneSize=Default, notify=True,

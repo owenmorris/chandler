@@ -1839,6 +1839,9 @@ Issues:
    attribute, which would point to another Email Address item.
 
 """
+
+    schema.kindInfo(notify = False) # no 'refresh' notifs on this kind
+
     emailAddress = schema.One(
         schema.Text,
         doc = 'The email address.\n\n'

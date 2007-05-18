@@ -49,6 +49,7 @@ class Kind(Item):
 
         self._initialValues = None
         self._initialReferences = None
+        self.c.notify = True
 
         self._status |= Item.SCHEMA
 
@@ -496,9 +497,11 @@ class Kind(Item):
             allAttributes.clear()
             allNames.clear()
             notifyAttributes.clear()
+            notify = False
 
-            references = self._references
+            references = self.itsRefs
             for superKind in references['superKinds']:
+                notify = notify or superKind.c.notify
                 for name, attribute, kind in superKind.iterAttributes():
                     if name not in allAttributes:
                         allAttributes[name] = (attribute.itsUUID, kind.itsUUID,
@@ -511,6 +514,8 @@ class Kind(Item):
                         allNames[h] = name
                         if attribute.getAspect('notify', False):
                             notifyAttributes.add(name)
+            else:
+                notify = True
 
             attributes = references.get('attributes', None)
             if attributes is not None:
@@ -525,6 +530,7 @@ class Kind(Item):
                         notifyAttributes.remove(name)
 
             c.attributesCached = True
+            c.notify = self.itsValues.get('notify', notify)
 
         view = self.itsView
         for name, (aUUID, kUUID, local, defined) in allAttributes.iteritems():
@@ -926,6 +932,34 @@ class Kind(Item):
             if c is not None:
                 if c.monitorSchema or c.attributesCached:
                     self.flushCaches(attrName)
+
+    # notify value is used to turn on or off 'refresh' notifs on extents.
+    # notify value is inherited via superKinds and cached on CKind.
+    # top default is True.
+    def _afterNotifyChange(self, op, attrName):
+
+        if not self.isDeleting():
+            if op == 'set':
+                if attrName == 'notify':
+                    self.c.notify = notify = self.notify
+                elif 'notify' not in self.itsValues:
+                    self.c.notify = notify = attrName # True or False
+                else:
+                    return
+            elif op == 'remove':
+                if attrName == 'notify':
+                    notify = False
+                    for superKind in self.itsRefs.get('superKinds', Nil):
+                        notify = notify or superKind.c.notify
+                    else:
+                        notify = True
+                elif 'notify' not in self.itsValues:
+                    self.c.notify = notify = attrName # True or False
+                else:
+                    return
+
+            for subKind in self.itsRefs.get('subKinds', Nil):
+                subKind._afterNotifyChange(op, notify)
 
     def _afterAttributeHashChange(self):
 

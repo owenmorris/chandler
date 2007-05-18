@@ -223,15 +223,16 @@ class DBRepositoryView(OnDemandRepositoryView):
 
             if not (pKind is None or pKind == DBItemWriter.NOITEM):
                 kind = self.find(pKind)
-                if kind is not None:
+                if kind is not None and kind.c.notify:
                     kind.extent._collectionChanged('refresh', 'collection',
                                                    'extent', uItem, ())
 
             kind = self.find(uKind)
             if kind is not None:
                 names = dirtyNames()
-                kind.extent._collectionChanged('refresh', 'collection',
-                                               'extent', uItem, names)
+                if kind.c.notify:
+                    kind.extent._collectionChanged('refresh', 'collection',
+                                                   'extent', uItem, names)
 
                 watchers = self.findValue(uItem, 'watchers', None, version)
                 if watchers:
