@@ -210,11 +210,6 @@ def checkOptions(options):
     options.runpython   = {}
     options.runchandler = {}
 
-    if os.name == 'nt' or sys.platform == 'cygwin':
-        options.semaphorePath = os.path.join(options.chandlerHome, 'rt_exit_code')
-    else:
-        options.semaphorePath = None
-
     for mode in [ 'debug', 'release' ]:
         if os.name == 'nt' or sys.platform == 'cygwin':
             options.runpython[mode]   = os.path.join(options.chandlerBin, mode, 'RunPython.bat')
@@ -471,7 +466,7 @@ def runUnitTests(options, testlist=None):
                 if options.dryrun:
                     result = 0
                 else:
-                    result = build_lib.runCommand(cmd, timeout=600, semaphorePath=options.semaphorePath)
+                    result = build_lib.runCommand(cmd, timeout=600)
 
                 if result != 0:
                     log('***Error exit code=%d' % result)
@@ -523,7 +518,7 @@ def runUnitSuite(options):
         if options.dryrun:
             result = 0
         else:
-            result = build_lib.runCommand(cmd, timeout=3600, semaphorePath=options.semaphorePath)
+            result = build_lib.runCommand(cmd, timeout=3600)
 
         if result != 0:
             log('***Error exit code=%d' % result)
@@ -592,7 +587,7 @@ def runPluginTests(options):
                         os.chdir(os.path.dirname(test))
                         env['PARCELPATH'] = os.path.join('..', '..', 'plugins')
 
-                        result = build_lib.runCommand(cmd, timeout=600, env=env, semaphorePath=options.semaphorePath)
+                        result = build_lib.runCommand(cmd, timeout=600, env=env)
 
                     if result != 0:
                         log('***Error exit code=%d' % result)
@@ -671,7 +666,7 @@ def runFuncTest(options, test='FunctionalTestSuite.py'):
         if options.dryrun:
             result = 0
         else:
-            result = build_lib.runCommand(cmd, timeout=timeout, semaphorePath=options.semaphorePath)
+            result = build_lib.runCommand(cmd, timeout=timeout)
 
         if result != 0:
             log('***Error exit code=%d' % result)
@@ -752,7 +747,7 @@ def runRecordedScripts(options):
             if options.dryrun:
                 result = 0
             else:
-                result = build_lib.runCommand(cmd, timeout=1200, semaphorePath=options.semaphorePath)
+                result = build_lib.runCommand(cmd, timeout=1200)
     
             if result != 0:
                 log('***Error exit code=%d' % result)
@@ -846,7 +841,7 @@ def runScriptPerfTests(options, testlist, largeData=False, repeat=1, logger=log)
                 result = 0
             else:
                 tempLogger = DelayedLogger()
-                result = build_lib.runCommand(cmd, timeout=1800, logger=tempLogger, semaphorePath=options.semaphorePath)
+                result = build_lib.runCommand(cmd, timeout=1800, logger=tempLogger)
 
             if result != 0:
                 tempLogger.logAll()
@@ -999,7 +994,7 @@ def runStartupPerfTests(options, timer, largeData=False, repeat=3, logger=log):
     if options.dryrun:
         result = 0
     else:
-        result = build_lib.runCommand(cmd, timeout=timeout, logger=logger, semaphorePath=options.semaphorePath)
+        result = build_lib.runCommand(cmd, timeout=timeout, logger=logger)
 
     if result != 0:
         log('***Error exit code=%d, creating %s repository' % (result, name))
@@ -1035,7 +1030,7 @@ def runStartupPerfTests(options, timer, largeData=False, repeat=3, logger=log):
         if options.dryrun:
             result = 0
         else:
-            result = build_lib.runCommand(cmd, timeout=180, logger=logger, semaphorePath=options.semaphorePath)
+            result = build_lib.runCommand(cmd, timeout=180, logger=logger)
 
         if result == 0:
             if options.dryrun:

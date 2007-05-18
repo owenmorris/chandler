@@ -80,7 +80,7 @@ def setpgid_preexec_fn():
     os.setpgid(0, 0)
 
 
-def runCommand(cmd, env=None, timeout=-1, logger=log, semaphorePath=None):
+def runCommand(cmd, env=None, timeout=-1, logger=log):
     """
     Execute the given command and log all output
 
@@ -127,12 +127,6 @@ def runCommand(cmd, env=None, timeout=-1, logger=log, semaphorePath=None):
         else:
             output = tempfile.TemporaryFile()
 
-    if semaphorePath is not None:
-        try:
-            os.remove(semaphorePath)
-        except OSError:
-            pass
-
     if redirect:
         p = killableprocess.Popen(cmd, env=env, stdin=subprocess.PIPE, stdout=output, stderr=subprocess.STDOUT, preexec_fn=setpgid_preexec_fn)
     else:
@@ -157,15 +151,7 @@ def runCommand(cmd, env=None, timeout=-1, logger=log, semaphorePath=None):
         for line in output:
             logger(line[:-1])
 
-    result = p.returncode
-
-    if not p.returncode and semaphorePath is not None and os.path.isfile(semaphorePath):
-        try:
-            result = int(open(semaphorePath).read())
-        except IOError:
-            pass
-
-    return result
+    return p.returncode
 
 
 def getCommand(cmd, echo=False):
