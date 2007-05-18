@@ -1355,9 +1355,7 @@ class RepositoryView(CView):
 
     def _updateIndexes(self, newIndexes, items):
         
-        indexes = []
-        excludes = set()
-
+        map = {}
         for uItem, attr, name in newIndexes:
             item = self.find(uItem)
             if item is not None and item.isLive():
@@ -1365,24 +1363,30 @@ class RepositoryView(CView):
                 if isinstance(indexed, Indexed):
                     if indexed.hasIndex(name):
                         index = indexed.getIndex(name)
-                        indexes.append((indexed, index))
-                        excludes.add(index)
+                        if indexed in map:
+                            map[indexed].append(index)
+                        else:
+                            map[indexed] = [index]
 
         for item in items:
             uItem = item.itsUUID
-            for indexed, index in indexes:
-                anIndex = indexed._anIndex(excludes)
+            for indexed, indexes in map.iteritems():
+                anIndex = indexed._anIndex(indexes)
                 if anIndex is not None:
                     if uItem in anIndex:
+                        for index in indexes:
+                            if uItem not in index:
+                                index.insertKey(uItem)
+                    else:
+                        for index in indexes:
+                            index.removeKey(uItem)
+                elif indexed.__contains__(item, False, True):
+                    for index in indexes:
                         if uItem not in index:
                             index.insertKey(uItem)
-                    else:
-                        index.removeKey(uItem)
-                elif indexed.__contains__(item, False, True):
-                    if uItem not in index:
-                        index.insertKey(uItem)
                 else:
-                    index.removeKey(uItem)
+                    for index in indexes:
+                        index.removeKey(uItem)
                         
 
     itsUUID = UUID('3631147e-e58d-11d7-d3c2-000393db837c')
