@@ -103,6 +103,7 @@ class DBRepositoryView(OnDemandRepositoryView):
                 self.find(item.itsUUID)
 
         self._log.clear()
+        del self._newIndexes[:]
 
         if self.isDirty():
             self._roots._clearDirties()

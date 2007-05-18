@@ -616,14 +616,20 @@ class DBRepository(OnDemandRepository):
                     _self.running += 1
                     if _self.running >= chunk:
                         raise _counter.commit, (name, value)
+            def getCounts(_self):
+                return (_self.itemCount, _self.valueCount, _self.refCount,
+                        _self.indexCount, _self.nameCount, 
+                        _self.lobCount, _self.blockCount, _self.documentCount)
 
         counter = _counter()
 
         self.logger.info("compact(): deleting old records past version %d",
                          toVersion)
         stage = "purging old records"
-        progressFn(stage, 0)
+        if progressFn(stage, 0) is False:
+            return counter.getCounts()
 
+        cancelled = False
         while True:
             try:
                 txnStatus = store.startTransaction(None, True)
@@ -682,12 +688,18 @@ class DBRepository(OnDemandRepository):
                             del items[:]
                             items.append(item)
                             prevUUID = uuid
-                    purge()
+
+                        if cancelled:
+                            break
+
+                    if not cancelled:
+                        purge()
 
                 finally:
                     indexReader.close()
                     indexSearcher.close()
 
+                # even when cancelling, purge version records
                 store._values.purgeViewStatus(txn, counter, toVersion)
 
             except _counter.commit, e:
@@ -699,7 +711,8 @@ class DBRepository(OnDemandRepository):
                 counter.running = 0
                 del items[:]
                 percent = ord(uItem._uuid[0]) * 256 + ord(uItem._uuid[1])
-                progressFn(stage, 100 - (percent * 100) / 65536)
+                if progressFn(stage, 100 - (percent * 100) / 65536) is False:
+                    cancelled = True
                 continue
 
             except DBLockDeadlockError:
@@ -717,9 +730,7 @@ class DBRepository(OnDemandRepository):
                 store.commitTransaction(None, txnStatus)
                 break
 
-        counts = (counter.itemCount, counter.valueCount, counter.refCount,
-                  counter.indexCount, counter.nameCount, 
-                  counter.lobCount, counter.blockCount, counter.documentCount)
+        counts = counter.getCounts()
         self.logger.info("compact(): reclaimed %d items, %d values, %d refs, %d index entries, %d names, %d lobs, %d blocks, %d lucene documents)", *counts)
         progressFn(stage, 100)
 
@@ -1087,22 +1098,38 @@ class DBStore(Store):
 
         stage = "compacting databases"
 
-        progressFn(stage, 0)
+        if progressFn(stage, 0) is False:
+            return
         self._items.compact()
-        progressFn(stage, 12)
+
+        if progressFn(stage, 12) is False:
+            return
         self._values.compact()
-        progressFn(stage, 24)
+
+        if progressFn(stage, 24) is False:
+            return
         self._refs.compact()
-        progressFn(stage, 36)
+
+        if progressFn(stage, 36) is False:
+            return
         self._names.compact()
-        progressFn(stage, 48)
+
+        if progressFn(stage, 48) is False:
+            return
         self._lobs.compact()
-        progressFn(stage, 60)
+
+        if progressFn(stage, 60) is False:
+            return
         self._index.compact()
-        progressFn(stage, 72)
+
+        if progressFn(stage, 72) is False:
+            return
         self._acls.compact()
-        progressFn(stage, 84)
+
+        if progressFn(stage, 84) is False:
+            return
         self._indexes.compact()
+
         
     def loadItem(self, view, version, uuid):
 

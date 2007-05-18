@@ -1595,7 +1595,8 @@ class ValueContainer(DBContainer):
     def purgeViewStatus(self, txn, counter, toVersion):
 
         try:
-            key = ValueContainer.VIEW_KEY
+            key = str(Record(Record.UUID, Repository.itsUUID,
+                             Record.INT, 2))                   # VIEW_KEY
             cursor = self.c.openCursor(self._version)
             flags = self.c.flags & ~DB.DB_READ_UNCOMMITTED
             value = cursor.set_range(key, flags, None)
