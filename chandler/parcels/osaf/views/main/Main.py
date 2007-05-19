@@ -944,7 +944,7 @@ class MainView(View):
 
     def onCompactRepositoryEvent(self, event):
         # triggered from "Tools | Repository | Compact" Menu
-        schema.ns('osaf.app', self.itsView).compactTask.run_once()
+        schema.ns('osaf.app', self.itsView).compactTask.run_once(True)
 
     def onIndexRepositoryEvent(self, event):
         # triggered from "Tools | Repository | Index" Menu

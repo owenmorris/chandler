@@ -186,20 +186,24 @@ class CompactTask(startup.DurableTask):
         return interval
 
     # target implementation
-    def run(self, *args, **kwds):
+    def run(self, manual=False):
 
         app = wx.GetApp()
         if app is None:   # no UI, retry later
-            self.reschedule(CompactTask.RETRY_INTERVAL)
+            if manual:
+                self.lastRun = self.lastCompact
+            else:
+                self.reschedule(CompactTask.RETRY_INTERVAL)
             self.itsView.commit()
         else:
-            app.PostAsyncEvent(app.UIRepositoryView[self.itsUUID].compact)
+            app.PostAsyncEvent(app.UIRepositoryView[self.itsUUID].compact,
+                               manual)
 
         return False # bypass auto-rescheduling
 
     # compacting should block and be done in the MainThread
     # this method must run in the MainThread via app.PostAsyncEvent()
-    def compact(self):
+    def compact(self, manual=False):
 
         view = self.itsView   # view is MainThread view
         view.refresh()
@@ -209,7 +213,10 @@ class CompactTask(startup.DurableTask):
 
         if versions < CompactTask.MIN_VERSIONS:  # nothing much to do
             view.logger.info("Only %d versions to compact, skipping", versions)
-            self.reschedule(CompactTask.REGULAR_INTERVAL)
+            if manual:
+                self.lastRun = self.lastCompact
+            else:
+                self.reschedule(CompactTask.REGULAR_INTERVAL)
             view.commit()
             return
 
@@ -239,7 +246,12 @@ class CompactTask(startup.DurableTask):
                 self.lastCompact = datetime.now()
                 self.reschedule(CompactTask.REGULAR_INTERVAL)
             elif self.compacted is False:
-                self.reschedule(CompactTask.RETRY_INTERVAL)
+                if manual:
+                    self.lastRun = self.lastCompact
+                else:
+                    self.reschedule(CompactTask.RETRY_INTERVAL)
+        elif manual:
+            self.lastRun = self.lastCompact
         else:
             self.reschedule(CompactTask.RETRY_INTERVAL)
 
