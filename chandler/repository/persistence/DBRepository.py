@@ -700,7 +700,7 @@ class DBRepository(OnDemandRepository):
                     indexSearcher.close()
 
                 # even when cancelling, purge version records
-                store._values.purgeViewStatus(txn, counter, toVersion)
+                store._values.purgeViewData(txn, counter, toVersion)
 
             except _counter.commit, e:
                 uItem, version = counter.current

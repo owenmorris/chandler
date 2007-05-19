@@ -1592,7 +1592,7 @@ class ValueContainer(DBContainer):
         if counter is not None:
             counter.valueCount += 1
 
-    def purgeViewStatus(self, txn, counter, toVersion):
+    def purgeViewData(self, txn, counter, toVersion):
 
         try:
             key = str(Record(Record.UUID, Repository.itsUUID,
