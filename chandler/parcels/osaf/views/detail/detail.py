@@ -1643,14 +1643,13 @@ class CalendarTimeAttributeEditor(TimeAttributeEditor):
                     event.duration = timedelta(hours=1)
                 else:
                     if not iAmStart:
-                        # Changing the end date or time such that it becomes 
-                        # earlier than the existing start date+time will change 
-                        # the start date+time to be the same as the end 
-                        # date+time (that is, an @time event, or a single-day 
-                        # anytime event if the event had already been an 
-                        # anytime event).
-                        if value < event.startTime:
-                            event.startTime = value
+                        # Per bug 7522:
+                        # Changing the end time such that it becomes earlier
+                        # than the existing start date+time will change 
+                        # the end date to be after the start date, to
+                        # handle the case where an evening event crosses midnight.
+                        while value < event.startTime:
+                            value += timedelta(days=1)
                     setattr(item, attributeName, value)
                     event.anyTime = False
                 changed = True
