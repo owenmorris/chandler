@@ -84,7 +84,9 @@ def get(view, parent=None, testPassword=None):
         passwords = [item for item in password.Password.iterItems(view)]
 
     if parent is None:
-        parent = wx.GetApp().mainFrame
+        app = wx.GetApp()
+        if app is not None:
+            parent = app.mainFrame
 
     while True:
         dlg = GetMasterPasswordDialog(parent, prefs.timeout)
@@ -149,7 +151,9 @@ def change(view, parent=None):
     ret = False
     
     if parent is None:
-        parent = wx.GetApp().mainFrame
+        app = wx.GetApp()
+        if app is not None:
+            parent = app.mainFrame
 
     while True:
         dlg = ChangeMasterPasswordDialog(parent, changing=prefs.masterPassword,
