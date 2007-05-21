@@ -454,14 +454,17 @@ class RecordSetConduit(conduits.BaseConduit):
                     item = None
 
                 if item is not None:
-
                     # Set triage status, based on the values we loaded
-                    # We'll only autotriage if we're not sharing triage status,
-                    # but we'll always "pop to Now".
-                    autoDateTriage = extra.get('forceDateTriage', False) or \
-                                     'cid:triage-filter@osaf.us' in self.filters
-                    newTriageStatus = 'auto' if autoDateTriage else None
-                    pim.setTriageStatus(item, newTriageStatus, popToNow=True)
+                    # We'll only autotriage if we're not sharing triage status;
+                    # We'll only pop to Now if this is an established share.
+                    # Do nothing if neither.
+                    established = self.share.established
+                    newTriageStatus = 'auto' \
+                        if extra.get('forceDateTriage', False) or \
+                           'cid:triage-filter@osaf.us' in self.filters \
+                        else None
+                    if newTriageStatus or established:
+                        pim.setTriageStatus(item, newTriageStatus, popToNow=established)
 
                     # Per bug 8809:
                     # Set "read" state to True if this is an initial subscribe
@@ -469,8 +472,7 @@ class RecordSetConduit(conduits.BaseConduit):
                     # during an initial subscribe and True on subsequent
                     # syncs.  Also, make sure we apply this to the master item:
                     item_to_change = getattr(item, 'inheritFrom', item)
-                    item_to_change.read = not self.share.established
-
+                    item_to_change.read = not established
 
                 if alias in remotelyAdded:
                     receiveStats['added'].add(uuid)
