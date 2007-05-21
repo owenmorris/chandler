@@ -226,7 +226,7 @@ class PasswordPrefsRecord(eim.Record):
     dummyPassword = eim.field(schema.UUID)
     masterPassword = eim.field(eim.IntType) # boolean
     timeout = eim.field(eim.IntType)
-    protect = eim.field(eim.IntType) # 0 = None, 1 = True, 2 = False
+    protect = eim.field(eim.IntType, default=0) # 0 = None, 1 = True, 2 = False
 
 
 class MailAccountRecord(eim.Record):
