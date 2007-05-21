@@ -33,4 +33,4 @@ Windows that start Chandler for their respective platform.
 
 The repository data and transactional log files are shared among these three
 Chandler implementation. Because of endianness constraints for sharing
-transactional log files, this distribution is limited to Intel chips.
+transactional log files, this distribution is not supported on Power-PC chips.

@@ -44,10 +44,6 @@ deploy:
                 CHANDLERARCHIVES="$(DSTDIR)/chandler/windows/archives" \
                 PLATFORM=windows \
                 archives
-	$(MAKE) -C "$(DIST_HOME)" -f $(DSTDIR)/chandler/chandler/Makefile -e \
-                CHANDLERBIN="$(DIST_BIN)" \
-                CHANDLERHOME="$(DIST_HOME)" \
-                install-plugin-core distrib-plugins
 
 
 starters:
