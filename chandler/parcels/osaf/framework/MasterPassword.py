@@ -82,9 +82,14 @@ def get(view, parent=None, testPassword=None):
         passwords = [testPassword]
     else:
         passwords = [item for item in password.Password.iterItems(view)]
-        
+
+    if parent is None:
+        parent = wx.GetApp().mainFrame
+
     while True:
-        dlg = GetMasterPasswordDialog(prefs.timeout)
+        dlg = GetMasterPasswordDialog(parent, prefs.timeout)
+        if wx.Platform == '__WXMAC__':
+            dlg.CenterOnParent()
         
         try:
             if dlg.ShowModal() != wx.ID_OK:
@@ -108,8 +113,6 @@ def get(view, parent=None, testPassword=None):
         else:
             raise RuntimeError('At least one password was expected to be initialized')
         if again:
-            if parent is None:
-                parent = wx.GetApp().mainFrame
             wx.MessageBox (_(u'Master password was incorrect, please try again.'),
                            _(u'Incorrect password'),
                            parent=parent)
@@ -145,17 +148,20 @@ def change(view, parent=None):
 
     ret = False
     
+    if parent is None:
+        parent = wx.GetApp().mainFrame
+
     while True:
-        dlg = ChangeMasterPasswordDialog(changing=prefs.masterPassword,
+        dlg = ChangeMasterPasswordDialog(parent, changing=prefs.masterPassword,
                                          view=view)
+        if wx.Platform == '__WXMAC__':
+            dlg.CenterOnParent()
+
         try:
             if dlg.ShowModal() == wx.ID_OK:
                 oldMaster, newMaster = dlg.getMasterPasswords()
     
                 if not _change(oldMaster, newMaster, view, prefs):
-                    if parent is None:
-                        parent = wx.GetApp().mainFrame
-
                     wx.MessageBox(_(u'Old password was incorrect, please try again.'),
                                   _(u'Incorrect password'),
                                   parent=parent)
@@ -322,7 +328,7 @@ class GetMasterPasswordDialog(wx.Dialog):
     """
     Get master password dialog
     """
-    def __init__(self, timeout, size=wx.DefaultSize,
+    def __init__(self, parent, timeout, size=wx.DefaultSize,
                  pos=wx.DefaultPosition, style=wx.DEFAULT_DIALOG_STYLE):
         """
         constructor
@@ -334,7 +340,7 @@ class GetMasterPasswordDialog(wx.Dialog):
         # creation, and then we create the GUI dialog using the Create
         # method.
         pre = wx.PreDialog()
-        pre.Create(None, -1, _(u'Password Protection'), pos, size, style)
+        pre.Create(parent, -1, _(u'Password Protection'), pos, size, style)
 
         # This next step is the most important, it turns this Python
         # object into the real wrapper of the dialog (instead of pre)
@@ -373,12 +379,14 @@ class GetMasterPasswordDialog(wx.Dialog):
 
         self.ok = wx.Button(self, wx.ID_OK)
         box.Add(self.ok, 0, wx.ALIGN_RIGHT|wx.ALL, 5)
+        if wx.Platform == '__WXMAC__':
+            self.ok.SetDefault()
         self.ok.Disable()
 
         btn = wx.Button(self, wx.ID_CANCEL)
-        btn.SetDefault()
+        if wx.Platform != '__WXMAC__':
+            btn.SetDefault()
         box.Add(btn, 0, wx.ALIGN_RIGHT|wx.ALL, 5)
-        btn.SetFocus()
 
         sizer.Add(box, 0, wx.ALIGN_RIGHT|wx.ALL, 5)
 
@@ -409,7 +417,7 @@ class ChangeMasterPasswordDialog(wx.Dialog):
     """
     Change master password dialog
     """
-    def __init__(self, changing, view, size=wx.DefaultSize,
+    def __init__(self, parent, changing, view, size=wx.DefaultSize,
                  pos=wx.DefaultPosition, style=wx.DEFAULT_DIALOG_STYLE):
         """
         constructor
@@ -424,7 +432,7 @@ class ChangeMasterPasswordDialog(wx.Dialog):
         # method.
         pre = wx.PreDialog()
         self.view = view
-        pre.Create(None, -1, _(u'Password Protection'), pos, size, style)
+        pre.Create(parent, -1, _(u'Password Protection'), pos, size, style)
 
         # This next step is the most important, it turns this Python
         # object into the real wrapper of the dialog (instead of pre)
@@ -501,11 +509,12 @@ class ChangeMasterPasswordDialog(wx.Dialog):
             message = _(u'Pr&otect Passwords')
         self.ok = wx.Button(self, wx.ID_OK, message)
         box.Add(self.ok, 0, wx.ALIGN_RIGHT|wx.ALL, 5)
+        if wx.Platform == '__WXMAC__':
+            self.ok.SetDefault()
         self.ok.Disable()
 
         btn = wx.Button(self, wx.ID_CANCEL)
         box.Add(btn, 0, wx.ALIGN_RIGHT|wx.ALL, 5)
-        btn.SetFocus()
 
         sizer.Add(box, 0, wx.ALIGN_RIGHT|wx.ALL, 5)
 
