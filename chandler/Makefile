@@ -25,7 +25,7 @@ ARCHIVES = \
     $(CHANDLERARCHIVES)/chandlerdb-$(SNAP)-0.7-$(BP)12.tar.gz \
     $(CHANDLERARCHIVES)/db-$(SNAP)-4.5.20-$(BP)3.tar.gz \
     $(CHANDLERARCHIVES)/python-$(SNAP)-2.5.1-$(BP)2.tar.gz \
-    $(CHANDLERARCHIVES)/epydoc-$(SNAP)-2.1-$(BP)10.tar.gz \
+    $(CHANDLERARCHIVES)/epydoc-$(SNAP)-3.0beta1-$(BP)1.tar.gz \
     $(CHANDLERARCHIVES)/icu-$(SNAP)-3.6-$(BP)1.tar.gz \
     $(CHANDLERARCHIVES)/openssl-$(SNAP)-0.9.8d-$(BP)1.tar.gz \
     $(CHANDLERARCHIVES)/m2crypto-$(SNAP)-520-$(BP)1.tar.gz \
@@ -37,9 +37,9 @@ ARCHIVES = \
     $(CHANDLERARCHIVES)/dateutil-$(SNAP)-1.1-$(BP)4.tar.gz \
     $(CHANDLERARCHIVES)/vobject-$(SNAP)-0.4.8-r186-$(BP)1.tar.gz \
     $(CHANDLERARCHIVES)/zanshin-$(SNAP)-163-$(BP)1.tar.gz \
-    $(CHANDLERARCHIVES)/logilab-astng-$(SNAP)-0.16.3-$(BP)2.tar.gz \
-    $(CHANDLERARCHIVES)/logilab-common-$(SNAP)-0.21.0-$(BP)2.tar.gz \
-    $(CHANDLERARCHIVES)/pylint-$(SNAP)-0.12.2-$(BP)2.tar.gz \
+    $(CHANDLERARCHIVES)/logilab-astng-$(SNAP)-0.17.0-$(BP)1.tar.gz \
+    $(CHANDLERARCHIVES)/logilab-common-$(SNAP)-0.21.2-$(BP)1.tar.gz \
+    $(CHANDLERARCHIVES)/pylint-$(SNAP)-0.13.1-$(BP)1.tar.gz \
     $(CHANDLERARCHIVES)/parsedatetime-$(SNAP)-0.8.3-$(BP)1.tar.gz \
     $(CHANDLERARCHIVES)/configobj-$(SNAP)-4.3.2-$(BP)1.tar.gz \
     $(CHANDLERARCHIVES)/docutils-$(SNAP)-0.4-$(BP)1.tar.gz \
