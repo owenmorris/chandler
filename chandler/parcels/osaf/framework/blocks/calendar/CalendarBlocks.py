@@ -413,7 +413,7 @@ class MiniCalendar(CalendarBlock):
 
     def instantiateWidget(self):
         return wxMiniCalendar(self.parentBlock.widget,
-                              self.getWidgetID(), style=PLATFORM_BORDER)
+                              self.getWidgetID(), style=PLATFORM_BORDER)         
 
     def onSelectedDateChangedEvent(self, event):
         self.widget.SetDate(event.arguments['start'].date())

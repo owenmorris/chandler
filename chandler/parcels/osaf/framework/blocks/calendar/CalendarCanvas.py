@@ -916,7 +916,7 @@ class CalendarNotificationHandler(object):
       Calendar.EventStamp.startTime.name, 'displayName', 'appearsIn',
       Calendar.EventStamp.duration.name, Calendar.EventStamp.anyTime.name,
       Calendar.EventStamp.allDay.name, Calendar.EventStamp.transparency.name,
-      Calendar.EventStamp.rruleset.name,
+      Calendar.EventStamp.rruleset.name, Calendar.EventStamp.recurrenceEnd.name,
       'osaf.framework.blocks.BranchPointBlock.selectedItem.inverse'))
         
     def __init__(self, *args, **kwds):
