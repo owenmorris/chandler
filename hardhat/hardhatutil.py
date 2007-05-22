@@ -253,12 +253,15 @@ def fileSize(filename, humanReadable=1):
 
     Size of 0 will be reported for directories.
     """
+    mega = 1048576.0
     size = os.stat(filename)[ST_SIZE]
+
     if not humanReadable:
         return str(size)
-    
-    if size > 1024*1000:
-        return '%.1f MB' % (size / (1024 * 1000.0))
+
+    if size > mega:
+        return '%.1f MB' % (size / mega)
     elif size > 1024:
         return '%.1f KB' % (size / 1024.0)
     return '%d B' % size
+
