@@ -1362,6 +1362,8 @@ def main(options):
     """
     checkOptions(options)
 
+    failed = False
+
     if options.mode is None:
         options.modes = modes = ['release', 'debug']
 
@@ -1378,56 +1380,59 @@ def main(options):
             options.modes.remove(options.mode)
             log('%s removed from mode list' % options.mode)
 
-    failed = False
+        if len(options.modes) == 0:
+            log('%s mode requested but not found -- stopping test run' % options.mode)
+            failed = True
 
-    try:
-        # Empty the log file so that we won't be confused by old results later
-        f = open(os.path.join(options.profileDir, 'chandler.log'), 'w')
-        f.close()
-    except IOError:
-        pass
-
-    # Remove old perf log files (we leave the the latest)
-    for f in glob.glob(os.path.join(options.profileDir, '*.log.*')):
+    if not failed:
         try:
-            os.remove(f)
-        except OSError:
+            # Empty the log file so that we won't be confused by old results later
+            f = open(os.path.join(options.profileDir, 'chandler.log'), 'w')
+            f.close()
+        except IOError:
             pass
 
-    if options.single:
-        failed = runSingles(options)
-    else:
-        if options.unit:
-            failed = runUnitTests(options)
-            if not failed or options.noStop:
-                if runPluginTests(options):
+        # Remove old perf log files (we leave the the latest)
+        for f in glob.glob(os.path.join(options.profileDir, '*.log.*')):
+            try:
+                os.remove(f)
+            except OSError:
+                pass
+
+        if options.single:
+            failed = runSingles(options)
+        else:
+            if options.unit:
+                failed = runUnitTests(options)
+                if not failed or options.noStop:
+                    if runPluginTests(options):
+                        failed = True
+
+            if options.unitSuite and (not failed or options.noStop):
+                if runUnitSuite(options):
                     failed = True
 
-        if options.unitSuite and (not failed or options.noStop):
-            if runUnitSuite(options):
-                failed = True
+            if options.funcSuite and (not failed or options.noStop):
+                if runFuncTest(options):
+                    failed = True
 
-        if options.funcSuite and (not failed or options.noStop):
-            if runFuncTest(options):
-                failed = True
+            if options.func and (not failed or options.noStop):
+                if runFuncTestsSingly(options):
+                    failed = True
 
-        if options.func and (not failed or options.noStop):
-            if runFuncTestsSingly(options):
-                failed = True
+            if options.recorded and (not failed or options.noStop):
+                if runRecordedScripts(options):
+                    failed = True
 
-        if options.recorded and (not failed or options.noStop):
-            if runRecordedScripts(options):
-                failed = True
+            if options.perf and (not failed or options.noStop):
+                if runPerfTests(options):
+                    failed = True
 
-        if options.perf and (not failed or options.noStop):
-            if runPerfTests(options):
-                failed = True
-
-    if len(failedTests) > 0:
-        log('+-' * 32)
-        log('The following tests failed:')
-        log('\n'.join(failedTests))
-        log('')
+        if len(failedTests) > 0:
+            log('+-' * 32)
+            log('The following tests failed:')
+            log('\n'.join(failedTests))
+            log('')
 
     return failed
 
