@@ -274,7 +274,10 @@ distrib/docs/running-code-at-startup.html: parcels/osaf/startups.txt
 
 rst: $(RST_DOCS)
 
-docs: rst
+api:
+	CHANDLERHOME='$(CHANDLERHOME)' CHANDLERBIN='$(CHANDLERBIN)' $(RUN_PYTHON) '$(TOOLS)'gen_docs.py
+
+docs: rst api
 
 debug:
 	CHANDLERHOME='$(CHANDLERHOME)' CHANDLERBIN='$(CHANDLERBIN)' $(MAKE) DEBUG=1 install
