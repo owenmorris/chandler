@@ -15,32 +15,20 @@
 
 import os, sys, re, string, errno, shutil, time
 import repository
+import wx
 
 from application import Globals, Utility, schema
 from repository.item.RefCollections import RefList
 from chandlerdb.item.c import isitemref
 
 
-def generateModelDocs(options, outputDir=None):
-    urlRoot       = '/docs/current/model'
-    chandlerDir   = Utility.locateChandlerDirectory()
-    repositoryDir = Utility.locateRepositoryDirectory(chandlerDir, options)
+def generateModelDocs(options, chandlerDir, view, outputDir=None):
+    urlRoot = '/docs/current/model'
 
     if not outputDir:
         modelDir = os.path.join(chandlerDir, 'docs', 'model')
     else:
         modelDir = os.path.join(outputDir, 'model')
-
-    options.ramdb  = True # force ramdb
-    options.create = True # force a repository wipe
-
-    parcelPath = Utility.initParcelEnv(options, chandlerDir)
-    pluginEnv, pluginEggs = Utility.initPluginEnv(Globals.options,
-                                                  Globals.options.pluginPath)
-    view = Utility.initRepository(repositoryDir, options)
-
-    Utility.initParcels(options, view, parcelPath)
-    Utility.initPlugins(Globals.options, view, pluginEnv, pluginEggs)
 
     if not os.path.isdir(modelDir):
         _mkdirs(modelDir)
@@ -57,8 +45,6 @@ def generateModelDocs(options, outputDir=None):
  
     shutil.copy(os.path.join(chandlerDir, 'tools', 'schema.css'),
                 os.path.join(modelDir, 'schema.css'))
-
-    Utility.stopRepository(view)
 
 
 def processItem(item, handler, conf):
@@ -594,13 +580,21 @@ def generateDocs(options, outputDir):
                   'chandlerdb', 'chandlerdb.item',
                   'chandlerdb.persistence',
                   'chandlerdb.schema', 'chandlerdb.util',
-                  'application', 'i18n', 'repository' ]
+                  'application', 'i18n', 'repository',
+                  'osaf.app', 'osaf.mail', 'osaf.pim',
+                  'osaf.servlets',
+                  # these three are currently causing an epydoc error
+                  #'osaf.sharing', 'osaf.views', 'osaf.framework',
+                ]
 
     e_options, names = epydoc.cli.parse_arguments()
 
     e_options.prj_name    = 'Chandler'
-    e_options.exclude     = ['tests']
+    e_options.exclude     = ['tests', 'wx']
     e_options.simple_term = True
+    e_options.parse       = True
+    e_options.introspect  = True
+    e_options.include_log = True
     e_options.target      = os.path.join(outputDir, 'api')
 
     if options.verbose:
@@ -616,16 +610,33 @@ if __name__ == '__main__':
 
     Utility.initLogging(options)
 
+    chandlerDir   = Utility.locateChandlerDirectory()
+    repositoryDir = Utility.locateRepositoryDirectory(chandlerDir, options)
+
+    options.ramdb  = True # force ramdb
+    options.create = True # force a repository wipe
+
+    parcelPath = Utility.initParcelEnv(options, chandlerDir)
+    pluginEnv, pluginEggs = Utility.initPluginEnv(Globals.options,
+                                                  Globals.options.pluginPath)
+    view = Utility.initRepository(repositoryDir, options)
+
+    Utility.initParcels(options, view, parcelPath)
+    Utility.initPlugins(Globals.options, view, pluginEnv, pluginEggs)
+
     if options.args:
         outputDir = options.args[0]
     else:
-        outputDir = os.path.join(Utility.locateChandlerDirectory(), 'docs')
+        outputDir = os.path.join(chandlerDir, 'docs')
 
     if os.path.isfile('Chandler.py'):
         if not os.path.isdir(outputDir):
             _mkdirs(outputDir)
 
-        generateModelDocs(options, outputDir)
+        generateModelDocs(options, chandlerDir, view, outputDir)
         generateDocs(options, outputDir)
     else:
         print "Error: Currently gen_docs.py assumes it is running in the chandler/ directory"
+
+    Utility.stopRepository(view)
+
