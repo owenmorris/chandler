@@ -150,6 +150,8 @@ int _t_db_write_record(DBT *dbt, int offset, void *data, int len, int mode);
 int _t_db_read_write_record(DBT *dbt, int offset, void *data, int len,
                             int mode);
 int _t_db_discard(DBT *dbt, int offset, void *data, int len, int mode);
+int _t_db_put_record(t_db *self, DBT *key, DBT *data, PyObject *txn,
+                     int flags);
 PyObject *_t_db_make_record(PyObject *types, char *data, int size);
 PyObject *_t_db_cursor(t_db *self, PyObject *txn, int flags);
 PyObject *_t_store_getTxn(t_store *self);

@@ -40,6 +40,8 @@ static PyObject *t_db_cursor(t_db *self, PyObject *args);
 static PyObject *t_db_get_lorder(t_db *self, void *data);
 static int t_db_set_lorder(t_db *self, PyObject *value, void *data);
 static PyObject *t_db_get_dbtype(t_db *self, void *data);
+static PyObject *t_db_get_pagesize(t_db *self, void *data);
+static int t_db_set_pagesize(t_db *self, PyObject *value, void *data);
 
 static PyMemberDef t_db_members[] = {
     { NULL, 0, 0, 0, NULL }
@@ -64,6 +66,8 @@ static PyGetSetDef t_db_properties[] = {
       "database byte order", NULL },
     { "dbtype", (getter) t_db_get_dbtype, (setter) NULL,
       "database type", NULL },
+    { "pagesize", (getter) t_db_get_pagesize, (setter) t_db_set_pagesize,
+      "page size", NULL },
     { NULL, NULL, NULL, NULL, NULL }
 };
 
@@ -675,13 +679,61 @@ static PyObject *t_db_put(t_db *self, PyObject *args)
     }
 }
 
+int _t_db_put_record(t_db *self, DBT *key, DBT *data, PyObject *txn, int flags)
+{
+    char keyBuffer[128], dataBuffer[1024];
+
+    key->size = ((t_record *) key->app_data)->size;
+    if (key->size > sizeof(keyBuffer))
+    {
+        key->flags = DB_DBT_USERCOPY;
+        key->usercopy = (usercopy_fn) _t_db_write_record;
+    }
+    else
+    {
+        if (_t_record_write((t_record *) key->app_data,
+                            (unsigned char *) keyBuffer, key->size) < 0)
+            return -1;
+        key->data = keyBuffer;
+    }
+
+    data->size = ((t_record *) data->app_data)->size;
+    if (data->size > sizeof(dataBuffer))
+    {
+        data->flags = DB_DBT_USERCOPY;
+        data->usercopy = (usercopy_fn) _t_db_write_record;
+    }
+    else
+    {
+        if (_t_record_write((t_record *) data->app_data,
+                            (unsigned char *) dataBuffer, data->size) < 0)
+            return -1;
+        data->data = dataBuffer;
+    }
+
+    {
+        DB_TXN *db_txn = txn == Py_None ? NULL : ((t_txn *) txn)->txn;
+        int err;
+
+        Py_BEGIN_ALLOW_THREADS;
+        err = self->db->put(self->db, db_txn, key, data, flags);
+        Py_END_ALLOW_THREADS;
+        
+        if (err)
+        {
+            raiseDBError(err);
+            return -1;
+        }
+
+        return 0;
+    }
+}
 
 static PyObject *t_db_put_record(t_db *self, PyObject *args)
 {
-    DBT key, data;
     PyObject *txn = Py_None;
     int flags = 0;
-    char keyBuffer[128], dataBuffer[1024];
+    DBT key, data;
 
     memset(&key, 0, sizeof(key));
     memset(&data, 0, sizeof(data));
@@ -708,47 +760,10 @@ static PyObject *t_db_put_record(t_db *self, PyObject *args)
         return NULL;
     }
 
-    key.size = ((t_record *) key.app_data)->size;
-    if (key.size > sizeof(keyBuffer))
-    {
-        key.flags = DB_DBT_USERCOPY;
-        key.usercopy = (usercopy_fn) _t_db_write_record;
-    }
-    else
-    {
-        if (_t_record_write((t_record *) key.app_data,
-                            (unsigned char *) keyBuffer, key.size) < 0)
-            return NULL;
-        key.data = keyBuffer;
-    }
+    if (_t_db_put_record(self, &key, &data, txn, flags) < 0)
+        return NULL;
 
-    data.size = ((t_record *) data.app_data)->size;
-    if (data.size > sizeof(dataBuffer))
-    {
-        data.flags = DB_DBT_USERCOPY;
-        data.usercopy = (usercopy_fn) _t_db_write_record;
-    }
-    else
-    {
-        if (_t_record_write((t_record *) data.app_data,
-                            (unsigned char *) dataBuffer, data.size) < 0)
-            return NULL;
-        data.data = dataBuffer;
-    }
-
-    {
-        DB_TXN *db_txn = txn == Py_None ? NULL : ((t_txn *) txn)->txn;
-        int err;
-
-        Py_BEGIN_ALLOW_THREADS;
-        err = self->db->put(self->db, db_txn, &key, &data, flags);
-        Py_END_ALLOW_THREADS;
-        
-        if (err)
-            return raiseDBError(err);
-
-        Py_RETURN_NONE;
-    }
+    Py_RETURN_NONE;
 }
 
 static PyObject *t_db_delete(t_db *self, PyObject *args)
@@ -884,6 +899,56 @@ static PyObject *t_db_get_dbtype(t_db *self, void *data)
 
     return PyInt_FromLong(dbtype);
 }
+
+
+/* pagesize */
+
+static PyObject *t_db_get_pagesize(t_db *self, void *data)
+{
+    unsigned int pagesize;
+    int err;
+
+    if (self->db)
+    {
+        Py_BEGIN_ALLOW_THREADS;
+        err = self->db->get_pagesize(self->db, &pagesize);
+        Py_END_ALLOW_THREADS;
+    }
+    else
+        err = EINVAL;
+
+    if (err)
+        return raiseDBError(err);
+
+    return PyInt_FromLong(pagesize);
+}
+
+static int t_db_set_pagesize(t_db *self, PyObject *value, void *data)
+{
+    unsigned int pagesize = value ? PyInt_AsLong(value) : 0;
+    int err;
+
+    if (PyErr_Occurred())
+        return -1;
+
+    if (self->db)
+    {
+        Py_BEGIN_ALLOW_THREADS;
+        err = self->db->set_pagesize(self->db, pagesize);
+        Py_END_ALLOW_THREADS;
+    }
+    else
+        err = EINVAL;
+
+    if (err)
+    {
+        raiseDBError(err);
+        return -1;
+    }
+
+    return 0;
+}
+
 
 
 void _init_db(PyObject *m)
