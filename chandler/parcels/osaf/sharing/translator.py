@@ -510,6 +510,11 @@ class SharingTranslator(eim.Translator):
             masterEvent = pim.EventStamp(master)
             occurrence = masterEvent.getExistingOccurrence(recurrenceID)
             if occurrence is not None:
+                if self.getAliasForItem(occurrence) != alias:
+                    # don't get fooled by getExistingOccurrence( ) which
+                    # thinks that a floating tz matches a non-floater
+                    # (related to bug 9207)
+                    return None
                 return occurrence.itsItem.itsUUID.str16()
 
         return None

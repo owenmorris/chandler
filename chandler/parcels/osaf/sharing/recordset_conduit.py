@@ -154,8 +154,30 @@ class RecordSetConduit(conduits.BaseConduit):
             _callback(msg="Fetching changes", totalWork=None)
             inbound, extra, isDiff = self.getRecords(debug=debug, activity=
                 activity)
-            logger.debug("Inbound records: %s", inbound)
-            logger.debug("'Extra': %s", extra)
+
+            # Depending on the permissions on the ticket we might have just
+            # used, the share.mode could have changed.  Let's see if we
+            # need to turn on "send":
+            if not modeOverride:
+                if self.share.mode == 'both':
+                    send = True
+                if self.share.mode == 'get':
+                    send = False
+
+
+            ids = inbound.keys()
+            ids.sort()
+            for id in ids:
+                logger.info("<<<< Inbound recordset: %s", id)
+                rs = inbound[id]
+                if rs is None:
+                    logger.info("<< !! Deletion")
+                else:
+                    for rec in rs.inclusions:
+                        logger.info("<< ++ %s", rec)
+                    for rec in rs.exclusions:
+                        logger.info("<< -- %s", rec)
+            logger.info("Inbound 'extra': %s", extra)
 
             inboundCount = len(inbound)
             _callback(msg="Received %d change(s)" % inboundCount)
@@ -205,7 +227,6 @@ class RecordSetConduit(conduits.BaseConduit):
 
 
                 else:
-                    logger.debug("Inbound modification: %s", alias)
                     uuid = translator.getUUIDForAlias(alias)
                     if uuid:
                         item = rv.findUUID(uuid)
@@ -439,7 +460,11 @@ class RecordSetConduit(conduits.BaseConduit):
                 else:
                     item = None
 
-                logger.debug("Importing %s", rs)
+                logger.info("** Applying to UUID: %s", uuid)
+                for rec in rs.inclusions:
+                    logger.info("** ++ %s", rec)
+                for rec in rs.exclusions:
+                    logger.info("** -- %s", rec)
 
                 try:
                     translator.importRecords(rs)
@@ -529,10 +554,11 @@ class RecordSetConduit(conduits.BaseConduit):
 
                 if item is not None and item in self.share.contents:
                     self.share.contents.remove(item)
-                    self.removeState(alias)
                     self.share.removeSharedItem(item)
                     receiveStats['removed'].add(uuid)
                     logger.debug("Locally removing item: %s", uuid)
+
+                self.removeState(alias)
 
 
         # For each item that was in the collection before but is no longer,
@@ -574,6 +600,20 @@ class RecordSetConduit(conduits.BaseConduit):
                       'uuid' : self.share.contents.itsUUID.str16(),
                       'name' : self.share.contents.displayName
                     }
+
+            ids = toSend.keys()
+            ids.sort()
+            for id in ids:
+                logger.info(">>>> Sending recordset: %s", id)
+                rs = toSend[id]
+                if rs is None:
+                    logger.info(">> !! Deletion")
+                else:
+                    for rec in rs.inclusions:
+                        logger.info(">> ++ %s", rec)
+                    for rec in rs.exclusions:
+                        logger.info(">> -- %s", rec)
+
             self.putRecords(toSend, extra, debug=debug, activity=activity)
         else:
             logger.debug("Nothing to send")

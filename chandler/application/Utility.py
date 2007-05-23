@@ -419,7 +419,7 @@ def initLogging(options):
 
             logger = logging.getLogger()
 
-            fileHandler   = logging.handlers.RotatingFileHandler(os.path.join(options.profileDir, 'chandler.log'), 'a', 1000000, 2)
+            fileHandler   = logging.handlers.RotatingFileHandler(os.path.join(options.profileDir, 'chandler.log'), 'a', 3000000, 3)
             fileFormatter = logging.Formatter('%(asctime)s %(name)s %(levelname)s: %(message)s')
 
             fileHandler.setFormatter(fileFormatter)

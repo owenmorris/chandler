@@ -1124,7 +1124,7 @@ def subscribeCalDAV(view, url, inspection, activity=None, account=None,
         share.follows = subShare
 
 
-    share.sync(activity=activity, modeOverride='get')
+    share.sync(activity=activity)
     share.conduit.getTickets()
 
     if caldav_atop_eim:
@@ -1210,7 +1210,7 @@ def subscribeWebDAV(view, url, inspection, activity=None, account=None,
     if filters:
         share.conduit.filters = filters
 
-    share.sync(activity=activity, modeOverride='get')
+    share.sync(activity=activity)
     share.conduit.getTickets()
 
     try:
@@ -1338,7 +1338,7 @@ def subscribeMorsecode(view, url, morsecodeUrl, inspection, activity=None,
     if filters:
         share.conduit.filters = filters
 
-    share.sync(activity=activity, modeOverride='get')
+    share.sync(activity=activity)
 
     if account:
         # Retrieve tickets
