@@ -175,7 +175,7 @@ class DBItemWriter(ItemWriter):
         size = 0
         if item._status & CItem.ADIRTY:
             store = self.store
-            uuid = item._uuid
+            uuid = item.itsUUID
             for name, acl in item._acls.iteritems():
                 size += store.saveACL(version, uuid, name, acl)
 
@@ -276,8 +276,7 @@ class DBItemWriter(ItemWriter):
             indexRecord += (Record.UUID, uuid)
         record += (Record.RECORD, indexRecord)
 
-        return self.store._values.put_record(Record(Record.UUID, uValue),
-                                             record)
+        return self.store._values.c.saveValue(item.itsUUID, uValue, record)
 
     def indexValue(self, view, value, uItem, uAttr, uValue, version):
 
@@ -421,8 +420,7 @@ class DBItemWriter(ItemWriter):
             indexRecord += (Record.UUID, uuid)
         record += (Record.RECORD, indexRecord)
 
-        size += self.store._values.put_record(Record(Record.UUID, uValue),
-                                              record)
+        size += self.store._values.c.saveValue(item.itsUUID, uValue, record)
 
         return size
 
@@ -455,7 +453,7 @@ class DBValueReader(ValueReader):
     def readAttribute(self, view, uValue):
 
         store = self.store
-        record = store._values.c.loadValue(uValue, (Record.UUID,), store.txn)
+        record = store._values.c.loadValue(self.uItem, uValue, (Record.UUID,))
 
         return record.data[0]
 
@@ -463,8 +461,8 @@ class DBValueReader(ValueReader):
 
         store = self.store
 
-        record = store._values.c.loadValue(uValue, DBValueReader.VALUE_TYPES,
-                                           store.txn)
+        record = store._values.c.loadValue(self.uItem, uValue,
+                                           DBValueReader.VALUE_TYPES)
         uAttr, vFlags, data = record.data
 
         if toIndex and not (vFlags & CValues.TOINDEX):
@@ -530,8 +528,8 @@ class DBValueReader(ValueReader):
 
         store = self.store
 
-        record = store._values.c.loadValue(uValue, DBValueReader.VALUE_TYPES,
-                                           store.txn)
+        record = store._values.c.loadValue(self.uItem, uValue,
+                                           DBValueReader.VALUE_TYPES)
         uAttr, vFlags, data = record.data
 
         withSchema = (self.status & CItem.WITHSCHEMA) != 0
@@ -759,7 +757,8 @@ class DBItemReader(ItemReader, DBValueReader):
         (self.uKind, self.status, self.uParent, values, x,
          self.name, self.moduleName, self.className) = item.data
 
-        self.uValues = [uValue for uValue in values.data if isuuid(uValue)]
+        self.uValues = tuple([uValue for uValue in values.data
+                              if isuuid(uValue)])
 
     def __repr__(self):
 
@@ -893,13 +892,9 @@ class DBItemReader(ItemReader, DBValueReader):
     def _values(self, values, references, uValues, kind,
                 withSchema, view, afterLoadHooks):
 
-        store = self.store
-        c = store._values.c
-        txn = store.txn
-        record = DBValueReader.VALUE_TYPES
-
-        for uValue in uValues:
-            record = c.loadValue(uValue, record, txn)
+        records = self.store._values.c.loadValues(self.uItem, uValues,
+                                                  DBValueReader.VALUE_TYPES)
+        for record in records.itervalues():
             uAttr, vFlags, data = record.data
 
             if withSchema:
@@ -979,7 +974,7 @@ class DBItemPurger(ItemPurger):
             if uValue in done:
                 continue
 
-            record = store._values.c.loadValue(uValue, record, txn)
+            record = store._values.c.loadValue(uItem, uValue, record)
             if record is None:
                 done.add(uValue)
                 record = DBItemPurger.VALUE_TYPES
@@ -1021,7 +1016,7 @@ class DBItemPurger(ItemPurger):
                     done.add(uuid)
 
             if toVersion is None:
-                store._values.purgeValue(txn, counter, uValue)
+                store._values.purgeValue(txn, counter, uItem, uValue)
             done.add(uValue)
 
         if toVersion is None:
@@ -1068,7 +1063,7 @@ class DBItemUndo(object):
 
         for uValue in uValues:
             if uValue is not None:
-                record = _values.c.loadValue(uValue, record, txn)
+                record = _values.c.loadValue(uItem, uValue, record)
                 uAttr, vFlags, data, lobs, indexes = record.data
                         
                 if withSchema:
@@ -1103,7 +1098,7 @@ class DBItemUndo(object):
                         for uIndex in indexes:
                             _indexes.undoIndex(txn, uIndex, version)
     
-                _values.purgeValue(txn, None, uValue)
+                _values.purgeValue(txn, None, uItem, uValue)
         
         _refs.undoRefs(txn, uItem, version) # children
         store._index.undoDocuments(indexSearcher, indexReader, uItem, version)

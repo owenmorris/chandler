@@ -41,10 +41,13 @@ class DBContainer(object):
         self.store = store
         self._db = None
 
-    def openDB(self, txn, name, dbname, ramdb, create, mvcc):
+    def openDB(self, txn, name, dbname, ramdb, create, mvcc, pagesize=0):
 
         db = DB(self.store.env)
         db.lorder = 4321
+
+        if pagesize > 0:
+            db.pagesize = pagesize
         
         flags = DB.DB_THREAD
         self.filename = name
@@ -1586,9 +1589,9 @@ class ValueContainer(DBContainer):
 
         return version
 
-    def purgeValue(self, txn, counter, uuid):
+    def purgeValue(self, txn, counter, uItem, uValue):
 
-        self.delete(uuid._uuid, txn)
+        self.delete(uValue._uuid, txn)
         if counter is not None:
             counter.valueCount += 1
 

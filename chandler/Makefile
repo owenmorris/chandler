@@ -22,7 +22,7 @@ BUILD_PLUGINS = Chandler-HelloWorldPlugin \
 
 ARCHIVES = \
     $(CHANDLERARCHIVES)/Launchers-$(SNAP)-0.9-$(BP)14.tar.gz \
-    $(CHANDLERARCHIVES)/chandlerdb-$(SNAP)-0.7-$(BP)12.tar.gz \
+    $(CHANDLERARCHIVES)/chandlerdb-$(SNAP)-0.7-$(BP)13.tar.gz \
     $(CHANDLERARCHIVES)/db-$(SNAP)-4.5.20-$(BP)3.tar.gz \
     $(CHANDLERARCHIVES)/python-$(SNAP)-2.5.1-$(BP)2.tar.gz \
     $(CHANDLERARCHIVES)/epydoc-$(SNAP)-3.0beta1-$(BP)1.tar.gz \
@@ -30,7 +30,7 @@ ARCHIVES = \
     $(CHANDLERARCHIVES)/openssl-$(SNAP)-0.9.8d-$(BP)1.tar.gz \
     $(CHANDLERARCHIVES)/m2crypto-$(SNAP)-520-$(BP)1.tar.gz \
     $(CHANDLERARCHIVES)/pychecker-$(SNAP)-0.8.17-$(BP)1.tar.gz \
-    $(CHANDLERARCHIVES)/PyICU-$(SNAP)-0.6-75-$(BP)1.tar.gz \
+    $(CHANDLERARCHIVES)/PyICU-$(SNAP)-0.6-76-$(BP)1.tar.gz \
     $(CHANDLERARCHIVES)/PyLucene-$(SNAP)-2.0.0-7-$(BP)1.tar.gz \
     $(CHANDLERARCHIVES)/twisted-$(SNAP)-r18795-$(BP)1.tar.gz \
     $(CHANDLERARCHIVES)/wxPython-$(SNAP)-2.8.2.0-r166-$(BP)1.tar.gz \
