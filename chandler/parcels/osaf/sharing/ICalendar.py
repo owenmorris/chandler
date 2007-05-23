@@ -540,7 +540,7 @@ def _importOneVObject(vobj, filters, coerceTzinfo, promptForTimezone,
         item = view.findUUID(uuid)
             
         if item is not None:
-            item.icalUID = uuid
+            item.icalUID = unicode(uuid)
 
             
     if EventStamp in newStamps:
