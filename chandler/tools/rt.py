@@ -105,6 +105,7 @@ def parseOptions():
         'tbox':      ('-T', '--tbox',               'b', False, 'Tinderbox mode'),
         'recorded':  ('-r', '--recordedScript',     'b', False, 'Run the Chandler recorded scripts'),
         'repeat':    ('',   '--repeat',             'i', 0,     'Number of times to repeat performance test, 1 by default, 3 in Tinderbox mode'),
+        'params':    ('',   '--params',             's', None,  'Optional params that are to be passed straight to RunPython'),
         #'restored':  ('-R', '--restoredRepository', 'b', False, 'unit tests with restored repository instead of creating new for each test'),
         #'config':    ('-L', '',                     's', None,  'Custom Chandler logging configuration file'),
     }
@@ -148,7 +149,7 @@ def parseOptions():
             implicitSingle = True
         if implicitSingle:
             options.single = ' '.join(args)
-            options.args = ''
+            options.args   = ''
 
     return options
 
@@ -463,6 +464,9 @@ def runUnitTests(options, testlist=None):
                     cmd.append('-v')
                     log(' '.join(cmd))
 
+                if options.params:
+                    cmd += [ options.params ]
+
                 if options.dryrun:
                     result = 0
                 else:
@@ -484,7 +488,7 @@ def runUnitTests(options, testlist=None):
     return failed
 
 
-def runUnitSuite(options):
+    def runUnitSuite(options):
     """
     Run all unit tests in a single process
     
@@ -505,7 +509,8 @@ def runUnitSuite(options):
 
     for mode in options.modes:
         cmd = [options.runpython[mode],
-               os.path.join('tools', 'run_tests.py')]
+               os.path.join('tools', 'run_tests.py'),
+               options.params]
 
         if options.verbose:
             cmd += ['-v']
@@ -514,6 +519,9 @@ def runUnitSuite(options):
 
         if options.verbose:
             log(' '.join(cmd))
+
+        if options.params:
+            cmd += [ options.params ]
 
         if options.dryrun:
             result = 0
@@ -580,6 +588,9 @@ def runPluginTests(options):
                     if options.verbose:
                         cmd.append('-v')
                         log(' '.join(cmd))
+
+                    if options.params:
+                        cmd += [ options.params ]
 
                     if options.dryrun:
                         result = 0
@@ -659,6 +670,9 @@ def runFuncTest(options, test='FunctionalTestSuite.py'):
             cmd += ['-D2', '-M0']
         elif not options.verbose:
             cmd += ['-D1', '-M2']
+
+        if options.params:
+            cmd += [ options.params ]
 
         if options.verbose:
             log(' '.join(cmd))
@@ -744,6 +758,9 @@ def runRecordedScripts(options):
             if options.verbose:
                 log(' '.join(cmd))
     
+            if options.params:
+                cmd += [ options.params ]
+    
             if options.dryrun:
                 result = 0
             else:
@@ -825,6 +842,9 @@ def runScriptPerfTests(options, testlist, largeData=False, repeat=1, logger=log)
         else:
             cmd += ['--restore=%s' % os.path.join(options.profileDir, 
                                                   '__repository__.001')]
+
+        if options.params:
+            cmd += [ options.params ]
 
         if options.verbose:
             log(' '.join(cmd))
@@ -991,6 +1011,9 @@ def runStartupPerfTests(options, timer, largeData=False, repeat=3, logger=log):
     if options.verbose:
         log(' '.join(cmd))
 
+    if options.params:
+        cmd += [ options.params ]
+
     if options.dryrun:
         result = 0
     else:
@@ -1023,6 +1046,9 @@ def runStartupPerfTests(options, timer, largeData=False, repeat=3, logger=log):
 
     if options.verbose:
         log(' '.join(cmd))
+
+    if options.params:
+        cmd += [ options.params ]
 
     log(name.ljust(33), newline=' ')
 
