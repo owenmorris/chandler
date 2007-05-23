@@ -589,7 +589,13 @@ class wxApplication (wx.App):
                 self.mainFrame.GetChildren()[0].SetFocus()
                 self.mainFrame.UpdateWindowUI(wx.UPDATE_UI_RECURSE)
             wx.CallAfter(afterInit)
-        
+        elif wx.Platform == '__WXMSW__':
+            # Workaround for bug 8117, minicalendar misaligned at startup on
+            # Windows
+            def afterInit():
+                Block.findBlockByName('PreviewArea').widget.Resize()
+            wx.CallAfter(afterInit)
+                
         if Globals.options.reload is not None:
             wx.CallAfter(self.reload)
 
