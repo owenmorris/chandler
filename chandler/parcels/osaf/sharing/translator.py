@@ -2217,7 +2217,8 @@ class DumpTranslator(SharingTranslator):
             username=record.username,
             numRetries=record.retries,
             pollingFrequency=record.frequency,
-            timeout=record.timeout,
+            #Timeout removed from MailStamp schema
+            #timeout=record.timeout,
         )
         def do(account):
             if record.connectionType not in (eim.NoChange, None):
@@ -2246,7 +2247,8 @@ class DumpTranslator(SharingTranslator):
             account.host,
             connectionType,
             account.pollingFrequency,
-            account.timeout,
+            #Timeout removed from MailStamp schema
+            None,
             account.isActive and 1 or 0,)
 
 

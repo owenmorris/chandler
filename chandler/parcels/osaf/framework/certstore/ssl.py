@@ -179,7 +179,10 @@ class TwistedProtocolWrapper(wrapper.TLSProtocolWrapper):
     """
     def __init__(self, repositoryView, protocol, factory, wrappedProtocol, 
                  startPassThrough, client):
-        log.debug('TwistedProtocolWrapper.__init__')
+
+        if __debug__:
+            log.debug('TwistedProtocolWrapper.__init__')
+
         self.contextFactory = ContextFactory(repositoryView, protocol, 
                                             verifyCallback=self.verifyCallback)
         wrapper.TLSProtocolWrapper.__init__(self, factory, wrappedProtocol, 
@@ -192,7 +195,8 @@ class TwistedProtocolWrapper(wrapper.TLSProtocolWrapper):
 
     def verifyCallback(self, ok, store):
         # Returning 1 means any error is ignored and SSL checking continues
-        log.debug('TwistedProtocolWrapper.verifyCallback')
+        if __debug__:
+            log.debug('TwistedProtocolWrapper.verifyCallback')
         global trusted_until_shutdown_site_certs, \
                trusted_until_shutdown_invalid_site_certs, \
                unknown_issuer
@@ -227,13 +231,15 @@ class TwistedProtocolWrapper(wrapper.TLSProtocolWrapper):
                     # certificate.
                     acceptedErrList = trusted_until_shutdown_invalid_site_certs.get(pem)
                     if acceptedErrList is not None and err in acceptedErrList:
-                        log.debug('Ignoring certificate error %d' %err)
+                        if __debug__:
+                            log.debug('Ignoring certificate error %d' %err)
                         return 1
                     self.untrustedCertificates.append(pem)
                     return ok
     
                 if pem in trusted_until_shutdown_site_certs:
-                    log.debug('Found temporarily trusted site cert')
+                    if __debug__:
+                        log.debug('Found temporarily trusted site cert')
                     return 1
     
                 # Check permanently trusted certificates
@@ -241,18 +247,21 @@ class TwistedProtocolWrapper(wrapper.TLSProtocolWrapper):
                               self.repositoryView).sslTrustedServerCertificatesQuery
                 for cert in q:
                     if cert.pemAsString() == pem:
-                        log.debug('Found permanently trusted site cert')
+                        if __debug__:
+                            log.debug('Found permanently trusted site cert')
                         return 1
     
                 self.untrustedCertificates.append(pem)
             except: # This is ok, we MUST return a value and not raise
                 log.exception('SSL verifyCallback raised exception')
-
-        log.debug('Returning %d' % ok)
+        if __debug__:
+            log.debug('Returning %d' % ok)
         return ok
 
     def dataReceived(self, data):
-        log.debug('TwistedProtocolWrapper.dataReceived')
+        if __debug__:
+            log.debug('TwistedProtocolWrapper.dataReceived')
+
         utils.entropyInitialized = True
         try:
             wrapper.TLSProtocolWrapper.dataReceived(self, data)
@@ -286,7 +295,8 @@ class TwistedProtocolWrapper(wrapper.TLSProtocolWrapper):
             acceptedErrList = trusted_until_shutdown_invalid_site_certs.get(e.pem)
             err = messages.SSL_HOST_MISMATCH % {'expectedHost': e.expectedHost, 'actualHost': e.actualHost}
             if acceptedErrList is not None and err in acceptedErrList:
-                log.debug('Ignoring post connection error %s' % err)
+                if __debug__:
+                    log.debug('Ignoring post connection error %s' % err)
                 return 1
     
             raise e
@@ -302,7 +312,9 @@ def connectSSL(host, port, factory, repositoryView,
     
     See IReactorSSL interface in Twisted. 
     """
-    log.debug('connectSSL(host=%s, port=%d)' %(host, port))
+    if __debug__:
+        log.debug('connectSSL(host=%s, port=%d)' %(host, port))
+
     wrappingFactory = policies.WrappingFactory(factory)
     wrappingFactory.protocol = lambda factory, wrappedProtocol: \
         TwistedProtocolWrapper(repositoryView,
@@ -327,7 +339,9 @@ def connectTCP(host, port, factory, repositoryView,
     
     See IReactorSSL interface in Twisted. 
     """
-    log.debug('connectTCP(host=%s, port=%d)' %(host, port))
+    if __debug__:
+        log.debug('connectTCP(host=%s, port=%d)' %(host, port))
+
     wrappingFactory = policies.WrappingFactory(factory)
     wrappingFactory.protocol = lambda factory, wrappedProtocol: \
         TwistedProtocolWrapper(repositoryView,

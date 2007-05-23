@@ -45,7 +45,6 @@ __all__ = ['log', 'trace', 'disableTwistedTLS', 'loadMailTests', 'getEmptyDate',
 log = logging.getLogger("MailService")
 
 def trace(printString):
-
     if printString is not None:
         if isinstance(printString, Exception):
             return log.exception(printString)
@@ -142,9 +141,10 @@ def dateIsEmpty(date):
 
 def disableTwistedTLS(items, TLSKEY='STARTTLS'):
     """
-    Disables SSL support for debugging so
-    a tcpflow trace can be done on the Client / Server
-    command exchange.
+    Removes TLS from the Capabilities. If TLS is in
+    the Capabilities twisted will force a TLS connection
+    event if the user specified a non-encypted protocol
+    exchange.
 
     @param TLSKEY: String key to remove from items list
     @type TLSKEY: C{String}
@@ -244,7 +244,7 @@ def createMessageID():
     # contains a cached DNS name. There
     # is a large performance increase in
     # not looking up this value each time a
-    # a messageID is created.
+    # messageID is created.
     return "%s@%s" % (UUID().str16(), smtp.DNSNAME)
 
 

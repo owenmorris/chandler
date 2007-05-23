@@ -20,10 +20,10 @@ Classes used for Mail parcel kinds.
 __all__ = [
      'CommunicationStatus', 'IMAPAccount',
      'MIMEBase', 'MIMEBinary', 'MIMEContainer', 'MIMENote',
-    'MIMESecurity', 'MIMEText', 'IMAPFolder',
-    'ProtocolTypeEnum', 'MailMessage', 'MailStamp',
-    'POPAccount', 'SMTPAccount',
-    'replyToMessage', 'replyAllToMessage', 'forwardMessage',
+     'MIMESecurity', 'MIMEText', 'IMAPFolder',
+     'ProtocolTypeEnum', 'MailMessage', 'MailStamp',
+     'POPAccount', 'SMTPAccount',
+     'replyToMessage', 'replyAllToMessage', 'forwardMessage',
      'getCurrentOutgoingAccount', 'getCurrentIncomingAccount',
      'getCurrentMeEmailAddress', 'getCurrentMeEmailAddresses',
      'getMessageBody', 'ACCOUNT_TYPES', 'EmailAddress', 'OutgoingAccount',
@@ -47,7 +47,7 @@ from osaf.pim.calendar.TimeZone import formatTime
 from osaf.pim.calendar.DateTimeUtil import mediumDateFormat, weekdayName
 from datetime import datetime
 from stamping import has_stamp
-from osaf.pim import TriageEnum
+from osaf.pim import TriageEnum, setTriageStatus
 
 from osaf.framework import password
 from osaf.framework.twisted import waitForDeferred
@@ -198,7 +198,8 @@ def getForwardBody(mailStamp):
     return _(u"""\
 
 
-> Begin forwarded %(kindCombination)s:
+Begin forwarded %(kindCombination)s:
+
 > From: %(originators)s
 > To: %(toAddresses)s%(ccAddressLine)s
 > Sent by %(sender)s on %(dateSent)s
@@ -214,7 +215,8 @@ def getReplyBody(mailStamp):
     return _(u"""\
 
 
-> %(sender)s wrote on %(dateSent)s:
+%(sender)s wrote on %(dateSent)s:
+
 > %(description)s
 >
 %(itemBody)s
@@ -543,16 +545,10 @@ def forwardMessage(view, mailStamp):
 def checkIfToMe(mailStamp):
     assert(isinstance(mailStamp, MailStamp))
 
-    if getattr(mailStamp, "viaMailService", False):
-        # If the mail was downloaded by the
-        # mail service then it will appear in
-        # the In collection regardless of
-        # whether it has a me address in the
-        # to or cc
-        if not mailStamp.toMe:
-            mailStamp.toMe = True
-
-        return
+    if getattr(mailStamp, 'viaMailService', False):
+        # Mail arriving via the Mail Service never
+        # has its toMe value recalculated
+        return 
 
     view = mailStamp.itsItem.itsView
 
@@ -562,19 +558,22 @@ def checkIfToMe(mailStamp):
 
     if hasattr(mailStamp, "toAddress"):
         for addr in mailStamp.toAddress:
-            if EmailAddress.findEmailAddress(view, addr.emailAddress, meEmailAddressCollection):
+            if EmailAddress.findEmailAddress(view, addr.emailAddress, 
+                                        meEmailAddressCollection):
                 found = True
                 break
 
     if not found and hasattr(mailStamp, "ccAddress"):
         for addr in mailStamp.ccAddress:
-            if EmailAddress.findEmailAddress(view, addr.emailAddress, meEmailAddressCollection):
+            if EmailAddress.findEmailAddress(view, addr.emailAddress,
+                                            meEmailAddressCollection):
                 found = True
                 break
 
     if not found and hasattr(mailStamp, "bccAddress"):
         for addr in mailStamp.bccAddress:
-            if EmailAddress.findEmailAddress(view, addr.emailAddress, meEmailAddressCollection):
+            if EmailAddress.findEmailAddress(view, addr.emailAddress, 
+                                             meEmailAddressCollection):
                 found = True
                 break
 
@@ -585,37 +584,33 @@ def checkIfToMe(mailStamp):
     if found != getattr(mailStamp, 'toMe', False):
         mailStamp.toMe = found
 
-def checkIfFromMe(mailStamp, type):
+def checkIfFromMe(mailStamp):
     assert(isinstance(mailStamp, MailStamp))
-
     view = mailStamp.itsItem.itsView
 
     meEmailAddressCollection = schema.ns("osaf.pim", view).meEmailAddressCollection
 
     found = False
 
-    if type == 0:
-        if mailStamp.fromAddress is not None and \
-           EmailAddress.findEmailAddress(view, mailStamp.fromAddress.emailAddress, \
+    if getattr(mailStamp, 'fromAddress', None) and \
+       EmailAddress.findEmailAddress(view,  
+                                mailStamp.fromAddress.emailAddress, 
+                                meEmailAddressCollection):
+        found = True
+
+    if not found and getattr(mailStamp, 'replyToAddress', None) and \
+           EmailAddress.findEmailAddress(view, 
+                                         mailStamp.replyToAddress.emailAddress, 
                                          meEmailAddressCollection):
             found = True
 
-    elif type == 1:
-        if mailStamp.replyToAddress is not None and \
-           EmailAddress.findEmailAddress(view, mailStamp.replyToAddress.emailAddress, \
-                                         meEmailAddressCollection):
-            found = True
-
-    elif type == 2:
+    if not found and getattr(mailStamp, 'originators', None):
         for ea in mailStamp.originators:
             if ea is not None and \
-               EmailAddress.findEmailAddress(view, ea.emailAddress, \
+               EmailAddress.findEmailAddress(view, ea.emailAddress, 
                                              meEmailAddressCollection):
                 found = True
                 break
-    else:
-        #invalid type passed
-        return
 
     # Even though 'fromMe' has an initialValue, it may not have
     # been set when this code is called (e.g. from a schema.observer
@@ -817,12 +812,6 @@ class AccountBase(items.ContentItem):
         initialValue = 300,
     )
 
-    timeout = schema.One(
-        schema.Integer,
-        doc = 'The number of seconds before timing out a stalled connection',
-        initialValue = 30,
-    )
-
     isActive = schema.One(
         schema.Boolean,
         doc = 'Whether or not an account should be used for sending or '
@@ -842,12 +831,6 @@ class IncomingAccount(AccountBase):
 
     schema.kindInfo(
         description="Base Account for protocols that download mail",
-    )
-
-    commitNumber = schema.One(
-        schema.Integer,
-        doc = 'The maximum number of messages to download before forcing a repository commit',
-        initialValue = 6,
     )
 
     replyToAddress = schema.One(
@@ -885,25 +868,27 @@ class IncomingAccount(AccountBase):
 
     @schema.observer(replyToAddress)
     def onReplyToAddressChange(self, op, name):
-        if getattr(self, "replyToAddress", None) and self.replyToAddress.isValid():
+        if getattr(self, "replyToAddress", None) and \
+           self.replyToAddress.isValid():
             pim_ns =  schema.ns("osaf.pim", self.itsView)
 
             meEmailAddressCollection = pim_ns.meEmailAddressCollection
 
-            addr = EmailAddress.findEmailAddress(self.itsView, self.replyToAddress.emailAddress,
-                                                 meEmailAddressCollection)
+            addr = EmailAddress.findEmailAddress(self.itsView,
+                                          self.replyToAddress.emailAddress,
+                                          meEmailAddressCollection)
 
             if addr is None:
                 meEmailAddressCollection.append(self.replyToAddress)
 
                 for item in self.replyToAddress.messagesFrom:
-                    checkIfFromMe(MailStamp(item), 0)
+                    checkIfFromMe(MailStamp(item))
 
                 for item in self.replyToAddress.messagesReplyTo:
-                    checkIfFromMe(MailStamp(item), 1)
+                    checkIfFromMe(MailStamp(item))
 
                 for item in self.replyToAddress.messagesOriginator:
-                    checkIfFromMe(MailStamp(item), 2)
+                    checkIfFromMe(MailStamp(item))
 
                 for item in self.replyToAddress.messagesTo:
                     checkIfToMe(MailStamp(item))
@@ -978,23 +963,25 @@ class OutgoingAccount(AccountBase):
 
     @schema.observer(fromAddress)
     def onFromAddressChange(self, op, name):
-        if getattr(self, "fromAddress", None) and self.fromAddress.isValid():
+        if getattr(self, "fromAddress", None) and \
+                  self.fromAddress.isValid():
             meEmailAddressCollection = schema.ns("osaf.pim", self.itsView).meEmailAddressCollection
 
-            addr = EmailAddress.findEmailAddress(self.itsView, self.fromAddress.emailAddress,
-                                                 meEmailAddressCollection)
+            addr = EmailAddress.findEmailAddress(self.itsView,
+                                            self.fromAddress.emailAddress,
+                                            meEmailAddressCollection)
 
             if addr is None:
                 meEmailAddressCollection.append(self.fromAddress)
 
                 for item in self.fromAddress.messagesFrom:
-                    checkIfFromMe(MailStamp(item), 0)
+                    checkIfFromMe(MailStamp(item))
 
                 for item in self.fromAddress.messagesReplyTo:
-                    checkIfFromMe(MailStamp(item), 1)
+                    checkIfFromMe(MailStamp(item))
 
                 for item in self.fromAddress.messagesOriginator:
-                    checkIfFromMe(MailStamp(item), 2)
+                    checkIfFromMe(MailStamp(item))
 
                 for item in self.fromAddress.messagesTo:
                     checkIfToMe(MailStamp(item))
@@ -1067,7 +1054,7 @@ class IMAPAccount(IncomingAccount):
         # Create the Inbox IMAPFolder and add to the account
         # folders collection
         inbox = IMAPFolder(
-            itsView = self.itsView, 
+            itsView = self.itsView,
             displayName = _(u"Inbox"),
             folderName  = u"INBOX",
             folderType  = "CHANDLER_HEADERS",
@@ -1150,7 +1137,7 @@ class POPAccount(IncomingAccount):
     actionType = schema.One(
         ProtocolTypeEnum,
         doc = 'The value of this dictates whether the action to perform on the downloaded message',
-        initialValue = 'CHANDLER_HEADERS',
+        initialValue = "CHANDLER_HEADERS",
     )
 
     deleteOnDownload = schema.One(
@@ -1418,7 +1405,8 @@ class MailStamp(stamping.Stamp):
 
 
 
-    def getRecipients(self, includeOriginators=True, includeBcc=True, includeSender=False):
+    def getRecipients(self, includeOriginators=True, 
+                      includeBcc=True, includeSender=False):
         """
            Returns a list of all recipents of
            this MailStamp.
@@ -1525,17 +1513,17 @@ class MailStamp(stamping.Stamp):
         if op != "set":
             return
 
-        if name.endswith("fromAddress"):
-            checkIfFromMe(self, 0)
-        elif name.endswith("replyToAddress"):
-            checkIfFromMe(self, 1)
-        else:
-            checkIfFromMe(self, 2)
+        checkIfFromMe(self)
 
     @schema.observer(toAddress, ccAddress, bccAddress)
     def onToMeChange(self, op, name):
         if op != "set":
             return
+
+        if getattr(self, 'viaMailService', False):
+            # Mail arriving via the Mail Service never
+            # has its toMe value recalculated
+            return 
 
         checkIfToMe(self)
 
@@ -1701,8 +1689,8 @@ class MailStamp(stamping.Stamp):
         # previous sender was removed by the 
         # current sender.
         self.previousInRecipients = self.previousSender in \
-                                      self.getRecipients(includeBcc=False,
-                                                         includeSender=True)
+                           self.getRecipients(includeBcc=False,
+                                              includeSender=True)
 
         # For Preview we add all downloaded mail via POP and IMAP
         # accounts to the Dashboard.
@@ -1710,7 +1698,19 @@ class MailStamp(stamping.Stamp):
 
         self.itsItem.mine = True
         self.itsItem.read = False
-        self.itsItem.setTriageStatus(TriageEnum.now)
+
+        if self.isUpdated:
+            # Updated Items:
+            #   Do not change existing buttonTriageStatus
+            #   Set sectionTriageStatus to NOW
+            triageArg = None
+        else:
+            # New Items:
+            #   buttonTriageStatus is set to NOW
+            #   sectionTriageStatus is set to NOW
+            triageArg = "auto"
+
+        setTriageStatus(self.itsItem, triageArg, popToNow=True)
 
         if not self.fromEIMML:
             if Modification.sent in self.itsItem.modifiedFlags:
@@ -1721,7 +1721,6 @@ class MailStamp(stamping.Stamp):
             self.itsItem.changeEditState(modFlag,
                                          self.getSender(),
                                          self.dateSent)
-
 
     def getAttachments(self):
         """

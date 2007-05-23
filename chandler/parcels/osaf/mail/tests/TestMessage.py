@@ -300,7 +300,8 @@ END:VCALENDAR
         self.assertTrue(has_stamp(eventMessage, EventStamp))
 
     def testMessageObjectToKind(self):
-        mailKind = message._messageObjectToKind(self.view, self.__getMessageObject(), self.__mail)
+        mailKind = message.messageObjectToKind(self.view, 
+                           self.__getMessageObject(), self.__mail)
 
         self.assertNotEqual(mailKind, None)
 
@@ -313,7 +314,7 @@ END:VCALENDAR
         self.__compareMessageObjects(mailObject, self.__getMessageObject())
 
     def testKindToMessageObject(self):
-        messageObject = message._kindToMessageObject(self.__getMailMessage())
+        messageObject = message.kindToMessageObject(self.__getMailMessage())
 
         self.__compareMessageObjects(messageObject, self.__getMessageObject())
 

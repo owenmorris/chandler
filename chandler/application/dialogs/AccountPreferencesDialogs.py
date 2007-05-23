@@ -186,7 +186,7 @@ class ChandlerIMAPFoldersDialog(ProgressDialog):
     def __init__(self, parent, account, callback):
         assert(isinstance(account, IMAPAccount))
 
-        self.TIMEOUT = account.timeout
+        self.TIMEOUT = constants.TIMEOUT
         self.account = account
         self.callback = callback
         self.mailInstance = None
@@ -264,7 +264,7 @@ class RemoveChandlerIMAPFoldersDialog(ProgressDialog):
     def __init__(self, parent, account, callback):
         assert(isinstance(account, IMAPAccount))
 
-        self.TIMEOUT = account.timeout
+        self.TIMEOUT = constants.TIMEOUT
         self.account = account
         self.callback = callback
         self.mailInstance = None
@@ -277,7 +277,7 @@ class RemoveChandlerIMAPFoldersDialog(ProgressDialog):
 
         a  = self.account
         cb = self.callback
-        parent = self.Getparent()
+        parent = self.GetParent()
 
         reconnect = lambda: RemoveChandlerIMAPFoldersDialog(parent, a, cb)
         self.mailInstance.removeChandlerFolders(self.OnActionComplete, reconnect)

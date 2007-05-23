@@ -31,6 +31,7 @@ CHANDLER_EVENTS_FOLDER = _(u"Chandler Events")
 INVALID_EMAIL_ADDRESS = _(u"Email Address %(emailAddress)s is not valid")
 
 # Generic mail protocol message strings
+MAIL_GENERIC_ERROR = _(u"The following error was raised:\n\n\t%(errText)s")
 MAIL_PROTOCOL_ERROR = _(u"The server '%(hostName)s' raised the following error:\n\n\t%(errText)s")
 MAIL_PROTOCOL_SUCCESS = _(u"Connection to server '%(hostName)s' was successful.")
 MAIL_PROTOCOL_REQUIRES_TLS = _(u"The Server only allows secure login. Please enable TLS or SSL.")
@@ -41,7 +42,7 @@ MAIL_PROTOCOL_TIMEOUT_ERROR = _(u"Communication with the Server timed out. Pleas
 
 # Translatable message strings for downloads (POP, IMAP)
 DOWNLOAD_NO_MESSAGES = _(u"%(accountName)s: no new messages found")
-DOWNLOAD_CHECK_MESSAGES = _(u"%(accountName)s: checking for new mail messages")
+DOWNLOAD_CHECK_MESSAGES = _(u"%(accountName)s: checking for new mail messages ...")
 
 IMAP_DELIMITER_ERROR = _(u"Unable to determine the file delimiter of the IMAP Server")
 
@@ -66,14 +67,20 @@ POP_UIDL_ERROR = _(u"The POP3 Server does not support the 'UIDL' command.\nThis 
 #==========================
 DOWNLOAD_CHANDLER_MESSAGES = ChoiceFormat(_(u"1#%(accountName)s: %(numberTotal)s message downloaded to Chandler (New: %(numberNew)s, Updates: %(numberUpdates)s, Duplicates: %(numberDuplicates)s)|1<%(accountName)s: %(numberTotal)s messages downloaded to Chandler (New: %(numberNew)s, Updates: %(numberUpdates)s, Duplicates: %(numberDuplicates)s)"))
 
-POP_START_MESSAGES = ChoiceFormat(_(u"1#%(accountName)s: downloading %(numberOfMessages)s message ...|1<%(accountName)s: downloading %(numberOfMessages)s messages ..."))
+DOWNLOAD_START_MESSAGES = ChoiceFormat(_(u"1#%(accountName)s: downloading %(numberOfMessages)s message ...|1<%(accountName)s: downloading %(numberOfMessages)s messages ..."))
 
-IMAP_START_MESSAGES = ChoiceFormat(_(u"1#%(accountName)s: downloading %(numberOfMessages)s message from '%(folderDisplayName)s'|1<%(accountName)s: downloading %(numberOfMessages)s messages from '%(folderDisplayName)s'"))
+POP_SEARCH_STATUS = _(u"%(accountName)s: searching %(start)s - %(end)s of %(total)s messages for Chandler Mail")
 
-IMAP_SEARCH_MESSAGES = ChoiceFormat(_(u"1#%(accountName)s: searching through %(numberOfMessages)s message in your '%(folderDisplayName)s' for a Chandler Message|1<%(accountName)s: searching through %(numberOfMessages)s messages in your '%(folderDisplayName)s' for Chandler Messages"))
+IMAP_SEARCH_STATUS = _(u"%(accountName)s: searching %(start)s - %(end)s of %(total)s messages for Chandler Mail in your '%(folderDisplayName)s'")
 
-IMAP_INBOX_MISSING = (u"%s(accountName)s is not configured correctly. The account settings contain no Inbox folder.")
+IMAP_INBOX_MISSING = _(u"%(accountName)s is not configured correctly.\nThe account settings contain no Inbox folder.")
 
+IMAP_COMMIT_MESSAGES = _(u"%(accountName)s: commiting %(start)s - %(end)s of %(total)s messages from '%(folderDisplayName)s'")
+
+POP_COMMIT_MESSAGES = _(u"%(accountName)s: commiting %(start)s - %(end)s of %(total)s messages")
+
+# Number of seconds to wait to timeout connection when downloading mail
+TIMEOUT = 30
 
 # Number of seconds to wait to timeout connection for account testing
 TESTING_TIMEOUT = 10
@@ -87,3 +94,32 @@ VERBOSE = False
 # Flag to improve download performance by ignoring
 # non-text attachments.
 IGNORE_ATTACHMENTS = True
+
+WAIT_FOR_COMMIT = False
+NOOP_INTERVAL = 10
+
+MAX_COMMIT = 200
+MAILWORKER_PRUNE_SIZE = MAILSERVICE_PRUNE_SIZE = 500
+
+# This flag will signal whether to print
+# the communications between the client
+# and server when __debug__ is True. 
+# This is especially handy
+# when the traffic is encrypted (SSL/TLS).
+# Options:
+#    0 - No output logged.
+#    1 - Caches last 4 protocol communications and
+#        print to the stdout if an error is raised.
+#    2 - All protocol communications printed
+#        to stdout.
+DEBUG_CLIENT_SERVER = 0
+
+# The maximum number of message UID's to
+# include in an IMAP search for Chandler Headers.
+MAX_IMAP_SEARCH_NUM = 350
+
+
+# The maximum number of message UID's to
+# scan on a POP server for Chandler Headers
+# between status bar message refreshes.
+MAX_POP_SEARCH_NUM = 50

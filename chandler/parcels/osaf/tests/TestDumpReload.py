@@ -196,7 +196,6 @@ class DumpReloadTestCase(testcase.DualRepositoryTestCase):
             connectionSecurity = "TLS",
             numRetries = 2,
             pollingFrequency = 300,
-            timeout = 50,
             isActive = False,
             replyToAddress = imapAddress,
             folders = [testFolder],
@@ -214,7 +213,6 @@ class DumpReloadTestCase(testcase.DualRepositoryTestCase):
             connectionSecurity = "NONE",
             numRetries = 3,
             pollingFrequency = 200,
-            timeout = 40,
             isActive = True,
             replyToAddress = popAddress,
         )
@@ -231,7 +229,6 @@ class DumpReloadTestCase(testcase.DualRepositoryTestCase):
             connectionSecurity = "SSL",
             numRetries = 5,
             pollingFrequency = 500,
-            timeout = 60,
             isActive = True,
             fromAddress = smtpOldAddress,
             useAuth = True,
@@ -390,7 +387,6 @@ class DumpReloadTestCase(testcase.DualRepositoryTestCase):
             self.assertEquals(imapaccount1.connectionSecurity, "TLS")
             self.assertEquals(imapaccount1.numRetries, 2)
             self.assertEquals(imapaccount1.pollingFrequency, 300)
-            self.assertEquals(imapaccount1.timeout, 50)
             self.assertEquals(imapaccount1.isActive, False)
             self.assertEquals(imapaccount1.replyToAddress.format(), imapAddress.format())
             self.assertEquals(waitForDeferred(imapaccount1.password.decryptPassword('secret')),
@@ -409,7 +405,6 @@ class DumpReloadTestCase(testcase.DualRepositoryTestCase):
             self.assertEquals(popaccount1.connectionSecurity, "NONE")
             self.assertEquals(popaccount1.numRetries, 3)
             self.assertEquals(popaccount1.pollingFrequency, 200)
-            self.assertEquals(popaccount1.timeout, 40)
             self.assertEquals(popaccount1.isActive, True)
             self.assertEquals(popaccount1.replyToAddress.format(), popAddress.format())
             self.assertEquals(waitForDeferred(popaccount1.password.decryptPassword('secret')),
@@ -423,7 +418,6 @@ class DumpReloadTestCase(testcase.DualRepositoryTestCase):
             self.assertEquals(smtpaccount1.connectionSecurity, "SSL")
             self.assertEquals(smtpaccount1.numRetries, 5)
             self.assertEquals(smtpaccount1.pollingFrequency, 500)
-            self.assertEquals(smtpaccount1.timeout, 60)
             self.assertEquals(smtpaccount1.isActive, True)
             self.assertEquals(smtpaccount1.useAuth, True)
             self.assertEquals(smtpaccount1.fromAddress.format(), smtpNewAddress.format())

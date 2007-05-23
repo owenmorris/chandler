@@ -390,7 +390,7 @@ class SMTPClient(object):
             timeout = constants.TESTING_TIMEOUT
         else:
             retries = self.account.numRetries
-            timeout = self.account.timeout
+            timeout = constants.TIMEOUT
 
         if self.account.connectionSecurity == 'TLS':
             securityRequired = True

@@ -16,6 +16,7 @@
 #twisted imports
 import twisted.internet.defer as defer
 import twisted.mail.pop3client as pop3
+import twisted.internet.reactor as reactor
 
 #python imports
 import email
@@ -28,40 +29,37 @@ import errors
 import constants
 import base
 from utils import *
-from message import *
+import message
+import mailworker
 
 __all__ = ['POPClient']
 
 """
 1. Add in AUTH LOGIN to twisted pop3client.py
-"""
 
-# When set to True and in __debug__ mode
-# This flag will signal whether to print
-# the communications between the client
-# and server. This is especially handy
-# when the traffic is encrypted (SSL/TLS).
-DEBUG_CLIENT_SERVER = False
+TO DO:
+1. Post preview find a better means to store the
+   seenMessageUIDs then a dict on the account
+"""
 
 class POPVars(base.DownloadVars):
     def __init__(self):
         super(POPVars, self).__init__()
         self.headerCheckList = []
-        self.addedUIDS = False
+
+        # The list of POP UIDs that
+        # have been seen since the last
+        # repository refresh.
+        # The commiting of seen UIDs is
+        # handled by the Mail Worker so
+        # the POP Client needs to keep
+        # its own cache since commits
+        # are async from download.
+        self.newSeenUIDS = {}
 
         # indicates whether the server supports
         # the optional TOP command
         self.top = False
-
-        # The number of new items downloaded
-        self.totalNewDownloaded = 0
-
-        # The number of updated items downloaded
-        self.totalUpdateDownloaded = 0
-
-        # The number of ignored messages downloaded
-        self.totalIgnoreDownloaded = 0
-
 
 class _TwistedPOP3Client(pop3.POP3Client):
     """Overides C{pop3.PO3Client} to add
@@ -104,7 +102,8 @@ class _TwistedPOP3Client(pop3.POP3Client):
             return self.delegate.catchErrors(errors.POPException(txt))
 
         if self.factory.useTLS:
-            # The Twisted POP3Client will check to make sure the server can STARTTLS
+            # The Twisted POP3Client will check to make sure the server
+            # can STARTTLS
             # and raise an error if it can not
             d = self.startTLS(self.transport.contextFactory.getContext())
             d.addCallbacks(lambda _: self.delegate.loginClient(),
@@ -156,23 +155,41 @@ class _TwistedPOP3Client(pop3.POP3Client):
             w.errback(error)
 
     def sendLine(self, line):
-        pop3.POP3Client.sendLine(self, line)
+        if __debug__ and constants.DEBUG_CLIENT_SERVER:
+            txt = ">>> C: %s" % line
 
-        if __debug__ and DEBUG_CLIENT_SERVER:
-            print "C: %s" % line
+            if constants.DEBUG_CLIENT_SERVER == 1:
+                self.delegate._saveToBuffer(txt)
+
+            elif constants.DEBUG_CLIENT_SERVER == 2:
+                print txt
+
+        return pop3.POP3Client.sendLine(self, line)
 
     def rawDataReceived(self, data):
-        pop3.POP3Client.rawDataReceived(self, data)
+        if __debug__ and constants.DEBUG_CLIENT_SERVER:
+            txt = ">>> S: %s" % data
 
-        if __debug__ and DEBUG_CLIENT_SERVER:
-            print "S: %s" % data
+            if constants.DEBUG_CLIENT_SERVER == 1:
+                self.delegate._saveToBuffer(txt)
+
+            elif constants.DEBUG_CLIENT_SERVER == 2:
+                print txt
+
+        return pop3.POP3Client.rawDataReceived(self, data)
+
 
     def lineReceived(self, line):
-        pop3.POP3Client.lineReceived(self, line)
+        if __debug__ and constants.DEBUG_CLIENT_SERVER:
+            txt = ">>> S: %s" % line
 
-        if __debug__ and DEBUG_CLIENT_SERVER:
-            print "S: %s" % line
+            if constants.DEBUG_CLIENT_SERVER == 1:
+                self.delegate._saveToBuffer(txt)
 
+            elif constants.DEBUG_CLIENT_SERVER == 2:
+                print txt
+
+        return pop3.POP3Client.lineReceived(self, line)
 
 class POPClientFactory(base.AbstractDownloadClientFactory):
     """Inherits from C{base.AbstractDownloadClientFactory}
@@ -196,15 +213,9 @@ class POPClient(base.AbstractDownloadClient):
     factoryType  = POPClientFactory
     defaultPort  = 110
 
-    def __init__(self, view, account):
-        super(POPClient, self).__init__(view, account)
-
-    def _actionCompleted(self):
-        super(POPClient, self)._actionCompleted()
-
     def _loginClient(self):
-        """Logs a client in to an POP servier using APOP (if available or plain text
-           login"""
+        """Logs a client in to an POP servier using APOP 
+           (if available or plain text login"""
 
         if __debug__:
             trace("_loginClient")
@@ -212,9 +223,10 @@ class POPClient(base.AbstractDownloadClient):
         if self.cancel:
             return self._actionCompleted()
 
-        # Twisted expects 8-bit values so encode the utf-8 username and password
+        # Twisted expects 8-bit values so encode the 
+        # utf-8 username and password
         username = self.account.username.encode("utf-8")
-        
+
         deferredPassword = self.account.password.decryptPassword()
 
         def callback(password):
@@ -273,8 +285,8 @@ class POPClient(base.AbstractDownloadClient):
 
         if max > 0 and max == downloaded:
             if __debug__:
-                trace("Max number of messages %s reached. No new mail will be \
-                       downloaded from '%s'" % (max, self.account.displayName.encode("utf-8")))
+                trace("[%s] Max number of messages %s reached." % \
+                  (self.account.displayName.encode("utf-8"), max))
 
             setStatusMessage(constants.DOWNLOAD_NO_MESSAGES % \
                          {'accountName': self.account.displayName})
@@ -299,27 +311,43 @@ class POPClient(base.AbstractDownloadClient):
         if self.cancel:
             return self._actionCompleted()
 
-        total = len(uidList)
+        uidLen = len(uidList)
 
-        for i in xrange(total):
+        for i in xrange(uidLen):
             uid = uidList[i]
 
-            if not uid in self.account.seenMessageUIDS:
+            if not uid in self.account.seenMessageUIDS and \
+               not self.vars.newSeenUIDS.has_key(uid):
                 self.vars.headerCheckList.append((i, uid))
 
         if len(self.vars.headerCheckList) > 0:
+            total = len(self.vars.headerCheckList)
+            start = 0
+            cur   = 0
+            end   = constants.MAX_POP_SEARCH_NUM 
+
+            if end > total:
+                end = total
+
             msgNum, uid = self.vars.headerCheckList.pop(0)
 
+            # Print the searching for Chandler messages
+            # status bar message
+            self._printSearchNum(start, end, total)
+
             if self.vars.top:
-                # This sends a TOP msgNum 0 command to the POP3 server
+                # This sends a TOP msgNum 0 command to the 
+                #  POP3 server
                 d = self.proto.retrieve(msgNum, lines=0)
             else:
                 d = self.proto.retrieve(msgNum)
 
-            d.addCallback(self._isNewChandlerMessage, msgNum, uid)
+            d.addCallback(self._isNewChandlerMessage,
+                          msgNum, uid, cur,
+                          start, end, total)
             d.addErrback(self.catchErrors)
 
-            return d
+            return None
 
         if self.statusMessages:
             setStatusMessage(constants.DOWNLOAD_NO_MESSAGES % \
@@ -327,68 +355,91 @@ class POPClient(base.AbstractDownloadClient):
 
         return self._actionCompleted()
 
-    def _isNewChandlerMessage(self, msg, msgNum, uid):
+    def _printSearchNum(self, start, end, total):
+        if self.statusMessages:
+            setStatusMessage(constants.POP_SEARCH_STATUS %
+                  {'accountName': self.account.displayName,
+                  'start': start,
+                  'end': end,
+                  'total': total})
+
+
+    def _isNewChandlerMessage(self, msg, msgNum, uid, 
+                              cur, start, end, total):
         if __debug__:
             trace("_isNewChandlerMessage")
 
+        if cur >= end and cur < total: 
+            start = end
+            end = start + constants.MAX_POP_SEARCH_NUM
+
+            if end > total:
+                end = total
+
+            # Print the searching for Chandler messages
+            # status bar message
+            self._printSearchNum(start, end, total)
+
         if self.vars.top and "X-Chandler-Mailer: True" in msg:
             # If the server supports top and the msg (which is
-            # a list of message headers) has the Chandler Header flag
-            # in it add it to the pending list
+            # a list of message headers) has the Chandler Header
+            # flag in it add it to the pending list
             self.vars.pending.append((msgNum, uid))
 
         elif not self.vars.top:
-            # In this case message is a list of all headers and body
-            # parts so we join the list and convert it to a Python
-            # email object
+            # In this case message is a list of all headers 
+            # and body parts so we join the list and convert 
+            # it to a Python email object
+            msgObj = email.message_from_string("\n".join(msg))
 
-            #XXX this case is extremely inefficient since
-            # the same message is downloaded twice if it
-            # contains Chandler Headers.
-            # Post-Preview this will probally be refactored.
+            if msgObj.get("X-Chandler-Mailer", "") == "True":
+                # Since the message text was already downloaded and
+                # converted to a email.Message to check if the
+                # Chandler header is present, create a Mail
+                # Worker request here to prevent having to
+                # redownload the message later.
+                req = message.previewQuickParse(msgObj, 
+                                                isObject=True)
 
-            msgText = "\n".join(msg)
-            messageObject = email.message_from_string(msgText)
-
-            if messageObject.get("X-Chandler-Mailer", "") == "True":
                 # This is a Chandler Message so add it to
                 # the list of pending messages to be downloaded
-                self.vars.pending.append((msgNum, uid))
-        else:
-            # Now that we know that this is not a Chandler message,
-            # add it to the seenMessageUIDS list so we don't
-            # download the headers again.
-            self.account.seenMessageUIDS[uid] = "True"
-            self.vars.addedUIDS = True
+                self.vars.pending.append((msgNum, uid, req))
+
+        # Record that this message has now been seen
+        self.vars.newSeenUIDS[uid] = True
 
         if len(self.vars.headerCheckList) > 0:
             msgNum, uid = self.vars.headerCheckList.pop(0)
 
             if self.vars.top:
-                # This sends a TOP msgNum 0 command to the POP3 server
+                # This sends a TOP msgNum 0 command to the 
+                # POP3 server
                 d = self.proto.retrieve(msgNum, lines=0)
             else:
                 d = self.proto.retrieve(msgNum)
 
-            d.addCallback(self._isNewChandlerMessage, msgNum, uid)
+            d.addCallback(self._isNewChandlerMessage, 
+                          msgNum, uid, cur+1, start,
+                          end, total)
             d.addErrback(self.catchErrors)
 
-            return d
+            return None
 
         # Check if there is a maximum number of messages
         # that can be download for this account and
         # if so reduce the self.vars.pending list.
-        numPending = self._checkDownloadMax()
+        self.vars.totalToDownload = self._checkDownloadMax()
 
-        if numPending == 0:
+        if self.vars.totalToDownload == 0:
             if self.statusMessages:
                 setStatusMessage(constants.DOWNLOAD_NO_MESSAGES % \
                              {'accountName': self.account.displayName})
 
-            if self.vars.addedUIDS:
-                #Commit the change to C{POPAccount.seenMessageUIDS}
-                self.view.commit()
-
+            if self.vars.newSeenUIDS:
+                self.mailWorker.queueRequest((mailworker.UID_REQUEST, 
+                                              self,
+                                              self.accountUUID,
+                                              self.vars.newSeenUIDS.keys()))
             return self._actionCompleted()
 
         # Ok lets go fetch the new mail containing
@@ -396,11 +447,12 @@ class POPClient(base.AbstractDownloadClient):
 
         if self.statusMessages:
             # This is a PyICU.ChoiceFormat class
-            txt = constants.POP_START_MESSAGES.format(numPending)
+            txt = constants.DOWNLOAD_START_MESSAGES.format(
+                                         self.vars.totalToDownload)
 
             setStatusMessage(txt % \
                              {"accountName": self.account.displayName,
-                              "numberOfMessages": numPending})
+                              "numberOfMessages": self.vars.totalToDownload})
 
         self._getNextMessageSet()
 
@@ -416,15 +468,17 @@ class POPClient(base.AbstractDownloadClient):
         for i in xrange(total):
             uid = uidList[i]
 
-            if not uid in self.account.seenMessageUIDS:
+            if not uid in self.account.seenMessageUIDS and \
+               not self.vars.newSeenUIDS.has_key(uid):
                 self.vars.pending.append((i, uid))
+                self.vars.newSeenUIDS[uid] = True
 
         # Check if there is a maximum number of messages
         # that can be download for this account and
         # if so reduce the self.vars.pending list.
-        numPending = self._checkDownloadMax()
+        self.vars.totalToDownload = self._checkDownloadMax()
 
-        if numPending == 0:
+        if self.vars.totalToDownload == 0:
             if self.statusMessages:
                 setStatusMessage(constants.DOWNLOAD_NO_MESSAGES % \
                              {'accountName': self.account.displayName})
@@ -433,11 +487,12 @@ class POPClient(base.AbstractDownloadClient):
 
         if self.statusMessages:
             # This is a PyICU.ChoiceFormat class
-            txt = constants.DOWNLOAD_START_MESSAGES.format(numPending)
+            txt = constants.DOWNLOAD_START_MESSAGES.format(
+                                        self.vars.totalToDownload)
 
             setStatusMessage(txt % \
                              {"accountName": self.account.displayName,
-                              "numberOfMessages": numPending})
+                              "numberOfMessages": self.vars.totalToDownload})
 
         self._getNextMessageSet()
 
@@ -459,121 +514,112 @@ class POPClient(base.AbstractDownloadClient):
         if self.vars.numToDownload == 0:
             return self._actionCompleted()
 
-        if self.vars.numToDownload > self.commitNumber:
-            self.vars.numToDownload = self.commitNumber
+        commitNumber = self.calculateCommitNumber()
 
-        msgNum, uid = self.vars.pending.pop(0)
+        if self.vars.numToDownload > commitNumber:
+            self.vars.numToDownload = commitNumber
 
-        d = self.proto.retrieve(msgNum)
+        return self._processNextPending()
 
-        d.addCallback(self._retrieveMessage, msgNum, uid)
-        d.addErrback(self.catchErrors)
-
-        return d
-
-    def _retrieveMessage(self, msg, msgNum, uid):
+    def _retrieveMessage(self, msg, msgNum, uid, mRequest=None):
         if __debug__:
             trace("_retrieveMessage")
 
         if self.cancel:
-            try:
-                # We call cancel() here since there may be
-                # in memory mail message items which we want to
-                # deallocate from the current view.
-                self.view.cancel()
-            except:
-                pass
-
             return self._actionCompleted()
 
+        if not mRequest:
+            mRequest = message.previewQuickParse("\n".join(msg))
 
-        messageText = "\n".join(msg)
+        self.vars.messages.append(
+                            # Tuple containing
+                            # 0: Mail Request
+                            # 1: POP UID of message
+                            (mRequest, uid)
+                            )
 
-        #XXX: Need a more performant way to do this
-        repMessage = messageTextToKind(self.view, messageText)
-
-        if repMessage:
-            # If the message contained an eimml attachment
-            # that was older then the current state or
-            # contained bogus data then repMessage will be
-            # None
-
-            if repMessage.isAnUpdate():
-                # This is an update to an existing Chandler item
-                # so increment the updatecounter
-                self.vars.totalUpdateDownloaded += 1
-            else:
-                # This is a new Chandler item so increment the
-                # new counter
-                self.vars.totalNewDownloaded += 1
-
-            repMessage.incomingMessage()
-            self.account.downloaded += 1
-
-        else:
-            # The message downloaded contained eimml that
-            # for what ever reason was ignored.
-            self.vars.totalIgnoreDownloaded += 1
-
-        self.account.seenMessageUIDS[uid] = "True"
+        # this value is used to determine
+        # when to post a MAIL_REQUEST to
+        # the MailWorker ot commit downloaded
+        # mail
         self.vars.numDownloaded += 1
 
-        if self.account.deleteOnDownload:
-            self.vars.delList.append(msgNum)
+        if self.vars.numDownloaded == self.vars.numToDownload: 
+            args = self._getStatusStats()
+            statusMsg = constants.POP_COMMIT_MESSAGES % args
+            self._commitMail(statusMsg)
 
-        if self.vars.numDownloaded == self.vars.numToDownload:
-            self.vars.totalDownloaded += self.vars.numDownloaded
-            return self._commitDownloadedMail()
-
-        msgNum, uid = self.vars.pending.pop(0)
-
-        d = self.proto.retrieve(msgNum)
-        d.addCallback(self._retrieveMessage, msgNum, uid)
-        d.addErrback(self.catchErrors)
-
-        return d
-
-    def _performNextAction(self):
-        if __debug__:
-            trace("_performNextAction")
-
-        if self.account.deleteOnDownload and len(self.vars.delList):
-            dList = []
-
-            for msgNum in self.vars.delList:
-                dList.append(self.proto.delete(msgNum))
-
-            # Reset the delList
-            self.vars.delList = []
-
-            d = defer.DeferredList(dList)
-
+            # Increment the totalDownloaded counter
+            # by the number of messages in 
+            # the self.vars.messages queue
+            self.vars.totalDownloaded = args["end"]
         else:
-            d = defer.succeed(True)
+            self._processNextPending()
 
-        d.addErrback(self.catchErrors)
+    def _processNextPending(self):
+        next = self.vars.pending.pop(0)
+
+        if len(next) == 3:
+            # In this case the server did not support TOP
+            # and the POP account was configured for Chandler
+            # Headers. In order to determine which messages
+            # have Chandler Headers, the messages had to be
+            # downloaded in full. For performance the
+            # message already has been converted to a 
+            # MailWorker request.
+            msgNum, uid, mRequest = next
+            return self._retrieveMessage(None, msgNum, uid, 
+                                         mRequest)
+        else:
+            msgNum, uid = next
+
+            d = self.proto.retrieve(msgNum)
+
+            d.addCallback(self._retrieveMessage, msgNum, uid)
+            d.addErrback(self.catchErrors)
+
+            return d
+
+    def nextAction(self):
+        if __debug__:
+            trace("nextAction")
+        #if self.account.deleteOnDownload and len(self.vars.delList):
+        #    dList = []
+        #
+        #    for msgNum in self.vars.delList:
+        #        dList.append(self.proto.delete(msgNum))
+        #    # Reset the delList
+        #    self.vars.delList = []
+        #    d = defer.DeferredList(dList)
+        #d.addErrback(self.catchErrors)
+        self._nextAction()
 
         if len(self.vars.pending) == 0:
-            meth = self._actionCompleted
 
-            if self.statusMessages:
-                # This is a PyICU.ChoiceFormat class
-                txt = constants.DOWNLOAD_CHANDLER_MESSAGES.format(self.vars.totalDownloaded)
+            
+            if self.vars.newSeenUIDS:
+                #If there are new seen UID's then
+                # save the UID's to prevent redownloading
+                # or re-searching the same messages.
+                self.mailWorker.queueRequest(
+                                (mailworker.UID_REQUEST, 
+                                self,
+                                self.accountUUID,
+                                self.vars.newSeenUIDS.keys()))
 
-                setStatusMessage(txt % \
-                                 {'accountName': self.account.displayName,
-                                  'numberTotal': self.vars.totalDownloaded,
-                                  'numberNew': self.vars.totalNewDownloaded,
-                                  'numberUpdates': self.vars.totalUpdateDownloaded,
-                                  'numberDuplicates': self.vars.totalIgnoreDownloaded})
 
+            # There is no more mail to download so send a DONE
+            # request
+            self.mailWorker.queueRequest((mailworker.DONE_REQUEST, 
+                                          self, self.accountUUID))
+
+            # Calling _actionCompleted with a False argument
+            # keeps the performingAction lock. The
+            # processing of the DONE_REQUEST in the MailWorker
+            # will result in the performingAction lock being released.
+            reactor.callLater(0, self._actionCompleted, False)
         else:
-            meth = self._getNextMessageSet
-
-        self.vars.numDownloaded = 0
-        self.vars.numToDownload = 0
-
-        return d.addCallback(lambda x: meth())
+            reactor.callLater(0, self._getNextMessageSet)
 
     def _checkDownloadMax(self):
         numPending = len(self.vars.pending)
@@ -607,11 +653,3 @@ class POPClient(base.AbstractDownloadClient):
             return defer.succeed(True)
 
         return self.proto.quit()
-
-    def _getAccount(self):
-        """Retrieves a C{POPAccount} instance from its C{UUID}"""
-        if self.account is None:
-            self.account = self.view.findUUID(self.accountUUID)
-
-        return self.account
-

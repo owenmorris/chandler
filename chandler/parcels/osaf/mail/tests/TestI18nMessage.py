@@ -48,8 +48,8 @@ class MessageI18nTest(MailTestCase.MailTestCase):
         msgText = self.__loadTestMessage()
 
         mOne = email.message_from_string(msgText)
-        messageKind = message._messageObjectToKind(self.view, mOne, msgText)
-        mTwo  = message._kindToMessageObject(messageKind)
+        messageKind = message.messageObjectToKind(self.view, mOne, msgText)
+        mTwo  = message.kindToMessageObject(messageKind)
 
         self.assertEquals(mOne['To'], mTwo['To'])
         self.assertEquals(mOne['From'], mTwo['From'])

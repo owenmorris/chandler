@@ -25,7 +25,9 @@ from PyICU import ICUtzinfo
 
 
 #Chandler imports
-from osaf.pim.mail import EmailAddress, MailMessage, MIMEText, MIMEBinary, getMessageBody, getCurrentMeEmailAddresses
+from osaf.pim.mail import EmailAddress, MailMessage, MIMEText, MIMEBinary, \
+                          getMessageBody, getCurrentMeEmailAddresses
+
 from osaf.pim.calendar.Calendar import parseText, setEventDateTime
 from osaf.pim import has_stamp, TaskStamp, EventStamp, MailStamp, Remindable
 from i18n import ChandlerMessageFactory as _
@@ -38,18 +40,7 @@ from constants import IGNORE_ATTACHMENTS
 from utils import *
 from utils import Counter
 
-"""
-Performance:
-   1. Reduce checks when downloading mail
-
-To Do:
--------
-1. Look at optimizations for Feedparser to prevent memory
-   hogging (might tie in to twisted dataReceived).
-2. Look at test_Big5-2 it is not working anymore
-"""
-
-__all__ = ['messageTextToKind', 'kindToMessageText', 'parseEventInfo', 'parseTaskInfo']
+__all__ = ['messageTextToKind', 'kindToMessageText']
 
 
 OUTBOUND_FILTERS = getFilter(['cid:triage-filter@osaf.us', 'cid:event-status-filter@osaf.us',
@@ -60,11 +51,9 @@ OUTBOUND_FILTERS = getFilter(['cid:triage-filter@osaf.us', 'cid:event-status-fil
                               'cid:rfc2822Message-filter@osaf.us', 'cid:previousSender-filter@osaf.us',
                               'cid:messageState-filter@osaf.us', 'cid:replyToAddress-filter@osaf.us',])
 
-
-
 class MIMEBase64Encode(MIMENonMultipart):
     def __init__(self, _data, _maintype='text', _subtype='plain',
-                _charset='utf-8', **_params):
+                 _charset='utf-8', **_params):
 
         if _maintype is None:
             raise TypeError('Invalid application MIME maintype')
@@ -82,7 +71,6 @@ class MIMEBase64Encode(MIMENonMultipart):
         self.set_payload(_data, _charset)
 
 
-
 def decodeHeader(header, charset="utf-8"):
     try:
         h = Header.decode_header(header)
@@ -92,6 +80,7 @@ def decodeHeader(header, charset="utf-8"):
     except(UnicodeError, UnicodeDecodeError, LookupError, \
            email.errors.HeaderParseError):
         return unicode("".join(header.splitlines()), charset, 'ignore')
+
 
 def getUnicodeValue(val, charset="utf-8", ignore=False):
     assert isinstance(val, str), "The value to convert must be a string"
@@ -190,7 +179,7 @@ def populateEmailAddressList(emailAddressList, messageObject, key, append=False)
             messageObject[key] = ", ".join(addrs)
 
 
-def messageTextToKind(view, messageText, indexText=False, compression='bz2'):
+def messageTextToKind(view, messageText):
     """
     This method converts a email message string to
     a Chandler C{MailMessage} object
@@ -202,14 +191,11 @@ def messageTextToKind(view, messageText, indexText=False, compression='bz2'):
 
     assert isinstance(messageText, str), "messageText must be a String"
 
-    #XXX Performance and memory use are issues with the Python email package
-    #    look for ways to improve
-    return _messageObjectToKind(view, email.message_from_string(messageText),
-                                messageText, compression)
+    return messageObjectToKind(view, email.message_from_string(messageText),
+                                messageText)
 
 
-def _messageObjectToKind(view, messageObject, messageText=None,
-                        indexText=False, compression='bz2'):
+def messageObjectToKind(view, messageObject, messageText=None):
     """
     This method converts a email message string to
     a Chandler C{MailMessage} object
@@ -232,13 +218,10 @@ def _messageObjectToKind(view, messageObject, messageText=None,
     icsSummary = None
     icsDesc = None
 
-    #XXX issue to deal with later is what happens
-    # if more than one ics or eimml attachment in
-    # the message
-    chAttachments = getChandlerAttachments(messageObject)
+    chandlerAttachments = getChandlerAttachments(messageObject)
 
-    if chAttachments["eimml"]:
-        eimml = chAttachments["eimml"][0]
+    if chandlerAttachments["eimml"]:
+        eimml = chandlerAttachments["eimml"][0]
 
         # Get the from address ie. Sender.
         emailAddr = messageObject.get("From")
@@ -253,99 +236,30 @@ def _messageObjectToKind(view, messageObject, messageText=None,
 
         peer = __getEmailAddress(view, decodeHeader(name), getUnicodeValue(addr))
 
-        if peer in getCurrentMeEmailAddresses(view):
-            # If the Chandler EIMML message is from me then
-            # ignore it.
+        mailStamp = parseEIMML(view, peer, eimml)
+
+        if mailStamp is None:
+            # Returning None here signals to the
+            # caller that this mail message contained
+            # eimml that was ignored
             return None
 
-        #used for debugging
-        #print (u"inbound: %s uuid: %s" % (peer.format(),  peer.itsUUID)).encode("utf8")
+    elif chandlerAttachments["ics"]:
+        ics = chandlerAttachments["ics"][0]
 
-        try:
-            item = inbound(peer, removeCarriageReturn(eimml)) #, debug=True)
+        result = parseICS(view, ics)
 
-            mailStamp = MailStamp(item)
-            mailStamp.fromEIMML = True
-
-            #used for debugging
-            #shared = SharedItem(item)
-            #for conflict in shared.getConflicts():
-            #    print (u"Conflict found %s: %s" % (conflict.field, conflict.value)).encode("utf8")
-
-        except sharingErrors.MalformedData, e:
-            # The eimml records contained bogus
-            # syntax and will not be processed
-            # Raising an error here would result
-            # in the entire mail download being
-            # terminated so we log the error
-            # instead
-            if __debug__:
-                logging.exception(e)
-            return None
-
-        except sharingErrors.OutOfSequence, e1:
-            # The eimml records are older then
-            # the current state and are not going
-            # to be applied so return None
-            if __debug__:
-                logging.exception(e1)
-            return None
-
-        except Exception, e2:
-            # There was an error at the XML parsing layer.
-            # Log the error and continue to download.
-            if __debug__:
-                logging.exception(e2)
-            return None
-
-    elif chAttachments["ics"]:
-        # if there was a eimml attachment then
-        # ignore any ics attachments
-
-        import osaf.sharing.ICalendar as ICalendar
-
-        ics = chAttachments["ics"][0]
-
-        try:
-            items = ICalendar.itemsFromVObject(view, removeCarriageReturn(ics),
-                                               filters=(Remindable.reminders.name,))[0]
-        except Exception, e:
-            logging.exception(e)
-        else:
-            if len(items) > 0:
-                # We got something - stamp the first thing as a MailMessage
-                # and use it. (If it was an existing event, we'll reuse it.)
-
-                item = items[0]
-
-                if item.displayName and len(item.displayName.strip()):
-                    # The displayName will contain the ics summary
-                    icsSummary = item.displayName
-
-                if item.body and len(item.displayName.strip()):
-                    # The body will contain the ics description
-                    icsDesc = item.body
-
-                if not has_stamp(item, MailStamp):
-                    if has_stamp(item, EventStamp):
-                        EventStamp(item).addStampToAll(MailStamp)
-                    else:
-                        ms = MailStamp(item)
-                        ms.add()
-
-                mailStamp = MailStamp(item)
-
-                mailStamp.fromEIMML = False
+        if result is not None:
+            # If the result is None then there
+            # was an error that prevented converting
+            # the ics text to a Chandler Item
+            # in which case the ics is ignored and
+            # the rest of the message parsed.
+            mailStamp, icsDesc, icsSummary = result
 
     if not mailStamp:
         mailStamp = MailMessage(itsView=view)
         mailStamp.fromEIMML = False
-
-    if getattr(mailStamp, "messageId", None):
-        # The presence a messageId indicated that
-        # this message has already been sent or
-        # received and thus has been updated.
-        mailStamp.isUpdated = True
 
     if not IGNORE_ATTACHMENTS:
         # Save the original message text in a text blob
@@ -353,8 +267,13 @@ def _messageObjectToKind(view, messageObject, messageText=None,
             messageText = messageObject.as_string()
 
         mailStamp.rfc2822Message = dataToBinary(mailStamp, "rfc2822Message", messageText,
-                                               'message/rfc822', compression, False)
+                                               'message/rfc822', 'bz2', False)
 
+    if getattr(mailStamp, "messageId", None):
+        # The presence a messageId indicated that
+        # this message has already been sent or
+        # received and thus has been updated.
+        mailStamp.isUpdated = True
 
     #if verbose():
     #    if messageObject.has_key("Message-ID"):
@@ -368,46 +287,142 @@ def _messageObjectToKind(view, messageObject, messageText=None,
         # Do not parse the message to build the
         # item.body since that data is in the eimml.
 
-        counter = Counter()
+        if IGNORE_ATTACHMENTS:
+            counter = None
+        else:
+            counter = Counter()
+
         bodyBuffer = {'plain': [], 'html': []}
         buf = None
 
         # The body of the message will be contained in the eimml so
         # do not try and parse the mail message body.
-        __parsePart(view, messageObject, mailStamp, bodyBuffer, counter, buf,
-                    compression=compression)
+        __parsePart(view, messageObject, mailStamp, bodyBuffer, counter, buf)
 
-        if len(bodyBuffer.get('plain')):
-            body = removeCarriageReturn(u"\n".join(bodyBuffer.get('plain')))
-
-        elif len(bodyBuffer.get('html')):
-            htmlBuffer = bodyBuffer.get('html')
-
-            for i in xrange(0, len(htmlBuffer)):
-                htmlBuffer[i] = stripHTML(htmlBuffer[i])
-
-            body = removeCarriageReturn(u"\n".join(htmlBuffer))
-
-        else:
-            #No plain text or html mime types in the mail message
-            body = u""
-
-        mailStamp.body = body
-
-    __parseHeaders(view, messageObject, mailStamp)
+        mailStamp.body = buildBody(bodyBuffer)
 
     if icsSummary or icsDesc:
         # If ics summary or ics description exist then
         # add them to the message body
-        mailStamp.body += buildICSInfo(item, icsSummary, icsDesc)
+        mailStamp.body += buildICSInfo(mailStamp, icsSummary, icsDesc)
+
+    __parseHeaders(view, messageObject, mailStamp, True, True)
 
     #if verbose():
     #    trace("\n\n%s\n\n" % '\n'.join(buf))
 
     return mailStamp
 
-def buildICSInfo(item, icsSummary, icsDesc):
+def parseEIMML(view, peer, eimml):
+    if peer in getCurrentMeEmailAddresses(view):
+        # If the Chandler EIMML message is from me then
+        # ignore it.
+        #XXX This needs to refined to handle the case
+        # where the user starts with a fresh Chandler and
+        # tries to retrieve Chandler Messages from an incoming
+        # server. The messages from 'me' will be ignored even
+        # though there is no longer a corresponding item in
+        # the repo. To handle this the ignore me logic needs
+        # to be moved to the inbound method. The EIM layer
+        # needs to determine if:
+        #   1. The message is from 'me'
+        #   2. The message corresponds to an existing item in the repo
+        #
+        # If both cases are True then ignore the message other
+        # wise process the EIMML.
+        return None
+
+    try:
+        item = inbound(peer, eimml)
+
+        mailStamp = MailStamp(item)
+        mailStamp.fromEIMML = True
+
+        return mailStamp
+
+    except sharingErrors.MalformedData, e:
+        # The eimml records contained bogus
+        # syntax and will not be processed
+        # Raising an error here would result
+        # in the entire mail download being
+        # terminated so we log the error
+        # instead
+        logging.exception(e)
+
+    except sharingErrors.OutOfSequence, e1:
+        # The eimml records are older then
+        # the current state and are not going
+        # to be applied so return None
+        pass
+
+    except Exception, e2:
+        # There was an error at the XML parsing layer.
+        # Log the error and continue to download.
+        logging.exception(e2)
+
+    return None
+
+def parseICS(view, ics):
+    import osaf.sharing.ICalendar as ICalendar
+    icsDesc = icsSummary = None
+
+    try:
+        items = ICalendar.itemsFromVObject(view, ics,
+                                     filters=(Remindable.reminders.name,))[0]
+    except Exception, e:
+        logging.exception(e)
+        return None
+
+    if len(items) > 0:
+        # We got something - stamp the first thing as a MailMessage
+        # and use it. (If it was an existing event, we'll reuse it.)
+        item = items[0]
+
+        if item.displayName and len(item.displayName.strip()):
+            # The displayName will contain the ics summary
+            icsSummary = item.displayName
+
+        if item.body and len(item.displayName.strip()):
+            # The body will contain the ics description
+            icsDesc = item.body
+
+        if not has_stamp(item, MailStamp):
+            if has_stamp(item, EventStamp):
+                EventStamp(item).addStampToAll(MailStamp)
+            else:
+                ms = MailStamp(item)
+                ms.add()
+
+        mailStamp = MailStamp(item)
+        mailStamp.fromEIMML = False
+
+        return (mailStamp, icsDesc, icsSummary)
+
+    return None
+
+def buildBody(bodyBuffer):
+    if len(bodyBuffer.get('plain')):
+        body = removeCarriageReturn(u"\n".join(bodyBuffer.get('plain')))
+
+    elif len(bodyBuffer.get('html')):
+        htmlBuffer = bodyBuffer.get('html')
+
+        for i in xrange(0, len(htmlBuffer)):
+            htmlBuffer[i] = stripHTML(htmlBuffer[i])
+
+        body = removeCarriageReturn(u"\n".join(htmlBuffer))
+
+    else:
+        #No plain text or html mime types in the mail message
+        body = u""
+
+    return body
+
+
+def buildICSInfo(mailStamp, icsSummary, icsDesc):
     buffer = []
+
+    item = mailStamp.itsItem
 
     if icsSummary and icsSummary != item.displayName:
         buffer.append(_(u"Title: %(titleText)s") % \
@@ -427,6 +442,121 @@ def buildICSInfo(item, icsSummary, icsDesc):
 
     return u"\n".join(buffer)
 
+def previewQuickConvert(view, headers, body, eimml, ics):
+        # Preview Case
+        #  1. Standard mail message
+        #      a. headers (build a decoded headers dict using m.keys())
+        #      b. body
+        #  2. ICS
+        #      a. headers (build a decoded headers dict using m.keys())
+        #      b. body
+        #      c. decoded ics attachment
+        #  3. EIM
+        #      a. headers (build a decoded headers dict using m.keys())
+        #      b. decoded eim attachment
+
+    mailStamp = icsDesc = icsSummary = None
+
+    if eimml:
+        # Get the from address ie. Sender.
+        emailAddr = headers.get("From")
+
+        if not emailAddr:
+            # A peer address is required for eimml
+            # deserialization. If there is no peer
+            # then ignore the eimml data.
+            return None
+
+        name, addr = emailUtils.parseaddr(emailAddr)
+        peer = __getEmailAddress(view, name, addr)
+
+        mailStamp = parseEIMML(view, peer, eimml)
+
+        if mailStamp is None:
+            # Returning None here signals to the
+            # caller that this mail message contained
+            # eimml that was ignored
+            return None
+
+    elif ics:
+        result = parseICS(view, ics)
+
+        if result is not None:
+            # If the result is None then there
+            # was an error that prevented converting
+            # the ics text to a Chandler Item
+            # in which case the ics is ignored and
+            # the rest of the message parsed.
+            mailStamp, icsDesc, icsSummary = result
+
+    if not mailStamp:
+        mailStamp = MailMessage(itsView=view)
+        mailStamp.fromEIMML = False
+
+    if getattr(mailStamp, "messageId", None):
+        # The presence a messageId indicated that
+        # this message has already been sent or
+        # received and thus is an update.
+        mailStamp.isUpdated = True
+
+    # Setting these values here reduces Observer
+    # processing time when calculating if the
+    # message should appear in the In Collection
+    mailStamp.viaMailService = True
+    # Look at the from address if it matches a me address
+    # and the ignore me attribute enabled then set toMe to
+    # false otherwise set to True
+
+    mailStamp.toMe = True
+
+    if not mailStamp.fromEIMML:
+        mailStamp.body = body
+
+    if icsSummary or icsDesc:
+        # If ics summary or ics description exist then
+        # add them to the message body
+        mailStamp.body += buildICSInfo(mailStamp, icsSummary, icsDesc)
+
+    __parseHeaders(view, headers, mailStamp, False, False)
+
+    return mailStamp
+
+def previewQuickParse(msg, isObject=False):
+    # Returns a tuple:
+    #    0: headers dict decoded and converted to unicode
+    #    1: body of the message ready for assigning to the
+    #       ContentItem.body attribute or None
+    #    2: eim attachment decode and strip of carriage returns
+    #       or None
+    #    3: ics attachment decode and strip of carriage returns
+    #       or None
+
+    headers = body = eimml = ics = None
+
+    if not isObject:
+        msgObj = email.message_from_string(msg)
+    else:
+        msgObj = msg
+
+    headers = Message.Message()
+
+    for key, val in msgObj.items():
+        headers[getUnicodeValue(key)] = decodeHeader(val)
+
+    att = getChandlerAttachments(msgObj)
+
+    if att["eimml"]:
+        eimml = att['eimml'][0]
+    else:
+        bodyBuffer = {'plain': [], 'html': []}
+        __parsePart(None, msgObj, None, bodyBuffer, None, None)
+
+        body = buildBody(bodyBuffer)
+
+        if att['ics']:
+            ics = att['ics'][0]
+
+    return (headers, body, eimml, ics)
 
 def getChandlerAttachments(messageObject):
     att = {"eimml": [], "ics": []}
@@ -437,14 +567,14 @@ def getChandlerAttachments(messageObject):
             continue
 
         if part.get_content_type() == "text/calendar":
-            att["ics"].append(part.get_payload(decode=True))
+            att["ics"].append(removeCarriageReturn(part.get_payload(decode=True)))
 
         elif part.get_content_type() == "application/eimml":
-            att["eimml"].append(part.get_payload(decode=True))
+            att["eimml"].append(removeCarriageReturn(part.get_payload(decode=True)))
 
     return att
 
-def _kindToMessageObject(mailStamp):
+def kindToMessageObject(mailStamp):
     """
     This method converts an item stamped as MailStamp to an email message
     string
@@ -599,7 +729,7 @@ def kindToMessageText(mailStamp, saveMessage=False):
     @return: C{str}
     """
 
-    messageObject = _kindToMessageObject(mailStamp)
+    messageObject = kindToMessageObject(mailStamp)
     messageText = messageObject.as_string()
 
     if saveMessage:
@@ -701,7 +831,7 @@ def parseTaskInfo(mailStamp):
     taskStamp = TaskStamp(mailStamp.itsItem)
     taskStamp.add()
 
-def __parseHeaders(view, messageObject, m):
+def __parseHeaders(view, messageObject, m, decode, makeUnicode):
     date = messageObject['Date']
 
     if date is not None:
@@ -709,9 +839,6 @@ def __parseHeaders(view, messageObject, m):
 
         # It is a non-rfc date string
         if parsed is None:
-            if __debug__:
-                trace("Message contains a Non-RFC Compliant Date format")
-
             # Set the sent date to the current Date
             m.dateSent = datetime.now(ICUtzinfo.default)
 
@@ -722,7 +849,6 @@ def __parseHeaders(view, messageObject, m):
             except:
                 m.dateSent = datetime.now(ICUtzinfo.default)
 
-        ##XXX:  Do we need this the tz could be preserved
         m.dateSentString = date
 
     else:
@@ -747,17 +873,21 @@ def __parseHeaders(view, messageObject, m):
             if ref:
                 m.referencesMID.append(ref)
 
-    __assignToKind(view, m, messageObject, 'In-Reply-To', 'String', 'inReplyTo')
-    __assignToKind(view, m, messageObject, 'Reply-To', 'EmailAddress', 'replyToAddress')
+    __assignToKind(view, m, messageObject, 'In-Reply-To', 'String', 'inReplyTo', decode, makeUnicode)
+    __assignToKind(view, m, messageObject, 'Reply-To', 'EmailAddress', 'replyToAddress', decode, makeUnicode)
     __assignToKind(view, m, messageObject, 'Message-ID', 'String', 'messageId', False, False)
-    __assignToKind(view, m, messageObject, 'From', 'EmailAddress', 'fromAddress')
+    __assignToKind(view, m, messageObject, 'From', 'EmailAddress', 'fromAddress', decode, makeUnicode)
 
     # Capture the previous sender to ensure he or she does not get removed from
     # Edit / Update workflow
-    __assignToKind(view, m, messageObject, 'From', 'EmailAddress', 'previousSender')
+    __assignToKind(view, m, messageObject, 'From', 'EmailAddress', 'previousSender', decode, makeUnicode)
 
     for (key, val) in messageObject.items():
-        m.headers[getUnicodeValue(key)] = getUnicodeValue(val)
+        if makeUnicode:
+            key = getUnicodeValue(key)
+            val = getUnicodeValue(val)
+
+        m.headers[key] = val
 
     if not m.fromEIMML:
         # reset these values in case they contain info from a previous send
@@ -768,18 +898,16 @@ def __parseHeaders(view, messageObject, m):
         m.bccAddress = []
 
         # These a shared attribute that are managed by the eim layer
-        __assignToKind(view, m, messageObject, 'Subject', 'String', 'subject')
-        __assignToKind(view, m.toAddress, messageObject, 'To', 'EmailAddressList')
-        __assignToKind(view, m.ccAddress, messageObject, 'Cc', 'EmailAddressList')
+        __assignToKind(view, m, messageObject, 'Subject', 'String', 'subject', decode, makeUnicode)
+        __assignToKind(view, m.toAddress, messageObject, 'To', 'EmailAddressList', None, decode, makeUnicode)
+        __assignToKind(view, m.ccAddress, messageObject, 'Cc', 'EmailAddressList', None, decode, makeUnicode)
 
         # If the message contains no eimml then make the Chandler UI
         # from field match the sender.
         m.originators = hasattr(m, "fromAddress") and [m.fromAddress] or []
 
 
-def __assignToKind(view, kindVar, messageObject, key,
-                   hType, attr=None, decode=True, makeUnicode=True):
-
+def __assignToKind(view, kindVar, messageObject, key, hType, attr, decode, makeUnicode):
     header = messageObject.get(key)
 
     if header is None:
@@ -787,6 +915,7 @@ def __assignToKind(view, kindVar, messageObject, key,
 
     if decode:
         header = decodeHeader(header)
+
     elif makeUnicode:
         header = getUnicodeValue(header)
 
@@ -796,24 +925,29 @@ def __assignToKind(view, kindVar, messageObject, key,
     elif hType == "EmailAddress":
         name, addr = emailUtils.parseaddr(messageObject.get(key))
 
-        ea = __getEmailAddress(view, decodeHeader(name), getUnicodeValue(addr))
+        if decode:
+            name = decodeHeader(name)
+
+        if makeUnicode:
+            addr = getUnicodeValue(addr)
+
+        ea = __getEmailAddress(view, name, addr)
 
         if ea is not None:
             setattr(kindVar, attr, ea)
 
-        elif __debug__:
-            trace("__assignToKind: invalid email address found %s: %s" % (key, addr))
-
     elif hType == "EmailAddressList":
         for name, addr in emailUtils.getaddresses(messageObject.get_all(key, [])):
-            ea = __getEmailAddress(view, decodeHeader(name), getUnicodeValue(addr))
+            if decode:
+                name = decodeHeader(name)
+
+            if makeUnicode:
+                addr = getUnicodeValue(addr)
+
+            ea = __getEmailAddress(view, name, addr)
 
             if ea is not None:
                 kindVar.append(ea)
-
-            elif __debug__:
-                trace("__assignToKind: invalid email address found %s: %s" % (key, addr))
-
 
 def __getEmailAddress(view, name, addr):
     """
@@ -830,7 +964,7 @@ def __getEmailAddress(view, name, addr):
 
 
 def __parsePart(view, mimePart, parentMIMEContainer, bodyBuffer, counter, buf,
-                level=0, compression='bz2'):
+                level=0):
 
     __checkForDefects(mimePart)
 
@@ -846,32 +980,29 @@ def __parsePart(view, mimePart, parentMIMEContainer, bodyBuffer, counter, buf,
 
     if maintype == "message":
         __handleMessage(view, mimePart, parentMIMEContainer, bodyBuffer,
-                        counter, buf, level, compression)
+                        counter, buf, level)
 
     elif maintype == "multipart":
         __handleMultipart(view, mimePart, parentMIMEContainer, bodyBuffer,
-                          counter, buf, level, compression)
+                          counter, buf, level)
 
     elif maintype == "text":
         __handleText(view, mimePart, parentMIMEContainer, bodyBuffer,
-                     counter, buf, level, compression)
+                     counter, buf, level)
 
     else:
         __handleBinary(view, mimePart, parentMIMEContainer,
-                       counter, buf, level, compression)
+                       counter, buf, level)
 
 
 def __handleMessage(view, mimePart, parentMIMEContainer, bodyBuffer,
-                    counter, buf, level, compression):
-    subtype   = mimePart.get_content_subtype()
+                    counter, buf, level):
+    subtype = mimePart.get_content_subtype()
     multipart = mimePart.is_multipart()
 
     #if verbose():
     #    __trace("message/%s" % subtype, buf, level)
 
-    # If the message is multipart then pass decode=False to
-    # get_payload otherwise pass True.
-    payload = mimePart.get_payload(decode=not multipart)
 
     if subtype == "rfc822":
         if multipart:
@@ -920,16 +1051,19 @@ def __handleMessage(view, mimePart, parentMIMEContainer, bodyBuffer,
         return
 
     if multipart:
+        # Since the mime part is multipart pass decode=False
+        payload = mimePart.get_payload(decode=False)
+
         for part in payload:
             __parsePart(view, part, parentMIMEContainer, bodyBuffer,
-                        counter, buf, level+1, compression)
+                        counter, buf, level+1)
 
     elif __debug__:
         trace("******WARNING****** message/%s payload not multipart" % subtype)
 
 
 def __handleMultipart(view, mimePart, parentMIMEContainer, bodyBuffer,
-                      counter, buf, level, compression):
+                      counter, buf, level):
     subtype   = mimePart.get_content_subtype()
     multipart = mimePart.is_multipart()
 
@@ -951,7 +1085,7 @@ def __handleMultipart(view, mimePart, parentMIMEContainer, bodyBuffer,
             for part in payload:
                 if part.get_content_type() == "text/plain":
                     __handleText(view, part, parentMIMEContainer, bodyBuffer,
-                                 counter, buf, level+1, compression)
+                                 counter, buf, level+1)
                     foundText = True
 
                 elif firstPart is None and not foundText and not part.is_multipart():
@@ -964,15 +1098,15 @@ def __handleMultipart(view, mimePart, parentMIMEContainer, bodyBuffer,
                     # If we find a multipart sub-part with in the alternative
                     # part handle it
                     __handleMultipart(view, part, parentMIMEContainer, bodyBuffer, \
-                                      counter, buf, level+1, compression)
+                                      counter, buf, level+1)
 
             if not foundText and firstPart is not None:
                 if firstPart.get_content_maintype() == "text":
                     __handleText(view, firstPart, parentMIMEContainer,
-                                 bodyBuffer, counter, buf, level+1, compression)
+                                 bodyBuffer, counter, buf, level+1)
                 else:
-                    __handleBinary(view, firstPart, parentMIMEContainer, counter, 
-                                   buf, level+1, compression)
+                    __handleBinary(view, firstPart, parentMIMEContainer, counter,
+                                   buf, level+1)
         elif __debug__:
             trace("******WARNING****** multipart/alternative has no payload")
 
@@ -997,11 +1131,11 @@ def __handleMultipart(view, mimePart, parentMIMEContainer, bodyBuffer,
 
         for part in payload:
             __parsePart(view, part, parentMIMEContainer, bodyBuffer,
-                        counter, buf, level+1, compression)
+                        counter, buf, level+1)
 
 
 def __handleBinary(view, mimePart, parentMIMEContainer,
-                   counter, buf, level, compression):
+                   counter, buf, level):
 
     if IGNORE_ATTACHMENTS:
         return
@@ -1018,7 +1152,7 @@ def __handleBinary(view, mimePart, parentMIMEContainer,
     mimeBinary = MIMEBinary(itsView=view)
 
     # Get the attachments data
-    data = mimePart.get_payload(decode=1)
+    data = mimePart.get_payload(decode=True)
     assert data is not None, "__handleBinary data is None"
 
     mimeBinary.filesize = len(data)
@@ -1034,19 +1168,19 @@ def __handleBinary(view, mimePart, parentMIMEContainer,
             mimeBinary.mimeType = result[0]
 
     mimeBinary.data = dataToBinary(mimeBinary, "data", data,
-                                   mimeBinary.mimeType, compression)
+                                   mimeBinary.mimeType)
 
     parentMIMEContainer.mimeParts.append(mimeBinary.itsItem)
 
 def __handleText(view, mimePart, parentMIMEContainer, bodyBuffer,
-                 counter, buf, level, compression):
+                 counter, buf, level):
     subtype = mimePart.get_content_subtype()
 
     #if verbose():
     #    __trace("text/%s" % subtype, buf, level)
 
     # Get the attachment data
-    body = mimePart.get_payload(decode=1)
+    body = mimePart.get_payload(decode=True)
 
     size = len(body)
 

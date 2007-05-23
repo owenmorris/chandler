@@ -19,7 +19,7 @@ from twisted.internet import reactor
 from application import Globals, schema
 import osaf.pim.mail as Mail
 
-from repository.persistence.RepositoryView import RepositoryView
+from repository.persistence.RepositoryView import otherViewWins
 
 #Chandler Mail Service import
 from smtp import SMTPClient
@@ -27,6 +27,9 @@ from imap import IMAPClient
 from pop import  POPClient
 from errors import MailException
 from utils import trace
+import constants
+from mailworker import MailWorker
+
 
 """
 XXX: Not thread safe code
@@ -65,37 +68,47 @@ class MailService(object):
     """
 
     def __init__(self, view):
-        assert isinstance(view, RepositoryView)
+        self._view = view.repository.createView("Mail Service Read Only View", notify=False,
+                                                mergeFn=otherViewWins,
+                                                pruneSize=constants.MAILSERVICE_PRUNE_SIZE)
 
-        self._view = view
         self._started = False
         self._clientInstances = None
+        self._mailWorker = None
 
     def startup(self):
         """Initializes the MailService and creates the cache for
            suppported protocols POP, SMTP, IMAP"""
+        if self._started:
+            raise MailException("MailService is currently started")
 
         self._clientInstances = {"SMTP": {}, "IMAP": {}, "POP": {}}
 
-        if self._started:
-            raise MailException("MailService is currently started")
+        self._mailWorker = MailWorker("MailWorker Thread", self._view.repository)
+
+        #Start the mail worker thread
+        self._mailWorker.start()
 
         self._started = True
 
         if Globals.options.offline:
             self.takeOffline()
 
-
     def shutdown(self):
         """Shutsdown the MailService and deletes any clients in the
            MailServices cache"""
 
         if self._started:
+            # Stop processing mail requests from Mail Protocol Clients
+            self._mailWorker.shutdown()
+
+            # Shutdown all Mail Protocol Clients
             for clients in self._clientInstances.values():
                 for client in clients.values():
                     reactor.callFromThread(client.shutdown)
 
             del self._clientInstances
+
 
             self._started = False
 
@@ -163,14 +176,14 @@ class MailService(object):
         assert isinstance(account, Mail.SMTPAccount)
 
         if not fromCache:
-            return SMTPClient(self._createView("SMTPClient", account), account)
+            return SMTPClient(self._view, account)
 
         smtpInstances = self._clientInstances.get("SMTP")
 
         if account.itsUUID in smtpInstances:
             return smtpInstances.get(account.itsUUID)
 
-        s = SMTPClient(self._createView("SMTPClient", account), account)
+        s = SMTPClient(self._view, account)
         smtpInstances[account.itsUUID] = s
 
         return s
@@ -193,14 +206,14 @@ class MailService(object):
         assert isinstance(account, Mail.IMAPAccount)
 
         if not fromCache:
-            return IMAPClient(self._createView("IMAPClient", account), account)
+            return IMAPClient(self._view, account, self._mailWorker)
 
         imapInstances = self._clientInstances.get("IMAP")
 
         if account.itsUUID in imapInstances:
             return imapInstances.get(account.itsUUID)
 
-        i = IMAPClient(self._createView("IMAPClient", account), account)
+        i = IMAPClient(self._view, account, self._mailWorker)
         imapInstances[account.itsUUID] = i
 
         return i
@@ -222,14 +235,14 @@ class MailService(object):
         assert isinstance(account, Mail.POPAccount)
 
         if not fromCache:
-            return POPClient(self._createView("POPClient", account), account)
+            return POPClient(self._view, account, self._mailWorker)
 
         popInstances = self._clientInstances.get("POP")
 
         if account.itsUUID in popInstances:
             return popInstances.get(account.itsUUID)
 
-        i = POPClient(self._createView("POPClient", account), account)
+        i = POPClient(self._view, account, self._mailWorker)
         popInstances[account.itsUUID] = i
 
         return i
@@ -264,14 +277,3 @@ class MailService(object):
                 c = s > 1 and "Clients" or "Client"
                 a = s > 1 and "accountUUID's" or "accountUUID"
                 trace("removed %s%s with %s %s" % (protocol, c, a, delList))
-
-    def _createView(self, clientName, account):
-        # Assign a unique name to the view
-        viewName = "%s for account: %s" % (clientName, str(account.itsUUID))
-        v = self._view.repository.createView(viewName)
-
-        # Set the prune size to limit the views memory use
-        v.pruneSize = 200
-
-        return v
-
