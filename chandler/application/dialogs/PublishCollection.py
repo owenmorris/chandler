@@ -21,7 +21,7 @@ import logging
 import os, sys
 from application import schema, Globals
 from osaf import sharing
-from util import task, viewpool
+from util import task
 from i18n import ChandlerMessageFactory as _
 from osaf.pim import Remindable, EventStamp
 from TurnOnTimezones import ShowTurnOnTimezonesDialog, PUBLISH
@@ -484,7 +484,7 @@ class PublishCollectionDialog(wx.Dialog):
 
         # Run this in its own background thread
         self.view.commit()
-        self.taskView = viewpool.getView(self.view.repository)
+        self.taskView = sharing.getView(self.view.repository)
         self.activity = Activity("Publish: %s" % self.collection.displayName)
         self.currentTask = ShareTask(self.taskView, account, self.collection,
             self.activity)
@@ -496,7 +496,7 @@ class PublishCollectionDialog(wx.Dialog):
 
     def _shareError(self, (err, summary, extended)):
 
-        viewpool.releaseView(self.taskView)
+        sharing.releaseView(self.taskView)
 
         if not isinstance(err, ActivityAborted):
             self.activity.failed(exception=err)
@@ -551,7 +551,7 @@ class PublishCollectionDialog(wx.Dialog):
 
     def _finishedShare(self, shareUUIDs):
 
-        viewpool.releaseView(self.taskView)
+        sharing.releaseView(self.taskView)
 
         self.activity.completed()
         self.listener.unregister()

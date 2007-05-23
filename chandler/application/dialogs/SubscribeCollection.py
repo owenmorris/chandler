@@ -18,7 +18,7 @@ import logging
 import wx
 import wx.xrc
 from osaf import sharing, usercollections
-from util import task, viewpool
+from util import task
 from application import schema, Globals
 from i18n import ChandlerMessageFactory as _
 import zanshin
@@ -133,7 +133,7 @@ class SubscribeDialog(wx.Dialog):
 
     def _finishedShare(self, uuid):
 
-        viewpool.releaseView(self.taskView)
+        sharing.releaseView(self.taskView)
 
         # Pull in the changes from sharing view
         self.view.refresh(lambda code, item, attr, val: val)
@@ -185,7 +185,7 @@ class SubscribeDialog(wx.Dialog):
 
     def _shareError(self, (err, summary, extended)):
 
-        viewpool.releaseView(self.taskView)
+        sharing.releaseView(self.taskView)
 
         if not isinstance(err, ActivityAborted):
             self.activity.failed(exception=err)
@@ -285,7 +285,7 @@ class SubscribeDialog(wx.Dialog):
                 return collection.itsUUID
 
         self.view.commit()
-        self.taskView = viewpool.getView(self.view.repository)
+        self.taskView = sharing.getView(self.view.repository)
         self.activity = Activity("Subscribe: %s" % url)
         self.currentTask = ShareTask(self.taskView, url, username, password,
                                      self.activity,

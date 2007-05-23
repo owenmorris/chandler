@@ -19,7 +19,7 @@ from PyICU import ICUtzinfo
 from application import schema, dialogs, Globals
 from application.Parcel import Reference
 from application.Utility import getDesktopDir, CertificateVerificationError
-from osaf import pim, ChandlerException
+from osaf import pim, ChandlerException, startup
 from osaf.framework.password import Password
 from osaf.framework.twisted import waitForDeferred
 from osaf.pim import isDead, has_stamp
@@ -54,6 +54,7 @@ from cosmo import *
 from itemcentric import *
 from ics import *
 from serialize import *
+from viewpool import *
 
 
 logger = logging.getLogger(__name__)
@@ -99,14 +100,21 @@ class SharingPreferences(schema.Item):
     freeBusyAccount = schema.One(WebDAVAccount, defaultValue=None)
     freeBusyShare   = schema.One(Share, defaultValue=None)
 
+
+
+class SyncPeriodicTask(startup.PeriodicTask):
+    def fork(self):
+        return startup.fork_item(self, name='Syncing', pruneSize=500,
+            notify=False)
+
+
 def installParcel(parcel, oldVersion=None):
 
     SharingPreferences.update(parcel, "prefs")
 
     Reference.update(parcel, 'currentSharingAccount')
 
-    from osaf import startup
-    startup.PeriodicTask.update(parcel, "sharingTask",
+    SyncPeriodicTask.update(parcel, "sharingTask",
         invoke="osaf.sharing.BackgroundSyncHandler",
         run_at_startup=False,
         active=True,
@@ -133,7 +141,6 @@ def installParcel(parcel, oldVersion=None):
         filterExpression="view.hasTrueValues(uuid, '%s')" % (filterAttribute,),
         filterAttributes=[filterAttribute])
     iCalendarItems.addIndex('icalUID', 'value', attribute=filterAttribute)
-
 
 def getDefaultAccount(rv):
     cur = schema.ns('osaf.sharing', rv).currentSharingAccount

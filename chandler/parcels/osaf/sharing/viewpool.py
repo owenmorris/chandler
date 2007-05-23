@@ -13,6 +13,8 @@
 #   limitations under the License.
 
 
+__all__ = [ 'getView', 'releaseView' ]
+
 AVAILABLE = 0
 IN_USE    = 1
 
@@ -30,7 +32,8 @@ def getView(repo):
             view.refresh( )
             return view
 
-    view = repo.createView(name=name%highest)
+    view = repo.createView(name=name%highest, pruneSize=500, notify=False)
+    view.setBackgroundIndexed(True)
     views.append((view, IN_USE))
     highest += 1
     return view
