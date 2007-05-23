@@ -488,7 +488,7 @@ def runUnitTests(options, testlist=None):
     return failed
 
 
-    def runUnitSuite(options):
+def runUnitSuite(options):
     """
     Run all unit tests in a single process
     
@@ -504,7 +504,9 @@ def runUnitTests(options, testlist=None):
     /.../debug/RunPython... tools/run_tests.py -v application i18n osaf repository
     - + - + - + - + - + - + - + - + - + - + - + - + - + - + - + 
     False
+    
     """
+
     failed = False
 
     for mode in options.modes:
