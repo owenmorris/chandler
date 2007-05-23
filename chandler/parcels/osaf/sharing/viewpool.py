@@ -33,7 +33,6 @@ def getView(repo):
             return view
 
     view = repo.createView(name=name%highest, pruneSize=500, notify=False)
-    view.setBackgroundIndexed(True)
     views.append((view, IN_USE))
     highest += 1
     return view
