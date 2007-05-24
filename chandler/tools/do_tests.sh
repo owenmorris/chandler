@@ -183,9 +183,9 @@ fi
   # the EXCLUDES array is then walked and the length of the
   # directory is calculated - beats doing it by hand and making a mistake
 
-EXCLUDES=("$CHANDLERBIN/release" "$CHANDLERBIN/debug" "$C_DIR/tools" "$C_DIR/util" "$C_DIR/projects" "$C_DIR/plugins")
-L_EXCLUDES=(0 0 0 0 0 0)
-for item in 0 1 2 3 4 5; do
+EXCLUDES=("$CHANDLERBIN/release" "$CHANDLERBIN/debug" "$C_DIR/tools" "$C_DIR/util" "$C_DIR/projects" "$C_DIR/plugins" "$C_DIR/relocatable")
+L_EXCLUDES=(0 0 0 0 0 0 0)
+for item in 0 1 2 3 4 5 6; do
     L_EXCLUDES[$item]=${#EXCLUDES[$item]}
 done
 
@@ -264,7 +264,7 @@ else
         for item in $DIRS ; do
             FILEPATH=${item%/*}
             EXCLUDED=no
-            for index in 0 1 2 3 4 5 ; do
+            for index in 0 1 2 3 4 5 6; do
                 exclude=${EXCLUDES[$index]}
                 len=${L_EXCLUDES[$index]}
 
