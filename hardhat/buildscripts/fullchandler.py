@@ -21,7 +21,7 @@ object, log.  True is returned if a new build was created, False is returned
 if no code has changed, and an exception is raised if there are problems.
 """
 
-import os, hardhatutil, hardhatlib, sys, re
+import os, hardhatutil, hardhatlib, sys, re, glob
 
 path          = os.environ.get('PATH', os.environ.get('path'))
 whereAmI      = os.path.dirname(os.path.abspath(hardhatlib.__file__))
@@ -268,6 +268,63 @@ def doTests(mode, workingDir, outputDir, buildVersion, log):
     return "success"  # end of doTests( )
 
 
+def checkDistributionSize(log, releaseMode, buildVersionEscaped):
+    try:
+        class UnexpectedSize(Exception):
+            def __init__(self, f, actual, minSize, maxSize):
+                self.f = f
+                self.actual = actual
+                self.minSize = minSize
+                self.maxSize = maxSize
+            
+        sizes = {#plat     mode        suffix:max, ...
+                 'win':   {'debug':   {'exe': 30, 'zip': 50},
+                           'release': {'exe': 25, 'zip': 35},
+                          },
+                 'osx':   {'debug':   {'dmg': 50},
+                           'release': {'dmg': 90},
+                          },
+                 'iosx':  {'debug':   {'dmg': 50},
+                           'release': {'dmg': 110},
+                          },
+                 'linux': {'debug':   {'deb': 70, 'rpm': 70, 'gz': 70},
+                           'release': {'deb': 40, 'rpm': 40, 'gz': 40},
+                          },
+                }
+        
+        if os.name == 'nt' or sys.platform == 'cygwin':
+            platform = 'win'
+        elif sys.platform == 'darwin':
+            if platform.processor() == 'i386' and platform.machine() == 'i386':
+                platform = 'iosx'
+            else:
+                platform = 'osx'
+        else:
+            platform = 'linux'
+        
+        for f in glob.glob('../*%s*' % buildVersionEscaped):
+            if not os.path.isfile(f):
+                continue
+            suffix = f[f.rfind('.')+1:]
+            size = os.stat(f).st_size
+            
+            # See http://en.wikipedia.org/wiki/Megabyte
+            minSize = 5 * (1024**2)
+            maxSize = sizes[platform][releaseMode][suffix] * (1024**2)
+
+            if not minSize < size < maxSize:
+                raise UnexpectedSize(f, size, minSize, maxSize)
+            
+    except UnexpectedSize, e1:
+        doCopyLog("***Error: %s unexpected distribution size %d, expected range %d-%d*** " % (e1.f, e1.actual, e1.minSize, e1.maxSize), workingDir, logPath, log)
+        forceBuildNextCycle(log, workingDir)
+        raise e1        
+    except Exception, e2:
+        doCopyLog("***Error during distribution size measurement*** ", workingDir, logPath, log)
+        forceBuildNextCycle(log, workingDir)
+        raise e2
+
+
 def doDistribution(releaseMode, workingDir, log, outputDir, buildVersion, buildVersionEscaped, hardhatScript):
     #   Create end-user, developer distributions
     chanDir = os.path.join(workingDir, 'chandler')
@@ -285,10 +342,13 @@ def doDistribution(releaseMode, workingDir, log, outputDir, buildVersion, buildV
         outputList = hardhatutil.executeCommandReturnOutput(
           [hardhatScript, "-o", os.path.join(outputDir, buildVersion), distOption, buildVersionEscaped])
         hardhatutil.dumpOutputList(outputList, log)
+        
     except Exception, e:
         doCopyLog("***Error during distribution building process*** ", workingDir, logPath, log)
         forceBuildNextCycle(log, workingDir)
         raise e
+
+    checkDistributionSize(log, releaseMode, buildVersionEscaped)
 
 
 def doCopyLog(msg, workingDir, logPath, log):
