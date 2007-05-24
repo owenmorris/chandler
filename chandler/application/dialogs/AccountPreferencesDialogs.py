@@ -401,8 +401,7 @@ def showYesNoDialog(title, msg, parent):
 
 def showMsgDialog(type, title, msg, parent):
     win = MsgDialog(parent, type, title, msg)
-    if wx.Platform == '__WXMAC__':
-        win.CenterOnParent()
+    win.CenterOnParent()
     res = win.ShowModal()
 
     win.Destroy()
@@ -410,8 +409,7 @@ def showMsgDialog(type, title, msg, parent):
 
 def showConfigureDialog(title, msg, parent):
     win = ConfigureDialog(parent, title, msg)
-    if wx.Platform == '__WXMAC__':
-        win.CenterOnParent()
+    win.CenterOnParent()
     res = win.ShowModal()
 
     win.Destroy()

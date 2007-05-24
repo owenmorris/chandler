@@ -664,8 +664,7 @@ class ProgressDialog(wx.Dialog):
     def initDialog(self):
         #    custom logic
         self.layoutDialog()
-        if wx.Platform == '__WXMAC__':
-            self.CenterOnParent()
+        self.CenterOnParent()
         self.ShowModal()
 
     def layoutDialog(self):

@@ -2107,8 +2107,7 @@ def ShowAccountPreferencesDialog(account=None, rv=None, modal=True):
     win = AccountPreferencesDialog(_(u"Account Preferences"),
      resources=resources, account=account, rv=rv, modal=modal)
 
-    if wx.Platform == '__WXMAC__':
-        win.CenterOnParent()
+    win.CenterOnParent()
 
     if modal:
         return win.ShowModal()

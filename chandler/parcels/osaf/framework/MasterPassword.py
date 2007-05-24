@@ -90,8 +90,7 @@ def get(view, parent=None, testPassword=None):
 
     while True:
         dlg = GetMasterPasswordDialog(parent, prefs.timeout)
-        if wx.Platform == '__WXMAC__':
-            dlg.CenterOnParent()
+        dlg.CenterOnParent()
         
         try:
             if dlg.ShowModal() != wx.ID_OK:
@@ -158,8 +157,7 @@ def change(view, parent=None):
     while True:
         dlg = ChangeMasterPasswordDialog(parent, changing=prefs.masterPassword,
                                          view=view)
-        if wx.Platform == '__WXMAC__':
-            dlg.CenterOnParent()
+        dlg.CenterOnParent()
 
         try:
             if dlg.ShowModal() == wx.ID_OK:
