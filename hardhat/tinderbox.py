@@ -140,6 +140,8 @@ def main():
     log = open(logFile, "w")
     logit("Start: %s %s %s" % (nowString, buildVersion, buildDir), log)
 
+    ret = 'build_failed'    # default to build_failed
+
     try:
         # load (or reload) the buildscript file for the project
         mod = hardhatutil.ModuleFromFile(buildscriptFile, "buildscript")
@@ -159,19 +161,16 @@ def main():
 
     except TinderbuildError, e:
         logit('TinderbuildError [%s]' % str(e), log)
-
         ret = "build_failed"
 
     except hardhatutil.ExternalCommandErrorWithOutputList, e:
         logit('External command error [%d]' % e.exitCode, log)
         hardhatutil.dumpOutputList(e.outputList, log)
+        ret = "build_failed"
 
     except Exception, e:
         logit('Exception [%s]' % str(e), log)
         ret = "build_failed"
-    else:
-        logit('Build has returned in an abnormal fashion - declaring it a failed build')
-        ret = 'build_failed'
 
     if ret == "success-nochanges":
         logit('There were no changes, and the tests were successful', log)
