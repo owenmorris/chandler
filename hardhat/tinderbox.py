@@ -160,8 +160,7 @@ def main():
     except TinderbuildError, e:
         logit('TinderbuildError [%s]' % str(e), log)
 
-        status      = "build_failed"
-        #alertStatus = 'The build failed'
+        ret = "build_failed"
 
     except hardhatutil.ExternalCommandErrorWithOutputList, e:
         logit('External command error [%d]' % e.exitCode, log)
@@ -169,107 +168,99 @@ def main():
 
     except Exception, e:
         logit('Exception [%s]' % str(e), log)
+        ret = "build_failed"
+    else:
+        logit('Build has returned in an abnormal fashion - declaring it a failed build')
+        ret = 'build_failed'
 
-        status      = "build_failed"
-        #alertStatus = 'The build failed'
+    if ret == "success-nochanges":
+        logit('There were no changes, and the tests were successful', log)
+        status = "success"
+    elif ret == "success-changes" or ret == "success-first-run":
+        if ret == "success-first-run":
+            logit('First run of tinderbox, and the tests were successful', log)
+        else:
+            logit('There were changes, and the tests were successful', log)
+
+        status = "success"
+        srcDir = os.path.join(buildDir, "output", buildVersion)
+        newDir = os.path.join(outputDir, buildVersion)
+
+        if os.path.exists(srcDir):
+            logit('Renaming %s to %s' % (srcDir, newDir), log)
+            os.rename(os.path.join(buildDir, "output", buildVersion), newDir)
+
+            if os.path.exists(outputDir+os.sep+"index.html"):
+                os.remove(outputDir+os.sep+"index.html")
+            if os.path.exists(outputDir+os.sep+"time.js"):
+                os.remove(outputDir+os.sep+"time.js")
+
+            logit('Calling CreateIndex with %s' % newDir, log)
+            CreateIndex(treeName, outputDir, buildVersion, nowString, buildName)
+
+            logit('Calling RotateDirectories', log)
+            RotateDirectories(outputDir)
+
+        buildNameNoSpaces = buildName.replace(" ", "")
+
+        if skipRsync:
+            logit("skipping rsync", log)
+        else:
+            cmd = [ rsyncProgram, '-e', '"ssh -l builder"', '-avzp', outputDir + os.sep,
+                    "%s:continuous/%s" % (options.rsyncServer, buildNameNoSpaces) ]
+
+            logit(' '.join(cmd), log)
+
+            outputList = hardhatutil.executeCommandReturnOutputRetry(cmd)
+            hardhatutil.dumpOutputList(outputList, log)
+
+        if not uploadStaging:
+            logit("skipping rsync to staging area", log)
+        else:
+            UploadToStaging(nowString, log, rsyncProgram, options.rsyncServer)
+
+    elif ret[:12] == "build_failed":
+        logit('The build failed', log)
+        status = "build_failed"
+
+    elif ret[:11] == "test_failed":
+        logit('Unit tests failed', log)
+        status = "test_failed"
+
+        if not uploadStaging:
+            logit("skipping rsync to staging area", log)
+        else:
+            UploadToStaging(nowString, log, rsyncProgram, options.rsyncServer)
 
     else:
-        if ret == "success-nochanges":
-            logit('There were no changes, and the tests were successful', log)
-            status      = "success"
-            #alertStatus = status
-        elif ret == "success-changes" or ret == "success-first-run":
-            if ret == "success-first-run":
-                logit('First run of tinderbox, and the tests were successful', log)
-            else:
-                logit('There were changes, and the tests were successful', log)
+        logit("There were no changes in SVN", log)
+        status = "not_running"
 
-            status      = "success"
-            #alertStatus = status
+    SendUUIDFile(buildDir, scpProgram, fromAddr, buildName, log)
 
-            srcDir = os.path.join(buildDir, "output", buildVersion)
-            newDir = os.path.join(outputDir, buildVersion)
+    logit("End", log)
 
-            if os.path.exists(srcDir):
-                logit('Renaming %s to %s' % (srcDir, newDir), log)
-                os.rename(os.path.join(buildDir, "output", buildVersion), newDir)
+    try:
+        log.close()
 
-                if os.path.exists(outputDir+os.sep+"index.html"):
-                    os.remove(outputDir+os.sep+"index.html")
-                if os.path.exists(outputDir+os.sep+"time.js"):
-                    os.remove(outputDir+os.sep+"time.js")
+        maillog = open(logFile, "r")
+        logContents = maillog.read()
+        maillog.close()
+    except e:
+        print "exception during log flush and close"
+        print e
 
-                logit('Calling CreateIndex with %s' % newDir, log)
-                CreateIndex(treeName, outputDir, buildVersion, nowString, buildName)
+    nowTime = str(int(time.time()))
 
-                logit('Calling RotateDirectories', log)
-                RotateDirectories(outputDir)
+    #logit('Sending alert email [%s]' % alertStatus)
+    #SendMail(fromAddr, alertAddr, startTime, buildName, alertStatus, treeName, None, svnRevision)
 
-            buildNameNoSpaces = buildName.replace(" ", "")
+    logit('Sending tbox email [%s]' % status)
+    SendMail(fromAddr, mailtoAddr, startTime, buildName, status, treeName, logContents, svnRevision)
 
-            if skipRsync:
-                logit("skipping rsync", log)
-            else:
-                cmd = [ rsyncProgram, '-e', '"ssh -l builder"', '-avzp', outputDir + os.sep,
-                        "%s:continuous/%s" % (options.rsyncServer, buildNameNoSpaces) ]
-
-                logit(' '.join(cmd), log)
-
-                outputList = hardhatutil.executeCommandReturnOutputRetry(cmd)
-                hardhatutil.dumpOutputList(outputList, log)
-
-            if not uploadStaging:
-                logit("skipping rsync to staging area", log)
-            else:
-                UploadToStaging(nowString, log, rsyncProgram, options.rsyncServer)
-
-        elif ret[:12] == "build_failed":
-            status      = "build_failed"
-            #alertStatus = 'The build failed'
-
-            logit('The build failed', log)
-
-        elif ret[:11] == "test_failed":
-            status      = "test_failed"
-            #alertStatus = 'Unit tests failed'
-
-            logit('Unit tests failed', log)
-
-            if not uploadStaging:
-                logit("skipping rsync to staging area", log)
-            else:
-                UploadToStaging(nowString, log, rsyncProgram, options.rsyncServer)
-
-        else:
-            logit("There were no changes in SVN", log)
-            status      = "not_running"
-            #alertStatus = status
-
-        SendUUIDFile(buildDir, scpProgram, fromAddr, buildName, log)
-
-        logit("End", log)
-
-        try:
-            log.close()
-
-            maillog = open(logFile, "r")
-            logContents = maillog.read()
-            maillog.close()
-        except e:
-            print "exception during log flush and close"
-            print e
-
-        nowTime = str(int(time.time()))
-
-        #logit('Sending alert email [%s]' % alertStatus)
-        #SendMail(fromAddr, alertAddr, startTime, buildName, alertStatus, treeName, None, svnRevision)
-
-        logit('Sending tbox email [%s]' % status)
-        SendMail(fromAddr, mailtoAddr, startTime, buildName, status, treeName, logContents, svnRevision)
-
-        if sleepMinutes:
-            logit('Sleeping %d minutes' % sleepMinutes)
-            time.sleep(sleepMinutes * 60)
+    if sleepMinutes:
+        logit('Sleeping %d minutes' % sleepMinutes)
+        time.sleep(sleepMinutes * 60)
 
 
 def SendUUIDFile(buildDir, scpProgram, fromAddr, buildName, log):
