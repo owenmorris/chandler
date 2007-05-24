@@ -263,8 +263,11 @@ class State(schema.Item):
 
         else:
             self.agreed += ncd
+            logger.debug("   agreed+=ncd: %s", self.agreed)
             dSend = self._cleanDiff(rsExternal, ncd)
+            logger.debug("   dSend cleanDiff: %s", dSend)
             rsExternal += dSend
+            logger.debug("   rsExternal+=dSend: %s", rsExternal)
             self.pending = filter(rsExternal - self.agreed)
 
         dApply = self._cleanDiff(rsInternal, ncd)

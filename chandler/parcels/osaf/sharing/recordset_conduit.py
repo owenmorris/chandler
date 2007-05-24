@@ -99,7 +99,6 @@ class RecordSetConduit(conduits.BaseConduit):
             if activity:
                 activity.update(*args, **kwds)
 
-        logger.debug("================ start of sync =================")
 
         rv = self.itsView
 
@@ -119,6 +118,12 @@ class RecordSetConduit(conduits.BaseConduit):
         else:
             send = self.share.mode in ('put', 'both')
             receive = self.share.mode in ('get', 'both')
+
+        logger.debug("================ start of sync =================")
+        logger.debug("Mode: %s", self.share.mode)
+        logger.debug("Mode override: %s", modeOverride)
+        logger.debug("Send: %s", send)
+        logger.debug("Receive: %s", receive)
 
         translator = self.translator(rv)
 

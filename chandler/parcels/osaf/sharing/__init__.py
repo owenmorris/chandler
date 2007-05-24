@@ -1341,6 +1341,7 @@ def subscribeMorsecode(view, url, morsecodeUrl, inspection, activity=None,
         share.conduit = CosmoConduit(itsParent=share,
             shareName=shareName, account=account,
             translator=SharingTranslator, serializer=EIMMLSerializer)
+        share.mode = 'both' # if account, assume read/write
 
 
     else:
