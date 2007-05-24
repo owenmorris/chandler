@@ -21,7 +21,7 @@ object, log.  True is returned if a new build was created, False is returned
 if no code has changed, and an exception is raised if there are problems.
 """
 
-import os, hardhatutil, hardhatlib, sys, re, glob
+import os, hardhatutil, hardhatlib, sys, re, glob, platform
 
 path          = os.environ.get('PATH', os.environ.get('path'))
 whereAmI      = os.path.dirname(os.path.abspath(hardhatlib.__file__))
