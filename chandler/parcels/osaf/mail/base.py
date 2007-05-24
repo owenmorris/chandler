@@ -400,9 +400,11 @@ class AbstractDownloadClient(object):
         elif total >= 100 and total < 300:
             return 24
         elif total >= 300 and total < 500:
-            return 50
+            return 75
         elif total >= 500 and total < 700:
-            return 100 
+            return 125
+        elif total >= 700 and total < 1200:
+            return 225
         else:
             return constants.MAX_COMMIT
 

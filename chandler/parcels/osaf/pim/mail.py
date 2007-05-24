@@ -1536,25 +1536,27 @@ class MailStamp(stamping.Stamp):
         """
         Add tuples to the "whos" list: (priority, "text", source name)
         """
+        viaMailService = getattr(self, "viaMailService", False)
+
         toAddress = getattr(self, 'toAddress', [])
         if len(toAddress) > 0:
             toText = u", ".join(unicode(x) for x in toAddress)
             if len(toText) > 0:
-                toPriority = self.viaMailService and 3 or 1
+                toPriority = viaMailService and 3 or 1
                 whos.append((toPriority, toText, 'to'))
 
         originators = getattr(self, 'originators', [])
         if len(originators) > 0:
             originatorsText = u", ".join(unicode(x) for x in originators)
             if len(originatorsText) > 0:
-                originatorsPriority = self.viaMailService and 1 or 2
+                originatorsPriority = viaMailService and 1 or 2
                 whos.append((originatorsPriority, originatorsText, 'from'))
 
         fromAddress = getattr(self, 'fromAddress', None)
         if fromAddress is not None:
             fromText = unicode(fromAddress)
             if len(fromText) > 0:
-                fromPriority = self.viaMailService and 2 or 3
+                fromPriority = viaMailService and 2 or 3
                 whos.append((fromPriority, fromText, 'from'))
 
     schema.addClouds(
