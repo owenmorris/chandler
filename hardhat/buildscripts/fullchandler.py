@@ -268,7 +268,7 @@ def doTests(mode, workingDir, outputDir, buildVersion, log):
     return "success"  # end of doTests( )
 
 
-def checkDistributionSize(log, releaseMode, buildVersionEscaped):
+def checkDistributionSize(log, releaseMode, workingDir, buildVersionEscaped):
     try:
         class UnexpectedSize(Exception):
             def __init__(self, f, actual, minSize, maxSize):
@@ -276,6 +276,11 @@ def checkDistributionSize(log, releaseMode, buildVersionEscaped):
                 self.actual = actual
                 self.minSize = minSize
                 self.maxSize = maxSize
+            def __str__(self):
+                return 'file=%s, actual=%s, min=%s, max=%s' % (self.f,
+                                                               self.actual,
+                                                               self.minSize,
+                                                               self.maxSize)
             
         sizes = {#plat     mode        suffix:max, ...
                  'win':   {'debug':   {'exe': 30, 'zip': 50},
@@ -348,7 +353,7 @@ def doDistribution(releaseMode, workingDir, log, outputDir, buildVersion, buildV
         forceBuildNextCycle(log, workingDir)
         raise e
 
-    checkDistributionSize(log, releaseMode, buildVersionEscaped)
+    checkDistributionSize(log, releaseMode, workingDir, buildVersionEscaped)
 
 
 def doCopyLog(msg, workingDir, logPath, log):
