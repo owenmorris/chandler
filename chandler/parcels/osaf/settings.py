@@ -621,7 +621,7 @@ def restoreMasterPassword(rv, cfg, testmode, oldMaster, newMaster):
             if section.has_key(u"timeout"):
                 prefs.timeout = section.as_int(u"timeout")
             if section.has_key(u"protect"):
-                prefs.timeout = section.as_bool(u"protect")
+                prefs.protect = section.as_bool(u"protect")
             dummy = schema.ns("osaf.framework.password", rv).passwordPrefs.dummyPassword
             try:
                 iv, salt, ciphertext = section[u"dummyPassword"].split('|')
