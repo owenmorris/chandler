@@ -162,6 +162,12 @@ class TestOutput:
                 title = win.GetTitle()
                 if title != u'Chandler':
                     self.report(False, '%s window is still open at end of test' % title)
+                if title == 'Recurring event change':
+                    proxy = getattr(win, 'proxy', None)
+                    if proxy is not None:
+                        self.report(False, 'Proxy contents: item title=%s, buffer=%s' %
+                                   (proxy.proxiedItem.displayName, proxy.changeBuffer[0]['args']))
+
         
     def endTest(self, comment=None):
         """Method to end individual test class run.
