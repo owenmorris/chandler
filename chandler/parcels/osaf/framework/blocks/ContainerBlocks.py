@@ -189,7 +189,7 @@ class wxSplitterWindow(wx.SplitterWindow):
         oldWindow1 = self.GetWindow1()
         oldWindow2 = self.GetWindow2()
 
-        children = [child for child in blockItem.childBlocks if not isinstance (child, MenusAndToolbars.DynamicBlock)]
+        children = [child for child in blockItem.childBlocks if not isinstance (child, MenusAndToolbars.BaseItem)]
         assert (len (children) >= 1 and
                 len (children) <= 2), "Splitter windows only support one or two non-DynamicBlocks"
 

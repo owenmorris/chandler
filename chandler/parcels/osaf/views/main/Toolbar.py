@@ -18,8 +18,8 @@ from osaf.framework.blocks import *
 from osaf.views.detail import WatchedItemRootBlock
 import osaf.pim.items as items
 
-class SendToolbarItem(WatchedItemRootBlock, ToolbarItem):
+class SendToolBarItem(WatchedItemRootBlock, ToolBarItem):
     """
-    The "Send"/"Update" toolbar item
+    The "Send"/"Update" ToolBarItem
     """
     pass

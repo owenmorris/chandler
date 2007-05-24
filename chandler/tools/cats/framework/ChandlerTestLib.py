@@ -861,7 +861,7 @@ class UITestItem(object):
             #Press the Send button
             if timeInfo:
                 self.logger.startAction("Sending the message")
-            App_ns.appbar.press(name="ApplicationBarSendButton")
+            App_ns.appbar.press("ApplicationBarSendButton")
             wx.GetApp().Yield()
             #checkings
             
@@ -1680,13 +1680,13 @@ class UITestView(object):
         Get the current state of the view
         @return : the current view name
         """
-        if App_ns.appbar.pressed(name="ApplicationBarAllButton"):
+        if App_ns.appbar.pressed("ApplicationBarAllButton"):
             return "AllView"
-        elif App_ns.appbar.pressed(name="ApplicationBarTaskButton"):
+        elif App_ns.appbar.pressed("ApplicationBarTaskButton"):
             return "TaskView"
-        elif App_ns.appbar.pressed(name="ApplicationBarMailButton"):
+        elif App_ns.appbar.pressed("ApplicationBarMailButton"):
             return "MailView"
-        elif App_ns.appbar.pressed(name="ApplicationBarEventButton"):
+        elif App_ns.appbar.pressed("ApplicationBarEventButton"):
             return "CalendarView"
         else:
             return False
@@ -1711,7 +1711,7 @@ class UITestView(object):
         self.state = viewName
         self.logger.startAction("Switch to %s" % viewName)
         #process the corresponding event
-        App_ns.appbar.press(name=button)
+        App_ns.appbar.press(button)
         wx.GetApp().Yield()
         self.logger.endAction(True)
         self.CheckView()
@@ -1745,7 +1745,7 @@ class UITestView(object):
         Check if the current view is the expected one
         """
         if not self.state == self.GetCurrentState():
-            self.logger.report(False, name="CheckView", comment="(On wiew checking) || expected current view = %s ; Correspondig button is switch off " % self.state)
+            self.logger.report(False, name="CheckView", comment="(On view checking) || expected current view = %s ; Correspondig button is switch off " % self.state)
         else:
             self.logger.report(True, name="CheckView", comment="(On view checking)")
         #report the checkings

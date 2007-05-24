@@ -22,7 +22,7 @@ class TestCertstoreView(ChandlerTestCase):
     def startTest(self):
     
         # Make sure we start with the calendar view
-        self.app_ns.appbar.press(name="ApplicationBarEventButton")
+        self.app_ns.appbar.press("ApplicationBarEventButton")
         wx.GetApp().Yield()
             
         # 1. Add certstore to sidebar
@@ -53,7 +53,7 @@ class TestCertstoreView(ChandlerTestCase):
     
         # 2. confirm that the view is the All view
         self.logger.startAction("Check view is All")
-        if not self.app_ns.appbar.pressed(name='ApplicationBarAllButton'):
+        if not self.app_ns.appbar.pressed('ApplicationBarAllButton'):
             self.logger.endAction(False, "Did not switch to All view as expected")
         else:
             self.logger.endAction(True)
@@ -121,7 +121,7 @@ class TestCertstoreView(ChandlerTestCase):
         cert.CheckEditableBlock('TrustAttribute', 'trust', '0')
     
         # Switch back to calendar view
-        self.app_ns.appbar.press(name="ApplicationBarEventButton")
+        self.app_ns.appbar.press("ApplicationBarEventButton")
         wx.GetApp().Yield()        
         # Add certstore to sidebar again
         self.app_ns.root.addCertificateToSidebarEvent()
@@ -136,7 +136,7 @@ class TestCertstoreView(ChandlerTestCase):
         cert.CheckEditableBlock('TrustAttribute', 'trust', '0')
         
         # Switch to calendar view
-        self.app_ns.appbar.press(name="ApplicationBarEventButton")
+        self.app_ns.appbar.press("ApplicationBarEventButton")
         wx.GetApp().Yield()        
         # XXX 8. import certificate
         # confirm that we switched to all view, and the newly added cert is

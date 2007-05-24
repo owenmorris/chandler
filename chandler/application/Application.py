@@ -231,9 +231,16 @@ class wxMainFrame (wxBlockFrameWindow):
         # application the mainFrame windows doesn't get destroyed, so
         # we'll remove the handler
 
-        app = wx.GetApp()
-        app.Bind(wx.EVT_IDLE, None)
-        app.Bind(wx.EVT_MENU, None, id=-1)
+        app = wx.GetApp()        
+        app.Unbind(wx.EVT_MENU, id=-1)
+        app.Unbind(wx.EVT_TOOL, id=-1)
+        app.Unbind(wx.EVT_UPDATE_UI, id=-1)
+        app.Unbind(wx.EVT_WINDOW_DESTROY, id=-1)
+        app.Unbind(wx.EVT_SHOW, id=-1)
+        app.Unbind(wx.EVT_KEY_DOWN)
+        app.Unbind(wx.EVT_CONTEXT_MENU)
+
+        app.ignoreSynchronizeWidget = True
 
         if wx.Platform == '__WXMAC__':
             app.Bind(wx.EVT_ACTIVATE_APP, None)
@@ -275,7 +282,6 @@ class wxMainFrame (wxBlockFrameWindow):
         # track changes to the selection are called, and we don't want to count
         # these changes, since they weren't caused by user actions.
 
-        app.ignoreSynchronizeWidget = True
 
         self.Destroy()
 
@@ -672,14 +678,7 @@ class wxApplication (wx.App):
         from osaf.framework.blocks.Block import Block
 
         mainViewRoot = self.mainFrame.mainViewRoot
-        mainViewRoot.lastDynamicBlock = False
         mainViewRoot.render()
-
-        # Macintosh requires that the MenuBar be attached to the frame
-        # after all it's dynamic children are setup, so we delay setting
-        # the mainFrame's MenuBar until after we've finished rendering.
-
-        self.mainFrame.SetMenuBar (Block.findBlockByName('MenuBar').widget)
 
         # We have to wire up the block mainViewRoot, it's widget and sizer to a new
         # sizer that we add to the mainFrame.
@@ -813,9 +812,9 @@ class wxApplication (wx.App):
                 blockEvent = getattr (block, 'event', None)
                 # If a block doesn't have an event, it should be an updateUI event
                 assert (blockEvent != None or updateUIEvent)
-    
+
                 if blockEvent is not None:
-                    arguments = {}
+                    arguments = {"wxEvent": event}
                     if updateUIEvent:
                         arguments ['UpdateUI'] = True
                     else:
@@ -839,20 +838,22 @@ class wxApplication (wx.App):
                         if text is not None and widget is not None:
                             event.SetText (text)
                             # menu items can get here, so check for toolbar item method
-                            if getattr (widget, "OnSetTextEvent", None) is not None:
-                                # Some widgets, e.g. wxToolbarItems don't properly handle
+                            method = getattr (widget, "OnSetTextEvent", None)
+                            if method is not None:
+                                # Some widgets, e.g. wxToolBarItems don't properly handle
                                 # setting the text of buttons, so we'll handle it here by
                                 # calling OnSetTextEvent
-                                widget.OnSetTextEvent(event)
+                                method (event)
 
                         bitmap = arguments.get ('Bitmap', None)
                         if bitmap is not None and widget is not None:
                             # menu items can get here, so check for toolbar item method
-                            if getattr (widget, "SetToolbarItemBitmap", None) is not None:
+                            method = getattr (widget, "SetToolBarItemBitmap", None)
+                            if method is not None:
                                 # The UI requires the bitmap to change; there is no SetBitmap()
                                 # method for wx UpdateUIEvents, so just pass the name of the
                                 # bitmap as a second parameter to OnSetBitmapEvent()
-                                widget.SetToolbarItemBitmap(bitmap)
+                                method (bitmap)
                     return
         event.Skip()
 

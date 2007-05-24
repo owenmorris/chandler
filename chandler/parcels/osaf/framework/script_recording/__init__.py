@@ -162,7 +162,7 @@ class Controller (Block.Block):
                 # Temporarily modify sys.path so we can load the script's module
                 sys.path.insert (0, os.path.dirname(path))
                 try:
-                    module = __import__ (os.path.basename (path))
+                    module = reload (__import__ (os.path.basename (path)))
                 finally:
                     sys.path.pop(0)
 

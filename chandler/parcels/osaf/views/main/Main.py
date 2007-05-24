@@ -262,10 +262,18 @@ class MainView(View):
         self.printEvent(0)
 
     def onSearchEvent (self, event):
-        quickEntryWidget = Block.findBlockByName("ApplicationBarQuickEntry").widget
-        quickEntryWidget.SetValue (_(u"/find "))
-        quickEntryWidget.SetInsertionPointEnd()
-        quickEntryWidget.SetFocus()
+        quickEntryBlock = Block.findBlockByName("ApplicationBarQuickEntry")
+
+        text = getattr (quickEntryBlock, "lastText", None)
+        sidebar = Block.findBlockByName ("Sidebar")
+        sidebar.setShowSearch (text is not None)
+
+        if text is None:
+            text = _(u"/find ")
+
+        quickEntryBlock.widget.GetControl().SetFocus()
+        quickEntryBlock.text = text
+        quickEntryBlock.synchronizeWidget()
 
     def onQuickEntryEvent (self, event):
         # XXX This needs some refactoring love
@@ -432,7 +440,7 @@ class MainView(View):
         
         
         sidebar = Block.findBlockByName ("Sidebar")
-        quickEntryWidget = event.arguments['sender'].widget
+        quickEntryWidget = event.arguments['sender'].widget.GetControl()
         block = quickEntryWidget.blockItem
         command = quickEntryWidget.GetValue().strip()
         showSearchResults = False
@@ -440,13 +448,8 @@ class MainView(View):
         cancelClicked = event.arguments.get ("cancelClicked", False)
         if cancelClicked:
             
-            # When cancel is clicked we toggle between search and non search views
-            if len (command) == 0:
-                lastText = getattr (block, "lastText", None)
-                if lastText is not None:
-                    quickEntryWidget.SetValue (lastText)
-                    showSearchResults = True
-            else:
+            # Remember the last value of the search string
+            if len (command) != 0:
                 quickEntryWidget.SetValue ("")
                 block.lastText = command
         else:
@@ -1690,7 +1693,7 @@ class MainView(View):
     def onSyncAllEvent (self, event):
         """
         Synchronize Mail and all sharing.
-        The "File | Sync | All" menu item, and the Sync All Toolbar button.
+        The "File | Sync | All" menu item, and the Sync All ToolBar button.
         """
 
         # Commit changes, making them available to other views like mail

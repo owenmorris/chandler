@@ -934,9 +934,10 @@ class SidebarBlock(Table):
         self.setPreferredClass(event.classParameter)
 
     def setShowSearch(self, showSearch):
-        self.showSearch = showSearch
-        self.postEventByName("SelectItemsBroadcast",
-                             {'items':list(self.contents.iterSelection())})
+        if self.showSearch != showSearch:
+            self.showSearch = showSearch
+            self.postEventByName("SelectItemsBroadcast",
+                                 {'items':list(self.contents.iterSelection())})
 
     def setPreferredClass(self, filterClass, keepMissing=False):
         if (self.filterClass != filterClass and
@@ -948,12 +949,17 @@ class SidebarBlock(Table):
             buttonToSelect = self.findBlockByName("ApplicationBarAllButton")
 
             if filterClass is not MissingClass:
-                toolbar = Block.Block.findBlockByName("ApplicationBar")
-                for button in toolbar.childBlocks:
-                        buttonClass = getattr (button.event, "classParameter", None)
+                toolBar = Block.Block.findBlockByName("ApplicationBar").widget
+                for toolBarTool in toolBar.GetTools():
+                    # The tool returned by GetTools isn't our Python object with the blockItem attribute
+                    # so we'll have to look it up by it's Id.
+                    toolBarToolBlock = Block.Block.idToBlock[toolBarTool.GetId()]
+                    event = getattr (toolBarToolBlock, "event", None)
+                    if event is not None:
+                        buttonClass = getattr (event, "classParameter", None)
                         if buttonClass is not None and issubclass (filterClass, buttonClass):
                             newFilterStamp = buttonClass
-                            buttonToSelect = button
+                            buttonToSelect = toolBarToolBlock
                             break
 
             self.filterClass = newFilterStamp

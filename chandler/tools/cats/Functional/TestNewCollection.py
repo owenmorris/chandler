@@ -47,7 +47,7 @@ class TestNewCollection(ChandlerTestCase):
         scripting.User.emulate_sidebarClick(sidebar, uw('Meeting'))
     
         # Switch to the Calendar View
-        QAUITestAppLib.App_ns.appbar.press(name="ApplicationBarEventButton")
+        QAUITestAppLib.App_ns.appbar.press("ApplicationBarEventButton")
         
         # ... idle() so the app can handle changes
         QAUITestAppLib.scripting.User.idle()

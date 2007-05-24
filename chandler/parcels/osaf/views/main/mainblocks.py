@@ -96,76 +96,68 @@ def makeMainView(parcel):
         calendarContainer = None,
         stretchFactor = 0.0).install(parcel)
 
-    toolbarIconSize = SizeType(32, 32)    
-
     appBarBlocks = [
-        ToolbarItem.template('ApplicationBarAllButton',
+        ToolBarItem.template('ApplicationBarAllButton',
             event = main.ApplicationBarAll,
             bitmap = 'ApplicationBarAll.png',
             title = _(u"All"),
-            toolbarItemKind = 'Radio',
+            toolBarItemKind = 'Radio',
             helpString = _(u'View all items')),
-        ToolbarItem.template('ApplicationBarMailButton',
+        ToolBarItem.template('ApplicationBarMailButton',
             event = main.ApplicationBarMail,
             bitmap = 'ApplicationBarMail.png',
             title = _(u'Mail'),
-            toolbarItemKind = 'Radio',
+            toolBarItemKind = 'Radio',
             helpString = _(u'View messages')),
-        ToolbarItem.template('ApplicationBarTaskButton',
+        ToolBarItem.template('ApplicationBarTaskButton',
             event = main.ApplicationBarTask,
             bitmap = 'ApplicationBarTask.png',
             title = _(u'Tasks'),
-            toolbarItemKind = 'Radio',
+            toolBarItemKind = 'Radio',
             helpString = _(u'View tasks')),
-        ToolbarItem.template('ApplicationBarEventButton',
+        ToolBarItem.template('ApplicationBarEventButton',
             event = main.ApplicationBarEvent,
             bitmap = 'ApplicationBarEvent.png',
             title = _(u'Calendar'),
             selected = True,
-            toolbarItemKind = 'Radio',
+            toolBarItemKind = 'Radio',
             helpString = _(u'View events')),
-        ToolbarItem.template('ApplicationSeparator1',
-            toolbarItemKind = 'Separator'),
-        ToolbarItem.template('ApplicationBarSyncButton',
+        ToolBarItem.template('ApplicationSeparator1',
+            toolBarItemKind = 'Separator'),
+        ToolBarItem.template('ApplicationBarSyncButton',
             event = main.SyncAll,
             bitmap = 'ApplicationBarSync.png',
             title = _(u'Sync All'),
-            toolbarItemKind = 'Button',
             helpString = _(u'Sync all shared collections and download new messages')),
-        ToolbarItem.template('ApplicationBarNewButton',
+        ToolBarItem.template('ApplicationBarNewButton',
             event = main.NewItem,
             bitmap = 'ApplicationBarNew.png',
             title = _(u'New'),
-            toolbarItemKind = 'Button',
             helpString = _(u'Create a new item')),
-        ToolbarItem.template('ApplicationBarReplyButton',
+        ToolBarItem.template('ApplicationBarReplyButton',
             event = main.ReplyMessage,
             bitmap = 'ApplicationBarReply.png',
             title = messages.REPLY,
-            toolbarItemKind = 'Button',
             helpString = _(u'Reply to sender of selected message')),
-        ToolbarItem.template('ApplicationBarReplyAllButton',
+        ToolBarItem.template('ApplicationBarReplyAllButton',
             event = main.ReplyAllMessage,
             bitmap = 'ApplicationBarReplyAll.png',
             title = messages.REPLY_ALL,
-            toolbarItemKind = 'Button',
             helpString = _(u'Reply to all recipients of selected message')),
-        ToolbarItem.template('ApplicationBarForwardButton',
+        ToolBarItem.template('ApplicationBarForwardButton',
             event = main.ForwardMessage,
             bitmap = 'ApplicationBarForward.png',
             title = messages.FORWARD,
-            toolbarItemKind = 'Button',
             helpString = _(u'Forward selected message')),
-        ToolbarItem.template('ApplicationSeparator2',
-            toolbarItemKind = 'Separator'),
-        ToolbarItem.template('TriageButton',
+        ToolBarItem.template('ApplicationSeparator2',
+            toolBarItemKind = 'Separator'),
+        ToolBarItem.template('TriageButton',
             event = main.Triage,
             title = _(u"Triage"),
             bitmap = 'ApplicationBarTriage.png',
-            toolbarItemKind = 'Button',
             helpString = _(u'Sort items by triage status')),
-        ToolbarItem.template('ApplicationSeparator3',
-            toolbarItemKind = 'Separator')
+        ToolBarItem.template('ApplicationSeparator3',
+            toolBarItemKind = 'Separator')
     ]
 
     # customize for Linux, where toolbar items are extra-wide
@@ -173,45 +165,43 @@ def makeMainView(parcel):
         quickEntryWidth = 325
     else:
         quickEntryWidth = 150
-    sendToolbarItem = SendToolbarItem.template('ApplicationBarSendButton',
+    sendToolBarItem = SendToolBarItem.template('ApplicationBarSendButton',
                 event = main.SendShareItem,
                 bitmap = 'ApplicationBarSend.png',
                 title = messages.SEND,
                 viewAttribute='modifiedFlags',
-                toolbarItemKind = 'Button',
                 helpString = _(u'Send selected message'))
-    quickEntryItem = ToolbarItem.template('ApplicationBarQuickEntry',
+    quickEntryItem = ToolBarItem.template('ApplicationBarQuickEntry',
                 event = main.QuickEntry,
                 text = u"", # text value displayed in the control
-                toolbarItemKind = 'QuickEntry',
+                toolBarItemKind = 'QuickEntry',
                 size = SizeType (quickEntryWidth,-1),
                 helpString = _(u'Quick entry field: enter search string, or command beginning with "/"'))
-    # Toolbar tools are larger on Linux than other platforms
+    # ToolBar tools are larger on Linux than other platforms
     if wx.Platform != '__WXGTK__':
         appBarBlocks.extend((
             quickEntryItem,
-            ToolbarItem.template('ApplicationSeparator4',
-                toolbarItemKind = 'Separator'),
-            sendToolbarItem,
+            ToolBarItem.template('ApplicationSeparator4',
+                toolBarItemKind = 'Separator'),
+            sendToolBarItem,
         ))
     else:
         # for Linux move "Send" to the left of the quick-entry field
         appBarBlocks.extend((
-            sendToolbarItem,
-            ToolbarItem.template('ApplicationSeparator4',
-                toolbarItemKind = 'Separator'),
+            sendToolBarItem,
+            ToolBarItem.template('ApplicationSeparator4',
+                toolBarItemKind = 'Separator'),
             quickEntryItem
         ))
 
-    ApplicationBar = Toolbar.template(
+    ApplicationBar = ToolBar.template(
         'ApplicationBar',
         stretchFactor = 0.0,
-        toolSize = toolbarIconSize,
+        toolSize = SizeType(32, 32),
         buttonsLabeled = True,
         separatorWidth = 20,
-        mainFrameToolbar = True,
         childBlocks = appBarBlocks
-    ) # Toolbar ApplicationBar
+    ) # ToolBar ApplicationBar
 
     MainViewInstance = MainView.template(
         'MainView',
@@ -240,7 +230,7 @@ def makeMainView(parcel):
                                    event = main.ReminderTime,
                                    contents=pim_ns.allFutureReminders),
             ApplicationBar,
-            SplitterWindow.template('SidebarContainerContainer',
+            SplitterWindow.template('SidebarSplitterWindow',
                 border = RectType(4, 0, 0, 0),
                 splitPercentage = 0.15234375,
                 orientationEnum = 'Vertical',
@@ -284,7 +274,7 @@ def makeMainView(parcel):
                         selectedItem = pim_ns.allCollection,
                         detailItemCollection = pim_ns.allCollection,
                         setFocus = True),
-                    ]) # BoxContainer SidebarContainerContainer
+                    ]) # SplitterWindow SidebarSplitterWindow            
             ]).install(parcel) # MainViewInstance MainView
 
     MainBranchPointDelegate = BranchPointDelegate.update(parcel, 

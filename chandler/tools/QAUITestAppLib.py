@@ -818,7 +818,7 @@ class UITestItem(object):
             #Press the Send button
             if timeInfo:
                 if self.logger: self.logger.Start("Sending the message")
-            App_ns.appbar.press(name="ApplicationBarSendButton")
+            App_ns.appbar.press("ApplicationBarSendButton")
             wx.GetApp().Yield()
             #checkings
             if self.logger: self.logger.SetChecked(True)
@@ -1652,13 +1652,13 @@ class UITestView(object):
         Get the current state of the view
         @return : the current view name
         """
-        if App_ns.appbar.pressed(name="ApplicationBarAllButton"):
+        if App_ns.appbar.pressed("ApplicationBarAllButton"):
             return "AllView"
-        elif App_ns.appbar.pressed(name="ApplicationBarTaskButton"):
+        elif App_ns.appbar.pressed("ApplicationBarTaskButton"):
             return "TaskView"
-        elif App_ns.appbar.pressed(name="ApplicationBarMailButton"):
+        elif App_ns.appbar.pressed("ApplicationBarMailButton"):
             return "MailView"
-        elif App_ns.appbar.pressed(name="ApplicationBarEventButton"):
+        elif App_ns.appbar.pressed("ApplicationBarEventButton"):
             return "CalendarView"
         else:
             return False
@@ -1683,7 +1683,7 @@ class UITestView(object):
         self.state = viewName
         if self.logger: self.logger.Start("Switch to %s%s" % (viewName, id))
         #process the corresponding event
-        App_ns.appbar.press(name=button)
+        App_ns.appbar.press(button)
         wx.GetApp().Yield()
         if self.logger: self.logger.Stop()
         self.CheckView()
@@ -1718,7 +1718,7 @@ class UITestView(object):
         """ 
         if self.logger: self.logger.SetChecked(True)
         if not self.state == self.GetCurrentState():
-            if self.logger: self.logger.ReportFailure("(On wiew checking) || expected current view = %s ; Corresponding button is switch off " % self.state)
+            if self.logger: self.logger.ReportFailure("(On view checking) || expected current view = %s ; Corresponding button is switch off " % self.state)
         else:
             if self.logger: self.logger.ReportPass("(On view checking)")
         #report the checkings

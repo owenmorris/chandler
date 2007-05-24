@@ -743,11 +743,10 @@ def makeSummaryBlocks(parcel):
         eventBoundary = True,
         eventsForNamedLookup = [saveResultsEvent],
         childBlocks = [
-            ToolbarItem.template('SaveResultsButton',
+            ToolBarItem.template('SaveResultsButton',
                 event = saveResultsEvent,
                 bitmap = 'ApplicationBarSave.png',
                 title = _(u"Save"),
-                toolbarItemKind = 'Button',
                 location = "ApplicationBar",
                 operation = 'InsertAfter',
                 itemLocation = 'ApplicationBarQuickEntry',

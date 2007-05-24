@@ -344,15 +344,14 @@ class Block(schema.Item):
                                                         Block.eventNameToItemUUID)
                 self.addToNameToItemUUIDDictionary ([self],
                                                     Block.blockNameToItemUUID)
-                
                 if self.activeView:
                     theApp.activeView = self
-                    method = getattr(self, 'activeViewChanged', None)
-                    if method is not None:
-                        method()
+                    import MenusAndToolbars
+                    MenusAndToolbars.rebuildMenusAndToolBars (self)
 
-                if self.eventBoundary:
-                    self.rebuildDynamicBlocks()
+                    method = getattr (type (self), "activeViewChanged", None)
+                    if method is not None:
+                        method(self)
 
                 method = getattr (widgetType, "Freeze", None)
                 if method:
@@ -673,8 +672,8 @@ class Block(schema.Item):
 
         idToBlock is used to associate a block with an Id. Blocks contain
         an attribute, wxId, that allow you to specify a particular id
-        to the block. It defaults to 0, which will use an unused unique
-        idf -- See Bug #5219
+        for the block. It defaults to 0, which will use an unused unique
+        id -- See Bug #5219
         """
         id = self.wxId
         if id == 0:
@@ -813,54 +812,6 @@ class Block(schema.Item):
             if method is not None:
                 IgnoreSynchronizeWidget(True, method, widget)
 
-    def rebuildDynamicBlocks (self):
-        """
-        The MainViewRoot's lastDynamicBlock: the last block synched
-        lastDynamicBlock: C{DynamicBlock}, or C{False} for no previous block,
-        or C{True} for forced resync.
-        """
-        def synchToDynamicBlock (block, isChild):
-            """
-            Function to set and remember the dynamic Block we synch to.
-            If it's a child block, it will be used so we must sync, and
-            remember it for later.
-            If it's not a child, we only need to sync if we had a different
-            block last time.
-            """
-            mainViewRoot = Block.findBlockByName ('MainViewRoot')
-            previous = mainViewRoot.lastDynamicBlock
-            if isChild:
-                mainViewRoot.lastDynamicBlock = block
-            elif previous and previous is not block:
-                mainViewRoot.lastDynamicBlock = False
-            else:
-                return
-
-            block.synchronizeDynamicBlocks ()
-
-        # Cruise up the parent hierarchy looking for the first
-        # block that can act as a DynamicChild or DynamicContainer
-        # (Menu, MenuBar, ToolbarItem, etc).
-        # If it's a child, or it's not the same Block found the last time
-        # the focus changed (or if we are forcing a rebuild) then we need
-        # to rebuild the Dynamic Containers.
-        candidate = None
-        block = self
-        while block:
-            for child in block.childBlocks:
-                isDynamicChildMethod = getattr (type (child), "isDynamicChild", None)
-                if isDynamicChildMethod is not None:
-                    if candidate is None:
-                        candidate = child
-                    if isDynamicChildMethod (child):
-                        synchToDynamicBlock (child, True)
-                        return
-            block = block.parentBlock
-        # none found, to remove dynamic additions we synch to the Active View
-        #assert candidate, "Couldn't find a dynamic child to synchronize with"
-        if candidate:
-            synchToDynamicBlock (candidate, False)
-
     def getFrame(self):
         """
         Cruise up the tree of blocks looking for the top-most block that
@@ -940,9 +891,8 @@ class BlockDispatchHook (DispatchHook):
                     broadcast (child, methodName, event, childTest)
 
         # Construct method name based upon the type of the event.
-        try:
-            methodName = event.methodName
-        except AttributeError:
+        methodName = event.methodName
+        if methodName == "":
             methodName = 'on' + event.blockName + 'Event'
 
         if event.arguments.has_key ('UpdateUI'):
@@ -1110,8 +1060,11 @@ class BaseWidget(object):
         contextMenu = getattr (self.blockItem, "contextMenu", None)
         if contextMenu is not None:
             menuBlock = Block.findBlockByName(contextMenu)
-            menuBlock.parentBlock.widget.PopupMenu (menuBlock.widget)
-
+            # For some unknown reason, even thought widget is of type wxMenuItem, which is
+            # a subclass of wx.MenuItem, it doesn't think it has the method GetSubMenu,
+            # so we'll just call the correct method directly
+            menu = wx.MenuItem.GetSubMenu (menuBlock.widget)
+            wx.Window.PopupMenu (menuBlock.parentBlock.widget, menu)
 
 # These are the mappings looked up by wxRectangularChild.CalculateWXFlag, below
 _wxFlagMappings = {
@@ -1210,12 +1163,12 @@ class BlockEvent(schema.Item):
     dispatchToBlockName = schema.One(schema.Text, defaultValue = 'MainView')
     commitAfterDispatch = schema.One(schema.Boolean, defaultValue = False)
     destinationBlockReference = schema.One(Block)
-    methodName = schema.One(schema.Text)
+    methodName = schema.One(schema.Text, defaultValue = "")
     blockName = schema.One(schema.Text)
-    menusForEvent = schema.Sequence()
+    menuOrToolForEvent = schema.Sequence()
 
     schema.addClouds(
-        copying = schema.Cloud(byRef=[destinationBlockReference, menusForEvent])
+        copying = schema.Cloud(byRef=[destinationBlockReference, menuOrToolForEvent])
     )
     def __repr__(self):
         # useful for debugging that i've done.  i dunno if event.arguments

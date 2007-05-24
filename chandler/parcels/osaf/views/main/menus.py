@@ -47,7 +47,7 @@ def makeColorMenuItems (parcel, theClass, hues, prefix=""):
         menuItem = theClass.template(
             prefix + shortName + 'ColorItem',
             title = title, # XXX No keyboard shortcuts
-            icon = shortName + "MenuIcon",
+            icon = shortName + "MenuIcon.png",
             menuItemKind = "Check",
             event = colorEvent)
         menuItems.append (menuItem)
@@ -56,7 +56,7 @@ def makeColorMenuItems (parcel, theClass, hues, prefix=""):
 
 def makeMainMenus(parcel):
 
-    from osaf.framework.blocks import Menu, MenuItem, MenuBar
+    from osaf.framework.blocks import Menu, MenuItem
     from osaf.framework.blocks.calendar import VisibleHoursEvent
     from i18n import ChandlerMessageFactory as _
     from osaf import messages
@@ -242,7 +242,8 @@ def makeMainMenus(parcel):
                                                         helpString = _(u'Quit Chandler'),
                                                         wxId = wx.ID_EXIT))
 
-    MenuBar.template('MenuBar',
+    Menu.template('MenuBar',
+        setAsMenuBarOnFrame = True,
         childBlocks = [
             fileMenu,
             Menu.template('EditMenu',
@@ -849,7 +850,17 @@ def makeMainMenus(parcel):
                     PluginMenu.template('PluginsMenu',
                         title=_(u'&Plugins'),
                         helpString=_(u'Manage Plugins'),
-                        childBlocks = []),
+                        event = main.Plugin,
+                        childBlocks = [
+                            MenuItem.template("BrowsePluginsMenuItem",
+                                event = main.BrowsePlugin,
+                                title = u"&Download Plugins",
+                                helpString = u'Browse for new pluginsItem'),
+                            MenuItem.template('InstallPluginsMenuItem',
+                                event = main.InstallPlugins,
+                                title = u"I&nstall Plugins",
+                                helpString = u'Install plugins'),
+                            ]),
                 ]),
             Menu.template('HelpMenu',
                 title = _(u'&Help'),
@@ -871,7 +882,7 @@ def makeMainMenus(parcel):
                         helpString =
                              _(u'Open instructions on how to file a bug')),
                     ]) # Menu HelpMenu
-            ]).install (parcel) # MenuBar MenuBar
+            ]).install (parcel) # Menu MenuBar
 
     Menu.template('SidebarContextMenu',
                 title = _(u'Sidebar'),

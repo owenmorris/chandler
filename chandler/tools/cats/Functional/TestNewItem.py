@@ -25,7 +25,7 @@ class TestNewItem(ChandlerTestCase):
             self.logger.startAction(name)
         
             # Switch to the requested view...
-            self.app_ns.appbar.press(name=buttonName)
+            self.app_ns.appbar.press(buttonName)
             
             # ... idle() so the app can handle changes
             self.scripting.User.idle()

@@ -15,7 +15,8 @@
 import os, pkg_resources, wx, webbrowser, logging
 
 from application import Utility, Globals, Parcel
-from osaf.framework.blocks import Menu, MenuItem, BlockEvent
+from osaf.framework.blocks import Menu
+from osaf.framework.blocks.MenusAndToolbars import wxMenu, wxMenuItem
 from osaf.framework.blocks.Block import Block
 from repository.schema.Kind import Kind
 from i18n import ChandlerMessageFactory as _
@@ -24,85 +25,49 @@ BROWSE_URL = "http://cheeseshop.python.org/pypi?:action=browse&c=519"
 logger = logging.getLogger(__name__)
 
 
+class wxPluginMenu (wxMenu):
+    def ItemsAreSame (self, old, new):
+        if isinstance (new, unicode):
+            return old is not None and old.GetText() == new
+        elif isinstance (new, str):
+            assert new == "separator"
+            return old is not None and old.IsSeparator()
+        else:
+            return super (wxPluginMenu, self).ItemsAreSame (old, new)
+    
+    def GetNewItems (self):
+        newItems = super (wxPluginMenu, self).GetNewItems()
+        titles = [title for title in sorted (self.pluginPrefs.iterkeys())]
+        if len (titles) > 0:
+            newItems.append ("separator")
+            newItems.extend (titles)
+        return newItems
+
+    def InsertItem (self, position, item):
+        if isinstance (item, unicode):
+            block = Block.findBlockByName ("PluginsMenu")
+            id = block.getWidgetID()
+            item = wx.MenuItem (self, id = id, text = item, kind = wx.ITEM_CHECK)
+        elif isinstance (item, str):
+            assert item == "separator"
+            item = wx.MenuItem (self, id = wx.ID_SEPARATOR, kind = wx.ID_SEPARATOR)
+        super (wxPluginMenu, self).InsertItem (position, item)
+
 class PluginMenu(Menu):
+    def instantiateWidget (self):
+        subMenu = wxPluginMenu()
+        subMenu.blockItem = self
+        subMenu.pluginPrefs = Utility.loadPrefs(Globals.options).get('plugins', {})
 
-    def __setup__(self):
-        BlockEvent(itsName='_plugins', itsParent=self,
-                   blockName='_plugins',
-                   dispatchEnum='SendToBlockByReference',
-                   destinationBlockReference=self)
+        # if we don't give the MenuItem a label, i.e. test = " " widgets will use
+        # the assume the id is for a stock menuItem and will fail
+        return wxMenuItem (None, id = self.getWidgetID(), text = " ", subMenu = subMenu)
 
-    def onItemLoad(self, view):
-
-        self.prefs = Utility.loadPrefs(Globals.options).get('plugins', {})
-
-    def ensureDynamicChildren(self):
-
-        prefs = Utility.loadPrefs(Globals.options).get('plugins', {})
-        self.prefs = prefs
-
-        for item in self.dynamicChildren:
-            if item.itsName is not None and item.itsName not in prefs:
-                item.delete()
-
-        browse_found = False
-        separator_found = False
-
-        for block in self.dynamicChildren:
-            if block.blockName == '_browse_menu':
-                browse_found = True
-            elif block.blockName == '_separator':
-                separator_found = True
-
-        if not browse_found:
-            for child in self.iterChildren():
-                if getattr(child, 'blockName', None) == '_browse_menu':
-                    self.dynamicChildren.append(child)  # _browse_menu
-                    child = self.getNextChild(child)
-                    self.dynamicChildren.append(child)  # _install_menu
-                    child = self.getNextChild(child)
-                    self.dynamicChildren.append(child)  # _separator
-                    separator_found = True
-                    break
-            else:
-                MenuItem(itsName=None, itsParent=self,
-                         blockName='_browse_menu',
-                         event=BlockEvent(itsName='_browse', itsParent=self,
-                                          blockName='_browse',
-                                          dispatchEnum='SendToBlockByReference',
-                                          destinationBlockReference=self),
-                         parentBlock=self, dynamicParent=self,
-                         title=_(u"&Download Plugins"))
-                MenuItem(itsName=None, itsParent=self,
-                         blockName='_install_menu',
-                         event=BlockEvent(itsName='_install', itsParent=self,
-                                          blockName='_install',
-                                          dispatchEnum='SendToBlockByReference',
-                                          destinationBlockReference=self),
-                         parentBlock=self, dynamicParent=self,
-                         title=_(u"I&nstall Plugins"))
-
-        for title in sorted(prefs.iterkeys()):
-            if not separator_found:
-                MenuItem(itsName=None, itsParent=self,
-                         blockName='_separator',
-                         parentBlock=self, dynamicParent=self,
-                         menuItemKind='Separator')
-                separator_found = True
-            if not self.hasChild(title):
-                MenuItem(itsName=title, itsParent=self, dynamicParent=self,
-                         event=self.getItemChild('_plugins'), parentBlock=self,
-                         title=title, blockName=title,
-                         menuItemKind='Check')
-
-    def on_browseEvent(self, event):
-
+    def onBrowsePluginEvent(self, event):
         webbrowser.open(BROWSE_URL)
 
-    def on_installEvent(self, event):
-
-        app = wx.GetApp()
-        dlg = wx.FileDialog(app.mainFrame, _(u"Install Plugin"), "", "",
+    def onInstallPluginsEvent(self, event):
+        dlg = wx.FileDialog(None, _(u"Install Plugin"), "", "",
                             "%s|*.tar.gz|%s (*.*)|*.*" % (_(u"tar/gz archives"),
                                                           _(u"All files")),
                             wx.OPEN)
@@ -137,20 +102,22 @@ class PluginMenu(Menu):
             env, eggs = Utility.initPluginEnv(options, options.pluginPath)
             Utility.initPlugins(options, self.itsView, env, eggs)
 
-            self.ensureDynamicChildren()
-            app.activeView.rebuildDynamicBlocks()
-            self.itsView.commit()
+            # Update the menus
+            self.synchronizeWidget()
 
-    def on_pluginsEvent(self, event):
-
+    def onPluginEvent(self, event):
         msg = ''
         statusBar = Block.findBlockByName('StatusBar')
         statusBar.setStatusMessage(msg)
 
-        name = event.arguments['sender'].itsName
-        plugin_env = pkg_resources.Environment(Globals.options.pluginPath)
+        subMenu = self.widget.GetSubMenu()
+        menuItem = subMenu.FindItemById (event.arguments ["wxEvent"].GetId())
+        name = menuItem.GetText()
 
-        if self.prefs.get(name, 'active') == 'active':
+        plugin_env = pkg_resources.Environment(Globals.options.pluginPath)
+        pluginPrefs = subMenu.pluginPrefs
+
+        if pluginPrefs.get(name, 'active') == 'active':
 
             for egg in plugin_env[name]:
                 break
@@ -161,7 +128,7 @@ class PluginMenu(Menu):
                 if plugin_env[ep.dist.key]:  # only handle plugin entrypoints
                     requires = ep.dist.requires(ep.extras)
                     if egg in pkg_resources.working_set.resolve(requires):
-                        if self.prefs.get(ep.dist.key, 'inactive') == 'active':
+                        if pluginPrefs.get(ep.dist.key, 'inactive') == 'active':
                             dlg = wx.MessageDialog(None,
                                                    _(u"%(pluginName)s is required by %(eggName)s.\n\n%(eggName)s must be deactivated first.") %{'eggName': ep.dist.egg_name(), 'pluginName': egg.egg_name()},
                                                    _(u"Error"),
@@ -197,19 +164,28 @@ class PluginMenu(Menu):
                 return
 
         # Update the menus
-        wx.GetApp().activeView.rebuildDynamicBlocks()
+        self.synchronizeWidget()
         statusBar.setStatusMessage(msg)
 
-    def on_pluginsEventUpdateUI(self, event):
+    def onPluginEventUpdateUI(self, event):
+        arguments = event.arguments
+        widget = self.widget
+        subMenu = widget.GetSubMenu()
+        menuItem = subMenu.FindItemById (arguments ["wxEvent"].GetId())
 
-        args = event.arguments
-        check = self.prefs.get(args['sender'].itsName, 'active') == 'active'
-        args['Check'] = check
+        if isinstance (menuItem, wx.MenuItem):
+            value = subMenu.pluginPrefs.get (menuItem.GetText(), 'active')
+            arguments ['Check'] = value == 'active'
+            
+            # Delete default text since.
+            del arguments ["Text"]
+
 
     def activatePlugin(self, project_name, plugin_env):
-
         view = self.itsView
         prefs = Utility.loadPrefs(Globals.options)
+        pluginPrefs = self.widget.GetSubMenu().pluginPrefs
+
 
         for egg in plugin_env[project_name]:
             pkg_resources.working_set.add(egg)
@@ -231,27 +207,26 @@ class PluginMenu(Menu):
             name = ep.dist.key
             if plugin_env[name]:  # only handle plugin entrypoints
                 if ep.dist == egg or ep.dist in dependencies: 
-                    if self.prefs.get(name, 'inactive') == 'inactive':
+                    if pluginPrefs.get(name, 'inactive') == 'inactive':
                         Parcel.load_parcel_from_entrypoint(view, ep)
-                        self.prefs[name] = 'active'
+                        pluginPrefs[name] = 'active'
                     else:
                         dependencies.remove(ep.dist)
 
         if 'plugins' not in prefs:
-            prefs['plugins'] = self.prefs
+            prefs['plugins'] = pluginPrefs
         else:
-            prefs['plugins'].update(self.prefs)
-            self.prefs = prefs['plugins']
+            prefs['plugins'].update(pluginPrefs)
+            self.widget.GetSubMenu().pluginPrefs = prefs['plugins']
 
-        view.commit()
         prefs.write()
 
         return egg, dependencies
 
     def deactivatePlugin(self, project_name, plugin_env):
-
         view = self.itsView
         prefs = Utility.loadPrefs(Globals.options)
+        pluginPrefs = self.widget.GetSubMenu().pluginPrefs
 
         for egg in plugin_env[project_name]:
             break
@@ -270,15 +245,14 @@ class PluginMenu(Menu):
             if parcel is not None:
                 deleteItems(parcel)
                 parcel.delete(True)
-            self.prefs[ep.dist.key] = 'inactive'
+            pluginPrefs[ep.dist.key] = 'inactive'
 
         if 'plugins' not in prefs:
-            prefs['plugins'] = self.prefs
+            prefs['plugins'] = pluginPrefs
         else:
-            prefs['plugins'].update(self.prefs)
-            self.prefs = prefs['plugins']
+            prefs['plugins'].update(pluginPrefs)
+            self.widget.GetSubMenu().pluginPrefs = prefs['plugins']
 
-        view.commit()
         prefs.write()
 
         return egg

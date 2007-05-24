@@ -71,10 +71,10 @@ def makeMainEvents(parcel):
                         commitAfterDispatch = True).install(parcel)
 
     BlockEvent.template('RecordSetDebugging',
-        commitAfterDispatch = True).install(parcel)
+                        commitAfterDispatch = True).install(parcel)
 
     BlockEvent.template('InmemoryPublish',
-        commitAfterDispatch = True).install(parcel)
+                        commitAfterDispatch = True).install(parcel)
 
     BlockEvent.template('SwitchRepository').install(parcel)
 
@@ -212,13 +212,10 @@ def makeMainEvents(parcel):
                         dispatchToBlockName = 'SidebarContainer').install(parcel)
 
     BlockEvent.template('ReloadStyles',
-                        dispatchEnum = 'SendToBlockByName',
                         dispatchToBlockName = 'MainView',
                         commitAfterDispatch = True).install(parcel)
 
     BlockEvent.template('Triage',
-                        commitAfterDispatch = True,
-                        dispatchEnum = 'SendToBlockByName',
                         dispatchToBlockName = 'DashboardSummaryView',
                         commitAfterDispatch = True).install(parcel)
 
@@ -433,4 +430,15 @@ def makeMainEvents(parcel):
                         dispatchEnum = 'ActiveViewBubbleUp',
                         methodName = 'onPasteEvent',
                         commitAfterDispatch = True).install(parcel),
+
+    BlockEvent.template('BrowsePlugin',
+                        dispatchToBlockName = 'PluginsMenu').install(parcel)
+
+    BlockEvent.template('InstallPlugins',
+                        dispatchToBlockName = 'PluginsMenu',
+                        commitAfterDispatch = True).install(parcel)
+
+    BlockEvent.template('Plugin',
+                        dispatchToBlockName = 'PluginsMenu',
+                        commitAfterDispatch = True).install(parcel)
 

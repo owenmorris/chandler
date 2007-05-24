@@ -77,7 +77,7 @@ try:
     # Test Phase: Action (the action we are timing)
     # Click the triage column, then let the UI catch up.
     logger.Start("Triaging items")
-    App_ns.appbar.press(name="TriageButton")
+    App_ns.appbar.press("TriageButton")
     User.idle()
     logger.Stop()
 
