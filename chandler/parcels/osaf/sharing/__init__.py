@@ -861,8 +861,20 @@ def subscribe(view, url, activity=None, username=None, password=None,
     if Globals.options.offline:
         raise OfflineError(_(u"Offline mode"))
 
-    (useSSL, host, port, path, query, fragment, ticket, parentPath,
-        shareName) = splitUrl(url)
+    if not url:
+        raise URLParseError(_("No URL provided"))
+
+    try:
+        (scheme, useSSL, host, port, path, query, fragment, ticket, parentPath,
+            shareName) = splitUrl(url)
+    except Exception, e:
+        raise URLParseError(_("Could not parse URL: %s") % url, details=str(e))
+
+    if not scheme:
+        raise URLParseError(_("Protocol not specified"))
+
+    if scheme not in ("http", "https", "webcal"):
+        raise URLParseError(_("Protocol not supported: %s") % scheme)
 
     if ticket:
         account = username = password = None
@@ -1079,8 +1091,8 @@ def subscribeCalDAV(view, url, inspection, activity=None, account=None,
             subShare.conduit = WebDAVConduit(itsParent=subShare,
                 shareName=subShareName, account=account)
         else:
-            (useSSL, host, port, path, query, fragment, ticket, parentPath,
-                shareName) = splitUrl(url)
+            (scheme, useSSL, host, port, path, query, fragment, ticket,
+                parentPath, shareName) = splitUrl(url)
             subShare.conduit = WebDAVConduit(itsParent=subShare, host=host,
                 port=port, sharePath=parentPath, shareName=subShareName,
                 useSSL=useSSL, ticket=ticket)
@@ -1103,8 +1115,8 @@ def subscribeCalDAV(view, url, inspection, activity=None, account=None,
                 translator=SharingTranslator,
                 serializer=ICSSerializer)
         else:
-            (useSSL, host, port, path, query, fragment, ticket, parentPath,
-                shareName) = splitUrl(url)
+            (scheme, useSSL, host, port, path, query, fragment, ticket,
+                parentPath, shareName) = splitUrl(url)
             share.conduit = CalDAVRecordSetConduit(itsParent=share,
                 host=host, port=port,
                 sharePath=parentPath, shareName=shareName,
@@ -1122,8 +1134,8 @@ def subscribeCalDAV(view, url, inspection, activity=None, account=None,
             share.conduit = CalDAVConduit(itsParent=share,
                 shareName=shareName, account=account)
         else:
-            (useSSL, host, port, path, query, fragment, ticket, parentPath,
-                shareName) = splitUrl(url)
+            (scheme, useSSL, host, port, path, query, fragment, ticket,
+                parentPath, shareName) = splitUrl(url)
             share.conduit = CalDAVConduit(itsParent=share, host=host,
                 port=port, sharePath=parentPath, shareName=shareName,
                 useSSL=useSSL, ticket=ticket)
@@ -1132,7 +1144,7 @@ def subscribeCalDAV(view, url, inspection, activity=None, account=None,
         share.follows = subShare
 
 
-    share.sync(activity=activity)
+    share.sync(activity=activity, modeOverride='get')
     share.conduit.getTickets()
 
     if caldav_atop_eim:
@@ -1200,7 +1212,6 @@ def subscribeWebDAV(view, url, inspection, activity=None, account=None,
 
     share = Share(itsView=view)
     share.mode = shareMode
-    share.format = CloudXMLFormat(itsParent=share)
 
     if account:
         share.conduit = WebDAVRecordSetConduit(itsParent=share,
@@ -1208,8 +1219,8 @@ def subscribeWebDAV(view, url, inspection, activity=None, account=None,
             translator=SharingTranslator, serializer=EIMMLSerializer)
 
     else:
-        (useSSL, host, port, path, query, fragment, ticket, parentPath,
-            shareName) = splitUrl(url)
+        (scheme, useSSL, host, port, path, query, fragment, ticket,
+            parentPath, shareName) = splitUrl(url)
         share.conduit = WebDAVRecordSetConduit(itsParent=share, host=host,
             port=port, sharePath=parentPath, shareName=shareName,
             useSSL=useSSL, ticket=ticket,
@@ -1238,7 +1249,7 @@ def subscribeICS(view, url, inspection, activity=None,
 
     share = Share(itsView=view)
 
-    (useSSL, host, port, path, query, fragment, ticket, parentPath,
+    (scheme, useSSL, host, port, path, query, fragment, ticket, parentPath,
         shareName) = splitUrl(url)
 
     if not account and not ticket and username:
@@ -1309,7 +1320,7 @@ def subscribeMorsecode(view, url, morsecodeUrl, inspection, activity=None,
     share.mode = shareMode
 
     # Get the user-facing sharePath from url, e.g.  "/cosmo/pim/collection"
-    (useSSL, host, port, path, query, fragment, ticket, sharePath,
+    (scheme, useSSL, host, port, path, query, fragment, ticket, sharePath,
         shareName) = splitUrl(url)
 
     if not ticket and account is None:
@@ -1334,8 +1345,8 @@ def subscribeMorsecode(view, url, morsecodeUrl, inspection, activity=None,
 
     else:
         # Get the morsecode path from url, e.g.  "/cosmo/mc/collection"
-        (useSSL, host, port, path, query, fragment, ticket, morsecodePath,
-            shareName) = splitUrl(morsecodeUrl)
+        (scheme, useSSL, host, port, path, query, fragment, ticket,
+            morsecodePath, shareName) = splitUrl(morsecodeUrl)
 
         share.conduit = CosmoConduit(itsParent=share, host=host,
             port=port, sharePath=sharePath, morsecodePath=morsecodePath,

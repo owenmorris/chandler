@@ -140,3 +140,8 @@ class OfflineError(SharingError):
     """
     Exception raised if attempting to publish or subscribe while in offline mode
     """
+
+class URLParseError(SharingError):
+    """
+    Exception raised if a subscribe URL cannot be parsed
+    """

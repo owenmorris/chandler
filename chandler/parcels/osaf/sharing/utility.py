@@ -170,8 +170,12 @@ def splitUrl(url):
         useSSL = False
 
     if host.find(':') != -1:
-        (host, port) = host.split(':')
-        port = int(port)
+        (host, p) = host.split(':')
+        try:
+            port = int(p)
+        except ValueError:
+            raise errors.URLParseError(_("Invalid port number: %s") % p)
+
 
     ticket = None
     if query:
@@ -190,8 +194,8 @@ def splitUrl(url):
 
     shareName = pathList[-1]
 
-    return (useSSL, host, port, path, query, fragment, ticket, parentPath,
-        shareName)
+    return (scheme, useSSL, host, port, path, query, fragment, ticket,
+        parentPath, shareName)
 
 
 
@@ -293,7 +297,7 @@ def findMatchingShare(view, url):
     # matching share; go through all conduits this account points to and look
     # for shareNames that match
 
-    (useSSL, host, port, path, query, fragment, ticket, parentPath,
+    (scheme, useSSL, host, port, path, query, fragment, ticket, parentPath,
          shareName) = splitUrl(url)
 
     if hasattr(account, 'conduits'):

@@ -243,6 +243,9 @@ class SubscribeDialog(wx.Dialog):
             self._showStatus(_(u"Spaces are not allowed in URLs"))
             return
 
+        if not url:
+            return
+
         if self.accountPanel.IsShown():
             username = self.textUsername.GetValue()
             password = self.textPassword.GetValue()
