@@ -395,7 +395,8 @@ class BackgroundSyncHandler:
 
 def publish(collection, account, classesToInclude=None,
             publishType = 'collection',
-            attrsToExclude=None, displayName=None, activity=None):
+            attrsToExclude=None, displayName=None, activity=None,
+            overwrite=False):
     """
     Publish a collection, automatically determining which conduits/formats
     to use, and how many
@@ -448,7 +449,7 @@ def publish(collection, account, classesToInclude=None,
     # If the account knows how to publish, delegate:
     if hasattr(account, 'publish'):
         shares = account.publish(collection, activity=activity,
-            filters=attrsToExclude)
+            filters=attrsToExclude, overwrite=overwrite)
         for share in shares:
             share.sharer = pim_ns.currentContact.item
         return shares

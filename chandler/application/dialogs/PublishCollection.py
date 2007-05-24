@@ -28,10 +28,17 @@ from TurnOnTimezones import ShowTurnOnTimezonesDialog, PUBLISH
 import zanshin
 from osaf.activity import *
 import SharingDetails
+import SubscribeCollection
 
 logger = logging.getLogger(__name__)
 
 MAX_UPDATE_MESSAGE_LENGTH = 55
+
+MSG_ALREADY_EXISTS = _("""Collection already exists on the server.  You may:
+
+- Sync your collection with the one on the server, or...
+- Replace the collection on the server with your local copy
+""")
 
 class PublishCollectionDialog(wx.Dialog):
 
@@ -412,7 +419,7 @@ class PublishCollectionDialog(wx.Dialog):
     def OnPublish(self, evt):
         self.PublishCollection()
 
-    def PublishCollection(self):
+    def PublishCollection(self, overwrite=False):
         # Publish the collection
 
         # Update the UI by disabling/hiding various panels, and swapping in a
@@ -435,14 +442,16 @@ class PublishCollectionDialog(wx.Dialog):
 
         accountIndex = self.accountsControl.GetSelection()
         account = self.accountsControl.GetClientData(accountIndex)
+        self.pubAccount = account
 
         class ShareTask(task.Task):
 
-            def __init__(task, view, account, collection, activity):
+            def __init__(task, view, account, collection, activity, overwrite):
                 super(ShareTask, task).__init__(view)
                 task.accountUUID = account.itsUUID
                 task.collectionUUID = collection.itsUUID
                 task.activity = activity
+                task.overwrite = overwrite
 
             def error(task, err):
                 self._shareError(err)
@@ -477,7 +486,8 @@ class PublishCollectionDialog(wx.Dialog):
                                          attrsToExclude=attrsToExclude,
                                          displayName=displayName,
                                          publishType=self.publishType,
-                                         activity=task.activity)
+                                         activity=task.activity,
+                                         overwrite=task.overwrite)
 
                 shareUUIDs = [item.itsUUID for item in shares]
                 return shareUUIDs
@@ -487,7 +497,7 @@ class PublishCollectionDialog(wx.Dialog):
         self.taskView = sharing.getView(self.view.repository)
         self.activity = Activity("Publish: %s" % self.collection.displayName)
         self.currentTask = ShareTask(self.taskView, account, self.collection,
-            self.activity)
+            self.activity, overwrite)
         self.listener = Listener(activity=self.activity,
             callback=self._updateCallback)
         self.activity.started()
@@ -519,6 +529,31 @@ class PublishCollectionDialog(wx.Dialog):
                     msg = _(u"Connection refused by server")
                 else:
                     msg = err.message
+            elif isinstance(err, sharing.AlreadyExists):
+                if hasattr(err, "mine"):
+                    # This is a morsecode publish
+                    if err.mine:
+                        self._clearStatus()
+                        self._showStatus(MSG_ALREADY_EXISTS)
+                        # Enable the "already exists" panel
+                        self.buttonPanel.Hide()
+                        self.mySizer.Detach(self.buttonPanel)
+                        self.buttonPanel = self.resources.LoadPanel(self,
+                            "AlreadyExistsButtonsPanel")
+                        self.mySizer.Add(self.buttonPanel, 0, wx.GROW|wx.ALL, 5)
+                        self.Bind(wx.EVT_BUTTON, self.OnSync, id=wx.ID_OK)
+                        self.Bind(wx.EVT_BUTTON, self.OnReplace,
+                                  id=wx.xrc.XRCID("BUTTON_REPLACE"))
+                        self.Bind(wx.EVT_BUTTON, self.OnCancel, id=wx.ID_CANCEL)
+                        self._resize()
+
+                        return False
+
+                    else:
+                        # This was one someone else published
+                        msg = _(u"Collection was already published from a different account")
+                else:
+                    msg = _(u"Collection already exists on server")
             else:
                 msg = err
 
@@ -612,6 +647,21 @@ class PublishCollectionDialog(wx.Dialog):
         if self.modal:
             self.EndModal(False)
         self.Destroy()
+
+    def OnSync(self, evt):
+        if self.modal:
+            self.EndModal(False)
+        self.Destroy()
+
+        url = "%smc/collection/%s" % (
+            self.pubAccount.getLocation(),
+            self.collection.itsUUID.str16())
+        SubscribeCollection.Show(view=self.view,
+            url=url, modal=True, immediate=True,
+            mine=True, publisher=True)
+
+    def OnReplace(self, evt):
+        self.PublishCollection(overwrite=True)
 
     def OnCopy(self, evt):
         gotClipboard = wx.TheClipboard.Open()

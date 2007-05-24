@@ -67,7 +67,7 @@ class CosmoAccount(accounts.SharingAccount):
         initialValue = 'SHARING_MORSECODE',
     )
 
-    def publish(self, collection, activity=None, filters=None):
+    def publish(self, collection, activity=None, filters=None, overwrite=False):
         rv = self.itsView
 
         share = shares.Share(itsView=rv, contents=collection)
@@ -82,6 +82,8 @@ class CosmoAccount(accounts.SharingAccount):
 
         share.conduit = conduit
 
+        if overwrite:
+            share.destroy()
         share.put(activity=activity)
 
         return [share]
@@ -282,12 +284,19 @@ class CosmoConduit(recordset_conduit.DiffRecordSetConduit, conduits.HTTPMixin):
             # TODO: We should try to sync again soon
             raise errors.TokenMismatch(_(u"Collection updated by someone else"))
 
-        elif resp.status == 409:
+        elif resp.status in (403, 409):
             # Trying to publish a collection but the uuid of that collection
-            # is already on the server
-            raise errors.AlreadyExists("%s (HTTP status %d)" %
+            # is already on the server.
+            # Find out if it's ours:
+            shares = self.account.getPublishedShares()
+            toRaise = errors.AlreadyExists("%s (HTTP status %d)" %
                 (resp.message, resp.status),
                 details="Collection already exists on server")
+            toRaise.mine = False
+            for name, uuid, href, tickets in shares:
+                if uuid == self.share.contents.itsUUID.str16():
+                    toRaise.mine = True
+            raise toRaise
 
         elif resp.status not in (201, 204):
             raise errors.SharingError("%s (HTTP status %d)" % (resp.message,
