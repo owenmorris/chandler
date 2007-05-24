@@ -35,11 +35,15 @@ app = None
 # to use; it's populated by the @exportMethod decorator below.
 exportedSymbols = { }
 
-def startup(**kwds):
+def startup(chandlerDirectory=None, **kwds):
     global view, commitOnExit
 
     Globals.options = Utility.initOptions(**kwds)
-    Globals.chandlerDirectory = Utility.locateChandlerDirectory()
+    if chandlerDirectory is None:
+        Globals.chandlerDirectory = Utility.locateChandlerDirectory()
+    else:
+        Globals.chandlerDirectory = chandlerDirectory
+
     os.chdir(Globals.chandlerDirectory)
     Utility.initI18n(Globals.options)
 
