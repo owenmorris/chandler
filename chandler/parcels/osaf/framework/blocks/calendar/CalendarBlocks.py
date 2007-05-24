@@ -367,6 +367,13 @@ class MiniCalendar(CalendarBlock):
         widget = getattr (self, 'widget', None)
         if widget is not None:
             if splitterWindow.GetSplitMode() == wx.SPLIT_HORIZONTAL:
+                if splitterWindow.GetSize().width > self.widget.GetSize().width:
+                    # monthHeight will be calculated with an incorrect scaling
+                    # factor if the minicalendar isn't expanded to occupy its
+                    # full width, causing bug 8117
+                    realSize = (splitterWindow.GetSize().width,
+                                self.widget.GetSize().height)
+                    widget.SetSize(realSize)
                 height = windowSize - position
                 headerHeight = widget.GetHeaderSize().height
                 previewWidget = self.previewArea.widget
