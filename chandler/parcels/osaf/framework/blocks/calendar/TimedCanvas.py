@@ -660,8 +660,7 @@ class wxTimedEventsCanvas(BaseWidget, wxCalendarCanvas):
             # nothing currently selected, just select the middle item
             # (should probably select one that is guaranteed to be visible)
             middle = len(self.visibleEvents)/2
-            currentCanvasItem = self.canvasItemDict[self.visibleEvents[middle]]
-            self.OnSelectItem(currentCanvasItem.item)
+            self.OnSelectItem(self.visibleEvents[middle].itsItem)
             return
 
         newItemIndex = -1
