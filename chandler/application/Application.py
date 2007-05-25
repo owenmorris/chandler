@@ -239,6 +239,7 @@ class wxMainFrame (wxBlockFrameWindow):
         app.Unbind(wx.EVT_SHOW, id=-1)
         app.Unbind(wx.EVT_KEY_DOWN)
         app.Unbind(wx.EVT_CONTEXT_MENU)
+        app.Unbind(wx.EVT_IDLE)
 
         app.ignoreSynchronizeWidget = True
 
