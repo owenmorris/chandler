@@ -438,6 +438,12 @@ class CalendarCanvasItem(CollectionCanvas.CanvasItem):
             not has_stamp(event, Calendar.EventStamp)):
             return
         isAnyTimeOrAllDay = Calendar.isDayEvent(event)
+        textOffset = self.textOffset        
+        minHeightToShowTime = (styles.eventLabelMeasurements.height +
+                               styles.eventTimeMeasurements.height +
+                               3 * textOffset.y + TIME_BOTTOM_MARGIN - 1)
+
+        
         allCollection = schema.ns('osaf.pim', event.itsItem.itsView).allCollection
         # Draw one event - an event consists of one or more bounds
        
@@ -460,7 +466,7 @@ class CalendarCanvasItem(CollectionCanvas.CanvasItem):
                 hasTopRightRounded = hasBottomRightRounded = False	
                 drawEventText = False	
                     
-                if isAnyTimeOrAllDay:
+                if isAnyTimeOrAllDay or itemRect.height < minHeightToShowTime:
                     timeHeight = 0
                 else:
                     # When a canvas item is being dragged, it will have a
@@ -520,10 +526,10 @@ class CalendarCanvasItem(CollectionCanvas.CanvasItem):
                     
     
                 # Shift text to account for rounded corners
-                x = itemRect.x + self.textOffset.x
-                y = itemRect.y + self.textOffset.y
+                x = itemRect.x + textOffset.x
+                y = itemRect.y + textOffset.y
     
-                width = itemRect.width - self.textOffset.x - self.textMargin
+                width = itemRect.width - textOffset.x - self.textMargin
 
                 lostBottom = 0
 
@@ -595,7 +601,7 @@ class CalendarCanvasItem(CollectionCanvas.CanvasItem):
 
                             rightAlignStart = max(x, x + width - 
                                             (textWidth + tzWidth + rightMargin))
-                            bottomStart = (y - 2*self.textOffset.y -
+                            bottomStart = (y - 2*textOffset.y -
                                            2*timeHeight + itemRect.height)
                             rectWidth = (width - rightMargin + 
                                          x - rightAlignStart)
@@ -615,17 +621,13 @@ class CalendarCanvasItem(CollectionCanvas.CanvasItem):
                                                 rectWidth - textWidth,
                                                 timeHeight)                              
                             
-                            lostBottom = timeHeight + self.textOffset.y
+                            lostBottom = timeHeight + textOffset.y
                                 
 
     
                     # we may have lost some room in the rectangle from	
                     # drawing the time	
                     lostHeight = y - itemRect.y + lostBottom
-    
-                    # for some reason text measurement on the mac is off,
-                    # and text tends to look smooshed to the edge, so we
-                    # give it a 5 pixel buffer there
                     
                     rightMargin = 0
                     
@@ -667,7 +669,10 @@ class CalendarCanvasItem(CollectionCanvas.CanvasItem):
                                 left = x + textWidth
                             
                             right = topRight[0]
-                            top = itemRect.y + radius - self.swatchAdjust
+                            top = (itemRect.y +
+                                   (itemRect.height - SWATCH_HEIGHT) / 2 +
+                                   (itemRect.height - SWATCH_HEIGHT) % 2 -
+                                   SWATCH_BORDER)
                             bottom = top + SWATCH_HEIGHT + 2 * SWATCH_BORDER 
      
                             count = self.DrawCollectionSwatches(dc, 
@@ -678,12 +683,28 @@ class CalendarCanvasItem(CollectionCanvas.CanvasItem):
                             rightMargin += (margin + count * oneWidth -
                                             SWATCH_SEPARATION)
 
+                    # for some reason text measurement on the mac is off,
+                    # and text tends to look smooshed to the edge, so we
+                    # give it a 5 pixel buffer there
+
                     if IS_MAC:
                         rightMargin += 5
                     
                     # now draw the text of the event
-                    textRect = (x,y,width - rightMargin,
-                                itemRect.height - lostHeight - self.textOffset.y)
+                    
+                    # if the lozenge is too small to use normal margin above
+                    # and below the text, use a smaller margin
+                    tightMargin = max(itemRect.height -
+                                      styles.eventLabelMeasurements.height,
+                                      0) / 2
+                    if (tightMargin < textOffset.y):
+                        textRect = (x, itemRect.y + tightMargin,
+                                    width - rightMargin,
+                                    itemRect.height - tightMargin)
+                    else:
+                        textRect = (x, y, 
+                                    width - rightMargin,
+                                    itemRect.height - lostHeight - textOffset.y)
            
                     dc.SetFont(styles.eventLabelFont)
                     drawingItem = event.itsItem

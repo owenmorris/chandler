@@ -278,10 +278,8 @@ class wxTimedEventsCanvas(BaseWidget, wxCalendarCanvas):
         self.editor = wxInPlaceEditor(self, defocusCallback=self.SetPanelFocus)
 
         self.SetWindowGeometry()
-        
-        # not sure why this doesn't scroll us to the middle
-        #middle = self.size.height / 2 - self.GetSize().height/2
-        # self.Scroll(0, middle/self._scrollYRate)
+        styles = self.blockItem.calendarContainer
+        self.minHourHeight = styles.eventLabelMeasurements.height + 2
 
         self.Scroll(0, (self.hourHeight*7)/self._scrollYRate)
         
@@ -1004,7 +1002,7 @@ class wxTimedEventsCanvas(BaseWidget, wxCalendarCanvas):
         
         height = int(self.hourHeight *
                      (24 * days + endTime.hour + endTime.minute/60.0) - startY)
-        height = max(height, self.hourHeight / 2 + self.hourHeight % 2)
+        height = max(height, self.minHourHeight)
         
         return wx.Rect(startX, startY, width+1, height+1)
     
