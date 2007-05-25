@@ -47,7 +47,7 @@ def main():
              'chandlerdb/util/rijndael.c',
              'chandlerdb/util/c.c']
     if os.name == 'nt':
-        defines = ['-DWINDOWS']
+        defines = ['-DWINDOWS', '-DVERSION=\\"%s\\"' %(VERSION)]
         sources.append('chandlerdb/util/lock.c')
 
     extensions.append(Extension('chandlerdb.util.c',

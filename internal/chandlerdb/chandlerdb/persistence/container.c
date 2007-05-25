@@ -1028,7 +1028,7 @@ static PyObject *t_value_container_loadValues(t_value_container *self,
               if (keyData == NULL)
                   goto again;
 
-              if (!memcmp(keyData + 16,
+              if (!memcmp(((char *) keyData) + 16,
                           PyString_AS_STRING(((t_uuid *) uKey)->uuid), 16))
               {
                   record = (PyObject *) _t_record_new_read(types);
