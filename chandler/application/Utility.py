@@ -774,6 +774,8 @@ def initPlugins(options, view, plugin_env, eggs):
     if prefs is not None:
         prefs.write()
 
+    return prefs
+
 
 def _randpoolPath(profileDir):
     # Return the absolute path for the file that we use to load

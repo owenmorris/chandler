@@ -14,7 +14,7 @@
 
 import os, pkg_resources, wx, webbrowser, logging
 
-from application import Utility, Globals, Parcel
+from application import Utility, Globals, Parcel, schema
 from osaf.framework.blocks import Menu
 from osaf.framework.blocks.MenusAndToolbars import wxMenu, wxMenuItem
 from osaf.framework.blocks.Block import Block
@@ -25,51 +25,64 @@ BROWSE_URL = "http://cheeseshop.python.org/pypi?:action=browse&c=519"
 logger = logging.getLogger(__name__)
 
 
-class wxPluginMenu (wxMenu):
-    def ItemsAreSame (self, old, new):
-        if isinstance (new, unicode):
-            return old is not None and old.GetText() == new
-        elif isinstance (new, str):
-            assert new == "separator"
+class wxPluginMenu(wxMenu):
+
+    def ItemsAreSame(self, old, new):
+
+        if new is None or isinstance(new, wx.MenuItem):
+            return super(wxPluginMenu, self).ItemsAreSame(old, new)
+
+        if new == '__separator__':
             return old is not None and old.IsSeparator()
         else:
-            return super (wxPluginMenu, self).ItemsAreSame (old, new)
+            return old is not None and old.GetText() == new
     
-    def GetNewItems (self):
-        newItems = super (wxPluginMenu, self).GetNewItems()
-        titles = [title for title in sorted (self.pluginPrefs.iterkeys())]
-        if len (titles) > 0:
-            newItems.append ("separator")
-            newItems.extend (titles)
+    def GetNewItems(self):
+
+        newItems = super(wxPluginMenu, self).GetNewItems()
+
+        titles = sorted(self.pluginPrefs.iterkeys())
+        if titles:
+            newItems.append('__separator__')
+            newItems.extend(titles)
+
         return newItems
 
-    def InsertItem (self, position, item):
-        if isinstance (item, unicode):
-            block = Block.findBlockByName ("PluginsMenu")
-            id = block.getWidgetID()
-            item = wx.MenuItem (self, id = id, text = item, kind = wx.ITEM_CHECK)
-        elif isinstance (item, str):
-            assert item == "separator"
-            item = wx.MenuItem (self, id = wx.ID_SEPARATOR, kind = wx.ID_SEPARATOR)
-        super (wxPluginMenu, self).InsertItem (position, item)
+    def InsertItem(self, position, item):
+
+        if not isinstance(item, wx.MenuItem):
+            if item == '__separator__':
+                item = wx.MenuItem(self, id=wx.ID_SEPARATOR,
+                                   kind=wx.ID_SEPARATOR)
+            else:
+                block = Block.findBlockByName("PluginsMenu")
+                id = block.getWidgetID()
+                item = wx.MenuItem(self, id=id, text=item, kind=wx.ITEM_CHECK)
+
+        super(wxPluginMenu, self).InsertItem(position, item)
+
 
 class PluginMenu(Menu):
-    def instantiateWidget (self):
-        subMenu = wxPluginMenu()
-        subMenu.blockItem = self
-        subMenu.pluginPrefs = Utility.loadPrefs(Globals.options).get('plugins', {})
 
-        # if we don't give the MenuItem a label, i.e. test = " " widgets will use
-        # the assume the id is for a stock menuItem and will fail
-        return wxMenuItem (None, id = self.getWidgetID(), text = " ", subMenu = subMenu)
+    def instantiateWidget(self):
+
+        menu = wxPluginMenu()
+        menu.blockItem = self
+        menu.pluginPrefs = Utility.loadPrefs(Globals.options).get('plugins', {})
+
+        # if we don't give the MenuItem a label, i.e. test = " " widgets
+        # will use the assume the id is for a stock menuItem and will fail
+        return wxMenuItem(None, id=self.getWidgetID(), text=" ", subMenu=menu)
 
     def onBrowsePluginEvent(self, event):
         webbrowser.open(BROWSE_URL)
 
     def onInstallPluginsEvent(self, event):
-        dlg = wx.FileDialog(None, _(u"Install Plugin"), "", "",
-                            "%s|*.tar.gz|%s (*.*)|*.*" % (_(u"tar/gz archives"),
-                                                          _(u"All files")),
+
+        patterns = "%s|*.tar.gz|%s|*.tar|%s (*.*)|*.*" %(_(u"tar/gz archives"),
+                                                         _(u"tar archives"),
+                                                         _(u"All files"))
+        dlg = wx.FileDialog(None, _(u"Install Plugin"), "", "", patterns,
                             wx.OPEN)
         if dlg.ShowModal() == wx.ID_OK:
             archive = dlg.GetPath()
@@ -100,18 +113,21 @@ class PluginMenu(Menu):
                 _global_log._log = _log
 
             env, eggs = Utility.initPluginEnv(options, options.pluginPath)
-            Utility.initPlugins(options, self.itsView, env, eggs)
+            prefs = Utility.initPlugins(options, self.itsView, env, eggs)
 
             # Update the menus
+            self.widget.GetSubMenu().pluginPrefs = prefs.get('plugins', {})
             self.synchronizeWidget()
+            self.refreshMenus(self.itsView);
 
     def onPluginEvent(self, event):
+
         msg = ''
         statusBar = Block.findBlockByName('StatusBar')
         statusBar.setStatusMessage(msg)
 
         subMenu = self.widget.GetSubMenu()
-        menuItem = subMenu.FindItemById (event.arguments ["wxEvent"].GetId())
+        menuItem = subMenu.FindItemById(event.arguments["wxEvent"].GetId())
         name = menuItem.GetText()
 
         plugin_env = pkg_resources.Environment(Globals.options.pluginPath)
@@ -165,27 +181,28 @@ class PluginMenu(Menu):
 
         # Update the menus
         self.synchronizeWidget()
+        self.refreshMenus(self.itsView);
         statusBar.setStatusMessage(msg)
 
     def onPluginEventUpdateUI(self, event):
+
         arguments = event.arguments
         widget = self.widget
         subMenu = widget.GetSubMenu()
-        menuItem = subMenu.FindItemById (arguments ["wxEvent"].GetId())
+        menuItem = subMenu.FindItemById(arguments["wxEvent"].GetId())
 
-        if isinstance (menuItem, wx.MenuItem):
-            value = subMenu.pluginPrefs.get (menuItem.GetText(), 'active')
-            arguments ['Check'] = value == 'active'
+        if isinstance(menuItem, wx.MenuItem):
+            value = subMenu.pluginPrefs.get(menuItem.GetText(), 'active')
+            arguments['Check'] = value == 'active'
             
             # Delete default text since.
-            del arguments ["Text"]
-
+            del arguments['Text']
 
     def activatePlugin(self, project_name, plugin_env):
+
         view = self.itsView
         prefs = Utility.loadPrefs(Globals.options)
         pluginPrefs = self.widget.GetSubMenu().pluginPrefs
-
 
         for egg in plugin_env[project_name]:
             pkg_resources.working_set.add(egg)
@@ -224,6 +241,7 @@ class PluginMenu(Menu):
         return egg, dependencies
 
     def deactivatePlugin(self, project_name, plugin_env):
+
         view = self.itsView
         prefs = Utility.loadPrefs(Globals.options)
         pluginPrefs = self.widget.GetSubMenu().pluginPrefs
@@ -256,3 +274,10 @@ class PluginMenu(Menu):
         prefs.write()
 
         return egg
+
+    def refreshMenus(self, view):
+
+        menubar = schema.ns('osaf.views.main', view).MenuBar
+        for menu in menubar.childBlocks:
+            if menu.isDirty():
+                menu.synchronizeWidget()
