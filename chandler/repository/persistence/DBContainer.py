@@ -23,7 +23,7 @@ from chandlerdb.item.c import CItem
 from chandlerdb.persistence.c import \
     Record, DB, \
     CContainer, CValueContainer, CRefContainer, CItemContainer, \
-    CIndexesContainer, DBNotFoundError, DBLockDeadlockError
+    CIndexesContainer, DBNotFoundError, DBNoSuchFileError, DBLockDeadlockError
 
 from repository.item.Access import ACL, ACE
 from repository.persistence.Repository import Repository
@@ -56,7 +56,7 @@ class DBContainer(object):
             name = None
             dbname = None
         elif mvcc:
-            self.store.repository.logger.info('%s db opened with mvcc', dbname)
+            self.store.repository.logger.info('%s opened with mvcc', name)
             flags |= DB.DB_MULTIVERSION
         else:
             flags |= DB.DB_READ_UNCOMMITTED
@@ -921,6 +921,7 @@ class ItemContainer(DBContainer):
                         Record.UUID, uParent)
 
         valuesRecord = Record()
+        values.sort(None, lambda x: x[1])
         for valueName, uValue in values:
             valuesRecord += (Record.HASH, valueName, Record.UUID, uValue)
         record += (Record.RECORD, valuesRecord)
@@ -1437,6 +1438,18 @@ class ItemContainer(DBContainer):
 
 class ValueContainer(DBContainer):
 
+    def openC(self):
+        self.c = CValueContainer(self._db, self.store)
+
+    def purgeValue(self, txn, counter, uItem, uValue):
+
+        self.delete(uItem._uuid + uValue._uuid, txn)
+        if counter is not None:
+            counter.valueCount += 1
+
+
+class VersionContainer(DBContainer):
+
     # 0.5.0: first tracked format version
     # 0.5.1: 'Long' values saved as long long (64 bit)
     # 0.5.2: added support for 'Set' type and 'set' cardinality
@@ -1468,33 +1481,33 @@ class ValueContainer(DBContainer):
     # 0.7.2: any sorted index may now have a super-index
     # 0.7.3: added saving of persistent view status bits
     # 0.7.4: added saving of references to new indexes on view record
+    # 0.7.5: value keys include uItem for better locality, added __versions.db
 
-    FORMAT_VERSION = 0x00070400
+    FORMAT_VERSION = 0x00070500
 
     SCHEMA_KEY  = pack('>16sl', Repository.itsUUID._uuid, 0)
     VERSION_KEY = pack('>16sl', Repository.itsUUID._uuid, 1)
 
-    def __init__(self, store):
+    def openDB(self, txn, name, dbname, ramdb, create, mvcc, pagesize=0):
 
-        self._version = None
-        super(ValueContainer, self).__init__(store)
-        
+        return super(VersionContainer, self).openDB(txn, name, dbname, ramdb,
+                                                    create, self.mvcc, pagesize)
+
     def open(self, name, txn, **kwds):
 
-        super(ValueContainer, self).open(name, txn, dbname = 'data', **kwds)
-
-        format_version = ValueContainer.FORMAT_VERSION
+        self.mvcc = kwds.get('mvcc', False)
+        format_version = VersionContainer.FORMAT_VERSION
         schema_version = RepositoryView.CORE_SCHEMA_VERSION
 
-        self._version = self.openDB(txn, name, 'version',
-                                    kwds.get('ramdb', False),
-                                    kwds.get('create', False),
-                                    kwds.get('mvcc', False))
+        try:
+            super(VersionContainer, self).open(name, txn, **kwds)
+        except DBNoSuchFileError:
+            raise RepositoryFormatVersionError, (format_version, '< 0.7.5')
 
         if kwds.get('create', False):
-            self._version.put(ValueContainer.SCHEMA_KEY,
-                              pack('>16sll', UUID()._uuid,
-                                   format_version, schema_version), txn)
+            self._db.put(VersionContainer.SCHEMA_KEY,
+                         pack('>16sll', UUID()._uuid,
+                              format_version, schema_version), txn)
         else:
             try:
                 versionID, format, schema = self.getSchemaInfo(txn, True)
@@ -1506,27 +1519,10 @@ class ValueContainer(DBContainer):
             if schema != schema_version:
                 raise RepositorySchemaVersionError, (schema_version, schema)
 
-    def openC(self):
-
-        self.c = CValueContainer(self._db, self.store)
-
-    def close(self):
-
-        if self._version is not None:
-            self._version.close()
-            self._version = None
-
-        super(ValueContainer, self).close()
-
-    def compact(self, txn=None):
-
-        super(ValueContainer, self).compact(txn)
-        self._compact(txn, self._version, "version")
-
     def getSchemaInfo(self, txn=None, open=False):
 
-        value = self._version.get(ValueContainer.SCHEMA_KEY,
-                                  txn, self.c.flags, None)
+        value = self._db.get(VersionContainer.SCHEMA_KEY,
+                             txn, self.c.flags, None)
         if value is None:
             raise AssertionError, 'schema record is missing'
 
@@ -1547,16 +1543,14 @@ class ValueContainer(DBContainer):
         self.put_record(Record(Record.UUID, Repository.itsUUID,
                                Record.INT, 2,                    # VIEW_KEY
                                Record.INT, version),
-                        record,
-                        self._version)
+                        record)
 
     def getViewData(self, version):
 
         value = self.get_record(Record(Record.UUID, Repository.itsUUID,
                                        Record.INT, 2,            # VIEW_KEY
                                        Record.INT, version),
-                                (Record.INT, Record.RECORD),
-                                self._version)
+                                (Record.INT, Record.RECORD))
         if value is None:
             return 0, []
 
@@ -1569,8 +1563,7 @@ class ValueContainer(DBContainer):
         flags = self.c.flags
         if txn is not None:
             flags = (flags & ~DB.DB_READ_UNCOMMITTED) | DB.DB_READ_COMMITTED
-        value = self._version.get(ValueContainer.VERSION_KEY,
-                                  txn, flags, None)
+        value = self._db.get(VersionContainer.VERSION_KEY, txn, flags, None)
         if value is None:
             return 0
         else:
@@ -1578,29 +1571,23 @@ class ValueContainer(DBContainer):
 
     def setVersion(self, version):
 
-        self._version.put(ValueContainer.VERSION_KEY, pack('>l', version),
-                          self.store.txn)
+        self._db.put(VersionContainer.VERSION_KEY, pack('>l', version),
+                     self.store.txn)
 
     def nextVersion(self):
 
         version = self.getVersion() + 1
-        self._version.put(ValueContainer.VERSION_KEY, pack('>l', version),
-                          self.store.txn)
+        self._db.put(VersionContainer.VERSION_KEY, pack('>l', version),
+                     self.store.txn)
 
         return version
-
-    def purgeValue(self, txn, counter, uItem, uValue):
-
-        self.delete(uValue._uuid, txn)
-        if counter is not None:
-            counter.valueCount += 1
 
     def purgeViewData(self, txn, counter, toVersion):
 
         try:
             key = str(Record(Record.UUID, Repository.itsUUID,
                              Record.INT, 2))                   # VIEW_KEY
-            cursor = self.c.openCursor(self._version)
+            cursor = self.c.openCursor()
             flags = self.c.flags & ~DB.DB_READ_UNCOMMITTED
             value = cursor.set_range(key, flags, None)
             

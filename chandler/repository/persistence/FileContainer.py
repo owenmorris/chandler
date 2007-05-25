@@ -25,7 +25,7 @@ from PyLucene import \
 from chandlerdb.util.c import UUID
 from chandlerdb.persistence.c import DBLockDeadlockError, DBInvalidArgError
 
-from repository.persistence.DBContainer import DBContainer, ValueContainer
+from repository.persistence.DBContainer import DBContainer, VersionContainer
 from repository.persistence.RepositoryError import RepositoryError
 
 
@@ -459,7 +459,7 @@ class IndexContainer(FileContainer):
 
     def getIndexVersion(self):
 
-        value = self.get(ValueContainer.VERSION_KEY, self._blocks)
+        value = self.get(VersionContainer.VERSION_KEY, self._blocks)
 
         if value is None:
             return 0
@@ -468,7 +468,8 @@ class IndexContainer(FileContainer):
 
     def setIndexVersion(self, version):
 
-        self.put(ValueContainer.VERSION_KEY, pack('>l', version), self._blocks)
+        self.put(VersionContainer.VERSION_KEY, pack('>l', version),
+                 self._blocks)
         
     def getDirectory(self):
 

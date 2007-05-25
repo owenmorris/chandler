@@ -441,13 +441,13 @@ class DBValueReader(ValueReader):
 
     VALUE_TYPES = (Record.UUID, Record.BYTE, Record.RECORD)
 
-    def __init__(self, store, status, version):
+    def __init__(self, store, uItem, status, version):
 
         self.store = store
         self.status = status
         self.version = version
 
-        self.uItem = None
+        self.uItem = uItem
         self.name = None
 
     def readAttribute(self, view, uValue):

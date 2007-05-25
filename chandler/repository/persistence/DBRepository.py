@@ -34,7 +34,7 @@ from repository.persistence.RepositoryError import *
 from repository.persistence.DBRepositoryView import DBRepositoryView
 from repository.persistence.DBContainer import \
     RefContainer, NamesContainer, ACLContainer, IndexesContainer, \
-    ItemContainer, ValueContainer, CommitsContainer
+    ItemContainer, ValueContainer, VersionContainer, CommitsContainer
 from repository.persistence.FileContainer import IndexContainer, LOBContainer
 from repository.persistence.DBItemIO import \
     DBItemReader, DBItemPurger, DBValueReader, DBItemWriter, DBItemUndo
@@ -701,7 +701,7 @@ class DBRepository(OnDemandRepository):
                     indexSearcher.close()
 
                 # even when cancelling, purge version records
-                store._values.purgeViewData(txn, counter, toVersion)
+                store._versions.purgeViewData(txn, counter, toVersion)
 
             except _counter.commit, e:
                 uItem, version = counter.current
@@ -770,7 +770,7 @@ class DBRepository(OnDemandRepository):
                         store.setIndexVersion(indexVersion - 1)
 
                     store._commits.purgeCommit(version)
-                    store._values.setVersion(version - 1)
+                    store._versions.setVersion(version - 1)
 
                     store.commitTransaction(None, txnStatus)
 
@@ -1015,6 +1015,7 @@ class DBStore(Store):
 
         super(DBStore, self).__init__(repository)
 
+        self._versions = VersionContainer(self)
         self._values = ValueContainer(self)
         self._items = ItemContainer(self)
         self._refs = RefContainer(self)
@@ -1041,6 +1042,7 @@ class DBStore(Store):
             txnStatus = self.startTransaction(None)
             txn = self.txn
 
+            self._versions.open("__versions.db", txn, **kwds)
             self._values.open("__values.db", txn, **kwds)
             self._items.open("__items.db", txn, **kwds)
             self._refs.open("__refs.db", txn, **kwds)
@@ -1061,6 +1063,7 @@ class DBStore(Store):
 
     def close(self):
 
+        self._versions.close()
         self._values.close()
         self._items.close()
         self._refs.close()
@@ -1073,6 +1076,7 @@ class DBStore(Store):
 
     def attachView(self, view):
 
+        self._versions.attachView(view)
         self._values.attachView(view)
         self._items.attachView(view)
         self._refs.attachView(view)
@@ -1085,6 +1089,7 @@ class DBStore(Store):
 
     def detachView(self, view):
 
+        self._versions.detachView(view)
         self._values.detachView(view)
         self._items.detachView(view)
         self._refs.detachView(view)
@@ -1101,21 +1106,25 @@ class DBStore(Store):
 
         if progressFn(stage, 0) is False:
             return
-        self._items.compact()
+        self._versions.compact()
 
-        if progressFn(stage, 12) is False:
+        if progressFn(stage, 10) is False:
             return
         self._values.compact()
 
-        if progressFn(stage, 24) is False:
+        if progressFn(stage, 20) is False:
+            return
+        self._items.compact()
+
+        if progressFn(stage, 30) is False:
             return
         self._refs.compact()
 
-        if progressFn(stage, 36) is False:
+        if progressFn(stage, 40) is False:
             return
         self._names.compact()
 
-        if progressFn(stage, 48) is False:
+        if progressFn(stage, 50) is False:
             return
         self._lobs.compact()
 
@@ -1123,14 +1132,17 @@ class DBStore(Store):
             return
         self._index.compact()
 
-        if progressFn(stage, 72) is False:
+        if progressFn(stage, 70) is False:
             return
         self._acls.compact()
 
-        if progressFn(stage, 84) is False:
+        if progressFn(stage, 80) is False:
             return
         self._indexes.compact()
 
+        if progressFn(stage, 90) is False:
+            return
+        self._commits.compact()
         
     def loadItem(self, view, version, uuid):
 
@@ -1156,7 +1168,7 @@ class DBStore(Store):
         if uValue in (Nil, Default):
             return None, uValue
 
-        return DBValueReader(self, status, version), uValue
+        return DBValueReader(self, uItem, status, version), uValue
     
     def loadValues(self, view, version, uItem, names=None):
 
@@ -1165,7 +1177,7 @@ class DBStore(Store):
         if status is None:
             return None, uValues
 
-        return DBValueReader(self, status, version), uValues
+        return DBValueReader(self, uItem, status, version), uValues
     
     def hasValue(self, view, version, uItem, name):
 
@@ -1262,15 +1274,15 @@ class DBStore(Store):
 
     def getVersion(self):
 
-        return self._values.getVersion()
+        return self._versions.getVersion()
 
     def nextVersion(self):
 
-        return self._values.nextVersion()
+        return self._versions.nextVersion()
 
     def getSchemaInfo(self):
 
-        return self._values.getSchemaInfo()
+        return self._versions.getSchemaInfo()
 
     def getIndexVersion(self):
 
@@ -1282,13 +1294,13 @@ class DBStore(Store):
 
     def saveViewData(self, version, view):
 
-        return self._values.saveViewData(version,
-                                         view._status & view.SAVEMASK,
-                                         view._newIndexes)
+        return self._versions.saveViewData(version,
+                                           view._status & view.SAVEMASK,
+                                           view._newIndexes)
 
     def getViewData(self, version):
 
-        return self._values.getViewData(version)
+        return self._versions.getViewData(version)
 
     def logCommit(self, view, version, commitSize):
 
@@ -1581,7 +1593,7 @@ class DBIndexerThread(RepositoryThread):
 
         status, uValues = store._items.findValues(view, version, uItem,
                                                   dirties, True)
-        reader = DBValueReader(store, status, version)
+        reader = DBValueReader(store, uItem, status, version)
 
         for uValue in uValues:
             if uValue is not None:
