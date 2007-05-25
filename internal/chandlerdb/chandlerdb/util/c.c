@@ -242,6 +242,7 @@ void initc(void)
 {
     PyObject *m = Py_InitModule3("c", c_funcs, "C util types module");
 
+    PyModule_AddStringConstant(m, "VERSION", VERSION);
     Empty_TUPLE = PyTuple_New(0);
 
     _init_uuid(m);

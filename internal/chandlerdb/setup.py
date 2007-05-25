@@ -19,6 +19,7 @@ def main():
 
     PREFIX = os.environ['PREFIX']
     DB_VER = os.environ['DB_VER']
+    VERSION = os.environ['VERSION']
     DEBUG = int(os.environ.get('DEBUG', '0'))
 
     extensions = []
@@ -31,7 +32,7 @@ def main():
                'chandlerdb.item.ItemError',
                'chandlerdb.persistence.__init__']
 
-    defines = []
+    defines = ['-DVERSION="%s"' %(VERSION)]
     sources=['chandlerdb/util/uuid.c',
              'chandlerdb/util/pyuuid.c',
              'chandlerdb/util/linkedmap.c',

@@ -16,6 +16,7 @@
 
 #if defined(_MSC_VER)
 #include <winsock2.h>
+#include <malloc.h>
 #elif defined(__MACH__)
 #include <arpa/inet.h>
 #elif defined(linux)
@@ -707,39 +708,22 @@ static int t_value_container_init(t_value_container *self,
     return ContainerType.tp_init((PyObject *) self, args, kwds);
 }
 
-static PyObject *t_value_container_loadValue(t_value_container *self,
-                                             PyObject *args)
+static PyObject *_t_value_container_loadValue(t_value_container *self,
+                                              t_uuid *uItem, t_uuid *uKey,
+                                              PyObject *types, PyObject *txn)
 {
-    PyObject *uItem, *uKey, *txn;
+    char buffer[32];
     DBT key, data;
 
     memset(&key, 0, sizeof(key));
     memset(&data, 0, sizeof(data));
-
-    if (!PyArg_ParseTuple(args, "OOO", &uItem, &uKey, &data.app_data))
-        return NULL;
-
-    if (!PyUUID_Check(uKey))
-    {
-        PyErr_SetObject(PyExc_TypeError, uKey);
-        return NULL;
-    }
-
-    if (((PyObject *) data.app_data)->ob_type != Record &&
-        !PyTuple_CheckExact((PyObject *) data.app_data))
-    {
-        PyErr_SetObject(PyExc_TypeError, (PyObject *) data.app_data);
-        return NULL;
-    }
-
-    txn = _t_store_getTxn(self->container.store); /* borrows ref */
-    if (!txn)
-        return NULL;
-
-    key.size = 16;
-    key.data = PyString_AS_STRING(((t_uuid *) uKey)->uuid);
+    memcpy(buffer, PyString_AS_STRING(uItem->uuid), 16);
+    memcpy(buffer + 16, PyString_AS_STRING(uKey->uuid), 16);
+    key.size = 32;
+    key.data = buffer;
 
     data.flags = DB_DBT_USERCOPY;
+    data.app_data = types;
     data.usercopy = (usercopy_fn) _t_db_read_record;
 
     {
@@ -762,10 +746,48 @@ static PyObject *t_value_container_loadValue(t_value_container *self,
     }
 }
 
+static PyObject *t_value_container_loadValue(t_value_container *self,
+                                             PyObject *args)
+{
+    PyObject *uItem, *uKey, *types, *txn;
+
+    if (!PyArg_ParseTuple(args, "OOO", &uItem, &uKey, &types))
+        return NULL;
+
+    if (!PyUUID_Check(uItem))
+    {
+        PyErr_SetObject(PyExc_TypeError, uItem);
+        return NULL;
+    }
+
+    if (!PyUUID_Check(uKey))
+    {
+        PyErr_SetObject(PyExc_TypeError, uKey);
+        return NULL;
+    }
+
+    if (types->ob_type != Record && !PyTuple_CheckExact(types))
+    {
+        PyErr_SetObject(PyExc_TypeError, types);
+        return NULL;
+    }
+
+    txn = _t_store_getTxn(self->container.store); /* borrows ref */
+    if (!txn)
+        return NULL;
+
+    return _t_value_container_loadValue(self, (t_uuid *) uItem,
+                                        (t_uuid *) uKey, types, txn);
+}
+
+
+#if 0  /* without DB_MULTIPLE_KEY */
+
 static PyObject *t_value_container_loadValues(t_value_container *self,
                                               PyObject *args)
 {
     PyObject *uItem, *uKeys, *types, *txn, *values;
+    char buffer[32];
     int i;
 
     if (!PyArg_ParseTuple(args, "OOO", &uItem, &uKeys, &types))
@@ -791,6 +813,8 @@ static PyObject *t_value_container_loadValues(t_value_container *self,
     if (!values)
         return NULL;
 
+    memcpy(buffer, PyString_AS_STRING(((t_uuid *) uItem)->uuid), 16);
+
     for (i = 0; i < PyTuple_GET_SIZE(uKeys); i++) {
         PyObject *uKey = PyTuple_GET_ITEM(uKeys, i);
         DBT key, data;
@@ -804,8 +828,9 @@ static PyObject *t_value_container_loadValues(t_value_container *self,
         memset(&key, 0, sizeof(key));
         memset(&data, 0, sizeof(data));
 
-        key.size = 16;
-        key.data = PyString_AS_STRING(((t_uuid *) uKey)->uuid);
+        memcpy(buffer + 16, PyString_AS_STRING(((t_uuid *) uKey)->uuid), 16);
+        key.size = 32;
+        key.data = buffer;
 
         data.flags = DB_DBT_USERCOPY;
         data.app_data = _t_record_new_read(types);
@@ -838,6 +863,233 @@ static PyObject *t_value_container_loadValues(t_value_container *self,
     return values;
 }
 
+#else  /* with DB_MULTIPLE_KEY */
+
+static PyObject *t_value_container_loadValues(t_value_container *self,
+                                              PyObject *args)
+{
+    PyObject *uItem, *uKeys, *types, *uKey, *txn;
+    PyObject *values = NULL, *record = NULL;
+    char *dataBuffer = NULL;
+    DBC *dbc = NULL;
+    int size;
+
+    if (!PyArg_ParseTuple(args, "OOO", &uItem, &uKeys, &types))
+        return NULL;
+
+    if (!PyUUID_Check(uItem))
+    {
+        PyErr_SetObject(PyExc_TypeError, uItem);
+        return NULL;
+    }
+
+    if (!PyTuple_Check(uKeys))
+    {
+        PyErr_SetObject(PyExc_TypeError, uKeys);
+        return NULL;
+    }
+
+    if (!PyTuple_Check(types))
+    {
+        PyErr_SetObject(PyExc_TypeError, types);
+        return NULL;
+    }
+
+    values = PyDict_New();
+    if (!values)
+        return NULL;
+
+    size = PyTuple_GET_SIZE(uKeys);
+
+    switch (size) {
+      case 0:
+        return values;
+
+      case 1:
+        uKey = PyTuple_GET_ITEM(uKeys, 0);
+        if (!PyUUID_Check(uKey))
+        {
+            PyErr_SetObject(PyExc_TypeError, uKey);
+            goto error;
+        }
+        txn = _t_store_getTxn(self->container.store); /* borrows ref */
+        if (!txn)
+            goto error;
+        record = _t_value_container_loadValue(self, (t_uuid *) uItem,
+                                              (t_uuid *) uKey, types, txn);
+        if (!record)
+            goto error;
+        if (record == Py_None)
+        {
+            PyErr_SetObject(PyExc_KeyError, uKey);
+            goto error;
+        }
+
+        PyDict_SetItem(values, uKey, record);
+        Py_DECREF(record);
+
+        return values;
+
+      default:
+      {
+          DB *db = self->container.db->db;
+          DBT key, data;
+          DB_TXN *db_txn;
+          PyObject *uKey;
+          char keyBuffer[32];
+          unsigned int pageSize;
+          int i, err;
+          char *buffer;
+          void *pointer;
+
+          err = db->get_pagesize(db, &pageSize);
+          if (err)
+          {
+              raiseDBError(err);
+              goto error;
+          }
+
+          buffer = alloca(pageSize);
+          dataBuffer = NULL;
+
+          uKey = PyTuple_GET_ITEM(uKeys, 0);
+          if (!PyUUID_Check(uKey))
+          {
+              PyErr_SetObject(PyExc_TypeError, uKey);
+              goto error;
+          }
+
+          txn = _t_store_getTxn(self->container.store); /* borrows ref */
+          if (!txn)
+              goto error;
+          db_txn = txn == Py_None ? NULL : ((t_txn *) txn)->txn;
+
+          Py_BEGIN_ALLOW_THREADS;
+          err = db->cursor(db, db_txn, &dbc, self->container.flags);
+          Py_END_ALLOW_THREADS;
+          if (err)
+          {
+              raiseDBError(err);
+              goto error;
+          }
+
+          i = 0;
+
+        again:
+          memset(&key, 0, sizeof(key));
+          memset(&data, 0, sizeof(data));
+
+          memcpy(keyBuffer,
+                 PyString_AS_STRING(((t_uuid *) uItem)->uuid), 16);
+          memcpy(keyBuffer + 16,
+                 PyString_AS_STRING(((t_uuid *) uKey)->uuid), 16);
+          key.size = 32;
+          key.data = keyBuffer;
+
+          if (dataBuffer)
+          {
+              free(dataBuffer);
+              dataBuffer = NULL;
+          }
+          data.ulen = pageSize;
+          data.data = buffer;
+          data.flags = DB_DBT_USERMEM;
+
+        bigger:
+          Py_BEGIN_ALLOW_THREADS;
+          err = dbc->c_get(dbc, &key, &data,
+                           self->container.flags | DB_SET | DB_MULTIPLE_KEY);
+          Py_END_ALLOW_THREADS;
+
+          switch (err) {
+            case 0:
+              DB_MULTIPLE_INIT(pointer, &data);
+              break;
+            case DB_BUFFER_SMALL:
+              data.ulen = data.size;
+              data.data = dataBuffer = malloc(data.size);
+              if (!dataBuffer)
+              {
+                  PyErr_SetNone(PyExc_MemoryError);
+                  goto error;
+              }
+              goto bigger;
+            default:
+              raiseDBError(err);
+              goto error;
+          }
+
+          while (pointer != NULL) {
+              void *keyData = NULL, *dataData = NULL;
+              int keyLen = 0, dataLen = 0;
+
+              DB_MULTIPLE_KEY_NEXT(pointer, &data, keyData, keyLen,
+                                   dataData, dataLen);
+              if (keyData == NULL)
+                  goto again;
+
+              if (!memcmp(keyData + 16,
+                          PyString_AS_STRING(((t_uuid *) uKey)->uuid), 16))
+              {
+                  record = (PyObject *) _t_record_new_read(types);
+                  if (!record)
+                      goto error;
+                  if (_t_record_read((t_record *) record,
+                                     (unsigned char *) dataData, dataLen) < 0)
+                      goto error;
+
+                  PyDict_SetItem(values, uKey, record);
+                  Py_CLEAR(record);
+
+                  if (++i >= size)
+                      break;
+
+                  uKey = PyTuple_GET_ITEM(uKeys, i);
+                  if (!PyUUID_Check(uKey))
+                  {
+                      PyErr_SetObject(PyExc_TypeError, uKey);
+                      goto error;
+                  }
+              }
+          }
+
+          if (i < size)
+          {
+              PyErr_SetObject(PyExc_KeyError, uKey);
+              goto error;
+          }
+
+          if (dataBuffer)
+          {
+              free(dataBuffer);
+              dataBuffer = NULL;
+          }
+
+          if (dbc)
+          {
+              dbc->c_close(dbc);
+              dbc = NULL;
+          }
+
+          return values;
+      }
+    }
+
+  error:
+    if (dbc)
+        dbc->c_close(dbc);
+    if (dataBuffer)
+        free(dataBuffer);
+
+    Py_CLEAR(values);
+    Py_CLEAR(record);
+
+    return NULL;
+}
+
+#endif
+
+
 static PyObject *t_value_container_saveValue(t_value_container *self,
                                              PyObject *args)
 {
@@ -851,6 +1103,12 @@ static PyObject *t_value_container_saveValue(t_value_container *self,
     if (!PyArg_ParseTuple(args, "OOO", &uItem, &uKey, &data.app_data))
         return NULL;
     
+    if (!PyUUID_Check(uItem))
+    {
+        PyErr_SetObject(PyExc_TypeError, uItem);
+        return NULL;
+    }
+
     if (!PyUUID_Check(uKey))
     {
         PyErr_SetObject(PyExc_TypeError, uKey);
@@ -867,9 +1125,11 @@ static PyObject *t_value_container_saveValue(t_value_container *self,
     if (!txn)
         return NULL;
 
-    args = PyTuple_New(2);
+    args = PyTuple_New(4);
     PyTuple_SET_ITEM(args, 0, PyInt_FromLong(R_UUID));
-    PyTuple_SET_ITEM(args, 1, uKey); Py_INCREF(uKey);
+    PyTuple_SET_ITEM(args, 1, uItem); Py_INCREF(uItem);
+    PyTuple_SET_ITEM(args, 2, PyInt_FromLong(R_UUID));
+    PyTuple_SET_ITEM(args, 3, uKey); Py_INCREF(uKey);
 
     key.app_data = PyObject_Call((PyObject *) Record, args, NULL);
     Py_DECREF(args);
