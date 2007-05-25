@@ -42,6 +42,7 @@ from osaf.mail.utils import getEmptyDate, dataToBinary, binaryToData
 from osaf.pim.structs import ColorType
 from osaf.framework.password import Password
 from twisted.internet.defer import Deferred
+import logging
 
 __all__ = [
     'SharingTranslator',
@@ -50,6 +51,8 @@ __all__ = [
     'fromICalendarDuration',
 ]
 
+
+logger = logging.getLogger(__name__)
 
 
 utc = ICUtzinfo.getInstance('UTC')
@@ -731,6 +734,8 @@ class SharingTranslator(eim.Translator):
             # only apply a modifiedby record if timestamp is more recent than
             # what's on the item already
 
+            logger.debug("Examining ModifiedByRecord: %s", record)
+
             existing = getattr(item, "lastModified", None)
             existing = datetimeToDecimal(existing) if existing else 0
 
@@ -756,6 +761,12 @@ class SharingTranslator(eim.Translator):
                 item.changeEditState(item.lastModification,
                                      item.lastModifiedBy,
                                      item.lastModified)
+
+                logger.debug("Applied ModifiedByRecord: %s", record)
+                logger.debug("Now lastModifiedBy is %s", item.lastModifiedBy)
+            else:
+                logger.debug("Skipped ModifiedByRecord: record %s vs local %s",
+                    record.timestamp, existing)
 
 
         # Note: ModifiedByRecords are exported by item
