@@ -358,6 +358,7 @@ class wxApplication (wx.App):
 
         wx.Log.SetActiveTarget(_pyLog())
 
+        self.startenv = os.environ.copy()
 
         # The initI18n can't be initialized until after the App
         # object has been created since initialization creates a
@@ -975,7 +976,7 @@ class wxApplication (wx.App):
         Argument values may be of any type that can be represented as a
         string. Unicode values are encoded using the system's file system
         encoding. On Windows, values containing space characters are wrapped
-        with C{"} if there are not already. If a keyword argument's value is
+        with C{\"} if there are not already. If a keyword argument's value is
         C{True}, only its name is appended to the command.
 
         For example: app.restart('--backup', restore=path, mvcc=True) would
@@ -1048,7 +1049,8 @@ class wxApplication (wx.App):
 
             if mac:
                 os.fork()
-            os.execl(sys.executable, executable, *argv)
+            argv.append(self.startenv)
+            os.execle(sys.executable, executable, *argv)
         except OSError, e:
             from errno import EOPNOTSUPP
             if not mac or e.args[0] != EOPNOTSUPP:

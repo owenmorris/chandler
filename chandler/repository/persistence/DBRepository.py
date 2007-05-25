@@ -384,6 +384,7 @@ class DBRepository(OnDemandRepository):
         rev = 1
         while True:
             path = "%s.%03d" %(dbHome, rev)
+            path = path.encode(sys.getfilesystemencoding())
             if exists(path):
                 rev += 1
             else:

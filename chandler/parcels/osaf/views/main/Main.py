@@ -600,7 +600,8 @@ class MainView(View):
             repository.logger.info('Backing up repository...')
             self.setStatusMessage(progressMessage)
             dbHome = repository.backup(path)
-            successMessage = _(u'Repository was backed up into %(directory)s') % {'directory': (dbHome)}
+            dbHome_u = dbHome.decode(sys.getfilesystemencoding())
+            successMessage = _(u'Repository was backed up into %(directory)s') % {'directory': (dbHome_u)}
             repository.logger.info('Repository was backed up into %s' % (dbHome))
             self.setStatusMessage(successMessage)
 
