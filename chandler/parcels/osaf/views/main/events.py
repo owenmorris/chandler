@@ -99,7 +99,9 @@ def makeMainEvents(parcel):
     BlockEvent.template('CopyFreeBusyURL').install(parcel)
 
     BlockEvent.template('ShowPyCrust').install(parcel)
-
+    
+    BlockEvent.template('ShowWidgetInspector').install(parcel)
+    
     BlockEvent.template('ShowHideStatusBar',
                         methodName = 'onShowHideEvent',
                         dispatchToBlockName = 'StatusBar').install(parcel)

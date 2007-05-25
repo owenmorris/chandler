@@ -1292,6 +1292,11 @@ class MainView(View):
         # Test menu item
         wx.GetApp().ShowPyShell(withFilling=True)
 
+    def onShowWidgetInspectorEvent(self, event):
+        # Debug menu item
+        from wx.lib.inspection import InspectionTool
+        InspectionTool().Show()
+
     def onSaveSettingsEvent(self, event):
         # triggered from "Test | Save Settings" Menu
 
