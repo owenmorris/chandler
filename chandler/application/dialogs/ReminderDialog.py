@@ -95,6 +95,10 @@ class ReminderDialog(wx.Frame):
         # Do "dismiss all" on close
         self.Bind(wx.EVT_CLOSE, self.onClose)
         
+        # Clean up when the app quits
+        mainFrame = wx.GetApp().mainFrame
+        mainFrame.Bind(wx.EVT_CLOSE, self.onAppQuit)
+        
         # Note when we're being destroyed, so we can ignore subsequent events
         self.Bind(wx.EVT_WINDOW_DESTROY, self.onDestroy)
 
@@ -107,17 +111,28 @@ class ReminderDialog(wx.Frame):
         self.CenterOnScreen()
         self.Show()
         self.RequestUserAttention()
-        
+
+    def onAppQuit(self, event):
+        if self:
+            self.Unbind(wx.EVT_CLOSE, self)
+            self.reminderClosing = True
+            self.Close(force=True)
+        event.Skip()
+   
     
     def onDestroy(self, event):
         # print "*** destroying"
         self.reminderClosing = True
         
     def onClose(self, event):
-        # @@@BJS For now, treat "close" as "dismiss all"
-        listCtrl = self.reminderControls['list']
-        if listCtrl.GetItemCount() > 0:
-            self.onDismiss(event)
+        # If we have been asked to close directly (i.e. not as a result of the
+        # main frame closing and the app quitting),  treat "close" as
+        # "dismiss all"
+        if self and not self.reminderClosing:
+            listCtrl = self.reminderControls['list']
+            if listCtrl.GetItemCount() > 0:
+                self.onDismiss(event)
+        event.Skip()
         
     def onSelectionChanged(self, event):
         self.UpdateControlEnabling()
