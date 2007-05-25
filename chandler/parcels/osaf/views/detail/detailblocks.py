@@ -503,7 +503,8 @@ def makeMailArea(parcel, oldVersion):
                     viewAttribute=MailStamp.originators.name,
                     presentationStyle={'editInPlace': True,
                                         'maxLineCount': 3,
-                                        'format' : 'originators' })],
+                                        'format' : 'originators' },
+                    border=RectType(5, 5, 5, 5))],
             position=0.1).install(parcel)
 
     toArea = \
@@ -516,7 +517,8 @@ def makeMailArea(parcel, oldVersion):
                     viewAttribute=MailStamp.toAddress.name,
                     presentationStyle={'editInPlace': True,
                                         'sampleText': _(u'Add addressees'),
-                                        'maxLineCount': 3})],
+                                        'maxLineCount': 3},
+                    border=RectType(5, 5, 5, 5))],
             position=0.11).install(parcel)
     ccArea = \
         makeArea(parcel, 'CcArea',
@@ -527,7 +529,8 @@ def makeMailArea(parcel, oldVersion):
                 makeEditor(parcel, 'EditMailCc',
                     viewAttribute=MailStamp.ccAddress.name,
                     presentationStyle={'editInPlace': True,
-                                        'maxLineCount': 3})],
+                                        'maxLineCount': 3},
+                    border=RectType(5, 5, 5, 5))],
             position=0.111).install(parcel)
     bccArea = \
         makeArea(parcel, 'BccArea',
@@ -539,7 +542,8 @@ def makeMailArea(parcel, oldVersion):
                 makeEditor(parcel, 'EditMailBcc',
                     viewAttribute=MailStamp.bccAddress.name,
                     presentationStyle={'editInPlace': True,
-                                        'maxLineCount': 3})],
+                                        'maxLineCount': 3},
+                    border=RectType(5, 5, 5, 5))],
             position=0.112,
             border=RectType(0, 0, 6, 6)).install(parcel)
 
