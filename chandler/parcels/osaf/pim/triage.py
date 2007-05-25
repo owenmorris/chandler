@@ -247,6 +247,9 @@ class Triageable(Remindable):
         status, purge it. 
         """
         for attr in ('_sectionTriageStatus', '_sectionTriageStatusChanged'):
+            inheritedFrom = getattr(self, 'inheritFrom', None)
+            if inheritedFrom is not None and hasattr(inheritedFrom, attr):
+                delattr(inheritedFrom, attr)
             if hasattr(self, attr):
                 delattr(self, attr)
 
