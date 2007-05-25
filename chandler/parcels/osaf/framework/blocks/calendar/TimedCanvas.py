@@ -873,7 +873,7 @@ class wxTimedEventsCanvas(BaseWidget, wxCalendarCanvas):
         callback = self.blockItem.widgetGuardedCallback(
                                              self.wxSynchronizeWidget)
         proxy = RecurrenceDialog.getProxy(u'ui', currentCanvasItem.item,
-                                          endCallback=callback)
+                                          cancelCallback=callback)
         
         self.activeProxy = proxy
         

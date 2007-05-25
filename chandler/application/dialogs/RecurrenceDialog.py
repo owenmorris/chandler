@@ -102,9 +102,9 @@ class RecurrenceDialog(wx.Dialog):
 
         self._init_sizers()
 
-    def __init__(self, proxy, endCallbacks):
+    def __init__(self, proxy, cancelCallbacks):
         self.proxy = proxy
-        self.endCallbacks = endCallbacks
+        self.cancelCallbacks = cancelCallbacks
         self._init_ctrls()
 
         # use the first action to determine the UI
@@ -124,9 +124,10 @@ class RecurrenceDialog(wx.Dialog):
         self.CenterOnScreen()
         self.Show()
 
-    def _end(self):
+    def _end(self, callbacks=()):
         self.proxy.dialogUp = False
-        for method in self.endCallbacks:
+
+        for method in callbacks:
             method()
 
         # Propagate synchronous notification required to
@@ -137,7 +138,7 @@ class RecurrenceDialog(wx.Dialog):
         
     def onCancel(self, event):
         self.proxy.cancelBuffer()
-        self._end()
+        self._end(self.cancelCallbacks)
 
     def onAll(self, event):
         self.proxy.currentlyModifying = 'all'
@@ -158,7 +159,7 @@ class RecurrenceDialog(wx.Dialog):
 
 _proxies = {}
 
-def getProxy(context, obj, createNew=True, endCallback=None):
+def getProxy(context, obj, createNew=True, cancelCallback=None):
     """Return a proxy for obj, reusing cached proxies in the same context.
         
     Return obj if obj doesn't support the changeThis and changeThisAndFuture
@@ -179,7 +180,7 @@ def getProxy(context, obj, createNew=True, endCallback=None):
             proxy = UserChangeProxy(obj)
             _proxies[context] = (obj.itsUUID, proxy)
         else:
-            return obj
+            proxy = obj
     else:
         # We've already got a proxy for this item - we'll reuse it.
         proxy = _proxies[context][1]
@@ -199,9 +200,9 @@ def getProxy(context, obj, createNew=True, endCallback=None):
 
     # sometimes a cancel requires that some UI element needs to
     # be "reset" to the original state.. so queue up the cancel changes
-    if (endCallback is not None and
-        endCallback not in proxy.endCallbacks):
-        proxy.endCallbacks.append(endCallback)
+    if (cancelCallback is not None and
+        cancelCallback not in proxy.cancelCallbacks):
+        proxy.cancelCallbacks.append(cancelCallback)
     return proxy
 
 class UserChangeProxy(object):
@@ -209,7 +210,7 @@ class UserChangeProxy(object):
     __class__ = 'temp'
     proxyAttributes = (
         'proxiedItem', 'currentlyModifying', '__class__',
-        'dialogUp', 'changeBuffer', 'endCallbacks',
+        'dialogUp', 'changeBuffer', 'cancelCallbacks',
         'beginSession', 'endSession',
          EventStamp.IGNORE_CHANGE_ATTR,
     )
@@ -220,7 +221,7 @@ class UserChangeProxy(object):
         self.currentlyModifying = None
         self.__class__ = self.proxiedItem.__class__
         self.dialogUp = False
-        self.endCallbacks = []
+        self.cancelCallbacks = []
 
         # change buffer is an array of dicts, where each dict contains
         # information required to propagate the change
@@ -433,7 +434,7 @@ class UserChangeProxy(object):
     def runDialog(self):
         # Check in case the dialog somehow got cancelled
         if self.dialogUp:
-            RecurrenceDialog(self, self.endCallbacks)
+            RecurrenceDialog(self, self.cancelCallbacks)
     
     def propagateBufferChanges(self):
         # Don't make the same change twice. This

@@ -1803,7 +1803,7 @@ class wxInPlaceEditor(AttributeEditors.wxEditText):
             if self.event.summary != self.GetValue():
                 parentBlock = self.GetParent()
                 proxy = RecurrenceDialog.getProxy(u'ui', self.event,
-                                    endCallback=parentBlock.wxSynchronizeWidget)
+                                    cancelCallback=parentBlock.wxSynchronizeWidget)
                 Calendar.EventStamp(proxy).summary = self.GetValue()
 
     def ResetFocus(self):

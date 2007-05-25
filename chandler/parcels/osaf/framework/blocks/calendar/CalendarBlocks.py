@@ -103,7 +103,7 @@ class wxMiniCalendar(DragAndDrop.DropReceiveWidget,
         if self.hoverDate is not None:
             for item in itemList:
                 proxy = RecurrenceDialog.getProxy(u'ui', item,
-                                        endCallback=self.wxSynchronizeWidget)
+                                        cancelCallback=self.wxSynchronizeWidget)
                 event = EventStamp(proxy)
                 if not has_stamp(proxy, EventStamp):
                     event.add() # stamp as an event

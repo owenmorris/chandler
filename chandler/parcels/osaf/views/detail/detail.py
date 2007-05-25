@@ -141,7 +141,7 @@ class DetailRootBlock(WatchedItemRootBlock, ControlBlocks.ContentItemDetail):
             # the [Cancel] button causes the detail view to redraw
             # properly.
             callback = self.widgetGuardedCallback(self.synchronizeWidgetDeep)
-            RecurrenceDialog.getProxy(u'ui', newItem, endCallback=callback)
+            RecurrenceDialog.getProxy(u'ui', newItem, cancelCallback=callback)
 
             self.item.beginSession()
 
