@@ -272,8 +272,8 @@ def checkDistributionSize(log, releaseMode, workingDir, buildVersionEscaped):
     try:
         class UnexpectedSize(Exception):
             def __init__(self, f, actual, minSize, maxSize):
-                self.f = f
-                self.actual = actual
+                self.f       = f
+                self.actual  = actual
                 self.minSize = minSize
                 self.maxSize = maxSize
             def __str__(self):
@@ -281,7 +281,7 @@ def checkDistributionSize(log, releaseMode, workingDir, buildVersionEscaped):
                                                                self.actual,
                                                                self.minSize,
                                                                self.maxSize)
-            
+
         sizes = {#plat     mode        suffix:max, ...
                  'win':   {'debug':   {'exe': 30, 'zip': 50},
                            'release': {'exe': 25, 'zip': 35},
@@ -296,34 +296,34 @@ def checkDistributionSize(log, releaseMode, workingDir, buildVersionEscaped):
                            'release': {'deb': 40, 'rpm': 40, 'gz': 40},
                           },
                 }
-        
+
         if os.name == 'nt' or sys.platform == 'cygwin':
-            platform = 'win'
+            buildPlatform = 'win'
         elif sys.platform == 'darwin':
             if platform.processor() == 'i386' and platform.machine() == 'i386':
-                platform = 'iosx'
+                buildPlatform = 'iosx'
             else:
-                platform = 'osx'
+                buildPlatform = 'osx'
         else:
-            platform = 'linux'
-        
+            buildPlatform = 'linux'
+
         for f in glob.glob('../*%s*' % buildVersionEscaped):
             if not os.path.isfile(f):
                 continue
             suffix = f[f.rfind('.')+1:]
-            size = os.stat(f).st_size
-            
+            size   = os.stat(f).st_size
+
             # See http://en.wikipedia.org/wiki/Megabyte
             minSize = 5 * (1024**2)
-            maxSize = sizes[platform][releaseMode][suffix] * (1024**2)
+            maxSize = sizes[buildPlatform][releaseMode][suffix] * (1024**2)
 
             if not minSize < size < maxSize:
                 raise UnexpectedSize(f, size, minSize, maxSize)
-            
+
     except UnexpectedSize, e1:
         doCopyLog("***Error: %s unexpected distribution size %d, expected range %d-%d*** " % (e1.f, e1.actual, e1.minSize, e1.maxSize), workingDir, logPath, log)
         forceBuildNextCycle(log, workingDir)
-        raise e1        
+        raise e1
     except Exception, e2:
         doCopyLog("***Error during distribution size measurement*** ", workingDir, logPath, log)
         forceBuildNextCycle(log, workingDir)
