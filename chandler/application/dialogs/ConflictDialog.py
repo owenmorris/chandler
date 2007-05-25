@@ -35,13 +35,13 @@ class ConflictDialog(wx.Dialog):
         i=1
         itemList=[]
         for c in conflicts:
-            fmt = "%d. %s: %s"
+            fmt = "%d. %s changed the %s to \"%s\""
             if c.peer:
                 if isinstance(c.peer, sharing.Share):
-                    fmt += " (changed on server)"
+                    editor = "Server"
                 else:
-                    fmt += " (changed by %s)" % c.peer
-            itemList.append(fmt % (i, c.field.title(), c.value))
+                    editor = c.peer
+            itemList.append(fmt % (i, editor, c.field.title(), c.value))
             i = i+1
         listBox = wx.ListBox(self, -1, choices=itemList)
         changesText = wx.StaticText(self, -1,
