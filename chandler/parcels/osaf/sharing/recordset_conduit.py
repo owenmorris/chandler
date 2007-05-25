@@ -503,6 +503,9 @@ class RecordSetConduit(conduits.BaseConduit):
                     # syncs.  Also, make sure we apply this to the master item:
                     item_to_change = getattr(item, 'inheritFrom', item)
                     item_to_change.read = not established
+                    logger.debug("Change to 'read' status (%s) for item %s",
+                        item_to_change.read,
+                        getattr(item_to_change, 'displayName', '<unknown>'))
 
                 if alias in remotelyAdded:
                     receiveStats['added'].add(uuid)
