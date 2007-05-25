@@ -232,14 +232,6 @@ class wxMainFrame (wxBlockFrameWindow):
         # we'll remove the handler
 
         app = wx.GetApp()        
-        app.Unbind(wx.EVT_MENU, id=-1)
-        app.Unbind(wx.EVT_TOOL, id=-1)
-        app.Unbind(wx.EVT_UPDATE_UI, id=-1)
-        app.Unbind(wx.EVT_WINDOW_DESTROY, id=-1)
-        app.Unbind(wx.EVT_SHOW, id=-1)
-        app.Unbind(wx.EVT_KEY_DOWN)
-        app.Unbind(wx.EVT_CONTEXT_MENU)
-        app.Unbind(wx.EVT_IDLE)
 
         app.ignoreSynchronizeWidget = True
 
@@ -279,12 +271,9 @@ class wxMainFrame (wxBlockFrameWindow):
 
         feedback.stopRuntimeLog(Globals.options.profileDir)
 
-        # When we quit, as each wxWidget window is torn down our handlers that
-        # track changes to the selection are called, and we don't want to count
-        # these changes, since they weren't caused by user actions.
-
-
-        self.Destroy()
+        # Exit the main loop instead of deleting ourself so as to avoid events
+        # firing when object are being deleted
+        app.ExitMainLoop()
 
 
 # We'll create a singleton item to remember our locale, to detect changes.
