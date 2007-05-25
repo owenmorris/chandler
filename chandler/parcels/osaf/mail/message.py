@@ -194,6 +194,17 @@ def messageTextToKind(view, messageText):
     return messageObjectToKind(view, email.message_from_string(messageText),
                                 messageText)
 
+def getPeer(view, messageObject):
+    # Get the from address ie. Sender.
+    emailAddr = messageObject.get("From")
+
+    if not emailAddr:
+        return None
+
+    name, addr = emailUtils.parseaddr(emailAddr)
+
+    return __getEmailAddress(view, decodeHeader(name), getUnicodeValue(addr))
+        
 
 def messageObjectToKind(view, messageObject, messageText=None):
     """
@@ -222,19 +233,12 @@ def messageObjectToKind(view, messageObject, messageText=None):
 
     if chandlerAttachments["eimml"]:
         eimml = chandlerAttachments["eimml"][0]
-
-        # Get the from address ie. Sender.
-        emailAddr = messageObject.get("From")
-
-        if not emailAddr:
+        peer = getPeer(view, messageObject)
+        if peer is None:
             # A peer address is required for eimml
             # deserialization. If there is no peer
             # then ignore the eimml data.
             return None
-
-        name, addr = emailUtils.parseaddr(emailAddr)
-
-        peer = __getEmailAddress(view, decodeHeader(name), getUnicodeValue(addr))
 
         mailStamp = parseEIMML(view, peer, eimml)
 
@@ -247,7 +251,7 @@ def messageObjectToKind(view, messageObject, messageText=None):
     elif chandlerAttachments["ics"]:
         ics = chandlerAttachments["ics"][0]
 
-        result = parseICS(view, ics)
+        result = parseICS(view, ics, messageObject)
 
         if result is not None:
             # If the result is None then there
@@ -362,13 +366,24 @@ def parseEIMML(view, peer, eimml):
 
     return None
 
-def parseICS(view, ics):
-    import osaf.sharing.ICalendar as ICalendar
+def parseICS(view, ics, messageObject=None):
+
+    from osaf.sharing import (deserialize, SharingTranslator, ICSSerializer,
+                              remindersFilter)
+
+
     icsDesc = icsSummary = None
 
+    peer = None
+    if messageObject is not None:
+        peer = getPeer(view, messageObject)
+    if peer is None:
+        # we don't really need a valid peer to import icalendar, make one up
+        peer = EmailAddress(itsView=view, emailAddress="empty@example.com")
+        
     try:
-        items = ICalendar.itemsFromVObject(view, ics,
-                                     filters=(Remindable.reminders.name,))[0]
+        items = deserialize(view, peer, ics, SharingTranslator,
+                            ICSSerializer, filter=remindersFilter)
     except Exception, e:
         logging.exception(e)
         return None
@@ -377,6 +392,8 @@ def parseICS(view, ics):
         # We got something - stamp the first thing as a MailMessage
         # and use it. (If it was an existing event, we'll reuse it.)
         item = items[0]
+        # use the master, if a modification happens to be the first item
+        item = getattr(item, 'inheritFrom', item)
 
         if item.displayName and len(item.displayName.strip()):
             # The displayName will contain the ics summary
@@ -668,16 +685,21 @@ def kindToMessageObject(mailStamp):
 
     if isEvent or isTask:
         # Format this message as an ICalendar object
-        import osaf.sharing.ICalendar as ICalendar
-        calendar = ICalendar.itemsToVObject(mailStamp.itsItem.itsView,
-                                            [mailStamp.itsItem],
-                                            filters=(Remindable.reminders.name,))
+        from osaf.sharing import (serialize, VObjectSerializer,
+                                  SharingTranslator, remindersFilter)
+        calendar = serialize(mailStamp.itsItem.itsView,
+                             [mailStamp.itsItem],
+                             SharingTranslator,
+                             VObjectSerializer,
+                             filter=remindersFilter)
 
-        calendar.add('method').value="REQUEST"
+        # don't use method REQUEST because it will cause Apple iCal to treat
+        # the ics attachment as iMIP
+        calendar.add('method').value="PUBLISH"
         ics = calendar.serialize().encode('utf-8')
 
         # Attach the ICalendar object
-        icsPayload = MIMEBase64Encode(ics, 'text', 'calendar', method='REQUEST')
+        icsPayload = MIMEBase64Encode(ics, 'text', 'calendar', method='PUBLISH')
 
         fname = Header.Header(_(u"ChandlerItem.ics")).encode()
         icsPayload.add_header("Content-Disposition", "attachment", filename=fname)

@@ -29,7 +29,7 @@ import logging
 from vobject.base import textLineToContentLine
 
 __all__ = [
-    'ICSSerializer',
+    'ICSSerializer', 'VObjectSerializer'
 ]
 
 logger = logging.getLogger(__name__)
@@ -272,6 +272,11 @@ class ICSSerializer(object):
 
     @classmethod
     def serialize(cls, recordSets, **extra):
+        cal = cls.recordSetsToVObject(recordSets, **extra)
+        return cal.serialize().encode('utf-8')
+    
+    @classmethod
+    def recordSetsToVObject(cls, recordSets, **extra):
         """ Convert a list of record sets to an ICalendar blob """
         vobj_mapping = {}
 
@@ -311,7 +316,7 @@ class ICSSerializer(object):
             cal.add('method').value = "PUBLISH"
             
         #handle icalproperties and icalparameters
-        return cal.serialize().encode('utf-8')
+        return cal
 
     @classmethod
     def deserialize(cls, text, silentFailure=True, helperView=None):
@@ -602,3 +607,6 @@ class ICSSerializer(object):
                     raise
 
         return recordSets, extra
+
+class VObjectSerializer(ICSSerializer):
+    serialize = ICSSerializer.recordSetsToVObject
