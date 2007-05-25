@@ -425,50 +425,43 @@ class SharingTranslator(eim.Translator):
     def resolveConflicts(self, conflicts):
         for conflict in conflicts:
 
-            try:
-                # inclusions is a set with either 0 or 1 record in it
-                record = [i for i in conflict.change.inclusions][0]
-            except IndexError:
-                # Empty inclusions set, so must be deletion.  If we ever need
-                # to auto resolve a deletion conflict, do that here
-                continue
+            if len(conflict.change.inclusions) == 1:
+                record = list(conflict.change.inclusions)[0]
 
-            if isinstance(record, model.ItemRecord):
+                if isinstance(record, model.ItemRecord):
 
-                item = conflict.item
+                    item = conflict.item
 
-                if conflict.field.lower() == 'triage status':
-                    # TODO: There has to be a better way to determine which
-                    # field has the conflict, besides using the human readable
-                    # name, especially since this is localizable
-                    codeIn, tscIn, autoIn = record.triage.split(" ")
+                    if record.triage is not eim.NoChange:
+                        codeIn, tscIn, autoIn = record.triage.split(" ")
 
-                    if self.code_to_triagestatus[codeIn] == item.triageStatus:
-                        # The triage status is not in conflict, so we are
-                        # going to auto resolve any conflicts on either
-                        # triageStatusChanged or doAutoTriageOnDateChange:
+                        if self.code_to_triagestatus[codeIn] == \
+                            item.triageStatus:
+                            # The triage status is not in conflict, so we are
+                            # going to auto resolve any conflicts on either
+                            # triageStatusChanged or doAutoTriageOnDateChange:
 
-                        tscIn = float(tscIn)
-                        if tscIn < item._triageStatusChanged:
-                            # inbound tsc is more recent
-                            item._triageStatusChanged = tscIn
+                            tscIn = float(tscIn)
+                            if tscIn < item._triageStatusChanged:
+                                # inbound tsc is more recent
+                                item._triageStatusChanged = tscIn
 
-                        if autoIn == "0":
-                            # an inbound auto of False always gets applied
-                            item.doAutoTriageOnDateChange = False
+                            if autoIn == "0":
+                                # an inbound auto of False always gets applied
+                                item.doAutoTriageOnDateChange = False
+
+                            conflict.discard()
+
+                    if record.createdOn is not eim.NoChange:
+                        # Instead of having conflicts for createdOn, apply the
+                        # oldest value
+
+                        if record.createdOn not in emptyValues:
+                            createdOn = decimalToDatetime(record.createdOn)
+                            if createdOn < item.createdOn:
+                                item.createdOn = createdOn
 
                         conflict.discard()
-
-                elif conflict.field.lower() == 'created on':
-                    # Instead of having conflicts for createdOn, apply the
-                    # oldest value
-
-                    if record.createdOn not in emptyValues:
-                        createdOn = decimalToDatetime(record.createdOn)
-                        if createdOn < item.createdOn:
-                            item.createdOn = createdOn
-
-                    conflict.discard()
 
 
 
