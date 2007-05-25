@@ -1238,7 +1238,7 @@ class ReminderScaleAttributeEditor(ChoiceAttributeEditor):
 
     def GetControlValue(self, control):
         choiceIndex = control.GetSelection()
-        return choiceIndex != wx.NOT_FOUND and choiceIndex or None
+        return None if choiceIndex == wx.NOT_FOUND else choiceIndex
 
     def SetControlValue(self, control, value):
         existingValue = self.GetControlValue(control)
