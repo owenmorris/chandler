@@ -322,6 +322,11 @@ class State(schema.Item):
 
     def apply(self, change):
         translator = self.getTranslator()
+        logger.info("Applying pending conflicts")
+        for rec in change.inclusions:
+            logger.info("<< ++ %s", rec)
+        for rec in change.exclusions:
+            logger.info("<< -- %s", rec)
         translator.startImport()
         translator.importRecords(change)
         translator.finishImport()

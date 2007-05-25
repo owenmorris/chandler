@@ -502,10 +502,27 @@ class RecordSetConduit(conduits.BaseConduit):
                     # during an initial subscribe and True on subsequent
                     # syncs.  Also, make sure we apply this to the master item:
                     item_to_change = getattr(item, 'inheritFrom', item)
-                    item_to_change.read = not established
-                    logger.debug("Change to 'read' status (%s) for item %s",
-                        item_to_change.read,
-                        getattr(item_to_change, 'displayName', '<unknown>'))
+                    if not established:
+                        item_to_change.read = True
+                    else:
+                        # Don't consider a triage-only change as enough to
+                        # mark an item unread.
+                        setUnread = True
+                        if len(rs.inclusions) == 1:
+                            record = list(rs.inclusions)[0]
+                            if (isinstance(record, model.ItemRecord) and
+                                record.title is eim.NoChange and
+                                record.createdOn is eim.NoChange and
+                                record.hasBeenSent is eim.NoChange and
+                                record.needsReply is eim.NoChange):
+                                setUnread = False
+
+                        if setUnread:
+                            item_to_change.read = False
+                            logger.debug("'read' status now %s for '%s'",
+                                item_to_change.read,
+                                getattr(item_to_change, 'displayName',
+                                '<unknown>'))
 
                 if alias in remotelyAdded:
                     receiveStats['added'].add(uuid)
