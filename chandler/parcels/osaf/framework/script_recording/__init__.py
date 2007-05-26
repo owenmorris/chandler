@@ -16,7 +16,7 @@
 import os, sys, wx, types
 from application import schema
 from osaf.framework.blocks import Block, BlockEvent, Table
-from osaf.framework.blocks.MenusAndToolbars import Menu, MenuItem
+from osaf.framework.blocks.MenusAndToolbars import Menu, MenuItem, ToolBarItem
 from i18n import ChandlerMessageFactory as _
 from application.Application import idToString
 from osaf.views.detail import DetailSynchronizedAttributeEditorBlock
@@ -225,7 +225,9 @@ class Controller (Block.Block):
                     parentBlockItem = getattr (widgetParent, "blockItem", None)
 
                     if (parentBlockItem is not None and
-                        (isinstance (parentBlockItem, Table) or isinstance (parentBlockItem, DetailSynchronizedAttributeEditorBlock))):
+                        (isinstance (parentBlockItem, Table) or
+                         isinstance (parentBlockItem, DetailSynchronizedAttributeEditorBlock) or
+                         isinstance (parentBlockItem, ToolBarItem))):
                         sentToName = parentBlockItem.blockName
                     else:
                         sentToName = widgetToName (sentToWidget)
