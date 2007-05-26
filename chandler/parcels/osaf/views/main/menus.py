@@ -567,10 +567,6 @@ def makeMainMenus(parcel):
                         title = _(u'&Copy ticket URLs to clipboard'),
                         helpString = _(u"Copy the selected collection's URL(s) to the Clipboard")),
                     ]), # Menu ShareMenu
-            Menu.template('ExperimentalMenu',
-                title = _(u'Demo'),
-                childBlocks = [
-                    ]), # Menu ExperimentalMenu
             Menu.template('ToolsMenu',
                 title = _(u'&Tools'),
                 childBlocks = [
@@ -865,6 +861,9 @@ def makeMainMenus(parcel):
                                 title = u"I&nstall Plugins",
                                 helpString = u'Install plugins'),
                             ]),
+                    Menu.template('ExperimentalMenu',
+                                  title = _(u'Demo'),
+                                  childBlocks = []), # Menu ExperimentalMenu
                 ]),
             Menu.template('HelpMenu',
                 title = _(u'&Help'),

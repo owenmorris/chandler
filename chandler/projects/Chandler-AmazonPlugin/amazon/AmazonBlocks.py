@@ -74,7 +74,7 @@ class AmazonDetailBlock(Detail.HTMLDetailArea):
             return None
 
         HTMLText = u'<html><head><body>\n'
-        HTMLText += "<b>" + self._applyFont(item.productName, 3) + "</b><p>\n"
+        HTMLText += "<b>" + self._applyFont(item.ProductName, 3) + "</b><p>\n"
         HTMLText += "<table cellspacing=2 cellpadding=2 border=0>\n"
         HTMLText += "<tr><td width='30%' valign='top' align='center'><a href='" + str(item.ProductURL) + "'><img src='" + str(item.ImageURL) + "' border=1><br>" + self._applyFont(_(u"More Product Details"), 1) + "</a></td>\n"
         HTMLText += "<td valign='top' align='left'><table width='100%' border=0 cellspacing=2 cellpadding=2>"
