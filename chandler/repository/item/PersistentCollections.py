@@ -366,6 +366,10 @@ class PersistentTuple(PersistentCollection, c.PersistentSequence):
 
         return iter(self._sequence)
 
+    def __hash__(self):
+
+        return hash(self._sequence)
+
 
 class PersistentSet(PersistentCollection, c.PersistentSet):
     'A persistence aware set, tracking changes into a dirty bit.'
