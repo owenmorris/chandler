@@ -80,7 +80,7 @@ class ItemRecord(eim.Record):
     hasBeenSent = eim.field(eim.IntType, _(u"Has been sent"))
 
     # ContentItem.needsReply
-    needsReply = eim.field(eim.IntType, _(u"Needs reply"))
+    needsReply = eim.field(eim.IntType, _(u"Needs reply"), filters=[needsReplyFilter], default=0)
 
     # ContentItem.read
     read = eim.field(eim.IntType, _(u"Has been read"), filters=[readFilter],
