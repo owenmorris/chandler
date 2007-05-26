@@ -1622,7 +1622,7 @@ class MainView(View):
                 if len(urls) == 1:
                     urlString = urls[0]
                 else:
-                    urlString = "Read-write: %s\nRead-only: %s\n" % (urls[0], urls[1])
+                    urlString = "View and Edit: %s\nView-only: %s\n" % (urls[0], urls[1])
 
                 gotClipboard = wx.TheClipboard.Open()
                 if gotClipboard:

@@ -676,7 +676,7 @@ class PublishCollectionDialog(wx.Dialog):
             elif self.publishType == 'freebusy':
                 urlString = urls[1]
             else:
-                urlString = "Read-write: %s\nRead-only: %s\n" % (urls[0],
+                urlString = "View and Edit: %s\nView-only: %s\n" % (urls[0],
                                                                  urls[1])
             wx.TheClipboard.SetData(wx.TextDataObject(unicode(urlString)))
             wx.TheClipboard.Close()
