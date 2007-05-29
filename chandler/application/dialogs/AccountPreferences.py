@@ -1,4 +1,4 @@
-# Copyright (c) 2003-2007 Open Source Applications Foundation
+#: Copyright (c) 2003-2007 Open Source Applications Foundation
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -38,11 +38,6 @@ from AccountPreferencesDialogs import MailTestDialog, \
 from osaf.framework import password
 
 
-hub_hostname = "hub.chandlerproject.org"
-hub_path = "/"
-hub_port = 443
-hub_use_ssl = True
-
 
 # Localized messages displayed in dialogs
 
@@ -53,7 +48,7 @@ REMOVE_TEXT = _(u"Remove")
 FIELDS_REQUIRED = _(u"The following fields are required:\n\n\tServer\n\tUser name\n\tPassword\n\tPort\n\n\nPlease correct the error and try again.")
 FIELDS_REQUIRED_ONE = _(u"The following fields are required:\n\n\tServer\n\tPort\n\n\nPlease correct the error and try again.")
 FIELDS_REQUIRED_TWO = _(u"The following fields are required:\n\n\tServer\n\tPath\n\tUser name\n\tPassword\n\tPort\n\n\nPlease correct the error and try again.")
-FIELDS_REQUIRED_THREE = _(u"The following fields are required:\n\n\tUser name\n\tPassword\n\tPort\n\n\nPlease correct the error and try again.")
+FIELDS_REQUIRED_THREE = _(u"The following fields are required:\n\n\tUser name\n\tPassword\n\n\nPlease correct the error and try again.")
 
 HOST_REQUIRED  = _(u"Auto-configure requires a server name.")
 
@@ -135,8 +130,7 @@ def IncomingSaveHandler(item, fields, values):
 
 
 def IncomingDeleteHandler(item, values, data):
-    ns_pim = schema.ns('osaf.pim', item.itsView)
-    return not item == ns_pim.currentIncomingAccount.item
+    return True
 
 def OutgoingSaveHandler(item, fields, values):
     newAddressString = values['OUTGOING_FROM']
@@ -153,12 +147,10 @@ def OutgoingSaveHandler(item, fields, values):
                 # item is complete.
 
 def OutgoingDeleteHandler(item, values, data):
-    ns_pim = schema.ns('osaf.pim', item.itsView)
-    return not item == ns_pim.currentOutgoingAccount.item
+    return True
 
 def SharingDeleteHandler(item, values, data):
-    sharing_ns = schema.ns('osaf.sharing', item.itsView)
-    return not item == sharing_ns.currentSharingAccount.item
+    return not len(getattr(item, 'conduits', []))
 
 # Used to map form fields to item attributes:
 PANELS = {
@@ -314,18 +306,6 @@ PANELS = {
                 "attr" : "password",
                 "type" : "password",
             },
-            "HUBSHARING_PORT" : {
-                "attr" : "port",
-                "type" : "integer",
-                "default": 443,
-                "required" : True,
-            },
-            "HUBSHARING_USE_SSL" : {
-                "attr" : "useSSL",
-                "type" : "boolean",
-                "linkedTo" :
-                        ("HUBSHARING_PORT", { True:"443", False:"80" }),
-            },
         },
         "id" : "HUBSHARINGPanel",
         "order": 2,
@@ -434,7 +414,7 @@ class AccountPreferencesDialog(wx.Dialog):
 
     def __init__(self, title, size=wx.DefaultSize,
          pos=wx.DefaultPosition, style=wx.DEFAULT_DIALOG_STYLE, resources=None,
-         account=None, rv=None, modal=True):
+         account=None, rv=None, modal=True, create=None):
 
         wx.Dialog.__init__(self, wx.GetApp().mainFrame, -1, title, pos, size,
                            style)
@@ -482,6 +462,8 @@ class AccountPreferencesDialog(wx.Dialog):
 
 
             self.panels[key].Hide()
+
+        self.defaultPanel = self.resources.LoadPanel(self, "DEFAULTPanel")
 
         # These are wxHyperlinkCtrl widgets
         self.folderLink = wx.xrc.XRCCTRL(self, "INCOMING_FOLDERS_VERBAGE2")
@@ -549,6 +531,10 @@ class AccountPreferencesDialog(wx.Dialog):
         # If the user deletes an account, its data will be moved here:
         self.deletions = [ ]
 
+        # Keep track of accounts created during this session so "Cancel"
+        # can delete them
+        self.creations = set()
+
         self.__PopulateAccountsList(account)
 
         self.Bind(wx.EVT_CHOICE, self.OnToggleIncomingProtocol,
@@ -578,6 +564,9 @@ class AccountPreferencesDialog(wx.Dialog):
         # text field (without this, on the mac, tabbing doesn't work)
         self.accountsList.SetFocus()
 
+        if create:
+            self.CreateNewAccount(create)
+
     def isDefaultAccount(self, item):
         isDefault = False
 
@@ -589,12 +578,6 @@ class AccountPreferencesDialog(wx.Dialog):
             ns_pim = schema.ns('osaf.pim', item.itsView)
             isDefault = item == ns_pim.currentOutgoingAccount.item
 
-        elif item.accountType in ("SHARING_DAV", "SHARING_MORSECODE",
-            "SHARING_HUB"):
-            sharing_ns = schema.ns('osaf.sharing', item.itsView)
-
-            isDefault = item == sharing_ns.currentSharingAccount.item
-
         return isDefault
 
     def getDefaultAccounts(self):
@@ -602,31 +585,34 @@ class AccountPreferencesDialog(wx.Dialog):
 
         incoming  = ns_pim.currentIncomingAccount.item
         outgoing  = ns_pim.currentOutgoingAccount.item
-        sharingAccount = sharing.getDefaultAccount(self.rv)
-        if sharingAccount is None:
-            sharingAccount = sharing.createDefaultAccount(self.rv)
+        return (incoming, outgoing)
 
-        return (incoming, outgoing, sharingAccount)
-
-
-    def getAccountName(self, item):
-        if self.isDefaultAccount(item):
-            return _(u"%(accountName)s (Default)") % \
-                       {'accountName': item.displayName}
-
-        return item.displayName
 
     def selectAccount(self, accountIndex):
-        self.accountsList.SetSelection(accountIndex)
-        self.__SwapDetailPanel(accountIndex)
-
-        item = self.rv.findUUID(self.data[accountIndex]['item'])
 
         delButton = wx.xrc.XRCCTRL(self, "BUTTON_DELETE")
+        testButton = wx.xrc.XRCCTRL(self, "ACCOUNT_TEST")
 
-        #Disable the delete button if the account is the
-        #default.
-        delButton.Enable(not self.isDefaultAccount(item))
+        if accountIndex != -1:
+
+            self.accountsList.SetSelection(accountIndex)
+            self.__SwapDetailPanel(accountIndex)
+
+            item = self.rv.findUUID(self.data[accountIndex]['item'])
+
+            # Disable the delete button if the delete handler says to
+
+            deleteHandler = PANELS[item.accountType]['deleteHandler']
+            canDelete = deleteHandler(item, self.data[accountIndex]['values'],
+                self.data)
+            delButton.Enable(canDelete)
+            testButton.Enable(True)
+
+        else: # no account
+
+            delButton.Enable(False)
+            testButton.Enable(False)
+            self.__SwapDetailPanel(-1)
 
 
     def __PopulateAccountsList(self, account):
@@ -639,23 +625,23 @@ class AccountPreferencesDialog(wx.Dialog):
         accountIndex = 0 # which account to select first
         accounts = []
 
-        #add the default accounts first
-        for item in self.getDefaultAccounts():
-            accounts.append(item)
+        if False:
+            #add the default accounts first
+            for item in self.getDefaultAccounts():
+                accounts.append(item)
 
         for cls in (Mail.IMAPAccount, Mail.POPAccount, Mail.SMTPAccount):
             for item in cls.iterItems(self.rv):
-                if item.isActive and hasattr(item, 'displayName') and \
-                    not self.isDefaultAccount(item):
+                if item.isActive and hasattr(item, 'displayName'):
                     accounts.append(item)
 
         for item in sharing.SharingAccount.iterItems(self.rv):
-            if hasattr(item, 'displayName') and not \
-               self.isDefaultAccount(item):
+            if hasattr(item, 'displayName'):
                 accounts.append(item)
 
         i = 0
 
+        accounts = sorted(accounts, key = lambda x: x.displayName.lower())
         for item in accounts:
             # If an account was passed in, remember its index so we can
             # select it
@@ -709,25 +695,28 @@ class AccountPreferencesDialog(wx.Dialog):
             self.data.append( { "item"   : item.itsUUID,
                                 "values" : values,
                                 "type"   : item.accountType,
-                                "protocol": item.accountProtocol,
-                                "isNew"  : False } )
+                                "protocol": item.accountProtocol } )
 
-            self.accountsList.Append(self.getAccountName(item))
+
+            self.accountsList.Append(item.displayName)
 
             i += 1
             # End of account loop
 
         if i > 0:
             self.selectAccount(accountIndex)
+        else:
+            self.selectAccount(-1)
 
 
     def __ApplyChanges(self):
         """ Take the data from the list and apply the values to the items. """
 
         # First store the current form values to the data structure
-        self.__StoreFormData(self.currentPanelType,
-                             self.currentPanel,
-                             self.data[self.currentIndex]['values'])
+        if self.currentIndex is not None:
+            self.__StoreFormData(self.currentPanelType,
+                                 self.currentPanel,
+                                 self.data[self.currentIndex]['values'])
 
         if DEBUG:
             counter = 0
@@ -848,22 +837,16 @@ class AccountPreferencesDialog(wx.Dialog):
                 item.delete(recursive=True)
 
     def __ApplyCancellations(self):
-        self.__StoreFormData(self.currentPanelType,
-                             self.currentPanel,
-                             self.data[self.currentIndex]['values'])
+        if self.currentIndex is not None:
+            self.__StoreFormData(self.currentPanelType,
+                                 self.currentPanel,
+                                 self.data[self.currentIndex]['values'])
 
         # The only thing we need to do on Cancel is to remove any account items
         # we created this session:
 
         for account in self.data:
-            if account['isNew']:
-                uuid = account['item']
-                item = self.rv.findUUID(uuid)
-                if hasattr(item, 'password'):
-                    item.password.delete()
-                item.delete(recursive=True)
-
-            elif account['type'] == "INCOMING":
+            if account['type'] == "INCOMING":
                 #If there are pending changes on Chandler IMAP Folders
                 # that have already been carried out on the server then
                 # we need to store those changed values even on a cancel
@@ -885,12 +868,19 @@ class AccountPreferencesDialog(wx.Dialog):
                 elif action == "REMOVE" and self.hasChandlerFolders(item):
                     self.removeChandlerFolders(item)
 
+        for item in list(self.creations):
+            if hasattr(item, 'password'):
+                item.password.delete()
+            item.delete(recursive=True)
+
+
     def __Validate(self):
         # Call any custom validation handlers that might be defined
 
         # First store the current form values to the data structure
-        self.__StoreFormData(self.currentPanelType, self.currentPanel,
-         self.data[self.currentIndex]['values'])
+        if self.currentIndex is not None:
+            self.__StoreFormData(self.currentPanelType, self.currentPanel,
+                self.data[self.currentIndex]['values'])
 
         i = 0
 
@@ -953,10 +943,19 @@ class AccountPreferencesDialog(wx.Dialog):
              self.data[self.currentIndex]['values'])
 
             self.accountsList.SetString(self.currentIndex,
-                                        self.__GetDisplayName(self.currentIndex))
+                self.__GetDisplayName(self.currentIndex))
 
+        if self.currentPanel:
             self.innerSizer.Detach(self.currentPanel)
             self.currentPanel.Hide()
+
+        if index == -1:
+            # show the default panel
+            self.innerSizer.Add(self.defaultPanel, 0, wx.ALIGN_TOP|wx.ALL, 5)
+            self.defaultPanel.Show()
+            self.currentPanel = self.defaultPanel
+            self.resizeLayout()
+            return
 
         self.currentIndex = index
         self.currentPanelType = self.data[index]['type']
@@ -1257,28 +1256,11 @@ class AccountPreferencesDialog(wx.Dialog):
 #            else:
 #                raise ValueError('Unhandled valueType ' + valueType)
 
-    def autoDefaultSharingAccount(self):
-        # Since the user is no longer allowed to specify a default sharing
-        # account explicitly, let's at least try the next best thing which
-        # is to take a guess.  Out of the box there is a DAV sharing account
-        # as the default, and it has no username.  If we're still
-        # pointing to this shell of an account on dismissal of this dialog,
-        # look for another sharing account to set as the default.
-        ref = schema.ns('osaf.sharing', self.rv).currentSharingAccount
-        account = ref.item
-        if not account.username:
-            for account in sharing.SharingAccount.iterItems(self.rv):
-                if account.displayName and account.username:
-                    ref.item = account
-                    break
-
 
     def OnOk(self, evt):
         if self.__Validate():
             self.__ApplyChanges()
             self.__ApplyDeletions()
-
-            self.autoDefaultSharingAccount()
 
             if self.modal:
                 self.EndModal(True)
@@ -1308,7 +1290,6 @@ class AccountPreferencesDialog(wx.Dialog):
 
         currentOutgoing = ns_pim.currentOutgoingAccount.item
         currentIncoming = ns_pim.currentIncomingAccount.item
-        currentSharing =  sharing_ns.currentSharingAccount.item
 
         for account in self.data:
             item = self.rv.findUUID(account['item'])
@@ -1324,9 +1305,6 @@ class AccountPreferencesDialog(wx.Dialog):
                 "SHARING_HUB"):
                 buf.append("useSSL: %s" % item.useSSL)
                 buf.append("path: %s" % item.path)
-
-                if item == currentSharing:
-                    buf.append("CURRENT: True")
 
 
             elif item.accountType == "INCOMING":
@@ -1547,6 +1525,10 @@ class AccountPreferencesDialog(wx.Dialog):
 
         accountType = self.choiceNewType.GetClientData(selection)
         self.choiceNewType.SetSelection(0)
+        self.CreateNewAccount(accountType)
+
+
+    def CreateNewAccount(self, accountType):
 
         if accountType == "INCOMING":
             item = Mail.IMAPAccount(itsView=self.rv)
@@ -1570,6 +1552,8 @@ class AccountPreferencesDialog(wx.Dialog):
             p = "Morsecode"
 
         item.displayName = a
+
+        self.creations.add(item)
 
         values = { }
 
@@ -1602,7 +1586,7 @@ class AccountPreferencesDialog(wx.Dialog):
                             "protocol" : p,
                             "isNew" : True } )
 
-        index = self.accountsList.Append(self.getAccountName(item))
+        index = self.accountsList.Append(item.displayName)
         self.selectAccount(index)
 
 
@@ -1613,8 +1597,9 @@ class AccountPreferencesDialog(wx.Dialog):
     def OnDeleteAccount(self, evt):
         # First, make sure any values that have been modified in the form
         # are stored:
-        self.__StoreFormData(self.currentPanelType, self.currentPanel,
-                             self.data[self.currentIndex]['values'])
+        if self.currentIndex != None:
+            self.__StoreFormData(self.currentPanelType, self.currentPanel,
+                                 self.data[self.currentIndex]['values'])
 
         index = self.accountsList.GetSelection()
         item = self.rv.findUUID(self.data[index]['item'])
@@ -1629,7 +1614,7 @@ class AccountPreferencesDialog(wx.Dialog):
             self.innerSizer.Detach(self.currentPanel)
             self.currentPanel.Hide()
             self.currentIndex = None
-            self.selectAccount(0)
+            self.selectAccount(-1)
 
     def OnTestAccount(self, evt):
         account = self.getSelectedAccount()
@@ -1648,7 +1633,7 @@ class AccountPreferencesDialog(wx.Dialog):
         elif account.accountType  == "SHARING_MORSECODE":
             self.OnTestSharingMorsecode()
         elif account.accountType  == "SHARING_HUB":
-            self.OnTestSharingHub()
+            self.OnTestSharingHub(account)
         else:
             # If this code is reached then there is a
             # bug which needs to be fixed.
@@ -1902,35 +1887,24 @@ class AccountPreferencesDialog(wx.Dialog):
         SharingTestDialog(self, displayName, host, port, path, username,
                           pw, useSSL, self.rv, morsecode=True)
 
-    def OnTestSharingHub(self):
+    def OnTestSharingHub(self, account):
         self.__StoreFormData(self.currentPanelType, self.currentPanel,
                              self.data[self.currentIndex]['values'])
 
         data = self.data[self.currentIndex]['values']
 
         displayName = data["HUBSHARING_DESCRIPTION"]
-        host = hub_hostname
-        port = data['HUBSHARING_PORT']
-        useSSL = data['HUBSHARING_USE_SSL']
-        path = hub_path
+        host = account.host
+        port = account.port
+        useSSL = account.useSSL
+        path = account.path
         username = data['HUBSHARING_USERNAME']
         try:
             pw = waitForDeferred(data['HUBSHARING_PASSWORD'].decryptPassword(window=self))
         except password.NoMasterPassword:
             pw = u''
 
-        error = False
-
         if len(username.strip()) == 0 or len(pw.strip()) == 0:
-            error = True
-
-        try:
-            # Test that the port value is an integer
-            int(port)
-        except:
-            error = True
-
-        if error:
             return alertError(FIELDS_REQUIRED_THREE, self)
 
         SharingTestDialog(self, displayName, host, port, path, username,
@@ -2092,7 +2066,8 @@ class AccountPreferencesDialog(wx.Dialog):
                account.folders.remove(folder)
                folder.delete()
 
-def ShowAccountPreferencesDialog(account=None, rv=None, modal=True):
+def ShowAccountPreferencesDialog(account=None, rv=None, modal=True,
+    create=None):
 
     # Parse the XRC resource file:
     xrcFile = os.path.join(Globals.chandlerDirectory,
@@ -2105,7 +2080,7 @@ def ShowAccountPreferencesDialog(account=None, rv=None, modal=True):
 
     # Display the dialog:
     win = AccountPreferencesDialog(_(u"Account Preferences"),
-     resources=resources, account=account, rv=rv, modal=modal)
+     resources=resources, account=account, rv=rv, modal=modal, create=create)
 
     win.CenterOnParent()
 

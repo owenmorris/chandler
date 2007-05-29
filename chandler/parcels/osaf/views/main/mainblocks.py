@@ -214,7 +214,6 @@ def makeMainView(parcel):
             main.RequestSelectSidebarItem,
             main.SendMail,
             main.SelectedDateChanged,
-            main.ShareItem,
             main.DayMode,
             main.ApplicationBarEvent,
             main.ApplicationBarTask,

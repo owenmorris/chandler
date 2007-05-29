@@ -350,9 +350,6 @@ def makeMainEvents(parcel):
                         commitAfterDispatch = True,
                         dispatchEnum = 'FocusBubbleUp').install(parcel)
 
-    BlockEvent.template('ShareItem',
-                        commitAfterDispatch = True).install(parcel)
-                  
     BlockEvent.template('SelectedDateChanged',
                         dispatchEnum = 'BroadcastEverywhere').install(parcel)
     

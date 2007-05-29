@@ -56,10 +56,10 @@ class RestoreSharesDialog(wx.Dialog):
         self.gauge = wx.xrc.XRCCTRL(self, "GAUGE")
         self.gauge.SetRange(100)
 
-        self.currentAccount = sharing.getDefaultAccount(self.view)
         self.choiceAccounts.Clear()
         accounts = sorted(sharing.SharingAccount.iterItems(view),
                           key = lambda x: x.displayName.lower())
+        self.currentAccount = accounts[0]
 
         for account in accounts:
             newIndex = self.choiceAccounts.Append(account.displayName)

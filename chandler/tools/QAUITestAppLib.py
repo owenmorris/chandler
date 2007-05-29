@@ -1448,16 +1448,7 @@ class UITestAccounts:
 
             item = self.window.rv.findUUID(account['item'])
 
-            if type in ("SHARING_DAV", "SHARING_MORSECODE", "SHARING_HUB"):
-                sharing_ns = schema.ns('osaf.sharing', item.itsView)
-
-                if item != sharing_ns.currentSharingAccount.item:
-                    continue
-
-                self.window.selectAccount(pos)
-                break
-
-            elif type == "OUTGOING":
+            if type == "OUTGOING":
                 ns_pim = schema.ns('osaf.pim', item.itsView)
 
                 if item != ns_pim.currentOutgoingAccount.item:

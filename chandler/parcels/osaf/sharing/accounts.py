@@ -124,8 +124,11 @@ class SharingAccount(pim.ContentItem):
         for account in cls.iterItems(view):
             # Does this account's url info match?
             accountPath = account.path.strip('/')
-            if account.useSSL == useSSL and account.host == host and \
-               account.port == port and path.startswith(accountPath):
+            if (account.isSetUp() and
+                account.useSSL == useSSL and
+                account.host == host and
+                account.port == port and
+                path.startswith(accountPath)):
                 return account
 
         return None

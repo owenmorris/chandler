@@ -70,11 +70,6 @@ class SubscribeDialog(wx.Dialog):
         self.textUrl = wx.xrc.XRCCTRL(self, "TEXT_URL")
         if url is not None:
             self.textUrl.SetValue(url)
-        else:
-            account = sharing.getDefaultAccount(self.view)
-            if account:
-                url = account.getLocation()
-                self.textUrl.SetValue(url)
 
         self.Bind(wx.EVT_TEXT, self.OnTyping, self.textUrl)
 

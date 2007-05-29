@@ -17,7 +17,7 @@ from osaf import pim
 from osaf.pim import mail
 from osaf.sharing import (
     eim, model, shares, utility, accounts, conduits, cosmo, webdav_conduit,
-    recordset_conduit, eimml
+    recordset_conduit, eimml, ootb
 )
 from PyICU import ICUtzinfo
 import os
@@ -2183,30 +2183,6 @@ class DumpTranslator(SharingTranslator):
 
 
 
-    @model.SharePrefsRecord.importer
-    def import_sharing_prefs(self, record):
-
-        if record.currentAccount:
-            @self.withItemForUUID(record.currentAccount,
-                accounts.SharingAccount)
-            def set_current(account):
-                ref = schema.ns("osaf.sharing", self.rv).currentSharingAccount
-                ref.item = account
-
-
-    # Called from finishExport()
-    def export_sharing_prefs(self):
-
-        ref = schema.ns("osaf.sharing", self.rv).currentSharingAccount
-        # Personal parcel items don't get dumped, so skip dumping the
-        # current account uuid if it lives in //parcels
-        if ref.item is None or str(ref.item.itsPath).startswith("//parcels"):
-            currentAccount = ""
-        else:
-            currentAccount = ref.item.itsUUID.str16()
-
-        yield model.SharePrefsRecord(currentAccount)
-
 
 
 
@@ -2587,7 +2563,19 @@ class DumpTranslator(SharingTranslator):
         )
 
 
+
+
+
+
+
+
     # - - Finishing up - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+    def finishImport(self):
+        super(DumpTranslator, self).finishImport()
+        ootb.prepareAccounts(self.rv)
+
+
     def finishExport(self):
         for record in super(DumpTranslator, self).finishExport():
             yield record
@@ -2604,10 +2592,6 @@ class DumpTranslator(SharingTranslator):
 
 
         if not self.obfuscation:
-
-            # sharing
-            for record in self.export_sharing_prefs():
-                yield record
 
             # mail
             for record in self.export_mail_prefs():

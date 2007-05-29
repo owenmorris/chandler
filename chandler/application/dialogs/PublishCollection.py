@@ -121,15 +121,15 @@ class PublishCollectionDialog(wx.Dialog):
 
         collName = self.collection.displayName
 
-        if self.account: # use this account overriding the default
-            self.currentAccount = self.account
-        else:
-            self.currentAccount = sharing.getDefaultAccount(self.view)
-
         # Populate the listbox of sharing accounts
         self.accounts = self._getSharingAccounts()
         self.accountsControl = wx.xrc.XRCCTRL(self, "CHOICE_ACCOUNT")
         self.accountsControl.Clear()
+
+        if self.account:
+            self.currentAccount = self.account
+        else:
+            self.currentAccount = self.accounts[0]
 
         for account in self.accounts:
             newIndex = self.accountsControl.Append(account.displayName)

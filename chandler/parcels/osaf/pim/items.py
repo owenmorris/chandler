@@ -450,11 +450,12 @@ class ContentItem(Triageable):
         me = self.getCurrentMeEmailAddress()
         if not me: # Email not configured...
             # Get the user name associated with the default sharing account
-            sharingAccount = schema.ns('osaf.sharing', self.itsView).\
-                             currentSharingAccount.item
+            import osaf.sharing # hmm, this import seems wrong
+            sharingAccount = osaf.sharing.getDefaultAccount(self.itsView)
             if sharingAccount is not None:
                 import mail
-                me = mail.EmailAddress.getEmailAddress(self.itsView, sharingAccount.username)
+                me = mail.EmailAddress.getEmailAddress(self.itsView,
+                    sharingAccount.username)
         return me
 
 

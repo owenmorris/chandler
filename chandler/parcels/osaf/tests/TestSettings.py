@@ -65,9 +65,7 @@ class SettingsTestCase(testcase.SingleRepositoryTestCase):
 
         # verify accounts
 
-        # Get the current Sharing account which should be
-        # the "Test Sharing Service" account
-        act = schema.ns("osaf.sharing", rv).currentSharingAccount.item
+        act = rv.findUUID(UUID("1bfc2a92-53eb-11db-9367-d2f16e571a02"))
         self.assert_(act)
         self.assert_(isinstance(act, sharing.CosmoAccount))
         self.assertEquals(act.displayName, "Test Sharing Service")

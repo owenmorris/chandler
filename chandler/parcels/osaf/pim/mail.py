@@ -629,7 +629,8 @@ def getCurrentOutgoingAccount(view, ignorePassword=False):
     outgoingAccount = None
 
     # Get the current SMTP Account
-    outgoingAccount = schema.ns('osaf.pim', view).currentOutgoingAccount.item
+    ref = schema.ns('osaf.pim', view).currentOutgoingAccount
+    outgoingAccount = getattr(ref, 'item', None)
 
     if outgoingAccount is None or not outgoingAccount.isSetUp(ignorePassword):
         for account in OutgoingAccount.iterItems(view):
@@ -646,7 +647,8 @@ def getCurrentIncomingAccount(view, ignorePassword=False):
 
     @return C{IncomingAccount} or None
     """
-    incomingAccount = schema.ns('osaf.pim', view).currentIncomingAccount.item
+    ref = schema.ns('osaf.pim', view).currentIncomingAccount
+    incomingAccount = getattr(ref, 'item', None)
 
     if incomingAccount is None or not incomingAccount.isSetUp(ignorePassword):
         for account in IncomingAccount.iterItems(view):

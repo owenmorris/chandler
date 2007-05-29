@@ -44,7 +44,6 @@ def save(rv, filename):
     cfg.filename = filename
     
     # Sharing accounts
-    currentAccount = schema.ns("osaf.sharing", rv).currentSharingAccount.item
     counter = 1
     for account in sharing.SharingAccount.iterItems(rv):
         if account.username: # skip account if not configured
@@ -64,8 +63,6 @@ def save(rv, filename):
             savePassword(cfg[section_name], account.password)
             cfg[section_name][u"port"] = account.port
             cfg[section_name][u"usessl"] = account.useSSL
-            if account is currentAccount:
-                cfg[section_name][u"default"] = u"True"
             counter += 1
             
     # Subscriptions
@@ -275,12 +272,6 @@ def restore(rv, filename, testmode=False, newMaster=''):
                         withInitialValues=True)
                     account.password = password.Password(itsView=rv,
                                                          itsParent=account)
-
-            if section.has_key(u"default") and section.as_bool(u"default"):
-                # Don't allow webdav accounts to be the default
-                if sectiontype != u"webdav account":
-                    schema.ns("osaf.sharing",
-                        rv).currentSharingAccount.item = account
 
             account.displayName = section[u"title"]
             account.host = section[u"host"]

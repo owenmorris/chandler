@@ -54,6 +54,7 @@ from cosmo import *
 from itemcentric import *
 from ics import *
 from serialize import *
+from ootb import *
 from viewpool import *
 
 
@@ -112,6 +113,9 @@ def installParcel(parcel, oldVersion=None):
 
     SharingPreferences.update(parcel, "prefs")
 
+    # Even though we're not using this at the moment, I'm leaving it here
+    # because people's personal parcels refer to this and we'll probably
+    # resurrect this someday:
     Reference.update(parcel, 'currentSharingAccount')
 
     SyncPeriodicTask.update(parcel, "sharingTask",
@@ -132,9 +136,9 @@ def installParcel(parcel, oldVersion=None):
         displayName = 'Unpublished Freebusy Events'
     )
 
-    
+
     # Make a collection of all Notes with an icalUID, so that
-    # we can index it.    
+    # we can index it.
     filterAttribute = pim.Note.icalUID.name
     iCalendarItems = FilteredCollection.update(parcel, 'iCalendarItems',
         source=pim_ns.noteCollection,
@@ -142,32 +146,24 @@ def installParcel(parcel, oldVersion=None):
         filterAttributes=[filterAttribute])
     iCalendarItems.addIndex('icalUID', 'value', attribute=filterAttribute)
 
+    if not Globals.options.reload:
+        prepareAccounts(parcel.itsView)
+
+
+
 def getDefaultAccount(rv):
-    cur = schema.ns('osaf.sharing', rv).currentSharingAccount
-    account = cur.item
-    if account and account.isSetUp():
-        return account
+    # At the moment we're not using currentSharingAccount and don't have a
+    # notion of a "default" sharing account, so just go through the list
+    # and grab one.
+
     # Give preference to Cosmo accounts
     for account in CosmoAccount.iterItems(rv):
         if account.isSetUp():
-            cur.item = account
             return account
     for account in WebDAVAccount.iterItems(rv):
         if account.isSetUp():
-            cur.item = account
             return account
     return None
-
-
-def createDefaultAccount(rv):
-    cur = schema.ns('osaf.sharing', rv).currentSharingAccount
-    if cur.item is None:
-        cur.item = HubAccount(itsView=rv,
-            displayName=_(u'Chandler Hub sharing'),
-            username=u'', password=Password(itsView=rv),
-        )
-
-    return cur.item
 
 
 def isSharingSetUp(view):
@@ -1314,7 +1310,14 @@ def subscribeICS(view, url, inspection, activity=None,
 def subscribeMorsecode(view, url, morsecodeUrl, inspection, activity=None,
     account=None, username=None, password=None, filters=None):
 
-    shareMode = 'both' if inspection['priv:write'] else 'get'
+    # Get the user-facing sharePath from url, e.g.  "/cosmo/pim/collection"
+    (scheme, useSSL, host, port, path, query, fragment, ticket, sharePath,
+        shareName) = splitUrl(url)
+
+    if not ticket:
+        shareMode = 'both'
+    else:
+        shareMode = 'both' if inspection['priv:write'] else 'get'
 
     share = Share(itsView=view)
     share.mode = shareMode
@@ -1538,8 +1541,8 @@ def _newOutboundShare(view, collection, classesToInclude=None, shareName=None,
     """
 
     if account is None:
-        # Find the default WebDAV account
-        account = schema.ns('osaf.sharing', view).currentSharingAccount.item
+        # Find a sharing account
+        account = getDefaultAccount(view)
         if account is None:
             return None
 
@@ -1724,9 +1727,13 @@ def ensureAccountSetUp(view, sharing=False, inboundMail=False,
             msg += _(u" - SMTP (outbound email)\n")
         msg += _(u"\nWould you like to enter account information now?")
 
-        response = wx.MessageBox(msg, _(u"Account set up"), style = wx.YES_NO, parent=parent) == wx.YES
+        response = wx.MessageBox(msg, _(u"Account set up"), style = wx.YES_NO,
+            parent=parent) == wx.YES
         if response == False:
             return False
+
+        account = None
+        create = None
 
         if not IncomingMailReady:
             account = pim.mail.getCurrentIncomingAccount(view)
@@ -1734,10 +1741,16 @@ def ensureAccountSetUp(view, sharing=False, inboundMail=False,
             """ Returns the default SMTP Account or None"""
             account = pim.mail.getCurrentOutgoingAccount(view)
         else:
-            account = schema.ns('osaf.sharing', view).currentSharingAccount.item
+            # Sharing is not set up, so grab an account
+            accounts = list(SharingAccount.iterItems(view))
+            if len(accounts) == 0:
+                create = "SHARING_HUB"
+            else:
+                account = accounts[0]
+
 
         response = dialogs.AccountPreferences.ShowAccountPreferencesDialog(
-            account=account, rv=view)
+            account=account, rv=view, create=create)
 
         if response == False:
             return False
