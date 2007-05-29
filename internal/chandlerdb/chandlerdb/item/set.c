@@ -32,6 +32,7 @@ static PyObject *t_set_new(PyTypeObject *type,
 static int t_set_init(t_set *self, PyObject *args, PyObject *kwds);
 static PyObject *t_set_repr(t_set *self);
 static PyObject *t_set_str(t_set *self);
+static long t_set_hash(t_set *self);
 static PyObject *t_set_iter(t_set *self);
 
 static PyObject *t_set_add(t_set *self, PyObject *args);
@@ -145,7 +146,7 @@ static PyTypeObject SetType = {
     &t_set_as_number,                          /* tp_as_number */
     &t_set_as_sequence,                        /* tp_as_sequence */
     0,                                         /* tp_as_mapping */
-    0,                                         /* tp_hash  */
+    (hashfunc)t_set_hash,                      /* tp_hash  */
     0,                                         /* tp_call */
     (reprfunc)t_set_str,                       /* tp_str */
     0,                                         /* tp_getattro */
@@ -266,6 +267,11 @@ static PyObject *t_set_repr(t_set *self)
 static PyObject *t_set_str(t_set *self)
 {
     return PyObject_Str(self->set);
+}
+
+static long t_set_hash(t_set *self)
+{
+    return PyObject_Hash(self->set);
 }
 
 

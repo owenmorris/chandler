@@ -27,6 +27,7 @@ static PyObject *t_sequence_new(PyTypeObject *type,
 static int t_sequence_init(t_sequence *self, PyObject *args, PyObject *kwds);
 static PyObject *t_sequence_repr(t_sequence *self);
 static PyObject *t_sequence_str(t_sequence *self);
+static long t_sequence_hash(t_sequence *self);
 static PyObject *t_sequence_iter(t_sequence *self);
 static PyObject *t_sequence_richcompare(t_sequence *self, PyObject *value,
                                         int op);
@@ -116,7 +117,7 @@ static PyTypeObject SequenceType = {
     0,                                         /* tp_as_number */
     &t_sequence_as_sequence,                   /* tp_as_sequence */
     &t_sequence_as_mapping,                    /* tp_as_mapping */
-    0,                                         /* tp_hash  */
+    (hashfunc)t_sequence_hash,                 /* tp_hash  */
     0,                                         /* tp_call */
     (reprfunc)t_sequence_str,                  /* tp_str */
     0,                                         /* tp_getattro */
@@ -238,6 +239,10 @@ static PyObject *t_sequence_str(t_sequence *self)
     return PyObject_Str(self->sequence);
 }
 
+static long t_sequence_hash(t_sequence *self)
+{
+    return PyObject_Hash(self->sequence);
+}
 
 static PyObject *_restoreValue(t_sequence *self, PyObject *value)
 {

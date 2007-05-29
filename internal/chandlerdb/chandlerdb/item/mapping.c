@@ -32,6 +32,7 @@ static PyObject *t_mapping_new(PyTypeObject *type,
 static int t_mapping_init(t_mapping *self, PyObject *args, PyObject *kwds);
 static PyObject *t_mapping_repr(t_mapping *self);
 static PyObject *t_mapping_str(t_mapping *self);
+static long t_mapping_hash(t_mapping *self);
 static PyObject *t_mapping_iter(t_mapping *self);
 
 static PyObject *t_mapping_get(t_mapping *self, PyObject *args);
@@ -110,7 +111,7 @@ static PyTypeObject MappingType = {
     0,                                         /* tp_as_number */
     &t_mapping_as_sequence,                    /* tp_as_sequence */
     &t_mapping_as_mapping,                     /* tp_as_mapping */
-    0,                                         /* tp_hash  */
+    (hashfunc)t_mapping_hash,                  /* tp_hash  */
     0,                                         /* tp_call */
     (reprfunc)t_mapping_str,                   /* tp_str */
     0,                                         /* tp_getattro */
@@ -232,6 +233,10 @@ static PyObject *t_mapping_str(t_mapping *self)
     return PyObject_Str(self->mapping);
 }
 
+static long t_mapping_hash(t_mapping *self)
+{
+    return PyObject_Hash(self->mapping);
+}
 
 static PyObject *_restoreValue(t_mapping *self, PyObject *value)
 {
