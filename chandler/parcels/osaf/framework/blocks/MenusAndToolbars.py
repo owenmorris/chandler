@@ -276,7 +276,7 @@ class wxMenuBar (wxBaseContainer, wx.MenuBar):
     
     def InsertItem (self, position, menuItem):
         subMenu = menuItem.GetSubMenu()
-        self.Insert (position, subMenu, menuItem.GetText())
+        self.Insert (position, subMenu, menuItem.blockItem.title)
     
     def Destroy(self):
         """
