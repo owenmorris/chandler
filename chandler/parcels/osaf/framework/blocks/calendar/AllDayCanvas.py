@@ -20,7 +20,7 @@ import wx
 from application import schema
 from datetime import timedelta
 from CalendarCanvas import (
-    CalendarCanvasItem, CalendarBlock, CalendarSelection,
+    CalendarCanvasItem, CalendarCanvasBlock, CalendarSelection,
     wxCalendarCanvas, wxInPlaceEditor
     )
 from osaf.framework.blocks.Block import BaseWidget
@@ -115,7 +115,7 @@ class SparseMatrix(object):
         return self.maxX - x + 1
         
     
-class AllDayEventsCanvas(CalendarBlock):
+class AllDayEventsCanvas(CalendarCanvasBlock):
 
     def instantiateWidget(self):
         super(AllDayEventsCanvas, self).instantiateWidget()

@@ -19,7 +19,7 @@ import wx
 from application import schema
 from datetime import datetime, timedelta, date, time
 from CalendarCanvas import (
-    CalendarCanvasItem, CalendarBlock, CalendarSelection,
+    CalendarCanvasItem, CalendarCanvasBlock, CalendarSelection,
     wxCalendarCanvas, roundTo,
     wxInPlaceEditor
     )
@@ -39,7 +39,7 @@ from application.dialogs import RecurrenceDialog
 
 IS_MAC = wx.Platform == "__WXMAC__"
 
-class TimedEventsCanvas(CalendarBlock):
+class TimedEventsCanvas(CalendarCanvasBlock):
     from CalendarBlocks import MiniCalendar
     
     miniCalendar = schema.One(inverse=MiniCalendar.calendarView,

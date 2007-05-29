@@ -23,7 +23,7 @@ import bisect
 #import application.Globals as Globals
 from osaf.pim.calendar.TimeZone import TimeZoneInfo
 
-def pickTimeZone(view):
+def pickTimeZone(view, changeDefaultTZ=False):
     dlg = TimeZoneChooser(view)
     ret = dlg.ShowModal()
     if ret == wx.ID_OK:
@@ -53,24 +53,33 @@ def pickTimeZone(view):
                 newTZname = name
                 if name not in wellKnowns:
                     wellKnowns.insert(getInsertIndex(name), name)
-                if newTZ != table.info.default:
+                if changeDefaultTZ and newTZ != table.info.default:
                     table.info.default = newTZ
+
 
         # pick a new default TZ if the default should be removed, because
         # attempting to remove the default from wellKnowns doesn't work
-        if newTZname is None and table.info.default.tzid in table.changed:
+        if (newTZname is None and changeDefaultTZ and 
+            table.info.default.tzid in table.changed):
             newdefault = None
             for tzid in wellKnowns:
                 if tzid not in table.changed:
                     newdefault = tzid
                     break
             if newdefault is not None:
-                table.info.default = PyICU.ICUtzinfo.getInstance(newdefault)
-        
+                table.info.default = PyICU.ICUtzinfo.getInstance(newdefault)               
+            else:
+                avoidRemoving = table.info.default.tzid
+
+        # if this dialog isn't changing the default timezone, don't allow
+        # the current default to be removed from the well-known list
+        avoidRemoving = table.info.default.tzid if not changeDefaultTZ else None
+                
         for name, valChanged in table.changed.iteritems():
             if valChanged and name != newTZname:
                 if name in wellKnowns:
-                    wellKnowns.remove(name)
+                    if name != avoidRemoving:
+                        wellKnowns.remove(name)
                 else:
                     wellKnowns.insert(getInsertIndex(name), name)
 

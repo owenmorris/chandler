@@ -92,6 +92,7 @@ else:
 
 TRANSPARENCY_DASHES = [255, 255, 0, 0, 255, 255, 0, 0]
 
+
 def nth(iterable, n):
     return list(islice(iterable, n, n+1))[0]
 
@@ -884,7 +885,7 @@ class CalendarEventHandler(object):
     """
     Mixin to a widget class.
     
-    ASSUMPTION: its blockItem is a CalendarBlock.
+    ASSUMPTION: its blockItem is a CalendarCanvasBlock.
     """
 
     def onGoToPrevEvent(self, event):
@@ -901,7 +902,7 @@ class CalendarEventHandler(object):
 
     def onGoToTodayEvent(self, event):
         blockItem = self.blockItem
-        today = CalendarBlock.startOfToday()
+        today = CalendarRangeBlock.startOfToday()
         
         blockItem.setRange(today)
         blockItem.postDateChanged(self.blockItem.selectedDate)
@@ -915,7 +916,7 @@ class CalendarEventHandler(object):
             oldTZ = TimeZoneInfo.get(view).default
             newTZ = control.GetClientData(choiceIndex)
             if newTZ == TimeZoneList.TIMEZONE_OTHER_FLAG:
-                newTZ = TimeZoneList.pickTimeZone(view)
+                newTZ = TimeZoneList.pickTimeZone(view, changeDefaultTZ=True)
                 if newTZ is None:
                     newTZ = oldTZ
                 TimeZoneList.buildTZChoiceList(view, control, newTZ)
@@ -1132,6 +1133,7 @@ class CalendarRangeBlock(CollectionCanvas.CollectionBlock):
     rangeStart = schema.One(schema.DateTime)
     rangeIncrement = schema.One(schema.TimeDelta, initialValue=timedelta(days=7))
     dayMode = schema.One(schema.Boolean,initialValue=False)
+    calendarContainer = schema.One(schema.Item)
 
     #This is interesting. By Bug 3415 we want to reset the cal block's current
     #date to today at each chandler startup. CPIA has no general mechanism for
@@ -1200,7 +1202,19 @@ class CalendarRangeBlock(CollectionCanvas.CollectionBlock):
             delta = timedelta(days=(calendar.get(calendar.DAY_OF_WEEK) -
                                     calendar.getFirstDayOfWeek()))
             self.rangeStart = date - delta
-            
+
+    def incrementRange(self):
+        """
+        Increments the calendar's current range.
+        """
+        self.rangeStart += self.rangeIncrement
+
+    def decrementRange(self):
+        """
+        Decrements the calendar's current range.
+        """
+        self.rangeStart -= self.rangeIncrement
+
     def GetCurrentDateRange(self):
         return (self.rangeStart,  self.rangeStart + self.rangeIncrement)
 
@@ -1305,6 +1319,23 @@ class CalendarRangeBlock(CollectionCanvas.CollectionBlock):
         self.setRange(event.arguments['start'])
         self.synchronizeWidget()
 
+    def postDateChanged(self, newdate=None):
+        """
+        Convenience method for changing the selected date.
+        """
+        if newdate is None:
+            newdate = self.rangeStart
+
+        self.postEventByName ('SelectedDateChanged',{'start':newdate})
+
+    def postDayMode(self, dayMode, newDay=None):
+        """
+        Convenience method for changing between day and week mode.
+        """
+        self.postEventByName ('DayMode', {'dayMode': dayMode, 'newDay' : newDay})
+
+    def onTimeZoneChangeEvent(self, event):
+        self.synchronizeWidget()
 
 class ColorChange(schema.Item):
 
@@ -1330,53 +1361,62 @@ class ColorChange(schema.Item):
             blocks.remove(uBlock)
 
 
-class CalendarBlock(CalendarRangeBlock):
-    lastHue = schema.One(schema.Float, initialValue = -1.0)
-    calendarContainer = schema.One(schema.Item, required=True)
+class CalendarCanvasBlock(CalendarRangeBlock):
 
     def render(self, *args, **kwds):
-        super(CalendarBlock, self).render(*args, **kwds)
+        super(CalendarCanvasBlock, self).render(*args, **kwds)
         schema.ns("osaf.framework.blocks.calendar",
                   self.itsView).colorChange.registerBlock(self.itsUUID)
         
     def onDestroyWidget(self, *args, **kwds):
         schema.ns("osaf.framework.blocks.calendar",
                   self.itsView).colorChange.unregisterBlock(self.itsUUID)
-        super(CalendarBlock, self).onDestroyWidget(*args, **kwds)
+        super(CalendarCanvasBlock, self).onDestroyWidget(*args, **kwds)
 
-    # Event handling
+    def closeEditor(self):
+        if (getattr(self, 'widget', None) and 
+            getattr(self.widget, 'GrabFocusHack', None)):
+            self.widget.GrabFocusHack()
+
     def onDayModeEvent(self, event):
         self.closeEditor()
-        super(CalendarBlock, self).onDayModeEvent(event)
+        super(CalendarCanvasBlock, self).onDayModeEvent(event)
 
-    def onTimeZoneChangeEvent(self, event):
-        self.synchronizeWidget()
+    def incrementRange(self):
+        self.closeEditor()
+        super(CalendarCanvasBlock, self).incrementRange()
 
-    def onColorChanged(self, op, item, attribute):
-        widget = getattr(self, 'widget', None)
-        if widget is not None:
-            if hasattr(type(widget), 'RefreshCanvasItems'):
-                if hasattr(self, 'contents'):
-                    collections = getattr(self.contents, 'collectionList',
-                                          [self.contents])
-                    if item in collections:
-                        widget.RefreshCanvasItems(resort=False)
+    def decrementRange(self):
+        self.closeEditor()
+        super(CalendarCanvasBlock, self).decrementRange()
 
-    def postDateChanged(self, newdate=None):
+    def setRange(self, date):
         """
-        Convenience method for changing the selected date.
-        """
-        if newdate is None:
-            newdate = self.rangeStart
+        Sets the range to include the given date, given the current view.
+        For week view, it will start the range at the beginning of the week.
+        For day view, it will set the range to start at the given date
 
-        self.postEventByName ('SelectedDateChanged',{'start':newdate})
-
-    def postDayMode(self, dayMode, newDay=None):
+        @param date: date to include
+        @type date: datetime
         """
-        Convenience method for changing between day and week mode.
-        """
-        self.postEventByName ('DayMode', {'dayMode': dayMode, 'newDay' : newDay})
+        self.closeEditor()
         
+        super(CalendarCanvasBlock, self).setRange(date)
+        
+        # disabled because freebusy isn't currently being used
+        if False:
+            number = 1 if self.dayMode else 7
+            
+            # get an extra day on either side of the displayed range, because
+            # timezone displayed could be earlier or later than UTC
+            fb_date = self.rangeStart.date() - timedelta(1)
+            dates = [fb_date + n * timedelta(1) for n in range(number + 2)]
+     
+            for col in self.getFreeBusyCollections():
+                annotation = FreeBusyAnnotation(col)
+                for date in dates:
+                    annotation.addDateNeeded(self.itsView, date)    
+
     def getFreeBusyCollections(self):
         """
         Convenience method, returns any selected or overlaid collections
@@ -1399,52 +1439,6 @@ class CalendarBlock(CalendarRangeBlock):
                     break
         
         return hits
-
-    def closeEditor(self):
-        if (getattr(self, 'widget', None) and 
-            getattr(self.widget, 'GrabFocusHack', None)):
-            self.widget.GrabFocusHack()
-
-    # Managing the date range
-
-    def setRange(self, date):
-        """
-        Sets the range to include the given date, given the current view.
-        For week view, it will start the range at the beginning of the week.
-        For day view, it will set the range to start at the given date
-
-        @param date: date to include
-        @type date: datetime
-        """
-        self.closeEditor()
-        
-        super(CalendarBlock, self).setRange(date)
-        
-        number = 1 if self.dayMode else 7
-        
-        # get an extra day on either side of the displayed range, because
-        # timezone displayed could be earlier or later than UTC
-        fb_date = self.rangeStart.date() - timedelta(1)
-        dates = [fb_date + n * timedelta(1) for n in range(number + 2)]
- 
-        for col in self.getFreeBusyCollections():
-            annotation = FreeBusyAnnotation(col)
-            for date in dates:
-                annotation.addDateNeeded(self.itsView, date)    
-
-    def incrementRange(self):
-        """
-        Increments the calendar's current range.
-        """
-        self.closeEditor()
-        self.rangeStart += self.rangeIncrement
-
-    def decrementRange(self):
-        """
-        Decrements the calendar's current range.
-        """
-        self.closeEditor()
-        self.rangeStart -= self.rangeIncrement
 
     def getContainingCollection(self, item, defaultCollection=None):
         """
@@ -1476,12 +1470,22 @@ class CalendarBlock(CalendarRangeBlock):
         #assert False, "Don't have color info for %s" % event
         
         return defaultCollection
-        
+
+    def onColorChanged(self, op, item, attribute):
+        widget = getattr(self, 'widget', None)
+        if widget is not None:
+            if hasattr(type(widget), 'RefreshCanvasItems'):
+                if hasattr(self, 'contents'):
+                    collections = getattr(self.contents, 'collectionList',
+                                          [self.contents])
+                    if item in collections:
+                        widget.RefreshCanvasItems(resort=False)
+
     def GetSelection(self):
         return CalendarSelection(self.contents)
 
     def CanAdd(self):
-        return (super(CalendarBlock, self).CanAdd() and
+        return (super(CalendarCanvasBlock, self).CanAdd() and
                 UserCollection(self.contentsCollection).canAdd)
 
 # ATTENTION: do not put mixins here - put them in wxCollectionCanvas
@@ -1491,7 +1495,7 @@ class wxCalendarCanvas(CollectionCanvas.wxCollectionCanvas):
     Base class for all calendar canvases - handles basic item selection,
     date ranges, and so forth.
 
-    ASSUMPTION: blockItem is a CalendarBlock.
+    ASSUMPTION: blockItem is a CalendarCanvasBlock.
     """
     legendBorderWidth = 3
     def __init__(self, *arguments, **keywords):
@@ -2148,7 +2152,7 @@ class CanvasSplitterWindow(SplitterWindow):
         event.Skip()
 
 
-class CalendarControl(CalendarBlock):
+class CalendarControl(CalendarRangeBlock):
     dayMode = schema.One(schema.Boolean, initialValue=False)
     daysPerView = schema.One(schema.Integer, initialValue=7) #ready to phase out?
     tzCharacterStyle = schema.One(Styles.CharacterStyle)
@@ -2280,7 +2284,7 @@ class CalendarControl(CalendarBlock):
 
     def setRange(self, date):
         """
-        We need to override CalendarBlock's because the cal ctrl always
+        We need to override CalendarRangeBlock's because the cal ctrl always
         has its range over an entire week, even if a specific day is
         selected (and dayMode is true).
         """

@@ -29,7 +29,7 @@ from osaf.framework.blocks import (
 
 from osaf import Preferences
 import osaf.pim as pim
-from CalendarCanvas import CalendarBlock, CalendarNotificationHandler
+from CalendarCanvas import CalendarRangeBlock, CalendarNotificationHandler
 import osaf.pim.calendar.Calendar as Calendar
 from osaf.pim import EventStamp, has_stamp, isDead
 from datetime import datetime, time, timedelta
@@ -268,25 +268,22 @@ class wxMiniCalendar(DragAndDrop.DropReceiveWidget,
 
                 offset = (start.date() - startDate).days
 
-                midnightStart = datetime.combine(event.startTime.date(),
+                midnightStart = datetime.combine(start.date(),
                                                  time(0, tzinfo=defaultTzinfo))
                 if event.allDay:
                     days = event.duration.days + 1
                 else:
-                    days = (event.endTime - midnightStart).days + 1
+                    days = (start + event.duration - midnightStart).days + 1
 
                 for day in xrange(days):
                     if event.allDay:
                         hours = 12.0
-                    elif event.anyTime:
-                        hours = 1.0
                     else:
                         dayStart = max(event.startTime,
                                        midnightStart + timedelta(day))
                         dayEnd   = min(event.endTime,
                                        midnightStart + timedelta(day + 1))
                         duration = dayEnd - dayStart
-                        # @@@ Wrong for multiday events -- Grant
                         hours = duration.seconds / 3600 + 24*duration.days
 
                     # We set a minimum "Busy" value of 0.25 for any
@@ -345,11 +342,11 @@ class wxMiniCalendar(DragAndDrop.DropReceiveWidget,
 def isMainCalendarVisible():
     activeView = getattr(wx.GetApp(), 'activeView', None)
     if activeView is not None:
-        return isinstance(wx.GetApp().activeView, CalendarBlock)
+        return isinstance(wx.GetApp().activeView, CalendarRangeBlock)
     else:
         return False
 
-class MiniCalendar(CalendarBlock):
+class MiniCalendar(CalendarRangeBlock):
     dayMode = schema.One(schema.Boolean, initialValue = False)
     
     dashboardView = schema.Sequence(defaultValue=None)
@@ -362,6 +359,13 @@ class MiniCalendar(CalendarBlock):
     schema.addClouds(
         copying = schema.Cloud (byCloud = [previewArea])
     )
+
+    def onTimeZoneChangeEvent(self, event):
+        # timezone changes need to force a recalculation of freebusy information
+        widget = self.widget
+        if widget is not None:
+            self.widget.forceFreeBusyUpdate(None)
+        self.synchronizeWidget()
 
     def AdjustSplit(self, splitterWindow, windowSize, position):
         widget = getattr (self, 'widget', None)
@@ -406,17 +410,17 @@ class MiniCalendar(CalendarBlock):
         super(MiniCalendar, self).render(*args, **kwds)
 
         tzPrefs = schema.ns('osaf.pim', self.itsView).TimezonePrefs
-        self.itsView.watchItem(self, tzPrefs, 'onTZPrefsChange')
+        self.itsView.watchItem(self, tzPrefs, 'onTZChange')
 
     def onDestroyWidget(self, *args, **kwds):
 
         tzPrefs = schema.ns('osaf.pim', self.itsView).TimezonePrefs
-        self.itsView.unwatchItem(self, tzPrefs, 'onTZPrefsChange')
+        self.itsView.unwatchItem(self, tzPrefs, 'onTZChange')
 
         super(MiniCalendar, self).onDestroyWidget(*args, **kwds)
 
-    def onTZPrefsChange(self, op, item, names):
-        self.widget.wxSynchronizeWidget()
+    def onTZChange(self, op, item, names):
+        self.onTimeZoneChangeEvent(None)
 
     def instantiateWidget(self):
         return wxMiniCalendar(self.parentBlock.widget,
@@ -449,7 +453,7 @@ class MiniCalendar(CalendarBlock):
 class PreviewPrefs(Preferences):
     maximumEventsDisplayed = schema.One(schema.Integer, initialValue=5)
 
-class PreviewArea(CalendarBlock):
+class PreviewArea(CalendarRangeBlock):
     timeCharacterStyle = schema.One(Styles.CharacterStyle)
     eventCharacterStyle = schema.One(Styles.CharacterStyle)
     linkCharacterStyle = schema.One(Styles.CharacterStyle)
