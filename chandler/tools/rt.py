@@ -866,7 +866,14 @@ def runScriptPerfTests(options, testlist, largeData=False, repeat=1, logger=log)
                 result = build_lib.runCommand(cmd, timeout=1800, logger=tempLogger)
 
             if result != 0:
-                tempLogger.logAll()
+                if options.tbox:
+                    # Strip OSAF_QA lines because we don't want to include
+                    # results from failed runs
+                    for args, kw in tempLogger.delayed:
+                        if not args[0].startswith('OSAF_QA: '):
+                            log(*args, **kw)
+                else:
+                    tempLogger.logAll()
                 log('***Error exit code=%d, %s' % (result, name))
                 failed = True
                 failedTests.append(item)
