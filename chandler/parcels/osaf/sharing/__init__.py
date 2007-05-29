@@ -1600,7 +1600,12 @@ triage_code_map = {
 }
 @format_field.when_object(ItemRecord.triage)
 def format_item_triage(field, value):
-    code, timestamp, auto = value.split(" ")
+    if value is Inherit:
+        return _('Inherit')
+    try:
+        code, timestamp, auto = value.split(" ")
+    except AttributeError:
+        return _('Unknown')
     return triage_code_map.get(code, _('Unknown'))
 
 

@@ -131,6 +131,19 @@ Run the auto-resolve code, and the conflicts do not go away::
 
 
 
+'Inherit' conflicts for triage are auto-resolved::
+
+    >>> state.set(sharing.RecordSet(set([sharing.model.ItemRecord('f230dcd4-7c32-4c3f-908b-d92081cc9a89', u'Welcome to Cosmo', u'100 123456789.12 1', Decimal("1164803132"), 0, 0, 0)])), sharing.RecordSet())
+    >>> state.merge(sharing.RecordSet(set([sharing.model.ItemRecord('f230dcd4-7c32-4c3f-908b-d92081cc9a89', u'Welcome to Cosmo', u'100 123456789.13 1', Decimal("1164803132"), 0, 0, 0)])), sharing.RecordSet(set([sharing.model.ItemRecord('f230dcd4-7c32-4c3f-908b-d92081cc9a89', sharing.NoChange, sharing.Inherit, sharing.NoChange, sharing.NoChange, sharing.NoChange, sharing.NoChange)])))
+    (RecordSet(set([]), set([])), RecordSet(set([]), set([])), RecordSet(set([ItemRecord(u'f230dcd4-7c32-4c3f-908b-d92081cc9a89', NoChange, Inherit, NoChange, NoChange, NoChange, NoChange)]), set([])))
+    >>> state.updateConflicts(item)
+    >>> sharing.getConflicts(item)
+    [Triage status : Inherit]
+    >>> t.resolveConflicts(list(sharing.getConflicts(item)))
+    >>> sharing.getConflicts(item)
+    []
+
+
 
 NoteRecord type
 - - - - - - - -

@@ -435,25 +435,33 @@ class SharingTranslator(eim.Translator):
 
                     item = conflict.item
 
+
                     if record.triage is not eim.NoChange:
-                        codeIn, tscIn, autoIn = record.triage.split(" ")
 
-                        if self.code_to_triagestatus[codeIn] == \
-                            item.triageStatus:
-                            # The triage status is not in conflict, so we are
-                            # going to auto resolve any conflicts on either
-                            # triageStatusChanged or doAutoTriageOnDateChange:
-
-                            tscIn = float(tscIn)
-                            if tscIn < item._triageStatusChanged:
-                                # inbound tsc is more recent
-                                item._triageStatusChanged = tscIn
-
-                            if autoIn == "0":
-                                # an inbound auto of False always gets applied
-                                item.doAutoTriageOnDateChange = False
-
+                        if record.triage is eim.Inherit:
                             conflict.discard()
+
+                        else:
+                            codeIn, tscIn, autoIn = record.triage.split(" ")
+
+                            if self.code_to_triagestatus[codeIn] == \
+                                item.triageStatus:
+                                # The triage status is not in conflict, so we
+                                # are going to auto resolve any conflicts on
+                                # either triageStatusChanged or
+                                # doAutoTriageOnDateChange:
+
+                                tscIn = float(tscIn)
+                                if tscIn < item._triageStatusChanged:
+                                    # inbound tsc is more recent
+                                    item._triageStatusChanged = tscIn
+
+                                if autoIn == "0":
+                                    # an inbound auto of False always gets
+                                    # applied
+                                    item.doAutoTriageOnDateChange = False
+
+                                conflict.discard()
 
                     if record.createdOn is not eim.NoChange:
                         # Instead of having conflicts for createdOn, apply the
