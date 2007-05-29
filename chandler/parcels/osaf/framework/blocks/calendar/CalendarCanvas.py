@@ -1313,11 +1313,14 @@ class CalendarBlock(CalendarRangeBlock):
 
     def render(self, *args, **kwds):
         super(CalendarBlock, self).render(*args, **kwds)
-        Monitors.attach(self, 'onColorChanged', 'set', 'osaf.usercollections.UserCollection.color')
 
-    def onDestroyWidget(self, *args, **kwds):
-        Monitors.detach(self, 'onColorChanged', 'set', 'osaf.usercollections.UserCollection.color')
-        super(CalendarBlock, self).onDestroyWidget(*args, **kwds)
+        # lazily add the monitor the very first time the block is rendered
+        for monitor in getattr(self, 'monitors', ()):
+            if monitor.method == 'onColorChanged':
+                break
+        else:
+            Monitors.attach(self, 'onColorChanged', 'set',
+                            'osaf.usercollections.UserCollection.color')
 
     # Event handling
     def onDayModeEvent(self, event):
@@ -1328,16 +1331,14 @@ class CalendarBlock(CalendarRangeBlock):
         self.synchronizeWidget()
 
     def onColorChanged(self, op, item, attribute):
-        try:
-            collections = getattr(self.contents, 'collectionList',
-                                  [self.contents])
-            if item in collections:
-                self.widget.RefreshCanvasItems(resort=False)
-        except AttributeError:
-            # sometimes self.contents hasn't been set yet, or the
-            # widget hasn't been rendered yet, or the widget doesn't
-            # support RefreshCanvasItems. That's fine.
-            return
+        widget = getattr(self, 'widget', None)
+        if widget is not None:
+            if hasattr(type(widget), 'RefreshCanvasItems'):
+                if hasattr(self, 'contents'):
+                    collections = getattr(self.contents, 'collectionList',
+                                          [self.contents])
+                    if item in collections:
+                        widget.RefreshCanvasItems(resort=False)
 
     def postDateChanged(self, newdate=None):
         """
