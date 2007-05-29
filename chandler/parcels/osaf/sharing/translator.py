@@ -1582,6 +1582,7 @@ class DumpTranslator(SharingTranslator):
                     record.colorRed, record.colorGreen, record.colorBlue,
                     record.colorAlpha
                 )
+            UserCollection(collection).checked = bool(record.checked)
 
     @eim.exporter(pim.SmartCollection)
     def export_collection(self, collection):
@@ -1600,7 +1601,8 @@ class DumpTranslator(SharingTranslator):
             red,
             green,
             blue,
-            alpha
+            alpha,
+            int(UserCollection(collection).checked)
         )
         for record in self.export_collection_memberships (collection):
             yield record
@@ -1623,7 +1625,7 @@ class DumpTranslator(SharingTranslator):
                 yield model.CollectionMembershipRecord(
                     collectionID,
                     item.itsUUID,
-                    index
+                    index,
                 )
                 index = index + 1
 

@@ -336,6 +336,7 @@ class CollectionRecord(eim.Record):
     colorGreen = eim.key(eim.IntType)
     colorBlue = eim.key(eim.IntType)
     colorAlpha = eim.key(eim.IntType)
+    checked = eim.field(eim.IntType, default=0)
 
 class CollectionMembershipRecord(eim.Record):
     # A membership record for a collection that is not "out of the box"

@@ -97,17 +97,6 @@ class wxSidebar(wxTable):
             cellRect = wx.Rect (0,0,0,0)
         return cellRect
 
-    def wxSynchronizeWidget(self):
-        # clear out old 'checked' items
-        sidebar = self.blockItem
-
-        # sidebar.checkedItems is a python set,
-        # it cannot be modified while iterating
-        for checkedItem in list(sidebar.checkedItems):
-            if checkedItem not in sidebar.contents:
-                sidebar.checkedItems.remove (checkedItem)
-        super (wxSidebar, self).wxSynchronizeWidget()
-
     @staticmethod
     def GetRectFromOffsets (rect, offsets):
         def GetEdge (rect, offset):
@@ -494,14 +483,10 @@ class SSSidebarIconButton2 (SSSidebarButton):
     def getChecked (self, item):
         blockItem = self.buttonOwner
         return (blockItem.filterClass not in blockItem.disallowOverlaysForFilterClasses and
-                item in blockItem.checkedItems)
+                UserCollection(item).checked)
 
     def setChecked (self, item, checked):
-        checkedItems = self.buttonOwner.checkedItems
-        if checked:
-            checkedItems.add (item)
-        else:
-            checkedItems.remove (item)
+        UserCollection(item).checked = checked
 
     def onOverButton (self, item):
         sidebarWidget = self.buttonOwner.widget
@@ -555,7 +540,7 @@ class SSSidebarIconButton2 (SSSidebarButton):
         checked = self.getChecked (item)
 
         if mouseOverFlag and self.buttonState['overButton']:
-            if self.buttonState['screenMouseDown'] == (item in sidebarBlock.checkedItems):
+            if self.buttonState['screenMouseDown'] == UserCollection(item).checked:
                 mouseState = "MouseOver"
             else:
                 mouseState = "MouseDown"
@@ -599,14 +584,10 @@ class SSSidebarIconButton2 (SSSidebarButton):
 
 class SSSidebarIconButton (SSSidebarButton):
     def getChecked (self, item):
-        return (item in self.buttonOwner.checkedItems)
+        return UserCollection(item).checked
 
     def setChecked (self, item, checked):
-        checkedItems = self.buttonOwner.checkedItems
-        if checked:
-            checkedItems.add (item)
-        else:
-            checkedItems.remove (item)
+        UserCollection(item).checked = checked
 
     def getButtonImage (self, item, mouseOverFlag, isSelected):
         """
@@ -701,7 +682,7 @@ class SSSidebarIconButton (SSSidebarButton):
     def onOverButton (self, item):
         gridWindow = self.buttonOwner.widget.GetGridWindow()
         if self.buttonState['overButton']:
-            if item in self.buttonOwner.checkedItems:
+            if UserCollection(item).checked:
                 text = _(u"Remove overlay")
             else:
                 text = _(u"Overlay collection")
@@ -900,9 +881,6 @@ class SidebarBlock(Table):
     disallowOverlaysForFilterClasses = schema.Sequence(
         schema.Class, initialValue = [],
     )
-
-    # A set of the items in the sidebar that are checked
-    checkedItems = schema.Many(initialValue=set())
 
     buttons = schema.Sequence (inverse = SSSidebarButton.buttonOwner,
                                initialValue = [])
@@ -1292,7 +1270,8 @@ class SidebarBranchPointDelegate(BranchPoint.BranchPointDelegate):
                     (sidebar.filterClass not in sidebar.disallowOverlaysForFilterClasses and
                     (not UserCollection (item).outOfTheBoxCollection))):
                     for theItem in sidebar.contents:
-                        if ((theItem in sidebar.checkedItems or sidebar.contents.isItemSelected (theItem)) and
+                        if ((UserCollection(theItem).checked
+                            or sidebar.contents.isItemSelected (theItem)) and
                              theItem not in collectionList):
                             collectionList.append (theItem)
     
