@@ -122,9 +122,9 @@ class Manager(schema.Item):
     os.path.join(Globals.chandlerDirectory, "parcels").
     """
 
-    #The path attribute contains the path in bytes. These bytes
-    #may be 8bit with a filesystem encoding or may be
-    #7bit ascii
+    # The path attribute contains the path in bytes. These bytes
+    # may be 8bit with a filesystem encoding or may be
+    # 7bit ascii
     path = schema.Sequence(schema.Bytes, initialValue = [])
 
     @classmethod
@@ -153,11 +153,11 @@ class Manager(schema.Item):
         if manager is None:
             manager = Manager("manager", parcelRoot)
 
-        if path:
-            manager.path = path
+        if not path:
+            path = [os.path.join(Globals.chandlerDirectory, "parcels")]
 
-        else:
-            manager.path = [os.path.join(Globals.chandlerDirectory, "parcels")]
+        if manager.path != path:
+            manager.path = path
 
         return manager
 
