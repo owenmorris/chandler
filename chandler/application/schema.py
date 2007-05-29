@@ -14,6 +14,7 @@
 
 
 from chandlerdb.schema.c import Redirector
+from chandlerdb.util.c import Nil
 from repository.item.Item import Item as Base, ItemClass as BaseClass
 from repository.item.Collection import CollectionClass as BaseCollectionClass
 from repository.schema.Kind import CDescriptor, Kind
@@ -955,6 +956,23 @@ class Struct(object):
             self.__class__.__name__,
             tuple(getattr(self,attr) for attr in self.__slots__)
         )
+
+    # compare slot by slot, allowing missing slot values to compare as ==
+    def __eq__(self, obj):
+        if type(obj) is type(self):
+            for attr in self.__slots__:
+                if getattr(self, attr, Nil) != getattr(obj, attr, Nil):
+                    return False
+            return True
+        return False
+
+    def __ne__(self, obj):
+        if type(obj) is type(self):
+            for attr in self.__slots__:
+                if getattr(self, attr, Nil) != getattr(obj, attr, Nil):
+                    return True
+            return False
+        return True
 
 
 class SchemaEnumValue(Types.EnumValue):
