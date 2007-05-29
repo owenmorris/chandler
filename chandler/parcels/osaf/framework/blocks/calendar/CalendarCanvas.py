@@ -1627,7 +1627,9 @@ class wxCalendarCanvas(CollectionCanvas.wxCollectionCanvas):
         drawInfo = self.blockItem.calendarContainer.calendarControl.widget
 
         # the legend border is major
-        dc.SetPen(wx.Pen(styles.majorLineColor, self.legendBorderWidth))
+        pen = wx.Pen(styles.majorLineColor, self.legendBorderWidth)
+        pen.SetCap(wx.CAP_BUTT)
+        dc.SetPen(pen)
 
         # thick pens with the line centered at x - 1. Offset the
         # legend border because we want the righthand side of the line
@@ -1639,7 +1641,7 @@ class wxCalendarCanvas(CollectionCanvas.wxCollectionCanvas):
         dc.SetAntiAliasing(False)
 
         dc.DrawLine(legendBorderX, 0,
-                    legendBorderX, self.size.height)
+                    legendBorderX, self.size.height + 1)
         
         def drawDayLine(dayNum):
             x = drawInfo.columnPositions[dayNum+1]
