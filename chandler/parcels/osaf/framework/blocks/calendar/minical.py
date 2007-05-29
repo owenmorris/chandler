@@ -373,15 +373,6 @@ class PyMiniCalendar(wx.PyControl):
 
         return gc.DrawLines(points, rule)
         
-    def GetTextExtent(self, gc, dc, text):
-
-        w, h = gc.GetTextExtent(text)
-        return w, h, 0
-
-    def DrawText(self, gc, text, x, y, brush, baseline):
-
-        gc.DrawText(text, x, y, brush)
-
     # event handlers
     if wx.Platform != "__WXMAC__":
         def OnMiniCalSize(self, event):    
@@ -437,7 +428,7 @@ class PyMiniCalendar(wx.PyControl):
         # Get extent of today button
         todaytext = _(u"Today")
         gc.SetFont(gc.CreateFont(boldFont, wx.BLACK))
-        todayw, todayh, baseline = self.GetTextExtent(gc, dc, todaytext)
+        todayw, todayh = gc.GetTextExtent(todaytext)
 
         # Draw today button
         self.todayRect = wx.Rect(buttonWidth, y,
@@ -445,8 +436,8 @@ class PyMiniCalendar(wx.PyControl):
         todayx = (buttonWidth * 5 - todayw) / 2
         todayy = y + (self.todayHeight - todayh) / 2
 
-        self.DrawText(gc, todaytext, todayx, todayy,
-                      gc.CreateBrush(wx.TRANSPARENT_BRUSH), baseline)
+        gc.DrawText(todaytext, todayx, todayy,
+                    gc.CreateBrush(wx.TRANSPARENT_BRUSH))
 
         # calculate month arrows
         arrowheight = todayh - 5
@@ -609,13 +600,12 @@ class PyMiniCalendar(wx.PyControl):
             'currentMonth' : self.months[startDate.month-1],
             'currentYear' : startDate.year }
         gc.SetFont(blackFont)
-        monthw, monthh, baseline = self.GetTextExtent(gc, dc, headertext)
+        monthw, monthh = gc.GetTextExtent(headertext)
 
         # draw month-name centered above weekdays
         monthx = (clientWidth - monthw) / 2
         monthy = ((self.heightRow - monthh) / 2) + y + 3
-        self.DrawText(gc, headertext, monthx,  monthy, transparentBrush,
-                      baseline)
+        gc.DrawText(headertext, monthx,  monthy, transparentBrush)
 
         y += self.heightRow + EXTRA_MONTH_HEIGHT
 
@@ -631,13 +621,12 @@ class PyMiniCalendar(wx.PyControl):
 
             for wd in xrange(DAYS_PER_WEEK):
                 n = (wd + self.firstDayOfWeek - 1) % DAYS_PER_WEEK
-                dayw, dayh, baseline = self.GetTextExtent(gc, dc, 
-                                                          self.weekdays[n+1])
-                self.DrawText(gc, self.weekdays[n+1],
-                              (wd*self.widthCol) + SEPARATOR_MARGIN +
-                              ((self.widthCol- dayw) / 2), # center the day-name
-                              y, 
-                              transparentBrush, baseline)
+                dayw = gc.GetTextExtent(self.weekdays[n+1])[0]
+                gc.DrawText(self.weekdays[n+1],
+                            (wd*self.widthCol) + SEPARATOR_MARGIN +
+                            ((self.widthCol- dayw) / 2), # center the day-name
+                            y, 
+                            transparentBrush)
 
         y += self.heightRow - 1
         
@@ -665,7 +654,7 @@ class PyMiniCalendar(wx.PyControl):
             for weekDay in xrange(DAYS_PER_WEEK):
 
                 dayStr = str(weekDate.day)
-                width, height, baseline = self.GetTextExtent(gc, dc, dayStr)
+                width = gc.GetTextExtent(dayStr)[0]
 
                 columnStart = SEPARATOR_MARGIN + weekDay * self.widthCol
                 x = columnStart + (self.widthCol - width) / 2
@@ -720,9 +709,8 @@ class PyMiniCalendar(wx.PyControl):
                     else:
                         gc.SetFont(mainFont)
 
-                self.DrawText(gc, dayStr, x, y + Y_ADJUSTMENT_SMALL,
-                              wx.NullGraphicsBrush,
-                              baseline)
+                gc.DrawText(dayStr, x, y + Y_ADJUSTMENT_SMALL,
+                            wx.NullGraphicsBrush)
 
                 weekDate += timedelta(days=1)
 

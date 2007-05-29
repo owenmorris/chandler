@@ -872,13 +872,9 @@ class wxApplication (wx.App):
         
         if not self.ignoreSynchronizeWidget:
             widget = event.GetEventObject()
-            try:
-                block = widget.blockItem
-            except AttributeError:
-                pass
-            else:
-                if widget.IsShown() != event.GetShow():
-                    self.needsUpdateUI = True
+            if hasattr(widget, 'blockItem') and \
+               widget.IsShown() != event.GetShow():
+                self.needsUpdateUI = True
 
         event.Skip()
 

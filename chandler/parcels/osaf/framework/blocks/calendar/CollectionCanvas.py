@@ -603,10 +603,11 @@ class wxCollectionCanvas(DragAndDrop.DropReceiveWidget,
             # inexplicably fails to prevent LeftUp events from being captured by
             # windows other than the timed canvas, thus leaking PyTimers, manage
             # creating and deleting timers when entering and leaving.
-            if self.dragState is not None and self.dragState.resize:
+            dragState = self.dragState
+            if dragState is not None and dragState.resize:
                 if event.Leaving():
                     self.StopDragTimer()
-                    self.dragState.StopDragTimer()
+                    dragState.StopDragTimer()
                     
                     # it would be nice to do:
                 #elif event.Entering():
@@ -619,7 +620,7 @@ class wxCollectionCanvas(DragAndDrop.DropReceiveWidget,
                     # to accomplish.  It seems preferable in the short term to
                     # avoid crashes by simply aborting resize when leaving.
                     
-                    self.dragState.ResetDrag()
+                    dragState.ResetDrag()
                     self.dragState = None
                     self.SetCursor(wxCollectionCanvas.defaultCursor)
                     self.cursor = wxCollectionCanvas.defaultCursor
