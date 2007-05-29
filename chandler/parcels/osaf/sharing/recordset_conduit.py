@@ -519,8 +519,7 @@ class RecordSetConduit(conduits.BaseConduit):
 
                         if setUnread:
                             item_to_change.read = False
-                            logger.debug("'read' status now %s for '%s'",
-                                item_to_change.read,
+                            logger.info("Marked unread: %s '%s'", uuid,
                                 getattr(item_to_change, 'displayName',
                                 '<unknown>'))
 
