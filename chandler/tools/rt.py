@@ -85,7 +85,7 @@ def parseOptions():
     >>> keys.sort()
     >>> for key in keys:
     ...     print key, d[key],
-    args [] dryrun False func False funcSuite False help False mode None noEnv False noStop False perf False profile False recorded False repeat 0 selftest True single  tbox False unit False unitSuite False verbose False
+    args [] dryrun False func False funcSuite False help False mode None noEnv False noStop False params None perf False profile False recorded False repeat 0 selftest True single  tbox False unit False unitSuite False verbose False
     """
     _configItems = {
         'mode':      ('-m', '--mode',               's', None,  'debug or release; by default attempts both'),
@@ -166,7 +166,7 @@ def checkOptions(options):
     >>> keys.sort()
     >>> for key in keys:
     ...     print key, d[key],
-    args [] chandlerBin ... chandlerHome ... dryrun False func False funcSuite False help False mode None noEnv False noStop False parcelPath tools/QATestScripts/DataFiles perf False profile False profileDir test_profile recorded False repeat 0 runchandler {'debug': '.../debug/RunChandler...', 'release': '.../release/RunChandler...'} runpython {'debug': '.../debug/RunPython...', 'release': '.../release/RunPython...'} selftest True single  tbox False toolsDir tools unit False unitSuite False verbose False
+    args [] chandlerBin ... chandlerHome ... dryrun False func False funcSuite False help False mode None noEnv False noStop False params None parcelPath tools/QATestScripts/DataFiles perf False profile False profileDir test_profile recorded False repeat 0 runchandler {'debug': '.../debug/RunChandler...', 'release': '.../release/RunChandler...'} runpython {'debug': '.../debug/RunPython...', 'release': '.../release/RunPython...'} selftest True single  tbox False toolsDir tools unit False unitSuite False verbose False
     """
     if options.help:
         print __doc__
@@ -275,14 +275,14 @@ def buildTestList(options, excludeTools=True):
     
     Try to find a functional test:
     
-    >>> options.single  = 'TestCreateAccounts.py'
+    >>> options.single  = 'TestAllDayEvent.py'
     >>> buildTestList(options)
     []
 
     Include tools in search:
 
     >>> buildTestList(options, excludeTools=False)
-    ['tools/cats/Functional/TestCreateAccounts.py']
+    ['tools/cats/Functional/TestAllDayEvent.py']
     
     Unit test and perf test:
     
@@ -360,9 +360,9 @@ def runSingles(options):
     False
     
     >>> options.modes   = ['release']
-    >>> options.single  = 'TestCreateAccounts.py'
+    >>> options.single  = 'TestAllDayEvent.py'
     >>> runSingles(options)
-    /.../RunChandler... --create --catch=tests --profileDir=test_profile --parcelPath=tools/QATestScripts/DataFiles --chandlerTests=TestCreateAccounts -D2 -M0
+    /.../RunChandler... --create --catch=tests --profileDir=test_profile --parcelPath=tools/QATestScripts/DataFiles --chandlerTests=TestAllDayEvent -D2 -M0
     - + - + - + - + - + - + - + - + - + - + - + - + - + - + - + 
     False
     
@@ -462,10 +462,12 @@ def runUnitTests(options, testlist=None):
 
                 if options.verbose:
                     cmd.append('-v')
-                    log(' '.join(cmd))
 
                 if options.params:
                     cmd += [ options.params ]
+
+                if options.verbose:
+                    log(' '.join(cmd))
 
                 if options.dryrun:
                     result = 0
@@ -511,19 +513,18 @@ def runUnitSuite(options):
 
     for mode in options.modes:
         cmd = [options.runpython[mode],
-               os.path.join('tools', 'run_tests.py'),
-               options.params]
+               os.path.join('tools', 'run_tests.py')]
 
         if options.verbose:
             cmd += ['-v']
 
         cmd += ['application', 'i18n', 'osaf', 'repository']
 
-        if options.verbose:
-            log(' '.join(cmd))
-
         if options.params:
             cmd += [ options.params ]
+
+        if options.verbose:
+            log(' '.join(cmd))
 
         if options.dryrun:
             result = 0
@@ -589,10 +590,12 @@ def runPluginTests(options):
 
                     if options.verbose:
                         cmd.append('-v')
-                        log(' '.join(cmd))
 
                     if options.params:
                         cmd += [ options.params ]
+
+                    if options.verbose:
+                        log(' '.join(cmd))
 
                     if options.dryrun:
                         result = 0
@@ -637,16 +640,16 @@ def runFuncTest(options, test='FunctionalTestSuite.py'):
     - + - + - + - + - + - + - + - + - + - + - + - + - + - + - + 
     False
     
-    >>> runFuncTest(options, 'TestCreateAccounts.py')
-    /.../release/RunChandler --create --catch=tests --profileDir=test_profile --parcelPath=tools/QATestScripts/DataFiles --chandlerTests=TestCreateAccounts.py -D2 -M0
+    >>> runFuncTest(options, 'TestAllDayEvent.py')
+    /.../release/RunChandler --create --catch=tests --profileDir=test_profile --parcelPath=tools/QATestScripts/DataFiles --chandlerTests=TestAllDayEvent.py -D2 -M0
     - + - + - + - + - + - + - + - + - + - + - + - + - + - + - + 
-    /.../debug/RunChandler --create --catch=tests --profileDir=test_profile --parcelPath=tools/QATestScripts/DataFiles --chandlerTests=TestCreateAccounts.py -D2 -M0
+    /.../debug/RunChandler --create --catch=tests --profileDir=test_profile --parcelPath=tools/QATestScripts/DataFiles --chandlerTests=TestAllDayEvent.py -D2 -M0
     - + - + - + - + - + - + - + - + - + - + - + - + - + - + - + 
     False
     
     >>> options.noStop = True
-    >>> runFuncTest(options, 'TestCreateAccounts.py')
-    /.../release/RunChandler --create --catch=tests --profileDir=test_profile --parcelPath=tools/QATestScripts/DataFiles --chandlerTests=TestCreateAccounts.py -F -D2 -M0
+    >>> runFuncTest(options, 'TestAllDayEvent.py')
+    /.../release/RunChandler --create --catch=tests --profileDir=test_profile --parcelPath=tools/QATestScripts/DataFiles --chandlerTests=TestAllDayEvent.py -F -D2 -M0
     ...
     """
     # $CHANDLERBIN/$mode/$RUN_CHANDLER --create --catch=tests $FORCE_CONT --profileDir="$PC_DIR" --parcelPath="$PP_DIR" --scriptFile="$TESTNAME" -D1 -M2 2>&1 | tee $TESTLOG
@@ -708,9 +711,9 @@ def runFuncTestsSingly(options):
     >>> options.modes   = ['release', 'debug']
     
     >>> runFuncTestsSingly(options)
-    /.../release/RunChandler... --create --catch=tests --profileDir=test_profile --parcelPath=tools/QATestScripts/DataFiles --chandlerTests=TestCreateAccounts -D2 -M0
+    /.../release/RunChandler... --create --catch=tests --profileDir=test_profile --parcelPath=tools/QATestScripts/DataFiles --chandlerTests=TestAllDayEvent -D2 -M0
     - + - + - + - + - + - + - + - + - + - + - + - + - + - + - + 
-    /.../debug/RunChandler... --create --catch=tests --profileDir=test_profile --parcelPath=tools/QATestScripts/DataFiles --chandlerTests=TestCreateAccounts -D2 -M0
+    /.../debug/RunChandler... --create --catch=tests --profileDir=test_profile --parcelPath=tools/QATestScripts/DataFiles --chandlerTests=TestAllDayEvent -D2 -M0
     ...
     """
     from cats.Functional import tests
@@ -735,8 +738,7 @@ def runRecordedScripts(options):
     >>> checkOptions(options)
     >>> options.dryrun = True
     >>> options.verbose = True
-    >>> options.modes = ['debug','release']
-    >>> options.modes = ['release','debug']
+    >>> options.modes = ['release', 'debug']
     >>> runRecordedScripts(options)
     /.../RunPython... Chandler.py --create --catch=tests --profileDir=test_profile --parcelPath=tools/QATestScripts/DataFiles --recordedTest=...
     - + - + - + - + - + - + - + - + - + - + - + - + - + - + - + 
@@ -757,11 +759,11 @@ def runRecordedScripts(options):
                      '--parcelPath=%s' % options.parcelPath,
                      '--recordedTest=%s' % test, ]
     
-            if options.verbose:
-                log(' '.join(cmd))
-    
             if options.params:
                 cmd += [ options.params ]
+    
+            if options.verbose:
+                log(' '.join(cmd))
     
             if options.dryrun:
                 result = 0
@@ -1017,11 +1019,11 @@ def runStartupPerfTests(options, timer, largeData=False, repeat=3, logger=log):
         timeout = 600
         name    = 'Startup_with_large_calendar'
 
-    if options.verbose:
-        log(' '.join(cmd))
-
     if options.params:
         cmd += [ options.params ]
+
+    if options.verbose:
+        log(' '.join(cmd))
 
     if options.dryrun:
         result = 0
@@ -1053,11 +1055,11 @@ def runStartupPerfTests(options, timer, largeData=False, repeat=3, logger=log):
             '--parcelPath=%s'  % options.parcelPath,
             '--scriptFile=%s'  % os.path.join('tools', 'QATestScripts', 'Performance', 'end.py') ]
 
-    if options.verbose:
-        log(' '.join(cmd))
-
     if options.params:
         cmd += [ options.params ]
+
+    if options.verbose:
+        log(' '.join(cmd))
 
     log(name.ljust(33), newline=' ')
 
@@ -1332,14 +1334,15 @@ def main(options):
     Try and specify an invalid mode
     
     >>> options.single = ''
-    >>> options.mode   = 'foo'
+    >>> options.mode = 'foo'
     >>> main(options)
     foo removed from mode list
-    False
+    foo mode requested but not found -- stopping test run
+    True
     
     Run unit tests with --dryrun
     
-    >>> options.mode = None
+    >>> options.mode  = None
     >>> options.unit = True
     >>> main(options)
     /.../RunPython... .../tests/TestReferenceAttributes.py -v
@@ -1350,7 +1353,6 @@ def main(options):
     
     Run unitSuite with --dryrun
     
-    >>> options.mode = None
     >>> options.unit = False
     >>> options.unitSuite = True
     >>> main(options)
@@ -1372,7 +1374,7 @@ def main(options):
     >>> options.funcSuite = False
     >>> options.func      = True
     >>> main(options)
-    /.../RunChandler... --create --catch=tests --profileDir=test_profile --parcelPath=tools/QATestScripts/DataFiles --chandlerTests=TestCreateAccounts -D2 -M0
+    /.../RunChandler... --create --catch=tests --profileDir=test_profile --parcelPath=tools/QATestScripts/DataFiles --chandlerTests=TestAllDayEvent -D2 -M0
     - + - + - + - + - + - + - + - + - + - + - + - + - + - + - + 
     ...
     False
