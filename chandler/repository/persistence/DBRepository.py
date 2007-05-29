@@ -325,7 +325,9 @@ class DBRepository(OnDemandRepository):
                 if osname == 'Darwin':
                     if configure and not ramdb:
                         env.set_flags(DBEnv.DB_DSYNC_LOG, 1)
+                        env.set_flags(DBEnv.DB_REGION_INIT, 1)
                         db_config.write("set_flags DB_DSYNC_LOG\n")
+                        db_config.write("set_flags DB_REGION_INIT\n")
 
         if configure and not ramdb:
             db_config.close()
