@@ -152,7 +152,7 @@ def getPlatformID():
             # to determine if we are running under Rosetta
 
             if platform.processor() == 'i386' and platform.machine() == 'i386':
-                platformID = 'Mac OS X (intel)'
+                platformID = 'osx-intel'
             else:
                 platformID = 'osx-ppc'
         elif sys.platform == 'cygwin':
