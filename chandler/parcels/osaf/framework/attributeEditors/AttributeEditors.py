@@ -310,6 +310,13 @@ class StaticStringAttributeEditor(StringAttributeEditor):
     def isStatic(self, (item, attribute)):
         return True
 
+    def SetAttributeValue(self, item, attributeName, valueString):
+        # static strings cannot set their attribute value
+        pass
+
+    def EndControlEdit(self, item, attributeName, control):
+        # value can't change in a static string, so don't try to update
+        pass
 
 class LobImageAttributeEditor(BaseAttributeEditor):
 
