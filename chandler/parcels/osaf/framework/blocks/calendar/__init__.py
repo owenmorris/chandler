@@ -45,3 +45,6 @@ def installParcel(parcel, oldName=None):
         BlockEvent.template(eventName,
                             dispatchToBlockName='MainCalendarControl'
                             ).install(parcel)
+
+    from CalendarCanvas import ColorChange
+    ColorChange.update(parcel, "colorChange")

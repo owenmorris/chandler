@@ -1306,6 +1306,29 @@ class CalendarRangeBlock(CollectionCanvas.CollectionBlock):
         self.synchronizeWidget()
 
 
+class ColorChange(schema.Item):
+
+    def __setup__(self):
+        Monitors.attach(self, 'onColorChanged', 'set',
+                        'osaf.usercollections.UserCollection.color')
+
+    def onColorChanged(self, op, item, attribute):
+        for uBlock in getattr(self, '_renderedBlocks', ()):
+            block = self.itsView.get(uBlock)
+            if block is not None:
+                block.onColorChanged(op, item, attribute)
+
+    def registerBlock(self, uBlock):
+        blocks = getattr(self, '_renderedBlocks', None)   # transient
+        if blocks is None:
+            self._renderedBlocks = blocks = set()
+        blocks.add(uBlock)
+
+    def unregisterBlock(self, uBlock):
+        blocks = getattr(self, '_renderedBlocks', ())
+        if uBlock in blocks:
+            blocks.remove(uBlock)
+
 
 class CalendarBlock(CalendarRangeBlock):
     lastHue = schema.One(schema.Float, initialValue = -1.0)
@@ -1313,14 +1336,13 @@ class CalendarBlock(CalendarRangeBlock):
 
     def render(self, *args, **kwds):
         super(CalendarBlock, self).render(*args, **kwds)
-
-        # lazily add the monitor the very first time the block is rendered
-        for monitor in getattr(self, 'monitors', ()):
-            if monitor.method == 'onColorChanged':
-                break
-        else:
-            Monitors.attach(self, 'onColorChanged', 'set',
-                            'osaf.usercollections.UserCollection.color')
+        schema.ns("osaf.framework.blocks.calendar",
+                  self.itsView).colorChange.registerBlock(self.itsUUID)
+        
+    def onDestroyWidget(self, *args, **kwds):
+        schema.ns("osaf.framework.blocks.calendar",
+                  self.itsView).colorChange.unregisterBlock(self.itsUUID)
+        super(CalendarBlock, self).onDestroyWidget(*args, **kwds)
 
     # Event handling
     def onDayModeEvent(self, event):
