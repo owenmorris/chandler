@@ -2962,9 +2962,9 @@ def setTriageStatus(item, *args, **kwds):
             # if the item that has changed is a master, DON'T set
             # triage status on the master, particularly
             # _sectionTriageStatus, as that will be inherited by
-            # occurrences, instead pop all modifications to now
+            # occurrences; instead, just pop all modifications to NOW
             for mod in event.modifications or []:
-                mod.setTriageStatus(*args, **kwds)
+                mod.setTriageStatus(None, **kwds)
             return
         
     # Not an event, or not a master - do it normally.
