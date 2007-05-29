@@ -23,6 +23,7 @@ import twisted.internet.error as error
 import twisted.internet.protocol as protocol
 import twisted.python.failure as failure
 from twisted.internet import threads
+from M2Crypto.SSL.Checker import WrongHost
 
 #python imports
 import logging
@@ -487,17 +488,12 @@ class AbstractDownloadClient(object):
 
             err = err.value
 
-        #Get the str representation of Python class
-        errorType = str(err.__class__)
-
         if self.statusMessages:
             # Reset the status bar since the error will be displayed
             # in a dialog or handled by a callback method.
             setStatusMessage(u"")
 
         if isinstance(err, Utility.CertificateVerificationError):
-            #rc = self.reconnect
-
             assert err.args[1] == 'certificate verify failed'
 
             # Reason why verification failed is stored in err.args[0], see
@@ -528,7 +524,7 @@ class AbstractDownloadClient(object):
 
             return self._actionCompleted()
 
-        if errorType == errors.M2CRYPTO_CHECKER_ERROR:
+        if isinstance(err, WrongHost):
             # Post an asynchronous event to the main thread where
             # we ask the user if they would like to continue even though
             # the certificate identifies a different host.

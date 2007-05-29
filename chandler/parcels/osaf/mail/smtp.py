@@ -19,6 +19,7 @@ import twisted.internet.reactor as reactor
 import twisted.internet.defer as defer
 import twisted.internet.error as error
 from twisted.internet import threads
+from M2Crypto.SSL.Checker import WrongHost
 
 #python imports
 import cStringIO as StringIO
@@ -594,12 +595,11 @@ class SMTPClient(object):
                                                           self.reconnect)
                 return True
             except Exception, e:
-                # There is a bug in the M2Crypto code that needs to be 
-                # fixed
-                log.exception('This should never happen')
+                # This code should never be reached.
+                log.exception('Error raised in SSL Layer which requires investigation.')
                 return False
 
-        elif str(err.__class__) == errors.M2CRYPTO_CHECKER_ERROR:
+        elif isinstance(err, WrongHost):
             if not dryRun:
                 displayIgnoreSSLErrorDialog(err.pem,
                                             messages.SSL_HOST_MISMATCH % \
@@ -685,19 +685,6 @@ class SMTPClient(object):
 
         elif errorType == errors.DNS_LOOKUP_ERROR:
             errorCode = errors.DNS_LOOKUP_CODE
-
-        elif errorType.startswith(errors.M2CRYPTO_PREFIX):
-            errorCode = errors.M2CRYPTO_CODE
-
-            if errorType == errors.M2CRYPTO_BIO_ERROR:
-                #XXX: pleace holder for future code enhancement
-                pass
-
-            if errorType == errors.M2CRYPTO_CHECKER_ERROR:
-                # Host does not match cert
-                #XXX: pleace holder for future code enhancement
-                pass
-
 
         return (errorCode, errorString)
 

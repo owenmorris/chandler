@@ -50,11 +50,6 @@ IMAP_EXCEPTION            = __MAILSERVICE_PREFIX + "IMAPException"
 SMTP_EXCEPTION            = __MAILSERVICE_PREFIX + "SMTPException"
 POP_EXCEPTION             = __MAILSERVICE_PREFIX + "POPException"
 
-"""M2Crypto Errors"""
-M2CRYPTO_PREFIX        = "M2Crypto"
-M2CRYPTO_BIO_ERROR     = M2CRYPTO_PREFIX + ".BIO.BIOError"
-M2CRYPTO_CHECKER_ERROR = M2CRYPTO_PREFIX + ".SSL.Checker.WrongHost"
-
 """ Contains common transport error codes used by the mail service"""
 __offset = 600
 
