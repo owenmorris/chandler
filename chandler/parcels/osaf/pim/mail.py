@@ -42,11 +42,11 @@ from i18n import ChandlerMessageFactory as _
 from osaf import messages, preferences
 from osaf.pim.calendar import EventStamp
 from tasks import TaskStamp
-from osaf.pim import Modification
+from osaf.pim import Modification, setTriageStatus
 from osaf.pim.calendar.TimeZone import formatTime
 from osaf.pim.calendar.DateTimeUtil import mediumDateFormat, weekdayName
 from datetime import datetime
-from stamping import has_stamp
+from stamping import has_stamp, Stamp
 from osaf.pim import TriageEnum, setTriageStatus
 
 from osaf.framework import password
@@ -1516,6 +1516,7 @@ class MailStamp(stamping.Stamp):
             return
 
         checkIfFromMe(self)
+        self.itsItem.updateDisplayWho(op, name)
 
     @schema.observer(toAddress, ccAddress, bccAddress)
     def onToMeChange(self, op, name):
@@ -1528,38 +1529,7 @@ class MailStamp(stamping.Stamp):
             return 
 
         checkIfToMe(self)
-
-    @schema.observer(toAddress, fromAddress, originators, viaMailService,
-                     stamping.Stamp.stamp_types)
-    def onAddressChange(self, op, name):
         self.itsItem.updateDisplayWho(op, name)
-
-    def addDisplayWhos(self, whos):
-        """
-        Add tuples to the "whos" list: (priority, "text", source name)
-        """
-        viaMailService = getattr(self, "viaMailService", False)
-
-        toAddress = getattr(self, 'toAddress', [])
-        if len(toAddress) > 0:
-            toText = u", ".join(unicode(x) for x in toAddress)
-            if len(toText) > 0:
-                toPriority = viaMailService and 3 or 1
-                whos.append((toPriority, toText, 'to'))
-
-        originators = getattr(self, 'originators', [])
-        if len(originators) > 0:
-            originatorsText = u", ".join(unicode(x) for x in originators)
-            if len(originatorsText) > 0:
-                originatorsPriority = viaMailService and 1 or 2
-                whos.append((originatorsPriority, originatorsText, 'from'))
-
-        fromAddress = getattr(self, 'fromAddress', None)
-        if fromAddress is not None:
-            fromText = unicode(fromAddress)
-            if len(fromText) > 0:
-                fromPriority = viaMailService and 2 or 3
-                whos.append((fromPriority, fromText, 'from'))
 
     schema.addClouds(
         sharing = schema.Cloud(
@@ -2411,10 +2381,49 @@ class CommunicationStatus(schema.Annotation):
         (items.ContentItem.read, False),
         (items.ContentItem.error, None)
     )
+    attributeDescriptors = tuple(t[0] for t in attributeValues)
+    attributeValues = tuple((attr.name, val) for attr, val in attributeValues)
+    
     status = schema.Calculated(
         schema.Integer,
-        basedOn=tuple(t[0] for t in attributeValues),
+        basedOn=attributeDescriptors,
         fget=lambda self: self.getItemCommState(self.itsItem),
     )
-    attributeValues = tuple((attr.name, val) for attr, val in attributeValues)
 
+    def addDisplayWhos(self, whos):
+        """
+        Add tuples to the "whos" list: (priority, "text", source name)
+        """
+        commState = CommunicationStatus.getItemCommState(self.itsItem)
+        modState = None
+        lastModifiedBy = self.itsItem.lastModifiedBy
+        if lastModifiedBy is not None:
+            lastModifiedBy = unicode(lastModifiedBy)
+            if commState & CommunicationStatus.UPDATE:
+                whos.append((1, lastModifiedBy, 'updater'))
+            elif commState & CommunicationStatus.EDITED:
+                whos.append((1, lastModifiedBy, 'editor'))
+            else:
+                whos.append((1000, lastModifiedBy, 'creator'))
+
+        stamp_types = Stamp(self.itsItem).stamp_types
+        if stamp_types and MailStamp in stamp_types:
+            msg = MailStamp(self.itsItem)
+            preferFrom = (commState & CommunicationStatus.OUT) == 0            
+            toAddress = getattr(msg, 'toAddress', [])
+            if len(toAddress) > 0:
+                toText = u", ".join(unicode(x) for x in toAddress)
+                if len(toText) > 0:
+                    whos.append((preferFrom and 4 or 2, toText, 'to'))
+
+            originators = getattr(msg, 'originators', [])
+            if len(originators) > 0:
+                originatorsText = u", ".join(unicode(x) for x in originators)
+                if len(originatorsText) > 0:
+                    whos.append((preferFrom and 2 or 3, originatorsText, 'from'))
+    
+            fromAddress = getattr(msg, 'fromAddress', None)
+            if fromAddress is not None:
+                fromText = unicode(fromAddress)
+                if len(fromText) > 0:
+                    whos.append((preferFrom and 3 or 4, fromText, 'from'))

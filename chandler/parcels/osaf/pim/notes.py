@@ -89,3 +89,7 @@ class Note(items.ContentItem):
         for stampObject in Stamp(self).stamps:
             method = getattr(stampObject, 'addDisplayWhos', lambda _: None)
             method(whos)
+        
+        from osaf.pim.mail import CommunicationStatus
+        CommunicationStatus(self).addDisplayWhos(whos)
+

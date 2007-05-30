@@ -207,7 +207,7 @@ class WhoAttributeEditor(attributeEditors.StringAttributeEditor):
             super(WhoAttributeEditor, self).GetTextToDraw(item, attributeName)
         
         if not isSample:
-            # OVerride the prefix if we have one we recognize
+            # Override the prefix if we have one we recognize
             # (these are in order of how frequently I think they'll occur)
             # Note that there's a space at the end of each one, which separates
             # the prefix from the value.
@@ -215,13 +215,13 @@ class WhoAttributeEditor(attributeEditors.StringAttributeEditor):
             if len(whoSource) > 0:
                 if whoSource == 'creator': # ContentItem
                     prefix = _(u'cr ')
-                #elif whoSource == '?': # @@@ not sure where 'edited by' will come from
-                    #prefix = _(u'ed')
-                #elif whoSource == '?': # @@@ not sure where 'updated by' will come from
-                    #prefix = _(u'up')
-                elif whoSource == 'to': # Mail
+                elif whoSource == 'editor': # Mail/CommunicationsStatus
+                    prefix = _(u'ed ')
+                elif whoSource == 'updater': # Mail/CommunicationsStatus
+                    prefix = _(u'up ')
+                elif whoSource == 'to': # Mail/CommunicationsStatus
                     prefix = _(u'to ')
-                elif whoSource == 'from': # Mail
+                elif whoSource == 'from': # Mail/CommunicationsStatus
                     prefix = _(u'fr ')
                 elif whoSource == 'owner': # Flickr
                     prefix = _(u'ow ')

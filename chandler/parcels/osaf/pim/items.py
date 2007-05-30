@@ -520,9 +520,6 @@ class ContentItem(Triageable):
         setattr(self, sourceAttributeName, result[-1])
 
     def addDisplayWhos(self, whos):
-        # Eventually, when 'creator' is supported, we'll add it here with a
-        # very low priority. For now, an empty 'whos' list will result in no
-        # 'who' column display, which is what we want.
         pass
 
     def updateDisplayWho(self, op, attr):
@@ -545,6 +542,10 @@ class ContentItem(Triageable):
     def onCreatedOrLastModifiedChanged(self, op, attr):
         self.updateDisplayDate(op, attr)
 
+    @schema.observer(lastModification, lastModifiedBy)
+    def onModificationChange(self, op, name):
+        # CommunicationStatus might have changed
+        self.updateDisplayWho(op, name)
 
     @schema.observer(error)
     def onErrorChanged(self, op, attr):
