@@ -284,7 +284,7 @@ class wxMiniCalendar(DragAndDrop.DropReceiveWidget,
                         earliestEnd = max(event.endTime, today)
                         dayEnd      = min(earliestEnd, today + one_day)
                         duration = dayEnd - dayStart
-                        assert duration > zero_delta
+                        assert duration >= zero_delta
                         hours = duration.seconds / 3600 + 24*duration.days
 
                     # We set a minimum "Busy" value of 0.25 for any
@@ -773,13 +773,14 @@ class wxPreviewArea(CalendarNotificationHandler, wx.Panel):
 
         if self.HasPendingEventChanges():
             for op, event in self.HandleRemoveAndYieldChanged(range):
-                if op in ('add','change') and event.transparency == 'confirmed':
-                    self.visibleEvents.append(event)
+                pass
+            self.visibleEvents = [i for i in self.visibleEvents
+                                          if i.transparency == "confirmed"]
         else:
             inRange = self.blockItem.getEventsInRange(range, dayItems=True,
                                                       timedItems=True)
             self.visibleEvents = [event for event in inRange
-                                       if event.transparency == "confirmed"]
+                                        if event.transparency == "confirmed"]
 
         self.visibleEvents.sort(cmp = self.SortForPreview)
         self.Resize()
