@@ -160,15 +160,6 @@ class RecordSetConduit(conduits.BaseConduit):
             inbound, extra, isDiff = self.getRecords(debug=debug, activity=
                 activity)
 
-            # Depending on the permissions on the ticket we might have just
-            # used, the share.mode could have changed.  Let's see if we
-            # need to turn on "send":
-            if not modeOverride:
-                if self.share.mode == 'both':
-                    send = True
-                if self.share.mode == 'get':
-                    send = False
-
 
             ids = inbound.keys()
             ids.sort()
@@ -372,7 +363,9 @@ class RecordSetConduit(conduits.BaseConduit):
             else:
                 rsExternal = inbound.get(alias, eim.RecordSet())
 
-            logger.debug("----- Merging %s:", alias)
+            readOnly = (self.share.mode == 'get')
+            logger.debug("----- Merging %s %s", alias,
+                "(Read-only merge)" if readOnly else "")
 
             uuid = translator.getUUIDForAlias(alias)
             if (uuid is not None and uuid != alias and not state.agreed and
@@ -392,7 +385,6 @@ class RecordSetConduit(conduits.BaseConduit):
                     inherit_records.append(type(record)(*args))
                 state.agreed += eim.RecordSet(inherit_records)
 
-            readOnly = not send
             dSend, dApply, pending = state.merge(rsInternal, rsExternal,
                 isDiff=isDiff, filter=filter, readOnly=readOnly, debug=debug)
 

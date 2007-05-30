@@ -438,7 +438,7 @@ def publish(collection, account, classesToInclude=None,
         )
         share = Share(itsView=view, contents=collection, conduit=conduit)
         share.create()
-        share.sync()
+        share.put()
         share.sharer = pim_ns.currentContact.item
         return [share]
 
@@ -1140,7 +1140,7 @@ def subscribeCalDAV(view, url, inspection, activity=None, account=None,
         share.follows = subShare
 
 
-    share.sync(activity=activity, modeOverride='get')
+    share.get(activity=activity)
     share.conduit.getTickets()
 
     if caldav_atop_eim:
@@ -1225,7 +1225,7 @@ def subscribeWebDAV(view, url, inspection, activity=None, account=None,
     if filters:
         share.conduit.filters = filters
 
-    share.sync(activity=activity)
+    share.get(activity=activity)
     share.conduit.getTickets()
 
     try:
@@ -1361,7 +1361,7 @@ def subscribeMorsecode(view, url, morsecodeUrl, inspection, activity=None,
     if filters:
         share.conduit.filters = filters
 
-    share.sync(activity=activity)
+    share.get(activity=activity)
 
     if account:
         # Retrieve tickets
