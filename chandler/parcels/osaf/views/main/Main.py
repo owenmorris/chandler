@@ -271,9 +271,17 @@ class MainView(View):
         if text is None:
             text = _(u"/find ")
 
-        quickEntryBlock.widget.GetControl().SetFocus()
+        widget = quickEntryBlock.widget.GetControl()
+        widget.SetFocus()
         quickEntryBlock.text = text
         quickEntryBlock.synchronizeWidget()
+        end = len(text)
+        start = text.find (u' ')
+        if start == -1:
+            start = end
+        else:
+            start = start + 1
+        widget.SetSelection (start, end)
 
     def onQuickEntryEvent (self, event):
         # XXX This needs some refactoring love
