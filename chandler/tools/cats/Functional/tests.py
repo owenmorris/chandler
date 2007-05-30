@@ -72,6 +72,7 @@ exclusions = {#tests to exclude on specific platfoms only
         ("TestDates","TestDates"), #Chandler not handling daylightsavings bug#5038
         ("TestEditModeOnEnter","TestEditModeOnEnter"), #Chandler bug 5744
         ("TestVisibleHours","TestVisibleHours"), # bug 8969
+        ("TestFlickr", "TestFlickr"), # bug 9347
         ]
 }
 
