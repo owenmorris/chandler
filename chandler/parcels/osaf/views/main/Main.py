@@ -432,7 +432,7 @@ class MainView(View):
                 if collection is not None:
                     collection.add(item)
                     #Put the status message in the Status bar
-                    wx.GetApp().CallItemMethodAsync("MainView", 'setStatusMessage', statusMsg)
+                    self.setStatusMessage (statusMsg)
             
             # Clear out the command when it finishes without errors
             quickEntryWidget.SetValue("")
@@ -452,6 +452,8 @@ class MainView(View):
             if len (command) != 0:
                 quickEntryWidget.SetValue ("")
                 block.lastText = command
+
+            self.setStatusMessage(u'')
         else:
             # Try to process as a quick entry command
             if len (command) != 0 and not processQuickEntry (self, command):
@@ -461,7 +463,7 @@ class MainView(View):
                 if c not in [u'/' + k for k in searchKinds]:
                     # command is not valid
                     quickEntryWidget.SetValue (command + ' ?')
-                    wx.GetApp().CallItemMethodAsync("MainView", 'setStatusMessage', _(u"Command entered is not valid"))
+                    self.setStatusMessage (_(u"Command entered is not valid"))
                 else:
                     command = command[len(c) + 1:] # remove '/find '
 
@@ -507,7 +509,9 @@ class MainView(View):
                             # For now we'll write a message to the status bar because it's easy
                             # When we get more time to work on search, we should write the message
                             # just below the search box in the toolbar.
-                            app.CallItemMethodAsync("MainView", 'setStatusMessage', _(u"Search found nothing"))
+                            self.setStatusMessage(_(u"Search found nothing"))
+                        else:
+                            self.setStatusMessage(u'')
                     except PyLucene.JavaError, error:
                         message = unicode (error)
                         prefix = u"org.apache.lucene.queryParser.ParseException: "
