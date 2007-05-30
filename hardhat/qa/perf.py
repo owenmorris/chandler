@@ -391,7 +391,7 @@ class perf:
         else:
             # Use the 80th percentile as testTime
             values.sort()
-            testTime = values[int(round(0.8 * float(len(values))))]
+            testTime = values[int(0.8 * float(len(values)))]
         
         if testTime < ideal:
             return 'good'
