@@ -212,9 +212,9 @@ def toICalendarDateTime(dt_or_dtlist, allDay, anyTime=False):
 
     output = ''
     if allDay or anyTime:
-        if anyTime and not allDay:
-            output += anyTimeParameter
         output += allDayParameter
+        if anyTime and not allDay:
+            output += anyTimeParameter        
     else:
         isUTC = dtlist[0].tzinfo == utc
         output += timedParameter
