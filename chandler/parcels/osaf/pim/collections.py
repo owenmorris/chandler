@@ -317,7 +317,7 @@ class ContentCollection(ContentItem, Collection):
         if not isDeferring and hasattr(self, 'sourceFor'):
             self.sourceFor.clear()
 
-    def withoutTrash(self):
+    def withoutTrash(self, copy=True):
         """
         If this collection wraps the trash collection, return an equivalent
         collection that doesn't.
@@ -440,7 +440,7 @@ class WrapperCollection(ContentCollection):
                 sourceChanged = set.sourceChanged
                 actualSource = set.findSource(sourceId)
                 assert actualSource is not None
-                for uuid in source.iterkeys():
+                for uuid in source.withoutTrash(False).iterkeys():
                     view._notifyChange(sourceChanged, 'add', 'collection',
                                        source, name, False, uuid, dirties,
                                        actualSource)
@@ -450,7 +450,7 @@ class WrapperCollection(ContentCollection):
                 sourceChanged = set.sourceChanged
                 actualSource = set.findSource(sourceId)
                 assert actualSource is not None
-                for uuid in source.iterkeys():
+                for uuid in source.withoutTrash(False).iterkeys():
                     view._notifyChange(sourceChanged, 'remove', 'collection',
                                        source, name, False, uuid, dirties,
                                        actualSource)
@@ -680,7 +680,7 @@ class SetCollection(ContentCollection):
 
     set = schema.One(schema.TypeReference('//Schema/Core/AbstractSet'))
 
-    def withoutTrash(self):
+    def withoutTrash(self, copy=True):
         return self
     
 
@@ -877,7 +877,7 @@ class AppCollection(ContentCollection):
         setattr(self, self.__collection__, set)
 
 
-    def withoutTrash(self):
+    def withoutTrash(self, copy=True):
         """
         Pull out the non-trash part of AppCollection.
         """
@@ -889,7 +889,9 @@ class AppCollection(ContentCollection):
         # the _left side, which has no trash.
 
         if self.trash is schema.ns('osaf.pim', self.itsView).trashCollection:
-            return self.set._left.copy(self.itsUUID)
+            if copy:
+                return self.set._left.copy(self.itsUUID)
+            return self.set._left
 
         return self
 
