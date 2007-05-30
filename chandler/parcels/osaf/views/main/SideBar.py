@@ -1058,7 +1058,8 @@ class SidebarBlock(Table):
                               cloudAlias="copying")
             
             # Give the copy a new color
-            del UserCollection(item).color
+            if hasattr (UserCollection(item), 'color'):
+                del UserCollection(item).color
             UserCollection(item).ensureColor()
 
             if inMine:
