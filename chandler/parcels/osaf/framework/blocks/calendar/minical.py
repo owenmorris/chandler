@@ -687,12 +687,13 @@ class PyMiniCalendar(wx.PyControl):
                 # draw free/busy indicator
                 if weekDate.month == startDate.month:
                     busyPercentage = self.GetBusy(weekDate)
-                    height = (self.heightRow - Y_ADJUSTMENT_BIG) * busyPercentage
-
-                    gc.SetBrush(self.busyColourBrush)
-                    gc.SetPen(wx.TRANSPARENT_PEN)
-                    gc.DrawRectangle(columnStart + 1,
-                                     y + self.heightRow - height - 2, 2, height)
+                    assert busyPercentage >= 0
+                    if busyPercentage > 0:
+                        height = (self.heightRow - Y_ADJUSTMENT_BIG) * busyPercentage
+                        gc.SetBrush(self.busyColourBrush)
+                        gc.SetPen(wx.TRANSPARENT_PEN)
+                        gc.DrawRectangle(columnStart + 1,
+                                         y + self.heightRow - height - 2, 2, height)
 
                 if (weekDate.month != startDate.month or
                     not self.IsDateInRange(weekDate)):

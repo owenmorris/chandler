@@ -279,11 +279,12 @@ class wxMiniCalendar(DragAndDrop.DropReceiveWidget,
                     if event.allDay:
                         hours = 12.0
                     else:
-                        dayStart = max(event.startTime,
-                                       midnightStart + timedelta(day))
-                        dayEnd   = min(event.endTime,
-                                       midnightStart + timedelta(day + 1))
+                        today = midnightStart + timedelta(day)
+                        dayStart    = max(event.startTime, today)
+                        earliestEnd = max(event.endTime, today)
+                        dayEnd      = min(earliestEnd, today + one_day)
                         duration = dayEnd - dayStart
+                        assert duration > zero_delta
                         hours = duration.seconds / 3600 + 24*duration.days
 
                     # We set a minimum "Busy" value of 0.25 for any
