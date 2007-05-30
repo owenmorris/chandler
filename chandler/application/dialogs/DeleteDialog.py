@@ -87,10 +87,8 @@ def GetItemRemovalState(selectedCollection, item, view):
 
     else:
         memberItem = getProxy(u'ui', item).getMembershipItem()
-        if (selectedCollection is allCollection and
-            memberItem in pim_ns.mine):
-            # Items in the dashboard can't be removed if they're
-            # automatically included from a mine collection
+        if selectedCollection is allCollection:
+            # Items in the dashboard can't be removed, they're always deleted
             if GetReadOnlyCollection(item, view) is None:
                 return DELETE_DASHBOARD
             else:
@@ -117,12 +115,13 @@ def ShowDeleteDialog(view=None, selectedCollection=None,
                        modal=modal,
                        itemsAndStates=itemsAndStates)
     
-    win.CenterOnScreen()
-    if modal:
-        return win.ShowModal()
-    else:
-        win.Show()
-        return win
+    if win.rendered:
+        win.CenterOnScreen()
+        if modal:
+            return win.ShowModal()
+        else:
+            win.Show()
+            return win
 
 class DeleteDialog(wx.Dialog):
 
@@ -155,24 +154,41 @@ class DeleteDialog(wx.Dialog):
         # ProcessNextItem
         self.itemNumber = -1
 
-        pre = wx.PreDialog()
-        self.resources.LoadOnDialog(pre, None, "DeleteDialog")
-        self.PostCreate(pre)
+        main_ns = schema.ns('osaf.views.main', view)
 
-        self.text = wx.xrc.XRCCTRL(self, "Text")
-        self.checkbox = wx.xrc.XRCCTRL(self, "ApplyAll")
+        dialogsToDisplay = 0
+        if main_ns.dashboardRemovalPref.askNextTime:
+            dialogsToDisplay += self.countDict[DELETE_DASHBOARD]
+        if main_ns.lastCollectionRemovalPref.askNextTime:
+            dialogsToDisplay += self.countDict[DELETE_LAST]
+        dialogsToDisplay += self.countDict[IN_READ_ONLY_COLLECTION]
+        dialogsToDisplay += self.countDict[READ_ONLY_SELECTED]
         
-        self.Bind(wx.EVT_BUTTON, self.ProcessOK, id=wx.ID_OK)
-        self.Bind(wx.EVT_BUTTON, self.OnDone, id=wx.ID_CANCEL)
-        self.Bind(wx.EVT_BUTTON, self.ProcessDelete,
-                  id=wx.xrc.XRCID("MoveToTrash"))
-
-        self.Fit()
+        if dialogsToDisplay > 0:
+            pre = wx.PreDialog()
+            self.resources.LoadOnDialog(pre, None, "DeleteDialog")
+            self.PostCreate(pre)
+            self.rendered = True
+    
+            self.text = wx.xrc.XRCCTRL(self, "Text")
+            self.applyToAllCheckbox = wx.xrc.XRCCTRL(self, "ApplyAll")
+            self.neverShowCheckbox = wx.xrc.XRCCTRL(self, "NeverShowAgain")
+            
+            self.Bind(wx.EVT_BUTTON, self.ProcessOK, id=wx.ID_OK)
+            self.Bind(wx.EVT_BUTTON, self.OnDone, id=wx.ID_CANCEL)
+            self.Bind(wx.EVT_BUTTON, self.ProcessDelete,
+                      id=wx.xrc.XRCID("MoveToTrash"))
+    
+            self.Fit()
+        else:
+            self.rendered = False
 
         self.ProcessNextItem()
         
 
     def ProcessNextItem(self):
+        main_ns = schema.ns('osaf.views.main', self.view)
+
         while True:
             self.itemNumber += 1
             if self.itemNumber >= len(self.itemsAndStates):
@@ -182,13 +198,15 @@ class DeleteDialog(wx.Dialog):
                 
                 # ignoring applyToAll for now
                 if state == DELETE_DASHBOARD:
-                    if self.dashboardRemoveAll:
+                    if (self.dashboardRemoveAll or
+                        not main_ns.dashboardRemovalPref.askNextTime):
                         self.DeleteItem()
                         continue
                     else:
                         self.DeletePrompt()
                 elif state == DELETE_LAST:
-                    if self.lastItemApplyAll:
+                    if (self.lastItemApplyAll or
+                        not main_ns.lastCollectionRemovalPref.askNextTime):
                         self.DeleteItem()
                         continue
                     else:
@@ -217,7 +235,7 @@ class DeleteDialog(wx.Dialog):
         textDict = self.GetTextDict()
         title, text = dialogTextData[state]
         
-        self.checkbox.SetLabel(_(u"Apply to all (%(count)s)") % textDict)
+        self.applyToAllCheckbox.SetLabel(_(u"Apply to all (%(count)s)") % textDict)
         self.SetTitle(title % textDict)
         
         self.text.Show()
@@ -230,10 +248,12 @@ class DeleteDialog(wx.Dialog):
         item, state = self.itemsAndStates[self.itemNumber]        
         
         if state == IN_READ_ONLY_COLLECTION and self.countDict[state] > 1:
-            self.checkbox.Show()
-            self.checkbox.SetValue(False)
+            self.applyToAllCheckbox.Show()
+            self.applyToAllCheckbox.SetValue(False)
         else:
-            self.checkbox.Hide()
+            self.applyToAllCheckbox.Hide()
+
+        self.neverShowCheckbox.Hide()
 
         self.SetText()
             
@@ -247,11 +267,17 @@ class DeleteDialog(wx.Dialog):
         item, state = self.itemsAndStates[self.itemNumber]
         
         if self.countDict[state] > 1:
-            self.checkbox.Show()
-            self.checkbox.SetValue(False)
+            self.applyToAllCheckbox.Show()
+            self.applyToAllCheckbox.SetValue(False)
         else:
-            self.checkbox.Hide()
-        
+            self.applyToAllCheckbox.Hide()
+
+        if state in DELETE_STATES:
+            self.neverShowCheckbox.Show()
+            self.neverShowCheckbox.SetValue(False)            
+        else:
+            self.neverShowCheckbox.Hide()
+            
         self.SetText()
 
         wx.xrc.XRCCTRL(self, "MoveToTrash").SetFocus()
@@ -259,15 +285,23 @@ class DeleteDialog(wx.Dialog):
         wx.Yield()
 
     def HandleApplyToAll(self):
+        main_ns = schema.ns('osaf.views.main', self.view)
         state = self.itemsAndStates[self.itemNumber][1]
         self.countDict[state] -= 1
-        if self.checkbox.IsShown() and self.checkbox.GetValue():
+        if self.applyToAllCheckbox.IsShown() and self.applyToAllCheckbox.GetValue():
             if state == DELETE_DASHBOARD:
                 self.dashboardRemoveAll = True
             elif state == DELETE_LAST:
                 self.lastItemApplyAll = True
             elif state == IN_READ_ONLY_COLLECTION:
                 self.readOnlyApplyAll = True
+        
+        if self.neverShowCheckbox.IsShown() and self.neverShowCheckbox.GetValue():
+            if state == DELETE_DASHBOARD:
+                main_ns.dashboardRemovalPref.askNextTime = False
+            elif state == DELETE_LAST:
+                main_ns.lastCollectionRemovalPref.askNextTime = False
+        
 
     def ProcessOK(self, evt):
         if self.itemsAndStates[self.itemNumber][1] == READ_ONLY_SELECTED:
@@ -288,9 +322,10 @@ class DeleteDialog(wx.Dialog):
         self.ProcessNextItem()
 
     def OnDone(self, evt=None):
-        if self.modal:
-            self.EndModal(False)
-        self.Destroy()
+        if self.rendered:
+            if self.modal:
+                self.EndModal(False)
+            self.Destroy()
 
     def AdjustButtons(self):
         state = self.itemsAndStates[self.itemNumber][1]

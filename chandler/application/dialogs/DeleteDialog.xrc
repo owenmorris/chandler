@@ -13,11 +13,24 @@
       <object class="sizeritem">
         <object class="wxFlexGridSizer">
           <object class="sizeritem">
-            <object class="wxCheckBox" name="ApplyAll">
-              <label>Apply to all</label>
+            <object class="wxBoxSizer">
+              <orient>wxVERTICAL</orient>
+              <object class="sizeritem">
+                <object class="wxCheckBox" name="ApplyAll">
+                  <label>Apply to all</label>
+                </object>
+                <flag>wxTOP|wxLEFT|wxRIGHT|wxALIGN_LEFT|wxALIGN_CENTRE_VERTICAL</flag>
+                <border>5</border>
+              </object>
+              <object class="sizeritem">
+                <object class="wxCheckBox" name="NeverShowAgain">
+                  <label>Never ask again</label>
+                </object>
+                <flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTRE_VERTICAL</flag>
+                <border>5</border>
+              </object>
             </object>
-            <flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTRE_VERTICAL</flag>
-            <border>5</border>
+            <flag>wxALIGN_LEFT|wxALIGN_CENTRE_VERTICAL</flag>
           </object>
           <object class="sizeritem">
             <object class="wxBoxSizer">
@@ -46,7 +59,7 @@
                 <border>5</border>
               </object>
             </object>
-            <flag>wxALL|wxALIGN_RIGHT</flag>
+            <flag>wxALL|wxALIGN_RIGHT|wxALIGN_CENTRE_VERTICAL</flag>
           </object>
           <cols>4</cols>
           <hgap></hgap>

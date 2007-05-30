@@ -14,7 +14,7 @@
 
 
 from Sections import SectionedGridDelegate, SectionAttributeEditor
-from SideBar import (SidebarBlock, SidebarBranchPointDelegate)
+from SideBar import SidebarBlock, SidebarBranchPointDelegate
 from Dashboard import DashboardPrefs
 
 def installParcel(parcel, oldVersion=None):
@@ -32,6 +32,8 @@ def installParcel(parcel, oldVersion=None):
     from osaf.framework import prompts
 
     prompts.DialogPref.update(parcel, "clearCollectionPref")
+    prompts.DialogPref.update(parcel, "dashboardRemovalPref")
+    prompts.DialogPref.update(parcel, "lastCollectionRemovalPref")
 
     DashboardPrefs.update(parcel, "dashboardPrefs")
     
