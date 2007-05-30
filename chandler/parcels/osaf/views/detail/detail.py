@@ -2052,7 +2052,7 @@ class OutboundEmailAddressAttributeEditor(ChoiceAttributeEditor):
         for addr in addrs:
             choices.append(addr.emailAddress)
 
-        choices.append(_(u"Configure email accounts..."))
+        choices.append(_(u"Create outgoing mail account..."))
         #logger.critical("Updating outbound address choices to [%s]",
                         #", ".join(choices))
         return choices
