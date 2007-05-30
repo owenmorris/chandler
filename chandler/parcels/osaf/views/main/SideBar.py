@@ -1160,7 +1160,8 @@ class SidebarBlock(Table):
                                         color.toTuple() == event.color.toTuple())
 
     def onRenameEventUpdateUI (self, event):
-        event.arguments['Enable'] = self.contents.getSelectedItemIfOnlyOneIsSelected() is not None
+        selectedItem = self.contents.getSelectedItemIfOnlyOneIsSelected()
+        event.arguments['Enable'] = selectedItem is not None and UserCollection (selectedItem).renameable
 
     def onRenameEvent (self, event):
         self.widget.EnableCellEditControl()
