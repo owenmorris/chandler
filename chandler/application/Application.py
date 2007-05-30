@@ -719,14 +719,17 @@ class wxApplication (wx.App):
 
     imageCache = {}
 
-    def GetRawImage (self, name):
+    def GetRawImage (self, name, copy=True):
         """
         Return None if image isn't found, otherwise return the raw image.
         Also look first for platform specific images.
         """
         entry = wxApplication.imageCache.get(name)
         if entry is not None:
-            return entry[0]
+            image = entry[0]
+            if image is not None and copy:
+                image = image.Copy()
+            return image
 
         root, extension = os.path.splitext (name)
 
@@ -741,7 +744,8 @@ class wxApplication (wx.App):
 
         image = wx.ImageFromStream (cStringIO.StringIO(file.read()))
         wxApplication.imageCache[name] = [image]
-        
+        if copy:
+            image = image.Copy()
         return image
 
     def GetImage (self, name):
@@ -749,7 +753,7 @@ class wxApplication (wx.App):
         Return None if image isn't found, otherwise loads a bitmap.
         Looks first for platform specific bitmaps.
         """
-        rawImage = self.GetRawImage(name)
+        rawImage = self.GetRawImage(name, copy=False)
 
         if rawImage is not None:
             return wx.BitmapFromImage (rawImage)

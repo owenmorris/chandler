@@ -574,7 +574,6 @@ class SSSidebarIconButton2 (SSSidebarButton):
                 color = userCollection.color
                 rgbValue = DrawingUtilities.color2rgb(color.red, color.green, color.blue)
                 hsvValue = rgb_to_hsv(*rgbValue)
-                image = image.Copy() # have to copy so that we don't change the cached image
                 image.RotateHue (hsvValue[0])
 
             image = wx.BitmapFromImage (image)
@@ -671,7 +670,6 @@ class SSSidebarIconButton (SSSidebarButton):
             color = userCollection.color
             rgbValue = DrawingUtilities.color2rgb(color.red, color.green, color.blue)
             hsvValue = rgb_to_hsv(*rgbValue)
-            image = image.Copy() # have to copy so that we don't change the cached image
             image.RotateHue (hsvValue[0])
 
         if image is not None:

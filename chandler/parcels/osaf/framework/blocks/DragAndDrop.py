@@ -202,7 +202,7 @@ class DropReceiveWidget (object):
 
     def _DROP_ICON(self, filename):
         # This macro from wxWidgets is going to be in wxPython soon.
-        img = wx.GetApp().GetRawImage(filename)
+        img = wx.GetApp().GetRawImage(filename, copy=False)
         if img is None:
             return None
         return wx.CursorFromImage(img)
