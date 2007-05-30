@@ -692,7 +692,7 @@ class PyMiniCalendar(wx.PyControl):
                     gc.SetBrush(self.busyColourBrush)
                     gc.SetPen(wx.TRANSPARENT_PEN)
                     gc.DrawRectangle(columnStart + 1,
-                                     y + self.heightRow - height - 1, 2, height)
+                                     y + self.heightRow - height - 2, 2, height)
 
                 if (weekDate.month != startDate.month or
                     not self.IsDateInRange(weekDate)):
