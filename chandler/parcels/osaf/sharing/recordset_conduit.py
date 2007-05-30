@@ -494,7 +494,8 @@ class RecordSetConduit(conduits.BaseConduit):
                            'cid:triage-filter@osaf.us' in self.filters \
                         else None
                     if newTriageStatus or established:
-                        pim.setTriageStatus(item, newTriageStatus, popToNow=established)
+                        pim.setTriageStatus(item, newTriageStatus,
+                            popToNow=established)
 
                     # Per bug 8809:
                     # Set "read" state to True if this is an initial subscribe
@@ -502,26 +503,9 @@ class RecordSetConduit(conduits.BaseConduit):
                     # during an initial subscribe and True on subsequent
                     # syncs.  Also, make sure we apply this to the master item:
                     item_to_change = getattr(item, 'inheritFrom', item)
-                    if not established:
-                        item_to_change.read = True
-                    else:
-                        # Don't consider a triage-only change as enough to
-                        # mark an item unread.
-                        setUnread = True
-                        if len(rs.inclusions) == 1:
-                            record = list(rs.inclusions)[0]
-                            if (isinstance(record, model.ItemRecord) and
-                                record.title is eim.NoChange and
-                                record.createdOn is eim.NoChange and
-                                record.hasBeenSent is eim.NoChange and
-                                record.needsReply is eim.NoChange):
-                                setUnread = False
-
-                        if setUnread:
-                            item_to_change.read = False
-                            logger.info("Marked unread: %s '%s'", uuid,
-                                getattr(item_to_change, 'displayName',
-                                '<unknown>'))
+                    item_to_change.read = not established
+                    logger.debug("Marking item %s: %s" % (
+                        ("read" if item_to_change.read else "unread"), uuid))
 
                 if alias in remotelyAdded:
                     receiveStats['added'].add(uuid)
