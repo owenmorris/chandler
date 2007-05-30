@@ -453,7 +453,10 @@ class wxQuickEntry (wx.SearchCtrl):
         self.SetInsertionPointEnd()
 
     def OnTextChange(self, event):
-        showCancelButton = self.GetValue() != ""        
+        text = self.GetValue()
+        self.blockItem.text = text
+
+        showCancelButton = text != ""        
         if self.IsCancelButtonVisible() and not showCancelButton:
             self.ShowCancelButton (False)
             self.OnCancelButton (event)

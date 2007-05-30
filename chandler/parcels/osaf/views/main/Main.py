@@ -523,7 +523,6 @@ class MainView(View):
                                        parent=wx.GetApp().mainFrame)
                         showSearchResults = False
 
-        block.text = command
         sidebar.setShowSearch (showSearchResults)
                 
 
