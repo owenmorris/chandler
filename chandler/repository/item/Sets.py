@@ -374,7 +374,7 @@ class AbstractSet(ItemValue, Indexed):
                     if not (local or self._otherName is None):
                         otherItem = self.itsView.find(other)
                         if otherItem is not None:
-                            refs = otherItem._references
+                            refs = otherItem.itsRefs
                             if op == 'add':
                                 refs._addRef(self._otherName, item, attribute, True)
                             else:
@@ -426,7 +426,7 @@ class AbstractSet(ItemValue, Indexed):
         otherName = self._otherName
 
         if otherName is not None:
-            copy = item._references.get(attribute, Nil)
+            copy = item.itsRefs.get(attribute, Nil)
             if copy is not Nil:
                 return copy
 
@@ -445,7 +445,7 @@ class AbstractSet(ItemValue, Indexed):
         copy._setView(item.itsView)
 
         if otherName is not None:
-            item._references[attribute] = copy
+            item.itsRefs[attribute] = copy
             copy._setOwner(item, attribute)
 
         return copy
@@ -513,7 +513,7 @@ class AbstractSet(ItemValue, Indexed):
                                   item._values, noFireChanges)
                 else:
                     item.setDirty(item.RDIRTY, self._attribute,
-                                  item._references, noFireChanges)
+                                  item.itsRefs, noFireChanges)
             finally:
                 if verify:
                     view._status |= CView.VERIFY
@@ -574,14 +574,14 @@ class AbstractSet(ItemValue, Indexed):
         
         if self._otherName is not None:
             for item in self:
-                item._references._removeRef(self._otherName, self._owner())
+                item.itsRefs._removeRef(self._otherName, self._owner())
 
     def _fillRefs(self):
 
         if self._otherName is not None:
             for item in self:
-                item._references._setRef(self._otherName, self._owner(),
-                                         self._attribute)
+                item.itsRefs._setRef(self._otherName, self._owner(),
+                                     self._attribute)
 
     def clear(self):
         self._removeRefs()

@@ -281,9 +281,9 @@ class RefList(LinkedMap, Indexed):
             aliasedKey = self.resolveAlias(alias)
             if aliasedKey is not None:
                 raise ValueError, "alias '%s' already set for key %s" %(alias, aliasedKey)
-        self._owner()._references._setValue(self._name, item, self._otherName,
-                                            _noFireChanges, 'list',
-                                            alias, self._dictKey, otherKey)
+        self._owner().itsRefs._setValue(self._name, item, self._otherName,
+                                        _noFireChanges, 'list',
+                                        alias, self._dictKey, otherKey)
 
     def clear(self):
         """

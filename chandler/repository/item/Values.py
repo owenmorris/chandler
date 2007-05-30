@@ -392,7 +392,7 @@ class References(Values):
         if name in self:
             value = self._getRef(name, None, otherName)
             if value is not None and isitem(value):
-                value._references._removeRef(otherName, item)
+                value.itsRefs._removeRef(otherName, item)
 
         if isitem(other):
             if other.isDeleting():
@@ -403,17 +403,17 @@ class References(Values):
             if otherView is not view:
                 raise ViewMismatchError, (item, other)
                     
-            if otherName in other._references:
-                value = other._references._getRef(otherName, None, name)
+            if otherName in other.itsRefs:
+                value = other.itsRefs._getRef(otherName, None, name)
                 if value is not None and isitem(value):
-                    value._references._removeRef(name, other)
+                    value.itsRefs._removeRef(name, other)
 
             value = self._setRef(name, other, otherName, cardinality,
                                  alias, dictKey, otherKey)
             try:
-                otherValue = other._references._setRef(otherName, item, name,
-                                                       otherCard, otherAlias,
-                                                       otherKey, dictKey)
+                otherValue = other.itsRefs._setRef(otherName, item, name,
+                                                   otherCard, otherAlias,
+                                                   otherKey, dictKey)
             except:
                 self._removeRef(name, other)   # remove dangling ref
                 raise
@@ -531,11 +531,11 @@ class References(Values):
         otherKey = self._removeRef(name, other, dictKey)
         if not (other in (None, Empty) or other._isRefs()):
             item = self._item
-            other._references._removeRef(otherName, item, otherKey)
+            other.itsRefs._removeRef(otherName, item, otherKey)
             #initialValue = other.getAttributeAspect(otherName, 'initialValue',
             #                                        False, None, item)
             #if initialValue is not item:
-            #    other._references._setValue(otherName, initialValue, name)
+            #    other.itsRefs._setValue(otherName, initialValue, name)
 
     def _removeRef(self, name, other, dictKey=None):
 
@@ -573,7 +573,7 @@ class References(Values):
     def clear(self):
 
         item = self._item
-        refs = item._references
+        refs = item.itsRefs
         for name in self.keys():
             # if it wasn't removed by a reflexive bi-ref
             if name in self:
@@ -603,17 +603,17 @@ class References(Values):
 
         return count
 
-    # copy a ref from self into copyItem._references
+    # copy a ref from self into copyItem.itsRefs
     def _copyRef(self, copyItem, name, other, policy, copyFn):
 
         value = self._getRef(name, other)
         copyOther = copyFn(copyItem, value, policy)
 
-        if copyOther is not Nil and name not in copyItem._references:
+        if copyOther is not Nil and name not in copyItem.itsRefs:
             otherName = copyItem.itsKind.getOtherName(name, copyItem)
-            copyItem._references._setValue(name, copyOther, otherName)
+            copyItem.itsRefs._setValue(name, copyOther, otherName)
 
-    # copy orig._references into self
+    # copy orig.itsRefs into self
     def _copy(self, orig, copyPolicy, copyFn):
 
         item = self._item
@@ -826,7 +826,7 @@ class References(Values):
                              other.itsKind.itsPath, otherName, otherOtherName)
                 return False
 
-            otherOther = other._references._getRef(otherName)
+            otherOther = other.itsRefs._getRef(otherName)
 
             if otherOther is self._item:
                 return True
