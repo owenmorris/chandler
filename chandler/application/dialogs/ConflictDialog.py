@@ -23,9 +23,9 @@ class ConflictDialog(wx.Dialog):
             style=wx.DEFAULT_DIALOG_STYLE|wx.RESIZE_BORDER|wx.RESIZE_BOX)
         conflictCount = len(conflicts)
         if conflictCount == 1:
-            headingText = _(u"There is one pending change")
+            headingText = _(u"There is 1 pending change")
         else:
-            headingText = _(u"There are %d pending changes") % conflictCount
+            headingText = _(u"There are %(count)d pending changes") % { 'count': conflictCount }
         heading = wx.StaticText(self, -1, headingText)
         # Iterate over the items so as to be able to prepend the index.
         # Otherwise we could use:
@@ -35,13 +35,13 @@ class ConflictDialog(wx.Dialog):
         i=1
         itemList=[]
         for c in conflicts:
-            fmt = "%d. %s changed the %s to \"%s\""
+            fmt = _(u"%(index)d. %(person)s changed the %(fieldName)s to \"%(value)s\"")
             if c.peer:
                 if isinstance(c.peer, sharing.Share):
-                    editor = "Server"
+                    editor = _(u"Server")
                 else:
                     editor = c.peer
-            itemList.append(fmt % (i, editor, c.field.title(), c.value))
+            itemList.append(fmt % { 'index': i, 'person': editor, 'fieldName': c.field.title(), 'value': c.value })
             i = i+1
         listBox = wx.ListBox(self, -1, choices=itemList)
         changesText = wx.StaticText(self, -1,

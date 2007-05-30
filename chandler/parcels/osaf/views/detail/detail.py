@@ -945,7 +945,8 @@ class ConflictWarningButton(ConflictConditionalBehaviour,
             conflicts = sharing.getConflicts(item)
             conflictCount = len(conflicts)
             if conflictCount > 1:
-                widget.SetLabel(_(u'%d PENDING CHANGES') % len(conflicts))
+                fmt = _(u"%(count)d PENDING CHANGES")
+                widget.SetLabel(fmt  % { 'count': len(conflicts) })
             else:
                 widget.SetLabel(_(u'1 PENDING CHANGE'))
         super(ConflictWarningButton, self).synchronizeWidget()
