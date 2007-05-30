@@ -1,4 +1,5 @@
 @echo off
+set RC=
 setlocal
 if "%CHANDLERHOME%"=="" call :dirname "%~dp0."
 if "%CHANDLERBIN%"=="" set CHANDLERBIN=%CHANDLERHOME%
@@ -11,4 +12,11 @@ set CHANDLERHOME=%~dp1
 goto end
 
 :end
-endlocal
+endlocal & set RC=%ERRORLEVEL%
+goto omega
+
+:returncode
+exit /B %RC%
+
+:omega
+call :returncode %RC%
