@@ -153,14 +153,25 @@ def reload(rv, filename, translator=sharing.DumpTranslator,
         oldMaster = ''
         newMaster = 'secret'
 
+    if activity:
+        activity.update(totalWork=None, msg=_("Counting records..."))
+        input = open(filename, "rb")
+        load = serializer.loader(input)
+        i = 0
+        while True:
+            record = load()
+            if not record:
+                break
+            i += 1
+        input.close()
+        activity.update(totalWork=i)
+
+
     trans = translator(rv)
     trans.startImport()
 
     input = open(filename, "rb")
     try:
-        if activity:
-            activity.update(totalWork=None)
-
         load = serializer.loader(input)
         i = 0
         while True:
@@ -170,12 +181,21 @@ def reload(rv, filename, translator=sharing.DumpTranslator,
             trans.importRecord(record)
             i += 1
             if activity:
-                activity.update(msg="Imported %d records" % i)
+                activity.update(msg="Imported %d records" % i, work=1)
+            if i % 1000 == 0: # Commit every 1,000 records
+                if activity:
+                    activity.update(msg="Saving...")
+                rv.commit()
+
         del load
     finally:
         input.close()
 
     trans.finishImport()
+
+    if activity:
+        activity.update(msg="Saving...")
+    rv.commit()
 
 
     # Passwords that existed before reload are encrypted with oldMaster, and

@@ -24,7 +24,7 @@ from application.AboutBox import AboutBox
 from application.Application import wxBlockFrameWindow
 from application.dialogs import ( AccountPreferences, PublishCollection,
     SubscribeCollection, RestoreShares, autosyncprefs, TurnOnTimezones,
-    ActivityViewer
+    ActivityViewer, Progress
 )
 
 from repository.item.Item import MissingClass
@@ -1111,6 +1111,7 @@ class MainView(View):
         dlg.Destroy()
         if path:
             activity = Activity("Dump to %s" % path)
+            Progress.Show(activity)
             activity.started()
 
             try:

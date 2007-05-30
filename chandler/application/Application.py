@@ -595,11 +595,13 @@ class wxApplication (wx.App):
         return True    # indicates we succeeded with initialization
 
     def reload(self):
-        from osaf.activity import Activity
+        from osaf.activity import Activity, ActivityAborted
         from osaf import dumpreload
         from osaf.framework.blocks.Block import Block
+        from application.dialogs import Progress
 
-        activity = Activity(_(u"Reload from %(path)s") % {'path': unicode(Globals.options.reload, sys.getfilesystemencoding())})
+        activity = Activity(_(u"Reloading from %(path)s") % {'path': unicode(Globals.options.reload, sys.getfilesystemencoding())})
+        Progress.Show(activity)
         activity.started()
 
         # Don't show the timezone dialog during reload.
@@ -616,16 +618,18 @@ class wxApplication (wx.App):
             logger.exception("Failed to reload file")
             activity.failed(exception=e)
             if isinstance(e, TypeError):
-                msg = _(u"Incompatible dump file. Unable to reload.")
+                msg = _(u"Incompatible dump file. Unable to reload. Chandler will now restart.")
             elif isinstance(e, EOFError):
-                msg = _(u"Incomplete dump file. Unable to reload.")
+                msg = _(u"Incomplete dump file. Unable to reload. Chandler will now restart.")
+            elif isinstance(e, ActivityAborted):
+                msg = _(u"Reload cancelled. Chandler will now restart.")
             else:
-                msg = _(u"Unable to reload file.  See chandler.log for details.")
+                msg = _(u"Unable to reload file.  See chandler.log for details. Chandler will now restart.")
             dialog = wx.MessageDialog(None, msg,
                 _(u"Chandler"), wx.OK | wx.ICON_INFORMATION)
             dialog.ShowModal()
             dialog.Destroy()
-            raise
+            self.restart(create=True)
 
         setStatusMessage = Block.findBlockByName('StatusBar').setStatusMessage
         self.PostAsyncEvent(setStatusMessage, _(u'Items reloaded'))
@@ -990,10 +994,12 @@ class wxApplication (wx.App):
                 continue
             if arg in ('-c', '--create'):
                 continue
-            if arg in ('-r', '--restore'):
+            if arg in ('-r', '--restore', '--reload'):
                 skip = True
                 continue
             if arg.startswith('--restore='):
+                continue
+            if arg.startswith('--reload='):
                 continue
             if windows and not arg.endswith('"') and ' ' in arg:
                 arg = '"%s"' %(arg)
