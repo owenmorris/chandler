@@ -34,7 +34,6 @@ class ProgressFrame(wx.Frame):
         del kwds['activity']
         super(ProgressFrame, self).__init__(*args, **kwds)
         self.listener = Listener(activity=self.activity, callback=self.callback)
-        self.widgets = { }
 
         self.panel = wx.Panel(self, -1)
         self.sizer = wx.BoxSizer(wx.VERTICAL)
