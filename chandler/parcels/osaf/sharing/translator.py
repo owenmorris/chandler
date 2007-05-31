@@ -474,6 +474,15 @@ class SharingTranslator(eim.Translator):
 
                         conflict.discard()
 
+                elif isinstance(record, model.NoteRecord):
+                    if record.icalUid is not eim.NoChange:
+                        # auto-resolve empty icalUid as equivalent to UUID
+                        item = conflict.item
+                        icalUID = getattr(item, 'icalUID', None)
+                        if icalUID is None:
+                            icalUID = item.itsUUID.str16()
+                        if record.icalUid in (icalUID, None):
+                            conflict.discard()
 
 
 
@@ -791,10 +800,12 @@ class SharingTranslator(eim.Translator):
         else:
             body = record.body
 
-        if record.icalUid is None:
+        # Task in Bug 9359, icalUID may be serialized as None or equivalent
+        # to UUID, in these cases don't set Chandler's icalUID attribute, it's
+        # redundant
+        icalUID = record.icalUid
+        if icalUID is None or splitUUID(record.uuid)[0] == icalUID:
             icalUID = eim.NoChange
-        else:
-            icalUID = record.icalUid
 
         self.withItemForUUID(
             record.uuid,
@@ -814,14 +825,9 @@ class SharingTranslator(eim.Translator):
             else:
                 body = None
 
-        # when serializing iCalendar, modifications will incorrectly handle
-        # a None value for icalUID if icalUID and UUID aren't the same, but in 
-        # most cases, icalUID will be identical to UUID, just use None in that
-        # case
         icalUID = handleEmpty(note, 'icalUID')
-        if icalUID == unicode(note.itsUUID):
-            icalUID = None
-
+        if icalUID is None:
+            icalUID = note.itsUUID.str16()
 
         yield model.NoteRecord(
             note,                                       # uuid

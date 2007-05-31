@@ -529,9 +529,6 @@ class ICSSerializer(object):
                         not dtstart_changed):
                         dtstart = eim.Inherit
                 
-                if uid == uuid:
-                    uid = None
-
                 triage = eim.NoChange
                 needsReply = eim.NoChange
                 
