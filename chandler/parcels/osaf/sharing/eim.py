@@ -19,7 +19,7 @@ __all__ = [
     'add_converter', 'subtype', 'typedef', 'field', 'key', 'NoChange',
     'Record', 'RecordSet', 'lookupSchemaURI', 'Filter', 'Translator',
     'exporter', 'TimestampType', 'IncompatibleTypes', 'Inherit',
-    'sort_records', 'format_field',
+    'sort_records', 'format_field', 'global_formatters',
 ]
 
 from symbols import Symbol, NOT_GIVEN  # XXX change this to peak.util.symbols
@@ -727,7 +727,7 @@ class Record(tuple):
         for f, value in zip(cls.__fields__, self[1:]):
             if not isinstance(f,key) and value is not NoChange:
                 data[f.offset-1] = value
-                yield (f.title or f.name, format_field(f, value), cls(*data))
+                yield (f.title or f.name, format_value(f, value), cls(*data))
                 data[f.offset-1] = NoChange
 
 
@@ -1027,6 +1027,15 @@ add_converter(UUIDType, UUID, uuid_converter)
 add_converter(UUIDType, schema.Item, item_uuid_converter)
 add_converter(UUIDType, str, unicode)
 
+global_formatters = {}
+
+def format_value(context, value):
+    try:
+        formatter = global_formatters.get(value, format_field)
+    except TypeError:
+        formatter = format_field
+    return formatter(context, value)
+
 @generic
 def format_field(context, value):
     """Format a value based on a field or typeinfo"""
@@ -1050,15 +1059,6 @@ def additional_tests():
         'EIM.txt',
         optionflags=doctest.ELLIPSIS|doctest.REPORT_ONLY_FIRST_FAILURE,
     )
-
-
-
-
-
-
-
-
-
 
 
 

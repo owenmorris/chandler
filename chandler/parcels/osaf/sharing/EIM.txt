@@ -134,6 +134,19 @@ If you do not register a title with a field when you create it, the field's
 name is used instead.  If there is no formatter registered for the specific
 field or its typeinfo, field's raw value is used unchanged.
 
+There is also a ``global_formatters`` dictionary, which is used to format
+special values that can occur in any field.  Here, we'll use it to format
+``Decimal("2.50")`` as ``$2.50``::
+
+    >>> sharing.global_formatters[Decimal("2.50")] = lambda f, v: "$%s" % v
+
+    >>> sorted(r1.explain()) # doctest: +NORMALIZE_WHITESPACE
+    [(u'Price', '$2.50', Demo(1, NoChange, NoChange, Decimal("2.50"))),
+     ('description', 'This text can be a maximum of 500 bytes in UTF-8',
+       Demo(1, NoChange, u'This is a foo', NoChange)),
+     ('itemName', u'Foo (itemName)', Demo(1, u'Foo', NoChange, NoChange))]
+
+    >>> del sharing.global_formatters[Decimal("2.50")]
 
 
 Extending Existing Record Types
