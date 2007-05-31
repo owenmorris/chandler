@@ -1229,7 +1229,6 @@ class SidebarBlock(Table):
         if ('error' in dirties and
             (op == 'add' or op == 'refresh') and
             share.contents in self.contents):
-            print dirties
             self.markDirty()
    
 
