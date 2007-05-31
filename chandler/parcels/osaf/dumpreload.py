@@ -22,6 +22,7 @@ from application import schema
 from osaf.framework import password, MasterPassword
 from osaf.framework.twisted import waitForDeferred
 from i18n import ChandlerMessageFactory as _
+from osaf.activity import ActivityAborted
 
 logger = logging.getLogger(__name__)
 
@@ -119,10 +120,10 @@ def dump(rv, filename, uuids=None, translator=sharing.DumpTranslator,
         for uuid in uuids:
             for record in trans.exportItem(rv.findUUID(uuid)):
                 dump(record)
-                i += 1
-                if activity:
-                    activity.update(msg="Dumped %d of %d records" % (i, count),
-                        work=1)
+            i += 1
+            if activity:
+                activity.update(msg="Dumped %d of %d items" % (i, count),
+                    work=1)
 
         if activity:
             activity.update(totalWork=None) # we don't know upcoming total work
@@ -136,6 +137,8 @@ def dump(rv, filename, uuids=None, translator=sharing.DumpTranslator,
 
         dump(None)
         del dump
+    except ActivityAborted:
+        os.remove(filename)
     finally:
         output.close()
 
