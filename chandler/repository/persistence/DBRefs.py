@@ -189,7 +189,8 @@ class PersistentRefs(PersistentValue):
                         changedRefs[key] = (1, alias)
             return link
         else:
-            raise ValueError, '_removeRef_ during load'
+            raise ValueError, ('_removeRef_ during load', self.uuid,
+                               self._owner, self._name, self._otherName, key)
 
     def _isRemoved(self, key):
 

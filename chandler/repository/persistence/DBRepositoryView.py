@@ -371,10 +371,12 @@ class DBRepositoryView(OnDemandRepositoryView):
                 for kind in kinds:
                     kind.flushCaches('unload')
             except:
-                self._setLoading(loading, False)
+                if not loading:
+                    self._setLoading(loading, False)
                 raise
             else:
-                self._setLoading(loading, True)
+                if not loading:
+                    self._setLoading(loading, True)
 
             for kind in kinds:
                 kind.flushCaches('reload')

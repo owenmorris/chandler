@@ -876,22 +876,22 @@ class AppCollection(ContentCollection):
             set = Difference(set, trash)
         setattr(self, self.__collection__, set)
 
-
     def withoutTrash(self, copy=True):
         """
         Pull out the non-trash part of AppCollection.
+
+        Smart collections are 'special' - they almost always include
+        the trash as a part of their structure on the _right side of
+        their Difference set. This means that when they are hooked
+        into a larger collection tree, they need to only give out
+        the _left side, which has no trash.
         """
 
-        # Smart collections are 'special' - they almost always include
-        # the trash as a part of their structure on the _right side of
-        # their Difference set. This means that when they are hooked
-        # into a larger collection tree, they need to only give out
-        # the _left side, which has no trash.
-
         if self.trash is schema.ns('osaf.pim', self.itsView).trashCollection:
+            left = getattr(self, self.__collection__)._left
             if copy:
-                return self.set._left.copy(self.itsUUID)
-            return self.set._left
+                return left.copy(self.itsUUID)
+            return left
 
         return self
 

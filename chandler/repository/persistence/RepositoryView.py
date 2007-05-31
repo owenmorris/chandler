@@ -1433,14 +1433,15 @@ class OnDemandRepositoryView(RepositoryView):
 
     def _setLoading(self, loading, runHooks=False):
 
-        if not loading and self.isLoading() and runHooks:
-            try:
-                for hook in self._hooks:
-                    hook(self)
-            finally:
-                self._hooks = []
-
-        return super(OnDemandRepositoryView, self)._setLoading(loading)
+        try:
+            if not loading and runHooks and self.isLoading():
+                try:
+                    for hook in self._hooks:
+                        hook(self)
+                finally:
+                    self._hooks = []
+        finally:
+            return super(OnDemandRepositoryView, self)._setLoading(loading)
 
     def _readItem(self, itemReader):
 
@@ -1475,7 +1476,6 @@ class OnDemandRepositoryView(RepositoryView):
         if not uuid in self._deletedRegistry:
             itemReader = self.repository.store.loadItem(self, self.itsVersion,
                                                         uuid)
-
             if itemReader is not None:
                 try:
                     self._loadingRegistry.add(uuid)
