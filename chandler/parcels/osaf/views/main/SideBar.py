@@ -1064,7 +1064,7 @@ class SidebarBlock(Table):
             uc.ensureColor()
 
             # do not add a collection to 'mine' that has 'mine' in its structure
-            # that causes 'mine' to become a recursive collection (bug 9362)
+            # that causes 'mine' to become a recursive collection (bug 9369)
             if inMine:
                 mine.addSource(item)
 
