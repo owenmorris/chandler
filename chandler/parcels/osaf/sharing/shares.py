@@ -33,6 +33,8 @@ import logging
 import datetime
 from PyICU import ICUtzinfo
 from chandlerdb.util.c import Empty
+from repository.item.Item import Item
+
 
 logger = logging.getLogger(__name__)
 
@@ -574,6 +576,11 @@ class Share(pim.ContentItem):
                 del linked.error
             if hasattr(linked, 'errorDetails'):
                 del linked.errorDetails
+
+        if self.contents is not None:
+            # touch the shared collection so that the sidebar will update
+            # it status
+            self.contents.setDirty(Item.NDIRTY)
 
         try:
             stats = self.conduit.sync(modeOverride=modeOverride,

@@ -99,7 +99,6 @@ class RecordSetConduit(conduits.BaseConduit):
             if activity:
                 activity.update(*args, **kwds)
 
-
         rv = self.itsView
 
         stats = []
