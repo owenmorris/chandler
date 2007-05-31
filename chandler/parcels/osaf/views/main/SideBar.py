@@ -1050,33 +1050,27 @@ class SidebarBlock(Table):
         event.arguments['Enable'] = len (self.contents.getSelectionRanges()) != 0
 
     def onDuplicateEvent(self, event):
-        mine = schema.ns('osaf.pim', self.itsView).mine
 
+        mine = schema.ns('osaf.pim', self.itsView).mine
         for item in self.contents.iterSelection():
-            inMine = item in mine.sources or UserCollection (item).outOfTheBoxCollection
-            item = item.copy (parent = self.getDefaultParent (self.itsView),
-                              cloudAlias="copying")
+            inMine = item in mine.sources
+            item = item.copy(parent=self.getDefaultParent(self.itsView),
+                             cloudAlias="copying")
             
             # Give the copy a new color
-            if hasattr (UserCollection(item), 'color'):
-                del UserCollection(item).color
-            UserCollection(item).ensureColor()
+            uc = UserCollection(item)
+            if hasattr(uc, 'color'):
+                del uc.color
+            uc.ensureColor()
 
+            # do not add a collection to 'mine' that has 'mine' in its structure
+            # that causes 'mine' to become a recursive collection (bug 9362)
             if inMine:
-                mine.addSource (item)
+                mine.addSource(item)
 
-            prefix = _(u"Copy of ");
-            newDisplayName = prefix + item.displayName
-            while True:
-                for theCollection in self.contents:
-                    if theCollection.displayName == newDisplayName:
-                        newDisplayName = prefix + newDisplayName
-                        break
-                else:
-                    item.displayName = newDisplayName
-                    break
-            self.contents.add (item)
-            self.postEventByName ("SelectItemsBroadcast", {'items':[item]})
+            item.displayName = _(u"Copy of ") + item.displayName
+            self.contents.add(item)
+            self.postEventByName("SelectItemsBroadcast", {'items': [item]})
 
     def ClearCollectionContents(self, collection):
         """
