@@ -82,8 +82,13 @@ class CosmoAccount(accounts.SharingAccount):
 
         share.conduit = conduit
 
+
         if overwrite:
+            if activity:
+                activity.update(totalWork=None,
+                    msg=_("Removing old collection from server..."))
             share.destroy()
+
         share.put(activity=activity)
 
         return [share]

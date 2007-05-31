@@ -17,7 +17,7 @@
 from osaf.sharing import eim, errors
 from osaf.sharing.simplegeneric import generic
 from osaf.pim.calendar.TimeZone import convertToICUtzinfo
-import base64, decimal
+import base64, decimal, re
 from dateutil.parser import parse as dateutilparser
 from xml.etree.cElementTree import (
     Element, SubElement, tostring, fromstring
@@ -31,8 +31,8 @@ __all__ = [
 ]
 
 
-
-
+# below 0x20, only 0x09 (tab), 0x0a (nl), and 0x0d (cr) are allowed
+xmlUnfriendly = re.compile("[\x00-\x08|\x0b|\x0c|\x0e-\x1f]")
 
 
 
@@ -215,7 +215,7 @@ class EIMMLSerializer(object):
                     "{%s}recordset" % eimURI, uuid=uuid, **attrs)
 
 
-        xmlString = tostring(rootElement)
+        xmlString = xmlUnfriendly.sub("", tostring(rootElement))
         return "<?xml version='1.0' encoding='UTF-8'?>%s" % xmlString
 
     @classmethod
