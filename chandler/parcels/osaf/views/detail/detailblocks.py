@@ -760,7 +760,7 @@ def makeNoteSubtree(parcel, oldVersion):
                                  viewAttribute=u'displayName',
                                  characterStyle=blocks.BigTextStyle,
                                  presentationStyle={
-                                     'sampleText': _(u'enter title'),
+                                     'sampleText': _(u'title'),
                                      'editInPlace': True })
     headlineArea = \
         makeArea(parcel, 'HeadlineArea',
