@@ -577,11 +577,6 @@ class Share(pim.ContentItem):
             if hasattr(linked, 'errorDetails'):
                 del linked.errorDetails
 
-        if self.contents is not None:
-            # touch the shared collection so that the sidebar will update
-            # it status
-            self.contents.setDirty(Item.NDIRTY)
-
         try:
             stats = self.conduit.sync(modeOverride=modeOverride,
                                       activity=activity,

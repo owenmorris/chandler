@@ -32,7 +32,7 @@ from application.dialogs import RecurrenceDialog
 
 from osaf import sharing, pim
 from osaf.usercollections import UserCollection
-from osaf.sharing import ChooseFormat
+from osaf.sharing import ChooseFormat, Share
 from repository.item.Item import MissingClass
 from osaf.pim import isDead
 from application import schema
@@ -1202,6 +1202,36 @@ class SidebarBlock(Table):
             event.arguments['Check'] = checked
             event.arguments['Text'] = menuTitle
             event.arguments['Enable'] = enabled
+
+    def render (self ):
+        super (SidebarBlock, self).render()
+        
+        # Subscribe to notifications about shares since the state of the share
+        # affects the display of the Sidebar
+        self.itsView.watchKind (self, Share.getKind(self.itsView), 'shareChanged')
+
+    def unRender (self ):
+        super (SidebarBlock, self).unRender()
+        self.itsView.unwatchKind (self, Share.getKind(self.itsView), 'shareChanged')
+
+    def shareChanged (self, op, kind, uItem, dirties):
+        """
+        op is 'add', 'remove' or 'refresh'
+          'add' means that a Share was created in the view
+          'remove' means that a Share was removed in the view
+          'refresh' means that a Share was changed in another view and that
+                    you're now getting these changes via refresh()
+        kind is the kind you called watchKind() on
+        uItem is the UUID of the share item that changed
+        dirties is the tuple of dirty attributes
+        """
+        share = self.find (uItem)
+        if ('error' in dirties and
+            (op == 'add' or op == 'refresh') and
+            share.contents in self.contents):
+            print dirties
+            self.markDirty()
+   
 
 class SidebarBranchPointDelegate(BranchPoint.BranchPointDelegate):
 
