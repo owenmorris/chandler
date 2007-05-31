@@ -959,7 +959,7 @@ class BlockDispatchHook (DispatchHook):
             don't always have block counterparts, get a crack at handling events.
             """
             blockOrWidget = wx.Window_FindFocus()
-            if blockOrWidget is None:
+            if blockOrWidget is None or blockOrWidget.IsTopLevel():
                 blockOrWidget = Block.findBlockByName("MainView")
             bubbleUpCallMethod (blockOrWidget, methodName, event)
 
