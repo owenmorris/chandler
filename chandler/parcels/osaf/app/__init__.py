@@ -15,12 +15,13 @@
 import datetime, os, wx
 
 import version
-from application import schema
+from application import schema, Globals
 from application.Parcel import Reference
 from i18n import ChandlerMessageFactory as _
 from PyICU import ICUtzinfo
 from osaf import pim, messages, startup, sharing
 from osaf.framework import scripting, password
+from osaf.usercollections import UserCollection
 
 
 def installParcel(parcel, oldVersion=None):
@@ -130,6 +131,53 @@ The Chandler Team""") % {'version': version.version}
 
     WelcomeEvent.body = body
     WelcomeEvent.changeEditState(pim.Modification.created)
+    
+    # OOTB collections and items (bug 6545)
+    # http://chandlerproject.org/bin/view/Journal/PreviewOOTBChandlerExperience
+    #
+    # (1) Don't create these in //parcels, or they won't get dumped
+    # (2) Don't create these if reloading, or else there will be endless
+    #     duplication of items/events
+    # (3) We do want new UUIDs, so different users can share these
+    #     collections/items to the same morsecode server
+    #
+    if not Globals.options.reload:
+        # collections should be in mine
+        mine = schema.ns("osaf.pim", parcel.itsView).mine
+        
+        def makeCollection(name, checked):
+            collection = pim.SmartCollection(
+                            itsView=parcel.itsView,
+                            displayName=name
+                        )
+            # include collection in overlays, as spec'ed
+            UserCollection(collection).checked = checked
+
+            sidebarListCollection.add(collection)
+            mine.addSource(collection)
+            
+            return collection
+            
+        work = makeCollection(_(u"Work"), True)
+        home = makeCollection(_(u"Home"), True)
+        fun = makeCollection(_(u"Fun"), False)
+        
+
+        task = pim.Task(
+                  itsView=parcel.itsView,
+                  displayName=_(u"Try Sharing a Home Task List"),
+                  collections=[home],
+                  read=True,
+              )
+        task.itsItem.changeEditState(pim.Modification.created)
+        task.itsItem.setTriageStatus(pim.TriageEnum.later)
+        
+        reminderTime = datetime.datetime.combine(
+                            datetime.datetime.now().date() +
+                                datetime.timedelta(days=1),
+                            datetime.time(8, 0, tzinfo=ICUtzinfo.default)
+                       )
+        task.itsItem.userReminderTime = reminderTime
 
     # Set up the main web server
     from osaf import webserver
