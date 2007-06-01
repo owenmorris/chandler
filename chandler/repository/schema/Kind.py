@@ -296,9 +296,24 @@ class Kind(Item):
 
         if count == 0:
             c = self.itsView.classLoader.getItemClass()
+
         elif count == 1:
             c = superClasses[0]
+
         else:
+            # Filter out redundant superclasses that may cause MRO wonkiness.
+            # A redundant superclass is one with a subclass occurring later
+            # in the superclass list.
+            classes = superClasses
+            superClasses = []
+            while classes:
+                cls = classes.pop(0)
+                for c in classes:
+                    if issubclass(c, cls):
+                        break
+                else:
+                    superClasses.append(cls)
+
             hash = 0
             for c in superClasses:
                 hash = _combine(hash, _hash('.'.join((c.__module__,
