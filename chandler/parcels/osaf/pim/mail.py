@@ -593,21 +593,21 @@ def checkIfFromMe(mailStamp):
     found = False
 
     if getattr(mailStamp, 'fromAddress', None) and \
-       EmailAddress.findEmailAddress(view,  
-                                mailStamp.fromAddress.emailAddress, 
+       EmailAddress.findEmailAddress(view,
+                                mailStamp.fromAddress.emailAddress,
                                 meEmailAddressCollection):
         found = True
 
     if not found and getattr(mailStamp, 'replyToAddress', None) and \
-           EmailAddress.findEmailAddress(view, 
-                                         mailStamp.replyToAddress.emailAddress, 
+           EmailAddress.findEmailAddress(view,
+                                         mailStamp.replyToAddress.emailAddress,
                                          meEmailAddressCollection):
             found = True
 
     if not found and getattr(mailStamp, 'originators', None):
         for ea in mailStamp.originators:
             if ea is not None and \
-               EmailAddress.findEmailAddress(view, ea.emailAddress, 
+               EmailAddress.findEmailAddress(view, ea.emailAddress,
                                              meEmailAddressCollection):
                 found = True
                 break
@@ -1053,6 +1053,9 @@ class IMAPAccount(IncomingAccount):
     ) # inverse of IMAPFolder.parentAccount
 
     def __setup__(self):
+        self._addInbox()
+
+    def _addInbox(self):
         # Create the Inbox IMAPFolder and add to the account
         # folders collection
         inbox = IMAPFolder(
@@ -1061,7 +1064,9 @@ class IMAPAccount(IncomingAccount):
             folderName  = u"INBOX",
             folderType  = "CHANDLER_HEADERS",
         )
+
         self.folders.append(inbox)
+
 
 class ProtocolTypeEnum(schema.Enumeration):
     values = "CHANDLER_HEADERS", "MAIL", "TASK", "EVENT"
@@ -1970,7 +1975,7 @@ Issues:
     """
 
     @classmethod
-    def getEmailAddress(cls, view, nameOrAddressString, fullName='', 
+    def getEmailAddress(cls, view, nameOrAddressString, fullName='',
                         translateMe=True):
         """
         Lookup or create an EmailAddress based on the supplied string.

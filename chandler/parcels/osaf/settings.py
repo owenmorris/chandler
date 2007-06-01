@@ -27,6 +27,7 @@ from i18n import ChandlerMessageFactory as _
 from chandlerdb.util.c import UUID
 from osaf.framework import password, MasterPassword
 
+
 logger = logging.getLogger(__name__)
 
 
@@ -34,15 +35,15 @@ def save(rv, filename):
     """
     Save selected settings information, including all sharing accounts
     and shares (whether published or subscribed), to an INI file.
-    
+
     @param rv:       Repository view
     @param filename: File to save settings into
     """
-    
+
     cfg = ConfigObj()
     cfg.encoding = "UTF8"
     cfg.filename = filename
-    
+
     # Sharing accounts
     counter = 1
     for account in sharing.SharingAccount.iterItems(rv):
@@ -105,9 +106,11 @@ def save(rv, filename):
 
     # SMTP accounts
     counter = 1
+    currentAccount = getattr(schema.ns("osaf.pim", rv).currentOutgoingAccount,
+                             "item", None)
+
     for account in pim.mail.SMTPAccount.iterItems(rv):
         if account.isActive and account.host:
-            currentAccount = schema.ns("osaf.pim", rv).currentOutgoingAccount.item
             section_name = u"smtp_account_%d" % counter
             cfg[section_name] = {}
             cfg[section_name][u"type"] = u"smtp account"
@@ -118,7 +121,7 @@ def save(rv, filename):
             cfg[section_name][u"username"] = account.username
             savePassword(cfg[section_name], account.password)
 
-            if account is currentAccount:
+            if currentAccount and account is currentAccount:
                 cfg[section_name][u"default"] = u"True"
 
             if account.fromAddress:
@@ -130,7 +133,8 @@ def save(rv, filename):
             counter += 1
 
     # IMAP accounts
-    currentAccount = schema.ns("osaf.pim", rv).currentIncomingAccount.item
+    currentAccount = getattr(schema.ns("osaf.pim", rv).currentIncomingAccount,
+                             "item", None)
     counter = 1
     for account in pim.mail.IMAPAccount.iterItems(rv):
         if account.isActive and account.host:
@@ -150,7 +154,7 @@ def save(rv, filename):
             cfg[section_name][u"port"] = account.port
             cfg[section_name][u"security"] = account.connectionSecurity
 
-            if account is currentAccount:
+            if currentAccount and account is currentAccount:
                 cfg[section_name][u"default"] = u"True"
 
             folderNum = len(account.folders)
@@ -168,14 +172,20 @@ def save(rv, filename):
                     cfg[section_name][fname][u"title"] = folder.displayName
                     cfg[section_name][fname][u"name"] = folder.folderName
                     cfg[section_name][fname][u"type"] = folder.folderType
-                    cfg[section_name][fname][u"max"] = folder.downloadMax
-                    cfg[section_name][fname][u"del"] = folder.deleteOnDownload
+                    # Commented out for Preview. These features are not
+                    # supported in the Chandler UI. So leave them out
+                    # of the ini files as well.
+                    #cfg[section_name][fname][u"max"] = folder.downloadMax
+                    #cfg[section_name][fname][u"del"] = folder.deleteOnDownload
                     fCounter += 1
 
             counter += 1
 
     # POP accounts
-    currentAccount = schema.ns("osaf.pim", rv).currentIncomingAccount.item
+    currentAccount = getattr(schema.ns("osaf.pim", rv).currentIncomingAccount,
+                             "item", None)
+
+
     counter = 1
     for account in pim.mail.POPAccount.iterItems(rv):
         if account.isActive and account.host:
@@ -196,7 +206,7 @@ def save(rv, filename):
             cfg[section_name][u"security"] = account.connectionSecurity
             cfg[section_name][u"del"] = account.deleteOnDownload
 
-            if account is currentAccount:
+            if currentAccount and account is currentAccount:
                 cfg[section_name][u"default"] = u"True"
             counter += 1
 
@@ -205,7 +215,7 @@ def save(rv, filename):
     showTZ = schema.ns("osaf.pim", rv).TimezonePrefs.showUI
     cfg[u"timezones"][u"type"] = u"show timezones"
     cfg[u"timezones"][u"show_timezones"] = showTZ
-    
+
     # Visible hours
     cfg[u"visible_hours"] = {}
     cfg[u"visible_hours"][u"type"] = u"visible hours"
@@ -231,7 +241,7 @@ def save(rv, filename):
 def restore(rv, filename, testmode=False, newMaster=''):
     """
     Restore accounts and shares from an INI file.
-    
+
     @param rv:        repository view
     @param filename:  Path to INI file to load.
     @param testmode:  Are we running a test or not
@@ -336,17 +346,17 @@ def restore(rv, filename, testmode=False, newMaster=''):
         # smtp accounts
         if sectiontype == u"smtp account":
             account = None
+            current = getattr(schema.ns("osaf.pim", rv).currentOutgoingAccount,
+                              "item", None)
+
+            isEmpty = current is None or len(current.host.strip()) == 0
+
             makeCurrent = False
 
-            if section.has_key(u"default") and section.as_bool(u"default"):
-                accountRef = schema.ns("osaf.pim", rv).currentOutgoingAccount
-                current = accountRef.item
-
-                if len(current.host.strip()) == 0:
-                   # The current account is empty
-                    account = current
-                else:
-                    makeCurrent = True
+            if isEmpty:
+                if current:
+                    current.isActive = False
+                makeCurrent = True
 
             if section.has_key(u"uuid") and account is None:
                 uuid = section[u"uuid"]
@@ -360,7 +370,8 @@ def restore(rv, filename, testmode=False, newMaster=''):
             elif account is None:
                 account = pim.mail.SMTPAccount(itsView=rv)
 
-            if makeCurrent:
+            if makeCurrent or (section.has_key(u"default") and \
+               section[u"default"]):
                 schema.ns("osaf.pim", rv).currentOutgoingAccount.item = account
 
             account.displayName = section[u"title"]
@@ -384,24 +395,21 @@ def restore(rv, filename, testmode=False, newMaster=''):
         # imap accounts
         if sectiontype == u"imap account":
             account = None
+
+            current = getattr(schema.ns("osaf.pim", rv).currentIncomingAccount,
+                              "item", None)
+
+            isEmpty = current is None or \
+                      (len(current.host.strip()) == 0 and \
+                       not hasattr(current.password, 'ciphertext') and \
+                       len(current.username.strip()) == 0)
+
             makeCurrent = False
 
-            if section.has_key(u"default") and section.as_bool(u"default"):
-                accountRef = schema.ns("osaf.pim", rv).currentIncomingAccount
-                current = accountRef.item
-
-                if len(current.host.strip()) == 0 and \
-                   not hasattr(current.password, 'ciphertext') and \
-                   len(current.username.strip()) == 0:
-
-                   # The current account is empty
-                    if current.accountProtocol == "IMAP":
-                        account = current
-                    else:
-                        current.isActive = False
-                        makeCurrent = True
-                else:
-                    makeCurrent = True
+            if isEmpty:
+                if current:
+                    current.isActive = False
+                makeCurrent = True
 
             if section.has_key(u"uuid") and account is None:
                 uuid = section[u"uuid"]
@@ -412,9 +420,9 @@ def restore(rv, filename, testmode=False, newMaster=''):
                     kind = pim.mail.IMAPAccount.getKind(rv)
                     parent = schema.Item.getDefaultParent(rv)
                     account = kind.instantiateItem(None, parent, uuid,
-                        withInitialValues=True)
+                                                   withInitialValues=True)
 
-            elif account is None:
+            if account is None:
                 account = pim.mail.IMAPAccount(itsView=rv)
 
             # Remove any existing folders since the
@@ -422,10 +430,10 @@ def restore(rv, filename, testmode=False, newMaster=''):
             # folders in the ini file
             for folder in account.folders:
                 account.folders.remove(folder)
-                folder.delete()
-
-            if makeCurrent:
-                schema.ns("osaf.pim", rv).currentIncomingAccount.item = account
+                #The folders are not deleted because it
+                # will cause the IMAP accounts folders to go stale
+                # if the MailService is currently downloading.
+                #folder.delete()
 
             account.displayName = section[u"title"]
             account.host = section[u"host"]
@@ -440,9 +448,9 @@ def restore(rv, filename, testmode=False, newMaster=''):
                                     section[u"address"], section[u"name"])
                 account.replyToAddress = emailAddress
 
-            if section.has_key(u"default") and section[u"default"]:
-                accountRef = schema.ns("osaf.pim", rv).currentIncomingAccount
-                accountRef.item = account
+            if makeCurrent or (section.has_key(u"default") and \
+               section[u"default"]):
+                schema.ns("osaf.pim", rv).currentIncomingAccount.item = account
 
             if section.has_key(u"imap_folder_num"):
                 fnum = section.as_int("imap_folder_num")
@@ -465,10 +473,19 @@ def restore(rv, filename, testmode=False, newMaster=''):
                     folder.displayName = fcfg['title']
                     folder.folderName = fcfg['name']
                     folder.folderType = fcfg['type']
-                    folder.downloadMax = fcfg.as_int('max')
-                    folder.deleteOnDownload = fcfg.as_bool('del')
+                    # Since better performance has been established
+                    # for Preview the max download feature is disabled
+                    #folder.downloadMax = fcfg.as_int('max')
+
+                    # To enable better performance for Preview the
+                    # delete on download feature was temporarily disabled
+                    #folder.deleteOnDownload = fcfg.as_bool('del')
 
                     account.folders.append(folder)
+            else:
+                # This is an Alpha 4 ini file which predates the Preview IMAP
+                # foldering logic
+                account._addInbox()
 
     for sectionname, section in cfg.iteritems():
         if section.has_key(u"type"):
@@ -478,24 +495,21 @@ def restore(rv, filename, testmode=False, newMaster=''):
         # pop accounts
         if sectiontype == u"pop account":
             account = None
+
+            current = getattr(schema.ns("osaf.pim", rv).currentIncomingAccount,
+                              "item", None)
+
+            isEmpty = current is None or \
+                      (len(current.host.strip()) == 0 and \
+                       not hasattr(current.password, 'ciphertext') and \
+                       len(current.username.strip()) == 0)
+
             makeCurrent = False
 
-            if section.has_key(u"default") and section.as_bool(u"default"):
-                accountRef = schema.ns("osaf.pim", rv).currentIncomingAccount
-                current = accountRef.item
-
-                if len(current.host.strip()) == 0 and \
-                   not hasattr(current.password, 'ciphertext') and \
-                   len(current.username.strip()) == 0:
-
-                   # The current account is empty
-                    if current.accountProtocol == "POP":
-                        account = current
-                    else:
-                        current.isActive = False
-                        makeCurrent = True
-                else:
-                    makeCurrent = True
+            if isEmpty:
+                if current:
+                    current.isActive = False
+                makeCurrent = True
 
             if section.has_key(u"uuid") and account is None:
                 uuid = section[u"uuid"]
@@ -509,9 +523,6 @@ def restore(rv, filename, testmode=False, newMaster=''):
             elif account is None:
                 account = pim.mail.POPAccount(itsView=rv)
 
-            if makeCurrent:
-                schema.ns("osaf.pim", rv).currentIncomingAccount.item = account
-
             account.displayName = section[u"title"]
             account.host = section[u"host"]
             account.username = section[u"username"]
@@ -520,17 +531,19 @@ def restore(rv, filename, testmode=False, newMaster=''):
             account.connectionSecurity = section[u"security"]
             account.isActive = True
 
-            if section.has_key(u"del"):
-                account.deleteOnDownload = section.as_bool(u"del")
+            # To enable better performance for Preview the
+            # delete on download feature was temporarily disabled
+            #if section.has_key(u"del"):
+            #    account.deleteOnDownload = section.as_bool(u"del")
 
             if section.has_key(u"address"):
                 emailAddress = pim.mail.EmailAddress.getEmailAddress(rv,
                                     section[u"address"], section[u"name"])
                 account.replyToAddress = emailAddress
 
-            if section.has_key(u"default") and section[u"default"]:
-                accountRef = schema.ns("osaf.pim", rv).currentIncomingAccount
-                accountRef.item = account
+            if makeCurrent or (section.has_key(u"default") and \
+               section[u"default"]):
+                schema.ns("osaf.pim", rv).currentIncomingAccount.item = account
 
     for sectionname, section in cfg.iteritems():
         if section.has_key(u"type"):

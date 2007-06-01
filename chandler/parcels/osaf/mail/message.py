@@ -204,7 +204,7 @@ def getPeer(view, messageObject):
     name, addr = emailUtils.parseaddr(emailAddr)
 
     return __getEmailAddress(view, decodeHeader(name), getUnicodeValue(addr))
-        
+
 
 def messageObjectToKind(view, messageObject, messageText=None):
     """
@@ -380,7 +380,7 @@ def parseICS(view, ics, messageObject=None):
     if peer is None:
         # we don't really need a valid peer to import icalendar, make one up
         peer = EmailAddress(itsView=view, emailAddress="empty@example.com")
-        
+
     try:
         items = deserialize(view, peer, ics, SharingTranslator,
                             ICSSerializer, filter=remindersFilter)

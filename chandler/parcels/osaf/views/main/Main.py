@@ -238,17 +238,17 @@ class MainView(View):
     def onPrintPreviewEventUpdateUI(self, event):
         # Print Disabled
         event.arguments['Enable'] = False
-    
+
     def onPageSetupEventUpdateUI(self, event):
         # Print Disabled
         event.arguments['Enable'] = False
-    
+
     def onPrintEventUpdateUI(self, event):
         # Print Disabled
         event.arguments['Enable'] = False
-    
+
     # End Disabling Printing
-    
+
     def onPrintPreviewEvent (self, event):
         self.printEvent(1)
 
@@ -297,17 +297,17 @@ class MainView(View):
                 # Items can not be created in the
                 # trash collectioon
                 return
-            
+
             msgFlag = False
             eventFlag = False
             taskFlag = False
-            
+
             # Default kind
             defaultKind = sidebar.filterClass
-            
+
             # Search the text for "/" which indicates it is a quick item entry
             cmd_re = re.compile(r'/(?P<kind>([A-z]+))')
-            
+
             cmd = cmd_re.match(command)
             if cmd is None:
                 if defaultKind is not None:
@@ -318,50 +318,50 @@ class MainView(View):
                     elif defaultKind == pim.calendar.Calendar.EventStamp:
                         eventFlag = True
                     displayName = command
-                        
+
             while cmd is not None:
                 kind = (cmd.group('kind')).lower()
                 displayName = command[(cmd.end()):].strip()
                 command = displayName
-                
+
                 # Set flags depending on its kind
                 if kind in searchKinds:
                     return False
-                
+
                 elif kind in (_(u'task'), _(u't')):
                     taskFlag = True
-                    
+
                 elif kind in (_(u'msg'), _(u'message'), _(u'm')):
                      msgFlag = True
-                    
+
                 elif kind in (_(u'event'), _(u'e')):
                     eventFlag = True
-                    
+
                 elif kind in (_(u'invite'), _(u'i')):
                     eventFlag = True
                     msgFlag = True
-                    
+
                 elif kind in (_(u'request'), _(u'r')):
                     taskFlag = True
                     msgFlag = True
-                    
+
                 elif kind not in (_(u'note'), _(u'n')):
                     # if command is not 'note' then it is not a valid  command. for eg: '/foo'
                     return False
-                    
+
                 cmd = cmd_re.match(displayName)
-    
+
             #Create a Note 
             item = pim.Note(itsView = self.itsView)
-            
+
             # Parse the text for date/time information
             startTime, endTime, countFlag, typeFlag = \
                              pim.calendar.Calendar.parseText(displayName)
-             
+
             # Check whether there is a date/time range
             if startTime != endTime:
                 eventFlag = True
-            
+
             #Stamp the note appropriately depending on flags
             if taskFlag:
                 pim.tasks.TaskStamp(item).add()
@@ -372,27 +372,27 @@ class MainView(View):
                 pim.mail.MailStamp(item).InitOutgoingAttributes()
             else:
                 item.InitOutgoingAttributes()
-       
+
             # Set a reminder if the item is not an event but it has time
             if (not eventFlag) and (typeFlag != 0) :
                 item.userReminderTime = startTime
-     
+
             if eventFlag:
                 # If the item is an event, set the event's start and end date/time
                 pim.calendar.Calendar.setEventDateTime(item, startTime, endTime, typeFlag)
-            
+
            # If item is a message, search for contacts and seperate them        
             if msgFlag:
                 pattern = {}
                 pattern['email'] = r'[a-zA-Z0-9._%-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,4}'
-                
+
                 checkContact = re.match(r'\s?((%(email)s)\s?(,|;)?\s?)+\s?:'%pattern,displayName)
                 sep = re.search(r':',displayName)
-                                       
+
                 if checkContact and sep:
                     contacts = (displayName[:sep.start()]).strip()
                     displayName = (displayName[sep.end():]).strip()
-                    
+
                     contacts_pattern = r"""
                         \s*                      # ignore whitespace
                         (?P<contact> ([^,;\s]*)) # any intervening non-whitespace is the contact
@@ -400,21 +400,21 @@ class MainView(View):
                         (,|;)?                   # gobble contact separators
                         \s*                      # ignore whitespace
                         """
-                    
+
                     contacts_re = re.compile(contacts_pattern, re.VERBOSE)
-                    
+
                     for match in contacts_re.finditer(contacts):
                         toOne = pim.mail.EmailAddress(itsView=self.itsView)
                         toOne.emailAddress = match.group('contact')
                         pim.mail.MailStamp(item).toAddress.append(toOne)                        
-    
+
                 else:
                     pim.mail.MailStamp(item).subject = displayName
-        
-        
+
+
             if item is not None:
                 item.displayName = displayName
-                
+
                 # Add the item to the appropriate collection
                 if defaultKind is not MissingClass:
                     if (defaultKind == pim.tasks.TaskStamp and taskFlag == True) or \
@@ -422,37 +422,37 @@ class MainView(View):
                     (defaultKind == pim.mail.MailStamp and msgFlag == True):
                         collection = Block.findBlockByName("MainView").getSidebarSelectedCollection()
                         statusMsg =  _(u"New item created in the selected collection")
-                    
+
                     else:
                         # if item is of a different kind than the default item of current view,
                         # put it in Dashboard 'All' collection
                         collection = schema.ns('osaf.pim',self).allCollection
                         statusMsg =  _(u"New item created in the Dashboard All Collection")
-                
+
                 else:
                     # if kind is None, it is 'All' app, so add item to selected collection
                     collection = Block.findBlockByName("MainView").getSidebarSelectedCollection()
                     statusMsg =  _(u"New item created in the selected collection")
-                
+
                 if collection is not None:
                     collection.add(item)
                     #Put the status message in the Status bar
                     self.setStatusMessage (statusMsg)
-            
+
             # Clear out the command when it finishes without errors
             quickEntryWidget.SetValue("")
             return True
-        
-        
+
+
         sidebar = Block.findBlockByName ("Sidebar")
         quickEntryWidget = event.arguments['sender'].widget.GetControl()
         block = quickEntryWidget.blockItem
         command = quickEntryWidget.GetValue().strip()
         showSearchResults = False
-        
+
         cancelClicked = event.arguments.get ("cancelClicked", False)
         if cancelClicked:
-            
+
             # Remember the last value of the search string
             if len (command) != 0:
                 quickEntryWidget.SetValue ("")
@@ -462,9 +462,9 @@ class MainView(View):
         else:
             # Try to process as a quick entry command
             if len (command) != 0 and not processQuickEntry (self, command):
-                
+
                 c = command.lower()[:command.find(' ')]
-                
+
                 if c not in [u'/' + k for k in searchKinds]:
                     # command is not valid
                     quickEntryWidget.SetValue (command + ' ?')
@@ -478,22 +478,22 @@ class MainView(View):
                     if not c.startswith('/l'):
                         command = ''.join(('\\'+char if char in '+-&|!(){}[]^~*?:\\' else char)
                                           for char in command)
-                                    
+
                     try:
                         sidebar.setShowSearch (True)
                         showSearchResults = True
-        
+
                         view = self.itsView
-            
+
                         # make sure all changes are searchable
                         view.commit()
                         view.repository.notifyIndexer(True)
-                        
+
                         results = view.searchItems (command)
-            
+
                         searchResults = schema.ns('osaf.pim', view).searchResults
                         searchResults.inclusions.clear()
-                        
+
                         sidebarCollection = schema.ns("osaf.app", self).sidebarCollection
                         for collection in sidebarCollection:
                             UserCollection (collection).searchMatches = 0
@@ -522,14 +522,14 @@ class MainView(View):
                         prefix = u"org.apache.lucene.queryParser.ParseException: "
                         if message.startswith (prefix):
                             message = message [len(prefix):]
-                        
+
                         wx.MessageBox (_(u"An error occured during search.\n\nThe search engine reported the following error:\n\n" ) + message,
                                        _(u"Search Error"),
                                        parent=wx.GetApp().mainFrame)
                         showSearchResults = False
 
         sidebar.setShowSearch (showSearchResults)
-                
+
 
     def printEvent(self, isPreview):
         block = self.findBlockByName ("TimedEvents")
@@ -553,7 +553,7 @@ class MainView(View):
             wx.MessageBox (_(u"Chandler couldn't access a browser to open %(url)s.") % {'url' : url},
                            _(u"Browser not found"),
                            parent=wx.GetApp().mainFrame)
-            
+
     def onHelpEvent(self, event):
         # For now, open the Chandler FAQ page:
         #
@@ -589,7 +589,7 @@ class MainView(View):
 
     def onBackupRepositoryEvent(self, event):
         self.RepositoryCommitWithStatus()
-        
+
         from osaf.framework import MasterPassword
         MasterPassword.beforeBackup(self.itsView)
 
@@ -626,7 +626,7 @@ class MainView(View):
                 rev += 1
             else:
                 break
-        
+
         dlg = wx.DirDialog(app.mainFrame, _(u'Restore Repository'),
                            unicode(path),
                            wx.DD_DEFAULT_STYLE | wx.DD_NEW_DIR_BUTTON)
@@ -657,7 +657,7 @@ class MainView(View):
 
         app = wx.GetApp()
         self.RepositoryCommitWithStatus()
-        
+
         dlg = wx.DirDialog(wx.GetApp().mainFrame, _(u'Switch Repository'),
                            unicode(Utility.getDesktopDir()),
                            wx.DD_DEFAULT_STYLE | wx.DD_NEW_DIR_BUTTON)
@@ -902,7 +902,7 @@ class MainView(View):
 
         dialog = ImportExport.ImportDialog(_(u"Choose a file to import"),
                                            self.itsView)
-        
+
         ret = dialog.ShowModal()
         if ret == wx.ID_OK:
             self.setStatusMessage(_(u"Import completed"))
@@ -935,7 +935,7 @@ class MainView(View):
             modal=True):
             # cancelled in turn on timezone dialog
             return
-            
+
 
         name = collection.displayName
         try:
@@ -967,7 +967,7 @@ class MainView(View):
                     os.remove(fullpath)
                 except OSError:
                     pass
-                
+
                 if True or sharing.caldav_atop_eim:
                     share = sharing.OneTimeFileSystemShare(
                         itsView=self.itsView,
@@ -1076,7 +1076,7 @@ class MainView(View):
                          style=wx.YES_NO,
                          parent=wx.GetApp().mainFrame) != wx.YES:
             return
-        
+
         wildcard = "%s|*.dump|%s (*.*)|*.*" % (_(u"Dump files"),
             _(u"All files"))
 
@@ -1090,7 +1090,7 @@ class MainView(View):
         dlg.Destroy()
         if path:
             wx.GetApp().restart(reload=path)
-            
+
     def onAddSharingLogToSidebarEvent(self, event):
         sidebar = Block.findBlockByName ("Sidebar").contents
         log = schema.ns('osaf.sharing', self.itsView).activityLog
@@ -1177,8 +1177,23 @@ class MainView(View):
             path = dlg.GetPath()
         dlg.Destroy()
         if path:
-            settings.restore(self.itsView, path)
-            self.setStatusMessage(_(u'Settings restored'))
+            try:
+                self.itsView.refresh()
+                settings.restore(self.itsView, path)
+                self.setStatusMessage(_(u'Settings restored'))
+            except Exception, e:
+                try:
+                    self.itsView.cancel()
+                except:
+                    pass
+
+                errorText = unicode(e.__str__(), "utf-8", "ignore")
+
+                errorMessage = _(u"An error occurred while restoring settings:\n\n%(error)s") % {
+                                  'error': errorText}
+
+                self.alertUser(errorMessage)
+                logger.exception(e)
 
     def onActivateWebserverEventUpdateUI (self, event):
         for server in webserver.Server.iterItems(self.itsView):
@@ -1293,10 +1308,10 @@ class MainView(View):
 
     def onPublishCollectionEvent(self, event):
         self._onShareOrManageSidebarCollectionEvent(event)
-        
+
     def onManageSidebarCollectionEvent(self, event):
         self._onShareOrManageSidebarCollectionEvent(event)
-        
+
     def _onShareOrManageSidebarCollectionEvent(self, event):
         """
         Share the collection selected in the Sidebar.
@@ -1426,7 +1441,7 @@ class MainView(View):
         else:
             msg = _("Unpublish succeeded")
             self.setStatusMessage(msg)
-            
+
     def onSyncCollectionEvent (self, event):
         rv = self.itsView
         collection = self.getSidebarSelectedCollection()
@@ -1496,7 +1511,7 @@ class MainView(View):
 
         collection = self.getSidebarSelectedCollection()
         if collection is not None:
-            
+
             collName = collection.displayName
             sender = event.arguments['sender']
             if sender.blockName == 'SidebarTakeOnlineOfflineItem':
@@ -1677,7 +1692,7 @@ class MainView(View):
         else:
             calendarPrefs.hourHeightMode = "visibleHours"
             calendarPrefs.visibleHours = event.visibleHours
-            
+
     def onVisibleHoursEventUpdateUI(self, event):
         calendarPrefs = schema.ns('osaf.framework.blocks.calendar',
                                   self.itsView).calendarPrefs

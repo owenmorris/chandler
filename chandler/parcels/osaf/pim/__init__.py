@@ -371,10 +371,10 @@ def installParcel(parcel, oldVersion=None):
                               recursive=True)
     emailComparator = EmailComparator.update(parcel, 'emailComparator')
     emailAddressCollection.addIndex('emailAddress', 'method',
-                                    method=(emailComparator, 'cmpAddress'), 
+                                    method=(emailComparator, 'cmpAddress'),
                                     monitor='emailAddress')
     emailAddressCollection.addIndex('fullName', 'method',
-                                    method=(emailComparator, 'cmpFullName'), 
+                                    method=(emailComparator, 'cmpFullName'),
                                     monitor='fullName')
 
     # Contains all current and former me addresses

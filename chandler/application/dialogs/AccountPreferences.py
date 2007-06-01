@@ -571,20 +571,22 @@ class AccountPreferencesDialog(wx.Dialog):
         isDefault = False
 
         if item.accountType == "INCOMING":
-            ns_pim = schema.ns('osaf.pim', item.itsView)
-            isDefault = item == ns_pim.currentIncomingAccount.item
+            default = getattr(schema.ns('osaf.pim', item.itsView).currentIncomingAccount,
+                              "item", None)
+            isDefault = default and item is default
 
         elif item.accountType == "OUTGOING":
-            ns_pim = schema.ns('osaf.pim', item.itsView)
-            isDefault = item == ns_pim.currentOutgoingAccount.item
+            default = getattr(schema.ns('osaf.pim', item.itsView).currentOutgoingAccount,
+                              "item", None)
+            isDefault = default and item is default
 
         return isDefault
 
     def getDefaultAccounts(self):
         ns_pim = schema.ns('osaf.pim', self.rv)
 
-        incoming  = ns_pim.currentIncomingAccount.item
-        outgoing  = ns_pim.currentOutgoingAccount.item
+        incoming  = getattr(ns_pim.currentIncomingAccount, "item", None)
+        outgoing  = getattr(ns_pim.currentOutgoingAccount, "item", None)
         return (incoming, outgoing)
 
 
@@ -913,7 +915,7 @@ class AccountPreferencesDialog(wx.Dialog):
         return True
 
 
-    def __GetDisplayName(self, index):
+    def __GetIndexDisplayName(self, index):
         # Each panel type has a field that is designated the displayName; this
         # method determines which field is the displayName, then gets the value
 
@@ -924,11 +926,8 @@ class AccountPreferencesDialog(wx.Dialog):
         item = self.rv.findUUID(data['item'])
         displayName = values[panel["displayName"]]
 
-        if self.isDefaultAccount(item):
-            return _(u"%(accountName)s (Default)") % \
-                       {'accountName': displayName}
+        return getattr(item, "displayName", "")
 
-        return displayName
 
     def __SwapDetailPanel(self, index):
         """ Given an index into the account list, store the current panel's
@@ -943,7 +942,7 @@ class AccountPreferencesDialog(wx.Dialog):
              self.data[self.currentIndex]['values'])
 
             self.accountsList.SetString(self.currentIndex,
-                self.__GetDisplayName(self.currentIndex))
+                self.__GetIndexDisplayName(self.currentIndex))
 
         if self.currentPanel:
             self.innerSizer.Detach(self.currentPanel)
@@ -1615,6 +1614,10 @@ class AccountPreferencesDialog(wx.Dialog):
             self.currentPanel.Hide()
             self.currentIndex = None
             self.selectAccount(-1)
+            for messageWidget in self.currentMessages:
+                messageWidget.Hide()
+
+            self.currentMessages = []
 
     def OnTestAccount(self, evt):
         account = self.getSelectedAccount()
