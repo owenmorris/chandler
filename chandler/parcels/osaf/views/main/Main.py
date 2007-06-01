@@ -1115,32 +1115,6 @@ class MainView(View):
         if path:
             wx.GetApp().restart(reload=path)
             
-    def onAddScriptsToSidebarEvent(self, event):
-        sidebar = Block.findBlockByName ("Sidebar").contents
-        scriptsSet = schema.ns('osaf.framework.scripting',
-            self.itsView).scriptsCollection
-        # if already present, just select it
-        if scriptsSet in sidebar:
-            self.postEventByName('RequestSelectSidebarItem', {'item': scriptsSet})
-        else:
-            schema.ns("osaf.app", self).sidebarCollection.add (scriptsSet)
-            # Need to SelectFirstItem -- DJA
-
-        # go to the All application, so we can view the scripts
-        self.postEventByName ('ApplicationBarAll', { })
-
-    def onAddScriptsToSidebarEventUpdateUI(self, event):
-        # Triggered from "Tests | Add Scripts to Sidebar"
-        sidebar = Block.findBlockByName ("Sidebar").contents
-        scriptsSet = schema.ns('osaf.framework.scripting',
-            self.itsView).scriptsCollection
-        if scriptsSet in sidebar:
-            menuTitle = u'Show &Scripts'
-        else:
-            menuTitle = u'Add &Scripts to Sidebar'
-        event.arguments ['Text'] = menuTitle
-        event.arguments ['Enable'] = True
-
     def onAddSharingLogToSidebarEvent(self, event):
         sidebar = Block.findBlockByName ("Sidebar").contents
         log = schema.ns('osaf.sharing', self.itsView).activityLog

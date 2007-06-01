@@ -353,35 +353,6 @@ class FocusEventHandlers(Item):
     def onForwardEventUpdateUI(self, event):
         self.onReplyOrForwardEventUpdateUI(event)
 
-
-    def onRunSelectedScriptEvent(self, event):
-        # Triggered from "Tests | Run a Script"
-        items = self.__getSelectedItems()
-        if len(items) > 0:
-            for item in items:
-                if hasattr(item, 'execute'):
-                    # in case the user was just editing the script,
-                    # ask the focus to finish changes, if it can
-                    Block.Block.finishEdits()
-
-                    # run the script from the item's body
-                    item.execute()
-
-    def onRunSelectedScriptEventUpdateUI(self, event):
-        # Triggered from "Tests | Run a Script"
-        items = self.__getSelectedItems()
-        enable = False
-        if len(items) > 0:
-            states = [hasattr(item, 'execute') for item in items]
-            canExecute = states[0]
-            enable = canExecute and len(set(states)) == 1
-        event.arguments ['Enable'] = enable
-        if enable:
-            menuTitle = _(u'&Run "%(name)s"') % { 'name': item.displayName }
-        else:
-            menuTitle = _(u'&Run a Script')
-        event.arguments ['Text'] = menuTitle        
-
     def CanDelete(self):
         """
         Deleting is really 'move to trash' - which means if you're deleting

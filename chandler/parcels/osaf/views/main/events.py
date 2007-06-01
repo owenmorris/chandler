@@ -56,14 +56,6 @@ def makeMainEvents(parcel):
                         # because of a circular dependence
                         ).install(parcel)
     
-    BlockEvent.template('RunSelectedScript',
-                        dispatchEnum = 'FocusBubbleUp',
-                        commitAfterDispatch = True).install(parcel)
-
-    # Event to put "Scripts" in the Sidebar
-    BlockEvent.template('AddScriptsToSidebar',
-                        commitAfterDispatch = True).install(parcel)
-
     BlockEvent.template('AddSharingLogToSidebar',
                         commitAfterDispatch = True).install(parcel)
 
@@ -273,11 +265,6 @@ def makeMainEvents(parcel):
                         methodName = 'onShowHideEvent',
                         dispatchToBlockName = 'ApplicationBar').install(parcel)
 
-    ChoiceEvent.template('ChooseChandlerMainView',
-                         methodName = 'onChoiceEvent',
-                         choice = 'MainView',
-                         dispatchToBlockName = 'MainViewRoot').install(parcel)
-
     BlockEvent.template('ExportIcalendar').install(parcel)
 
     BlockEvent.template('SyncAll').install(parcel)
@@ -313,16 +300,6 @@ def makeMainEvents(parcel):
     BlockEvent.template('TakeMailOnlineOffline').install(parcel)
 
     BlockEvent.template('TakeSharesOnlineOffline').install(parcel)
-
-    ChoiceEvent.template('ChooseCPIATestMainView',
-                         methodName = 'onChoiceEvent',
-                         choice = 'CPIATestMainView',
-                         dispatchToBlockName = 'MainViewRoot').install(parcel)
-
-    ChoiceEvent.template('ChooseCPIATest2MainView',
-                         methodName = 'onChoiceEvent',
-                         choice = 'CPIATest2MainView',
-                         dispatchToBlockName = 'MainViewRoot').install(parcel)
 
     BlockEvent.template('RequestSelectSidebarItem',
                         dispatchToBlockName = 'Sidebar').install(parcel)

@@ -16,8 +16,9 @@ import wx
 
 from application import schema, dialogs
 from i18n import MessageFactory
-from osaf.framework.blocks import BlockEvent, MenuItem, Menu
+from osaf.framework.blocks import BlockEvent, ChoiceEvent, MenuItem, Menu
 from osaf.framework.blocks.Block import Block
+from repository.item.Item import Item
 
 from debug.generate import GenerateAllItems
 from debug.GenerateItemsFromFile import GenerateItems
@@ -32,8 +33,8 @@ class debugHandler(Block):
         Block.findBlockByName('StatusBar').setStatusMessage(msg)
 
     def on_debug_GenerateDataEvent(self, event):
-        # triggered from "Test | Generate Data" and
-        #                "Test | Generate Lots of Data" menu items
+        # triggered from "Tools | Test | Generate Data" and
+        #                "Tools | Test | Generate Lots of Data" menu items
 
         if event.arguments['sender'].blockName == '_debug_GenerateMuchDataItem':
             count = 100
@@ -46,7 +47,7 @@ class debugHandler(Block):
         return GenerateAllItems(view, count, sidebarCollection)
 
     def on_debug_GenerateDataFromFileEvent(self, event):
-        # triggered from "Test | Generate Items from a File" menu
+        # triggered from "Tools | Test | Generate Items from a File" menu
 
         app = wx.GetApp()
         res = dialogs.Util.showFileDialog(app.mainFrame,
@@ -147,3 +148,82 @@ def installParcel(parcel, version=None):
                     helpString=_m_(u'Loads mail messages containing a variety of Charsets and Languages'),
                     event=i18nMailTestEvent,
                     parentBlock=testMenu)
+
+    chooseChandlerEvent = \
+        ChoiceEvent.update(parcel, None,
+                           blockName='ChooseChandlerMainView',
+                           methodName='onChoiceEvent',
+                           choice = 'MainView',
+                           dispatchToBlockName='MainViewRoot')
+
+    chooseCPIATestEvent = \
+        ChoiceEvent.update(parcel, None,
+                           blockName='ChooseCPIATestMainView',
+                           methodName='onChoiceEvent',
+                           choice='CPIATestMainView',
+                           dispatchToBlockName='MainViewRoot')
+
+    chooseCPIATest2Event = \
+        ChoiceEvent.update(parcel, None,
+                           blockName='ChooseCPIATest2MainView',
+                           methodName='onChoiceEvent',
+                           choice='CPIATest2MainView',
+                           dispatchToBlockName='MainViewRoot')
+
+    # make these event names global so that functional tests can find them
+    Block.addToNameToItemUUIDDictionary([chooseChandlerEvent,
+                                         chooseCPIATestEvent,
+                                         chooseCPIATest2Event],
+                                        Block.eventNameToItemUUID)
+
+    cpiaMenu = Menu.update(parcel, None,
+                           blockName='_debug_cpiaMenu',
+                           title=_m_(u'CPI&A'),
+                           parentBlock=toolsMenu)
+    
+    MenuItem.update(parcel, None,
+                    blockName='_debug_ChandlerSkinMenuItem',
+                    title=_m_(u'&Chandler Skin'),
+                    menuItemKind='Check',
+                    helpString=_m_(u'Switch to Chandler'),
+                    event = chooseChandlerEvent,
+                    parentBlock=cpiaMenu)
+    MenuItem.update(parcel, None,
+                    blockName='_debug_CPIATestMenuItem',
+                    title=_m_(u'C&PIA Test Skin'),
+                    menuItemKind='Check',
+                    helpString=_m_(u'Switch to CPIA test'),
+                    event = chooseCPIATestEvent,
+                    parentBlock=cpiaMenu)
+    MenuItem.update(parcel, None,
+                    blockName='_debug_CPIATest2MenuItem',
+                    title=_m_(u'CPIA Test &2 Skin'),
+                    menuItemKind='Check',
+                    helpString=_m_(u'Switch to CPIA test 2'),
+                    event = chooseCPIATest2Event,
+                    parentBlock=cpiaMenu)
+
+    # Create the main views for cpiatest and cpiatest2 in separate containers
+    # so that item names don't clash.
+    # Add a copy of the cpiaMenu above to the tools menu in each mainView
+    # thus created. The first child of the main view is the MenuBar.
+
+    views = main.MainViewRoot.views
+
+    from cpiatest.mainblocks import makeCPIATestMainView
+    cpiatest = Item('cpiatest', parcel)
+    views['CPIATestMainView'] = mainView = makeCPIATestMainView(cpiatest)
+    for childBlock in mainView.childBlocks.first().childBlocks:
+        if childBlock.itsName == 'ToolsMenu':
+            childBlock.childBlocks.append(cpiaMenu.copy(parent=cpiatest,
+                                                        cloudAlias="copying"))
+            break
+
+    from cpiatest2.mainblocks import makeCPIATest2MainView
+    cpiatest2 = Item('cpiatest2', parcel)
+    views['CPIATest2MainView'] = mainView = makeCPIATest2MainView(cpiatest2)
+    for childBlock in mainView.childBlocks.first().childBlocks:
+        if childBlock.itsName == 'ToolsMenu':
+            childBlock.childBlocks.append(cpiaMenu.copy(parent=cpiatest2,
+                                                        cloudAlias="copying"))
+            break

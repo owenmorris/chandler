@@ -69,10 +69,6 @@ def startup(chandlerDirectory=None, **kwds):
     Utility.initParcels(Globals.options, view, parcelPath)
     Utility.initPlugins(Globals.options, view, pluginEnv, pluginEggs)
 
-    if Globals.options.createData:
-        import util.GenerateItemsFromFile
-        util.GenerateItemsFromFile.RunScript(view)
-
     return view
 
 

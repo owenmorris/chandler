@@ -246,7 +246,7 @@ def makeMainMenus(parcel):
                                                         helpString = _(u'Quit Chandler'),
                                                         wxId = wx.ID_EXIT))
 
-    Menu.template('MenuBar',
+    menubar = Menu.template('MenuBar',
         setAsMenuBarOnFrame = True,
         childBlocks = [
             fileMenu,
@@ -793,36 +793,6 @@ def makeMainMenus(parcel):
                                 title = _(u'Show &Repository Viewer...'),
                                 helpString = _(u'Opens the Repository Viewer')),
                             ]),
-                    Menu.template('CPIAMenu',
-                        title=u'CPI&A',
-                        childBlocks = [
-                            MenuItem.template("AddScriptsSetItem",
-                                event = main.AddScriptsToSidebar,
-                                title = u"Add CPIA Scripts to Sidebar",
-                                helpString = u'Add Scripts to the Sidebar'),
-                            MenuItem.template('RunSelectedScriptItem',
-                                event = main.RunSelectedScript,
-                                title = u'Run a CPIA Script',
-                                accel = u'Ctrl+R',
-                                helpString = u'Run the CPIA Script from the Detail View'),
-                            MenuItem.template('ToolsCPIASeparator1',
-                                menuItemKind='Separator'),
-                            MenuItem.template('ChandlerSkinMenuItem',
-                                event = main.ChooseChandlerMainView,
-                                title = u'&Chandler Skin',
-                                menuItemKind = 'Check',
-                                helpString = u'Switch to Chandler'),
-                            MenuItem.template('CPIATestMenuItem',
-                                event = main.ChooseCPIATestMainView,
-                                title = u'C&PIA Test Skin',
-                                menuItemKind = 'Check',
-                                helpString = u'Switch to CPIA test'),
-                            MenuItem.template('CPIATest2MenuItem',
-                                event = main.ChooseCPIATest2MainView,
-                                title = u'CPIA Test &2 Skin',
-                                menuItemKind = 'Check',
-                                helpString = u'Switch to CPIA test 2'),
-                            ]), # Menu SkinsMenu
                     MenuItem.template('ToolsSeparator2',
                                 menuItemKind='Separator'),
                     PluginMenu.template('PluginsMenu',
@@ -1037,3 +1007,5 @@ def makeMainMenus(parcel):
                         #menuItemKind = 'Check',
                         #helpString = _(u'Mark the selected item in the summary view as private, so it will not be shared')),
                     ]).install(parcel)
+
+    return menubar

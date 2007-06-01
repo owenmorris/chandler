@@ -16,6 +16,7 @@
 from osaf.framework.blocks import *
 from osaf.framework.blocks.calendar import *
 from osaf.views.main.Main import *
+from osaf.views.main.menus import makeMainMenus
 from osaf.views.main.SideBar import *
 from osaf.pim.structs import SizeType, RectType
 from osaf import pim
@@ -26,14 +27,15 @@ import osaf.pim.calendar
 from application import schema
 import wx.grid
 
-def makeCPIATestMainView (parcel):
+def makeCPIATestMainView(parcel):
     repositoryView = parcel.itsView
 
     globalBlocks = schema.ns("osaf.framework.blocks", repositoryView)
     main = schema.ns("osaf.views.main", repositoryView)
-    cpiatest = schema.ns("osaf.views.cpiatest", repositoryView)
     app_ns = schema.ns("osaf.app", repositoryView)
     pim_ns = schema.ns("osaf.pim", repositoryView)
+
+    menubar = makeMainMenus(parcel)
 
     SidebarBranchPointDelegateInstance = SidebarBranchPointDelegate.update(
         parcel, 'SidebarBranchPointDelegateInstance',
@@ -165,7 +167,7 @@ def makeCPIATestMainView (parcel):
             main.ApplicationBarAll,
             ],
         childBlocks = [
-            cpiatest.MenuBar,
+            menubar,
             StatusBar.template('StatusBar'),
             ApplicationBar,
             BoxContainer.template('SidebarContainerContainer',

@@ -1,4 +1,4 @@
-#   Copyright (c) 2003-2006 Open Source Applications Foundation
+#   Copyright (c) 2003-2007 Open Source Applications Foundation
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -22,7 +22,6 @@ import random
 import urllib
 from datetime import datetime, timedelta
 import logging
-import application.Globals as Globals
 import osaf.pim.calendar.Calendar as Calendar
 from osaf import pim
 from osaf.pim.tasks import Task, TaskStamp
@@ -433,15 +432,6 @@ def GenerateMailMessage(view, args):
                 collectionsDict[name].add(message)
 
     return message
-
-
-
-def RunScript(view):
-    """ Run this script (command line invocation) """
-    if Globals.options.createData:
-        filepath = Globals.options.createData
-        GenerateItems(view, filepath)
-        Globals.options.createData = None
 
 
 def FindEnd(line,start):
