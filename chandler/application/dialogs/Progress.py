@@ -37,23 +37,23 @@ class ProgressFrame(wx.Frame):
 
         self.panel = wx.Panel(self, -1)
         self.sizer = wx.BoxSizer(wx.VERTICAL)
-        self.SetSizer(self.sizer)
 
-        self.gaugeCtrl = wx.Gauge(self, -1, size=(100,10))
+        self.gaugeCtrl = wx.Gauge(self.panel, -1, size=(100,10))
         self.sizer.Add(self.gaugeCtrl, 0,
             wx.EXPAND|wx.ALIGN_CENTER_VERTICAL|wx.ALL, 5)
         self.gaugeCtrl.Pulse()
 
-        self.msgCtrl = wx.StaticText(self, -1, "")
+        self.msgCtrl = wx.StaticText(self.panel, -1, "")
         self.sizer.Add(self.msgCtrl, 0, wx.ALIGN_LEFT|wx.ALL, 5)
 
-        self.cancelCtrl = wx.Button(self, wx.ID_CANCEL)
+        self.cancelCtrl = wx.Button(self.panel, wx.ID_CANCEL)
         self.sizer.Add(self.cancelCtrl, 0, wx.ALIGN_LEFT|wx.ALL, 5)
 
         self.Bind(wx.EVT_CLOSE, self.OnCloseWindow)
         self.Bind(wx.EVT_BUTTON, self.OnCancel, id=wx.ID_CANCEL)
 
-        self.sizer.Layout()
+        self.panel.SetSizer(self.sizer)
+        self.panel.Layout()
 
         self.cancel = False
 
