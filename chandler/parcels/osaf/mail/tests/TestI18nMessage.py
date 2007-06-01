@@ -15,11 +15,10 @@
 
 """ Unit test for i18n message parsing """
 
-import pkg_resources, email
-
-import osaf.mail.tests.MailTestCase as MailTestCase
+import MailTestCase as MailTestCase
 import osaf.mail.message as message
-import unittest
+import unittest as unittest
+import os, email
 
 
 class MessageI18nTest(MailTestCase.MailTestCase):
@@ -60,8 +59,11 @@ class MessageI18nTest(MailTestCase.MailTestCase):
         self.assertEquals(o, mTwo.get_payload()[0].get_payload(decode=True))
 
     def __loadTestMessage(self):
+        rootdir = os.environ['CHANDLERHOME']
+        testMessage = os.path.join(rootdir, 'parcels', 'osaf', 'mail',
+                                   'tests', 'i18n_tests', 'test_i18n_utf8')
 
-        fp = pkg_resources.resource_stream('debug', 'i18n_tests/test_i18n_utf8')
+        fp = open(testMessage)
         messageText = fp.read()
         fp.close()
 

@@ -273,6 +273,9 @@ def makeMainEvents(parcel):
                         methodName = 'onShowHideEvent',
                         dispatchToBlockName = 'ApplicationBar').install(parcel)
 
+    BlockEvent.template('GenerateContentItems',
+                        commitAfterDispatch = True).install(parcel)
+
     ChoiceEvent.template('ChooseChandlerMainView',
                          methodName = 'onChoiceEvent',
                          choice = 'MainView',
@@ -293,7 +296,13 @@ def makeMainEvents(parcel):
         sphereCollection = schema.ns('osaf.pim', repositoryView).mine,
         item = untitledCollection)
         
+    BlockEvent.template('GenerateContentItemsFromFile',
+                        commitAfterDispatch = True).install(parcel)
+
     BlockEvent.template('EmptyTrash',
+                        commitAfterDispatch = True).install(parcel)
+
+    BlockEvent.template('MimeTest',
                         commitAfterDispatch = True).install(parcel)
 
     BlockEvent.template('SyncWebDAV').install(parcel)

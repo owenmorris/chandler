@@ -35,9 +35,12 @@ from osaf.activity import *
 
 from osaf.pim import Contact, mail
 from osaf.usercollections import UserCollection
+import osaf.pim.generate as generate
 
 from osaf.mail import constants
 import twisted.internet.error
+
+from util import GenerateItemsFromFile
 
 from osaf.framework.blocks.Views import View
 from osaf.framework.blocks.Block import Block
@@ -1015,6 +1018,39 @@ class MainView(View):
         else:
             statusMsg = "wxDang"
         self.setStatusMessage(statusMsg)
+
+    def onGenerateContentItemsEvent(self, event):
+        # triggered from "Test | Generate Some Content Items" and
+        # "Test | Generate Many Content Items" menu items
+        count = event.arguments['sender'].blockName == 'GenerateMuchDataItem' and 100 or 4
+        sidebarCollection = schema.ns("osaf.app", self.itsView).sidebarCollection
+        return generate.GenerateAllItems(self.itsView, count, sidebarCollection)
+
+    def onGenerateContentItemsFromFileEvent(self, event):
+        # triggered from "File | Import/Export" menu
+        res = application.dialogs.Util.showFileDialog(
+            wx.GetApp().mainFrame, _(u"Choose a file to import"), "",
+            _(u"import.csv"), _(u"CSV files|*.csv"),
+            wx.OPEN)
+
+        (cmd, dir, filename) = res
+
+        if cmd != wx.ID_OK:
+            self.setStatusMessage(_(u"Import aborted"))
+            return
+
+        self.setStatusMessage (_(u"Importing from %(filename)s")  % {'filename': filename})
+        return GenerateItemsFromFile.GenerateItems(self.itsView, os.path.join(dir, filename))
+
+    def onMimeTestEvent (self, event):
+        self.__loadMailTests ("mime_tests")
+
+    def oni18nMailTestEvent (self, event):
+        self.__loadMailTests ("i18n_tests")
+
+    def __loadMailTests (self, dir):
+        import osaf.mail.utils as utils
+        utils.loadMailTests(self.itsView, dir)
 
     def onReloadStylesEvent(self, event):
         """
