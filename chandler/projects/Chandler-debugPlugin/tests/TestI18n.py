@@ -14,7 +14,7 @@
 #   limitations under the License.
 
 
-import unittest, i18n, os
+import unittest, i18n
 
 from i18n import *
 from i18n.i18nmanager import *
@@ -40,7 +40,12 @@ class I18nTestCase(unittest.TestCase):
         except:
             self._wx_available = False
 
-        self.i18nMan = i18n._I18nManager
+        # the I18nManager has to be re-created here as it may have been
+        # initialized differently in another piece of code already
+        # and in this case, the params below wouldn't take
+        self.i18nMan = i18n._I18nManager = \
+            I18nManager(i18n.CHANDLER_PROJECT, i18n.DEFAULT_CATALOG,
+                        i18n.DEFAULT_IMAGE, i18n.DEFAULT_HTML)
 
         self.i18nMan._DEFAULT_PROJECT = self.PROJECT
         self.i18nMan._DEFAULT_CATALOG = self.CATALOG
