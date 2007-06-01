@@ -1,4 +1,4 @@
-#   Copyright (c) 2003-2006 Open Source Applications Foundation
+#   Copyright (c) 2003-2007 Open Source Applications Foundation
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -19,9 +19,10 @@ from osaf.pim.structs import SizeType, RectType
 from i18n import ChandlerMessageFactory as _
 from osaf.framework.blocks import FrameWindow, BoxContainer
 
-def installParcel(parcel, oldName=None):
 
-    FrameWindow.template(
+def makeRepositoryViewer(parcel):
+
+    window = FrameWindow.template(
         'RepositoryViewerFrameWindow',
         size=SizeType(768, 512),
         windowTitle = _(u"Repository Viewer"),
@@ -35,7 +36,7 @@ def installParcel(parcel, oldName=None):
                 childBlocks=[
                     Tree.template(
                         'RepositoryTree',
-                        elementDelegate='osaf.views.repositoryviewer.Repository.RepositoryDelegate',
+                        elementDelegate='debug.repositoryviewer.Repository.RepositoryDelegate',
                         hideRoot=False,
                         noLines=False,
                             columns = [
@@ -67,3 +68,4 @@ def installParcel(parcel, oldName=None):
                     ])
             ]).install(parcel)
 
+    return window

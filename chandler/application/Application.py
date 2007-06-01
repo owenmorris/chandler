@@ -370,17 +370,6 @@ class wxApplication (wx.App):
         
         wx.UpdateUIEvent.SetUpdateInterval (-1)
 
-        # Install a custom displayhook to keep Python from setting the global
-        # _ (underscore) to the value of the last evaluated expression.  If 
-        # we don't do this, our mapping of _ to gettext can get overwritten.
-        # This is useful in interactive debugging with PyShell.
-
-        def _displayHook(obj):
-            if obj is not None:
-                print repr(obj)
-
-        sys.displayhook = _displayHook
-
         assert Globals.wxApplication is None, "We can have only one application"
         Globals.wxApplication = self
         self.updateUIInOnIdle = True
@@ -1139,47 +1128,6 @@ class wxApplication (wx.App):
         self.PostAsyncEvent (self._DispatchItemMethod, item, 
                                     methodName, transportArgs, keyArgs)
 
-
-    def ShowPyShell(self, withFilling=False):
-        """
-        A window with a python interpreter
-        """
-        import wx.py
-        import tools.headless as headless
-
-        headless.view = view = self.UIRepositoryView
-
-        def run(scriptText):
-            import osaf.framework.scripting as Scripting
-            Scripting.run_script(scriptText, headless.view)
-
-        # Import helper methods/variables from headless, and also add
-        # whatever other methods we want to the mix (such as the run method,
-        # above).  locals will be passed to PyCrust/Shell to make those
-        # symbols available to the developer
-        locals = headless.getExports(run=run,
-                                     view=view,
-                                     schema=schema,
-                                     app_ns=schema.ns('osaf.app', view),
-                                     pim_ns=schema.ns('osaf.pim', view),
-                                    )
-
-        browseableObjects = {
-         "globals" : Globals,
-         "parcelsRoot" : self.UIRepositoryView.findPath("//parcels"),
-         "repository" : self.UIRepositoryView.repository,
-         "wxApplication" : self,
-        }
-
-        if withFilling:
-            self.pyFrame = wx.py.crust.CrustFrame(rootObject=browseableObjects,
-                                                  rootLabel="Chandler",
-                                                  locals=locals)
-        else:
-            self.pyFrame = wx.py.shell.ShellFrame(locals=locals)
-
-        self.pyFrame.SetSize((700,700))
-        self.pyFrame.Show(True)
 
     def ShowSchemaMismatchWindow(self):
         logger.info("Schema version of repository doesn't match app")

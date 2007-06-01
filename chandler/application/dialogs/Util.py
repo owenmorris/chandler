@@ -449,14 +449,6 @@ class LogWindow(wx.Dialog):
             wx.TheClipboard.Close()
 
 
-def displayI18nManagerDebugWindow():
-    import i18n
-    win = DebugWindow(u"I18nManager Resource Debugger",
-                      i18n._I18nManager.getDebugString())
-    win.CenterOnScreen()
-    win.ShowModal()
-    win.Destroy()
-
 def displayAddressDebugWindow(view, type=1):
     from application import schema
 

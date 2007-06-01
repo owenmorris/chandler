@@ -90,10 +90,6 @@ def makeMainEvents(parcel):
 
     BlockEvent.template('CopyFreeBusyURL').install(parcel)
 
-    BlockEvent.template('ShowPyCrust').install(parcel)
-    
-    BlockEvent.template('ShowWidgetInspector').install(parcel)
-    
     BlockEvent.template('ShowHideStatusBar',
                         methodName = 'onShowHideEvent',
                         dispatchToBlockName = 'StatusBar').install(parcel)
@@ -157,8 +153,6 @@ def makeMainEvents(parcel):
     BlockEvent.template('i18nMailTest',
                         commitAfterDispatch = True).install(parcel)
 
-    BlockEvent.template('ShowI18nManagerDebugWindow').install(parcel)
-
     BlockEvent.template('ShowMeAddressCollectionDebugWindow').install(parcel)
     
     BlockEvent.template('ShowCurrentMeAddressesDebugWindow').install(parcel)
@@ -189,8 +183,6 @@ def makeMainEvents(parcel):
 
     BlockEvent.template('ManageSidebarCollection').install(parcel)
 
-    BlockEvent.template('ShowPyShell').install(parcel)
-
     BlockEvent.template('SaveSettings').install(parcel)
 
     BlockEvent.template('RestoreSettings',
@@ -204,10 +196,6 @@ def makeMainEvents(parcel):
     BlockEvent.template('ShowHideSidebar',
                         methodName = 'onShowHideEvent',
                         dispatchToBlockName = 'SidebarContainer').install(parcel)
-
-    BlockEvent.template('ReloadStyles',
-                        dispatchToBlockName = 'MainView',
-                        commitAfterDispatch = True).install(parcel)
 
     BlockEvent.template('Triage',
                         dispatchToBlockName = 'DashboardSummaryView',
@@ -285,8 +273,6 @@ def makeMainEvents(parcel):
 
     BlockEvent.template('SyncWebDAV').install(parcel)
 
-    BlockEvent.template('WxTestHarness').install(parcel)
-
     BlockEvent.template('ImportIcalendar',
                        commitAfterDispatch = True).install(parcel)
 
@@ -324,18 +310,6 @@ def makeMainEvents(parcel):
     BlockEvent.template('DayMode',
                         dispatchEnum = 'BroadcastEverywhere').install(parcel)
         
-    blockViewer = schema.ns("osaf.views.blockviewer", repositoryView)
-    
-    NewBlockWindowEvent.update(parcel, 'ShowBlockViewer',
-                               blockName = 'ShowBlockViewer',
-                               treeOfBlocks = blockViewer.BlockViewerFrameWindow)
-
-    repositoryViewer = schema.ns("osaf.views.repositoryviewer", repositoryView)
-
-    NewBlockWindowEvent.update(parcel, 'ShowRepositoryViewer',
-                               blockName = 'ShowBlockViewer',
-                               treeOfBlocks = repositoryViewer.RepositoryViewerFrameWindow)
-
     CalendarViewEvent.template('ViewAsDayCalendar',
                                viewTemplatePath = 'osaf.views.main.CalendarSummaryViewTemplate',
                                methodName = 'onViewEvent',

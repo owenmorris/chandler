@@ -133,7 +133,7 @@ class BlockItemDetail(ControlBlocks.ItemDetail):
         return HTMLText
 
 
-class BlockDelegate (ControlBlocks.ListDelegate):
+class BlockDelegate(ControlBlocks.ListDelegate):
     """ Used by the tree in the Block viewer
     """
 

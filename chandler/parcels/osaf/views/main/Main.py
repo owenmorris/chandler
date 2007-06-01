@@ -999,30 +999,6 @@ class MainView(View):
                 self.setStatusMessage(_(u"Export failed"))
 
 
-    def onWxTestHarnessEvent(self, event):
-        """
-         This method is for testing and does not require translation strings.
-        """
-        # Test menu item
-        mainWidget = wx.GetApp().mainFrame
-        if isinstance(mainWidget, wx.Window):
-            # @@@ ForceRedraw works; the other two fail to induce a window update !!!
-            #mainWidget.ForceRedraw()
-            #mainWidget.ClearBackground()
-            #mainWidget.Refresh( True )
-            #mainWidget.Layout()
-            statusMsg = "invalidated main view and back buffer"
-        else:
-            statusMsg = "wxDang"
-        self.setStatusMessage(statusMsg)
-
-    def onReloadStylesEvent(self, event):
-        """
-        Reloads styles that should be read from a text file.
-        """
-        import application.styles
-        application.styles.loadConfig()
-
     def TraceMainViewCloud(self, traceItem):
         # for debugging, trace through the mainViewRoot copy cloud
         def commonName(item, showKind=True):
@@ -1166,19 +1142,6 @@ class MainView(View):
         collection = self.getSidebarSelectedCollection()
         sharing.publish(collection, None)
 
-    def onShowPyShellEvent(self, event):
-        # Test menu item
-        wx.GetApp().ShowPyShell(withFilling=False)
-
-    def onShowPyCrustEvent(self, event):
-        # Test menu item
-        wx.GetApp().ShowPyShell(withFilling=True)
-
-    def onShowWidgetInspectorEvent(self, event):
-        # Debug menu item
-        from wx.lib.inspection import InspectionTool
-        InspectionTool().Show()
-
     def onSaveSettingsEvent(self, event):
         # triggered from "Test | Save Settings" Menu
 
@@ -1274,9 +1237,6 @@ class MainView(View):
 
     def onShowCurrentMeAddressDebugWindowEvent(self, event):
         application.dialogs.Util.displayAddressDebugWindow(self.itsView, 3)
-
-    def onShowI18nManagerDebugWindowEvent(self, event):
-        application.dialogs.Util.displayI18nManagerDebugWindow()
 
     def onShowLogWindowEvent(self, event):
         # Test menu item
