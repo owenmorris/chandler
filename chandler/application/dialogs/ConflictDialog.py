@@ -36,11 +36,13 @@ class ConflictDialog(wx.Dialog):
         itemList=[]
         for c in conflicts:
             fmt = _(u"%(index)d. %(person)s changed the %(fieldName)s to \"%(value)s\"")
-            if c.peer:
+            if c.peer is not None:
                 if isinstance(c.peer, sharing.Share):
                     editor = _(u"Server")
                 else:
                     editor = c.peer
+            else:
+                editor = _("Unknown")
             itemList.append(fmt % { 'index': i, 'person': editor, 'fieldName': c.field.title(), 'value': c.value })
             i = i+1
         listBox = wx.ListBox(self, -1, choices=itemList)

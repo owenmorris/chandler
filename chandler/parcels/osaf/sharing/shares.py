@@ -368,7 +368,7 @@ class Conflict(object):
 
     def __init__(self, state, field, value, change):
         self.state = state
-        self.peer = state.peer
+        self.peer = getattr(state, 'peer', None)
         self.field = field
         self.value = value
         self.change = change
