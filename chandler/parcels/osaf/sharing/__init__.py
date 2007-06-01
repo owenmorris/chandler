@@ -1592,6 +1592,8 @@ def _uniqueName(basename, existing):
 # = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =
 # Formatters for conflicts (not sure where these should live yet)
 
+# don't use context sensitive formatters for special values like inherit
+global_formatters[Inherit] = lambda f, v: _('Inherit')
 
 triage_code_map = {
     "100" : _(u'Now'),
@@ -1600,8 +1602,6 @@ triage_code_map = {
 }
 @format_field.when_object(ItemRecord.triage)
 def format_item_triage(field, value):
-    if value is Inherit:
-        return _('Inherit')
     try:
         code, timestamp, auto = value.split(" ")
     except AttributeError:
@@ -1635,12 +1635,6 @@ def format_event_dtstart(field, value):
 def format_event_duration(field, value):
     duration = fromICalendarDuration(value)
     return "%s (hh:mm:ss)" % duration
-
-
-
-
-
-
 
 
 # = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =

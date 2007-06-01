@@ -292,6 +292,19 @@ Importing:
     ...         status = 'CANCELLED',
     ... )
 
+Explain the record:
+
+    >>> for field in sorted(rec.explain()):
+    ...     print field[:2]
+    (u'Duration', '1:00:00 (hh:mm:ss)')
+    (u'Event status', u'FYI')
+    (u'Location', u'Nowhere')
+    (u'Start time', '2007-02-01 14:00:00-08:00')
+    ('exdate', None)
+    ('exrule', None)
+    ('rdate', None)
+    ('rrule', None)
+
     >>> rs = sharing.RecordSet([rec])
 
     >>> t.startImport()
@@ -362,19 +375,30 @@ Exporting:
 Modifications
 - - - - - - -
 
-Importing:
-
     >>> mod_rec = sharing.model.ItemRecord(
     ...         uuid='f230dcd4-7c32-4c3f-908b-d92081cc9a89:20070223T220000Z',
     ...         title='Changed title',
-    ...         triage=sharing.Inherit,
+    ...         triage='100 -1167792143.00 1',
     ...         createdOn=sharing.Inherit,
     ...         hasBeenSent=sharing.Inherit,
     ...         needsReply=sharing.Inherit,
     ...         read=sharing.Inherit,
     ... )
 
-    >>> rs = sharing.RecordSet([mod_rec])
+The explain method should handle Inherit values:
+
+    >>> for field in sorted(mod_rec.explain()):
+    ...     print field[:2]
+    (u'Created on', u'Inherit')
+    (u'Has been read', u'Inherit')
+    (u'Has been sent', u'Inherit')
+    (u'Needs reply', u'Inherit')
+    (u'Title', u'Changed title')
+    (u'Triage status', u'Now')
+    
+Importing:
+
+    >>> rs = sharing.RecordSet([mod_rec])    
 
     >>> t.startImport()
     >>> t.importRecords(rs)
@@ -383,6 +407,9 @@ Importing:
     >>> mod = event.getRecurrenceID(event.startTime + timedelta(22))
     >>> mod.itsItem.displayName
     u'Changed title'
+
+    >>> mod.itsItem.triageStatus
+    TriageEnum.now
 
 Exporting:
 
