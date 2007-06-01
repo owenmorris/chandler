@@ -1622,7 +1622,10 @@ class DumpTranslator(SharingTranslator):
         collectionID = self.path_to_name.get(str(collection.itsPath),
             collection.itsUUID.str16())
 
-        for item in collection:
+        for item in collection.inclusions:
+            # We iterate inclusions directly because we want the proper
+            # trash behavior to get reloaded -- we want to keep track that
+            # a trashed item was in the inclusions of a collection.
             # By default we don't include items that are in
             # //parcels since they are not created by the user
 
@@ -1686,6 +1689,14 @@ class DumpTranslator(SharingTranslator):
         def do(item):
             dashboard = schema.ns("osaf.pim", self.rv).allCollection
             dashboard.add(item)
+
+
+    @model.TrashMembershipRecord.importer
+    def import_trash_membership(self, record):
+        @self.withItemForUUID(record.itemUUID, pim.ContentItem)
+        def do(item):
+            trash = schema.ns("osaf.pim", self.rv).trashCollection
+            trash.add(item)
 
 
 
@@ -2605,6 +2616,12 @@ class DumpTranslator(SharingTranslator):
         for item in schema.ns("osaf.pim", self.rv).allCollection.inclusions:
             if not str(item.itsPath).startswith("//parcels"):
                 yield model.DashboardMembershipRecord(item)
+
+        # emit the TrashMembership records
+        for item in schema.ns("osaf.pim", self.rv).trashCollection.inclusions:
+            if not str(item.itsPath).startswith("//parcels"):
+                yield model.TrashMembershipRecord(item)
+
 
 
         if not self.obfuscation:

@@ -102,6 +102,14 @@ class DumpReloadTestCase(testcase.DualRepositoryTestCase):
         aNotMineCollection.add(inNotMine)
 
 
+        trash = schema.ns("osaf.pim", view0).trashCollection
+        trashTestCollection = pim.SmartCollection(itsView=view0)
+        trashedItem = pim.Note(itsView=view0)
+        trashTestCollection.add(trashedItem)
+        trash.add(trashedItem)
+        self.assert_(trashedItem in trashTestCollection.inclusions)
+        self.assert_(trashedItem not in trashTestCollection)
+        self.assert_(trashedItem in trash)
 
         # Sharing related items
         account0 = sharing.CosmoAccount(itsView=view0,
@@ -269,6 +277,11 @@ class DumpReloadTestCase(testcase.DualRepositoryTestCase):
         MasterPassword._change('', 'secret', view0, mpwPrefs)
         mpwPrefs.timeout = 10
 
+
+
+        # Ensure sidebar is loaded in view1
+        sidebar1 = schema.ns("osaf.app", view1).sidebarCollection
+
         try:
 
             dumpreload.dump(view0, filename)
@@ -309,6 +322,17 @@ class DumpReloadTestCase(testcase.DualRepositoryTestCase):
                 item1 = view1.findUUID(item0.itsUUID)
                 self.assert_(item1 in coll1)
 
+
+            # Verify trash membership
+            trash = schema.ns("osaf.pim", view1).trashCollection
+            trashedItem = view1.findUUID(trashedItem.itsUUID)
+            self.assert_(trashedItem in trash)
+            trashTestCollection = view1.findUUID(trashTestCollection.itsUUID)
+            self.assert_(trashedItem not in trashTestCollection)
+            self.assert_(trashedItem in trashTestCollection.inclusions)
+
+
+
             # Verify passwords
             pw1 = view1.findUUID(pw.itsUUID)
             self.assertEqual(waitForDeferred(pw1.decryptPassword('secret')),
@@ -337,7 +361,7 @@ class DumpReloadTestCase(testcase.DualRepositoryTestCase):
                 waitForDeferred(item.decryptPassword('secret'))
                 count1 += 1
             
-            self.assertEqual(count, count1 + 1) # XXX Shouldn't count==count1?
+            self.assertEqual(count+2, count1) # XXX Shouldn't count==count1?
                 
             # Verify sharing
             account1 = view1.findUUID(account0.itsUUID)

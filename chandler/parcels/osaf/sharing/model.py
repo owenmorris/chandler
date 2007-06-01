@@ -353,6 +353,11 @@ class DashboardMembershipRecord(eim.Record):
     URI = "http://osafoundation.org/eim/pim/dashboardmembership/0"
     itemUUID = eim.key(aliasableUUID)
 
+class TrashMembershipRecord(eim.Record):
+    # A membership record for an item which is a member of the trash
+    URI = "http://osafoundation.org/eim/pim/trashmembership/0"
+    itemUUID = eim.key(aliasableUUID)
+
 # osaf.sharing ----------------------------------------------------------------
 
 
