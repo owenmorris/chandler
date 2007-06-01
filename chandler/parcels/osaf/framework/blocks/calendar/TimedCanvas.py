@@ -357,7 +357,9 @@ class wxTimedEventsCanvas(BaseWidget, wxCalendarCanvas):
 
     def DrawBackground(self, dc):
         styles = self.blockItem.calendarContainer
-
+        width1 = self.size.width + 1
+        height = self.size.height
+        
         # Use the transparent pen for painting the background
         dc.SetPen(wx.TRANSPARENT_PEN)
 
@@ -365,7 +367,7 @@ class wxTimedEventsCanvas(BaseWidget, wxCalendarCanvas):
         dc.SetBrush(wx.WHITE_BRUSH)
         # add an extra 10 pixels because wx is adding 4-5 extra pixels
         # at the bottom of the virtual window.
-        dc.DrawRectangle(0, 0, self.size.width+1, self.size.height + 10)
+        dc.DrawRectangle(0, 0, width1, height + 10)
 
         self.ShadeToday(dc)
         self.DrawBackgroundSelection(dc)
@@ -375,53 +377,70 @@ class wxTimedEventsCanvas(BaseWidget, wxCalendarCanvas):
         dc.SetFont(styles.legendFont)
 
         # Draw the lines separating hours
-        halfHourHeight = self.hourHeight/2
+        hourHeight = self.hourHeight
+        halfHourHeight = hourHeight/2
 
         if not hasattr(self, 'localeHourStrings'):
             self.localeHourStrings = \
                 list(self.GetLocaleHourStrings(range(24), dc))
 
-        # we'll need these for hour formatting
+        # first draw full hours
+        halfHours = []
+        hourLegends = []
+        dcDrawLine = dc.DrawLine
+
+        if IS_MAC:
+            dc.SetAntiAliasing(False)
+            
+        dc.SetPen(styles.majorLinePen)
+
         for hour,hourString,textExtent in self.localeHourStrings:
 
             if hour > 0:
-                # Draw the hour legend
+                # Collect the hour legend drawing instructions
                 wText, hText = textExtent
-                dc.DrawText(hourString,
-                            self.xOffset - wText - 5,
-                            hour * self.hourHeight - (hText/2))
-            
-            if IS_MAC:
-                dc.SetAntiAliasing(False)
+                hourLegends.append((hourString,
+                                    self.xOffset - wText - 5,
+                                    hour * hourHeight - (hText/2)))
             
             # Draw the line between hours
-            dc.SetPen(styles.majorLinePen)
-            dc.DrawLine(self.xOffset,
-                        hour * self.hourHeight,
-                        self.size.width+1,
-                        hour * self.hourHeight)
+            dcDrawLine(self.xOffset,
+                       hour * hourHeight,
+                       width1,
+                       hour * hourHeight)
             
             # Draw a line for noon, bug 5781
             if hour == 12:
-                dc.DrawLine(10,                       12 * self.hourHeight,
-                            self.xOffset - wText - 8, 12 * self.hourHeight)
+                dcDrawLine(10,                       12 * hourHeight,
+                           self.xOffset - wText - 8, 12 * hourHeight)
 
-            # Draw the line between half hours
-            dc.SetPen(styles.minorLinePen)
-            dc.DrawLine(self.xOffset,
-                        hour * self.hourHeight + halfHourHeight,
-                        self.size.width+1,
-                        hour * self.hourHeight + halfHourHeight)
-
-            if IS_MAC:
-                dc.SetAntiAliasing(True)
-
+            # Collect the drawing instructions for the half hour lines
+            halfHours.append((self.xOffset,
+                              hour * hourHeight + halfHourHeight,
+                              width1,
+                              hour * hourHeight + halfHourHeight))
+                
         # Draw a final, bottom hour line
-        dc.SetPen(styles.majorLinePen)
-        dc.DrawLine(self.xOffset,
-                    self.size.height,
-                    self.size.width+1,
-                    self.size.height)
+        dcDrawLine(self.xOffset,
+                    height,
+                    width1,
+                    height)
+
+        # then draw half hours
+        dc.SetPen(styles.minorLinePen)
+
+        for args in halfHours:
+            dcDrawLine(*args)
+
+        if IS_MAC:
+            dc.SetAntiAliasing(True)
+
+        # then hour legend
+        dcDrawText = dc.DrawText
+        for args in hourLegends:
+            dcDrawText(*args)
+
+        # Draw day lines
         self.DrawDayLines(dc)
         
         legendBorderX = self.xOffset - self.legendBorderWidth/2 - 1
@@ -433,8 +452,8 @@ class wxTimedEventsCanvas(BaseWidget, wxCalendarCanvas):
         workdayHourStart = 9 # 9am
         workdayHourEnd = 17  # 5pm
         
-        dc.DrawLine(legendBorderX, workdayHourStart*self.hourHeight,
-                    legendBorderX, workdayHourEnd * self.hourHeight + 1)
+        dcDrawLine(legendBorderX, workdayHourStart*hourHeight,
+                   legendBorderX, workdayHourEnd * hourHeight + 1)
         
 
     def DrawBackgroundSelection(self, dc):
