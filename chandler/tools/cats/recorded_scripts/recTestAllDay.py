@@ -8,6 +8,8 @@ def run():
     from osaf.framework.blocks.Block import Block
     sidebar = Block.findBlockByName ("Sidebar")
     assert sidebar.widget.IsVisible (7, 0)
+    focusWindow = wx.Window_FindFocus()
+    assert isinstance (focusWindow, wx.TextCtrl)
 
     ProcessEvent (wx.KeyEvent, {'eventType':wx.EVT_KEY_DOWN, 'sentTo':'__FocusWindow__', 'newFocusWindow':-309, 'newFocusWindowClass':osaf.framework.attributeEditors.AETypeOverTextCtrl.AENonTypeOverTextCtrl}, {'m_rawCode':84, 'm_keyCode':84, 'm_x':148, 'm_y':-128, 'UnicodeKey':84})
     ProcessEvent (wx.KeyEvent, {'eventType':wx.EVT_CHAR, 'sentTo':'__FocusWindow__', 'lastWidgetValue':u'Untitled'}, {'m_rawCode':116, 'm_keyCode':116, 'm_x':148, 'm_y':-128, 'UnicodeKey':116})
