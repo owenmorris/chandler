@@ -35,7 +35,7 @@ import application.Globals as Globals
 from repository.util.Lob import Lob
 from i18n import ChandlerMessageFactory as _
 
-__all__ = ['log', 'trace', 'disableTwistedTLS', 'loadMailTests', 'getEmptyDate',
+__all__ = ['log', 'trace', 'disableTwistedTLS', 'getEmptyDate',
            'dateIsEmpty', 'alert', 'alertMailError', 'NotifyUIAsync', 'displaySSLCertDialog',
            'displayIgnoreSSLErrorDialog', 'dateTimeToRFC2822Date', 'createMessageID',
            'hasValue', 'isString', 'dataToBinary', 'binaryToData', 'stripHTML',
@@ -72,47 +72,6 @@ class Counter:
         self.counter += 1
         return self.counter
 
-
-def loadMailTests(view, dr):
-    try:
-        import osaf.mail.message as message
-        from application import schema
-        from osaf.pim import SmartCollection
-
-        sidebar = schema.ns('osaf.app', view).sidebarCollection
-
-        for col in sidebar:
-            if unicode(dr, "utf-8") == unicode(col):
-                #We already imported these mail messages
-                return
-
-        mimeDir = os.path.join(Globals.chandlerDirectory, 'parcels', 'osaf', 'mail',
-                               'tests', dr)
-
-        files = os.listdir(mimeDir)
-        mCollection = SmartCollection(itsView=view)
-        mCollection.displayName = unicode(dr, "utf-8")
-
-
-        for f in files:
-            if not f.startswith('test_'):
-                continue
-
-            filename = os.path.join(mimeDir, f)
-
-            fp = open(filename)
-            messageText = fp.read()
-            fp.close()
-
-            mailStamp = message.messageTextToKind(view, messageText)
-
-            mCollection.add(mailStamp.itsItem)
-
-        sidebar.add(mCollection)
-
-    except:
-        view.cancel()
-        raise
 
 def getEmptyDate():
     """

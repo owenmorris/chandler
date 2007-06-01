@@ -545,11 +545,6 @@ class wxApplication (wx.App):
         if splash:
             splash.Destroy()
 
-        # data loading script execution
-        if options.createData:
-            import util.GenerateItemsFromFile as GenerateItemsFromFile
-            GenerateItemsFromFile.RunScript(self.UIRepositoryView)
-
         # delay calling OnIdle until now
         self.Bind(wx.EVT_IDLE, self.OnIdle)
 

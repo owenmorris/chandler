@@ -23,7 +23,6 @@ from PyICU import ICUtzinfo
 import osaf.pim.calendar.Calendar as Calendar
 import osaf.pim.stamping as stamping
 import osaf.pim.tests.TestDomainModel as TestDomainModel
-import osaf.pim.generate as generate
 import repository.item
 
 from application import schema
@@ -170,13 +169,6 @@ class CalendarTest(TestDomainModel.DomainModelTestCase):
         itemShouldBeGone = view.find(path)
         self.assertEqual(itemShouldBeGone, None)
 
-    def testGeneratedEvents(self):
-
-        self.loadParcel("osaf.pim.calendar")
-
-        view = self.view
-        generate.GenerateItems(view, 100, generate.GenerateCalendarEvent, days=100)
-        view.commit()
 
 class AdjustTimesTestCase(unittest.TestCase):
 

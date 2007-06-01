@@ -23,7 +23,6 @@ from osaf import pim
 from application import schema
 import osaf.pim.mail as Mail
 import osaf.pim.calendar.Calendar as Calendar
-import osaf.pim.generate as generate
 import logging
 
 from datetime import datetime

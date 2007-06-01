@@ -1,7 +1,4 @@
-#!/bin/env python
-# -*- coding: utf-8 -*-
-
-#   Copyright (c) 2006 Open Source Applications Foundation
+#   Copyright (c) 2007 Open Source Applications Foundation
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -15,16 +12,15 @@
 #   See the License for the specific language governing permissions and
 #   limitations under the License.
 
+
 from setuptools import setup
 
-setup(
-    name         = "Chandler-I18nTestsPlugin",
-    version      = "0.1",
-    author       = "Brian Kirsch",
-    author_email = "bkirsch@osafoundation.org",
-    description  = "Testing resources and localizations egg for Chandler i18n architecture",
-    license      = "Apache License, Version 2.0",
-    test_suite   = "tests",
-    include_package_data = True,
-    zip_safe             = True,
-)
+setup(name = "Chandler-debugPlugin",
+      version = "0.1",
+      description = "Debugging and Test Tools for Chandler",
+      author = "OSAF",
+      packages = ["debug"],
+      test_suite = "tests",
+      include_package_data = True,
+      entry_points = {"chandler.parcels": ["debug = debug"]},
+      zip_safe = True)

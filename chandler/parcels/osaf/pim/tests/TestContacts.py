@@ -20,7 +20,6 @@ Unit tests for contacts
 import unittest, os
 
 import osaf.pim.tests.TestDomainModel as TestDomainModel
-import osaf.pim.generate as generate
 from osaf.pim.contacts import Contact, ContactName
 
 from repository.util.Path import Path
@@ -68,15 +67,6 @@ class ContactsTest(TestDomainModel.DomainModelTestCase):
 
         contactNameItem = contentItemParent.getItemChild("contactNameItem")
         _verifyContactName(contactNameItem)
-
-    def testGeneratedContacts(self):
-
-        self.loadParcels(["osaf.pim.contacts", "osaf.pim.mail"])
-
-        view = self.view
-        generate.GenerateItems(view, 100, generate.GenerateContact)
-        view.commit()
-
 
 if __name__ == "__main__":
     unittest.main()

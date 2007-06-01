@@ -34,7 +34,7 @@ import version
 # with your name (and some helpful text). The comment's really there just to
 # cause Subversion to warn you of a conflict when you update, in case someone 
 # else changes it at the same time you do (that's why it's on the same line).
-SCHEMA_VERSION = "398" # capps: menu tweaks for dump/reload
+SCHEMA_VERSION = "399" # vajda: some test menus moved to new debugPlugin
 
 logger = None # initialized in initLogging()
 
@@ -237,7 +237,6 @@ COMMAND_LINE_OPTIONS = {
     'encrypt':    ('-S', '--encrypt',    'b', False, None, 'Request prompt for password for repository encryption'),
     'nosplash':   ('-N', '--nosplash',   'b', False, 'CHANDLERNOSPLASH', ''),
     'logging':    ('-L', '--logging',    's', 'logging.conf',  'CHANDLERLOGCONFIG', 'The logging config file'),
-    'createData': ('-C', '--createData', 's', None,  None, 'csv file with items definition to load after startup'),
     'verbose':    ('-v', '--verbose',    'b', False, None, 'Verbosity option (currently just for run_tests.py)'),
     'quiet':      ('-q', '--quiet',      'b', False, None, 'Quiet option (currently just for run_tests.py)'),
     'offline':    ('', '--offline',    'b', False, 'CHANDLEROFFLINE', 'Takes the Chandler Mail Service Offline'),
