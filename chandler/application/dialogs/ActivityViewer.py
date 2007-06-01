@@ -40,7 +40,7 @@ class ActivityViewerFrame(wx.Frame):
 
         self.panel = wx.Panel(self, -1)
         self.sizer = wx.BoxSizer(wx.VERTICAL)
-        self.SetSizer(self.sizer)
+        self.panel.SetSizer(self.sizer)
 
         self.Bind(wx.EVT_CLOSE, self.OnCloseWindow)
 
@@ -67,7 +67,7 @@ class ActivityViewerFrame(wx.Frame):
         if activity.id in self.widgets:
             widget = self.widgets[activity.id]
         else:
-            widget = ActivityWidget(self, self.sizer, activity)
+            widget = ActivityWidget(self.panel, self.sizer, activity)
             self.widgets[activity.id] = widget
         widget.update(*args, **kwds)
         self._fix()
@@ -80,7 +80,7 @@ class ActivityViewerFrame(wx.Frame):
             self._fix()
 
     def _fix(self):
-        self.sizer.Layout()
+        self.panel.Layout()
 
 
 
