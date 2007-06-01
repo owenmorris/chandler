@@ -63,13 +63,6 @@ logger = logging.getLogger(__name__)
 
 dateFormatSymbols = DateFormatSymbols()
 
-# On Mac and Linux, origins for painting gradients have been
-# offset at one time or another.  Most recently Linux was
-# having problems, but now Linux appears to be working correctly,
-# so the code enabled by ENABLE_DEVICE_ORIGIN isn't currently
-# used on any platform
-ENABLE_DEVICE_ORIGIN = False
-
 NORMAL_RADIUS   = 6
 ONE_LINE_RADIUS = 8
 
@@ -91,7 +84,6 @@ else:
     TIME_BOTTOM_MARGIN = 2
 
 TRANSPARENCY_DASHES = [255, 255, 0, 0, 255, 255, 0, 0]
-
 
 def nth(iterable, n):
     return list(islice(iterable, n, n+1))[0]
@@ -314,6 +306,11 @@ class CalendarCanvasItem(CollectionCanvas.CanvasItem):
 
     timeHeight = 0
 
+    if wx.GetApp():
+        if IS_MAC:
+            whiteTransparentPen = wx.Pen(wx.WHITE, 0, wx.TRANSPARENT)
+        whitePen = wx.Pen(wx.WHITE, 1)
+
     def __init__(self, collection, primaryCollection, bounds, item, *args, **keywords):
         super(CalendarCanvasItem, self).__init__(bounds, item, *args, **keywords)
 
@@ -496,10 +493,10 @@ class CalendarCanvasItem(CollectionCanvas.CanvasItem):
                 hasLeftRounded = not leftSideCutoff 
 
                 dc.SetBrush(wx.WHITE_BRUSH)
-                dc.SetPen(wx.Pen(wx.WHITE, 1))
+                dc.SetPen(self.whitePen)
 
                 # draw white outline
-                self.DrawEventRectangle(dc, itemRect, wx.WHITE_BRUSH, radius,
+                self.DrawEventRectangle(dc, itemRect, radius,
                                         hasLeftRounded, hasTopRightRounded,
                                         hasBottomRightRounded, rightSideCutOff)
 
@@ -507,10 +504,7 @@ class CalendarCanvasItem(CollectionCanvas.CanvasItem):
                 itemRect = wx.Rect(itemRect.x + 1, itemRect.y + 1,
                                    itemRect.width - 2, itemRect.height - 2)
 
-                if ENABLE_DEVICE_ORIGIN:
-                    brushOffset = 0
-                else:
-                    brushOffset = itemRect.x
+                brushOffset = itemRect.x
 
                 brush = styles.brushes.GetGradientBrush(brushOffset,
                                                         itemRect.width,
@@ -520,7 +514,7 @@ class CalendarCanvasItem(CollectionCanvas.CanvasItem):
                 dc.SetBrush(brush)
                 dc.SetPen(wx.Pen(outlineColor, 1))
                 
-                self.DrawEventRectangle(dc, itemRect, brush, radius,
+                self.DrawEventRectangle(dc, itemRect, radius,
                                         hasLeftRounded, hasTopRightRounded,
                                         hasBottomRightRounded, rightSideCutOff,
                                         self.dashedLine(), styles)
@@ -773,7 +767,7 @@ class CalendarCanvasItem(CollectionCanvas.CanvasItem):
 
         return count
 
-    def DrawEventRectangle(self, dc, rect, brush, radius,
+    def DrawEventRectangle(self, dc, rect, radius,
                            hasLeftRounded=False,
                            hasTopRightRounded=True,
                            hasBottomRightRounded=True,
@@ -791,24 +785,13 @@ class CalendarCanvasItem(CollectionCanvas.CanvasItem):
             dashColor = self.colorInfo.selectedFYIColors[3]
             outlinePen = wx.Pen(dashColor, 1)
             dc.SetPen(outlinePen)
-        diameter = radius * 2
 
         dc.DestroyClippingRegion()
         dc.SetClippingRect(rect)
 
-        (oldOriginX, oldOriginY) = dc.GetDeviceOrigin()
         (rectX,rectY,width,height) = rect
-
-        if ENABLE_DEVICE_ORIGIN:
-            dc.SetDeviceOrigin(oldOriginX + rectX, oldOriginY + rectY)
-
-            # total hack - see bug 4870
-            # reset the brush so it recognizes the new device origin
-            dc.SetBrush(wx.TRANSPARENT_BRUSH)
-            dc.SetBrush(brush)
-            x = y = 0
-        else:
-            (x, y) = (rectX, rectY)
+        x = rectX
+        y = rectY
 
         # left/right clipping
         if not hasLeftRounded:
@@ -816,7 +799,7 @@ class CalendarCanvasItem(CollectionCanvas.CanvasItem):
             width += radius
 
         if clipRightSide:
-            width += radius;
+            width += radius
             
         # top/bottom clipping
         if not hasBottomRightRounded:
@@ -828,57 +811,58 @@ class CalendarCanvasItem(CollectionCanvas.CanvasItem):
 
         # finally draw the clipped rounded rect
         dc.DrawRoundedRectangle(x, y, width, height, radius)
-        dash_pattern = [2,1,4,1]
         
-        def drawVertical(brush = None):
-            if brush:
-                dc.SetBrush(brush)
-                dc.DrawRectangle(x, y+radius, 1, height - diameter)
-                dc.DrawRectangle(x+width-1, y+radius, 1, height - diameter)
+        if addDashes:
+            dash_pattern = [2, 1, 4, 1]
+            xRadius = x + radius
+            yRadius = y + radius
+            
+            if IS_MAC:
+                diameter = radius * 2
+                
+                dc.SetAntiAliasing(False)
+                dc.SetPen(self.whiteTransparentPen)
+    
+                dc.SetBrush(styles.brushes.GetDash(x, dash_pattern, dashColor,
+                                                      'Horizontal'))
+                dc.DrawRectangle(xRadius, y, width - diameter, 1)
+                dc.DrawRectangle(xRadius, y+height-1, width - diameter, 1)                
+    
+                dc.SetBrush(styles.brushes.GetDash(y, dash_pattern, dashColor,
+                                                    'Vertical'))
+                dc.DrawRectangle(x, yRadius, 1, height - diameter)
+                dc.DrawRectangle(x+width-1, yRadius, 1, height - diameter)
+                # we ought to be storing the result of GetAntiAliasing, but that
+                # appears to always return False, so for now we just assume we're
+                # anti-aliasing
+                dc.SetAntiAliasing(True)
+    
             else:
-                dc.DrawLine(x, y+radius,  x, y+height-radius)                #left 
-                dc.DrawLine(x+width-1, y+radius, x+width-1, y+height-radius) #right
-
-        def drawHorizontal(brush = None):
-            if brush:
-                dc.SetBrush(brush)
-                dc.DrawRectangle(x+radius, y, width - diameter, 1)
-                dc.DrawRectangle(x+radius, y+height-1, width - diameter, 1)                
-            else:
-                dc.DrawLine(x+radius, y,  x + width-radius, y)               #top 
-                dc.DrawLine(x+radius, y+height-1, x+width-radius, y+height-1)#bottom
-
-
-        if IS_MAC and addDashes:
-            dc.SetAntiAliasing(False)
-            dc.SetPen(wx.Pen(wx.WHITE, 0, wx.TRANSPARENT))
-
-            drawHorizontal(styles.brushes.GetDash(x, dash_pattern, dashColor,
-                                                  'Horizontal'))
-
-            drawVertical(styles.brushes.GetDash(y, dash_pattern, dashColor,
-                                                'Vertical'))
-            # we ought to be storing the result of GetAntiAliasing, but that
-            # appears to always return False, so for now we just assume we're
-            # anti-aliasing
-            dc.SetAntiAliasing(True)
-
-        elif addDashes:
-            # draw white under dashes
-            dc.SetPen(wx.Pen(wx.WHITE, 1))
-            drawHorizontal()
-            drawVertical()
-
-            # draw dashes
-            outlinePen.SetStyle(wx.USER_DASH)
-            outlinePen.SetCap(wx.CAP_BUTT)
-            outlinePen.SetDashes(dash_pattern)
-            dc.SetPen(outlinePen)
-            drawHorizontal()
-            drawVertical()
-
-        if ENABLE_DEVICE_ORIGIN:
-            dc.SetDeviceOrigin(oldOriginX, oldOriginY)
+                yHeight1 = y + height - 1
+                yHeightRadius = y + height - radius
+                xWidth1 = x + width - 1
+                xWidthRadius = x + width - radius
+                
+                def drawVertical():
+                    dc.DrawLine(x, yRadius,  x, yHeightRadius)            #left 
+                    dc.DrawLine(xWidth1, yRadius, xWidth1, yHeightRadius) #right
+        
+                def drawHorizontal():
+                    dc.DrawLine(xRadius, y,  xWidthRadius, y)             #top 
+                    dc.DrawLine(xRadius, yHeight1, xWidthRadius, yHeight1)#bottom
+                
+                # draw white under dashes
+                dc.SetPen(self.whitePen)
+                drawHorizontal()
+                drawVertical()
+    
+                # draw dashes
+                outlinePen.SetStyle(wx.USER_DASH)
+                outlinePen.SetCap(wx.CAP_BUTT)
+                outlinePen.SetDashes(dash_pattern)
+                dc.SetPen(outlinePen)
+                drawHorizontal()
+                drawVertical()
 
 
 class CalendarEventHandler(object):
