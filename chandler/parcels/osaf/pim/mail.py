@@ -903,7 +903,7 @@ class IncomingAccount(AccountBase):
                 oldFullName = u''
             self.replyToAddress = \
                 EmailAddress.getEmailAddress(self.itsView, value, oldFullName) or \
-                EmailAddress(self.itsView)
+                EmailAddress(itsView=self.itsView)
 
         return property(fget, fset)
 
@@ -921,7 +921,7 @@ class IncomingAccount(AccountBase):
                 oldAddress = u''
             self.replyToAddress = \
                 EmailAddress.getEmailAddress(self.itsView, oldAddress, value) or \
-                EmailAddress(self.itsView)
+                EmailAddress(itsView=self.itsView)
 
         return property(fget, fset)
 
@@ -961,7 +961,7 @@ class OutgoingAccount(AccountBase):
 
         def fset(self, value):
             self.fromAddress = EmailAddress.getEmailAddress(self.itsView, value) or \
-                               EmailAddress(self.itsView)
+                               EmailAddress(itsView=self.itsView)
 
         return property(fget, fset)
 
