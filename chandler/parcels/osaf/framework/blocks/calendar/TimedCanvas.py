@@ -384,35 +384,31 @@ class wxTimedEventsCanvas(BaseWidget, wxCalendarCanvas):
             self.localeHourStrings = \
                 list(self.GetLocaleHourStrings(range(24), dc))
 
-        # first draw full hours
+        # first collect drawing instructions
+        hours = []
         halfHours = []
         hourLegends = []
-        dcDrawLine = dc.DrawLine
-
-        if IS_MAC:
-            dc.SetAntiAliasing(False)
-            
-        dc.SetPen(styles.majorLinePen)
+        hourLegendsCoords = []
 
         for hour,hourString,textExtent in self.localeHourStrings:
 
             if hour > 0:
                 # Collect the hour legend drawing instructions
                 wText, hText = textExtent
-                hourLegends.append((hourString,
-                                    self.xOffset - wText - 5,
-                                    hour * hourHeight - (hText/2)))
+                hourLegends.append(hourString)
+                hourLegendsCoords.append((self.xOffset - wText - 5,
+                                          hour * hourHeight - (hText/2)))
             
-            # Draw the line between hours
-            dcDrawLine(self.xOffset,
+            # Collect hour lines
+            hours.append((self.xOffset,
                        hour * hourHeight,
                        width1,
-                       hour * hourHeight)
+                       hour * hourHeight))
             
-            # Draw a line for noon, bug 5781
+            # line for noon, bug 5781
             if hour == 12:
-                dcDrawLine(10,                       12 * hourHeight,
-                           self.xOffset - wText - 8, 12 * hourHeight)
+                hours.append((10,                       12 * hourHeight,
+                              self.xOffset - wText - 8, 12 * hourHeight))
 
             # Collect the drawing instructions for the half hour lines
             halfHours.append((self.xOffset,
@@ -420,25 +416,26 @@ class wxTimedEventsCanvas(BaseWidget, wxCalendarCanvas):
                               width1,
                               hour * hourHeight + halfHourHeight))
                 
-        # Draw a final, bottom hour line
-        dcDrawLine(self.xOffset,
-                    height,
-                    width1,
-                    height)
+        # final, bottom hour line
+        hours.append((self.xOffset,
+                      height,
+                      width1,
+                      height))
 
-        # then draw half hours
-        dc.SetPen(styles.minorLinePen)
+        if IS_MAC:
+            dc.SetAntiAliasing(False)
+            
+        # draw full hour lines
+        dc.DrawLineList(hours, styles.majorLinePen)
 
-        for args in halfHours:
-            dcDrawLine(*args)
+        # then draw half hour lines
+        dc.DrawLineList(halfHours, styles.minorLinePen)
 
         if IS_MAC:
             dc.SetAntiAliasing(True)
 
-        # then hour legend
-        dcDrawText = dc.DrawText
-        for args in hourLegends:
-            dcDrawText(*args)
+        # then hour text
+        dc.DrawTextList(hourLegends, hourLegendsCoords)
 
         # Draw day lines
         self.DrawDayLines(dc)
@@ -452,22 +449,18 @@ class wxTimedEventsCanvas(BaseWidget, wxCalendarCanvas):
         workdayHourStart = 9 # 9am
         workdayHourEnd = 17  # 5pm
         
-        dcDrawLine(legendBorderX, workdayHourStart*hourHeight,
-                   legendBorderX, workdayHourEnd * hourHeight + 1)
+        dc.DrawLine(legendBorderX, workdayHourStart*hourHeight,
+                    legendBorderX, workdayHourEnd * hourHeight + 1)
         
 
     def DrawBackgroundSelection(self, dc):
-        styles = self.blockItem.calendarContainer
         # draw selection stuff (highlighting)
         if (self._bgSelectionStartTime and self._bgSelectionEndTime):
-            dc.SetPen(wx.TRANSPARENT_PEN)
-            dc.SetBrush(styles.selectionBrush)
             
-            rects = \
-                self.GenerateBoundsRects(self._bgSelectionStartTime,
-                                         self._bgSelectionEndTime)
-            for rect in rects:
-                dc.DrawRectangleRect(rect)
+            dc.DrawRectangleList(list(self.GenerateBoundsRects(self._bgSelectionStartTime,
+                                                               self._bgSelectionEndTime)),
+                                 wx.TRANSPARENT_PEN,
+                                 self.blockItem.calendarContainer.selectionBrush)
 
     @staticmethod
     def sortByStartTime(event1, event2):

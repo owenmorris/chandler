@@ -734,17 +734,18 @@ class CalendarCanvasItem(CollectionCanvas.CanvasItem):
 
         hue = getHueForCollection(self.collection)
         outlineColor = getLozengeTypeColor(hue, outlinePre1 + outlinePre2)
-        dc.SetPen(wx.Pen(outlineColor, SWATCH_BORDER))
 
         if vertical:
             delta = SWATCH_HEIGHT_VECTOR + vector([0, SWATCH_SEPARATION])
         else:
             delta = SWATCH_WIDTH_VECTOR  + vector([SWATCH_SEPARATION, 0])
 
-        if IS_MAC:
-            dc.SetAntiAliasing(False)
-
         count = 0
+        rects = []
+        brushes = []
+        def rects_append(x, y, w, h):
+            rects.append((x, y, w, h))
+            
         for coll in reversed([i for i in sidebarCollections if 
                               master in i and i is not self.collection and 
                               i not in self.ignoreCollections]):
@@ -756,14 +757,24 @@ class CalendarCanvasItem(CollectionCanvas.CanvasItem):
             else:
                 hue = getHueForCollection(coll)
                 fillColor = getLozengeTypeColor(hue, fillColorLozengeType)
-                brush = wx.TheBrushList.FindOrCreateBrush(fillColor, wx.SOLID)
-                dc.SetBrush(brush)
-
-                dc.DrawRectangle(*swatchTL.join(swatchBR - swatchTL))
-                count += 1
                 
-        if IS_MAC:
-            dc.SetAntiAliasing(True)
+                brushes.append(wx.TheBrushList.FindOrCreateBrush(fillColor,
+                                                                 wx.SOLID))
+
+                rects_append(*swatchTL.join(swatchBR - swatchTL))
+
+                count += 1
+        
+        if rects:
+            if IS_MAC:
+                dc.SetAntiAliasing(False)
+
+            dc.DrawRectangleList(rects,
+                                 pens=wx.Pen(outlineColor, SWATCH_BORDER),
+                                 brushes=brushes)
+        
+            if IS_MAC:
+                dc.SetAntiAliasing(True)
 
         return count
 
@@ -821,17 +832,17 @@ class CalendarCanvasItem(CollectionCanvas.CanvasItem):
                 diameter = radius * 2
                 
                 dc.SetAntiAliasing(False)
-                dc.SetPen(self.whiteTransparentPen)
+                dc.DrawRectangleList([(xRadius, y, width - diameter, 1),
+                                      (xRadius, y+height-1, width - diameter, 1)],
+                                      self.whiteTransparentPen,
+                                      styles.brushes.GetDash(x, dash_pattern, dashColor,
+                                                            'Horizontal'))
     
-                dc.SetBrush(styles.brushes.GetDash(x, dash_pattern, dashColor,
-                                                      'Horizontal'))
-                dc.DrawRectangle(xRadius, y, width - diameter, 1)
-                dc.DrawRectangle(xRadius, y+height-1, width - diameter, 1)                
-    
-                dc.SetBrush(styles.brushes.GetDash(y, dash_pattern, dashColor,
-                                                    'Vertical'))
-                dc.DrawRectangle(x, yRadius, 1, height - diameter)
-                dc.DrawRectangle(x+width-1, yRadius, 1, height - diameter)
+                dc.DrawRectangleList([(x, yRadius, 1, height - diameter),
+                                      (x+width-1, yRadius, 1, height - diameter)],
+                                      self.whiteTransparentPen,
+                                      styles.brushes.GetDash(y, dash_pattern, dashColor,
+                                                             'Vertical'))
                 # we ought to be storing the result of GetAntiAliasing, but that
                 # appears to always return False, so for now we just assume we're
                 # anti-aliasing
@@ -842,28 +853,23 @@ class CalendarCanvasItem(CollectionCanvas.CanvasItem):
                 yHeightRadius = y + height - radius
                 xWidth1 = x + width - 1
                 xWidthRadius = x + width - radius
-                
-                def drawVertical():
-                    dc.DrawLine(x, yRadius,  x, yHeightRadius)            #left 
-                    dc.DrawLine(xWidth1, yRadius, xWidth1, yHeightRadius) #right
-        
-                def drawHorizontal():
-                    dc.DrawLine(xRadius, y,  xWidthRadius, y)             #top 
-                    dc.DrawLine(xRadius, yHeight1, xWidthRadius, yHeight1)#bottom
+
+                lines = [
+                        (x, yRadius,  x, yHeightRadius),            #left 
+                        (xWidth1, yRadius, xWidth1, yHeightRadius), #right
+                        (xRadius, y,  xWidthRadius, y),             #top 
+                        (xRadius, yHeight1, xWidthRadius, yHeight1) #bottom
+                        ]
                 
                 # draw white under dashes
-                dc.SetPen(self.whitePen)
-                drawHorizontal()
-                drawVertical()
+                dc.DrawLineList(lines, self.whitePen)
     
                 # draw dashes
                 outlinePen.SetStyle(wx.USER_DASH)
                 outlinePen.SetCap(wx.CAP_BUTT)
                 outlinePen.SetDashes(dash_pattern)
-                dc.SetPen(outlinePen)
-                drawHorizontal()
-                drawVertical()
-
+                dc.DrawLineList(lines, outlinePen)
+                
 
 class CalendarEventHandler(object):
     """
@@ -1609,6 +1615,7 @@ class wxCalendarCanvas(CollectionCanvas.wxCollectionCanvas):
 
         styles = self.blockItem.calendarContainer
         drawInfo = self.blockItem.calendarContainer.calendarControl.widget
+        height = self.size.height
 
         # the legend border is major
         pen = wx.Pen(styles.majorLineColor, self.legendBorderWidth)
@@ -1625,16 +1632,15 @@ class wxCalendarCanvas(CollectionCanvas.wxCollectionCanvas):
         dc.SetAntiAliasing(False)
 
         dc.DrawLine(legendBorderX, 0,
-                    legendBorderX, self.size.height + 1)
+                    legendBorderX, height + 1)
         
-        def drawDayLine(dayNum):
-            x = drawInfo.columnPositions[dayNum+1]
-            dc.DrawLine(x, 0,   x, self.size.height)
-
         # the rest are minor, 1 pixel wide
-        dc.SetPen(styles.minorLinePen)
+        dayLines = []
         for dayNum in range(1, drawInfo.columns):
-            drawDayLine(dayNum)
+            x = drawInfo.columnPositions[dayNum+1]
+            dayLines.append((x, 0, x, height))
+
+        dc.DrawLineList(dayLines, styles.minorLinePen)
 
         # restore previous value for anti-aliasing
         dc.SetAntiAliasing(oldAA)

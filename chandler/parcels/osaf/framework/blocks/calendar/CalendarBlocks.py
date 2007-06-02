@@ -667,15 +667,18 @@ class wxPreviewArea(CalendarNotificationHandler, wx.Panel):
 
         y = self.vMargin
         # Draw title if appropriate
+        times = []
+        timesCoords = []
         if self.useToday and len(self.visibleEvents) > 0:
-            todayText = _(u"Today's events")
-            dc.SetFont(self.timeFont)
-            dc.DrawText(todayText, self.hMargin, y)
+            times.append(_(u"Today's events"))
+            timesCoords.append((self.hMargin, y))
             y += self.lineHeight
 
         # Draw each event
         previewPrefs = schema.ns("osaf.framework.blocks.calendar",
                                  self.blockItem.itsView).previewPrefs
+        events = []
+        eventsCoords = []
         for i, event in enumerate(self.visibleEvents):
             if isDead(event.itsItem):
                 # This is to fix bug 4322, after removing recurrence,
@@ -690,11 +693,11 @@ class wxPreviewArea(CalendarNotificationHandler, wx.Panel):
 
             if not (event.allDay or event.anyTime):
                 # Draw the time
-                dc.SetFont(self.timeFont)
                 formattedTime = pim.shortTimeFormat.format(event.startTime)
                 preSep = formattedTime[:formattedTime.find(self.timeSeparator)]
                 prePos = self.colonPosition - dc.GetTextExtent(preSep)[0]
-                dc.DrawText(formattedTime, prePos, y + self.timeFontOffset)
+                times.append(formattedTime)
+                timesCoords.append((prePos, y + self.timeFontOffset))
                 # Draw the event text to the right of the time.
                 x = self.labelPosition
             else:
@@ -703,10 +706,19 @@ class wxPreviewArea(CalendarNotificationHandler, wx.Panel):
 
             # Draw the event text. It'll be clipped automatically because we
             # set a clipregion above.
-            dc.SetFont(self.eventFont)
-            dc.DrawText(event.summary, x, y + self.eventFontOffset)
+            events.append(event.summary)
+            eventsCoords.append((x, y + self.eventFontOffset))
 
             y += self.lineHeight
+
+        # Actual drawing here...
+        if times:
+            dc.SetFont(self.timeFont)
+            dc.DrawTextList(times, timesCoords)
+
+        if events:
+            dc.SetFont(self.eventFont)
+            dc.DrawTextList(events, eventsCoords)
 
         if len(self.visibleEvents) > previewPrefs.maximumEventsDisplayed:
             if self.maximized:
@@ -722,7 +734,6 @@ class wxPreviewArea(CalendarNotificationHandler, wx.Panel):
             dc.SetFont(self.linkFont)
             dc.DrawText(expandText, self.hMargin, y + self.eventFontOffset)
             y += self.lineHeight
-
 
         dc.DestroyClippingRegion()
         return y - self.vMargin

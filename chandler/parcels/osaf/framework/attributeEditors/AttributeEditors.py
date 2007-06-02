@@ -430,9 +430,9 @@ class DateTimeAttributeEditor(StringAttributeEditor):
         rect.Inflate (-1, -1)
         dc.SetClippingRect (rect)
         
-        dateWidth, ignored = dc.GetTextExtent(dateString)
-        timeWidth, ignored = dc.GetTextExtent(timeString) if not hideTime else (0, 0)
-        spaceWidth, ignored = dc.GetTextExtent('  ')
+        dateWidth = dc.GetTextExtent(dateString)[0]
+        timeWidth = dc.GetTextExtent(timeString)[0] if not hideTime else 0
+        spaceWidth = dc.GetTextExtent('  ')[0]
 
         # If we don't have room for both values, draw one, clipped if necessary.
         if (dateWidth + timeWidth + spaceWidth) > rect.width:
