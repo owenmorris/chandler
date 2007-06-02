@@ -2034,8 +2034,9 @@ class DumpTranslator(SharingTranslator):
             if record.item not in (eim.NoChange, None):
                 @self.withItemForUUID(record.item, shares.SharedItem)
                 def do_item(sharedItem):
-                    if hasattr(sharedItem, 'peerStates') and \
-                       state not in sharedItem.peerStates:
+                    if not hasattr(sharedItem, 'peerStates'):
+                        sharedItem.peerStates = []
+                    if state not in sharedItem.peerStates:
                         sharedItem.peerStates.append(state, record.peer)
 
     # SharePeerStateRecords are generated in SharedItem's exporter
