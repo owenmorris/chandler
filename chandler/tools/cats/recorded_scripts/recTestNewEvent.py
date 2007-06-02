@@ -2,7 +2,8 @@ import wx, osaf
 from osaf.framework.script_recording.script_lib import ProcessEvent, VerifyOn
 
 def run():
-    if wx.Platform == '__WXGTK__' or wx.Platform == '__WXMSW__':
+    #ignore this test on windows because it catches Bug#9061: beep when title too long in lozenges (ws Need a different set of flags for the lozenge editor)
+    if wx.Platform == '__WXMSW__':
         return
     VerifyOn ()
     ProcessEvent (wx.CommandEvent, {'associatedBlock':'NewCollectionItem', 'eventType':wx.EVT_MENU, 'sentTo':'MainFrame'}, {})

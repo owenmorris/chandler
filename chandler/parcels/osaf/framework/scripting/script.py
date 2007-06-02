@@ -221,6 +221,11 @@ def _findHotKeyScript(targetFKey, view):
     return None
 
 def run_startup_script_with_symbols(view, builtIns):
+    # On Linux at the time we reach this point the screen has not
+    # been updated, i.e. drawn -- and when the screen isn't drawn
+    # the focus can't be set to a widget that hasn't been drawn
+    # so we explicitely update the screen before running the tests
+    wx.GetApp().mainFrame.Update()
     global global_cats_profiler
     if Globals.options.testScripts:
         try:

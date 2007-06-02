@@ -2,9 +2,6 @@ import wx, osaf
 from osaf.framework.script_recording.script_lib import ProcessEvent, VerifyOn
 
 def run():
-    if wx.Platform == '__WXGTK__':
-        return
-    
     VerifyOn ()
     ProcessEvent (wx.CommandEvent, {'associatedBlock':'NewCollectionItem', 'eventType':wx.EVT_MENU, 'sentTo':'MainFrame'}, {})
     ProcessEvent (wx.KeyEvent, {'eventType':wx.EVT_KEY_DOWN, 'sentTo':'__FocusWindow__', 'newFocusWindow':-309, 'newFocusWindowClass':osaf.framework.attributeEditors.AETypeOverTextCtrl.AENonTypeOverTextCtrl}, {'m_rawCode':84, 'm_keyCode':84, 'm_x':139, 'm_y':-24, 'UnicodeKey':84})
