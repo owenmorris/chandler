@@ -24,10 +24,15 @@ class TestBlocks(ChandlerTestCase):
     def startTest(self):
     
         self.logger.startAction('TestBlocks')
-        self.app_ns.root.ChooseCPIATestMainView()
-        self.logger.report(True, name='CPIATestMainView ')
-        self.app_ns.root.ChooseChandlerMainView()
+
+        # get an event proxy to Chandler-debugPlugin (the 'debug' package)
+        debugProxy = self.app_ns.namespaceProxy('debug')
+
+        debugProxy.ChooseCPIATestMainView()
+        self.logger.report(True, name='CPIATestMainView')
+        debugProxy.ChooseChandlerMainView()
         self.logger.report(True, name='ChandlerMainView')
+
         self.logger.endAction(True, 'TestBlocks complete')
 
 

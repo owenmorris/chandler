@@ -26,31 +26,25 @@ _m_ = MessageFactory("Chandler-debugPlugin")
 def makeCPIAMenu(parcel, toolsMenu):
 
     chooseChandlerEvent = \
-        ChoiceEvent.update(parcel, None,
-                           blockName='ChooseChandlerMainView',
+        ChoiceEvent.update(parcel, 'ChooseChandlerMainView',
+                           blockName='_debug_ChooseChandlerMainView',
                            methodName='onChoiceEvent',
                            choice = 'MainView',
                            dispatchToBlockName='MainViewRoot')
 
     chooseCPIATestEvent = \
-        ChoiceEvent.update(parcel, None,
-                           blockName='ChooseCPIATestMainView',
+        ChoiceEvent.update(parcel, 'ChooseCPIATestMainView',
+                           blockName='_debug_ChooseCPIATestMainView',
                            methodName='onChoiceEvent',
                            choice='CPIATestMainView',
                            dispatchToBlockName='MainViewRoot')
 
     chooseCPIATest2Event = \
-        ChoiceEvent.update(parcel, None,
-                           blockName='ChooseCPIATest2MainView',
+        ChoiceEvent.update(parcel, 'ChooseCPIATest2MainView',
+                           blockName='_debug_ChooseCPIATest2MainView',
                            methodName='onChoiceEvent',
                            choice='CPIATest2MainView',
                            dispatchToBlockName='MainViewRoot')
-
-    # make these event names global so that functional tests can find them
-    Block.addToNameToItemUUIDDictionary([chooseChandlerEvent,
-                                         chooseCPIATestEvent,
-                                         chooseCPIATest2Event],
-                                        Block.eventNameToItemUUID)
 
     cpiaMenu = Menu.update(parcel, None,
                            blockName='_debug_cpiaMenu',

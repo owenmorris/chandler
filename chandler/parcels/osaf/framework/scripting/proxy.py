@@ -72,6 +72,35 @@ class BlockProxy(object):
         block = getattr(self.app_ns, self.proxy)
         block.widget.SetFocus()
 
+
+def postEvent(eventName, event, argDict=None, timing=None, **keys):
+    # Post the supplied event, keeping track of the timing if requested.
+    # Also, call Yield() on the application, so it gets some time during
+    #   script execution.
+    if argDict is None:
+        argDict = {}
+    try:
+        argDict.update(keys)
+    except AttributeError:
+        # make sure the first parameter was a dictionary, or give a friendly error
+        message = "BlockEvents may only have one positional parameter - a dict"
+        raise AttributeError, message
+    # remember timing information
+    if timing is not None:
+        startTime = timing.start_timer()
+    # post the event
+    result = Block.Block.post(event, argDict)
+    # finish timing
+    if timing is not None:
+        timing.end_timer(startTime, eventName)
+    # Next propagate notifications so the UI will match the data.
+    # Then call Yeild to process an pending events
+    wx.GetApp().propagateAsynchronousNotifications()
+    wx.GetApp().Yield()
+
+    return result
+
+
 class RootProxy(BlockProxy):
     """ 
     Proxy to the Main View Root block. 
@@ -83,37 +112,16 @@ class RootProxy(BlockProxy):
         # our timing object
         self.timing = EventTiming()
 
+    def post_script_event(self, eventName, event, argDict=None, timing=None,
+                          **keys):
+        return postEvent(eventName, event, argDict, timing, **keys)
+
     """
     We need to find the best BlockEvent at runtime on each invokation,
     because the BlockEvents come and go from the soup as UI portions
     are rendered and unrendered.  The best BlockEvent is the one copied
     into the soup and attached to rendered blocks that were also copied.
     """
-    def post_script_event(self, eventName, event, argDict=None, timing=None, **keys):
-        # Post the supplied event, keeping track of the timing if requested.
-        # Also, call Yield() on the application, so it gets some time during
-        #   script execution.
-        if argDict is None:
-            argDict = {}
-        try:
-            argDict.update(keys)
-        except AttributeError:
-            # make sure the first parameter was a dictionary, or give a friendly error
-            message = "BlockEvents may only have one positional parameter - a dict"
-            raise AttributeError, message
-        # remember timing information
-        if timing is not None:
-            startTime = timing.start_timer()
-        # post the event
-        result = Block.Block.post(event, argDict)
-        # finish timing
-        if timing is not None:
-            timing.end_timer(startTime, eventName)
-        # Next propagate notifications so the UI will match the data.
-        # Then call Yeild to process an pending events
-        wx.GetApp().propagateAsynchronousNotifications()
-        wx.GetApp().Yield()
-        return result
 
     # Attributes that are BlockEvents get converted to functions
     # that invoke that event.
@@ -124,6 +132,27 @@ class RootProxy(BlockProxy):
             return self.post_script_event(attr, best, argDict, timing=self.timing, **keys)
         best = Block.Block.findBlockEventByName(attr)
         assert best is not False, "Your attribute can't be resolved"
+        return scripted_blockEvent
+
+
+class EventProxy(object):
+    """
+    A proxy modeled on the others that works with events defined in a given
+    namespace such as the debug plugin.
+    """
+
+    def __init__(self, ns):
+        self.ns = ns
+        self.timing = EventTiming()
+
+    def __getattr__(self, name):
+        best = getattr(self.ns, name, None)
+        assert best is not None, "Your attribute can't be resolved"
+
+        def scripted_blockEvent(argDict=None, **keys):
+            # merge the named parameters, into the dictionary positional arg
+            return postEvent(name, best, argDict, timing=self.timing, **keys)
+
         return scripted_blockEvent
 
 
@@ -156,6 +185,9 @@ class AppProxy(object):
         self.calendar = BlockProxy('CalendarSummaryView', self)
         self.summary = BlockProxy('DashboardSummaryView', self)
         self.detail = BlockProxy('DetailRoot', self)
+
+    def namespaceProxy(self, packageName):
+        return EventProxy(schema.ns(packageName, self.view))
 
     def item_named(self, itemClass, itemName):
         for item in itemClass.iterItems(self.itsView):
