@@ -106,7 +106,8 @@ dest=debug/bin
 python_d.exe
 python_d.exe.manifest
 pythonw_d.exe
-# pythonw_d.exe.manifest
+pythonw_d.exe.manifest
+
 # and the launch scripts
 src=chandler/debug
 dest=debug

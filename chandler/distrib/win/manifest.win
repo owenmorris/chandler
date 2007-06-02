@@ -106,7 +106,8 @@ dest=release/bin
 python.exe
 python.exe.manifest
 pythonw.exe
-# pythonw.exe.manifest
+pythonw.exe.manifest
+
 # and the launch scripts
 src=chandler/release
 dest=release
