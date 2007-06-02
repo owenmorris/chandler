@@ -2009,7 +2009,7 @@ class OriginatorsAttributeEditor(EmailAddressAttributeEditor):
 class OutboundEmailAddressAEBlock(DetailSynchronizedAttributeEditorBlock):
     def getWatchList(self):
         watchList = super(OutboundEmailAddressAEBlock, self).getWatchList()
-        addressList = schema.ns('osaf.pim', self.itsView).currentMeEmailAddresses
+        addressList = Mail.getCurrentMeEmailAddresses(self.itsView)
         watchList.extend(((addressList, pim.mail.EmailAddresses.emailAddresses.name),),)
         return watchList
 
@@ -2053,8 +2053,6 @@ class OutboundEmailAddressAttributeEditor(ChoiceAttributeEditor):
             choices.append(addr.emailAddress)
 
         choices.append(_(u"Create outgoing mail account..."))
-        #logger.critical("Updating outbound address choices to [%s]",
-                        #", ".join(choices))
         return choices
 
     def GetControlValue(self, control):

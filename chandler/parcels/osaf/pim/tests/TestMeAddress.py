@@ -99,8 +99,7 @@ class TestMeAddress(TestDomainModel.DomainModelTestCase):
         # a non-default Incoming Account
 
         inNonDefault = IMAPAccount(itsView=v)
-        ea = EmailAddress(itsView=v, fullName=u"Test User",
-                          emailAddress=u"test@test.com")
+        ea = EmailAddress.getEmailAddress(v, u"test@test.com", u"Test User")
 
         self.addIncoming(inNonDefault, ea)
         self.compareAddresses(ea)
@@ -111,8 +110,7 @@ class TestMeAddress(TestDomainModel.DomainModelTestCase):
         #Make this the default incoming account
         schema.ns('osaf.pim', v).currentIncomingAccount.item = inDefault
 
-        ea1 = EmailAddress(itsView=v, fullName=u"Test User1",
-                           emailAddress=u"test1@test.com")
+        ea1 = EmailAddress.getEmailAddress(v, u"test1@test.com", u"Test User1")
 
         self.addIncoming(inDefault, ea1)
 
@@ -122,8 +120,8 @@ class TestMeAddress(TestDomainModel.DomainModelTestCase):
         # Outgoing account
 
         outNonDefault = SMTPAccount(itsView=v)
-        ea2 = EmailAddress(itsView=v, fullName=u"Test User2",
-                           emailAddress=u"test2@test.com")
+        
+        ea2 = EmailAddress.getEmailAddress(v, u"test2@test.com", u"Test User2")
 
         self.addOutgoing(outNonDefault, ea2)
 
@@ -139,8 +137,7 @@ class TestMeAddress(TestDomainModel.DomainModelTestCase):
         #Make this the default incoming account
         schema.ns('osaf.pim', v).currentOutgoingAccount.item = outDefault
 
-        ea3 = EmailAddress(itsView=v, fullName=u"Test User3",
-                           emailAddress=u"test3@test.com")
+        ea3 = EmailAddress.getEmailAddress(v, u"test3@test.com", u"Test User3")
 
         self.addOutgoing(outDefault, ea3)
 

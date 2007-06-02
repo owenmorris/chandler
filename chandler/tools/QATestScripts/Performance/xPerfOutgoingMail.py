@@ -105,20 +105,13 @@ def addMaiStamp(item):
     ms.subject = uw("Test Mail")
     ms.body = uw("Test ") * 60
 
-    toAddr = EmailAddress(itsView=view)
-    toAddr.emailAddress = "demo2@osafoundation.org"
+    toAddr = EmailAddress.getEmailAddress(view, "demo2@osafoundation.org")
     ms.toAddress.append(toAddr)
 
-    ms.fromAddress = EmailAddress(itsView=view)
-    ms.fromAddress.emailAddress = "demo3@osafoundation.org"
+    ms.fromAddress = EmailAddress.getEmailAddress(view, "demo3@osafoundation.org")
+    ms.ccAddress.append(ms.fromAddress)
 
-    ccAddr = EmailAddress(itsView=view)
-    ccAddr.emailAddress = "demo3@osafoundation.org"
-    ms.ccAddress.append(ccAddr)
-
-    org = EmailAddress(itsView=view)
-    org.emailAddress = "The Management"
-
+    org = EmailAddress.getEmailAddress(view, "The Management")
     ms.originators.append(org)
 
     return ms

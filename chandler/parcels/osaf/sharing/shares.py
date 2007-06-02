@@ -73,8 +73,8 @@ class SharedItem(pim.Stamp):
         # conflicts
         if not self.conflictingStates:
             itemUUID = self.itsItem.itsUUID.str16()
-            peer = pim.EmailAddress(itsView=self.itsItem.itsView,
-                emailAddress="conflict@example.com")
+            peer = pim.EmailAddress.getEmailAddress(self.itsItem.itsView,
+                                                    "conflict@example.com")
             state = State(itsView=self.itsItem.itsView, peer=peer)
 
             state.pending = eim.RecordSet([

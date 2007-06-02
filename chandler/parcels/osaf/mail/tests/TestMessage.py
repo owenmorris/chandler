@@ -134,22 +134,16 @@ END:VCALENDAR
 
         view = self.view
         m = Mail.MailMessage(itsView=view)
-        m.fromAddress = Mail.EmailAddress(itsView=view)
-        m.fromAddress.emailAddress = "bill@home.net"
+        m.fromAddress = Mail.EmailAddress.getEmailAddress(view, "bill@home.net")
 
-        toOne = Mail.EmailAddress(itsView=view)
-        toOne.emailAddress = "test@testuser.com"
-
-        toTwo = Mail.EmailAddress(itsView=view)
-        toTwo.emailAddress = "john@home.com"
-        toTwo.fullName = "John Johnson"
+        toOne = Mail.EmailAddress.getEmailAddress(view, "test@testuser.com")
+        toTwo = Mail.EmailAddress.getEmailAddress(view, "john@home.com", "John Johnson")
 
         m.toAddress = []
         m.toAddress.append(toOne)
         m.toAddress.append(toTwo)
 
-        ccOne = Mail.EmailAddress(itsView=view)
-        ccOne.emailAddress = "jake@now.com"
+        ccOne = Mail.EmailAddress.getEmailAddress(view, "jake@now.com")
 
         m.ccAddress = []
         m.ccAddress.append(ccOne)

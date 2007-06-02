@@ -706,28 +706,28 @@ class RoundTripTestCase(testcase.DualRepositoryTestCase):
   by leilani.osafoundation.org (Postfix) with ESMTP id 00D037F537;
   Thu, 29 Mar 2007 13:22:42 -0700 (PDT)"""
 
-        fromAddr = pim.EmailAddress(itsView=view0, fullName=u"test user",
-                                    emailAddress=u"test@test.com")
+        fromAddr = pim.EmailAddress.getEmailAddress(view0, u"test@test.com",
+                                                    u"test user")
 
-        prevAddr = pim.EmailAddress(itsView=view0, fullName=u"test user0",
-                                    emailAddress=u"test0@test.com")
+        prevAddr = pim.EmailAddress.getEmailAddress(view0, u"test0@test.com",
+                                                    u"test user0")
 
-        toAddr1 = pim.EmailAddress(itsView=view0, fullName=u"test user1",
-                                    emailAddress=u"test1@test.com")
+        toAddr1 = pim.EmailAddress.getEmailAddress(view0, u"test1@test.com",
+                                                   u"test user1")
 
-        toAddr2 = pim.EmailAddress(itsView=view0, fullName=u"test user2",
-                                    emailAddress=u"test2@test.com")
+        toAddr2 = pim.EmailAddress.getEmailAddress(view0, u"test2@test.com",
+                                                   u"test user2")
 
-        ccAddr = pim.EmailAddress(itsView=view0, fullName=u"test user3",
-                                    emailAddress=u"test3@test.com")
+        ccAddr = pim.EmailAddress.getEmailAddress(view0, u"test3@test.com",
+                                                  u"test user3")
 
-        bccAddr = pim.EmailAddress(itsView=view0, fullName=u"test user4",
-                                    emailAddress=u"test4@test.com")
+        bccAddr = pim.EmailAddress.getEmailAddress(view0, u"test4@test.com",
+                                                   u"test user4")
 
-        repAddr = pim.EmailAddress(itsView=view0, fullName=u"test user5",
-                                    emailAddress=u"test5@test.com")
+        repAddr = pim.EmailAddress.getEmailAddress(view0, u"test5@test.com",
+                                                   u"test user5")
 
-        origAddr = pim.EmailAddress(itsView=view0, emailAddress=u"The Management")
+        origAddr = pim.EmailAddress.getEmailAddress(view0, u"The Management")
 
         from osaf.mail.utils import dateTimeToRFC2822Date, dataToBinary, binaryToData
 

@@ -326,16 +326,14 @@ def GenerateEventTask(view, args):
 
 def GenerateCalendarParticipant(view, emailAddress):
     """ Generate an email address corresponding to the parameters """ 
-    email = Mail.EmailAddress(itsView=view)
-    if emailAddress=='*': # semi-random data
+    if emailAddress == '*': # semi-random data
         domainName = random.choice(DOMAIN_LIST)
         handle = random.choice(LASTNAMES).lower()
-        email.emailAddress = "%s@%s" % (handle, domainName)
-    elif not emailAddress=='': 
-        email.emailAddress = u"%s" %emailAddress
-    else: # default value
-        email.emailAddress = 'Me'
+        emailAddress = "%s@%s" % (handle, domainName)
+    elif emailAddress=='': # default value
+        emailAddress = 'Me'
 
+    email = Mail.EmailAddress.getEmailAddress(view, emailAddress)
     return email
 
 

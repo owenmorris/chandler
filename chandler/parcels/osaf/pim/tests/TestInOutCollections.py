@@ -20,18 +20,21 @@ class InOutCollectionTests(TestCollections.CollectionTestCase):
         self.m4 = MailMessage(itsView=self.view)
         self.m5 = MailMessage(itsView=self.view)
         self.m6 = MailMessage(itsView=self.view)
+        self.m7 = MailMessage(itsView=self.view)
 
-        self.e1 = EmailAddress(itsView=self.view)
-        self.e1.fullName = uw("Test User1")
-        self.e1.emailAddress = u"test1@test.com"
+        self.e1 = EmailAddress.getEmailAddress(self.view, "test1@test.com", 
+                                               uw("Test User1"))
 
-        self.e2 = EmailAddress(itsView=self.view)
-        self.e2.fullName = uw("Test User2")
-        self.e2.emailAddress = u"test2@test.com"
+        self.e2 = EmailAddress.getEmailAddress(self.view, u"test2@test.com",
+                                               uw("Test User2"))
 
-        self.e3 = EmailAddress(itsView=self.view)
-        self.e3.fullName = uw("Test User3")
-        self.e3.emailAddress = u"tes3t@test.com"
+        self.e3 = EmailAddress.getEmailAddress(self.view, u"tes3t@test.com",
+                                               uw("Test User3"))
+
+        # (Differs from e3 only by case of the emailAddress)
+        self.e4 = EmailAddress.getEmailAddress(self.view,
+                                               self.e3.emailAddress.upper(),
+                                               self.e3.fullName)
 
         self.imapAcct = IMAPAccount(itsView=self.view)
         self.smtpAcct = SMTPAccount(itsView=self.view)
@@ -73,10 +76,12 @@ class InOutCollectionTests(TestCollections.CollectionTestCase):
 
         self.m5.toAddress = self.e3
         self.m6.fromAddress = self.e3
+        self.m7.fromAddress = self.e4
 
         #Make sure m5 and m6 not yet in the collections
         self.assertFalse(self.m5.itsItem in self.inCol)
         self.assertFalse(self.m6.itsItem in self.outCol)
+        self.assertFalse(self.m7.itsItem in self.outCol)
 
         #Now add another me address
         self.smtpAcct.fromAddress = self.e3
@@ -88,11 +93,13 @@ class InOutCollectionTests(TestCollections.CollectionTestCase):
         self.assertTrue(self.m4.itsItem in self.outCol)
         self.assertTrue(self.m5.itsItem in self.inCol)
         self.assertTrue(self.m6.itsItem in self.outCol)
+        self.assertTrue(self.m7.itsItem in self.outCol)
 
-        #confirm that e1, e2, and e2 in meAddressCollection
+        #confirm that e1, e2, e3, and e4 in meAddressCollection
         self.assertTrue(self.e1 in self.meCol)
         self.assertTrue(self.e2 in self.meCol)
         self.assertTrue(self.e3 in self.meCol)
+        self.assertTrue(self.e4 in self.meCol)
 
 if __name__ == "__main__":
     unittest.main()

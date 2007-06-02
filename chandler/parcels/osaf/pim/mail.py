@@ -25,13 +25,13 @@ __all__ = [
      'POPAccount', 'SMTPAccount',
      'replyToMessage', 'replyAllToMessage', 'forwardMessage',
      'getCurrentOutgoingAccount', 'getCurrentIncomingAccount',
-     'getCurrentMeEmailAddress', 'getCurrentMeEmailAddresses',
+     'getCurrentMeEmailAddress',
      'getMessageBody', 'ACCOUNT_TYPES', 'EmailAddress', 'OutgoingAccount',
      'IncomingAccount', 'MailPreferences']
 
 import logging
 from application import schema
-import items, notes, stamping, collections
+import items, notes, stamping, collections, itertools
 import email.Utils as Utils
 import re as re
 from chandlerdb.util.c import Empty
@@ -552,28 +552,25 @@ def checkIfToMe(mailStamp):
 
     view = mailStamp.itsItem.itsView
 
-    meEmailAddressCollection = schema.ns("osaf.pim", view).meEmailAddressCollection
+    meEmailAddresses = schema.ns("osaf.pim", view).meEmailAddressCollection.inclusions
 
     found = False
 
     if hasattr(mailStamp, "toAddress"):
         for addr in mailStamp.toAddress:
-            if EmailAddress.findEmailAddress(view, addr.emailAddress, 
-                                        meEmailAddressCollection):
+            if addr in meEmailAddresses:
                 found = True
                 break
 
     if not found and hasattr(mailStamp, "ccAddress"):
         for addr in mailStamp.ccAddress:
-            if EmailAddress.findEmailAddress(view, addr.emailAddress,
-                                            meEmailAddressCollection):
+            if addr in meEmailAddresses:
                 found = True
                 break
 
     if not found and hasattr(mailStamp, "bccAddress"):
         for addr in mailStamp.bccAddress:
-            if EmailAddress.findEmailAddress(view, addr.emailAddress, 
-                                             meEmailAddressCollection):
+            if addr in meEmailAddresses:
                 found = True
                 break
 
@@ -588,27 +585,21 @@ def checkIfFromMe(mailStamp):
     assert(isinstance(mailStamp, MailStamp))
     view = mailStamp.itsItem.itsView
 
-    meEmailAddressCollection = schema.ns("osaf.pim", view).meEmailAddressCollection
+    meAddresses = schema.ns("osaf.pim", view).meEmailAddressCollection.inclusions
 
     found = False
 
     if getattr(mailStamp, 'fromAddress', None) and \
-       EmailAddress.findEmailAddress(view,
-                                mailStamp.fromAddress.emailAddress,
-                                meEmailAddressCollection):
+       mailStamp.fromAddress in meAddresses:
         found = True
 
     if not found and getattr(mailStamp, 'replyToAddress', None) and \
-           EmailAddress.findEmailAddress(view,
-                                         mailStamp.replyToAddress.emailAddress,
-                                         meEmailAddressCollection):
+       mailStamp.replyToAddress in meAddresses:
             found = True
 
     if not found and getattr(mailStamp, 'originators', None):
         for ea in mailStamp.originators:
-            if ea is not None and \
-               EmailAddress.findEmailAddress(view, ea.emailAddress,
-                                             meEmailAddressCollection):
+            if ea is not None and ea in meAddresses:
                 found = True
                 break
 
@@ -661,20 +652,75 @@ def getCurrentMeEmailAddress(view):
     return schema.ns('osaf.pim', view).currentMeEmailAddress.item
 
 def getCurrentMeEmailAddresses(view):
-    return schema.ns('osaf.pim', view).currentMeEmailAddresses.item.emailAddresses
+    return schema.ns('osaf.pim', view).currentMeEmailAddresses
 
 def _recalculateMeEmailAddresses(view):
     pim_ns =  schema.ns("osaf.pim", view)
-
     pim_ns.currentMeEmailAddress.item = _calculateCurrentMeEmailAddress(view)
+    addresses = pim_ns.currentMeEmailAddresses.inclusions
+    oldAddresses = set(addresses)
+    for address in _calculateCurrentMeEmailAddresses(view):
+        if not address in oldAddresses:
+            addresses.add(address)
+        else:
+            oldAddresses.remove(address)
+    for address in oldAddresses:
+        addresses.remove(address)
+            
+def _registerNewMeAddress(newAddress):
+    """ 
+    If this address isn't a "me" address, make it one.
+    - add it to the "me" list
+    - reconsider toMe/fromMe of any messages that reference this address
+    - Do the same for all existing EmailAddress items whose emailAddress
+      attribute differs from this only by case.
+    """
+    if newAddress is not None and newAddress.isValid():
+        view = newAddress.itsView
+        pim_ns =  schema.ns("osaf.pim", view)
+        meEmailAddressCollection = pim_ns.meEmailAddressCollection
+        
+        # Find all the EmailAddress items whose emailAddress attribute
+        # matches this one, case-insensitively (this will include the one we
+        # were called with). 
+        lowerAddress = newAddress.emailAddress.lower()   
+        allEmailAddressCollection = pim_ns.emailAddressCollection
+        def addressGenerator():
+            def _compare(uuid):
+                attrValue = view.findValue(uuid, 'emailAddress').lower()
+                return cmp(lowerAddress, attrValue)
+            firstUUID = allEmailAddressCollection.findInIndex('emailAddress', 'first', _compare)
 
-    ea = pim_ns.currentMeEmailAddresses.item
+            if firstUUID is None:
+                return
 
-    if not ea:
-        ea = EmailAddresses(itsView=view)
+            lastUUID = allEmailAddressCollection.findInIndex('emailAddress', 'last', _compare)
+            for uuid in allEmailAddressCollection.iterindexkeys('emailAddress', firstUUID, lastUUID):
+                yield view[uuid]
+                    
+        # For each, check toMe/fromMe on its messages.
+        for address in addressGenerator():
+            if address not in meEmailAddressCollection:
+                meEmailAddressCollection.append(address)
+                
+                checkList = set([item for item in 
+                                 itertools.chain(address.messagesFrom, 
+                                                 address.messagesReplyTo, 
+                                                 address.messagesOriginator)
+                                 if not getattr(item, MailStamp.fromMe.name, False)])
+                for item in checkList:
+                    checkIfFromMe(MailStamp(item))
 
-    ea.emailAddresses = _calculateCurrentMeEmailAddresses(view)
-    pim_ns.currentMeEmailAddresses.item = ea
+                checkList = set([item for item in 
+                                 itertools.chain(address.messagesTo, 
+                                                 address.messagesCc, 
+                                                 address.messagesBcc)
+                                 if not getattr(item, MailStamp.toMe.name, False)])
+                for item in checkList:
+                    checkIfToMe(MailStamp(item))
+                    
+        _recalculateMeEmailAddresses(view)
+
 
 def _potentialMeAccount(account):
     """
@@ -736,6 +782,10 @@ def _calculateCurrentMeEmailAddresses(view):
            2. Any outgoing account containing an email address
            3. The default incoming email address
            4. Any incoming account containing an email address
+      
+      Note that there may be other EmailAddress items in the historic
+      meEmailAddressCollection that differ only from these by case; we
+      don't add them here, though, because we don't want them in eg popups.
     """
 
     addrs = []
@@ -847,10 +897,14 @@ class IncomingAccount(AccountBase):
             return None
 
         def fset(self, value):
-            if getattr(self, "replyToAddress", None) is None:
-                self.replyToAddress = EmailAddress(itsView=self.itsView)
+            if getattr(self, "replyToAddress", None) is not None:
+                oldFullName = self.replyToAddress.fullName
+            else:
+                oldFullName = u''
+            self.replyToAddress = \
+                EmailAddress.getEmailAddress(self.itsView, value, oldFullName) or \
+                EmailAddress(self.itsView)
 
-            self.replyToAddress.emailAddress = value
         return property(fget, fset)
 
     @apply
@@ -861,47 +915,19 @@ class IncomingAccount(AccountBase):
             return None
 
         def fset(self, value):
-            if getattr(self, "replyToAddress", None) is None:
-                self.replyToAddress = EmailAddress(itsView=self.itsView)
-
-            self.replyToAddress.fullName = value
+            if getattr(self, "replyToAddress", None) is not None:
+                oldAddress = self.replyToAddress.oldAddress
+            else:
+                oldAddress = u''
+            self.replyToAddress = \
+                EmailAddress.getEmailAddress(self.itsView, oldAddress, value) or \
+                EmailAddress(self.itsView)
 
         return property(fget, fset)
 
     @schema.observer(replyToAddress)
     def onReplyToAddressChange(self, op, name):
-        if getattr(self, "replyToAddress", None) and \
-           self.replyToAddress.isValid():
-            pim_ns =  schema.ns("osaf.pim", self.itsView)
-
-            meEmailAddressCollection = pim_ns.meEmailAddressCollection
-
-            addr = EmailAddress.findEmailAddress(self.itsView,
-                                          self.replyToAddress.emailAddress,
-                                          meEmailAddressCollection)
-
-            if addr is None:
-                meEmailAddressCollection.append(self.replyToAddress)
-
-                for item in self.replyToAddress.messagesFrom:
-                    checkIfFromMe(MailStamp(item))
-
-                for item in self.replyToAddress.messagesReplyTo:
-                    checkIfFromMe(MailStamp(item))
-
-                for item in self.replyToAddress.messagesOriginator:
-                    checkIfFromMe(MailStamp(item))
-
-                for item in self.replyToAddress.messagesTo:
-                    checkIfToMe(MailStamp(item))
-
-                for item in self.replyToAddress.messagesCc:
-                    checkIfToMe(MailStamp(item))
-
-                for item in self.replyToAddress.messagesBcc:
-                    checkIfToMe(MailStamp(item))
-
-        _recalculateMeEmailAddresses(self.itsView)
+        _registerNewMeAddress(getattr(self, 'replyToAddress', None))
 
     def isSetUp(self, ignorePassword=False):
         res = self.isActive and \
@@ -934,9 +960,8 @@ class OutgoingAccount(AccountBase):
             return None
 
         def fset(self, value):
-            if getattr(self, "fromAddress", None) is None:
-                self.fromAddress = EmailAddress(itsView=self.itsView)
-            self.fromAddress.emailAddress = value
+            self.fromAddress = EmailAddress.getEmailAddress(self.itsView, value) or \
+                               EmailAddress(self.itsView)
 
         return property(fget, fset)
 
@@ -953,7 +978,7 @@ class OutgoingAccount(AccountBase):
     #    schema.Text,
     #    description =
     #        "Issues:\n"
-    #        '   Basic signiture addition to an outgoing message will be refined '
+    #        '   Basic signature addition to an outgoing message will be refined '
     #        'in future releases\n',
     #)
 
@@ -965,36 +990,7 @@ class OutgoingAccount(AccountBase):
 
     @schema.observer(fromAddress)
     def onFromAddressChange(self, op, name):
-        if getattr(self, "fromAddress", None) and \
-                  self.fromAddress.isValid():
-            meEmailAddressCollection = schema.ns("osaf.pim", self.itsView).meEmailAddressCollection
-
-            addr = EmailAddress.findEmailAddress(self.itsView,
-                                            self.fromAddress.emailAddress,
-                                            meEmailAddressCollection)
-
-            if addr is None:
-                meEmailAddressCollection.append(self.fromAddress)
-
-                for item in self.fromAddress.messagesFrom:
-                    checkIfFromMe(MailStamp(item))
-
-                for item in self.fromAddress.messagesReplyTo:
-                    checkIfFromMe(MailStamp(item))
-
-                for item in self.fromAddress.messagesOriginator:
-                    checkIfFromMe(MailStamp(item))
-
-                for item in self.fromAddress.messagesTo:
-                    checkIfToMe(MailStamp(item))
-
-                for item in self.fromAddress.messagesCc:
-                    checkIfToMe(MailStamp(item))
-
-                for item in self.fromAddress.messagesBcc:
-                    checkIfToMe(MailStamp(item))
-
-        _recalculateMeEmailAddresses(self.itsView)
+        _registerNewMeAddress(getattr(self, "fromAddress", None))
 
     def isSetUp(self, ignorePassword=False):
         res = self.isActive and len(self.host.strip())
@@ -1909,6 +1905,24 @@ Issues:
         inverse=items.ContentItem.lastModifiedBy
     )
 
+    @schema.observer(emailAddress)
+    def onEmailAddressChange(self, op, attr):
+        # If this address matches a "me" address (presumably, with different
+        # fullname or case, add it to the "me" list too.
+        emailAddress = getattr(self, 'emailAddress', u'')
+        if emailAddress != u'':
+            view = self.itsView
+            collection = schema.ns("osaf.pim", view).meEmailAddressCollection
+            if self not in collection.inclusions:
+                lowerAddress = emailAddress.lower()
+                def compareAddressOnly(uuid):
+                    return cmp(lowerAddress,
+                               view.findValue(uuid, 'emailAddress').lower())
+                match = collection.findInIndex('emailAddress', 'exact', compareAddressOnly)
+                if match is not None:
+                    log.critical("Is me: '%s'", self)
+                    collection.append(self)
+
     def __str__(self):
         if self.isStale():
             return super(EmailAddress, self).__str__()
@@ -1958,28 +1972,16 @@ Issues:
         return re.match("^(([^<>()[\]\\.,;:\s@\"]+(\.[^<>()[\]\\.,;:\s@\"]+)*)|(\".+\"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$", self.emailAddress) is not None
 
 
-
-    """
-    Factory Methods
-    --------------
-    When creating a new EmailAddress, we check for an existing item first.
-    We do look them up in the repository to prevent duplicates, but there's
-    nothing to keep bad ones from accumulating, although repository
-    garbage collection should eventually remove them.
-
-    The "me" entity is used for Items created by the user, and it
-    gets a reasonable emailaddress filled in when a send is done.
-
-    For performant operations use theEmailAddress.findEmailAddress method
-    which leverages an index.
-    """
-
     @classmethod
-    def getEmailAddress(cls, view, nameOrAddressString, fullName='',
-                        translateMe=True):
+    def getEmailAddress(cls, view, nameOrAddressString, fullName=u''):
         """
-        Lookup or create an EmailAddress based on the supplied string.
-
+        Factory Method
+        --------------
+        When creating a new EmailAddress, we check for an existing item first.
+        We do look them up in the repository to prevent duplicates, but there's
+        nothing to keep bad ones from accumulating, although repository
+        garbage collection should eventually remove them.
+    
         If a matching EmailAddress object is found in the repository, it
         is returned.  If there is no match, then a new item is created
         and returned.
@@ -1990,14 +1992,10 @@ Issues:
           2. with an plain email address in the nameOrAddressString, and a
              full name in the fullName field
 
-        If a match is found for both name and address then it will be used.
-
-        If there is no name specified, a match on address will be returned.
-
-        If there is no address specified, a match on name will be returned.
-
-        If both name and address are specified, but there's no entry that
-        matches both, then a new entry is created.
+        If an exact match is found for both name and address then it will be 
+        returned; otherwise, a new EmailAddress item will be created and 
+        returned. (None will be returned if both name and address are essentially
+        empty.)
 
         @param nameOrAddressString: emailAddress string, or fullName for lookup,
         or both in the form "name <address>"
@@ -2009,16 +2007,11 @@ Issues:
         @return: C{EmailAddress} or None if not found, and nameOrAddressString is\
         not a valid email address.
         """
-        # @@@DLD remove when we better sort out creation of "me" address w/o an account setup
         if nameOrAddressString is None:
-            nameOrAddressString = u''
+            return None
 
         # strip the address string of whitespace and question marks
         address = nameOrAddressString.strip ().strip(u'?')
-
-        # check for "me"
-        if translateMe and (address == messages.ME):
-            return getCurrentMeEmailAddress(view)
 
         # if no fullName specified, parse apart the name and address if we can
         if fullName != u'':
@@ -2040,72 +2033,31 @@ Issues:
         if address == u'' and name == u'':
             return None
 
-        # See if we have one or more EmailAddress objects that match this.
-        # We look at both name and address, and will ideally find one that
-        # matches both. As we go, collect our matches in a dict, keyed by
-        # the UUID of the matched EmailAddress, whose value is 2 if matched by 
-        # address, 1 if matched by name, or 3 if matched by both. Sort when we're
-        # done, and the last we find is our best match.
+        # See if we have this address
         collection = schema.ns("osaf.pim", view).emailAddressCollection
-        matches = {}
-        for indexName, matchPriority, target in ('emailAddress', 2, address.lower()),  \
-                                                ('fullName', 1, name.lower()):
-            # Don't search if the corresponding attribute is empty
-            if target == u'':
-                continue
-            def comparer(uuid):
-                return cmp(target, view.findValue(uuid, indexName).lower())
-            firstUUID = collection.findInIndex(indexName, 'first', comparer)
-            if firstUUID is None:
-                continue
-            lastUUID = collection.findInIndex(indexName, 'last', comparer)
-            for uuid in collection.iterindexkeys(indexName, firstUUID, lastUUID):
-                matches[uuid] = matches.get(uuid, 0) | matchPriority
-
-        matchCount = len(matches)
-        if matchCount == 1:
-            # Exactly one match - use it.
-            matchUUID = matches.keys()[0]
-        elif matchCount == 0:
-            # no match - create a new address
-            newAddress = EmailAddress(itsView=view, emailAddress=address,
-                                      fullName=name)
-            return newAddress
-        else:
-            # multiple matches; sort by the priority value, then use the 
-            # last (best) match.
-            matches = [ (v, uuid) for uuid, v in matches.iteritems() ]
-            matches.sort()
-            matchUUID = matches[-1][1]
-
-        return view[matchUUID]
-
-    @classmethod
-    def findEmailAddress(cls, view, emailAddress, collection=None):
-        """
-        Find a single EmailAddress that exactly matches this one.
-        """
-
-        if collection is None:
-            collection = schema.ns("osaf.pim", view).emailAddressCollection
-
-        emailAddress = emailAddress.lower()
-
-        def compareAddr(uuid):
-            return cmp(emailAddress,
-                       view.findValue(uuid, 'emailAddress').lower())
-
-        uuid = collection.findInIndex('emailAddress', 'exact', compareAddr)
-        if uuid is None:
-            return None
-
-        return view[uuid]
+        def compareBothParts(uuid):
+            targetAddress, targetName = view.findValues(uuid, ('emailAddress', u''), 
+                                                              ('fullName', u''))
+            return cmp(address, targetAddress) or cmp(name, targetName)
+        indexName = 'emailAddress' if address else 'fullName'
+        match = collection.findInIndex(indexName, 'exact', compareBothParts)
+        if match:
+            log.critical("Returning existing email address '%s' for '%s'/'%s'",
+                         unicode(view[match]), name, address)
+            return view[match]
+        
+        # no match - create a new address
+        log.critical("Making new email address for '%s'/'%s'",
+                     name, address)
+        newAddress = EmailAddress(itsView=view, emailAddress=address, 
+                                  fullName=name)
+        return newAddress
 
     @classmethod
     def generateMatchingEmailAddresses(cls, view, partialAddress):
         """
         Generate any EmailAddresses whose emailAddress or fullName starts
-        with this.
+        with this. (Used for autocompletion.)
         """
         collection = schema.ns("osaf.pim", view).emailAddressCollection
         partialAddress = unicode(partialAddress).lower()
@@ -2187,32 +2139,6 @@ Issues:
         # prepare the processed addresses return value
         processedResultString = _(u', ').join(processedAddresses)
         return (processedResultString, validAddresses, invalidCount)
-
-
-    @classmethod
-    def emailAddressesAreEqual(cls, emailAddressOne, emailAddressTwo):
-        """
-        This method tests whether two email addresses are the same.
-        Addresses can be in the form john@jones.com or John Jones <john@jones.com>.
-
-        The method strips off the username and <> brackets if they exist and
-        just compares the actual email addresses for equality. It will not
-        look to see if each address is RFC 822 compliant only that the strings
-        match. Use C{EmailAddress.isValidEmailAddress} to test for validity.
-
-        @param emailAddressOne: A string containing a email address to compare.
-        @type emailAddressOne: C{String}
-        @param emailAddressTwo: A string containing a email address to compare.
-        @type emailAddressTwo: C{String}
-        @return: C{Boolean}
-        """
-        assert isinstance(emailAddressOne, (str, unicode))
-        assert isinstance(emailAddressTwo, (str, unicode))
-
-        emailAddressOne = Utils.parseaddr(emailAddressOne)[1]
-        emailAddressTwo = Utils.parseaddr(emailAddressTwo)[1]
-
-        return emailAddressOne.lower() == emailAddressTwo.lower()
 
 
 def makeCompareMethod(attrName):

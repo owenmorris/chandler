@@ -170,6 +170,70 @@ class MailTest(TestDomainModel.DomainModelTestCase):
             account.replyToAddress = Mail.EmailAddress(itsView=account.itsView)
             account.replyToAddress.emailAddress = "test@test.com"
 
+    def testAddresses(self):
+        allAddressCollection = schema.ns('osaf.pim', self.view).emailAddressCollection
+        meAddressCollection = schema.ns('osaf.pim', self.view).meEmailAddressCollection
+
+        def factory(addr, name=u''): 
+            return Mail.EmailAddress.getEmailAddress(self.view, addr, name)
+        
+        normal = factory("bob@mailtest.example.com", "Bob")
+
+        self.failUnless(normal is factory("bob@mailtest.example.com", "Bob"), 
+                        "same address parameters should the existing EmailAddress item")
+        
+        self.failUnless(normal is factory("Bob <bob@mailtest.example.com>"), 
+                        "name/address parsing should be consistent")
+        
+        normalWithoutFullname = factory("bob@mailtest.example.com")
+        self.failUnless(normal is not normalWithoutFullname,
+                        "fullname absence should be significant")
+        
+        normalWithDifferentFullname = factory("bob@mailtest.example.com", "Robert")
+        self.failUnless(normal is not normalWithDifferentFullname,
+                        "fullname difference should be significant")
+        
+        fullnameOnly = factory("Bob")
+        self.failUnless(normal is not fullnameOnly,
+                        "emailAddress absence should be significant")
+        
+        uppercaseAddress = factory("BOB@mailtest.example.com", "Bob")
+        self.failUnless(normal is not uppercaseAddress,
+                        "comparison is case sensitive on emailAddress")
+        uppercaseFullname = factory("bob@mailtest.example.com", "BOB")
+        self.failUnless(normal is not uppercaseFullname,
+                        "comparison is case sensitive on fullName")
+        
+        addresses = (normal, normalWithoutFullname, normalWithDifferentFullname,
+                     fullnameOnly, uppercaseAddress, uppercaseFullname)
+        self.failUnless([ea for ea in addresses if ea not in allAddressCollection] == [],
+                        "addresses should show up in the address collection automatically")
+        self.failUnless([ea for ea in addresses if ea in meAddressCollection] == [],
+                        "addresses should not show up in the 'Me' address collection if they don't belong")
+        
+        # Make one a "me" address
+        outgoingAccount = Mail.getCurrentOutgoingAccount(self.view)
+        oldFromAddress = outgoingAccount.fromAddress
+        outgoingAccount.fromAddress = normalWithoutFullname
+        
+        self.failUnless([ea for ea in addresses if ea not in meAddressCollection] == [fullnameOnly],
+                        "Addresses matching a 'me' address should become 'me' addresses too")        
+        self.failUnless(fullnameOnly not in meAddressCollection,
+                        "Addresses not matching a 'me' address should not become 'me' addresses too")
+        
+        # Put the old account's address back, and remove the addresses we 
+        # created from the "me" collection
+        outgoingAccount.fromAddress = oldFromAddress
+        for ea in addresses:
+            if ea in meAddressCollection:
+                meAddressCollection.remove(ea)
+        
+        # Make sure a new address like those doesn't become "me"
+        anotherMeLikeAddress = factory("bob@mailtest.example.com", "Bobby")
+        self.failUnless(anotherMeLikeAddress not in meAddressCollection,
+                        "Once removed, other similar addresses shouldn't appear in 'me'")
+
+
 class MailWhoTestCase(TestDomainModel.DomainModelTestCase):
     def setUp(self):
         super(MailWhoTestCase, self).setUp()

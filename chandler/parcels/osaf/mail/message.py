@@ -203,7 +203,7 @@ def getPeer(view, messageObject):
 
     name, addr = emailUtils.parseaddr(emailAddr)
 
-    return __getEmailAddress(view, decodeHeader(name), getUnicodeValue(addr))
+    return EmailAddress.getEmailAddress(view, getUnicodeValue(addr), decodeHeader(name))
 
 
 def messageObjectToKind(view, messageObject, messageText=None):
@@ -379,7 +379,7 @@ def parseICS(view, ics, messageObject=None):
         peer = getPeer(view, messageObject)
     if peer is None:
         # we don't really need a valid peer to import icalendar, make one up
-        peer = EmailAddress(itsView=view, emailAddress="empty@example.com")
+        peer = EmailAddress.getEmailAddress(view, "empty@example.com")
 
     try:
         items = deserialize(view, peer, ics, SharingTranslator,
@@ -485,7 +485,7 @@ def previewQuickConvert(view, headers, body, eimml, ics):
             return None
 
         name, addr = emailUtils.parseaddr(emailAddr)
-        peer = __getEmailAddress(view, name, addr)
+        peer = EmailAddress.getEmailAddress(view, addr, name)
 
         mailStamp = parseEIMML(view, peer, eimml)
 
@@ -953,7 +953,7 @@ def __assignToKind(view, kindVar, messageObject, key, hType, attr, decode, makeU
         if makeUnicode:
             addr = getUnicodeValue(addr)
 
-        ea = __getEmailAddress(view, name, addr)
+        ea = EmailAddress.getEmailAddress(view, addr, name)
 
         if ea is not None:
             setattr(kindVar, attr, ea)
@@ -966,24 +966,10 @@ def __assignToKind(view, kindVar, messageObject, key, hType, attr, decode, makeU
             if makeUnicode:
                 addr = getUnicodeValue(addr)
 
-            ea = __getEmailAddress(view, name, addr)
+            ea = EmailAddress.getEmailAddress(view, addr, name)
 
             if ea is not None:
                 kindVar.append(ea)
-
-def __getEmailAddress(view, name, addr):
-    """
-    Use any existing EmailAddress, but don't update them
-    because that will cause the item to go stale in the UI thread.
-    """
-
-    address = EmailAddress.findEmailAddress(view, addr)
-
-    if address is None:
-        address = EmailAddress(itsView=view,
-                               emailAddress=addr, fullName=name)
-    return address
-
 
 def __parsePart(view, mimePart, parentMIMEContainer, bodyBuffer, counter, buf,
                 level=0):

@@ -39,10 +39,10 @@ DURATIONS = [60, 90, 120, 150, 180]
 REMINDERS = [None, None, None, None, 1, 10] # The "None"s make only a 30% chance an event will have a reminder...
 
 def GenerateCalendarParticipant(view):
-    email = Mail.EmailAddress(itsView=view)
     domainName = random.choice(DOMAIN_LIST)
     handle = random.choice(LASTNAMES).lower()
-    email.emailAddress = "%s@%s" % (handle, domainName)
+    email = Mail.EmailAddress.getEmailAddress(view, 
+                                              "%s@%s" % (handle, domainName))
     return email
 
 LOCATIONS  = [u"Home", u"Office", u"School"]
@@ -239,8 +239,8 @@ def GenerateEmailAddress(name):
 def GenerateEmailAddresses(view, name):
     list = []
     for i in range(random.randint(1, 2)):
-        email = Mail.EmailAddress(itsView=view)
-        email.emailAddress = GenerateEmailAddress(name)
+        email = Mail.EmailAddress.getEmailAddress(view, 
+                                                  GenerateEmailAddress(name))
         list.append(email)
     return list
 

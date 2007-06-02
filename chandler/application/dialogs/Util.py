@@ -463,7 +463,7 @@ def displayAddressDebugWindow(view, type=1):
     if type == 1:
         collection = schema.ns("osaf.pim", view).meEmailAddressCollection
     elif type == 2:
-        collection = schema.ns('osaf.pim', view).currentMeEmailAddresses.item.emailAddresses
+        collection = schema.ns('osaf.pim', view).currentMeEmailAddresses
     else:
         collection = [schema.ns('osaf.pim', view).currentMeEmailAddress.item]
 

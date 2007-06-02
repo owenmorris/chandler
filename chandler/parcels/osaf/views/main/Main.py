@@ -404,8 +404,8 @@ class MainView(View):
                     contacts_re = re.compile(contacts_pattern, re.VERBOSE)
 
                     for match in contacts_re.finditer(contacts):
-                        toOne = pim.mail.EmailAddress(itsView=self.itsView)
-                        toOne.emailAddress = match.group('contact')
+                        toOne = pim.mail.EmailAddress.getEmailAddress(self.itsView,
+                                                                      match.group('contact'))
                         pim.mail.MailStamp(item).toAddress.append(toOne)                        
 
                 else:

@@ -69,12 +69,7 @@ class MessageState(object):
 def getEmailAddress(view, record):
     name, email = Utils.parseaddr(record)
 
-    address = EmailAddress.findEmailAddress(view, email)
-
-    if address is None:
-        address = EmailAddress(itsView=view, emailAddress=email,
-                                        fullName=name)
-
+    address = EmailAddress.getEmailAddress(view, email, name)
     return address
 
 
@@ -84,13 +79,7 @@ def addEmailAddresses(view, col, record):
 
     for addr in addrs:
         name, email = Utils.parseaddr(addr)
-
-        address = EmailAddress.findEmailAddress(view, email)
-
-        if address is None:
-            address = EmailAddress(itsView=view, emailAddress=email,
-                                        fullName=name)
-
+        address = EmailAddress.getEmailAddress(view, email, name)
         col.append(address)
 
 

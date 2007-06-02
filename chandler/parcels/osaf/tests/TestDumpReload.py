@@ -166,21 +166,19 @@ class DumpReloadTestCase(testcase.DualRepositoryTestCase):
 
         #Mail Accounts
 
-        imapAddress = mail.EmailAddress(itsView=view0,
-                                       fullName = "test",
-                                       emailAddress = "test@test.com")
+        imapAddress = mail.EmailAddress.getEmailAddress(view0, "test@test.com", 
+                                                        "test")
 
-        popAddress = mail.EmailAddress(itsView=view0,
-                                       fullName = "test1",
-                                       emailAddress = "test1@test.com")
+        popAddress = mail.EmailAddress.getEmailAddress(view0, "test1@test.com", 
+                                                       "test1")
 
-        smtpOldAddress = mail.EmailAddress(itsView=view0,
-                                       fullName = "test2",
-                                       emailAddress = "test2@test.com")
+        smtpOldAddress = mail.EmailAddress.getEmailAddress(view0, 
+                                                           "test2@test.com", 
+                                                           "test2")
 
-        smtpNewAddress = mail.EmailAddress(itsView=view0,
-                                       fullName = "test3",
-                                       emailAddress = "test3@test.com")
+        smtpNewAddress = mail.EmailAddress.getEmailAddress(view0, 
+                                                           "test3@test.com", 
+                                                           "test3")
 
 
         testFolder = mail.IMAPFolder(itsView=view0,

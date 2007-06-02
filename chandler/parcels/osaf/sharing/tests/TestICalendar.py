@@ -566,8 +566,8 @@ class TimeZoneTestCase(unittest.TestCase):
 class SharingTestCase(SingleRepositoryTestCase):
     def setUp(self):
         super(SharingTestCase, self).setUp()
-        self.peer = pim.EmailAddress(itsView=self.view,
-                                     emailAddress="conflict@example.com")
+        self.peer = pim.EmailAddress.getEmailAddress(self.view, 
+                                                     "conflict@example.com")
     
 class ImportTodoTestCase(SharingTestCase):
     

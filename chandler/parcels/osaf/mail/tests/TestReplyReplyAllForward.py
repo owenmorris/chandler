@@ -294,9 +294,7 @@ END:VCALENDAR
         account = SMTPAccount(itsView=self.view)
         account.host = u"test.com"
 
-        me = EmailAddress(itsView=self.view)
-        me.fullName = "Test User"
-        me.emailAddress = "test@test.com"
+        me = EmailAddress.getEmailAddress(self.view, "test@test.com", "Test User")
         account.fromAddress = me
 
         schema.ns('osaf.pim', self.view).currentOutgoingAccount.item = account

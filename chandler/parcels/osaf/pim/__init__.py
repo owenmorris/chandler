@@ -203,7 +203,6 @@ def installParcel(parcel, oldVersion=None):
 
     MailPreferences.update(parcel, 'MailPrefs')
     Reference.update(parcel, 'currentMeEmailAddress')
-    Reference.update(parcel, 'currentMeEmailAddresses')
 
     cur = Reference.update(parcel, 'currentIncomingAccount')
     cur1 = Reference.update(parcel, 'currentOutgoingAccount')
@@ -376,6 +375,14 @@ def installParcel(parcel, oldVersion=None):
     emailAddressCollection.addIndex('fullName', 'method',
                                     method=(emailComparator, 'cmpFullName'),
                                     monitor='fullName')
+
+    # Contains all current me addresses (that is, referenced by an account)
+    currentMeEmailAddresses = ListCollection.update(
+        parcel, 'currentMeEmailAddresses')
+    
+    currentMeEmailAddresses.addIndex('emailAddress', 'method',
+                                     method=(emailComparator, 'cmpAddress'),
+                                     monitor='emailAddress')
 
     # Contains all current and former me addresses
     meEmailAddressCollection = ListCollection.update(
