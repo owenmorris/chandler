@@ -2,6 +2,9 @@ import wx, osaf
 from osaf.framework.script_recording.script_lib import ProcessEvent, VerifyOn
 
 def run():
+    if wx.Platform == '__WXGTK__':
+        return
+    
     VerifyOn ()
     ProcessEvent (wx.CommandEvent, {'associatedBlock':'NewCollectionItem', 'eventType':wx.EVT_MENU, 'sentTo':'MainFrame'}, {})
 
