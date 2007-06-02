@@ -322,6 +322,15 @@ class MailPrefsRecord(eim.Record):
     # MailStamp.toMe boolean flags
     meAddressHistory = eim.field(eim.ClobType)
 
+
+class EmailAddressRecord(eim.Record):
+    URI = "http://osafoundation.org/eim/mail/address/0"
+
+    uuid = eim.key(ItemRecord.uuid)
+    fullName = eim.field(text256)
+    address = eim.field(text256)
+
+
 # collection ------------------------------------------------------------------
 
 class CollectionRecord(eim.Record):

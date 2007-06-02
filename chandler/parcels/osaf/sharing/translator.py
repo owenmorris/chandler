@@ -2079,6 +2079,12 @@ class DumpTranslator(SharingTranslator):
                 peerversion
             )
 
+            if isinstance(peer, mail.EmailAddress):
+                yield model.EmailAddressRecord(
+                    peer,
+                    peer.fullName,
+                    peer.emailAddress
+                )
 
 
 
@@ -2535,6 +2541,16 @@ class DumpTranslator(SharingTranslator):
             meAddressHistory = None
 
         yield model.MailPrefsRecord(isOnline, meAddressHistory)
+
+
+
+    @model.EmailAddressRecord.importer
+    def import_email_address(self, record):
+        self.withItemForUUID(record.uuid, mail.EmailAddress,
+            fullName=record.fullName, emailAddress=record.address)
+
+    # Currently, EmailAddressRecords are only yielded from SharedItem exporter
+
 
 
     # - - Preference items - - - - - - - - - - - - - - - - - - - - - - - - - -

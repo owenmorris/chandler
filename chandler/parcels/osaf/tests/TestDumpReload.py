@@ -164,6 +164,25 @@ class DumpReloadTestCase(testcase.DualRepositoryTestCase):
         for state in inmemory_share0.states:
             uuids.add(state.itsUUID)
 
+
+        # Peer states
+        peerNote = pim.Note(itsView=view0)
+        peerAddress = pim.EmailAddress(itsView=view0,
+            fullName="Michael Scott",
+            emailAddress="greatscott@dundermifflin.com")
+        peerState = sharing.State(itsView=view0,
+            conflictFor=peerNote,
+            peer=peerAddress,
+        )
+        sharing.SharedItem(peerNote).add()
+        sharedPeerNote = sharing.SharedItem(peerNote)
+        sharedPeerNote.peerStates = []
+        sharedPeerNote.peerStates.append(peerState, peerAddress.itsUUID.str16())
+        uuids.add(peerNote.itsUUID)
+        uuids.add(peerAddress.itsUUID)
+        uuids.add(peerState.itsUUID)
+
+
         #Mail Accounts
 
         imapAddress = mail.EmailAddress.getEmailAddress(view0, "test@test.com", 
@@ -389,6 +408,18 @@ class DumpReloadTestCase(testcase.DualRepositoryTestCase):
                 item1 = view1.findUUID(item0.itsUUID)
                 sharedItem1 = sharing.SharedItem(item1)
                 self.assert_(inmemory_share1 in sharedItem1.sharedIn)
+
+            # Peer states
+            peerNote1 = view1.findUUID(peerNote.itsUUID)
+            sharedPeerNote1 = sharing.SharedItem(peerNote1)
+            peerAddress1 = view1.findUUID(peerAddress.itsUUID)
+            peerState1 = view1.findUUID(peerState.itsUUID)
+            self.assert_(peerState1 in sharedPeerNote1.peerStates)
+            self.assertEquals(sharedPeerNote1.peerStates.getAlias(peerState1),
+                peerAddress1.itsUUID.str16())
+            self.assert_(peerState1 in sharedPeerNote1.conflictingStates)
+            self.assert_(isinstance(peerAddress1, pim.EmailAddress))
+
 
             # Verify Calendar prefs
             pref = schema.ns('osaf.pim', view1).TimezonePrefs
