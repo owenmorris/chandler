@@ -187,7 +187,6 @@ def ProcessEvent (theClass, properties , attributes):
     if not isinstance (sentToWidget, wx.TextCtrl):
         application.propagateAsynchronousNotifications()
 
-    wx.WakeUpIdle()
     application.Yield()
     
     # Since scrips don't actually move the cursor and cause wxMouseCaptureLostEvents
