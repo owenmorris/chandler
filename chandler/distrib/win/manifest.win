@@ -8,7 +8,7 @@
 # recursive: set to yes or no
 # glob: set to a comma-separated list of glob patterns
 
-exclude=.svn,*.pyo,*.pyc
+exclude=.svn,*.pyo,*.pyc,wx*28ud_*.dll
 
 # Grab python scripts
 src=chandler/release
