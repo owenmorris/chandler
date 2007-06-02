@@ -397,17 +397,13 @@ class AbstractDownloadClient(object):
         if total < 24:
             return 6
         elif total >= 24 and total < 100:
-            return 12
+            return 20
         elif total >= 100 and total < 300:
-            return 24
-        elif total >= 300 and total < 500:
-            return 75
-        elif total >= 500 and total < 700:
-            return 125
-        elif total >= 700 and total < 1200:
-            return 225
-        else:
-            return constants.MAX_COMMIT
+            return 100
+        elif total >= 300 and total < 600:
+            return 200
+
+        return constants.MAX_COMMIT
 
     def catchErrors(self, err):
         """
