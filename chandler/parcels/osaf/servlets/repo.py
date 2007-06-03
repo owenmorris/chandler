@@ -25,6 +25,9 @@ from repository.item.Sets import \
     Set, MultiUnion, Union, MultiIntersection, Intersection, Difference, \
     KindSet, ExpressionFilteredSet, MethodFilteredSet
 
+import logging
+logger = logging.getLogger(__name__)
+
 
 class RepoResource(webserver.AuthenticatedResource):
     isLeaf = True
@@ -50,6 +53,22 @@ class RepoResource(webserver.AuthenticatedResource):
                     if view.name == viewName:
                         repoView = view
                         break
+
+            version = request.args.get('version', [None])[0]
+            if version is not None:
+                if version == "latest":
+                    repoView.refresh()
+                else:
+                    curVer = repoView.itsVersion
+                    if version == "older":
+                        version = curVer - 1
+                    elif version == "newer":
+                        version = curVer + 1
+                    else:
+                        version = long(version)
+                    repoView.refresh(version=version)
+            version = repoView.itsVersion
+            logger.info("Version: %d", version)
 
             request.addCookie("view", repoView.name, path="/repo")
 
@@ -98,11 +117,14 @@ class RepoResource(webserver.AuthenticatedResource):
 """                 % (request.path, repoView.name)
 
             result += """
-<p class="footer">Repository view: <b>%s</b> |
+<p class="footer">Repository view: <b>%s (v%d)</b> |
+<a href="?version=latest">refresh</a> |
+<a href="?version=older">&lt;&lt; older</a> |
+<a href="?version=newer">newer &gt;&gt;</a> |
 <a href="/repo/?mode=views">switch</a> |
 <a href="#" onclick="commit()">commit</a></p>
 <div id="status-area">[status]</div>
-""" % repoView.name
+""" % (repoView.name, repoView.itsVersion)
 
             if mode == "kindquery":
                 item = repoView.findPath(path)
@@ -111,6 +133,7 @@ class RepoResource(webserver.AuthenticatedResource):
                 result += "</div>"
 
             elif mode == "views":
+                ensureDebugView(self.repositoryView)
                 result = RenderViews(repoView)
 
             elif mode == "search":
@@ -245,6 +268,13 @@ def RenderRoots(repoView):
     result += "</div>"
     result += "</td></tr></table>\n"
     return result
+
+
+def ensureDebugView(repoView):
+    for view in repoView.views:
+        if view.name == "debug":
+            return
+    repoView.repository.createView("debug")
 
 def RenderViews(repoView):
     result = ""
