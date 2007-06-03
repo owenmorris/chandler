@@ -82,24 +82,57 @@ def installParcel(parcel, oldVersion=None):
            lastName=u'Development'
         )
     )
+    
+    # OOTB collections and items (bug 6545)
+    # http://chandlerproject.org/bin/view/Journal/PreviewOOTBChandlerExperience
+    #
+    # (1) Don't create these in //parcels, or they won't get dumped
+    # (2) Don't create these if reloading, or else there will be endless
+    #     duplication of items/events
+    # (3) We do want new UUIDs, so different users can share these
+    #     collections/items to the same morsecode server
+    #
+    if not Globals.options.reload:
+        # OOTB user defined collections: collections should be in mine
+        mine = schema.ns("osaf.pim", parcel.itsView).mine
+        def makeCollection(name, checked, colorTuple):
+            collection = pim.SmartCollection(
+                            itsView=parcel.itsView,
+                            displayName=name,
+                            color=pim.structs.ColorType(colorTuple)
+                        )
+            # include collection in overlays, as spec'ed
+            UserCollection(collection).checked = checked
 
-    noonToday = datetime.datetime.combine(
-        datetime.date.today(),
-        datetime.time(12, tzinfo=ICUtzinfo.floating))
+            sidebarListCollection.add(collection)
+            mine.addSource(collection)
+            
+            return collection
+            
+        # OOTB user defined collections: Work, Home and Fun
+        work = makeCollection(_(u"Work"), True, [0,0,255,255])
+        home = makeCollection(_(u"Home"), True, [255,0,0,255])
+        fun = makeCollection(_(u"Fun"), False, [0,255,0,255])
+        
+        # OOTB item: Welcome item
+        noonToday = datetime.datetime.combine(
+            datetime.date.today(),
+            datetime.time(12, tzinfo=ICUtzinfo.floating))
 
-    WelcomeEvent = pim.EventStamp.update(parcel, 'WelcomeEvent',
-        displayName=_(u'Welcome to Chandler %(version)s') % {'version': version.version},
-        startTime=noonToday,
-        duration=datetime.timedelta(minutes=120),
-        anyTime=False,
-        creator=osafDev,
-        location=pim.Location.update(parcel, "OSAFLocation",
-            displayName=_("Open Source Applications Foundation"),
-        ),
-    )
-    schema.ns('osaf.pim', parcel.itsView).allCollection.add(WelcomeEvent)
+        WelcomeEvent = pim.EventStamp.update(parcel, 'WelcomeEvent',
+            displayName=_(u'Welcome to Chandler %(version)s') % {'version': version.version},
+            startTime=noonToday,
+            duration=datetime.timedelta(minutes=60),
+            anyTime=False,
+            collections=[home,work],
+            read=False,
+            creator=osafDev,
+            location=pim.Location.update(parcel, "OSAFLocation",
+                displayName=_("Open Source Applications Foundation"),
+            ),
+        )
 
-    body = _(u"""Welcome to the Chandler %(version)s!
+        body = _(u"""Welcome to the Chandler %(version)s!
 
 For a wealth of information for end-users and developers, point your browser to:
     http://chandler.osafoundation.org
@@ -129,55 +162,86 @@ Thank you for trying Chandler. Your feedback is welcome on our mail lists:
 
 The Chandler Team""") % {'version': version.version}
 
-    WelcomeEvent.body = body
-    WelcomeEvent.changeEditState(pim.Modification.created)
-    
-    # OOTB collections and items (bug 6545)
-    # http://chandlerproject.org/bin/view/Journal/PreviewOOTBChandlerExperience
-    #
-    # (1) Don't create these in //parcels, or they won't get dumped
-    # (2) Don't create these if reloading, or else there will be endless
-    #     duplication of items/events
-    # (3) We do want new UUIDs, so different users can share these
-    #     collections/items to the same morsecode server
-    #
-    if not Globals.options.reload:
-        # collections should be in mine
-        mine = schema.ns("osaf.pim", parcel.itsView).mine
-        
-        def makeCollection(name, checked):
-            collection = pim.SmartCollection(
-                            itsView=parcel.itsView,
-                            displayName=name
-                        )
-            # include collection in overlays, as spec'ed
-            UserCollection(collection).checked = checked
-
-            sidebarListCollection.add(collection)
-            mine.addSource(collection)
-            
-            return collection
-            
-        work = makeCollection(_(u"Work"), True)
-        home = makeCollection(_(u"Home"), True)
-        fun = makeCollection(_(u"Fun"), False)
+        WelcomeEvent.body = body
+        WelcomeEvent.changeEditState(pim.Modification.created)
+        WelcomeEvent.setTriageStatus(pim.TriageEnum.now)
+        pim.TaskStamp(WelcomeEvent).add()
+        schema.ns('osaf.pim', parcel.itsView).allCollection.add(WelcomeEvent)
         
 
-        task = pim.Task(
+        # OOTB item1: Try sharing a Home task list
+        task1 = pim.Task(
                   itsView=parcel.itsView,
-                  displayName=_(u"Try Sharing a Home Task List"),
+                  displayName=_(u"Try sharing a Home task list"),
                   collections=[home],
-                  read=True,
+                  read=False,
               )
-        task.itsItem.changeEditState(pim.Modification.created)
-        task.itsItem.setTriageStatus(pim.TriageEnum.later)
+        task1.itsItem.changeEditState(pim.Modification.created)
+        task1.itsItem.setTriageStatus(pim.TriageEnum.later)
         
         reminderTime = datetime.datetime.combine(
                             datetime.datetime.now().date() +
                                 datetime.timedelta(days=1),
                             datetime.time(8, 0, tzinfo=ICUtzinfo.default)
                        )
-        task.itsItem.userReminderTime = reminderTime
+        task1.itsItem.userReminderTime = reminderTime
+        
+        # OOTB item2: Play around with the Calendar
+        startevent2 = datetime.datetime.combine(
+                            datetime.datetime.now().date(),
+                            datetime.time(15, 0, tzinfo=ICUtzinfo.default)
+                       )
+        event2 = pim.CalendarEvent(
+                    itsView=parcel.itsView,
+                    displayName=_(u"Play around with the Calendar"),
+                    startTime=startevent2,
+                    duration=datetime.timedelta(minutes=60),
+                    anyTime=False,
+                    collections=[home],
+                    read=False,
+                )
+        event2.itsItem.changeEditState(pim.Modification.created)
+        event2.itsItem.setTriageStatus(pim.TriageEnum.now)
+        
+        # OOTB item3: Download Chandler
+        startevent3 = datetime.datetime.combine(
+                            datetime.datetime.now().date(),
+                            datetime.time(11, 0, tzinfo=ICUtzinfo.default)
+                       )
+        event3 = pim.CalendarEvent(
+                    itsView=parcel.itsView,
+                    displayName=_(u"Download Chandler"),
+                    startTime=startevent3,
+                    duration=datetime.timedelta(minutes=30),
+                    anyTime=False,
+                    collections=[work],
+                    read=False,
+                )
+        event3.itsItem.changeEditState(pim.Modification.created)
+        event3.itsItem.setTriageStatus(pim.TriageEnum.done)
+        pim.TaskStamp(event3).add()
+        
+        # OOTB item4: Set up your accounts
+        startevent4 = datetime.datetime.combine(
+                            datetime.datetime.now().date(),
+                            datetime.time(16, 0, tzinfo=ICUtzinfo.default)
+                       )
+        event4 = pim.CalendarEvent(
+                    itsView=parcel.itsView,
+                    displayName=_(u"Set up your accounts"),
+                    startTime=startevent4,
+                    duration=datetime.timedelta(minutes=30),
+                    anyTime=False,
+                    collections=[fun],
+                    read=False,
+                )
+        event4.itsItem.changeEditState(pim.Modification.created)
+        event4.itsItem.setTriageStatus(pim.TriageEnum.later)
+        m = pim.MailStamp(event4)
+        m.add()
+        m.toAddress.append(pim.mail.EmailAddress.getEmailAddress(parcel.itsView, "me@osafoundation.org"))
+        m.fromAddress = pim.mail.EmailAddress.getEmailAddress(parcel.itsView, "dev@osafoundation.org")
+        pim.TaskStamp(event4).add()
 
     # Set up the main web server
     from osaf import webserver
