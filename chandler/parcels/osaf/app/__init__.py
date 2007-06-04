@@ -91,48 +91,30 @@ def installParcel(parcel, oldVersion=None):
     #     duplication of items/events
     # (3) We do want new UUIDs, so different users can share these
     #     collections/items to the same morsecode server
-    #
-    if not Globals.options.reload:
-        # OOTB user defined collections: collections should be in mine
-        mine = schema.ns("osaf.pim", parcel.itsView).mine
-        def makeCollection(name, checked, colorTuple):
-            collection = pim.SmartCollection(
-                            itsView=parcel.itsView,
-                            displayName=name,
-                            color=pim.structs.ColorType(colorTuple)
-                        )
-            # include collection in overlays, as spec'ed
-            UserCollection(collection).checked = checked
+    # (4) The Welcome Event should be created regardless of whetheer
+    #     we're reloading, because summaryblocks references it.
+    #     (Maybe there's a better way to have it selected in the
+    #      detail view?) -- Grant
+    
+    # OOTB item: Welcome Event
+    noonToday = datetime.datetime.combine(
+        datetime.date.today(),
+        datetime.time(12, tzinfo=ICUtzinfo.floating))
 
-            sidebarListCollection.add(collection)
-            mine.addSource(collection)
-            
-            return collection
-            
-        # OOTB user defined collections: Work, Home and Fun
-        work = makeCollection(_(u"Work"), True, [0,0,255,255])
-        home = makeCollection(_(u"Home"), True, [255,0,0,255])
-        fun = makeCollection(_(u"Fun"), False, [0,255,0,255])
-        
-        # OOTB item: Welcome item
-        noonToday = datetime.datetime.combine(
-            datetime.date.today(),
-            datetime.time(12, tzinfo=ICUtzinfo.floating))
+    WelcomeEvent = pim.EventStamp.update(parcel, 'WelcomeEvent',
+        displayName=_(u'Welcome to Chandler %(version)s') % {'version': version.version},
+        startTime=noonToday,
+        duration=datetime.timedelta(minutes=60),
+        anyTime=False,
+        read=False,
+        creator=osafDev,
+        location=pim.Location.update(parcel, "OSAFLocation",
+            displayName=_("Open Source Applications Foundation"),
+        ),
+    )
 
-        WelcomeEvent = pim.EventStamp.update(parcel, 'WelcomeEvent',
-            displayName=_(u'Welcome to Chandler %(version)s') % {'version': version.version},
-            startTime=noonToday,
-            duration=datetime.timedelta(minutes=60),
-            anyTime=False,
-            collections=[home,work],
-            read=False,
-            creator=osafDev,
-            location=pim.Location.update(parcel, "OSAFLocation",
-                displayName=_("Open Source Applications Foundation"),
-            ),
-        )
 
-        body = _(u"""Welcome to the Chandler %(version)s!
+    body = _(u"""Welcome to the Chandler %(version)s!
 
 For a wealth of information for end-users and developers, point your browser to:
     http://chandler.osafoundation.org
@@ -162,11 +144,37 @@ Thank you for trying Chandler. Your feedback is welcome on our mail lists:
 
 The Chandler Team""") % {'version': version.version}
 
-        WelcomeEvent.body = body
-        WelcomeEvent.changeEditState(pim.Modification.created)
-        WelcomeEvent.setTriageStatus(pim.TriageEnum.now)
-        pim.TaskStamp(WelcomeEvent).add()
+    WelcomeEvent.body = body
+    WelcomeEvent.changeEditState(pim.Modification.created)
+    WelcomeEvent.setTriageStatus(pim.TriageEnum.now)
+    pim.TaskStamp(WelcomeEvent).add()
+    
+    if Globals.options.reload:
         schema.ns('osaf.pim', parcel.itsView).allCollection.add(WelcomeEvent)
+    else:
+        # OOTB user defined collections: collections should be in mine
+        mine = schema.ns("osaf.pim", parcel.itsView).mine
+        def makeCollection(name, checked, colorTuple):
+            collection = pim.SmartCollection(
+                            itsView=parcel.itsView,
+                            displayName=name,
+                            color=pim.structs.ColorType(colorTuple)
+                        )
+            # include collection in overlays, as spec'ed
+            UserCollection(collection).checked = checked
+
+            sidebarListCollection.add(collection)
+            mine.addSource(collection)
+            
+            return collection
+            
+        # OOTB user defined collections: Work, Home and Fun
+        work = makeCollection(_(u"Work"), True, [0,0,255,255])
+        home = makeCollection(_(u"Home"), True, [255,0,0,255])
+        fun = makeCollection(_(u"Fun"), False, [0,255,0,255])
+        
+        # Add Welcome item to OOTB collections
+        WelcomeEvent.collections=[home,work]
         
 
         # OOTB item1: Try sharing a Home task list
