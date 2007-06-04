@@ -29,7 +29,7 @@ def makeCPIAMenu(parcel, toolsMenu):
         ChoiceEvent.update(parcel, 'ChooseChandlerMainView',
                            blockName='_debug_ChooseChandlerMainView',
                            methodName='onChoiceEvent',
-                           choice = 'MainView',
+                           choice='MainView',
                            dispatchToBlockName='MainViewRoot')
 
     chooseCPIATestEvent = \

@@ -1548,6 +1548,8 @@ class OnDemandRepositoryView(RepositoryView):
                 else:
                     for i in xrange(count):
                         registry[heappop(heap)[1]]._unloadItem(False, self)
+
+                gc.collect()
                 self.logger.info('%s pruned to %d items', self, len(registry))
 
 
