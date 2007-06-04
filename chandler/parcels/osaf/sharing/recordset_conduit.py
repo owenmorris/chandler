@@ -95,6 +95,9 @@ class RecordSetConduit(conduits.BaseConduit):
     def _sync(self, modeOverride=None, activity=None, forceUpdate=None,
         debug=False):
 
+        doLog = logger.info if debug else logger.debug
+
+
         def _callback(*args, **kwds):
             if activity:
                 activity.update(*args, **kwds)
@@ -118,18 +121,18 @@ class RecordSetConduit(conduits.BaseConduit):
             send = self.share.mode in ('put', 'both')
             receive = self.share.mode in ('get', 'both')
 
-        logger.debug("================ start of sync =================")
-        logger.debug("Mode: %s", self.share.mode)
-        logger.debug("Mode override: %s", modeOverride)
-        logger.debug("Send: %s", send)
-        logger.debug("Receive: %s", receive)
+        doLog("================ start of sync =================")
+        doLog("Mode: %s", self.share.mode)
+        doLog("Mode override: %s", modeOverride)
+        doLog("Send: %s", send)
+        doLog("Receive: %s", receive)
 
         translator = self.translator(rv)
 
         allowNameChange = True
 
         if self.share.established:
-            logger.debug("Previous sync included up to version: %s",
+            doLog("Previous sync included up to version: %s",
                 self.lastVersion)
             version = self.lastVersion + 1
         else:
@@ -146,7 +149,7 @@ class RecordSetConduit(conduits.BaseConduit):
                     # the collection name
                     allowNameChange = False
 
-        logger.debug("Current view version: %s", rv.itsVersion)
+        doLog("Current view version: %s", rv.itsVersion)
 
 
         remotelyRemoved = set() # The aliases of remotely removed items
@@ -209,7 +212,7 @@ class RecordSetConduit(conduits.BaseConduit):
             for alias in inbound.keys():
                 rs = inbound[alias]
                 if rs is None: # skip deletions
-                    logger.debug("Inbound removal: %s", alias)
+                    doLog("Inbound removal: %s", alias)
                     del inbound[alias]
                     remotelyRemoved.add(alias)
 
@@ -242,7 +245,7 @@ class RecordSetConduit(conduits.BaseConduit):
                             # as the new inbound
                             state = self.getState(alias)
                             rs = state.agreed + state.pending + rs
-                            logger.debug("Reconstituting from state: %s", rs)
+                            doLog("Reconstituting from state: %s", rs)
                             inbound[alias] = rs
                             state.clear()
 
@@ -291,11 +294,11 @@ class RecordSetConduit(conduits.BaseConduit):
             if (isinstance(item, pim.Note) and
                 pim.EventStamp(item).isTriageOnlyModification() and
                 item.doAutoTriageOnDateChange):
-                logger.debug("Skipping a triage-only modification: %s",
+                doLog("Skipping a triage-only modification: %s",
                     changedUuid)
                 continue
 
-            logger.debug("Locally modified item: %s", item.itsUUID)
+            doLog("Locally modified item: %s", item.itsUUID)
 
             alias = translator.getAliasForItem(item)
             localItems.add(alias)
@@ -324,10 +327,10 @@ class RecordSetConduit(conduits.BaseConduit):
 
                 rs = eim.RecordSet(translator.exportItem(item))
                 self.share.addSharedItem(item)
-                logger.debug("Computing local records for live item: %s", uuid)
+                doLog("Computing local records for live item: %s", alias)
             else:
                 rs = eim.RecordSet()
-                logger.debug("No local item for: %s", uuid)
+                doLog("No local item for: %s", alias)
             rsNewBase[alias] = rs
             i += 1
             _callback(msg="Generated %d of %d recordset(s)" % (i, localCount),
@@ -363,7 +366,7 @@ class RecordSetConduit(conduits.BaseConduit):
                 rsExternal = inbound.get(alias, eim.RecordSet())
 
             readOnly = (self.share.mode == 'get')
-            logger.debug("----- Merging %s %s", alias,
+            doLog("----- Merging %s %s", alias,
                 "(Read-only merge)" if readOnly else "")
 
             uuid = translator.getUUIDForAlias(alias)
@@ -392,14 +395,10 @@ class RecordSetConduit(conduits.BaseConduit):
                 # Cosmo doesn't give us deletions for ModifiedByRecords and
                 # that messes with the no-send aspect of the merge function
                 # because old ModByRecords aren't cleaned out.
-                modByToRemove = set()
-                for record in state.agreed.inclusions:
-                    if isinstance(record, model.ModifiedByRecord):
-                        modByToRemove.add(record)
-                agreed = state.agreed
-                for record in modByToRemove:
-                    agreed.inclusions.remove(record)
-                state.agreed = agreed
+                state.agreed = state.agreed + eim.RecordSet(
+                    [], [r for r in state.agreed.inclusions
+                    if isinstance(r, model.ModifiedByRecord)]
+                )
 
 
             if uuid:
@@ -416,13 +415,13 @@ class RecordSetConduit(conduits.BaseConduit):
                     # a diff.  Also, remove the alias from remotelyRemoved
                     # so that the item doesn't get removed from the collection
                     # further down.
-                    logger.debug("Remotely removed item has local changes: %s",
+                    doLog("Remotely removed item has local changes: %s",
                         alias)
                     dSend = state.agreed
                     remotelyRemoved.remove(alias)
 
                 toSend[alias] = dSend
-                logger.debug("Sending changes for %s [%s]", alias, dSend)
+                doLog("Sending changes for %s [%s]", alias, dSend)
                 if uuid not in sendStats['added']:
                     sendStats['modified'].add(uuid)
 
@@ -448,7 +447,7 @@ class RecordSetConduit(conduits.BaseConduit):
             translator.startImport()
             i = 0
             for alias, rs in toApply.items():
-                logger.debug("Applying changes to %s [%s]", alias, rs)
+                doLog("Applying changes to %s [%s]", alias, rs)
 
                 uuid = translator.getUUIDForAlias(alias)
                 if uuid:
@@ -495,7 +494,7 @@ class RecordSetConduit(conduits.BaseConduit):
                     # syncs.  Also, make sure we apply this to the master item:
                     item_to_change = getattr(item, 'inheritFrom', item)
                     item_to_change.read = not established
-                    logger.debug("Marking item %s: %s" % (
+                    doLog("Marking item %s: %s" % (
                         ("read" if item_to_change.read else "unread"), uuid))
 
                 if alias in remotelyAdded:
@@ -555,7 +554,7 @@ class RecordSetConduit(conduits.BaseConduit):
                     self.share.contents.remove(item)
                     self.share.removeSharedItem(item)
                     receiveStats['removed'].add(uuid)
-                    logger.debug("Locally removing item: %s", uuid)
+                    doLog("Locally removing item: %s", uuid)
 
                 self.removeState(alias)
 
@@ -580,7 +579,7 @@ class RecordSetConduit(conduits.BaseConduit):
                     sendStats['removed'].add(uuid)
                 statesToRemove.add(alias)
 
-                logger.debug("Remotely removing item: %s", alias)
+                doLog("Remotely removing item: %s", alias)
 
         removeCount = len(statesToRemove)
         if removeCount:
@@ -615,11 +614,11 @@ class RecordSetConduit(conduits.BaseConduit):
 
             self.putRecords(toSend, extra, debug=debug, activity=activity)
         else:
-            logger.debug("Nothing to send")
+            doLog("Nothing to send")
 
 
         for alias in statesToRemove:
-            logger.debug("Removing state: %s", alias)
+            doLog("Removing state: %s", alias)
             self.removeState(alias)
             uuid = translator.getUUIDForAlias(alias)
             if uuid:
@@ -634,7 +633,7 @@ class RecordSetConduit(conduits.BaseConduit):
 
         _callback(msg="Done")
 
-        logger.debug("================== end of sync =================")
+        doLog("================== end of sync =================")
 
         if receive:
             receiveStats['applied'] = str(toApply)
