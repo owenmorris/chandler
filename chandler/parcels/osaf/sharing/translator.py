@@ -640,7 +640,7 @@ class SharingTranslator(eim.Translator):
             if isinstance(item, Occurrence):
                 title = eim.Inherit
             else:
-                title = None
+                title = ''
 
         yield model.ItemRecord(
             item,                                       # uuid
