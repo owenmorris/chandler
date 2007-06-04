@@ -602,9 +602,9 @@ class wxApplication (wx.App):
             logger.exception("Failed to reload file")
             activity.failed(exception=e)
             if isinstance(e, TypeError):
-                msg = _(u"Incompatible dump file. Unable to reload. Chandler will now restart.")
+                msg = _(u"Incompatible export file. Unable to reload. Chandler will now restart.")
             elif isinstance(e, EOFError):
-                msg = _(u"Incomplete dump file. Unable to reload. Chandler will now restart.")
+                msg = _(u"Incomplete export file. Unable to reload. Chandler will now restart.")
             elif isinstance(e, ActivityAborted):
                 msg = _(u"Reload cancelled. Chandler will now restart.")
             else:
@@ -1372,7 +1372,7 @@ def CheckIfUpgraded(profileDir, repoDir, createRepo):
     upgraded    = False
     profileBase = os.path.dirname(os.path.dirname(profileDir))
 
-    dirlist = glob.glob(os.path.join(profileBase, 'Chandler*.dump'))
+    dirlist = glob.glob(os.path.join(profileBase, '*.chex'))
 
     if os.path.isdir(profileDir):
         if os.path.isdir(repoDir):

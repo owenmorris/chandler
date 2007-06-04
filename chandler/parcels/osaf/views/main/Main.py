@@ -1038,11 +1038,11 @@ class MainView(View):
         from osaf.framework import MasterPassword
         MasterPassword.beforeBackup(self.itsView)
 
-        wildcard = "%s|*.dump|%s (*.*)|*.*" % (_(u"Dump files"),
-            _(u"All files"))
+        filename = "%s.chex" % strftime("%Y%m%d%H%M%S")
+        wildcard = "%s|*.chex|%s (*.*)|*.*" % (_(u"Chandler Export files"), _(u"All files"))
 
         dlg = wx.FileDialog(wx.GetApp().mainFrame,
-                            _(u"Dump Items"), "", "chandler.dump", wildcard,
+                            _(u"Export Items"), "", filename, wildcard,
                             wx.SAVE|wx.OVERWRITE_PROMPT)
 
         path = None
@@ -1050,7 +1050,7 @@ class MainView(View):
             path = dlg.GetPath()
         dlg.Destroy()
         if path:
-            activity = Activity("Dump to %s" % path)
+            activity = Activity("Export to %s" % path)
             Progress.Show(activity)
             activity.started()
 
@@ -1059,10 +1059,10 @@ class MainView(View):
                     obfuscate=obfuscate)
                 activity.completed()
             except Exception, e:
-                logger.exception("Failed to dump file")
+                logger.exception("Failed to export file")
                 activity.failed(exception=e)
                 raise
-            self.setStatusMessage(_(u'Items dumped'))
+            self.setStatusMessage(_(u'Items exported'))
 
     def onDumpToFileEvent(self, event):
         self._dumpFile()
@@ -1071,17 +1071,17 @@ class MainView(View):
         self._dumpFile(obfuscate=True)
 
     def onReloadFromFileEvent(self, event):
-        if wx.MessageBox(_(u"Reloading will remove all current data and replace it with new data in the dump file. Are you sure you want to proceed?"),
+        if wx.MessageBox(_(u"Reloading will remove all current data and replace it with new data in the export file. Are you sure you want to proceed?"),
                          _(u"Reload"),
                          style=wx.YES_NO,
                          parent=wx.GetApp().mainFrame) != wx.YES:
             return
 
-        wildcard = "%s|*.dump|%s (*.*)|*.*" % (_(u"Dump files"),
-            _(u"All files"))
+        filename = "%s.chex" % strftime("%Y%m%d%H%M%S")
+        wildcard = "%s|*.chex|%s (*.*)|*.*" % (_(u"Export files"), _(u"All files"))
 
         dlg = wx.FileDialog(wx.GetApp().mainFrame,
-                            _(u"Dump Items"), "", "chandler.dump", wildcard,
+                            _(u"Reload Items"), "", filename, wildcard,
                             wx.OPEN)
 
         path = None
