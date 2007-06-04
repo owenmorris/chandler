@@ -135,6 +135,8 @@ static void t_index_dealloc(t_index *self)
 {
     t_index_clear(self);
     self->ob_type->tp_free((PyObject *) self);
+
+    indexCount -= 1;
 }
 
 static int t_index_traverse(t_index *self, visitproc visit, void *arg)
@@ -157,6 +159,7 @@ static PyObject *t_index_new(PyTypeObject *type, PyObject *args, PyObject *kwds)
 
     if (self)
     {
+        indexCount += 1;
         self->dict = PyDict_New();
         self->changedKeys = NULL;
     }
@@ -323,6 +326,10 @@ typedef struct {
 } t_delegating_index;
 
 static void t_delegating_index_dealloc(t_delegating_index *self);
+static int t_delegating_index_traverse(t_delegating_index *self,
+                                       visitproc visit, void *arg);
+static int t_delegating_index_clear(t_delegating_index *self);
+
 static PyObject *t_delegating_index_new(PyTypeObject *type,
                                         PyObject *args, PyObject *kwds);
 static int t_delegating_index_init(t_delegating_index *self,
@@ -385,10 +392,11 @@ static PyTypeObject DelegatingIndexType = {
     0,                                         /* tp_setattro */
     0,                                         /* tp_as_buffer */
     (Py_TPFLAGS_DEFAULT |
-     Py_TPFLAGS_BASETYPE),                     /* tp_flags */
+     Py_TPFLAGS_BASETYPE |
+     Py_TPFLAGS_HAVE_GC),                      /* tp_flags */
     "C DelegatingIndex type",                  /* tp_doc */
-    0,                                         /* tp_traverse */
-    0,                                         /* tp_clear */
+    (traverseproc)t_delegating_index_traverse, /* tp_traverse */
+    (inquiry)t_delegating_index_clear,         /* tp_clear */
     0,                                         /* tp_richcompare */
     0,                                         /* tp_weaklistoffset */
     (getiterfunc)t_delegating_index_iter,      /* tp_iter */
@@ -409,9 +417,23 @@ static PyTypeObject DelegatingIndexType = {
 
 static void t_delegating_index_dealloc(t_delegating_index *self)
 {
-    Py_XDECREF(self->index);
+    t_delegating_index_clear(self);
     self->ob_type->tp_free((PyObject *) self);
 }
+
+static int t_delegating_index_traverse(t_delegating_index *self,
+                                       visitproc visit, void *arg)
+{
+    Py_VISIT(self->index);
+    return 0;
+}
+
+static int t_delegating_index_clear(t_delegating_index *self)
+{
+    Py_CLEAR(self->index);
+    return 0;
+}
+
 
 static PyObject *t_delegating_index_new(PyTypeObject *type,
                                         PyObject *args, PyObject *kwds)

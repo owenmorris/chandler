@@ -39,7 +39,7 @@ PyObject *Nil = NULL;
 PyObject *Default = NULL;
 PyObject *True_TUPLE = NULL;
 PyObject *Empty_TUPLE = NULL;
-long itemCount = 0;
+long itemCount = 0, indexCount = 0;
 
 _t_view_invokeMonitors_fn _t_view_invokeMonitors;
 _t_persistentvalue_init_fn _t_persistentvalue_init;
@@ -66,6 +66,11 @@ static PyObject *isitemref(PyObject *self, PyObject *obj)
 static PyObject *getItemCount(PyObject *self)
 {
     return PyInt_FromLong(itemCount);
+}
+
+static PyObject *getIndexCount(PyObject *self)
+{
+    return PyInt_FromLong(indexCount);
 }
 
 static PyObject *_install__doc__(PyObject *self, PyObject *args)
@@ -128,6 +133,8 @@ static PyMethodDef c_funcs[] = {
       "isinstance(obj, ItemRef)"},
     { "getItemCount", (PyCFunction) getItemCount, METH_NOARGS,
       "the number of item instances currently allocated by this process" },
+    { "getIndexCount", (PyCFunction) getIndexCount, METH_NOARGS,
+      "the number of index instances currently allocated by this process" },
     { "_install__doc__", (PyCFunction) _install__doc__, METH_VARARGS,
       "install immutable doc strings from python" },
     { NULL, NULL, 0, NULL }

@@ -54,6 +54,7 @@ static PyObject *t_view__getParent(t_view *self, void *data);
 static PyObject *t_view__getVersion(t_view *self, void *data);
 static int t_view__setVersion(t_view *self, PyObject *value, void *data);
 static int t_view__set_version(t_view *self, PyObject *value, void *data);
+static PyObject *t_view__getStatus(t_view *self, void *data);
 static PyObject *t_view__getStore(t_view *self, void *data);
 static PyObject *t_view__getLogger(t_view *self, void *data);
 static PyObject *t_view__getMONITORING(t_view *self, void *data);
@@ -171,6 +172,8 @@ static PyGetSetDef t_view_properties[] = {
       "itsParent property", NULL },
     { "itsVersion", (getter) t_view__getVersion, (setter) t_view__setVersion,
       "itsVersion property", NULL },
+    { "itsStatus", (getter) t_view__getStatus, NULL,
+      "itsStatus property", NULL },
     { "_version", (getter) t_view__getVersion, (setter) t_view__set_version,
       "_version property", NULL },
     { "store", (getter) t_view__getStore, NULL,
@@ -660,6 +663,14 @@ static int t_view__set_version(t_view *self, PyObject *value, void *data)
     self->version = version;
     
     return 0;
+}
+
+
+/* itsStatus */
+
+static PyObject *t_view__getStatus(t_view *self, void *data)
+{
+    return PyInt_FromLong(self->status);
 }
 
 

@@ -118,6 +118,8 @@ static void t_point_dealloc(t_point *self)
 {
     t_point_clear(self);
     self->ob_type->tp_free((PyObject *) self);
+
+    pointCount -= 1;
 }
 
 static int t_point_traverse(t_point *self, visitproc visit, void *arg)
@@ -142,6 +144,8 @@ static PyObject *t_point_new(PyTypeObject *type, PyObject *args, PyObject *kwds)
 
     if (self)
     {
+        pointCount += 1;
+
         self->prevKey = NULL;
         self->nextKey = NULL;
         self->dist = 0;
@@ -336,6 +340,8 @@ static void t_node_dealloc(t_node *self)
 {
     t_node_clear(self);
     self->ob_type->tp_free((PyObject *) self);
+
+    nodeCount -= 1;
 }
 
 static int t_node_traverse(t_node *self, visitproc visit, void *arg)
@@ -355,7 +361,10 @@ static PyObject *t_node_new(PyTypeObject *type, PyObject *args, PyObject *kwds)
     t_node *self = (t_node *) type->tp_alloc(type, 0);
 
     if (self)
+    {
+        nodeCount += 1;
         self->levels = NULL;
+    }
 
     return (PyObject *) self;
 }
@@ -675,6 +684,8 @@ static void t_sl_dealloc(t_sl *self)
 {
     t_sl_clear(self);
     self->ob_type->tp_free((PyObject *) self);
+
+    skipListCount -= 1;
 }
 
 static int t_sl_traverse(t_sl *self, visitproc visit, void *arg)
@@ -701,6 +712,8 @@ static PyObject *t_sl_new(PyTypeObject *type, PyObject *args, PyObject *kwds)
 
     if (self)
     {
+        skipListCount += 1;
+
         self->head = NULL;
         self->tail = NULL;
         self->map = NULL;

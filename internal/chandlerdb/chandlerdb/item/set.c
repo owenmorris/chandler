@@ -274,7 +274,6 @@ static long t_set_hash(t_set *self)
     return PyObject_Hash(self->set);
 }
 
-
 static PyObject *_restoreValue(t_set *self, PyObject *value)
 {
     return PyObject_CallMethodObjArgs((PyObject *) self, restoreValue_NAME,

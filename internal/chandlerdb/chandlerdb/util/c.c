@@ -31,6 +31,7 @@ PyTypeObject *SkipList = NULL;
 
 PyObject *Nil = NULL, *Default = NULL, *Empty = NULL;
 PyObject *Empty_TUPLE = NULL;
+long pointCount = 0, nodeCount = 0, skipListCount = 0;
 
 static PyObject *isuuid(PyObject *self, PyObject *obj)
 {
@@ -176,6 +177,12 @@ static PyObject *unpackDigits(PyObject *self, PyObject *arg)
     }
 }
 
+static PyObject *getSkipListCounts(PyObject *self)
+{
+    return Py_BuildValue("(lll)", pointCount, nodeCount, skipListCount);
+}
+
+
 #ifdef __MACH__
 static PyObject *_vfork(PyObject *self)
 {
@@ -216,6 +223,8 @@ static PyMethodDef c_funcs[] = {
       "unpack decimal digits from a string into a tuple, 4 bits each" },
     { "getPlatformName", (PyCFunction) getPlatformName, METH_NOARGS,
       "return a suitable platform name for Berkeley DB compatibility check" },
+    { "getSkipListCounts", (PyCFunction) getSkipListCounts, METH_NOARGS,
+      "return the number of currently allocated skiplist objects" },
 #ifdef __MACH__
     { "vfork", (PyCFunction) _vfork, METH_NOARGS, "" },
 #endif
