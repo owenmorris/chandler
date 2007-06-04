@@ -85,6 +85,8 @@ else:
 
 TRANSPARENCY_DASHES = [255, 255, 0, 0, 255, 255, 0, 0]
 
+GregorianCalendarInstance = GregorianCalendar()
+
 def nth(iterable, n):
     return list(islice(iterable, n, n+1))[0]
 
@@ -1186,11 +1188,12 @@ class CalendarRangeBlock(CollectionCanvas.CollectionBlock):
         if self.dayMode:
             self.rangeStart = date
         else:
-            calendar = GregorianCalendar()
+            calendar = GregorianCalendarInstance
             calendar.setTimeZone(ICUtzinfo.default.timezone)
             calendar.setTime(date)
-            delta = timedelta(days=(calendar.get(calendar.DAY_OF_WEEK) -
-                                    calendar.getFirstDayOfWeek()))
+            weekstartDayShift = (calendar.get(calendar.DAY_OF_WEEK) -
+                                 calendar.getFirstDayOfWeek()) % 7
+            delta = timedelta(weekstartDayShift)
             self.rangeStart = date - delta
 
     def incrementRange(self):
@@ -2191,9 +2194,6 @@ class CalendarControl(CalendarRangeBlock):
                 # It's the list-of-timezones preference item
                 if 'wellKnownIDs' in names:
                     TimeZoneList.buildTZChoiceList(self.itsView, self.widget.tzChoice)
-        
-    def onSelectedDateChangedEvent(self, event):
-        super(CalendarControl, self).onSelectedDateChangedEvent(event)
 
     # annoying: right now have to forward this to the widget, but
     # perhaps block dispatch could dispatch to the widget first, then
@@ -2289,8 +2289,9 @@ class CalendarControl(CalendarRangeBlock):
         calendar = GregorianCalendar()
         calendar.setTimeZone(ICUtzinfo.default.timezone)
         calendar.setTime(date)
-        delta = timedelta(days=(calendar.get(calendar.DAY_OF_WEEK) -
-                                calendar.getFirstDayOfWeek()))
+        weekstartDayShift = (calendar.get(calendar.DAY_OF_WEEK) -
+                             calendar.getFirstDayOfWeek()) % 7
+        delta = timedelta(weekstartDayShift)
 
         self.rangeStart = date - delta
         if self.dayMode:
@@ -2542,7 +2543,7 @@ class wxCalendarControl(wx.Panel, CalendarEventHandler):
         # ICU makes this list 1-based, 1st element is an empty string, so that
         # shortWeekdays[Calendar.SUNDAY] == 'short name for sunday'
         shortWeekdays = dateFormatSymbols.getShortWeekdays()
-        firstDay = GregorianCalendar().getFirstDayOfWeek()
+        firstDay = GregorianCalendarInstance.getFirstDayOfWeek()
 
         self.Freeze()
         self.weekColumnHeader.Freeze()

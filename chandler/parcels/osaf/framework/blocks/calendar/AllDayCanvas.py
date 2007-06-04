@@ -21,11 +21,11 @@ from application import schema
 from datetime import timedelta
 from CalendarCanvas import (
     CalendarCanvasItem, CalendarCanvasBlock, CalendarSelection,
-    wxCalendarCanvas, wxInPlaceEditor
+    wxCalendarCanvas, wxInPlaceEditor, GregorianCalendarInstance
     )
 from osaf.framework.blocks.Block import BaseWidget
 from CollectionCanvas import DragState
-from PyICU import GregorianCalendar, ICUtzinfo
+from PyICU import ICUtzinfo
 from osaf.pim.calendar.TimeZone import TimeZoneInfo
 from osaf.pim import isDead
 
@@ -279,7 +279,7 @@ class wxAllDayEventsCanvas(BaseWidget, wxCalendarCanvas):
         else:
             dayEnd = wxAllDayEventsCanvas.DayOfWeekNumber(itemEnd)
 
-        return (dayStart, dayEnd)
+        return (dayStart % 7, dayEnd % 7)
 
     def FinishDrag(self):
         self.fileDragPosition = None
@@ -529,7 +529,7 @@ class wxAllDayEventsCanvas(BaseWidget, wxCalendarCanvas):
         """
         evaluate datetime's position in the week: 0-6 (sun-sat)
         """
-        cal = GregorianCalendar()
+        cal = GregorianCalendarInstance
         cal.setTimeZone(datetime.tzinfo.timezone)
         cal.setTime(datetime)
         
