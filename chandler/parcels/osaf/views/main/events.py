@@ -372,7 +372,7 @@ def makeMainEvents(parcel):
                         methodName = 'onPasteEvent',
                         commitAfterDispatch = True).install(parcel),
 
-    BlockEvent.template('BrowsePlugin',
+    BlockEvent.template('BrowsePlugins',
                         dispatchToBlockName = 'PluginsMenu').install(parcel)
 
     BlockEvent.template('InstallPlugins',

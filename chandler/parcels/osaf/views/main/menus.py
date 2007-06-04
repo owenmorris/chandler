@@ -12,7 +12,7 @@
 #   See the License for the specific language governing permissions and
 #   limitations under the License.
 
-from application.Plugins import PluginMenu
+from application.Plugins import PluginMenu, DemoMenu
 from application import schema
 import wx
 from colorsys import hsv_to_rgb
@@ -571,6 +571,18 @@ def makeMainMenus(parcel):
                         title = _(u'&Copy ticket URLs to clipboard'),
                         helpString = _(u"Copy the selected collection's URL(s) to the Clipboard")),
                     ]), # Menu ShareMenu
+            DemoMenu.template('ExperimentalMenu',
+                          title = _(u'Demo'),
+                          childBlocks = [
+                    MenuItem.template("BrowsePluginsMenuItem",
+                                event = main.BrowsePlugins,
+                                title = u"&Download Plugins",
+                                helpString = u'Browse for new pluginsItem'),
+                    MenuItem.template('InstallPluginsMenuItem',
+                                event = main.InstallPlugins,
+                                title = u"I&nstall Plugins",
+                                helpString = u'Install plugins'),
+                            ]), # Menu ExperimentalMenu
             Menu.template('ToolsMenu',
                 title = _(u'&Tools'),
                 childBlocks = [
@@ -748,22 +760,10 @@ def makeMainMenus(parcel):
                     MenuItem.template('ToolsSeparator9',
                                 menuItemKind = 'Separator'),
                     PluginMenu.template('PluginsMenu',
-                        title=_(u'&Plugins'),
-                        helpString=_(u'Manage Plugins'),
+                        title=_(u'&Active Plugins'),
+                        helpString=_(u'Activate or Deactivate Plugins'),
                         event = main.Plugin,
-                        childBlocks = [
-                            MenuItem.template("BrowsePluginsMenuItem",
-                                event = main.BrowsePlugin,
-                                title = u"&Download Plugins",
-                                helpString = u'Browse for new pluginsItem'),
-                            MenuItem.template('InstallPluginsMenuItem',
-                                event = main.InstallPlugins,
-                                title = u"I&nstall Plugins",
-                                helpString = u'Install plugins'),
-                            ]),
-                    Menu.template('ExperimentalMenu',
-                                  title = _(u'Demo'),
-                                  childBlocks = []), # Menu ExperimentalMenu
+                        childBlocks = []),
                 ]),
             Menu.template('HelpMenu',
                 title = _(u'&Help'),

@@ -43,7 +43,6 @@ class wxPluginMenu(wxMenu):
 
         titles = sorted(self.pluginPrefs.iterkeys())
         if titles:
-            newItems.append('__separator__')
             newItems.extend(titles)
 
         return newItems
@@ -74,7 +73,7 @@ class PluginMenu(Menu):
         # will use the assume the id is for a stock menuItem and will fail
         return wxMenuItem(None, id=self.getWidgetID(), text=" ", subMenu=menu)
 
-    def onBrowsePluginEvent(self, event):
+    def onBrowsePluginsEvent(self, event):
         webbrowser.open(BROWSE_URL)
 
     def onInstallPluginsEvent(self, event):
@@ -281,3 +280,45 @@ class PluginMenu(Menu):
         for menu in menubar.childBlocks:
             if menu.isDirty():
                 menu.synchronizeWidget()
+
+
+class wxDemoMenu(wxMenu):
+
+    def ItemsAreSame(self, old, new):
+
+        if new is None or isinstance(new, wx.MenuItem):
+            return super(wxDemoMenu, self).ItemsAreSame(old, new)
+
+        if new == '__separator__':
+            return old is not None and old.IsSeparator()
+        else:
+            return old is not None and old.GetText() == new
+    
+    def GetNewItems(self):
+
+        newItems = super(wxDemoMenu, self).GetNewItems()
+        if len(newItems) > 2 and not newItems[2].IsSeparator():
+            newItems.insert(2, '__separator__')
+
+        return newItems
+
+    def InsertItem(self, position, item):
+
+        if not isinstance(item, wx.MenuItem):
+            if item == '__separator__':
+                item = wx.MenuItem(self, id=wx.ID_SEPARATOR,
+                                   kind=wx.ID_SEPARATOR)
+
+        super(wxDemoMenu, self).InsertItem(position, item)
+
+
+class DemoMenu(Menu):
+
+    def instantiateWidget(self):
+
+        menu = wxDemoMenu()
+        menu.blockItem = self
+
+        # if we don't give the MenuItem a label, i.e. test = " " widgets
+        # will assume the id is for a stock menuItem and will fail
+        return wxMenuItem(None, id=self.getWidgetID(), text=" ", subMenu=menu)
