@@ -85,7 +85,7 @@ def publishSubscribe(testClass):
 
     # import events so test will have something to share even when run by itself
     path = os.path.join(Globals.chandlerDirectory,
-        "tools/QATestScripts/DataFiles")
+        "tools/cats/DataFiles")
     # Upcast path to unicode since Sharing requires a unicode path
     path = unicode(path, sys.getfilesystemencoding())
     share = sharing.OneTimeFileSystemShare(itsView=App_ns.itsView,

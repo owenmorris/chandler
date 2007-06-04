@@ -46,7 +46,7 @@ logger = QAUITestAppLib.QALogger("PerfIncomingMail.log", "message.messageTextToK
 logger.SuspendProfiling()
 
 def loadMailFile(fileName):
-    mailFile = os.path.join(os.getenv('CHANDLERHOME'),"tools", "QATestScripts",
+    mailFile = os.path.join(os.getenv('CHANDLERHOME'),"tools", "cats",
                             "DataFiles", "MailDataFiles", fileName)
 
     f = open(mailFile, "r")

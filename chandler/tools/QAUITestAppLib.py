@@ -81,7 +81,7 @@ def publishSubscribe(logger):
 
     # import events so test will have something to share even when run by itself
     path = os.path.join(os.getenv('CHANDLERHOME'),
-        "tools/QATestScripts/DataFiles")
+        "tools/cats/DataFiles")
     # Upcast path to unicode since Sharing requires a unicode path
     path = unicode(path, sys.getfilesystemencoding())
     share = sharing.OneTimeFileSystemShare(itsView=App_ns.itsView,
@@ -1618,7 +1618,7 @@ class UITestView(object):
 
         # setup the test environment if an environment file was specified
         if environmentFile is not None:
-            path = os.path.join(os.getenv('CHANDLERHOME'),"tools/QATestScripts/DataFiles")
+            path = os.path.join(os.getenv('CHANDLERHOME'),"tools/cats/DataFiles")
             #Upcast path to unicode since Sharing requires a unicode path
             path = unicode(path, sys.getfilesystemencoding())
             share = sharing.OneTimeFileSystemShare(itsView=App_ns.itsView,
