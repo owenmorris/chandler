@@ -14,7 +14,7 @@
 
 
 from datetime import timedelta
-from time import time
+from time import time, strftime
 import wx, os, sys, traceback, logging, re, webbrowser
 import PyLucene
 import application.dialogs.Util
