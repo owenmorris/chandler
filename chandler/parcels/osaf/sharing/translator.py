@@ -1451,10 +1451,16 @@ class SharingTranslator(eim.Translator):
 
     @model.EventRecord.deleter
     def delete_event(self, record):
-        item = self.rv.findUUID(record.uuid)
+        # @@@MOR: Need help from Jeffrey here...  is this right?
+        uuid, recurrenceID = splitUUID(record.uuid)
+        item = self.rv.findUUID(uuid)
         if item is not None and item.isLive() and pim.has_stamp(item,
             EventStamp):
-            EventStamp(item).remove()
+            if recurrenceID:
+                occurrence = EventStamp(item).getRecurrenceID(recurrenceID)
+                occurrence.unmodify()
+            else:
+                EventStamp(item).remove()
 
     # DisplayAlarmRecord -------------
 

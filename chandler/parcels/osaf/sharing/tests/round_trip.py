@@ -1109,9 +1109,49 @@ class RoundTripTestCase(testcase.DualRepositoryTestCase):
         self.failUnlessEqual(event1.rruleset.rrules.first().freq,
                             'daily')
 
-        
-        
+        # Make a modification, sync it, then 'unmodify' it
+        second0 = event.getFirstOccurrence().getNextOccurrence()
+        second0.itsItem.displayName = "Changed"
+        view0.commit(); stats = self.share0.sync(); view0.commit()
+        view1.commit(); stats = self.share1.sync(); view1.commit()
+        second1 = event1.getRecurrenceID(second0.recurrenceID)
+        self.assert_(not second1.isGenerated)
 
+        second0.unmodify()
+        self.share0.contents.remove(second0.itsItem)
+        view0.commit(); stats = self.share0.sync(); view0.commit()
+        view1.commit(); stats = self.share1.sync(); view1.commit()
+        self.assert_(second1.isGenerated)
+        # Now it's back to an unmodification
 
+        # Make it a modification again on both sides
+        second0.itsItem.displayName = "Changed again"
+        view0.commit(); stats = self.share0.sync(); view0.commit()
+        view1.commit(); stats = self.share1.sync(); view1.commit()
+        self.assert_(not second1.isGenerated)
+
+        # Couple an unmodify with an inbound change
+        second1.itsItem.displayName = "Changed in view 1"
+        view1.commit(); stats = self.share1.sync(); view1.commit()
+        second0.unmodify()
+        self.share0.contents.remove(second0.itsItem)
+        view0.commit(); stats = self.share0.sync(); view0.commit()
+        # Inbound change wins, item is back to being a modification
+        self.assert_(not second0.isGenerated)
+
+        # Couple an outbound change with an incoming unmodification
+        second0.unmodify()
+        self.share0.contents.remove(second0.itsItem)
+        self.assert_(second0.isGenerated)
+        view0.commit(); stats = self.share0.sync(debug=True); view0.commit()
+        self.assert_(second0.isGenerated)
+        second1.itsItem.displayName = "Changed again in view 1"
+        view1.commit(); stats = self.share1.sync(debug=True); view1.commit()
+        self.assert_(not second1.isGenerated)
+        view0.commit(); stats = self.share0.sync(debug=True); view0.commit()
+        self.assert_(not second0.isGenerated)
+        self.assertEquals(second0.itsItem.displayName,
+            "Changed again in view 1")
+        # Outbound change overrules the unmodification
 
         self.share0.destroy() # clean up

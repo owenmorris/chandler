@@ -231,11 +231,16 @@ class RecordSetConduit(conduits.BaseConduit):
                     else:
                         item = None
 
-                    if item is not None and item.isLive():
+                    if (item is not None and
+                        item.isLive() and
+                        not pim.EventStamp(item).isGenerated):
                         # An inbound modification to an item we already have
                         localItems.add(alias)
+                        doLog("Inbound mod to live/non-generated: %s", alias)
 
                     else:
+                        doLog("Inbound mod to non-existent/generated: %s",
+                            alias)
                         remotelyAdded.add(alias)
                         if self.hasState(alias):
                             # This is an item we completely deleted since our
@@ -327,10 +332,10 @@ class RecordSetConduit(conduits.BaseConduit):
 
                 rs = eim.RecordSet(translator.exportItem(item))
                 self.share.addSharedItem(item)
-                doLog("Computing local records for live item: %s", alias)
+                doLog("Computing local records for alias: %s", alias)
             else:
                 rs = eim.RecordSet()
-                doLog("No local item for: %s", alias)
+                doLog("No live/non-generated item for: %s", alias)
             rsNewBase[alias] = rs
             i += 1
             _callback(msg="Generated %d of %d recordset(s)" % (i, localCount),
@@ -455,7 +460,7 @@ class RecordSetConduit(conduits.BaseConduit):
                 else:
                     item = None
 
-                logger.info("** Applying to UUID: %s", uuid)
+                logger.info("** Applying to UUID: %s / alias: %s", uuid, alias)
                 for rec in rs.inclusions:
                     logger.info("** ++ %s", rec)
                 for rec in rs.exclusions:
@@ -551,18 +556,39 @@ class RecordSetConduit(conduits.BaseConduit):
                     item = None
 
                 if item is not None and item in self.share.contents:
-                    self.share.contents.remove(item)
                     self.share.removeSharedItem(item)
+                    if isinstance(item, pim.Occurrence):
+                        # A recordset deletion on an occurrence is treated
+                        # as an "unmodification" i.e., a modification going
+                        # back to a simple occurrence
+                        pim.EventStamp(item).unmodify()
+                        doLog("Locally unmodifying alias: %s", alias)
+                    else:
+                        self.share.contents.remove(item)
+                        doLog("Locally removing  alias: %s",  alias)
                     receiveStats['removed'].add(uuid)
-                    doLog("Locally removing item: %s", uuid)
 
                 self.removeState(alias)
 
 
+        statesToRemove = set()
+
+        """
+        for alias, rs in toSend.iteritems():
+            for record in rs.exclusions:
+                if isinstance(record, model.ItemRecord):
+                    # We're about to send a deletion of an ItemRecord, but
+                    # we need to turn this into a recordset deletion
+                    statesToRemove.add(alias)
+                    if send:
+                        logger.debug("Converting ItemRecord deletion into recordset deletion for: %s", alias)
+                        toSend[alias] = None
+                    break
+        """
+
         # For each item that was in the collection before but is no longer,
         # remove its state; if sending, add an empty recordset to toSend
         # TODO: Optimize by removing item loading
-        statesToRemove = set()
         for state in self.share.states:
             alias = self.share.states.getAlias(state)
             uuid = translator.getUUIDForAlias(alias)
@@ -624,7 +650,11 @@ class RecordSetConduit(conduits.BaseConduit):
             if uuid:
                 item = rv.findUUID(uuid)
                 if item is not None:
+                    # Make sure not to remodify an unmodification...
+                    isGenerated = pim.EventStamp(item).isGenerated
                     self.share.removeSharedItem(item)
+                    if isGenerated:
+                        pim.EventStamp(item).unmodify()
 
         # Note the repository version number
         self.lastVersion = rv.itsVersion
