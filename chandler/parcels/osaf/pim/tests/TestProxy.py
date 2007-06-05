@@ -15,6 +15,13 @@ def additional_tests():
 class ProxyTestCase(SingleRepositoryTestCase):
     sandbox = None
     
+    def makeRuleset(self, freq):
+        rrule = pim.calendar.Recurrence.RecurrenceRule(itsParent=self.sandbox,
+                                                       freq=freq)
+        return pim.calendar.Recurrence.RecurrenceRuleSet(
+                                itsParent=self.sandbox, rrules=[rrule])
+
+    
     def setUp(self):
         if self.sandbox is None:
             super(ProxyTestCase, self).setUp()
@@ -30,11 +37,7 @@ class ProxyTestCase(SingleRepositoryTestCase):
             anyTime=False,
             read=False,
         )
-        rrule = pim.calendar.Recurrence.RecurrenceRule(itsParent=self.sandbox,
-                                                       freq='daily')
-        self.rruleset = pim.calendar.Recurrence.RecurrenceRuleSet(
-                                itsParent=self.sandbox, rrules=[rrule])
-
+        self.rruleset = self.makeRuleset('daily')
         self.one = pim.SmartCollection(itsParent=self.sandbox,
                                        displayName=u"One")
         self.two = pim.SmartCollection(itsParent=self.sandbox,
@@ -195,6 +198,43 @@ class ProxyTestCase(SingleRepositoryTestCase):
         self.failUnless(pim.isDead(third.itsItem))
         self.failIf(pim.isDead(self.event.itsItem))
         self.failIf(pim.has_stamp(self.event, pim.EventStamp))
+
+
+    def testChangeRecurrence_ALL(self):
+        self.event.rruleset = self.rruleset
+        third = self.event.getFirstOccurrence().getNextOccurrence().getNextOccurrence()
+
+        pim.CHANGE_ALL(third).rruleset = self.makeRuleset('weekly')
+        
+        self.failUnless(pim.isDead(third.itsItem))
+        self.failIf(pim.isDead(self.event.itsItem))
+        self.failUnlessEqual(self.event.rruleset.rrules.first().freq, 'weekly')
+
+
+    def testChangeRecurrence_FUTURE(self):
+        self.event.rruleset = self.rruleset
+        third = self.event.getFirstOccurrence().getNextOccurrence().getNextOccurrence()
+
+        pim.CHANGE_FUTURE(third).rruleset = self.makeRuleset('weekly')
+        
+        self.failIfEqual(third.getMaster(), self.event.getMaster())
+        self.failIf(pim.isDead(self.event.itsItem))
+        self.failIf(pim.isDead(third.itsItem))
+        self.failUnlessEqual(third, third.getMaster().getFirstOccurrence())
+        self.failUnlessEqual(self.event.rruleset.rrules.first().freq, 'daily')
+        self.failUnlessEqual(third.rruleset.rrules.first().freq, 'weekly')
+
+    def testDeleteRecurrence_ALL(self):
+        self.event.rruleset = self.rruleset
+        first = self.event.getFirstOccurrence()
+        third = first.getNextOccurrence().getNextOccurrence()
+
+        del pim.CHANGE_ALL(third).rruleset
+        
+        self.failUnless(pim.isDead(first.itsItem))
+        self.failUnless(pim.isDead(third.itsItem))
+        self.failIf(pim.isDead(self.event.itsItem))
+        self.failUnless(self.event.rruleset is None)
         
 if __name__ == "__main__":
     from util.test_finder import ScanningLoader

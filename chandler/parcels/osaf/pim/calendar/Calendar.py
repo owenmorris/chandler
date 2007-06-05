@@ -2619,7 +2619,6 @@ def _makeReadonlyAccessor(attr):
     setattr(Occurrence, attrName, property(fget))
 
 _makeReadonlyAccessor(Note.icalUID)
-_makeReadonlyAccessor(EventStamp.rruleset)
 
     
 

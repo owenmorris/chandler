@@ -195,6 +195,9 @@ def getProxy(context, obj, createNew=True, cancelCallback=None):
         proxy.cancelCallbacks.append(cancelCallback)
     return proxy
 
+REMOVE_ALL_MSG = _(u'\u201c%(displayName)s\u201d is a recurring event. Removing its recurrence will cause all events except the master to be deleted. Do you want to change:')
+
+
 class ChandlerProxy(RecurrenceProxy):
     _editingProxy = None
     
@@ -289,11 +292,14 @@ class ChandlerProxy(RecurrenceProxy):
             elif changeType == 'set':
                 if change[2] == EventStamp.rruleset.name:
                     disabled.update(('this',))
-                    if change[3] is None: # Removing recurrence
-                        questionFmt = _(u'\u201c%(displayName)s\u201d is a recurring event. Removing its recurrence will cause all events except the master to be deleted. Do you want to change:')
+                    if change[3] is None:
+                        questionFmt = REMOVE_ALL_MSG
                     else:
-                        questionFmt = _(u'\u201c%(displayName)s\u201d is a recurring event. Changing its recurrence may cause some events to disappear. Do you want to change:')
-
+                        questionFmt = _(u'\u201c%(displayName)s\u201d is a recurring event. Changing its recurrence may cause some events to be deleted. Do you want to change:')
+            elif changeType == 'delete':
+                if change[2] == EventStamp.rruleset.name:
+                    questionFmt = REMOVE_ALL_MSG
+                    disabled.update(('future', 'this'))
             
             if questionFmt is None:
                 questionFmt = _(u'\u201c%(displayName)s\u201d is a recurring event. Do you want to change:')

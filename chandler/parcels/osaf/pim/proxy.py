@@ -476,6 +476,9 @@ class CHANGE_ALL(Changer):
             ref = getattr(masterItem, change[0].descriptor.name)
             method = getattr(ref, changeType)
             method(change[2])
+        elif (changeType == 'delete' and
+              change[0].descriptor.name == EventStamp.rruleset.name):
+              event.removeRecurrence()
         else:
             assert False
             return 0
