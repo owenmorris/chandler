@@ -359,11 +359,15 @@ def handleEmpty(item_or_stamp, attr):
 def getAliasForItem(item_or_stamp):
     item = getattr(item_or_stamp, 'itsItem', item_or_stamp)
     if isinstance(item, Occurrence):
-        event = EventStamp(item)
         master = item.inheritFrom
-        dateValue = event.allDay or event.anyTime
-        recurrenceID = event.recurrenceID
-        if recurrenceID.tzinfo != ICUtzinfo.floating and not dateValue:
+        masterEvent = EventStamp(master)
+        recurrenceID = EventStamp(item).recurrenceID
+        # If recurrence-id isn't floating but the master is allDay or anyTime,
+        # we have an off-rule modification, its recurrence-id shouldn't be
+        # treated as date valued.
+        dateValue = ((masterEvent.allDay or masterEvent.anyTime) and
+                     recurrenceID.tzinfo == ICUtzinfo.floating)
+        if recurrenceID.tzinfo != ICUtzinfo.floating:
             recurrenceID = recurrenceID.astimezone(utc)
         recurrenceID = formatDateTime(recurrenceID, dateValue, dateValue)
         return master.itsUUID.str16() + ":" + recurrenceID
@@ -1413,17 +1417,33 @@ class SharingTranslator(eim.Translator):
         has_change = event.hasLocalAttributeValue
 
 
-        # if recurring, dtstart has changed if allDay or anyTime has a local 
-        # change, or if effectiveStartTime != recurrenceID.
-        if (not isinstance(item, Occurrence) or
-            has_change('allDay') or 
-            has_change('anyTime') or 
-            not datetimes_really_equal(event.effectiveStartTime,
-                                       event.recurrenceID)):
+        # if recurring and the modification isn't off-rule, dtstart has changed
+        # if allDay or anyTime has a local change, or if effectiveStartTime !=
+        # recurrenceID.  If it's an off-rule modification, its
+        # effectiveStartTime may not match up because of disagreements in
+        # anyTime/allDay, in that case compare starTime to recurrenceID instead
+        # of effectiveStartTime
+        dtstart = None
+        if (isinstance(item, Occurrence) and
+                  not has_change('allDay') and 
+                  not has_change('anyTime')):
+            
+            floating = ICUtzinfo.floating
+            master = event.getMaster()
+            masterFloating = (master.allDay or master.anyTime or
+                              master.startTime.tzinfo == floating)
+            recurrenceIDFloating = (event.recurrenceID.tzinfo == floating)
+            if masterFloating != recurrenceIDFloating:
+                comparisonDate = event.startTime
+            else:
+                comparisonDate = event.effectiveStartTime
+                
+            if datetimes_really_equal(comparisonDate, event.recurrenceID):
+                dtstart = eim.Inherit
+
+        if dtstart is None:
             dtstart = toICalendarDateTime(event.effectiveStartTime, 
                                           event.allDay, event.anyTime)
-        else:
-            dtstart = eim.Inherit
 
         # if recurring, duration has changed if allDay, anyTime, or duration has
         # a local change
