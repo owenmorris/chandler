@@ -25,6 +25,8 @@ from repository.item.Sets import \
     Set, MultiUnion, Union, MultiIntersection, Intersection, Difference, \
     KindSet, ExpressionFilteredSet, MethodFilteredSet
 
+from util import inspector
+
 import logging
 logger = logging.getLogger(__name__)
 
@@ -213,9 +215,14 @@ class RepoResource(webserver.AuthenticatedResource):
                     result = result.encode('utf-8', 'replace')
                     return result
 
-                result += "<div>"
-                result += RenderItem(repoView, item)
-                result += "</div>"
+                if mode == "history":
+                    result += "<div>"
+                    result += RenderHistory(repoView, item)
+                    result += "</div>"
+                else:
+                    result += "<div>"
+                    result += RenderItem(repoView, item)
+                    result += "</div>"
             else:
                 result += RenderSearchForm(repoView)
                 result += "<p>"
@@ -845,6 +852,8 @@ def RenderItem(repoView, item):
 
     if isKind:
         result += ' | Run a <a href="%s?mode=kindquery">Kind Query</a>' % toLink(item.itsPath)
+    else:
+        result += ' | <a href="%s?mode=history">Show history</a>' % toLink(item.itsPath)
 
     if isBlock:
         result += ' | <a href="%s?mode=blocks">Render block tree</a>' % toLink(item.itsPath)
@@ -1024,6 +1033,31 @@ def RenderItem(repoView, item):
         result += "<td>Item version: %d<br>Is item dirty: %s<br>Shared state: %s</td>\n" % (item.getVersion(), item.isDirty(), pim.has_stamp(item, sharing.SharedItem))
         result += "</tr>\n"
         result += "</table>\n"
+
+    return result
+
+def RenderHistory(repoView, item):
+
+    result = """
+<table width="100%" border="0" cellpadding="4" cellspacing="0" onclick="onValueTableClick(event)">
+  <tr class="toprow">
+    <td colspan="2"><b>Item history</b></td>
+  </tr>
+  """
+
+    count = 0
+
+
+    for version, values in inspector.iterItemHistory(repoView, item.itsUUID):
+        result += "<tr class='headingsrow'><td valign='top'><b>Version %d</b></td><td valign='top'></td></tr>\n" % version
+
+        for name, value in values:
+            result += oddEvenRow(count)
+            result += '<td valign="top">%s</td><td valign="top">%s</td></tr>\n' % (name, clean(value))
+
+            count += 1
+
+    result += "</table>\n"
 
     return result
 
