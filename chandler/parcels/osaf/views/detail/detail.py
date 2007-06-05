@@ -1079,6 +1079,9 @@ class ReminderAEBlock(ReminderConditionalBehavior,
         watchList.extend([(self.item, pim.Remindable.reminders.name),
                           (self.item, pim.EventStamp.rruleset.name)])
         return watchList
+        
+class AbsoluteReminderAEBlock(ReminderAEBlock):
+    proxyFactory = staticmethod(pim.CHANGE_THIS)
 
 class ReminderTypeAttributeEditor(ChoiceAttributeEditor):
     reminderIndexes = {
@@ -1117,11 +1120,7 @@ class ReminderTypeAttributeEditor(ChoiceAttributeEditor):
             if isEvent:
                 control.Append(_(u"Before event"), 'before')
                 control.Append(_(u"After event"), 'after')
-            # @@@ For now, don't allow absolute reminders on recurring events
-            if not isEvent or not pim.EventStamp(self.item).isRecurring() \
-               or value == 'custom':
-                # assert value != 'custom' # (shouldn't happen; will tolerate in non-debug)
-                control.Append(_(u"Custom"), 'custom')
+            control.Append(_(u"Custom"), 'custom')
 
         # Which choice to select?
         choiceIndex = self.reminderIndexes.get(value, isEvent and 3 or 1)
@@ -1162,8 +1161,9 @@ class ReminderTypeAttributeEditor(ChoiceAttributeEditor):
         else:
             assert value == 'custom'
             # Make a reminder at the default new reminder time
-            setattr(item, pim.Remindable.userReminderTime.name,
-                    pim.Reminder.defaultTime())
+            item = pim.CHANGE_THIS(item)
+            
+            item.userReminderTime= pim.Reminder.defaultTime()
 
         self.control.blockItem.watchForChanges()
 
