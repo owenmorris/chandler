@@ -1731,7 +1731,7 @@ class RecurrenceAttributeEditor(ChoiceAttributeEditor):
 
         if value == RecurrenceAttributeEditor.onceIndex:
             firstOccurrence = master.getExistingOccurrence(master.recurrenceID)
-            event.rruleset = None
+            event.removeRecurrence()
             # either master, firstOccurrence, or None will be the only remaining
             # event
             itemToSelect = None
