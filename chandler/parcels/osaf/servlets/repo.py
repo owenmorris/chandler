@@ -198,9 +198,18 @@ class RepoResource(webserver.AuthenticatedResource):
                 result += RenderInheritance(repoView)
 
             elif path != "//":
-                item = repoView.findPath(path)
+                logger.info("path: [%s]", path)
+                splitPath = path.split("/")
+                logger.info("path: [%s] %s", path, splitPath)
+                if splitPath[2] == 'uuid':
+                    uuid = splitPath[3]
+                    logger.info("uuid: [%s]", uuid)
+                    item = repoView.findUUID(uuid)
+                else:
+                    item = repoView.findPath(path)
+
                 if item is None:
-                    result += "<h3>Item not found: %s</h3>" % path
+                    result += "<h3>Item not found</h3>"
                     result = result.encode('utf-8', 'replace')
                     return result
 
