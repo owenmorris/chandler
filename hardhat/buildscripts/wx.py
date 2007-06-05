@@ -337,7 +337,7 @@ def doFunctionalTests(workingDir, log):
             cmd = [runChandler,
                    '--create', '--catch=tests',
                    '--profileDir=%s' % logDir,
-                   '--parcelPath=tools/QATestScripts/DataFiles',
+                   '--parcelPath=tools/cats/DataFiles',
                    '--scriptTimeout=600', 
                    '--scriptFile=tools/cats/Functional/FunctionalTestSuite.py',
                    '--chandlerTestDebug=1',
