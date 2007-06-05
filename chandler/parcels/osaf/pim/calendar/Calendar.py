@@ -1945,7 +1945,8 @@ class EventStamp(Stamp):
             return
         wasModification = firstOccurrence.modificationFor is not None
         oldTriageStatus = firstOccurrence.itsItem._triageStatus
-        firstOccurrence.itsItem.copyTriageStatusFrom(master.itsItem)
+        if not firstOccurrence.itsItem.hasLocalAttributeValue('_sectionTriageStatus'):
+            firstOccurrence.itsItem.copyTriageStatusFrom(master.itsItem)
         # don't let masters keep their _sectionTriageStatus, if they do it'll
         # be inherited inappropriately by modifications
         master.itsItem.purgeSectionTriageStatus()

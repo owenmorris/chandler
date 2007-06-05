@@ -141,9 +141,10 @@ class Triageable(Remindable):
             with self.itsView.reindexingDeferred():
                 # Manipulate section status if necessary
                 if pin:
-                    self.__setTriageAttributes(self._triageStatus,
-                                               self._triageStatusChanged,
-                                               True, force)
+                    if not hasattr(self, '_sectionTriageStatus'):
+                        self.__setTriageAttributes(self._triageStatus,
+                                                   self._triageStatusChanged,
+                                                   True, force)
                 elif popToNow:
                     #from osaf.framework.blocks.Block import debugName
                     #logger.debug("Popping %s to Now", debugName(self))
