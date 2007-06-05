@@ -1166,9 +1166,7 @@ class MIMEBase(items.ContentItem):
     """Superclass for the various MIME classes"""
     mimeType = schema.One(schema.Text, initialValue = '')
 
-    mimeContainer = schema.One(
-        initialValue = None
-    ) # inverse of MIMEContainer.mimeParts
+    mimeContainer = schema.One() # inverse of MIMEContainer.mimeParts
 
     schema.addClouds(
         sharing = schema.Cloud(literal = [mimeType]),
@@ -1223,28 +1221,27 @@ class MailStamp(stamping.Stamp):
 
     mimeContent = schema.One(
         MIMEContainer,
-        defaultValue=None,
     )
 
     #Commented out for Preview
     #spamScore = schema.One(schema.Float, initialValue = 0.0)
     rfc2822Message = schema.One(schema.Lob, indexed=False)
 
-    dateSentString = schema.One(schema.Text, initialValue = '')
+    dateSentString = schema.One(schema.Text, defaultValue='')
     dateSent = schema.One(schema.DateTimeTZ, indexed=True)
-    messageId = schema.One(schema.Text, initialValue = '')
+    messageId = schema.One(schema.Text, defaultValue='')
 
     # inverse of EmailAddress.messagesTo
     toAddress = schema.Sequence(initialValue = [],)
 
     # inverse of EmailAddress.messagesFrom
-    fromAddress = schema.One(initialValue = None,)
+    fromAddress = schema.One()
 
     # inverse of EmailAddress.messagesOriginator
-    originators = schema.Sequence(initialValue = [])
+    originators = schema.Sequence()
 
     # inverse of EmailAddress.messagesReplyTo
-    replyToAddress = schema.One(initialValue = None)
+    replyToAddress = schema.One(defaultValue=None)
 
     # inverse of EmailAddress.messagesCc
     ccAddress = schema.Sequence(initialValue = [])
@@ -1281,21 +1278,33 @@ class MailStamp(stamping.Stamp):
         schema.Text, doc = 'Catch-all for headers', initialValue = {},
     )
 
-    fromMe = schema.One(schema.Boolean, initialValue=False, doc = "Boolean flag used to signal that the MailStamp instance contains a from or reply to address that matches one or more of the me addresses")
+    fromMe = schema.One(schema.Boolean, defaultValue=False, doc = "Boolean flag used to signal that the MailStamp instance contains a from or reply to address that matches one or more of the me addresses")
 
-    toMe = schema.One(schema.Boolean, initialValue=False, doc = "boolean flag used to signal that the MailStamp instance contains a to or cc address that matches one or more of the me addresses")
+    toMe = schema.One(schema.Boolean, defaultValue=False, doc = "boolean flag used to signal that the MailStamp instance contains a to or cc address that matches one or more of the me addresses")
 
-    viaMailService = schema.One(schema.Boolean, initialValue=False, doc = "boolean flag used to signal that the mail message arrived via the mail service and thus must appear in the In Collection even if the to or cc does not contain a me address")
+    viaMailService = schema.One(schema.Boolean, defaultValue=False, doc = "boolean flag used to signal that the mail message arrived via the mail service and thus must appear in the In Collection even if the to or cc does not contain a me address")
 
-    isUpdated = schema.One(schema.Boolean, initialValue=False, defaultValue=False, doc = "boolean flag used to signal whether this is a new mail or an update. There is currently no way to determine if the item is an update or new via the content model.")
+    isUpdated = schema.One(schema.Boolean, defaultValue=False, doc = "boolean flag used to signal whether this is a new mail or an update. There is currently no way to determine if the item is an update or new via the content model.")
 
-    fromEIMML = schema.One(schema.Boolean, initialValue=False, defaultValue=False, doc = "boolean flag used to signal whether mail message came from EIMML")
+    fromEIMML = schema.One(schema.Boolean, defaultValue=False, doc = "boolean flag used to signal whether mail message came from EIMML")
 
-    previousInRecipients = schema.One(schema.Boolean, initialValue=False, defaultValue=False, doc = "boolean flag used to signal whether the previous sender was in any of the addressing fields")
+    previousInRecipients = schema.One(schema.Boolean, defaultValue=False, doc = "boolean flag used to signal whether the previous sender was in any of the addressing fields")
 
 
-    previousSender = schema.One(initialValue = None, doc = "The From: EmailAddress of an incoming message. The address is used to ensure the sender of the message is not lost from the workflow")
-
+    previousSender = schema.One(defaultValue = None, doc = "The From: EmailAddress of an incoming message. The address is used to ensure the sender of the message is not lost from the workflow")
+    
+    def initialOriginators(self):
+        me = getCurrentMeEmailAddress(self.itsItem.itsView)
+        if me is not None:
+            return [me]
+        else:
+            return []
+    schema.initialValues(
+        mimeContent=lambda self: MIMEContainer(itsView=self.itsItem.itsView,
+                                               mimeType='message/rfc822'),
+        fromAddress=lambda self: getCurrentMeEmailAddress(self.itsItem.itsView),
+        originators=initialOriginators,
+    )
 
     def addPreviousSenderToCC(self):
         """
@@ -1563,27 +1572,6 @@ class MailStamp(stamping.Stamp):
         a new outgoing item.
         """
         self.itsItem.InitOutgoingAttributes()
-
-    def add(self):
-        """
-        Init only the attributes specific to this mixin.
-        Called when stamping adds these attributes, and from __init__ above.
-        """
-
-        super(MailStamp, self).add()
-
-        if getattr(self, 'mimeContent', None) is None:
-            self.mimeContent = MIMEContainer(itsView=self.itsItem.itsView,
-                                               mimeType='message/rfc822')
-
-        # default the fromAddress to "me"
-        me =  getCurrentMeEmailAddress(self.itsItem.itsView)
-
-        if getattr(self, 'fromAddress', None) is None:
-            self.fromAddress = me
-
-        if len(self.originators) == 0 and me is not None:
-            self.originators.append(me)
 
     @schema.observer(dateSent)
     def onDateSentChanged(self, op, name):

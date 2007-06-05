@@ -15,6 +15,7 @@
 """
 Classes for the ContentItem Detail View
 """
+from __future__ import with_statement
 
 __parcel__ = "osaf.views.detail"
 
@@ -494,10 +495,10 @@ class DetailTriageButtonBlock(DetailSynchronizedBehavior, ControlBlocks.Button):
         oldState = getattr(self.widget, 'currentState', None)
         if oldState != None:
             assert oldState.startswith('Markup.')
-            # always make triage changes apply to the this occurrence
-            item = getattr(self.item, 'proxiedItem', self.item)
             newState = pim.getNextTriageStatus(getattr(pim.TriageEnum,
                                                        oldState[7:]))
+            # always make triage changes apply to the this occurrence
+            item = pim.CHANGE_THIS(self.item)
             item.setTriageStatus(newState, pin=True)
             item.resetAutoTriageOnDateChange()
             self.setState()
@@ -512,8 +513,6 @@ class DetailStampButtonBlock(DetailSynchronizedBehavior,
     """
     Common base class for the stamping buttons in the Markup Bar.
     """
-    applyToAllOccurrences = False
-
     unstampedHelpString = schema.One(schema.Text, initialValue = u'')
 
     def getWatchList(self):
@@ -547,43 +546,15 @@ class DetailStampButtonBlock(DetailSynchronizedBehavior,
         # Add or remove the associated Stamp type
         Block.Block.finishEdits()
         item = self.item
-        recurring = False
-        if self.applyToAllOccurrences:
-            # modifications don't inherit stamps from the master, so for a stamp
-            # to be added to all occurrences EventStamp.addStampToAll or
-            # EventStamp.removeStampeFromAll needs to be called
-            item = getattr(item, 'proxiedItem', item)
-            if pim.has_stamp(item, pim.EventStamp):
-                master = pim.EventStamp(item).getMaster()
-                item = master.itsItem
-                recurring = item != self.item
-
         if item is None or not self._isStampable(item):
             return
 
         stampClass = self.stampClass
         if pim.has_stamp(item, stampClass):
-            if recurring:
-                master.removeStampFromAll(stampClass)
-            else:
-                stampClass(item).remove()
-
+            stampClass(item).remove()
         else:
             startTimeExists = hasattr(item, pim.EventStamp.startTime.name)
-            if recurring:
-                master.addStampToAll(stampClass)
-            else:
-                stampClass(item).add()
-
-
-            if stampClass == Mail.MailStamp:
-                #Set the message as outbound.
-                #This flag tells the detail view
-                #whether to display the outgoing or
-                #incoming message UI
-                #XXX isOutbound is deprecated
-                #stampClass(item).isOutbound = True
-                pass
+            stampClass(item).add()
 
             if stampClass == Calendar.EventStamp and not startTimeExists:
                 # If the item is being stamped as CalendarEvent, parse the body
@@ -612,14 +583,11 @@ class DetailStampButtonBlock(DetailSynchronizedBehavior,
         event.arguments ['Enable'] = enable
 
     def _isStampable(self, item):
-        # for now, any ContentItem is stampable. This may change if Mixin rules/policy change
-
-        return item.isItemOf(notes.Note.getKind(self.itsView))
+        return isinstance(item, self.stampClass.targetType())
 
 class MailMessageButtonBlock(DetailStampButtonBlock):
     """ Mail Message Stamping button in the Markup Bar. """
     stampClass = Mail.MailStamp
-    applyToAllOccurrences = True
 
 class CalendarStampButtonBlock(DetailStampButtonBlock):
     """ Calendar button in the Markup Bar. """
@@ -1763,7 +1731,7 @@ class RecurrenceAttributeEditor(ChoiceAttributeEditor):
 
         if value == RecurrenceAttributeEditor.onceIndex:
             firstOccurrence = master.getExistingOccurrence(master.recurrenceID)
-            event.removeRecurrence()
+            event.rruleset = None
             # either master, firstOccurrence, or None will be the only remaining
             # event
             itemToSelect = None
@@ -1986,7 +1954,14 @@ class BylineAreaBlock(DetailSynchronizedContentItemDetailBlock):
                           (self.item, pim.MailStamp.fromAddress.name)))
         return watchList
 
-class OriginatorsAEBlock(DetailSynchronizedAttributeEditorBlock):
+class MailAEBlock(DetailSynchronizedAttributeEditorBlock):
+    """
+    Changes to MailStamp attributes (from, to, ... etc) should always propagate
+    to all occurrences.
+    """
+    proxyFactory = staticmethod(pim.CHANGE_ALL)
+
+class OriginatorsAEBlock(MailAEBlock):
     def getWatchList(self):
         watchList = super(OriginatorsAEBlock, self).getWatchList()
         watchList.append((self.item, pim.mail.MailStamp.fromAddress.name),)
@@ -2006,7 +1981,7 @@ class OriginatorsAttributeEditor(EmailAddressAttributeEditor):
                 self).GetAttributeValue(item, pim.mail.MailStamp.fromAddress.name)
         return result
 
-class OutboundEmailAddressAEBlock(DetailSynchronizedAttributeEditorBlock):
+class OutboundEmailAddressAEBlock(MailAEBlock):
     def getWatchList(self):
         watchList = super(OutboundEmailAddressAEBlock, self).getWatchList()
         addressList = Mail.getCurrentMeEmailAddresses(self.itsView)

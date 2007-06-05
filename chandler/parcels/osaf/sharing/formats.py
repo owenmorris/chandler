@@ -890,7 +890,7 @@ class CloudXMLFormat(ImportExportFormat):
 
         # Handle unstamping
         stamps = pim.Stamp(item).stamp_types or []
-        for stamp in stamps:
+        for stamp in list(stamps):
             if stamp not in stampClasses:
                 stamp(item).remove()
 

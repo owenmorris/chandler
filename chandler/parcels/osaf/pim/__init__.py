@@ -49,6 +49,7 @@ from calendar.DateTimeUtil import (ampmNames, durationFormat, mediumDateFormat,
 from reminders import PendingReminderEntry, Reminder, Remindable
 from tasks import Task, TaskStamp
 from mail import EmailAddress, EmailComparator, MailStamp, MailPreferences, IMAPAccount, SMTPAccount
+from proxy import *
 from osaf.framework import password
 from application.Parcel import Reference
 from repository.item.Item import Item
@@ -188,7 +189,7 @@ class UnexpiredFilter(Item):
 
 
 class ToMeFilter(RecurrenceAwareFilter):
-    attrAndDefault = mail.MailStamp.toMe.name, True
+    attrAndDefault = mail.MailStamp.toMe.name, False
 
 class FromMeFilter(RecurrenceAwareFilter):
     attrAndDefault = mail.MailStamp.fromMe.name, False

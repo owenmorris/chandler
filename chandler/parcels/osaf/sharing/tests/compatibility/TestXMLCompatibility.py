@@ -314,7 +314,7 @@ class EventTestCase(SharingTestCase):
         # Make sure importing an Event didn't delete attributes
         # on MailStamp.
         mailMsg = pim.mail.MailStamp(eventItem)
-        self.failUnlessEqual(mailMsg.mimeContent, None)
+        mailMsg.add()
         self.failUnlessEqual(mailMsg.getAttachments(), [])
 
 

@@ -12,7 +12,6 @@
 #   See the License for the specific language governing permissions and
 #   limitations under the License.
 
-
 from application import schema
 from osaf.framework.blocks import *
 from osaf import pim
@@ -249,13 +248,15 @@ class TriageAttributeEditor(attributeEditors.IconAttributeEditor):
         # Determine what state this item is in. 
         value = item.triageStatus
         return value
-
+        
     def mapValueToIconState(self, value):
         return "Triage.%s" % value.name
     
     def advanceState(self, item, attributeName):
         oldValue = item.triageStatus
         newValue = pim.getNextTriageStatus(oldValue)
+        item = pim.proxy.CHANGE_THIS(item)
+        
         item.setTriageStatus(newValue, pin=True)
         item.resetAutoTriageOnDateChange()
 

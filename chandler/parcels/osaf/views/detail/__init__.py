@@ -42,6 +42,7 @@ from detail import (
     DetailBranchPointDelegate, 
     EmptyPanelBlock,
     HTMLDetailArea,
+    MailAEBlock,
     MailAreaBlock,
     MailMessageButtonBlock,
     PrivateSwitchButtonBlock, 

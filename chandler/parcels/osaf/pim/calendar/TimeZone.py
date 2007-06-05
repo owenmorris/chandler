@@ -11,7 +11,7 @@
 #   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 #   See the License for the specific language governing permissions and
 #   limitations under the License.
-
+from __future__ import with_statement
 
 import application.schema as schema
 from osaf import Preferences
@@ -499,13 +499,11 @@ def convertFloatingEvents(view, newTZ):
         # events still have a floating startTime, might as well put them in
         # the right timezone if they're changed to timed events
         if not sharing_ns.isShared(event):
-            event.changeNoModification(EventStamp.startTime.name,
-                                       event.startTime.replace(tzinfo=newTZ))
+            with event.noRecurrenceChanges():
+                event.startTime = event.startTime.replace(tzinfo=newTZ)
             for occurrence in event.occurrences or []:
                 ev = EventStamp(occurrence)
-                change = ev.changeNoModification
-                change(EventStamp.recurrenceID.name,
-                       ev.recurrenceID.replace(tzinfo=newTZ))
-                if ev.startTime.tzinfo == PyICU.ICUtzinfo.floating:
-                    change(EventStamp.startTime.name,
-                           ev.startTime.replace(tzinfo=newTZ))
+                with ev.noRecurrenceChanges():
+                    ev.recurrenceID = ev.recurrenceID.replace(tzinfo=newTZ)
+                    if ev.startTime.tzinfo == PyICU.ICUtzinfo.floating:
+                        ev.startTime = ev.startTime.replace(tzinfo=newTZ)

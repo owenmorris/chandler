@@ -18,6 +18,7 @@
    TimeTransparencyEnum
    @group Unused classes: Calendar, ModificationEnum, RecurrencePattern
 """
+from __future__ import with_statement
 
 __parcel__ = "osaf.pim.calendar"
 
@@ -443,9 +444,9 @@ class EventStamp(Stamp):
     @group Comparison Methods for Indexing: cmpStartTime,
     cmpEndTime, cmpRecurEnd
 
-    @group Semi-Private Methods: changeNoModification,
+    @group Semi-Private Methods: noRecurrenceChanges,
     cleanRule, _copyCollections, getEffectiveEndTime, getEffectiveStartTime,
-    getEndTime, getFirstInRule, InitOutgoingAttributes, isBetween, isProxy,
+    getEndTime, getFirstInRule, InitOutgoingAttributes, isBetween,
     moveCollections, moveRuleEndBefore, onEventChanged, removeFutureOccurrences,
     setEndTime, updateRecurrenceEnd, __init__
 
@@ -617,11 +618,34 @@ class EventStamp(Stamp):
             setattr(item, EventStamp.IGNORE_CHANGE_ATTR, True)
         return disable
         
-    def __enableRecurrenceChanges(self):
-        item = self.itsItem
-        delattr(item, EventStamp.IGNORE_CHANGE_ATTR)
-            
-                        
+    def noRecurrenceChanges(self):
+        """
+        For use in a Python 2.5 'with' statement. Usage:
+        
+        >>> with event.noRecurrenceChanges():
+        ...    # change event attributes without triggering
+        ...    # automatic THIS/THISANDFUTURE changes
+        
+        """
+        disable = self.__disableRecurrenceChanges()
+        
+        class NoModContextMgr(object):
+            def __enter__(self):
+                pass
+
+        result = NoModContextMgr()
+                
+        if disable:
+            def exit(exc_type, exc_val, exc_tb):
+                delattr(self.itsItem, EventStamp.IGNORE_CHANGE_ATTR)
+                return False
+        else:
+            def exit(exc_type, exc_val, exc_tb):
+                return False
+                
+        result.__exit__ = exit
+        return result
+        
 
     def InitOutgoingAttributes(self):
         """ Init any attributes on ourself that are appropriate for
@@ -650,11 +674,8 @@ class EventStamp(Stamp):
         """
         Init only the attributes specific to this mixin.
         """
-        disabled = self.__disableRecurrenceChanges()
-        try:
+        with self.noRecurrenceChanges():
             super(EventStamp, self).add()
-        finally:
-            if disabled: self.__enableRecurrenceChanges()
 
         # TBD - set participants to any existing "who"
         # participants are currently not implemented.
@@ -668,28 +689,21 @@ class EventStamp(Stamp):
         to the exclusion list, so the item doesn't reappear after unstamping.
 
         """
-        didDisable = self.__disableRecurrenceChanges()
-        try:
-            rruleset = self.rruleset
-            
-            if rruleset is not None:
-                del self.rruleset
-                del self.occurrenceFor
-                if getattr(rruleset, 'exdates', None) is None:
-                    rruleset.exdates=[]
-                rruleset.exdates.append(self.recurrenceID)
-        finally:
-            if didDisable:
-                self.__enableRecurrenceChanges()
-
-        # Delete any relative user reminders, as well as any
-        # triageStatus reminders
-        toDelete = list(r for r in self.itsItem.reminders
-                        if hasattr(r, 'delta'))
-              
-        for rem in toDelete:
-            logger.debug("Destroying obsolete %s on %s", rem)
-            rem.delete(recursive=True)
+        if not self.itsItem.isProxy:
+            if self.occurrenceFor is not None:
+                with self.noRecurrenceChanges():
+                    del self.occurrenceFor
+            elif self.rruleset is not None:
+                self.removeRecurrence()
+                
+            # Delete any relative user reminders, as well as any
+            # triageStatus reminders
+            toDelete = list(r for r in self.itsItem.reminders
+                            if hasattr(r, 'delta'))
+                  
+            for rem in toDelete:
+                logger.debug("Destroying obsolete %s on %s", rem)
+                rem.delete(recursive=True)
 
         super(EventStamp, self).remove()
 
@@ -1045,27 +1059,28 @@ class EventStamp(Stamp):
         else:
             self.__disableRecurrenceChanges()
 
-    def addStampToAll(self, stampClass):
+    def _changeAllStamps(self, change):
         master = self.getMaster()
-        stampClass(master).add()
-        for mod in master.modifications or []:
-            stampClass(mod).add()
+        for obj in itertools.chain([master], master.modifications):
+            change(obj)
+
+    def addStampToAll(self, stampClass):
+        def addIt(obj):
+            if not has_stamp(obj, stampClass):
+                stampClass(obj).add()
+        self._changeAllStamps(addIt)
 
     def removeStampFromAll(self, stampClass):
-        master = self.getMaster()
-        stampClass(master).remove()
-        for mod in master.modifications or []:
-            stampClass(mod).remove()
+        def removeIt(obj):
+            if has_stamp(obj, stampClass):
+                stampClass(obj).remove()
+        self._changeAllStamps(removeIt)
 
 
     def _restoreStamps(self, clonedEvent):
-        disabledChanges = clonedEvent.__disableRecurrenceChanges()
-        try:
+        with self.noRecurrenceChanges():
             for stampClass in Stamp(self).stamp_types:
                 stampClass(clonedEvent).add()
-        finally:
-            if disabledChanges:
-                clonedEvent.__enableRecurrenceChanges()
 
     def _createOccurrence(self, recurrenceID):
         """
@@ -1096,20 +1111,18 @@ class EventStamp(Stamp):
                 withInitialValues=False)
         
         event = EventStamp(item)
-        event.__disableRecurrenceChanges()
-        for key, value in values.iteritems():
-            setattr(item, key, value)
+        with event.noRecurrenceChanges():
+            for key, value in values.iteritems():
+                setattr(item, key, value)
 
-        # set the item's triageStatus explicitly, but don't create a
-        # modification
-        item.setTriageStatus(event.autoTriage())
+            # set the item's triageStatus explicitly, but don't create a
+            # modification
+            item.setTriageStatus(event.autoTriage())
 
-        # occurrences should all start with a local True value for
-        # doAutoTriageOnDateChange, regardless of what this was set to on the
-        # master
-        item.doAutoTriageOnDateChange = True
-
-        event.__enableRecurrenceChanges()
+            # occurrences should all start with a local True value for
+            # doAutoTriageOnDateChange, regardless of what this was set to on the
+            # master
+            item.doAutoTriageOnDateChange = True
 
         return event
 
@@ -1431,15 +1444,6 @@ class EventStamp(Stamp):
         """Do everything that should happen for any change call."""
         self.isGenerated = False
 
-    def changeNoModification(self, attr, value):
-        """Set _ignoreValueChanges flag, set the attribute, then unset flag."""
-        flagStart = self.__disableRecurrenceChanges()
-        try:
-            setattr(self.itsItem, attr, value)
-        finally:
-            if flagStart:
-                self.__enableRecurrenceChanges()
-
     def _safeDelete(self):
         """
         Handle the finicky order of attribute deletion for deleting individual
@@ -1482,14 +1486,9 @@ class EventStamp(Stamp):
         selfItem = self.itsItem
         
         for occurrence in itertools.imap(EventStamp, occurrences or []):
-            disabled = False
-            
-            try:
+            with occurrence.noRecurrenceChanges():
                 if occurrence.recurrenceID in rruleset:
                     if occurrence.occurrenceFor is not selfItem:
-                        
-                        disabled = occurrence.__disableRecurrenceChanges()
-                        
                         occurrence.occurrenceFor = selfItem
                         
                         if occurrence.modificationFor is not None:
@@ -1504,9 +1503,7 @@ class EventStamp(Stamp):
                                 (occurrence.isTriageOnlyModification() and
                                  occurrence.itsItem.doAutoTriageOnDateChange)):
                     occurrence._safeDelete()
-            finally:
-                if disabled:
-                    occurrence.__enableRecurrenceChanges()
+
         if not self.occurrences: # None or empty
             self.getFirstOccurrence()
 
@@ -1553,11 +1550,8 @@ class EventStamp(Stamp):
                 # change happens to this item, not just the master
                 for modattr, modvalue in self.itsItem.iterModifiedAttributes():
                     if attr == modattr:
-                        disabled = self.__disableRecurrenceChanges()
-                        try:
+                        with self.noRecurrenceChanges():
                             delattr(self.itsItem, attr)
-                        finally:
-                            if not disabled: self.__enableRecurrenceChanges()
                         break
 
             return first.changeThisAndFuture(attr, value)
@@ -1568,8 +1562,7 @@ class EventStamp(Stamp):
         
         #startChanging = attr in (EventStamp.startTime.name,
         #                         )
-        disabledSelf = self.__disableRecurrenceChanges()
-        try:
+        with self.noRecurrenceChanges():
             if attr == EventStamp.startTime.name:
                 startTimeDelta = (value.replace(tzinfo=None) -
                                   self.startTime.replace(tzinfo=None))
@@ -1602,18 +1595,15 @@ class EventStamp(Stamp):
                         occurrenceID = occurrence.recurrenceID
                         if occurrenceID >= recurrenceID:
                             occurrenceStart = occurrence.effectiveStartTime
-                            if (occurrenceID == occurrenceStart and
-                                occurrenceID.tzinfo == occurrenceStart.tzinfo):
-                                # don't change start time if its a startTime
-                                # modification
-                                occurrence.changeNoModification(
-                                    EventStamp.startTime.name,
-                                    changeStart(occurrence.startTime)
-                                )
-                            occurrence.changeNoModification(
-                                EventStamp.recurrenceID.name,
-                                changeRecurrenceID(occurrenceID)
-                            )
+                            with occurrence.noRecurrenceChanges():
+                                if (occurrenceID == occurrenceStart and
+                                    occurrenceID.tzinfo == occurrenceStart.tzinfo):
+                                    # don't change start time if its a startTime
+                                    # modification
+                                    occurrence.startTime = changeStart(
+                                                        occurrence.startTime)
+                                occurrence.recurrenceID = changeRecurrenceID(
+                                                                occurrenceID)
                 
             elif attr in (EventStamp.allDay.name, EventStamp.anyTime.name):
                 # if startTime changes (and an allDay/anyTime change changes
@@ -1637,10 +1627,10 @@ class EventStamp(Stamp):
     
                     for occurrence in itertools.imap(EventStamp,
                                                      first.occurrences or []):
-                        occurrence.changeNoModification(
-                                EventStamp.recurrenceID.name,
-                                datetime.combine(occurrence.startTime.date(),
-                                                 recurrenceTime))
+                        with occurrence.noRecurrenceChanges():
+                            occurrence.recurrenceID =  datetime.combine(
+                                                occurrence.startTime.date(),
+                                                recurrenceTime)
                     
             if attr is not None:
                 setattr(self.itsItem, attr, value)
@@ -1685,10 +1675,8 @@ class EventStamp(Stamp):
                 newMasterItem = first.itsItem.clone(None, None,
                                      ('collections', Stamp.stamp_types.name, 'reminders'))
                 newMaster = EventStamp(newMasterItem)
-
-                disabled = newMaster.__disableRecurrenceChanges()
                 
-                try:
+                with newMaster.noRecurrenceChanges():
                     first._restoreStamps(newMaster)
                 
                     newMaster.updateRecurrenceEnd()
@@ -1729,21 +1717,14 @@ class EventStamp(Stamp):
                     # that master doesn't go remove the occurrences itself.
                     master.moveRuleEndBefore(recurrenceID)
 
-                finally:
-                    if disabled: newMaster.__enableRecurrenceChanges()
-
             if not isFirst:
                 master._grabOccurrences(master.occurrences, None, True)
-            
-        finally:
-            if disabledSelf: self.__enableRecurrenceChanges()
             
     def changeAll(self, attr=None, value=None):
         master = self.getMaster()
         isStartTime = (attr == EventStamp.startTime.name)
         if attr is not None:
-            disabled = self.__disableRecurrenceChanges()
-            try:
+            with self.noRecurrenceChanges():
                 # For startTime, treat the changeAll as a request to
                 # change the delta of all events, so adjust startTime
                 # to be relative to the master.
@@ -1761,8 +1742,6 @@ class EventStamp(Stamp):
                     if (self.modificationFor is not None and
                         self.itsItem.hasLocalAttributeValue(attr)):
                         delattr(self.itsItem, attr)
-            finally:
-                if disabled: self.__enableRecurrenceChanges()
         master.changeThisAndFuture(attr, value)
 
     def moveCollections(self, fromEvent, toEvent):
@@ -1831,23 +1810,21 @@ class EventStamp(Stamp):
                 self.modificationFor = first.itsItem
                 self._makeGeneralChange()
                 # Need to copy over the master's stamps ... ew
-                disabled = self.__disableRecurrenceChanges()
+                with self.noRecurrenceChanges():
 
-                if not self.itsItem.hasLocalAttributeValue(Stamp.stamp_types.name):
-                    Stamp(self).stamp_types = set()
-                stamp_types = Stamp(first).stamp_types
-                if stamp_types is not None:
-                    for stamp in list(stamp_types):
-                        if not stamp in iter(Stamp(self).stamp_types):
-                            stamp(self).add()
-                stamp_types = Stamp(first).stamp_types
-                if stamp_types is not None:
-                    for stamp in list(Stamp(self).stamp_types):
-                        if not stamp in Stamp(first).stamp_types:
-                            stamp(self).remove()
-                self._copyCollections(first, self)
-                if disabled:
-                    self.__enableRecurrenceChanges()
+                    if not self.itsItem.hasLocalAttributeValue(Stamp.stamp_types.name):
+                        Stamp(self).stamp_types = set()
+                    stamp_types = Stamp(first).stamp_types
+                    if stamp_types is not None:
+                        for stamp in list(stamp_types):
+                            if not stamp in iter(Stamp(self).stamp_types):
+                                stamp(self).add()
+                    stamp_types = Stamp(first).stamp_types
+                    if stamp_types is not None:
+                        for stamp in list(Stamp(self).stamp_types):
+                            if not stamp in Stamp(first).stamp_types:
+                                stamp(self).remove()
+                    self._copyCollections(first, self)
 
                         
         if attr is not None:
@@ -1947,7 +1924,7 @@ class EventStamp(Stamp):
             else: # It's ongoing: now.
                 status = TriageEnum.now
         
-        from osaf.framework.blocks.Block import debugName
+        #from osaf.framework.blocks.Block import debugName
         #logger.debug("Autotriaging %s to %s as event", debugName(item), status)
         return status
 
@@ -2006,7 +1983,8 @@ class EventStamp(Stamp):
                 if occurrence.doAutoTriageOnDateChange:
                     event = EventStamp(occurrence)
                     status = event.autoTriage()
-                    event.changeNoModification('_triageStatus', status)
+                    with event.noRecurrenceChanges():
+                        event.itsItem._triageStatus = status
 
         firstFutureLater = self.getFirstFutureLater()
         lastPastDone = self.getLastPastDone()
@@ -2048,8 +2026,7 @@ class EventStamp(Stamp):
         # now just empty collections.  Are there circumstances
         # where plain occurrences *should* be in a collection?
         
-        flagStart = self.__disableRecurrenceChanges()
-        try:
+        with self.noRecurrenceChanges():
             self.itsItem.collections = []
             for attr in (Triageable._sectionTriageStatus.name,
                          Triageable._sectionTriageStatusChanged.name):
@@ -2057,9 +2034,6 @@ class EventStamp(Stamp):
                     delattr(self.itsItem, attr)
             self.isGenerated = True
             del self.modificationFor
-        finally:
-            if flagStart:
-                self.__enableRecurrenceChanges()
 
 
     @schema.observer(
@@ -2228,10 +2202,9 @@ class EventStamp(Stamp):
                 # A THIS modification to master, make sure all its
                 # local attributes make their way back over to the
                 # master
-                master.__disableRecurrenceChanges()
-                for attr, value in event.itsItem.iterModifiedAttributes():
-                    setattr(master.itsItem, attr, value)
-                master.__enableRecurrenceChanges()
+                with master.noRecurrenceChanges():
+                    for attr, value in event.itsItem.iterModifiedAttributes():
+                        setattr(master.itsItem, attr, value)
             
             event.__disableRecurrenceChanges()
             event.itsItem.delete(recursive=True)
@@ -2266,14 +2239,6 @@ class EventStamp(Stamp):
         if rruleset is not None:
             return rruleset.getCustomDescription()
         else: return ''
-
-    def isProxy(self):
-        """Is this a proxy of an event?
-
-        @rtype: C{bool}
-
-        """
-        return False
 
     def isAttributeModifiable(self, attribute):
         """Is this attribute modifiable?
@@ -2650,7 +2615,7 @@ def _makeReadonlyAccessor(attr):
     attrName = attr.name
     def fget(self):
         return getattr(self.inheritFrom, attr)
-    setattr(Occurrence, attrName, fget)
+    setattr(Occurrence, attrName, property(fget))
 
 _makeReadonlyAccessor(Note.icalUID)
 _makeReadonlyAccessor(EventStamp.rruleset)

@@ -1,0 +1,456 @@
+=============================
+The ``osaf.pim.proxy`` module
+=============================
+
+.. contents:: **Table of Contents**
+
+>>> from __future__ import with_statement
+>>> __parcel__ = 'osaf.pim.tests'
+>>> from application import schema
+>>> from repository.persistence.RepositoryView import NullRepositoryView
+>>> import osaf.pim as pim
+>>> from osaf.pim.proxy import *
+>>> from datetime import *
+>>> from PyICU import *
+>>> view = NullRepositoryView(verify=True)
+
+Overview
+========
+
+A ``UserChangeProxy`` is an object that can be used to proxy for an item,
+and buffer up changes until you (the developer) tell the proxy to push
+them to its item. It (or its subclass, ``RecurrenceProxy``) is used in
+a couple of cases in Chandler:
+
+  1. **Recurrence dialog:**: If a user makes a change to an occurrence
+     in a series of recurring events, the application usually has to
+     prompt as to whether that change should apply to the entire series,
+     just the selected occurrence, etc. A ``RecurrenceProxy`` object stores
+     the user's edits in this case, and is responsible for invoking the
+     correct code once the user decides. 
+  
+  2. **Edit state:** When the user explicitly changes a ``ContentItem`` in
+     Chandler, the application makes a change to the item's ``lastModified``,
+     ``lastModifiedBy`` and ``lastModification`` fields to reflect the edit.
+     This is currently implemented by a proxy object.
+
+
+Base proxy class: UserChangeProxy
+=================================
+
+Basics
+------
+
+To create a ``UserChangeProxy``, just pass in the item you want to its
+constructor:
+ 
+>>> item = pim.ContentItem(itsView=view, displayName=u"Hello")
+>>> itemProxy = UserChangeProxy(item)
+>>> print str(itemProxy)
+<UserChangeProxy at 0x... for Hello>
+
+You can retrieve the underlying object via the ``proxiedItem`` attribute:
+
+>>> itemProxy.proxiedItem
+<ContentItem ...>
+
+Note that there is an ``isProxy`` attribute defined on both ``ContentItem``
+and ``UserChangeProxy`` to help you figure out what's what:
+
+>>> itemProxy.isProxy
+True
+>>> item.isProxy
+False
+
+Several ``object`` methods have been implemented to make the proxy more
+transparent:
+
+>>> itemProxy.__class__
+<class 'osaf.pim.items.ContentItem'>
+
+Proxy instances are equal if their class and underlying item match:
+
+>>> UserChangeProxy(item) == UserChangeProxy(item)
+True
+>>> otherItem = pim.ContentItem(itsView=view)
+>>> UserChangeProxy(item) == UserChangeProxy(otherItem)
+False
+
+Repository attributes, like ``itsKind`` and ``itsUUID``, are forwarded to
+the underlying object:
+
+>>> itemProxy.itsUUID
+<UUID: ...>
+>>> itemProxy.itsUUID == item.itsUUID
+True
+>>> itemProxy.itsKind is item.itsKind
+True
+
+Setting attributes
+------------------
+
+The ``changes`` attribute tracks how many changes are pending on a proxy. It
+has a default value of ``None``:
+
+>>> itemProxy.changes
+
+Once you make a change to a proxy attribute
+
+>>> itemProxy.displayName = u"\u2022 Hey!"
+
+the underlying item's value stays the same, but the proxy has the new value:
+
+>>> item.displayName
+u'Hello'
+>>> itemProxy.displayName
+u'\u2022 Hey!'
+
+and it has been recorded in ``changes``:
+
+>>> len(itemProxy.changes)
+1
+
+To propagate the changes to the underlying item, call the proxy's
+``makeChanges()`` method:
+
+>>> itemProxy.makeChanges()
+1
+
+This returns the number of changes actually made, which is useful for
+subclasses, especially, for example, the edit state case above.
+
+Once this has been called, the proxy's ``changes`` is reset, and the change
+above propagates to the item:
+
+>>> itemProxy.changes
+>>> item.displayName
+u'\u2022 Hey!'
+
+The proxy is also clever enough not to queue simple value changes if they're
+identical:
+
+>>> itemProxy.displayName = u'\u2022 Hey!'
+>>> itemProxy.changes
+>>>
+
+Stamping and Annotations
+------------------------
+
+Proxies are aware of stamping (or annotation) classes. So, you can pass in
+an Annotation instance to the ``UserChangeProxy`` constructor:
+ 
+>>> note = pim.Note(itsView=view, displayName=u'Hi!')
+>>> class MyAnnotation(schema.Annotation):
+...     schema.kindInfo(annotates=pim.Note)
+...     count = schema.One(schema.Integer, defaultValue=3)
+...
+>>> __import__('__builtin__').MyAnnotation = MyAnnotation # @@@ gross hack
+>>> ann = MyAnnotation(UserChangeProxy(note))
+
+Because of the way ``Annotation`` classes behave (they change attributes
+on their underlying items), the returned value is actually an annotation
+of a proxy:
+
+>>> ann
+MyAnnotation(<UserChangeProxy at ... for <Note ...>>)
+>>> proxy = ann.itsItem
+>>> proxy.isProxy
+True
+>>> proxy.changes
+>>> ann.count
+3
+>>> ann.count = 5
+>>> proxy.changes
+[(..., 'set', '__builtin__.MyAnnotation.count', 5)]
+>>> MyAnnotation(proxy.proxiedItem).count
+3
+>>> proxy.makeChanges()
+1
+>>> ann.count == MyAnnotation(proxy.proxiedItem).count == 5
+True
+
+Similarly, you can proxy Stamps:
+
+>>> eventProxy = UserChangeProxy(pim.EventStamp(note))
+
+>>> eventProxy.itsItem
+<UserChangeProxy at ... for <Note ...>>
+>>> eventProxy == pim.EventStamp(UserChangeProxy(note))
+True
+
+The proxy will buffer changes to ``Stamp`` additions and removals:
+
+>>> eventProxy.add()
+>>> eventProxy.itsItem.changes
+[(..., 'addStamp', <class 'osaf.pim.calendar.Calendar.EventStamp'>)]
+>>> list(pim.Stamp(eventProxy).stamps)
+[EventStamp(<UserChangeProxy at ... for <Note ...>>)]
+>>> list(pim.Stamp(note).stamps)
+[]
+>>> eventProxy.itsItem.makeChanges()
+1
+>>> list(pim.Stamp(note).stamps)
+[EventStamp(<Note ...>)]
+>>> pim.mail.MailStamp(eventProxy).add()
+>>> eventProxy.remove()
+>>> list(pim.Stamp(eventProxy).stamps)
+[MailStamp(<UserChangeProxy at ... for <Note ...>>)]
+>>> list(pim.Stamp(note).stamps)
+[EventStamp(<Note ...>)]
+>>> eventProxy.itsItem.makeChanges()
+2
+>>> list(pim.Stamp(note).stamps)
+[MailStamp(<Note ...>)]
+
+
+Proxying ``None``
+-----------------
+
+Trying to instantiate a proxy on ``None``, or a deleted object, give you
+back ``None``:
+
+>>> UserChangeProxy(None)
+
+>>> item = pim.ContentItem(itsView=view, displayName=u"Hi")
+>>> item.delete()
+>>> item
+<Item (deleted): ...>
+>>> UserChangeProxy(item)
+
+
+
+
+Proxied method calls
+--------------------
+
+Calling methods on proxies is supported. For example:
+
+>>> class MyCleverNote(pim.Note):
+...     def trickySetName(self, displayName):
+...         self.displayName = displayName + u' (tricky)'
+...
+>>> cleverNote = MyCleverNote(itsView=view)
+>>> proxy = UserChangeProxy(cleverNote)
+>>> proxy.trickySetName(u'Yuck')
+>>> proxy.displayName
+u'Yuck (tricky)'
+>>> cleverNote.displayName
+u''
+>>> proxy.changes
+[(..., 'set', 'displayName', u'Yuck (tricky)')]
+>>> proxy.makeChanges() == 1
+True
+>>> proxy.displayName == cleverNote.displayName == u'Yuck (tricky)'
+True
+
+Calculated attributes
+---------------------
+
+As an example of changing a ``schema.Calculated`` attribute, let's look at the
+``userReminderTime`` attribute:
+
+>>> item = pim.ContentItem(itsView=view)
+>>> itemProxy = UserChangeProxy(item)
+>>> itemProxy.userReminderTime = datetime(2006, 11, 14, 12,
+...                                       tzinfo=ICUtzinfo.default)
+>>> item.userReminderTime
+>>> itemProxy.userReminderTime
+datetime.datetime(2006, 11, 14, 12, 0, ...)
+>>> itemProxy.makeChanges()
+1
+>>> item.userReminderTime
+datetime.datetime(2006, 11, 14, 12, 0, ...)
+>>> itemProxy.userReminderTime
+datetime.datetime(2006, 11, 14, 12, 0, ...)
+
+Changing reflists
+-----------------
+
+>>> reminder = pim.Reminder(
+...               itsView=view,
+...               absoluteTime=datetime(2002, 11, 5, 17,
+...                                     tzinfo=ICUtzinfo.default)
+...            )
+>>> itemProxy.reminders = [reminder]
+>>> reminder.reminderItem
+>>> itemProxy.makeChanges()
+1
+>>> reminder.reminderItem
+<ContentItem ...>
+>>> item = pim.ContentItem(itsView=view)
+>>> itemProxy = UserChangeProxy(item)
+>>> itemProxy.reminders = []
+>>> reminder = pim.Reminder(
+...               itsView=view,
+...               absoluteTime=datetime(2009, 1, 14, 9, 30,
+...                                     tzinfo=ICUtzinfo.default)
+...            )
+>>> itemProxy.reminders.add(reminder)
+>>> list(itemProxy.reminders)
+[<Reminder ...>]
+
+
+Recurrence
+==========
+
+A ``RecurrenceProxy`` works just like the above, but it supports a
+``changing`` field that tells it how to make changes to recurring events.
+
+If you make a change to an item that's not a recurring event, the proxy
+behaves just like a normal item.
+
+>>> note = pim.Note(itsView=view, displayName=u'Not recurring ... yet')
+>>> rProxy = RecurrenceProxy(note)
+>>> rProxy.displayName = u"Don't go changing"
+>>> note.displayName
+u"Don't go changing"
+>>> rProxy.changes
+>>> rProxy.displayName
+u"Don't go changing"
+>>> del rProxy.displayName
+>>> rProxy.displayName
+u''
+>>> note.displayName
+u''
+
+>>> master = pim.EventStamp(note)
+>>> master.add()
+>>> eventProxy = pim.EventStamp(RecurrenceProxy(note))
+
+The same works for ``eventProxy`` above, since it doesn't have recurrence yet:
+
+>>> eventProxy.itsItem
+<RecurrenceProxy at ... for <Note ...>>
+>>> eventProxy.summary = u"Very important event"
+>>> master.summary
+u'Very important event'
+>>> eventProxy.itsItem.changes
+>>>
+
+Once the event acquires recurrence, though, changes will be deferred:
+
+>>> from osaf.pim.calendar.Recurrence import *
+>>> master.rruleset = RecurrenceRuleSet(itsView=view, rrules=[
+...                                RecurrenceRule(itsView=view, freq='daily')
+...                            ])
+>>> eventProxy.summary = u"Changed summary"
+>>> master.summary
+u'Very important event'
+>>> eventProxy.summary
+u'Changed summary'
+>>> eventProxy.itsItem.changes
+[(..., 'set', 'displayName', u'Changed summary')]
+
+The same behaviour works for individual occurrences in the series.
+
+>>> second = master.getFirstOccurrence().getNextOccurrence()
+>>> proxiedSecond = RecurrenceProxy(second)
+>>> proxiedSecond.allDay = True
+>>> second.allDay
+False
+>>> proxiedSecond.allDay
+True
+>>> proxiedSecond.itsItem.changes
+[(..., 'set', 'osaf.pim.calendar.EventStamp.allDay', True)]
+
+You can cancel a proxy's changes with the ``cancel`` method:
+
+>>> proxiedSecond.itsItem.cancel()
+>>> proxiedSecond.allDay
+False
+>>> proxiedSecond.itsItem.changes
+>>>
+
+Types of recurring change
+-------------------------
+The ``changing`` field of a ``RecurrenceProxy`` specifies what kind of change
+the proxy should make for recurring events. It takes on one of several values:
+
+>>> CHANGE_ALL
+<class 'osaf.pim.proxy.CHANGE_ALL'>
+>>> CHANGE_FUTURE
+<class 'osaf.pim.proxy.CHANGE_FUTURE'>
+>>> CHANGE_THIS
+<class 'osaf.pim.proxy.CHANGE_THIS'>
+
+By setting the ``changing`` attribute of a proxy, you can make a proxy that will
+automatically make the corresponding type of change. For example:
+
+>>> proxiedSecond.itsItem.changing = CHANGE_ALL
+>>> proxiedSecond.allDay = True
+>>> proxiedSecond.allDay
+True
+>>> proxiedSecond.getMaster().allDay
+True
+
+>>> proxiedSecond.itsItem.changing = CHANGE_FUTURE
+>>> pim.TaskStamp(proxiedSecond).add()
+>>> pim.has_stamp(proxiedSecond, pim.TaskStamp)
+True
+>>> pim.has_stamp(second, pim.TaskStamp)
+True
+>>> pim.has_stamp(master, pim.TaskStamp)
+False
+
+There is a handy shorthand for making a certain type of change on a recurring event:
+
+>>> changeAllItem = CHANGE_ALL(master.itsItem)
+>>> setattr(changeAllItem, pim.EventStamp.duration.name, timedelta(hours=20))
+>>> master.getFirstOccurrence().duration
+datetime.timedelta(0, 72000)
+
+These changes are aware of stamping/annotations, viz:
+
+>>> masterProxy = CHANGE_THIS(proxiedSecond.getMaster()) # pass in an EventStamp
+>>> masterProxy.summary = u'Hi'
+>>> proxiedSecond.getMaster().summary # master's summary is unchanged
+u'Very important event'
+>>> proxiedSecond.getMaster().getFirstOccurrence().summary
+u'Hi'
+
+Subclass Hooks
+==============
+
+The main hook method supported by ``UserChangeProxy`` and ``RecurrenceProxy``
+is the ``appendChange`` method. By overriding, and choosing whether or not
+to call ``super``, you can veto or customize changes, customize them, or
+(as in the case of Chandler, ask the user for confirmation).
+
+>>> class MyProxy(RecurrenceProxy):
+...    def appendChange(self, *change):
+...        print "Got change:", change
+...        if change[2] == 'displayName':
+...            return # Never change displayName
+...        else:
+...            super(MyProxy, self).appendChange(*change)
+>>> proxiedEvent = MyProxy(master.getFirstOccurrence())
+>>> proxiedEvent.summary = u'This will not happen'
+Got change: (..., 'set', 'displayName', u'This will not happen')
+>>> proxiedEvent.anyTime = False
+Got change: (..., 'set', 'osaf.pim.calendar.EventStamp.anyTime', False)
+>>> pim.TaskStamp(proxiedEvent).add()
+Got change: (..., 'addStamp', <class 'osaf.pim.tasks.TaskStamp'>)
+>>> changes = proxiedEvent.itsItem.changes
+>>> len(changes)
+2
+>>> changes[0]
+(..., 'set', 'osaf.pim.calendar.EventStamp.anyTime', False)
+>>> changes[1]
+(..., 'addStamp', <class 'osaf.pim.tasks.TaskStamp'>)
+
+In general, the ``change`` ``tuple`` will consist of:
+
+- An internal implementation object, which should be ignored
+- An operation on the attribute in question: currently one of 'set', 'delete',
+  'add', 'remove' 'addStamp' or 'removeStamp'.
+  
+  
+The remaining arguments are operation-dependent:
+
+- For 'set' (simple attribute setting), the attribute name and new value.
+- For 'delete' (deleting an attribute), the attribute name.
+- For 'addStamp', the stamp class being added or removed.
+- For 'add' or 'remove' (changing a reflist), the item being added or removed.
+
+
+

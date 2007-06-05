@@ -15,7 +15,7 @@
 from application import schema
 from items import ContentItem
 from collections import ListCollection
-
+from chandlerdb.util.c import Empty
 
 __parcel__ = 'osaf.pim'
 
@@ -62,6 +62,7 @@ class StampClass(schema.AnnotationClass):
             if isinstance(ob,schema.Descriptor) and hasattr(ob,'initialValue'):
                 iv.append((name, ob.initialValue))
                 del ob.initialValue
+
         super(StampClass,cls).__init__(name, bases, cdict)
 
         cls.__all_ivs__, cls.__setup__ = schema._initializers_for(cls)
@@ -87,7 +88,7 @@ class Stamp(schema.Annotation):
      # should be Note? or even Item? Or leave it up to subclasses?
     schema.kindInfo(annotates=ContentItem)
     
-    stamp_types = schema.Many(schema.Class, defaultValue=None)
+    stamp_types = schema.Many(schema.Class, defaultValue=Empty)
 
     __use_collection__ = False
     
@@ -110,69 +111,61 @@ class Stamp(schema.Annotation):
 
     @property
     def stamps(self):
-        types = self.stamp_types
-        try:
-            types = iter(types)
-        except TypeError:
-            pass
-        else:
-            for t in types:
-                yield t(self)
+        for t in self.stamp_types:
+            yield t(self)
             
     def add(self):
         stampClass = self.__class__
-        new_stamp_types = set([stampClass])
-        if self.stamp_types is not None:
+        if self.stamp_types is Empty:
+            self.stamp_types = set([stampClass])
+        else:
             if stampClass in self.stamp_types:
                 raise StampAlreadyPresentError, \
                     "Item %r already has stamp %r" % (self.itsItem, self)
-                    
-            new_stamp_types = new_stamp_types.union(self.stamp_types)
-        
-        for attr, callback in stampClass.__all_ivs__:
-            if not hasattr(self, attr):
-                setattr(self, attr, callback(self))
-
-        for cls in stampClass.__mro__:
-            # Initialize values for annotation attributes
-            for attr, val in getattr(cls,'__initialValues__',()):
-                if not hasattr(self, attr):
-                    setattr(self, attr, val)
+            self.stamp_types.add(stampClass)
             
-        if self.__use_collection__:
-            stamped = schema.itemFor(stampClass,
-                                     self.itsItem.itsView).stampedItems
-            stamped.add(self.itsItem.getMembershipItem())
-
-        self.stamp_types = new_stamp_types
+        if not self.itsItem.isProxy:
+        
+            for attr, callback in stampClass.__all_ivs__:
+                if not hasattr(self, attr):
+                    setattr(self, attr, callback(self))
+            
+            for cls in stampClass.__mro__:
+                # Initialize values for annotation attributes
+                for attr, val in getattr(cls,'__initialValues__',()):
+                    if not hasattr(self, attr):
+                        setattr(self, attr, val)
+            
+            if self.__use_collection__:
+                stamped = schema.itemFor(stampClass,
+                                         self.itsItem.itsView).stampedItems
+                stamped.add(self.itsItem.getMembershipItem())
 
     def remove(self):
-        new_stamp_types = set(self.stamp_types)
         try:
-            new_stamp_types.remove(self.__class__)
+            self.stamp_types.remove(self.__class__)
         except KeyError:
             raise StampNotPresentError, \
                   "Item %r doesn't have stamp %r" % (self.itsItem, self)
         
-        item = self.itsItem.getMembershipItem()
-        
-        # This is gross, and was in the old stamping code.
-        # Some items, like Mail messages, end up in the
-        # all collection by virtue of their stamp. So, we
-        # explicitly re-add the item to all after unstamping
-        # if necessary.
-        all = schema.ns("osaf.pim", item.itsView).allCollection
-        inAllBeforeStamp = item in all
-
-        if self.__use_collection__:
-            stamped = schema.itemFor(self.__class__,
-                                     self.itsItem.itsView).stampedItems
-            stamped.remove(item)
-
-        self.stamp_types = new_stamp_types
-        
-        if inAllBeforeStamp and not item in all:
-            all.add(item)
+        if not self.itsItem.isProxy:
+            item = self.itsItem.getMembershipItem()
+            
+            # This is gross, and was in the old stamping code.
+            # Some items, like Mail messages, end up in the
+            # all collection by virtue of their stamp. So, we
+            # explicitly re-add the item to all after unstamping
+            # if necessary.
+            all = schema.ns("osaf.pim", item.itsView).allCollection
+            inAllBeforeStamp = item in all
+    
+            if self.__use_collection__:
+                stamped = schema.itemFor(self.__class__,
+                                         self.itsItem.itsView).stampedItems
+                stamped.remove(item)
+    
+            if inAllBeforeStamp and not item in all:
+                all.add(item)
 
     def isAttributeModifiable(self, attribute):
         # A default implementation which sub-classes can override if necessary

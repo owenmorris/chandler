@@ -305,12 +305,16 @@ class Block(schema.Item):
         self.contentsCollection = collection
         self.contents = item
         self.watchForChanges()
+        
+    proxyFactory = staticmethod(getProxiedItem)
 
     def getProxiedContents(self):
         """
-        Get our 'contents', wrapped in a proxy if appropriate.
+        Get our 'contents', wrapped in a proxy if appropriate. Override
+        proxyFactory (a staticmethod) if you want to customize the proxy,
+        for example to force an ALL change for recurring events.
         """
-        return getProxiedItem(getattr(self, 'contents', None))
+        return self.proxyFactory(getattr(self, 'contents', None))
 
     def render (self):
         method = getattr (type (self), "instantiateWidget", None)

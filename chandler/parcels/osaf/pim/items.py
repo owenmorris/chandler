@@ -71,6 +71,8 @@ class ContentItem(Triageable):
      - a Contact -- 'Terry Smith'
      - a Task -- 'mail 1040 to IRS'
     """
+    isProxy = False
+    
     displayName = schema.One(schema.Text,
         defaultValue = u"",
         indexed=True)

@@ -282,7 +282,8 @@ class RecurringEventTest(testcase.SingleRepositoryTestCase):
 
         evtaskmod = calmod.getNextOccurrence()
 
-        TaskStamp(evtaskmod).add()
+        # Add the task stamp to just THIS event
+        TaskStamp(CHANGE_THIS(evtaskmod)).add()
 
         # changes to an event should, by default, create a THIS modification
         self.assertEqual(EventStamp(evtaskmod.modificationFor), self.event)
@@ -653,14 +654,14 @@ class RecurringEventTest(testcase.SingleRepositoryTestCase):
 
 
     def testProxy(self):
-        self.failIf(self.event.isProxy())
+        self.failIf(self.event.itsItem.isProxy)
 
         proxy = getProxy('test', self.event.itsItem)
         stampedProxy = EventStamp(proxy)
         proxy.dialogUp = True # don't try to create a dialog in a test
-        self.failUnless(proxy.isProxy())
+        self.failUnless(proxy.isProxy)
         self.assertEqual(proxy, self.event.itsItem)
-        self.assertEqual(proxy.currentlyModifying, None)
+        self.assertEqual(proxy.changing, None)
         self.failUnless(proxy is getProxy('test', proxy))
 
         stampedProxy.rruleset = self._createRuleSetItem('weekly')
