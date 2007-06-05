@@ -135,6 +135,12 @@ int APIENTRY WinMain (HINSTANCE hInstance,
     _putenv(_T("PATH=") + pathToExe);
 
     /*
+     * CHANDLERHOME must be set because otherwise Chandler won't be
+     * able to install plugins.
+     */
+    _putenv(_T("CHANDLERHOME=") + chandlerHome);
+
+    /*
      * Current directory is used in the search path for dlls pre XP SP1
      */
     success = SetCurrentDirectory(pathToExe);
