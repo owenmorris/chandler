@@ -107,6 +107,8 @@ def ProcessEvent (theClass, properties , attributes):
         newFocusWindow = ProcessEvent.newFocusWindow
         if newFocusWindow is not None:
             focusWindow = wx.Window_FindFocus()
+            if hasattr (focusWindow, "blockItem"):
+                focusWindow = focusWindow.blockItem.widget
             
             if wx.Platform != "__WXMAC__":
                 # On platforms other than mac the focus window is a wx.TextCtrl
