@@ -12,6 +12,7 @@
 #   See the License for the specific language governing permissions and
 #   limitations under the License.
 
+import wx, logging
 
 from datetime import timedelta
 from application import schema
@@ -21,17 +22,18 @@ from osaf import messages, pim
 from osaf.framework.blocks import Block
 from osaf.usercollections import UserCollection
 from dialogs import LicenseTask, promptLicense
-import wx
 
 import evdb, EVDBDialog
 
 _ = MessageFactory("Chandler-EVDBPlugin")
+logger = logging.getLogger(__name__)
+
 
 class AddEVDBCollectionEvent(Block.AddToSidebarEvent):
     """
     An event used to add a new EVDBCollection to the sidebar.
     """
-    def onNewItem (self):
+    def onNewItem(self):
         keywords = EVDBDialog.GetSearchDictFromDialog()
         
         result = None
@@ -43,6 +45,7 @@ class AddEVDBCollectionEvent(Block.AddToSidebarEvent):
                 if promptLicense():
                     continue
             except Exception, e:
+                logger.exception("An error occurred while fetching events from EVDB")
                 wx.MessageBox (_(u"An error occurred while fetching events from EVDB:\n%(error)s\n\nSee chandler.log for details.") % {'error': e},
                                _(u"EVDB Search"),
                                parent=wx.GetApp().mainFrame)
@@ -50,9 +53,9 @@ class AddEVDBCollectionEvent(Block.AddToSidebarEvent):
                 if len(list(result)) == 0:
                     result.delete()
                     result = None
-                    wx.MessageBox (_(u"No matching events were found."),
-                                   _(u"EVDB Search"),
-                                   parent=wx.GetApp().mainFrame)
+                    wx.MessageBox(_(u"No matching events were found."),
+                                  _(u"EVDB Search"),
+                                  parent=wx.GetApp().mainFrame)
             return result
 
 

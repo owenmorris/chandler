@@ -30,7 +30,8 @@ from repository.item.Item import MissingClass
 logger = logging.getLogger(__name__)
 _ = MessageFactory("Chandler-EVDBPlugin")
 
-APP_KEY = None
+# key for 'chandlerproject' account
+APP_KEY = "c986tmdXcBqqxXNT"
 def setLicense(api_key):
     """set api key"""
     global APP_KEY

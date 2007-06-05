@@ -1328,7 +1328,7 @@ class SimpleHTTPConduit(LinkableConduit, ManifestEngineMixin, HTTPMixin):
     Useful for get-only subscriptions of remote .ics files
     """
 
-    lastModified = schema.One(schema.Text, initialValue = '')
+    lastModifiedHeader = schema.One(schema.Text, initialValue = '')
 
     def _get(self, contentView, resourceList, activity=None):
 
@@ -1347,9 +1347,9 @@ class SimpleHTTPConduit(LinkableConduit, ManifestEngineMixin, HTTPMixin):
         self.connect()
         logger.info("Starting GET of %s" % (location))
         extraHeaders = { }
-        if self.lastModified:
-            extraHeaders['If-Modified-Since'] = self.lastModified
-            logger.info("...last modified: %s" % self.lastModified)
+        if self.lastModifiedHeader:
+            extraHeaders['If-Modified-Since'] = self.lastModifiedHeader
+            logger.info("...last modified: %s" % self.lastModifiedHeader)
         if self.ticket:
             extraHeaders['Ticket'] = self.ticket
 
@@ -1400,11 +1400,11 @@ class SimpleHTTPConduit(LinkableConduit, ManifestEngineMixin, HTTPMixin):
                 text.encode('utf8', 'replace'))
             raise
 
-        lastModified = resp.headers.getHeader('Last-Modified')
-        if lastModified:
-            self.lastModified = lastModified[-1]
+        lastModifiedHeader = resp.headers.getHeader('Last-Modified')
+        if lastModifiedHeader:
+            self.lastModifiedHeader = lastModifiedHeader[-1]
 
-        logger.info("...imported, new last modified: %s" % self.lastModified)
+        logger.info("...imported, new last modified: %s" % self.lastModifiedHeader)
 
         return stats
 
