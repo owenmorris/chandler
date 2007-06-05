@@ -303,9 +303,8 @@ class RecordSetConduit(conduits.BaseConduit):
                     changedUuid)
                 continue
 
-            doLog("Locally modified item: %s", item.itsUUID)
-
             alias = translator.getAliasForItem(item)
+            doLog("Locally modified item: %s / alias: %s", item.itsUUID, alias)
             localItems.add(alias)
             uuid = item.itsUUID.str16()
             if not self.hasState(alias):
