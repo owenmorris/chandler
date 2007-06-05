@@ -1372,9 +1372,9 @@ def CheckIfUpgraded(profileDir, repoDir, createRepo):
     upgraded    = False
     profileBase = os.path.dirname(os.path.dirname(profileDir))
 
-    if os.path.isdir(profileDir):
-        if os.path.isdir(repoDir) and createRepo:
-            upgraded = True
+    #if os.path.isdir(profileDir):
+    #    if os.path.isdir(repoDir) and createRepo:
+    #        upgraded = True
 
     return upgraded
 
