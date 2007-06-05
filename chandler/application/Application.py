@@ -1361,27 +1361,19 @@ def CheckIfUpgraded(profileDir, repoDir, createRepo):
     Check to see if Chandler is starting for the first time.
     If it is and we can locate an older Chandler's repository, prompt the user to check
     if they want to backup their previous data
-    
+
+    The profile directory should always exist as it's created before this call
+
     The following will trigger an upgrade warning
-        If the profile dir and repository directory exists but --create present
-        If the profile dir exists but the repository is not found
-        Either of the above and there are more than zero profile version directories present
+        If the repository directory exists but --create present
     """
     import glob
 
     upgraded    = False
     profileBase = os.path.dirname(os.path.dirname(profileDir))
 
-    dirlist = glob.glob(os.path.join(profileBase, '*.chex'))
-
     if os.path.isdir(profileDir):
-        if os.path.isdir(repoDir):
-            if len(dirlist) > 0 and createRepo:
-                upgraded = True
-        else:
-            upgraded = True
-    else:
-        if len(dirlist) > 0:
+        if os.path.isdir(repoDir) and createRepo:
             upgraded = True
 
     return upgraded
