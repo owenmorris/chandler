@@ -571,24 +571,10 @@ class RecordSetConduit(conduits.BaseConduit):
                 self.removeState(alias)
 
 
-        statesToRemove = set()
-
-        """
-        for alias, rs in toSend.iteritems():
-            for record in rs.exclusions:
-                if isinstance(record, model.ItemRecord):
-                    # We're about to send a deletion of an ItemRecord, but
-                    # we need to turn this into a recordset deletion
-                    statesToRemove.add(alias)
-                    if send:
-                        logger.debug("Converting ItemRecord deletion into recordset deletion for: %s", alias)
-                        toSend[alias] = None
-                    break
-        """
-
         # For each item that was in the collection before but is no longer,
         # remove its state; if sending, add an empty recordset to toSend
         # TODO: Optimize by removing item loading
+        statesToRemove = set()
         for state in self.share.states:
             alias = self.share.states.getAlias(state)
             uuid = translator.getUUIDForAlias(alias)
