@@ -27,21 +27,28 @@ recorded_scripts_dir = os.path.abspath(os.path.join(
                                                 os.path.pardir, 
                                                 'recorded_scripts'))
 
-test_callables = {}
-sys.path.insert(0, recorded_scripts_dir)
-                                                
-for filename in os.listdir(recorded_scripts_dir):
-    if filename.endswith('.py') and not filename.startswith('.'):
-        (filename, extension) = os.path.splitext (filename)
-        test_module = __import__(filename)
 
-        # Check for platform exclusions
-        if (not hasattr(test_module, '_platform_exclusions_') or
-                (sys.platform not in test_module._platform_exclusions_ and
-                'all' not in test_module._platform_exclusions_)):
-            test_callables[filename] = getattr(test_module, 'run')
 
-sys.path.pop(0)
+def get_test_callables(observe_exclusions=True):
+    test_callables = {}       
+    sys.path.insert(0, recorded_scripts_dir)                     
+    for filename in os.listdir(recorded_scripts_dir):
+        if filename.endswith('.py') and not filename.startswith('.'):
+            (filename, extension) = os.path.splitext (filename)
+            test_module = __import__(filename)
+
+            # Check for platform exclusions
+            if observe_exclusions is True:
+                if (not hasattr(test_module, '_platform_exclusions_') or
+                        (sys.platform not in test_module._platform_exclusions_ and
+                        'all' not in test_module._platform_exclusions_)):
+                    test_callables[filename] = getattr(test_module, 'run')
+    
+    sys.path.pop(0)
+    return test_callables
+
+test_callables = get_test_callables()
+
 
 def run_test_by_name(name):
     logger.info('Starting Test:: %s' % name)
@@ -88,7 +95,7 @@ def execute_frame(option_value):
         print '#TINDERBOX# Status = %s' % result
         
         
-        # Exit in a way that shouldn't cause any failures not to be logged.
+        # Exit in a way that shouldn't cause any failures not to b  e logged.
         if result == "FAILED":
             sys.exit(1)
         else:
