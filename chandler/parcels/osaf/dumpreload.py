@@ -212,8 +212,8 @@ def reload(rv, filename, translator=sharing.DumpTranslator,
         prefs = schema.ns("osaf.framework.MasterPassword",
                           rv).masterPasswordPrefs
         if prefs.masterPassword:
-            wx.MessageBox (_(u'You will need to supply the master password that was used to protect the account passwords in the dump file.'),
-                           _(u'Settings Master Password'),
+            wx.MessageBox (_(u'You will need to supply the master password that was used to protect the account passwords in the file.'),
+                           _(u'Protect Passwords'),
                            parent=wx.GetApp().mainFrame)
         
         dummy = schema.ns("osaf.framework.password",

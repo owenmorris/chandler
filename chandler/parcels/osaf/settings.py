@@ -645,7 +645,7 @@ def restoreMasterPassword(rv, cfg, testmode, oldMaster, newMaster):
                 if not testmode:
                     if prefs.masterPassword:
                         wx.MessageBox(_(u'You will need to supply the master password that was used to protect the account passwords in the settings file.'),
-                                      _(u'Settings Master Password'),
+                                      _(u'Protect Passwords'),
                                       parent = wx.GetApp().mainFrame)                    
                     while True:
                         try:
