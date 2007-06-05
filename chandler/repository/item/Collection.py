@@ -70,8 +70,20 @@ class Collection(Item):
         return len(getattr(self, self.__collection__))
 
     def __nonzero__(self):
+        """
+        A Collection item is considered C{False} if it is empty.
+        """
 
-        return True
+        set = getattr(self, self.__collection__)
+        index = set._anIndex()
+
+        if index is not None:
+            return True if index else False
+
+        for i in set.iterkeys():
+            return True
+
+        return False
 
     def _inspect(self, indent=0):
 

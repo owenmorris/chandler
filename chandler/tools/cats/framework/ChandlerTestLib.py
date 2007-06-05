@@ -900,7 +900,7 @@ class UITestItem(object):
             col = App_ns.item_named(pim.ContentCollection, collectionName)
             if timeInfo:
                 self.logger.startAction("Give a collection")
-            if not col:
+            if col is None:
                 self.logger.report(False, name="(On collection search)")
                 if timeInfo:
                     self.logger.endAction(True)
@@ -1359,7 +1359,7 @@ class UITestItem(object):
                 col = chandler_collections[collectionName]
             else:
                 col = App_ns.item_named(pim.ContentCollection, collectionName)
-            if col:
+            if col is not None:
                 if self.item in col:
                     value = True
                     description = "item named %s is in %s" % (self.item.displayName, collectionName)
