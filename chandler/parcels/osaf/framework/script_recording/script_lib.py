@@ -108,6 +108,19 @@ def ProcessEvent (theClass, properties , attributes):
         if newFocusWindow is not None:
             focusWindow = wx.Window_FindFocus()
             
+            if wx.Platform != "__WXMAC__":
+                # On platforms other than mac the focus window is a wx.TextCtrl
+                # whose parent is the wx.SearchCtrl. Go dig out the toolbar item
+                # corresponding to the wx.SearchCtrl.
+                parentWidget = focusWindow.GetParent()
+                if isinstance (parentWidget, wx.SearchCtrl):
+                    focusWindow = parentWidget
+
+            # Rarely, a block has more than one widget associated with it, e.g. a toolBarItem
+            # with a wx.SearchCtrl. If we get the widget associated with out block, we'll always
+            # get the same widget in the case is case of multiple widgets per block.s
+            focusWindow = focusWindow.blockItem.widget
+
             # On Macintosh there is a setting under SystemPreferences>Keyboar&Mouse>KeyboardShortcuts
             # neare the bottom of the page titled "Full Keyboard Access" that defaults to
             # not letting you set the focus to certain controls, e.g. CheckBoxes. So we
