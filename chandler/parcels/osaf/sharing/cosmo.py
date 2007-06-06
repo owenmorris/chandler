@@ -388,7 +388,7 @@ class CosmoConduit(recordset_conduit.DiffRecordSetConduit, conduits.HTTPMixin):
         else:
             f = self._getSettings
 
-        (host, port, path, username, password, useSSL) = f()
+        (host, port, path, username, password, useSSL) = f(withPassword=False)
 
         if useSSL:
             scheme = u"https"
@@ -419,17 +419,20 @@ class CosmoConduit(recordset_conduit.DiffRecordSetConduit, conduits.HTTPMixin):
 
         return url
 
-    def _getSettings(self):
+    def _getSettings(self, withPassword=True):
+        password = None
         if self.account is None:
-            password = getattr(self, "password", None)
-            if password:
-                password = waitForDeferred(password.decryptPassword())
+            if withPassword:
+                password = getattr(self, "password", None)
+                if password:
+                    password = waitForDeferred(password.decryptPassword())
             return (self.host, self.port, self.sharePath.strip("/"),
                     self.username, password, self.useSSL)
         else:
-            password = getattr(self.account, "password", None)
-            if password:
-                password = waitForDeferred(password.decryptPassword())
+            if withPassword:
+                password = getattr(self.account, "password", None)
+                if password:
+                    password = waitForDeferred(password.decryptPassword())
             path = self.account.path.strip("/") + "/" + self.account.pimPath
             return (self.account.host, self.account.port,
                     path.strip("/"),
@@ -444,7 +447,7 @@ class CosmoConduit(recordset_conduit.DiffRecordSetConduit, conduits.HTTPMixin):
         Return the morsecode path of the share
         """
 
-        path = self._getMorsecodeSettings()[2]
+        path = self._getMorsecodeSettings(withPassword=False)[2]
         if path:
             path = "/" + path
         if self.shareName:
@@ -453,17 +456,20 @@ class CosmoConduit(recordset_conduit.DiffRecordSetConduit, conduits.HTTPMixin):
         return path
 
 
-    def _getMorsecodeSettings(self):
+    def _getMorsecodeSettings(self, withPassword=True):
+        password = None
         if self.account is None:
-            password = getattr(self, "password", None)
-            if password:
-                password = waitForDeferred(password.decryptPassword())
+            if withPassword:
+                password = getattr(self, "password", None)
+                if password:
+                    password = waitForDeferred(password.decryptPassword())
             return (self.host, self.port, self.morsecodePath.strip("/"),
                     self.username, password, self.useSSL)
         else:
-            password = getattr(self.account, "password", None)
-            if password:
-                password = waitForDeferred(password.decryptPassword())
+            if withPassword:
+                password = getattr(self.account, "password", None)
+                if password:
+                    password = waitForDeferred(password.decryptPassword())
             path = self.account.path.strip("/") + "/" + self.account.morsecodePath
             return (self.account.host, self.account.port,
                     path.strip("/"),

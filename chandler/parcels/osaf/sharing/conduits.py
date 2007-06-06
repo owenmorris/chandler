@@ -1239,20 +1239,23 @@ class HTTPMixin(BaseConduit):
     def onItemLoad(self, view=None):
         self.serverHandle = None
 
-    def _getSettings(self):
+    def _getSettings(self, withPassword=True):
+        password = None
         if self.account is None:
-            password = getattr(self, "password", None)
-            if password:
-                password = waitForDeferred(password.decryptPassword())
+            if withPassword:
+                password = getattr(self, "password", None)
+                if password:
+                    password = waitForDeferred(password.decryptPassword())
             return (self.host, self.port,
                     self.sharePath.strip("/"),
                     self.username,
                     password,
                     self.useSSL)
         else:
-            password = getattr(self.account, "password", None)
-            if password:
-                password = waitForDeferred(password.decryptPassword())
+            if withPassword:
+                password = getattr(self.account, "password", None)
+                if password:
+                    password = waitForDeferred(password.decryptPassword())
             return (self.account.host, self.account.port,
                     self.account.path.strip("/"),
                     self.account.username,
@@ -1288,7 +1291,7 @@ class HTTPMixin(BaseConduit):
         """
 
         (host, port, sharePath, username, password, useSSL) = \
-            self._getSettings()
+            self._getSettings(withPassword=False)
         if useSSL:
             scheme = u"https"
             defaultPort = 443

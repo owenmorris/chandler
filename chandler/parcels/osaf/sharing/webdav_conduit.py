@@ -37,7 +37,7 @@ logger = logging.getLogger(__name__)
 class DAVConduitMixin(conduits.HTTPMixin):
 
     def _getSharePath(self):
-        return "/" + self._getSettings()[2]
+        return "/" + self._getSettings(withPassword=False)[2]
 
     def _resourceFromPath(self, path):
         serverHandle = self._getServerHandle()
@@ -126,7 +126,7 @@ class DAVConduitMixin(conduits.HTTPMixin):
                     # this happens if you try to create a collection within a
                     # nonexistent collection
                     (host, port, sharePath, username, password, useSSL) = \
-                        self._getSettings()
+                        self._getSettings(withPassword=False)
                     message = _(u"The directory '%(directoryName)s' could not be found on %(server)s.\nPlease verify the Path setting in your %(accountType)s account") % {'directoryName': sharePath, 'server': host,
                                                         'accountType': 'WebDAV'}
                     raise errors.NotFound(message)
