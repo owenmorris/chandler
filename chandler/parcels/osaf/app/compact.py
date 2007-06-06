@@ -19,6 +19,7 @@ from PyICU import DateFormat
 from application import schema
 from osaf import startup, sharing
 from i18n import ChandlerMessageFactory as _m_
+from repository.persistence.RepositoryView import thisViewWins
 
 
 class CompactDialog(wx.Dialog):
@@ -177,7 +178,8 @@ class CompactTask(startup.DurableTask):
         return self
 
     def fork(self):
-        return startup.fork_item(self, pruneSize=300, notify=False)
+        return startup.fork_item(self, pruneSize=300, notify=False,
+                                 mergeFn=thisViewWins)
 
     def reschedule(self, interval=None):
         interval = super(CompactTask, self).reschedule(interval)
