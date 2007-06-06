@@ -1302,8 +1302,9 @@ class IconAttributeEditor (BaseAttributeEditor):
         if image is None:
             logger.debug("Hey, missing image!")
         if image is not None:
-            x = rect.GetLeft() + (rect.GetWidth() - image.GetWidth()) / 2
-            y = rect.GetTop() + (rect.GetHeight() - image.GetHeight()) / 2
+            x, y, w, h = rect.Get()
+            x += (w - image.GetWidth()) / 2
+            y += (h - image.GetHeight()) / 2
             dc.DrawBitmap(image, x, y, True)
 
     def OnMouseChange(self, event):

@@ -116,8 +116,9 @@ class wxTableData(wxGrid.PyGridTableBase):
             delegate = AttributeEditors.getSingleton (type)
             attribute = self.defaultROAttribute
             grid = self.GetView()
-            assert (row < grid.GetTable().GetNumberRows() and
-                    column < grid.GetTable().GetNumberCols())
+            if __debug__:
+                assert (row < grid.GetTable().GetNumberRows() and
+                        column < grid.GetTable().GetNumberCols())
 
             if (not grid.blockItem.columns[column].readOnly and
                 not grid.ReadOnly (row, column)[0] and
@@ -542,7 +543,7 @@ class wxTable(DragAndDrop.DraggableWidget,
             # remember the first row in the old selection
             topLeftSelection = self.GetSelectionBlockTopLeft()
             
-            if len(topLeftSelection) > 0:
+            if topLeftSelection:
                 newRowSelection = topLeftSelection[0][0]
             else:
                 newRowSelection = -1
@@ -796,7 +797,8 @@ class GridCellAttributeRenderer (wxGrid.PyGridCellRenderer):
         """
         DrawingUtilities.SetTextColorsAndFont (grid, attr, dc, isInSelection)
         value = grid.GetElementValue (row, column)
-        assert len(value) != 2 or not value[0].isDeleted()            
+        if __debug__:
+            assert len(value) != 2 or not value[0].isDeleted()
         self.delegate.Draw(grid, dc, rect, value, isInSelection)
 
 class GridCellAttributeEditor (wxGrid.PyGridCellEditor):

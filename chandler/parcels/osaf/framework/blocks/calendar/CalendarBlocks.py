@@ -669,7 +669,7 @@ class wxPreviewArea(CalendarNotificationHandler, wx.Panel):
         # Draw title if appropriate
         times = []
         timesCoords = []
-        if self.useToday and len(self.visibleEvents) > 0:
+        if self.useToday and self.visibleEvents:
             times.append(_(u"Today's events"))
             timesCoords.append((self.hMargin, y))
             y += self.lineHeight

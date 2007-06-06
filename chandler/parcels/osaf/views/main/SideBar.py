@@ -1257,7 +1257,7 @@ class SidebarBranchPointDelegate(BranchPoint.BranchPointDelegate):
             # Finally, create a UI wrapper collection to manage
             # things like selection and sorting
             newKey = IndexedSelectionCollection(itsView=self.itsView, source=key)
-            if len (newKey) > 0:
+            if len(newKey) > 0: # XXX if newKey: does not work; other code depends on index being created here
                 newKey.addSelectionRange (0)
             UserCollection(newKey).dontDisplayAsCalendar = UserCollection(key).dontDisplayAsCalendar
             return newKey
@@ -1298,7 +1298,7 @@ class SidebarBranchPointDelegate(BranchPoint.BranchPointDelegate):
                              theItem not in collectionList):
                             collectionList.append (theItem)
     
-            if len (collectionList) > 0:
+            if collectionList:
                 """
                 tupleList is sorted so we always end up with one collection
                 for any order of collections in the source
@@ -1330,7 +1330,7 @@ class SidebarBranchPointDelegate(BranchPoint.BranchPointDelegate):
                     key = None
     
                 if (key is not None and
-                    len ([c for c in collectionList if c.itsUUID not in key.collectionList]) != 0):
+                    [c for c in collectionList if c.itsUUID not in key.collectionList]):
                     # See bug #6793: If a subscribed collection has been deleted, then resubscribed
                     # our cached key will be stale because the subscribed collection will have
                     # been removed but not added when resubscribed. In this case, the removed

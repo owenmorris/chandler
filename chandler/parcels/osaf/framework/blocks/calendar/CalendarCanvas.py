@@ -802,7 +802,7 @@ class CalendarCanvasItem(CollectionCanvas.CanvasItem):
         dc.DestroyClippingRegion()
         dc.SetClippingRect(rect)
 
-        (rectX,rectY,width,height) = rect
+        (rectX,rectY,width,height) = rect.Get()
         x = rectX
         y = rectY
 
@@ -1959,8 +1959,9 @@ class wxCalendarContainer(ContainerBlocks.wxBoxContainer,
         
             changes = list(self.HandleRemoveAndYieldChanged(currentRange))
 
-            assert sorted(self.visibleEvents) == self.visibleEvents
-            assert not self.HasPendingEventChanges()
+            if __debug__:
+                assert sorted(self.visibleEvents) == self.visibleEvents
+                assert not self.HasPendingEventChanges()
 
             def syncWidget(w):
                 w.wxHandleChanges(changes)

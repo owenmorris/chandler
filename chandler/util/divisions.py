@@ -101,11 +101,11 @@ def get_divisions(l, key=None):
                 division_stack.append((i,j))
 
     # this saves time
-    if len(l) == 0:
+    if not l:
         return []
     
     # the meat of it - the binary search
-    while len(division_stack) != 0:
+    while division_stack:
 
         # pop the next range off the stack
         index1, index2 = division_stack.pop()

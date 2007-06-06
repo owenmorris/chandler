@@ -94,7 +94,7 @@ class SectionedGridDelegate(ControlBlocks.AttributeDelegate):
             key=lambda x: getattr(x, self.attributeName))
 
         # don't show section headers unless we have at least one section
-        if len(self.sectionIndexes) == 0:
+        if not self.sectionIndexes:
             return
             
         # now build the row-based sections - each entry in this array
@@ -137,9 +137,10 @@ class SectionedGridDelegate(ControlBlocks.AttributeDelegate):
             self.sectionLabels.append(label)
             
         # make sure we're sane
-        assert len(self.sectionRows) == len(self.sectionIndexes)
-        assert sum([visible+1 for (row, visible, total) in self.sectionRows]) \
-               == self.totalRows
+        if __debug__:
+            assert len(self.sectionRows) == len(self.sectionIndexes)
+            assert sum([visible+1 for (row, visible, total) in self.sectionRows]) \
+                   == self.totalRows
                    
     def findCurrentColumn(self):
         # Find the column we're currently sorting by
@@ -165,7 +166,7 @@ class SectionedGridDelegate(ControlBlocks.AttributeDelegate):
         # temporary fix: when there are no sections (which is the
         # condition under which the functional tests are running) then
         # use the original collection for row length
-        if len(self.sectionRows) == 0:
+        if not self.sectionRows:
             return len(self.blockItem.contents)
         else:
             return self.totalRows
@@ -214,7 +215,7 @@ class SectionedGridDelegate(ControlBlocks.AttributeDelegate):
         won't optimize this.
         """
 
-        if len(self.sectionRows) == 0:
+        if not self.sectionRows:
             return row
 
         sectionAdjust = len(self.sectionRows) - 1
@@ -248,7 +249,7 @@ class SectionedGridDelegate(ControlBlocks.AttributeDelegate):
         linear search through the sections. Generally there aren't a
         lot of sections though so this should be reasonably fast.
         """
-        if len(self.sectionIndexes) == 0:
+        if not self.sectionIndexes:
             return itemIndex
 
         sectionAdjust = len(self.sectionIndexes) - 1
@@ -395,8 +396,10 @@ class SectionAttributeEditor(BaseAttributeEditor):
         # they're contracted together... so erase a one-pixel-high rectangle at
         # the bottom of our rect, then make ours a little smaller, 
         dc.SetBrush(wx.WHITE_BRUSH)
+        x, y, w, h = rect.Get()
         rect.height -= 1
-        dc.DrawRectangleRect((rect.x, rect.y + rect.height, rect.width, 1))
+        h -= 1
+        dc.DrawRectangleRect((x, y + h, w, 1))
         
         # Draw the background
         brush = wx.Brush(sectionBackgroundColor, wx.SOLID)
@@ -408,11 +411,11 @@ class SectionAttributeEditor(BaseAttributeEditor):
         labelFont = Styles.getFont(grid.blockItem.sectionLabelCharacterStyle)
         dc.SetFont(labelFont)
         (labelWidth, labelHeight, labelDescent, ignored) = dc.GetFullTextExtent(label)
-        labelTop = rect.y + ((rect.height - labelHeight) / 2)
+        labelTop = y + ((h - labelHeight) / 2)
                 
         # Draw the expando triangle
         (triBitmap, triWidth, triHeight) = self._getTriangle(expanded)
-        triTop = rect.y + ((rect.height - triHeight) / 2)
+        triTop = y + ((h - triHeight) / 2)
         dc.DrawBitmap(triBitmap, margin, triTop, True)
             
         # Draw the text label, if it overlaps the rect to be updated
@@ -440,8 +443,8 @@ class SectionAttributeEditor(BaseAttributeEditor):
             dc.SetPen(wx.WHITE_PEN)
             brush = wx.Brush(sectionSampleColor, wx.SOLID)
             dc.SetBrush(brush)
-            swatchX = rect.x + ((rect.width - swatchWidth) / 2)
-            swatchY = rect.y + ((rect.height - swatchHeight) / 2)
+            swatchX = x + ((w - swatchWidth) / 2)
+            swatchY = y + ((h - swatchHeight) / 2)
             dc.DrawRectangleRect((swatchX, swatchY, swatchWidth, swatchHeight))
 
     def OnMouseChange(self, event):

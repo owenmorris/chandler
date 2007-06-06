@@ -908,7 +908,7 @@ class BlockDispatchHook (DispatchHook):
                 title = getattr(sender, 'title', None)
                 if title is not None:
                     accel = getattr(sender, 'accel', u'')
-                    if len(accel) > 0:
+                    if accel:
                         title += u'\t' + accel
                         # this isn't a real wx argument, but is used later
                         # to re-attach the accelerator after the client has
@@ -1054,7 +1054,7 @@ class BaseWidget(object):
         #then the block is shown. If the attribute is missing then the block is shown.
         show = getattr (blockItem, "emptyContentsShow", None)
         if show is not None:
-            show = (len(blockItem.contents) != 0) ^ show
+            show = bool(blockItem.contents) ^ show
             if blockItem.isShown != show:
                 blockItem.isShown = show
                 self.Show (show)
