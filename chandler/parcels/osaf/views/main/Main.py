@@ -1078,7 +1078,9 @@ class MainView(View):
             return
 
         filename = "%s.chex" % strftime("%Y%m%d%H%M%S")
-        wildcard = "%s|*.chex|%s (*.*)|*.*" % (_(u"Export files"), _(u"All files"))
+        wildcard = "%s|*.chex|%s|*.dump|%s (*.*)|*.*" % (_(u"Export files"),
+                                                         _(u"Dump files"),
+                                                         _(u"All files"))
 
         dlg = wx.FileDialog(wx.GetApp().mainFrame,
                             _(u"Reload Items"), "", filename, wildcard,
