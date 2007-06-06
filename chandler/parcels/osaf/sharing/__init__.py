@@ -500,25 +500,27 @@ def publish(collection, account, classesToInclude=None,
             # into this calendar collection rather than making a new one.
             # Create a CalDAV share with empty sharename, doing a GET and PUT
 
-            # TODO: This needs to be converted to use EIM:
+            share = Share(itsView=view, contents=collection)
+            conduit = CalDAVRecordSetConduit(itsParent=share,
+                account=account,
+                shareName=u"",
+                translator=SharingTranslator,
+                serializer=ICSSerializer)
+            share.conduit = conduit
+            if attrsToExclude:
+                conduit.filters = attrsToExclude
 
-            share = _newOutboundShare(view, collection,
-                                     classesToInclude=classesToInclude,
-                                     shareName=u"",
-                                     account=account,
-                                     useCalDAV=True)
+            share.displayName = displayName or collection.displayName
+            share.sharer = pim_ns.currentContact.item
 
+            alias = 'main'
             try:
-                SharedItem(collection).shares.append(share, 'main')
+                SharedItem(collection).shares.append(share, alias)
             except ValueError:
                 # There is already a 'main' share for this collection
                 SharedItem(collection).shares.append(share)
 
-            if attrsToExclude:
-                share.filterAttributes = attrsToExclude
-
             shares.append(share)
-            share.displayName = collection.displayName
 
             share.sync(activity=activity)
 

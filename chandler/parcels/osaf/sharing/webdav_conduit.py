@@ -48,7 +48,9 @@ class DAVConduitMixin(conduits.HTTPMixin):
         resourcePath = u"%s/%s" % (sharePath, self.shareName)
 
         if self.share.fileStyle() == formats.STYLE_DIRECTORY:
-            resourcePath += "/" + path
+            if not resourcePath.endswith("/"):
+                resourcePath += "/"
+            resourcePath += path
 
         resource = serverHandle.getResource(resourcePath)
 
