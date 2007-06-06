@@ -1908,7 +1908,8 @@ Issues:
                                view.findValue(uuid, 'emailAddress').lower())
                 match = collection.findInIndex('emailAddress', 'exact', compareAddressOnly)
                 if match is not None:
-                    log.critical("Is me: '%s'", self)
+                    if __debug__:
+                        log.debug("Is me: '%s'", self)
                     collection.append(self)
 
     def __str__(self):
@@ -2030,14 +2031,16 @@ Issues:
         indexName = 'emailAddress' if address else 'fullName'
         match = collection.findInIndex(indexName, 'exact', compareBothParts)
         if match:
-            log.critical("Returning existing email address '%s' for '%s'/'%s'",
+            if __debug__:
+               log.debug("Returning existing email address '%s' for '%s'/'%s'",
                          unicode(view[match]), name, address)
             return view[match]
-        
+
         # no match - create a new address
-        log.critical("Making new email address for '%s'/'%s'",
-                     name, address)
-        newAddress = EmailAddress(itsView=view, emailAddress=address, 
+        if __debug__:
+           log.debug("Making new email address for '%s'/'%s'", name, address)
+
+        newAddress = EmailAddress(itsView=view, emailAddress=address,
                                   fullName=name)
         return newAddress
 
