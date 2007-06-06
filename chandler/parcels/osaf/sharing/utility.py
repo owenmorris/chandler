@@ -23,6 +23,7 @@ __all__ = [
     'findMatchingShare',
     'isSharedByMe',
     'getUrls',
+    'getLabeledUrls',
     'getShare',
     'getFreeBusyShare',
     'isOnline',
@@ -342,6 +343,21 @@ def getUrls(share):
         return [url]
 
 
+VIEW_AND_EDIT_STR = _(u"View and Edit")
+VIEW_ONLY_STR = _(u"View-only")
+
+def getLabeledUrls(share):
+    labeled = []
+
+    urls = getUrls(share)
+    if len(urls) == 1:
+        prefix = VIEW_AND_EDIT_STR if share.mode == "both" else VIEW_ONLY_STR
+        labeled.append("%s: %s" % (prefix, urls[0]))
+    else:
+        labeled.append("%s: %s" % (VIEW_AND_EDIT_STR, urls[0]))
+        labeled.append("%s: %s" % (VIEW_ONLY_STR, urls[1]))
+
+    return labeled
 
 
 def getShare(collection):

@@ -1515,16 +1515,7 @@ class MainView(View):
         if collection is not None:
             share = sharing.getShare(collection)
             if share is not None:
-                urls = sharing.getUrls(share)
-                if len(urls) == 1:
-                    # we have only one url, so it must be one we're subscribed
-                    # to.  If share.mode == 'both' it's a read-write ticket
-                    prefix = ("View and Edit:" if share.mode == "both" else
-                        "View-only:")
-                    urlString = "%s %s" % (prefix, urls[0])
-                else:
-                    urlString = "View and Edit: %s\nView-only: %s\n" % (urls[0], urls[1])
-
+                urlString = "\n".join(sharing.getLabeledUrls(share))
                 gotClipboard = wx.TheClipboard.Open()
                 if gotClipboard:
                     wx.TheClipboard.SetData(wx.TextDataObject(unicode(urlString)))

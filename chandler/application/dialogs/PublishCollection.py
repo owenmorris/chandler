@@ -603,13 +603,8 @@ class PublishCollectionDialog(wx.Dialog):
         else:
             share = sharing.getShare(self.collection)
 
-        urls = sharing.getUrls(share)
-        if len(urls) == 1:
-            self._showStatus(u"%s\n" % urls[0])
-        else:
-            if self.publishType != 'freebusy':
-                self._showStatus(_(u"View and Edit: %s\n") % urls[0])
-            self._showStatus(_(u"View-only: %s\n") % urls[1])
+        urlString = "\n".join(sharing.getLabeledUrls(share))
+        self._showStatus("%s\n" % urlString)
 
         self.buttonPanel.Hide()
         self.mySizer.Detach(self.buttonPanel)
@@ -666,18 +661,8 @@ class PublishCollectionDialog(wx.Dialog):
     def OnCopy(self, evt):
         gotClipboard = wx.TheClipboard.Open()
         if gotClipboard:
-            if self.publishType == 'freebusy':
-                share = sharing.getFreeBusyShare(self.collection)
-            else:
-                share = sharing.getShare(self.collection)
-            urls = sharing.getUrls(share)
-            if len(urls) == 1:
-                urlString = urls[0]
-            elif self.publishType == 'freebusy':
-                urlString = urls[1]
-            else:
-                urlString = "View and Edit: %s\nView-only: %s\n" % (urls[0],
-                                                                 urls[1])
+            share = sharing.getShare(self.collection)
+            urlString = "\n".join(sharing.getLabeledUrls(share))
             wx.TheClipboard.SetData(wx.TextDataObject(unicode(urlString)))
             wx.TheClipboard.Close()
 
