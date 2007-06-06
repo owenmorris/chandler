@@ -50,7 +50,8 @@ class StampItem(schema.AnnotationItem):
     @property
     def stampedItems(self):
         if not self.hasLocalAttributeValue('_stampedItems'):
-            self._stampedItems = ListCollection(itsView=self.itsView)
+            self._stampedItems = ListCollection(itsView=self.itsView,
+                displayName="Stamped items")
         return self._stampedItems
 
 class StampClass(schema.AnnotationClass):

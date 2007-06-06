@@ -756,6 +756,10 @@ def makeMainMenus(parcel):
                                 event = main.CreateConflict,
                                 title = _(u"Crea&te Conflict"),
                                 helpString = _(u'Create an artificial conflict for the selected items')),
+                            MenuItem.template('ConvertExportFileItem',
+                                event = main.ConvertExportFile,
+                                title = _(u"Convert export file"),
+                                helpString = _(u'Convert an export file to a more readable text file')),
                             ]), # Menu ShareMenu
                     MenuItem.template('ToolsSeparator9',
                                 menuItemKind = 'Separator'),

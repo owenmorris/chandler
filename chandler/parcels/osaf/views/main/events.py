@@ -68,6 +68,10 @@ def makeMainEvents(parcel):
     BlockEvent.template('InmemoryPublish',
                         commitAfterDispatch = True).install(parcel)
 
+    BlockEvent.template('ConvertExportFile',
+                        commitAfterDispatch = True).install(parcel)
+
+
     BlockEvent.template('SwitchRepository').install(parcel)
 
     BlockEvent.template('CreateRepository').install(parcel),

@@ -255,3 +255,42 @@ def reload(rv, filename, translator=sharing.DumpTranslator,
             continue
 
         waitForDeferred(item.encryptPassword(pw, masterPassword=newMaster))
+
+
+def convertToTextFile(fromPath, toPath, serializer=PickleSerializer,
+    activity=None):
+
+    if activity:
+        activity.update(totalWork=None, msg=_("Counting records..."))
+        input = open(fromPath, "rb")
+        load = serializer.loader(input)
+        i = 0
+        while True:
+            record = load()
+            if not record:
+                break
+            i += 1
+        input.close()
+        activity.update(totalWork=i)
+
+
+    input = open(fromPath, "rb")
+    output = open(toPath, "wb")
+    try:
+        load = serializer.loader(input)
+        i = 0
+        while True:
+            record = load()
+            if not record:
+                break
+            output.write(str(record))
+            output.write("\n\n")
+            i += 1
+            if activity:
+                activity.update(msg="Converted %d records" % i, work=1)
+
+        del load
+    finally:
+        input.close()
+        output.close()
+

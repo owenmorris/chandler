@@ -1144,6 +1144,44 @@ class MainView(View):
         collection = self.getSidebarSelectedCollection()
         sharing.publish(collection, None)
 
+    def onConvertExportFileEvent(self, event):
+        wildcard = "%s|*.chex|%s|*.dump|%s (*.*)|*.*" % (_(u"Export files"),
+                                                         _(u"Dump files"),
+                                                         _(u"All files"))
+        dlg = wx.FileDialog(wx.GetApp().mainFrame,
+                            _(u"Convert from export file"), "", "", wildcard,
+                            wx.OPEN)
+
+        fromPath = None
+        if dlg.ShowModal() == wx.ID_OK:
+            fromPath = dlg.GetPath()
+        dlg.Destroy()
+
+        if fromPath:
+            wildcard = "%s|*.rec|%s (*.*)|*.*" % (_(u"Record files"),
+                                                  _(u"All files"))
+            dlg = wx.FileDialog(wx.GetApp().mainFrame,
+                                _(u"Convert to record file"), "", "", wildcard,
+                                wx.SAVE|wx.OVERWRITE_PROMPT)
+            toPath = None
+            if dlg.ShowModal() == wx.ID_OK:
+                toPath = dlg.GetPath()
+            dlg.Destroy()
+            if toPath:
+                activity = Activity("Convert %s" % fromPath)
+                Progress.Show(activity)
+                activity.started()
+
+                try:
+                    dumpreload.convertToTextFile(fromPath, toPath,
+                        activity=activity)
+                    activity.completed()
+                except Exception, e:
+                    logger.exception("Failed to convert file")
+                    activity.failed(exception=e)
+                    raise
+                self.setStatusMessage(_(u'File converted'))
+
     def onSaveSettingsEvent(self, event):
         # triggered from "Test | Save Settings" Menu
 
