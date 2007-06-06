@@ -390,6 +390,7 @@ class perf:
         
         else:
             # Use the 80th percentile as testTime
+            values = values[:] # We don't want to sort the original
             values.sort()
             testTime = values[int(0.8 * float(len(values)))]
         
