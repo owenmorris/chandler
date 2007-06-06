@@ -176,15 +176,16 @@ class StartupOptionsDialog(wx.Dialog):
                                             Globals.options)
         try:
             repository = DBRepository(repoDir)
-            repository.open(recover=True, exclusive=False)
+            # use logged=True to prevent repo from setting up stderr logging
+            repository.open(recover=True, exclusive=False, logged=True)
             view = repository.createView()
 
             try:
                 MasterPassword.beforeBackup(view, self)
             except:
-                wx.MessageBox (_(u'Failed to encrypt passwords.'),
-                               _(u'Password protection failed'),
-                               parent=self)
+                wx.MessageBox(_(u'Failed to encrypt passwords.'),
+                              _(u'Password protection failed'),
+                              parent=self)
 
             repoDir = repository.backup(os.path.join(os.path.dirname(tarPath),
                                                      '__repository__'))
