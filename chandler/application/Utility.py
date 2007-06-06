@@ -418,8 +418,13 @@ def initLogging(options):
 
             logger = logging.getLogger()
 
-            fileHandler   = logging.handlers.RotatingFileHandler(os.path.join(options.profileDir, 'chandler.log'), 'a', 3000000, 3)
-            fileFormatter = logging.Formatter('%(asctime)s %(name)s %(levelname)s: %(message)s')
+            fileHandler = logging.handlers.TimedRotatingFileHandler(
+                os.path.join(options.profileDir, 'chandler.log'),
+                when="midnight", backupCount=3
+            )
+            fileFormatter = logging.Formatter(
+                '%(asctime)s %(name)s %(levelname)s: %(message)s'
+            )
 
             fileHandler.setFormatter(fileFormatter)
 

@@ -395,7 +395,7 @@ class RecordSetConduit(conduits.BaseConduit):
                 isDiff=isDiff, filter=filter, readOnly=readOnly, debug=debug)
 
 
-            if not send:
+            if readOnly:
                 # Cosmo doesn't give us deletions for ModifiedByRecords and
                 # that messes with the no-send aspect of the merge function
                 # because old ModByRecords aren't cleaned out.
@@ -450,7 +450,11 @@ class RecordSetConduit(conduits.BaseConduit):
             # Apply
             translator.startImport()
             i = 0
-            for alias, rs in toApply.items():
+            aliases = toApply.keys()
+            # Sort aliases so masters come before modifications...
+            aliases.sort()
+            for alias in aliases:
+                rs = toApply[alias]
                 doLog("Applying changes to %s [%s]", alias, rs)
 
                 uuid = translator.getUUIDForAlias(alias)
