@@ -137,10 +137,9 @@ class SectionedGridDelegate(ControlBlocks.AttributeDelegate):
             self.sectionLabels.append(label)
             
         # make sure we're sane
-        if __debug__:
-            assert len(self.sectionRows) == len(self.sectionIndexes)
-            assert sum([visible+1 for (row, visible, total) in self.sectionRows]) \
-                   == self.totalRows
+        assert len(self.sectionRows) == len(self.sectionIndexes)
+        assert sum([visible+1 for (row, visible, total) in self.sectionRows]) \
+               == self.totalRows
                    
     def findCurrentColumn(self):
         # Find the column we're currently sorting by

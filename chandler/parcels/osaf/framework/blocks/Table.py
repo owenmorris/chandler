@@ -116,9 +116,8 @@ class wxTableData(wxGrid.PyGridTableBase):
             delegate = AttributeEditors.getSingleton (type)
             attribute = self.defaultROAttribute
             grid = self.GetView()
-            if __debug__:
-                assert (row < grid.GetTable().GetNumberRows() and
-                        column < grid.GetTable().GetNumberCols())
+            assert (row < grid.GetTable().GetNumberRows() and
+                    column < grid.GetTable().GetNumberCols())
 
             if (not grid.blockItem.columns[column].readOnly and
                 not grid.ReadOnly (row, column)[0] and
@@ -797,8 +796,7 @@ class GridCellAttributeRenderer (wxGrid.PyGridCellRenderer):
         """
         DrawingUtilities.SetTextColorsAndFont (grid, attr, dc, isInSelection)
         value = grid.GetElementValue (row, column)
-        if __debug__:
-            assert len(value) != 2 or not value[0].isDeleted()
+        assert len(value) != 2 or not value[0].isDeleted()
         self.delegate.Draw(grid, dc, rect, value, isInSelection)
 
 class GridCellAttributeEditor (wxGrid.PyGridCellEditor):

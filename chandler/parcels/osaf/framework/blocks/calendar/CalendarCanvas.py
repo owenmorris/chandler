@@ -1959,9 +1959,8 @@ class wxCalendarContainer(ContainerBlocks.wxBoxContainer,
         
             changes = list(self.HandleRemoveAndYieldChanged(currentRange))
 
-            if __debug__:
-                assert sorted(self.visibleEvents) == self.visibleEvents
-                assert not self.HasPendingEventChanges()
+            assert sorted(self.visibleEvents) == self.visibleEvents
+            assert not self.HasPendingEventChanges()
 
             def syncWidget(w):
                 w.wxHandleChanges(changes)
