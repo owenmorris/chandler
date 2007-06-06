@@ -316,7 +316,7 @@ class Indexed(object):
                         if indexed is not Nil:
                             indexes = getattr(indexed, '_indexes', None)
                             if indexes and subName in indexes:
-                                index._subIndexes.add(subIndex)
+                                index.addSubIndex(uItem, attr, subName)
 
             removals = []
             moves = []
