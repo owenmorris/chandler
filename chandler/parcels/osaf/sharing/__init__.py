@@ -64,7 +64,6 @@ logger = logging.getLogger(__name__)
 # = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =
 # CalDAV settings:
 
-caldav_atop_eim = False
 
 # What to name the CloudXML subcollection on a CalDAV server:
 SUBCOLLECTION = u".chandler"
@@ -415,6 +414,7 @@ def publish(collection, account, classesToInclude=None,
                         collections, '-1', '-2', etc., may be appended.
     """
 
+
     if Globals.options.offline:
         raise OfflineError(_(u"Offline mode"))
 
@@ -500,6 +500,8 @@ def publish(collection, account, classesToInclude=None,
             # into this calendar collection rather than making a new one.
             # Create a CalDAV share with empty sharename, doing a GET and PUT
 
+            # TODO: This needs to be converted to use EIM:
+
             share = _newOutboundShare(view, collection,
                                      classesToInclude=classesToInclude,
                                      shareName=u"",
@@ -540,27 +542,27 @@ def publish(collection, account, classesToInclude=None,
             shareName = _uniqueName(shareName, existing)
 
             if ('calendar-access' in dav or 'MKCALENDAR' in allowed):
-                # We're speaking to a CalDAV server                
+                # We're speaking to a CalDAV server
                 sharing_ns = schema.ns('osaf.sharing', view)
                 if publishType == 'freebusy':
                     share = Share(itsView=view)
                     share.conduit = CalDAVConduit(itsView=view, account=account,
                                                   shareName='')
-                    
+
                     share.conduit.createFreeBusyTicket()
-                    
+
                     sharing_ns.prefs.freeBusyShare   = share
                     sharing_ns.prefs.freeBusyAccount = account
                     published = sharing_ns.publishedFreeBusy
-                    
+
                     # put the appropriate collections into publishedFreeBusy to
                     # avoid syncing the same event multiple times
                     for share in getActiveShares(view):
                         updatePublishedFreeBusy(share, location)
-                    
-                    
+
+
                     hiddenResource = handle.getResource(location + 'hiddenEvents/')
-                    
+
                     if handle.blockUntil(hiddenResource.exists):
                         # someone has already published hiddenEvents for this
                         # account.  It's hard to say what should happen in this
@@ -580,34 +582,19 @@ def publish(collection, account, classesToInclude=None,
                     share.put(activity=activity)
 
                 else:
-                    if caldav_atop_eim:
-                        share = Share(itsView=view, contents=collection)
-                        conduit = CalDAVRecordSetConduit(itsParent=share,
-                            account=account,
-                            shareName=shareName,
-                            translator=SharingTranslator,
-                            serializer=ICSSerializer)
-                        share.conduit = conduit
-                        if attrsToExclude:
-                            conduit.filters = attrsToExclude
+                    share = Share(itsView=view, contents=collection)
+                    conduit = CalDAVRecordSetConduit(itsParent=share,
+                        account=account,
+                        shareName=shareName,
+                        translator=SharingTranslator,
+                        serializer=ICSSerializer)
+                    share.conduit = conduit
+                    if attrsToExclude:
+                        conduit.filters = attrsToExclude
 
-                        share.displayName = displayName or collection.displayName
-                        share.sharer = pim_ns.currentContact.item
+                    share.displayName = displayName or collection.displayName
+                    share.sharer = pim_ns.currentContact.item
 
-                    else:
-                        # Create a CalDAV conduit / ICalendar format
-                        # Create a cloudxml subcollection
-                        # or just a freebusy resource
-                        share = _newOutboundShare(view, collection,
-                            classesToInclude=classesToInclude,
-                            shareName=shareName,
-                            displayName=displayName,
-                            account=account,
-                            useCalDAV=True,
-                            publishType=publishType)
-
-                        if attrsToExclude:
-                            share.filterAttributes = attrsToExclude
 
                     try:
                         SharedItem(collection).shares.append(share, alias)
@@ -628,51 +615,7 @@ def publish(collection, account, classesToInclude=None,
                     # bug 8128, this setDisplayName shouldn't be required, but
                     # cosmo isn't accepting setting displayname in MKCALENDAR
                     share.conduit.setDisplayName(displayName)
-    
-                    if not caldav_atop_eim and (publishType == 'collection'):
-                        # Create a subcollection to contain the cloudXML versions of
-                        # the shared items
-                        subShareName = u"%s/%s" % (shareName, SUBCOLLECTION)
-    
-                        subShare = _newOutboundShare(view, collection,
-                                                     classesToInclude=classesToInclude,
-                                                     shareName=subShareName,
-                                                     displayName=displayName,
-                                                     account=account)
-        
-                        if attrsToExclude:
-                            subShare.filterAttributes = attrsToExclude
-                        else:
-                            subShare.filterAttributes = []
-    
-                        for attr in CALDAVFILTER:
-                            subShare.filterAttributes.append(attr)
-    
-                        shares.append(subShare)
-    
-                        if subShare.exists():
-                            raise SharingError(_(u"Share already exists"))
-    
-                        try:
-                            subShare.create()
-    
-                            # sync the subShare before the CalDAV share
-                            share.follows = subShare
-    
-                            # Since we're publishing twice as many resources:
-                            if activity:
-                                totalWork *= 2
-                                activity.update(totalWork=totalWork)
-    
-                        except SharingError:
-                            # We're not able to create the subcollection, so
-                            # must be a vanilla CalDAV Server.  Continue on.
-                            subShare.delete(True)
-                            subShare = None
-    
-                    else:
-                        subShare = None
-    
+
                     share.put(activity=activity)
 
                     # tickets after putting
@@ -685,6 +628,8 @@ def publish(collection, account, classesToInclude=None,
 
 
             elif dav is not None:
+
+                # TODO: Publish monolithic .ics file instead?
 
                 if publishType == 'freebusy':
                     shareName += '.ifb'
@@ -1056,21 +1001,21 @@ def subscribeCalDAV(view, url, inspection, activity=None, account=None,
     if not path.endswith("/"):
         path += "/"
 
-    if caldav_atop_eim:
+    subUrl = urlparse.urlunsplit((parsedUrl.scheme,
+        parsedUrl.netloc, "%s%s/" % (path, SUBCOLLECTION), parsedUrl.query,
+        parsedUrl.fragment))
+
+    try:
+        subInspection = inspect(view, subUrl, username=username,
+            password=password)
+    except:
         hasSubCollection = False
-
     else:
-        subUrl = urlparse.urlunsplit((parsedUrl.scheme,
-            parsedUrl.netloc, "%s%s/" % (path, SUBCOLLECTION), parsedUrl.query,
-            parsedUrl.fragment))
+        hasSubCollection = True
 
-        try:
-            subInspection = inspect(view, subUrl, username=username,
-                password=password)
-        except:
-            hasSubCollection = False
-        else:
-            hasSubCollection = True
+    # During subscribe, if this isn't dual-fork, use EIM.  If it is dual-fork
+    # (i.e., has a subcollection) use old framework
+    caldav_atop_eim = not hasSubCollection
 
     shareMode = 'both' if inspection['priv:write'] else 'get'
 

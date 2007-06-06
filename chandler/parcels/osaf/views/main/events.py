@@ -59,9 +59,6 @@ def makeMainEvents(parcel):
     BlockEvent.template('AddSharingLogToSidebar',
                         commitAfterDispatch = True).install(parcel)
 
-    BlockEvent.template('CalDAVAtopEIM',
-                        commitAfterDispatch = True).install(parcel)
-
     BlockEvent.template('RecordSetDebugging',
                         commitAfterDispatch = True).install(parcel)
 

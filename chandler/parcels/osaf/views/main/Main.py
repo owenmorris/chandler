@@ -968,7 +968,7 @@ class MainView(View):
                 except OSError:
                     pass
 
-                if True or sharing.caldav_atop_eim:
+                if True: # was "or sharing.caldav_atop_eim:"
                     share = sharing.OneTimeFileSystemShare(
                         itsView=self.itsView,
                         filePath=dir, fileName=filename,
@@ -1112,17 +1112,6 @@ class MainView(View):
             menuTitle = u'Show Sharing Activity'
         else:
             menuTitle = u'Add sharing activity log to Sidebar'
-        event.arguments ['Text'] = menuTitle
-        event.arguments ['Enable'] = True
-
-    def onCalDAVAtopEIMEvent(self, event):
-        sharing.caldav_atop_eim = not sharing.caldav_atop_eim
-
-    def onCalDAVAtopEIMEventUpdateUI(self, event):
-        if sharing.caldav_atop_eim:
-            menuTitle = u'Disable CalDAV-atop-EIM'
-        else:
-            menuTitle = u'Enable CalDAV-atop-EIM'
         event.arguments ['Text'] = menuTitle
         event.arguments ['Enable'] = True
 
