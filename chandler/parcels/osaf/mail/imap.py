@@ -68,7 +68,7 @@ class FolderVars(base.DownloadVars):
         # in the IMAPFolder.lastMessageUID
         # attribute
         self.lastUID = 0
-        
+
         # The IMAP UID of the last message
         # searched in a folder. This value
         # gets commited in the _getNextFolder
@@ -329,7 +329,6 @@ class IMAPClient(base.AbstractDownloadClient):
 
         d = self._getChandlerFoldersStatus()
         d.addCallback(self._cbRemoveChandlerFolders)
-        d.addErrback(self.catchErrors)
 
         return None
 
@@ -345,6 +344,8 @@ class IMAPClient(base.AbstractDownloadClient):
         self._addFolderToDeferred(e, d)
 
         d.addCallback(self._folderingFinished, status)
+        d.addErrback(self.catchErrors)
+
         return None
 
     def _addFolderToDeferred(self, folder, d):
@@ -384,39 +385,20 @@ class IMAPClient(base.AbstractDownloadClient):
             e: [e, False, False]
         }
 
-        if self.proto._capCache.has_key("CHILDREN"):
-            # This list command will return the mailbox
-            # delimiter for the IMAP4 server
-            # and is needed to add the Chandler folders
-            # under the Inbox.
-            d = self.proto.list("", "")
-            d.addCallback(self._getFolderDelimiter, status)
-
-            # Get the list of all directories under the Inbox.
-            # The '*" is used instead of the "%" due to an
-            # issue with fastmail returning the wrong results
-            # with "%" :(
-            d.addCallback(lambda x: self.proto.list("INBOX", "*"))
-
-            #List the subscribe sub-folders in the Inbox
-            lsub = lambda x: self.proto.lsub("INBOX", "*")
-
-        else:
-            # List all root level mailboxes
-            d = self.proto.list("", "%")
-            # List all subscribed root folders
-            lsub = lambda x: self.proto.lsub("", "%")
-
-        d.addCallback(self._updateStatus, status, 0)
-        d.addCallback(lsub)
-        d.addCallback(self._updateStatus, status, 1)
-        d.addCallback(lambda x: status)
+        d = self.proto.list("", "INBOX")
+        d.addCallback(self._cbGetChandlerFolderStatus, status)
+        d.addErrback(self.catchErrors)
 
         return d
 
-    def _getFolderDelimiter(self, result, status):
+    def _cbGetChandlerFolderStatus(self, result, status):
         try:
-            delim = result[0][1]
+            # results:
+            #   0: Tuple of flags on the folder ie. ('\\Marked', '\\HasChildren')
+            #   1: The folder delimiter
+            #   2: the folder name
+            folderFlags, folderDelim, folderName = result[0]
+
         except:
             # This error should never be raised but a
             # safeguard is put in place just in case.
@@ -425,58 +407,49 @@ class IMAPClient(base.AbstractDownloadClient):
             # than just letting the index out of range
             # error be raised and show to the user.
             return self.proto._raiseException(
-                   errors.IMAPException(constants.IMAP_DELIMITER_ERROR))
+                   errors.IMAPException(constants.INBOX_LIST_ERROR))
 
         m = constants.CHANDLER_MAIL_FOLDER
         t = constants.CHANDLER_TASKS_FOLDER
         e = constants.CHANDLER_EVENTS_FOLDER
 
-        #The folders are children of the Inbox
-        status[m][0] = u"INBOX%s%s" % (delim, m)
-        status[t][0] = u"INBOX%s%s" % (delim, t)
-        status[e][0] = u"INBOX%s%s" % (delim, e)
+        if not ("\\NoInferiors" in folderFlags or \
+           "\\NoSelect" in folderFlags or \
+           folderDelim is None or \
+           folderDelim.lower() == "nil"):
+            # The folder can be created under the INBOX
+            for key in (m, t, e):
+               status[key][0] = u"INBOX%s%s" % (folderDelim, key)
 
-    def _updateStatus(self, results, status, type):
+        dList = []
+
+        for key in (m, t, e):
+            d = self.proto.list("", status[key][0])
+            d.addCallback(self._updateStatus, status, 0, key)
+            dList.append(d)
+
+            d1 = self.proto.lsub("", status[key][0])
+            d1.addCallback(self._updateStatus, status, 1, key)
+            dList.append(d1)
+
+        d = defer.DeferredList(dList)
+        d.addCallback(lambda x: status)
+        d.addErrback(self.catchErrors)
+
+        return d
+
+
+    def _updateStatus(self, results, status, type, key):
         #type 0: list
         #type 1: lsub
-        m = status[constants.CHANDLER_MAIL_FOLDER]
-        t = status[constants.CHANDLER_TASKS_FOLDER]
-        e = status[constants.CHANDLER_EVENTS_FOLDER]
+        folder = status[key]
 
-        for folder in results:
-            (flags, dir, name) = folder
+        if results:
+            if type:
+                folder[2] = True
+            else:
+                folder[1] = True
 
-            # A lower case comparison is done here
-            # since the casing of "INBOX" returned
-            # can differ depending on IMAP server
-            # implementation
-
-            if name.lower() == m[0].encode("imap4-utf-7").lower():
-                #The chandler mail folder already
-                #exists on the server or is
-                #already subscribed to.
-                if type:
-                    m[2] = True
-                else:
-                    m[1] = True
-
-            elif name.lower() == t[0].encode("imap4-utf-7").lower():
-                #The chandler tasks folder already
-                #exists on the server or is
-                #already subscribed to.
-                if type:
-                    t[2] = True
-                else:
-                    t[1] = True
-
-            elif name.lower() == e[0].encode("imap4-utf-7").lower():
-                #The chandler events folder already
-                #exists on the server or is
-                #already subscribed to.
-                if type:
-                    e[2] = True
-                else:
-                    e[1] = True
 
     def _createChandlerFolders(self, results):
         if __debug__:
@@ -484,7 +457,6 @@ class IMAPClient(base.AbstractDownloadClient):
 
         d = self._getChandlerFoldersStatus()
         d.addCallback(self._cbCreateChandlerFolders)
-        d.addErrback(self.catchErrors)
         return None
 
     def _cbCreateChandlerFolders(self, status):
@@ -527,7 +499,8 @@ class IMAPClient(base.AbstractDownloadClient):
 
 
         if len(dList):
-            defer.DeferredList(dList)
+            d = defer.DeferredList(dList)
+            d.addErrback(self.catchErrors)
 
         return None
 

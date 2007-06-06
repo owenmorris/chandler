@@ -44,7 +44,7 @@ MAIL_PROTOCOL_TIMEOUT_ERROR = _(u"Communication with the Server timed out. Pleas
 DOWNLOAD_NO_MESSAGES = _(u"%(accountName)s: no new messages found")
 DOWNLOAD_CHECK_MESSAGES = _(u"%(accountName)s: checking for new mail messages ...")
 
-IMAP_DELIMITER_ERROR = _(u"Unable to determine the file delimiter of the IMAP Server")
+INBOX_LIST_ERROR = _(u"Unable to determine the 'Inbox' status on the IMAP Server")
 
 # Translatable message strings for uploads(SMTP)
 UPLOAD_BAD_REPLY_ADDRESS = _(u"The Reply-To Address %(emailAddress)s is not valid")
