@@ -59,6 +59,11 @@ def ProcessEvent (theClass, properties , attributes):
     if isinstance (sentToWidget, wx.ToolBarTool):
         assert sentToWidget.IsControl()
         sentToWidget = sentToWidget.GetControl()
+        # On platforms other than mac wx.SearchCtrl's child is the wx.TextCtrl
+        # rather than the wx.SearchCtrl itself.
+        if wx.Platform != "__WXMAC__":
+            if isinstance (sentToWidget, wx.SearchCtrl):
+                sentToWidget = sentToWidget.GetChildren()[0]
 
     event.SetEventObject (sentToWidget)
     eventType = properties["eventType"]
@@ -107,8 +112,6 @@ def ProcessEvent (theClass, properties , attributes):
         newFocusWindow = ProcessEvent.newFocusWindow
         if newFocusWindow is not None:
             focusWindow = wx.Window_FindFocus()
-            if hasattr (focusWindow, "blockItem"):
-                focusWindow = focusWindow.blockItem.widget
             
             if wx.Platform != "__WXMAC__":
                 # On platforms other than mac the focus window is a wx.TextCtrl
@@ -121,7 +124,8 @@ def ProcessEvent (theClass, properties , attributes):
             # Rarely, a block has more than one widget associated with it, e.g. a toolBarItem
             # with a wx.SearchCtrl. If we get the widget associated with out block, we'll always
             # get the same widget in the case is case of multiple widgets per block.s
-            focusWindow = focusWindow.blockItem.widget
+            if hasattr (focusWindow, "blockItem"):
+                focusWindow = focusWindow.blockItem.widget
 
             # On Macintosh there is a setting under SystemPreferences>Keyboar&Mouse>KeyboardShortcuts
             # neare the bottom of the page titled "Full Keyboard Access" that defaults to
