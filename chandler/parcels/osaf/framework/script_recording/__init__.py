@@ -258,6 +258,14 @@ class Controller (Block.Block):
 
                             if self.includeTests:
                                 focusWindow = wx.Window_FindFocus()
+                                
+                                if wx.Platform != "__WXMAC__":
+                                    # On platforms other than mac the focus window is a wx.TextCtrl
+                                    # whose parent is the wx.SearchCtrl
+                                    parentWidget = focusWindow.GetParent()
+                                    if isinstance (parentWidget, wx.SearchCtrl):
+                                        focusWindow = parentWidget
+
                                 if not hasattr (self, "lastFocus"):
                                     self.lastFocus = focusWindow
                                 if self.lastFocus != focusWindow:
