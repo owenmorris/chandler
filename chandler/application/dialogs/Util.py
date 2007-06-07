@@ -449,35 +449,6 @@ class LogWindow(wx.Dialog):
             wx.TheClipboard.Close()
 
 
-def displayAddressDebugWindow(view, type=1):
-    from application import schema
-
-    # Types:
-    # =========
-    # 1: meEmailAddressCollection
-    # 2: currentMeEmailAddresses
-    # 3: currenMeEmailAddress
-
-    list = []
-
-    if type == 1:
-        collection = schema.ns("osaf.pim", view).meEmailAddressCollection
-    elif type == 2:
-        collection = schema.ns('osaf.pim', view).currentMeEmailAddresses
-    else:
-        collection = [schema.ns('osaf.pim', view).currentMeEmailAddress.item]
-
-    for eAddr in collection:
-        if eAddr:
-            list.append(eAddr.emailAddress)
-
-    win = DebugWindow(u"Email Address Debugger",
-                      u'\n'.join(list), tsize=[400,300])
-
-    win.CenterOnScreen()
-    win.ShowModal()
-    win.Destroy()
-
 class DebugWindow(wx.Dialog):
     def __init__(self, title, text, size=wx.DefaultSize,
            pos=wx.DefaultPosition, style=wx.DEFAULT_DIALOG_STYLE,

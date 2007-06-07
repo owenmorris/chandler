@@ -142,23 +142,11 @@ def makeMainEvents(parcel):
     BlockEvent.template('i18nMailTest',
                         commitAfterDispatch = True).install(parcel)
 
-    BlockEvent.template('ShowMeAddressCollectionDebugWindow').install(parcel)
-    
-    BlockEvent.template('ShowCurrentMeAddressesDebugWindow').install(parcel)
-
-    BlockEvent.template('ShowCurrentMeAddressDebugWindow').install(parcel)
-
-    BlockEvent.template('RecalculateMeAddresses',
-                        commitAfterDispatch = True).install(parcel)
-
     BlockEvent.template('ShowLogWindow').install(parcel)
 
     BlockEvent.template('ActivateWebserver').install(parcel)
 
     BlockEvent.template('ShowActivityViewer').install(parcel)
-
-    BlockEvent.template('EditMyName',
-                        commitAfterDispatch = True).install(parcel)
 
     BlockEvent.template('GetNewMail',
                         commitAfterDispatch = True).install(parcel)

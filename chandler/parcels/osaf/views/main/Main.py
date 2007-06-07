@@ -1197,25 +1197,6 @@ class MainView(View):
     def onShowActivityViewerEvent(self, event):
         ActivityViewer.Show()
 
-    def onEditMyNameEvent(self, event):
-        application.dialogs.Util.promptForItemValues("Enter your name",
-            schema.ns('osaf.pim', self.itsView).currentContact.item.contactName,
-            ( {'attr':'firstName', 'label':'First name' },
-              {'attr':'lastName', 'label':'Last name' } )
-        )
-
-    def onRecalculateMeAddressesEvent(self, event):
-        mail._recalculateMeEmailAddresses(self.itsView)
-
-    def onShowMeAddressCollectionDebugWindowEvent(self, event):
-        application.dialogs.Util.displayAddressDebugWindow(self.itsView, 1)
-
-    def onShowCurrentMeAddressesDebugWindowEvent(self, event):
-        application.dialogs.Util.displayAddressDebugWindow(self.itsView, 2)
-
-    def onShowCurrentMeAddressDebugWindowEvent(self, event):
-        application.dialogs.Util.displayAddressDebugWindow(self.itsView, 3)
-
     def onShowLogWindowEvent(self, event):
         # Test menu item
         logs = [
