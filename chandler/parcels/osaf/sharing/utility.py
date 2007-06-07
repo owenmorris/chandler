@@ -388,7 +388,7 @@ def getShare(collection):
 
 def isReadOnly(item):
     """
-    Return C{True} iff participating in only read-only shares.
+    Return C{True} iff participating in a read-only share.
     """
 
     item = getattr(item, 'inheritFrom', item)
@@ -405,10 +405,10 @@ def isReadOnly(item):
 
     # For each share we're in, if *any* are writable, isReadOnly is False
     for share in chain(item.sharedIn, item.shares):
-        if share.mode in ('put', 'both'):
-            return False
+        if share.mode not in ('put', 'both'):
+            return True
 
-    return True
+    return False
 
 
 

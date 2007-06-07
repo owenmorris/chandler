@@ -573,14 +573,16 @@ class ContentItem(Triageable):
     def isAttributeModifiable(self, attribute):
         """ Determine if an item's attribute is modifiable based on the
             shares it's in """
+        from osaf.sharing import isReadOnly
+        return not isReadOnly(self)
 
-        from stamping import Stamp
-        for stampObject in Stamp(self).stamps:
-            isAttrMod = getattr(stampObject, 'isAttributeModifiable', None)
-            if isAttrMod is not None:
-                if not isAttrMod(attribute):
-                    return False
-        return True
+        #from stamping import Stamp
+        #for stampObject in Stamp(self).stamps:
+            #isAttrMod = getattr(stampObject, 'isAttributeModifiable', None)
+            #if isAttrMod is not None:
+                #if not isAttrMod(attribute):
+                    #return False
+        #return True
 
 
 class Project(ContentItem):

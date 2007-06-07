@@ -34,7 +34,7 @@ import datetime
 from PyICU import ICUtzinfo
 from chandlerdb.util.c import Empty
 from repository.item.Item import Item
-
+import utility
 
 logger = logging.getLogger(__name__)
 
@@ -123,18 +123,24 @@ class SharedItem(pim.Stamp):
         if not self.sharedIn:
             return True
 
+        # XXX This isn't true for preview...
         # slow path -- item is shared; we need to look at all the *inbound*
         # shares this item participates in -- if *any* of those inbound shares
         # are writable, the attribute is modifiable; otherwise, if *all* of
         # those inbound shares are read-only, but none of those shares
         # actually *share* that attribute (i.e., it's being filtered either
         # by sharing cloud or explicit filter), then it's modifiable.
+        
+        # For preview, make all attributes unmodifiable if any shares it
+        # participates in are read-only
+        
+        return not utility.isReadOnly(self.itsItem)
 
-        for share in self.sharedIn:
-            if share.isAttributeModifiable(self.itsItem, attribute):
-                return True
+        #for share in self.sharedIn:
+            #if share.isAttributeModifiable(self.itsItem, attribute):
+                #return True
 
-        return False
+        #return False
 
 
 
@@ -528,11 +534,12 @@ class Share(pim.ContentItem):
     def addSharedItem(self, item):
         """ Add an item to the share's sharedIn refcoll, stamping if
             necessary """
+        sharedItem = SharedItem(item)
         if not pim.has_stamp(item, SharedItem):
-            SharedItem(item).add()
+            sharedItem.add()
         if item not in self.items:
-            sharedItem = SharedItem(item)
-            sharedItem.sharedIn = self
+            sharedItem.sharedIn.add(self)
+
 
     def removeSharedItem(self, item):
         """ Remove an item from the share's sharedIn refcoll, unstamping if
@@ -542,7 +549,7 @@ class Share(pim.ContentItem):
         sharedItem = SharedItem(item)
         sharedItem.sharedIn.remove(self)
         if not sharedItem.sharedIn:
-            SharedItem(item).remove()
+            sharedItem.remove()
 
     def hasConflicts(self):
         return True if self.conflictingStates else False

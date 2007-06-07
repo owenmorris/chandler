@@ -50,12 +50,13 @@ class TestModifiableAttributes(testcase.NRVTestCase):
         # ...an attribute that is sometimes shared (based on filterAttributes)
         self.assert_(not e1.isAttributeModifiable(pim.Remindable.reminders.name))
 
-        # ...an attribute which is pretty much never shared
-        self.assert_(e1.isAttributeModifiable('read'))
+        ## disabling functionality (and thus tests) for Preview, bug 9448
+        ### ...an attribute which is pretty much never shared
+        ##self.assert_(e1.isAttributeModifiable('read'))
 
-        # Filter out reminderTime, and it should become modifiable:
-        share_ro.filterAttributes = [pim.Remindable.reminders.name]
-        self.assert_(e1.isAttributeModifiable(pim.Remindable.reminders.name))
+        ### Filter out reminderTime, and it should become modifiable:
+        ##share_ro.filterAttributes = [pim.Remindable.reminders.name]
+        ##self.assert_(e1.isAttributeModifiable(pim.Remindable.reminders.name))
 
         # Now also add the subject to a read-write share:
 
@@ -67,14 +68,15 @@ class TestModifiableAttributes(testcase.NRVTestCase):
 
         # Test modifiability against...
 
+        ## changed tests to all use not for Preview, bug 9448
         # ...an attribute which is always shared
-        self.assert_(e1.isAttributeModifiable('displayName'))
+        self.assert_(not e1.isAttributeModifiable('displayName'))
 
         # ...an attribute that is sometimes shared (based on filterAttributes)
-        self.assert_(e1.isAttributeModifiable(pim.Remindable.reminders.name))
+        self.assert_(not e1.isAttributeModifiable(pim.Remindable.reminders.name))
 
         # ...an attribute which is pretty much never shared
-        self.assert_(e1.isAttributeModifiable('read'))
+        self.assert_(not e1.isAttributeModifiable('read'))
 
 if __name__ == "__main__":
     unittest.main()
