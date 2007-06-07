@@ -1143,15 +1143,116 @@ class RoundTripTestCase(testcase.DualRepositoryTestCase):
         second0.unmodify()
         self.share0.contents.remove(second0.itsItem)
         self.assert_(second0.isGenerated)
-        view0.commit(); stats = self.share0.sync(debug=True); view0.commit()
+        view0.commit(); stats = self.share0.sync(); view0.commit()
         self.assert_(second0.isGenerated)
         second1.itsItem.displayName = "Changed again in view 1"
-        view1.commit(); stats = self.share1.sync(debug=True); view1.commit()
+        view1.commit(); stats = self.share1.sync(); view1.commit()
         self.assert_(not second1.isGenerated)
-        view0.commit(); stats = self.share0.sync(debug=True); view0.commit()
+        view0.commit(); stats = self.share0.sync(); view0.commit()
         self.assert_(not second0.isGenerated)
         self.assertEquals(second0.itsItem.displayName,
             "Changed again in view 1")
         # Outbound change overrules the unmodification
+
+
+        # Verify that stamping and unstamping of Mail works.  Note that
+        # stamping/unstamping of Mail always operates on entire series.
+        # ...stamp in 0...
+        pim.CHANGE_ALL(pim.MailStamp(item)).add()
+        self.assert_(pim.has_stamp(item, pim.MailStamp))
+        self.assert_(pim.has_stamp(second0.itsItem, pim.MailStamp))
+        view0.commit(); stats = self.share0.sync(); view0.commit()
+        view1.commit(); stats = self.share1.sync(); view1.commit()
+        self.assert_(pim.has_stamp(item1, pim.MailStamp))
+        self.assert_(pim.has_stamp(second1.itsItem, pim.MailStamp))
+
+        # ...unstamp in 1...
+        pim.CHANGE_ALL(pim.MailStamp(item1)).remove()
+        self.assert_(not pim.has_stamp(item1, pim.MailStamp))
+        self.assert_(not pim.has_stamp(second1.itsItem, pim.MailStamp))
+        view1.commit(); stats = self.share1.sync(); view1.commit()
+        view0.commit(); stats = self.share0.sync(); view0.commit()
+        self.assert_(not pim.has_stamp(item, pim.MailStamp))
+        self.assert_(not pim.has_stamp(second0.itsItem, pim.MailStamp))
+
+        # ...stamp in 0...
+        pim.CHANGE_ALL(pim.MailStamp(item)).add()
+        self.assert_(pim.has_stamp(item, pim.MailStamp))
+        self.assert_(pim.has_stamp(second0.itsItem, pim.MailStamp))
+        view0.commit(); stats = self.share0.sync(); view0.commit()
+        view1.commit(); stats = self.share1.sync(); view1.commit()
+        self.assert_(pim.has_stamp(item1, pim.MailStamp))
+        self.assert_(pim.has_stamp(second1.itsItem, pim.MailStamp))
+
+        # ...unstamp in 0...
+        pim.CHANGE_ALL(pim.MailStamp(item)).remove()
+        self.assert_(not pim.has_stamp(item, pim.MailStamp))
+        self.assert_(not pim.has_stamp(second0.itsItem, pim.MailStamp))
+        view0.commit(); stats = self.share0.sync(); view0.commit()
+        view1.commit(); stats = self.share1.sync(); view1.commit()
+        self.assert_(not pim.has_stamp(item1, pim.MailStamp))
+        self.assert_(not pim.has_stamp(second1.itsItem, pim.MailStamp))
+
+
+        # Verify that stamping and unstamping of Task works.  Note that
+        # we can stamp/unstamp individual occurrences with Task
+        # ...stamp master in 0...
+        pim.TaskStamp(item).add()
+        self.assert_(pim.has_stamp(item, pim.TaskStamp))
+        view0.commit(); stats = self.share0.sync(); view0.commit()
+        view1.commit(); stats = self.share1.sync(); view1.commit()
+        self.assert_(pim.has_stamp(item1, pim.TaskStamp))
+
+        # ...unstamp master in 1...
+        pim.TaskStamp(item1).remove()
+        self.assert_(not pim.has_stamp(item1, pim.TaskStamp))
+        view1.commit(); stats = self.share1.sync(); view1.commit()
+        view0.commit(); stats = self.share0.sync(); view0.commit()
+        self.assert_(not pim.has_stamp(item, pim.TaskStamp))
+
+        # ...stamp master in 0...
+        pim.TaskStamp(item).add()
+        self.assert_(pim.has_stamp(item, pim.TaskStamp))
+        view0.commit(); stats = self.share0.sync(); view0.commit()
+        view1.commit(); stats = self.share1.sync(); view1.commit()
+        self.assert_(pim.has_stamp(item1, pim.TaskStamp))
+
+        # ...unstamp master in 0...
+        pim.TaskStamp(item).remove()
+        self.assert_(not pim.has_stamp(item, pim.TaskStamp))
+        view0.commit(); stats = self.share0.sync(); view0.commit()
+        view1.commit(); stats = self.share1.sync(); view1.commit()
+        self.assert_(not pim.has_stamp(item1, pim.TaskStamp))
+
+
+        # ...stamp second in 0...
+        pim.TaskStamp(second0.itsItem).add()
+        self.assert_(pim.has_stamp(second0.itsItem, pim.TaskStamp))
+        view0.commit(); stats = self.share0.sync(); view0.commit()
+        view1.commit(); stats = self.share1.sync(); view1.commit()
+        self.assert_(pim.has_stamp(second1.itsItem, pim.TaskStamp))
+
+        # ...unstamp second in 1...
+        pim.TaskStamp(second1.itsItem).remove()
+        self.assert_(not pim.has_stamp(second1.itsItem, pim.TaskStamp))
+        view1.commit(); stats = self.share1.sync(); view1.commit()
+        view0.commit(); stats = self.share0.sync(); view0.commit()
+        self.assert_(not pim.has_stamp(second0.itsItem, pim.TaskStamp))
+
+        # ...stamp second in 0...
+        pim.TaskStamp(second0.itsItem).add()
+        self.assert_(pim.has_stamp(second0.itsItem, pim.TaskStamp))
+        view0.commit(); stats = self.share0.sync(); view0.commit()
+        view1.commit(); stats = self.share1.sync(); view1.commit()
+        self.assert_(pim.has_stamp(second1.itsItem, pim.TaskStamp))
+
+        # ...unstamp second in 0...
+        pim.TaskStamp(second0.itsItem).remove()
+        self.assert_(not pim.has_stamp(second0.itsItem, pim.TaskStamp))
+        view0.commit(); stats = self.share0.sync(); view0.commit()
+        view1.commit(); stats = self.share1.sync(); view1.commit()
+        self.assert_(not pim.has_stamp(second1.itsItem, pim.TaskStamp))
+
+
 
         self.share0.destroy() # clean up

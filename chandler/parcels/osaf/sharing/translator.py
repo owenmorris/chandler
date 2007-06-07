@@ -850,15 +850,19 @@ class SharingTranslator(eim.Translator):
 
     @model.TaskRecord.deleter
     def delete_task(self, record):
-        d = self.deferredUUID(record.uuid, create=False)
-        @d.addCallback
-        def do_delete(uuid):
-            if uuid is not None:
-                item = self.rv.findUUID(uuid)
-                if item is not None and item.isLive() and pim.has_stamp(
-                    item, pim.TaskStamp
-                ):
-                    pim.TaskStamp(item).remove()
+        uuid, recurrenceID = splitUUID(record.uuid)
+        item = self.rv.findUUID(uuid)
+        if item is not None and item.isLive():
+            if recurrenceID and pim.has_stamp(item, EventStamp):
+                # unstamp the occurrence
+                occurrence = EventStamp(item).getRecurrenceID(recurrenceID)
+                if pim.has_stamp(occurrence.itsItem, pim.TaskStamp):
+                    pim.TaskStamp(occurrence.itsItem).remove()
+            elif pim.has_stamp(item, pim.TaskStamp):
+                # unstamp the master item
+                pim.TaskStamp(item).remove()
+
+
 
     @model.PasswordRecord.importer
     def import_password(self, record):
@@ -923,19 +927,21 @@ class SharingTranslator(eim.Translator):
     #MailMessageRecord
     @model.MailMessageRecord.importer
     def import_mail(self, record):
+
+        messageId = (eim.Inherit if record.messageId == None
+                     else record.messageId)
+
+        inReplyTo = (eim.Inherit if record.inReplyTo == None
+                     else record.inReplyTo)
+
         @self.withItemForUUID(
            record.uuid,
            pim.MailStamp,
            dateSentString=record.dateSent,
+           messageId=messageId,
+           inReplyTo=inReplyTo
         )
         def do(mail):
-            if record.messageId not in noChangeOrInherit:
-                mail.messageId = record.messageId and \
-                                 record.messageId or u""
-
-            if record.inReplyTo not in noChangeOrInherit:
-                mail.inReplyTo = record.inReplyTo and \
-                                 record.inReplyTo or u""
 
             if record.headers not in noChangeOrInherit:
                 mail.headers = {}
@@ -1241,10 +1247,15 @@ class SharingTranslator(eim.Translator):
 
     @model.MailMessageRecord.deleter
     def delete_mail(self, record):
-        item = self.rv.findUUID(record.uuid)
-        if item is not None and item.isLive() and \
-           pim.has_stamp(item, pim.MailStamp):
-            pim.MailStamp(item).remove()
+        uuid, recurrenceID = splitUUID(record.uuid)
+        item = self.rv.findUUID(uuid)
+        if item is not None and item.isLive():
+            if recurrenceID and pim.has_stamp(item, EventStamp):
+                occurrence = EventStamp(item).getRecurrenceID(recurrenceID)
+                if pim.has_stamp(occurrence.itsItem, pim.MailStamp):
+                    pim.MailStamp(occurrence.itsItem).remove()
+            elif pim.has_stamp(item, pim.MailStamp):
+                pim.MailStamp(item).remove()
 
 
     # EventRecord -------------
@@ -1471,7 +1482,6 @@ class SharingTranslator(eim.Translator):
 
     @model.EventRecord.deleter
     def delete_event(self, record):
-        # @@@MOR: Need help from Jeffrey here...  is this right?
         uuid, recurrenceID = splitUUID(record.uuid)
         item = self.rv.findUUID(uuid)
         if item is not None and item.isLive() and pim.has_stamp(item,
