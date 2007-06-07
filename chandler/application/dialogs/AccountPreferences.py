@@ -924,9 +924,7 @@ class AccountPreferencesDialog(wx.Dialog):
         panel = PANELS[accountType]
         values = data['values']
         item = self.rv.findUUID(data['item'])
-        displayName = values[panel["displayName"]]
-
-        return getattr(item, "displayName", "")
+        return values[panel["displayName"]]
 
 
     def __SwapDetailPanel(self, index):
