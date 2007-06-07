@@ -14,19 +14,20 @@
 
 from osaf.sharing import model, eim, RecordSet, translator
 from osaf.sharing.translator import toICalendarDuration, toICalendarDateTime
-from ICalendar import makeNaiveteMatch
+from ICalendar import (makeNaiveteMatch, attributesUnderstood,
+                       parametersUnderstood)
 import vobject
 from datetime import datetime, timedelta, date
 from PyICU import ICUtzinfo
 from osaf.pim.calendar.TimeZone import convertToICUtzinfo, forceToDateTime
 from osaf.pim.triage import Triageable
-from chandlerdb.util.c import UUID
+from chandlerdb.util.c import UUID, Empty
 from i18n import ChandlerMessageFactory as _
 import md5
 from itertools import chain
 import logging
 
-from vobject.base import textLineToContentLine
+from vobject.base import textLineToContentLine, Component, ContentLine
 
 __all__ = [
     'ICSSerializer', 'VObjectSerializer'
@@ -191,8 +192,126 @@ def readNoteRecord(noteRecord, vobjs):
             icalUID = uuid
         else:
             icalUID = vobjs[uuid].uid.value
+
     vobj.add('uid').value = icalUID
 
+top_level_understood = ['vtimezone', 'version', 'calscale', 'x-wr-calname', 
+                        'prodid', 'method', 'vevent', 'vtodo']
+
+class unrecognizedData(object):
+    """
+    Avoid creating tons of empty vobjects since the common case is that they're
+    not needed.
+    
+    Using a separate class to work around Python nested scope annoyance,
+    instead of using nested functions.
+    
+    """
+    __slots__ = 'newChild', 'newComponent', 'parent_component', 'child'
+    def __init__(self, parent_component, child):
+        self.newChild = None
+        self.newComponent = None
+        self.parent_component = parent_component
+        self.child = child
+
+    def getComponent(self):
+        if self.newComponent is None:
+            self.newComponent = Component(self.parent_component.name)
+        return self.newComponent
+    
+    def getChild(self):
+        newChild = self.newChild
+        if newChild is None:
+            newChild = self.newChild = Component(self.child.name)
+            parent = self.getComponent()
+            parent.contents.setdefault(self.child.name, []).append(newChild)
+        return newChild
+
+
+def extractUnrecognized(parent_component, child):
+    """
+    Extract unrecognized, content lines, and parameters from a vevent, also
+    store top level components from the whole calendar in cases that look like
+    CalDAV.
+    
+    If the object has more than one icalUID, it's not a CalDAV icalendar file,
+    so don't waste space on potentially hundreds of items by storing top-level
+    unrecognized data for each item.
+    
+    Return either None, or a vobject, which is a fragment of an icalendar file,
+    containing lines and components that weren't recognized.  If a line is
+    recognized but a parameter isn't, a line with parameters byt no value will
+    be output.
+    
+    This strategy may fall on its face for duplicated lines that are recognized 
+    but with different, unrecognized parameters, but that seems like an unlikely
+    edge case.
+    
+    Tasks currently aren't handled for fear of oddities when vevents
+    are converted into vtodos.
+    
+    """
+    # don't create a new component unless it's needed
+    out = unrecognizedData(parent_component, child)
+    
+    # only handle top level lines and components if child is a vevent, and
+    # parent_component's vevent children's uids all match
+    if child.name.lower() == 'vevent':
+        uid = child.getChildValue('uid').upper()
+        for vevent in parent_component.contents.get('vevent', Empty):
+            if vevent.getChildValue('uid').upper() != uid:
+                break
+        else: # reminder: else-after-for executes if the for-loop wasn't broken
+            for key, top_child in parent_component.contents.iteritems():
+                if key.lower() not in top_level_understood:
+                    out.getComponent().contents[key] = top_child
+                else:
+                    # not saving parameters of recognized top level lines
+                    pass
+                
+    for line in child.lines():
+        name = line.name.lower()
+        if name not in attributesUnderstood:
+            line.transformFromNative()
+            out.getChild().contents.setdefault(name, []).append(line)
+        else:
+            paramPairs = []
+            for key, paramvals in line.params.iteritems():
+                if key.lower() not in parametersUnderstood:
+                    paramPairs.append((key, paramvals))
+            if paramPairs:
+                newLine = ContentLine(line.name, [], '')
+                newLine.params = dict(paramPairs)
+                out.getChild().contents.setdefault(name, []).append(newLine)
+
+    # we could recurse and process child's component children, which would get
+    # things like custom lines in VALARMs, but for now, don't bother
+    
+    return out.newComponent
+
+def injectUnrecognized(icalendarExtra, calendar, vevent):
+    """Add unrecognized data from item.icalendarExtra to calendar and vevent."""
+    if not icalendarExtra:
+        # nothing to do
+        return
+    newCal = vobject.readOne(icalendarExtra, transform=False)
+    for line in newCal.lines():
+        calendar.contents.setdefault(line.name, []).append(line)
+    for component in newCal.components():
+        if component.name.lower() != 'vevent':
+            calendar.contents.setdefault(component.name, []).append(component)
+        else:
+            for line in component.lines():
+                name = line.name.lower()
+                if name in attributesUnderstood:
+                    if hasattr(vevent, name):
+                        for key, paramvals in line.params.iteritems():
+                            vevent.contents[name][0].params[key] = paramvals
+                    # do nothing for parameters on, say dtend, since we
+                    # serialize duration instead
+                else:
+                    vevent.contents.setdefault(name, []).append(line)
+                    
 
 triage_code_to_vtodo_status = {
     "100" : 'in-process',
@@ -251,9 +370,9 @@ def readAlarmRecord(alarmRecord, vobjs):
             valarm.repeat.isNative = False
 
 recordHandlers = {model.EventRecord : readEventRecord,
-                  model.NoteRecord  : readNoteRecord,
                   model.ItemRecord  : readItemRecord,
                   model.DisplayAlarmRecord : readAlarmRecord,
+                  model.NoteRecord  : readNoteRecord,
                  }
 
 
@@ -268,6 +387,9 @@ def hasTaskAndEvent(recordSet):
             break
     return task, event
 
+class DictWithAttributes(dict):
+    pass
+
 class ICSSerializer(object):
 
     @classmethod
@@ -279,6 +401,7 @@ class ICSSerializer(object):
     def recordSetsToVObject(cls, recordSets, **extra):
         """ Convert a list of record sets to an ICalendar blob """
         vobj_mapping = {}
+        cal = vobject.iCalendar()
 
         masterRecordSets = []
         nonMasterRecordSets = []
@@ -295,10 +418,14 @@ class ICSSerializer(object):
         
         for uuid, recordSet in chain(masterRecordSets, nonMasterRecordSets):
             prepareVobj(uuid, recordSet, vobj_mapping)
+            icalExtra = None
             for record in recordSet.inclusions:
                 recordHandlers.get(type(record), no_op)(record, vobj_mapping)
+                if type(record) == model.NoteRecord:
+                    icalExtra = record.icalExtra
+                    
+            injectUnrecognized(icalExtra, cal, vobj_mapping.get(uuid))
             
-        cal = vobject.iCalendar()
         cal.vevent_list = [obj for obj in vobj_mapping.values()
                            if obj.name.lower() == 'vevent']
         cal.vtodo_list = [obj for obj in vobj_mapping.values()
@@ -315,7 +442,7 @@ class ICSSerializer(object):
             # because Outlook requires them (bug 7121)
             cal.add('method').value = "PUBLISH"
             
-        #handle icalproperties and icalparameters
+        #handle icalendarExtra
         return cal
 
     @classmethod
@@ -456,24 +583,6 @@ class ICSSerializer(object):
                         else:
                             assert type(remValue) is timedelta
                             trigger = toICalendarDuration(remValue)
-                
-                ## Custom properties/parameters
-                #ignoredProperties = {}
-                #ignoredParameters = {}
-                #for line in vobj.lines():
-                    #name = line.name.lower()
-                    #if name not in attributesUnderstood:
-                        #line.transformFromNative()
-                        #if not line.encoded and line.behavior:
-                            #line.behavior.encode(line)
-                        #ignoredProperties[name] = line.value
-                    #params=u''
-                    #for key, paramvals in line.params.iteritems():
-                        #if key.lower() not in parametersUnderstood:
-                            #vals = map(vobject.base.dquoteEscape, paramvals)
-                            #params += ';' + key + '=' + ','.join(vals)
-                    #if len(params) > 0:
-                        #ignoredParameters[name] = params
 
                 recurrence = {}
             
@@ -552,13 +661,22 @@ class ICSSerializer(object):
 
                     # VTODO's status doesn't correspond to EventRecord's status
                     status = eim.NoChange
-                    
+                
+                icalExtra = eim.NoChange
+                if not emitTask:
+                    # not processing VTODOs
+                    icalExtra = extractUnrecognized(calendar, vobj)
+                    if icalExtra is None:
+                        icalExtra = ''
+                    else:
+                        icalExtra = icalExtra.serialize()
 
                 records = [model.NoteRecord(uuid,
                                             description,  # body
                                             uid,          # icalUid
-                                            eim.NoChange, # icalProperties
-                                            eim.NoChange, # icalParameters
+                                            None,         # icalProperties
+                                            None,         # icalParameters
+                                            icalExtra,    # icalExtra
                                             ),
                            model.ItemRecord(uuid, 
                                             summary,        # title

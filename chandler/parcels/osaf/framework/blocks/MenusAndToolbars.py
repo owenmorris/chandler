@@ -458,7 +458,11 @@ class wxQuickEntry (wx.SearchCtrl):
         showCancelButton = text != ""        
         if self.IsCancelButtonVisible() and not showCancelButton:
             self.ShowCancelButton (False)
-            self.OnCancelButton (event)
+            # propagating a cancel causes status messages to disappear,
+            # which makes it seem like they never appeared, so instead of
+            # propagating a cancel event, just stop showing search.
+
+            self.blockItem.findBlockByName("Sidebar").setShowSearch(False)
         
         self.ShowCancelButton (showCancelButton)
         

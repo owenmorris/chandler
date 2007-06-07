@@ -113,13 +113,17 @@ class NoteRecord(eim.Record):
     # Note.icalUid
     icalUid = eim.field(text256, _(u"Icalendar UID"))
 
-    # Note.icalendarProperties
+    # Note.icalendarProperties - legacy, never used
     icalProperties = eim.field(text1024, filters=[nonStandardICalendarFilter])
 
-    # Note.icalendarParameters
+    # Note.icalendarParameters - legacy, never used
     icalParameters = eim.field(text1024, filters=[nonStandardICalendarFilter])
 
-
+    # Note.icalendarExtra
+    icalExtra = eim.field(eim.TextType(size=4096), default=u"",
+                          filters=[nonStandardICalendarFilter])
+    
+ 
 class TaskRecord(eim.Record):
     URI = "http://osafoundation.org/eim/task/0"
 

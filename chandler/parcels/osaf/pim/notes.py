@@ -31,7 +31,17 @@ class Note(items.ContentItem):
             "set UID to a string representation of UUID, but we need to be "
             "able to import iCalendar events with arbitrary UIDs."
     )
-    
+
+    icalendarExtra = schema.One(
+        schema.Text,
+        defaultValue='',
+        doc="Fragment of an icalendar file containing unrecognized data "
+            "in iCalendar format."
+    )
+
+    # icalendarProperties and icalendarParameters are preserved just until
+    # the old XML + ics dual fork code goes away, the attribute that's used
+    # by current code is icalendarExtra
     icalendarProperties = schema.Mapping(
         schema.Text,
         defaultValue=Empty,

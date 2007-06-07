@@ -376,7 +376,13 @@ class wxSidebar(wxTable):
     def OnFilePaste(self):
         coll = self.getCollectionDroppedOn()
         for filename in self.fileDataObject.GetFilenames():
-            ChooseFormat.importFile(filename, self.blockItem.itsView, coll)
+            try:
+                ChooseFormat.importFile(filename, self.blockItem.itsView, coll)
+            except sharing.ICalendar.ICalendarImportError:
+                wx.GetApp().CallItemMethodAsync(
+                    "MainView", 'setStatusMessage',
+                    "Problem with file, import failed")
+
 
     def getCollectionDroppedOn(self):
         whereToDropItem = getattr (self, 'whereToDropItem', None)

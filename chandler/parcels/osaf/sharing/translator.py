@@ -799,12 +799,18 @@ class SharingTranslator(eim.Translator):
         icalUID = record.icalUid
         if icalUID is None or splitUUID(record.uuid)[0] == icalUID:
             icalUID = eim.NoChange
+        
+        if record.icalExtra is None:
+            icalExtra = eim.NoChange
+        else:
+            icalExtra = record.icalExtra
 
         self.withItemForUUID(
             record.uuid,
             pim.Note,
             icalUID=icalUID,
-            body=body
+            body=body,
+            icalendarExtra=icalExtra
         )
 
     @eim.exporter(pim.Note)
@@ -826,8 +832,9 @@ class SharingTranslator(eim.Translator):
             note,                                       # uuid
             self.obfuscate(body),                       # body
             icalUID,                                    # icalUid
-            None,                                       # icalProperties
-            None                                        # icalParameters
+            None,                                       # icalendarProperties
+            None,                                       # icalendarParameters
+            handleEmpty(note, 'icalendarExtra'),        # icalendarExtra
         )
 
 

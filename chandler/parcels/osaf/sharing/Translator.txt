@@ -155,7 +155,8 @@ Importing:
     ...         body='This is the body',
     ...         icalUid='f230dcd4-7c32-4c3f-908b-d92081cc9a89',
     ...         icalProperties=None,
-    ...         icalParameters=None
+    ...         icalParameters=None,
+    ...         icalExtra=None,
     ... )
 
     >>> rs = sharing.RecordSet([rec])
@@ -177,7 +178,7 @@ Exporting:
     >>> t.startExport()
     >>> records = list(t.exportItem(item))
     >>> records
-    [ItemRecord('f230dcd4-7c32-4c3f-908b-d92081cc9a89', u'Translator test', '100 -1167792400.00 1', Decimal("1164803131"), 0, 0, 0), ModifiedByRecord('f230dcd4-7c32-4c3f-908b-d92081cc9a89', u'', Decimal("1164803131"), 500), DisplayAlarmRecord('f230dcd4-7c32-4c3f-908b-d92081cc9a89', NoChange, None, None, None), NoteRecord('f230dcd4-7c32-4c3f-908b-d92081cc9a89', u'This is the body', u'f230dcd4-7c32-4c3f-908b-d92081cc9a89', None, None)]
+    [ItemRecord('f230dcd4-7c32-4c3f-908b-d92081cc9a89', u'Translator test', '100 -1167792400.00 1', Decimal("1164803131"), 0, 0, 0), ModifiedByRecord('f230dcd4-7c32-4c3f-908b-d92081cc9a89', u'', Decimal("1164803131"), 500), DisplayAlarmRecord('f230dcd4-7c32-4c3f-908b-d92081cc9a89', NoChange, None, None, None), NoteRecord('f230dcd4-7c32-4c3f-908b-d92081cc9a89', u'This is the body', u'f230dcd4-7c32-4c3f-908b-d92081cc9a89', None, None, u'')]
 
 TODO: icaluid
 
@@ -213,7 +214,7 @@ Exporting:
     >>> t.startExport()
     >>> records = list(t.exportItem(item))
     >>> records
-    [ItemRecord('f230dcd4-7c32-4c3f-908b-d92081cc9a89', u'Translator test', '100 -1167792400.00 1', Decimal("1164803131"), 0, 0, 0), ModifiedByRecord('f230dcd4-7c32-4c3f-908b-d92081cc9a89', u'', Decimal("1164803131"), 500), DisplayAlarmRecord('f230dcd4-7c32-4c3f-908b-d92081cc9a89', NoChange, None, None, None), NoteRecord('f230dcd4-7c32-4c3f-908b-d92081cc9a89', u'This is the body', u'f230dcd4-7c32-4c3f-908b-d92081cc9a89', None, None), TaskRecord('f230dcd4-7c32-4c3f-908b-d92081cc9a89')]
+    [ItemRecord('f230dcd4-7c32-4c3f-908b-d92081cc9a89', u'Translator test', '100 -1167792400.00 1', Decimal("1164803131"), 0, 0, 0), ModifiedByRecord('f230dcd4-7c32-4c3f-908b-d92081cc9a89', u'', Decimal("1164803131"), 500), DisplayAlarmRecord('f230dcd4-7c32-4c3f-908b-d92081cc9a89', NoChange, None, None, None), NoteRecord('f230dcd4-7c32-4c3f-908b-d92081cc9a89', u'This is the body', u'f230dcd4-7c32-4c3f-908b-d92081cc9a89', None, None, u''), TaskRecord('f230dcd4-7c32-4c3f-908b-d92081cc9a89')]
 
 
 MailMessageRecord type
@@ -508,8 +509,9 @@ Importing:
     ...         uuid='800644b6-dd73-11db-f79a-0016cbca6aed',
     ...         body='This is the body',
     ...         icalUid=None,
+    ...         icalExtra=None,
     ...         icalProperties=None,
-    ...         icalParameters=None
+    ...         icalParameters=None,
     ... )
     >>> event_rec = sharing.model.EventRecord(
     ...         uuid='800644b6-dd73-11db-f79a-0016cbca6aed',
