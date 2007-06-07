@@ -203,14 +203,14 @@ class FocusEventHandlers(Item):
             event.arguments['Enable'] = False
             event.arguments['Check'] = False
 
-    def onCreateConflictEvent(self, event):
+    # event and menu item defined in debug plugin
+    def on_debug_CreateConflictEvent(self, event):
         selectedItems = self.__getSelectedItems()
         if len(selectedItems) > 0:
             for item in selectedItems:
                 if not has_stamp(item, sharing.SharedItem):
                     sharing.SharedItem(item).add()
                 sharing.SharedItem(item).generateConflicts()
-
 
     def onFocusStampEvent(self, event):
         selectedItems = self.__getProxiedSelectedItems(event)

@@ -20,6 +20,7 @@ from osaf.framework.blocks.Block import Block
 from debug.TestMenu import makeTestMenu
 from debug.DebugMenu import makeDebugMenu
 from debug.CPIAMenu import makeCPIAMenu
+from debug.SharingMenu import makeSharingMenu
 
 _m_ = MessageFactory("Chandler-debugPlugin")
 
@@ -27,6 +28,7 @@ _m_ = MessageFactory("Chandler-debugPlugin")
 def installParcel(parcel, version=None):
 
     toolsMenu = schema.ns('osaf.views.main', parcel).ToolsMenu
+    sharingMenu = schema.ns('osaf.views.main', parcel).ShareTestMenu
 
     MenuItem.update(parcel, None,
                     blockName='_debug_separator_0',
@@ -36,3 +38,10 @@ def installParcel(parcel, version=None):
     makeTestMenu(parcel, toolsMenu)
     makeDebugMenu(parcel, toolsMenu)
     makeCPIAMenu(parcel, toolsMenu)
+
+    MenuItem.update(parcel, None,
+                    blockName='_debug_separator_0',
+                    menuItemKind='Separator',
+                    parentBlock=sharingMenu)
+
+    makeSharingMenu(parcel, sharingMenu)

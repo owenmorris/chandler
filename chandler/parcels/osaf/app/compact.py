@@ -213,8 +213,12 @@ class CompactTask(startup.DurableTask):
         toVersion = sharing.getOldestVersion(view) 
         versions = toVersion - self.lastVersion
 
+        from osaf.framework.blocks.Block import Block
+        setStatusMessage = Block.findBlockByName('StatusBar').setStatusMessage
+
         if versions < CompactTask.MIN_VERSIONS:  # nothing much to do
             view.logger.info("Only %d versions to compact, skipping", versions)
+            setStatusMessage(_m_(u"No versions to compact, skipping"))
             if manual:
                 self.lastRun = self.lastCompact
             else:
@@ -222,8 +226,6 @@ class CompactTask(startup.DurableTask):
             view.commit()
             return
 
-        from osaf.framework.blocks.Block import Block
-        setStatusMessage = Block.findBlockByName('StatusBar').setStatusMessage
         self.compacted = None
 
         def compact(progress):

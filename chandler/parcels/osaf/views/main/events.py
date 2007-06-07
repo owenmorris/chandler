@@ -62,13 +62,6 @@ def makeMainEvents(parcel):
     BlockEvent.template('RecordSetDebugging',
                         commitAfterDispatch = True).install(parcel)
 
-    BlockEvent.template('InmemoryPublish',
-                        commitAfterDispatch = True).install(parcel)
-
-    BlockEvent.template('ConvertExportFile',
-                        commitAfterDispatch = True).install(parcel)
-
-
     BlockEvent.template('SwitchRepository').install(parcel)
 
     BlockEvent.template('CreateRepository').install(parcel),
@@ -96,11 +89,6 @@ def makeMainEvents(parcel):
                         dispatchToBlockName = 'StatusBar').install(parcel)
 
     BlockEvent.template('EnableTimezones',
-                        commitAfterDispatch = True).install(parcel)
-
-    # "Test" menu event
-    BlockEvent.template('CreateConflict',
-                        dispatchEnum = 'FocusBubbleUp',
                         commitAfterDispatch = True).install(parcel)
 
     # "Item" menu events
@@ -168,13 +156,6 @@ def makeMainEvents(parcel):
     BlockEvent.template('ActivateWebserver').install(parcel)
 
     BlockEvent.template('ShowActivityViewer').install(parcel)
-
-    BlockEvent.template('BackgroundSyncAll').install(parcel)
-
-    BlockEvent.template('BackgroundSyncGetOnly').install(parcel)
-
-    BlockEvent.template('ToggleReadOnlyMode',
-                        commitAfterDispatch = True).install(parcel)
 
     BlockEvent.template('EditMyName',
                         commitAfterDispatch = True).install(parcel)
