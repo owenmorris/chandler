@@ -115,7 +115,6 @@ def _getDefaultHTML():
     "ab":   "image:about.png",
     "ver":  _("Version: %(versionNumber)s") % {"versionNumber": version},
     "abt":  _("About Chandler"),
-    "ex":   _("Experimentally usable calendar"),
     "plat": Utility.getPlatformName(),
     "ch":   (u"Chandler\u2122"),
     "osa":  ("Open Source Applications Foundation"),
@@ -137,7 +136,6 @@ def _getDefaultHTML():
 <center>
 <table width="%(wid)s" border="0" cellpadding="0" cellspacing="0">
 <tr><td><img src="%(pix)s" width="1" height="5"></td></tr>
-<tr><td><center><font face="helvetica, arial, sans-serif" size="3" color="black">%(ex)s</font></center></td></tr>
 <tr><td><img src="%(pix)s" width="1" height="10"></td></tr>
 <tr><td><center><img src="%(ab)s" width="64" height="64"></center></td></tr>
 <tr><td><img src="%(pix)s" width="1" height="5"></td></tr>
