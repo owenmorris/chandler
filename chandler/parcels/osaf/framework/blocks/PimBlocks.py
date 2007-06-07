@@ -399,13 +399,18 @@ class FocusEventHandlers(Item):
 
         pim_ns = schema.ns('osaf.pim', self.itsView)
         if selectedCollection == pim_ns.trashCollection:
-            removeItem = deleteItem
+            def removeItem(item):
+                # For deleting from the trash, get rid of the event's
+                # master; there's no sense in asking about a particular
+                # instance.
+                getattr(item, 'inheritFrom', item).delete(True)
         else:
             def removeItem(item):
+                item = getProxy(u'ui', item)
                 item.removeFromCollection(selectedCollection)
 
         for item in removals:
-            removeItem(getProxy(u'ui', item))
+            removeItem(item)
         
         if len(itemsAndStates) == 0:
             self.postEventByName("SelectItemsBroadcast",
@@ -425,7 +430,10 @@ class FocusEventHandlers(Item):
         trash = schema.ns('osaf.pim', self.itsView).trashCollection
         if selectedCollection == trash:
             def deleteItem(item):
-                item.delete()
+                # For deleting from the trash, get rid of the event's
+                # master; there's no sense in asking about a particular
+                # instance.
+                getattr(item, 'inheritFrom', item).delete(True)
         else:
             def deleteItem(item):
                 item.addToCollection(trash)

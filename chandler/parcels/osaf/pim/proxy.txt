@@ -218,8 +218,6 @@ back ``None``:
 >>> UserChangeProxy(item)
 
 
-
-
 Proxied method calls
 --------------------
 
@@ -242,6 +240,16 @@ u''
 True
 >>> proxy.displayName == cleverNote.displayName == u'Yuck (tricky)'
 True
+
+Calling ``delete()`` on a proxy deletes the item right away:
+
+>>> proxy = UserChangeProxy(pim.ContentItem(itsView=view))
+>>> proxy.delete()
+>>> pim.isDead(proxy)
+True
+
+(Technically, this isn't really correct, since you might want, for example,
+clearing of attributes to work before deletion).
 
 Calculated attributes
 ---------------------

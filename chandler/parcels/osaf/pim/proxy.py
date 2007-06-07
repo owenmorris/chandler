@@ -389,6 +389,9 @@ class UserChangeProxy(object):
     def cancel(self):
         if self.changes is not None:
             del self.changes
+            
+    def delete(self, *args, **kw):
+        self.proxiedItem.delete(*args, **kw)
 
 class Changer(object):
     def __new__(cls, *args):
@@ -469,8 +472,6 @@ class CHANGE_ALL(Changer):
             event.addStampToAll(change[2])
         elif changeType == 'removeStamp':
             event.removeStampFromAll(change[2])
-        elif changeType == 'add' and change[2] is schema.ns("osaf.pim", item.itsView).trashCollection:
-            event.deleteAll()
         elif changeType in ('add', 'remove'):
             masterItem = event.getMaster().itsItem
             ref = getattr(masterItem, change[0].descriptor.name)
