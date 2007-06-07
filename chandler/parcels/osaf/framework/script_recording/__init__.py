@@ -14,12 +14,14 @@
 
 
 import os, sys, wx, types
-from application import schema
+from application import Utility, Globals, Parcel, schema
+from osaf.framework.blocks.Block import Block
 from osaf.framework.blocks import Block, BlockEvent, Table
-from osaf.framework.blocks.MenusAndToolbars import Menu, MenuItem, ToolBarItem
+from osaf.framework.blocks.MenusAndToolbars import Menu, MenuItem, wxMenu, wxMenuItem, ToolBarItem
 from i18n import ChandlerMessageFactory as _
 from application.Application import idToString
 from osaf.views.detail import DetailSynchronizedAttributeEditorBlock
+from osaf.framework.script_recording.Scripts import ScriptsMenu
 
 wxEventClasseInfo = {wx.CommandEvent: {"attributes": ()},
                      wx.MouseEvent: {"attributes": ("m_altDown",
@@ -317,9 +319,9 @@ class Controller (Block.Block):
                     #else:
                         #print "unnamed block with id", sentToName, sentToWidget
 
+
 def installParcel(parcel, old_version=None):
     main = schema.ns('osaf.views.main', parcel.itsView)
-
     controller = Controller.update(
         parcel, 'RecordingController',
         blockName = 'RecordingController')
@@ -328,7 +330,7 @@ def installParcel(parcel, old_version=None):
         parcel, 'ScriptingMenuItem',
         blockName = 'ScriptingMenuItem',
         title = _(u'Scriptin&g'),
-        childrenBlocks = [],
+        childrenBlocks = ['ScriptMenut'],
         parentBlock = main.ToolsMenu)
 
     # Add menu and event to record scripts
@@ -363,19 +365,36 @@ def installParcel(parcel, old_version=None):
         event = IncludeTests,
         eventsForNamedLookup = [IncludeTests],
         parentBlock = scriptingMenu)
+    
+    ##create a block event that will be used for the dynamic menu system
+    Scripta = BlockEvent.template('Scripta',
+                    dispatchToBlockName = 'ScriptMenu',
+                    commitAfterDispatch = True).install(parcel)    
+    
+    ##Create the block for the dynamic menu
+    ScriptMenu = ScriptsMenu.update(
+        parcel, 'ScriptMenu',
+        blockName = 'ScriptMenu',
+        title = _(u'Run Script'),
+        event = Scripta,
+        childrenBlocks = [],
+        parentBlock = scriptingMenu)    
 
     # Add menu and event to play a recording
+    #create the block event that will handle the event raised by open script menu item
     PlayScript = BlockEvent.update(
         parcel, 'PlayScript',
         blockName = 'PlayScript',
         dispatchEnum = 'SendToBlockByReference',
         destinationBlockReference = controller)
 
+    #create the menu item script and link it to the event
     MenuItem.update(
         parcel, 'PlayScriptMenuItem',
         blockName = 'PlayScriptMenuItem',
-        title = _(u'&Play script...'),
+        title = _(u'&Open script...'),
         helpString = _(u'Playback a script you recorded'),
         event = PlayScript,
         eventsForNamedLookup = [PlayScript],
-        parentBlock = scriptingMenu)
+        parentBlock = ScriptMenu)
+        

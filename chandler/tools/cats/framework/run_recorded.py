@@ -29,35 +29,59 @@ recorded_scripts_dir = os.path.abspath(os.path.join(
 
 
 
-def get_test_callables(observe_exclusions=True):
-    test_callables = {}       
+def get_test_modules(observe_exclusions=True):
+    test_modules = {}       
     sys.path.insert(0, recorded_scripts_dir)                     
     for filename in os.listdir(recorded_scripts_dir):
         if filename.endswith('.py') and not filename.startswith('.'):
             (filename, extension) = os.path.splitext (filename)
-            test_module = __import__(filename)
-
-            # Check for platform exclusions
-            if observe_exclusions is True:
-                if (not hasattr(test_module, '_platform_exclusions_') or
-                        (sys.platform not in test_module._platform_exclusions_ and
-                        'all' not in test_module._platform_exclusions_)):
-                    test_callables[filename] = getattr(test_module, 'run')
-    
+            
+            try:
+                test_module = __import__(filename)
+            except:
+                logger.exception('Failed to import test module %s' % filename)
+            finally:
+                # Check for platform exclusions
+                if observe_exclusions is True:
+                    if (not hasattr(test_module, '_platform_exclusions_') or
+                            (sys.platform not in test_module._platform_exclusions_ and
+                            'all' not in test_module._platform_exclusions_)):
+                        test_modules[filename] = test_module
+                else:
+                    test_modules[filename] = test_module
+                
     sys.path.pop(0)
-    return test_callables
+    return test_modules
 
-test_callables = get_test_callables()
+test_modules = get_test_modules()
 
 
-def run_test_by_name(name):
+def run_test_by_name(name, test_modules=test_modules):
     logger.info('Starting Test:: %s' % name)
-    if not test_callables.has_key(name):
+    if not test_modules.has_key(name):
         logger.error('Test dictionary does not have test named %s' % name)
         return False
     
+    # Run any dependencies
+    if hasattr(test_modules[name], '_depends_' ):
+        import recorded_test_lib
+        for dependency in [getattr(recorded_test_lib, dep) for dep in test_modules[name]._depends_ if (
+                           hasattr(recorded_test_lib, dep) ) and (
+                           dep not in recorded_test_lib.executed_dependencies ) ]:
+            try:
+                dependency()
+                recorded_test_lib.executed_dependencies.append(dependency.__name__)
+                logger.info('executed dependency %s' % dependency.__name__)
+            except AssertionError, e:
+                logger.exception('executing dependency "%s" has failed' % dependency.__name__)
+                return False
+            except Exception, e:
+                logger.exception('executing dependency "%s" has failed due to traceback' % dependency.__name__)
+                return False
+    
+    # Run the callable
     try:
-        test_callables[name]()
+        test_modules[name].run()
         logger.info('Test %s has passed' % name)
     except AssertionError, e:
         logger.exception('Test "%s" has failed' % name)
@@ -73,7 +97,7 @@ def execute_frame(option_value):
     
     result = "PASSED"
     if option_value == 'all':
-        testNames = test_callables.keys()
+        testNames = test_modules.keys()
     else:
         testNames = [option_value]
 
