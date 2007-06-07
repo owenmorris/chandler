@@ -1094,7 +1094,7 @@ class SharingTranslator(eim.Translator):
         headers = []
 
 
-        for header in mail.headers:
+        for header in getattr(mail, 'headers', []):
             if obf:
                 headers.append(u"%s: %s" % (header, self.obfuscate(mail.headers[header])))
 
@@ -1108,7 +1108,7 @@ class SharingTranslator(eim.Translator):
 
         toAddress = []
 
-        for addr in mail.toAddress:
+        for addr in getattr(mail, 'toAddress', []):
             toAddress.append(format(addr))
 
         if toAddress:
@@ -1118,7 +1118,7 @@ class SharingTranslator(eim.Translator):
 
         ccAddress = []
 
-        for addr in mail.ccAddress:
+        for addr in getattr(mail, 'ccAddress', []):
             ccAddress.append(format(addr))
 
         if ccAddress:
@@ -1128,7 +1128,7 @@ class SharingTranslator(eim.Translator):
 
         bccAddress = []
 
-        for addr in mail.bccAddress:
+        for addr in getattr(mail, 'bccAddress', []):
             bccAddress.append(format(addr))
 
         if bccAddress:
