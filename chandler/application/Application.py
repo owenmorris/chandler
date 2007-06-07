@@ -409,14 +409,8 @@ class wxApplication (wx.App):
         if splash:
             splash.updateGauge('repository')
         repoDir = Utility.locateRepositoryDirectory(options.profileDir, options)
-
-        # Check if this Chandler is an upgrade, will stop the program if backup needed
-        # must be done right before initRepository() so it has a fighting chance of
-        # detecting the first run after a new install
-        if not options.reload and not options.profileDirWasPassedIn and \
-           CheckIfUpgraded(options.profileDir, repoDir, options.create):
-            from application.dialogs.UpgradeDialog import UpgradeDialog
-            UpgradeDialog.run()
+        
+        newRepo = not os.path.isdir(repoDir)
 
         try:
             from application.dialogs.GetPasswordDialog import getPassword
@@ -456,7 +450,10 @@ class wxApplication (wx.App):
         # below if it changed - we'll need the parcels loaded for that)
         if self.localeChanged():
             view.check(True)
-            
+        
+        if splash and (options.create or newRepo):
+            splash.fixedMessage(_("Constructing database"))
+        
         # Load Parcels
         if splash:
             splash.updateGauge('parcels')
@@ -502,8 +499,6 @@ class wxApplication (wx.App):
         self.mainFrame.mainViewRoot = mainViewRoot
 
         # Register to some global events for name lookup.
-        if splash:
-            splash.updateGauge('globalevents')
         globalEvents = self.UIRepositoryView.findPath('//parcels/osaf/framework/blocks/GlobalEvents')
 
         from osaf.framework.blocks.Block import Block
@@ -516,11 +511,16 @@ class wxApplication (wx.App):
         if splash:
             splash.updateGauge('mainview')
 
-        self.RenderMainView()
+        self.RenderMainView(splash)
 
         wx.Yield()
+        
+        if splash:
+            splash.updateGauge('commit')
         self.UIRepositoryView.commit()
 
+        if splash:
+            splash.updateGauge('services')
         # Start the WakeupCaller Service
         Utility.initWakeup(self.UIRepositoryView)
 
@@ -653,11 +653,12 @@ class wxApplication (wx.App):
         else:
             localeInfo.localeName = localeName
         
-    def RenderMainView (self):
-        from osaf.framework.blocks.Block import Block
-
+    def RenderMainView (self, splash=None):
         mainViewRoot = self.mainFrame.mainViewRoot
         mainViewRoot.render()
+
+        if splash:
+            splash.updateGauge("layout")
 
         # We have to wire up the block mainViewRoot, it's widget and sizer to a new
         # sizer that we add to the mainFrame.
@@ -1219,7 +1220,9 @@ class StartupSplash(wx.Frame):
         padding = 7     # padding under and right of the progress percent text (in pixels)
         fontsize = 12   # font size of the progress text (in pixels)
         
-        super(StartupSplash, self).__init__(parent=parent, style=wx.SIMPLE_BORDER)
+        super(StartupSplash, self).__init__(parent=parent,
+                                            title=_(u'Chandler starting...'),
+                                            style=wx.SIMPLE_BORDER)
         sizer = wx.BoxSizer(wx.VERTICAL)
         self.SetSizer(sizer)
         self.CenterOnScreen()
@@ -1227,22 +1230,24 @@ class StartupSplash(wx.Frame):
 
         icon = wx.Icon("Chandler.egg-info/resources/icons/Chandler_32.ico", wx.BITMAP_TYPE_ICO)
         self.SetIcon(icon)
-        self.SetTitle(_(u'Chandler starting...'))
         
         # Progress Text dictionary
         #                    name            weight      text
-        self.statusTable = {'crypto'      : ( 5,  _(u"Initializing crypto services")),
-                            'repository'  : ( 10, _(u"Opening the repository")),
+        self.statusTable = {'crypto'      : ( 10,  _(u"Starting cryptographic services")),
+                            'repository'  : ( 10, _(u"Opening the database")),
                             'parcels'     : ( 15, _(u"Loading parcels")),
-                            'twisted'     : ( 10, _(u"Starting Twisted")),
-                            'globalevents': ( 15, _(u"Registering global events")),
-                            'mainview'    : ( 10, _(u"Rendering the main view"))}
+                            'twisted'     : ( 10, _(u"Starting network")),
+                            'mainview'    : ( 10, _(u"Building the main view")),
+                            'layout'      : ( 15, _(u"Laying out the main view")),
+                            'commit'      : ( 10, _(u"Committing the database")),
+                            'services'    : ( 10, _(u"Starting services")),
+                            }
 
         # Font to be used for the progress text
         font = wx.Font(fontsize, wx.SWISS, wx.NORMAL, wx.NORMAL)
         
         # Add title text
-        titleText = wx.StaticText(self, -1, _(u"Experimentally Usable Calendar"))
+        titleText = wx.StaticText(self, -1, _(u"Experimentally Usable Calendar")) # XXX Wasn't this supposed to say something else?
         titleText.SetBackgroundColour(wx.WHITE)
         sizer.Add(titleText, 1, wx.ALIGN_CENTER | wx.TOP | wx.BOTTOM, padding)
         titleText.SetFont(wx.Font(fontsize, wx.SWISS, wx.NORMAL, wx.NORMAL))
@@ -1254,7 +1259,7 @@ class StartupSplash(wx.Frame):
         sizer.Add(bitmap, 0, wx.ALIGN_CENTER, 0)
 
         # Add Chandler text
-        text1 = wx.StaticText(self, -1, (u"Chandler\u2122"))
+        text1 = wx.StaticText(self, -1, (u"Chandler\u2122")) # Chandler TM
         text1.SetBackgroundColour(wx.WHITE)
         sizer.Add(text1, 1,  wx.ALIGN_CENTER | wx.TOP | wx.BOTTOM, padding)
         text1.SetFont(wx.Font(16, wx.SWISS, wx.NORMAL, wx.BOLD))
@@ -1294,87 +1299,46 @@ class StartupSplash(wx.Frame):
         
         self.workingTicks = 0
         self.completedTicks = 0
-        self.timerTicks = 0
+        self.message = None
         
-        #Without a lock, spawning a new thread modestly improves the smoothness
-        #of the gauge, but then Destroy occasionally raises an exception and the
-        #gauge occasionally moves backwards, which is unsettling. Unfortunately,
-        #my feeble attempt at using a lock seemed to create a race condition.
-        
-        #threading._start_new_thread(self.timerLoop, ())
         sizer.SetSizeHints(self)
         self.Layout()
         
-    def timerLoop(self):#currently unused
-        self._startup = True
-        while self and self._startup:
-            self.updateGauge('timer')
-            time.sleep(1.5)
+    def fixedMessage(self, message):
+        self.message = message
 
     def updateGauge(self, type):
-        if type == 'timer': #currently unused
-            if self.timerTicks < self.workingTicks:
-                self.timerTicks += 1
-                self.gauge.SetValue(self.completedTicks + self.timerTicks)
+        self.completedTicks += self.workingTicks
+        self.workingTicks = self.statusTable[type][0]
+        if self.message is None:
+            message = self.statusTable[type][1]
         else:
-            self.timerTicks = 0
-            self.completedTicks += self.workingTicks
-            self.workingTicks = self.statusTable[type][0]
-            self.progressText.SetLabel(self.statusTable[type][1])
-            percentString = _(u"%(percent)d%%") % {'percent' : self.completedTicks + self.timerTicks}
-            self.progressPercent.SetLabel(percentString)
+            message = self.message
+        self.progressText.SetLabel(message)
+        percentString = _(u"%(percent)d%%") % {'percent' : self.completedTicks}
+        self.progressPercent.SetLabel(percentString)
+
         self.Layout()
-        self.Update()
         wx.Yield()
 
-    def Destroy(self):
-        self._startup = False
-        wx.Yield()
-        time.sleep(.25) #give the user a chance to see the gauge reach 100%
-        wx.Frame.Destroy(self)
 
 def CheckPlatform():
     """
     Check that the platforms you're running and the one the code has been compiled for match.
     If they don't, the program stops with sys.exit().
     """
-    from Utility import getPlatformName # This is the executing platform name
     try:
         from version import platform # This is the compiled platform name
     except ImportError:
         # If the platform is not specified in version.py, you're running a dev version from
         # code. In that case, we suppose you know what you're doing so 
         # the test will pass and you're on your own...
-        platform = getPlatformName()
-    if getPlatformName() != platform:
+        platform = Utility.getPlatformName()
+    if Utility.getPlatformName() != platform:
         # Prompt the user that we're going to exit
         wx.MessageBox(_(u'This application has been compiled for another platform. Please download the correct package from OSAF website.'),
                       _(u'Chandler will exit'))
         # Stop the program. Somewhat unclean but since nothing can be done safely
         # or even should be done (could crash anytime), the best is to just exit when
         # we still can...
-        sys.exit(0)
-    
-
-def CheckIfUpgraded(profileDir, repoDir, createRepo):
-    """
-    Check to see if Chandler is starting for the first time.
-    If it is and we can locate an older Chandler's repository, prompt the user to check
-    if they want to backup their previous data
-
-    The profile directory should always exist as it's created before this call
-
-    The following will trigger an upgrade warning
-        If the repository directory exists but --create present
-    """
-    import glob
-
-    upgraded    = False
-    profileBase = os.path.dirname(os.path.dirname(profileDir))
-
-    #if os.path.isdir(profileDir):
-    #    if os.path.isdir(repoDir) and createRepo:
-    #        upgraded = True
-
-    return upgraded
-
+        sys.exit(1)
