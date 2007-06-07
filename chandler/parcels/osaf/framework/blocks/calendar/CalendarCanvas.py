@@ -1997,11 +1997,16 @@ class wxCalendarContainer(ContainerBlocks.wxBoxContainer,
             if op == 'changed':
                 for widgie in self.calendarBlockWidgets():
                     editor = widgie.editor
-                    if (editor.event is not None and
-                        editor.event.itsItem.itsUUID == uuid and
-                        not widgie.belongsOnCanvas(editor.event.itsItem)):
-                        
-                        widgie.GrabFocusHack()
+                    if editor.event is not None:
+                        if isDead(editor.event.itsItem):
+                            # Our editor's item died and all we got is this
+                            # lousy t-shirt!
+                            editor.event = None
+                            if editor.IsShown():
+                                editor.HideAndResetFocus()
+                        elif (editor.event.itsItem.itsUUID == uuid and
+                              not widgie.belongsOnCanvas(editor.event.itsItem)):                        
+                            widgie.GrabFocusHack()
 
         super(wxCalendarContainer, self).onItemNotification(notificationType,
                                                             data)
