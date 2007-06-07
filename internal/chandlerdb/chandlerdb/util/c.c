@@ -32,6 +32,7 @@ PyTypeObject *SkipList = NULL;
 PyObject *Nil = NULL, *Default = NULL, *Empty = NULL;
 PyObject *Empty_TUPLE = NULL;
 long pointCount = 0, nodeCount = 0, skipListCount = 0;
+long linkCount = 0, linkedMapCount = 0;
 
 static PyObject *isuuid(PyObject *self, PyObject *obj)
 {
@@ -182,6 +183,11 @@ static PyObject *getSkipListCounts(PyObject *self)
     return Py_BuildValue("(lll)", pointCount, nodeCount, skipListCount);
 }
 
+static PyObject *getLinkedMapCounts(PyObject *self)
+{
+    return Py_BuildValue("(ll)", linkCount, linkedMapCount);
+}
+
 
 #ifdef __MACH__
 static PyObject *_vfork(PyObject *self)
@@ -225,6 +231,8 @@ static PyMethodDef c_funcs[] = {
       "return a suitable platform name for Berkeley DB compatibility check" },
     { "getSkipListCounts", (PyCFunction) getSkipListCounts, METH_NOARGS,
       "return the number of currently allocated skiplist objects" },
+    { "getLinkedMapCounts", (PyCFunction) getLinkedMapCounts, METH_NOARGS,
+      "return the number of currently allocated LinkedMap objects" },
 #ifdef __MACH__
     { "vfork", (PyCFunction) _vfork, METH_NOARGS, "" },
 #endif

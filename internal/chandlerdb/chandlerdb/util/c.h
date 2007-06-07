@@ -37,6 +37,7 @@ extern PyObject *inList, *outList;
 extern PyObject *Nil, *Default, *Empty;
 extern PyObject *Empty_TUPLE;
 extern long pointCount, nodeCount, skipListCount;
+extern long linkCount, linkedMapCount;
 
 void PyDict_SetItemString_Int(PyObject *, char *, int);
 

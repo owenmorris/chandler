@@ -57,7 +57,7 @@ PyObject *PyExc_DBRunRecoveryError = NULL;
 PyObject *Empty_TUPLE = NULL;
 PyObject *None_PAIR = NULL;
 PyObject *Nil = NULL;
-
+long recordCount = 0;
 
 PyObject *raiseDBError(int err)
 {
@@ -111,8 +111,15 @@ PyObject *raiseDBError(int err)
     return NULL;
 }
 
+static PyObject *getRecordCount(PyObject *self)
+{
+    return PyInt_FromLong(recordCount);
+}
+
 
 static PyMethodDef c_funcs[] = {
+    { "getRecordCount", (PyCFunction) getRecordCount, METH_NOARGS,
+      "the number of record instances currently allocated by this process" },
     { NULL, NULL, 0, NULL }
 };
 

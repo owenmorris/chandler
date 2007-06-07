@@ -138,6 +138,8 @@ extern PyObject *Empty_TUPLE;
 extern PyObject *None_PAIR;
 extern PyObject *Nil;
 
+extern long recordCount;
+
 PyObject *raiseDBError(int err);
 void PyDict_SetItemString_Int(PyObject *dict, char *key, int value);
 

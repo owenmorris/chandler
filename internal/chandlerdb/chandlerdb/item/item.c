@@ -1475,9 +1475,10 @@ static int _t_item__itemChanged(t_item *self, PyObject *op, PyObject *names)
         PyObject *dispatch = PyDict_GetItem(self->references->dict,
                                             watchers_NAME);
 
-        if (dispatch && PySequence_Contains(dispatch, self->ref->uuid))
-            return invokeItemWatchers(dispatch, self->ref->uuid, op, names,
-                                      view);
+        if (dispatch && PySequence_Contains(dispatch, self->ref->uuid) &&
+            invokeItemWatchers(dispatch, self->ref->uuid, op, names,
+                               view) < 0)
+            return -1;
     }
 
     if (self->status & T_WATCHED)
@@ -1489,9 +1490,10 @@ static int _t_item__itemChanged(t_item *self, PyObject *op, PyObject *names)
             PyObject *dispatch = PyDict_GetItem(view->watchers,
                                                 self->ref->uuid);
 
-            if (dispatch && PySequence_Contains(dispatch, self->ref->uuid))
-                return invokeItemWatchers(dispatch, self->ref->uuid, op, names,
-                                          view);
+            if (dispatch && PySequence_Contains(dispatch, self->ref->uuid) &&
+                invokeItemWatchers(dispatch, self->ref->uuid, op, names,
+                                   view) < 0)
+                return -1;
         }
     }
 

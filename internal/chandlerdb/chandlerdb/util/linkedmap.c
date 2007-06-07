@@ -144,6 +144,8 @@ static void t_link_dealloc(t_link *self)
 {
     t_link_clear(self);
     self->ob_type->tp_free((PyObject *) self);
+
+    linkCount -= 1;
 }
 
 static int t_link_traverse(t_link *self, visitproc visit, void *arg)
@@ -176,6 +178,7 @@ static PyObject *t_link_new(PyTypeObject *type, PyObject *args, PyObject *kwds)
 
     if (self)
     {
+        linkCount += 1;
         self->owner = NULL;
         self->previousKey = NULL;
         self->nextKey = NULL;
@@ -230,16 +233,22 @@ static int t_link_init(t_link *self, PyObject *args, PyObject *kwds)
 static PyObject *t_link_repr(t_link *self)
 {
     PyObject *value = self->value ? PyObject_Repr(self->value) : NULL;
-    PyObject *repr;
 
-    if (!value)
+    if (!value && PyErr_Occurred())
         return NULL;
 
-    repr = PyString_FromFormat("<link: %s>",
-                               value ? PyString_AsString(value) : "(null)");
-    Py_XDECREF(value);
+    if (value)
+    {
+        PyObject *format = PyString_FromString("<link: %s>");
+        PyObject *repr = PyString_Format(format, value);
 
-    return repr;
+        Py_DECREF(format);
+        Py_XDECREF(value);
+
+        return repr;
+    }
+
+    return PyString_FromString("<link: (null)>");
 }
 
 static PyObject *t_link__copy_(t_link *self, PyObject *arg)
@@ -544,6 +553,8 @@ static void t_lm_dealloc(t_lm *self)
 {
     t_lm_clear(self);
     self->persistentvalue.ob_type->tp_free((PyObject *) self);
+
+    linkedMapCount -= 1;
 }
 
 static int t_lm_traverse(t_lm *self, visitproc visit, void *arg)
@@ -574,6 +585,7 @@ static PyObject *t_lm_new(PyTypeObject *type, PyObject *args, PyObject *kwds)
 
     if (self)
     {
+        linkedMapCount += 1;
         self->dict = PyDict_New();
         self->aliases = Nil; Py_INCREF(Nil);
         self->flags = 0;

@@ -1,5 +1,5 @@
 /*
- *  Copyright (c) 2003-2006 Open Source Applications Foundation
+ *  Copyright (c) 2003-2007 Open Source Applications Foundation
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -126,41 +126,49 @@ static PyObject *t_uuid_new(PyTypeObject *type, PyObject *args, PyObject *kwds)
 
 static int t_uuid_init(t_uuid *self, PyObject *args, PyObject *kwds)
 {
-    unsigned char uuid[16];
+    unsigned char *uuid;
     unsigned int len = 0;
     char *text = NULL;
 
     if (!PyArg_ParseTuple(args, "|z#", &text, &len))
         return -1; 
 
+    if (inList != NULL && len == 0)
+    {
+        PyObject *u = PyObject_CallMethodObjArgs(inList, pop_NAME, NULL);
+
+        if (!u)
+            return -1;
+
+        if (u->ob_type != &UUIDType)
+        {
+            PyErr_SetObject(PyExc_TypeError, u);
+            Py_DECREF(u);
+            return -1;
+        }
+
+        Py_INCREF(((t_uuid *) u)->uuid);
+        Py_XDECREF(self->uuid);
+        self->uuid = ((t_uuid *) u)->uuid;
+        self->hash = ((t_uuid *) u)->hash;
+        Py_DECREF(u);
+
+        return 0;
+    }
+
+    Py_XDECREF(self->uuid);
+    self->uuid = PyString_FromStringAndSize(NULL, 16);
+    if (!self->uuid)
+        return -1;
+    uuid = (unsigned char *) PyString_AS_STRING(self->uuid);
+
     switch (len) {
       case 0:
-        if (inList)
-        {
-            PyObject *u = PyObject_CallMethodObjArgs(inList, pop_NAME, NULL);
-
-            if (!u)
-                return -1;
-
-            if (u->ob_type != &UUIDType)
-            {
-                PyErr_SetObject(PyExc_TypeError, u);
-                Py_DECREF(u);
-                return -1;
-            }
-
-            Py_INCREF(((t_uuid *) u)->uuid);
-            Py_XDECREF(self->uuid);
-            self->uuid = ((t_uuid *) u)->uuid;
-            self->hash = ((t_uuid *) u)->hash;
-            Py_DECREF(u);
-
-            return 0;
-        }
         if (generate_uuid(uuid))
         {
             PyErr_SetString(PyExc_ValueError,
                             "an error occurred while generating new UUID");
+            memset(uuid, 0, 16);
             return -1;
         }
         else if (outList)
@@ -173,16 +181,17 @@ static int t_uuid_init(t_uuid *self, PyObject *args, PyObject *kwds)
         {
             PyErr_SetString(PyExc_ValueError,
                             "an error occurred while parsing UUID string");
+            memset(uuid, 0, 16);
             return -1;
         }
         break;
       default:
         PyErr_SetString(PyExc_ValueError,
                         "uuid string is not 16, 22, or 36 characters long");
+        memset(uuid, 0, 16);
         return -1;
     }
 
-    self->uuid = PyString_FromStringAndSize((char *) uuid, 16);
     self->hash = hash_bytes(uuid, 16);
 
     return 0;
@@ -195,24 +204,34 @@ static int t_uuid_hash(t_uuid *self)
 
 static PyObject *t_uuid_str(t_uuid *self)
 {
-    unsigned char *uuid = (unsigned char *) PyString_AS_STRING(self->uuid);
-    char buf[36];
+    if (self->uuid)
+    {
+        unsigned char *uuid = (unsigned char *) PyString_AS_STRING(self->uuid);
+        char buf[36];
 
-    format16_uuid(uuid, buf);
+        format16_uuid(uuid, buf);
 
-    return PyString_FromStringAndSize(buf, sizeof(buf));
+        return PyString_FromStringAndSize(buf, sizeof(buf));
+    }
+
+    return PyString_FromString("(null)");
 }
 
 static PyObject *t_uuid_repr(t_uuid *self)
 {
-    unsigned char *uuid = (unsigned char *) PyString_AS_STRING(self->uuid);
-    char buf[44];
+    if (self->uuid)
+    {
+        unsigned char *uuid = (unsigned char *) PyString_AS_STRING(self->uuid);
+        char buf[44];
 
-    strcpy(buf, "<UUID: ");
-    format16_uuid(uuid, buf + 7);
-    buf[43] = '>';
+        strcpy(buf, "<UUID: ");
+        format16_uuid(uuid, buf + 7);
+        buf[43] = '>';
 
-    return PyString_FromStringAndSize(buf, sizeof(buf));
+        return PyString_FromStringAndSize(buf, sizeof(buf));
+    }
+
+    return PyString_FromString("<UUID: (null)>");
 }
 
 static int t_uuid_cmp(t_uuid *o1, t_uuid *o2)

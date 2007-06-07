@@ -32,7 +32,10 @@
 
 static PyObject *t_record_new_write(PyTypeObject *type,
                                     PyObject *args, PyObject *kwds);
+static PyObject *t_record_alloc(PyTypeObject *type, Py_ssize_t nitems);
 static void t_record_dealloc(t_record *self);
+static int t_record_traverse(t_record *self, visitproc visit, void *arg);
+static int t_record_clear(t_record *self);
 static int t_record_init(t_record *self, PyObject *args, PyObject *kwds);
 static PyObject *t_record_str(t_record *self);
 static Py_ssize_t t_record_length(t_record *self);
@@ -96,10 +99,12 @@ static PyTypeObject RecordType = {
     0,                                         /* tp_getattro */
     0,                                         /* tp_setattro */
     0,                                         /* tp_as_buffer */
-    Py_TPFLAGS_DEFAULT,                        /* tp_flags */
+    (Py_TPFLAGS_DEFAULT |
+     Py_TPFLAGS_BASETYPE |
+     Py_TPFLAGS_HAVE_GC),                      /* tp_flags */
     "Record type",                             /* tp_doc */
-    0,                                         /* tp_traverse */
-    0,                                         /* tp_clear */
+    (traverseproc) t_record_traverse,          /* tp_traverse */
+    (inquiry) t_record_clear,                  /* tp_clear */
     0,                                         /* tp_richcompare */
     0,                                         /* tp_weaklistoffset */
     0,                                         /* tp_iter */
@@ -113,10 +118,20 @@ static PyTypeObject RecordType = {
     0,                                         /* tp_descr_set */
     0,                                         /* tp_dictoffset */
     (initproc) t_record_init,                  /* tp_init */
-    0,                                         /* tp_alloc */
+    (allocfunc) t_record_alloc,                /* tp_alloc */
     (newfunc) t_record_new_write,              /* tp_new */
 };
 
+
+static PyObject *t_record_alloc(PyTypeObject *type, Py_ssize_t nitems)
+{
+    PyObject *self = PyType_GenericAlloc(type, nitems);
+
+    if (self)
+        recordCount += 1;
+
+    return self;
+}
 
 static PyObject *t_record_new_write(PyTypeObject *type,
                                     PyObject *args, PyObject *kwds)
@@ -201,10 +216,26 @@ t_record *_t_record_new_read(PyObject *args)
 
 static void t_record_dealloc(t_record *self)
 {
+    t_record_clear(self);
+    self->ob_type->tp_free((PyObject *) self);
+    
+    recordCount -= 1;
+}
+
+static int t_record_traverse(t_record *self, visitproc visit, void *arg)
+{
+    Py_VISIT(self->pairs);
+    Py_VISIT(self->partial);
+
+    return 0;
+}
+
+static int t_record_clear(t_record *self)
+{
     Py_CLEAR(self->pairs);
     Py_CLEAR(self->partial);
 
-    self->ob_type->tp_free((PyObject *) self);
+    return 0;
 }
 
 static int t_record_init(t_record *self, PyObject *args, PyObject *kwds)
