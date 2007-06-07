@@ -433,18 +433,19 @@ class AbstractDownloadClient(object):
 
             self.waitCallback = None
 
-        if __debug__ and constants.DEBUG_CLIENT_SERVER == 1 and \
-            self.clientServerBuffer:
-            # Prints the last four client server exchanges to
-            # the stdout for debugging.
-            print self.clientServerBuffer
+        if __debug__:
+            if constants.DEBUG_CLIENT_SERVER == 1 and \
+                self.clientServerBuffer:
+                # Prints the last four client server exchanges to
+                # the stdout for debugging.
+                print self.clientServerBuffer
 
-        #Uncomment for debugging purposes
-        #try:
-        #    raise err
-        #except Exception, err:
-        #    #Capture the error to the logger
-        #    logging.exception(err)
+            if constants.DEBUG_CLIENT_SERVER == 2:
+                try:
+                    raise err
+                except Exception, err:
+                    #Capture the error to the logger
+                    logging.exception(err)
 
         if self.vars:
             # If self.vars is not None then the error
@@ -545,11 +546,11 @@ class AbstractDownloadClient(object):
             callMethodInUIThread(self.callback, (0, errorText))
         else:
             alertMailError(constants.MAIL_PROTOCOL_ERROR, self.account, \
-                          {'hostName': self.account.host, 'errText': errorText})
+                              {'hostName': self.account.host, 'errText': errorText})
 
         self._actionCompleted()
 
-        return
+        return None
 
     def loginClient(self):
         """

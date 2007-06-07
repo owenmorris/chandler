@@ -111,7 +111,9 @@ MAILWORKER_PRUNE_SIZE = MAILSERVICE_PRUNE_SIZE = 500
 #    1 - Caches last 4 protocol communications and
 #        print to the stdout if an error is raised.
 #    2 - All protocol communications printed
-#        to stdout.
+#        to stdout. Any errors raised are logged
+#        to the chandler.log for debugging purposes
+#        instead of being displayed in an alert dialog.
 DEBUG_CLIENT_SERVER = 0
 
 # The maximum number of message UID's to
