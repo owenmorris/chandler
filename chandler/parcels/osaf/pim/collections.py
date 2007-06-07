@@ -405,8 +405,11 @@ class ListCollection(ContentCollection):
     inclusions = inclusions
 
     def empty(self):
-        for item in self:
-            item.delete(True)
+        # collect items into a list before deleting them as item deletion
+        # is likely to have side-effects on items in this collection
+        for item in list(self):
+            if item.isLive():
+                item.delete(True)
 
 
 class WrapperCollection(ContentCollection):
