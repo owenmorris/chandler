@@ -850,17 +850,14 @@ class SharingTranslator(eim.Translator):
 
     @model.TaskRecord.deleter
     def delete_task(self, record):
-        uuid, recurrenceID = splitUUID(record.uuid)
-        item = self.rv.findUUID(uuid)
-        if item is not None and item.isLive():
-            if recurrenceID and pim.has_stamp(item, EventStamp):
-                # unstamp the occurrence
-                occurrence = EventStamp(item).getRecurrenceID(recurrenceID)
-                if pim.has_stamp(occurrence.itsItem, pim.TaskStamp):
-                    pim.TaskStamp(occurrence.itsItem).remove()
-            elif pim.has_stamp(item, pim.TaskStamp):
-                # unstamp the master item
-                pim.TaskStamp(item).remove()
+        d = self.deferredUUID(record.uuid, create=False)
+        @d.addCallback
+        def do_delete(uuid):
+            if uuid is not None:
+                item = self.rv.findUUID(uuid)
+                if (item is not None and item.isLive() and
+                    pim.has_stamp(item, pim.TaskStamp)):
+                    pim.TaskStamp(item).remove()
 
 
 
@@ -1247,16 +1244,14 @@ class SharingTranslator(eim.Translator):
 
     @model.MailMessageRecord.deleter
     def delete_mail(self, record):
-        uuid, recurrenceID = splitUUID(record.uuid)
-        item = self.rv.findUUID(uuid)
-        if item is not None and item.isLive():
-            if recurrenceID and pim.has_stamp(item, EventStamp):
-                occurrence = EventStamp(item).getRecurrenceID(recurrenceID)
-                if pim.has_stamp(occurrence.itsItem, pim.MailStamp):
-                    pim.MailStamp(occurrence.itsItem).remove()
-            elif pim.has_stamp(item, pim.MailStamp):
-                pim.MailStamp(item).remove()
-
+        d = self.deferredUUID(record.uuid, create=False)
+        @d.addCallback
+        def do_delete(uuid):
+            if uuid is not None:
+                item = self.rv.findUUID(uuid)
+                if (item is not None and item.isLive() and
+                    pim.has_stamp(item, pim.MailStamp)):
+                    pim.MailStamp(item).remove()
 
     # EventRecord -------------
 
