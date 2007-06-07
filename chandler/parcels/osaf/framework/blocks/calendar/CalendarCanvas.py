@@ -1975,7 +1975,10 @@ class wxCalendarContainer(ContainerBlocks.wxBoxContainer,
                 w.wxSynchronizeWidget()
 
         for widget in self.calendarBlockWidgets():
-            syncWidget(widget)
+            # fix for bug 9443, deleting the bottom collection causes drawing
+            # of calendar with no contentsCollection
+            if widget.blockItem.contentsCollection is not None:
+                syncWidget(widget)
 
         # Only call super() if we weren't processing pending changes ...
         # (if we had pending changes, then all we wanted to do has been
@@ -2519,6 +2522,10 @@ class wxCalendarControl(wx.Panel, CalendarEventHandler):
 
         # update the calendar with the calender's color
         collection = self.blockItem.contentsCollection
+        if collection is None:
+            # not having anything to show is bad.  This can happen if
+            # setContents is propagating but hasn't gotten to us yet.  Abort
+            return
         
         # force the creation of the .color attribute
         # XXX temporary - really this should somehow generate automatically
