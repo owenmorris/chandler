@@ -587,9 +587,19 @@ class Share(pim.ContentItem):
                 del linked.errorDetails
 
         try:
-            stats = self.conduit.sync(modeOverride=modeOverride,
-                                      activity=activity,
-                                      forceUpdate=forceUpdate, debug=debug)
+            # If someone else has modified a collection in the middle of our
+            # sync we'll get a TokenMismatch.  Try again a couple more times...
+            tries = 3
+            while True:
+                try:
+                    stats = self.conduit.sync(modeOverride=modeOverride,
+                        activity=activity, forceUpdate=forceUpdate,
+                        debug=debug)
+                    break
+                except errors.TokenMismatch:
+                    tries -= 1
+                    if tries == 0:
+                        raise
 
             # Not sure we need to keep the last stats around.  It's just more
             # data to persist.  If it ends up being helpful we can put it back

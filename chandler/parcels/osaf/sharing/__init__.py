@@ -995,8 +995,6 @@ def subscribeCalDAV(view, url, inspection, activity=None, account=None,
     parentPath=None, shareName=None, ticket=None,
     username=None, password=None, filters=None):
 
-    # TODO: Use filters parameter when this switches to CalDAV atop EIM
-
     # Append .chandler to the path
     parsedUrl = urlparse.urlsplit(url)
     path = parsedUrl.path
