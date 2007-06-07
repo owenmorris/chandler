@@ -114,7 +114,7 @@ class RecurrenceDialog(wx.Dialog):
         for buttonName in disabledButtons:
             button = getattr(self, buttonName + 'Button')
             button.Enable(False)
-        
+
         self.Fit()
         self.Layout()
         self.CenterOnScreen()
@@ -130,7 +130,7 @@ class RecurrenceDialog(wx.Dialog):
         wx.GetApp().propagateAsynchronousNotifications()
 
         self.Destroy()
-        
+
     def onCancel(self, event):
         self.proxy.cancel()
         for method in self.proxy.cancelCallbacks:
@@ -156,16 +156,16 @@ _proxies = {}
 
 def getProxy(context, obj, createNew=True, cancelCallback=None):
     """Return a proxy for obj, reusing cached proxies in the same context.
-        
+
     Return obj if obj doesn't support the changeThis and changeThisAndFuture
     interface.
-    
+
     In a given context, getting a proxy for a different object removes the
     reference to the old proxy, which should end its life.
-    
+
     If createNew is False, never create a new proxy, return obj unless there
     is already a cached proxy for obj.
-    
+
     """
     obj = Stamp(obj).itsItem
     if (not _proxies.has_key(context) or
@@ -179,7 +179,7 @@ def getProxy(context, obj, createNew=True, cancelCallback=None):
     else:
         # We've already got a proxy for this item - we'll reuse it.
         proxy = _proxies[context][1]
-        
+
         # [Bug 7034]
         # It's possible for proxiedItem to have gone stale; this
         # happens sometimes in Tinderbox testing, where a collection
@@ -187,7 +187,7 @@ def getProxy(context, obj, createNew=True, cancelCallback=None):
         # preserves UUIDs).
         if proxy.proxiedItem.isStale():
             proxy.proxiedItem = obj
-        
+
     # sometimes a cancel requires that some UI element needs to
     # be "reset" to the original state.. so queue up the cancel changes
     if (cancelCallback is not None and
@@ -195,12 +195,12 @@ def getProxy(context, obj, createNew=True, cancelCallback=None):
         proxy.cancelCallbacks.append(cancelCallback)
     return proxy
 
-REMOVE_ALL_MSG = _(u'\u201c%(displayName)s\u201d is a recurring event. Removing its recurrence will cause all events except the master to be deleted. Do you want to change:')
+REMOVE_ALL_MSG = _(u'"%(displayName)s" is a recurring event. Removing its recurrence will cause all events except the master to be deleted. Do you want to change:')
 
 
 class ChandlerProxy(RecurrenceProxy):
     _editingProxy = None
-    
+
     def __init__(self, item):
         super(ChandlerProxy, self).__init__(item)
         self.dialogUp = False
@@ -208,13 +208,13 @@ class ChandlerProxy(RecurrenceProxy):
 
     def beginSession(self):
         type(self)._editingProxy = self
-        
+
     def endSession(self):
         # @@@ [grant] Need to think about this!
         if self == type(self)._editingProxy:
             type(self)._editingProxy = None
             item = self.proxiedItem
-            
+
             if not isDead(item) and has_stamp(item, EventStamp):
                 item = EventStamp(item).getMaster().itsItem
 
@@ -228,11 +228,11 @@ class ChandlerProxy(RecurrenceProxy):
         """
         if not collection in self.collections:
             self.collections.add(collection)
-            
+
     def removeFromCollection(self, collection, cutting=False):
         """
         Remove self from the given collection, or queue the removal.
-        
+
         [@@@] grant: Need to handle 'cutting' case.
         """
         self.collections.remove(collection)
@@ -248,7 +248,7 @@ class ChandlerProxy(RecurrenceProxy):
                 else:
                     allChange.remove()
                 return
-        
+
         super(ChandlerProxy, self).appendChange(*args)
 
         if self.changes and not self.dialogUp:
@@ -258,36 +258,36 @@ class ChandlerProxy(RecurrenceProxy):
             # to get it into a weird state.
             self.dialogUp = True
             wx.GetApp().PostAsyncEvent(self.runDialog)
-        
+
     def runDialog(self):
         # Check in case the dialog somehow got cancelled
         if self.dialogUp:
 
             questionFmt = None
             disabled = set()
-        
+
             change = self.changes[0]
             changeType = change[1]
-            
+
             if changeType == 'addStamp':
                 if change[2] == TaskStamp:
-                    questionFmt = _(u'\u201c%(displayName)s\u201d is a recurring event. Do you want to add to your task list:')
+                    questionFmt = _(u'"%(displayName)s" is a recurring event. Do you want to add to your task list:')
             elif changeType == 'removeStamp':
                 if change[2] == TaskStamp:
-                    questionFmt = _(u'\u201c%(displayName)s\u201d is a recurring event. Do you want to remove from your task list:')
+                    questionFmt = _(u'"%(displayName)s" is a recurring event. Do you want to remove from your task list:')
                 elif change[2] == EventStamp:
-                    questionFmt = _(u'\u201c%(displayName)s\u201d is a recurring event. Removing it from your calendar will remove all occurrences in the series. Do you want to remove:')
+                    questionFmt = _(u'"%(displayName)s" is a recurring event. Removing it from your calendar will remove all occurrences in the series. Do you want to remove:')
                     disabled.update(('future', 'this'))
             elif changeType == 'add':
                 trash = schema.ns("osaf.pim", self.proxiedItem.itsView).trashCollection
-                
+
                 if change[2] is trash:
-                      questionFmt=_(u'\u201c%(displayName)s\u201d is a recurring event. Do you want to delete:')
+                      questionFmt=_(u'"%(displayName)s" is a recurring event. Do you want to delete:')
                 else:
-                    questionFmt = _(u'\u201c%(displayName)s\u201d is a recurring event. What do you want to add to the collection:')
+                    questionFmt = _(u'"%(displayName)s" is a recurring event. What do you want to add to the collection:')
                     disabled.update(('future', 'this'))
             elif changeType == 'remove':
-                questionFmt=_(u'\u201c%(displayName)s\u201d is a recurring event. Do you want to remove:')
+                questionFmt=_(u'"%(displayName)s" is a recurring event. Do you want to remove:')
                 disabled.update(('future', 'this'))
             elif changeType == 'set':
                 if change[2] == EventStamp.rruleset.name:
@@ -295,25 +295,25 @@ class ChandlerProxy(RecurrenceProxy):
                     if change[3] is None:
                         questionFmt = REMOVE_ALL_MSG
                     else:
-                        questionFmt = _(u'\u201c%(displayName)s\u201d is a recurring event. Changing its recurrence may cause some events to be deleted. Do you want to change:')
+                        questionFmt = _(u'"%(displayName)s" is a recurring event. Changing its recurrence may cause some events to be deleted. Do you want to change:')
             elif changeType == 'delete':
                 if change[2] == EventStamp.rruleset.name:
                     questionFmt = REMOVE_ALL_MSG
                     disabled.update(('future', 'this'))
-            
+
             if questionFmt is None:
-                questionFmt = _(u'\u201c%(displayName)s\u201d is a recurring event. Do you want to change:')
-            
+                questionFmt = _(u'"%(displayName)s" is a recurring event. Do you want to change:')
+
             master = EventStamp(self.proxiedItem).getMaster()
             event = EventStamp(self.proxiedItem)
-            
+
             if event in (master, master.getFirstOccurrence()):
                 disabled.add('future')
-            
+
             RecurrenceDialog(
                 self, questionFmt % { 'displayName' : self.displayName },
                 disabled)
-    
+
     def getMembershipItem(self):
         """
         When testing an item for membership, what we generally care
