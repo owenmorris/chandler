@@ -118,24 +118,24 @@ class ContentItem(Triageable):
     
     BYLINE_FORMATS = {
         Modification.created: (
-            _(u"created by %(user)s on %(date)s"),
-            _(u"created on %(date)s"),
+            _(u"created by %(user)s on %(date)s %(tz)s"),
+            _(u"created on %(date)s %(tz)s"),
         ),
         Modification.edited: (
-            _(u"edited by %(user)s on %(date)s"),
-            _(u"edited on %(date)s"),
+            _(u"edited by %(user)s on %(date)s %(tz)s"),
+            _(u"edited on %(date)s %(tz)s"),
         ),
         Modification.updated: (
-            _(u"updated by %(user)s on %(date)s"),
-            _(u"updated on %(date)s"),
+            _(u"updated by %(user)s on %(date)s %(tz)s"),
+            _(u"updated on %(date)s %(tz)s"),
         ),
         Modification.sent: (
-            _(u"sent by %(user)s on %(date)s"),
-            _(u"sent on %(date)s"),
+            _(u"sent by %(user)s on %(date)s %(tz)s"),
+            _(u"sent on %(date)s %(tz)s"),
         ),
         Modification.queued: (
-            _(u"queued by %(user)s on %(date)s"),
-            _(u"queued on %(date)s"),
+            _(u"queued by %(user)s on %(date)s %(tz)s"),
+            _(u"queued on %(date)s %(tz)s"),
         ),
     }
 
@@ -153,19 +153,30 @@ class ContentItem(Triageable):
         shortDateTimeFormat = schema.importString("osaf.pim.shortDateTimeFormat")
         date = shortDateTimeFormat.format(lastModified)
 
+        tzName = u""
+        tzPrefs = schema.ns('osaf.pim', self.itsView).TimezonePrefs
+        if tzPrefs.showUI:
+            tz = lastModified.tzinfo.timezone
+            tzName = tz.getDisplayName(lastModified.dst(), tz.SHORT)
+            
         user = self.lastModifiedBy
         if user:
-            userLabel = unicode(user.emailAddress)
-            # Per bug 8855: Only display the first portion of the address
-            atIndex = userLabel.find(_(u"@"))
-            if atIndex != -1:
-                userLabel = userLabel[:atIndex]
-            return fmt % dict(user=userLabel, date=date)
+            # Show the fullname if we have it
+            userLabel = unicode(user.fullName)
+            if len(userLabel) == 0:
+                # no fullname - show the email account part, if it looks like
+                # an email address
+                atIndex = userLabel.find(_(u"@"))
+                if atIndex != -1:
+                    userLabel = userLabel[:atIndex]
+                else:
+                    # otherwise, we use the whole thing.
+                    userLabel = unicode(user)
+                
+            result = fmt % dict(user=userLabel, date=date, tz=tzName)
         else:
-            return noUserFmt % dict(date=date)
-
-
-        return fmt % dict(user=user, date=date)
+            result = noUserFmt % dict(date=date, tz=tzName)
+        return result.strip()
         
     error = schema.One(
         schema.Text,

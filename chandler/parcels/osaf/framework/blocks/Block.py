@@ -508,7 +508,8 @@ class Block(schema.Item):
         itemDict = Block.watchingItems.setdefault(uuid, {})
         if len(itemDict) == 0:
             # We're not watching this item yet - start.
-            self.itsView.watchItem(self, item, 'onWatchNotification')
+            self.itsView.watchItem(self.getRootBlock(), item, 
+                                   'onWatchNotification')
 
         getBasedMethod = getattr(type(item), 'getBasedAttributes', None)
         if getBasedMethod is not None:
@@ -560,7 +561,8 @@ class Block(schema.Item):
             if len(itemDict) == 0:
                 # We're no longer watching any attributes on this item.
                 del Block.watchingItems[uuid]
-                self.itsView.unwatchItem(Block, item, 'onWatchNotification')
+                self.itsView.unwatchItem(self.getRootBlock(), item,
+                                         'onWatchNotification')
 
     @classmethod
     def onWatchNotification(cls, op, uuid, names):
@@ -816,15 +818,20 @@ class Block(schema.Item):
             if method is not None:
                 IgnoreSynchronizeWidget(True, method, widget)
 
-    def getFrame(self):
+    def getRootBlock(self):
         """
-        Cruise up the tree of blocks looking for the top-most block that
-        has a python attribute, which is the wxWidgets wxFrame window.
+        Cruise up the tree of blocks looking for the top-most block.
         """
         block = self
-        while (block.parentBlock):
+        while block.parentBlock:
             block = block.parentBlock
-        return block.frame
+        return block
+        
+    def getFrame(self):
+        """
+        Get the wxFrame from the top-most block
+        """
+        return self.getRootBlock().frame
 
 class DispatchHook (Block):
     """

@@ -204,18 +204,18 @@ class UpdateTestCase(NRVTestCase):
         edited = datetime(2006, 12, 31, 22, 11, tzinfo=ICUtzinfo.default)
         item.changeEditState(Modification.edited, when=edited, who=email)
         self.failUnlessEqual(item.byline,
-                             u"edited by totoro on 12/31/06 10:11 PM")
+                             u"edited by Tommy Totoro on 12/31/06 10:11 PM")
 
         # Change the state to queued ...
         item.changeEditState(Modification.queued, when=edited, who=email)
         self.failUnlessEqual(item.byline,
-                             u"queued by totoro on 12/31/06 10:11 PM")
+                             u"queued by Tommy Totoro on 12/31/06 10:11 PM")
         
         # Now, sent ...
         sent = datetime(2036, 1, 12, 2, 15, tzinfo=ICUtzinfo.default)
         item.changeEditState(Modification.sent, when=sent, who=email)
         self.failUnlessEqual(item.byline,
-                             u"sent by totoro on 1/12/36 2:15 AM")
+                             u"sent by Tommy Totoro on 1/12/36 2:15 AM")
 
         # Lastly, updated ...
         updated = datetime(2007, 5, 17, 4, 22, 53, tzinfo=ICUtzinfo.default)

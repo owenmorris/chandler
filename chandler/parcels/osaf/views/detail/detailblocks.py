@@ -743,6 +743,7 @@ def makeNoteSubtree(parcel, oldVersion):
             baseClass=BylineAreaBlock,
             childBlocks=[
                 makeEditor(parcel, 'BylineBlock',
+                    baseClass=BylineAEBlock,
                     viewAttribute='byline',
                     presentationStyle={'format' : 'static'})],
             position=0.4,

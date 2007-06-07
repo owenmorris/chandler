@@ -1906,7 +1906,18 @@ class ErrorAEBlock(DetailSynchronizedAttributeEditorBlock):
         watchList.append((self.item, pim.ContentItem.error.name),)
         return watchList
 
-class SendAsLabelBlock(DetailSynchronizedBehavior, ControlBlocks.StaticText):
+class BylineConditionalBehavior(Item):
+    def getWatchList(self):
+        watchList = super(BylineConditionalBehavior, self).getWatchList()
+        tzPrefs = schema.ns('osaf.pim', self.itsView).TimezonePrefs
+        watchList.extend(((self.item, pim.Stamp.stamp_types.name),
+                          (self.item, pim.MailStamp.fromMe.name),
+                          (self.item, ContentItem.lastModification.name),
+                          (self.item, pim.MailStamp.fromAddress.name),
+                          (tzPrefs, 'showUI')))
+        return watchList
+
+class SendAsLabelBlock(BylineConditionalBehavior, DetailSynchronizedBehavior, ControlBlocks.StaticText):
     def synchronizeWidget(self):
         super(SendAsLabelBlock, self).synchronizeWidget()
         item = self.item
@@ -1919,13 +1930,6 @@ class SendAsLabelBlock(DetailSynchronizedBehavior, ControlBlocks.StaticText):
             label = _(u'Send as')
 
         self.widget.SetLabel(label)
-
-    def getWatchList(self):
-        watchList = super(SendAsLabelBlock, self).getWatchList()
-        watchList.extend(((self.item, pim.Stamp.stamp_types.name),
-                          (self.item, pim.MailStamp.fromMe.name),
-                          (self.item, ContentItem.lastModification.name)))
-        return watchList
 
 class BylineAreaBlock(DetailSynchronizedContentItemDetailBlock):
     # We use this block class for the byline (the static representation, like
@@ -1946,13 +1950,8 @@ class BylineAreaBlock(DetailSynchronizedContentItemDetailBlock):
                                  getattr(item, pim.MailStamp.fromAddress.name, None) is None))
         return isUnsentOutboundMail == (self.blockName == 'SendAsArea')
 
-    def getWatchList(self):
-        watchList = super(BylineAreaBlock, self).getWatchList()
-        watchList.extend(((self.item, pim.Stamp.stamp_types.name),
-                          (self.item, pim.MailStamp.fromMe.name),
-                          (self.item, ContentItem.lastModification.name),
-                          (self.item, pim.MailStamp.fromAddress.name)))
-        return watchList
+class BylineAEBlock(BylineConditionalBehavior, DetailSynchronizedAttributeEditorBlock):
+    pass
 
 class MailAEBlock(DetailSynchronizedAttributeEditorBlock):
     """
