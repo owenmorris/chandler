@@ -223,8 +223,6 @@ def makeMainEvents(parcel):
                         methodName = 'onShowHideEvent',
                         dispatchToBlockName = 'ApplicationBar').install(parcel)
 
-    BlockEvent.template('ExportIcalendar').install(parcel)
-
     BlockEvent.template('SyncAll').install(parcel)
 
     untitledCollection = pim.SmartCollection.update(parcel,
@@ -243,8 +241,8 @@ def makeMainEvents(parcel):
 
     BlockEvent.template('SyncWebDAV').install(parcel)
 
-    BlockEvent.template('ImportIcalendar',
-                       commitAfterDispatch = True).install(parcel)
+    BlockEvent.template('ImportICalendar').install(parcel)
+    BlockEvent.template('ExportICalendar').install(parcel)
 
     BlockEvent.template('CopyCollectionURL').install(parcel)
 

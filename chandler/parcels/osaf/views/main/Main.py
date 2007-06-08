@@ -12,7 +12,6 @@
 #   See the License for the specific language governing permissions and
 #   limitations under the License.
 
-
 from datetime import timedelta
 from time import time, strftime
 import wx, os, sys, traceback, logging, re, webbrowser
@@ -896,24 +895,22 @@ class MainView(View):
         repository = self.itsView.repository
         repository.notifyIndexer()
 
-    def onImportIcalendarEvent(self, event):
+    def onImportICalendarEvent(self, event):
         # triggered from "File | Import/Export" menu
-        prefs = schema.ns("osaf.sharing", self.itsView).prefs
 
         dialog = ImportExport.ImportDialog(_(u"Choose a file to import"),
                                            self.itsView)
-
         ret = dialog.ShowModal()
         if ret == wx.ID_OK:
             event.arguments['Status'] = _(u"Import completed")
         dialog.Destroy()
 
-    def onExportIcalendarEventUpdateUI(self, event):
+    def onExportICalendarEventUpdateUI(self, event):
         collection = self.getSidebarSelectedCollection()
         if collection is None:
             event.arguments['Enable'] = False
 
-    def onExportIcalendarEvent(self, event):
+    def onExportICalendarEvent(self, event):
         # triggered from "File | Import/Export" Menu
         collection = self.getSidebarSelectedCollection()
         if collection is None:

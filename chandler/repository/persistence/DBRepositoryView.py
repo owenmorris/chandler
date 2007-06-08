@@ -581,7 +581,8 @@ class DBRepositoryView(OnDemandRepositoryView):
         if status & RepositoryView.COMMITTING:
             self.logger.warning('%s: skipping recursive commit', self)
         elif status & RepositoryView.DEFERCOMMIT:
-            self._deferredCommitCtx._data = (mergeFn, notify, afterCommit)
+            self._deferredCommitCtx._data.append((self.commit,
+                                                  mergeFn, notify, afterCommit))
         elif status & RepositoryView.REFRESHING:
             self._status |= RepositoryView.COMMITREQ
         elif self._log or self._deletedRegistry:

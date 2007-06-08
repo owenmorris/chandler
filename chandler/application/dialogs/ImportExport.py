@@ -12,7 +12,7 @@
 #   See the License for the specific language governing permissions and
 #   limitations under the License.
 
-
+from __future__ import with_statement
 import wx
 from wx.lib.filebrowsebutton import FileBrowseButton
 import os, logging
@@ -210,9 +210,17 @@ class ImportDialog(FileChooserWithOptions):
         self.mine.Disable()
         
         # simplifying wrapper for complicated callbacks from sharing
-        if self.importFile():
-            event.Skip(True)
-            
+        view = self.view
+
+        # defer commits until done processing
+        with view.commitDeferred():
+            if self.importFile():
+                event.Skip(True)
+            # The commit() call below ensures that at least one such call gets
+            # actually deferred and run when this code block completes. When
+            # there are no changes to commit, as in a second call to commit()
+            # in succession, the call is more or less a nop.
+            view.commit()
 
     def onCancel(self, event):
         self.cancelling = True
