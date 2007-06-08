@@ -190,19 +190,12 @@ class AETypeOverTextCtrl(wxRectangularChild):
                 if shownValue != hiddenValue:
                     # self.swapDelegate(shownValue)
                     hiddenControl.SetValue(self.modelData)
-            if hiddenControl is self.staticControl:
-                dc = wx.ClientDC(self.editControl)
-                assert (dc is not None)
-                tooltipText = self.modelData
-                (renderedStringWidth, ignoredHeight) = dc.GetTextExtent(tooltipText)
-                if self.editControl.GetClientSize().width > renderedStringWidth:
-                    tooltipText = u''
-                self.staticControl.SetToolTipString(tooltipText)
 
             shownControl.Move(self.hideLoc)
             hiddenControl.Move(self.showLoc)
             self.shownControl = hiddenControl
             self.otherControl = shownControl
+            self._updateStaticToolTip(self.modelData)
             self._resize()
             self.Thaw()
             if wx.Platform == '__WXGTK__':
@@ -235,6 +228,15 @@ class AETypeOverTextCtrl(wxRectangularChild):
                 pass
             else:
                 sizeChangedMethod()
+    
+    def _updateStaticToolTip(self, tooltipText):
+        if self.shownControl is self.staticControl:
+            dc = wx.ClientDC(self.editControl)
+            assert (dc is not None)
+            (renderedStringWidth, ignoredHeight) = dc.GetTextExtent(tooltipText)
+            if self.editControl.GetClientSize().width > renderedStringWidth:
+                tooltipText = u''
+            self.staticControl.SetToolTipString(tooltipText)
 
     def GetValue(self):
         if self.shownControl is self.editControl:
@@ -243,14 +245,16 @@ class AETypeOverTextCtrl(wxRectangularChild):
             return self.modelData
 
     def SetValue(self, *args):
-        assert isinstance(args[0], basestring)
-        self.modelData = args[0]
+        value = args[0]
+        assert isinstance(value, basestring)
+        self.modelData = value
         # ensure that static control delegate gets a chance to modify the display of the new model data
         if self.staticControlDelegate is not None and self.shownControl is self.staticControl:
-            self.staticControlDelegate.SetStaticControl(self.staticControl, self.modelData)
+            self.staticControlDelegate.SetStaticControl(self.staticControl, value)
         else:
             # We're editing the value, so no need to call the staticControlDelegate
-            self.shownControl.SetValue(self.modelData)
+            self.shownControl.SetValue(value)
+        self._updateStaticToolTip(value)
 
     def GetInsertionPoint(self): return self.shownControl.GetInsertionPoint()
     def SetForegroundColour(self, *args): self.shownControl.SetForegroundColour(*args)
