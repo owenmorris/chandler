@@ -361,6 +361,7 @@ def getCommStateName(commState):
         return "Queued%s%s" % (read, needsReply)
     
     # Note In vs Out (Out wins if both) vs Plain (if neither, we're done).
+    draft = (commState & CommunicationStatus.DRAFT) and "Draft" or ""    
     if commState & CommunicationStatus.OUT:
         inOut = "Out"
         #  # and keep going...
@@ -368,11 +369,10 @@ def getCommStateName(commState):
         inOut = "In"
         # and keep going...
     else:
-        return "Plain%s%s" % (read, needsReply)
+        return "Plain%s%s%s" % (draft, read, needsReply)
     
     # We're Out or In -- do Updating and Draft.
     updating = (commState & CommunicationStatus.UPDATE) and "date" or ""
-    draft = (commState & CommunicationStatus.DRAFT) and "Draft" or ""    
     return "%s%s%s%s%s" % (inOut, updating, draft, read, needsReply)
 
         
