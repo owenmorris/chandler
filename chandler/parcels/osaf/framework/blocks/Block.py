@@ -925,6 +925,9 @@ class BlockDispatchHook (DispatchHook):
             methodName += 'UpdateUI'
             commitAfterDispatch = False
         else:
+            # Clear old status before beginning a new command
+            statusBar = self.findBlockByName('StatusBar')
+            statusBar.setStatusMessage (u"")
             commitAfterDispatch = event.commitAfterDispatch
 
         dispatchEnum = event.dispatchEnum
@@ -989,7 +992,11 @@ class BlockDispatchHook (DispatchHook):
             event.arguments['Text'] += '\t' + event.arguments['Accel']
         if commitAfterDispatch:
             theApp.UIRepositoryView.commit()
-
+            
+        # Set status returned by command, after the commit, which might take awhile.
+        status = event.arguments.get ('Status', None)
+        if status is not None:
+            statusBar.setStatusMessage (status)
 
 def debugName(thing):
     """

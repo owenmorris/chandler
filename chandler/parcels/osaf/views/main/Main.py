@@ -905,7 +905,7 @@ class MainView(View):
 
         ret = dialog.ShowModal()
         if ret == wx.ID_OK:
-            self.setStatusMessage(_(u"Import completed"))
+            event.arguments['Status'] = _(u"Import completed")
         dialog.Destroy()
 
     def onExportIcalendarEventUpdateUI(self, event):
