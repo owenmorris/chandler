@@ -1057,7 +1057,7 @@ class ReminderTypeAreaBlock(ReminderConditionalBehavior,
                             DetailSynchronizedContentItemDetailBlock):
     def getWatchList(self):
         watchList = super(ReminderTypeAreaBlock, self).getWatchList()
-        watchList.extend([(self.item, pim.Stamp.stamp_types.name),])
+        watchList.append((self.item, pim.Stamp.stamp_types.name))
         return watchList
 
 class ReminderRelativeAreaBlock(ReminderConditionalBehavior,
@@ -1077,7 +1077,8 @@ class ReminderAEBlock(ReminderConditionalBehavior,
     def getWatchList(self):
         watchList = super(ReminderAEBlock, self).getWatchList()
         watchList.extend([(self.item, pim.Remindable.reminders.name),
-                          (self.item, pim.EventStamp.rruleset.name)])
+                          (self.item, pim.EventStamp.rruleset.name),
+                          (self.item, pim.Stamp.stamp_types.name)])
         return watchList
         
 class AbsoluteReminderAEBlock(ReminderAEBlock):
