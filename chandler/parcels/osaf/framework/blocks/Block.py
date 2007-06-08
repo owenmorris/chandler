@@ -486,6 +486,7 @@ class Block(schema.Item):
             # correctly to 'ALL' changes on recurring events, for
             # example.
             for item, attr in watchList:
+                item = getattr(item, 'proxiedItem', item)
                 yield item, attr
                 
                 inheritee = getattr(item, 'inheritFrom', None)
@@ -503,7 +504,6 @@ class Block(schema.Item):
             self.watchedItemAttributes = watchedItemAttributes
 
     def addWatch(self, item, *attributeNames):
-        item = getattr(item, 'proxiedItem', item)
         uuid = item.itsUUID
         itemDict = Block.watchingItems.setdefault(uuid, {})
         if len(itemDict) == 0:
@@ -539,7 +539,6 @@ class Block(schema.Item):
         """
         Stop watching these attributes on this item.
         """
-        item = getattr(item, 'proxiedItem', item)
         uuid = item.itsUUID
         itemDict = Block.watchingItems.get(uuid, None)
         if itemDict is not None:
