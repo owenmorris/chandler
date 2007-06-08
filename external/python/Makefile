@@ -1,6 +1,6 @@
 
 VERSION=2.5.1
-RELVER=$(VERSION)-$(BRANCH_REV_PREFIX)2
+RELVER=$(VERSION)-$(BRANCH_REV_PREFIX)3
 
 BZIP2VERSION=1.0.3
 ZLIBVERSION=1.2.3
@@ -117,6 +117,8 @@ $(SRC)/$(BUILD)/Makefile:
                        --enable-framework=$(PREFIX)/Library/Frameworks
 
 build: expand apply $(SRC)/$(BUILD)/Makefile
+	svn export http://svn.osafoundation.org/chandler/trunk/chandler/distrib/osx/bundle/Chandler.icns $(SRC)/Mac/Icons/PythonLauncher.icns
+	cp $(SRC)/Mac/Icons/PythonLauncher.icns $(SRC)/Mac/Resources/app/Resources/PythonInterpreter.icns
 	MACOSX_DEPLOYMENT_TARGET=$(MACOSX_DEPLOYMENT_TARGET) SNAP=$(SNAP) ARCH=$(ARCH) PREFIX=$(PREFIX) $(MAKE) -C $(SRC)/$(BUILD) $(COMP_OPT)
 	MACOSX_DEPLOYMENT_TARGET=$(MACOSX_DEPLOYMENT_TARGET) SNAP=$(SNAP) ARCH=$(ARCH) PREFIX=$(PREFIX) $(MAKE) -C $(SRC)/$(BUILD) $(COMP_OPT) install
 	mkdir -p $(BUILD_ROOT)/$(SNAP)/$(SITE)
