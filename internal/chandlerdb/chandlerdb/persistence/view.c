@@ -76,6 +76,7 @@ static PyObject *t_view_notificationsDeferred(t_view *self, PyObject *args);
 static PyObject *t_view_cancelDeferredNotifications(t_view *self);
 static PyObject *t_view_isCommitDeferred(t_view *self);
 static PyObject *t_view_commitDeferred(t_view *self, PyObject *args);
+static PyObject *t_view_cancelDeferredCommits(t_view *self);
 static PyObject *t_view_findValues(t_view *self, PyObject *args);
 static PyObject *t_view_findInheritedValues(t_view *self, PyObject *args);
 
@@ -158,6 +159,7 @@ static PyMethodDef t_view_methods[] = {
     { "cancelDeferredNotifications", (PyCFunction) t_view_cancelDeferredNotifications, METH_NOARGS, "" },
     { "isCommitDeferred", (PyCFunction) t_view_isCommitDeferred, METH_VARARGS, "" },
     { "commitDeferred", (PyCFunction) t_view_commitDeferred, METH_VARARGS, "" },
+    { "cancelDeferredCommits", (PyCFunction) t_view_cancelDeferredCommits, METH_NOARGS, "" },
     { "findValues", (PyCFunction) t_view_findValues, METH_VARARGS, NULL },
     { "findInheritedValues", (PyCFunction) t_view_findInheritedValues, METH_VARARGS, NULL },
     { NULL, NULL, 0, NULL }
@@ -1468,8 +1470,7 @@ static PyObject *_t_view_defercommit__enter(PyObject *target, t_ctxmgr *mgr)
 
     if (mgr->count == 0)
     {
-        Py_INCREF(Py_None);
-        mgr->data = Py_None;
+        mgr->data = PyList_New(0);
         self->status |= DEFERCOMMIT;
     }
     mgr->count += 1;
@@ -1494,25 +1495,44 @@ static PyObject *_t_view_defercommit__exit(PyObject *target, t_ctxmgr *mgr,
     
     if (mgr->count == 0)
     {
-        PyObject *args = self->deferredCommitCtx->data;
+        PyObject *calls = self->deferredCommitCtx->data;
         int status = self->status;
 
-        Py_INCREF(args);
+        Py_INCREF(calls);
         self->status &= ~DEFERCOMMIT;
         Py_CLEAR(self->deferredCommitCtx);
 
-        if (args != Py_None && status & DEFERCOMMIT)
+        if (!PyList_Check(calls))
+            PyErr_SetObject(PyExc_TypeError, calls);
+        else if (status & DEFERCOMMIT)
         {
-            PyObject *method = PyObject_GetAttr((PyObject *) self, commit_NAME);
-            PyObject *result = PyObject_Call(method, args, NULL);
+            int size = PyList_GET_SIZE(calls);
+            int i;
 
-            Py_DECREF(method);
-            if (!result)
-                return NULL;
-            Py_DECREF(result);
+            for (i = 0; i < size; i++) {
+                PyObject *call = PyList_GET_ITEM(calls, i);
+                PyObject *method, *args, *result;
+
+                if (!PyTuple_Check(call))
+                {
+                    PyErr_SetObject(PyExc_TypeError, call);
+                    break;
+                }
+
+                method = PyTuple_GET_ITEM(call, 0);
+                args = PyTuple_GetSlice(call, 1, PyTuple_GET_SIZE(call));
+                if (!args)
+                    break;
+
+                result = PyObject_Call(method, args, NULL);
+                Py_DECREF(args);
+                if (!result)
+                    break;
+                Py_DECREF(result);
+            }
         }
 
-        Py_DECREF(args);
+        Py_DECREF(calls);
         if (PyErr_Occurred())
             return NULL;
     }
@@ -1553,6 +1573,51 @@ static PyObject *t_view_commitDeferred(t_view *self, PyObject *args)
 
         return (PyObject *) ctxmgr;
     }
+}
+
+/* Replace deferred commit calls with refresh calls
+ * so that expected merge and notify policies are still observed.
+ */
+static PyObject *t_view_cancelDeferredCommits(t_view *self)
+{
+    if (self->status & DEFERCOMMIT)
+    {
+        PyObject *calls = self->deferredCommitCtx->data;
+
+        if (!PyList_Check(calls))
+        {
+            PyErr_SetObject(PyExc_TypeError, calls);
+            return NULL;
+        }
+        else
+        {
+            int size = PyList_GET_SIZE(calls);
+            int i;
+
+            for (i = 0; i < size; i++) {
+                PyObject *call = PyList_GET_ITEM(calls, i);
+                PyObject *method;
+
+                if (!PyTuple_Check(call))
+                {
+                    PyErr_SetObject(PyExc_TypeError, call);
+                    return NULL;
+                }
+
+                method = PyObject_GetAttr((PyObject *) self, refresh_NAME);
+                if (!method)
+                    return NULL;
+
+                if (PyTuple_SetItem(call, 0, method) < 0) /* steals ref */
+                {
+                    Py_DECREF(method);
+                    return NULL;
+                }
+            }
+        }
+    }
+
+    Py_RETURN_NONE;
 }
 
 
