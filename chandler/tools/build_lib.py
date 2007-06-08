@@ -236,43 +236,49 @@ def generateVersionData(chandlerDirectory, platformName, tag=None):
     if tag is not None:
         parts = tag.split('-')
 
-        if len(parts) == 3:
+        if len(parts) == 1:     # tbox continuous build
+            vmodule    = loadModuleFromFile(versionFilename, "vmodule")
+            release    = '%s%s' % (getattr(vmodule, 'release',  ''), getattr(vmodule, 'build',    ''))
+            revision   = getattr(vmodule, 'revision', '')
+            checkpoint = parts[0]
+            vmodule    = None
+        elif len(parts) == 3:
             release    = parts[0]
             revision   = parts[1]
             checkpoint = parts[2]
-            build      = ''
 
-            if revision.startswith('r'):
-                revision = revision[1:]
+        if revision.startswith('r'):
+            revision = revision[1:]
 
-            if checkpoint.startswith('checkpoint'):
-                checkpoint = checkpoint[10:]
+        if checkpoint.startswith('checkpoint'):
+            checkpoint = checkpoint[10:]
 
-            parts = release.split('.')
+        build = ''
+        parts = release.split('.')
 
-            if len(parts) == 3 and parts[2] == 'dev':
-                build   = '.dev'
-                release = '%s.%s' % (parts[0], parts[1])
-                p       = 0
+        if len(parts) == 3 and parts[2] == 'dev':
+            build   = '.dev'
+            release = '%s.%s' % (parts[0], parts[1])
+            p       = 0
 
-                versionFile = open(versionFilename, 'r')
-                vlines      = versionFile.readlines()
+            versionFile = open(versionFilename, 'r')
+            vlines      = versionFile.readlines()
+            versionFile.close()
+
+            for i in range(0, len(vlines)):
+                if vlines[i].startswith('#!#!#!#!# '):
+                    p = i
+                    break
+
+            if p > 0:
+                versionFile = open(versionFilename, 'w')
+                versionFile.write("_version = { 'release':    '%s',\n" % release)
+                versionFile.write("             'build':      '%s',\n" % build)
+                versionFile.write("             'checkpoint': '%s',\n" % checkpoint)
+                versionFile.write("             'revision':   '%s',\n" % revision)
+                versionFile.write("           }\n\n")
+                versionFile.write(''.join(vlines[p:]))
                 versionFile.close()
-
-                for i in range(0, len(vlines)):
-                    if vlines[i].startswith('#!#!#!#!# '):
-                        p = i
-                        break
-
-                if p > 0:
-                    versionFile = open(versionFilename, 'w')
-                    versionFile.write("_version = { 'release':    '%s',\n" % release)
-                    versionFile.write("             'build':      '%s',\n" % build)
-                    versionFile.write("             'checkpoint': '%s',\n" % checkpoint)
-                    versionFile.write("             'revision':   '%s',\n" % revision)
-                    versionFile.write("           }\n\n")
-                    versionFile.write(''.join(vlines[p:]))
-                    versionFile.close()
 
     vmodule = loadModuleFromFile(versionFilename, "vmodule")
 
