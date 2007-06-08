@@ -24,9 +24,7 @@ from optparse import OptionParser
 from build_lib import initLog, log, rmdirs, handleManifest, runCommand, getCommand, \
                       generateVersionData, findInPath
 
-
-_debug = True
-
+_debug = False
 
 def parseOptions():
     _configItems = {
@@ -138,7 +136,7 @@ def buildDistribName(mode, options):
     if options.tag is None:
         version = options.version_info['version']
     else:
-        version = '%s-%s' % (options.version_info['version'], options.tag)
+        version = options.tag
 
     return 'Chandler_%s_%s_%s' % (options.platformID, mode, version)
 
