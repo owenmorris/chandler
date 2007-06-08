@@ -216,13 +216,63 @@ def loadModuleFromFile(modulePath, moduleName):
         log('Unable to load module - %s not found' % modulePath, error=True)
 
 
-def generateVersionData(chandlerDirectory, platformName, continuousBuild=None):
+def generateVersionData(chandlerDirectory, platformName, tag=None):
     """
     Determine the version information from the current version.py file.
 
     Write any calculated values back to version.py.
     """
+
     versionFilename = os.path.join(chandlerDirectory, 'version.py')
+
+    # parse tag if present to determine if we are being called to generate
+    # a checkpoint or a continuous build
+    # if yes, then extract the elements and rewrite the _version dictionary
+    # at the start of version.py to reflect the static values
+    #
+    # checkpoint    0.7.dev-r14558-checkpoint20070604
+    # continuous    0.7.dev-r14592-20070606103855
+
+    if tag is not None:
+        parts = tag.split('-')
+
+        if len(parts) == 3:
+            release    = parts[0]
+            revision   = parts[1]
+            checkpoint = parts[2]
+            build      = ''
+
+            if revision.startswith('r'):
+                revision = revision[1:]
+
+            if checkpoint.startswith('checkpoint'):
+                checkpoint = checkpoint[10:]
+
+            parts = release.split('.')
+
+            if len(parts) == 3 and parts[2] == 'dev':
+                build   = '.dev'
+                release = '%s.%s' % (parts[0], parts[1])
+                p       = 0
+
+                versionFile = open(versionFilename, 'r')
+                vlines      = versionFile.readlines()
+                versionFile.close()
+
+                for i in range(0, len(vlines)):
+                    if vlines[i].startswith('#!#!#!#!# '):
+                        p = i
+                        break
+
+                if p > 0:
+                    versionFile = open(versionFilename, 'w')
+                    versionFile.write("_version = { 'release':    '%s',\n" % release)
+                    versionFile.write("             'build':      '%s',\n" % build)
+                    versionFile.write("             'checkpoint': '%s',\n" % checkpoint)
+                    versionFile.write("             'revision':   '%s',\n" % revision)
+                    versionFile.write("           }\n\n")
+                    versionFile.write(''.join(vlines[p:]))
+                    versionFile.close()
 
     vmodule = loadModuleFromFile(versionFilename, "vmodule")
 
