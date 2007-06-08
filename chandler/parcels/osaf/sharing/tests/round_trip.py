@@ -1118,8 +1118,9 @@ class RoundTripTestCase(testcase.DualRepositoryTestCase):
         self.assert_(not second1.isGenerated)
 
         second0.unmodify()
-        self.share0.contents.remove(second0.itsItem)
+        self.assert_(second0.itsItem not in self.share0.contents)
         view0.commit(); stats = self.share0.sync(); view0.commit()
+
         view1.commit(); stats = self.share1.sync(); view1.commit()
         self.assert_(second1.isGenerated)
         # Now it's back to an unmodification
@@ -1134,14 +1135,14 @@ class RoundTripTestCase(testcase.DualRepositoryTestCase):
         second1.itsItem.displayName = "Changed in view 1"
         view1.commit(); stats = self.share1.sync(); view1.commit()
         second0.unmodify()
-        self.share0.contents.remove(second0.itsItem)
+        self.assert_(second0.itsItem not in self.share0.contents)
         view0.commit(); stats = self.share0.sync(); view0.commit()
         # Inbound change wins, item is back to being a modification
         self.assert_(not second0.isGenerated)
 
         # Couple an outbound change with an incoming unmodification
         second0.unmodify()
-        self.share0.contents.remove(second0.itsItem)
+        self.assert_(second0.itsItem not in self.share0.contents)
         self.assert_(second0.isGenerated)
         view0.commit(); stats = self.share0.sync(); view0.commit()
         self.assert_(second0.isGenerated)
@@ -1254,5 +1255,26 @@ class RoundTripTestCase(testcase.DualRepositoryTestCase):
         self.assert_(not pim.has_stamp(second1.itsItem, pim.TaskStamp))
 
 
+        # See what happens when we "unmodify" a modification on side,
+        # but delete the entire series on the other...
+
+        # First make it a modification, sync it, then 'unmodify' it
+        second0 = event.getFirstOccurrence().getNextOccurrence()
+        second0.itsItem.displayName = "Changed"
+        view0.commit(); stats = self.share0.sync(); view0.commit()
+        view1.commit(); stats = self.share1.sync(); view1.commit()
+        second1 = event1.getRecurrenceID(second0.recurrenceID)
+        self.assert_(not second1.isGenerated)
+
+        self.assert_(item1 in self.share1.contents)
+        self.share1.contents.remove(item1)
+        self.assert_(item1 not in self.share1.contents)
+        view1.commit(); stats = self.share1.sync(); view1.commit()
+
+        second0.unmodify()
+        self.assert_(second0.itsItem not in self.share0.contents)
+        view0.commit(); stats = self.share0.sync(debug=True); view0.commit()
+        # The master is removed from the collection
+        self.assert_(item not in self.share0.contents)
 
         self.share0.destroy() # clean up
