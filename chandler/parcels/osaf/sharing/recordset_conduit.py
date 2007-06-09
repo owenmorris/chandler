@@ -410,18 +410,6 @@ class RecordSetConduit(conduits.BaseConduit):
             state.updateConflicts(item)
 
             if send and dSend:
-
-                if alias in remotelyRemoved:
-                    # This was removed remotely, but we have local changes.
-                    # We need to send the entire state of the item, not just
-                    # a diff.  Also, remove the alias from remotelyRemoved
-                    # so that the item doesn't get removed from the collection
-                    # further down.
-                    doLog("Remotely removed item has local changes: %s",
-                        alias)
-                    dSend = state.agreed
-                    remotelyRemoved.remove(alias)
-
                 toSend[alias] = dSend
                 doLog("Sending changes for %s [%s]", alias, dSend)
                 if uuid not in sendStats['added']:
@@ -437,6 +425,57 @@ class RecordSetConduit(conduits.BaseConduit):
             _callback(msg="Merged %d of %d recordset(s)" % (i, mergeCount),
                 work=1)
 
+
+        # Examine inbound removal of items with local changes
+        if send:
+
+            toSendBack = set() # aliases of remotely removed items to re-send
+
+            for alias in toSend.keys():
+                uuid = translator.getUUIDForAlias(alias)
+                changedItem = rv.findUUID(uuid)
+
+                if alias in remotelyRemoved:
+                    doLog("Remotely removed item has local changes: %s", alias)
+                    toSendBack.add(alias)
+
+                if isinstance(changedItem, pim.Occurrence):
+                    masterItem = changedItem.inheritFrom
+                    masterAlias = translator.getAliasForItem(masterItem)
+                    if masterAlias in remotelyRemoved:
+                        # we're a changed modification with an inbound
+                        # deletion of our master.  We need to put our master
+                        # back, which will end up also sending our sibling
+                        # modifications in the next loop
+                        doLog("Remotely removed master %s has local mod "
+                            "changes: %s", masterAlias, alias)
+                        toSendBack.add(masterAlias)
+
+            for alias in toSendBack:
+                if self.hasState(alias):
+                    state = self.getState(alias)
+
+                    # This was removed remotely, but we have local changes.
+                    # We need to send the entire state of the item, not just
+                    # a diff.  Also, remove the alias from remotelyRemoved
+                    # so that the item doesn't get removed from the collection
+                    # further down.
+                    toSend[alias] = state.agreed
+                    if alias in remotelyRemoved:
+                        remotelyRemoved.remove(alias)
+
+                    uuid = translator.getUUIDForAlias(alias)
+                    changedItem = rv.findUUID(uuid)
+                    if pim.has_stamp(changedItem, pim.EventStamp):
+                        event = pim.EventStamp(changedItem)
+                        for mod in getattr(event, 'modifications', []):
+                            modAlias = translator.getAliasForItem(mod)
+                            if self.hasState(modAlias):
+                                modState = self.getState(modAlias)
+                                toSend[modAlias] = modState.agreed
+                                if modAlias in remotelyRemoved:
+                                    remotelyRemoved.remove(modAlias)
+                                doLog("Sending back modification: %s", modAlias)
 
         if receive:
 
@@ -561,9 +600,16 @@ class RecordSetConduit(conduits.BaseConduit):
                     if isinstance(item, pim.Occurrence):
                         # A recordset deletion on an occurrence is treated
                         # as an "unmodification" i.e., a modification going
-                        # back to a simple occurrence
-                        pim.EventStamp(item).unmodify()
-                        doLog("Locally unmodifying alias: %s", alias)
+                        # back to a simple occurrence.  But don't do anything
+                        # if our master is being removed.
+                        masterItem = item.inheritFrom
+                        masterAlias = translator.getAliasForItem(masterItem)
+                        if masterAlias not in remotelyRemoved:
+                            pim.EventStamp(item).unmodify()
+                            doLog("Locally unmodifying alias: %s", alias)
+                        else:
+                            doLog("Master was remotely removed for alias: %s",
+                                alias)
                     else:
                         self.share.contents.remove(item)
                         doLog("Locally removing  alias: %s",  alias)

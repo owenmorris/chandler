@@ -1255,7 +1255,7 @@ class RoundTripTestCase(testcase.DualRepositoryTestCase):
         self.assert_(not pim.has_stamp(second1.itsItem, pim.TaskStamp))
 
 
-        # See what happens when we "unmodify" a modification on side,
+        # See what happens when we "unmodify" a modification on one side,
         # but delete the entire series on the other...
 
         # First make it a modification, sync it, then 'unmodify' it
@@ -1273,8 +1273,74 @@ class RoundTripTestCase(testcase.DualRepositoryTestCase):
 
         second0.unmodify()
         self.assert_(second0.itsItem not in self.share0.contents)
-        view0.commit(); stats = self.share0.sync(debug=True); view0.commit()
+        view0.commit(); stats = self.share0.sync(); view0.commit()
         # The master is removed from the collection
         self.assert_(item not in self.share0.contents)
+
+
+
+        # Verify that remote removal of a master and local trivial (triage)
+        # change of a modification results in local removal of event
+
+        # Create a new recurring event and share it
+        event = self._makeRecurringEvent(view0, self.share0.contents)
+        event.rruleset.rrules.first().freq = 'daily'
+        item = event.itsItem
+        item.setTriageStatus(pim.TriageEnum.later)
+        view0.commit(); stats = self.share0.sync(); view0.commit()
+        view1.commit(); stats = self.share1.sync(); view1.commit()
+        item1 = view1.findUUID(item.itsUUID)
+        event1 = pim.EventStamp(item1)
+        self.assertEquals(event1.rruleset.rrules.first().freq, 'daily')
+        self.assertEquals(item1.triageStatus, pim.TriageEnum.later)
+
+        # Remove it from the server
+        self.share1.contents.remove(item1)
+        view1.commit(); stats = self.share1.sync(); view1.commit()
+
+        # Make a local triage change to an occurrence, the remote removal
+        # will remove the item from the local collection
+        second0 = event.getFirstOccurrence().getNextOccurrence()
+        second0.itsItem.setTriageStatus(pim.TriageEnum.done)
+        self.assert_(self.share0 in sharing.SharedItem(item).sharedIn)
+        view0.commit(); stats = self.share0.sync(); view0.commit()
+        self.assert_(item not in self.share0.contents)
+        self.assert_(self.share0 not in sharing.SharedItem(item).sharedIn)
+
+
+        # Verify that remote removal of a master and local nontrivial change
+        # of a modification results in the entire series being sent back
+
+        # Create a new recurring event and share it
+        event = self._makeRecurringEvent(view0, self.share0.contents)
+        event.rruleset.rrules.first().freq = 'daily'
+        item = event.itsItem
+        item.setTriageStatus(pim.TriageEnum.later)
+        view0.commit(); stats = self.share0.sync(); view0.commit()
+        view1.commit(); stats = self.share1.sync(); view1.commit()
+        item1 = view1.findUUID(item.itsUUID)
+        event1 = pim.EventStamp(item1)
+        self.assertEquals(event1.rruleset.rrules.first().freq, 'daily')
+        self.assertEquals(item1.triageStatus, pim.TriageEnum.later)
+
+        # Remove it from the server
+        self.share1.contents.remove(item1)
+        view1.commit(); stats = self.share1.sync(); view1.commit()
+
+        # Make a local displayName change to an occurrence, we'll put back
+        # the entire series
+        second0 = event.getFirstOccurrence().getNextOccurrence()
+        second0.itsItem.displayName = "PUT ME BACK"
+        self.assert_(self.share0 in sharing.SharedItem(item).sharedIn)
+        view0.commit(); stats = self.share0.sync(); view0.commit()
+        self.assert_(item in self.share0.contents)
+        self.assert_(self.share0 in sharing.SharedItem(item).sharedIn)
+
+        view1.commit(); stats = self.share1.sync(); view1.commit()
+        second1 = event1.getRecurrenceID(second0.recurrenceID)
+        self.assert_(item1 in self.share1.contents)
+        self.assertEquals(second1.itsItem.displayName, "PUT ME BACK")
+
+
 
         self.share0.destroy() # clean up
