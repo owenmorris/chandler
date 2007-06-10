@@ -197,7 +197,10 @@ class SubscribeDialog(wx.Dialog):
             self._showStatus(_(u"You are already subscribed to this collection"))
         elif isinstance(err, sharing.OfflineError):
             self._showStatus(_(u"Application is in offline mode"))
-        elif isinstance(err, zanshin.error.ConnectionError):
+        elif isinstance(err, sharing.WebPageParseError):
+            self._showStatus(_(u"Web page doesn't contain a collection; please check the URL"))
+        elif isinstance(err,
+            (sharing.CouldNotConnect, zanshin.error.ConnectionError)):
             logger.error("Connection error during subscribe")
 
             # Note: do not localize the 'startswith' strings -- these need to
@@ -211,6 +214,11 @@ class SubscribeDialog(wx.Dialog):
 
             self._showStatus(_(u"Sharing Error:\n%(error)s") % {'error': msg})
 
+        elif isinstance(err, ActivityAborted):
+            self._showStatus(_(u"Subscribe cancelled"))
+        elif isinstance(err, sharing.URLParseError):
+            self._showStatus(_(u"There is a problem with the URL:\n%(error)s"
+                % {'error' : err.message}))
         else:
             logger.error("Error during subscribe")
             self._showStatus(_(u"Sharing Error:\n%(error)s") % {'error': err})

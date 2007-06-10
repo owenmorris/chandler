@@ -820,6 +820,9 @@ def subscribe(view, url, activity=None, username=None, password=None,
     if scheme not in ("http", "https", "webcal"):
         raise URLParseError(_("Protocol not supported: %s") % scheme)
 
+    if not host:
+        raise URLParseError(_("No hostname specified"))
+
     if ticket:
         account = username = password = None
 
@@ -959,7 +962,7 @@ def subscribe(view, url, activity=None, username=None, password=None,
                 # oh well, I can't find subscription information
                 pass
 
-        raise errors.SharingError("Can't parse webpage")
+        raise errors.WebPageParseError("Can't parse web page")
 
     elif contentType == "text/calendar":
 

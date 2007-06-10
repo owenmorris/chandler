@@ -145,3 +145,8 @@ class URLParseError(SharingError):
     """
     Exception raised if a subscribe URL cannot be parsed
     """
+
+class WebPageParseError(SharingError):
+    """
+    Exception raised if a web page cannot be parsed for embedded collection info
+    """

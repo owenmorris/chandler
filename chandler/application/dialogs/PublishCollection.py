@@ -419,7 +419,7 @@ class PublishCollectionDialog(wx.Dialog):
                 account = task.view.find(task.accountUUID)
                 collection = task.view.find(task.collectionUUID)
 
-                msg = _(u"Publishing collection to server...")
+                msg = _(u"Publishing collection to server...\n")
                 task.callInMainThread(self._showStatus, msg)
 
                 if self.publishType == 'freebusy':
@@ -466,7 +466,9 @@ class PublishCollectionDialog(wx.Dialog):
         try:
             if isinstance(err, sharing.OfflineError):
                 self._showStatus(_(u"Application is in offline mode"))
-            elif isinstance(err, zanshin.error.ConnectionError):
+
+            elif isinstance(err,
+                (sharing.CouldNotConnect, zanshin.error.ConnectionError)):
                 logger.error("Connection error during publish")
 
                 # Note: do not localize the 'startswith' strings -- these need
@@ -477,6 +479,9 @@ class PublishCollectionDialog(wx.Dialog):
                     msg = _(u"Connection refused by server")
                 else:
                     msg = err.message
+
+                self._showStatus(msg)
+
             elif isinstance(err, sharing.AlreadyExists):
                 if hasattr(err, "mine"):
                     # This is a morsecode publish
@@ -502,17 +507,21 @@ class PublishCollectionDialog(wx.Dialog):
                         msg = _(u"Collection was already published from a different account")
                 else:
                     msg = _(u"Collection already exists on server")
-            else:
-                msg = err
 
+                self._showStatus(msg)
+
+            elif isinstance(err, ActivityAborted):
+                self._showStatus(_("Publish cancelled"))
+
+            else:
                 if Globals.options.catch != 'tests':
                     text = "%s\n\n%s" % (summary, extended)
                     SharingDetails.ShowText(None, text,
                         title=_(u"Publish Error"))
 
+                self._showStatus(_(u"\nSharing error:\n%(error)s\n") %
+                    {'error': err})
 
-            self._showStatus(_(u"\nSharing error:\n%(error)s\n") %
-                {'error': msg})
 
         except Exception, e:
             logger.exception("Error displaying exception")

@@ -575,6 +575,8 @@ def getDAVInfo(rv, url, username=None, password=None):
     )
 
     path = parsedUrl.path
+    if not path:
+        path = "/"
     if parsedUrl.query:
         path = "%s?%s" % (path, parsedUrl.query)
 
@@ -685,6 +687,8 @@ def getHEADInfo(rv, url, username=None, password=None):
         repositoryView=rv)
 
     path = parsedUrl.path
+    if not path:
+        path = "/"
     if parsedUrl.query:
         path = "%s?%s" % (path, parsedUrl.query)
 
@@ -738,6 +742,8 @@ def _getPage(rv, url, username=None, password=None):
         repositoryView=rv)
 
     path = parsedUrl.path
+    if not path:
+        path = "/"
     if parsedUrl.query:
         path = "%s?%s" % (path, parsedUrl.query)
 
