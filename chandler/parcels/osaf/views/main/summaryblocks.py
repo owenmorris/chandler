@@ -20,8 +20,7 @@ from util.MultiStateButton import BitmapInfo
 from i18n import ChandlerMessageFactory as _
 from wx import grid as wxGrid
 from chandlerdb.util.c import Nil
-
-CommunicationStatus = pim.mail.CommunicationStatus
+from osaf.communicationstatus import CommunicationStatus
 
 # IndexDefinition subclasses for the dashboard indexes
 #
@@ -214,13 +213,13 @@ class WhoAttributeEditor(attributeEditors.StringAttributeEditor):
             if len(whoSource) > 0:
                 if whoSource == 'creator': # ContentItem
                     prefix = _(u'cr ')
-                elif whoSource == 'editor': # Mail/CommunicationsStatus
+                elif whoSource == 'editor': # CommunicationStatus
                     prefix = _(u'ed ')
-                elif whoSource == 'updater': # Mail/CommunicationsStatus
+                elif whoSource == 'updater': # CommunicationStatus
                     prefix = _(u'up ')
-                elif whoSource == 'to': # Mail/CommunicationsStatus
+                elif whoSource == 'to': # CommunicationStatus
                     prefix = _(u'to ')
-                elif whoSource == 'from': # Mail/CommunicationsStatus
+                elif whoSource == 'from': # CommunicationStatus
                     prefix = _(u'fr ')
                 elif whoSource == 'owner': # Flickr
                     prefix = _(u'ow ')
@@ -619,7 +618,7 @@ def makeSummaryBlocks(parcel):
         indexName=CommunicationStatus.status.name,
         attributeName=CommunicationStatus.status.name,
         baseClass=CommunicationColumnIndexDefinition,
-        attributes=list(dict(pim.mail.CommunicationStatus.attributeValues)),)
+        attributes=list(dict(CommunicationStatus.attributeValues)),)
 
     whoColumn = makeColumnAndIndexes('SumColWho',
         heading=_(u'Who'),

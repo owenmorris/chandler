@@ -139,6 +139,11 @@ class SharedItem(pim.Stamp):
                 #return True
 
         #return False
+        
+    @schema.observer(conflictingStates)
+    def onConflictingStatesChange(self, op, name):
+        # CommunicationStatus might have changed
+        self.itsItem.updateDisplayWho(op, name)
 
 
 

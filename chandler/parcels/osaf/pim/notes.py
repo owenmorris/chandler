@@ -100,6 +100,6 @@ class Note(items.ContentItem):
             method = getattr(stampObject, 'addDisplayWhos', lambda _: None)
             method(whos)
         
-        from osaf.pim.mail import CommunicationStatus
+        from osaf.communicationstatus import CommunicationStatus
         CommunicationStatus(self).addDisplayWhos(whos)
 
