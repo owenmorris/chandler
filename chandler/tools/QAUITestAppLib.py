@@ -1617,7 +1617,8 @@ class UITestView(object):
             path = os.path.join(os.getenv('CHANDLERHOME'),
                 "tools/cats/DataFiles", environmentFile)
             #Upcast path to unicode since Sharing requires a unicode path
-            path = unicode(path, sys.getfilesystemencoding())
+            if not isinstance(path, unicode):
+                path = unicode(path, sys.getfilesystemencoding())
             try:
                 self.collection = sharing.importFile(App_ns.itsView, path)
             except:
