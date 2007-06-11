@@ -659,6 +659,20 @@ Make sure Inherit values can be merged::
 
 
 
+
+
+Verify that the inbound deletion of a non-existent record is discarded::
+    >>> state.set(rsEmpty, dEmpty)
+    >>> state.merge(rsEmpty, Diff(set([]), set([Demo(1,1,1)])))
+    (Diff(set([]), set([])), Diff(set([]), set([])), Diff(set([]), set([])))
+    >>> state
+    State(RecordSet(set([])), Diff(set([]), set([])))
+
+
+
+
+
+
 Read-only Merging
 -----------------
 
