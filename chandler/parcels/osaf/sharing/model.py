@@ -403,6 +403,16 @@ class ShareRecordSetConduitRecord(eim.Record):
     filters = eim.field(text1024)
     syncToken = eim.field(text256)
 
+class ShareMonolithicRecordSetConduitRecord(eim.Record):
+    URI = "http://osafoundation.org/eim/sharing/monorsconduit/0"
+
+    uuid = eim.key(ItemRecord.uuid)
+    etag = eim.field(text1024)
+
+class ShareWebDAVMonolithicRecordSetConduitRecord(eim.Record):
+    URI = "http://osafoundation.org/eim/sharing/webdavmonorsconduit/0"
+
+    uuid = eim.key(ItemRecord.uuid)
 
 class ShareHTTPConduitRecord(eim.Record):
     URI = "http://osafoundation.org/eim/sharing/httpconduit/0"

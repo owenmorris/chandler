@@ -1834,6 +1834,7 @@ class DumpTranslator(SharingTranslator):
 
     @model.ShareRecordSetConduitRecord.importer
     def import_sharing_recordset_conduit(self, record):
+
         @self.withItemForUUID(record.uuid,
             recordset_conduit.RecordSetConduit,
             syncToken=record.syncToken
@@ -1841,8 +1842,11 @@ class DumpTranslator(SharingTranslator):
         def do(conduit):
             if record.serializer == "eimml":
                 conduit.serializer = eimml.EIMMLSerializer
-            if record.serializer == "eimml_lite":
+            elif record.serializer == "eimml_lite":
                 conduit.serializer = eimml.EIMMLSerializerLite
+            elif record.serializer == "ics":
+                import ics # TODO: fix interdependencies between ics.py
+                conduit.serializer = ics.ICSSerializer
 
             # if record.translator == "sharing":
             conduit.translator = SharingTranslator
@@ -1857,12 +1861,16 @@ class DumpTranslator(SharingTranslator):
 
         if self.obfuscation: return
 
+        import ics # TODO: fix interdependencies between ics.py
+
         translator = "sharing"
 
         if conduit.serializer is eimml.EIMMLSerializer:
             serializer = 'eimml'
         elif conduit.serializer is eimml.EIMMLSerializerLite:
             serializer = 'eimml_lite'
+        elif conduit.serializer is ics.ICSSerializer:
+            serializer = 'ics'
 
         filters = ",".join(conduit.filters)
 
@@ -1877,6 +1885,28 @@ class DumpTranslator(SharingTranslator):
         )
 
 
+    @model.ShareMonolithicRecordSetConduitRecord.importer
+    def import_sharing_monolithic_recordset_conduit(self, record):
+        self.withItemForUUID(record.uuid,
+            recordset_conduit.MonolithicRecordSetConduit, etag=record.etag)
+
+
+    @eim.exporter(recordset_conduit.MonolithicRecordSetConduit)
+    def export_sharing_monolithic_recordset_conduit(self, conduit):
+        yield model.ShareMonolithicRecordSetConduitRecord(
+            conduit,
+            conduit.etag
+        )
+
+    @model.ShareWebDAVMonolithicRecordSetConduitRecord.importer
+    def import_sharing_webdav_monolithic_recordset_conduit(self, record):
+        self.withItemForUUID(record.uuid,
+            webdav_conduit.WebDAVMonolithicRecordSetConduit
+        )
+
+    @eim.exporter(webdav_conduit.WebDAVMonolithicRecordSetConduit)
+    def export_sharing_webdav_monolithic_recordset_conduit(self, conduit):
+        yield model.ShareWebDAVMonolithicRecordSetConduitRecord(conduit)
 
 
     @model.ShareHTTPConduitRecord.importer
