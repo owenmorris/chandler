@@ -60,6 +60,8 @@ def importFile(rv, path, collection=None, activity=None,
 
     trans.finishImport()
 
+    
+
     if collection is None:
         name = extra.get('name', _(u"Untitled"))
         collection = pim.SmartCollection(itsView=rv, displayName=name)
@@ -70,6 +72,7 @@ def importFile(rv, path, collection=None, activity=None,
             item = rv.findUUID(uuid)
             if item is not None:
                 collection.add(item)
+                pim.setTriageStatus(item, 'auto')
 
     if activity:
         activity.update(totalWork=None, msg=_(u"Importing complete"))

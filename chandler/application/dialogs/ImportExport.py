@@ -212,16 +212,23 @@ class ImportDialog(FileChooserWithOptions):
         # simplifying wrapper for complicated callbacks from sharing
         view = self.view
 
+        activity = None
         # defer commits until done processing
         with view.commitDeferred():
-            if self.importFile():
+            activity = self.importFile()
+            if activity:
                 event.Skip(True)
+                activity.update(msg=_(u"Saving changes"))
             # The commit() call below ensures that at least one such call gets
             # actually deferred and run when this code block completes. When
             # there are no changes to commit, as in a second call to commit()
-            # in succession, the call is more or less a nop.
+            # in succession, the call is more or less a nop.                
             view.commit()
-
+            
+        if activity:
+            activity.completed()
+            self.listener.unregister()
+            
     def onCancel(self, event):
         self.cancelling = True
         event.Skip(True)
@@ -268,7 +275,7 @@ class ImportDialog(FileChooserWithOptions):
         prefs.import_dir = dir
 
         activity = Activity("Import %s" % filename)
-        listener = Listener(activity=activity, callback=self.updateCallback)
+        self.listener = Listener(activity=activity, callback=self.updateCallback)
 
         try:
             activity.started()
@@ -278,13 +285,11 @@ class ImportDialog(FileChooserWithOptions):
             if coll == None and not self.mine.IsChecked():
                 mineCollections = schema.ns('osaf.pim', self.view).mine
                 mineCollections.sources.add(collection)
-            activity.completed()
 
         except ICalendarImportError, e:
             activity.failed(exception=e)
             self.fail(unicode(e))
+            self.listener.unregister()
             return False
 
-        listener.unregister()
-
-        return True # Successful import
+        return activity # Successful import

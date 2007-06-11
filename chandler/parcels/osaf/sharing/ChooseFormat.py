@@ -67,6 +67,7 @@ def importFileAsFormat(format, filename, view, coll=None,
     if format == ICALENDAR_FORMAT:
         osaf.sharing.ICalendar.importICalendarFile(filename, view, coll,
                                         selectedCollection = selectedCollection)
+        view.commit()
         return None
     elif format in (EMAIL_FORMAT, EMAILX_FORMAT):
         fp = file(filename)
