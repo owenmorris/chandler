@@ -46,27 +46,20 @@ class TestRemoveFromTrashOnImport(ChandlerTestCase):
         
         #create a path to export to
         reportDir = Globals.options.profileDir
-        fullpath = os.path.join(reportDir,colName)
+        fullpath = os.path.join(reportDir,'deleteThenImport.ics')
         if os.path.exists(fullpath):
             os.remove(fullpath)
-        reportDir = unicode(reportDir, sys.getfilesystemencoding())
+        fullpath = unicode(fullpath, sys.getfilesystemencoding())
         
         #export
-        share = sharing.OneTimeFileSystemShare(itsView=appView,
-            filePath=reportDir, fileName=u'deleteThenImport.ics',
-            formatClass=sharing.ICalendarFormat)
-        share.contents = collection.item
-        share.put()
+        sharing.exportFile(appView, fullpath, collection.item)
         
         #delete collection
         scripting.User.emulate_sidebarClick(sb,colName) 
         collection.DeleteCollection()
         
         #import event back in
-        share = sharing.OneTimeFileSystemShare(itsView=appView,
-            filePath=reportDir, fileName=u'deleteThenImport.ics',
-            formatClass=sharing.ICalendarFormat)
-        collection = share.get()
+        collection = sharing.importFile(appView, fullpath)
         self.app_ns.sidebarCollection.add(collection)
         scripting.User.idle()    
             

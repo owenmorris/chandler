@@ -25,17 +25,7 @@ class TestLargeImport(RepositoryTestCase):
             path = os.path.join(os.getenv('CHANDLERHOME') or '.',
                                 'parcels', 'osaf', 'sharing', 'tests')
 
-            share = sharing.shares.OneTimeFileSystemShare(
-                itsView=self.view, 
-                filePath=path, fileName=u"3kevents.ics",
-                translatorClass=sharing.translator.SharingTranslator,
-                serializerClass=sharing.ics.ICSSerializer
-            )
-            
-            share._prepare()
-
-            share.get()
-
+            sharing.importFile(self.view, os.path.join(path, u"3kevents.ics"))
 
 if __name__ == "__main__":
     unittest.main()

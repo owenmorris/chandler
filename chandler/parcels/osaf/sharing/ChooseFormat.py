@@ -88,7 +88,7 @@ def importEmail(text, view, coll=None, selectedCollection=False):
         coll.add(msg.itsItem)
     return msg.itsItem
 
-def importFile(filename, view, coll=None, selectedCollection=False):
+def importFileGuessFormat(filename, view, coll=None, selectedCollection=False):
     """
     Import file, return the item that's imported, or None for multiple items.
     """

@@ -13,7 +13,7 @@
 #   limitations under the License.
 
 
-import logging, urlparse, datetime, wx
+import logging, urlparse, datetime, wx, os.path
 from PyICU import ICUtzinfo
 
 from application import schema, dialogs, Globals
@@ -44,7 +44,6 @@ from inmemory_conduit import *
 from caldav_conduit import *
 from recordset_conduit import *
 from WebDAV import *
-from ICalendar import *
 from callbacks import *
 from eim import *
 from model import *
@@ -52,10 +51,11 @@ from translator import *
 from eimml import *
 from cosmo import *
 from itemcentric import *
-from ics import *
 from serialize import *
 from ootb import *
 from viewpool import *
+from ics import *
+from ICalendar import *
 from stateless import *
 
 
@@ -735,16 +735,6 @@ def destroyShare(share):
         # clean up the share objects, so continue on
     deleteShare(share)
 
-
-def deleteShare(share):
-    # Clean up sharing-related objects
-    if getattr(share, "conduit", None):
-        share.conduit.delete(True)
-    if getattr(share, "format", None):
-        share.format.delete(True)
-    for state in getattr(share, "states", []):
-        state.delete(True)
-    share.delete(recursive=True)
 
 def unpublish(collection):
     """
@@ -1584,6 +1574,7 @@ def format_event_dtstart(field, value):
 def format_event_duration(field, value):
     duration = fromICalendarDuration(value)
     return "%s (hh:mm:ss)" % duration
+
 
 
 # = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =

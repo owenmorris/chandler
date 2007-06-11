@@ -942,9 +942,9 @@ class MainView(View):
         except UnicodeEncodeError:
             name = str(collection.itsUUID)
 
-        options = [dict(name=pim.Remindable.reminders.name, checked = True,
+        options = [dict(name='cid:reminders-filter@osaf.us', checked = True,
                         label = _(u"Export reminders")),
-                   dict(name=pim.EventStamp.transparency.name, checked = True,
+                   dict(name='cid:event-status-filter@osaf.us', checked = True,
                         label = _(u"Export event status"))]
         res = ImportExport.showFileChooserWithOptions(
             _(u"Choose a filename to export to"),
@@ -965,30 +965,10 @@ class MainView(View):
                 except OSError:
                     pass
 
-                if True: # was "or sharing.caldav_atop_eim:"
-                    share = sharing.OneTimeFileSystemShare(
-                        itsView=self.itsView,
-                        filePath=dir, fileName=filename,
-                        translatorClass=sharing.SharingTranslator,
-                        serializerClass=sharing.ICSSerializer,
-                        contents=collection
-                    )
-                    # TODO: filters
-                else:
-                    share = sharing.OneTimeFileSystemShare(
-                        itsView=self.itsView,
-                        filePath=dir, fileName=filename,
-                        formatClass=sharing.ICalendarFormat,
-                        contents=collection)
-                    if not optionResults[pim.Remindable.reminders.name]:
-                        share.filterAttributes.append(
-                            pim.Remindable.reminders.name)
-                    if not optionResults[pim.EventStamp.transparency.name]:
-                        share.filterAttributes.append(
-                            pim.EventStamp.transparency.name)
+                sharing.exportFile(self.itsView, fullpath, collection,
+                    filters=set(k for k, v in optionResults.iteritems()
+                        if not v))
 
-
-                share.put()
                 self.setStatusMessage(_(u"Export completed"))
             except:
                 trace = "".join(traceback.format_exception (*sys.exc_info()))

@@ -59,17 +59,9 @@ class ICalendarTestCase(SingleRepositoryTestCase):
 
         #sharePath is stored as schema.Text so convert to unicode
         sharePath = unicode(sharePath, sys.getfilesystemencoding())
+        path = os.path.join(sharePath, filename)
 
-        self.share = sharing.shares.OneTimeFileSystemShare(itsView=view, 
-            itsParent=self.sandbox,
-            filePath=sharePath, fileName=filename,
-            translatorClass=translator.SharingTranslator,
-            serializerClass=ics.ICSSerializer
-        )
-        
-        self.share._prepare()
-                                   
-        self.share.sync(modeOverride='get')
+        self.importedCollection = sharing.importFile(view, path)
 
     def testSummaryAndDateTimeImported(self):
         self.Import(self.view, u'Chandler.ics')
@@ -112,8 +104,7 @@ class ICalendarTestCase(SingleRepositoryTestCase):
 
     def testExportFreeBusy(self):
         self.Import(self.view, u'AllDay.ics')
-        collection = self.share.contents
-        schema.ns('osaf.pim', self.view).mine.addSource(collection)
+        schema.ns('osaf.pim', self.view).mine.addSource(self.importedCollection)
 
         start = datetime.datetime(2005,1,1, tzinfo=ICUtzinfo.floating)
         end = start + datetime.timedelta(2)
@@ -178,12 +169,6 @@ class ICalendarTestCase(SingleRepositoryTestCase):
         
         filename = u"unicode_export.ics"
 
-        write_share = sharing.OneTimeFileSystemShare(itsView=self.view, 
-            filePath=u".", fileName=filename,
-            translatorClass=translator.SharingTranslator,
-            serializerClass=ics.ICSSerializer, contents=coll
-        )
-        
         def delFile():
             try:
                 os.remove(filename)
@@ -191,7 +176,7 @@ class ICalendarTestCase(SingleRepositoryTestCase):
                 pass
         
         delFile()
-        write_share.put()
+        sharing.exportFile(self.view, os.path.join(".", filename), coll)
         
         cal = vobject.readComponents(file(filename, 'rb')).next()
         self.assertEqual(cal.vevent.summary.value, event.summary)

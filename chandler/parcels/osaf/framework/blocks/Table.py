@@ -517,8 +517,8 @@ class wxTable(DragAndDrop.DraggableWidget,
 
     def OnFilePaste(self):
         for filename in self.fileDataObject.GetFilenames():
-            ChooseFormat.importFile(filename, self.blockItem.itsView,
-                                    selectedCollection=True)
+            ChooseFormat.importFileGuessFormat(filename, self.blockItem.itsView,
+                                               selectedCollection=True)
 
     def OnEmailPaste(self, text):
         ChooseFormat.importEmail(text, self.blockItem.itsView,

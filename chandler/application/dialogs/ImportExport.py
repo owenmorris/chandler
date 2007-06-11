@@ -63,7 +63,7 @@ def showFileChooserWithOptions(dialogTitle, defaultFile, fileMask,
         fullpath = dlg.filechooser.GetValue()
         options = {}
         for key, btn in dlg.options.iteritems():
-            options[key] = btn.IsChecked()        
+            options[key] = btn.IsChecked()
         
         dlg.Destroy()
         return (True, fullpath, options)
@@ -120,9 +120,9 @@ def isReadOnly(collection):
 class ImportDialog(FileChooserWithOptions):
     def __init__(self, dialogTitle, view):
 
-        options = [dict(name=Remindable.reminders.name, checked = True, 
+        options = [dict(name='cid:reminders-filter@osaf.us', checked = True, 
                         label = _(u"Import &reminders")),
-                   dict(name=EventStamp.transparency.name, checked = True,
+                   dict(name='cid:event-status-filter@osaf.us', checked = True,
                         label = _(u"Import event &status"))]
         
         FileChooserWithOptions.__init__(
@@ -259,8 +259,8 @@ class ImportDialog(FileChooserWithOptions):
         (dir, filename) = os.path.split(fullpath)
 
         coll = targetCollection = self.choices[self.chooser.GetSelection()]
-        filterAttributes = [key for key, val in self.options.iteritems()
-                            if not val.IsChecked()]
+        filterAttributes = set(key for key, val in self.options.iteritems()
+                               if not val.IsChecked())
 
         # set the preference for importing collections into new collections
         prefs = schema.ns("osaf.sharing", self.view).prefs

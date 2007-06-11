@@ -31,21 +31,16 @@ class TestExporting(ChandlerTestCase):
             os.remove(fullpath)
         
         #Upcast path to unicode since Sharing requires a unicode path
-        path = unicode(path, sys.getfilesystemencoding())
-        share = sharing.OneTimeFileSystemShare(itsView=appView,
-            filePath=path, fileName=u'exportTest.ics',
-            formatClass=sharing.ICalendarFormat)
-     
+        fullpath = unicode(fullpath, sys.getfilesystemencoding())
         self.logger.startAction("Export Test Calendar")
         collection = pim.ListCollection(itsView=appView)
         for event in Calendar.EventStamp.getCollection(appView):
             collection.add(event)
-        share.contents = collection
         try:
-            share.put()
-            self.logger.report(True, name="share.put()")
+            sharing.exportFile(appView, fullpath, collection)
+            self.logger.report(True, name="exportFile")
         except:
-            self.logger.report(False, name="share.put()")    
+            self.logger.report(False, name="exportFile")    
         self.logger.endAction(True)
         
 

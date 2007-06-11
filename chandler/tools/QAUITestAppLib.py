@@ -81,14 +81,10 @@ def publishSubscribe(logger):
 
     # import events so test will have something to share even when run by itself
     path = os.path.join(os.getenv('CHANDLERHOME'),
-        "tools/cats/DataFiles")
+        "tools/cats/DataFiles", "testSharing.ics")
     # Upcast path to unicode since Sharing requires a unicode path
     path = unicode(path, sys.getfilesystemencoding())
-    share = sharing.OneTimeFileSystemShare(itsView=App_ns.itsView,
-        filePath=path, fileName=u'testSharing.ics',
-        formatClass=sharing.ICalendarFormat)
-
-    collection = share.get()
+    collection = sharing.importFile(App_ns.itsView, path)
     App_ns.sidebarCollection.add(collection)
     scripting.User.idle()
 
@@ -1618,15 +1614,12 @@ class UITestView(object):
 
         # setup the test environment if an environment file was specified
         if environmentFile is not None:
-            path = os.path.join(os.getenv('CHANDLERHOME'),"tools/cats/DataFiles")
+            path = os.path.join(os.getenv('CHANDLERHOME'),
+                "tools/cats/DataFiles", environmentFile)
             #Upcast path to unicode since Sharing requires a unicode path
             path = unicode(path, sys.getfilesystemencoding())
-            share = sharing.OneTimeFileSystemShare(itsView=App_ns.itsView,
-                filePath=path,
-                fileName=environmentFile,
-                formatClass=sharing.ICalendarFormat)
             try:
-                self.collection = share.get()
+                self.collection = sharing.importFile(App_ns.itsView, path)
             except:
                 if logger: 
                     logger.Stop()

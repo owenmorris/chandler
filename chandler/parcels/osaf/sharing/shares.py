@@ -12,8 +12,6 @@
 #   See the License for the specific language governing permissions and
 #   limitations under the License.
 __all__ = [
-    'OneTimeShare',
-    'OneTimeFileSystemShare',
     'Share',
     'SharedItem',
     'State',
@@ -696,72 +694,4 @@ class Share(pim.ContentItem):
 
 
 
-
-# = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =
-
-
-class OneTimeShare(Share):
-    """
-    Delete format, conduit, and share after the first get or put.
-    """
-
-    def remove(self):
-        # With deferred deletes, we need to also remove the Share from the
-        # collection's shares ref collection
-        if self.contents:
-            SharedItem(self.contents).shares.remove(self)
-        if self.conduit is not None:
-            self.conduit.delete(True)
-        if self.format is not None:
-            self.format.delete(True)
-        self.delete(True)
-
-    def put(self, activity=None):
-        super(OneTimeShare, self).put(activity=activity)
-        collection = self.contents
-        self.remove()
-        return collection
-
-    def get(self, activity=None):
-        super(OneTimeShare, self).get(activity=activity)
-        collection = self.contents
-        self.remove()
-        return collection
-
-
-
-
-class OneTimeFileSystemShare(OneTimeShare):
-
-    formatClass = schema.One(schema.Class)
-    translatorClass = schema.One(schema.Class)
-    serializerClass = schema.One(schema.Class)
-    filePath = schema.One(schema.Text)
-    fileName = schema.One(schema.Text)
-
-    def put(self, activity=None):
-        self._prepare()
-        return super(OneTimeFileSystemShare, self).put(activity=activity)
-
-    def get(self, activity=None):
-        self._prepare()
-        return super(OneTimeFileSystemShare, self).get(activity=activity)
-
-    def _prepare(self):
-        import filesystem_conduit
-
-        if hasattr(self, 'formatClass'):
-            self.conduit = filesystem_conduit.FileSystemConduit(
-                itsView=self.itsView, sharePath=self.filePath,
-                shareName=self.fileName
-            )
-            self.format = self.formatClass(itsView=self.itsView)
-        else:
-            self.conduit = \
-                filesystem_conduit.FileSystemMonolithicRecordSetConduit(
-                itsView=self.itsView,
-                sharePath=self.filePath,
-                shareName=self.fileName,
-                translator=self.translatorClass,
-                serializer=self.serializerClass)
 

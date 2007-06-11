@@ -25,8 +25,6 @@ from i18n import ChandlerMessageFactory as _
 
 logger = logging.getLogger(__name__)
 
-
-
 def importFile(rv, path, collection=None, activity=None,
     translatorClass=translator.SharingTranslator,
     serializerClass=ics.ICSSerializer,
@@ -48,7 +46,7 @@ def importFile(rv, path, collection=None, activity=None,
 
     if activity:
         activity.update(msg=_(u"Parsing file"), totalWork=None)
-    inbound, extra = serializerClass.deserialize(text)
+    inbound, extra = serializerClass.deserialize(text, helperView=rv)
 
     total = len(inbound)
     if activity:
@@ -77,9 +75,6 @@ def importFile(rv, path, collection=None, activity=None,
         activity.update(totalWork=None, msg=_(u"Importing complete"))
 
     return collection
-
-
-
 
 
 def exportFile(rv, path, collection, activity=None,

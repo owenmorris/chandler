@@ -377,7 +377,8 @@ class wxSidebar(wxTable):
         coll = self.getCollectionDroppedOn()
         for filename in self.fileDataObject.GetFilenames():
             try:
-                ChooseFormat.importFile(filename, self.blockItem.itsView, coll)
+                ChooseFormat.importFileGuessFormat(filename,
+                                                   self.blockItem.itsView, coll)
             except sharing.ICalendar.ICalendarImportError:
                 wx.GetApp().CallItemMethodAsync(
                     "MainView", 'setStatusMessage',

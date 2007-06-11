@@ -26,15 +26,7 @@ class IcalUIDToUUIDTestCase(testcase.SingleRepositoryTestCase):
         #sharePath is stored as schema.Text so convert to unicode
         sharePath = unicode(sharePath, sys.getfilesystemencoding())
 
-        share = sharing.shares.OneTimeFileSystemShare(itsView=self.view,
-            filePath=sharePath, fileName=u"icaluid.ics",
-            translatorClass=sharing.translator.SharingTranslator,
-            serializerClass=sharing.ics.ICSSerializer
-        )
-        
-        share._prepare()
-
-        stats = share.get()
+        sharing.importFile(self.view, os.path.join(sharePath, u"icaluid.ics"))
 
         # This item had a UUID-friendly icalUID
         self.assert_(self.view.findUUID('bed962e5-6042-11d9-be74-000a95bb2738'))

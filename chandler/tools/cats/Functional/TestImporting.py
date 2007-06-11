@@ -32,15 +32,13 @@ class TestImporting(ChandlerTestCase):
                 self.logger.endAction(False, "Testing event creation: '%s' not created" % title)
         
             
-        path = os.path.join(Globals.chandlerDirectory,"tools/cats/DataFiles")
+        path = os.path.join(Globals.chandlerDirectory, "tools/cats/DataFiles",
+            "importTest.ics")
         # Upcast path to unicode since Sharing requires a unicode path
         path = unicode(path, sys.getfilesystemencoding())
-        share = sharing.OneTimeFileSystemShare(itsView=self.app_ns.itsView,
-            filePath=path, fileName=u'importTest.ics',
-            formatClass=sharing.ICalendarFormat)
         
         self.logger.startAction("Import Large Calendar")
-        collection = share.get()
+        collection = sharing.importFile(self.app_ns.itsView, path)
         self.app_ns.sidebarCollection.add(collection)
         self.scripting.User.idle()
         self.logger.endAction(True, "Imported calendar")

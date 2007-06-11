@@ -1543,8 +1543,9 @@ class wxCalendarCanvas(CollectionCanvas.wxCollectionCanvas):
 
     def OnFilePaste(self):
         for filename in self.fileDataObject.GetFilenames():
-            item = ChooseFormat.importFile(filename, self.blockItem.itsView,
-                                           selectedCollection=True)
+            item = ChooseFormat.importFileGuessFormat(filename,
+                                                      self.blockItem.itsView,
+                                                      selectedCollection=True)
             # if the file was ics, None will be returned
             if item is not None:
                 self.StampDraggedItem(item)

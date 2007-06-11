@@ -157,8 +157,7 @@ class LinkableConduit(BaseConduit):
                     timeTravel = True
 
 
-        # Don't commit if we're using a OneTimeShare
-        commit = not isinstance(linkedShares[0], shares.OneTimeShare)
+        commit = True
 
         established = linkedShares[0].established
         if established and timeTravel:
@@ -187,9 +186,7 @@ class LinkableConduit(BaseConduit):
             contentView = metaView
             logger.debug("No time travel; version is %d", contentView.itsVersion)
 
-        # Make sure we aren't deferring the main repository view:
-        if not isinstance(linkedShares[0], shares.OneTimeShare):
-            contentView.deferDelete()
+        contentView.deferDelete()
 
         if (len(linkedShares) > 1 and
             isinstance(linkedShares[0].conduit, WebDAVConduit) and

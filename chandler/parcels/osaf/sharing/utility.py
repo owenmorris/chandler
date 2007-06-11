@@ -35,7 +35,8 @@ __all__ = [
     'extractLinks',
     'getPage',
     'isReadOnly',
-    'getOldestVersion'
+    'getOldestVersion',
+    'deleteShare',
 ]
 
 from application import schema, Globals
@@ -324,6 +325,16 @@ def isSharedByMe(share):
 
 
 
+
+def deleteShare(share):
+    # Clean up sharing-related objects
+    if getattr(share, "conduit", None):
+        share.conduit.delete(True)
+    if getattr(share, "format", None):
+        share.format.delete(True)
+    for state in getattr(share, "states", []):
+        state.delete(True)
+    share.delete(recursive=True)
 
 
 def getUrls(share):

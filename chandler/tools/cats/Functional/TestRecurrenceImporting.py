@@ -25,15 +25,12 @@ class TestRecurrenceImporting(ChandlerTestCase):
     def startTest(self):
         
         QAUITestAppLib.startTestInCalView(self.logger)
-        path = os.path.join(Globals.chandlerDirectory,"tools/cats/DataFiles")
+        path = os.path.join(Globals.chandlerDirectory, "tools/cats/DataFiles",
+            "TestRecurrence.ics")
         # Upcast path to unicode since Sharing requires a unicode path
         path = unicode(path, sys.getfilesystemencoding())
-        share = sharing.OneTimeFileSystemShare(itsView=self.app_ns.itsView,
-            filePath=path, fileName=u'TestRecurrence.ics',
-            formatClass=sharing.ICalendarFormat)
-        
         self.logger.startAction('Importing TestRecurrence.ics')
-        collection = share.get()
+        collection = sharing.importFile(self.app_ns.itsView, path)
         self.app_ns.sidebarCollection.add(collection)
         
         # select the collection

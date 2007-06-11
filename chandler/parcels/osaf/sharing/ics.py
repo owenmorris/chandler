@@ -423,8 +423,9 @@ class ICSSerializer(object):
                 recordHandlers.get(type(record), no_op)(record, vobj_mapping)
                 if type(record) == model.NoteRecord:
                     icalExtra = record.icalExtra
-                    
-            injectUnrecognized(icalExtra, cal, vobj_mapping.get(uuid))
+            
+            if icalExtra not in translator.emptyValues:
+                injectUnrecognized(icalExtra, cal, vobj_mapping.get(uuid))
             
         cal.vevent_list = [obj for obj in vobj_mapping.values()
                            if obj.name.lower() == 'vevent']
