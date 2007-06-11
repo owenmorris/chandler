@@ -77,7 +77,7 @@ class SharedItem(pim.Stamp):
                                                     "conflict@example.com")
             state = State(itsView=self.itsItem.itsView, peer=peer)
 
-            state.pending = eim.RecordSet([
+            state.pending = eim.Diff([
                 model.ItemRecord(itemUUID, "An alterative title", nc, nc, nc, nc, nc),
                 model.NoteRecord(itemUUID, "A different note", nc, nc, nc, nc),
                 model.EventRecord(itemUUID, nc, nc, "San Jose", nc, nc, nc,
@@ -182,12 +182,13 @@ class State(schema.Item):
 
     def getAgreed(self):
         if hasattr(self, '_agreed'):
-            return cPickle.loads(self._agreed)
+            return eim.RecordSet(cPickle.loads(self._agreed))
         else:
             return eim.RecordSet()
 
     def setAgreed(self, agreed):
-        self._agreed = cPickle.dumps(agreed)
+        assert isinstance(agreed, eim.RecordSet)
+        self._agreed = cPickle.dumps(agreed.inclusions)
 
     def delAgreed(self):
         del self._agreed
@@ -198,12 +199,13 @@ class State(schema.Item):
 
     def getPending(self):
         if hasattr(self, '_pending'):
-            return cPickle.loads(self._pending)
+            return eim.Diff(*cPickle.loads(self._pending))
         else:
-            return eim.RecordSet()
+            return eim.Diff()
 
     def setPending(self, pending):
-        self._pending = cPickle.dumps(pending)
+        assert isinstance(pending, eim.Diff)
+        self._pending = cPickle.dumps((pending.inclusions, pending.exclusions))
 
     def delPending(self):
         del self._pending
@@ -214,11 +216,8 @@ class State(schema.Item):
 
     def merge(self, rsInternal, inbound=None, isDiff=True,
         filter=None, readOnly=False, debug=False):
-
+        assert isinstance(rsInternal, eim.RecordSet)
         doLog = logger.info if debug else logger.debug
-
-        if inbound is None:
-            inbound = eim.RecordSet()
 
         if filter is None:
             filter = lambda rs: rs
@@ -226,22 +225,25 @@ class State(schema.Item):
             filter = filter.sync_filter
 
         pending = self.pending
+        agreed  = self.agreed
 
         # We need to set rsExternal to equal the entire external state
 
         # If we're passing in a diff, apply it to agreed + pending
         if isDiff:
-            rsExternal = self.agreed + pending + inbound
-
+            rsExternal = agreed + pending + (inbound or eim.Diff())
+        elif isinstance(inbound, eim.Diff):
+            rsExternal = eim.RecordSet() + inbound
         else:
-            rsExternal = inbound
+            rsExternal = inbound or eim.RecordSet()
+        assert isinstance(rsInternal, eim.RecordSet)
 
-        internalDiff = filter(rsInternal - self.agreed)
-        externalDiff = filter(rsExternal - self.agreed)
+        internalDiff = filter(rsInternal - agreed)
+        externalDiff = filter(rsExternal - agreed)
         ncd = internalDiff | externalDiff
 
         doLog("----------- Beginning merge")
-        doLog("   old agreed: %s", self.agreed)
+        doLog("   old agreed: %s", agreed)
         doLog("   old pending: %s", pending)
         doLog("   rsInternal: %s", rsInternal)
         doLog("   internalDiff: %s", internalDiff)
@@ -262,23 +264,23 @@ class State(schema.Item):
             # representing how things would be if the internal changes won,
             # and we diff the two.
 
-            extWins = self.agreed + internalDiff + self.pending + externalDiff
-            intWins = self.agreed + self.pending + externalDiff + internalDiff
+            extWins = agreed + internalDiff + pending + externalDiff
+            intWins = agreed + pending + externalDiff + internalDiff
             doLog("   extWins: %s", extWins)
             doLog("   intWins: %s", intWins)
-            self.pending = filter(extWins - intWins)
+            pending = self.pending = filter(extWins - intWins)
 
-            self.agreed = filter(rsExternal)
-            dSend = eim.RecordSet()
+            agreed = self.agreed = filter(rsExternal)
+            dSend = eim.Diff()
 
         else:
-            self.agreed += ncd
-            doLog("   agreed+=ncd: %s", self.agreed)
+            agreed = self.agreed = agreed + ncd
+            doLog("   agreed+=ncd: %s", agreed)
             dSend = self._cleanDiff(rsExternal, ncd)
             doLog("   dSend cleanDiff: %s", dSend)
             rsExternal += dSend
             doLog("   rsExternal+=dSend: %s", rsExternal)
-            self.pending = filter(rsExternal - self.agreed)
+            pending = self.pending = filter(rsExternal - agreed)
 
         dApply = self._cleanDiff(rsInternal, ncd)
 
@@ -286,17 +288,15 @@ class State(schema.Item):
         doLog(" - - - - Results - - - - ")
         doLog("   dSend: %s", dSend)
         doLog("   dApply: %s", dApply)
-        doLog("   new agreed: %s", self.agreed)
-        doLog("   new pending: %s", self.pending)
+        doLog("   new agreed: %s", agreed)
+        doLog("   new pending: %s", pending)
         doLog(" ----------- Merge complete")
 
-        return dSend, dApply, self.pending
+        return dSend, dApply, pending
 
     def _cleanDiff(self, state, diff):
-        newState = state + diff
-        newState.exclusions = set()
-        diff = newState - state
-        return diff
+        assert isinstance(state, eim.RecordSet)        
+        return (state + diff) - state
 
     def updateConflicts(self, item):
         # See if we have pending conflicts; if so, make sure we are in the

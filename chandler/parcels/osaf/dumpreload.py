@@ -37,6 +37,18 @@ class PickleSerializer(object):
         a pickle string of the specified length """
 
     @classmethod
+    def dumps(cls, ob):
+        from cStringIO import StringIO
+        s = StringIO()
+        cls.dumper(s)(ob)
+        return s.getvalue()
+
+    @classmethod
+    def loads(cls, s):
+        from cStringIO import StringIO
+        return cls.loader(StringIO(s))()
+        
+    @classmethod
     def dumper(cls, output):
         pickler = cPickle.Pickler(output, 2)
         pickler.persistent_id = cls.persistent_id

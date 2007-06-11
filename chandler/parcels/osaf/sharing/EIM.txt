@@ -201,7 +201,7 @@ Record Sets
     >>> bool(sharing.RecordSet())
     False
 
-    >>> bool(sharing.RecordSet([],[r1]))
+    >>> bool(sharing.Diff([],[r1]))
     True
 
     >>> rs.inclusions == set([r1])
@@ -219,11 +219,11 @@ Record Sets
     False
 
     >>> rs - rs
-    RecordSet(set([]), set([]))
+    Diff(set([]), set([]))
 
-    >>> rs+sharing.RecordSet([r3]) == sharing.RecordSet([r1,r3], [])
+    >>> rs+sharing.RecordSet([r3]) == sharing.Diff([r1,r3], [])
     True
-    >>> rs-sharing.RecordSet([r3]) == sharing.RecordSet([r1],[r3])
+    >>> rs-sharing.RecordSet([r3]) == sharing.Diff([r1],[r3])
     True
 
     >>> rs+sharing.RecordSet([r2]) == sharing.RecordSet([r2])
@@ -243,8 +243,8 @@ Record Sets
     >>> rs is rs_old
     True
 
-    >>> sharing.RecordSet([sharing.NoChange], [sharing.NoChange])
-    RecordSet(set([]), set([]))
+    >>> sharing.Diff([sharing.NoChange], [sharing.NoChange])
+    Diff(set([]), set([]))
     
 
 Extracting Nonconflicting Changes
@@ -280,54 +280,54 @@ a record::
     >>> R(1,2) | R(1,3)     # first field is a key
     NoChange
 
-The bitwise OR operator can also be applied to record sets::
+The bitwise OR operator can also be applied to diffs::
 
-    >>> sharing.RecordSet([R(1,2)]) | sharing.RecordSet([R(1,2)])
-    RecordSet(set([R(1, 2)]), set([]))
+    >>> sharing.Diff([R(1,2)]) | sharing.Diff([R(1,2)])
+    Diff(set([R(1, 2)]), set([]))
 
-    >>> sharing.RecordSet([R(1,3)]) | sharing.RecordSet([R(1,2)])
-    RecordSet(set([]), set([]))
+    >>> sharing.Diff([R(1,3)]) | sharing.Diff([R(1,2)])
+    Diff(set([]), set([]))
 
-    >>> sharing.RecordSet([R(1,3)]) | sharing.RecordSet([R(1,2), R(1,3), R(1,4)])
-    RecordSet(set([]), set([]))
+    >>> sharing.Diff([R(1,3)]) | sharing.Diff([R(1,2), R(1,3), R(1,4)])
+    Diff(set([]), set([]))
 
 
 Subset Removal
 ~~~~~~~~~~~~~~
 
-The conflict resolution API needs to be able to remove changes from a record
-set, both to discard pending changes and to break down a pending change
-recordset into its constituent changes.  The recordset ``.remove()`` method
-allows you to delete an arbitrary subset of an existing recordset::
+The conflict resolution API needs to be able to remove changes from a diff,
+both to discard pending changes and to break down a pending change diff
+into its constituent changes.  The diff ``.remove()`` method allows you to
+delete an arbitrary subset of an existing recordset::
 
-    >>> rs = sharing.RecordSet([R(1,2)], [R(2,3)])
-    >>> rs.remove(sharing.RecordSet([], [R(2,3)]))  # delete the exclusion
-    >>> rs
-    RecordSet(set([R(1, 2)]), set([]))
+    >>> d = sharing.Diff([R(1,2)], [R(2,3)])
+    >>> d.remove(sharing.Diff([], [R(2,3)]))  # delete the exclusion
+    >>> d
+    Diff(set([R(1, 2)]), set([]))
     
-    >>> rs.remove(sharing.RecordSet([R(1,2)]))
-    >>> rs
-    RecordSet(set([]), set([]))
+    >>> d.remove(sharing.Diff([R(1,2)]))
+    >>> d
+    Diff(set([]), set([]))
 
 Removing non-existent inclusions raises a KeyError::
 
-    >>> rs.remove(sharing.RecordSet([R(2,4)]))
+    >>> d.remove(sharing.Diff([R(2,4)]))
     Traceback (most recent call last):
       ...
     KeyError: R(2, 4)
 
     >>> r = Demo(1,"Foo", "This is a foo", Decimal('2.50'))
-    >>> rs = sharing.RecordSet([r])
+    >>> d = sharing.Diff([r])
 
 You can also remove individual Records, without having to wrap them in a
 recordset::
 
-    >>> rs.remove(Demo(1,"Foo", sharing.NoChange, sharing.NoChange))
-    >>> rs
-    RecordSet(set([Demo(1, NoChange, u'This is a foo', Decimal("2.50"))]), set([]))
-    >>> rs.remove(Demo(1, sharing.NoChange, 'This is a foo', sharing.NoChange))
-    >>> rs
-    RecordSet(set([Demo(1, NoChange, NoChange, Decimal("2.50"))]), set([]))
+    >>> d.remove(Demo(1,"Foo", sharing.NoChange, sharing.NoChange))
+    >>> d
+    Diff(set([Demo(1, NoChange, u'This is a foo', Decimal("2.50"))]), set([]))
+    >>> d.remove(Demo(1, sharing.NoChange, 'This is a foo', sharing.NoChange))
+    >>> d
+    Diff(set([Demo(1, NoChange, NoChange, Decimal("2.50"))]), set([]))
     
 
 Filters
@@ -384,19 +384,18 @@ Record types that are not linked to the filter are returned unchanged from
     >>> Passwords.sync_filter(r3)
     R(3, 3)
 
-You can also pass ``RecordSet`` instances to ``sync_filter``, and the result is
-a new ``RecordSet``::
+You can also pass ``RecordSet`` or ``Diff`` instances to ``sync_filter``, and
+the result is a new ``RecordSet`` or ``Diff``::
 
     >>> r4s = sharing.RecordSet([r4])
     >>> Passwords.sync_filter(r4s)  # doctest: +NORMALIZE_WHITESPACE
-    RecordSet(set([SomeType(42, NoChange, Decimal("3"), u'blah', NoChange)]),
-              set([]))
+    RecordSet(set([SomeType(42, NoChange, Decimal("3"), u'blah', NoChange)]))
 
 But only the ``inclusions`` are filtered, not the ``exclusions``::
 
-    >>> r4s = sharing.RecordSet(exclusions=[r4])
+    >>> r4s = sharing.Diff(exclusions=[r4])
     >>> Passwords.sync_filter(r4s)  # doctest: +NORMALIZE_WHITESPACE
-    RecordSet(set([]),
+    Diff(set([]),
               set([SomeType(42, u'password reminder', Decimal("3"), u'blah',
                    2001)]))
 
@@ -572,11 +571,11 @@ a single ``Record`` object.
     >>> t.importRecord(R(1,2))
     importing R record: R(1, 2)
 
-    >>> t.importRecords(sharing.RecordSet([R(1,2)], [d]))
+    >>> t.importRecords(sharing.Diff([R(1,2)], [d]))
     importing R record: R(1, 2)
     deleting Demo: Demo(1, u'Foo', u'This is a foo', Decimal("2.50"))
 
-    >>> t.importRecords(sharing.RecordSet([d], [R(1,2)]))
+    >>> t.importRecords(sharing.Diff([d], [R(1,2)]))
     importing Demo record: Demo(1, u'Foo', u'This is a foo', Decimal("2.50"))
     deleting R: R(1, 2)
 
@@ -620,11 +619,11 @@ stamp classes can be used as export targets::
     >>> t = DemoTranslator2(rv)
     >>> t.startImport()
 
-    >>> t.importRecords(sharing.RecordSet([R(1,2)], [d]))
+    >>> t.importRecords(sharing.Diff([R(1,2)], [d]))
     importing R record: R(1, 2)
     farewell, Demo(1, u'Foo', u'This is a foo', Decimal("2.50"))
 
-    >>> t.importRecords(sharing.RecordSet([d], [R(1,2)]))
+    >>> t.importRecords(sharing.Diff([d], [R(1,2)]))
     welcome, Demo(1, u'Foo', u'This is a foo', Decimal("2.50"))
     deleting R: R(1, 2)
 
@@ -832,9 +831,9 @@ Conflict Management
 Translators have an ``explainConflicts()`` method that yields information about
 a recordset for conflict-resolution purposes::
 
-    >>> sorted( t.explainConflicts(sharing.RecordSet([R(1,2)], [R(3,4)])) ) # doctest: +NORMALIZE_WHITESPACE
-    [('Deleted', (<class 'R'>, 3), RecordSet(set([]), set([R(3, 4)]))),
-     ('v',       2,                RecordSet(set([R(1, 2)]), set([])))]
+    >>> sorted( t.explainConflicts(sharing.Diff([R(1,2)], [R(3,4)])) ) # doctest: +NORMALIZE_WHITESPACE
+    [('Deleted', (<class 'R'>, 3), Diff(set([]), set([R(3, 4)]))),
+     ('v',       2,                Diff(set([R(1, 2)]), set([])))]
 
 
 TODO: field localization for conflict explanations
@@ -1206,7 +1205,7 @@ Can't filter a non-record type::
     >>> Passwords.sync_filter(42)
     Traceback (most recent call last):
       ...
-    TypeError: Not a Record or RecordSet: 42
+    TypeError: Not a Record, RecordSet, or Diff: 42
 
 Can't add non-field, non-filter to filter::
 
@@ -1266,7 +1265,7 @@ More than one import or delete type can be declared for a given function::
 
     >>> t = Testlator1(rv)
     >>> t.startImport()
-    >>> t.importRecords(sharing.RecordSet([R(1,2)], [MyRecord(3,4)]))
+    >>> t.importRecords(sharing.Diff([R(1,2)], [MyRecord(3,4)]))
     yo! R(1, 2)
     hasta la vista, MyRecord(3, 4)
 
@@ -1340,18 +1339,18 @@ subclasses::
       ...
     TypeError: <class ...Stamp'> is not a `schema.Item` or `pim.Stamp` subclass
 
-RecordSet ``_merge()`` method should handle multiple encounters w/conflicting
+Diff ``_merge()`` method should handle multiple encounters w/conflicting
 records::
 
-    >>> rs = sharing.RecordSet([R(1,2)])
+    >>> rs = sharing.Diff([R(1,2)])
     >>> rs._merge([], [R(1,3), R(1,4)])
     >>> rs
-    RecordSet(set([]), set([]))
+    Diff(set([]), set([]))
 
-    >>> rs = sharing.RecordSet([R(1,2)])
+    >>> rs = sharing.Diff([R(1,2)])
     >>> rs._merge([R(1,3), R(1,4)], [])
     >>> rs
-    RecordSet(set([]), set([]))
+    Diff(set([]), set([]))
 
 sort_records(records) will return records such that depenencies occur first::
 

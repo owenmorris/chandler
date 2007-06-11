@@ -2021,23 +2021,26 @@ class DumpTranslator(SharingTranslator):
 
     @model.ShareStateRecord.importer
     def import_sharing_state(self, record):
+        from osaf.dumpreload import UnknownRecord, PickleSerializer as ps
 
-        if record.agreed is None:
-            agreed = eim.Inherit # perhaps Inherit was better as Missing; I'm
-                                 # using it here to delete the attribute
-        else:
-            agreed = record.agreed
+        agreed = eim.RecordSet()
+        pending = eim.Diff()
 
-        if record.pending is None:
-            pending = eim.Inherit # perhaps Inherit was better as Missing; I'm
-                                  # using it here to delete the attribute
-        else:
-            pending = record.pending
+        if record.stateRecords:
+            stateRecords = ps.loads(record.stateRecords)
+
+            # We only want to restore the agreed/pending state if there are
+            # no unknown record types...  otherwise we just skip it.
+            for rl in stateRecords:
+                if any(r for r in rl if isinstance(r, UnknownRecord)):
+                    break   
+            else:
+                agreed, inclusions, exclusions = stateRecords
+                agreed = eim.RecordSet(agreed)
+                pending = eim.Diff(inclusions, exclusions)
 
         @self.withItemForUUID(record.uuid,
-            shares.State,
-            _agreed=agreed,
-            _pending=pending,
+            shares.State, agreed=agreed, pending=pending
         )
         def do(state):
             if record.share not in (eim.NoChange, None):
@@ -2059,6 +2062,7 @@ class DumpTranslator(SharingTranslator):
 
     @eim.exporter(shares.State)
     def export_sharing_state(self, state):
+        from osaf.dumpreload import PickleSerializer as ps
 
         if self.obfuscation: return
 
@@ -2071,8 +2075,8 @@ class DumpTranslator(SharingTranslator):
         conflict_item = getattr(state, "conflictFor", None)
         conflict_share = getattr(state, "conflictingShare", None)
 
-        agreed = getattr(state, "_agreed", None)
-        pending = getattr(state, "_pending", None)
+        agreed = state.agreed
+        pending = state.pending
 
         yield model.ShareStateRecord(
             state,
@@ -2080,8 +2084,13 @@ class DumpTranslator(SharingTranslator):
             alias,
             conflict_item,
             conflict_share,
-            agreed,
-            pending
+            None,
+            None,
+            ps.dumps(
+                map(list,
+                   [agreed.inclusions, pending.inclusions, pending.exclusions]
+                )
+            )
         )
 
 

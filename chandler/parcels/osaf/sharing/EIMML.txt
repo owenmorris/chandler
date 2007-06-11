@@ -9,7 +9,7 @@ First define a record type::
     >>> from application import schema
     >>> from osaf import sharing, pim
     >>> from osaf.sharing import ( eimml, recordset_conduit, State, getFilter,
-    ...     Inherit, RecordSet as rs, NoChange as nc )
+    ...     Inherit, RecordSet as rs, NoChange as nc, Diff, RecordSet )
     >>> from PyICU import ICUtzinfo
     >>> import datetime, decimal
     >>> from repository.persistence.RepositoryView import NullRepositoryView
@@ -100,7 +100,8 @@ Serialize and deserialize entire record sets using EIMMLSerializer::
 
     >>> recordSets, extra = eimml.EIMMLSerializer.deserialize(sample)
 
-    >>> expectedRecordSets = { '8501de14-1dc9-40d4-a7d4-f289feff8214': rs([sharing.model.ItemRecord('8501de14-1dc9-40d4-a7d4-f289feff8214', u'Welcome to Cosmo', u'100 123456789.12 1', decimal.Decimal("1164803131"), 0, 0, 0), sharing.model.ModifiedByRecord('8501de14-1dc9-40d4-a7d4-f289feff8214', 'foo@example.com', decimal.Decimal("1164803132"), 500), sharing.model.NoteRecord('8501de14-1dc9-40d4-a7d4-f289feff8214', 'This is the body\nsecond line', u'1e2d48c0-d66b-494c-bb33-c3d75a1ba66b', None, None, None), sharing.model.EventRecord('8501de14-1dc9-40d4-a7d4-f289feff8214', u'20061130T140000', u'PT1H', u'San Jose', u'FREQ=WEEKLY', None, None, None, u'CONFIRMED')])}
+    >>> expectedRecordSets = { '8501de14-1dc9-40d4-a7d4-f289feff8214': Diff([sharing.model.ItemRecord('8501de14-1dc9-40d4-a7d4-f289feff8214', u'Welcome to Cosmo', u'100 123456789.12 1', decimal.Decimal("1164803131"), 0, 0, 0), sharing.model.ModifiedByRecord('8501de14-1dc9-40d4-a7d4-f289feff8214', 'foo@example.com', decimal.Decimal("1164803132"), 500), sharing.model.NoteRecord('8501de14-1dc9-40d4-a7d4-f289feff8214', 'This is the body\nsecond line', u'1e2d48c0-d66b-494c-bb33-c3d75a1ba66b', None, None, None), sharing.model.EventRecord('8501de14-1dc9-40d4-a7d4-f289feff8214', u'20061130T140000', u'PT1H', u'San Jose', u'FREQ=WEEKLY', None, None, None, u'CONFIRMED')])}
+
 
     >>> recordSets == expectedRecordSets
     True
@@ -121,7 +122,7 @@ Serialize and deserialize entire record sets using EIMMLSerializer::
 Fields with empty strings are serialized with an empty="true" attribute on
 their element::
 
-    >>> records = { '8501de14-1dc9-40d4-a7d4-f289feff8214': rs([sharing.model.NoteRecord('8501de14-1dc9-40d4-a7d4-f289feff8214', '', u'1e2d48c0-d66b-494c-bb33-c3d75a1ba66b', None, None, None)])}
+    >>> records = { '8501de14-1dc9-40d4-a7d4-f289feff8214': Diff([sharing.model.NoteRecord('8501de14-1dc9-40d4-a7d4-f289feff8214', '', u'1e2d48c0-d66b-494c-bb33-c3d75a1ba66b', None, None, None)])}
     >>> text = eimml.EIMMLSerializer.serialize(records)
     >>> text
     '<?xml version=\'1.0\' encoding=\'UTF-8\'?><ns0:collection xmlns:ns0="http://osafoundation.org/eim/0"><ns0:recordset uuid="8501de14-1dc9-40d4-a7d4-f289feff8214"><ns1:record xmlns:ns1="http://osafoundation.org/eim/note/0"><ns1:uuid ns0:key="true" ns0:type="text">8501de14-1dc9-40d4-a7d4-f289feff8214</ns1:uuid><ns1:body empty="true" ns0:type="clob" /><ns1:icalUid ns0:type="text">1e2d48c0-d66b-494c-bb33-c3d75a1ba66b</ns1:icalUid><ns1:icalProperties ns0:type="text" /><ns1:icalParameters ns0:type="text" /><ns1:icalExtra ns0:type="text" /></ns1:record></ns0:recordset></ns0:collection>'
@@ -131,7 +132,7 @@ their element::
 
 Any records in a recordset's exclusions are serialized as deletions::
 
-    >>> recordDeletion = { '8501de14-1dc9-40d4-a7d4-f289feff8214': rs(set([]), set([sharing.model.ItemRecord('8501de14-1dc9-40d4-a7d4-f289feff8214', u'Welcome to Cosmo', u'100 123456789.12 1', decimal.Decimal("1164803131"), 0, 0, 0)]))}
+    >>> recordDeletion = { '8501de14-1dc9-40d4-a7d4-f289feff8214': Diff(set([]), set([sharing.model.ItemRecord('8501de14-1dc9-40d4-a7d4-f289feff8214', u'Welcome to Cosmo', u'100 123456789.12 1', decimal.Decimal("1164803131"), 0, 0, 0)]))}
     >>> text = eimml.EIMMLSerializer.serialize(recordDeletion)
     >>> text
     '<?xml version=\'1.0\' encoding=\'UTF-8\'?><ns0:collection xmlns:ns0="http://osafoundation.org/eim/0"><ns0:recordset uuid="8501de14-1dc9-40d4-a7d4-f289feff8214"><ns1:record ns0:deleted="true" xmlns:ns1="http://osafoundation.org/eim/item/0"><ns1:uuid ns0:key="true" ns0:type="text">8501de14-1dc9-40d4-a7d4-f289feff8214</ns1:uuid></ns1:record></ns0:recordset></ns0:collection>'
@@ -147,11 +148,11 @@ To indicate that item has been deleted, pass None instead of a recordset::
 
 There is a special value, Inherit, which gets serialized as missing="true"::
 
-    >>> missing = { '8501de14-1dc9-40d4-a7d4-f289feff8214': rs([sharing.model.NoteRecord('8501de14-1dc9-40d4-a7d4-f289feff8214', Inherit, u'1e2d48c0-d66b-494c-bb33-c3d75a1ba66b', None, None, None)])}
+    >>> missing = { '8501de14-1dc9-40d4-a7d4-f289feff8214': Diff([sharing.model.NoteRecord('8501de14-1dc9-40d4-a7d4-f289feff8214', Inherit, u'1e2d48c0-d66b-494c-bb33-c3d75a1ba66b', None, None, None)])}
     >>> text = eimml.EIMMLSerializer.serialize(missing)
     >>> imported, extra = eimml.EIMMLSerializer.deserialize(text)
     >>> imported
-    {'8501de14-1dc9-40d4-a7d4-f289feff8214': RecordSet(set([NoteRecord(u'8501de14-1dc9-40d4-a7d4-f289feff8214', Inherit, u'1e2d48c0-d66b-494c-bb33-c3d75a1ba66b', None, None, None)]), set([]))}
+    {'8501de14-1dc9-40d4-a7d4-f289feff8214': Diff(set([NoteRecord(u'8501de14-1dc9-40d4-a7d4-f289feff8214', Inherit, u'1e2d48c0-d66b-494c-bb33-c3d75a1ba66b', None, None, None)]), set([]))}
 
 
 
@@ -274,7 +275,7 @@ created::
     >>> text = conduit.get()
     >>> conduit.syncToken
     '3'
-    >>> expectedRecordSets = { '8501de14-1dc9-40d4-a7d4-f289feff8214': rs([sharing.model.ItemRecord('8501de14-1dc9-40d4-a7d4-f289feff8214', u'Welcome to Cosmo', u'100 123456789.12 1', decimal.Decimal("1164803131"), 0, 0, 0), sharing.model.ModifiedByRecord('8501de14-1dc9-40d4-a7d4-f289feff8214', 'foo@example.com', decimal.Decimal("1164803132"), 500), sharing.model.NoteRecord('8501de14-1dc9-40d4-a7d4-f289feff8214', 'This is the body\nsecond line', u'1e2d48c0-d66b-494c-bb33-c3d75a1ba66b', None, None, None), sharing.model.EventRecord('8501de14-1dc9-40d4-a7d4-f289feff8214', u'20061130T140000', u'PT1H', u'San Jose', u'FREQ=WEEKLY', None, None, None, u'CONFIRMED')]), '9501de14-1dc9-40d4-a7d4-f289feff8214': rs([sharing.model.ItemRecord('9501de14-1dc9-40d4-a7d4-f289feff8214', u'Welcome to Cosmo', u'100 123456789.12 1', decimal.Decimal("1164803132"), 0, 0, 0), sharing.model.ModifiedByRecord('9501de14-1dc9-40d4-a7d4-f289feff8214', 'foo@example.com', decimal.Decimal("1164803132"), 500), sharing.model.NoteRecord('9501de14-1dc9-40d4-a7d4-f289feff8214', 'This is the body\nsecond line', u'1e2d48c0-d66b-494c-bb33-c3d75a1ba66b', None, None, None), sharing.model.EventRecord('9501de14-1dc9-40d4-a7d4-f289feff8214', u'20061130T140000', u'PT1H', None, u'FREQ=WEEKLY', None, None, None, u'CONFIRMED')]) }
+    >>> expectedRecordSets = { '8501de14-1dc9-40d4-a7d4-f289feff8214': Diff([sharing.model.ItemRecord('8501de14-1dc9-40d4-a7d4-f289feff8214', u'Welcome to Cosmo', u'100 123456789.12 1', decimal.Decimal("1164803131"), 0, 0, 0), sharing.model.ModifiedByRecord('8501de14-1dc9-40d4-a7d4-f289feff8214', 'foo@example.com', decimal.Decimal("1164803132"), 500), sharing.model.NoteRecord('8501de14-1dc9-40d4-a7d4-f289feff8214', 'This is the body\nsecond line', u'1e2d48c0-d66b-494c-bb33-c3d75a1ba66b', None, None, None), sharing.model.EventRecord('8501de14-1dc9-40d4-a7d4-f289feff8214', u'20061130T140000', u'PT1H', u'San Jose', u'FREQ=WEEKLY', None, None, None, u'CONFIRMED')]), '9501de14-1dc9-40d4-a7d4-f289feff8214': rs([sharing.model.ItemRecord('9501de14-1dc9-40d4-a7d4-f289feff8214', u'Welcome to Cosmo', u'100 123456789.12 1', decimal.Decimal("1164803132"), 0, 0, 0), sharing.model.ModifiedByRecord('9501de14-1dc9-40d4-a7d4-f289feff8214', 'foo@example.com', decimal.Decimal("1164803132"), 500), sharing.model.NoteRecord('9501de14-1dc9-40d4-a7d4-f289feff8214', 'This is the body\nsecond line', u'1e2d48c0-d66b-494c-bb33-c3d75a1ba66b', None, None, None), sharing.model.EventRecord('9501de14-1dc9-40d4-a7d4-f289feff8214', u'20061130T140000', u'PT1H', None, u'FREQ=WEEKLY', None, None, None, u'CONFIRMED')]) }
     >>> recordSets, extra = eimml.EIMMLSerializer.deserialize(text)
     >>> recordSets == expectedRecordSets
     True
@@ -291,7 +292,8 @@ and outbound changes, merge the non-overlapping changes, and return the
 set of records to send outbound, the set of records to apply locally, and
 the inbound changes that are pending due to conflict::
 
-    >>> empty = rs()
+    >>> dEmpty  = Diff()
+    >>> rsEmpty = RecordSet()
 
     >>> barFilter = sharing.Filter('cid:bar-filter@osaf.us', u"Bars")
     >>> bazFilter = sharing.Filter('cid:baz-filter@osaf.us', u"Bazzes")
@@ -309,91 +311,91 @@ the inbound changes that are pending due to conflict::
 
 Verify the state is empty
     >>> state
-    State(RecordSet(set([]), set([])), RecordSet(set([]), set([])))
+    State(RecordSet(set([])), Diff(set([]), set([])))
 
 Test a no-op (no inbound nor outbound changes)::
 
-    >>> state.merge(empty, empty)
-    (RecordSet(set([]), set([])), RecordSet(set([]), set([])), RecordSet(set([]), set([])))
+    >>> state.merge(rsEmpty, dEmpty)
+    (Diff(set([]), set([])), Diff(set([]), set([])), Diff(set([]), set([])))
 
 Verify the state is still empty
     >>> state
-    State(RecordSet(set([]), set([])), RecordSet(set([]), set([])))
+    State(RecordSet(set([])), Diff(set([]), set([])))
 
 Merge a local addition with no inbound changes::
 
-    >>> state.merge(rs([Demo(1, 1, 1)]), empty)
-    (RecordSet(set([Demo(1, 1, 1)]), set([])), RecordSet(set([]), set([])), RecordSet(set([]), set([])))
+    >>> state.merge(RecordSet([Demo(1, 1, 1)]), dEmpty)
+    (Diff(set([Demo(1, 1, 1)]), set([])), Diff(set([]), set([])), Diff(set([]), set([])))
 
 Verify the state has been updated::
 
     >>> state
-    State(RecordSet(set([Demo(1, 1, 1)]), set([])), RecordSet(set([]), set([])))
+    State(RecordSet(set([Demo(1, 1, 1)])), Diff(set([]), set([])))
 
 
 Merge in an inbound change (no outbound changes)::
 
-    >>> state.merge(rs([Demo(1, 1, 1)]), rs(set([Demo(1, 1, 2)])))
-    (RecordSet(set([]), set([])), RecordSet(set([Demo(1, NoChange, 2)]), set([])), RecordSet(set([]), set([])))
+    >>> state.merge(RecordSet([Demo(1, 1, 1)]), Diff(set([Demo(1, 1, 2)])))
+    (Diff(set([]), set([])), Diff(set([Demo(1, NoChange, 2)]), set([])), Diff(set([]), set([])))
 
     >>> state
-    State(RecordSet(set([Demo(1, 1, 2)]), set([])), RecordSet(set([]), set([])))
+    State(RecordSet(set([Demo(1, 1, 2)])), Diff(set([]), set([])))
 
 
 Merge non-overlapping inbound and outbound changes::
 
-    >>> state.merge(rs([Demo(1, 3, 2)]), rs([Demo(1, 1, 3)]))
-    (RecordSet(set([Demo(1, 3, NoChange)]), set([])), RecordSet(set([Demo(1, NoChange, 3)]), set([])), RecordSet(set([]), set([])))
+    >>> state.merge(RecordSet([Demo(1, 3, 2)]), Diff([Demo(1, 1, 3)]))
+    (Diff(set([Demo(1, 3, NoChange)]), set([])), Diff(set([Demo(1, NoChange, 3)]), set([])), Diff(set([]), set([])))
 
     >>> state
-    State(RecordSet(set([Demo(1, 3, 3)]), set([])), RecordSet(set([]), set([])))
+    State(RecordSet(set([Demo(1, 3, 3)])), Diff(set([]), set([])))
 
 
 Merge overlapping and non-overlapping inbound and outbound changes, resulting
 in pending inbound changes::
 
-    >>> state.merge(rs([Demo(1, 4, 4)]), rs([Demo(1, 5, nc)]))
-    (RecordSet(set([Demo(1, NoChange, 4)]), set([])), RecordSet(set([]), set([])), RecordSet(set([Demo(1, 5, NoChange)]), set([])))
+    >>> state.merge(RecordSet([Demo(1, 4, 4)]), Diff([Demo(1, 5, nc)]))
+    (Diff(set([Demo(1, NoChange, 4)]), set([])), Diff(set([]), set([])), Diff(set([Demo(1, 5, NoChange)]), set([])))
 
     >>> state
-    State(RecordSet(set([Demo(1, 3, 4)]), set([])), RecordSet(set([Demo(1, 5, NoChange)]), set([])))
+    State(RecordSet(set([Demo(1, 3, 4)])), Diff(set([Demo(1, 5, NoChange)]), set([])))
 
 
 With pending changes, non-conflicting local modifications can still go out::
 
-    >>> state.merge(rs([Demo(1, 4, 5)]))
-    (RecordSet(set([Demo(1, NoChange, 5)]), set([])), RecordSet(set([]), set([])), RecordSet(set([Demo(1, 5, NoChange)]), set([])))
+    >>> state.merge(RecordSet([Demo(1, 4, 5)]))
+    (Diff(set([Demo(1, NoChange, 5)]), set([])), Diff(set([]), set([])), Diff(set([Demo(1, 5, NoChange)]), set([])))
 
     >>> state
-    State(RecordSet(set([Demo(1, 3, 5)]), set([])), RecordSet(set([Demo(1, 5, NoChange)]), set([])))
+    State(RecordSet(set([Demo(1, 3, 5)])), Diff(set([Demo(1, 5, NoChange)]), set([])))
 
 
 See that a pending change can disappear due to a later inbound change:
 
-    >>> state.merge(rs([Demo(1, 4, 5)]), rs([Demo(1, 4, 5)]))
-    (RecordSet(set([]), set([])), RecordSet(set([]), set([])), RecordSet(set([]), set([])))
+    >>> state.merge(RecordSet([Demo(1, 4, 5)]), Diff([Demo(1, 4, 5)]))
+    (Diff(set([]), set([])), Diff(set([]), set([])), Diff(set([]), set([])))
 
     >>> state
-    State(RecordSet(set([Demo(1, 4, 5)]), set([])), RecordSet(set([]), set([])))
+    State(RecordSet(set([Demo(1, 4, 5)])), Diff(set([]), set([])))
 
 
 Merge only overlapping inbound and outbound changes::
 
-    >>> state.merge(rs([Demo(1, 4, 6)]), rs([Demo(1, 4, 7)]))
-    (RecordSet(set([]), set([])), RecordSet(set([]), set([])), RecordSet(set([Demo(1, NoChange, 7)]), set([])))
+    >>> state.merge(RecordSet([Demo(1, 4, 6)]), Diff([Demo(1, 4, 7)]))
+    (Diff(set([]), set([])), Diff(set([]), set([])), Diff(set([Demo(1, NoChange, 7)]), set([])))
 
     >>> state
-    State(RecordSet(set([Demo(1, 4, 5)]), set([])), RecordSet(set([Demo(1, NoChange, 7)]), set([])))
+    State(RecordSet(set([Demo(1, 4, 5)])), Diff(set([Demo(1, NoChange, 7)]), set([])))
 
 
 Add in a filter, make a local change and no inbound changes::
 
     >>> filter = getFilter(['cid:bar-filter@osaf.us'])
-    >>> state.merge(rs([Demo(1, 6, 8)]), filter=filter)
-    (RecordSet(set([]), set([])), RecordSet(set([]), set([])), RecordSet(set([Demo(1, NoChange, 7)]), set([])))
+    >>> state.merge(RecordSet([Demo(1, 6, 8)]), filter=filter)
+    (Diff(set([]), set([])), Diff(set([]), set([])), Diff(set([Demo(1, NoChange, 7)]), set([])))
 
     >>> state
-    State(RecordSet(set([Demo(1, 4, 5)]), set([])), RecordSet(set([Demo(1, NoChange, 7)]), set([])))
+    State(RecordSet(set([Demo(1, 4, 5)])), Diff(set([Demo(1, NoChange, 7)]), set([])))
 
 
 Even though we locally modified the 'bar' field, it is not sent because of
@@ -402,11 +404,11 @@ an outstanding pending change it is also not sent.
 
 See that a pending change can disappear due to a later outbound change:
 
-    >>> state.merge(rs([Demo(1, 6, 7)]), filter=filter)
-    (RecordSet(set([]), set([])), RecordSet(set([]), set([])), RecordSet(set([]), set([])))
+    >>> state.merge(RecordSet([Demo(1, 6, 7)]), filter=filter)
+    (Diff(set([]), set([])), Diff(set([]), set([])), Diff(set([]), set([])))
 
     >>> state
-    State(RecordSet(set([Demo(1, 4, 7)]), set([])), RecordSet(set([]), set([])))
+    State(RecordSet(set([Demo(1, 4, 7)])), Diff(set([]), set([])))
 
 
 There can be multiple filters in effect; note how we locally change both fields
@@ -414,41 +416,41 @@ yet send nothing, and the agreed upon state doesn't change::
 
     >>> filter = getFilter(['cid:bar-filter@osaf.us', 'cid:baz-filter@osaf.us'])
     >>> state.merge(rs([Demo(1, 7, 8)]), filter=filter)
-    (RecordSet(set([]), set([])), RecordSet(set([]), set([])), RecordSet(set([]), set([])))
+    (Diff(set([]), set([])), Diff(set([]), set([])), Diff(set([]), set([])))
 
     >>> state
-    State(RecordSet(set([Demo(1, 4, 7)]), set([])), RecordSet(set([]), set([])))
+    State(RecordSet(set([Demo(1, 4, 7)])), Diff(set([]), set([])))
 
 
 Verify that inbound changes to filtered fields are not applied locally, yet
 unfiltered inbound changes are applied::
 
     >>> filter = getFilter(['cid:bar-filter@osaf.us'])
-    >>> state.merge(rs([Demo(1, 7, 8)]), rs([Demo(1, 5, 8)]), filter=filter)
-    (RecordSet(set([]), set([])), RecordSet(set([]), set([])), RecordSet(set([]), set([])))
+    >>> state.merge(rs([Demo(1, 7, 8)]), Diff([Demo(1, 5, 8)]), filter=filter)
+    (Diff(set([]), set([])), Diff(set([]), set([])), Diff(set([]), set([])))
 
     >>> state
-    State(RecordSet(set([Demo(1, 4, 8)]), set([])), RecordSet(set([]), set([])))
+    State(RecordSet(set([Demo(1, 4, 8)])), Diff(set([]), set([])))
 
 
 Verify that inbound and outbound changes to a filtered field is not considered
 a conflict::
 
-    >>> state.merge(rs([Demo(1, 8, 9)]), rs([Demo(1, 9, 9)]), filter=filter)
-    (RecordSet(set([]), set([])), RecordSet(set([]), set([])), RecordSet(set([]), set([])))
+    >>> state.merge(rs([Demo(1, 8, 9)]), Diff([Demo(1, 9, 9)]), filter=filter)
+    (Diff(set([]), set([])), Diff(set([]), set([])), Diff(set([]), set([])))
 
     >>> state
-    State(RecordSet(set([Demo(1, 4, 9)]), set([])), RecordSet(set([]), set([])))
+    State(RecordSet(set([Demo(1, 4, 9)])), Diff(set([]), set([])))
 
 
 Verify that conflicts can still be detected when at least one conflicting
 field is not filtered::
 
-    >>> state.merge(rs([Demo(1, 9, 10)]), rs([Demo(1, 10, 11)]), filter=filter)
-    (RecordSet(set([]), set([])), RecordSet(set([]), set([])), RecordSet(set([Demo(1, NoChange, 11)]), set([])))
+    >>> state.merge(rs([Demo(1, 9, 10)]), Diff([Demo(1, 10, 11)]), filter=filter)
+    (Diff(set([]), set([])), Diff(set([]), set([])), Diff(set([Demo(1, NoChange, 11)]), set([])))
 
     >>> state
-    State(RecordSet(set([Demo(1, 4, 9)]), set([])), RecordSet(set([Demo(1, NoChange, 11)]), set([])))
+    State(RecordSet(set([Demo(1, 4, 9)])), Diff(set([Demo(1, NoChange, 11)]), set([])))
 
 
 
@@ -456,20 +458,20 @@ field is not filtered::
 Start over, to test that when a filter is removed, the local change that was
 hiding behind the filter is now sent::
 
-    >>> state.set(rs(set([Demo(1,1,1)])), empty)
+    >>> state.set(rs(set([Demo(1,1,1)])), dEmpty)
     >>> filter = getFilter(['cid:bar-filter@osaf.us'])
-    >>> state.merge(rs([Demo(1, 2, 2)]), rs([Demo(1, 3, nc)]), filter=filter)
-    (RecordSet(set([Demo(1, NoChange, 2)]), set([])), RecordSet(set([]), set([])), RecordSet(set([]), set([])))
+    >>> state.merge(rs([Demo(1, 2, 2)]), Diff([Demo(1, 3, nc)]), filter=filter)
+    (Diff(set([Demo(1, NoChange, 2)]), set([])), Diff(set([]), set([])), Diff(set([]), set([])))
     >>> state
-    State(RecordSet(set([Demo(1, 1, 2)]), set([])), RecordSet(set([]), set([])))
+    State(RecordSet(set([Demo(1, 1, 2)])), Diff(set([]), set([])))
 
 Note how the agreed state does not contain either the local change or the
 inbound change above.  Now remove the filter and merge::
 
     >>> state.merge(rs([Demo(1, 2, 2)]))
-    (RecordSet(set([Demo(1, 2, NoChange)]), set([])), RecordSet(set([]), set([])), RecordSet(set([]), set([])))
+    (Diff(set([Demo(1, 2, NoChange)]), set([])), Diff(set([]), set([])), Diff(set([]), set([])))
     >>> state
-    State(RecordSet(set([Demo(1, 2, 2)]), set([])), RecordSet(set([]), set([])))
+    State(RecordSet(set([Demo(1, 2, 2)])), Diff(set([]), set([])))
 
 See how the local change finally got sent out above.
 
@@ -478,75 +480,75 @@ See how the local change finally got sent out above.
 Start over with a filter in place from the start.  Note now the filtered
 portion of the inbound changes are NoChange in the state's agreed rs::
 
-    >>> state.set(empty, empty)
+    >>> state.set(rsEmpty, dEmpty)
     >>> filter = getFilter(['cid:bar-filter@osaf.us'])
-    >>> state.merge(empty, rs([Demo(1, 2, 2)]), filter=filter)
-    (RecordSet(set([]), set([])), RecordSet(set([Demo(1, NoChange, 2)]), set([])), RecordSet(set([]), set([])))
+    >>> state.merge(rsEmpty, Diff([Demo(1, 2, 2)]), filter=filter)
+    (Diff(set([]), set([])), Diff(set([Demo(1, NoChange, 2)]), set([])), Diff(set([]), set([])))
     >>> state
-    State(RecordSet(set([Demo(1, NoChange, 2)]), set([])), RecordSet(set([]), set([])))
+    State(RecordSet(set([Demo(1, NoChange, 2)])), Diff(set([]), set([])))
 
 Now apply the same inbound change without the filter::
 
-    >>> state.merge(rs([Demo(1,nc,2)]), rs([Demo(1, 2, 2)]))
-    (RecordSet(set([]), set([])), RecordSet(set([Demo(1, 2, NoChange)]), set([])), RecordSet(set([]), set([])))
+    >>> state.merge(rs([Demo(1,nc,2)]), Diff([Demo(1, 2, 2)]))
+    (Diff(set([]), set([])), Diff(set([Demo(1, 2, NoChange)]), set([])), Diff(set([]), set([])))
     >>> state
-    State(RecordSet(set([Demo(1, 2, 2)]), set([])), RecordSet(set([]), set([])))
+    State(RecordSet(set([Demo(1, 2, 2)])), Diff(set([]), set([])))
 
 Now in reality, the item involved will have some sort of default value for the
 field that was filtered, so lifting the filter in this way will create a
 conflict if the local value is different than the inbound::
 
-    >>> state.set(rs(set([Demo(1,nc,2)])), empty)
-    >>> state.merge(rs([Demo(1,1,2)]), rs([Demo(1, 2, 2)]))
-    (RecordSet(set([]), set([])), RecordSet(set([]), set([])), RecordSet(set([Demo(1, 2, NoChange)]), set([])))
+    >>> state.set(rs(set([Demo(1,nc,2)])), dEmpty)
+    >>> state.merge(rs([Demo(1,1,2)]), Diff([Demo(1, 2, 2)]))
+    (Diff(set([]), set([])), Diff(set([]), set([])), Diff(set([Demo(1, 2, NoChange)]), set([])))
 
 ...However, if the local change happens to be the same, then no conflict::
 
-    >>> state.set(rs(set([Demo(1,nc,2)])), empty)
-    >>> state.merge(rs([Demo(1,2,2)]), rs([Demo(1, 2, 2)]))
-    (RecordSet(set([]), set([])), RecordSet(set([]), set([])), RecordSet(set([]), set([])))
+    >>> state.set(rs(set([Demo(1,nc,2)])), dEmpty)
+    >>> state.merge(rs([Demo(1,2,2)]), Diff([Demo(1, 2, 2)]))
+    (Diff(set([]), set([])), Diff(set([]), set([])), Diff(set([]), set([])))
     >>> state
-    State(RecordSet(set([Demo(1, 2, 2)]), set([])), RecordSet(set([]), set([])))
+    State(RecordSet(set([Demo(1, 2, 2)])), Diff(set([]), set([])))
 
 
 
 
 Start over, to test that local deletions get sent::
 
-    >>> state.set(rs(set([Demo(1,1,1)])), empty)
+    >>> state.set(rs(set([Demo(1,1,1)])), dEmpty)
 
-    >>> state.merge(empty)
-    (RecordSet(set([]), set([Demo(1, 1, 1)])), RecordSet(set([]), set([])), RecordSet(set([]), set([])))
+    >>> state.merge(rsEmpty)
+    (Diff(set([]), set([Demo(1, 1, 1)])), Diff(set([]), set([])), Diff(set([]), set([])))
 
 
 
 Start over, to test that remote deletions get applied::
 
-    >>> state.set(rs(set([Demo(1,1,1)])), empty)
-    >>> state.merge(rs([Demo(1, 1, 1)]), rs([], [Demo(1, Inherit, Inherit)]))
-    (RecordSet(set([]), set([])), RecordSet(set([]), set([Demo(1, 1, 1)])), RecordSet(set([]), set([])))
+    >>> state.set(rs(set([Demo(1,1,1)])), dEmpty)
+    >>> state.merge(rs([Demo(1, 1, 1)]), Diff([], [Demo(1, Inherit, Inherit)]))
+    (Diff(set([]), set([])), Diff(set([]), set([Demo(1, 1, 1)])), Diff(set([]), set([])))
 
 
 
 Start over, to test that local changes and remote deletions get detected::
 
-    >>> state.set(rs(set([Demo(1,1,1)])), empty)
-    >>> state.merge(rs([Demo(1, 2, 2)]), rs([], [Demo(1, Inherit, Inherit)]))
-    (RecordSet(set([]), set([])), RecordSet(set([]), set([])), RecordSet(set([]), set([Demo(1, 1, 1)])))
+    >>> state.set(rs(set([Demo(1,1,1)])), dEmpty)
+    >>> state.merge(rs([Demo(1, 2, 2)]), Diff([], [Demo(1, Inherit, Inherit)]))
+    (Diff(set([]), set([])), Diff(set([]), set([])), Diff(set([]), set([Demo(1, 1, 1)])))
 
     >>> state
-    State(RecordSet(set([Demo(1, 1, 1)]), set([])), RecordSet(set([]), set([Demo(1, 1, 1)])))
+    State(RecordSet(set([Demo(1, 1, 1)])), Diff(set([]), set([Demo(1, 1, 1)])))
 
 
 Start over, to test that local deletions and remote changes get detected::
 
 
-    >>> state.set(rs(set([Demo(1,1,1)])), empty)
-    >>> state.merge(empty, rs([Demo(1, 2, 2)]))
-    (RecordSet(set([]), set([])), RecordSet(set([]), set([])), RecordSet(set([Demo(1, 2, 2)]), set([])))
+    >>> state.set(rs(set([Demo(1,1,1)])), dEmpty)
+    >>> state.merge(rsEmpty, Diff([Demo(1, 2, 2)]))
+    (Diff(set([]), set([])), Diff(set([]), set([])), Diff(set([Demo(1, 2, 2)]), set([])))
 
     >>> state
-    State(RecordSet(set([Demo(1, 1, 1)]), set([])), RecordSet(set([Demo(1, 2, 2)]), set([])))
+    State(RecordSet(set([Demo(1, 1, 1)])), Diff(set([Demo(1, 2, 2)]), set([])))
 
 
 
@@ -563,27 +565,27 @@ Start over, adding two records (one of a new record type)::
     ...     baz = sharing.field(int, filters=[bazFilter])
     >>> osaf.sharing.Demo2 = Demo2
 
-    >>> state.set(rs(set([Demo(1,1,1), Demo2(1,2,2)])), empty)
+    >>> state.set(rs(set([Demo(1,1,1), Demo2(1,2,2)])), dEmpty)
 
 ...now remove the Demo(1,1,1), and the result of the merge will be that we
 will send a deletion for that record::
 
     >>> state.merge(rs([Demo2(1, 2, 2)]))
-    (RecordSet(set([]), set([Demo(1, 1, 1)])), RecordSet(set([]), set([])), RecordSet(set([]), set([])))
+    (Diff(set([]), set([Demo(1, 1, 1)])), Diff(set([]), set([])), Diff(set([]), set([])))
 
     >>> state
-    State(RecordSet(set([Demo2(1, 2, 2)]), set([])), RecordSet(set([]), set([])))
+    State(RecordSet(set([Demo2(1, 2, 2)])), Diff(set([]), set([])))
 
 
 If a record is removed inbound and outbound, that is not a conflict.  Note
 that a double-deletion results in an unnecessary record deletion in toApply,
 but record adding and deleting need to be idempotent anyway, so it's ok::
 
-    >>> state.merge(empty, empty)
-    (RecordSet(set([]), set([Demo2(1, 2, 2)])), RecordSet(set([]), set([])), RecordSet(set([]), set([])))
+    >>> state.merge(rsEmpty, dEmpty)
+    (Diff(set([]), set([Demo2(1, 2, 2)])), Diff(set([]), set([])), Diff(set([]), set([])))
 
     >>> state
-    State(RecordSet(set([]), set([])), RecordSet(set([]), set([])))
+    State(RecordSet(set([])), Diff(set([]), set([])))
 
 
 
@@ -591,13 +593,13 @@ but record adding and deleting need to be idempotent anyway, so it's ok::
 Start over, with a filter this time from the start::
 
     >>> filter = getFilter(['cid:bar-filter@osaf.us'])
-    >>> state.set(empty, empty)
+    >>> state.set(rsEmpty, dEmpty)
 
 Merge a local addition with no inbound changes; note that the outbound
 record has a NoChange value on the filtered field::
 
     >>> state.merge(rs([Demo(1, 1, 1)]), filter=filter)
-    (RecordSet(set([Demo(1, NoChange, 1)]), set([])), RecordSet(set([]), set([])), RecordSet(set([]), set([])))
+    (Diff(set([Demo(1, NoChange, 1)]), set([])), Diff(set([]), set([])), Diff(set([]), set([])))
 
 
 
@@ -615,23 +617,23 @@ Start over, using a filter that completely filters out an entire record::
 
 Without a filter, this merge results in a record to send::
 
-    >>> state.set(empty, empty)
+    >>> state.set(rsEmpty, dEmpty)
     >>> state.merge(rs([Demo3(1, 1, 1)]))
-    (RecordSet(set([Demo3(1, 1, 1)]), set([])), RecordSet(set([]), set([])), RecordSet(set([]), set([])))
+    (Diff(set([Demo3(1, 1, 1)]), set([])), Diff(set([]), set([])), Diff(set([]), set([])))
 
 With the filter in place, this merge results in nothing being sent::
 
     >>> filter = getFilter(['cid:demo3-filter@osaf.us'])
-    >>> state.set(empty, empty)
+    >>> state.set(rsEmpty, dEmpty)
     >>> state.merge(rs([Demo3(1, 1, 1)]), filter=filter)
-    (RecordSet(set([]), set([])), RecordSet(set([]), set([])), RecordSet(set([]), set([])))
+    (Diff(set([]), set([])), Diff(set([]), set([])), Diff(set([]), set([])))
 
 
 With the filter in place, this merge results in nothing being applied::
 
-    >>> state.set(rs(set([Demo3(1, 1, 1)])), empty)
+    >>> state.set(rs(set([Demo3(1, 1, 1)])), dEmpty)
     >>> state.merge(rs([Demo3(1, 1, 1)]), rs([Demo3(1, 2, 2)]), filter=filter)
-    (RecordSet(set([]), set([])), RecordSet(set([]), set([])), RecordSet(set([]), set([])))
+    (Diff(set([]), set([])), Diff(set([]), set([])), Diff(set([]), set([])))
 
 
 
@@ -639,21 +641,21 @@ With the filter in place, this merge results in nothing being applied::
 
 Make sure Inherit values can be merged::
 
-    >>> state.set(rs(set([Demo(1,1,1)])), empty)
+    >>> state.set(rs(set([Demo(1,1,1)])), dEmpty)
     >>> state.merge(rs([Demo(1, Inherit, 2)]))
-    (RecordSet(set([Demo(1, Inherit, 2)]), set([])), RecordSet(set([]), set([])), RecordSet(set([]), set([])))
+    (Diff(set([Demo(1, Inherit, 2)]), set([])), Diff(set([]), set([])), Diff(set([]), set([])))
     >>> state
-    State(RecordSet(set([Demo(1, Inherit, 2)]), set([])), RecordSet(set([]), set([])))
+    State(RecordSet(set([Demo(1, Inherit, 2)])), Diff(set([]), set([])))
 
-    >>> state.merge(rs([Demo(1, Inherit, 2)]), rs([Demo(1, 2, Inherit)]))
-    (RecordSet(set([]), set([])), RecordSet(set([Demo(1, 2, Inherit)]), set([])), RecordSet(set([]), set([])))
+    >>> state.merge(rs([Demo(1, Inherit, 2)]), Diff([Demo(1, 2, Inherit)]))
+    (Diff(set([]), set([])), Diff(set([Demo(1, 2, Inherit)]), set([])), Diff(set([]), set([])))
     >>> state
-    State(RecordSet(set([Demo(1, 2, Inherit)]), set([])), RecordSet(set([]), set([])))
+    State(RecordSet(set([Demo(1, 2, Inherit)])), Diff(set([]), set([])))
 
     >>> state.merge(rs([Demo(1, Inherit, 2)]), rs([Demo(1, 3, nc)]))
-    (RecordSet(set([Demo(1, NoChange, 2)]), set([])), RecordSet(set([]), set([])), RecordSet(set([Demo(1, 3, NoChange)]), set([])))
+    (Diff(set([Demo(1, NoChange, 2)]), set([])), Diff(set([]), set([])), Diff(set([Demo(1, 3, NoChange)]), set([])))
     >>> state
-    State(RecordSet(set([Demo(1, 2, 2)]), set([])), RecordSet(set([Demo(1, 3, NoChange)]), set([])))
+    State(RecordSet(set([Demo(1, 2, 2)])), Diff(set([Demo(1, 3, NoChange)]), set([])))
 
 
 
@@ -666,113 +668,113 @@ well, the 'agreed' state should only get records that are inbound, and never
 local changes.
 
 
-    >>> state.set(rs(set([Demo(1,1,1)])), empty)
+    >>> state.set(rs(set([Demo(1,1,1)])), dEmpty)
 
 A local change does not appear in toSend nor in the state's "agreed"::
 
     >>> state.merge(rs([Demo(1, 2, 1)]), readOnly=True)
-    (RecordSet(set([]), set([])), RecordSet(set([]), set([])), RecordSet(set([]), set([])))
+    (Diff(set([]), set([])), Diff(set([]), set([])), Diff(set([]), set([])))
     >>> state
-    State(RecordSet(set([Demo(1, 1, 1)]), set([])), RecordSet(set([]), set([])))
+    State(RecordSet(set([Demo(1, 1, 1)])), Diff(set([]), set([])))
 
 An external change *does* appear in toApply and the state's "agreed"::
 
     >>> state.merge(rs([Demo(1, 1, 1)]), rs([Demo(1, 2, 2)]), readOnly=True)
-    (RecordSet(set([]), set([])), RecordSet(set([Demo(1, 2, 2)]), set([])), RecordSet(set([]), set([])))
+    (Diff(set([]), set([])), Diff(set([Demo(1, 2, 2)]), set([])), Diff(set([]), set([])))
     >>> state
-    State(RecordSet(set([Demo(1, 2, 2)]), set([])), RecordSet(set([]), set([])))
+    State(RecordSet(set([Demo(1, 2, 2)])), Diff(set([]), set([])))
 
 A local change coupled with a non-overlapping external change results in the
 external change getting applied to "agreed"::
 
-    >>> state.merge(rs([Demo(1, 3, 2)]), rs([Demo(1, 2, 3)]), readOnly=True)
-    (RecordSet(set([]), set([])), RecordSet(set([Demo(1, NoChange, 3)]), set([])), RecordSet(set([]), set([])))
+    >>> state.merge(rs([Demo(1, 3, 2)]), Diff([Demo(1, 2, 3)]), readOnly=True)
+    (Diff(set([]), set([])), Diff(set([Demo(1, NoChange, 3)]), set([])), Diff(set([]), set([])))
     >>> state
-    State(RecordSet(set([Demo(1, 2, 3)]), set([])), RecordSet(set([]), set([])))
+    State(RecordSet(set([Demo(1, 2, 3)])), Diff(set([]), set([])))
 
 A local change coupled with an overlapping external change results in the
 external change getting applied to "agreed", and the conflict appears in
 "pending"::
 
-    >>> state.merge(rs([Demo(1, 4, 3)]), rs([Demo(1, 5, 3)]), readOnly=True)
-    (RecordSet(set([]), set([])), RecordSet(set([]), set([])), RecordSet(set([Demo(1, 5, NoChange)]), set([])))
+    >>> state.merge(rs([Demo(1, 4, 3)]), Diff([Demo(1, 5, 3)]), readOnly=True)
+    (Diff(set([]), set([])), Diff(set([]), set([])), Diff(set([Demo(1, 5, NoChange)]), set([])))
     >>> state
-    State(RecordSet(set([Demo(1, 5, 3)]), set([])), RecordSet(set([Demo(1, 5, NoChange)]), set([])))
+    State(RecordSet(set([Demo(1, 5, 3)])), Diff(set([Demo(1, 5, NoChange)]), set([])))
 
 Discarding the conflicts, the conflicts should not reappear.  First verifying
 this with no changes::
 
-    >>> state.set(rs(set([Demo(1,5,3)])), empty)
+    >>> state.set(rs(set([Demo(1,5,3)])), dEmpty)
     >>> state.merge(rs([Demo(1, 5, 3)]), readOnly=True)
-    (RecordSet(set([]), set([])), RecordSet(set([]), set([])), RecordSet(set([]), set([])))
+    (Diff(set([]), set([])), Diff(set([]), set([])), Diff(set([]), set([])))
     >>> state
-    State(RecordSet(set([Demo(1, 5, 3)]), set([])), RecordSet(set([]), set([])))
+    State(RecordSet(set([Demo(1, 5, 3)])), Diff(set([]), set([])))
 
 Now verifying that a local change will not result in a conflict (nor state
 change)::
 
     >>> state.merge(rs([Demo(1, 6, 3)]), readOnly=True)
-    (RecordSet(set([]), set([])), RecordSet(set([]), set([])), RecordSet(set([]), set([])))
+    (Diff(set([]), set([])), Diff(set([]), set([])), Diff(set([]), set([])))
     >>> state
-    State(RecordSet(set([Demo(1, 5, 3)]), set([])), RecordSet(set([]), set([])))
+    State(RecordSet(set([Demo(1, 5, 3)])), Diff(set([]), set([])))
 
 A new identical external change coupled with our previously-made local change
 *should not* result in a conflict, but it should update the state::
 
-    >>> state.merge(rs([Demo(1, 6, 3)]), rs([Demo(1, 6, 3)]), readOnly=True)
-    (RecordSet(set([]), set([])), RecordSet(set([]), set([])), RecordSet(set([]), set([])))
+    >>> state.merge(rs([Demo(1, 6, 3)]), Diff([Demo(1, 6, 3)]), readOnly=True)
+    (Diff(set([]), set([])), Diff(set([]), set([])), Diff(set([]), set([])))
     >>> state
-    State(RecordSet(set([Demo(1, 6, 3)]), set([])), RecordSet(set([]), set([])))
+    State(RecordSet(set([Demo(1, 6, 3)])), Diff(set([]), set([])))
 
 A local change coupled with an overlapping external change should generate
 a conflict and the state should reflect the external change::
 
-    >>> state.merge(rs([Demo(1, 7, 3)]), rs([Demo(1, 8, 3)]), readOnly=True)
-    (RecordSet(set([]), set([])), RecordSet(set([]), set([])), RecordSet(set([Demo(1, 8, NoChange)]), set([])))
+    >>> state.merge(rs([Demo(1, 7, 3)]), Diff([Demo(1, 8, 3)]), readOnly=True)
+    (Diff(set([]), set([])), Diff(set([]), set([])), Diff(set([Demo(1, 8, NoChange)]), set([])))
     >>> state
-    State(RecordSet(set([Demo(1, 8, 3)]), set([])), RecordSet(set([Demo(1, 8, NoChange)]), set([])))
+    State(RecordSet(set([Demo(1, 8, 3)])), Diff(set([Demo(1, 8, NoChange)]), set([])))
 
 Making local and external changes to another field should add a new conflict
 while keeping the old one too:
 
-    >>> state.merge(rs([Demo(1, 7, 4)]), rs([Demo(1, 8, 5)]), readOnly=True)
-    (RecordSet(set([]), set([])), RecordSet(set([]), set([])), RecordSet(set([Demo(1, 8, 5)]), set([])))
+    >>> state.merge(rs([Demo(1, 7, 4)]), Diff([Demo(1, 8, 5)]), readOnly=True)
+    (Diff(set([]), set([])), Diff(set([]), set([])), Diff(set([Demo(1, 8, 5)]), set([])))
     >>> state
-    State(RecordSet(set([Demo(1, 8, 5)]), set([])), RecordSet(set([Demo(1, 8, 5)]), set([])))
+    State(RecordSet(set([Demo(1, 8, 5)])), Diff(set([Demo(1, 8, 5)]), set([])))
 
 Applying one part of pending changes should make that conflict go away::
 
     >>> state.merge(rs([Demo(1, 8, 3)]), readOnly=True)
-    (RecordSet(set([]), set([])), RecordSet(set([]), set([])), RecordSet(set([Demo(1, NoChange, 5)]), set([])))
+    (Diff(set([]), set([])), Diff(set([]), set([])), Diff(set([Demo(1, NoChange, 5)]), set([])))
     >>> state
-    State(RecordSet(set([Demo(1, 8, 5)]), set([])), RecordSet(set([Demo(1, NoChange, 5)]), set([])))
+    State(RecordSet(set([Demo(1, 8, 5)])), Diff(set([Demo(1, NoChange, 5)]), set([])))
 
 We have a pending conflict; now cause another conflict on the same field::
 
     >>> state.merge(rs([Demo(1, 7, 6)]), rs([Demo(1, 8, 7)]), readOnly=True)
-    (RecordSet(set([]), set([])), RecordSet(set([]), set([])), RecordSet(set([Demo(1, NoChange, 7)]), set([])))
+    (Diff(set([]), set([])), Diff(set([]), set([])), Diff(set([Demo(1, NoChange, 7)]), set([])))
     >>> state
-    State(RecordSet(set([Demo(1, 8, 7)]), set([])), RecordSet(set([Demo(1, NoChange, 7)]), set([])))
+    State(RecordSet(set([Demo(1, 8, 7)])), Diff(set([Demo(1, NoChange, 7)]), set([])))
 
 Ensure record removal works too, by adding a new record locally, then also
 remotely, then remove it remotely::
 
-    >>> state.set(rs(set([Demo(1,1,1)])), empty)
+    >>> state.set(rs(set([Demo(1,1,1)])), dEmpty)
 
-    >>> state.merge(rs(set([Demo(1,1,1), Demo2(1,1,1)])), empty, readOnly=True)
-    (RecordSet(set([]), set([])), RecordSet(set([]), set([])), RecordSet(set([]), set([])))
+    >>> state.merge(rs(set([Demo(1,1,1), Demo2(1,1,1)])), dEmpty, readOnly=True)
+    (Diff(set([]), set([])), Diff(set([]), set([])), Diff(set([]), set([])))
     >>> state
-    State(RecordSet(set([Demo(1, 1, 1)]), set([])), RecordSet(set([]), set([])))
+    State(RecordSet(set([Demo(1, 1, 1)])), Diff(set([]), set([])))
 
-    >>> state.merge(rs(set([Demo(1,1,1), Demo2(1,1,1)])), rs(set([Demo(1,1,1), Demo2(1,1,1)])), readOnly=True)
-    (RecordSet(set([]), set([])), RecordSet(set([]), set([])), RecordSet(set([]), set([])))
+    >>> state.merge(rs(set([Demo(1,1,1), Demo2(1,1,1)])), Diff(set([Demo(1,1,1), Demo2(1,1,1)])), readOnly=True)
+    (Diff(set([]), set([])), Diff(set([]), set([])), Diff(set([]), set([])))
     >>> state.agreed == rs(set([Demo(1, 1, 1), Demo2(1, 1, 1)]))
     True
-    >>> state.pending == empty
+    >>> state.pending == dEmpty
     True
 
-    >>> state.merge(rs(set([Demo(1,1,1), Demo2(1,1,1)])), rs(set([]), set([Demo2(1,1,1)])), readOnly=True)
-    (RecordSet(set([]), set([])), RecordSet(set([]), set([Demo2(1, 1, 1)])), RecordSet(set([]), set([])))
+    >>> state.merge(rs(set([Demo(1,1,1), Demo2(1,1,1)])), Diff(set([]), set([Demo2(1,1,1)])), readOnly=True)
+    (Diff(set([]), set([])), Diff(set([]), set([Demo2(1, 1, 1)])), Diff(set([]), set([])))
 
 
 

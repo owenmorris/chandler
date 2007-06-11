@@ -448,8 +448,9 @@ class ShareStateRecord(eim.Record):
     alias = eim.field(text1024)
     conflict_item = eim.field(schema.UUID)
     conflict_share = eim.field(schema.UUID)
-    agreed = eim.field(eim.BlobType)
-    pending = eim.field(eim.BlobType)
+    agreed = eim.field(eim.BlobType)    # obsolete
+    pending = eim.field(eim.BlobType)   # obsolete
+    stateRecords = eim.field(eim.BlobType, default='')
 
 class SharePeerStateRecord(eim.Record):
     URI = "http://osafoundation.org/eim/sharing/peerstate/0"

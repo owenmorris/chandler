@@ -397,11 +397,10 @@ class RecordSetConduit(conduits.BaseConduit):
                 # Cosmo doesn't give us deletions for ModifiedByRecords and
                 # that messes with the no-send aspect of the merge function
                 # because old ModByRecords aren't cleaned out.
-                state.agreed = state.agreed + eim.RecordSet(
+                state.agreed = state.agreed + eim.Diff(
                     [], [r for r in state.agreed.inclusions
-                    if isinstance(r, model.ModifiedByRecord)]
+                         if isinstance(r, model.ModifiedByRecord)]
                 )
-
 
             if uuid:
                 item = rv.findUUID(uuid)
@@ -1011,10 +1010,10 @@ class InMemoryDiffRecordSetConduit(DiffRecordSetConduit):
             raise errors.MalformedToken(token)
 
 
-        empty = eim.RecordSet()
+        empty = eim.Diff()
         recordsets = { }
         for uuid, itemHistory in coll["items"].iteritems():
-            rs = eim.RecordSet()
+            rs = eim.Diff()
             for historicToken, diff in itemHistory:
                 if historicToken > token:
                     if diff is None:
@@ -1022,7 +1021,7 @@ class InMemoryDiffRecordSetConduit(DiffRecordSetConduit):
                         rs = None
                     if diff is not None:
                         if rs is None:
-                            rs = eim.RecordSet()
+                            rs = eim.Diff()
                         rs = rs + diff
             if rs != empty:
                 recordsets[uuid] = rs

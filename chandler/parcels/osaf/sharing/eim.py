@@ -17,7 +17,7 @@ __all__ = [
     'UnknownType', 'typeinfo_for', 'BytesType', 'TextType', 'DateType',
     'IntType', 'BlobType', 'ClobType', 'DecimalType', 'get_converter',
     'add_converter', 'subtype', 'typedef', 'field', 'key', 'NoChange',
-    'Record', 'RecordSet', 'lookupSchemaURI', 'Filter', 'Translator',
+    'Record', 'RecordSet', 'Diff', 'lookupSchemaURI', 'Filter', 'Translator',
     'exporter', 'TimestampType', 'IncompatibleTypes', 'Inherit',
     'sort_records', 'format_field', 'global_formatters',
 ]
@@ -244,26 +244,50 @@ class ClobType(TypeInfo):    __slots__ = ()
 
 
 
-class RecordSet(object):
-    """Collection of "positive" and "negative" records"""
+class AbstractRS(object):
+    """Abstract record set"""
 
-    def __init__(self, inclusions=(), exclusions=()):
-        self._index, self.inclusions, self.exclusions = {}, set(), set()
-        if inclusions or exclusions:
-            self.update(inclusions, exclusions)
+    __slots__ = ()
+    
     def __repr__(self):
-        return "RecordSet(%r, %r)" % (self.inclusions, self.exclusions)
+        return "%s(%r, %r)" % (
+            self.__class__.__name__, self.inclusions, self.exclusions
+        )
+
     def __eq__(self, other):
         return (
-            isinstance(other, RecordSet) and self.inclusions==other.inclusions
+            isinstance(other, AbstractRS) and self.inclusions==other.inclusions
             and self.exclusions==other.exclusions
         )
 
     def __ne__(self, other):
         return not self==other
 
-    def update(self, inclusions, exclusions, subtract=False):
+    def __add__(self, other):
+        return self._clone().__iadd__(other)
+
+    def __iadd__(self, other):
+        self.update(other.inclusions, other.exclusions)
+        return self
+
+    def __nonzero__(self):
+        return bool(self.inclusions or self.exclusions)
+
+    def _clone(self):
+        return self.__class__(self.inclusions, self.exclusions)
+        
+
+
+
+
+
+
+
+
+
+    def update(self, inclusions, exclusions=(), subtract=False):
         ind = self._index
+
         for r in inclusions:
             if r is NoChange: continue
             k = r.getKey()
@@ -271,6 +295,7 @@ class RecordSet(object):
                 ind[k] += r
             else:
                 ind[k] = r
+
         for r in exclusions:
             if r is NoChange: continue
             k = r.getKey()
@@ -282,31 +307,42 @@ class RecordSet(object):
                 else:
                     ind[k] = r
             else:
-                self.exclusions.add(r)
+                self._exclude(r)
+
         self.inclusions = set(ind.values())
 
-    def __sub__(self, other):
-        rs = RecordSet(self.inclusions, self.exclusions)
-        rs.update(other.exclusions, other.inclusions, subtract=True)
-        return rs
 
-    def __add__(self, other):
-        rs = RecordSet(self.inclusions, self.exclusions)
-        rs.update(other.inclusions, other.exclusions)
-        return rs
 
-    def __iadd__(self, other):
-        self.update(other.inclusions, other.exclusions)
-        return self
 
-    def __nonzero__(self):
-        return bool(self.inclusions or self.exclusions)
+
+
+
+
+
+
+
+
+
+
+
+
+class Diff(AbstractRS):
+    """Collection of "positive" and "negative" records"""
+
+    __slots__ = '_index', 'inclusions', 'exclusions', '_exclude'
+
+    def __init__(self, inclusions=(), exclusions=()):
+        self._index, self.inclusions, self.exclusions = {}, set(), set()
+        self._exclude = self.exclusions.add
+
+        if inclusions or exclusions:
+            self.update(inclusions, exclusions)
 
     def remove(self, other):
-        if isinstance(other, RecordSet):
-            inclusions, exclusions = other.inclusions, other.exclusions
-        else:
+        if isinstance(other, Record):
             inclusions, exclusions = [other], ()
+        else:
+            inclusions, exclusions = other.inclusions, other.exclusions
         
         ind = self._index
         for r in inclusions:
@@ -326,6 +362,11 @@ class RecordSet(object):
             [r for r in self.exclusions if r.getKey() not in skip]
         )
                 
+
+
+
+
+
     def _merge(self, inclusions, exclusions):
         exc = dict((r.getKey(),r) for r in self.exclusions)
         ind = self._index
@@ -362,10 +403,51 @@ class RecordSet(object):
         self.exclusions = set(exc.values())
 
     def __or__(self, other):
-        rs = RecordSet()
+        rs = self.__class__()
         rs._merge(self.inclusions|other.inclusions,
                  self.exclusions|other.exclusions)
         return rs
+
+    def __iadd__(self, other):
+        if not isinstance(other, Diff):
+            raise TypeError("Only diffs can be added to diffs")
+        return AbstractRS.__iadd__(self, other)
+
+
+class RecordSet(AbstractRS):
+
+    __slots__ = '_index', 'inclusions'
+
+    exclusions = frozenset()
+
+    def __init__(self, inclusions=()):
+        self._index, self.inclusions = {}, set()
+        if inclusions:
+            self.update(inclusions)
+
+    def _exclude(self, r):
+        pass
+
+    def __sub__(self, other):
+        # only non-diffs can be subtracted
+        if not isinstance(other, RecordSet):
+            raise TypeError("Only recordsets may be subtracted from recordsets")
+
+        rs = Diff(self.inclusions, self.exclusions)
+        rs.update(other.exclusions, other.inclusions, subtract=True)
+        return rs
+
+    def _clone(self):
+        return self.__class__(self.inclusions)
+
+    def __repr__(self):
+        return "%s(%r)" % (
+            self.__class__.__name__, self.inclusions,
+        )
+
+
+
+
 
 def sort_records(records):
     """Sort an iterable of records such that dependencies occur first"""
@@ -450,22 +532,23 @@ def parent_of(k):
 
 
 class Filter:
-    """Suppress inclusion of specified field(s) in Records and RecordSets"""
+    """Suppress inclusion of specified field(s) in Records, sets, and diffs"""
 
     def __init__(self, uri, description):
         registerURI(uri, self, None)
         self.uri = uri
         self.description = description
         self.fields = set()
-        self.types = {RecordSet: self.filter_rs}
+        self.types = {Diff: self.filter_diff, RecordSet: self.filter_rs}
 
     def __repr__(self):
         return "Filter(%r, %r)" % (self.uri, self.description)
 
     def filter_rs(self, recordset):
-        return RecordSet(
-            map(self.sync_filter, recordset.inclusions), recordset.exclusions
-        )
+        return RecordSet(map(self.sync_filter, recordset.inclusions))
+
+    def filter_diff(self, diff):
+        return Diff(map(self.sync_filter, diff.inclusions), diff.exclusions)
 
     def __iadd__(self, other):
         if isinstance(other, field):
@@ -489,7 +572,6 @@ class Filter:
 
 
 
-
     def sync_filter(self, record_or_set):
         try:
             # Lookup cached filter function by type
@@ -502,7 +584,7 @@ class Filter:
             if not isinstance(t, RecordClass):
                 # Only record types allowed!
                 raise TypeError(
-                    "Not a Record or RecordSet: %r" % (record_or_set,)
+                    "Not a Record, RecordSet, or Diff: %r" % (record_or_set,)
                 )
 
             all_fields = t.__fields__
@@ -895,9 +977,9 @@ class Translator:
     def explainConflicts(self, rs):
         for r in rs.inclusions:
             for n,v,r in r.explain():
-                yield n, v, RecordSet([r])
+                yield n, v, Diff([r])
         for r in rs.exclusions:
-            yield "Deleted", r.getKey(), RecordSet([], [r])
+            yield "Deleted", r.getKey(), Diff([], [r])
 
 
     def withItemForUUID(self, uuid, itype=schema.Item, **attrs):

@@ -284,7 +284,7 @@ class EIMMLSerializer(object):
                     else:
                         inclusions.append(record)
 
-                recordSet = eim.RecordSet(inclusions, exclusions)
+                recordSet = eim.Diff(inclusions, exclusions)
 
             recordSets[uuid] = recordSet
 
@@ -432,7 +432,7 @@ class EIMMLSerializerLite(object):
                     else:
                         inclusions.append(record)
 
-                recordSet = eim.RecordSet(inclusions, exclusions)
+                recordSet = eim.Diff(inclusions, exclusions)
 
             recordSets[uuid] = recordSet
 

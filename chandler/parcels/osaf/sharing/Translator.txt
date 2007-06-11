@@ -75,7 +75,7 @@ To test this, we need a State object whose baseline 'agreed' contains the old
 values of the item::
 
     >>> state = sharing.State(itsView=rv, peer=None)
-    >>> state.set(sharing.RecordSet(records), sharing.RecordSet())
+    >>> state.set(sharing.RecordSet(records), sharing.Diff())
 
 Next we make a local triageStatusChanged change::
 
@@ -88,8 +88,8 @@ Next we make a local triageStatusChanged change::
 
 Do the merge and we get a conflict::
 
-    >>> state.merge(sharing.RecordSet(records), sharing.RecordSet(delta))
-    (RecordSet(set([]), set([])), RecordSet(set([]), set([])), RecordSet(set([ItemRecord(u'f230dcd4-7c32-4c3f-908b-d92081cc9a89', NoChange, '200 -1167792400.0 1', NoChange, NoChange, NoChange, NoChange)]), set([])))
+    >>> state.merge(sharing.RecordSet(records), sharing.Diff(delta))
+    (Diff(set([]), set([])), Diff(set([]), set([])), Diff(set([ItemRecord(u'f230dcd4-7c32-4c3f-908b-d92081cc9a89', NoChange, '200 -1167792400.0 1', NoChange, NoChange, NoChange, NoChange)]), set([])))
     >>> state.updateConflicts(item)
     >>> sharing.getConflicts(item)
     [Triage status : Later]
@@ -104,7 +104,7 @@ Run the auto-resolve code, and the conflicts go away::
 Make sure that a triage status conflict is indeed kept as a conflict::
 
     >>> state = sharing.State(itsView=rv, peer=None)
-    >>> state.set(sharing.RecordSet(records), sharing.RecordSet())
+    >>> state.set(sharing.RecordSet(records), sharing.Diff())
 
 Next we make a local triageStatus change::
 
@@ -117,8 +117,8 @@ Next we make a local triageStatus change::
 
 Do the merge and we get a conflict::
 
-    >>> state.merge(sharing.RecordSet(records), sharing.RecordSet(delta))
-    (RecordSet(set([]), set([])), RecordSet(set([]), set([])), RecordSet(set([ItemRecord(u'f230dcd4-7c32-4c3f-908b-d92081cc9a89', NoChange, '300 -1167792400.0 1', NoChange, NoChange, NoChange, NoChange)]), set([])))
+    >>> state.merge(sharing.RecordSet(records), sharing.Diff(delta))
+    (Diff(set([]), set([])), Diff(set([]), set([])), Diff(set([ItemRecord(u'f230dcd4-7c32-4c3f-908b-d92081cc9a89', NoChange, '300 -1167792400.0 1', NoChange, NoChange, NoChange, NoChange)]), set([])))
     >>> state.updateConflicts(item)
     >>> sharing.getConflicts(item)
     [Triage status : Done]
@@ -133,9 +133,9 @@ Run the auto-resolve code, and the conflicts do not go away::
 
 'Inherit' conflicts for triage are auto-resolved::
 
-    >>> state.set(sharing.RecordSet(set([sharing.model.ItemRecord('f230dcd4-7c32-4c3f-908b-d92081cc9a89', u'Welcome to Cosmo', u'100 123456789.12 1', Decimal("1164803132"), 0, 0, 0)])), sharing.RecordSet())
-    >>> state.merge(sharing.RecordSet(set([sharing.model.ItemRecord('f230dcd4-7c32-4c3f-908b-d92081cc9a89', u'Welcome to Cosmo', u'100 123456789.13 1', Decimal("1164803132"), 0, 0, 0)])), sharing.RecordSet(set([sharing.model.ItemRecord('f230dcd4-7c32-4c3f-908b-d92081cc9a89', sharing.NoChange, sharing.Inherit, sharing.NoChange, sharing.NoChange, sharing.NoChange, sharing.NoChange)])))
-    (RecordSet(set([]), set([])), RecordSet(set([]), set([])), RecordSet(set([ItemRecord(u'f230dcd4-7c32-4c3f-908b-d92081cc9a89', NoChange, Inherit, NoChange, NoChange, NoChange, NoChange)]), set([])))
+    >>> state.set(sharing.RecordSet(set([sharing.model.ItemRecord('f230dcd4-7c32-4c3f-908b-d92081cc9a89', u'Welcome to Cosmo', u'100 123456789.12 1', Decimal("1164803132"), 0, 0, 0)])), sharing.Diff())
+    >>> state.merge(sharing.RecordSet(set([sharing.model.ItemRecord('f230dcd4-7c32-4c3f-908b-d92081cc9a89', u'Welcome to Cosmo', u'100 123456789.13 1', Decimal("1164803132"), 0, 0, 0)])), sharing.Diff(set([sharing.model.ItemRecord('f230dcd4-7c32-4c3f-908b-d92081cc9a89', sharing.NoChange, sharing.Inherit, sharing.NoChange, sharing.NoChange, sharing.NoChange, sharing.NoChange)])))
+    (Diff(set([]), set([])), Diff(set([]), set([])), Diff(set([ItemRecord(u'f230dcd4-7c32-4c3f-908b-d92081cc9a89', NoChange, Inherit, NoChange, NoChange, NoChange, NoChange)]), set([])))
     >>> state.updateConflicts(item)
     >>> sharing.getConflicts(item)
     [Triage status : Inherit]
@@ -399,7 +399,7 @@ The explain method should handle Inherit values:
     
 Importing:
 
-    >>> rs = sharing.RecordSet([mod_rec])    
+    >>> rs = sharing.Diff([mod_rec])    
 
     >>> t.startImport()
     >>> t.importRecords(rs)
@@ -455,7 +455,7 @@ Importing:
     ...               repeat=1,
     ... )
 
-    >>> rs = sharing.RecordSet([item_rec, alarm_rec])
+    >>> rs = sharing.Diff([item_rec, alarm_rec])
 
     >>> t.importRecords(rs)
     >>> t.finishImport()
@@ -531,7 +531,7 @@ Importing:
     ...         duration=sharing.Inherit,
     ...         repeat=sharing.Inherit,
     ... )
-    >>> rs = sharing.RecordSet([item_rec, note_rec, event_rec,
+    >>> rs = sharing.Diff([item_rec, note_rec, event_rec,
     ...                         relative_alarm_rec])
 
     >>> t.importRecords(rs)
@@ -589,7 +589,7 @@ Importing:
     ...         iv='',
     ...         salt='',
     ... )
-    >>> rs = sharing.RecordSet([pwr, pwr2])
+    >>> rs = sharing.Diff([pwr, pwr2])
     >>> t.startImport()
     >>> t.importRecords(rs)
     >>> t.finishImport()
@@ -629,7 +629,7 @@ Importing:
     ...            timeout=10,
     ...            protect=0
     ... )
-    >>> rs = sharing.RecordSet([prefsr])
+    >>> rs = sharing.Diff([prefsr])
     >>> t.startImport()
     >>> t.importRecords(rs)
     >>> t.finishImport()
@@ -675,7 +675,7 @@ By well-known name::
     ...         itemUUID=note.itsUUID,
     ...         index=0,
     ... )
-    >>> rs = sharing.RecordSet([rec])
+    >>> rs = sharing.Diff([rec])
     >>> d.startImport()
     >>> d.importRecords(rs)
     >>> d.finishImport()
@@ -694,7 +694,7 @@ By UUID::
     ...         itemUUID=note.itsUUID,
     ...         index=0,
     ... )
-    >>> rs = sharing.RecordSet([rec])
+    >>> rs = sharing.Diff([rec])
     >>> d.startImport()
     >>> d.importRecords(rs)
     >>> d.finishImport()
@@ -708,7 +708,7 @@ By path (although this likely won't be used)::
     ...         itemUUID=note.itsUUID,
     ...         index=1,
     ... )
-    >>> rs = sharing.RecordSet([rec])
+    >>> rs = sharing.Diff([rec])
     >>> d.startImport()
     >>> d.importRecords(rs)
     >>> d.finishImport()
