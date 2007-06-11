@@ -131,6 +131,9 @@ class DashboardBlock(Table):
         for master in recurringEventsToHandle:
             if isinstance(master, UUID):
                 master = self.itsView[master]
+            # don't let masters keep their _sectionTriageStatus, if they do it'll
+            # be inherited inappropriately by modifications
+            master.purgeSectionTriageStatus()
             pim.EventStamp(master).updateTriageStatus(checkOccurrences=autoTriageToo)
 
     def activeViewChanged(self):
