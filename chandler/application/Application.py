@@ -1233,7 +1233,7 @@ class StartupSplash(wx.Frame):
         
         # Progress Text dictionary
         #                    name            weight      text
-        self.statusTable = {'crypto'      : ( 10,  _(u"Starting cryptographic services")),
+        self.statusTable = {'crypto'      : ( 10, _(u"Starting cryptographic services")),
                             'repository'  : ( 10, _(u"Opening the database")),
                             'parcels'     : ( 15, _(u"Loading parcels")),
                             'twisted'     : ( 10, _(u"Starting network")),
@@ -1313,6 +1313,8 @@ class StartupSplash(wx.Frame):
         self.progressPercent.SetLabel(percentString)
 
         self.Layout()
+        if wx.Platform == '__WXMSW__':
+            self.Update()
         wx.Yield()
 
 
