@@ -140,6 +140,10 @@ class RoundTripTestCase(testcase.DualRepositoryTestCase):
         self.assert_(not pim.has_stamp(coll0, sharing.SharedItem))
         self.assert_(not pim.has_stamp(item, sharing.SharedItem))
 
+        self.share0.contents.displayName = u"original"
+        checkCollName = not isinstance(self.share0.conduit,
+            sharing.ResourceRecordSetConduit)
+
         # Initial publish
         self.share0.create()
         view0.commit(); stats = self.share0.sync(); view0.commit()
@@ -149,15 +153,19 @@ class RoundTripTestCase(testcase.DualRepositoryTestCase):
         self.assert_(pim.has_stamp(coll0, sharing.SharedItem))
         self.assert_(pim.has_stamp(item, sharing.SharedItem))
         self.assert_(self.share0 in sharing.SharedItem(item).sharedIn)
+        self.assertEquals(self.share0.displayName, u"original")
 
         # Local modification only
         item.body = u"CHANGED"
         item.read = True
+        self.share0.contents.displayName = u"changed"
         view0.commit(); stats = self.share0.sync(); view0.commit()
         self.assert_(checkStats(stats,
             ({'added' : 0, 'modified' : 0, 'removed' : 0},
              {'added' : 0, 'modified' : 1, 'removed' : 0})),
             "Sync operation mismatch")
+        if checkCollName:
+            self.assertEquals(self.share0.displayName, u"original")
         self.assert_(item.read == True)
 
         # Initial subscribe
@@ -166,6 +174,8 @@ class RoundTripTestCase(testcase.DualRepositoryTestCase):
             ({'added' : 1, 'modified' : 0, 'removed' : 0},
              {'added' : 0, 'modified' : 0, 'removed' : 0})),
             "Sync operation mismatch")
+        if checkCollName:
+            self.assertEquals(self.share1.displayName, u"original")
 
         # Verify items are imported
         for uuid in self.uuids:
@@ -191,7 +201,10 @@ class RoundTripTestCase(testcase.DualRepositoryTestCase):
             ({'added' : 0, 'modified' : 0, 'removed' : 0},
              {'added' : 0, 'modified' : 1, 'removed' : 0})),
             "Sync operation mismatch")
+        self.share1.contents.displayName = u"also changed"
         view1.commit(); stats = self.share1.sync(); view1.commit()
+        if checkCollName:
+            self.assertEquals(self.share1.displayName, u"original")
         self.assert_(checkStats(stats,
             ({'added' : 0, 'modified' : 1, 'removed' : 0},
              {'added' : 0, 'modified' : 1, 'removed' : 0})),
@@ -201,6 +214,9 @@ class RoundTripTestCase(testcase.DualRepositoryTestCase):
             ({'added' : 0, 'modified' : 1, 'removed' : 0},
              {'added' : 0, 'modified' : 0, 'removed' : 0})),
             "Sync operation mismatch")
+        if checkCollName:
+            self.assertEquals(self.share0.displayName, u"original")
+        self.assertEquals(self.share0.contents.displayName, u"changed")
         self.assert_(item.displayName == "displayName changed in 1")
         self.assert_(item.body == "body changed in 0")
         self.assert_(item.read == False)

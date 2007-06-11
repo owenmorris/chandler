@@ -127,25 +127,21 @@ class RecordSetConduit(conduits.BaseConduit):
 
         translator = self.translator(rv)
 
-        allowNameChange = True
-
         if self.share.established:
             doLog("Previous sync included up to version: %s",
                 self.lastVersion)
             version = self.lastVersion + 1
+            # Old share items won't have their displayName set; set it:
+            if not self.share.displayName and self.share.contents is not None:
+                self.share.displayName = self.share.contents.displayName
         else:
             version = 0
             # This is our first sync; if we're already assigned a collection,
             # that means this is our initial publish; don't receive
-            # This isn't true for icalendar import into an existing collection,
-            # bug 9007, so make sure send is True before setting receive False
             if self.share.contents is not None:
+                self.share.displayName = self.share.contents.displayName
                 if send:
                     receive = False
-                else:
-                    # when importing into an existing collection, don't change
-                    # the collection name
-                    allowNameChange = False
 
         doLog("Current view version: %s", rv.itsVersion)
 
@@ -193,18 +189,16 @@ class RecordSetConduit(conduits.BaseConduit):
                         collectionUuid, pim.SmartCollection
                     )(setup_collection)
                 else:
-                    # We weren't provided a collection, so let's create our
-                    # own
-                    setup_collection(
-                        pim.SmartCollection(itsView=rv, displayName="Untitled")
-                    )
+                    # We weren't provided a collection, so let's create our own
+                    setup_collection(pim.SmartCollection(itsView=rv))
 
 
             # If the inbound collection name is provided we change the local
-            # collection name
-            name = extra.get('name', None)
-            if name and allowNameChange:
-                self.share.contents.displayName = name
+            # collection name (only if initial subscribe -- latter syncs don't
+            # change the name)
+            self.share.displayName = extra.get('name', _(u"Untitled"))
+            if not self.share.established:
+                self.share.contents.displayName = self.share.displayName
 
             # Add remotely changed items
             for alias in inbound.keys():
@@ -654,7 +648,7 @@ class RecordSetConduit(conduits.BaseConduit):
 
             extra = { 'rootName' : 'collection',
                       'uuid' : self.share.contents.itsUUID.str16(),
-                      'name' : self.share.contents.displayName
+                      'name' : self.share.displayName
                     }
 
             ids = toSend.keys()
