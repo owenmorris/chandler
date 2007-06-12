@@ -1840,7 +1840,8 @@ class EventStamp(Stamp):
                     # setTriageStatus should always be called explicitly for
                     # non-recurring events somewhere else
                     newTriage = self.autoTriage()
-                    if self.itsItem._triageStatus != newTriage:
+                    if (self.itsItem._triageStatus != newTriage and
+                        self.itsItem.doAutoTriageOnDateChange):
                         self.itsItem.setTriageStatus(newTriage, pin=True)
             if setWithHandlerDisabled and disabled:
                 disabled = self.__enableRecurrenceChanges()               
@@ -1943,24 +1944,25 @@ class EventStamp(Stamp):
         if firstOccurrence is None:
             # This can happen if there's an EXDATE deleting the first occurrence
             return
+        firstItem = firstOccurrence.itsItem
         wasModification = firstOccurrence.modificationFor is not None
-        oldTriageStatus = firstOccurrence.itsItem._triageStatus
-        if not firstOccurrence.itsItem.hasLocalAttributeValue('_sectionTriageStatus'):
-            firstOccurrence.itsItem.copyTriageStatusFrom(master.itsItem)
+        oldTriageStatus = firstItem._triageStatus
+        if not firstItem.hasLocalAttributeValue('_sectionTriageStatus'):
+            firstItem.copyTriageStatusFrom(master.itsItem)
         # don't let masters keep their _sectionTriageStatus, if they do it'll
         # be inherited inappropriately by modifications
         master.itsItem.purgeSectionTriageStatus()
         
-        # if the master's triage status was NEW because it was just created, 
+        # if the master's triage status was NOW because it was just created, 
         # don't leave it that way, it's enough to pin it in the NOW section.
         # Because force isn't set, this will preserve _sectionTriageStatus
         # if the master happened to be pinned already
-        firstOccurrence.itsItem.setTriageStatus('auto', pin=True)
+        firstItem.setTriageStatus('auto', pin=True)
         
         if wasModification and oldTriageStatus == TriageEnum.later:
             # this occurrence was the token Later occurrence, make sure there's
             # a new token later
-            if firstOccurrence.itsItem._triageStatus != TriageEnum.later:
+            if firstItem._triageStatus != TriageEnum.later:
                 self.getFirstFutureLater()
 
 
