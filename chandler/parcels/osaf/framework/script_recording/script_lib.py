@@ -39,9 +39,8 @@ def ProcessEvent (theClass, properties , attributes):
                           if isinstance (firstChild, wx.TextCtrl):
                               sentTo = firstChild
                 else:
-                    sentTo = wx.FindWindowById (stringToId [name])
-        else:
-            assert type (name) is int
+                    name = stringToId [name]
+        if sentTo is None:
             sentTo = wx.FindWindowById (name)
         return sentTo
 
@@ -207,7 +206,7 @@ def ProcessEvent (theClass, properties , attributes):
     if not isinstance (sentToWidget, wx.TextCtrl):
         application.propagateAsynchronousNotifications()
 
-    application.Yield (True)
+    application.Yield()
     
     # Since scrips don't actually move the cursor and cause wxMouseCaptureLostEvents
     # to be generated we'll periodically release the capture from all the windows.

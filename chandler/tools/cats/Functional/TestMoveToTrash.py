@@ -30,8 +30,9 @@ class TestMoveToTrash(ChandlerTestCase):
         note.SetAttr(displayName=uw("A note to move to Trash"), body=uw("TO MOVE TO TRASH"))
         
         # Work around nasty bug in QAUITestAppLib caused by not propagating notificatons correctly
-        wx.GetApp().propagateAsynchronousNotifications()
-        wx.SafeYield(None, True)
+        application = wx.GetApp()
+        application.propagateAsynchronousNotifications()
+        application.Yield()
 
         note.MoveToTrash()
         # verification

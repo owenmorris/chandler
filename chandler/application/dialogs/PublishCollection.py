@@ -384,7 +384,7 @@ class PublishCollectionDialog(wx.Dialog):
 
         self._clearStatus()
         self._resize()
-        wx.GetApp().Yield(True)
+        wx.Yield()
 
         attrsToExclude = self._getAttributeFilterState()
 
@@ -639,6 +639,7 @@ class PublishCollectionDialog(wx.Dialog):
         self.textStatus.SetLabel("%s%s" % (self.textStatus.GetLabel(), msg))
         # self.textStatus.ShowPosition(self.textStatus.GetLastPosition())
         self._resize()
+        # @@@MOR wx.Yield()
 
     def _hideStatus(self):
         self._clearStatus()
@@ -646,7 +647,7 @@ class PublishCollectionDialog(wx.Dialog):
             self.statusPanel.Hide()
             self.mySizer.Detach(self.statusPanel)
             self._resize()
-            wx.GetApp().Yield(True)
+            wx.Yield()
         pass
 
     def _showUpdate(self, text):

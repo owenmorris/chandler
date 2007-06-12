@@ -23,7 +23,7 @@ class TestCertstoreView(ChandlerTestCase):
     
         # Make sure we start with the calendar view
         self.app_ns.appbar.press("ApplicationBarEventButton")
-        wx.SafeYield(None, True)
+        wx.GetApp().Yield()
             
         # 1. Add certstore to sidebar
         self.app_ns.root.addCertificateToSidebarEvent()
@@ -122,7 +122,7 @@ class TestCertstoreView(ChandlerTestCase):
     
         # Switch back to calendar view
         self.app_ns.appbar.press("ApplicationBarEventButton")
-        wx.SafeYield(None, True)     
+        wx.GetApp().Yield()        
         # Add certstore to sidebar again
         self.app_ns.root.addCertificateToSidebarEvent()
         # force sidebar to update
@@ -137,7 +137,7 @@ class TestCertstoreView(ChandlerTestCase):
         
         # Switch to calendar view
         self.app_ns.appbar.press("ApplicationBarEventButton")
-        wx.SafeYield(None, True)       
+        wx.GetApp().Yield()        
         # XXX 8. import certificate
         # confirm that we switched to all view, and the newly added cert is
         # selected in summary view and displayed correctly in detail view

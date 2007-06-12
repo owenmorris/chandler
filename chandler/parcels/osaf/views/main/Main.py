@@ -507,7 +507,7 @@ class MainView(View):
                                         # Update the display every so often 
                                         if len (searchResults) % 50 == 0:
                                             app.propagateAsynchronousNotifications()
-                                            wx.SafeYield(None, True)
+                                            app.Yield()
 
                         if len(searchResults) == 0:
                             # For now we'll write a message to the status bar because it's easy
