@@ -69,7 +69,7 @@ class CopyableStyleTextCtrl(wx.lib.expando.ExpandoTextCtrl, DragAndDrop.TextClip
 
     def AdjustToSize(self):
         """
-        Set the minimum height, which shows all the text.
+        Set the minimum height, which shows all the text without a scrollbar.
         """
         text = self.GetValue()
         textLen = len(text)
@@ -230,7 +230,7 @@ class ConflictDialog(wx.Dialog):
         warn = _(u"Note that decisions are not undoable.")
         conflictCount = len(conflicts)
         if conflictCount == 1:
-            headingText = _(u"There is 1 pending change. %(warning)") % { 'warning': warn }
+            headingText = _(u"There is 1 pending change. %(warning)s") % { 'warning': warn }
         else:
             headingText = _(u"There are %(count)d pending changes. %(warning)s") \
             % { 'count': conflictCount, 'warning': warn }
