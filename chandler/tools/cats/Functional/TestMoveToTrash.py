@@ -32,7 +32,7 @@ class TestMoveToTrash(ChandlerTestCase):
         # Work around nasty bug in QAUITestAppLib caused by not propagating notificatons correctly
         application = wx.GetApp()
         application.propagateAsynchronousNotifications()
-        application.Yield()
+        application.Yield(True)
 
         note.MoveToTrash()
         # verification

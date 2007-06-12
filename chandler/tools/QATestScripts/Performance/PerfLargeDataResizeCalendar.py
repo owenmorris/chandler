@@ -43,7 +43,7 @@ try:
     logger.Start("Resize app in calendar mode")
     for d in xrange(10, 51, 10):
         frame.SetSize((x - d, y - d))
-        wx.Yield()
+        wx.GetApp().Yield(True)
     User.idle() # Without this we'll quit during last resize
     logger.Stop()
 

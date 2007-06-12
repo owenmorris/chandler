@@ -109,13 +109,13 @@ def publishSubscribe(logger):
                                 account=account)
         #Share button call
         
-        app = wx.GetApp()
+        application = wx.GetApp()
         
         # We are interested in seeing how quickly we can upload the collection
         logger.Start('Publish')
         win.PublishCollection()
         while not win.done:
-            app.Yield()
+            application.Yield(True)
         logger.Stop()
 
         if not win.success:        
@@ -139,7 +139,7 @@ def publishSubscribe(logger):
         
         #Done button call
         win.OnPublishDone(None)
-        app.Yield()
+        application.Yield(True)
 
         # Unsubscribe and delete the (local) collection we just published so
         # that we can subscribe to it below.
@@ -168,7 +168,7 @@ def publishSubscribe(logger):
         win.OnSubscribe(None)
         try:
             while win.subscribing:
-                app.Yield()
+                application.Yield(True)
         except wx.PyDeadObjectError:
             # XXX The C++ part of the dialog was gone, so we are no longer
             # XXX supposed to touch any attributes of the dialog. In our
@@ -756,7 +756,7 @@ class UITestItem(object):
             if self.logger: self.logger.ReportPass("Focus set in Detail View")
         else:
             if self.logger: self.logger.ReportFailure("Detail View had no focusable blocks")
-        wx.GetApp().Yield()
+        wx.GetApp().Yield(True)
         if self.logger: self.logger.Stop()
         
     def SetTimeZone(self, timeZone, timeInfo=True):
@@ -815,7 +815,8 @@ class UITestItem(object):
             if timeInfo:
                 if self.logger: self.logger.Start("Sending the message")
             App_ns.appbar.press("ApplicationBarSendButton")
-            wx.GetApp().Yield()
+            application = wx.GetApp()
+            application.Yield(True)
             #checkings
             if self.logger: self.logger.SetChecked(True)
             sent = None
@@ -828,7 +829,7 @@ class UITestItem(object):
                 # wait for mail delivery    
                 mailMessage = pim.mail.MailStamp(self.item)
                 while not sent:
-                    wx.GetApp().Yield()
+                    application.Yield(True)
                     sent = mailMessage.isSent()
             if timeInfo:
                 if self.logger: self.logger.Stop()
@@ -891,7 +892,7 @@ class UITestItem(object):
             # Processing of the corresponding CPIA event
             App_ns.root.Delete()
             # give the Yield
-            wx.GetApp().Yield()
+            wx.GetApp().Yield(True)
             if timeInfo:
                 if self.logger: self.logger.Stop()
         else:
@@ -904,7 +905,8 @@ class UITestItem(object):
         @type timeInfo: boolean
         """
         #turn off delete confirmation dialog for collection deletion
-        confimDialog=scripting.schema.ns("osaf.views.main",wx.GetApp().UIRepositoryView).clearCollectionPref
+        application = wx.GetApp()
+        confimDialog=scripting.schema.ns("osaf.views.main",application.UIRepositoryView).clearCollectionPref
         confimDialog.askNextTime = False
         confimDialog.response = True
         if self.isCollection:
@@ -915,7 +917,7 @@ class UITestItem(object):
             # Processing of the corresponding CPIA event
             App_ns.root.Remove({'testing' : True})
             # give the Yield
-            wx.GetApp().Yield()
+            application.Yield(True)
             if timeInfo:
                 if self.logger: self.logger.Stop()
         else:
@@ -1412,7 +1414,7 @@ class UITestAccounts:
         # Have to do it the hard way since Account Preferences is modal by default
         import application
         self.window = application.dialogs.AccountPreferences.ShowAccountPreferencesDialog(rv=self.view, modal=False)
-        wx.GetApp().Yield()
+        wx.GetApp().Yield(True)
 
     def Ok(self):
         """
@@ -1515,7 +1517,7 @@ class UITestAccounts:
         child = self._GetField(field)
         child.SetFocus()
         child.Clear() #work around : SelectAll() doesn't work on mac
-        wx.GetApp().Yield()
+        wx.GetApp().Yield(True)
         scripting.User.emulate_typing(value)        
 
     def ToggleValue(self, field, value):
@@ -1532,7 +1534,7 @@ class UITestAccounts:
         event.SetEventObject(child)
         self.window.OnLinkedControl(event)
         self.window.OnExclusiveRadioButton(event)
-        wx.GetApp().Yield()
+        wx.GetApp().Yield(True)
 
     def SelectValue(self, field, value):
         """
@@ -1669,7 +1671,7 @@ class UITestView(object):
         if self.logger: self.logger.Start("Switch to %s%s" % (viewName, id))
         #process the corresponding event
         App_ns.appbar.press(button)
-        wx.GetApp().Yield()
+        wx.GetApp().Yield(True)
         if self.logger: self.logger.Stop()
         self.CheckView()
 
@@ -1766,11 +1768,12 @@ class UITestView(object):
                 click2.m_y = y
                 click2.SetEventObject(self.timedCanvas.widget)
                 self.timedCanvas.widget.ProcessEvent(click2)
-                wx.GetApp().Yield()
+                application = wx.GetApp()
+                application.Yield(True)
         
                 if self.logger: self.logger.Start("Double click in the calendar view")
                 self.timedCanvas.widget.ProcessEvent(click)
-                wx.GetApp().Yield()
+                application.Yield(True)
                 if self.logger: self.logger.Stop()
                 #work around : SelectAll() doesn't work
                 wx.Window.FindFocus().Clear()

@@ -211,8 +211,9 @@ class wxMainFrame (wxBlockFrameWindow):
         Main window is about to be closed when the application is quitting.
         """
         def displayInfoWhileProcessing (message, method, *args, **kwds):
-            busyInfo = wx.BusyInfo (message, wx.GetApp().mainFrame)
-            wx.Yield()
+            application = wx.GetApp()
+            busyInfo = wx.BusyInfo (message, application.mainFrame)
+            application.Yield(True)
             result = method(*args, **kwds)
             del busyInfo
             return result
@@ -513,7 +514,7 @@ class wxApplication (wx.App):
 
         self.RenderMainView(splash)
 
-        wx.Yield()
+        self.Yield(True)
         
         if splash:
             splash.updateGauge('commit')
@@ -1315,7 +1316,7 @@ class StartupSplash(wx.Frame):
         self.Layout()
         if wx.Platform == '__WXMSW__':
             self.Update()
-        wx.Yield()
+        wx.GetApp().Yield(True)
 
 
 def CheckPlatform():

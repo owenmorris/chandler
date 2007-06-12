@@ -62,7 +62,7 @@ try:
     logger.Start("Scroll calendar one unit") # Actually 24 units
     for units in xrange(1, 25):    
         calendarWidget.Scroll(0, units)
-        wx.Yield() # Each Yield should result in a single paint to the calendar
+        wx.GetApp().Yield(True) # Each Yield should result in a single paint to the calendar
     logger.Stop()
 
     # Test Phase: Verification
