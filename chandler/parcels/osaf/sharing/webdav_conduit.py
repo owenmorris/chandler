@@ -494,7 +494,7 @@ class WebDAVRecordSetConduit(ResourceRecordSetConduit, DAVConduitMixin):
             raise errors.NotAllowed(message)
 
         text = resp.body
-        etag = resource.etag
+        etag = resource.etag.strip('"') # .mac puts quotes around the etag
         return text, etag
 
 
@@ -502,16 +502,30 @@ class WebDAVRecordSetConduit(ResourceRecordSetConduit, DAVConduitMixin):
         # return etag
         resource = self._resourceFromPath(path)
         start = time.time()
-        self._getServerHandle().blockUntil(resource.put, text, checkETag=False)
+        resp = self._getServerHandle().blockUntil(resource.put, text,
+            checkETag=False)
         end = time.time()
         self.networkTime += (end - start)
-        return resource.etag
+
+        if resp is not None: # zanshin doesn't return response object currently
+            if not 200 <= resp.status < 300:
+                raise errors.SharingError("%s (HTTP status %d)" % (resp.message,
+                    resp.status),
+                    details="Received [%s]" % resp.body)
+
+        return resource.etag.strip('"') # .mac puts quotes around the etag
 
 
 
     def deleteResource(self, path, etag=None):
         resource = self._resourceFromPath(path)
         resp = self._getServerHandle().blockUntil(resource.delete)
+
+        if not 200 <= resp.status < 300:
+            raise errors.SharingError("%s (HTTP status %d)" % (resp.message,
+                resp.status),
+                details="Received [%s]" % resp.body)
+
 
 
     def getResources(self):
