@@ -212,7 +212,7 @@ class wxMainFrame (wxBlockFrameWindow):
         """
         def displayInfoWhileProcessing (message, method, *args, **kwds):
             busyInfo = wx.BusyInfo (message, wx.GetApp().mainFrame)
-            wx.SafeYield(None, True)
+            wx.Yield()
             result = method(*args, **kwds)
             del busyInfo
             return result
@@ -513,7 +513,7 @@ class wxApplication (wx.App):
 
         self.RenderMainView(splash)
 
-        wx.SafeYield(None, True)
+        wx.Yield()
         
         if splash:
             splash.updateGauge('commit')
@@ -1315,7 +1315,7 @@ class StartupSplash(wx.Frame):
         self.Layout()
         if wx.Platform == '__WXMSW__':
             self.Update()
-        wx.SafeYield(None, True)
+        wx.Yield()
 
 
 def CheckPlatform():

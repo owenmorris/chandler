@@ -572,7 +572,8 @@ class SSSidebarIconButton2 (SSSidebarButton):
         if userCollection.iconNameHasClassVariant and filterClass is not MissingClass:
             iconName += filterClass.__name__
 
-        image = wx.GetApp().GetRawImage (imagePrefix + iconName + mouseState + deactive + imageSuffix)
+        app = wx.GetApp()
+        image = app.GetRawImage (imagePrefix + iconName + mouseState + deactive + imageSuffix)
 
         if image is not None:
             if userCollection.colorizeIcon:
@@ -668,7 +669,8 @@ class SSSidebarIconButton (SSSidebarButton):
             filterClass is not MissingClass):
             iconName += filterClass.__name__
 
-        image = wx.GetApp().GetRawImage (imagePrefix + iconName + mouseState + deactive + imageSuffix)
+        app = wx.GetApp()
+        image = app.GetRawImage (imagePrefix + iconName + mouseState + deactive + imageSuffix)
 
         if image is not None and userCollection.colorizeIcon:
             userCollection.ensureColor()

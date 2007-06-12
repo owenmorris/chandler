@@ -55,7 +55,7 @@ class TestImportOverwrite(ChandlerTestCase):
             #collection.add(tmpEvent)
         collection.add(event.item)
         sharing.exportFile(appView, fullpath, collection)
-        wx.SafeYield(None, True)
+        wx.GetApp().Yield()
         self.logger.addComment("Exported event")
         
         #change the event after exporting
@@ -64,7 +64,7 @@ class TestImportOverwrite(ChandlerTestCase):
     
         #import the original event
         sharing.importFile(appView, fullpath)
-        wx.SafeYield(None, True)
+        wx.GetApp().Yield()
         self.logger.addComment("Imported exported event")
     
         #check if changed attributes have reverted to original values

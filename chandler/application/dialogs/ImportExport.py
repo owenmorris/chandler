@@ -252,7 +252,7 @@ class ImportDialog(FileChooserWithOptions):
         theApp = wx.GetApp()
         theApp.updateUIInOnIdle = False
         try:
-            wx.GetApp.Yield(True)
+            wx.Yield()
         finally:
             theApp.updateUIInOnIdle = True
         return self.cancelling

@@ -97,4 +97,4 @@ class ProgressFrame(wx.Frame):
             else:
                 self.gaugeCtrl.SetValue(percent)
 
-        wx.SafeYield(None, True)
+        wx.Yield()
