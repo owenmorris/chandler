@@ -173,10 +173,10 @@ class MailMessageRecord(eim.Record):
     messageId = eim.field(text256, _(u"Message ID"), filters=[messageIdFilter])
     headers = eim.field(eim.ClobType, _(u"Message headers"), filters=[headersFilter])
     # Will contain the RFC 822 from address
-    fromAddress = eim.field(text256, _(u"From:"))
-    toAddress = eim.field(text1024, _(u"To:"))
-    ccAddress = eim.field(text1024, _(u"CC:"))
-    bccAddress = eim.field(text1024, _(u"BCC:"), filters=[bccFilter])
+    fromAddress = eim.field(text256, _(u"From"))
+    toAddress = eim.field(text1024, _(u"To"))
+    ccAddress = eim.field(text1024, _(u"CC"))
+    bccAddress = eim.field(text1024, _(u"BCC"), filters=[bccFilter])
 
     # Can contain text or email addresses ie. from The Management Team
     originators = eim.field(text1024, _(u"Originators"))
@@ -184,7 +184,7 @@ class MailMessageRecord(eim.Record):
     # date sent is populated by MailStamp.dateSentString
     dateSent = eim.field(text256, _(u"Date sent"), filters=[dateSentFilter])
 
-    inReplyTo = eim.field(text256, _(u"In-Reply-To:"), filters=[inReplyToFilter])
+    inReplyTo = eim.field(text256, _(u"In-Reply-To"), filters=[inReplyToFilter])
 
     #The list of message-id's a mail message references
     # can be quite long and can easily exceed 1024 characters
