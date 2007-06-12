@@ -252,7 +252,7 @@ class TestLogger:
     def PrintBoth(self, str):
         """use both self.Print and print"""
         self.Print(str)
-        print str
+        print str.encode('unicode_escape')
                 
     def Close(self, quit=True):
         now = datetime.now()
