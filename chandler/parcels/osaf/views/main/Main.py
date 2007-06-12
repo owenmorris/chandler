@@ -897,12 +897,15 @@ class MainView(View):
 
     def onImportICalendarEvent(self, event):
         # triggered from "File | Import/Export" menu
-
+        self.setStatusMessage(_(u"Import from .ics"))
         dialog = ImportExport.ImportDialog(_(u"Choose a file to import"),
                                            self.itsView)
         ret = dialog.ShowModal()
         if ret == wx.ID_OK:
-            event.arguments['Status'] = _(u"Import completed")
+            self.setStatusMessage(_(u"Import completed"))
+        else:
+            self.setStatusMessage(_(u"Import cancelled"))
+
         dialog.Destroy()
 
     def onExportICalendarEventUpdateUI(self, event):
@@ -926,14 +929,16 @@ class MainView(View):
                            parent=wx.GetApp().mainFrame)
             return
 
+        self.setStatusMessage(_(u"Export to .ics"))
         if not TurnOnTimezones.ShowTurnOnTimezonesDialog(
             self.itsView,
             state=TurnOnTimezones.EXPORT,
             modal=True):
             # cancelled in turn on timezone dialog
+            self.setStatusMessage(_(u"Export cancelled"))
             return
 
-
+        
         name = collection.displayName
         try:
             name.encode('ascii')
@@ -955,7 +960,7 @@ class MainView(View):
         (ok, fullpath, optionResults) = res
 
         if not ok:
-            self.setStatusMessage(_(u"Export aborted"))
+            self.setStatusMessage(_(u"Export cancelled"))
         else:
             try:
                 (dir, filename) = os.path.split(fullpath)
