@@ -1156,7 +1156,7 @@ class SharingTranslator(eim.Translator):
 
         references = []
 
-        for ref in mail.referencesMID:
+        for ref in getattr(mail, "referencesMID", []):
             ref = ref.strip()
 
             if ref:
@@ -1172,6 +1172,7 @@ class SharingTranslator(eim.Translator):
             references = None
 
         inReplyTo = None
+
         if getattr(mail, "inReplyTo", None) is not None:
             if obf:
                  inReplyTo = self.obfuscate(mail.inReplyTo)
@@ -1179,6 +1180,7 @@ class SharingTranslator(eim.Translator):
                 inReplyTo = mail.inReplyTo
 
         messageId = None
+
         if getattr(mail, "messageId", None) is not None:
             if obf:
                 messageId = self.obfuscate(mail.messageId)
@@ -1186,6 +1188,7 @@ class SharingTranslator(eim.Translator):
                 messageId = mail.messageId
 
         dateSent = None
+
         if getattr(mail, "dateSentString", None) is not None:
             dateSent = mail.dateSentString
 
@@ -1193,7 +1196,6 @@ class SharingTranslator(eim.Translator):
         mimeContent = None
         rfc2822Message = None
 
-        rfc2822Message = None
         if getattr(mail, "rfc2822Message", None) is not None:
             if obf:
                 rfc2822Message = self.obfuscate(binaryToData(mail.rfc2822Message))
@@ -1201,10 +1203,12 @@ class SharingTranslator(eim.Translator):
                 rfc2822Message = binaryToData(mail.rfc2822Message)
 
         previousSender = None
+
         if getattr(mail, "previousSender", None) is not None:
             previousSender = format(mail.previousSender)
 
         replyToAddress = None
+
         if getattr(mail, "replyToAddress", None) is not None:
             replyToAddress = format(mail.replyToAddress)
 
