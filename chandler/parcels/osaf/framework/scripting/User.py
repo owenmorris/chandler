@@ -115,7 +115,6 @@ def emulate_typing(string, ctrlFlag = False, altFlag = False, shiftFlag = False)
         event.m_altDown = altFlag
         event.SetEventObject(widget)
     # for each key, check for specials, then try several approaches
-    app = wx.GetApp()
     for char in string:
         keyCode = ord(char)
         if keyCode == wx.WXK_RETURN:
@@ -150,7 +149,7 @@ def emulate_typing(string, ctrlFlag = False, altFlag = False, shiftFlag = False)
                         else:
                             success = False # remember we had a failure
                 if success:
-                    app.Yield()
+                    wx.GetApp().Yield(True)
     return success
 
 def emulate_tab(shiftFlag=False):
@@ -216,7 +215,7 @@ def emulate_click(block, x=None, y=None, double=False, **kwds):
             widget.ProcessEvent(mouseUp)
         widget.ProcessEvent(mouseLeave)
     # Give Yield to the App
-    wx.GetApp().Yield()
+    wx.GetApp().Yield(True)
 
 def emulate_return(block=None):
     """ Simulates a return-key event in the given block """
@@ -287,7 +286,7 @@ def emulate_sidebarClick(sidebar, cellName, double=False, overlay=False):
         return False
 
 def idle():
-    app = wx.GetApp()
-    app.Yield()
-    app.ProcessEvent(wx.IdleEvent())
-    app.Yield()
+    theApp = wx.GetApp()
+    theApp.Yield(True)
+    theApp.ProcessEvent(wx.IdleEvent())
+    theApp.Yield(True)

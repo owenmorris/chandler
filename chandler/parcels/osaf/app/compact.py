@@ -95,7 +95,7 @@ class CompactDialog(wx.Dialog):
                 stages.add(stage)
                 self.status.SetLabel(progressMessage %(len(stages)))
                 self.gauge.SetValue(percent)
-                wx.Yield()   # to enable updating and pressing 'Cancel'
+                wx.GetApp().Yield(True)   # to enable updating and pressing 'Cancel'
                 return self.compacting
             self.compact(progress)
 

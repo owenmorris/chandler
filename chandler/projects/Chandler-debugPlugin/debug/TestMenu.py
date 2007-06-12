@@ -48,8 +48,7 @@ class TestMenuHandler(Block):
     def on_debug_GenerateDataFromFileEvent(self, event):
         # triggered from "Tools | Test | Generate Items from a File" menu
 
-        app = wx.GetApp()
-        res = dialogs.Util.showFileDialog(app.mainFrame,
+        res = dialogs.Util.showFileDialog(wx.GetApp().mainFrame,
                                           _m_(u"Choose a file to import"), "",
                                           _m_(u"import.csv"),
                                           _m_(u"CSV files|*.csv"),

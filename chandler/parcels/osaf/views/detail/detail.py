@@ -754,7 +754,7 @@ class EditTextAttributeBlock(DetailSynchronizedBehavior,
         #url, collectionName = MailSharing.getSharingHeaderInfo(self.item)
         #statusBlock = Block.Block.findBlockByName('StatusBar')
         #statusBlock.setStatusMessage( _(u'Subscribing to collection...') )
-        #wx.Yield()
+        #wx.GetApp().Yield(True)
 
         ## If this code is ever revived, it should call sharing.subscribe(),
         ## rather than the following:

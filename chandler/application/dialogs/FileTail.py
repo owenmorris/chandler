@@ -81,7 +81,7 @@ class FileTailWindow(wx.Dialog):
     def UpdateFont(self):
         font = wx.Font(self.fontsize, wx.SWISS, wx.NORMAL, wx.NORMAL)
         self.text.SetFont(font)
-        wx.Yield()
+        wx.GetApp().Yield(True)
         self.text.ShowPosition(self.text.GetLastPosition())
 
     def OnFontIncrease(self, evt):
@@ -98,9 +98,10 @@ class FileTailWindow(wx.Dialog):
             self.text.Remove(0, 50000) # trim amount
             position = self.text.GetLastPosition()
         self.text.AppendText(text)
-        wx.Yield()
+        app = wx.GetApp()
+        app.Yield(True)
         self.text.ShowPosition(self.text.GetLastPosition())
-        wx.Yield()
+        app.Yield(True)
 
     def OnMark(self, evt):
         self.AddLine("- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -\n")

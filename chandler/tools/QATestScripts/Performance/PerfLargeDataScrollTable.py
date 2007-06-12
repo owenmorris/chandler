@@ -59,7 +59,7 @@ try:
     logger.Start("Scroll table 25 scroll units")
     for units in xrange(1, 25):
         tableWidget.Scroll(0, units)
-        wx.Yield() # Each Yield should result in a single paint to the table
+        wx.SafeYield(None, True) # Each Yield should result in a single paint to the table
     logger.Stop()
     
     # Test Phase: Verification
