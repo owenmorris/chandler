@@ -1308,8 +1308,11 @@ class SharingTranslator(eim.Translator):
 
             # allDay and anyTime shouldn't be set if they match the master
             master = event.getMaster()
+            # a master may be "faked" to allow a modification to be imported
+            # with a dummy master
+            fakeMaster = getattr(master.itsItem, '_fake', False)
             if master == event:
-                if hasattr(master.itsItem, '_fake'):
+                if fakeMaster:
                     del master.itsItem._fake
                 if allDay in (True, False):
                     event.allDay = allDay
@@ -1331,8 +1334,6 @@ class SharingTranslator(eim.Translator):
                             
             else:
                 # a modification
-                fakeMaster = getattr(master.itsItem, '_fake', False)
-
                 # set attributes that may want to be inherited.
                 if allDay in (True, False) and (fakeMaster or
                                                 allDay != master.allDay):
@@ -1362,7 +1363,7 @@ class SharingTranslator(eim.Translator):
                 # rruleset if all the positive recurrence fields are None
                 return
             
-            if event.rruleset is not None:
+            if event.rruleset is not None and not fakeMaster:
                 rruleset = event.rruleset
             else:
                 rruleset = RecurrenceRuleSet(None, itsView=self.rv)
@@ -1400,7 +1401,12 @@ class SharingTranslator(eim.Translator):
             if len(rruleset.rrules) == 0 and len(rruleset.rdates) == 0:
                 event.removeRecurrence()
             else:
-                if event.rruleset is not None:
+                # if the master is in the past but not triaged DONE before
+                # recurrence is added, a modification will be created that is
+                # pinned to now, which is undesirable, bug 9414
+                event.itsItem.setTriageStatus('auto')
+                event.itsItem.purgeSectionTriageStatus()
+                if event.rruleset is not None and not fakeMaster:
                     # changed existing recurrence
                     event.rruleset._ignoreValueChanges = ignoreChanges
                     event.cleanRule()
