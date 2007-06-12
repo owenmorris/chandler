@@ -869,7 +869,7 @@ def runScriptPerfTests(options, testlist, largeData=False, repeat=1, logger=log)
 
             if result != 0:
                 if options.tbox:
-                    if result = -9:
+                    if result == -9:
                         log("***Error: A timeout error has happened for %s" % name)
                         log("***Error: The process output will be dumped below but it may be incomplete")
                         log("***Error: due to the process either crashing or being killed.")
