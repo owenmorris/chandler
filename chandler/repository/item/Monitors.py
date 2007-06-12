@@ -217,46 +217,40 @@ class IndexMonitor(Monitor):
             else:
                 keys = None
 
-            if view.isReindexingDeferred():
-                deferredKeys = getattr(self, 'deferredKeys', None)
-                if deferredKeys is None:
-                    self.setPinned(True)
-                    self.deferredKeys = deferredKeys = set()
-                    index = collection.getIndex(indexName)
-                    index.validateIndex(False)
-                if item in collection:
-                    deferredKeys.add(item.itsUUID)
-                if keys:
-                    deferredKeys.update(keys)
-                view._deferIndexMonitor(self)
+            if item in collection:
+                index = collection.getIndex(indexName)
+                if view.isReindexingDeferred():
+                    if index.isValid():
+                        index.validateIndex(False)
+                        view._deferIndexMonitor(self)
+                else:
+                    collection._setDirty(True)                    
 
-            elif item in collection:
                 if keys:
                     keys.append(item.itsUUID)
-                    collection.getIndex(indexName).moveKeys(keys)
+                    index.moveKeys(keys)
                 else:
-                    collection.getIndex(indexName).moveKey(item.itsUUID)
-                collection._setDirty(True)
+                    index.moveKey(item.itsUUID)
 
             elif keys:
-                collection.getIndex(indexName).moveKeys(keys)
-                collection._setDirty(True)
+                index = collection.getIndex(indexName)
+                if view.isReindexingDeferred():
+                    if index.isValid():
+                        index.validateIndex(False)
+                        view._deferIndexMonitor(self)
+                else:
+                    collection._setDirty(True)
+
+                index.moveKeys(keys)
 
     def reindex(self):
 
-        deferredKeys = getattr(self, 'deferredKeys', None)
-        if deferredKeys is not None:
-            self.setPinned(False)
-            del self.deferredKeys
-            collectionName, indexName = self.args
-            collection = getattr(self.item, collectionName, None)
-            if collection is not None:
-                index = collection.getIndex(indexName)
+        collectionName, indexName = self.args
+        collection = getattr(self.item, collectionName, None)
+        if collection is not None:
+            index = collection.getIndex(indexName)
+            if not index.isValid():
                 index.validateIndex(True)
-                if len(deferredKeys) == 1:
-                    index.moveKey(deferredKeys.pop())
-                else:
-                    index.moveKeys(deferredKeys)
                 collection._setDirty(True)
 
 

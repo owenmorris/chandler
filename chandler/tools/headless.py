@@ -69,6 +69,10 @@ def startup(chandlerDirectory=None, **kwds):
     Utility.initParcels(Globals.options, view, parcelPath)
     Utility.initPlugins(Globals.options, view, pluginEnv, pluginEggs)
 
+    if Globals.options.reload:
+        from osaf import dumpreload
+        dumpreload.reload(view, Globals.options.reload)
+
     return view
 
 

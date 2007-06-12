@@ -135,6 +135,10 @@ class NumericIndex(Index):
 
         self.skipList.validate(valid)
 
+    def isValid(self):
+        
+        return self.skipList.isValid()
+
     def setDescending(self, descending=True):
 
         wasDescending = self._descending
@@ -377,6 +381,7 @@ class SortedIndex(DelegatingIndex):
 
         self._valueMap = valueMap
         self._subIndexes = None
+        self._deferred = False
 
     def __iter__(self):
 
@@ -409,7 +414,25 @@ class SortedIndex(DelegatingIndex):
 
     def validateIndex(self, valid):
 
-        self._index.validateIndex(valid)
+        if valid:
+            superIndex = self.getSuperIndex()
+            if not (superIndex is None or superIndex.isValid()):
+                return superIndex.validateIndex(valid)
+
+            self._index.validateIndex(valid)
+            deferredKeys = self._deferredKeys
+            del self._deferredKeys
+            self._deferred = False
+
+            if len(deferredKeys) == 1:
+                self.moveKey(deferredKeys.pop(), None, False)
+            else:
+                self.moveKeys(deferredKeys, None, False)
+
+        elif not self._deferred:
+            self._index.validateIndex(valid)
+            self._deferredKeys = set()
+            self._deferred = True
 
         if self._subIndexes:
             view = self._valueMap.itsView
@@ -436,6 +459,10 @@ class SortedIndex(DelegatingIndex):
             self._reindex(key)
 
     def moveKey(self, key, ignore=None, insertMissing=None):
+
+        if self._deferred:
+            self._deferredKeys.add(key)
+            return
 
         index = self._index
         skipList = index.skipList
@@ -471,6 +498,10 @@ class SortedIndex(DelegatingIndex):
                     indexed._setDirty(True)
 
     def moveKeys(self, keys, ignore=None, insertMissing=None):
+
+        if self._deferred:
+            self._deferredKeys.update(keys)
+            return
 
         index = self._index
         skipList = index.skipList

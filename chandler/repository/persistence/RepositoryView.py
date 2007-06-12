@@ -1329,6 +1329,28 @@ class RepositoryView(CView):
                                             ', '.join(names))
             prevValues = currValues
 
+    def printCurrentChanges(self, detailed=False):
+
+        kinds = {}
+        for item in self.dirtyItems():
+            kind = item.itsKind
+            if kind in kinds:
+                kinds[kind].append(item)
+            else:
+                kinds[kind] = [item]
+
+        changes = kinds.items()
+        changes.sort(key=lambda x: len(x[1]), reverse=True)
+
+        for kind, items in changes:
+            print kind, len(items)
+
+        if detailed:
+            for kind, items in changes:
+                print kind
+                for item in items:
+                    print '  ', item._repr_(), ', '.join(item.iterAttributeNames(changedOnly=True))
+
     def reindex(self, items, *attributes):
         """
         Reindex items in attribute-sorted indexes in bulk.

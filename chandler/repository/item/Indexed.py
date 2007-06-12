@@ -214,6 +214,8 @@ class Indexed(object):
             if isSubIndex:
                 superIndex = superset.getIndex(superIndexName)
                 superIndex.addSubIndex(item.itsUUID, name, indexName)
+                if not superIndex.isValid():
+                    index.validateIndex(False)
 
             view._newIndexes.append((item.itsUUID, name, indexName))
 
