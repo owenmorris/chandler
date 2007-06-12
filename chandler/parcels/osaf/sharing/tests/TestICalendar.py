@@ -159,13 +159,13 @@ class ICalendarTestCase(SingleRepositoryTestCase):
                                             tzinfo=ICUtzinfo.default)
         event.endTime = datetime.datetime(2010, 1, 1, 11,
                                           tzinfo=ICUtzinfo.default)
+        event.rruleset = self._makeRecurrenceRuleSet()
 
         coll = ListCollection("testcollection", itsParent=self.sandbox)
         coll.displayName = "test"
         coll.add(event.itsItem)
         # the view needs to be committed for event to be seen by sync
         self.view.commit() 
-    
         
         filename = u"unicode_export.ics"
 
@@ -180,6 +180,8 @@ class ICalendarTestCase(SingleRepositoryTestCase):
         
         cal = vobject.readComponents(file(filename, 'rb')).next()
         self.assertEqual(cal.vevent.summary.value, event.summary)
+        # no modifications should be serialized
+        self.assertEqual(len(cal.vevent_list), 1)
         delFile()
         
     def doRoundTripRecurrenceCountTest(self, tzName):
@@ -316,6 +318,14 @@ class ICalendarTestCase(SingleRepositoryTestCase):
                              datetime.datetime(2006, 9, 25, 8,
                                     tzinfo=ICUtzinfo.getInstance('America/Los_Angeles')))
 
+    def _makeRecurrenceRuleSet(self, until=None, freq='daily'):
+        ruleItem = RecurrenceRule(None, itsView=self.view)
+        ruleItem.freq = freq
+        if until is not None:
+            ruleItem.until = until
+        ruleSetItem = RecurrenceRuleSet(None, itsView=self.view)
+        ruleSetItem.addRule(ruleItem)
+        return ruleSetItem
 
     def testExportRecurrence(self):
         eastern = ICUtzinfo.getInstance("America/New_York")
@@ -325,13 +335,9 @@ class ICalendarTestCase(SingleRepositoryTestCase):
 
         vevent.add('dtstart').value = start
 
-        # not creating a RuleSetItem, although it would be required for an item
-        ruleItem = RecurrenceRule(None, itsView=self.view)
-        ruleItem.freq = 'daily'
-        ruleSetItem = RecurrenceRuleSet(None, itsView=self.view)
-        ruleSetItem.addRule(ruleItem)
-
+        ruleSetItem = self._makeRecurrenceRuleSet()
         vevent.rruleset = ruleSetItem.createDateUtilFromRule(start)
+        
         self.assertEqual(vevent.rrule.value, 'FREQ=DAILY')
 
         event = Calendar.CalendarEvent(itsView = self.view)
@@ -340,11 +346,10 @@ class ICalendarTestCase(SingleRepositoryTestCase):
         event.startTime = start
         event.endTime = datetime.datetime(2005,2,1,1, tzinfo = eastern)
 
-        ruleItem = RecurrenceRule(None, itsView=self.view)
-        ruleItem.until = datetime.datetime(2005,3,1, tzinfo = eastern)
-        ruleSetItem = RecurrenceRuleSet(None, itsView=self.view)
-        ruleSetItem.addRule(ruleItem)
-        event.rruleset = ruleSetItem
+        event.rruleset = self._makeRecurrenceRuleSet(
+            datetime.datetime(2005,3,1, tzinfo = eastern),
+            freq='weekly'            
+        )
         
         vcalendar = getVObjectData(self.view, [event.itsItem])
 

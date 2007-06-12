@@ -104,6 +104,10 @@ def exportFile(rv, path, collection, activity=None,
 
     outbound = { }
     for item in collection:
+        if (isinstance(item, pim.Note) and
+            pim.EventStamp(item).isTriageOnlyModification()):
+            continue # skip triage-only modifications
+        
         alias = trans.getAliasForItem(item)
         outbound[alias] = filter(eim.RecordSet(trans.exportItem(item)))
         if activity:
