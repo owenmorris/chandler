@@ -261,17 +261,16 @@ class ICalendarTestCase(SingleRepositoryTestCase):
         event = pim.EventStamp(sharing.findUID(self.view,
                                   '5B30A574-02A3-11DA-AA66-000A95DA3228'))
 
-        # test triage of imported recurring event: Bug 9414, there should be a
-        # modification for the master triaged DONE in the DONE section.
+        # test triage of imported recurring event:  There should be a
+        # modification for the master triaged DONE but in the NOW section.
         # Doing an updateTriageStatus should cause that modification to go
         # away
         firstOccurrence = event.getFirstOccurrence()
         self.assertEqual(firstOccurrence.modificationFor, event.itsItem)
-        ts = firstOccurrence.itsItem._triageStatus
-        sts = getattr(firstOccurrence.itsItem, '_sectionTriageStatus', ts)
-
-        self.assertEqual(ts, pim.TriageEnum.done)
-        self.assertEqual(sts, pim.TriageEnum.done)
+        self.assertEqual(firstOccurrence.itsItem._triageStatus,
+                         pim.TriageEnum.done)
+        self.assertEqual(firstOccurrence.itsItem._sectionTriageStatus,
+                         pim.TriageEnum.now)
         
         event.updateTriageStatus()
         self.assertEqual(firstOccurrence.modificationFor, None)

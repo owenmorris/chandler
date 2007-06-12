@@ -1301,21 +1301,14 @@ class RoundTripTestCase(testcase.DualRepositoryTestCase):
         # Create a new recurring event and share it
         event = self._makeRecurringEvent(view0, self.share0.contents)
         event.rruleset.rrules.first().freq = 'daily'
-        item = event.getFirstOccurrence().itsItem
+        item = event.itsItem
         item.setTriageStatus(pim.TriageEnum.later)
-        item.resetAutoTriageOnDateChange()
-        self.assertEquals(item.triageStatus, pim.TriageEnum.later)
-        
-        view0.commit(); stats1 = self.share0.sync(); view0.commit()
-        view1.commit(); stats2 = self.share1.sync(); view1.commit()
-        masterItem1 = view1.findUUID(event.itsItem.itsUUID)
-        master1 = pim.EventStamp(masterItem1)
-        event1 = master1.getRecurrenceID(pim.EventStamp(item).recurrenceID)
-        item1 = event1.itsItem
-        self.assertEquals(master1.rruleset.rrules.first().freq, 'daily')
-
+        view0.commit(); stats = self.share0.sync(); view0.commit()
+        view1.commit(); stats = self.share1.sync(); view1.commit()
+        item1 = view1.findUUID(item.itsUUID)
+        event1 = pim.EventStamp(item1)
+        self.assertEquals(event1.rruleset.rrules.first().freq, 'daily')
         self.assertEquals(item1.triageStatus, pim.TriageEnum.later)
-        self.assertEquals(item1.doAutoTriageOnDateChange, False)
 
         # Remove it from the server
         self.share1.contents.remove(item1)
@@ -1325,7 +1318,6 @@ class RoundTripTestCase(testcase.DualRepositoryTestCase):
         # will remove the item from the local collection
         second0 = event.getFirstOccurrence().getNextOccurrence()
         second0.itsItem.setTriageStatus(pim.TriageEnum.done)
-        second0.itsItem.resetAutoTriageOnDateChange()
         self.assert_(self.share0 in sharing.SharedItem(item).sharedIn)
         view0.commit(); stats = self.share0.sync(); view0.commit()
         self.assert_(item not in self.share0.contents)
@@ -1339,12 +1331,13 @@ class RoundTripTestCase(testcase.DualRepositoryTestCase):
         event = self._makeRecurringEvent(view0, self.share0.contents)
         event.rruleset.rrules.first().freq = 'daily'
         item = event.itsItem
+        item.setTriageStatus(pim.TriageEnum.later)
         view0.commit(); stats = self.share0.sync(); view0.commit()
         view1.commit(); stats = self.share1.sync(); view1.commit()
         item1 = view1.findUUID(item.itsUUID)
         event1 = pim.EventStamp(item1)
         self.assertEquals(event1.rruleset.rrules.first().freq, 'daily')
-
+        self.assertEquals(item1.triageStatus, pim.TriageEnum.later)
 
         # Remove it from the server
         self.share1.contents.remove(item1)

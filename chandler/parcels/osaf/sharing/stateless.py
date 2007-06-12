@@ -73,8 +73,6 @@ def importFile(rv, path, collection=None, activity=None,
             if item is not None:
                 collection.add(item)
                 pim.setTriageStatus(item, 'auto')
-                item_to_change = getattr(item, 'inheritFrom', item)
-                item_to_change.read = True
 
     if activity:
         activity.update(totalWork=None, msg=_(u"Importing complete"))
