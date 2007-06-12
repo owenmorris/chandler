@@ -96,7 +96,7 @@ def postEvent(eventName, event, argDict=None, timing=None, **keys):
     # Next propagate notifications so the UI will match the data.
     # Then call Yeild to process an pending events
     wx.GetApp().propagateAsynchronousNotifications()
-    wx.GetApp().Yield()
+    wx.GetApp().Yield(True)
 
     return result
 

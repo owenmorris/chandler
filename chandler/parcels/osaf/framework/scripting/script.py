@@ -225,12 +225,14 @@ def run_startup_script_with_symbols(view, builtIns):
     # been updated, i.e. drawn -- and when the screen isn't drawn
     # the focus can't be set to a widget that hasn't been drawn
     # so we explicitely update the screen before running the tests
-    mainFrame = wx.GetApp().mainFrame
+    app = wx.GetApp()
+    mainFrame = app.mainFrame
     mainFrame.Update()
-    wx.Yield()
+    wx.SafeYield(None, True)
     mainFrame.Update()
+    wx.SafeYield(None, True)
+
     global global_cats_profiler
-    wx.Yield()
     if Globals.options.testScripts:
         try:
             for aScript in Script.iterItems(view):

@@ -260,7 +260,7 @@ class SubscribeDialog(wx.Dialog):
         self.gauge.SetValue(0)
         self.subscribing = True
         self._showStatus(_(u"In progress..."))
-        wx.Yield()
+        wx.GetApp().Yield(True)
 
 
         class ShareTask(task.Task):

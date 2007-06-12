@@ -259,7 +259,7 @@ class DeleteDialog(wx.Dialog):
             
         wx.xrc.XRCCTRL(self, "wxID_OK").SetFocus()
         self.Fit()
-        wx.Yield()
+        wx.GetApp().Yield(True)
 
     def DeletePrompt(self):
         self.AdjustButtons()
@@ -282,7 +282,7 @@ class DeleteDialog(wx.Dialog):
 
         wx.xrc.XRCCTRL(self, "MoveToTrash").SetFocus()
         self.Fit()
-        wx.Yield()
+        wx.GetApp().Yield(True)
 
     def HandleApplyToAll(self):
         main_ns = schema.ns('osaf.views.main', self.view)

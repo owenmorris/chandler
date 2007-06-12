@@ -149,7 +149,7 @@ class NewImageEvent(NewItemEvent):
             theApp.CallItemMethodAsync("MainView",
                                        'setStatusMessage',
                                        _(u"Importing %(filePath)s") % {'filePath': path})
-            wx.Yield()
+            wx.SafeYield(None, True)
             photo = Photo(itsView=self.itsView)
             photo.displayName = filename
             photo.creator = schema.ns("osaf.pim", self.itsView).currentContact.item
