@@ -718,6 +718,17 @@ class AppCollection(ContentCollection):
         source = lambda self: None, 
     )
 
+    # __collection__ denotes a bi-ref set,
+    # therefore it must be added to the copying cloud def for it to be copied.
+
+    schema.addClouds(
+        copying = schema.Cloud(
+            byCloud=[exclusionsCollection],
+            byRef=[trashCollection, __collection__,
+                   inclusions, collectionExclusions]
+        ),
+    )
+
     # an AppCollection may have another collection for exclusions and that
     # other collection may be the global trash collection. If no collection
     # is specified for exclusions, a local ref collection is used instead.
@@ -791,16 +802,6 @@ class AppCollection(ContentCollection):
             self.__source = source
 
     source = property(_getSource, _setSource)
-
-    # __collection__ denotes a bi-ref set,
-    # therefore it must be added to the copying cloud def for it to be copied.
-
-    schema.addClouds(
-        copying = schema.Cloud(
-            byCloud=[inclusions, collectionExclusions, exclusionsCollection],
-            byRef=[trashCollection, __collection__]
-        ),
-    )
 
     def add(self, item):
         """
