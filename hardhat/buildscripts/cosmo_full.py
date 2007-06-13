@@ -31,16 +31,16 @@ antProgram = hardhatutil.findInPath(path, "mvn")
 logPath    = 'hardhat.log'
 separator  = "- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -\n"
 
-# quick build for Cosmo
-
 treeName     = "Cosmo"
-sleepMinutes = 5
+sleepMinutes = 60
 
 reposRoot    = 'http://svn.osafoundation.org/server'
 reposModules = [('cosmo',  'cosmo/trunk',),
                ]
-reposBuild   = [('cosmo/cosmo',     'clean package'),
-                ('cosmo/migration', 'clean package'),
+reposBuild   = [('cosmo/dojo',      'install'), # deploy
+                ('cosmo/cosmo',     'package'),
+                ('cosmo/migration', 'package'),
+                ('cosmo/snarf',     'package')
                ]
 
 def Start(hardhatScript, workingDir, buildVersion, clobber, log, skipTests=False, upload=False, branchID=None, revID=None):
@@ -127,6 +127,8 @@ def Start(hardhatScript, workingDir, buildVersion, clobber, log, skipTests=False
     ret = doBuild(workingDir, log)
 
     if sourceChanged:
+        doDistribution(workingDir, log, outputDir, buildVersion, buildVersionEscaped)
+
         changes = "-changes"
     else:
         changes = "-nochanges"
@@ -142,14 +144,12 @@ def doBuild(workingDir, log):
     for (module, target) in reposBuild:
         moduleDir = os.path.join(workingDir, module)
 
-        print "Building %s in %s" % (module, moduleDir)
+        print "Building [%s]" % module
 
         try:
             os.chdir(moduleDir)
 
-            outputList = hardhatutil.executeCommandReturnOutput([antProgram, target])
-
-            print outputList
+            outputList = hardhatutil.executeCommandReturnOutput([antProgram, '-Prelease clean %s' % target])
 
             hardhatutil.dumpOutputList(outputList, log)
 
@@ -163,7 +163,42 @@ def doBuild(workingDir, log):
             doCopyLog("***Error during build***", workingDir, logPath, log)
             return 'failed'
 
-    return 'success'
+    return "success"
+
+def doDistribution(workingDir, log, outputDir, buildVersion, buildVersionEscaped):
+    log.write(separator)
+    log.write("[tbox] Creating distribution files\n")
+
+    fileGlob = 'osaf-server-bundle*.tar.gz'
+
+    try:
+        sourceDir = os.path.join(workingDir, 'cosmo', 'snarf', 'dist')
+        targetDir = os.path.join(outputDir, buildVersion)
+
+        if not os.path.exists(targetDir):
+            os.mkdir(targetDir)
+
+        print sourceDir, targetDir
+
+        log.write("[tbox] Moving %s to %s\n" % (sourceDir, targetDir))
+
+        hardhatlib.copyFiles(sourceDir, targetDir, fileGlob)
+
+        distributionFiles = glob.glob(os.path.join(targetDir, fileGlob))
+
+        fileOut = file(os.path.join(targetDir, 'developer'), 'w')
+        fileOut.write(os.path.basename(distributionFiles[0]))
+        fileOut.close()
+
+    except hardhatutil.ExternalCommandErrorWithOutputList, e:
+        print "distribution failed", e.exitCode
+        log.write("***Error during distribution***\n")
+        hardhatutil.dumpOutputList(e.outputList, log)
+        raise e
+
+    except Exception, e:
+        doCopyLog("***Error during distribution building*** ", workingDir, logPath, log)
+        raise e
 
 def determineRevision(outputList):
     """
