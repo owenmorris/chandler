@@ -32,7 +32,7 @@ ARCHIVES = \
     $(CHANDLERARCHIVES)/pychecker-$(SNAP)-0.8.17-$(BP)1.tar.gz \
     $(CHANDLERARCHIVES)/PyICU-$(SNAP)-0.6-76-$(BP)1.tar.gz \
     $(CHANDLERARCHIVES)/PyLucene-$(SNAP)-2.1.0-2-$(BP)1.tar.gz \
-    $(CHANDLERARCHIVES)/twisted-$(SNAP)-r18795-$(BP)1.tar.gz \
+    $(CHANDLERARCHIVES)/twisted-$(SNAP)-r18795-$(BP)2.tar.gz \
     $(CHANDLERARCHIVES)/wxPython-$(SNAP)-2.8.4.1-r177-$(BP)1.tar.gz \
     $(CHANDLERARCHIVES)/dateutil-$(SNAP)-1.1-$(BP)4.tar.gz \
     $(CHANDLERARCHIVES)/vobject-$(SNAP)-0.4.8-r186-$(BP)1.tar.gz \
