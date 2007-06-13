@@ -76,14 +76,9 @@ class CopyableStyleTextCtrl(wx.lib.expando.ExpandoTextCtrl, DragAndDrop.TextClip
         """
         Set the minimum height, which shows all the text without a scrollbar.
         """
-        text = self.GetValue()
-        textLen = len(text)
+        self._adjustCtrl()
 
-        # Get the position of the last character to find the max height
-        (x, y) = self.PositionToXY(textLen)
-        # The value returned by PositionToXY() is multiplied by a hard-coded 3.7, as it
-        # doesn't seem to be in any useful units (1/4 the line height?)
-        self.SetMinSize(wx.Size(-1, y*3.7))
+
 
 class ConflictButton(wx.Button):
     """
@@ -140,9 +135,6 @@ class ConflictVScrolledArea(ScrolledPanel):
         
         # add the conflicts
         for c in conflicts:
-            # make each row shrink and expand with the window
-            self.sizer.AddGrowableRow(i, proportion=1)
-
             # if there is no peer, the change was done on the server
             if c.peer is not None:
                 if isinstance(c.peer, sharing.Share):
@@ -184,8 +176,6 @@ class ConflictVScrolledArea(ScrolledPanel):
             self.sizer.Add(textCtrl, 1, wx.EXPAND)
             # hilight the text
             textCtrl.Hilight(emStart, emEnd)
-            # adjust to the sizer's boundaries, preventing scrolling problems
-            textCtrl.AdjustToSize()
 
             # add the buttons to apply/discard. Both buttons are disabled when either is
             # clicked, so we keep a reference to them in the two lists self.acceptButtons
@@ -201,7 +191,21 @@ class ConflictVScrolledArea(ScrolledPanel):
             i = i+1
 
         self.SetSizer(self.sizer)
+        wx.CallAfter(self.PostCreateFixup)
         self.SetupScrolling(scroll_x=False, scroll_y=True, rate_x=20, rate_y=20)
+
+
+    def PostCreateFixup(self):
+        """
+        call the AdjustToSize method of all the text widgets
+        """
+        for c in self.GetChildren():
+            if isinstance(c, CopyableStyleTextCtrl):
+                c.AdjustToSize()
+
+        # readjust the scrolling
+        wx.CallAfter(self.SetupScrolling, scroll_x=False, scroll_y=True, rate_x=20, rate_y=20)
+
 
     def DisableButtons(self, i):
         """
@@ -281,7 +285,7 @@ class ConflictDialog(wx.Dialog):
 
 
 # do the test below by opening a PyShell in Chandler and executing:
-# execfile("/Users/rae/work/osaf/chandler/chandler/application/dialogs/ConflictDialog.py", { "__name__" :"__main__" })
+# execfile("application/dialogs/ConflictDialog.py", { "__name__" :"__main__" })
 
 if __name__ == "__main__":
     # pseudoConflicts
@@ -339,8 +343,13 @@ This is a very long body to see how the conflict dialog can deal with long bits 
 hah!
 
 This is a very long body to see how the conflict dialog can deal with long bits of text. Ideally, it would wrap very long lines, so I will make this line very long so as to test any wrod-wrapping problems and annoyances. It isn't quite long enough yet, so I will continue to type to the very, very end of the line. Blah blah blah. """, 'rae@osafoundation.org'),
+        pConflict("photo9", "239.jpg", "foo8@tnir.org"),
     )
     dialog = ConflictDialog(conflicts)
     dialog.CenterOnScreen()
+##     def show_tool():
+##         import wx.lib.inspection
+##         wx.lib.inspection.InspectionTool().Show()
+##     wx.CallAfter(show_tool)
     dialog.ShowModal()
     dialog.Destroy()
