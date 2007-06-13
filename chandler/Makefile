@@ -40,7 +40,7 @@ ARCHIVES = \
     $(CHANDLERARCHIVES)/logilab-astng-$(SNAP)-0.17.0-$(BP)1.tar.gz \
     $(CHANDLERARCHIVES)/logilab-common-$(SNAP)-0.21.2-$(BP)1.tar.gz \
     $(CHANDLERARCHIVES)/pylint-$(SNAP)-0.13.1-$(BP)1.tar.gz \
-    $(CHANDLERARCHIVES)/parsedatetime-$(SNAP)-0.8.3-$(BP)1.tar.gz \
+    $(CHANDLERARCHIVES)/parsedatetime-$(SNAP)-0.8.4-$(BP)1.tar.gz \
     $(CHANDLERARCHIVES)/configobj-$(SNAP)-4.3.2-$(BP)1.tar.gz \
     $(CHANDLERARCHIVES)/docutils-$(SNAP)-0.4-$(BP)1.tar.gz \
     $(CHANDLERARCHIVES)/eggtranslations-$(SNAP)-1.0-r9-$(BP)1.tar.gz \
