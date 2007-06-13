@@ -50,22 +50,27 @@ class CopyableStyleTextCtrl(wx.lib.expando.ExpandoTextCtrl, DragAndDrop.TextClip
         self.WriteText(text)
 
     def Hilight(self, emStart, emEnd):
-        # Hilight the emStart..emEnd text. Note that it is assumed there is only one
-        # set of emStart/emEnd strings in the text.
+        # Hilight all occurences of emStart..emEnd in the text and remove the emStart/emEnd tags
         text = self.GetValue()
         textLen = len(text)
 
-        # hilightStart and hilightEnd contain the start position of the two tags
-        hilightStart = text.find(emStart)
-        hilightEnd = text.find(emEnd)
+        # make it standard text colour
+        hilightStyle = wx.TextAttr(wx.SystemSettings_GetColour(wx.SYS_COLOUR_WINDOWTEXT))
 
-        # make it dark red
-        hilightStyle = wx.TextAttr("black")
-        self.SetStyle(hilightStart, hilightEnd, hilightStyle)
+        hilightStart = text.find(emStart)
+        while hilightStart >= 0:
+            hilightEnd = text.find(emEnd, hilightStart)
+            self.SetStyle(hilightStart, hilightEnd, hilightStyle)
+            hilightStart = text.find(emStart, hilightEnd)
 
         # clear out the tag strings
-        self.Replace(hilightStart, hilightStart+len(emStart), '')
-        self.Replace(hilightEnd, hilightEnd+len(emEnd), '')
+        hilightStart = text.rfind(emStart)
+        while hilightStart >= 0:
+            hilightEnd = text.find(emEnd, hilightStart)
+            self.Replace(hilightEnd, hilightEnd+len(emEnd), '')
+            self.Replace(hilightStart, hilightStart+len(emStart), '')
+            text = self.GetValue()
+            hilightStart = text.rfind(emStart)
 
     def AdjustToSize(self):
         """
@@ -151,16 +156,16 @@ class ConflictVScrolledArea(ScrolledPanel):
             # and the user has modified that stamp in the meanwhile
             if c.change.exclusions:
                 if "sharing.model.MailMessageRecord" in c.value:
-                    fmt = _(u"%(index)d. %(person)s removed %(em)saddresses%(/em)s from this item")
+                    fmt = _(u"%(index)3d. %(em)s%(person)s%(/em)s removed %(em)saddresses%(/em)s from this item")
                 elif "sharing.model.EventRecord" in c.value:
-                    fmt = _(u"%(index)d. %(person)s removed this item from the %(em)sCalendar%(/em)s")
+                    fmt = _(u"%(index)3d. %(em)s%(person)s%(/em)s removed this item from the %(em)sCalendar%(/em)s")
                 elif "sharing.model.TaskRecord" in c.value:
-                    fmt = _(u"%(index)d. %(person)s removed this item from the %(em)sTask List%(/em)s")
+                    fmt = _(u"%(index)3d. %(em)s%(person)s%(/em)s removed this item from the %(em)sTask List%(/em)s")
                 else:
                     # an unknown stamp?
-                    fmt = _(u"%(index)d. %(person)s removed %(em)s%(fieldName)s%(/em)s from this item")
+                    fmt = _(u"%(index)3d. %(em)s%(person)s%(/em)s removed %(em)s%(fieldName)s%(/em)s from this item")
             else:
-                fmt = _(u"%(index)3d. %(person)s changed the %(fieldName)s to: %(em)s%(value)s%(/em)s")
+                fmt = _(u"%(index)3d. %(em)s%(person)s%(/em)s changed the %(em)s%(fieldName)s%(/em)s to %(em)s%(value)s%(/em)s")
 
             # build the text string
             text = fmt % {
@@ -227,7 +232,7 @@ class ConflictDialog(wx.Dialog):
         vsizer.Add((0, 20), 0, flag=wx.EXPAND)
 
         # header "pending changes" text
-        warn = _(u"Note that decisions are not undoable.")
+        warn = _(u"Applying and discarding changes cannot be undone.")
         conflictCount = len(conflicts)
         if conflictCount == 1:
             headingText = _(u"There is 1 pending change. %(warning)s") % { 'warning': warn }
