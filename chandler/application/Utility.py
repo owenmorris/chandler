@@ -34,7 +34,7 @@ import version
 # with your name (and some helpful text). The comment's really there just to
 # cause Subversion to warn you of a conflict when you update, in case someone 
 # else changes it at the same time you do (that's why it's on the same line).
-SCHEMA_VERSION = "414" # vajda: AppCollection's "copying" cloud was wrong
+SCHEMA_VERSION = "415" # vajda: added autoDelete WrapperCollection attribute
 
 logger = None # initialized in initLogging()
 
@@ -259,6 +259,7 @@ COMMAND_LINE_OPTIONS = {
     'mvcc':       ('',   '--mvcc',       'b', True, 'MVCC', 'run repository multi version concurrency control'),
     'nomvcc':     ('',   '--nomvcc',     'b', False, 'NOMVCC', 'run repository without multi version concurrency control'),
     'prune':      ('',   '--prune',      's', '10000', None, 'number of items in a view to prune to after each commit'),
+    'version':    ('',   '--ver',        's', None, None, 'version to open repository at'),
     'prefs':      ('',   '--prefs',      's', 'chandler.prefs', None, 'path to prefs file that contains defaults for command line options, relative to profile directory'),
 }
 
@@ -571,7 +572,8 @@ def initRepository(directory, options, allowSchemaView=False):
         dbHome = repository.backup()
         repository.logger.info("Repository was backed up into %s", dbHome)
 
-    view = repository.createView()
+    version = long(options.version) if options.version else None
+    view = repository.createView(version=version)
 
     if options.repair:
         schema.initRepository(view)

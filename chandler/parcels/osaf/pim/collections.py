@@ -425,6 +425,11 @@ class WrapperCollection(ContentCollection):
     sources = schema.Sequence(inverse=ContentCollection.sourceFor,
                               doc="the collections being wrapped",
                               initialValue=[])
+
+    # When a source is removed and the resulting set is an EmptySet
+    # this collection gets deleted if autoDelete is True.
+    autoDelete = schema.One(schema.Boolean, defaultValue=False)
+
     schema.addClouds(copying=schema.Cloud(byCloud=[sources]))
 
     def __setup__(self):
@@ -442,7 +447,6 @@ class WrapperCollection(ContentCollection):
                 set = self._sourcesChanged_(op)
                 sourceChanged = set.sourceChanged
                 actualSource = set.findSource(sourceId)
-                assert actualSource is not None
                 for uuid in source.withoutTrash(False).iterkeys():
                     view._notifyChange(sourceChanged, 'add', 'collection',
                                        source, name, False, uuid, dirties,
@@ -452,12 +456,14 @@ class WrapperCollection(ContentCollection):
                 set = getattr(self, self.__collection__)
                 sourceChanged = set.sourceChanged
                 actualSource = set.findSource(sourceId)
-                assert actualSource is not None
                 for uuid in source.withoutTrash(False).iterkeys():
                     view._notifyChange(sourceChanged, 'remove', 'collection',
                                        source, name, False, uuid, dirties,
                                        actualSource)
                 set = self._sourcesChanged_(op)
+
+                if self.autoDelete and type(set) is EmptySet:
+                    self.delete()
 
     def addSource(self, source):
 
@@ -585,7 +591,7 @@ class IntersectionCollection(WrapperCollection):
 
             if op == 'add':
                 set = getattr(self, name)
-                wasEmpty = isinstance(set, EmptySet)
+                wasEmpty = type(set) is EmptySet
                 if not wasEmpty:
                     sourceSet = getattr(source, source.__collection__)
                     for uuid in set.iterkeys():
@@ -594,21 +600,23 @@ class IntersectionCollection(WrapperCollection):
                                                'remove', 'collection',
                                                name, uuid, ())
                 set = self._sourcesChanged_(op)
-                if wasEmpty and not isinstance(set, EmptySet):
+                if wasEmpty and not type(set) is EmptySet:
                     for uuid in set.iterkeys():
                         view._notifyChange(_collectionChanged,
                                            'add', 'collection',
                                            name, uuid, ())
 
             elif (op == 'remove' and
-                  not isinstance(getattr(self, name), EmptySet)):
+                  not type(getattr(self, name)) is EmptySet):
                 set = self._sourcesChanged_(op)
                 sourceSet = getattr(source, source.__collection__)
-                if isinstance(set, EmptySet):
+                if type(set) is EmptySet:
                     for uuid in sourceSet.iterkeys():
                         view._notifyChange(_collectionChanged,
                                            'remove', 'collection',
                                            name, uuid, ())
+                    if self.autoDelete:
+                        self.delete()
                 else:
                     for uuid in set.iterkeys():
                         if uuid not in sourceSet:
@@ -937,9 +945,7 @@ class IndexedSelectionCollection(SingleSourceWrapperCollection):
 
         if source is None:
             set = EmptySet()
-            if op == 'remove':
-                self.delete()
-                return set
+
         elif isinstance(source, WrapperCollection):
             # bug 5899 - alpha2 workaround: When SmartCollections are
             # wrapped with IntersectionCollection/UnionCollection,
@@ -951,6 +957,7 @@ class IndexedSelectionCollection(SingleSourceWrapperCollection):
                     break
             else:
                 set = Difference(source, trash)
+
         else:
             set = Set(source)
 
