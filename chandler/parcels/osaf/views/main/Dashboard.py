@@ -108,14 +108,17 @@ class DashboardBlock(Table):
     #def _onTriageEvent(self, event, autoTriageToo):        
         # Don't fire all the observers (until we're done, that is).
         recurringEventsToHandle = set()
+        mastersToPurge = set()
         attrsToFind = ((pim.EventStamp.modificationFor.name, None),
                        ('_sectionTriageStatus', None))
-        with self.itsView.observersDeferred():
-            with self.itsView.reindexingDeferred():
+        view = self.itsView
+        with view.observersDeferred():
+            with view.reindexingDeferred():
                 for key in self.contents.iterkeys():
-                    master, sectionTS = self.itsView.findValues(key, *attrsToFind)
+                    master, sectionTS = view.findValues(key, *attrsToFind)
+                    mastersToPurge.add(master)
                     if autoTriageToo or sectionTS is not None:
-                        item = self.itsView[key]
+                        item = view[key]
                         item.purgeSectionTriageStatus()
                         if autoTriageToo:
                             if item.hasLocalAttributeValue('doAutoTriageOnDateChange'):
@@ -126,14 +129,22 @@ class DashboardBlock(Table):
                             
                         if master is not None:
                             recurringEventsToHandle.add(master)
-         
+                
+                for master in mastersToPurge:
+                    # don't let masters keep their _sectionTriageStatus, if
+                    # they do it'll be inherited inappropriately by
+                    # modifications                    
+                    if isinstance(master, UUID):
+                        if view.findValue(master, '_sectionTriageStatus', None):
+                            view[master].purgeSectionTriageStatus()
+                    elif hasattr(master, '_sectionTriageStatus'):
+                        master.purgeSectionTriageStatus()
+                        
         # (We do this outside the deferrals because this depends on the indexes...
         for master in recurringEventsToHandle:
             if isinstance(master, UUID):
-                master = self.itsView[master]
-            # don't let masters keep their _sectionTriageStatus, if they do it'll
-            # be inherited inappropriately by modifications
-            master.purgeSectionTriageStatus()
+                master = view[master]
+
             pim.EventStamp(master).updateTriageStatus(checkOccurrences=autoTriageToo)
 
     def activeViewChanged(self):
