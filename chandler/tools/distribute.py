@@ -369,6 +369,12 @@ if __name__ == '__main__':
                         if build == 'deb':
                             options.distribFiles[mode].append(buildDEB(mode, options))
 
+                    if options.outputDir <> options.buildDir:
+                        for distribFile in options.distribFiles[mode]:
+                            log('Moving %s from %s to %s' % (distribFile, options.buildDir, options.outputDir))
+                            os.rename(os.path.join(options.buildDir, distribFile),
+                                      os.path.join(options.outputDir, distribFile))
+
                     if os.access(options.distribDir, os.F_OK):
                         rmdirs(options.distribDir)
 
