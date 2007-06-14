@@ -227,16 +227,18 @@ def buildEXE(mode, options):
 
         r = runCommand(cmd)
 
-        targetFile = '%s.exe' % options.distribName
-        targetPath = os.path.join(options.buildDir, targetFile)
+        distribFile = '%s.exe' % options.distribName
 
-        if os.path.exists(targetPath):
-            os.remove(targetPath)
+        targetFile = os.path.join(options.buildDir, distribFile)
+        sourceFile = os.path.join(nsisPath, 'Setup.exe')
 
-        if os.path.exists(os.path.join(nsisPath, 'Setup.exe')):
-            os.rename(os.path.join(nsisPath, 'Setup.exe'), targetPath)
+        if os.path.exists(targetFile):
+            os.remove(targetFile)
 
-            result = targetPath
+        if os.path.exists(sourceFile):
+            os.rename(sourceFile, targetFile)
+
+            result = distribFile
 
     return result
 
@@ -339,6 +341,24 @@ def checkOptions(options):
             sys.exit(3)
 
 
+def generateTinderboxOutput(mode, distribFiles):
+    if mode == 'release':
+        tfilename = 'enduser'
+    else:
+        tfilename = 'developer'
+
+    tfilename = os.path.join(options.outputDir, tfilename)
+    tfile     = open(tfilename, 'w')
+
+    for distribFile in distribFiles:
+        log('Moving %s from %s to %s' % (distribFile, options.buildDir, options.outputDir))
+        tfile.write('%s\n' % distribFile)
+        os.rename(os.path.join(options.buildDir, distribFile),
+                  os.path.join(options.outputDir, distribFile))
+
+    tfile.close()
+
+
 if __name__ == '__main__':
     options = parseOptions()
 
@@ -373,10 +393,7 @@ if __name__ == '__main__':
                             options.distribFiles[mode].append(buildDEB(mode, options))
 
                     if options.outputDir <> options.buildDir:
-                        for distribFile in options.distribFiles[mode]:
-                            log('Moving %s from %s to %s' % (distribFile, options.buildDir, options.outputDir))
-                            os.rename(os.path.join(options.buildDir, distribFile),
-                                      os.path.join(options.outputDir, distribFile))
+                        generateTinderboxOutput(mode, options.distribFiles[mode])
 
                     if os.access(options.distribDir, os.F_OK):
                         rmdirs(options.distribDir)
