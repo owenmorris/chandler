@@ -337,6 +337,7 @@ class RefContainer(DBContainer):
     def refIterator(self, view, uCol, version):
 
         store = self.store
+        c = self.c
 
         class _iterator(object):
 
@@ -344,13 +345,13 @@ class RefContainer(DBContainer):
 
                 _self.cursor = None
                 _self.txnStatus = store.startTransaction(view)
-                _self.cursor = self.c.openCursor()
+                _self.cursor = c.openCursor()
 
             def __del__(_self):
 
                 if _self.cursor is not None:
                     try:
-                        self.c.closeCursor(_self.cursor)
+                        c.closeCursor(_self.cursor)
                         store.commitTransaction(view, _self.txnStatus)
                     except:
                         store.repository.logger.exception("in __del__")
@@ -360,22 +361,30 @@ class RefContainer(DBContainer):
             def close(_self):
 
                 if _self.cursor is not None:
-                    self.c.closeCursor(_self.cursor)
+                    c.closeCursor(_self.cursor)
                     store.commitTransaction(view, _self.txnStatus)
                     _self.cursor = None
                     _self.txnStatus = 0
 
             def next(_self, uRef):
 
-                try:
-                    return self.c.find_ref(_self.cursor, uCol, uRef, ~version,
-                                           RefContainer.REF_TYPES, self.c.flags)
-                except DBLockDeadlockError:
-                    if _self.txnStatus & store.TXN_STARTED:
-                        store._logDL()
-                        return True
-                    else:
+                while True:
+                    try:
+                        return c.find_ref(_self.cursor, uCol, uRef, ~version,
+                                          RefContainer.REF_TYPES, c.flags)
+                    except DBLockDeadlockError:
+                        if _self.txnStatus & store.TXN_STARTED:
+                            store._logDL()
+                            _self.reset()
+                            continue
                         raise
+
+            def reset(_self):
+
+                c.closeCursor(_self.cursor)
+                store.abortTransaction(view, _self.txnStatus)
+                _self.txnStatus = store.startTransaction(view)
+                _self.cursor = c.openCursor()
 
         return _iterator()
 
@@ -791,6 +800,7 @@ class IndexesContainer(DBContainer):
     def nodeIterator(self, view, uIndex, version):
         
         store = self.store
+        c = self.c
 
         class _iterator(object):
 
@@ -798,12 +808,12 @@ class IndexesContainer(DBContainer):
 
                 _self.cursor = None
                 _self.txnStatus = store.startTransaction(view)
-                _self.cursor = self.c.openCursor()
+                _self.cursor = c.openCursor()
 
             def __del__(_self):
 
                 try:
-                    self.c.closeCursor(_self.cursor)
+                    c.closeCursor(_self.cursor)
                     store.commitTransaction(view, _self.txnStatus)
                 except:
                     store.repository.logger.exception("in __del__")
@@ -816,32 +826,40 @@ class IndexesContainer(DBContainer):
                              Record.UUID, uKey,
                              Record.INT, ~version)
 
-                try:
-                    entry = self.c.find_record(_self.cursor, key,
-                                               IndexesContainer.ENTRY_TYPES,
-                                               self.c.flags, None)
-                    if entry is not None:
-                        level, points = entry.data
-                        if level == 0:  # deleted entry
-                            return None
+                while True:
+                    try:
+                        entry = c.find_record(_self.cursor, key,
+                                              IndexesContainer.ENTRY_TYPES,
+                                              c.flags, None)
+                        if entry is not None:
+                            level, points = entry.data
+                            if level == 0:  # deleted entry
+                                return None
                     
-                        node = SkipList.Node(level)
+                            node = SkipList.Node(level)
 
-                        for lvl in xrange(0, level):
-                            point = node[lvl+1]
-                            (point.prevKey, point.nextKey,
-                             point.dist) = points[lvl*3:(lvl+1)*3]
+                            for lvl in xrange(0, level):
+                                point = node[lvl+1]
+                                (point.prevKey, point.nextKey,
+                                 point.dist) = points[lvl*3:(lvl+1)*3]
 
-                        return node
+                            return node
 
-                    return None
+                        return None
 
-                except DBLockDeadlockError:
-                    if _self.txnStatus & store.TXN_STARTED:
-                        store._logDL()
-                        return True
-                    else:
+                    except DBLockDeadlockError:
+                        if _self.txnStatus & store.TXN_STARTED:
+                            store._logDL()
+                            _self.reset()
+                            continue
                         raise
+
+            def reset(_self):
+
+                c.closeCursor(_self.cursor)
+                store.abortTransaction(view, _self.txnStatus)
+                _self.txnStatus = store.startTransaction(view)
+                _self.cursor = c.openCursor()
 
         return _iterator()
 
