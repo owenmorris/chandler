@@ -143,7 +143,7 @@ def Start(hardhatScript, workingDir, buildVersion, clobber, log, skipTests=False
         for releaseMode in buildModes:
             doInstall(releaseMode, workingDir, log)
 
-            doDistribution(releaseMode, workingDir, log, outputDir, buildVersion, buildVersionEscaped, hardhatScript)
+            doDistribution(releaseMode, workingDir, log, outputDir, buildVersion, buildVersionEscaped, branchID)
 
             if skipTests:
                 ret = 'success'
@@ -173,7 +173,7 @@ def Start(hardhatScript, workingDir, buildVersion, clobber, log, skipTests=False
             changes = "-changes"
             for releaseMode in buildModes:
                 doDistribution(releaseMode, workingDir, log, outputDir,
-                               buildVersion, buildVersionEscaped, hardhatScript)
+                               buildVersion, buildVersionEscaped, branchID)
 
         if not svnChanges:
             log.write("No changes\n")
@@ -275,7 +275,7 @@ def dumpTestLogs(log, logfile):
     log.write(separator)
 
 
-def doDistribution(releaseMode, workingDir, log, outputDir, buildVersion, buildVersionEscaped, hardhatScript):
+def doDistribution(releaseMode, workingDir, log, outputDir, buildVersion, buildVersionEscaped, branchID):
     #   Create end-user, developer distributions
     if perfMode:
         print "Skipping distribution (Performance Test Run) for " + releaseMode
@@ -285,14 +285,19 @@ def doDistribution(releaseMode, workingDir, log, outputDir, buildVersion, buildV
         print "Making distribution files for " + releaseMode
         log.write(separator)
         log.write("Making distribution files for " + releaseMode + "\n")
-        if releaseMode == "debug":
-            distOption = "-dD"
+
+        if branchID is None:
+            s = buildVersion
         else:
-            distOption = "-D"
+            s = branchID
 
         try:
-            outputList = hardhatutil.executeCommandReturnOutput(
-             [hardhatScript, "-o", os.path.join(outputDir, buildVersion), distOption, buildVersionEscaped])
+            cmd = [pythonProgram, './tools/distribute.py',
+                                  '-o %s' % os.path.join(outputDir, buildVersion),
+                                  '-m %s' % releaseMode,
+                                  '-t %s' % s]
+
+            outputList = hardhatutil.executeCommandReturnOutput(cmd)
             hardhatutil.dumpOutputList(outputList, log)
 
         except hardhatutil.ExternalCommandErrorWithOutputList, e:
