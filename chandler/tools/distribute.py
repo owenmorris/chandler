@@ -310,7 +310,10 @@ def checkOptions(options):
         log('Unable to locate bin (aka ChandlerBin) directory [%s]' % options.binDir, error=True)
         sys.exit(3)
 
-    if not options.outputDir:
+    if options.outputDir:
+        if not os.path.isdir(options.outputDir):
+            os.makedirs(options.outputDir)
+    else:
         options.outputDir = options.buildDir
 
     if not os.path.isdir(options.outputDir):
