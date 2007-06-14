@@ -1979,6 +1979,10 @@ class OriginatorsAttributeEditor(EmailAddressAttributeEditor):
         if result == u'':
             result = super(OriginatorsAttributeEditor, 
                 self).GetAttributeValue(item, pim.mail.MailStamp.fromAddress.name)
+            if result == u'':
+                # Bug 9353: if accounts aren't set up, this'll be blank. In this 
+                # case, just use "me".
+                result = messages.ME
         return result
 
 class OutboundEmailAddressAEBlock(MailAEBlock):

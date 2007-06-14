@@ -387,7 +387,7 @@ def makeCalendarArea(parcel, oldVersion):
                     viewAttribute=pim.EventStamp.startTime.name,
                     presentationStyle={'format': 'timeZoneOnly'},
                     stretchFactor=0.0,
-                    minimumSize=SizeType(100, -1))])
+                    minimumSize=SizeType(180, -1))])
 
     transparencyArea = \
         makeArea(parcel, 'CalendarTransparencyArea',
