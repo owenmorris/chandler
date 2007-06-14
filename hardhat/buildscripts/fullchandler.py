@@ -134,7 +134,7 @@ def Start(hardhatScript, workingDir, buildVersion, clobber, log, skipTests=False
 
         if ret == 'success':
             for releaseMode in releaseModes:
-                doDistribution(releaseMode, workingDir, log, outputDir, buildVersion, buildVersionEscaped, hardhatScript)
+                doDistribution(releaseMode, workingDir, log, outputDir, buildVersion, buildVersionEscaped)
 
             if skipTests:
                 ret = 'success'
@@ -177,7 +177,7 @@ def Start(hardhatScript, workingDir, buildVersion, clobber, log, skipTests=False
             log.write("Changes in SVN require making distributions\n")
             changes = "-changes"
             for releaseMode in releaseModes:
-                doDistribution(releaseMode, workingDir, log, outputDir, buildVersion, buildVersionEscaped, hardhatScript)
+                doDistribution(releaseMode, workingDir, log, outputDir, buildVersion, buildVersionEscaped)
 
         else:
             log.write("No changes\n")
@@ -330,30 +330,38 @@ def checkDistributionSize(log, releaseMode, workingDir, buildVersionEscaped):
         raise e2
 
 
-def doDistribution(releaseMode, workingDir, log, outputDir, buildVersion, buildVersionEscaped, hardhatScript):
+def doDistribution(releaseMode, workingDir, log, outputDir, buildVersion, buildVersionEscaped):
     #   Create end-user, developer distributions
-    chanDir = os.path.join(workingDir, 'chandler')
-    os.chdir(chanDir)
-
     print "Making distribution files for " + releaseMode
     log.write(separator)
     log.write("Making distribution files for " + releaseMode + "\n")
-    if releaseMode == "debug":
-        distOption = "-dD"
-    else:
-        distOption = "-D"
+
+    chanDir = os.path.join(workingDir, 'chandler')
+    os.chdir(chanDir)
 
     try:
-        outputList = hardhatutil.executeCommandReturnOutput(
-          [hardhatScript, "-o", os.path.join(outputDir, buildVersion), distOption, buildVersionEscaped])
+        cmd = [ pythonProgram, './tools/distribute.py',
+                               '-o %s' % os.path.join(outputDir, buildVersion),
+                               '-m %s' % releaseMode,
+                               '-t %s' % buildVersion ]
+
+        outputList = hardhatutil.executeCommandReturnOutput(cmd)
         hardhatutil.dumpOutputList(outputList, log)
-        
+
+    except hardhatutil.ExternalCommandErrorWithOutputList, e:
+        print "distribution failed", e.exitCode
+        log.write("***Error during distribution***\n")
+        hardhatutil.dumpOutputList(e.outputList, log)
+        forceBuildNextCycle(log, workingDir)
+        raise e
+
     except Exception, e:
-        doCopyLog("***Error during distribution building process*** ", workingDir, logPath, log)
+        doCopyLog("***Error during distribution building*** ", workingDir, logPath, log)
         forceBuildNextCycle(log, workingDir)
         raise e
 
     checkDistributionSize(log, releaseMode, workingDir, buildVersionEscaped)
+
 
 
 def doCopyLog(msg, workingDir, logPath, log):
