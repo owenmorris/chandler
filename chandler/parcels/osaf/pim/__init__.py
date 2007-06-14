@@ -376,6 +376,9 @@ def installParcel(parcel, oldVersion=None):
     emailAddressCollection.addIndex('fullName', 'method',
                                     method=(emailComparator, 'cmpFullName'),
                                     monitor='fullName')
+    emailAddressCollection.addIndex('both', 'method',
+                                    method=(emailComparator, 'cmpBoth'),
+                                    monitor=('emailAddress', 'fullName'))
 
     # Contains all current me addresses (that is, referenced by an account)
     currentMeEmailAddresses = ListCollection.update(

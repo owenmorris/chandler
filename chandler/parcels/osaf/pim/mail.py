@@ -2027,8 +2027,7 @@ Issues:
             targetAddress, targetName = view.findValues(uuid, ('emailAddress', u''), 
                                                               ('fullName', u''))
             return cmp(address, targetAddress) or cmp(name, targetName)
-        indexName = 'emailAddress' if address else 'fullName'
-        match = collection.findInIndex(indexName, 'exact', compareBothParts)
+        match = collection.findInIndex('both', 'exact', compareBothParts)
         if match:
             if __debug__:
                log.debug("Returning existing email address '%s' for '%s'/'%s'",
@@ -2147,8 +2146,25 @@ def makeCompareMethod(attrName):
     return compare, compare_init
 
 class EmailComparator(schema.Item):
+    # For separately indexing emailAddress and fullName, case-insensitively
     cmpAddress, cmpAddress_init = makeCompareMethod('emailAddress')
     cmpFullName, cmpFullName_init = makeCompareMethod('fullName')
+    
+    # For indexing both attributes, case-sensitively
+    bothValues = (('emailAddress', u''),
+                  ('fullName', u''))
+    def cmpBoth(self, index, u1, u2, vals):
+        if u1 in vals:
+            v1 = vals[u1]
+        else:
+            v1 = self.itsView.findValues(u1, *EmailComparator.bothValues)
+        if u2 in vals:
+            v2 = vals[u2]
+        else:
+            v2 = self.itsView.findValues(u2, *EmailComparator.bothValues)
+        return cmp(v1, v2)
+    def cmpBoth_init(self, index, u, vals):
+        return self.itsView.findValues(u, *EmailComparator.bothValues)
 
 # Map from account type strings to account types
 
