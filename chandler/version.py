@@ -9,7 +9,7 @@ _version = { 'release':    '0.7',
 #       as it can/will be replaced during the build process
 #
 #     continuous build        build = '.dev'
-#                             checkpoint = None
+#                             checkpoint = YYYYMMDDHHMMSS
 #                             revision set by caller
 #
 #     checkpoint build        build = '.dev'
@@ -66,7 +66,11 @@ if len(_version['build']) > 0:
         _template += '-r%(revision)s'
 
     if _version['checkpoint'] is not None:
-        _template += '-checkpoint%(checkpoint)s'
+        # continuous builds do not use -checkpoint text
+        if len(_version['checkpoint']) > 8:
+            _template += '-%(checkpoint)s'
+        else:
+            _template += '-checkpoint%(checkpoint)s'
 
 release    = _version['release']
 build      = '%s' % _version['build']
