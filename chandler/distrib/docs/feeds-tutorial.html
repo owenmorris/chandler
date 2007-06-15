@@ -174,6 +174,7 @@ current directory, with the web server running, use all three parameters.</p>
 <p>If you&#x2019;re not using <a href="http://www.cygwin.com/">cygwin</a> type:</p>
 <pre class="code">$ release\RunChandler.bat --create -W -P .</pre>
 <p class="callout"><strong>Note:</strong> The web server can also be started from the &quot;Test&quot; menu, using the &quot;Activate built-in web server&quot; menu item. </p>
+<p class="callout"><strong>Note:</strong> If you are getting an Internal Error message you may need to add the --catch=never parameter. </p>
 
 <h3>Creating a new project</h3>
 
@@ -207,14 +208,26 @@ from setuptools import setup
 
 setup(
     name = "Chandler-FeedsPlugin",
-    version = "0.1",
+    version = "0.3",
     description = "Simple RSS/Atom feed support for Chandler",
+    author = "OSAF",
+    test_suite = "feeds.tests",
     packages = ["feeds"],
     include_package_data = True,
     entry_points = {
         "chandler.parcels": ["RSS/Atom Feeds = feeds"]
-    }
+    },
+    classifiers = ["Development Status :: 3 - Alpha",
+                   "Environment :: Plugins",
+                   "Framework :: Chandler",
+                   "Intended Audience :: Developers",
+                   "License :: OSI Approved :: Apache Software License",
+                   "Operating System :: OS Independent",
+                   "Programming Language :: Python",
+                   "Topic :: Office/Business :: Groupware"],
+    #long_description = open('README.txt').read(),
 )
+
 </pre>
 
 <p>Then we need to create a Python package that is called feeds by making a directory <code>feeds</code>
@@ -225,6 +238,12 @@ that accomplishes just that (Windows users need to adjust accordingly):</p>
 $ mkdir feeds
 $ cat &#62; feeds/__init__.py
 ^D
+</pre>
+
+<p>We then need to get a copy of FeedParser which can be downloaded from http://www.feedparser.com or can be copied from the already working Chandler-FeedsParcel directory:
+
+<pre class="code">
+$ cp ...chandler/projects/Chandler-FeedsPlugin/feeds/feedparser.py feeds/.
 </pre>
 
 <p>The last thing to do is to run our setup script to install the parcel to Chandler. Here is how
@@ -287,24 +306,22 @@ all of them should contain content. </li>
 
 <p>Let&#x2019;s take a look at some example code that should be placed in <code>feeds/channels.py</code>.</p>
 
-<pre class="code">__parcel__    = "feeds"
+<pre class="code">__all__ = ["FeedChannel", "FeedItem"]
+
+__parcel__ = "feeds"
 
 import time, logging, urllib
 from datetime import datetime
-from PyICU import ICUtzinfo, TimeZone
-from osaf.pim.calendar.TimeZone import convertToICUtzinfo
+from PyICU import ICUtzinfo
+from osaf.pim.calendar.TimeZone import convertToICUtzinfo, formatTime
 from dateutil.parser import parse as dateutil_parse
 from application import schema
-from util import feedparser, indexes
-from xml.sax import SAXParseException
+from util import indexes
 from osaf import pim
-from osaf.pim.notes import Note
 from i18n import MessageFactory
 from twisted.web import client
 from twisted.internet import reactor
-from osaf.pim.calendar.TimeZone import formatTime
-from repository.util.URL import URL
-from repository.util.Lob import Lob
+from osaf.startup import PeriodicTask, fork_item
 
 _ = MessageFactory("Chandler-FeedsPlugin")
 
@@ -335,10 +352,14 @@ class FeedChannel(pim.ListCollection):
     isEstablished = schema.One(schema.Boolean, initialValue=False)
     isPreviousUpdateSuccessful = schema.One(schema.Boolean, initialValue=True)
     logItem = schema.One(initialValue=None)
-    schema.addClouds(sharing = schema.Cloud(author, copyright, link, url))
-    who = schema.Descriptor(redirectTo="author")
     
-    def __init__(self, *args, **kw):
+    schema.addClouds(
+        sharing = schema.Cloud(
+            literal = [author, copyright, link, url]
+        )
+    )
+    
+    def __setup__(self, *args, **kw):
         """
         This method initializes a feed channel.
         """
@@ -387,18 +408,28 @@ class FeedItem(pim.ContentItem):
     # FeedItem repository interface
     #
     link = schema.One(schema.URL, initialValue=None)
-    category = schema.One(schema.Text)
-    author = schema.One(schema.Text)
+    category = schema.One(schema.Text, indexed=True)
+    author = schema.One(schema.Text, indexed=True)
     date = schema.One(schema.DateTime)
     channel = schema.One(FeedChannel)
-    content = schema.One(schema.Lob)
+    content = schema.One(schema.Lob, indexed=True)
     updated = schema.One(schema.Boolean)
-    about = schema.Descriptor(redirectTo="displayName")
-    who = schema.Descriptor(redirectTo="author")
-    body = schema.Descriptor(redirectTo="content")
-    schema.addClouds(sharing = schema.Cloud(link, category, author, date))
-    
-    def __init__(self, *args, **kw):
+
+    @apply
+    def body():
+        def fget(self):
+            return self.content
+        def fset(self, value):
+            self.content = value
+        return property(fget, fset)
+
+    schema.addClouds(
+        sharing = schema.Cloud(
+            literal = [link, category, author, date]
+        )
+    )
+
+    def __setup__(self, *args, **kw):
         """
         This method initializes a new feed item.
         """
@@ -420,24 +451,6 @@ following lines in <code>feeds/__init__.py</code> file.</p>
 
 <p>When Chandler creates a new or refreshes an existing Repository it looks at all of the
 installed parcels and includes any data definitions that it can find.</p>
-
-<h3>Viewing data definitions </h3>
-
-<p>To see if everything is working start Chandler with a fresh repository, and
-run the web server:</p>
-
-<pre class="code">$ ./release/RunChandler --create -W</pre>
-
-<p>Now use your favorite web browser to go to
-  <a href="http://localhost:1888/repo/">http://localhost:1888/repo/</a>. On the page that is displayed, you should
-see an area like this:</p>
-<blockquote class="code">
-  <ul>
-  <li><b>feeds</b>: <span class="fake-link">FeedChannel</span>, <span class="fake-link">FeedItem</span></li>
-  </ul>
-</blockquote>
-<p>&nbsp; </p>
-
 <h2 id="userinterface">Extending Chandler&#x2019;s User Interface</h2>
 
 <p>Now that we have defined the data types that our Feeds parcel
@@ -479,15 +492,13 @@ item has been clicked, which in turn will run some Python code that generates a 
 <code>FeedChannel</code>. Let&#x2019;s take a look at example code that should be placed in
 <code>feeds/blocks.py</code> file.</p>
 
-<pre class="code">import logging
-import application
-import osaf.views.detail as Detail
-import application.Globals as Globals
+<pre class="code">import logging, wx
+from osaf.views import detail
+from application import schema, dialogs
 import osaf.framework.blocks.Block as Block
 from channels import FeedChannel, FeedItem
 from i18n import MessageFactory
 from osaf import messages
-from application import schema
 from osaf.pim.structs import SizeType, RectType
 
 _ = MessageFactory("Chandler-FeedsPlugin")
@@ -589,6 +600,25 @@ could refer to the &#x201c;NewFeedChannel&#x201d; <code>MenuItem</code> like thi
 
 <pre>feeds = schema.ns("feeds", view)<br>feedMenuItem = feeds.NewFeedChannel</pre>
 
+<h3>Viewing data definitions </h3>
+
+<p>To see if everything is working start Chandler with a fresh repository, and
+run the web server:</p>
+
+<pre class="code">$ ./release/RunChandler --create -W</pre>
+
+<p>Now use your favorite web browser to go to
+  <a href="http://localhost:1888/repo/">http://localhost:1888/repo/</a>. On the page that is displayed, you should
+see an area like this:</p>
+<blockquote class="code">
+  <ul>
+  <li><b>feeds</b>: <span class="fake-link">FeedChannel</span>, <span class="fake-link">FeedItem</span>, <span class="fake-link">UpdateTask</span>
+  <ul><li><b>blocks</b>: <span class="fake-link">AddFeedCollectionEvent</span>, <span class="fake-link"> FeedItemDetail</span></ul></li>
+  </ul>
+</blockquote>
+<p>&nbsp; </p>
+
+
 <h3>Introducing bidirectional references </h3>
 
 <div class="text-with-diagram">
@@ -605,10 +635,10 @@ schema for <code>MenuItem</code> and <code>Menu</code> are defined such that if 
 is automatically a child of the <code>Menu</code>. Hence, when <code>CollectionMenu</code>
 is assigned to <code>NewFeedsChannel</code>&#x2019;s <code>parentBlock</code> then
 <code>NewFeedsChannel</code> is also automatically added to the <code>CollectionMenu</code>&#x2019;s
-<code>childBlocks</code> and the Repository will maintain the integrity of this relationship.
+<code>childrenBlocks</code> and the Repository will maintain the integrity of this relationship.
 We are going to see more uses of bidirectional references later in this tutorial. </p>
 
-<p class="callout"><strong>Note:</strong> The <code>parentBlock</code>/<code>childBlocks</code>
+<p class="callout"><strong>Note:</strong> The <code>parentBlock</code>/<code>childrenBlocks</code>
 relationship is true for all elements in the user interface. </p>
 
 </div>
@@ -626,7 +656,7 @@ in the constructor and they will be set automatically. Let&#x2019;s take a look 
     This class implements an event for adding a new collection to the sidebar.
     """
     
-    def onNewItem(self):
+    def onNewItem (self):
         """
         This method is invoked when the user clicks on "New Feed Channel"
         menu item.
@@ -641,7 +671,7 @@ in the constructor and they will be set automatically. Let&#x2019;s take a look 
             
             if not channel.isEstablished and not success:
                 # request a new URL from the user.
-                url = application.dialogs.Util.promptUser(
+                url = dialogs.Util.promptUser(
                     _(u"The provided URL seems to be invalid"),
                     _(u"Enter a URL for the RSS Channel"),
                     defaultValue = unicode(channel.url))
@@ -659,8 +689,9 @@ in the constructor and they will be set automatically. Let&#x2019;s take a look 
                         channel.refresh(callback=calledInTwisted)
                     except:
                         # unable to recreate the feed channel.
-			wx.MessageBox (_(u"Could not create channel for %(url)s\nCheck the URL and try again.") % {"url": url},
-			               _(u"New Channel Error")
+                        wx.MessageBox (_(u"Could not create channel for %(url)s\nCheck the URL and try again.") % {"url": url},
+                                       _(u"New Channel Error"),
+                                       parent=wx.GetApp().mainFrame)
                         
         def calledInTwisted(channelUUID, success):
             """
@@ -670,8 +701,7 @@ in the constructor and they will be set automatically. Let&#x2019;s take a look 
             wx.GetApp().PostAsyncEvent(calledInMainThread, channelUUID, success)
             
         # get a URL from the user, ...
-        import wx
-        url = application.dialogs.Util.promptUser(
+        url = dialogs.Util.promptUser(
             _(u"New Channel"),
             _(u"Enter a URL for the RSS Channel"),
             defaultValue = u"http://")
@@ -691,8 +721,9 @@ in the constructor and they will be set automatically. Let&#x2019;s take a look 
             channel.refresh(callback=calledInTwisted)
         except:
             # unable to create a new feed channel.
-        wx.MessageBox (_(u"Could not create channel for %(url)s\nCheck the URL and try again.") % {"url": url},
-                       _(u"New Channel Error"))
+            wx.MessageBox (_(u"Could not create channel for %(url)s\nCheck the URL and try again.") % {"url": url},
+                           _(u"New Channel Error"),
+                           parent=wx.GetApp().mainFrame)
             return None
         
         # return succesfully
@@ -710,29 +741,27 @@ but for the sake of clarity we can ignore them for now.</p>
 
 <h2 id="summaryview">Displaying a List of Articles in Summary View</h2>
 
-<p>When you select a feed from the Sidebar with show &quot;All&quot; items selected from the toolbar
-you should see a table widget in the Summary View with a series of blank lines. Each of these lines
-represents an article from the selected feed, even though it isn&#x2019;t displaying any specifics about
-the article. If you click on one of these blank lines, the detail view will display a mostly-blank
-view of that particular article.</p>
-
 <p>The Summary View displays three attributes from the items: <code>who</code>, <code>about</code>,
 and <code>date</code>. These attributes are usually not true repository attributes but instead
 repository attribute redirection is used to forward their references to other attributes in the
-class. To define this redirection <code>schema.Descriptor()</code> is used.</p>
+class. To define this redirection <code>schema.Descriptor()</code> is used. Note the summary view will display
+0 items until we include the refresh functionality much later in the tutorial.</p>
+
+
 
 <pre class="code">class FeedItem(pim.ContentItem):
     .
     .
     .
-    about = schema.Descriptor(redirectTo="displayName")
-    who = schema.Descriptor(redirectTo="author")</pre>
+    @apply
+    def body():
+        def fget(self):
+            return self.content
+        def fset(self, value):
+            self.content = value
+        return property(fget, fset)</pre>
 
-<p>In the case of <code>FeedItem</code> we have already defined a <code>date</code> attribute, so we only need
-to redirect <code>about</code> and <code>who</code>. Whenever the Summary View wants to know what
-to display in the &#x201c;about&#x201d; column it will call <code>getattr(item, "about")</code>.
-This will automatically forward to the <code>displayName</code> attribute, so it is as if the Summary
-View had called <code>getattr(item, "displayName")</code>.</p>
+<p>This code in FeedItem handles the accessing and changing of the content of the feed.  </p>
 
 <h2 id="detailview">Displaying Article Content in Detail View</h2>
 
@@ -755,6 +784,10 @@ file and place the following code in function <code>installParcel()</code>:</p>
     .
     # The hierarchy of UI elements for the FeedItem detail view
     feedItemRootBlocks = [
+        # The markup bar
+        detail.MarkupBar,
+        detail.makeSpacer(parcel, height=6, position=0.01).install(parcel),
+        
         # Author area
         detail.makeArea(parcel, "AuthorArea",
             position=0.19,
@@ -887,7 +920,7 @@ The <code>HTMLDetailArea</code> class is a Block that is able to render document
 To make use of it we derive new Block from <code>HTMLDetailArea</code> and implement method
 <code>getHTMLText()</code>, which is called when it is time to display a feed item content on screen. </p>
 
-<pre class="code">class FeedItemDetail(Detail.HTMLDetailArea):
+<pre class="code">class FeedItemDetail(detail.HTMLDetailArea):
     """
     This class implements a block for visualizing feed item content.
     """
@@ -901,30 +934,29 @@ To make use of it we derive new Block from <code>HTMLDetailArea</code> and imple
         if item is not None:
             displayName = getattr(item, 'displayName', None)
             if displayName is None:
-                displayname =u" &#60;" + messages.UNTITLED + u" &#62;"
+                displayName =u"&lt;" + messages.UNTITLED + u"&gt;"
                 
             # make the html
-            HTMLText = u" &#60;html &#62; &#60;body &#62;\n\n"
+            HTMLText = u"&lt;html&gt;&lt;body&gt;\n\n"
             
-            link = item.getAttributeValue("link", default=None)
+            link = getattr(item, "link", None)
             if link:
-                HTMLText = HTMLText + u" &#60;a href=\"%s\" &#62;" % (link)
-            HTMLText = HTMLText + u" &#60;h5 &#62;%s &#60;/h5 &#62;" % (displayName)
+                HTMLText = HTMLText + u"&lt;a href=\"%s\"&gt;" % (link)
+            HTMLText = HTMLText + u"&lt;h5&gt;%s&lt;/h5&gt;" % (displayName)
             if link:
-                HTMLText = HTMLText + u" &#60;/a &#62;\n"
+                HTMLText = HTMLText + u"&lt;/a&gt;\n"
                 
-            content = item.getAttributeValue("content", default=None)
+            content = getattr(item, "content", None)
             if content:
                 content = content.getReader().read()
             else:
                 content = displayName
-            #desc = desc.replace(" &#60;", "&lt;").replace(" &#62;", "&gt;")
-            HTMLText = HTMLText + u" &#60;p &#62;" + content + u" &#60;/p &#62;\n\n"
+            #desc = desc.replace("&lt;", "&amp;lt;").replace("&gt;", "&amp;gt;")
+            HTMLText = HTMLText + u"&lt;p&gt;" + content + u"&lt;/p&gt;\n\n"
             if link:
-                HTMLText = HTMLText + u" &#60;br &#62; &#60;a href=\"" + unicode(item.link) \
-                + u"\" &#62;" + _(u"more...") + u" &#60;/a &#62;"
+                HTMLText = HTMLText + u"&lt;br&gt;&lt;a href=\"" + unicode(item.link) + u"\"&gt;" + _(u"more...") + u"&lt;/a&gt;"
                 
-            HTMLText = HTMLText + " &#60;/body &#62; &#60;/html &#62;\n"
+            HTMLText = HTMLText + "&lt;/body&gt;&lt;/html&gt;\n"
             
             return HTMLText</pre>
 
@@ -947,7 +979,7 @@ the <code>feedItemBlocks</code>:</p>
         ),
     ]
     
-    # The BranchSubtree ties the blocks to our FeedItem&#x2019;s Kind.
+    # The BranchSubtree ties the blocks to our FeedItem"s Kind.
     detail.makeSubtree(parcel, FeedItem, feedItemRootBlocks)</pre>
 
 <p>This ensures that it is part of the <code>BranchSubtree</code> that we built earlier.</p>
@@ -960,32 +992,41 @@ the Twisted network library for task management. For the purposes of our example
 we are going to use a <code>PeriodicTask</code> instance to regularly call the <code>refresh()</code>
 method in all instances of class <code>FeedChannel</code>. In <code>channels.py</code> file add the following class:</p>
 
-<pre class="code">class FeedUpdateTaskClass:
+<pre class="code">class UpdateTask(PeriodicTask):
     """
     This class implements a periodic task that checks and reads new feeds
     on 30 minutes interval.
     """
-    
-    def __init__(self, item):
-        """
-        This method initializes a periodic task for updating feeds.
-        """
-        # store our parcels view
-        self.view = item.itsView
+
+    # target is periodic task
+    def getTarget(self):
+        return self
+
+    # target is already constructed as self
+    def __call__(self, periodicTask):
+        return self
+
+    # create a view called Feeds and keep it around 500 items in size
+    def fork(self):
+        return fork_item(self, name="Feeds", pruneSize=500, notify=False)
         
+    # target implementation
     def run(self):
         """
         This method implements a periodic task for updating feeds.
         """
         # update our view
-        self.view.refresh(notify=False)
+        view = self.itsView
+        view.refresh(notify=False)
+
         # call refresh on all followed feed channels
-        for channel in FeedChannel.iterItems(self.view):
+        for channel in FeedChannel.iterItems(view):
             channel.refresh()
+
         # return true to keep the timer running
         return True</pre>
         
-<p>Here the <code>FeedUpdateTaskClass</code> implements the basic interface of a
+<p>Here the <code>UpdateTask</code> implements the basic interface of a
 <code>PeriodicTask</code>: the <code>run()</code> method is called on a regular interval.</p>
 
 <h3>Repository views</h3>
@@ -1013,7 +1054,7 @@ parameter along as a parameter to any read/write methods. </p>
 </div>
 
 <p>Chandler&#x2019;s user interface runs  on one thread, and all repository operations
-on this &quot;UI Thread&quot; share the same view. The <code>FeedUpdateTaskClass</code> may be running
+on this &quot;UI Thread&quot; share the same view. The <code>UpdateTask</code> may be running
 on a background thread, and it would be unfortunate if a user changed something in the user
 interface at the same time that same data is being updated in a background thread. Chandler
 will ensure that if this task is running on a separate thread then it also gets its own view.
@@ -1023,7 +1064,7 @@ all the updates have happened, then the results are committed back to the Reposi
 
 <h3>Finding objects in Repository</h3>
 
-<p>The <code>FeedUpdateTaskClass</code> needs to find all instances of class <code>FeedChannel</code>
+<p>The <code>UpdateTask</code> needs to find all instances of class <code>FeedChannel</code>
 and call their <code>refresh()</code> method. The method <code>iterItems()</code> is a class method
 on all classes that are inherited from class <code>Item</code>. It finds all instances of a given class
 that are in Repository. The view parameter to method <code>iterItems()</code> is necessary because classes
@@ -1036,24 +1077,26 @@ For this purpose <code>PeriodicTask</code> class is used to persist information 
 how and when a task should be run. We&#x2019;ll simply create an instance of <code>PeriodicTask</code>
 in <code>installParcel()</code> in <code>feeds/__init__.py</code> as we did with the blocks earlier.</p>
 
-<pre class="code">def installParcel(parcel, oldName=None):
+<pre class="code">from channels import UpdateTask
+
+def installParcel(parcel, oldName=None):
     """
     This function installs the RSS feed parcel.
     """
     from application import schema
     from osaf import startup
     from datetime import timedelta
+
     # start a periodic task
-    startup.PeriodicTask.update(parcel, "FeedUpdateTask",
-        invoke="feeds.channels.FeedUpdateTaskClass",
-        run_at_startup=True,
-        interval=timedelta(minutes=30)
-    )
+    UpdateTask.update(parcel, "updateTask",
+                      run_at_startup=True,
+                      interval=timedelta(minutes=30))
+
     # load our blocks parcel, too
     schema.synchronize(parcel.itsView, "feeds.blocks")</pre>
 
 <p>During startup Chandler uses <code>PeriodicTask.iterItems()</code> method to find all instances of
-<code>PeriodicTask</code> class, just like our <code>FeedUpdateTaskClass</code> does to find all instances
+<code>PeriodicTask</code> class, just like our <code>UpdateTask</code> does to find all instances
 of <code>FeedChannel</code> class. It will then register each task with Twisted, which will handle
 the instantiation and running of our task.</p>
 
@@ -1088,7 +1131,7 @@ def setAttribute(self, data, attr, newattr=None):
         type = self.getAttributeAspect(newattr, "type", None)
         if type is not None:
             value = type.makeValue(value)
-        self.setAttributeValue(newattr, value)
+        setattr(self, newattr, value)
 
 def setAttributes(self, data, attributes):
     """
@@ -1140,6 +1183,7 @@ class ConditionalHTTPClientFactory(client.HTTPClientFactory):
         else:
             client.HTTPClientFactory.noPage(self, reason)
 
+
 class FeedChannel(pim.ListCollection):
     """
     This class implements a feed channel collection that is visualized
@@ -1161,14 +1205,16 @@ class FeedChannel(pim.ListCollection):
     isEstablished = schema.One(schema.Boolean, initialValue=False)
     isPreviousUpdateSuccessful = schema.One(schema.Boolean, initialValue=True)
     logItem = schema.One(initialValue=None)
-    schema.addClouds(sharing = schema.Cloud(author, copyright, link, url))
-    who = schema.Descriptor(redirectTo="author")
+
+    schema.addClouds(
+        sharing = schema.Cloud(
+            literal = [author, copyright, link, url]
+        )
+    )
+
+    feedparser = None
     
-    def __init__(self, *args, **kw):
-        """
-        This method initializes a feed channel.
-        """
-        super(FeedChannel, self).__init__(*args, **kw)
+    def __setup__(self, *args, **kw):
         self.addIndex("link", "value", attribute="link")
         
     def refresh(self, callback=None):
@@ -1179,781 +1225,7 @@ class FeedChannel(pim.ListCollection):
         feedsView = self.itsView
         feedsView.refresh(notify=False)
         item = feedsView.findUUID(self.itsUUID)
-        return item.download().addCallback(item.feedFetchSuccess, callback).addErrback(
-            item.feedFetchFailed, callback)
-
-    def download(self):
-        """
-        This method uses a HTTP conduict to download an RSS channel feed.
-        """
-        url = str(self.url)
-        etag = str(getattr(self, "etag", None))
-        lastModified = getattr(self, "lastModified", None)
-        if lastModified:
-            lastModified = lastModified.strftime("%a, %d %b %Y %H:%M:%S %Z")
-
-        (scheme, host, port, path) = client._parse(url)
-        scheme = str(scheme)
-        host = str(host)
-        path = str(path)
-        factory = ConditionalHTTPClientFactory(url=url,
-            lastModified=lastModified, etag=etag)
-        reactor.connectTCP(host, port, factory)
-
-        return factory.deferred
-    
-    def feedFetchSuccess(self, info, callback=None):
-        """
-        This method implements a callback for succesful RSS feed downloads.
-        """
-        
-        (data, status, headers) = info
-        # getattr returns a unicode object which needs to be converted to
-        # bytes for logging
-        channel = getattr(self, "displayName", None)
-        if channel is None:
-            channel = str(self.url)
-        else:
-            channel = channel.encode("ascii", "replace")
-            
-        if not data:
-            # Page hasn"t changed (304)
-            logger.info("Channel has not changed: %s" % channel)
-            return FETCH_NOCHANGE
-        
-        logger.info("Channel downloaded: %s" % channel)
-        
-        # set etag
-        etag = headers.get("etag", None)
-        if etag:
-            self.etag = etag[0]
-            
-        # set lastModified
-        lastModified = headers.get("last-modified", None)
-        if lastModified:
-            self.lastModified = date_parse(lastModified[0])
-            
-        count = self.parse(data)
-        if count:
-            logger.info("...added %d FeedItems" % count)
-            
-        self.isEstablished = True
-        self.isPreviousUpdateSuccessful = True
-        self.logItem = None
-        
-        self.itsView.commit()
-        
-        if callback:
-            callback(self.itsUUID, True)
-            
-        return FETCH_UPDATED
-
-    def feedFetchFailed(self, failure, callback=None):
-        """
-        This method implements a callback for failed RSS feed downloads.
-        """
-        # getattr returns a unicode object which needs to be converted to
-        # bytes for logging
-        channel = getattr(self, "displayName", None)
-        if channel is None:
-            channel = str(self.url)
-        else:
-            channel = channel.encode("ascii", "replace")
-            
-        logger.error("Failed to update channel: %s; Reason: %s",
-            channel, failure.getErrorMessage())
-        
-        if self.isEstablished:
-            if self.isPreviousUpdateSuccessful:
-                self.isPreviousUpdateSuccessful = False
-                item = FeedItem(itsView=self.itsView)
-                item.displayName = _(u"Feed channel is unreachable")
-                item.author = _(u"Chandler Feeds Parcel")
-                item.category = _(u"Internal")
-                item.date = datetime.now(ICUtzinfo.default)
-                item.content = view.createLob(_(u"This feed channel is currently unreachable"))
-                self.addFeedItem(item)
-                self.logItem = item
-                self.itsView.commit()
-            else:
-                if self.logItem:
-                    self.logItem.content = \
-                    view.createLob(u"This feed channel has been unreachable from " \
-                    + unicode(formatTime(self.logItem.date)) + u" to " \
-                    + unicode(formatTime(datetime.now(ICUtzinfo.default))))
-                    
-                    self.itsView.commit()
-                    
-        if callback:
-            callback(self.itsUUID, False)
-            
-        return FETCH_FAILED
-
-    def parse(self, rawData):
-        """
-        This method uses an external library method to parse the RSS feed content
-        and then fills the channel attributes.
-        """
-        data = feedparser.parse(rawData)
-        # For fun, keep the latest copy of the feed inside the channel item
-        self.body = unicode(rawData, "utf-8")
-        return self.fillAttributes(data)
-
-
-    def fillAttributes(self, data):
-        """
-        This method maps external attribute names to internal attribute names.
-        """
-        # Map some external attribute names to internal attribute names:
-        attrs = {"title":"displayName", "description":"body"}
-        setAttributes(self, data["channel"], attrs)
-        
-        # These attribute names don"t need remapping:
-        attrs = ["link", "copyright", "category", "language"]
-        setAttributes(self, data["channel"], attrs)
-        
-        date = data["channel"].get("date")
-        if date:
-            self.date = date_parse(str(date))
-        
-        # parse feed items.
-        return self._parseItems(data["items"])
-
-    def addFeedItem(self, feedItem):
-        """
-        Add a single item, and add it to any listening collections.
-        """
-        feedItem.channel = self
-        self.add(feedItem)
-
-    def _parseItems(self, items):
-        """
-        This method parses all the news items in the RSS feed.
-        """
-        view = self.itsView
-        
-        count = 0
-        
-        for newItem in items:
-            # Convert date to datetime object
-            if getattr(newItem, "date_parsed", None):
-                try:
-                    # date_parsed is a tuple of 9 integers, like gmtime( )
-                    # returns...
-                    # date_parsed seems to always be converted to GMT, so
-                    # let&#x2019;s make a datetime object using values from
-                    # date_parsed, coupled with a GMT tzinfo...
-                    kwds = dict(tzinfo=ICUtzinfo.getInstance('UTC'))
-                    itemDate = datetime(*newItem.date_parsed[:5], **kwds)
-                    # logger.debug("%s, %s, %s" % \
-                    #     (newItem.date, newItem.date_parsed, itemDate))
-                    newItem.date = itemDate
-                except:
-                    logger.exception("Could not get date: %s (%s)" % \
-                        (newItem.date, newItem.date_parsed))
-                    newItem.date = None
-            # Get the item content, using the "content" attribute first,
-            # falling back to what&#x2019;s in"description"
-            content = newItem.get("content")
-            if content:
-                content = content[0]["value"]
-            else:
-                content = newItem.get("description")
-            title = newItem.get("title")
-            matchingItem = None
-            link = getattr(newItem, "link", None)
-            if link:
-                # Find all FeedItems that have this link
-                matchingItem = indexes.valueLookup(self, "link", "link", link)
-            # If no matching items (based on link), it&#x2019;s new
-            # If matching item, if title or description have changed,
-            # update the item and mark it unread
-            if matchingItem is None:
-                feedItem = FeedItem(itsView=view)
-                feedItem.refresh(newItem)
-                self.addFeedItem(feedItem)
-                logger.debug("Added new item: %s", title)
-                count += 1
-            else:
-                # A FeedItem exists within this Channel that has the
-                # same link.  @@@MOR For now I am only going to allow one
-                # FeedItem at a time (per Channel) to link to the same place,
-                # since it seems like that gets the behavior we want.
-                oldTitle = matchingItem.displayName
-                titleDifferent = (oldTitle != title)
-                # If no date in the item, just consider it a matching date;
-                # otherwise do compare datestamps:
-                dateDifferent = False
-                haveFeedDate = "date" in newItem
-                if haveFeedDate:
-                    if matchingItem.date != newItem.date:
-                        dateDifferent = True
-                if not self.ignoreContentChanges:
-                    oldContent = matchingItem.content.getReader().read()
-                    contentDifferent = (oldContent != content)
-                else:
-                    contentDifferent = False
-                if contentDifferent or titleDifferent or dateDifferent:
-                    matchingItem.refresh(newItem)
-                    if matchingItem.read:
-                        matchingItem.updated = True
-                    matchingItem.read = False
-                    msg = "Updated item: %s (content %s, title %s, date %s)"
-                    logger.debug(msg, title, contentDifferent, titleDifferent,
-                                 dateDifferent)
-        return count
-
-    def markAllItemsRead(self):
-        """
-        This method marks all items in this feed channel as read.
-        """
-        for item in self:
-            item.read = True
-
-class FeedItem(pim.ContentItem):
-    """
-    This class implements a feed channel item that is visualized
-    in the summary and detail views.
-    """
-    #
-    # FeedItem repository interface
-    #
-    link = schema.One(schema.URL, initialValue=None)
-    category = schema.One(schema.Text)
-    author = schema.One(schema.Text)
-    date = schema.One(schema.DateTime)
-    channel = schema.One(FeedChannel)
-    content = schema.One(schema.Lob)
-    updated = schema.One(schema.Boolean)
-    about = schema.Descriptor(redirectTo="displayName")
-    who = schema.Descriptor(redirectTo="author")
-    body = schema.Descriptor(redirectTo="content")
-    schema.addClouds(sharing = schema.Cloud(link, category, author, date))
-
-    def __init__(self, *args, **kw):
-        """
-        This method initializes a new feed item.
-        """
-        kw.setdefault("displayName", _(u"No Title"))
-        super(FeedItem, self).__init__(*args, **kw)
-
-    def _compareLink(self, other):
-        """
-        This method compares two feed items.
-        """
-        return cmp(str(self.link).lower(), str(other.link).lower())
-
-    def refresh(self, data):
-        """
-        This method updates a feed item content.
-        """
-        # fill in the item
-        attrs = {"title":"displayName"}
-        setAttributes(self, data, attrs)
-
-        attrs = ["link", "category", "author"]
-        # @@@MOR attrs = ["creator", "link", "category"]
-        setAttributes(self, data, attrs)
-
-        content = data.get("content")
-
-        # Use the "content" info first, falling back to what&#x2019;s in "description"
-        if content:
-            content = content[0]["value"]
-        else:
-            content = data.get("description")
-
-        if content:
-            self.content = self.getAttributeAspect("content", "type").makeValue(content, indexed=True)
-
-        if "date" in data:
-            self.date = date_parse(str(data.date))
-        else:
-            # No date was available in the feed, so assign it "now"
-            self.date = datetime.datetime.now(ICUtzinfo.default)</pre>
-
-<h2 id="conclusion">Conclusion</h2>
-
-<p> In this tutorial, you have learned how to: </p>
-<ul>
-  <li> define new data types. </li>
-  <li> populate the repository with data. </li>
-  <li> display that data in the Sidebar, in the Summary View, and in the Detail View. </li>
-</ul>
-<p> The next step is to spend some time developing your own data types and application behavior.
-This tutorial will get you some basic functionality for your data but Chandler&#x2019;s true
-potential comes to light when you begin to explore some of its more advanced capabilities.
-When items have been properly defined, many of these capabilities &#x201c;just work&#x201d;
-for your new class.</p>
-
-<h2 id="appendix"> Appendix: Code Listing </h2>
-
-This appendix presents the full source code for the reviewed example feeds parcel.
-
-<h3>__init__.py</h3>
-
-<pre class="code">#   Copyright (c) 2003-2006 Open Source Applications Foundation
-#
-#   Licensed under the Apache License, Version 2.0 (the "License");
-#   you may not use this file except in compliance with the License.
-#   You may obtain a copy of the License at
-#
-#       http://www.apache.org/licenses/LICENSE-2.0
-#
-#   Unless required by applicable law or agreed to in writing, software
-#   distributed under the License is distributed on an "AS IS" BASIS,
-#   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-#   See the License for the specific language governing permissions and
-#   limitations under the License.
-
-def installParcel(parcel, oldName=None):
-    """
-    This function installs the RSS feed parcel.
-    """
-    from application import schema
-    from osaf import startup
-    from datetime import timedelta
-    # start a periodic task
-    startup.PeriodicTask.update(parcel, "FeedUpdateTask",
-        invoke="feeds.channels.FeedUpdateTaskClass",
-        run_at_startup=True,
-        interval=timedelta(minutes=30)
-    )
-    # load our blocks parcel, too
-    schema.synchronize(parcel.itsView, "feeds.blocks")</pre>
-
-
-<h3>blocks.py</h3>
-
-<pre class="code">#   Copyright (c) 2003-2006 Open Source Applications Foundation
-#
-#   Licensed under the Apache License, Version 2.0 (the "License");
-#   you may not use this file except in compliance with the License.
-#   You may obtain a copy of the License at
-#
-#       http://www.apache.org/licenses/LICENSE-2.0
-#
-#   Unless required by applicable law or agreed to in writing, software
-#   distributed under the License is distributed on an "AS IS" BASIS,
-#   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-#   See the License for the specific language governing permissions and
-#   limitations under the License.
-
-
-import logging
-import application
-import osaf.views.detail as Detail
-import application.Globals as Globals
-import osaf.framework.blocks.Block as Block
-from channels import FeedChannel, FeedItem
-from i18n import MessageFactory
-from osaf import messages
-from application import schema
-from osaf.pim.structs import SizeType, RectType
-
-_ = MessageFactory("Chandler-FeedsPlugin")
-
-logger = logging.getLogger(__name__)
-
-class FeedItemDetail(Detail.HTMLDetailArea):
-    """
-    This class implements a block for visualizing feed item content.
-    """
-    def getHTMLText(self, item):
-        """
-        This method renders the feed item content as HTML.
-        """
-        # check that we have a valid feed item.
-        if item == item.itsView:
-            return
-        if item is not None:
-            displayName = getattr(item, 'displayName', None)
-            if displayName is None:
-                displayname =u" &#60;" + messages.UNTITLED + u" &#62;"
-                
-            # make the html
-            HTMLText = u" &#60;html &#62; &#60;body &#62;\n\n"
-            
-            link = item.getAttributeValue("link", default=None)
-            if link:
-                HTMLText = HTMLText + u" &#60;a href=\"%s\" &#62;" % (link)
-            HTMLText = HTMLText + u" &#60;h5 &#62;%s &#60;/h5 &#62;" % (displayName)
-            if link:
-                HTMLText = HTMLText + u" &#60;/a &#62;\n"
-                
-            content = item.getAttributeValue("content", default=None)
-            if content:
-                content = content.getReader().read()
-            else:
-                content = displayName
-            #desc = desc.replace(" &#60;", "&lt;").replace(" &#62;", "&gt;")
-            HTMLText = HTMLText + u" &#60;p &#62;" + content + u" &#60;/p &#62;\n\n"
-            if link:
-                HTMLText = HTMLText + u" &#60;br &#62; &#60;a href=\"" + unicode(item.link) \
-                + u"\" &#62;" + _(u"more...") + u" &#60;/a &#62;"
-                
-            HTMLText = HTMLText + " &#60;/body &#62; &#60;/html &#62;\n"
-            
-            return HTMLText
-
-class AddFeedCollectionEvent(Block.AddToSidebarEvent):
-    """
-    This class implements an event for adding a new collection to the sidebar.
-    """
-    
-    def onNewItem(self):
-        """
-        This method is invoked when the user clicks on "New Feed Channel"
-        menu item.
-        """
-        def calledInMainThread(channelUUID, success):
-            """
-            This callback is invoked once the feed has been processed.  If all
-            is okay, success will be True, otherwise False.
-            """
-            self.itsView.refresh(notify=False)
-            channel = self.itsView.findUUID(channelUUID)
-            
-            if not channel.isEstablished and not success:
-                # request a new URL from the user.
-                url = application.dialogs.Util.promptUser(
-                    _(u"The provided URL seems to be invalid"),
-                    _(u"Enter a URL for the RSS Channel"),
-                    defaultValue = unicode(channel.url))
-                url = str(url)
-                if url != None:
-                    try:
-                        # try to recreate the channel...
-                        channel.displayName = url
-                        channel.url = channel.getAttributeAspect("url", "type").makeValue(url)
-                        channel.isEstablished = False
-                        channel.isPreviousUpdateSuccessful = True
-                        channel.logItem = None
-                        channel.itsView.commit()
-                        # ... and then try to update its contents.
-                        channel.refresh(callback=calledInTwisted)
-                    except:
-                        # unable to recreate the feed channel.
-                        application.dialogs.Util.ok(wx.GetApp().mainFrame,
-                                                    _(u"New Channel Error"),
-                                                    _(u"Could not create channel for %(url)s\nCheck the URL and try again.") % {"url": url})
-                        
-        def calledInTwisted(channelUUID, success):
-            """
-            This callback is what we really pass to twisted, and it will
-            invoke the calledInMainThread method in the main thread.
-            """
-            wx.GetApp().PostAsyncEvent(calledInMainThread, channelUUID, success)
-            
-        # get a URL from the user, ...
-        import wx
-        url = application.dialogs.Util.promptUser(
-            _(u"New Channel"),
-            _(u"Enter a URL for the RSS Channel"),
-            defaultValue = u"http://")
-        if url == None:
-            return None
-        url = str(url)
-        
-        # ... and then try to create a new channel.
-        try:
-            # create a new feed channel...
-            self.itsView.refresh(notify=False)
-            channel = FeedChannel(itsView=self.itsView)
-            channel.displayName = url
-            channel.url = channel.getAttributeAspect("url", "type").makeValue(url)
-            self.itsView.commit()
-            # ... and then update its contents.
-            channel.refresh(callback=calledInTwisted)
-        except:
-            # unable to create a new feed channel.
-            application.dialogs.Util.ok(wx.GetApp().mainFrame,
-                _(u"New Channel Error"),
-                _(u"Could not create channel for %(url)s\nCheck the URL and try again.") % {"url": url})
-            return None
-        
-        # return succesfully
-        return channel
-
-def installParcel(parcel, oldVersion=None):
-    """
-    This function defines the feed parcel detail view layout.
-    """
-    
-    detail = schema.ns("osaf.views.detail", parcel)
-    blocks = schema.ns("osaf.framework.blocks", parcel)
-    main   = schema.ns("osaf.views.main", parcel)
-    feeds  = schema.ns("feeds", parcel)
-    
-    # Create an AddFeedCollectionEvent that adds an RSS collection to the sidebar.
-    addFeedCollectionEvent = AddFeedCollectionEvent.update(
-        parcel, "addFeedCollectionEvent",
-        blockName = "addFeedCollectionEvent")
-    
-    # Add a separator to the "Collection" menu ...
-    blocks.MenuItem.update(parcel, "feedsParcelSeparator",
-                           blockName = "feedsParcelSeparator",
-                           menuItemKind = "Separator",
-                           parentBlock = main.CollectionMenu)
-    
-    # ... and, below it, a menu item to subscribe to a RSS feed.
-    blocks.MenuItem.update(parcel, "newFeedChannel",
-        blockName = "newFeedChannel",
-        title = _(u"New Feed Channel"),
-        event = addFeedCollectionEvent,
-        eventsForNamedLookup = [addFeedCollectionEvent],
-        parentBlock = main.CollectionMenu,
-    )
-    
-    # The hierarchy of UI elements for the FeedItem detail view
-    feedItemRootBlocks = [
-        # Author area
-        detail.makeArea(parcel, "AuthorArea",
-            position=0.19,
-            childBlocks = [
-                detail.makeLabel(parcel, _(u"author"), borderTop=2),
-                detail.makeSpacer(parcel, width=8),
-                #field("AuthorAttribute", title=u"author"),
-                detail.makeEditor(parcel, "author",
-                       viewAttribute=u"author",
-                       border=RectType(0,2,2,2),
-                       readOnly=True),                   
-            ]
-        ).install(parcel),
-        
-        # Category
-        detail.makeArea(parcel, "CategoryArea",
-            position=0.2,
-            childBlocks = [
-                detail.makeLabel(parcel, _(u"category"), borderTop=2),
-                detail.makeSpacer(parcel, width=8),
-                detail.makeEditor(parcel, "category",
-                       viewAttribute=u"category",
-                       border=RectType(0,2,2,2),
-                       readOnly=True),
-            ]
-        ).install(parcel),
-        
-        # URL
-        detail.makeArea(parcel, "LinkArea", 
-            position=0.3,
-            childBlocks = [
-                detail.makeLabel(parcel, _(u"link"), borderTop=2),
-                detail.makeSpacer(parcel, width=8),
-                detail.makeEditor(parcel, "link",
-                       viewAttribute=u"link",
-                       border=RectType(0,2,2,2),
-                       readOnly=True),
-            ],
-        ).install(parcel),
-        
-        # Date area
-        detail.makeArea(parcel, "DateArea",
-            position=0.4,
-            childBlocks = [
-                detail.makeLabel(parcel, _(u"date"), borderTop=2),
-                detail.makeSpacer(parcel, width=8),
-                detail.makeEditor(parcel, "date",
-                       viewAttribute=u"date",
-                       border=RectType(0,2,2,2),
-                       readOnly=True,
-                       stretchFactor=0.0,
-                       size=SizeType(90, -1)),
-            ],
-        ).install(parcel),
-        
-        detail.makeSpacer(parcel, height=7, position=0.8999).install(parcel),
-        
-        FeedItemDetail.update(parcel, "ItemBodyArea",
-            position=0.9,
-            blockName="articletext",
-            size=SizeType(100,50),
-            minimumSize=SizeType(100,50),
-        ),
-    ]
-    
-    # The BranchSubtree ties the blocks to our FeedItem's Kind.
-    detail.makeSubtree(parcel, FeedItem, feedItemRootBlocks)</pre>
-
-
-<h3>channels.py</h3>
-
-<pre class="code">#   Copyright (c) 2003-2006 Open Source Applications Foundation
-#
-#   Licensed under the Apache License, Version 2.0 (the "License");
-#   you may not use this file except in compliance with the License.
-#   You may obtain a copy of the License at
-#
-#       http://www.apache.org/licenses/LICENSE-2.0
-#
-#   Unless required by applicable law or agreed to in writing, software
-#   distributed under the License is distributed on an "AS IS" BASIS,
-#   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-#   See the License for the specific language governing permissions and
-#   limitations under the License.
-
-
-__parcel__    = "feeds"
-
-import time, logging, urllib
-from datetime import datetime
-from PyICU import ICUtzinfo, TimeZone
-from osaf.pim.calendar.TimeZone import convertToICUtzinfo
-from dateutil.parser import parse as dateutil_parse
-from application import schema
-from util import feedparser, indexes
-from xml.sax import SAXParseException
-from osaf import pim
-from osaf.pim.notes import Note
-from i18n import MessageFactory
-from twisted.web import client
-from twisted.internet import reactor
-from osaf.pim.calendar.TimeZone import formatTime
-from repository.util.URL import URL
-from repository.util.Lob import Lob
-
-_ = MessageFactory("Chandler-FeedsPlugin")
-
-logger = logging.getLogger(__name__)
-
-FETCH_FAILED = 0
-FETCH_NOCHANGE = 1
-FETCH_UPDATED = 2
-
-def date_parse(s):
-    """Parse using dateutil's parse, then convert to ICUtzinfo timezones."""
-    return convertToICUtzinfo(dateutil_parse(s))
-
-class FeedUpdateTaskClass:
-    """
-    This class implements a periodic task that checks and reads new feeds
-    on 30 minutes interval.
-    """
-    
-    def __init__(self, item):
-        """
-        This method initializes a periodic task for updating feeds.
-        """
-        # store our parcels view
-        self.view = item.itsView
-        
-    def run(self):
-        """
-        This method implements a periodic task for updating feeds.
-        """
-        # update our view
-        self.view.refresh(notify=False)
-        # call refresh on all followed feed channels
-        for channel in FeedChannel.iterItems(self.view):
-            channel.refresh()
-        # return true to keep the timer running
-        return True
-
-def setAttribute(self, data, attr, newattr=None):
-    """
-    This function sets a given attribute overriding the name with newattr.
-    """
-    if not newattr:
-        newattr = attr
-    value = data.get(attr)
-    if value:
-        type = self.getAttributeAspect(newattr, "type", None)
-        if type is not None:
-            value = type.makeValue(value)
-        self.setAttributeValue(newattr, value)
-
-def setAttributes(self, data, attributes):
-    """
-    This function sets a group, which can be a dictionary or a list, of attributes.
-    """
-    if isinstance(attributes, dict):
-        for attr, newattr in attributes.iteritems():
-            setAttribute(self, data, attr, newattr=newattr)
-    elif isinstance(attributes, list):
-        for attr in attributes:
-            setAttribute(self, data, attr)
-
-class ConditionalHTTPClientFactory(client.HTTPClientFactory):
-    """
-    This class implements HTTP network access services for retrieving RSS feeds.
-    """
-
-    def __init__(self, url, lastModified=None, etag=None, method="GET",
-                 postdata=None, headers=None, agent="Chandler", timeout=0,
-                 cookies=None, followRedirect=1):
-        """
-        This method initializes a HTTP conduict.
-        """
-        # optimize our server access by using the "Last-Modified" and
-        # "ETag" fields of the HTTP request header.
-        if lastModified or etag:
-            if headers is None:
-                headers = { }
-            if lastModified:
-                headers["if-modified-since"] = lastModified
-            if etag:
-                headers["if-none-match"] = etag
-        # initialize a HTTP conduict...
-        client.HTTPClientFactory.__init__(self, url, method=method,
-            postdata=postdata, headers=headers, agent=agent, timeout=timeout,
-            cookies=cookies, followRedirect=followRedirect)
-        # ... and set a callback handler for failures.
-        self.deferred.addCallback(
-            lambda data: (data, self.status, self.response_headers)
-        )
-
-    def noPage(self, reason):
-        """
-        This method implements a callback for situations when an RSS feed
-        could not be retrieved.
-        """
-        if self.status == "304":
-            client.HTTPClientFactory.page(self, "")
-        else:
-            client.HTTPClientFactory.noPage(self, reason)
-
-
-class FeedChannel(pim.ListCollection):
-    """
-    This class implements a feed channel collection that is visualized
-    in the sidebar.
-    """   
-    #
-    # FeedChannel repository interface
-    #
-    link = schema.One(schema.URL)
-    category = schema.One(schema.Text)
-    author = schema.One(schema.Text)
-    date = schema.One(schema.DateTime)
-    url = schema.One(schema.URL)
-    etag = schema.One(schema.Text)
-    lastModified = schema.One(schema.DateTime)
-    copyright = schema.One(schema.Text)
-    language = schema.One(schema.Text)
-    ignoreContentChanges = schema.One(schema.Boolean, initialValue=False)
-    isEstablished = schema.One(schema.Boolean, initialValue=False)
-    isPreviousUpdateSuccessful = schema.One(schema.Boolean, initialValue=True)
-    logItem = schema.One(initialValue=None)
-    schema.addClouds(sharing = schema.Cloud(author, copyright, link, url))
-    who = schema.Descriptor(redirectTo="author")
-    
-    def __init__(self, *args, **kw):
-        """
-        This method initializes a feed channel.
-        """
-        super(FeedChannel, self).__init__(*args, **kw)
-        self.addIndex("link", "value", attribute="link")
-        
-    def refresh(self, callback=None):
-        """
-        This method updates the feed channel content.
-        """
-        # Make sure we have the feedsView copy of the channel item
-        feedsView = self.itsView
-        feedsView.refresh(notify=False)
-        item = feedsView.findUUID(self.itsUUID)
-        return item.download().addCallback(item.feedFetchSuccess, callback).addErrback(
-            item.feedFetchFailed, callback)
+        return item.download().addCallback(item.feedFetchSuccess, callback).addErrback(item.feedFetchFailed, callback)
 
     def download(self):
         """
@@ -2050,11 +1322,7 @@ class FeedChannel(pim.ListCollection):
                 self.itsView.commit()
             else:
                 if self.logItem:
-                    self.logItem.content = \
-                    view.createLob(u"This feed channel has been unreachable from " + \
-                    unicode(formatTime(self.logItem.date)) + u" to " \
-                    + unicode(formatTime(datetime.now(ICUtzinfo.default))))
-                    
+                    self.logItem.content = view.createLob(u"This feed channel has been unreachable from " + unicode(formatTime(self.logItem.date)) + u" to " + unicode(formatTime(datetime.now(ICUtzinfo.default))))
                     self.itsView.commit()
                     
         if callback:
@@ -2067,7 +1335,10 @@ class FeedChannel(pim.ListCollection):
         This method uses an external library method to parse the RSS feed content
         and then fills the channel attributes.
         """
-        data = feedparser.parse(rawData)
+        if self.feedparser is None:
+            import feedparser
+            FeedChannel.feedparser = feedparser
+        data = self.feedparser.parse(rawData)
         # For fun, keep the latest copy of the feed inside the channel item
         self.body = unicode(rawData, "utf-8")
         return self.fillAttributes(data)
@@ -2075,7 +1346,6 @@ class FeedChannel(pim.ListCollection):
 
     def fillAttributes(self, data):
         """
-        This method maps external attribute names to internal attribute names.
         """
         # Map some external attribute names to internal attribute names:
         attrs = {"title":"displayName", "description":"body"}
@@ -2126,7 +1396,7 @@ class FeedChannel(pim.ListCollection):
                         (newItem.date, newItem.date_parsed))
                     newItem.date = None
             # Get the item content, using the "content" attribute first,
-            # falling back to what's in"description"
+            # falling back to what"s in"description"
             content = newItem.get("content")
             if content:
                 content = content[0]["value"]
@@ -2138,7 +1408,7 @@ class FeedChannel(pim.ListCollection):
             if link:
                 # Find all FeedItems that have this link
                 matchingItem = indexes.valueLookup(self, "link", "link", link)
-            # If no matching items (based on link), it's new
+            # If no matching items (based on link), it"s new
             # If matching item, if title or description have changed,
             # update the item and mark it unread
             if matchingItem is None:
@@ -2183,6 +1453,16 @@ class FeedChannel(pim.ListCollection):
         for item in self:
             item.read = True
 
+    @schema.observer(author)
+    def onAuthorChange(self, op, attr):
+        self.updateDisplayWho(op, attr)
+    
+    def addDisplayWhos(self, whos):
+        super(FeedChannel, self).addDisplayWhos(whos)
+        author = getattr(self, 'author', None)
+        if author is not None:
+            whos.append((10, author, 'author'))
+
 class FeedItem(pim.ContentItem):
     """
     This class implements a feed channel item that is visualized
@@ -2192,23 +1472,30 @@ class FeedItem(pim.ContentItem):
     # FeedItem repository interface
     #
     link = schema.One(schema.URL, initialValue=None)
-    category = schema.One(schema.Text)
-    author = schema.One(schema.Text)
+    category = schema.One(schema.Text, indexed=True)
+    author = schema.One(schema.Text, indexed=True)
     date = schema.One(schema.DateTime)
     channel = schema.One(FeedChannel)
-    content = schema.One(schema.Lob)
+    content = schema.One(schema.Lob, indexed=True)
     updated = schema.One(schema.Boolean)
-    about = schema.Descriptor(redirectTo="displayName")
-    who = schema.Descriptor(redirectTo="author")
-    body = schema.Descriptor(redirectTo="content")
-    schema.addClouds(sharing = schema.Cloud(link, category, author, date))
 
-    def __init__(self, *args, **kw):
-        """
-        This method initializes a new feed item.
-        """
-        kw.setdefault("displayName", _(u"No Title"))
-        super(FeedItem, self).__init__(*args, **kw)
+    @apply
+    def body():
+        def fget(self):
+            return self.content
+        def fset(self, value):
+            self.content = value
+        return property(fget, fset)
+
+    schema.addClouds(
+        sharing = schema.Cloud(
+            literal = [link, category, author, date]
+        )
+    )
+
+    schema.initialValues(
+        displayName = lambda self: _(u"No Title")
+    )
 
     def _compareLink(self, other):
         """
@@ -2230,7 +1517,7 @@ class FeedItem(pim.ContentItem):
 
         content = data.get("content")
 
-        # Use the "content" info first, falling back to what's in "description"
+        # Use the "content" info first, falling back to what"s in "description"
         if content:
             content = content[0]["value"]
         else:
@@ -2243,7 +1530,829 @@ class FeedItem(pim.ContentItem):
             self.date = date_parse(str(data.date))
         else:
             # No date was available in the feed, so assign it "now"
-            self.date = datetime.datetime.now(ICUtzinfo.default)</pre>
+            self.date = datetime.now(ICUtzinfo.default)
+
+    @schema.observer(author)
+    def onAuthorChange(self, op, attr):
+        self.updateDisplayWho(op, attr)
+    
+    def addDisplayWhos(self, whos):
+        super(FeedItem, self).addDisplayWhos(whos)
+        author = getattr(self, 'author', None)
+        if author is not None:
+            whos.append((10, author, 'author'))</pre>
+
+<h2 id="conclusion">Conclusion</h2>
+
+<p> In this tutorial, you have learned how to: </p>
+<ul>
+  <li> define new data types. </li>
+  <li> populate the repository with data. </li>
+  <li> display that data in the Sidebar, in the Summary View, and in the Detail View. </li>
+</ul>
+<p> The next step is to spend some time developing your own data types and application behavior.
+This tutorial will get you some basic functionality for your data but Chandler&#x2019;s true
+potential comes to light when you begin to explore some of its more advanced capabilities.
+When items have been properly defined, many of these capabilities &#x201c;just work&#x201d;
+for your new class.</p>
+
+<h2 id="appendix"> Appendix: Code Listing </h2>
+
+This appendix presents the full source code for the reviewed example feeds parcel.
+
+<h3>__init__.py</h3>
+
+<pre class="code">#   Copyright (c) 2003-2007 Open Source Applications Foundation
+#
+#   Licensed under the Apache License, Version 2.0 (the "License");
+#   you may not use this file except in compliance with the License.
+#   You may obtain a copy of the License at
+#
+#       http://www.apache.org/licenses/LICENSE-2.0
+#
+#   Unless required by applicable law or agreed to in writing, software
+#   distributed under the License is distributed on an "AS IS" BASIS,
+#   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+#   See the License for the specific language governing permissions and
+#   limitations under the License.
+
+from channels import UpdateTask
+
+def installParcel(parcel, oldName=None):
+    """
+    This function installs the RSS feed parcel.
+    """
+    from application import schema
+    from osaf import startup
+    from datetime import timedelta
+
+    # start a periodic task
+    UpdateTask.update(parcel, "updateTask",
+                      run_at_startup=True,
+                      interval=timedelta(minutes=30))
+
+    # load our blocks parcel, too
+    schema.synchronize(parcel.itsView, "feeds.blocks")</pre>
+
+
+<h3>blocks.py</h3>
+
+<pre class="code">#   Copyright (c) 2003-2007 Open Source Applications Foundation
+#
+#   Licensed under the Apache License, Version 2.0 (the "License");
+#   you may not use this file except in compliance with the License.
+#   You may obtain a copy of the License at
+#
+#       http://www.apache.org/licenses/LICENSE-2.0
+#
+#   Unless required by applicable law or agreed to in writing, software
+#   distributed under the License is distributed on an "AS IS" BASIS,
+#   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+#   See the License for the specific language governing permissions and
+#   limitations under the License.
+
+
+import logging, wx
+from osaf.views import detail
+from application import schema, dialogs
+import osaf.framework.blocks.Block as Block
+from channels import FeedChannel, FeedItem
+from i18n import MessageFactory
+from osaf import messages
+from osaf.pim.structs import SizeType, RectType
+
+_ = MessageFactory("Chandler-FeedsPlugin")
+
+logger = logging.getLogger(__name__)
+
+
+class FeedItemDetail(detail.HTMLDetailArea):
+    """
+    This class implements a block for visualizing feed item content.
+    """
+    def getHTMLText(self, item):
+        """
+        This method renders the feed item content as HTML.
+        """
+        # check that we have a valid feed item.
+        if item == item.itsView:
+            return
+        if item is not None:
+            displayName = getattr(item, 'displayName', None)
+            if displayName is None:
+                displayName =u"&lt;" + messages.UNTITLED + u"&gt;"
+                
+            # make the html
+            HTMLText = u"&lt;html&gt;&lt;body&gt;\n\n"
+            
+            link = getattr(item, "link", None)
+            if link:
+                HTMLText = HTMLText + u"&lt;a href=\"%s\"&gt;" % (link)
+            HTMLText = HTMLText + u"&lt;h5&gt;%s&lt;/h5&gt;" % (displayName)
+            if link:
+                HTMLText = HTMLText + u"&lt;/a&gt;\n"
+                
+            content = getattr(item, "content", None)
+            if content:
+                content = content.getReader().read()
+            else:
+                content = displayName
+            #desc = desc.replace("&lt;", "&amp;lt;").replace("&gt;", "&amp;gt;")
+            HTMLText = HTMLText + u"&lt;p&gt;" + content + u"&lt;/p&gt;\n\n"
+            if link:
+                HTMLText = HTMLText + u"&lt;br&gt;&lt;a href=\"" + unicode(item.link) + u"\"&gt;" + _(u"more...") + u"&lt;/a&gt;"
+                
+            HTMLText = HTMLText + "&lt;/body&gt;&lt;/html&gt;\n"
+            
+            return HTMLText
+
+class AddFeedCollectionEvent(Block.AddToSidebarEvent):
+    """
+    This class implements an event for adding a new collection to the sidebar.
+    """
+    
+    def onNewItem (self):
+        """
+        This method is invoked when the user clicks on "New Feed Channel"
+        menu item.
+        """
+        def calledInMainThread(channelUUID, success):
+            """
+            This callback is invoked once the feed has been processed.  If all
+            is okay, success will be True, otherwise False.
+            """
+            self.itsView.refresh(notify=False)
+            channel = self.itsView.findUUID(channelUUID)
+            
+            if not channel.isEstablished and not success:
+                # request a new URL from the user.
+                url = dialogs.Util.promptUser(
+                    _(u"The provided URL seems to be invalid"),
+                    _(u"Enter a URL for the RSS Channel"),
+                    defaultValue = unicode(channel.url))
+                url = str(url)
+                if url != None:
+                    try:
+                        # try to recreate the channel...
+                        channel.displayName = url
+                        channel.url = channel.getAttributeAspect("url", "type").makeValue(url)
+                        channel.isEstablished = False
+                        channel.isPreviousUpdateSuccessful = True
+                        channel.logItem = None
+                        channel.itsView.commit()
+                        # ... and then try to update its contents.
+                        channel.refresh(callback=calledInTwisted)
+                    except:
+                        # unable to recreate the feed channel.
+                        wx.MessageBox (_(u"Could not create channel for %(url)s\nCheck the URL and try again.") % {"url": url},
+                                       _(u"New Channel Error"),
+                                       parent=wx.GetApp().mainFrame)
+                        
+        def calledInTwisted(channelUUID, success):
+            """
+            This callback is what we really pass to twisted, and it will
+            invoke the calledInMainThread method in the main thread.
+            """
+            wx.GetApp().PostAsyncEvent(calledInMainThread, channelUUID, success)
+            
+        # get a URL from the user, ...
+        url = dialogs.Util.promptUser(
+            _(u"New Channel"),
+            _(u"Enter a URL for the RSS Channel"),
+            defaultValue = u"http://")
+        if url == None:
+            return None
+        url = str(url)
+        
+        # ... and then try to create a new channel.
+        try:
+            # create a new feed channel...
+            self.itsView.refresh(notify=False)
+            channel = FeedChannel(itsView=self.itsView)
+            channel.displayName = url
+            channel.url = channel.getAttributeAspect("url", "type").makeValue(url)
+            self.itsView.commit()
+            # ... and then update its contents.
+            channel.refresh(callback=calledInTwisted)
+        except:
+            # unable to create a new feed channel.
+            wx.MessageBox (_(u"Could not create channel for %(url)s\nCheck the URL and try again.") % {"url": url},
+                           _(u"New Channel Error"),
+                           parent=wx.GetApp().mainFrame)
+            return None
+        
+        # return succesfully
+        return channel
+
+def installParcel(parcel, oldVersion=None):
+    """
+    This function defines the feed parcel detail view layout.
+    """
+    
+    detail = schema.ns("osaf.views.detail", parcel)
+    blocks = schema.ns("osaf.framework.blocks", parcel)
+    main   = schema.ns("osaf.views.main", parcel)
+    feeds  = schema.ns("feeds", parcel)
+    
+    # Create an AddFeedCollectionEvent that adds an RSS collection to the sidebar.
+    addFeedCollectionEvent = AddFeedCollectionEvent.update(
+        parcel, "addFeedCollectionEvent",
+        blockName = "addFeedCollectionEvent")
+    
+    # Add a separator to the "Collection" menu ...
+    feedsMenu = blocks.Menu.update(parcel, "feedsDemoMenu",
+                                   blockName = "feedsDemoMenu",
+                                   title = _(u'Feeds'),
+                                   helpString = _(u'RSS reader'),
+                                   childrenBlocks = [ ],
+                                   parentBlock = main.ExperimentalMenu)
+    
+    # ... and, below it, a menu item to subscribe to a RSS feed.
+    blocks.MenuItem.update(parcel, "newFeedChannel",
+        blockName = "newFeedChannel",
+        title = _(u"&Create new feed channel..."),
+        event = addFeedCollectionEvent,
+        eventsForNamedLookup = [addFeedCollectionEvent],
+        parentBlock = feedsMenu,
+    )
+    
+    # The hierarchy of UI elements for the FeedItem detail view
+    feedItemRootBlocks = [
+        # The markup bar
+        detail.MarkupBar,
+        detail.makeSpacer(parcel, height=6, position=0.01).install(parcel),
+        
+        # Author area
+        detail.makeArea(parcel, "AuthorArea",
+            position=0.19,
+            childBlocks = [
+                detail.makeLabel(parcel, _(u"author"), borderTop=2),
+                detail.makeSpacer(parcel, width=8),
+                #field("AuthorAttribute", title=u"author"),
+                detail.makeEditor(parcel, "author",
+                       viewAttribute=u"author",
+                       border=RectType(0,2,2,2),
+                       readOnly=True),                   
+            ]
+        ).install(parcel),
+        
+        # Category
+        detail.makeArea(parcel, "CategoryArea",
+            position=0.2,
+            childBlocks = [
+                detail.makeLabel(parcel, _(u"category"), borderTop=2),
+                detail.makeSpacer(parcel, width=8),
+                detail.makeEditor(parcel, "category",
+                       viewAttribute=u"category",
+                       border=RectType(0,2,2,2),
+                       readOnly=True),
+            ]
+        ).install(parcel),
+        
+        # URL
+        detail.makeArea(parcel, "LinkArea", 
+            position=0.3,
+            childBlocks = [
+                detail.makeLabel(parcel, _(u"link"), borderTop=2),
+                detail.makeSpacer(parcel, width=8),
+                detail.makeEditor(parcel, "link",
+                       viewAttribute=u"link",
+                       border=RectType(0,2,2,2),
+                       readOnly=True),
+            ],
+        ).install(parcel),
+        
+        # Date area
+        detail.makeArea(parcel, "DateArea",
+            position=0.4,
+            childBlocks = [
+                detail.makeLabel(parcel, _(u"date"), borderTop=2),
+                detail.makeSpacer(parcel, width=8),
+                detail.makeEditor(parcel, "date",
+                       viewAttribute=u"date",
+                       border=RectType(0,2,2,2),
+                       readOnly=True,
+                       stretchFactor=0.0,
+                       size=SizeType(90, -1)),
+            ],
+        ).install(parcel),
+        
+        detail.makeSpacer(parcel, height=7, position=0.8999).install(parcel),
+        
+        FeedItemDetail.update(parcel, "ItemBodyArea",
+            position=0.9,
+            blockName="articletext",
+            size=SizeType(100,50),
+            minimumSize=SizeType(100,50),
+        ),
+    ]
+    
+    # The BranchSubtree ties the blocks to our FeedItem"s Kind.
+    detail.makeSubtree(parcel, FeedItem, feedItemRootBlocks)</pre>
+
+
+<h3>channels.py</h3>
+
+<pre class="code">#   Copyright (c) 2003-2007 Open Source Applications Foundation
+#
+#   Licensed under the Apache License, Version 2.0 (the "License");
+#   you may not use this file except in compliance with the License.
+#   You may obtain a copy of the License at
+#
+#       http://www.apache.org/licenses/LICENSE-2.0
+#
+#   Unless required by applicable law or agreed to in writing, software
+#   distributed under the License is distributed on an "AS IS" BASIS,
+#   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+#   See the License for the specific language governing permissions and
+#   limitations under the License.
+
+__all__ = ["FeedChannel", "FeedItem"]
+
+__parcel__ = "feeds"
+
+import time, logging, urllib
+from datetime import datetime
+from PyICU import ICUtzinfo
+from osaf.pim.calendar.TimeZone import convertToICUtzinfo, formatTime
+from dateutil.parser import parse as dateutil_parse
+from application import schema
+from util import indexes
+from osaf import pim
+from i18n import MessageFactory
+from twisted.web import client
+from twisted.internet import reactor
+from osaf.startup import PeriodicTask, fork_item
+
+_ = MessageFactory("Chandler-FeedsPlugin")
+
+logger = logging.getLogger(__name__)
+
+FETCH_FAILED = 0
+FETCH_NOCHANGE = 1
+FETCH_UPDATED = 2
+
+def date_parse(s):
+    """Parse using dateutil's parse, then convert to ICUtzinfo timezones."""
+    return convertToICUtzinfo(dateutil_parse(s))
+
+
+class UpdateTask(PeriodicTask):
+    """
+    This class implements a periodic task that checks and reads new feeds
+    on 30 minutes interval.
+    """
+
+    # target is periodic task
+    def getTarget(self):
+        return self
+
+    # target is already constructed as self
+    def __call__(self, periodicTask):
+        return self
+
+    # create a view called Feeds and keep it around 500 items in size
+    def fork(self):
+        return fork_item(self, name="Feeds", pruneSize=500, notify=False)
+        
+    # target implementation
+    def run(self):
+        """
+        This method implements a periodic task for updating feeds.
+        """
+        # update our view
+        view = self.itsView
+        view.refresh(notify=False)
+
+        # call refresh on all followed feed channels
+        for channel in FeedChannel.iterItems(view):
+            channel.refresh()
+
+        # return true to keep the timer running
+        return True
+
+
+def setAttribute(self, data, attr, newattr=None):
+    """
+    This function sets a given attribute overriding the name with newattr.
+    """
+    if not newattr:
+        newattr = attr
+    value = data.get(attr)
+    if value:
+        type = self.getAttributeAspect(newattr, "type", None)
+        if type is not None:
+            value = type.makeValue(value)
+        setattr(self, newattr, value)
+
+def setAttributes(self, data, attributes):
+    """
+    This function sets a group, which can be a dictionary or a list, of attributes.
+    """
+    if isinstance(attributes, dict):
+        for attr, newattr in attributes.iteritems():
+            setAttribute(self, data, attr, newattr=newattr)
+    elif isinstance(attributes, list):
+        for attr in attributes:
+            setAttribute(self, data, attr)
+
+class ConditionalHTTPClientFactory(client.HTTPClientFactory):
+    """
+    This class implements HTTP network access services for retrieving RSS feeds.
+    """
+
+    def __init__(self, url, lastModified=None, etag=None, method="GET",
+                 postdata=None, headers=None, agent="Chandler", timeout=0,
+                 cookies=None, followRedirect=1):
+        """
+        This method initializes a HTTP conduict.
+        """
+        # optimize our server access by using the "Last-Modified" and
+        # "ETag" fields of the HTTP request header.
+        if lastModified or etag:
+            if headers is None:
+                headers = { }
+            if lastModified:
+                headers["if-modified-since"] = lastModified
+            if etag:
+                headers["if-none-match"] = etag
+        # initialize a HTTP conduict...
+        client.HTTPClientFactory.__init__(self, url, method=method,
+            postdata=postdata, headers=headers, agent=agent, timeout=timeout,
+            cookies=cookies, followRedirect=followRedirect)
+        # ... and set a callback handler for failures.
+        self.deferred.addCallback(
+            lambda data: (data, self.status, self.response_headers)
+        )
+
+    def noPage(self, reason):
+        """
+        This method implements a callback for situations when an RSS feed
+        could not be retrieved.
+        """
+        if self.status == "304":
+            client.HTTPClientFactory.page(self, "")
+        else:
+            client.HTTPClientFactory.noPage(self, reason)
+
+
+class FeedChannel(pim.ListCollection):
+    """
+    This class implements a feed channel collection that is visualized
+    in the sidebar.
+    """   
+    #
+    # FeedChannel repository interface
+    #
+    link = schema.One(schema.URL)
+    category = schema.One(schema.Text)
+    author = schema.One(schema.Text)
+    date = schema.One(schema.DateTime)
+    url = schema.One(schema.URL)
+    etag = schema.One(schema.Text)
+    lastModified = schema.One(schema.DateTime)
+    copyright = schema.One(schema.Text)
+    language = schema.One(schema.Text)
+    ignoreContentChanges = schema.One(schema.Boolean, initialValue=False)
+    isEstablished = schema.One(schema.Boolean, initialValue=False)
+    isPreviousUpdateSuccessful = schema.One(schema.Boolean, initialValue=True)
+    logItem = schema.One(initialValue=None)
+
+    schema.addClouds(
+        sharing = schema.Cloud(
+            literal = [author, copyright, link, url]
+        )
+    )
+
+    feedparser = None
+    
+    def __setup__(self, *args, **kw):
+        self.addIndex("link", "value", attribute="link")
+        
+    def refresh(self, callback=None):
+        """
+        This method updates a feed channel content.
+        """
+        # Make sure we have the feedsView copy of the channel item
+        feedsView = self.itsView
+        feedsView.refresh(notify=False)
+        item = feedsView.findUUID(self.itsUUID)
+        return item.download().addCallback(item.feedFetchSuccess, callback).addErrback(item.feedFetchFailed, callback)
+
+    def download(self):
+        """
+        This method uses a HTTP conduict to download an RSS channel feed.
+        """
+        url = str(self.url)
+        etag = str(getattr(self, "etag", None))
+        lastModified = getattr(self, "lastModified", None)
+        if lastModified:
+            lastModified = lastModified.strftime("%a, %d %b %Y %H:%M:%S %Z")
+
+        (scheme, host, port, path) = client._parse(url)
+        scheme = str(scheme)
+        host = str(host)
+        path = str(path)
+        factory = ConditionalHTTPClientFactory(url=url,
+            lastModified=lastModified, etag=etag, timeout=60)
+        reactor.connectTCP(host, port, factory)
+
+        return factory.deferred
+    
+    def feedFetchSuccess(self, info, callback=None):
+        """
+        This method implements a callback for succesful RSS feed downloads.
+        """
+        
+        (data, status, headers) = info
+        # getattr returns a unicode object which needs to be converted to
+        # bytes for logging
+        channel = getattr(self, "displayName", None)
+        if channel is None:
+            channel = str(self.url)
+        else:
+            channel = channel.encode("ascii", "replace")
+            
+        if not data:
+            # Page hasn"t changed (304)
+            logger.info("Channel has not changed: %s" % channel)
+            return FETCH_NOCHANGE
+        
+        logger.info("Channel downloaded: %s" % channel)
+        
+        # set etag
+        etag = headers.get("etag", None)
+        if etag:
+            self.etag = etag[0]
+            
+        # set lastModified
+        lastModified = headers.get("last-modified", None)
+        if lastModified:
+            self.lastModified = date_parse(lastModified[0])
+            
+        count = self.parse(data)
+        if count:
+            logger.info("...added %d FeedItems" % count)
+            
+        self.isEstablished = True
+        self.isPreviousUpdateSuccessful = True
+        self.logItem = None
+        
+        self.itsView.commit()
+        
+        if callback:
+            callback(self.itsUUID, True)
+            
+        return FETCH_UPDATED
+
+    def feedFetchFailed(self, failure, callback=None):
+        """
+        This method implements a callback for failed RSS feed downloads.
+        """
+        # getattr returns a unicode object which needs to be converted to
+        # bytes for logging
+        channel = getattr(self, "displayName", None)
+        if channel is None:
+            channel = str(self.url)
+        else:
+            channel = channel.encode("ascii", "replace")
+            
+        logger.error("Failed to update channel: %s; Reason: %s",
+            channel, failure.getErrorMessage())
+        
+        if self.isEstablished:
+            if self.isPreviousUpdateSuccessful:
+                self.isPreviousUpdateSuccessful = False
+                item = FeedItem(itsView=self.itsView)
+                item.displayName = _(u"Feed channel is unreachable")
+                item.author = _(u"Chandler Feeds Parcel")
+                item.category = _(u"Internal")
+                item.date = datetime.now(ICUtzinfo.default)
+                item.content = view.createLob(_(u"This feed channel is currently unreachable"))
+                self.addFeedItem(item)
+                self.logItem = item
+                self.itsView.commit()
+            else:
+                if self.logItem:
+                    self.logItem.content = view.createLob(u"This feed channel has been unreachable from " + unicode(formatTime(self.logItem.date)) + u" to " + unicode(formatTime(datetime.now(ICUtzinfo.default))))
+                    self.itsView.commit()
+                    
+        if callback:
+            callback(self.itsUUID, False)
+            
+        return FETCH_FAILED
+
+    def parse(self, rawData):
+        """
+        This method uses an external library method to parse the RSS feed content
+        and then fills the channel attributes.
+        """
+        if self.feedparser is None:
+            import feedparser
+            FeedChannel.feedparser = feedparser
+        data = self.feedparser.parse(rawData)
+        # For fun, keep the latest copy of the feed inside the channel item
+        self.body = unicode(rawData, "utf-8")
+        return self.fillAttributes(data)
+
+
+    def fillAttributes(self, data):
+        """
+        """
+        # Map some external attribute names to internal attribute names:
+        attrs = {"title":"displayName", "description":"body"}
+        setAttributes(self, data["channel"], attrs)
+        
+        # These attribute names don"t need remapping:
+        attrs = ["link", "copyright", "category", "language"]
+        setAttributes(self, data["channel"], attrs)
+        
+        date = data["channel"].get("date")
+        if date:
+            self.date = date_parse(str(date))
+        
+        # parse feed items.
+        return self._parseItems(data["items"])
+
+    def addFeedItem(self, feedItem):
+        """
+        Add a single item, and add it to any listening collections.
+        """
+        feedItem.channel = self
+        self.add(feedItem)
+
+    def _parseItems(self, items):
+        """
+        This method parses all the news items in the RSS feed.
+        """
+        view = self.itsView
+        
+        count = 0
+        
+        for newItem in items:
+            # Convert date to datetime object
+            if getattr(newItem, "date_parsed", None):
+                try:
+                    # date_parsed is a tuple of 9 integers, like gmtime( )
+                    # returns...
+                    # date_parsed seems to always be converted to GMT, so
+                    # let's make a datetime object using values from
+                    # date_parsed, coupled with a GMT tzinfo...
+                    kwds = dict(tzinfo=ICUtzinfo.getInstance('UTC'))
+                    itemDate = datetime(*newItem.date_parsed[:5], **kwds)
+                    # logger.debug("%s, %s, %s" % \
+                    #     (newItem.date, newItem.date_parsed, itemDate))
+                    newItem.date = itemDate
+                except:
+                    logger.exception("Could not get date: %s (%s)" % \
+                        (newItem.date, newItem.date_parsed))
+                    newItem.date = None
+            # Get the item content, using the "content" attribute first,
+            # falling back to what"s in"description"
+            content = newItem.get("content")
+            if content:
+                content = content[0]["value"]
+            else:
+                content = newItem.get("description")
+            title = newItem.get("title")
+            matchingItem = None
+            link = getattr(newItem, "link", None)
+            if link:
+                # Find all FeedItems that have this link
+                matchingItem = indexes.valueLookup(self, "link", "link", link)
+            # If no matching items (based on link), it"s new
+            # If matching item, if title or description have changed,
+            # update the item and mark it unread
+            if matchingItem is None:
+                feedItem = FeedItem(itsView=view)
+                feedItem.refresh(newItem)
+                self.addFeedItem(feedItem)
+                logger.debug("Added new item: %s", title)
+                count += 1
+            else:
+                # A FeedItem exists within this Channel that has the
+                # same link.  @@@MOR For now I am only going to allow one
+                # FeedItem at a time (per Channel) to link to the same place,
+                # since it seems like that gets the behavior we want.
+                oldTitle = matchingItem.displayName
+                titleDifferent = (oldTitle != title)
+                # If no date in the item, just consider it a matching date;
+                # otherwise do compare datestamps:
+                dateDifferent = False
+                haveFeedDate = "date" in newItem
+                if haveFeedDate:
+                    if matchingItem.date != newItem.date:
+                        dateDifferent = True
+                if not self.ignoreContentChanges:
+                    oldContent = matchingItem.content.getReader().read()
+                    contentDifferent = (oldContent != content)
+                else:
+                    contentDifferent = False
+                if contentDifferent or titleDifferent or dateDifferent:
+                    matchingItem.refresh(newItem)
+                    if matchingItem.read:
+                        matchingItem.updated = True
+                    matchingItem.read = False
+                    msg = "Updated item: %s (content %s, title %s, date %s)"
+                    logger.debug(msg, title, contentDifferent, titleDifferent,
+                                 dateDifferent)
+        return count
+
+    def markAllItemsRead(self):
+        """
+        This method marks all items in this feed channel as read.
+        """
+        for item in self:
+            item.read = True
+
+    @schema.observer(author)
+    def onAuthorChange(self, op, attr):
+        self.updateDisplayWho(op, attr)
+    
+    def addDisplayWhos(self, whos):
+        super(FeedChannel, self).addDisplayWhos(whos)
+        author = getattr(self, 'author', None)
+        if author is not None:
+            whos.append((10, author, 'author'))
+
+class FeedItem(pim.ContentItem):
+    """
+    This class implements a feed channel item that is visualized
+    in the summary and detail views.
+    """
+    #
+    # FeedItem repository interface
+    #
+    link = schema.One(schema.URL, initialValue=None)
+    category = schema.One(schema.Text, indexed=True)
+    author = schema.One(schema.Text, indexed=True)
+    date = schema.One(schema.DateTime)
+    channel = schema.One(FeedChannel)
+    content = schema.One(schema.Lob, indexed=True)
+    updated = schema.One(schema.Boolean)
+
+    @apply
+    def body():
+        def fget(self):
+            return self.content
+        def fset(self, value):
+            self.content = value
+        return property(fget, fset)
+
+    schema.addClouds(
+        sharing = schema.Cloud(
+            literal = [link, category, author, date]
+        )
+    )
+
+    schema.initialValues(
+        displayName = lambda self: _(u"No Title")
+    )
+
+    def _compareLink(self, other):
+        """
+        This method compares two feed items.
+        """
+        return cmp(str(self.link).lower(), str(other.link).lower())
+
+    def refresh(self, data):
+        """
+        This method updates a feed item content.
+        """
+        # fill in the item
+        attrs = {"title":"displayName"}
+        setAttributes(self, data, attrs)
+
+        attrs = ["link", "category", "author"]
+        # @@@MOR attrs = ["creator", "link", "category"]
+        setAttributes(self, data, attrs)
+
+        content = data.get("content")
+
+        # Use the "content" info first, falling back to what"s in "description"
+        if content:
+            content = content[0]["value"]
+        else:
+            content = data.get("description")
+
+        if content:
+            self.content = self.getAttributeAspect("content", "type").makeValue(content, indexed=True)
+
+        if "date" in data:
+            self.date = date_parse(str(data.date))
+        else:
+            # No date was available in the feed, so assign it "now"
+            self.date = datetime.now(ICUtzinfo.default)
+
+    @schema.observer(author)
+    def onAuthorChange(self, op, attr):
+        self.updateDisplayWho(op, attr)
+    
+    def addDisplayWhos(self, whos):
+        super(FeedItem, self).addDisplayWhos(whos)
+        author = getattr(self, 'author', None)
+        if author is not None:
+            whos.append((10, author, 'author'))</pre>
 
 
 </body>
