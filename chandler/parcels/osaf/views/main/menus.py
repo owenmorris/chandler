@@ -296,6 +296,11 @@ def makeMainMenus(parcel):
                         accel = _(u'Ctrl+F'),
                         helpString = _(u'Search using the Quick Entry field'),
                         wxId = wx.ID_FIND),
+                    MenuItem.template('SwitchToQuickEntryItem',
+                        event = main.SwitchToQuickEntry,
+                        title = _(u'Switch to Quic&k Entry'),
+                        accel = _(u'Ctrl+K'),
+                        helpString = _(u'Switch to the Quick Entry field'))
                     ]), # Menu EditMenu
             Menu.template('ViewMenu',
                 title = _(u'&View'),

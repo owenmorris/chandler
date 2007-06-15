@@ -278,6 +278,18 @@ class MainView(View):
         else:
             start = start + 1
         widget.SetSelection (start, end)
+    
+    def onSwitchToQuickEntryEvent (self, event):
+        quickEntryBlock = Block.findBlockByName("ApplicationBarQuickEntry")
+
+        sidebar = Block.findBlockByName ("Sidebar")
+
+        widget = quickEntryBlock.widget.GetControl()
+        widget.SetFocus()
+        quickEntryBlock.synchronizeWidget()
+        start = 0
+        end = len(quickEntryBlock.text)
+        widget.SetSelection (start, end)
 
     def onQuickEntryEvent (self, event):
         # XXX This needs some refactoring love

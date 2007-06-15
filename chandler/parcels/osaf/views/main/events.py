@@ -267,6 +267,10 @@ def makeMainEvents(parcel):
     BlockEvent.template('Search',
                         commitAfterDispatch = True,
                         dispatchEnum = 'FocusBubbleUp').install(parcel)
+                        
+    BlockEvent.template('SwitchToQuickEntry',
+                        commitAfterDispatch = True,
+                        dispatchEnum = 'FocusBubbleUp').install(parcel)
 
     BlockEvent.template('SendShareItem',
                         commitAfterDispatch = True,
