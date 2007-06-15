@@ -1932,7 +1932,7 @@ class SendAsLabelBlock(BylineConditionalBehavior, DetailSynchronizedBehavior, Co
 
         self.widget.SetLabel(label)
 
-class BylineAreaBlock(DetailSynchronizedContentItemDetailBlock):
+class BylineAreaBlock(BylineConditionalBehavior, DetailSynchronizedContentItemDetailBlock):
     # We use this block class for the byline (the static representation, like
     # "Sent by Bob Smith on 6/21/06") as well as for the Send As block (the
     # popup representation, like "Send As [Me]") - they're both visible 

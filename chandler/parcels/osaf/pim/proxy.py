@@ -351,16 +351,24 @@ class UserChangeProxy(object):
             else:
                 # Try to find a matching recipient; any field will do
                 # (so far as arguments to getRecipients() go, we've already
-                # preferentially included the sender, but should still check
-                # originators & bcc) 
+                # preferentially excluded the sender, but should still check
+                # originators & bcc). Also, if we're just now marking the item
+                # as edited for the first time, make sure the (old) sender's in
+                # the CC list.
+                addSenderToCC = (sender is not None) and \
+                                (items.Modification.edited not in item.modifiedFlags)
                 for recipient in message.getRecipients():
-                    if recipient in meAddresses:
+                    if who is None and recipient in meAddresses:
                         who = recipient
-                        break
-                else:
+                    if addSenderToCC and sender is recipient:
+                        addSenderToCC = False
+                if who is None:
                     # No match in for loop; use the current "me" address
                     who = me
-                # OK, update the from address
+                if addSenderToCC:
+                    message.ccAddress.append(sender)
+
+                # Update the from address
                 message.fromAddress = who
                     
         if who is None:

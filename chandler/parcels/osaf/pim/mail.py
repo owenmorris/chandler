@@ -1578,7 +1578,7 @@ class MailStamp(stamping.Stamp):
 
     def addDisplayDates(self, dates, now):
         dateSent = getattr(self, 'dateSent', None)
-        if dateSent is not None:
+        if dateSent is not None and Modification.sent in self.itsItem.modifiedFlags:
             dates.append((50, dateSent, 'dateSent'))
 
     def outgoingMessage(self):
