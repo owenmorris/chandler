@@ -195,9 +195,11 @@ class wxTable(DragAndDrop.DraggableWidget,
         selectedItemIndex = self.RowToIndex (row)
         blockItem = self.blockItem
         if selectedItemIndex != -1:
-            blockItem.contents.setSelectionRanges ([(selectedItemIndex,
-                                                     selectedItemIndex)])
-            blockItem.PostSelectItems()
+            # if the row in question is already selected, don't change selection
+            itemRange = (selectedItemIndex, selectedItemIndex)
+            if not blockItem.contents.isSelected(itemRange):
+                blockItem.contents.setSelectionRanges ([itemRange])
+                blockItem.PostSelectItems()
             # Update the screen before showing the context menu
             theApp = wx.GetApp()
             theApp.propagateAsynchronousNotifications()
