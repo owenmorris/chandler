@@ -13,10 +13,11 @@
 #   limitations under the License.
 
 from __future__ import with_statement
-import logging, sys, gc, threading, os, time
+import logging, sys, gc, threading, os, time, contextlib
 
 from Queue import Queue
 from heapq import heapify, heappop
+from PyICU import ICUtzinfo, FloatingTZ
 
 from chandlerdb.util.c import UUID, isuuid, Nil, Default, CLinkedMap
 from chandlerdb.item.c import CItem
@@ -73,6 +74,22 @@ def thisViewWins(code, item, attribute, value):
     return value                                # Let changes from the
                                                 # this view win
 
+class CurrentView(threading.local):
+    view = None
+
+    @contextlib.contextmanager
+    def set(self, view):
+        try:
+            view = self.view
+            self.view = self
+            yield self
+        finally:
+            self.view = view
+
+    def get(self):
+        return self.view
+
+currentview = CurrentView()
 
 
 class RepositoryView(CView):
@@ -220,6 +237,7 @@ class RepositoryView(CView):
         self._instanceRegistry = {}
         self._loadingRegistry = set()
         self._status |= RepositoryView.OPEN
+        self.tzinfo = ViewTZInfo(self)
 
         if deferDelete is Default:
             deferDelete = repository._deferDelete
@@ -235,11 +253,22 @@ class RepositoryView(CView):
             repository.store.attachView(self)
             repository._openViews.append(self)
 
+        self._loadTimezone()
         self._loadSchema()
 
     def setMergeFn(self, mergeFn):
 
         self._mergeFn = mergeFn
+
+    def _loadTimezone(self):
+
+        if self.itsVersion:
+            timezone = self.store.getViewTimezone(self.itsVersion)
+        else:
+            timezone = None
+
+        if timezone is not None:
+            self.tzinfo.setDefault(self.tzinfo.getInstance(timezone))
 
     def _loadSchema(self):
 
@@ -1410,7 +1439,7 @@ class RepositoryView(CView):
                 else:
                     for index in indexes:
                         index.removeKey(uItem)
-                        
+
 
     itsUUID = UUID('3631147e-e58d-11d7-d3c2-000393db837c')
     SUBSCRIBERS = UUID('4dc81eae-1689-11db-a0ac-0016cbc90838')
@@ -1590,6 +1619,10 @@ class NullRepositoryView(RepositoryView):
         self._logger = logging.getLogger(__name__)
         super(NullRepositoryView, self).openView(version, False, notify,
                                                  mergeFn)
+
+    def _loadTimezone(self):
+
+        pass
 
     def refresh(self, mergeFn=None):
         
@@ -1841,3 +1874,35 @@ class TransientWatchItem(TransientWatch):
     def compare(self, methodName):
 
         return self.methodName == methodName
+
+
+class ViewTZInfo(object):
+
+    def __init__(self, view):
+
+        self.view = view
+        self._default = ICUtzinfo.getDefault()
+        self._floating = FloatingTZ(self._default)
+
+    def __getattr__(self, name):
+        return getattr(ICUtzinfo, name)
+
+    def getDefault(self):
+        return self._default
+
+    def getFloating(self):
+        return self._floating
+
+    def getInstance(self, name):
+        if name == self._floating.tzid:
+            return self._floating
+        return ICUtzinfo.getInstance(name)
+
+    def setDefault(self, default):
+        if not isinstance(default, ICUtzinfo):
+            raise TypeError, default
+        self._default = default
+        self._floating.tzinfo = default
+
+    default = property(getDefault, setDefault)
+    floating = property(getFloating)

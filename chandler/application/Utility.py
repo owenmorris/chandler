@@ -259,7 +259,8 @@ COMMAND_LINE_OPTIONS = {
     'mvcc':       ('',   '--mvcc',       'b', True, 'MVCC', 'run repository multi version concurrency control'),
     'nomvcc':     ('',   '--nomvcc',     'b', False, 'NOMVCC', 'run repository without multi version concurrency control'),
     'prune':      ('',   '--prune',      's', '10000', None, 'number of items in a view to prune to after each commit'),
-    'version':    ('',   '--ver',        's', None, None, 'version to open repository at'),
+    'version':    ('',   '--at',         's', None, None, 'version to open repository at'),
+    'timezone':   ('',   '--tz',         's', None, None, 'timezone to initialize repository with if creating a new repository'),
     'prefs':      ('',   '--prefs',      's', 'chandler.prefs', None, 'path to prefs file that contains defaults for command line options, relative to profile directory'),
 }
 
@@ -600,6 +601,9 @@ def initRepository(directory, options, allowSchemaView=False):
             toVersion = version - nVersions
             if toVersion >= 0L:
                 repository.undo(toVersion)
+
+    if view.isNew() and options.timezone is not None:
+        view.tzinfo.setDefault(view.tzinfo.getInstance(options.timezone))
 
     schema.initRepository(view)
 

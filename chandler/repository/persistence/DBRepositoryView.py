@@ -17,6 +17,7 @@ from __future__ import with_statement
 from threading import currentThread
 from datetime import timedelta
 from time import time, sleep
+from PyICU import ICUtzinfo
 
 from chandlerdb.item.c import CItem
 from chandlerdb.util.c import isuuid, Nil, Default, HashTuple
@@ -85,6 +86,8 @@ class DBRepositoryView(OnDemandRepositoryView):
             print item.itsPath
 
     def cancel(self):
+
+        self._loadTimezone()
 
         for item in self._log:
             item.setDirty(0)
@@ -362,6 +365,7 @@ class DBRepositoryView(OnDemandRepositoryView):
             item._unloadItem(refCounted or item.isPinned(), self, False)
 
         self._version = version
+        self._loadTimezone()
 
         if kinds:
             try:
@@ -515,7 +519,7 @@ class DBRepositoryView(OnDemandRepositoryView):
                             self[uItem].flushCaches('attributes')
 
             # synchronize new indexes with changes
-            status, newIndexes = self.store.getViewData(newVersion)
+            x, x, newIndexes = self.store.getViewData(newVersion)
             if newIndexes:
                 self._updateIndexes(newIndexes, list(self._log))
             if self._newIndexes:
@@ -572,6 +576,7 @@ class DBRepositoryView(OnDemandRepositoryView):
 
         except:
             self._version = oldVersion
+            self._loadTimezone()
             raise
 
     def commit(self, mergeFn=None, notify=Default, afterCommit=None):

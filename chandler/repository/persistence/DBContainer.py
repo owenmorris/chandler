@@ -1500,11 +1500,18 @@ class VersionContainer(DBContainer):
     # 0.7.3: added saving of persistent view status bits
     # 0.7.4: added saving of references to new indexes on view record
     # 0.7.5: value keys include uItem for better locality, added __versions.db
+    # 0.7.6: added storage of a view's timezone
 
-    FORMAT_VERSION = 0x00070500
+    FORMAT_VERSION = 0x00070600
 
     SCHEMA_KEY  = pack('>16sl', Repository.itsUUID._uuid, 0)
     VERSION_KEY = pack('>16sl', Repository.itsUUID._uuid, 1)
+
+    VIEW_DATA_TYPES = (Record.INT,       # status
+                       Record.SYMBOL,    # timezone
+                       Record.RECORD)    # new indexes
+    VIEW_STATUS_TYPES = VIEW_DATA_TYPES[0:1]
+    VIEW_TIMEZONE_TYPES = VIEW_DATA_TYPES[0:2]
 
     def openDB(self, txn, name, dbname, ramdb, create, mvcc, pagesize=0):
 
@@ -1548,9 +1555,9 @@ class VersionContainer(DBContainer):
 
         return UUID(versionId), format, schema
         
-    def saveViewData(self, version, status, newIndexes):
+    def saveViewData(self, version, status, timezone, newIndexes):
 
-        record = Record(Record.INT, status)
+        record = Record(Record.INT, status, Record.SYMBOL, timezone)
         indexRecord = Record()
         for uItem, attr, name in newIndexes:
             indexRecord += (Record.UUID, uItem,
@@ -1568,11 +1575,34 @@ class VersionContainer(DBContainer):
         value = self.get_record(Record(Record.UUID, Repository.itsUUID,
                                        Record.INT, 2,            # VIEW_KEY
                                        Record.INT, version),
-                                (Record.INT, Record.RECORD))
+                                VersionContainer.VIEW_DATA_TYPES)
         if value is None:
-            return 0, []
+            return 0, None, []
 
-        return value[0], [value[1][i:i+3] for i in xrange(0, len(value[1]), 3)]
+        return (value[0], value[1],
+                [value[2][i:i+3] for i in xrange(0, len(value[2]), 3)])
+
+    def getViewStatus(self, version):
+
+        value = self.get_record(Record(Record.UUID, Repository.itsUUID,
+                                       Record.INT, 2,            # VIEW_KEY
+                                       Record.INT, version),
+                                VersionContainer.VIEW_STATUS_TYPES)
+        if value is None:
+            return 0
+
+        return value[0]
+
+    def getViewTimezone(self, version):
+
+        value = self.get_record(Record(Record.UUID, Repository.itsUUID,
+                                       Record.INT, 2,            # VIEW_KEY
+                                       Record.INT, version),
+                                VersionContainer.VIEW_TIMEZONE_TYPES)
+        if value is None:
+            return None
+
+        return value[1]
 
     def getVersion(self):
 
