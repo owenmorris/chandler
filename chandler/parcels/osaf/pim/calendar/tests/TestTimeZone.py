@@ -23,7 +23,9 @@ from osaf.pim.calendar.Calendar import CalendarEvent, EventStamp
 from osaf.pim.calendar.Recurrence import RecurrenceRuleSet, RecurrenceRule
 from datetime import *
 from application import schema
-from PyICU import (TimeZone as ICUTimeZone, Locale as ICULocale, ICUtzinfo)
+from PyICU import \
+    TimeZone as ICUTimeZone, Locale as ICULocale, ICUtzinfo, FloatingTZ
+
 
 class TimeZoneTestCase(RepositoryTestCase):
     def setUp(self):
@@ -84,7 +86,7 @@ class KnownTimeZonesTestCase(RepositoryTestCase):
         numZones = 0
         for name, tz in self.info.iterTimeZones():
             self.failUnless(isinstance(name, unicode))
-            self.failUnless(isinstance(tz, ICUtzinfo))
+            self.failUnless(isinstance(tz, (ICUtzinfo, FloatingTZ)))
             numZones += 1
         self.failIf(numZones <= 0)
 

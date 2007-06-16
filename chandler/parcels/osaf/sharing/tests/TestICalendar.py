@@ -33,7 +33,7 @@ from osaf.pim.calendar.TimeZone import (convertToICUtzinfo, TimeZoneInfo,
 import datetime
 import vobject
 import cStringIO
-from PyICU import ICUtzinfo
+from PyICU import ICUtzinfo, FloatingTZ
 from dateutil import tz
 from osaf.pim.calendar.Recurrence import RecurrenceRule, RecurrenceRuleSet
 from i18n.tests import uw
@@ -427,12 +427,12 @@ class TimeZoneTestCase(unittest.TestCase):
     def runConversionTest(self, expectedZone, icalZone):
         dt = datetime.datetime(2004, 10, 11, 13, 22, 21, tzinfo=icalZone)
         convertedZone = convertToICUtzinfo(dt).tzinfo
-        self.failUnless(isinstance(convertedZone, ICUtzinfo))
+        self.failUnless(isinstance(convertedZone, (ICUtzinfo, FloatingTZ)))
         self.failUnlessEqual(expectedZone, convertedZone)
 
         dt = datetime.datetime(2004, 4, 11, 13, 9, 56, tzinfo=icalZone)
         convertedZone = convertToICUtzinfo(dt).tzinfo
-        self.failUnless(isinstance(convertedZone, ICUtzinfo))
+        self.failUnless(isinstance(convertedZone, (ICUtzinfo, FloatingTZ)))
         self.failUnlessEqual(expectedZone, convertedZone)
 
     def testVenezuela(self):

@@ -302,7 +302,7 @@ def convertToICUtzinfo(dt, view=None):
     @type dt: C{datetime}
     """
     oldTzinfo = dt.tzinfo
-    if isinstance(oldTzinfo, PyICU.ICUtzinfo):
+    if isinstance(oldTzinfo, (PyICU.ICUtzinfo, PyICU.FloatingTZ)):
         return dt
     elif oldTzinfo is None:
         icuTzinfo = None # Will patch to floating at the end
