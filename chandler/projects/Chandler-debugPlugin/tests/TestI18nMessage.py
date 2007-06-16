@@ -56,8 +56,7 @@ class MessageI18nTest(MailTestCase.MailTestCase):
         self.assertEquals(mOne['From'], mTwo['From'])
         self.assertEquals(mOne['Subject'], mTwo['Subject'])
         o = mOne.get_payload(decode=True)
-        o += "\r\n\r\n"
-        self.assertEquals(o, mTwo.get_payload()[0].get_payload(decode=True))
+        self.assertEquals(o, mTwo.get_payload()[0].get_payload()[1].get_payload(decode=True))
 
     def __loadTestMessage(self):
 
