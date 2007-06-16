@@ -244,15 +244,14 @@ END:VCALENDAR
                self.fail("Dates do not match %s != %s" % (mOne['Date'], mTwo['Date']))
 
         if mOne.get_content_maintype() == 'multipart':
-            payloadOne = mOne.get_payload()[0].get_payload(decode=True)
+            payloadOne = mOne.get_payload()[0].get_payload()[1].get_payload(decode=True)
         else:
             payloadOne = mOne.get_payload(decode=True)
 
         if mTwo.get_content_maintype() == 'multipart':
-            payloadTwo = mTwo.get_payload()[0].get_payload(decode=True)
+            payloadTwo = mTwo.get_payload()[0].get_payload()[1].get_payload(decode=True)
         else:
             payloadTwo = mTwo.get_payload(decode=True)
-            payloadTwo += "\r\n\r\n"
 
         self.assertEquals(payloadOne, payloadTwo)
 

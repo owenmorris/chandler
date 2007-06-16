@@ -217,8 +217,8 @@ class SubscribeDialog(wx.Dialog):
         elif isinstance(err, ActivityAborted):
             self._showStatus(_(u"Subscribe cancelled"))
         elif isinstance(err, sharing.URLParseError):
-            self._showStatus(_(u"There is a problem with the URL:\n%(error)s"
-                % {'error' : err.message}))
+            self._showStatus(_(u"There is a problem with the URL:\n%(error)s")
+                % {'error' : err.message})
         else:
             logger.error("Error during subscribe")
             self._showStatus(_(u"Sharing Error:\n%(error)s") % {'error': err})

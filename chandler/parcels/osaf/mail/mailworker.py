@@ -30,49 +30,24 @@ NEXT:
 2. If good performance in step one then enable processing logic:
    processMail ever 100 messages commit every 500.
 
-    
-TESTING DONE:
-======================
-1. Trigger errors in worker and make sure the client correctly 
-   handles the error (turn off network card in middle of download)
-2. All connection errors with local servers 
-3. Every action via the account dialogs 
-4. Download tracker properly reseting on error and search 
-5. Shutting down after a IMAP search while the mail is being
-   downloaded restores to the right UID on restart. Test with 
-   DEMO1 account. 
-6. Test POP SeenUID and all other POP logic 
-7. Test shutdown in various situations (should terminate 
-   last commit on shutdown and not block)
-8. Txthe performingAction lock is working properly 
-   try with 3000 messages on close of download then 
-   try to download again while mail is being commited.
-9. Restoring an .ini account while another is downloading
-10. Reply /Reply All / Forward
-11. Edit / Update workflows
-12. Fix In and Out collection calculations
-13. Put a fixed number of Chandler Header, Mail, Task, Event items 
-   and confirm that the exact number is downloaded.
-
-
 Performance Ideas Post-Preview:
 ==================================
-1. Add in reactor.callLater throttling and higher timeout 
+1. Add in reactor.callLater throttling and higher timeout
    numbers that are caculated
 2. Add back delete logic
-3. Add tickets that are passed to worker. The worker posts 
-   the ticket number back to the caller when the action 
+3. Add tickets that are passed to worker. The worker posts
+   the ticket number back to the caller when the action
    is complete. This is a good way to handle
    the delete mail case.
-4. Try switching inline from WAIT_ON_COMMIT False to True on 
+4. Try switching inline from WAIT_ON_COMMIT False to True on
    bottle necks.
 5. Set the POP account type in an ini or dump file (MAIL vs.
    CHANDLER_HEADERS)
 6. Feed Mail Objects to the worker every 100 messages,
    commit every 500.
 7. Refactor POP seenMessageUIDs for faster lookup
-8. Need a way to turn off observers and do calculations more 
-   efficiently in bulk instead of per item per attribute which 
+8. Need a way to turn off observers and do calculations more
+   efficiently in bulk instead of per item per attribute which
    is slow.
 
 Performance Profiling Post-Preview:
@@ -297,6 +272,8 @@ class MailWorker(RepositoryWorker):
                 # new counter
                 dt.totalNewDownloaded += 1
 
+            ignoreMe = False
+
             if protocol == "IMAP":
                 # If this is an IMAP request then check the
                 # folder type. If the type is EVENT then
@@ -312,7 +289,17 @@ class MailWorker(RepositoryWorker):
                 elif args.folderType == "TASK":
                     message.parseTaskInfo(repMessage)
 
-            repMessage.incomingMessage()
+
+                if args.displayName.lower() != u"inbox":
+                    # In this case do not assign mail as
+                    # toMe if the from address is a 'me' address.
+                    # The use case is a person dropping a draft
+                    # or sent message in to a Chandler Folder.
+                    # The design team asks that when this happens
+                    # the message not appear in the 'In Collection'
+                    ignoreMe = True
+
+            repMessage.incomingMessage(ignoreMe)
 
         else:
             # The message downloaded contained eimml that

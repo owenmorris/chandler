@@ -17,6 +17,7 @@
 import email
 from email import Header, Message
 import email.Utils as emailUtils
+from email.MIMEMultipart import MIMEMultipart
 from email.MIMENonMultipart import MIMENonMultipart
 import logging
 import mimetypes
@@ -305,12 +306,12 @@ def messageObjectToKind(view, messageObject, messageText=None):
 
         mailStamp.body = buildBody(bodyBuffer)
 
+    __parseHeaders(view, messageObject, mailStamp, True, True)
+
     if icsSummary or icsDesc:
         # If ics summary or ics description exist then
         # add them to the message body
         mailStamp.body += buildICSInfo(mailStamp, icsSummary, icsDesc)
-
-    __parseHeaders(view, messageObject, mailStamp, True, True)
 
     #if verbose():
     #    trace("\n\n%s\n\n" % '\n'.join(buf))
@@ -586,7 +587,7 @@ def getChandlerAttachments(messageObject):
         if part.get_content_type() == "text/calendar":
             att["ics"].append(removeCarriageReturn(part.get_payload(decode=True)))
 
-        elif part.get_content_type() == "application/eimml":
+        elif part.get_content_type() == "text/eimml":
             att["eimml"].append(removeCarriageReturn(part.get_payload(decode=True)))
 
     return att
@@ -602,6 +603,9 @@ def kindToMessageObject(mailStamp):
 
     @return: C{Message.Message}
     """
+
+    isEvent = has_stamp(mailStamp, EventStamp)
+    isTask  = has_stamp(mailStamp, TaskStamp)
 
     messageObject = Message.Message()
 
@@ -639,11 +643,10 @@ def kindToMessageObject(mailStamp):
     except AttributeError:
         payload = u""
 
-    if payload and not payload.endswith(u"\r\n\r\n"):
-        # Chandler outgoing messages contain
-        # an eimml attachment and an ics attachment
-        # if the item is stamped as and Event and
-        # or a Task.
+    if isTask or isEvent and payload and \
+        not payload.endswith(u"\r\n\r\n"):
+        # Chandler outgoing Tasks and Events contain
+        # an ics attachment.
         # Many mail readers add attachment icons
         # at the end of the message body.
         # This can be distracting and visually
@@ -655,30 +658,36 @@ def kindToMessageObject(mailStamp):
 
     messageObject.set_type("multipart/mixed")
 
-    # Attach the body text
-    mt = MIMEBase64Encode(payload.encode('utf-8'))
-    messageObject.attach(mt)
+    # Create a multipart/alernative MIME Part
+    # that will contain the Chandler eimml and
+    # the body of the message as alternative
+    # parts. Doing this prevents users from seeing
+    # the Chandler eimml which is machine readable
+    # xml code and is not displayable to the user.
+    alternative = MIMEMultipart("alternative")
 
     peers = mailStamp.getRecipients()
-
-    # used for debugging
-    #for peer in peers:
-    #    print (u"outbound: %s uuid: %s" % (peer.format(),  peer.itsUUID)).encode("utf8")
 
     # Serialize and attach the eimml can raise ConflictsPending
     eimml = outbound(peers, mailStamp.itsItem, OUTBOUND_FILTERS)
 
-    # EIMML payloads use the 'application' mime main type
-    # rather than 'text' to prevent mail viewers from 
-    # displaying the EIMML serialized data in-line.
-    eimmlPayload = MIMEBase64Encode(eimml, 'application', 'eimml')
+    eimmlPayload = MIMEBase64Encode(eimml, 'text', 'eimml')
 
-    fname = Header.Header(_(u"ChandlerItem.eimml")).encode()
-    eimmlPayload.add_header("Content-Disposition", "attachment", filename=fname)
-    messageObject.attach(eimmlPayload)
+    # Since alternative parts are in order from least
+    # renderable to most renderable add the eimml payload
+    # first.
+    alternative.attach(eimmlPayload)
 
-    isEvent = has_stamp(mailStamp, EventStamp)
-    isTask  = has_stamp(mailStamp, TaskStamp)
+    # Attach the body text
+    mt = MIMEBase64Encode(payload.encode('utf-8'))
+
+    # Add the email body text to the alternative part
+    alternative.attach(mt)
+
+    # Add the alternative part to the mail multipart/mixed
+    # main content type.
+    messageObject.attach(alternative)
+
 
     #XXX There is no attachement support in Preview
     #hasAttachments = mailStamp.getNumberOfAttachments() > 0

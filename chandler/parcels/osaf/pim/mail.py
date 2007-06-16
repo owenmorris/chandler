@@ -42,8 +42,8 @@ from osaf import messages, preferences
 from osaf.pim.calendar import EventStamp
 from tasks import TaskStamp
 from osaf.pim import Modification, setTriageStatus
-from osaf.pim.calendar.TimeZone import formatTime
-from osaf.pim.calendar.DateTimeUtil import mediumDateFormat, weekdayName
+from osaf.pim.calendar.TimeZone import formatTime, getTimeZoneCode
+from osaf.pim.calendar.DateTimeUtil import  weekdayName
 from datetime import datetime
 from stamping import has_stamp, Stamp
 from osaf.pim import TriageEnum, setTriageStatus
@@ -53,42 +53,9 @@ from osaf.framework.twisted import waitForDeferred
 
 log = logging.getLogger(__name__)
 
-"""
-TODO:
-   1. There are serious optimizations that can be done on addressing
-      fields lookup. There are a number of places where different
-      views of who the recipients of the mail are needed. Each call
-      results in looping through email addresses. This is very
-      inefficient and is increasing upload and download
-      processing times.
 
-      Now that addressing logic has been established a
-      fast lookup index needs to be placed on each MailStamp.
-
-      The lookup would be able to filter the different
-      views of the recipient list ie. includeOriginators,
-      includeBcc, includeSender.
-
-      The index would get rebuilt in the onFromMeChange and
-      onToMeChange observer methods.
-
-      During the performance testing phase of Preview, I
-      will consult with Andi Vajda regarding the best
-      Repository types to leverage for quick lookup
-      and optimize the code.
-
-    2. Once the default / current incoming and outgoing mail design logic
-       gets solidfied then no calculations should take place in the
-       getCurrentIncoming and getCurrentOutcoming methonds.
-       The values in the current pointer should be leverage
-       exclusively and an observer added to recalculate the
-       values when account info does change. The same logic
-       that is used to get the me addresses should be
-       leveraged for Incoming and Outgoing accounts.
-"""
-
-
-# Kind - Combinations
+# Kind Combinations
+MESSAGE = _(u"Message")
 TASK = _(u"Task")
 EVENT = _(u"Event")
 R_EVENT = _(u"Recurring Event")
@@ -96,101 +63,206 @@ A_EVENT = _(u"All-day Event")
 AT_EVENT = _(u"Any-time Event")
 RA_EVENT = _(u"Recurring All-day Event")
 RAT_EVENT = _(u"Recurring Any-time Event")
-MESSAGE = _(u"Message")
-SCHEDULED_TASK = _(u"Scheduled Task (Task + Event)")
+SCHEDULED_TASK = _(u"Scheduled Task")
 R_SCHEDULED_TASK = _(u"Recurring Scheduled Task")
 A_SCHEDULED_TASK = _(u"All-day Scheduled Task")
 AT_SCHEDULED_TASK = _(u"Any-time Scheduled Task")
 
+# Kind Combinations with sentence prefix
+# XXX This is not the ideal way to do this but
+# am having trouble capturing the finer aspects
+# of the English language in a localization friendly
+# manner. I will revisit this decision at a later date.
+P_TASK = _(u"a Task")
+P_EVENT = _(u"an Event")
+P_R_EVENT = _(u"a Recurring Event")
+P_A_EVENT = _(u"an All-day Event")
+P_AT_EVENT = _(u"a Any-time Event")
+P_RA_EVENT = _(u"a Recurring All-day Event")
+P_RAT_EVENT = _(u"a Recurring Any-time Event")
+P_SCHEDULED_TASK = _(u"a Scheduled Task")
+P_R_SCHEDULED_TASK = _(u"a Recurring Scheduled Task")
+P_A_SCHEDULED_TASK = _(u"an All-day Scheduled Task")
+P_AT_SCHEDULED_TASK = _(u"an Any-time Scheduled Task")
+
+#Complex Recurrence
+C_TITLE = _(u"Custom recurrence rule: No description\n\n%(title)s on %(startDate)s")
+CD_TITLE = _(u"Custom recurrence rule: No description\n\n%(title)s from %(startDate)s - %(endDate)s")
+CS_TITLE = _(u"Custom recurrence rule: No description\n\n%(title)s on %(startDate)s %(startTime)s - %(endTime)s %(timezone)s")
+CSD_TITLE = _(u"Custom recurrence rule: No description\n\n%(title)s on %(startDate)s %(startTime)s - %(endDate)s %(endTime)s %(timezone)s")
+CL_TITLE = _(u"Custom recurrence rule: No description\n\n%(title)s at %(location)s on %(startDate)s")
+CLD_TITLE = _(u"Custom recurrence rule: No description\n\n%(title)s at %(location)s from %(startDate)s - %(endDate)s")
+CLS_TITLE = _(u"Custom recurrence rule: No description\n\n%(title)s at %(location)s on %(startDate)s %(startTime)s - %(endTime)s %(timezone)s")
+CLSD_TITLE = _(u"Custom recurrence rule: No description\n\n%(title)s at %(location)s on %(startDate)s %(startTime)s - %(endDate)s %(endTime)s %(timezone)s")
+
+#Anytime or All Day Event
+A_TITLE = _(u"%(title)s on %(startDate)s")
+AD_TITLE = _(u"%(title)s from %(startDate)s - %(endDate)s")
+AL_TITLE = _(u"%(title)s at %(location)s on %(startDate)s")
+ALD_TITLE = _(u"%(title)s at %(location)s from %(startDate)s - %(endDate)s")
 
 #Event
-E_TITLE = _(u"%(title)s on %(startDateTime)s")
-EL_TITLE = _(u"%(title)s at %(location)s on %(startDateTime)s")
+E_TITLE = _(u"%(title)s on %(startDate)s %(startTime)s - %(endTime)s %(timezone)s")
+ED_TITLE = _(u"%(title)s from %(startDate)s %(startTime)s - %(endDate)s %(endTime)s %(timezone)s")
+EL_TITLE = _(u"%(title)s at %(location)s on %(startDate)s %(startTime)s - %(endTime)s %(timezone)s")
+ELD_TITLE = _(u"%(title)s at %(location)s from %(startDate)s %(startTime)s - %(endDate)s %(endTime)s %(timezone)s")
 
-#All Day Every Day
+#All Day / Any Time Every Day
 D_TITLE = _(u"%(title)s every day")
 DU_TITLE = _(u"%(title)s every day until %(recurrenceEndDate)s")
 DL_TITLE = _(u"%(title)s at %(location)s every day")
 DUL_TITLE = _(u"%(title)s at %(location)s every day until %(recurrenceEndDate)s")
 
 #Every day at specific times
-DT_TITLE = _(u"%(title)s every day from %(startTime)s to %(endTime)s")
-DTU_TITLE = _(u"%(title)s every day from %(startTime)s to %(endTime)s until %(recurrenceEndDate)s")
-DTL_TITLE = _(u"%(title)s at %(location)s every day from %(startTime)s to %(endTime)s")
-DTUL_TITLE = _(u"%(title)s at %(location)s every day from %(startTime)s to %(endTime)s until %(recurrenceEndDate)s")
+DT_TITLE = _(u"%(title)s every day from %(startTime)s - %(endTime)s %(timezone)s")
+DTU_TITLE = _(u"%(title)s every day from %(startTime)s - %(endTime)s %(timezone)s until %(recurrenceEndDate)s")
+DTL_TITLE = _(u"%(title)s at %(location)s every day from %(startTime)s - %(endTime)s %(timezone)s")
+DTUL_TITLE = _(u"%(title)s at %(location)s every day from %(startTime)s - %(endTime)s %(timezone)s until %(recurrenceEndDate)s")
 
-#All Day Weekly Event
+#All Day / Any Time Weekly Event
 W_TITLE = _(u"%(title)s every %(dayName)s")
 WU_TITLE = _(u"%(title)s every %(dayName)s until %(recurrenceEndDate)s")
 WL_TITLE = _(u"%(title)s at %(location)s every %(dayName)s")
 WUL_TITLE = _(u"%(title)s at %(location)s every %(dayName)s until %(recurrenceEndDate)s")
 
 #Weekly Event at specific times
-WT_TITLE = _(u"%(title)s every %(dayName)s from %(startTime)s to %(endTime)s")
-WTU_TITLE = _(u"%(title)s every %(dayName)s from %(starTime)s to %(endTime)s until %(recurrenceEndDate)s")
-WTL_TITLE = _(u"%(title)s at %(location)s every %(dayName)s from %(startTime)s to %(endTime)s")
-WTUL_TITLE = _(u"%(title)s at %(location)s every %(dayName)s from %(startTime)s to %(endTime)s until %(recurrenceEndDate)s")
+WT_TITLE = _(u"%(title)s every %(dayName)s from %(startTime)s - %(endTime)s %(timezone)s")
+WTU_TITLE = _(u"%(title)s every %(dayName)s from %(startTime)s - %(endTime)s %(timezone)s until %(recurrenceEndDate)s")
+WTL_TITLE = _(u"%(title)s at %(location)s every %(dayName)s from %(startTime)s - %(endTime)s %(timezone)s")
+WTUL_TITLE = _(u"%(title)s at %(location)s every %(dayName)s from %(startTime)s - %(endTime)s %(timezone)s until %(recurrenceEndDate)s")
 
-#All Day Bi-Weekly Event
+#All Day / Any Time Bi-Weekly Event
 B_TITLE = _(u"%(title)s every other %(dayName)s")
 BU_TITLE = _(u"%(title)s every other %(dayName)s until %(recurrenceEndDate)s")
 BL_TITLE = _(u"%(title)s at %(location)s every other %(dayName)s")
 BUL_TITLE = _(u"%(title)s at %(location)s every other %(dayName)s until %(recurrenceEndDate)s")
 
 #Bi-Weekly Event at specific times
-BT_TITLE = _(u"%(title)s every other %(dayName)s from %(startDateTime)s to %(endDateTime)s")
-BTU_TITLE = _(u"%(title)s every other %(dayName)s from %(startDateTime)s to %(endDateTime)s until %(recurrenceEndDate)s")
-BTL_TITLE = _(u"%(title)s at %(location)s every other %(dayName)s from %(startDateTime)s to %(endDateTime)s")
-BTUL_TITLE = _(u"%(title)s at %(location)s every other %(dayName)s from %(startDateTime)s to %(endDateTime)s until %(recurrenceEndDate)s")
+BT_TITLE = _(u"%(title)s every other %(dayName)s from %(startTime)s - %(endTime)s %(timezone)s")
+BTU_TITLE = _(u"%(title)s every other %(dayName)s from %(startTime)s - %(endTime)s %(timezone)s until %(recurrenceEndDate)s")
+BTL_TITLE = _(u"%(title)s at %(location)s every other %(dayName)s from %(startTime)s - %(endTime)s %(timezone)s")
+BTUL_TITLE = _(u"%(title)s at %(location)s every other %(dayName)s from %(startTime)s - %(endTime)s %(timezone)s until %(recurrenceEndDate)s")
 
-#All Day Monthly Event
+#All Day / Any Time Monthly Event
 M_TITLE = _(u"%(title)s every month on the %(dayOfMonth)s%(abbreviation)s")
 MU_TITLE = _(u"%(title)s every month on the %(dayOfMonth)s%(abbreviation)s until %(recurrenceEndDate)s")
 ML_TITLE = _(u"%(title)s at %(location)s every month on the %(dayOfMonth)s%(abbreviation)s")
 MUL_TITLE = _(u"%(title)s at %(location)s every month on the %(dayOfMonth)s%(abbreviation)s until %(recurrenceEndDate)s")
 
 #Monthly Event at specific times
-#XXX Events can span days which causes issue here
-MT_TITLE = _(u"%(title)s every month on the %(dayOfMonth)s%(abbreviation)s from %(startTime) to %(endTime)s")
-MTU_TITLE = _(u"%(title)s every month on the %(dayOfMonth)s%(abbreviation)s from %(startTime)s to %(endTime)s until %(recurrenceEndDate)s")
-MTL_TITLE = _(u"%(title)s at %(location)s every month on the %(dayOfMonth)s%(abbreviation)s from %(startTime)s to %(endTime)s")
-MTUL_TITLE = _(u"%(title)s at %(location)s every month on the %(dayOfMonth)s%(abbreviation)s from %(startTime)s to %(endTime)s until %(recurrenceEndDate)s")
+MT_TITLE = _(u"%(title)s every month on the %(dayOfMonth)s%(abbreviation)s from %(startTime)s - %(endTime)s %(timezone)s")
+MTU_TITLE = _(u"%(title)s every month on the %(dayOfMonth)s%(abbreviation)s from %(startTime)s - %(endTime)s %(timezone)s until %(recurrenceEndDate)s")
+MTL_TITLE = _(u"%(title)s at %(location)s every month on the %(dayOfMonth)s%(abbreviation)s from %(startTime)s - %(endTime)s %(timezone)s")
+MTUL_TITLE = _(u"%(title)s at %(location)s every month on the %(dayOfMonth)s%(abbreviation)s from %(startTime)s - %(endTime)s %(timezone)s until %(recurrenceEndDate)s")
 
-#All Day Yearly Event
-Y_TITLE = _(u"%(title)s every year on %(startDateTime)s")
-YU_TITLE = _(u"%(title)s every year on %(startDateTime)s until %(recurrenceEndDate)s")
-YL_TITLE = _(u"%(title)s at %(location)s every year on %(startDateTime)s)s")
-YUL_TITLE = _(u"%(title)s at %(location)s every year on %(startDateTime)s until %(recurrenceEndDate)s")
+#All Day / Any Time Yearly Event
+Y_TITLE = _(u"%(title)s every year on %(startDate)s")
+YU_TITLE = _(u"%(title)s every year on %(startDate)s until %(recurrenceEndDate)s")
+YL_TITLE = _(u"%(title)s at %(location)s every year on %(startDate)s")
+YUL_TITLE = _(u"%(title)s at %(location)s every year on %(startDate)s until %(recurrenceEndDate)s")
 
 #Yearly Event at specific times
-YT_TITLE = _(u"%(title)s every year on %(startDateTime) to %(endDateTime)s")
-YTU_TITLE = _(u"%(title)s every year on %(startDateTime)s to %(endDateTime)s until %(recurrenceEndDate)s")
-YTL_TITLE = _(u"%(title)s at %(location)s every year on %(startDateTime)s to %(endDateTime)s")
-YTUL_TITLE = _(u"%(title)s at %(location)s every year on %(startDateTime)s to %(endDateTime)s until %(recurrenceEndDate)s")
+YT_TITLE = _(u"%(title)s every year on %(startDate)s %(startTime)s - %(endTime)s %(timezone)s")
+YTD_TITLE = _(u"%(title)s every year from %(startDate)s %(startTime)s -  %(endDate)s %(endTime)s %(timezone)s")
+YTU_TITLE = _(u"%(title)s every year on %(startDate)s %(startTime)s - %(endTime)s %(timezone)s until %(recurrenceEndDate)s")
+YTUD_TITLE = _(u"%(title)s every year from %(startDate)s %(startTime)s - %(endDate)s %(endTime)s %(timezone)s until %(recurrenceEndDate)s")
+YTL_TITLE = _(u"%(title)s at %(location)s every year on %(startDate)s %(startTime)s - %(endTime)s %(timezone)s")
+YTLD_TITLE = _(u"%(title)s at %(location)s every year from %(startDate)s %(startTime)s - %(endDate)s %(endTime)s %(timezone)s")
+YTUL_TITLE = _(u"%(title)s at %(location)s every year on %(startDate)s %(startTime)s - %(endTime)s %(timezone)s until %(recurrenceEndDate)s")
+YTULD_TITLE = _(u"%(title)s at %(location)s every year from %(startDate)s %(startTime)s - %(endDate)s %(endTime)s %(timezone)s until %(recurrenceEndDate)s")
 
 # Used by PyICU.ChoiceFormat to determine the abbreviation for the day of month ie. 1st or 10th
 DAY_OF_MONTH = _(u"1#st|2#nd|3#rd|4#th|5#th|6#th|7#th|8#th|9#th|10#th|11#th|12#th|13#th|14#th|15#th|16#th|17#th|18#th|19#th|20#th|21#st|22#nd|23#rd|24#th|25#th|26#th|27#th|28#th|29#th|30#th|31#st")
 
+NEW_BODY_SAME_FROM = _(u"""\
+%(sender)s sent you %(kindCombination)s from Chandler:
+
+
+%(description)s%(itemBody)s
+""")
+
+UPDATE_BODY_SAME_FROM = _(u"""\
+%(sender)s sent you an update on %(kindCombination)s from Chandler:
+
+
+%(description)s%(itemBody)s
+""")
+
+NEW_BODY_DIFFERENT_FROM = _(u"""\
+%(sender)s sent you %(kindCombination)s from Chandler:
+
+From: %(originators)s
+To: %(toAddresses)s%(ccAddressLine)s
+
+
+%(description)s%(itemBody)s
+""")
+
+UPDATE_BODY_DIFFERENT_FROM = _(u"""\
+%(sender)s sent you an update on %(kindCombination)s from Chandler:
+
+From: %(originators)s
+To: %(toAddresses)s%(ccAddressLine)s
+
+
+%(description)s%(itemBody)s
+""")
+
 
 def getMessageBody(mailStamp):
-    if not has_stamp(mailStamp.itsItem, EventStamp) and not \
-           has_stamp(mailStamp.itsItem, TaskStamp):
+    if not has_stamp(mailStamp.itsItem, EventStamp) and \
+       not has_stamp(mailStamp.itsItem, TaskStamp):
         #XXX NEED TO BE UPDATED WHEN MORE STAMPING TYPES ADDED
         # If it is just a mail message then return the
         # ContentItem body
         return mailStamp.itsItem.body
 
-    return _(u"""\
-%(sender)s sent you a %(kindCombination)s from Chandler on %(dateSent)s:
+    showFrom = False
+    ret = None
 
-From: %(originators)s
-To: %(toAddresses)s%(ccAddressLine)s
+    orig = getattr(mailStamp, "originators", [])
 
-%(description)s
+    size = len(orig)
 
-%(itemBody)s
+    if size == 1:
+        #Compare the from and originators[0] for a match
+        for addr in orig:
+            # See if the firt value in originators matches the sender
+            if addr != mailStamp.getSender():
+                showFrom = True
+            break
 
-""") % getBodyValues(mailStamp)
+    elif len(orig) > 1:
+        # There is more than one address in the Chandler From field
+        # so it must differ from the RFC 2822 from.
+        showFrom = True
+
+
+    if mailStamp.isAnUpdate():
+        if showFrom:
+            ret = UPDATE_BODY_DIFFERENT_FROM
+        else:
+            ret = UPDATE_BODY_SAME_FROM
+    else:
+        if showFrom:
+            ret = NEW_BODY_DIFFERENT_FROM
+        else:
+            ret = NEW_BODY_SAME_FROM
+
+    args = getBodyValues(mailStamp, usePrefix=True)
+
+    if not has_stamp(mailStamp.itsItem, EventStamp):
+        # Only include a description (title) if the
+        # item is an Event
+        args['description'] = u''
+    else:
+        # Add two new lines to the description.
+        # This is done to minimize the number of
+        # unique sentences that have to be defined
+        # to support localization.
+        args['description'] = u'%s\n\n' % args['description']
+
+    return ret %  args
 
 
 def getForwardBody(mailStamp):
@@ -201,33 +273,67 @@ Begin forwarded %(kindCombination)s:
 
 > From: %(originators)s
 > To: %(toAddresses)s%(ccAddressLine)s
-> Sent by %(sender)s on %(dateSent)s
+> Sent by %(sender)s on %(date)s at %(time)s
 >
 > %(description)s
 >
 %(itemBody)s
 
-""") % getBodyValues(mailStamp, True)
+""") % getBodyValues(mailStamp, addGT=True)
 
 
 def getReplyBody(mailStamp):
     return _(u"""\
 
 
-%(sender)s wrote on %(dateSent)s:
+%(sender)s wrote on %(date)s at %(time)s:
 
 > %(description)s
 >
 %(itemBody)s
 
-""") % getBodyValues(mailStamp, True)
+""") % getBodyValues(mailStamp, addGT=True)
 
-def getBodyValues(mailStamp, addGT=False):
+def formatDateAndTime(dateStamp):
+    dateTime = formatTime(dateStamp, noTZ=True, includeDate=True)
+    time = formatTime(dateStamp, noTZ=True, includeDate=False)
+
+    # Parse the date from a date time string since formatTime does
+    # not have an option to get just the date.
+    date = dateTime.split(time)[0]
+
+    try:
+        date = date.strip()
+        time = time.strip()
+    except:
+        pass
+
+    return (date, time)
+
+def isMeAddress(addr):
+    if addr is None:
+        return False
+
+    meAddresses = getCurrentMeEmailAddresses(addr.itsView)
+
+    for me in meAddresses:
+        if addr.emailAddress.lower() == me.emailAddress.lower():
+            return True
+    return False
+
+def in_collection(addr, collection):
+    for address in collection:
+        if addr.emailAddress.lower() == address.emailAddress.lower():
+            return True
+        return False
+
+
+def getBodyValues(mailStamp, addGT=False, usePrefix=False):
     if not hasattr(mailStamp, 'dateSent'):
         from osaf.mail.utils import dateTimeToRFC2822Date
         mailStamp.dateSent = datetime.now(PyICU.ICUtzinfo.default)
 
-    dateSent = formatTime(mailStamp.dateSent, includeDate=True)
+    date, time = formatDateAndTime(mailStamp.dateSent)
 
     to = []
 
@@ -275,13 +381,14 @@ def getBodyValues(mailStamp, addGT=False):
 
     return {
              "sender":  sender,
-             "kindCombination": buildKindCombination(mailStamp),
+             "kindCombination": buildKindCombination(mailStamp, usePrefix),
              "originators": originators,
              "toAddresses": u", ".join(to),
              "ccAddressLine": ccLine,
              "description": buildItemDescription(mailStamp),
              "itemBody": body,
-             "dateSent": dateSent,
+             "date": date,
+             "time": time,
            }
 
 
@@ -311,38 +418,47 @@ def buildItemDescription(mailStamp):
         if location:
             location = location.displayName.strip()
 
-        startTime = formatTime(event.startTime)
-        endTime   = formatTime(event.endTime)
-        startDateTime = mediumDateFormat.format(event.startTime)
-        endDateTime   = mediumDateFormat.format(event.endTime)
-        useDate   = True
+        startDate, startTime = formatDateAndTime(event.startTime)
+        endDate, endTime = formatDateAndTime(event.endTime)
 
-        if startDateTime == endDateTime:
-            useDate = False
-            endDateTime = endTime
+        if getattr(event.startTime, "tzinfo", None) is \
+           PyICU.ICUtzinfo.floating:
+            timezone = u""
 
-        if not noTime:
-            startDateTime = formatTime(event.startTime, includeDate=True)
-            endDateTime = formatTime(event.endTime, includeDate=useDate)
+        else:
+            timezone = getTimeZoneCode(event.startTime)
+
+        if startDate == endDate:
+            # The Event starts and ends on the same day
+            endDate = None
 
         args = {'title': item.displayName,
-                'startDateTime': startDateTime,
                 'startTime': startTime,
-                'endDateTime': endDateTime,
+                'startDate': startDate,
                 'endTime': endTime,
+                'endDate': endDate,
                 'location': location,
+                'timezone': timezone,
                }
 
         if recur:
             if recur.isComplex():
-                return _(u"complex rule - no description available")
+                if noTime:
+                    if endDate:
+                        return (location and CLD_TITLE or CD_TITLE) % args
+                    else:
+                        return (location and CL_TITLE or C_TITLE) % args
+                if endDate:
+                    return (location and CLSD_TITLE or CLD_TITLE) % args
+                else:
+                    return (location and CLS_TITLE or CL_TITLE) % args
 
             rule = recur.rrules.first()
             freq = rule.freq
             interval = rule.interval
             until = rule.calculatedUntil()
 
-            args['recurrenceEndDate'] = until and mediumDateFormat.format(until) or u''
+            args['recurrenceEndDate'] = until and formatDateAndTime(until)[0] or u''
 
             ret = None
 
@@ -408,20 +524,34 @@ def buildItemDescription(mailStamp):
                         ret = location and YL_TITLE or Y_TITLE
                 else:
                     if until:
-                        ret = location and YTUL_TITLE or YTU_TITLE
+                        if endDate:
+                            ret = location and YTULD_TITLE or YTUD_TITLE
+                        else:
+                            ret = location and YTUL_TITLE or YTU_TITLE
                     else:
-                        ret = location and YTL_TITLE or YT_TITLE
+                        if endDate:
+                            ret = location and YTLD_TITLE or YTD_TITLE
+                        else:
+                            ret = location and YTL_TITLE or YT_TITLE
 
             return ret % args
 
+        if noTime:
+            if endDate:
+                return (location and ALD_TITLE or AD_TITLE) % args
+            else:
+                return (location and AL_TITLE or A_TITLE) % args
 
-        return (location and EL_TITLE or E_TITLE) % args
+        else:
+            if endDate:
+                return (location and ELD_TITLE or ED_TITLE) % args
+            else:
+                return (location and EL_TITLE or E_TITLE) % args
 
 
     return item.displayName
 
-def buildKindCombination(mailStamp):
-
+def buildKindCombination(mailStamp, usePrefix=False):
     item = mailStamp.itsItem
 
     isEvent = has_stamp(item, EventStamp)
@@ -439,15 +569,32 @@ def buildKindCombination(mailStamp):
             isAnytime = False
 
         if isRecurring:
-            return isAllDay and (isTask and R_SCHEDULED_TASK or RA_EVENT) or \
-                   isAnytime and (isTask and R_SCHEDULED_TASK or RAT_EVENT) or \
-                   (isTask and R_SCHEDULED_TASK or R_EVENT)
+            if usePrefix:
+                return isAllDay and (isTask and P_R_SCHEDULED_TASK or P_RA_EVENT) or \
+                       isAnytime and (isTask and P_R_SCHEDULED_TASK or P_RAT_EVENT) or \
+                       (isTask and P_R_SCHEDULED_TASK or P_R_EVENT)
+            else:
+                return isAllDay and (isTask and R_SCHEDULED_TASK or RA_EVENT) or \
+                       isAnytime and (isTask and R_SCHEDULED_TASK or RAT_EVENT) or \
+                       (isTask and R_SCHEDULED_TASK or R_EVENT)
 
-        return isAllDay and (isTask and A_SCHEDULED_TASK or A_EVENT) or \
-               isAnytime and (isTask and AT_SCHEDULED_TASK or AT_EVENT) or \
-               (isTask and SCHEDULED_TASK or EVENT)
+        if usePrefix:
+            return isAllDay and (isTask and P_A_SCHEDULED_TASK or P_A_EVENT) or \
+                   isAnytime and (isTask and P_AT_SCHEDULED_TASK or P_AT_EVENT) or \
+                   (isTask and P_SCHEDULED_TASK or P_EVENT)
 
-    return (isTask and TASK or MESSAGE)
+        else:
+            return isAllDay and (isTask and A_SCHEDULED_TASK or A_EVENT) or \
+                   isAnytime and (isTask and AT_SCHEDULED_TASK or AT_EVENT) or \
+                   (isTask and SCHEDULED_TASK or EVENT)
+
+    if isTask:
+        if usePrefix:
+            return P_TASK
+        else:
+            return TASK
+
+    return MESSAGE
 
 def __actionOnMessage(view, mailStamp, action="REPLY"):
     assert(isinstance(mailStamp, MailStamp))
@@ -456,30 +603,28 @@ def __actionOnMessage(view, mailStamp, action="REPLY"):
     newMailStamp = MailMessage(itsView=view)
     newMailStamp.InitOutgoingAttributes()
 
-    # From the Email 7.0 spec
-    #   Reply
-    #    oldMail.fromAddress = newMail.toAddress
-    #    oldMail.originators if not == to oldMail.fromAddress = newMail.toAddress
-    #   ReplyAll
-    #    oldMail.ToAddress = newMail.toAddress
-    #    oldMail.ccAddress = newMail.ccAddress
-
-    #    forward
-    #        oldMail.originators = newMail.orginators
-
     if action == "REPLY" or action == "REPLYALL":
-        #previousSender = mailStamp.getPreviousSender()
-        #newMailStamp.toAddress.append(previousSender)
-
         sender = mailStamp.getSender()
-        newMailStamp.toAddress.append(sender)
+        previousSender = mailStamp.getPreviousSender()
 
+        if previousSender and not isMeAddress(previousSender):
+            # Only add the previous sender to the toAddress list
+            # if the sender is not one of the me addresses.
+            # This works around the use case where the
+            # the current me Chandler user edited an
+            # email sent from another Chandler user thus
+            # overwriting the sender attribute.
+            newMailStamp.toAddress.append(previousSender)
+        else:
+            newMailStamp.toAddress.append(sender)
 
         for ea in mailStamp.getOriginators():
             # Only add valid email addresses to the
-            # toAddress list.
-            if ea != sender:
-                newMailStamp.toAddress.append(ea)
+            # ccAddress list.
+            if not in_collection(ea, newMailStamp.toAddress) and \
+               not in_collection(ea, newMailStamp.ccAddress) and \
+               not isMeAddress(ea):
+                newMailStamp.ccAddress.append(ea)
 
         if mailStamp.subject:
             if mailStamp.subject.lower().startswith(u"re: "):
@@ -498,19 +643,42 @@ def __actionOnMessage(view, mailStamp, action="REPLY"):
 
         if action == "REPLYALL":
             for ea in mailStamp.toAddress:
-                newMailStamp.toAddress.append(ea)
+                if not in_collection(ea, newMailStamp.toAddress) and \
+                   not in_collection(ea, newMailStamp.ccAddress) and \
+                   not isMeAddress(ea):
+                    newMailStamp.ccAddress.append(ea)
 
             for ea in mailStamp.ccAddress:
-                newMailStamp.ccAddress.append(ea)
+                if not in_collection(ea, newMailStamp.toAddress) and \
+                   not in_collection(ea, newMailStamp.ccAddress) and \
+                   not isMeAddress(ea):
+                    newMailStamp.ccAddress.append(ea)
+
+        if len(newMailStamp.toAddress) == 0:
+            # If there is no email addresses in the to field
+            # then add the sender or previous sender to the
+            # toAddress list even if the address == me.
+            # The idea is to avoid a reply to 'me'. However,
+            # a 'to address' is required to send a message.
+            # So in this case go ahead and add the address
+            # to the toAddress list.
+            if previousSender:
+                newMailStamp.toAddress.append(previousSender)
+            else:
+                newMailStamp.toAddress.append(sender)
     else:
         #FORWARD CASE
+        #XXX I don't think this makes sense. Commenting
+        # out till I get further feedback. A forward
+        # should not contain the originators from the
+        # previous message.
         # By default the me address gets added to the
         # originators when the Note is stamped as mail.
         # So start with a fresh list.
-        newMailStamp.originators = []
+        #newMailStamp.originators = []
 
-        for ea in mailStamp.originators:
-            newMailStamp.originators.append(ea)
+        #for ea in mailStamp.originators:
+        #    newMailStamp.originators.append(ea)
 
         if mailStamp.subject:
             if mailStamp.subject.lower().startswith(u"fwd: ") or \
@@ -665,7 +833,7 @@ def _recalculateMeEmailAddresses(view):
             oldAddresses.remove(address)
     for address in oldAddresses:
         addresses.remove(address)
-            
+
 def _registerNewMeAddress(newAddress):
     """ 
     If this address isn't a "me" address, make it one.
@@ -678,11 +846,11 @@ def _registerNewMeAddress(newAddress):
         view = newAddress.itsView
         pim_ns =  schema.ns("osaf.pim", view)
         meEmailAddressCollection = pim_ns.meEmailAddressCollection
-        
+
         # Find all the EmailAddress items whose emailAddress attribute
         # matches this one, case-insensitively (this will include the one we
         # were called with). 
-        lowerAddress = newAddress.emailAddress.lower()   
+        lowerAddress = newAddress.emailAddress.lower()
         allEmailAddressCollection = pim_ns.emailAddressCollection
         def addressGenerator():
             def _compare(uuid):
@@ -696,28 +864,28 @@ def _registerNewMeAddress(newAddress):
             lastUUID = allEmailAddressCollection.findInIndex('emailAddress', 'last', _compare)
             for uuid in allEmailAddressCollection.iterindexkeys('emailAddress', firstUUID, lastUUID):
                 yield view[uuid]
-                    
+
         # For each, check toMe/fromMe on its messages.
         for address in addressGenerator():
             if address not in meEmailAddressCollection:
                 meEmailAddressCollection.append(address)
-                
+
                 checkList = set([item for item in 
-                                 itertools.chain(address.messagesFrom, 
-                                                 address.messagesReplyTo, 
+                                 itertools.chain(address.messagesFrom,
+                                                 address.messagesReplyTo,
                                                  address.messagesOriginator)
                                  if not getattr(item, MailStamp.fromMe.name, False)])
                 for item in checkList:
                     checkIfFromMe(MailStamp(item))
 
-                checkList = set([item for item in 
-                                 itertools.chain(address.messagesTo, 
-                                                 address.messagesCc, 
+                checkList = set([item for item in
+                                 itertools.chain(address.messagesTo,
+                                                 address.messagesCc,
                                                  address.messagesBcc)
                                  if not getattr(item, MailStamp.toMe.name, False)])
                 for item in checkList:
                     checkIfToMe(MailStamp(item))
-                    
+
         _recalculateMeEmailAddresses(view)
 
 
@@ -781,7 +949,7 @@ def _calculateCurrentMeEmailAddresses(view):
            2. Any outgoing account containing an email address
            3. The default incoming email address
            4. Any incoming account containing an email address
-      
+
       Note that there may be other EmailAddress items in the historic
       meEmailAddressCollection that differ only from these by case; we
       don't add them here, though, because we don't want them in eg popups.
@@ -1291,7 +1459,7 @@ class MailStamp(stamping.Stamp):
 
 
     previousSender = schema.One(defaultValue = None, doc = "The From: EmailAddress of an incoming message. The address is used to ensure the sender of the message is not lost from the workflow")
-    
+
     def initialOriginators(self):
         me = getCurrentMeEmailAddress(self.itsItem.itsView)
         if me is not None:
@@ -1339,7 +1507,8 @@ class MailStamp(stamping.Stamp):
         # accidentally removed from the Edit / Update
         # workflow, the bccAddress attribute is ignored
         # because it won't be seen by all participants.
-        if previousSender not in self.getRecipients(includeBcc=False,
+        if previousSender not in self.toAddress and \
+           previousSender not in self.getRecipients(includeBcc=False,
                                                     includeSender=True):
             self.ccAddress.append(previousSender)
             return True
@@ -1416,7 +1585,7 @@ class MailStamp(stamping.Stamp):
 
 
 
-    def getRecipients(self, includeOriginators=True, 
+    def getRecipients(self, includeOriginators=True,
                       includeBcc=True, includeSender=False):
         """
            Returns a list of all recipents of
@@ -1535,7 +1704,7 @@ class MailStamp(stamping.Stamp):
         if getattr(self, 'viaMailService', False):
             # Mail arriving via the Mail Service never
             # has its toMe value recalculated
-            return 
+            return
 
         checkIfToMe(self)
         self.itsItem.updateDisplayWho(op, name)
@@ -1633,7 +1802,7 @@ class MailStamp(stamping.Stamp):
         self.itsItem.changeEditState(modFlag, self.getSender(),
                                      self.dateSent)
 
-    def incomingMessage(self):
+    def incomingMessage(self, ignoreMe=False):
         view = self.itsItem.itsView
 
         # Flags to indicate that this message arrived via the
@@ -1642,6 +1811,12 @@ class MailStamp(stamping.Stamp):
         # contain a me address.
         self.viaMailService = True
         self.toMe = True
+
+        if ignoreMe:
+            sender = self.getSender()
+
+            if isMeAddress(sender):
+                self.toMe = False
 
         # Flag indicating that the previous sender
         # was in the addressing fields when the mail
@@ -1707,14 +1882,14 @@ class MailStamp(stamping.Stamp):
          'update': Item is sendable, would be an update to a previous send
          'not': Item is not sendable (e.g. not addressed)
          'sent':  Item is not sendable; it was just sent.
-         
+
         If ignoreAttr is specified, don't verify that value
         (because it's being edited in the UI and is known to be valid,
         and will get saved before sending).
         """
-        
+
         lastModification = self.itsItem.lastModification
-        
+
         # You can't send unless you've made changes
         if (lastModification in (
                     Modification.sent,
@@ -1727,10 +1902,10 @@ class MailStamp(stamping.Stamp):
         # (This test will get more complicated when we add cc, bcc, etc.)
         sendable = ((ignoreAttr == 'toAddress' or len(self.toAddress) > 0) and
                     (ignoreAttr == 'fromAddress' or self.fromAddress is not None))
-        
+
         if not sendable:
             return 'not'
-            
+
         if Modification.sent in self.itsItem.modifiedFlags:
             return 'update'
         else:
@@ -1969,7 +2144,7 @@ Issues:
         We do look them up in the repository to prevent duplicates, but there's
         nothing to keep bad ones from accumulating, although repository
         garbage collection should eventually remove them.
-    
+
         If a matching EmailAddress object is found in the repository, it
         is returned.  If there is no match, then a new item is created
         and returned.
@@ -2024,7 +2199,7 @@ Issues:
         # See if we have this address
         collection = schema.ns("osaf.pim", view).emailAddressCollection
         def compareBothParts(uuid):
-            targetAddress, targetName = view.findValues(uuid, ('emailAddress', u''), 
+            targetAddress, targetName = view.findValues(uuid, ('emailAddress', u''),
                                                               ('fullName', u''))
             return cmp(address, targetAddress) or cmp(name, targetName)
         match = collection.findInIndex('both', 'exact', compareBothParts)

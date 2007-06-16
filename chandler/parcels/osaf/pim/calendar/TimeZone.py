@@ -38,23 +38,23 @@ def reindexFloatingEvents(view, tzinfo):
     """
     pim_ns = schema.ns("osaf.pim", view)
     EventStamp = pim_ns.EventStamp
-    
+
     attrs = (EventStamp.startTime.name, EventStamp.recurrenceEnd.name,
             'displayDate')
-    
+
     # Ask the view to trigger reindexing for all the above attributes, for
     # all floating events. This should cover the cases above.
     view.reindex(pim_ns.floatingEvents, *attrs)
     events = pim_ns.EventStamp.getCollection(view)
-    
+
     # [Bug 8688] Re-calculate until based on new (non-floating) timezone
     ruleClass = schema.ns("osaf.pim.calendar.Recurrence", view).RecurrenceRule
     for uuid in ruleClass.getKind(view).iterKeys():
         until = view.findValue(uuid, 'until', None)
-        
+
         if until is not None:
             view[uuid].until = until.replace(tzinfo=tzinfo)
-        
+
 
 def equivalentTZIDs(tzinfo):
     numEquivalents = PyICU.TimeZone.countEquivalentIDs(tzinfo.tzid)
@@ -296,7 +296,7 @@ def convertToICUtzinfo(dt, view=None):
     """
     This method returns a C{datetime} whose C{tzinfo} field
     (if any) is an instance of the ICUtzinfo class.
-    
+
     @param dt: The C{datetime} whose C{tzinfo} field we want
                to convert to an ICUtzinfo instance.
     @type dt: C{datetime}
@@ -307,7 +307,7 @@ def convertToICUtzinfo(dt, view=None):
     elif oldTzinfo is None:
         icuTzinfo = None # Will patch to floating at the end
     else:
-        
+
         def getICUInstance(name):
             result = None
             if name is not None:
@@ -316,10 +316,10 @@ def convertToICUtzinfo(dt, view=None):
                     result.tzid == 'GMT' and \
                     name != 'GMT':
                     result = None
-                    
+
             return result
 
-        
+
         # First, for dateutil.tz._tzicalvtz, we check
         # _tzid, since that's the displayable timezone
         # we want to use. This is kind of cheesy, but
@@ -327,18 +327,18 @@ def convertToICUtzinfo(dt, view=None):
         # a tz like 'America/Chicago' over 'CST' or 'CDT'.
         tzical_tzid = getattr(oldTzinfo, '_tzid', None)
         icuTzinfo = getICUInstance(tzical_tzid)
-        
+
         if tzical_tzid is not None:
             if tzid_mapping.has_key(tzical_tzid):
                 # we've already calculated a tzinfo for this tzid
                 icuTzinfo = tzid_mapping[tzical_tzid]
-        
+
         if icuTzinfo is None:
             # special case UTC, because dateutil.tz.tzutc() doesn't have a TZID
             # and a VTIMEZONE isn't used for UTC
             if vobject.icalendar.tzinfo_eq(dateutil_utc, oldTzinfo):
                 icuTzinfo = utc
-        
+
         # iterate over all PyICU timezones, return the first one whose
         # offsets and DST transitions match oldTzinfo.  This is painfully
         # inefficient, but we should do it only once per unrecognized timezone,
@@ -350,7 +350,7 @@ def convertToICUtzinfo(dt, view=None):
                 well_known = (t[1].tzid for t in info.iterTimeZones())
             else:
                 well_known = []
-                
+
             # canonicalTimeZone doesn't help us here, because our matching
             # criteria aren't as strict as PyICU's, so iterate over well known
             # timezones first
@@ -388,14 +388,14 @@ def convertToICUtzinfo(dt, view=None):
             icuTzinfo = backup            
             if tzical_tzid is not None:
                 tzid_mapping[tzical_tzid] = icuTzinfo
-        
+
     # Here, if we have an unknown timezone, we'll turn
     # it into a floating datetime
     if icuTzinfo is None:
         icuTzinfo = PyICU.ICUtzinfo.floating
 
     dt = dt.replace(tzinfo=icuTzinfo)
-        
+
     return dt
 
 def shortTZ(dt, tzinfo=None):
@@ -416,7 +416,7 @@ def shortTZ(dt, tzinfo=None):
             for tzid in equivalentTZIDs(tzinfo):
                 if dt.tzinfo.tzid == tzid:
                     return u''
-            
+
         name = dt.tzinfo.timezone.getDisplayName(dt.dst(),
                                           dt.tzinfo.timezone.SHORT)
         if not name:
@@ -431,17 +431,16 @@ class DateAndNoDateFormats(object):
 
 FormatDictParent = {True:{}, False:{}}
 
+def _setTimeZoneInSubformats(msgFormat, tz):
+    subformats = msgFormat.getFormats()
+
+    for format in subformats:
+            if hasattr(format, "setTimeZone"):
+                format.setTimeZone(tz)
+
+    msgFormat.setFormats(subformats)
+
 def formatTime(dt, tzinfo=None, noTZ=False, includeDate=False):
-
-    def __setTimeZoneInSubformats(msgFormat, tz):
-        subformats = msgFormat.getFormats()
-        for format in subformats:
-                if hasattr(format, "setTimeZone"):
-                    format.setTimeZone(tz)
-
-        msgFormat.setFormats(subformats)
-
-
     if tzinfo is None: tzinfo = PyICU.ICUtzinfo.default
 
     useSameTimeZoneFormat = True
@@ -462,17 +461,29 @@ def formatTime(dt, tzinfo=None, noTZ=False, includeDate=False):
             formats.date = PyICU.MessageFormat(
                                  "{0,date,medium} {0,time,short} {0,time,z}")
             formats.nodate = PyICU.MessageFormat("{0,time,short} {0,time,z}")
-            
-        __setTimeZoneInSubformats(formats.nodate, dt.tzinfo.timezone)
-        __setTimeZoneInSubformats(formats.date, dt.tzinfo.timezone)
+
+        _setTimeZoneInSubformats(formats.nodate, dt.tzinfo.timezone)
+        _setTimeZoneInSubformats(formats.date, dt.tzinfo.timezone)
         FormatDict[(dt.tzinfo, tzinfo)] = formats
-            
+
     format = (formats.date if includeDate else formats.nodate)
-    
+
     formattable = PyICU.Formattable(dt, PyICU.Formattable.kIsDate)
 
     return unicode(format.format([formattable], PyICU.FieldPosition()))
 
+def getTimeZoneCode(dt):
+    tzinfo = PyICU.ICUtzinfo.default
+
+    if dt.tzinfo is None or dt.tzinfo is PyICU.ICUtzinfo.floating:
+        dt = dt.replace(tzinfo=tzinfo)
+
+    format = PyICU.MessageFormat("{0,time,z}")
+
+    _setTimeZoneInSubformats(format, dt.tzinfo.timezone)
+    formattable = PyICU.Formattable(dt, PyICU.Formattable.kIsDate)
+
+    return unicode(format.format([formattable], PyICU.FieldPosition()))
 
 def serializeTimeZone(tzinfo):
     """Given a tzinfo class, return a VTIMEZONE in an iCalendar object."""
@@ -482,14 +493,14 @@ def serializeTimeZone(tzinfo):
 
 def convertFloatingEvents(view, newTZ):
     """Convert existing floating events to the default timezone.
-    
+
     Don't convert events that are in shared collections, because they may be
     someone else's events and are intended to be floating. 
-        
+
     """
     pim_ns = schema.ns("osaf.pim", view)
     sharing_ns = schema.ns("osaf.sharing", view)
-    
+
     EventStamp = pim_ns.EventStamp
     # put all floating events in a list, because we can't iterate over 
     # floatingEvents while we remove items from it
@@ -507,3 +518,4 @@ def convertFloatingEvents(view, newTZ):
                     ev.recurrenceID = ev.recurrenceID.replace(tzinfo=newTZ)
                     if ev.startTime.tzinfo == PyICU.ICUtzinfo.floating:
                         ev.startTime = ev.startTime.replace(tzinfo=newTZ)
+
