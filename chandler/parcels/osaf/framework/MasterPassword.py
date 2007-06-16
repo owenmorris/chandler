@@ -342,7 +342,7 @@ class GetMasterPasswordDialog(wx.Dialog):
         # creation, and then we create the GUI dialog using the Create
         # method.
         pre = wx.PreDialog()
-        pre.Create(parent, -1, _(u'Password Protection'), pos, size, style)
+        pre.Create(parent, -1, _(u'Protect Passwords'), pos, size, style)
 
         # This next step is the most important, it turns this Python
         # object into the real wrapper of the dialog (instead of pre)
@@ -434,7 +434,7 @@ class ChangeMasterPasswordDialog(wx.Dialog):
         # method.
         pre = wx.PreDialog()
         self.view = view
-        pre.Create(parent, -1, _(u'Password Protection'), pos, size, style)
+        pre.Create(parent, -1, _(u'Protect Passwords'), pos, size, style)
 
         # This next step is the most important, it turns this Python
         # object into the real wrapper of the dialog (instead of pre)

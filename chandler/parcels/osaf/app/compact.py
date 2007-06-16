@@ -31,7 +31,7 @@ class CompactDialog(wx.Dialog):
         self.compacting = None
 
         pre = wx.PreDialog()
-        pre.Create(None, -1, _m_(u"Compact Repository"),
+        pre.Create(None, -1, _m_(u"Purge Obsolete Data"),
                    wx.DefaultPosition, wx.DefaultSize, wx.DEFAULT_DIALOG_STYLE)
         self.this = pre.this
 
@@ -41,7 +41,7 @@ class CompactDialog(wx.Dialog):
         # compact message
         format = DateFormat.createDateInstance(DateFormat.kMedium)
         since = format.format(lastCompact)
-        text = _m_(u"Your repository hasn't been compacted since %(since)s and has %(versions)d versions that should be compacted. This operation may take a while but improves performance.") %{ 'since': since, 'versions': versions }
+        text = _m_(u"Chandler needs to purge obsolete data. This operation may take a while but will make the application run faster.") %{ 'since': since, 'versions': versions }
         message = wx.StaticText(self, -1, text)
         message.Wrap(360)
         grid.Add(message, 0, wx.ALIGN_LEFT|wx.ALL, 3)
