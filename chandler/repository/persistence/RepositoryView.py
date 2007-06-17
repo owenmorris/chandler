@@ -145,7 +145,7 @@ class RepositoryView(CView):
 
     def __init__(self, repository, name=None, version=None,
                  deferDelete=Default, pruneSize=Default, notify=True,
-                 mergeFn=None):
+                 mergeFn=None, timezone=None, ontzchange=None):
         """
         Initializes a repository view.
 
@@ -170,7 +170,8 @@ class RepositoryView(CView):
         super(RepositoryView, self).__init__(repository, name,
                                              RepositoryView.itsUUID)
         self._mergeFn = None
-        self.openView(version, deferDelete, notify, mergeFn)
+        self.openView(version, deferDelete, notify, mergeFn,
+                      timezone, ontzchange)
         
     def _isNullView(self):
 
@@ -194,7 +195,7 @@ class RepositoryView(CView):
         return self['Schema']['Core']['Lob'].makeValue(data, *args, **kwds)
 
     def openView(self, version=None, deferDelete=Default, notify=Default,
-                 mergeFn=None):
+                 mergeFn=None, timezone=None, ontzchange=None):
         """
         Open this repository view.
 
@@ -208,6 +209,10 @@ class RepositoryView(CView):
             if version is None:
                 version = repository.store.getVersion()
             verify = repository._isVerify()
+            if timezone is None:
+                timezone = repository.timezone
+            if ontzchange is None:
+                ontzchange = repository.ontzchange
         else:
             if version is None:
                 version = 0
@@ -237,7 +242,7 @@ class RepositoryView(CView):
         self._instanceRegistry = {}
         self._loadingRegistry = set()
         self._status |= RepositoryView.OPEN
-        self.tzinfo = ViewTZInfo(self)
+        self.tzinfo = None
 
         if deferDelete is Default:
             deferDelete = repository._deferDelete
@@ -253,22 +258,37 @@ class RepositoryView(CView):
             repository.store.attachView(self)
             repository._openViews.append(self)
 
-        self._loadTimezone()
+        # timezone may be set to Default to use whatever is persisted
+        tzid = self._loadTimezone()
+        if tzid:
+            origtz = ICUtzinfo.getInstance(tzid)
+            self.tzinfo = ViewTZInfo(self, origtz, ontzchange)
+            if timezone:
+                self.tzinfo.default = timezone
+        else:
+            self.tzinfo = ViewTZInfo(self, timezone, ontzchange)
+        
         self._loadSchema()
 
     def setMergeFn(self, mergeFn):
 
         self._mergeFn = mergeFn
 
-    def _loadTimezone(self):
+    def _loadTimezone(self, version=None):
 
-        if self.itsVersion:
-            timezone = self.store.getViewTimezone(self.itsVersion)
+        if version is None:
+            version = self.itsVersion
+
+        if version:
+            tzid = self.store.getViewTimezone(version)
         else:
-            timezone = None
+            tzid = None
 
-        if timezone is not None:
-            self.tzinfo.setDefault(self.tzinfo.getInstance(timezone))
+        tzinfo = self.tzinfo
+        if not (tzid is None or tzinfo is None):
+            tzinfo.setDefault(tzinfo.getInstance(tzid))
+
+        return tzid
 
     def _loadSchema(self):
 
@@ -1452,23 +1472,25 @@ class OnDemandRepositoryView(RepositoryView):
 
     def __init__(self, repository, name=None, version=None,
                  deferDelete=Default, pruneSize=Default, notify=Default,
-                 mergeFn=None):
+                 mergeFn=None, timezone=None, ontzchange=None):
 
         if version is None:
             version = repository.store.getVersion()
 
         super(OnDemandRepositoryView, self).__init__(repository, name, version,
                                                      deferDelete, pruneSize,
-                                                     notify, mergeFn)
+                                                     notify, mergeFn, timezone,
+                                                     ontzchange)
 
     def openView(self, version=None, deferDelete=Default, notify=Default,
-                 mergeFn=None):
+                 mergeFn=None, timezone=None, ontzchange=None):
 
         self._exclusive = threading.RLock()
         self._hooks = []
         
         super(OnDemandRepositoryView, self).openView(version, deferDelete,
-                                                     notify, mergeFn)
+                                                     notify, mergeFn,
+                                                     timezone, ontzchange)
 
     def isNew(self):
 
@@ -1606,23 +1628,29 @@ class OnDemandRepositoryView(RepositoryView):
 
 class NullRepositoryView(RepositoryView):
 
-    def __init__(self, name=None, verify=False):
+    def __init__(self, name=None, verify=False, timezone=None, ontzchange=None):
 
-        super(NullRepositoryView, self).__init__(None, name, 0,
-                                                 False, False)
+        super(NullRepositoryView, self).__init__(None,
+                                                 name=name,
+                                                 timezone=timezone,
+                                                 ontzchange=ontzchange)
+
         if verify:
             self._status |= RepositoryView.VERIFY
 
     def openView(self, version=None, deferDelete=Default, notify=Default,
-                 mergeFn=None):
+                 mergeFn=None, timezone=None, ontzchange=None):
 
         self._logger = logging.getLogger(__name__)
-        super(NullRepositoryView, self).openView(version, False, notify,
-                                                 mergeFn)
+        super(NullRepositoryView, self).openView(version=0,
+                                                 deferDelete=False,
+                                                 notify=False,
+                                                 timezone=timezone,
+                                                 ontzchange=ontzchange)
 
     def _loadTimezone(self):
 
-        pass
+        return None
 
     def refresh(self, mergeFn=None):
         
@@ -1878,14 +1906,17 @@ class TransientWatchItem(TransientWatch):
 
 class ViewTZInfo(object):
 
-    def __init__(self, view):
+    def __init__(self, view, default, ontzchange):
+
+        if not default:
+            default = ICUtzinfo.default
+        elif not isinstance(default, ICUtzinfo):
+            raise TypeError, default
 
         self.view = view
-        self._default = ICUtzinfo.getDefault()
+        self._default = default
         self._floating = FloatingTZ(self._default)
-
-    def __getattr__(self, name):
-        return getattr(ICUtzinfo, name)
+        self._ontzchange = ontzchange or Nil
 
     def getDefault(self):
         return self._default
@@ -1901,8 +1932,17 @@ class ViewTZInfo(object):
     def setDefault(self, default):
         if not isinstance(default, ICUtzinfo):
             raise TypeError, default
-        self._default = default
-        self._floating.tzinfo = default
+        if self._default != default:
+            self._default = default
+            self._floating.tzinfo = default
+            self._ontzchange(self.view, default)
+
+    def getOnTZChange(self):
+        return self._ontzchange
+
+    def setOnTZChange(self, ontzchange):
+        self._ontzchange = ontzchange or Nil
 
     default = property(getDefault, setDefault)
     floating = property(getFloating)
+    ontzchange = property(getOnTZChange, setOnTZChange)

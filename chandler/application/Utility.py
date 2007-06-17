@@ -22,11 +22,12 @@ import M2Crypto.Rand as Rand, M2Crypto.threading as m2threading
 from optparse import OptionParser
 from configobj import ConfigObj
 
-from chandlerdb.util.c import UUID, loadUUIDs
+from chandlerdb.util.c import UUID, loadUUIDs, Default
 from repository.persistence.DBRepository import DBRepository
 from repository.persistence.RepositoryError import \
     VersionConflictError, RepositoryPasswordError, RepositoryVersionError, \
     RepositoryRunRecoveryError
+from PyICU import ICUtzinfo
 
 import version
 
@@ -366,6 +367,12 @@ def initOptions(**kwds):
         options.create = True
         options.restore = None
 
+    if options.timezone:
+        timezone = ICUtzinfo.getInstance(options.timezone)
+        if str(timezone) != options.timezone:
+            raise ValueError, ("Invalid timezone", options.timezone)
+        options.timezone = timezone
+
     return options
 
 
@@ -533,6 +540,8 @@ def initRepository(directory, options, allowSchemaView=False):
              'refcounted': True,
              'checkpoints': options.checkpoints,
              'logged': not not options.logging,
+             'timezone': options.timezone or ICUtzinfo.default,
+             'ontzchange': lambda view, newtz: view.logger.warning("%s: timezone changed to %s", view, newtz),
              'verify': options.verify or __debug__ }
 
     if options.restore:
@@ -574,14 +583,16 @@ def initRepository(directory, options, allowSchemaView=False):
         repository.logger.info("Repository was backed up into %s", dbHome)
 
     version = long(options.version) if options.version else None
-    view = repository.createView(version=version)
 
     if options.repair:
+        view = repository.createView(version=version, timezone=Default)
         schema.initRepository(view)
         if view.check(True):
             view.commit()
+        view.closeView()
 
     if options.undo:
+        view = repository.createView(version=version, timezone=Default)
         if options.undo in ('check', 'repair'):
             repair = options.undo == 'repair'
             while view.itsVersion > 0L:
@@ -601,11 +612,16 @@ def initRepository(directory, options, allowSchemaView=False):
             toVersion = version - nVersions
             if toVersion >= 0L:
                 repository.undo(toVersion)
+        view.closeView()
 
-    if view.isNew() and options.timezone is not None:
-        view.tzinfo.setDefault(view.tzinfo.getInstance(options.timezone))
+    # delay timezone change until schema API is initialized
+    if repository.isNew():
+        view = repository.createView(version=version)
+    else:
+        view = repository.createView(version=version, timezone=Default)
 
     schema.initRepository(view)
+    view.tzinfo.default = repository.timezone
 
     if options.indexer == 'foreground':
         # do nothing, indexing happens during commit

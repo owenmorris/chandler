@@ -16,6 +16,7 @@
       <ref alias="workedWith" type="path">/CineGuide/Attributes/workedWith</ref>
       <ref alias="epoch" type="path">/CineGuide/Attributes/epoch</ref>
       <ref alias="decimal" type="path">/CineGuide/Attributes/decimal</ref>
+      <ref alias="timezone" type="path">/CineGuide/Attributes/timezone</ref>
     </ref>
 
     <attribute name="classes">

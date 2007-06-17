@@ -126,7 +126,10 @@ class Repository(CRepository):
 
         self._testing = kwds.get('testing', False)
         self._deferDelete = not kwds.get('nodeferdelete', False)
+
         self.pruneSize = kwds.get('prune', 10000)
+        self.timezone = kwds.get('timezone', None)
+        self.ontzchange = kwds.get('ontzchange', None)
 
     def close(self):
         """
@@ -139,7 +142,7 @@ class Repository(CRepository):
 
     def createView(self, name=None, version=None,
                    deferDelete=Default, pruneSize=Default, notify=Default,
-                   mergeFn=None):
+                   mergeFn=None, timezone=None):
         """
         Create a repository view.
 
@@ -154,7 +157,7 @@ class Repository(CRepository):
         """
 
         return RepositoryView(self, name, version, deferDelete, pruneSize,
-                              notify, mergeFn)
+                              notify, mergeFn, timezone)
 
     def getOpenViews(self):
 
@@ -233,11 +236,11 @@ class OnDemandRepository(Repository):
 
     def createView(self, name=None, version=None,
                    deferDelete=Default, pruneSize=Default, notify=Default,
-                   mergeFn=None):
+                   mergeFn=None, timezone=None):
 
         return OnDemandRepositoryView(self, name, version,
                                       deferDelete, pruneSize, notify,
-                                      mergeFn)
+                                      mergeFn, timezone)
 
 
 class Store(CStore):
