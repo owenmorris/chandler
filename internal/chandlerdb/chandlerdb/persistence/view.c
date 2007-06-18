@@ -35,6 +35,7 @@ static PyObject *t_view_isStale(t_view *self);
 static PyObject *t_view_isRefCounted(t_view *self);
 static PyObject *t_view_isLoading(t_view *self);
 static PyObject *t_view__setLoading(t_view *self, PyObject *loading);
+static PyObject *t_view_isRefreshing(t_view *self);
 static PyObject *t_view_isDeferringDelete(t_view *self);
 static PyObject *t_view_deferDelete(t_view *self);
 static PyObject *t_view_effectDelete(t_view *self);
@@ -130,6 +131,7 @@ static PyMethodDef t_view_methods[] = {
     { "isRefCounted", (PyCFunction) t_view_isRefCounted, METH_NOARGS, "" },
     { "isLoading", (PyCFunction) t_view_isLoading, METH_NOARGS, "" },
     { "_setLoading", (PyCFunction) t_view__setLoading, METH_O, "" },
+    { "isRefreshing", (PyCFunction) t_view_isRefreshing, METH_NOARGS, "" },
     { "isDeferringDelete", (PyCFunction) t_view_isDeferringDelete, METH_NOARGS, "" },
     { "deferDelete", (PyCFunction) t_view_deferDelete, METH_NOARGS, "" },
     { "effectDelete", (PyCFunction) t_view_effectDelete, METH_NOARGS, "" },
@@ -395,6 +397,14 @@ static PyObject *t_view__setLoading(t_view *self, PyObject *loading)
 
     Py_INCREF(wasLoading);
     return wasLoading;
+}
+
+static PyObject *t_view_isRefreshing(t_view *self)
+{
+    if (self->status & REFRESHING)
+        Py_RETURN_TRUE;
+    else
+        Py_RETURN_FALSE;
 }
 
 static PyObject *t_view_isDeferringDelete(t_view *self)
