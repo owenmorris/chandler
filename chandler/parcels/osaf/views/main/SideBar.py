@@ -989,13 +989,18 @@ class SidebarBlock(Table):
         mine = pim_ns.mine
 
         mineMessage = _(u'Would you like to delete just the collection or the '
-                        u'collection and the items within it as well?')
+                        u'collection and the items within it as well?\n\n'
+                        u'Note: Items you have added to other collections will '
+                        u'not be deleted.')
         mineTextTable = {wx.ID_YES : _(u"Collection and Items"),
                          wx.ID_NO  : _(u"Collection only")}
-        notMineMessage = _(u"Deleting %(collectionName)s will move its contents to the Trash")
+        notMineMessage = _(u"Deleting %(collectionName)s will move its "
+                           u'contents to the Trash\n\n'
+                           u'Note: Items you have added to other collections '
+                           u'will not be deleted.')
         
         # don't pop up a dialog when running functional tests
-        if not event.arguments.get('testing'):                
+        if not event.arguments.get('testing'):
             for collection in self.contents.iterSelection():
                 if len(collection) == 0:
                     continue
@@ -1004,7 +1009,8 @@ class SidebarBlock(Table):
                     shouldClearCollection = \
                         promptYesNoCancel(mineMessage % dataDict,
                                           viewsmain.clearCollectionPref,
-                                          textTable=mineTextTable)
+                                          textTable=mineTextTable,
+                                          caption=_(u"Delete collection"))
     
                     if shouldClearCollection is None: # user pressed cancel
                         return
@@ -1079,8 +1085,8 @@ class SidebarBlock(Table):
 
     def ClearCollectionContents(self, collection):
         """
-        Remove items that should be removed, delete items that should
-        be deleted. Note that we're not doing any proxy-aware code
+        Remove items that should be removed, trash items that should
+        be trashed. Note that we're not doing any proxy-aware code
         here, because we're dealing with the actual items that are in
         the collection.
         """
@@ -1103,38 +1109,20 @@ class SidebarBlock(Table):
         sidebarCollections = [col for col in sidebarCollections
                               if IsValidCollection(col)]
 
-
-        def DoDeleteAction(item):
-            # useful as a separate function so we can return at any point
-
-            # first test: if its in any user collection, then of
-            # course we just want to remove it because we don't want
-            # to affect other collections
-            for sbCollection in sidebarCollections:
-                if item in sbCollection:
-                    collection.remove(item)
-                    return
-
-            # if a not-mine item doesn't exist anywhere else, then we
-            # just want to delete it. But not-mine events shouldn't
-            # all end up the trash, we just want to get rid of them
-            # entirely
-            if item not in mine:
-                item.delete()
-                return
-
-            # finally, 'mine' items that don't exist anywhere else
-            # just get added to the trash
-            trash.add(item)
-
-        # here's the meat of it
-        # deletion seems to have side-effects on the collection's membership
+        # deletion has side-effects on the collection's membership
         # therefore using a safe way to iterate and delete (bug 7945).
         view = collection.itsView
         for uuid in list(collection.iterkeys()):
             item = view.find(uuid)
             if not isDead(item):
-                DoDeleteAction(item)
+                # if its in any user collection, then we just want to remove it
+                # because we don't want to affect other collections
+                for sbCollection in sidebarCollections:
+                    if item in sbCollection:
+                        collection.remove(item)
+                        break
+                else:
+                    trash.add(item)
 
     def onCollectionColorEvent(self, event):
         assert (self.contents.getSelectionRanges() is not None and
