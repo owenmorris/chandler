@@ -424,12 +424,14 @@ class TokenEater:
                            token.NEWLINE, tokenize.NL]:
             # warn if we see anything else than STRING or whitespace
             print >> sys.stderr, _(
-                '*** %(file)s:%(lineno)s: Seen unexpected token "%(token)s"'
+                '\nLocalization Parser Error:\n\tFile: %(file)s\n\tLine: %(lineno)s\n\tError: Unexpected token "%(token)s"\n'
                 ) % {
                 'token': tstring,
                 'file': self.__curfile,
                 'lineno': self.__lineno
                 }
+
+            sys.exit(1)
             self.__state = self.__waiting
 
     def __addentry(self, msg, lineno=None, isdocstring=0):

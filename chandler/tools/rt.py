@@ -453,6 +453,23 @@ def runTestCase(options):
     return failed
 
 
+def runLocalizationCheck(options):
+    # The -v argument tells createPot to only validate the
+    # localizable string and not generate a .pot translation
+    # file.
+    cmd = [ 'python', os.path.join('tools', 'createPot.py'), '-cv' ]
+
+    result = build_lib.runCommand(cmd, timeout=180)
+
+    if result != 0:
+        log('Localization Check FAILED (%d)' % result)
+        failedTests.append('Localization Check')
+
+    log('- + ' * 15)
+
+    return result == 0
+
+
 def runSingles(options):
     """
     Run the test(s) specified with the options.single parameter.
@@ -1571,37 +1588,38 @@ def main(options):
                 os.remove(f)
             except OSError:
                 pass
-        
-        if options.testcase:
-            failed = runTestCase(options)
-        elif options.single:
-            failed = runSingles(options)
-        else:
-            if options.unit:
-                failed = runUnitTests(options)
-                if not failed or options.noStop:
-                    if runPluginTests(options):
+
+        if runLocalizationCheck(options):
+            if options.testcase:
+                failed = runTestCase(options)
+            elif options.single:
+                failed = runSingles(options)
+            else:
+                if options.unit:
+                    failed = runUnitTests(options)
+                    if not failed or options.noStop:
+                        if runPluginTests(options):
+                            failed = True
+
+                if options.unitSuite and (not failed or options.noStop):
+                    if runUnitSuite(options):
                         failed = True
 
-            if options.unitSuite and (not failed or options.noStop):
-                if runUnitSuite(options):
-                    failed = True
+                if options.funcSuite and (not failed or options.noStop):
+                    if runFuncTest(options):
+                        failed = True
 
-            if options.funcSuite and (not failed or options.noStop):
-                if runFuncTest(options):
-                    failed = True
+                if options.func and (not failed or options.noStop):
+                    if runFuncTestsSingly(options):
+                        failed = True
 
-            if options.func and (not failed or options.noStop):
-                if runFuncTestsSingly(options):
-                    failed = True
+                if options.recorded and (not failed or options.noStop):
+                    if runRecordedScripts(options):
+                        failed = True
 
-            if options.recorded and (not failed or options.noStop):
-                if runRecordedScripts(options):
-                    failed = True
-
-            if options.perf and (not failed or options.noStop):
-                if runPerfTests(options):
-                    failed = True
+                if options.perf and (not failed or options.noStop):
+                    if runPerfTests(options):
+                        failed = True
 
         if len(failedTests) > 0:
             log('+-' * 32)

@@ -1,7 +1,7 @@
 #! /usr/bin/env python
 
+import os, sys
 from createBase import LocalizationBase
-import os
 
 
 class TranslationTool(LocalizationBase):
@@ -9,6 +9,7 @@ class TranslationTool(LocalizationBase):
     BINROOT = None
     GETTEXT = None
     OUTPUTFILE = None
+    OUTPUTFILE_EXISTS = False
     CWD = None
     XRC_FILES = []
     XRC_PYTHON = None
@@ -24,23 +25,40 @@ class TranslationTool(LocalizationBase):
         self.setWXRC()
 
         try:
+            self.OUTPUTFILE_EXISTS = os.access(self.OUTPUTFILE, os.F_OK)
+
             self.CWD = os.getcwd()
+
             os.chdir(self.ROOTDIR)
 
             self.XRC_PYTHON = "XRC_STRINGS_FOR_%s.py" % self.OUTPUTFILE[:-4].upper()
             self.extractXRCStrings()
-            self.getText()
+            res = self.getText()
 
             if os.access(self.XRC_PYTHON, os.F_OK):
+                # Remove the temp XRC Python file
                 os.remove(self.XRC_PYTHON)
 
+            if res != 0:
+                # No .pot file is generated at this point since
+                # an error was raised parsing the Python and XRC for
+                # localizable stings.
+                sys.exit(-1)
+
             os.chdir(self.CWD)
+
+            if self.OPTIONS.ValidateOnly and \
+               not self.OUTPUTFILE_EXISTS and \
+               os.access(self.OUTPUTFILE, os.F_OK):
+                # If the optional ValidateOnly command is passed
+                # then remove the generated .pot file.
+                os.remove(self.OUTPUTFILE)
 
             if self.OPTIONS.Debug:
                 self.debug()
 
         except Exception, e:
-            self.raiseError("Directory path '%s' is invalid" % self.ROOTDIR)
+            self.raiseError(str(e))
 
     def debug(self):
         super(TranslationTool, self).debug()
@@ -94,7 +112,7 @@ class TranslationTool(LocalizationBase):
         if dirs != ".":
             exp += " *.py"
 
-        os.system(exp)
+        return os.system(exp)
 
 
 
@@ -104,9 +122,9 @@ class TranslationTool(LocalizationBase):
         'ChandlerExamples': ('-e', '--examples', False, 'Extract localization strings from Chandler Example projects Python and XRC files. A gettext .pot template file "ChandlerExamples.pot" is written to the current working directory.'),
         'Project': ('-p', '--project', True, 'Extract localization strings Python and XRC files for the given project. A gettext .pot template file "PROJECTNAME.pot" is written to the current working directory.'),
         'Directory': ('-d', '--directory', True, 'The root directory to search under for XRC and Python files. Can only be used in conjunction with the -p Project command.'),
+        'ValidateOnly': ('-v', '--validate_only',  False, 'optional argrument that when specified will only validate formating of localizable strings in Python and XRC files. No .pot will be generated.'),
         }
 
-        #XXX Bug 6657: mmmm fill in with text on how to use tool
         self.DESC = ""
 
         super(TranslationTool, self).getOpts()
