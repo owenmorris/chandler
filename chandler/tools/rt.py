@@ -459,13 +459,15 @@ def runLocalizationCheck(options):
     # file.
     cmd = [ 'python', os.path.join('tools', 'createPot.py'), '-cv' ]
 
-    result = build_lib.runCommand(cmd, timeout=180)
+    if options.dryrun:
+        result = 0
+    else:
+        result = build_lib.runCommand(cmd, timeout=180)
 
     if result != 0:
         log('Localization Check FAILED (%d)' % result)
         failedTests.append('Localization Check')
-
-    log('- + ' * 15)
+        log('- + ' * 15)
 
     return result == 0
 
