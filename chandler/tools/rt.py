@@ -454,20 +454,20 @@ def runTestCase(options):
 
 
 def runLocalizationCheck(options):
-    # The -v argument tells createPot to only validate the
-    # localizable string and not generate a .pot translation
-    # file.
-    cmd = [ 'python', os.path.join('tools', 'createPot.py'), '-cv' ]
-
-    if options.dryrun:
+    if options.dryrun or options.single or options.perf:
         result = 0
     else:
+        # The -v argument tells createPot to only validate the
+        # localizable string and not generate a .pot translation
+        # file.
+        cmd = [ 'python', os.path.join('tools', 'createPot.py'), '-cv' ]
+
         result = build_lib.runCommand(cmd, timeout=180)
 
-    if result != 0:
-        log('Localization Check FAILED (%d)' % result)
-        failedTests.append('Localization Check')
-        log('- + ' * 15)
+        if result != 0:
+            log('Localization Check FAILED (%d)' % result)
+            failedTests.append('Localization Check')
+            log('- + ' * 15)
 
     return result == 0
 
