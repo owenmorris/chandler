@@ -3,7 +3,7 @@ import doctest
 from util.testcase import SingleRepositoryTestCase
 from repository.item.Item import Item
 import osaf.pim as pim
-import datetime
+import datetime, time
 from PyICU import ICUtzinfo
 
 def additional_tests():
@@ -320,10 +320,6 @@ class ProxyEditStateTestCase(ProxyTestCase):
         # ... but not for second, a different event in the series
         self.failUnlessEqual(second.itsItem.lastModified, self.start)
         
-        # Remember third's lastModified, so we can check that it changed
-        # later.
-        saveLastModified = third.itsItem.lastModified
-        
         # Now make an ALL change on duration
         pim.CHANGE_ALL(second).duration = datetime.timedelta(hours=4)
         
@@ -334,7 +330,8 @@ class ProxyEditStateTestCase(ProxyTestCase):
                              second.itsItem.lastModified)
         # third was altered by the last change, so its
         # lastModified should be changed, too.
-        self.failIfEqual(saveLastModified, third.itsItem.lastModified)
+        self.failUnlessEqual(self.event.itsItem.lastModified,
+                             third.itsItem.lastModified)
 
 
     def testChangeOverlapping_THIS_ALL(self):
@@ -347,6 +344,7 @@ class ProxyEditStateTestCase(ProxyTestCase):
         self.failUnless(third.itsItem.lastModified > self.start)
         
         saveLastModified = third.itsItem.lastModified
+        time.sleep(0.1) # Make sure some time elapses for lastModified
         
         pim.CHANGE_ALL(second).duration = datetime.timedelta(hours=4)
         # However, third wasn't altered by the last change, so its
@@ -372,6 +370,8 @@ class ProxyEditStateTestCase(ProxyTestCase):
         # Remember third's lastModified, so we can check that it changed
         # later.
         saveLastModified = third.itsItem.lastModified
+        
+        time.sleep(0.1) # Make sure some time elapses for lastModified
         
         # Now make an FUTURE change on duration
         pim.CHANGE_FUTURE(second).duration = datetime.timedelta(hours=4)
@@ -399,7 +399,8 @@ class ProxyEditStateTestCase(ProxyTestCase):
         self.failUnless(third.itsItem.lastModified > self.start)
         
         saveLastModified = third.itsItem.lastModified
-        
+
+        time.sleep(0.1) # Make sure some time elapses for lastModified        
         pim.CHANGE_FUTURE(second).duration = datetime.timedelta(hours=4)
         # However, third wasn't altered by the last change, so its
         # lastModified should be unchanged.
