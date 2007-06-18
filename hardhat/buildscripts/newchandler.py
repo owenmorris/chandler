@@ -148,8 +148,8 @@ def Start(hardhatScript, workingDir, buildVersion, clobber, log, skipTests=False
             if skipTests:
                 ret = 'success'
             else:
-                ret = doTests(hardhatScript, releaseMode, workingDir,
-                              outputDir, buildVersion, log)
+                ret = doTests(releaseMode, workingDir, outputDir, buildVersion, log)
+
                 if ret != 'success':
                     break
 
@@ -184,8 +184,8 @@ def Start(hardhatScript, workingDir, buildVersion, clobber, log, skipTests=False
             ret = 'success'
         else:
             for releaseMode in buildModes:
-                ret = doTests(hardhatScript, releaseMode, workingDir,
-                              outputDir, buildVersion, log)
+                ret = doTests(releaseMode, workingDir, outputDir, buildVersion, log)
+
                 if ret != 'success':
                     break
 
@@ -242,7 +242,7 @@ def runTest(workingDir, log, cmd, test):
     return failed
 
 
-def doTests(hardhatScript, mode, workingDir, outputDir, buildVersion, log):
+def doTests(mode, workingDir, outputDir, buildVersion, log):
     print "Testing " + mode
     log.write(separator)
     log.write("Testing " + mode + " ...\n")
@@ -362,6 +362,11 @@ def changesInSVN(moduleDir, workingDir, log, revID=None):
 
         print "[%s] [%s] [%s]" % (workingDir, module, moduleDir)
         os.chdir(moduleDir)
+
+        if module == 'chandler':
+            print "Flushing previous version information"
+            outputList = hardhatutil.executeCommandReturnOutputRetry([svnProgram, 'revert', 'version.py'])
+            hardhatutil.dumpOutputList(outputList, log)
 
         # if revID is present then we have to modify the request to include
         # the given revision #

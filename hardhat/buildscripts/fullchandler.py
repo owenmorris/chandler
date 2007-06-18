@@ -408,10 +408,10 @@ def changesInSVN(workingDir, log):
     revisionsDict = {}
 
     os.chdir(workingDir)
-    
+
     for module in reposModules:
         log.write("[tbox] Checking for updates [%s] [%s]\n" % (workingDir, module))
-                                              
+
         moduleDir = os.path.join(workingDir, module)
 
         changesDict[module] = False
@@ -419,9 +419,9 @@ def changesInSVN(workingDir, log):
         print "[%s] [%s] [%s]" % (workingDir, module, moduleDir)
         os.chdir(moduleDir)
 
-        if moduleDir == 'chandler':
-            outputList = hardhatutil.executeCommandReturnOutputRetry(['python', os.path.join('tools', 'purge.py')])
-
+        if module == 'chandler':
+            print "Flushing previous version information"
+            outputList = hardhatutil.executeCommandReturnOutputRetry([svnProgram, 'revert', 'version.py'])
             hardhatutil.dumpOutputList(outputList, log)
 
         outputList = hardhatutil.executeCommandReturnOutputRetry([svnProgram, "up"])
