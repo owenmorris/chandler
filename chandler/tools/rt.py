@@ -85,7 +85,7 @@ def parseOptions():
     >>> keys.sort()
     >>> for key in keys:
     ...     print key, d[key],
-    args [] dryrun False func False funcSuite False help False mode None noEnv False noStop False params None perf False profile False recorded False repeat 0 selftest True single  tbox False unit False unitSuite False verbose False
+    args [] dryrun False func False funcSuite False help False mode None noEnv False noStop False params None perf False profile False recorded False repeat 0 selftest True single  tbox False testcase None unit False unitSuite False verbose False
     """
     _configItems = {
         'mode':      ('-m', '--mode',               's', None,  'debug or release; by default attempts both'),
@@ -106,6 +106,7 @@ def parseOptions():
         'recorded':  ('-r', '--recordedScript',     'b', False, 'Run the Chandler recorded scripts'),
         'repeat':    ('',   '--repeat',             'i', 0,     'Number of times to repeat performance test, 1 by default, 3 in Tinderbox mode'),
         'params':    ('',   '--params',             's', None,  'Optional params that are to be passed straight to RunPython'),
+        'testcase':  ('',   '--testcase',           's', None,  'Run a single unit test or test case TestFilename[:testClass[.testCase]]')
         #'restored':  ('-R', '--restoredRepository', 'b', False, 'unit tests with restored repository instead of creating new for each test'),
         #'config':    ('-L', '',                     's', None,  'Custom Chandler logging configuration file'),
     }
@@ -166,7 +167,7 @@ def checkOptions(options):
     >>> keys.sort()
     >>> for key in keys:
     ...     print key, d[key],
-    args [] chandlerBin ... chandlerHome ... dryrun False func False funcSuite False help False mode None noEnv False noStop False params None parcelPath tools/cats/DataFiles perf False profile False profileDir test_profile recorded False repeat 0 runchandler {'debug': '.../debug/RunChandler...', 'release': '.../release/RunChandler...'} runpython {'debug': '.../debug/RunPython...', 'release': '.../release/RunPython...'} selftest True single  tbox False toolsDir tools unit False unitSuite False verbose False
+    args [] chandlerBin ... chandlerHome ... dryrun False func False funcSuite False help False mode None noEnv False noStop False params None parcelPath tools/cats/DataFiles perf False profile False profileDir test_profile recorded False repeat 0 runchandler {'debug': '.../debug/RunChandler...', 'release': '.../release/RunChandler...'} runpython {'debug': '.../debug/RunPython...', 'release': '.../release/RunPython...'} selftest True single  tbox False testcase None toolsDir tools unit False unitSuite False verbose False
     """
     if options.help:
         print __doc__
@@ -335,6 +336,123 @@ def buildTestList(options, excludeTools=True):
     return result
 
 
+def runTestCase(options):
+    """
+    Run the test specified with the options.testcase parameter.
+    
+    >>> options = parseOptions()
+    >>> checkOptions(options)
+    >>> options.dryrun  = True
+    >>> options.verbose = True
+    >>> options.modes   = ['release']
+    
+    >>> options.testcase  = 'ThisTestDoesNotExist'
+    >>> runTestCase(options)
+    Test(s) not found
+    False
+    
+    >>> options.testcase = 'TestMessage.py:MessageTest.testMessageTextToKind'
+    >>> runTestCase(options)
+    /.../RunPython... parcels/osaf/mail/tests/TestMessage.py -v MessageTest.testMessageTextToKind
+    ...
+    False
+    
+    >>> options.modes    = ['release', 'debug']
+    >>> options.testcase = 'TestCrypto.py'
+    >>> runTestCase(options)
+    /.../release/RunPython... application/tests/TestCrypto.py -v
+    - + - + - + - + - + - + - + - + - + - + - + - + - + - + - + 
+    /.../debug/RunPython... application/tests/TestCrypto.py -v
+    - + - + - + - + - + - + - + - + - + - + - + - + - + - + - + 
+    False
+    
+    >>> options.modes    = ['release', 'debug']
+    >>> options.testcase = 'TestCrypto:UnknownTest'
+    >>> runTestCase(options)
+    /.../release/RunPython... application/tests/TestCrypto.py -v UnknownTest
+    - + - + - + - + - + - + - + - + - + - + - + - + - + - + - + 
+    /.../debug/RunPython... application/tests/TestCrypto.py -v UnknownTest
+    - + - + - + - + - + - + - + - + - + - + - + - + - + - + - + 
+    False
+    
+    >>> options.modes    = ['release', 'debug']
+    >>> options.testcase = 'TestMessage:MessageTest.unknownClass'
+    >>> runTestCase(options)
+    /.../release/RunPython... parcels/osaf/mail/tests/TestMessage.py -v MessageTest.unknownClass
+    - + - + - + - + - + - + - + - + - + - + - + - + - + - + - + 
+    /.../debug/RunPython... parcels/osaf/mail/tests/TestMessage.py -v MessageTest.unknownClass
+    - + - + - + - + - + - + - + - + - + - + - + - + - + - + - + 
+    False
+    
+    >>> options.modes    = ['release']
+    >>> options.testcase = 'TestAllDayEvent.py'
+    >>> runTestCase(options)
+    /.../RunChandler... --create --catch=tests --profileDir=test_profile --parcelPath=tools/cats/DataFiles --chandlerTests=TestAllDayEvent -D2 -M0
+    - + - + - + - + - + - + - + - + - + - + - + - + - + - + - + 
+    False
+    
+    """
+    failed = False
+
+    if ':' in options.testcase:
+        testcases = {}
+        singles   = []
+
+        tests = options.testcase.split(',')
+
+        for test in tests:
+            if ':' in test:
+                testname, testinfo  = test.split(':')
+
+                if testname[-3:] != '.py':
+                    testname += '.py'
+
+                testcases[testname] = testinfo
+            else:
+                if test[-3:] != '.py':
+                    test += '.py'
+
+                singles.append(test)
+
+        if len(singles) > 0:
+            options.single = ','.join(singles)
+            failed = runSingles(options)
+
+        if not failed or options.noStop:
+            options.single = ','.join(testcases.keys())
+            tests          = buildTestList(options, False)
+
+            for mode in options.modes:
+                for test in tests:
+                    dirname, name = os.path.split(test)
+
+                    if os.path.split(dirname)[1] == 'Functional' or \
+                       name.startswith('Perf') or \
+                       name in ('startup', 'startup_large'):
+                        log('--testcase is only allowed for unittest based tests')
+                    else:
+                        result = runSingleUnitTest(options, mode, test, params=testcases[name])
+
+                        if result != 0:
+                            log('***Error exit code=%d' % result)
+                            failed = True
+                            failedTests.append(test)
+
+                            if not options.noStop:
+                                break
+
+                        log('- + ' * 15)
+
+                if failed and not options.noStop:
+                    break
+
+    else:
+        options.single = options.testcase
+        failed = runSingles(options)
+
+    return failed
+
+
 def runSingles(options):
     """
     Run the test(s) specified with the options.single parameter.
@@ -418,9 +536,34 @@ def runSingles(options):
     return failed
 
 
-def runUnitTests(options, testlist=None):
+def runSingleUnitTest(options, mode, test, params=None):
+    cmd = [ options.runpython[mode], test ]
+
+    if options.verbose:
+        cmd.append('-v')
+
+    if params is not None:
+        cmd += [ params ]
+
+    if options.params:
+        cmd += [ options.params ]
+
+    if options.verbose:
+        log(' '.join(cmd))
+
+    if options.dryrun:
+        result = 0
+    else:
+        result = build_lib.runCommand(cmd, timeout=600)
+
+    return result
+
+
+def runUnitTests(options, testlist=None, params=None):
     """
     Locate any unit tests (-u) or any of the named test (-t) and run them
+    
+    Optionally append params value to each test run
     
     >>> options = parseOptions()
     >>> checkOptions(options)
@@ -458,21 +601,7 @@ def runUnitTests(options, testlist=None):
     else:
         for mode in options.modes:
             for test in testlist:
-                cmd = [ options.runpython[mode], test ]
-
-                if options.verbose:
-                    cmd.append('-v')
-
-                if options.params:
-                    cmd += [ options.params ]
-
-                if options.verbose:
-                    log(' '.join(cmd))
-
-                if options.dryrun:
-                    result = 0
-                else:
-                    result = build_lib.runCommand(cmd, timeout=600)
+                result = runSingleUnitTest(options, mode, test, params)
 
                 if result != 0:
                     log('***Error exit code=%d' % result)
@@ -1442,8 +1571,10 @@ def main(options):
                 os.remove(f)
             except OSError:
                 pass
-
-        if options.single:
+        
+        if options.testcase:
+            failed = runTestCase(options)
+        elif options.single:
             failed = runSingles(options)
         else:
             if options.unit:
