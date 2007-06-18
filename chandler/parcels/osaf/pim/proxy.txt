@@ -423,9 +423,12 @@ As mentioned above, ``UserChangeProxy`` and its subclasses are responsible
 for making sure that user-initiated changes to items are reflected in edit
 state-related attributes (like ``ContentItem.lastModified``, for example).
 
->>> start = datetime.now(ICUtzinfo.default)
+>>> start = datetime.now(ICUtzinfo.default) - timedelta(minutes=10)
 >>> item = pim.Note(itsView=view, displayName=u'An Item',
-...                 lastModification=pim.Modification.created)
+...                 lastModification=pim.Modification.created,
+...                 lastModified = start)
+>>> item.lastModified == start
+True
 >>> proxy = UserChangeProxy(item)
 >>> proxy.displayName = u'Changed'
 >>> proxy.makeChanges()
@@ -441,6 +444,11 @@ Similarly, whenever you make a recurring event change (either via
 occurrences and master are made.
 
 >>> masterEvent = pim.EventStamp(item)
+
+Let's reset the master's ``lastModified`` attribute, for illustrative
+purposes:
+
+>>> item.lastModified = start
 >>> masterEvent.startTime = datetime(2007, 1, 14, 13, 0,
 ...                                  tzinfo=ICUtzinfo.default)
 >>> masterEvent.anyTime = masterEvent.allDay = False
@@ -451,9 +459,6 @@ occurrences and master are made.
 >>> firstOccurrence = masterEvent.getFirstOccurrence()
 >>> secondOccurrence = firstOccurrence.getNextOccurrence()
 
-Let's remember the value of the master's ``lastModified`` attribute:
-
->>> masterLastModified = masterEvent.itsItem.lastModified
 
 Now, let's change the summary of just the second event:
 
@@ -462,7 +467,7 @@ Now, let's change the summary of just the second event:
 The master and first occurrence still have their old last modified value,
 since they weren't affected by the change:
 
->>> masterEvent.itsItem.lastModified == masterLastModified
+>>> masterEvent.itsItem.lastModified == start
 True
 >>> masterEvent.itsItem.lastModified == firstOccurrence.itsItem.lastModified
 True
@@ -480,7 +485,7 @@ updated:
 True
 >>> firstOccurrence.itsItem.lastModified == masterEvent.itsItem.lastModified
 True
->>> masterEvent.itsItem.lastModified > masterLastModified
+>>> masterEvent.itsItem.lastModified > start
 True
 
 Subclass Hooks
