@@ -46,6 +46,8 @@ class ProxyTestCase(SingleRepositoryTestCase):
     def tearDown(self):
         for child in self.sandbox.iterChildren():
             child.delete(recursive=True)
+            
+class ProxyChangeTestCase(ProxyTestCase):
 
     def testAdd_THIS(self):
         # Adding just a THIS mod to a collection is disabled for now
@@ -100,17 +102,13 @@ class ProxyTestCase(SingleRepositoryTestCase):
         second = self.event.getFirstOccurrence().getNextOccurrence()
         proxiedSecond = pim.CHANGE_THIS(second)
         
-        if __debug__:
-            self.failUnlessRaises(AssertionError,
-                                  proxiedSecond.itsItem.collections.add, 
-                                  self.two)
-        else:
-            proxiedSecond.itsItem.collections.add(self.two)
+        proxiedSecond.itsItem.collections.add(self.two)
             
-        self.failIf(second.itsItem in self.two)
+        self.failUnless(second.itsItem in self.two)
         self.failIf(self.event.itsItem in self.two)
         for modItem in self.event.modifications:
-            self.failIf(modItem in self.two)
+            if modItem is not second.itsItem:
+                self.failIf(modItem in self.two)
         
         
     def testAdd_ALL(self):
@@ -235,6 +233,179 @@ class ProxyTestCase(SingleRepositoryTestCase):
         self.failUnless(pim.isDead(third.itsItem))
         self.failIf(pim.isDead(self.event.itsItem))
         self.failUnless(self.event.rruleset is None)
+        
+class ProxyEditStateTestCase(ProxyTestCase):
+    def setUp(self):
+        super(ProxyEditStateTestCase, self).setUp()
+        self.start = (datetime.datetime.now(ICUtzinfo.default) -
+                      datetime.timedelta(minutes=10))
+        self.event.itsItem.changeEditState(pim.Modification.created,
+                                           when=self.start)
+        
+    def testNoRecurrence_THIS(self):
+        pim.CHANGE_THIS(self.event.itsItem).changeEditState()
+        
+        self.failUnlessEqual(self.event.itsItem.lastModification,
+                             pim.Modification.edited)
+        self.failUnless(self.event.itsItem.lastModified > self.start)
+
+
+    def testNoRecurrence_FUTURE(self):
+        pim.CHANGE_FUTURE(self.event.itsItem).changeEditState()
+        
+        self.failUnlessEqual(self.event.itsItem.lastModification,
+                             pim.Modification.edited)
+        self.failUnless(self.event.itsItem.lastModified > self.start)
+
+    def testNoRecurrence_ALL(self):
+        pim.CHANGE_ALL(self.event.itsItem).changeEditState()
+        
+        self.failUnlessEqual(self.event.itsItem.lastModification,
+                             pim.Modification.edited)
+        self.failUnless(self.event.itsItem.lastModified > self.start)
+        
+    def testRecurrence(self):
+        self.event.rruleset = self.rruleset
+        
+        # This assumes that assigning rruleset auto-creates occurrences
+        self.failUnless(self.event.occurrences)
+        
+        for occurrence in self.event.occurrences:
+            self.failIf(occurrence.hasLocalAttributeValue('lastModified'))
+            self.failIf(occurrence.hasLocalAttributeValue('lastModification'))
+            
+    def testChange_THIS(self):
+        self.event.rruleset = self.rruleset
+        
+        second = self.event.getFirstOccurrence().getNextOccurrence()
+        
+        pim.CHANGE_THIS(second).summary = u'I am so special'
+        self.failUnlessEqual(self.event.itsItem.lastModified, self.start)
+        self.failUnless(second.itsItem.lastModified > self.start)
+
+    def testChange_FUTURE(self):
+        self.event.rruleset = self.rruleset
+        
+        second = self.event.getFirstOccurrence().getNextOccurrence()
+        
+        pim.CHANGE_FUTURE(second).startTime = second.startTime + datetime.timedelta(hours=1)
+        self.failUnlessEqual(self.event.itsItem.lastModified, self.start)
+        self.failUnless(second.itsItem.lastModified > self.start)
+        self.failUnless(second.getNextOccurrence().itsItem.lastModified > self.start)
+
+    def testChange_ALL(self):
+        self.event.rruleset = self.rruleset
+        
+        second = self.event.getFirstOccurrence().getNextOccurrence()
+        
+        pim.CHANGE_ALL(second).startTime = second.startTime + datetime.timedelta(hours=1)
+        self.failUnless(self.event.itsItem.lastModified > self.start)
+        self.failUnlessEqual(second.getNextOccurrence().itsItem.lastModified,
+                            self.event.itsItem.lastModified)
+
+
+    def testChangeNonOverlapping_THIS_ALL(self):
+        # Make a THIS change to one occurrence, followed by an ALL
+        # change of a different attribute to a different occurrence, and make
+        # sure the lastModified is updated accordingly.
+        self.event.rruleset = self.rruleset
+        
+        second = self.event.getFirstOccurrence().getNextOccurrence()
+        third = second.getNextOccurrence()
+        
+        # THIS change to summary (a.k.a. displayName) ...
+        pim.CHANGE_THIS(third).summary = u'This has been changed'
+        # Make sure the lastModified changed for this event (third) ...
+        self.failUnless(third.itsItem.lastModified > self.start)
+        # ... but not for second, a different event in the series
+        self.failUnlessEqual(second.itsItem.lastModified, self.start)
+        
+        # Remember third's lastModified, so we can check that it changed
+        # later.
+        saveLastModified = third.itsItem.lastModified
+        
+        # Now make an ALL change on duration
+        pim.CHANGE_ALL(second).duration = datetime.timedelta(hours=4)
+        
+        # self.event (the master) should have a changed lastModified
+        self.failIfEqual(self.event.itsItem.lastModified, self.start)
+        # ... which is the same as for second
+        self.failUnlessEqual(self.event.itsItem.lastModified,
+                             second.itsItem.lastModified)
+        # third was altered by the last change, so its
+        # lastModified should be changed, too.
+        self.failIfEqual(saveLastModified, third.itsItem.lastModified)
+
+
+    def testChangeOverlapping_THIS_ALL(self):
+        self.event.rruleset = self.rruleset
+        
+        second = self.event.getFirstOccurrence().getNextOccurrence()
+        third = second.getNextOccurrence()
+        
+        pim.CHANGE_THIS(third).duration = datetime.timedelta(hours=2)
+        self.failUnless(third.itsItem.lastModified > self.start)
+        
+        saveLastModified = third.itsItem.lastModified
+        
+        pim.CHANGE_ALL(second).duration = datetime.timedelta(hours=4)
+        # However, third wasn't altered by the last change, so its
+        # lastModified should be unchanged.
+        self.failUnlessEqual(saveLastModified, third.itsItem.lastModified)
+
+    def testChangeNonOverlapping_THIS_FUTURE(self):
+        # Make a THIS change to one occurrence, followed by an FUTURE
+        # change of a different attribute to a different occurrence, and make
+        # sure the lastModified is updated accordingly.
+        self.event.rruleset = self.rruleset
+        
+        second = self.event.getFirstOccurrence().getNextOccurrence()
+        third = second.getNextOccurrence()
+        
+        # THIS change to summary (a.k.a. displayName) ...
+        pim.CHANGE_THIS(third).summary = u'This has been changed'
+        # Make sure the lastModified changed for this event (third) ...
+        self.failUnless(third.itsItem.lastModified > self.start)
+        # ... but not for second, a different event in the series
+        self.failUnlessEqual(second.itsItem.lastModified, self.start)
+        
+        # Remember third's lastModified, so we can check that it changed
+        # later.
+        saveLastModified = third.itsItem.lastModified
+        
+        # Now make an FUTURE change on duration
+        pim.CHANGE_FUTURE(second).duration = datetime.timedelta(hours=4)
+        
+        # self.event (the master) should have an unchanged lastModified
+        self.failUnlessEqual(self.event.itsItem.lastModified, self.start)
+        # second is now part of a new series, and so should have a new
+        # lastModified
+        self.failIfEqual(self.event.itsItem.lastModified,
+                         second.itsItem.lastModified)
+        # third was altered by the last change, so its
+        # lastModified should be changed, too.
+        self.failIfEqual(saveLastModified, third.itsItem.lastModified)
+        self.failUnlessEqual(second.itsItem.lastModified,
+                             third.itsItem.lastModified)
+
+
+    def testChangeOverlapping_THIS_FUTURE(self):
+        self.event.rruleset = self.rruleset
+        
+        second = self.event.getFirstOccurrence().getNextOccurrence()
+        third = second.getNextOccurrence()
+        
+        pim.CHANGE_THIS(third).duration = datetime.timedelta(hours=2)
+        self.failUnless(third.itsItem.lastModified > self.start)
+        
+        saveLastModified = third.itsItem.lastModified
+        
+        pim.CHANGE_FUTURE(second).duration = datetime.timedelta(hours=4)
+        # However, third wasn't altered by the last change, so its
+        # lastModified should be unchanged.
+        self.failUnlessEqual(saveLastModified, third.itsItem.lastModified)
+        
+        
         
 if __name__ == "__main__":
     from util.test_finder import ScanningLoader

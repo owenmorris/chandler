@@ -393,7 +393,8 @@ class ContentItem(Triageable):
         currentModFlags = self.modifiedFlags
         
         if (modType == Modification.edited and
-            not self.hasLocalAttributeValue('lastModification')):
+            not self.hasLocalAttributeValue('lastModification', None) and
+            not getattr(self, 'inheritFrom', self).hasLocalAttributeValue('lastModification')):
             # skip edits until the item is explicitly marked created
 
             return

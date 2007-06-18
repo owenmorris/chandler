@@ -2554,6 +2554,35 @@ class Occurrence(Note):
     )
     
     IGNORE_ATTRIBUTE_PREFIX = 'osaf.framework'
+
+    def hasModifiedAttribute(self, attr):
+        cls = type(self)
+        if (attr in cls.DONT_PUSH or
+            attr.startswith(cls.IGNORE_ATTRIBUTE_PREFIX)):
+            return False
+            
+        event = EventStamp(self)
+        masterItem = self.inheritFrom
+    
+        if attr == EventStamp.startTime.name:
+            return event.effectiveStartTime != event.recurrenceID
+        
+        if attr == Remindable.reminders.name:
+            return masterItem.getUserReminder() is not self.getUserReminder()
+        
+        if attr == Stamp.stamp_types.name:
+            # Ignore SharedItem stamp
+            my_stamps = set(Stamp(self).stamp_types)
+            master_stamps = set(Stamp(masterItem).stamp_types)
+            changes = my_stamps.symmetric_difference(master_stamps)
+            real_stamp_change = False
+            for stamp in changes:
+                if stamp.__name__ != 'SharedItem':
+                    return True
+            return False
+
+        return self.hasLocalAttributeValue(attr)
+        
     
     def iterModifiedAttributes(self):
         """
@@ -2567,36 +2596,9 @@ class Occurrence(Note):
 
         """
         event = EventStamp(self)
-        masterItem = event.modificationFor
-        
-        if masterItem is not None:
-            cls = type(self)
-            masterEvent = EventStamp(masterItem)
-                        
+        if event.modificationFor is not None:
             for attr, value in self.iterAttributeValues():
-                if (attr not in cls.DONT_PUSH and
-                    not attr.startswith(cls.IGNORE_ATTRIBUTE_PREFIX)):
-                    if attr == EventStamp.startTime.name:
-                        if event.effectiveStartTime == event.recurrenceID:
-                            # startTime matches recurrenceID, ignore it
-                            continue
-                    elif attr == Remindable.reminders.name:
-                        if (masterItem.getUserReminder() is
-                            self.getUserReminder()):
-                            continue
-                    elif attr == Stamp.stamp_types.name:
-                        # Ignore SharedItem stamp
-                        my_stamps = set(Stamp(self).stamp_types)
-                        master_stamps = set(Stamp(masterEvent).stamp_types)
-                        changes = my_stamps.symmetric_difference(master_stamps)
-                        real_stamp_change = False
-                        for stamp in changes:
-                            if stamp.__name__ != 'SharedItem':
-                                real_stamp_change = True
-                                break
-                        if not real_stamp_change:
-                            continue
-
+                if self.hasModifiedAttribute(attr):
                     yield attr, value
                     
     def setUserReminderTime(self, reminderTime):

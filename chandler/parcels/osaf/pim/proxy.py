@@ -20,6 +20,8 @@
 See proxy.txt for reStructuredText documentation.
 """
 
+from __future__ import with_statement
+
 __all__ = (
     'UserChangeProxy', 'RecurrenceProxy',
     'CHANGE_ALL', 'CHANGE_THIS', 'CHANGE_FUTURE'
@@ -431,6 +433,29 @@ class Changer(object):
     
     def makeChange(self, item, change):
         return 0
+        
+    def markProxyEdited(self, proxy):
+        proxy.markEdited(proxy)
+
+def _multiChange(item, change):
+    cardinality = change[0].descriptor.cardinality
+    attrName = change[0].descriptor.name
+    oldValue = getattr(item, attrName)
+
+    if cardinality == 'list':
+        newValue = list(iter(oldValue))
+        if change[1] == 'add':
+            newValue.append(change[2])
+        else:
+            newValue.remove(change[2])
+    elif cardinality == 'set':
+        newValue = set(iter(oldValue))
+        getattr(newValue, change[1])(change[2])
+    else:
+        assert False, "Changing collections of a single instance is not supported"
+
+
+    return attrName, newValue
 
 class CHANGE_THIS(Changer):
     """
@@ -455,10 +480,10 @@ class CHANGE_THIS(Changer):
         elif changeType == 'add' and change[2] is schema.ns("osaf.pim", item.itsView).trashCollection:
             event.deleteThis()
         elif changeType in ('add', 'remove'):
-            assert False, "Changing collections of a single instance is not supported"
-            return 0
+            attrName, newValue = _multiChange(item, change)
+            EventStamp(item).changeThis(attrName, newValue) 
         return 1
-
+        
 class CHANGE_ALL(Changer):
     """
     Subclass to support making "ALL" changes to recurring event series. You
@@ -469,22 +494,51 @@ class CHANGE_ALL(Changer):
         event.startTime = ... # Change all startTimes in the recurring series
         TaskStamp(event).add() ... # adds task-ness to all events in the series
     """
+    
+    edited = ()
+
+    def _updateEdited(self, changed):
+        if changed:
+            if not self.edited:
+                self.edited = set(changed)
+            else:
+                self.edited.update(changed)
+    
     def makeChange(self, item, change):
         # easy for set, not too bad for stamp addition, del is maybe
         # tricky, and add/remove require duplicating reflists
         event = EventStamp(item)
         changeType = change[1]
         if changeType == 'set':
-            event.changeAll(change[2], change[3])
+            attr = change[2]
+            self._updateEdited(
+                item for item in event.modifications
+                    if not item.hasModifiedAttribute(attr)
+            )
+            event.changeAll(attr, change[3])
         elif changeType == 'addStamp':
+            self._updateEdited(
+                item for item in event.modifications
+                    if not stamping.has_stamp(item, change[2])
+            )
             event.addStampToAll(change[2])
         elif changeType == 'removeStamp':
+            self._updateEdited(
+                item for item in event.modifications
+                    if stamping.has_stamp(item, change[2])
+            )
             event.removeStampFromAll(change[2])
         elif changeType in ('add', 'remove'):
+            attr = change[0].descriptor.name
+            self._updateEdited(
+                item for item in event.modifications
+                    if not item.hasModifiedAttribute(attr)
+            )
             masterItem = event.getMaster().itsItem
-            ref = getattr(masterItem, change[0].descriptor.name)
-            method = getattr(ref, changeType)
-            method(change[2])
+            attrName, newValue = _multiChange(masterItem, change)
+            with EventStamp(masterItem).noRecurrenceChanges():
+                setattr(masterItem, attrName, newValue)
+
         elif (changeType == 'delete' and
               change[0].descriptor.name == EventStamp.rruleset.name):
               event.removeRecurrence()
@@ -493,8 +547,27 @@ class CHANGE_ALL(Changer):
             return 0
 
         return 1
+
+
+    EDIT_ATTRIBUTES = (
+        items.ContentItem.modifiedFlags.name,
+        items.ContentItem.lastModified.name,
+        items.ContentItem.lastModifiedBy.name,
+        items.ContentItem.lastModification.name,
+    )
+    def markProxyEdited(self, proxy):
+        if self.edited:
+            for item in self.edited:
+                with EventStamp(item).noRecurrenceChanges():
+                    for attr in self.EDIT_ATTRIBUTES:
+                        if item.hasLocalAttributeValue(attr):
+                            delattr(item, attr)
         
-class CHANGE_FUTURE(Changer):
+            del self.edited
+        
+        super(CHANGE_ALL, self).markProxyEdited(proxy)
+        
+class CHANGE_FUTURE(CHANGE_ALL):
     """
     Subclass to support making "THISANDFUTURE" changes to recurring event series.
     (In the current implementation, this will create a new master if the
@@ -511,21 +584,15 @@ class CHANGE_FUTURE(Changer):
         changeType = change[1]
         # as above, for CHANGE_ALL
         if changeType == 'set':
-            event.changeThisAndFuture(change[2], change[3])
-        elif changeType == 'addStamp':
+            attr = change[2]
+            self._updateEdited(
+                item for item in event.modifications
+                    if not item.hasModifiedAttribute(attr)
+            )
+            event.changeThisAndFuture(attr, change[3])
+        elif changeType in ('addStamp', 'removeStamp', 'add', 'remove'):
             event.changeThisAndFuture()
-            event.addStampToAll(change[2])
-        elif changeType == 'removeStamp':
-            event.changeThisAndFuture()
-            event.removeStampFromAll(change[2])
-        elif changeType == 'add' and change[2] is schema.ns("osaf.pim", item.itsView).trashCollection:
-            event.deleteThisAndFuture()
-        elif changeType in ('add', 'remove'):
-            event.changeThisAndFuture()
-            masterItem = event.getMaster().itsItem
-            ref = getattr(masterItem, change[0].descriptor.name)
-            method = getattr(ref, changeType)
-            method(change[2])
+            return super(CHANGE_FUTURE, self).makeChange(item, change)
         else:
             assert False
             return 0
@@ -545,22 +612,32 @@ class RecurrenceProxy(UserChangeProxy):
     """
     
     changing = None
+    markedEdited = False
     
     def makeChanges(self):
         count = 0
+        changer = None
         
         if self.changing and self.changes:
+        
             changer = self.changing()
-            
-            for change in self.changes:
-                count += changer.makeChange(self.proxiedItem, change)
-                
+
+            changes = self.changes
             del self.changes
             
-        if count > 0:
-            self.markEdited(EventStamp(self.proxiedItem).getMaster().itsItem)
+            for change in changes:
+                count += changer.makeChange(self.proxiedItem, change)
             
+        if count > 0 and not self.markedEdited:
+            changer.markProxyEdited(self)
+
         return count
+        
+    def markEdited(self, item):
+        if not self.markedEdited:
+            self.markedEdited = True
+            super(RecurrenceProxy, self).markEdited(item)
+            del self.markedEdited
         
     def appendChange(self, desc, op, attr, *args):
         super(RecurrenceProxy, self).appendChange(desc, op, attr, *args)
