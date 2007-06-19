@@ -334,6 +334,7 @@ class RecordSetConduit(conduits.BaseConduit):
 
 
         filter = self.getFilter()
+        filterFn = filter.sync_filter if filter else (lambda rs: rs)
 
         # Merge
         toApply = {}
@@ -453,7 +454,7 @@ class RecordSetConduit(conduits.BaseConduit):
                     # a diff.  Also, remove the alias from remotelyRemoved
                     # so that the item doesn't get removed from the collection
                     # further down.
-                    toSend[alias] = state.agreed
+                    toSend[alias] = filterFn(state.agreed)
                     if alias in remotelyRemoved:
                         remotelyRemoved.remove(alias)
 
@@ -465,7 +466,7 @@ class RecordSetConduit(conduits.BaseConduit):
                             modAlias = translator.getAliasForItem(mod)
                             if self.hasState(modAlias):
                                 modState = self.getState(modAlias)
-                                toSend[modAlias] = modState.agreed
+                                toSend[modAlias] = filterFn(modState.agreed)
                                 if modAlias in remotelyRemoved:
                                     remotelyRemoved.remove(modAlias)
                                 doLog("Sending back modification: %s", modAlias)
