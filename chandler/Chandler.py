@@ -60,12 +60,24 @@ def main():
         # Aparna. If you're running release you can also set things up so 
         # that you can see stderr and stdout if you run in a shell or from
         # wing with a console.
-        #
-        # useBestVisual - uses best screen resolutions on some old computers.
-        #                 See wxApp.SetUseBestVisual
-
         redirect = Globals.options.catch == 'normal'
-        app = wxApplication(redirect=redirect, useBestVisual=True)
+        
+        # useBestVisual: See wxApp.SetUseBestVisual (Only applicable
+        # for X-Windows based systems) On some older computers the
+        # default visual may only have a depth of 8 although 24-bit
+        # visuals are available. (SGI is notorious for this.) Setting
+        # this to True will cause the best visual to be used instead.
+        # Unfortunatly on some systems with a 32-bit visual available
+        # this can cause problems if the default GTK theme expects to
+        # use only 24.  (See Bug #9295) So for now we'll default this
+        # to False.  If this becomes a problem in the future then we
+        # should add a command-line option for it or perhaps find a
+        # way to detect if the display depth is < 24.  (Note there is
+        # a chicken-and-egg problem with wx.GetDisplayDepth() as it
+        # needs to have the app created before it can be called.)
+	useBestVisual = False
+        
+        app = wxApplication(redirect=redirect, useBestVisual=useBestVisual)
 
         app.MainLoop()
 
