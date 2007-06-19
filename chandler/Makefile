@@ -295,7 +295,7 @@ print-%:
 	@echo $* = $($*)
 
 tests:
-	CHANDLERHOME='$(CHANDLERHOME)' CHANDLERBIN='$(CHANDLERBIN)' $(C_HOME)/tools/do_tests.sh -u
+	CHANDLERHOME='$(CHANDLERHOME)' CHANDLERBIN='$(CHANDLERBIN)' $(C_HOME)/tools/rt.py -m $(SNAP) -u
 
 distclean:
 	rm -rf $(C_BIN)/$(SNAP)
