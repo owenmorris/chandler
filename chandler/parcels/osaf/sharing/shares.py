@@ -173,6 +173,7 @@ class State(schema.Item):
     conflictFor = schema.One(inverse=SharedItem.conflictingStates)
     share = schema.One()
     conflictingShare = schema.One()
+    pendingRemoval = schema.One(schema.Boolean, initialValue=False)
 
     # Internal
     _agreed = schema.One(schema.Bytes)
@@ -309,7 +310,7 @@ class State(schema.Item):
             if not pim.has_stamp(item, SharedItem):
                 SharedItem(item).add()
             shared = SharedItem(item)
-            if self.pending:
+            if self.pendingRemoval or self.pending:
                 self.conflictFor = item
                 if getattr(self, 'share', None):
                     self.conflictingShare = self.share
@@ -332,6 +333,7 @@ class State(schema.Item):
         except AttributeError:
             pass
         self.peerItemVersion = -1
+        self.pendingRemoval = False
 
     def apply(self, change):
         translator = self.getTranslator()
@@ -353,7 +355,10 @@ class State(schema.Item):
         self.agreed += change
 
     def getConflicts(self):
-        if self.pending:
+        if self.pendingRemoval:
+            yield Conflict(self, None, None, None, pendingRemoval=True)
+
+        elif self.pending:
             for n,v,c in self.getTranslator().explainConflicts(self.pending):
                 # XXX this currently converts the value to a string or unicode,
                 # but in the future this should be done by formatters in the
@@ -377,27 +382,48 @@ class Conflict(object):
 
     resolved = False
 
-    def __init__(self, state, field, value, change):
+    def __init__(self, state, field, value, change, pendingRemoval=False):
         self.state = state
         self.peer = getattr(state, 'peer', None)
         self.field = field
         self.value = value
         self.change = change
         self.item = None
+        self.pendingRemoval = pendingRemoval
 
     def __repr__(self):
         return "%s : %s" % (self.field, self.value)
 
+
     def apply(self):
+
         if not self.resolved:
-            self.state.apply(self.change)
+
+            if self.pendingRemoval:
+                peer = self.state.peer
+                if peer and isinstance(peer, Share) and self.item is not None:
+                    # remove the item from the collection it's shared in
+                    if self.item in peer.contents:
+                        peer.contents.remove(self.item)
+
+                self.state.conflictFor = None
+                self.state.conflictingShare = None
+                self.state.delete(True)
+
+            else:
+                self.state.apply(self.change)
+                if self.item is not None:
+                    self.state.updateConflicts(self.item)
             self.resolved = True
-            if self.item is not None:
-                self.state.updateConflicts(self.item)
+
+
 
     def discard(self):
         if not self.resolved:
-            self.state.discard(self.change)
+            if self.pendingRemoval:
+                self.state.pendingRemoval = False
+            else:
+                self.state.discard(self.change)
             self.resolved = True
             if self.item is not None:
                 self.state.updateConflicts(self.item)

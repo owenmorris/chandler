@@ -28,6 +28,7 @@ import time
 from i18n import ChandlerMessageFactory as _
 from osaf.framework.twisted import waitForDeferred
 from xml.etree.cElementTree import fromstring
+import twisted.internet.error
 
 logger = logging.getLogger(__name__)
 
@@ -377,6 +378,8 @@ class CosmoConduit(recordset_conduit.DiffRecordSetConduit, conduits.HTTPMixin):
         except M2Crypto.BIO.BIOError, err:
             raise errors.CouldNotConnect(_(u"Unable to connect to server. Received the following error: %(error)s") % {'error': err})
 
+        except twisted.internet.error.ConnectionLost, err:
+            raise error.CouldNotConnect(_(u"Lost connection to server.  Received the following error: %(error)s") % {'error' : err})
 
     def getLocation(self, privilege=None, morsecode=False):
         """

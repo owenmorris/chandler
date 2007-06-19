@@ -148,6 +148,7 @@ class RecordSetConduit(conduits.BaseConduit):
 
         remotelyRemoved = set() # The aliases of remotely removed items
         remotelyAdded = set() # The aliases of remotely added items
+        locallyAdded = set( ) # The aliases of locally add items
         localItems = set() # The aliases of all items we're to process
 
         if receive:
@@ -223,6 +224,13 @@ class RecordSetConduit(conduits.BaseConduit):
                     else:
                         item = None
 
+                    if self.hasState(alias):
+                        # clear out any pendingRemoval
+                        state = self.getState(alias)
+                        state.pendingRemoval = False
+                        if item is not None:
+                            state.updateConflicts(item)
+
                     if (item is not None and
                         item.isLive() and
                         not pim.EventStamp(item).isGenerated):
@@ -296,11 +304,14 @@ class RecordSetConduit(conduits.BaseConduit):
                 continue
 
             alias = translator.getAliasForItem(item)
+
+            if not self.hasState(alias):
+                # a new, locally created item
+                locallyAdded.add(alias)
+
             doLog("Locally modified item: %s / alias: %s", item.itsUUID, alias)
             localItems.add(alias)
             uuid = item.itsUUID.str16()
-            if not self.hasState(alias):
-                sendStats['added'].add(uuid) # stats use uuids, not aliases
 
         localCount = len(localItems)
         if localCount:
@@ -350,6 +361,11 @@ class RecordSetConduit(conduits.BaseConduit):
         i = 0
         for alias in aliases:
             state = self.getState(alias)
+
+            if state.pendingRemoval:
+                # This item has a pending inbound removal, so we don't bother
+                # merging it
+                continue
 
             rsInternal = rsNewBase.get(alias, eim.RecordSet())
 
@@ -405,9 +421,6 @@ class RecordSetConduit(conduits.BaseConduit):
 
             if send and dSend:
                 toSend[alias] = dSend
-                doLog("Sending changes for %s [%s]", alias, dSend)
-                if uuid not in sendStats['added']:
-                    sendStats['modified'].add(uuid)
 
             if receive and dApply:
                 toApply[alias] = dApply
@@ -423,27 +436,39 @@ class RecordSetConduit(conduits.BaseConduit):
         # Examine inbound removal of items with local changes
         if send:
 
+            pendingRemovals = set() # aliases of remotely removed items
+                                    # which have local changes
+
             toSendBack = set() # aliases of remotely removed items to re-send
 
             for alias in toSend.keys():
                 uuid = translator.getUUIDForAlias(alias)
                 changedItem = rv.findUUID(uuid)
 
-                if alias in remotelyRemoved:
-                    doLog("Remotely removed item has local changes: %s", alias)
-                    toSendBack.add(alias)
-
                 if isinstance(changedItem, pim.Occurrence):
+                    if alias in remotelyRemoved:
+                        toSendBack.add(alias)
                     masterItem = changedItem.inheritFrom
                     masterAlias = translator.getAliasForItem(masterItem)
                     if masterAlias in remotelyRemoved:
-                        # we're a changed modification with an inbound
-                        # deletion of our master.  We need to put our master
-                        # back, which will end up also sending our sibling
-                        # modifications in the next loop
+                        # We're a changed modification with an inbound
+                        # deletion of our master.  Tag the master and its
+                        # modifications with a removal conflict.
                         doLog("Remotely removed master %s has local mod "
                             "changes: %s", masterAlias, alias)
                         toSendBack.add(masterAlias)
+
+                elif getattr(changedItem, 'inheritTo', False):
+                    # This is a master
+                    if alias in remotelyRemoved:
+                        toSendBack.add(alias)
+
+                else:
+                    # This item is not recurring
+                    if alias in remotelyRemoved:
+                        doLog("Remotely removed item has local changes: %s",
+                            alias)
+                        pendingRemovals.add(alias)
 
             for alias in toSendBack:
                 if self.hasState(alias):
@@ -469,7 +494,48 @@ class RecordSetConduit(conduits.BaseConduit):
                                 toSend[modAlias] = filterFn(modState.agreed)
                                 if modAlias in remotelyRemoved:
                                     remotelyRemoved.remove(modAlias)
-                                doLog("Sending back modification: %s", modAlias)
+                                    doLog("Sending back modification: %s",
+                                        modAlias)
+
+            for alias in pendingRemovals:
+                if self.hasState(alias):
+                    state = self.getState(alias)
+
+                    # This was removed remotely, but we have local changes.
+                    # We clear agreed/pending from the state, and add a conflict
+                    # for the removal.
+                    # Also, remove the alias from remotelyRemoved
+                    # so that the item doesn't get removed from the collection
+                    # further down.
+
+                    uuid = translator.getUUIDForAlias(alias)
+                    changedItem = rv.findUUID(uuid)
+
+                    if alias in toSend:
+                        del toSend[alias]
+                    state.clear()
+                    state.pendingRemoval = True
+                    if alias in remotelyRemoved:
+                        remotelyRemoved.remove(alias)
+                    doLog("Removal conflict: %s", alias)
+                    if changedItem is not None:
+                        state.updateConflicts(changedItem)
+
+                    # I may use this, but commenting out for now
+                    # if pim.has_stamp(changedItem, pim.EventStamp):
+                    #     event = pim.EventStamp(changedItem)
+                    #     for mod in getattr(event, 'modifications', []):
+                    #         modAlias = translator.getAliasForItem(mod)
+                    #         if self.hasState(modAlias):
+                    #             modState = self.getState(modAlias)
+                    #             if modAlias in toSend:
+                    #                 del toSend[modAlias]
+                    #             modState.clear()
+                    #             modState.pendingRemoval = True
+                    #             if modAlias in remotelyRemoved:
+                    #                 remotelyRemoved.remove(modAlias)
+                    #             doLog("Removal conflict: %s", modAlias)
+                    #             modState.updateConflicts(mod)
 
         if receive:
 
@@ -537,9 +603,9 @@ class RecordSetConduit(conduits.BaseConduit):
                         ("read" if item_to_change.read else "unread"), uuid))
 
                 if alias in remotelyAdded:
-                    receiveStats['added'].add(uuid)
+                    receiveStats['added'].add(alias)
                 else:
-                    receiveStats['modified'].add(uuid)
+                    receiveStats['modified'].add(alias)
                 i += 1
                 _callback(msg="Applied %d of %d change(s)" % (i, applyCount),
                     work=1)
@@ -606,8 +672,8 @@ class RecordSetConduit(conduits.BaseConduit):
                                 alias)
                     else:
                         self.share.contents.remove(item)
-                        doLog("Locally removing  alias: %s",  alias)
-                    receiveStats['removed'].add(uuid)
+                        doLog("Locally removing  alias: %s", alias)
+                    receiveStats['removed'].add(alias)
 
                 self.removeState(alias)
 
@@ -629,7 +695,6 @@ class RecordSetConduit(conduits.BaseConduit):
                 alias not in remotelyRemoved):
                 if send:
                     toSend[alias] = None
-                    sendStats['removed'].add(uuid)
                 statesToRemove.add(alias)
 
                 doLog("Remotely removing item: %s", alias)
@@ -652,18 +717,26 @@ class RecordSetConduit(conduits.BaseConduit):
                       'name' : self.share.displayName
                     }
 
-            ids = toSend.keys()
-            ids.sort()
-            for id in ids:
-                logger.info(">>>> Sending recordset: %s", id)
-                rs = toSend[id]
+            aliases = toSend.keys()
+            aliases.sort()
+            for alias in aliases:
+                logger.info(">>>> Sending recordset: %s", alias)
+                rs = toSend[alias]
                 if rs is None:
                     logger.info(">> !! Deletion")
+                    sendStats['removed'].add(alias)
                 else:
                     for rec in rs.inclusions:
                         logger.info(">> ++ %s", rec)
                     for rec in rs.exclusions:
                         logger.info(">> -- %s", rec)
+
+                    if alias in locallyAdded:
+                        # the sending of a new item
+                        sendStats['added'].add(alias)
+                    else:
+                        # an update to a previously synced item
+                        sendStats['modified'].add(alias)
 
             self.putRecords(toSend, extra, debug=debug, activity=activity)
         else:
@@ -830,7 +903,10 @@ class ResourceRecordSetConduit(RecordSetConduit):
             if hasattr(state, 'path'):
                 alias = self.share.states.getAlias(state)
                 if state.path not in self.resources:
-                    inbound[alias] = None # indicator of remote deletion
+                    if state.agreed:
+                        # Only consider this a remote deletion if we had
+                        # agreed data from the last sync
+                        inbound[alias] = None # indicator of remote deletion
                 else:
                     paths[state.path] = (alias, state)
 

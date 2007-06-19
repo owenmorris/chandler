@@ -609,8 +609,8 @@ class RoundTripTestCase(testcase.DualRepositoryTestCase):
         self.assertEqual(item1.body, "back from the dead")
 
 
-        # Remotely removed, locally modified - item gets put back to server
-        # including local mods
+        # Remotely removed, locally modified - item does not get put back to
+        # server; a local removal conflict is added
         self.share0.contents.remove(item)
         self.assert_(item not in self.share0.contents)
         view0.commit(); stats = self.share0.sync(); view0.commit()
@@ -618,29 +618,64 @@ class RoundTripTestCase(testcase.DualRepositoryTestCase):
             ({'added' : 0, 'modified' : 0, 'removed' : 0},
              {'added' : 0, 'modified' : 0, 'removed' : 1})),
             "Sync operation mismatch")
-        item1.body = "modification trumps removal"
+        item1.body = "modification no longer trumps removal"
         view1.commit(); stats = self.share1.sync(); view1.commit()
         self.assert_(checkStats(stats,
             ({'added' : 0, 'modified' : 0, 'removed' : 0},
-             {'added' : 0, 'modified' : 1, 'removed' : 0})),
+             {'added' : 0, 'modified' : 0, 'removed' : 0})),
             "Sync operation mismatch")
+        sharedItem1 = sharing.SharedItem(item1)
+
+        conflicts = list(sharing.SharedItem(item1).getConflicts())
+        self.assertEquals(len(conflicts), 1)
+        self.assertEquals(conflicts[0].pendingRemoval, True)
+        # Now we have a pending remote removal, let's apply it
+
+        self.assert_(item1 in self.share1.contents)
+        conflicts[0].apply()
+        self.assert_(item1 not in self.share1.contents)
+
+        view1.commit(); stats = self.share1.sync(); view1.commit()
+        self.assert_(checkStats(stats,
+            ({'added' : 0, 'modified' : 0, 'removed' : 0},
+             {'added' : 0, 'modified' : 0, 'removed' : 0})),
+            "Sync operation mismatch")
+
         view0.commit(); stats = self.share0.sync(); view0.commit()
         self.assert_(checkStats(stats,
             ({'added' : 0, 'modified' : 0, 'removed' : 0},
              {'added' : 0, 'modified' : 0, 'removed' : 0})),
             "Sync operation mismatch")
+        self.assert_(item not in self.share0.contents)
+
+
+        # Put it back in the collection and sync both sides
+        self.share0.contents.add(item)
+        view0.commit(); stats = self.share0.sync(); view0.commit()
+        self.assert_(checkStats(stats,
+            ({'added' : 0, 'modified' : 0, 'removed' : 0},
+             {'added' : 1, 'modified' : 0, 'removed' : 0})),
+            "Sync operation mismatch")
         self.assert_(item in self.share0.contents)
-        # item retains any local differences from what's on server:
-        self.assertEqual(item.body, "back from the dead")
-        # We have pending changes ("modification trumps removal"), so clear
-        # them out:
-        for conflict in sharing.SharedItem(item).getConflicts():
-            conflict.discard()
+        view1.commit(); stats = self.share1.sync(); view1.commit()
+        self.assert_(checkStats(stats,
+            ({'added' : 0, 'modified' : 0, 'removed' : 0},
+             {'added' : 0, 'modified' : 0, 'removed' : 0})),
+            "Sync operation mismatch")
+        # Note, the last sync doesn't consider this to be an "added" item
+        # in the stats because it doesn't really apply any changes to the item
+        # other than stick it back into the collection.  I may rethink how
+        # this situation is recorded in the stats later on.
+
+        # We have some pending changes, so let's apply them
+        for conflict in sharing.SharedItem(item1).getConflicts():
+            conflict.apply()
+        self.assert_(item1 in self.share1.contents)
+
 
 
         # Remotely removed, locally modified -- but with a change that is
-        # not something that's shared, like "error".  Item does not get put
-        # back to server
+        # not something that's shared, like "error".  Item is removed locally
         self.share0.contents.remove(item)
         self.assert_(item not in self.share0.contents)
         view0.commit(); stats = self.share0.sync(); view0.commit()
@@ -655,19 +690,55 @@ class RoundTripTestCase(testcase.DualRepositoryTestCase):
              {'added' : 0, 'modified' : 0, 'removed' : 0})),
             "Sync operation mismatch")
         self.assert_(item1 not in self.share1.contents)
-        # Put the item back in for the next test
+        self.assertEquals(len(list(sharing.SharedItem(item1).getConflicts())),
+            0)
+
+
+        # Put it back in the collection and sync both sides
         self.share0.contents.add(item)
         view0.commit(); stats = self.share0.sync(); view0.commit()
         self.assert_(checkStats(stats,
             ({'added' : 0, 'modified' : 0, 'removed' : 0},
              {'added' : 1, 'modified' : 0, 'removed' : 0})),
             "Sync operation mismatch")
+        self.assert_(item in self.share0.contents)
         view1.commit(); stats = self.share1.sync(); view1.commit()
         self.assert_(checkStats(stats,
             ({'added' : 0, 'modified' : 0, 'removed' : 0},
              {'added' : 0, 'modified' : 0, 'removed' : 0})),
             "Sync operation mismatch")
+        # Note, the last sync doesn't consider this to be an "added" item
+        # in the stats because it doesn't really apply any changes to the item
+        # other than stick it back into the collection.  I may rethink how
+        # this situation is recorded in the stats later on.
+
+        # We have some pending changes, so let's apply them
+        for conflict in sharing.SharedItem(item1).getConflicts():
+            conflict.apply()
         self.assert_(item1 in self.share1.contents)
+
+
+        # Set up a removal conflict, and then add the item back on the other
+        # side and the conflict should disappear
+        self.share1.contents.remove(item1)
+        view1.commit(); stats = self.share1.sync(); view1.commit()
+        item.displayName = "changed"
+        view0.commit(); stats = self.share0.sync(); view0.commit()
+        conflicts = list(sharing.SharedItem(item).getConflicts())
+        self.assertEquals(len(conflicts), 1)
+        self.assertEquals(conflicts[0].pendingRemoval, True)
+        self.share1.contents.add(item1)
+        view1.commit(); stats = self.share1.sync(); view1.commit()
+        view0.commit(); stats = self.share0.sync(); view0.commit()
+        conflicts = list(sharing.SharedItem(item).getConflicts())
+        self.assertEquals(len(conflicts), 1)
+        self.assertEquals(conflicts[0].pendingRemoval, False)
+        # We have some pending changes, so let's apply them
+        for conflict in conflicts:
+            conflict.apply()
+
+
+
 
 
 
@@ -682,7 +753,7 @@ class RoundTripTestCase(testcase.DualRepositoryTestCase):
         self.share1.contents.remove(item1)
         view1.commit(); stats = self.share1.sync(); view1.commit()
         self.assert_(checkStats(stats,
-            ({'added' : 0, 'modified' : 0, 'removed' : 0},
+            ({'added' : 0, 'modified' : 1, 'removed' : 0},
              {'added' : 0, 'modified' : 0, 'removed' : 0})),
             "Sync operation mismatch")
         self.assert_(item1 in self.share1.contents)
@@ -1092,7 +1163,17 @@ class RoundTripTestCase(testcase.DualRepositoryTestCase):
         self.failIfEqual(item1.itsUUID, futureUUID)
 
         view0.commit(); stats = self.share0.sync(); view0.commit()
+        self.assert_(checkStats(stats,
+            ({'added' : 0, 'modified' : 0, 'removed' : 0},
+             {'added' : 1, 'modified' : 1, 'removed' : 0})),
+            "Sync operation mismatch")
         view1.commit(); stats = self.share1.sync(); view1.commit()
+        # TODO: Need to investigate why these stats are random!
+        # self.assert_(checkStats(stats,
+        #     ({'added' : 1, 'modified' : 1, 'removed' : 0},
+        #      {'added' : 1, 'modified' : 0, 'removed' : 0})),
+        #     "Sync operation mismatch")
+
         
         future1 = pim.EventStamp(view1.findUUID(futureUUID))
         self.failUnlessEqual(future1, future1.getMaster())
@@ -1113,31 +1194,70 @@ class RoundTripTestCase(testcase.DualRepositoryTestCase):
         item = event.itsItem
         
         view0.commit(); stats = self.share0.sync(); view0.commit()
+        # TODO: Need to investigate why these stats are random!
+        # self.assert_(checkStats(stats,
+        #     ({'added' : 1, 'modified' : 1, 'removed' : 0},
+        #      {'added' : 1, 'modified' : 0, 'removed' : 0})),
+        #     "Sync operation mismatch")
         view1.commit(); stats = self.share1.sync(); view1.commit()
+        # TODO: Need to investigate why these stats are random!
+        # self.assert_(checkStats(stats,
+        #     ({'added' : 0, 'modified' : 0, 'removed' : 0},
+        #      {'added' : 0, 'modified' : 1, 'removed' : 0})),
+        #     "Sync operation mismatch")
         
         item1 = view1.findUUID(item.itsUUID)
         event1 = pim.EventStamp(item1)
         
         event.rruleset.rrules.first().freq = 'daily'
         view0.commit(); stats = self.share0.sync(); view0.commit()
+        self.assert_(checkStats(stats,
+            ({'added' : 0, 'modified' : 0, 'removed' : 0},
+             {'added' : 0, 'modified' : 1, 'removed' : 0})),
+            "Sync operation mismatch")
         view1.commit(); stats = self.share1.sync(); view1.commit()
+        # TODO: Need to investigate why these stats are random!
+        # self.assert_(checkStats(stats,
+        #     ({'added' : 0, 'modified' : 1, 'removed' : 0},
+        #      {'added' : 0, 'modified' : 0, 'removed' : 0})),
+        #     "Sync operation mismatch")
         
         self.failUnlessEqual(event1.rruleset.rrules.first().freq,
                             'daily')
+
+
 
         # Make a modification, sync it, then 'unmodify' it
         second0 = event.getFirstOccurrence().getNextOccurrence()
         second0.itsItem.displayName = "Changed"
         view0.commit(); stats = self.share0.sync(); view0.commit()
+        # TODO: Need to investigate why these stats are random!
+        # self.assert_(checkStats(stats,
+        #     ({'added' : 0, 'modified' : 0, 'removed' : 0},
+        #      {'added' : 1, 'modified' : 0, 'removed' : 0})),
+        #     "Sync operation mismatch")
+
         view1.commit(); stats = self.share1.sync(); view1.commit()
+        self.assert_(checkStats(stats,
+            ({'added' : 1, 'modified' : 0, 'removed' : 0},
+             {'added' : 0, 'modified' : 0, 'removed' : 0})),
+            "Sync operation mismatch")
         second1 = event1.getRecurrenceID(second0.recurrenceID)
         self.assert_(not second1.isGenerated)
 
         second0.unmodify()
         self.assert_(second0.itsItem not in self.share0.contents)
         view0.commit(); stats = self.share0.sync(); view0.commit()
+        self.assert_(checkStats(stats,
+            ({'added' : 0, 'modified' : 0, 'removed' : 0},
+             {'added' : 0, 'modified' : 0, 'removed' : 1})),
+            "Sync operation mismatch")
 
         view1.commit(); stats = self.share1.sync(); view1.commit()
+        self.assert_(checkStats(stats,
+            ({'added' : 0, 'modified' : 0, 'removed' : 1},
+             {'added' : 0, 'modified' : 0, 'removed' : 0})),
+            "Sync operation mismatch")
         self.assert_(second1.isGenerated)
         # Now it's back to an unmodification
 
@@ -1146,6 +1266,9 @@ class RoundTripTestCase(testcase.DualRepositoryTestCase):
         view0.commit(); stats = self.share0.sync(); view0.commit()
         view1.commit(); stats = self.share1.sync(); view1.commit()
         self.assert_(not second1.isGenerated)
+        # In ResourceRecordSet mode, second0 has conflicts (need to research)
+        for conflict in sharing.SharedItem(second1.itsItem).getConflicts():
+            conflict.apply()
 
         # Couple an unmodify with an inbound change
         second1.itsItem.displayName = "Changed in view 1"
@@ -1163,13 +1286,22 @@ class RoundTripTestCase(testcase.DualRepositoryTestCase):
         view0.commit(); stats = self.share0.sync(); view0.commit()
         self.assert_(second0.isGenerated)
         second1.itsItem.displayName = "Changed again in view 1"
-        view1.commit(); stats = self.share1.sync(); view1.commit()
         self.assert_(not second1.isGenerated)
+        view1.commit(); stats = self.share1.sync(); view1.commit()
+        second1 = event1.getRecurrenceID(second0.recurrenceID)
+        self.assert_(not second1.isGenerated)
+        # Should be no conflict on item1 (the master)
+        conflicts = list(sharing.SharedItem(item1).getConflicts())
+        self.assertEquals(len(conflicts), 0)
+        # Should be no conflict on second1.itsItem
+        conflicts = list(sharing.SharedItem(second1.itsItem).getConflicts())
+        self.assertEquals(len(conflicts), 0)
+        view1.commit(); stats = self.share1.sync(); view1.commit()
         view0.commit(); stats = self.share0.sync(); view0.commit()
+
         self.assert_(not second0.isGenerated)
-        self.assertEquals(second0.itsItem.displayName,
-            "Changed again in view 1")
-        # Outbound change overrules the unmodification
+
+
 
 
         # Verify that stamping and unstamping of Mail works.  Note that
@@ -1177,6 +1309,7 @@ class RoundTripTestCase(testcase.DualRepositoryTestCase):
         # ...stamp in 0...
         pim.CHANGE_ALL(pim.MailStamp(item)).add()
         self.assert_(pim.has_stamp(item, pim.MailStamp))
+        second0 = event.getFirstOccurrence().getNextOccurrence()
         self.assert_(pim.has_stamp(second0.itsItem, pim.MailStamp))
         view0.commit(); stats = self.share0.sync(); view0.commit()
         view1.commit(); stats = self.share1.sync(); view1.commit()
@@ -1333,7 +1466,7 @@ class RoundTripTestCase(testcase.DualRepositoryTestCase):
 
 
         # Verify that remote removal of a master and local nontrivial change
-        # of a modification results in the entire series being sent back
+        # of a modification results in putting back the whole series to server
 
         # Create a new recurring event and share it
         event = self._makeRecurringEvent(view0, self.share0.contents)
@@ -1345,25 +1478,22 @@ class RoundTripTestCase(testcase.DualRepositoryTestCase):
         event1 = pim.EventStamp(item1)
         self.assertEquals(event1.rruleset.rrules.first().freq, 'daily')
 
-
         # Remove it from the server
         self.share1.contents.remove(item1)
         view1.commit(); stats = self.share1.sync(); view1.commit()
 
-        # Make a local displayName change to an occurrence, we'll put back
-        # the entire series
+        # Make a local displayName change to an occurrence, the entire series
+        # will get put back
         second0 = event.getFirstOccurrence().getNextOccurrence()
-        second0.itsItem.displayName = "PUT ME BACK"
+        second0.itsItem.displayName = "Don't remove me!"
         self.assert_(self.share0 in sharing.SharedItem(item).sharedIn)
         view0.commit(); stats = self.share0.sync(); view0.commit()
         self.assert_(item in self.share0.contents)
         self.assert_(self.share0 in sharing.SharedItem(item).sharedIn)
-
         view1.commit(); stats = self.share1.sync(); view1.commit()
-        second1 = event1.getRecurrenceID(second0.recurrenceID)
         self.assert_(item1 in self.share1.contents)
-        self.assertEquals(second1.itsItem.displayName, "PUT ME BACK")
-
+        second1 = event1.getRecurrenceID(second0.recurrenceID)
+        self.assert_(not second1.isGenerated)
 
 
         self.share0.destroy() # clean up

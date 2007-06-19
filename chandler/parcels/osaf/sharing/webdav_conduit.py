@@ -502,17 +502,10 @@ class WebDAVRecordSetConduit(ResourceRecordSetConduit, DAVConduitMixin):
         # return etag
         resource = self._resourceFromPath(path)
         start = time.time()
-        resp = self._getServerHandle().blockUntil(resource.put, text,
+        self._getServerHandle().blockUntil(resource.put, text,
             checkETag=False)
         end = time.time()
         self.networkTime += (end - start)
-
-        if resp is not None: # zanshin doesn't return response object currently
-            if not 200 <= resp.status < 300:
-                raise errors.SharingError("%s (HTTP status %d)" % (resp.message,
-                    resp.status),
-                    details="Received [%s]" % resp.body)
-
         return resource.etag.strip('"') # .mac puts quotes around the etag
 
 

@@ -451,6 +451,7 @@ class ShareStateRecord(eim.Record):
     agreed = eim.field(eim.BlobType)    # obsolete
     pending = eim.field(eim.BlobType)   # obsolete
     stateRecords = eim.field(eim.BlobType, default='')
+    pendingRemoval = eim.field(eim.IntType, default=0)
 
 class SharePeerStateRecord(eim.Record):
     URI = "http://osafoundation.org/eim/sharing/peerstate/0"

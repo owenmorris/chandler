@@ -163,6 +163,9 @@ class DumpReloadTestCase(testcase.DualRepositoryTestCase):
         inmemory_share0.sync()
         for state in inmemory_share0.states:
             uuids.add(state.itsUUID)
+        # Set one of the states to be a pendingRemoval
+        pendingRemoval = state.itsUUID
+        state.pendingRemoval = True
 
 
         # Peer states
@@ -404,6 +407,8 @@ class DumpReloadTestCase(testcase.DualRepositoryTestCase):
                 self.assert_(state1 in inmemory_share1.states)
                 self.assertEqual(state0.agreed, state1.agreed)
                 self.assertEqual(state0.pending, state1.pending)
+                self.assertEqual(state1.pendingRemoval,
+                    state1.itsUUID == pendingRemoval)
             for item0 in coll0:
                 item1 = view1.findUUID(item0.itsUUID)
                 sharedItem1 = sharing.SharedItem(item1)

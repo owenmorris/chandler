@@ -439,6 +439,10 @@ class SharingTranslator(eim.Translator):
 
                             if self.code_to_triagestatus[codeIn] == \
                                 item.triageStatus:
+
+                                logger.info("Autoresolving triage: %s",
+                                    item.itsUUID)
+
                                 # The triage status is not in conflict, so we
                                 # are going to auto resolve any conflicts on
                                 # either triageStatusChanged or
@@ -2050,7 +2054,8 @@ class DumpTranslator(SharingTranslator):
                 pending = eim.Diff(inclusions, exclusions)
 
         @self.withItemForUUID(record.uuid,
-            shares.State, agreed=agreed, pending=pending
+            shares.State, agreed=agreed, pending=pending,
+            pendingRemoval=bool(record.pendingRemoval)
         )
         def do(state):
             if record.share not in (eim.NoChange, None):
@@ -2100,7 +2105,8 @@ class DumpTranslator(SharingTranslator):
                 map(list,
                    [agreed.inclusions, pending.inclusions, pending.exclusions]
                 )
-            )
+            ),
+            1 if state.pendingRemoval else 0
         )
 
 

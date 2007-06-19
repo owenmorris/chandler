@@ -144,9 +144,12 @@ class ConflictVScrolledArea(ScrolledPanel):
             else:
                 editor = _("An unknown party")
 
-            # A non-empty c.change.exclusions means that someone removed a stamp from the item
-            # and the user has modified that stamp in the meanwhile
-            if c.change.exclusions:
+            if c.pendingRemoval:
+                fmt = _(u"%(index)3d. %(em)s%(person)s%(/em)s removed this item from the %(em)scollection%(/em)s")
+            elif c.change.exclusions:
+                # A non-empty c.change.exclusions means that someone removed
+                # a stamp from the item and the user has modified that stamp
+                # in the meanwhile
                 if "sharing.model.MailMessageRecord" in c.value:
                     fmt = _(u"%(index)3d. %(em)s%(person)s%(/em)s removed %(em)saddresses%(/em)s from this item")
                 elif "sharing.model.EventRecord" in c.value:
@@ -163,7 +166,7 @@ class ConflictVScrolledArea(ScrolledPanel):
             text = fmt % {
                 'index': i+1,
                 'person': editor,
-                'fieldName': c.field.title(),
+                'fieldName': "" if c.field is None else c.field.title(),
                 'value': c.value,
                 'em': emStart,
                 '/em': emEnd
