@@ -1181,7 +1181,8 @@ class ReminderTimer(Timer):
             pass
         else:
             del self.widget.reminderDialog
-            reminderDialog.Destroy()
+            if reminderDialog and not reminderDialog.IsBeingDeleted():
+                reminderDialog.Destroy()
 
 class PresentationStyle(schema.Item):
     """ 
