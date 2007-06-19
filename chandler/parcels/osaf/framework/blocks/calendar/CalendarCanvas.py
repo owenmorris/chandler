@@ -1500,7 +1500,6 @@ class wxCalendarCanvas(CollectionCanvas.wxCollectionCanvas):
         super(wxCalendarCanvas, self).OnInit()
     
     def OnScroll(self, event):
-        self.Refresh()
         if not wx.GetApp().ignoreSynchronizeWidget:
             # The test is a workaround for the fact that Linux sends a 
             # spurious scroll-to-the-top event when creating the widget.

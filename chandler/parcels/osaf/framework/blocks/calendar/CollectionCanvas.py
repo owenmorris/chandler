@@ -346,6 +346,18 @@ class wxCollectionCanvas(DragAndDrop.DropReceiveWidget,
         self.coercedCanvasItem = None
 
         self.cursor = wxCollectionCanvas.defaultCursor
+
+        self._needRedraw = True
+        self._buffer = None
+
+    def Refresh(self, *args):
+        # Set a flag so we know if the paint event is happening
+        # because of a programatic call to Refresh, or if it is a
+        # 'natural' refresh due to things like scrolling or the window
+        # being damaged by another window.  See OnPaint for how this
+        # knowledge is used.
+        self._needRedraw = True
+        super(wxCollectionCanvas, self).Refresh(*args)
         
     def OnInit(self):
         # _focusWindow is used because wxPanel is much happier if it
@@ -916,11 +928,42 @@ class wxCollectionCanvas(DragAndDrop.DropReceiveWidget,
                 # dirtied, we don't need to redraw!
                 return
 
+
+        # If Refresh() was called programatically then most likley
+        # something has changed and so some part of the canvas needs
+        # to be drawn differently to reflect that change.  Since there
+        # currently isn't any optimization of refresh rectangles then
+        # we'll redraw the whole thing.  The drawing is done to
+        # a buffer bitmap so for those times when we are just
+        # refreshing the existing canvas with no changes then we can
+        # just blit the bitmap, which is probably orders of magnitude
+        # faster.
+        if self._needRedraw:
+            # figure out what size of bitmap we need, plus a little
+            # extra space for scrolling overflow
+            sz = self.GetVirtualSize()
+            ppux, ppuy = self.GetScrollPixelsPerUnit()
+            sz.width += ppux + 1
+            sz.height += ppuy + 1
+            # make a new bitmap of that size if needed
+            if not self._buffer or sz != self._buffer.GetSize():
+                self._buffer = wx.EmptyBitmap(*sz)
+            # draw the canvas to that bitmap
+            mdc = wx.MemoryDC(self._buffer)
+            mdc.SetBackground(wx.WHITE_BRUSH)
+            mdc.Clear()
+            self.DrawCanvas(mdc)
+            self._needRedraw = False
+        else:
+            mdc = wx.MemoryDC(self._buffer)
+            
         self.PrepareDC(dc)
-        self.DrawCanvas(dc)
+        dx = dc.DeviceToLogicalX(updateRect.x)
+        dy = dc.DeviceToLogicalY(updateRect.y)
+        dc.Blit(dx, dy, updateRect.width, updateRect.height, mdc, dx, dy)
+        
         
     def DrawCanvas(self, dc):
-
         dc.BeginDrawing()
         self.DrawBackground(dc)
         self.DrawCells(dc)
