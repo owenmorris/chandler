@@ -314,9 +314,6 @@ class ToolBarItem(BaseItem):
             control = wxQuickEntry (self.parentBlock.widget,
                                     self.getWidgetID(),
                                     style = wx.TE_PROCESS_ENTER)
-            # Apparently on Macintosh the selection starts out random, which causes it to crash
-            # when setting text because it trys to delete characters that don't exist
-            control.SetSelection (0, 0)
             control.blockItem = self
             widget = wx.ToolBarToolWithControl (None, control)
             widget.__class__ = wxToolBarTool
