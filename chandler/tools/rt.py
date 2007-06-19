@@ -456,7 +456,7 @@ def runTestCase(options):
 
 
 def runLocalizationCheck(options):
-    if options.dryrun or options.single or options.perf:
+    if options.dryrun:
         failed = False
     else:
         # The -v argument tells createPot to only validate the
@@ -1594,39 +1594,39 @@ def main(options):
             except OSError:
                 pass
 
-        failed = runLocalizationCheck(options)
+        if options.testcase:
+            failed = runTestCase(options)
+        elif options.single:
+            failed = runSingles(options)
+        else:
+            if not options.perf:
+                failed = runLocalizationCheck(options)
 
-        if not failed:
-            if options.testcase:
-                failed = runTestCase(options)
-            elif options.single:
-                failed = runSingles(options)
-            else:
-                if options.unit:
-                    failed = runUnitTests(options)
-                    if not failed or options.noStop:
-                        if runPluginTests(options):
-                            failed = True
-
-                if options.unitSuite and (not failed or options.noStop):
-                    if runUnitSuite(options):
+            if options.unit and (not failed or options.noStop):
+                failed = runUnitTests(options)
+                if not failed or options.noStop:
+                    if runPluginTests(options):
                         failed = True
 
-                if options.funcSuite and (not failed or options.noStop):
-                    if runFuncTest(options):
-                        failed = True
+            if options.unitSuite and (not failed or options.noStop):
+                if runUnitSuite(options):
+                    failed = True
 
-                if options.func and (not failed or options.noStop):
-                    if runFuncTestsSingly(options):
-                        failed = True
+            if options.funcSuite and (not failed or options.noStop):
+                if runFuncTest(options):
+                    failed = True
 
-                if options.recorded and (not failed or options.noStop):
-                    if runRecordedScripts(options):
-                        failed = True
+            if options.func and (not failed or options.noStop):
+                if runFuncTestsSingly(options):
+                    failed = True
 
-                if options.perf and (not failed or options.noStop):
-                    if runPerfTests(options):
-                        failed = True
+            if options.recorded and (not failed or options.noStop):
+                if runRecordedScripts(options):
+                    failed = True
+
+            if options.perf and (not failed or options.noStop):
+                if runPerfTests(options):
+                    failed = True
 
         if len(failedTests) > 0:
             log('+-' * 32)
