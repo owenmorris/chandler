@@ -196,7 +196,7 @@ def checkOptions(options):
 
     if options.single and \
        (options.unit or options.unitSuite or options.funcSuite or \
-        options.func or options.perf):
+        options.func or options.perf or options.recorded):
         log('Single test run (-t) only allowed by itself', error=True)
         sys.exit(1)
 
@@ -208,6 +208,10 @@ def checkOptions(options):
             else:
                 newsingle.append(single)
         options.single = ','.join(newsingle)
+
+    # force recorded tests to be run if the functional tests are active
+    if options.funcSuite or options.func:
+        options.recorded = True
 
     options.sysPython = build_lib.findInPath(os.environ['PATH'], 'python')
 
