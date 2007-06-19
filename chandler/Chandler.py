@@ -75,7 +75,7 @@ def main():
         # way to detect if the display depth is < 24.  (Note there is
         # a chicken-and-egg problem with wx.GetDisplayDepth() as it
         # needs to have the app created before it can be called.)
-	useBestVisual = False
+        useBestVisual = False
         
         app = wxApplication(redirect=redirect, useBestVisual=useBestVisual)
 
