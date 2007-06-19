@@ -552,6 +552,17 @@ class RecordSetConduit(conduits.BaseConduit):
             aliases.sort()
             for alias in aliases:
                 rs = toApply[alias]
+
+                # If the only change is a modifiedyBy record, ignore this rs
+                for r in chain(rs.inclusions, rs.exclusions):
+                    if not isinstance(r, model.ModifiedByRecord):
+                        break
+                else:
+                    # This rs contains nothing but modifiedBy records
+                    doLog("Skipping application of ModifiedBy for %s [%s]",
+                        alias, rs)
+                    continue
+
                 doLog("Applying changes to %s [%s]", alias, rs)
 
                 uuid = translator.getUUIDForAlias(alias)
