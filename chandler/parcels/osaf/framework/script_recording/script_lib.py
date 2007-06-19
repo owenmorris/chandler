@@ -184,6 +184,8 @@ def ProcessEvent (theClass, properties , attributes):
 
         elif eventType is wx.EVT_CHAR:
             # Try EmulateKeyPress
+            (start, end) = sentToWidget.GetSelection()
+            assert start >= 0 and end >= 0 and start <= end
             EmulateKeyPress = getattr(sentToWidget, 'EmulateKeyPress', None)
             if EmulateKeyPress is not None:
                 # A bug in wxWidgets on Windows stores the wrong value for m_rawCode in wx.EVT_CHAR
