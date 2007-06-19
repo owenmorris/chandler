@@ -363,11 +363,6 @@ def changesInSVN(moduleDir, workingDir, log, revID=None):
         print "[%s] [%s] [%s]" % (workingDir, module, moduleDir)
         os.chdir(moduleDir)
 
-        if module == 'chandler':
-            print "Flushing previous version information"
-            outputList = hardhatutil.executeCommandReturnOutputRetry([svnProgram, 'revert', 'version.py'])
-            hardhatutil.dumpOutputList(outputList, log)
-
         # if revID is present then we have to modify the request to include
         # the given revision #
         if revID:
