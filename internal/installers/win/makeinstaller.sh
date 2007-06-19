@@ -19,5 +19,5 @@ if [ -z "$NSI_FILE" ]; then
 fi
 
 cd $NSI_PATH
-$NSIS_BIN $NSI_OPTION $NSI_FILE
+"$NSIS_BIN" $NSI_OPTION $NSI_FILE
 

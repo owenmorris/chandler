@@ -1,5 +1,5 @@
 ;
-;   Copyright (c) 2004-2006 Open Source Applications Foundation
+;   Copyright (c) 2004-2007 Open Source Applications Foundation
 ;
 ;   Licensed under the Apache License, Version 2.0 (the "License");
 ;   you may not use this file except in compliance with the License.
@@ -126,6 +126,8 @@ Function PageReinstall
     ; then the uninstall program will be found in the HKCU registry root
     ; otherwise it will be in HKLM
 
+  ;MessageBox MB_ICONINFORMATION|MB_OK "0 [$INSTDIR] [${PRODUCT_NAME}][${PRODUCT_VERSION}]"
+
   StrCmp $R8 "true" 0 normal_user
   ReadRegStr $R9 HKLM "${PRODUCT_UNINST_KEY}" "UninstallString"
   goto check_uninstall
@@ -188,20 +190,20 @@ FunctionEnd
 Function PageLeaveReinstall
 
     ; get from the uninstall dialog the option selected
-    
+
   !insertmacro MUI_INSTALLOPTIONS_READ $R1 "uninstall_dialog.ini" "Field 2" "State"
   StrCmp $R1 "1" uninstall_chandler do_nothing
 
   uninstall_chandler:
-    ;MessageBox MB_ICONINFORMATION|MB_OK "1 [$R9]"
+    ;MessageBox MB_ICONINFORMATION|MB_OK "u1 [$R9]"
 
-    IfFileExists $R9 0 check_instdir
+    IfFileExists $R9 0 check_instdir  ; check install dir if normal uninstall is not found
 
       StrLen $R2 $R9        ; get length of uninstall string
       IntOp  $R2 $R2 - 10   ; adjust length to only include the path
       StrCpy $R0 $R9 $R2    ; extract path from the uninstall string
 
-      ;MessageBox MB_ICONINFORMATION|MB_OK "2 [$R0] [$R9]"
+      ;MessageBox MB_ICONINFORMATION|MB_OK "u2 [$R0] [$R9]"
 
       HideWindow
       ClearErrors
@@ -210,18 +212,20 @@ Function PageLeaveReinstall
 
       IfErrors uninstall_failed
       IfFileExists "$R0\chandler.exe" uninstall_failed    ; sanity check to see if uninstall failed
-    
+
       ;Delete $R9            ; clean up by removing uninstall program
       ;RMDIR $INSTDIR        ; and then remove the should-be empty install directory
 
+      Goto do_nothing
+
     check_instdir:
       StrCpy $R9 "$INSTDIR\uninst.exe"
-      
-      ;MessageBox MB_ICONINFORMATION|MB_OK "3 [$R9]"
+
+      ;MessageBox MB_ICONINFORMATION|MB_OK "u3 [$R9]"
 
       IfFileExists $R9 0 do_nothing
 
-      ;MessageBox MB_ICONINFORMATION|MB_OK "4 [$R9]"
+      ;MessageBox MB_ICONINFORMATION|MB_OK "u4 [$R9]"
 
       HideWindow
       ClearErrors
@@ -242,6 +246,9 @@ Function PageLeaveReinstall
 
   do_nothing:
     StrCpy $R9 "bypass"   ; set $R9 so the oldversion dialog is skipped
+
+    ;MessageBox MB_ICONINFORMATION|MB_OK "u5 [$R9]"
+
     BringToFront          ; since the user has requested to continue with the install
 
 FunctionEnd
