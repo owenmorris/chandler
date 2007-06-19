@@ -183,6 +183,13 @@ def ProcessEvent (theClass, properties , attributes):
                 gridWindow.ProcessEvent (event)
 
         elif eventType is wx.EVT_CHAR:
+            # Make sure the selection is valid
+            if __debug__:
+                GetSelectionMethod = getattr (sentToWidget, "GetSelection", None)
+                if GetSelectionMethod is not None:
+                    (start, end) = GetSelectionMethod()
+                    assert start >= 0 and end >= 0 and start <= end
+
             # Try EmulateKeyPress
             EmulateKeyPress = getattr(sentToWidget, 'EmulateKeyPress', None)
             if EmulateKeyPress is not None:
