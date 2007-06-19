@@ -159,16 +159,14 @@ class wxMiniCalendar(DragAndDrop.DropReceiveWidget,
         return False
 
     def OnWXSelectItem(self, event):
-        self.blockItem.postEventByName ('SelectedDateChanged',
-                                        {'start': self.getSelectedDate()})
+        self.blockItem.postDateChanged(self.getSelectedDate())
 
     def OnWXDoubleClick(self, event):
         # Select the calendar filter
-        self.blockItem.postEventByName ('ApplicationBarEvent', {})
+        self.blockItem.postEventByName('ApplicationBarEvent', {})
 
         # Set the calendar to the clicked day
-        self.blockItem.postEventByName ('SelectedDateChanged',
-                                        {'start': self.getSelectedDate()})
+        self.blockItem.postDateChanged(self.getSelectedDate())
 
     def getSelectedDate(self):
         date = datetime.combine(self.GetDate(), time(tzinfo = ICUtzinfo.floating))
@@ -348,6 +346,17 @@ def isMainCalendarVisible():
         return False
 
 class MiniCalendar(CalendarRangeBlock):
+    """
+    While MiniCalendar inherits from CalendarRangeBlock, it DOESN'T use the
+    persistent CalendarRangeBlock's rangeStart attribute.  Instead, it uses the
+    minicalendar widget's non-persisted date, accessed from widget.GetDate and
+    widget.SetDate.
+    
+    MiniCalendar doesn't need to use a persistent value for date because the
+    selected date is deliberately reset to today's date at startup, and the
+    minicalendar is never unrendered.
+    
+    """
     dayMode = schema.One(schema.Boolean, initialValue = False)
     
     dashboardView = schema.Sequence(defaultValue=None)

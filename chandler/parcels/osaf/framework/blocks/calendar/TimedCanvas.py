@@ -97,6 +97,9 @@ class TimedEventsCanvas(CalendarCanvasBlock):
         pass # all notifications handled by container
 
     def activeViewChanged(self):
+        realRangeStart = self.miniCalendar.widget.getSelectedDate()
+        if self.rangeStart != realRangeStart:
+            self.postDateChanged(realRangeStart)
         if self.miniCalendar is not None:
             self.miniCalendar.activeViewChanged()
             self.miniCalendar.previewArea.activeViewChanged()
