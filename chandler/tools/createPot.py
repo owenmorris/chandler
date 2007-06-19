@@ -18,7 +18,7 @@ class TranslationTool(LocalizationBase):
     def __init__(self):
         super(TranslationTool, self).__init__()
 
-        self.GETTEXT = os.path.join(self.CHANDLERHOME, "tools", "pygettext.py")
+        self.GETTEXT = os.path.join("tools", "pygettext.py")
 
         self.getOpts()
         self.setLibraryPath()
@@ -106,8 +106,7 @@ class TranslationTool(LocalizationBase):
     def getText(self):
         dirs = " ".join(self.CONFIG)
 
-        exp = "%s %s -o %s %s" % (self.PYTHON, self.GETTEXT,
-              os.path.join(self.CWD, self.OUTPUTFILE), dirs)
+        exp = "%s %s -o %s %s" % (self.PYTHON, self.GETTEXT, self.OUTPUTFILE, dirs)
 
         if dirs != ".":
             exp += " *.py"

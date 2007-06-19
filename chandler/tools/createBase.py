@@ -40,8 +40,8 @@ class LocalizationBase(object):
         else:
             self.CHANDLERBIN = self.CHANDLERHOME
 
-        os.environ["CHANDLERHOME"] = self.CHANDLERHOME
-        os.environ["CHANDLERBIN"] = self.CHANDLERBIN
+        #os.environ["CHANDLERHOME"] = self.CHANDLERHOME
+        #os.environ["CHANDLERBIN"] = self.CHANDLERBIN
 
         try:
             if "debug" in os.listdir(self.CHANDLERBIN):
