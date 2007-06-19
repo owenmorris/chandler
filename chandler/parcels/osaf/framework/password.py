@@ -148,8 +148,12 @@ class Password(schema.Item):
         del key
         
         # decrypt
-        ret = decrypt(self.ciphertext, encKey, self.iv)
-        del encKey
+        try:
+            ret = decrypt(self.ciphertext, encKey, self.iv)
+        except EVP.EVPError, e:
+            raise DecryptionError(str(e))
+        finally:
+            del encKey
         
         # Check MAC
         mac = ret[-64:]
@@ -213,7 +217,10 @@ class Password(schema.Item):
         del hmacKey
 
         # encrypt using AES (Rijndael)
-        self.ciphertext = encrypt(password + mac, encKey, self.iv)
+        try:
+            self.ciphertext = encrypt(password + mac, encKey, self.iv)
+        except EVP.EVPError, e:
+            raise EncryptionError(str(e))
 
         if len(self.ciphertext) > 1024:
             waitForDeferred(self.clear())
