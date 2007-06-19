@@ -405,3 +405,6 @@ if __name__ == '__main__':
             else:
                 log('Skipping %s because the directory is not present' % mode, error=True)
 
+    # revert the contents of version.py to clear any previously generated values
+    runCommand([ findInPath(os.environ['PATH'], 'svn'), 'revert', os.path.join(options.sourceDir, 'version.py') ])
+
