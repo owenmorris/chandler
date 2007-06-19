@@ -36,6 +36,7 @@ class FrequencyEnum(schema.Enumeration):
     """The base frequency for a recurring event."""
     values="yearly","monthly","weekly","daily","hourly","minutely","secondly"
 
+SHORT_FREQUENCIES = ("hourly", "minutely", "secondly")
 
 # map FrequencyEnums to internationalized singular, plural and adverbial strings
 singularFrequencyMap = dict(yearly  = _(u"year"),
@@ -65,6 +66,8 @@ adverbFrequencyMap = dict(yearly  = _(u"yearly"),
 # Formatting strings dictionary: the code builds an index dynamically to pick the right one
 descriptionFormat = {'fs' : _(u"%(frequencyadverb)s"),
                     'fp' : _(u"every %(interval)s %(frequencyplural)s"),
+                    'fxs' : _(u"%(frequencyadverb)s (too frequent)"),
+                    'fxp' : _(u"every %(interval)s %(frequencyplural)s (too frequent)"),
                     'fds' : _(u"%(days)s every %(frequencysingular)s"),
                     'fdp' : _(u"%(days)s every %(interval)s %(frequencyplural)s"),
                     'fus' : _(u"%(frequencyadverb)s until %(date)s"),
@@ -467,8 +470,10 @@ class RecurrenceRuleSet(items.ContentItem):
         except AttributeError:
             setattr(self, rrulesorexrules, [rule])
 
-    def createDateUtilFromRule(self, dtstart, ignoreIsCount=True,
-                               convertFloating=False):
+    def createDateUtilFromRule(self, dtstart,
+                               ignoreIsCount=True,
+                               convertFloating=False,
+                               ignoreShortFrequency=True):
         """Return an appropriate dateutil.rrule.rruleset.
 
         @param dtstart: The start time for the recurrence rule
@@ -487,13 +492,29 @@ class RecurrenceRuleSet(items.ContentItem):
                                 icalendar format.
         @type  convertFloating: C{bool}
 
+        @param ignoreShortFrequency: If ignoreShortFrequency is True, replace
+                                     hourly or more frequent rules with a single
+                                     RDATE matching dtstart, so as to avoid 
+                                     wasting millions of cycles on nonsensical
+                                     recurrence rules.
+        @type  ignoreShortFrequency: C{bool}
+
+        @type  convertFloating: C{bool}
+
         @rtype: C{dateutil.rrule.rruleset}
 
         """
+        args = (ignoreIsCount, convertFloating)
         ruleset = rruleset()
         for rtype in 'rrule', 'exrule':
             for rule in getattr(self, rtype + 's', []):
-                getattr(ruleset, rtype)(rule.createDateUtilFromRule(dtstart, ignoreIsCount, convertFloating))
+                if ignoreShortFrequency and rule.freq in SHORT_FREQUENCIES:
+                    # too-frequent rule, as Admiral Ackbar said, "IT'S A TRAP!"
+                    ruleset.rdate(dtstart)
+                    return ruleset
+                rule_adder = getattr(ruleset, rtype)
+                rule_adder(rule.createDateUtilFromRule(dtstart, *args))
+        
         for datetype in 'rdate', 'exdate':
             for date in getattr(self, datetype + 's', []):
                 if convertFloating and date.tzinfo is ICUtzinfo.floating:
@@ -596,8 +617,18 @@ class RecurrenceRuleSet(items.ContentItem):
         @rtype: C{str}
 
         """
+        too_frequent = False
+        if hasattr(self, 'rrules') and len(self.rrules) > 0:
+            for rule in self.rrules:
+                if rule.freq in SHORT_FREQUENCIES:
+                    too_frequent = True
+                    break
+        
         if self.isComplex():
-            return _(u"No description")
+            if not too_frequent:
+                return _(u"No description")
+            else:
+                return _(u"No description (too frequent)")
         else:
             # Get the rule values we can interpret (so far...)
             rule = self.rrules.first()
@@ -607,11 +638,14 @@ class RecurrenceRuleSet(items.ContentItem):
             days = rule.byweekday
             
             # Build the index and argument dictionary
-            # The index must be built in the 'fdus' order
+            # The index must be built in the 'fxdus' order
             index = 'f'
             dct = {}
             
-            if freq == 'weekly' and days is not None:
+            if too_frequent:
+                index += 'x'
+            
+            elif freq == 'weekly' and days is not None:
                 index += 'd'
                 daylist = [weekdayAbbrevMap[i.weekday] for i in days]
                 dct['days'] = u" ".join(daylist)
@@ -620,7 +654,7 @@ class RecurrenceRuleSet(items.ContentItem):
             dct['frequencysingular'] = singularFrequencyMap[freq]
             dct['frequencyadverb'] = adverbFrequencyMap[freq]
 
-            if until is not None:
+            if not too_frequent and until is not None:
                 index += 'u'
                 formatter = DateFormat.createDateInstance(DateFormat.kShort)
                 dct['date'] = unicode(formatter.format(until))

@@ -265,7 +265,7 @@ def getRecurrenceFields(event):
     elif start.tzinfo is ICUtzinfo.floating:
         start = start.replace(tzinfo=None)
     vobject_event.add('dtstart').value = start
-    vobject_event.rruleset = event.createDateUtilFromRule(False, True)
+    vobject_event.rruleset = event.createDateUtilFromRule(False, True, False)
     
     if hasattr(vobject_event, 'rrule'):
         rrules = vobject_event.rrule_list

@@ -1466,6 +1466,26 @@ class RecurringEventTest(testcase.SingleRepositoryTestCase):
         # ... and check that the index is still sorted
         self.failUnlessEqual(indexDisplayNames, sorted(indexDisplayNames))
         
+    def testTooShortFrequency(self):
+        """
+        Check that an RRULE frequency of hourly or shorter returns an RDATE for
+        the start of the series, and no more occurrences, bug 9035.
+        """
+        event = self.event
+        start = event.startTime
+
+        ruleItem = RecurrenceRule(None, itsParent=self.sandbox)
+        ruleItem.freq = 'hourly'
+        ruleSetItem = RecurrenceRuleSet(None, itsParent=self.sandbox)
+        ruleSetItem.addRule(ruleItem)
+        event.rruleset = ruleSetItem
+        occurrences = list(event.getOccurrencesBetween(start, 
+                                                       start + timedelta(1)))
+        
+        self.failUnlessEqual(len(occurrences), 1)
+        self.failUnlessEqual(occurrences[0].startTime, start)
+        
+        
 
 class NaiveTimeZoneRecurrenceTest(testcase.SingleRepositoryTestCase):
     """Test of recurring events that have startTimes that occur on different

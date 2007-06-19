@@ -241,7 +241,7 @@ def itemsToVObject(view, items, cal=None, filters=None):
             if event.getMaster() == event and event.rruleset is not None:
                 # False because we don't want to ignore isCount for export
                 # True because we don't want to use ICUtzinfo.floating
-                cal.vevent_list[-1].rruleset = event.createDateUtilFromRule(False, True)
+                cal.vevent_list[-1].rruleset = event.createDateUtilFromRule(False, True, False)
         except AttributeError:
             logger.error('Failed to export RRULE for %s' % event.itsItem.itsUUID)
         # end of populateEvent function

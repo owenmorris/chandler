@@ -1021,18 +1021,19 @@ class EventStamp(Stamp):
         return self._isBetween(self, after, before, inclusive, showUI)
                                
 
-    def createDateUtilFromRule(self, ignoreIsCount = True, convertFloating=False):
+    def createDateUtilFromRule(self, *args, **kw):
         """Construct a dateutil.rrule.rruleset from self.rruleset.
 
         @see: L{Recurrence.RecurrenceRuleSet.createDateUtilFromRule}
         @return: C{dateutil.rrule.rruleset}
 
         """
-        if self.getFirstInRule() != self:
-            return self.getFirstInRule().createDateUtilFromRule(ignoreIsCount, convertFloating)
+        first = self.getFirstInRule()
+        if first != self:
+            return first.createDateUtilFromRule(*args, **kw)
         else:
             dtstart = self.getEffectiveStartTime()
-            return self.rruleset.createDateUtilFromRule(dtstart, ignoreIsCount, convertFloating)
+            return self.rruleset.createDateUtilFromRule(dtstart, *args, **kw)
 
     def setRuleFromDateUtil(self, rule):
         """Set self.rruleset from rule.  Rule may be an rrule or rruleset.
