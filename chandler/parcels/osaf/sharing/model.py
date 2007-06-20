@@ -23,6 +23,7 @@ text20 = eim.TextType(size=20)
 text256 = eim.TextType(size=256)
 text512 = eim.TextType(size=512)
 text1024 = eim.TextType(size=1024)
+text32K = eim.TextType(size=32768)
 bytes32 = eim.BytesType(size=32)
 bytes1024 = eim.BytesType(size=1024)
 
@@ -145,10 +146,10 @@ class EventRecord(eim.Record):
     location = eim.field(text256, _(u"Location"))
 
     # EventStamp.[recurrenceID, rruleset, etc.]
-    rrule = eim.field(text1024)
-    exrule = eim.field(text1024)
-    rdate = eim.field(text1024)
-    exdate = eim.field(text1024)
+    rrule = eim.field(text32K)
+    exrule = eim.field(text32K)
+    rdate = eim.field(text32K)
+    exdate = eim.field(text32K)
 
     # EventStamp.transparency
     status = eim.field(text256, _(u"Event status"), filters=[eventStatusFilter])
