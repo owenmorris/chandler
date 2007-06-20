@@ -85,6 +85,14 @@ class Collection(Item):
 
         return False
 
+    def __eq__(self, other):
+
+        return self is other
+
+    def __ne__(self, other):
+
+        return self is not other
+
     def _inspect(self, indent=0):
 
         return super(Collection, self)._inspectCollection(self.__collection__,
