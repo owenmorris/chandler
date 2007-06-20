@@ -736,6 +736,102 @@ def makeSummaryBlocks(parcel):
         sphereCollection = schema.ns('osaf.pim', repositoryView).mine,
         item = schema.ns('osaf.pim', view).searchResults)
         
+    searchRankColumn = makeColumnAndIndexes('SearchColRank',
+        heading = _(u'Rank'),
+        valueType = 'None',
+        defaultSort = True,
+        useSortArrows = False,
+        useMaster = False,
+        width = 39,
+        scaleColumn = wxGrid.Grid.GRID_COLUMN_NON_SCALABLE,
+        readOnly = True,
+        indexName ='%s.rank' % __name__,
+        format='rank',
+        baseClass = pim.NumericIndexDefinition,
+        attributes = [])
+
+    searchTaskColumn = makeColumnAndIndexes('SearchColTask',
+        icon='ColHTask',
+        valueType = 'stamp',
+        stamp=pim.TaskStamp,
+        width=iconColumnWidth,
+        useSortArrows=False,
+        scaleColumn = wxGrid.Grid.GRID_COLUMN_FIXED_SIZE,
+        readOnly=True,
+        indexName='%s.taskStatus' % __name__,
+        baseClass=TaskColumnIndexDefinition,
+        attributes=list(dict(TaskColumnIndexDefinition.findParams)),)
+
+    searchCommColumn = makeColumnAndIndexes('SearchColMail',
+        icon='ColHMail',
+        valueType='stamp',
+        stamp=pim.mail.MailStamp,
+        width=iconColumnWidth,
+        useSortArrows=False,
+        scaleColumn = wxGrid.Grid.GRID_COLUMN_FIXED_SIZE,
+        readOnly=True,
+        indexName=CommunicationStatus.status.name,
+        attributeName=CommunicationStatus.status.name,
+        baseClass=CommunicationColumnIndexDefinition,
+        attributes=list(dict(CommunicationStatus.attributeValues)),)
+
+    searchWhoColumn = makeColumnAndIndexes('SearchColWho',
+        heading=_(u'Who'),
+        width=100,
+        scaleColumn = wxGrid.Grid.GRID_COLUMN_SCALABLE,
+        readOnly=True,
+        indexName='%s.displayWho' % __name__,
+        attributeName='displayWho',
+        attributeSourceName = 'displayWhoSource',
+        format='who',
+        baseClass=WhoColumnIndexDefinition,
+        attributes=list(dict(WhoColumnIndexDefinition.findParams)),)
+    
+    searchTitleColumn = makeColumnAndIndexes('SearchColAbout',
+        heading=_(u'Title'),
+        width=120,
+        scaleColumn = wxGrid.Grid.GRID_COLUMN_SCALABLE,
+        indexName='%s.displayName' % __name__,
+        attributeName='displayName',
+        baseClass=TitleColumnIndexDefinition,
+        attributes=list(dict(TitleColumnIndexDefinition.findParams)),)
+
+    searchReminderColumn = makeColumnAndIndexes('SearchColCalendarEvent',
+        icon = 'ColHEvent',
+        valueType = 'stamp',
+        stamp = pim.EventStamp,
+        useSortArrows = False,
+        width = iconColumnWidth,
+        scaleColumn = wxGrid.Grid.GRID_COLUMN_FIXED_SIZE,
+        readOnly = True,
+        indexName = '%s.calendarStatus' % __name__,
+        baseClass=CalendarColumnIndexDefinition,
+        attributes=list(dict(CalendarColumnIndexDefinition.findParams)) + \
+                   ['displayDateSource'])
+
+    searchDateColumn = makeColumnAndIndexes('SearchColDate',
+        heading = _(u'Date'),
+        width = 100,
+        scaleColumn = wxGrid.Grid.GRID_COLUMN_SCALABLE,
+        readOnly = True,
+        attributeName = 'displayDate',
+        attributeSourceName = 'displayDateSource',
+        indexName = '%s.displayDate' % __name__,
+        baseClass=DateColumnIndexDefinition,
+        attributes=list(dict(DateColumnIndexDefinition.findParams)) + \
+                   ['displayDateSource'])
+
+    searchTriageColumn = makeColumnAndIndexes('SearchColTriage',
+        icon = 'ColHTriageStatus',
+        useSortArrows = False,
+        width = 39,
+        scaleColumn = wxGrid.Grid.GRID_COLUMN_FIXED_SIZE,
+        collapsedSections=set([str(pim.TriageEnum.later), str(pim.TriageEnum.done)]), 
+        attributeName = 'sectionTriageStatus',
+        indexName = '%s.triage' % __name__,
+        baseClass=TriageColumnIndexDefinition,
+        attributes=list(dict(TriageColumnIndexDefinition.findParams)))
+        
     SplitterWindow.template(
         'SearchResultsViewTemplate',
         orientationEnum = "Vertical",
@@ -758,14 +854,14 @@ def makeSummaryBlocks(parcel):
                         contents = pim_ns.allCollection,
                         scaleWidthsToFit = True,
                         columns = [
-                            rankColumn,
-                            taskColumn,
-                            commColumn,
-                            whoColumn,
-                            titleColumn,
-                            reminderColumn,
-                            dateColumn,
-                            triageColumn                    
+                            searchRankColumn,
+                            searchTaskColumn,
+                            searchCommColumn,
+                            searchWhoColumn,
+                            searchTitleColumn,
+                            searchReminderColumn,
+                            searchDateColumn,
+                            searchTriageColumn                    
                         ],
                         characterStyle = blocks.SummaryRowStyle,
                         headerCharacterStyle = blocks.SummaryHeaderStyle,
