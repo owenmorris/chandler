@@ -102,6 +102,9 @@ def save(rv, filename):
                 ticketFreeBusy = getattr(share.conduit, "ticketFreeBusy", None)
                 if ticketFreeBusy:
                     cfg[section_name][u"freebusy"] = u"True"
+            if isinstance(share.conduit, sharing.RecordSetConduit):
+                c = share.conduit
+                cfg[section_name][u"filters"] = ",".join(c.filters)
             counter += 1
 
     # SMTP accounts
@@ -316,6 +319,12 @@ def restore(rv, filename, testmode=False, newMaster=''):
                 if url == share.getLocation():
                     subscribed = True
 
+            filters = None
+            if section.has_key(u"filters"):
+                filterStr = section[u"filters"]
+                if filterStr:
+                    filters = set(filterStr.split(","))
+
             if not subscribed:
                 if section.has_key(u"ticket"):
                     url = section[u"ticket"]
@@ -336,7 +345,7 @@ def restore(rv, filename, testmode=False, newMaster=''):
                 else:
                     color = None
 
-                subscribes.append((url, title, mine, publisher, color))
+                subscribes.append((url, title, mine, publisher, color, filters))
 
     for sectionname, section in cfg.iteritems():
         if section.has_key(u"type"):
@@ -568,7 +577,7 @@ def restore(rv, filename, testmode=False, newMaster=''):
     restoreMasterPassword(rv, cfg, testmode, oldMaster, newMaster)
 
     # Subscribe
-    for url, title, mine, publisher, color in subscribes:
+    for url, title, mine, publisher, color, filters in subscribes:
         if testmode:
             # Fake the subscribes so unit tests don't have to
             # access the network
@@ -582,7 +591,8 @@ def restore(rv, filename, testmode=False, newMaster=''):
                                      name=title, modal=True,
                                      immediate=True, mine=mine,
                                      publisher=publisher,
-                                     color=color)
+                                     color=color,
+                                     filters=filters)
 
 
 def savePassword(section, password, sectionName=u"password"):

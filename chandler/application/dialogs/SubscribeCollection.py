@@ -35,7 +35,7 @@ class SubscribeDialog(wx.Dialog):
          pos=wx.DefaultPosition, style=wx.DEFAULT_DIALOG_STYLE,
          resources=None, view=None, url=None, name=None, modal=True,
          immediate=False, mine=None, publisher=None, color=None,
-         tickets=None):
+         tickets=None, filters=None):
 
         # for bug #8387
         if wx.Platform == "__WXGTK__":
@@ -51,6 +51,7 @@ class SubscribeDialog(wx.Dialog):
         self.publisher = publisher
         self.color = color
         self.tickets = tickets
+        self.filters = filters
 
         self.mySizer = wx.BoxSizer(wx.VERTICAL)
         self.toolPanel = self.resources.LoadPanel(self, "Subscribe")
@@ -99,11 +100,14 @@ class SubscribeDialog(wx.Dialog):
 
 
     def getFilters(self):
-        filters = set()
-        filters.add('cid:reminders-filter@osaf.us')
-        filters.add('cid:needs-reply-filter@osaf.us')
-        filters.add('cid:bcc-filter@osaf.us')
-        return filters
+        if self.filters is None:
+            filters = set()
+            filters.add('cid:reminders-filter@osaf.us')
+            filters.add('cid:needs-reply-filter@osaf.us')
+            filters.add('cid:bcc-filter@osaf.us')
+            return filters
+        else:
+            return self.filters
 
 
     def _updateCallback(self, activity, *args, **kwds):
@@ -350,7 +354,7 @@ class SubscribeDialog(wx.Dialog):
             self.Destroy()
 
 def Show(view=None, url=None, name=None, modal=False, immediate=False,
-         mine=None, publisher=None, color=None, tickets=None):
+         mine=None, publisher=None, color=None, tickets=None, filters=None):
     xrcFile = os.path.join(Globals.chandlerDirectory,
      'application', 'dialogs', 'SubscribeCollection.xrc')
     #[i18n] The wx XRC loading method is not able to handle raw 8bit paths
@@ -360,7 +364,8 @@ def Show(view=None, url=None, name=None, modal=False, immediate=False,
     win = SubscribeDialog(_(u"Subscribe"),
                           resources=resources, view=view, url=url, name=name,
                           modal=modal, immediate=immediate, mine=mine,
-                          publisher=publisher, color=color, tickets=tickets)
+                          publisher=publisher, color=color, tickets=tickets,
+                          filters=filters)
     win.CenterOnScreen()
     if modal:
         return win.ShowModal()
