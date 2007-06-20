@@ -483,6 +483,19 @@ class SharingTranslator(eim.Translator):
 
 
 
+    def resolve(self, cls, field, agreed, internal, external):
+        # Return 1 for external to win, -1 for internal, 0 for no decision
+
+        if cls is model.DisplayAlarmRecord:
+            if field.name == "trigger": # a conflict on trigger
+                if agreed == eim.NoChange: # no agreed upon value
+                    return -1 if internal else 1 # let the non-None value win
+
+        return 0
+
+
+
+
     def obfuscate(self, text):
         if text in (eim.Inherit, eim.NoChange):
             return text

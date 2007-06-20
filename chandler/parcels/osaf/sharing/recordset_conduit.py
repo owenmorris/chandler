@@ -417,6 +417,49 @@ class RecordSetConduit(conduits.BaseConduit):
                 item = rv.findUUID(uuid)
             else:
                 item = None
+
+
+            if receive and pending and item is not None:
+
+                for rConflict, field in iterConflicts(pending):
+                    rLocal = findMatch(rConflict, rsInternal)
+                    rAgreed = findMatch(rConflict, state.agreed)
+                    doLog("Local: %s", rLocal)
+                    doLog("Remote: %s", rConflict)
+                    doLog("Agreed: %s", rAgreed)
+
+                    if rLocal: # rLocal will be None if the conflict is
+                               # a record deletion, which this auto-resolve
+                               # code doesn't yet support
+
+                        if rAgreed in (eim.NoChange, eim.Inherit):
+                            agreedValue = rAgreed
+                        else:
+                            agreedValue = (field.__get__(rAgreed) if rAgreed
+                                else eim.NoChange)
+
+                        localValue = field.__get__(rLocal)
+                        remoteValue = field.__get__(rConflict)
+
+                        decision = translator.resolve(type(rConflict), field,
+                            agreedValue, localValue, remoteValue)
+
+                        if decision == -1: # local wins
+                            dLocal = eim.Diff([rLocal])
+                            dSend += dLocal
+                            state.agreed += dLocal
+
+                        elif decision == 1: # remote wins
+                            dConflict = eim.Diff([rConflict])
+                            dApply += dConflict
+                            state.agreed += dConflict
+
+                        if decision:
+                            newPending = state.pending
+                            newPending.remove(rConflict)
+                            state.pending = newPending
+                            doLog("State updated to: %s", state)
+
             state.updateConflicts(item)
 
             if send and dSend:
@@ -834,16 +877,18 @@ class RecordSetConduit(conduits.BaseConduit):
 class DiffRecordSetConduit(RecordSetConduit):
 
     def getRecords(self, debug=False, activity=None):
+        doLog = logger.info if debug else logger.debug
         text = self.get()
-        logger.debug("Received from server [%s]", text)
+        doLog("Received from server [%s]", text)
 
         inbound, extra = self.serializer.deserialize(text,
                                                      helperView=self.itsView)
         return inbound, extra, True
 
     def putRecords(self, toSend, extra, debug=False, activity=None):
+        doLog = logger.info if debug else logger.debug
         text = self.serializer.serialize(toSend, **extra)
-        logger.debug("Sending to server [%s]", text)
+        doLog("Sending to server [%s]", text)
         self.put(text)
 
 
@@ -855,8 +900,9 @@ class MonolithicRecordSetConduit(RecordSetConduit):
     etag = schema.One(schema.Text, initialValue="")
 
     def getRecords(self, debug=False, activity=None):
+        doLog = logger.info if debug else logger.debug
         text = self.get()
-        logger.debug("Received from server [%s]", text)
+        doLog("Received from server [%s]", text)
 
         if text:
             try:
@@ -873,6 +919,7 @@ class MonolithicRecordSetConduit(RecordSetConduit):
 
     def putRecords(self, toSend, extra, debug=False, activity=None):
         # get the full state of every item not being deleted
+        doLog = logger.info if debug else logger.debug
         fullToSend = { }
         for state in self.share.states:
             alias = self.share.states.getAlias(state)
@@ -884,7 +931,7 @@ class MonolithicRecordSetConduit(RecordSetConduit):
         
         extra['monolithic'] = True
         text = self.serializer.serialize(fullToSend, **extra)
-        logger.debug("Sending to server [%s]", text)
+        doLog("Sending to server [%s]", text)
         self.put(text)
 
     def fileStyle(self):
@@ -898,6 +945,7 @@ class ResourceRecordSetConduit(RecordSetConduit):
 
     def getRecords(self, debug=False, activity=None):
         # Get and return records, extra
+        doLog = logger.info if debug else logger.debug
 
         inbound = { }
         extra = { }
@@ -928,16 +976,16 @@ class ResourceRecordSetConduit(RecordSetConduit):
                 state = paths[path][1]
                 if etag != state.etag:
                     # Need to fetch this path since its etag doesn't match
-                    logger.debug("Need to fetch: etag mismatch for %s "
+                    doLog("Need to fetch: etag mismatch for %s "
                         "(%s vs %s)", path, state.etag, etag)
                     toFetch.add(path)
             else:
                 # Need to fetch this path since we don't yet have it
-                logger.debug("Need to fetch: don't yet have %s", path)
+                doLog("Need to fetch: don't yet have %s", path)
                 toFetch.add(path)
 
         fetchCount = len(toFetch)
-        logger.debug("%d resources to get", fetchCount)
+        doLog("%d resources to get", fetchCount)
         if activity:
             activity.update(msg="%d resources to get" % fetchCount,
                 totalWork=fetchCount, workDone=0)
@@ -949,7 +997,7 @@ class ResourceRecordSetConduit(RecordSetConduit):
                 activity.update(msg="Getting %d of %d" % (i, fetchCount),
                     work=1)
             text, etag = self.getResource(path)
-            logger.debug("Received from server [%s]", text)
+            doLog("Received from server [%s]", text)
             records, extra = self.serializer.deserialize(text,
                                                         helperView=self.itsView)
             for alias, rs in records.iteritems():
@@ -962,6 +1010,7 @@ class ResourceRecordSetConduit(RecordSetConduit):
 
 
     def putRecords(self, toSend, extra, debug=False, activity=None):
+        doLog = logger.info if debug else logger.debug
 
         sendCount = len(toSend)
 
@@ -984,7 +1033,7 @@ class ResourceRecordSetConduit(RecordSetConduit):
                 # delete the resource
                 if path:
                     self.deleteResource(path, etag)
-                    logger.debug("Deleting path %s", path)
+                    doLog("Deleting path %s", path)
             else:
                 if not path:
                     # need to compute a path
@@ -993,14 +1042,14 @@ class ResourceRecordSetConduit(RecordSetConduit):
                 # rs needs to include the entire recordset, not diffs
                 rs = state.agreed + state.pending
 
-                logger.debug("Full resource records: %s", rs)
+                doLog("Full resource records: %s", rs)
 
                 text = self.serializer.serialize({alias : rs}, **extra)
-                logger.debug("Sending to server [%s]", text)
+                doLog("Sending to server [%s]", text)
                 etag = self.putResource(text, path, etag, debug=debug)
                 state.path = path
                 state.etag = etag
-                logger.debug("Put path %s, etag now %s", path, etag)
+                doLog("Put path %s, etag now %s", path, etag)
 
 
     def newState(self, alias):
@@ -1208,6 +1257,7 @@ class InMemoryResourceRecordSetConduit(ResourceRecordSetConduit):
             return text, str(etag)
 
     def putResource(self, text, path, etag=None, debug=False):
+        doLog = logger.info if debug else logger.debug
         if etag is None:
             etag = 0
         else:
@@ -1220,7 +1270,7 @@ class InMemoryResourceRecordSetConduit(ResourceRecordSetConduit):
                 raise errors.TokenMismatch("Mismatched etags on PUT")
         coll['etag'] += 1
         coll['resources'][path] = (text, coll['etag'])
-        logger.debug("Put [%s]", text)
+        doLog("Put [%s]", text)
         return str(coll['etag'])
 
     def deleteResource(self, path, etag=None):
@@ -1259,6 +1309,40 @@ class InMemoryResourceRecordSetConduit(ResourceRecordSetConduit):
         return shareDict.setdefault(self.shareName,
             { "etag" : 0, "resources" : {} })
 
+
+
+
+def iterConflicts(dPending):
+    # Break a pending Diff into records, each containing one conflicting
+    # field.  This results in records that could be applied if you want the
+    # pending change to win in a conflict.
+    for r in dPending.inclusions:
+        cls = type(r)
+        data = [(f.__get__(r) if isinstance(f, eim.key) else eim.NoChange)
+            for f in cls.__fields__]
+        for f, value in zip(cls.__fields__, r[1:]):
+            if not isinstance(f, eim.key) and value is not eim.NoChange:
+                data[f.offset-1] = value
+                yield cls(*data), f
+                data[f.offset-1] = eim.NoChange
+
+def findMatch(record, recordSet):
+    # Given a record as returned from iterConflicts, find the record with the
+    # same key within recordSet and return a copy of that record, but only
+    # the fields that were not NoChange in the first arg record will be filled
+    # in in the copy (while the rest will be NoChange).  This results in a
+    # record that could be applied if you choose the local value to win in a
+    # conflict.
+    cls = type(record)
+    key = record.getKey()
+
+    for r in recordSet.inclusions:
+        if key == r.getKey():
+            data = [(f.__get__(r) if f.__get__(record) is not eim.NoChange
+                else eim.NoChange) for f in cls.__fields__]
+            return cls(*data)
+
+    return None
 
 
 def prettyPrintRecordSetDict(d):

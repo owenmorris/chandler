@@ -245,7 +245,7 @@ class RoundTripTestCase(testcase.DualRepositoryTestCase):
             ({'added' : 0, 'modified' : 0, 'removed' : 0},
              {'added' : 0, 'modified' : 1, 'removed' : 0})),
             "Sync operation mismatch")
-        view1.commit(); stats = self.share1.sync(debug=True); view1.commit()
+        view1.commit(); stats = self.share1.sync(); view1.commit()
         self.assert_(checkStats(stats,
             ({'added' : 0, 'modified' : 1, 'removed' : 0},
              {'added' : 0, 'modified' : 0, 'removed' : 0})),
@@ -1496,6 +1496,38 @@ class RoundTripTestCase(testcase.DualRepositoryTestCase):
         self.assert_(item1 in self.share1.contents)
         second1 = event1.getRecurrenceID(second0.recurrenceID)
         self.assert_(not second1.isGenerated)
+
+
+        # Clean out all the items
+        for item in list(self.share0.contents):
+            self.share0.contents.remove(item)
+        view0.commit(); stats = self.share0.sync(); view0.commit()
+
+        # Verify auto-resolve:
+
+        # DisplayAlarmRecord...
+        event = self._makeRecurringEvent(view0, self.share0.contents)
+        item = event.itsItem
+        self.share0.conduit.filters.add('cid:reminders-filter@osaf.us')
+        view0.commit(); stats = self.share0.sync(); view0.commit()
+        view1.commit(); stats = self.share1.sync(); view1.commit()
+        item1 = view1.findUUID(item.itsUUID)
+        # modify item1 so that the next sync will send a "None"-filled
+        # DisplayAlarmRecord
+        item1.displayName = "changed"
+        view1.commit(); stats = self.share1.sync(); view1.commit()
+        # Assign an alarm (I'm cheating by getting the translator to do the
+        # work for me):
+        trans = sharing.SharingTranslator(view0)
+        trans.importRecord(sharing.DisplayAlarmRecord(item, u'', u'-PT42M',
+            None, None))
+        self.share0.conduit.filters.remove('cid:reminders-filter@osaf.us')
+        view0.commit(); stats = self.share0.sync(forceUpdate=True); view0.commit()
+        self.assert_(checkStats(stats,
+            ({'added' : 0, 'modified' : 1, 'removed' : 0},
+             {'added' : 0, 'modified' : 1, 'removed' : 0})),
+            "Sync operation mismatch")
+        self.assert_(not sharing.hasConflicts(item))
 
 
         self.share0.destroy() # clean up
