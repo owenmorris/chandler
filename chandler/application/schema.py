@@ -864,6 +864,27 @@ class Annotation:
         return collection.addIndex(name, type, **keywds)
 
 
+class TypeClass(Activator, BaseClass):
+    """Metaclass for type types"""
+
+    _kind_class = Types.Type
+
+    def _find_schema_item(cls, view):
+        parent = view.findPath(ModuleMaker(cls.__module__).getPath())
+        if parent is not None:
+            item = parent.getItemChild(cls.__name__)
+            if isinstance(item, cls):
+                return item
+
+    def _create_schema_item(cls, view):
+        return cls(None, view['Schema'], itemFor(Types.Type, view))
+
+    def _init_schema_item(cls, typ, view):
+        def fixup():
+            typ.itsParent = parcel_for_module(cls.__module__, view)
+            typ.itsName = cls.__name__
+        return fixup
+
 
 class StructClass(Activator):
     """Metaclass for struct types"""

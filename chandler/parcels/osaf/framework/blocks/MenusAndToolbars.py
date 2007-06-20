@@ -21,6 +21,7 @@ from i18n import ChandlerMessageFactory as _
 import Block as Block
 from Styles import ColorStyle
 from osaf.pim.structs import SizeType
+from osaf.pim.types import LocalizableString
 
 theApp = wx.GetApp()
 
@@ -54,7 +55,7 @@ class operationEnumType(schema.Enumeration):
     values = "None", "InsertAfter", "InsertBefore", "Replace", "Delete"
 
 class BaseItem(Block.Block):
-    title = schema.One(schema.Text)
+    title = schema.One(LocalizableString)
     helpString = schema.One(schema.Text, defaultValue = u'')
     operation = schema.One(operationEnumType, defaultValue = 'None')
     location = schema.One(schema.Text, defaultValue = u'')
