@@ -174,8 +174,8 @@ The Chandler Team""") % {'version': version.version}
         fun = makeCollection(_(u"Fun"), False, [0,255,0,255])
         
         # Add Welcome item to OOTB collections
-        WelcomeEvent.collections=[home,work]
-        
+        home.add(WelcomeEvent)
+        work.add(WelcomeEvent)
 
         # OOTB item1: Try sharing a Home task list
         task1 = pim.Task(
