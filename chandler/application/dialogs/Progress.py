@@ -38,7 +38,7 @@ class ProgressFrame(wx.Frame):
         self.panel = wx.Panel(self, -1)
         self.sizer = wx.BoxSizer(wx.VERTICAL)
 
-        self.gaugeCtrl = wx.Gauge(self.panel, -1, size=(100,10))
+        self.gaugeCtrl = wx.Gauge(self.panel, -1, size=(300,10))
         self.sizer.Add(self.gaugeCtrl, 0,
             wx.EXPAND|wx.ALIGN_CENTER_VERTICAL|wx.ALL, 5)
         self.gaugeCtrl.Pulse()
@@ -54,6 +54,7 @@ class ProgressFrame(wx.Frame):
 
         self.panel.SetSizer(self.sizer)
         self.panel.Layout()
+        self.sizer.Fit(self)
 
         self.cancel = False
 
