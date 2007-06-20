@@ -1,7 +1,7 @@
 import application.schema as schema
 import osaf.pim as pim
 import util.testcase as testcase
-from i18n import ChandlerSafeTranslationMessageFactory as _
+from i18n import ChandlerSafeTranslationMessageFactory as translate
 from datetime import *
 
 class OOTBTestCase(testcase.SingleRepositoryTestCase):
@@ -33,7 +33,7 @@ class OOTBTestCase(testcase.SingleRepositoryTestCase):
         
     def getCollection(self, name):
         sidebar = schema.ns("osaf.app", self.view).sidebarCollection
-        name = _(name) # search for the localized name
+        name = translate(name) # search for the localized name
         for coll in sidebar:
             if coll.displayName == name:
                 return coll
@@ -42,7 +42,7 @@ class OOTBTestCase(testcase.SingleRepositoryTestCase):
 
     def getItem(self, name):
         all = schema.ns("osaf.pim", self.view).allCollection
-        name = _(name) # search for the localized name
+        name = translate(name) # search for the localized name
         for item in all:
             if item.displayName == name:
                 return item
