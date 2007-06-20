@@ -332,6 +332,7 @@ class wxCollectionCanvas(DragAndDrop.DropReceiveWidget,
         # when handling events, iterate with reversed() to send the events
         #   to the topmose items
         self.canvasItemDict = {}
+        self.visibleEvents = []
 
         # activeProxy is used to track changes to one recurring event without
         # having to wrap all canvas items in proxies
