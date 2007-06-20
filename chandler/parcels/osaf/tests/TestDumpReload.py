@@ -14,7 +14,7 @@
 
 
 from application import schema
-import unittest, os, logging
+import unittest, os, os.path, logging
 from osaf import pim, dumpreload, sharing
 from osaf.pim import mail
 from osaf.framework.password import Password
@@ -33,6 +33,7 @@ class DumpReloadTestCase(testcase.DualRepositoryTestCase):
         self.setUp()
         try:
             self.RoundTrip()
+            self.BackwardsCompatibility()
         finally:
             # otherwise test hangs waiting for Timer thread to finish
             waitForDeferred(MasterPassword.clear())
@@ -504,6 +505,21 @@ class DumpReloadTestCase(testcase.DualRepositoryTestCase):
             
         finally:
             os.remove(filename)
+
+
+
+
+
+    def BackwardsCompatibility(self):
+        path = os.path.join(os.getenv('CHANDLERHOME') or '.',
+            'parcels', 'osaf', 'tests', 'compatibility.chex')
+        view = self.views[0]
+        dumpreload.reload(view, path, testmode=True)
+        # check a loaded item
+        coll = view.findUUID("2810afaa-1f7f-11dc-cefe-ad81e1bece23")
+        self.assertTrue(isinstance(coll, pim.SmartCollection))
+
+
 
 if __name__ == "__main__":
     unittest.main()
