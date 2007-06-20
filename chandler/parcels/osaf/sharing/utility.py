@@ -714,7 +714,11 @@ def getHEADInfo(rv, url, username=None, password=None):
             'priv:write' : False,
         }
 
-        if resp.status != http.OK:
+        if resp.status == http.FORBIDDEN:
+            msg = _("The server rejected our request; please check the URL (HTTP status %(status)d)") % { 'status' : resp.status }
+            raise errors.SharingError(msg,
+                details=_("Received [%(body)s]") % {'body' : resp.body })
+        elif resp.status != http.OK:
             raise zanshin.http.HTTPError(status=resp.status,
                                          message=resp.message)
 
