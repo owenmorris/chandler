@@ -881,3 +881,9 @@ class SchemaMismatchError(Exception):
     The schema version in the repository doesn't match the application.
     """
     pass
+
+class MigrationReloadRequestedError(Exception):
+    """
+    The user has requested the app to exit to allow for data migration.
+    """
+    pass

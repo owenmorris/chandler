@@ -376,7 +376,7 @@ class wxApplication (wx.App):
         self.updateUIInOnIdle = True
         
         # Check the platform, will stop the program if not compatible
-        CheckPlatform()
+        checkPlatform()
 
         # Initialize PARCELPATH and sys.path
         parcelPath = Utility.initParcelEnv(options, Globals.chandlerDirectory)
@@ -410,15 +410,21 @@ class wxApplication (wx.App):
         if splash:
             splash.updateGauge('repository')
         repoDir = Utility.locateRepositoryDirectory(options.profileDir, options)
-        
         newRepo = not os.path.isdir(repoDir)
+
+        # Check if this is the first time Chandler has run, will stop the program if
+        # the user wants to migrate data. Must be done right before initRepository()
+        # so it has a fighting chance of detecting the first run after a new install.
+        if shouldMigrateOldRepository(options, repoDir):
+            if not showMigrationWindow():
+                raise Utility.MigrationReloadRequestedError
 
         try:
             from application.dialogs.GetPasswordDialog import getPassword
             options.getPassword = getPassword
             view = Utility.initRepository(repoDir, options)
         except RepositoryVersionError, e:
-            if self.ShowSchemaMismatchWindow():
+            if showMigrationWindow(schemaError=True):
                 options.create = True
                 view = Utility.initRepository(repoDir, options)
             else:
@@ -435,7 +441,7 @@ class wxApplication (wx.App):
         # Verify Schema Version
         verify, repoVersion, schemaVersion = Utility.verifySchema(view)
         if not verify:
-            if self.ShowSchemaMismatchWindow():
+            if showMigrationWindow(schemaError=True):
                 # Blow away the repository
                 self.repository.close()
                 options.create = True
@@ -1131,21 +1137,6 @@ class wxApplication (wx.App):
                                     methodName, transportArgs, keyArgs)
 
 
-    def ShowSchemaMismatchWindow(self):
-        logger.info("Schema version of repository doesn't match app")
-
-        message = \
-_(u"""Your repository was created by an older version of Chandler. In the future we will support migrating data between versions, but until then, when the schema changes we need to remove all data from your repository.
-
-Would you like to remove all data from your repository?
-""")
-
-        dialog = wx.MessageDialog(None, message, _(u"Cannot open repository"),
-            wx.YES_NO | wx.ICON_INFORMATION | wx.NO_DEFAULT)
-        response = dialog.ShowModal()
-        dialog.Destroy()
-        return response == wx.ID_YES
-
     def ShowPlatformMismatchWindow(self, origName, currentName):
         logger.info("Repository platform mismatch: (orig %s vs now %s)",
                     origName, currentName)
@@ -1319,7 +1310,7 @@ class StartupSplash(wx.Frame):
         wx.GetApp().Yield(True)
 
 
-def CheckPlatform():
+def checkPlatform():
     """
     Check that the platforms you're running and the one the code has been compiled for match.
     If they don't, the program stops with sys.exit().
@@ -1339,3 +1330,50 @@ def CheckPlatform():
         # or even should be done (could crash anytime), the best is to just exit when
         # we still can...
         sys.exit(1)
+
+
+def showMigrationWindow(schemaError=False):
+    from application.dialogs.UpgradeDialog import UpgradeDialog
+
+    if schemaError:
+        logger.info("Schema version of repository does not match Chandler's")
+
+    response = UpgradeDialog.run(schemaError=schemaError)
+
+    return response == wx.OK
+
+
+def shouldMigrateOldRepository(options, repoDir):
+    """
+    Check to see if Chandler is starting for the first time.
+    If it is and we can locate another Chandler's repository, prompt the user to check
+    if they want to migrate the previous data
+    
+    The profile directory should always exist as it's created before this call
+    """
+    migrate = False
+
+    #                   does repoDir exist?  options.create?  other profile dir?  migrate?
+    # first no prev     False                False            False               no
+    # first no prev     False                True             False               no
+    # second no prev    True                 False            False               no
+    # second no prev    True                 True             False               no
+    # first w/prev      False                False            True                yes
+    # first w/prev      False                True             True                yes
+    # second w/prev     True                 False            True                no
+    # second w/prev     True                 True             True                no
+
+    if not options.reload and not options.profileDirWasPassedIn and \
+       not (os.path.isdir(repoDir) and options.create):
+        # Scan the parent directory of the chandler profile directory for
+        # version-named directories.  Any directories found, minus the current
+        # directory name, means another Chandler repository is available.
+        profileBase = os.path.dirname(options.profileDir)
+        baseName    = os.path.basename(profileBase)
+        dirList     = os.listdir(os.path.dirname(profileBase))
+
+        dirList.remove(baseName)
+
+        migrate = len(dirList) > 0
+
+    return migrate

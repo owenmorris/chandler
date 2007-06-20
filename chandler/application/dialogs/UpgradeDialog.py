@@ -31,21 +31,16 @@ _ = lambda msg: msg
 
 class UpgradeDialog(wx.Dialog):
     @classmethod
-    def run(cls, exception=None):
-        dialog = UpgradeDialog(exception)
+    def run(cls, exception=None, schemaError=False):
+        dialog = UpgradeDialog(exception, schemaError=schemaError)
 
-        profileBase = os.path.dirname(os.path.dirname(locateProfileDir()))
-        dirlist     = glob.glob(os.path.join(profileBase, '0.7*'))
+        result = dialog.ShowModal()
 
-        if len(dirlist) > 0:
-            dialog.exitReload.SetValue(True)
-        else:
-            dialog.normalStartup.SetValue(True)
-
-        dialog.ShowModal()
         dialog.Destroy()
 
-    def __init__(self, exception=None):
+        return result
+
+    def __init__(self, exception=None, schemaError=False):
         # Instead of calling wx.Dialog.__init__ we precreate the dialog
         # so we can set an extra style that must be set before
         # creation, and then we create the GUI dialog using the Create
@@ -68,13 +63,27 @@ class UpgradeDialog(wx.Dialog):
         sizer = wx.BoxSizer(wx.VERTICAL)
         sizer.AddSpacer((0, 3)) 
 
-        self.normalStartup = wx.RadioButton(self, -1, _(u"Continue with normal startup"))
+        if schemaError:
+            staticText    = _(u"Your repository was created by an incompatible version of Chandler.")
+            normalCaption = _(u'Would you like to remove all data from your repository?')
+        else:
+            staticText    = _(u"Another Chandler repository has been located and may contain data you want to migrate.")
+            normalCaption = _(u"Continue with normal startup?")
+
+        self.msgText = wx.StaticText(self, -1, staticText)
+        sizer.Add(self.msgText, flag=wx.ALL, border=5)
+
+        self.normalStartup = wx.RadioButton(self, -1, normalCaption)
         sizer.Add(self.normalStartup, flag=wx.ALL, border=5)
         self.normalStartup.Bind(wx.EVT_LEFT_DCLICK, self.onButton)
 
-        self.exitReload = wx.RadioButton(self, -1, _(u"Exit Chandler and create a dump of your previous version"))
+        self.exitReload = wx.RadioButton(self, -1, _(u"Exit Chandler and migrate your previous content?"))
+        self.exitReload.SetValue(True)
         sizer.Add(self.exitReload, flag=wx.ALL, border=5)
         self.exitReload.Bind(wx.EVT_LEFT_DCLICK, self.onButton)
+
+        self.linkText = wx.HyperlinkCtrl(self, -1, _(u'Migration Instruction (NEED REAL LINK)'), _(u'http://chandlerproject.org'))
+        sizer.Add(self.linkText, flag=wx.ALL, border=5)
 
         box = wx.BoxSizer(wx.HORIZONTAL)
         okButton = wx.Button(self, wx.OK, _(u"OK"))
@@ -89,7 +98,9 @@ class UpgradeDialog(wx.Dialog):
 
     def onButton(self, event):
         if self.exitReload.GetValue():
-            sys.exit(0)
+            result = wx.CANCEL
+        else:
+            result = wx.OK
 
-        self.EndModal(wx.OK)
+        self.EndModal(result)
 
