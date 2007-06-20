@@ -95,7 +95,7 @@ def datetimes_really_equal(dt1, dt2):
     return dt1.tzinfo == dt2.tzinfo and dt1 == dt2
 
 def datetimeToDecimal(dt):
-    
+
     tt = dt.utctimetuple()
     return Decimal(int(calendar.timegm(tt)))
 
@@ -219,7 +219,7 @@ def toICalendarDuration(delta, allDay=False):
     The delta serialization format needs to match Cosmo exactly, so while
     vobject could do this, we'll want to be more picky about how exactly to
     serialize deltas.
-    
+
     """
     if allDay:
         # all day events' actual duration always rounds up to the nearest day
@@ -227,12 +227,12 @@ def toICalendarDuration(delta, allDay=False):
     # but, for now, just use vobject, since we don't know how ical4j serializes
     # deltas yet
     return timedeltaToString(delta)
-    
+
 
 def getDateUtilRRuleSet(field, value, dtstart):
     """
     Turn EIM recurrence fields into a dateutil rruleset.
-    
+
     dtstart is required to deal with count successfully.
     """
     ical_string = ""
@@ -252,11 +252,11 @@ def getRecurrenceFields(event):
     """
     Take an event, return EIM strings for rrule, exrule, rdate, exdate, any
     or all of which may be None.
-    
+
     """
     if event.rruleset is None or event.occurrenceFor is not None:
         return (None, None, None, None)
-    
+
     vobject_event = RecurringComponent()
     vobject_event.behavior = VEvent
     start = event.startTime
@@ -266,25 +266,25 @@ def getRecurrenceFields(event):
         start = start.replace(tzinfo=None)
     vobject_event.add('dtstart').value = start
     vobject_event.rruleset = event.createDateUtilFromRule(False, True, False)
-    
+
     if hasattr(vobject_event, 'rrule'):
         rrules = vobject_event.rrule_list
         rrule = ':'.join(obj.serialize(lineLength=1000)[6:].strip() for obj in rrules)
     else:
         rrule = None
-        
+
     if hasattr(vobject_event, 'exrule'):
         exrules = vobject_event.exrule_list
         exrule = ':'.join(obj.serialize(lineLength=1000)[7:].strip() for obj in exrules)
     else:
         exrule = None
-        
+
     rdates = getattr(event.rruleset, 'rdates', [])
     if len(rdates) > 0:
         rdate = toICalendarDateTime(rdates, event.allDay, event.anyTime)
     else:
         rdate = None
-    
+
     exdates = getattr(event.rruleset, 'exdates', [])
     if len(exdates) > 0:
         exdate = toICalendarDateTime(exdates, event.allDay, event.anyTime)
@@ -297,10 +297,10 @@ def fixTimezoneOnModification(modification, tzinfo=None):
     """
     Set timezone on occurrence equal to master to correct for inherited
     UTC timezone values.
-    
+
     If a tzinfo is passed in, convert recurrenceID (and possibly startTime)
     to that tzinfo, otherwise use the master's timezone.
-    
+
     """
     mod = EventStamp(modification)
     if tzinfo is None:
@@ -318,7 +318,7 @@ def fixTimezoneOnModification(modification, tzinfo=None):
 def splitUUID(recurrence_aware_uuid):
     """
     Split an EIM recurrence UUID.
-    
+
     Return the tuple (UUID, recurrenceID or None).  UUID will be a string,
     recurrenceID will be a datetime or None.
     """
@@ -332,7 +332,7 @@ def splitUUID(recurrence_aware_uuid):
     if position != -1:
         return (pseudo_uuid[:position],
                 fromICalendarDateTime(pseudo_uuid[position:])[0])
-        
+
     return (pseudo_uuid, None)
 
 
@@ -482,6 +482,37 @@ class SharingTranslator(eim.Translator):
                             conflict.discard()
 
 
+                elif isinstance(record, model.MailMessageRecord):
+                    autoResolve = (
+                          (record.messageId, "messageId"),
+                          (record.headers, "headers"),
+                          (record.dateSent, "dateSent"),
+                          (record.inReplyTo, "inReplyTo"),
+                          (record.references, "referencesMID"),
+                    )
+
+                    ms = pim.MailStamp(conflict.item)
+
+                    for rcValue, msAttribute in autoResolve:
+                        if rcValue is not eim.NoChange:
+                            msValue = getattr(ms, msAttribute, None)
+
+                            if (not msValue and rcValue):
+                                conflict.apply()
+
+                                if __debug__:
+                                    msg = "Auto Resolve: applying change %s to %s" % (rcValue, msAttribute)
+                                    logging.debug(msg)
+
+                            elif (msValue and not rcValue) or \
+                                 (not msValue and not rcValue):
+                                conflict.discard()
+
+                                if __debug__:
+                                    msg = "Auto Resolve: discarding change %s on attribute %s. " \
+                                          "The current attribute value is %s" % (rcValue, msAttribute, msValue)
+                                    logging.debug(msg)
+
 
     def resolve(self, cls, field, agreed, internal, external):
         # Return 1 for external to win, -1 for internal, 0 for no decision
@@ -492,8 +523,6 @@ class SharingTranslator(eim.Translator):
                     return -1 if internal else 1 # let the non-None value win
 
         return 0
-
-
 
 
     def obfuscate(self, text):
@@ -516,7 +545,7 @@ class SharingTranslator(eim.Translator):
                     ret += os.linesep + ' '.join(words)
                     if len(ret) >= length:
                         return ret[:length]
-                
+
             return lipsum(len(text)) 
         else:
             return text
@@ -816,7 +845,7 @@ class SharingTranslator(eim.Translator):
         icalUID = record.icalUid
         if icalUID is None or splitUUID(record.uuid)[0] == icalUID:
             icalUID = eim.NoChange
-        
+
         if record.icalExtra is None:
             icalExtra = eim.NoChange
         else:
@@ -1293,7 +1322,7 @@ class SharingTranslator(eim.Translator):
         if (allDay == True or anyTime == True) and duration not in emptyValues:
             # convert to Chandler's notion of all day duration
             duration -= oneDay
-    
+
         uuid, recurrenceID = splitUUID(record.uuid)
         if recurrenceID and start in emptyValues:
             start = recurrenceID
@@ -1348,7 +1377,7 @@ class SharingTranslator(eim.Translator):
                         modEvent = EventStamp(mod)
                         if modEvent.anyTime == anyTime:
                             delattr(modEvent, 'anyTime')
-                            
+
             else:
                 # a modification
                 # set attributes that may want to be inherited.
@@ -1357,13 +1386,13 @@ class SharingTranslator(eim.Translator):
                     event.allDay = allDay
                 elif allDay == eim.Inherit:
                     delattr(event, 'allDay')
-    
+
                 if anyTime in (True, False) and (fakeMaster or
                                                  anyTime != master.anyTime):
                     event.anyTime = anyTime
                 elif anyTime == eim.Inherit:
                     delattr(event, 'anyTime')
-                        
+
                 if not fakeMaster:
                     fixTimezoneOnModification(event)
                 # modifications don't have recurrence rule information, so stop
@@ -1379,7 +1408,7 @@ class SharingTranslator(eim.Translator):
                 # since there's no recurrence currently, avoid creating a
                 # rruleset if all the positive recurrence fields are None
                 return
-            
+
             if event.rruleset is not None and not fakeMaster:
                 rruleset = event.rruleset
             else:
@@ -1441,7 +1470,7 @@ class SharingTranslator(eim.Translator):
     @eim.exporter(EventStamp)
     def export_event(self, event):
         item = event.itsItem
-        
+
         location = handleEmpty(event, 'location')
         if location not in emptyValues:
             location = location.displayName
@@ -1467,7 +1496,7 @@ class SharingTranslator(eim.Translator):
         if (isinstance(item, Occurrence) and
                   not has_change('allDay') and 
                   not has_change('anyTime')):
-            
+
             floating = ICUtzinfo.floating
             master = event.getMaster()
             masterFloating = (master.allDay or master.anyTime or
@@ -1477,7 +1506,7 @@ class SharingTranslator(eim.Translator):
                 comparisonDate = event.startTime
             else:
                 comparisonDate = event.effectiveStartTime
-                
+
             if datetimes_really_equal(comparisonDate, event.recurrenceID):
                 dtstart = eim.Inherit
 
