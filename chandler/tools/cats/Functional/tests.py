@@ -42,7 +42,7 @@ allTests = [
                 ("TestRecurringEvent","TestRecurringEvent"),  
                 ("TestSwitchingViews","TestSwitchingViews"),
                 ("TestExporting","TestExporting"),
-#                ("TestFlickr","TestFlickr"),
+                ("TestFlickr","TestFlickr"),
                 ("TestImporting","TestImporting"),
                 ("TestImportOverwrite","TestImportOverwrite"),
                 ("TestCertstoreView","TestCertstoreView"),
