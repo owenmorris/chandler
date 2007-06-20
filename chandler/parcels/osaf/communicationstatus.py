@@ -175,14 +175,15 @@ class CommunicationStatus(schema.Annotation):
         Add tuples to the "whos" list: (priority, "text", source name)
         """
         commState = CommunicationStatus.getItemCommState(self.itsItem)
-        modState = None
         lastModifiedBy = self.itsItem.lastModifiedBy
         if lastModifiedBy is not None:
             lastModifiedBy = unicode(lastModifiedBy)
-            if commState & CommunicationStatus.UPDATE:
-                whos.append((1, lastModifiedBy, 'updater'))
-            elif commState & CommunicationStatus.EDITED:
-                whos.append((1, lastModifiedBy, 'editor'))
+            if commState & (CommunicationStatus.EDITED | CommunicationStatus.UPDATE):
+                lastMod = self.itsItem.lastModification
+                if lastMod == Modification.edited:
+                    whos.append((1, lastModifiedBy, 'editor'))
+                else:
+                    whos.append((1, lastModifiedBy, 'updater'))
             else:
                 whos.append((1000, lastModifiedBy, 'creator'))
 
@@ -190,13 +191,13 @@ class CommunicationStatus(schema.Annotation):
         if stamp_types and MailStamp in stamp_types:
             msg = MailStamp(self.itsItem)
             preferFrom = (commState & CommunicationStatus.OUT) == 0            
-            toAddress = getattr(msg, 'toAddress', [])
+            toAddress = getattr(msg, 'toAddress', schema.Nil)
             if len(toAddress) > 0:
                 toText = u", ".join(unicode(x) for x in toAddress)
                 if len(toText) > 0:
                     whos.append((preferFrom and 4 or 2, toText, 'to'))
 
-            originators = getattr(msg, 'originators', [])
+            originators = getattr(msg, 'originators', schema.Nil)
             if len(originators) > 0:
                 originatorsText = u", ".join(unicode(x) for x in originators)
                 if len(originatorsText) > 0:
