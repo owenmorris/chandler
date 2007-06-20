@@ -138,7 +138,7 @@ class ConflictVScrolledArea(ScrolledPanel):
             # if there is no peer, the change was done on the server
             if c.peer is not None:
                 if isinstance(c.peer, sharing.Share):
-                    editor = _(u"Server")
+                    editor = _(u"Subscriber")
                 else:
                     editor = c.peer
             else:
