@@ -44,11 +44,11 @@ class LocalizationBase(object):
         #os.environ["CHANDLERBIN"] = self.CHANDLERBIN
 
         try:
-            if "debug" in os.listdir(self.CHANDLERBIN):
-                self.BINROOT = os.path.join(self.CHANDLERBIN, "debug")
-
-            elif "release" in os.listdir(self.CHANDLERBIN):
+            if "release" in os.listdir(self.CHANDLERBIN):
                 self.BINROOT = os.path.join(self.CHANDLERBIN, "release")
+
+            elif "debug" in os.listdir(self.CHANDLERBIN):
+                self.BINROOT = os.path.join(self.CHANDLERBIN, "debug")
 
             else:
                 self.raiseError("No debug or release directory under CHANDLERBIN.")
