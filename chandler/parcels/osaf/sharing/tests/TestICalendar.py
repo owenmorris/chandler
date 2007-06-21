@@ -64,6 +64,17 @@ class ICalendarTestCase(SingleRepositoryTestCase):
 
         self.importedCollection = sharing.importFile(view, path)
 
+    def testMidnightToMidnight(self):
+        """
+        When importing iCalendar data, treat floating midnight-to-midnight
+        events as all-day, bug 9579.
+        """        
+        self.Import(self.view, u'MidnightToMidnight.ics')
+        event = pim.EventStamp(sharing.findUID(self.view, 'midnight'))
+        endTime = datetime.datetime(2007,6,20)
+        self.assert_(event.effectiveEndTime.replace(tzinfo=None) == endTime)
+        self.assert_(event.allDay == True)
+
     def testSummaryAndDateTimeImported(self):
         self.Import(self.view, u'Chandler.ics')
         event = pim.EventStamp(sharing.findUID(

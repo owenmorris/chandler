@@ -17,7 +17,7 @@ from osaf.sharing.translator import toICalendarDuration, toICalendarDateTime
 from ICalendar import (makeNaiveteMatch, attributesUnderstood,
                        parametersUnderstood)
 import vobject
-from datetime import datetime, timedelta, date
+from datetime import datetime, timedelta, date, time
 from osaf.pim.calendar.TimeZone import convertToICUtzinfo, forceToDateTime
 from osaf.pim.triage import Triageable
 from chandlerdb.util.c import UUID, Empty, Nil
@@ -34,6 +34,8 @@ __all__ = [
 ]
 
 logger = logging.getLogger(__name__)
+
+midnight = time(0)
 
 class ICalendarExportError(Exception):
     pass
@@ -545,7 +547,15 @@ class ICSSerializer(object):
                         duration = timedelta(1)
                     else:
                         duration = timedelta(0)
-                        
+
+                # handle the special case of a midnight-to-midnight floating
+                # event, treat it as allDay, bug 9579
+                if (not isDate and dtstart is not None and
+                      dtstart.tzinfo is None and dtstart.time() == midnight and
+                      duration.days >= 1 and
+                      duration == timedelta(duration.days)):
+                    allDay = True
+                
                 if isDate:
                     dtstart = forceToDateTime(view, dtstart)
                     # originally, duration was converted to Chandler's notion of
