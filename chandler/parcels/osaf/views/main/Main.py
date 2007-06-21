@@ -780,6 +780,13 @@ class MainView(View):
             return callable(self.itsView, *args, **kw)
         return callable(*args, **kw)
 
+    def onReplyEventUpdateUI(self, event):
+        event.arguments['Enable'] = False
+    def onReplyAllEventUpdateUI(self, event):
+        event.arguments['Enable'] = False
+    def onForwardEventUpdateUI(self, event):
+        event.arguments['Enable'] = False
+
     def onSendShareItemEventUpdateUI(self, event):
         # If we get asked about this, and it hasn't already been set, there's no selected 
         # item anywhere - disallow sending. Also, make sure the label's set back to "Send"
