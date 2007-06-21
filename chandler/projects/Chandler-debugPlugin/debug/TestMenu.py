@@ -116,7 +116,7 @@ def makeTestMenu(parcel, toolsMenu):
                     parentBlock=testMenu)
     MenuItem.update(parcel, None,
                     blockName='_debug_GenerateDataItemFromFile',
-                    title=_(u'Generate Items from a File'),
+                    title=_(u'Generate Items from a &File'),
                     helpString=_(u'generates items from a file'),
                     event=generateDataFromFileEvent,
                     parentBlock=testMenu)

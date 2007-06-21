@@ -1128,9 +1128,9 @@ class MainView(View):
 
     def onRecordSetDebuggingEventUpdateUI(self, event):
         if sharing.logger.level == 10:
-            menuTitle = _(u'Set sharing logging level to normal')
+            menuTitle = _(u'Set s&haring logging level to normal')
         else:
-            menuTitle = _(u'Set sharing logging level to debug')
+            menuTitle = _(u'Set s&haring logging level to debug')
         event.arguments ['Text'] = menuTitle
         event.arguments ['Enable'] = True
 

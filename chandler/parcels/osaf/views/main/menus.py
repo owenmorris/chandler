@@ -525,7 +525,7 @@ def makeMainMenus(parcel):
                         helpString = _(u"Copy the selected collection's sharing URL(s) to the Clipboard")),
                     ]), # Menu ShareMenu
             DemoMenu.template('ExperimentalMenu',
-                          title = _(u'Plugins'),
+                          title = _(u'&Plugins'),
                           childBlocks = [
                     MenuItem.template("BrowsePluginsMenuItem",
                                 event = main.BrowsePlugins,
@@ -661,13 +661,13 @@ def makeMainMenus(parcel):
                                 helpString = u'Add sharing activity log to the Sidebar'),
                             MenuItem.template("RecordSetDebuggingItem",
                                 event = main.RecordSetDebugging,
-                                title = u"Set sharing logging level to debug",
+                                title = u"Set s&haring logging level to debug",
                                 helpString = u'Enable RecordSet debugging'),
                             ]), # Menu ShareMenu
                     MenuItem.template('ToolsSeparator1',
                                       menuItemKind = 'Separator'),
                     Menu.template('ViewAsCalendarMenu',
-                        title = _(u'Select view'),
+                        title = _(u'S&elect view'),
                         helpString = _(u'Select type of main view'),
                         childBlocks = [
                             MenuItem.template('ViewAsDashboardItem',
@@ -687,7 +687,7 @@ def makeMainMenus(parcel):
                                 helpString = _(u'Go to Calendar Day View'))
                         ]),
                     Menu.template('ViewConfigureWindow',
-                        title = _(u'&Show'),
+                        title = _(u'Sh&ow'),
                         helpString = _(u'Show and hide application elements'),
                         childBlocks = [
                             MenuItem.template('ViewToolBarItem',

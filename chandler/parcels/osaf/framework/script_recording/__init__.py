@@ -375,7 +375,7 @@ def installParcel(parcel, old_version=None):
     ScriptMenu = ScriptsMenu.update(
         parcel, 'ScriptMenu',
         blockName = 'ScriptMenu',
-        title = _(u'Run Script'),
+        title = _(u'R&un Script'),
         event = Scripta,
         childrenBlocks = [],
         parentBlock = scriptingMenu)    

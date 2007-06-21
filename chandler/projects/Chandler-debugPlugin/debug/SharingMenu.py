@@ -190,7 +190,7 @@ def makeSharingMenu(parcel, sharingMenu):
                     parentBlock=sharingMenu)
     MenuItem.update(parcel, None,
                     blockName='_debug_ConvertExportFile',
-                    title=_(u"Convert export file"),
+                    title=_(u"Convert e&xport file"),
                     helpString=_(u'Convert an export file to a more readable text file'),
                     event=convertExportFileEvent,
                     parentBlock=sharingMenu)

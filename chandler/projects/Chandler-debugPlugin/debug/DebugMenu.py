@@ -226,7 +226,7 @@ def makeDebugMenu(parcel, toolsMenu):
 
     MenuItem.update(parcel, None,
                     blockName='_debug_WxTestHarnessItem',
-                    title=_(u'&Wx Test Harness'),
+                    title=_(u'W&x Test Harness'),
                     helpString=_(u'invoke the current flavor of wx debugging'),
                     event=wxTestHarnessEvent,
                     parentBlock=debugMenu)
@@ -270,7 +270,7 @@ def makeDebugMenu(parcel, toolsMenu):
 
     MenuItem.update(parcel, None,
                     blockName='_debug_RestartApp',
-                    title=_(u'Restart Chandler'),
+                    title=_(u'Restart &Chandler'),
                     helpString=_(u'Restarts Chandler'),
                     event=restartAppEvent,
                     parentBlock=debugMenu)
