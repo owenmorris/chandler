@@ -49,6 +49,8 @@ from BaseAttributeEditor import BaseAttributeEditor
 #from AETypeOverTextCtrl import AETypeOverTextCtrl, AENonTypeOverTextCtrl
 from DragAndDropTextCtrl import DragAndDropTextCtrl
 from StringAttributeEditor import StringAttributeEditor
+from colorsys import rgb_to_hsv
+
 
 logger = logging.getLogger(__name__)
 
@@ -1395,11 +1397,36 @@ class RankAttributeEditor (BaseAttributeEditor):
         rank = float (position) / len (contents)
         if not contents.isDescending ("osaf.views.main.summaryblocks.rank"):
             rank = 1 - rank
+
+        image = wx.GetApp().GetRawImage ("SearchRank.png")
         
-        rect.Inflate (-1, -4)
+        if isInSelection:
+            # Set the brightness of the icon to match the brightness
+            # of the text color (i.e. text foreground color)
+            # so it stands out against the selection background color
+            color = dc.GetTextForeground()
+            rgbValue = DrawingUtilities.color2rgb(color.Red(), color.Green(), color.Blue())
+            hsvValue = rgb_to_hsv(*rgbValue)
+            image.SetBrightness (hsvValue[2])
+
+        bitmap = wx.BitmapFromImage (image)
+
+        margin = (bitmap.GetHeight() - rect.GetHeight()) / 2
+        if margin > 0:
+            margin = 0
+        rect.Inflate (-1, margin)
         rect.SetWidth (rect.GetWidth() * rank)
         
-        brush = wx.Brush(wx.SystemSettings.GetColour (wx.SYS_COLOUR_GRAYTEXT), wx.SOLID)
-        dc.SetBrush (brush)
-        dc.DrawRectangleRect (rect)
+        dc.SetClippingRect (rect)
+        
+        x = rect.GetLeft()
+        y = rect.GetTop()
+        right = rect.GetRight()
+        bitmapWidth = bitmap.GetWidth()
+
+        while x < right:
+            dc.DrawBitmap (bitmap, x, y, True)
+            x += bitmapWidth
+
+        dc.DestroyClippingRegion()
 
