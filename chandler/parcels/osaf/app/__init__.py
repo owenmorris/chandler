@@ -153,14 +153,15 @@ The Chandler Team""") % {'version': version.version}
     else:
         # OOTB user defined collections: collections should be in mine
         mine = schema.ns("osaf.pim", parcel.itsView).mine
-        def makeCollection(name, checked, colorTuple):
+        def makeCollection(name, checked, color):
             collection = pim.SmartCollection(
                             itsView=parcel.itsView,
-                            displayName=name,
-                            color=pim.structs.ColorType(colorTuple)
+                            displayName=name
                         )
             # include collection in overlays, as spec'ed
             UserCollection(collection).checked = checked
+            # set the collection color as spec'ed
+            UserCollection(collection).setColor(color)
 
             sidebarListCollection.add(collection)
             mine.addSource(collection)
@@ -168,9 +169,9 @@ The Chandler Team""") % {'version': version.version}
             return collection
             
         # OOTB user defined collections: Work, Home and Fun
-        work = makeCollection(_(u"Work"), True, [0,0,255,255])
-        home = makeCollection(_(u"Home"), True, [255,0,0,255])
-        fun = makeCollection(_(u"Fun"), False, [0,255,0,255])
+        work = makeCollection(_(u"Work"), True, u'Blue')
+        home = makeCollection(_(u"Home"), True, u'Red')
+        fun = makeCollection(_(u"Fun"), False, u'Plum')
         
         # Add Welcome item to OOTB collections
         home.add(WelcomeEvent)
@@ -185,19 +186,19 @@ The Chandler Team""") % {'version': version.version}
               )
         task1.itsItem.changeEditState(pim.Modification.created)
         task1.itsItem.setTriageStatus(pim.TriageEnum.later)
-        default = parcel.itsView.tzinfo.default
+        floating = parcel.itsView.tzinfo.floating
 
         reminderTime = datetime.datetime.combine(
                             datetime.datetime.now().date() +
                                 datetime.timedelta(days=1),
-                            datetime.time(8, 0, tzinfo=default)
+                            datetime.time(8, 0, tzinfo=floating)
                        )
         task1.itsItem.userReminderTime = reminderTime
         
         # OOTB item2: Play around with the Calendar
         startevent2 = datetime.datetime.combine(
                             datetime.datetime.now().date(),
-                            datetime.time(15, 0, tzinfo=default)
+                            datetime.time(15, 0, tzinfo=floating)
                        )
         event2 = pim.CalendarEvent(
                     itsView=parcel.itsView,
@@ -214,7 +215,7 @@ The Chandler Team""") % {'version': version.version}
         # OOTB item3: Download Chandler
         startevent3 = datetime.datetime.combine(
                             datetime.datetime.now().date(),
-                            datetime.time(11, 0, tzinfo=default)
+                            datetime.time(11, 0, tzinfo=floating)
                        )
         event3 = pim.CalendarEvent(
                     itsView=parcel.itsView,
@@ -232,7 +233,7 @@ The Chandler Team""") % {'version': version.version}
         # OOTB item4: Set up your accounts
         startevent4 = datetime.datetime.combine(
                             datetime.datetime.now().date(),
-                            datetime.time(16, 0, tzinfo=default)
+                            datetime.time(16, 0, tzinfo=floating)
                        )
         event4 = pim.CalendarEvent(
                     itsView=parcel.itsView,
@@ -247,8 +248,8 @@ The Chandler Team""") % {'version': version.version}
         event4.itsItem.setTriageStatus(pim.TriageEnum.later)
         m = pim.MailStamp(event4)
         m.add()
-        m.toAddress.append(pim.mail.EmailAddress.getEmailAddress(parcel.itsView, "me@osafoundation.org"))
-        m.fromAddress = pim.mail.EmailAddress.getEmailAddress(parcel.itsView, "dev@osafoundation.org")
+        m.toAddress.append(pim.mail.EmailAddress.getEmailAddress(parcel.itsView, "someone@example.org"))
+        m.fromMe = True
         pim.TaskStamp(event4).add()
 
     # Set up the main web server

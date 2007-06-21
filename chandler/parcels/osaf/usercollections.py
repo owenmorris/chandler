@@ -22,6 +22,20 @@ from i18n import ChandlerMessageFactory as _
 import colorsys
 from application import styles
 
+# These colors are duplicated from application/styles.conf so gettext knows they
+# need to be localized.
+(_('Blue'), _('Green'), _('Red'), _('Orange'), _('Gold'), _('Plum'), 
+ _('Turquoise'), _('Fuchsia'), _('Indigo'))
+
+# Collection colors in the form ('Name', localizedName, 360-degree based hue)
+order = [s.strip() for s in styles.cfg.get('colororder', 'order').split(',')]
+# Using localize instead of "_". The gettext API only parses literal string
+# tokens such as _("MyString") when creating pot localization templates, using
+# a different function keeps it from complaining
+localize = _
+collectionHues = [(k, localize(unicode(k)), styles.cfg.getint('colors', k))
+                  for k in order]
+
 class CollectionColors(schema.Item):
     """
     Temporarily put the CollectionColors here until we refactor collection
@@ -64,31 +78,31 @@ class UserCollection(schema.Annotation):
 
     def ensureColor(self):
         """
-        setup the color of a collection
+        Make sure the collection has a color. Pick up the next color in a predefined 
+        list if none was set.
         """
         if not hasattr (self, 'color'):
             self.color = schema.ns('osaf.usercollections', self.itsItem.itsView).collectionColors.nextColor()
         return self
+    
+    def setColor(self,colorname):
+        """
+        Set the collection color by name. Raises an error if colorname doesn't exist.
+        """
+        hue = None
+        for colname, coltitle, colhue in collectionHues:
+            if colname == colorname:
+                hue = colhue
+                break
+        if hue is None:
+            raise ValueError("Unknown color name")
+        rgb = colorsys.hsv_to_rgb(hue/360.0,0.5,1.0)
+        self.color = ColorType( int(rgb[0]*255), int(rgb[1]*255), int(rgb[2]*255), 255)
 
     def setValues(self, **kwds):
 
         for attr,value in kwds.iteritems():
             setattr(self, attr, value)
-
-# These colors are duplicated from application/styles.conf so gettext knows they
-# need to be localized.
-(_('Blue'), _('Green'), _('Red'), _('Orange'), _('Gold'), _('Plum'), 
- _('Turquoise'), _('Fuschia'), _('Indigo'))
-
-# Collection colors in the form ('Name', localizedName, 360-degree based hue)
-order = [s.strip() for s in styles.cfg.get('colororder', 'order').split(',')]
-# Using localize instead of "_". The gettext API only parses literal string
-# tokens such as _("MyString") when creating pot localization templates, using
-# a different function keeps it from complaining
-localize = _
-collectionHues = [(k, localize(unicode(k)), styles.cfg.getint('colors', k))
-                  for k in order]
-
 
 def installParcel(parcel, oldVersion=None):
 

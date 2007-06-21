@@ -130,7 +130,7 @@ class OOTBTestCase(testcase.SingleRepositoryTestCase):
 
         self.failUnless(item in self.getCollection(u"Fun"))
         self.failUnless(item in schema.ns("osaf.pim", self.view).allCollection)
-        self.failUnlessEqual(len(list(item.appearsIn)), 2)
+        self.failUnlessEqual(len(list(item.appearsIn)), 3)
 
 if __name__ == "__main__":
     import unittest
