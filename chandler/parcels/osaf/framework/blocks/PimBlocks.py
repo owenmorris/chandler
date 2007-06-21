@@ -22,7 +22,8 @@ from i18n import ChandlerMessageFactory as _
 from osaf import messages
 from osaf.framework.blocks import Block, getProxiedItem
 from application import schema
-from application.dialogs.RecurrenceDialog import getProxy
+from application.dialogs.RecurrenceDialog import (getProxy,
+                                                  delayForRecurrenceDialog)
 import application.dialogs.DeleteDialog as DeleteDialog
 from chandlerdb.item.c import isitemref
 
@@ -275,6 +276,21 @@ class FocusEventHandlers(Item):
         return has_stamp(selectedItem, Mail.MailStamp)
 
     def onReplyOrForwardEvent(self, replyMethod):
+        Block.Block.finishEdits()
+        
+        item = None
+        # Note that this skips over any non-inbox items, so you
+        # *could* select-all-reply
+        for selectedItem in self.__getSelectedItems():
+            if self.CanReplyOrForward(selectedItem):
+                item = selectedItem
+                break
+        
+        if item is not None:
+            delayForRecurrenceDialog(item,
+                                     self._replyOrForward, item, replyMethod)
+    
+    def _replyOrForward(self, item, replyMethod):
         pim_ns = schema.ns('osaf.pim', self.itsView)
         main = schema.ns("osaf.views.main", self.itsView)
 
@@ -283,14 +299,7 @@ class FocusEventHandlers(Item):
             # collection
             return
 
-        selection = self.__getSelectedItems()
-        replyMessage = None
-        # Note that this skips over any non-inbox items, so you
-        # *could* select-all-reply
-        for selectedItem in selection:
-            if self.CanReplyOrForward(selectedItem):
-                replyMessage = replyMethod(self.itsView,
-                                           Mail.MailStamp(selectedItem))
+        replyMessage = replyMethod(self.itsView, Mail.MailStamp(item))
         # select the outbox collection if there was a reply
         if replyMessage is not None:
             inCollection = pim_ns.inCollection
@@ -392,10 +401,6 @@ class FocusEventHandlers(Item):
                 removals.append(item)
             else:
                 itemsAndStates.append((item, state))
-
-        def deleteItem(item):
-            # probably need to handle recurrence here...
-            item.delete()
 
         pim_ns = schema.ns('osaf.pim', self.itsView)
         if selectedCollection == pim_ns.trashCollection:

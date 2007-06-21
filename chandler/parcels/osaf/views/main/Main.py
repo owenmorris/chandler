@@ -47,7 +47,7 @@ from i18n import ChandlerMessageFactory as _
 
 from application.Utility import getDesktopDir
 from application.dialogs import ImportExport
-
+from application.dialogs.RecurrenceDialog import delayForRecurrenceDialog
 logger = logging.getLogger(__name__)
 
 class MainView(View):
@@ -789,6 +789,11 @@ class MainView(View):
         event.arguments ['Bitmap'] = "ApplicationBarSend.png"
 
     def onSendMailEvent(self, event):
+        Block.finishEdits()
+        item = event.arguments['item']
+        delayForRecurrenceDialog(item, self._sendMailAction, item)
+
+    def _sendMailAction(self, item):
         # commit changes, since we'll be switching to Twisted thread
         self.RepositoryCommitWithStatus()
 
@@ -796,7 +801,6 @@ class MainView(View):
             return
 
         # get default SMTP account
-        item = event.arguments['item']
         if pim.has_stamp(item, pim.EventStamp):
             # for preview, always send the full recurrence set
             item = pim.EventStamp(item).getMaster().itsItem

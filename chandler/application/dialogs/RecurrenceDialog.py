@@ -120,6 +120,12 @@ class RecurrenceDialog(wx.Dialog):
         self.CenterOnScreen()
         self.Show()
 
+    def _accept(self):
+        for method, args, kwargs in self.proxy.acceptCallbacks:
+            method(*args, **kwargs)
+        self.proxy.acceptCallbacks = []
+        self._end()
+
     def _end(self):
         self.proxy.dialogUp = False
         # reset the proxy not to be changing anything
@@ -135,22 +141,23 @@ class RecurrenceDialog(wx.Dialog):
         self.proxy.cancel()
         for method in self.proxy.cancelCallbacks:
             method()
+        self.proxy.acceptCallbacks = []
         self._end()
 
     def onAll(self, event):
         self.proxy.changing = CHANGE_ALL
         self.proxy.makeChanges()
-        self._end()
+        self._accept()
 
     def onFuture(self, event):
         self.proxy.changing = CHANGE_FUTURE
         self.proxy.makeChanges()
-        self._end()
+        self._accept()
 
     def onThis(self, event):
         self.proxy.changing = CHANGE_THIS
         self.proxy.makeChanges()
-        self._end()
+        self._accept()
 
 _proxies = {}
 
@@ -205,6 +212,7 @@ class ChandlerProxy(RecurrenceProxy):
         super(ChandlerProxy, self).__init__(item)
         self.dialogUp = False
         self.cancelCallbacks = []
+        self.acceptCallbacks = []
 
     def beginSession(self):
         type(self)._editingProxy = self
@@ -325,3 +333,27 @@ class ChandlerProxy(RecurrenceProxy):
             return event.itsItem
         else:
             return event.getMaster().itsItem.getMembershipItem()
+
+def delayForRecurrenceDialog(item, callback, *args, **kwargs):
+    """
+    If the given item has a current UI proxy with changes, delay calling
+    callback(*args, **kwargs) until the recurrence dialog is answered
+    positively.
+    
+    If the recurrence dialog is cancelled, the callback will never be called.
+    
+    Identical callbacks won't be queued more than once.
+    
+    Block.finishEdits() should be called before delayForRecurrenceDialog, or
+    the proxy may not see changes about to be set by edited widgets.
+    
+    """
+    proxy = getProxy('ui', item, createNew=False)
+    if proxy.isProxy and proxy.changes:
+        for function, a, k in proxy.acceptCallbacks:
+            if callback == function:
+                break
+        else:
+            proxy.acceptCallbacks.append((callback, args, kwargs))
+    else:
+        callback(*args, **kwargs)

@@ -1373,6 +1373,8 @@ class CalendarCanvasBlock(CalendarRangeBlock):
         if (getattr(self, 'widget', None) and 
             getattr(self.widget, 'GrabFocusHack', None)):
             self.widget.GrabFocusHack()
+    
+    saveValue = closeEditor
 
     def onDayModeEvent(self, event):
         self.closeEditor()

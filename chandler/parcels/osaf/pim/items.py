@@ -358,7 +358,7 @@ class ContentItem(Triageable):
                     break
             else:
                 # we didn't find it in a 'mine' Collection
-                allCollection.add(self)        
+                allCollection.add(self)
 
     def getMembershipItem(self):
         """ Get the item that should be used to test for membership
