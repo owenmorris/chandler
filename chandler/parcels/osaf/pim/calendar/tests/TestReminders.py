@@ -18,14 +18,14 @@ import unittest
 from osaf.pim import *
 from osaf.pim.calendar.Recurrence import *
 import osaf.pim.tests.TestDomainModel as TestDomainModel
-from PyICU import ICUtzinfo
 import repository.item
 from datetime import datetime, timedelta, time
 
 class AbsoluteReminderTestCase(TestDomainModel.DomainModelTestCase):
     def setUp(self):
         super(AbsoluteReminderTestCase, self).setUp()
-        self.reminderTime = datetime(2007,5,11,13,tzinfo=ICUtzinfo.default)
+        self.reminderTime = datetime(2007,5,11,13,
+                                     tzinfo=self.view.tzinfo.default)
         self.item = ContentItem(itsView=self.view)
         self.reminder = Reminder(itsView=self.view,
                             absoluteTime=self.reminderTime)
@@ -67,7 +67,7 @@ class AbsoluteReminderTestCase(TestDomainModel.DomainModelTestCase):
         self.reminder.snoozeItem(self.item, timedelta(minutes=10))
         
         self.failUnless(self.reminder.nextPoll <=
-                        datetime.now(ICUtzinfo.default) + timedelta(minutes=10))
+                        datetime.now(self.view.tzinfo.default) + timedelta(minutes=10))
         self.failUnlessEqual(1, len(self.reminder.pendingEntries))
         
     def testDeleteItem(self):
@@ -100,7 +100,7 @@ class RelativeReminderTestCase(TestDomainModel.DomainModelTestCase):
     def setUp(self):
         super(RelativeReminderTestCase, self).setUp()
         self.event = CalendarEvent(itsView=self.view,
-                startTime=datetime(2004,8,1,8,tzinfo=ICUtzinfo.default),
+                startTime=datetime(2004,8,1,8,tzinfo=self.view.tzinfo.default),
                 duration=timedelta(minutes=45), anyTime=False,
                 summary=u"Meet with Very Important Person")
         self.event.itsItem.setTriageStatus(TriageEnum.later)
@@ -169,7 +169,7 @@ class RelativeReminderTestCase(TestDomainModel.DomainModelTestCase):
         self.reminder.snoozeItem(self.event.itsItem, timedelta(minutes=15))
         
         self.failUnless(self.reminder.nextPoll <=
-                        datetime.now(ICUtzinfo.default) + timedelta(minutes=15))
+                        datetime.now(self.view.tzinfo.default) + timedelta(minutes=15))
         self.failUnlessEqual(1, len(self.reminder.pendingEntries))
         
     def testChangeStartTime(self):
@@ -213,7 +213,7 @@ class RelativeReminderTestCase(TestDomainModel.DomainModelTestCase):
         rruleset = RecurrenceRuleSet(None, itsView=self.view,
                                           rrules=[ruleItem])
                                           
-        self.reminderTime = datetime(2004,11,1,12,22,3,tzinfo=ICUtzinfo.default)
+        self.reminderTime = datetime(2004,11,1,12,22,3,tzinfo=self.view.tzinfo.default)
         self.reminder = Reminder(itsView=self.view,
                                  absoluteTime=self.reminderTime)
 
@@ -242,7 +242,7 @@ class RecurringReminderTestCase(TestDomainModel.DomainModelTestCase):
     def setUp(self):
         super(RecurringReminderTestCase, self).setUp()
         self.event = CalendarEvent(itsView=self.view,
-                startTime=datetime(2007,1,4,12,5,tzinfo=ICUtzinfo.default),
+                startTime=datetime(2007,1,4,12,5,tzinfo=self.view.tzinfo.default),
                 duration=timedelta(minutes=55),
                 anyTime=False,
                 summary=u"Meet with Highly Unusual Person")
@@ -251,7 +251,7 @@ class RecurringReminderTestCase(TestDomainModel.DomainModelTestCase):
                             delta=-timedelta(minutes=20))
                             
         ruleItem = RecurrenceRule(None, itsView=self.view, freq='daily')
-        ruleItem.until = datetime(2007,1,23,tzinfo=ICUtzinfo.default)
+        ruleItem.until = datetime(2007,1,23,tzinfo=self.view.tzinfo.default)
         ruleItem.untilIsDate = False
         self.event.rruleset = RecurrenceRuleSet(None, itsView=self.view,
                                 rrules=[ruleItem])
@@ -472,7 +472,7 @@ class ReminderCollectionsTestCase(TestDomainModel.DomainModelTestCase):
                 displayName=u"I am so very notable")
 
         
-        self.firstDate = datetime(2004, 11, 3, 9, 25, tzinfo=ICUtzinfo.default)
+        self.firstDate = datetime(2004, 11, 3, 9, 25, tzinfo=self.view.tzinfo.default)
         self.reminder = Reminder(itsView=self.view,
                                  absoluteTime=self.firstDate)
         self.reminder.reminderItem = self.note
@@ -512,7 +512,7 @@ class TriageStatusReminderTestCase(TestDomainModel.DomainModelTestCase):
     def setUp(self):
         super(TriageStatusReminderTestCase, self).setUp()
         self.event = CalendarEvent(itsView=self.view,
-                startTime=datetime(2005,11,4,16,tzinfo=ICUtzinfo.default),
+                startTime=datetime(2005,11,4,16,tzinfo=self.view.tzinfo.default),
                 duration=timedelta(minutes=60),
                 anyTime=False,
                 summary=u"Hour-long event")
@@ -561,7 +561,7 @@ class TriageStatusReminderTestCase(TestDomainModel.DomainModelTestCase):
         ruleItem = RecurrenceRule(None, itsView=self.view, freq='daily')
         ruleItem.until = datetime.combine(
                     self.event.startTime + timedelta(days=6),
-                    time(0, tzinfo=ICUtzinfo.default))
+                    time(0, tzinfo=self.view.tzinfo.default))
         ruleItem.untilIsDate = True
         self.event.rruleset = RecurrenceRuleSet(None, itsView=self.view,
                                 rrules=[ruleItem])
@@ -611,20 +611,20 @@ class ReminderTestCase(TestDomainModel.DomainModelTestCase):
     def testReminders(self):
         # Make an event in the past (so it won't have a startTime reminder)
         # and add an expired absolute reminder to it.
-        pastTime = datetime(2005,3,8,12,00, tzinfo = ICUtzinfo.default)
+        pastTime = datetime(2005,3,8,12,00, tzinfo = self.view.tzinfo.default)
         anEvent = CalendarEvent("calendarEventItem", itsView=self.view,
                                 startTime=pastTime,
                                 duration=timedelta(hours=1),
                                 allDay=False, anyTime=False)
         remindable = anEvent.itsItem
         
-        absoluteReminderTime = datetime(2005,3,8,11,00, tzinfo=ICUtzinfo.default)
+        absoluteReminderTime = datetime(2005,3,8,11,00, tzinfo=self.view.tzinfo.default)
         absoluteReminder = remindable.setUserReminderTime(absoluteReminderTime)
         
         # Make sure it got connected right: one expired absolute reminder.
         # Er, we're assuming now > 2005/03/08, of course :o
         for rem in remindable.reminders:
-            rem.updatePending(datetime.now(ICUtzinfo.default))
+            rem.updatePending(datetime.now(self.view.tzinfo.default))
         self.failUnless(len(remindable.reminders), 1)
         self.failUnless(remindable.reminders.first() is absoluteReminder)
 
@@ -641,7 +641,7 @@ class ReminderTestCase(TestDomainModel.DomainModelTestCase):
 
         # Make sure it all got reconnected correctly: one expired relative reminder
         for rem in remindable.reminders:
-            rem.updatePending(datetime.now(ICUtzinfo.default))
+            rem.updatePending(datetime.now(self.view.tzinfo.default))
         self.failUnlessEqual(len(remindable.reminders), 1)
         self.failUnless(remindable.reminders.first() is relativeReminder)
         self.failUnless(anEvent.userReminderInterval == relativeReminderInterval)
@@ -649,7 +649,7 @@ class ReminderTestCase(TestDomainModel.DomainModelTestCase):
         self.failUnlessEqual(relativeReminder.nextPoll, Reminder.farFuture)
 
         # Change the start time to 'shortly'
-        now = datetime.now(tz=ICUtzinfo.default) 
+        now = datetime.now(tz=self.view.tzinfo.default) 
         shortly = now + timedelta(minutes=60)
         EventStamp(anEvent).startTime = shortly
         
@@ -752,7 +752,7 @@ class PendingTuplesTestCase(TestDomainModel.DomainModelTestCase):
         super(PendingTuplesTestCase, self).setUp()
         self.eventTime = datetime.combine(datetime.now().date() +
                                            timedelta(days=3),
-                                          time(13, 0, tzinfo=ICUtzinfo.default))
+                                          time(13, 0, tzinfo=self.view.tzinfo.default))
         self.event = CalendarEvent("calendarEventItem", itsView=self.view,
                               startTime=self.eventTime,
                               duration=timedelta(hours=1), allDay=False,

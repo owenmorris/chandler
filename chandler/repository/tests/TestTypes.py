@@ -21,8 +21,6 @@ import RepositoryTestCase, os, unittest
 import repository.schema.Types
 import repository.item.PersistentCollections
 
-from PyICU import ICUtzinfo
-
 from repository.schema.Attribute import Attribute
 from repository.util.Path import Path
 from chandlerdb.util.c import UUID
@@ -145,7 +143,7 @@ class TypesTest(RepositoryTestCase.RepositoryTestCase):
         self.itemClass = eval('repository.item.Item.Item')
         self.dateTimeString = '2004-01-08 12:34:56 US/Mountain'
         self.dateTime = datetime(2004, 1, 8, 12, 34, 56,
-                                 tzinfo=ICUtzinfo.getInstance('US/Mountain'))
+                                 tzinfo=view.tzinfo.getInstance('US/Mountain'))
         self.timeDeltaString= '-8+45.000012'
         self.timeDelta = timedelta(-8, 45, 12)
         

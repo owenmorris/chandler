@@ -21,7 +21,6 @@ Generate sample items: calendar, contacts, etc.
 import random
 
 from datetime import datetime, timedelta
-from PyICU import ICUtzinfo
 from osaf import pim
 import osaf.pim.calendar.Calendar as Calendar
 from osaf.pim import Modification
@@ -51,7 +50,9 @@ LOCATIONS  = [u"Home", u"Office", u"School"]
 def randomEnum(cls):
     return getattr(cls, cls.values.keys()[random.randint(0, len(cls.values)-1)])
     
-def GenerateCalendarEvent(view, days=30, tzinfo=ICUtzinfo.floating):
+def GenerateCalendarEvent(view, days=30, tzinfo=None):
+    if tzinfo is None:
+        tzinfo = view.tzinfo.floating
     event = Calendar.CalendarEvent(itsView=view)
     event.summary = random.choice(HEADLINES)
 
@@ -314,7 +315,7 @@ def GenerateAllItems(view, count, sidebarCollection=None):
     collections = GenerateItems(view, 6, GenerateCollection, [], existingNames)
     
     items = []
-    defaultTzinfo = ICUtzinfo.default
+    defaultTzinfo = view.tzinfo.default
     for fn in GenerateMailMessage, GenerateNote, GenerateCalendarEvent, GenerateTask, GenerateEventTask: # GenerateContact omitted.
         def newFn(*args, **keywds):
             keywds['tzinfo'] = defaultTzinfo

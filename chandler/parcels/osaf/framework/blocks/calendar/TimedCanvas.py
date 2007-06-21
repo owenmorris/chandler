@@ -24,7 +24,7 @@ from CalendarCanvas import (
     wxInPlaceEditor
     )
 from CollectionCanvas import DragState
-from PyICU import FieldPosition, DateFormat, ICUtzinfo
+from PyICU import FieldPosition, DateFormat
 import osaf.pim.calendar.Calendar as Calendar
 from osaf.pim import isDead
 from osaf.pim.calendar.TimeZone import TimeZoneInfo, coerceTimeZone
@@ -350,7 +350,8 @@ class wxTimedEventsCanvas(BaseWidget, wxCalendarCanvas):
                "Dont' have an hour in the current locale's time format"
 
         for hour in hourrange:
-            timedate = time(hour=hour, tzinfo=ICUtzinfo.default)
+            timedate = time(hour=hour,
+                            tzinfo=self.blockItem.itsView.tzinfo.default)
             hourdate = datetime.combine(dummyDate, timedate)
             timeString = timeFormatter.format(hourdate, hourFP)
             (start, end) = (hourFP.getBeginIndex(),hourFP.getEndIndex())
@@ -935,7 +936,8 @@ class wxTimedEventsCanvas(BaseWidget, wxCalendarCanvas):
         on the current position and drag state. Handles both move and
         resize drags
         """
-        tzprefs = schema.ns('osaf.pim', self.blockItem.itsView).TimezonePrefs
+        view = self.blockItem.itsView
+        tzprefs = schema.ns('osaf.pim', view).TimezonePrefs
         useTZ = tzprefs.showUI
         
         event = Calendar.EventStamp(self.dragState.originalDragBox.item)
@@ -946,7 +948,7 @@ class wxTimedEventsCanvas(BaseWidget, wxCalendarCanvas):
         if useTZ:
             tzinfo = oldTZ
         else:
-            tzinfo = ICUtzinfo.floating
+            tzinfo = view.tzinfo.floating
 
         if resizeMode is None:
             # moving an event, need to adjust just the start time
@@ -990,8 +992,8 @@ class wxTimedEventsCanvas(BaseWidget, wxCalendarCanvas):
         
     def getPositionFromDateTime(self, datetime):
         (startDay, endDay) = self.GetCurrentDateRange()
-        
-        datetime = coerceTimeZone(datetime, ICUtzinfo.default)
+        view = self.blockItem.itsView
+        datetime = coerceTimeZone(view, datetime, view.tzinfo.default)
             
         if datetime.date() < startDay.date() or \
            datetime.date() >= endDay.date():
@@ -1032,12 +1034,13 @@ class wxTimedEventsCanvas(BaseWidget, wxCalendarCanvas):
 
         # put events onto the canvas translated into the local timezone,
         # unless timezone display is off.
-        if schema.ns('osaf.pim', self.blockItem.itsView).TimezonePrefs.showUI:
-            startTime = coerceTimeZone(startTime, ICUtzinfo.default)
-            endTime   = coerceTimeZone(endTime,   ICUtzinfo.default)
+        view = self.blockItem.itsView
+        if schema.ns('osaf.pim', view).TimezonePrefs.showUI:
+            startTime = coerceTimeZone(view, startTime, view.tzinfo.default)
+            endTime   = coerceTimeZone(view, endTime,   view.tzinfo.default)
         else:
-            startTime = startTime.replace(tzinfo=ICUtzinfo.floating)
-            endTime   = endTime.replace(tzinfo=ICUtzinfo.floating)
+            startTime = startTime.replace(tzinfo=view.tzinfo.floating)
+            endTime   = endTime.replace(tzinfo=view.tzinfo.floating)
 
         # calculate how many unique days this appears on 
         days = 1 + (endTime.date() - startTime.date()).days

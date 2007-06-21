@@ -68,7 +68,6 @@ from osaf.pim.reminders import Remindable, Reminder
 from TimeZone import formatTime
 from osaf.pim.calendar.TimeZone import TimeZoneInfo
 from osaf.pim.calendar import DateTimeUtil
-from PyICU import ICUtzinfo
 from time import localtime
 from datetime import datetime, time, timedelta
 import itertools
@@ -730,15 +729,16 @@ class EventStamp(Stamp):
 
         recurrenceDescription = self.getCustomDescription()
         # @@@ this could probably be made 'lazy', to only format the values we need...
+        view = self.itsItem.itsView
         return fmt % {
             'startDay': DateTimeUtil.weekdayName(self.startTime),
-            'startDate': DateTimeUtil.mediumDateFormat.format(self.startTime),
-            'startTime': DateTimeUtil.shortTimeFormat.format(self.startTime),
-            'startTimeTz': formatTime(self.startTime),
+            'startDate': DateTimeUtil.mediumDateFormat.format(view, self.startTime),
+            'startTime': DateTimeUtil.shortTimeFormat.format(view, self.startTime),
+            'startTimeTz': formatTime(view, self.startTime),
             'endDay': DateTimeUtil.weekdayName(self.endTime),
-            'endDate': DateTimeUtil.mediumDateFormat.format(self.endTime),
-            'endTime': DateTimeUtil.shortTimeFormat.format(self.endTime),
-            'endTimeTz': formatTime(self.endTime),
+            'endDate': DateTimeUtil.mediumDateFormat.format(view, self.endTime),
+            'endTime': DateTimeUtil.shortTimeFormat.format(view, self.endTime),
+            'endTimeTz': formatTime(view, self.endTime),
             'recurrenceSeparator': recurrenceDescription and _(u', ') or u'',
             'recurrence': recurrenceDescription,
         }
@@ -787,12 +787,13 @@ class EventStamp(Stamp):
             allDay = getattr(uuidOrEvent, 'allDay', False)
             anyTime = getattr(uuidOrEvent, 'anyTime', False)
             startTime = getattr(uuidOrEvent, 'startTime', None)
+            view = uuidOrEvent.itsItem.itsView
         
         if startTime is None:
             return None
         
         if anyTime or allDay:
-            startOfDay = time(0, tzinfo=ICUtzinfo.floating)
+            startOfDay = time(0, tzinfo=view.tzinfo.floating)
             return datetime.combine(startTime, startOfDay)
         else:
             return startTime
@@ -1622,7 +1623,7 @@ class EventStamp(Stamp):
                 # startTimes of the occurrences, since their effectiveStartTime
                 # will still be calculated correctly.
                     if value:
-                        recurrenceTime = time(0, tzinfo=ICUtzinfo.floating)
+                        recurrenceTime = time(0, tzinfo=self.itsItem.itsView.tzinfo.floating)
                     else:
                         recurrenceTime = first.startTime.timetz()
     
@@ -1908,7 +1909,7 @@ class EventStamp(Stamp):
         What triage status should this item have?
         """
         item = self.itsItem
-        now = datetime.now(tz=ICUtzinfo.default)
+        now = datetime.now(tz=item.itsView.tzinfo.default)
         if self.effectiveStartTime > now:
             # Hasn't started yet? it's Later.
             status = TriageEnum.later
@@ -2354,7 +2355,7 @@ def _sortEvents(itemlist, reverse=False, attrName=EventStamp.effectiveStartTime.
 class RecurrencePattern(ContentItem):
     """Unused, should be removed."""
 
-def parseText(text, locale=None):
+def parseText(view, text, locale=None):
     """
     Parses the given text and returns the start date/time and the end date/time and
     a countFlag  and a typeFlag.
@@ -2388,12 +2389,12 @@ def parseText(text, locale=None):
 
                 if typeFlag == 1:
                     #only date exists
-                    startTime = datetime(yr1, mth1, dy1, tzinfo=ICUtzinfo.default)
-                    endTime = datetime(yr2, mth2, dy2, tzinfo=ICUtzinfo.default)
+                    startTime = datetime(yr1, mth1, dy1, tzinfo=view.tzinfo.default)
+                    endTime = datetime(yr2, mth2, dy2, tzinfo=view.tzinfo.default)
                 else:
                     #time exists
-                    startTime = datetime(yr1, mth1, dy1, hr1, mn1, tzinfo=ICUtzinfo.default)
-                    endTime = datetime(yr2, mth2, dy2, hr2, mn2, tzinfo=ICUtzinfo.default)
+                    startTime = datetime(yr1, mth1, dy1, hr1, mn1, tzinfo=view.tzinfo.default)
+                    endTime = datetime(yr2, mth2, dy2, hr2, mn2, tzinfo=view.tzinfo.default)
             else:
                 # Check whether there is a single date/time
                 (dt, typeFlag) = cal.parse(line)
@@ -2404,16 +2405,16 @@ def parseText(text, locale=None):
 
                     if typeFlag == 1:
                     #only date exists
-                        startTime = endTime = datetime(yr, mth, dy, tzinfo=ICUtzinfo.default)
+                        startTime = endTime = datetime(yr, mth, dy, tzinfo=view.tzinfo.default)
                     else:
                         #time exists
-                        startTime = endTime = datetime(yr, mth, dy, hr, mn, tzinfo=ICUtzinfo.default)
+                        startTime = endTime = datetime(yr, mth, dy, hr, mn, tzinfo=view.tzinfo.default)
 
     #If no date/time exists or more than one date/time exists,
     #set the date as today's date and time as Anytime
     if (countFlag == 2) or (countFlag == 0):
         (yr, mth, dy, hr, mn, sec, wd, yd, isdst) = localtime()
-        startTime = endTime = datetime(yr, mth, dy, tzinfo=ICUtzinfo.default)
+        startTime = endTime = datetime(yr, mth, dy, tzinfo=view.tzinfo.default)
         typeFlag = 0
 
     return startTime, endTime, countFlag, typeFlag
@@ -2661,7 +2662,7 @@ class RelativeReminder(Reminder):
 
     def updatePending(self, dt=None):
         if dt is None:
-            dt = datetime.now(ICUtzinfo.default)
+            dt = datetime.now(self.itsView.tzinfo.default)
             
         reminderItem = self.reminderItem
         reminderTime = self._getReminderTime(reminderItem)
@@ -2845,15 +2846,15 @@ class TriageStatusReminder(RelativeReminder):
 
     
     def updatePending(self, when=None):
+        view = self.itsView
+
         if when is None:
-            when = datetime.now(ICUtzinfo.default)
+            when = datetime.now(view.tzinfo.default)
             
         # getKeysInRange() isn't quite what we want, because
         # it cares about events overlapping range, whereas we
         # only want events whose effectiveStartTime lies within
         # range
-
-        view = self.itsView
 
         def yieldEvents(start, end):
             pimNs = schema.ns("osaf.pim", view)

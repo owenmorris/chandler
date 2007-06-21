@@ -16,7 +16,6 @@
 from QALogger import *
 from datetime import datetime, timedelta, time
 from time import mktime, strptime
-from PyICU import ICUtzinfo
 from osaf import pim, sharing
 from osaf.framework.twisted import waitForDeferred
 import osaf.pim.mail as Mail
@@ -234,7 +233,7 @@ def GetOccurrence(name, date):
     item = App_ns.item_named(pim.Note, name)
     if pim.has_stamp(item, pim.EventStamp):
         master = pim.EventStamp(item).getMaster()
-        start = datetime.combine(date, time(0, tzinfo=ICUtzinfo.floating))
+        start = datetime.combine(date, time(0, tzinfo=item.itsView.tzinfo.floating))
         end   = start + timedelta(1)
         occurrences = list(master.getOccurrencesBetween(start,end))
         if len(occurrences) > 0:

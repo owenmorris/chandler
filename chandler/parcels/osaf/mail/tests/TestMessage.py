@@ -29,7 +29,6 @@ from osaf.pim.mail import MailStamp
 from osaf.pim.calendar import EventStamp
 from osaf.mail.constants import IGNORE_ATTACHMENTS
 
-from PyICU import ICUtzinfo
 from datetime import datetime
 
 
@@ -159,7 +158,7 @@ END:VCALENDAR
         m.headers['References'] = "<9CF0AF12-ED6F-11D8-B611-000A95B076C2@test.com> <7542F892-EF9F-11D8-8048-000A95CA1ECC@test.com> <07A5D499-EFA1-11D8-9F44-000A95D9289E@test.com> <2EE66978-EFB1-11D8-8048-000A95CA1ECC@test.com>"
 
         dateString = "Mon, 9 Aug 2004 13:55:15 -0700"
-        m.dateSent = datetime.fromtimestamp(emailUtils.mktime_tz(emailUtils.parsedate_tz(dateString)), ICUtzinfo.getInstance("Etc/GMT-7"))
+        m.dateSent = datetime.fromtimestamp(emailUtils.mktime_tz(emailUtils.parsedate_tz(dateString)), view.tzinfo.getInstance("Etc/GMT-7"))
         m.dateSentString = dateString
 
         m.itsItem.body = u"This is the body"

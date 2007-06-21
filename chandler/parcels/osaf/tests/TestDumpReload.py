@@ -1,4 +1,4 @@
-#   Copyright (c) 2003-2006 Open Source Applications Foundation
+#   Copyright (c) 2003-2007 Open Source Applications Foundation
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -21,7 +21,6 @@ from osaf.framework.password import Password
 from osaf.framework import MasterPassword
 from osaf.framework.twisted import waitForDeferred
 from util import testcase
-from PyICU import ICUtzinfo
 import datetime
  
 logger = logging.getLogger(__name__)
@@ -59,7 +58,7 @@ class DumpReloadTestCase(testcase.DualRepositoryTestCase):
             u"mifflin",
         ]
 
-        tzinfo = ICUtzinfo.floating
+        tzinfo = view0.tzinfo.floating
         createdOn = datetime.datetime(2007, 3, 1, 10, 0, 0, 0, tzinfo)
         lastModified = datetime.datetime(2007, 3, 1, 12, 0, 0, 0, tzinfo)
         email = "test@example.com"

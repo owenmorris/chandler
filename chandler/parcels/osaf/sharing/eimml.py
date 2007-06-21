@@ -38,48 +38,48 @@ xmlUnfriendly = re.compile("[\x00-\x08|\x0b|\x0c|\x0e-\x1f]")
 
 
 @generic
-def serializeValue(typeinfo, value):
+def serializeValue(typeinfo, rv, value):
     """Serialize a value based on typeinfo"""
     raise NotImplementedError("Unrecognized type:", typeinfo)
 
 @serializeValue.when_type(eim.BytesType)
-def serialize_bytes(typeinfo, value):
+def serialize_bytes(typeinfo, rv, value):
     if value is None:
         return None, "bytes"
     return base64.b64encode(value), "bytes"
 
 @serializeValue.when_type(eim.IntType)
-def serialize_int(typeinfo, value):
+def serialize_int(typeinfo, rv, value):
     if value is None:
         return None, "integer"
     return str(value), "integer"
 
 @serializeValue.when_type(eim.TextType)
-def serialize_text(typeinfo, value):
+def serialize_text(typeinfo, rv, value):
     if value is None:
         return None, "text"
     return value, "text"
 
 @serializeValue.when_type(eim.BlobType)
-def serialize_blob(typeinfo, value):
+def serialize_blob(typeinfo, rv, value):
     if value is None:
         return None, "blob"
     return base64.b64encode(value), "blob"
 
 @serializeValue.when_type(eim.ClobType)
-def serialize_clob(typeinfo, value):
+def serialize_clob(typeinfo, rv, value):
     if value is None:
         return None, "clob"
     return value, "clob"
 
 @serializeValue.when_type(eim.DateType)
-def serialize_date(typeinfo, value):
+def serialize_date(typeinfo, rv, value):
     if value is None:
         return None, "datetime"
     return value.isoformat(), "datetime"
 
 @serializeValue.when_type(eim.DecimalType)
-def serialize_decimal(typeinfo, value):
+def serialize_decimal(typeinfo, rv, value):
     if value is None:
         return None, "decimal"
     return str(value), "decimal"
@@ -88,37 +88,37 @@ def serialize_decimal(typeinfo, value):
 
 
 @generic
-def deserializeValue(typeinfo, text):
+def deserializeValue(typeinfo, rv, text):
     """Deserialize text based on typeinfo"""
     raise NotImplementedError("Unrecognized type:", typeinfo)
 
 @deserializeValue.when_type(eim.BytesType)
-def deserialize_bytes(typeinfo, text):
+def deserialize_bytes(typeinfo, rv, text):
     return base64.b64decode(text)
 
 @deserializeValue.when_type(eim.IntType)
-def deserialize_int(typeinfo, text):
+def deserialize_int(typeinfo, rv, text):
     return int(text)
 
 @deserializeValue.when_type(eim.TextType)
-def deserialize_text(typeinfo, text):
+def deserialize_text(typeinfo, rv, text):
     return text
 
 @deserializeValue.when_type(eim.BlobType)
-def deserialize_blob(typeinfo, text):
+def deserialize_blob(typeinfo, rv, text):
     return base64.b64decode(text)
 
 @deserializeValue.when_type(eim.ClobType)
-def deserialize_clob(typeinfo, text):
+def deserialize_clob(typeinfo, rv, text):
     return text
 
 @deserializeValue.when_type(eim.DecimalType)
-def deserialize_decimal(typeinfo, text):
+def deserialize_decimal(typeinfo, rv, text):
     return decimal.Decimal(text)
 
 @deserializeValue.when_type(eim.DateType)
-def deserialize_date(typeinfo, text):
-    return convertToICUtzinfo(dateutilparser(text))
+def deserialize_date(typeinfo, rv, text):
+    return convertToICUtzinfo(rv, dateutilparser(text))
 
 
 
@@ -132,7 +132,7 @@ deletedURI = "{%s}deleted" % eimURI
 class EIMMLSerializer(object):
 
     @classmethod
-    def serialize(cls, recordSets, rootName="collection", **extra):
+    def serialize(cls, rv, recordSets, rootName="collection", **extra):
         """ Convert a list of record sets to XML text """
 
 
@@ -167,12 +167,12 @@ class EIMMLSerializer(object):
 
                             if value is eim.Inherit:
                                 serialized, typeName = serializeValue(
-                                        field.typeinfo, None)
+                                        field.typeinfo, rv, None)
                                 attrs["missing"] = "true"
 
                             else:
                                 serialized, typeName = serializeValue(
-                                        field.typeinfo, value)
+                                        field.typeinfo, rv, value)
                                 if value == "":
                                     attrs["empty"] = "true"
 
@@ -197,7 +197,7 @@ class EIMMLSerializer(object):
                         if isinstance(field, eim.key):
                             value = record[field.offset]
                             serialized, typeName = serializeValue(
-                                field.typeinfo, record[field.offset])
+                                field.typeinfo, rv, record[field.offset])
                             attrs = { keyURI : 'true' }
                             if typeName is not None:
                                 attrs[typeURI] = typeName
@@ -219,7 +219,7 @@ class EIMMLSerializer(object):
         return "<?xml version='1.0' encoding='UTF-8'?>%s" % xmlString
 
     @classmethod
-    def deserialize(cls, text, **kwargs):
+    def deserialize(cls, rv, text, **kwargs):
         """ Parse XML text into a list of record sets """
 
         try:
@@ -263,7 +263,8 @@ class EIMMLSerializer(object):
                                     if fieldElement.text is None:
                                         value = None
                                     else:
-                                        value = deserializeValue(field.typeinfo,
+                                        value = deserializeValue(
+                                            field.typeinfo, rv,
                                             fieldElement.text)
                                 break
                         else:
@@ -303,7 +304,7 @@ class EIMMLSerializer(object):
 class EIMMLSerializerLite(object):
 
     @classmethod
-    def serialize(cls, recordSets, rootName="collection", **extra):
+    def serialize(cls, rv, recordSets, rootName="collection", **extra):
         """ Convert a list of record sets to XML text """
 
         rootElement = Element("{%s}%s" % (eimURI, rootName), **extra)
@@ -330,14 +331,14 @@ class EIMMLSerializerLite(object):
 
                             if value is eim.Inherit:
                                 serialized, typeName = serializeValue(
-                                    field.typeinfo, None)
+                                    field.typeinfo, rv, None)
                                 SubElement(recordElement,
                                     "{%s}%s" % (record.URI, field.name),
                                     missing="true")
 
                             else:
                                 serialized, typeName = serializeValue(
-                                    field.typeinfo, value)
+                                    field.typeinfo, rv, value)
 
                                 if serialized is None:
                                     SubElement(recordElement,
@@ -355,7 +356,7 @@ class EIMMLSerializerLite(object):
                         if isinstance(field, eim.key):
                             value = record[field.offset]
                             serialized, typeName = serializeValue(
-                                field.typeinfo, record[field.offset])
+                                field.typeinfo, rv, record[field.offset])
                             if serialized is None:
                                 SubElement(recordElement,
                                     "{%s}%s" % (record.URI, field.name))
@@ -374,7 +375,7 @@ class EIMMLSerializerLite(object):
 
 
     @classmethod
-    def deserialize(cls, text, **kwargs):
+    def deserialize(cls, rv, text, **kwargs):
         """ Parse XML text into a list of record sets """
 
         recordSets = {}
@@ -403,7 +404,7 @@ class EIMMLSerializerLite(object):
                     for field in recordClass.__fields__:
                         value = recordElement.get(field.name)
                         if value is not None:
-                            value = deserializeValue(field.typeinfo, value)
+                            value = deserializeValue(field.typeinfo, rv, value)
                         else:
                             for fieldElement in recordElement:
                                 ns, name = fieldElement.tag[1:].split("}")

@@ -1,4 +1,4 @@
-#   Copyright (c) 2005-2006 Open Source Applications Foundation
+#   Copyright (c) 2005-2007 Open Source Applications Foundation
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -24,7 +24,6 @@ import os
 import logging
 from time import mktime
 from datetime import datetime
-from PyICU import ICUtzinfo
 import sys
 import sgmllib
 from twisted.mail import smtp
@@ -73,13 +72,13 @@ class Counter:
         return self.counter
 
 
-def getEmptyDate():
+def getEmptyDate(view):
     """
     Returns a DateTime object with today's date and the
     current Operating System timezone set to 0 ticks.
     @return: C{datetime} object
     """
-    tz = ICUtzinfo.default
+    tz = view.tzinfo.default
     return datetime.now(tz).replace(hour=0, minute=0, second=0, microsecond=0)
 
 def dateIsEmpty(date):

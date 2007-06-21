@@ -881,13 +881,12 @@ class DiffRecordSetConduit(RecordSetConduit):
         text = self.get()
         doLog("Received from server [%s]", text)
 
-        inbound, extra = self.serializer.deserialize(text,
-                                                     helperView=self.itsView)
+        inbound, extra = self.serializer.deserialize(self.itsView, text)
         return inbound, extra, True
 
     def putRecords(self, toSend, extra, debug=False, activity=None):
         doLog = logger.info if debug else logger.debug
-        text = self.serializer.serialize(toSend, **extra)
+        text = self.serializer.serialize(self.itsView, toSend, **extra)
         doLog("Sending to server [%s]", text)
         self.put(text)
 
@@ -906,8 +905,7 @@ class MonolithicRecordSetConduit(RecordSetConduit):
 
         if text:
             try:
-                inbound, extra = self.serializer.deserialize(text,
-                    helperView=self.itsView)
+                inbound, extra = self.serializer.deserialize(self.itsView, text)
             except Exception, e:
                 errors.annotate(e, "Failed to deserialize",
                     details=text.decode('utf-8'))
@@ -930,7 +928,7 @@ class MonolithicRecordSetConduit(RecordSetConduit):
                 fullToSend[alias] = rs
         
         extra['monolithic'] = True
-        text = self.serializer.serialize(fullToSend, **extra)
+        text = self.serializer.serialize(self.itsView, fullToSend, **extra)
         doLog("Sending to server [%s]", text)
         self.put(text)
 
@@ -998,8 +996,7 @@ class ResourceRecordSetConduit(RecordSetConduit):
                     work=1)
             text, etag = self.getResource(path)
             doLog("Received from server [%s]", text)
-            records, extra = self.serializer.deserialize(text,
-                                                        helperView=self.itsView)
+            records, extra = self.serializer.deserialize(self.itsView, text)
             for alias, rs in records.iteritems():
                 inbound[alias] = rs
                 state = self.getState(alias)
@@ -1044,7 +1041,8 @@ class ResourceRecordSetConduit(RecordSetConduit):
 
                 doLog("Full resource records: %s", rs)
 
-                text = self.serializer.serialize({alias : rs}, **extra)
+                text = self.serializer.serialize(self.itsView, {alias : rs},
+                                                 **extra)
                 doLog("Sending to server [%s]", text)
                 etag = self.putResource(text, path, etag, debug=debug)
                 state.path = path
@@ -1102,8 +1100,7 @@ class InMemoryDiffRecordSetConduit(DiffRecordSetConduit):
 
 
     def serverPut(self, path, text):
-        recordsets, extra = self.serializer.deserialize(text,
-                                                       helperView=self.itsView)
+        recordsets, extra = self.serializer.deserialize(self.itsView, text)
         coll = self._getCollection(path)
         if extra.has_key("name"):
             coll["name"] = extra["name"]
@@ -1161,8 +1158,8 @@ class InMemoryDiffRecordSetConduit(DiffRecordSetConduit):
         extra = { }
         if coll.has_key("uuid"): extra["uuid"] = coll["uuid"]
         if coll.has_key("name"): extra["name"] = coll["name"]
-        text = self.serializer.serialize(recordsets, rootName="collection",
-            **extra)
+        text = self.serializer.serialize(self.itsView, recordsets,
+                                         rootName="collection", **extra)
 
         return str(current), text
 

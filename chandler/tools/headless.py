@@ -68,6 +68,7 @@ def startup(chandlerDirectory=None, **kwds):
     Utility.initCrypto(Globals.options.profileDir)
     Utility.initParcels(Globals.options, view, parcelPath)
     Utility.initPlugins(Globals.options, view, pluginEnv, pluginEggs)
+    Utility.initTimezone(Globals.options, view)
 
     if Globals.options.reload:
         from osaf import dumpreload

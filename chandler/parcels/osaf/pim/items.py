@@ -28,7 +28,6 @@ from osaf.pim.triage import Triageable
 import logging
 from i18n import ChandlerMessageFactory as _
 from osaf import messages
-from PyICU import ICUtzinfo
 
 logger = logging.getLogger(__name__)
 
@@ -148,10 +147,10 @@ class ContentItem(Triageable):
 
         # fall back to createdOn
         lastModified = (self.lastModified or getattr(self, 'createdOn', None) or
-                       datetime.now(ICUtzinfo.default))
+                        datetime.now(self.itsView.tzinfo.default))
 
         shortDateTimeFormat = schema.importString("osaf.pim.shortDateTimeFormat")
-        date = shortDateTimeFormat.format(lastModified)
+        date = shortDateTimeFormat.format(self.itsView, lastModified)
 
         tzName = u""
         tzPrefs = schema.ns('osaf.pim', self.itsView).TimezonePrefs
@@ -251,7 +250,7 @@ class ContentItem(Triageable):
     )
 
     schema.initialValues(
-        createdOn = lambda self: datetime.now(ICUtzinfo.default)
+        createdOn = lambda self: datetime.now(self.itsView.tzinfo.default)
     )
     
     def __str__ (self):
@@ -429,7 +428,7 @@ class ContentItem(Triageable):
         else:
             currentModFlags.add(modType)
         self.lastModification = modType
-        self.lastModified = when or datetime.now(ICUtzinfo.default)
+        self.lastModified = when or datetime.now(self.itsView.tzinfo.default)
         self.lastModifiedBy = who # None => me
 
     """
@@ -548,7 +547,7 @@ class ContentItem(Triageable):
                 dates.append((importance, v, attr))
         
     def updateDisplayDate(self, op, attr):
-        now = datetime.now(tz=ICUtzinfo.default)
+        now = datetime.now(tz=self.itsView.tzinfo.default)
         self._updateCommonAttribute('displayDate', 'displayDateSource',
                                     self.addDisplayDates, [now])
 

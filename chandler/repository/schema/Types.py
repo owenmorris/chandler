@@ -1360,7 +1360,7 @@ class DateStruct(Struct):
         if tzname is None:
             tz = None
         else:
-            tz = ICUtzinfo.getInstance(tzname)
+            tz = self.itsView.tzinfo.getInstance(tzname)
 
         hour = seconds / 3600
         minute = (seconds % 3600) / 60
@@ -1422,7 +1422,7 @@ class DateTime(DateStruct):
                 raise
 
         if count >= 3:
-            tz = ICUtzinfo.getInstance(values[2])
+            tz = self.itsView.tzinfo.getInstance(values[2])
 
         ss, us = self.parseSecond(second)
 
@@ -1432,7 +1432,7 @@ class DateTime(DateStruct):
     def _valueFromFields(self, flds):
 
         if 'timezone' in flds and flds['timezone'] is not None:
-            tz = ICUtzinfo.getInstance(flds['timezone'])
+            tz = self.itsView.tzinfo.getInstance(flds['timezone'])
         else:
             tz = None
 
@@ -1482,9 +1482,9 @@ class DateTimeTZ(DateTime):
                 raise
 
         if count >= 3:
-            tz = ICUtzinfo.getInstance(values[2])
+            tz = self.itsView.tzinfo.getInstance(values[2])
         else:
-            tz = ICUtzinfo.floating
+            tz = self.itsView.tzinfo.floating
 
         ss, us = self.parseSecond(second)
 
@@ -1576,7 +1576,7 @@ class Time(DateStruct):
             tz = None
 
         if count >= 2:
-            tz = ICUtzinfo.getInstance(values[1])
+            tz = self.itsView.tzinfo.getInstance(values[1])
 
         ss, us = self.parseSecond(second)
 
@@ -1585,7 +1585,7 @@ class Time(DateStruct):
     def _valueFromFields(self, flds):
 
         if 'timezone' in flds:
-            tz = ICUtzinfo.getInstance(flds['timezone'])
+            tz = self.itsView.tzinfo.getInstance(flds['timezone'])
         else:
             tz = None
 
@@ -1623,9 +1623,9 @@ class TimeTZ(Time):
             (HH, mm, second) = values[0].split(':')
 
         if count >= 2:
-            tz = ICUtzinfo.getInstance(values[1])
+            tz = self.itsView.tzinfo.getInstance(values[1])
         else:
-            tz = ICUtzinfo.floating
+            tz = self.itsView.tzinfo.floating
 
         ss, us = self.parseSecond(second)
 
@@ -1721,7 +1721,7 @@ class TimeZone(Type):
         if data == Type.NoneString:
             return None
         
-        return ICUtzinfo.getInstance(data)
+        return self.itsView.tzinfo.getInstance(data)
 
     def makeString(self, value):
 
@@ -1752,7 +1752,7 @@ class TimeZone(Type):
 
         value = data[offset]
         if value is not None:
-            value = ICUtzinfo.getInstance(value)
+            value = self.itsView.tzinfo.getInstance(value)
 
         return offset+1, value
 

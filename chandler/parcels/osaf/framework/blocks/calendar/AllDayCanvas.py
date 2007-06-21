@@ -25,7 +25,6 @@ from CalendarCanvas import (
     )
 from osaf.framework.blocks.Block import BaseWidget
 from CollectionCanvas import DragState
-from PyICU import ICUtzinfo
 from osaf.pim.calendar.TimeZone import TimeZoneInfo
 from osaf.pim import isDead
 
@@ -360,7 +359,8 @@ class wxAllDayEventsCanvas(BaseWidget, wxCalendarCanvas):
         on the current position and drag state. Handles both move and
         resize drags
         """
-        tzprefs = schema.ns('osaf.pim', self.blockItem.itsView).TimezonePrefs
+        view = self.blockItem.itsView
+        tzprefs = schema.ns('osaf.pim', view).TimezonePrefs
         useTZ = tzprefs.showUI
         
         event = self.dragState.originalDragBox.event
@@ -371,7 +371,7 @@ class wxAllDayEventsCanvas(BaseWidget, wxCalendarCanvas):
         if useTZ:
             tzinfo = oldTZ
         else:
-            tzinfo = ICUtzinfo.floating
+            tzinfo = view.tzinfo.floating
 
         #if resizeMode is None:
             # moving an item, need to adjust just the start time
@@ -444,7 +444,7 @@ class wxAllDayEventsCanvas(BaseWidget, wxCalendarCanvas):
                 
             newTime = None
             if self.dragState is not None:
-                newTime = self.GetDragAdjustedStartTime(ICUtzinfo.default)
+                newTime = self.GetDragAdjustedStartTime(self.blockItem.itsView.tzinfo.default)
                 # if the dragged item isn't from the allday canvas, it won't
                 # appear in self.visibleEvents
                 if self.coercedCanvasItem is not None:

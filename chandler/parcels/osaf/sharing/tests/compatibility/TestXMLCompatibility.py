@@ -1,10 +1,23 @@
+#   Copyright (c) 2003-2007 Open Source Applications Foundation
+#
+#   Licensed under the Apache License, Version 2.0 (the "License");
+#   you may not use this file except in compliance with the License.
+#   You may obtain a copy of the License at
+#
+#       http://www.apache.org/licenses/LICENSE-2.0
+#
+#   Unless required by applicable law or agreed to in writing, software
+#   distributed under the License is distributed on an "AS IS" BASIS,
+#   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+#   See the License for the specific language governing permissions and
+#   limitations under the License.
+
 import os
 import sys
 import unittest
 import pkg_resources
 from xml.etree import cElementTree
 
-from PyICU import ICUtzinfo
 import datetime
 
 from application import schema
@@ -267,7 +280,8 @@ class SharingTestCase(testcase.SingleRepositoryTestCase):
 class EventTestCase(SharingTestCase):
 
     filename = "Event.xml"
-        
+
+    from PyICU import ICUtzinfo
     attributes = {
         'itsUUID': UUID('5502c952-410a-11db-f9a1-0016cbca6aed'),
         'displayName': u'This is my \u2022ed event',
@@ -322,6 +336,7 @@ class TaskTestCase(SharingTestCase):
 
     filename = "Task.xml"
         
+    from PyICU import ICUtzinfo
     attributes = {
         'itsUUID': UUID('ee0dc68e-41ea-11db-ca3a-0016cbca6aed'),
         'displayName': u'A vewwy vewwy important task',
@@ -363,6 +378,7 @@ class MailTestCase(SharingTestCase):
 
     filename = "Mail.xml"
         
+    from PyICU import ICUtzinfo
     attributes = {
         'itsUUID': UUID('5b44e42a-420a-11db-b64e-0016cbca6aed'),
         'subject': u'This is the subject',
@@ -386,7 +402,7 @@ class MailTestCase(SharingTestCase):
                 emailAddress="someone@somewhere.example.com",
                 fullName="Sum Won",
                 createdOn = datetime.datetime(2006, 9, 10, 17, 3, 11,
-                                    tzinfo=ICUtzinfo.getInstance("US/Pacific")),
+                                    tzinfo=self.view.tzinfo.getInstance("US/Pacific")),
                 _triageStatus = pim.TriageEnum.done,
                 _triageStatusChanged = -1158958218.0))
         
@@ -395,7 +411,7 @@ class MailTestCase(SharingTestCase):
                emailAddress="someone-else@example.com",
                fullName="Sum Wonelse",
                createdOn=datetime.datetime(2006, 9, 10, 17, 3, 9,
-                    tzinfo=ICUtzinfo.getInstance("US/Pacific")),
+                    tzinfo=self.view.tzinfo.getInstance("US/Pacific")),
                _triageStatus=pim.TriageEnum.done,
                _triageStatusChanged=-1158958391.0))
 
@@ -437,6 +453,7 @@ class MailTestCase(SharingTestCase):
 class ComplexMailTestCase(SharingTestCase):
     filename = "ComplexMail.xml"
         
+    from PyICU import ICUtzinfo
     attributes = {
         'itsUUID': UUID('09da180e-442a-11db-bd6e-0016cbca6aed'),
         'subject': u'ALTERNATIVE MIMETYPE TEST',
@@ -458,7 +475,7 @@ class ComplexMailTestCase(SharingTestCase):
                 emailAddress="anthony@interlink.com.au",
                 fullName="Anthony Baxter",
                 createdOn = datetime.datetime(2006, 9, 14, 12, 48, 48,
-                                    tzinfo=ICUtzinfo.getInstance("US/Pacific")),
+                                    tzinfo=self.view.tzinfo.getInstance("US/Pacific")),
                 _triageStatus = pim.TriageEnum.now,
                 _triageStatusChanged = -1158288128.0))
                 
@@ -469,7 +486,7 @@ class ComplexMailTestCase(SharingTestCase):
             mimeType=u"application/octet-stream",
             body=u"",
             createdOn=datetime.datetime(2006, 9, 14, 12, 48, 48, 228990,
-                                    tzinfo=ICUtzinfo.getInstance("US/Pacific")),
+                                    tzinfo=self.view.tzinfo.getInstance("US/Pacific")),
             _triageStatus=pim.TriageEnum.now,
             _triageStatusChanged=-1158288128.0))
             
@@ -480,7 +497,7 @@ class ComplexMailTestCase(SharingTestCase):
               mimeType="text/html",
               body=u"&lt;br&gt; Test Two&lt;/br&gt;\n",
               createdOn=datetime.datetime(2006, 9, 14, 12, 48, 48, 232830,
-                                    tzinfo=ICUtzinfo.getInstance("US/Pacific")),
+                                    tzinfo=self.view.tzinfo.getInstance("US/Pacific")),
               _triageStatus=pim.TriageEnum.now,
               _triageStatusChanged=-1158292128.0))
 
@@ -539,6 +556,7 @@ class EmptyMailTestCase(SharingTestCase):
 
     filename = "EmptyMail.xml"
         
+    from PyICU import ICUtzinfo
     attributes = {
         'itsUUID': UUID('7b3b015e-6f57-11db-ed86-0016cbca6aed'),
         'subject': u'Untitled',
@@ -598,6 +616,7 @@ class EventTaskTestCase(SharingTestCase):
 
     filename = "EventTask.xml"
         
+    from PyICU import ICUtzinfo
     attributes = {
         'itsUUID': UUID('711cc574-4cff-11db-af32-c2da3320d5d3'),
         'displayName': u'Hi',
@@ -624,7 +643,7 @@ class EventTaskTestCase(SharingTestCase):
             firstName=u'Chandler',
             lastName=u'User',
             createdOn=datetime.datetime(2006, 9, 21, 13, 41, 50, 272075,
-                                    tzinfo=ICUtzinfo.getInstance("US/Pacific")),
+                                    tzinfo=self.view.tzinfo.getInstance("US/Pacific")),
             _triageStatus=pim.TriageEnum.now,
             _triageStatusChanged=-1158900110.0))
           
@@ -633,7 +652,7 @@ class EventTaskTestCase(SharingTestCase):
             contactName=contactName,
             displayName=u'Me',
             createdOn=datetime.datetime(2006, 9, 21, 13, 41, 50, 470953,
-                                    tzinfo=ICUtzinfo.getInstance("US/Pacific")),
+                                    tzinfo=self.view.tzinfo.getInstance("US/Pacific")),
             _triageStatus=pim.TriageEnum.now,
             _triageStatusChanged=-1158900110.0))
             
@@ -673,6 +692,7 @@ class MailedEventTaskTestCase(SharingTestCase):
 
     filename = "MailedEventTask.xml"
         
+    from PyICU import ICUtzinfo
     attributes = {
         'itsUUID': UUID('711cc574-4cff-11db-af32-c2da3320d5d3'),
         'displayName': 'Here we go.....',
@@ -731,6 +751,7 @@ class ShareTestCase(SharingTestCase):
 
     filename = "Share.xml"
         
+    from PyICU import ICUtzinfo
     attributes = {
         'itsUUID': UUID('d1514632-47ea-11db-a812-0016cbca6aed'),
         'displayName': u'Shared Collection',
@@ -748,7 +769,7 @@ class ShareTestCase(SharingTestCase):
                itsUUID=UUID('d1511b12-47ea-11db-a812-0016cbca6aed'),
                displayName=u'A new collection',
                createdOn = datetime.datetime(2005, 4, 11, 8, 12, 33,
-                                    tzinfo=ICUtzinfo.getInstance("US/Pacific")),
+                                    tzinfo=self.view.tzinfo.getInstance("US/Pacific")),
                _triageStatus = pim.TriageEnum.now,
                _triageStatusChanged = -1158191886.0))
                

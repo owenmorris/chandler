@@ -1,4 +1,4 @@
-#   Copyright (c) 2003-2006 Open Source Applications Foundation
+#   Copyright (c) 2003-2007 Open Source Applications Foundation
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -20,7 +20,6 @@ from osaf.sharing import recordset_conduit, translator, eimml
 
 from repository.item.Item import Item
 from util import testcase
-from PyICU import ICUtzinfo
 from application import schema
 
 from osaf.pim.calendar.Recurrence import RecurrenceRuleSet, RecurrenceRule
@@ -81,7 +80,7 @@ class RoundTripTestCase(testcase.DualRepositoryTestCase):
 
         self.uuids = { }
 
-        tzinfo = ICUtzinfo.floating
+        tzinfo = view.tzinfo.floating
         createdOn = datetime.datetime(2007, 3, 1, 10, 0, 0, 0, tzinfo)
         count = len(titles)
         for i in xrange(count):
@@ -108,11 +107,11 @@ class RoundTripTestCase(testcase.DualRepositoryTestCase):
         # Cosmo converts PST8PDT to America/Los_Angeles, so that breaks
         # things.  Until we solve that problem, let's use a timezone they
         # understand
-        pacific = ICUtzinfo.getInstance("America/Los_Angeles")
+        pacific = view.tzinfo.getInstance("America/Los_Angeles")
 
         event.startTime = datetime.datetime.combine(
             datetime.datetime.now().date() - datetime.timedelta(days=3),
-            datetime.time(11, 0, tzinfo=pacific) # ICUtzinfo.default)
+            datetime.time(11, 0, tzinfo=pacific) # view.tzinfo.default)
         )
         event.anyTime = False
         event.transparency = 'confirmed'
@@ -232,7 +231,7 @@ class RoundTripTestCase(testcase.DualRepositoryTestCase):
         # 1) Simple case, only one way:
         email = "test@example.com"
         emailAddress = pim.EmailAddress.getEmailAddress(view0, email)
-        tzinfo = ICUtzinfo.floating
+        tzinfo = view0.tzinfo.floating
         lastModified = datetime.datetime(2030, 3, 1, 12, 0, 0, 0, tzinfo)
         item.lastModifiedBy = emailAddress
         item.lastModified = lastModified
@@ -820,7 +819,7 @@ class RoundTripTestCase(testcase.DualRepositoryTestCase):
 
         from osaf.mail.utils import dateTimeToRFC2822Date, dataToBinary, binaryToData
 
-        dateSent = datetime.datetime.now(ICUtzinfo.default)
+        dateSent = datetime.datetime.now(view0.tzinfo.default)
         dateSentString = dateTimeToRFC2822Date(dateSent)
 
         # Start over with a new item
@@ -954,7 +953,7 @@ class RoundTripTestCase(testcase.DualRepositoryTestCase):
         # for some reason the recurrence end date didn't get set during
         # the sync. So, when checking that the right events got deleted,
         # we'll query in a 2-year window.
-        start = datetime.datetime.now(ICUtzinfo.default) - datetime.timedelta(days=365)
+        start = datetime.datetime.now(view0.tzinfo.default) - datetime.timedelta(days=365)
         end = start + datetime.timedelta(days=710)
         
         def getStartTimes(e):

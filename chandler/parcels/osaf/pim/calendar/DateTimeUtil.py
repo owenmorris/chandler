@@ -42,7 +42,7 @@ class DatetimeFormatter(object):
         super(DatetimeFormatter, self).__init__()
         self.dateFormat = dateFormat
         
-    def parse(self, string, referenceDate=None):
+    def parse(self, view, string, referenceDate=None):
         """
         @param string: The date/time string to parse
         @type string: C{str} or C{unicode}
@@ -64,7 +64,7 @@ class DatetimeFormatter(object):
             tzinfo = referenceDate.tzinfo
             
         if tzinfo is None:
-            self.dateFormat.setTimeZone(PyICU.ICUtzinfo.default.timezone)
+            self.dateFormat.setTimeZone(view.tzinfo.default.timezone)
         else:
             self.dateFormat.setTimeZone(tzinfo.timezone)
         
@@ -81,7 +81,7 @@ class DatetimeFormatter(object):
             calendar.get(PyICU.Calendar.MILLISECOND) * 1000,
             tzinfo)
         
-    def format(self, datetime):
+    def format(self, view, datetime):
         """
         @param datetime: The C{datetime} to format. If it's naive,
             its interpreted as being in the user's default timezone.
@@ -91,7 +91,8 @@ class DatetimeFormatter(object):
         @raises: ICUError
         """
         tzinfo = datetime.tzinfo
-        if tzinfo is None: tzinfo = PyICU.ICUtzinfo.default
+        if tzinfo is None:
+            tzinfo = view.tzinfo.default
         self.dateFormat.setTimeZone(tzinfo.timezone)
         return unicode(self.dateFormat.format(datetime))
 

@@ -1,4 +1,4 @@
-#   Copyright (c) 2003-2006 Open Source Applications Foundation
+#   Copyright (c) 2003-2007 Open Source Applications Foundation
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -18,7 +18,6 @@ from osaf import pim, sharing
 from repository.item.Item import Item
 from chandlerdb.util.c import UUID
 from util import testcase
-from PyICU import ICUtzinfo
 from application import schema
 from i18n.tests import uw
 

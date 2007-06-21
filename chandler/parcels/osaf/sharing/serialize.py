@@ -46,7 +46,7 @@ def serialize(rv, items, translator, serializer, filter=None, debug=False):
 
         shared = shares.SharedItem(item)
 
-    text = serializer.serialize(rsInternal)
+    text = serializer.serialize(rv, rsInternal)
 
     return text
 
@@ -61,7 +61,7 @@ def deserialize(rv, peer, text, translator, serializer, filter=None,
 
     trans = translator(rv)
 
-    inbound, extra = serializer.deserialize(text)
+    inbound, extra = serializer.deserialize(rv, text)
 
     for alias, rsExternal in inbound.items():
 

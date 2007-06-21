@@ -44,8 +44,12 @@ def reindexFloatingEvents(view, tzinfo):
 
     # Ask the view to trigger reindexing for all the above attributes, for
     # all floating events. This should cover the cases above.
-    view.reindex(pim_ns.floatingEvents, *attrs)
-    events = pim_ns.EventStamp.getCollection(view)
+    floatingEvents = pim_ns.floatingEvents
+    if view.isRefreshing():
+        floatingEvents = [item for item in view.dirtyItems()
+                          if item in floatingEvents]
+    if floatingEvents:
+        view.reindex(floatingEvents, *attrs)
 
     # [Bug 8688] Re-calculate until based on new (non-floating) timezone
     ruleClass = schema.ns("osaf.pim.calendar.Recurrence", view).RecurrenceRule
@@ -56,10 +60,26 @@ def reindexFloatingEvents(view, tzinfo):
             view[uuid].until = until.replace(tzinfo=tzinfo)
 
 
+# The repository's view default timezone change callback
+def ontzchange(view, tzinfo):
+
+    view.logger.warning("%s: timezone changed to %s", view, tzinfo)
+
+    defaultInfo = TimeZoneInfo.get(view)
+    default = defaultInfo.canonicalTimeZone(tzinfo)
+        
+    # only set defaultInfo's timezone if timezones are used
+    if default is not None and defaultInfo.default != view.tzinfo.floating:
+        defaultInfo.default = default
+
+    reindexFloatingEvents(view, default)
+
+
 def equivalentTZIDs(tzinfo):
     numEquivalents = PyICU.TimeZone.countEquivalentIDs(tzinfo.tzid)
     for index in xrange(numEquivalents):
         yield PyICU.TimeZone.getEquivalentID(tzinfo.tzid, index)
+
 
 class TimeZoneInfo(schema.Item):
     """
@@ -69,9 +89,7 @@ class TimeZoneInfo(schema.Item):
      - A list of "well-known" timezone names.
     """
 
-    default = schema.One(
-        schema.TimeZone, initialValue = PyICU.ICUtzinfo.floating
-    )
+    default = schema.One(schema.TimeZone)
 
     # List of well-known time zones (for populating drop-downs).
     # [i18n] Since ICU doesn't suitably localize strings like 'US/Pacific',
@@ -80,37 +98,34 @@ class TimeZoneInfo(schema.Item):
         schema.Text,
     )
 
-    def __setup__(self, *args, **kwds):
-        self.watchItem(self, 'onDefaultChanged')
+    schema.initialValues(
+        default = lambda self: self.itsView.tzinfo.floating
+    )
 
+    # Observe changes to 'default'.
+    # When the view's default timezone changes via another route such as
+    # refresh(), ontzchange is invoked by the repository
+    @schema.observer(default)
+    def onDefaultChanged(self, op, name):
 
-    # Called by the watcher registered in __init__().
-    # A watcher is also invoked when the item is refreshed into another view
-    # whereas an observer (afterChange) method is not.
-    # That way, events that need to be re-indexed in that view will be.
+        # Make sure that the view's default timezone is synched with ours
+        view = self.itsView
+        default = self.default
 
-    def onDefaultChanged(self, op, uItem, names):
-
-        if 'default' in names:
-            # Repository hook for attribute changes.
-            default = self.default
-            canonicalDefault = self.canonicalTimeZone(default)
-            # Make sure that PyICU's default timezone is synched with ours
-            if (canonicalDefault is not None and
-                canonicalDefault is not PyICU.ICUtzinfo.floating):
-                PyICU.ICUtzinfo.setDefault(canonicalDefault)
-                reindexFloatingEvents(self.itsView, canonicalDefault)
-            # This next if is required to avoid an infinite recursion!
-            if canonicalDefault is not default:
-                self.default = canonicalDefault
+        # only set the view's default timezone if timezones are used
+        if default is not None and default != view.tzinfo.floating:
+            assert view.tzinfo.ontzchange is ontzchange
+            view.tzinfo.setDefault(default)  # --> ontzchange
+        else:
+            self.default = self.canonicalTimeZone(default)
 
     @classmethod
     def get(cls, view):
         """
         Return the default C{TimeZoneInfo} instance, which
-        automatically syncs with PyICU's default; i.e. if you
+        automatically syncs with the view's default; i.e. if you
         assign an ICUtzinfo to C{TimeZoneInfo.get().default},
-        this will be stored as ICU's default time zone.
+        this will be stored as the view's default time zone.
         """
 
         return schema.ns(__name__, view).defaultInfo
@@ -124,10 +139,10 @@ class TimeZoneInfo(schema.Item):
         A side-effect is that if a previously unseen tzinfo is
         passed in, it will be added to the receiver's wellKnownIDs.
         """
+        view = self.itsView
 
-        if tzinfo is None or tzinfo == PyICU.ICUtzinfo.floating:
-
-            result = PyICU.ICUtzinfo.floating
+        if tzinfo is None or tzinfo == view.tzinfo.floating:
+            result = view.tzinfo.floating
 
         else:
             result = None
@@ -137,13 +152,12 @@ class TimeZoneInfo(schema.Item):
             else:
                 for equivName in equivalentTZIDs(tzinfo):
                     if equivName in self.wellKnownIDs:
-                        result = PyICU.ICUtzinfo.getInstance(equivName)
+                        result = view.tzinfo.getInstance(equivName)
                         break
 
             if result is None and tzinfo is not None:
                 self.wellKnownIDs.append(unicode(tzinfo.tzid))
                 result = tzinfo
-
 
         return result
 
@@ -154,25 +168,17 @@ class TimeZoneInfo(schema.Item):
         where 'display name' is a suitably localized unicode string.
         """
 
-        floating = PyICU.ICUtzinfo.floating
+        view = self.itsView
+        floating = view.tzinfo.floating
 
         for name in self.wellKnownIDs:
-            tzinfo = PyICU.ICUtzinfo.getInstance(name)
+            tzinfo = view.tzinfo.getInstance(name)
 
             if tzinfo != floating:
-
                 yield (ChandlerMessageFactory(name), tzinfo)
 
         if withFloating:
             yield ChandlerMessageFactory(u"Floating"), floating
-
-    def onItemLoad(self, view):
-        # This is overridden to ensure that storing the
-        # default timezone in the repository overrides ICU's
-        # settings.
-        tz = self.default
-        if tz is not None and view is not None:
-            PyICU.TimeZone.setDefault(tz.timezone)
 
 
 class TZPrefs(Preferences):
@@ -188,11 +194,13 @@ class TZPrefs(Preferences):
 
         # Sync up the default timezone (i.e. the one used when
         # creating new events).
+        view = self.itsView
         if self.showUI:
-            timeZoneInfo.default = PyICU.ICUtzinfo.default
-            convertFloatingEvents(self.itsView, PyICU.ICUtzinfo.default)
+            timeZoneInfo.default = view.tzinfo.default
+            convertFloatingEvents(view, view.tzinfo.default)
         else:
-            timeZoneInfo.default = PyICU.ICUtzinfo.floating
+            timeZoneInfo.default = view.tzinfo.floating
+
 
 def installParcel(parcel, oldVersion = None):
     TZPrefs.update(parcel, 'TimezonePrefs')
@@ -228,7 +236,7 @@ def installParcel(parcel, oldVersion = None):
                         wellKnownIDs=wellKnownIDs)
 
 
-def stripTimeZone(dt):
+def stripTimeZone(view, dt):
     """
     This method returns a naive C{datetime} (i.e. one with a
     C{tzinfo} of C{None}.
@@ -244,9 +252,9 @@ def stripTimeZone(dt):
     if dt.tzinfo == None:
         return dt
     else:
-        return dt.astimezone(PyICU.ICUtzinfo.default).replace(tzinfo=None)
+        return dt.astimezone(view.tzinfo.default).replace(tzinfo=None)
 
-def forceToDateTime(dt):
+def forceToDateTime(view, dt):
     """
     If dt is a datetime, return dt, if a date, add time(0) and return.
 
@@ -255,7 +263,7 @@ def forceToDateTime(dt):
 
     @return: A C{datetime}
     """
-    floating = PyICU.ICUtzinfo.floating
+    floating = view.tzinfo.floating
     if type(dt) == datetime.datetime:
         if dt.tzinfo is None:
             return dt.replace(tzinfo=floating)
@@ -264,7 +272,7 @@ def forceToDateTime(dt):
     elif type(dt) == datetime.date:
         return datetime.datetime.combine(dt, datetime.time(0, tzinfo=floating))
 
-def coerceTimeZone(dt, tzinfo):
+def coerceTimeZone(view, dt, tzinfo):
     """
     This method returns a C{datetime} with a specified C{tzinfo}.
 
@@ -281,18 +289,17 @@ def coerceTimeZone(dt, tzinfo):
     @return: A C{datetime} whose C{tzinfo} field is the same as the target.
     """
     if tzinfo is None:
-        return stripTimeZone(dt)
+        return stripTimeZone(view, dt)
     else:
         if dt.tzinfo is None:
-            dt = dt.replace(tzinfo=PyICU.ICUtzinfo.default)
+            dt = dt.replace(tzinfo=view.tzinfo.default)
         return dt.astimezone(tzinfo)
 
 
-utc = PyICU.ICUtzinfo.getInstance('UTC')
 tzid_mapping = {}
 dateutil_utc = dateutil.tz.tzutc()
 
-def convertToICUtzinfo(dt, view=None):
+def convertToICUtzinfo(view, dt):
     """
     This method returns a C{datetime} whose C{tzinfo} field
     (if any) is an instance of the ICUtzinfo class.
@@ -301,6 +308,7 @@ def convertToICUtzinfo(dt, view=None):
                to convert to an ICUtzinfo instance.
     @type dt: C{datetime}
     """
+
     oldTzinfo = dt.tzinfo
     if isinstance(oldTzinfo, (PyICU.ICUtzinfo, PyICU.FloatingTZ)):
         return dt
@@ -311,7 +319,7 @@ def convertToICUtzinfo(dt, view=None):
         def getICUInstance(name):
             result = None
             if name is not None:
-                result = PyICU.ICUtzinfo.getInstance(name)
+                result = view.tzinfo.getInstance(name)
                 if result is not None and \
                     result.tzid == 'GMT' and \
                     name != 'GMT':
@@ -337,7 +345,7 @@ def convertToICUtzinfo(dt, view=None):
             # special case UTC, because dateutil.tz.tzutc() doesn't have a TZID
             # and a VTIMEZONE isn't used for UTC
             if vobject.icalendar.tzinfo_eq(dateutil_utc, oldTzinfo):
-                icuTzinfo = utc
+                icuTzinfo = view.tzinfo.UTC
 
         # iterate over all PyICU timezones, return the first one whose
         # offsets and DST transitions match oldTzinfo.  This is painfully
@@ -392,22 +400,22 @@ def convertToICUtzinfo(dt, view=None):
     # Here, if we have an unknown timezone, we'll turn
     # it into a floating datetime
     if icuTzinfo is None:
-        icuTzinfo = PyICU.ICUtzinfo.floating
+        icuTzinfo = view.tzinfo.floating
 
     dt = dt.replace(tzinfo=icuTzinfo)
 
     return dt
 
-def shortTZ(dt, tzinfo=None):
+def shortTZ(view, dt, tzinfo=None):
     """
     Return an empty string or the short timezone string for dt if dt.tzinfo
     doesn't match tzinfo (tzinfo defaults to PyICU.ICUtzinfo.default)
 
     """
     if tzinfo is None:
-        tzinfo = PyICU.ICUtzinfo.default
+        tzinfo = view.tzinfo.default
 
-    if dt.tzinfo is None or dt.tzinfo is PyICU.ICUtzinfo.floating:
+    if dt.tzinfo is None or dt.tzinfo == view.tzinfo.floating:
         return u''
     elif dt.tzinfo != tzinfo:
         # make sure they aren't equivalent
@@ -440,12 +448,13 @@ def _setTimeZoneInSubformats(msgFormat, tz):
 
     msgFormat.setFormats(subformats)
 
-def formatTime(dt, tzinfo=None, noTZ=False, includeDate=False):
-    if tzinfo is None: tzinfo = PyICU.ICUtzinfo.default
+def formatTime(view, dt, tzinfo=None, noTZ=False, includeDate=False):
+    if tzinfo is None:
+        tzinfo = view.tzinfo.default
 
     useSameTimeZoneFormat = True
 
-    if dt.tzinfo is None or dt.tzinfo is PyICU.ICUtzinfo.floating or noTZ:
+    if dt.tzinfo is None or dt.tzinfo == view.tzinfo.floating or noTZ:
         dt = dt.replace(tzinfo=tzinfo)
     elif dt.tzinfo != tzinfo:
         useSameTimeZoneFormat = False
@@ -472,10 +481,10 @@ def formatTime(dt, tzinfo=None, noTZ=False, includeDate=False):
 
     return unicode(format.format([formattable], PyICU.FieldPosition()))
 
-def getTimeZoneCode(dt):
-    tzinfo = PyICU.ICUtzinfo.default
+def getTimeZoneCode(view, dt):
+    tzinfo = view.tzinfo.default
 
-    if dt.tzinfo is None or dt.tzinfo is PyICU.ICUtzinfo.floating:
+    if dt.tzinfo is None or dt.tzinfo == view.tzinfo.floating:
         dt = dt.replace(tzinfo=tzinfo)
 
     format = PyICU.MessageFormat("{0,time,z}")
@@ -516,6 +525,5 @@ def convertFloatingEvents(view, newTZ):
                 ev = EventStamp(occurrence)
                 with ev.noRecurrenceChanges():
                     ev.recurrenceID = ev.recurrenceID.replace(tzinfo=newTZ)
-                    if ev.startTime.tzinfo == PyICU.ICUtzinfo.floating:
+                    if ev.startTime.tzinfo == view.tzinfo.floating:
                         ev.startTime = ev.startTime.replace(tzinfo=newTZ)
-

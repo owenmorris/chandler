@@ -38,7 +38,7 @@ def inbound(peer, text, filter=None, allowDeletion=False, debug=False):
     serializer = eimml.EIMMLSerializer # only using class methods
     trans = translator.SharingTranslator(rv)
 
-    inbound, extra = serializer.deserialize(text, helperView=rv)
+    inbound, extra = serializer.deserialize(rv, text, helperView=rv)
 
     peerRepoId = extra.get('repo', None)
     peerItemVersion = int(extra.get('version', '-1'))
@@ -179,16 +179,16 @@ def outbound(peers, item, filter=None, debug=False):
             repoId = ""
 
 
-    text = serializer.serialize(rsInternal, rootName="item", repo=repoId,
-        version=version)
+    text = serializer.serialize(rv, rsInternal, rootName="item", repo=repoId,
+                                version=version)
 
     return text
 
 
-def outboundDeletion(peers, uuid, debug=False):
+def outboundDeletion(rv, peers, uuid, debug=False):
 
     # At some point, which serializer and translator to use should be
     # configurable
     serializer = eimml.EIMMLSerializer # only using class methods
 
-    return serializer.serialize({ uuid : None }, "item")
+    return serializer.serialize(rv, { uuid : None }, "item")

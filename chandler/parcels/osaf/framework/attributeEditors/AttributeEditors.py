@@ -31,7 +31,7 @@ from chandlerdb.util.c import Nil
 from osaf.framework.blocks import DrawingUtilities, Styles
 #from operator import itemgetter
 from datetime import datetime, timedelta
-from PyICU import ICUError, ICUtzinfo, UnicodeString
+from PyICU import ICUError, UnicodeString
 from osaf.framework.blocks.Block import BaseWidget
 #from osaf.pim.items import ContentItem
 from application import schema
@@ -377,6 +377,7 @@ class DateTimeAttributeEditor(StringAttributeEditor):
         Draw the date & time, somewhat in the style that Apple Mail does:
         Date left justified, time right justified.
         """
+        view = item.itsView
         item = RecurrenceDialog.getProxy(u'ui', item, createNew=False)
 
         # Erase the bounding box
@@ -421,10 +422,14 @@ class DateTimeAttributeEditor(StringAttributeEditor):
             #dateString = pim.weekdayName(itemDateTime)
 
         if dateString is None:
-            dateString = pim.mediumDateFormat.format(itemDateTime)
+            dateString = pim.mediumDateFormat.format(view, itemDateTime)
         if timeString is None and not hideTime:
-            timeString = pim.shortTimeFormat.format(itemDateTime)
-            tzString = shortTZ(itemDateTime)
+            timeString = pim.shortTimeFormat.format(view, itemDateTime)
+            tzString = shortTZ(view, itemDateTime)
+            if len(tzString) > 0:
+                tzFont = Styles.getFont(grid.blockItem.prefixCharacterStyle)
+                tzWidth = dc.GetFullTextExtent(tzString, tzFont)[0]
+            tzString = shortTZ(view, itemDateTime)
             if len(tzString) > 0:
                 tzFont = Styles.getFont(grid.blockItem.prefixCharacterStyle)
                 tzWidth = dc.GetFullTextExtent(tzString, tzFont)[0]
@@ -487,7 +492,7 @@ class DateAttributeEditor (StringAttributeEditor):
 
     
     @classmethod
-    def parseDate(cls, target):
+    def parseDate(cls, view, target):
         """Parses Natural Language date strings using parsedatetime library."""
         target = target.lower()
         for matchKey in cls.textMatches:
@@ -498,7 +503,7 @@ class DateAttributeEditor (StringAttributeEditor):
                 #invalidFlag = 0 implies no date/time
                 #invalidFlag = 2 implies only time, no date
                 if invalidFlag != 0 and invalidFlag != 2:
-                    dateStr = pim.shortDateFormat.format(datetime(*dateVar[:3]))
+                    dateStr = pim.shortDateFormat.format(view, datetime(*dateVar[:3]))
                     matchKey = cls.textMatches[matchKey]+ " : %s" % dateStr
                     yield matchKey
             else:
@@ -509,7 +514,7 @@ class DateAttributeEditor (StringAttributeEditor):
                 if invalidFlag != 0 and invalidFlag != 2:
                     # temporary fix: parsedatetime sometimes returns day == 0
                     if not filter(lambda x: not x, dateVar[:3]):
-                        match = pim.shortDateFormat.format(datetime(*dateVar[:3]))
+                        match = pim.shortDateFormat.format(view, datetime(*dateVar[:3]))
                         if unicode(match).lower() != target:
                             yield match
                         break
@@ -518,7 +523,7 @@ class DateAttributeEditor (StringAttributeEditor):
     def GetAttributeValue (self, item, attributeName):
         dateTimeValue = getattr(item, attributeName, None)
         value = dateTimeValue and \
-                pim.shortDateFormat.format(dateTimeValue) or u''
+                pim.shortDateFormat.format(item.itsView, dateTimeValue) or u''
         return value
 
     def SetAttributeValue(self, item, attributeName, valueString):
@@ -529,11 +534,11 @@ class DateAttributeEditor (StringAttributeEditor):
 
         oldValue = getattr(item, attributeName, None)
         if oldValue is None:
-            oldValue = datetime.now(ICUtzinfo.default).\
+            oldValue = datetime.now(item.itsView.tzinfo.default).\
                        replace(hour=0, minute=0, second=0, microsecond=0)
 
         try:
-            dateValue = pim.shortDateFormat.parse(newValueString, 
+            dateValue = pim.shortDateFormat.parse(item.itsView, newValueString, 
                                                   referenceDate=oldValue)
         except (ICUError, ValueError):
             self._changeTextQuietly(self.control, "%s ?" % newValueString)
@@ -544,7 +549,7 @@ class DateAttributeEditor (StringAttributeEditor):
         if oldValue is not None:
             value = datetime.combine(dateValue.date(), oldValue.timetz())
         elif dateValue:
-            value = dateValue.replace(tzinfo=ICUtzinfo.floating)
+            value = dateValue.replace(tzinfo=item.itsView.tzinfo.floating)
         else:
             value = None
         if oldValue != value:
@@ -559,7 +564,8 @@ class DateAttributeEditor (StringAttributeEditor):
         return pim.sampleDate # get a hint like "mm/dd/yy"
         
     def generateCompletionMatches(self, target):
-        return self.parseDate(target)
+        view = wx.GetApp().UIRepositoryView
+        return self.parseDate(view, target)
         
     def finishCompletion(self, completionString):
         if completionString is not None:
@@ -578,7 +584,7 @@ class TimeAttributeEditor(StringAttributeEditor):
                    'Night':_(u'Night'),u'EOD':_(u'End of day')}
     
     @classmethod
-    def parseTime(cls, target):
+    def parseTime(cls, view, target):
         """Parses Natural Language time strings using parsedatetime library."""
         target = target.lower()
         for matchKey in cls.textMatches:
@@ -589,7 +595,7 @@ class TimeAttributeEditor(StringAttributeEditor):
                 #invalidFlag = 0 implies no date/time
                 #invalidFlag = 1 implies only date, no time
                 if invalidFlag != 0 and invalidFlag != 1:
-                    timeVar = pim.shortTimeFormat.format(datetime(*timeVar[:5]))
+                    timeVar = pim.shortTimeFormat.format(view, datetime(*timeVar[:5]))
                     matchKey = cls.textMatches[matchKey]+ " - %s" %timeVar
                     yield matchKey
             else:
@@ -598,7 +604,7 @@ class TimeAttributeEditor(StringAttributeEditor):
                 #invalidFlag = 0 implies no date/time
                 #invalidFlag = 1 implies only date, no time
                 if invalidFlag != 0 and invalidFlag != 1:
-                    match = pim.shortTimeFormat.format(datetime(*timeVar[:5]))
+                    match = pim.shortTimeFormat.format(view, datetime(*timeVar[:5]))
                     if unicode(match).lower() !=target:
                         yield match
                     break
@@ -606,7 +612,7 @@ class TimeAttributeEditor(StringAttributeEditor):
     def GetAttributeValue(self, item, attributeName):
         dateTimeValue = getattr(item, attributeName, None)
         value = dateTimeValue and \
-                pim.shortTimeFormat.format(dateTimeValue) or u''
+                pim.shortTimeFormat.format(item.itsView, dateTimeValue) or u''
         return value
 
     def SetAttributeValue(self, item, attributeName, valueString):
@@ -617,9 +623,9 @@ class TimeAttributeEditor(StringAttributeEditor):
         # We have _something_; parse it.
         oldValue = getattr(item, attributeName, None)
         if oldValue is None:
-            oldValue = datetime.now(ICUtzinfo.default)
+            oldValue = datetime.now(item.itsView.tzinfo.default)
         try:
-            timeValue = pim.shortTimeFormat.parse(newValueString, 
+            timeValue = pim.shortTimeFormat.parse(item.itsView, newValueString, 
                                                   referenceDate=oldValue)
         except ICUError:
             self._changeTextQuietly(self.control, "%s ?" % newValueString)
@@ -645,18 +651,19 @@ class TimeAttributeEditor(StringAttributeEditor):
         Note: @@@ This may not be right for the product, but I'm leaving it in for now.
         """
 
+        view = wx.GetApp().UIRepositoryView
         try:
             hour = int(target)
         except ValueError:
-            for matchKey in self.parseTime(target):
+            for matchKey in self.parseTime(view, target):
                 yield matchKey
         else:
             if hour < 24:
                 if hour == 12:
-                    yield pim.shortTimeFormat.format(datetime(2003,10,30,0,00))
-                yield pim.shortTimeFormat.format(datetime(2003,10,30,hour,00))
+                    yield pim.shortTimeFormat.format(view, datetime(2003,10,30,0,00))
+                yield pim.shortTimeFormat.format(view, datetime(2003,10,30,hour,00))
                 if hour < 12:
-                    yield pim.shortTimeFormat.format(
+                    yield pim.shortTimeFormat.format(view, 
                         datetime(2003,10,30,hour + 12,00))
 
     def finishCompletion(self, completionString):
@@ -1213,7 +1220,7 @@ class TimeZoneAttributeEditor(ChoiceAttributeEditor):
         """
 
         if value is None:
-            value = ICUtzinfo.floating
+            value = self.item.itsView.tzinfo.floating
 
         # We also take this opportunity to populate the menu
         # @@@ for now, we always do it, since we can't tell whether we were

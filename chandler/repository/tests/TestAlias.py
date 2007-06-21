@@ -22,7 +22,6 @@ import repository.schema.Types
 import repository.item.PersistentCollections
 
 from datetime import datetime
-from PyICU import ICUtzinfo
 
 from repository.schema.Attribute import Attribute
 from repository.util.Path import Path
@@ -54,7 +53,7 @@ class AliasTest(RepositoryTestCase.RepositoryTestCase):
 
         self.dateTimeString = '2004-01-08 12:34:56-0800'
         self.dateTime = datetime(2004, 1, 8, 12, 34, 56,
-                                 tzinfo=ICUtzinfo.getInstance('US/Pacific'))
+                                 tzinfo=view.tzinfo.getInstance('US/Pacific'))
 
     def testIsAlias(self):
         self.assert_(self.alias.isAlias())

@@ -35,7 +35,6 @@ import email.Utils as Utils
 import re as re
 from chandlerdb.util.c import Empty
 import PyICU
-from PyICU import ICUtzinfo
 
 from i18n import ChandlerMessageFactory as _
 from osaf import messages, preferences
@@ -294,9 +293,9 @@ def getReplyBody(mailStamp):
 
 """) % getBodyValues(mailStamp, addGT=True)
 
-def formatDateAndTime(dateStamp):
-    dateTime = formatTime(dateStamp, noTZ=True, includeDate=True)
-    time = formatTime(dateStamp, noTZ=True, includeDate=False)
+def formatDateAndTime(view, dateStamp):
+    dateTime = formatTime(view, dateStamp, noTZ=True, includeDate=True)
+    time = formatTime(view, dateStamp, noTZ=True, includeDate=False)
 
     # Parse the date from a date time string since formatTime does
     # not have an option to get just the date.
@@ -329,11 +328,12 @@ def in_collection(addr, collection):
 
 
 def getBodyValues(mailStamp, addGT=False, usePrefix=False):
+    view = mailStamp.itsItem.itsView
     if not hasattr(mailStamp, 'dateSent'):
         from osaf.mail.utils import dateTimeToRFC2822Date
-        mailStamp.dateSent = datetime.now(PyICU.ICUtzinfo.default)
+        mailStamp.dateSent = datetime.now(view.tzinfo.default)
 
-    date, time = formatDateAndTime(mailStamp.dateSent)
+    date, time = formatDateAndTime(view, mailStamp.dateSent)
 
     to = []
 
@@ -405,6 +405,7 @@ def buildItemDescription(mailStamp):
     # end date
 
     item = mailStamp.itsItem
+    view = item.itsView
 
     isEvent = has_stamp(item, EventStamp)
 
@@ -418,15 +419,14 @@ def buildItemDescription(mailStamp):
         if location:
             location = location.displayName.strip()
 
-        startDate, startTime = formatDateAndTime(event.startTime)
-        endDate, endTime = formatDateAndTime(event.endTime)
+        startDate, startTime = formatDateAndTime(view, event.startTime)
+        endDate, endTime = formatDateAndTime(view, event.endTime)
 
-        if getattr(event.startTime, "tzinfo", None) is \
-           PyICU.ICUtzinfo.floating:
+        if getattr(event.startTime, "tzinfo", None) == view.tzinfo.floating:
             timezone = u""
 
         else:
-            timezone = getTimeZoneCode(event.startTime)
+            timezone = getTimeZoneCode(view, event.startTime)
 
         if startDate == endDate:
             # The Event starts and ends on the same day
@@ -458,7 +458,7 @@ def buildItemDescription(mailStamp):
             interval = rule.interval
             until = rule.calculatedUntil()
 
-            args['recurrenceEndDate'] = until and formatDateAndTime(until)[0] or u''
+            args['recurrenceEndDate'] = until and formatDateAndTime(view, until)[0] or u''
 
             ret = None
 
@@ -1782,7 +1782,7 @@ class MailStamp(stamping.Stamp):
         # Overwrite or add a new message Id
         self.messageId = createMessageID()
 
-        self.dateSent = datetime.now(ICUtzinfo.default)
+        self.dateSent = datetime.now(self.itsItem.itsView.tzinfo.default)
         self.dateSentString = dateTimeToRFC2822Date(self.dateSent)
         self.fromEIMML = False
 

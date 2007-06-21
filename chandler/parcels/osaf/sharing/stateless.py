@@ -46,7 +46,7 @@ def importFile(rv, path, collection=None, activity=None,
 
     if activity:
         activity.update(msg=_(u"Parsing file"), totalWork=None)
-    inbound, extra = serializerClass.deserialize(text, helperView=rv)
+    inbound, extra = serializerClass.deserialize(rv, text)
 
     total = len(inbound)
     if activity:
@@ -113,8 +113,8 @@ def exportFile(rv, path, collection, activity=None,
         if activity:
             activity.update(work=1, msg=_(u"Exporting items"))
 
-    text = serializerClass.serialize(outbound, name=collection.displayName,
-        monolithic=True)
+    text = serializerClass.serialize(rv, outbound, name=collection.displayName,
+                                     monolithic=True)
 
     output = open(path, "wb")
     output.write(text)

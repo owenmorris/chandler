@@ -37,17 +37,17 @@ class TestEventIndexing(TimeZoneTestCase):
     
     def setUp(self):
         super(TestEventIndexing, self).setUp()
-
-        self.tzInfoItem = TimeZoneInfo.get(self.view)
+        view = self.view
+        self.tzInfoItem = TimeZoneInfo.get(view)
         # eventsInRange will treat all timezones as equivalent unless timezone
         # display is turned on
-        self.tzprefs = schema.ns('osaf.pim', self.view).TimezonePrefs
+        self.tzprefs = schema.ns('osaf.pim', view).TimezonePrefs
         self.tzprefs.showUI = True
         
-        self.pacific  = PyICU.ICUtzinfo.getInstance("US/Pacific")
-        self.hawaii   = PyICU.ICUtzinfo.getInstance("US/Hawaii")
-        self.eastern  = PyICU.ICUtzinfo.getInstance("US/Eastern")
-        self.floating = PyICU.ICUtzinfo.floating
+        self.pacific  = view.tzinfo.getInstance("US/Pacific")
+        self.hawaii   = view.tzinfo.getInstance("US/Hawaii")
+        self.eastern  = view.tzinfo.getInstance("US/Eastern")
+        self.floating = view.tzinfo.floating
         
         self.midnight = datetime(2006, 9, 1, 0, 0, tzinfo=self.floating)
         
@@ -96,7 +96,7 @@ class TestEventIndexing(TimeZoneTestCase):
 
         main = self.view
         main.commit()
-        view = self.rep.createView('view')
+        view = main.repository.createView('view')
 
         self.tzInfoItem.default = self.pacific
 

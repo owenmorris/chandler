@@ -862,8 +862,8 @@ class SSSidebarSharingButton (SSSidebarButton):
                     lastSynced = getattr(share, 'lastSuccess', None)
                     if lastSynced is not None:
                         format = calendar.DateTimeUtil.shortDateFormat.format
-                        syncDay = format(lastSynced)
-                        syncTime = calendar.formatTime(lastSynced)
+                        syncDay = format(self.itsView, lastSynced)
+                        syncTime = calendar.formatTime(self.itsView, lastSynced)
                         text += _(u"; Last synced on %s at %s") % (syncDay,
                             syncTime)
 

@@ -19,7 +19,6 @@ from osaf.sharing import (
     eim, model, shares, utility, accounts, conduits, cosmo, webdav_conduit,
     recordset_conduit, eimml, ootb
 )
-from PyICU import ICUtzinfo
 import os
 import calendar
 from email import Utils
@@ -55,7 +54,6 @@ __all__ = [
 logger = logging.getLogger(__name__)
 
 
-utc = ICUtzinfo.getInstance('UTC')
 du_utc = dateutil.tz.tzutc()
 oneDay = timedelta(1)
 
@@ -99,11 +97,11 @@ def datetimeToDecimal(dt):
     tt = dt.utctimetuple()
     return Decimal(int(calendar.timegm(tt)))
 
-def decimalToDatetime(decimal):
-        naive = datetime.utcfromtimestamp(float(decimal))
-        inUTC = naive.replace(tzinfo=utc)
-        # Convert to user's tz:
-        return inUTC.astimezone(ICUtzinfo.default)
+def decimalToDatetime(view, decimal):
+    naive = datetime.utcfromtimestamp(float(decimal))
+    inUTC = naive.replace(tzinfo=view.tzinfo.UTC)
+    # Convert to user's tz:
+    return inUTC.astimezone(view.tzinfo.default)
 
 
 ### Event field conversion functions
@@ -122,7 +120,7 @@ def fromLocation(val, view):
         return None
     return pim.Location.getLocation(view, val)
 
-def fromICalendarDateTime(text, multivalued=False):
+def fromICalendarDateTime(view, text, multivalued=False):
     prefix = 'dtstart' # arbitrary
     if not text.startswith(';'):
         # no parameters
@@ -140,7 +138,7 @@ def fromICalendarDateTime(text, multivalued=False):
         start = [start]
     if type(start[0]) == date:
         allDay = not anyTime
-        start = [TimeZone.forceToDateTime(dt) for dt in start]
+        start = [TimeZone.forceToDateTime(view, dt) for dt in start]
     else:
         # this parameter is broken, this should be fixed in vobject, at which
         # point this will break
@@ -149,11 +147,11 @@ def fromICalendarDateTime(text, multivalued=False):
             # RDATEs and EXDATEs won't have an X-VOBJ-ORIGINAL-TZID
             tzid = getattr(line, 'tzid_param', None)
         if start[0].tzinfo == du_utc:
-            tzinfo = utc
+            tzinfo = view.tzinfo.UTC
         elif tzid is None:
-            tzinfo = ICUtzinfo.floating
+            tzinfo = view.tzinfo.floating
         else:
-            tzinfo = ICUtzinfo.getInstance(tzid)
+            tzinfo = view.tzinfo.getInstance(tzid)
         start = [dt.replace(tzinfo=tzinfo) for dt in start]
     if not multivalued:
         start = start[0]
@@ -162,14 +160,14 @@ def fromICalendarDateTime(text, multivalued=False):
 def fromICalendarDuration(text):
     return stringToDurations(text)[0]    
 
-def getTimeValues(record):
+def getTimeValues(view, record):
     """
     Extract start time and allDay/anyTime from a record.
     """
     dtstart  = record.dtstart
     start = None
     if dtstart not in noChangeOrInherit:
-        start, allDay, anyTime = fromICalendarDateTime(dtstart)
+        start, allDay, anyTime = fromICalendarDateTime(view, dtstart)
     else:
         allDay = anyTime = start = dtstart
 
@@ -182,18 +180,18 @@ allDayParameter = ";VALUE=DATE"
 timedParameter  = ";VALUE=DATE-TIME"
 anyTimeParameter = ";X-OSAF-ANYTIME=TRUE"
 
-def formatDateTime(dt, allDay, anyTime):
+def formatDateTime(view, dt, allDay, anyTime):
     """Take a date or datetime, format it appropriately for EIM"""
     if allDay or anyTime:
         return dateFormat % dt.timetuple()[:3]
     else:
         base = datetimeFormat % dt.timetuple()[:6]
-        if dt.tzinfo == utc:
+        if dt.tzinfo == view.tzinfo.UTC:
             return base + 'Z'
         else:
             return base
 
-def toICalendarDateTime(dt_or_dtlist, allDay, anyTime=False):
+def toICalendarDateTime(view, dt_or_dtlist, allDay, anyTime=False):
     if isinstance(dt_or_dtlist, datetime):
         dtlist = [dt_or_dtlist]
     else:
@@ -205,13 +203,14 @@ def toICalendarDateTime(dt_or_dtlist, allDay, anyTime=False):
         if anyTime and not allDay:
             output += anyTimeParameter        
     else:
-        isUTC = dtlist[0].tzinfo == utc
+        isUTC = dtlist[0].tzinfo == view.tzinfo.UTC
         output += timedParameter
-        if not isUTC and dtlist[0].tzinfo != ICUtzinfo.floating:
+        if not isUTC and dtlist[0].tzinfo != view.tzinfo.floating:
             output += tzidFormat % dtlist[0].tzinfo.tzid
 
     output += ':'
-    output += ','.join(formatDateTime(dt, allDay, anyTime) for dt in dtlist)
+    output += ','.join(formatDateTime(view, dt, allDay, anyTime)
+                       for dt in dtlist)
     return output
 
 def toICalendarDuration(delta, allDay=False):
@@ -257,12 +256,14 @@ def getRecurrenceFields(event):
     if event.rruleset is None or event.occurrenceFor is not None:
         return (None, None, None, None)
 
+    view = event.itsItem.itsView
+
     vobject_event = RecurringComponent()
     vobject_event.behavior = VEvent
     start = event.startTime
     if event.allDay or event.anyTime:
         start = start.date()
-    elif start.tzinfo is ICUtzinfo.floating:
+    elif start.tzinfo is view.tzinfo.floating:
         start = start.replace(tzinfo=None)
     vobject_event.add('dtstart').value = start
     vobject_event.rruleset = event.createDateUtilFromRule(False, True, False)
@@ -281,13 +282,13 @@ def getRecurrenceFields(event):
 
     rdates = getattr(event.rruleset, 'rdates', [])
     if len(rdates) > 0:
-        rdate = toICalendarDateTime(rdates, event.allDay, event.anyTime)
+        rdate = toICalendarDateTime(view, rdates, event.allDay, event.anyTime)
     else:
         rdate = None
 
     exdates = getattr(event.rruleset, 'exdates', [])
     if len(exdates) > 0:
-        exdate = toICalendarDateTime(exdates, event.allDay, event.anyTime)
+        exdate = toICalendarDateTime(view, exdates, event.allDay, event.anyTime)
     else:
         exdate = None
 
@@ -303,19 +304,20 @@ def fixTimezoneOnModification(modification, tzinfo=None):
 
     """
     mod = EventStamp(modification)
+    view = mod.itsItem.itsView
     if tzinfo is None:
         master = mod.occurrenceFor
         assert master is not None
         tzinfo = EventStamp(master).effectiveStartTime.tzinfo
-    if tzinfo != ICUtzinfo.floating and tzinfo != utc:
+    if tzinfo != view.tzinfo.floating and tzinfo != view.tzinfo.UTC:
         recurrenceID = mod.recurrenceID
-        if recurrenceID.tzinfo == utc:
+        if recurrenceID.tzinfo == view.tzinfo.UTC:
             mod.recurrenceID = recurrenceID.astimezone(tzinfo)
-        if (mod.startTime.tzinfo == utc and
+        if (mod.startTime.tzinfo == view.tzinfo.UTC and
             mod.startTime == recurrenceID):
             mod.startTime = mod.startTime.astimezone(tzinfo)    
 
-def splitUUID(recurrence_aware_uuid):
+def splitUUID(view, recurrence_aware_uuid):
     """
     Split an EIM recurrence UUID.
 
@@ -327,12 +329,11 @@ def splitUUID(recurrence_aware_uuid):
     position = pseudo_uuid.find('::')
     if position != -1:
         return (pseudo_uuid[:position],
-                fromICalendarDateTime(pseudo_uuid[position + 2:])[0])
+                fromICalendarDateTime(view, pseudo_uuid[position + 2:])[0])
     position = pseudo_uuid.find(':')
     if position != -1:
         return (pseudo_uuid[:position],
-                fromICalendarDateTime(pseudo_uuid[position:])[0])
-
+                fromICalendarDateTime(view, pseudo_uuid[position:])[0])
     return (pseudo_uuid, None)
 
 
@@ -358,6 +359,7 @@ def handleEmpty(item_or_stamp, attr):
 
 def getAliasForItem(item_or_stamp):
     item = getattr(item_or_stamp, 'itsItem', item_or_stamp)
+    view = item.itsView
     if isinstance(item, Occurrence):
         master = item.inheritFrom
         masterEvent = EventStamp(master)
@@ -366,10 +368,10 @@ def getAliasForItem(item_or_stamp):
         # we have an off-rule modification, its recurrence-id shouldn't be
         # treated as date valued.
         dateValue = ((masterEvent.allDay or masterEvent.anyTime) and
-                     recurrenceID.tzinfo == ICUtzinfo.floating)
-        if recurrenceID.tzinfo != ICUtzinfo.floating:
-            recurrenceID = recurrenceID.astimezone(utc)
-        recurrenceID = formatDateTime(recurrenceID, dateValue, dateValue)
+                     recurrenceID.tzinfo == view.tzinfo.floating)
+        if recurrenceID.tzinfo != view.tzinfo.floating:
+            recurrenceID = recurrenceID.astimezone(view.tzinfo.UTC)
+        recurrenceID = formatDateTime(view, recurrenceID, dateValue, dateValue)
         return master.itsUUID.str16() + ":" + recurrenceID
     else:
         return item.itsUUID.str16()
@@ -419,6 +421,7 @@ class SharingTranslator(eim.Translator):
 
 
     def resolveConflicts(self, conflicts):
+
         for conflict in conflicts:
 
             if len(conflict.change.inclusions) == 1:
@@ -465,7 +468,7 @@ class SharingTranslator(eim.Translator):
                         # oldest value
 
                         if record.createdOn not in emptyValues:
-                            createdOn = decimalToDatetime(record.createdOn)
+                            createdOn = decimalToDatetime(self.rv, record.createdOn)
                             if createdOn < item.createdOn:
                                 item.createdOn = createdOn
 
@@ -554,7 +557,7 @@ class SharingTranslator(eim.Translator):
         if ':' not in alias:
             return alias
 
-        uuid, recurrenceID = splitUUID(alias)
+        uuid, recurrenceID = splitUUID(self.rv, alias)
 
         # find the occurrence and return itsUUID
         master = self.rv.findUUID(uuid)
@@ -596,7 +599,7 @@ class SharingTranslator(eim.Translator):
     modaction_to_code = dict([[v, k] for k, v in code_to_modaction.items()])
 
     def deferredUUID(self, recurrence_aware_uuid, create=True):
-        master_uuid, recurrenceID = splitUUID(recurrence_aware_uuid)
+        master_uuid, recurrenceID = splitUUID(self.rv, recurrence_aware_uuid)
         if recurrenceID is not None:
             d = self.deferredItem(master_uuid, EventStamp)
             @d.addCallback
@@ -639,7 +642,7 @@ class SharingTranslator(eim.Translator):
 
         if record.createdOn not in emptyValues:
             # createdOn is a Decimal we need to change to datetime
-            createdOn = decimalToDatetime(record.createdOn)
+            createdOn = decimalToDatetime(self.rv, record.createdOn)
         else:
             createdOn = eim.NoChange
 
@@ -665,7 +668,7 @@ class SharingTranslator(eim.Translator):
 
         # TODO: see why many items don't have createdOn
         if not hasattr(item, 'createdOn'):
-            item.createdOn = datetime.now(ICUtzinfo.default)
+            item.createdOn = datetime.now(self.rv.tzinfo.default)
 
         # createdOn = handleEmpty(item, 'createdOn')
         # elif createdOn not in noChangeOrInherit:
@@ -739,8 +742,8 @@ class SharingTranslator(eim.Translator):
             elif reminder.hasLocalAttributeValue('absoluteTime'):
                 # iCalendar Triggers are supposed to be expressed in UTC;
                 # EIM may not require that but might as well be consistent
-                reminderTime = reminder.absoluteTime.astimezone(utc)
-                trigger = toICalendarDateTime(reminderTime, False)
+                reminderTime = reminder.absoluteTime.astimezone(self.rv.tzinfo.UTC)
+                trigger = toICalendarDateTime(self.rv, reminderTime, False)
 
             if reminder.duration:
                 duration = toICalendarDuration(reminder.duration, False)
@@ -806,7 +809,7 @@ class SharingTranslator(eim.Translator):
 
                 # record.timestamp can never be NoChange, nor None
                 # timestamp is a Decimal we need to change to datetime
-                item.lastModified = decimalToDatetime(record.timestamp)
+                item.lastModified = decimalToDatetime(self.rv, record.timestamp)
 
                 if record.action is not eim.NoChange:
                     item.lastModification = \
@@ -843,7 +846,7 @@ class SharingTranslator(eim.Translator):
         # to UUID, in these cases don't set Chandler's icalUID attribute, it's
         # redundant
         icalUID = record.icalUid
-        if icalUID is None or splitUUID(record.uuid)[0] == icalUID:
+        if icalUID is None or splitUUID(self.rv, record.uuid)[0] == icalUID:
             icalUID = eim.NoChange
 
         if record.icalExtra is None:
@@ -1062,9 +1065,9 @@ class SharingTranslator(eim.Translator):
 
                     timestamp = Utils.parsedate_tz(record.dateSent)
                     mail.dateSent = datetime.fromtimestamp(Utils.mktime_tz(timestamp), \
-                                                           ICUtzinfo.default)
+                                                           self.rv.tzinfo.default)
                 else:
-                    mail.dateSent = getEmptyDate()
+                    mail.dateSent = getEmptyDate(self.rv)
                     mail.dateSentString = u""
 
             if record.mimeContent not in noChangeOrInherit:
@@ -1317,18 +1320,18 @@ class SharingTranslator(eim.Translator):
     @model.EventRecord.importer
     def import_event(self, record):
 
-        start, allDay, anyTime = getTimeValues(record)
+        start, allDay, anyTime = getTimeValues(self.rv, record)
         duration = with_nochange(record.duration, fromICalendarDuration)
         if (allDay == True or anyTime == True) and duration not in emptyValues:
             # convert to Chandler's notion of all day duration
             duration -= oneDay
 
-        uuid, recurrenceID = splitUUID(record.uuid)
+        uuid, recurrenceID = splitUUID(self.rv, record.uuid)
         if recurrenceID and start in emptyValues:
             start = recurrenceID
 
         if (self.promptForTimezone and start not in emptyValues
-            and start.tzinfo not in (ICUtzinfo.floating, None)):
+            and start.tzinfo not in (self.rv.tzinfo.floating, None)):
             # got a timezoned event, prompt (non-modally) to turn on
             # timezones
             import wx
@@ -1440,7 +1443,7 @@ class SharingTranslator(eim.Translator):
                     if record_field is None:
                         dates = []
                     else:
-                        dates = fromICalendarDateTime(record_field,
+                        dates = fromICalendarDateTime(self.rv, record_field,
                                                       multivalued=True)[0]
                     setattr(rruleset, datetype + 's', dates)
 
@@ -1463,7 +1466,7 @@ class SharingTranslator(eim.Translator):
                 # the master, if they're timezoned they'll have recurrenceID in
                 # UTC, worse, if they inherit startTime it'll be in UTC
                 tzinfo = event.effectiveStartTime.tzinfo
-                if tzinfo != ICUtzinfo.floating:
+                if tzinfo != self.rv.tzinfo.floating:
                     for mod in event.modifications:
                         fixTimezoneOnModification(mod, tzinfo)
 
@@ -1496,8 +1499,7 @@ class SharingTranslator(eim.Translator):
         if (isinstance(item, Occurrence) and
                   not has_change('allDay') and 
                   not has_change('anyTime')):
-
-            floating = ICUtzinfo.floating
+            floating = self.rv.tzinfo.floating
             master = event.getMaster()
             masterFloating = (master.allDay or master.anyTime or
                               master.startTime.tzinfo == floating)
@@ -1511,7 +1513,7 @@ class SharingTranslator(eim.Translator):
                 dtstart = eim.Inherit
 
         if dtstart is None:
-            dtstart = toICalendarDateTime(event.effectiveStartTime, 
+            dtstart = toICalendarDateTime(self.rv, event.effectiveStartTime, 
                                           event.allDay, event.anyTime)
 
         # if recurring, duration has changed if allDay, anyTime, or duration has
@@ -1540,7 +1542,7 @@ class SharingTranslator(eim.Translator):
 
     @model.EventRecord.deleter
     def delete_event(self, record):
-        uuid, recurrenceID = splitUUID(record.uuid)
+        uuid, recurrenceID = splitUUID(self.rv, record.uuid)
         item = self.rv.findUUID(uuid)
         if item is not None and item.isLive() and pim.has_stamp(item,
             EventStamp):
@@ -1569,8 +1571,8 @@ class SharingTranslator(eim.Translator):
                 reminderFactory = None
 
                 try:
-                    val = fromICalendarDateTime(record.trigger)[0]
-                    val = val.astimezone(ICUtzinfo.default)
+                    val = fromICalendarDateTime(self.rv, record.trigger)[0]
+                    val = val.astimezone(self.rv.tzinfo.default)
                 except:
                     pass
                 else:
@@ -1799,11 +1801,11 @@ class DumpTranslator(SharingTranslator):
         def do(share):
             if record.lastSuccess not in (eim.NoChange, None):
                 # lastSuccess is a Decimal we need to change to datetime
-                share.lastSuccess = decimalToDatetime(record.lastSuccess)
+                share.lastSuccess = decimalToDatetime(self.rv, record.lastSuccess)
 
             if record.lastAttempt not in (eim.NoChange, None):
                 # lastAttempt is a Decimal we need to change to datetime
-                share.lastAttempt = decimalToDatetime(record.lastAttempt)
+                share.lastAttempt = decimalToDatetime(self.rv, record.lastAttempt)
 
             if record.subscribed == 0:
                 share.sharer = schema.ns('osaf.pim',
@@ -2715,7 +2717,7 @@ class DumpTranslator(SharingTranslator):
         pref.showPrompt = bool(record.showPrompt)
 
         tzitem = TimeZone.TimeZoneInfo.get(self.rv)
-        tzitem.default = ICUtzinfo.getInstance(record.default)
+        tzitem.default = self.rv.tzinfo.getInstance(record.default)
         tzitem.wellKnownIDs = record.wellKnownIDs.split(',')
 
     # Called from finishExport( )
@@ -2783,9 +2785,10 @@ class DumpTranslator(SharingTranslator):
 
 
 def test_suite():
-    import doctest
+    import doctest, __future__
     return doctest.DocFileSuite(
         'Translator.txt',
+        globs={'with_statement': __future__.with_statement},
         optionflags=doctest.ELLIPSIS|doctest.REPORT_ONLY_FIRST_FAILURE,
     )
 

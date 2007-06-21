@@ -44,7 +44,7 @@ from osaf.pim import ContentItem
 from repository.item.Item import Item
 import wx
 import logging
-from PyICU import ICUError, ICUtzinfo
+from PyICU import ICUError
 from datetime import datetime, time, timedelta
 from i18n import ChandlerMessageFactory as _
 from osaf import messages
@@ -561,7 +561,7 @@ class DetailStampButtonBlock(DetailSynchronizedBehavior,
                 # of the item for date/time information, if the item does not
                 # already have a startTime. 
                 startTime, endTime, countFlag, typeFlag = \
-                         pim.calendar.Calendar.parseText(item.body)
+                         pim.calendar.Calendar.parseText(self.itsView, item.body)
 
                 statusMsg = { 0:_(u"No date/time found"),
                               1:_(u"Event set to the date/time found"),
@@ -1164,7 +1164,7 @@ class ReminderTypeAttributeEditor(ChoiceAttributeEditor):
             # Make a reminder at the default new reminder time
             item = pim.CHANGE_THIS(item)
             
-            item.userReminderTime= pim.Reminder.defaultTime()
+            item.userReminderTime= pim.Reminder.defaultTime(item.itsView)
 
         self.control.blockItem.watchForChanges()
 
@@ -1482,6 +1482,7 @@ class CalendarTimeAttributeEditor(TimeAttributeEditor):
         return value
 
     def SetAttributeValue(self, item, attributeName, valueString):
+        view = item.itsView
         event = pim.EventStamp(item)
         newValueString = valueString.replace('?','').strip()
         iAmStart = attributeName == pim.EventStamp.startTime.name
@@ -1578,8 +1579,8 @@ class CalendarTimeAttributeEditor(TimeAttributeEditor):
                     #invalidFlag = 0 implies no date/time
                     #invalidFlag = 1 implies only date, no time
                     if invalidFlag != 0 and invalidFlag != 1:
-                        newValueString = pim.shortTimeFormat.format(datetime(*timeVar[:5]))
-                        gotTime = pim.shortTimeFormat.parse(newValueString, 
+                        newValueString = pim.shortTimeFormat.format(view, datetime(*timeVar[:5]))
+                        gotTime = pim.shortTimeFormat.parse(view, newValueString, 
                                                          referenceDate=oldValue)
                     else:
                         self._changeTextQuietly(self.control, "%s ?" % newValueString)
@@ -1822,6 +1823,7 @@ class RecurrenceEndsAttributeEditor(DateAttributeEditor):
                GetAttributeValue(item, attributeName)
 
     def SetAttributeValue(self, item, attributeName, valueString):
+        view = item.itsView
         event = pim.EventStamp(item)
         eventTZ = event.startTime.tzinfo
         master = event.getMaster()
@@ -1842,7 +1844,8 @@ class RecurrenceEndsAttributeEditor(DateAttributeEditor):
         else:
             try:
                 oldValue = getattr(item, attributeName, None)
-                dateValue = pim.shortDateFormat.parse(newValueString, 
+                dateValue = pim.shortDateFormat.parse(view,
+                                                      newValueString, 
                                                       referenceDate=oldValue)
             except (ICUError, ValueError):
                 self._changeTextQuietly(self.control, "%s ?" % newValueString)
@@ -1858,8 +1861,8 @@ class RecurrenceEndsAttributeEditor(DateAttributeEditor):
             # has the nonsensical result that the number of occurrences depends
             # on what timezone you view the calendar in if startTime ever 
             # changes to a non-floating timezone.        
-            if eventTZ == ICUtzinfo.floating:
-                eventTZ == ICUtzinfo.default
+            if eventTZ == view.tzinfo.floating:
+                eventTZ == view.tzinfo.default
 
             value = datetime.combine(dateValue.date(), time(0, tzinfo=eventTZ))
             # don't change the value unless the date the user sees has
@@ -1867,7 +1870,7 @@ class RecurrenceEndsAttributeEditor(DateAttributeEditor):
             if oldValue is None or oldValue.date() != value.date():
                 # Refresh the value in place
                 self.SetControlValue(self.control, 
-                                     pim.shortDateFormat.format(value))
+                                     pim.shortDateFormat.format(item.itsView, value))
 
                 # Change the value in the domain model, asynchronously
                 # (because setting recurrence-end could cause this item

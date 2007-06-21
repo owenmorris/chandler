@@ -33,7 +33,6 @@ from CalendarCanvas import CalendarRangeBlock, CalendarNotificationHandler
 import osaf.pim.calendar.Calendar as Calendar
 from osaf.pim import EventStamp, has_stamp, isDead
 from datetime import datetime, time, timedelta
-from PyICU import ICUtzinfo
 from i18n import ChandlerMessageFactory as _
 from application import styles
 
@@ -169,7 +168,8 @@ class wxMiniCalendar(DragAndDrop.DropReceiveWidget,
         self.blockItem.postDateChanged(self.getSelectedDate())
 
     def getSelectedDate(self):
-        date = datetime.combine(self.GetDate(), time(tzinfo = ICUtzinfo.floating))
+        date = datetime.combine(self.GetDate(),
+                                time(tzinfo=self.blockItem.itsView.tzinfo.floating))
         return date
 
     def forceFreeBusyUpdate(self, event):
@@ -178,7 +178,7 @@ class wxMiniCalendar(DragAndDrop.DropReceiveWidget,
     def setFreeBusy(self):
 
         if self._recalcCount == 0:
-            zerotime = time(tzinfo=ICUtzinfo.default)
+            zerotime = time(tzinfo=self.blockItem.itsView.tzinfo.default)
             start = self.GetStartDate()
             start = datetime.combine(start, zerotime)
 
@@ -229,15 +229,15 @@ class wxMiniCalendar(DragAndDrop.DropReceiveWidget,
 
     def _doBusyCalculations(self):
 
+        view = self.blockItem.itsView
         startDate = self.GetStartDate()
 
         endDate = minical.MonthDelta(startDate, 3)
 
         busyFractions = {}
-        defaultTzinfo = ICUtzinfo.default
+        defaultTzinfo = view.tzinfo.default
 
-        tzEnabled = schema.ns('osaf.pim',
-                              self.blockItem.itsView).TimezonePrefs.showUI
+        tzEnabled = schema.ns('osaf.pim', view).TimezonePrefs.showUI
 
         # The exact algorithm for the busy state is yet to be determined.
         # For now, just  get the confirmed items on a given day and calculate
@@ -317,7 +317,7 @@ class wxMiniCalendar(DragAndDrop.DropReceiveWidget,
             # would be good to refactor it at some point.
             self.blockItem.EnsureIndexes()
 
-            startOfDay = time(0, tzinfo=ICUtzinfo.default)
+            startOfDay = time(0, tzinfo=view.tzinfo.default)
             startDatetime = datetime.combine(startDate, startOfDay)
             endDatetime = datetime.combine(endDate, startOfDay)
 
@@ -624,8 +624,9 @@ class wxPreviewArea(CalendarNotificationHandler, wx.Panel):
 
         @return the height of all the text drawn
         """
-        # Set up drawing & clipping
+        view = self.blockItem.itsView
 
+        # Set up drawing & clipping
         unselectedColor = styles.cfg.get('preview', 'UnSelectedText')
 
         unselectedBackground = styles.cfg.get('preview',
@@ -654,7 +655,7 @@ class wxPreviewArea(CalendarNotificationHandler, wx.Panel):
             # and we'll draw the time aligned with the colon.
             # If the locale doesn't use AM/PM, it won't show; so, format a
             # generic time and see how it looks:
-            genericTime = pim.shortTimeFormat.format(datetime(2005,1,1,12,00))
+            genericTime = pim.shortTimeFormat.format(view, datetime(2005,1,1,12,00))
             self.timeSeparator = ':'
             #XXX [18n] Localizing the time separator is an issue
             # it forces the localizer to understand these programming semantics
@@ -685,7 +686,7 @@ class wxPreviewArea(CalendarNotificationHandler, wx.Panel):
 
         # Draw each event
         previewPrefs = schema.ns("osaf.framework.blocks.calendar",
-                                 self.blockItem.itsView).previewPrefs
+                                 view).previewPrefs
         events = []
         eventsCoords = []
         for i, event in enumerate(self.visibleEvents):
@@ -702,7 +703,7 @@ class wxPreviewArea(CalendarNotificationHandler, wx.Panel):
 
             if not (event.allDay or event.anyTime):
                 # Draw the time
-                formattedTime = pim.shortTimeFormat.format(event.startTime)
+                formattedTime = pim.shortTimeFormat.format(view, event.startTime)
                 preSep = formattedTime[:formattedTime.find(self.timeSeparator)]
                 prePos = self.colonPosition - dc.GetTextExtent(preSep)[0]
                 times.append(formattedTime)
@@ -788,7 +789,7 @@ class wxPreviewArea(CalendarNotificationHandler, wx.Panel):
         else:
             self.useToday = False
             startDay = minical.widget.getSelectedDate()
-        startDay = startDay.replace(tzinfo=ICUtzinfo.default)
+        startDay = startDay.replace(tzinfo=self.blockItem.itsView.tzinfo.default)
         range = (startDay, startDay + one_day)
 
         if self.HasPendingEventChanges():

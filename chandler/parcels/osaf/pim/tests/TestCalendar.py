@@ -18,13 +18,12 @@ Unit tests for calendar
 
 import unittest, os
 from datetime import datetime, timedelta
-from PyICU import ICUtzinfo
 
 import osaf.pim.calendar.Calendar as Calendar
 import osaf.pim.stamping as stamping
 import osaf.pim.tests.TestDomainModel as TestDomainModel
-import repository.item
 
+from repository.tests.RepositoryTestCase import RepositoryTestCase
 from application import schema
 from repository.util.Path import Path
 from i18n.tests import uw
@@ -120,25 +119,29 @@ class CalendarTest(TestDomainModel.DomainModelTestCase):
         view = self.view
         firstEvent = Calendar.CalendarEvent(itsView=view)
         firstEvent.anyTime = False
-        firstEvent.startTime = datetime(2003, 2, 1, 10, tzinfo=ICUtzinfo.default)
+        firstEvent.startTime = datetime(2003, 2, 1, 10,
+                                        tzinfo=view.tzinfo.default)
         firstEvent.endTime = datetime(2003, 2, 1, 11, 30,
-                                     tzinfo=ICUtzinfo.default)
+                                     tzinfo=view.tzinfo.default)
         self.assertEqual(firstEvent.duration, timedelta(hours=1.5))
 
         # Test setting duration and getting endTime
         secondEvent = Calendar.CalendarEvent(itsView=view)
         secondEvent.anyTime = False
-        secondEvent.startTime = datetime(2003, 3, 5, 9, tzinfo=ICUtzinfo.default)
+        secondEvent.startTime = datetime(2003, 3, 5, 9,
+                                         tzinfo=view.tzinfo.default)
         secondEvent.duration = timedelta(hours=1.5)
         self.assertEqual(secondEvent.endTime,
-                         datetime(2003, 3, 5, 10, 30, tzinfo=ICUtzinfo.default))
+                         datetime(2003, 3, 5, 10, 30,
+                                  tzinfo=view.tzinfo.default))
 
         # Test changing startTime (shouldn't change duration)
         firstEvent.startTime = datetime(2003, 3, 4, 12, 45,
-                                       tzinfo=ICUtzinfo.default)
+                                       tzinfo=view.tzinfo.default)
         self.assertEqual(firstEvent.duration, timedelta(hours=1.5))
         self.assertEqual(firstEvent.startTime,
-                         datetime(2003, 3, 4, 12, 45, tzinfo=ICUtzinfo.default))
+                         datetime(2003, 3, 4, 12, 45,
+                                  tzinfo=view.tzinfo.default))
 
         # Test allDay
         firstEvent.allDay = True
@@ -170,18 +173,21 @@ class CalendarTest(TestDomainModel.DomainModelTestCase):
         self.assertEqual(itemShouldBeGone, None)
 
 
-class AdjustTimesTestCase(unittest.TestCase):
+class AdjustTimesTestCase(RepositoryTestCase):
 
     def setUp(self):
+        super(AdjustTimesTestCase, self).setUp()
+        view = self.view
+
         self.start = datetime(2006, 4, 21,
-                             tzinfo=ICUtzinfo.getInstance("Europe/Paris"))
+                              tzinfo=view.tzinfo.getInstance("Europe/Paris"))
         self.end = self.start + timedelta(days=1)
 
         self.dt1 = datetime(2006, 4, 21, 3,
-                            tzinfo=ICUtzinfo.getInstance("Asia/Vladivostok"))
+                            tzinfo=view.tzinfo.getInstance("Asia/Vladivostok"))
 
         self.dt2 = datetime(2006, 4, 20, 22,
-                            tzinfo=ICUtzinfo.getInstance("Pacific/Pitcairn"))
+                            tzinfo=view.tzinfo.getInstance("Pacific/Pitcairn"))
                        
 
     def testWithTimeZones(self):

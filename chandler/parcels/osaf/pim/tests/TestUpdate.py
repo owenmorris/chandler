@@ -1,8 +1,21 @@
+#   Copyright (c) 2003-2007 Open Source Applications Foundation
+#
+#   Licensed under the Apache License, Version 2.0 (the "License");
+#   you may not use this file except in compliance with the License.
+#   You may obtain a copy of the License at
+#
+#       http://www.apache.org/licenses/LICENSE-2.0
+#
+#   Unless required by applicable law or agreed to in writing, software
+#   distributed under the License is distributed on an "AS IS" BASIS,
+#   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+#   See the License for the specific language governing permissions and
+#   limitations under the License.
+
 from util.testcase import NRVTestCase
 from osaf.pim import *
 from datetime import *
 from repository.item.Item import Item
-from PyICU import ICUtzinfo
 
 """
 Tests for domain model support of edit/update workflows.
@@ -28,7 +41,7 @@ class UpdateTestCase(NRVTestCase):
         self.failUnlessEqual(list(item.modifiedFlags), [])
 
     def testEdit(self):
-        dt = datetime(2007, 1, 13, 8, 33, tzinfo=ICUtzinfo.default)
+        dt = datetime(2007, 1, 13, 8, 33, tzinfo=self.view.tzinfo.default)
         item = ContentItem(
                   itsParent=self.sandbox,
                   createdOn=dt,
@@ -79,16 +92,16 @@ class UpdateTestCase(NRVTestCase):
         self.failUnlessEqual(item.lastModification, Modification.updated)
                              
     def testModDate(self):
-        start = datetime.now(ICUtzinfo.default)
+        start = datetime.now(self.view.tzinfo.default)
         
         item = ContentItem(itsParent=self.sandbox)
         
         self.failUnless(item.createdOn >= start,
                         "Time ran backwards during creation?")
         
-        start = datetime.now(ICUtzinfo.default)
+        start = datetime.now(self.view.tzinfo.default)
         item.changeEditState(Modification.created)
-        end = datetime.now(ICUtzinfo.default)
+        end = datetime.now(self.view.tzinfo.default)
         
         self.failUnless(start <= item.lastModified <= end,
                         "lastModified not set to datetime.now()?")
@@ -96,7 +109,7 @@ class UpdateTestCase(NRVTestCase):
         self.failUnlessEqual(item.lastModification, Modification.created)
         
     def testQueueAndSend(self):
-        dt = datetime.now(ICUtzinfo.default)
+        dt = datetime.now(self.view.tzinfo.default)
         
         # Make anedited ContentItem
         item = ContentItem(
@@ -152,7 +165,7 @@ class UpdateTestCase(NRVTestCase):
 
         
     def testSend(self):
-        dt = datetime.now(ICUtzinfo.default)
+        dt = datetime.now(self.view.tzinfo.default)
         
         # Make an edited ContentItem
         item = ContentItem(
@@ -188,7 +201,7 @@ class UpdateTestCase(NRVTestCase):
         email = EmailAddress(itsParent=self.sandbox, fullName=u'Tommy Totoro',
                              emailAddress=u'totoro@example.com')
 
-        created = datetime(2004, 12, 11, 11, tzinfo=ICUtzinfo.default)
+        created = datetime(2004, 12, 11, 11, tzinfo=self.view.tzinfo.default)
         item = ContentItem(itsParent=self.sandbox, createdOn=created)
 
         # Make sure you can't _set_ the byline
@@ -201,7 +214,7 @@ class UpdateTestCase(NRVTestCase):
         item.changeEditState(Modification.created, when=created)
 
         # Change the state to edited ...
-        edited = datetime(2006, 12, 31, 22, 11, tzinfo=ICUtzinfo.default)
+        edited = datetime(2006, 12, 31, 22, 11, tzinfo=self.view.tzinfo.default)
         item.changeEditState(Modification.edited, when=edited, who=email)
         self.failUnlessEqual(item.byline,
                              u"edited by Tommy Totoro on 12/31/06 10:11 PM")
@@ -212,13 +225,13 @@ class UpdateTestCase(NRVTestCase):
                              u"queued by Tommy Totoro on 12/31/06 10:11 PM")
         
         # Now, sent ...
-        sent = datetime(2036, 1, 12, 2, 15, tzinfo=ICUtzinfo.default)
+        sent = datetime(2036, 1, 12, 2, 15, tzinfo=self.view.tzinfo.default)
         item.changeEditState(Modification.sent, when=sent, who=email)
         self.failUnlessEqual(item.byline,
                              u"sent by Tommy Totoro on 1/12/36 2:15 AM")
 
         # Lastly, updated ...
-        updated = datetime(2007, 5, 17, 4, 22, 53, tzinfo=ICUtzinfo.default)
+        updated = datetime(2007, 5, 17, 4, 22, 53, tzinfo=self.view.tzinfo.default)
         item.changeEditState(Modification.updated, when=updated)
         self.failUnlessEqual(item.byline, u"updated on 5/17/07 4:22 AM")
 

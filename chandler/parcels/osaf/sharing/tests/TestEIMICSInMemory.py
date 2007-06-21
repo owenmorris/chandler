@@ -1,4 +1,4 @@
-#   Copyright (c) 2003-2006 Open Source Applications Foundation
+#   Copyright (c) 2003-2007 Open Source Applications Foundation
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -22,7 +22,6 @@ from osaf.sharing import recordset_conduit, translator, ics
 
 from repository.item.Item import Item
 from util import testcase
-from PyICU import ICUtzinfo
 from application import schema
 
 logger = logging.getLogger(__name__)
@@ -65,9 +64,8 @@ class EIMICSInMemoryTestCase(testcase.DualRepositoryTestCase):
             displayName="Test Collection")
 
 
-        pacific = ICUtzinfo.getInstance('America/Los_Angeles')
-
-        floating = ICUtzinfo.floating
+        pacific = view.tzinfo.getInstance('America/Los_Angeles')
+        floating = view.tzinfo.floating
 
         titles = [(u"breakfast", datetime(2007, 3, 1, 10, 30, 0, 0, floating)),
                   (u"dinner", datetime(2007, 3, 1, 18, 30, 0, 0, pacific))

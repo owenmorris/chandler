@@ -1,10 +1,24 @@
+#   Copyright (c) 2003-2007 Open Source Applications Foundation
+#
+#   Licensed under the Apache License, Version 2.0 (the "License");
+#   you may not use this file except in compliance with the License.
+#   You may obtain a copy of the License at
+#
+#       http://www.apache.org/licenses/LICENSE-2.0
+#
+#   Unless required by applicable law or agreed to in writing, software
+#   distributed under the License is distributed on an "AS IS" BASIS,
+#   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+#   See the License for the specific language governing permissions and
+#   limitations under the License.
+
 import unittest
 import doctest
 from util.testcase import SingleRepositoryTestCase
 from repository.item.Item import Item
 import osaf.pim as pim
 import datetime, time
-from PyICU import ICUtzinfo
+
 
 def additional_tests():
     return doctest.DocFileSuite(
@@ -27,12 +41,13 @@ class ProxyTestCase(SingleRepositoryTestCase):
             super(ProxyTestCase, self).setUp()
             self.sandbox = Item("sandbox", self.view, None)
             del self.view
-            
+        view = self.sandbox.itsView
+
         self.event = pim.calendar.Calendar.CalendarEvent(
             itsParent=self.sandbox,
             displayName=u"An event",
             startTime=datetime.datetime(2007, 3, 16, 11, 30,
-                            tzinfo=ICUtzinfo.getInstance("America/New_York")),
+                            tzinfo=view.tzinfo.getInstance("America/New_York")),
             duration=datetime.timedelta(minutes=15),
             anyTime=False,
             read=False,
@@ -42,6 +57,7 @@ class ProxyTestCase(SingleRepositoryTestCase):
                                        displayName=u"One")
         self.two = pim.SmartCollection(itsParent=self.sandbox,
                                        displayName=u"Two")
+        return view
 
     def tearDown(self):
         for child in self.sandbox.iterChildren():
@@ -236,8 +252,8 @@ class ProxyChangeTestCase(ProxyTestCase):
         
 class ProxyEditStateTestCase(ProxyTestCase):
     def setUp(self):
-        super(ProxyEditStateTestCase, self).setUp()
-        self.start = (datetime.datetime.now(ICUtzinfo.default) -
+        view = super(ProxyEditStateTestCase, self).setUp()
+        self.start = (datetime.datetime.now(view.tzinfo.default) -
                       datetime.timedelta(minutes=10))
         self.event.itsItem.changeEditState(pim.Modification.created,
                                            when=self.start)
@@ -405,9 +421,8 @@ class ProxyEditStateTestCase(ProxyTestCase):
         # However, third wasn't altered by the last change, so its
         # lastModified should be unchanged.
         self.failUnlessEqual(saveLastModified, third.itsItem.lastModified)
-        
-        
-        
+
+
 if __name__ == "__main__":
     from util.test_finder import ScanningLoader
 

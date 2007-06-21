@@ -15,7 +15,6 @@
 
 import sys, wx
 from datetime import datetime, timedelta
-from PyICU import ICUtzinfo
 from i18n import ChandlerMessageFactory as _
 from osaf import pim
 
@@ -167,9 +166,11 @@ class ReminderDialog(wx.Frame):
         self.remindersInList = {}
         nextReminderTime = pim.Reminder.farFuture
         nextReminderItem = None
+        tzinfo = wx.GetApp().UIRepositoryView.tzinfo.default
+
         for t in reminderTuples:
             (reminderTime, remindable, reminder) = t
-            if reminderTime < datetime.now(ICUtzinfo.default):
+            if reminderTime < datetime.now(tzinfo):
                 # Another pending reminder; add it to the list.
                 index = listCtrl.InsertStringItem(sys.maxint, 
                                                   remindable.displayName)
@@ -205,14 +206,15 @@ class ReminderDialog(wx.Frame):
         # the event times; otherwise, update us at the first future reminder time;
         # otherwise, no reminder needed.
         if not closeIt:
-            now = datetime.now(ICUtzinfo.default)
+            now = datetime.now(tzinfo)
             nextReminderTime = now + timedelta(seconds=(60-now.second))
         return (nextReminderTime, nextReminderItem, closeIt)
 
     def RelativeDateTimeMessage(self, eventTime):
         """ Build a message expressing relative time to this time, 
         like '12 minutes from now', 'Now', or '1 day ago'. """
-        now = datetime.now(ICUtzinfo.default)
+        tzinfo = wx.GetApp().UIRepositoryView.tzinfo.default
+        now = datetime.now(tzinfo)
         delta = now - eventTime
         deltaMinutes = (delta.days * 1440L) + (delta.seconds / 60)
         if 0 <= deltaMinutes < 1:

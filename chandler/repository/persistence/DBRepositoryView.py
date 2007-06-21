@@ -17,7 +17,6 @@ from __future__ import with_statement
 from threading import currentThread
 from datetime import timedelta
 from time import time, sleep
-from PyICU import ICUtzinfo
 
 from chandlerdb.item.c import CItem
 from chandlerdb.util.c import isuuid, Nil, Default, HashTuple

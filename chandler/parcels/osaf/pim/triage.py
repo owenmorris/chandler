@@ -19,7 +19,6 @@ from application import schema
 from datetime import datetime
 from osaf.pim.reminders import Remindable
 from i18n import ChandlerMessageFactory as _
-from PyICU import ICUtzinfo
 
 import logging
 logger = logging.getLogger(__name__)
@@ -91,11 +90,11 @@ class Triageable(Remindable):
     )
 
     schema.initialValues(
-        _triageStatusChanged = lambda self: self.makeTriageStatusChangedTime()
+        _triageStatusChanged = lambda self: self.makeTriageStatusChangedTime(self.itsView)
     )
     
     @staticmethod
-    def makeTriageStatusChangedTime(when=None):
+    def makeTriageStatusChangedTime(view, when=None):
         # get a float representation of a time from 'when' (or the current
         # time if when is None or not passed)
         if isinstance(when, float):
@@ -103,7 +102,7 @@ class Triageable(Remindable):
         elif isinstance(when, datetime):
             # (mktime wants local time, so make sure 'when' is 
             # in the local timezone)
-            when = -time.mktime(when.astimezone(ICUtzinfo.default).timetuple())
+            when = -time.mktime(when.astimezone(view.tzinfo.default).timetuple())
         else:
             when = -time.time()
         return when
@@ -137,8 +136,9 @@ class Triageable(Remindable):
             return
 
         # Don't reindex or notify until we're done with these changes
-        with self.itsView.observersDeferred():
-            with self.itsView.reindexingDeferred():
+        view = self.itsView
+        with view.observersDeferred():
+            with view.reindexingDeferred():
                 # Manipulate section status if necessary
                 if pin:
                     if not hasattr(self, '_sectionTriageStatus'):
@@ -181,7 +181,7 @@ class Triageable(Remindable):
                         if reminder is not None \
                            and reminder.nextPoll is not None \
                            and reminder.nextPoll != reminder.farFuture \
-                           and reminder.nextPoll > datetime.now(ICUtzinfo.default):
+                           and reminder.nextPoll > datetime.now(view.tzinfo.default):
                             #from osaf.framework.blocks.Block import debugName
                             #logger.debug("Autotriaging %s to LATER for reminder", 
                                          #debugName(self))
@@ -222,7 +222,7 @@ class Triageable(Remindable):
         if getattr(self, '_share_importing', False):
             return
 
-        tscValue = Triageable.makeTriageStatusChangedTime(when)
+        tscValue = Triageable.makeTriageStatusChangedTime(self.itsView, when)
         setattr(self, tsAttr, newStatus)
         tscAttr = '_sectionTriageStatusChanged' if section else '_triageStatusChanged'
         setattr(self, tscAttr, tscValue)

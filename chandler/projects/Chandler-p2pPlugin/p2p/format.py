@@ -1,4 +1,4 @@
-#   Copyright (c) 2003-2006 Open Source Applications Foundation
+#   Copyright (c) 2003-2007 Open Source Applications Foundation
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -207,7 +207,7 @@ class CloudXMLDiffFormat(formats.CloudXMLFormat):
                                                changes, keys)
                             dom.closeElement(item, 'value')
                         else:
-                            mimetype, encoding, attrValue = utility.serializeLiteral(attrValue, attrType)
+                            mimetype, encoding, attrValue = utility.serializeLiteral(self.itsView, attrValue, attrType)
 
                             attrs = { 'name': attrName }
                             if mimetype:
@@ -226,7 +226,7 @@ class CloudXMLDiffFormat(formats.CloudXMLFormat):
                         value = dom.openElement(item, 'value', name=attrName)
                         for v in attrValue:
                             attrs = {}
-                            mimetype, encoding, v = utility.serializeLiteral(v, attrType)
+                            mimetype, encoding, v = utility.serializeLiteral(self.itsView, v, attrType)
 
                             if mimetype:
                                 attrs['mimetype'] = mimetype

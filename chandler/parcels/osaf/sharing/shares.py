@@ -29,7 +29,6 @@ from callbacks import *
 import cPickle
 import logging
 import datetime
-from PyICU import ICUtzinfo
 from chandlerdb.util.c import Empty
 from repository.item.Item import Item
 import utility
@@ -606,7 +605,7 @@ class Share(pim.ContentItem):
             not pim.has_stamp(self.contents, SharedItem)):
             SharedItem(self.contents).add()
 
-        self.lastAttempt = datetime.datetime.now(ICUtzinfo.default)
+        self.lastAttempt = datetime.datetime.now(self.itsView.tzinfo.default)
 
         # Clear any previous error
         for linked in self.getLinkedShares():
@@ -636,7 +635,7 @@ class Share(pim.ContentItem):
 
             # self.lastStats = stats
 
-            self.lastSuccess = datetime.datetime.now(ICUtzinfo.default)
+            self.lastSuccess = datetime.datetime.now(self.itsView.tzinfo.default)
 
         except Exception, e:
 

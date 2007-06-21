@@ -1,4 +1,4 @@
-#   Copyright (c) 2003-2006 Open Source Applications Foundation
+#   Copyright (c) 2003-2007 Open Source Applications Foundation
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -22,7 +22,6 @@ __version__=  '0.2'
 from tools.QALogger import *
 from datetime import datetime, timedelta, time
 from time import mktime, strptime
-from PyICU import ICUtzinfo
 from osaf import pim
 from osaf.framework.twisted import waitForDeferred
 import osaf.pim.mail as Mail
@@ -253,7 +252,7 @@ def GetOccurrence(name, date):
     item = App_ns.item_named(pim.Note, name)
     if pim.has_stamp(item, pim.EventStamp):
         master = pim.EventStamp(item).getMaster()
-        start = datetime.combine(date, time(0, tzinfo=ICUtzinfo.floating))
+        start = datetime.combine(date, time(0, tzinfo=item.itsView.tzinfo.floating))
         end   = start + timedelta(1)
         occurrences = list(master.getOccurrencesBetween(start,end))
         if len(occurrences) > 0:

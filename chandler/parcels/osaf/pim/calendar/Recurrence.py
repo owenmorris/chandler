@@ -28,7 +28,7 @@ from datetime import datetime
 import dateutil.rrule
 from dateutil.rrule import rrule, rruleset
 from repository.item.PersistentCollections import PersistentList
-from PyICU import ICUtzinfo, DateFormat, DateFormatSymbols, Calendar
+from PyICU import DateFormat, DateFormatSymbols, Calendar
 from TimeZone import coerceTimeZone, forceToDateTime
 from i18n import ChandlerMessageFactory as _
 
@@ -279,7 +279,7 @@ class RecurrenceRule(items.ContentItem):
                               the rule is going to be serialized
         @type  ignoreIsCount: C{bool}
 
-        @param convertFloating: Whether or not to allow ICUtzinfo.floating
+        @param convertFloating: Whether or not to allow view.tzinfo.floating
                                 in datetimes of the rruleset. If C{True},
                                 naive datetimes are used instead. This is
                                 needed for exporting floating events to
@@ -291,13 +291,14 @@ class RecurrenceRule(items.ContentItem):
         """
 
         tzinfo = dtstart.tzinfo
+        view = self.itsView
 
         def coerceIfDatetime(value):
             if isinstance(value, datetime):
-                if convertFloating and tzinfo is ICUtzinfo.floating:
-                    value = coerceTimeZone(value, tzinfo).replace(tzinfo=None)
+                if convertFloating and tzinfo == view.tzinfo.floating:
+                    value = coerceTimeZone(view, value, tzinfo).replace(tzinfo=None)
                 else:
-                    value = coerceTimeZone(value, tzinfo)
+                    value = coerceTimeZone(view, value, tzinfo)
             return value
 
         # TODO: more comments
@@ -325,6 +326,7 @@ class RecurrenceRule(items.ContentItem):
         @type  rrule: C{dateutil.rrule.rrule}
 
         """
+        view = self.itsView
         self.untilIsDate = False
         until = None # assume no limit
         if rrule._count is not None:
@@ -359,9 +361,9 @@ class RecurrenceRule(items.ContentItem):
                 del self.until
         else:
             if until.tzinfo is None:
-                self.until = until.replace(tzinfo=ICUtzinfo.floating)
+                self.until = until.replace(tzinfo=view.tzinfo.floating)
             else:
-                self.until = coerceTimeZone(until, ICUtzinfo.default)
+                self.until = coerceTimeZone(view, until, view.tzinfo.default)
 
         for key in self.listNames:
             # TODO: cache getattr(rrule, '_' + key)
@@ -485,7 +487,7 @@ class RecurrenceRuleSet(items.ContentItem):
                               the rule is going to be serialized
         @type  ignoreIsCount: C{bool}
 
-        @param convertFloating: Whether or not to allow ICUtzinfo.floating
+        @param convertFloating: Whether or not to allow view.tzinfo.floating
                                 in datetimes of the rruleset. If C{True},
                                 naive datetimes are used instead. This is
                                 needed for exporting floating events to
@@ -504,6 +506,7 @@ class RecurrenceRuleSet(items.ContentItem):
         @rtype: C{dateutil.rrule.rruleset}
 
         """
+        view = self.itsView
         args = (ignoreIsCount, convertFloating)
         ruleset = rruleset()
         for rtype in 'rrule', 'exrule':
@@ -517,10 +520,10 @@ class RecurrenceRuleSet(items.ContentItem):
         
         for datetype in 'rdate', 'exdate':
             for date in getattr(self, datetype + 's', []):
-                if convertFloating and date.tzinfo is ICUtzinfo.floating:
+                if convertFloating and date.tzinfo == view.tzinfo.floating:
                     date = date.replace(tzinfo=None)
                 else:
-                    date = coerceTimeZone(date, dtstart.tzinfo)
+                    date = coerceTimeZone(view, date, dtstart.tzinfo)
                 getattr(ruleset, datetype)(date)
         return ruleset
 
@@ -553,7 +556,8 @@ class RecurrenceRuleSet(items.ContentItem):
                     itemlist.append(ruleItem)
                 setattr(self, rtype + 's', itemlist)
             for typ in 'rdate', 'exdate':
-                datetimes = [forceToDateTime(d) for d in getattr(ruleSetOrRule, '_' + typ, [])]
+                datetimes = [forceToDateTime(self.itsView, d)
+                             for d in getattr(ruleSetOrRule, '_' + typ, [])]
                 setattr(self, typ + 's', datetimes)
         finally:
             self._ignoreValueChanges = ignoreChanges

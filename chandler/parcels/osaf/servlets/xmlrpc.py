@@ -18,7 +18,6 @@ from osaf import pim
 import datetime
 from twisted.web import xmlrpc
 from util import commandline
-from PyICU import ICUtzinfo
 
 # For current( )
 from osaf.views import detail
@@ -85,7 +84,7 @@ class XmlRpcResource(xmlrpc.XMLRPC):
         note = pim.Note(itsView=view, displayName=title, body=body)
         event = pim.EventStamp(note)
         event.add()
-        event.startTime = datetime.datetime.now(tz=ICUtzinfo.floating)
+        event.startTime = datetime.datetime.now(tz=view.tzinfo.floating)
         event.duration = datetime.timedelta(minutes=60)
         event.anyTime = False
         allCollection = schema.ns('osaf.pim', view).allCollection

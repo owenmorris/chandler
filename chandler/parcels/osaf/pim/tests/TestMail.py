@@ -27,7 +27,6 @@ from osaf.framework.twisted import waitForDeferred
 
 from datetime import datetime
 from repository.util.Path import Path
-from PyICU import ICUtzinfo
 from i18n.tests import uw
 
 class MailTest(TestDomainModel.DomainModelTestCase):
@@ -129,7 +128,7 @@ class MailTest(TestDomainModel.DomainModelTestCase):
         mimeSecurityObject.mimeType = "SIGNED"
 
         # Literal properties
-        mailMessageObject.dateSent = datetime.now(ICUtzinfo.default)
+        mailMessageObject.dateSent = datetime.now(view.tzinfo.default)
         mailMessageObject.subject = uw("Hello")
         self.assertEqual(mailMessageObject.subject,
                          mailMessageObject.itsItem.displayName)

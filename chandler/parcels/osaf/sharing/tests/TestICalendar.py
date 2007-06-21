@@ -1,4 +1,4 @@
-#   Copyright (c) 2003-2006 Open Source Applications Foundation
+#   Copyright (c) 2003-2007 Open Source Applications Foundation
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -51,6 +51,7 @@ class ICalendarTestCase(SingleRepositoryTestCase):
         # create a sandbox root
         self.sandbox = Item.Item("sandbox", self.view, None)
         self.view.commit()
+        self.utc = self.view.tzinfo.getInstance('utc')
 
     def Import(self, view, filename):
 
@@ -71,7 +72,7 @@ class ICalendarTestCase(SingleRepositoryTestCase):
         self.assertEqual(event.summary, u'3 ho\u00FCr event',
                  u"SUMMARY of first VEVENT not imported correctly, displayName is %s"
                  % event.summary)
-        evtime = datetime.datetime(2005,1,1, hour = 23, tzinfo = ics.utc)
+        evtime = datetime.datetime(2005,1,1, hour = 23, tzinfo = self.utc)
         self.assert_(event.startTime == evtime,
          "startTime not set properly, startTime is %s"
          % event.startTime)
@@ -81,7 +82,7 @@ class ICalendarTestCase(SingleRepositoryTestCase):
         event = pim.EventStamp(sharing.findUID(self.view, 'testAllDay'))
         self.failUnless(pim.has_stamp(event, pim.EventStamp))
         self.assert_(event.startTime ==
-                     datetime.datetime(2005,1,1, tzinfo=ICUtzinfo.floating),
+                     datetime.datetime(2005,1,1, tzinfo=self.view.tzinfo.floating),
          "startTime not set properly for all day event, startTime is %s"
          % event.startTime)
         self.assert_(event.allDay == True,
@@ -94,11 +95,11 @@ class ICalendarTestCase(SingleRepositoryTestCase):
         self.assertEqual(len(event.rruleset.exdates), 2)
         self.assertEqual(
             event.rruleset.exdates[0],
-            datetime.datetime(2007, 10, 15, 0, 0, tzinfo=ICUtzinfo.floating)
+            datetime.datetime(2007, 10, 15, 0, 0, tzinfo=self.view.tzinfo.floating)
         )
         self.assertEqual(
             event.rruleset.exdates[1],
-            datetime.datetime(2007, 10, 29, 0, 0, tzinfo=ICUtzinfo.floating)
+            datetime.datetime(2007, 10, 29, 0, 0, tzinfo=self.view.tzinfo.floating)
         )
          
 
@@ -106,7 +107,7 @@ class ICalendarTestCase(SingleRepositoryTestCase):
         self.Import(self.view, u'AllDay.ics')
         schema.ns('osaf.pim', self.view).mine.addSource(self.importedCollection)
 
-        start = datetime.datetime(2005,1,1, tzinfo=ICUtzinfo.floating)
+        start = datetime.datetime(2005,1,1, tzinfo=self.view.tzinfo.floating)
         end = start + datetime.timedelta(2)
 
         cal = ICalendar.itemsToFreeBusy(self.view, start, end)
@@ -118,9 +119,9 @@ class ICalendarTestCase(SingleRepositoryTestCase):
         event.anyTime = False
         event.summary = uw("test")
         event.startTime = datetime.datetime(2010, 1, 1, 10,
-                                            tzinfo=ICUtzinfo.default)
+                                            tzinfo=self.view.tzinfo.default)
         event.endTime = datetime.datetime(2010, 1, 1, 11,
-                                          tzinfo=ICUtzinfo.default)
+                                          tzinfo=self.view.tzinfo.default)
         
         cal = getVObjectData(self.view, [event.itsItem])
 
@@ -136,7 +137,7 @@ class ICalendarTestCase(SingleRepositoryTestCase):
         event = Calendar.CalendarEvent(itsView = self.view)
         event.summary = uw("test2")
         event.startTime = datetime.datetime(2010, 1, 1, 
-                                            tzinfo=ICUtzinfo.floating)
+                                            tzinfo=self.view.tzinfo.floating)
         event.allDay = True
         event.duration = datetime.timedelta(1)
         self.assertEqual(event.effectiveEndTime - event.effectiveStartTime,
@@ -156,9 +157,9 @@ class ICalendarTestCase(SingleRepositoryTestCase):
         event = Calendar.CalendarEvent(itsView = self.view)
         event.summary = u"unicode \u0633\u0644\u0627\u0645"
         event.startTime = datetime.datetime(2010, 1, 1, 10,
-                                            tzinfo=ICUtzinfo.default)
+                                            tzinfo=self.view.tzinfo.default)
         event.endTime = datetime.datetime(2010, 1, 1, 11,
-                                          tzinfo=ICUtzinfo.default)
+                                          tzinfo=self.view.tzinfo.default)
         event.rruleset = self._makeRecurrenceRuleSet()
 
         coll = ListCollection("testcollection", itsParent=self.sandbox)
@@ -190,7 +191,7 @@ class ICalendarTestCase(SingleRepositoryTestCase):
         tzinfo = TimeZoneInfo.get(self.view)
         saveTz = tzinfo.default
         
-        tzinfo.default = ICUtzinfo.getInstance(tzName)
+        tzinfo.default = self.view.tzinfo.getInstance(tzName)
         
         try:
         
@@ -201,7 +202,7 @@ class ICalendarTestCase(SingleRepositoryTestCase):
             self.assertEqual(third.summary, u'\u00FCChanged title')
             self.assertEqual(
                 third.recurrenceID,
-                datetime.datetime(2005, 8, 10, tzinfo=ICUtzinfo.floating)
+                datetime.datetime(2005, 8, 10, tzinfo=self.view.tzinfo.floating)
             )
             # while were at it, test bug 3509, all day event duration is off by one
             self.assertEqual(event.duration, datetime.timedelta(0))
@@ -210,7 +211,7 @@ class ICalendarTestCase(SingleRepositoryTestCase):
                                         '07f3d6f0-4c04-11da-b671-0013ce40e90f'))
             self.assertEqual(
                 event.rruleset.exdates[0],
-                datetime.datetime(2005, 12, 6, 12, 30, tzinfo=ICUtzinfo.floating)
+                datetime.datetime(2005, 12, 6, 12, 30, tzinfo=self.view.tzinfo.floating)
             )
             
             # test count export, no timezones
@@ -218,7 +219,7 @@ class ICalendarTestCase(SingleRepositoryTestCase):
             self.assertEqual(vcalendar.vevent.rruleset._rrule[0]._count, 10)
     
             # turn on timezones, putting event in Pacific time
-            pacific = ICUtzinfo.getInstance("America/Los_Angeles")
+            pacific = self.view.tzinfo.getInstance("America/Los_Angeles")
             TimeZoneInfo.get(self.view).default = pacific
             schema.ns('osaf.pim', self.view).TimezonePrefs.showUI = True
             self.assertEqual(event.startTime.tzinfo, pacific)
@@ -256,7 +257,7 @@ class ICalendarTestCase(SingleRepositoryTestCase):
         # (unless we're suffering from Bug 7023, in which case tzinfos are
         # changed silently, often to GMT, without raising an exception)
         self.assertEqual(event.rruleset.exdates[0].tzinfo,
-                         ICUtzinfo.getInstance('US/Central'))
+                         self.view.tzinfo.getInstance('US/Central'))
 
     def testImportRecurrenceAndTriageStatus(self):
         self.Import(self.view, u'Recurrence.ics')
@@ -288,7 +289,7 @@ class ICalendarTestCase(SingleRepositoryTestCase):
         event = pim.EventStamp(sharing.findUID(
                                 self.view,
                                 '42583280-8164-11da-c77c-0011246e17f0'))
-        mountain_time = ICUtzinfo.getInstance('America/Denver')
+        mountain_time = self.view.tzinfo.getInstance('America/Denver')
         self.assertEqual(event.startTime.tzinfo, mountain_time)
 
     def testImportReminders(self):
@@ -316,7 +317,7 @@ class ICalendarTestCase(SingleRepositoryTestCase):
         self.failUnless(reminder is not None, "No reminder was set")
         self.failUnlessEqual(reminder.absoluteTime,
                              datetime.datetime(2006, 9, 25, 8,
-                                    tzinfo=ICUtzinfo.getInstance('America/Los_Angeles')))
+                                    tzinfo=self.view.tzinfo.getInstance('America/Los_Angeles')))
 
     def _makeRecurrenceRuleSet(self, until=None, freq='daily'):
         ruleItem = RecurrenceRule(None, itsView=self.view)
@@ -328,7 +329,7 @@ class ICalendarTestCase(SingleRepositoryTestCase):
         return ruleSetItem
 
     def testExportRecurrence(self):
-        eastern = ICUtzinfo.getInstance("America/New_York")
+        eastern = self.view.tzinfo.getInstance("America/New_York")
         start = datetime.datetime(2005,2,1, tzinfo = eastern)
         vevent = vobject.icalendar.RecurringComponent(name='VEVENT')
         vevent.behavior = vobject.icalendar.VEvent
@@ -363,7 +364,7 @@ class ICalendarTestCase(SingleRepositoryTestCase):
         nextEvent = event.getFirstOccurrence().getNextOccurrence()
         nextEvent.changeThis(pim.EventStamp.startTime.name,
                              datetime.datetime(2005,2,9,
-                                               tzinfo=ICUtzinfo.floating))
+                                               tzinfo=self.view.tzinfo.floating))
 
         nextEvent.getNextOccurrence().deleteThis()
 
@@ -392,7 +393,7 @@ class ICalendarTestCase(SingleRepositoryTestCase):
         self.Import(self.view, u'oracle_mod.ics')
         master = pim.EventStamp(sharing.findUID(self.view,
                                         'abbfc510-4d8f-11db-c525-001346a711f0'))
-        modTime = datetime.datetime(2006, 9, 29, 13, tzinfo=ics.utc)
+        modTime = datetime.datetime(2006, 9, 29, 13, tzinfo=self.utc)
         changed = master.getRecurrenceID(modTime)
         self.assert_(changed is not None)
         self.assertEqual(changed.itsItem.displayName,
@@ -410,13 +411,13 @@ class ICalendarTestCase(SingleRepositoryTestCase):
         
         event = pim.EventStamp(sharing.findUID(self.view,
                                        'c1ea7e4c-c13f-11db-a49c-a07b7a7d67f5'))
-        self.failUnlessEqual(event.startTime.tzinfo, ICUtzinfo.floating)
+        self.failUnlessEqual(event.startTime.tzinfo, self.view.tzinfo.floating)
 
 
 
 # test import/export unicode
 
-class TimeZoneTestCase(unittest.TestCase):
+class TimeZoneTestCase(SingleRepositoryTestCase):
 
     def getICalTzinfo(self, lines):
         fileobj = cStringIO.StringIO("\r\n".join(lines))
@@ -426,12 +427,12 @@ class TimeZoneTestCase(unittest.TestCase):
 
     def runConversionTest(self, expectedZone, icalZone):
         dt = datetime.datetime(2004, 10, 11, 13, 22, 21, tzinfo=icalZone)
-        convertedZone = convertToICUtzinfo(dt).tzinfo
+        convertedZone = convertToICUtzinfo(self.view, dt).tzinfo
         self.failUnless(isinstance(convertedZone, (ICUtzinfo, FloatingTZ)))
         self.failUnlessEqual(expectedZone, convertedZone)
 
         dt = datetime.datetime(2004, 4, 11, 13, 9, 56, tzinfo=icalZone)
-        convertedZone = convertToICUtzinfo(dt).tzinfo
+        convertedZone = convertToICUtzinfo(self.view, dt).tzinfo
         self.failUnless(isinstance(convertedZone, (ICUtzinfo, FloatingTZ)))
         self.failUnlessEqual(expectedZone, convertedZone)
 
@@ -455,7 +456,7 @@ class TimeZoneTestCase(unittest.TestCase):
             "END:VTIMEZONE"])
 
         self.runConversionTest(
-            ICUtzinfo.getInstance("America/Caracas"),
+            self.view.tzinfo.getInstance("America/Caracas"),
             zone)
 
     def testAustralia(self):
@@ -479,7 +480,7 @@ class TimeZoneTestCase(unittest.TestCase):
             "END:VTIMEZONE"])
 
         self.runConversionTest(
-            ICUtzinfo.getInstance("Australia/Sydney"),
+            self.view.tzinfo.getInstance("Australia/Sydney"),
             zone)
 
     def testFrance(self):
@@ -503,7 +504,7 @@ class TimeZoneTestCase(unittest.TestCase):
             "END:VTIMEZONE"])
 
         self.runConversionTest(
-            ICUtzinfo.getInstance("Europe/Paris"),
+            self.view.tzinfo.getInstance("Europe/Paris"),
             zone)
 
     def testUS(self):
@@ -525,7 +526,7 @@ class TimeZoneTestCase(unittest.TestCase):
             "END:STANDARD",
             "END:VTIMEZONE"])
         self.runConversionTest(
-            ICUtzinfo.getInstance("America/Los_Angeles"),
+            self.view.tzinfo.getInstance("America/Los_Angeles"),
             zone)
 
     def testExchangeUSEastern(self):
@@ -551,7 +552,7 @@ class TimeZoneTestCase(unittest.TestCase):
         # If a view was passed to convertToICUtzinfo, this would be
         # America/New_York because it's a well known TZID.
         self.runConversionTest(
-            ICUtzinfo.getInstance("America/Detroit"),
+            self.view.tzinfo.getInstance("America/New_York"),
             zone)
 
 class SharingTestCase(SingleRepositoryTestCase):
@@ -559,6 +560,7 @@ class SharingTestCase(SingleRepositoryTestCase):
         super(SharingTestCase, self).setUp()
         self.peer = pim.EmailAddress.getEmailAddress(self.view, 
                                                      "conflict@example.com")
+        self.utc = self.view.tzinfo.getInstance('utc')
     
 class ImportTodoTestCase(SharingTestCase):
     
@@ -757,9 +759,9 @@ class ImportTodoTestCase(SharingTestCase):
         self.failUnless(pim.has_stamp(task, pim.TaskStamp))
         self.failUnlessEqual(task.summary, u"ToDoneAndWhen")
         self.failUnlessEqual(task.itsItem.triageStatus, pim.TriageEnum.done)
-        expectedTSC = datetime.datetime(2006, 3, 1, 1, 0, 0, 0, ics.utc)
+        expectedTSC = datetime.datetime(2006, 3, 1, 1, 0, 0, 0, self.utc)
         self.failUnlessEqual(task.itsItem.triageStatusChanged,
-                             Triageable.makeTriageStatusChangedTime(expectedTSC))
+                             Triageable.makeTriageStatusChangedTime(self.view, expectedTSC))
 
     def testDescription(self):
         self.runImport(
@@ -1060,7 +1062,7 @@ class ICalendarMergeTestCase(SingleRepositoryTestCase):
         # Test for one problem in bug 7019
         # Create the original ... (We could also use self._doSync here)
         startTime = datetime.datetime(2006, 4, 17, 13,
-                                      tzinfo=ICUtzinfo.floating)
+                                      tzinfo=self.view.tzinfo.floating)
         
         rrule = RecurrenceRule(
             itsParent=self.sandbox,
@@ -1174,7 +1176,7 @@ class ICalendarMergeTestCase(SingleRepositoryTestCase):
         )
         
         start = datetime.datetime(2006, 10, 14, 
-                                  tzinfo=ICUtzinfo.floating)
+                                  tzinfo=self.view.tzinfo.floating)
         end = start + datetime.timedelta(days=7)
         events = list(Calendar.recurringEventsInRange(self.view, start, end,
                                                  filterColl=self.collection))

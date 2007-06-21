@@ -1,4 +1,4 @@
-#   Copyright (c) 2003-2006 Open Source Applications Foundation
+#   Copyright (c) 2003-2007 Open Source Applications Foundation
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -17,7 +17,6 @@ import unittest, sys, os, logging, datetime, time
 from osaf import pim, sharing
 from repository.item.Item import Item
 from util import testcase
-from PyICU import ICUtzinfo
 from application import schema
 from i18n.tests import uw
 
@@ -62,7 +61,7 @@ class DuplicateIcalUIDTestCase(testcase.DualRepositoryTestCase):
         coll = pim.ListCollection("testCollection", sandbox,
             displayName=uw("Test Collection"))
 
-        tzinfo = ICUtzinfo.getDefault()
+        tzinfo = view.tzinfo.getDefault()
         c = pim.CalendarEvent(itsParent=sandbox)
         c.summary = "Test event"
         c.startTime = datetime.datetime(2005, 10, 31, 12, 0, 0, 0, tzinfo)

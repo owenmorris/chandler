@@ -16,9 +16,9 @@
 from application import schema
 from chandlerdb.item.c import isitemref
 from chandlerdb.util.c import Empty
+from PyICU import ICUtzinfo
 
 from datetime import datetime, timedelta
-from PyICU import ICUtzinfo
 
 import logging
 logger = logging.getLogger(__name__)
@@ -77,10 +77,10 @@ class Reminder(schema.Item):
     # Make values we can use for distant (or invalid) reminder times
     farFuture = datetime.max
     if farFuture.tzinfo is None:
-        farFuture = farFuture.replace(tzinfo=ICUtzinfo.default)
+        farFuture = farFuture.replace(tzinfo=ICUtzinfo.getInstance('UTC'))
     distantPast = datetime.min
     if distantPast.tzinfo is None:
-        distantPast = distantPast.replace(tzinfo=ICUtzinfo.default)
+        distantPast = distantPast.replace(tzinfo=ICUtzinfo.getInstance('UTC'))
     
     absoluteTime = schema.One(
         schema.DateTimeTZ,
@@ -179,7 +179,7 @@ class Reminder(schema.Item):
         @type when: C{datetime}.
         """
         if when is None:
-            when = datetime.now(ICUtzinfo.default)
+            when = datetime.now(self.itsView.tzinfo.default)
 
         if self.nextPoll is None:
             # No value for nextPoll means we've just been initialized.
@@ -222,7 +222,7 @@ class Reminder(schema.Item):
         assert len(toSnooze), "Attempt to snooze item non-pending item %r" % (
                                item)
 
-        when = datetime.now(ICUtzinfo.default) + delta
+        when = datetime.now(self.itsView.tzinfo.default) + delta
         for item in toSnooze:
             item.when = when
             item.snoozed = True
@@ -260,15 +260,15 @@ class Reminder(schema.Item):
                 self.delete(True)
 
     @classmethod
-    def defaultTime(cls):
+    def defaultTime(cls, view):
         """ 
         Something's creating a reminder and needs a default time.
         We'll return 5PM today if that's in the future; otherwise, 8AM tomorrow.
         """    
         # start with today at 5PM
-        t = datetime.now(tz=ICUtzinfo.default)\
+        t = datetime.now(tz=view.tzinfo.default)\
             .replace(hour=17, minute=0, second=0, microsecond=0)
-        now = datetime.now(tz=ICUtzinfo.default)
+        now = datetime.now(tz=view.tzinfo.default)
         if t < now:
             # Make it tomorrow morning at 8AM (eg, 15 hours later)
             t += timedelta(hours=15)

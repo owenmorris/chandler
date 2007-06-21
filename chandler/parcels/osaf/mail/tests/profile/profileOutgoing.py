@@ -1,4 +1,4 @@
-#   Copyright (c) 2003-2006 Open Source Applications Foundation
+#   Copyright (c) 2003-2007 Open Source Applications Foundation
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -19,7 +19,6 @@ from osaf.pim.mail import EmailAddress
 from i18n.tests import uw
 from datetime import datetime, timedelta
 import random
-from PyICU import ICUtzinfo
 from osaf.pim.calendar import Calendar
 from osaf import pim
 from osaf.pim.calendar.Recurrence import RecurrenceRule, RecurrenceRuleSet
@@ -51,7 +50,7 @@ def addEventStamp(item, recur=False):
     es.add()
     es.summary = uw("Test Event Summary")
 
-    tzinfo = ICUtzinfo.floating
+    tzinfo = view.tzinfo.floating
 
     # Choose random days, hours
     startDelta = timedelta(days=random.randint(0, 30),
@@ -77,7 +76,7 @@ def addEventStamp(item, recur=False):
     if recur:
         rule = RecurrenceRule(itsView=view)
         rule.freq = 'daily'
-        rule.until =  datetime(2008, 9, 14, 19, tzinfo=ICUtzinfo.default)
+        rule.until =  datetime(2008, 9, 14, 19, tzinfo=view.tzinfo.default)
         rule.untilIsDate = False
 
         ruleSet = RecurrenceRuleSet(itsView=view)

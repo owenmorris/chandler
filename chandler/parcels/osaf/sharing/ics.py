@@ -18,10 +18,10 @@ from ICalendar import (makeNaiveteMatch, attributesUnderstood,
                        parametersUnderstood)
 import vobject
 from datetime import datetime, timedelta, date
-from PyICU import ICUtzinfo
 from osaf.pim.calendar.TimeZone import convertToICUtzinfo, forceToDateTime
 from osaf.pim.triage import Triageable
-from chandlerdb.util.c import UUID, Empty
+from chandlerdb.util.c import UUID, Empty, Nil
+from repository.persistence.RepositoryView import currentview
 from i18n import ChandlerMessageFactory as _
 import md5
 from itertools import chain
@@ -35,15 +35,10 @@ __all__ = [
 
 logger = logging.getLogger(__name__)
 
-utc = ICUtzinfo.getInstance('UTC')
-
-def no_op(*args, **kwds):
-    pass
-
 class ICalendarExportError(Exception):
     pass
 
-def prepareVobj(uuid, recordSet, vobjs):
+def prepareVobj(view, uuid, recordSet, vobjs):
     """
     Determine if a recordset is for a vtodo, or a vevent, then create it.
     
@@ -52,7 +47,7 @@ def prepareVobj(uuid, recordSet, vobjs):
     recordsets for masters being processed before modifications.
     
     """
-    master_uuid, recurrenceID = translator.splitUUID(uuid)
+    master_uuid, recurrenceID = translator.splitUUID(view, uuid)
     if recurrenceID is None:
         task, event = hasTaskAndEvent(recordSet)
     else:
@@ -103,17 +98,17 @@ def pruneDateTimeParam(vobj):
         del vobj.value_param
     
 
-def registerTZID(vobj):
+def registerTZID(view, vobj):
     tzid = getattr(vobj, 'tzid_param', None)
     # add an appropriate tzinfo to vobject's tzid->tzinfo cache
     if tzid is not None and vobject.icalendar.getTzid(tzid) is None:
-        vobject.icalendar.registerTzid(tzid, ICUtzinfo.getInstance(tzid))
+        vobject.icalendar.registerTzid(tzid, view.tzinfo.getInstance(tzid))
 
-def readEventRecord(eventRecord, vobjs):
+def readEventRecord(view, eventRecord, vobjs):
     vevent = getVobj(eventRecord, vobjs)
     master = None
-
-    uuid, recurrenceID = translator.splitUUID(eventRecord.uuid)
+    
+    uuid, recurrenceID = translator.splitUUID(view, eventRecord.uuid)
     if recurrenceID is not None:
         master = vobjs[uuid]
         m_start = master.dtstart
@@ -121,14 +116,14 @@ def readEventRecord(eventRecord, vobjs):
         if getattr(m_start, 'value_param', '') == 'DATE':
             recurrenceID = recurrenceID.date()
             anyTime = (getattr(m_start, 'x_osaf_anytime_param', '') == 'TRUE')
-        elif recurrenceID.tzinfo == ICUtzinfo.floating:
+        elif recurrenceID.tzinfo == view.tzinfo.floating:
             recurrenceID = recurrenceID.replace(tzinfo=None)
-        elif recurrenceID.tzinfo == utc:
+        elif recurrenceID.tzinfo == view.tzinfo.UTC:
             # convert UTC recurrence-id (which is legal, but unusual in
             # iCalendar) to the master's dtstart timezone
             tzid = getattr(m_start, 'tzid_param', None)
             if tzid is not None:
-                tzinfo = ICUtzinfo.getInstance(tzid)
+                tzinfo = view.tzinfo.getInstance(tzid)
                 recurrenceID = recurrenceID.astimezone(tzinfo)
         vevent.add('recurrence-id').value = recurrenceID
         
@@ -142,7 +137,7 @@ def readEventRecord(eventRecord, vobjs):
         vevent.dtstart = textLineToContentLine("DTSTART" +
                                                eventRecord.dtstart)
         pruneDateTimeParam(vevent.dtstart)
-        registerTZID(vevent.dtstart)
+        registerTZID(view, vevent.dtstart)
 
     for name in ['duration', 'status', 'location']:
         eimValue = getattr(eventRecord, name)
@@ -158,7 +153,7 @@ def readEventRecord(eventRecord, vobjs):
         vevent.duration.isNative = False
         
     timestamp = datetime.utcnow()
-    vevent.add('dtstamp').value = timestamp.replace(tzinfo=utc)
+    vevent.add('dtstamp').value = timestamp.replace(tzinfo=view.tzinfo.UTC)
     # rruleset
     for rule_name in ('rrule', 'exrule'):
         rules = []
@@ -179,7 +174,7 @@ def readEventRecord(eventRecord, vobjs):
 
 
 
-def readNoteRecord(noteRecord, vobjs):
+def readNoteRecord(view, noteRecord, vobjs):
     vobj = getVobj(noteRecord, vobjs)
     if noteRecord.body not in translator.emptyValues:
         vobj.add('description').value = noteRecord.body
@@ -187,7 +182,7 @@ def readNoteRecord(noteRecord, vobjs):
     if icalUID in translator.emptyValues:
         # empty icalUID for a master means use uuid, for a modification it means
         # inherit icalUID
-        uuid, recurrenceID = translator.splitUUID(noteRecord.uuid)
+        uuid, recurrenceID = translator.splitUUID(view, noteRecord.uuid)
         if recurrenceID is None:
             icalUID = uuid
         else:
@@ -322,7 +317,7 @@ triage_code_to_vtodo_status = {
 vtodo_status_to_triage_code = dict((v, k) for 
                                    k, v in triage_code_to_vtodo_status.items())
 
-def readItemRecord(itemRecord, vobjs):
+def readItemRecord(view, itemRecord, vobjs):
     vobj = getVobj(itemRecord, vobjs)
     if itemRecord.title not in translator.emptyValues:
         vobj.add('summary').value = itemRecord.title
@@ -351,12 +346,12 @@ def readItemRecord(itemRecord, vobjs):
             status_obj.x_osaf_changed_param = str(timestamp)
             status_obj.x_osaf_auto_param = ('TRUE' if auto == '1' else 'FALSE')
 
-def readAlarmRecord(alarmRecord, vobjs):
+def readAlarmRecord(view, alarmRecord, vobjs):
     vobj = getVobj(alarmRecord, vobjs)
     if alarmRecord.trigger not in translator.emptyValues:
         valarm = vobj.add('valarm')
         try:
-            val = translator.fromICalendarDateTime(alarmRecord.trigger)[0]
+            val = translator.fromICalendarDateTime(view, alarmRecord.trigger)[0]
             valarm.add('trigger').value = val
         except:
             valarm.trigger = textLineToContentLine("TRIGGER:" + 
@@ -393,12 +388,12 @@ class DictWithAttributes(dict):
 class ICSSerializer(object):
 
     @classmethod
-    def serialize(cls, recordSets, **extra):
-        cal = cls.recordSetsToVObject(recordSets, **extra)
+    def serialize(cls, view, recordSets, **extra):
+        cal = cls.recordSetsToVObject(view, recordSets, **extra)
         return cal.serialize().encode('utf-8')
     
     @classmethod
-    def recordSetsToVObject(cls, recordSets, **extra):
+    def recordSetsToVObject(cls, view, recordSets, **extra):
         """ Convert a list of record sets to an ICalendar blob """
         vobj_mapping = {}
         cal = vobject.iCalendar()
@@ -410,17 +405,18 @@ class ICSSerializer(object):
             # skip over record sets with neither an EventRecord nor a TaskRecord
             task, event = hasTaskAndEvent(recordSet)
             if task or event:
-                uid, recurrenceID = translator.splitUUID(uuid)
+                uid, recurrenceID = translator.splitUUID(view, uuid)
                 if recurrenceID is None:
                     masterRecordSets.append( (uuid, recordSet) )
                 else:
                     nonMasterRecordSets.append( (uuid, recordSet) )
         
         for uuid, recordSet in chain(masterRecordSets, nonMasterRecordSets):
-            prepareVobj(uuid, recordSet, vobj_mapping)
+            prepareVobj(view, uuid, recordSet, vobj_mapping)
             icalExtra = None
             for record in recordSet.inclusions:
-                recordHandlers.get(type(record), no_op)(record, vobj_mapping)
+                recordHandlers.get(type(record), Nil)(view, record,
+                                                      vobj_mapping)
                 if type(record) == model.NoteRecord:
                     icalExtra = record.icalExtra
             
@@ -447,13 +443,11 @@ class ICSSerializer(object):
         return cal
 
     @classmethod
-    def deserialize(cls, text, silentFailure=True, helperView=None):
+    def deserialize(cls, view, text, silentFailure=True):
         """
         Parse an ICalendar blob into a list of record sets
-        
-        helperView can be None or a view that will be used to find preferences
-        like what timezones should be used in convertToICUtzinfo.
         """
+
         recordSets = {}
         extra = {'forceDateTriage' : True}
 
@@ -536,12 +530,13 @@ class ICSSerializer(object):
                             if rightIsDate:
                                 return left - right
                             else:
-                                left = forceToDateTime(left)
+                                left = forceToDateTime(view, left)
                                 
                         elif rightIsDate:
-                            right = forceToDateTime(right)
+                            right = forceToDateTime(view, right)
         
-                        return makeNaiveteMatch(left, right.tzinfo) - right
+                        return makeNaiveteMatch(view,
+                                                left, right.tzinfo) - right
                         
                     if dtend is not None and dtstart is not None:
                         duration = getDifference(dtend, dtstart)
@@ -552,15 +547,15 @@ class ICSSerializer(object):
                         duration = timedelta(0)
                         
                 if isDate:
-                    dtstart = forceToDateTime(dtstart)
+                    dtstart = forceToDateTime(view, dtstart)
                     # originally, duration was converted to Chandler's notion of
                     # all day duration, but this step will be done by the
                     # translator
                     #duration -= oneDay
 
                 if dtstart is not None:
-                    dtstart = convertToICUtzinfo(dtstart, helperView)
-                    dtstart = toICalendarDateTime(dtstart, allDay, anyTime)
+                    dtstart = convertToICUtzinfo(view, dtstart)
+                    dtstart = toICalendarDateTime(view, dtstart, allDay, anyTime)
     
                 # convert to EIM value
                 duration = toICalendarDuration(duration)                
@@ -579,9 +574,8 @@ class ICSSerializer(object):
                     
                     if remValue is not None:
                         if type(remValue) is datetime:
-                            icutzinfoValue = convertToICUtzinfo(remValue,
-                                                                helperView)
-                            trigger = toICalendarDateTime(icutzinfoValue, False)
+                            icutzinfoValue = convertToICUtzinfo(view, remValue)
+                            trigger = toICalendarDateTime(view, icutzinfoValue, False)
                         else:
                             assert type(remValue) is timedelta
                             trigger = toICalendarDuration(remValue)
@@ -601,9 +595,9 @@ class ICSSerializer(object):
                         dates.extend(line.value)
                     if len(dates) > 0:
                         if not (allDay or anyTime):
-                            dates = [convertToICUtzinfo(dt, helperView)
+                            dates = [convertToICUtzinfo(view, dt)
                                      for dt in dates]
-                        dt_value = toICalendarDateTime(dates, allDay, anyTime)
+                        dt_value = toICalendarDateTime(view, dates, allDay, anyTime)
                     else:
                         dt_value = eim.NoChange
                     recurrence[date_name] = dt_value
@@ -617,11 +611,11 @@ class ICSSerializer(object):
                         continue
                     
                     dateValue = allDay or anyTime
-                    recurrenceID = forceToDateTime(recurrenceID)
-                    recurrenceID = convertToICUtzinfo(recurrenceID, helperView)
-                    if recurrenceID.tzinfo is not ICUtzinfo.floating:
-                        recurrenceID = recurrenceID.astimezone(utc)
-                    rec_string = translator.formatDateTime(recurrenceID,
+                    recurrenceID = forceToDateTime(view, recurrenceID)
+                    recurrenceID = convertToICUtzinfo(view, recurrenceID)
+                    if recurrenceID.tzinfo != view.tzinfo.floating:
+                        recurrenceID = recurrenceID.astimezone(view.tzinfo.UTC)
+                    rec_string = translator.formatDateTime(view, recurrenceID,
                                                            dateValue, dateValue)
 
                     uuid += ":" + rec_string
@@ -649,9 +643,8 @@ class ICSSerializer(object):
                     completed = vobj.getChildValue('completed')
                     if completed is not None:
                         if type(completed) == date:
-                            completed = TimeZone.forceToDateTime(completed)
-                        timestamp = str(Triageable.makeTriageStatusChangedTime(
-                                            completed))
+                            completed = TimeZone.forceToDateTime(view, completed)
+                        timestamp = str(Triageable.makeTriageStatusChangedTime(view, completed))
                     else:
                         timestamp = getattr(vobj.status, 'x_osaf_changed_param',
                                             "0.0")

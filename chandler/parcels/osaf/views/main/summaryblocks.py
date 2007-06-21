@@ -318,7 +318,7 @@ class ReminderColumnAttributeEditor(attributeEditors.IconAttributeEditor):
         # @@@ unless this is a recurring event, for now.
         if pim.has_stamp(item, pim.EventStamp) and pim.EventStamp(item).isRecurring():
             return # ignore the click.
-        item.userReminderTime = pim.Reminder.defaultTime()
+        item.userReminderTime = pim.Reminder.defaultTime(item.itsView)
         
     def ReadOnly (self, (item, attribute)):
         """

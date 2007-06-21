@@ -182,7 +182,7 @@ class CosmoConduit(recordset_conduit.DiffRecordSetConduit, conduits.HTTPMixin):
         return stats
 
     def _putChunk(self, chunk, extra):
-        text = self.serializer.serialize(chunk, **extra)
+        text = self.serializer.serialize(self.itsView, chunk, **extra)
         logger.debug("Sending to server [%s]", text)
         self.put(text)
 

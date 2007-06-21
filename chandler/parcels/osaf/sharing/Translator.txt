@@ -13,6 +13,7 @@ records.
     >>> from PyICU import ICUtzinfo, TimeZone
     >>> TimeZone.setDefault(ICUtzinfo.getInstance(
     ...                              "America/Los_Angeles").timezone)
+    >>> from repository.persistence.RepositoryView import currentview
     >>> from repository.persistence.RepositoryView import NullRepositoryView
     >>> rv = NullRepositoryView()
 
@@ -295,8 +296,9 @@ Importing:
 
 Explain the record:
 
-    >>> for field in sorted(rec.explain()):
-    ...     print field[:2]
+    >>> with currentview.set(rv):
+    ...     for field in sorted(rec.explain()):
+    ...         print field[:2]
     (u'Duration', '1:00:00 (hh:mm:ss)')
     (u'Event status', u'FYI')
     (u'Location', u'Nowhere')
@@ -388,8 +390,9 @@ Modifications
 
 The explain method should handle Inherit values:
 
-    >>> for field in sorted(mod_rec.explain()):
-    ...     print field[:2]
+    >>> with currentview.set(rv):
+    ...     for field in sorted(mod_rec.explain()):
+    ...         print field[:2]
     (u'Created on', u'Inherit')
     (u'Has been read', u'Inherit')
     (u'Has been sent', u'Inherit')

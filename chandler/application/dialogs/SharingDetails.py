@@ -17,9 +17,9 @@ import wx
 from osaf.pim import calendar
 from i18n import ChandlerMessageFactory as _
 
-def formatDateTime(dt):
-    syncDay = calendar.DateTimeUtil.shortDateFormat.format(dt)
-    syncTime = calendar.formatTime(dt)
+def formatDateTime(view, dt):
+    syncDay = calendar.DateTimeUtil.shortDateFormat.format(view, dt)
+    syncTime = calendar.formatTime(view, dt)
     text = "%s at %s" % (syncDay, syncTime)
     return text
 
@@ -60,14 +60,15 @@ class SharingDetailsFrame(wx.Frame):
 
 
 def Show(parent, share):
+    view = share.itsView
     collection = share.contents
-    title = _(u"Sharing Details: %s") % share.contents.displayName
+    title = _(u"Sharing Details: %s") % collection.displayName
     lines = []
     add = lines.append
-    add(_(u"Collection name: ") + share.contents.displayName)
+    add(_(u"Collection name: ") + collection.displayName)
     add(_(u"URL: ") + share.getLocation())
-    add(_(u"Last attempted sync: ") + formatDateTime(share.lastAttempt))
-    add(_(u"Last successful sync: ") + formatDateTime(share.lastSuccess))
+    add(_(u"Last attempted sync: ") + formatDateTime(view, share.lastAttempt))
+    add(_(u"Last successful sync: ") + formatDateTime(view, share.lastSuccess))
     if hasattr(share, "error"):
         add(_(u"Last error: ") + share.error)
     if hasattr(share, "errorDetails"):

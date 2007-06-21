@@ -167,6 +167,7 @@ class PublishCollectionDialog(wx.Dialog):
         self.Bind(wx.EVT_BUTTON, self.OnUnPubSub,
                   id=wx.xrc.XRCID("BUTTON_UNPUBLISH"))
 
+        view = self.collection.itsView
         name = self.collection.displayName
         wx.xrc.XRCCTRL(self, "TEXT_MANAGE_COLLNAME").SetLabel(name)
 
@@ -179,7 +180,7 @@ class PublishCollectionDialog(wx.Dialog):
         wx.xrc.XRCCTRL(self, "TEXT_ACCOUNT").SetLabel(name)
 
         if hasattr(share, 'lastSuccess'):
-            lastSync = SharingDetails.formatDateTime(share.lastSuccess)
+            lastSync = SharingDetails.formatDateTime(view, share.lastSuccess)
         else:
             lastSync = _(u"Unknown")
         wx.xrc.XRCCTRL(self, "TEXT_SUCCESS").SetLabel(lastSync)

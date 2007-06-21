@@ -33,7 +33,6 @@ import dateutil.tz
 import datetime
 from datetime import date, time
 from time import time as epoch_time
-from PyICU import ICUtzinfo
 from osaf.pim.calendar.TimeZone import convertToICUtzinfo
 from application import schema
 import itertools
@@ -51,7 +50,6 @@ logger = logging.getLogger(__name__)
 DEBUG = logger.getEffectiveLevel() <= logging.DEBUG
 
 localtime = dateutil.tz.tzlocal()
-utc = ICUtzinfo.getInstance('UTC')
 oneDay = datetime.timedelta(1)
 
 
@@ -90,7 +88,7 @@ def itemsToVObject(view, items, cal=None, filters=None):
     def makeDateTimeValue(dt, asDate=False):
         if asDate:
             return dt.date()
-        elif dt.tzinfo is ICUtzinfo.floating:
+        elif dt.tzinfo == view.tzinfo.floating:
             return dt.replace(tzinfo=None)
         else:
             return dt
@@ -226,8 +224,9 @@ def itemsToVObject(view, items, cal=None, filters=None):
         except AttributeError:
             pass
         
+        view = event.itsItem.itsView
         timestamp = datetime.datetime.utcnow()
-        comp.add('dtstamp').value = timestamp.replace(tzinfo=utc)
+        comp.add('dtstamp').value = timestamp.replace(tzinfo=view.tzinfo.UTC)
 
         if event.modificationFor is not None:
             recurrenceid = comp.add('recurrence-id')
@@ -240,7 +239,7 @@ def itemsToVObject(view, items, cal=None, filters=None):
         try: # hack, create RRULE line last, because it means running transformFromNative
             if event.getMaster() == event and event.rruleset is not None:
                 # False because we don't want to ignore isCount for export
-                # True because we don't want to use ICUtzinfo.floating
+                # True because we don't want to use view.tzinfo.floating
                 cal.vevent_list[-1].rruleset = event.createDateUtilFromRule(False, True, False)
         except AttributeError:
             logger.error('Failed to export RRULE for %s' % event.itsItem.itsUUID)
@@ -331,11 +330,10 @@ def itemsToFreeBusy(view, start, end, calname = None):
     events = Calendar._sortEvents(itertools.chain(normal, recurring),
                                   attrName='effectiveStartTime')
     
-    
     def toUTC(dt):
         if dt < start: dt = start
         elif dt > end: dt = end
-        return translateToTimezone(dt, utc)    
+        return translateToTimezone(dt, view.tzinfo.UTC)
     
     cal = vobject.iCalendar()
     
@@ -377,13 +375,13 @@ def itemsToFreeBusy(view, start, end, calname = None):
     
     return cal
 
-def makeNaiveteMatch(dt, tzinfo):
+def makeNaiveteMatch(view, dt, tzinfo):
     if dt.tzinfo is None:
         if tzinfo is not None:
-            dt = TimeZone.coerceTimeZone(dt, tzinfo)
+            dt = TimeZone.coerceTimeZone(view, dt, tzinfo)
     else:
         if tzinfo is None:
-            dt = TimeZone.stripTimeZone(dt)
+            dt = TimeZone.stripTimeZone(view, dt)
     return dt
     
 def _importOneVObject(vobj, filters, coerceTzinfo, promptForTimezone, 
@@ -421,10 +419,10 @@ def _importOneVObject(vobj, filters, coerceTzinfo, promptForTimezone,
     def convertDatetime(dt):
         # coerce timezones based on coerceTzinfo
         if coerceTzinfo is not None:
-            dt = TimeZone.coerceTimeZone(dt, coerceTzinfo)
+            dt = TimeZone.coerceTimeZone(view, dt, coerceTzinfo)
 
         # ... and make sure we return something with an ICUtzinfo
-        return convertToICUtzinfo(dt, view)
+        return convertToICUtzinfo(view, dt)
 
     reminderDelta = None
     reminderAbsoluteTime = None
@@ -564,12 +562,12 @@ def _importOneVObject(vobj, filters, coerceTzinfo, promptForTimezone,
                     if rightIsDate:
                         return left - right
                     else:
-                        left = TimeZone.forceToDateTime(left)
+                        left = TimeZone.forceToDateTime(view, left)
                         
                 elif rightIsDate:
-                    right = TimeZone.forceToDateTime(right)
+                    right = TimeZone.forceToDateTime(view, right)
 
-                return makeNaiveteMatch(left, right.tzinfo) - right
+                return makeNaiveteMatch(view, left, right.tzinfo) - right
                 
             if dtend is not None:
                 duration = getDifference(dtend, dtstart)
@@ -579,7 +577,7 @@ def _importOneVObject(vobj, filters, coerceTzinfo, promptForTimezone,
                 duration = datetime.timedelta(0)
 
         if isDate:
-            dtstart = TimeZone.forceToDateTime(dtstart)
+            dtstart = TimeZone.forceToDateTime(view, dtstart)
             # convert to Chandler's notion of all day duration
             duration -= oneDay
         elif dtstart.tzinfo is not None and promptForTimezone:
@@ -625,9 +623,9 @@ def _importOneVObject(vobj, filters, coerceTzinfo, promptForTimezone,
                                                 recurrenceID,
                                                 time(tzinfo=tzinfo))
                 else:
-                    recurrenceID = convertToICUtzinfo(
-                                       makeNaiveteMatch(recurrenceID,
-                                       tzinfo), view)
+                    recurrenceID = convertToICUtzinfo(view, 
+                                       makeNaiveteMatch(view, recurrenceID,
+                                       tzinfo))
                 
                 masterEvent = EventStamp(item)    
                 event = masterEvent.getRecurrenceID(recurrenceID)
@@ -745,7 +743,7 @@ def _importOneVObject(vobj, filters, coerceTzinfo, promptForTimezone,
             # Set triageStatus and triageStatusChanged together.
             if completed is not None:
                 if type(completed) == date:
-                    completed = TimeZone.forceToDateTime(completed)
+                    completed = TimeZone.forceToDateTime(view, completed)
             changeLast.append(lambda item: item.setTriageStatus(triageStatus, 
                                                                 when=completed))
             
@@ -957,7 +955,8 @@ def updateFreebusyFromVObject(view, text, busyCollection, activity=None):
             for fb in getattr(vfreebusy, 'freebusy_list', []):
                 status = getattr(fb, 'fbtype_param', 'BUSY').upper()
                 for blockstart, duration in fb.value:
-                    blockstart = translateToTimezone(blockstart, ICUtzinfo.default)
+                    blockstart = translateToTimezone(blockstart,
+                                                     view.tzinfo.default)
                     bisect.insort(busyblocks, (blockstart, duration, status))
             
             # eventsInRange sorts by start time, recurring events aren't allowed
@@ -1080,9 +1079,9 @@ class ICalendarFormat(formats.ImportExportFormat):
             pass
         return cal.serialize().encode('utf-8')
 
-def beginningOfWeek():
+def beginningOfWeek(view):
     midnightToday = datetime.datetime.combine(datetime.date.today(), 
-                                     datetime.time(0, tzinfo=ICUtzinfo.default))
+                                     datetime.time(0, tzinfo=view.tzinfo.default))
     return midnightToday - midnightToday.weekday() * oneDay # Monday = 0
 
 
@@ -1118,7 +1117,7 @@ class FreeBusyFileFormat(ICalendarFormat):
         Share and depth are ignored, always export freebusy associated
         with the all collection.
         """
-        start = beginningOfWeek()
+        start = beginningOfWeek(self.itsView)
         cal = itemsToFreeBusy(self.itsView, start,
                               start + FREEBUSY_WEEKS_EXPORTED * 7 * oneDay,
                               calname = self.itsParent.displayName)

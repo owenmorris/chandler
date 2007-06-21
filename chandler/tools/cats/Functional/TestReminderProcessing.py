@@ -1,4 +1,4 @@
-#   Copyright (c) 2003-2006 Open Source Applications Foundation
+#   Copyright (c) 2003-2007 Open Source Applications Foundation
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -15,7 +15,6 @@
 import time
 from datetime import datetime, timedelta
 import wx
-from PyICU import ICUtzinfo
 from application import schema
 import osaf.framework.scripting as scripting
 import osaf.pim as pim
@@ -176,7 +175,7 @@ class TestReminderProcessing(ChandlerTestCase):
 
 
         # We'll create a few items with interesting times coming up
-        testTime = datetime.now(tz=ICUtzinfo.default).replace(microsecond=0) \
+        testTime = datetime.now(tz=repoView.tzinfo.default).replace(microsecond=0) \
                    + timedelta(seconds=1)
         nearFutureDelta = timedelta(seconds=nearFutureSeconds)
         nearFutureReminderDelta = timedelta(seconds=nearFutureSeconds/-2)
@@ -253,7 +252,7 @@ class TestReminderProcessing(ChandlerTestCase):
         
         
         while True:
-            now = datetime.now(tz=ICUtzinfo.default)
+            now = datetime.now(tz=repoView.tzinfo.default)
 
             repoView.dispatchQueuedNotifications()
             scripting.User.idle()

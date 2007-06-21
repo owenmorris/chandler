@@ -1049,12 +1049,13 @@ class Timer(Block):
         # Set the new time, if we have one. If it's in the past, fire "really soon". If it's way in the future,
         # don't bother firing.
         if when is not None:
+            view = self.itsView
             if isinstance(when, timedelta):
                 td = when
                 if __debug__:
-                    when = datetime.now(PyICU.ICUtzinfo.default) + when
+                    when = datetime.now(view.tzinfo.default) + when
             else:
-                td = (when - datetime.now(PyICU.ICUtzinfo.default))
+                td = (when - datetime.now(view.tzinfo.default))
             millisecondsUntilFiring = ((td.days * 86400) + td.seconds) * 1000L
             if millisecondsUntilFiring < 100:
                 millisecondsUntilFiring = 100
@@ -1093,8 +1094,10 @@ class ReminderTimer(Timer):
             logger.warning("(** skipping recursive call to primeReminderTimer")
             return
         
+        view = self.itsView
+
         self._inPrimeReminderTimer = True
-        now = datetime.now(PyICU.ICUtzinfo.default)
+        now = datetime.now(view.tzinfo.default)
         nextReminderItem = None
         
         try:
@@ -1105,7 +1108,7 @@ class ReminderTimer(Timer):
             else:
                 # Update triagestatus on each pending reminder. Dismiss any
                 # internal reminders that exist only to trigger on startTime.
-                pending = Reminder.getPendingTuples(self.itsView, now)
+                pending = Reminder.getPendingTuples(view, now)
                 if pending:
                     def processReminder((reminderTime, remindable, reminder)):
                         #logger.warning("*** now-ing %s due to %s", 

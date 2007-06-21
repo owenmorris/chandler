@@ -18,7 +18,6 @@ import version
 from application import schema, Globals
 from application.Parcel import Reference
 from i18n import ChandlerMessageFactory as _
-from PyICU import ICUtzinfo
 from osaf import pim, messages, startup, sharing
 from osaf.framework import scripting, password
 from osaf.usercollections import UserCollection
@@ -99,7 +98,7 @@ def installParcel(parcel, oldVersion=None):
     # OOTB item: Welcome Event
     noonToday = datetime.datetime.combine(
         datetime.date.today(),
-        datetime.time(12, tzinfo=ICUtzinfo.floating))
+        datetime.time(12, tzinfo=parcel.itsView.tzinfo.floating))
 
     WelcomeEvent = pim.EventStamp.update(parcel, 'WelcomeEvent',
         displayName=_(u'Welcome to Chandler %(version)s') % {'version': version.version},
@@ -186,18 +185,19 @@ The Chandler Team""") % {'version': version.version}
               )
         task1.itsItem.changeEditState(pim.Modification.created)
         task1.itsItem.setTriageStatus(pim.TriageEnum.later)
-        
+        default = parcel.itsView.tzinfo.default
+
         reminderTime = datetime.datetime.combine(
                             datetime.datetime.now().date() +
                                 datetime.timedelta(days=1),
-                            datetime.time(8, 0, tzinfo=ICUtzinfo.default)
+                            datetime.time(8, 0, tzinfo=default)
                        )
         task1.itsItem.userReminderTime = reminderTime
         
         # OOTB item2: Play around with the Calendar
         startevent2 = datetime.datetime.combine(
                             datetime.datetime.now().date(),
-                            datetime.time(15, 0, tzinfo=ICUtzinfo.default)
+                            datetime.time(15, 0, tzinfo=default)
                        )
         event2 = pim.CalendarEvent(
                     itsView=parcel.itsView,
@@ -214,7 +214,7 @@ The Chandler Team""") % {'version': version.version}
         # OOTB item3: Download Chandler
         startevent3 = datetime.datetime.combine(
                             datetime.datetime.now().date(),
-                            datetime.time(11, 0, tzinfo=ICUtzinfo.default)
+                            datetime.time(11, 0, tzinfo=default)
                        )
         event3 = pim.CalendarEvent(
                     itsView=parcel.itsView,
@@ -232,7 +232,7 @@ The Chandler Team""") % {'version': version.version}
         # OOTB item4: Set up your accounts
         startevent4 = datetime.datetime.combine(
                             datetime.datetime.now().date(),
-                            datetime.time(16, 0, tzinfo=ICUtzinfo.default)
+                            datetime.time(16, 0, tzinfo=default)
                        )
         event4 = pim.CalendarEvent(
                     itsView=parcel.itsView,

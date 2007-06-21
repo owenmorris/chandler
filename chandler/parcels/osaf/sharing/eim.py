@@ -28,6 +28,7 @@ from weakref import WeakValueDictionary
 import linecache, decimal, datetime
 from application import schema
 from chandlerdb.util.c import UUID
+from repository.persistence.RepositoryView import currentview
 from osaf import pim
 from twisted.internet.defer import Deferred
 import logging
@@ -975,11 +976,12 @@ class Translator:
                     yield record
 
     def explainConflicts(self, rs):
-        for r in rs.inclusions:
-            for n,v,r in r.explain():
-                yield n, v, Diff([r])
-        for r in rs.exclusions:
-            yield "Deleted", r.getKey(), Diff([], [r])
+        with currentview.set(self.rv):
+            for r in rs.inclusions:
+                for n,v,r in r.explain():
+                    yield n, v, Diff([r])
+            for r in rs.exclusions:
+                yield "Deleted", r.getKey(), Diff([], [r])
 
 
     def withItemForUUID(self, uuid, itype=schema.Item, **attrs):

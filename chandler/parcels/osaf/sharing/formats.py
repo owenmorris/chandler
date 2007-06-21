@@ -426,7 +426,7 @@ class CloudXMLFormat(ImportExportFormat):
                         result += self.exportProcess(attrValue, depth+1, items)
                     else:
                         (mimeType, encoding, attrValue) = \
-                            serializeLiteral(attrValue, attrType)
+                            serializeLiteral(self.itsView, attrValue, attrType)
 
                         # @@@MOR 0.6 sharing compatibility
                         # Pretend body is a Lob for the benefit of 0.6 clients
@@ -495,7 +495,7 @@ class CloudXMLFormat(ImportExportFormat):
                         result += "<value"
 
                         (mimeType, encoding, value) = \
-                            serializeLiteral(value, attrType)
+                            serializeLiteral(self.itsView, value, attrType)
                         value = value.replace('&', '&amp;')
                         value = value.replace('<', '&lt;')
                         value = value.replace('>', '&gt;')

@@ -14,7 +14,6 @@
 
 
 import logging, urlparse, datetime, wx, os.path
-from PyICU import ICUtzinfo
 
 from application import schema, dialogs, Globals
 from application.Parcel import Reference
@@ -28,6 +27,7 @@ from osaf.pim.collections import (UnionCollection, DifferenceCollection,
                                   FilteredCollection)
 from i18n import ChandlerMessageFactory as _
 from chandlerdb.util.c import UUID
+from repository.persistence.RepositoryView import currentview
 from osaf.activity import *
 
 import zanshin, M2Crypto, twisted, re
@@ -347,7 +347,7 @@ class BackgroundSyncHandler:
             log = schema.ns('osaf.sharing', self.rv).activityLog
             reportEvent = pim.CalendarEvent(itsView=self.rv,
                 displayName="Sync",
-                startTime=datetime.datetime.now(ICUtzinfo.default),
+                startTime=datetime.datetime.now(self.rv.tzinfo.default),
                 duration=datetime.timedelta(minutes=60),
                 anyTime=False,
                 transparency='fyi',
@@ -1561,7 +1561,7 @@ def format_event_status(field, value):
 
 @format_field.when_object(EventRecord.dtstart)
 def format_event_dtstart(field, value):
-    start, allDay, anyTime = fromICalendarDateTime(value)
+    start, allDay, anyTime = fromICalendarDateTime(currentview.get(), value)
     s = str(start)
     if allDay:
         s = "%s (all day)" % s

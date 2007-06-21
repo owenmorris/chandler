@@ -23,7 +23,6 @@ from osaf.pim.stamping import has_stamp
 from osaf.pim.calendar import EventStamp
 from osaf.pim.mail import *
 import unittest as unittest
-from PyICU import ICUtzinfo
 
 class TestReplyReplyAllForward(MailTestCase.MailTestCase):
     M1 = """\
@@ -266,8 +265,8 @@ END:VCALENDAR
         # Set the default timezone so that we'll get correct
         # format for dates in forwarded messages
 
-        defaultTzinfo = ICUtzinfo.getInstance("US/Hawaii")
-        self.savedTzinfo = ICUtzinfo.setDefault(defaultTzinfo)
+        defaultTzinfo = self.view.tzinfo.getInstance("US/Hawaii")
+        self.savedTzinfo = self.view.tzinfo.setDefault(defaultTzinfo)
 
         self.messageOne = message.messageTextToKind(self.view, self.M1)
         self.messageTwo = message.messageTextToKind(self.view, self.M2)
@@ -285,7 +284,7 @@ END:VCALENDAR
 
     def tearDown(self):
         # Restore the default timezone
-        ICUtzinfo.setDefault(self.savedTzinfo)
+        self.view.tzinfo.setDefault(self.savedTzinfo)
         super(TestReplyReplyAllForward, self).tearDown()
 
 

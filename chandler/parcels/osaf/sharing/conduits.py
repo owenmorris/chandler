@@ -38,7 +38,6 @@ import logging
 import WebDAV
 import urlparse
 import datetime
-from PyICU import ICUtzinfo
 from i18n import ChandlerMessageFactory as _
 
 
@@ -460,7 +459,7 @@ class LinkableConduit(BaseConduit):
             freeBusyShare = sharing_ns.prefs.freeBusyShare
             me = pim_ns.currentContact.item
 
-            now = datetime.datetime.now(ICUtzinfo.default)
+            now = datetime.datetime.now(share.itsView.tzinfo.default)
 
             for share in linkedShares:
                 share.established = True

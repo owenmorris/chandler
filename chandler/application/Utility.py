@@ -35,7 +35,7 @@ import version
 # with your name (and some helpful text). The comment's really there just to
 # cause Subversion to warn you of a conflict when you update, in case someone 
 # else changes it at the same time you do (that's why it's on the same line).
-SCHEMA_VERSION = "423" # stearns: change displayWho rules
+SCHEMA_VERSION = "424" # vajda: new view-based timezone handling
 
 logger = None # initialized in initLogging()
 
@@ -621,7 +621,6 @@ def initRepository(directory, options, allowSchemaView=False):
         view = repository.createView(version=version, timezone=Default)
 
     schema.initRepository(view)
-    view.tzinfo.default = repository.timezone
 
     if options.indexer == 'foreground':
         # do nothing, indexing happens during commit
@@ -770,7 +769,7 @@ def initParcels(options, view, path, namespaces=None):
     parcelRoot = view.getRoot("parcels")
     if getattr(parcelRoot, 'version', None) != SCHEMA_VERSION:
         parcelRoot.version = SCHEMA_VERSION
-
+    
 
 def initPlugins(options, view, plugin_env, eggs):
 
@@ -801,6 +800,23 @@ def initPlugins(options, view, plugin_env, eggs):
         prefs.write()
 
     return prefs
+
+
+def initTimezone(options, view):
+
+    from osaf.pim.calendar.TimeZone import TimeZoneInfo, ontzchange
+
+    repository = view.repository
+
+    view.tzinfo.ontzchange = ontzchange
+    if repository is not None:
+        repository.ontzchange = ontzchange
+
+    default = options.timezone or TimeZoneInfo.get(view).default
+    if default != view.tzinfo.floating:
+        view.tzinfo.default = default
+        if repository is not None:
+            repository.timezone = default
 
 
 def _randpoolPath(profileDir):

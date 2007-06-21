@@ -22,7 +22,6 @@ from email.MIMENonMultipart import MIMENonMultipart
 import logging
 import mimetypes
 from datetime import datetime
-from PyICU import ICUtzinfo
 
 
 #Chandler imports
@@ -193,7 +192,7 @@ def messageTextToKind(view, messageText):
     assert isinstance(messageText, str), "messageText must be a String"
 
     return messageObjectToKind(view, email.message_from_string(messageText),
-                                messageText)
+                               messageText)
 
 def getPeer(view, messageObject):
     # Get the from address ie. Sender.
@@ -604,6 +603,8 @@ def kindToMessageObject(mailStamp):
     @return: C{Message.Message}
     """
 
+    view = mailStamp.itsItem.itsView
+
     isEvent = has_stamp(mailStamp, EventStamp)
     isTask  = has_stamp(mailStamp, TaskStamp)
 
@@ -622,7 +623,7 @@ def kindToMessageObject(mailStamp):
     if hasattr(mailStamp, "dateSentString"):
         date = mailStamp.dateSentString
     else:
-        date = dateTimeToRFC2822Date(datetime.now(ICUtzinfo.default))
+        date = dateTimeToRFC2822Date(datetime.now(view.tzinfo.default))
 
     messageObject["Date"] = date
 
@@ -834,14 +835,15 @@ def parseEventInfo(mailStamp):
 
 def _parseEventInfoForLocale(mailStamp, locale=None):
     try:
+        view = mailStamp.itsItem.itsView
         startTime, endTime, countFlag, typeFlag = \
-                           parseText(mailStamp.subject, locale)
+                           parseText(view, mailStamp.subject, locale)
 
         if countFlag == 0:
             # No datetime info found im mail message subject
             # so lets try the body
             startTime, endTime, countFlag, typeFlag = \
-                              parseText(mailStamp.itsItem.body, locale)
+                              parseText(view, mailStamp.itsItem.body, locale)
     except Exception, e:
         # The parsedatetime API has some localization bugs that
         # need to be fixed. Capturing Exceptions ensures that
@@ -871,19 +873,19 @@ def __parseHeaders(view, messageObject, m, decode, makeUnicode):
         # It is a non-rfc date string
         if parsed is None:
             # Set the sent date to the current Date
-            m.dateSent = datetime.now(ICUtzinfo.default)
+            m.dateSent = datetime.now(view.tzinfo.default)
 
         else:
             try:
                 m.dateSent = datetime.fromtimestamp(emailUtils.mktime_tz(parsed),
-                                                    ICUtzinfo.default)
+                                                    view.tzinfo.default)
             except:
-                m.dateSent = datetime.now(ICUtzinfo.default)
+                m.dateSent = datetime.now(view.tzinfo.default)
 
         m.dateSentString = date
 
     else:
-        m.dateSent = getEmptyDate()
+        m.dateSent = getEmptyDate(view)
         m.dateSentString = u""
 
     # reset these values in case they contain info from a previous send

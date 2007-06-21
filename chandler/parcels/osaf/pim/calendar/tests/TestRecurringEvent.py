@@ -27,7 +27,6 @@ import osaf.pim.calendar.Calendar as Calendar
 from osaf.pim import *
 from osaf.pim.calendar.Recurrence import RecurrenceRule, RecurrenceRuleSet
 from repository.item.Item import Item
-from PyICU import ICUtzinfo
 from i18n.tests import uw
 
 from application.dialogs.RecurrenceDialog import getProxy
@@ -46,21 +45,23 @@ class RecurringEventTest(testcase.SingleRepositoryTestCase):
             RecurringEventTest.view = self.view
             del self.view
             
-        self.sandbox = Item("sandbox", self.view, None)
-        self.start = datetime(2005, 7, 4, 13, tzinfo=ICUtzinfo.default) #1PM, July 4, 2005
+        view = RecurringEventTest.view
+        self.sandbox = Item("sandbox", view, None)
+        self.start = datetime(2005, 7, 4, 13,
+                              tzinfo=view.tzinfo.default) #1PM, July 4, 2005
 
         self.daily = {'end'    : datetime(2006, 9, 14, 19,
-                                          tzinfo=ICUtzinfo.default),
+                                          tzinfo=view.tzinfo.default),
                        'start' : self.start,
                        'count' : 45}
 
         self.weekly = {'end'   : datetime(2005, 11, 14, 13,
-                                          tzinfo=ICUtzinfo.default),
+                                          tzinfo=view.tzinfo.default),
                        'start' : self.start,
                        'count' : 20}
 
         self.monthly = {'end'   : datetime(2005, 11, 4, 13,
-                                           tzinfo=ICUtzinfo.default),
+                                           tzinfo=view.tzinfo.default),
                        'start' : self.start,
                        'count' : 5}
         self.event = self._createEvent()
@@ -113,7 +114,7 @@ class RecurringEventTest(testcase.SingleRepositoryTestCase):
         """
         event      = self.event
         rangeStart = datetime.combine(self.start.date(),
-                             time(0, tzinfo=ICUtzinfo.default)) + timedelta(1)
+                                      time(0, tzinfo=self.view.tzinfo.default)) + timedelta(1)
         rangeEnd   = rangeStart + timedelta(1)
         oneWeek    = timedelta(7)
 
@@ -192,7 +193,8 @@ class RecurringEventTest(testcase.SingleRepositoryTestCase):
         self.event.rruleset = self._createRuleSetItem('weekly')
         self.assertEqual(self.event.isCustomRule(), False)
 
-        secondStart = datetime(2005, 7, 11, 13, tzinfo=ICUtzinfo.default)
+        secondStart = datetime(2005, 7, 11, 13,
+                               tzinfo=self.view.tzinfo.default)
         second = self.event.getFirstOccurrence().getNextOccurrence()
         # @@@triageChange: this fails when triage automatically creates
         # modifications        
@@ -206,10 +208,12 @@ class RecurringEventTest(testcase.SingleRepositoryTestCase):
                          self.event.getFirstOccurrence().getNextOccurrence())
 
         third = second.getNextOccurrence()
-        thirdStart = datetime(2005, 7, 18, 13, tzinfo=ICUtzinfo.default)
+        thirdStart = datetime(2005, 7, 18, 13,
+                              tzinfo=self.view.tzinfo.default)
         self.assertEqual(third.startTime, thirdStart)
 
-        fourthStart = datetime(2005, 7, 25, 13, tzinfo=ICUtzinfo.default)
+        fourthStart = datetime(2005, 7, 25, 13,
+                               tzinfo=self.view.tzinfo.default)
         # @@@triageChange: can't _createOccurrence when the occurrence has
         # already been made by triage machinery.  Instead just get fourth.
         #fourth = self.event._createOccurrence(fourthStart)
@@ -384,10 +388,12 @@ class RecurringEventTest(testcase.SingleRepositoryTestCase):
         threeWeeks = self.start + timedelta(days=21)
         occurs = list(self.event.getOccurrencesBetween(
                         threeWeeks +  timedelta(minutes=30),
-                        datetime(2005, 8, 15, 14, tzinfo=ICUtzinfo.default)))
+                        datetime(2005, 8, 15, 14,
+                                 tzinfo=self.view.tzinfo.default)))
         self.assertEqual(occurs[0].startTime, threeWeeks)
         self.assertEqual(occurs[1].startTime,
-                         datetime(2005, 8, 15, 13, tzinfo=ICUtzinfo.default))
+                         datetime(2005, 8, 15, 13,
+                                  tzinfo=self.view.tzinfo.default))
         self.view.check()
 
     def testRuleSetChangeThisAndFuture(self):
@@ -551,7 +557,8 @@ class RecurringEventTest(testcase.SingleRepositoryTestCase):
         making a THISANDFUTURE change to startTime
         """
         event = self.event
-        event.startTime = datetime(2006, 1, 12, 9, 15, tzinfo=ICUtzinfo.default)
+        event.startTime = datetime(2006, 1, 12, 9, 15,
+                                   tzinfo=self.view.tzinfo.default)
         event.rruleset = self._createRuleSetItem('daily')
         
         first = event.getFirstOccurrence()
@@ -580,8 +587,8 @@ class RecurringEventTest(testcase.SingleRepositoryTestCase):
 
         # ... and make sure we haven't manufactured an extra event by not
         # updating the recurrenceID of third                          
-        after = datetime(2006, 1, 12, tzinfo=ICUtzinfo.default)
-        before = datetime(2006, 1, 19, tzinfo=ICUtzinfo.default)
+        after = datetime(2006, 1, 12, tzinfo=self.view.tzinfo.default)
+        before = datetime(2006, 1, 19, tzinfo=self.view.tzinfo.default)
         self.failUnlessEqual(
             len(first.getMaster().getOccurrencesBetween(after, before)),
             7)
@@ -811,7 +818,7 @@ class RecurringEventTest(testcase.SingleRepositoryTestCase):
         # modifications 
         #self.assertEqual(newthird, third)
         #self.assertEqual(third.endTime, datetime(2005, 7, 18, 15,
-                         #tzinfo=ICUtzinfo.default))
+                         #tzinfo=self.view.tzinfo.default))
        
         # secondModified's THIS change (to summary) should still be around
         self.assertEqual(second.summary, uw("THIS modified title"))
@@ -821,11 +828,13 @@ class RecurringEventTest(testcase.SingleRepositoryTestCase):
 
         # check if modificationRecurrenceID works for changeThis mod
         second.startTime = datetime(2005, 7, 12, 13,
-                                    tzinfo=ICUtzinfo.default) #implicit THIS mod
+                                    tzinfo=self.view.tzinfo.default) #implicit THIS mod
         self.assertEqual(second.getNextOccurrence().startTime,
-                         datetime(2005, 7, 18, 13, tzinfo=ICUtzinfo.default))
+                         datetime(2005, 7, 18, 13,
+                                  tzinfo=self.view.tzinfo.default))
 
-        newLastModified = datetime(2005, 8, 11, 14, tzinfo=ICUtzinfo.default)
+        newLastModified = datetime(2005, 8, 11, 14,
+                                   tzinfo=self.view.tzinfo.default)
         third.itsItem.lastModified = newLastModified
         fourth = third.getNextOccurrence()
         fourth.startTime += timedelta(hours=4)
@@ -1071,7 +1080,7 @@ class RecurringEventTest(testcase.SingleRepositoryTestCase):
         event = self.event
         ruleSetItem = RecurrenceRuleSet(None, itsParent=self.sandbox)
         
-        tzinfo = ICUtzinfo.getInstance("US/Eastern")
+        tzinfo = self.view.tzinfo.getInstance("US/Eastern")
         dates = [
             datetime(2006, 3, 11, 10, tzinfo=tzinfo),
             datetime(2006, 3, 15, 21, tzinfo=tzinfo),
@@ -1100,8 +1109,8 @@ class RecurringEventTest(testcase.SingleRepositoryTestCase):
     def testChangeTimeZone(self):
         event = self.event
         
-        elLay = ICUtzinfo.getInstance("America/Los_Angeles")
-        enWhy = ICUtzinfo.getInstance("America/New_York")
+        elLay = self.view.tzinfo.getInstance("America/Los_Angeles")
+        enWhy = self.view.tzinfo.getInstance("America/New_York")
         
         # Create the event in Los Angeles time ...
         event.startTime = event.startTime.replace(tzinfo=elLay)
@@ -1123,8 +1132,8 @@ class RecurringEventTest(testcase.SingleRepositoryTestCase):
     def testChangeAllTimeZone(self):
         event = self.event
         
-        elLay = ICUtzinfo.getInstance("America/Los_Angeles")
-        enWhy = ICUtzinfo.getInstance("America/New_York")
+        elLay = self.view.tzinfo.getInstance("America/Los_Angeles")
+        enWhy = self.view.tzinfo.getInstance("America/New_York")
         
         # Create the event in Los Angeles time ...
         event.startTime = event.startTime.replace(tzinfo=elLay)
@@ -1159,7 +1168,8 @@ class RecurringEventTest(testcase.SingleRepositoryTestCase):
         
     def testRecurrenceEnd(self):
         event = self.event
-        event.startTime = datetime(2006, 11, 11, 13, tzinfo=ICUtzinfo.default)
+        event.startTime = datetime(2006, 11, 11, 13,
+                                   tzinfo=self.view.tzinfo.default)
         event.rruleset = self._createRuleSetItem('daily')
         event.rruleset.rrules.first().until = event.startTime + timedelta(days=3)
         
@@ -1169,7 +1179,7 @@ class RecurringEventTest(testcase.SingleRepositoryTestCase):
         # Move the second occurrence out past the rrule's until
         secondOccurrence = occurrences[1]
         newStart = datetime.combine(event.startTime.date() + timedelta(days=10),
-                                    time(10, tzinfo=ICUtzinfo.default))
+                                    time(10, tzinfo=self.view.tzinfo.default))
         secondOccurrence.changeThis(EventStamp.startTime.name, newStart)
 
         occurrences = event.getOccurrencesBetween(None, None)
@@ -1232,7 +1242,7 @@ class RecurringEventTest(testcase.SingleRepositoryTestCase):
             if getattr(modification, EventStamp.recurrenceID.name) != start:
                 self.failUnless(modification.triageStatus == TriageEnum.done)
 
-        now = datetime.now(ICUtzinfo.default)
+        now = datetime.now(self.view.tzinfo.default)
         
         # make the event recur at least twice in the future
         event.rruleset.rrules.first().until = now + timedelta(days=65)
@@ -1341,7 +1351,7 @@ class RecurringEventTest(testcase.SingleRepositoryTestCase):
         self.failUnless(self.event.itsItem in collection)
         self.failUnless(self.event.modifications)
         
-        zeroTime = time(0, tzinfo=ICUtzinfo.default)
+        zeroTime = time(0, tzinfo=self.view.tzinfo.default)
         start = datetime.combine(self.event.startTime.date(), zeroTime)
         end = datetime.combine(self.event.startTime.date() + timedelta(days=7),
                                zeroTime)
@@ -1368,13 +1378,13 @@ class RecurringEventTest(testcase.SingleRepositoryTestCase):
             [self.event.itsItem.itsUUID],
             list(collection.iterkeys(indexDef.itsName))
         )
-        now = datetime.now(ICUtzinfo.default).replace(microsecond=0)
+        now = datetime.now(self.view.tzinfo.default).replace(microsecond=0)
         self.event.startTime = now + timedelta(hours=1)
 
         # Add a note, with an absolute time reminder in two hours' time
         #  to the collection
         note = Note(None, itsParent=self.sandbox, displayName=u"Hello")
-        reminderTime = datetime.now(ICUtzinfo.default) + timedelta(hours=2)
+        reminderTime = datetime.now(self.view.tzinfo.default) + timedelta(hours=2)
         note.setUserReminderTime(reminderTime)
         collection.add(note)
         
@@ -1439,7 +1449,7 @@ class RecurringEventTest(testcase.SingleRepositoryTestCase):
         # Add a note, with an absolute time reminder in two hours' time
         #  to the collection
         note = Note(None, itsParent=self.sandbox, displayName=u"Hello")
-        reminderTime = datetime.now(ICUtzinfo.default) + timedelta(hours=2)
+        reminderTime = datetime.now(self.view.tzinfo.default) + timedelta(hours=2)
         note.setUserReminderTime(reminderTime)
         collection.add(note)
         
@@ -1491,9 +1501,8 @@ class NaiveTimeZoneRecurrenceTest(testcase.SingleRepositoryTestCase):
     """Test of recurring events that have startTimes that occur on different
        dates depending on whether timezone UI is enabled"""
 
-    tzinfo = ICUtzinfo.getInstance("US/Pacific")
     enableTimeZones = False
-    
+
     def checkOccurrencesMatchEvent(self, occurrences):
         """
         A little helper to check that occurrences contains
@@ -1515,19 +1524,21 @@ class NaiveTimeZoneRecurrenceTest(testcase.SingleRepositoryTestCase):
         # restore it once we're done (i.e. in tearDown()).
         super(NaiveTimeZoneRecurrenceTest, self).setUp()
 
+        self.tzinfo = self.view.tzinfo.getInstance("US/Pacific")
+    
         tzPrefs = schema.ns('osaf.pim', self.view).TimezonePrefs
 
         # Stash away the global values
-        self._saveTzinfo = ICUtzinfo.default
+        self._saveTzinfo = self.view.tzinfo.default
         self._saveTzEnabled = tzPrefs.showUI
 
         # ... and set up the values we want to run the test with
-        ICUtzinfo.setDefault(self.tzinfo)
+        self.view.tzinfo.setDefault(self.tzinfo)
         tzPrefs.showUI = self.enableTimeZones
 
         # 2006/04/09 05:00 Europe/London == 2006/04/08 US/Pacific
         start = datetime(2006, 4, 9, 5, 0,
-                          tzinfo = ICUtzinfo.getInstance("Europe/London"))
+                         tzinfo=self.view.tzinfo.getInstance("Europe/London"))
 
         # Make a weekly event with the above as the startTime, and
         # stash it in self.event
@@ -1546,7 +1557,7 @@ class NaiveTimeZoneRecurrenceTest(testcase.SingleRepositoryTestCase):
         tzPrefs = schema.ns('osaf.pim', self.view).TimezonePrefs
 
         # Put everything back nicely....
-        ICUtzinfo.setDefault(self._saveTzinfo)
+        self.view.tzinfo.setDefault(self._saveTzinfo)
         tzPrefs.showUI = self._saveTzEnabled
 
         # ... and tip-toe out the room. Move along, nothing to see here.
@@ -1560,7 +1571,7 @@ class NaiveTimeZoneRecurrenceTest(testcase.SingleRepositoryTestCase):
         # OK, start on April 9, and get the occurrences in the next week.
         # (Since timezones are disabled here, we are supposed to be ignoring
         # them in comparisons, and expect self.event to appear here).
-        rangeStart = datetime(2006, 4, 9, tzinfo=ICUtzinfo.floating)
+        rangeStart = datetime(2006, 4, 9, tzinfo=self.view.tzinfo.floating)
 
         occurrences = self.event.getOccurrencesBetween(rangeStart,
                                                        rangeStart + oneWeek)
@@ -1590,7 +1601,7 @@ class TimeZoneEnabledRecurrenceTest(NaiveTimeZoneRecurrenceTest):
 
     def testEdgeCases(self):
 
-        rangeStart = datetime(2006, 4, 9, tzinfo=ICUtzinfo.floating)
+        rangeStart = datetime(2006, 4, 9, tzinfo=self.view.tzinfo.floating)
         oneWeek = timedelta(weeks=1)
 
         # Here, we expect events to occur according to the usual

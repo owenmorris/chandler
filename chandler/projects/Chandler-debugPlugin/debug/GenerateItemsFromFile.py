@@ -26,7 +26,6 @@ import osaf.pim.calendar.Calendar as Calendar
 from osaf import pim
 from osaf.pim.tasks import Task, TaskStamp
 import osaf.pim.mail as Mail
-from PyICU import ICUtzinfo
 import i18n
 from i18n.tests import uw
 from osaf.pim.calendar.Recurrence import RecurrenceRule, RecurrenceRuleSet
@@ -144,7 +143,8 @@ def GenerateCalendarEvent(view, args):
         event.displayName = uw(event.displayName)
 
     #startTime (startDate + startTime) + TimeZone
-    event.startTime = ReturnCompleteDatetime(args[2],args[3],tz=args[12])
+    event.startTime = ReturnCompleteDatetime(view, args[2], args[3],
+                                             tz=args[12])
    
     #anyTime
     if args[4]=='*': # semi-random data
@@ -208,7 +208,7 @@ def GenerateCalendarEvent(view, args):
     ruleItem = RecurrenceRule(None, itsView=view)
     ruleSetItem = RecurrenceRuleSet(None, itsView=view)
     if not args[11] == '':
-        ruleItem.until = ReturnCompleteDatetime(args[11])    
+        ruleItem.until = ReturnCompleteDatetime(view, args[11])
     if args[10]=='*': # semi-random data
         ruleItem.freq = random.choice(RECURRENCES)
         ruleSetItem.addRule(ruleItem)
@@ -267,7 +267,7 @@ def GenerateTask(view, args):
     return task
 
 
-def ReturnCompleteDatetime(date, time='', tz=None):
+def ReturnCompleteDatetime(view, date, time='', tz=None):
     """ Return a datetime corresponding to the parameters """
     now = datetime.now()
     # date
@@ -307,11 +307,11 @@ def ReturnCompleteDatetime(date, time='', tz=None):
 
     # time zone
     if tz=='*': # semi-random data
-        tzinfo = ICUtzinfo.getInstance(random.choice(TIMEZONES))
+        tzinfo = view.tzinfo.getInstance(random.choice(TIMEZONES))
     elif tz in TIMEZONES:
-        tzinfo = ICUtzinfo.getInstance(tz)
+        tzinfo = view.tzinfo.getInstance(tz)
     else: # default value
-        tzinfo = ICUtzinfo.default
+        tzinfo = view.tzinfo.default
         
     result = datetime(year=result.year,month=result.month,day=result.day,hour=result.hour,minute=result.minute,tzinfo=tzinfo)
     return result
@@ -356,7 +356,7 @@ def GenerateMailMessage(view, args):
         message.subject = uw(message.subject)
 
     # dateSent (date + time)
-    message.dateSent = ReturnCompleteDatetime(args[2],args[3])
+    message.dateSent = ReturnCompleteDatetime(view, args[2], args[3])
 
     # fromAdress
     message.fromAddress = GenerateCalendarParticipant(view, args[4])

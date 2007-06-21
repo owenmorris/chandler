@@ -29,7 +29,6 @@ from osaf.sharing import SharedItem
 
 from datetime import datetime
 from repository.util.Path import Path
-from PyICU import ICUtzinfo
 from i18n.tests import uw
 
 class CommunicationStatusTestCase(TestDomainModel.DomainModelTestCase):

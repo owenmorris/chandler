@@ -1,4 +1,4 @@
-#   Copyright (c) 2003-2006 Open Source Applications Foundation
+#   Copyright (c) 2003-2007 Open Source Applications Foundation
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -17,7 +17,6 @@ import unittest, sys, os, logging, datetime, time
 from osaf import pim, sharing
 from repository.item.Item import Item
 from util import testcase
-from PyICU import ICUtzinfo
 from application import schema
 from i18n.tests import uw
 
@@ -73,7 +72,7 @@ class InMemoryTestCase(testcase.DualRepositoryTestCase):
 
         self.uuids = {}
 
-        tzinfo = ICUtzinfo.getDefault()
+        tzinfo = sandbox.itsView.tzinfo.getDefault()
         for i in xrange(6):
             c = pim.CalendarEvent(itsParent=sandbox)
             c.summary = events[i % 6]
@@ -164,7 +163,7 @@ class InMemoryTestCase(testcase.DualRepositoryTestCase):
         item0.displayName = uw("meeting rescheduled")
         oldStart = event0.startTime
 
-        tzinfo = ICUtzinfo.getDefault()
+        tzinfo = view1.tzinfo.getDefault()
         newStart = datetime.datetime(2005, 11, 1, 12, 0, 0, 0, tzinfo)
         item1 = view1.findUUID(uuid)
         event1 = pim.EventStamp(item1)

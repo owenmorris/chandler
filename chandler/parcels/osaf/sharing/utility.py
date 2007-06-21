@@ -42,7 +42,6 @@ __all__ = [
 from application import schema, Globals
 import WebDAV
 import urlparse, base64, datetime
-from PyICU import ICUtzinfo
 from i18n import ChandlerMessageFactory as _
 from repository.util.Lob import Lob
 from itertools import chain
@@ -224,7 +223,7 @@ def localChanges(view, fromVersion, toVersion):
 
 
 
-def serializeLiteral(attrValue, attrType):
+def serializeLiteral(view, attrValue, attrType):
 
     mimeType = None
     encoding = None
@@ -242,7 +241,7 @@ def serializeLiteral(attrValue, attrType):
         # For backwards compatibility with 0.6 clients: since 0.6 doesn't
         # know about 'World/Floating' timezone, strip out the timezone when
         # exporting
-        if attrValue.tzinfo is ICUtzinfo.floating:
+        if attrValue.tzinfo == view.tzinfo.floating:
             attrValue = attrValue.replace(tzinfo=None)
         attrValue = attrType.makeString(attrValue)
     elif type(attrValue) is not str:

@@ -1,4 +1,4 @@
-#   Copyright (c) 2003-2006 Open Source Applications Foundation
+#   Copyright (c) 2003-2007 Open Source Applications Foundation
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -16,7 +16,6 @@
 import wx
 import wx.grid
 from i18n import ChandlerMessageFactory as _
-import PyICU
 import datetime
 import bisect
 
@@ -32,9 +31,9 @@ def pickTimeZone(view, changeDefaultTZ=False):
 
         def getInsertIndex(name):
             insertIndex = 0
-            offset = getOffset(PyICU.ICUtzinfo.getInstance(name))
+            offset = getOffset(view.tzinfo.getInstance(name))
             for n in wellKnowns:
-                test_offset = getOffset(PyICU.ICUtzinfo.getInstance(n))
+                test_offset = getOffset(view.tzinfo.getInstance(n))
                 if offset < test_offset:
                     break
                 insertIndex += 1
@@ -49,7 +48,7 @@ def pickTimeZone(view, changeDefaultTZ=False):
             # the separator row is empty, so if that row is selected, it's
             # equivalent to having nothing selected
             if name != '':
-                newTZ = PyICU.ICUtzinfo.getInstance(name)
+                newTZ = view.tzinfo.getInstance(name)
                 newTZname = name
                 if name not in wellKnowns:
                     wellKnowns.insert(getInsertIndex(name), name)
@@ -67,7 +66,7 @@ def pickTimeZone(view, changeDefaultTZ=False):
                     newdefault = tzid
                     break
             if newdefault is not None:
-                table.info.default = PyICU.ICUtzinfo.getInstance(newdefault)               
+                table.info.default = view.tzinfo.getInstance(newdefault)
             else:
                 avoidRemoving = table.info.default.tzid
 
@@ -236,11 +235,11 @@ class TimezoneTable(wx.grid.PyGridTableBase):
         if not hasattr(self, 'data'):
             rows = []
             for name in self.info.wellKnownIDs:
-                offset = getOffset(PyICU.ICUtzinfo.getInstance(name))
+                offset = getOffset(self.view.tzinfo.getInstance(name))
                 bisect.insort(rows, [offset, name, 1])
             for name in TIMEZONE_SHORT_LIST:
                 if name not in self.info.wellKnownIDs:
-                    offset = getOffset(PyICU.ICUtzinfo.getInstance(name))
+                    offset = getOffset(self.view.tzinfo.getInstance(name))
                     bisect.insort(rows, [offset, name, 0])
             self.data = rows
             self.unexpandedSize = len(rows)
@@ -254,7 +253,7 @@ class TimezoneTable(wx.grid.PyGridTableBase):
                 for name in PyICU.TimeZone.createEnumeration():
                     if name not in self.info.wellKnownIDs and \
                        name not in TIMEZONE_SHORT_LIST:
-                        offset = getOffset(PyICU.ICUtzinfo.getInstance(name))
+                        offset = getOffset(self.view.tzinfo.getInstance(name))
                         bisect.insort(rows, [offset, name, 0])
                 self.data.extend(rows)
                 
@@ -365,14 +364,14 @@ def buildTZChoiceList(view, control, selectedTZ=None):
     with the appropriate timezones, plus a More option, whose value is
     TIMEZONE_OTHER_FLAG.
 
-    Default selection is ICUtzinfo.default.
+    Default selection is view.tzinfo.default.
     
     """
     control.Clear()
     selectIndex = -1
     info = TimeZoneInfo.get(view)
     if selectedTZ is None:
-        selectedTZ = PyICU.ICUtzinfo.default
+        selectedTZ = view.tzinfo.default
     canonicalTimeZone = info.canonicalTimeZone(selectedTZ)
 
     # rebuild the list of choices

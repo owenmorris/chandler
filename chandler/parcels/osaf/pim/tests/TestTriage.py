@@ -16,7 +16,7 @@ import unittest, os, datetime, time
 
 import osaf.pim.tests.TestDomainModel as TestDomainModel
 from osaf.pim import Note, TriageEnum, Triageable
-from PyICU import ICUtzinfo
+
 
 class TriageTest(TestDomainModel.DomainModelTestCase):
     def setUp(self):
@@ -28,24 +28,26 @@ class TriageTest(TestDomainModel.DomainModelTestCase):
     def testMakeTriageStatusChangedTime(self):
         # triageStatusChange is supposed to be a GMT time in seconds (negated
         # for sorting)... prove to myself that it's really GMT.
-        now = datetime.datetime.now(ICUtzinfo.default)
-        now_tsc = Triageable.makeTriageStatusChangedTime()
-        ny_now = now.astimezone(ICUtzinfo.getInstance("America/New_York"))
-        la_now = now.astimezone(ICUtzinfo.getInstance("America/Los_Angeles"))
+        view = self.view
+        now = datetime.datetime.now(view.tzinfo.default)
+        now_tsc = Triageable.makeTriageStatusChangedTime(view)
+        ny_now = now.astimezone(view.tzinfo.getInstance("America/New_York"))
+        la_now = now.astimezone(view.tzinfo.getInstance("America/Los_Angeles"))
 
-        ny_tsc = Triageable.makeTriageStatusChangedTime(ny_now)
-        la_tsc = Triageable.makeTriageStatusChangedTime(la_now)
+        ny_tsc = Triageable.makeTriageStatusChangedTime(view, ny_now)
+        la_tsc = Triageable.makeTriageStatusChangedTime(view, la_now)
         self.failUnlessEqual(ny_tsc, la_tsc)
         self.failUnless((la_tsc - now_tsc) < 1.0)
 
     def testInitialTriageState(self):        
-        now = datetime.datetime.now(ICUtzinfo.default)
+        view = self.view
+        now = datetime.datetime.now(view.tzinfo.default)
         self.failUnlessEqual(self.item.triageStatus, TriageEnum.now)
         self.failIf(hasattr(self.item, '_sectionTriageStatus'))
         self.failIf(hasattr(self.item, '_sectionTriageStatusChanged'))
         # tsc might not be exactly equal to the creation time, but it should
         # be close.
-        self.failUnless(Triageable.makeTriageStatusChangedTime(self.item.createdOn) 
+        self.failUnless(Triageable.makeTriageStatusChangedTime(view, self.item.createdOn) 
                         + self.item.triageStatusChanged < 1.0)
 
 if __name__ == "__main__":

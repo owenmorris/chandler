@@ -80,11 +80,11 @@ class CurrentView(threading.local):
     @contextlib.contextmanager
     def set(self, view):
         try:
-            view = self.view
-            self.view = self
-            yield self
-        finally:
+            prev = self.view
             self.view = view
+            yield view
+        finally:
+            self.view = prev
 
     def get(self):
         return self.view
@@ -1918,6 +1918,9 @@ class ViewTZInfo(object):
         self._floating = FloatingTZ(self._default)
         self._ontzchange = ontzchange or Nil
 
+        self.UTC = ICUtzinfo.getInstance('UTC')
+        self.GMT = ICUtzinfo.getInstance('GMT')
+
     def getDefault(self):
         return self._default
 
@@ -1930,12 +1933,16 @@ class ViewTZInfo(object):
         return ICUtzinfo.getInstance(name)
 
     def setDefault(self, default):
-        if not isinstance(default, ICUtzinfo):
+        if isinstance(default, FloatingTZ):
+            raise TypeError, ("Floating timezone can't be default", default)
+        elif not isinstance(default, ICUtzinfo):
             raise TypeError, default
+        current = self._default
         if self._default != default:
             self._default = default
             self._floating.tzinfo = default
             self._ontzchange(self.view, default)
+        return current
 
     def getOnTZChange(self):
         return self._ontzchange

@@ -29,6 +29,7 @@ class NRVTestCase(unittest.TestCase):
         Globals.options = Utility.initOptions()
         Utility.initLogging(Globals.options)
         self.view = NullRepositoryView()
+        Utility.initTimezone(Globals.options, self.view)
 
 class SingleRepositoryTestCase(unittest.TestCase):
 
@@ -37,6 +38,15 @@ class SingleRepositoryTestCase(unittest.TestCase):
         Globals.options.ramdb = True
         Utility.initLogging(Globals.options)
         self.view = Utility.initRepository("", Globals.options, True)
+        Utility.initTimezone(Globals.options, self.view)
+
+    def reopenRepository(self):
+        view = self.view
+        view.commit()
+        view.closeView()
+        view.openView()
+        Utility.initTimezone(Globals.options, view)
+        
 
 class DualRepositoryTestCase(unittest.TestCase):
 
@@ -49,6 +59,7 @@ class DualRepositoryTestCase(unittest.TestCase):
             view = Utility.initRepository("", Globals.options, True)
             view.name = "test_view_%d" % i
             self.views.append(view)
+            Utility.initTimezone(Globals.options, view)
 
 
 if __name__ == "__main__":

@@ -26,7 +26,6 @@ import webdav_conduit
 import shares
 import zanshin, twisted.web.http
 from xml.etree.cElementTree import XML
-from PyICU import ICUtzinfo
 from i18n import ChandlerMessageFactory as _
 from osaf.pim.calendar.TimeZone import serializeTimeZone
 
@@ -43,7 +42,7 @@ class CalDAVConduit(webdav_conduit.WebDAVConduit):
 
     def _createCollectionResource(self, handle, resource, childName):
         displayName = self.share.contents.displayName
-        timezone = serializeTimeZone(ICUtzinfo.default)
+        timezone = serializeTimeZone(self.itsView.tzinfo.default)
         return handle.blockUntil(resource.createCalendar, childName,
                                  displayName, timezone)
 
@@ -173,8 +172,6 @@ class CalDAVConduit(webdav_conduit.WebDAVConduit):
 MINIMUM_FREEBUSY_UPDATE_FREQUENCY = datetime.timedelta(hours=1)
 MERGE_GAP_DAYS = 3
 
-utc = ICUtzinfo.getInstance('UTC')
-
 class FreeBusyAnnotation(schema.Annotation):
     schema.kindInfo(annotates=pim.ContentCollection)
     update_needed = schema.Sequence()
@@ -200,7 +197,7 @@ class FreeBusyAnnotation(schema.Annotation):
             if update.date == needed_date:
                 if force_update or \
                    update.last_update + MINIMUM_FREEBUSY_UPDATE_FREQUENCY < \
-                   datetime.datetime.now(utc):
+                   datetime.datetime.now(view.tzinfo.UTC):
                     update.needed_for = self.itsItem
                     return True
                 else:
@@ -218,11 +215,12 @@ class FreeBusyAnnotation(schema.Annotation):
 
     def dateUpdated(self, updated_date):
         update_found = False
+        view = self.itsItem.itsView
         # this is inefficient when processing, say, 60 days have been updated,
         # with difficulty I convinced myself to avoid premature optimization
         for update in getattr(self, 'recently_updated', []):
             if update.date == updated_date:
-                update.last_update = datetime.datetime.now(utc)
+                update.last_update = datetime.datetime.now(view.tzinfo.UTC)
                 if getattr(update, 'needed_for', False):
                     del update.needed_for
                 update_found = True
@@ -235,13 +233,13 @@ class FreeBusyAnnotation(schema.Annotation):
                 else:
                     del update.needed_for
                     update.updated_for = self.itsItem
-                    update.last_update = datetime.datetime.now(utc)
+                    update.last_update = datetime.datetime.now(view.tzinfo.UTC)
                 return
 
     def cleanUpdates(self):
         for update in getattr(self, 'recently_updated', []):
             if update.last_update + MINIMUM_FREEBUSY_UPDATE_FREQUENCY < \
-               datetime.datetime.now(utc) and \
+               datetime.datetime.now(self.itsItem.itsView.tzinfo.UTC) and \
                getattr(update, 'needed_for', False):
                 update.delete()
 
@@ -313,7 +311,7 @@ class CalDAVFreeBusyConduit(CalDAVConduit):
         elif getattr(self, 'ticketReadOnly', False):
             resource.ticketId = self.ticketReadOnly
 
-        zero_utc = datetime.time(0, tzinfo = utc)
+        zero_utc = datetime.time(0, tzinfo = self.itsView.tzinfo.UTC)
         for period_start, days in date_ranges:
             start = datetime.datetime.combine(period_start, zero_utc)
             end = datetime.datetime.combine(period_start + (days + 1) * oneday,

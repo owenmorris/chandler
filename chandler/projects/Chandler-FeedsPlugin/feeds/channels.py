@@ -18,7 +18,6 @@ __parcel__ = "feeds"
 
 import time, logging, urllib
 from datetime import datetime
-from PyICU import ICUtzinfo
 from osaf.pim.calendar.TimeZone import convertToICUtzinfo, formatTime
 from dateutil.parser import parse as dateutil_parse
 from application import schema
@@ -37,9 +36,9 @@ FETCH_FAILED = 0
 FETCH_NOCHANGE = 1
 FETCH_UPDATED = 2
 
-def date_parse(s):
+def date_parse(view, s):
     """Parse using dateutil's parse, then convert to ICUtzinfo timezones."""
-    return convertToICUtzinfo(dateutil_parse(s))
+    return convertToICUtzinfo(view, dateutil_parse(s))
 
 
 class UpdateTask(PeriodicTask):
@@ -233,7 +232,7 @@ class FeedChannel(pim.ListCollection):
         # set lastModified
         lastModified = headers.get("last-modified", None)
         if lastModified:
-            self.lastModified = date_parse(lastModified[0])
+            self.lastModified = date_parse(self.itsView, lastModified[0])
             
         count = self.parse(data)
         if count:
@@ -264,23 +263,24 @@ class FeedChannel(pim.ListCollection):
             
         logger.error("Failed to update channel: %s; Reason: %s",
             channel, failure.getErrorMessage())
-        
+
+        view = self.itsView
         if self.isEstablished:
             if self.isPreviousUpdateSuccessful:
                 self.isPreviousUpdateSuccessful = False
-                item = FeedItem(itsView=self.itsView)
+                item = FeedItem(itsView=view)
                 item.displayName = _(u"Feed channel is unreachable")
                 item.author = _(u"Chandler Feeds Parcel")
                 item.category = _(u"Internal")
-                item.date = datetime.now(ICUtzinfo.default)
+                item.date = datetime.now(view.tzinfo.default)
                 item.content = view.createLob(_(u"This feed channel is currently unreachable"))
                 self.addFeedItem(item)
                 self.logItem = item
-                self.itsView.commit()
+                view.commit()
             else:
                 if self.logItem:
-                    self.logItem.content = view.createLob(u"This feed channel has been unreachable from " + unicode(formatTime(self.logItem.date)) + u" to " + unicode(formatTime(datetime.now(ICUtzinfo.default))))
-                    self.itsView.commit()
+                    self.logItem.content = view.createLob(u"This feed channel has been unreachable from " + unicode(formatTime(view, self.logItem.date)) + u" to " + unicode(formatTime(view, datetime.now(view.tzinfo.default))))
+                    view.commit()
                     
         if callback:
             callback(self.itsUUID, False)
@@ -314,7 +314,7 @@ class FeedChannel(pim.ListCollection):
         
         date = data["channel"].get("date")
         if date:
-            self.date = date_parse(str(date))
+            self.date = date_parse(self.itsView, str(date))
         
         # parse feed items.
         return self._parseItems(data["items"])
@@ -343,7 +343,7 @@ class FeedChannel(pim.ListCollection):
                     # date_parsed seems to always be converted to GMT, so
                     # let's make a datetime object using values from
                     # date_parsed, coupled with a GMT tzinfo...
-                    kwds = dict(tzinfo=ICUtzinfo.getInstance('UTC'))
+                    kwds = dict(tzinfo=view.tzinfo.UTC)
                     itemDate = datetime(*newItem.date_parsed[:5], **kwds)
                     # logger.debug("%s, %s, %s" % \
                     #     (newItem.date, newItem.date_parsed, itemDate))
@@ -484,10 +484,10 @@ class FeedItem(pim.ContentItem):
             self.content = self.getAttributeAspect("content", "type").makeValue(content, indexed=True)
 
         if "date" in data:
-            self.date = date_parse(str(data.date))
+            self.date = date_parse(self.itsView, str(data.date))
         else:
             # No date was available in the feed, so assign it "now"
-            self.date = datetime.now(ICUtzinfo.default)
+            self.date = datetime.now(self.itsView.tzinfo.default)
 
     @schema.observer(author)
     def onAuthorChange(self, op, attr):

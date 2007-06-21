@@ -52,8 +52,6 @@ from mail import EmailAddress, EmailComparator, MailStamp, MailPreferences, IMAP
 from proxy import *
 from osaf.framework import password
 from application.Parcel import Reference
-from repository.item.Item import Item
-from PyICU import ICUtzinfo
 from osaf import messages, startup
 import tasks, mail, calendar.Calendar
 from i18n import ChandlerMessageFactory as _
@@ -88,7 +86,7 @@ class MasterEventWatcher(schema.Item):
         self.itsView.dispatchChanges(iter(mods), dirties)
 
 
-class NonOccurrenceFilter(Item):
+class NonOccurrenceFilter(schema.Item):
 
     def isNonOccurrence(self, view, uuid):
         occurrences, modificationFor, occurrenceFor = view.findValues(uuid,
@@ -110,7 +108,7 @@ class NonOccurrenceFilter(Item):
         return not occurrenceFor or modificationFor
 
 
-class LongEventFilter(Item):
+class LongEventFilter(schema.Item):
 
     def isLongEvent(self, view, uuid):
         return view.findValue(uuid, EventStamp.duration.name,
@@ -122,25 +120,24 @@ _FILTER_ATTRIBUTES = [
     (EventStamp.startTime.name, None)
 ]
 
-class FloatingEventFilter(Item):
+class FloatingEventFilter(schema.Item):
 
     def isFloatingEvent(self, view, uuid):
         anyTime, allDay, start = view.findValues(uuid, *_FILTER_ATTRIBUTES)
         return (anyTime or allDay or (start is not None and
-                                      start.tzinfo == ICUtzinfo.floating))
+                                      start.tzinfo == view.tzinfo.floating))
 
 
-UTC = ICUtzinfo.getInstance("UTC")
-
-class UTCEventFilter(Item):
+class UTCEventFilter(schema.Item):
 
     def isUTCEvent(self, view, uuid):
         anyTime, allDay, start = view.findValues(uuid, *_FILTER_ATTRIBUTES)
         if anyTime or allDay:
             return False
-        return (start is not None and start.tzinfo == UTC)
+        return (start is not None and start.tzinfo == view.tzinfo.UTC)
 
-class RecurrenceAwareFilter(Item):
+
+class RecurrenceAwareFilter(schema.Item):
     attrAndDefault = ()
 
     @classmethod
@@ -157,7 +154,7 @@ class RecurrenceAwareFilter(Item):
     def matches(self, view, uuid):
         return view.findInheritedValues(uuid, type(self).attrAndDefault)[0]
 
-class UnexpiredFilter(Item):
+class UnexpiredFilter(schema.Item):
     findValuePair = (Reminder.nextPoll.name, None)
 
     def notExpired(self, view, uuid):

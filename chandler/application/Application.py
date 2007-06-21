@@ -466,6 +466,7 @@ class wxApplication (wx.App):
             splash.updateGauge('parcels')
         Utility.initParcels(options, view, parcelPath)
         Utility.initPlugins(options, view, pluginEnv, pluginEggs)
+        Utility.initTimezone(options, view)
 
         # Now that the parcel world exists, save our locale for next time.
         self.saveLocale()

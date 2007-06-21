@@ -22,7 +22,6 @@ from repository.util.URL import URL
 from application import schema
 import EXIF
 from i18n import MessageFactory
-from PyICU import ICUtzinfo
 from osaf.framework.blocks import NewItemEvent
 import application.dialogs.Util
 import wx
@@ -92,7 +91,7 @@ class PhotoMixin(pim.ContentItem):
                                                   "%Y:%m:%d %H:%M:%S"))
             self.dateTaken = datetime.fromtimestamp(timestamp)
             if self.dateTaken.tzinfo is None:
-                self.dateTaken = self.dateTaken.replace(tzinfo=ICUtzinfo.default)
+                self.dateTaken = self.dateTaken.replace(tzinfo=self.itsView.tzinfo.default)
 
             self.exif = {}
             for (key, value) in exif.iteritems():

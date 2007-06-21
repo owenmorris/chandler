@@ -367,7 +367,7 @@ class MainView(View):
 
             # Parse the text for date/time information
             startTime, endTime, countFlag, typeFlag = \
-                             pim.calendar.Calendar.parseText(displayName)
+                pim.calendar.Calendar.parseText(self.itsView, displayName)
 
             # Check whether there is a date/time range
             if startTime != endTime:
