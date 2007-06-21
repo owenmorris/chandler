@@ -885,13 +885,13 @@ class CalendarEventHandler(object):
     def onGoToPrevEvent(self, event):
         blockItem = self.blockItem
         blockItem.decrementRange()
-        blockItem.postDateChanged(self.blockItem.selectedDate)
+        blockItem.postDateChanged(blockItem.selectedDate)
         blockItem.synchronizeWidget()
 
     def onGoToNextEvent(self, event):
         blockItem = self.blockItem
         blockItem.incrementRange()
-        blockItem.postDateChanged(self.blockItem.selectedDate)
+        blockItem.postDateChanged(blockItem.selectedDate)
         blockItem.synchronizeWidget()
 
     def onGoToTodayEvent(self, event):
@@ -899,7 +899,7 @@ class CalendarEventHandler(object):
         today = CalendarRangeBlock.startOfToday(blockItem.itsView)
         
         blockItem.setRange(today)
-        blockItem.postDateChanged(self.blockItem.selectedDate)
+        blockItem.postDateChanged(blockItem.selectedDate)
         blockItem.synchronizeWidget()
         
     def OnTZChoice(self, event):
@@ -2310,21 +2310,28 @@ class CalendarControl(CalendarRangeBlock):
         delta = timedelta(weekstartDayShift)
 
         self.rangeStart = date - delta
+        
         if self.dayMode:
             self.selectedDate = date.replace(tzinfo=view.tzinfo.floating)
         else:
-            # only reset selectedDate if its not in the current range
-            if not hasattr(self, 'selectedDate'):
+            selectedDate = getattr(self, 'selectedDate', None)
+            if not selectedDate:
                 self.selectedDate = self.rangeStart
+            else:
+                # the existing selected date may be in the wrong timezone,
+                # force it to be in the current timezone, bug 9539
+                selectedDate = selectedDate.replace(tzinfo=view.tzinfo.floating)                
+    
+                # now make sure the selectedDate stays more or less on the
+                # same day of the week even if the week changed
+                while selectedDate < self.rangeStart:
+                    selectedDate += self.rangeIncrement
 
-            # now make sure the selectedDate stays more or less on the
-            # same day of the week even if the week changed
-            while self.selectedDate < self.rangeStart:
-                self.selectedDate += self.rangeIncrement
-
-            rangeEnd = self.rangeStart + self.rangeIncrement
-            while self.selectedDate >= rangeEnd:
-                self.selectedDate -= self.rangeIncrement
+                rangeEnd = self.rangeStart + self.rangeIncrement
+                while selectedDate >= rangeEnd:
+                    selectedDate -= self.rangeIncrement
+                
+                self.selectedDate = selectedDate
 
     def incrementRange(self):
         """
