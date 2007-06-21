@@ -23,7 +23,7 @@ from debug.generate import GenerateAllItems
 from debug.GenerateItemsFromFile import GenerateItems
 from debug.mail import loadMailTests
 
-_m_ = MessageFactory("Chandler-debugPlugin")
+_ = MessageFactory("Chandler-debugPlugin")
 
 
 class TestMenuHandler(Block):
@@ -49,16 +49,16 @@ class TestMenuHandler(Block):
         # triggered from "Tools | Test | Generate Items from a File" menu
 
         res = dialogs.Util.showFileDialog(wx.GetApp().mainFrame,
-                                          _m_(u"Choose a file to import"), "",
-                                          _m_(u"import.csv"),
-                                          _m_(u"CSV files|*.csv"),
+                                          _(u"Choose a file to import"), "",
+                                          _(u"import.csv"),
+                                          _(u"CSV files|*.csv"),
                                           wx.OPEN)
         cmd, dir, filename = res
         if cmd != wx.ID_OK:
-            self.setStatusMessage(_m_(u"Import aborted"))
+            self.setStatusMessage(_(u"Import aborted"))
             return
 
-        self.setStatusMessage(_m_(u"Importing from %(filename)s")
+        self.setStatusMessage(_(u"Importing from %(filename)s")
                               %{'filename': filename})
 
         return GenerateItems(self.itsView, os.path.join(dir, filename))
@@ -99,25 +99,25 @@ def makeTestMenu(parcel, toolsMenu):
 
     testMenu = Menu.update(parcel, None,
                            blockName='_debug_testMenu',
-                           title=_m_(u'&Test'),
+                           title=_(u'&Test'),
                            parentBlock=toolsMenu)
 
     MenuItem.update(parcel, None,
                     blockName='_debug_GenerateSomeDataItem',
-                    title=_m_(u'&Generate Data'),
-                    helpString=_m_(u'generates a few items of each kind'),
+                    title=_(u'&Generate Data'),
+                    helpString=_(u'generates a few items of each kind'),
                     event=generateDataEvent,
                     parentBlock=testMenu)
     MenuItem.update(parcel, None,
                     blockName='_debug_GenerateMuchDataItem',
-                    title=_m_(u'G&enerate Lots of Data'),
-                    helpString=_m_(u'generates many items of each kind'),
+                    title=_(u'G&enerate Lots of Data'),
+                    helpString=_(u'generates many items of each kind'),
                     event=generateDataEvent,
                     parentBlock=testMenu)
     MenuItem.update(parcel, None,
                     blockName='_debug_GenerateDataItemFromFile',
-                    title=_m_(u'Generate Items from a File'),
-                    helpString=_m_(u'generates items from a file'),
+                    title=_(u'Generate Items from a File'),
+                    helpString=_(u'generates items from a file'),
                     event=generateDataFromFileEvent,
                     parentBlock=testMenu)
 
@@ -128,13 +128,13 @@ def makeTestMenu(parcel, toolsMenu):
 
     MenuItem.update(parcel, None,
                     blockName='_debug_MimeTest',
-                    title=_m_(u'Load MIME &Torture Tests'),
-                    helpString=_m_(u'Loads real world complex / broken mime message examples provided by Anthony Baxter'),
+                    title=_(u'Load MIME &Torture Tests'),
+                    helpString=_(u'Loads real world complex / broken mime message examples provided by Anthony Baxter'),
                     event=mimeTestEvent,
                     parentBlock=testMenu)
     MenuItem.update(parcel, None,
                     blockName='_debug_i18nMailTest',
-                    title=_m_(u'Load i18n &Mail Tests'),
-                    helpString=_m_(u'Loads mail messages containing a variety of Charsets and Languages'),
+                    title=_(u'Load i18n &Mail Tests'),
+                    helpString=_(u'Loads mail messages containing a variety of Charsets and Languages'),
                     event=i18nMailTestEvent,
                     parentBlock=testMenu)

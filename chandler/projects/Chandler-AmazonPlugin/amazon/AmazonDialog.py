@@ -22,18 +22,18 @@ from osaf.startup import PeriodicTask
 
 LICENSE_URL="https://aws-portal.amazon.com/gp/aws/developer/registration/index.html"
 PLUGIN_NAME="Chandler-AmazonPlugin"
-_m_ = MessageFactory(PLUGIN_NAME)
+_ = MessageFactory(PLUGIN_NAME)
 
 _SITE_CODES = ['us', 'gb', 'de', 'jp']
-_SITE_LIST = [_m_(u"Amazon USA"),
-              _m_(u"Amazon UK"),
-              _m_(u"Amazon Germany"),
-              _m_(u"Amazon Japan")]
+_SITE_LIST = [_(u"Amazon USA"),
+              _(u"Amazon UK"),
+              _(u"Amazon Germany"),
+              _(u"Amazon Japan")]
 
 _CAT_CODES = ['books', 'dvd', 'music']
-_CAT_LIST = [_m_(u"Books"),
-             _m_(u"DVD"),
-             _m_(u"Music")]
+_CAT_LIST = [_(u"Books"),
+             _(u"DVD"),
+             _(u"Music")]
 
 
 def promptEmail():
@@ -48,8 +48,8 @@ def promptEmail():
              results found. 
     """
 
-    return _showDialog(_m_(u"New Amazon Wish List"),
-                       _m_(u"Enter the Amazon email address of the wish list:"),
+    return _showDialog(_(u"New Amazon Wish List"),
+                       _(u"Enter the Amazon email address of the wish list:"),
                        u"", False)
 
 def promptKeywords():
@@ -65,8 +65,8 @@ def promptKeywords():
              containing (None, None, None) if no results found. 
     """
 
-    return _showDialog(_m_(u"New Amazon Collection"),
-                       _m_(u"Enter your Amazon search keywords:"),
+    return _showDialog(_(u"New Amazon Collection"),
+                       _(u"Enter your Amazon search keywords:"),
                        u"Scott Rosenberg")
 
 
@@ -121,7 +121,7 @@ class _promptAmazonDialog(wx.Dialog):
 
         if self.showCategories:
             box = wx.BoxSizer(wx.HORIZONTAL)
-            label = wx.StaticText(self, -1, _m_(u"Browse by category"))
+            label = wx.StaticText(self, -1, _(u"Browse by category"))
             box.Add(label, 0, wx.ALIGN_LEFT|wx.ALL, 5)
             catChoice = wx.Choice(self, -1, choices=_CAT_LIST)
             box.Add(catChoice, 1, wx.ALIGN_CENTRE|wx.ALL, 5)
@@ -130,7 +130,7 @@ class _promptAmazonDialog(wx.Dialog):
             self.catChoiceControl = catChoice
 
         box = wx.BoxSizer(wx.HORIZONTAL)
-        label = wx.StaticText(self, -1, _m_(u"Select a site to search"))
+        label = wx.StaticText(self, -1, _(u"Select a site to search"))
         box.Add(label, 0, wx.ALIGN_LEFT|wx.ALL, 5)
         siteChoice = wx.Choice(self, -1, choices=_SITE_LIST)
         box.Add(siteChoice, 1, wx.ALIGN_CENTRE|wx.ALL, 5)
@@ -218,7 +218,7 @@ class LicenseDialog(wx.Dialog):
         # creation, and then we create the GUI dialog using the Create
         # method.
         pre = wx.PreDialog()
-        pre.Create(parent, ID, _m_(u"Enter Amazon Web Services License"),
+        pre.Create(parent, ID, _(u"Enter Amazon Web Services License"),
                    wx.DefaultPosition, wx.DefaultSize, wx.DEFAULT_DIALOG_STYLE)
 
         # This next step is the most important, it turns this Python
@@ -233,7 +233,7 @@ class LicenseDialog(wx.Dialog):
         grid = wx.GridSizer(2, 2)
 
         # License (text control)....
-        label = wx.StaticText(self, -1, _m_(u"License:"))
+        label = wx.StaticText(self, -1, _(u"License:"))
         grid.Add(label, 0, wx.ALIGN_LEFT|wx.ALL, 5)
         self.licenseText = wx.TextCtrl(self, -1, u"",
                                        wx.DefaultPosition, [150, -1])

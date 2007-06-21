@@ -24,7 +24,7 @@ from osaf.framework.blocks.Block import Block
 from osaf.framework.blocks import BlockEvent, MenuItem, Menu
 from repository.item.Item import Item
 
-_m_ = MessageFactory("Chandler-debugPlugin")
+_ = MessageFactory("Chandler-debugPlugin")
 logger = logging.getLogger(__name__)
 
 
@@ -77,11 +77,11 @@ class SharingMenuHandler(Block):
 
     def on_debug_ConvertExportFileEvent(self, event):
 
-        wildcard = "%s|*.chex|%s|*.dump|%s (*.*)|*.*" %(_m_(u"Export files"),
-                                                        _m_(u"Dump files"),
-                                                        _m_(u"All files"))
+        wildcard = "%s|*.chex|%s|*.dump|%s (*.*)|*.*" %(_(u"Export files"),
+                                                        _(u"Dump files"),
+                                                        _(u"All files"))
         dlg = wx.FileDialog(wx.GetApp().mainFrame,
-                            _m_(u"Convert from export file"), "", "", wildcard,
+                            _(u"Convert from export file"), "", "", wildcard,
                             wx.OPEN)
 
         fromPath = None
@@ -90,10 +90,10 @@ class SharingMenuHandler(Block):
         dlg.Destroy()
 
         if fromPath:
-            wildcard = "%s|*.rec|%s (*.*)|*.*" %(_m_(u"Record files"),
-                                                 _m_(u"All files"))
+            wildcard = "%s|*.rec|%s (*.*)|*.*" %(_(u"Record files"),
+                                                 _(u"All files"))
             dlg = wx.FileDialog(wx.GetApp().mainFrame,
-                                _m_(u"Convert to record file"), "", "",
+                                _(u"Convert to record file"), "", "",
                                 wildcard, wx.SAVE|wx.OVERWRITE_PROMPT)
             toPath = None
             if dlg.ShowModal() == wx.ID_OK:
@@ -101,7 +101,7 @@ class SharingMenuHandler(Block):
             dlg.Destroy()
 
             if toPath:
-                activity = Activity(_m_(u"Convert %s") %(fromPath))
+                activity = Activity(_(u"Convert %s") %(fromPath))
                 dialogs.Progress.Show(activity)
                 activity.started()
 
@@ -113,7 +113,7 @@ class SharingMenuHandler(Block):
                     logger.exception("Failed to convert file")
                     activity.failed(exception=e)
                     raise
-                self.setStatusMessage(_m_(u'File converted'))
+                self.setStatusMessage(_(u'File converted'))
 
 
 def makeSharingMenu(parcel, sharingMenu):
@@ -159,38 +159,38 @@ def makeSharingMenu(parcel, sharingMenu):
 
     MenuItem.update(parcel, None,
                     blockName='_debug_BackgroundSyncAll',
-                    title=_m_(u'Start a &background sync now'),
-                    helpString=_m_(u'Initiates a single background sync'),
+                    title=_(u'Start a &background sync now'),
+                    helpString=_(u'Initiates a single background sync'),
                     event=backgroundSyncAllEvent,
                     parentBlock=sharingMenu)
     MenuItem.update(parcel, None,
                     blockName='_debug_BackgroundSyncGetOnly',
-                    title=_m_(u'Start a &GET-only background sync of current collection'),
-                    helpString=_m_(u'Initiates a single background sync without writing to server'),
+                    title=_(u'Start a &GET-only background sync of current collection'),
+                    helpString=_(u'Initiates a single background sync without writing to server'),
                     event=backgroundSyncGetOnlyEvent,
                     parentBlock=sharingMenu)
     MenuItem.update(parcel, None,
                     blockName='_debug_ToggleReadOnlyMode',
-                    title=_m_(u'Read-onl&y sharing mode'),
-                    helpString=_m_(u'Forces all sharing to be done in read-only mode'),
+                    title=_(u'Read-onl&y sharing mode'),
+                    helpString=_(u'Forces all sharing to be done in read-only mode'),
                     menuItemKind='Check',
                     event=toggleReadOnlyModeEvent,
                     parentBlock=sharingMenu)
     MenuItem.update(parcel, None,
                     blockName="_debug_InMemoryPublish",
-                    title=_m_(u"&Publish In-memory"),
-                    helpString=_m_(u'Publish a collection in-memory'),
+                    title=_(u"&Publish In-memory"),
+                    helpString=_(u'Publish a collection in-memory'),
                     event=inMemoryPublishEvent,
                     parentBlock=sharingMenu)
     MenuItem.update(parcel, None,
                     blockName='_debug_CreateConflict',
-                    title=_m_(u"Crea&te Conflict"),
-                    helpString=_m_(u'Create an artificial conflict for the selected items'),
+                    title=_(u"Crea&te Conflict"),
+                    helpString=_(u'Create an artificial conflict for the selected items'),
                     event=createConflictEvent,
                     parentBlock=sharingMenu)
     MenuItem.update(parcel, None,
                     blockName='_debug_ConvertExportFile',
-                    title=_m_(u"Convert export file"),
-                    helpString=_m_(u'Convert an export file to a more readable text file'),
+                    title=_(u"Convert export file"),
+                    helpString=_(u'Convert an export file to a more readable text file'),
                     event=convertExportFileEvent,
                     parentBlock=sharingMenu)

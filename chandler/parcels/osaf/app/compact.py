@@ -18,7 +18,7 @@ from PyICU import DateFormat
 
 from application import schema
 from osaf import startup, sharing
-from i18n import ChandlerMessageFactory as _m_
+from i18n import ChandlerMessageFactory as _
 from repository.persistence.RepositoryView import thisViewWins
 
 
@@ -31,7 +31,7 @@ class CompactDialog(wx.Dialog):
         self.compacting = None
 
         pre = wx.PreDialog()
-        pre.Create(None, -1, _m_(u"Purge Obsolete Data"),
+        pre.Create(None, -1, _(u"Purge Obsolete Data"),
                    wx.DefaultPosition, wx.DefaultSize, wx.DEFAULT_DIALOG_STYLE)
         self.this = pre.this
 
@@ -41,13 +41,13 @@ class CompactDialog(wx.Dialog):
         # compact message
         format = DateFormat.createDateInstance(DateFormat.kMedium)
         since = format.format(lastCompact)
-        text = _m_(u"Chandler needs to purge obsolete data. This operation may take a while but will make the application run faster.") %{ 'since': since, 'versions': versions }
+        text = _(u"Chandler needs to purge obsolete data. This operation may take a while but will make the application run faster.") %{ 'since': since, 'versions': versions }
         message = wx.StaticText(self, -1, text)
         message.Wrap(360)
         grid.Add(message, 0, wx.ALIGN_LEFT|wx.ALL, 3)
 
         # status message
-        self.auto = _m_("Compacting will start automatically in %d seconds.")
+        self.auto = _("Compacting will start automatically in %d seconds.")
         self.status = wx.StaticText(self, -1, self.auto %(self.COUNTDOWN))
         self.status.Wrap(360)
 
@@ -61,9 +61,9 @@ class CompactDialog(wx.Dialog):
 
         # now and later/cancel buttons
         grid = wx.GridSizer(1, 2, 2, 2)
-        self.now = wx.Button(self, wx.ID_OK, _m_(u"Compact Now"))
+        self.now = wx.Button(self, wx.ID_OK, _(u"Compact Now"))
         grid.Add(self.now, 0, wx.ALIGN_CENTRE|wx.ALL, 5)
-        self.later = wx.Button(self, wx.ID_CANCEL, _m_(u"Compact Later"))
+        self.later = wx.Button(self, wx.ID_CANCEL, _(u"Compact Later"))
         grid.Add(self.later, 0, wx.ALIGN_CENTRE|wx.ALL, 5)
 
         sizer.Add(grid, 0, wx.GROW|wx.ALIGN_CENTER_VERTICAL|wx.ALL, 5)
@@ -88,8 +88,8 @@ class CompactDialog(wx.Dialog):
             self.condition.release()
 
         if compact:
-            self.later.SetLabel(_m_(u'Cancel'))
-            progressMessage = _m_(u'Compacting repository (stage %d)')
+            self.later.SetLabel(_(u'Cancel'))
+            progressMessage = _(u'Compacting repository (stage %d)')
             stages = set()
             def progress(stage, percent):
                 stages.add(stage)
@@ -218,7 +218,7 @@ class CompactTask(startup.DurableTask):
 
         if versions < CompactTask.MIN_VERSIONS:  # nothing much to do
             view.logger.info("Only %d versions to compact, skipping", versions)
-            setStatusMessage(_m_(u"No versions to compact, skipping"))
+            setStatusMessage(_(u"No versions to compact, skipping"))
             if manual:
                 self.lastRun = self.lastCompact
             else:
@@ -233,10 +233,10 @@ class CompactTask(startup.DurableTask):
                 counts = view.repository.compact(toVersion, progressFn=progress)
             except:
                 view.logger.exception("while compacting repository")
-                setStatusMessage(_m_(u"Compacting repository failed, see chandler.log"))
+                setStatusMessage(_(u"Compacting repository failed, see chandler.log"))
                 self.compacted = False
             else:
-                setStatusMessage(_m_(u'Reclaimed %d items, %d values, %d refs, %d index entries, %d names, %d lobs, %d blocks, %d lucene documents') %(counts))
+                setStatusMessage(_(u'Reclaimed %d items, %d values, %d refs, %d index entries, %d names, %d lobs, %d blocks, %d lucene documents') %(counts))
                 self.compacted = True
 
         dialog = CompactDialog(compact, self.lastCompact, versions)

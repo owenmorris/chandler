@@ -20,7 +20,7 @@ Dialog box that implements the repository's password entry protocol.
 import wx
 
 # see StartupOptionsDialog.py
-_m_ = lambda msg: msg
+_ = lambda msg: msg
 
 
 class GetPasswordDialog(wx.Dialog):
@@ -29,9 +29,9 @@ class GetPasswordDialog(wx.Dialog):
 
         pre = wx.PreDialog()
         if create:
-            title = _m_(u"Create repository password")
+            title = _(u"Create repository password")
         else:
-            title = _m_(u"Enter repository password")
+            title = _(u"Enter repository password")
 
         pre.Create(None, -1, title, wx.DefaultPosition, wx.DefaultSize,
                    wx.DEFAULT_DIALOG_STYLE)
@@ -44,7 +44,7 @@ class GetPasswordDialog(wx.Dialog):
             grid = wx.GridSizer(1, 2)
 
         # Enter Password (text control):
-        label = wx.StaticText(self, -1, _m_(u"Enter password:"))
+        label = wx.StaticText(self, -1, _(u"Enter password:"))
         grid.Add(label, 0, wx.ALIGN_LEFT|wx.ALL, 5)
 
         self.passwordText = wx.TextCtrl(self, -1, u"",
@@ -54,7 +54,7 @@ class GetPasswordDialog(wx.Dialog):
 
         if create:
             # Confirm Password (text control):
-            label = wx.StaticText(self, -1, _m_(u"Confirm password:"))
+            label = wx.StaticText(self, -1, _(u"Confirm password:"))
             grid.Add(label, 0, wx.ALIGN_LEFT|wx.ALL, 5)
 
             self.confirmText = wx.TextCtrl(self, -1, u"",
@@ -93,7 +93,7 @@ def getPassword(create=False, again=False):
 
     while True:
         if again:
-            msg = _m_(u"Invalid password")
+            msg = _(u"Invalid password")
 
         dialog = GetPasswordDialog(create, msg)
         dialog.CenterOnScreen()
@@ -105,7 +105,7 @@ def getPassword(create=False, again=False):
                 return ''
 
             if create and entries['password'] != entries['confirmed']:
-                msg = _m_(u"Passwords did not match")
+                msg = _(u"Passwords did not match")
             else:
                 return entries['password']
 

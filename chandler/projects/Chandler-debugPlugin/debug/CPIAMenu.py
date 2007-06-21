@@ -20,7 +20,7 @@ from osaf.framework.blocks.Block import Block
 from osaf.framework.blocks import BlockEvent, ChoiceEvent, MenuItem, Menu
 from repository.item.Item import Item
 
-_m_ = MessageFactory("Chandler-debugPlugin")
+_ = MessageFactory("Chandler-debugPlugin")
 
 
 def makeCPIAMenu(parcel, toolsMenu):
@@ -48,28 +48,28 @@ def makeCPIAMenu(parcel, toolsMenu):
 
     cpiaMenu = Menu.update(parcel, None,
                            blockName='_debug_cpiaMenu',
-                           title=_m_(u'CPI&A'),
+                           title=_(u'CPI&A'),
                            parentBlock=toolsMenu)
     
     MenuItem.update(parcel, None,
                     blockName='_debug_ChandlerSkinMenuItem',
-                    title=_m_(u'&Chandler Skin'),
+                    title=_(u'&Chandler Skin'),
                     menuItemKind='Check',
-                    helpString=_m_(u'Switch to Chandler'),
+                    helpString=_(u'Switch to Chandler'),
                     event = chooseChandlerEvent,
                     parentBlock=cpiaMenu)
     MenuItem.update(parcel, None,
                     blockName='_debug_CPIATestMenuItem',
-                    title=_m_(u'C&PIA Test Skin'),
+                    title=_(u'C&PIA Test Skin'),
                     menuItemKind='Check',
-                    helpString=_m_(u'Switch to CPIA test'),
+                    helpString=_(u'Switch to CPIA test'),
                     event = chooseCPIATestEvent,
                     parentBlock=cpiaMenu)
     MenuItem.update(parcel, None,
                     blockName='_debug_CPIATest2MenuItem',
-                    title=_m_(u'CPIA Test &2 Skin'),
+                    title=_(u'CPIA Test &2 Skin'),
                     menuItemKind='Check',
-                    helpString=_m_(u'Switch to CPIA test 2'),
+                    helpString=_(u'Switch to CPIA test 2'),
                     event = chooseCPIATest2Event,
                     parentBlock=cpiaMenu)
 

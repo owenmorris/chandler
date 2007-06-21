@@ -13,7 +13,6 @@
 #   limitations under the License.
 
 from application import schema
-from i18n import MessageFactory
 from osaf.framework.blocks import BlockEvent, ChoiceEvent, MenuItem, Menu
 from osaf.framework.blocks.Block import Block
 
@@ -22,8 +21,6 @@ from debug.DebugMenu import makeDebugMenu
 from debug.CPIAMenu import makeCPIAMenu
 from debug.MeMenu import makeMeMenu
 from debug.SharingMenu import makeSharingMenu
-
-_m_ = MessageFactory("Chandler-debugPlugin")
 
 
 def installParcel(parcel, version=None):

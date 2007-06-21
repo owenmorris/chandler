@@ -12,7 +12,7 @@
 #   See the License for the specific language governing permissions and
 #   limitations under the License.
 
-from i18n import ChandlerMessageFactory as _m_
+from i18n import ChandlerMessageFactory
 from application import schema
 
 from chandlerdb.schema.c import CAttribute
@@ -26,8 +26,8 @@ class LocalizableString(UString):
         return CAttribute.PURE
 
     def makeValue(self, data):
-        return _m_(unicode(data))
+        return ChandlerMessageFactory(unicode(data))
 
     def readValue(self, itemReader, offset, data, withSchema, view, name,
                   afterLoadHooks):
-        return offset+1, _m_(data[offset])
+        return offset+1, ChandlerMessageFactory(data[offset])

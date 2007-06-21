@@ -22,7 +22,7 @@ from osaf.startup import PeriodicTask
 
 LICENSE_URL="http://www.flickr.com/services/api/misc.api_keys.html"
 PLUGIN_NAME="Chandler-FlickrPlugin"
-_m_ = MessageFactory(PLUGIN_NAME)
+_ = MessageFactory(PLUGIN_NAME)
 
 
 class LicenseTask(PeriodicTask):
@@ -58,7 +58,7 @@ class LicenseDialog(wx.Dialog):
         # creation, and then we create the GUI dialog using the Create
         # method.
         pre = wx.PreDialog()
-        pre.Create(parent, ID, _m_(u"Enter Flickr Web Services API Key"),
+        pre.Create(parent, ID, _(u"Enter Flickr Web Services API Key"),
                    wx.DefaultPosition, wx.DefaultSize, wx.DEFAULT_DIALOG_STYLE)
 
         # This next step is the most important, it turns this Python
@@ -73,7 +73,7 @@ class LicenseDialog(wx.Dialog):
         grid = wx.GridSizer(2, 2)
 
         # License (text control)....
-        label = wx.StaticText(self, -1, _m_(u"API Key:"))
+        label = wx.StaticText(self, -1, _(u"API Key:"))
         grid.Add(label, 0, wx.ALIGN_LEFT|wx.ALL, 5)
         self.licenseText = wx.TextCtrl(self, -1, u"",
                                        wx.DefaultPosition, [150, -1])

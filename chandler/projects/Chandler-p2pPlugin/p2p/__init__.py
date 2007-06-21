@@ -23,7 +23,7 @@ from dialogs import p2pHandler, setStatusMessage
 from account import findDefaultAccounts, AllGroup
 
 
-_m_ = MessageFactory("Chandler-p2pPlugin")
+_ = MessageFactory("Chandler-p2pPlugin")
 
 
 class LoginTask(object):
@@ -78,15 +78,15 @@ def installParcel(parcel, version=None):
     # Add to the demo menu
     p2pMenu = Menu.update(parcel, '_p2p_demoMenu',
                           blockName='_p2p_demoMenu',
-                          title = _m_(u'Peer to Peer Sharing'),
-                          helpString = _m_(u'Share collections using Jabber or IMAP'),
+                          title = _(u'Peer to Peer Sharing'),
+                          helpString = _(u'Share collections using Jabber or IMAP'),
                           childrenBlocks = [ ],
                           parentBlock=main.ExperimentalMenu)
 
     # Add a menu item to the "Experimental" menu to login to a peer network
     MenuItem.update(parcel, "LoginMenuItem",
                     blockName="_p2p_LoginMenuItem",
-                    title=_m_(u"&Login to Peer network..."),
+                    title=_(u"&Login to Peer network..."),
                     event=loginEvent,
                     eventsForNamedLookup=[loginEvent],
                     parentBlock=p2pMenu)
@@ -94,7 +94,7 @@ def installParcel(parcel, version=None):
     # ... and, below it, a menu item to p2p subscribe to a collection
     MenuItem.update(parcel, "SubscribeMenuItem",
                     blockName="_p2p_SubscribeMenuItem",
-                    title=_m_(u"S&ubscribe to Peer collection..."),
+                    title=_(u"S&ubscribe to Peer collection..."),
                     event=subscribeEvent,
                     eventsForNamedLookup=[subscribeEvent],
                     parentBlock=p2pMenu)
@@ -102,7 +102,7 @@ def installParcel(parcel, version=None):
     # ... and, below it, a menu item to manage p2p permissions to a collection
     MenuItem.update(parcel, "AccessMenuItem",
                     blockName="_p2p_AccessMenuItem",
-                    title=_m_(u"Grant Peer access to ..."),
+                    title=_(u"Grant Peer access to ..."),
                     event=accessEvent,
                     eventsForNamedLookup=[accessEvent],
                     parentBlock=p2pMenu)
@@ -110,7 +110,7 @@ def installParcel(parcel, version=None):
     # ... and, below it, a menu item to send a collection via email
     MenuItem.update(parcel, "SendMailMenuItem",
                     blockName="_p2p_SendMailMenuItem",
-                    title=_m_(u"Send ... via p2p email"),
+                    title=_(u"Send ... via p2p email"),
                     event=sendMailEvent,
                     eventsForNamedLookup=[sendMailEvent],
                     parentBlock=p2pMenu)
@@ -118,7 +118,7 @@ def installParcel(parcel, version=None):
     # ... and, below it, a menu item to check for p2p email
     MenuItem.update(parcel, "CheckMailMenuItem",
                     blockName="_p2p_CheckMailMenuItem",
-                    title=_m_(u"&Check p2p email"),
+                    title=_(u"&Check p2p email"),
                     event=checkMailEvent,
                     eventsForNamedLookup=[checkMailEvent],
                     parentBlock=p2pMenu)

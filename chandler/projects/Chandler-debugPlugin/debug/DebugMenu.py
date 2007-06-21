@@ -24,7 +24,7 @@ from osaf.framework.blocks.Block import Block
 from debug.blockviewer import makeBlockViewer
 from debug.repositoryviewer import makeRepositoryViewer
 
-_m_ = MessageFactory("Chandler-debugPlugin")
+_ = MessageFactory("Chandler-debugPlugin")
 
 
 class DebugMenuHandler(Block):
@@ -114,7 +114,7 @@ class DebugMenuHandler(Block):
 
     def on_debug_ShowI18nManagerDebugWindowEvent(self, event):
         
-        win = DebugWindow(_m_(u"I18nManager Resource Debugger"),
+        win = DebugWindow(_(u"I18nManager Resource Debugger"),
                           i18n._I18nManager.getDebugString())
         win.CenterOnScreen()
         win.ShowModal()
@@ -185,25 +185,25 @@ def makeDebugMenu(parcel, toolsMenu):
 
     debugMenu = Menu.update(parcel, None,
                             blockName='_debug_debugMenu',
-                            title=_m_(u'&Debug'),
+                            title=_(u'&Debug'),
                             parentBlock=toolsMenu)
 
     MenuItem.update(parcel, None, 
                     blockName='_debug_ShowPyShellItem',
-                    title=_m_(u'&Show Python shell...'),
-                    helpString=_m_(u'Brings up an interactive Python shell'),
+                    title=_(u'&Show Python shell...'),
+                    helpString=_(u'Brings up an interactive Python shell'),
                     event=showPyShellEvent,
                     parentBlock=debugMenu)
     MenuItem.update(parcel, None,
                     blockName='_debug_ShowPyCrustItem',
-                    title=_m_(u'Show Python shell with &object browser...'),
-                    helpString=_m_(u'Brings up an interactive Python shell and object browser'),
+                    title=_(u'Show Python shell with &object browser...'),
+                    helpString=_(u'Brings up an interactive Python shell and object browser'),
                     event=showPyCrustEvent,
                     parentBlock=debugMenu)
     MenuItem.update(parcel, None,
                     blockName='_debug_ShowWidgetInspectorItem',
-                    title=_m_(u'Show widget &inspection tool...'),
-                    helpString=_m_(u'Displays the widget inspection tool, showing all current widgets and sizers'),
+                    title=_(u'Show widget &inspection tool...'),
+                    helpString=_(u'Displays the widget inspection tool, showing all current widgets and sizers'),
                     event=showWidgetInspectorEvent,
                     parentBlock=debugMenu)
 
@@ -214,8 +214,8 @@ def makeDebugMenu(parcel, toolsMenu):
 
     MenuItem.update(parcel, None,
                     blockName='_debug_ReloadStylesItem',
-                    title=_m_(u'Reload St&yles'),
-                    helpString=_m_(u'Reloads styles'),
+                    title=_(u'Reload St&yles'),
+                    helpString=_(u'Reloads styles'),
                     event=reloadStylesEvent,
                     parentBlock=debugMenu)
 
@@ -226,8 +226,8 @@ def makeDebugMenu(parcel, toolsMenu):
 
     MenuItem.update(parcel, None,
                     blockName='_debug_WxTestHarnessItem',
-                    title=_m_(u'&Wx Test Harness'),
-                    helpString=_m_(u'invoke the current flavor of wx debugging'),
+                    title=_(u'&Wx Test Harness'),
+                    helpString=_(u'invoke the current flavor of wx debugging'),
                     event=wxTestHarnessEvent,
                     parentBlock=debugMenu)
 
@@ -238,8 +238,8 @@ def makeDebugMenu(parcel, toolsMenu):
 
     MenuItem.update(parcel, None,
                     blockName='_debug_ShowI18nManagerDebugItem',
-                    title=_m_(u'Show I18nManager &debug window...'),
-                    helpString=_m_(u'Displays a tree of projects, locales, resources, and gettext localizations'),
+                    title=_(u'Show I18nManager &debug window...'),
+                    helpString=_(u'Displays a tree of projects, locales, resources, and gettext localizations'),
                     event=showI18nManagerDebugWindowEvent,
                     parentBlock=debugMenu)
 
@@ -250,15 +250,15 @@ def makeDebugMenu(parcel, toolsMenu):
 
     MenuItem.update(parcel, None,
                     blockName='_debug_ShowBlockViewerItem',
-                    title=_m_(u'Show &Block Viewer...'),
-                    helpString=_m_(u'Opens the Block Viewer'),
+                    title=_(u'Show &Block Viewer...'),
+                    helpString=_(u'Opens the Block Viewer'),
                     event = showBlockViewerEvent,
                     eventsForNamedLookup = [showBlockViewerEvent],
                     parentBlock=debugMenu)
     MenuItem.update(parcel, None,
                     blockName='_debug_ShowRepositoryViewerItem',
-                    title=_m_(u'Show &Repository Viewer...'),
-                    helpString=_m_(u'Opens the Repository Viewer'),
+                    title=_(u'Show &Repository Viewer...'),
+                    helpString=_(u'Opens the Repository Viewer'),
                     event=showRepositoryViewerEvent,
                     eventsForNamedLookup=[showRepositoryViewerEvent],
                     parentBlock=debugMenu)
@@ -270,7 +270,7 @@ def makeDebugMenu(parcel, toolsMenu):
 
     MenuItem.update(parcel, None,
                     blockName='_debug_RestartApp',
-                    title=_m_(u'Restart Chandler'),
-                    helpString=_m_(u'Restarts Chandler'),
+                    title=_(u'Restart Chandler'),
+                    helpString=_(u'Restarts Chandler'),
                     event=restartAppEvent,
                     parentBlock=debugMenu)

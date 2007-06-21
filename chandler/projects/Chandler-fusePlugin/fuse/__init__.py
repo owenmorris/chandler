@@ -22,7 +22,7 @@ from osaf.framework.blocks.Block import Block
 
 from sidebar import sidebar
 
-_m_ = MessageFactory("Chandler-fusePlugin")
+_ = MessageFactory("Chandler-fusePlugin")
 MOUNT_NAME='Sidebar'
 
 
@@ -86,7 +86,7 @@ def installParcel(parcel, version=None):
     # Add a menu item to the "Experimental" menu to mount/umount
     MenuItem.update(parcel, "MountMenuItem",
                     blockName="_fuse_LoginMenuItem",
-                    title=_m_(u"Show Sidebar in Finder"),
+                    title=_(u"Show Sidebar in Finder"),
                     event=mountEvent,
                     eventsForNamedLookup=[mountEvent],
                     parentBlock=main.ExperimentalMenu)

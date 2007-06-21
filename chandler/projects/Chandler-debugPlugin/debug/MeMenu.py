@@ -20,7 +20,7 @@ from osaf.pim import mail
 from osaf.framework.blocks.Block import Block
 from osaf.framework.blocks import BlockEvent, MenuItem, Menu
 
-_m_ = MessageFactory("Chandler-debugPlugin")
+_ = MessageFactory("Chandler-debugPlugin")
 
 
 class MeMenuHandler(Block):
@@ -50,7 +50,7 @@ class MeMenuHandler(Block):
         win.Destroy()
 
     def on_debug_EditMyNameEvent(self, event):
-        dialogs.Util.promptForItemValues(_m_(u"Enter your name"),
+        dialogs.Util.promptForItemValues(_(u"Enter your name"),
             schema.ns('osaf.pim', self.itsView).currentContact.item.contactName,
             ( {'attr':'firstName', 'label':'First name' },
               {'attr':'lastName', 'label':'Last name' } )
@@ -104,31 +104,31 @@ def makeMeMenu(parcel, sharingMenu):
 
     MenuItem.update(parcel, None,
                     blockName='_debug_EditMyName',
-                    title=_m_(u'&Edit "Me" name...'),
-                    helpString=_m_(u'Edit your name'),
+                    title=_(u'&Edit "Me" name...'),
+                    helpString=_(u'Edit your name'),
                     event=editMyNameEvent,
                     parentBlock=sharingMenu)
     MenuItem.update(parcel, None,
                     blockName='_debug_ShowMeAddressCollectionDebugWindow',
-                    title=_m_(u'Show "Me" Address &Collection...'),
-                    helpString=_m_(u'Displays all active and old me addresses used to determine the fromMe and toMe attributes on Content Item'),
+                    title=_(u'Show "Me" Address &Collection...'),
+                    helpString=_(u'Displays all active and old me addresses used to determine the fromMe and toMe attributes on Content Item'),
                     event=showMeAddressCollectionDebugWindowEvent,
                     parentBlock=sharingMenu)
     MenuItem.update(parcel, None,
                     blockName='_debug_ShowCurrentMeAddressesDebugWindow',
-                    title=_m_(u'Show Current &Me Addresses...'),
-                    helpString=_m_(u'Displays all active me addresses'),
+                    title=_(u'Show Current &Me Addresses...'),
+                    helpString=_(u'Displays all active me addresses'),
                     event=showCurrentMeAddressesDebugWindowEvent,
                     parentBlock=sharingMenu)
     MenuItem.update(parcel, None,
                     blockName='_debug_ShowCurrentMeAddressDebugWindow',
-                    title=_m_(u'&Show Current Me Address...'),
-                    helpString=_m_(u'Displays the current me address'),
+                    title=_(u'&Show Current Me Address...'),
+                    helpString=_(u'Displays the current me address'),
                     event=showCurrentMeAddressDebugWindowEvent,
                     parentBlock=sharingMenu)
     MenuItem.update(parcel, None,
                     blockName='_debug_recalculateEmailAddressItem',
-                    title=_m_(u'&Recalculate Me Addresses'),
-                    helpString=_m_(u'Loops through the Incoming and Outgoing Accounts and rebuilds the me addresses current references'),
+                    title=_(u'&Recalculate Me Addresses'),
+                    helpString=_(u'Loops through the Incoming and Outgoing Accounts and rebuilds the me addresses current references'),
                     event=recalculateMeAddressesEvent,
                     parentBlock=sharingMenu)

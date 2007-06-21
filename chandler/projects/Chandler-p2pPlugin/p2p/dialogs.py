@@ -25,9 +25,9 @@ from p2p.mail import MailAccount
 from repository.item.Access import ACL, ACE, Permissions
 
 
-_m_ = MessageFactory("Chandler-p2pPlugin")
+_ = MessageFactory("Chandler-p2pPlugin")
 PROTOCOLS = ['jabber']
-PROTOCOL_NAMES = [_m_(u"Jabber")]
+PROTOCOL_NAMES = [_(u"Jabber")]
 
 
 def setStatusMessage(msg):
@@ -43,7 +43,7 @@ class SubscribeDialog(wx.Dialog):
         # creation, and then we create the GUI dialog using the Create
         # method.
         pre = wx.PreDialog()
-        pre.Create(None, -1, _m_(u"Subscribe to peer collection"),
+        pre.Create(None, -1, _(u"Subscribe to peer collection"),
                    wx.DefaultPosition, wx.DefaultSize, wx.DEFAULT_DIALOG_STYLE)
 
         # This next step is the most important, it turns this Python
@@ -58,14 +58,14 @@ class SubscribeDialog(wx.Dialog):
         grid = wx.GridSizer(2, 2)
 
         # Collection name (text control)....
-        label = wx.StaticText(self, -1, _m_(u"Collection:"))
+        label = wx.StaticText(self, -1, _(u"Collection:"))
         grid.Add(label, 0, wx.ALIGN_LEFT|wx.ALL, 5)
         self.nameText = wx.TextCtrl(self, -1, u"",
                                     wx.DefaultPosition, [150, -1])
         grid.Add(self.nameText, 0, wx.ALIGN_CENTRE|wx.ALL, 5)
                 
         # RemoteId (text control):
-        label = wx.StaticText(self, -1, _m_(u"From:"))
+        label = wx.StaticText(self, -1, _(u"From:"))
         grid.Add(label, 0, wx.ALIGN_LEFT|wx.ALL, 5)
 
         self.remoteIdText = wx.TextCtrl(self, -1, u"",
@@ -98,7 +98,7 @@ class LoginDialog(wx.Dialog):
         # creation, and then we create the GUI dialog using the Create
         # method.
         pre = wx.PreDialog()
-        pre.Create(None, -1, _m_(u"Login to a peer network"),
+        pre.Create(None, -1, _(u"Login to a peer network"),
                    wx.DefaultPosition, wx.DefaultSize, wx.DEFAULT_DIALOG_STYLE)
 
         # This next step is the most important, it turns this Python
@@ -127,14 +127,14 @@ class LoginDialog(wx.Dialog):
             self.useSSL = False
         
         # Userid (text control)....
-        label = wx.StaticText(self, -1, _m_(u"Userid:"))
+        label = wx.StaticText(self, -1, _(u"Userid:"))
         grid.Add(label, 0, wx.ALIGN_LEFT|wx.ALL, 5)
         self.useridText = wx.TextCtrl(self, -1, self.userid,
                                       wx.DefaultPosition, [150, -1])
         grid.Add(self.useridText, 0, wx.ALIGN_CENTRE|wx.ALL, 5)
                 
         # Password (text control):
-        label = wx.StaticText(self, -1, _m_(u"Password:"))
+        label = wx.StaticText(self, -1, _(u"Password:"))
         grid.Add(label, 0, wx.ALIGN_LEFT|wx.ALL, 5)
 
         self.passwordText = wx.TextCtrl(self, -1, self.password,
@@ -143,14 +143,14 @@ class LoginDialog(wx.Dialog):
         grid.Add(self.passwordText, 1, wx.ALIGN_CENTRE|wx.ALL, 5)
 
         # Server (text control)....
-        label = wx.StaticText(self, -1, _m_(u"Server:"))
+        label = wx.StaticText(self, -1, _(u"Server:"))
         grid.Add(label, 0, wx.ALIGN_LEFT|wx.ALL, 5)
         self.serverText = wx.TextCtrl(self, -1, self.server,
                                       wx.DefaultPosition, [150, -1])
         grid.Add(self.serverText, 0, wx.ALIGN_CENTRE|wx.ALL, 5)
                 
         # SSL (checkbox)....
-        label = wx.StaticText(self, -1, _m_(u"Secure connection:"))
+        label = wx.StaticText(self, -1, _(u"Secure connection:"))
         grid.Add(label, 0, wx.ALIGN_LEFT|wx.ALL, 5)
         self.sslCheck = wx.CheckBox(self, -1, "SSL",
                                     wx.DefaultPosition, [150, -1])
@@ -158,7 +158,7 @@ class LoginDialog(wx.Dialog):
         grid.Add(self.sslCheck, 0, wx.ALIGN_LEFT|wx.ALL, 5)
                 
         # Protocol (choice)....
-        label = wx.StaticText(self, -1, _m_(u"Over:"))
+        label = wx.StaticText(self, -1, _(u"Over:"))
         grid.Add(label, 0, wx.ALIGN_LEFT|wx.ALL, 5)
         self.protocolsChoice = wx.Choice(self, -1, choices=PROTOCOL_NAMES)
         grid.Add(self.protocolsChoice, 1, wx.ALIGN_LEFT|wx.ALL, 5)
@@ -236,7 +236,7 @@ class SendMailDialog(MailDialog):
 
     def __init__(self, name, view):
 
-        title = _m_(u'Send "%s" via p2p email' %(name))
+        title = _(u'Send "%s" via p2p email' %(name))
         super(SendMailDialog, self).__init__(title)
 
         sizer = wx.BoxSizer(wx.VERTICAL)
@@ -246,21 +246,21 @@ class SendMailDialog(MailDialog):
             self.getAccounts(view)
 
         # To (text control)....
-        label = wx.StaticText(self, -1, _m_(u"to:"))
+        label = wx.StaticText(self, -1, _(u"to:"))
         grid.Add(label, 0, wx.ALIGN_LEFT|wx.ALL, 5)
         self.toText = wx.TextCtrl(self, -1, u'',
                                   wx.DefaultPosition, [200, -1])
         grid.Add(self.toText, 0, wx.ALIGN_CENTRE|wx.ALL, 5)
                 
         # From (choice)....
-        label = wx.StaticText(self, -1, _m_(u"from:"))
+        label = wx.StaticText(self, -1, _(u"from:"))
         grid.Add(label, 0, wx.ALIGN_LEFT|wx.ALL, 5)
         self.fromChoice = wx.Choice(self, -1, choices=imapChoices)
         grid.Add(self.fromChoice, 1, wx.ALIGN_LEFT|wx.ALL, 5)
         self.fromChoice.SetSelection(imapSelection)
                 
         # Via (choice)....
-        label = wx.StaticText(self, -1, _m_(u"via:"))
+        label = wx.StaticText(self, -1, _(u"via:"))
         grid.Add(label, 0, wx.ALIGN_LEFT|wx.ALL, 5)
         self.viaChoice = wx.Choice(self, -1, choices=smtpChoices)
         grid.Add(self.viaChoice, 1, wx.ALIGN_LEFT|wx.ALL, 5)
@@ -288,7 +288,7 @@ class CheckMailDialog(MailDialog):
 
     def __init__(self, view):
 
-        title = _m_(u'Check p2p email')        
+        title = _(u'Check p2p email')        
         super(CheckMailDialog, self).__init__(title)
 
         sizer = wx.BoxSizer(wx.VERTICAL)
@@ -298,21 +298,21 @@ class CheckMailDialog(MailDialog):
             self.getAccounts(view)
 
         # From (text control)....
-        label = wx.StaticText(self, -1, _m_(u"from:"))
+        label = wx.StaticText(self, -1, _(u"from:"))
         grid.Add(label, 0, wx.ALIGN_LEFT|wx.ALL, 5)
         self.fromText = wx.TextCtrl(self, -1, u'',
                                   wx.DefaultPosition, [200, -1])
         grid.Add(self.fromText, 0, wx.ALIGN_CENTRE|wx.ALL, 5)
                 
         # In (choice)....
-        label = wx.StaticText(self, -1, _m_(u"in:"))
+        label = wx.StaticText(self, -1, _(u"in:"))
         grid.Add(label, 0, wx.ALIGN_LEFT|wx.ALL, 5)
         self.inChoice = wx.Choice(self, -1, choices=imapChoices)
         grid.Add(self.inChoice, 1, wx.ALIGN_LEFT|wx.ALL, 5)
         self.inChoice.SetSelection(imapSelection)
                 
         # Reply Via (choice)....
-        label = wx.StaticText(self, -1, _m_(u"reply via:"))
+        label = wx.StaticText(self, -1, _(u"reply via:"))
         grid.Add(label, 0, wx.ALIGN_LEFT|wx.ALL, 5)
         self.viaChoice = wx.Choice(self, -1, choices=smtpChoices)
         grid.Add(self.viaChoice, 1, wx.ALIGN_LEFT|wx.ALL, 5)
