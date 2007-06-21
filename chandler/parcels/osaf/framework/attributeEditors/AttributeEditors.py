@@ -23,6 +23,7 @@ from cStringIO import StringIO
 
 import osaf.pim as pim
 import osaf.pim.calendar.Calendar as Calendar
+from osaf.pim.calendar import shortTZ
 import osaf.pim.mail as Mail
 from repository.schema.TypeHandler import TypeHandler
 #from repository.util.Lob import Lob
@@ -388,11 +389,6 @@ class DateTimeAttributeEditor(StringAttributeEditor):
         if itemDateTime is None:
             return # don't draw anything.
         
-        # [grant] This means we always display datetimes in the
-        # user's default timezone in the summary table.
-        if itemDateTime.tzinfo is not None:
-            itemDateTime = itemDateTime.astimezone(ICUtzinfo.default)
-
         # Is this date the start time of an anytime or allday event?
         # (We won't want to show the time if so, bug 7325)
         hideTime = False
@@ -405,6 +401,8 @@ class DateTimeAttributeEditor(StringAttributeEditor):
         todayDate = today.date()
         dateString = None
         timeString = None
+        tzWidth = 0
+        tzFont = None
         preferDate = True
         if itemDate == todayDate:
             # Today? say so, and show the time if we only have room for one value
@@ -426,6 +424,10 @@ class DateTimeAttributeEditor(StringAttributeEditor):
             dateString = pim.mediumDateFormat.format(itemDateTime)
         if timeString is None and not hideTime:
             timeString = pim.shortTimeFormat.format(itemDateTime)
+            tzString = shortTZ(itemDateTime)
+            if len(tzString) > 0:
+                tzFont = Styles.getFont(grid.blockItem.prefixCharacterStyle)
+                tzWidth = dc.GetFullTextExtent(tzString, tzFont)[0]
 
         # Draw inside the lines.
         dc.SetBackgroundMode (wx.TRANSPARENT)
@@ -437,18 +439,31 @@ class DateTimeAttributeEditor(StringAttributeEditor):
         spaceWidth = dc.GetTextExtent('  ')[0]
 
         # If we don't have room for both values, draw one, clipped if necessary.
-        if (dateWidth + timeWidth + spaceWidth) > rect.width:
+        if (dateWidth + spaceWidth + timeWidth + tzWidth) > rect.width:
             if preferDate:
                 DrawingUtilities.DrawClippedTextWithDots(dc, dateString, rect)
             else:
+                if tzWidth:
+                    rect.width -= tzWidth
+                    
                 DrawingUtilities.DrawClippedTextWithDots(dc, timeString, rect,
                                                          alignRight=True)
+                if tzWidth:
+                    rect.width += tzWidth
         else:
             # Enough room to draw both            
             dc.DrawText(dateString, rect.x + 1, rect.y + 1)
             if not hideTime:
-                dc.DrawText(timeString, rect.x + rect.width - (timeWidth + 2), 
+                dc.DrawText(timeString, 
+                            rect.x + rect.width - (timeWidth + 2 + tzWidth), 
                             rect.y + 1)
+
+        if tzWidth and not hideTime:
+            oldFont = dc.GetFont()
+            dc.SetFont(tzFont)
+            DrawingUtilities.DrawClippedTextWithDots(dc, tzString, rect,
+                                                     alignRight=True)
+            dc.SetFont(oldFont)
         
         dc.DestroyClippingRegion()
             
