@@ -1955,7 +1955,9 @@ class BylineAreaBlock(BylineConditionalBehavior, DetailSynchronizedContentItemDe
         return isUnsentOutboundMail == (self.blockName == 'SendAsArea')
 
 class BylineAEBlock(BylineConditionalBehavior, DetailSynchronizedAttributeEditorBlock):
-    pass
+    def onTimeZoneChangeEvent(self, event):
+        # timezone changes may require us to show/hide the timezone in the byline date.
+        self.synchronizeWidget()
 
 class MailAEBlock(DetailSynchronizedAttributeEditorBlock):
     """

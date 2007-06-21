@@ -140,23 +140,24 @@ class ContentItem(Triageable):
 
     def getByline(self):
         lastModification = self.lastModification
-
         assert lastModification in self.BYLINE_FORMATS
         
         fmt, noUserFmt = self.BYLINE_FORMATS[lastModification]
 
         # fall back to createdOn
+        view = self.itsView
         lastModified = (self.lastModified or getattr(self, 'createdOn', None) or
-                        datetime.now(self.itsView.tzinfo.default))
+                        datetime.now(view.tzinfo.default))
 
         shortDateTimeFormat = schema.importString("osaf.pim.shortDateTimeFormat")
-        date = shortDateTimeFormat.format(self.itsView, lastModified)
+        date = shortDateTimeFormat.format(view, lastModified)
 
-        tzName = u""
-        tzPrefs = schema.ns('osaf.pim', self.itsView).TimezonePrefs
+        tzPrefs = schema.ns('osaf.pim', view).TimezonePrefs
         if tzPrefs.showUI:
-            tz = lastModified.tzinfo.timezone
-            tzName = tz.getDisplayName(lastModified.dst(), tz.SHORT)
+            from calendar.TimeZone import shortTZ            
+            tzName = shortTZ(view, lastModified)
+        else:
+            tzName = u''
             
         user = self.lastModifiedBy
         if user:
