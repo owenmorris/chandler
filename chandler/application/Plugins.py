@@ -297,8 +297,8 @@ class wxDemoMenu(wxMenu):
     def GetNewItems(self):
 
         newItems = super(wxDemoMenu, self).GetNewItems()
-        if len(newItems) > 2 and not newItems[2].IsSeparator():
-            newItems.insert(2, '__separator__')
+        if len(newItems) > 3 and not newItems[3].IsSeparator():
+            newItems.insert(3, '__separator__')
 
         return newItems
 
