@@ -2,6 +2,7 @@
 
 import os, sys
 from optparse import OptionParser
+from build_lib import getCommand
 
 class LocalizationBase(object):
     CHANDLERBIN = None
@@ -24,6 +25,8 @@ class LocalizationBase(object):
                         ]
 
     def __init__(self):
+        isWindows = self.getPlatform() == 'Windows'
+
         if os.environ.has_key("CHANDLERHOME"):
             self.CHANDLERHOME = os.environ["CHANDLERHOME"]
         else:
@@ -40,8 +43,9 @@ class LocalizationBase(object):
         else:
             self.CHANDLERBIN = self.CHANDLERHOME
 
-        #os.environ["CHANDLERHOME"] = self.CHANDLERHOME
-        #os.environ["CHANDLERBIN"] = self.CHANDLERBIN
+        if isWindows:
+            self.CHANDLERHOME = getCommand(['cygpath', '-a', self.CHANDLERHOME])
+            self.CHANDLERBIN  = getCommand(['cygpath', '-a', self.CHANDLERBIN])
 
         try:
             if "release" in os.listdir(self.CHANDLERBIN):
@@ -55,7 +59,7 @@ class LocalizationBase(object):
         except:
             self.raiseError("CHANDLERBIN is invalid '%s'." % self.CHANDLERBIN)
 
-        if self.getPlatform() == "Windows":
+        if isWindows:
             self.PYTHON = os.path.join(self.BINROOT, "RunPython.bat")
         else:
             self.PYTHON = os.path.join(self.BINROOT, "RunPython")
