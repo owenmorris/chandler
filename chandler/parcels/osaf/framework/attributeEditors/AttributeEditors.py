@@ -891,15 +891,31 @@ class EmailAddressAttributeEditor (StringAttributeEditor):
             # allow for the width of the scrollbar
             controlWidth -= wx.SystemSettings.GetMetric(wx.SYS_VSCROLL_X);
 
-            def addressFitsInControl(addr):
+            # we always display at least one address
+            unrenderedCount -= 1
+
+            def textFitsInControl(addr):
                 # the first element of the GetTextExtent call is the width
                 # of the rendered text
                 return (control.GetTextExtent(addr)[0] < controlWidth)
 
+            def firstAddressFitsInControl(addr):
+                """
+                Callback that is repeatedly called with potentially shortened
+                versions of the first email address, until both the email address
+                and any "[+N]" text both fit in the control
+                """
+                # the first element of the GetTextExtent call is the width
+                # of the rendered text
+                if unrenderedCount > 0:
+                    addr = u"%s [+%d]" % (addr, unrenderedCount)
+                return textFitsInControl(addr)
+
             # get the first address from the list and add the "+N"
             # to the end, if applicable
-            addrOnlyString = unicode(addressList.pop(0))
-            unrenderedCount -= 1
+            #addrOnlyString = unicode(addressList.pop(0))
+            addrOnlyString = addressList.pop(0)
+            addrOnlyString = addrOnlyString.getShortenedDisplayAddress(firstAddressFitsInControl)
             if unrenderedCount > 0:
                 indicatorString = ' [+%d]' % unrenderedCount
                 # special case check the first address
@@ -907,7 +923,7 @@ class EmailAddressAttributeEditor (StringAttributeEditor):
                 # if it's too long to fit even just the first address in the field
                 # with an indicator, use a special indicator consisting of just
                 # the number of (non visible) addresses
-                if not addressFitsInControl(addrString):
+                if not textFitsInControl(addrString):
                     addrString = u''
                     indicatorString = u'[%d addresses]' % unrenderedCount
             # go through the rest of the addresses, building the string and
@@ -924,7 +940,7 @@ class EmailAddressAttributeEditor (StringAttributeEditor):
                 else:
                     indicatorString = u''
                     lengthCheckString = baseAddrString
-                if addressFitsInControl(lengthCheckString):
+                if textFitsInControl(lengthCheckString):
                     # it fits, so update the addrOnlyString and try again
                     addrOnlyString = baseAddrString
                 else:

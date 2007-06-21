@@ -2134,6 +2134,12 @@ Issues:
 
         return re.match("^(([^<>()[\]\\.,;:\s@\"]+(\.[^<>()[\]\\.,;:\s@\"]+)*)|(\".+\"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$", self.emailAddress) is not None
 
+    def getShortenedDisplayAddress(self, stringCanFit):
+        address = self.__str__()
+        # do the dumb thing -- just take the last char off
+        while not stringCanFit(address) and len(address) > 0:
+            address =  address[0:len(address)-1]
+        return address
 
     @classmethod
     def getEmailAddress(cls, view, nameOrAddressString, fullName=u''):
