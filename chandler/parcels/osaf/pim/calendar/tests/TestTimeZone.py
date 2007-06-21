@@ -116,10 +116,10 @@ class PersistenceTestCase(SingleRepositoryTestCase):
         # - Get the repo's default DefaultTimeZone
         view = self.view
         defaultTzItem = TimeZoneInfo.get(view)
+
         # - Change the default DefaultTimeZone
-        defaultTzItem.default = self.view.tzinfo.getInstance("GMT")
-        self.failUnlessEqual(defaultTzItem.default,
-                             self.view.tzinfo.getInstance("GMT"))
+        defaultTzItem.default = self.view.tzinfo.GMT
+        self.failUnlessEqual(defaultTzItem.default, self.view.tzinfo.GMT)
         # - Save the repo
         view.commit()
 

@@ -67,10 +67,11 @@ def ontzchange(view, tzinfo):
 
     defaultInfo = TimeZoneInfo.get(view)
     default = defaultInfo.canonicalTimeZone(tzinfo)
-        
-    # only set defaultInfo's timezone if timezones are used
-    if default is not None and defaultInfo.default != view.tzinfo.floating:
-        defaultInfo.default = default
+      
+    if not view.isRefreshing():
+        # only set defaultInfo's timezone if timezones are used
+        if default is not None and defaultInfo.default != view.tzinfo.floating:
+            defaultInfo.default = default
 
     reindexFloatingEvents(view, default)
 

@@ -13,8 +13,10 @@
 #   limitations under the License.
 
 
-from application import Utility, Globals
 import unittest, sys, os
+
+from application import Utility, Globals
+from chandlerdb.util.c import Default
 from repository.persistence.RepositoryView import NullRepositoryView
 
 # This test class is a possible replacement for RepositoryTestCase, and it
@@ -44,7 +46,7 @@ class SingleRepositoryTestCase(unittest.TestCase):
         view = self.view
         view.commit()
         view.closeView()
-        view.openView()
+        view.openView(timezone=Default)
         Utility.initTimezone(Globals.options, view)
         
 
