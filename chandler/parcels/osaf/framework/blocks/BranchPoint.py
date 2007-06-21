@@ -100,15 +100,18 @@ class BranchPointBlock(BoxContainer):
 
     def instantiateWidget(self):
         return wxBranchPointBlock(self.parentBlock.widget)
-
+    
     def onViewEvent (self, event):
         # Delegate work to our delegate
-        self.delegate.setView (self.selectedItem, event.viewTemplatePath)
+        delegate = self.delegate
+        delegate.setView (self.selectedItem, delegate.getViewEventTemplate (event))
         hints = {"event": event}
         self.widget.wxSynchronizeWidget(hints)
 
     def onViewEventUpdateUI (self, event):
-        checked = event.arguments ['Check'] = self.delegate.getView (self.selectedItem) == event.viewTemplatePath
+        delegate = self.delegate
+        checked = event.arguments ['Check'] = (delegate.getView (self.selectedItem) ==
+                                               delegate.getViewEventTemplate (event))
         if checked:
             treeController = getattr (self.childBlocks.first(), "treeController", None)
             if treeController is not None:
@@ -245,6 +248,9 @@ class BranchPointDelegate(schema.Item):
 
     # Dictionary of trees of blocks indexed by cache key UUID
     keyUUIDToBranch = schema.Mapping(Block, initialValue = {})
+
+    def getViewEventTemplate (self, event):
+        return event.viewTemplatePath
 
     def getBranchForKeyItem(self, keyItem):
         """

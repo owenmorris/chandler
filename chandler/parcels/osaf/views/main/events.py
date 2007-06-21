@@ -295,7 +295,7 @@ def makeMainEvents(parcel):
                                dispatchToBlockName = 'SidebarBranchPointBlock').install(parcel)
 
     ViewEvent.template('ViewAsDashboard',
-                       viewTemplatePath = 'osaf.views.main.DashboardSummaryViewTemplate',
+                       viewTemplatePath = 'Dashboard',
                        methodName = 'onViewEvent',
                        dispatchToBlockName = 'SidebarBranchPointBlock').install(parcel)
 

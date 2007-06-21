@@ -1244,6 +1244,17 @@ class SidebarBranchPointDelegate(BranchPoint.BranchPointDelegate):
         copying = schema.Cloud(byRef=[itemTupleKeyToCacheKey])
     )
 
+    def getViewEventTemplate (self, event):
+        viewTemplatePath = event.viewTemplatePath
+        if viewTemplatePath == "Dashboard":
+            sidebar = Block.Block.findBlockByName ("Sidebar")
+            if sidebar.showSearch:
+                viewTemplatePath = self.searchResultsTemplatePath
+            else:
+                viewTemplatePath = self.dashboardTemplatePath
+
+        return viewTemplatePath
+
     def _mapItemToCacheKeyItem(self, item, hints):
 
         def wrapInIndexedSelectionCollection (key):
