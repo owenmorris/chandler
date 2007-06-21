@@ -1,5 +1,5 @@
 
-VERSION=559
+VERSION=563
 RELVER=$(VERSION)-$(BRANCH_REV_PREFIX)1
 SRC=$(BUILD_ROOT)/m2crypto/M2Crypto-$(VERSION)
 BUILD=build_$(SNAP)
@@ -35,7 +35,7 @@ build: expand apply
 endif
 
 tests:
-	cd $(SRC)/; $(PYTHON) setup.py test -q
+	cd $(SRC)/; $(PYTHON) setup.py test -q --openssl=$(BUILD_ROOT)/$(SNAP)
 
 M2Crypto-$(VERSION).tar.gz:
 	svn export -r $(VERSION) http://svn.osafoundation.org/m2crypto/trunk M2Crypto-$(VERSION)
