@@ -21,6 +21,7 @@ logger = QAUITestAppLib.QALogger(fileName, "Creating a new event in the Cal view
 try:
     # creation
     testView = QAUITestAppLib.UITestView(logger)#, u'Generated3000.ics')
+    testView.SwitchToCalView()
 
     # action
     # double click in the calendar view => event creation or selection
