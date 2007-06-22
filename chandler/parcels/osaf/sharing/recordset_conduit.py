@@ -247,7 +247,7 @@ class RecordSetConduit(conduits.BaseConduit):
                             # This is an item we completely deleted since our
                             # last sync.  We need to grab its previous state
                             # out of the baseline, apply any pending changes
-                            # and the new inbound chagnes to it, and use that
+                            # and the new inbound changes to it, and use that
                             # as the new inbound
                             state = self.getState(alias)
                             rs = state.agreed + state.pending + rs
