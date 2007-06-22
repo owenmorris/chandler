@@ -1,0 +1,6 @@
+[chandler.chex_mixins]
+Google Data Sync = gdatasync:GDataTranslator
+
+[chandler.parcels]
+Google Data Sync = gdatasync
+

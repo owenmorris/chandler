@@ -15,7 +15,8 @@ BUILD_PLUGINS = Chandler-HelloWorldPlugin \
                 Chandler-PhotoPlugin \
                 Chandler-FlickrPlugin \
                 Chandler-debugPlugin \
-                Chandler-p2pPlugin
+                Chandler-p2pPlugin \
+                Chandler-gdataPlugin
 
 # When a version changes, the ARCHIVES lists below need to be updated.
 
