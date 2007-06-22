@@ -1420,6 +1420,10 @@ class SidebarBranchPointDelegate(BranchPoint.BranchPointDelegate):
                         
         if sidebar.showSearch:
             if hints.get ("search", True):
+                # Currently the UserCollection attributes are not watched on collections
+                # so we just mark the sidebar dirty in this case. We should reconsider this
+                # approach if we need to notice other UserCollection attributes or if we
+                # get smart about only updating part of the sidebar when an attribute changes
                 sidebar.markDirty()
                 self.search (key)
             key = self.itemTupleKeyToCacheKey.get("Search", None)
