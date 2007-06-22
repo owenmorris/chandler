@@ -248,7 +248,7 @@ def doTests(mode, workingDir, outputDir, buildVersion, log):
     log.write("Testing " + mode + " ...\n")
 
     cmd   = [pythonProgram, './tools/rt.py', '-Ti', '-m %s' % mode]
-    tests = [ 'u', 'r', 'f' ]
+    tests = [ 'u', 'f' ]
 
     if perfMode:
         tests += [ 'p' ]
