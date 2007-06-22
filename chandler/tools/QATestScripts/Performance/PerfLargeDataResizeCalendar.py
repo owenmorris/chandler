@@ -26,8 +26,6 @@ App_ns = app_ns()
 
 try:
     # Test Phase: Initialization
-    testView = QAUITestAppLib.UITestView(logger)
-    testView.SwitchToCalView()
     
     # Do the test in the large calendar
     User.emulate_sidebarClick(App_ns.sidebar, 'Generated3000', overlay=False)

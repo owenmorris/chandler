@@ -32,6 +32,8 @@ try:
 
     # Load a large calendar
     testView = QAUITestAppLib.UITestView(logger)#, u'Generated3000.ics')
+    testView.SwitchToCalView()
+
     clickSucceeded = User.emulate_sidebarClick(app_ns().sidebar,
                                                "Generated3000",
                                                overlay=False)

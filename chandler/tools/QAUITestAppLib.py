@@ -58,6 +58,10 @@ def publishSubscribe(logger):
     """
     A function to publish and subscribe a collection.
     """
+    # Test in calendar view
+    App_ns.appbar.press("ApplicationBarEventButton")
+    wx.GetApp().Yield(True)
+
     # action
     # Webdav Account Setting
     ap = UITestAccounts(logger)

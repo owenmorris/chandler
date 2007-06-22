@@ -12,6 +12,7 @@
 #   See the License for the specific language governing permissions and
 #   limitations under the License.
 
+import wx
 import tools.QAUITestAppLib as QAUITestAppLib
 
 # initialization
@@ -19,8 +20,9 @@ fileName = "PerfStampEvent.log"
 logger = QAUITestAppLib.QALogger(fileName, "Perf Stamp as Event")
 
 try:
-    # Creating a collection switches us to calendar view where we
-    # do the actual test
+    # Test in calendar view
+    app_ns().appbar.press("ApplicationBarEventButton")
+    wx.GetApp().Yield(True)
     QAUITestAppLib.UITestItem("Collection")
 
     # creation

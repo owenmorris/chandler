@@ -20,6 +20,8 @@ logger = QAUITestAppLib.QALogger(fileName, "New Event from File Menu for Perform
 
 try:
     #setup for test
+    testView = QAUITestAppLib.UITestView(logger)
+    testView.SwitchToCalView()
 
     # make user collection, since only user
     # collections can be displayed as a calendar
@@ -28,7 +30,6 @@ try:
     User.emulate_return()
     
     # We create a dummy new event first so that we have detail view showing
-    testView = QAUITestAppLib.UITestView(logger)
     testView.DoubleClickInCalView()    
     
     #action

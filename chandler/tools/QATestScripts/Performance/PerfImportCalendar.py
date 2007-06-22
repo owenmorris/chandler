@@ -20,6 +20,7 @@ from __future__ import with_statement
 
 import tools.QAUITestAppLib as QAUITestAppLib
 import os
+import wx
 import osaf.pim as pim
 from application import schema
 
@@ -38,6 +39,10 @@ try:
     QAUITestAppLib.UITestView(logger, u'%s.ics' % largeCollectionName)
     logger.Stop()
     
+    # Test in calendar view
+    App_ns.appbar.press("ApplicationBarEventButton")
+    wx.GetApp().Yield(True)
+
     # Start in the small collection
     col = QAUITestAppLib.UITestItem("Collection")
     col.SetDisplayName(smallCollectionName)

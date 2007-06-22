@@ -33,8 +33,7 @@ try:
     
     # Load overlay calendar
     if 1:
-        testView = QAUITestAppLib.UITestView(logger, u'overlay-2005-12-14.ics')
-        testView.SwitchToCalView()
+        QAUITestAppLib.UITestView(logger, u'overlay-2005-12-14.ics')
         User.emulate_sidebarClick(App_ns.sidebar, 'overlay', overlay=True)
         User.idle()
         

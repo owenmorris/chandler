@@ -14,7 +14,6 @@
 
 import tools.QAUITestAppLib as QAUITestAppLib
 from i18n.tests import uw
-import random
 
 logger = QAUITestAppLib.QALogger("PerfSendMail.log", "SendMail")
 

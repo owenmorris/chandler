@@ -14,7 +14,7 @@
 
 from application import schema
 import tools.QAUITestAppLib as QAUITestAppLib
-import os, wx
+import wx
 
 # This script tests deletion of a single, newly created event,
 # by simulating the user hitting the delete key.
@@ -40,8 +40,9 @@ logger.SuspendProfiling()
     
 
 try:
-    # Creating a collection switches us to calendar view where we
-    # do the actual test
+    # Test in calendar view
+    App_ns.appbar.press("ApplicationBarEventButton")
+    wx.GetApp().Yield(True)
     QAUITestAppLib.UITestItem("Collection")
 
    # Create the event we're going to delete ...
