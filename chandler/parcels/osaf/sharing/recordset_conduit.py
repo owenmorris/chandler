@@ -30,6 +30,7 @@ __all__ = [
     'DiffRecordSetConduit',
     'MonolithicRecordSetConduit',
     'ResourceRecordSetConduit',
+    'ResourceState',
     'InMemoryDiffRecordSetConduit',
     'InMemoryMonolithicRecordSetConduit',
     'InMemoryResourceRecordSetConduit',

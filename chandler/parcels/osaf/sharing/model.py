@@ -36,12 +36,18 @@ aliasableUUID = eim.subtype(eim.UUIDType, size=256)
 
 triageFilter = eim.Filter('cid:triage-filter@osaf.us', u"Triage Status")
 
+createdOnFilter = eim.Filter('cid:created-on-filter@osaf.us', u"Created On")
+
+hasBeenSentFilter = eim.Filter('cid:has-been-sent-filter@osaf.us', u"Has Been Sent")
+
 needsReplyFilter = eim.Filter('cid:needs-reply-filter@osaf.us', u"Needs Reply")
 
 readFilter = eim.Filter('cid:read-filter@osaf.us', u"Has Been Read")
 
 eventStatusFilter = eim.Filter('cid:event-status-filter@osaf.us',
     u"Event Status")
+
+icalUidFilter = eim.Filter('cid:icaluid-filter@osaf.us', u"Ical UID")
 
 remindersFilter = eim.Filter('cid:reminders-filter@osaf.us', u"Reminders")
 
@@ -75,10 +81,11 @@ class ItemRecord(eim.Record):
 
     # ContentItem.createdOn
     createdOn = eim.field(eim.DecimalType(digits=20, decimal_places=0),
-        _(u"Created on"))
+        _(u"Created on"), filters=[createdOnFilter])
 
     # ContentItem.modifiedFlags
-    hasBeenSent = eim.field(eim.IntType, _(u"Has been sent"))
+    hasBeenSent = eim.field(eim.IntType, _(u"Has been sent"),
+        filters=[hasBeenSentFilter])
 
     # ContentItem.needsReply
     needsReply = eim.field(eim.IntType, _(u"Needs reply"), filters=[needsReplyFilter], default=0)
@@ -112,7 +119,7 @@ class NoteRecord(eim.Record):
     body = eim.field(eim.ClobType, _(u"Body"))
 
     # Note.icalUid
-    icalUid = eim.field(text256, _(u"Icalendar UID"))
+    icalUid = eim.field(text256, _(u"Icalendar UID"), filters=[icalUidFilter])
 
     # Note.icalendarProperties - legacy, never used
     icalProperties = eim.field(text1024, filters=[nonStandardICalendarFilter])

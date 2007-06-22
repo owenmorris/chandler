@@ -48,6 +48,8 @@ __all__ = [
     'DumpTranslator',
     'fromICalendarDateTime',
     'fromICalendarDuration',
+    'toICalendarDateTime',
+    'toICalendarDuration',
 ]
 
 
