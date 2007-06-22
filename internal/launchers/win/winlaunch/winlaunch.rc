@@ -82,7 +82,7 @@ BEGIN
             VALUE "FileDescription", "Chandler launcher"
             VALUE "FileVersion", "0, 7, 0, 0"
             VALUE "InternalName", "winlaunch"
-            VALUE "LegalCopyright", "Copyright (c) 2003-2006 Open Source Applications Foundation"
+            VALUE "LegalCopyright", "Copyright (c) 2003-2007 Open Source Applications Foundation"
             VALUE "LegalTrademarks", "Open Source Applications Foundation"
             VALUE "OriginalFilename", "winlaunch.exe"
             VALUE "ProductName", "Chandler"

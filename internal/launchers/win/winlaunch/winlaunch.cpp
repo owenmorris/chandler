@@ -1,6 +1,6 @@
 /* -*- Mode: C++; tab-width: 4; indent-tabs-mode: nil; c-basic-offset: 4 -*- */
 /*
- *  Copyright (c) 2003-2006 Open Source Applications Foundation
+ *  Copyright (c) 2003-2007 Open Source Applications Foundation
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -61,9 +61,9 @@ int APIENTRY WinMain (HINSTANCE hInstance,
     DWORD               length;
     CString             pathToPython;
     CString             chandlerHome;
-    CString                pathToExe;
-    PROCESS_INFORMATION    processInfo;
-    STARTUPINFO            startupInfo;
+    CString             pathToExe;
+    PROCESS_INFORMATION processInfo;
+    STARTUPINFO         startupInfo;
     BOOL                success;
 
     /*
@@ -82,7 +82,7 @@ int APIENTRY WinMain (HINSTANCE hInstance,
         PathTooLongErrorDialog(_T(""));
         return EXIT_FAILURE;
     }
-    
+
     index = pathToExe.ReverseFind(TCHAR('\\'));
     pathToExe.Truncate(index);
     /*
@@ -161,16 +161,16 @@ int APIENTRY WinMain (HINSTANCE hInstance,
     GetStartupInfo (&startupInfo);
     startupInfo.dwFlags &= ~STARTF_USESHOWWINDOW;
 
-    success = CreateProcess (pathToPython,        // Path to executable
-                             LPSTR (LPCSTR (commandLine)),    // command line
-                             NULL,                    // Default process security attributes
-                             NULL,                    // Default thread security attributes
-                             true,                    // inherit handles from the parent
-                             0,                        // Normal priority
-                             NULL,                    // Use the same environment as the parent
-                             NULL,                    // Launch in the current directory
-                             &startupInfo,            // Startup Information
-                             &processInfo);            // Process information stored upon return
+    success = CreateProcess (pathToPython,                  // Path to executable
+                             LPSTR (LPCSTR (commandLine)),  // command line
+                             NULL,                          // Default process security attributes
+                             NULL,                          // Default thread security attributes
+                             true,                          // inherit handles from the parent
+                             0,                             // Normal priority
+                             NULL,                          // Use the same environment as the parent
+                             LPSTR (LPCSTR (chandlerHome)), // Launch in the chandlerHome directory
+                             &startupInfo,                  // Startup Information
+                             &processInfo);                 // Process information stored upon return
     if (!success) {
         int error = GetLastError();
         CString  message;
