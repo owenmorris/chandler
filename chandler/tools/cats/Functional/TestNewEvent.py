@@ -36,6 +36,10 @@ class TestNewEvent(ChandlerTestCase):
             y, m, d = incDay.timetuple()[:3]
             return '%s/%s/%s' % (m, d, y)
         
+        # switch to calendar view
+        testView = QAUITestAppLib.UITestView(self.logger)
+        testView.SwitchToCalView()       
+
         # make user collection, since only user
         # collections can be displayed as a calendar
         col = QAUITestAppLib.UITestItem("Collection", self.logger)
