@@ -21,7 +21,7 @@ setup(
     description = "Google Data synchronization support for Chandler",
     author = "OSAF",
     test_suite = "gdatasync.tests",
-    packages = ["gdatasync"],
+    packages = ["gdatasync", "gdata", "atom"],
     include_package_data = True,
     entry_points = {
         "chandler.parcels": ["Google Data Sync = gdatasync"],
