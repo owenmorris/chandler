@@ -23,6 +23,7 @@ from osaf.framework import password, MasterPassword
 from osaf.framework.twisted import waitForDeferred
 from i18n import ChandlerMessageFactory as _
 from osaf.activity import ActivityAborted
+from pkg_resources import iter_entry_points
 
 logger = logging.getLogger(__name__)
 
@@ -91,11 +92,13 @@ class PickleSerializer(object):
             return rtype
 
 
-def dump(rv, filename, uuids=None, translator=sharing.DumpTranslator,
-    serializer=PickleSerializer, activity=None, obfuscate=False):
+def dump(rv, filename, uuids=None, serializer=PickleSerializer,
+    activity=None, obfuscate=False):
     """
     Dumps EIM records to a file, file permissions 0600.
     """
+
+    translator = getTranslator()
 
     if uuids is None:
         uuids = set()
@@ -159,9 +162,12 @@ def dump(rv, filename, uuids=None, translator=sharing.DumpTranslator,
 
 
 
-def reload(rv, filename, translator=sharing.DumpTranslator,
-    serializer=PickleSerializer, activity=None, testmode=False):
+def reload(rv, filename, serializer=PickleSerializer, activity=None,
+    testmode=False):
     """ Loads EIM records from a file and applies them """
+
+    translator = getTranslator()
+
     if not testmode:
         oldMaster = waitForDeferred(MasterPassword.get(rv))
     else:
@@ -306,3 +312,28 @@ def convertToTextFile(fromPath, toPath, serializer=PickleSerializer,
         input.close()
         output.close()
 
+
+
+
+
+translator = None
+
+def getTranslator():
+    global translator
+
+    if translator is not None:
+        return translator
+
+    mixins = [ep.load() for ep in iter_entry_points('chandler.chex_mixins')]
+    if not mixins:
+        translator = sharing.DumpTranslator
+    else:
+        mixins.insert(0, sharing.DumpTranslator)
+        translator = type("Translator", tuple(mixins),
+            {
+                'version'     : 1,
+                'URI'         : ' '.join(m.URI for m in mixins),
+                'description' : u'Mixed-in translator'
+            }
+        )
+    return translator
