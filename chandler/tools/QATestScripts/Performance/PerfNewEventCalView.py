@@ -21,6 +21,7 @@ logger = QAUITestAppLib.QALogger(fileName, "New Event by double clicking in the 
 try:
     # creation
     testView = QAUITestAppLib.UITestView(logger)
+    testView.SwitchToCalView()
 
     # make user collection, since only user
     # collections can be displayed as a calendar
