@@ -173,7 +173,8 @@ class PublishCollectionDialog(wx.Dialog):
 
         share = sharing.getShare(self.collection)
         self.share = share
-        if share.conduit.account:
+        account = getattr(share.conduit, 'account', None)
+        if account is not None:
             name = share.conduit.account.displayName
         else:
             name = u"(via ticket)"

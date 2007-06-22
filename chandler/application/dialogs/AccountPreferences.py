@@ -37,6 +37,11 @@ from AccountPreferencesDialogs import MailTestDialog, \
                                       showConfigureDialog
 from osaf.framework import password
 
+class AccountPanel(schema.Item):
+    accountClass = schema.One(schema.Class)
+    key = schema.One(schema.Text)
+    info = schema.One(schema.Dictionary)
+    xrc = schema.One(schema.Text)
 
 
 # Localized messages displayed in dialogs
@@ -69,7 +74,7 @@ DEBUG = False
 FOLDERS_URL = "http://wiki.osafoundation.org/Projects/ChandlerProductFAQ"
 SHARING_URL = "http://hub.chandlerproject.org/signup"
 
-# Special handlers referenced in the PANELS dictionary below:
+# Special handlers referenced in the panelsInfo dictionary below:
 
 def IncomingValidationHandler(item, fields, values):
     newAddressString = values['INCOMING_EMAIL_ADDRESS']
@@ -152,258 +157,6 @@ def OutgoingDeleteHandler(item, values, data):
 def SharingDeleteHandler(item, values, data):
     return not len(getattr(item, 'conduits', []))
 
-# Used to map form fields to item attributes:
-PANELS = {
-    "INCOMING" : {
-        "fields" : {
-            "INCOMING_DESCRIPTION" : {
-                "attr" : "displayName",
-                "type" : "string",
-                "required" : True,
-                "default": _(u"New Incoming Mail Account"),
-            },
-            "INCOMING_EMAIL_ADDRESS" : {
-                "attr" : "emailAddress",
-                "type" : "string",
-            },
-            "INCOMING_FULL_NAME" : {
-                "attr" : "fullName",
-                "type" : "string",
-            },
-            "INCOMING_SERVER" : {
-                "attr" : "host",
-                "type" : "string",
-            },
-            "INCOMING_USERNAME" : {
-                "attr" : "username",
-                "type" : "string",
-            },
-            "INCOMING_PASSWORD" : {
-                "attr" : "password",
-                "type" : "password",
-            },
-
-            "INCOMING_PORT" : {
-                "attr" : "port",
-                "type" : "integer",
-                "default": 143,
-                "required" : True,
-            },
-
-            "INCOMING_PROTOCOL" : {
-                "attr" : "accountProtocol",
-                "type" : "choice",
-                "default": "IMAP",
-            },
-
-            "INCOMING_SECURE" : {
-                "attr" : "connectionSecurity",
-                "type" : "radioEnumeration",
-                "buttons" : {
-                    "INCOMING_SECURE_NO" : "NONE",
-                    "INCOMING_TLS" : "TLS",
-                    "INCOMING_SSL" : "SSL",
-                    },
-                "default" : "NONE",
-                "linkedTo" :
-                 {
-                   "callback": "getIncomingProtocol",
-                   "protocols": {
-                      "IMAP": ("INCOMING_PORT", { "NONE":"143", "TLS":"143", "SSL":"993" } ),
-                      "POP":  ("INCOMING_PORT", { "NONE":"110", "TLS":"110", "SSL":"995" } ),
-                    },
-                 }
-            },
-
-            "INCOMING_FOLDERS" : {
-                "attr" : "folders",
-                "type" : "chandlerFolders",
-            },
-        },
-        "id" : "INCOMINGPanel",
-        "order": 0,
-        "saveHandler" : IncomingSaveHandler,
-        "validationHandler" : IncomingValidationHandler,
-        "deleteHandler" : IncomingDeleteHandler,
-        "displayName" : u"INCOMING_DESCRIPTION",
-        "description" : _(u"Incoming mail"),
-        "callbacks" : (
-                        ("INCOMING_DISCOVERY", "OnIncomingDiscovery"),
-                      ),
-        "messages" : ("INCOMING_MESSAGE",),
-        "init" : "initIncomingPanel",
-    },
-    "OUTGOING" : {
-        "fields" : {
-            "OUTGOING_DESCRIPTION" : {
-                "attr" : "displayName",
-                "type" : "string",
-                "required" : True,
-                "default": _(u"New Outgoing Mail Account"),
-            },
-            "OUTGOING_FROM" : {
-                "attr" : "emailAddress",
-                "type" : "string",
-            },
-            "OUTGOING_SERVER" : {
-                "attr" : "host",
-                "type" : "string",
-            },
-            "OUTGOING_PORT" : {
-                "attr" : "port",
-                "type" : "integer",
-                "default": 25,
-                "required" : True,
-            },
-            "OUTGOING_SECURE" : {
-                "attr" : "connectionSecurity",
-                "type" : "radioEnumeration",
-                "buttons" : {
-                    "OUTGOING_SECURE_NO" : "NONE",
-                    "OUTGOING_SECURE_TLS" : "TLS",
-                    "OUTGOING_SECURE_SSL" : "SSL",
-                    },
-                "default" : "NONE",
-                "linkedTo" :
-                        ("OUTGOING_PORT", { "NONE":"25", "TLS":"25", "SSL":"465" }),
-            },
-            "OUTGOING_USE_AUTH" : {
-                "attr" : "useAuth",
-                "type" : "boolean",
-            },
-            "OUTGOING_USERNAME" : {
-                "attr" : "username",
-                "type" : "string",
-            },
-            "OUTGOING_PASSWORD" : {
-                "attr" : "password",
-                "type" : "password",
-            },
-        },
-        "id" : "OUTGOINGPanel",
-        "order": 1,
-        "saveHandler" : OutgoingSaveHandler,
-        "deleteHandler" : OutgoingDeleteHandler,
-        "displayName" : u"OUTGOING_DESCRIPTION",
-        "description" : _(u"Outgoing mail"),
-        "callbacks" : (("OUTGOING_DISCOVERY", "OnOutgoingDiscovery"),),
-        "messages" : ("OUTGOING_MESSAGE",),
-    },
-
-    "SHARING_HUB" : {
-        "fields" : {
-            "HUBSHARING_DESCRIPTION" : {
-                "attr" : "displayName",
-                "type" : "string",
-                "required" : True,
-                "default": _(u"Chandler Hub sharing"),
-            },
-            "HUBSHARING_USERNAME" : {
-                "attr" : "username",
-                "type" : "string",
-            },
-            "HUBSHARING_PASSWORD" : {
-                "attr" : "password",
-                "type" : "password",
-            },
-        },
-        "id" : "HUBSHARINGPanel",
-        "order": 2,
-        "deleteHandler" : SharingDeleteHandler,
-        "displayName" : "HUBSHARING_DESCRIPTION",
-        "description" : _(u"Chandler Hub sharing"),
-        "messages" : ("SHARING_MESSAGE", "SHARING_MESSAGE2"),
-    },
-
-    "SHARING_MORSECODE" : {
-        "fields" : {
-            "MORSECODE_DESCRIPTION" : {
-                "attr" : "displayName",
-                "type" : "string",
-                "required" : True,
-                "default": _(u"Chandler Server sharing"),
-            },
-            "MORSECODE_SERVER" : {
-                "attr" : "host",
-                "type" : "string",
-            },
-            "MORSECODE_PATH" : {
-                "attr" : "path",
-                "type" : "string",
-                "default": "/cosmo",
-            },
-            "MORSECODE_USERNAME" : {
-                "attr" : "username",
-                "type" : "string",
-            },
-            "MORSECODE_PASSWORD" : {
-                "attr" : "password",
-                "type" : "password",
-            },
-            "MORSECODE_PORT" : {
-                "attr" : "port",
-                "type" : "integer",
-                "default": 80,
-                "required" : True,
-            },
-            "MORSECODE_USE_SSL" : {
-                "attr" : "useSSL",
-                "type" : "boolean",
-                "linkedTo" :
-                        ("MORSECODE_PORT", { True:"443", False:"80" }),
-            },
-        },
-        "id" : "MORSECODEPanel",
-        "order": 3,
-        "deleteHandler" : SharingDeleteHandler,
-        "displayName" : "MORSECODE_DESCRIPTION",
-        "description" : _(u"Chandler Server sharing"),
-    },
-
-    "SHARING_DAV" : {
-        "fields" : {
-            "DAV_DESCRIPTION" : {
-                "attr" : "displayName",
-                "type" : "string",
-                "required" : True,
-                "default": _(u"New WebDAV Sharing Account"),
-            },
-            "DAV_SERVER" : {
-                "attr" : "host",
-                "type" : "string",
-            },
-            "DAV_PATH" : {
-                "attr" : "path",
-                "type" : "string",
-            },
-            "DAV_USERNAME" : {
-                "attr" : "username",
-                "type" : "string",
-            },
-            "DAV_PASSWORD" : {
-                "attr" : "password",
-                "type" : "password",
-            },
-            "DAV_PORT" : {
-                "attr" : "port",
-                "type" : "integer",
-                "default": 80,
-                "required" : True,
-            },
-            "DAV_USE_SSL" : {
-                "attr" : "useSSL",
-                "type" : "boolean",
-                "linkedTo" :
-                        ("DAV_PORT", { True:"443", False:"80" }),
-            },
-        },
-        "id" : "DAVPanel",
-        "order": 4,
-        "deleteHandler" : SharingDeleteHandler,
-        "displayName" : "DAV_DESCRIPTION",
-        "description" : _(u"WebDAV Sharing"),
-    },
-}
 
 
 # Generic defaults based on the attr type.  Use "default" on attr for
@@ -419,6 +172,271 @@ class AccountPreferencesDialog(wx.Dialog):
         wx.Dialog.__init__(self, wx.GetApp().mainFrame, -1, title, pos, size,
                            style)
 
+        # Used to map form fields to item attributes:
+        self.panelsInfo = {
+            "INCOMING" : {
+                "fields" : {
+                    "INCOMING_DESCRIPTION" : {
+                        "attr" : "displayName",
+                        "type" : "string",
+                        "required" : True,
+                        "default": _(u"New Incoming Mail Account"),
+                    },
+                    "INCOMING_EMAIL_ADDRESS" : {
+                        "attr" : "emailAddress",
+                        "type" : "string",
+                    },
+                    "INCOMING_FULL_NAME" : {
+                        "attr" : "fullName",
+                        "type" : "string",
+                    },
+                    "INCOMING_SERVER" : {
+                        "attr" : "host",
+                        "type" : "string",
+                    },
+                    "INCOMING_USERNAME" : {
+                        "attr" : "username",
+                        "type" : "string",
+                    },
+                    "INCOMING_PASSWORD" : {
+                        "attr" : "password",
+                        "type" : "password",
+                    },
+
+                    "INCOMING_PORT" : {
+                        "attr" : "port",
+                        "type" : "integer",
+                        "default": 143,
+                        "required" : True,
+                    },
+
+                    "INCOMING_PROTOCOL" : {
+                        "attr" : "accountProtocol",
+                        "type" : "choice",
+                        "default": "IMAP",
+                    },
+
+                    "INCOMING_SECURE" : {
+                        "attr" : "connectionSecurity",
+                        "type" : "radioEnumeration",
+                        "buttons" : {
+                            "INCOMING_SECURE_NO" : "NONE",
+                            "INCOMING_TLS" : "TLS",
+                            "INCOMING_SSL" : "SSL",
+                            },
+                        "default" : "NONE",
+                        "linkedTo" :
+                         {
+                           "callback": "getIncomingProtocol",
+                           "protocols": {
+                              "IMAP": ("INCOMING_PORT",
+                                { "NONE":"143", "TLS":"143", "SSL":"993" } ),
+                              "POP":  ("INCOMING_PORT",
+                                { "NONE":"110", "TLS":"110", "SSL":"995" } ),
+                            },
+                         }
+                    },
+
+                    "INCOMING_FOLDERS" : {
+                        "attr" : "folders",
+                        "type" : "chandlerFolders",
+                    },
+                },
+                "id" : "INCOMINGPanel",
+                "order": 0,
+                "saveHandler" : IncomingSaveHandler,
+                "validationHandler" : IncomingValidationHandler,
+                "deleteHandler" : IncomingDeleteHandler,
+                "displayName" : u"INCOMING_DESCRIPTION",
+                "protocol" : "IMAP",
+                "class" : Mail.IMAPAccount,
+                "description" : _(u"Incoming mail"),
+                "callbacks" : (
+                                ("INCOMING_DISCOVERY", "OnIncomingDiscovery"),
+                              ),
+                "messages" : ("INCOMING_MESSAGE",),
+                "init" : "initIncomingPanel",
+            },
+            "OUTGOING" : {
+                "fields" : {
+                    "OUTGOING_DESCRIPTION" : {
+                        "attr" : "displayName",
+                        "type" : "string",
+                        "required" : True,
+                        "default": _(u"New Outgoing Mail Account"),
+                    },
+                    "OUTGOING_FROM" : {
+                        "attr" : "emailAddress",
+                        "type" : "string",
+                    },
+                    "OUTGOING_SERVER" : {
+                        "attr" : "host",
+                        "type" : "string",
+                    },
+                    "OUTGOING_PORT" : {
+                        "attr" : "port",
+                        "type" : "integer",
+                        "default": 25,
+                        "required" : True,
+                    },
+                    "OUTGOING_SECURE" : {
+                        "attr" : "connectionSecurity",
+                        "type" : "radioEnumeration",
+                        "buttons" : {
+                            "OUTGOING_SECURE_NO" : "NONE",
+                            "OUTGOING_SECURE_TLS" : "TLS",
+                            "OUTGOING_SECURE_SSL" : "SSL",
+                            },
+                        "default" : "NONE",
+                        "linkedTo" :
+                                ("OUTGOING_PORT", 
+                                    { "NONE":"25", "TLS":"25", "SSL":"465" }),
+                    },
+                    "OUTGOING_USE_AUTH" : {
+                        "attr" : "useAuth",
+                        "type" : "boolean",
+                    },
+                    "OUTGOING_USERNAME" : {
+                        "attr" : "username",
+                        "type" : "string",
+                    },
+                    "OUTGOING_PASSWORD" : {
+                        "attr" : "password",
+                        "type" : "password",
+                    },
+                },
+                "id" : "OUTGOINGPanel",
+                "order": 1,
+                "saveHandler" : OutgoingSaveHandler,
+                "deleteHandler" : OutgoingDeleteHandler,
+                "displayName" : u"OUTGOING_DESCRIPTION",
+                "description" : _(u"Outgoing mail"),
+                "protocol" : "SMTP",
+                "class" : Mail.SMTPAccount,
+                "callbacks" : (("OUTGOING_DISCOVERY", "OnOutgoingDiscovery"),),
+                "messages" : ("OUTGOING_MESSAGE",),
+            },
+
+            "SHARING_HUB" : {
+                "fields" : {
+                    "HUBSHARING_DESCRIPTION" : {
+                        "attr" : "displayName",
+                        "type" : "string",
+                        "required" : True,
+                        "default": _(u"New Chandler Hub Sharing Account"),
+                    },
+                    "HUBSHARING_USERNAME" : {
+                        "attr" : "username",
+                        "type" : "string",
+                    },
+                    "HUBSHARING_PASSWORD" : {
+                        "attr" : "password",
+                        "type" : "password",
+                    },
+                },
+                "id" : "HUBSHARINGPanel",
+                "order": 2,
+                "deleteHandler" : SharingDeleteHandler,
+                "displayName" : "HUBSHARING_DESCRIPTION",
+                "protocol" : "Morsecode",
+                "class" : sharing.HubAccount,
+                "description" : _(u"Chandler Hub sharing"),
+                "messages" : ("SHARING_MESSAGE", "SHARING_MESSAGE2"),
+            },
+
+            "SHARING_MORSECODE" : {
+                "fields" : {
+                    "MORSECODE_DESCRIPTION" : {
+                        "attr" : "displayName",
+                        "type" : "string",
+                        "required" : True,
+                        "default": _(u"New Chandler Server Sharing Account"),
+                    },
+                    "MORSECODE_SERVER" : {
+                        "attr" : "host",
+                        "type" : "string",
+                    },
+                    "MORSECODE_PATH" : {
+                        "attr" : "path",
+                        "type" : "string",
+                        "default": "/cosmo",
+                    },
+                    "MORSECODE_USERNAME" : {
+                        "attr" : "username",
+                        "type" : "string",
+                    },
+                    "MORSECODE_PASSWORD" : {
+                        "attr" : "password",
+                        "type" : "password",
+                    },
+                    "MORSECODE_PORT" : {
+                        "attr" : "port",
+                        "type" : "integer",
+                        "default": 80,
+                        "required" : True,
+                    },
+                    "MORSECODE_USE_SSL" : {
+                        "attr" : "useSSL",
+                        "type" : "boolean",
+                        "linkedTo" :
+                                ("MORSECODE_PORT", { True:"443", False:"80" }),
+                    },
+                },
+                "id" : "MORSECODEPanel",
+                "order": 3,
+                "deleteHandler" : SharingDeleteHandler,
+                "displayName" : "MORSECODE_DESCRIPTION",
+                "description" : _(u"Chandler Server sharing"),
+                "protocol" : "Morsecode",
+                "class" : sharing.CosmoAccount,
+            },
+
+            "SHARING_DAV" : {
+                "fields" : {
+                    "DAV_DESCRIPTION" : {
+                        "attr" : "displayName",
+                        "type" : "string",
+                        "required" : True,
+                        "default": _(u"New WebDAV Sharing Account"),
+                    },
+                    "DAV_SERVER" : {
+                        "attr" : "host",
+                        "type" : "string",
+                    },
+                    "DAV_PATH" : {
+                        "attr" : "path",
+                        "type" : "string",
+                    },
+                    "DAV_USERNAME" : {
+                        "attr" : "username",
+                        "type" : "string",
+                    },
+                    "DAV_PASSWORD" : {
+                        "attr" : "password",
+                        "type" : "password",
+                    },
+                    "DAV_PORT" : {
+                        "attr" : "port",
+                        "type" : "integer",
+                        "default": 80,
+                        "required" : True,
+                    },
+                    "DAV_USE_SSL" : {
+                        "attr" : "useSSL",
+                        "type" : "boolean",
+                        "linkedTo" :
+                                ("DAV_PORT", { True:"443", False:"80" }),
+                    },
+                },
+                "id" : "DAVPanel",
+                "order": 4,
+                "deleteHandler" : SharingDeleteHandler,
+                "displayName" : "DAV_DESCRIPTION",
+                "description" : _(u"WebDAV Sharing"),
+                "protocol" : "WebDAV",
+                "class" : sharing.WebDAVAccount,
+            },
+        }
         self.resources = resources
         self.rv = rv
         self.modal = modal
@@ -454,7 +472,7 @@ class AccountPreferencesDialog(wx.Dialog):
         self.panels = {}
         #isMac = Utility.getPlatformName().startswith("Mac")
 
-        for (key, value) in PANELS.iteritems():
+        for (key, value) in self.panelsInfo.iteritems():
             self.panels[key] = self.resources.LoadPanel(self, value['id'])
 
             #if isMac:
@@ -463,11 +481,23 @@ class AccountPreferencesDialog(wx.Dialog):
 
             self.panels[key].Hide()
 
+        for accountPanel in AccountPanel.iterItems(self.rv):
+            info = dict(accountPanel.info)
+            self.panelsInfo[accountPanel.key] = info
+            self.panelsInfo[accountPanel.key]['class'] = \
+                accountPanel.accountClass
+            resources = wx.xrc.EmptyXmlResource()
+            resources.LoadFromString(accountPanel.xrc)
+            self.panels[accountPanel.key] = resources.LoadPanel(self,
+                info['id'])
+            self.panels[accountPanel.key].Hide()
+
         self.defaultPanel = self.resources.LoadPanel(self, "DEFAULTPanel")
 
         # These are wxHyperlinkCtrl widgets
         self.folderLink = wx.xrc.XRCCTRL(self, "INCOMING_FOLDERS_VERBAGE2")
-        self.sharingLink = wx.xrc.XRCCTRL(self.messagesPanel, "SHARING_MESSAGE2")
+        self.sharingLink = wx.xrc.XRCCTRL(self.messagesPanel,
+            "SHARING_MESSAGE2")
 
         for hyperCtrl in (self.folderLink, self.sharingLink):
             hyperCtrl.SetNormalColour("#0080ff")
@@ -488,7 +518,7 @@ class AccountPreferencesDialog(wx.Dialog):
         # Populate the "new account" listbox:
         typeNames = []
 
-        for (key, value) in PANELS.iteritems():
+        for (key, value) in self.panelsInfo.iteritems():
             # store a tuple with account type description, and name
             typeNames.append( (value['order'], value['description'], key) )
 
@@ -571,13 +601,13 @@ class AccountPreferencesDialog(wx.Dialog):
         isDefault = False
 
         if item.accountType == "INCOMING":
-            default = getattr(schema.ns('osaf.pim', item.itsView).currentIncomingAccount,
-                              "item", None)
+            default = getattr(schema.ns('osaf.pim',
+                item.itsView).currentIncomingAccount, "item", None)
             isDefault = default and item is default
 
         elif item.accountType == "OUTGOING":
-            default = getattr(schema.ns('osaf.pim', item.itsView).currentOutgoingAccount,
-                              "item", None)
+            default = getattr(schema.ns('osaf.pim',
+                item.itsView).currentOutgoingAccount, "item", None)
             isDefault = default and item is default
 
         return isDefault
@@ -604,9 +634,13 @@ class AccountPreferencesDialog(wx.Dialog):
 
             # Disable the delete button if the delete handler says to
 
-            deleteHandler = PANELS[item.accountType]['deleteHandler']
-            canDelete = deleteHandler(item, self.data[accountIndex]['values'],
-                self.data)
+            deleteHandler = self.panelsInfo[item.accountType].get(
+                'deleteHandler', None)
+            if deleteHandler is None:
+                canDelete = True
+            else:
+                canDelete = deleteHandler(item,
+                    self.data[accountIndex]['values'], self.data)
             delButton.Enable(canDelete)
             testButton.Enable(True)
 
@@ -651,11 +685,11 @@ class AccountPreferencesDialog(wx.Dialog):
                 accountIndex = i
 
             # 'values' is a dict whose keys are the field names defined in
-            # the PANELS data structure above
+            # the panelsInfo data structure above
             values = { }
 
             for (field, desc) in \
-             PANELS[item.accountType]['fields'].iteritems():
+             self.panelsInfo[item.accountType]['fields'].iteritems():
                 if desc['type'] == 'currentPointer':
                     # See if this item is the current item for the given
                     # pointer name, storing a boolean.
@@ -753,7 +787,7 @@ class AccountPreferencesDialog(wx.Dialog):
 
 
             values = account['values']
-            panel = PANELS[account['type']]
+            panel = self.panelsInfo[account['type']]
 
             if panel.has_key("saveHandler"):
                 # Call custom save handler; if None returned, we don't do
@@ -897,7 +931,7 @@ class AccountPreferencesDialog(wx.Dialog):
                 item = None
 
             values = account['values']
-            panel = PANELS[account['type']]
+            panel = self.panelsInfo[account['type']]
 
             if panel.has_key("validationHandler"):
 
@@ -921,7 +955,7 @@ class AccountPreferencesDialog(wx.Dialog):
 
         data = self.data[self.currentIndex]
         accountType = data['type']
-        panel = PANELS[accountType]
+        panel = self.panelsInfo[accountType]
         values = data['values']
         item = self.rv.findUUID(data['item'])
         return values[panel["displayName"]]
@@ -959,7 +993,7 @@ class AccountPreferencesDialog(wx.Dialog):
         self.currentPanel = self.panels[self.currentPanelType]
 
 
-        init = PANELS[self.currentPanelType].get("init", None)
+        init = self.panelsInfo[self.currentPanelType].get("init", None)
 
         self.__FetchFormData(self.currentPanelType, self.currentPanel,
                              self.data[index]['values'])
@@ -974,9 +1008,9 @@ class AccountPreferencesDialog(wx.Dialog):
         # When a text field receives focus, call the handler.
         # When an exclusive radio button is clicked, call another handler.
 
-        for field in PANELS[self.currentPanelType]['fields'].keys():
+        for field in self.panelsInfo[self.currentPanelType]['fields'].keys():
 
-            fieldInfo = PANELS[self.currentPanelType]['fields'][field]
+            fieldInfo = self.panelsInfo[self.currentPanelType]['fields'][field]
 
             # This enables the clicking of a radio button to affect the value
             # of another field.  In this case, the OnLinkedControl( ) method
@@ -1024,7 +1058,8 @@ class AccountPreferencesDialog(wx.Dialog):
 
         # Hook up any other callbacks not tied to any fields, such as the
         # account testing buttons:
-        for callbackReg in PANELS[self.currentPanelType].get('callbacks', ()):
+        for callbackReg in self.panelsInfo[self.currentPanelType].get(
+            'callbacks', ()):
             self.Bind(wx.EVT_BUTTON,
                       getattr(self, callbackReg[1]),
                       id=wx.xrc.XRCID(callbackReg[0]))
@@ -1034,11 +1069,12 @@ class AccountPreferencesDialog(wx.Dialog):
 
         self.currentMessages = []
 
-        for message in PANELS[self.currentPanelType].get('messages', ()):
-             messageWidget = wx.xrc.XRCCTRL(self.messagesPanel, message)
-             messageWidget.Show()
+        for message in self.panelsInfo[self.currentPanelType].get('messages',
+            ()):
+            messageWidget = wx.xrc.XRCCTRL(self.messagesPanel, message)
+            messageWidget.Show()
 
-             self.currentMessages.append(messageWidget)
+            self.currentMessages.append(messageWidget)
 
         self.resizeLayout()
 
@@ -1046,9 +1082,9 @@ class AccountPreferencesDialog(wx.Dialog):
     def __StoreFormData(self, panelType, panel, data):
         # Store data from the wx widgets into the "data" dictionary
 
-        for field in PANELS[panelType]['fields'].keys():
+        for field in self.panelsInfo[panelType]['fields'].keys():
 
-            fieldInfo = PANELS[panelType]['fields'][field]
+            fieldInfo = self.panelsInfo[panelType]['fields'][field]
             valueType = fieldInfo['type']
             valueRequired = fieldInfo.get('required', False)
 
@@ -1113,15 +1149,15 @@ class AccountPreferencesDialog(wx.Dialog):
                 except:
                     # Skip if not valid
                     continue
-                
-#            else:
-#                raise ValueError('Unhandled valueType ' + valueType)
 
             if valueType == 'password':
                 try:
-                    waitForDeferred(data[field].encryptPassword(val, window=self))
+                    waitForDeferred(data[field].encryptPassword(val,
+                        window=self))
                 except password.NoMasterPassword:
-                    pass # Don't change it. Means we can end up with uninitialized passwords.
+                    # Don't change it. Means we can end up with uninitialized
+                    # passwords.
+                    pass
             else:
                 data[field] = val
 
@@ -1129,9 +1165,9 @@ class AccountPreferencesDialog(wx.Dialog):
     def __FetchFormData(self, panelType, panel, data):
         # Pull data out of the "data" dictionary and stick it into the widgets:
 
-        for field in PANELS[panelType]['fields'].keys():
+        for field in self.panelsInfo[panelType]['fields'].keys():
 
-            fieldInfo = PANELS[panelType]['fields'][field]
+            fieldInfo = self.panelsInfo[panelType]['fields'][field]
 
             if fieldInfo['type'] == 'radioEnumeration':
                 # a radio button group is handled differently, since there
@@ -1145,15 +1181,16 @@ class AccountPreferencesDialog(wx.Dialog):
 
             control = wx.xrc.XRCCTRL(panel, field)
 
-            valueType = PANELS[panelType]['fields'][field]['type']
+            valueType = self.panelsInfo[panelType]['fields'][field]['type']
 
             # Handle passwords
             if valueType == "password":
                 try:
-                    control.SetValue(waitForDeferred(data[field].decryptPassword(window=self)))
+                    control.SetValue(waitForDeferred(
+                        data[field].decryptPassword(window=self)))
                 except password.NoMasterPassword:
                     control.SetValue("")
-            
+
             # Handle strings:
             if valueType == "string":
                 # The control can not accept a None value
@@ -1205,7 +1242,7 @@ class AccountPreferencesDialog(wx.Dialog):
                 count = 0
                 index = -1
                 uuid = data[field]
-                kindClass = PANELS[panelType]['fields'][field]['kind']
+                kindClass = self.panelsInfo[panelType]['fields'][field]['kind']
                 for item in kindClass.iterItems(self.rv):
                     deleted = False
                     for accountData in self.deletions:
@@ -1235,7 +1272,7 @@ class AccountPreferencesDialog(wx.Dialog):
                     for accountData in self.data:
                         if item.itsUUID == accountData['item']:
                             displayNameField = \
-                                PANELS[item.accountType]['displayName']
+                                self.panelsInfo[item.accountType]['displayName']
                             displayName = \
                                 accountData['values'][displayNameField]
                             break
@@ -1250,8 +1287,6 @@ class AccountPreferencesDialog(wx.Dialog):
             elif valueType == "integer":
                 control.SetValue(str(data[field]))
 
-#            else:
-#                raise ValueError('Unhandled valueType ' + valueType)
 
 
     def OnOk(self, evt):
@@ -1296,7 +1331,8 @@ class AccountPreferencesDialog(wx.Dialog):
             buf.append("host: %s" % item.host)
             buf.append("port: %s" % item.port)
             buf.append("username: %s" % item.username)
-            buf.append("password: %s" % waitForDeferred(item.password.decryptPassword(window=self)))
+            buf.append("password: %s" % waitForDeferred(
+                item.password.decryptPassword(window=self)))
 
             if item.accountType in ("SHARING_DAV", "SHARING_MORSECODE",
                 "SHARING_HUB"):
@@ -1368,7 +1404,8 @@ class AccountPreferencesDialog(wx.Dialog):
                                   self)
 
             if yes:
-                RemoveChandlerIMAPFoldersDialog(self, account, self.OnFolderRemoval)
+                RemoveChandlerIMAPFoldersDialog(self, account,
+                    self.OnFolderRemoval)
 
     def OnFolderCreation(self, result):
         statusCode, folderNames = result
@@ -1423,7 +1460,8 @@ class AccountPreferencesDialog(wx.Dialog):
             port = wx.xrc.XRCCTRL(self.currentPanel, "INCOMING_PORT")
             port.SetValue(str(account.port))
 
-            fieldInfo = PANELS[self.currentPanelType]['fields']['INCOMING_SECURE']
+            fields = self.panelsInfo[self.currentPanelType]['fields']
+            fieldInfo = fields['INCOMING_SECURE']
 
             for (button, value) in fieldInfo['buttons'].iteritems():
                 if account.connectionSecurity == value:
@@ -1437,7 +1475,8 @@ class AccountPreferencesDialog(wx.Dialog):
             port = wx.xrc.XRCCTRL(self.currentPanel, "OUTGOING_PORT")
             port.SetValue(str(account.port))
 
-            fieldInfo = PANELS[self.currentPanelType]['fields']['OUTGOING_SECURE']
+            fields = self.panelsInfo[self.currentPanelType]['fields']
+            fieldInfo = fields['OUTGOING_SECURE']
 
             for (button, value) in fieldInfo['buttons'].iteritems():
                 if account.connectionSecurity == value:
@@ -1455,7 +1494,8 @@ class AccountPreferencesDialog(wx.Dialog):
 
         IMAP = proto.GetSelection() == 0
 
-        fieldInfo = PANELS[self.currentPanelType]['fields']['INCOMING_SECURE']
+        fields = self.panelsInfo[self.currentPanelType]['fields']
+        fieldInfo = fields['INCOMING_SECURE']
 
         connectionSecurity = None
 
@@ -1527,34 +1567,19 @@ class AccountPreferencesDialog(wx.Dialog):
 
     def CreateNewAccount(self, accountType):
 
-        if accountType == "INCOMING":
-            item = Mail.IMAPAccount(itsView=self.rv)
-            a = _(u"New Incoming Mail Account")
-            p = "IMAP"
-        elif accountType == "OUTGOING":
-            item = Mail.SMTPAccount(itsView=self.rv)
-            a = _(u"New Outgoing Mail Account")
-            p = "SMTP"
-        elif accountType == "SHARING_DAV":
-            item = sharing.WebDAVAccount(itsView=self.rv)
-            a = _(u"New Sharing Account")
-            p = "WebDAV"
-        elif accountType == "SHARING_MORSECODE":
-            item = sharing.CosmoAccount(itsView=self.rv)
-            a = _(u"Chandler Server sharing")
-            p = "Morsecode"
-        elif accountType == "SHARING_HUB":
-            item = sharing.HubAccount(itsView=self.rv)
-            a = _(u"Chandler Hub sharing")
-            p = "Morsecode"
+        panel = self.panelsInfo[accountType]
 
-        item.displayName = a
+        cls = panel['class']
+        item = cls(itsView=self.rv)
+        newName = panel['fields'][panel['displayName']]['default']
+        item.displayName = newName
+        protocol = panel['protocol']
 
         self.creations.add(item)
 
         values = { }
 
-        for (field, desc) in PANELS[accountType]['fields'].iteritems():
+        for (field, desc) in self.panelsInfo[accountType]['fields'].iteritems():
 
             if desc['type'] == 'currentPointer':
                 setting = False
@@ -1563,7 +1588,7 @@ class AccountPreferencesDialog(wx.Dialog):
                 setting = None
 
             elif desc['type'] == 'chandlerFolders':
-                if p == "IMAP":
+                if protocol == "IMAP":
                     setting = {"hasFolders": self.hasChandlerFolders(item)}
                 else:
                     setting = {}
@@ -1580,7 +1605,7 @@ class AccountPreferencesDialog(wx.Dialog):
         self.data.append( { "item" : item.itsUUID,
                             "values" : values,
                             "type" : accountType,
-                            "protocol" : p,
+                            "protocol" : protocol,
                             "isNew" : True } )
 
         index = self.accountsList.Append(item.displayName)
@@ -1601,8 +1626,13 @@ class AccountPreferencesDialog(wx.Dialog):
         index = self.accountsList.GetSelection()
         item = self.rv.findUUID(self.data[index]['item'])
 
-        deleteHandler = PANELS[item.accountType]['deleteHandler']
-        canDelete = deleteHandler(item, self.data[index]['values'], self.data)
+        deleteHandler = self.panelsInfo[item.accountType].get('deleteHandler',
+            None)
+        if deleteHandler is None:
+            canDelete = True
+        else:
+            canDelete = deleteHandler(item, self.data[index]['values'],
+                self.data)
 
         if canDelete:
             self.accountsList.Delete(index)
@@ -1931,7 +1961,7 @@ class AccountPreferencesDialog(wx.Dialog):
         control = evt.GetEventObject()
 
         # Determine current panel
-        panel = PANELS[self.currentPanelType]
+        panel = self.panelsInfo[self.currentPanelType]
 
         # Scan through fields, seeing if this control corresponds to one
         # If marked as linkedTo, change the linked field
@@ -1989,7 +2019,7 @@ class AccountPreferencesDialog(wx.Dialog):
         # Determine current panel
         # Scan through fields, seeing if this control corresponds to one
         # If marked as exclusive, set all other accounts of this type to False
-        panel = PANELS[self.currentPanelType]
+        panel = self.panelsInfo[self.currentPanelType]
 
         for (field, fieldInfo) in panel['fields'].iteritems():
 
@@ -2008,7 +2038,7 @@ class AccountPreferencesDialog(wx.Dialog):
                         # Skip the current account
                         if index != self.currentIndex:
 
-                            aPanel = PANELS[accountData['protocol']]
+                            aPanel = self.panelsInfo[accountData['protocol']]
                             for (aField, aFieldInfo) in \
                                 aPanel['fields'].iteritems():
                                 if aFieldInfo.get('type') == 'currentPointer':
