@@ -41,6 +41,10 @@ class TestEnableTimezones(ChandlerTestCase):
             else:
                 self.logger.endAction(True, "Timezone widget correctly hidden when timezones not enabled")
 
+        # switch to calendar view
+        testView = QAUITestAppLib.UITestView(self.logger)
+        testView.SwitchToCalView()       
+
         # make user collection, since only user
         # collections can be displayed as a calendar
         col = QAUITestAppLib.UITestItem("Collection", self.logger)
