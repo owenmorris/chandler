@@ -158,7 +158,7 @@ class GdataMenuHandler(Block):
                 ShowCalendarListWindow(rv)
 
 
-def makeGdataMenu(parcel, toolsMenu):
+def makeGdataMenu(parcel, parentMenu):
 
     handler = GdataMenuHandler.update(parcel, None,
         blockName='_gdata_GdataMenuHandler')
@@ -170,7 +170,7 @@ def makeGdataMenu(parcel, toolsMenu):
 
     gdataMenu = Menu.update(parcel, None, blockName='_gdata_gdataMenu',
         title="Google",
-        parentBlock=toolsMenu)
+        parentBlock=parentMenu)
 
     MenuItem.update(parcel, None, blockName='_gdata_ShowCalendarListItem',
         title=_(u"Subscribe to Google Calendar..."),

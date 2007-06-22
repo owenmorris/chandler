@@ -27,8 +27,8 @@ from ui import *
 
 def installParcel(parcel, oldVersion=None):
 
-    toolsMenu = schema.ns('osaf.views.main', parcel).ToolsMenu
-    makeGdataMenu(parcel, toolsMenu)
+    parentMenu = schema.ns('osaf.views.main', parcel).ExperimentalMenu
+    makeGdataMenu(parcel, parentMenu)
 
     AccountPanel.update(parcel, "GDataAccountPanel",
         accountClass = GDataAccount,
