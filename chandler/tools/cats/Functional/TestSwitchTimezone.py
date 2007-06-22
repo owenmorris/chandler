@@ -21,6 +21,10 @@ class TestSwitchTimezone(ChandlerTestCase):
 
     def startTest(self):
         
+        # switch to calendar view
+        testView = QAUITestAppLib.UITestView(self.logger)
+        testView.SwitchToCalView()       
+
         # make user collection, since only user
         # collections can be displayed as a calendar
         col = QAUITestAppLib.UITestItem("Collection", self.logger)
