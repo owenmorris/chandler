@@ -1925,11 +1925,14 @@ class DumpTranslator(SharingTranslator):
 
         translator = "sharing"
 
-        if conduit.serializer is eimml.EIMMLSerializer:
+        serializer = getattr(conduit, 'serializer', None)
+        if serializer is None:
+            serializer = ''
+        elif serializer is eimml.EIMMLSerializer:
             serializer = 'eimml'
-        elif conduit.serializer is eimml.EIMMLSerializerLite:
+        elif serializer is eimml.EIMMLSerializerLite:
             serializer = 'eimml_lite'
-        elif conduit.serializer is ics.ICSSerializer:
+        elif serializer is ics.ICSSerializer:
             serializer = 'ics'
 
         filters = ",".join(conduit.filters)
