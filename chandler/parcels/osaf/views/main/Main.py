@@ -28,7 +28,7 @@ from application.dialogs import ( AccountPreferences, PublishCollection,
 
 from repository.item.Item import MissingClass
 from osaf import (
-    pim, sharing, messages, webserver, settings, search, dumpreload
+    pim, sharing, messages, webserver, settings, dumpreload
 )
 from osaf.activity import *
 
@@ -454,24 +454,24 @@ class MainView(View):
             quickEntryWidget.SetValue("")
             return True
 
-
         sidebar = Block.findBlockByName ("Sidebar")
-        quickEntryWidget = event.arguments['sender'].widget.GetControl()
-        block = quickEntryWidget.blockItem
-        command = quickEntryWidget.GetValue().strip()
+        quickEntryBlock = Block.findBlockByName ("ApplicationBarQuickEntry")
+        quickEntryWidget = quickEntryBlock.widget.GetControl()
         showSearchResults = False
 
         cancelClicked = event.arguments.get ("cancelClicked", False)
         if cancelClicked:
 
-            # Remember the last value of the search string
-            if len (command) != 0:
+            # Remember the last value of the QuickEntry
+            lastText = quickEntryWidget.GetValue()
+            if len (lastText) != 0:
+                quickEntryBlock.lastText = lastText
                 quickEntryWidget.SetValue ("")
-                block.lastText = command
 
             self.setStatusMessage(u'')
         else:
             # Try to process as a quick entry command
+            command = quickEntryWidget.GetValue().strip()
             if len (command) != 0 and not processQuickEntry (self, command):
 
                 c = command.lower()[:command.find(' ')]
@@ -490,54 +490,8 @@ class MainView(View):
                         command = ''.join(('\\'+char if char in '+-&|!(){}[]^~*?:\\' else char)
                                           for char in command)
 
-                    try:
-                        sidebar.setShowSearch (True)
-                        showSearchResults = True
-
-                        view = self.itsView
-
-                        # make sure all changes are searchable
-                        view.commit()
-                        view.repository.notifyIndexer(True)
-
-                        results = view.searchItems (command)
-
-                        searchResults = schema.ns('osaf.pim', view).searchResults
-                        searchResults.inclusions.clear()
-
-                        sidebarCollection = schema.ns("osaf.app", self).sidebarCollection
-                        for collection in sidebarCollection:
-                            UserCollection (collection).searchMatches = 0
-
-                        app = wx.GetApp()
-                        for item in search.processResults(results):
-                            if item not in searchResults:
-                                for collection in sidebarCollection:
-                                    if item in collection:
-                                        UserCollection (collection).searchMatches += 1
-                                        searchResults.add(item)
-                                        # Update the display every so often 
-                                        if len (searchResults) % 50 == 0:
-                                            app.propagateAsynchronousNotifications()
-                                            app.Yield(True)
-
-                        if len(searchResults) == 0:
-                            # For now we'll write a message to the status bar because it's easy
-                            # When we get more time to work on search, we should write the message
-                            # just below the search box in the toolbar.
-                            self.setStatusMessage(_(u"Search found nothing"))
-                        else:
-                            self.setStatusMessage(u'')
-                    except PyLucene.JavaError, error:
-                        message = unicode (error)
-                        prefix = u"org.apache.lucene.queryParser.ParseException: "
-                        if message.startswith (prefix):
-                            message = message [len(prefix):]
-
-                        wx.MessageBox (_(u"An error occured during search.\n\nThe search engine reported the following error:\n\n" ) + message,
-                                       _(u"Search Error"),
-                                       parent=wx.GetApp().mainFrame)
-                        showSearchResults = False
+                    quickEntryBlock.lastSearch = command
+                    showSearchResults = True
 
         sidebar.setShowSearch (showSearchResults)
 

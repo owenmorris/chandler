@@ -30,7 +30,7 @@ from osaf.pim import (
 from osaf.framework.prompts import promptYesNoCancel
 from application.dialogs import RecurrenceDialog
 
-from osaf import sharing, pim
+from osaf import sharing, pim, search
 from osaf.usercollections import UserCollection
 from osaf.sharing import ChooseFormat, Share
 from repository.item.Item import MissingClass
@@ -654,8 +654,7 @@ class SSSidebarIconButton (SSSidebarButton):
         selectedItem = sidebarBlock.contents.getFirstSelectedItem()
         if (not UserCollection (item).outOfTheBoxCollection and
             ( (selectedItem is not None and UserCollection (selectedItem).outOfTheBoxCollection) or
-              sidebarBlock.filterClass in sidebarBlock.disallowOverlaysForFilterClasses or
-               sidebarBlock.showSearch) ):
+              sidebarBlock.filterClass in sidebarBlock.disallowOverlaysForFilterClasses) ):
             deactive = "Deactive"
         else:
             deactive = ""
@@ -930,7 +929,7 @@ class SidebarBlock(Table):
             buttonToSelect = self.findBlockByName("ApplicationBarAllButton")
 
             if filterClass is not MissingClass:
-                toolBar = Block.Block.findBlockByName("ApplicationBar").widget
+                toolBar = self.findBlockByName("ApplicationBar").widget
                 for toolBarTool in toolBar.GetTools():
                     # The tool returned by GetTools isn't our Python object with the blockItem attribute
                     # so we'll have to look it up by it's Id.
@@ -1268,7 +1267,161 @@ class SidebarBranchPointDelegate(BranchPoint.BranchPointDelegate):
             return newKey
 
         sidebar = Block.Block.findBlockByName ("Sidebar")
+        assert item is None or isinstance (item, ContentCollection) # The sidebar can only contain ContentCollections
+        key = item
+        """
+        collectionList should be in the order that the source items
+        are overlayed in the Calendar view
+
+        'item' in this case is more or less only used to determine
+        order. We're not so much mapping item => cacheKeyItem, but
+        rather mapping the sidebar's current state to a cacheKeyItem.
+        """
+        collectionList = []
+        if not hints.get ("getOnlySelectedCollection", False):
+            # make sure 'item' is at the front of the list so that
+            # consumers know what the 'primary' collection is.
+            if item is not None:
+                collectionList.append (item)
+            # When item is none we have multiple selections
+            if (item is None or
+                (sidebar.filterClass not in sidebar.disallowOverlaysForFilterClasses and
+                (not UserCollection (item).outOfTheBoxCollection))):
+                for theItem in sidebar.contents:
+                    if ((UserCollection(theItem).checked
+                        or sidebar.contents.isItemSelected (theItem)) and
+                         theItem not in collectionList):
+                        collectionList.append (theItem)
+
+        if collectionList:
+            """
+            tupleList is sorted so we always end up with one collection
+            for any order of collections in the source
+            """
+            tupleList = [theItem.itsUUID for theItem in collectionList]
+            tupleList.sort()
+
+            filterClass = sidebar.filterClass
+            if filterClass is not MissingClass:
+                tupleList.append(filterClass)
+
+            tupleKey = tuple(tupleList)
+
+            # Bug 5884: in order to overlay the allCollection remove
+            # all 'mine' collections already included in collectionList.
+            # Their inclusion in collectionList would be duplicated by
+            # the inclusion of the allCollection and would invalidate
+            # the resulting union.
+            pim_ns = schema.ns('osaf.pim', self.itsView)
+            if len(collectionList) > 1:
+                if pim_ns.allCollection in collectionList:
+                    mineCollections = pim_ns.mine.sources
+                    collectionList = [c for c in collectionList
+                                      if c not in mineCollections]
+
+            key = self.itemTupleKeyToCacheKey.get(tupleKey, None)
+            if key is not None and isDead(key): # item was deleted (bug 7338)
+                del self.itemTupleKeyToCacheKey[tupleKey]
+                key = None
+
+            if (key is not None and
+                [c for c in collectionList if c.itsUUID not in key.collectionList]):
+                # See bug #6793: If a subscribed collection has been deleted, then resubscribed
+                # our cached key will be stale because the subscribed collection will have
+                # been removed but not added when resubscribed. In this case, the removed
+                # collection will not be in the key's collectionList, so we need to
+                # delete our key
+                del self.itemTupleKeyToCacheKey [tupleKey]
+                del key
+                key = None
+            if key is None:
+                # we don't have a cached version of this key, so we'll
+                # create a new one
+                
+                if len(collectionList) == 1:
+                    key = collectionList[0]
+                else:
+                    # UnionCollection removes trash from its children before
+                    # bringing them together
+                    key = UnionCollection(itsView=self.itsView,
+                                          sources=collectionList,
+                                          autoDelete=True)
+
+                # create an INTERNAL name for this collection, just
+                # for debugging purposes
+                displayName = u" and ".join ([theItem.displayName for theItem in collectionList])
+
+                if filterClass is pim.EventStamp and \
+                                    UserCollection(key).dontDisplayAsCalendar:
+                    # filtering on calendar in the dashboard is a special case,
+                    # we can't filter out both master events and intersect
+                    # with events, so filter on nonMasterEvents
+                    newKey = IntersectionCollection(itsView=self.itsView,
+                                                    sources=[key, pim_ns.nonMasterEvents],
+                                                    autoDelete=True)
+                    UserCollection(newKey).dontDisplayAsCalendar = UserCollection(key).dontDisplayAsCalendar
+                    displayName += u" filtered by non-master events"
+                    newKey.displayName = displayName
+                    key = newKey
+
+                else:
+                    # Handle filtered collections by intersecting with
+                    # the stamp collection
+                    if filterClass is not MissingClass:
+                        stampCollection = self.stampToCollectionCache.get(filterClass, None)
+                        if stampCollection is None:
+                            stampCollection = filterClass.getCollection(self.itsView)
+                            self.stampToCollectionCache[filterClass] = stampCollection
+                        newKey = IntersectionCollection(itsView=self.itsView,
+                                                        sources=[key, stampCollection],
+                                                        autoDelete=True)
+                        UserCollection(newKey).dontDisplayAsCalendar = UserCollection(key).dontDisplayAsCalendar
+                        displayName += u" filtered by " + filterClass.__name__
+                        newKey.displayName = displayName
+                        key = newKey
+    
+                    # don't include masterEvents in collections passed to 
+                    # anything but the calendar view. Master events in tables should
+                    # never be edited directly.  If view and filter are ever
+                    # decoupled, this will need to be reworked.
+                    if (filterClass is not pim.EventStamp or 
+                        UserCollection(key).dontDisplayAsCalendar):
+        
+                        newKey = DifferenceCollection(itsView=self.itsView,
+                                                      sources=[key, pim_ns.masterEvents],
+                                                      autoDelete=True)
+                        UserCollection(newKey).dontDisplayAsCalendar = \
+                            UserCollection(key).dontDisplayAsCalendar
+                        displayName += u" minus master events"
+                        newKey.displayName = displayName
+                        key = newKey
+                    
+                key = wrapInIndexedSelectionCollection (key)
+                self.itemTupleKeyToCacheKey [tupleKey] = key
+                displayName += u" ISC"
+                key.displayName = displayName
+                key.collectionList = collectionList
+            else: # if key is None
+                # We found the key, but we might still need to reorder
+                # collectionList. The list is kept sorted by the order
+                # of the collections as they overlay one another in the
+                # Calendar.  We don't bother to reorder when we're
+                # looking up a collection that isn't displayed in the
+                # summary view.
+                if item in sidebar.contents.iterSelection():
+                    for new, old in zip(key.collectionList, collectionList):
+                        if new is not old:
+                            key.collectionList = collectionList
+                            # Force setContents to be true even if the
+                            # contents hasn't changed since the order
+                            # of collectionList has changed
+                            hints["sendSetContents"] = True
+                            break
+                        
         if sidebar.showSearch:
+            if hints.get ("search", True):
+                sidebar.markDirty()
+                self.search (key)
             key = self.itemTupleKeyToCacheKey.get("Search", None)
             if key is None:
                 key = wrapInIndexedSelectionCollection (schema.ns('osaf.pim', self.itsView).searchResults)
@@ -1276,158 +1429,58 @@ class SidebarBranchPointDelegate(BranchPoint.BranchPointDelegate):
                 key.collectionList = [key]
                 self.itemTupleKeyToCacheKey ["Search"] = key
 
-        else:
-            assert item is None or isinstance (item, ContentCollection) # The sidebar can only contain ContentCollections
-            key = item
-            """
-            collectionList should be in the order that the source items
-            are overlayed in the Calendar view
-    
-            'item' in this case is more or less only used to determine
-            order. We're not so much mapping item => cacheKeyItem, but
-            rather mapping the sidebar's current state to a cacheKeyItem.
-            """
-            collectionList = []
-            if not hints.get ("getOnlySelectedCollection", False):
-                # make sure 'item' is at the front of the list so that
-                # consumers know what the 'primary' collection is.
-                if item is not None:
-                    collectionList.append (item)
-                # When item is none we have multiple selections
-                if (item is None or
-                    (sidebar.filterClass not in sidebar.disallowOverlaysForFilterClasses and
-                    (not UserCollection (item).outOfTheBoxCollection))):
-                    for theItem in sidebar.contents:
-                        if ((UserCollection(theItem).checked
-                            or sidebar.contents.isItemSelected (theItem)) and
-                             theItem not in collectionList):
-                            collectionList.append (theItem)
-    
-            if collectionList:
-                """
-                tupleList is sorted so we always end up with one collection
-                for any order of collections in the source
-                """
-                tupleList = [theItem.itsUUID for theItem in collectionList]
-                tupleList.sort()
-    
-                filterClass = sidebar.filterClass
-                if filterClass is not MissingClass:
-                    tupleList.append(filterClass)
-    
-                tupleKey = tuple(tupleList)
-    
-                # Bug 5884: in order to overlay the allCollection remove
-                # all 'mine' collections already included in collectionList.
-                # Their inclusion in collectionList would be duplicated by
-                # the inclusion of the allCollection and would invalidate
-                # the resulting union.
-                pim_ns = schema.ns('osaf.pim', self.itsView)
-                if len(collectionList) > 1:
-                    if pim_ns.allCollection in collectionList:
-                        mineCollections = pim_ns.mine.sources
-                        collectionList = [c for c in collectionList
-                                          if c not in mineCollections]
-    
-                key = self.itemTupleKeyToCacheKey.get(tupleKey, None)
-                if key is not None and isDead(key): # item was deleted (bug 7338)
-                    del self.itemTupleKeyToCacheKey[tupleKey]
-                    key = None
-    
-                if (key is not None and
-                    [c for c in collectionList if c.itsUUID not in key.collectionList]):
-                    # See bug #6793: If a subscribed collection has been deleted, then resubscribed
-                    # our cached key will be stale because the subscribed collection will have
-                    # been removed but not added when resubscribed. In this case, the removed
-                    # collection will not be in the key's collectionList, so we need to
-                    # delete our key
-                    del self.itemTupleKeyToCacheKey [tupleKey]
-                    del key
-                    key = None
-                if key is None:
-                    # we don't have a cached version of this key, so we'll
-                    # create a new one
-                    
-                    if len(collectionList) == 1:
-                        key = collectionList[0]
-                    else:
-                        # UnionCollection removes trash from its children before
-                        # bringing them together
-                        key = UnionCollection(itsView=self.itsView,
-                                              sources=collectionList,
-                                              autoDelete=True)
-    
-                    # create an INTERNAL name for this collection, just
-                    # for debugging purposes
-                    displayName = u" and ".join ([theItem.displayName for theItem in collectionList])
-    
-                    if filterClass is pim.EventStamp and \
-                                        UserCollection(key).dontDisplayAsCalendar:
-                        # filtering on calendar in the dashboard is a special case,
-                        # we can't filter out both master events and intersect
-                        # with events, so filter on nonMasterEvents
-                        newKey = IntersectionCollection(itsView=self.itsView,
-                                                        sources=[key, pim_ns.nonMasterEvents],
-                                                        autoDelete=True)
-                        UserCollection(newKey).dontDisplayAsCalendar = UserCollection(key).dontDisplayAsCalendar
-                        displayName += u" filtered by non-master events"
-                        newKey.displayName = displayName
-                        key = newKey
-    
-                    else:
-                        # Handle filtered collections by intersecting with
-                        # the stamp collection
-                        if filterClass is not MissingClass:
-                            stampCollection = self.stampToCollectionCache.get(filterClass, None)
-                            if stampCollection is None:
-                                stampCollection = filterClass.getCollection(self.itsView)
-                                self.stampToCollectionCache[filterClass] = stampCollection
-                            newKey = IntersectionCollection(itsView=self.itsView,
-                                                            sources=[key, stampCollection],
-                                                            autoDelete=True)
-                            UserCollection(newKey).dontDisplayAsCalendar = UserCollection(key).dontDisplayAsCalendar
-                            displayName += u" filtered by " + filterClass.__name__
-                            newKey.displayName = displayName
-                            key = newKey
-        
-                        # don't include masterEvents in collections passed to 
-                        # anything but the calendar view. Master events in tables should
-                        # never be edited directly.  If view and filter are ever
-                        # decoupled, this will need to be reworked.
-                        if (filterClass is not pim.EventStamp or 
-                            UserCollection(key).dontDisplayAsCalendar):
-            
-                            newKey = DifferenceCollection(itsView=self.itsView,
-                                                          sources=[key, pim_ns.masterEvents],
-                                                          autoDelete=True)
-                            UserCollection(newKey).dontDisplayAsCalendar = \
-                                UserCollection(key).dontDisplayAsCalendar
-                            displayName += u" minus master events"
-                            newKey.displayName = displayName
-                            key = newKey
-                        
-                    key = wrapInIndexedSelectionCollection (key)
-                    self.itemTupleKeyToCacheKey [tupleKey] = key
-                    displayName += u" ISC"
-                    key.displayName = displayName
-                    key.collectionList = collectionList
-                else: # if key is None
-                    # We found the key, but we might still need to reorder
-                    # collectionList. The list is kept sorted by the order
-                    # of the collections as they overlay one another in the
-                    # Calendar.  We don't bother to reorder when we're
-                    # looking up a collection that isn't displayed in the
-                    # summary view.
-                    if item in sidebar.contents.iterSelection():
-                        for new, old in zip(key.collectionList, collectionList):
-                            if new is not old:
-                                key.collectionList = collectionList
-                                # Force setContents to be true even if the
-                                # contents hasn't changed since the order
-                                # of collectionList has changed
-                                hints["sendSetContents"] = True
-                                break
         return key
+
+    def search(self, searchCollection):
+        try:
+            view = self.itsView
+
+            # make sure all changes are searchable
+            view.commit()
+            view.repository.notifyIndexer(True)
+
+            quickEntryBlock = Block.Block.findBlockByName ("ApplicationBarQuickEntry")
+            results = view.searchItems (quickEntryBlock.lastSearch)
+
+            searchResults = schema.ns('osaf.pim', view).searchResults
+            searchResults.inclusions.clear()
+
+            sidebarCollection = schema.ns("osaf.app", self).sidebarCollection
+            for collection in sidebarCollection:
+                UserCollection (collection).searchMatches = 0
+
+            collectionList = searchCollection.collectionList
+
+            app = wx.GetApp()
+            for item in search.processResults(results):
+                if item not in searchResults and item in searchCollection:
+                    searchResults.add(item)
+                    # Update the display every so often 
+                    if len (searchResults) % 50 == 0:
+                        app.propagateAsynchronousNotifications()
+                        app.Yield(True)
+                    for collection in collectionList:
+                        if item in collection:
+                            UserCollection (collection).searchMatches += 1
+
+            if len(searchResults) == 0:
+                # For now we'll write a message to the status bar because it's easy
+                # When we get more time to work on search, we should write the message
+                # just below the search box in the toolbar.
+                statusMessage = _(u"Search found nothing")
+            else:
+                statusMessage = u''
+            Block.Block.findBlockByName('StatusBar').setStatusMessage (statusMessage)
+            
+        except PyLucene.JavaError, error:
+            message = unicosetStatusMessagee (error)
+            prefix = u"org.apache.lucene.queryParser.ParseException: "
+            if message.startswith (prefix):
+                message = message [len(prefix):]
+            wx.MessageBox (_(u"An error occured during search.\n\nThe search engine reported the following error:\n\n" ) + message,
+                           _(u"Search Error"),
+                           parent=wx.GetApp().mainFrame)
+
 
     def _makeBranchForCacheKey(self, keyItem):
         keyUUID = keyItem.itsUUID
@@ -1472,14 +1525,14 @@ class SidebarBranchPointDelegate(BranchPoint.BranchPointDelegate):
 
     def setView (self, item, template):
         if item is not None:
-            hints = {}
+            hints = {'search': False}
             keyUUID = self._mapItemToCacheKeyItem (item, hints).itsUUID
             if self.keyUUIDToViewTemplatePath.get (keyUUID, None) != template:
                 self.keyUUIDToViewTemplatePath [keyUUID] = template
                 del self.keyUUIDToBranch [keyUUID]
 
     def getView (self, item):
-        hints = {}
+        hints = {'search': False}
         cachedItem = self._mapItemToCacheKeyItem (item, hints)
         if cachedItem is not None:
             keyUUID = cachedItem.itsUUID

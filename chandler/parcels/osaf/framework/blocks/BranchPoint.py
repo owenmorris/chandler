@@ -151,8 +151,7 @@ class BranchPointBlock(BoxContainer):
         """
 
         # Get a cache key from self.selectedItem using the delegate
-        keyItem = self.delegate._mapItemToCacheKeyItem(
-            self.selectedItem, hints)
+        keyItem = self.delegate._mapItemToCacheKeyItem(self.selectedItem, hints)
 
         # Ask the delegate for the right tree of blocks
 

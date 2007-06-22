@@ -308,7 +308,8 @@ class ToolBarItem(BaseItem):
     toolBarItemKind = schema.One(toolBarItemKindEnumType, defaultValue = "Button")
 
     text = schema.One(schema.Text) # optional text for the ToolBarItem, e.g. QuickEntry text
-    lastText = schema.One(schema.Text) # optional lastText for the ToolBarItem, e.g. QuickEntry last search
+    lastText = schema.One(schema.Text) # optional lastText for the ToolBarItem, e.g. QuickEntry last command
+    lastSearch = schema.One(schema.Text) # optional lastSearch for the ToolBarItem, e.g. QuickEntry last search
 
     def instantiateWidget (self):
         if self.toolBarItemKind == 'QuickEntry':
