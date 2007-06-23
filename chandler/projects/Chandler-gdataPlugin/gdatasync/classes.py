@@ -75,13 +75,14 @@ class GDataAccount(sharing.SharingAccount):
             waitForDeferred(self.password.decryptPassword()))
         feed = service.GetCalendarListFeed()
         for entry in feed.entry:
-            yield(entry.title.text, entry.GetAlternateLink().href)
+            yield(entry.title.text, entry.GetAlternateLink().href,
+                entry.access_level.value, entry.color.value)
 
 
 
 class GDataState(sharing.State):
     id = schema.One(schema.Text)
-    editLink = schema.One(schema.Text)
+    editLink = schema.One(schema.Text, defaultValue="")
     removed = schema.One(schema.Boolean, defaultValue=False)
 
 
@@ -150,24 +151,38 @@ class GDataConduit(sharing.RecordSetConduit, sharing.HTTPMixin):
         entries = { }
         unchanged = set()
         for entry in feed.entry:
+            # doLog("Received entry: %s", entry)
             records = []
             id = entry.id.text
-            editLink = entry.GetEditLink().href
+
+            editLink = entry.GetEditLink()
+            if editLink is not None:
+                editLink = editLink.href
+                self.share.mode = 'both'
+            else:
+                # This is a read-only calendar
+                self.share.mode = 'get'
+
             if id in states:
                 # update to existing item
                 state = states[id]
                 alias = self.share.states.getAlias(state)
-                if state.editLink == editLink:
-                    unchanged.add(alias)
+                if editLink:
+                    if state.editLink == editLink:
+                        unchanged.add(alias)
+                    else:
+                        state.editLink = editLink
+                        doLog("Received update to: %s" % entry.title.text)
                 else:
-                    state.editLink = editLink
-                    doLog("Received update to: %s" % entry.title.text)
+                    doLog("Received possible update to read-only item: %s" %
+                        entry.title.text)
             else:
                 # new inbound item
                 alias = UUID(md5.new(entry.id.text).digest()).str16()
                 state = self.newState(alias)
                 state.id = id
-                state.editLink = editLink
+                if editLink:
+                    state.editLink = editLink
                 doLog("Received new item: %s" % entry.title.text)
 
             state.gdataEntry = entry # non-persisted, used by putRecords next

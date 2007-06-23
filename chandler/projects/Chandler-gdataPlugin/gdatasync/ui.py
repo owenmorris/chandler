@@ -107,7 +107,9 @@ class CalendarListFrame(wx.Frame):
     def PopulateCalendars(self):
         self.calendarControl.Clear()
         if self.currentAccount is not None:
-            for title, url in self.currentAccount.getCalendars():
+            for title, url, access, color in self.currentAccount.getCalendars():
+                if access == "read":
+                    title = "%s (view only)" % title
                 newIndex = self.calendarControl.Append(title)
                 self.calendarControl.SetClientData(newIndex, url)
 
