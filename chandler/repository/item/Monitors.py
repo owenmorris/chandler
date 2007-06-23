@@ -219,7 +219,7 @@ class IndexMonitor(Monitor):
 
             if item in collection:
                 index = collection.getIndex(indexName)
-                if view.isReindexingDeferred():
+                if not index._nodefer and view.isReindexingDeferred():
                     if index.isValid():
                         index.validateIndex(False)
                         view._deferIndexMonitor(self)
@@ -234,7 +234,7 @@ class IndexMonitor(Monitor):
 
             elif keys:
                 index = collection.getIndex(indexName)
-                if view.isReindexingDeferred():
+                if not index._nodefer and view.isReindexingDeferred():
                     if index.isValid():
                         index.validateIndex(False)
                         view._deferIndexMonitor(self)

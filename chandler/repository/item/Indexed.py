@@ -158,6 +158,10 @@ class Indexed(object):
         instead of computing a more expensive comparison value. The
         superindex is specified with the C{superindex} keyword.
 
+        To ensure that an index is still reindexed when reindexing is
+        deferred via C{with view.reindexingDeferred():} use the C{nodefer}
+        keyword set to C{True}.
+
         @param indexName: the name of the index
         @type indexName: a string
         @param indexType: the type of index

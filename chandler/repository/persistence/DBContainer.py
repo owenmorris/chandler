@@ -1501,8 +1501,9 @@ class VersionContainer(DBContainer):
     # 0.7.4: added saving of references to new indexes on view record
     # 0.7.5: value keys include uItem for better locality, added __versions.db
     # 0.7.6: added storage of a view's timezone
+    # 0.7.7: added support for preventing some indexes from being deferred
 
-    FORMAT_VERSION = 0x00070600
+    FORMAT_VERSION = 0x00070700
 
     SCHEMA_KEY  = pack('>16sl', Repository.itsUUID._uuid, 0)
     VERSION_KEY = pack('>16sl', Repository.itsUUID._uuid, 1)

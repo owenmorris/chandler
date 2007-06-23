@@ -378,6 +378,7 @@ class SortedIndex(DelegatingIndex):
             if 'superindex' in kwds:
                 item, attr, name = kwds.pop('superindex')
                 self._super = (item.itsUUID, attr, name)
+            self._nodefer = kwds.pop('nodefer', False)
 
         self._valueMap = valueMap
         self._subIndexes = None
@@ -590,6 +591,8 @@ class SortedIndex(DelegatingIndex):
         else:
             record += (Record.BOOLEAN, False)
 
+        record += (Record.BOOLEAN, self._nodefer)
+
         if self._subIndexes:
             record += (Record.SHORT, len(self._subIndexes))
             for uuid, attr, name in self._subIndexes:
@@ -610,6 +613,9 @@ class SortedIndex(DelegatingIndex):
             # uuid, attr, name
             self._super = data[offset:offset+3]
             offset += 3
+
+        self._nodefer = data[offset]
+        offset += 1
 
         count = data[offset]
         offset += 1
