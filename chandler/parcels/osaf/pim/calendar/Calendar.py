@@ -705,6 +705,9 @@ class EventStamp(Stamp):
                 rem.delete(recursive=True)
 
         super(EventStamp, self).remove()
+        
+        if self.itsItem.displayName == _("New Event"):
+            self.itsItem.displayName = _("Untitled")
 
     def getTimeDescription(self):
         """

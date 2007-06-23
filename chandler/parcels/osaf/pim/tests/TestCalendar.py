@@ -34,7 +34,6 @@ class CalendarTest(TestDomainModel.DomainModelTestCase):
 
 
     def testCalendar(self):
-
         """ Simple test for creating instances of calendar related kinds """
 
         self.loadParcel("osaf.pim.calendar")
@@ -109,6 +108,36 @@ class CalendarTest(TestDomainModel.DomainModelTestCase):
 
         _verifyCalendarEvent(calendarEventItem)
         _verifyCalendarItems(locationItem, recurrenceItem)
+        
+    def testCalendarEvent(self):
+        from i18n import ChandlerMessageFactory
+        
+        event = Calendar.CalendarEvent(
+            itsView=self.view,
+        )
+        
+        # Call InitOutgoingAttributes() on the created event, the
+        # hook for item/stamp creation in the Chandler UI.
+        item = event.itsItem
+        event.InitOutgoingAttributes()
+        
+        newEventTitle = ChandlerMessageFactory(u"New Event")
+        
+        self.failUnless(stamping.has_stamp(event, Calendar.EventStamp))
+        self.failUnlessEqual(item.displayName, newEventTitle)
+        
+        newNote = type(item)(itsView=self.view)
+        newNote.InitOutgoingAttributes() # Should be _(u"Untitled")
+        
+        # Make sure the new event title gets reset on unstamp
+        event.remove()
+        
+        self.failUnlessEqual(
+            item.displayName,
+            newNote.displayName
+        )
+
+        
 
     def testTimeFields(self):
         """ Test time related fields and methods """
