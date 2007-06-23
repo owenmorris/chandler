@@ -790,14 +790,12 @@ def getAppearsInNames(item):
     if pim.has_stamp(item, pim.EventStamp):
         item = pim.EventStamp(item).getMaster().itsItem
 
-    if not hasattr(item, 'appearsIn'):
-        return () # we won't be visible if this happens.
+    sidebar = schema.ns('osaf.app', item.itsView).sidebarCollection
+    names = [c.displayName for c in getattr(item, 'appearsIn', ())
+             if hasattr(c, 'displayName') and c in sidebar]
+    names.sort()
 
-    # Collect the names and join them into a list
-    collectionNames = _(", ").join(sorted(coll.displayName 
-                                          for coll in item.appearsIn
-                                          if hasattr(coll, 'displayName')))
-    return collectionNames
+    return _(", ").join(names)
 
 class AppearsInAEBlock(DetailSynchronizedAttributeEditorBlock):
     def shouldShow(self, item):

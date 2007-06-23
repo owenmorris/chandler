@@ -1439,10 +1439,6 @@ class SidebarBranchPointDelegate(BranchPoint.BranchPointDelegate):
         try:
             view = self.itsView
 
-            # make sure all changes are searchable
-            view.commit()
-            view.repository.notifyIndexer(True)
-
             quickEntryBlock = Block.Block.findBlockByName ("ApplicationBarQuickEntry")
             results = view.searchItems (quickEntryBlock.lastSearch)
 

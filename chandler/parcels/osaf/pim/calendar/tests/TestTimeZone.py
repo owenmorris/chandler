@@ -118,8 +118,8 @@ class PersistenceTestCase(SingleRepositoryTestCase):
         defaultTzItem = TimeZoneInfo.get(view)
 
         # - Change the default DefaultTimeZone
-        defaultTzItem.default = self.view.tzinfo.GMT
-        self.failUnlessEqual(defaultTzItem.default, self.view.tzinfo.GMT)
+        defaultTzItem.default = view.tzinfo.GMT
+        self.failUnlessEqual(defaultTzItem.default, view.tzinfo.GMT)
         # - Save the repo
         view.commit()
 
@@ -129,16 +129,14 @@ class PersistenceTestCase(SingleRepositoryTestCase):
         # - Reopen the repo
         self.reopenRepository()  # commits changes, including tzinfo.default
         view = self.view
-        self.manager = None
 
         # - Now check the default timezone
         defaultTzItem = TimeZoneInfo.get(view)
         # ... see that it changed to what's in the repo
-        self.failUnlessEqual(self.view.tzinfo.getInstance("America/Los_Angeles"),
+        self.failUnlessEqual(view.tzinfo.getInstance("America/Los_Angeles"),
                              defaultTzItem.default)
         # ... and make sure it is still the default!
-        self.failUnlessEqual(defaultTzItem.default,
-                             self.view.tzinfo.default)
+        self.failUnlessEqual(defaultTzItem.default, view.tzinfo.default)
         
     def testTimezoneConversion(self):
         """
