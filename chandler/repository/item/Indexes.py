@@ -398,6 +398,9 @@ class SortedIndex(DelegatingIndex):
         if self._subIndexes:
             kwds['subindexes'] = self._subIndexes
 
+        if self._nodefer:
+            kwds['nodefer'] = True
+
         return kwds
 
     def compare(self, k0, k1, vals):
