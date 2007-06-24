@@ -327,6 +327,13 @@ def applyToEntry(rv, diff, entry):
                 endTime = startTime + duration
                 entry.when[0].end_time = endTime.isoformat()
 
+            elif r.duration not in NONCHANGES:
+                # Duration changed but start time didn't; get start time from
+                # the entry and calculate new end time
+                startTime = whenToDatetime(rv, entry.when[0].start_time)
+                duration = sharing.fromICalendarDuration(r.duration)
+                endTime = startTime + duration
+                entry.when[0].end_time = endTime.isoformat()
 
 
 
