@@ -352,7 +352,11 @@ def initOptions(**kwds):
         for name, (shortCmd, longCmd, optionType, defaultValue,
                    environName, helpText) in COMMAND_LINE_OPTIONS.iteritems():
             if name in prefs and getattr(options, name) == defaultValue:
-                setattr(options, name, prefs[name])
+                if optionType == 'b':
+                    value = prefs[name] in ('True', 'true')
+                else:
+                    value = prefs[name]
+                setattr(options, name, value)
 
     # Resolve pluginPath relative to chandlerDirectory
     chandlerDirectory = locateChandlerDirectory()
