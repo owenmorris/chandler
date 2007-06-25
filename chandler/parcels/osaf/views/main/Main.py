@@ -262,7 +262,6 @@ class MainView(View):
 
         text = getattr (quickEntryBlock, "lastText", None)
         sidebar = Block.findBlockByName ("Sidebar")
-        sidebar.setShowSearch (text is not None)
 
         if text is None:
             text = _(u"/find ")

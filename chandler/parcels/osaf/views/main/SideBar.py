@@ -914,10 +914,9 @@ class SidebarBlock(Table):
         self.setPreferredClass(event.classParameter)
 
     def setShowSearch(self, showSearch):
-        if self.showSearch != showSearch:
-            self.showSearch = showSearch
-            self.postEventByName("SelectItemsBroadcast",
-                                 {'items':list(self.contents.iterSelection())})
+        self.showSearch = showSearch
+        self.postEventByName("SelectItemsBroadcast",
+                             {'items':list(self.contents.iterSelection())})
 
     def setPreferredClass(self, filterClass, keepMissing=False):
         if (self.filterClass != filterClass and
