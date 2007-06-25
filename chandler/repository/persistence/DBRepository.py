@@ -31,6 +31,7 @@ from repository.schema.TypeHandler import TypeHandler
 from repository.persistence.Repository import \
     Repository, OnDemandRepository, Store, RepositoryThread
 from repository.persistence.RepositoryError import *
+from repository.persistence.RepositoryView import otherViewWins
 from repository.persistence.DBRepositoryView import DBRepositoryView
 from repository.persistence.DBContainer import \
     RefContainer, NamesContainer, ACLContainer, IndexesContainer, \
@@ -1535,7 +1536,10 @@ class DBIndexerThread(RepositoryThread):
                 if indexVersion < latestVersion:
                     if view is None:
                         view = repository.createView("Lucene", pruneSize=400,
-                                                     notify=False)
+                                                     mergeFn=otherViewWins,
+                                                     notify=False,
+                                                     timezone=Default,
+                                                     ontzchange=Nil)
                     while indexVersion < latestVersion:
                         view.refresh(version=indexVersion + 1)
                         self._indexVersion(view, indexVersion + 1, store)
