@@ -28,6 +28,7 @@ import zanshin, twisted.web.http
 from xml.etree.cElementTree import XML
 from i18n import ChandlerMessageFactory as _
 from osaf.pim.calendar.TimeZone import serializeTimeZone
+import time
 
 import logging
 
@@ -359,3 +360,14 @@ class CalDAVRecordSetConduit(webdav_conduit.WebDAVRecordSetConduit):
 
     def getPath(self, uuid):
         return "%s.ics" % uuid
+
+
+    def putResource(self, text, path, etag=None, debug=False):
+        resource = self._resourceFromPath(path)
+        start = time.time()
+        self._getServerHandle().blockUntil(resource.put, text,
+            checkETag=False, contentType="text/calendar")
+        end = time.time()
+        self.networkTime += (end - start)
+        return resource.etag.strip('"') # .mac puts quotes around the etag
+
