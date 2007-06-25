@@ -749,10 +749,16 @@ class RecordSetConduit(conduits.BaseConduit):
                 item not in self.share.contents and
                 alias not in remotelyRemoved):
                 if send:
-                    toSend[alias] = None
+                    if not state.isNew():
+                        # Only send a removal for a state that isn't new
+                        toSend[alias] = None
+                        doLog("Remotely removing item: %s", alias)
+                    else:
+                        doLog("Never got a chance to send: %s", alias)
+                        if alias in toSend:
+                            del toSend[alias]
                 statesToRemove.add(alias)
 
-                doLog("Remotely removing item: %s", alias)
 
         removeCount = len(statesToRemove)
         if removeCount:
