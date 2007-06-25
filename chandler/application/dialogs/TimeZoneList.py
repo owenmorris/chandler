@@ -21,6 +21,7 @@ import bisect
 
 #import application.Globals as Globals
 from osaf.pim.calendar.TimeZone import TimeZoneInfo
+import PyICU
 
 def pickTimeZone(view, changeDefaultTZ=False):
     dlg = TimeZoneChooser(view)
