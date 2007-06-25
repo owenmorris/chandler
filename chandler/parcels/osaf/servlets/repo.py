@@ -1266,7 +1266,7 @@ def RenderObject(repoView, theObject, objectPath, label="Object"):
             except Exception, e:
                 result += "<b>(%s)</b> " % e
 
-        if isinstance(value, list):
+        if isinstance(value, list) or value.__class__.__name__ == "WindowList":
             results = []
             for i in range(len(value)):
                 v = value[i]

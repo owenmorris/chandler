@@ -726,17 +726,6 @@ class LocationAttributeEditor (StringAttributeEditor):
                 return # no change
             setattr (item, attributeName, newValue)
         
-    def CreateControl (self, forEditing, readOnly, parentWidget, 
-                       id, parentBlock, font):
-        control = super(LocationAttributeEditor, self).\
-                CreateControl(forEditing, readOnly, parentWidget,
-                              id, parentBlock, font)
-        if not readOnly:
-            editControl = forEditing and control or control.editControl
-            editControl.Bind(wx.EVT_KEY_UP, self.onKeyUp)
-            editControl.Bind(wx.EVT_KEY_DOWN, self.onKeyDown)
-        return control
-
     def generateCompletionMatches(self, target):
         view = wx.GetApp().UIRepositoryView
         target = UnicodeString(target).toLower()

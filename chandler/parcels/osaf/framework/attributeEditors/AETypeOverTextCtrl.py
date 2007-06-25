@@ -71,11 +71,12 @@ class AETypeOverTextCtrl(wxRectangularChild):
 
         assert maxLineCount > 0
         size.height *= maxLineCount
+        editStyle = style | wx.WANTS_CHARS
         if maxLineCount > 1:
-            style |= wx.TE_MULTILINE|wx.TE_AUTO_SCROLL
+            editStyle |= wx.TE_MULTILINE|wx.TE_AUTO_SCROLL
 
         editControl = DragAndDropTextCtrl(self, -1, pos=position, size=size, 
-                                          style=style, *args, **keys)
+                                          style=editStyle, *args, **keys)
         self.editControl = editControl
         editControl.Bind(wx.EVT_KILL_FOCUS, self.OnEditLoseFocus)
         editControl.Bind(wx.EVT_SET_FOCUS, self.OnEditGainFocus)
