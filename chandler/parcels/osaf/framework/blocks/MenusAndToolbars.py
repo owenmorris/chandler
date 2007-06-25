@@ -139,6 +139,7 @@ class wxMenuItem (wx.MenuItem):
                 title = title + '\t' + accel
                 
             self.SetText (title)
+        self.SetHelp(blockItem.helpString)
         theApp.needsUpdateUI = True
 
 class Menu (MenuItem):
