@@ -417,7 +417,8 @@ class wxApplication (wx.App):
         # so it has a fighting chance of detecting the first run after a new install.
         if shouldMigrateOldRepository(options, repoDir):
             if not showMigrationWindow():
-                raise Utility.MigrationReloadRequestedError
+                self.exitValue = 1
+                return True
 
         try:
             from application.dialogs.GetPasswordDialog import getPassword
@@ -1348,24 +1349,14 @@ def shouldMigrateOldRepository(options, repoDir):
     """
     Check to see if Chandler is starting for the first time.
     If it is and we can locate another Chandler's repository, prompt the user to check
-    if they want to migrate the previous data
+    if they want to migrate the previous data.
     
-    The profile directory should always exist as it's created before this call
+    The profile directory should always exist as it's created before this call.
     """
     migrate = False
 
-    #                   does repoDir exist?  options.create?  other profile dir?  migrate?
-    # first no prev     False                False            False               no
-    # first no prev     False                True             False               no
-    # second no prev    True                 False            False               no
-    # second no prev    True                 True             False               no
-    # first w/prev      False                False            True                yes
-    # first w/prev      False                True             True                yes
-    # second w/prev     True                 False            True                no
-    # second w/prev     True                 True             True                no
-
     if not options.reload and not options.profileDirWasPassedIn and \
-       not (os.path.isdir(repoDir) and options.create):
+       not (os.path.isdir(repoDir) or options.create):
         # Scan the parent directory of the chandler profile directory for
         # version-named directories.  Any directories found, minus the current
         # directory name, means another Chandler repository is available.

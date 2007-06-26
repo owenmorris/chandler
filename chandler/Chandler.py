@@ -79,6 +79,10 @@ def main():
         
         app = wxApplication(redirect=redirect, useBestVisual=useBestVisual)
 
+        exitValue = getattr(app, 'exitValue', 0)
+        if exitValue:
+            return exitValue
+
         app.MainLoop()
 
         return getattr(app, 'exitValue', 0)

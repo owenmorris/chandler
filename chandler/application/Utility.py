@@ -902,8 +902,3 @@ class SchemaMismatchError(Exception):
     """
     pass
 
-class MigrationReloadRequestedError(Exception):
-    """
-    The user has requested the app to exit to allow for data migration.
-    """
-    pass
