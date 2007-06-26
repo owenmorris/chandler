@@ -983,8 +983,6 @@ class CalendarNotificationHandler(object):
             
             if existingChange is None:
                 self._pending[uuid] = op
-            elif existingChange is 'changed':
-                pass # changed wins, do nothing
             elif op == 'add':
                 self._pending[uuid] = op
             elif op == 'remove':
@@ -993,7 +991,9 @@ class CalendarNotificationHandler(object):
                 else: # i.e. 'change'
                     self._pending[uuid] = op
             elif op == 'changed':
-                self._pending[uuid] = op
+                pass
+                # we know existingChange is 'add' or 'remove', but really
+                # we want those to prevail.
                 
             blockItem.markDirty()
 

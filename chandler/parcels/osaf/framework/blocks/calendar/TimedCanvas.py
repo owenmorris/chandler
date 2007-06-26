@@ -166,6 +166,13 @@ class wxTimedEventsCanvas(BaseWidget, wxCalendarCanvas):
                 elif op == 'change':
                     something_changed = True
 
+                elif op == 'add' and Calendar.isRecurring(event):
+                    # creating a new modification will add that occurrence
+                    # to the collection, so even though it's a change, it's
+                    # seen as an add, so in this case the add is really a change
+                    # bug 9648
+                    something_changed = True
+
                 self.MakeOneCanvasItem(event)
 
 
