@@ -231,7 +231,7 @@ def checkOptions(options):
             options.runchandler[mode] = [os.path.join(options.chandlerBin, mode, 'RunPython'), '-O', 'Chandler.py']
         else:
             options.runpython[mode]   = [os.path.join(options.chandlerBin, mode, 'RunPython')]
-            options.runchandler[mode] = [os.path.join(options.chandlerHome, mode, chandlerBinaries[mode])]
+            options.runchandler[mode] = [os.path.join(options.chandlerHome, chandlerBinaries[mode])]
 
     if options.noEnv:
         for item in _ignoreEnvNames:
