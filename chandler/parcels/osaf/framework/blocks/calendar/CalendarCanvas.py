@@ -979,10 +979,12 @@ class CalendarNotificationHandler(object):
                 if not meaningful_change:
                     # don't bother marking as dirty for changes to attributes
                     # that don't affect rendering 
-                    return            
+                    return
             
             if existingChange is None:
                 self._pending[uuid] = op
+            elif existingChange is 'changed':
+                pass # changed wins, do nothing
             elif op == 'add':
                 self._pending[uuid] = op
             elif op == 'remove':
@@ -991,9 +993,7 @@ class CalendarNotificationHandler(object):
                 else: # i.e. 'change'
                     self._pending[uuid] = op
             elif op == 'changed':
-                pass
-                # we know existingChange is 'add' or 'remove', but really
-                # we want those to prevail.
+                self._pending[uuid] = op
                 
             blockItem.markDirty()
 
