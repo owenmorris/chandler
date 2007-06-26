@@ -1056,7 +1056,8 @@ class Timer(Block):
                     when = datetime.now(view.tzinfo.default) + when
             else:
                 td = (when - datetime.now(view.tzinfo.default))
-            millisecondsUntilFiring = ((td.days * 86400) + td.seconds) * 1000L
+            millisecondsUntilFiring = (((td.days * 86400) + td.seconds) * 1000L
+                                        + td.microseconds // 1000L)
             if millisecondsUntilFiring < 100:
                 millisecondsUntilFiring = 100
             elif millisecondsUntilFiring > sys.maxint:
