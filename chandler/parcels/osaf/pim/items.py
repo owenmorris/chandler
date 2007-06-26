@@ -474,8 +474,7 @@ class ContentItem(Triageable):
 
 
     def _updateCommonAttribute(self, attributeName, sourceAttributeName,
-                               collectorMethod, args=None, default=Nil, 
-                               picker=None):
+                               collectorMethod, args=None):
         """
         Mechanism for coordinating updates to a common-display field
         (like displayWho and displayDate, but not displayName for now).
@@ -505,29 +504,18 @@ class ContentItem(Triageable):
         # Now that we have the contenders, pick one.
         contenderCount = len(contenders)
         if contenderCount == 0:
-            # No contenders: set the default, or delete the value if we don't
-            # have one.
-            if default is Nil:
-                if hasattr(self, attributeName):
-                    delattr(self, attributeName)
-            else:
-                setattr(self, attributeName, default)
-            setattr(self, sourceAttributeName, '')
+            # No contenders: delete the value
+            if hasattr(self, attributeName):
+                delattr(self, attributeName)
+            if hasattr(self, sourceAttributeName):
+                delattr(self, sourceAttributeName)
             logger.debug("No relevant %s for %r %s", attributeName, self, self)
             return
-        elif contenderCount == 1:
-            # We have exactly one possibility; just use it.
-            result = contenders[0]
-        else:
-            # More than one: pick and choose.
-            if picker:
-                # Let the picker sort and choose
-                result = picker(contenders)
-            else:
-                # No picker - use the first one.
-                contenders.sort()
-                result = contenders[0]
-
+        
+        if contenderCount > 1:
+            # We have more than one possibility: sort, then we'll use the first one.
+            contenders.sort()        
+        result = contenders[0]
         logger.debug("Relevant %s for %r %s is %s", attributeName, self, self, result)
         assert result[-2] is not None
         setattr(self, attributeName, result[-2])
