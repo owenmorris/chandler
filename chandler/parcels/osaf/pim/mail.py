@@ -2136,12 +2136,10 @@ Issues:
         if len(label) == 0:
             # no fullname - show the email account part, if it looks like
             # an email address
+            label = self.emailAddress
             atIndex = label.find(_(u"@"))
             if atIndex != -1:
                 label = label[:atIndex]
-            else:
-                # otherwise, we use the whole thing.
-                label = unicode(self)
         return label
 
     def isValid(self):
