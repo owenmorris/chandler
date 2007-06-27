@@ -362,7 +362,8 @@ Importing:
 Exporting:
 
     >>> t.startExport()
-    >>> records = [r for r in t.exportItem(item) if isinstance(r, sharing.model.EventRecord)]
+    >>> allRecords = list(t.exportItem(item))
+    >>> records = [r for r in allRecords if isinstance(r, sharing.model.EventRecord)]
     >>> len(records) == 1
     True
     >>> record = records[0]
@@ -374,6 +375,17 @@ Exporting:
     u';VALUE=DATE-TIME;TZID=America/Los_Angeles:20070223T140000,20070225T140000'
     >>> record.exdate
     u';VALUE=DATE-TIME;TZID=America/Los_Angeles:20070206T140000'
+    
+Triage status isn't meaningful for master events, so it should be NoChange for
+the recurrence master.
+
+    >>> itemRecords = [r for r in allRecords if isinstance(r, sharing.model.ItemRecord)]
+    >>> len(itemRecords) == 1
+    True
+    >>> itemRecord = itemRecords[0]
+    >>> itemRecord.triage
+    NoChange
+
 
 Modifications
 - - - - - - -
@@ -417,6 +429,9 @@ Importing:
 
 Exporting:
 
+    >>> mod.itsItem.setTriageStatus(pim.TriageEnum.done)
+    >>> mod.itsItem.resetAutoTriageOnDateChange()
+
     >>> t.startExport()
     >>> records = list(t.exportItem(mod.itsItem))
     >>> event_records = [r for r in records if isinstance(r, sharing.model.EventRecord)]
@@ -433,6 +448,8 @@ Exporting:
     >>> item_record = item_records[0]
     >>> item_record.title
     u'Changed title'
+    >>> item_record.triage
+    '300 ... 0'
     
 Custom Reminders
 - - - - - - - - 
