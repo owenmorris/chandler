@@ -59,6 +59,7 @@ int APIENTRY WinMain (HINSTANCE hInstance,
     CString             commandLine;
     int                 index;
     DWORD               length;
+    DWORD               exitCode = EXIT_FAILURE;
     CString             pathToPython;
     CString             chandlerHome;
     CString             pathToExe;
@@ -171,7 +172,11 @@ int APIENTRY WinMain (HINSTANCE hInstance,
                              LPSTR (LPCSTR (chandlerHome)), // Launch in the chandlerHome directory
                              &startupInfo,                  // Startup Information
                              &processInfo);                 // Process information stored upon return
-    if (!success) {
+    if (success) {
+        WaitForSingleObject(processInfo.hProcess, INFINITE);
+
+        GetExitCodeProcess(processInfo.hProcess, &exitCode);
+    } else {
         int error = GetLastError();
         CString  message;
 
@@ -184,5 +189,5 @@ int APIENTRY WinMain (HINSTANCE hInstance,
         MessageBox(NULL, message, _T("Unexpected Error"), MB_OK);
     }
 
-    return EXIT_SUCCESS;
+    return exitCode;
 }
