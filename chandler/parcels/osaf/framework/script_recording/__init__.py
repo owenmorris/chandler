@@ -24,6 +24,9 @@ from osaf.views.detail import DetailSynchronizedAttributeEditorBlock
 from osaf.framework.script_recording.Scripts import ScriptsMenu
 
 wxEventClasseInfo = {wx.CommandEvent: {"attributes": ()},
+                     wx.grid.GridEvent: {"attributes": ("Col",
+                                                        "Position",
+                                                        "Row")},
                      wx.MouseEvent: {"attributes": ("m_altDown",
                                                     "m_controlDown",
                                                     "m_leftDown",
@@ -46,26 +49,27 @@ wxEventClasseInfo = {wx.CommandEvent: {"attributes": ()},
                                                   "m_y",
                                                   "UnicodeKey")} }
 
-wxEventTypes = ("EVT_MENU",
-                "EVT_KEY_DOWN",
-                "EVT_LEFT_DOWN",
-                "EVT_LEFT_UP",
-                "EVT_RIGHT_DOWN",
-                "EVT_LEFT_DCLICK",
-                "EVT_RIGHT_DCLICK",
-                "EVT_CHAR",
-                "EVT_CHOICE",
-                "EVT_SCROLLWIN_LINEUP",
-                "EVT_SCROLLWIN_LINEDOWN",
-                "EVT_SCROLLWIN_PAGEUP",
-                "EVT_SCROLLWIN_PAGEDOWN",
-                "EVT_SCROLLWIN_THUMBTRACK",
-                "EVT_SCROLLWIN_THUMBRELEASE",
+wxEventTypes = ("wx.EVT_MENU",
+                "wx.EVT_KEY_DOWN",
+                "wx.EVT_LEFT_DOWN",
+                "wx.EVT_LEFT_UP",
+                "wx.EVT_RIGHT_DOWN",
+                "wx.EVT_LEFT_DCLICK",
+                "wx.EVT_RIGHT_DCLICK",
+                "wx.EVT_CHAR",
+                "wx.EVT_CHOICE",
+                "wx.grid.EVT_GRID_LABEL_LEFT_CLICK",
+                "wx.EVT_SCROLLWIN_LINEUP",
+                "wx.EVT_SCROLLWIN_LINEDOWN",
+                "wx.EVT_SCROLLWIN_PAGEUP",
+                "wx.EVT_SCROLLWIN_PAGEDOWN",
+                "wx.EVT_SCROLLWIN_THUMBTRACK",
+                "wx.EVT_SCROLLWIN_THUMBRELEASE",
 
-                "EVT_ACTIVATE",
-                "EVT_SET_FOCUS",
-                "EVT_BUTTON",
-                "EVT_CHECKBOX")
+                "wx.EVT_ACTIVATE",
+                "wx.EVT_SET_FOCUS",
+                "wx.EVT_BUTTON",
+                "wx.EVT_CHECKBOX")
 
 ignoreBlocks = set (("RecordingMenuItem",
                      "IncludeTeststMenuItem"))
@@ -81,15 +85,34 @@ def getClassName (theClass):
 
 for (theClass, values) in wxEventClasseInfo.iteritems():
     values ["className"] = getClassName (theClass)
-    newInstance = theClass()
+    
     defaultValues = []
+
+    try:
+        newInstance = theClass()
+    except TypeError:
+        # wx.grid.GridEvent events can't be constructed without extra arguments
+        # and don't have setters to correspond to their getters.
+        newInstance = None
+
     for attribute in values ["attributes"]:
-        defaultValues.append (getattr (newInstance, attribute))
+        defaultValues.append (getattr (newInstance, attribute, 0))
+            
     values ["defaultValues"] = defaultValues    
 
 for eventTypeName in wxEventTypes:
-    eventType = wx.__dict__[eventTypeName]
-    wxEventTypeReverseMapping [eventType.evtType[0]] = "wx." + eventTypeName
+    dot = eventTypeName.rfind ('.')
+    moduleName = eventTypeName [0:dot]
+    eventName = eventTypeName [dot+1:]
+    
+    # Unfortunately, __import__ returns the top level module
+    module = __import__ (moduleName)    
+    components = moduleName.split('.')
+    for component in components[1:]:
+        module = getattr(module, component)
+
+    eventType = getattr (module, eventName)
+    wxEventTypeReverseMapping [eventType.evtType[0]] = eventTypeName
 
 class Controller (Block.Block):
     """

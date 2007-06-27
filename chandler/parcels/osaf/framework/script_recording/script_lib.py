@@ -17,7 +17,7 @@ from osaf.framework.blocks.Block import Block
 from application.Application import stringToId
 from osaf.framework.attributeEditors.AETypeOverTextCtrl import AETypeOverTextCtrl
 
-def ProcessEvent (theClass, properties , attributes):
+def ProcessEvent (theClass, properties, attributes):
     def NameToWidget (name):
         """
         Given a name, returns the corresponding widget.
@@ -46,15 +46,12 @@ def ProcessEvent (theClass, properties , attributes):
         return sentTo
 
     application = wx.GetApp()
-    event = theClass()
-    
-    for (attribute, value) in attributes.iteritems():
-        setattr (event, attribute, value)
-    
+
     sentToWidget = NameToWidget (properties ["sentTo"])
     
     assert (isinstance (sentToWidget, wx.Window) or
             isinstance (sentToWidget, wx.Menu) or
+            isinstance (sentToWidget, wx.MenuItem) or
             isinstance (sentToWidget, wx.ToolBarTool))
     
     if isinstance (sentToWidget, wx.ToolBarTool):
@@ -66,8 +63,28 @@ def ProcessEvent (theClass, properties , attributes):
             if isinstance (sentToWidget, wx.SearchCtrl):
                 sentToWidget = sentToWidget.GetChildren()[0]
 
-    event.SetEventObject (sentToWidget)
+    elif isinstance (sentToWidget, wx.MenuItem):
+        assert sentToWidget.IsSubMenu()
+        sentToWidget = sentToWidget.GetSubMenu()
+
     eventType = properties["eventType"]
+
+    if theClass is not wx.grid.GridEvent:
+        event = theClass()
+        for (attribute, value) in attributes.iteritems():
+            setattr (event, attribute, value)
+    else:
+        # Unfortunately, wx.grid.GridEvent doesn't have setters and getters. Eventually
+        # I will add this to wxWidgets and remove this special case code -- DJA
+        position = attributes ["Position"]
+        event = wx.grid.GridEvent (-1,
+                                   eventType.evtType[0],
+                                   Block.findBlockByName (properties ["sentTo"]).widget,
+                                   row = attributes ["Row"],
+                                   col = attributes ["Col"],
+                                   x = position [0], y = position [1])
+
+    event.SetEventObject (sentToWidget)
     event.SetEventType (eventType.evtType[0])
 
     # Use the associated window if present to set the Id of the event

@@ -325,8 +325,8 @@ class wxTable(DragAndDrop.DraggableWidget,
             selectionChanged = False
 
             if event.Selecting():
-                if -1 not in (indexStart, indexEnd) and \
-                   not contents.isSelected((indexStart, indexEnd)):
+                if (-1 not in (indexStart, indexEnd) and
+                    not contents.isSelected((indexStart, indexEnd))):
                     selectionChanged = True
                     contents.addSelectionRange((indexStart, indexEnd))
             elif (firstRow == 0 and lastRow != 0 
@@ -347,7 +347,8 @@ class wxTable(DragAndDrop.DraggableWidget,
                     selectionChanged = True
                     
                 # we always want to remove the old selection
-                contents.removeSelectionRange((indexStart, indexEnd))
+                if indexEnd >= 0:
+                    contents.removeSelectionRange((indexStart, indexEnd))
                     
             # possibly broadcast the "new" selection
             if selectionChanged and postSelection:
