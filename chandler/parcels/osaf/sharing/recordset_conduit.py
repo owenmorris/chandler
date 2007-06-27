@@ -34,6 +34,7 @@ __all__ = [
     'InMemoryDiffRecordSetConduit',
     'InMemoryMonolithicRecordSetConduit',
     'InMemoryResourceRecordSetConduit',
+    'hasChanges',
 ]
 
 
@@ -1347,6 +1348,15 @@ def findMatch(record, recordSet):
             return cls(*data)
 
     return None
+
+
+def hasChanges(record, filteredFieldList):
+    for f in type(record).__fields__:
+        if not isinstance(f, eim.key) and \
+            f.name not in filteredFieldList and \
+            f.__get__(record) is not eim.NoChange:
+            return True
+    return False
 
 
 def prettyPrintRecordSetDict(d):

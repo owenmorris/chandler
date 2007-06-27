@@ -937,3 +937,19 @@ For testing, you can generate fake conflicts::
     >>> shared1.generateConflicts()
     >>> sharing.hasConflicts(item1)
     True
+
+
+
+
+hasChanges(record, filteredFields=None) returns True if the given record
+contains any non NoChange values in fields other than those named in
+filteredFields::
+
+    >>> rec = sharing.model.ItemRecord('8501de14-1dc9-40d4-a7d4-f289feff8214', nc, u'100 123456789.12 1', nc, nc, nc, nc)
+    >>> sharing.hasChanges(rec, ["triage"])
+    False
+    
+    >>> rec = sharing.model.ItemRecord('8501de14-1dc9-40d4-a7d4-f289feff8214', u'Welcome to Cosmo', u'100 123456789.12 1', decimal.Decimal("1164803131"), 0, 0, 0)
+    >>> sharing.hasChanges(rec, ["triage"])
+    True
+
