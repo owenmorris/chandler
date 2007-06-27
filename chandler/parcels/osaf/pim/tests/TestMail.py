@@ -248,7 +248,7 @@ class MailWhoTestCase(TestDomainModel.DomainModelTestCase):
 
         # Make sure the 'displayWho' field was set correctly
         self.failUnlessEqual(msg.itsItem.displayWho,
-                             u"Grant Baillie <grant@example.com>")
+                             u"Grant Baillie")
 
          # Now, remove the stamp...
         msg.remove()

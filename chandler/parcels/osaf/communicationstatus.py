@@ -177,7 +177,7 @@ class CommunicationStatus(schema.Annotation):
         commState = CommunicationStatus.getItemCommState(self.itsItem)
         lastModifiedBy = self.itsItem.lastModifiedBy
         if lastModifiedBy is not None:
-            lastModifiedBy = unicode(lastModifiedBy)
+            lastModifiedBy = lastModifiedBy.getLabel()
             if commState & (CommunicationStatus.EDITED | CommunicationStatus.UPDATE):
                 lastMod = self.itsItem.lastModification
                 if lastMod == Modification.edited:
@@ -193,19 +193,19 @@ class CommunicationStatus(schema.Annotation):
             preferFrom = (commState & CommunicationStatus.OUT) == 0            
             toAddress = getattr(msg, 'toAddress', schema.Nil)
             if len(toAddress) > 0:
-                toText = u", ".join(unicode(x) for x in toAddress)
+                toText = u", ".join(x.getLabel() for x in toAddress)
                 if len(toText) > 0:
                     whos.append((preferFrom and 4 or 2, toText, 'to'))
 
             originators = getattr(msg, 'originators', schema.Nil)
             if len(originators) > 0:
-                originatorsText = u", ".join(unicode(x) for x in originators)
+                originatorsText = u", ".join(x.getLabel() for x in originators)
                 if len(originatorsText) > 0:
                     whos.append((preferFrom and 2 or 3, originatorsText, 'from'))
     
             fromAddress = getattr(msg, 'fromAddress', None)
             if fromAddress is not None:
-                fromText = unicode(fromAddress)
+                fromText = fromAddress.getLabel()
                 if len(fromText) > 0:
                     whos.append((preferFrom and 3 or 4, fromText, 'from'))
 

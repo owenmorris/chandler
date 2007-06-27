@@ -161,19 +161,7 @@ class ContentItem(Triageable):
             
         user = self.lastModifiedBy
         if user:
-            # Show the fullname if we have it
-            userLabel = unicode(user.fullName)
-            if len(userLabel) == 0:
-                # no fullname - show the email account part, if it looks like
-                # an email address
-                atIndex = userLabel.find(_(u"@"))
-                if atIndex != -1:
-                    userLabel = userLabel[:atIndex]
-                else:
-                    # otherwise, we use the whole thing.
-                    userLabel = unicode(user)
-                
-            result = fmt % dict(user=userLabel, date=date, tz=tzName)
+            result = fmt % dict(user=user.getLabel(), date=date, tz=tzName)
         else:
             result = noUserFmt % dict(date=date, tz=tzName)
         return result.strip()

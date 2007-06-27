@@ -2126,6 +2126,24 @@ Issues:
 
         return self.emailAddress
 
+    def getLabel(self):
+        """ 
+        Get a possibly-shortened version of this address;
+        used in the byline and "Who" column.
+        """        
+        # Use the fullname if we have it
+        label = unicode(self.fullName)
+        if len(label) == 0:
+            # no fullname - show the email account part, if it looks like
+            # an email address
+            atIndex = label.find(_(u"@"))
+            if atIndex != -1:
+                label = label[:atIndex]
+            else:
+                # otherwise, we use the whole thing.
+                label = unicode(self)
+        return label
+
     def isValid(self):
         """ See if this address looks valid. """
 
