@@ -503,7 +503,7 @@ class RecordSetConduit(conduits.BaseConduit):
                             "changes: %s", masterAlias, alias)
                         toSendBack.add(masterAlias)
 
-                elif getattr(changedItem, 'inheritTo', False):
+                elif changedItem.hasLocalAttributeValue('inheritTo'):
                     # This is a master
                     if alias in remotelyRemoved:
                         toSendBack.add(alias)
@@ -633,8 +633,13 @@ class RecordSetConduit(conduits.BaseConduit):
                     item = rv.findUUID(uuid)
                 else:
                     item = None
-
-                if item is not None:
+                    
+                # don't treat changes to recurrence master's triage status as
+                # real changes, bug 9643
+                if (item is not None and
+                     (not item.hasLocalAttributeValue('inheritTo') or
+                      len(rs.inclusions) != 1 or
+                      hasChanges(list(rs.inclusions)[0], ['triage']))):
                     # Set triage status, based on the values we loaded
                     # We'll only autotriage if we're not sharing triage status;
                     # We'll only pop to Now if this is an established share.
@@ -647,6 +652,10 @@ class RecordSetConduit(conduits.BaseConduit):
                     if newTriageStatus or established:
                         pim.setTriageStatus(item, newTriageStatus,
                             popToNow=established)
+                        if item.hasLocalAttributeValue('inheritTo'):
+                            logger.info("Moved recurrence series %s to NOW", alias)
+                        else:
+                            logger.info("Moved single item %s to NOW", alias)
 
                     # Per bug 8809:
                     # Set "read" state to True if this is an initial subscribe

@@ -679,7 +679,10 @@ class SharingTranslator(eim.Translator):
         # For modifications, treat triage status as Inherit if it
         # matches its automatic state
         doATODC = getattr(item, "doAutoTriageOnDateChange", True)
-        if (not isinstance(item, Occurrence) or not doATODC or 
+        if item.hasLocalAttributeValue('inheritTo'):
+            # recurrence masters don't have a meaningful triage status
+            triage = eim.NoChange
+        elif (not isinstance(item, Occurrence) or not doATODC or 
             EventStamp(item).autoTriage() != item._triageStatus):
 
             tsCode = self.triagestatus_to_code.get(item._triageStatus, "100")
