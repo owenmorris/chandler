@@ -10,10 +10,19 @@ then
     CHANDLERBIN=$CHANDLERHOME
 fi
 
-export LD_LIBRARY_PATH=$CHANDLERBIN/debug/db/lib:$CHANDLERBIN/debug/lib:$CHANDLERBIN/debug/icu/lib
-export PYTHONPATH=$CHANDLERHOME:$CHANDLERHOME/parcels:$CHANDLERHOME/plugins
-export PYTHONHOME=$CHANDLERBIN/debug
+export CHANDLERHOME
+export CHANDLERBIN
+
+export PYTHONPATH="$CHANDLERHOME:$CHANDLERHOME/parcels"
+export PYTHONHOME="$CHANDLERBIN"/debug
+export LD_LIBRARY_PATH="$CHANDLERBIN"/debug/lib:"$CHANDLERBIN"/debug/db/lib:"$CHANDLERBIN"/debug/icu/lib
+export LC_PATH="$CHANDLERBIN"/debug/share/locale
+
+if [ "$PARCELPATH" != "" ]
+then
+    export PYTHONPATH="$PYTHONPATH":"$PARCELPATH"
+fi
 
 cd $CHANDLERHOME
 
-$CHANDLERBIN/debug/bin/python_d Chandler.py $*
+"$CHANDLERBIN"/debug/bin/python_d Chandler.py "$@"
