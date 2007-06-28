@@ -309,15 +309,13 @@ class ReminderColumnAttributeEditor(attributeEditors.IconAttributeEditor):
         return None
 
     def advanceState(self, item, attributeName):
+        item = pim.CHANGE_THIS(item)
         # If there is one, remove the existing reminder
         if item.getUserReminder(expiredToo=False) is not None:
             item.userReminderTime = None
             return
 
         # No existing one -- create one.
-        # @@@ unless this is a recurring event, for now.
-        if pim.has_stamp(item, pim.EventStamp) and pim.EventStamp(item).isRecurring():
-            return # ignore the click.
         item.userReminderTime = pim.Reminder.defaultTime(item.itsView)
         
     def ReadOnly (self, (item, attribute)):
