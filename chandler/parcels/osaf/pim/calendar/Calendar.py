@@ -1131,6 +1131,29 @@ class EventStamp(Stamp):
 
         return event
 
+    def makeOrphan(self):
+        """
+        Take an existing recurrence modification, copy its attributes into a new
+        item, then delete the original modification.  Return the new orphan.
+        
+        """
+        master = getattr(self, 'occurrenceFor', None)
+
+        if master is None:
+            return None
+             
+        orphan = master.copy(cloudAlias='copying')
+        orphanEvent = EventStamp(orphan)
+        orphanEvent.startTime = self.startTime
+
+        for key, value in self.itsItem.iterModifiedAttributes():
+            setattr(orphan, key, value)
+
+        self._copyCollections(master, orphan)
+
+        self._safeDelete()
+        return orphan
+
     def getNextOccurrence(self, after=None, before=None):
         """Return the next occurrence for the recurring event self is part of.
 

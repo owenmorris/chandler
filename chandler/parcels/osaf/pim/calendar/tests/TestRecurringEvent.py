@@ -1494,7 +1494,56 @@ class RecurringEventTest(testcase.SingleRepositoryTestCase):
         
         self.failUnlessEqual(len(occurrences), 1)
         self.failUnlessEqual(occurrences[0].startTime, start)
+
+    def testMakeOrphan(self):
+        """
+        Make sure orphans have the appropriate attributes and stamps.
         
+        """
+        event = self.event
+        start = event.startTime
+
+        collection1 = ListCollection(itsParent=self.sandbox)
+
+        event.itsItem.displayName = uw('Master displayName')
+        event.itsItem.body = uw('Body of the master')
+        
+        collection1.add(event.itsItem)
+        TaskStamp(event).add()
+
+        ruleItem = RecurrenceRule(None, itsParent=self.sandbox, freq='weekly')
+        ruleSetItem = RecurrenceRuleSet(None, itsParent=self.sandbox)
+        ruleSetItem.addRule(ruleItem)
+        self.event.rruleset = ruleSetItem
+        
+        secondOccurrence = event.getFirstOccurrence().getNextOccurrence()
+        secondOccurrence.changeThis('displayName', uw('Modified'))
+        MailStamp(CHANGE_THIS(secondOccurrence)).add()
+        TaskStamp(CHANGE_THIS(secondOccurrence)).remove()
+
+        # create the orphan
+        orphan = secondOccurrence.makeOrphan()
+
+        # make sure it's not an Occurrence
+        self.assert_(not isinstance(orphan, Calendar.Occurrence))
+
+        # make sure it has the right stamps
+        self.assert_(has_stamp(orphan, EventStamp))
+        self.assert_(has_stamp(orphan, MailStamp))
+        self.failIf(has_stamp(orphan, TaskStamp))
+        
+        # the original item should be deleted
+        self.assert_(secondOccurrence.itsItem.isDeleted)
+        
+        self.assertEqual(getattr(orphan, 'inheritFrom', None), None)
+        self.assert_(not EventStamp(orphan).isGenerated)
+        
+        # collection membership should've been copied to the orphan
+        self.assert_(orphan in collection1)
+        
+        self.assertEqual(orphan.displayName, uw('Modified'))
+        self.assertEqual(orphan.body, uw('Body of the master'))
+
 
     def testDisplayDate(self):
         now = datetime.now(self.view.tzinfo.default)
