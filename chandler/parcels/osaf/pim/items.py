@@ -460,9 +460,8 @@ class ContentItem(Triageable):
                     sharingAccount.username)
         return me
 
-
     def _updateCommonAttribute(self, attributeName, sourceAttributeName,
-                               collectorMethod, args=None):
+                               collectorMethodName, args=()):
         """
         Mechanism for coordinating updates to a common-display field
         (like displayWho and displayDate, but not displayName for now).
@@ -471,6 +470,8 @@ class ContentItem(Triageable):
             return
         logger.debug("Collecting relevant %ss for %r %s",
                      attributeName, self, self)
+                     
+        collectorMethod = getattr(type(self), collectorMethodName)
 
         # Collect possible values. The collector method adds tuples to the
         # contenders list; each tuple starts with a value to sort by, and
@@ -487,7 +488,7 @@ class ContentItem(Triageable):
         # negative indexes (so contender[-2] is the value, contender[-1] is
         # the name).
         contenders = []
-        collectorMethod(contenders, *(args if args is not None else []))
+        collectorMethod(self, contenders, *args)
 
         # Now that we have the contenders, pick one.
         contenderCount = len(contenders)
@@ -508,12 +509,18 @@ class ContentItem(Triageable):
         assert result[-2] is not None
         setattr(self, attributeName, result[-2])
         setattr(self, sourceAttributeName, result[-1])
+        
+        if getattr(self, 'inheritFrom', None) is None:
+            for item in getattr(self, 'inheritTo', []):
+                item._updateCommonAttribute(attributeName, sourceAttributeName,
+                               collectorMethodName, args)
 
     def addDisplayWhos(self, whos):
         pass
 
     def updateDisplayWho(self, op, attr):
-        self._updateCommonAttribute('displayWho', 'displayWhoSource', self.addDisplayWhos)
+        self._updateCommonAttribute('displayWho', 'displayWhoSource',
+                                    'addDisplayWhos')
 
     def addDisplayDates(self, dates, now):
         super(ContentItem, self).addDisplayDates(dates, now)
@@ -526,7 +533,7 @@ class ContentItem(Triageable):
     def updateDisplayDate(self, op, attr):
         now = datetime.now(tz=self.itsView.tzinfo.default)
         self._updateCommonAttribute('displayDate', 'displayDateSource',
-                                    self.addDisplayDates, [now])
+                                    'addDisplayDates', [now])
 
     @schema.observer(modifiedFlags, lastModified, createdOn)
     def onCreatedOrLastModifiedChanged(self, op, attr):

@@ -1495,7 +1495,74 @@ class RecurringEventTest(testcase.SingleRepositoryTestCase):
         self.failUnlessEqual(len(occurrences), 1)
         self.failUnlessEqual(occurrences[0].startTime, start)
         
+
+    def testDisplayDate(self):
+        now = datetime.now(self.view.tzinfo.default)
+        twoDaysAgo = (datetime.now(self.view.tzinfo.default) -
+                      timedelta(days=2)).date()
+                      
+        event = Calendar.CalendarEvent(None, 
+            itsParent=self.sandbox,
+            startTime=datetime.combine(
+                          now.date() - timedelta(days=2),
+                          time(13, 15, tzinfo=self.view.tzinfo.default)
+                      ),
+            anyTime=False,
+        )
+        self.failUnlessEqual(event.itsItem.displayDateSource, 'startTime')
+
+
+        rule = RecurrenceRule(None, itsParent=self.sandbox, freq='weekly')
+        event.rruleset = RecurrenceRuleSet(None, itsParent=self.sandbox,
+                                           rrules=[rule])
+
+        first = event.getFirstOccurrence()
+        next = event.getNextOccurrence(after=now)
+        # Make sure these are modifications
+        self.failUnless(first.modificationFor is event.itsItem)
+        self.failUnless(next.modificationFor is event.itsItem)
         
+        # Now, give all events a relative reminder
+        CHANGE_ALL(event).userReminderInterval = timedelta(minutes=-10)
+        
+        # next is in the future, so its displayDateSource is reminder
+        self.failUnlessEqual(next.itsItem.displayDateSource, 'reminder')
+        # ... with its displayDate being the reminder fire datetime
+        self.failUnlessEqual(next.itsItem.displayDate,
+                             next.startTime + timedelta(minutes=-10))
+        # first is in the past, so its reminder is considered expired,
+        # and its displayDate is based off of startTime
+        self.failUnlessEqual(first.itsItem.displayDateSource, 'startTime')
+        self.failUnlessEqual(first.itsItem.displayDate, first.startTime)
+
+                             
+        # Make an after reminder everywhere
+        CHANGE_ALL(event).userReminderInterval = timedelta(minutes=30)
+        # That makes startTime occur before fire datetime, hence displayDate
+        # is equal to startTime
+        self.failUnlessEqual(next.itsItem.displayDateSource, 'startTime')
+        self.failUnlessEqual(next.itsItem.displayDate, next.startTime)
+        self.failUnlessEqual(first.itsItem.displayDateSource, 'startTime')
+        self.failUnlessEqual(first.itsItem.displayDate, first.startTime)
+        
+        # Now, make a THIS change to first's startTime, so that
+        # its reminder time is in the future, startTime in the past.
+        CHANGE_THIS(first).startTime = now - timedelta(minutes=15)
+        self.failUnlessEqual(first.itsItem.displayDateSource, 'reminder')
+        self.failUnlessEqual(first.itsItem.displayDate,
+                             first.startTime + timedelta(minutes=30))
+
+        # Check that, in the course of all this, we didn't accidentally
+        # assign a displayDate to a "pure" occurrence.
+        
+        occurrence = next
+        while occurrence and occurrence.modificationFor:
+            occurrence = occurrence.getNextOccurrence()        
+
+        
+        self.failIf(occurrence.itsItem.hasLocalAttributeValue('displayDate'))
+        self.failIf(occurrence.itsItem.hasLocalAttributeValue('displayDateSource'))
+
 
 class NaiveTimeZoneRecurrenceTest(testcase.SingleRepositoryTestCase):
     """Test of recurring events that have startTimes that occur on different
@@ -1625,7 +1692,6 @@ class TimeZoneEnabledRecurrenceTest(NaiveTimeZoneRecurrenceTest):
         occurrences = self.event.getOccurrencesBetween(rangeStart - oneWeek,
                                                        rangeStart - 2*oneWeek)
         self.failUnlessEqual(occurrences, [])
-
 
 #tests to write:
 """

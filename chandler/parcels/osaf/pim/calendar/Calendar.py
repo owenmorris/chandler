@@ -2304,7 +2304,10 @@ class EventStamp(Stamp):
             # Make a new reminder (See bug 8181 for why we set reminderItem
             # separately)
             retval = RelativeReminder(itsView=self.itsItem.itsView, delta=delta)
-            retval.reminderItem = self.itsItem
+            if self.itsItem.reminders:
+                self.itsItem.reminders.add(retval)
+            else:
+                self.itsItem.reminders = [retval]
         else:
             retval = None
 
@@ -2609,6 +2612,12 @@ class Occurrence(Note):
     def setUserReminderTime(self, reminderTime):
         EventStamp(self)._removeThisUserReminder()
         return super(Occurrence, self).setUserReminderTime(reminderTime)
+        
+    def _updateCommonAttribute(self, *args, **kw):
+        event = EventStamp(self)
+        if event.modificationFor is not None:
+            with event.noRecurrenceChanges():
+                super(Occurrence, self)._updateCommonAttribute(*args, **kw)
                     
     userReminderTime = schema.Calculated(
         Remindable.userReminderTime.type,
