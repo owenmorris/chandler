@@ -386,17 +386,26 @@ class wxToolBarTool (wx.ToolBarTool):
         wxToolBarItems don't properly handle setting the text of buttons, on
         updateUIEvents, so we'll handle it here.
         """
-        self.SetLabel(event.GetText())
-        toolBar = self.GetToolBar()
-        if toolBar is not None:
-            toolBar.Realize()
+        blockItem = self.blockItem
+        
+        title = event.GetText()
+        if title != blockItem.title:
+            blockItem.title = title
+            self.wxSynchronizeWidget()
 
     def SetToolBarItemBitmap(self, bitmapName):
-        # get the named bitmap
-        self.SetNormalBitmap (theApp.GetImage(bitmapName))
-        toolBar = self.GetToolBar()
-        if toolBar is not None:
-            toolBar.Realize()
+        # Setting the bitmap of the block then calling wxSynchronizeWidget doesn't
+        # work. This is because of a bug in wxWidgets where Realize doesn't update
+        # the modified toolbar tool. So in the mean time we'll try use an alternate
+        # approach -- DJA
+        blockItem = self.blockItem
+
+        if bitmapName != blockItem.bitmap:
+            blockItem.bitmap = bitmapName
+
+            toolBar = self.GetToolBar()
+            id = self.GetId()
+            toolBar.SetToolNormalBitmap (id, theApp.GetImage (bitmapName))
 
     def selectTool(self):
         """
