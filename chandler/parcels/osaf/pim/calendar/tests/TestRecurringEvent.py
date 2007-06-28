@@ -1543,6 +1543,8 @@ class RecurringEventTest(testcase.SingleRepositoryTestCase):
         
         self.assertEqual(orphan.displayName, uw('Modified'))
         self.assertEqual(orphan.body, uw('Body of the master'))
+        
+        self.assert_(getattr(orphan, EventStamp.rruleset.name, None) is None)
 
 
     def testDisplayDate(self):

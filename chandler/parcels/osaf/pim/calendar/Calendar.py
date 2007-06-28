@@ -1141,8 +1141,12 @@ class EventStamp(Stamp):
 
         if master is None:
             return None
-             
+        
         orphan = master.copy(cloudAlias='copying')
+        
+        # we just copied the master's rruleset, get rid of it
+        EventStamp(orphan).removeRecurrence()
+        
         orphanEvent = EventStamp(orphan)
         orphanEvent.startTime = self.startTime
 
