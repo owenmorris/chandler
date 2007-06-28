@@ -1386,6 +1386,49 @@ class CalendarRecurrencePopupAreaBlock(RecurrenceConditionalBehavior,
                                        DetailSynchronizedContentItemDetailBlock):
     visibilityFlags = RecurrenceConditionalBehavior.showPopup
 
+
+class CalendarRecurrenceAEBlock(DetailSynchronizedAttributeEditorBlock):
+    """
+    Subclass to deal with the fact that, for recurrence, we are really
+    observing attributes of the first rrule of the rruleset of the
+    item in question, not the item itself.
+    
+    By extending our watch list, we can make sure we can respond to changes
+    in the rrule itself, as in Bug 8821.
+    
+    @cvar rruleAttribute: The name of the rrule attribute this block is
+                          is interested in. Defaults to C{None} (i.e.
+                          don't watch any rrule attribute.
+    @type rruleAttribute: str
+    """
+    rruleAttribute = None
+    
+    def getWatchList(self):
+        watchList = super(DetailSynchronizedAttributeEditorBlock,
+                          self).getWatchList()
+        rruleset = pim.EventStamp(self.item).rruleset
+        
+        if rruleset is not None:
+            # Make sure we watch for changes in rrules ...
+            watchList.append((rruleset, 'rrules'))
+            
+            attrName = self.rruleAttribute
+            
+            # ... as well as the rrule attribute we're interested in
+            # (if any). In theory, we should watch all rrules here, 
+            # of course.
+            if attrName is not None and rruleset.rrules:
+                watchList.append((rruleset.rrules.first(), attrName))
+        
+        return watchList
+        
+class CalendarFrequencyAEBlock(CalendarRecurrenceAEBlock):
+    rruleAttribute = 'freq'
+    
+class CalendarUntilAEBlock(CalendarRecurrenceAEBlock):
+    rruleAttribute = 'until'
+
+
 class CalendarRecurrenceSpacer2Area(RecurrenceConditionalBehavior,
                                     DetailSynchronizedBehavior, 
                                     ControlBlocks.StaticText):

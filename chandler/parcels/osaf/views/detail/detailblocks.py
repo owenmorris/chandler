@@ -415,6 +415,7 @@ def makeCalendarArea(parcel, oldVersion):
                 makeLabel(parcel, _(u'&occurs')),
                 makeSpacer(parcel, width=8),
                 makeEditor(parcel, 'EditRecurrence',
+                    baseClass=CalendarFrequencyAEBlock,
                     viewAttribute=pim.EventStamp.rruleset.name,
                     presentationStyle={
                         'format': 'occurs',
@@ -433,6 +434,7 @@ def makeCalendarArea(parcel, oldVersion):
                 makeLabel(parcel, u'', borderTop=2), # leave label blank.
                 makeSpacer(parcel, width=8),
                 makeEditor(parcel, 'CalCustomValue',
+                    baseClass=CalendarRecurrenceAEBlock,
                     viewAttribute=pim.EventStamp.rruleset.name,
                     presentationStyle={'format': 'custom'},
                     minimumSize=SizeType(300, -1))])
@@ -444,6 +446,7 @@ def makeCalendarArea(parcel, oldVersion):
                 makeLabel(parcel, _(u'ends')),
                 makeSpacer(parcel, width=8),
                 makeEditor(parcel, 'EditRecurrenceEnd',
+                    baseClass=CalendarUntilAEBlock,
                     viewAttribute=pim.EventStamp.rruleset.name,
                     presentationStyle={'format': 'ends'},
                     stretchFactor=0.0,
