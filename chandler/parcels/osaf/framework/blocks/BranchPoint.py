@@ -125,18 +125,21 @@ class BranchPointBlock(BoxContainer):
         # eventually we might want selectedItem to be an iterable
         # of some kind
         items = event.arguments['items']
-        if len(items)==1:
-            self.selectedItem = items[0]
-        else:
-            self.selectedItem = None
-
-        self.detailItemCollection = \
-            self.delegate.getContentsCollection(self.selectedItem,
-                                                event.arguments.get('collection'))
-        widget = getattr (self, 'widget', None)
-        if widget is not None:
-            # eventually results in installTreeOfBlocks()
-            widget.wxSynchronizeWidget ()
+        
+        numberOfItems = len (items)
+        if numberOfItems > 0:
+            if numberOfItems == 1:
+                self.selectedItem = items[0]
+            else:
+                self.selectedItem = None
+    
+            self.detailItemCollection = self.delegate.getContentsCollection(self.selectedItem,
+                                                                            event.arguments.get('collection'))
+    
+            widget = getattr (self, 'widget', None)
+            if widget is not None:
+                # eventually results in installTreeOfBlocks()
+                widget.wxSynchronizeWidget ()
 
     def installTreeOfBlocks(self, hints):
         """
