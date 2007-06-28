@@ -36,17 +36,17 @@ failedTests = []
     # When the --ignoreEnv option is used the following
     # list of environment variable names will be deleted
 
-_ignoreEnvNames = [ 'PARCELPATH',
-                    'CHANDLERWEBSERVER',
-                    'PROFILEDIR',
-                    'CREATE',
-                    'CHANDLERNOCATCH',
-                    'CHANDLERCATCH',
-                    'CHANDLERNOSPLASH',
-                    'CHANDLERLOGCONFIG',
-                    'CHANDLEROFFLINE',
-                    'CHANDLERNONEXCLUSIVEREPO',
-                    'NOMVCC',
+_ignoreEnvNames = ['PARCELPATH',
+                   'CHANDLERWEBSERVER',
+                   'PROFILEDIR',
+                   'CREATE',
+                   'CHANDLERNOCATCH',
+                   'CHANDLERCATCH',
+                   'CHANDLERNOSPLASH',
+                   'CHANDLERLOGCONFIG',
+                   'CHANDLEROFFLINE',
+                   'CHANDLERNONEXCLUSIVEREPO',
+                   'NOMVCC',
                   ]
 
 
@@ -218,13 +218,20 @@ def checkOptions(options):
     options.runpython   = {}
     options.runchandler = {}
 
-    for mode in [ 'debug', 'release' ]:
+    chandlerBinaries = { 'release': 'chandler',
+                         'debug':   'chandlerDebug',
+                       }
+
+    for mode in ['debug', 'release']:
         if os.name == 'nt' or sys.platform == 'cygwin':
-            options.runpython[mode]   = os.path.join(options.chandlerBin, mode, 'RunPython.bat')
-            options.runchandler[mode] = os.path.join(options.chandlerBin, mode, 'RunChandler.bat')
+            options.runpython[mode]   = [os.path.join(options.chandlerBin, mode, 'RunPython.bat')]
+            options.runchandler[mode] = [os.path.join(options.chandlerHome, '%s.exe' % chandlerBinaries[mode])]
+        elif sys.platform == 'darwin':
+            options.runpython[mode]   = [os.path.join(options.chandlerBin, mode, 'RunPython')]
+            options.runchandler[mode] = [os.path.join(options.chandlerBin, mode, 'RunPython'), '-O', 'Chandler.py']
         else:
-            options.runpython[mode]   = os.path.join(options.chandlerBin, mode, 'RunPython')
-            options.runchandler[mode] = os.path.join(options.chandlerBin, mode, 'RunChandler')
+            options.runpython[mode]   = [os.path.join(options.chandlerBin, mode, 'RunPython')]
+            options.runchandler[mode] = [os.path.join(options.chandlerHome, chandlerBinaries[mode])]
 
     if options.noEnv:
         for item in _ignoreEnvNames:
@@ -319,7 +326,7 @@ def buildTestList(options, excludeTools=True):
     for item in exclusions:
         excludeDirs.append('%s/%s' % (options.chandlerHome, item))
 
-    for item in [ 'release', 'debug' ]:
+    for item in ['release', 'debug']:
         excludeDirs.append('%s/%s' % (options.chandlerBin, item))
 
     tests = findTestFiles(options.chandlerHome, excludeDirs, includePattern)
@@ -466,7 +473,7 @@ def runLocalizationCheck(options):
         # The -v argument tells createPot to only validate the
         # localizable string and not generate a .pot translation
         # file.
-        cmd = [ 'python', os.path.join('tools', 'createPot.py'), '-cv' ]
+        cmd = ['python', os.path.join('tools', 'createPot.py'), '-cv']
 
         result = build_lib.runCommand(cmd, timeout=180)
         failed = result != 0
@@ -563,16 +570,17 @@ def runSingles(options):
 
 
 def runSingleUnitTest(options, mode, test, params=None):
-    cmd = [ options.runpython[mode], test ]
+    cmd  = options.runpython[mode][:]
+    cmd += [test]
 
     if options.verbose:
         cmd.append('-v')
 
     if params is not None:
-        cmd += [ params ]
+        cmd += [params]
 
     if options.params:
-        cmd += [ options.params ]
+        cmd += [options.params]
 
     if options.verbose:
         log(' '.join(cmd))
@@ -667,8 +675,8 @@ def runUnitSuite(options):
     failed = False
 
     for mode in options.modes:
-        cmd = [options.runpython[mode],
-               os.path.join('tools', 'run_tests.py')]
+        cmd  = options.runpython[mode][:]
+        cmd += [os.path.join('tools', 'run_tests.py')]
 
         if options.verbose:
             cmd += ['-v']
@@ -676,7 +684,7 @@ def runUnitSuite(options):
         cmd += ['application', 'i18n', 'osaf', 'repository']
 
         if options.params:
-            cmd += [ options.params ]
+            cmd += [options.params]
 
         if options.verbose:
             log(' '.join(cmd))
@@ -741,13 +749,14 @@ def runPluginTests(options):
                     #PARCELPATH=$PARCEL_PATH CHANDLERHOME=$C_HOME $CHANDLERBIN/$mode/$RUN_PYTHON
                     #   `basename $setup` test 2>&1 | tee $TESTLOG
 
-                    cmd = [ options.runpython[mode], os.path.basename(test), 'test' ]
+                    cmd  = options.runpython[mode][:]
+                    cmd += [os.path.basename(test), 'test']
 
                     if options.verbose:
                         cmd.append('-v')
 
                     if options.params:
-                        cmd += [ options.params ]
+                        cmd += [options.params]
 
                     if options.verbose:
                         log(' '.join(cmd))
@@ -811,10 +820,10 @@ def runFuncTest(options, test='FunctionalTestSuite.py'):
     failed = False
 
     for mode in options.modes:
-        cmd  = [ options.runchandler[mode],
-                 '--create', '--catch=tests',
-                 '--profileDir=%s' % options.profileDir,
-                 '--parcelPath=%s' % options.parcelPath]
+        cmd  = options.runchandler[mode][:]
+        cmd += ['--create', '--catch=tests',
+                '--profileDir=%s' % options.profileDir,
+                '--parcelPath=%s' % options.parcelPath, ]
 
         if test == 'FunctionalTestSuite.py':
             cmd += ['--scriptFile=%s' % os.path.join('tools', 'cats', 'Functional', test)]
@@ -824,7 +833,7 @@ def runFuncTest(options, test='FunctionalTestSuite.py'):
             timeout = 900
 
         if options.noStop:
-            cmd += [ '-F' ]
+            cmd += ['-F']
 
         if options.verbose or test != 'FunctionalTestSuite.py':
             cmd += ['-D2', '-M0']
@@ -832,7 +841,7 @@ def runFuncTest(options, test='FunctionalTestSuite.py'):
             cmd += ['-D1', '-M2']
 
         if options.params:
-            cmd += [ options.params ]
+            cmd += [options.params]
 
         if options.verbose:
             log(' '.join(cmd))
@@ -873,8 +882,8 @@ def runFuncTestsSingly(options):
     """
     from cats.Functional import tests
 
-    failed   = False
-    
+    failed = False
+
     for test, _c in tests.tests_to_run:
         if runFuncTest(options, test):
             failed = True
@@ -905,34 +914,33 @@ def runRecordedScripts(options):
     for item in glob.glob(os.path.join('tools', 'cats', 'recorded_scripts', '*.py')):
         testlist.append(os.path.split(item)[1][:-3])
 
-
     for mode in options.modes:
         for test in testlist:
-            cmd  = [ options.runpython[mode], 'Chandler.py',
-                     '--create', '--catch=tests',
-                     '--profileDir=%s' % options.profileDir,
-                     '--parcelPath=%s' % options.parcelPath,
-                     '--recordedTest=%s' % test, ]
-    
+            cmd  = options.runchandler[mode][:]
+            cmd += ['--create', '--catch=tests',
+                    '--profileDir=%s' % options.profileDir,
+                    '--parcelPath=%s' % options.parcelPath,
+                    '--recordedTest=%s' % test, ]
+
             if options.params:
-                cmd += [ options.params ]
-    
+                cmd += [options.params]
+
             if options.verbose:
                 log(' '.join(cmd))
-    
+
             if options.dryrun:
                 result = 0
             else:
                 result = build_lib.runCommand(cmd, timeout=1200)
-    
+
             if result != 0:
                 log('***Error exit code=%d' % result)
                 failed = True
                 failedTests.append('recordedTest %s' % test)
-    
+
                 if not options.noStop:
                     break
-    
+
             log('- + ' * 15)
     return failed
 
@@ -983,14 +991,13 @@ def runScriptPerfTests(options, testlist, largeData=False, repeat=1, logger=log)
         if item.startswith(options.chandlerHome):
             item = item[l:]
 
-        name    = item[item.rfind('/') + 1:]
-
-        cmd = [ options.runchandler['release'],
-                '--catch=tests',
+        name = item[item.rfind('/') + 1:]
+        cmd  = options.runchandler['release'][:]
+        cmd += ['--catch=tests',
                 '--profileDir=%s'  % options.profileDir,
                 '--parcelPath=%s'  % options.parcelPath,
                 '--catsPerfLog=%s' % timeLog,
-                '--scriptFile=%s'  % item ]
+                '--scriptFile=%s'  % item, ]
 
         if options.profile:
             cmd += ['--catsProfile=%s.hotshot' % os.path.join(options.profileDir, name[:-3])]
@@ -998,18 +1005,18 @@ def runScriptPerfTests(options, testlist, largeData=False, repeat=1, logger=log)
         if not largeData:
             cmd += ['--create']
         else:
-            cmd += ['--restore=%s' % os.path.join(options.profileDir, 
+            cmd += ['--restore=%s' % os.path.join(options.profileDir,
                                                   '__repository__.001')]
 
         if options.params:
-            cmd += [ options.params ]
+            cmd += [options.params]
 
         if options.verbose:
             log(' '.join(cmd))
-    
+
         values = []
         log(name.ljust(33), newline=' ')
-        
+
         for _x in range(repeat):
             if not options.dryrun:
                 if os.path.isfile(timeLog):
@@ -1163,11 +1170,12 @@ def runStartupPerfTests(options, timer, largeData=False, repeat=3, logger=log):
     # Create test repo
     if options.verbose:
         log('Creating repository for startup time tests')
-    cmd = [ options.runchandler['release'],
-            '--catch=tests',
+
+    cmd  = options.runchandler['release'][:]
+    cmd += ['--catch=tests',
             '--profileDir=%s'  % options.profileDir,
             '--parcelPath=%s'  % options.parcelPath,
-            '--scriptFile=%s'  % os.path.join('tools', 'QATestScripts', 'Performance', 'quit.py') ]
+            '--scriptFile=%s'  % os.path.join('tools', 'QATestScripts', 'Performance', 'quit.py'),]
 
     if not largeData:
         cmd += ['--create']
@@ -1175,13 +1183,13 @@ def runStartupPerfTests(options, timer, largeData=False, repeat=3, logger=log):
         timeout = 180
         name    = 'Startup'
     else:
-        cmd += ['--restore=%s' % os.path.join(options.profileDir, 
+        cmd += ['--restore=%s' % os.path.join(options.profileDir,
                                               '__repository__.001')]
         timeout = 600
         name    = 'Startup_with_large_calendar'
 
     if options.params:
-        cmd += [ options.params ]
+        cmd += [options.params]
 
     if options.verbose:
         log(' '.join(cmd))
@@ -1209,15 +1217,15 @@ def runStartupPerfTests(options, timer, largeData=False, repeat=3, logger=log):
         if os.path.isfile(timeLog):
             os.remove(timeLog)
 
-    cmd = [ timer, r'--format=%e', '-o', timeLog,
-            options.runchandler['release'],
-            '--catch=tests',
+    cmd  = [timer, r'--format=%e', '-o', timeLog]
+    cmd += options.runchandler['release'][:]
+    cmd += ['--catch=tests',
             '--profileDir=%s'  % options.profileDir,
             '--parcelPath=%s'  % options.parcelPath,
-            '--scriptFile=%s'  % os.path.join('tools', 'QATestScripts', 'Performance', 'end.py') ]
+            '--scriptFile=%s'  % os.path.join('tools', 'QATestScripts', 'Performance', 'end.py'),]
 
     if options.params:
-        cmd += [ options.params ]
+        cmd += [options.params]
 
     if options.verbose:
         log(' '.join(cmd))
@@ -1571,7 +1579,7 @@ def main(options):
                 options.modes.remove(mode)
     else:
         options.mode  = options.mode.strip().lower()
-        options.modes = [ options.mode ]
+        options.modes = [options.mode]
 
         # complain about any missing modes if mode was explicitly stated
         if not os.path.isdir(os.path.join(options.chandlerBin, options.mode)):
