@@ -19,10 +19,11 @@ from i18n import ChandlerMessageFactory as _
 from osaf.activity import *
 
 
-def Show(activity):
-    win = ProgressFrame(None, -1, activity.title,
+def Show(activity, parent=None):
+    win = ProgressFrame(parent, -1, activity.title,
         size=(300,100), style=wx.DEFAULT_FRAME_STYLE,
         activity=activity)
+    win.CenterOnParent()
     win.Show()
 
 

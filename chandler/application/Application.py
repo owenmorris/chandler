@@ -459,8 +459,11 @@ class wxApplication (wx.App):
         if self.localeChanged():
             view.check(True)
         
-        if splash and (options.create or newRepo):
-            splash.fixedMessage(_("Constructing database"))
+        if splash:
+            if options.reload is not None:
+                splash.fixedMessage(_("Reloading Collections and Settings"))
+            elif (options.create or newRepo):
+                splash.fixedMessage(_("Constructing database"))
         
         # Load Parcels
         if splash:
@@ -485,6 +488,12 @@ class wxApplication (wx.App):
         if splash:
             splash.updateGauge('twisted')
         Utility.initTwisted()
+
+        # Start the reload before putting up the Chandler UI
+        # (Bug 9533). For master password manipulation reasons,
+        # it needs the twisted reactor to be running.
+        if Globals.options.reload is not None:
+            self.reload(splash)
 
         mainViewRoot = schema.ns("osaf.views.main", self.UIRepositoryView).MainViewRoot
 
@@ -579,22 +588,22 @@ class wxApplication (wx.App):
                 self.mainFrame.GetChildren()[0].SetFocus()
                 self.mainFrame.UpdateWindowUI(wx.UPDATE_UI_RECURSE)
             wx.CallAfter(afterInit)
-                
-        if Globals.options.reload is not None:
-            wx.CallAfter(self.reload)
 
         util.timing.end("wxApplication OnInit") #@@@Temporary testing tool written by Morgen -- DJA
 
         return True    # indicates we succeeded with initialization
 
-    def reload(self):
+    def reload(self, parentWin):
         from osaf.activity import Activity, ActivityAborted
         from osaf import dumpreload
         from osaf.framework.blocks.Block import Block
         from application.dialogs import Progress
 
         activity = Activity(_(u"Reloading from %(path)s") % {'path': unicode(Globals.options.reload, sys.getfilesystemencoding())})
-        Progress.Show(activity)
+        # We need to assign self.mainFrame here, or else the MasterPassword
+        # dialog will potentially get upset. Probably this could be refactored
+        # -- grant.
+        self.mainFrame = Progress.Show(activity, parentWin)
         activity.started()
 
         # Don't show the timezone dialog during reload.
@@ -623,9 +632,12 @@ class wxApplication (wx.App):
             dialog.ShowModal()
             dialog.Destroy()
             self.restart(create=True)
-
-        setStatusMessage = Block.findBlockByName('StatusBar').setStatusMessage
-        self.PostAsyncEvent(setStatusMessage, _(u'Items reloaded'))
+        
+        def showStatus(msg):
+            statusBar = Block.findBlockByName('StatusBar')
+            if statusBar is not None:
+                statusBar.setStatusMessage(msg)
+        self.PostAsyncEvent(showStatus, _(u'Items reloaded'))
 
     def localeChanged(self):
         """
