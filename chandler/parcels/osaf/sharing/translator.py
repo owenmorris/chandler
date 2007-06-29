@@ -1024,35 +1024,14 @@ class SharingTranslator(eim.Translator):
                    mail.replyToAddress = None
 
             if record.messageState not in noChangeOrInherit:
-                if record.messageState & MessageState.FROM_ME:
-                    mail.fromMe = True
-                else:
-                    mail.fromMe = False
-
-                if record.messageState & MessageState.TO_ME:
-                    mail.toMe = True
-                else:
-                    mail.toMe = False
-
-                if record.messageState & MessageState.VIA_MAILSERVICE:
-                    mail.viaMailService = True
-                else:
-                    mail.viaMailService = False
-
-                if record.messageState & MessageState.IS_UPDATED:
-                    mail.isUpdated = True
-                else:
-                    mail.isUpdated = False
-
-                if record.messageState & MessageState.FROM_EIMML:
-                    mail.fromEIMML = True
-                else:
-                    mail.fromEIMML = False
-
-                if record.messageState & MessageState.PREVIOUS_IN_RECIPIENTS:
-                    mail.previousInRecipients = True
-                else:
-                    mail.previousInRecipients = False
+                state = record.messageState
+                mail.fromMe         = bool(state & MessageState.FROM_ME)
+                mail.toMe           = bool(state & MessageState.TO_ME)
+                mail.viaMailService = bool(state & MessageState.VIA_MAILSERVICE)
+                mail.isUpdated      = bool(state & MessageState.IS_UPDATED)
+                mail.fromEIMML      = bool(state & MessageState.FROM_EIMML)
+                mail.previousInRecipients = \
+                               bool(state & MessageState.PREVIOUS_IN_RECIPIENTS)
 
 
     @eim.exporter(pim.MailStamp)
