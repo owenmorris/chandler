@@ -666,7 +666,8 @@ class ReminderTestCase(TestDomainModel.DomainModelTestCase):
         startTimeReminder.updatePending(now)
         self.failUnlessEqual(startTimeReminder.nextPoll, shortly)
         
-        # Check that the relative reminder is still expired
+        # Check that the relative reminder is no longer expired, since
+        # the event moved into the future.
         self.failIf(relativeReminder.isExpired())
         
         # Now, let's set a new reminder interval, so we can "bring up"
