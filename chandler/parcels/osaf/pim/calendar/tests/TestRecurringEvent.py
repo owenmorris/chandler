@@ -1093,7 +1093,7 @@ class RecurringEventTest(testcase.SingleRepositoryTestCase):
         
         occurrenceDates = list(occurrence.startTime for occurrence in
                                event.getOccurrencesBetween(None, None))
-        self.failUnlessEqual(occurrenceDates, dates)
+        self.failUnlessEqual(occurrenceDates, [self.start] + dates)
 
     def testAllDay(self):
         event = self.event

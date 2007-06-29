@@ -47,6 +47,7 @@ class RecurrenceConflictTestCase(NRVTestCase):
         self.master = Calendar.CalendarEvent(None, itsParent=self.sandbox)
         self.uuid = self.master.itsItem.itsUUID.str16()
         self.master.startTime = self.start
+        self.master.anyTime = self.master.allDay = False
         
         # create a baseline dictionary with keywords for creating an EventRecord
         names = (i.name for i in EventRecord.__fields__ if i.name != 'uuid')
@@ -159,39 +160,101 @@ class RecurrenceConflictTestCase(NRVTestCase):
 
         self.assertEqual(self._getConflicts(diff, aliases), aliases)
 
-    #def testFrequencyChange(self):
-        #"""
-        #Currently, Chandler leaves off-rule modifications after recurrence rule
-        #changes (there's no pending deletion).  That may change, but for now,
-        #Remote rule changes that leave the event recurring shouldn't conflict
-        #with local modifications.
+    def testExdate(self):
+        """If an EXDATE is added, it should conflict."""
+        self.master.rruleset = self._makeRecurrenceRuleSet(freq='weekly')
+        aliases = self._getAliases(self.uuid,
+                                   [self.start + n*one_week for n in range(5)])
+
+        # create a diff with an EventRecord in exclusions.  The EventRecord
+        # can't be empty or it'll be seen as NoChange, so make a small change
+        self.kwds['exdate'] = ';VALUE=DATE-TIME:20070417T090000'
+        record = sharing.model.EventRecord(self.uuid, **self.kwds)
+        diff = sharing.Diff(set([record]), set())
+
+        self.assertEqual(self._getConflicts(diff, aliases), aliases[1:2])
+
+        # choose an exdate that doesn't conflict with anything (changed time)
+        self.kwds['exdate'] = ';VALUE=DATE-TIME:20070417T000000'
+        record = sharing.model.EventRecord(self.uuid, **self.kwds)
+        diff = sharing.Diff(set([record]), set())
+
+        self.assertEqual(self._getConflicts(diff, aliases), [])
+
+    def testFrequencyChange(self):
+        """
+        Currently, Chandler leaves off-rule modifications after recurrence rule
+        changes (there's no pending deletion).  For now, remote rule changes
+        that leave the event recurring *do* conflict with local off-rule
+        modifications for sharing.
         
-        #"""
-        ## set up master to recur
-        #self.master.rruleset = self._makeRecurrenceRuleSet(freq='daily')
+        """
+        # set up master to recur
+        self.master.rruleset = self._makeRecurrenceRuleSet(freq='daily')
         
-        ## create a diff changing frequency to weekly
-        #self.kwds['rrule'] = 'FREQ=WEEKLY'
-        #record = sharing.model.EventRecord(self.uuid, **self.kwds)
-        #diff = sharing.Diff(set([record]), set())
+        # create a diff changing frequency to weekly
+        self.kwds['rrule'] = 'FREQ=WEEKLY'
+        record = sharing.model.EventRecord(self.uuid, **self.kwds)
+        diff = sharing.Diff(set([record]), set())
         
-        ## get a sample set of aliases to test that don't overlap with seven day
-        ## intervals
-        #aliases = self._getAliases(self.uuid,
-                              #[self.start + n*one_day for n in range(0, 30, 5)])
+        # get a sample set of aliases to test that don't overlap with seven day
+        # intervals
+        aliases = self._getAliases(self.uuid,
+                              [self.start + n*one_day for n in range(0, 30, 5)])
         
-        ## off-rule modifications are preserved when frequency changes, so no
-        ## conflicts
-        #self.assertEqual(self._getConflicts(diff, aliases), [])
+        self.assertEqual(self._getConflicts(diff, aliases), aliases[1:])
+
+    def testRemoveRrruleLeaveRdate(self):
+        """
+        Removing an RRULE shouldn't cause everything to conflict if there are
+        still RDATEs.
         
-        #### other tests
-        # all day
-        # different timezones
-        # frequency change
-        # change to count
-        # exdate
-        # removal of rrule when rdates are present
-        # start time change + rule change
+        """
+        self.master.rruleset = self._makeRecurrenceRuleSet(freq='weekly')
+        self.master.rruleset.rdates = [self.start + n*one_day for n in range(1,3)]
+
+        # create a diff removing the RRULE
+        self.kwds['rrule'] = None
+        record = sharing.model.EventRecord(self.uuid, **self.kwds)
+        diff = sharing.Diff(set([record]), set())
+
+        # get a sample set of aliases to test that don't overlap with seven day
+        # intervals
+        aliases = self._getAliases(self.uuid,
+                                   [self.start + n*one_day for n in range(5)])
+        
+        self.assertEqual(self._getConflicts(diff, aliases), aliases[3:])
+
+    def testAllDay(self):
+        self.master.allDay = True
+
+        self.master.rruleset = self._makeRecurrenceRuleSet(freq='weekly')
+        self.kwds['rrule'] = 'FREQ=WEEKLY;UNTIL=20070424'
+        record = sharing.model.EventRecord(self.uuid, **self.kwds)
+        diff = sharing.Diff(set([record]), set())
+
+        aliases = self._getAliases(self.uuid,
+                                   [self.master.effectiveStartTime + n*one_week
+                                    for n in range(5)])
+        
+        self.assertEqual(self._getConflicts(diff, aliases), aliases[3:])
+
+    def testTimezonedEvent(self):
+        self.master.startTime = self.start.replace(tzinfo=self.pacific)
+
+        self.master.rruleset = self._makeRecurrenceRuleSet(freq='weekly')
+        self.kwds['rrule'] = 'FREQ=WEEKLY;UNTIL=20070424T160000Z'
+        self.kwds['exdate'] = ';VALUE=DATE-TIME;TZID=America/Los_Angeles:20070417T090000'
+        record = sharing.model.EventRecord(self.uuid, **self.kwds)
+        diff = sharing.Diff(set([record]), set())
+
+        aliases = self._getAliases(self.uuid,
+                                   [self.master.startTime + n*one_week
+                                    for n in range(5)])
+        
+        self.assertEqual(self._getConflicts(diff, aliases),
+                         aliases[1:2] + aliases[3:])
+
 
 if __name__ == "__main__":
     unittest.main()

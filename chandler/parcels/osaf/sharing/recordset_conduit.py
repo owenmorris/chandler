@@ -15,7 +15,7 @@
 from osaf import pim
 import conduits, errors, formats, eim, shares, model
 from model import EventRecord
-from utility import splitUUID, getDateUtilRRuleSet
+from utility import splitUUID, getDateUtilRRuleSet, fromICalendarDateTime
 from i18n import ChandlerMessageFactory as _
 import logging
 from itertools import chain
@@ -23,6 +23,7 @@ from application import schema
 from repository.item.Item import Item
 from repository.persistence.RepositoryError import MergeError
 from chandlerdb.util.c import UUID
+import dateutil
 
 logger = logging.getLogger(__name__)
 
@@ -1368,39 +1369,78 @@ def findRecurrenceConflicts(view, master_alias, diff, localModAliases):
     if diff is None:
         return localModAliases
     
-    conflicts = []
     event_records = [r for r in diff.inclusions if isinstance(r, EventRecord)]
     if len(event_records) != 1:
         if len([r for r in diff.exclusions if isinstance(r, EventRecord)]) > 0:
             # EventRecord was excluded, so event-ness was unstamped
             return localModAliases
         else:
-            return conflicts
+            return []
 
     event_record = event_records[0]
+
+    rrule  = event_record.rrule
     
+    # are there any recurrence changes?
+    if eim.NoChange == rrule == event_record.exdate == event_record.rdate:
+        return []
+            
     master = view.findUUID(master_alias)
-    start = pim.EventStamp(master).startTime
+    start = pim.EventStamp(master).effectiveStartTime
     if master is None:
         assert "no master found"
-        return conflicts
-    
-    split_aliases = ((splitUUID(view, a)[1], a) for a in localModAliases)
-    rrule = event_record.rrule
-    if rrule is not eim.NoChange:
-        if not rrule:
-            ## are there any RDATEs?
-            # no recurrence fields, recurrence removed, all modifications are
-            # conflicts
-            return localModAliases
-        else:
-            pass
-    else:
         return []
+
+    if getattr(pim.EventStamp(master), 'rruleset', None) is None:
+        assert "master event has no recurrence, there shouldn't be any existing modifications"
+        return []
+
+
+    conflicts = []
+    split_aliases = ((splitUUID(view, a)[1], a) for a in localModAliases)
+
+    master_rruleset = pim.EventStamp(master).createDateUtilFromRule()
     
-    du_rrule = getDateUtilRRuleSet('rrule', rrule, start)
+    if rrule is eim.NoChange:
+        du_rruleset = master_rruleset
+        if not getattr(du_rruleset, '_rrule', None):
+            rrule = None
+    else:
+        if rrule is None:
+            du_rruleset = dateutil.rrule.rruleset()
+        else:
+            du_rruleset = getDateUtilRRuleSet('rrule', rrule, start)
+            # make sure floating UNTIL values use view.tzinfo.floating
+            for rule in du_rruleset._rrule:
+                if rule._until and rule._until.tzinfo is None:
+                    rule._until = rule._until.replace(tzinfo=view.tzinfo.floating)
+
+    date_values = {}
+    for date_value in ('rdate', 'exdate'):
+        if getattr(event_record, date_value) is eim.NoChange:
+            date_values[date_value] = getattr(master_rruleset, '_' + date_value)
+        else:
+            if getattr(event_record, date_value) is None:
+                date_values[date_value] = []
+            else:
+                date_values[date_value] = fromICalendarDateTime(
+                                            view,
+                                            getattr(event_record, date_value),
+                                            True)[0]
+
+        setattr(du_rruleset, '_' + date_value, date_values[date_value])
+        
+    if not rrule and date_values['rdate']:
+        # no rrule and there are RDATEs, add dtstart as an RDATE
+        du_rruleset.rdate(start)
+
+    if not rrule and not date_values['rdate']:
+        # no positive recurrence fields, recurrence removed, all modifications
+        # are conflicts
+        return localModAliases
+        
     for dt, alias in split_aliases:
-        if dt not in du_rrule:
+        if dt not in du_rruleset:
             conflicts.append(alias)
     
     return conflicts

@@ -501,8 +501,6 @@ class RecurrenceRuleSet(items.ContentItem):
                                      recurrence rules.
         @type  ignoreShortFrequency: C{bool}
 
-        @type  convertFloating: C{bool}
-
         @rtype: C{dateutil.rrule.rruleset}
 
         """
@@ -525,6 +523,14 @@ class RecurrenceRuleSet(items.ContentItem):
                 else:
                     date = coerceTimeZone(view, date, dtstart.tzinfo)
                 getattr(ruleset, datetype)(date)
+        
+        if (ignoreIsCount and 
+            not getattr(self, 'rrules', []) and 
+            getattr(self, 'rdates', [])):
+            # no rrule, but there are RDATEs, create an RDATE for dtstart, or it
+            # won't appear to be part of the rule
+            ruleset.rdate(dtstart)
+        
         return ruleset
 
     def setRuleFromDateUtil(self, ruleSetOrRule):
