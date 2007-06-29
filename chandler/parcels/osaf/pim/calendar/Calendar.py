@@ -2813,7 +2813,12 @@ class RelativeReminder(Reminder):
                     self.pendingEntries.remove(entry)
                     if entryReminder <= self.nextPoll:
                         self.nextPoll = entryReminder
-        if self.nextPoll < Reminder.farFuture and reminderTime < self.nextPoll:
+        # If the reminder is expired (i.e. nextPoll is far future), we
+        # reset its nextPoll ... that way, it'll be marked as current
+        # if necessary (Bug 9659).
+        if self.nextPoll >= Reminder.farFuture:
+            del self.nextPoll
+        elif reminderTime < self.nextPoll:
             self.nextPoll = reminderTime
                         
     def reminderFired(self, reminder, when):

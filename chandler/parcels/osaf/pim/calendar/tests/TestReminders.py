@@ -644,7 +644,8 @@ class ReminderTestCase(TestDomainModel.DomainModelTestCase):
             rem.updatePending(datetime.now(self.view.tzinfo.default))
         self.failUnlessEqual(len(remindable.reminders), 1)
         self.failUnless(remindable.reminders.first() is relativeReminder)
-        self.failUnless(anEvent.userReminderInterval == relativeReminderInterval)
+        self.failUnlessEqual(anEvent.userReminderInterval,
+                             relativeReminderInterval)
         self.failUnless(remindable.userReminderTime is None)
         self.failUnlessEqual(relativeReminder.nextPoll, Reminder.farFuture)
 
@@ -654,7 +655,7 @@ class ReminderTestCase(TestDomainModel.DomainModelTestCase):
         EventStamp(anEvent).startTime = shortly
         
         # Make sure it all got updated correctly: one pending startTime
-        # reminder, one expired relative reminder.
+        # reminder, one now unexpired relative reminder.
         self.failUnlessEqual(len(remindable.reminders), 1)
         self.failUnless(remindable.reminders.first() is relativeReminder)
         self.failUnless(remindable.reminders.first() is
@@ -666,9 +667,9 @@ class ReminderTestCase(TestDomainModel.DomainModelTestCase):
         self.failUnlessEqual(startTimeReminder.nextPoll, shortly)
         
         # Check that the relative reminder is still expired
-        self.failUnless(relativeReminder.isExpired())
+        self.failIf(relativeReminder.isExpired())
         
-        # Now, let's set a new reminder interval, so we can bring up
+        # Now, let's set a new reminder interval, so we can "bring up"
         # a new reminder and snooze it.
         relativeReminderInterval = -timedelta(minutes=15)
         newReminder = anEvent.setUserReminderInterval(relativeReminderInterval)
