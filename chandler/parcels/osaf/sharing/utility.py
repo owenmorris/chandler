@@ -37,6 +37,9 @@ __all__ = [
     'isReadOnly',
     'getOldestVersion',
     'deleteShare',
+    'splitUUID',
+    'fromICalendarDateTime',
+    'getDateUtilRRuleSet'
 ]
 
 from application import schema, Globals
@@ -62,6 +65,13 @@ import zanshin.acl as acl
 import twisted.web.http as http
 import xml.etree.cElementTree as ElementTree
 import M2Crypto
+
+from dateutil.rrule import rrulestr
+import dateutil
+from vobject.icalendar import (DateOrDateTimeBehavior, MultiDateBehavior)
+from vobject.base import textLineToContentLine
+
+import osaf.pim.calendar.TimeZone as TimeZone
 
 logger = logging.getLogger(__name__)
 
@@ -801,6 +811,85 @@ def extractLinks(text):
     return p.links
 
 
+
+# = = = = = = = = = EIM Recurrence helper functions = = = = = = = = = = = = = = 
+
+def getDateUtilRRuleSet(field, value, dtstart):
+    """
+    Turn EIM recurrence fields into a dateutil rruleset.
+
+    dtstart is required to deal with count successfully.
+    """
+    ical_string = ""
+    if value.startswith(';'):
+        # remove parameters, dateutil fails when it sees them
+        value = value.partition(':')[2]
+    # EIM uses a colon to concatenate RRULEs, which isn't iCalendar
+    for element in value.split(':'):
+        ical_string += field
+        ical_string += ':'
+        ical_string += element
+        ical_string += "\r\n"
+    # dateutil chokes on unicode, pass in a string
+    return rrulestr(str(ical_string), forceset=True, dtstart=dtstart)
+
+du_utc = dateutil.tz.tzutc()
+
+def fromICalendarDateTime(view, text, multivalued=False):
+    prefix = 'dtstart' # arbitrary
+    if not text.startswith(';'):
+        # no parameters
+        prefix += ':'
+    line = textLineToContentLine('dtstart' + text)
+    if multivalued:
+        line.behavior = MultiDateBehavior
+    else:
+        line.behavior = DateOrDateTimeBehavior
+    line.transformToNative()
+    anyTime = getattr(line, 'x_osaf_anytime_param', "").upper() == 'TRUE'
+    allDay = False
+    start = line.value
+    if not multivalued:
+        start = [start]
+    if type(start[0]) == datetime.date:
+        allDay = not anyTime
+        start = [TimeZone.forceToDateTime(view, dt) for dt in start]
+    else:
+        # this parameter is broken, this should be fixed in vobject, at which
+        # point this will break
+        tzid = line.params.get('X-VOBJ-ORIGINAL-TZID')
+        if tzid is None:
+            # RDATEs and EXDATEs won't have an X-VOBJ-ORIGINAL-TZID
+            tzid = getattr(line, 'tzid_param', None)
+        if start[0].tzinfo == du_utc:
+            tzinfo = view.tzinfo.UTC
+        elif tzid is None:
+            tzinfo = view.tzinfo.floating
+        else:
+            tzinfo = view.tzinfo.getInstance(tzid)
+        start = [dt.replace(tzinfo=tzinfo) for dt in start]
+    if not multivalued:
+        start = start[0]
+    return (start, allDay, anyTime)
+
+def splitUUID(view, recurrence_aware_uuid):
+    """
+    Split an EIM recurrence UUID.
+
+    Return the tuple (UUID, recurrenceID or None).  UUID will be a string,
+    recurrenceID will be a datetime or None.
+    """
+    pseudo_uuid = str(recurrence_aware_uuid)
+    # tolerate old-style, double-colon pseudo-uuids
+    position = pseudo_uuid.find('::')
+    if position != -1:
+        return (pseudo_uuid[:position],
+                fromICalendarDateTime(view, pseudo_uuid[position + 2:])[0])
+    position = pseudo_uuid.find(':')
+    if position != -1:
+        return (pseudo_uuid[:position],
+                fromICalendarDateTime(view, pseudo_uuid[position:])[0])
+    return (pseudo_uuid, None)
 
 
 

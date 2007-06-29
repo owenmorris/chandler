@@ -31,7 +31,6 @@ import logging
 import datetime
 from chandlerdb.util.c import Empty
 from repository.item.Item import Item
-import utility
 
 logger = logging.getLogger(__name__)
 
@@ -130,7 +129,7 @@ class SharedItem(pim.Stamp):
         
         # For preview, make all attributes unmodifiable if any shares it
         # participates in are read-only
-        
+        import utility
         return not utility.isReadOnly(self.itsItem)
 
         #for share in self.sharedIn:

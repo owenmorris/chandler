@@ -19,15 +19,15 @@ from osaf.sharing import (
     eim, model, shares, utility, accounts, conduits, cosmo, webdav_conduit,
     recordset_conduit, eimml, ootb
 )
+from utility import splitUUID, fromICalendarDateTime, getDateUtilRRuleSet
+
 import os
 import calendar
 from email import Utils
 from datetime import datetime, date, timedelta
 from decimal import Decimal
 
-from vobject.base import textLineToContentLine
-from vobject.icalendar import (DateOrDateTimeBehavior, MultiDateBehavior,
-                               RecurringComponent, VEvent, timedeltaToString,
+from vobject.icalendar import (RecurringComponent, VEvent, timedeltaToString,
                                stringToDurations)
 import osaf.pim.calendar.TimeZone as TimeZone
 from osaf.pim.calendar.Calendar import Occurrence, EventStamp
@@ -46,7 +46,6 @@ import logging
 __all__ = [
     'SharingTranslator',
     'DumpTranslator',
-    'fromICalendarDateTime',
     'fromICalendarDuration',
     'toICalendarDateTime',
     'toICalendarDuration',
@@ -55,8 +54,6 @@ __all__ = [
 
 logger = logging.getLogger(__name__)
 
-
-du_utc = dateutil.tz.tzutc()
 oneDay = timedelta(1)
 
 noChangeOrInherit = (eim.NoChange, eim.Inherit)
@@ -122,42 +119,7 @@ def fromLocation(val, view):
         return None
     return pim.Location.getLocation(view, val)
 
-def fromICalendarDateTime(view, text, multivalued=False):
-    prefix = 'dtstart' # arbitrary
-    if not text.startswith(';'):
-        # no parameters
-        prefix += ':'
-    line = textLineToContentLine('dtstart' + text)
-    if multivalued:
-        line.behavior = MultiDateBehavior
-    else:
-        line.behavior = DateOrDateTimeBehavior
-    line.transformToNative()
-    anyTime = getattr(line, 'x_osaf_anytime_param', "").upper() == 'TRUE'
-    allDay = False
-    start = line.value
-    if not multivalued:
-        start = [start]
-    if type(start[0]) == date:
-        allDay = not anyTime
-        start = [TimeZone.forceToDateTime(view, dt) for dt in start]
-    else:
-        # this parameter is broken, this should be fixed in vobject, at which
-        # point this will break
-        tzid = line.params.get('X-VOBJ-ORIGINAL-TZID')
-        if tzid is None:
-            # RDATEs and EXDATEs won't have an X-VOBJ-ORIGINAL-TZID
-            tzid = getattr(line, 'tzid_param', None)
-        if start[0].tzinfo == du_utc:
-            tzinfo = view.tzinfo.UTC
-        elif tzid is None:
-            tzinfo = view.tzinfo.floating
-        else:
-            tzinfo = view.tzinfo.getInstance(tzid)
-        start = [dt.replace(tzinfo=tzinfo) for dt in start]
-    if not multivalued:
-        start = start[0]
-    return (start, allDay, anyTime)
+
 
 def fromICalendarDuration(text):
     return stringToDurations(text)[0]    
@@ -229,26 +191,6 @@ def toICalendarDuration(delta, allDay=False):
     # deltas yet
     return timedeltaToString(delta)
 
-
-def getDateUtilRRuleSet(field, value, dtstart):
-    """
-    Turn EIM recurrence fields into a dateutil rruleset.
-
-    dtstart is required to deal with count successfully.
-    """
-    ical_string = ""
-    if value.startswith(';'):
-        # remove parameters, dateutil fails when it sees them
-        value = value.partition(':')[2]
-    # EIM uses a colon to concatenate RRULEs, which isn't iCalendar
-    for element in value.split(':'):
-        ical_string += field
-        ical_string += ':'
-        ical_string += element
-        ical_string += "\r\n"
-    # dateutil chokes on unicode, pass in a string
-    return rrulestr(str(ical_string), forceset=True, dtstart=dtstart)
-
 def getRecurrenceFields(event):
     """
     Take an event, return EIM strings for rrule, exrule, rdate, exdate, any
@@ -318,26 +260,6 @@ def fixTimezoneOnModification(modification, tzinfo=None):
         if (mod.startTime.tzinfo == view.tzinfo.UTC and
             mod.startTime == recurrenceID):
             mod.startTime = mod.startTime.astimezone(tzinfo)    
-
-def splitUUID(view, recurrence_aware_uuid):
-    """
-    Split an EIM recurrence UUID.
-
-    Return the tuple (UUID, recurrenceID or None).  UUID will be a string,
-    recurrenceID will be a datetime or None.
-    """
-    pseudo_uuid = str(recurrence_aware_uuid)
-    # tolerate old-style, double-colon pseudo-uuids
-    position = pseudo_uuid.find('::')
-    if position != -1:
-        return (pseudo_uuid[:position],
-                fromICalendarDateTime(view, pseudo_uuid[position + 2:])[0])
-    position = pseudo_uuid.find(':')
-    if position != -1:
-        return (pseudo_uuid[:position],
-                fromICalendarDateTime(view, pseudo_uuid[position:])[0])
-    return (pseudo_uuid, None)
-
 
 def handleEmpty(item_or_stamp, attr):
     item = getattr(item_or_stamp, 'itsItem', item_or_stamp)

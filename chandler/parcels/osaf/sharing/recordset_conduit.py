@@ -14,6 +14,7 @@
 
 from osaf import pim
 import conduits, errors, formats, eim, shares, model
+from utility import splitUUID, getDateUtilRRuleSet
 from i18n import ChandlerMessageFactory as _
 import logging
 from itertools import chain
@@ -35,6 +36,7 @@ __all__ = [
     'InMemoryMonolithicRecordSetConduit',
     'InMemoryResourceRecordSetConduit',
     'hasChanges',
+    'findRecurrenceConflicts'
 ]
 
 
@@ -1380,3 +1382,45 @@ def prettyPrintRecordSetDict(d):
                 print "   Exclusions:"
                 for record in rs.exclusions:
                     print "   " + str(record)
+
+def findRecurrenceConflicts(view, master_alias, diff, localModAliases):
+    """
+    Examine diff for changes to recurrence rules, compare to locally changed
+    modifications, return a list of conflicting modifications (the list may be
+    empty).
+    
+    If diff is None, it's treats as a deletion of the master, so all
+    local modifications are automatically in conflict
+    """
+    if diff is None:
+        return localModAliases
+    
+    conflicts = []
+    event_records = [r for r in diff.inclusions if isinstance(r, model.EventRecord)]
+    if len(event_records) != 1:
+        return conflicts
+
+    event_record = event_records[0]
+    
+    master = view.findUUID(master_alias)
+    start = pim.EventStamp(master).startTime
+    if master is None:
+        assert "no master found"
+        return conflicts
+    
+    split_aliases = ((splitUUID(view, a)[1], a) for a in localModAliases)
+    rrule = event_record.rrule
+    if rrule is not eim.NoChange:
+        pass
+        #if not rrule:
+            ## are there any RDATEs?
+    else:
+        return []
+    
+    du_rrule = getDateUtilRRuleSet('rrule', rrule, start)
+    for dt, alias in split_aliases:
+        if dt not in du_rrule:
+            conflicts.append(alias)
+    
+    return conflicts
+    
