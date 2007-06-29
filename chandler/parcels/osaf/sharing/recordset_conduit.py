@@ -480,109 +480,79 @@ class RecordSetConduit(conduits.BaseConduit):
                 work=1)
 
 
+
+
+
+
+        # Look for conflicts that EIM doesn't detect
+
+
+        # Detect inbound changes to masters that would cause locally
+        # changed modifications to be removed, and pretend the server
+        # sent us inbound removals for these modifications directly.
+
+        masters = {}
+        # Build a dictionary of master aliases which have local changes to
+        # their modifications
+        for alias in toSend:
+            try:
+                masterAlias, recurrenceId = alias.split(":")
+                masters.setdefault(masterAlias, set()).add(alias)
+            except ValueError: # no recurrenceId; not a modification
+                continue
+        for alias in list(chain(toApply.keys(), remotelyRemoved)):
+            if alias in masters:
+                # This is a master that has inbound changes and outbound
+                # changes to its modifications.  See if the inbound master
+                # change is supposed to cause the local modification to be
+                # removed (due to recurrence rule changes)
+                diff = None if alias in remotelyRemoved else toApply[alias]
+                for orphanAlias in findRecurrenceConflicts(rv, alias, diff,
+                    masters[alias]):
+                    doLog("Inbound master change is orphaning: %s", orphanAlias)
+                    remotelyRemoved.add(orphanAlias)
+
+
+
+
+
         # Examine inbound removal of items with local changes
-        if send:
+        for alias in toSend.keys():
+            uuid = translator.getUUIDForAlias(alias)
+            changedItem = rv.findUUID(uuid)
+            state = self.getState(alias)
 
-            pendingRemovals = set() # aliases of remotely removed items
-                                    # which have local changes
+            if alias in remotelyRemoved:
+                doLog("Remotely removed item has local changes: %s", alias)
 
-            toSendBack = set() # aliases of remotely removed items to re-send
-
-            for alias in toSend.keys():
-                uuid = translator.getUUIDForAlias(alias)
-                changedItem = rv.findUUID(uuid)
+                del toSend[alias]
 
                 if isinstance(changedItem, pim.Occurrence):
-                    if alias in remotelyRemoved:
-                        toSendBack.add(alias)
-                    masterItem = changedItem.inheritFrom
-                    masterAlias = translator.getAliasForItem(masterItem)
-                    if masterAlias in remotelyRemoved:
-                        # We're a changed modification with an inbound
-                        # deletion of our master.  Tag the master and its
-                        # modifications with a removal conflict.
-                        doLog("Remotely removed master %s has local mod "
-                            "changes: %s", masterAlias, alias)
-                        toSendBack.add(masterAlias)
-
-                elif changedItem.hasLocalAttributeValue('inheritTo'):
-                    # This is a master
-                    if alias in remotelyRemoved:
-                        toSendBack.add(alias)
-
-                else:
-                    # This item is not recurring
-                    if alias in remotelyRemoved:
-                        doLog("Remotely removed item has local changes: %s",
-                            alias)
-                        pendingRemovals.add(alias)
-
-            for alias in toSendBack:
-                if self.hasState(alias):
+                    # I need to make this modification an orphan
+                    changedItem = pim.EventStamp(changedItem).makeOrphan()
+                    # Remove old state
+                    self.removeState(alias)
+                    # Create new one
+                    oldAlias = alias
+                    alias = translator.getAliasForItem(changedItem)
                     state = self.getState(alias)
+                    doLog("Orphan: %s, replaced with: %s", oldAlias, alias)
 
-                    # This was removed remotely, but we have local changes.
-                    # We need to send the entire state of the item, not just
-                    # a diff.  Also, remove the alias from remotelyRemoved
-                    # so that the item doesn't get removed from the collection
-                    # further down.
-                    toSend[alias] = filterFn(state.agreed)
-                    if alias in remotelyRemoved:
-                        remotelyRemoved.remove(alias)
+                # This was removed remotely, but we have local changes.
+                # We clear agreed/pending from the state, and add a conflict
+                # for the removal.
+                # Also, remove the alias from remotelyRemoved
+                # so that the item doesn't get removed from the collection
+                # further down.
 
-                    uuid = translator.getUUIDForAlias(alias)
-                    changedItem = rv.findUUID(uuid)
-                    if pim.has_stamp(changedItem, pim.EventStamp):
-                        event = pim.EventStamp(changedItem)
-                        for mod in getattr(event, 'modifications', []):
-                            modAlias = translator.getAliasForItem(mod)
-                            if self.hasState(modAlias):
-                                modState = self.getState(modAlias)
-                                toSend[modAlias] = filterFn(modState.agreed)
-                                if modAlias in remotelyRemoved:
-                                    remotelyRemoved.remove(modAlias)
-                                    doLog("Sending back modification: %s",
-                                        modAlias)
+                state.clear()
+                state.pendingRemoval = True
+                if alias in remotelyRemoved:
+                    remotelyRemoved.remove(alias)
+                doLog("Removal conflict: %s", alias)
+                if changedItem is not None:
+                    state.updateConflicts(changedItem)
 
-            for alias in pendingRemovals:
-                if self.hasState(alias):
-                    state = self.getState(alias)
-
-                    # This was removed remotely, but we have local changes.
-                    # We clear agreed/pending from the state, and add a conflict
-                    # for the removal.
-                    # Also, remove the alias from remotelyRemoved
-                    # so that the item doesn't get removed from the collection
-                    # further down.
-
-                    uuid = translator.getUUIDForAlias(alias)
-                    changedItem = rv.findUUID(uuid)
-
-                    if alias in toSend:
-                        del toSend[alias]
-                    state.clear()
-                    state.pendingRemoval = True
-                    if alias in remotelyRemoved:
-                        remotelyRemoved.remove(alias)
-                    doLog("Removal conflict: %s", alias)
-                    if changedItem is not None:
-                        state.updateConflicts(changedItem)
-
-                    # I may use this, but commenting out for now
-                    # if pim.has_stamp(changedItem, pim.EventStamp):
-                    #     event = pim.EventStamp(changedItem)
-                    #     for mod in getattr(event, 'modifications', []):
-                    #         modAlias = translator.getAliasForItem(mod)
-                    #         if self.hasState(modAlias):
-                    #             modState = self.getState(modAlias)
-                    #             if modAlias in toSend:
-                    #                 del toSend[modAlias]
-                    #             modState.clear()
-                    #             modState.pendingRemoval = True
-                    #             if modAlias in remotelyRemoved:
-                    #                 remotelyRemoved.remove(modAlias)
-                    #             doLog("Removal conflict: %s", modAlias)
-                    #             modState.updateConflicts(mod)
 
         if receive:
 
@@ -635,7 +605,7 @@ class RecordSetConduit(conduits.BaseConduit):
                     item = rv.findUUID(uuid)
                 else:
                     item = None
-                    
+
                 # don't treat changes to recurrence master's triage status as
                 # real changes, bug 9643
                 if (item is not None and
@@ -655,7 +625,8 @@ class RecordSetConduit(conduits.BaseConduit):
                         pim.setTriageStatus(item, newTriageStatus,
                             popToNow=established)
                         if item.hasLocalAttributeValue('inheritTo'):
-                            logger.info("Moved recurrence series %s to NOW", alias)
+                            logger.info("Moved recurrence series %s to NOW",
+                                alias)
                         else:
                             logger.info("Moved single item %s to NOW", alias)
 
@@ -1383,6 +1354,7 @@ def prettyPrintRecordSetDict(d):
                 for record in rs.exclusions:
                     print "   " + str(record)
 
+
 def findRecurrenceConflicts(view, master_alias, diff, localModAliases):
     """
     Examine diff for changes to recurrence rules, compare to locally changed
@@ -1423,4 +1395,4 @@ def findRecurrenceConflicts(view, master_alias, diff, localModAliases):
             conflicts.append(alias)
     
     return conflicts
-    
+

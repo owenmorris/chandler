@@ -56,12 +56,8 @@ class SharedItem(pim.Stamp):
     conflictingStates = schema.Sequence(defaultValue=Empty)
 
     def getConflicts(self):
-        for state in self.conflictingStates:
-            for conflict in state.getConflicts():
-                # protect against proxies being passed in
-                item = getattr(self.itsItem, 'proxiedItem', self.itsItem)
-                conflict.item = item
-                yield conflict
+        return getConflicts(self.itsItem)
+
 
 
     def generateConflicts(self, **kwds):
@@ -146,19 +142,29 @@ class SharedItem(pim.Stamp):
 
 
 def hasConflicts(item):
-    if pim.has_stamp(item, SharedItem):
-        shared = SharedItem(item)
-        if shared.conflictingStates:
-            return True
-    return False
+    item = getattr(item, 'proxiedItem', item)
+    return len(getattr(item, SharedItem.conflictingStates.name, [])) > 0
+
 
 def getConflicts(item):
-    conflicts = []
-    if pim.has_stamp(item, SharedItem):
-        shared = SharedItem(item)
-        for conflict in shared.getConflicts():
-            conflicts.append(conflict)
-    return conflicts
+    item = getattr(item, 'proxiedItem', item)
+    # conflicts = []
+    for state in getattr(item, SharedItem.conflictingStates.name, []):
+        for conflict in state.getConflicts():
+            conflict.item = item
+            yield conflict
+            # conflicts.append(conflict)
+
+    if item.hasLocalAttributeValue(SharedItem.conflictingStates.name):
+        # the conflicts we just looked at where not inherited, but if
+        # we are a modification our master might also have conflicts
+        if pim.has_stamp(item, pim.EventStamp):
+            event = pim.EventStamp(item)
+            master = event.getMaster()
+            if master is not event:
+                for conflict in getConflicts(master.itsItem):
+                    yield conflict
+
 
 
 

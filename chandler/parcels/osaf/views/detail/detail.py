@@ -908,7 +908,7 @@ class ConflictWarningButton(ConflictConditionalBehaviour,
         widget = getattr(self, 'widget', None)
         if widget is not None and sharing.hasConflicts(self.item):
             item = getattr(self.item, 'proxiedItem', self.item)
-            conflicts = sharing.getConflicts(item)
+            conflicts = list(sharing.getConflicts(item))
             conflictCount = len(conflicts)
             if conflictCount > 1:
                 fmt = _(u"VIEW %(count)d PENDING CHANGES")
@@ -920,7 +920,7 @@ class ConflictWarningButton(ConflictConditionalBehaviour,
     def resolveConflict(self, event):
         # show the dialog here
         item = getattr(self.item, 'proxiedItem', self.item)
-        dialog = ConflictDialog.ConflictDialog(sharing.getConflicts(item))
+        dialog = ConflictDialog.ConflictDialog(list(sharing.getConflicts(item)))
         dialog.CenterOnScreen()
         dialog.ShowModal()
         dialog.Destroy()
