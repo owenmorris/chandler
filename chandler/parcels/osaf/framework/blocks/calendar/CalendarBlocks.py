@@ -278,8 +278,8 @@ class wxMiniCalendar(DragAndDrop.DropReceiveWidget,
                         hours = 12.0
                     else:
                         today = midnightStart + timedelta(day)
-                        dayStart    = max(event.startTime, today)
-                        earliestEnd = max(event.endTime, today)
+                        dayStart    = max(start, today)
+                        earliestEnd = max(start + event.duration, today)
                         dayEnd      = min(earliestEnd, today + one_day)
                         duration = dayEnd - dayStart
                         assert duration >= zero_delta
