@@ -1039,47 +1039,58 @@ class SidebarBlock(Table):
     def onRemoveEventUpdateUI(self, event):
         event.arguments['Enable'] = False
 
-    def onDeleteEventUpdateUI(self, event):
+    def selectionContainsNoOOTB(self):
         """
-        this is enabled if any user item is selected in the sidebar
+        Returns False if selection is empty or contains any OOTB collections
         """
-        # can remove anything except library collections
-        if self.contents.isSelectionEmpty():
-            enable = False
-        else:
-            for selectedItem in self.contents.iterSelection():
-                if (UserCollection(selectedItem).outOfTheBoxCollection):
-                    enable = False
-                    break
+        enable = False
+        for selectedItem in self.contents.iterSelection():
+            if UserCollection(selectedItem).outOfTheBoxCollection:
+                enable = False
+                break
             else:
                 enable = True
-        event.arguments['Enable'] = enable
+        return enable
+
+    def onDeleteEventUpdateUI(self, event):
+        """
+        Disable if any selected collections are OOTB collections
+        """
+        event.arguments['Enable'] = self.selectionContainsNoOOTB()
 
     def onDuplicateEventUpdateUI(self, event):
-        event.arguments['Enable'] = len (self.contents.getSelectionRanges()) != 0
+        """
+        Disable if any selected collections are OOTB collections
+        """
+        event.arguments['Enable'] = self.selectionContainsNoOOTB()
 
     def onDuplicateEvent(self, event):
-
+        """
+        Currently not available from any menu, Bug #8744
+        """
         mine = schema.ns('osaf.pim', self.itsView).mine
         for item in self.contents.iterSelection():
-            inMine = item in mine.sources
-            item = item.copy(parent=self.getDefaultParent(self.itsView),
-                             cloudAlias="copying")
-            
-            # Give the copy a new color
+
+            # don't duplicate an OOTB collection
             uc = UserCollection(item)
-            if hasattr(uc, 'color'):
-                del uc.color
-            uc.ensureColor()
+            if not uc.outOfTheBoxCollection:
+                inMine = item in mine.sources
+                item = item.copy(parent=self.getDefaultParent(self.itsView),
+                                 cloudAlias="copying")
+                
+                # Give the copy a new color
+                if hasattr(uc, 'color'):
+                    del uc.color
+                uc.ensureColor()
 
-            # do not add a collection to 'mine' that has 'mine' in its structure
-            # that causes 'mine' to become a recursive collection (bug 9369)
-            if inMine:
-                mine.addSource(item)
+                # do not add a collection to 'mine' that has 'mine' in its structure
+                # that causes 'mine' to become a recursive collection (bug 9369)
+                if inMine:
+                    mine.addSource(item)
 
-            item.displayName = _(u"Copy of ") + item.displayName
-            self.contents.add(item)
-            self.postEventByName("SelectItemsBroadcast", {'items': [item]})
+                item.displayName = _(u"Copy of ") + item.displayName
+                self.contents.add(item)
+                self.postEventByName("SelectItemsBroadcast", {'items': [item]})
 
     def ClearCollectionContents(self, collection):
         """
