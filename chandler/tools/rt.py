@@ -223,7 +223,7 @@ def checkOptions(options):
     for mode in ['debug', 'release']:
         if os.name == 'nt' or sys.platform == 'cygwin':
             options.runpython[mode]   = [os.path.join(options.chandlerBin, mode, 'RunPython.bat')]
-            options.runchandler[mode] = [os.path.join(options.chandlerHome, '%s.exe' % chandlerBinaries[mode])]
+            options.runchandler[mode] = [os.path.join(options.chandlerBin, mode, 'RunChandler.bat')]
         elif sys.platform == 'darwin':
             options.runpython[mode]   = [os.path.join(options.chandlerBin, mode, 'RunPython')]
             options.runchandler[mode] = [os.path.join(options.chandlerBin, mode, 'RunPython'), '-O', 'Chandler.py']

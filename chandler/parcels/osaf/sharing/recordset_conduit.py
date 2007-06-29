@@ -14,6 +14,7 @@
 
 from osaf import pim
 import conduits, errors, formats, eim, shares, model
+from model import EventRecord
 from utility import splitUUID, getDateUtilRRuleSet
 from i18n import ChandlerMessageFactory as _
 import logging
@@ -1368,9 +1369,13 @@ def findRecurrenceConflicts(view, master_alias, diff, localModAliases):
         return localModAliases
     
     conflicts = []
-    event_records = [r for r in diff.inclusions if isinstance(r, model.EventRecord)]
+    event_records = [r for r in diff.inclusions if isinstance(r, EventRecord)]
     if len(event_records) != 1:
-        return conflicts
+        if len([r for r in diff.exclusions if isinstance(r, EventRecord)]) > 0:
+            # EventRecord was excluded, so event-ness was unstamped
+            return localModAliases
+        else:
+            return conflicts
 
     event_record = event_records[0]
     
@@ -1383,9 +1388,13 @@ def findRecurrenceConflicts(view, master_alias, diff, localModAliases):
     split_aliases = ((splitUUID(view, a)[1], a) for a in localModAliases)
     rrule = event_record.rrule
     if rrule is not eim.NoChange:
-        pass
-        #if not rrule:
+        if not rrule:
             ## are there any RDATEs?
+            # no recurrence fields, recurrence removed, all modifications are
+            # conflicts
+            return localModAliases
+        else:
+            pass
     else:
         return []
     
