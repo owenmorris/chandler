@@ -1226,7 +1226,9 @@ class MainView(View):
         """
 
         collection = self.getSidebarSelectedCollection()
-        if collection is not None and not Globals.options.offline:
+        if (collection is not None) and \
+           (not Globals.options.offline) and \
+           (not UserCollection(collection).outOfTheBoxCollection):
 
             if (not sharing.isShared(collection) and
                 not sharing.ensureAccountSetUp(self.itsView, sharing=True)):
@@ -1238,9 +1240,10 @@ class MainView(View):
         """
         Update the menu to reflect the selected collection name.
         """
-        collection = self.getSidebarSelectedCollection ()
+        collection = self.getSidebarSelectedCollection()
         event.arguments['Enable'] = collection is not None and \
                                     not Globals.options.offline and \
+                                    (not UserCollection(collection).outOfTheBoxCollection) and \
                                     (not sharing.isShared(collection))
 
     def onManageSidebarCollectionEventUpdateUI (self, event):
