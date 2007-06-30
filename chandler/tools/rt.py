@@ -88,27 +88,28 @@ def parseOptions():
     args [] dryrun False func False funcSuite False help False mode None noEnv False noStop False params None perf False profile False recorded False repeat 0 selftest True single  tbox False testcase None unit False unitSuite False verbose False
     """
     _configItems = {
-        'mode':      ('-m', '--mode',               's', None,  'debug or release; by default attempts both'),
-        'noStop':    ('-C', '--continue',           'b', False, 'Continue even after test failures'),
-        'unit':      ('-u', '--unit',               'b', False, 'unit tests each in own process'),
-        'unitSuite': ('-U', '--unitSuite',          'b', False, 'all unit tests in single process'),
-        'verbose':   ('-v', '--verbose',            'b', False, 'Verbose output'),
-        'funcSuite': ('-f', '--funcSuite',          'b', False, 'Functional test suite'),
-        'func':      ('-F', '--func',               'b', False, 'Functional tests each in own process'),
-        'perf':      ('-p', '--perf',               'b', False, 'Performance tests'),
-        'single':    ('-t', '--test',               's', '',    'Run test(s) (comma separated list)'),
-        'noEnv':     ('-i', '--ignoreEnv',          'b', False, 'Ignore environment variables'),
-        'help':      ('-H', '',                     'b', False, 'Extended help'),
-        'dryrun':    ('-d', '--dryrun',             'b', False, 'Do all of the prep work but do not run any tests'),
-        'selftest':  ('',   '--selftest',           'b', False, 'Run self test'),
-        'profile':   ('-P', '--profile',            'b', False, 'Profile performance tests with hotshot'),
-        'tbox':      ('-T', '--tbox',               'b', False, 'Tinderbox mode'),
-        'recorded':  ('-r', '--recordedScript',     'b', False, 'Run the Chandler recorded scripts'),
-        'repeat':    ('',   '--repeat',             'i', 0,     'Number of times to repeat performance test, 1 by default, 3 in Tinderbox mode'),
-        'params':    ('',   '--params',             's', None,  'Optional params that are to be passed straight to RunPython'),
-        'testcase':  ('',   '--testcase',           's', None,  'Run a single unit test or test case TestFilename[:testClass[.testCase]]')
-        #'restored':  ('-R', '--restoredRepository', 'b', False, 'unit tests with restored repository instead of creating new for each test'),
-        #'config':    ('-L', '',                     's', None,  'Custom Chandler logging configuration file'),
+        'mode':         ('-m', '--mode',               's', None,  'debug or release; by default attempts both'),
+        'noStop':       ('-C', '--continue',           'b', False, 'Continue even after test failures'),
+        'unit':         ('-u', '--unit',               'b', False, 'unit tests each in own process'),
+        'unitSuite':    ('-U', '--unitSuite',          'b', False, 'all unit tests in single process'),
+        'verbose':      ('-v', '--verbose',            'b', False, 'Verbose output'),
+        'funcSuite':    ('-f', '--funcSuite',          'b', False, 'Functional test suite'),
+        'func':         ('-F', '--func',               'b', False, 'Functional tests each in own process'),
+        'perf':         ('-p', '--perf',               'b', False, 'Performance tests'),
+        'single':       ('-t', '--test',               's', '',    'Run test(s) (comma separated list)'),
+        'noEnv':        ('-i', '--ignoreEnv',          'b', False, 'Ignore environment variables'),
+        'help':         ('-H', '',                     'b', False, 'Extended help'),
+        'dryrun':       ('-d', '--dryrun',             'b', False, 'Do all of the prep work but do not run any tests'),
+        'selftest':     ('',   '--selftest',           'b', False, 'Run self test'),
+        'profile':      ('-P', '--profile',            'b', False, 'Profile performance tests with hotshot'),
+        'tbox':         ('-T', '--tbox',               'b', False, 'Tinderbox mode'),
+        'recorded':     ('-r', '--recordedScript',     'b', False, 'Run the Chandler recorded scripts'),
+        'repeat':       ('',   '--repeat',             'i', 0,     'Number of times to repeat performance test, 1 by default, 3 in Tinderbox mode'),
+        'params':       ('',   '--params',             's', None,  'Optional params that are to be passed straight to RunPython'),
+        'testcase':     ('',   '--testcase',           's', None,  'Run a single unit test or test case TestFilename[:testClass[.testCase]]'),
+        'useRunPython': ('-j', '--runPython',          'b', False, 'Use RunPython instead of native launchers to run tests'),
+        #'restored':    ('-R', '--restoredRepository', 'b', False, 'unit tests with restored repository instead of creating new for each test'),
+        #'config':      ('-L', '',                     's', None,  'Custom Chandler logging configuration file'),
     }
 
     # %prog expands to os.path.basename(sys.argv[0])
@@ -213,6 +214,10 @@ def checkOptions(options):
     if options.funcSuite or options.func:
         options.recorded = True
 
+    # force useRunPython if running on a Mac
+    if sys.platform == 'darwin':
+        options.useRunPython = True
+
     options.runpython   = {}
     options.runchandler = {}
 
@@ -226,10 +231,17 @@ def checkOptions(options):
             options.runchandler[mode] = [os.path.join(options.chandlerHome, '%s.exe' % chandlerBinaries[mode])]
         elif sys.platform == 'darwin':
             options.runpython[mode]   = [os.path.join(options.chandlerBin, mode, 'RunPython')]
-            options.runchandler[mode] = [os.path.join(options.chandlerBin, mode, 'RunPython'), '-O', 'Chandler.py']
         else:
             options.runpython[mode]   = [os.path.join(options.chandlerBin, mode, 'RunPython')]
             options.runchandler[mode] = [os.path.join(options.chandlerHome, chandlerBinaries[mode])]
+
+        if options.useRunPython:
+            options.runchandler[mode] = options.runpython[mode][:]
+
+            if mode == 'release':
+                options.runchandler[mode] += ['-O']
+
+            options.runchandler[mode] += ['Chandler.py']
 
     if options.noEnv:
         for item in _ignoreEnvNames:
