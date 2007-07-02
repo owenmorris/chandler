@@ -85,7 +85,7 @@ def parseOptions():
     >>> keys.sort()
     >>> for key in keys:
     ...     print key, d[key],
-    args [] dryrun False func False funcSuite False help False mode None noEnv False noStop False params None perf False profile False recorded False repeat 0 selftest True single  tbox False testcase None unit False unitSuite False verbose False
+    args [] dryrun False func False funcSuite False help False mode None noEnv False noStop False params None perf False profile False recorded False repeat 0 selftest True single  tbox False testcase None unit False unitSuite False useRunPython False verbose False
     """
     _configItems = {
         'mode':         ('-m', '--mode',               's', None,  'debug or release; by default attempts both'),
@@ -168,7 +168,7 @@ def checkOptions(options):
     >>> keys.sort()
     >>> for key in keys:
     ...     print key, d[key],
-    args [] chandlerBin ... chandlerHome ... dryrun False func False funcSuite False help False mode None noEnv False noStop False params None parcelPath tools/cats/DataFiles perf False profile False profileDir test_profile recorded False repeat 0 runchandler {'debug': ['.../chandlerDebug...'], 'release': ['.../chandler...']} runpython {'debug': ['.../debug/RunPython...'], 'release': ['.../release/RunPython...']} selftest True single  tbox False testcase None toolsDir tools unit False unitSuite False verbose False
+    args [] chandlerBin ... chandlerHome ... dryrun False func False funcSuite False help False mode None noEnv False noStop False params None parcelPath tools/cats/DataFiles perf False profile False profileDir test_profile recorded False repeat 0 runchandler {'debug': ['.../chandlerDebug...'], 'release': ['.../chandler...']} runpython {'debug': ['.../debug/RunPython...'], 'release': ['.../release/RunPython...']} selftest True single  tbox False testcase None toolsDir tools unit False unitSuite False useRunPython False verbose False
     """
     if options.help:
         print __doc__
