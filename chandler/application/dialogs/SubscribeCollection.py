@@ -171,7 +171,11 @@ class SubscribeDialog(wx.Dialog):
         # Commit now to prevent being in the state where the collection
         # has been subscribed to, but we don't remember adding it to the
         # sidebar.
-        self.activity.update(msg="Saving...", totalWork=None)
+        try:
+            self.activity.update(msg="Saving...", totalWork=None)
+        except ActivityAborted:
+            pass # at this point, we've already got the collection and we
+                 # need to add it to the sidebar, so ignore abort request
         self.view.commit()
         self.activity.completed()
         self.listener.unregister()
