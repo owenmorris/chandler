@@ -1,6 +1,6 @@
 
 VERSION=563
-RELVER=$(VERSION)-$(BRANCH_REV_PREFIX)1
+RELVER=$(VERSION)-$(BRANCH_REV_PREFIX)2
 SRC=$(BUILD_ROOT)/m2crypto/M2Crypto-$(VERSION)
 BUILD=build_$(SNAP)
 TARBALL=m2crypto-$(SNAP)-$(RELVER).tar.gz
@@ -22,10 +22,14 @@ build: expand apply
           install_lib --force
 
 else
+ifeq ($(OS),Darwin)
+    WITH_OPENSSL=--openssl=$(BUILD_ROOT)/$(SNAP)
+endif
+
 build: expand apply
 	cd $(SRC); \
 	MACOSX_DEPLOYMENT_TARGET=$(MACOSX_DEPLOYMENT_TARGET) $(PYTHON) setup.py \
-	      --openssl=$(BUILD_ROOT)/$(SNAP) \
+	      $(WITH_OPENSSL) \
           build_ext --swig=$(SWIG) \
                     --library-dirs=$(BUILD_ROOT)/$(SNAP)/lib \
                     --include-dirs=$(BUILD_ROOT)/$(SNAP)/include \

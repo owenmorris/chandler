@@ -66,6 +66,7 @@ PLATFORM=windows
 SWIG=$(PREFIX)/bin/swig/swig.exe
 UPLOAD=builder@builds.osafoundation.org:/www/docs/external/$(PLATFORM)
 READLINE_WIN=readline
+OPENSSL_WIN=openssl
 else
 ifeq ($(OS),Darwin)
 FRAMEWORK=Library/Frameworks/Python.framework/Versions/$(PYTHON_VER)
@@ -77,6 +78,7 @@ MACOSX_DEPLOYMENT_TARGET=10.4
 endif
 endif
 READLINE_OSX=readline
+OPENSSL_OSX=openssl
 PYTHON_BINDIR:=$(FRAMEWORK)/bin
 PYTHON:=$(PREFIX)/$(PYTHON_BINDIR)/$(PYTHON)
 SITE=$(FRAMEWORK)/lib/python$(PYTHON_VER)/site-packages
