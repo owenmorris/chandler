@@ -1281,7 +1281,7 @@ class CalendarTransparencyAreaBlock(TransparencyConditionalBehavior,
                                     DetailSynchronizedContentItemDetailBlock):
     pass
 
-class CalendarTransparencyAEBlock(EventConditionalBehavior,
+class CalendarTransparencyAEBlock(TransparencyConditionalBehavior,
                                   DetailSynchronizedAttributeEditorBlock):
     pass
 
