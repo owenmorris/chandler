@@ -1316,7 +1316,21 @@ class RecurringEventTest(testcase.SingleRepositoryTestCase):
         # The first occurrence should've been removed from the series
         self.assertEqual(countStatus(event), (1,1,1)) # later, done, now
         
-
+    def testUnModify(self):
+        """Unmodify should delete make most attributes be inherited."""
+        
+        event = self.event
+        start = self.start
+        # recurrence entirely in the past
+        event.rruleset = self._createRuleSetItem('weekly')
+        
+        second = event.getFirstOccurrence().getNextOccurrence()
+        second.changeThis('displayName', uw('Modified occurrence'))
+        second.itsItem.setTriageStatus(TriageEnum.now)
+        
+        second.unmodify()
+        self.assertEqual(second.itsItem._triageStatus, TriageEnum.done)
+        self.failIf(second.itsItem.hasLocalAttributeValue('displayName'))
         
     def testEventCollection(self):
         events = EventStamp.getCollection(self.view)

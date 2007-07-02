@@ -1229,6 +1229,9 @@ class RoundTripTestCase(testcase.DualRepositoryTestCase):
         # Make a modification, sync it, then 'unmodify' it
         second0 = event.getFirstOccurrence().getNextOccurrence()
         second0.itsItem.displayName = "Changed"
+        second0.itsItem.setTriageStatus(pim.TriageEnum.now)
+        second0.itsItem.resetAutoTriageOnDateChange()
+        
         view0.commit(); stats = self.share0.sync(); view0.commit()
         # TODO: Need to investigate why these stats are random!
         # self.assert_(checkStats(stats,
@@ -1243,6 +1246,8 @@ class RoundTripTestCase(testcase.DualRepositoryTestCase):
             "Sync operation mismatch")
         second1 = event1.getRecurrenceID(second0.recurrenceID)
         self.assert_(not second1.isGenerated)
+        self.assertEqual(second1.itsItem._triageStatus, pim.TriageEnum.now)
+        self.assertEqual(second1.itsItem.displayName, "Changed")
 
         second0.unmodify()
         self.assert_(second0.itsItem not in self.share0.contents)
@@ -1258,6 +1263,9 @@ class RoundTripTestCase(testcase.DualRepositoryTestCase):
              {'added' : 0, 'modified' : 0, 'removed' : 0})),
             "Sync operation mismatch")
         self.assert_(second1.isGenerated)
+        self.assertEqual(second1.itsItem._triageStatus, pim.TriageEnum.done)
+        self.failIf(second1.itsItem.hasLocalAttributeValue('displayName'))
+        
         # Now it's back to an unmodification
 
         # Make it a modification again on both sides

@@ -2063,10 +2063,16 @@ class EventStamp(Stamp):
         
         with self.noRecurrenceChanges():
             self.itsItem.collections = []
-            for attr in (Triageable._sectionTriageStatus.name,
-                         Triageable._sectionTriageStatusChanged.name):
-                if hasattr(self.itsItem, attr):
+            for attr, value in list(self.itsItem.iterModifiedAttributes()):
+                # sharing may send an unmodify at times when triage status
+                # doesn't match its date, so we need to explicitly change it
+                if attr == '_triageStatus':
+                    triage = self.autoTriage()
+                    if value != triage:
+                        self.itsItem.setTriageStatus(triage)
+                else:
                     delattr(self.itsItem, attr)
+                
             self.isGenerated = True
             del self.modificationFor
 
@@ -2588,12 +2594,13 @@ class Occurrence(Note):
         ContentItem.createdOn.name, ContentItem.modifiedFlags.name
     )
     
-    IGNORE_ATTRIBUTE_PREFIX = 'osaf.framework'
+    IGNORE_ATTRIBUTE_PREFIXES = ('osaf.framework',
+                                 'osaf.sharing.shares.SharedItem')
 
     def hasModifiedAttribute(self, attr):
         cls = type(self)
         if (attr in cls.DONT_PUSH or
-            attr.startswith(cls.IGNORE_ATTRIBUTE_PREFIX)):
+            [p for p in cls.IGNORE_ATTRIBUTE_PREFIXES if attr.startswith(p)]):
             return False
             
         event = EventStamp(self)
@@ -2625,7 +2632,7 @@ class Occurrence(Note):
         exclusions:
         
         1) Excluding all attributes in the DONT_PUSH class variable
-        2) Excluding any attribute that starts with IGNORE_ATTRIBUTE_PREFIX.
+        2) Excluding any attribute that starts with IGNORE_ATTRIBUTE_PREFIXES.
            This is a total hack which will break if we ever refactor, but it's a
            stand in for a way to define attributes as "not user facing"
 
