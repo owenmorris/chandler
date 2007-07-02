@@ -12,6 +12,8 @@
 #   See the License for the specific language governing permissions and
 #   limitations under the License.
 
+from __future__ import with_statement
+
 __all__ = [
     'importFile',
     'exportFile',
@@ -33,52 +35,54 @@ def importFile(rv, path, collection=None, activity=None,
     input = open(path, "r")
     text = input.read()
     input.close()
-
-    if filters is None:
-        filter = lambda rs: rs
-    else:
-        filter = eim.Filter(None, u'Temporary filter')
-        for uri in filters:
-            filter += eim.lookupSchemaURI(uri)
-        filter = filter.sync_filter
-
-    trans = translatorClass(rv)
-
-    if activity:
-        activity.update(msg=_(u"Parsing file"), totalWork=None)
-    inbound, extra = serializerClass.deserialize(rv, text)
-
-    total = len(inbound)
-    if activity:
-        activity.update(totalWork=total)
-
-    trans.startImport()
-    for alias, rs in inbound.items():
-        trans.importRecords(filter(rs))
-        if activity:
-            activity.update(work=1, msg=_(u"Importing items"))
-
-    trans.finishImport()
-
     
+    with rv.reindexingDeferred():
 
-    if collection is None:
-        name = extra.get('name', _(u"Untitled"))
-        collection = pim.SmartCollection(itsView=rv, displayName=name)
-
-    for alias in inbound:
-        uuid = trans.getUUIDForAlias(alias)
-        if uuid:
-            item = rv.findUUID(uuid)
-            if item is not None:
-                collection.add(item)
-                pim.setTriageStatus(item, 'auto')
-                item_to_change = getattr(item, 'inheritFrom', item)
-                item_to_change.read = True
-
-    if activity:
-        activity.update(totalWork=None, msg=_(u"Importing complete"))
-
+        if filters is None:
+            filter = lambda rs: rs
+        else:
+            filter = eim.Filter(None, u'Temporary filter')
+            for uri in filters:
+                filter += eim.lookupSchemaURI(uri)
+            filter = filter.sync_filter
+    
+        trans = translatorClass(rv)
+    
+        if activity:
+            activity.update(msg=_(u"Parsing file"), totalWork=None)
+        inbound, extra = serializerClass.deserialize(rv, text)
+    
+        total = len(inbound)
+        if activity:
+            activity.update(totalWork=total)
+    
+        trans.startImport()
+        for alias, rs in inbound.items():
+            trans.importRecords(filter(rs))
+            if activity:
+                activity.update(work=1, msg=_(u"Importing items"))
+    
+        trans.finishImport()
+    
+        
+    
+        if collection is None:
+            name = extra.get('name', _(u"Untitled"))
+            collection = pim.SmartCollection(itsView=rv, displayName=name)
+    
+        for alias in inbound:
+            uuid = trans.getUUIDForAlias(alias)
+            if uuid:
+                item = rv.findUUID(uuid)
+                if item is not None:
+                    collection.add(item)
+                    pim.setTriageStatus(item, 'auto')
+                    item_to_change = getattr(item, 'inheritFrom', item)
+                    item_to_change.read = True
+    
+        if activity:
+            activity.update(totalWork=None, msg=_(u"Importing complete"))
+    
     return collection
 
 

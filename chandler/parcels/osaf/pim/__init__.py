@@ -370,13 +370,14 @@ def installParcel(parcel, oldVersion=None):
     emailComparator = EmailComparator.update(parcel, 'emailComparator')
     emailAddressCollection.addIndex('emailAddress', 'method',
                                     method=(emailComparator, 'cmpAddress'),
-                                    monitor='emailAddress')
+                                    monitor='emailAddress', nodefer=True)
     emailAddressCollection.addIndex('fullName', 'method',
                                     method=(emailComparator, 'cmpFullName'),
-                                    monitor='fullName')
+                                    monitor='fullName', nodefer=True)
     emailAddressCollection.addIndex('both', 'method',
                                     method=(emailComparator, 'cmpBoth'),
-                                    monitor=('emailAddress', 'fullName'))
+                                    monitor=('emailAddress', 'fullName'),
+                                    nodefer=True)
 
     # Contains all current me addresses (that is, referenced by an account)
     currentMeEmailAddresses = ListCollection.update(

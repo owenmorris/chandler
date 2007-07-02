@@ -1972,7 +1972,7 @@ class EventStamp(Stamp):
         
         """
         master = self.getMaster()
-        firstOccurrence = master.getRecurrenceID(master.recurrenceID)
+        firstOccurrence = master.getRecurrenceID(master.effectiveStartTime)
         if firstOccurrence is None:
             # This can happen if there's an EXDATE deleting the first occurrence
             return
