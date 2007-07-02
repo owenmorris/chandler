@@ -463,7 +463,7 @@ class SSSidebarEditor (GridCellAttributeEditor):
         self.control.SetRect (textRect);
 
 
-class SSSidebarButton (schema.Item):
+class SSSidebarButton(schema.Item):
     """
       Super specialized Sidebar button -- The sidebar design doesn't use
     any off the shelf parts, so we'll go roll a bunch of special purpose
@@ -485,6 +485,21 @@ class SSSidebarButton (schema.Item):
     schema.addClouds(
         copying = schema.Cloud (byCloud = [buttonOwner])
     )
+    
+    # Save all SSSidebarButtons' buttonStates in a global dictionary, keyed
+    # by UUID. Otherwise, SSidebarButtons, which aren't referenced by objects
+    # outside of the repository, may be discarded (during prune) and reloaded
+    # by the repository, but would be missing their nonpersistent state.
+    # [Bug 9420]
+    _allButtonStates = {}
+    
+    def _getButtonState(self):
+        return self._allButtonStates[self.itsUUID]
+        
+    def _setButtonState(self, bs):
+        self._allButtonStates[self.itsUUID] = bs
+
+    buttonState = property(fget=_getButtonState, fset=_setButtonState)
 
 class SSSidebarIconButton2 (SSSidebarButton):
     def getChecked (self, item):
