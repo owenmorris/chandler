@@ -2070,7 +2070,7 @@ class EventStamp(Stamp):
                     triage = self.autoTriage()
                     if value != triage:
                         self.itsItem.setTriageStatus(triage)
-                else:
+                elif self.itsItem.hasLocalAttributeValue(attr):
                     delattr(self.itsItem, attr)
                 
             self.isGenerated = True

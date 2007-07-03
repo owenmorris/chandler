@@ -150,6 +150,13 @@ class Triageable(Remindable):
                     #logger.debug("Popping %s to Now", debugName(self))
                     self.__setTriageAttributes(TriageEnum.now, None,
                                                True, force)
+                else:
+                    # We're not pinning in place, and we're not popping to Now.
+                    # Get rid of any existing section triage status
+                    if self.hasLocalAttributeValue('_sectionTriageStatus'):
+                        del self._sectionTriageStatus
+                    if self.hasLocalAttributeValue('_sectionTriageStatusChanged'):
+                        del self._sectionTriageStatusChanged
                     
                 # Autotriage if we're supposed to.
                 if newStatus == 'auto':
