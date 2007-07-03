@@ -7,6 +7,10 @@
 
 default: install
 
+OS         = $(shell uname)
+PYTHON_VER = 2.5
+BP         = 
+
 BUILD_PLUGINS = Chandler-HelloWorldPlugin \
                 Chandler-AmazonPlugin \
                 Chandler-EVDBPlugin \
@@ -20,16 +24,21 @@ BUILD_PLUGINS = Chandler-HelloWorldPlugin \
 
 # When a version changes, the ARCHIVES lists below need to be updated.
 
+ifeq ($(OS),Linux)
+    OPENSSL =
+else
+    OPENSSL = $(CHANDLERARCHIVES)/openssl-$(SNAP)-0.9.8d-$(BP)1.tar.gz
+endif
 
 ARCHIVES = \
     $(CHANDLERARCHIVES)/Launchers-$(SNAP)-0.9-$(BP)19.tar.gz \
     $(CHANDLERARCHIVES)/chandlerdb-$(SNAP)-0.7-$(BP)19.tar.gz \
     $(CHANDLERARCHIVES)/db-$(SNAP)-4.5.20-$(BP)3.tar.gz \
-    $(CHANDLERARCHIVES)/python-$(SNAP)-2.5.1-$(BP)3.tar.gz \
+    $(CHANDLERARCHIVES)/python-$(SNAP)-2.5.1-$(BP)4.tar.gz \
     $(CHANDLERARCHIVES)/epydoc-$(SNAP)-3.0beta1-$(BP)1.tar.gz \
     $(CHANDLERARCHIVES)/icu-$(SNAP)-3.6-$(BP)1.tar.gz \
-    $(CHANDLERARCHIVES)/openssl-$(SNAP)-0.9.8d-$(BP)1.tar.gz \
-    $(CHANDLERARCHIVES)/m2crypto-$(SNAP)-563-$(BP)1.tar.gz \
+    $(OPENSSL) \
+    $(CHANDLERARCHIVES)/m2crypto-$(SNAP)-563-$(BP)2.tar.gz \
     $(CHANDLERARCHIVES)/pychecker-$(SNAP)-0.8.17-$(BP)1.tar.gz \
     $(CHANDLERARCHIVES)/PyICU-$(SNAP)-0.6-78-$(BP)1.tar.gz \
     $(CHANDLERARCHIVES)/PyLucene-$(SNAP)-2.1.0-2-$(BP)1.tar.gz \
@@ -47,10 +56,6 @@ ARCHIVES = \
     $(CHANDLERARCHIVES)/eggtranslations-$(SNAP)-1.0-r9-$(BP)1.tar.gz \
     $(CHANDLERARCHIVES)/zope.interface-$(SNAP)-3.3.0b2-r71371-$(BP)3.tar.gz \
     $(CHANDLERARCHIVES)/setuptools-$(SNAP)-0.6c6dev-r54072-$(BP)1.tar.gz
-
-OS         = $(shell uname)
-PYTHON_VER = 2.5
-BP         = 
 
 ifeq ($(findstring CYGWIN,$(OS)),CYGWIN)
     OS = Cygwin

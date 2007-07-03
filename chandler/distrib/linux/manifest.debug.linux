@@ -40,13 +40,6 @@ dest=debug
 glob=*
 share
 
-# Grab the OpenSSL libs
-src=chandler/debug
-recursive=no
-dest=debug
-glob=libssl*,libcrypto*
-lib
-
 # Recursively grab python libraries
 src=chandler/debug/lib
 dest=debug/lib
