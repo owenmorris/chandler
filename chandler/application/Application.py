@@ -591,9 +591,10 @@ class wxApplication (wx.App):
 
 
         # Start a background sync of shares, but only if not in offline mode,
-        # and only if the autosync function is not set to "manual" (indicated
-        # by an autosync interval of None):
+        # and not running tests, and if the autosync function is not set to
+        # "manual" (indicated by an autosync interval of None):
         if not Globals.options.offline and \
+            Globals.options.catch != 'tests' and \
             sharing.getAutoSyncInterval(self.UIRepositoryView) is not None:
             sharing.scheduleNow(self.UIRepositoryView)
 
