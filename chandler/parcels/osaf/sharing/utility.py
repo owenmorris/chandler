@@ -84,17 +84,14 @@ def inspect(rv, url, username=None, password=None):
         url = 'http' + url[6:]
 
     try:
-        return zanshin.util.blockUntil(getDAVInfo, rv, url, username=username,
-            password=password)
+        result = zanshin.util.blockUntil(getOPTIONS, rv, url,
+            username=username, password=password)
 
-    except zanshin.http.HTTPError, e:
+        if 'dav' in result:
+            return zanshin.util.blockUntil(getDAVInfo, rv, url,
+                username=username, password=password)
 
-        if e.status == 401: # Unauthorized
-            raise errors.NotAllowed("Not authorized (%s)" % e.message)
-        elif e.status == 404: # Not Found
-            raise errors.NotFound("Not found (%s)" % e.message)
         else:
-            # just try to HEAD the resource
             return zanshin.util.blockUntil(getHEADInfo, rv, url,
                 username=username, password=password)
 
@@ -103,6 +100,13 @@ def inspect(rv, url, username=None, password=None):
 
     except M2Crypto.BIO.BIOError, e:
         raise errors.CouldNotConnect(_(u"Unable to connect to server. Received the following error: %(error)s") % {'error': e})
+
+    except zanshin.http.HTTPError, e:
+
+        if e.status == 401: # Unauthorized
+            raise errors.NotAllowed("Not authorized (%s)" % e.message)
+        elif e.status == 404: # Not Found
+            raise errors.NotFound("Not found (%s)" % e.message)
 
 
 
@@ -508,12 +512,10 @@ def checkForActiveShares(view):
 
 def getExistingResources(account):
     path = account.path.strip("/")
-    handle = WebDAV.ChandlerServerHandle(account.host,
-                                         port=account.port,
-                                         username=account.username,
-                                         password=waitForDeferred(account.password.decryptPassword()),
-                                         useSSL=account.useSSL,
-                                         repositoryView=account.itsView)
+    handle = WebDAV.ChandlerServerHandle(account.host, port=account.port,
+         username=account.username,
+         password=waitForDeferred(account.password.decryptPassword()),
+         useSSL=account.useSSL, repositoryView=account.itsView)
 
     if len(path) > 0:
         path = "/%s/" % path
@@ -669,6 +671,8 @@ def getDAVInfo(rv, url, username=None, password=None):
 
 
 
+
+
 def getHEADInfo(rv, url, username=None, password=None):
     """
     Returns a deferred to a dict, describing various DAV properties of
@@ -740,6 +744,62 @@ def getHEADInfo(rv, url, username=None, password=None):
 
 
     return d.addCallback(handleHeadResponse)
+
+
+def getOPTIONS(rv, url, username=None, password=None):
+
+    parsedUrl = urlparse.urlsplit(url)
+    useSSL = (parsedUrl.scheme == "https")
+    host = parsedUrl.hostname
+    if parsedUrl.port:
+        port = parsedUrl.port
+    else:
+        if useSSL:
+            port = 443
+        else:
+            port = 80
+
+    handle = WebDAV.ChandlerServerHandle(host, port, username, password,
+        useSSL, repositoryView=rv)
+
+    path = parsedUrl.path
+    if not path:
+        path = "/"
+    if parsedUrl.query:
+        path = "%s?%s" % (path, parsedUrl.query)
+
+    request = zanshin.http.Request('OPTIONS', path, None, None)
+    d = handle.addRequest(request)
+
+    def handleHeadResponse(resp):
+        resultDict = { }
+
+        if resp.status == http.FORBIDDEN:
+            msg = _("The server rejected our request; please check the URL (HTTP status %(status)d)") % { 'status' : resp.status }
+            raise errors.SharingError(msg,
+                details=_("Received [%(body)s]") % {'body' : resp.body })
+        elif resp.status != http.OK:
+            raise zanshin.http.HTTPError(status=resp.status,
+                                         message=resp.message)
+
+
+        cosmo = resp.headers.getHeader('X-Cosmo-Version')
+        if cosmo:
+            resultDict['cosmo'] = cosmo[0]
+
+        dav = resp.headers.getHeader('DAV')
+        if dav:
+            resultDict['dav'] = dav[0]
+
+        allow = resp.headers.getHeader('Allow')
+        if allow:
+            resultDict['allow'] = allow[0]
+
+        return resultDict
+
+    return d.addCallback(handleHeadResponse)
+
+
 
 def getPage(rv, url, username=None, password=None):
     return zanshin.util.blockUntil(_getPage, rv, url, username=username,
