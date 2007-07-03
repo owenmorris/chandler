@@ -589,6 +589,15 @@ class wxApplication (wx.App):
                 self.mainFrame.UpdateWindowUI(wx.UPDATE_UI_RECURSE)
             wx.CallAfter(afterInit)
 
+
+        # Start a background sync of shares, but only if not in offline mode,
+        # and only if the autosync function is not set to "manual" (indicated
+        # by an autosync interval of None):
+        if not Globals.options.offline and \
+            sharing.getAutoSyncInterval(self.UIRepositoryView) is not None:
+            sharing.scheduleNow(self.UIRepositoryView)
+
+
         util.timing.end("wxApplication OnInit") #@@@Temporary testing tool written by Morgen -- DJA
 
         return True    # indicates we succeeded with initialization
