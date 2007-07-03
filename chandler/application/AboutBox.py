@@ -35,7 +35,7 @@ class AboutBox(wx.Dialog):
         pos = wx.DefaultPosition
 
         if title is None:
-            title = _("About Chandler")
+            title = _(u"About Chandler")
 
         if html is None:
             html = _getDefaultHTML()
@@ -113,13 +113,16 @@ def _getDefaultHTML():
     # localized image.
     "pix":  "image:pixel.gif",
     "ab":   "image:about.png",
-    "ver":  _("Version: %(versionNumber)s") % {"versionNumber": version},
-    "abt":  _("About Chandler"),
-    "plat": Utility.getPlatformName(),
-    "ch":   (u"Chandler\u2122"),
-    "osa":  ("Open Source Applications Foundation"),
-    "loc":  _("For more info: %(chandlerWebURL)s") % \
-           {"chandlerWebURL": "<a href=\"http://chandler.osafoundation.org\">chandler.osafoundation.org</a>"},
+    "ver":  _(u"Version %(versionNumber)s for %(platform)s") % {"versionNumber": version, "platform":Utility.getPlatformName()},
+    "abt":  _(u"About Chandler"),
+    "ch":   (u"Chandler\u2122 Preview"),
+    "osa":  (u"Open Source Applications Foundation"),
+    # pbossut: it's possible to doctor the HTML to have the line wrap around but it's hard 
+    # to have it cut exactly where specified by PPD, so I settled for a 2 lines license snippet.
+    "lic1": _(u"Chandler is licensed under the"),
+    "lic2": _(u"Apache Licence, Version 2.0."),
+    "loc":  _(u"Visit %(chandlerWebURL)s for more information.") % \
+           {"chandlerWebURL": "<a href=\"http://chandlerproject.org\">Chandler Project</a>"},
     #This is a bummer the % in the width attribute was causing the
     #Python string parser to barf. It thought this was a replacable value :(
     "wid": "100%"
@@ -135,20 +138,18 @@ def _getDefaultHTML():
 
 <center>
 <table width="%(wid)s" border="0" cellpadding="0" cellspacing="0">
-<tr><td><img src="%(pix)s" width="1" height="5"></td></tr>
-<tr><td><img src="%(pix)s" width="1" height="10"></td></tr>
-<tr><td><center><img src="%(ab)s" width="64" height="64"></center></td></tr>
-<tr><td><img src="%(pix)s" width="1" height="5"></td></tr>
-<tr><td><center><font face="verdana, arial, helvetica, sans-serif" size="4" color="black"><strong>%(ch)s</strong></font></center></td></tr>
 <tr><td><img src="%(pix)s" width="1" height="15"></td></tr>
-<tr><td><center><font face="helvetica, arial, sans-serif" size="2" color="black">%(ver)s</font></center></td></tr>
-<tr><td><center><font face="helvetica, arial, sans-serif" size="2" color="black">%(plat)s</font></center></td></tr>
-<tr><td><img src="%(pix)s" width="1" height="2"></td></tr>
-<tr><td><center><font face="helvetica, arial, sans-serif" size="2" color="black"> %(loc)s </font></center></td></tr>
+<tr><td><center><img src="%(ab)s" width="64" height="64"></center></td></tr>
+<tr><td><img src="%(pix)s" width="1" height="20"></td></tr>
+<tr><td><center><font face="verdana, arial, helvetica, sans-serif" size="+1" color="black"><strong>%(ch)s</strong></font></center></td></tr>
+<tr><td><center><font face="helvetica, arial, sans-serif" size="-1" color="black">%(ver)s</font></center></td></tr>
 <tr><td><img src="%(pix)s" width="1" height="10"></td></tr>
-<tr><td><center><font face="helvetica, arial, sans-serif" size="2" color="black">
+<tr><td><center><font face="helvetica, arial, sans-serif" size="-1" color="black"> %(lic1)s </font></center></td></tr>
+<tr><td><center><font face="helvetica, arial, sans-serif" size="-1" color="black"> %(lic2)s </font></center></td></tr>
+<tr><td><center><font face="helvetica, arial, sans-serif" size="-1" color="black"> %(loc)s </font></center></td></tr>
+<tr><td><img src="%(pix)s" width="1" height="10"></td></tr>
+<tr><td><center><font face="helvetica, arial, sans-serif" size="-1" color="black">
 %(osa)s</font></center></td></tr>
-<tr><td><img src="%(pix)s" width="1" height="10"></td></tr>
 </table>
 </center>
 
