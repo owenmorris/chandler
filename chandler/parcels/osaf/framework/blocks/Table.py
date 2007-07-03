@@ -963,16 +963,17 @@ class Table (PimBlocks.FocusEventHandlers, RectangularChild):
         # We should only end up here if we have an empty selection
         assert self.contents.isSelectionEmpty()
         
-        items = []
         length = len (self.contents)
         if length:
             lastIndex = length - 1
             if oldIndex > lastIndex:
                 oldIndex = lastIndex
             item = self.contents [oldIndex]
-            items.append (item)
             self.contents.selectItem (item)
-        self.PostSelectItems (items)
+
+            # Propagate the notifications and synchronize the widget so the sections are up to date
+            wx.GetApp().propagateAsynchronousNotifications()
+            self.widget.GoToItem (item)
 
 
 # Ewww, yuk.  Blocks and attribute editors are mutually interdependent
