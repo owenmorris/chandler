@@ -392,81 +392,82 @@ class wxTable(DragAndDrop.DraggableWidget,
         # call event.Skip(False)
         event.Skip()
         
-        # Bug #7320: Don't process mouse events when the gridWindows data has
-        # changed but hasn't been synchronized to the widget.
-        blockItem = self.blockItem
-        blockItem.itsView.dispatchQueuedNotifications()
-        if not blockItem.isBlockDirty():
-            gridWindow = self.GetGridWindow()
-
-            def callHandler(cell, isInCell, oldnew):
-                if cell is None or -1 in cell:
-                    return False
-                
-                renderer = self.GetCellRenderer(cell[1], cell[0])
-                try:
-                    # See if it's renderer with an attribute editor that wants
-                    # mouse events
-                    handler = renderer.delegate.OnMouseChange
-                except AttributeError:
-                    # See if it's a section renderer that wants mouse events
-                    handler = getattr(renderer, 'OnMouseChange', None)
-                
-                if handler is None:
-                    return False
-                
-                # Add information to the event
-                event.cell = cell
-                event.isInCell = isInCell
-                event.getCellValue = lambda: self.GetTable().GetValue(cell[1], cell[0])
-                event.getCellRect = lambda: self.CalculateCellRect(cell)
-                
-                # Call the handler
-                wantsCapture = handler(event)                                   
-                return wantsCapture
-                
-            # Figure out which cell we're over, and the previous one if any
-            cell = self.__eventToCell(event)
-            oldCell = getattr(blockItem, "overCell", None)
-
-            # Summarize the state on each call
-            if False:
-                evtType = event.GetEventType()
-                evtType = evtNames.get(evtType, evtType)
-                logger.debug("wxDashboard.OnMouseEvents: %s, %s (was %s)", 
-                             evtType, cell, oldCell)
-
-            # If we were over a cell previously that wanted us to capture
-            # the mouse, notify it and see whether it still wants it.
-            wantsCapture = False
-            if oldCell is not None:
-                wantsCapture = callHandler(oldCell, oldCell == cell, "old")
+        # Bug #7320: Don't process mouse events when the the table isn't visible
+        # or when gridWindow's data has changed but hasn't been synchronized to the widget.
+        if self.IsShown():
+            blockItem = self.blockItem
+            blockItem.itsView.dispatchQueuedNotifications()
+            if not blockItem.isBlockDirty():
+                gridWindow = self.GetGridWindow()
+    
+                def callHandler(cell, isInCell, oldnew):
+                    if cell is None or -1 in cell:
+                        return False
+                    
+                    renderer = self.GetCellRenderer(cell[1], cell[0])
+                    try:
+                        # See if it's renderer with an attribute editor that wants
+                        # mouse events
+                        handler = renderer.delegate.OnMouseChange
+                    except AttributeError:
+                        # See if it's a section renderer that wants mouse events
+                        handler = getattr(renderer, 'OnMouseChange', None)
+                    
+                    if handler is None:
+                        return False
+                    
+                    # Add information to the event
+                    event.cell = cell
+                    event.isInCell = isInCell
+                    event.getCellValue = lambda: self.GetTable().GetValue(cell[1], cell[0])
+                    event.getCellRect = lambda: self.CalculateCellRect(cell)
+                    
+                    # Call the handler
+                    wantsCapture = handler(event)                                   
+                    return wantsCapture
+                    
+                # Figure out which cell we're over, and the previous one if any
+                cell = self.__eventToCell(event)
+                oldCell = getattr(blockItem, "overCell", None)
+    
+                # Summarize the state on each call
+                if False:
+                    evtType = event.GetEventType()
+                    evtType = evtNames.get(evtType, evtType)
+                    logger.debug("wxDashboard.OnMouseEvents: %s, %s (was %s)", 
+                                 evtType, cell, oldCell)
+    
+                # If we were over a cell previously that wanted us to capture
+                # the mouse, notify it and see whether it still wants it.
+                wantsCapture = False
+                if oldCell is not None:
+                    wantsCapture = callHandler(oldCell, oldCell == cell, "old")
+                    if not wantsCapture:
+                        del blockItem.overCell
+    
                 if not wantsCapture:
-                    del blockItem.overCell
-
-            if not wantsCapture:
-                # If the old cell didn't want it, give the current 
-                # cell a chance
-                if oldCell != cell:
-                    wantsCapture = callHandler(cell, True, "new")
-                    if wantsCapture:
-                        blockItem.overCell = cell
-
-            # Change mouse capture if necessary. Apparently window.HasCapture
-            # isn't reliable, so we track our own capturedness
-            hasCapture = getattr(blockItem, 'mouseCaptured', False)
-            if wantsCapture:
-                if not hasCapture:
-                    #logger.debug("OnMouseEvents: CaptureMouse")
-                    gridWindow.CaptureMouse()
-                    blockItem.mouseCaptured = True
-            elif hasCapture:
-                if gridWindow.HasCapture():
-                    #logger.debug("OnMouseEvents: ReleaseMouse")
-                    gridWindow.ReleaseMouse()
-                #else:
-                    #logger.debug("OnMouseEvents: would ReleaseMouse, but not HasCapture")
-                del blockItem.mouseCaptured
+                    # If the old cell didn't want it, give the current 
+                    # cell a chance
+                    if oldCell != cell:
+                        wantsCapture = callHandler(cell, True, "new")
+                        if wantsCapture:
+                            blockItem.overCell = cell
+    
+                # Change mouse capture if necessary. Apparently window.HasCapture
+                # isn't reliable, so we track our own capturedness
+                hasCapture = getattr(blockItem, 'mouseCaptured', False)
+                if wantsCapture:
+                    if not hasCapture:
+                        #logger.debug("OnMouseEvents: CaptureMouse")
+                        gridWindow.CaptureMouse()
+                        blockItem.mouseCaptured = True
+                elif hasCapture:
+                    if gridWindow.HasCapture():
+                        #logger.debug("OnMouseEvents: ReleaseMouse")
+                        gridWindow.ReleaseMouse()
+                    #else:
+                        #logger.debug("OnMouseEvents: would ReleaseMouse, but not HasCapture")
+                    del blockItem.mouseCaptured
 
     def OnMouseCaptureLost(self, event):
         blockItem = self.blockItem
