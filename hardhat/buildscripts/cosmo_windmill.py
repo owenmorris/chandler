@@ -244,7 +244,10 @@ def runWindmill(workingDir, windmillDir, snarfDir, log):
                 if line.startswith('#TINDERBOX# Status ='):
                     #TINDERBOX# Status = SUCCESS\n
                     #TINDERBOX# Status = FAILED\n
-                    result = line.split('=')[1].strip()[:-1].lower()
+                    if line.split('=')[1].strip()[:-1] == 'SUCCESS':
+                        result = 'success'
+                    else:
+                        result = 'test_failed'
 
         except hardhatutil.ExternalCommandErrorWithOutputList, e:
             print "windmill error"
