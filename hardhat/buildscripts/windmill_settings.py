@@ -14,58 +14,61 @@
 
 import logging, os, sys, tempfile, shutil
 
-PLATFORM = sys.platform
 
-TEST_URL = 'http://127.0.0.1:8080'
+class JSONFilter(logging.Filter):
+    filter = lambda x, rec: False
 
-SERVER_HTTP_PORT = 4444
+
+PLATFORM            = sys.platform
+SERVER_HTTP_PORT    = 4444
+TEST_URL            = 'http://127.0.0.1:8080'
+TEST_FILE           = None
+TEST_DIR            = r'd:\cygwin\home\builder\tinderbuild\cosmo\cosmo\src\test\functional\windmill'
+JS_PATH             = os.path.dirname(sys.modules['windmill'].__file__)+os.path.sep + 'js'
+EXIT_ON_DONE        = False
+START_FIREFOX       = False
+CONTINUE_ON_FAILURE = False
 
 CONSOLE_LOG_LEVEL = logging.DEBUG
-FILE_LOG_LEVEL = logging.INFO
+FILE_LOG_LEVEL    = logging.INFO
 
-JS_PATH = os.path.dirname(sys.modules['windmill'].__file__)+os.path.sep+'js'
-
-TEST_FILE = None
-TEST_DIR = r'd:\cygwin\home\builder\tinderbuild\cosmo\cosmo\src\test\functional\windmill'
-EXIT_ON_DONE = False
-
-START_FIREFOX = False
-
-CONTINUE_ON_FAILURE = False
+logging.getLogger().handlers[0].addFilter(JSONFilter('wsgi_jsonrpc'))
 
 # Browser prefs
 
 # Mozilla prefs
-MOZILLA_PROFILE_PATH = tempfile.mkdtemp()
+MOZILLA_CREATE_NEW_PROFILE     = True
+MOZILLA_REMOVE_PROFILE_ON_EXIT = True
+MOZILLA_PROFILE_PATH           = tempfile.mkdtemp()
+
 if MOZILLA_PROFILE_PATH.find('-') is not -1:
     shutil.rmtree(MOZILLA_PROFILE_PATH)
     MOZILLA_PROFILE_PATH = tempfile.mkdtemp()
-MOZILLA_CREATE_NEW_PROFILE = True
-MOZILLA_REMOVE_PROFILE_ON_EXIT = True
 
 if sys.platform == 'darwin':
     if os.path.isdir(os.path.expanduser('~/Applications/Firefox.app/')):
         MOZILLA_DEFAULT_PROFILE = os.path.expanduser('~/Applications/Firefox.app/Contents/MacOS/defaults/profile/')
-        MOZILLA_BINARY = os.path.expanduser('~/Applications/Firefox.app/Contents/MacOS/firefox-bin')  
+        MOZILLA_BINARY          = os.path.expanduser('~/Applications/Firefox.app/Contents/MacOS/firefox-bin')  
     elif os.path.isdir('/Applications/Firefox.app/'):
         MOZILLA_DEFAULT_PROFILE = '/Applications/Firefox.app/Contents/MacOS/defaults/profile/'
-        MOZILLA_BINARY = '/Applications/Firefox.app/Contents/MacOS/firefox-bin'
-        
+        MOZILLA_BINARY          = '/Applications/Firefox.app/Contents/MacOS/firefox-bin'
+
 elif sys.platform == 'linux2':
     if os.path.isfile('/usr/bin/firefox'):
         MOZILLA_BINARY = '/usr/bin/firefox'
-    
+
     if os.path.isdir('/usr/share/firefox/defaults/profile'):
         MOZILLA_DEFAULT_PROFILE = '/usr/share/firefox/defaults/profile'
 
 elif sys.platform == 'cygwin':
     if os.path.isfile('/cygdrive/c/Program Files/Mozilla Firefox/firefox.exe'):
         MOZILLA_BINARY = '/cygdrive/c/Program\\ Files/Mozilla\\ Firefox/firefox.exe'
-        
+
     if os.path.isdir('/cygdrive/c/Program Files/Mozilla Firefox/defaults/profile'):
         MOZILLA_DEFAULT_PROFILE = '/cygdrive/c/Program Files/Mozilla Firefox/defaults/profile'
 
 elif sys.platform == 'win32':
-    MOZILLA_BINARY = r"D:\Program Files\Mozilla Firefox\firefox.exe"
+    MOZILLA_BINARY          = r"D:\Program Files\Mozilla Firefox\firefox.exe"
     MOZILLA_DEFAULT_PROFILE = r"D:\Program Files\Mozilla Firefox\defaults\profile"
-    IE_BINARY = r"D:\Program Files\Internet Explorer\iexplore.exe"
+    IE_BINARY               = r"D:\Program Files\Internet Explorer\iexplore.exe"
+

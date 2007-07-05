@@ -45,9 +45,6 @@ def Start(hardhatScript, workingDir, buildVersion, clobber, log, skipTests=False
     outputDir  = os.path.join(workingDir, 'output')
     scriptDir  = os.path.join(whereAmI, 'buildscripts')
 
-    print hardhatScript
-    print workingDir
-
     if os.path.exists(outputDir):
         hardhatutil.rmdirRecursive(outputDir)
 
