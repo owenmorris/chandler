@@ -15,10 +15,6 @@
 import logging, os, sys, tempfile, shutil
 
 
-class JSONFilter(logging.Filter):
-    filter = lambda x, rec: False
-
-
 PLATFORM            = sys.platform
 SERVER_HTTP_PORT    = 4444
 TEST_URL            = 'http://127.0.0.1:8080'
@@ -31,8 +27,6 @@ CONTINUE_ON_FAILURE = False
 
 CONSOLE_LOG_LEVEL = logging.DEBUG
 FILE_LOG_LEVEL    = logging.INFO
-
-logging.getLogger().handlers[0].addFilter(JSONFilter('wsgi_jsonrpc'))
 
 # Browser prefs
 
