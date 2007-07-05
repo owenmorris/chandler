@@ -1172,17 +1172,17 @@ class wxApplication (wx.App):
         origName = osNames.get(origName, origName)
         currentName = osNames.get(currentName, currentName)
 
-        message = _(u"""Your Chandler data was created on %(origName)s and is incompatible with Chandler on %(currentName)s. To transfer your data over to %(currentName)s:
+        message = _(u"""Your data was created on %(origName)s and is incompatible with Chandler on %(currentName)s. To transfer your data over to %(currentName)s:
 
-1. On your %(origName)s computer, start up Chandler and go to the File menu to 'Back up' your data.
+1. On your %(origName)s computer, start up Chandler and go to the File>>Export Collections and Settings... menu to export your data
 
-2. Move the back up file to your %(currentName)s computer.
+2. Move the .chex export file to your %(currentName)s computer.
 
-3. On your %(currentName)s computer, start up Chandler and select the 'Yes' option you see below.
+3. On your %(currentName)s computer, start up Chandler and click 'Yes' when you encounter this dialog again.
 
-4. Go to the File menu and 'Restore' your data by pointing Chandler to the back up file you transferred over from your %(origName)s computer.
+4. Go to the File>>Reload Collections and Settings... menu to reload your data by pointing Chandler to the .chex export file from your %(origName)s computer.
 
-Start Chandler with a fresh data repository ?""") %{'origName': origName, 'currentName': currentName}
+Do you want to start Chandler with a fresh data repository?""") %{'origName': origName, 'currentName': currentName}
 
         dialog = wx.MessageDialog(None, message,
                                   _(u"Cannot open repository"),
