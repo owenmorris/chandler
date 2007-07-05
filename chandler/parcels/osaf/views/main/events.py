@@ -96,6 +96,10 @@ def makeMainEvents(parcel):
                         dispatchEnum = 'FocusBubbleUp',
                         commitAfterDispatch = True).install(parcel)
 
+    BlockEvent.template('MarkAsRead',
+                        dispatchEnum = 'FocusBubbleUp',
+                        commitAfterDispatch = True).install(parcel)
+
     ClassParameterizedEvent.template('FocusStampMessage',
                                      methodName = 'onFocusStampEvent',
                                      classParameter = osaf.pim.mail.MailStamp,

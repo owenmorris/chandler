@@ -17,7 +17,7 @@ import wx
 from osaf import sharing
 import osaf.pim.mail as Mail
 from repository.item.Item import Item
-from osaf.pim import Note, ContentCollection, has_stamp
+from osaf.pim import EventStamp, Note, ContentCollection, has_stamp
 from i18n import ChandlerMessageFactory as _
 from osaf import messages
 from osaf.framework.blocks import Block, getProxiedItem
@@ -164,6 +164,11 @@ class FocusEventHandlers(Item):
                     mailObject.fromAddress = mailObject.getCurrentMeEmailAddress()
 
             Block.Block.postEventByNameWithSender('SendMail', {'item': item})
+
+    def onMarkAsReadEvent(self, event):
+        selectedItems = self.__getProxiedSelectedItems(event)
+        for item in selectedItems:
+            EventStamp(item).getMaster().itsItem.read = True
 
     def onFocusTogglePrivateEvent(self, event):
         """
