@@ -42,7 +42,11 @@ def Start(hardhatScript, workingDir, buildVersion, clobber, log, skipTests=False
 
       # make sure workingDir is absolute
     workingDir = os.path.abspath(workingDir)
-    outputDir = os.path.join(workingDir, 'output')
+    outputDir  = os.path.join(workingDir, 'output')
+    scriptDir  = os.path.join(whereAmI, 'buildscripts')
+
+    print hardhatScript
+    print workingDir
 
     if os.path.exists(outputDir):
         hardhatutil.rmdirRecursive(outputDir)
@@ -54,7 +58,7 @@ def Start(hardhatScript, workingDir, buildVersion, clobber, log, skipTests=False
     buildVersionEscaped = "\'" + buildVersion + "\'"
     buildVersionEscaped = buildVersionEscaped.replace(" ", "|")
 
-    ret = runWindmill(workingDir, windmillDir, outputDir, log)
+    ret = runWindmill(scriptDir, workingDir, windmillDir, outputDir, log)
 
     print ret + '-nochanges'
 
@@ -99,7 +103,7 @@ def fetchLatest(workingDir, outputDir, log):
 
         except hardhatutil.ExternalCommandErrorWithOutputList, e:
             print "tarball fetch error"
-            log.write("***Error during build***\n")
+            log.write("\n***Error retrieving tarball***\n")
             log.write(separator)
             log.write("Build log:" + "\n")
             hardhatutil.dumpOutputList(e.outputList, log)
@@ -112,7 +116,7 @@ def fetchLatest(workingDir, outputDir, log):
 
         except Exception, e:
             print "tarball fetch error"
-            log.write("***Error during build***\n")
+            log.write("\n***Error retrieving tarball***\n")
             log.write(separator)        
             log.write("No build log!\n")
             log.write(separator)
@@ -125,7 +129,7 @@ def fetchLatest(workingDir, outputDir, log):
 
         except hardhatutil.ExternalCommandErrorWithOutputList, e:
             print "tarball extraction error"
-            log.write("***Error during build***\n")
+            log.write("\n***Error exracting tarball***\n")
             log.write(separator)
             log.write("Build log:" + "\n")
             hardhatutil.dumpOutputList(e.outputList, log)
@@ -138,7 +142,7 @@ def fetchLatest(workingDir, outputDir, log):
 
         except Exception, e:
             print "tarball extraction error"
-            log.write("***Error during build***\n")
+            log.write("\n***Error extracting tarball***\n")
             log.write(separator)        
             log.write("No build log!\n")
             log.write(separator)
@@ -172,7 +176,7 @@ def fetch(url):
 
     return result
 
-def runWindmill(workingDir, windmillDir, snarfDir, log):
+def runWindmill(scriptDir, workingDir, windmillDir, snarfDir, log):
     result  = 'failed'
     tarball = fetchLatest(workingDir, snarfDir, log)
 
@@ -192,7 +196,7 @@ def runWindmill(workingDir, windmillDir, snarfDir, log):
 
         except hardhatutil.ExternalCommandErrorWithOutputList, e:
             print "cosmo start error"
-            log.write("***Error during build***\n")
+            log.write("\n***Error starting Cosmo***\n")
             log.write(separator)
             log.write("Build log:" + "\n")
             hardhatutil.dumpOutputList(e.outputList, log)
@@ -205,7 +209,7 @@ def runWindmill(workingDir, windmillDir, snarfDir, log):
 
         except Exception, e:
             print "cosmo start error"
-            log.write("***Error during build***\n")
+            log.write("\n***Error starting Cosmo***\n")
             log.write(separator)        
             log.write("No build log!\n")
             log.write(separator)
@@ -236,7 +240,7 @@ def runWindmill(workingDir, windmillDir, snarfDir, log):
         print 'starting windmill', os.path.join(workingDir, 'run_windmill.sh')
 
         try:
-            outputList = hardhatutil.executeCommandReturnOutput([os.path.join(workingDir, 'run_windmill.sh')])
+            outputList = hardhatutil.executeCommandReturnOutput([os.path.join(scriptDir, 'run_windmill.sh')])
 
             hardhatutil.dumpOutputList(outputList, log)
 
@@ -251,7 +255,7 @@ def runWindmill(workingDir, windmillDir, snarfDir, log):
 
         except hardhatutil.ExternalCommandErrorWithOutputList, e:
             print "windmill error"
-            log.write("***Error during build***\n")
+            log.write("\n***Error during Windmill run***\n")
             log.write(separator)
             log.write("Build log:" + "\n")
             hardhatutil.dumpOutputList(e.outputList, log)
@@ -263,7 +267,7 @@ def runWindmill(workingDir, windmillDir, snarfDir, log):
 
         except Exception, e:
             print "windmill error"
-            log.write("***Error during build***\n")
+            log.write("\n***Error during Windmill run***\n")
             log.write(separator)        
             log.write("No build log!\n")
             log.write(separator)
