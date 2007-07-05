@@ -1169,11 +1169,10 @@ class RoundTripTestCase(testcase.DualRepositoryTestCase):
              {'added' : 1, 'modified' : 1, 'removed' : 0})),
             "Sync operation mismatch")
         view1.commit(); stats = self.share1.sync(); view1.commit()
-        # TODO: Need to investigate why these stats are random!
-        # self.assert_(checkStats(stats,
-        #     ({'added' : 1, 'modified' : 1, 'removed' : 0},
-        #      {'added' : 1, 'modified' : 0, 'removed' : 0})),
-        #     "Sync operation mismatch")
+        self.assert_(checkStats(stats,
+            ({'added' : 1, 'modified' : 1, 'removed' : 0},
+             {'added' : 0, 'modified' : 0, 'removed' : 0})),
+            "Sync operation mismatch")
 
         
         future1 = pim.EventStamp(view1.findUUID(futureUUID))
@@ -1286,23 +1285,21 @@ class RoundTripTestCase(testcase.DualRepositoryTestCase):
         # Inbound change wins, item is back to being a modification
         self.assert_(not second0.isGenerated)
 
-        # Couple an outbound change with an incoming unmodification
-        second0.unmodify()
-        self.assert_(second0.itsItem not in self.share0.contents)
-        self.assert_(second0.isGenerated)
+        # Couple an outbound change with an incoming EXDATE for that occurrence
+        second0.deleteThis()
+        self.assert_(pim.isDead(second0.itsItem))
         view0.commit(); stats = self.share0.sync(); view0.commit()
-        self.assert_(second0.isGenerated)
+
         second1.itsItem.displayName = "Changed again in view 1"
         self.assert_(not second1.isGenerated)
         view1.commit(); stats = self.share1.sync(); view1.commit()
         # second1 got orphaned
-        self.assert_(second1.itsItem.isDeleted())
+        self.assert_(pim.isDead(second1.itsItem))
         # Should be no conflict on item1 (the master)
         conflicts = list(sharing.SharedItem(item1).getConflicts())
         self.assertEquals(len(conflicts), 0)
         view1.commit(); stats = self.share1.sync(); view1.commit()
         view0.commit(); stats = self.share0.sync(); view0.commit()
-        self.assert_(second0.isGenerated)
 
 
 
@@ -1325,9 +1322,7 @@ class RoundTripTestCase(testcase.DualRepositoryTestCase):
         self.assert_(pim.has_stamp(item1, pim.MailStamp))
         second1 = event1.getRecurrenceID(second0.recurrenceID)
 
-        # TODO: talk to grant/jeffrey about why second1 is a modification,
-        # and why it is not stamped
-        # self.assert_(pim.has_stamp(second1.itsItem, pim.MailStamp))
+        self.assert_(pim.has_stamp(second1.itsItem, pim.MailStamp))
 
         # ...unstamp in 1...
         pim.CHANGE_ALL(pim.MailStamp(item1)).remove()
@@ -1336,9 +1331,7 @@ class RoundTripTestCase(testcase.DualRepositoryTestCase):
         view1.commit(); stats = self.share1.sync(); view1.commit()
         view0.commit(); stats = self.share0.sync(); view0.commit()
         self.assert_(not pim.has_stamp(item, pim.MailStamp))
-        # TODO: talk to grant/jeffrey about why second0 is a modification,
-        # and why it didn't get unstamped
-        # self.assert_(not pim.has_stamp(second0.itsItem, pim.MailStamp))
+        self.assert_(not pim.has_stamp(second0.itsItem, pim.MailStamp))
 
         # ...stamp in 0...
         pim.CHANGE_ALL(pim.MailStamp(item)).add()
@@ -1347,9 +1340,7 @@ class RoundTripTestCase(testcase.DualRepositoryTestCase):
         view0.commit(); stats = self.share0.sync(); view0.commit()
         view1.commit(); stats = self.share1.sync(); view1.commit()
         self.assert_(pim.has_stamp(item1, pim.MailStamp))
-        # TODO: talk to grant/jeffrey about why second1 is a modification,
-        # and why it is not stamped
-        # self.assert_(pim.has_stamp(second1.itsItem, pim.MailStamp))
+        self.assert_(pim.has_stamp(second1.itsItem, pim.MailStamp))
 
         # ...unstamp in 0...
         pim.CHANGE_ALL(pim.MailStamp(item)).remove()
@@ -1364,28 +1355,28 @@ class RoundTripTestCase(testcase.DualRepositoryTestCase):
         # Verify that stamping and unstamping of Task works.  Note that
         # we can stamp/unstamp individual occurrences with Task
         # ...stamp master in 0...
-        pim.TaskStamp(item).add()
+        pim.CHANGE_ALL(pim.TaskStamp(item)).add()
         self.assert_(pim.has_stamp(item, pim.TaskStamp))
         view0.commit(); stats = self.share0.sync(); view0.commit()
         view1.commit(); stats = self.share1.sync(); view1.commit()
         self.assert_(pim.has_stamp(item1, pim.TaskStamp))
 
         # ...unstamp master in 1...
-        pim.TaskStamp(item1).remove()
+        pim.TaskStamp(pim.CHANGE_ALL(item1)).remove()
         self.assert_(not pim.has_stamp(item1, pim.TaskStamp))
         view1.commit(); stats = self.share1.sync(); view1.commit()
         view0.commit(); stats = self.share0.sync(); view0.commit()
         self.assert_(not pim.has_stamp(item, pim.TaskStamp))
 
         # ...stamp master in 0...
-        pim.TaskStamp(item).add()
+        pim.CHANGE_ALL(pim.TaskStamp(item)).add()
         self.assert_(pim.has_stamp(item, pim.TaskStamp))
         view0.commit(); stats = self.share0.sync(); view0.commit()
         view1.commit(); stats = self.share1.sync(); view1.commit()
         self.assert_(pim.has_stamp(item1, pim.TaskStamp))
 
         # ...unstamp master in 0...
-        pim.TaskStamp(item).remove()
+        pim.TaskStamp(pim.CHANGE_ALL(item)).remove()
         self.assert_(not pim.has_stamp(item, pim.TaskStamp))
         view0.commit(); stats = self.share0.sync(); view0.commit()
         view1.commit(); stats = self.share1.sync(); view1.commit()
@@ -1393,42 +1384,59 @@ class RoundTripTestCase(testcase.DualRepositoryTestCase):
 
 
         # ...stamp second in 0...
-        pim.TaskStamp(second0.itsItem).add()
+        pim.TaskStamp(pim.CHANGE_THIS(second0)).add()
         self.assert_(pim.has_stamp(second0.itsItem, pim.TaskStamp))
         view0.commit(); stats = self.share0.sync(); view0.commit()
         view1.commit(); stats = self.share1.sync(); view1.commit()
         self.assert_(pim.has_stamp(second1.itsItem, pim.TaskStamp))
 
         # ...unstamp second in 1...
-        pim.TaskStamp(second1.itsItem).remove()
+        pim.TaskStamp(pim.CHANGE_THIS(second1.itsItem)).remove()
         self.assert_(not pim.has_stamp(second1.itsItem, pim.TaskStamp))
         view1.commit(); stats = self.share1.sync(); view1.commit()
         view0.commit(); stats = self.share0.sync(); view0.commit()
-        # TODO: talk to grant/jeffrey about stamping here:
-        # self.assert_(not pim.has_stamp(second0.itsItem, pim.TaskStamp))
+        self.assert_(not pim.has_stamp(second0.itsItem, pim.TaskStamp))
 
         # ...stamp second in 0...
-        # TODO: talk to grant/jeffrey about stamping here:
-        # pim.TaskStamp(second0.itsItem).add()
+        pim.TaskStamp(pim.CHANGE_THIS(second0)).add()
         self.assert_(pim.has_stamp(second0.itsItem, pim.TaskStamp))
         view0.commit(); stats = self.share0.sync(); view0.commit()
         view1.commit(); stats = self.share1.sync(); view1.commit()
-        # TODO: talk to grant/jeffrey about stamping here:
-        # self.assert_(pim.has_stamp(second1.itsItem, pim.TaskStamp))
+        self.assert_(pim.has_stamp(second1.itsItem, pim.TaskStamp))
 
-        # ...unstamp second in 0...
-        pim.TaskStamp(second0.itsItem).remove()
+        # create a non-conflicting change in second1 after second0 is changed to
+        # a triage-only modification
+        pim.TaskStamp(pim.CHANGE_THIS(second0.itsItem)).remove()
+        self.assert_(second0.isTriageOnlyModification())
+        second1.itsItem.displayName = "Changed title and task"
+        
         self.assert_(not pim.has_stamp(second0.itsItem, pim.TaskStamp))
         view0.commit(); stats = self.share0.sync(); view0.commit()
         view1.commit(); stats = self.share1.sync(); view1.commit()
         self.assert_(not pim.has_stamp(second1.itsItem, pim.TaskStamp))
-
+        
+        self.assert_(not second1.isTriageOnlyModification())
+        self.assertEqual(second1.itsItem.displayName, "Changed title and task")
+        
+        view0.commit(); stats = self.share0.sync(); view0.commit()
+        self.assert_(not pim.has_stamp(second0.itsItem, pim.TaskStamp))
+        self.assertEqual(second0.itsItem.displayName, "Changed title and task")
+        
+        # make second0's title inherit, which makes a triage-only modification,
+        # also change second1's title.  In a perfect world this would be seen as
+        # a conflicting change to title, instead view1's change should win
+        del second0.itsItem.displayName
+        self.assert_(second0.isTriageOnlyModification())
+        second1.itsItem.displayName = "Changed again"
+        view0.commit(); stats = self.share0.sync(); view0.commit()
+        view1.commit(); stats = self.share1.sync(); view1.commit()
+        self.assertEqual(second1.itsItem.displayName, "Changed again")
+        self.assert_(not sharing.hasConflicts(second1.itsItem))
 
         # See what happens when we "unmodify" a modification on one side,
         # but delete the entire series on the other...
 
         # First make it a modification, sync it, then 'unmodify' it
-        second0 = event.getFirstOccurrence().getNextOccurrence()
         second0.itsItem.displayName = "Changed"
         view0.commit(); stats = self.share0.sync(); view0.commit()
         view1.commit(); stats = self.share1.sync(); view1.commit()
@@ -1438,6 +1446,8 @@ class RoundTripTestCase(testcase.DualRepositoryTestCase):
         self.assert_(item1 in self.share1.contents)
         self.share1.contents.remove(item1)
         self.assert_(item1 not in self.share1.contents)
+        # removing item1 should've removed all occurrences from the collection
+        self.assert_(second1.itsItem not in self.share1.contents)
         view1.commit(); stats = self.share1.sync(); view1.commit()
 
         second0.unmodify()
@@ -1471,16 +1481,19 @@ class RoundTripTestCase(testcase.DualRepositoryTestCase):
         self.assertEquals(item1.doAutoTriageOnDateChange, False)
 
         # Remove it from the server
-        self.share1.contents.remove(item1)
+        self.share1.contents.remove(masterItem1)
         view1.commit(); stats = self.share1.sync(); view1.commit()
 
         # Make a local triage change to an occurrence, the remote removal
-        # will remove the item from the local collection
+        # will remove the series from the local collection
         second0 = event.getFirstOccurrence().getNextOccurrence()
         second0.itsItem.setTriageStatus(pim.TriageEnum.done)
         second0.itsItem.resetAutoTriageOnDateChange()
         self.assert_(self.share0 in sharing.SharedItem(item).sharedIn)
         view0.commit(); stats = self.share0.sync(); view0.commit()
+        self.assert_(item.inheritFrom not in self.share0.contents)
+        self.assert_(self.share0 not in sharing.SharedItem(item.inheritFrom).sharedIn)    
+        # make sure the first occurrence also had its SharedItem stamp removed
         self.assert_(item not in self.share0.contents)
         self.assert_(self.share0 not in sharing.SharedItem(item).sharedIn)
 

@@ -464,8 +464,8 @@ class CHANGE_THIS(Changer):
     
         obj = CHANGE_THIS(event) # Pass in an Annotation, Stamp or Item
         
-        event.startTime = ... # Makes a THIS change to startTime
-        TaskStamp(event).add() ... # adds task-ness to just this instance
+        obj.startTime = ... # Makes a THIS change to startTime
+        TaskStamp(obj).add() ... # adds task-ness to just this instance
     """
         
     def makeChange(self, item, change):
@@ -491,8 +491,8 @@ class CHANGE_ALL(Changer):
     
         obj = CHANGE_ALL(event) # Pass in an Annotation, Stamp or Item
         
-        event.startTime = ... # Change all startTimes in the recurring series
-        TaskStamp(event).add() ... # adds task-ness to all events in the series
+        obj.startTime = ... # Change all startTimes in the recurring series
+        TaskStamp(obj).add() ... # adds task-ness to all events in the series
     """
     
     edited = ()
@@ -575,8 +575,8 @@ class CHANGE_FUTURE(CHANGE_ALL):
     
         obj = CHANGE_FUTURE(event) # Pass in an Annotation, Stamp or Item
         
-        event.startTime = ... # Change all future startTimes in the recurring series
-        TaskStamp(event).add() ... # adds task-ness to all future events in the series
+        obj.startTime = ... # Change all future startTimes in the recurring series
+        TaskStamp(obj).add() ... # adds task-ness to all future events in the series
     """
     
     def makeChange(self, item, change):

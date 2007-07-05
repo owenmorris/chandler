@@ -527,7 +527,7 @@ class SharingTranslator(eim.Translator):
         if recurrenceID is not None:
             d = self.deferredItem(master_uuid, EventStamp)
             @d.addCallback
-            def get_occurrence(master):           
+            def get_occurrence(master):
                 if getattr(master, 'rruleset', None) is None:
                     # add a dummy RecurrenceRuleSet so event methods treat
                     # the event as a master
@@ -548,13 +548,37 @@ class SharingTranslator(eim.Translator):
         d.callback(master_uuid)
         return d
 
-    def deferredItem(self, uuid, *args, **kwargs):
+    def deferredItem(self, uuid, itype=schema.Item, **attrs):
         """
         Override to handle special recurrenceID:uuid uuids.
         """
         if isinstance(uuid, basestring) and ':' in uuid:
             uuid = self.deferredUUID(uuid)
-        return super(SharingTranslator, self).deferredItem(uuid, *args, **kwargs)
+        else:
+            # if adding a stamp to a master event, be sure to add it to all
+            # occurrences
+            if issubclass(itype, pim.Stamp):
+                d = self.deferredItem(uuid, itype.targetType())
+                @d.addCallback
+                def add_stamp(item):
+                    stamp = itype(item)
+                    if not stamp.stamp_types or itype not in stamp.stamp_types:
+                        if getattr(item, 'inheritFrom', None):
+                            stamp.add()
+                        else:
+                            proxy = pim.CHANGE_ALL(item)
+                            # hack to keep the proxy from setting lastModifiedBy
+                            # to the wrong contact. really markEdited should be
+                            # item.changeEditState, passing in a who parameter
+                            # from the ModifiedByRecord
+                            proxy.markEdited = lambda item : None
+                            itype(proxy).add()
+                    for attr, val in attrs.items():
+                        self.smart_setattr(val, stamp, attr)
+                    return stamp # return value for deferreds
+                return d
+
+        return super(SharingTranslator, self).deferredItem(uuid, itype, **attrs)
 
     @model.ItemRecord.importer
     def import_item(self, record):
@@ -838,6 +862,10 @@ class SharingTranslator(eim.Translator):
         def do_delete(uuid):
             if uuid is not None:
                 item = self.rv.findUUID(uuid)
+                if not getattr(item, 'inheritFrom', None):
+                    # master, make a recurrence change proxy
+                    item = pim.CHANGE_ALL(item)
+                    item.markEdited = lambda x : None
                 if (item is not None and item.isLive() and
                     pim.has_stamp(item, pim.TaskStamp)):
                     pim.TaskStamp(item).remove()
@@ -1215,6 +1243,10 @@ class SharingTranslator(eim.Translator):
         def do_delete(uuid):
             if uuid is not None:
                 item = self.rv.findUUID(uuid)
+                if not getattr(item, 'inheritFrom', None):
+                    # master, make a recurrence change proxy
+                    item = pim.CHANGE_ALL(item)
+                    item.markEdited = lambda x : None
                 if (item is not None and item.isLive() and
                     pim.has_stamp(item, pim.MailStamp)):
                     pim.MailStamp(item).remove()

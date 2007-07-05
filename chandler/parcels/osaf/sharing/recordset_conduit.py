@@ -11,6 +11,7 @@
 #   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 #   See the License for the specific language governing permissions and
 #   limitations under the License.
+from __future__ import with_statement
 
 from osaf import pim
 import conduits, errors, formats, eim, shares, model
@@ -154,6 +155,7 @@ class RecordSetConduit(conduits.BaseConduit):
 
         remotelyRemoved = set() # The aliases of remotely removed items
         remotelyAdded = set() # The aliases of remotely added items
+        remotelyUnmodified = set() # Aliases of unmodified (removed) occurrences
         locallyAdded = set( ) # The aliases of locally add items
         localItems = set() # The aliases of all items we're to process
 
@@ -209,19 +211,41 @@ class RecordSetConduit(conduits.BaseConduit):
 
             # Add remotely changed items
             for alias in inbound.keys():
+                deletion = False
                 rs = inbound[alias]
                 if rs is None: # skip deletions
-                    doLog("Inbound removal: %s", alias)
-                    del inbound[alias]
-                    remotelyRemoved.add(alias)
-
-                    # Since this item was remotely removed, all pending
-                    # changes should go away.
-                    if self.hasState(alias):
-                        state = self.getState(alias)
-                        if hasattr(state, "_pending"):
-                            del state._pending
-
+                    masterUUID, recurrenceID = splitUUID(rv, alias)
+                    if alias == masterUUID:
+                        doLog("Inbound removal: %s", alias)
+                        del inbound[alias]
+                        remotelyRemoved.add(alias)
+                        deletion = True
+                        # Since this item was remotely removed, all pending
+                        # changes should go away.
+                        if self.hasState(alias):
+                            state = self.getState(alias)
+                            if hasattr(state, "_pending"):
+                                del state._pending
+                    else:
+                        doLog("Inbound unmodification: %s", alias)
+                        if self.hasState(alias):
+                            # change inbound to a fake state based on the
+                            # master's state
+                            state = self.getState(alias)                            
+                            masterState = self.getState(masterUUID)
+                            records = masterState.agreed.inclusions
+                            masterRecordTypes = [type(r) for r in records]
+                            exclusions = [r for r in state.agreed.inclusions if
+                                          type(r) not in masterRecordTypes]
+                            inbound[alias] = eim.Diff(
+                                getInheritRecords(records, alias),
+                                exclusions
+                            )
+                            if hasattr(state, "_pending"):
+                                del state._pending
+                            remotelyUnmodified.add(alias)
+                        else:
+                            doLog("Ignoring unmodification, no state for alias: %s", alias)
 
                 else:
                     uuid = translator.getUUIDForAlias(alias)
@@ -298,8 +322,11 @@ class RecordSetConduit(conduits.BaseConduit):
         localCount = len(locallyChangedUuids)
         _callback(msg="Found %d local change(s)" % localCount)
 
+        triage_only_mods = set()
         for changedUuid in locallyChangedUuids:
             item = rv.findUUID(changedUuid)
+            alias = translator.getAliasForItem(item)
+
             # modifications that have been changed purely by
             # auto-triage shouldn't have recordsets created for them
             if (isinstance(item, pim.Note) and
@@ -307,9 +334,8 @@ class RecordSetConduit(conduits.BaseConduit):
                 item.doAutoTriageOnDateChange):
                 doLog("Skipping a triage-only modification: %s",
                     changedUuid)
+                triage_only_mods.add(alias)
                 continue
-
-            alias = translator.getAliasForItem(item)
 
             if not self.hasState(alias):
                 # a new, locally created item
@@ -395,20 +421,15 @@ class RecordSetConduit(conduits.BaseConduit):
                 # seen as conflicts, set the agreed state in records for new
                 # modifications to be all Inherit values.  Without this, local
                 # Inherit values will be treated as conflicts
-                inherit_records = []
-                for record in rsInternal.inclusions:
-                    keys = [f for f in record.__fields__
-                            if isinstance(f, eim.key)]
-                    if len(keys) != 1:
-                        continue
-                    non_uuid_fields = len(record.__fields__) - 1
-                    args = (record.uuid,) + non_uuid_fields * (eim.Inherit,)
-                    inherit_records.append(type(record)(*args))
-                state.agreed += eim.RecordSet(inherit_records)
+                state.agreed += eim.RecordSet(
+                    getInheritRecords(rsInternal.inclusions, alias)
+                )
 
-            dSend, dApply, pending = state.merge(rsInternal, rsExternal,
-                isDiff=isDiff, filter=filter, readOnly=readOnly, debug=debug)
-
+            if alias in remotelyUnmodified and not rsInternal:
+                dSend = dApply = pending = False
+            else:
+                dSend, dApply, pending = state.merge(rsInternal, rsExternal,
+                   isDiff=isDiff, filter=filter, readOnly=readOnly, debug=debug)
 
             if readOnly:
                 # Cosmo doesn't give us deletions for ModifiedByRecords and
@@ -424,8 +445,12 @@ class RecordSetConduit(conduits.BaseConduit):
             else:
                 item = None
 
+            if alias in remotelyUnmodified:
+                if pending:
+                    pending = False
+                    dSend += eim.Diff(rsInternal.inclusions)
 
-            if receive and pending and item is not None:
+            elif receive and pending and item is not None:
 
                 for rConflict, field in iterConflicts(pending):
                     rLocal = findMatch(rConflict, rsInternal)
@@ -442,7 +467,7 @@ class RecordSetConduit(conduits.BaseConduit):
                             agreedValue = rAgreed
                         else:
                             agreedValue = (field.__get__(rAgreed) if rAgreed
-                                else eim.NoChange)
+                                           else eim.NoChange)
 
                         localValue = field.__get__(rLocal)
                         remoteValue = field.__get__(rConflict)
@@ -466,11 +491,11 @@ class RecordSetConduit(conduits.BaseConduit):
                             state.pending = newPending
                             doLog("State updated to: %s", state)
 
-            state.updateConflicts(item)
+                state.updateConflicts(item)
 
             if send and dSend:
                 toSend[alias] = dSend
-
+                
             if receive and dApply:
                 toApply[alias] = dApply
 
@@ -492,7 +517,7 @@ class RecordSetConduit(conduits.BaseConduit):
         # Detect inbound changes to masters that would cause locally
         # changed modifications to be removed, and pretend the server
         # sent us inbound removals for these modifications directly.
-
+        orphanAliases = set()
         masters = {}
         # Build a dictionary of master aliases which have local changes to
         # their modifications
@@ -512,7 +537,10 @@ class RecordSetConduit(conduits.BaseConduit):
                 for orphanAlias in findRecurrenceConflicts(rv, alias, diff,
                     masters[alias]):
                     doLog("Inbound master change is orphaning: %s", orphanAlias)
+                    orphanAliases.add(orphanAlias)
                     remotelyRemoved.add(orphanAlias)
+                    if orphanAlias in toApply:
+                        del toApply[orphanAlias]
 
 
 
@@ -529,7 +557,7 @@ class RecordSetConduit(conduits.BaseConduit):
 
                 del toSend[alias]
 
-                if isinstance(changedItem, pim.Occurrence):
+                if alias in orphanAliases:
                     # I need to make this modification an orphan
                     changedItem = pim.EventStamp(changedItem).makeOrphan()
                     # Remove old state
@@ -671,6 +699,9 @@ class RecordSetConduit(conduits.BaseConduit):
             _callback(msg="Adding items to collection", totalWork=None)
 
             for alias in inbound:
+                if alias in remotelyUnmodified:
+                    # remotely unmodified items shouldn't be re-shared
+                    continue
                 uuid = translator.getUUIDForAlias(alias)
                 if uuid:
                     item = rv.findUUID(uuid)
@@ -697,26 +728,40 @@ class RecordSetConduit(conduits.BaseConduit):
 
                 if item is not None and item in self.share.contents:
                     self.share.removeSharedItem(item)
-                    if isinstance(item, pim.Occurrence):
-                        # A recordset deletion on an occurrence is treated
-                        # as an "unmodification" i.e., a modification going
-                        # back to a simple occurrence.  But don't do anything
-                        # if our master is being removed.
-                        masterItem = item.inheritFrom
-                        masterAlias = translator.getAliasForItem(masterItem)
-                        if masterAlias not in remotelyRemoved:
-                            pim.EventStamp(item).unmodify()
-                            doLog("Locally unmodifying alias: %s", alias)
-                        else:
-                            doLog("Master was remotely removed for alias: %s",
-                                alias)
-                    else:
-                        self.share.contents.remove(item)
-                        doLog("Locally removing  alias: %s", alias)
+                    self.share.contents.remove(item)
+                    doLog("Locally removing  alias: %s", alias)
                     receiveStats['removed'].add(alias)
 
                 self.removeState(alias)
 
+            for alias in remotelyUnmodified:
+                if alias in toSend:
+                    # unmodify conflicted with a local change, not removed
+                    continue
+                uuid = translator.getUUIDForAlias(alias)
+                if uuid:
+                    item = rv.findUUID(uuid)
+                else:
+                    item = None
+                if item is not None:
+                    # A recordset deletion on an occurrence is treated
+                    # as an "unmodification" i.e., a modification going
+                    # back to a simple occurrence.  But don't do anything
+                    # if our master is being removed.
+                    masterItem = item.inheritFrom
+                    masterAlias = translator.getAliasForItem(masterItem)
+                    if masterAlias not in remotelyRemoved:
+                        pim.EventStamp(item).unmodify()
+                        doLog("Locally unmodifying alias: %s", alias)
+                    else:
+                        doLog("Master was remotely removed for alias: %s",
+                            alias)
+                    # Make sure not to remodify an unmodification...
+                    with pim.EventStamp(item).noRecurrenceChanges():
+                        self.share.removeSharedItem(item)
+
+                    receiveStats['removed'].add(alias)
+                self.removeState(alias)
 
         # For each item that was in the collection before but is no longer,
         # remove its state; if sending, add an empty recordset to toSend
@@ -731,6 +776,7 @@ class RecordSetConduit(conduits.BaseConduit):
                 item = None
 
             if (item is None or
+                alias in triage_only_mods or 
                 item not in self.share.contents and
                 alias not in remotelyRemoved):
                 if send:
@@ -796,11 +842,12 @@ class RecordSetConduit(conduits.BaseConduit):
             if uuid:
                 item = rv.findUUID(uuid)
                 if item is not None:
-                    # Make sure not to remodify an unmodification...
-                    isGenerated = pim.EventStamp(item).isGenerated
-                    self.share.removeSharedItem(item)
-                    if isGenerated:
-                        pim.EventStamp(item).unmodify()
+                    # Make sure not to remodify an occurrence...
+                    if getattr(item, 'inheritFrom', None):
+                        with pim.EventStamp(item).noRecurrenceChanges():
+                            self.share.removeSharedItem(item)
+                    else:
+                        self.share.removeSharedItem(item)
 
         # Note the repository version number
         self.lastVersion = rv.itsVersion
@@ -1445,3 +1492,17 @@ def findRecurrenceConflicts(view, master_alias, diff, localModAliases):
     
     return conflicts
 
+def getInheritRecords(records, alias):
+    """
+    Create a RecordSet equivalent to an occurrence with all Inherit values.
+    """
+    inherit_records = []
+    for record in records:
+        keys = [f for f in record.__fields__
+                if isinstance(f, eim.key)]
+        if len(keys) != 1:
+            continue
+        non_uuid_fields = len(record.__fields__) - 1
+        args = (alias,) + non_uuid_fields * (eim.Inherit,)
+        inherit_records.append(type(record)(*args))
+    return inherit_records
