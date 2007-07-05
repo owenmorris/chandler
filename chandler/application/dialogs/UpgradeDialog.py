@@ -82,7 +82,7 @@ class UpgradeDialog(wx.Dialog):
         sizer.Add(self.exitReload, flag=wx.ALL, border=5)
         self.exitReload.Bind(wx.EVT_LEFT_DCLICK, self.onButton)
 
-        self.linkText = wx.HyperlinkCtrl(self, -1, _(u'Migration Instruction (NEED REAL LINK)'), _(u'http://chandlerproject.org'))
+        self.linkText = wx.HyperlinkCtrl(self, -1, _(u'Migration Instructions'), _(u'http://chandlerproject.org'))
         sizer.Add(self.linkText, flag=wx.ALL, border=5)
 
         box = wx.BoxSizer(wx.HORIZONTAL)
