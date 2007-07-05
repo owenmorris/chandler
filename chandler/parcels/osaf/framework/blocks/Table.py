@@ -534,41 +534,6 @@ class wxTable(DragAndDrop.DraggableWidget,
         helper function to readjust everything after the contents change
         """
 
-        def UpdateSelection(columns):
-            """
-            Update the grid's selection based on the collection's selection.
-    
-            If we previously had selected items, but now are not, then we
-            probably just deleted all the selected items so we should try
-            to select the next logical item in the collection.
-            """
-    
-            # remember the first row in the old selection
-            topLeftSelection = self.GetSelectionBlockTopLeft()
-            
-            if topLeftSelection:
-                newRowSelection = topLeftSelection[0][0]
-            else:
-                newRowSelection = -1
-            
-            # avoid OnRangeSelect
-            IgnoreSynchronizeWidget(True, self.ClearSelection)
-            for rowStart,rowEnd in self.SelectedRowRanges():
-                # since we're selecting something, we don't need to
-                # auto-select any rows
-                newRowSelection = -1
-    
-                # now just do the selection update
-                self.SelectBlock (rowStart, 0, rowEnd, columns, True)
-    
-            # now auto-select a row if necessary
-            if newRowSelection != -1:
-                itemIndex = self.RowToIndex(newRowSelection)
-                if itemIndex != -1:
-                    # we need to do this after the current
-                    # wxSynchronizeWidget is over
-                    wx.CallAfter (blockItem.PostSelectItems, [contents[itemIndex]])
-
         def SendTableMessage(current, new, deleteMessage, addMessage):
             if new == current: return
             
@@ -647,7 +612,12 @@ class wxTable(DragAndDrop.DraggableWidget,
     
             self.ScaleWidthToFit (blockItem.scaleWidthsToFit)
     
-            UpdateSelection(newColumns)
+            # avoid OnRangeSelect
+            IgnoreSynchronizeWidget(True, self.ClearSelection)
+            for rowStart,rowEnd in self.SelectedRowRanges():
+                # now just do the selection update
+                self.SelectBlock (rowStart, 0, rowEnd, newColumns, True)
+
             self.EndBatch()
     
             # Update all displayed values
@@ -988,6 +958,22 @@ class Table (PimBlocks.FocusEventHandlers, RectangularChild):
         
     def onSelectAllEvent(self, event):
         self.PostSelectItems(self.contents)
+
+    def selectionEmptiedAfterDelete (self, selectedCollection, oldIndex):
+        # We should only end up here if we have an empty selection
+        assert self.contents.isSelectionEmpty()
+        
+        length = len (self.contents)
+        if length:
+            lastIndex = length - 1
+            if oldIndex > lastIndex:
+                oldIndex = lastIndex
+            item = self.contents [oldIndex]
+            self.contents.selectItem (item)
+
+            # Propagate the notifications and synchronize the widget so the sections are up to date
+            wx.GetApp().propagateAsynchronousNotifications()
+            self.widget.GoToItem (item)
 
 
 # Ewww, yuk.  Blocks and attribute editors are mutually interdependent

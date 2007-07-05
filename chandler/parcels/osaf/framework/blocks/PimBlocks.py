@@ -26,6 +26,7 @@ from application.dialogs.RecurrenceDialog import (getProxy,
                                                   delayForRecurrenceDialog)
 import application.dialogs.DeleteDialog as DeleteDialog
 from chandlerdb.item.c import isitemref
+from chandlerdb.item.ItemError import *
 
 # hack workaround for bug 4747
 def FilterGone(list):
@@ -383,12 +384,19 @@ class FocusEventHandlers(Item):
     def onDeleteEventUpdateUI(self, event):
         event.arguments['Enable'] = self.CanDelete()
 
+    def selectionEmptiedAfterDelete (self, selectedCollection, oldIndex):
+            self.postEventByName("SelectItemsBroadcast",
+                                 {'items': [],
+                                  'collection': selectedCollection })
+
     def onRemoveEvent(self, event):
         """
         Actually perform a remove
         """
         selectedCollection = self.__getPrimaryCollection()
         selection = self.__getSelectedItems()
+        assert len(selection) > 0 # If this assert fails fix onRemoveEventUpdateUI
+        oldIndex = self.contents.index (selection[0])
 
         assert selectedCollection, "Can't remove without a primary collection!"
 
@@ -417,18 +425,22 @@ class FocusEventHandlers(Item):
         for item in removals:
             removeItem(item)
         
-        if len(itemsAndStates) == 0:
-            self.postEventByName("SelectItemsBroadcast",
-                                 {'items': [],
-                                  'collection': selectedCollection })
-        else:
+        if len(itemsAndStates) != 0:
             DeleteDialog.ShowDeleteDialog(view=self.itsView,
                                           selectedCollection=selectedCollection,
                                           itemsAndStates=itemsAndStates)            
+        if self.contents.isSelectionEmpty():
+            self.selectionEmptiedAfterDelete (selectedCollection, oldIndex)
 
     def onDeleteEvent(self, event):
         selectedCollection = self.__getPrimaryCollection()
         selection = self.__getSelectedItems()
+        assert len(selection) > 0 # If this assert fails fix onDeleteEventUpdateUI
+        
+        try:
+            oldIndex = self.contents.index (selection[0])
+        except NoSuchItemInCollectionError:
+            oldIndex = None
 
         assert selectedCollection, "Can't delete without a primary collection!"
 
@@ -450,15 +462,13 @@ class FocusEventHandlers(Item):
             else:
                 readonly.append((item, DeleteDialog.IN_READ_ONLY_COLLECTION))
 
-        if len(readonly) == 0:
-            self.postEventByName("SelectItemsBroadcast",
-                                 {'items': [],
-                                  'collection': selectedCollection })
-        else:
+        if len(readonly) != 0:
             DeleteDialog.ShowDeleteDialog(view=self.itsView,
                                           selectedCollection=selectedCollection,
                                           itemsAndStates=readonly,
                                           originalAction='delete')            
+        if self.contents.isSelectionEmpty():
+            self.selectionEmptiedAfterDelete (selectedCollection, oldIndex)
 
                         
 def isValidSelection(selection, selectedCollection):
