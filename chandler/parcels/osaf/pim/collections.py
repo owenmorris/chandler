@@ -310,10 +310,6 @@ class ContentCollection(ContentItem, Collection):
     # this delete hook is necessary because clearing 'sourceFor' depends on
     # watchers still be being there.
     def onItemDelete(self, view, isDeferring):
-        #KLUDGE put in as debugging aid after bug 6686 9/14/06
-        #remove after 3 months
-        if self.itsName == 'allCollection':
-            raise ValueError, ('deleting allCollection', self)
         if not isDeferring and hasattr(self, 'sourceFor'):
             self.sourceFor.clear()
 
