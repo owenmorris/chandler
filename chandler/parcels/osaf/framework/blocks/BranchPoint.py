@@ -126,20 +126,18 @@ class BranchPointBlock(BoxContainer):
         # of some kind
         items = event.arguments['items']
         
-        numberOfItems = len (items)
-        if numberOfItems > 0:
-            if numberOfItems == 1:
-                self.selectedItem = items[0]
-            else:
-                self.selectedItem = None
+        if len (items) == 1:
+            self.selectedItem = items[0]
+        else:
+            self.selectedItem = None
 
-            self.detailItemCollection = self.delegate.getContentsCollection(self.selectedItem,
-                                                                            event.arguments.get('collection'))
+        self.detailItemCollection = self.delegate.getContentsCollection(self.selectedItem,
+                                                                        event.arguments.get('collection'))
 
-            widget = getattr (self, 'widget', None)
-            if widget is not None:
-                # eventually results in installTreeOfBlocks()
-                widget.wxSynchronizeWidget ()
+        widget = getattr (self, 'widget', None)
+        if widget is not None:
+            # eventually results in installTreeOfBlocks()
+            widget.wxSynchronizeWidget ()
 
     def installTreeOfBlocks(self, hints):
         """

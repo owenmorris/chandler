@@ -545,6 +545,7 @@ class wxTable(DragAndDrop.DraggableWidget,
                                                    new-current) 
             self.ProcessTableMessage (message) 
 
+        wasShown = self.IsShown()
         super (wxTable, self).wxSynchronizeWidget()
         blockItem = self.blockItem
         contents = blockItem.contents
@@ -559,8 +560,15 @@ class wxTable(DragAndDrop.DraggableWidget,
                 self.blockItem.contents.setCollectionIndex(columnIndexName)
                 break
 
-        if self.IsShown():
-        
+        if not self.IsShown():
+            if wasShown:
+                # Whenever the table goes out of view we need to show nothing in
+                # the detail view, since sometimes the item in the detail view 
+                # might not exist anymore.
+                blockItem.postEventByName("SelectItemsBroadcast",
+                                          {'items': [],
+                                           'collection': blockItem.contents })
+        else:        
             rowHeight = getattr (blockItem, "rowHeight", None)
             if rowHeight is not None:
                 self.SetDefaultRowSize (rowHeight)
