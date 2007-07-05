@@ -1030,9 +1030,85 @@ def RenderItem(repoView, item):
         result += "<td><b>Additional information:</b></td>\n"
         result += "</tr>\n"
         result += "<tr class='oddrow'>\n"
-        result += "<td>Item version: %d<br>Is item dirty: %s<br>Shared state: %s</td>\n" % (item.getVersion(), item.isDirty(), pim.has_stamp(item, sharing.SharedItem))
+        result += "<td>Item version: %d<br>Is item dirty: %s</td>\n" % (item.getVersion(), item.isDirty())
         result += "</tr>\n"
         result += "</table>\n"
+
+    if isinstance(item, pim.Note):
+        if pim.has_stamp(item, sharing.SharedItem):
+            si = sharing.SharedItem(item)
+            for share in si.sharedIn:
+                conduit = share.conduit
+                if isinstance(conduit, sharing.RecordSetConduit):
+                    trans = conduit.translator(repoView)
+                    filter = conduit.getFilter()
+                    if filter is None:
+                        filter = lambda rs: rs
+                    else:
+                        filter = filter.sync_filter
+                    alias = trans.getAliasForItem(item)
+                    result += "<table width=100% border=0 cellpadding=4 cellspacing=0>\n"
+                    result += "<tr class='toprow'>\n"
+                    result += "<td><b>Shared in collection: %s</b></td>\n" % \
+                        getattr(share.contents, 'displayName', 'untitled')
+                    result += "</tr>\n"
+                    result += "<tr class='oddrow'>\n"
+                    result += "<td>Alias: %s</td>\n" % alias
+                    result += "</tr>\n"
+
+                    result += "<tr class='headingsrow'><td><b>Current Values:</b></td></tr>\n"
+                    local = sharing.RecordSet(trans.exportItem(item))
+                    count = 0
+                    for record in sharing.sort_records(local.inclusions):
+                        result += oddEvenRow(count)
+                        result += "<td>%s</td>\n" % str(record)
+                        result += "</tr>\n"
+                        count += 1
+
+                    if conduit.hasState(alias):
+                        state = conduit.getState(alias)
+                    else:
+                        state = None
+                    if state is not None:
+                        agreed = state.agreed
+                        result += "<tr class='headingsrow'><td><b>Agreed State:</b></td></tr>\n"
+                        count = 0
+                        for record in sharing.sort_records(agreed.inclusions):
+                            result += oddEvenRow(count)
+                            result += "<td>%s</td>\n" % str(record)
+                            result += "</tr>\n"
+                            count += 1
+                        result += "<tr class='headingsrow'><td><b>Pending Changes:</b></td></tr>\n"
+                        count = 0
+                        for record in sharing.sort_records(state.pending.inclusions):
+                            result += oddEvenRow(count)
+                            result += "<td>++ %s</td>\n" % str(record)
+                            result += "</tr>\n"
+                            count += 1
+                        for record in sharing.sort_records(state.pending.exclusions):
+                            result += oddEvenRow(count)
+                            result += "<td>-- %s</td>\n" % str(record)
+                            result += "</tr>\n"
+                            count += 1
+                        result += "<tr class='headingsrow'><td><b>Pending Removal: %s</b></td></tr>\n" % ("Yes" if state.pendingRemoval else "No")
+
+                        diff = filter(local - agreed)
+
+                        result += "<tr class='headingsrow'><td><b>Local Changes:</b></td></tr>\n"
+                        count = 0
+                        for record in sharing.sort_records(diff.inclusions):
+                            result += oddEvenRow(count)
+                            result += "<td>++ %s</td>\n" % str(record)
+                            result += "</tr>\n"
+                            count += 1
+                        for record in sharing.sort_records(diff.exclusions):
+                            result += oddEvenRow(count)
+                            result += "<td>-- %s</td>\n" % str(record)
+                            result += "</tr>\n"
+                            count += 1
+
+                result += "</table>\n"
+
 
     return result
 
