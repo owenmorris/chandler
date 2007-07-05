@@ -396,7 +396,11 @@ class FocusEventHandlers(Item):
         selectedCollection = self.__getPrimaryCollection()
         selection = self.__getSelectedItems()
         assert len(selection) > 0 # If this assert fails fix onRemoveEventUpdateUI
-        oldIndex = self.contents.index (selection[0])
+
+        try:
+            oldIndex = self.contents.index (selection[0])
+        except NoSuchItemInCollectionError:
+            oldIndex = None
 
         assert selectedCollection, "Can't remove without a primary collection!"
 
