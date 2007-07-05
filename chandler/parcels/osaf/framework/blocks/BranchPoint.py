@@ -132,10 +132,10 @@ class BranchPointBlock(BoxContainer):
                 self.selectedItem = items[0]
             else:
                 self.selectedItem = None
-
+    
             self.detailItemCollection = self.delegate.getContentsCollection(self.selectedItem,
                                                                             event.arguments.get('collection'))
-
+    
             widget = getattr (self, 'widget', None)
             if widget is not None:
                 # eventually results in installTreeOfBlocks()
