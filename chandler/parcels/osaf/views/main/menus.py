@@ -413,7 +413,7 @@ def makeMainMenus(parcel):
                         menuItemKind = 'Separator'),
                     MenuItem.template('MarkAsReadItem',
                         event = main.MarkAsRead,
-                        title = _(u"Mark As Read"),
+                        title = _(u"&Mark As Read"),
                         helpString = _(u"Mark all selected items as 'Read'")),
                     MenuItem.template('ItemSeparator1',
                         menuItemKind = 'Separator'),
