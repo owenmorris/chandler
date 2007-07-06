@@ -551,6 +551,13 @@ def runSingles(options):
     - + - + - + - + - + - + - + - + - + - + - + - + - + - + - + 
     False
     
+    >>> options.modes   = ['release']
+    >>> options.single  = 'RenameAndNewEvent.py'
+    >>> runSingles(options)
+    /.../release/RunPython... Chandler.py --create --catch=tests --profileDir=test_profile --parcelPath=tools/cats/DataFiles --recordedTest=RenameAndNewEvent
+    - + - + - + - + - + - + - + - + - + - + - + - + - + - + - + 
+    False
+    
     >>> options.single  = 'PerfLargeDataSharing.py'
     >>> runSingles(options)
     /.../release/RunPython... Chandler.py --catch=tests --profileDir=test_profile --parcelPath=tools/cats/DataFiles --catsPerfLog=test_profile/time.log --scriptFile=tools/QATestScripts/Performance/PerfLargeDataSharing.py --restore=test_profile/__repository__.001
@@ -583,9 +590,13 @@ def runSingles(options):
     else:
         for test in tests:
             dirname, name = os.path.split(test)
+            dirtail       = os.path.split(dirname)[1]
 
-            if os.path.split(dirname)[1] == 'Functional':
+            if dirtail == 'Functional':
                 if runFuncTest(options, name[:-3]):
+                    failed = True
+            elif dirtail == 'recorded_scripts':
+                if runRecordedScripts(options, name[:-3]):
                     failed = True
             elif name.startswith('Perf'):
                 if runPerfTests(options, [test]):
@@ -928,7 +939,7 @@ def runFuncTestsSingly(options):
     return failed
 
 
-def runRecordedScripts(options):
+def runRecordedScripts(options, test=None):
     """
     Run recorded script tests
     
@@ -939,14 +950,22 @@ def runRecordedScripts(options):
     >>> options.modes = ['release', 'debug']
     >>> runRecordedScripts(options)
     /.../release/RunPython... Chandler.py --create --catch=tests --profileDir=test_profile --parcelPath=tools/cats/DataFiles --recordedTest=...
+    ...
+    
+    >>> runRecordedScripts(options, 'RenameAndNewEvent')
+    /.../release/RunPython... Chandler.py --create --catch=tests --profileDir=test_profile --parcelPath=tools/cats/DataFiles --recordedTest=RenameAndNewEvent...
     - + - + - + - + - + - + - + - + - + - + - + - + - + - + - + 
+    False
     ...
     """
     failed = False
     testlist = []
 
-    for item in glob.glob(os.path.join('tools', 'cats', 'recorded_scripts', '*.py')):
-        testlist.append(os.path.split(item)[1][:-3])
+    if test is None:
+        for item in glob.glob(os.path.join('tools', 'cats', 'recorded_scripts', '*.py')):
+            testlist.append(os.path.split(item)[1][:-3])
+    else:
+        testlist.append(test)
 
     for mode in options.modes:
         for test in testlist:
