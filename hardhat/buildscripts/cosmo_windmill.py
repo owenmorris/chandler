@@ -23,6 +23,7 @@ if no code has changed, and an exception is raised if there are problems.
 
 import os, sys, re, glob, shutil, time
 import urllib2
+import traceback
 import hardhatutil, hardhatlib
 
 path         = os.environ.get('PATH', os.environ.get('path'))
@@ -162,143 +163,157 @@ def fetch(url):
     try:
         f = opener.open(request)
 
-        if hasattr(f, 'status') and f.status <> 200:
-            print 'fetch returned status', f.status
-        elif hasattr(f, 'info'):
-            info = f.info()
+        try:
+            if f.status != 200:
+                print 'fetch returned status', f.status
+        except AttributeError:
+            pass
 
-            result = f.read()
+        result = f.read()
     except:
         dumpException('error during fetch for [%s]' % url)
 
     return result
 
 def runWindmill(scriptDir, workingDir, windmillDir, snarfDir, log):
-    result  = 'failed'
-    tarball = fetchLatest(workingDir, snarfDir, log)
+    result    = 'failed'
+    tarball   = fetchLatest(workingDir, snarfDir, log)
+    snarfRoot = os.path.join(snarfDir, tarball[:-7])
 
-    if tarball is not None:
-        snarfBin = os.path.join(snarfDir, tarball[:-7], 'bin')
-        snarfLog = os.path.join(snarfDir, tarball[:-7], 'logs', 'osafsrv.log')
-
-        log.write('[tbox] starting Cosmo [%s]' % snarfBin)
-        print 'starting Cosmo', snarfBin
-
-        os.chdir(snarfBin)
-
-        try:
-            outputList = hardhatutil.executeCommandReturnOutput(['./osafsrvctl', 'start'])
-
-            hardhatutil.dumpOutputList(outputList, log)
-
-        except hardhatutil.ExternalCommandErrorWithOutputList, e:
-            print "cosmo start error"
-            log.write("\n***Error starting Cosmo***\n")
-            log.write(separator)
-            log.write("Build log:" + "\n")
-            hardhatutil.dumpOutputList(e.outputList, log)
-            if e.exitCode == 0:
-                err = ''
-            else:
-                err = '***Error '
-            log.write("%sexit code=%s\n" % (err, e.exitCode))
-            return 'failed'
-
-        except Exception, e:
-            print "cosmo start error"
-            log.write("\n***Error starting Cosmo***\n")
-            log.write(separator)        
-            log.write("No build log!\n")
-            log.write(separator)
-            return 'failed'
-
-            # mb:~/temp/osaf-server-bundle-0.6.1.1-RC2/logs bear$ tail -f osafsrv.log 
-            # 2007-07-03 14:14:18,669 INFO  [Catalina] Initialization processed in 799 ms
-            # 2007-07-03 14:14:23,195 INFO  [LifecycleLoggerListener] Cosmo Sharing Server 0.6.1.1-RC2 starting
-            # 2007-07-03 14:14:31,795 INFO  [DbInitializer] Creating database
-            # 2007-07-03 14:14:34,291 INFO  [DbInitializer] Initializing database
-            # 2007-07-03 14:14:34,291 DEBUG [DbInitializer] adding overlord
-            # 2007-07-03 14:14:34,292 DEBUG [StandardUserService] creating user root
-            # 2007-07-03 14:14:34,468 DEBUG [StandardUserService] getting user root
-            # 2007-07-03 14:14:35,316 INFO  [Catalina] Server startup in 16645 ms
-
-        n = 10
-        while not os.path.isfile(snarfLog) and n > 0:
-            time.sleep(5)
-            n -= 1
-
-        t = Tail(snarfLog)
-        while True:
-            line = t.nextline()
-            if '[Catalina] Server startup in' in line:
-                break
-
+    if startCosmo(snarfRoot, log):
         log.write('[tbox] Starting Windmill')
         print 'starting windmill', os.path.join(workingDir, 'run_windmill.sh')
 
         try:
-            outputList = hardhatutil.executeCommandReturnOutput([os.path.join(scriptDir, 'run_windmill.sh')])
+            try:
+                outputList = hardhatutil.executeCommandReturnOutput([os.path.join(scriptDir, 'run_windmill.sh')])
 
-            hardhatutil.dumpOutputList(outputList, log)
+                hardhatutil.dumpOutputList(outputList, log)
 
-            for line in outputList:
-                if line.startswith('#TINDERBOX# Status ='):
-                    #TINDERBOX# Status = SUCCESS\n
-                    #TINDERBOX# Status = FAILED\n
-                    if line.split('=')[1].strip()[:-1] == 'SUCCESS':
-                        result = 'success'
-                    else:
-                        result = 'test_failed'
+                for line in outputList:
+                    if line.startswith('#TINDERBOX# Status ='):
+                        #TINDERBOX# Status = SUCCESS\n
+                        #TINDERBOX# Status = FAILED\n
+                        if line.split('=')[1].strip()[:-1] == 'SUCCESS':
+                            result = 'success'
+                        else:
+                            result = 'test_failed'
 
-        except hardhatutil.ExternalCommandErrorWithOutputList, e:
-            print "windmill error"
-            log.write("\n***Error during Windmill run***\n")
-            log.write(separator)
-            log.write("Build log:" + "\n")
-            hardhatutil.dumpOutputList(e.outputList, log)
-            if e.exitCode == 0:
-                err = ''
-            else:
-                err = '***Error '
-            log.write("%sexit code=%s\n" % (err, e.exitCode))
+                        break;
 
-        except Exception, e:
-            print "windmill error"
-            log.write("\n***Error during Windmill run***\n")
-            log.write(separator)        
-            log.write("No build log!\n")
-            log.write(separator)
+            except hardhatutil.ExternalCommandErrorWithOutputList, e:
+                print "windmill error"
+                log.write("\n***Error during Windmill run***\n")
+                log.write(separator)
+                log.write("Build log:" + "\n")
+                hardhatutil.dumpOutputList(e.outputList, log)
+                if e.exitCode == 0:
+                    err = ''
+                else:
+                    err = '***Error '
+                log.write("%sexit code=%s\n" % (err, e.exitCode))
 
-        log.write('[tbox] stopping Cosmo [%s]' % snarfBin)
-        print 'stopping Cosmo', snarfBin
+            except Exception, e:
+                print "windmill error"
+                log.write("\n***Error during Windmill run***\n")
+                log.write(separator)
+                log.write("No build log!\n")
+                log.write(separator)
 
-        os.chdir(snarfBin)
-
-        try:
-            outputList = hardhatutil.executeCommandReturnOutput(['./osafsrvctl', 'stop'])
-
-            hardhatutil.dumpOutputList(outputList, log)
-
-        except hardhatutil.ExternalCommandErrorWithOutputList, e:
-            print "cosmo stop error"
-            log.write("***Error during build***\n")
-            log.write(separator)
-            log.write("Build log:" + "\n")
-            hardhatutil.dumpOutputList(e.outputList, log)
-            if e.exitCode == 0:
-                err = ''
-            else:
-                err = '***Error '
-            log.write("%sexit code=%s\n" % (err, e.exitCode))
-
-        except Exception, e:
-            print "cosmo start error"
-            log.write("***Error during build***\n")
-            log.write(separator)        
-            log.write("No build log!\n")
-            log.write(separator)
+        finally:
+            stopCosmo(snarfRoot, log)
 
     return result
+
+def startCosmo(snarfRoot, log):
+    result = False
+
+    snarfBin = os.path.join(snarfRoot, 'bin')
+    snarfLog = os.path.join(snarfRoot, 'logs', 'osafsrv.log')
+
+    log.write('[tbox] starting Cosmo [%s]' % snarfBin)
+    print 'starting Cosmo', snarfBin
+
+    os.chdir(snarfBin)
+
+    try:
+        outputList = hardhatutil.executeCommandReturnOutput(['./osafsrvctl', 'start'])
+
+        hardhatutil.dumpOutputList(outputList, log)
+
+        print 'Waiting for %s to be created' % snarfLog
+        n = 10
+        while not os.path.isfile(snarfLog) and n > 0:
+            time.sleep(6)
+            n -= 1
+
+        if os.path.isfile(snarfLog):
+            print 'Tailing log for signs of life'
+            start   = time.time()
+            logtail = Tail(snarfLog)
+            while True:
+                line = logtail.nextline()
+                if '[Catalina] Server startup in' in line:
+                    result = True
+                    break
+                if time.time() - start > 3600:
+                    log.write('[tbox] Cosmo has not started within 5 minutes')
+                    break
+        else:
+            log.write('[tbox] Cosmo log file not found with a minute of starting the script')
+
+    except hardhatutil.ExternalCommandErrorWithOutputList, e:
+        print "cosmo start error"
+        log.write("\n***Error starting Cosmo***\n")
+        log.write(separator)
+        log.write("Build log:" + "\n")
+        hardhatutil.dumpOutputList(e.outputList, log)
+        if e.exitCode == 0:
+            err = ''
+        else:
+            err = '***Error '
+        log.write("%sexit code=%s\n" % (err, e.exitCode))
+
+    except Exception, e:
+        print "cosmo start error"
+        log.write("\n***Error starting Cosmo***\n")
+        log.write(separator)        
+        log.write("No build log!\n")
+        log.write(separator)
+
+    return result
+
+def stopCosmo(snarfRoot, log):
+    snarfBin = os.path.join(snarfRoot, 'bin')
+
+    log.write('[tbox] stopping Cosmo [%s]' % snarfBin)
+    print 'stopping Cosmo', snarfBin
+
+    os.chdir(snarfBin)
+
+    try:
+        outputList = hardhatutil.executeCommandReturnOutput(['./osafsrvctl', 'stop'])
+
+        hardhatutil.dumpOutputList(outputList, log)
+
+    except hardhatutil.ExternalCommandErrorWithOutputList, e:
+        print "cosmo stop error"
+        log.write("***Error during build***\n")
+        log.write(separator)
+        log.write("Build log:" + "\n")
+        hardhatutil.dumpOutputList(e.outputList, log)
+        if e.exitCode == 0:
+            err = ''
+        else:
+            err = '***Error '
+        log.write("%sexit code=%s\n" % (err, e.exitCode))
+
+    except Exception, e:
+        print "cosmo start error"
+        log.write("***Error during build***\n")
+        log.write(separator)
+        log.write("No build log!\n")
+        log.write(separator)
 
 def determineRevision(outputList):
     """
@@ -399,6 +414,11 @@ def getVersion(fileToRead):
     input.close()
     return 'No Version'
 
+def dumpException(message):
+    t, v, tb = sys.exc_info()
+
+    print '%s %s' % (time.strftime('%H:%M on %A, %d %B'), msg)
+    print string.join(traceback.format_exception(t, v, tb), '')
 
 # pulled from http://aspn.activestate.com/ASPN/Cookbook/Python/Recipe/436477/index_txt
 #
