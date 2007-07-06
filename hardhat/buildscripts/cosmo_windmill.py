@@ -176,7 +176,7 @@ def fetch(url):
     return result
 
 def runWindmill(scriptDir, workingDir, windmillDir, snarfDir, log):
-    result    = 'failed'
+    result    = 'build_failed'
     tarball   = fetchLatest(workingDir, snarfDir, log)
     snarfRoot = os.path.join(snarfDir, tarball[:-7])
 
