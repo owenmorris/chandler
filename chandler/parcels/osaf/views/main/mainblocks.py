@@ -40,6 +40,13 @@ def makeMainView(parcel):
     RTimer = ReminderTimer.template('ReminderTimer').install(parcel)
     main.ReminderTime.destinationBlockReference = RTimer
     
+    # Default size for Chandler's main window
+    # Note: (1024,720) is arguably better with the current design of the toolbar but
+    # this has the bad side effect of starting Chandler "full screen" on some laptops with small 
+    # screens which is against Apple GUI Guidelines as reported in bug 6503. 
+    # So we're moving to a (920,650) default size. See bug 4718 for complete discussion.
+    defaultChandlerSize = SizeType (920, 650)
+    
     ReminderTimer.update(
         parcel, 'ReminderTimer',
         event = main.ReminderTime,
@@ -205,7 +212,7 @@ def makeMainView(parcel):
 
     MainViewInstance = MainView.template(
         'MainView',
-        size = SizeType (1024, 720),
+        size = defaultChandlerSize,
         orientationEnum='Vertical',
         eventBoundary = True,
         bufferedDraw = True,
@@ -290,7 +297,7 @@ def makeMainView(parcel):
         parcel, 'MainViewRoot',
         blockName = 'MainViewRoot',
         windowTitle = _(u"Chandler"),
-        size = SizeType(1024,720),
+        size = defaultChandlerSize,
         eventBoundary=True,
         views = {'MainView' : MainViewInstance},
         theActiveView = MainViewInstance,
