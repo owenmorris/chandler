@@ -292,7 +292,7 @@ class wxApplication (wx.App):
         for callable in self.filterEventCallables:
             callable (event)
         return -1
-
+    
     def OnInit(self):
         """
         Main application initialization.
@@ -306,6 +306,41 @@ class wxApplication (wx.App):
         #
         # Unless --nocatch is used, Python's sys.stderr is already overriden
         # by the feedback window setup at this point.
+
+        def ResizeAndRepositionInScreen (inputRect):
+            """
+            Set the inputRect to fit within the available screen. Returns the resized and
+            repositioned rectangle (of type wx.Rect).
+            """
+            displayRect = wx.GetClientDisplayRect()
+            
+            assert inputRect.IsEmpty() is False
+            assert displayRect.IsEmpty() is False
+            
+            # First, clip the width and height to the one of the display rectangle
+            if displayRect.width < inputRect.width:
+                inputRect.width = displayRect.width
+            if displayRect.height < inputRect.height:
+                inputRect.height = displayRect.height
+                
+            # Second, move the position so that the rectangle fits entirely in the display rectangle
+            # This algorithm moves the position so that the window slides in by the minimum amount of
+            # pixels. This is nice in situations like the Mac where the dock gets in the way but you 
+            # don't want to reset the user chosen window position arbitrarily to the center or the 
+            # origin of the screen. It's also nice for users switching from multiple screens to one
+            # screen situations, the Chandler window simply sliding in instead of being reset to an
+            # arbitrary default position.
+            if inputRect.top < displayRect.top:
+                inputRect.y += displayRect.top - inputRect.top
+            if inputRect.bottom > displayRect.bottom:
+                inputRect.y += displayRect.bottom - inputRect.bottom
+            if inputRect.left < displayRect.left:
+                inputRect.x += displayRect.left - inputRect.left
+            if inputRect.right > displayRect.right:
+                inputRect.x += displayRect.right - inputRect.right
+            
+            assert displayRect.ContainsRect(inputRect)
+            return inputRect
 
         options = Globals.options
 
@@ -497,12 +532,12 @@ class wxApplication (wx.App):
 
         mainViewRoot = schema.ns("osaf.views.main", self.UIRepositoryView).MainViewRoot
 
-        # arel: fix for bug involving window size and toolbar on MacOS (bug 3411).
-        # The problem is that mainFrame gets resized when it is rendered
+        # Fix for bug 3411: mainFrame gets resized when it is rendered
         # (particularly when the toolbar gets rendered), increasing the window's
         # height by the height of the toolbar.  We fix by remembering the
         # (correct) size before rendering and resizing. 
-        rememberSize = (mainViewRoot.size.width, mainViewRoot.size.height)
+        rememberRect = wx.Rect(mainViewRoot.position.x, mainViewRoot.position.y,
+                               mainViewRoot.size.width, mainViewRoot.size.height)
 
         self.mainFrame = wxMainFrame(None,
                                      -1,
@@ -555,8 +590,11 @@ class wxApplication (wx.App):
         # delay calling OnIdle until now
         self.Bind(wx.EVT_IDLE, self.OnIdle)
 
-        # resize to intended size. (bug 3411)
-        self.mainFrame.SetSize(rememberSize)
+        # reposition the window in the screen if needs be
+        rememberRect = ResizeAndRepositionInScreen(rememberRect)
+
+        # resize to the correct size
+        self.mainFrame.SetRect(rememberRect)
 
         # Call UpdateWindowUI before we show the window. UPDATE_UI_FROMIDLE
         # should be set so we don't update menus, since they are done
