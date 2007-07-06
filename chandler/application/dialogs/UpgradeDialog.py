@@ -67,8 +67,8 @@ class UpgradeDialog(wx.Dialog):
             staticText    = _(u"Your repository was created by an incompatible version of Chandler.")
             normalCaption = _(u'Would you like to remove all data from your repository?')
         else:
-            staticText    = _(u"Another Chandler repository has been located and may contain data you want to migrate.")
-            normalCaption = _(u"Continue with normal startup?")
+            staticText    = _(u"This new version of Chandler is incompatible with your data. Would you like to:")
+            normalCaption = _(u"Start up with a fresh Chandler. (Any data you have from a previous version of Chandler will be lost.)")
 
         self.msgText = wx.StaticText(self, -1, staticText)
         sizer.Add(self.msgText, flag=wx.ALL, border=5)
@@ -77,12 +77,12 @@ class UpgradeDialog(wx.Dialog):
         sizer.Add(self.normalStartup, flag=wx.ALL, border=5)
         self.normalStartup.Bind(wx.EVT_LEFT_DCLICK, self.onButton)
 
-        self.exitReload = wx.RadioButton(self, -1, _(u"Exit Chandler and migrate your previous content?"))
+        self.exitReload = wx.RadioButton(self, -1, _(u"Quit and follow the directions linked below to migrat your data."))
         self.exitReload.SetValue(True)
         sizer.Add(self.exitReload, flag=wx.ALL, border=5)
         self.exitReload.Bind(wx.EVT_LEFT_DCLICK, self.onButton)
 
-        self.linkText = wx.HyperlinkCtrl(self, -1, _(u'Migration Instructions'), u'http://chandlerproject.org')
+        self.linkText = wx.HyperlinkCtrl(self, -1, _(u'Migration Directions'), u'http://chandlerproject.org/faq')
         sizer.Add(self.linkText, flag=wx.ALL, border=5)
 
         box = wx.BoxSizer(wx.HORIZONTAL)
