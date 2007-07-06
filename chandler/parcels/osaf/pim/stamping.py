@@ -14,7 +14,7 @@
 
 from application import schema
 from items import ContentItem
-from collections import ListCollection
+from collections import ContentCollection
 from chandlerdb.util.c import Empty
 
 __parcel__ = 'osaf.pim'
@@ -34,11 +34,24 @@ class StampNotPresentError(ValueError):
     present in the item to be unstamped.
     """
 
+class StampCollection(ContentCollection):
+    """
+    A C{ContentCollection} to store the collection of items that have a
+    particular C{Stamp}. Used in favor of C{ListCollection} because there
+    is code (in recurrence, for example) that manipulates
+    C{ContentItem.collections}, the inverse of C{ListCollection.inclusions}
+    in a way that breaks stamp collection membership.
+    """
+    __metaclass__ = schema.CollectionClass
+    __collection__ = 'items'
+
+    items = schema.Sequence(ContentItem)
+
 class StampItem(schema.AnnotationItem):
     """The item that's created in the repository for each Stamp subclass
        you declare."""
        
-    _stampedItems = schema.One(ListCollection)
+    _stampedItems = schema.One(StampCollection)
 
     # stampedItems is a property because we can't create a ListCollection
     # at schema init time (due to dependency issues), but delaying its
@@ -50,8 +63,7 @@ class StampItem(schema.AnnotationItem):
     @property
     def stampedItems(self):
         if not self.hasLocalAttributeValue('_stampedItems'):
-            self._stampedItems = ListCollection(itsView=self.itsView,
-                displayName="Stamped items")
+            self._stampedItems = StampCollection(itsView=self.itsView, items=[])
         return self._stampedItems
 
 class StampClass(schema.AnnotationClass):
@@ -90,6 +102,7 @@ class Stamp(schema.Annotation):
     schema.kindInfo(annotates=ContentItem)
     
     stamp_types = schema.Many(schema.Class, defaultValue=Empty)
+    _stampCollections = schema.Sequence(StampCollection, inverse=StampCollection.items)
 
     __use_collection__ = False
     
@@ -140,7 +153,7 @@ class Stamp(schema.Annotation):
             if self.__use_collection__:
                 stamped = schema.itemFor(stampClass,
                                          self.itsItem.itsView).stampedItems
-                stamped.add(self.itsItem.getMembershipItem())
+                stamped.add(self.itsItem)
 
     def remove(self):
         try:
@@ -150,7 +163,7 @@ class Stamp(schema.Annotation):
                   "Item %r doesn't have stamp %r" % (self.itsItem, self)
         
         if not self.itsItem.isProxy:
-            item = self.itsItem.getMembershipItem()
+            item = self.itsItem
             
             # This is gross, and was in the old stamping code.
             # Some items, like Mail messages, end up in the

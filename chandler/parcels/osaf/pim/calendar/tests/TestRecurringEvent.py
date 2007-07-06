@@ -296,6 +296,14 @@ class RecurringEventTest(testcase.SingleRepositoryTestCase):
         for modOrMaster in [calmod, evtaskmod, self.event]:
             self.assertEqual(modOrMaster.getMaster(), self.event)
 
+        self.failUnless(evtaskmod.itsItem in TaskStamp.getCollection(self.view))
+        self.failIf(self.event.itsItem in TaskStamp.getCollection(self.view))
+        
+        TaskStamp(CHANGE_THIS(evtaskmod)).remove()
+        self.failIf(evtaskmod.itsItem in TaskStamp.getCollection(self.view))
+        self.failIf(self.event.itsItem in TaskStamp.getCollection(self.view))
+
+
         # make a THIS modification ...
         occurrenceOfMaster = self.event.getRecurrenceID(self.event.startTime)
         occurrenceOfMaster.summary = uw("Modification to master")
