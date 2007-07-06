@@ -44,8 +44,8 @@ def makeMainView(parcel):
     # Note: (1024,720) is arguably better with the current design of the toolbar but
     # this has the bad side effect of starting Chandler "full screen" on some laptops with small 
     # screens which is against Apple GUI Guidelines as reported in bug 6503. 
-    # So we're moving to a (920,650) default size. See bug 4718 for complete discussion.
-    defaultChandlerSize = SizeType (920, 650)
+    # So we're moving to a smaller default size. See bug 4718 for complete discussion.
+    defaultChandlerSize = SizeType (970, 685)
     
     ReminderTimer.update(
         parcel, 'ReminderTimer',
