@@ -1821,18 +1821,15 @@ class wxInPlaceEditor(AttributeEditors.wxEditText):
     
     def __init__(self, parent, defocusCallback=None, allowMultiLine=True,
                  *arguments, **keywords):
-        
-        # Windows and Mac add an extra vertical scrollbar for TE_MULTILINE,
-        # GTK doesn't. Further, if GTK is not multiline, then the single
-        # line mode looks really wonky with a huge cursor.
-        #
-        # The undocumented flag TE_NO_VSCROLL solves these problems but
-        # introduces another: text does not scroll at all on Mac and MSW. On
-        # MSW, not only does the text not scroll, but you can't enter text
-        # beyond the size of the editor if TE_NO_VSCROLL and TE_MULTILINE are
-        # both set, so on Windows we stick with the a single line for now
-        style = wx.NO_BORDER | wx.TE_PROCESS_ENTER | wx.TE_NO_VSCROLL 
-        if wx.Platform == "__WXMSW__" and allowMultiLine:
+
+        # This style setting will allow the vertical scrollbar to be
+        # shown when needed, but will hide it initially.  This allows
+        # multi-line, being able to enter more text than can be shown,
+        # etc.  And it works on all platforms,
+        style = wx.NO_BORDER | wx.TE_PROCESS_ENTER | wx.TE_RICH
+        if wx.Platform != "__WXMSW__":
+            style |= wx.TE_NO_VSCROLL 
+        if allowMultiLine:
             style |= wx.TE_MULTILINE
 
         super(wxInPlaceEditor, self).__init__(parent,
