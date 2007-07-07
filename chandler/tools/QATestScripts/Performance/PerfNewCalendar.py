@@ -19,6 +19,9 @@ import tools.QAUITestAppLib as QAUITestAppLib
 fileName = "PerfNewCalendar.log"
 logger = QAUITestAppLib.QALogger(fileName, "Test New Calendar for performance")
 
+frame = wx.GetApp().mainFrame
+frame.SetSize((1024, 720))
+
 try:
     # Test in calendar view
     app_ns().appbar.press("ApplicationBarEventButton")

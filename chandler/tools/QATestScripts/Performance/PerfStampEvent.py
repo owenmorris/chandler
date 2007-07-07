@@ -19,6 +19,9 @@ import tools.QAUITestAppLib as QAUITestAppLib
 fileName = "PerfStampEvent.log"
 logger = QAUITestAppLib.QALogger(fileName, "Perf Stamp as Event")
 
+frame = wx.GetApp().mainFrame
+frame.SetSize((1024, 720))
+
 try:
     # Test in calendar view
     app_ns().appbar.press("ApplicationBarEventButton")

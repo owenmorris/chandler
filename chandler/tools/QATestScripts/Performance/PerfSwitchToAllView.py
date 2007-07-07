@@ -19,6 +19,9 @@ import tools.QAUITestAppLib as QAUITestAppLib
 fileName = "PerfSwitchToAllView.log"
 logger = QAUITestAppLib.QALogger(fileName, "Switching to All View for Performance")
 
+frame = wx.GetApp().mainFrame
+frame.SetSize((1024, 720))
+
 try:
     # Test in calendar view
     app_ns().appbar.press("ApplicationBarEventButton")

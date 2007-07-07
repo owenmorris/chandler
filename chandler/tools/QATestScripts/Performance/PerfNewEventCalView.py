@@ -12,11 +12,15 @@
 #   See the License for the specific language governing permissions and
 #   limitations under the License.
 
+import wx
 import tools.QAUITestAppLib as QAUITestAppLib
 
 # initialization
 fileName = "PerfNewEventCalView.log"
 logger = QAUITestAppLib.QALogger(fileName, "New Event by double clicking in the cal view for Performance")
+
+frame = wx.GetApp().mainFrame
+frame.SetSize((1024, 720))
 
 try:
     # creation
