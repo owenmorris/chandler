@@ -35,7 +35,7 @@ import version
 # with your name (and some helpful text). The comment's really there just to
 # cause Subversion to warn you of a conflict when you update, in case someone 
 # else changes it at the same time you do (that's why it's on the same line).
-SCHEMA_VERSION = "437" # grant: Don't use ListCollection for Stamp.stampItems
+SCHEMA_VERSION = "438" # Johb: Fix a problem I introduced recently that's necessary for testing bug #8165
 
 logger = None # initialized in initLogging()
 
