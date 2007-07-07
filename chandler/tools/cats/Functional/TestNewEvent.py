@@ -36,6 +36,10 @@ class TestNewEvent(ChandlerTestCase):
             y, m, d = incDay.timetuple()[:3]
             return '%s/%s/%s' % (m, d, y)
         
+        # resize the Chandler window to (1024,720): this test sort of crumble if the window is too small
+        frame = wx.GetApp().mainFrame
+        frame.SetSize((1024,720))
+
         # switch to calendar view
         testView = QAUITestAppLib.UITestView(self.logger)
         testView.SwitchToCalView()       
