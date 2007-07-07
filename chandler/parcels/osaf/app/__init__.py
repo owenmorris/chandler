@@ -112,36 +112,36 @@ def installParcel(parcel, oldVersion=None):
         ),
     )
 
+    # The URLs used in the Welcome note: those should not go through the localization mechanism!
+    url1 = u"http://chandlerproject.org/guide"
+    url2 = u"http://hub.chandlerproject.org/signup"
+    url3 = u"http://chandlerproject.org/faq"
+    url4 = u"http://chandlerproject.org/knownissues"
+    url5 = u"http://chandlerproject.org/mailinglists"
+    url6 = u"http://chandlerproject.org/"
+    url7 = u"http://chandlerproject.org/getinvolved" 
 
-    body = _(u"""Welcome to the Chandler %(version)s!
+    body = _(u"""Welcome to Chandler %(version)s. Here is a list of resources to help you get started:
 
-For a wealth of information for end-users and developers, point your browser to:
-    http://chandler.osafoundation.org
+1. Check out our Getting Started Guide (%(url1)s) to view screenshots, learn how to report problems and access a wide range of developer documentation.
+2. Sign-up for a sharing account on Chandler Hub (%(url2)s).
+3. Consult our FAQ (%(url3)s).
+4. Read about known issues with the Preview release (%(url4)s).
+5. Ask questions and give us feedback by joining the Chandler-Users mailing list (%(url5)s).
+6. Learn more about the project on our wiki (%(url6)s).
+7. Get involved and contribute to the project (%(url7)s).
 
-There you can see presentations on the Vision of Chandler, details about this release, screenshots and screencast demos, documentation and tutorials for developers, and how to participate in testing and giving us feedback about your experience in experimenting with Chandler.
+Thank you for trying Chandler!
 
-This release is focused on "experimentally usable" calendar functionality. It meets the following four goals:
-
-1. Usable Calendar
-We intend to use the %(version)s calendar internally at OSAF on a day-to-day basis in order to experience first hand the features, functionality, limitations, and any bugs in the product. We believe using the product ourselves early on is the best way to ensure superlative design and implementation. The calendar now includes timezones, repeating events, all-day events, multiple overlaying calendars, and shared collaborative (multi-author) group calendars using our new CalDAV-based calendar server.
-
-2. Polished User Interface
-Adding polish to the UI helps calendar usability. To a lesser extent we have also polished other areas of the application UI.
-
-3. Infrastructure Investment
-* Although the focus for this release is usable calendar functionality, we have invested in some projects for both developer and Quality Assurance productivity. For example, we have begun optimizing for performance, and have developed automated QA code tests. We want Chandler to be testable, high quality source code.
-* In addition, this release also includes continuing infrastructure work on email and internationalization.
-
-4. Developer Platform
-* If you are an experienced Python programmer, you should be able to create simple forms-based parcels like the Flickr, Feeds, and Amazon parcels that are included in the %(version)s release.
-* Developer documentation, tutorials, and sample add-in parcels are part of this release.
-
-Please note, this release is still intended to be experimental; do not trust your real data with this version. An experimental file import/export feature is available to back up your calendar data.
-
-Thank you for trying Chandler. Your feedback is welcome on our mail lists:
-    http://wiki.osafoundation.org/bin/view/Chandler/OsafMailingLists
-
-The Chandler Team""") % {'version': version.version}
+The Chandler Team""") % {'version': version.version, 
+                         'url1' : url1, 
+                         'url2' : url2, 
+                         'url3' : url3, 
+                         'url4' : url4, 
+                         'url5' : url5, 
+                         'url6' : url6, 
+                         'url7' : url7 
+                     }
 
     WelcomeEvent.body = body
     WelcomeEvent.changeEditState(pim.Modification.created)
