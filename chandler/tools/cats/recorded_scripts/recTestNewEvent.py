@@ -6,6 +6,8 @@ def run():
     if wx.Platform == '__WXMSW__':
         return
     VerifyOn ()
+    ProcessEvent (wx.MouseEvent, {'associatedBlock':'SidebarContainer', 'eventType':wx.EVT_LEFT_DOWN, 'sentTo':'SidebarContainer'}, {'m_leftDown':True, 'm_x':81, 'm_y':171})
+    ProcessEvent (wx.MouseEvent, {'associatedBlock':'SidebarContainer', 'eventType':wx.EVT_LEFT_UP, 'sentTo':'SidebarContainer'}, {'m_x':80, 'm_y':338})
     ProcessEvent (wx.CommandEvent, {'associatedBlock':'ApplicationBarEventButton', 'eventType':wx.EVT_MENU, 'sentTo':'ApplicationBar'}, {})
     ProcessEvent (wx.CommandEvent, {'associatedBlock':'NewCollectionItem', 'eventType':wx.EVT_MENU, 'sentTo':'MainFrame'}, {})
     ProcessEvent (wx.KeyEvent, {'eventType':wx.EVT_KEY_DOWN, 'sentTo':'__FocusWindow__', 'newFocusWindow':-309, 'newFocusWindowClass':osaf.framework.attributeEditors.AETypeOverTextCtrl.AENonTypeOverTextCtrl}, {'m_rawCode':84, 'm_keyCode':84, 'm_x':222, 'm_y':28, 'UnicodeKey':84})
