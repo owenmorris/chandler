@@ -3,6 +3,8 @@ from osaf.framework.script_recording.script_lib import ProcessEvent, VerifyOn
 
 def run():
     VerifyOn ()
+    ProcessEvent (wx.MouseEvent, {'eventType':wx.EVT_LEFT_DOWN, 'sentTo':'Sidebar'}, {'m_leftDown':True, 'm_x':65, 'm_y':14})
+    ProcessEvent (wx.MouseEvent, {'eventType':wx.EVT_LEFT_UP, 'sentTo':'Sidebar', 'newFocusWindow':-218, 'newFocusWindowClass':wx.Window}, {'m_x':65, 'm_y':14})    
     ProcessEvent (wx.MouseEvent, {'associatedBlock':'SidebarContainer', 'eventType':wx.EVT_LEFT_DOWN, 'sentTo':'SidebarContainer'}, {'m_leftDown':True, 'm_x':81, 'm_y':171})
     ProcessEvent (wx.MouseEvent, {'associatedBlock':'SidebarContainer', 'eventType':wx.EVT_LEFT_UP, 'sentTo':'SidebarContainer'}, {'m_x':80, 'm_y':338})
     ProcessEvent (wx.CommandEvent, {'associatedBlock':'ApplicationBarEventButton', 'eventType':wx.EVT_MENU, 'sentTo':'ApplicationBar'}, {})

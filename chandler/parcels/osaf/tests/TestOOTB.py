@@ -91,6 +91,14 @@ class OOTBTestCase(testcase.SingleRepositoryTestCase):
         self.failUnless(item in schema.ns("osaf.pim", self.view).allCollection)
         self.failUnlessEqual(len(list(item.appearsIn)), 2)
         
+    def testDeleteSampleItemsNote(self):
+        item = self.getItem(u"Delete sample items and collections")
+        self.failUnlessEqual(item.triageStatus, pim.TriageEnum.later)
+               
+        self.failUnless(item in self.getCollection(u"Work"))
+        self.failUnless(item in schema.ns("osaf.pim", self.view).allCollection)
+        self.failUnlessEqual(len(list(item.appearsIn)), 2)
+
     def testPlayWithCalendar(self):
         item = self.getItem(u"Play around with the Calendar")
         self.checkStampness(item, pim.EventStamp)

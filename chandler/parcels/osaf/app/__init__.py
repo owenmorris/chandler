@@ -90,7 +90,7 @@ def installParcel(parcel, oldVersion=None):
     #     duplication of items/events
     # (3) We do want new UUIDs, so different users can share these
     #     collections/items to the same morsecode server
-    # (4) The Welcome Event should be created regardless of whetheer
+    # (4) The Welcome Event should be created regardless of whether
     #     we're reloading, because summaryblocks references it.
     #     (Maybe there's a better way to have it selected in the
     #      detail view?) -- Grant
@@ -172,7 +172,7 @@ The Chandler Team""") % {'version': version.version,
         work = makeCollection(_(u"Work"), True, u'Blue')
         home = makeCollection(_(u"Home"), True, u'Red')
         fun = makeCollection(_(u"Fun"), False, u'Plum')
-        
+
         # Add Welcome item to OOTB collections
         home.add(WelcomeEvent)
         work.add(WelcomeEvent)
@@ -251,6 +251,19 @@ The Chandler Team""") % {'version': version.version,
         m.toAddress.append(pim.mail.EmailAddress.getEmailAddress(parcel.itsView, "someone@example.org"))
         m.fromMe = True
         pim.TaskStamp(event4).add()
+
+        # OOTB item5: Delete sample items and collections
+        note = pim.Note(
+                  itsView=parcel.itsView,
+                  displayName=_(u"Delete sample items and collections"),
+                  collections=[work],
+                  read=False,
+              )
+        note.changeEditState(pim.Modification.created)
+        note.setTriageStatus(pim.TriageEnum.later)
+        note.body = _(u"The items and collections Chandler creates at startup are examples.  Feel free to delete them.")
+
+
 
     # Set up the main web server
     from osaf import webserver

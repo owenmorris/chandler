@@ -56,7 +56,7 @@ class TestTriageSectioning(ChandlerTestCase):
         # for a table with three items of different status:
         # (The sectioning values are the row index, the number of visible items
         # in the section, and the total number of items in the section)
-        goodDefaultSectioning = [(0, 1, 1), (2, 0, 1), (3, 0, 1)]
+        goodDefaultSectioning = [(0, 1, 1), (2, 1, 1), (4, 1, 1)]
         sectionRows = getattr(dashboard, 'sectionRows', None)
         self.logger.startAction('Check Sectioning')
         if not sectionRows:
@@ -69,7 +69,20 @@ class TestTriageSectioning(ChandlerTestCase):
                                   % (sectionRows, goodDefaultSectioning))
         else:
             self.logger.endAction(True)
-        
+
+        # Check that contraction and expansion work.
+        for row in (4, 2):
+            self.scripting.User.emulate_click(dashboard, 12, row*rowHeight + rowMiddle)
+            self.scripting.User.idle()
+
+        onlyNowSectioning = [(0, 1, 1), (2, 0, 1), (3, 0, 1)]
+        self.logger.startAction('Check changed section expansion')
+        if dashboard.sectionRows != onlyNowSectioning:
+            self.logger.endAction(False, "Dashboard not sectioned properly: %r != %r" 
+                                  % (sectionRows, onlyNowSectioning))
+        else:
+            self.logger.endAction(True)
+
         # Check that contraction and expansion work.
         for row in (3, 2, 0):
             self.scripting.User.emulate_click(dashboard, 12, row*rowHeight + rowMiddle)

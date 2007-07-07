@@ -587,7 +587,6 @@ def makeSummaryBlocks(parcel):
         defaultSort = True,
         width = 39,
         scaleColumn = wxGrid.Grid.GRID_COLUMN_FIXED_SIZE,
-        collapsedSections=set([str(pim.TriageEnum.later), str(pim.TriageEnum.done)]), 
         attributeName = 'sectionTriageStatus',
         indexName = '%s.triage' % __name__,
         baseClass=TriageColumnIndexDefinition,

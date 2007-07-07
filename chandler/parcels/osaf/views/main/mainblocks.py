@@ -72,6 +72,12 @@ def makeMainView(parcel):
         parcel, 'sidebarSelectionCollection',
         source = app_ns.sidebarCollection)
 
+    if len(app_ns.sidebarCollection) > 4:
+        initialSelectedCollection = list(app_ns.sidebarCollection)[4]
+    else:
+        initialSelectedCollection = pim_ns.allCollection
+        
+
     Sidebar = SidebarBlock.template(
         'Sidebar',
         characterStyle = globalBlocks.SidebarRowStyle,
@@ -95,8 +101,8 @@ def makeMainView(parcel):
                                           osaf.pim.tasks.TaskStamp],
         contextMenu = "SidebarContextMenu",
         ).install(parcel)
-    Sidebar.contents.selectItem (pim_ns.allCollection)
-
+    Sidebar.contents.selectItem(initialSelectedCollection)
+    
     miniCal = MiniCalendar.template(
         'MiniCalendar',
         contents = pim_ns.allCollection,
@@ -276,11 +282,11 @@ def makeMainView(parcel):
                             ]), # SplitterWindow SidebarContainer
                     BranchPointBlock.template('SidebarBranchPointBlock',
                         delegate = SidebarBranchPointDelegateInstance,
-                        detailItem = pim_ns.allCollection,
-                        selectedItem = pim_ns.allCollection,
-                        detailItemCollection = pim_ns.allCollection,
+                        detailItem = initialSelectedCollection,
+                        selectedItem = initialSelectedCollection,
+                        detailItemCollection = initialSelectedCollection,
                         setFocus = True),
-                    ]) # SplitterWindow SidebarSplitterWindow            
+                    ]) # SplitterWindow SidebarSplitterWindow      
             ]).install(parcel) # MainViewInstance MainView
 
     MainBranchPointDelegate = BranchPointDelegate.update(parcel, 
