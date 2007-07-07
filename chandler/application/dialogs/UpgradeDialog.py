@@ -77,7 +77,7 @@ class UpgradeDialog(wx.Dialog):
         sizer.Add(self.normalStartup, flag=wx.ALL, border=5)
         self.normalStartup.Bind(wx.EVT_LEFT_DCLICK, self.onButton)
 
-        self.exitReload = wx.RadioButton(self, -1, _(u"Quit and follow the directions linked below to migrat your data."))
+        self.exitReload = wx.RadioButton(self, -1, _(u"Quit and follow the directions linked below to migrate your data."))
         self.exitReload.SetValue(True)
         sizer.Add(self.exitReload, flag=wx.ALL, border=5)
         self.exitReload.Bind(wx.EVT_LEFT_DCLICK, self.onButton)
