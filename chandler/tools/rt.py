@@ -21,7 +21,20 @@ rt.py -- Run Chandler tests
 # TODO Add Signal checks so if main program is halted all child programs are killed
 #
 
-import sys, os
+import sys
+
+if sys.hexversion < 0x020400F0:
+    print 'Python version 2.4 or greater is required to run rt.py'
+    sys.exit(1)
+
+if sys.platform == 'win32':
+    try:
+        import ctypes
+    except:
+        print 'The ctypes module is required for windows.  It bundled with Python 2.5+ or available from http://python.net/crew/theller/ctypes/'
+        sys.exit(1)
+
+import os
 import string
 import glob
 import time
@@ -1681,7 +1694,6 @@ def main(options):
         log('')
 
     return failed
-
 
 if __name__ == '__main__':
     if '--selftest' in sys.argv:
