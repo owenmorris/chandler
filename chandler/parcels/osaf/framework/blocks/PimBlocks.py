@@ -279,7 +279,8 @@ class FocusEventHandlers(Item):
         # thinks outgoing messages should be replyable too.
         # return has_stamp(selectedItem, Mail.MailStamp) and \
         #        Mail.MailStamp(selectedItem).viaMailService
-        return has_stamp(selectedItem, Mail.MailStamp)
+        return has_stamp(selectedItem, Mail.MailStamp) and \
+                Mail.MailStamp(selectedItem).getSendability() != 'not'
 
     def onReplyOrForwardEvent(self, replyMethod):
         Block.Block.finishEdits()
