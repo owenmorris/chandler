@@ -24,6 +24,10 @@ class TestMoveToTrash(ChandlerTestCase):
     
     def startTest(self):
     
+        # resize the Chandler window to (1024,720): this test sort of crumble if the window is too small
+        frame = wx.GetApp().mainFrame
+        frame.SetSize((1024,720))
+
         # creation
         note = QAUITestAppLib.UITestItem("Note", self.logger)
         # actions
