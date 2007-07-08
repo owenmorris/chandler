@@ -145,11 +145,10 @@ class ConflictVScrolledArea(ScrolledPanel):
                 editor = _("An unknown party")
 
             if c.pendingRemoval:
+                # local modification to an item that was removed on the server
                 fmt = _(u"%(index)3d. %(em)s%(person)s%(/em)s removed this item from the %(em)scollection%(/em)s")
             elif c.change.exclusions:
-                # A non-empty c.change.exclusions means that someone removed
-                # a stamp from the item and the user has modified that stamp
-                # in the meanwhile
+                # stamp changed on an item where stamp was removed on the server
                 if "sharing.model.MailMessageRecord" in c.value:
                     fmt = _(u"%(index)3d. %(em)s%(person)s%(/em)s removed %(em)saddresses%(/em)s from this item")
                 elif "sharing.model.EventRecord" in c.value:
@@ -157,9 +156,13 @@ class ConflictVScrolledArea(ScrolledPanel):
                 elif "sharing.model.TaskRecord" in c.value:
                     fmt = _(u"%(index)3d. %(em)s%(person)s%(/em)s removed this item from the %(em)sTask List%(/em)s")
                 else:
-                    # an unknown stamp?
+                    # unknown stamp type
                     fmt = _(u"%(index)3d. %(em)s%(person)s%(/em)s removed %(em)s%(fieldName)s%(/em)s from this item")
+            elif c.field.title() == 'Rrule' and c.value == 'None':
+                # Recurrence changed on an item where recurrence was removed on the server
+                fmt = _(u"%(index)3d. %(em)s%(person)s%(/em)s changed %(em)sOccurs%(/em)s to %(em)sOnce%(/em)s")
             else:
+                # general case: attribute changed both locally and on the server
                 fmt = _(u"%(index)3d. %(em)s%(person)s%(/em)s changed the %(em)s%(fieldName)s%(/em)s to %(em)s%(value)s%(/em)s")
 
             # build the text string
