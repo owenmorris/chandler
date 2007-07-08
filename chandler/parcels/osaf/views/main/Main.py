@@ -80,12 +80,21 @@ class MainView(View):
         """
         Called when the SMTP Send generated an error.
         """
+        # These three strings are not yet referenced; adding them
+        # for the UI freeze
+        errorQuestion = _(u"Would you like to")
+        errorSendAgain = _(u"Send again")
+        errorEditMessage = _(u"Edit message")
+
         if mailMessage is not None:
             if getattr(mailMessage.itsItem, "error", None) is None:
                 errorMessage = _(u"An unknown error has occurred")
             else:
-                errorMessage = _(u"An error occurred while sending:\n%(translatedErrorStrings)s") % {
-                                  'translatedErrorStrings': mailMessage.itsItem.error}
+                errorMessage = _(u"""Message Title: %(title)s
+Error: %(translatedErrorStrings)s""") % {
+                'title': mailMessage.itsItem.displayName,
+                'translatedErrorStrings': mailMessage.itsItem.error
+            }
 
             """
             Clear the status message.
