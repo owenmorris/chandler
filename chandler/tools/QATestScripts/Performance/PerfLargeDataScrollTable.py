@@ -43,8 +43,9 @@ try:
     tableWidget = App_ns.summary.widget
     
     # Make sure the Done section is expanded, so we have enough to scroll
-    tableWidget.ExpandSection(2)
-    tableWidget.blockItem.synchronizeWidget()
+    # (all sections are expanded by default, nothing to expand)
+    #tableWidget.ExpandSection(2)
+    #tableWidget.blockItem.synchronizeWidget()
 
     # For some reason we need another User.idle() for the PPC Mac mini to
     # completely paint the summary table. Without this the table will show

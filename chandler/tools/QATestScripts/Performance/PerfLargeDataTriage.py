@@ -44,10 +44,11 @@ try:
     # Expand the sections so we have plenty to click on.
     dashboardBlock = App_ns.DashboardSummaryView
     dashboardWidget = dashboardBlock.widget
-    dashboardWidget.ExpandSection(1) # Later
-    dashboardWidget.ExpandSection(2) # Done
-    dashboardBlock.synchronizeWidget()
-    User.idle()
+    # all sections are expanded by default, nothing to expand
+    #dashboardWidget.ExpandSection(1) # Later
+    #dashboardWidget.ExpandSection(2) # Done
+    #dashboardBlock.synchronizeWidget()
+    #User.idle()
 
     # Where should we hit to click triage column cells?
     rowHeight = dashboardWidget.GetDefaultRowSize()
