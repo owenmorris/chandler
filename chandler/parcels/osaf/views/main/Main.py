@@ -1261,15 +1261,33 @@ Error: %(translatedErrorStrings)s""") % {
                                     not Globals.options.offline and \
                                     (sharing.isShared(collection))
 
-    def onUnsubscribeCollectionEvent(self, event):
+    def _unsubscribeCollection(self):
+        # Unsubscribe works for published collections, or collections that
+        # have been subscribed to. The collection remains on the server.
+        # We have two different menu items enabled for each case. (Bug#9178)
         collection = self.getSidebarSelectedCollection ()
         if collection is not None:
             sharing.unsubscribe(collection)
 
+    def onUnsubscribePublishedCollectionEvent(self, event):
+        self._unsubscribeCollection()
+
+    def onUnsubscribePublishedCollectionEventUpdateUI(self, event):
+        # A version of unsubscribe enabled for published collections (Bug#9178)
+        collection = self.getSidebarSelectedCollection()
+        event.arguments['Enable'] = collection is not None and \
+                                    sharing.isShared(collection) and \
+                                    sharing.isSharedByMe(sharing.getShare(collection))
+
+    def onUnsubscribeCollectionEvent(self, event):
+        self._unsubscribeCollection()
+
     def onUnsubscribeCollectionEventUpdateUI(self, event):
-        # One is allowed to unsubscribe even if one published the collection
+        # Unsubscribe is not enabled for published' collections (Bug#9178)
         collection = self.getSidebarSelectedCollection ()
-        event.arguments['Enable'] = collection is not None and sharing.isShared(collection)
+        event.arguments['Enable'] = collection is not None and \
+                                    sharing.isShared(collection) and \
+                                    not sharing.isSharedByMe(sharing.getShare(collection))
 
     def onUnpublishCollectionEvent(self, event):
         try:

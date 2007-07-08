@@ -70,6 +70,9 @@ def makeMainEvents(parcel):
 
     BlockEvent.template('IndexRepository').install(parcel)
 
+    BlockEvent.template('UnsubscribePublishedCollection',
+                        commitAfterDispatch = True).install(parcel)
+
     BlockEvent.template('UnpublishCollection',
                         commitAfterDispatch = True).install(parcel)
 
