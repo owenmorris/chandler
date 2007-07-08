@@ -1396,8 +1396,12 @@ Error: %(translatedErrorStrings)s""") % {
         if collection is not None:
             collName = collection.displayName
             sender = event.arguments['sender']
-            if sender.blockName == 'SidebarSyncCollectionItem':
+            if UserCollection(collection).outOfTheBoxCollection:
                 event.arguments['Text'] = sender.title
+            elif sender.blockName == 'SidebarSyncCollectionItem':
+                event.arguments['Text'] = _(u'%(menuTitle)s %(collectionName)s') % \
+                                          {'menuTitle' : sender.title,
+                                           'collectionName': collName}
             else:
                 event.arguments ['Text'] = _(u'%(collectionName)s') % \
                                            {'collectionName': collName}
@@ -1444,8 +1448,12 @@ Error: %(translatedErrorStrings)s""") % {
 
             collName = collection.displayName
             sender = event.arguments['sender']
-            if sender.blockName == 'SidebarTakeOnlineOfflineItem':
+            if UserCollection(collection).outOfTheBoxCollection:
                 event.arguments['Text'] = sender.title
+            elif sender.blockName == 'SidebarTakeOnlineOfflineItem':
+                event.arguments['Text'] = _(u'%(menuTitle)s %(collectionName)s') % \
+                                          {'menuTitle' : sender.title,
+                                           'collectionName': collName}
             else:
                 event.arguments ['Text'] = _(u'%(collectionName)s') % \
                                            {'collectionName': collName}
