@@ -871,6 +871,12 @@ class UITestItem(object):
             return
 
     def MoveToTrash(self, timeInfo=True):
+        self.ProcessRemoveOrDelete(timeInfo=timeInfo)
+
+    def RemoveFromCollection(self, timeInfo=True):
+        self.ProcessRemoveOrDelete(action='remove', timeInfo=timeInfo)
+
+    def ProcessRemoveOrDelete(self, action='delete', timeInfo=True):
         """
         Move the item into the trash collection
         @type timeInfo: boolean
@@ -890,10 +896,15 @@ class UITestItem(object):
                 if self.logger: self.logger.Print("Item could not be selected in the calendar")
                 return
             
-            if timeInfo:
-                if self.logger: self.logger.Start("Move the item into the Trash")
+            if timeInfo and self.logger:
+                self.logger.Start("Move the item into the Trash" if
+                                  action == 'delete' else
+                                  "Remove the item from collection")
             # Processing of the corresponding CPIA event
-            App_ns.root.Delete()
+            if action == 'delete':
+                App_ns.root.Delete()
+            else:
+                App_ns.root.Remove()
             # give the Yield
             wx.GetApp().Yield(True)
             if timeInfo:
