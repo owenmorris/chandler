@@ -525,7 +525,7 @@ class ManifestEngineMixin(BaseConduit):
         if not externalItemExists:
             result = 'added'
             needsUpdate = True
-            reason = _(u"Not on server")
+            reason = "Not on server"
 
         else:
             if forceUpdate:

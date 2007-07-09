@@ -30,7 +30,7 @@ class FileSystemConduit(conduits.LinkableConduit, conduits.ManifestEngineMixin):
         if self.hasLocalAttributeValue("sharePath") and \
          self.hasLocalAttributeValue("shareName"):
             return os.path.join(self.sharePath, self.shareName)
-        raise errors.Misconfigured(_(u"A misconfiguration error was encountered"))
+        raise errors.Misconfigured("FileSystemConduit missing sharePath or shareName")
 
     def _get(self, contentView, resourceList, activity=None,
              getPhrase=None):

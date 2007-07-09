@@ -139,7 +139,7 @@ class DAVConduitMixin(conduits.HTTPMixin):
                     raise errors.IllegalOperation(message)
 
                 if err.status == twisted.web.http.PRECONDITION_FAILED:
-                    message = _(u"The contents of %(url)s were modified unexpectedly on the server while trying to share.") % {'url':url}
+                    message = _(u"The contents of %(url)s were modified unexpectedly on the server while trying to publish.") % {'url':url}
                     raise errors.IllegalOperation(message)
 
                 if err.status != twisted.web.http.CREATED:
