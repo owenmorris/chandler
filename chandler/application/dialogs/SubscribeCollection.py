@@ -206,7 +206,7 @@ class SubscribeDialog(wx.Dialog):
         elif isinstance(err, sharing.OfflineError):
             self._showStatus(_(u"Application is in offline mode"))
         elif isinstance(err, sharing.WebPageParseError):
-            self._showStatus(_(u"Web page doesn't contain a collection; please check the URL"))
+            self._showStatus(_(u"Invalid URL"))
         elif isinstance(err,
             (sharing.CouldNotConnect, zanshin.error.ConnectionError)):
             logger.error("Connection error during subscribe")

@@ -909,7 +909,7 @@ class ManifestEngineMixin(BaseConduit):
         # person could slip you a KindCollection that would fill itself with
         # your items.
         if isinstance(cvSelf.share.contents, pim.KindCollection):
-            raise errors.SharingError(_(u"Subscribing to KindCollections prohibited"))
+            raise errors.SharingError(_(u"Invalid collection type"))
 
         # Make sure we have a collection to add items to:
         if cvSelf.share.contents is None:
