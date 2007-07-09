@@ -798,6 +798,8 @@ def subscribe(view, url, activity=None, username=None, password=None,
     if not url:
         raise URLParseError(_("No URL provided"))
 
+    logger.info("Subscribing to URL: %s", url)
+
     try:
         (scheme, useSSL, host, port, path, query, fragment, ticket, parentPath,
             shareName) = splitUrl(url)
