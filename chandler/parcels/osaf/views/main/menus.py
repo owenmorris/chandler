@@ -180,7 +180,7 @@ def makeMainMenus(parcel):
                                 helpString = _(u'Sync all shared collections')),
                             MenuItem.template('SyncPrefsItem',
                                 event = main.SyncPrefs,
-                                title = _(u'Set Auto-sync...'),
+                                title = _(u'Set Auto-s&ync...'),
                                 helpString = _(u'Set auto-sync intervals')),
                             ]), # Menu SyncMenu
                     Menu.template('OfflineMenu',
@@ -528,7 +528,7 @@ def makeMainMenus(parcel):
                         menuItemKind = 'Separator'),
                     MenuItem.template('CopyCollectionURLItem',
                         event = main.CopyCollectionURL,
-                        title = _(u'&Copy Ticket URLs to Clipboard'),
+                        title = _(u'Copy &Ticket URLs to Clipboard'),
                         helpString = _(u"Copy the selected collection's sharing URL(s) to the Clipboard")),
                     ]), # Menu ShareMenu
             DemoMenu.template('ExperimentalMenu',
@@ -804,7 +804,7 @@ def makeMainMenus(parcel):
                         helpString = _(u"Take the selected collection offline and online")),
                     MenuItem.template('SidebarSyncIMAPItem',
                                 event = main.GetNewMail,
-                                title = _(u'Sync &Mail'),
+                                title = _(u'Sync M&ail'),
                                 helpString = _(u'Sync Mail')),
                     MenuItem.template('SidebarSyncWebDAVItem',
                                 event = main.SyncWebDAV,
@@ -834,7 +834,7 @@ def makeMainMenus(parcel):
                         helpString = _(u'Manage the selected shared collection')),
                     MenuItem.template('SidebarCopyCollectionURLItem',
                         event = main.CopyCollectionURL,
-                        title = _(u'&Copy Ticket URLs to Clipboard'),
+                        title = _(u'Copy &Ticket URLs to Clipboard'),
                         helpString = _(u"Copy the selected collection's sharing URL(s) to the clipboard")),
                     ]).install(parcel)
 

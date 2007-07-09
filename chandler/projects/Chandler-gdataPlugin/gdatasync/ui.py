@@ -175,7 +175,7 @@ def makeGdataMenu(parcel, parentMenu):
         parentBlock=parentMenu)
 
     MenuItem.update(parcel, None, blockName='_gdata_ShowCalendarListItem',
-        title=_(u"Subscribe to Google Calendar..."),
+        title=_(u"&Subscribe to Google Calendar..."),
         helpString=_(u"Brings up a list of Google calendars to sync with"),
         event=showCalendarListEvent,
         parentBlock=gdataMenu)
