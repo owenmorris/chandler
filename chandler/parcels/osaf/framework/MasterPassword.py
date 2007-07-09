@@ -449,7 +449,7 @@ class ChangeMasterPasswordDialog(wx.Dialog):
         sizer = wx.BoxSizer(wx.VERTICAL)
 
         # Static text
-        message = _(u'Sensitive information, such as email and sharing account passwords, are protected with a master password.')
+        message = _(u'Account passwords are protected with a master password.')
         label = wx.StaticText(self, -1, message)
         label.Wrap(400)
         sizer.Add(label, 0, wx.ALIGN_LEFT|wx.ALL, 5)
@@ -558,7 +558,7 @@ class ChangeMasterPasswordDialog(wx.Dialog):
         evt.Skip()
 
     def OnReset(self, evt):
-        if wx.MessageBox (_(u'Protected information will be deleted.\nAre you sure you want to reset Master Password?'),
+        if wx.MessageBox (_(u'Account passwords will be deleted.\nAre you sure you want to reset Master Password?'),
                           _(u'Confirm Reset?'),
                           style = wx.YES_NO,
                           parent=self) == wx.YES:
