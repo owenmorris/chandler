@@ -516,15 +516,15 @@ def convertFloatingEvents(view, newTZ):
     # floatingEvents while we remove items from it
     for item in list(pim_ns.floatingEvents):
         event = EventStamp(item)
-        # not all items are actually floating, some will be all day, but those
-        # events still have a floating startTime, might as well put them in
-        # the right timezone if they're changed to timed events
         if not sharing_ns.isShared(event):
             with event.noRecurrenceChanges():
                 event.startTime = event.startTime.replace(tzinfo=newTZ)
-            for occurrence in event.occurrences or []:
-                ev = EventStamp(occurrence)
-                with ev.noRecurrenceChanges():
-                    ev.recurrenceID = ev.recurrenceID.replace(tzinfo=newTZ)
-                    if ev.startTime.tzinfo == view.tzinfo.floating:
-                        ev.startTime = ev.startTime.replace(tzinfo=newTZ)
+            # not all items are actually floating, some will be all day, don't
+            # change the timezone for such item's, bug 9622
+            if not event.anyTime and not event.allDay:
+                for occurrence in event.occurrences or []:
+                    ev = EventStamp(occurrence)
+                    with ev.noRecurrenceChanges():
+                        ev.recurrenceID = ev.recurrenceID.replace(tzinfo=newTZ)
+                        if ev.startTime.tzinfo == view.tzinfo.floating:
+                            ev.startTime = ev.startTime.replace(tzinfo=newTZ)
