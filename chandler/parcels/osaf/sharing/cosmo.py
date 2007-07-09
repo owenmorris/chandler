@@ -240,8 +240,8 @@ class CosmoConduit(recordset_conduit.DiffRecordSetConduit, conduits.HTTPMixin):
 
         resp = self._send('GET', path)
         if resp.status == 401:
-            raise errors.NotAllowed("%s (HTTP status %d)" % (resp.message,
-                resp.status),
+            raise errors.NotAllowed(
+                _("Please verify your username and password"),
                 details="Received [%s]" % resp.body)
 
         elif resp.status != 200:
