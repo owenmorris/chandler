@@ -359,7 +359,7 @@ class AccountPreferencesDialog(wx.Dialog):
                     "MORSECODE_PATH" : {
                         "attr" : "path",
                         "type" : "string",
-                        "default": "/cosmo",
+                        "default": "/chandler",
                     },
                     "MORSECODE_USERNAME" : {
                         "attr" : "username",

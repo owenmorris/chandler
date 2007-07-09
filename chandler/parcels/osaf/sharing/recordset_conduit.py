@@ -377,7 +377,6 @@ class RecordSetConduit(conduits.BaseConduit):
 
 
         filter = self.getFilter()
-        filterFn = filter.sync_filter if filter else (lambda rs: rs)
 
         # Merge
         toApply = {}
@@ -1506,3 +1505,4 @@ def getInheritRecords(records, alias):
         args = (alias,) + non_uuid_fields * (eim.Inherit,)
         inherit_records.append(type(record)(*args))
     return inherit_records
+
