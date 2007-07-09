@@ -304,6 +304,11 @@ class CosmoConduit(recordset_conduit.DiffRecordSetConduit, conduits.HTTPMixin):
                     toRaise.mine = True
             raise toRaise
 
+        elif resp.status == 401:
+            raise errors.NotAllowed(
+                _("Please verify your username and password"),
+                details="Received [%s]" % resp.body)
+
         elif resp.status not in (201, 204):
             raise errors.SharingError("%s (HTTP status %d)" % (resp.message,
                 resp.status),
