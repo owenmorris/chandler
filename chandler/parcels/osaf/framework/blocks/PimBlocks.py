@@ -17,7 +17,7 @@ import wx
 from osaf import sharing
 import osaf.pim.mail as Mail
 from repository.item.Item import Item
-from osaf.pim import EventStamp, Note, ContentCollection, has_stamp
+from osaf.pim import Modification, EventStamp, Note, ContentCollection, has_stamp
 from i18n import ChandlerMessageFactory as _
 from osaf import messages
 from osaf.framework.blocks import Block, getProxiedItem
@@ -128,7 +128,13 @@ class FocusEventHandlers(Item):
                     # use U-shaped Update bitmap
                     bitmap = "ApplicationBarUpdate.png"
                 elif result == 'sent':
+                    enabled = False
                     label = messages.SENT
+                    if has_stamp(item, Mail.MailStamp):
+                        mailObject = Mail.MailStamp(item)
+                        if mailObject.itsItem.lastModification == Modification.updated:
+                            label = messages.UPDATED
+                            bitmap = "ApplicationBarUpdate.png"
 
         event.arguments['Enable'] = enabled
         event.arguments['Text'] = label
