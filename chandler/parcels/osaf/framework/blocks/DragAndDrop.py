@@ -144,15 +144,19 @@ class DropReceiveWidget (object):
     """
     Mixin class for widgets that want to receive drag and drop events.
     """
+
+    _setDropTarget = True
+    
     def __init__(self, *arguments, **keywords):
         super (DropReceiveWidget, self).__init__ (*arguments, **keywords)
         self.dropTarget = _DropTarget(self)
-        # If it is a grid, then we need to use grid window rather than self
-        try:
-            window = self.GetGridWindow()
-        except AttributeError:
-            window = self
-        window.SetDropTarget(self.dropTarget)
+        if self._setDropTarget:
+            # If it is a grid, then we need to use grid window rather than self
+            try:
+                window = self.GetGridWindow()
+            except AttributeError:
+                window = self
+            window.SetDropTarget(self.dropTarget)
         
     def OnRequestDrop(self, x, y):
         """
