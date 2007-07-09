@@ -23,10 +23,17 @@ from time import strftime, localtime
 class TestMoveToTrash(ChandlerTestCase):
     
     def startTest(self):
-    
+
         # resize the Chandler window to (1024,720): this test sort of crumble if the window is too small
         frame = wx.GetApp().mainFrame
         frame.SetSize((1024,720))
+
+        #Create a collection and select it
+        collection = QAUITestAppLib.UITestItem("Collection", self.logger)
+        collection.SetDisplayName(uw("Delete and Remove"))
+        sidebar = self.app_ns.sidebar
+        QAUITestAppLib.scripting.User.emulate_sidebarClick(sidebar, uw("Delete and Remove"))
+
 
         # creation
         note = QAUITestAppLib.UITestItem("Note", self.logger)
@@ -37,6 +44,13 @@ class TestMoveToTrash(ChandlerTestCase):
         application = wx.GetApp()
         application.propagateAsynchronousNotifications()
         application.Yield(True)
+
+        note.RemoveFromCollection()
+        note.Check_ItemInCollection(uw("Delete and Remove"), expectedResult=False)
+        note.Check_ItemInCollection("Trash", expectedResult=False)
+        note.Check_ItemInCollection("Dashboard")
+        note.AddCollection(uw("Delete and Remove"))
+        note.Check_ItemInCollection(uw("Delete and Remove"))
 
         note.MoveToTrash()
         # verification

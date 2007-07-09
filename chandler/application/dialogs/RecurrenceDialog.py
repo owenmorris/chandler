@@ -243,6 +243,7 @@ class ChandlerProxy(RecurrenceProxy):
 
         [@@@] grant: Need to handle 'cutting' case.
         """
+        self._prepareToRemoveFromCollection(collection)
         self.collections.remove(collection)
 
     def appendChange(self, *args):

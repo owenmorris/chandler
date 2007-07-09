@@ -910,6 +910,12 @@ class UITestItem(object):
             return
 
     def MoveToTrash(self, timeInfo=True):
+        self.ProcessRemoveOrDelete(timeInfo=timeInfo)
+
+    def RemoveFromCollection(self, timeInfo=True):
+        self.ProcessRemoveOrDelete(action='remove', timeInfo=timeInfo)
+
+    def ProcessRemoveOrDelete(self, action='delete', timeInfo=True):
         """
         Move the item into the trash collection
         @type timeInfo: boolean
@@ -930,9 +936,14 @@ class UITestItem(object):
                 return
             
             if timeInfo:
-                self.logger.startAction("Move the item into the Trash")
+                self.logger.startAction("Move the item into the Trash" if
+                                        action == 'delete' else
+                                        "Remove the item from collection")
             # Processing of the corresponding CPIA event
-            App_ns.root.Delete()
+            if action == 'delete':
+                App_ns.root.Delete()
+            else:
+                App_ns.root.Remove()
             # give the Yield
             wx.GetApp().Yield(True)
             if timeInfo:
