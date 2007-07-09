@@ -123,10 +123,10 @@ def installParcel(parcel, oldVersion=None):
 
     body = _(u"""Welcome to Chandler %(version)s. Here is a list of resources to help you get started:
 
-1. Check out our Getting Started Guide (%(url1)s) to view screenshots, learn how to report problems and access a wide range of developer documentation.
-2. Sign-up for a sharing account on Chandler Hub (%(url2)s).
+1. Get a tour of Chandler at (%(url1)s).
+2. Sign up for a sharing account on Chandler Hub (%(url2)s).
 3. Consult our FAQ (%(url3)s).
-4. Read about known issues with the Preview release (%(url4)s).
+4. Read about known issues (%(url4)s).
 5. Ask questions and give us feedback by joining the Chandler-Users mailing list (%(url5)s).
 6. Learn more about the project on our wiki (%(url6)s).
 7. Get involved and contribute to the project (%(url7)s).
