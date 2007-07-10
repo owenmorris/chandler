@@ -97,7 +97,8 @@ def pickTimeZone(view, changeDefaultTZ=False):
 # pygettext.py.
 
 factory = _
-_ = lambda x: x
+from i18n import NoTranslationMessageFactory
+_ = NoTranslationMessageFactory
 
 TIMEZONE_SHORT_LIST = [_(u'Pacific/Honolulu'),
                        _(u'America/Anchorage'),
@@ -112,7 +113,7 @@ TIMEZONE_SHORT_LIST = [_(u'Pacific/Honolulu'),
                        _(u'Asia/Calcutta'),
                        _(u'Australia/Sydney')]
 
-_ = factory    
+_ = factory
 
 # data about each named column
 colData = { 'name'    : { 'display' : 0, 'sort' : 1, 'header' : _(u'Name'),

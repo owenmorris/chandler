@@ -22,12 +22,7 @@ Provides the user with the option of starting Chandler with reload options
 
 import os, sys, wx, glob
 from application.Utility import locateProfileDir
-
-
-# We can't use the regular localization mechanism because the repository isn't
-# open yet, but we might someday have a better way of doing this, so I'm leaving
-# the hook in place.
-_ = lambda msg: msg
+from i18n import ChandlerSafeTranslationMessageFactory as _
 
 class UpgradeDialog(wx.Dialog):
     @classmethod

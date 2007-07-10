@@ -16,7 +16,7 @@
 from i18nmanager import I18nManager, I18nException
 from types import UnicodeType, StringType
 
-__all__ = ["MessageFactory", "ChandlerMessageFactory",
+__all__ = ["MessageFactory", "ChandlerMessageFactory", "NoTranslationMessageFactory",
            "SafeTranslationMessageFactory", "ChandlerSafeTranslationMessageFactory",
            "wxMessageFactory", "getLocale", "getLocaleSet", "getImage", "getHTML"]
 
@@ -44,6 +44,21 @@ def getLocale():
    Returns the primary Chandler locale.
    """
    return getLocaleSet()[0]
+
+
+def NoTranslationMessageFactory(defaultText):
+    """
+    The c{NoTranslationMessageFactory} method
+    returns the defaultText passed
+    in its original form. No translation is
+    performed.
+
+    The c{NoTranslationMessageFactory} should be used
+    as a means of ensuring English keys are
+    parsed and rendered to a .pot when
+    the translation is done by other means.
+    """
+    return defaultText
 
 
 def MessageFactory(project, catalog_name=DEFAULT_CATALOG):

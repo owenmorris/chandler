@@ -220,7 +220,7 @@ def installParcel(parcel, oldVersion = None):
     # actually what we want, since ICU would have no idea
     # how to look up timezones based on the translated
     # names.
-    _ = lambda x: x
+    from i18n import NoTranslationMessageFactory as _
 
     wellKnownIDs = [
         _(u'Pacific/Honolulu'),

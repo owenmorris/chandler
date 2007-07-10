@@ -18,10 +18,9 @@ Dialog box that implements the repository's password entry protocol.
 """
 
 import wx
+from i18n import ChandlerSafeTranslationMessageFactory as _
 
 # see StartupOptionsDialog.py
-_ = lambda msg: msg
-
 
 class GetPasswordDialog(wx.Dialog):
 

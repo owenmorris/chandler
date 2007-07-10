@@ -25,10 +25,11 @@ from application.Utility import getDesktopDir, locateRepositoryDirectory
 from repository.persistence.DBRepository import DBRepository
 from osaf.framework import MasterPassword
 
-# We can't use the regular localization mechanism because the repository isn't
-# open yet, but we might someday have a better way of doing this, so I'm leaving
-# the hook in place.
-_ = lambda msg: msg
+# The localization code may not have been initialized yet at start up
+# using a ChandlerSafeTranslationFactory ensures that if a localization
+# is present it will be used. Otherwise the default text will be
+# returned.
+from i18n import ChandlerSafeTranslationMessageFactory as _
 
 class StartupOptionsDialog(wx.Dialog):
     @classmethod
@@ -44,7 +45,7 @@ class StartupOptionsDialog(wx.Dialog):
 
         dialog.ShowModal()
         dialog.Destroy()
-        
+
     def __init__(self, exception=None):
         # Instead of calling wx.Dialog.__init__ we precreate the dialog
         # so we can set an extra style that must be set before
@@ -52,7 +53,7 @@ class StartupOptionsDialog(wx.Dialog):
         # method.
         pre = wx.PreDialog()
         style = wx.CAPTION
-        pre.Create(None, -1, _(u"Start-up options for Chandler"), 
+        pre.Create(None, -1, _(u"Start-up options for Chandler"),
                    wx.DefaultPosition, wx.DefaultSize, style)
 
         # This next step is the most important, it turns this Python
@@ -71,7 +72,7 @@ class StartupOptionsDialog(wx.Dialog):
         # the options they set in Globals.options below.
         sizer = wx.BoxSizer(wx.VERTICAL)
         sizer.AddSpacer((0, 3)) 
-        
+
         self.normalStartup = wx.RadioButton(self, -1, 
             _(u"Continue with normal startup"))
         sizer.Add(self.normalStartup, flag=wx.ALL, border=5)
@@ -92,13 +93,13 @@ class StartupOptionsDialog(wx.Dialog):
                 _(u"Discard all my data and start from scratch"))
             sizer.Add(self.create, flag=wx.ALL, border=5)
             self.create.Bind(wx.EVT_LEFT_DCLICK, self.onButton)
-            
+
             sizer.AddSpacer((0,8))
             self.snapshot = wx.RadioButton(self, -1, 
                 _(u"Make a snapshot of all data to submit with a bug report, then exit"))
             sizer.Add(self.snapshot, flag=wx.ALL, border=5)
             self.snapshot.Bind(wx.EVT_LEFT_DCLICK, self.onButton)
-            
+
             self.restore = wx.RadioButton(self, -1, 
                 _(u"Discard all my data and restore from a previous snapshot (this can take a few minutes)"))
             sizer.Add(self.restore, flag=wx.ALL, border=5)
@@ -114,16 +115,16 @@ class StartupOptionsDialog(wx.Dialog):
         okButton.Bind(wx.EVT_BUTTON, self.onButton)
         box.Add(okButton, 0, wx.ALIGN_RIGHT|wx.ALL, 5)
         sizer.Add(box, 1, flag=wx.ALIGN_CENTER_VERTICAL|wx.ALL, border=5)
-        
+
         self.SetSizer(sizer)
         self.SetAutoLayout(True)
         sizer.Fit(self)
         self.CenterOnScreen()
-            
+
     def onButton(self, event):
         if hasattr(self, 'create'):
             Globals.options.create = self.create.GetValue()
-        
+
         if hasattr(self, 'repairRecover') and self.repairRecover.GetValue():
             Globals.options.repair = True
             Globals.options.recover = True
@@ -152,7 +153,7 @@ class StartupOptionsDialog(wx.Dialog):
             if not restorePath:
                 return # user canceled.
             Globals.options.restore = restorePath
-            
+
         self.EndModal(wx.OK)
 
     def makeSnapshot(self):
