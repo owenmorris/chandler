@@ -22,7 +22,7 @@ import platform
 import string
 from optparse import OptionParser
 from build_lib import initLog, log, rmdirs, handleManifest, runCommand, getCommand, \
-                      generateVersionData, findInPath
+                      generateVersionData, findInPath, convertLineEndings
 
 _debug = False
 
@@ -167,7 +167,12 @@ def buildDistributionImage(mode, options):
     else:
         distribDir = options.distribDir
 
-    return handleManifest(options.buildDir, options.outputDir, distribDir, manifestFile, options.platformID)
+    result = handleManifest(options.buildDir, options.outputDir, distribDir, manifestFile, options.platformID)
+
+    if result and options.platformID == 'win':
+        convertLineEndings(distribDir)
+
+    return result
 
 def buildTarball(mode, options):
     os.chdir(options.buildDir)

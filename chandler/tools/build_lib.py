@@ -570,6 +570,27 @@ def findInPath(path, fileName):
     return None
 
 
+def convertLineEndings(srcdir):
+    """
+    Convert all .txt files in the distribution root to DOS style line endings.
+    """
+    for name in os.listdir(srcdir):
+        fullpath = os.path.join(srcdir, name)
+
+        if os.path.isdir(fullpath):
+            convertLineEndings(fullpath)
+        else:
+            if fnmatch.fnmatch(name, "*.txt"):
+                if os.path.isfile(fullpath):
+                    text    = open(fullpath, "rb").read()
+                    newtext = text.replace("\n", "\r\n")
+
+                    if newtext != text:
+                        f = open(fullpath, "wb")
+                        f.write(newtext)
+                        f.close()
+
+
 if __name__ == "__main__":
     import doctest
     doctest.testmod(optionflags=doctest.ELLIPSIS)
