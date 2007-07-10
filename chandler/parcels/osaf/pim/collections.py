@@ -999,7 +999,7 @@ class IndexedSelectionCollection(SingleSourceWrapperCollection):
 
             for item in self.iterSelection():
                 newItemIndex = self.positionInIndex(newIndexName, item)
-                self.addRange(newIndexName, (newItemIndex, newItemIndex))
+                self.addRange(newIndexName, (int (newItemIndex), int (newItemIndex)))
 
             self.indexName = newIndexName
         elif toggleDescending:

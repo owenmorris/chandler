@@ -31,6 +31,7 @@ class RangeSet(object):
 
         if ranges:
             self.ranges = list(ranges)
+            assert self.rangesAreValid()
         else:
             self.ranges = []
 
@@ -47,7 +48,8 @@ class RangeSet(object):
         # ranges of an int, a long, or a tuple of length 2 of int.
         rangeType = type (range)
         assert (rangeType in (int, long) or
-                (rangeType == tuple and len (range) == 2))
+                (rangeType == tuple and len (range) == 2) and
+                type (range[0]) is int and type(range[1]) is int)
 
         if rangeType is int:
             range = (range, range)
