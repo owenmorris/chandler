@@ -424,13 +424,13 @@ def isReadOnly(item):
     item = shares.SharedItem(item)
     
     sharedIn = getattr(item, 'sharedIn', [])
-    shares   = getattr(item, 'shares', [])
+    itemShares   = getattr(item, 'shares', [])
     # We might have been shared, see if we still are
-    if not sharedIn and not shares: # not in any shares
+    if not sharedIn and not itemShares: # not in any shares
         return False
 
     # For each share we're in, if *any* are writable, isReadOnly is False
-    for share in chain(sharedIn, shares):
+    for share in chain(sharedIn, itemShares):
         if share.mode not in ('put', 'both'):
             return True
 
