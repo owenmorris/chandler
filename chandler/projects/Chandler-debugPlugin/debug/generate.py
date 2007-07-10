@@ -288,8 +288,13 @@ def GenerateItems(view, count, function, collections=[], *args, **dict):
     add them to a subset of the given collections (if given)
     """
     
-    # At most, we'll add each item to a third of the collections, if we were given any
-    maxCollCount = (len(collections) / 3)
+    # If we were given one collection, we'll add all items to it.
+    # If we were given more than one, we'll add each item to (at most) a third
+    # of the collections.
+    if len(collections) == 1:
+        maxCollCount = 1
+    else:    
+        maxCollCount = (len(collections) / 3)
     
     results = []
     for index in range(count):
@@ -307,12 +312,15 @@ def GenerateItems(view, count, function, collections=[], *args, **dict):
 
     return results
 
-def GenerateAllItems(view, count, sidebarCollection=None):
+def GenerateAllItems(view, count, sidebarCollection=None, oneCollection=None):
     """ Generate a bunch of items of several types, for testing. """
     
-    # Generate some item collections to put them in.
-    existingNames = sidebarCollection is not None and [ existingCollection.displayName for existingCollection in sidebarCollection] or []
-    collections = GenerateItems(view, 6, GenerateCollection, [], existingNames)
+    # If we weren't given one collection, generate some item collections to put them in.
+    if oneCollection is None:
+        existingNames = sidebarCollection is not None and [ existingCollection.displayName for existingCollection in sidebarCollection] or []
+        collections = GenerateItems(view, 6, GenerateCollection, [], existingNames)
+    else:
+        collections = [oneCollection]
     
     items = []
     defaultTzinfo = view.tzinfo.default

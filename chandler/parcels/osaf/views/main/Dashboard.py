@@ -26,6 +26,7 @@ from osaf.framework.blocks import (
     Styles)
 from osaf import pim
 from i18n import ChandlerMessageFactory as _
+from application.Utility import getPlatformID
 from chandlerdb.util.c import UUID
 import wx
 import logging
@@ -90,68 +91,101 @@ class DashboardBlock(Table):
             self.synchronizeWidget()
 
     def onTriageEvent(self, event):
-        # Removed the forced-auto-triage to get rid of the extra messages
-        # (in time for the message freeze). Will get rid of the remaining
-        # vestiges shortly.
-        autoTriageToo = False
-        # Adding a couple of messages for the progress box that will also 
-        # appear here shortly.
-        progressBoxTitle = _(u"Triage Progress")
-        progressBoxMessage1 = _(u"Triaging items...")
-        progressBoxMessage2 = _(u"Updating indexes...")
-        progressBoxMessage3 = _(u"Triaging recurring events...")
-        progressBoxMessage4 = _(u"Saving...")
-        progressBoxMessage5 = _(u"Triage error")
-        progressBoxMessage6 = _(u"Unable to triage. See chandler.log for details.")
-                
         #import hotshot
         #print 'triaging'
         #prof = hotshot.Profile('triage.log')
-        #prof.runcall(self._onTriageEvent, event, autoTriageToo)
+        #prof.runcall(self._onTriageEvent, event)
         #prof.close()
         #print 'done triaging'
     
-    #def _onTriageEvent(self, event, autoTriageToo):        
-        # Don't fire all the observers (until we're done, that is).
+    #def _onTriageEvent(self, event):        
         recurringEventsToHandle = set()
-        mastersToPurge = set()
+        itemsToPurge = set()
+        view = self.itsView
         attrsToFind = ((pim.EventStamp.modificationFor.name, None),
                        ('_sectionTriageStatus', None))
-        view = self.itsView
-        with view.observersDeferred():
-            with view.reindexingDeferred():
-                for key in self.contents.iterkeys():
-                    master, sectionTS = view.findValues(key, *attrsToFind)
-                    mastersToPurge.add(master)
-                    if autoTriageToo or sectionTS is not None:
-                        item = view[key]
-                        item.purgeSectionTriageStatus()
-                        if autoTriageToo:
-                            if item.hasLocalAttributeValue('doAutoTriageOnDateChange'):
-                                del item.doAutoTriageOnDateChange
-                        
-                            if master is None:
-                                item.setTriageStatus('auto')
-                            
-                        if master is not None:
-                            recurringEventsToHandle.add(master)
-                
-                for master in mastersToPurge:
-                    # don't let masters keep their _sectionTriageStatus, if
-                    # they do it'll be inherited inappropriately by
-                    # modifications                    
-                    if isinstance(master, UUID):
-                        if view.findValue(master, '_sectionTriageStatus', None):
-                            view[master].purgeSectionTriageStatus()
-                    elif hasattr(master, '_sectionTriageStatus'):
-                        master.purgeSectionTriageStatus()
-                        
-        # (We do this outside the deferrals because this depends on the indexes...
-        for master in recurringEventsToHandle:
-            if isinstance(master, UUID):
-                master = view[master]
+        for key in self.contents.iterkeys():
+            master, sectionTS = view.findValues(key, *attrsToFind)
+            if sectionTS is not None:
+                itemsToPurge.add(key)
+            if master is not None:
+                if sectionTS is not None:
+                    itemsToPurge.add(master)
+                recurringEventsToHandle.add(master)
+        
+        # Are there enough to need a progress dialog?
+        # PPC Macs are slower than everything else.
+        progressBoxThreshold = 500 if getPlatformID() == "osx-ppc" else 250    
+        # We triage ordinary events much faster than recurring series
+        recurringEventTriageScale = 10 # recurring events cost more
 
-            pim.EventStamp(master).updateTriageStatus(checkOccurrences=autoTriageToo)
+        totalWork = (len(recurringEventsToHandle) * recurringEventTriageScale) \
+                    + len(itemsToPurge)
+        showBox = totalWork > progressBoxThreshold
+        if __debug__:
+            logger.debug("Triaging %d items, %d recurrence masters: %sshowing progress box.",
+                         len(itemsToPurge), len(recurringEventsToHandle),
+                         "" if showBox else "NOT ")
+        if showBox:
+            from osaf.activity import Activity, ActivityAborted
+            from application.dialogs import Progress
+    
+            activity = Activity(_(u"Triage Progress"))
+            self.mainFrame = Progress.Show(activity)
+            # (add 10% to the work to cover the commit time, and 5% for
+            # reindexing)
+            activity.started(msg=_(u"Triaging items..."),
+                             totalWork=int(totalWork * 1.2))
+            activityUpdate = activity.update
+            activityCompleted = activity.completed
+            activityFailed = activity.failed
+            activityAborted = lambda: activity.abortRequested
+        else:
+            activityUpdate = activityCompleted = \
+                activityFailed = activityAborted = \
+                    lambda **dict: False
+
+        try:
+            # Purge all the ordinary items, while deferring indexing
+            with view.observersDeferred():
+                with view.reindexingDeferred():
+                    for item in itemsToPurge:
+                        if isinstance(item, UUID):
+                            item = view[item]
+                        item.purgeSectionTriageStatus()
+                        activityUpdate(work=1)
+                        if activityAborted():
+                            break
+                    if len(itemsToPurge) > 10:
+                        activityUpdate(msg=_(u"Updating indexes..."))
+            if not activityAborted():            
+                # Purge all the recurrence masters. (We can't do this 
+                # inside the deferrals because this depends on the indexes...)
+                activityUpdate(msg=_(u"Triaging recurring events..."),
+                               work=int(totalWork * 0.1)) # (made reindexing progress)
+                for master in recurringEventsToHandle:
+                    if isinstance(master, UUID):
+                        master = view[master]
+        
+                    pim.EventStamp(master).updateTriageStatus()
+                    activityUpdate(work=recurringEventTriageScale)
+                    if activityAborted():
+                        break
+
+            # Commit now, while the box is still up.
+            activityUpdate(msg=_(u"Saving..."))
+            view.commit()
+            activityUpdate(work=int(totalWork * 0.1))
+            activityCompleted()            
+        except Exception, e:
+            logger.exception("Failed to triage")
+            activityFailed(exception=e)
+            msg = _(u"Unable to triage. See chandler.log for details.")
+            dialog = wx.MessageDialog(None, msg,
+                _(u"Triage error"), wx.OK | wx.ICON_INFORMATION)
+            dialog.ShowModal()
+            dialog.Destroy()
+
 
     def activeViewChanged(self):
         if self.miniCalendar is not None:

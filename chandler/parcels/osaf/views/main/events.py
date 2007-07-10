@@ -175,8 +175,8 @@ def makeMainEvents(parcel):
                         dispatchToBlockName = 'SidebarContainer').install(parcel)
 
     BlockEvent.template('Triage',
-                        dispatchToBlockName = 'DashboardSummaryView',
-                        commitAfterDispatch = True).install(parcel)
+                        dispatchToBlockName = 'DashboardSummaryView'
+                        ).install(parcel)
 
     ClassParameterizedEvent.template('ApplicationBarAll',
                                      methodName = 'onClassParameterizedEvent',
