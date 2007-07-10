@@ -1248,8 +1248,9 @@ class RoundTripTestCase(testcase.DualRepositoryTestCase):
         self.assertEqual(second1.itsItem._triageStatus, pim.TriageEnum.now)
         self.assertEqual(second1.itsItem.displayName, "Changed")
 
-        second0.unmodify()
-        self.assert_(second0.itsItem not in self.share0.contents)
+        second0.unmodify(partial=True)
+        # a partial unmodify should leave second0 in the collection
+        self.assert_(second0.itsItem in self.share0.contents)
         view0.commit(); stats = self.share0.sync(); view0.commit()
         self.assert_(checkStats(stats,
             ({'added' : 0, 'modified' : 0, 'removed' : 0},
@@ -1261,7 +1262,6 @@ class RoundTripTestCase(testcase.DualRepositoryTestCase):
             ({'added' : 0, 'modified' : 0, 'removed' : 1},
              {'added' : 0, 'modified' : 0, 'removed' : 0})),
             "Sync operation mismatch")
-        self.assert_(second1.isGenerated)
         self.assertEqual(second1.itsItem._triageStatus, pim.TriageEnum.done)
         self.failIf(second1.itsItem.hasLocalAttributeValue('displayName'))
         
@@ -1283,7 +1283,7 @@ class RoundTripTestCase(testcase.DualRepositoryTestCase):
         self.assert_(second0.itsItem not in self.share0.contents)
         view0.commit(); stats = self.share0.sync(); view0.commit()
         # Inbound change wins, item is back to being a modification
-        self.assert_(not second0.isGenerated)
+        self.assertEqual(second0.itsItem.displayName, "Changed in view 1")
 
         # Couple an outbound change with an incoming EXDATE for that occurrence
         second0.deleteThis()

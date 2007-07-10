@@ -331,9 +331,9 @@ class RecordSetConduit(conduits.BaseConduit):
             # auto-triage shouldn't have recordsets created for them
             if (isinstance(item, pim.Note) and
                 pim.EventStamp(item).isTriageOnlyModification() and
-                item.doAutoTriageOnDateChange):
+                pim.EventStamp(item).autoTriage() == item._triageStatus):
                 doLog("Skipping a triage-only modification: %s",
-                    changedUuid)
+                      changedUuid)
                 triage_only_mods.add(alias)
                 continue
 
@@ -750,7 +750,7 @@ class RecordSetConduit(conduits.BaseConduit):
                     masterItem = item.inheritFrom
                     masterAlias = translator.getAliasForItem(masterItem)
                     if masterAlias not in remotelyRemoved:
-                        pim.EventStamp(item).unmodify()
+                        pim.EventStamp(item).unmodify(partial=True)
                         doLog("Locally unmodifying alias: %s", alias)
                     else:
                         doLog("Master was remotely removed for alias: %s",

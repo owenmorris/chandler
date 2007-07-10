@@ -1938,12 +1938,14 @@ class EventStamp(Stamp):
         """
         What triage status should this item have?
         """
+        if not has_stamp(self, EventStamp):
+            return TriageEnum.now
         item = self.itsItem
         now = datetime.now(tz=item.itsView.tzinfo.default)
         if self.effectiveStartTime > now:
             # Hasn't started yet? it's Later.
             status = TriageEnum.later
-        else:                        
+        else:
             reminder = item.getUserReminder()
             reminderTime = (reminder is not None
                             and reminder.getReminderTime(item)
@@ -1956,9 +1958,7 @@ class EventStamp(Stamp):
                 status = TriageEnum.done
             else: # It's ongoing: now.
                 status = TriageEnum.now
-        
-        #from osaf.framework.blocks.Block import debugName
-        #logger.debug("Autotriaging %s to %s as event", debugName(item), status)
+
         return status
 
     def triageForRecurrenceAddition(self):
@@ -2054,15 +2054,21 @@ class EventStamp(Stamp):
         
         return True
                         
-    def unmodify(self):
-        """Turn a modification into a normal occurrence."""
+    def unmodify(self, partial=False):
+        """
+        Turn a modification into a normal occurrence.
+        
+        If partial is True, remove all modified attributes, but leave the item
+        as a triage-only modification.
+        """
         # turning the modification into an occurrence doesn't
         # remove the item from the master's collections.  For
         # now just empty collections.  Are there circumstances
         # where plain occurrences *should* be in a collection?
-        
+
         with self.noRecurrenceChanges():
-            self.itsItem.collections = []
+            if not partial:
+                self.itsItem.collections = []
             for attr, value in list(self.itsItem.iterModifiedAttributes()):
                 # sharing may send an unmodify at times when triage status
                 # doesn't match its date, so we need to explicitly change it
@@ -2070,11 +2076,25 @@ class EventStamp(Stamp):
                     triage = self.autoTriage()
                     if value != triage:
                         self.itsItem.setTriageStatus(triage)
+                elif attr == Stamp.stamp_types.name and partial:
+                    # don't delete the local set of stamps
+                    pass
                 elif self.itsItem.hasLocalAttributeValue(attr):
                     delattr(self.itsItem, attr)
-                
-            self.isGenerated = True
-            del self.modificationFor
+
+            if partial:
+                master = EventStamp(self.modificationFor)
+                for stampClass in Stamp(master).stamp_types:
+                    if not has_stamp(self, stampClass):
+                        stampClass(self).add()
+                for stampClass in list(Stamp(self).stamp_types):
+                    if stampClass not in Stamp(master).stamp_types:
+                        stampClass(self).remove()
+
+                assert self.isTriageOnlyModification()
+            else:
+                self.isGenerated = True
+                del self.modificationFor
 
 
     @schema.observer(

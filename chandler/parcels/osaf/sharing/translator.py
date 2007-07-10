@@ -1492,7 +1492,7 @@ class SharingTranslator(eim.Translator):
             EventStamp):
             if recurrenceID:
                 occurrence = EventStamp(item).getRecurrenceID(recurrenceID)
-                occurrence.unmodify()
+                occurrence.unmodify(partial=True)
             else:
                 EventStamp(item).remove()
 
