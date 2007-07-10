@@ -90,14 +90,20 @@ class DashboardBlock(Table):
             self.synchronizeWidget()
 
     def onTriageEvent(self, event):
-        # Hack for Philippe, disabled until I can talk w/Jeffrey about it...
-        autoTriageToo = wx.GetMouseState().AltDown()
-        if autoTriageToo and wx.MessageBox(
-            _(u"Are you sure you want to reset the triage status of everything in this collection?"),
-            _(u"Automatic triage"), wx.OK | wx.CANCEL | wx.ICON_HAND,
-            parent=wx.GetApp().mainFrame) != wx.OK:
-            return
-        
+        # Removed the forced-auto-triage to get rid of the extra messages
+        # (in time for the message freeze). Will get rid of the remaining
+        # vestiges shortly.
+        autoTriageToo = False
+        # Adding a couple of messages for the progress box that will also 
+        # appear here shortly.
+        progressBoxTitle = _(u"Triage Progress")
+        progressBoxMessage1 = _(u"Triaging items...")
+        progressBoxMessage2 = _(u"Updating indexes...")
+        progressBoxMessage3 = _(u"Triaging recurring events...")
+        progressBoxMessage4 = _(u"Saving...")
+        progressBoxMessage5 = _(u"Triage error")
+        progressBoxMessage6 = _(u"Unable to triage. See chandler.log for details.")
+                
         #import hotshot
         #print 'triaging'
         #prof = hotshot.Profile('triage.log')
