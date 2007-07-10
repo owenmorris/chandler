@@ -263,6 +263,8 @@ class wxMiniCalendar(DragAndDrop.DropReceiveWidget,
                 # the correct timezone.
                 if tzEnabled:
                     start = start.astimezone(defaultTzinfo)
+                else:
+                    start = start.replace(tzinfo=defaultTzinfo)
 
                 offset = (start.date() - startDate).days
 
