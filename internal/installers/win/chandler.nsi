@@ -51,6 +51,9 @@ Page custom PageReinstall PageLeaveReinstall
 Page custom PageOldVersion
 !insertmacro MUI_PAGE_INSTFILES
 
+InstallDir "$PROGRAMFILES\${PRODUCT_NAME}${PRODUCT_VERSION}"
+InstallDirRegKey HKLM "${PRODUCT_DIR_REGKEY}" ""
+
 !define MUI_FINISHPAGE_RUN "$INSTDIR\${PRODUCT_BINARY}"
 !define MUI_FINISHPAGE_SHOWREADME "$INSTDIR\README.win.txt"
 
@@ -71,8 +74,6 @@ Name "${PRODUCT_NAME} ${PRODUCT_VERSION}"
 OutFile "Setup.exe"
 Icon "..\..\..\${DISTRIB_DIR}\Chandler.egg-info\resources\icons\Chandler.ico"
 UninstallIcon "..\..\..\${DISTRIB_DIR}\Chandler.egg-info\resources\icons\Chandler.ico"
-InstallDir "$PROGRAMFILES\${PRODUCT_NAME}${PRODUCT_VERSION}"
-InstallDirRegKey HKLM "${PRODUCT_DIR_REGKEY}" ""
 ShowInstDetails nevershow
 ShowUnInstDetails nevershow
 
