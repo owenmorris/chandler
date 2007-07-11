@@ -132,10 +132,9 @@ class DashboardBlock(Table):
     
             activity = Activity(_(u"Triage Progress"))
             self.mainFrame = Progress.Show(activity)
-            # (add 10% to the work to cover the commit time, and 5% for
-            # reindexing)
+            # (add 10% to the work to cover the commit time)
             activity.started(msg=_(u"Triaging items..."),
-                             totalWork=int(totalWork * 1.2))
+                             totalWork=int(totalWork * 1.1))
             activityUpdate = activity.update
             activityCompleted = activity.completed
             activityFailed = activity.failed
@@ -153,11 +152,7 @@ class DashboardBlock(Table):
                         if isinstance(item, UUID):
                             item = view[item]
                         item.purgeSectionTriageStatus()
-                        activityUpdate(work=1)
-                        if activityAborted():
-                            break
-                    if len(itemsToPurge) > 10:
-                        activityUpdate(msg=_(u"Updating indexes..."))
+            activityUpdate(work=len(itemsToPurge))
             if not activityAborted():            
                 # Purge all the recurrence masters. (We can't do this 
                 # inside the deferrals because this depends on the indexes...)
