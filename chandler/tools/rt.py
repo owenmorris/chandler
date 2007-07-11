@@ -1698,8 +1698,11 @@ def main(options):
 if __name__ == '__main__':
     if '--selftest' in sys.argv:
         import doctest
-        doctest.testmod(optionflags=doctest.ELLIPSIS | doctest.REPORT_NDIFF)
-        sys.exit(0)
+        (failed_count, test_count) = doctest.testmod(optionflags=doctest.ELLIPSIS | doctest.REPORT_NDIFF)
+        if failed_count != 0:
+            sys.exit(1)
+        else:
+            sys.exit(0)
 
     if main(parseOptions()):
         sys.exit(1)
