@@ -1248,6 +1248,13 @@ class RoundTripTestCase(testcase.DualRepositoryTestCase):
         self.assertEqual(second1.itsItem._triageStatus, pim.TriageEnum.now)
         self.assertEqual(second1.itsItem.displayName, "Changed")
 
+        # make sure setting triageStatus back to Inherit works
+        second0.itsItem.setTriageStatus(pim.TriageEnum.done)
+        view0.commit(); stats = self.share0.sync(); view0.commit()
+        view1.commit(); stats = self.share1.sync(); view1.commit()
+        self.assertEqual(second1.itsItem._triageStatus, pim.TriageEnum.done)
+
+
         second0.unmodify(partial=True)
         # a partial unmodify should leave second0 in the collection
         self.assert_(second0.itsItem in self.share0.contents)

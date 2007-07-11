@@ -200,10 +200,10 @@ def getRecurrenceFields(event):
     or all of which may be None.
 
     """
-    if event.rruleset is None:
-        return (None, None, None, None)
-    elif event.occurrenceFor is not None:
+    if event.occurrenceFor is not None:
         return (eim.Inherit, eim.Inherit, eim.Inherit, eim.Inherit)
+    elif event.rruleset is None:
+        return (None, None, None, None)
 
     view = event.itsItem.itsView
 
@@ -611,8 +611,12 @@ class SharingTranslator(eim.Translator):
             if record.triage != "" and record.triage not in emptyValues:
                 code, timestamp, auto = record.triage.split(" ")
                 item._triageStatus = self.code_to_triagestatus[code]
-                item._triageStatusChanged = float(timestamp)
+                item._triageStatusChanged = float(timestamp) 
                 item.doAutoTriageOnDateChange = (auto == "1")
+            elif record.triage == eim.Inherit:
+                item.doAutoTriageOnDateChange = True
+                item.setTriageStatus('auto')
+
 
         # TODO: record.hasBeenSent --> item.modifiedFlags
 

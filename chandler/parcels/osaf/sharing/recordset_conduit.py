@@ -449,9 +449,10 @@ class RecordSetConduit(conduits.BaseConduit):
                 # set to a fake state of all Inherits.  So we need to send
                 # the full state, recalculate dSend
                 if hasattr(state, "_pending"):
-                    del state._pending                
+                    del state._pending
                 pending = False
-                state.agreed = dSend = rsInternal + dApply
+                state.agreed = rsInternal + dApply
+                dSend = eim.Diff(state.agreed.inclusions)
                 if filter is not None:
                     dSend = filter.sync_filter(dSend)
 
