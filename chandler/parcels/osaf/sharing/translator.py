@@ -633,8 +633,15 @@ class SharingTranslator(eim.Translator):
         if item.hasLocalAttributeValue('inheritTo'):
             # recurrence masters don't have a meaningful triage status
             triage = eim.NoChange
-        elif (not isinstance(item, Occurrence) or not doATODC):
+        elif (isinstance(item, Occurrence) and 
+              EventStamp(item).autoTriage() == item._triageStatus):
+            # This will lose doATODC information, but that happens anyway for
+            # modifications when they're unmodified, and doing this avoids
+            # spurious conflicts
+            triage = eim.Inherit
+        else:
             if (pim.has_stamp(item, pim.EventStamp) and
+                doATODC and
                 EventStamp(item).autoTriage() != item._triageStatus):
                 error_msg = ("Item %s has doAutoTriageOnDateChange==True"
                              " but its triageStatus is %s, ought to be %s")
@@ -646,8 +653,6 @@ class SharingTranslator(eim.Translator):
             tsChanged = item._triageStatusChanged or 0.0
             tsAuto = ("1" if doATODC else "0")
             triage = "%s %.2f %s" % (tsCode, tsChanged, tsAuto)
-        else:
-            triage = eim.Inherit
 
         if item.hasLocalAttributeValue('displayName'):
             title = item.displayName

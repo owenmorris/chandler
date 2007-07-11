@@ -449,7 +449,7 @@ Exporting:
     >>> item_record.title
     u'Changed title'
     >>> item_record.triage
-    '300 ... 0'
+    Inherit
     
 Custom Reminders
 - - - - - - - - 

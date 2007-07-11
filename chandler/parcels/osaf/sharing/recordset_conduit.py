@@ -448,10 +448,12 @@ class RecordSetConduit(conduits.BaseConduit):
                 # There's no record on the server anymore, but rsExternal was
                 # set to a fake state of all Inherits.  So we need to send
                 # the full state, recalculate dSend
-                dSend = rsInternal + dApply
+                if hasattr(state, "_pending"):
+                    del state._pending                
+                pending = False
+                state.agreed = dSend = rsInternal + dApply
                 if filter is not None:
                     dSend = filter.sync_filter(dSend)
-                pending = False
 
             elif receive and pending and item is not None:
 
