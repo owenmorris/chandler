@@ -129,6 +129,9 @@ def getTimeValues(view, record):
     Extract start time and allDay/anyTime from a record.
     """
     dtstart  = record.dtstart
+    # tolerate empty dtstart, treat it as Inherit, bug 9849
+    if dtstart is None:
+        dtstart = eim.Inherit
     start = None
     if dtstart not in noChangeOrInherit:
         start, allDay, anyTime = fromICalendarDateTime(view, dtstart)
@@ -197,8 +200,10 @@ def getRecurrenceFields(event):
     or all of which may be None.
 
     """
-    if event.rruleset is None or event.occurrenceFor is not None:
+    if event.rruleset is None:
         return (None, None, None, None)
+    elif event.occurrenceFor is not None:
+        return (eim.Inherit, eim.Inherit, eim.Inherit, eim.Inherit)
 
     view = event.itsItem.itsView
 

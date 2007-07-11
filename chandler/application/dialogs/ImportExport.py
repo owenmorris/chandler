@@ -258,7 +258,7 @@ class ImportDialog(FileChooserWithOptions):
         return self.cancelling
 
     def fail(self, msg):
-        self.updateCallback(msg, 100)
+        self.updateCallback(None, msg=msg, percent=100)
         self.gauge.Disable()
 
     def importFile(self):

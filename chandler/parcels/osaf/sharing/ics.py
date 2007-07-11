@@ -489,6 +489,8 @@ class ICSSerializer(object):
                 # raise an exception
                 if recurrenceID is None:
                     dtstart_changed = True
+                elif dtstart is None:
+                    dtstart_changed = False
                 elif type(recurrenceID) == date or type(dtstart) == date:
                     dtstart_changed = recurrenceID != dtstart
                 else:

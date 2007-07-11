@@ -444,7 +444,11 @@ class RecordSetConduit(conduits.BaseConduit):
             else:
                 item = None
 
-            if alias in remotelyUnmodified:
+            if alias in remotelyUnmodified and rsInternal:
+                # There's no record on the server anymore, but rsExternal was
+                # set to a fake state of all Inherits.  So we need to send
+                # the full state, recalculate dSend
+                dSend = state.agreed - eim.RecordSet() + rsExternal + dSend 
                 if pending:
                     pending = False
                     dSend += eim.Diff(rsInternal.inclusions)
