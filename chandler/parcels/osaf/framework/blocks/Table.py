@@ -203,7 +203,7 @@ class wxTable(DragAndDrop.DraggableWidget,
             # Update the screen before showing the context menu
             theApp = wx.GetApp()
             theApp.propagateAsynchronousNotifications()
-            theApp.Yield()
+            theApp.Yield(True)
         super(wxTable, self).displayContextMenu(event)
 
     def OnPaint (self, event):
