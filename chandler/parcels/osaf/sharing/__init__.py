@@ -166,11 +166,22 @@ def getDefaultAccount(rv):
     return None
 
 
-def isSharingSetUp(view):
-    for account in SharingAccount.iterItems(view):
+def isSharingSetUp(rv):
+    for account in SharingAccount.iterItems(rv):
         if account.isSetUp():
             return True
     return False
+
+def getSetUpAccounts(rv):
+    accounts = []
+    for account in CosmoAccount.iterItems(rv):
+        if account.isSetUp():
+            accounts.append(account)
+    for account in WebDAVAccount.iterItems(rv):
+        if account.isSetUp():
+            accounts.append(account)
+    return sorted(accounts, key = lambda x: x.displayName.lower())
+
 
 # = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =
 

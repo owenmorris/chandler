@@ -57,8 +57,7 @@ class RestoreSharesDialog(wx.Dialog):
         self.gauge.SetRange(100)
 
         self.choiceAccounts.Clear()
-        accounts = sorted(sharing.SharingAccount.iterItems(view),
-                          key = lambda x: x.displayName.lower())
+        accounts = sharing.getSetUpAccounts(self.view)
         self.currentAccount = accounts[0]
 
         for account in accounts:

@@ -122,7 +122,7 @@ class PublishCollectionDialog(wx.Dialog):
         collName = self.collection.displayName
 
         # Populate the listbox of sharing accounts
-        self.accounts = self._getSharingAccounts()
+        self.accounts = sharing.getSetUpAccounts(self.view)
         self.accountsControl = wx.xrc.XRCCTRL(self, "CHOICE_ACCOUNT")
         self.accountsControl.Clear()
 
@@ -670,12 +670,6 @@ class PublishCollectionDialog(wx.Dialog):
         self.mySizer.SetSizeHints(self)
         self.mySizer.Fit(self)
 
-    def _getSharingAccounts(self):
-        #XXX [i18n] Should this be a localized PyICU sort?
-        return sorted(
-            sharing.SharingAccount.iterItems(self.view),
-            key = lambda x: x.displayName.lower()
-        )
 
 type_to_xrc_map = {'collection' :
                    ('PublishCollection.xrc', _(u"Publish")),
