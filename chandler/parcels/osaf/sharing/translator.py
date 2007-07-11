@@ -843,8 +843,8 @@ class SharingTranslator(eim.Translator):
             note,                                       # uuid
             self.obfuscate(body),                       # body
             icalUID,                                    # icalUid
-            None,                                       # icalendarProperties
-            None,                                       # icalendarParameters
+            eim.Inherit,                                # icalendarProperties
+            eim.Inherit,                                # icalendarParameters
             handleEmpty(note, 'icalendarExtra'),        # icalendarExtra
         )
 
