@@ -129,9 +129,9 @@ class ChandlerServerHandle(zanshin.webdav.ServerHandle):
 
 
 class ChandlerHTTPClientFactory(zanshin.http.HTTPClientFactory):
-    logLevel = logging.INFO
-    # Set to logging.WARNING (on this class, or specific instances)
-    # if you don't want to log http traffic.
+    logLevel = logging.WARNING
+    # Set to logging.INFO (on this class, or specific instances)
+    # if you want to log http traffic.
     #
     # Set logLevel to logging.DEBUG if you want passwords "in the clear"
     # in the log.

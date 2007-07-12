@@ -1088,8 +1088,10 @@ Error: %(translatedErrorStrings)s""") % {
     def onRecordSetDebuggingEvent(self, event):
         if sharing.logger.level == 10:
             sharing.logger.level = 0
+            sharing.WebDAV.ChandlerHTTPClientFactory.logLevel = logging.WARNING
         else:
             sharing.logger.level = 10
+            sharing.WebDAV.ChandlerHTTPClientFactory.logLevel = logging.INFO
 
     def onRecordSetDebuggingEventUpdateUI(self, event):
         if sharing.logger.level == 10:

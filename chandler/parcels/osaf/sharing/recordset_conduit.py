@@ -126,12 +126,6 @@ class RecordSetConduit(conduits.BaseConduit):
             send = self.share.mode in ('put', 'both')
             receive = self.share.mode in ('get', 'both')
 
-        doLog("================ start of sync =================")
-        doLog("Mode: %s", self.share.mode)
-        doLog("Mode override: %s", modeOverride)
-        doLog("Send: %s", send)
-        doLog("Receive: %s", receive)
-
         translator = self.translator(rv)
 
         if self.share.established:
@@ -150,6 +144,16 @@ class RecordSetConduit(conduits.BaseConduit):
                 if send:
                     receive = False
 
+        if self.share.contents is not None:
+            name = getattr(self.share.contents, 'displayName', '<untitled>')
+            logger.info("----- Syncing collection: %s -----", name)
+        else:
+            logger.info("----- Subscribing -----")
+
+        doLog("Mode: %s", self.share.mode)
+        doLog("Mode override: %s", modeOverride)
+        doLog("Send: %s", send)
+        doLog("Receive: %s", receive)
         doLog("Current view version: %s", rv.itsVersion)
 
 
@@ -178,10 +182,11 @@ class RecordSetConduit(conduits.BaseConduit):
                         logger.info("<< ++ %s", rec)
                     for rec in rs.exclusions:
                         logger.info("<< -- %s", rec)
-            logger.info("Inbound 'extra': %s", extra)
+            doLog("Inbound 'extra': %s", extra)
 
             inboundCount = len(inbound)
             _callback(msg="Received %d change(s)" % inboundCount)
+            logger.info("Received %d change(s)" % inboundCount)
 
             if self.share.contents is None:
                 # We're importing a collection; either create it if it
@@ -208,6 +213,8 @@ class RecordSetConduit(conduits.BaseConduit):
             self.share.displayName = extra.get('name', _(u"Untitled"))
             if not self.share.established:
                 self.share.contents.displayName = self.share.displayName
+                logger.info("Subscribed collection name: %s",
+                    self.share.displayName)
 
             # Add remotely changed items
             for alias in inbound.keys():
@@ -673,7 +680,7 @@ class RecordSetConduit(conduits.BaseConduit):
                     # syncs.  Also, make sure we apply this to the master item:
                     item_to_change = getattr(item, 'inheritFrom', item)
                     item_to_change.read = not established
-                    doLog("Marking item %s: %s" % (
+                    logger.info("Marking item %s: %s" % (
                         ("read" if item_to_change.read else "unread"), uuid))
 
                 if alias in remotelyAdded:
@@ -838,7 +845,7 @@ class RecordSetConduit(conduits.BaseConduit):
 
             self.putRecords(toSend, extra, debug=debug, activity=activity)
         else:
-            doLog("Nothing to send")
+            logger.info("Nothing to send")
 
 
         for alias in statesToRemove:
@@ -862,14 +869,16 @@ class RecordSetConduit(conduits.BaseConduit):
 
         _callback(msg="Done")
 
-        doLog("================== end of sync =================")
-
         if receive:
             receiveStats['applied'] = str(toApply)
             stats.append(receiveStats)
         if send:
             sendStats['sent'] = str(toSend)
             stats.append(sendStats)
+
+        name = getattr(self.share.contents, 'displayName', '<untitled>')
+        logger.info("----- Done syncing collection: %s -----", name)
+
         return stats
 
 

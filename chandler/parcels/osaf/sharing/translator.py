@@ -764,7 +764,7 @@ class SharingTranslator(eim.Translator):
             # only apply a modifiedby record if timestamp is more recent than
             # what's on the item already
 
-            logger.debug("Examining ModifiedByRecord: %s", record)
+            logger.info("Examining ModifiedByRecord: %s", record)
 
             existing = getattr(item, "lastModified", None)
             existing = datetimeToDecimal(existing) if existing else 0
@@ -792,10 +792,10 @@ class SharingTranslator(eim.Translator):
                                      item.lastModifiedBy,
                                      item.lastModified)
 
-                logger.debug("Applied ModifiedByRecord: %s", record)
-                logger.debug("Now lastModifiedBy is %s", item.lastModifiedBy)
+                logger.info("Applied ModifiedByRecord: %s", record)
+                logger.info("Now lastModifiedBy is %s", item.lastModifiedBy)
             else:
-                logger.debug("Skipped ModifiedByRecord: record %s vs local %s",
+                logger.info("Skipped ModifiedByRecord: record %s vs local %s",
                     record.timestamp, existing)
 
 
