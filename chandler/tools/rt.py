@@ -376,7 +376,14 @@ def buildTestList(options, excludeTools=True):
     for item in ['release', 'debug']:
         excludeDirs.append('%s/%s' % (options.chandlerBin, item))
 
-    tests = findTestFiles(options.chandlerHome, excludeDirs, includePattern)
+    # Make sure we find the tests in the order they were requested
+    tests = []
+    for pattern in includePattern.split(','):
+        if pattern in ('startup.py', 'startup_large.py'):
+            tests.append(pattern[:-3])
+        else:
+            tests.extend(findTestFiles(options.chandlerHome, excludeDirs,
+                                       pattern))
 
     # make all of the test paths relative to chandlerHome
     # this is done to solve in a simple manner the horror that is
@@ -388,10 +395,6 @@ def buildTestList(options, excludeTools=True):
             result.append(test[l:])
         else:
             result.append(test)
-
-    for pattern in includePattern.split(','):
-        if pattern in ('startup.py', 'startup_large.py'):
-            result.append(pattern[:-3])
 
     return result
 
@@ -1544,9 +1547,9 @@ def main(options):
     
     >>> options.single = 'TestCrypto,TestSharing'
     >>> main(options)
-    /.../release/RunPython... Chandler.py --create --catch=tests --profileDir=test_profile --parcelPath=tools/cats/DataFiles --chandlerTests=TestSharing -D2 -M0
-    - + - + - + - + - + - + - + - + - + - + - + - + - + - + - + 
     /.../RunPython... application/tests/TestCrypto.py -v
+    - + - + - + - + - + - + - + - + - + - + - + - + - + - + - + 
+    /.../release/RunPython... Chandler.py --create --catch=tests --profileDir=test_profile --parcelPath=tools/cats/DataFiles --chandlerTests=TestSharing -D2 -M0
     - + - + - + - + - + - + - + - + - + - + - + - + - + - + - + 
     False
     
@@ -1554,13 +1557,13 @@ def main(options):
     
     >>> options.single = 'TestCrypto,TestSharing,PerfImportCalendar,startup_large'
     >>> main(options)
+    /.../RunPython... application/tests/TestCrypto.py -v
+    ...
+    /.../release/RunPython... Chandler.py --create --catch=tests --profileDir=test_profile --parcelPath=tools/cats/DataFiles --chandlerTests=TestSharing -D2 -M0
+    ...
     /.../release/RunPython... Chandler.py --catch=tests --profileDir=test_profile --parcelPath=tools/cats/DataFiles --catsPerfLog=test_profile/time.log --scriptFile=tools/QATestScripts/Performance/PerfImportCalendar.py --create
     PerfImportCalendar.py                             0.00 - + - + - + - + - + - + - + - + - + - + - + - + - + - + - + 
      |   0.00 ...   0.00
-    /.../release/RunPython... Chandler.py --create --catch=tests --profileDir=test_profile --parcelPath=tools/cats/DataFiles --chandlerTests=TestSharing -D2 -M0
-    ...
-    /.../RunPython... application/tests/TestCrypto.py -v
-    ...
     Creating repository for startup time tests
     ...
     Startup_with_large_calendar ...
