@@ -119,7 +119,6 @@ def Start(hardhatScript, workingDir, buildVersion, clobber, log, skipTests=False
         print "Setup source tree..."
         log.write("- - - - tree setup - - - - - - -\n")
 
-        print reposModules
         for module in reposModules:
             svnSource = os.path.join(reposRoot, reposBase, module)
 
@@ -149,6 +148,9 @@ def Start(hardhatScript, workingDir, buildVersion, clobber, log, skipTests=False
                 ret = 'success'
             else:
                 ret = doTests(releaseMode, workingDir, outputDir, buildVersion, log)
+
+                if ret == 'success':
+                    ret = doToolsTest(releaseMode, workingDir, log)
 
                 if ret != 'success':
                     break
@@ -185,6 +187,9 @@ def Start(hardhatScript, workingDir, buildVersion, clobber, log, skipTests=False
         else:
             for releaseMode in buildModes:
                 ret = doTests(releaseMode, workingDir, outputDir, buildVersion, log)
+
+                if ret == 'success':
+                    ret = doToolsTest(releaseMode, workingDir, log)
 
                 if ret != 'success':
                     break
@@ -262,6 +267,47 @@ def doTests(mode, workingDir, outputDir, buildVersion, log):
     doCopyLog("Tests successful", workingDir, logPath, log)
 
     return "success"  # end of doTests( )
+
+
+def doToolsTest(mode, workingDir, log):
+    result  = 'success'
+    testDir = os.path.join(workingDir, "chandler")
+
+    os.chdir(testDir)
+
+    if mode == 'release' and sys.platform.startswith('linux'):
+        log.write(separator)
+
+        print "Testing tools/rt.py"
+        log.write("Testing tools/rt.py\n")
+
+        cmd = [pythonProgram, 'tools/rt.py', '--selftest']
+
+        try:
+            log.write("cmd: %s\n" % ' '.join(cmd))
+
+            outputList = hardhatutil.executeCommandReturnOutput(cmd)
+
+            log.write("command output:\n")
+            hardhatutil.dumpOutputList(outputList, log)
+
+        except hardhatutil.ExternalCommandErrorWithOutputList, e:
+            print "tests failed", e.exitCode
+            log.write("***Error during tests***\n")
+            log.write("Test log:\n")
+            hardhatutil.dumpOutputList(e.outputList, log)
+            if e.exitCode == 0:
+                err = ''
+            else:
+                err = '***Error '
+            log.write("%sexit code=%s\n" % (err, e.exitCode))
+            result = 'test_failed'
+        except Exception, e:
+            print "a testing error", e
+            log.write("***Internal Error during test run: %s\n" % str(e))
+            result = 'test_failed'
+
+    return result
 
 
 def dumpTestLogs(log, logfile):
