@@ -535,12 +535,12 @@ Error: %(translatedErrorStrings)s""") % {
         #
         # <http://lists.osafoundation.org/pipermail/design/2006-August/005311.html>
         self.openURLOrDialog(
-           'http://wiki.osafoundation.org/bin/view/Projects/ChandlerProductFAQ'
+           'http://chandlerproject.org/faq'
         )
 
     def onFileBugEvent(self, event):
         self.openURLOrDialog(
-           'http://wiki.osafoundation.org/Projects/ReportingBugs'
+           'http://chandlerproject.org/reportabug'
         )
 
     def onQuitEvent (self, event):
