@@ -181,7 +181,7 @@ def checkOptions(options):
     >>> keys.sort()
     >>> for key in keys:
     ...     print key, d[key],
-    args [] chandlerBin ... chandlerHome ... dryrun False func False funcSuite False help False mode None modes ['release'] noEnv False noStop False params None parcelPath tools/cats/DataFiles perf False profile False profileDir test_profile recorded False repeat 0 runLauncher False runchandler {'debug': ['.../debug/RunPython...', 'Chandler.py'], 'release': ['.../release/RunPython...', 'Chandler.py']} runpython {'debug': ['.../debug/RunPython...'], 'release': ['.../release/RunPython...']} selftest True single  tbox False testcase None toolsDir tools unit False unitSuite False verbose False
+    args [] chandlerBin ... chandlerHome ... dryrun False func False funcSuite False help False mode None modes ['release'...] noEnv False noStop False params None parcelPath tools/cats/DataFiles perf False profile False profileDir test_profile recorded False repeat 0 runLauncher False runchandler {'debug': ['.../debug/RunPython...', 'Chandler.py'], 'release': ['.../release/RunPython...', 'Chandler.py']} runpython {'debug': ['.../debug/RunPython...'], 'release': ['.../release/RunPython...']} selftest True single  tbox False testcase None toolsDir tools unit False unitSuite False verbose False
     """
     if options.help:
         print __doc__
@@ -964,12 +964,13 @@ def runRecordedScripts(options, test=None):
     >>> runRecordedScripts(options)
     /.../release/RunPython... Chandler.py --create --catch=tests --profileDir=test_profile --parcelPath=tools/cats/DataFiles --recordedTest=...
     ...
+    False
     
     >>> runRecordedScripts(options, 'RenameAndNewEvent')
-    /.../release/RunPython... Chandler.py --create --catch=tests --profileDir=test_profile --parcelPath=tools/cats/DataFiles --recordedTest=RenameAndNewEvent...
+    /.../release/RunPython... Chandler.py --create --catch=tests --profileDir=test_profile --parcelPath=tools/cats/DataFiles --recordedTest=RenameAndNewEvent
     - + - + - + - + - + - + - + - + - + - + - + - + - + - + - + 
-    False
     ...
+    False
     """
     failed = False
     testlist = []
