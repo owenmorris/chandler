@@ -1065,7 +1065,12 @@ Error: %(translatedErrorStrings)s""") % {
 
     def onAddSharingLogToSidebarEvent(self, event):
         sidebar = Block.findBlockByName ("Sidebar").contents
-        log = schema.ns('osaf.sharing', self.itsView).activityLog
+        try:
+            log = schema.ns('osaf.sharing', self.itsView).activityLog
+        except AttributeError:
+            sharingParcel = schema.ns('osaf.sharing', self.itsView).parcel
+            log = pim.ListCollection.update(sharingParcel, 'activityLog',
+                displayName="Sharing Activity")
         # if already present, just select it
         if log in sidebar:
             self.postEventByName('RequestSelectSidebarItem', {'item': log})
@@ -1077,7 +1082,12 @@ Error: %(translatedErrorStrings)s""") % {
 
     def onAddSharingLogToSidebarEventUpdateUI(self, event):
         sidebar = Block.findBlockByName ("Sidebar").contents
-        log = schema.ns('osaf.sharing', self.itsView).activityLog
+
+        try:
+            log = schema.ns('osaf.sharing', self.itsView).activityLog
+        except AttributeError:
+            log = None
+
         if log in sidebar:
             menuTitle = u'Show Sharing Activity'
         else:

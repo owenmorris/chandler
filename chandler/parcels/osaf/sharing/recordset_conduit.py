@@ -870,10 +870,10 @@ class RecordSetConduit(conduits.BaseConduit):
         _callback(msg="Done")
 
         if receive:
-            receiveStats['applied'] = str(toApply)
+            receiveStats['applied'] = toApply
             stats.append(receiveStats)
         if send:
-            sendStats['sent'] = str(toSend)
+            sendStats['sent'] = toSend
             stats.append(sendStats)
 
         name = getattr(self.share.contents, 'displayName', '<untitled>')

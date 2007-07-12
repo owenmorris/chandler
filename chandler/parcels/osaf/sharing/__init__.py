@@ -124,9 +124,6 @@ def installParcel(parcel, oldVersion=None):
         active=True,
         interval=datetime.timedelta(minutes=60)
     )
-    pim.ListCollection.update(parcel, "activityLog",
-        displayName="Sharing Activity"
-    )
 
     publishedFreeBusy = UnionCollection.update(parcel, 'publishedFreeBusy')
     pim_ns = schema.ns('osaf.pim', parcel.itsView)
@@ -355,16 +352,21 @@ class BackgroundSyncHandler:
             logger.exception("Background sync error")
 
         try: # Create the sync report event
-            log = schema.ns('osaf.sharing', self.rv).activityLog
-            reportEvent = pim.CalendarEvent(itsView=self.rv,
-                displayName="Sync",
-                startTime=datetime.datetime.now(self.rv.tzinfo.default),
-                duration=datetime.timedelta(minutes=60),
-                anyTime=False,
-                transparency='fyi',
-                body=str(stats)
-            )
-            log.add(reportEvent.itsItem)
+            try:
+                log = schema.ns('osaf.sharing', self.rv).activityLog
+            except AttributeError:
+                log = None
+
+            if log is not None:
+                reportEvent = pim.CalendarEvent(itsView=self.rv,
+                    displayName="Sync",
+                    startTime=datetime.datetime.now(self.rv.tzinfo.default),
+                    duration=datetime.timedelta(minutes=60),
+                    anyTime=False,
+                    transparency='fyi',
+                    body=stats2str(self.rv, stats)
+                )
+                log.add(reportEvent.itsItem)
 
         except: # Don't worry if this fails, just report it
             logger.exception("Error trying to create sync report")
@@ -391,6 +393,53 @@ class BackgroundSyncHandler:
 
         return True
 
+
+
+
+def stats2str(rv, stats):
+    # stats is an array of dictionaries, each of which have these keys:
+    # share : a UUID object
+    # added : a set of UUIDs
+    # modified : a set of UUIDs
+    # removed : a set of UUIDs
+    # applied : a dictionary of aliases to Diffs
+    # sent : a dictionary of aliases to Diffs
+    lines = list()
+    add = lines.append
+    prevShare = None
+    for stat in stats:
+        shareUUID = stat.get('share', None)
+        if shareUUID is not None:
+            share = rv.findUUID(shareUUID)
+            if share is not prevShare:
+                coll = share.contents
+                name = getattr(coll, 'displayName', _(u"Untitled"))
+                add("Collection: %s" % name)
+            prevShare = share
+            if stat.has_key('applied'):
+                for alias, diff in stat['applied'].iteritems():
+                    for rec in sort_records(diff.inclusions):
+                        add(" << ++ %s" % str(rec))
+                    for rec in sort_records(diff.exclusions):
+                        add(" << -- %s" % str(rec))
+            if stat.has_key('sent'):
+                for alias, diff in stat['sent'].iteritems():
+                    for rec in sort_records(diff.inclusions):
+                        add(" >> ++ %s" % str(rec))
+                    for rec in sort_records(diff.exclusions):
+                        add(" >> -- %s" % str(rec))
+            for alias in stat['removed']:
+                add(" %s !! %s" % ('>>' if stat['op'] == 'put' else '<<',
+                    alias))
+
+        else: # error
+            coll = rv.findUUID(stat['collection'])
+            name = getattr(coll, 'displayName', _(u"Untitled"))
+            add("Collection: %s" % name)
+            add("...error during sync: %s" % stat['error'])
+
+    return "\n".join(lines)
+            
 
 
 
