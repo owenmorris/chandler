@@ -63,7 +63,8 @@ class wxSidebar(wxTable):
     def __init__(self, *arguments, **keywords):
         super (wxSidebar, self).__init__ (*arguments, **keywords)
         gridWindow = self.GetGridWindow()
-        gridWindow.Bind(wx.EVT_MOUSE_EVENTS, self.OnMouseEvents)
+        # wxTable already binds to self.OnMouseEvents for us, and we want to
+        # override wxTables's implementation, so we don't need to do another Bind
         gridWindow.Bind(wx.EVT_LEFT_DCLICK, self.OnDoubleClick)
         gridWindow.Bind(wx.EVT_SET_FOCUS, self.OnSetFocus)
 
@@ -150,30 +151,22 @@ class wxSidebar(wxTable):
             If we've got hoverImageRow that we must have captured the mouse
             """
             # NB: this assert fires on Mac at inconvenient times - e.g., editing collection names
-            #assert gridWindow.HasCapture()
+            
+            # If we end up here and we don't have the mouse capture I think there is a reasonable
+            # chance that Chandler will crash. So commenting out the following assert is
+            # probably unsafe. Each time I comment it in someone always comments it out -- DJA
+
+            #assert gridWindow.HasCapture().
             if (gridWindow.HasCapture()):
                 gridWindow.ReleaseMouse()
             for button in blockItem.buttons:
                 if button.buttonState['overButton']:
                     button.buttonState['overButton'] = False
-                    method = getattr (type (button), "onOverButton", None)
-                    if method is not None:
-                        method (button, item)
+                    button.onOverButton (item)
 
         blockItem.stopNotificationDirt()
         try:
-            selectedItem = blockItem.contents.getFirstSelectedItem()
-
-            allowOverlay = (item is not None and
-                            UserCollection (item).allowOverlay and
-                            blockItem.filterClass not in blockItem.disallowOverlaysForFilterClasses and
-
-                            (selectedItem is None or
-                             not UserCollection (selectedItem).outOfTheBoxCollection))
-
-            if (cellRect.InsideXY (x, y) and
-                not self.IsCellEditControlEnabled() and
-                allowOverlay):
+            if cellRect.InsideXY (x, y) and not self.IsCellEditControlEnabled():
                     if not hasattr (self, 'hoverImageRow'):
                         gridWindow.CaptureMouse()
 
@@ -192,25 +185,20 @@ class wxSidebar(wxTable):
                                                   'blockChecked': checked,
                                                   'overButton': overButton}
                             if overButton:
-                                method = getattr (type (button), "onOverButton", None)
-                                if method is not None:
-                                    method (button, item)
+                                button.onOverButton (item)
 
                             self.RefreshRect (imageRect)
                     for button in blockItem.buttons:
                         overButton = button.buttonState['imageRect'].InsideXY (x, y)
                         if button.buttonState['overButton'] != overButton:
                             button.buttonState['overButton'] = overButton
-                            method = getattr (type (button), "onOverButton", None)
-                            if method is not None:
-                                method (button, item)
-
+                            button.onOverButton (item)
 
             if hasattr (self, 'hoverImageRow'):
                 if event.LeftDown():
                     for button in blockItem.buttons:
                         buttonState = button.buttonState
-                        if (buttonState['imageRect'].InsideXY (x, y) and allowOverlay):
+                        if (buttonState['imageRect'].InsideXY (x, y) and button.allowOverlay (item)):
 
                             event.Skip (False) #Gobble the event
                             self.SetFocus()
@@ -485,7 +473,13 @@ class SSSidebarButton(schema.Item):
     schema.addClouds(
         copying = schema.Cloud (byCloud = [buttonOwner])
     )
-    
+
+    def allowOverlay (self, item):
+        return True
+
+    def onOverButton (self, item):
+        return
+
     # Save all SSSidebarButtons' buttonStates in a global dictionary, keyed
     # by UUID. Otherwise, SSidebarButtons, which aren't referenced by objects
     # outside of the repository, may be discarded (during prune) and reloaded
@@ -655,16 +649,16 @@ class SSSidebarIconButton (SSSidebarButton):
         userCollection = UserCollection(item)
 
         imagePrefix = "Sidebar" + self.buttonName
-        if self.getChecked (item):
-            imagePrefix = imagePrefix + "Checked"
-
-        if mouseOverFlag:
-            if self.buttonState['screenMouseDown'] != self.buttonState['blockChecked']:
-                mouseState = "MouseDown"
-            else:
-                mouseState = "MouseOver"
-        else:
-            mouseState = ""
+        mouseState = ""
+        if self.allowOverlay (item):
+            if self.getChecked (item):
+                imagePrefix = imagePrefix + "Checked"
+    
+            if mouseOverFlag:
+                if self.buttonState['screenMouseDown'] != self.buttonState['blockChecked']:
+                    mouseState = "MouseDown"
+                else:
+                    mouseState = "MouseOver"
 
         selectedItem = sidebarBlock.contents.getFirstSelectedItem()
         if (not UserCollection (item).outOfTheBoxCollection and
@@ -696,20 +690,33 @@ class SSSidebarIconButton (SSSidebarButton):
 
         return image
 
+    def allowOverlay (self, item):
+        blockItem = self.buttonOwner
+        selectedItem = blockItem.contents.getFirstSelectedItem()
+
+        return (item is not None and
+                UserCollection (item).allowOverlay and
+                blockItem.filterClass not in blockItem.disallowOverlaysForFilterClasses and
+
+                (selectedItem is None or
+                 not UserCollection (selectedItem).outOfTheBoxCollection))
+
+
     def onOverButton (self, item):
-        gridWindow = self.buttonOwner.widget.GetGridWindow()
-        if self.buttonState['overButton']:
-            if UserCollection(item).checked:
-                text = _(u"Remove overlay")
+        if self.allowOverlay (item):
+            gridWindow = self.buttonOwner.widget.GetGridWindow()
+            if self.buttonState['overButton']:
+                if UserCollection(item).checked:
+                    text = _(u"Remove overlay")
+                else:
+                    text = _(u"Overlay collection")
+                gridWindow.SetToolTipString (text)
+                gridWindow.GetToolTip().Enable (True)
             else:
-                text = _(u"Overlay collection")
-            gridWindow.SetToolTipString (text)
-            gridWindow.GetToolTip().Enable (True)
-        else:
-            toolTip = gridWindow.GetToolTip()
-            if toolTip:
-                gridWindow.GetToolTip().Enable (False)
-                gridWindow.SetToolTip (None)
+                toolTip = gridWindow.GetToolTip()
+                if toolTip:
+                    gridWindow.GetToolTip().Enable (False)
+                    gridWindow.SetToolTip (None)
 
 
 class SSSidebarSharingButton (SSSidebarButton):
