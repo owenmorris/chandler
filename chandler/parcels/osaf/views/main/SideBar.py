@@ -1012,6 +1012,9 @@ class SidebarBlock(Table):
                            u'Note: Items you have added to other collections '
                            u'will not be deleted.')
         
+        # If we're editing the name now, stop.
+        self.widget.DisableCellEditControl()
+        
         # don't pop up a dialog when running functional tests
         if not event.arguments.get('testing'):
             for collection in self.contents.iterSelection():
