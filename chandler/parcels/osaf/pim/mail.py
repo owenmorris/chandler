@@ -26,7 +26,7 @@ __all__ = [
      'getCurrentOutgoingAccount', 'getCurrentIncomingAccount',
      'getCurrentMeEmailAddress',
      'getMessageBody', 'ACCOUNT_TYPES', 'EmailAddress', 'OutgoingAccount',
-     'IncomingAccount', 'MailPreferences']
+     'IncomingAccount', 'MailPreferences', 'getRecurrenceMailStamps']
 
 import logging
 from application import schema
@@ -40,12 +40,11 @@ from i18n import ChandlerMessageFactory as _
 from osaf import messages, preferences
 from osaf.pim.calendar import EventStamp
 from tasks import TaskStamp
-from osaf.pim import Modification, setTriageStatus
+from osaf.pim import Modification, setTriageStatus, TriageEnum
 from osaf.pim.calendar.TimeZone import formatTime, getTimeZoneCode
 from osaf.pim.calendar.DateTimeUtil import  weekdayName
 from datetime import datetime
 from stamping import has_stamp, Stamp
-from osaf.pim import TriageEnum, setTriageStatus
 
 from osaf.framework import password
 from osaf.framework.twisted import waitForDeferred
@@ -326,9 +325,24 @@ def in_collection(addr, collection):
             return True
         return False
 
+def getRecurrenceMailStamps(mailStamp):
+    """
+    Recurring mails get most of their mail attributes from the recurrence
+    master, but a few details (subject, body, description) are based on which
+    occurrence was sent.  Return (mailStampOccurrence, mailStampMaster), which
+    will be equal for non-recurring events.
+    
+    """
+    mailStampMaster = mailStampOccurrence = mailStamp
+    if has_stamp(mailStampOccurrence, EventStamp):
+        mailStampMaster = MailStamp(EventStamp(mailStampOccurrence).getMaster())
+    return (mailStampOccurrence, mailStampMaster)
 
 def getBodyValues(mailStamp, addGT=False, usePrefix=False):
     view = mailStamp.itsItem.itsView
+    
+    mailStampOccurrence, mailStamp = getRecurrenceMailStamps(mailStamp)
+    
     if not hasattr(mailStamp, 'dateSent'):
         from osaf.mail.utils import dateTimeToRFC2822Date
         mailStamp.dateSent = datetime.now(view.tzinfo.default)
@@ -356,7 +370,7 @@ def getBodyValues(mailStamp, addGT=False, usePrefix=False):
        ccLine = u""
 
     if addGT:
-        body = mailStamp.itsItem.body.split(u"\n")
+        body = mailStampOccurrence.itsItem.body.split(u"\n")
         buffer = []
 
         for line in body:
@@ -368,7 +382,7 @@ def getBodyValues(mailStamp, addGT=False, usePrefix=False):
         body = u"\n".join(buffer)
 
     else:
-        body = mailStamp.itsItem.body
+        body = mailStampOccurrence.itsItem.body
 
     sender = mailStamp.getSender().format()
 
@@ -381,11 +395,12 @@ def getBodyValues(mailStamp, addGT=False, usePrefix=False):
 
     return {
              "sender":  sender,
-             "kindCombination": buildKindCombination(mailStamp, usePrefix),
+             "kindCombination": buildKindCombination(mailStampOccurrence,
+                                                     usePrefix),
              "originators": originators,
              "toAddresses": u", ".join(to),
              "ccAddressLine": ccLine,
-             "description": buildItemDescription(mailStamp),
+             "description": buildItemDescription(mailStampOccurrence),
              "itemBody": body,
              "date": date,
              "time": time,
@@ -411,6 +426,7 @@ def buildItemDescription(mailStamp):
 
     if isEvent:
         event = EventStamp(item)
+        master = event.getMaster()
         recur = getattr(event, 'rruleset', None)
         noTime = event.allDay or event.anyTime
 
@@ -442,6 +458,12 @@ def buildItemDescription(mailStamp):
                }
 
         if recur:
+            args['masterStartDate'], args['masterStartTime'] = \
+                formatDateAndTime(view, master.startTime)
+            args['masterEndDate'], args['masterEndTime'] = \
+                formatDateAndTime(view, master.endTime)
+            args['masterTimeZone'] = getTimeZoneCode(view, master.startTime)
+            
             if recur.isComplex():
                 if noTime:
                     if endDate:
@@ -1799,8 +1821,14 @@ class MailStamp(stamping.Stamp):
         else:
             modFlag = Modification.sent
 
-        self.itsItem.changeEditState(modFlag, self.getSender(),
-                                     self.dateSent)
+        # XXX - Grant, please change this once pim.CHANGE_ALL or an equivalent
+        # mechanism works with changeEditState
+        items = [self.itsItem]
+        if has_stamp(self.itsItem, EventStamp):
+            items.extend(EventStamp(self.itsItem).getMaster().modifications 
+                         or [])
+        for item in items:
+            item.changeEditState(modFlag, self.getSender(), self.dateSent)
 
     def incomingMessage(self, ignoreMe=False):
         view = self.itsItem.itsView

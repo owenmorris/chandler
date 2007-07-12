@@ -772,11 +772,6 @@ Error: %(translatedErrorStrings)s""") % {
         if not sharing.ensureAccountSetUp(self.itsView, outboundMail=True):
             return
 
-        # get default SMTP account
-        if pim.has_stamp(item, pim.EventStamp):
-            # for preview, always send the full recurrence set
-            item = pim.EventStamp(item).getMaster().itsItem
-
         mailToSend = mail.MailStamp(item)
 
         code, valid, invalid = mailToSend.getSendableState()

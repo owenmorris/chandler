@@ -29,8 +29,8 @@ import cStringIO as StringIO
 #Chandler imports
 from osaf import messages
 from application import Globals, Utility
-from osaf.pim.mail import SMTPAccount, MailStamp
-from osaf.pim import Modification
+from osaf.pim.mail import SMTPAccount, MailStamp, getRecurrenceMailStamps
+from osaf.pim import Modification, EventStamp, has_stamp
 from osaf.framework.certstore import ssl
 from repository.persistence.RepositoryView import RepositoryView
 from repository.persistence.RepositoryError \
@@ -255,10 +255,12 @@ class SMTPClient(object):
             # return here instead of seeing if the message should go in the queue
             if self.cancel:
                 return self._resetClient()
+            
+            msg = self._getMailMessage(mailMessageUUID)
+            mailStampOccurrence, masterMailStamp = getRecurrenceMailStamps(msg)
 
             if self.mailMessage is not None or not Globals.mailService.isOnline():
-                newMessage = self._getMailMessage(mailMessageUUID)
-
+                newMessage = masterMailStamp
                 # Commented out for Performance Improvement
                 # The UI Layer should handle all conflict logic
                 # before calling this module
@@ -302,11 +304,11 @@ class SMTPClient(object):
                 if not Globals.mailService.isOnline():
                     setStatusMessage(constants.UPLOAD_OFFLINE % \
                                     {'accountName': self.account.displayName,
-                                     'subject': newMessage.subject})
+                                     'subject': mailStampOccurrence.subject})
 
                 return
 
-            self.mailMessage = self._getMailMessage(mailMessageUUID)
+            self.mailMessage = masterMailStamp
 
             # Commented out for Performance Improvement
             # The UI Layer should handle all conflict logic
@@ -318,15 +320,15 @@ class SMTPClient(object):
 
             setStatusMessage(constants.UPLOAD_START % \
                              {'accountName': self.account.displayName,
-                              'subject': self.mailMessage.subject})
+                              'subject': mailStampOccurrence.subject})
 
             # handles all MailStamp level logic  to support general sending
             # of mail as well as edit / update workflows
-            self.mailMessage.outgoingMessage()
+            masterMailStamp.outgoingMessage()
 
-            sender = self.mailMessage.getSender()
-
-            messageText = kindToMessageText(self.mailMessage)
+            sender = masterMailStamp.getSender()
+            # use the individual occurrence, not the master, bug 9499
+            messageText = kindToMessageText(mailStampOccurrence)
 
         except Exception, e:
             if __debug__:

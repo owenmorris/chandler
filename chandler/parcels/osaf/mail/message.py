@@ -26,13 +26,15 @@ from datetime import datetime
 
 #Chandler imports
 from osaf.pim.mail import EmailAddress, MailMessage, MIMEText, MIMEBinary, \
-                          getMessageBody, getCurrentMeEmailAddresses
+                          getMessageBody, getCurrentMeEmailAddresses, \
+                          getRecurrenceMailStamps
 
 from osaf.pim.calendar.Calendar import parseText, setEventDateTime
 from osaf.pim import has_stamp, TaskStamp, EventStamp, MailStamp, Remindable
 from i18n import ChandlerMessageFactory as _
 #from i18n import getLocale
-from osaf.sharing import (getFilter, errors as sharingErrors, inbound, outbound)
+from osaf.sharing import (getFilter, errors as sharingErrors, inbound, outbound,
+                          checkTriageOnly)
 
 #Chandler Mail Service imports
 import constants
@@ -605,42 +607,44 @@ def kindToMessageObject(mailStamp):
 
     view = mailStamp.itsItem.itsView
 
-    isEvent = has_stamp(mailStamp, EventStamp)
-    isTask  = has_stamp(mailStamp, TaskStamp)
+    mailStampOccurrence, mailStampMaster = getRecurrenceMailStamps(mailStamp)
+
+    isEvent = has_stamp(mailStampOccurrence, EventStamp)
+    isTask  = has_stamp(mailStampOccurrence, TaskStamp)
 
     messageObject = Message.Message()
 
     # Create a messageId if none exists
-    mId = getattr(mailStamp, "messageId", None)
+    mId = getattr(mailStampMaster, "messageId", None)
 
     if not mId:
         mId = createMessageID()
 
     populateHeader(messageObject, 'Message-ID', mId)
-    populateEmailAddresses(mailStamp, messageObject)
+    populateEmailAddresses(mailStampMaster, messageObject)
     populateStaticHeaders(messageObject)
 
-    if hasattr(mailStamp, "dateSentString"):
-        date = mailStamp.dateSentString
+    if hasattr(mailStampMaster, "dateSentString"):
+        date = mailStampMaster.dateSentString
     else:
         date = dateTimeToRFC2822Date(datetime.now(view.tzinfo.default))
 
     messageObject["Date"] = date
 
-    inReplyTo = getattr(mailStamp, "inReplyTo", None)
+    inReplyTo = getattr(mailStampMaster, "inReplyTo", None)
 
-    subject = mailStamp.subject
+    subject = mailStampOccurrence.subject
 
     if inReplyTo:
         messageObject["In-Reply-To"] = inReplyTo
 
-    if mailStamp.referencesMID:
-        messageObject["References"] = " ".join(mailStamp.referencesMID)
+    if mailStampMaster.referencesMID:
+        messageObject["References"] = " ".join(mailStampMaster.referencesMID)
 
     populateHeader(messageObject, 'Subject', subject, encode=True)
 
     try:
-        payload = getMessageBody(mailStamp)
+        payload = getMessageBody(mailStampOccurrence)
     except AttributeError:
         payload = u""
 
@@ -667,10 +671,10 @@ def kindToMessageObject(mailStamp):
     # xml code and is not displayable to the user.
     alternative = MIMEMultipart("alternative")
 
-    peers = mailStamp.getRecipients()
+    peers = mailStampMaster.getRecipients()
 
     # Serialize and attach the eimml can raise ConflictsPending
-    eimml = outbound(peers, mailStamp.itsItem, OUTBOUND_FILTERS)
+    eimml = outbound(peers, mailStampMaster.itsItem, OUTBOUND_FILTERS)
 
     eimmlPayload = MIMEBase64Encode(eimml, 'text', 'eimml')
 
@@ -697,8 +701,13 @@ def kindToMessageObject(mailStamp):
         # Format this message as an ICalendar object
         from osaf.sharing import (serialize, VObjectSerializer,
                                   SharingTranslator, remindersFilter)
+        items = [mailStampMaster.itsItem]
+        for mod in EventStamp(mailStampMaster).modifications or []:
+            if not checkTriageOnly(mod):
+                items.append(mod)
+                
         calendar = serialize(mailStamp.itsItem.itsView,
-                             [mailStamp.itsItem],
+                             items,
                              SharingTranslator,
                              VObjectSerializer,
                              filter=remindersFilter)

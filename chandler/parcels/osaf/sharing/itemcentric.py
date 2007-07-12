@@ -152,7 +152,12 @@ def outbound(peers, item, filter=None, debug=False):
 
     if pim.has_stamp(item, pim.EventStamp):
         for mod in pim.EventStamp(item).modifications or []:
-            items.append(mod)
+            # modifications that have been changed purely by
+            # auto-triage shouldn't have recordsets created for them
+            if not (isinstance(mod, pim.Note) and
+                    pim.EventStamp(mod).isTriageOnlyModification() and
+                    pim.EventStamp(mod).autoTriage() == mod._triageStatus):   
+                items.append(mod)
 
     for item in items:
         alias = trans.getAliasForItem(item)

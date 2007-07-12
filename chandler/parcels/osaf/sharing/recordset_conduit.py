@@ -16,7 +16,8 @@ from __future__ import with_statement
 from osaf import pim
 import conduits, errors, formats, eim, shares, model
 from model import EventRecord
-from utility import splitUUID, getDateUtilRRuleSet, fromICalendarDateTime
+from utility import (splitUUID, getDateUtilRRuleSet, fromICalendarDateTime,
+                     checkTriageOnly)
 from i18n import ChandlerMessageFactory as _
 import logging
 from itertools import chain
@@ -336,11 +337,8 @@ class RecordSetConduit(conduits.BaseConduit):
 
             # modifications that have been changed purely by
             # auto-triage shouldn't have recordsets created for them
-            if (isinstance(item, pim.Note) and
-                pim.EventStamp(item).isTriageOnlyModification() and
-                pim.EventStamp(item).autoTriage() == item._triageStatus):
-                doLog("Skipping a triage-only modification: %s",
-                      changedUuid)
+            if checkTriageOnly(item):
+                doLog("Skipping a triage-only modification: %s", changedUuid)
                 triage_only_mods.add(alias)
                 continue
 

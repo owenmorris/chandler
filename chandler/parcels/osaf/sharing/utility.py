@@ -39,7 +39,8 @@ __all__ = [
     'deleteShare',
     'splitUUID',
     'fromICalendarDateTime',
-    'getDateUtilRRuleSet'
+    'getDateUtilRRuleSet',
+    'checkTriageOnly'
 ]
 
 from application import schema, Globals
@@ -953,7 +954,14 @@ def splitUUID(view, recurrence_aware_uuid):
                 fromICalendarDateTime(view, pseudo_uuid[position:])[0])
     return (pseudo_uuid, None)
 
-
+def checkTriageOnly(item):
+    """
+    Return true if item is a triage-only modification whose triage matches its
+    startTime.
+    """
+    return (isinstance(item, pim.Note) and
+            pim.EventStamp(item).isTriageOnlyModification() and
+            pim.EventStamp(item).autoTriage() == item._triageStatus)
 
 # = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =
 # Not used at the moment, but might be revived soon
