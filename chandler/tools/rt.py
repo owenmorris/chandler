@@ -1445,6 +1445,9 @@ def runPerfTests(options, tests=None):
                         testlistLarge.append(item)
                     else:
                         testlist.append(item)
+
+                testlist.sort()
+                testlistLarge.sort()
             else:
                 testlistStartup = []
 
@@ -1455,7 +1458,7 @@ def runPerfTests(options, tests=None):
                         testlistStartup.append(item)
                     else:
                         testlist.append(item)
-
+                        
             repeat = 1
             if options.tbox:
                 repeat = 3
