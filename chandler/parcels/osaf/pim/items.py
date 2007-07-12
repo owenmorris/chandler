@@ -546,7 +546,9 @@ class ContentItem(Triageable):
 
     @schema.observer(error)
     def onErrorChanged(self, op, attr):
-        if getattr(self, 'error', None) is not None:
+        # Pop to now if error is anything non-False-ish (a non-empty 
+        # string, etc)
+        if getattr(self, 'error', None):
             self.setTriageStatus(None, popToNow=True, force=True)
 
 
