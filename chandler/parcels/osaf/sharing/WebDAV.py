@@ -40,6 +40,7 @@ import application.Utility as Utility
 from osaf.framework.certstore import ssl
 from osaf import messages
 import threading
+import logging
 from i18n import ChandlerMessageFactory as _
 from osaf.mail.utils import displayIgnoreSSLErrorDialog, \
                             displaySSLCertDialog, \
@@ -65,8 +66,6 @@ class ChandlerServerHandle(zanshin.webdav.ServerHandle):
         #self.factory.extraHeaders = { 'Connection' : "close" }
 
         self.factory.extraHeaders = { 'User-Agent' : Utility.getUserAgent() }
-
-        self.factory.logging = True
 
     def addRequest(self, request):
         # Make all requests going through this ServerHandle have a
@@ -130,11 +129,14 @@ class ChandlerServerHandle(zanshin.webdav.ServerHandle):
 
 
 class ChandlerHTTPClientFactory(zanshin.http.HTTPClientFactory):
+    logLevel = logging.INFO
+    # Set to logging.WARNING (on this class, or specific instances)
+    # if you don't want to log http traffic.
+    #
+    # Set logLevel to logging.DEBUG if you want passwords "in the clear"
+    # in the log.
+
     def _makeConnection(self, timeout):
-        if self.logging:
-            #_doLog("[Connecting to %s:%s]" % (self.host, self.port))
-            pass
-            
         if self.startTLS:
             result = ssl.connectSSL(self.host, self.port, self,
                                     self.repositoryView, timeout=timeout)

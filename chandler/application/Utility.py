@@ -451,7 +451,9 @@ def initLogging(options):
         import twisted.python.log
 
         def translateLog(eventDict):
-            if eventDict['isError']:
+            if eventDict.has_key('logLevel'):
+                level = eventDict['logLevel']
+            elif eventDict['isError']:
                 level = logging.ERROR
             elif eventDict.has_key('debug'):
                 level = logging.DEBUG
