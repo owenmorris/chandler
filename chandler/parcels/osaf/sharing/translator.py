@@ -137,7 +137,8 @@ def getTimeValues(view, record):
         start, allDay, anyTime = fromICalendarDateTime(view, dtstart)
     else:
         allDay = anyTime = start = dtstart
-
+    # anyTime should be set to True if allDay is true, bug 9041
+    anyTime = anyTime or allDay
     return (start, allDay, anyTime)
 
 dateFormat = "%04d%02d%02d"
