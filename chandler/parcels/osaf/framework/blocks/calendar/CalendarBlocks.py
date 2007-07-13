@@ -45,6 +45,7 @@ else:
 
 zero_delta = timedelta(0)
 one_day = timedelta(1)
+MAX_PREVIEW_ITEMS = 20
 
 class wxMiniCalendar(DragAndDrop.DropReceiveWidget,
                      DragAndDrop.ItemClipboardHandler,
@@ -570,7 +571,7 @@ class wxPreviewArea(CalendarNotificationHandler, wx.Panel):
         maxEvents = schema.ns("osaf.framework.blocks.calendar",
                      self.blockItem.itsView).previewPrefs.maximumEventsDisplayed
 
-        dayLength = len(self.visibleEvents)
+        dayLength = min(MAX_PREVIEW_ITEMS + 1, len(self.visibleEvents))
 
         pos = (event.GetPosition().y - self.vMargin) / self.lineHeight
         if self.useToday:
@@ -658,6 +659,7 @@ class wxPreviewArea(CalendarNotificationHandler, wx.Panel):
             # If the locale doesn't use AM/PM, it won't show; so, format a
             # generic time and see how it looks:
             genericTime = pim.shortTimeFormat.format(view, datetime(2005,1,1,12,00))
+            self.genericTime = genericTime
             self.timeSeparator = ':'
             #XXX [18n] Localizing the time separator is an issue
             # it forces the localizer to understand these programming semantics
@@ -665,17 +667,18 @@ class wxPreviewArea(CalendarNotificationHandler, wx.Panel):
                 if c in (_(u':.')): # Which time separator actually got used?
                     self.timeSeparator = c
                     break
-            dc.SetFont(self.timeFont)
-            preSep = genericTime[:genericTime.find(self.timeSeparator)]
-            self.colonPosition = dc.GetTextExtent(preSep)[0] + self.hMargin
-            self.labelPosition = dc.GetTextExtent(genericTime)[0] \
-                                 + self.hMargin + self.midMargin
+            self.preSep = genericTime[:genericTime.find(self.timeSeparator)]
+            
+        dc.SetFont(self.timeFont)
+        self.colonPosition = dc.GetTextExtent(self.preSep)[0] + self.hMargin
+        self.labelPosition = dc.GetTextExtent(self.genericTime)[0] \
+                             + self.hMargin + self.midMargin
 
-            self.timeFontHeight = Styles.getMeasurements(self.timeFont).height
-            self.eventFontHeight = Styles.getMeasurements(self.eventFont).height
-            self.lineHeight = max(self.timeFontHeight, self.eventFontHeight)
-            self.timeFontOffset = (self.lineHeight - self.timeFontHeight)
-            self.eventFontOffset = (self.lineHeight - self.eventFontHeight)
+        self.timeFontHeight = Styles.getMeasurements(self.timeFont).height
+        self.eventFontHeight = Styles.getMeasurements(self.eventFont).height
+        self.lineHeight = max(self.timeFontHeight, self.eventFontHeight)
+        self.timeFontOffset = (self.lineHeight - self.timeFontHeight)
+        self.eventFontOffset = (self.lineHeight - self.eventFontHeight)
 
         y = self.vMargin
         # Draw title if appropriate
@@ -722,6 +725,9 @@ class wxPreviewArea(CalendarNotificationHandler, wx.Panel):
             eventsCoords.append((x, y + self.eventFontOffset))
 
             y += self.lineHeight
+            # bug 9021, hard-coded max preview items to avoid taking over
+            # the whole sidebar
+            if i >= MAX_PREVIEW_ITEMS: break
 
         # Actual drawing here...
         if times:
