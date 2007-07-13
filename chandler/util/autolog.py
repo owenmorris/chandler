@@ -48,7 +48,7 @@ Viewing tips
 If your terminal can't keep up, try xterm or putty, they seem to be highest
 performance.  xterm is available for all platforms through X11...
 
-Also try:    (RunChandler > log &); tail -f log
+Also try:    (./chandler > log &); tail -f log
 
 Also, you can  "less -R log"  afterward and get the colors correct.
 
@@ -57,7 +57,7 @@ can chop at formatAllArgs().
 
 If you want long lines to be chopped realtime, try piping through less::
 
-   RunChandler | less -RS
+   ./chandler | less -RS
 
 but then you have to hit 'space' lots to prevent chandler from freezing.
 less's 'F' command is supposed to do this correctly but doesn't work for me.
