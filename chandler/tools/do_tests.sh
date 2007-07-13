@@ -117,12 +117,12 @@ echo Setting up script environment                               | tee -a $DOTES
 PP_DIR="$C_DIR/tools/QATestScripts/DataFiles"
 
 if [ "$OSTYPE" = "cygwin" ]; then
-    RUN_CHANDLER=RunChandler.bat
+    RUN_CHANDLER="RunPython.bat ${OPTIMIZE-"-O"} $C_DIR/Chandler.py"
     RUN_PYTHON=RunPython.bat
     PP_DIR=`cygpath -w $PP_DIR`
     PC_DIR=`cygpath -w $PC_DIR`
 else
-    RUN_CHANDLER=RunChandler
+    RUN_CHANDLER="RunPython ${OPTIMIZE-"-O"} $C_DIR/Chandler.py"
     RUN_PYTHON=RunPython
 fi
 
