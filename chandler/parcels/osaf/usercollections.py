@@ -127,7 +127,7 @@ def installParcel(parcel, oldVersion=None):
                     colorizeIcon = False,
                     dontDisplayAsCalendar = True,
                     allowOverlay = False)
-    allUC.ensureColor()
+    allUC.setColor(u'Gold')
                                                    
     trashUC = UserCollection(pim_ns.trashCollection)
     trashUC.setValues(renameable=False,
@@ -137,7 +137,7 @@ def installParcel(parcel, oldVersion=None):
                       allowOverlay = False,
                       dontDisplayAsCalendar = True,
                       canAdd=False)
-    trashUC.ensureColor()
+    trashUC.setColor(u'Fuchsia')
 
     inUC = UserCollection(pim_ns.inCollection)
     inUC.setValues(renameable = False,
