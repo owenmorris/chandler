@@ -1109,6 +1109,28 @@ def RenderItem(repoView, item):
 
                 result += "</table>\n"
 
+        if pim.has_stamp(item, pim.EventStamp) and item.hasLocalAttributeValue('inheritTo'):
+            result += "<table width=100% border=0 cellpadding=4 cellspacing=0>\n"
+            result += "<tr class='toprow'>\n"
+            result += "<td colspan=5><b>Recurrence information: </b></td>\n"
+            result += "</tr>\n"
+            occurrences = sorted(list(item.inheritTo),
+                key = lambda x: pim.EventStamp(x).startTime)
+            count = 0
+            result += "<tr class='headingsrow'><td>Start time</td><td>isGenerated</td><td>TriageOnly<td>Triage Status</td><td>DisplayName</td></tr>\n"
+            for occurrence in occurrences:
+                ocEvent = pim.EventStamp(occurrence)
+                result += oddEvenRow(count)
+                result += "<td><a href='%s'>%s</a></td>" % (toLink(occurrence.itsPath), ocEvent.startTime)
+                result += "<td>%s</td>" % ocEvent.isGenerated
+                result += "<td>%s</td>" % (ocEvent.isTriageOnlyModification()
+                    if not ocEvent.isGenerated else "n/a")
+                result += "<td>%s</td>" % occurrence._triageStatus
+                result += "<td>%s</td>" % occurrence.displayName
+                result += "</tr>\n"
+                count += 1
+            result += "</table>\n"
+
 
     return result
 
