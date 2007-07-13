@@ -424,10 +424,11 @@ def stats2str(rv, stats):
                         add(" << -- %s" % str(rec))
             if stat.has_key('sent'):
                 for alias, diff in stat['sent'].iteritems():
-                    for rec in sort_records(diff.inclusions):
-                        add(" >> ++ %s" % str(rec))
-                    for rec in sort_records(diff.exclusions):
-                        add(" >> -- %s" % str(rec))
+                    if diff is not None:
+                        for rec in sort_records(diff.inclusions):
+                            add(" >> ++ %s" % str(rec))
+                        for rec in sort_records(diff.exclusions):
+                            add(" >> -- %s" % str(rec))
             for alias in stat['removed']:
                 add(" %s !! %s" % ('>>' if stat['op'] == 'put' else '<<',
                     alias))
