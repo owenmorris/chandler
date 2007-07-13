@@ -1,5 +1,5 @@
 
-RELVER=0.9-$(BRANCH_REV_PREFIX)19
+RELVER=0.9-$(BRANCH_REV_PREFIX)20
 LAUNCHERS=$(INTERNAL)/launchers
 SRC=$(LAUNCHERS)
 BUILD=build_$(SNAP)
@@ -69,14 +69,12 @@ endif
 
 #  common to all platforms
 
-MANIFEST=$(SNAP)/RunChandler$(SCRIPT_EXTENSION) \
-         $(SNAP)/RunPython$(SCRIPT_EXTENSION) \
+MANIFEST=$(SNAP)/RunPython$(SCRIPT_EXTENSION) \
          $(SNAP)/InstallPlugin$(SCRIPT_EXTENSION) \
          $(LAUNCHER_FILES) \
          $(LIB_FILES)
 
 scripts:
-	cp -p $(LAUNCHERS)/scripts/RunChandler.$(SNAP).$(PLATFORM) $(BUILD_ROOT)/$(SNAP)/RunChandler$(SCRIPT_EXTENSION)
 	cp -p $(LAUNCHERS)/scripts/RunPython.$(SNAP).$(PLATFORM) $(BUILD_ROOT)/$(SNAP)/RunPython$(SCRIPT_EXTENSION)
 	cp -p $(LAUNCHERS)/scripts/InstallPlugin.$(SNAP).$(PLATFORM) $(BUILD_ROOT)/$(SNAP)/InstallPlugin$(SCRIPT_EXTENSION)
 
