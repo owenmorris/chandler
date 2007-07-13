@@ -55,7 +55,7 @@ def inbound(peer, text, filter=None, allowDeletion=False, debug=False):
 
         if rsExternal is not None:
 
-            if item is not None: # Item already exists
+            if item is not None and not getattr(item, '_fake', False): # Item already exists
                 if not pim.has_stamp(item, shares.SharedItem):
                     shares.SharedItem(item).add()
                 shared = shares.SharedItem(item)
