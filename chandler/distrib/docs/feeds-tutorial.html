@@ -145,10 +145,11 @@ the Chandler executable is
 <h3>Starting Chandler</h3>
 
 <p>When developing for Chandler you often need to pass parameters
-to Chandler on startup. To make this easy, you should run Chandler from
-the command prompt using the <code>RunChandler</code> startup script that is
-  located in the <code>release</code> subdirectory. Here are a few
-  parameters that will be useful while developing our parcel:</p>
+to Chandler on startup. To make this easy, you should run
+<code>Chandler.py</code> from the command prompt using the
+<code>RunPython</code> script that is
+located in the <code>release</code> subdirectory. Here are a few
+parameters that will be useful while developing our parcel:</p>
 <dl>
   <dt> </dt>
   <dt><code>-c, --create</code></dt>
@@ -168,11 +169,11 @@ installed version of Chandler.</dd>
 <p>For example, to start Chandler with a fresh repository that is stored in the
 current directory, with the web server running, use all three parameters.</p>
 <p>On Linux or Macintosh type:</p>
-<pre class="code">$ ./release/RunChandler --create -W -P .</pre>
+<pre class="code">$ ./release/RunPython Chandler.py --create -W -P .</pre>
 <p>On Windows, when using <a href="http://www.cygwin.com/">cygwin</a>, type: </p>
-<pre class="code">$ ./release/RunChandler.bat --create -W -P .</pre>
+<pre class="code">$ ./release/RunPython.bat Chandler.py--create -W -P .</pre>
 <p>If you&#x2019;re not using <a href="http://www.cygwin.com/">cygwin</a> type:</p>
-<pre class="code">$ release\RunChandler.bat --create -W -P .</pre>
+<pre class="code">$ release\RunPython.bat Chandler.py --create -W -P .</pre>
 <p class="callout"><strong>Note:</strong> The web server can also be started from the &quot;Test&quot; menu, using the &quot;Activate built-in web server&quot; menu item. </p>
 <p class="callout"><strong>Note:</strong> If you are getting an Internal Error message you may need to add the --catch=never parameter. </p>
 
@@ -605,7 +606,7 @@ could refer to the &#x201c;NewFeedChannel&#x201d; <code>MenuItem</code> like thi
 <p>To see if everything is working start Chandler with a fresh repository, and
 run the web server:</p>
 
-<pre class="code">$ ./release/RunChandler --create -W</pre>
+<pre class="code">$ ./release/RunPython Chandler.py --create -W</pre>
 
 <p>Now use your favorite web browser to go to
   <a href="http://localhost:1888/repo/">http://localhost:1888/repo/</a>. On the page that is displayed, you should
