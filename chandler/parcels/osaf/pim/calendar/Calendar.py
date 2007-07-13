@@ -2886,8 +2886,11 @@ class TriageStatusReminder(RelativeReminder):
         will change their triage status to NOW at the right time.
         """
         view = self.itsView
-        view.watchCollectionQueue(self, EventStamp.getCollection(view),
-                                  'onCollectionNotification')
+        
+        # @@@ [grant]: Kludge for Bug 9944: watch all Notes rather than
+        # EventStamp.getCollection(view).
+        allNotes = schema.ns("osaf.pim", view).noteCollection
+        view.watchCollectionQueue(self, allNotes, 'onCollectionNotification')
                                           
     def onCollectionNotification(self, op, collection, name, other, dirties):
         if op in ('changed', 'add'):
