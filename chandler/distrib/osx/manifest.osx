@@ -106,7 +106,6 @@ ChandlerApp
 
 src=chandler/release
 dest=Contents/Resources/release
-RunChandler
 RunPython
 
 src=chandler/release/Library/Frameworks/Python.framework

@@ -111,6 +111,5 @@ pythonw.exe.manifest
 # and the launch scripts
 src=chandler/release
 dest=release
-RunChandler.bat
 RunPython.bat
 

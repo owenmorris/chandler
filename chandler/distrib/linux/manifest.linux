@@ -110,6 +110,5 @@ chandler
 # and the launch scripts
 src=chandler/release
 dest=release
-RunChandler
 RunPython
 

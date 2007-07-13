@@ -111,6 +111,5 @@ pythonw_d.exe.manifest
 # and the launch scripts
 src=chandler/debug
 dest=debug
-RunChandler.bat
 RunPython.bat
 

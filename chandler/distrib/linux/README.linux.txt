@@ -17,14 +17,14 @@ things.  For details on how to build, please see:
 
 * Running Chandler *
 
-To run chandler, use the executable "RunChandler" in the release or debug
-directory, like so:
+To run chandler, use the executable "chandler" or "chandlerDebug" in the
+base directory, like so:
 
-  % ./release/RunChandler
+  % ./chandler
 
 or, if you have a "debug" version:
 
-  % ./debug/RunChandler
+  % ./chandlerDebug
 
 If you aren't sure which you have, you can run:
 
@@ -32,7 +32,7 @@ If you aren't sure which you have, you can run:
 
 * Latest Release *
 
-Download the new Chandler 0.7Alpha3 milestone for a sneak peak at features we are implementing for the 0.7 release. For more details go to...
+Download the new Chandler 0.7Alpha5 milestone for a sneak peak at features we are implementing for the 0.7 release. For more details go to...
 
-  http://chandler-dev.osafoundation.org/newinalpha3.php
+  http://chandlerproject.org
 

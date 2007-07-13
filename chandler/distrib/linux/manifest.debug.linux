@@ -111,6 +111,5 @@ chandlerDebug
 # and the launch scripts
 src=chandler/debug
 dest=debug
-RunChandler
 RunPython
 

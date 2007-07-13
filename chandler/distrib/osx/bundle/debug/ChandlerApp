@@ -7,4 +7,4 @@ unset CHANDLERHOME CHANDLERBIN
 cd "$(dirname "${0}")"
 execdir="$PWD"
 resdir="$(dirname "${execdir}")/Resources"
-exec "${resdir}/debug/RunChandler"
+exec "${resdir}/debug/RunPython" "${resdir}/Chandler.py"
