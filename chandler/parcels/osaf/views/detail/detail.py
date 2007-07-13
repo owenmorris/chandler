@@ -1723,16 +1723,25 @@ class RecurrenceAttributeEditor(ChoiceAttributeEditor):
             # If the old choice was Custom, make sure the user really wants to
             # lose the custom setting
             if oldChoice == RecurrenceAttributeEditor.customIndex:
+                # bug 9732, popping up wx.MessageBox triggers
+                # onLoseFocusFromWidget, which will result in an inappropriate
+                # SetAttributeValue call
+                # prematurely, so set the control back to its original value
+                # (custom) first
+                self.SetControlValue(control, oldChoice)
+                
                 msg = _(u"The custom recurrence rule on this event will be lost "
                         "if you change it, and you won't be able to restore it."
                         "\n\nAre you sure you want to do this?")
                 caption = _(u"Discard custom recurrence?")
+
                 if wx.MessageBox(msg, caption, style = wx.YES_NO,
                                  parent=wx.GetApp().mainFrame) == wx.NO:
                     # No: Reselect 'custom' in the menu
-                    self.SetControlValue(control, oldChoice)
+    
                     return
 
+            self.SetControlValue(control, newChoice)
             self.SetAttributeValue(self.item, self.attributeName, 
                                    newChoice)
 
