@@ -18,6 +18,7 @@ from util.testcase import SingleRepositoryTestCase
 from repository.item.Item import Item
 import osaf.pim as pim
 import datetime, time
+from osaf.mail.message import messageTextToKind
 
 
 def additional_tests():
@@ -39,7 +40,7 @@ class ProxyTestCase(SingleRepositoryTestCase):
     def setUp(self):
         if self.sandbox is None:
             super(ProxyTestCase, self).setUp()
-            self.sandbox = Item("sandbox", self.view, None)
+            type(self).sandbox = Item("sandbox", self.view, None)
             del self.view
         view = self.sandbox.itsView
 
@@ -421,8 +422,46 @@ class ProxyEditStateTestCase(ProxyTestCase):
         # However, third wasn't altered by the last change, so its
         # lastModified should be unchanged.
         self.failUnlessEqual(saveLastModified, third.itsItem.lastModified)
+        
+    def testChangeCC(self):
 
+#        email = pim.mail.EmailAddress(itsParent=self.sandbox, fullName=u'Tommy Totoro',
+#                             emailAddress=u'totoro@example.com')
+                             
+        mei = pim.mail.EmailAddress(itsParent=self.sandbox, fullName=u'Mei Kusakabe',
+                          emailAddress=u'mei@totoro.example.com')
 
+        catbus = pim.mail.EmailAddress(itsParent=self.sandbox,
+                          fullName=u'Nekobasu',
+                          emailAddress=u'cat-bus@totoro.example.com')
+
+        mail = messageTextToKind(self.sandbox.itsView,
+            "From: Nekobasu <cat-bus@totoro.example.com\r\n"
+            "To: Mei Kusakabe <mei@totoro.example.com\r\n"
+            "Subject: Do you need a ride home?\r\n"
+            "Content-Type: text/plain; charset='US-ASCII'"
+            "\r\n"
+            "I think it's raining!\r\n"
+        )
+        mail.itsItem.lastModification = pim.Modification.created
+        
+        pim.mail.getCurrentMeEmailAddresses(mei.itsView).add(mei)
+
+        event = pim.EventStamp(mail)
+        event.add()
+        event.rruleset = self.rruleset
+        
+        pim.CHANGE_THIS(mail.itsItem).displayName = u"You bet I do!"
+
+        firstItem = event.getFirstOccurrence().itsItem
+        
+        self.failIf(firstItem.hasLocalAttributeValue(
+                        pim.mail.MailStamp.ccAddress.name)
+        )
+        
+        self.failUnless(mei is mail.fromAddress)
+        self.failUnless(catbus in mail.ccAddress)
+            
 if __name__ == "__main__":
     from util.test_finder import ScanningLoader
 

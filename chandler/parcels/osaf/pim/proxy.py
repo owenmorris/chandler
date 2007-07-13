@@ -93,10 +93,7 @@ class Container(object):
                     added.add(change[2])
                 elif change[1].startswith('remove'):
                     removed.add(change[2])
-                elif change[1] == 'clear':
-                    values = ()
-                    break
-                elif change[1] == 'set':
+                elif change[1] in ('append', 'clear', 'append'):
                     values = ()
                     break
                     
@@ -131,6 +128,9 @@ class Container(object):
     def add(self, val):
         self.proxy.appendChange(self.descriptor, 'add', val)
         
+    def append(self, val):
+        self.proxy.appendChange(self.descriptor, 'append', val)
+        
     def remove(self, val):
         self.proxy.appendChange(self.descriptor, 'remove', val)
 
@@ -162,6 +162,11 @@ class MultiValue(SimpleValue):
             return 1
         else:
             return 0
+
+    def append(self, obj, val):
+        existing = getattr(obj, self.descriptor.name)
+        existing.append(val)
+        return 1
         
     def remove(self, obj, val):
         existing = getattr(obj, self.descriptor.name)
@@ -340,38 +345,44 @@ class UserChangeProxy(object):
         who = None # We will mark this message as "edited by" this user.
     
         if stamping.has_stamp(item, mail.MailStamp):
-            # For Mail items, we want to update the From: address to match
-            # something in the user's list of addresses (Bug 8534).
-            message = mail.MailStamp(item)
-            meAddresses = mail.getCurrentMeEmailAddresses(item.itsView)
-            sender = message.getSender()
+            # For Mail items, we want to update the From: address of the master
+            # to match something in the user's list of addresses (Bug 8534).
+            # We actually want to bypass all proxying here, and apply the
+            # CC/From header changes to the master item.
+            mailItem = getattr(item, 'proxiedItem', item)
+            message = mail.MailStamp(getattr(mailItem, 'inheritFrom', mailItem))
             
-            if sender in meAddresses:
-                # Already addressed by this user; don't need to do
-                # anything more here.
-                who = sender
-            else:
-                # Try to find a matching recipient; any field will do
-                # (so far as arguments to getRecipients() go, we've already
-                # preferentially excluded the sender, but should still check
-                # originators & bcc). Also, if we're just now marking the item
-                # as edited for the first time, make sure the (old) sender's in
-                # the CC list.
-                addSenderToCC = (sender is not None) and \
-                                (items.Modification.edited not in item.modifiedFlags)
-                for recipient in message.getRecipients():
-                    if who is None and recipient in meAddresses:
-                        who = recipient
-                    if addSenderToCC and sender is recipient:
-                        addSenderToCC = False
-                if who is None:
-                    # No match in for loop; use the current "me" address
-                    who = me
-                if addSenderToCC:
-                    message.ccAddress.append(sender)
-
-                # Update the from address
-                message.fromAddress = who
+            if stamping.has_stamp(message, mail.MailStamp):
+                meAddresses = mail.getCurrentMeEmailAddresses(item.itsView)
+                sender = message.getSender()
+    
+                if sender in meAddresses:
+                    # Already addressed by this user; don't need to do
+                    # anything more here.
+                    who = sender
+                else:
+                    # Try to find a matching recipient; any field will do
+                    # (so far as arguments to getRecipients() go, we've already
+                    # preferentially excluded the sender, but should still check
+                    # originators & bcc). Also, if we're just now marking the item
+                    # as edited for the first time, make sure the (old) sender's in
+                    # the CC list.
+                    addSenderToCC = (sender is not None) and \
+                                    (items.Modification.edited not in item.modifiedFlags)
+                    for recipient in message.getRecipients():
+                        if who is None and recipient in meAddresses:
+                            who = recipient
+                        if addSenderToCC and sender is recipient:
+                            addSenderToCC = False
+                    if who is None:
+                        # No match in for loop; use the current "me" address
+                        who = me
+                    if addSenderToCC:
+                        
+                        message.ccAddress.append(sender)
+    
+                    # Update the from address
+                    message.fromAddress = who
                     
         if who is None:
             who = item.getMyModifiedByAddress()
@@ -444,7 +455,7 @@ def _multiChange(item, change):
 
     if cardinality == 'list':
         newValue = list(iter(oldValue))
-        if change[1] == 'add':
+        if change[1] in ('add', 'append'):
             newValue.append(change[2])
         else:
             newValue.remove(change[2])
@@ -479,7 +490,7 @@ class CHANGE_THIS(Changer):
             return method(item, *change[2:])
         elif changeType == 'add' and change[2] is schema.ns("osaf.pim", item.itsView).trashCollection:
             event.deleteThis()
-        elif changeType in ('add', 'remove'):
+        elif changeType in ('add', 'append', 'remove'):
             attrName, newValue = _multiChange(item, change)
             EventStamp(item).changeThis(attrName, newValue) 
         return 1
@@ -528,7 +539,7 @@ class CHANGE_ALL(Changer):
                     if stamping.has_stamp(item, change[2])
             )
             event.removeStampFromAll(change[2])
-        elif changeType in ('add', 'remove'):
+        elif changeType in ('add', 'remove', 'append'):
             attr = change[0].descriptor.name
             self._updateEdited(
                 item for item in event.modifications
@@ -590,7 +601,8 @@ class CHANGE_FUTURE(CHANGE_ALL):
                     if not item.hasModifiedAttribute(attr)
             )
             event.changeThisAndFuture(attr, change[3])
-        elif changeType in ('addStamp', 'removeStamp', 'add', 'remove'):
+        elif changeType in ('addStamp', 'removeStamp', 'add', 'remove',
+                            'append'):
             event.changeThisAndFuture()
             return super(CHANGE_FUTURE, self).makeChange(item, change)
         else:
