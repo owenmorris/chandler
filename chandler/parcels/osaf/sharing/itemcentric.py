@@ -105,7 +105,9 @@ def inbound(peer, text, filter=None, allowDeletion=False, debug=False):
                     shares.SharedItem(item).addPeerState(state, peer)
 
                     if itemToReturn is None:
-                        itemToReturn = item
+                        # the item to return should always be a master, not
+                        # a modification
+                        itemToReturn = getattr(item, 'inheritFrom', item)
 
             else:
                 logger.info("Out-of-sequence update for %s", uuid)
