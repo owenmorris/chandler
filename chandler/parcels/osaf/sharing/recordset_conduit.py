@@ -959,6 +959,11 @@ class MonolithicRecordSetConduit(RecordSetConduit):
                 errors.annotate(e, "Failed to deserialize",
                     details=text.decode('utf-8'))
                 raise
+            for state in self.share.states:
+                alias = self.share.states.getAlias(state)
+                if alias not in inbound:
+                    # remote deletion
+                    inbound[alias] = None
             return inbound, extra, False
 
         else:
@@ -975,7 +980,7 @@ class MonolithicRecordSetConduit(RecordSetConduit):
             else:
                 rs = state.agreed + state.pending
                 fullToSend[alias] = rs
-        
+
         extra['monolithic'] = True
         text = self.serializer.serialize(self.itsView, fullToSend, **extra)
         doLog("Sending to server [%s]", text)
