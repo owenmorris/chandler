@@ -569,8 +569,10 @@ class Share(pim.ContentItem):
             necessary """
         sharedItem = SharedItem(item)
         if not pim.has_stamp(item, SharedItem):
+            logger.info("Stamping item %s as SharedItem", item.itsUUID)
             sharedItem.add()
         if item not in self.items:
+            logger.info("Adding item %s to sharedIn", item.itsUUID)
             sharedItem.sharedIn.add(self)
 
 
@@ -580,8 +582,10 @@ class Share(pim.ContentItem):
         if not pim.has_stamp(item, SharedItem):
             return
         sharedItem = SharedItem(item)
+        logger.info("Removing item %s from sharedIn", item.itsUUID)
         sharedItem.sharedIn.remove(self)
         if not sharedItem.sharedIn:
+            logger.info("Unstamping item %s as SharedItem", item.itsUUID)
             sharedItem.remove()
 
     def hasConflicts(self):

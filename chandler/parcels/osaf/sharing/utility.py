@@ -84,30 +84,38 @@ def inspect(rv, url, username=None, password=None):
     if url.startswith('webcal'):
         url = 'http' + url[6:]
 
+
+    def _catchError(method):
+        try:
+            return zanshin.util.blockUntil(method, rv, url,
+                username=username, password=password)
+
+        except zanshin.webdav.ConnectionError, e:
+            raise errors.CouldNotConnect(_(u"Unable to connect to server. Received the following error: %(error)s") % {'error': e})
+
+        except M2Crypto.BIO.BIOError, e:
+            raise errors.CouldNotConnect(_(u"Unable to connect to server. Received the following error: %(error)s") % {'error': e})
+
+        except zanshin.http.HTTPError, e:
+
+            if e.status == 401: # Unauthorized
+                raise errors.NotAllowed("Not authorized (%s)" % e.message)
+            elif e.status == 404: # Not Found
+                raise errors.NotFound("Not found (%s)" % e.message)
+
+
     try:
-        result = zanshin.util.blockUntil(getOPTIONS, rv, url,
-            username=username, password=password)
+        result = _catchError(getOPTIONS)
+    except errors.NotFound:
+        # Google returns 404 if you OPTIONS a .ics URL
+        return _catchError(getHEADInfo)
 
-        if 'dav' in result:
-            return zanshin.util.blockUntil(getDAVInfo, rv, url,
-                username=username, password=password)
+    if 'dav' in result:
+        return _catchError(getDAVInfo)
 
-        else:
-            return zanshin.util.blockUntil(getHEADInfo, rv, url,
-                username=username, password=password)
+    else:
+        return _catchError(getHEADInfo)
 
-    except zanshin.webdav.ConnectionError, e:
-        raise errors.CouldNotConnect(_(u"Unable to connect to server. Received the following error: %(error)s") % {'error': e})
-
-    except M2Crypto.BIO.BIOError, e:
-        raise errors.CouldNotConnect(_(u"Unable to connect to server. Received the following error: %(error)s") % {'error': e})
-
-    except zanshin.http.HTTPError, e:
-
-        if e.status == 401: # Unauthorized
-            raise errors.NotAllowed("Not authorized (%s)" % e.message)
-        elif e.status == 404: # Not Found
-            raise errors.NotFound("Not found (%s)" % e.message)
 
 
 
@@ -774,7 +782,7 @@ def getOPTIONS(rv, url, username=None, password=None):
     request = zanshin.http.Request('OPTIONS', path, None, None)
     d = handle.addRequest(request)
 
-    def handleHeadResponse(resp):
+    def handleOptionsResponse(resp):
         resultDict = { }
 
         if resp.status == http.FORBIDDEN:
@@ -800,7 +808,7 @@ def getOPTIONS(rv, url, username=None, password=None):
 
         return resultDict
 
-    return d.addCallback(handleHeadResponse)
+    return d.addCallback(handleOptionsResponse)
 
 
 

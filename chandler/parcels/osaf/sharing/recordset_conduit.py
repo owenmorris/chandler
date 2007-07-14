@@ -217,11 +217,14 @@ class RecordSetConduit(conduits.BaseConduit):
                 logger.info("Subscribed collection name: %s",
                     self.share.displayName)
 
+
+
+
             # Add remotely changed items
             for alias in inbound.keys():
                 deletion = False
                 rs = inbound[alias]
-                if rs is None: # skip deletions
+                if rs is None: # inbound deletion
                     masterUUID, recurrenceID = splitUUID(rv, alias)
                     if alias == masterUUID:
                         doLog("Inbound removal: %s", alias)
@@ -239,7 +242,7 @@ class RecordSetConduit(conduits.BaseConduit):
                         if self.hasState(alias):
                             # change inbound to a fake state based on the
                             # master's state
-                            state = self.getState(alias)                            
+                            state = self.getState(alias)
                             masterState = self.getState(masterUUID)
                             records = masterState.agreed.inclusions
                             masterRecordTypes = [type(r) for r in records]
@@ -255,7 +258,7 @@ class RecordSetConduit(conduits.BaseConduit):
                         else:
                             doLog("Ignoring unmodification, no state for alias: %s", alias)
 
-                else:
+                else: # inbound change
                     uuid = translator.getUUIDForAlias(alias)
                     if uuid:
                         item = rv.findUUID(uuid)
@@ -319,12 +322,6 @@ class RecordSetConduit(conduits.BaseConduit):
                 toVersion=rv.itsVersion):
                 if changedUuid in self.share.contents:
                     locallyChangedUuids.add(changedUuid)
-
-            # for changedUuid in locallyChangedUuids:
-            #     print "----"
-            #     print "Item Changes for", changedUuid, rv.findUUID(changedUuid).displayName
-            #     rv.repository.printItemChanges(rv.findUUID(changedUuid),
-            #         fromVersion=version, toVersion=rv.itsVersion)
 
 
         localCount = len(locallyChangedUuids)
@@ -740,7 +737,7 @@ class RecordSetConduit(conduits.BaseConduit):
                 if item is not None and item in self.share.contents:
                     self.share.removeSharedItem(item)
                     self.share.contents.remove(item)
-                    doLog("Locally removing  alias: %s", alias)
+                    logger.info("Locally removing  alias: %s", alias)
                     receiveStats['removed'].add(alias)
 
                 self.removeState(alias)
@@ -763,9 +760,9 @@ class RecordSetConduit(conduits.BaseConduit):
                     masterAlias = translator.getAliasForItem(masterItem)
                     if masterAlias not in remotelyRemoved:
                         pim.EventStamp(item).unmodify(partial=True)
-                        doLog("Locally unmodifying alias: %s", alias)
+                        logger.info("Locally unmodifying alias: %s", alias)
                     else:
-                        doLog("Master was remotely removed for alias: %s",
+                        logger.info("Master was remotely removed for alias: %s",
                             alias)
                     # Make sure not to remodify an unmodification...
                     with pim.EventStamp(item).noRecurrenceChanges():
@@ -847,7 +844,7 @@ class RecordSetConduit(conduits.BaseConduit):
 
 
         for alias in statesToRemove:
-            doLog("Removing state: %s", alias)
+            logger.info("Removing state: %s", alias)
             self.removeState(alias)
             uuid = translator.getUUIDForAlias(alias)
             if uuid:
