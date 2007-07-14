@@ -234,8 +234,13 @@ class ChandlerProxy(RecurrenceProxy):
         """
         Add self to the given collection, or queue the add.
         """
-        if not collection in self.collections:
+        trash = schema.ns("osaf.pim", collection.itsView).trashCollection
+        itemInTrash = collection is not trash and trash in self.collections
+        
+        if itemInTrash or not collection in self.collections:
             self.collections.add(collection)
+            if itemInTrash:
+                self.collections.remove(trash)
 
     def removeFromCollection(self, collection, cutting=False):
         """
