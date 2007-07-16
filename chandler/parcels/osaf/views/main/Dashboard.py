@@ -103,13 +103,16 @@ class DashboardBlock(Table):
         itemsToPurge = set()
         view = self.itsView
         attrsToFind = ((pim.EventStamp.modificationFor.name, None),
-                       ('_sectionTriageStatus', None))
+                       ('_sectionTriageStatus', None),
+                       ('_sectionTriageStatusChanged', None))
         for key in self.contents.iterkeys():
-            master, sectionTS = view.findValues(key, *attrsToFind)
-            if sectionTS is not None:
+            master, sectionTS, sectionTSChanged = view.findValues(key, \
+                                                                  *attrsToFind)
+            hasSectionTS = sectionTS or sectionTSChanged
+            if hasSectionTS:
                 itemsToPurge.add(key)
             if master is not None:
-                if sectionTS is not None:
+                if hasSectionTS:
                     itemsToPurge.add(master)
                 recurringEventsToHandle.add(master)
         
