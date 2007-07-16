@@ -447,6 +447,7 @@ class DateTimeAttributeEditor(StringAttributeEditor):
         if (dateWidth + spaceWidth + timeWidth + tzWidth) > rect.width:
             if preferDate:
                 DrawingUtilities.DrawClippedTextWithDots(dc, dateString, rect)
+                hideTime = True # suppress timezone display, bug 9942.
             else:
                 if tzWidth:
                     rect.width -= tzWidth
