@@ -88,16 +88,19 @@ def GetItemRemovalState(selectedCollection, item, view):
     else:
         memberItem = getProxy(u'ui', item).getMembershipItem()
         if selectedCollection is allCollection:
-            # Items in the dashboard can't be removed, they're always deleted
+            # Items in the dashboard because they're in a mine collection
+            # can't be removed, they're always deleted
             if GetReadOnlyCollection(item, view) is None:
-                return DELETE_DASHBOARD
+                for collection in memberItem.collections or []:
+                    if collection in pim_ns.mine.sources:
+                        return DELETE_DASHBOARD
             else:
                 return IN_READ_ONLY_COLLECTION
+
+        if len(memberItem.appearsIn) > 1:
+            return REMOVE_NORMAL
         else:
-            if len(memberItem.appearsIn) > 1:
-                return REMOVE_NORMAL
-            else:
-                return DELETE_LAST
+            return DELETE_LAST
 
 def ShowDeleteDialog(view=None, selectedCollection=None,
                      itemsAndStates=None, originalAction='remove', modal=True):
