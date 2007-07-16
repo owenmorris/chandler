@@ -1,0 +1,33 @@
+--- python-dateutil-1.1/dateutil/rrule.py	2007-07-13 18:43:29.989385600 -0700
++++ python-dateutil-1.1-patched/dateutil/rrule.py	2007-07-13 18:42:19.037361600 -0700
+@@ -439,7 +439,12 @@
+ 
+         total = 0
+         count = self._count
++        years_missed = 0
+         while True:
++            if total==0 and years_missed > 20:
++                # we've iterated over more than 20 years and found nothing, give
++                # up
++                return
+             # Get dayset with the right frequency
+             dayset, start, end = getdayset(year, month, day)
+ 
+@@ -516,6 +521,8 @@
+             # Handle frequency and interval
+             fixday = False
+             if freq == YEARLY:
++                if total==0:
++                    years_missed += 1
+                 year += interval
+                 if year > datetime.MAXYEAR:
+                     self._len = total
+@@ -524,6 +531,8 @@
+             elif freq == MONTHLY:
+                 month += interval
+                 if month > 12:
++                    if total==0:
++                        years_missed += 1
+                     div, mod = divmod(month, 12)
+                     month = mod
+                     year += div

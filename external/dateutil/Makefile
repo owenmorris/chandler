@@ -1,6 +1,6 @@
 
 VERSION=1.1
-RELVER=$(VERSION)-$(BRANCH_REV_PREFIX)4
+RELVER=$(VERSION)-$(BRANCH_REV_PREFIX)5
 DATEUTIL=$(BUILD_ROOT)/dateutil
 SRC=python-dateutil-$(VERSION)
 BUILD=build_$(SNAP)
@@ -23,7 +23,7 @@ expand: $(SRC)-expanded
 apply: patches-$(VERSION)
 	patch -Nup0 < patches-$(VERSION); echo ok
 
-build: expand #apply
+build: expand apply
 	cd $(SRC); \
 	MACOSX_DEPLOYMENT_TARGET=$(MACOSX_DEPLOYMENT_TARGET) $(PYTHON) setup.py \
           build --build-base=$(BUILD) $(DIST_OPT) \
