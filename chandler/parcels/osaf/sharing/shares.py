@@ -573,7 +573,7 @@ class Share(pim.ContentItem):
             sharedItem.add()
         if item not in self.items:
             logger.info("Adding item %s to sharedIn", item.itsUUID)
-            sharedItem.sharedIn.add(self)
+            self.items.add(item)
 
 
     def removeSharedItem(self, item):
@@ -583,7 +583,7 @@ class Share(pim.ContentItem):
             return
         sharedItem = SharedItem(item)
         logger.info("Removing item %s from sharedIn", item.itsUUID)
-        sharedItem.sharedIn.remove(self)
+        self.items.remove(item)
         if not sharedItem.sharedIn:
             logger.info("Unstamping item %s as SharedItem", item.itsUUID)
             sharedItem.remove()
