@@ -396,7 +396,6 @@ def makeCalendarArea(parcel, oldVersion):
                 makeLabel(parcel, _(u'stat&us')),
                 makeSpacer(parcel, width=8),
                 makeEditor(parcel, 'EditTransparency',
-                    baseClass=CalendarTransparencyAEBlock,
                     viewAttribute=pim.EventStamp.transparency.name,
                     presentationStyle={
                         'format': 'popup',
@@ -652,7 +651,7 @@ def makeMarkupBar(parcel, oldVersion):
                                          icon="TriageDone",
                                          helpString=messages.STAMP_TRIAGE_HELP,
                                          event=buttonPressed,
-                                         viewAttribute='triageStatus',
+                                         viewAttribute='_triageStatus',
                                          stretchFactor=0.0,
                                          minimumSize=SizeType(41, 20))
 

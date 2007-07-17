@@ -1281,12 +1281,6 @@ class CalendarTransparencyAreaBlock(TransparencyConditionalBehavior,
                                     DetailSynchronizedContentItemDetailBlock):
     pass
 
-class CalendarTransparencyAEBlock(TransparencyConditionalBehavior,
-                                  DetailSynchronizedAttributeEditorBlock):
-    pass
-
-
-
 class TimeZoneConditionalBehavior(EventConditionalBehavior):
     def shouldShow(self, item):
         # Only show for events
