@@ -1340,6 +1340,7 @@ class SidebarBranchPointDelegate(BranchPoint.BranchPointDelegate):
             if filterClass is not MissingClass:
                 tupleList.append(filterClass)
 
+            tupleList.append(sidebar.showSearch)
             tupleKey = tuple(tupleList)
 
             # Bug 5884: in order to overlay the allCollection remove
@@ -1386,8 +1387,9 @@ class SidebarBranchPointDelegate(BranchPoint.BranchPointDelegate):
                 # for debugging purposes
                 displayName = u" and ".join ([theItem.displayName for theItem in collectionList])
 
-                if filterClass is pim.EventStamp and \
-                                    UserCollection(key).dontDisplayAsCalendar:
+                if (filterClass is pim.EventStamp and
+                    UserCollection(key).dontDisplayAsCalendar and
+                    not sidebar.showSearch):
                     # filtering on calendar in the dashboard is a special case,
                     # we can't filter out both master events and intersect
                     # with events, so filter on nonMasterEvents
@@ -1419,8 +1421,8 @@ class SidebarBranchPointDelegate(BranchPoint.BranchPointDelegate):
                     # anything but the calendar view. Master events in tables should
                     # never be edited directly.  If view and filter are ever
                     # decoupled, this will need to be reworked.
-                    if (filterClass is not pim.EventStamp or 
-                        UserCollection(key).dontDisplayAsCalendar):
+                    if (not sidebar.showSearch and
+                        filterClass is not pim.EventStamp):
         
                         newKey = DifferenceCollection(itsView=self.itsView,
                                                       sources=[key, pim_ns.masterEvents],
@@ -1471,14 +1473,15 @@ class SidebarBranchPointDelegate(BranchPoint.BranchPointDelegate):
         return key
 
     def search(self, searchCollection):
+        import PyLucene
         try:
             view = self.itsView
 
             quickEntryBlock = Block.Block.findBlockByName ("ApplicationBarQuickEntry")
             results = view.searchItems (quickEntryBlock.lastSearch)
 
-            searchResults = schema.ns('osaf.pim', view).searchResults
-            searchResults.inclusions.clear()
+            resultsUnfiltered = schema.ns('osaf.pim', view).searchResultsUnfiltered
+            resultsUnfiltered.inclusions.clear()
 
             sidebarCollection = schema.ns("osaf.app", self).sidebarCollection
             for collection in sidebarCollection:
@@ -1488,17 +1491,17 @@ class SidebarBranchPointDelegate(BranchPoint.BranchPointDelegate):
 
             app = wx.GetApp()
             for item in search.processResults(results):
-                if item not in searchResults and item in searchCollection:
-                    searchResults.add(item)
+                if item not in resultsUnfiltered and item in searchCollection:
+                    resultsUnfiltered.add(item)
                     # Update the display every so often 
-                    if len (searchResults) % 50 == 0:
+                    if len (resultsUnfiltered) % 50 == 0:
                         app.propagateAsynchronousNotifications()
                         app.Yield(True)
                     for collection in collectionList:
                         if item in collection:
                             UserCollection (collection).searchMatches += 1
 
-            if len(searchResults) == 0:
+            if len(resultsUnfiltered) == 0:
                 # For now we'll write a message to the status bar because it's easy
                 # When we get more time to work on search, we should write the message
                 # just below the search box in the toolbar.
@@ -1508,7 +1511,7 @@ class SidebarBranchPointDelegate(BranchPoint.BranchPointDelegate):
             Block.Block.findBlockByName('StatusBar').setStatusMessage (statusMessage)
             
         except PyLucene.JavaError, error:
-            message = unicosetStatusMessagee (error)
+            message = unicode(error)
             prefix = u"org.apache.lucene.queryParser.ParseException: "
             if message.startswith (prefix):
                 message = message [len(prefix):]

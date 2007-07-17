@@ -428,8 +428,13 @@ def installParcel(parcel, oldVersion=None):
          sources=[allCollection, events]
     )
 
-    searchResults = SmartCollection.update(
+    searchResultsUnfiltered = SmartCollection.update(
+        parcel, 'searchResultsUnfiltered',
+        displayName = messages.UNTITLED)
+    
+    searchResults = DifferenceCollection.update(
         parcel, 'searchResults',
+        sources = [searchResultsUnfiltered, masterEvents],
         displayName = messages.UNTITLED)
 
     TriageStatusReminder.update(parcel, 'triageStatusReminder')
