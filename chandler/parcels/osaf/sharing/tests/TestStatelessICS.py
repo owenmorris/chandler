@@ -51,7 +51,7 @@ class StatelessICS(testcase.DualRepositoryTestCase):
         coll = sharing.importFile(self.views[0], inFile, filters=filters)
 
         for item in coll:
-            uuidStr = item.itsUUID.str16()
+            uuidStr = item.icalUID
             self.assertEquals(item.displayName, items[uuidStr][0])
             self.assert_(not item.reminders)
             event = pim.EventStamp(item)
@@ -67,7 +67,7 @@ class StatelessICS(testcase.DualRepositoryTestCase):
         coll = sharing.importFile(self.views[0], inFile, filters=filters)
 
         for item in coll:
-            uuidStr = item.itsUUID.str16()
+            uuidStr = item.icalUID
             self.assertEquals(item.displayName, items[uuidStr][0])
             self.assert_(not item.reminders)
             event = pim.EventStamp(item)
@@ -79,7 +79,7 @@ class StatelessICS(testcase.DualRepositoryTestCase):
         coll = sharing.importFile(self.views[0], inFile)
 
         for item in coll:
-            uuidStr = item.itsUUID.str16()
+            uuidStr = item.icalUID
             self.assertEquals(item.displayName, items[uuidStr][0])
             if items[uuidStr][2] is None:
                 self.assert_(not item.reminders)
@@ -103,7 +103,7 @@ class StatelessICS(testcase.DualRepositoryTestCase):
             coll = sharing.importFile(self.views[1], outFile)
 
             for item in coll:
-                uuidStr = item.itsUUID.str16()
+                uuidStr = item.icalUID
                 self.assertEquals(item.displayName, items[uuidStr][0])
                 self.assert_(not item.reminders)
                 event = pim.EventStamp(item)

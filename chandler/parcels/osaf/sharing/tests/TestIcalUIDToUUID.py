@@ -28,11 +28,16 @@ class IcalUIDToUUIDTestCase(testcase.SingleRepositoryTestCase):
 
         sharing.importFile(self.view, os.path.join(sharePath, u"icaluid.ics"))
 
-        # This item had a UUID-friendly icalUID
-        self.assert_(self.view.findUUID('bed962e5-6042-11d9-be74-000a95bb2738'))
+        # This item had a UUID-friendly icalUID, but its UUID shouldn't be used
+        uid1 = 'BED962E5-6042-11D9-BE74-000A95BB2738'
+        item1 = sharing.findUID(self.view, uid1)
+        self.assert_(item1)
+        self.failIfEqual(item1.itsUUID.str16(), uid1)
 
         # This item did not have a UUID-friendly icalUID, so we hashed it
-        self.assert_(self.view.findUUID('92a2a53e-497e-9e95-4fc7-20840927796e'))
+        uid2 = 'Depeche-Mode'
+        item2 = sharing.findUID(self.view, uid1)
+        self.assert_(item2)
 
 if __name__ == "__main__":
     unittest.main()

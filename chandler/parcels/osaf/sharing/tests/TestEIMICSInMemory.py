@@ -71,7 +71,7 @@ class EIMICSInMemoryTestCase(testcase.DualRepositoryTestCase):
                   (u"dinner", datetime(2007, 3, 1, 18, 30, 0, 0, pacific))
                  ]
 
-        self.uuids = { }
+        self.icalUIDs = { }
 
         createdOn = datetime(2007, 3, 1, 10, 0, 0, 0, floating)
         for title, dt in titles:
@@ -79,7 +79,7 @@ class EIMICSInMemoryTestCase(testcase.DualRepositoryTestCase):
             n = event.itsItem
             n.createdOn = createdOn
             n.displayName = title
-            self.uuids[n.itsUUID] = n.displayName
+            self.icalUIDs[n.itsUUID] = n.displayName
             n.body = u"Here is the body"
             event.startTime = dt
             event.duration  = timedelta(hours=1)
@@ -154,10 +154,10 @@ class EIMICSInMemoryTestCase(testcase.DualRepositoryTestCase):
             "Sync operation mismatch")
 
         # Verify items are imported
-        for uuid in self.uuids:
-            n = view1.findUUID(uuid)
-            self.assertEqual(self.uuids[uuid], n.displayName)
-        item1 = view1.findUUID(testUuid)
+        for icalUID in self.icalUIDs:
+            n = sharing.findUID(view1, icalUID)
+            self.assertEqual(self.icalUIDs[icalUID], n.displayName)
+        item1 = sharing.findUID(view1, testUuid)
         self.assert_(item1 in self.share1.contents)
         self.assert_(item1.body == u"CHANGED")
         self.assert_(pim.has_stamp(item1, sharing.SharedItem))

@@ -12,7 +12,7 @@
 #   See the License for the specific language governing permissions and
 #   limitations under the License.
 
-from osaf.sharing import model, eim, RecordSet, translator
+from osaf.sharing import model, eim, RecordSet, translator, formats
 from osaf.sharing.translator import toICalendarDuration, toICalendarDateTime
 from ICalendar import (makeNaiveteMatch, attributesUnderstood,
                        parametersUnderstood)
@@ -80,15 +80,28 @@ vobjs should be a dictionary mapping UUIDs to vobject vobjs.  A
 dictionary is needed to handle recurrence, which may generate new vobjs.
 """
 
-def UUIDFromICalUID(uid):
-    try:
-        # See if uid is a valid repository UUID, if so we'll
-        # go ahead and use it for the new item's UUID.
-        uuid = UUID(uid)
-    except ValueError:
-        # Not in valid UUID format, so hash the icaluid to
-        # generate a 16-byte string we can use for uuid
-        uuid = UUID(md5.new(uid).digest())
+def UUIDFromICalUID(view, uid_to_uuid_map, uid):
+    """
+    When importing iCalendar, match up events by their uid if an item with that
+    icalUID or UUID exists.  Otherwise, randomize UUID, bug 9965.
+    """
+    uuid = uid_to_uuid_map.get(uid)
+    if uuid is None:
+        item = formats.findUID(view, uid)
+        if item is None:
+            try:
+                # See if uid is a valid repository UUID, if it is, and that UUID
+                # already exists, we'll use it
+                item = view.findUUID(UUID(uid))
+            except ValueError:
+                pass
+        
+        if item is None:
+            uuid = UUID()
+        else:
+            uuid = item.itsUUID
+        uid_to_uuid_map[uid] = uuid        
+        
     return str(uuid)
 
 def pruneDateTimeParam(vobj):
@@ -384,8 +397,6 @@ def hasTaskAndEvent(recordSet):
             break
     return task, event
 
-class DictWithAttributes(dict):
-    pass
 
 class ICSSerializer(object):
 
@@ -468,7 +479,8 @@ class ICSSerializer(object):
             uid = vobj.getChildValue('uid')
             if vobj.getChildValue('recurrence_id') is None:
                 masters[uid] = vobj
-        
+
+        uid_to_uuid_map = {}
         
         for vobj in chain(
                                 getattr(calendar, 'vevent_list', []),
@@ -572,7 +584,7 @@ class ICSSerializer(object):
                 # convert to EIM value
                 duration = toICalendarDuration(duration)                
 
-                uuid = UUIDFromICalUID(uid)
+                uuid = UUIDFromICalUID(view, uid_to_uuid_map, uid)
 
                 valarm = getattr(vobj, 'valarm', None)
                 
