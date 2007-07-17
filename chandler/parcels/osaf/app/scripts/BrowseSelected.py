@@ -17,11 +17,13 @@
 
 import osaf.framework.blocks.Block as Block
 from osaf import webserver
+from application import schema
 import webbrowser
 
 f = Block.Block.getFocusBlock()
+rv = f.itsView
 
-for server in webserver.Server.iterItems(f.itsView):
+for server in webserver.Server.iterItems(rv):
     if not server.isActivated():
         server.startup()
 
@@ -41,6 +43,6 @@ if i is not None:
     #    unicode.
 
     path = unicode(i.itsPath)[1:]
-
-    url = 'http://localhost:1888/repo%s' % path.encode('utf8')
+    port = schema.ns('osaf.app', rv).mainServer.port
+    url = 'http://localhost:%d/repo%s' % (port, path.encode('utf8'))
     webbrowser.open(url)

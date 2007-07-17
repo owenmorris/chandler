@@ -208,7 +208,7 @@ def getUserAgent():
 COMMAND_LINE_OPTIONS = {
     'parcelPath': ('-p', '--parcelPath', 's', None,  'PARCELPATH', 'Parcel search path'),
     'pluginPath': (''  , '--pluginPath', 's', 'plugins',  None, 'Plugin search path, relative to CHANDLERHOME'),
-    'webserver':  ('-W', '--webserver',  'b', False, 'CHANDLERWEBSERVER', 'Activate the built-in webserver'),
+    'webserver':  ('-W', '--webserver',  'v', [], 'CHANDLERWEBSERVER', 'Activate the built-in webserver'),
     'profileDir': ('-P', '--profileDir', 's', '',  'PROFILEDIR', 'location of the Chandler user profile directory (relative to CHANDLERHOME)'),
     'testScripts':('-t', '--testScripts','b', False, None, 'run all test scripts'),
     'scriptFile': ('-f', '--scriptFile', 's', None,  None, 'script file to execute after startup'),
@@ -286,6 +286,25 @@ def initDefaults(**kwds):
 
     return options
 
+
+def varArgsCallback(option, opt, value, parser, default):
+    value = []
+    rargs = parser.rargs
+    while rargs:
+        arg = rargs[0]
+        # Stop if we hit an arg like "--foo", "-a", "-fx", "--file=f", etc.
+        # (Taken verbatim from Python docs)
+        if ((arg[:2] == "--" and len(arg) > 2) or
+            (arg[:1] == "-" and len(arg) > 1 and arg[1] != "-")):
+            break
+        else:
+            value.append(arg)
+            del rargs[0]
+    if not value:
+        value.extend(default)
+    setattr(parser.values, option.dest, value)
+
+
 def initOptions(**kwds):
     """
     Load and parse the command line options, with overrides in **kwds.
@@ -301,8 +320,20 @@ def initOptions(**kwds):
                environName, helpText) in COMMAND_LINE_OPTIONS.iteritems():
 
         if environName and environName in os.environ:
+
+
             if optionType == 'b':
                 defaultValue = True
+
+            elif optionType =='v':
+                # If a type 'v' (variable # of args) flag is set via envvar,
+                # treat this as a regular string type, except make the envvar
+                # value a list.  The problem with this is that if the command
+                # line also has this flag, it doesn't go through the var-args
+                # callback, and therefore must have one and only one arg.
+                optionType = 's'
+                defaultValue = [os.environ[environName]]
+
             else:
                 defaultValue = os.environ[environName]
 
@@ -313,6 +344,18 @@ def initOptions(**kwds):
                               action='store_true',
                               default=defaultValue,
                               help=helpText)
+
+        elif optionType =='v':
+            # use the above varArgsCallback to handle flags with zero or
+            # more arguments.  defaultValue needs to be a list
+            parser.add_option(shortCmd,
+                              longCmd,
+                              dest=name,
+                              action="callback",
+                              callback=varArgsCallback,
+                              callback_args=(defaultValue,),
+                              help=helpText)
+
         else:
             parser.add_option(shortCmd,
                               longCmd,
@@ -886,8 +929,23 @@ class CertificateVerificationError(Exception):
         self.untrustedCertificates = untrustedCertificates
         
 
-def initTwisted():
+def initTwisted(view, options=None):
     from osaf.startup import run_reactor
+
+    # options.webserver can be:
+    # - None (don't start webserver)
+    # - a port number string (happens when env var is set but is overridden)
+    # - empty list (start with default port)
+    # - list of port number strings (start using the first one in list)
+    if options and options.webserver:
+        if isinstance(options.webserver, list):
+            port = int(options.webserver[0])
+        else:
+            port = int(options.webserver)
+        schema.ns('osaf.app', view).mainServer.port = port
+        # Commit so twisted thread can see the change
+        view.commit()
+
     run_reactor()
 
 def stopTwisted():

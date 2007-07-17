@@ -32,7 +32,7 @@ def installParcel(parcel, oldVersion=None):
 
 
 def start_servers(startup_item):
-    if getattr(Globals.options,'webserver',False):
+    if getattr(Globals.options, 'webserver', None) is not None:
         from osaf.startup import run_reactor
         # Start up all webservers
         run_reactor()

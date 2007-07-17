@@ -30,9 +30,9 @@ class TestFeedImporting(testcase.SingleRepositoryTestCase):
 
     def RemoteFeed(self):
 
-        Utility.initTwisted()
 
         view = self.view
+        Utility.initTwisted(view)
 
         url = u"http://wp.osafoundation.org/rss2"
         url = str(url)

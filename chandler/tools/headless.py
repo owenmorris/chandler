@@ -109,13 +109,19 @@ def getExports(**kw):
     return exports
 
 @exportMethod
-def go():
+def go(port=None):
 
     print "Igniting Twisted reactor..."
     if view.isNew():
         view.commit()
-    Globals.options.webserver = True
-    Utility.initTwisted()
+
+    if port is not None:
+        Globals.options.webserver = [str(port)]
+    else:
+        if Globals.options.webserver is None:
+            Globals.options.webserver = []
+
+    Utility.initTwisted(view, options=Globals.options)
     Utility.initWakeup(view)
     print "...ready"
 
@@ -256,10 +262,12 @@ def show(arg=None, recursive=False):
 @exportMethod
 def browse(arg=None):
     item = _argToItem(arg)
+    rv = item.itsView
+    port = schema.ns('osaf.app', rv).mainServer.port
 
     import webbrowser
     path = unicode(item.itsPath)[1:]
-    url = 'http://localhost:1888/repo%s' % path.encode('utf8')
+    url = 'http://localhost:%d/repo%s' % (port, path.encode('utf8'))
     webbrowser.open(url)
 
 
@@ -348,7 +356,7 @@ def main():
     script = Globals.options.scriptFile
     if script:
         try:
-            if Globals.options.webserver:
+            if Globals.options.webserver is not None:
                 go()
             if script.endswith('.py'):
                 file = open(script)
@@ -365,7 +373,7 @@ def main():
 
     else:
 
-        if Globals.options.webserver:
+        if Globals.options.webserver is not None:
             go()
         else:
             banner += "Type 'go()' to fire up Twisted services.\n"

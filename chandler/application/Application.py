@@ -522,7 +522,7 @@ class wxApplication (wx.App):
         # and stopped last.
         if splash:
             splash.updateGauge('twisted')
-        Utility.initTwisted()
+        Utility.initTwisted(view, options=options)
 
         # Start the reload before putting up the Chandler UI
         # (Bug 9533). For master password manipulation reasons,
