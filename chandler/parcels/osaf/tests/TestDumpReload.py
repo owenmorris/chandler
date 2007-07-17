@@ -114,7 +114,7 @@ class DumpReloadTestCase(testcase.DualRepositoryTestCase):
         # Sharing related items
         account0 = sharing.CosmoAccount(itsView=view0,
             host="chandler.o11n.org",
-            port=1888,
+            port=8080,
             path="/cosmo",
             username="test",
             password=Password(itsView=view0),
@@ -386,7 +386,7 @@ class DumpReloadTestCase(testcase.DualRepositoryTestCase):
             # Verify sharing
             account1 = view1.findUUID(account0.itsUUID)
             self.assertEquals(account1.host, "chandler.o11n.org")
-            self.assertEquals(account1.port, 1888)
+            self.assertEquals(account1.port, 8080)
             self.assertEquals(account1.path, "/cosmo")
             self.assertEquals(account1.username, "test")
             self.assertEquals(account1.useSSL, True)
