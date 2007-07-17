@@ -40,12 +40,11 @@ class EIMDiffRecordSetCosmoTestCase(RoundTripTestCase):
     def PrepareShares(self):
 
         servers = [
-            ("qacosmo.osafoundation.org", 80, False),
-            ("cosmo.letness.org", 8080, False),
-            ("bcm.osafoundation.org", 8080, False),
-            ("localhost", 8080, False),
+            ("qacosmo.osafoundation.org", 80, False, "/cosmo", "test", "test1"),
+            ("localhost", 8080, False, "/cosmo", "test", "test1"),
+            ("hub.chandlerproject.org", 80, False, "/", "username", "password"),
         ]
-        server = 3
+        server = 1
 
         view0 = self.views[0]
         coll0 = self.coll
@@ -53,12 +52,12 @@ class EIMDiffRecordSetCosmoTestCase(RoundTripTestCase):
         account = cosmo.CosmoAccount(itsView=view0,
             host=servers[server][0],
             port=servers[server][1],
-            path="/cosmo",
-            username="test",
+            path=servers[server][3],
+            username=servers[server][4],
             password=Password(itsView=view0),
             useSSL=servers[server][2]
         )
-        waitForDeferred(account.password.encryptPassword('test1'))
+        waitForDeferred(account.password.encryptPassword(servers[server][5]))
 
         conduit = cosmo.CosmoConduit(itsView=view0,
             account=account,
@@ -74,12 +73,12 @@ class EIMDiffRecordSetCosmoTestCase(RoundTripTestCase):
         account = cosmo.CosmoAccount(itsView=view1,
             host=servers[server][0],
             port=servers[server][1],
-            path="/cosmo",
-            username="test",
+            path=servers[server][3],
+            username=servers[server][4],
             password=Password(itsView=view1),
             useSSL=servers[server][2]
         )
-        waitForDeferred(account.password.encryptPassword('test1'))
+        waitForDeferred(account.password.encryptPassword(servers[server][5]))
 
         conduit = cosmo.CosmoConduit(itsView=view1,
             account=account,
