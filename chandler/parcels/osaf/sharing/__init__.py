@@ -143,8 +143,41 @@ def installParcel(parcel, oldVersion=None):
         filterAttributes=[filterAttribute])
     iCalendarItems.addIndex('icalUID', 'value', attribute=filterAttribute)
 
+
+    # Make a collection used to let the main ui view know what new shared
+    # inbound occurrences have come in so that OnIdle can check for duplicate
+    # recurrenceIDs (via the processSharingQueue function below):
+    pim.ListCollection.update(parcel, 'newItems')
+
     if not Globals.options.reload:
         prepareAccounts(parcel.itsView)
+
+
+
+
+def processSharingQueue(rv):
+    # Called during OnIdle, this method looks for occurrences in this queue
+    # (which is populated by recordset_conduit's sync( ) method) to check for
+    # duplicate recurrenceIDs, caused by two views simultaneously creating
+    # the same event modification. (bug 8213)
+
+    q = schema.ns('osaf.sharing', rv).newItems
+    for item in q:
+        q.remove(item)
+        if isinstance(item, pim.Occurrence):
+            event = pim.EventStamp(item)
+            id = event.recurrenceID
+            for sibling in pim.EventStamp(item.inheritFrom).occurrences:
+                if sibling is not item:
+                    occurrence = pim.EventStamp(sibling)
+                    if occurrence.recurrenceID == id:
+                        # This occurrence is a locally-created duplicate of the
+                        # one the sharing layer brought in.  For now, just
+                        # delete it.  Later we can try to merge differences.
+                        occurrence._safeDelete()
+                        logger.info("Duplicate recurrenceID %s:%s, item: %s"
+                            % (item.inheritFrom.itsUUID, id, sibling.itsUUID))
+
 
 
 

@@ -680,6 +680,13 @@ class RecordSetConduit(conduits.BaseConduit):
 
                 if alias in remotelyAdded:
                     receiveStats['added'].add(alias)
+
+                    # For bug 8213, add new inbound occurrences to a queue
+                    # which the main thread examines for duplicate recurrence
+                    # IDs:
+                    if isinstance(item, pim.Occurrence):
+                        schema.ns('osaf.sharing', rv).newItems.add(item)
+
                 else:
                     receiveStats['modified'].add(alias)
                 i += 1

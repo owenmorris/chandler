@@ -618,6 +618,14 @@ class wxApplication (wx.App):
                 self.PostAsyncEvent(setStatusMessage, kwds['msg'])
         sharing.register(sharing.UPDATE, _setStatusMessageCallback)
 
+
+        # To solve bug 8213 we need the main ui thread to examine new inbound
+        # occurrence items to see if there are duplicate recurrenceIDs.  The
+        # sharing layer will populate the newItems collection with occurrences
+        # and this method pulls them out and inspects them.
+        self.processSharingQueue = sharing.processSharingQueue
+
+
         # Fix for Bugs 3720, 3722, 5046, and 5650.  Sets the focus to
         # the first focusable widget in the frame, and also forces a
         # UpdateUI of the menus so the accelerator table will get built.
@@ -961,6 +969,7 @@ class wxApplication (wx.App):
         if self.updateUIInOnIdle:
             self.UIRepositoryView.refresh()
             self.propagateAsynchronousNotifications()
+            self.processSharingQueue(self.UIRepositoryView)
         
         # Adding a handler for catching a set focus event doesn't catch
         # every change to the focus. It's difficult to preprocess every event
