@@ -412,6 +412,12 @@ def initI18n(options):
     #Will discover locale set if options.locale is None
     i18n._I18nManager.initialize(options.locale)
 
+
+class ChandlerTimedRotatingFileHandler(logging.handlers.TimedRotatingFileHandler):
+    def doRollover(self):
+        self.stream.flush()
+        logging.handlers.TimedRotatingFileHandler.doRollover(self)
+
 def initLogging(options):
     global logger
 
@@ -430,11 +436,9 @@ def initLogging(options):
             #    filemode='a')
 
             logger = logging.getLogger()
+            fileHandler = ChandlerTimedRotatingFileHandler(os.path.join(options.profileDir, 'chandler.log'),
+                                                           when="midnight", backupCount=3)
 
-            fileHandler = logging.handlers.TimedRotatingFileHandler(
-                os.path.join(options.profileDir, 'chandler.log'),
-                when="midnight", backupCount=3
-            )
             fileFormatter = logging.Formatter(
                 '%(asctime)s %(name)s %(levelname)s: %(message)s'
             )
