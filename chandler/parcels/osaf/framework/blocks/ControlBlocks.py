@@ -16,6 +16,7 @@
 __parcel__ = "osaf.framework.blocks"
 
 import sys
+import threading
 from application.Application import mixinAClass
 from application import schema
 from Block import ( 
@@ -1001,7 +1002,8 @@ class wxPyTimer(wx.Timer):
     """ 
     A wx.PyTimer that has an IsShown() method, like all the other widgets
     that blocks deal with; it also generates its own event from Notify.
-    """              
+    """
+    
     def IsShown(self):
         return True
 
@@ -1012,7 +1014,101 @@ class wxPyTimer(wx.Timer):
         wx.GetApp().OnCommand(event)
 
     def Destroy(self):
-       Block.wxOnDestroyWidget (self)
+        Block.wxOnDestroyWidget(self)
+
+class wxThreadingTimer(wxPyTimer):
+    """ 
+    A wxPyTimer subclass that implements its delay via threading.Timer.
+    This turns out to be more reliable on the Mac than wx.PyTimer; its
+    implementation can get badly confused by sleep/wake [Bug 9109]
+    
+    @ivar timerThread: The C{threading.Timer} object used to implement the
+                       delay. This is actually a property that ensures that
+                       the timer is cleaned up properly on Stop() or Destroy()
+                       of the widget.
+    @type timerThread: L{threading.Timer}
+
+    @cvar _threadDict: Dictionary of C{threading.Timer} objects, keyed by
+                       wxThreadingTimer.
+    @type _threadDict: dict
+    
+    """
+    
+    _threadDict = None
+
+    @staticmethod
+    def _cancelThreads(threads):
+        for t in threads.values():
+            if __debug__:
+                logger.debug("wxThreadingTimer<%s> _cancelThreads", id(t))
+            t.cancel()
+            
+        
+    def _setTimer(self, threadingTimer):
+        if self._threadDict is None:
+            # Because of the somewhat abrupt way we exit the wx event loop
+            # when quitting Chandler, we need to clean up any pending
+            # threading.Timer objects, or you'll get weird errors during
+            # interpreter shutdown.
+            import atexit
+            wxThreadingTimer._threadDict = dict()
+            atexit.register(self._cancelThreads, self._threadDict)
+        self._cleanupAndDeleteTimer()
+        self._threadDict[self] = threadingTimer
+        
+    def _getTimer(self):
+        threadDict = self._threadDict
+        return None if threadDict is None else threadDict.get(self, None)
+        
+    def _cleanupAndDeleteTimer(self):
+        if self._threadDict is not None:
+            try:
+                timer = self._threadDict.pop(self)
+            except KeyError:
+                pass
+            else:
+                # It's safe to cancel a threading.Timer multiple times
+                timer.cancel()
+            
+    timerThread = property(fget=_getTimer, fset=_setTimer,
+                           fdel=_cleanupAndDeleteTimer)
+
+                  
+    def Start(self, milliseconds=-1, oneShot=False):
+        assert oneShot, "Repeating wxThreadingTimers are not supported"
+            
+        if __debug__:
+            logger.debug("wxThreadingTimer<%s>.Start(%s, %s)",
+                         id(self.timerThread), milliseconds, oneShot)
+
+        self.timerThread = threading.Timer(float(milliseconds)/1000.0,
+                                           self._Notify)
+        self.timerThread.setDaemon(True) # let main thread exit even if running
+        self.timerThread.start()
+        
+    def Stop(self, *args, **kw):
+        if __debug__:
+            logger.debug("wxThreadingTimer<%s>.Stop()", id(self.timerThread))
+        del self.timerThread
+            
+    def _Notify(self):
+        if __debug__:
+            logger.debug("wxThreadingTimer<%s>._Notify()", id(self.timerThread))
+        del self.timerThread
+        
+        # Due to race conditions, self might have been destroyed at this
+        # point    
+        if self:
+            # Use CallAfter(), or we'll end up posting an event in the
+            # wrong thread/at the wrong time.
+            wx.CallAfter(self.Notify)
+
+    def Destroy(self):
+        if __debug__:
+            logger.debug("wxThreadingTimer<%s>.Destroy()", id(self.timerThread))
+        del self.timerThread
+        return super(wxThreadingTimer, self).Destroy()
+
 
 class Timer(Block):
     """
@@ -1029,8 +1125,14 @@ class Timer(Block):
         copying = schema.Cloud(byCloud=[event])
     )
 
+    if wx.Platform == '__WXMAC__':
+        timerClass = wxThreadingTimer
+    else:
+        timerClass = wxPyTimer
+
     def instantiateWidget (self):
-        timer = wxPyTimer(self.parentBlock.widget, self.getWidgetID())
+        return type(self).timerClass(self.parentBlock.widget,
+                                     self.getWidgetID())
         return timer
 
     def onDestroyWidget(self):
