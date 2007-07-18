@@ -113,7 +113,7 @@ def installParcel(parcel, oldVersion=None):
     )
 
     # The URLs used in the Welcome note: those should not go through the localization mechanism!
-    url1 = u"http://chandlerproject.org/guide"
+    url1 = u"http://chandlerproject.org/getstarted"
     url2 = u"http://hub.chandlerproject.org/signup"
     url3 = u"http://chandlerproject.org/faq"
     url4 = u"http://chandlerproject.org/knownissues"
