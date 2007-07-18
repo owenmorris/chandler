@@ -71,11 +71,11 @@ class SimpleValue(object):
         
     def set(self, item, name, value):
         setattr(item, name, value)
-        return 1
+        return name
         
     def delete(self, item, name):
         delattr(item, name)
-        return 1
+        return name
 
 class Container(object):
     def __init__(self, descriptor, proxy):
@@ -156,31 +156,31 @@ class MultiValue(SimpleValue):
         return result 
 
     def add(self, obj, val):
-        existing = getattr(obj, self.descriptor.name)
+        attr = self.descriptor.name
+        existing = getattr(obj, attr)
         if not val in existing:
             existing.add(val)
-            return 1
-        else:
-            return 0
-
-    def append(self, obj, val):
-        existing = getattr(obj, self.descriptor.name)
-        existing.append(val)
-        return 1
+            return attr
         
+    def append(self, obj, val):
+        attr = self.descriptor.name
+        existing = getattr(obj, attr)
+        existing.append(val)
+        return attr
+
     def remove(self, obj, val):
-        existing = getattr(obj, self.descriptor.name)
+        attr = self.descriptor.name
+        existing = getattr(obj, attr)
         if val in existing:
             existing.remove(val)
-            return 1
-        else:
-            return 0
-        getattr(obj, self.descriptor.name).remove(val)
+            return attr
         
     def clear(self, obj):
-        existing = getattr(obj, self.descriptor.name)
-        existing.clear()
-        return self
+        attr = self.descriptor.name
+        existing = getattr(obj, attr)
+        if existing:
+            existing.clear()
+            return attr
 
 
 class StampContainer(Container):
@@ -195,11 +195,11 @@ class StampTypesValue(MultiValue):
 
     def addStamp(self, item, val):
         val(item).add() 
-        return 1  
+        return stamping.Stamp.stamp_types.name  
         
     def removeStamp(self, item, val):
         val(item).remove()
-        return 1
+        return stamping.Stamp.stamp_types.name  
         
 
 class MethodWrapper(object):
@@ -213,6 +213,9 @@ class MethodWrapper(object):
             return f
         
         self.getValue = getValue
+
+
+_IGNORE_EDIT_ATTRIBUTES = set(['collections'])
 
 class UserChangeProxy(object):
     """
@@ -340,7 +343,11 @@ class UserChangeProxy(object):
             self.changes = []
         self.changes.append(args)
 
-    def markEdited(self, item):
+    def markEdited(self, item, attrs):
+        attrs.difference_update(_IGNORE_EDIT_ATTRIBUTES)
+        if not attrs:
+            return
+    
         me = item.getCurrentMeEmailAddress()
         who = None # We will mark this message as "edited by" this user.
     
@@ -391,7 +398,7 @@ class UserChangeProxy(object):
     
 
     def makeChanges(self):
-        count = 0
+        changedAttrs = set()
         
         changes = self.changes or []
         cls = type(self)
@@ -401,11 +408,11 @@ class UserChangeProxy(object):
         
         for thisChange in changes:
             method = getattr(thisChange[0], thisChange[1])
-            count += method(self.proxiedItem, *thisChange[2:])
+            changedAttrs.add(method(self.proxiedItem, *thisChange[2:]))
             
-        if count > 0:
-            self.markEdited(self.proxiedItem)
-        return count
+        if changedAttrs:
+            self.markEdited(self.proxiedItem, changedAttrs)
+        return len(changedAttrs)
         
     def cancel(self):
         if self.changes is not None:
@@ -443,10 +450,10 @@ class Changer(object):
         return factory(self.proxy)
     
     def makeChange(self, item, change):
-        return 0
+        pass
         
-    def markProxyEdited(self, proxy):
-        proxy.markEdited(proxy)
+    def markProxyEdited(self, proxy, attrs):
+        proxy.markEdited(proxy, attrs)
 
 def _multiChange(item, change):
     cardinality = change[0].descriptor.cardinality
@@ -484,6 +491,7 @@ class CHANGE_THIS(Changer):
         changeType = change[1]
         if changeType == 'set':
             EventStamp(item).changeThis(change[2], change[3])
+            return change[2]
         elif changeType in ('addStamp', 'removeStamp'):
             event.changeThis()
             method = getattr(change[0], change[1])
@@ -492,8 +500,8 @@ class CHANGE_THIS(Changer):
             event.deleteThis()
         elif changeType in ('add', 'append', 'remove'):
             attrName, newValue = _multiChange(item, change)
-            EventStamp(item).changeThis(attrName, newValue) 
-        return 1
+            EventStamp(item).changeThis(attrName, newValue)
+            return attrName
         
 class CHANGE_ALL(Changer):
     """
@@ -506,14 +514,14 @@ class CHANGE_ALL(Changer):
         TaskStamp(obj).add() ... # adds task-ness to all events in the series
     """
     
-    edited = ()
+    editedItems = ()
 
     def _updateEdited(self, changed):
         if changed:
-            if not self.edited:
-                self.edited = set(changed)
+            if not self.editedItems:
+                self.editedItems = set(changed)
             else:
-                self.edited.update(changed)
+                self.editedItems.update(changed)
     
     def makeChange(self, item, change):
         # easy for set, not too bad for stamp addition, del is maybe
@@ -527,18 +535,21 @@ class CHANGE_ALL(Changer):
                     if not item.hasModifiedAttribute(attr)
             )
             event.changeAll(attr, change[3])
+            return attr
         elif changeType == 'addStamp':
             self._updateEdited(
                 item for item in event.modifications
                     if not stamping.has_stamp(item, change[2])
             )
             event.addStampToAll(change[2])
+            return stamping.Stamp.stamp_types.name
         elif changeType == 'removeStamp':
             self._updateEdited(
                 item for item in event.modifications
                     if stamping.has_stamp(item, change[2])
             )
             event.removeStampFromAll(change[2])
+            return stamping.Stamp.stamp_types.name
         elif changeType in ('add', 'remove', 'append'):
             attr = change[0].descriptor.name
             self._updateEdited(
@@ -549,15 +560,13 @@ class CHANGE_ALL(Changer):
             attrName, newValue = _multiChange(masterItem, change)
             with EventStamp(masterItem).noRecurrenceChanges():
                 setattr(masterItem, attrName, newValue)
-
+            return attrName
         elif (changeType == 'delete' and
               change[0].descriptor.name == EventStamp.rruleset.name):
               event.removeRecurrence()
+              return EventStamp.rruleset.name
         else:
             assert False
-            return 0
-
-        return 1
 
 
     EDIT_ATTRIBUTES = (
@@ -566,17 +575,17 @@ class CHANGE_ALL(Changer):
         items.ContentItem.lastModifiedBy.name,
         items.ContentItem.lastModification.name,
     )
-    def markProxyEdited(self, proxy):
-        if self.edited:
-            for item in self.edited:
+    def markProxyEdited(self, proxy, attrs):
+        if self.editedItems:
+            for item in self.editedItems:
                 with EventStamp(item).noRecurrenceChanges():
                     for attr in self.EDIT_ATTRIBUTES:
                         if item.hasLocalAttributeValue(attr):
                             delattr(item, attr)
         
-            del self.edited
+            del self.editedItems
         
-        super(CHANGE_ALL, self).markProxyEdited(proxy)
+        super(CHANGE_ALL, self).markProxyEdited(proxy, attrs)
         
 class CHANGE_FUTURE(CHANGE_ALL):
     """
@@ -596,20 +605,17 @@ class CHANGE_FUTURE(CHANGE_ALL):
         # as above, for CHANGE_ALL
         if changeType == 'set':
             attr = change[2]
+            event.changeThisAndFuture(attr, change[3])
             self._updateEdited(
                 item for item in event.modifications
                     if not item.hasModifiedAttribute(attr)
             )
-            event.changeThisAndFuture(attr, change[3])
-        elif changeType in ('addStamp', 'removeStamp', 'add', 'remove',
-                            'append'):
+            return attr
+        elif changeType in ('addStamp', 'removeStamp', 'add', 'remove', 'append'):
             event.changeThisAndFuture()
             return super(CHANGE_FUTURE, self).makeChange(item, change)
         else:
             assert False
-            return 0
-
-        return 1
 
 class RecurrenceProxy(UserChangeProxy):
     """
@@ -627,7 +633,7 @@ class RecurrenceProxy(UserChangeProxy):
     markedEdited = False
     
     def makeChanges(self):
-        count = 0
+        changedAttrs = set()
         changer = None
         
         if self.changing and self.changes:
@@ -638,17 +644,19 @@ class RecurrenceProxy(UserChangeProxy):
             del self.changes
             
             for change in changes:
-                count += changer.makeChange(self.proxiedItem, change)
+                attr = changer.makeChange(self.proxiedItem, change)
+                if attr:
+                    changedAttrs.add(attr)
             
-        if count > 0 and not self.markedEdited:
-            changer.markProxyEdited(self)
+        if changedAttrs and not self.markedEdited:
+            changer.markProxyEdited(self, changedAttrs)
 
-        return count
+        return len(changedAttrs)
         
-    def markEdited(self, item):
+    def markEdited(self, item, attrs):
         if not self.markedEdited:
             self.markedEdited = True
-            super(RecurrenceProxy, self).markEdited(item)
+            super(RecurrenceProxy, self).markEdited(item, attrs)
             del self.markedEdited
         
     def appendChange(self, desc, op, attr, *args):

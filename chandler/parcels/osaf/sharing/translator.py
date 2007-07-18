@@ -577,7 +577,7 @@ class SharingTranslator(eim.Translator):
                             # to the wrong contact. really markEdited should be
                             # item.changeEditState, passing in a who parameter
                             # from the ModifiedByRecord
-                            proxy.markEdited = lambda item : None
+                            proxy.markEdited = lambda *args : None
                             itype(proxy).add()
                     for attr, val in attrs.items():
                         self.smart_setattr(val, stamp, attr)
@@ -886,7 +886,7 @@ class SharingTranslator(eim.Translator):
                 if not getattr(item, 'inheritFrom', None):
                     # master, make a recurrence change proxy
                     item = pim.CHANGE_ALL(item)
-                    item.markEdited = lambda x : None
+                    item.markEdited = lambda *args: None
                 if (item is not None and item.isLive() and
                     pim.has_stamp(item, pim.TaskStamp)):
                     pim.TaskStamp(item).remove()
@@ -1267,7 +1267,7 @@ class SharingTranslator(eim.Translator):
                 if not getattr(item, 'inheritFrom', None):
                     # master, make a recurrence change proxy
                     item = pim.CHANGE_ALL(item)
-                    item.markEdited = lambda x : None
+                    item.markEdited = lambda *args: None
                 if (item is not None and item.isLive() and
                     pim.has_stamp(item, pim.MailStamp)):
                     pim.MailStamp(item).remove()

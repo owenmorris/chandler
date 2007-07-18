@@ -198,7 +198,7 @@ The proxy will buffer changes to ``Stamp`` additions and removals:
 >>> list(pim.Stamp(note).stamps)
 [EventStamp(<Note ...>)]
 >>> eventProxy.itsItem.makeChanges()
-2
+1
 >>> list(pim.Stamp(note).stamps)
 [MailStamp(<Note ...>)]
 
@@ -436,6 +436,16 @@ True
 >>> item.lastModification
 Modification.edited
 >>> item.lastModified > start
+True
+
+Some attribute changes are not considered to affect edited state. For example:
+
+>>> start = item.lastModified
+>>> proxy.collections = [pim.ListCollection(itsView=view,
+...                                         displayName=u'Collection')]
+>>> proxy.makeChanges()
+0
+>>> proxy.lastModified == start
 True
 
 Similarly, whenever you make a recurring event change (either via
