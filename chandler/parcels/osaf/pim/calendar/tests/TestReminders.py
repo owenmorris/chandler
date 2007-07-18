@@ -443,6 +443,52 @@ class RecurringReminderTestCase(TestDomainModel.DomainModelTestCase):
         # Check that THIS doesn't modify reminders at all
         self.failUnless(self.event.itsItem.reminders is
                         occurrence.itsItem.reminders)
+        
+    def testEnableTimeZones(self):
+        self.event.startTime = self.event.startTime.replace(tzinfo=self.view.tzinfo.floating)
+    
+        # This is not so lovely....
+        from osaf.pim.calendar.TimeZone import ontzchange
+        self.view.tzinfo.ontzchange = ontzchange
+
+        # Set up the reminder
+        self.reminder.reminderItem = self.event.itsItem
+        
+        # Simulate setting up the reminder 5 minutes after an
+        # occurrence
+        pending = self.event.startTime + timedelta(days=4, minutes=5)
+        self.reminder.updatePending(pending)
+        
+        # That should result in 0 pending reminders
+        self.failIf(self.reminder.pendingEntries)
+
+        # Now, enable timezones ...
+        schema.ns("osaf.pim", self.view).TimezonePrefs.showUI = True
+        
+        # ... 'tick' the clock a second
+        self.reminder.updatePending(pending + timedelta(seconds=1))
+        
+        # ... and make sure we still have no pending reminders
+        self.failIf(self.reminder.pendingEntries)
+
+
+    def testChangeAllStartTimes(self):
+        # Set up the reminder
+        self.reminder.reminderItem = self.event.itsItem
+        
+        # Simulate setting up the reminder 5 minutes after an
+        # occurrence
+        pending = self.event.startTime - timedelta(days=1, minutes=5)
+        self.reminder.updatePending(pending)
+        
+        # That should result in 0 pending reminders
+        self.failIf(self.reminder.pendingEntries)
+
+        # Now, do an ALL change of startTime ...
+        CHANGE_ALL(self.event).startTime -= timedelta(days=2)
+        
+        self.reminder.updatePending(pending + timedelta(seconds=1))
+        self.failIf(self.reminder.pendingEntries)
                         
     def DISABLED_testChangeUserReminderTime(self):
         self.reminder.reminderItem = self.event.itsItem

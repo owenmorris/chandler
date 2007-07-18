@@ -2824,13 +2824,18 @@ class RelativeReminder(Reminder):
         return self._getReminderTime(item) or Reminder.farFuture
         
     def itemChanged(self, item):
+        # Called (hopefully) when the effectiveStartTime of
+        # an event changes
         if self.nextPoll is None:
             return # We'll get updated later as necessary
             
         reminderTime = self._getReminderTime(item)
         if reminderTime is None:
             return # Er ....
-            
+        
+        # Try to find any pending entries whose reminderTime
+        # precedes our self.nextPoll.
+        pendingPoll = self.nextPoll  
         for entry in self.pendingEntries:
             if not entry.snoozed:
                 entryReminder = self._getReminderTime(entry.item, False)
@@ -2839,16 +2844,15 @@ class RelativeReminder(Reminder):
                 # self.nextPoll accordingly.
                 if entryReminder > entry.when:
                     self.pendingEntries.remove(entry)
-                    if entryReminder <= self.nextPoll:
-                        self.nextPoll = entryReminder
-        # If the reminder is expired (i.e. nextPoll is far future), we
-        # reset its nextPoll ... that way, it'll be marked as current
-        # if necessary (Bug 9659).
-        if self.nextPoll >= Reminder.farFuture:
+                    pendingPoll = min(entryReminder, pendingPoll)
+
+        if pendingPoll < self.nextPoll:
+            self.nextPoll = pendingPoll
+        else:
+            # No preceding reminder; just let updatePending calculate
+            # nextPoll based on current time.
             del self.nextPoll
-        elif reminderTime < self.nextPoll:
-            self.nextPoll = reminderTime
-                        
+
     def reminderFired(self, reminder, when):
         """
         Override of C{ContentItem.reminderFired}: performs a THIS change
