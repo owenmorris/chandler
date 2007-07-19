@@ -22,7 +22,7 @@ from repository.item.RefCollections import RefList
 from chandlerdb.item.c import isitemref
 
 
-def generateModelDocs(options, chandlerDir, view, outputDir=None):
+def generateModelDocs(chandlerDir, view, outputDir=None):
     urlRoot = '/docs/current/model'
 
     if not outputDir:
@@ -572,7 +572,7 @@ def find_packages(where='.', exclude=()):
         out = [item for item in out if not fnmatchcase(item,pat)]
     return out
 
-def generateDocs(options, outputDir):
+def generateDocs(outputDir):
     import epydoc.cli
 
     sys.argv += [ 'Chandler.py',
@@ -606,37 +606,53 @@ def generateDocs(options, outputDir):
 
 
 if __name__ == '__main__':
-    options = Utility.initOptions()
+    Globals.options = Utility.initOptions()
+    Globals.options.create = True
+    Globals.options.verify = False
+    Globals.options.ramdb = True
 
-    Utility.initLogging(options)
+    Globals.chandlerDirectory = Utility.locateChandlerDirectory()
 
-    chandlerDir   = Utility.locateChandlerDirectory()
-    repositoryDir = Utility.locateRepositoryDirectory(chandlerDir, options)
+    os.chdir(Globals.chandlerDirectory)
+    Utility.initI18n(Globals.options)
 
-    options.ramdb  = True # force ramdb
-    options.create = True # force a repository wipe
+    profileDir = os.path.abspath(os.path.join(Globals.chandlerDirectory, '..', 'doc_profile'))
 
-    parcelPath = Utility.initParcelEnv(options, chandlerDir)
+    if not os.path.isdir(profileDir):
+        _mkdirs(profileDir)
+
+    print Globals.chandlerDirectory
+    print profileDir
+
+    Utility.initLogging(Globals.options)
+
+    parcelPath = Utility.initParcelEnv(Globals.options, 
+                                       Globals.chandlerDirectory)
     pluginEnv, pluginEggs = Utility.initPluginEnv(Globals.options,
                                                   Globals.options.pluginPath)
-    view = Utility.initRepository(repositoryDir, options)
 
-    Utility.initParcels(options, view, parcelPath)
+    view = Utility.initRepository(profileDir, Globals.options)
+
+    verify, repoVersion, schemaVersion = Utility.verifySchema(view)
+
+    Utility.initCrypto(Globals.options.profileDir)
+    Utility.initParcels(Globals.options, view, parcelPath)
     Utility.initPlugins(Globals.options, view, pluginEnv, pluginEggs)
+    Utility.initTimezone(Globals.options, view)
 
-    if options.args:
-        outputDir = options.args[0]
-    else:
-        outputDir = os.path.join(chandlerDir, 'docs')
+    outputDir = os.path.join(Globals.chandlerDirectory, 'docs')
 
     if os.path.isfile('Chandler.py'):
         if not os.path.isdir(outputDir):
             _mkdirs(outputDir)
 
-        generateModelDocs(options, chandlerDir, view, outputDir)
-        generateDocs(options, outputDir)
+        generateModelDocs(Globals.chandlerDirectory, view, outputDir)
+        generateDocs(outputDir)
     else:
         print "Error: Currently gen_docs.py assumes it is running in the chandler/ directory"
 
-    Utility.stopRepository(view)
+    Utility.stopWakeup()
+    Utility.stopTwisted()
+    Utility.stopRepository(view, commitOnExit)
+    Utility.stopCrypto(Globals.options.profileDir)
 
