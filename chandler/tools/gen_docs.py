@@ -15,7 +15,7 @@
 
 import os, sys, re, string, errno, shutil, time
 import repository
-import wx
+#import wx
 
 from application import Globals, Utility, schema
 from repository.item.RefCollections import RefList
