@@ -170,6 +170,8 @@ class wxTable(DragAndDrop.DraggableWidget,
 
         gridWindow = self.GetGridWindow()
         gridWindow.Bind(wx.EVT_PAINT, self.OnPaint)
+        # Sidebar is subclassed from wxTable and depends on the following
+        # bind so it can override OnMouseEvents in wxTable
         gridWindow.Bind(wx.EVT_MOUSE_EVENTS, self.OnMouseEvents)
         gridWindow.Bind(wx.EVT_MOUSE_CAPTURE_LOST, self.OnMouseCaptureLost)
         # It appears that wxGrid gobbles all the mouse events so we never get
