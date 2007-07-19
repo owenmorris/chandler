@@ -1560,6 +1560,8 @@ class EventStamp(Stamp):
 
     def changeThisAndFuture(self, attr=None, value=None):
         """Modify this and all future events."""
+        if attr in self._ignoredSeriesChangeAttributes:
+            return
         master = self.getMaster()
         first = master # Changed for no-THISANDFUTURE-style
         if self.recurrenceID is None:
@@ -1751,8 +1753,15 @@ class EventStamp(Stamp):
 
             if not isFirst:
                 master._grabOccurrences(master.occurrences, None, True)
-            
+    
+    # triage status, especially sectionTriageStatus, isn't meaningful
+    # on master events, ignore changes on these attributes if they apply to
+    # a series of recurring events
+    _ignoredSeriesChangeAttributes = ('_sectionTriageStatus', 
+                                      '_sectionTriageStatusChanged')
     def changeAll(self, attr=None, value=None):
+        if attr in self._ignoredSeriesChangeAttributes:
+            return
         master = self.getMaster()
         isStartTime = (attr == EventStamp.startTime.name)
         if attr is not None:
