@@ -353,9 +353,13 @@ class State(schema.Item):
         self.discard(change)
 
     def discard(self, change):
-        pending = self.pending
-        pending.remove(change)
-        self.pending = pending
+        try:
+            pending = self.pending
+            pending.remove(change)
+            self.pending = pending
+        except KeyError:
+            # the pending change has already been removed
+            pass
         self.agreed += change
 
     def getConflicts(self):
