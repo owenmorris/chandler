@@ -572,7 +572,7 @@ def find_packages(where='.', exclude=()):
         out = [item for item in out if not fnmatchcase(item,pat)]
     return out
 
-def generateDocs(outputDir):
+def generateDocs(outputDir, verbose):
     import epydoc.cli
 
     sys.argv += [ 'Chandler.py',
@@ -596,11 +596,7 @@ def generateDocs(outputDir):
     e_options.introspect  = True
     e_options.include_log = True
     e_options.target      = os.path.join(outputDir, 'api')
-
-    if options.verbose:
-        e_options.verbosity = 4
-    else:
-        e_options.verbosity = 1
+    e_options.verbosity   = 4
 
     epydoc.cli.main(e_options, names)
 
@@ -609,7 +605,6 @@ if __name__ == '__main__':
     Globals.options = Utility.initOptions()
     Globals.options.create = True
     Globals.options.verify = False
-    Globals.options.ramdb = True
 
     Globals.chandlerDirectory = Utility.locateChandlerDirectory()
 
@@ -653,6 +648,6 @@ if __name__ == '__main__':
 
     Utility.stopWakeup()
     Utility.stopTwisted()
-    Utility.stopRepository(view, commitOnExit)
+    Utility.stopRepository(view, False)
     Utility.stopCrypto(Globals.options.profileDir)
 
