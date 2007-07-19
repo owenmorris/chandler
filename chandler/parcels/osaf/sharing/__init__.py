@@ -19,7 +19,7 @@ from application import schema, dialogs, Globals
 from application.Parcel import Reference
 from application.Utility import getDesktopDir, CertificateVerificationError
 from osaf import pim, ChandlerException, startup
-from osaf.framework.password import Password
+from osaf.framework.password import Password, NoMasterPassword
 from osaf.framework.twisted import waitForDeferred
 from osaf.pim import isDead, has_stamp
 from osaf.pim.calendar import Calendar
@@ -1741,55 +1741,57 @@ def ensureAccountSetUp(view, sharing=False, inboundMail=False,
     """
     parent = wx.GetApp().mainFrame
 
-    while True:
-
-        SharingReady = not sharing or isSharingSetUp(view)
-        IncomingMailReady = not inboundMail or isIncomingMailSetUp(view)
-        OutgoingMailReady = not outboundMail or isOutgoingMailSetUp(view)
-        EmailReady = not emailAddress or isEmailAddressSetUp(view)
-
-        if SharingReady and IncomingMailReady and OutgoingMailReady and EmailReady:
-            return True
-
-        msg = _(u"The following account(s) need to be set up:\n\n")
-        if not SharingReady:
-            msg += _(u" - Sharing\n")
-        if not IncomingMailReady:
-            msg += _(u" - IMAP/POP (inbound email)\n")
-        if not EmailReady:
-            msg += _(u" - At least one email address must be configured\n")
-        if not OutgoingMailReady:
-            msg += _(u" - SMTP (outbound email)\n")
-        msg += _(u"\nWould you like to enter account information now?")
-
-        response = wx.MessageBox(msg, _(u"Account set up"), style = wx.YES_NO,
-            parent=parent) == wx.YES
-        if response == False:
-            return False
-
-        account = None
-        create = None
-
-        if not IncomingMailReady:
-            account = pim.mail.getCurrentIncomingAccount(view)
-        elif not OutgoingMailReady:
-            """ Returns the default SMTP Account or None"""
-            account = pim.mail.getCurrentOutgoingAccount(view)
-        else:
-            # Sharing is not set up, so grab an account
-            accounts = list(SharingAccount.iterItems(view))
-            if len(accounts) == 0:
-                create = "SHARING_HUB"
+    try:
+        while True:
+    
+            SharingReady = not sharing or isSharingSetUp(view)
+            IncomingMailReady = not inboundMail or isIncomingMailSetUp(view)
+            OutgoingMailReady = not outboundMail or isOutgoingMailSetUp(view)
+            EmailReady = not emailAddress or isEmailAddressSetUp(view)
+    
+            if SharingReady and IncomingMailReady and OutgoingMailReady and EmailReady:
+                return True
+    
+            msg = _(u"The following account(s) need to be set up:\n\n")
+            if not SharingReady:
+                msg += _(u" - Sharing\n")
+            if not IncomingMailReady:
+                msg += _(u" - IMAP/POP (inbound email)\n")
+            if not EmailReady:
+                msg += _(u" - At least one email address must be configured\n")
+            if not OutgoingMailReady:
+                msg += _(u" - SMTP (outbound email)\n")
+            msg += _(u"\nWould you like to enter account information now?")
+    
+            response = wx.MessageBox(msg, _(u"Account set up"), style = wx.YES_NO,
+                parent=parent) == wx.YES
+            if response == False:
+                return False
+    
+            account = None
+            create = None
+    
+            if not IncomingMailReady:
+                account = pim.mail.getCurrentIncomingAccount(view)
+            elif not OutgoingMailReady:
+                """ Returns the default SMTP Account or None"""
+                account = pim.mail.getCurrentOutgoingAccount(view)
             else:
-                account = accounts[0]
-
-
-        response = dialogs.AccountPreferences.ShowAccountPreferencesDialog(
-            account=account, rv=view, create=create)
-
-        if response == False:
-            return False
-
+                # Sharing is not set up, so grab an account
+                accounts = list(SharingAccount.iterItems(view))
+                if len(accounts) == 0:
+                    create = "SHARING_HUB"
+                else:
+                    account = accounts[0]
+    
+    
+            response = dialogs.AccountPreferences.ShowAccountPreferencesDialog(
+                account=account, rv=view, create=create)
+    
+            if response == False:
+                return False
+    except NoMasterPassword:
+        return False
 
 
 
