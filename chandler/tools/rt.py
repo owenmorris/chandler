@@ -121,6 +121,7 @@ def parseOptions():
         'params':       ('',   '--params',             's', None,  'Optional params that are to be passed straight to RunPython'),
         'testcase':     ('',   '--testcase',           's', None,  'Run a single unit test or test case TestFilename[:testClass[.testCase]]'),
         'runLauncher':  ('-l', '--runLauncher',        'b', False, 'Use Chandler launcher if possible instead of Python to run tests'),
+        'profileDir':   ('',   '--profileDir',         's', None,  'What directory to pass to Chandler as the profile directory'),
         #'restored':    ('-R', '--restoredRepository', 'b', False, 'unit tests with restored repository instead of creating new for each test'),
         #'config':      ('-L', '',                     's', None,  'Custom Chandler logging configuration file'),
     }
@@ -202,7 +203,9 @@ def checkOptions(options):
 
     options.toolsDir   = os.path.join('tools')
     options.parcelPath = os.path.join(options.toolsDir, 'cats', 'DataFiles')
-    options.profileDir = os.path.join('test_profile')
+
+    if options.profileDir is None:
+        options.profileDir = os.path.join('test_profile')
 
     if not os.path.isdir(options.chandlerBin):
         log('Unable to locate CHANDLERBIN directory', error=True)
