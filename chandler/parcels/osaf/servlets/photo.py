@@ -41,7 +41,7 @@ class PhotosResource(webserver.AuthenticatedResource):
                 for photo in PhotoMixin.iterItems(repoView):
                     photoList.append(photo)
                     if not hasattr(photo, 'dateTaken'):
-                        photo.dateTaken = datetime.datetime.now()
+                        photo.dateTaken = datetime.datetime.now(repoView.tzinfo.default)
 
                 photoList.sort(lambda x, y: cmp(y.dateTaken, x.dateTaken))
 
