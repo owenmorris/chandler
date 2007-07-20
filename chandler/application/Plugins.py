@@ -78,9 +78,8 @@ class PluginMenu(Menu):
 
     def onInstallPluginsEvent(self, event):
 
-        patterns = "%s|*.tar.gz|%s|*.tar|%s (*.*)|*.*" %(_(u"tar/gz archives"),
-                                                         _(u"tar archives"),
-                                                         _(u"All files"))
+        patterns = "%s|*.tar.gz;*.tar|%s (*.*)|*.*" %(_(u"tar archives"),
+                                                      _(u"All files"))
         dlg = wx.FileDialog(None, _(u"Install Plugin"), "", "", patterns,
                             wx.OPEN)
         if dlg.ShowModal() == wx.ID_OK:
