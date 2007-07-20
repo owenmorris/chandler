@@ -55,7 +55,7 @@ ARCHIVES = \
     $(CHANDLERARCHIVES)/docutils-$(SNAP)-0.4-$(BP)1.tar.gz \
     $(CHANDLERARCHIVES)/eggtranslations-$(SNAP)-1.0-r9-$(BP)1.tar.gz \
     $(CHANDLERARCHIVES)/zope.interface-$(SNAP)-3.3.0b2-r71371-$(BP)3.tar.gz \
-    $(CHANDLERARCHIVES)/setuptools-$(SNAP)-0.6c6dev-r54072-$(BP)1.tar.gz
+    $(CHANDLERARCHIVES)/setuptools-$(SNAP)-0.6c6-$(BP)1.tar.gz
 
 ifeq ($(findstring CYGWIN,$(OS)),CYGWIN)
     OS = Cygwin
