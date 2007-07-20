@@ -1366,7 +1366,7 @@ def subscribeMorsecode(view, url, morsecodeUrl, inspection, activity=None,
         account = CosmoAccount(itsView=view)
         account.displayName = url
         account.host = host
-        account.path = "cosmo" # TODO: See if we can really determine this.
+        account.path = path[:path.find("/mc/")] # everything up to /mc/
         # pimPath, morsecodePath, and davPath all have initialValues
         account.useSSL = useSSL
         account.port = port
