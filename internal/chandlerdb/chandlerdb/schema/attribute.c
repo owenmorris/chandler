@@ -904,6 +904,7 @@ void _init_attribute(PyObject *m)
             PyDict_SetItemString_Int(dict, "INDEXED", A_INDEXED);
             PyDict_SetItemString_Int(dict, "PROCESS_GET", A_PROCESS_GET);
             PyDict_SetItemString_Int(dict, "PROCESS_SET", A_PROCESS_SET);
+            PyDict_SetItemString_Int(dict, "PROCESS_EQ", A_PROCESS_EQ);
             PyDict_SetItemString_Int(dict, "SINGLE", A_SINGLE);
             PyDict_SetItemString_Int(dict, "LIST", A_LIST);
             PyDict_SetItemString_Int(dict, "DICT", A_DICT);

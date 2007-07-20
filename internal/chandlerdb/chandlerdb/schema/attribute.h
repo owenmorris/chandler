@@ -36,6 +36,7 @@ enum {
     A_DEFAULT      = 0x00008000,
     A_AFTERCHANGE  = 0x00010000,
     A_PURE         = 0x00020000,
+    A_PROCESS_EQ   = 0x00040000,
 
     ATTRDICT     = A_VALUE | A_REF,
     CARDINALITY  = A_SINGLE | A_LIST | A_DICT | A_SET,

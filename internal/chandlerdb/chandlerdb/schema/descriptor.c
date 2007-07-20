@@ -40,6 +40,7 @@ static PyObject *getAttributeValue_NAME;
 static PyObject *setAttributeValue_NAME;
 static PyObject *removeAttributeValue_NAME;
 static PyObject *inheritFrom_NAME;
+static PyObject *eqValues_NAME;
 
 
 static PyMemberDef t_descriptor_members[] = {
@@ -319,13 +320,38 @@ static int t_descriptor___set__(t_descriptor *self,
                 if (value == oldValue)
                     return 0;
 
-                if (flags & A_SINGLE && !(flags & A_PROCESS_SET) && oldValue)
+                if (flags & A_SINGLE && oldValue)
                 {
-                    int eq = PyObject_RichCompareBool(value, oldValue, Py_EQ);
+                    int eq = 0;
 
-                    if (eq == -1)
-                        PyErr_Clear();
-                    else if (eq == 1)
+                    if (flags & A_PROCESS_EQ)
+                    {
+                        if (attr->typeID != NULL)
+                        {
+                            PyObject *type = PyObject_GetItem(item->ref->view,
+                                                              attr->typeID);
+                            PyObject *result;
+
+                            if (!type)
+                                return -1;
+
+                            result = PyObject_CallMethodObjArgs(type, eqValues_NAME, value, oldValue, NULL);
+                            Py_DECREF(type);
+                            if (!result)
+                                return -1;
+
+                            eq == PyObject_IsTrue(result);
+                            Py_DECREF(result);
+                        }
+                    }
+                    else if (!(flags & A_PROCESS_SET))
+                    {
+                        eq = PyObject_RichCompareBool(value, oldValue, Py_EQ);
+                        if (eq == -1)
+                            PyErr_Clear();
+                    }
+                    
+                    if (eq == 1)
                         return 0;
                 }
             }
@@ -403,6 +429,7 @@ void _init_descriptor(PyObject *m)
             setAttributeValue_NAME = PyString_FromString("setAttributeValue");
             removeAttributeValue_NAME = PyString_FromString("removeAttributeValue");
             inheritFrom_NAME = PyString_FromString("inheritFrom");
+            eqValues_NAME = PyString_FromString("eqValues");
         }
     }
 }
