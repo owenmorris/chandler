@@ -517,40 +517,49 @@ class IndexContainer(FileContainer):
 
     def indexValue(self, indexWriter, value, uItem, uAttr, uValue, version):
 
-        STORED = Field.Store.YES
-        UN_STORED = Field.Store.NO
-        TOKENIZED = Field.Index.TOKENIZED
-        UN_INDEXED = Field.Index.NO
-        UN_TOKENIZED = Field.Index.UN_TOKENIZED
+        try:
+            STORED = Field.Store.YES
+            UN_STORED = Field.Store.NO
+            TOKENIZED = Field.Index.TOKENIZED
+            UN_INDEXED = Field.Index.NO
+            UN_TOKENIZED = Field.Index.UN_TOKENIZED
 
-        doc = Document()
-        doc.add(Field("item", uItem.str64(), STORED, UN_TOKENIZED))
-        doc.add(Field("attribute", uAttr.str64(), STORED, UN_TOKENIZED))
-        doc.add(Field("value", uValue.str64(), STORED, UN_INDEXED))
-        doc.add(Field("version", str(version), STORED, UN_INDEXED))
-        doc.add(Field("contents", value, UN_STORED, TOKENIZED,
-                      Field.TermVector.YES))
+            doc = Document()
+            doc.add(Field("item", uItem.str64(), STORED, UN_TOKENIZED))
+            doc.add(Field("attribute", uAttr.str64(), STORED, UN_TOKENIZED))
+            doc.add(Field("value", uValue.str64(), STORED, UN_INDEXED))
+            doc.add(Field("version", str(version), STORED, UN_INDEXED))
+            doc.add(Field("contents", value, UN_STORED, TOKENIZED,
+                          Field.TermVector.YES))
 
-        indexWriter.addDocument(doc)
+            indexWriter.addDocument(doc)
+        except JavaError:
+            self.store.repository.logger.exception("in indexValue()")
 
     def indexReader(self, indexWriter, reader, uItem, uAttr, uValue, version):
 
-        STORED = Field.Store.YES
-        UN_INDEXED = Field.Index.NO
-        UN_TOKENIZED = Field.Index.UN_TOKENIZED
+        try:
+            STORED = Field.Store.YES
+            UN_INDEXED = Field.Index.NO
+            UN_TOKENIZED = Field.Index.UN_TOKENIZED
 
-        doc = Document()
-        doc.add(Field("item", uItem.str64(), STORED, UN_TOKENIZED))
-        doc.add(Field("attribute", uAttr.str64(), STORED, UN_TOKENIZED))
-        doc.add(Field("value", uValue.str64(), STORED, UN_INDEXED))
-        doc.add(Field("version", str(version), STORED, UN_INDEXED))
-        doc.add(Field("contents", reader, Field.TermVector.YES))
+            doc = Document()
+            doc.add(Field("item", uItem.str64(), STORED, UN_TOKENIZED))
+            doc.add(Field("attribute", uAttr.str64(), STORED, UN_TOKENIZED))
+            doc.add(Field("value", uValue.str64(), STORED, UN_INDEXED))
+            doc.add(Field("version", str(version), STORED, UN_INDEXED))
+            doc.add(Field("contents", reader, Field.TermVector.YES))
 
-        indexWriter.addDocument(doc)
+            indexWriter.addDocument(doc)
+        except JavaError:
+            self.store.repository.logger.exception("in indexReader()")
 
     def optimizeIndex(self, indexWriter):
 
-        indexWriter.optimize()
+        try:
+            indexWriter.optimize()
+        except JavaError:
+            self.store.repository.logger.exception("in optimizeIndex()")
 
     def searchDocuments(self, view, version, query=None, attribute=None):
 
@@ -623,28 +632,36 @@ class IndexContainer(FileContainer):
     def purgeDocuments(self, txn, counter, indexSearcher, indexReader,
                        uItem, toVersion=None):
 
-        term = Term("item", uItem.str64())
+        try:
+            term = Term("item", uItem.str64())
 
-        if toVersion is None:
-            counter.documentCount += indexReader.deleteDocuments(term)
+            if toVersion is None:
+                counter.documentCount += indexReader.deleteDocuments(term)
 
-        else:
-            x, keep = self.store._items.findValues(None, toVersion,
-                                                   uItem, None, True)
-            keep = set(keep)
+            else:
+                x, keep = self.store._items.findValues(None, toVersion,
+                                                       uItem, None, True)
+                keep = set(keep)
 
-            for hit in indexSearcher.search(TermQuery(term)):
-                doc = hit.getDocument()
-                ver = long(doc['version'])
+                for hit in indexSearcher.search(TermQuery(term)):
+                    doc = hit.getDocument()
+                    ver = long(doc['version'])
 
-                if ver <= toVersion and UUID(doc['value']) not in keep:
-                    indexReader.deleteDocument(hit.getId())
-                    counter.documentCount += 1
+                    if ver <= toVersion and UUID(doc['value']) not in keep:
+                        indexReader.deleteDocument(hit.getId())
+                        counter.documentCount += 1
+
+        except JavaError:
+            self.store.repository.logger.exception("in purgeDocuments()")
 
     def undoDocuments(self, indexSearcher, indexReader, uItem, version):
 
-        term = Term("item", uItem.str64())
+        try:
+            term = Term("item", uItem.str64())
 
-        for hit in indexSearcher.search(TermQuery(term)):
-            if long(hit.getDocument()['version']) == version:
-                indexReader.deleteDocument(hit.getId())
+            for hit in indexSearcher.search(TermQuery(term)):
+                if long(hit.getDocument()['version']) == version:
+                    indexReader.deleteDocument(hit.getId())
+
+        except JavaError:
+            self.store.repository.logger.exception("in undoDocuments()")
