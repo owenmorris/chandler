@@ -781,7 +781,12 @@ class SharingTranslator(eim.Translator):
 
                 # record.timestamp can never be NoChange, nor None
                 # timestamp is a Decimal we need to change to datetime
-                item.lastModified = decimalToDatetime(self.rv, record.timestamp)
+                try:
+                    item.lastModified = decimalToDatetime(self.rv,
+                        record.timestamp)
+                except ValueError:
+                    # Bogus timestamp, ignore it
+                    pass
 
                 if record.action is not eim.NoChange:
                     item.lastModification = \
@@ -963,10 +968,13 @@ class SharingTranslator(eim.Translator):
         inReplyTo = (eim.Inherit if record.inReplyTo == None
                      else record.inReplyTo)
 
+        dateSent = (eim.Inherit if record.dateSent == None
+                     else record.dateSent)
+
         @self.withItemForUUID(
            record.uuid,
            pim.MailStamp,
-           dateSentString=record.dateSent,
+           dateSentString=dateSent,
            messageId=messageId,
            inReplyTo=inReplyTo
         )
