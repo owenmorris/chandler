@@ -97,6 +97,9 @@ class RecordSetConduit(conduits.BaseConduit):
 
         return stats
 
+    def reset(self):
+        self.syncToken = ""
+        self.lastVersion = 0
 
     def _sync(self, modeOverride=None, activity=None, forceUpdate=None,
         debug=False):

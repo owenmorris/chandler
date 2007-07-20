@@ -1090,6 +1090,17 @@ Error: %(translatedErrorStrings)s""") % {
         event.arguments ['Text'] = menuTitle
         event.arguments ['Enable'] = True
 
+    def onResetShareEvent(self, event):
+        collection = self.getSidebarSelectedCollection()
+        if collection is not None and sharing.isShared(collection):
+            share = sharing.getShare(collection)
+            share.reset()
+
+    def onResetShareEventUpdateUI(self, event):
+        collection = self.getSidebarSelectedCollection()
+        event.arguments['Enable'] = (collection is not None and
+            sharing.isShared(collection))
+
     def onRecordSetDebuggingEvent(self, event):
         if sharing.logger.level == 10:
             sharing.logger.level = 0

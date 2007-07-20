@@ -676,6 +676,17 @@ class Share(pim.ContentItem):
         return self.sync(modeOverride='get', activity=activity,
                          debug=debug)
 
+    def reset(self):
+        # As a last resort, if the user has encountered a sharing error
+        # and needs to get unstuck, delete all the state items from the
+        # share and reset the conduit.
+        for state in getattr(self, 'states', []):
+            self.states.remove(state)
+            state.delete(True)
+
+        if self.conduit and hasattr(self.conduit, 'reset'):
+            self.conduit.reset()
+
     def exists(self):
         return self.conduit.exists()
 
