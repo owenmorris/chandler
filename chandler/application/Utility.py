@@ -662,9 +662,9 @@ def initRepository(directory, options, allowSchemaView=False):
         else:
             version = repository.store.getVersion()
             nVersions = long(options.undo)
-            toVersion = version - nVersions
-            if toVersion >= 0L:
-                repository.undo(toVersion)
+            if version > nVersions:
+                version -= nVersions
+                repository.undo(version)
         view.closeView()
 
     # delay timezone change until schema API is initialized
