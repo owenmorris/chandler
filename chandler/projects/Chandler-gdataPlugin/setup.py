@@ -37,3 +37,4 @@ setup(
                    "Topic :: Office/Business :: Groupware"],
     long_description = open('README.txt').read(),
 )
+

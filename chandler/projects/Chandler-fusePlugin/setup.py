@@ -15,7 +15,7 @@
 
 from setuptools import setup, Extension
 
-FUSE=False
+FUSE = False
 
 extensions = []
 if FUSE:
@@ -24,12 +24,26 @@ if FUSE:
                                            'fuse/c/c.c'],
                                 libraries=['fuse']))
 
-setup(name = "Chandler-fusePlugin",
-      version = "0.1",
-      description = "file system wrapper for Chandler repository",
-      author = "OSAF",
-      packages = ["fuse"],
-      ext_modules = extensions,
-      include_package_data = True,
-      test_suite = "unittest.TestCase",
-      entry_points = {"chandler.parcels": ["fuse = fuse"]})
+setup(
+    name = "Chandler-fusePlugin",
+    version = "0.1",
+    description = "file system wrapper for Chandler repository",
+    author = "OSAF",
+    test_suite = "unittest.TestCase",
+    packages = ["fuse"],
+    ext_modules = extensions,
+    include_package_data = True,
+    entry_points = {
+        "chandler.parcels": ["fuse = fuse"]
+    },
+    classifiers = ["Development Status :: 3 - Alpha",
+                   "Environment :: Plugins",
+                   "Framework :: Chandler",
+                   "Intended Audience :: Developers",
+                   "License :: OSI Approved :: Apache Software License",
+                   "Operating System :: OS Independent",
+                   "Programming Language :: Python",
+                   "Topic :: Office/Business :: Groupware"],
+    long_description = open('README.txt').read(),
+)
+

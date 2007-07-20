@@ -15,11 +15,25 @@
 
 from setuptools import setup
 
-setup(name = "Chandler-p2pPlugin",
-      version = "0.1",
-      description = "Peer to peer collection sharing for Chandler",
-      author = "OSAF",
-      test_suite = "p2p.tests",
-      packages = ["p2p"],
-      include_package_data = True,
-      entry_points = {"chandler.parcels": ["p2p = p2p"]})
+setup(
+    name = "Chandler-p2pPlugin",
+    version = "0.1",
+    description = "Peer to peer collection sharing for Chandler",
+    author = "OSAF",
+    test_suite = "p2p.tests",
+    packages = ["p2p"],
+    include_package_data = True,
+    entry_points = {
+        "chandler.parcels": ["p2p = p2p"]
+    },
+    classifiers = ["Development Status :: 3 - Alpha",
+                   "Environment :: Plugins",
+                   "Framework :: Chandler",
+                   "Intended Audience :: Developers",
+                   "License :: OSI Approved :: Apache Software License",
+                   "Operating System :: OS Independent",
+                   "Programming Language :: Python",
+                   "Topic :: Office/Business :: Groupware"],
+    long_description = open('README.txt').read(),
+)
+

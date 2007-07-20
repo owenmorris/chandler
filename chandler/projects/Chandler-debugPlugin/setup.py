@@ -15,12 +15,26 @@
 
 from setuptools import setup
 
-setup(name = "Chandler-debugPlugin",
-      version = "0.1",
-      description = "Debugging and Test Tools for Chandler",
-      author = "OSAF",
-      packages = ["debug"],
-      test_suite = "tests",
-      include_package_data = True,
-      entry_points = {"chandler.parcels": ["debug = debug"]},
-      zip_safe = True)
+setup(
+    name = "Chandler-debugPlugin",
+    version = "0.1",
+    description = "Debugging and Test Tools for Chandler",
+    author = "OSAF",
+    test_suite = "tests",
+    packages = ["debug"],
+    include_package_data = True,
+    entry_points = {
+        "chandler.parcels": ["debug = debug"]
+    },
+    zip_safe = True,
+    classifiers = ["Development Status :: 3 - Alpha",
+                   "Environment :: Plugins",
+                   "Framework :: Chandler",
+                   "Intended Audience :: Developers",
+                   "License :: OSI Approved :: Apache Software License",
+                   "Operating System :: OS Independent",
+                   "Programming Language :: Python",
+                   "Topic :: Office/Business :: Groupware"],
+    long_description = open('README.txt').read(),
+)
+
