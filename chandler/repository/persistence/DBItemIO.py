@@ -28,7 +28,7 @@ from repository.item.RefCollections import RefDict
 from repository.schema.TypeHandler import TypeHandler
 from repository.persistence.DBRefs import DBStandAloneRefList
 from repository.persistence.RepositoryError import \
-        LoadError, LoadValueError
+        LoadError, LoadValueError, SaveValueError
     
 
 class DBItemWriter(ItemWriter):
@@ -245,7 +245,7 @@ class DBItemWriter(ItemWriter):
         except DBLockDeadlockError:
             raise
         except Exception, e:
-            raise # SaveValueError, (item, name, e)
+            raise SaveValueError, (item, name, e)
 
         if indexed:
             if indexable:
