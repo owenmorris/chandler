@@ -420,7 +420,7 @@ class FeedChannel(pim.ListCollection):
         if author is not None:
             whos.append((10, author, 'author'))
 
-class FeedItem(pim.ContentItem):
+class FeedItem(pim.Note):
     """
     This class implements a feed channel item that is visualized
     in the summary and detail views.
