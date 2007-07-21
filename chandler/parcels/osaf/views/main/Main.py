@@ -143,7 +143,6 @@ Error: %(translatedErrorStrings)s""") % {
 
         if self.getSidebarSelectedCollection() is trashCollection:
             msg = _(u"New items cannot be created in the Trash collection.")
-
             promptOk(msg)
             return True
 
@@ -312,10 +311,6 @@ Error: %(translatedErrorStrings)s""") % {
             to the appropriate collection. Also parses the date/time info
             and sets the start/end time or the reminder time.
             """
-            if self.trashCollectionSelected():
-                # Items can not be created in the
-                # trash collectioon
-                return
 
             msgFlag = False
             eventFlag = False
@@ -369,6 +364,11 @@ Error: %(translatedErrorStrings)s""") % {
                     return False
 
                 cmd = cmd_re.match(displayName)
+
+            if self.trashCollectionSelected():
+                # Items can not be created in the
+                # trash collectioon
+                return True
 
             #Create a Note 
             item = pim.Note(itsView = self.itsView)
