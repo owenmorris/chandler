@@ -140,8 +140,9 @@ class RepositoryView(CView):
     # 0.6.26: removed 'otherNames' otherName override from Kind
     # 0.7.0: rolling over to version 0.7
     # 0.7.1: added 'notify' attribute to Kind, like Attribute's
+    # 0.7.2: DateTime and Time types now implement custom == compare
     
-    CORE_SCHEMA_VERSION = 0x00070100
+    CORE_SCHEMA_VERSION = 0x00070200
 
     def __init__(self, repository, name=None, version=None,
                  deferDelete=Default, pruneSize=Default, notify=True,
