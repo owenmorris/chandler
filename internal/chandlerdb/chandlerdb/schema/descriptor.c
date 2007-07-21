@@ -340,7 +340,7 @@ static int t_descriptor___set__(t_descriptor *self,
                             if (!result)
                                 return -1;
 
-                            eq == PyObject_IsTrue(result);
+                            eq = PyObject_IsTrue(result);
                             Py_DECREF(result);
                         }
                     }
