@@ -300,16 +300,13 @@ class ContentItem(Triageable):
         """
         collection.add(self)
 
-    def removeFromCollection(self, collection, cutting = False):
-        """Remove self from the given collection.        
+    def removeFromCollection(self, collection):
+        """Remove self from the given collection.
 
         For most items, just call collection.remove(self), but for recurring
         events, this method is intercepted by a proxy and buffered while the
         user selects from various possible meanings for removing a recurring
         event from a collection.
-
-        Cutting is typically equivalent to remove, but recurrence has different
-        behavior for cutting operations than delete.
 
         The special mine collection behavior that removed items should remain in
         the Dashboard is implemented here.

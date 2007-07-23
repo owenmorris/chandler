@@ -280,7 +280,9 @@ class ChandlerProxy(RecurrenceProxy):
             questionFmt = None
             disabled = set()
 
-            change = self.changes[0]
+            # use the last change to determine which text to use, since removal
+            # from a collection may first add the item to the dashboard
+            change = self.changes[-1]
             changeType = change[1]
 
             if changeType == 'addStamp':

@@ -827,6 +827,15 @@ Error: %(translatedErrorStrings)s""") % {
 
         return item
 
+    def allowCutOrPaste(self):
+        """
+        Don't cut or paste if the sidebar selected collection is read-only, or
+        if the trash is selected.
+        """
+        collection = self.getSidebarSelectedCollection()
+        trash = schema.ns("osaf.pim", self).trashCollection
+        return not sharing.isReadOnly(collection) and collection is not trash
+
     def _logChange(self, item, version, status, values, references):
         logger = item.itsView.logger
         logger.info("%s %d 0x%0.4x\n  values: %s\n  refs: %s",

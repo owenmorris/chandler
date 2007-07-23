@@ -377,13 +377,12 @@ class ItemClipboardHandler(_ClipboardHandler):
         """
         return []
     
-    def DeleteSelection(self, cutting=False):
+    def DeleteSelection(self, cutting=False, *args, **kwargs):
         """
-        Override this to remove the selection.  The optional cutting argument
-        is needed because cutting is not a simple copy-then-paste operation
-        for recurring items.
+        Override this if collection removal isn't the right behavior for cut or
+        move.
         """
-        pass
+        self.blockItem.postEventByName("RemoveInActiveView", {'cutting':cutting})
     
     def CopyData(self):
         """
@@ -459,6 +458,9 @@ class ItemClipboardHandler(_ClipboardHandler):
             event.arguments['Enable'] = False
         else:
             self.onCopyEventUpdateUI(event)
+        if event.arguments.get('Enable'):
+            allow = self.blockItem.findBlockByName("MainView").allowCutOrPaste()
+            event.arguments['Enable'] = allow
 
     def onCopyEvent(self, event):
         items = []
@@ -489,8 +491,10 @@ class ItemClipboardHandler(_ClipboardHandler):
     def onPasteEventUpdateUI(self, event):
         clipboard = wx.TheClipboard
         formatWeCanPaste = self.DataObjectFormat()
-        supportsOurKinds = clipboard.IsSupported(formatWeCanPaste)
-        event.arguments['Enable'] = supportsOurKinds
+        mainViewBlock = self.blockItem.findBlockByName("MainView")
+        event.arguments['Enable'] = (clipboard.IsSupported(formatWeCanPaste) and
+                                     mainViewBlock.allowCutOrPaste())
+        
 
     def onPasteEvent(self, event):
         clipboard = wx.TheClipboard

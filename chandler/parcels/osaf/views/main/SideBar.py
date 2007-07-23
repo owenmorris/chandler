@@ -398,6 +398,65 @@ class wxSidebar(wxTable):
         coll = self.getCollectionDroppedOn()
         ChooseFormat.importEmail(text, self.blockItem.itsView, coll)
 
+    def DeleteSelection (self, DeleteItemCallback=None, *args, **kwargs):
+        def DefaultCallback(item, collection=self.blockItem.contents):
+            collection.remove(item)
+            
+        blockItem = self.blockItem
+        if DeleteItemCallback is None:
+            DeleteItemCallback = DefaultCallback
+
+        # save a list copy of the ranges because we're about to clear them.
+        selectionRanges = list(reversed(self.blockItem.contents.getSelectionRanges()))
+
+        """
+          Clear the selection before removing the elements from the collection
+        otherwise our delegate will get called asking for deleted items
+        """
+        self.ClearSelection()
+        # now delete rows - since we reverse sorted, the
+        # "newSelectedItemIndex" will be the highest row that we're
+        # not deleting
+        
+        # this is broken - we shouldn't be going through the widget
+        # to delete the items! Instead, when items are removed from the
+        # current collection, the widget should be notified to remove
+        # the corresponding rows.
+        # (that probably can't be fixed until ItemCollection
+        # becomes Collection and notifications work again)
+
+        contents = blockItem.contents
+        newSelectedItemIndex = -1
+        for selectionStart,selectionEnd in selectionRanges:
+            for itemIndex in xrange (selectionEnd, selectionStart - 1, -1):
+                DeleteItemCallback(contents[itemIndex])
+                # remember the last deleted row
+                newSelectedItemIndex = itemIndex
+        
+        blockItem.contents.clearSelection()
+        blockItem.itsView.commit()
+        
+        # now select the "next" item
+        """
+          We call wxSynchronizeWidget here because the postEvent
+          causes the DetailView to call it's wxSynchronizeWidget,
+          which calls layout, which causes us to redraw the table,
+          which hasn't had time to get it's notificaitons so its data
+          is out of synch and chandler Crashes. So I think the long
+          term fix is to not call wxSynchronizeWidget here or in the
+          DetailView and instead let the notifications cause
+          wxSynchronizeWidget to be called. -- DJA
+        """
+        blockItem.synchronizeWidget()
+        totalItems = len(contents)
+        if totalItems > 0:
+            if newSelectedItemIndex != -1:
+                newSelectedItemIndex = min(newSelectedItemIndex, totalItems - 1)
+            blockItem.PostSelectItems([contents[newSelectedItemIndex]])
+        else:
+            blockItem.PostSelectItems([])
+
+
 class SSSidebarRenderer (wx.grid.PyGridCellRenderer):
     """
       The sidebar design doesn't use any off the shelf parts, so we'll go roll a bunch

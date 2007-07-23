@@ -1768,8 +1768,8 @@ class wxCalendarCanvas(CollectionCanvas.wxCollectionCanvas):
 
     def AddItems(self, itemList):
         source = self.blockItem.contentsCollection
-        for item in itemList:	
-            item.addToCollection(source)
+        for item in itemList:
+            RecurrenceDialog.getProxy(u'ui', item).addToCollection(source)
 
     def WarnReadOnlyTitle(self, items):
         """

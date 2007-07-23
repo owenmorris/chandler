@@ -23,7 +23,7 @@ from application.Application import mixinAClass
 
 from osaf.pim import ContentCollection
 import application.dialogs.RecurrenceDialog as RecurrenceDialog
-from osaf.sharing import ChooseFormat
+from osaf.sharing import ChooseFormat, isReadOnly
 
 from Block import (
     RectangularChild, Block, WithoutSynchronizeWidget, IgnoreSynchronizeWidget,
@@ -501,7 +501,7 @@ class wxTable(DragAndDrop.DraggableWidget,
                 contents.setSelectionRanges([(selectedItemIndex,
                                               selectedItemIndex)])
         self.DoDragAndDrop(copyOnly=True)
-
+        
     def AddItems(self, itemList):
         """
         The table's self.contents may contain a collectionList, in
@@ -512,15 +512,13 @@ class wxTable(DragAndDrop.DraggableWidget,
         collection = self.blockItem.contents
         if hasattr (collection, 'collectionList'):
             collection = collection.collectionList.first()
-            
+        
         # Vefify that we don't have a readonly collection
         if __debug__:
-            method = getattr (type (collection), "isReadOnly", None)
-            if method is not None:
-                assert not method (collection), "Can't add items to readonly collection - should block before the drop"
+            assert not isReadOnly(collection), "Can't add items to readonly collection - should block before the drop"
         
         for item in itemList:
-            item.addToCollection(collection)
+            RecurrenceDialog.getProxy(u'ui', item).addToCollection(collection)
 
     def OnFilePaste(self):
         for filename in self.fileDataObject.GetFilenames():
@@ -706,63 +704,6 @@ class wxTable(DragAndDrop.DraggableWidget,
             if -1 not in (topRow, bottomRow):
                 yield (topRow, bottomRow)
 
-    def DeleteSelection (self, DeleteItemCallback=None, *args, **kwargs):
-        def DefaultCallback(item, collection=self.blockItem.contents):
-            collection.remove(item)
-            
-        blockItem = self.blockItem
-        if DeleteItemCallback is None:
-            DeleteItemCallback = DefaultCallback
-
-        # save a list copy of the ranges because we're about to clear them.
-        selectionRanges = list(reversed(self.blockItem.contents.getSelectionRanges()))
-
-        """
-          Clear the selection before removing the elements from the collection
-        otherwise our delegate will get called asking for deleted items
-        """
-        self.ClearSelection()
-        # now delete rows - since we reverse sorted, the
-        # "newSelectedItemIndex" will be the highest row that we're
-        # not deleting
-        
-        # this is broken - we shouldn't be going through the widget
-        # to delete the items! Instead, when items are removed from the
-        # current collection, the widget should be notified to remove
-        # the corresponding rows.
-        # (that probably can't be fixed until ItemCollection
-        # becomes Collection and notifications work again)
-
-        contents = blockItem.contents
-        newSelectedItemIndex = -1
-        for selectionStart,selectionEnd in selectionRanges:
-            for itemIndex in xrange (selectionEnd, selectionStart - 1, -1):
-                DeleteItemCallback(contents[itemIndex])
-                # remember the last deleted row
-                newSelectedItemIndex = itemIndex
-        
-        blockItem.contents.clearSelection()
-        blockItem.itsView.commit()
-        
-        # now select the "next" item
-        """
-          We call wxSynchronizeWidget here because the postEvent
-          causes the DetailView to call it's wxSynchronizeWidget,
-          which calls layout, which causes us to redraw the table,
-          which hasn't had time to get it's notificaitons so its data
-          is out of synch and chandler Crashes. So I think the long
-          term fix is to not call wxSynchronizeWidget here or in the
-          DetailView and instead let the notifications cause
-          wxSynchronizeWidget to be called. -- DJA
-        """
-        blockItem.synchronizeWidget()
-        totalItems = len(contents)
-        if totalItems > 0:
-            if newSelectedItemIndex != -1:
-                newSelectedItemIndex = min(newSelectedItemIndex, totalItems - 1)
-            blockItem.PostSelectItems([contents[newSelectedItemIndex]])
-        else:
-            blockItem.PostSelectItems([])
 
     def SelectedItems(self):
         """

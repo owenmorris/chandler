@@ -315,9 +315,16 @@ class DeleteDialog(wx.Dialog):
             self.ProcessNextItem()
 
     def DeleteItem(self):
-        trash = schema.ns('osaf.pim', self.view).trashCollection
         proxiedItem = getProxy(u'ui', self.itemsAndStates[self.itemNumber][0])
+        trash = schema.ns('osaf.pim', self.view).trashCollection
         proxiedItem.addToCollection(trash)
+        if self.originalAction == 'cutting':
+            # when cutting the last collection an item appears in,
+            # the recurrence dialog should use remove, not delete,
+            # or THIS and THISANDFUTURE will be options.  There isn't currently
+            # an API to restrict the choices in the proxy's dialog, so trick
+            # the proxy into thinking the action is a remove by queuing a remove
+            proxiedItem.removeFromCollection(self.selectedCollection)
 
     def ProcessDelete(self, evt=None):
         self.DeleteItem()

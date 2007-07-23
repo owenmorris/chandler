@@ -416,6 +416,8 @@ class FocusEventHandlers(Item):
 
         assert selectedCollection, "Can't remove without a primary collection!"
 
+        originalAction = ('cutting' if event.arguments.get('cutting', False) 
+                                    else 'remove')
         itemsAndStates = []
         removals = []
         for item in selection:
@@ -444,7 +446,8 @@ class FocusEventHandlers(Item):
         if len(itemsAndStates) != 0:
             DeleteDialog.ShowDeleteDialog(view=self.itsView,
                                           selectedCollection=selectedCollection,
-                                          itemsAndStates=itemsAndStates)            
+                                          itemsAndStates=itemsAndStates,
+                                          originalAction=originalAction)            
         if self.contents.isSelectionEmpty():
             self.selectionEmptiedAfterDelete (selectedCollection, oldIndex)
 

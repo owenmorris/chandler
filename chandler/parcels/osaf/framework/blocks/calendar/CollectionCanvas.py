@@ -1072,13 +1072,9 @@ class wxCollectionCanvas(DragAndDrop.DropReceiveWidget,
     def OnEndDragNone(self):
         pass
 
-    # Methods for Drag and Drop and Cut and Paste
-    def DeleteSelection(self, *args, **kwargs):
-        self.blockItem.DeleteSelection(*args, **kwargs)
-
     def WarnReadOnlyAdd(self, collection):
         wx.MessageBox((u'This collection is read-only. You cannot add items to read-only collections'), _(u'Warning'), parent=self)
-        
+
 
 class CollectionBlock(FocusEventHandlers, Block.RectangularChild):
     """
@@ -1149,18 +1145,6 @@ class CollectionBlock(FocusEventHandlers, Block.RectangularChild):
 
     def onSelectAllEventUpdateUI(self, event):
         event.arguments['Enable'] =  self.contents is not None and len(self.contents) > 0
-
-    def DeleteSelection(self, cutting=False, *args, **kwargs):
-        selection = self.GetSelection()
-        for item in selection.iterSelection():
-            assert not isitemref(item)
-            item.removeFromCollection(self.contentsCollection, cutting)
-        self.ClearSelection()
-
-    def ClearSelection(self):
-        selection = self.GetSelection()
-        selection.clearSelection()
-        self.postSelectItemsBroadcast()
 
     def CanAdd(self):
         return not sharing.isReadOnly(self.contentsCollection)
