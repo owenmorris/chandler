@@ -174,15 +174,6 @@ def checkOptions(options):
     """
     Sanity check options. Some options may be changed, and some combinations
     will be warned about while some combinations will result in program exit.
-    
-    >>> options = parseOptions()
-    >>> checkOptions(options)
-    >>> d = eval(str(options))
-    >>> keys = d.keys()
-    >>> keys.sort()
-    >>> for key in keys:
-    ...     print key, d[key],
-    args [] chandlerBin ... chandlerHome ... dryrun False func False funcSuite False help False mode None modes ['release'...] noEnv False noStop False params None parcelPath tools/cats/DataFiles perf False profile False profileDir test_profile profileDir test_profile recorded False repeat 0 runLauncher False runchandler {'debug': ['.../debug/RunPython...', 'Chandler.py'], 'release': ['.../release/RunPython...', 'Chandler.py']} runpython {'debug': ['.../debug/RunPython...'], 'release': ['.../release/RunPython...']} selftest True single  tbox False testcase None toolsDir tools unit False unitSuite False verbose False
     """
     if options.help:
         print __doc__
