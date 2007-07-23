@@ -503,9 +503,17 @@ class wxApplication (wx.App):
         # Load Parcels
         if splash:
             splash.updateGauge('parcels')
-        Utility.initParcels(options, view, parcelPath)
-        Utility.initPlugins(options, view, pluginEnv, pluginEggs)
-        Utility.initTimezone(options, view)
+
+        try:
+            Utility.initParcels(options, view, parcelPath)
+            Utility.initPlugins(options, view, pluginEnv, pluginEggs)
+            Utility.initTimezone(options, view)
+        except:
+            if options.undo == 'start':
+                logger.exception("Failed to start while initializing data, restarting and undoing latest version")
+                self.restart(undo='start')
+            else:
+                raise
 
         # Now that the parcel world exists, save our locale for next time.
         self.saveLocale()
@@ -1057,12 +1065,14 @@ class wxApplication (wx.App):
                 continue
             if arg in ('-c', '--create'):
                 continue
-            if arg in ('-r', '--restore', '--reload'):
+            if arg in ('-r', '--restore', '--reload', '--undo'):
                 skip = True
                 continue
             if arg.startswith('--restore='):
                 continue
             if arg.startswith('--reload='):
+                continue
+            if arg.startswith('--undo='):
                 continue
             if windows and not arg.endswith('"') and ' ' in arg:
                 arg = '"%s"' %(arg)
