@@ -2,7 +2,11 @@ This plugin is just an example to show how minimal a plugin project can be.
 It doesn't actually do anything, but is a complete example with a setup
 script and tests.
 
-To download and install the plugin, use Chandler's InstallPlugin script::
+To download and install the plugin from the Chandler UI, 
+use the "Plugins -> Download" and "Plugins -> Install" menus.
+
+To download and install the plugin from the command line, use Chandler's
+InstallPlugin script and restart Chandler::
 
     InstallPlugin Chandler-HelloWorldPlugin
 

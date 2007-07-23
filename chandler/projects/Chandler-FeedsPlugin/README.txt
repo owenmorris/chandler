@@ -1,6 +1,10 @@
 This plugin provides support for RSS and Atom feeds in Chandler.
 
-To download and install the plugin, use Chandler's InstallPlugin script::
+To download and install the plugin from the Chandler UI, 
+use the "Plugins -> Download" and "Plugins -> Install" menus.
+
+To download and install the plugin from the command line, use Chandler's
+InstallPlugin script and restart Chandler::
 
     InstallPlugin Chandler-FeedsPlugin
 

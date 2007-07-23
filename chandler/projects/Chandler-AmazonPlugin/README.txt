@@ -1,7 +1,11 @@
 This plugin provides support for Amazon product and wishlist searches in
 Chandler.
 
-To download and install the plugin, use Chandler's InstallPlugin script::
+To download and install the plugin from the Chandler UI, 
+use the "Plugins -> Download" and "Plugins -> Install" menus.
+
+To download and install the plugin from the command line, use Chandler's
+InstallPlugin script and restart Chandler::
 
     InstallPlugin Chandler-AmazonPlugin
 
