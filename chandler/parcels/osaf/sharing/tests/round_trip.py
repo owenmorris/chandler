@@ -486,12 +486,10 @@ class RoundTripTestCase(testcase.DualRepositoryTestCase):
         # TODO: Verify no pending
 
 
-
-        # Local unstamping, remote modification - item does not change locally;
-        # the remote modification becomes a pending conflict
-
-        # First, put the event stamp back
+        # make sure duration changes work, but 10043
         pim.EventStamp(item).add()
+        pim.EventStamp(item).allDay = True
+        pim.EventStamp(item).duration = datetime.timedelta(0)
         view0.commit(); stats = self.share0.sync(); view0.commit()
         self.assert_(checkStats(stats,
             ({'added' : 0, 'modified' : 0, 'removed' : 0},
@@ -504,6 +502,18 @@ class RoundTripTestCase(testcase.DualRepositoryTestCase):
             "Sync operation mismatch")
         self.assert_(pim.has_stamp(item, pim.EventStamp))
         self.assert_(pim.has_stamp(item1, pim.EventStamp))
+        self.assertEqual(pim.EventStamp(item1).duration, datetime.timedelta(0))
+
+        pim.EventStamp(item1).duration = datetime.timedelta(1)
+        view1.commit(); stats = self.share1.sync(); view1.commit()
+        view0.commit(); stats = self.share0.sync(); view0.commit()
+        self.assertEqual(pim.EventStamp(item).duration, datetime.timedelta(1))
+        
+
+        # Local unstamping, remote modification - item does not change locally;
+        # the remote modification becomes a pending conflict
+
+        # First, put the event stamp back
         pim.EventStamp(item).transparency = 'confirmed'
         pim.EventStamp(item1).remove()
         self.assert_(not pim.has_stamp(item1, pim.EventStamp))
@@ -526,8 +536,6 @@ class RoundTripTestCase(testcase.DualRepositoryTestCase):
         self.assertEqual(pim.EventStamp(item1).transparency, 'tentative')
         # TODO: Verify pending is correct
         # print self.share1.conduit.getState(testUuid)[1]
-
-
 
         # Local removal -  sends removal recordset
         self.share0.contents.remove(item)

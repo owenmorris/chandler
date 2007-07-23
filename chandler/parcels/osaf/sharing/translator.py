@@ -1288,10 +1288,6 @@ class SharingTranslator(eim.Translator):
     def import_event(self, record):
 
         start, allDay, anyTime = getTimeValues(self.rv, record)
-        duration = with_nochange(record.duration, fromICalendarDuration)
-        if (allDay == True or anyTime == True) and duration not in emptyValues:
-            # convert to Chandler's notion of all day duration
-            duration -= oneDay
 
         uuid, recurrenceID = splitUUID(self.rv, record.uuid)
         if recurrenceID and start in emptyValues:
@@ -1315,13 +1311,13 @@ class SharingTranslator(eim.Translator):
             record.uuid,
             EventStamp,
             startTime=start,
-            duration=duration,
             transparency=with_nochange(record.status, fromTransparency),
             location=with_nochange(record.location, fromLocation, self.rv),
         )
         def do(item):
             event = EventStamp(item)
-
+            duration = with_nochange(record.duration, fromICalendarDuration)
+            
             # allDay and anyTime shouldn't be set if they match the master
             master = event.getMaster()
             # a master may be "faked" to allow a modification to be imported
@@ -1347,6 +1343,11 @@ class SharingTranslator(eim.Translator):
                         modEvent = EventStamp(mod)
                         if modEvent.anyTime == anyTime:
                             delattr(modEvent, 'anyTime')
+                
+                if duration not in emptyValues:
+                    if event.anyTime or event.allDay:
+                        duration -= oneDay
+                    event.duration = duration
 
             else:
                 # a modification
@@ -1365,6 +1366,31 @@ class SharingTranslator(eim.Translator):
 
                 if not fakeMaster:
                     fixTimezoneOnModification(event)
+                    if duration not in emptyValues:
+                        if event.anyTime or event.allDay:
+                            duration -= oneDay
+                        event.duration = duration
+
+                else:
+                    if duration not in emptyValues:
+                        if allDay not in emptyValues:
+                            if anyTime or allDay:
+                                duration -= oneDay
+                        else:
+                            # handling duration when the master hasn't yet been
+                            # imported and the modification has no changes to 
+                            # start time means we have to look at recurrenceID
+                            # to determine allDay-ness for duration translation
+                            pos = record.uuid.find(':')
+                            if pos != -1:
+                                ignore, allDayFromID, anyTimeFromID = \
+                                  fromICalendarDateTime(self.rv, 
+                                                        record.uuid[pos + 1:])
+                                if allDayFromID or anyTimeFromID:
+                                    duration -= oneDay
+
+                        event.duration = duration
+                    
                 # modifications don't have recurrence rule information, so stop
                 return
 
