@@ -17,7 +17,7 @@ from setuptools import setup
 
 setup(
     name = "Chandler-FeedsPlugin",
-    version = "0.3",
+    version = "0.7",
     description = "Simple RSS/Atom feed support for Chandler",
     author = "OSAF",
     test_suite = "feeds.tests",

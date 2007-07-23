@@ -17,7 +17,7 @@ from setuptools import setup
 
 setup(
     name = "Chandler-PhotoPlugin",
-    version = "0.2",
+    version = "0.7",
     description = "Photograph loading for Chandler",
     author = "OSAF",
     test_suite = "photos.tests",

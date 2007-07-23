@@ -17,7 +17,7 @@ from setuptools import setup
 
 setup(
     name = "Chandler-AmazonPlugin",
-    version = "0.2",
+    version = "0.7",
     description = "Amazon product search widget for Chandler",
     author = "OSAF",
     test_suite = "amazon.tests",

@@ -17,7 +17,7 @@ from setuptools import setup
 
 setup(
     name = "Chandler-EVDBPlugin",
-    version = "0.2",
+    version = "0.7",
     description = "Event database search widget for Chandler",
     author = "OSAF",
     test_suite = "evdb.tests",

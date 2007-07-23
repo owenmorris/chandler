@@ -17,7 +17,7 @@ from setuptools import setup
 
 setup(
     name = "Chandler-FlickrPlugin",
-    version = "0.2",
+    version = "0.7",
     description = "Flickr photo search widget for Chandler",
     author = "OSAF",
     test_suite = "flickr.tests",
