@@ -159,7 +159,8 @@ class wxTable(DragAndDrop.DraggableWidget,
         self.SetScrollLineY (self.GetDefaultRowSize())
         self.SetUseVisibleColHeaderSelection(True)
         self.SetUseColSortArrows(True)
-
+        # wxSidebar is subclassed from wxTable and depends on the binding of
+        # OnLoseFocus so it can override OnLoseFocus in wxTable
         self.Bind(wx.EVT_KILL_FOCUS, self.OnLoseFocus)
         self.Bind(wx.EVT_SET_FOCUS, self.OnGainFocus)
         self.Bind(wx.EVT_KEY_DOWN, self.OnKeyDown)
@@ -170,8 +171,8 @@ class wxTable(DragAndDrop.DraggableWidget,
 
         gridWindow = self.GetGridWindow()
         gridWindow.Bind(wx.EVT_PAINT, self.OnPaint)
-        # Sidebar is subclassed from wxTable and depends on the following
-        # bind so it can override OnMouseEvents in wxTable
+        # wxSidebar is subclassed from wxTable and depends on the binding of
+        # OnMouseEvents so it can override OnMouseEvents in wxTable
         gridWindow.Bind(wx.EVT_MOUSE_EVENTS, self.OnMouseEvents)
         gridWindow.Bind(wx.EVT_MOUSE_CAPTURE_LOST, self.OnMouseCaptureLost)
         # It appears that wxGrid gobbles all the mouse events so we never get

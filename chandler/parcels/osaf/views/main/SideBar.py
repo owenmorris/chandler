@@ -63,8 +63,9 @@ class wxSidebar(wxTable):
     def __init__(self, *arguments, **keywords):
         super (wxSidebar, self).__init__ (*arguments, **keywords)
         gridWindow = self.GetGridWindow()
-        # wxTable already binds to self.OnMouseEvents for us, and we want to
-        # override wxTables's implementation, so we don't need to do another Bind
+        # wxTable already binds to self.OnMouseEvents and self.OnLoseFocus for us,
+        # and we want to override wxTables's implementation, so we don't need to
+        # do another Bind
         gridWindow.Bind(wx.EVT_LEFT_DCLICK, self.OnDoubleClick)
         gridWindow.Bind(wx.EVT_SET_FOCUS, self.OnSetFocus)
 
@@ -87,6 +88,16 @@ class wxSidebar(wxTable):
             del self.setFocus
             event.Skip()
 
+    def OnLoseFocus (self, event):
+        # Override OnLoseFocus because of an apparent bug in Linux where
+        # it fails to send us mouse events when we capture the mouse and a
+        # dialog comes up. See bug #10002: Trying to delete the out of the box Work
+        # collection hangs Chandler until I siwtch workspace
+        super (wxSidebar, self).OnLoseFocus (event)
+        gridWindow = self.GetGridWindow()
+        if (gridWindow.HasCapture()):
+            gridWindow.ReleaseMouse()
+        
     def CalculateCellRect (self, row):
         if row >= 0:
             cellRect = self.CellToRect (row, 0)
