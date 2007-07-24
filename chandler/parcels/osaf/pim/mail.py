@@ -2179,11 +2179,52 @@ Issues:
         return re.match("^(([^<>()[\]\\.,;:\s@\"]+(\.[^<>()[\]\\.,;:\s@\"]+)*)|(\".+\"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$", self.emailAddress) is not None
 
     def getShortenedDisplayAddress(self, stringCanFit):
+        """
+        @param stringCanFit: callback to test the newly shortened address
+        @type nameOrAddressString: C{bound method}
+
+        @return: C{String} if possible, the shortened address, otherwise
+        the first character
+        """
+        # 'address' will never contain an ellipsis ("..."), although it will be
+        # the "shortened version".
+        # 'tryAddress' is the version of the address with one or more
+        # ellipses in it, which is built each time throgh the loop, based on the
+        # current value of 'address' and a
         address = unicode(self)
-        # do the dumb thing -- just take the last char off
-        while address and not stringCanFit(address):
-            address =  address[:-1]
-        return address
+        tryAddress = address
+        addressIsTooShort = False
+        ellipsis = u"..."
+        minimumLength = 2
+        while not stringCanFit(tryAddress) and not addressIsTooShort:
+            atLocation = address.find("@")
+            if atLocation >= 0:
+                before = address[:atLocation]
+                after = address[atLocation+1:]
+                # check for either degenerate <char>... case or
+                # single-letter case
+                if len(after) > 1:
+                    # try shrinking the domain
+                    address = u"%s@%s" % (before, after[:-1])
+                    tryAddress = u"%s@%s..." % (before, after[:-1])
+                elif len(before) > 1:
+                    # domain has been shortened to one character, so
+                    # shorten the username
+                    address = u"%s@%s" % (before[:-1], after)
+                    tryAddress = u"%s...@%s" % (before[:-1], after)
+                else:
+                    # the address can't be shortened any more
+                    addressIsTooShort = True
+            else:
+                # no "@" sign, must be a plain email address, so just
+                # shorten it by one, if it's long enough
+                if len(address) > minimumLength:
+                    address = address[:-1]
+                    tryAddress = u"%s..." % address
+                else:
+                    addressIsTooShort = True
+
+        return tryAddress
 
     @classmethod
     def getEmailAddress(cls, view, nameOrAddressString, fullName=u''):
