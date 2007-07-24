@@ -572,7 +572,7 @@ def find_packages(where='.', exclude=()):
         out = [item for item in out if not fnmatchcase(item,pat)]
     return out
 
-def generateDocs(outputDir, verbose):
+def generateDocs(outputDir):
     import epydoc.cli
 
     sys.argv += [ 'Chandler.py',
