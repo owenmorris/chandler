@@ -225,7 +225,6 @@ class State(schema.Item):
     def merge(self, rsInternal, inbound=None, isDiff=True,
         filter=None, readOnly=False, debug=False):
         assert isinstance(rsInternal, eim.RecordSet)
-        doLog = logger.info if debug else logger.debug
 
         if filter is None:
             filter = lambda rs: rs
@@ -250,14 +249,16 @@ class State(schema.Item):
         externalDiff = filter(rsExternal - agreed)
         ncd = internalDiff | externalDiff
 
-        doLog("----------- Beginning merge")
-        doLog("   old agreed: %s", agreed)
-        doLog("   old pending: %s", pending)
-        doLog("   rsInternal: %s", rsInternal)
-        doLog("   internalDiff: %s", internalDiff)
-        doLog("   rsExternal: %s", rsExternal)
-        doLog("   externalDiff: %s", externalDiff)
-        doLog("   ncd: %s", ncd)
+        msgs = list()
+        add = msgs.append
+        add("----------- Beginning merge")
+        add("   old agreed: %s" % agreed)
+        add("   old pending: %s" % pending)
+        add("   rsInternal: %s" % rsInternal)
+        add("   internalDiff: %s" % internalDiff)
+        add("   rsExternal: %s" % rsExternal)
+        add("   externalDiff: %s" % externalDiff)
+        add("   ncd: %s" % ncd)
 
         if readOnly:
             # This allows a read-only subscriber to maintain local changes
@@ -274,8 +275,8 @@ class State(schema.Item):
 
             extWins = agreed + internalDiff + pending + externalDiff
             intWins = agreed + pending + externalDiff + internalDiff
-            doLog("   extWins: %s", extWins)
-            doLog("   intWins: %s", intWins)
+            add("   extWins: %s" % extWins)
+            add("   intWins: %s" % intWins)
             pending = self.pending = filter(extWins - intWins)
 
             agreed = self.agreed = filter(rsExternal)
@@ -283,22 +284,29 @@ class State(schema.Item):
 
         else:
             agreed = self.agreed = agreed + ncd
-            doLog("   agreed+=ncd: %s", agreed)
+            # add("   agreed+=ncd: %s" % agreed)
             dSend = self._cleanDiff(rsExternal, ncd)
-            doLog("   dSend cleanDiff: %s", dSend)
+            # add("   dSend cleanDiff: %s" % dSend)
             rsExternal += dSend
-            doLog("   rsExternal+=dSend: %s", rsExternal)
+            # add("   rsExternal+=dSend: %s" % rsExternal)
             pending = self.pending = filter(rsExternal - agreed)
 
         dApply = self._cleanDiff(rsInternal, ncd)
 
 
-        doLog(" - - - - Results - - - - ")
-        doLog("   dSend: %s", dSend)
-        doLog("   dApply: %s", dApply)
-        doLog("   new agreed: %s", agreed)
-        doLog("   new pending: %s", pending)
-        doLog(" ----------- Merge complete")
+        add(" - - - - Results - - - - ")
+        add("   dSend: %s" % dSend)
+        add("   dApply: %s" % dApply)
+        add("   new agreed: %s" % agreed)
+        add("   new pending: %s" % pending)
+        add(" ----------- Merge complete")
+
+        if pending:
+            msgs.insert(0, "Conflict detected:")
+
+        doLog = logger.info if (debug or pending) else logger.debug
+        for msg in msgs:
+            doLog(msg)
 
         return dSend, dApply, pending
 
