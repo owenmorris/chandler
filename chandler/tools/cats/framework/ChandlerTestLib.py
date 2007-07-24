@@ -70,7 +70,7 @@ def publishSubscribe(testClass):
     ap.CreateAccount("SHARING_MORSECODE")
     ap.TypeValue("displayName", accountName)
     ap.TypeValue("host", "qasharing.osafoundation.org")
-    ap.TypeValue("path", "cosmo")
+    ap.TypeValue("path", "chandler")
     ap.TypeValue("username", "demo1")
     ap.TypeValue("password", "ad3leib5")
     ap.TypeValue("port", "443")
