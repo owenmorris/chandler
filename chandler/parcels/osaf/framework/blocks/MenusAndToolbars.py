@@ -406,6 +406,7 @@ class wxToolBarTool (wx.ToolBarTool):
             toolBar = self.GetToolBar()
             id = self.GetId()
             toolBar.SetToolNormalBitmap (id, theApp.GetImage (bitmapName))
+            self.wxSynchronizeWidget()
 
     def selectTool(self):
         """
@@ -517,25 +518,30 @@ class ToolBar(Block.RectangularChild):
 class wxToolBar (wxBaseContainer, Block.BaseWidget, wx.ToolBar):
 
     def wxSynchronizeWidget(self):
-        # Call BaseWidget's wxSynchronizeWidget since not all wxBaseContainers
-        # have BaseWidget as a superclass.
-        Block.BaseWidget.wxSynchronizeWidget(self)
-        changed = super (wxToolBar, self).wxSynchronizeWidget()
-        
-        blockItem = self.blockItem
-
-        self.SetToolBitmapSize((blockItem.toolSize.width, blockItem.toolSize.height))
-        self.SetToolSeparation(blockItem.separatorWidth)
-
-        heightGutter = blockItem.buttonsLabeled and 23 or 6
-        self.SetSize ((-1, blockItem.toolSize.height + heightGutter))
-
-        colorStyle = blockItem.colorStyle
-        if colorStyle is not None:
-            self.SetBackgroundColour(colorStyle.backgroundColor.wxColor())
-            self.SetForegroundColour(colorStyle.foregroundColor.wxColor())
-
-        self.Realize()
+        # A bug in windows wxWidgets causes the toolbar synchronizeWidget to incorrectly
+        # layout a the toolbar controls when it's called before the top level size is
+        # layed out, so we'll ignore calls to wxSynchronizeLayout until the top level
+        # sizer is installed
+        if wx.GetApp().mainFrame.GetSizer() is not None:
+            blockItem = self.blockItem
+    
+            self.SetToolBitmapSize((blockItem.toolSize.width, blockItem.toolSize.height))
+            self.SetToolSeparation(blockItem.separatorWidth)
+    
+            heightGutter = blockItem.buttonsLabeled and 23 or 6
+            self.SetSize ((-1, blockItem.toolSize.height + heightGutter))
+    
+            colorStyle = blockItem.colorStyle
+            if colorStyle is not None:
+                self.SetBackgroundColour(colorStyle.backgroundColor.wxColor())
+                self.SetForegroundColour(colorStyle.foregroundColor.wxColor())
+    
+            # Call BaseWidget's wxSynchronizeWidget since not all wxBaseContainers
+            # have BaseWidget as a superclass.
+            Block.BaseWidget.wxSynchronizeWidget(self)
+            changed = super (wxToolBar, self).wxSynchronizeWidget()
+    
+            self.Realize()
 
     def GetOldItems (self):
         return self.GetTools()

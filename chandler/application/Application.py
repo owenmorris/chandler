@@ -756,6 +756,14 @@ class wxApplication (wx.App):
                    wxRectangularChild.CalculateWXFlag(mainViewRoot), 
                    wxRectangularChild.CalculateWXBorder(mainViewRoot))
         sizer.Layout()
+        # A bug in windows wxWidgets causes the toolbar synchronizeWidget to incorrectly
+        # layout a the toolbar controls when it's called before the top level size is
+        # layed out, so we'll ignore calls to wxSynchronizeLayout until the top level
+        # sizer is installed
+        from osaf.framework.blocks.Block import Block
+        toolbar = Block.findBlockByName ("ApplicationBar")
+        toolbar.synchronizeWidget()
+        
         #allow callbacks from other threads
         EVT_MAIN_THREAD_CALLBACK(self, self.OnMainThreadCallbackEvent)
 
