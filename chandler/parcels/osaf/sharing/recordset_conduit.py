@@ -464,11 +464,12 @@ class RecordSetConduit(conduits.BaseConduit):
             elif receive and pending and item is not None:
 
                 for rConflict, field in iterConflicts(pending):
+                    logger.info("Examining conflict for EIM auto-resolution")
                     rLocal = findMatch(rConflict, rsInternal)
                     rAgreed = findMatch(rConflict, state.agreed)
-                    doLog("Local: %s", rLocal)
-                    doLog("Remote: %s", rConflict)
-                    doLog("Agreed: %s", rAgreed)
+                    logger.info("Local: %s", rLocal)
+                    logger.info("Remote: %s", rConflict)
+                    logger.info("Agreed: %s", rAgreed)
 
                     if rLocal: # rLocal will be None if the conflict is
                                # a record deletion, which this auto-resolve
@@ -500,7 +501,9 @@ class RecordSetConduit(conduits.BaseConduit):
                             newPending = state.pending
                             newPending.remove(rConflict)
                             state.pending = newPending
-                            doLog("State updated to: %s", state)
+                            logger.info("Resolved; state updated to: %s", state)
+                        else:
+                            logger.info("Not resolved")
 
                 state.updateConflicts(item)
 

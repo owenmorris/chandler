@@ -455,6 +455,14 @@ class SharingTranslator(eim.Translator):
                 if agreed == eim.NoChange: # no agreed upon value
                     return -1 if internal else 1 # let the non-None value win
 
+        elif cls is model.MailMessageRecord:
+            if agreed == eim.NoChange: # no agreed upon value
+                if field.name in ('fromAddress', 'toAddress', 'ccAddress',
+                    'bccAddress', 'originators'):
+                    if internal and external: # they both have values
+                        return 0 # no decision
+                    return -1 if internal else 1 # let the non-None value win
+
         return 0
 
 
@@ -1126,7 +1134,7 @@ class SharingTranslator(eim.Translator):
         if toAddress:
             toAddress = u", ".join(toAddress)
         else:
-            toAddress = None
+            toAddress = u''
 
         ccAddress = []
 
@@ -1136,7 +1144,7 @@ class SharingTranslator(eim.Translator):
         if ccAddress:
             ccAddress = u", ".join(ccAddress)
         else:
-            ccAddress = None
+            ccAddress = u''
 
         bccAddress = []
 
@@ -1146,7 +1154,7 @@ class SharingTranslator(eim.Translator):
         if bccAddress:
             bccAddress = u", ".join(bccAddress)
         else:
-            bccAddress = None
+            bccAddress = u''
 
         originators = []
 
@@ -1160,7 +1168,7 @@ class SharingTranslator(eim.Translator):
         else:
             originators = None
 
-        fromAddress = None
+        fromAddress = u''
 
         if getattr(mail, "fromAddress", None) is not None:
             fromAddress = format(mail.fromAddress)
