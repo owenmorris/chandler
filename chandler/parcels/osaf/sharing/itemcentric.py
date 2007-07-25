@@ -85,6 +85,7 @@ def inbound(peer, text, filter=None, allowDeletion=False, debug=False):
                 dSend, dApply, pending = state.merge(rsInternal, rsExternal,
                     isDiff=False, filter=filter, debug=debug)
 
+                state.autoResolve(rsInternal, dApply, dSend)
                 state.updateConflicts(item)
 
                 if dApply:

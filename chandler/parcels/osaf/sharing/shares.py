@@ -391,6 +391,84 @@ class State(schema.Item):
 
 
 
+    def autoResolve(self, rsInternal, dApply, dSend):
+        trans = self.getTranslator()
+        for rConflict, field in self._iterConflicts():
+            logger.info("Examining conflict for EIM auto-resolution")
+            rLocal = findMatch(rConflict, rsInternal)
+            rAgreed = findMatch(rConflict, self.agreed)
+            logger.info("Local: %s", rLocal)
+            logger.info("Remote: %s", rConflict)
+            logger.info("Agreed: %s", rAgreed)
+
+            if rLocal: # rLocal will be None if the conflict is 
+                       # a record deletion, which this auto-resolve
+                       # code doesn't yet support
+
+                if rAgreed in (eim.NoChange, eim.Inherit):
+                    agreedValue = rAgreed
+                else:
+                    agreedValue = (field.__get__(rAgreed) if rAgreed
+                                   else eim.NoChange)
+
+                localValue = field.__get__(rLocal)
+                remoteValue = field.__get__(rConflict)
+
+                decision = trans.resolve(type(rConflict), field,
+                    agreedValue, localValue, remoteValue)
+
+                if decision == -1: # local wins
+                    dLocal = eim.Diff([rLocal])
+                    dSend += dLocal
+                    self.agreed += dLocal
+
+                elif decision == 1: # remote wins
+                    dConflict = eim.Diff([rConflict])
+                    dApply += dConflict
+                    self.agreed += dConflict
+
+                if decision:
+                    newPending = self.pending
+                    newPending.remove(rConflict)
+                    self.pending = newPending
+                    logger.info("Resolved; state updated to: %s", self)
+                else:
+                    logger.info("Not resolved")
+
+
+    def _iterConflicts(self):
+        # Break a pending Diff into records, each containing one conflicting
+        # field.  This results in records that could be applied if you want the
+        # pending change to win in a conflict.
+        for r in self.pending.inclusions:
+            cls = type(r)
+            data = [(f.__get__(r) if isinstance(f, eim.key) else eim.NoChange)
+                for f in cls.__fields__]
+            for f, value in zip(cls.__fields__, r[1:]):
+                if not isinstance(f, eim.key) and value is not eim.NoChange:
+                    data[f.offset-1] = value
+                    yield cls(*data), f
+                    data[f.offset-1] = eim.NoChange
+
+
+def findMatch(record, recordSet):
+    # Given a record as returned from iterConflicts, find the record with the
+    # same key within recordSet and return a copy of that record, but only
+    # the fields that were not NoChange in the first arg record will be filled
+    # in in the copy (while the rest will be NoChange).  This results in a
+    # record that could be applied if you choose the local value to win in a
+    # conflict.
+    cls = type(record)
+    key = record.getKey()
+
+    for r in recordSet.inclusions:
+        if key == r.getKey():
+            data = [(f.__get__(r) if f.__get__(record) is not eim.NoChange
+                else eim.NoChange) for f in cls.__fields__]
+            return cls(*data)
+
+    return None
+
 
 
 

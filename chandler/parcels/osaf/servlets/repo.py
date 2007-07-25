@@ -1050,7 +1050,7 @@ def RenderItem(repoView, item):
                     result += "<table width=100% border=0 cellpadding=4 cellspacing=0>\n"
                     result += "<tr class='toprow'>\n"
                     result += "<td><b>Shared in collection: %s</b></td>\n" % \
-                        getattr(share.contents, 'displayName', 'untitled')
+                        clean(getattr(share.contents, 'displayName', 'untitled'))
                     result += "</tr>\n"
                     result += "<tr class='oddrow'>\n"
                     result += "<td>Alias: %s</td>\n" % alias
@@ -1061,7 +1061,7 @@ def RenderItem(repoView, item):
                     count = 0
                     for record in sharing.sort_records(local.inclusions):
                         result += oddEvenRow(count)
-                        result += "<td>%s</td>\n" % str(record)
+                        result += "<td>%s</td>\n" % clean(str(record))
                         result += "</tr>\n"
                         count += 1
 
@@ -1075,19 +1075,19 @@ def RenderItem(repoView, item):
                         count = 0
                         for record in sharing.sort_records(agreed.inclusions):
                             result += oddEvenRow(count)
-                            result += "<td>%s</td>\n" % str(record)
+                            result += "<td>%s</td>\n" % clean(str(record))
                             result += "</tr>\n"
                             count += 1
                         result += "<tr class='headingsrow'><td><b>Pending Changes:</b></td></tr>\n"
                         count = 0
                         for record in sharing.sort_records(state.pending.inclusions):
                             result += oddEvenRow(count)
-                            result += "<td>++ %s</td>\n" % str(record)
+                            result += "<td>++ %s</td>\n" % clean(str(record))
                             result += "</tr>\n"
                             count += 1
                         for record in sharing.sort_records(state.pending.exclusions):
                             result += oddEvenRow(count)
-                            result += "<td>-- %s</td>\n" % str(record)
+                            result += "<td>-- %s</td>\n" % clean(str(record))
                             result += "</tr>\n"
                             count += 1
                         result += "<tr class='headingsrow'><td><b>Pending Removal: %s</b></td></tr>\n" % ("Yes" if state.pendingRemoval else "No")
@@ -1098,16 +1098,39 @@ def RenderItem(repoView, item):
                         count = 0
                         for record in sharing.sort_records(diff.inclusions):
                             result += oddEvenRow(count)
-                            result += "<td>++ %s</td>\n" % str(record)
+                            result += "<td>++ %s</td>\n" % clean(str(record))
                             result += "</tr>\n"
                             count += 1
                         for record in sharing.sort_records(diff.exclusions):
                             result += oddEvenRow(count)
-                            result += "<td>-- %s</td>\n" % str(record)
+                            result += "<td>-- %s</td>\n" % clean(str(record))
                             result += "</tr>\n"
                             count += 1
 
                 result += "</table>\n"
+
+            if hasattr(si, 'peerStates'):
+                for state in si.peerStates:
+                    peerUUID = si.peerStates.getAlias(state)
+                    peer = repoView.findUUID(peerUUID)
+                    result += "<table width=100% border=0 cellpadding=4 cellspacing=0>\n"
+                    result += "<tr class='toprow'>\n"
+                    result += "<td><b>Shared with peer: <a href=%s>%s</a></b></td>\n" % (toLink(peer.itsPath), clean(str(peer)))
+                    result += "</tr>\n"
+                    result += "<tr class='oddrow'>\n"
+                    result += "<td>Peer UUID: %s</td>\n" % peerUUID
+                    result += "</tr>\n"
+                    agreed = state.agreed
+                    result += "<tr class='headingsrow'><td><b>Agreed <a href=%s>State</a>:</b></td></tr>\n" % toLink(state.itsPath)
+                    count = 0
+                    for record in sharing.sort_records(agreed.inclusions):
+                        result += oddEvenRow(count)
+                        result += "<td>%s</td>\n" % clean(str(record))
+                        result += "</tr>\n"
+                        count += 1
+                    result += "</table>\n"
+
+
 
         if pim.has_stamp(item, pim.EventStamp) and item.hasLocalAttributeValue('inheritTo'):
             result += "<table width=100% border=0 cellpadding=4 cellspacing=0>\n"

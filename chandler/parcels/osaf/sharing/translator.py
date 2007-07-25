@@ -350,118 +350,44 @@ class SharingTranslator(eim.Translator):
         self.promptForTimezone = not tzprefs.showUI and tzprefs.showPrompt
 
 
-    def resolveConflicts(self, conflicts):
-
-        for conflict in conflicts:
-
-            if len(conflict.change.inclusions) == 1:
-                record = list(conflict.change.inclusions)[0]
-
-                if isinstance(record, model.ItemRecord):
-
-                    item = conflict.item
-
-
-                    if record.triage is not eim.NoChange:
-
-                        if record.triage is eim.Inherit:
-                            conflict.discard()
-
-                        else:
-                            codeIn, tscIn, autoIn = record.triage.split(" ")
-
-                            if self.code_to_triagestatus[codeIn] == \
-                                item.triageStatus:
-
-                                logger.info("Autoresolving triage: %s",
-                                    item.itsUUID)
-
-                                # The triage status is not in conflict, so we
-                                # are going to auto resolve any conflicts on
-                                # either triageStatusChanged or
-                                # doAutoTriageOnDateChange:
-
-                                tscIn = float(tscIn)
-                                if tscIn < item._triageStatusChanged:
-                                    # inbound tsc is more recent
-                                    item._triageStatusChanged = tscIn
-
-                                if autoIn == "0":
-                                    # an inbound auto of False always gets
-                                    # applied
-                                    item.doAutoTriageOnDateChange = False
-
-                                conflict.discard()
-
-                    if record.createdOn is not eim.NoChange:
-                        # Instead of having conflicts for createdOn, apply the
-                        # oldest value
-
-                        if record.createdOn not in emptyValues:
-                            createdOn = decimalToDatetime(self.rv, record.createdOn)
-                            if createdOn < item.createdOn:
-                                item.createdOn = createdOn
-
-                        conflict.discard()
-
-                elif isinstance(record, model.NoteRecord):
-                    if record.icalUid is not eim.NoChange:
-                        # auto-resolve empty icalUid as equivalent to UUID
-                        item = conflict.item
-                        icalUID = getattr(item, 'icalUID', None)
-                        if icalUID is None:
-                            icalUID = item.itsUUID.str16()
-                        if record.icalUid in (icalUID, None):
-                            conflict.discard()
-
-
-                elif isinstance(record, model.MailMessageRecord):
-                    autoResolve = (
-                          (record.messageId, "messageId"),
-                          (record.headers, "headers"),
-                          (record.dateSent, "dateSent"),
-                          (record.inReplyTo, "inReplyTo"),
-                          (record.references, "referencesMID"),
-                    )
-
-                    ms = pim.MailStamp(conflict.item)
-
-                    for rcValue, msAttribute in autoResolve:
-                        if rcValue is not eim.NoChange:
-                            msValue = getattr(ms, msAttribute, None)
-
-                            if (not msValue and rcValue):
-                                conflict.apply()
-
-                                if __debug__:
-                                    msg = "Auto Resolve: applying change %s to %s" % (rcValue, msAttribute)
-                                    logging.debug(msg)
-
-                            elif (msValue and not rcValue) or \
-                                 (not msValue and not rcValue):
-                                conflict.discard()
-
-                                if __debug__:
-                                    msg = "Auto Resolve: discarding change %s on attribute %s. " \
-                                          "The current attribute value is %s" % (rcValue, msAttribute, msValue)
-                                    logging.debug(msg)
-
 
     def resolve(self, cls, field, agreed, internal, external):
         # Return 1 for external to win, -1 for internal, 0 for no decision
 
-        if cls is model.DisplayAlarmRecord:
-            if field.name == "trigger": # a conflict on trigger
-                if agreed == eim.NoChange: # no agreed upon value
-                    return -1 if internal else 1 # let the non-None value win
+        # In general, if there was no agreed state, and one side provides
+        # a non-None value while the other side provides a None value, let
+        # the non-None value automatically win
+        if agreed == eim.NoChange or agreed == eim.Inherit:
+            if not (internal and external):
+                # Either one or neither have values, but not both
+                return -1 if internal else 1
 
-        elif cls is model.MailMessageRecord:
-            if agreed == eim.NoChange: # no agreed upon value
-                if field.name in ('fromAddress', 'toAddress', 'ccAddress',
-                    'bccAddress', 'originators'):
-                    if internal and external: # they both have values
-                        return 0 # no decision
-                    return -1 if internal else 1 # let the non-None value win
+        # Resolve item record conflicts:
+        if cls is model.ItemRecord:
+            if field.name == 'createdOn':
+                return -1 if internal else 1 # let the non-None value win
+
+            elif field.name == 'triage':
+                if external == eim.Inherit:
+                    return -1 # internal wins
+
+                codeInt, tscInt, autoInt = internal.split(" ")
+                codeExt, tscExt, autoExt = external.split(" ")
+                if codeInt == codeExt:
+                    # status is equal, let more recent tsc win
+                    return -1 if (float(tscInt) < float(tscExt)) else 1
+
+
+        # Resolve note record conflicts:
+        if cls is model.NoteRecord:
+            if field.name == 'icalUid':
+                return -1 if internal else 1 # let the non-None value win
+
+        # Resolve mail record conflicts:
+        if cls is model.MailMessageRecord:
+            if field.name in ('messageId', 'headers', 'dateSent', 'inReplyTo',
+                'references', 'hasBeenSent'):
+                return -1 if internal else 1 # let the non-None value win
 
         return 0
 
@@ -627,7 +553,17 @@ class SharingTranslator(eim.Translator):
                 item.setTriageStatus('auto')
 
 
-        # TODO: record.hasBeenSent --> item.modifiedFlags
+            if record.hasBeenSent != eim.NoChange:
+                if record.hasBeenSent:
+                    if pim.Modification.sent not in item.modifiedFlags:
+                        try:
+                            item.modifiedFlags.add(pim.Modification.sent)
+                        except AttributeError:
+                            item.modifiedFlags = set([pim.Modification.sent])
+                else:
+                    if pim.Modification.sent in item.modifiedFlags:
+                        item.modifiedFlags.remove(pim.Modification.sent)
+
 
     @eim.exporter(pim.ContentItem)
     def export_item(self, item):
@@ -675,12 +611,20 @@ class SharingTranslator(eim.Translator):
             else:
                 title = ''
 
+        if item.hasLocalAttributeValue('modifiedFlags'):
+            hasBeenSent = int(pim.Modification.sent in item.modifiedFlags)
+        else:
+            if isinstance(item, Occurrence):
+                hasBeenSent = eim.Inherit
+            else:
+                hasBeenSent = 0
+
         yield model.ItemRecord(
             item,                                       # uuid
             self.obfuscate(title),                      # title
             triage,                                     # triage
             createdOn,                                  # createdOn
-            0,                                          # hasBeenSent (TODO)
+            hasBeenSent,                                # hasBeenSent
             handleEmpty(item, "needsReply"),            # needsReply
             handleEmpty(item, "read"),                  # read
         )

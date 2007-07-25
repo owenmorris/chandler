@@ -89,15 +89,20 @@ Next we make a local triageStatusChanged change::
 
 Do the merge and we get a conflict::
 
-    >>> state.merge(sharing.RecordSet(records), sharing.Diff(delta))
-    (Diff(set([]), set([])), Diff(set([]), set([])), Diff(set([ItemRecord(u'f230dcd4-7c32-4c3f-908b-d92081cc9a89', NoChange, '200 -1167792400.0 1', NoChange, NoChange, NoChange, NoChange)]), set([])))
+    >>> dSend, dApply, pending = state.merge(sharing.RecordSet(records), sharing.Diff(delta))
     >>> state.updateConflicts(item)
     >>> list(sharing.getConflicts(item))
     [Triage status : Later]
 
 Run the auto-resolve code, and the conflicts go away::
 
-    >>> t.resolveConflicts(list(sharing.getConflicts(item)))
+    >>> state.autoResolve(sharing.RecordSet(records), dApply, dSend)
+    >>> item._triageStatusChanged
+    -1167792300.0
+    >>> t.importRecords(dApply)
+    >>> item._triageStatusChanged
+    -1167792400.0
+    >>> state.updateConflicts(item)
     >>> list(sharing.getConflicts(item))
     []
 
@@ -118,15 +123,16 @@ Next we make a local triageStatus change::
 
 Do the merge and we get a conflict::
 
-    >>> state.merge(sharing.RecordSet(records), sharing.Diff(delta))
-    (Diff(set([]), set([])), Diff(set([]), set([])), Diff(set([ItemRecord(u'f230dcd4-7c32-4c3f-908b-d92081cc9a89', NoChange, '300 -1167792400.0 1', NoChange, NoChange, NoChange, NoChange)]), set([])))
+    >>> dSend, dApply, pending = state.merge(sharing.RecordSet(records), sharing.Diff(delta))
     >>> state.updateConflicts(item)
     >>> list(sharing.getConflicts(item))
     [Triage status : Done]
 
 Run the auto-resolve code, and the conflicts do not go away::
 
-    >>> t.resolveConflicts(list(sharing.getConflicts(item)))
+    >>> state.autoResolve(sharing.RecordSet(records), dApply, dSend)
+    >>> t.importRecords(dApply)
+    >>> state.updateConflicts(item)
     >>> list(sharing.getConflicts(item))
     [Triage status : Done]
 
@@ -135,12 +141,13 @@ Run the auto-resolve code, and the conflicts do not go away::
 'Inherit' conflicts for triage are auto-resolved::
 
     >>> state.set(sharing.RecordSet(set([sharing.model.ItemRecord('f230dcd4-7c32-4c3f-908b-d92081cc9a89', u'Welcome to Cosmo', u'100 123456789.12 1', Decimal("1164803132"), 0, 0, 0)])), sharing.Diff())
-    >>> state.merge(sharing.RecordSet(set([sharing.model.ItemRecord('f230dcd4-7c32-4c3f-908b-d92081cc9a89', u'Welcome to Cosmo', u'100 123456789.13 1', Decimal("1164803132"), 0, 0, 0)])), sharing.Diff(set([sharing.model.ItemRecord('f230dcd4-7c32-4c3f-908b-d92081cc9a89', sharing.NoChange, sharing.Inherit, sharing.NoChange, sharing.NoChange, sharing.NoChange, sharing.NoChange)])))
-    (Diff(set([]), set([])), Diff(set([]), set([])), Diff(set([ItemRecord(u'f230dcd4-7c32-4c3f-908b-d92081cc9a89', NoChange, Inherit, NoChange, NoChange, NoChange, NoChange)]), set([])))
+    >>> dSend, dApply, pending = state.merge(sharing.RecordSet(set([sharing.model.ItemRecord('f230dcd4-7c32-4c3f-908b-d92081cc9a89', u'Welcome to Cosmo', u'100 123456789.13 1', Decimal("1164803132"), 0, 0, 0)])), sharing.Diff(set([sharing.model.ItemRecord('f230dcd4-7c32-4c3f-908b-d92081cc9a89', sharing.NoChange, sharing.Inherit, sharing.NoChange, sharing.NoChange, sharing.NoChange, sharing.NoChange)])))
     >>> state.updateConflicts(item)
     >>> list(sharing.getConflicts(item))
     [Triage status : Inherit]
-    >>> t.resolveConflicts(list(sharing.getConflicts(item)))
+    >>> state.autoResolve(sharing.RecordSet(set([sharing.model.ItemRecord('f230dcd4-7c32-4c3f-908b-d92081cc9a89', u'Welcome to Cosmo', u'100 123456789.13 1', Decimal("1164803132"), 0, 0, 0)])), dApply, dSend)
+    >>> t.importRecords(dApply)
+    >>> state.updateConflicts(item)
     >>> list(sharing.getConflicts(item))
     []
 
