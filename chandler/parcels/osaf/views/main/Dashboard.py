@@ -135,8 +135,8 @@ class DashboardBlock(Table):
                     # modifications                    
                     if isinstance(master, UUID):
                         sectionTS, sectionTSChanged = view.findValues(master, 
-                            (('_sectionTriageStatus', None),
-                             ('_sectionTriageStatusChanged', None)))
+                            ('_sectionTriageStatus', None),
+                            ('_sectionTriageStatusChanged', None))
                         if sectionTS or sectionTSChanged:
                             view[master].purgeSectionTriageStatus()
                     elif hasattr(master, '_sectionTriageStatus') or \
