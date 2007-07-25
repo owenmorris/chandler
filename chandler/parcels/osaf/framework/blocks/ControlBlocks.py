@@ -505,14 +505,17 @@ class AttributeDelegate (ListDelegate):
     def GetColumnHeading (self, column, item):
         col = self.blockItem.columns[column]
         heading = col.heading
-        if col.valueType != 'stamp':
-            attributeSourceName = getattr(col, 'attributeSourceName', None)
-            if attributeSourceName is not None:
-                actual = getattr(item, attributeSourceName, None)
-                if actual:
-                    # actual can't be None or ""
-                    heading = _(u"%(heading)s (%(actual)s)") % {
-                        'heading': heading, 'actual': actual }
+        
+        # Add the attribute source name to the header, if we have one.
+        # ** Don't do this: it's not localizable and often clipped: bug 10134.
+        #if col.valueType != 'stamp':
+            #attributeSourceName = getattr(col, 'attributeSourceName', None)
+            #if attributeSourceName is not None:
+                #actual = getattr(item, attributeSourceName, None)
+                #if actual:
+                    ## actual can't be None or ""
+                    #heading = _(u"%(heading)s (%(actual)s)") % {
+                        #'heading': heading, 'actual': actual }
         return heading
 
 class wxList (DragAndDrop.DraggableWidget, 
