@@ -546,8 +546,16 @@ class SharingTranslator(eim.Translator):
             if record.triage != "" and record.triage not in emptyValues:
                 code, timestamp, auto = record.triage.split(" ")
                 item._triageStatus = self.code_to_triagestatus[code]
-                item._triageStatusChanged = float(timestamp) 
-                item.doAutoTriageOnDateChange = (auto == "1")
+                item._triageStatusChanged = float(timestamp)
+                if getattr(item, 'inheritFrom', False):
+                    # When import_event happens after import_item on recurring
+                    # events, triageStatus gets lost if doATODC isn't False,
+                    # bug 10124, so always set doATODC to False for recurring
+                    # events with inbound explicit triage, we'd expect Inherit
+                    # to be used if doATODC was True, anyway.
+                    item.doAutoTriageOnDateChange = False
+                else:
+                    item.doAutoTriageOnDateChange = (auto == "1")
             elif record.triage == eim.Inherit:
                 item.doAutoTriageOnDateChange = True
                 item.setTriageStatus('auto')
