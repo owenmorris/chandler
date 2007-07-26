@@ -712,7 +712,9 @@ class RecordSetConduit(conduits.BaseConduit):
                     item = rv.findUUID(uuid)
                 else:
                     item = None
-                if item is not None:
+                if (item is not None and pim.has_stamp(item, pim.EventStamp)
+                    and getattr(pim.EventStamp(item), 'modificationFor',
+                    False)):
                     # A recordset deletion on an occurrence is treated
                     # as an "unmodification" i.e., a modification going
                     # back to a simple occurrence.  But don't do anything
@@ -720,8 +722,8 @@ class RecordSetConduit(conduits.BaseConduit):
                     masterItem = item.inheritFrom
                     masterAlias = translator.getAliasForItem(masterItem)
                     if masterAlias not in remotelyRemoved:
-                        pim.EventStamp(item).unmodify(partial=True)
                         logger.info("Locally unmodifying alias: %s", alias)
+                        pim.EventStamp(item).unmodify(partial=True)
                     else:
                         logger.info("Master was remotely removed for alias: %s",
                             alias)
