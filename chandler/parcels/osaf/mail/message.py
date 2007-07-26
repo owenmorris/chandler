@@ -27,14 +27,13 @@ from datetime import datetime
 #Chandler imports
 from osaf.pim.mail import EmailAddress, MailMessage, MIMEText, MIMEBinary, \
                           getMessageBody, getCurrentMeEmailAddresses, \
-                          getRecurrenceMailStamps
+                          getRecurrenceMailStamps, addressMatchGenerator
 
 from osaf.pim.calendar.Calendar import parseText, setEventDateTime
 from osaf.pim import has_stamp, TaskStamp, EventStamp, MailStamp, Remindable
 from i18n import ChandlerMessageFactory as _
-#from i18n import getLocale
 from osaf.sharing import (getFilter, errors as sharingErrors, inbound, outbound,
-                          checkTriageOnly)
+                          checkTriageOnly, SharedItem)
 
 #Chandler Mail Service imports
 import constants
@@ -236,13 +235,22 @@ def messageObjectToKind(view, messageObject, messageText=None):
     if chandlerAttachments["eimml"]:
         eimml = chandlerAttachments["eimml"][0]
         peer = getPeer(view, messageObject)
+
         if peer is None:
             # A peer address is required for eimml
             # deserialization. If there is no peer
             # then ignore the eimml data.
             return None
 
-        mailStamp = parseEIMML(view, peer, eimml)
+        matchingAddresses = []
+
+        for address in addressMatchGenerator(peer):
+            matchingAddresses.append(address)
+
+        # the matchingAddresses list will at least contain the
+        # peer address since it is an EmailAddress Item and
+        # there for will be in the EmailAddressCollection index.
+        mailStamp = parseEIMML(view, peer, matchingAddresses, eimml)
 
         if mailStamp is None:
             # Returning None here signals to the
@@ -319,7 +327,7 @@ def messageObjectToKind(view, messageObject, messageText=None):
 
     return mailStamp
 
-def parseEIMML(view, peer, eimml):
+def parseEIMML(view, peer, matchingAddresses, eimml):
     if peer in getCurrentMeEmailAddresses(view):
         # If the Chandler EIMML message is from me then
         # ignore it.
@@ -339,7 +347,7 @@ def parseEIMML(view, peer, eimml):
         return None
 
     try:
-        item = inbound(peer, eimml)
+        item = inbound(matchingAddresses, eimml)
 
         mailStamp = MailStamp(item)
         mailStamp.fromEIMML = True
@@ -489,7 +497,15 @@ def previewQuickConvert(view, headers, body, eimml, ics):
         name, addr = emailUtils.parseaddr(emailAddr)
         peer = EmailAddress.getEmailAddress(view, addr, name)
 
-        mailStamp = parseEIMML(view, peer, eimml)
+        matchingAddresses = []
+
+        for address in addressMatchGenerator(peer):
+            matchingAddresses.append(address)
+
+        # the matchingAddresses list will at least contain the
+        # peer address since it is an EmailAddress Item and
+        # there for will be in the EmailAddressCollection index.
+        mailStamp = parseEIMML(view, peer, matchingAddresses, eimml)
 
         if mailStamp is None:
             # Returning None here signals to the
@@ -671,10 +687,9 @@ def kindToMessageObject(mailStamp):
     # xml code and is not displayable to the user.
     alternative = MIMEMultipart("alternative")
 
-    peers = mailStampMaster.getRecipients()
-
     # Serialize and attach the eimml can raise ConflictsPending
-    eimml = outbound(peers, mailStampMaster.itsItem, OUTBOUND_FILTERS)
+    eimml = outbound(getPeers(mailStampMaster), mailStampMaster.itsItem,
+                     OUTBOUND_FILTERS)
 
     eimmlPayload = MIMEBase64Encode(eimml, 'text', 'eimml')
 
@@ -705,7 +720,7 @@ def kindToMessageObject(mailStamp):
         for mod in EventStamp(mailStampMaster).modifications or []:
             if not checkTriageOnly(mod):
                 items.append(mod)
-                
+
         calendar = serialize(mailStamp.itsItem.itsView,
                              items,
                              SharingTranslator,
@@ -788,6 +803,68 @@ def addCarriageReturn(text):
 
     # Convert all new lines n the message to CRLF per RFC 822
     return text.replace("\n", "\r\n")
+
+
+def getPeers(mailStamp):
+    peers = mailStamp.getRecipients()
+
+    # First, make sure we don't have peers with duplicate email addresses
+    peerAddresses = set()
+    filteredPeers = list()
+
+    for peer in peers:
+        address = getattr(peer, 'emailAddress', '')
+
+        if address and address not in peerAddresses:
+            # Note: shouldn't we also filter out "me" addresses?  I guess it's
+            # harmless not to since we ignore incoming EIMML messages that are
+            # "from me".
+            peerAddresses.add(address)
+            filteredPeers.append(peer)
+
+    peers = filteredPeers
+
+    # Next, for each peer already associated with the item, if any of them have
+    # email addresses which match the 'peers' list, there is a chance that the
+    # new peer is actually an EmailAddress item with same address but different
+    # name.  We want to swap that peer out for the one already associated with
+    # the item.
+    item = mailStamp.itsItem
+    view = item.itsView
+
+    if has_stamp(item, SharedItem):
+        shared = SharedItem(item)
+        updatedPeers = list()
+
+        # Build a set of email addresses already associated with this item
+        associatedAddresses = set()
+        addressMapping = {}
+
+        for state in shared.peerStates:
+            peerUUID = shared.peerStates.getAlias(state)
+            peer = view.findUUID(peerUUID)
+
+            if peer is not None and getattr(peer, 'emailAddress', ''):
+                associatedAddresses.add(peer.emailAddress)
+                addressMapping[peer.emailAddress] = peer
+
+        # Look for matches between already associated and new:
+        for peer in peers:
+            if peer.emailAddress in associatedAddresses:
+                if shared.getPeerState(peer, create=False) is not None:
+                    # We have a perfect match
+                    updatedPeers.append(peer)
+                else:
+                    # address matches, but wrong email address item; switch
+                    # to the already associated one
+                    updatedPeers.append(addressMapping[peer.emailAddress])
+            else:
+                # No matching address; it's a new peer
+                updatedPeers.append(peer)
+
+        peers = updatedPeers
+
+    return peers
 
 
 def parseEventInfo(mailStamp):

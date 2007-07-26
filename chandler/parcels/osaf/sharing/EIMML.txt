@@ -939,6 +939,38 @@ For testing, you can generate fake conflicts::
     True
 
 
+itemcentric.inbound( ) accepts either a single peer or a list of peers
+for the first argument.  In this case of email addresses, there can be
+several that "match" a given sender, but you want to re-use the same
+email address item that is already associated with a shared item so the
+correct state information can be retrieved::
+
+    >>> email1 = pim.EmailAddress(itsView=rv0, emailAddress="test@example.com")
+    >>> email2 = pim.EmailAddress(itsView=rv0, emailAddress="test@example.com",
+    ...    fullName="Test User")
+    >>> item = pim.Note(itsView=rv0, displayName="test")
+    >>> text = sharing.outbound([email1], item)
+    >>> shared = sharing.SharedItem(item)
+    >>> len(shared.peerStates)
+    1
+    >>> state = shared.getPeerState(email1, create=False)
+    >>> state.peerStateFor == item
+    True
+    >>> item = sharing.inbound([email2, email1], text)
+    >>> len(shared.peerStates)
+    1
+    >>> state = shared.getPeerState(email1, create=False)
+    >>> state.peerStateFor == item
+    True
+    >>> shared.getPeerState(email2, create=False) is None
+    True
+
+
+
+
+
+
+
 
 
 hasChanges(record, filteredFields=None) returns True if the given record

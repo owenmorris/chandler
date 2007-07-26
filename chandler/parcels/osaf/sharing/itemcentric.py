@@ -31,7 +31,16 @@ __all__ = [
 
 def inbound(peer, text, filter=None, allowDeletion=False, debug=False):
 
-    rv = peer.itsView
+    logger.info("itemcentric.inbound(%s)", str(peer))
+    if isinstance(peer, list):
+        # Peer email address items can have several that match.  We pass in
+        # a list so this code can reuse the one (if any) already associated
+        # to the inbound item.
+        peers = peer
+    else:
+        peers = [peer]
+
+    rv = peers[0].itsView
 
     # At some point, which serializer and translator to use should be
     # configurable
@@ -55,14 +64,26 @@ def inbound(peer, text, filter=None, allowDeletion=False, debug=False):
 
         if rsExternal is not None:
 
-            if item is not None and not getattr(item, '_fake', False): # Item already exists
+            if item is not None and not getattr(item, '_fake', False):
+                # Item already exists
                 if not pim.has_stamp(item, shares.SharedItem):
                     shares.SharedItem(item).add()
                 shared = shares.SharedItem(item)
+                for state in shared.peerStates:
+                    peerUUID = shared.peerStates.getAlias(state)
+                    for peer in peers:
+                        if peer.itsUUID.str16() == peerUUID:
+                            # peer matches
+                            break
+                    else:
+                        # no match; use the first one passed in
+                        peer = peers[0]
+
                 state = shared.getPeerState(peer)
                 rsInternal= eim.RecordSet(trans.exportItem(item))
 
             else: # Item doesn't exist yet
+                peer = peers[0]
                 state = shares.State(itsView=rv, peer=peer)
                 rsInternal = eim.RecordSet()
 

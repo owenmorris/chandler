@@ -21,7 +21,7 @@ __all__ = [
      'IMAPAccount', 'MIMEBase', 'MIMEBinary', 'MIMEContainer', 'MIMENote',
      'MIMESecurity', 'MIMEText', 'IMAPFolder',
      'ProtocolTypeEnum', 'MailMessage', 'MailStamp',
-     'POPAccount', 'SMTPAccount',
+     'POPAccount', 'SMTPAccount', 'addressMatchGenerator',
      'replyToMessage', 'replyAllToMessage', 'forwardMessage',
      'getCurrentOutgoingAccount', 'getCurrentIncomingAccount',
      'getCurrentMeEmailAddress',
@@ -856,6 +856,32 @@ def _recalculateMeEmailAddresses(view):
     for address in oldAddresses:
         addresses.remove(address)
 
+def addressMatchGenerator(address):
+    if address is None:
+        return
+
+    view = address.itsView
+    lowerAddress = address.emailAddress.lower()
+    pim_ns =  schema.ns("osaf.pim", view)
+
+    # Find all the EmailAddress items whose emailAddress attribute
+    # matches this one, case-insensitively (this will include the one we
+    # were called with).
+    emailAddressCollection = pim_ns.emailAddressCollection
+    def _compare(uuid):
+        attrValue = view.findValue(uuid, 'emailAddress').lower()
+        return cmp(lowerAddress, attrValue)
+
+    firstUUID = emailAddressCollection.findInIndex('emailAddress', 'first', _compare)
+
+    if firstUUID is None:
+        return
+
+    lastUUID = emailAddressCollection.findInIndex('emailAddress', 'last', _compare)
+
+    for uuid in emailAddressCollection.iterindexkeys('emailAddress', firstUUID, lastUUID):
+        yield view[uuid]
+
 def _registerNewMeAddress(newAddress):
     """ 
     If this address isn't a "me" address, make it one.
@@ -869,26 +895,8 @@ def _registerNewMeAddress(newAddress):
         pim_ns =  schema.ns("osaf.pim", view)
         meEmailAddressCollection = pim_ns.meEmailAddressCollection
 
-        # Find all the EmailAddress items whose emailAddress attribute
-        # matches this one, case-insensitively (this will include the one we
-        # were called with). 
-        lowerAddress = newAddress.emailAddress.lower()
-        allEmailAddressCollection = pim_ns.emailAddressCollection
-        def addressGenerator():
-            def _compare(uuid):
-                attrValue = view.findValue(uuid, 'emailAddress').lower()
-                return cmp(lowerAddress, attrValue)
-            firstUUID = allEmailAddressCollection.findInIndex('emailAddress', 'first', _compare)
-
-            if firstUUID is None:
-                return
-
-            lastUUID = allEmailAddressCollection.findInIndex('emailAddress', 'last', _compare)
-            for uuid in allEmailAddressCollection.iterindexkeys('emailAddress', firstUUID, lastUUID):
-                yield view[uuid]
-
         # For each, check toMe/fromMe on its messages.
-        for address in addressGenerator():
+        for address in addressMatchGenerator(newAddress):
             if address not in meEmailAddressCollection:
                 meEmailAddressCollection.append(address)
 
