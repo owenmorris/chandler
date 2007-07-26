@@ -151,12 +151,6 @@ Error: %(translatedErrorStrings)s""") % {
     def onNewItemEvent(self, event):
         # Create a new Content Item
 
-        if self.trashCollectionSelected():
-            # Items can not be created in the
-            # trash collectioon
-            return
-
-
         allCollection = schema.ns('osaf.pim', self).allCollection
         sidebar = Block.findBlockByName("Sidebar")
         classParameter = event.classParameter
@@ -365,11 +359,6 @@ Error: %(translatedErrorStrings)s""") % {
 
                 cmd = cmd_re.match(displayName)
 
-            if self.trashCollectionSelected():
-                # Items can not be created in the
-                # trash collectioon
-                return True
-
             #Create a Note 
             item = pim.Note(itsView = self.itsView)
 
@@ -400,7 +389,7 @@ Error: %(translatedErrorStrings)s""") % {
                 # If the item is an event, set the event's start and end date/time
                 pim.calendar.Calendar.setEventDateTime(item, startTime, endTime, typeFlag)
 
-           # If item is a message, search for contacts and seperate them        
+            # If item is a message, search for contacts and seperate them        
             if msgFlag:
                 pattern = {}
                 pattern['email'] = r'[a-zA-Z0-9._%-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,4}'
@@ -434,29 +423,35 @@ Error: %(translatedErrorStrings)s""") % {
             if item is not None:
                 item.displayName = displayName
 
-                # Add the item to the appropriate collection
-                if defaultKind is not MissingClass:
-                    if (defaultKind == pim.tasks.TaskStamp and taskFlag == True) or \
-                    (defaultKind == pim.calendar.Calendar.EventStamp and eventFlag == True) or \
-                    (defaultKind == pim.mail.MailStamp and msgFlag == True):
-                        collection = Block.findBlockByName("MainView").getSidebarSelectedCollection()
-                        statusMsg =  _(u"New item created in the selected collection")
+                # Add the item to the appropriate collection. Default to selected collection
+                # except for certain cases below
+                selectedCollection = self.getSidebarSelectedCollection()
+                collection = selectedCollection
+                allCollection = schema.ns('osaf.pim',self).allCollection
 
-                    else:
+                if defaultKind is not MissingClass:
+                    if not ((defaultKind == pim.tasks.TaskStamp and taskFlag) or
+                        (defaultKind == pim.calendar.Calendar.EventStamp and eventFlag) or
+                        (defaultKind == pim.mail.MailStamp and msgFlag)):
                         # if item is of a different kind than the default item of current view,
                         # put it in Dashboard 'All' collection
-                        collection = schema.ns('osaf.pim',self).allCollection
-                        statusMsg =  _(u"New item created in the Dashboard All Collection")
+                        collection = allCollection
 
+                if (collection is None or
+                    sharing.isReadOnly(collection) or
+                    not UserCollection(collection).canAdd):
+                    collection = allCollection
+
+                if collection in sidebar.contents and collection is not selectedCollection:
+                    sidebar.postEventByName("SelectItemsBroadcast", {'items':[collection]})
+
+                collection.add(item)
+                self.selectItems([item])
+
+                if collection is allCollection:
+                    self.setStatusMessage (_(u"New item created in the Dashboard All Collection"))
                 else:
-                    # if kind is None, it is 'All' app, so add item to selected collection
-                    collection = Block.findBlockByName("MainView").getSidebarSelectedCollection()
-                    statusMsg =  _(u"New item created in the selected collection")
-
-                if collection is not None:
-                    collection.add(item)
-                    #Put the status message in the Status bar
-                    self.setStatusMessage (statusMsg)
+                    self.setStatusMessage (_(u"New item created in the selected collection"))
 
             # Clear out the command when it finishes without errors
             quickEntryWidget.SetValue("")
