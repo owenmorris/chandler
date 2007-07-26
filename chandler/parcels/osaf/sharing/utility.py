@@ -911,7 +911,7 @@ def fromICalendarDateTime(view, text, multivalued=False):
     if not text.startswith(';'):
         # no parameters
         prefix += ':'
-    line = textLineToContentLine('dtstart' + text)
+    line = textLineToContentLine(prefix + text)
     if multivalued:
         line.behavior = MultiDateBehavior
     else:
