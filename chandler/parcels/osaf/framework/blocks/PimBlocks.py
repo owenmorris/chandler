@@ -437,7 +437,21 @@ class FocusEventHandlers(Item):
                 getattr(item, 'inheritFrom', item).delete(True)
         else:
             def removeItem(item):
-                item = getProxy(u'ui', item)
+                item = getattr(item, 'inheritFrom', item)
+
+                collections = getattr(item, "collections", None)
+
+                if collections is not None and \
+                    selectedCollection in collections:
+                    item = getProxy(u'ui', item)
+
+                #XXX This is a hack to fix bug 9691 "Using Item-Remove does not
+                #    remove items from the In or Out collections". This temporary
+                #    fix works around an incorrect assumption in the RecurrenceDialog
+                #    code that the "selectedCollection" will be in the item's "collections"
+                #    list attribute. That assumption does not apply to the Smart Collections
+                #    "In", "Out", and "Dashboard". Grant will need to address this issue
+                #    further post-Preview. -BrianK
                 item.removeFromCollection(selectedCollection)
 
         for item in removals:
