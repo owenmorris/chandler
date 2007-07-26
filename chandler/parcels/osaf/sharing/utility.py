@@ -908,7 +908,7 @@ du_utc = dateutil.tz.tzutc()
 
 def fromICalendarDateTime(view, text, multivalued=False):
     prefix = 'dtstart' # arbitrary
-    if not text.startswith(';'):
+    if not text.startswith(';') and not text.startswith(':'):
         # no parameters
         prefix += ':'
     line = textLineToContentLine(prefix + text)
