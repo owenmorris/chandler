@@ -2108,6 +2108,19 @@ class CalendarContainer(CalendarRangeBlock):
         # Delegate notifications to the block
         self.widget.onItemNotification(notificationType, data)
 
+    def watchForChanges(self):
+        """
+        Block's default behavior is to watch self.contents, the 
+        IndexedSelectionColletion wrapping the selected collection.  But 
+        recurrence changes are propagated directly to the sidebar collection, 
+        So watch the sidebar collection in CalendarContainer.
+        
+        """
+        super(CalendarContainer, self).watchForChanges(self.contentsCollection)
+
+    def stopWatchingForChanges(self):
+        super(CalendarContainer, self).stopWatchingForChanges(self.contentsCollection)
+
     def onNewItemEvent(self, event):
         """
         Create a new event from the menu - try to use contextual

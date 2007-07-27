@@ -457,11 +457,12 @@ class Block(schema.Item):
         whichAttr = self.whichAttribute()
         return whichAttr and [ (self.contents, whichAttr) ] or []
 
-    def watchForChanges(self):
+    def watchForChanges(self, contents=None):
         if not hasattr(self, 'widget'):
             return
 
-        contents = getattr (self, 'contents', None)
+        if contents is None:
+            contents = getattr(self, 'contents', None)
         if contents is None or contents.isDeleted():
             return # nothing to watch on
 
@@ -521,9 +522,10 @@ class Block(schema.Item):
         for attributeName in attributeNames:
             itemDict.setdefault(attributeName, set()).add(self)
 
-    def stopWatchingForChanges(self):
+    def stopWatchingForChanges(self, contents=None):
         # unsubscribe from collection notifications
-        contents = getattr (self, 'contents', None)
+        if contents is None:
+            contents = getattr (self, 'contents', None)
         if contents is not None and isinstance(contents, ContentCollection):
             self.itsView.unwatchCollectionQueue(self, contents,
                                                 'onCollectionNotification')
