@@ -457,11 +457,12 @@ class Block(schema.Item):
         whichAttr = self.whichAttribute()
         return whichAttr and [ (self.contents, whichAttr) ] or []
 
-    def watchForChanges(self):
+    def watchForChanges(self, contents=None):
         if not hasattr(self, 'widget'):
             return
 
-        contents = getattr (self, 'contents', None)
+        if contents is None:
+            contents = getattr(self, 'contents', None)
         if contents is None or contents.isDeleted():
             return # nothing to watch on
 
