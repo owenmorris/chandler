@@ -326,14 +326,44 @@ class I18nManager(EggTranslations):
                 localeSet = ['fr_CA', 'fr']
                 self._testing = True
 
+        if type(localeSet) != ListType:
+            # If the localeSet is Unicode or a String
+            # then wrap the value in a list
+            localeSet = [localeSet]
+
+        found = False
+
+        for loc in localeSet:
+            # Check if the "en" locale or one of
+            # its country sub-sets such as "en_US" or
+            # "en_GB" is in the localeSet. If there
+            # is not a match then add "en" as the last
+            # locale in the the localeSet for fallback
+            # purposes. This ensures that the English
+            # localization of Chandler which contains
+            # string changes added after a localization
+            # code freeze are leveraged in the Chandler
+            # UI.
+            if loc.lower().startswith("en"):
+                found = True
+                break
+
+        #The locale set appending of "en"
+        # must be done before the call to the
+        # parent classes setLocaleSet method
+        # as that method loads and initalizes the
+        # the gettext .mo files for each locale in
+        # the locale set.
+        if not found:
+            localeSet.append("en")
+
         super(I18nManager, self).setLocaleSet(localeSet, fallback)
 
         if discover:
-            # The Chandler gettext strings are written in English.
             # If there is not an .mo translation file loaded for any
             # of the locales in the locale set then default to
-            # English to prevent wxPython and PyICU from localizing
-            # while Chandler is displaying English text.
+            # United States English to prevent wxPython and PyICU
+            # from localizing while Chandler is displaying English text.
             primaryLocale = "en_US"
 
             if fallback:
