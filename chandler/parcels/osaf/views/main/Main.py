@@ -442,9 +442,6 @@ Error: %(translatedErrorStrings)s""") % {
                     not UserCollection(collection).canAdd):
                     collection = allCollection
 
-                if collection in sidebar.contents and collection is not selectedCollection:
-                    sidebar.postEventByName("SelectItemsBroadcast", {'items':[collection]})
-
                 collection.add(item)
                 self.selectItems([item])
 
