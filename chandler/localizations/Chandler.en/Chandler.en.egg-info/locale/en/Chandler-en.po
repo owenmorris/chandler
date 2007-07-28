@@ -1,0 +1,5946 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) YEAR ORGANIZATION
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: PACKAGE VERSION\n"
+"POT-Creation-Date: 2007-07-09 07:03+PDT\n"
+"PO-Revision-Date: 2007-07-24 17:12-0800\n"
+"Last-Translator: \n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Generated-By: pygettext.py 1.5\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+#: Chandler.py:109
+msgid "Another instance of Chandler currently has the repository open."
+msgstr "Another Chandler is already running off the same data repository."
+
+#: Chandler.py:110
+#: Chandler.py:163
+#: application/Application.py:679
+#: application/dialogs/UncaughtExceptionDialog.py:33
+#: application/dialogs/Util.py:513
+#: parcels/osaf/app/__init__.py:37
+#: parcels/osaf/framework/prompts.py:42
+#: parcels/osaf/views/main/Main.py:514
+#: parcels/osaf/views/main/mainblocks.py:305
+msgid "Chandler"
+msgstr ""
+
+#: Chandler.py:159
+msgid "Chandler encountered an unexpected problem while trying to start.\n"
+msgstr "Start up error."
+
+#: Chandler.py:160
+msgid "Here are the bottom %(frames)s frames of the stack:\n"
+msgstr ""
+
+#: XRC_STRINGS_FOR_CHANDLER.py:1
+msgid "Error"
+msgstr ""
+
+#: XRC_STRINGS_FOR_CHANDLER.py:2
+msgid ""
+"Chandler has experienced an internal error.  It is recommended that you restart\n"
+"Chandler to avoid data corruption."
+msgstr "Please restart to avoid data corruption."
+
+#: XRC_STRINGS_FOR_CHANDLER.py:3
+msgid "Do not show further errors in this session."
+msgstr "Do not show this error again."
+
+#: XRC_STRINGS_FOR_CHANDLER.py:4
+msgid "Required"
+msgstr ""
+
+#: XRC_STRINGS_FOR_CHANDLER.py:5
+msgid "Optional"
+msgstr ""
+
+#: XRC_STRINGS_FOR_CHANDLER.py:6
+msgid "&Email:"
+msgstr ""
+
+#: XRC_STRINGS_FOR_CHANDLER.py:7
+msgid "&Comments: "
+msgstr ""
+
+#: XRC_STRINGS_FOR_CHANDLER.py:8
+msgid ""
+"System\n"
+"&Information:"
+msgstr ""
+
+#: XRC_STRINGS_FOR_CHANDLER.py:9
+msgid "Delete selected item"
+msgstr ""
+
+#: XRC_STRINGS_FOR_CHANDLER.py:10
+#: parcels/osaf/views/main/menus.py:408
+#: parcels/osaf/views/main/menus.py:483
+#: parcels/osaf/views/main/menus.py:846
+#: parcels/osaf/views/main/menus.py:962
+msgid "&Delete"
+msgstr ""
+
+#: XRC_STRINGS_FOR_CHANDLER.py:11
+msgid "&Send this feedback"
+msgstr "&Send Error Report"
+
+#: XRC_STRINGS_FOR_CHANDLER.py:12
+msgid ""
+"You may send information to OSAF about this error in order to assist with improving \n"
+"the product.  You may optionally add additional information about how to reproduce the error before sending."
+msgstr ""
+"Help improve Chandler. Report errors. \n"
+"Please add any additional information you have that might help us reproduce the error."
+
+#: XRC_STRINGS_FOR_CHANDLER.py:13
+msgid "&Restart"
+msgstr ""
+
+#: XRC_STRINGS_FOR_CHANDLER.py:14
+msgid "&Close"
+msgstr ""
+
+#: XRC_STRINGS_FOR_CHANDLER.py:15
+#: XRC_STRINGS_FOR_CHANDLER.py:28
+#: XRC_STRINGS_FOR_CHANDLER.py:47
+#: XRC_STRINGS_FOR_CHANDLER.py:56
+#: XRC_STRINGS_FOR_CHANDLER.py:65
+msgid "Account type:"
+msgstr ""
+
+#: XRC_STRINGS_FOR_CHANDLER.py:16
+msgid "Outgoing Mail"
+msgstr " "
+
+#: XRC_STRINGS_FOR_CHANDLER.py:17
+#: XRC_STRINGS_FOR_CHANDLER.py:30
+#: XRC_STRINGS_FOR_CHANDLER.py:49
+#: XRC_STRINGS_FOR_CHANDLER.py:58
+#: XRC_STRINGS_FOR_CHANDLER.py:67
+msgid "Descr&iption:"
+msgstr ""
+
+#: XRC_STRINGS_FOR_CHANDLER.py:18
+#: XRC_STRINGS_FOR_CHANDLER.py:31
+msgid "&Email address:"
+msgstr ""
+
+#: XRC_STRINGS_FOR_CHANDLER.py:19
+#: XRC_STRINGS_FOR_CHANDLER.py:33
+#: XRC_STRINGS_FOR_CHANDLER.py:50
+#: XRC_STRINGS_FOR_CHANDLER.py:59
+msgid "&Server:"
+msgstr ""
+
+#: XRC_STRINGS_FOR_CHANDLER.py:20
+#: XRC_STRINGS_FOR_CHANDLER.py:39
+msgid "Auto-confi&gure..."
+msgstr ""
+
+#: XRC_STRINGS_FOR_CHANDLER.py:21
+#: XRC_STRINGS_FOR_CHANDLER.py:40
+#: XRC_STRINGS_FOR_CHANDLER.py:54
+#: XRC_STRINGS_FOR_CHANDLER.py:63
+msgid "Po&rt:"
+msgstr ""
+
+#: XRC_STRINGS_FOR_CHANDLER.py:22
+#: XRC_STRINGS_FOR_CHANDLER.py:41
+#: parcels/osaf/views/detail/detail.py:1118
+msgid "None"
+msgstr ""
+
+#: XRC_STRINGS_FOR_CHANDLER.py:23
+#: XRC_STRINGS_FOR_CHANDLER.py:42
+msgid "TLS"
+msgstr ""
+
+#: XRC_STRINGS_FOR_CHANDLER.py:24
+#: XRC_STRINGS_FOR_CHANDLER.py:43
+msgid "SSL"
+msgstr ""
+
+#: XRC_STRINGS_FOR_CHANDLER.py:25
+msgid "&Use Authentication:"
+msgstr "&Use authentication"
+
+#: XRC_STRINGS_FOR_CHANDLER.py:26
+#: XRC_STRINGS_FOR_CHANDLER.py:34
+#: XRC_STRINGS_FOR_CHANDLER.py:52
+#: XRC_STRINGS_FOR_CHANDLER.py:61
+#: XRC_STRINGS_FOR_CHANDLER.py:68
+msgid "User &name:"
+msgstr ""
+
+#: XRC_STRINGS_FOR_CHANDLER.py:27
+#: XRC_STRINGS_FOR_CHANDLER.py:35
+#: XRC_STRINGS_FOR_CHANDLER.py:53
+#: XRC_STRINGS_FOR_CHANDLER.py:62
+#: XRC_STRINGS_FOR_CHANDLER.py:69
+msgid "Pass&word:"
+msgstr ""
+
+#: XRC_STRINGS_FOR_CHANDLER.py:29
+msgid "Incoming Mail"
+msgstr ""
+
+
+#: XRC_STRINGS_FOR_CHANDLER.py:32
+msgid "&Full name:"
+msgstr ""
+
+#: XRC_STRINGS_FOR_CHANDLER.py:36
+msgid "&Protocol:"
+msgstr ""
+
+#: XRC_STRINGS_FOR_CHANDLER.py:37
+msgid "IMAP"
+msgstr ""
+
+#: XRC_STRINGS_FOR_CHANDLER.py:38
+msgid "POP"
+msgstr ""
+
+#: XRC_STRINGS_FOR_CHANDLER.py:44
+#: application/dialogs/AccountPreferences.py:49
+msgid "Configure"
+msgstr ""
+
+#: XRC_STRINGS_FOR_CHANDLER.py:45
+msgid "Chandler folders. "
+msgstr ""
+
+#: XRC_STRINGS_FOR_CHANDLER.py:46
+msgid "Learn more."
+msgstr ""
+
+#: XRC_STRINGS_FOR_CHANDLER.py:48
+#: application/dialogs/AccountPreferences.py:435
+msgid "WebDAV Sharing"
+msgstr ""
+
+#: XRC_STRINGS_FOR_CHANDLER.py:51
+#: XRC_STRINGS_FOR_CHANDLER.py:60
+msgid "Pat&h:"
+msgstr ""
+
+#: XRC_STRINGS_FOR_CHANDLER.py:55
+#: XRC_STRINGS_FOR_CHANDLER.py:64
+msgid "Use SSL"
+msgstr ""
+
+#: XRC_STRINGS_FOR_CHANDLER.py:57
+#: application/dialogs/AccountPreferences.py:389
+msgid "Chandler Server sharing"
+msgstr "Chandler Server Sharing"
+
+#: XRC_STRINGS_FOR_CHANDLER.py:66
+#: application/dialogs/AccountPreferences.py:343
+msgid "Chandler Hub sharing"
+msgstr "Chandler Hub Sharing"
+
+#: XRC_STRINGS_FOR_CHANDLER.py:70
+msgid "&Accounts:"
+msgstr ""
+
+#: XRC_STRINGS_FOR_CHANDLER.py:71
+msgid "Create new account..."
+msgstr "Create New Account..."
+
+#: XRC_STRINGS_FOR_CHANDLER.py:72
+msgid "&Delete account..."
+msgstr "Delete Account..."
+
+#: XRC_STRINGS_FOR_CHANDLER.py:73
+msgid "Note: Only emails sent from Chandler will be downloaded."
+msgstr ""
+
+#: XRC_STRINGS_FOR_CHANDLER.py:74
+msgid "Don't have a Chandler Hub account? "
+msgstr ""
+
+#: XRC_STRINGS_FOR_CHANDLER.py:75
+msgid "Sign up here."
+msgstr ""
+
+#: XRC_STRINGS_FOR_CHANDLER.py:76
+msgid "&Test..."
+msgstr ""
+
+#: XRC_STRINGS_FOR_CHANDLER.py:77
+#: XRC_STRINGS_FOR_CHANDLER.py:82
+#: XRC_STRINGS_FOR_CHANDLER.py:111
+#: application/dialogs/StartupOptionsDialog.py:113
+#: application/dialogs/UpgradeDialog.py:89
+msgid "OK"
+msgstr ""
+
+#: XRC_STRINGS_FOR_CHANDLER.py:78
+#: XRC_STRINGS_FOR_CHANDLER.py:84
+#: XRC_STRINGS_FOR_CHANDLER.py:105
+#: XRC_STRINGS_FOR_CHANDLER.py:108
+#: XRC_STRINGS_FOR_CHANDLER.py:112
+#: XRC_STRINGS_FOR_CHANDLER.py:114
+#: XRC_STRINGS_FOR_CHANDLER.py:120
+#: XRC_STRINGS_FOR_CHANDLER.py:122
+#: XRC_STRINGS_FOR_CHANDLER.py:128
+#: XRC_STRINGS_FOR_CHANDLER.py:133
+#: parcels/osaf/app/compact.py:91
+msgid "Cancel"
+msgstr ""
+
+#: XRC_STRINGS_FOR_CHANDLER.py:79
+msgid "Some text"
+msgstr ""
+
+#: XRC_STRINGS_FOR_CHANDLER.py:80
+msgid "Apply to all"
+msgstr ""
+
+#: XRC_STRINGS_FOR_CHANDLER.py:81
+msgid "Never ask again"
+msgstr ""
+
+#: XRC_STRINGS_FOR_CHANDLER.py:83
+msgid "Move to Trash"
+msgstr ""
+
+#: XRC_STRINGS_FOR_CHANDLER.py:85
+#: XRC_STRINGS_FOR_CHANDLER.py:95
+msgid "Collection:"
+msgstr ""
+
+#: XRC_STRINGS_FOR_CHANDLER.py:86
+msgid "S&haring account:"
+msgstr ""
+
+#: XRC_STRINGS_FOR_CHANDLER.py:87
+#: XRC_STRINGS_FOR_CHANDLER.py:118
+msgid "ChoiceItem"
+msgstr ""
+
+#: XRC_STRINGS_FOR_CHANDLER.py:88
+#: XRC_STRINGS_FOR_CHANDLER.py:98
+msgid "Share:"
+msgstr ""
+
+#: XRC_STRINGS_FOR_CHANDLER.py:89
+#: XRC_STRINGS_FOR_CHANDLER.py:99
+#: parcels/osaf/sharing/model.py:80
+msgid "Triage status"
+msgstr ""
+
+#: XRC_STRINGS_FOR_CHANDLER.py:90
+#: XRC_STRINGS_FOR_CHANDLER.py:100
+#: parcels/osaf/sharing/model.py:162
+msgid "Event status"
+msgstr ""
+
+#: XRC_STRINGS_FOR_CHANDLER.py:91
+#: XRC_STRINGS_FOR_CHANDLER.py:101
+msgid "Alarms"
+msgstr ""
+
+#: XRC_STRINGS_FOR_CHANDLER.py:92
+#: XRC_STRINGS_FOR_CHANDLER.py:102
+msgid "BCC:"
+msgstr ""
+
+#: XRC_STRINGS_FOR_CHANDLER.py:93
+#: XRC_STRINGS_FOR_CHANDLER.py:103
+msgid "&Needs reply status"
+msgstr ""
+
+#: XRC_STRINGS_FOR_CHANDLER.py:94
+msgid "View Error Details..."
+msgstr ""
+
+#: XRC_STRINGS_FOR_CHANDLER.py:96
+msgid "Last sync:"
+msgstr ""
+
+#: XRC_STRINGS_FOR_CHANDLER.py:97
+#: XRC_STRINGS_FOR_CHANDLER.py:117
+msgid "Sharing account:"
+msgstr ""
+
+#: XRC_STRINGS_FOR_CHANDLER.py:104
+msgid "&Publish"
+msgstr ""
+
+#: XRC_STRINGS_FOR_CHANDLER.py:106
+#: parcels/osaf/views/main/menus.py:167
+msgid "Sync"
+msgstr ""
+
+#: XRC_STRINGS_FOR_CHANDLER.py:107
+msgid "Replace"
+msgstr ""
+
+#: XRC_STRINGS_FOR_CHANDLER.py:109
+msgid "Unsubscribe"
+msgstr ""
+
+#: XRC_STRINGS_FOR_CHANDLER.py:110
+#: XRC_STRINGS_FOR_CHANDLER.py:113
+#: XRC_STRINGS_FOR_CHANDLER.py:115
+msgid "Copy URL(s) to Clipboard"
+msgstr ""
+
+#: XRC_STRINGS_FOR_CHANDLER.py:116
+#: XRC_STRINGS_FOR_CHANDLER.py:124
+#: application/dialogs/ConflictDialog.py:289
+#: parcels/osaf/pim/triage.py:32
+#: parcels/osaf/sharing/__init__.py:1540
+msgid "Done"
+msgstr ""
+
+#: XRC_STRINGS_FOR_CHANDLER.py:119
+msgid "Publish Free/Busy"
+msgstr "Publish Free/Busy Calendar"
+
+#: XRC_STRINGS_FOR_CHANDLER.py:121
+#: XRC_STRINGS_FOR_CHANDLER.py:123
+msgid "Copy URL to Clipboard"
+msgstr ""
+
+#: XRC_STRINGS_FOR_CHANDLER.py:125
+msgid "Sharing &account:"
+msgstr ""
+
+#: XRC_STRINGS_FOR_CHANDLER.py:126
+msgid "S&elect collections to restore:"
+msgstr ""
+
+#: XRC_STRINGS_FOR_CHANDLER.py:127
+msgid "&Restore"
+msgstr ""
+
+#: XRC_STRINGS_FOR_CHANDLER.py:129
+msgid "URL of collection:"
+msgstr "URL:"
+
+#: XRC_STRINGS_FOR_CHANDLER.py:130
+msgid "http://"
+msgstr ""
+
+#: XRC_STRINGS_FOR_CHANDLER.py:131
+#: application/dialogs/ImportExport.py:174
+msgid "Keep out of Dashboard"
+msgstr ""
+
+#: XRC_STRINGS_FOR_CHANDLER.py:132
+#: application/dialogs/SubscribeCollection.py:368
+msgid "Subscribe"
+msgstr ""
+
+#: XRC_STRINGS_FOR_CHANDLER.py:134
+msgid "Please enter account information:"
+msgstr "Please enter your account information:"
+
+#: XRC_STRINGS_FOR_CHANDLER.py:135
+msgid "Username:"
+msgstr "User name:"
+
+#: XRC_STRINGS_FOR_CHANDLER.py:136
+msgid "Password:"
+msgstr ""
+
+#: XRC_STRINGS_FOR_CHANDLER.py:137
+msgid "Here's some text"
+msgstr ""
+
+#: XRC_STRINGS_FOR_CHANDLER.py:138
+msgid "Checkbox"
+msgstr ""
+
+#: application/AboutBox.py:38
+#: application/AboutBox.py:117
+msgid "About Chandler"
+msgstr ""
+
+#: application/AboutBox.py:116
+msgid "Version %(versionNumber)s for %(platform)s"
+msgstr ""
+
+#: application/AboutBox.py:122
+msgid "Chandler is licensed under the"
+msgstr ""
+
+#: application/AboutBox.py:123
+msgid "Apache Licence, Version 2.0."
+msgstr ""
+
+#: application/AboutBox.py:124
+msgid "Visit %(chandlerWebURL)s for more information."
+msgstr ""
+
+#: application/Application.py:243
+#: parcels/osaf/views/main/Main.py:844
+#: parcels/osaf/views/main/Main.py:862
+msgid "Checking repository..."
+msgstr ""
+
+#: application/Application.py:246
+msgid "Shutting down mail service..."
+msgstr ""
+
+#: application/Application.py:249
+msgid "Stopping wakeup service..."
+msgstr ""
+
+#: application/Application.py:253
+msgid "Stopping sharing..."
+msgstr ""
+
+#: application/Application.py:256
+msgid "Stopping twisted..."
+msgstr ""
+
+#: application/Application.py:264
+msgid "Committing repository..."
+msgstr ""
+
+#: application/Application.py:267
+msgid "Stopping crypto..."
+msgstr ""
+
+#: application/Application.py:270
+msgid "Checkpointing repository..."
+msgstr ""
+
+#: application/Application.py:499
+msgid "Reloading Collections and Settings"
+msgstr "Reloading collections and settings..."
+
+#: application/Application.py:501
+msgid "Constructing database"
+msgstr "Constructing database..."
+
+#: application/Application.py:650
+msgid "Reloading from %(path)s"
+msgstr "Reloading from %(path)s..."
+
+#: application/Application.py:671
+msgid "Incompatible export file. Unable to reload. Chandler will now restart."
+msgstr "Incompatible export file. Unable to reload. Restarting Chandler..."
+
+#: application/Application.py:673
+msgid "Incomplete export file. Unable to reload. Chandler will now restart."
+msgstr "Incomplete export file. Unable to reload. Restarting Chandler..."
+
+#: application/Application.py:675
+msgid "Reload cancelled. Chandler will now restart."
+msgstr "Reload cancelled. Restarting Chandler..."
+
+#: application/Application.py:677
+msgid "Unable to reload file.  See chandler.log for details. Chandler will now restart."
+msgstr "Unable to reload file.  Go to the Tools>>Logging>>Log Window... menu for details. Chandler will now restart."
+
+#: application/Application.py:688
+msgid "Items reloaded"
+msgstr "Collections and settings reloaded."
+
+#: application/Application.py:1213
+msgid ""
+"Your data was created on %(origName)s and is incompatible with Chandler on %(currentName)s. To transfer your data over to %(currentName)s:\n"
+"\n"
+"1. On your %(origName)s computer, start up Chandler and go to the File>>Export Collections and Settings... menu to export your data\n"
+"\n"
+"2. Move the .chex export file to your %(currentName)s computer.\n"
+"\n"
+"3. On your %(currentName)s computer, start up Chandler and click 'Yes' when you encounter this dialog again.\n"
+"\n"
+"4. Go to the File>>Reload Collections and Settings... menu to reload your data by pointing Chandler to the .chex export file from your %(origName)s computer.\n"
+"\n"
+"Do you want to start Chandler with a fresh data repository?"
+msgstr ""
+
+#: application/Application.py:1226
+msgid "Cannot open repository"
+msgstr "Cannot open repository."
+
+#: application/Application.py:1278
+msgid "Chandler starting..."
+msgstr "Starting Chandler..."
+
+#: application/Application.py:1290
+msgid "Starting cryptographic services"
+msgstr "Starting cryptographic services..."
+
+#: application/Application.py:1291
+msgid "Opening the database"
+msgstr "Opening the database..."
+
+#: application/Application.py:1292
+msgid "Loading parcels"
+msgstr "Loading parcels..."
+
+#: application/Application.py:1293
+msgid "Starting network"
+msgstr "Starting network..."
+
+#: application/Application.py:1294
+msgid "Building the main view"
+msgstr "Building the main view..."
+
+#: application/Application.py:1295
+msgid "Laying out the main view"
+msgstr "Laying out the main view..."
+
+#: application/Application.py:1296
+msgid "Committing the database"
+msgstr "Committing the database..."
+
+#: application/Application.py:1297
+msgid "Starting services"
+msgstr "Starting services..."
+
+#: application/Application.py:1317
+msgid "Version %(version)s"
+msgstr ""
+
+#: application/Application.py:1366
+msgid "%(percent)d%%"
+msgstr ""
+
+#: application/Application.py:1389
+msgid "This application has been compiled for another platform. Please download the correct package from OSAF website."
+msgstr "This version of Chandler runs on a different operating system. Please download the correct installer from %(downloadChandlerURL)s."
+
+#: application/Application.py:1390
+msgid "Chandler will exit"
+msgstr "Quitting Chandler..."
+
+#: application/Plugins.py:81
+msgid "tar/gz archives"
+msgstr ""
+
+#: application/Plugins.py:82
+msgid "tar archives"
+msgstr ""
+
+#: application/Plugins.py:83
+#: parcels/osaf/views/main/Main.py:1012
+#: parcels/osaf/views/main/Main.py:1053
+#: parcels/osaf/views/main/Main.py:1109
+#: parcels/osaf/views/main/Main.py:1127
+msgid "All files"
+msgstr ""
+
+#: application/Plugins.py:84
+msgid "Install Plugin"
+msgstr ""
+
+#: application/Plugins.py:148
+msgid ""
+"%(pluginName)s is required by %(eggName)s.\n"
+"\n"
+"%(eggName)s must be deactivated first."
+msgstr ""
+
+#: application/Plugins.py:149
+#: parcels/osaf/messages.py:31
+msgid "Error"
+msgstr ""
+
+#: application/Plugins.py:156
+msgid "All items created by plugin %(pluginName)s will be deleted."
+msgstr ""
+
+#: application/Plugins.py:157
+msgid "Confirm Deactivation"
+msgstr ""
+
+#: application/Plugins.py:165
+msgid "%(pluginName)s was deactivated."
+msgstr ""
+
+#: application/Plugins.py:175
+msgid "%(pluginName)s was activated."
+msgstr ""
+
+#: application/Plugins.py:177
+msgid "%(pluginName)s and %(pluginNames)s were activated."
+msgstr ""
+
+#: application/Printing.py:53
+msgid "Print preview"
+msgstr "Print Preview"
+
+#: application/Printing.py:70
+msgid ""
+"There was a problem printing.\n"
+"Perhaps your current printer is not set correctly?"
+msgstr ""
+"There was a problem printing.\n"
+"Check your printer and try again."
+
+#: application/Printing.py:71
+msgid "Printing"
+msgstr "Printing..."
+
+#: application/dialogs/AccountPreferences.py:50
+msgid "Remove"
+msgstr ""
+
+#: application/dialogs/AccountPreferences.py:53
+msgid ""
+"The following fields are required:\n"
+"\n"
+"\tServer\n"
+"\tUser name\n"
+"\tPassword\n"
+"\tPort\n"
+"\n"
+"\n"
+"Please correct the error and try again."
+msgstr ""
+
+#: application/dialogs/AccountPreferences.py:54
+msgid ""
+"The following fields are required:\n"
+"\n"
+"\tServer\n"
+"\tPort\n"
+"\n"
+"\n"
+"Please correct the error and try again."
+msgstr ""
+
+#: application/dialogs/AccountPreferences.py:55
+msgid ""
+"The following fields are required:\n"
+"\n"
+"\tServer\n"
+"\tPath\n"
+"\tUser name\n"
+"\tPassword\n"
+"\tPort\n"
+"\n"
+"\n"
+"Please correct the error and try again."
+msgstr ""
+
+#: application/dialogs/AccountPreferences.py:56
+msgid ""
+"The following fields are required:\n"
+"\n"
+"\tUser name\n"
+"\tPassword\n"
+"\n"
+"\n"
+"Please correct the error and try again."
+msgstr ""
+
+#: application/dialogs/AccountPreferences.py:58
+msgid "Auto-configure requires a server name."
+msgstr ""
+
+#: application/dialogs/AccountPreferences.py:64
+#: application/dialogs/AccountPreferencesDialogs.py:223
+msgid "Configure Chandler folders"
+msgstr ""
+
+#: application/dialogs/AccountPreferences.py:65
+msgid ""
+"Chandler will now attempt to create the following IMAP folders in your account\n"
+"on '%(host)s':\n"
+"\n"
+"\tChandler Mail\n"
+"\tChander Tasks\n"
+"\tChandler Events\n"
+"\n"
+"If you have already set up Chandler folders in your account, no new folders\n"
+"will be created."
+msgstr ""
+"Chandler will attempt to create the following IMAP folders in your account\n"
+"on '%(host)s':\n"
+"\n"
+"\tChandler Events\n"
+"\tChandler Mail\n"
+"\tChander Tasks\n"
+"\n"
+"If you have already set up Chandler folders in your account, no new folders\n"
+"will be created.\n"
+"\n"
+"Folders make take a while to show up in your email application."
+
+#: application/dialogs/AccountPreferences.py:67
+#: application/dialogs/AccountPreferencesDialogs.py:301
+msgid "Remove Chandler folders"
+msgstr ""
+
+#: application/dialogs/AccountPreferences.py:68
+msgid ""
+"Chandler will now attempt to remove the\n"
+"following IMAP folders on '%(host)s':\n"
+"\n"
+"\tChandler Mail\n"
+"\tChander Tasks\n"
+"\tChandler Events\n"
+"\n"
+" Would you like to proceed?"
+msgstr ""
+"Chandler will now attempt to remove the\n"
+"following IMAP folders on '%(host)s':\n"
+"\n"
+"\tChandler Events\n"
+"\tChandler Mail\n"
+"\tChander Tasks\n"
+"\n"
+"Would you like to proceed?"
+
+#: application/dialogs/AccountPreferences.py:88
+msgid "'%(emailAddress)s' is not a valid email address"
+msgstr ""
+
+#: application/dialogs/AccountPreferences.py:183
+msgid "New Incoming Mail Account"
+msgstr "New Incoming Mail Account"
+
+#: application/dialogs/AccountPreferences.py:253
+#: parcels/osaf/pim/__init__.py:211
+msgid "Incoming mail"
+msgstr "Incoming Mail"
+
+#: application/dialogs/AccountPreferences.py:266
+msgid "New Outgoing Mail Account"
+msgstr "New Outgoing Mail Account"
+
+#: application/dialogs/AccountPreferences.py:313
+#: parcels/osaf/pim/__init__.py:219
+msgid "Outgoing mail"
+msgstr "Outgoing Mail"
+
+#: application/dialogs/AccountPreferences.py:326
+msgid "New Chandler Hub Sharing Account"
+msgstr "New Chandler Hub Sharing Account"
+
+#: application/dialogs/AccountPreferences.py:353
+msgid "New Chandler Server Sharing Account"
+msgstr "New Chandler Server Sharing Account"
+
+#: application/dialogs/AccountPreferences.py:400
+msgid "New WebDAV Sharing Account"
+msgstr ""
+
+#: application/dialogs/AccountPreferences.py:2113
+#: parcels/osaf/messages.py:68
+msgid "Account Preferences"
+msgstr ""
+
+#: application/dialogs/AccountPreferences.py:2125
+msgid "Mail Service Offline"
+msgstr ""
+
+#: application/dialogs/AccountPreferences.py:2128
+msgid "Account Preferences error"
+msgstr "Account Preferences Error"
+
+#: application/dialogs/AccountPreferencesDialogs.py:64
+msgid "Testing %(accountType)s account '%(accountName)s'"
+msgstr ""
+
+#: application/dialogs/AccountPreferencesDialogs.py:69
+#: application/dialogs/AccountPreferencesDialogs.py:143
+msgid "Connecting to server '%(hostName)s'"
+msgstr ""
+
+#: application/dialogs/AccountPreferencesDialogs.py:83
+msgid "Access denied by server."
+msgstr ""
+
+#: application/dialogs/AccountPreferencesDialogs.py:84
+msgid "You have view-only access with this account."
+msgstr "You have view-only access to this account."
+
+#: application/dialogs/AccountPreferencesDialogs.py:85
+msgid "You have view and edit privileges with this account."
+msgstr "You have view and edit access to this account."
+
+#: application/dialogs/AccountPreferencesDialogs.py:86
+msgid "Test failed with an unknown response."
+msgstr ""
+
+#: application/dialogs/AccountPreferencesDialogs.py:139
+msgid "Testing '%(accountName)s'"
+msgstr ""
+
+#: application/dialogs/AccountPreferencesDialogs.py:226
+msgid "Configuring folders in your account."
+msgstr "Configuring folders in your account..."
+
+#: application/dialogs/AccountPreferencesDialogs.py:234
+msgid ""
+"The following folders have been created in your account:\n"
+"\n"
+"Chandler Events - Add messages to this folder to add them to your Calendar\n"
+"Dashboard. Chandler will do its best to makes sense of any date and time information in the message.\n"
+"\n"
+"Chandler Mail - Add messages to this folder to add them to your Mail Dashboard.\n"
+"\n"
+"Chandler Tasks - Add messages to this folder to add them to your Tasks\n"
+"Dashboard.\n"
+"\n"
+"All messages added to Chandler folders will show up in your All Dashboard."
+msgstr ""
+"The following folders have been created on your account:\n"
+"\n"
+"Chandler Mail - Add messages to this folder to add them to your Mail Dashboard.\n"
+"\n"
+"Chandler Tasks - Add messages to this folder to add them to your Tasks\n"
+"Dashboard.\n"
+"\n"
+"Chandler Events - Add messages to this folder to add them to your Calendar\n"
+"Dashboard. Chandler will do its best to makes sense of any date and time information in the message.\n"
+"\n"
+"All messages added to Chandler folders will show up in your All Dashboard."
+
+#: application/dialogs/AccountPreferencesDialogs.py:248
+msgid "You have already set up Chandler folders in this account. No new folders were created."
+msgstr ""
+
+#: application/dialogs/AccountPreferencesDialogs.py:304
+msgid "Removing Chandler folders from this account."
+msgstr "Removing Chandler folders from this account..."
+
+#: application/dialogs/AccountPreferencesDialogs.py:307
+msgid "Chandler folders have been successfully removed."
+msgstr "Chandler folders removed."
+
+#: application/dialogs/AccountPreferencesDialogs.py:372
+msgid "Discovering  '%(hostname)s'"
+msgstr "Discovering  '%(hostname)s'..."
+
+#: application/dialogs/AccountPreferencesDialogs.py:376
+msgid "Discovering mail settings for server '%(hostName)s'"
+msgstr "Discovering mail settings for server '%(hostName)s'..."
+
+#: application/dialogs/AccountPreferencesDialogs.py:380
+msgid ""
+"\tThe following settings were found:\n"
+"\n"
+"\tType: %(type)s\n"
+"\tPort: %(port)s\n"
+"\tSecurity: %(security)s\n"
+msgstr ""
+
+#: application/dialogs/AccountPreferencesDialogs.py:386
+msgid ""
+"Chandler was unable to auto-configure account settings\n"
+"for '%(host)s'."
+msgstr ""
+
+#: application/dialogs/AccountPreferencesDialogs.py:480
+msgid "Configure folders"
+msgstr "Configure Folders"
+
+#: application/dialogs/ActivityViewer.py:28
+msgid "Activity Viewer"
+msgstr ""
+
+#: application/dialogs/ConflictDialog.py:141
+msgid "Subscriber"
+msgstr ""
+
+#: application/dialogs/ConflictDialog.py:145
+msgid "An unknown party"
+msgstr ""
+
+#: application/dialogs/ConflictDialog.py:149
+msgid "%(index)3d. %(em)s%(person)s%(/em)s removed this item from the %(em)scollection%(/em)s"
+msgstr ""
+
+#: application/dialogs/ConflictDialog.py:153
+msgid "%(index)3d. %(em)s%(person)s%(/em)s removed %(em)saddresses%(/em)s from this item"
+msgstr ""
+
+#: application/dialogs/ConflictDialog.py:155
+msgid "%(index)3d. %(em)s%(person)s%(/em)s removed this item from the %(em)sCalendar%(/em)s"
+msgstr ""
+
+#: application/dialogs/ConflictDialog.py:157
+msgid "%(index)3d. %(em)s%(person)s%(/em)s removed this item from the %(em)sTask List%(/em)s"
+msgstr ""
+
+#: application/dialogs/ConflictDialog.py:160
+msgid "%(index)3d. %(em)s%(person)s%(/em)s removed %(em)s%(fieldName)s%(/em)s from this item"
+msgstr ""
+
+#: application/dialogs/ConflictDialog.py:163
+msgid "%(index)3d. %(em)s%(person)s%(/em)s changed %(em)sOccurs%(/em)s to %(em)sOnce%(/em)s"
+msgstr ""
+
+#: application/dialogs/ConflictDialog.py:166
+msgid "%(index)3d. %(em)s%(person)s%(/em)s changed the %(em)s%(fieldName)s%(/em)s to %(em)s%(value)s%(/em)s"
+msgstr ""
+
+#: application/dialogs/ConflictDialog.py:231
+msgid "Pending Changes"
+msgstr ""
+
+#: application/dialogs/ConflictDialog.py:245
+msgid "Applying and discarding changes cannot be undone."
+msgstr ""
+
+#: application/dialogs/ConflictDialog.py:248
+msgid "There is 1 pending change. %(warning)s"
+msgstr ""
+
+#: application/dialogs/ConflictDialog.py:250
+msgid "There are %(count)d pending changes. %(warning)s"
+msgstr ""
+
+#: application/dialogs/ConflictDialog.py:267
+msgid ""
+"All pending changed must be resolved before you can send Updates. Edits you make on attributes with\n"
+"pending changes will not be synced to the server"
+msgstr ""
+"All pending changes must be resolved before you can send Updates. Edits you make on attributes with\n"
+"pending changes will not be synced to the server"
+
+#: application/dialogs/ConflictDialog.py:273
+msgid "Decide later"
+msgstr "Decide Later"
+
+#: application/dialogs/ConflictDialog.py:290
+msgid "Any unresolved items will remain undecided. You can revisit this dialog to resolve them later."
+msgstr "Unresolved conflicts will not be lost. You can revisit this dialog to resolve them later."
+
+#: application/dialogs/DeleteDialog.py:37
+msgid "Remove from Dashboard"
+msgstr ""
+
+#: application/dialogs/DeleteDialog.py:38
+msgid "Removing '%(itemName)s' from the Dashboard will move it to the Trash."
+msgstr ""
+
+#: application/dialogs/DeleteDialog.py:40
+msgid "Only appearance of item"
+msgstr "Delete"
+
+#: application/dialogs/DeleteDialog.py:41
+msgid "'%(itemName)s' only appears in '%(collectionName)s'. Removing it will move it to the Trash."
+msgstr ""
+
+#: application/dialogs/DeleteDialog.py:43
+msgid "View-only item"
+msgstr "View-only"
+
+#: application/dialogs/DeleteDialog.py:44
+msgid "You cannot delete '%(itemName)s'. It belongs to the view-only collection '%(readOnlyCollectionName)s'."
+msgstr ""
+
+#: application/dialogs/DeleteDialog.py:47
+msgid "View-only collection"
+msgstr "View-only"
+
+#: application/dialogs/DeleteDialog.py:48
+msgid "You cannot make changes to '%(collectionName)s'"
+msgstr ""
+
+#: application/dialogs/DeleteDialog.py:238
+msgid "Apply to all (%(count)s)"
+msgstr ""
+
+#: application/dialogs/FileTail.py:49
+msgid "Mark"
+msgstr ""
+
+#: application/dialogs/FileTail.py:53
+msgid "Clear"
+msgstr ""
+
+#: application/dialogs/FileTail.py:57
+#: application/dialogs/SharingDetails.py:46
+#: application/dialogs/Util.py:435
+msgid "Copy to Clipboard"
+msgstr ""
+
+#: application/dialogs/FileTail.py:61
+msgid "Font++"
+msgstr ""
+
+#: application/dialogs/FileTail.py:65
+msgid "Font--"
+msgstr ""
+
+#: application/dialogs/GetPasswordDialog.py:32
+msgid "Create repository password"
+msgstr "Create Master Password"
+
+#: application/dialogs/GetPasswordDialog.py:34
+msgid "Enter repository password"
+msgstr "Enter Master Password"
+
+#: application/dialogs/GetPasswordDialog.py:47
+msgid "Enter password:"
+msgstr "Master password:"
+
+#: application/dialogs/GetPasswordDialog.py:57
+msgid "Confirm password:"
+msgstr ""
+
+#: application/dialogs/GetPasswordDialog.py:96
+msgid "Invalid password"
+msgstr ""
+
+#: application/dialogs/GetPasswordDialog.py:108
+msgid "Passwords did not match"
+msgstr ""
+
+#: application/dialogs/ImportExport.py:87
+msgid "&Browse"
+msgstr ""
+
+#: application/dialogs/ImportExport.py:88
+msgid "&File location: "
+msgstr ""
+
+#: application/dialogs/ImportExport.py:124
+msgid "Import &reminders"
+msgstr ""
+
+#: application/dialogs/ImportExport.py:126
+msgid "Import event &status"
+msgstr ""
+
+#: application/dialogs/ImportExport.py:131
+#: parcels/osaf/views/main/Main.py:945
+msgid "iCalendar files|*.ics|All files (*.*)|*.*"
+msgstr ""
+
+#: application/dialogs/ImportExport.py:145
+msgid "Import e&vents into:"
+msgstr ""
+
+#: application/dialogs/ImportExport.py:158
+msgid "New collection"
+msgstr ""
+
+#: application/dialogs/ImportExport.py:183
+msgid "Starting import"
+msgstr "Starting import..."
+
+#: application/dialogs/ImportExport.py:221
+msgid "Saving changes"
+msgstr "Saving changes..."
+
+#: application/dialogs/PublishCollection.py:37
+msgid ""
+"Collection already exists on the server.  You may:\n"
+"\n"
+"- Sync your collection with the one on the server, or...\n"
+"- Replace the collection on the server with your local copy\n"
+msgstr ""
+
+#: application/dialogs/PublishCollection.py:186
+#: parcels/osaf/sharing/__init__.py:1547
+#: parcels/osaf/sharing/__init__.py:1548
+#: parcels/osaf/sharing/__init__.py:1558
+#: parcels/osaf/sharing/caldav_conduit.py:357
+msgid "Unknown"
+msgstr ""
+
+#: application/dialogs/PublishCollection.py:424
+msgid "Publishing collection to server...\n"
+msgstr ""
+
+#: application/dialogs/PublishCollection.py:470
+#: application/dialogs/SubscribeCollection.py:207
+msgid "Application is in offline mode"
+msgstr "Chandler is offline."
+
+#: application/dialogs/PublishCollection.py:479
+#: application/dialogs/SubscribeCollection.py:217
+msgid "Unable to look up server address via DNS"
+msgstr "Unable to look up server address via DNS."
+
+#: application/dialogs/PublishCollection.py:481
+#: application/dialogs/SubscribeCollection.py:219
+msgid "Connection refused by server"
+msgstr "Connection refused by server."
+
+#: application/dialogs/PublishCollection.py:509
+msgid "Collection was already published from a different account"
+msgstr "Collection was already published from a different account."
+
+#: application/dialogs/PublishCollection.py:511
+msgid "Collection already exists on server"
+msgstr "Collection already exists on server."
+
+#: application/dialogs/PublishCollection.py:516
+msgid "Publish cancelled"
+msgstr "Publish cancelled."
+
+#: application/dialogs/PublishCollection.py:522
+msgid "Publish Error"
+msgstr "Error while publishing."
+
+#: application/dialogs/PublishCollection.py:524
+msgid ""
+"\n"
+"Sharing error:\n"
+"%(error)s\n"
+msgstr ""
+"\n"
+"Sharing Error:\n"
+"%(error)s\n"
+
+#: application/dialogs/PublishCollection.py:530
+msgid ""
+"\n"
+"Sharing error:\n"
+"(Can't display error message;\n"
+"See chandler.log for more details)\n"
+msgstr ""
+"Sharing Error:\n"
+"Can't display error message;\n"
+"Go to the Tools>>Logging>>Log Window... menu for details.\n"
+
+#: application/dialogs/PublishCollection.py:557
+msgid " Done\n"
+msgstr ""
+
+#: application/dialogs/PublishCollection.py:681
+#: application/dialogs/PublishCollection.py:691
+msgid "Publish"
+msgstr ""
+
+#: application/dialogs/PublishCollection.py:683
+msgid "Publish Free/Busy Calendar"
+msgstr ""
+
+#: application/dialogs/PublishCollection.py:691
+msgid "Manage Shared Collection"
+msgstr ""
+
+#: application/dialogs/RecurrenceDialog.py:68
+#: application/dialogs/RecurrenceDialog.py:112
+msgid "Recurring event change"
+msgstr "Recurring Event Change"
+
+#: application/dialogs/RecurrenceDialog.py:95
+msgid "All events"
+msgstr "All Events"
+
+#: application/dialogs/RecurrenceDialog.py:96
+msgid "Future events"
+msgstr "Future Events"
+
+#: application/dialogs/RecurrenceDialog.py:97
+msgid "Just this event"
+msgstr "This Event"
+
+#: application/dialogs/RecurrenceDialog.py:205
+msgid "\"%(displayName)s\" is a recurring event. Removing its recurrence will cause all events except the master to be deleted. Do you want to change:"
+msgstr "\"%(displayName)s\" is a recurring event. Changing the occurrence rule to 'Once' will delete all occurrences except for the first one. Do you want to change:"
+
+#: application/dialogs/RecurrenceDialog.py:283
+msgid "\"%(displayName)s\" is a recurring event. Do you want to add to your task list:"
+msgstr "\"%(displayName)s\" is a recurring event. Do you want to add to the Task list:"
+
+#: application/dialogs/RecurrenceDialog.py:286
+msgid "\"%(displayName)s\" is a recurring event. Do you want to remove from your task list:"
+msgstr "\"%(displayName)s\" is a recurring event. Do you want to remove from the Task list:"
+
+#: application/dialogs/RecurrenceDialog.py:288
+msgid "\"%(displayName)s\" is a recurring event. Removing it from your calendar will remove all occurrences in the series. Do you want to remove:"
+msgstr "\"%(displayName)s\" is a recurring event. Removing it from the Calendar will remove all occurrences. Do you want to remove:"
+
+#: application/dialogs/RecurrenceDialog.py:294
+msgid "\"%(displayName)s\" is a recurring event. Do you want to delete:"
+msgstr ""
+
+#: application/dialogs/RecurrenceDialog.py:296
+msgid "\"%(displayName)s\" is a recurring event. What do you want to add to the collection:"
+msgstr "\"%(displayName)s\" is a recurring event. Do you want to add:"
+
+#: application/dialogs/RecurrenceDialog.py:299
+msgid "\"%(displayName)s\" is a recurring event. Do you want to remove:"
+msgstr ""
+
+#: application/dialogs/RecurrenceDialog.py:307
+msgid "\"%(displayName)s\" is a recurring event. Changing its recurrence may cause some events to be deleted. Do you want to change:"
+msgstr "\"%(displayName)s\" is a recurring event. Changing the occurrence rule may cause some events to be deleted. Do you want to change:"
+
+#: application/dialogs/RecurrenceDialog.py:314
+msgid "\"%(displayName)s\" is a recurring event. Do you want to change:"
+msgstr ""
+
+#: application/dialogs/ReminderDialog.py:26
+msgid "1 day ago"
+msgstr ""
+
+#: application/dialogs/ReminderDialog.py:27
+msgid "1 hour ago"
+msgstr ""
+
+#: application/dialogs/ReminderDialog.py:28
+msgid "1 minute ago"
+msgstr ""
+
+#: application/dialogs/ReminderDialog.py:29
+msgid "1 day from now"
+msgstr ""
+
+#: application/dialogs/ReminderDialog.py:30
+msgid "1 hour from now"
+msgstr ""
+
+#: application/dialogs/ReminderDialog.py:31
+msgid "1 minute from now"
+msgstr ""
+
+#: application/dialogs/ReminderDialog.py:32
+msgid "%(numOf)d days ago"
+msgstr ""
+
+#: application/dialogs/ReminderDialog.py:33
+msgid "%(numOf)d hours ago"
+msgstr ""
+
+#: application/dialogs/ReminderDialog.py:34
+msgid "%(numOf)d minutes ago"
+msgstr ""
+
+#: application/dialogs/ReminderDialog.py:35
+msgid "%(numOf)d days from now"
+msgstr ""
+
+#: application/dialogs/ReminderDialog.py:36
+msgid "%(numOf)d hours from now"
+msgstr ""
+
+#: application/dialogs/ReminderDialog.py:37
+msgid "%(numOf)d minutes from now"
+msgstr ""
+
+#: application/dialogs/ReminderDialog.py:57
+msgid "Reminders"
+msgstr ""
+
+#: application/dialogs/ReminderDialog.py:71
+#: parcels/osaf/sharing/model.py:77
+#: parcels/osaf/views/main/summaryblocks.py:633
+#: parcels/osaf/views/main/summaryblocks.py:788
+msgid "Title"
+msgstr ""
+
+#: application/dialogs/ReminderDialog.py:72
+#: parcels/osaf/views/main/summaryblocks.py:655
+#: parcels/osaf/views/main/summaryblocks.py:810
+msgid "Date"
+msgstr ""
+
+#: application/dialogs/ReminderDialog.py:81
+msgid "Snooze for 5 minutes"
+msgstr ""
+
+#: application/dialogs/ReminderDialog.py:85
+msgid "Dismiss"
+msgstr ""
+
+#: application/dialogs/ReminderDialog.py:89
+msgid "Dismiss All"
+msgstr ""
+
+#: application/dialogs/ReminderDialog.py:221
+#: parcels/osaf/framework/attributeEditors/AttributeEditors.py:582
+#: parcels/osaf/pim/triage.py:30
+#: parcels/osaf/sharing/__init__.py:1538
+msgid "Now"
+msgstr ""
+
+#: application/dialogs/RestoreShares.py:95
+msgid "Getting list of shares..."
+msgstr ""
+
+#: application/dialogs/RestoreShares.py:111
+#: application/dialogs/SubscribeCollection.py:223
+#: application/dialogs/SubscribeCollection.py:232
+msgid ""
+"Sharing Error:\n"
+"%(error)s"
+msgstr ""
+
+#: application/dialogs/RestoreShares.py:187
+msgid "Restore shared collections"
+msgstr "Restore Published Shares"
+
+#: application/dialogs/SharingDetails.py:42
+msgid "Close"
+msgstr ""
+
+#: application/dialogs/SharingDetails.py:65
+msgid "Sharing Details: %s"
+msgstr "Sharing details: %s"
+
+#: application/dialogs/SharingDetails.py:68
+msgid "Collection name: "
+msgstr ""
+
+#: application/dialogs/SharingDetails.py:69
+msgid "URL: "
+msgstr ""
+
+#: application/dialogs/SharingDetails.py:70
+msgid "Last attempted sync: "
+msgstr ""
+
+#: application/dialogs/SharingDetails.py:71
+msgid "Last successful sync: "
+msgstr ""
+
+#: application/dialogs/SharingDetails.py:73
+msgid "Last error: "
+msgstr "Last Error: "
+
+#: application/dialogs/SharingDetails.py:75
+msgid "Last error details: "
+msgstr "Last Error Details: "
+
+#: application/dialogs/SharingDetails.py:83
+msgid "Sharing Details"
+msgstr ""
+
+#: application/dialogs/StartupOptionsDialog.py:55
+msgid "Start-up options for Chandler"
+msgstr "Start-up Options for Chandler"
+
+#: application/dialogs/StartupOptionsDialog.py:76
+msgid "Continue with normal startup"
+msgstr ""
+
+#: application/dialogs/StartupOptionsDialog.py:82
+msgid "Do internal clean-up, but save my data and preferences"
+msgstr ""
+
+#: application/dialogs/StartupOptionsDialog.py:87
+msgid "Discard recent changes until data integrity tests pass"
+msgstr ""
+
+#: application/dialogs/StartupOptionsDialog.py:92
+msgid "Discard all my data and start from scratch"
+msgstr "Discard all my data and start with a fresh repository"
+
+#: application/dialogs/StartupOptionsDialog.py:98
+msgid "Make a snapshot of all data to submit with a bug report, then exit"
+msgstr "Make a snapshot of all my data to submit with a bug report, then quit"
+
+#: application/dialogs/StartupOptionsDialog.py:103
+msgid "Discard all my data and restore from a previous snapshot (this can take a few minutes)"
+msgstr ""
+
+#: application/dialogs/StartupOptionsDialog.py:108
+msgid "Restore from a previous snapshot (this can take a few minutes)"
+msgstr ""
+
+#: application/dialogs/StartupOptionsDialog.py:146
+msgid "Snapshot to restore?"
+msgstr ""
+
+#: application/dialogs/StartupOptionsDialog.py:165
+msgid "Save snapshot as..."
+msgstr ""
+
+#: application/dialogs/StartupOptionsDialog.py:167
+msgid "ChandlerSnapshot.tgz"
+msgstr ""
+
+#: application/dialogs/StartupOptionsDialog.py:186
+msgid "Failed to encrypt passwords."
+msgstr ""
+
+#: application/dialogs/StartupOptionsDialog.py:187
+msgid "Password protection failed"
+msgstr "Password protection failed."
+
+#: application/dialogs/SubscribeCollection.py:154
+msgid "Moving collection into My Items"
+msgstr "Moving collection into Dashboard..."
+
+#: application/dialogs/SubscribeCollection.py:203
+msgid "Collection was not found"
+msgstr "Collection was not found."
+
+#: application/dialogs/SubscribeCollection.py:205
+msgid "You are already subscribed to this collection"
+msgstr "You are already subscribed to this collection."
+
+#: application/dialogs/SubscribeCollection.py:209
+msgid "Web page doesn't contain a collection; please check the URL"
+msgstr "Invalid URL."
+
+#: application/dialogs/SubscribeCollection.py:226
+msgid "Subscribe cancelled"
+msgstr "Subscribe cancelled."
+
+#: application/dialogs/SubscribeCollection.py:228
+msgid ""
+"There is a problem with the URL:\n"
+"%(error)s"
+msgstr ""
+
+#: application/dialogs/SubscribeCollection.py:236
+msgid "Subscribe Error"
+msgstr ""
+
+#: application/dialogs/SubscribeCollection.py:254
+msgid "Spaces are not allowed in URLs"
+msgstr "Spaces are not allowed in URLs."
+
+#: application/dialogs/SubscribeCollection.py:270
+msgid "In progress..."
+msgstr ""
+
+#: application/dialogs/TimeZoneList.py:102
+#: parcels/osaf/pim/calendar/TimeZone.py:226
+msgid "Pacific/Honolulu"
+msgstr ""
+
+#: application/dialogs/TimeZoneList.py:103
+#: parcels/osaf/pim/calendar/TimeZone.py:227
+msgid "America/Anchorage"
+msgstr ""
+
+#: application/dialogs/TimeZoneList.py:104
+#: parcels/osaf/pim/calendar/TimeZone.py:228
+msgid "America/Los_Angeles"
+msgstr ""
+
+#: application/dialogs/TimeZoneList.py:105
+#: parcels/osaf/pim/calendar/TimeZone.py:229
+msgid "America/Denver"
+msgstr ""
+
+#: application/dialogs/TimeZoneList.py:106
+#: parcels/osaf/pim/calendar/TimeZone.py:230
+msgid "America/Chicago"
+msgstr ""
+
+#: application/dialogs/TimeZoneList.py:107
+#: parcels/osaf/pim/calendar/TimeZone.py:231
+msgid "America/New_York"
+msgstr ""
+
+#: application/dialogs/TimeZoneList.py:108
+#: parcels/osaf/pim/calendar/TimeZone.py:232
+msgid "World/Floating"
+msgstr ""
+
+#: application/dialogs/TimeZoneList.py:109
+msgid "Europe/London"
+msgstr ""
+
+#: application/dialogs/TimeZoneList.py:110
+msgid "Europe/Paris"
+msgstr ""
+
+#: application/dialogs/TimeZoneList.py:111
+msgid "Asia/Shanghai"
+msgstr ""
+
+#: application/dialogs/TimeZoneList.py:112
+msgid "Asia/Calcutta"
+msgstr ""
+
+#: application/dialogs/TimeZoneList.py:113
+msgid "Australia/Sydney"
+msgstr ""
+
+#: application/dialogs/TimeZoneList.py:118
+msgid "Name"
+msgstr ""
+
+#: application/dialogs/TimeZoneList.py:120
+msgid "Offset"
+msgstr ""
+
+#: application/dialogs/TimeZoneList.py:122
+msgid "Shown"
+msgstr ""
+
+#: application/dialogs/TimeZoneList.py:139
+#: application/dialogs/TurnOnTimezones.py:30
+#: application/dialogs/TurnOnTimezones.py:35
+#: application/dialogs/TurnOnTimezones.py:40
+msgid "Use time zones"
+msgstr "Use Time zones"
+
+#: application/dialogs/TimeZoneList.py:147
+msgid "View all time zones"
+msgstr ""
+
+#: application/dialogs/TimeZoneList.py:386
+msgid "More..."
+msgstr ""
+
+#: application/dialogs/TurnOnTimezones.py:32
+msgid "To view events and alarms correctly, would you like to assign a time zone to your existing items?"
+msgstr ""
+
+#: application/dialogs/TurnOnTimezones.py:37
+msgid "Would you like to assign a time zone to your items before sharing them with others?"
+msgstr ""
+
+#: application/dialogs/TurnOnTimezones.py:42
+msgid "Would you like to assign a time zone to your items before exporting them?"
+msgstr ""
+
+#: application/dialogs/TurnOnTimezones.py:122
+msgid "Don't ask again"
+msgstr ""
+
+#: application/dialogs/UpgradeDialog.py:50
+msgid "Reload options for Chandler"
+msgstr ""
+
+#: application/dialogs/UpgradeDialog.py:67
+msgid "Your repository was created by an incompatible version of Chandler."
+msgstr "Your data repository was created by an incompatible version of Chandler."
+
+#: application/dialogs/UpgradeDialog.py:68
+msgid "Would you like to remove all data from your repository?"
+msgstr "Would you like to remove all data and start with a fresh repository?"
+
+#: application/dialogs/UpgradeDialog.py:70
+msgid "This new version of Chandler is incompatible with your data. Would you like to:"
+msgstr "This version of Chandler is incompatible with your data. Would you like to:"
+
+#: application/dialogs/UpgradeDialog.py:71
+msgid "Start up with a fresh Chandler. (Any data you have from a previous version of Chandler will be lost.)"
+msgstr "Start up with a fresh repository. (Any data you have from a previous version of Chandler will be lost.)"
+
+#: application/dialogs/UpgradeDialog.py:80
+msgid "Quit and follow the directions linked below to migrate your data."
+msgstr "Click on the link below to learn how to migrate your data and quit Chandler."
+
+#: application/dialogs/UpgradeDialog.py:85
+msgid "Migration Directions"
+msgstr ""
+
+#: application/dialogs/Util.py:176
+msgid "You have addressed this message to invalid email addresses."
+msgstr "Invalid email addresses."
+
+#: application/dialogs/Util.py:199
+#: parcels/osaf/views/main/Main.py:787
+#: parcels/osaf/views/main/Main.py:801
+msgid "Mail Error"
+msgstr ""
+
+#: application/dialogs/Util.py:231
+msgid " Edit Account Settings "
+msgstr ""
+
+#: application/dialogs/Util.py:237
+msgid "Fix email addresses"
+msgstr "Fix Email Addresses"
+
+#: application/dialogs/Util.py:241
+msgid "Send anyway"
+msgstr "Send Anyway"
+
+#: application/dialogs/Util.py:832
+msgid "Try Again"
+msgstr ""
+
+#: application/dialogs/Util.py:836
+#: application/dialogs/Util.py:862
+msgid "Close Window"
+msgstr ""
+
+#: application/dialogs/Util.py:856
+msgid "Apply settings"
+msgstr "Apply Settings"
+
+#: application/dialogs/autosyncprefs.py:26
+msgid "Sync Preferences"
+msgstr ""
+
+#: application/dialogs/autosyncprefs.py:59
+msgid "&Synchronize"
+msgstr ""
+
+#: application/dialogs/autosyncprefs.py:66
+msgid "Manually"
+msgstr ""
+
+#: application/dialogs/autosyncprefs.py:67
+msgid "Every 30 minutes"
+msgstr ""
+
+#: application/dialogs/autosyncprefs.py:68
+msgid "Every hour"
+msgstr ""
+
+#: application/dialogs/autosyncprefs.py:69
+msgid "Every 2 hours"
+msgstr ""
+
+#: application/dialogs/autosyncprefs.py:70
+msgid "Every 6 hours"
+msgstr ""
+
+#: application/dialogs/autosyncprefs.py:71
+msgid "Every day"
+msgstr ""
+
+#: application/feedback.py:84
+#: parcels/osaf/views/main/menus.py:244
+msgid "&Quit"
+msgstr ""
+
+#: application/feedback.py:254
+msgid "Restarting..."
+msgstr ""
+
+#: application/feedback.py:274
+msgid ""
+"\n"
+"Feedback report ID: %(feedbackId)s"
+msgstr ""
+
+#: application/feedback.py:283
+msgid ""
+"\n"
+"Feedback report saved locally at: %(feedbackFile)s"
+msgstr ""
+"\n"
+"Your feedback report has been saved locally at: %(feedbackFile)s"
+
+#: application/feedback.py:295
+msgid "Sending..."
+msgstr ""
+
+#: application/feedback.py:317
+msgid "Failed to send"
+msgstr "Failed to send."
+
+#: application/feedback.py:319
+#: parcels/osaf/messages.py:35
+msgid "Sent"
+msgstr "Sent."
+
+#: parcels/osaf/activity.py:122
+msgid "Cancelled by user"
+msgstr "Cancelled by user."
+
+#: parcels/osaf/app/__init__.py:35
+msgid "Me"
+msgstr ""
+
+#: parcels/osaf/app/__init__.py:38
+msgid "User"
+msgstr ""
+
+#: parcels/osaf/app/__init__.py:104
+msgid "Welcome to Chandler %(version)s"
+msgstr ""
+
+#: parcels/osaf/app/__init__.py:111
+msgid "Open Source Applications Foundation"
+msgstr ""
+
+#: parcels/osaf/app/__init__.py:124
+msgid ""
+"Welcome to Chandler %(version)s. Here is a list of resources to help you get started:\n"
+"\n"
+"1. Check out our Getting Started Guide (%(url1)s) to view screenshots, learn how to report problems and access a wide range of developer documentation.\n"
+"2. Sign-up for a sharing account on Chandler Hub (%(url2)s).\n"
+"3. Consult our FAQ (%(url3)s).\n"
+"4. Read about known issues with the Preview release (%(url4)s).\n"
+"5. Ask questions and give us feedback by joining the Chandler-Users mailing list (%(url5)s).\n"
+"6. Learn more about the project on our wiki (%(url6)s).\n"
+"7. Get involved and contribute to the project (%(url7)s).\n"
+"\n"
+"Thank you for trying Chandler!\n"
+"\n"
+"The Chandler Team"
+msgstr ""
+"Welcome to Chandler %(version)s. Here is a list of resources to help you get started:\n"
+"\n"
+"1. Get a tour of Chandler at (%(url1)s).\n"
+"2. Sign up for a sharing account on Chandler Hub (%(url2)s).\n"
+"3. Consult our FAQ (%(url3)s).\n"
+"4. Read about known issues (%(url4)s).\n"
+"5. Ask questions and give us feedback by joining the Chandler-Users mailing list (%(url5)s).\n"
+"6. Learn more about the project on our wiki (%(url6)s).\n"
+"7. Get involved and contribute to the project (%(url7)s).\n"
+"\n"
+"Thank you for trying Chandler!\n"
+"\n"
+"The Chandler Team"
+
+#: parcels/osaf/app/__init__.py:172
+msgid "Work"
+msgstr ""
+
+#: parcels/osaf/app/__init__.py:173
+msgid "Home"
+msgstr ""
+
+#: parcels/osaf/app/__init__.py:174
+msgid "Fun"
+msgstr ""
+
+#: parcels/osaf/app/__init__.py:183
+msgid "Try sharing a Home task list"
+msgstr ""
+
+#: parcels/osaf/app/__init__.py:205
+msgid "Play around with the Calendar"
+msgstr ""
+
+#: parcels/osaf/app/__init__.py:222
+msgid "Download Chandler"
+msgstr ""
+
+#: parcels/osaf/app/__init__.py:240
+msgid "Set up your accounts"
+msgstr ""
+
+#: parcels/osaf/app/__init__.py:258
+msgid "Delete sample items and collections"
+msgstr ""
+
+#: parcels/osaf/app/__init__.py:264
+msgid "The items and collections Chandler creates at startup are examples.  Feel free to delete them."
+msgstr ""
+
+#: parcels/osaf/app/__init__.py:332
+msgid "F1 - Create a New Script"
+msgstr "F1 - Create a new script"
+
+#: parcels/osaf/app/__init__.py:340
+msgid "F2 - Block under cursor"
+msgstr ""
+
+#: parcels/osaf/app/__init__.py:347
+msgid "F3 - Item selected"
+msgstr ""
+
+#: parcels/osaf/app/__init__.py:355
+msgid "F4 - Browse selected item"
+msgstr ""
+
+#: parcels/osaf/app/__init__.py:362
+msgid "Test - Event timing example"
+msgstr ""
+
+#: parcels/osaf/app/__init__.py:370
+msgid "Cleanup after tests"
+msgstr "Clean up after tests"
+
+#: parcels/osaf/app/__init__.py:377
+msgid "F5 - Paste new item"
+msgstr ""
+
+#: parcels/osaf/app/__init__.py:385
+msgid "F6 - Print selected item to stdout"
+msgstr ""
+
+#: parcels/osaf/app/compact.py:34
+msgid "Purge Obsolete Data"
+msgstr ""
+
+#: parcels/osaf/app/compact.py:44
+msgid "Chandler needs to purge obsolete data. This operation may take a while but will make the application run faster."
+msgstr ""
+
+#: parcels/osaf/app/compact.py:50
+msgid "Compacting will start automatically in %d seconds."
+msgstr "Purging will start automatically in %d seconds."
+
+#: parcels/osaf/app/compact.py:64
+msgid "Compact Now"
+msgstr "Purge Now"
+
+#: parcels/osaf/app/compact.py:66
+msgid "Compact Later"
+msgstr "Purge Later"
+
+#: parcels/osaf/app/compact.py:92
+msgid "Compacting repository (stage %d)"
+msgstr "Purging... (stage %d)"
+
+#: parcels/osaf/app/compact.py:221
+msgid "No versions to compact, skipping"
+msgstr "No data to purge..."
+
+#: parcels/osaf/app/compact.py:236
+msgid "Compacting repository failed, see chandler.log"
+msgstr "Purging failed. Go to the Tools>>Logging>>Log Window... menu for details."
+
+#: parcels/osaf/app/compact.py:239
+msgid "Reclaimed %d items, %d values, %d refs, %d index entries, %d names, %d lobs, %d blocks, %d lucene documents"
+msgstr "Reclaimed %d items, %d values, %d refs, %d index entries, %d names, %d lobs, %d blocks, %d lucene documents."
+
+#: parcels/osaf/dumpreload.py:178
+#: parcels/osaf/dumpreload.py:282
+msgid "Counting records..."
+msgstr ""
+
+#: parcels/osaf/dumpreload.py:233
+msgid "You will need to supply the master password that was used to protect the account passwords in the file."
+msgstr "Please enter the master password you used to protect this file to reload account passwords."
+
+#: parcels/osaf/dumpreload.py:234
+#: parcels/osaf/framework/MasterPassword.py:345
+#: parcels/osaf/framework/MasterPassword.py:437
+#: parcels/osaf/settings.py:658
+msgid "Protect Passwords"
+msgstr ""
+
+#: parcels/osaf/dumpreload.py:245
+#: parcels/osaf/settings.py:665
+msgid "If you do not supply the master password, all passwords will be reset. Reset?"
+msgstr "If you do not remember your master password, all account passwords will be deleted. Delete account passwords?"
+
+#: parcels/osaf/dumpreload.py:246
+#: parcels/osaf/settings.py:666
+msgid "Reset Master Password?"
+msgstr "Reset master password?"
+
+#: parcels/osaf/framework/MasterPassword.py:97
+msgid "No master password"
+msgstr "No master password."
+
+#: parcels/osaf/framework/MasterPassword.py:117
+msgid "Master password was incorrect, please try again."
+msgstr ""
+
+#: parcels/osaf/framework/MasterPassword.py:118
+#: parcels/osaf/framework/MasterPassword.py:168
+msgid "Incorrect password"
+msgstr "Incorrect password."
+
+#: parcels/osaf/framework/MasterPassword.py:167
+msgid "Old password was incorrect, please try again."
+msgstr ""
+
+#: parcels/osaf/framework/MasterPassword.py:231
+msgid "Protect Passwords?"
+msgstr "Protect Passwords"
+
+#: parcels/osaf/framework/MasterPassword.py:232
+msgid "Anyone who gets access to your data can view your account passwords. Do you want to protect your account passwords by encrypting them with the master password?"
+msgstr "Anyone who gains access to your data can view your account passwords. Do you want to protect your account passwords by encrypting them with a master password?"
+
+#: parcels/osaf/framework/MasterPassword.py:233
+msgid "Never ask again."
+msgstr "Never ask again"
+
+#: parcels/osaf/framework/MasterPassword.py:362
+#: parcels/osaf/framework/MasterPassword.py:472
+msgid "Master pass&word:"
+msgstr ""
+
+#: parcels/osaf/framework/MasterPassword.py:370
+msgid "&Timeout (minutes):"
+msgstr ""
+
+#: parcels/osaf/framework/MasterPassword.py:452
+msgid "Sensitive information, such as email and sharing account passwords, are protected with a master password."
+msgstr "Account passwords are protected with the master password."
+
+#: parcels/osaf/framework/MasterPassword.py:460
+msgid "Ol&d master password:"
+msgstr ""
+
+#: parcels/osaf/framework/MasterPassword.py:470
+msgid "New master pass&word:"
+msgstr ""
+
+#: parcels/osaf/framework/MasterPassword.py:481
+msgid "Con&firm password:"
+msgstr ""
+
+#: parcels/osaf/framework/MasterPassword.py:489
+msgid "Quality meter:"
+msgstr ""
+
+#: parcels/osaf/framework/MasterPassword.py:496
+msgid "Do not forget the master password or the protected information will be lost."
+msgstr "Do not forget your master password or your account passwords will be deleted the next time you are asked to enter your master password."
+
+#: parcels/osaf/framework/MasterPassword.py:505
+msgid "&Reset Master Password..."
+msgstr ""
+
+#: parcels/osaf/framework/MasterPassword.py:509
+msgid "Change Master Passw&ord"
+msgstr ""
+
+#: parcels/osaf/framework/MasterPassword.py:511
+msgid "Pr&otect Passwords"
+msgstr ""
+
+#: parcels/osaf/framework/MasterPassword.py:561
+msgid ""
+"Protected information will be deleted.\n"
+"Are you sure you want to reset Master Password?"
+msgstr ""
+"Account passwords will be deleted.\n"
+"Are you sure you want to reset your Master Password?"
+
+#: parcels/osaf/framework/MasterPassword.py:562
+msgid "Confirm Reset?"
+msgstr ""
+
+#: parcels/osaf/framework/attributeEditors/AttributeEditors.py:412
+#: parcels/osaf/framework/attributeEditors/AttributeEditors.py:478
+#: parcels/osaf/framework/blocks/calendar/minical.py:429
+msgid "Today"
+msgstr ""
+
+#: parcels/osaf/framework/attributeEditors/AttributeEditors.py:415
+#: parcels/osaf/framework/attributeEditors/AttributeEditors.py:479
+msgid "Yesterday"
+msgstr ""
+
+#: parcels/osaf/framework/attributeEditors/AttributeEditors.py:418
+#: parcels/osaf/framework/attributeEditors/AttributeEditors.py:478
+msgid "Tomorrow"
+msgstr ""
+
+#: parcels/osaf/framework/attributeEditors/AttributeEditors.py:479
+msgid "End of week"
+msgstr ""
+
+#: parcels/osaf/framework/attributeEditors/AttributeEditors.py:581
+msgid "Evening"
+msgstr ""
+
+#: parcels/osaf/framework/attributeEditors/AttributeEditors.py:581
+msgid "Lunch"
+msgstr ""
+
+#: parcels/osaf/framework/attributeEditors/AttributeEditors.py:581
+msgid "Noon"
+msgstr ""
+
+#: parcels/osaf/framework/attributeEditors/AttributeEditors.py:582
+msgid "Breakfast"
+msgstr ""
+
+#: parcels/osaf/framework/attributeEditors/AttributeEditors.py:582
+msgid "Midnight"
+msgstr ""
+
+#: parcels/osaf/framework/attributeEditors/AttributeEditors.py:583
+msgid "Dinner"
+msgstr ""
+
+#: parcels/osaf/framework/attributeEditors/AttributeEditors.py:583
+msgid "Morning"
+msgstr ""
+
+#: parcels/osaf/framework/attributeEditors/AttributeEditors.py:583
+msgid "Tonight"
+msgstr ""
+
+#: parcels/osaf/framework/attributeEditors/AttributeEditors.py:584
+msgid "End of day"
+msgstr ""
+
+#: parcels/osaf/framework/attributeEditors/AttributeEditors.py:584
+msgid "Night"
+msgstr ""
+
+#: parcels/osaf/framework/attributeEditors/StringAttributeEditor.py:463
+msgid ",;"
+msgstr ""
+
+#: parcels/osaf/framework/attributeEditors/StringAttributeEditor.py:618
+#: parcels/osaf/pim/calendar/Calendar.py:745
+#: parcels/osaf/pim/mail.py:2326
+#: parcels/osaf/views/detail/detail.py:798
+msgid ", "
+msgstr ""
+
+#: parcels/osaf/framework/attributeEditors/StringAttributeEditor.py:638
+msgid ","
+msgstr ""
+
+#: parcels/osaf/framework/blocks/ControlBlocks.py:513
+msgid "%(heading)s (%(actual)s)"
+msgstr ""
+
+#: parcels/osaf/framework/blocks/DragAndDrop.py:475
+msgid "Cannot cut from this collection."
+msgstr ""
+
+#: parcels/osaf/framework/blocks/DragAndDrop.py:476
+msgid "Can't cut"
+msgstr "Cannot cut."
+
+#: parcels/osaf/framework/blocks/MenusAndToolbars.py:453
+msgid "Create new items or type /Find to search"
+msgstr "Create new items or enter '/Find' to search."
+
+#: parcels/osaf/framework/blocks/PimBlocks.py:185
+msgid "Change the privacy of a shared item?"
+msgstr "Never share this item"
+
+#: parcels/osaf/framework/blocks/PimBlocks.py:186
+msgid "Other people may be subscribed to share this item; are you sure you want to mark it as private?"
+msgstr ""
+
+#: parcels/osaf/framework/blocks/calendar/CalendarBlocks.py:663
+msgid ":."
+msgstr ""
+
+#: parcels/osaf/framework/blocks/calendar/CalendarBlocks.py:683
+msgid "Today's events"
+msgstr ""
+
+#: parcels/osaf/framework/blocks/calendar/CalendarBlocks.py:735
+msgid "- minimize"
+msgstr ""
+
+#: parcels/osaf/framework/blocks/calendar/CalendarBlocks.py:741
+msgid "+ %(numberOfEvents)d more..."
+msgstr ""
+
+#: parcels/osaf/framework/blocks/calendar/CalendarCanvas.py:1779
+msgid "This item is read-only. You cannot change the title of read-only items."
+msgstr "This event is view-only. You cannot change the title of view-only items."
+
+#: parcels/osaf/framework/blocks/calendar/CalendarCanvas.py:1779
+#: parcels/osaf/framework/blocks/calendar/CalendarCanvas.py:1786
+#: parcels/osaf/framework/blocks/calendar/CollectionCanvas.py:1080
+msgid "Warning"
+msgstr ""
+
+#: parcels/osaf/framework/blocks/calendar/CalendarCanvas.py:1786
+msgid "This item is read-only. You cannot change the time of read-only items."
+msgstr "This event is view-only. You cannot change the time of view-only events."
+
+#: parcels/osaf/framework/blocks/calendar/CalendarCanvas.py:2230
+msgid "Go to date"
+msgstr ""
+
+#: parcels/osaf/framework/blocks/calendar/CalendarCanvas.py:2231
+msgid "Enter a date in the form %(dateFormat)s"
+msgstr ""
+
+#: parcels/osaf/framework/blocks/calendar/CalendarCanvas.py:2434
+msgid "Week"
+msgstr ""
+
+#: parcels/osaf/framework/blocks/calendar/CalendarCanvas.py:2559
+#: parcels/osaf/framework/blocks/calendar/minical.py:599
+msgid "%(currentMonth)s %(currentYear)d"
+msgstr ""
+
+#: parcels/osaf/framework/blocks/calendar/CalendarCanvas.py:2563
+msgid "%(currentMonth1)s - %(currentMonth2)s %(currentYear)d"
+msgstr ""
+
+#: parcels/osaf/framework/certstore/blocks.py:52
+msgid "Certificate Store"
+msgstr ""
+
+#: parcels/osaf/framework/certstore/blocks.py:69
+msgid "&Certificates"
+msgstr ""
+
+#: parcels/osaf/framework/certstore/blocks.py:75
+msgid "&Manage Certificates"
+msgstr ""
+
+#: parcels/osaf/framework/certstore/blocks.py:94
+msgid "&Import Certificate..."
+msgstr ""
+
+#: parcels/osaf/framework/certstore/blocks.py:103
+msgid "purpose"
+msgstr ""
+
+#: parcels/osaf/framework/certstore/blocks.py:114
+msgid "trust"
+msgstr ""
+
+#: parcels/osaf/framework/certstore/blocks.py:125
+msgid "fingerprint"
+msgstr ""
+
+#: parcels/osaf/framework/certstore/blocks.py:136
+msgid "algorithm"
+msgstr ""
+
+#: parcels/osaf/framework/certstore/certificate.py:229
+msgid "Could not determine certificate purpose."
+msgstr "Could not determine purpose of certificate."
+
+#: parcels/osaf/framework/certstore/certificate.py:255
+msgid "This certificate has already been imported."
+msgstr ""
+
+#: parcels/osaf/framework/certstore/certificate.py:267
+msgid "Unable to verify the certificate."
+msgstr "Unable to verify certificate."
+
+#: parcels/osaf/framework/certstore/certificate.py:297
+msgid "Choose a certificate to import"
+msgstr "Choose a certificate to import."
+
+#: parcels/osaf/framework/certstore/certificate.py:300
+msgid "PEM files|*.pem;*.crt|All files (*.*)|*.*"
+msgstr ""
+
+#: parcels/osaf/framework/certstore/certificate.py:315
+msgid "Trust the authenticity of this certificate."
+msgstr "Trust this certificate."
+
+#: parcels/osaf/framework/certstore/certificate.py:317
+msgid "Trust this certificate to sign site certificates."
+msgstr ""
+
+#: parcels/osaf/framework/certstore/certificate.py:342
+msgid ""
+"Could not add certificate from: %(path)s\n"
+"Check the path and try again."
+msgstr ""
+
+#: parcels/osaf/framework/certstore/dialogs.py:51
+msgid "Import certificate?"
+msgstr ""
+
+#: parcels/osaf/framework/certstore/dialogs.py:65
+msgid ""
+"Do you want to import this certificate?\n"
+"Purpose: %(certPurpose)s\n"
+"SHA1 fingerprint: %(fingerprint)s"
+msgstr ""
+
+#: parcels/osaf/framework/certstore/dialogs.py:144
+msgid "Trust site certificate?"
+msgstr ""
+
+#: parcels/osaf/framework/certstore/dialogs.py:158
+msgid ""
+"Do you want to trust this certificate?\n"
+"SHA1 fingerprint: %s"
+msgstr ""
+
+#: parcels/osaf/framework/certstore/dialogs.py:160
+msgid ""
+"This certificate is already known but not trusted.\n"
+"Do you want to trust this certificate?\n"
+"SHA1 fingerprint: %s"
+msgstr ""
+"This certificate is already known but not trusted.\n"
+"Do you want to trust this certificate now?\n"
+"SHA1 fingerprint: %s"
+
+#: parcels/osaf/framework/certstore/dialogs.py:177
+msgid "Trust the authenticity of this certificate until program exit."
+msgstr "Trust the authenticity of this certificate until you quit Chandler."
+
+#: parcels/osaf/framework/certstore/dialogs.py:178
+msgid "Trust the authenticity of this certificate permanently."
+msgstr ""
+
+#: parcels/osaf/framework/certstore/dialogs.py:253
+msgid "Ignore SSL error?"
+msgstr ""
+
+#: parcels/osaf/framework/certstore/dialogs.py:271
+msgid ""
+"There was an error with this SSL connection.\n"
+"The error was: %s.\n"
+"Ignoring this error may be dangerous!\n"
+"SHA1 fingerprint: %s"
+msgstr ""
+
+#: parcels/osaf/framework/certstore/dialogs.py:286
+msgid "Ignore this error"
+msgstr "Ignore Error"
+
+#: parcels/osaf/framework/certstore/dialogs.py:289
+msgid "Disconnect"
+msgstr ""
+
+#: parcels/osaf/framework/certstore/errors.py:24
+#: parcels/osaf/framework/certstore/errors.py:51
+msgid "unable to get issuer certificate"
+msgstr "Unable to get issuer certificate."
+
+#: parcels/osaf/framework/certstore/errors.py:25
+msgid "unable to decrypt certificate's signature"
+msgstr "Unable to decrypt certificate's signature."
+
+#: parcels/osaf/framework/certstore/errors.py:26
+msgid "unable to decode issuer public key"
+msgstr "Unable to decode issuer public key."
+
+#: parcels/osaf/framework/certstore/errors.py:27
+msgid "certificate signature failure"
+msgstr "Certificate signature failure."
+
+#: parcels/osaf/framework/certstore/errors.py:28
+msgid "certificate is not yet valid"
+msgstr "Certificate is not yet valid."
+
+#: parcels/osaf/framework/certstore/errors.py:29
+msgid "certificate has expired"
+msgstr "Certificate has expired."
+
+#: parcels/osaf/framework/certstore/errors.py:30
+msgid "format error in certificate's notBefore field"
+msgstr "Certificate notBefore field is formatted incorrectly."
+
+#: parcels/osaf/framework/certstore/errors.py:31
+msgid "format error in certificate's notAfter field"
+msgstr "Certificate notAfter field is formatted incorrectly."
+
+#: parcels/osaf/framework/certstore/errors.py:32
+msgid "out of memory"
+msgstr "Out of memory."
+
+#: parcels/osaf/framework/certstore/errors.py:33
+msgid "self signed certificate"
+msgstr "Self-signed certificate."
+
+#: parcels/osaf/framework/certstore/errors.py:34
+msgid "self signed certificate in certificate chain"
+msgstr "Self-signed certificate in certificate chain."
+
+#: parcels/osaf/framework/certstore/errors.py:35
+msgid "unable to get local issuer certificate"
+msgstr "Unable to get local issuer certificate."
+
+#: parcels/osaf/framework/certstore/errors.py:36
+msgid "unable to verify the first certificate"
+msgstr "Unable to verify the first certificate."
+
+#: parcels/osaf/framework/certstore/errors.py:37
+msgid "invalid CA certificate"
+msgstr "Invalid CA certificate."
+
+#: parcels/osaf/framework/certstore/errors.py:38
+msgid "path length constraint exceeded"
+msgstr "Path is too long."
+
+#: parcels/osaf/framework/certstore/errors.py:39
+msgid "unsupported certificate purpose"
+msgstr "Unsupported certificate purpose."
+
+#: parcels/osaf/framework/certstore/errors.py:40
+msgid "certificate not trusted"
+msgstr "Certificate not trusted."
+
+#: parcels/osaf/framework/certstore/errors.py:41
+msgid "certificate rejected"
+msgstr "Certificate rejected."
+
+#: parcels/osaf/framework/certstore/ssl.py:143
+msgid "Could not set cipher list"
+msgstr "Could not set cipher list."
+
+#: parcels/osaf/framework/password.py:132
+#: parcels/osaf/framework/password.py:227
+msgid "Password is too long"
+msgstr "Password is too long."
+
+#: parcels/osaf/framework/script_recording/__init__.py:141
+msgid "Save script as ..."
+msgstr "Untitled"
+
+#: parcels/osaf/framework/script_recording/__init__.py:165
+msgid "Stop &recording"
+msgstr "Stop &Recording"
+
+#: parcels/osaf/framework/script_recording/__init__.py:167
+msgid "&Record script..."
+msgstr "&Record Script..."
+
+#: parcels/osaf/framework/script_recording/__init__.py:355
+msgid "Scriptin&g"
+msgstr ""
+
+#: parcels/osaf/framework/script_recording/__init__.py:369
+msgid "&Record script"
+msgstr "&Record Script"
+
+#: parcels/osaf/framework/script_recording/__init__.py:370
+msgid "Record commands in Chandler"
+msgstr ""
+
+#: parcels/osaf/framework/script_recording/__init__.py:386
+msgid "I&nclude tests in script"
+msgstr "I&nclude Tests in Script"
+
+#: parcels/osaf/framework/script_recording/__init__.py:387
+msgid "Includes code in the script to verify that the UI's data matches the state when the script was recorded"
+msgstr ""
+
+#: parcels/osaf/framework/script_recording/__init__.py:401
+msgid "R&un Script"
+msgstr ""
+
+#: parcels/osaf/framework/script_recording/__init__.py:418
+msgid "&Open script..."
+msgstr "&Open Script..."
+
+#: parcels/osaf/framework/script_recording/__init__.py:419
+msgid "Playback a script you recorded"
+msgstr "Play back a script you recorded"
+
+#: parcels/osaf/framework/scripting/blocks.py:43
+msgid "Hotkey"
+msgstr ""
+
+#: parcels/osaf/framework/scripting/blocks.py:57
+msgid "Open"
+msgstr ""
+
+#: parcels/osaf/framework/scripting/blocks.py:66
+#: parcels/osaf/views/main/summaryblocks.py:842
+msgid "Save"
+msgstr ""
+
+#: parcels/osaf/framework/scripting/blocks.py:75
+msgid "Save As"
+msgstr ""
+
+#: parcels/osaf/framework/scripting/blocks.py:86
+msgid "test"
+msgstr ""
+
+#: parcels/osaf/framework/scripting/blocks.py:106
+msgid "path"
+msgstr ""
+
+#: parcels/osaf/framework/scripting/blocks.py:181
+msgid "Open a script file"
+msgstr "Open Script File"
+
+#: parcels/osaf/framework/scripting/blocks.py:185
+msgid "Save this script file as"
+msgstr "Save Script File As"
+
+#: parcels/osaf/framework/scripting/blocks.py:206
+msgid "All files (*.*)|*.*"
+msgstr ""
+
+#: parcels/osaf/framework/scripting/blocks.py:206
+msgid "Python files|*.py|"
+msgstr ""
+
+#: parcels/osaf/framework/scripting/script.py:104
+msgid ""
+"The file associated with this script has been changed,\n"
+"but those changes are older than your recent edits.\n"
+"\n"
+"Do you want to overwrite those file changes with your\n"
+"recent edits of this script?"
+msgstr ""
+"The file associated with this script has been changed,\n"
+"but those changes are older than your recent edits.\n"
+"\n"
+"Do you want to overwrite those changes with your\n"
+"recent edits?"
+
+#: parcels/osaf/framework/scripting/script.py:108
+msgid "Overwrite script file?"
+msgstr "Overwrite Script File?"
+
+#: parcels/osaf/mail/base.py:520
+msgid "There was an error in the SSL Layer."
+msgstr "SSL error."
+
+#: parcels/osaf/mail/constants.py:27
+msgid "Chandler Mail"
+msgstr ""
+
+#: parcels/osaf/mail/constants.py:28
+msgid "Chandler Tasks"
+msgstr ""
+
+#: parcels/osaf/mail/constants.py:29
+msgid "Chandler Events"
+msgstr ""
+
+#: parcels/osaf/mail/constants.py:31
+msgid "Email Address %(emailAddress)s is not valid"
+msgstr ""
+
+#: parcels/osaf/mail/constants.py:34
+msgid ""
+"The following error was raised:\n"
+"\n"
+"\t%(errText)s"
+msgstr ""
+"Mail error:\n"
+"\n"
+"\t%(errText)s"
+
+#: parcels/osaf/mail/constants.py:35
+msgid ""
+"The server '%(hostName)s' raised the following error:\n"
+"\n"
+"\t%(errText)s"
+msgstr ""
+"Error from mail server'%(hostName)s':\n"
+"\n"
+"\t%(errText)s"
+
+#: parcels/osaf/mail/constants.py:36
+msgid "Connection to server '%(hostName)s' was successful."
+msgstr ""
+
+#: parcels/osaf/mail/constants.py:37
+msgid "The Server only allows secure login. Please enable TLS or SSL."
+msgstr "The server requires secure login. Please enable TLS or SSL."
+
+#: parcels/osaf/mail/constants.py:38
+msgid "%(accountName)s: offline mode no operation was performed"
+msgstr "%(accountName)s is offline. No operation was performed."
+
+#: parcels/osaf/mail/constants.py:39
+msgid "%(accountName)s: connecting to server %(serverDNSName)s"
+msgstr "%(accountName)s: Connecting to server %(serverDNSName)s..."
+
+#: parcels/osaf/mail/constants.py:40
+msgid "Unable to connect to server please try again later"
+msgstr "Unable to connect to server. Please try again later."
+
+#: parcels/osaf/mail/constants.py:41
+msgid "Communication with the Server timed out. Please try again later."
+msgstr "Connection to server timed out. Please try again later."
+
+#: parcels/osaf/mail/constants.py:44
+msgid "%(accountName)s: no new messages found"
+msgstr "%(accountName)s: No new messages found."
+
+#: parcels/osaf/mail/constants.py:45
+msgid "%(accountName)s: checking for new mail messages ..."
+msgstr "%(accountName)s: Checking for new messages..."
+
+#: parcels/osaf/mail/constants.py:47
+msgid "Unable to determine the 'Inbox' status on the IMAP Server"
+msgstr "Unable to determine status of Inbox on server."
+
+#: parcels/osaf/mail/constants.py:50
+msgid "The Reply-To Address %(emailAddress)s is not valid"
+msgstr "The Reply-to address %(emailAddress)s is not valid"
+
+#: parcels/osaf/mail/constants.py:51
+msgid "A From Address is required to send a Mail Message"
+msgstr "A From: address is required to send this message."
+
+#: parcels/osaf/mail/constants.py:52
+msgid "A To Address is required to send an SMTP Mail Message"
+msgstr "At least 1 valid To: email address is required to send this message."
+
+#: parcels/osaf/mail/constants.py:54
+msgid "%(accountName)s: Chandler Mail is offline, \"%(subject)s\" queued for sending"
+msgstr "%(accountName)s: Chandler mail is offline, \"%(subject)s\" has been queued and will be sent as soon as Mail is put back online."
+
+#: parcels/osaf/mail/constants.py:55
+msgid "%(accountName)s: sending \"%(subject)s\""
+msgstr "%(accountName)s: Sending \"%(subject)s\"..."
+
+#: parcels/osaf/mail/constants.py:56
+msgid "%(accountName)s: \"%(subject)s\" sent"
+msgstr "%(accountName)s: \"%(subject)s\" sent."
+
+#: parcels/osaf/mail/constants.py:60
+msgid ""
+"Chandler Mail is currently offline.\n"
+"To perform this action, Mail must be in online mode."
+msgstr "Cannot perform request. Chandler mail is offline.\n"
+
+#: parcels/osaf/mail/constants.py:63
+msgid ""
+"The POP3 Server does not support the 'UIDL' command.\n"
+"This command is required by Chandler."
+msgstr ""
+"Invalid server. The POP3 server does not support the 'UIDL' command.\n"
+"This command is required by Chandler."
+
+#: parcels/osaf/mail/constants.py:68
+msgid "1#%(accountName)s: %(numberTotal)s message downloaded to Chandler (New: %(numberNew)s, Updates: %(numberUpdates)s, Duplicates: %(numberDuplicates)s)|1<%(accountName)s: %(numberTotal)s messages downloaded to Chandler (New: %(numberNew)s, Updates: %(numberUpdates)s, Duplicates: %(numberDuplicates)s)"
+msgstr ""
+
+#: parcels/osaf/mail/constants.py:70
+msgid "1#%(accountName)s: downloading %(numberOfMessages)s message ...|1<%(accountName)s: downloading %(numberOfMessages)s messages ..."
+msgstr "1#%(accountName)s: Downloading %(numberOfMessages)s message...|1<%(accountName)s: Downloading %(numberOfMessages)s messages..."
+
+#: parcels/osaf/mail/constants.py:72
+msgid "%(accountName)s: searching %(start)s - %(end)s of %(total)s messages for Chandler Mail"
+msgstr "%(accountName)s: Searching %(start)s - %(end)s of %(total)s messages..."
+
+#: parcels/osaf/mail/constants.py:74
+msgid "%(accountName)s: searching %(start)s - %(end)s of %(total)s messages for Chandler Mail in your '%(folderDisplayName)s'"
+msgstr "%(accountName)s: Searching %(start)s - %(end)s of %(total)s messages in your '%(folderDisplayName)s'..."
+
+#: parcels/osaf/mail/constants.py:76
+msgid ""
+"%(accountName)s is not configured correctly.\n"
+"The account settings contain no Inbox folder."
+msgstr ""
+
+#: parcels/osaf/mail/constants.py:78
+msgid "%(accountName)s: commiting %(start)s - %(end)s of %(total)s messages from '%(folderDisplayName)s'"
+msgstr "%(accountName)s: Commiting %(start)s - %(end)s of %(total)s messages from '%(folderDisplayName)s'..."
+
+#: parcels/osaf/mail/constants.py:80
+msgid "%(accountName)s: commiting %(start)s - %(end)s of %(total)s messages"
+msgstr "%(accountName)s: Commiting %(start)s - %(end)s of %(total)s messages..."
+
+#: parcels/osaf/mail/message.py:445
+msgid "Title: %(titleText)s"
+msgstr ""
+
+#: parcels/osaf/mail/message.py:449
+msgid "Notes: %(notesText)s"
+msgstr ""
+
+#: parcels/osaf/mail/message.py:456
+msgid ""
+"\n"
+"\n"
+"Event Details\n"
+"---"
+msgstr ""
+
+#: parcels/osaf/mail/message.py:458
+msgid ""
+"\n"
+"\n"
+"Task Details\n"
+"---"
+msgstr ""
+
+#: parcels/osaf/mail/message.py:714
+msgid "ChandlerItem.ics"
+msgstr ""
+
+#: parcels/osaf/mail/utils.py:300
+msgid "Title: "
+msgstr ""
+
+#: parcels/osaf/messages.py:20
+#: parcels/osaf/pim/calendar/Calendar.py:710
+#: parcels/osaf/sharing/cosmo.py:131
+#: parcels/osaf/sharing/recordset_conduit.py:208
+#: parcels/osaf/sharing/stateless.py:70
+msgid "Untitled"
+msgstr ""
+
+#: parcels/osaf/messages.py:21
+msgid "me"
+msgstr ""
+
+#: parcels/osaf/messages.py:24
+msgid "&Undo"
+msgstr ""
+
+#: parcels/osaf/messages.py:25
+msgid "&Redo"
+msgstr ""
+
+#: parcels/osaf/messages.py:26
+msgid "Cu&t"
+msgstr ""
+
+#: parcels/osaf/messages.py:27
+msgid "&Copy"
+msgstr ""
+
+#: parcels/osaf/messages.py:28
+msgid "&Paste"
+msgstr ""
+
+#: parcels/osaf/messages.py:29
+msgid "C&lear"
+msgstr ""
+
+#: parcels/osaf/messages.py:30
+msgid "Select &All"
+msgstr ""
+
+#: parcels/osaf/messages.py:34
+msgid "Send"
+msgstr ""
+
+#: parcels/osaf/messages.py:36
+msgid "Update"
+msgstr ""
+
+#: parcels/osaf/messages.py:37
+msgid "Reply"
+msgstr ""
+
+#: parcels/osaf/messages.py:38
+msgid "Reply All"
+msgstr ""
+
+#: parcels/osaf/messages.py:39
+msgid "Forward"
+msgstr ""
+
+#: parcels/osaf/messages.py:40
+#: parcels/osaf/messages.py:51
+msgid "Address this item"
+msgstr "Address item"
+
+#: parcels/osaf/messages.py:41
+#: parcels/osaf/messages.py:52
+msgid "Add to Task list"
+msgstr ""
+
+#: parcels/osaf/messages.py:42
+#: parcels/osaf/messages.py:53
+msgid "Add to Calendar"
+msgstr ""
+
+#: parcels/osaf/messages.py:43
+#: parcels/osaf/messages.py:54
+msgid "Remove Addressing fields"
+msgstr "Remove Addresses"
+
+#: parcels/osaf/messages.py:44
+#: parcels/osaf/messages.py:55
+msgid "Remove from Task list"
+msgstr ""
+
+#: parcels/osaf/messages.py:45
+#: parcels/osaf/messages.py:56
+msgid "Remove from Calendar"
+msgstr ""
+
+#: parcels/osaf/messages.py:46
+#: parcels/osaf/messages.py:57
+msgid "Change the triage state of this item"
+msgstr "Change Triage status"
+
+#: parcels/osaf/messages.py:47
+msgid "Never share this item"
+msgstr "Never share"
+
+#: parcels/osaf/messages.py:48
+msgid "Allow sharing this item"
+msgstr "Allow sharing"
+
+#: parcels/osaf/messages.py:49
+msgid "View only"
+msgstr "View-only"
+
+#: parcels/osaf/messages.py:60
+msgid "Username"
+msgstr "User name"
+
+#: parcels/osaf/messages.py:61
+msgid "Password"
+msgstr ""
+
+#: parcels/osaf/messages.py:62
+msgid "Host"
+msgstr ""
+
+#: parcels/osaf/messages.py:63
+msgid "Port"
+msgstr ""
+
+#: parcels/osaf/messages.py:64
+msgid "Path"
+msgstr ""
+
+#: parcels/osaf/messages.py:67
+msgid "New %(accountType)s Account"
+msgstr ""
+
+#: parcels/osaf/messages.py:69
+msgid "%(accountName)s Account"
+msgstr ""
+
+#: parcels/osaf/messages.py:72
+msgid "Peer certificate does not match host, expected %(expectedHost)s, got %(actualHost)s"
+msgstr "Peer certificate does not match host. Chandler expected %(expectedHost)s and got %(actualHost)s instead."
+
+#: parcels/osaf/pim/__init__.py:228
+msgid "Trash"
+msgstr ""
+
+#: parcels/osaf/pim/__init__.py:281
+msgid "Dashboard"
+msgstr ""
+
+#: parcels/osaf/pim/__init__.py:406
+msgid "In"
+msgstr ""
+
+#: parcels/osaf/pim/__init__.py:419
+msgid "Out"
+msgstr ""
+
+#: parcels/osaf/pim/calendar/Calendar.py:654
+#: parcels/osaf/pim/calendar/Calendar.py:709
+msgid "New Event"
+msgstr ""
+
+#: parcels/osaf/pim/calendar/Calendar.py:719
+msgid "%(startDay)s, %(startDate)s at %(startTimeTz)s%(recurrenceSeparator)s%(recurrence)s"
+msgstr ""
+
+#: parcels/osaf/pim/calendar/Calendar.py:724
+msgid "%(startDay)s, %(startDate)s all day%(recurrenceSeparator)s%(recurrence)s"
+msgstr ""
+
+#: parcels/osaf/pim/calendar/Calendar.py:725
+msgid "%(startDate)s - %(endDate)s all day%(recurrenceSeparator)s%(recurrence)s"
+msgstr ""
+
+#: parcels/osaf/pim/calendar/Calendar.py:727
+msgid "%(startDay)s, %(startDate)s any time%(recurrenceSeparator)s%(recurrence)s"
+msgstr ""
+
+#: parcels/osaf/pim/calendar/Calendar.py:728
+msgid "%(startDate)s - %(endDate)s, any time%(recurrenceSeparator)s%(recurrence)s"
+msgstr ""
+
+#: parcels/osaf/pim/calendar/Calendar.py:730
+msgid "%(startDay)s, %(startDate)s %(startTime)s - %(endTimeTz)s%(recurrenceSeparator)s%(recurrence)s"
+msgstr ""
+
+#: parcels/osaf/pim/calendar/Calendar.py:731
+msgid "%(startDay)s, %(startDate)s %(startTime)s - %(endDay)s, %(endDate)s %(endTimeTz)s%(recurrenceSeparator)s%(recurrence)s"
+msgstr ""
+
+#: parcels/osaf/pim/calendar/DateTimeUtil.py:130
+msgid "H:mm"
+msgstr ""
+
+#: parcels/osaf/pim/calendar/DateTimeUtil.py:150
+msgid "hh"
+msgstr ""
+
+#: parcels/osaf/pim/calendar/DateTimeUtil.py:151
+#: parcels/osaf/pim/calendar/DateTimeUtil.py:154
+msgid "mm"
+msgstr ""
+
+#: parcels/osaf/pim/calendar/DateTimeUtil.py:153
+msgid "yyyy"
+msgstr ""
+
+#: parcels/osaf/pim/calendar/DateTimeUtil.py:154
+msgid "yy"
+msgstr ""
+
+#: parcels/osaf/pim/calendar/DateTimeUtil.py:155
+#: parcels/osaf/pim/mail.py:504
+msgid "dd"
+msgstr ""
+
+#: parcels/osaf/pim/calendar/Recurrence.py:42
+msgid "year"
+msgstr ""
+
+#: parcels/osaf/pim/calendar/Recurrence.py:43
+msgid "month"
+msgstr ""
+
+#: parcels/osaf/pim/calendar/Recurrence.py:44
+msgid "week"
+msgstr ""
+
+#: parcels/osaf/pim/calendar/Recurrence.py:45
+msgid "day"
+msgstr ""
+
+#: parcels/osaf/pim/calendar/Recurrence.py:46
+msgid "hour"
+msgstr ""
+
+#: parcels/osaf/pim/calendar/Recurrence.py:47
+msgid "minute"
+msgstr ""
+
+#: parcels/osaf/pim/calendar/Recurrence.py:48
+msgid "second"
+msgstr ""
+
+#: parcels/osaf/pim/calendar/Recurrence.py:50
+msgid "years"
+msgstr ""
+
+#: parcels/osaf/pim/calendar/Recurrence.py:51
+msgid "months"
+msgstr ""
+
+#: parcels/osaf/pim/calendar/Recurrence.py:52
+msgid "weeks"
+msgstr ""
+
+#: parcels/osaf/pim/calendar/Recurrence.py:53
+#: parcels/osaf/views/detail/detail.py:1179
+msgid "days"
+msgstr ""
+
+#: parcels/osaf/pim/calendar/Recurrence.py:54
+#: parcels/osaf/views/detail/detail.py:1178
+msgid "hours"
+msgstr ""
+
+#: parcels/osaf/pim/calendar/Recurrence.py:55
+#: parcels/osaf/views/detail/detail.py:1177
+msgid "minutes"
+msgstr ""
+
+#: parcels/osaf/pim/calendar/Recurrence.py:56
+msgid "seconds"
+msgstr ""
+
+#: parcels/osaf/pim/calendar/Recurrence.py:58
+msgid "yearly"
+msgstr "Yearly"
+
+#: parcels/osaf/pim/calendar/Recurrence.py:59
+msgid "monthly"
+msgstr "Monthly"
+
+#: parcels/osaf/pim/calendar/Recurrence.py:60
+msgid "weekly"
+msgstr "Weekly"
+
+#: parcels/osaf/pim/calendar/Recurrence.py:61
+msgid "daily"
+msgstr "Daily"
+
+#: parcels/osaf/pim/calendar/Recurrence.py:62
+msgid "hourly"
+msgstr "Hourly"
+
+#: parcels/osaf/pim/calendar/Recurrence.py:63
+msgid "minutely"
+msgstr "Minutely"
+
+#: parcels/osaf/pim/calendar/Recurrence.py:64
+msgid "secondly"
+msgstr "Secondly"
+
+#: parcels/osaf/pim/calendar/Recurrence.py:67
+msgid "%(frequencyadverb)s"
+msgstr ""
+
+#: parcels/osaf/pim/calendar/Recurrence.py:68
+msgid "every %(interval)s %(frequencyplural)s"
+msgstr "Every %(interval)s %(frequencyplural)s"
+
+#: parcels/osaf/pim/calendar/Recurrence.py:69
+msgid "%(frequencyadverb)s (too frequent)"
+msgstr "Too frequent: %(frequencyadverb)s"
+
+#: parcels/osaf/pim/calendar/Recurrence.py:70
+msgid "every %(interval)s %(frequencyplural)s (too frequent)"
+msgstr "Too frequent: Every %(interval)s %(frequencyplural)s"
+
+#: parcels/osaf/pim/calendar/Recurrence.py:71
+msgid "%(days)s every %(frequencysingular)s"
+msgstr ""
+
+#: parcels/osaf/pim/calendar/Recurrence.py:72
+msgid "%(days)s every %(interval)s %(frequencyplural)s"
+msgstr ""
+
+#: parcels/osaf/pim/calendar/Recurrence.py:73
+msgid "%(frequencyadverb)s until %(date)s"
+msgstr ""
+
+#: parcels/osaf/pim/calendar/Recurrence.py:74
+msgid "every %(interval)s %(frequencyplural)s until %(date)s"
+msgstr "Every %(interval)s %(frequencyplural)s until %(date)s"
+
+#: parcels/osaf/pim/calendar/Recurrence.py:75
+msgid "%(days)s every %(frequencysingular)s until %(date)s"
+msgstr ""
+
+#: parcels/osaf/pim/calendar/Recurrence.py:76
+msgid "%(days)s every %(interval)s %(frequencyplural)s until %(date)s"
+msgstr ""
+
+#: parcels/osaf/pim/calendar/Recurrence.py:639
+msgid "No description"
+msgstr "No description."
+
+#: parcels/osaf/pim/calendar/Recurrence.py:641
+msgid "No description (too frequent)"
+msgstr "Too frequent."
+
+#: parcels/osaf/pim/items.py:120
+msgid "created by %(user)s on %(date)s %(tz)s"
+msgstr "Created by %(user)s on %(date)s %(tz)s"
+
+#: parcels/osaf/pim/items.py:121
+msgid "created on %(date)s %(tz)s"
+msgstr "Created on %(date)s %(tz)s"
+
+#: parcels/osaf/pim/items.py:124
+msgid "edited by %(user)s on %(date)s %(tz)s"
+msgstr "Edited by %(user)s on %(date)s %(tz)s"
+
+#: parcels/osaf/pim/items.py:125
+msgid "edited on %(date)s %(tz)s"
+msgstr "Edited on %(date)s %(tz)s"
+
+#: parcels/osaf/pim/items.py:128
+msgid "updated by %(user)s on %(date)s %(tz)s"
+msgstr "Updated by %(user)s on %(date)s %(tz)s"
+
+#: parcels/osaf/pim/items.py:129
+msgid "updated on %(date)s %(tz)s"
+msgstr "Updated on %(date)s %(tz)s"
+
+#: parcels/osaf/pim/items.py:132
+msgid "sent by %(user)s on %(date)s %(tz)s"
+msgstr "Sent by %(user)s on %(date)s %(tz)s"
+
+#: parcels/osaf/pim/items.py:133
+msgid "sent on %(date)s %(tz)s"
+msgstr "Sent on %(date)s %(tz)s"
+
+#: parcels/osaf/pim/items.py:136
+msgid "queued by %(user)s on %(date)s %(tz)s"
+msgstr "Queued by %(user)s on %(date)s %(tz)s"
+
+#: parcels/osaf/pim/items.py:137
+msgid "queued on %(date)s %(tz)s"
+msgstr "Queued on %(date)s %(tz)s"
+
+#: parcels/osaf/pim/mail.py:57
+msgid "Message"
+msgstr ""
+
+#: parcels/osaf/pim/mail.py:58
+msgid "Task"
+msgstr ""
+
+#: parcels/osaf/pim/mail.py:59
+msgid "Event"
+msgstr ""
+
+#: parcels/osaf/pim/mail.py:60
+msgid "Recurring Event"
+msgstr ""
+
+#: parcels/osaf/pim/mail.py:61
+msgid "All-day Event"
+msgstr ""
+
+#: parcels/osaf/pim/mail.py:62
+msgid "Any-time Event"
+msgstr ""
+
+#: parcels/osaf/pim/mail.py:63
+msgid "Recurring All-day Event"
+msgstr ""
+
+#: parcels/osaf/pim/mail.py:64
+msgid "Recurring Any-time Event"
+msgstr ""
+
+#: parcels/osaf/pim/mail.py:65
+msgid "Scheduled Task"
+msgstr ""
+
+#: parcels/osaf/pim/mail.py:66
+msgid "Recurring Scheduled Task"
+msgstr ""
+
+#: parcels/osaf/pim/mail.py:67
+msgid "All-day Scheduled Task"
+msgstr ""
+
+#: parcels/osaf/pim/mail.py:68
+msgid "Any-time Scheduled Task"
+msgstr ""
+
+#: parcels/osaf/pim/mail.py:75
+msgid "a Task"
+msgstr ""
+
+#: parcels/osaf/pim/mail.py:76
+msgid "an Event"
+msgstr ""
+
+#: parcels/osaf/pim/mail.py:77
+msgid "a Recurring Event"
+msgstr ""
+
+#: parcels/osaf/pim/mail.py:78
+msgid "an All-day Event"
+msgstr ""
+
+#: parcels/osaf/pim/mail.py:79
+msgid "a Any-time Event"
+msgstr ""
+
+#: parcels/osaf/pim/mail.py:80
+msgid "a Recurring All-day Event"
+msgstr ""
+
+#: parcels/osaf/pim/mail.py:81
+msgid "a Recurring Any-time Event"
+msgstr ""
+
+#: parcels/osaf/pim/mail.py:82
+msgid "a Scheduled Task"
+msgstr ""
+
+#: parcels/osaf/pim/mail.py:83
+msgid "a Recurring Scheduled Task"
+msgstr ""
+
+#: parcels/osaf/pim/mail.py:84
+msgid "an All-day Scheduled Task"
+msgstr ""
+
+#: parcels/osaf/pim/mail.py:85
+msgid "an Any-time Scheduled Task"
+msgstr ""
+
+#: parcels/osaf/pim/mail.py:88
+msgid ""
+"Custom recurrence rule: No description\n"
+"\n"
+"%(title)s on %(startDate)s"
+msgstr ""
+"Custom recurrence rule: No description.\n"
+"\n"
+"%(title)s on %(startDate)s"
+
+#: parcels/osaf/pim/mail.py:89
+msgid ""
+"Custom recurrence rule: No description\n"
+"\n"
+"%(title)s from %(startDate)s - %(endDate)s"
+msgstr ""
+"Custom recurrence rule: No description.\n"
+"\n"
+"%(title)s from %(startDate)s - %(endDate)s"
+
+#: parcels/osaf/pim/mail.py:90
+msgid ""
+"Custom recurrence rule: No description\n"
+"\n"
+"%(title)s on %(startDate)s %(startTime)s - %(endTime)s %(timezone)s"
+msgstr ""
+"Custom recurrence rule: No description.\n"
+"\n"
+"%(title)s on %(startDate)s %(startTime)s - %(endTime)s %(timezone)s"
+
+#: parcels/osaf/pim/mail.py:91
+msgid ""
+"Custom recurrence rule: No description\n"
+"\n"
+"%(title)s on %(startDate)s %(startTime)s - %(endDate)s %(endTime)s %(timezone)s"
+msgstr ""
+"Custom recurrence rule: No description.\n"
+"\n"
+"%(title)s on %(startDate)s %(startTime)s - %(endDate)s %(endTime)s %(timezone)s"
+
+#: parcels/osaf/pim/mail.py:92
+msgid ""
+"Custom recurrence rule: No description\n"
+"\n"
+"%(title)s at %(location)s on %(startDate)s"
+msgstr ""
+"Custom recurrence rule: No description.\n"
+"\n"
+"%(title)s at %(location)s on %(startDate)s"
+
+#: parcels/osaf/pim/mail.py:93
+msgid ""
+"Custom recurrence rule: No description\n"
+"\n"
+"%(title)s at %(location)s from %(startDate)s - %(endDate)s"
+msgstr ""
+"Custom recurrence rule: No description.\n"
+"\n"
+"%(title)s at %(location)s from %(startDate)s - %(endDate)s"
+
+#: parcels/osaf/pim/mail.py:94
+msgid ""
+"Custom recurrence rule: No description\n"
+"\n"
+"%(title)s at %(location)s on %(startDate)s %(startTime)s - %(endTime)s %(timezone)s"
+msgstr ""
+"Custom recurrence rule: No description.\n"
+"\n"
+"%(title)s at %(location)s on %(startDate)s %(startTime)s - %(endTime)s %(timezone)s"
+
+#: parcels/osaf/pim/mail.py:95
+msgid ""
+"Custom recurrence rule: No description\n"
+"\n"
+"%(title)s at %(location)s on %(startDate)s %(startTime)s - %(endDate)s %(endTime)s %(timezone)s"
+msgstr ""
+"Custom recurrence rule: No description.\n"
+"\n"
+"%(title)s at %(location)s on %(startDate)s %(startTime)s - %(endDate)s %(endTime)s %(timezone)s"
+
+#: parcels/osaf/pim/mail.py:98
+msgid "%(title)s on %(startDate)s"
+msgstr ""
+
+#: parcels/osaf/pim/mail.py:99
+msgid "%(title)s from %(startDate)s - %(endDate)s"
+msgstr ""
+
+#: parcels/osaf/pim/mail.py:100
+msgid "%(title)s at %(location)s on %(startDate)s"
+msgstr ""
+
+#: parcels/osaf/pim/mail.py:101
+msgid "%(title)s at %(location)s from %(startDate)s - %(endDate)s"
+msgstr ""
+
+#: parcels/osaf/pim/mail.py:104
+msgid "%(title)s on %(startDate)s %(startTime)s - %(endTime)s %(timezone)s"
+msgstr ""
+
+#: parcels/osaf/pim/mail.py:105
+msgid "%(title)s from %(startDate)s %(startTime)s - %(endDate)s %(endTime)s %(timezone)s"
+msgstr ""
+
+#: parcels/osaf/pim/mail.py:106
+msgid "%(title)s at %(location)s on %(startDate)s %(startTime)s - %(endTime)s %(timezone)s"
+msgstr ""
+
+#: parcels/osaf/pim/mail.py:107
+msgid "%(title)s at %(location)s from %(startDate)s %(startTime)s - %(endDate)s %(endTime)s %(timezone)s"
+msgstr ""
+
+#: parcels/osaf/pim/mail.py:110
+msgid "%(title)s every day"
+msgstr ""
+
+#: parcels/osaf/pim/mail.py:111
+msgid "%(title)s every day until %(recurrenceEndDate)s"
+msgstr ""
+
+#: parcels/osaf/pim/mail.py:112
+msgid "%(title)s at %(location)s every day"
+msgstr ""
+
+#: parcels/osaf/pim/mail.py:113
+msgid "%(title)s at %(location)s every day until %(recurrenceEndDate)s"
+msgstr ""
+
+#: parcels/osaf/pim/mail.py:116
+msgid "%(title)s every day from %(startTime)s - %(endTime)s %(timezone)s"
+msgstr ""
+
+#: parcels/osaf/pim/mail.py:117
+msgid "%(title)s every day from %(startTime)s - %(endTime)s %(timezone)s until %(recurrenceEndDate)s"
+msgstr ""
+
+#: parcels/osaf/pim/mail.py:118
+msgid "%(title)s at %(location)s every day from %(startTime)s - %(endTime)s %(timezone)s"
+msgstr ""
+
+#: parcels/osaf/pim/mail.py:119
+msgid "%(title)s at %(location)s every day from %(startTime)s - %(endTime)s %(timezone)s until %(recurrenceEndDate)s"
+msgstr ""
+
+#: parcels/osaf/pim/mail.py:122
+msgid "%(title)s every %(dayName)s"
+msgstr ""
+
+#: parcels/osaf/pim/mail.py:123
+msgid "%(title)s every %(dayName)s until %(recurrenceEndDate)s"
+msgstr ""
+
+#: parcels/osaf/pim/mail.py:124
+msgid "%(title)s at %(location)s every %(dayName)s"
+msgstr ""
+
+#: parcels/osaf/pim/mail.py:125
+msgid "%(title)s at %(location)s every %(dayName)s until %(recurrenceEndDate)s"
+msgstr ""
+
+#: parcels/osaf/pim/mail.py:128
+msgid "%(title)s every %(dayName)s from %(startTime)s - %(endTime)s %(timezone)s"
+msgstr ""
+
+#: parcels/osaf/pim/mail.py:129
+msgid "%(title)s every %(dayName)s from %(startTime)s - %(endTime)s %(timezone)s until %(recurrenceEndDate)s"
+msgstr ""
+
+#: parcels/osaf/pim/mail.py:130
+msgid "%(title)s at %(location)s every %(dayName)s from %(startTime)s - %(endTime)s %(timezone)s"
+msgstr ""
+
+#: parcels/osaf/pim/mail.py:131
+msgid "%(title)s at %(location)s every %(dayName)s from %(startTime)s - %(endTime)s %(timezone)s until %(recurrenceEndDate)s"
+msgstr ""
+
+#: parcels/osaf/pim/mail.py:134
+msgid "%(title)s every other %(dayName)s"
+msgstr ""
+
+#: parcels/osaf/pim/mail.py:135
+msgid "%(title)s every other %(dayName)s until %(recurrenceEndDate)s"
+msgstr ""
+
+#: parcels/osaf/pim/mail.py:136
+msgid "%(title)s at %(location)s every other %(dayName)s"
+msgstr ""
+
+#: parcels/osaf/pim/mail.py:137
+msgid "%(title)s at %(location)s every other %(dayName)s until %(recurrenceEndDate)s"
+msgstr ""
+
+#: parcels/osaf/pim/mail.py:140
+msgid "%(title)s every other %(dayName)s from %(startTime)s - %(endTime)s %(timezone)s"
+msgstr ""
+
+#: parcels/osaf/pim/mail.py:141
+msgid "%(title)s every other %(dayName)s from %(startTime)s - %(endTime)s %(timezone)s until %(recurrenceEndDate)s"
+msgstr ""
+
+#: parcels/osaf/pim/mail.py:142
+msgid "%(title)s at %(location)s every other %(dayName)s from %(startTime)s - %(endTime)s %(timezone)s"
+msgstr ""
+
+#: parcels/osaf/pim/mail.py:143
+msgid "%(title)s at %(location)s every other %(dayName)s from %(startTime)s - %(endTime)s %(timezone)s until %(recurrenceEndDate)s"
+msgstr ""
+
+#: parcels/osaf/pim/mail.py:146
+msgid "%(title)s every month on the %(dayOfMonth)s%(abbreviation)s"
+msgstr ""
+
+#: parcels/osaf/pim/mail.py:147
+msgid "%(title)s every month on the %(dayOfMonth)s%(abbreviation)s until %(recurrenceEndDate)s"
+msgstr ""
+
+#: parcels/osaf/pim/mail.py:148
+msgid "%(title)s at %(location)s every month on the %(dayOfMonth)s%(abbreviation)s"
+msgstr ""
+
+#: parcels/osaf/pim/mail.py:149
+msgid "%(title)s at %(location)s every month on the %(dayOfMonth)s%(abbreviation)s until %(recurrenceEndDate)s"
+msgstr ""
+
+#: parcels/osaf/pim/mail.py:152
+msgid "%(title)s every month on the %(dayOfMonth)s%(abbreviation)s from %(startTime)s - %(endTime)s %(timezone)s"
+msgstr ""
+
+#: parcels/osaf/pim/mail.py:153
+msgid "%(title)s every month on the %(dayOfMonth)s%(abbreviation)s from %(startTime)s - %(endTime)s %(timezone)s until %(recurrenceEndDate)s"
+msgstr ""
+
+#: parcels/osaf/pim/mail.py:154
+msgid "%(title)s at %(location)s every month on the %(dayOfMonth)s%(abbreviation)s from %(startTime)s - %(endTime)s %(timezone)s"
+msgstr ""
+
+#: parcels/osaf/pim/mail.py:155
+msgid "%(title)s at %(location)s every month on the %(dayOfMonth)s%(abbreviation)s from %(startTime)s - %(endTime)s %(timezone)s until %(recurrenceEndDate)s"
+msgstr ""
+
+#: parcels/osaf/pim/mail.py:158
+msgid "%(title)s every year on %(startDate)s"
+msgstr ""
+
+#: parcels/osaf/pim/mail.py:159
+msgid "%(title)s every year on %(startDate)s until %(recurrenceEndDate)s"
+msgstr ""
+
+#: parcels/osaf/pim/mail.py:160
+msgid "%(title)s at %(location)s every year on %(startDate)s"
+msgstr ""
+
+#: parcels/osaf/pim/mail.py:161
+msgid "%(title)s at %(location)s every year on %(startDate)s until %(recurrenceEndDate)s"
+msgstr ""
+
+#: parcels/osaf/pim/mail.py:164
+msgid "%(title)s every year on %(startDate)s %(startTime)s - %(endTime)s %(timezone)s"
+msgstr ""
+
+#: parcels/osaf/pim/mail.py:165
+msgid "%(title)s every year from %(startDate)s %(startTime)s -  %(endDate)s %(endTime)s %(timezone)s"
+msgstr ""
+
+#: parcels/osaf/pim/mail.py:166
+msgid "%(title)s every year on %(startDate)s %(startTime)s - %(endTime)s %(timezone)s until %(recurrenceEndDate)s"
+msgstr ""
+
+#: parcels/osaf/pim/mail.py:167
+msgid "%(title)s every year from %(startDate)s %(startTime)s - %(endDate)s %(endTime)s %(timezone)s until %(recurrenceEndDate)s"
+msgstr ""
+
+#: parcels/osaf/pim/mail.py:168
+msgid "%(title)s at %(location)s every year on %(startDate)s %(startTime)s - %(endTime)s %(timezone)s"
+msgstr ""
+
+#: parcels/osaf/pim/mail.py:169
+msgid "%(title)s at %(location)s every year from %(startDate)s %(startTime)s - %(endDate)s %(endTime)s %(timezone)s"
+msgstr ""
+
+#: parcels/osaf/pim/mail.py:170
+msgid "%(title)s at %(location)s every year on %(startDate)s %(startTime)s - %(endTime)s %(timezone)s until %(recurrenceEndDate)s"
+msgstr ""
+
+#: parcels/osaf/pim/mail.py:171
+msgid "%(title)s at %(location)s every year from %(startDate)s %(startTime)s - %(endDate)s %(endTime)s %(timezone)s until %(recurrenceEndDate)s"
+msgstr ""
+
+#: parcels/osaf/pim/mail.py:174
+msgid "1#st|2#nd|3#rd|4#th|5#th|6#th|7#th|8#th|9#th|10#th|11#th|12#th|13#th|14#th|15#th|16#th|17#th|18#th|19#th|20#th|21#st|22#nd|23#rd|24#th|25#th|26#th|27#th|28#th|29#th|30#th|31#st"
+msgstr ""
+
+#: parcels/osaf/pim/mail.py:176
+msgid ""
+"%(sender)s sent you %(kindCombination)s from Chandler:\n"
+"\n"
+"\n"
+"%(description)s%(itemBody)s\n"
+msgstr ""
+
+#: parcels/osaf/pim/mail.py:183
+msgid ""
+"%(sender)s sent you an update on %(kindCombination)s from Chandler:\n"
+"\n"
+"\n"
+"%(description)s%(itemBody)s\n"
+msgstr ""
+"%(sender)s sent you an Update on %(kindCombination)s from Chandler:\n"
+"\n"
+"\n"
+"%(description)s%(itemBody)s\n"
+
+#: parcels/osaf/pim/mail.py:190
+msgid ""
+"%(sender)s sent you %(kindCombination)s from Chandler:\n"
+"\n"
+"From: %(originators)s\n"
+"To: %(toAddresses)s%(ccAddressLine)s\n"
+"\n"
+"\n"
+"%(description)s%(itemBody)s\n"
+msgstr ""
+
+#: parcels/osaf/pim/mail.py:200
+msgid ""
+"%(sender)s sent you an update on %(kindCombination)s from Chandler:\n"
+"\n"
+"From: %(originators)s\n"
+"To: %(toAddresses)s%(ccAddressLine)s\n"
+"\n"
+"\n"
+"%(description)s%(itemBody)s\n"
+msgstr ""
+"%(sender)s sent you an Update on %(kindCombination)s from Chandler:\n"
+"\n"
+"From: %(originators)s\n"
+"To: %(toAddresses)s%(ccAddressLine)s\n"
+"\n"
+"\n"
+"%(description)s%(itemBody)s\n"
+
+#: parcels/osaf/pim/mail.py:268
+msgid ""
+"\n"
+"\n"
+"Begin forwarded %(kindCombination)s:\n"
+"\n"
+"> From: %(originators)s\n"
+"> To: %(toAddresses)s%(ccAddressLine)s\n"
+"> Sent by %(sender)s on %(date)s at %(time)s\n"
+">\n"
+"> %(description)s\n"
+">\n"
+"%(itemBody)s\n"
+"\n"
+msgstr ""
+
+#: parcels/osaf/pim/mail.py:285
+msgid ""
+"\n"
+"\n"
+"%(sender)s wrote on %(date)s at %(time)s:\n"
+"\n"
+"> %(description)s\n"
+">\n"
+"%(itemBody)s\n"
+"\n"
+msgstr ""
+
+#: parcels/osaf/pim/mail.py:1226
+msgid "Inbox"
+msgstr ""
+
+#: parcels/osaf/pim/mail.py:2140
+msgid "@"
+msgstr ""
+
+#: parcels/osaf/pim/triage.py:31
+#: parcels/osaf/sharing/__init__.py:1539
+msgid "Later"
+msgstr ""
+
+#: parcels/osaf/settings.py:657
+msgid "You will need to supply the master password that was used to protect the account passwords in the settings file."
+msgstr "Please enter the master password you used to protect this file to reload account passwords."
+
+#: parcels/osaf/sharing/ICalendar.py:857
+msgid "Calendar contains %d items"
+msgstr "Calendar contains %d items."
+
+#: parcels/osaf/sharing/ICalendar.py:1037
+msgid "Imported Calendar"
+msgstr "Imported Calendar."
+
+#: parcels/osaf/sharing/ICalendar.py:1153
+msgid "Imported Free-busy"
+msgstr "Imported Free/Busy Calendar."
+
+#: parcels/osaf/sharing/ICalendar.py:1185
+msgid "File does not exist, import cancelled."
+msgstr ""
+
+#: parcels/osaf/sharing/ICalendar.py:1201
+msgid "Problem with the file, import cancelled."
+msgstr ""
+
+#: parcels/osaf/sharing/WebDAV.py:322
+msgid "Error in SSL Layer"
+msgstr "SSL error."
+
+#: parcels/osaf/sharing/__init__.py:420
+#: parcels/osaf/sharing/__init__.py:796
+msgid "Offline mode"
+msgstr "Could not perform request. Sharing is offline."
+
+#: parcels/osaf/sharing/__init__.py:474
+#: parcels/osaf/sharing/conduits.py:860
+#: parcels/osaf/sharing/conduits.py:1376
+msgid "%(location)s does not exist"
+msgstr "%(location)s does not exist."
+
+#: parcels/osaf/sharing/__init__.py:573
+msgid "Free/Busy information has already been published for this account"
+msgstr "Free/Busy information has already been published to this account."
+
+#: parcels/osaf/sharing/__init__.py:611
+#: parcels/osaf/sharing/__init__.py:661
+#: parcels/osaf/sharing/__init__.py:683
+#: parcels/osaf/sharing/inmemory_conduit.py:36
+msgid "Share already exists"
+msgstr "Collection already exists on server."
+
+#: parcels/osaf/sharing/__init__.py:799
+msgid "No URL provided"
+msgstr "No URL provided."
+
+#: parcels/osaf/sharing/__init__.py:805
+msgid "Could not parse URL: %s"
+msgstr ""
+
+#: parcels/osaf/sharing/__init__.py:808
+msgid "Protocol not specified"
+msgstr "Protocol not specified."
+
+#: parcels/osaf/sharing/__init__.py:811
+msgid "Protocol not supported: %s"
+msgstr ""
+
+#: parcels/osaf/sharing/__init__.py:814
+msgid "No hostname specified"
+msgstr "No hostname specified."
+
+#: parcels/osaf/sharing/__init__.py:850
+msgid "Already subscribed"
+msgstr "You are already subscribed to this collection."
+
+#: parcels/osaf/sharing/__init__.py:920
+#: parcels/osaf/sharing/__init__.py:1353
+msgid "You don't have permission"
+msgstr "You don't have permission to access this collection."
+
+#: parcels/osaf/sharing/__init__.py:1234
+msgid "Subscribing to calendar..."
+msgstr ""
+
+#: parcels/osaf/sharing/__init__.py:1535
+msgid "Inherit"
+msgstr ""
+
+#: parcels/osaf/sharing/__init__.py:1552
+#: parcels/osaf/views/detail/detailblocks.py:407
+msgid "FYI"
+msgstr ""
+
+#: parcels/osaf/sharing/__init__.py:1553
+#: parcels/osaf/views/detail/detailblocks.py:407
+msgid "Confirmed"
+msgstr ""
+
+#: parcels/osaf/sharing/__init__.py:1554
+#: parcels/osaf/views/detail/detailblocks.py:407
+msgid "Tentative"
+msgstr ""
+
+#: parcels/osaf/sharing/__init__.py:1658
+msgid ""
+"The following account(s) need to be set up:\n"
+"\n"
+msgstr ""
+
+#: parcels/osaf/sharing/__init__.py:1660
+msgid " - Sharing\n"
+msgstr ""
+
+#: parcels/osaf/sharing/__init__.py:1662
+msgid " - IMAP/POP (inbound email)\n"
+msgstr " - Inbound Mail\n"
+
+#: parcels/osaf/sharing/__init__.py:1664
+msgid " - At least one email address must be configured\n"
+msgstr " - At least one email address must be configured.\n"
+
+#: parcels/osaf/sharing/__init__.py:1666
+msgid " - SMTP (outbound email)\n"
+msgstr " - Outbound Mail\n"
+
+#: parcels/osaf/sharing/__init__.py:1667
+msgid ""
+"\n"
+"Would you like to enter account information now?"
+msgstr ""
+"\n"
+"Would you like to set up your accounts now?"
+
+#: parcels/osaf/sharing/__init__.py:1669
+msgid "Account set up"
+msgstr "Account Set-up"
+
+#: parcels/osaf/sharing/__init__.py:1711
+msgid "My items"
+msgstr ""
+
+#: parcels/osaf/sharing/__init__.py:1717
+msgid "My tasks"
+msgstr ""
+
+#: parcels/osaf/sharing/__init__.py:1718
+msgid "tasks"
+msgstr ""
+
+#: parcels/osaf/sharing/__init__.py:1720
+msgid "My mail"
+msgstr ""
+
+#: parcels/osaf/sharing/__init__.py:1721
+msgid "mail"
+msgstr ""
+
+#: parcels/osaf/sharing/__init__.py:1723
+msgid "My calendar"
+msgstr ""
+
+#: parcels/osaf/sharing/__init__.py:1724
+msgid "calendar"
+msgstr ""
+
+#: parcels/osaf/sharing/__init__.py:1731
+msgid "%(collectionName)s %(kindFilter)s"
+msgstr ""
+
+#: parcels/osaf/sharing/conduits.py:216
+#: parcels/osaf/sharing/conduits.py:653
+#: parcels/osaf/sharing/conduits.py:864
+msgid "Getting list of remote items..."
+msgstr "Getting list of items from server..."
+
+#: parcels/osaf/sharing/conduits.py:226
+#: parcels/osaf/sharing/conduits.py:228
+#: parcels/osaf/sharing/conduits.py:1371
+#: parcels/osaf/sharing/conduits.py:1373
+#: parcels/osaf/sharing/cosmo.py:114
+#: parcels/osaf/sharing/cosmo.py:117
+#: parcels/osaf/sharing/cosmo.py:376
+#: parcels/osaf/sharing/cosmo.py:379
+#: parcels/osaf/sharing/utility.py:99
+#: parcels/osaf/sharing/utility.py:102
+#: parcels/osaf/sharing/webdav_conduit.py:69
+#: parcels/osaf/sharing/webdav_conduit.py:71
+#: parcels/osaf/sharing/webdav_conduit.py:110
+#: parcels/osaf/sharing/webdav_conduit.py:112
+#: parcels/osaf/sharing/webdav_conduit.py:190
+#: parcels/osaf/sharing/webdav_conduit.py:192
+#: parcels/osaf/sharing/webdav_conduit.py:221
+#: parcels/osaf/sharing/webdav_conduit.py:223
+#: parcels/osaf/sharing/webdav_conduit.py:362
+#: parcels/osaf/sharing/webdav_conduit.py:364
+#: parcels/osaf/sharing/webdav_conduit.py:399
+#: parcels/osaf/sharing/webdav_conduit.py:401
+#: parcels/osaf/sharing/webdav_conduit.py:415
+#: parcels/osaf/sharing/webdav_conduit.py:417
+#: parcels/osaf/sharing/webdav_conduit.py:483
+#: parcels/osaf/sharing/webdav_conduit.py:485
+msgid "Unable to connect to server. Received the following error: %(error)s"
+msgstr "Unable to connect to server: %(error)s"
+
+#: parcels/osaf/sharing/conduits.py:231
+msgid "%(location)s not found"
+msgstr "%(location)s not found."
+
+#: parcels/osaf/sharing/conduits.py:233
+msgid "Not authorized to get %(location)s"
+msgstr "Not authorized to get %(location)s."
+
+#: parcels/osaf/sharing/conduits.py:235
+#: parcels/osaf/sharing/webdav_conduit.py:201
+msgid "The following sharing error occurred: %(error)s"
+msgstr "Sharing Error: %(error)s"
+
+#: parcels/osaf/sharing/conduits.py:308
+msgid "Incomplete Event Detected: '%(name)s'"
+msgstr ""
+
+#: parcels/osaf/sharing/conduits.py:430
+msgid "Saving..."
+msgstr ""
+
+#: parcels/osaf/sharing/conduits.py:528
+msgid "Not on server"
+msgstr "REMOVED - Not on server."
+
+#: parcels/osaf/sharing/conduits.py:632
+msgid "Uploading to %(name)s..."
+msgstr ""
+
+#: parcels/osaf/sharing/conduits.py:706
+msgid "Removing item from server: '%(path)s'"
+msgstr ""
+
+#: parcels/osaf/sharing/conduits.py:843
+msgid "Downloading from %(name)s..."
+msgstr ""
+
+#: parcels/osaf/sharing/conduits.py:874
+msgid "Determining what to fetch..."
+msgstr ""
+
+#: parcels/osaf/sharing/conduits.py:912
+msgid "Subscribing to KindCollections prohibited"
+msgstr "Invalid collection type."
+
+#: parcels/osaf/sharing/conduits.py:987
+msgid "Removing from collection: '%(name)s'"
+msgstr "Removing '%(name)s' from collection..."
+
+#: parcels/osaf/sharing/conduits.py:1344
+msgid "Checking for update: '%(location)s'"
+msgstr ""
+
+#: parcels/osaf/sharing/conduits.py:1363
+msgid "Not modified"
+msgstr "REMOVED - Not modified."
+
+#: parcels/osaf/sharing/conduits.py:1379
+#: parcels/osaf/sharing/webdav_conduit.py:225
+#: parcels/osaf/sharing/webdav_conduit.py:425
+#: parcels/osaf/sharing/webdav_conduit.py:493
+msgid "Not authorized to GET %(path)s"
+msgstr ""
+
+#: parcels/osaf/sharing/conduits.py:1384
+msgid "Processing: '%s'"
+msgstr ""
+
+#: parcels/osaf/sharing/cosmo.py:90
+msgid "Removing old collection from server..."
+msgstr ""
+
+#: parcels/osaf/sharing/cosmo.py:281
+msgid "Server busy.  Try again later. (HTTP status 503)"
+msgstr ""
+
+#: parcels/osaf/sharing/cosmo.py:291
+msgid "Collection updated by someone else"
+msgstr "Collection updated by someone else."
+
+#: parcels/osaf/sharing/cosmo.py:382
+msgid "Lost connection to server.  Received the following error: %(error)s"
+msgstr "Lost connection to server: %(error)s"
+
+#: parcels/osaf/sharing/filesystem_conduit.py:33
+msgid "A misconfiguration error was encountered"
+msgstr "REMOVED - A misconfiguration error was encountered."
+
+#: parcels/osaf/sharing/filesystem_conduit.py:38
+msgid "Importing from %(name)s..."
+msgstr ""
+
+#: parcels/osaf/sharing/filesystem_conduit.py:49
+#: parcels/osaf/sharing/inmemory_conduit.py:70
+msgid "Transformation error: see chandler.log for more information"
+msgstr "Transformation error. Go to the Tools>>Logging>>Log Window... menu for details."
+
+#: parcels/osaf/sharing/filesystem_conduit.py:130
+msgid "Share path already exists"
+msgstr "Sharing path already exists."
+
+#: parcels/osaf/sharing/filesystem_conduit.py:133
+msgid "Share path is not set, or path doesn't exist"
+msgstr "Sharing path is not set, or path doesn't exist."
+
+#: parcels/osaf/sharing/filesystem_conduit.py:147
+#: parcels/osaf/sharing/filesystem_conduit.py:164
+#: parcels/osaf/sharing/filesystem_conduit.py:212
+msgid "%(path)s does not exist"
+msgstr "%(path)s does not exist."
+
+#: parcels/osaf/sharing/filesystem_conduit.py:219
+msgid "File already exists"
+msgstr "File already exists."
+
+#: parcels/osaf/sharing/formats.py:902
+msgid "Incompatible share"
+msgstr "Incompatible share."
+
+#: parcels/osaf/sharing/ics.py:70
+msgid "Item isn't a task or an event."
+msgstr "Item is neither a Task nor an Event."
+
+#: parcels/osaf/sharing/inmemory_conduit.py:47
+msgid "Share does not exist"
+msgstr "Share does not exist."
+
+#: parcels/osaf/sharing/itemcentric.py:168
+msgid "Conflicts pending"
+msgstr "Conflicts pending."
+
+#: parcels/osaf/sharing/model.py:84
+msgid "Created on"
+msgstr ""
+
+#: parcels/osaf/sharing/model.py:87
+msgid "Has been sent"
+msgstr ""
+
+#: parcels/osaf/sharing/model.py:91
+msgid "Needs reply"
+msgstr ""
+
+#: parcels/osaf/sharing/model.py:94
+msgid "Has been read"
+msgstr ""
+
+#: parcels/osaf/sharing/model.py:105
+msgid "User ID"
+msgstr ""
+
+#: parcels/osaf/sharing/model.py:108
+msgid "Last modified"
+msgstr ""
+
+#: parcels/osaf/sharing/model.py:111
+msgid "Action"
+msgstr ""
+
+#: parcels/osaf/sharing/model.py:119
+msgid "Body"
+msgstr ""
+
+#: parcels/osaf/sharing/model.py:122
+msgid "Icalendar UID"
+msgstr ""
+
+#: parcels/osaf/sharing/model.py:149
+msgid "Start time"
+msgstr ""
+
+#: parcels/osaf/sharing/model.py:150
+msgid "Duration"
+msgstr ""
+
+#: parcels/osaf/sharing/model.py:153
+msgid "Location"
+msgstr ""
+
+#: parcels/osaf/sharing/model.py:171
+msgid "Alarm description"
+msgstr ""
+
+#: parcels/osaf/sharing/model.py:172
+msgid "Alarm trigger"
+msgstr ""
+
+#: parcels/osaf/sharing/model.py:173
+msgid "Alarm duration"
+msgstr ""
+
+#: parcels/osaf/sharing/model.py:174
+msgid "Alarm repeat"
+msgstr ""
+
+#: parcels/osaf/sharing/model.py:181
+msgid "Message ID"
+msgstr ""
+
+#: parcels/osaf/sharing/model.py:182
+msgid "Message headers"
+msgstr ""
+
+#: parcels/osaf/sharing/model.py:184
+msgid "From"
+msgstr ""
+
+#: parcels/osaf/sharing/model.py:185
+msgid "To"
+msgstr ""
+
+#: parcels/osaf/sharing/model.py:186
+msgid "CC"
+msgstr ""
+
+#: parcels/osaf/sharing/model.py:187
+msgid "BCC"
+msgstr ""
+
+#: parcels/osaf/sharing/model.py:190
+msgid "Originators"
+msgstr ""
+
+#: parcels/osaf/sharing/model.py:193
+msgid "Date sent"
+msgstr ""
+
+#: parcels/osaf/sharing/model.py:195
+msgid "In-Reply-To"
+msgstr "In-Reply-to"
+
+#: parcels/osaf/sharing/model.py:199
+msgid "References"
+msgstr ""
+
+#: parcels/osaf/sharing/model.py:202
+msgid "MIME content"
+msgstr ""
+
+#: parcels/osaf/sharing/model.py:203
+msgid "RFC2822 message"
+msgstr ""
+
+#: parcels/osaf/sharing/model.py:204
+msgid "Previous sender"
+msgstr ""
+
+#: parcels/osaf/sharing/model.py:205
+msgid "Reply-To address"
+msgstr "Reply-to address"
+
+#: parcels/osaf/sharing/model.py:213
+msgid "Message state"
+msgstr ""
+
+#: parcels/osaf/sharing/stateless.py:52
+msgid "Parsing file"
+msgstr "Parsing file..."
+
+#: parcels/osaf/sharing/stateless.py:63
+msgid "Importing items"
+msgstr "Importing items..."
+
+#: parcels/osaf/sharing/stateless.py:84
+msgid "Importing complete"
+msgstr "Importing complete."
+
+#: parcels/osaf/sharing/stateless.py:118
+msgid "Exporting items"
+msgstr "Exporting items..."
+
+#: parcels/osaf/sharing/stateless.py:128
+msgid "Exporting complete"
+msgstr "Exporting complete."
+
+#: parcels/osaf/sharing/utility.py:192
+msgid "Invalid port number: %s"
+msgstr ""
+
+#: parcels/osaf/sharing/utility.py:370
+msgid "View and Edit"
+msgstr ""
+
+#: parcels/osaf/sharing/utility.py:371
+msgid "View-only"
+msgstr ""
+
+#: parcels/osaf/sharing/utility.py:731
+#: parcels/osaf/sharing/utility.py:778
+msgid "The server rejected our request; please check the URL (HTTP status %(status)d)"
+msgstr "The server rejected our request. Please check the URL (HTTP status %(status)d)"
+
+#: parcels/osaf/sharing/utility.py:733
+#: parcels/osaf/sharing/utility.py:780
+msgid "Received [%(body)s]"
+msgstr ""
+
+#: parcels/osaf/sharing/webdav_conduit.py:73
+#: parcels/osaf/sharing/webdav_conduit.py:368
+msgid "Not authorized to PUT %(info)s"
+msgstr "Not authorized to PUT %(info)s."
+
+#: parcels/osaf/sharing/webdav_conduit.py:119
+msgid "Collection at %(url)s already exists"
+msgstr "Collection at %(url)s already exists."
+
+#: parcels/osaf/sharing/webdav_conduit.py:124
+msgid "Not authorized to create collection %(url)s"
+msgstr ""
+
+#: parcels/osaf/sharing/webdav_conduit.py:132
+msgid ""
+"The directory '%(directoryName)s' could not be found on %(server)s.\n"
+"Please verify the Path setting in your %(accountType)s account"
+msgstr ""
+"The directory '%(directoryName)s' could not be found on %(server)s.\n"
+"Please check the Path field in your %(accountType)s account."
+
+#: parcels/osaf/sharing/webdav_conduit.py:138
+msgid "Server doesn't allow the creation of collections at %(url)s"
+msgstr "Server doesn't allow publishing collections to %(url)s"
+
+#: parcels/osaf/sharing/webdav_conduit.py:142
+msgid "The contents of %(url)s were modified unexpectedly on the server while trying to share."
+msgstr "The contents of %(url)s were modified unexpectedly on the server while trying to publish."
+
+#: parcels/osaf/sharing/webdav_conduit.py:146
+msgid "WebDAV error, status = %(statusCode)d"
+msgstr ""
+
+#: parcels/osaf/sharing/webdav_conduit.py:196
+#: parcels/osaf/sharing/webdav_conduit.py:420
+#: parcels/osaf/sharing/webdav_conduit.py:488
+msgid "Path %(path)s not found."
+msgstr ""
+
+#: parcels/osaf/sharing/webdav_conduit.py:199
+msgid "Not authorized to get %(path)s"
+msgstr ""
+
+#: parcels/osaf/sharing/webdav_conduit.py:316
+msgid "Transformation failed for %(item)s"
+msgstr "Transformation failed for %(item)s."
+
+#: parcels/osaf/sharing/webdav_conduit.py:379
+msgid "Publishing %(itemName)s failed; server rejected our request with status %(status)d"
+msgstr "Publishing %(itemName)s failed. Server rejected our request with status %(status)d."
+
+#: parcels/osaf/sharing/webdav_conduit.py:383
+msgid "Not authorized to PUT %(itemName)s %(body)s"
+msgstr "Not authorized to PUT %(itemName)s %(body)s."
+
+#: parcels/osaf/sharing/webdav_conduit.py:412
+#: parcels/osaf/sharing/webdav_conduit.py:480
+msgid "Server reported incorrect Content-Length for %s"
+msgstr "Server reported incorrect Content-Length for %s."
+
+#: parcels/osaf/usercollections.py:27
+msgid "Blue"
+msgstr ""
+
+#: parcels/osaf/usercollections.py:27
+msgid "Gold"
+msgstr ""
+
+#: parcels/osaf/usercollections.py:27
+msgid "Green"
+msgstr ""
+
+#: parcels/osaf/usercollections.py:27
+msgid "Orange"
+msgstr ""
+
+#: parcels/osaf/usercollections.py:27
+msgid "Plum"
+msgstr ""
+
+#: parcels/osaf/usercollections.py:27
+msgid "Red"
+msgstr ""
+
+#: parcels/osaf/usercollections.py:28
+msgid "Fuchsia"
+msgstr ""
+
+#: parcels/osaf/usercollections.py:28
+msgid "Indigo"
+msgstr ""
+
+#: parcels/osaf/usercollections.py:28
+msgid "Turquoise"
+msgstr ""
+
+#: parcels/osaf/views/detail/detail.py:566
+msgid "No date/time found"
+msgstr "No date/time found."
+
+#: parcels/osaf/views/detail/detail.py:567
+msgid "Event set to the date/time found"
+msgstr "Event set to the date/time found."
+
+#: parcels/osaf/views/detail/detail.py:568
+msgid "Multiple date/times found"
+msgstr "Multiple date/times found."
+
+#: parcels/osaf/views/detail/detail.py:813
+msgid "Appears in: %(collectionNames)s"
+msgstr ""
+
+#: parcels/osaf/views/detail/detail.py:914
+msgid "VIEW %(count)d PENDING CHANGES"
+msgstr ""
+
+#: parcels/osaf/views/detail/detail.py:917
+msgid "VIEW 1 PENDING CHANGE"
+msgstr ""
+
+#: parcels/osaf/views/detail/detail.py:1120
+msgid "Before event"
+msgstr ""
+
+#: parcels/osaf/views/detail/detail.py:1121
+msgid "After event"
+msgstr ""
+
+#: parcels/osaf/views/detail/detail.py:1122
+msgid "Custom"
+msgstr ""
+
+#: parcels/osaf/views/detail/detail.py:1513
+msgid "0:00"
+msgstr ""
+
+#: parcels/osaf/views/detail/detail.py:1562
+msgid "%(hour)d:%(minute)02d%(meridian)s"
+msgstr ""
+
+#: parcels/osaf/views/detail/detail.py:1726
+msgid ""
+"The custom recurrence rule on this event will be lost if you change it, and you won't be able to restore it.\n"
+"\n"
+"Are you sure you want to do this?"
+msgstr ""
+"The custom recurrence rule will be lost if you change it. You will not be able to restore it.\n"
+"\n"
+"Are you sure you want change it?"
+
+#: parcels/osaf/views/detail/detail.py:1729
+msgid "Discard custom recurrence?"
+msgstr ""
+
+#: parcels/osaf/views/detail/detail.py:1896
+msgid "too early ?"
+msgstr ""
+
+#: parcels/osaf/views/detail/detail.py:1973
+msgid "Edited by"
+msgstr ""
+
+#: parcels/osaf/views/detail/detail.py:1975
+msgid "Send as"
+msgstr ""
+
+#: parcels/osaf/views/detail/detail.py:2080
+msgid "Create outgoing mail account..."
+msgstr ""
+
+#: parcels/osaf/views/detail/detailblocks.py:303
+msgid "location"
+msgstr ""
+
+#: parcels/osaf/views/detail/detailblocks.py:318
+msgid "&all-day"
+msgstr ""
+
+#: parcels/osaf/views/detail/detailblocks.py:328
+msgid "sta&rts"
+msgstr ""
+
+#: parcels/osaf/views/detail/detailblocks.py:336
+#: parcels/osaf/views/detail/detailblocks.py:359
+#: parcels/osaf/views/detail/detailblocks.py:831
+msgid "at"
+msgstr ""
+
+#: parcels/osaf/views/detail/detailblocks.py:351
+msgid "en&ds"
+msgstr ""
+
+#: parcels/osaf/views/detail/detailblocks.py:383
+msgid "time &zone"
+msgstr ""
+
+#: parcels/osaf/views/detail/detailblocks.py:396
+msgid "stat&us"
+msgstr ""
+
+#: parcels/osaf/views/detail/detailblocks.py:415
+msgid "&occurs"
+msgstr ""
+
+#: parcels/osaf/views/detail/detailblocks.py:424
+msgid "Daily"
+msgstr ""
+
+#: parcels/osaf/views/detail/detailblocks.py:424
+msgid "Once"
+msgstr ""
+
+#: parcels/osaf/views/detail/detailblocks.py:424
+msgid "Weekly"
+msgstr ""
+
+#: parcels/osaf/views/detail/detailblocks.py:425
+msgid "Biweekly"
+msgstr ""
+
+#: parcels/osaf/views/detail/detailblocks.py:425
+msgid "Monthly"
+msgstr ""
+
+#: parcels/osaf/views/detail/detailblocks.py:425
+msgid "Yearly"
+msgstr ""
+
+#: parcels/osaf/views/detail/detailblocks.py:426
+msgid "Custom..."
+msgstr ""
+
+#: parcels/osaf/views/detail/detailblocks.py:446
+msgid "ends"
+msgstr ""
+
+#: parcels/osaf/views/detail/detailblocks.py:458
+msgid "when"
+msgstr ""
+
+#: parcels/osaf/views/detail/detailblocks.py:502
+msgid "from"
+msgstr ""
+
+#: parcels/osaf/views/detail/detailblocks.py:517
+msgid "to"
+msgstr ""
+
+#: parcels/osaf/views/detail/detailblocks.py:523
+msgid "Add addressees"
+msgstr "Add addresses"
+
+#: parcels/osaf/views/detail/detailblocks.py:531
+msgid "cc"
+msgstr ""
+
+#: parcels/osaf/views/detail/detailblocks.py:545
+msgid "bcc"
+msgstr ""
+
+#: parcels/osaf/views/detail/detailblocks.py:770
+msgid "title"
+msgstr ""
+
+#: parcels/osaf/views/detail/detailblocks.py:788
+msgid "alar&m"
+msgstr ""
+
+#: parcels/osaf/views/main/Dashboard.py:96
+msgid "Are you sure you want to reset the triage status of everything in this collection?"
+msgstr "NEED TO REMOVE - Are you sure you want to reset the triage status for all items in this collection?"
+
+#: parcels/osaf/views/main/Dashboard.py:97
+msgid "Automatic triage"
+msgstr "NEED TO REMOVE - Automatic triage"
+
+#: parcels/osaf/views/main/Main.py:85
+msgid "Would you like to"
+msgstr ""
+
+#: parcels/osaf/views/main/Main.py:86
+msgid "Send again"
+msgstr "Send Again"
+
+#: parcels/osaf/views/main/Main.py:87
+msgid "Edit message"
+msgstr "Edit Message"
+
+#: parcels/osaf/views/main/Main.py:91
+msgid "An unknown error has occurred"
+msgstr "An unknown error has occurred."
+
+#: parcels/osaf/views/main/Main.py:93
+msgid ""
+"Message Title: %(title)s\n"
+"Error: %(translatedErrorStrings)s"
+msgstr ""
+
+#: parcels/osaf/views/main/Main.py:145
+msgid "New items cannot be created in the Trash collection."
+msgstr "New items cannot be created in the Trash."
+
+#: parcels/osaf/views/main/Main.py:276
+msgid "/find "
+msgstr ""
+
+#: parcels/osaf/views/main/Main.py:304
+msgid "s"
+msgstr ""
+
+#: parcels/osaf/views/main/Main.py:304
+msgid "search"
+msgstr ""
+
+#: parcels/osaf/views/main/Main.py:305
+msgid "f"
+msgstr ""
+
+#: parcels/osaf/views/main/Main.py:305
+msgid "find"
+msgstr ""
+
+#: parcels/osaf/views/main/Main.py:306
+msgid "l"
+msgstr ""
+
+#: parcels/osaf/views/main/Main.py:306
+msgid "lucene"
+msgstr ""
+
+#: parcels/osaf/views/main/Main.py:350
+msgid "t"
+msgstr ""
+
+#: parcels/osaf/views/main/Main.py:350
+msgid "task"
+msgstr ""
+
+#: parcels/osaf/views/main/Main.py:353
+msgid "m"
+msgstr ""
+
+#: parcels/osaf/views/main/Main.py:353
+msgid "message"
+msgstr ""
+
+#: parcels/osaf/views/main/Main.py:353
+msgid "msg"
+msgstr ""
+
+#: parcels/osaf/views/main/Main.py:356
+msgid "e"
+msgstr ""
+
+#: parcels/osaf/views/main/Main.py:356
+msgid "event"
+msgstr ""
+
+#: parcels/osaf/views/main/Main.py:359
+msgid "i"
+msgstr ""
+
+#: parcels/osaf/views/main/Main.py:359
+msgid "invite"
+msgstr ""
+
+#: parcels/osaf/views/main/Main.py:363
+msgid "r"
+msgstr ""
+
+#: parcels/osaf/views/main/Main.py:363
+msgid "request"
+msgstr ""
+
+#: parcels/osaf/views/main/Main.py:367
+msgid "n"
+msgstr ""
+
+#: parcels/osaf/views/main/Main.py:367
+msgid "note"
+msgstr ""
+
+#: parcels/osaf/views/main/Main.py:443
+#: parcels/osaf/views/main/Main.py:454
+msgid "New item created in the selected collection"
+msgstr "New item created in the selected collection."
+
+#: parcels/osaf/views/main/Main.py:449
+msgid "New item created in the Dashboard All Collection"
+msgstr "New item created in the Dashboard collection."
+
+#: parcels/osaf/views/main/Main.py:490
+msgid "Command entered is not valid"
+msgstr "Invalid command."
+
+#: parcels/osaf/views/main/Main.py:513
+msgid "Printing is currently only supported when viewing in calendar view."
+msgstr "Printing is currently only supported for the calendar view."
+
+#: parcels/osaf/views/main/Main.py:529
+msgid "Chandler couldn't access a browser to open %(url)s."
+msgstr "Chandler could not access a browser to open %(url)s."
+
+#: parcels/osaf/views/main/Main.py:530
+msgid "Browser not found"
+msgstr "Browser not found."
+
+#: parcels/osaf/views/main/Main.py:572
+msgid "Backup Repository"
+msgstr "Back up Repository"
+
+#: parcels/osaf/views/main/Main.py:583
+msgid "Backing up repository..."
+msgstr ""
+
+#: parcels/osaf/views/main/Main.py:588
+msgid "Repository was backed up into %(directory)s"
+msgstr "Repository was backed up to %(directory)s"
+
+#: parcels/osaf/views/main/Main.py:606
+msgid "Restore Repository"
+msgstr ""
+
+#: parcels/osaf/views/main/Main.py:617
+msgid "Your current repository will be destructively replaced by the repository backup you're about to restart Chandler with: %s"
+msgstr "You will overwrite your current repository with %s."
+
+#: parcels/osaf/views/main/Main.py:618
+msgid "Confirm Restore"
+msgstr ""
+
+#: parcels/osaf/views/main/Main.py:637
+msgid "Switch Repository"
+msgstr ""
+
+#: parcels/osaf/views/main/Main.py:651
+msgid "Preparing repository..."
+msgstr ""
+
+#: parcels/osaf/views/main/Main.py:655
+msgid "Repository is ready"
+msgstr "Repository is ready."
+
+#: parcels/osaf/views/main/Main.py:658
+msgid ""
+"Your current repository was copied to %s and Chandler is setup to use it after restarting. Your current repository will not be affected.\n"
+"\n"
+"Restart now ?"
+msgstr ""
+"Your current repository was copied to %s and Chandler is set up to use it after restart. Your current repository will not be affected.\n"
+"\n"
+"Restart now?"
+
+#: parcels/osaf/views/main/Main.py:661
+msgid ""
+"A new repository will be created in %s and Chandler is setup to use it after restart. Your current repository will not be affected.\n"
+"\n"
+"Restart now ?"
+msgstr ""
+"A new repository will be created at %s and Chandler is set up to use it after restart. Your current repository will not be affected.\n"
+"\n"
+"Restart now?"
+
+#: parcels/osaf/views/main/Main.py:665
+msgid ""
+"Chandler is setup to use the repository at %s after restarting. Your current repository will not be affected.\n"
+"\n"
+"Restart now ?"
+msgstr ""
+"Chandler is setup to use the repository at %s after restart. Your current repository will not be affected.\n"
+"\n"
+"Restart now?"
+
+#: parcels/osaf/views/main/Main.py:668
+msgid "Confirm Restart"
+msgstr ""
+
+#: parcels/osaf/views/main/Main.py:693
+msgid "committing changes to the repository..."
+msgstr "Saving changes..."
+
+#: parcels/osaf/views/main/Main.py:704
+msgid "Commit failed, see log for details"
+msgstr "Changes failed to save. Go to the Tools>>Logging>>Log Window... menu for details."
+
+#: parcels/osaf/views/main/Main.py:786
+msgid "Message can not be sent. You have not entered any valid email addresses."
+msgstr ""
+
+#: parcels/osaf/views/main/Main.py:800
+msgid "Message can not be sent. A to address is required."
+msgstr "Message can not be sent. At least 1 valid To: email address is required."
+
+#: parcels/osaf/views/main/Main.py:850
+#: parcels/osaf/views/main/Main.py:868
+msgid "Check completed successfully in %(numSeconds)s"
+msgstr "Repository check completed successfully in %(numSeconds)s."
+
+#: parcels/osaf/views/main/Main.py:854
+#: parcels/osaf/views/main/Main.py:872
+msgid "Check completed with errors"
+msgstr "Repository check completed with errors."
+
+#: parcels/osaf/views/main/Main.py:888
+msgid "Import from .ics"
+msgstr "Import .ics Calendar file."
+
+#: parcels/osaf/views/main/Main.py:889
+msgid "Choose a file to import"
+msgstr "Import .ics Calendar"
+
+#: parcels/osaf/views/main/Main.py:893
+msgid "Import completed"
+msgstr "Import completed."
+
+#: parcels/osaf/views/main/Main.py:895
+msgid "Import cancelled"
+msgstr "Import cancelled."
+
+#: parcels/osaf/views/main/Main.py:915
+msgid "This collection contains no events"
+msgstr "This collection contains no events."
+
+#: parcels/osaf/views/main/Main.py:916
+#: parcels/osaf/views/main/Main.py:926
+#: parcels/osaf/views/main/Main.py:951
+msgid "Export cancelled"
+msgstr "Export cancelled."
+
+#: parcels/osaf/views/main/Main.py:920
+msgid "Export to .ics"
+msgstr "Export to .ics Calendar file."
+
+#: parcels/osaf/views/main/Main.py:939
+msgid "Export reminders"
+msgstr ""
+
+#: parcels/osaf/views/main/Main.py:941
+msgid "Export event status"
+msgstr ""
+
+#: parcels/osaf/views/main/Main.py:943
+msgid "Choose a filename to export to"
+msgstr "Export .ics Calendar"
+
+#: parcels/osaf/views/main/Main.py:955
+msgid "Exporting to %(filename)s"
+msgstr "Exporting to %(filename)s..."
+
+#: parcels/osaf/views/main/Main.py:965
+msgid "Export completed"
+msgstr "Export completed."
+
+#: parcels/osaf/views/main/Main.py:969
+msgid "Export failed"
+msgstr "Export failed."
+
+#: parcels/osaf/views/main/Main.py:1012
+msgid "Chandler Export files"
+msgstr "Chandler export files"
+
+#: parcels/osaf/views/main/Main.py:1015
+msgid "Export Items"
+msgstr "Export Collections and Settings"
+
+#: parcels/osaf/views/main/Main.py:1035
+msgid "Items exported"
+msgstr "Items exported."
+
+#: parcels/osaf/views/main/Main.py:1044
+msgid "Reloading will remove all current data and replace it with new data in the export file. Are you sure you want to proceed?"
+msgstr "Reloading will remove all data and replace it with data from the export file. Are you sure you want to reload?"
+
+#: parcels/osaf/views/main/Main.py:1045
+msgid "Reload"
+msgstr ""
+
+#: parcels/osaf/views/main/Main.py:1051
+msgid "Export files"
+msgstr "Chandler export files"
+
+#: parcels/osaf/views/main/Main.py:1052
+msgid "Dump files"
+msgstr "Chandler dump files"
+
+#: parcels/osaf/views/main/Main.py:1056
+msgid "Reload Items"
+msgstr "Reload Collections and Settings"
+
+#: parcels/osaf/views/main/Main.py:1096
+msgid "Set s&haring logging level to normal"
+msgstr "Set S&haring Logging Level to Normal"
+
+#: parcels/osaf/views/main/Main.py:1098
+#: parcels/osaf/views/main/menus.py:730
+msgid "Set s&haring logging level to debug"
+msgstr "Set S&haring Logging Level to Debug"
+
+#: parcels/osaf/views/main/Main.py:1108
+#: parcels/osaf/views/main/Main.py:1126
+msgid "Settings files"
+msgstr "Chandler settings files"
+
+#: parcels/osaf/views/main/Main.py:1112
+msgid "Save Settings"
+msgstr ""
+
+#: parcels/osaf/views/main/Main.py:1121
+msgid "Settings saved"
+msgstr "Settings saved."
+
+#: parcels/osaf/views/main/Main.py:1130
+msgid "Restore Settings"
+msgstr ""
+
+#: parcels/osaf/views/main/Main.py:1140
+msgid "Settings restored"
+msgstr "Settings restored."
+
+#: parcels/osaf/views/main/Main.py:1149
+msgid ""
+"An error occurred while restoring settings:\n"
+"\n"
+"%(error)s"
+msgstr ""
+
+#: parcels/osaf/views/main/Main.py:1299
+msgid "Are you sure you want to remove the collection from the server?"
+msgstr "Are you sure you want to remove this collection from the server?"
+
+#: parcels/osaf/views/main/Main.py:1300
+msgid "Unpublish Confirmation"
+msgstr ""
+
+#: parcels/osaf/views/main/Main.py:1305
+msgid "Unpublishing..."
+msgstr ""
+
+#: parcels/osaf/views/main/Main.py:1308
+#: parcels/osaf/views/main/Main.py:1377
+msgid "Unpublish succeeded"
+msgstr "Collection unpublished."
+
+#: parcels/osaf/views/main/Main.py:1312
+#: parcels/osaf/views/main/Main.py:1370
+msgid "Unpublish failed, could not connect to server"
+msgstr "Unpublish failed, could not connect to server."
+
+#: parcels/osaf/views/main/Main.py:1315
+#: parcels/osaf/views/main/Main.py:1373
+msgid "Unpublish failed, unknown error"
+msgstr "Unpublish failed, unknown error."
+
+#: parcels/osaf/views/main/Main.py:1367
+msgid "Freebusy ticket not found, couldn't revoke freebusy access"
+msgstr "Free/Busy URL not found, could not revoke Free/Busy access."
+
+#: parcels/osaf/views/main/Main.py:1402
+#: parcels/osaf/views/main/Main.py:1454
+msgid "%(menuTitle)s %(collectionName)s"
+msgstr ""
+
+#: parcels/osaf/views/main/Main.py:1406
+#: parcels/osaf/views/main/Main.py:1458
+msgid "%(collectionName)s"
+msgstr ""
+
+#: parcels/osaf/views/main/Main.py:1550
+#: parcels/osaf/views/main/Main.py:1589
+msgid "No shared collections found"
+msgstr "No shared collections found."
+
+#: parcels/osaf/views/main/Sections.py:428
+msgid " 1 item   "
+msgstr ""
+
+#: parcels/osaf/views/main/Sections.py:430
+msgid " %(count)d items   "
+msgstr ""
+
+#: parcels/osaf/views/main/SideBar.py:703
+msgid "Remove overlay"
+msgstr ""
+
+#: parcels/osaf/views/main/SideBar.py:705
+msgid "Overlay collection"
+msgstr ""
+
+#: parcels/osaf/views/main/SideBar.py:867
+msgid "Published share"
+msgstr "Published collection"
+
+#: parcels/osaf/views/main/SideBar.py:869
+msgid "Published share that is being kept out of the Dashboard"
+msgstr "Published collection that was kept out of the Dashboard"
+
+#: parcels/osaf/views/main/SideBar.py:872
+msgid "Subscription"
+msgstr ""
+
+#: parcels/osaf/views/main/SideBar.py:874
+msgid "Subscription that is being kept out of the Dashboard"
+msgstr "Subscription that was kept out of the Dashboard"
+
+#: parcels/osaf/views/main/SideBar.py:881
+msgid "; Last synced on %s at %s"
+msgstr ""
+
+#: parcels/osaf/views/main/SideBar.py:1004
+msgid ""
+"Would you like to delete just the collection or the collection and the items within it as well?\n"
+"\n"
+"Note: Items you have added to other collections will not be deleted."
+msgstr ""
+"Would you like to delete just the collection or the collection and the items it contains as well?\n"
+"\n"
+"Note: Items you have added to other collections will not be deleted."
+
+#: parcels/osaf/views/main/SideBar.py:1008
+msgid "Collection and Items"
+msgstr ""
+
+#: parcels/osaf/views/main/SideBar.py:1009
+msgid "Collection only"
+msgstr "Collection Only"
+
+#: parcels/osaf/views/main/SideBar.py:1010
+msgid ""
+"Deleting %(collectionName)s will move its contents to the Trash\n"
+"\n"
+"Note: Items you have added to other collections will not be deleted."
+msgstr ""
+"Deleting %(collectionName)s will move its contents to the Trash.\n"
+"\n"
+"Note: Items you have added to other collections will not be deleted."
+
+#: parcels/osaf/views/main/SideBar.py:1026
+#: parcels/osaf/views/main/SideBar.py:1033
+msgid "Delete collection"
+msgstr "Delete Collection"
+
+#: parcels/osaf/views/main/SideBar.py:1106
+msgid "Copy of "
+msgstr ""
+
+#: parcels/osaf/views/main/SideBar.py:1207
+msgid "&Keep out of %(dashboard)s"
+msgstr ""
+
+#: parcels/osaf/views/main/SideBar.py:1495
+msgid "Search found nothing"
+msgstr "No results."
+
+#: parcels/osaf/views/main/SideBar.py:1505
+msgid ""
+"An error occured during search.\n"
+"\n"
+"The search engine reported the following error:\n"
+"\n"
+msgstr ""
+"An error occurred during search.\n"
+"\n"
+
+#: parcels/osaf/views/main/SideBar.py:1506
+msgid "Search Error"
+msgstr ""
+
+#: parcels/osaf/views/main/mainblocks.py:116
+msgid "All"
+msgstr ""
+
+#: parcels/osaf/views/main/mainblocks.py:119
+#: parcels/osaf/views/main/menus.py:312
+msgid "View all items"
+msgstr ""
+
+#: parcels/osaf/views/main/mainblocks.py:123
+msgid "Mail"
+msgstr ""
+
+#: parcels/osaf/views/main/mainblocks.py:125
+msgid "View messages"
+msgstr ""
+
+#: parcels/osaf/views/main/mainblocks.py:129
+msgid "Tasks"
+msgstr ""
+
+#: parcels/osaf/views/main/mainblocks.py:131
+#: parcels/osaf/views/main/menus.py:322
+msgid "View tasks"
+msgstr ""
+
+#: parcels/osaf/views/main/mainblocks.py:135
+msgid "Calendar"
+msgstr ""
+
+#: parcels/osaf/views/main/mainblocks.py:137
+#: parcels/osaf/views/main/menus.py:327
+msgid "View events"
+msgstr ""
+
+#: parcels/osaf/views/main/mainblocks.py:143
+msgid "Sync All"
+msgstr ""
+
+#: parcels/osaf/views/main/mainblocks.py:144
+msgid "Sync all shared collections and download new messages"
+msgstr ""
+
+#: parcels/osaf/views/main/mainblocks.py:148
+msgid "New"
+msgstr ""
+
+#: parcels/osaf/views/main/mainblocks.py:149
+msgid "Create a new item"
+msgstr ""
+
+#: parcels/osaf/views/main/mainblocks.py:154
+msgid "Reply to sender of selected message"
+msgstr ""
+
+#: parcels/osaf/views/main/mainblocks.py:159
+msgid "Reply to all recipients of selected message"
+msgstr ""
+
+#: parcels/osaf/views/main/mainblocks.py:164
+msgid "Forward selected message"
+msgstr ""
+
+#: parcels/osaf/views/main/mainblocks.py:169
+msgid "Triage"
+msgstr ""
+
+#: parcels/osaf/views/main/mainblocks.py:171
+msgid "Sort items by triage status"
+msgstr ""
+
+#: parcels/osaf/views/main/mainblocks.py:186
+msgid "Send selected message"
+msgstr ""
+
+#: parcels/osaf/views/main/mainblocks.py:192
+msgid "Quick entry field: enter search string, or command beginning with \"/\""
+msgstr "Quick Entry: Create new items or enter '/Find' to search."
+
+#: parcels/osaf/views/main/mainblocks.py:225
+msgid "Chandler's MainView"
+msgstr ""
+
+#: parcels/osaf/views/main/menus.py:67
+msgid "Back"
+msgstr ""
+
+#: parcels/osaf/views/main/menus.py:68
+msgid "Ctrl+Back"
+msgstr ""
+
+#: parcels/osaf/views/main/menus.py:70
+msgid "Del"
+msgstr ""
+
+#: parcels/osaf/views/main/menus.py:71
+msgid "Ctrl+Del"
+msgstr ""
+
+#: parcels/osaf/views/main/menus.py:101
+msgid "&Default"
+msgstr ""
+
+#: parcels/osaf/views/main/menus.py:107
+msgid "%(amp)s%(hours)s hours"
+msgstr ""
+
+#: parcels/osaf/views/main/menus.py:130
+msgid "&File"
+msgstr ""
+
+#: parcels/osaf/views/main/menus.py:134
+msgid "&Import .ics Calendar..."
+msgstr ""
+
+#: parcels/osaf/views/main/menus.py:135
+msgid "Import iCalendar file"
+msgstr "Import Tasks and Events from an iCalendar file"
+
+#: parcels/osaf/views/main/menus.py:138
+msgid "&Export .ics Calendar..."
+msgstr ""
+
+#: parcels/osaf/views/main/menus.py:139
+msgid "Export Tasks and Events to an iCalendar file"
+msgstr ""
+
+#: parcels/osaf/views/main/menus.py:144
+msgid "E&xport Collections and Settings..."
+msgstr ""
+
+#: parcels/osaf/views/main/menus.py:145
+msgid "Export data to upgrade"
+msgstr "Export your data to move to a new version of Chandler"
+
+#: parcels/osaf/views/main/menus.py:148
+msgid "&Reload Collections and Settings..."
+msgstr ""
+
+#: parcels/osaf/views/main/menus.py:149
+msgid "Reload data to upgrade"
+msgstr "Reload your data to move to a new version of Chandler"
+
+#: parcels/osaf/views/main/menus.py:154
+msgid "&Accounts..."
+msgstr ""
+
+#: parcels/osaf/views/main/menus.py:158
+msgid "Protect Pass&words..."
+msgstr ""
+
+#: parcels/osaf/views/main/menus.py:159
+msgid "Encrypt account passwords with the help of master password"
+msgstr "Protect your account passwords with a master password"
+
+#: parcels/osaf/views/main/menus.py:163
+#: parcels/osaf/views/main/menus.py:871
+msgid "S&ync"
+msgstr ""
+
+#: parcels/osaf/views/main/menus.py:168
+msgid "Sync selected collection"
+msgstr ""
+
+#: parcels/osaf/views/main/menus.py:171
+#: parcels/osaf/views/main/menus.py:197
+#: parcels/osaf/views/main/menus.py:310
+msgid "&All"
+msgstr ""
+
+#: parcels/osaf/views/main/menus.py:172
+msgid "Sync mail and all shared collections"
+msgstr ""
+
+#: parcels/osaf/views/main/menus.py:175
+#: parcels/osaf/views/main/menus.py:202
+#: parcels/osaf/views/main/menus.py:315
+msgid "&Mail"
+msgstr ""
+
+#: parcels/osaf/views/main/menus.py:176
+#: parcels/osaf/views/main/menus.py:881
+msgid "Sync Mail"
+msgstr "Sync all mail accounts"
+
+#: parcels/osaf/views/main/menus.py:179
+#: parcels/osaf/views/main/menus.py:206
+msgid "&Shares"
+msgstr ""
+
+#: parcels/osaf/views/main/menus.py:180
+#: parcels/osaf/views/main/menus.py:885
+msgid "Sync all shared collections"
+msgstr ""
+
+#: parcels/osaf/views/main/menus.py:183
+msgid "Set Auto-sync..."
+msgstr ""
+
+#: parcels/osaf/views/main/menus.py:184
+msgid "Set auto-sync intervals"
+msgstr ""
+
+#: parcels/osaf/views/main/menus.py:187
+#: parcels/osaf/views/main/menus.py:876
+msgid "Suspend Syncin&g"
+msgstr ""
+
+#: parcels/osaf/views/main/menus.py:191
+msgid "Suspend Syncing"
+msgstr "Suspend syncing"
+
+#: parcels/osaf/views/main/menus.py:193
+#: parcels/osaf/views/main/menus.py:198
+msgid "Take mail and shared collections offline or online"
+msgstr ""
+
+#: parcels/osaf/views/main/menus.py:203
+msgid "Take mail offline or online"
+msgstr ""
+
+#: parcels/osaf/views/main/menus.py:207
+msgid "Take shared collections offline or online"
+msgstr ""
+
+#: parcels/osaf/views/main/menus.py:213
+msgid "Use Time &zones"
+msgstr ""
+
+#: parcels/osaf/views/main/menus.py:215
+msgid "Turn on time zone support"
+msgstr ""
+
+#: parcels/osaf/views/main/menus.py:220
+msgid "Print Pre&view"
+msgstr ""
+
+#: parcels/osaf/views/main/menus.py:224
+msgid "Page Set&up..."
+msgstr ""
+
+#: parcels/osaf/views/main/menus.py:225
+msgid "Shift+Ctrl+P"
+msgstr ""
+
+#: parcels/osaf/views/main/menus.py:228
+msgid "&Print..."
+msgstr ""
+
+#: parcels/osaf/views/main/menus.py:229
+msgid "Ctrl+P"
+msgstr ""
+
+#: parcels/osaf/views/main/menus.py:230
+msgid "Print the selected collection"
+msgstr ""
+
+#: parcels/osaf/views/main/menus.py:236
+msgid "&Save Changes"
+msgstr ""
+
+#: parcels/osaf/views/main/menus.py:237
+msgid "Ctrl+S"
+msgstr ""
+
+#: parcels/osaf/views/main/menus.py:245
+msgid "Ctrl+Q"
+msgstr ""
+
+#: parcels/osaf/views/main/menus.py:246
+msgid "Quit Chandler"
+msgstr ""
+
+#: parcels/osaf/views/main/menus.py:254
+msgid "&Edit"
+msgstr ""
+
+#: parcels/osaf/views/main/menus.py:259
+msgid "Ctrl+Z"
+msgstr ""
+
+#: parcels/osaf/views/main/menus.py:260
+msgid "Can't Undo"
+msgstr ""
+
+#: parcels/osaf/views/main/menus.py:265
+msgid "Ctrl+Y"
+msgstr ""
+
+#: parcels/osaf/views/main/menus.py:266
+msgid "Can't Redo"
+msgstr ""
+
+#: parcels/osaf/views/main/menus.py:273
+msgid "Ctrl+X"
+msgstr ""
+
+#: parcels/osaf/views/main/menus.py:278
+msgid "Ctrl+C"
+msgstr ""
+
+#: parcels/osaf/views/main/menus.py:283
+msgid "Ctrl+V"
+msgstr ""
+
+#: parcels/osaf/views/main/menus.py:288
+msgid "Ctrl+A"
+msgstr ""
+
+#: parcels/osaf/views/main/menus.py:289
+msgid "Select All"
+msgstr ""
+
+#: parcels/osaf/views/main/menus.py:295
+msgid "&Find"
+msgstr ""
+
+#: parcels/osaf/views/main/menus.py:296
+msgid "Ctrl+F"
+msgstr ""
+
+#: parcels/osaf/views/main/menus.py:297
+msgid "Search"
+msgstr ""
+
+#: parcels/osaf/views/main/menus.py:301
+msgid "Go to Quic&k Entry field"
+msgstr "Go to Quic&k Entry Field"
+
+#: parcels/osaf/views/main/menus.py:302
+msgid "Ctrl+K"
+msgstr ""
+
+#: parcels/osaf/views/main/menus.py:303
+msgid "Go to the Quick Entry field"
+msgstr ""
+
+#: parcels/osaf/views/main/menus.py:306
+msgid "&View"
+msgstr ""
+
+#: parcels/osaf/views/main/menus.py:317
+msgid "View messsages"
+msgstr ""
+
+#: parcels/osaf/views/main/menus.py:320
+msgid "&Tasks"
+msgstr ""
+
+#: parcels/osaf/views/main/menus.py:325
+msgid "&Calendar"
+msgstr ""
+
+#: parcels/osaf/views/main/menus.py:332
+msgid "T&riage"
+msgstr ""
+
+#: parcels/osaf/views/main/menus.py:333
+msgid "F5"
+msgstr ""
+
+#: parcels/osaf/views/main/menus.py:334
+msgid "Sort items into correct Triage sections"
+msgstr ""
+
+#: parcels/osaf/views/main/menus.py:339
+msgid "&Next Week"
+msgstr ""
+
+#: parcels/osaf/views/main/menus.py:340
+msgid "Alt+Right"
+msgstr ""
+
+#: parcels/osaf/views/main/menus.py:341
+msgid "Jump to next week"
+msgstr ""
+
+#: parcels/osaf/views/main/menus.py:344
+msgid "&Previous Week"
+msgstr ""
+
+#: parcels/osaf/views/main/menus.py:345
+msgid "Alt+Left"
+msgstr ""
+
+#: parcels/osaf/views/main/menus.py:346
+msgid "Jump to previous week"
+msgstr ""
+
+#: parcels/osaf/views/main/menus.py:349
+msgid "&Go to Date..."
+msgstr ""
+
+#: parcels/osaf/views/main/menus.py:350
+msgid "Ctrl+G"
+msgstr ""
+
+#: parcels/osaf/views/main/menus.py:351
+msgid "Go to a specific date"
+msgstr "Go to a specific date on the Calendar"
+
+#: parcels/osaf/views/main/menus.py:354
+msgid "Go to T&oday"
+msgstr ""
+
+#: parcels/osaf/views/main/menus.py:355
+msgid "Ctrl+T"
+msgstr ""
+
+#: parcels/osaf/views/main/menus.py:356
+msgid "Navigate to today's date"
+msgstr ""
+
+#: parcels/osaf/views/main/menus.py:360
+msgid "&Visible Hours"
+msgstr ""
+
+#: parcels/osaf/views/main/menus.py:365
+msgid "&Item"
+msgstr ""
+
+#: parcels/osaf/views/main/menus.py:368
+#: parcels/osaf/views/main/menus.py:468
+#: parcels/osaf/views/main/menus.py:918
+msgid "&New"
+msgstr ""
+
+#: parcels/osaf/views/main/menus.py:369
+msgid "Create a new Content Item"
+msgstr "Create a new item"
+
+#: parcels/osaf/views/main/menus.py:373
+msgid "Ne&w"
+msgstr ""
+
+#: parcels/osaf/views/main/menus.py:374
+msgid "Ctrl+N"
+msgstr ""
+
+#: parcels/osaf/views/main/menus.py:375
+#: parcels/osaf/views/main/menus.py:919
+msgid "Create a new Item"
+msgstr "Create a new item"
+
+#: parcels/osaf/views/main/menus.py:381
+#: parcels/osaf/views/main/menus.py:923
+msgid "&Note"
+msgstr ""
+
+#: parcels/osaf/views/main/menus.py:382
+#: parcels/osaf/views/main/menus.py:924
+msgid "Ctrl+Shift+N"
+msgstr ""
+
+#: parcels/osaf/views/main/menus.py:383
+#: parcels/osaf/views/main/menus.py:925
+msgid "Create a new Note"
+msgstr "Create a new note"
+
+#: parcels/osaf/views/main/menus.py:386
+#: parcels/osaf/views/main/menus.py:928
+msgid "&Message"
+msgstr ""
+
+#: parcels/osaf/views/main/menus.py:387
+#: parcels/osaf/views/main/menus.py:929
+msgid "Ctrl+Shift+M"
+msgstr ""
+
+#: parcels/osaf/views/main/menus.py:388
+#: parcels/osaf/views/main/menus.py:930
+msgid "Create a new Message"
+msgstr "Create a new message"
+
+#: parcels/osaf/views/main/menus.py:391
+#: parcels/osaf/views/main/menus.py:933
+msgid "&Task"
+msgstr ""
+
+#: parcels/osaf/views/main/menus.py:392
+#: parcels/osaf/views/main/menus.py:934
+msgid "Ctrl+Shift+T"
+msgstr ""
+
+#: parcels/osaf/views/main/menus.py:393
+#: parcels/osaf/views/main/menus.py:935
+msgid "Create a new Task"
+msgstr "Create a new task"
+
+#: parcels/osaf/views/main/menus.py:396
+#: parcels/osaf/views/main/menus.py:938
+msgid "&Event"
+msgstr ""
+
+#: parcels/osaf/views/main/menus.py:397
+#: parcels/osaf/views/main/menus.py:939
+msgid "Ctrl+Shift+E"
+msgstr ""
+
+#: parcels/osaf/views/main/menus.py:398
+#: parcels/osaf/views/main/menus.py:940
+msgid "Create a new Event"
+msgstr "Create a new event"
+
+#: parcels/osaf/views/main/menus.py:402
+#: parcels/osaf/views/main/menus.py:957
+msgid "Remo&ve"
+msgstr ""
+
+#: parcels/osaf/views/main/menus.py:404
+msgid "Remove the selected item from the selected collection"
+msgstr ""
+
+#: parcels/osaf/views/main/menus.py:410
+#: parcels/osaf/views/main/menus.py:964
+msgid "Move the selected item to the Trash"
+msgstr ""
+
+#: parcels/osaf/views/main/menus.py:416
+#: parcels/osaf/views/main/menus.py:969
+msgid "&Mark As Read"
+msgstr ""
+
+#: parcels/osaf/views/main/menus.py:417
+#: parcels/osaf/views/main/menus.py:970
+msgid "Mark all selected items as 'Read'"
+msgstr ""
+
+#: parcels/osaf/views/main/menus.py:422
+#: parcels/osaf/views/main/menus.py:975
+msgid "&Address Item"
+msgstr ""
+
+#: parcels/osaf/views/main/menus.py:423
+#: parcels/osaf/views/main/menus.py:976
+msgid "Remove &Addresses"
+msgstr ""
+
+#: parcels/osaf/views/main/menus.py:427
+#: parcels/osaf/views/main/menus.py:980
+msgid "Add to &Task list"
+msgstr ""
+
+#: parcels/osaf/views/main/menus.py:428
+#: parcels/osaf/views/main/menus.py:981
+msgid "Remove from &Task list"
+msgstr ""
+
+#: parcels/osaf/views/main/menus.py:432
+#: parcels/osaf/views/main/menus.py:985
+msgid "Add to &Calendar"
+msgstr ""
+
+#: parcels/osaf/views/main/menus.py:433
+#: parcels/osaf/views/main/menus.py:986
+msgid "Remove from &Calendar"
+msgstr ""
+
+#: parcels/osaf/views/main/menus.py:439
+#: parcels/osaf/views/main/menus.py:992
+msgid "&Send"
+msgstr ""
+
+#: parcels/osaf/views/main/menus.py:440
+#: parcels/osaf/views/main/menus.py:993
+msgid "Send the selected message"
+msgstr ""
+
+#: parcels/osaf/views/main/menus.py:443
+#: parcels/osaf/views/main/menus.py:996
+msgid "&Reply"
+msgstr ""
+
+#: parcels/osaf/views/main/menus.py:444
+#: parcels/osaf/views/main/menus.py:997
+msgid "Reply to the selected message"
+msgstr ""
+
+#: parcels/osaf/views/main/menus.py:447
+#: parcels/osaf/views/main/menus.py:1000
+msgid "Repl&yAll"
+msgstr ""
+
+#: parcels/osaf/views/main/menus.py:448
+#: parcels/osaf/views/main/menus.py:1001
+msgid "Reply to all recipients of the selected message"
+msgstr ""
+
+#: parcels/osaf/views/main/menus.py:451
+#: parcels/osaf/views/main/menus.py:1004
+msgid "For&ward"
+msgstr ""
+
+#: parcels/osaf/views/main/menus.py:452
+#: parcels/osaf/views/main/menus.py:1005
+msgid "Forward the selected message"
+msgstr ""
+
+#: parcels/osaf/views/main/menus.py:463
+msgid "&Collection"
+msgstr ""
+
+#: parcels/osaf/views/main/menus.py:469
+#: parcels/osaf/views/main/menus.py:832
+msgid "Create a new Collection"
+msgstr "Create a new collection"
+
+#: parcels/osaf/views/main/menus.py:474
+#: parcels/osaf/views/main/menus.py:837
+msgid "&Rename"
+msgstr ""
+
+#: parcels/osaf/views/main/menus.py:475
+#: parcels/osaf/views/main/menus.py:838
+msgid "Rename the selected collection"
+msgstr ""
+
+#: parcels/osaf/views/main/menus.py:484
+msgid "Move the selected collection to the Trash"
+msgstr ""
+
+#: parcels/osaf/views/main/menus.py:487
+#: parcels/osaf/views/main/menus.py:850
+msgid "&Empty Trash"
+msgstr ""
+
+#: parcels/osaf/views/main/menus.py:488
+#: parcels/osaf/views/main/menus.py:851
+msgid "Delete all items from the Trash"
+msgstr ""
+
+#: parcels/osaf/views/main/menus.py:492
+msgid "&Calendar Color"
+msgstr ""
+
+#: parcels/osaf/views/main/menus.py:500
+#: parcels/osaf/views/main/menus.py:864
+msgid "&Keep out of Dashboard"
+msgstr ""
+
+#: parcels/osaf/views/main/menus.py:502
+msgid "Include or exclude the selected collection from Dashboard"
+msgstr "Include or exclude the selected collection from the Dashboard"
+
+#: parcels/osaf/views/main/menus.py:505
+msgid "&Share"
+msgstr ""
+
+#: parcels/osaf/views/main/menus.py:509
+#: parcels/osaf/views/main/menus.py:890
+msgid "&Subscribe..."
+msgstr ""
+
+#: parcels/osaf/views/main/menus.py:510
+#: parcels/osaf/views/main/menus.py:891
+msgid "Subscribe to a shared collection"
+msgstr ""
+
+#: parcels/osaf/views/main/menus.py:513
+#: parcels/osaf/views/main/menus.py:894
+msgid "&Unsubscribe"
+msgstr ""
+
+#: parcels/osaf/views/main/menus.py:514
+#: parcels/osaf/views/main/menus.py:895
+msgid "Stop sharing the selected collection"
+msgstr ""
+
+#: parcels/osaf/views/main/menus.py:517
+#: parcels/osaf/views/main/menus.py:898
+msgid "&Publish..."
+msgstr ""
+
+#: parcels/osaf/views/main/menus.py:518
+#: parcels/osaf/views/main/menus.py:899
+msgid "Publish the selected collection"
+msgstr ""
+
+#: parcels/osaf/views/main/menus.py:521
+#: parcels/osaf/views/main/menus.py:902
+msgid "U&npublish"
+msgstr ""
+
+#: parcels/osaf/views/main/menus.py:522
+#: parcels/osaf/views/main/menus.py:903
+msgid "Remove the selected shared collection from the server"
+msgstr ""
+
+#: parcels/osaf/views/main/menus.py:525
+#: parcels/osaf/views/main/menus.py:906
+msgid "&Manage..."
+msgstr ""
+
+#: parcels/osaf/views/main/menus.py:526
+#: parcels/osaf/views/main/menus.py:907
+msgid "Manage the selected shared collection"
+msgstr ""
+
+#: parcels/osaf/views/main/menus.py:531
+#: parcels/osaf/views/main/menus.py:910
+msgid "&Copy Ticket URLs to Clipboard"
+msgstr ""
+
+#: parcels/osaf/views/main/menus.py:532
+msgid "Copy the selected collection's sharing URL(s) to the Clipboard"
+msgstr ""
+
+#: parcels/osaf/views/main/menus.py:535
+msgid "&Plugins"
+msgstr ""
+
+#: parcels/osaf/views/main/menus.py:539
+msgid "&Download"
+msgstr ""
+
+#: parcels/osaf/views/main/menus.py:540
+msgid "Browse for new pluginsItem"
+msgstr "Browse for new plugins"
+
+#: parcels/osaf/views/main/menus.py:543
+msgid "I&nstall"
+msgstr ""
+
+#: parcels/osaf/views/main/menus.py:544
+msgid "Install plugins"
+msgstr ""
+
+#: parcels/osaf/views/main/menus.py:546
+msgid "&Active"
+msgstr ""
+
+#: parcels/osaf/views/main/menus.py:547
+msgid "Activate or Deactivate Plugins"
+msgstr ""
+
+#: parcels/osaf/views/main/menus.py:552
+msgid "&Tools"
+msgstr ""
+
+#: parcels/osaf/views/main/menus.py:556
+msgid "Start &webserver"
+msgstr ""
+
+#: parcels/osaf/views/main/menus.py:557
+msgid "Activates the built-in webserver at localhost:1888"
+msgstr ""
+
+#: parcels/osaf/views/main/menus.py:559
+msgid "&Logging"
+msgstr ""
+
+#: parcels/osaf/views/main/menus.py:567
+msgid "Log &window..."
+msgstr ""
+
+#: parcels/osaf/views/main/menus.py:568
+msgid "Displays the contents of chandler.log"
+msgstr ""
+
+#: parcels/osaf/views/main/menus.py:575
+msgid "Logging l&evel"
+msgstr ""
+
+#: parcels/osaf/views/main/menus.py:576
+msgid "Change logging level"
+msgstr ""
+
+#: parcels/osaf/views/main/menus.py:581
+msgid "&Critical"
+msgstr ""
+
+#: parcels/osaf/views/main/menus.py:583
+msgid "Set logging level to Critical"
+msgstr ""
+
+#: parcels/osaf/views/main/menus.py:586
+msgid "&Error"
+msgstr ""
+
+#: parcels/osaf/views/main/menus.py:588
+msgid "Set logging level to Error"
+msgstr ""
+
+#: parcels/osaf/views/main/menus.py:591
+msgid "&Warning"
+msgstr ""
+
+#: parcels/osaf/views/main/menus.py:593
+msgid "Set logging level to Warning"
+msgstr ""
+
+#: parcels/osaf/views/main/menus.py:596
+msgid "&Info"
+msgstr ""
+
+#: parcels/osaf/views/main/menus.py:598
+msgid "Set logging level to Info"
+msgstr ""
+
+#: parcels/osaf/views/main/menus.py:601
+msgid "&Debug"
+msgstr ""
+
+#: parcels/osaf/views/main/menus.py:603
+msgid "Set logging level to Debug"
+msgstr ""
+
+#: parcels/osaf/views/main/menus.py:607
+msgid "&Save and Restore"
+msgstr ""
+
+#: parcels/osaf/views/main/menus.py:615
+msgid "Sa&ve settings..."
+msgstr "Sa&ve Settings..."
+
+#: parcels/osaf/views/main/menus.py:616
+msgid "Saves your accounts and shares"
+msgstr "Save settings for your accounts and shared collections"
+
+#: parcels/osaf/views/main/menus.py:624
+msgid "Res&tore settings..."
+msgstr "Res&tore Settings..."
+
+#: parcels/osaf/views/main/menus.py:625
+msgid "Restores your accounts and shares"
+msgstr "Restore your accounts and shared collections"
+
+#: parcels/osaf/views/main/menus.py:631
+msgid "&Export scrubbed Collections and Settings..."
+msgstr ""
+
+#: parcels/osaf/views/main/menus.py:632
+msgid "Generate export file with obscured data"
+msgstr ""
+
+#: parcels/osaf/views/main/menus.py:637
+msgid "Restore Published S&hares..."
+msgstr ""
+
+#: parcels/osaf/views/main/menus.py:638
+msgid "Restore previously published shares"
+msgstr ""
+
+#: parcels/osaf/views/main/menus.py:650
+msgid "&Check"
+msgstr ""
+
+#: parcels/osaf/views/main/menus.py:651
+msgid "run check() on the main view"
+msgstr "Run check() on the main view"
+
+#: parcels/osaf/views/main/menus.py:659
+msgid "C&heck and Repair"
+msgstr ""
+
+#: parcels/osaf/views/main/menus.py:660
+msgid "run check(True) on the main view"
+msgstr "Run check(True) on the main view"
+
+#: parcels/osaf/views/main/menus.py:668
+msgid "C&ompact"
+msgstr ""
+
+#: parcels/osaf/views/main/menus.py:669
+msgid "compact the repository"
+msgstr "Purge repository of obsolete data"
+
+#: parcels/osaf/views/main/menus.py:677
+msgid "&Index"
+msgstr ""
+
+#: parcels/osaf/views/main/menus.py:678
+msgid "tickle the indexer"
+msgstr "Tickle the indexer"
+
+#: parcels/osaf/views/main/menus.py:684
+msgid "&Back up..."
+msgstr ""
+
+#: parcels/osaf/views/main/menus.py:687
+msgid "&Restore..."
+msgstr ""
+
+#: parcels/osaf/views/main/menus.py:692
+msgid "&New..."
+msgstr ""
+
+#: parcels/osaf/views/main/menus.py:695
+msgid "&Switch..."
+msgstr ""
+
+#: parcels/osaf/views/main/menus.py:702
+msgid "S&haring"
+msgstr ""
+
+#: parcels/osaf/views/main/menus.py:703
+msgid "Sharing-related test commands"
+msgstr ""
+
+#: parcels/osaf/views/main/menus.py:712
+msgid "Activity &Viewer..."
+msgstr ""
+
+#: parcels/osaf/views/main/menus.py:713
+msgid "Opens the Activity Viewer"
+msgstr ""
+
+#: parcels/osaf/views/main/menus.py:721
+msgid "&Add sharing activity log to Sidebar"
+msgstr "&Add Sharing Activity Log to Sidebar"
+
+#: parcels/osaf/views/main/menus.py:722
+msgid "Add sharing activity log to the Sidebar"
+msgstr "Add Sharing Activity Log to the Sidebar"
+
+#: parcels/osaf/views/main/menus.py:731
+msgid "Enable RecordSet debugging"
+msgstr "Enable RecordSet Debugging"
+
+#: parcels/osaf/views/main/menus.py:737
+msgid "&Unsubscribe from Published shares"
+msgstr "&Unsubscribe from Published Shares"
+
+#: parcels/osaf/views/main/menus.py:738
+msgid "Stop publishing a shared collection, leaving it on the server"
+msgstr "Stop syncing to a collection you published without removing it from the server"
+
+#: parcels/osaf/views/main/menus.py:745
+msgid "&Active Plugins"
+msgstr ""
+
+#: parcels/osaf/views/main/menus.py:746
+msgid "Activate or deactivate plugins"
+msgstr ""
+
+#: parcels/osaf/views/main/menus.py:753
+msgid "S&elect view"
+msgstr "S&elect View"
+
+#: parcels/osaf/views/main/menus.py:754
+msgid "Select type of main view"
+msgstr ""
+
+#: parcels/osaf/views/main/menus.py:758
+msgid "Triage Ta&ble View"
+msgstr ""
+
+#: parcels/osaf/views/main/menus.py:760
+msgid "Go to Triage Table view"
+msgstr "Go to the Triage Table View"
+
+#: parcels/osaf/views/main/menus.py:763
+msgid "&Week View"
+msgstr ""
+
+#: parcels/osaf/views/main/menus.py:765
+msgid "Go to Calendar Week View"
+msgstr "Go to the Calendar Week View"
+
+#: parcels/osaf/views/main/menus.py:768
+msgid "&Day View"
+msgstr ""
+
+#: parcels/osaf/views/main/menus.py:770
+msgid "Go to Calendar Day View"
+msgstr ""
+
+#: parcels/osaf/views/main/menus.py:773
+msgid "Sh&ow"
+msgstr ""
+
+#: parcels/osaf/views/main/menus.py:774
+msgid "Show and hide application elements"
+msgstr ""
+
+#: parcels/osaf/views/main/menus.py:778
+msgid "&Toolbar"
+msgstr ""
+
+#: parcels/osaf/views/main/menus.py:780
+msgid "Show or hide the Toolbar"
+msgstr ""
+
+#: parcels/osaf/views/main/menus.py:783
+msgid "&Sidebar"
+msgstr ""
+
+#: parcels/osaf/views/main/menus.py:785
+msgid "Show or hide the Sidebar"
+msgstr ""
+
+#: parcels/osaf/views/main/menus.py:787
+msgid "&Mini-calendar"
+msgstr ""
+
+#: parcels/osaf/views/main/menus.py:789
+msgid "Show or hide the Mini-calendar"
+msgstr ""
+
+#: parcels/osaf/views/main/menus.py:791
+msgid "&Detail view"
+msgstr "&Detail View"
+
+#: parcels/osaf/views/main/menus.py:793
+msgid "Show or hide the Detail view"
+msgstr "Show or hide the Detail View"
+
+#: parcels/osaf/views/main/menus.py:796
+msgid "Status &Bar"
+msgstr ""
+
+#: parcels/osaf/views/main/menus.py:798
+msgid "Show or hide the Status bar"
+msgstr "Show or hide the Status Bar"
+
+#: parcels/osaf/views/main/menus.py:805
+msgid "&Help"
+msgstr ""
+
+#: parcels/osaf/views/main/menus.py:809
+msgid "&About Chandler"
+msgstr ""
+
+#: parcels/osaf/views/main/menus.py:810
+msgid "About Chandler..."
+msgstr ""
+
+#: parcels/osaf/views/main/menus.py:814
+msgid "Chandler &FAQ"
+msgstr ""
+
+#: parcels/osaf/views/main/menus.py:816
+msgid "Open Chandler FAQ in your web browser"
+msgstr "Open the Chandler FAQ in your web browser"
+
+#: parcels/osaf/views/main/menus.py:817
+msgid "Ctrl+?"
+msgstr ""
+
+#: parcels/osaf/views/main/menus.py:820
+msgid "File a &Bug"
+msgstr "Report a &Bug"
+
+#: parcels/osaf/views/main/menus.py:822
+msgid "Open instructions on how to file a bug in your web browser"
+msgstr ""
+
+#: parcels/osaf/views/main/menus.py:827
+msgid "Sidebar"
+msgstr ""
+
+#: parcels/osaf/views/main/menus.py:831
+msgid "&New Collection"
+msgstr ""
+
+#: parcels/osaf/views/main/menus.py:847
+msgid "Move the current selection to the Trash"
+msgstr "Move the selected collection to the Trash"
+
+#: parcels/osaf/views/main/menus.py:855
+msgid "&Collection Color"
+msgstr ""
+
+#: parcels/osaf/views/main/menus.py:866
+msgid "Include or Exclude the selected collection from the Dashboard"
+msgstr ""
+
+#: parcels/osaf/views/main/menus.py:872
+msgid "Sync the selected collection"
+msgstr ""
+
+#: parcels/osaf/views/main/menus.py:877
+msgid "Take the selected collection offline and online"
+msgstr ""
+
+#: parcels/osaf/views/main/menus.py:880
+msgid "Sync &Mail"
+msgstr ""
+
+#: parcels/osaf/views/main/menus.py:884
+msgid "Sync S&hares"
+msgstr ""
+
+#: parcels/osaf/views/main/menus.py:911
+msgid "Copy the selected collection's sharing URL(s) to the clipboard"
+msgstr ""
+
+#: parcels/osaf/views/main/menus.py:915
+msgid "Item"
+msgstr ""
+
+#: parcels/osaf/views/main/menus.py:950
+msgid "Dup&licate"
+msgstr ""
+
+#: parcels/osaf/views/main/menus.py:951
+msgid "Duplicate the selected item"
+msgstr ""
+
+#: parcels/osaf/views/main/menus.py:959
+msgid "Remove the selected items from the selected collection"
+msgstr ""
+
+#: parcels/osaf/views/main/summaryblocks.py:215
+msgid "cr "
+msgstr ""
+
+#: parcels/osaf/views/main/summaryblocks.py:217
+msgid "ed "
+msgstr ""
+
+#: parcels/osaf/views/main/summaryblocks.py:219
+msgid "up "
+msgstr ""
+
+#: parcels/osaf/views/main/summaryblocks.py:221
+msgid "to "
+msgstr ""
+
+#: parcels/osaf/views/main/summaryblocks.py:223
+msgid "fr "
+msgstr ""
+
+#: parcels/osaf/views/main/summaryblocks.py:225
+msgid "ow "
+msgstr ""
+
+#: parcels/osaf/views/main/summaryblocks.py:227
+msgid "au "
+msgstr ""
+
+#: parcels/osaf/views/main/summaryblocks.py:306
+msgid "Remove custom alarm"
+msgstr ""
+
+#: parcels/osaf/views/main/summaryblocks.py:308
+msgid "Add custom alarm"
+msgstr ""
+
+#: parcels/osaf/views/main/summaryblocks.py:458
+msgid "Mark as Needs reply"
+msgstr ""
+
+#: parcels/osaf/views/main/summaryblocks.py:460
+msgid "Mark as Unread"
+msgstr ""
+
+#: parcels/osaf/views/main/summaryblocks.py:461
+msgid "Mark as Read"
+msgstr ""
+
+#: parcels/osaf/views/main/summaryblocks.py:519
+msgid "Remove from task list"
+msgstr "Remove from Task list"
+
+#: parcels/osaf/views/main/summaryblocks.py:521
+msgid "Add to task list"
+msgstr "Add to Task list"
+
+#: parcels/osaf/views/main/summaryblocks.py:621
+#: parcels/osaf/views/main/summaryblocks.py:776
+msgid "Who"
+msgstr ""
+
+#: parcels/osaf/views/main/summaryblocks.py:667
+#: parcels/osaf/views/main/summaryblocks.py:737
+msgid "Rank"
+msgstr ""
+
+#: parcels/osaf/views/main/summaryblocks.py:720
+#: parcels/osaf/views/main/summaryblocks.py:875
+msgid "<html><body><center>&nbsp;<br>&nbsp;<br>0 items</center></body></html>"
+msgstr ""
+
+#: parcels/osaf/views/main/summaryblocks.py:846
+msgid "Save a copy of the results in the sidebar"
+msgstr ""
+
+#: parcels/osaf/webserver.py:30
+msgid "Public"
+msgstr ""
+

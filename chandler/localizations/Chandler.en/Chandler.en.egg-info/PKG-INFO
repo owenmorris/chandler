@@ -1,0 +1,18 @@
+Metadata-Version: 1.0
+Name: Chandler.en
+Version: 0.1
+Summary: 'en' locale translation egg for Project 'Chandler'
+Home-page: UNKNOWN
+Author: OSAF
+Author-email: UNKNOWN
+License: UNKNOWN
+Description: README File for translation egg 'Chandler.en'
+Platform: UNKNOWN
+Classifier: Development Status :: 3 - Alpha
+Classifier: Environment :: Plugins
+Classifier: Framework :: Chandler
+Classifier: Intended Audience :: Developers
+Classifier: License :: OSI Approved :: Apache Software License
+Classifier: Operating System :: OS Independent
+Classifier: Programming Language :: Python
+Classifier: Topic :: Office/Business :: Groupware
