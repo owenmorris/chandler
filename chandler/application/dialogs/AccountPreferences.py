@@ -447,7 +447,8 @@ class AccountPreferencesDialog(wx.Dialog):
 
         self.innerSizer = wx.BoxSizer(wx.HORIZONTAL)
         self.accountsPanel = self.resources.LoadPanel(self, "AccountsPanel")
-        self.innerSizer.Add(self.accountsPanel, 0, wx.ALIGN_TOP|wx.ALL, 5)
+        self.innerSizer.Add(self.accountsPanel, 0, wx.ALIGN_TOP|wx.ALL,
+                            self.getPlatformBorderSize())
 
         self.outerSizer.Add(self.innerSizer, 0, wx.ALIGN_CENTER|wx.ALL, 5)
         self.bottomSizer = wx.BoxSizer(wx.HORIZONTAL)
@@ -596,6 +597,15 @@ class AccountPreferencesDialog(wx.Dialog):
 
         if create:
             self.CreateNewAccount(create)
+
+    def getPlatformBorderSize(self):
+        if wx.Platform == "__WXMAC__":
+            return 5
+        elif wx.Platform == "__WXMSW__":
+            return 10
+
+        # Linux
+        return 22
 
     def isDefaultAccount(self, item):
         isDefault = False
@@ -982,7 +992,8 @@ class AccountPreferencesDialog(wx.Dialog):
 
         if index == -1:
             # show the default panel
-            self.innerSizer.Add(self.defaultPanel, 0, wx.ALIGN_TOP|wx.ALL, 5)
+            self.innerSizer.Add(self.defaultPanel, 0, wx.ALIGN_TOP|wx.ALL,
+                                self.getPlatformBorderSize())
             self.defaultPanel.Show()
             self.currentPanel = self.defaultPanel
             self.resizeLayout()
@@ -1002,7 +1013,9 @@ class AccountPreferencesDialog(wx.Dialog):
             cb = getattr(self, init, None)
             cb and cb()
 
-        self.innerSizer.Add(self.currentPanel, 0, wx.ALIGN_TOP|wx.ALL, 5)
+        self.innerSizer.Add(self.currentPanel, 0, wx.ALIGN_TOP|wx.ALL,
+                            self.getPlatformBorderSize())
+
         self.currentPanel.Show()
 
         # When a text field receives focus, call the handler.
