@@ -190,6 +190,7 @@ msgstr ""
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\\n"
 "Language-Team: LANGUAGE <LL@li.org>\\n"
 "MIME-Version: 1.0\\n"
+"Content-Transfer-Encoding: 8bit\\n"
 "Content-Type: text/plain; charset=UTF-8\\n"
 "Generated-By: pygettext.py %(version)s\\n"
 
