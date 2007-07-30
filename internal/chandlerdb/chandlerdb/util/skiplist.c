@@ -1789,6 +1789,9 @@ static PyObject *t_sl_after(t_sl *self, PyObject *args)
             Py_DECREF(result);
 
             if (diff == 0)
+                diff = PyObject_Compare(key, afterKey);
+
+            if (diff == 0)
             {
                 Py_INCREF(afterKey);
                 return afterKey;
