@@ -982,10 +982,27 @@ class wxApplication (wx.App):
 
 
     def OnIdle(self, event):
+
         if self.updateUIInOnIdle:
-            self.UIRepositoryView.refresh()
-            self.propagateAsynchronousNotifications()
-            self.processSharingQueue(self.UIRepositoryView)
+            count = 2
+            while count:
+                try:
+                    self.UIRepositoryView.refresh()
+                    self.propagateAsynchronousNotifications()
+                    self.processSharingQueue(self.UIRepositoryView)
+                except:
+                    logger.exception("Error in OnIdle")
+                    if count == 2:
+                        wx.MessageBox(_(u'An application error occurred. Your unsaved changes will be lost while Chandler attempts to recover.'),
+                                      _(u'Chandler has experienced an error'))
+                        self.UIRepositoryView.cancel()
+                        count -= 1
+                    elif count == 1:
+                        wx.MessageBox(_(u'Chandler has experienced an error while recovering and needs to restart.'),
+                                      _(u'Chandler will restart'))
+                        self.restart()
+                else:
+                    break
         
         # Adding a handler for catching a set focus event doesn't catch
         # every change to the focus. It's difficult to preprocess every event
