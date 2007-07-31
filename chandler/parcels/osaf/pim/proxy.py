@@ -345,7 +345,7 @@ class UserChangeProxy(object):
 
     def markEdited(self, item, attrs):
         attrs.difference_update(_IGNORE_EDIT_ATTRIBUTES)
-        if not attrs:
+        if not attrs or reminders.isDead(getattr(item, 'proxiedItem', item)):
             return
     
         me = item.getCurrentMeEmailAddress()
