@@ -211,20 +211,14 @@ class FeedbackWindow(wx.PyOnDemandOutputWindow):
         self._fillOptionalSection()
         self.frame.delButton.Disable()
         
-        # Need accelerators so that we can make ESC close the window
-        accelerators = wx.AcceleratorTable([(wx.ACCEL_NORMAL, wx.WXK_ESCAPE,
-                                             wx.ID_CANCEL)
-                                           ])
-        self.frame.SetAcceleratorTable(accelerators)
-
         size = wx.Size(450, 400)
         self.frame.SetMinSize(size)
         self.frame.Fit()
         self.frame.Show(True)
         
+        self.frame.Bind(wx.EVT_CHAR, self.OnChar)
         self.frame.Bind(wx.EVT_CLOSE, self.OnCloseWindow)
         self.frame.Bind(wx.EVT_BUTTON, self.OnCloseWindow, self.frame.closeButton)
-        self.frame.Bind(wx.EVT_MENU, self.OnCloseWindow)
         self.frame.Bind(wx.EVT_BUTTON, self.OnSend, self.frame.sendButton)
         self.frame.Bind(wx.EVT_BUTTON, self.OnRestart, self.frame.restartButton)
 
@@ -245,6 +239,14 @@ class FeedbackWindow(wx.PyOnDemandOutputWindow):
         if destroyAppOnClose:
             self.forceQuit()
         initRuntimeLog(Globals.options.profileDir)
+
+    def OnChar(self, event):
+        # Close the window if an escape is typed
+        keycode = event.GetKeyCode()
+        if keycode == wx.WXK_ESCAPE:
+            self.OnCloseWindow(event)
+        else:
+            event.Skip()
 
     def OnRestart(self, event):
         try:

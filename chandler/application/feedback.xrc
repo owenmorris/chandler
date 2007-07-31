@@ -108,7 +108,7 @@ Chandler to avoid data corruption.</label>
                       </object>
                       <object class="sizeritem">
                         <object class="wxListCtrl" name="sysInfo">
-                          <style>wxLC_REPORT|wxLC_NO_HEADER</style>
+                          <style>wxLC_REPORT|wxLC_NO_HEADER|wxSUNKEN_BORDER</style>
                         </object>
                         <option>1</option>
                         <flag>wxEXPAND</flag>

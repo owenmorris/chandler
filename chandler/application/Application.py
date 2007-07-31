@@ -652,7 +652,6 @@ class wxApplication (wx.App):
             sharing.getAutoSyncInterval(self.UIRepositoryView) is not None:
             sharing.scheduleNow(self.UIRepositoryView)
 
-
         util.timing.end("wxApplication OnInit") #@@@Temporary testing tool written by Morgen -- DJA
 
         return True    # indicates we succeeded with initialization
@@ -883,7 +882,7 @@ class wxApplication (wx.App):
             #level parent of whatever window has the focus
     
             if ((0 < wxID < wx.ID_LOWEST) or
-                not isinstance (wx.GetTopLevelParent(wxWindow_FindFocus()), wx.Dialog)):
+                isinstance (wx.GetTopLevelParent(wxWindow_FindFocus()), wxBlockFrameWindow)):
 
                 updateUIEvent = event.GetEventType() == wx.EVT_UPDATE_UI.evtType[0]
                 blockEvent = getattr (block, 'event', None)
