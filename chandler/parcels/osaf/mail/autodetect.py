@@ -14,6 +14,7 @@
 
 from application import schema, Globals
 from osaf.framework.twisted import waitForDeferred
+from osaf.framework import password
 
 class DiscoveryBase(object):
     SETTINGS = []
@@ -119,6 +120,8 @@ class OutgoingDiscovery(DiscoveryBase):
         #Reset all username and password info
         self.smtpAccount.useAuth  = False
         self.smtpAccount.username = u""
+        if not hasattr(self.smtpAccount, 'password'):
+            self.smtpAccount.password = password.Password(itsView=self.smtpAccount.itsView, itsParent=self.smtpAccount)
         waitForDeferred(self.smtpAccount.password.clear())
 
         self.curAccount = self.smtpAccount
@@ -182,6 +185,8 @@ class IncomingDiscovery(DiscoveryBase):
 
         # reset all username and password info
         self.curAccount.username = u""
+        if not hasattr(self.curAccount, 'password'):
+            self.curAccount.password = password.Password(itsView=self.curAccount.itsView, itsParent=self.curAccount)
         waitForDeferred(self.curAccount.password.clear())
 
     def _discoverAccount(self, client):
