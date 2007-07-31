@@ -683,8 +683,8 @@ class RecurrenceRuleSet(items.ContentItem):
         Transform dates (later than "after") in exdates, rdates and
         until, by applying the function C{changeDate}.
 
-        @param after: Earliest date to move
-        @type  after: C{datetime}
+        @param after: Earliest date to move, or None for all occurrences
+        @type  after: C{datetime} or None
 
         @param changeDate: Time difference
         @type  changeDate: C{callable}, taking a C{datetime} and
@@ -698,7 +698,7 @@ class RecurrenceRuleSet(items.ContentItem):
             if datelist is not None:
                 l = []
                 for dt in datelist:
-                    if dt >= after:
+                    if after is None or dt >= after:
                         l.append(changeDate(dt))
                     else:
                         l.append(dt)
@@ -711,7 +711,7 @@ class RecurrenceRuleSet(items.ContentItem):
                 except AttributeError:
                     pass
                 else:
-                    if until >= after:
+                    if after is None or until >= after:
                         rule.until = changeDate(until)
                 
         del self._ignoreValueChanges

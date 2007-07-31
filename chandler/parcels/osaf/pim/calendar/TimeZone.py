@@ -512,19 +512,31 @@ def convertFloatingEvents(view, newTZ):
     sharing_ns = schema.ns("osaf.sharing", view)
 
     EventStamp = pim_ns.EventStamp
+    def replaceTZ(dt):
+        return dt.replace(tzinfo=newTZ)
     # put all floating events in a list, because we can't iterate over 
     # floatingEvents while we remove items from it
+    # XXX - This should probably be replaced with a CHANGE_ALL to timezones,
+    # applied only to non-Allday masters/non-recurring events.  That ought to be
+    # faster and would more reliably handle recurrence issues like bug 10223
+    # which were fixed in changeThisAndFuture but not here.  But that doesn't
+    # seem like the safest course for Preview, since the present code is mostly
+    # working ---jeffrey
     for item in list(pim_ns.floatingEvents):
         event = EventStamp(item)
         if not sharing_ns.isShared(event):
             with event.noRecurrenceChanges():
-                event.startTime = event.startTime.replace(tzinfo=newTZ)
+                event.startTime = replaceTZ(event.startTime)
             # not all items are actually floating, some will be all day, don't
             # change the timezone for such item's, bug 9622
             if not event.anyTime and not event.allDay:
+                if (getattr(event, 'rruleset', False) and
+                    not getattr(item, 'inheritFrom', False)):
+                    # fix bug 10223, convert EXDATEs from floating
+                    event.rruleset.transformDatesAfter(None, replaceTZ)
                 for occurrence in event.occurrences or []:
                     ev = EventStamp(occurrence)
                     with ev.noRecurrenceChanges():
-                        ev.recurrenceID = ev.recurrenceID.replace(tzinfo=newTZ)
+                        ev.recurrenceID = replaceTZ(ev.recurrenceID)
                         if ev.startTime.tzinfo == view.tzinfo.floating:
-                            ev.startTime = ev.startTime.replace(tzinfo=newTZ)
+                            ev.startTime = replaceTZ(ev.startTime)
