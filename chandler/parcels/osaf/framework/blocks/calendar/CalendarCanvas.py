@@ -21,7 +21,7 @@ __parcel__ = "osaf.framework.blocks.calendar"
 import wx
 from wx import colheader
 
-from osaf.pim import isDead
+from osaf.pim import isDead, Stamp
 from repository.item.Monitors import Monitors
 from repository.item.Item import MissingClass
 
@@ -268,7 +268,13 @@ class CalendarSelection(schema.Annotation):
             self.selectedOccurrences = set((item,))
         else:
             self.selectedOccurrences = set()
-            self.itsItem.setSelectionToItem(item)
+            if item in self.itsItem:
+                self.itsItem.setSelectionToItem(item)
+            else:
+                # bug 10257, async refresh may leave lozenges visible
+                # temporarily after the item loses EventStamp, don't try to
+                # select the item
+                self.itsItem.clearSelection()
             
     def isSelectionEmpty(self):
         if not self.itsItem.isSelectionEmpty():
@@ -933,6 +939,7 @@ class CalendarNotificationHandler(object):
       Calendar.EventStamp.duration.name, Calendar.EventStamp.anyTime.name,
       Calendar.EventStamp.allDay.name, Calendar.EventStamp.transparency.name,
       Calendar.EventStamp.rruleset.name, Calendar.EventStamp.recurrenceEnd.name,
+      Stamp.stamp_types.name,
       'osaf.framework.blocks.BranchPointBlock.selectedItem.inverse'))
         
     def __init__(self, *args, **kwds):
