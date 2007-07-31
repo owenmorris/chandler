@@ -1267,6 +1267,40 @@ class TestMerge(RepositoryTestCase):
 
         self.assert_(main.check(), 'main view did not check out')
 
+    def testMergeNewSubIndex(self):
+
+        def mergeFn(code, item, attribute, newValue):
+            if code == MergeError.DELETE:
+                return True
+            return newValue
+
+        main = self.view
+        cineguidePack = os.path.join(self.testdir, 'data', 'packs',
+                                     'cineguide.pack')
+        main.loadPack(cineguidePack)
+        k = main.findPath('//CineGuide/KHepburn')
+        k.movies.addIndex('t', 'value', attribute='title')
+        main.commit()
+
+        view = self.rep.createView('view')
+
+        movies = view.findPath('//CineGuide/KHepburn').movies
+        m1 = movies.first()
+        m2 = movies.next(m1)
+        m1.title = 'Foo'
+        m2.title = 'Bar'
+        view.commit()
+
+        k = main.findPath('//CineGuide/KHepburn')
+        actor = k.itsKind.newItem('actor', k.itsParent)
+        actor.born = k.born
+        actor.name = "an actor"
+        actor.set = Set((k, 'movies'))
+        actor.set.addIndex('t', 'subindex', superindex=(k, 'movies', 't'))
+        main.commit(mergeFn)
+
+        self.assert_(main.check(), 'main view did not check out')
+
 
 if __name__ == "__main__":
 #    import hotshot

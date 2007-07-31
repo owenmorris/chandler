@@ -258,14 +258,21 @@ class Indexed(object):
 
         return self.getIndex(indexName).isDescending()
 
-    def _collectIndexChanges(self, name, indexChanges):
+    def _collectIndexChanges(self, view, name, indexChanges):
 
         indexes = self._indexes
         if indexes:
             _indexChanges = {}
 
             for indexName, index in indexes.iteritems():
-                _indexChanges[indexName] = [False, dict(index._iterChanges()),
+                changes = {}
+                for uItem, value in index._iterChanges():
+                    for key in view.findValue(uItem, 'inheritTo',
+                                              Nil).iterkeys():
+                        if key in index:
+                            changes[key] = key
+                changes.update(index._iterChanges())
+                _indexChanges[indexName] = [False, changes,
                                             index.getIndexType(),
                                             index.getInitKeywords()]
 

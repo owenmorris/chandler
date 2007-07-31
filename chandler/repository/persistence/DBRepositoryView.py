@@ -520,9 +520,17 @@ class DBRepositoryView(OnDemandRepositoryView):
             # synchronize new indexes with changes
             x, x, newIndexes = self.store.getViewData(newVersion)
             if newIndexes:
-                self._updateIndexes(newIndexes, list(self._log))
+                items = set(self._log)
+                for item in self._log:
+                    items.update(item.itsRefs.get('inheritTo',
+                                                  Nil).iterkeys())
+                self._updateIndexes(newIndexes, items)
             if self._newIndexes:
-                self._updateIndexes(self._newIndexes, refreshes)
+                items = set(refreshes)
+                for uItem in refreshes:
+                    items.update(self.findValue(uItem, 'inheritTo',
+                                                Nil).iterkeys())
+                self._updateIndexes(self._newIndexes, items)
 
             # notifs are re-enabled
             if merges:

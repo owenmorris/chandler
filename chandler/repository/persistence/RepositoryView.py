@@ -29,7 +29,7 @@ from repository.util.ClassLoader import ClassLoader
 from repository.persistence.RepositoryError import *
 from repository.item.Item import Item, MissingClass
 from repository.item.Children import Children
-from repository.item.Indexes import NumericIndex
+from repository.item.Indexes import NumericIndex, SortedIndex
 from repository.item.Indexed import Indexed
 from repository.item.RefCollections import RefList
 
@@ -1436,6 +1436,8 @@ class RepositoryView(CView):
                 if isinstance(indexed, Indexed):
                     if indexed.hasIndex(name):
                         index = indexed.getIndex(name)
+                        if isinstance(index, SortedIndex):
+                            index.validateIndex(False)
                         if indexed in map:
                             map[indexed].append(index)
                         else:
@@ -1448,18 +1450,21 @@ class RepositoryView(CView):
                 if anIndex is not None:
                     if uItem in anIndex:
                         for index in indexes:
-                            if uItem not in index:
-                                index.insertKey(uItem)
+                            index.moveKey(uItem, Default, True)
                     else:
                         for index in indexes:
                             index.removeKey(uItem)
                 elif indexed.__contains__(item, False, True):
                     for index in indexes:
-                        if uItem not in index:
-                            index.insertKey(uItem)
+                        index.moveKey(uItem, Default, True)
                 else:
                     for index in indexes:
                         index.removeKey(uItem)
+
+        for indexes in map.itervalues():
+            for index in indexes:
+                if not index.isValid():
+                    index.validateIndex(True, True)
 
 
     itsUUID = UUID('3631147e-e58d-11d7-d3c2-000393db837c')

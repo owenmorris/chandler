@@ -315,7 +315,7 @@ class Values(CValues):
             newChanges[name] = (False, value)
 
             if isinstance(value, Indexed):
-                value._collectIndexChanges(name, indexChanges)
+                value._collectIndexChanges(view, name, indexChanges)
 
     def _applyChanges(self, view, flag, dirties, ask, newChanges,
                       conflicts, indexChanges):
@@ -937,7 +937,7 @@ class References(Values):
                         if value._isSet():
                             newChanges[name] = ('set', value)
                             changes[name] = {}
-                            value._collectIndexChanges(name, indexChanges)
+                            value._collectIndexChanges(view, name, indexChanges)
                         elif value._isDict():
                             newChanges[name] = \
                                 ('dict', 
@@ -950,7 +950,7 @@ class References(Values):
                                 ('list', dict(value._iterChanges()))
                             changes[name] = dict(value._iterHistory(version,
                                                                     newVersion))
-                            value._collectIndexChanges(name, indexChanges)
+                            value._collectIndexChanges(view, name, indexChanges)
                 else:
                     if value is Nil:
                         newChanges[name] = ('nil', Nil)
@@ -959,7 +959,7 @@ class References(Values):
                     elif value._isRefs():
                         if value._isSet():
                             newChanges[name] = ('set', value)
-                            value._collectIndexChanges(name, indexChanges)
+                            value._collectIndexChanges(view, name, indexChanges)
                         elif value._isDict():
                             newChanges[name] = \
                                 ('dict', 
@@ -968,7 +968,7 @@ class References(Values):
                         else:
                             newChanges[name] = ('list',
                                                 dict(value._iterChanges()))
-                            value._collectIndexChanges(name, indexChanges)
+                            value._collectIndexChanges(view, name, indexChanges)
 
         elif flag == CItem.VDIRTY:
             for name in self._getDirties():
