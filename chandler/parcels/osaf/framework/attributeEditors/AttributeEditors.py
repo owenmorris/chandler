@@ -653,6 +653,7 @@ class TimeAttributeEditor(StringAttributeEditor):
         """
 
         view = wx.GetApp().UIRepositoryView
+        floatingTZ = view.tzinfo.floating
         try:
             hour = int(target)
         except ValueError:
@@ -661,11 +662,13 @@ class TimeAttributeEditor(StringAttributeEditor):
         else:
             if hour < 24:
                 if hour == 12:
-                    yield pim.shortTimeFormat.format(view, datetime(2003,10,30,0,00))
-                yield pim.shortTimeFormat.format(view, datetime(2003,10,30,hour,00))
+                    yield pim.shortTimeFormat.format(view, 
+                        datetime(2003,10,30,0,0,0,0, floatingTZ))
+                yield pim.shortTimeFormat.format(view, 
+                    datetime(2003,10,30,hour,0,0,0, floatingTZ))
                 if hour < 12:
                     yield pim.shortTimeFormat.format(view, 
-                        datetime(2003,10,30,hour + 12,00))
+                        datetime(2003,10,30,hour + 12,0,0,0, floatingTZ))
 
     def finishCompletion(self, completionString):
         if completionString is not None:

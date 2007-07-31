@@ -1614,7 +1614,13 @@ class CalendarTimeAttributeEditor(TimeAttributeEditor):
                     #invalidFlag = 0 implies no date/time
                     #invalidFlag = 1 implies only date, no time
                     if invalidFlag != 0 and invalidFlag != 1:
-                        newValueString = pim.shortTimeFormat.format(view, datetime(*timeVar[:5]))
+                        # We'll use the first 7 values from the time 
+                        # we got from parsedatetime, as well as our existing
+                        # timezone, to build a datetime we can format
+                        newTimeWithTZ = list(timeVar[:7])
+                        newTimeWithTZ.append(oldValue.tzinfo)
+                        newValueString = pim.shortTimeFormat.format(view, 
+                            datetime(*newTimeWithTZ))
                         gotTime = pim.shortTimeFormat.parse(view, newValueString, 
                                                          referenceDate=oldValue)
                     else:
