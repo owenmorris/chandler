@@ -347,7 +347,7 @@ class SharingTranslator(eim.Translator):
     def startImport(self):
         super(SharingTranslator, self).startImport()
         tzprefs = schema.ns("osaf.pim", self.rv).TimezonePrefs
-        self.promptForTimezone = not tzprefs.showUI and tzprefs.showPrompt
+        self.promptForTimezoneAllowed = not tzprefs.showUI and tzprefs.showPrompt
 
 
 
@@ -1253,18 +1253,21 @@ class SharingTranslator(eim.Translator):
         if recurrenceID and start in emptyValues:
             start = recurrenceID
 
-        if (self.promptForTimezone and start not in emptyValues
+        if (self.promptForTimezoneAllowed and start not in emptyValues
             and start.tzinfo not in (self.rv.tzinfo.floating, None)):
             # got a timezoned event, prompt (non-modally) to turn on
             # timezones
-            import wx
-            app = wx.GetApp()
-            if app is not None:
-                from application.dialogs.TurnOnTimezones import ShowTurnOnTimezonesDialog
-                def ShowTimezoneDialogCallback():
-                    ShowTurnOnTimezonesDialog(view=app.UIRepositoryView)
-                app.PostAsyncEvent(ShowTimezoneDialogCallback)
-            self.promptForTimezone = False
+            if self.rv.isReindexingDeferred():
+                self.timezonePromptRequested = True
+            else:
+                import wx
+                app = wx.GetApp()
+                if app is not None:
+                    from application.dialogs.TurnOnTimezones import ShowTurnOnTimezonesDialog
+                    def ShowTimezoneDialogCallback():
+                        ShowTurnOnTimezonesDialog(view=app.UIRepositoryView)
+                    app.PostAsyncEvent(ShowTimezoneDialogCallback)
+            self.promptForTimezoneAllowed = False
 
 
         @self.withItemForUUID(

@@ -61,7 +61,9 @@ def importFile(rv, path, collection=None, activity=None,
             trans.importRecords(filter(rs))
             if activity:
                 activity.update(work=1, msg=_(u"Importing items"))
-    
+
+        showTZDialog = getattr(trans, 'timezonePromptRequested', False)
+
         trans.finishImport()
     
         
@@ -82,6 +84,13 @@ def importFile(rv, path, collection=None, activity=None,
     
         if activity:
             activity.update(totalWork=None, msg=_(u"Importing complete"))
+    
+    if showTZDialog:
+        import wx
+        app = wx.GetApp()
+        if app is not None:
+            import application.dialogs.TurnOnTimezones as TurnOnTimezones
+            TurnOnTimezones.ShowTurnOnTimezonesDialog(view=rv)
     
     return collection
 
