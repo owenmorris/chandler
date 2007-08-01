@@ -989,8 +989,13 @@ def runRecordedScripts(options, test=None):
 
     for mode in options.modes:
         for test in testlist:
-            cmd  = options.runchandler[mode][:]
-            cmd += ['--create', '--catch=tests',
+            cmd  = options.runpython[mode][:]
+
+            # remove -O from the command-line to ensure asserts are always active
+            if '-O' in cmd:
+                cmd.remove('-O')
+
+            cmd += ['Chandler.py', '--create', '--catch=tests',
                     '--profileDir=%s' % options.profileDir,
                     '--parcelPath=%s' % options.parcelPath,
                     '--recordedTest=%s' % test, ]
