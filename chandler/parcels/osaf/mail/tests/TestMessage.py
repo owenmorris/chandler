@@ -127,10 +127,7 @@ END:VCALENDAR
     def __getMultipartMessageText(self):
         return self.__mailWithEvent
 
-    def __getMailMessage(self):
-        if self.__mailMessage is not None:
-            return self.__mailMessage
-
+    def __getMailMessage(self, addNewLine=False):
         view = self.view
         m = Mail.MailMessage(itsView=view)
         m.fromAddress = Mail.EmailAddress.getEmailAddress(view, "bill@home.net")
@@ -148,6 +145,10 @@ END:VCALENDAR
         m.ccAddress.append(ccOne)
 
         m.subject = "test mail"
+        
+        if addNewLine:
+            m.subject += "\n"
+
         m.headers['Content-Length'] = "75"
         m.headers['Content-Type'] = "text/plain; charset=utf-8; format=flowed"
         m.headers['Content-Transfer-Encoding'] = "7bit"
@@ -278,6 +279,21 @@ END:VCALENDAR
          for i in range(size):
              self.assertEquals(l1[i], l2[i])
              self.assertEquals(dict1[l1[i]], dict2[l2[i]])
+
+    def testSubjectWithNewLine(self):
+        # Test for fix to bug 10254. A \n was getting inserted
+        # in the title attribute of an Item. This resulted
+        # in an extra \n in the rfc2822 mail headers which
+        # broke the mail message formating.
+        # This test adds a \n to the mailStamp.subject then
+        # confirms when the MailStamped Item is converted to
+        # a Python email object that it no longer has the \n.
+        mailStamp = self.__getMailMessage(addNewLine=True)
+        messageObject = message.kindToMessageObject(mailStamp)
+
+        self.assertTrue(mailStamp.subject.endswith('\n'))
+        self.assertEquals(messageObject['Subject'], 'test mail')
+        
 
     def testMessageTextToKind(self):
         mailKind = message.messageTextToKind(self.view, self.__getMessageText())

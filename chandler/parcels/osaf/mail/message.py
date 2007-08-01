@@ -651,6 +651,12 @@ def kindToMessageObject(mailStamp):
 
     subject = mailStampOccurrence.subject
 
+    if subject is not None:
+        # Fixes bug 10254 where the title of a Item 
+        # that contained a new line was breaking the 
+        # the rfc2822 formatting of the outgoing message.
+        subject = subject.replace("\n", "")
+
     if inReplyTo:
         messageObject["In-Reply-To"] = inReplyTo
 
