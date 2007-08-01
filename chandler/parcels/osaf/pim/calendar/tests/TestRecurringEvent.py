@@ -379,7 +379,7 @@ class RecurringEventTest(testcase.SingleRepositoryTestCase):
 
         #XXX: i18n this is an application managed description that will change
         #     depending on the locale the test is run under
-        self.assertEqual(self.event.getCustomDescription(), "every 3 weeks until 8/15/05")
+        self.assertEqual(self.event.getCustomDescription(), "Every 3 weeks until 8/15/05")
 
         # changing the rule for the master, modifies should stay None
         self.assertEqual(self.event.modifies, None)

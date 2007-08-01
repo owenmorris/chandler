@@ -206,8 +206,10 @@ class UpdateTestCase(NRVTestCase):
 
         # Make sure you can't _set_ the byline
         self.failUnlessRaises(AttributeError, setattr, item, 'byline', u"Yuck!")
-        
-        self.failUnlessEqual(item.byline, u"created on 12/11/04 11:00 AM")
+       
+        #XXX i18n: this is a localizable value and should not be
+        # be used in a string compare
+        self.failUnlessEqual(item.byline, u"Created on 12/11/04 11:00 AM")
         
         
         # Explicitly set the state to created ...
@@ -216,24 +218,32 @@ class UpdateTestCase(NRVTestCase):
         # Change the state to edited ...
         edited = datetime(2006, 12, 31, 22, 11, tzinfo=self.view.tzinfo.default)
         item.changeEditState(Modification.edited, when=edited, who=email)
+        #XXX i18n: this is a localizable value and should not be
+        # be used in a string compare
         self.failUnlessEqual(item.byline,
-                             u"edited by Tommy Totoro on 12/31/06 10:11 PM")
+                             u"Edited by Tommy Totoro on 12/31/06 10:11 PM")
 
         # Change the state to queued ...
         item.changeEditState(Modification.queued, when=edited, who=email)
+        #XXX i18n: this is a localizable value and should not be
+        # be used in a string compare
         self.failUnlessEqual(item.byline,
-                             u"queued by Tommy Totoro on 12/31/06 10:11 PM")
+                             u"Queued by Tommy Totoro on 12/31/06 10:11 PM")
         
         # Now, sent ...
         sent = datetime(2036, 1, 12, 2, 15, tzinfo=self.view.tzinfo.default)
         item.changeEditState(Modification.sent, when=sent, who=email)
+        #XXX i18n: this is a localizable value and should not be
+        # be used in a string compare
         self.failUnlessEqual(item.byline,
-                             u"sent by Tommy Totoro on 1/12/36 2:15 AM")
+                             u"Sent by Tommy Totoro on 1/12/36 2:15 AM")
 
         # Lastly, updated ...
         updated = datetime(2007, 5, 17, 4, 22, 53, tzinfo=self.view.tzinfo.default)
         item.changeEditState(Modification.updated, when=updated)
-        self.failUnlessEqual(item.byline, u"updated on 5/17/07 4:22 AM")
+        #XXX i18n: this is a localizable value and should not be
+        # be used in a string compare
+        self.failUnlessEqual(item.byline, u"Updated on 5/17/07 4:22 AM")
 
     def testError(self):
         item = ContentItem(itsParent=self.sandbox)
