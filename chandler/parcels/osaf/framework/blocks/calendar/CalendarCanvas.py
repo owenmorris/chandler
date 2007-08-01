@@ -1889,6 +1889,12 @@ class wxInPlaceEditor(AttributeEditors.wxEditText):
         """
         For now, no need to display.
         """
+        if 'wxMSW' in wx.PlatformInfo:
+            # On MSW the EVT_TEXT_ENTER comes after the \n has been
+            # inserted into the control's value, so take it back out
+            # again...  See bug #9969
+            val = self.GetValue()
+            self.SetValue(val.replace('\n', ''))
         self.SaveAndHide()
 
     def OnEscapePressed(self, event):
