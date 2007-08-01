@@ -94,7 +94,7 @@ Ask the worker to abort by calling the requestAbort( ) method::
     >>> activity.update(msg="jump higher")
     Traceback (most recent call last):
         ...
-    ActivityAborted: Cancelled by user
+    ActivityAborted: Cancelled by user.
 
     >>> listener.unregister()
 
