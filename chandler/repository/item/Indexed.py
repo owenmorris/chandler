@@ -330,6 +330,7 @@ class Indexed(object):
                             indexes = getattr(indexed, '_indexes', None)
                             if indexes and subName in indexes:
                                 index.addSubIndex(uItem, attr, subName)
+                                indexes[subName].validateIndex(False)
 
             removals = []
             moves = []
@@ -354,6 +355,7 @@ class Indexed(object):
 
             index.removeKeys(removals)
             index.moveKeys(moves, Default, True)
+            index.validateIndex(True, True, False)
 
     def _createIndex(self, indexType, **kwds):
 
