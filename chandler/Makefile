@@ -22,6 +22,8 @@ BUILD_PLUGINS = Chandler-HelloWorldPlugin \
                 Chandler-p2pPlugin \
                 Chandler-gdataPlugin
 
+BUILD_LOCALES = Chandler.en
+
 # When a version changes, the ARCHIVES lists below need to be updated.
 
 ifeq ($(OS),Linux)
@@ -205,6 +207,24 @@ $(addprefix install-, $(BUILD_PLUGINS)):
           --script-dir='$(PLUGIN_INST)' \
           --install-dir='$(PLUGIN_INST)' .
 
+$(addprefix develop-, $(BUILD_LOCALES)):
+	cd $(C_HOME)/localizations/$(subst develop-,,$@); \
+     $(RUN_PYTHON) setup.py egg_info develop \
+          --script-dir='$(CHANDLERHOME)' \
+          --install-dir='$(CHANDLERHOME)'
+
+$(addprefix develop-u-, $(BUILD_LOCALES)):
+	cd $(C_HOME)/localizations/$(subst develop-u-,,$@); \
+     $(RUN_PYTHON) setup.py egg_info develop -u \
+          --script-dir='$(CHANDLERHOME)' \
+          --install-dir='$(CHANDLERHOME)'
+
+$(addprefix install-, $(BUILD_LOCALES)):
+	cd $(C_HOME)/localizations/$(subst install-,,$@); \
+     $(RUN_PYTHON) setup.py egg_info install
+          --script-dir='$(CHANDLERHOME)' \
+          --install-dir='$(CHANDLERHOME)'
+
 chandler-locale-data:
 	$(RUN_PYTHON) setup.py egg_info
 
@@ -230,12 +250,14 @@ archives: $(ARCHIVES) $(ARCHIVES_INST)
 
 install-core: archives manifest_exe chandler-locale-data 
 
-plugins: $(addprefix develop-, $(BUILD_PLUGINS))
+plugins: $(addprefix develop-, $(BUILD_PLUGINS)) $(addprefix develop-, $(BUILD_LOCALES))
 
 no-plugins: $(addprefix develop-u-, $(BUILD_PLUGINS))
 
 distrib-plugins: $(addprefix develop-u-, $(BUILD_PLUGINS)) \
-                 $(addprefix install-, $(BUILD_PLUGINS))
+                 $(addprefix install-, $(BUILD_PLUGINS)) \
+                 $(addprefix develop-u-, $(BUILD_LOCALES)) \
+                 $(addprefix install-, $(BUILD_LOCALES))
 
 install: install-core plugins
 
