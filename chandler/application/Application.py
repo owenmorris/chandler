@@ -991,7 +991,9 @@ class wxApplication (wx.App):
                     self.processSharingQueue(self.UIRepositoryView)
                 except:
                     logger.exception("Error in OnIdle")
-                    if count == 2:
+                    if options.catch != 'normal':
+                        raise
+                    elif count == 2:
                         wx.MessageBox(_(u'An application error occurred. Your unsaved changes will be lost while Chandler attempts to recover.'),
                                       _(u'Chandler has experienced an error'))
                         self.UIRepositoryView.cancel()
