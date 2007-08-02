@@ -292,11 +292,13 @@ def installParcel(parcel, oldVersion=None):
     EventStamp.addIndex(events, 'effectiveStart', 'method',
                     method=(eventComparator, 'cmpStartTime'),
                     monitor=(EventStamp.startTime, EventStamp.allDay,
-                             EventStamp.anyTime))
+                             EventStamp.anyTime),
+                    kind=ContentItem.getKind(view))
     EventStamp.addIndex(events, 'effectiveEnd', 'method',
                     method=(eventComparator, 'cmpEndTime'),
                     monitor=(EventStamp.startTime, EventStamp.allDay,
-                             EventStamp.anyTime, EventStamp.duration))
+                             EventStamp.anyTime, EventStamp.duration),
+                    kind=ContentItem.getKind(view))
 
     # floatingEvents need to be reindexed in effectiveStart and effectiveEnd
     # when the floating timezone changes
@@ -363,9 +365,10 @@ def installParcel(parcel, oldVersion=None):
 
     mailCollection = mail.MailStamp.getCollection(view)
 
+    kind = mail.EmailAddress.getKind(view)
     emailAddressCollection = \
         KindCollection.update(parcel, 'emailAddressCollection',
-                              kind=mail.EmailAddress.getKind(view),
+                              kind=kind,
                               recursive=True)
     emailComparator = EmailComparator.update(parcel, 'emailComparator')
     emailAddressCollection.addIndex('emailAddress', 'method',
@@ -377,7 +380,7 @@ def installParcel(parcel, oldVersion=None):
     emailAddressCollection.addIndex('both', 'method',
                                     method=(emailComparator, 'cmpBoth'),
                                     monitor=('emailAddress', 'fullName'),
-                                    nodefer=True)
+                                    nodefer=True, kind=kind)
 
     # Contains all current me addresses (that is, referenced by an account)
     currentMeEmailAddresses = ListCollection.update(

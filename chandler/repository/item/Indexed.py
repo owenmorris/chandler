@@ -192,28 +192,37 @@ class Indexed(object):
             self.fillIndex(index)
             self._setDirty(True) # noFireChanges=True
             monitor = kwds.get('monitor')
+            kind = kwds.get('kind')
+            correlation = set()
 
-            def _attach(attrName):
+            def _attach(attrName, correlation):
                 from repository.item.Monitors import Monitors
                 Monitors.attachIndexMonitor(item, 'set',
                                             attrName, name, indexName)
                 Monitors.attachIndexMonitor(item, 'remove',
                                             attrName, name, indexName)
+                correlation.add(attrName)
 
             if monitor is not None:
                 if isinstance(monitor, (str, unicode)):
-                    _attach(monitor)
+                    _attach(monitor, correlation)
                 else:
                     for m in monitor:
-                        _attach(m)
+                        _attach(m, correlation)
                     
             elif indexType in ('attribute', 'value', 'string'):
                 attributes = kwds.get('attributes', None)
                 if attributes is not None:
                     for attribute in attributes:
-                        _attach(attribute)
+                        _attach(attribute, correlation)
                 else:
-                    _attach(kwds['attribute'])
+                    _attach(kwds['attribute'], correlation)
+
+            if len(correlation) > 1:
+                if kind is None:
+                    view.logger.warn("Attributes (%s) in index (%s, %s, %s) are correlated but the kind of the items being indexed is not declared. This correlation will not be heeded during view merges", tuple(correlation), item._repr_(), name, indexName)
+                else:
+                    kind.declareCorrelation(correlation)
 
             if isSubIndex:
                 superIndex = superset.getIndex(superIndexName)
@@ -275,7 +284,6 @@ class Indexed(object):
                 _indexChanges[indexName] = [False, changes,
                                             index.getIndexType(),
                                             index.getInitKeywords()]
-
             if _indexChanges:
                 indexChanges[name] = _indexChanges
 

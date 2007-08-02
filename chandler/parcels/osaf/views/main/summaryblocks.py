@@ -100,7 +100,7 @@ class DelegatingIndexDefinition(pim.MethodIndexDefinition):
         vals[str(u)] = positionMethod(u)
         return self.getCompareTuple(u)
 
-    def makeIndexOn(self, collection):
+    def makeIndexOn(self, collection, kind=None):
         """ Create the index we describe on this collection """
         
         monitoredAttributes = (self.attributes or [])
@@ -120,7 +120,8 @@ class DelegatingIndexDefinition(pim.MethodIndexDefinition):
                             superindex=(collection,
                                         collection.__collection__,
                                         "%s.triage" % __name__),
-                            monitor=monitoredAttributes)
+                            monitor=monitoredAttributes,
+                            kind=kind)
     
 class TaskColumnIndexDefinition(DelegatingIndexDefinition):
     findParams = [

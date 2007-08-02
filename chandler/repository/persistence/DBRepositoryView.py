@@ -517,6 +517,57 @@ class DBRepositoryView(OnDemandRepositoryView):
                         elif 'attributes' in names:
                             self[uItem].flushCaches('attributes')
 
+            # notifs are re-enabled
+            if merges:
+                fireChanges = {}
+                for uItem, (dirty, x, dirties) in merges.iteritems():
+                    item = self.find(uItem)
+                    if item is not None and item.itsKind is not None:
+                        allCorrelations = item.itsKind.c.allCorrelations
+                        if allCorrelations:
+                            _fireChanges = set()
+                            dirties = HashTuple(dirties)
+                            newDirty, _newChanges = newChanges[uItem]
+                            names = set()
+                            if newDirty & CItem.VDIRTY:
+                                names.update(_newChanges[CItem.VDIRTY].iterkeys())
+                            if newDirty & CItem.RDIRTY:
+                                names.update(_newChanges[CItem.RDIRTY].iterkeys())
+                            for name in names:
+                                for uCorrelation in allCorrelations.get(name, ()):
+                                    correlation = self[uCorrelation]
+                                    for n in correlation.names:
+                                        if n in dirties and n not in names:
+                                            _fireChanges.add(name)
+                            if _fireChanges:
+                                fireChanges[uItem] = _fireChanges
+
+                if conflicts or fireChanges:
+                    try:
+                        with self.observersDeferred(False):
+                            with self.reindexingDeferred():
+                                for uItem, name, newValue in conflicts:
+                                    item = self.find(uItem)
+                                    if item is not None:
+                                        if newValue is Nil:
+                                            if hasattr(item, name):
+                                                delattr(item, name)
+                                        else:
+                                            setattr(item, name, newValue)
+                                for uItem, names in fireChanges.iteritems():
+                                    for name in names:
+                                        self[uItem]._fireChanges('set', name)
+                    except:
+                        self.logger.exception('%s merge aborted by error', self)
+                        self.cancel()
+                        raise
+
+                duration = time() - before
+                if duration > 1.0:
+                    self.logger.warning('%s merged %d items in %s',
+                                        self, len(merges),
+                                        timedelta(seconds=duration))
+
             # synchronize new indexes with changes
             x, x, newIndexes = self.store.getViewData(newVersion)
             if newIndexes:
@@ -531,28 +582,6 @@ class DBRepositoryView(OnDemandRepositoryView):
                     items.update(self.findValue(uItem, 'inheritTo',
                                                 Nil).iterkeys())
                 self._updateIndexes(self._newIndexes, items)
-
-            # notifs are re-enabled
-            if merges:
-                try:
-                    for uItem, name, newValue in conflicts:
-                        item = self.find(uItem)
-                        if item is not None:
-                            if newValue is Nil:
-                                if hasattr(item, name):
-                                    delattr(item, name)
-                            else:
-                                setattr(item, name, newValue)
-                except:
-                    self.logger.exception('%s merge aborted by error', self)
-                    self.cancel()
-                    raise
-
-                duration = time() - before
-                if duration > 1.0:
-                    self.logger.warning('%s merged %d items in %s',
-                                        self, len(merges),
-                                        timedelta(seconds=duration))
 
             if notify:
                 before = time()

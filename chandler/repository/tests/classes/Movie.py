@@ -50,6 +50,11 @@ class Movie(Item):
         count = getattr(self, '_titleChanged', 0)
         self._titleChanged = count + 1
 
+    def plus(self, op, name):
+
+        print 'plus', op, name
+        self.sum = self.a + self.b
+
 
 class Cartoon(Movie):
     pass

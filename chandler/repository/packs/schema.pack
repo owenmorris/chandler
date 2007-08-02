@@ -12,6 +12,7 @@
 
       <item file="Item.kind" />
       <item file="Attribute.kind" />
+      <item file="Correlation.kind" />
       <item file="Taxon.kind" />
       <item file="Kind.kind" />
       <item file="Extent.kind" />

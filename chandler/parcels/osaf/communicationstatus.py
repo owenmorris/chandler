@@ -151,9 +151,9 @@ class CommunicationStatus(schema.Annotation):
         return '+'.join(result)
 
     attributeValues = (
-        (ContentItem.modifiedFlags, set()),
+        (ContentItem.modifiedFlags, frozenset()),
         (ContentItem.lastModification, None),
-        (Stamp.stamp_types, set()),
+        (Stamp.stamp_types, frozenset()),
         (MailStamp.fromMe, False),
         (MailStamp.toMe, False),
         (ContentItem.needsReply, False),

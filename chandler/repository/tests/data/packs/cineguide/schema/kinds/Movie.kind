@@ -22,6 +22,9 @@
     <ref alias="set" type="path">/CineGuide/Attributes/set</ref>
     <ref alias="appearsIn" type="path">/CineGuide/Attributes/appearsIn</ref>
     <ref alias="collections" type="path">/CineGuide/Attributes/collections</ref>
+    <ref alias="a" type="path">/CineGuide/Attributes/a</ref>
+    <ref alias="b" type="path">/CineGuide/Attributes/b</ref>
+    <ref alias="sum" type="path">/CineGuide/Attributes/sum</ref>
   </ref>
 
   <attribute name="classes">

@@ -765,8 +765,10 @@ class SortedIndex(DelegatingIndex):
                 if not sorted:
                     logger.error("Sorted %s index '%s' installed on value '%s' of type %s in attribute '%s' on %s is not sorted properly: value for %s is %s than the value for %s", self.getIndexType(), name, value, type(value), attribute, item._repr_(), repr(prevKey), word, repr(key))
                     result = False
-
-            prevKey = key
+                else:
+                    prevKey = key
+            else:
+                prevKey = key
 
         return size, result
 

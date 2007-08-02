@@ -29,6 +29,7 @@ from repository.item.Values import Values, References
 from repository.item.PersistentCollections import PersistentCollection
 from repository.util.Path import Path
 from repository.schema.TypeHandler import TypeHandler
+from repository.schema.Correlation import Correlation
 from repository.persistence.RepositoryError import RecursiveLoadItemError
 
 CORE=Path('//Schema/Core')
@@ -508,8 +509,10 @@ class Kind(Item):
         if not c.attributesCached:
             allNames = c.allNames
             notifyAttributes = c.notifyAttributes
+            allCorrelations = c.allCorrelations
 
             allAttributes.clear()
+            allCorrelations.clear()
             allNames.clear()
             notifyAttributes.clear()
             notify = False
@@ -529,20 +532,32 @@ class Kind(Item):
                         allNames[h] = name
                         if attribute.getAspect('notify', False):
                             notifyAttributes.add(name)
+                allCorrelations.update(superKind.c.allCorrelations)
             else:
                 notify = True
 
             attributes = references.get('attributes', None)
             if attributes is not None:
+                correlations = references.get('correlations', None)
                 uuid = self.itsUUID
                 for attribute in attributes:
                     name = attributes.getAlias(attribute)
-                    allAttributes[name] = (attribute.itsUUID, uuid, attribute.itsParent is self, True)
+                    allAttributes[name] = (attribute.itsUUID, uuid,
+                                           attribute.itsParent is self, True)
                     allNames[_hash(name)] = name
                     if attribute.getAspect('notify', False):
                         notifyAttributes.add(name)
                     elif name in notifyAttributes:
                         notifyAttributes.remove(name)
+
+                    if correlations:
+                        uuids = [corr.itsUUID for corr in correlations
+                                 if name in corr.itsValues['names']]
+                        if uuids:
+                            if name in allCorrelations:
+                                allCorrelations[name].extend(uuids)
+                            else:
+                                allCorrelations[name] = uuids
 
             c.attributesCached = True
             c.notify = self.itsValues.get('notify', notify)
@@ -761,6 +776,7 @@ class Kind(Item):
 
         if c.attributesCached:
             c.allAttributes.clear()
+            c.allCorrelations.clear()
             c.allNames.clear()
             c.notifyAttributes.clear()
             c.attributesCached = False
@@ -996,6 +1012,11 @@ class Kind(Item):
             print indent, key, displayedAttrs[key].itsPath
 
         super(Kind, self)._printItemBody(_level)
+
+    def declareCorrelation(self, names):
+
+        return Correlation(None, self, self.itsView.find(CORE)['Correlation'],
+                           names=names, kind=self)
 
 
     NoneString = "__NONE__"

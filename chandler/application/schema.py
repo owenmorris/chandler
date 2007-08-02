@@ -546,11 +546,14 @@ class ItemClass(Activator, BaseClass):
             if name.startswith('__'):
                 # support private name mangling
                 name = '_%s%s' % (cls.__name__, name)
+            correlation = set()
             for attrName in attrNames:
                 if isinstance(attrName,Descriptor):
                     attr = itemFor(attrName, view)
+                    correlation.add(attrName.name)
                 else:
                     attr = kind.getAttribute(attrName, True)
+                    correlation.add(attrName)
                 if attr is not None:
                     if hasattr(attr, 'afterChange'):
                         afterChange = attr.afterChange
@@ -561,6 +564,8 @@ class ItemClass(Activator, BaseClass):
                 else:
                     view.logger.warn("no attribute '%s' defined for kind for %s",
                                  attrName, cls)
+            if len(correlation) > 1:
+                kind.declareCorrelation(correlation)
 
         def fixup():
             kind.itsParent = parcel_for_module(cls.__module__, view)
@@ -782,11 +787,14 @@ class AnnotationClass(type):
                 name = '_%s%s' % (cls.__name__, name)
             name = "%s.%s.%s" % (parcel_name(cls.__module__),cls.__name__,name)
             # @@@ [grant] copy-n-paste job from ItemClass._init_schema_item
+            correlation = set()
             for attrName in attrNames:
                 if isinstance(attrName,Descriptor):
                     attr = itemFor(attrName, view)
+                    correlation.add(attrName.name)
                 else:
                     attr = kind.getAttribute(attrName, True)
+                    correlation.add(attrName)
                 if attr is not None:
                     if hasattr(attr, 'afterChange'):
                         afterChange = attr.afterChange
@@ -797,6 +805,9 @@ class AnnotationClass(type):
                 else:
                     view.logger.warn("no attribute '%s' defined for kind for %s",
                                  attrName, cls)
+            if len(correlation) > 1:
+                kind.declareCorrelation(correlation)
+
         def fixup():
             annInfo.itsParent = parcel_for_module(cls.__module__, view)
             annInfo.itsName = cls.__name__

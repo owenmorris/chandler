@@ -82,7 +82,7 @@ class IndexDefinition(schema.Item):
                                             self.itsName))
         else:
             # Create a standalone index
-            self.makeIndexOn(collection)
+            self.makeIndexOn(collection, ContentItem.getKind(self.itsView))
     
     def makeMasterIndex(self):
         """
@@ -92,9 +92,10 @@ class IndexDefinition(schema.Item):
         if self.useMaster:
             contentItems = schema.ns("osaf.pim", self.itsView).contentItems
             if not contentItems.hasIndex(self.itsName):
-                self.makeIndexOn(contentItems)
+                self.makeIndexOn(contentItems,
+                                 ContentItem.getKind(self.itsView))
 
-    def makeIndexOn(self, collection):
+    def makeIndexOn(self, collection, kind=None):
         """ Create the index we describe on this collection """
         raise TypeError(
             "pim.IndexDefinition is an abstract type; use a subtype that " \
@@ -106,7 +107,7 @@ class NumericIndexDefinition(IndexDefinition):
     """
     A class that allows you to build numeric indexes
     """
-    def makeIndexOn(self, collection):
+    def makeIndexOn(self, collection, kind=None):
         """ Create the index we describe on this collection """
         collection.addIndex(self.itsName, 'numeric')
 
@@ -127,7 +128,7 @@ class MethodIndexDefinition(IndexDefinition):
     """
     findValuePairs = ()
 
-    def makeIndexOn(self, collection):
+    def makeIndexOn(self, collection, kind=None):
         """ Create the index we describe on this collection """
         
         monitoredAttributes = (self.attributes or [])
@@ -141,7 +142,8 @@ class MethodIndexDefinition(IndexDefinition):
             
         collection.addIndex(self.itsName, 'method',
                             method=(self, 'compare'),
-                            monitor=monitoredAttributes)
+                            monitor=monitoredAttributes,
+                            kind=kind)
 
     def compare(self, index, u1, u2, vals):
         """

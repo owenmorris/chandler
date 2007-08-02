@@ -1272,7 +1272,7 @@ class TestMerge(RepositoryTestCase):
         def mergeFn(code, item, attribute, newValue):
             if code == MergeError.DELETE:
                 return True
-            return newValue
+            return getattr(item, attribute)
 
         main = self.view
         cineguidePack = os.path.join(self.testdir, 'data', 'packs',
@@ -1300,6 +1300,35 @@ class TestMerge(RepositoryTestCase):
         main.commit(mergeFn)
 
         self.assert_(main.check(), 'main view did not check out')
+
+    def testMergeCorrelatedAttributes(self):
+
+        def mergeFn(code, item, attribute, newValue):
+            if code == MergeError.DELETE:
+                return True
+            return newValue
+
+        main = self.view
+        cineguidePack = os.path.join(self.testdir, 'data', 'packs',
+                                     'cineguide.pack')
+        main.loadPack(cineguidePack)
+        movies = main.findPath('//CineGuide/KHepburn').movies
+        m1 = movies.first()
+        m1.itsKind.declareCorrelation(set(['a', 'b']))
+        main.commit()
+
+        view = self.rep.createView('view')
+        movies = view.findPath('//CineGuide/KHepburn').movies
+        m1 = movies.first()
+        m1.a = 3
+        view.commit()
+
+        movies = main.findPath('//CineGuide/KHepburn').movies
+        m1 = movies.first()
+        m1.b = 5
+        main.commit(mergeFn)
+
+        self.assert_(m1.sum == 8, 'sum != 8')        
 
 
 if __name__ == "__main__":
