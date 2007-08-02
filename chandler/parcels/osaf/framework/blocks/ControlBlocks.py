@@ -1399,7 +1399,7 @@ class AEBlock(BoxContainer):
 
         editor = self.lookupEditor()
         if editor is None:
-            assert isDead(item)
+            assert isDead(self.item)
             widget = wx.Panel(self.parentBlock.widget, self.getWidgetID())
             return widget
 
