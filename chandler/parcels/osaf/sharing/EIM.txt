@@ -824,6 +824,57 @@ The default implementation simply uses an item's UUID as its alias::
    >>> t.getUUIDForAlias('0c7c6c5c-4a04-4d5a-8997-2fcef848c92d')
    '0c7c6c5c-4a04-4d5a-8997-2fcef848c92d'
 
+Import Error Handling
+---------------------
+
+When a callback invoked by ``withItemForUUID()`` raises an error, the
+translator's ``recordFailure()`` method is invoked with a Twisted ``Failure``
+instance.  The default implementation saves this and re-raises the error
+at the end of the importRecord operation, but you can also override it in
+a subclass to do something else::
+
+    >>> class DemoTranslator4(sharing.Translator):
+    ...     """Demonstration translator 4"""
+    ...     URI = "cid:demotranslator4@osaf.us"
+    ...     version = 1
+    ...     description = u"Localized human-readable description here"
+    ...
+    ...     @DemoRecord2.importer
+    ...     def import_Demo_record2(self, r):
+    ...         @self.withItemForUUID(r.uuid, schema.Item)
+    ...         def do(item):
+    ...             raise TypeError("Some kind of problem")
+    ... 
+    ...     def recordFailure(self, failure):
+    ...         print failure
+
+    >>> t4 = DemoTranslator4(rv)
+    >>> t4.startImport()
+
+    >>> uuid = 'ed0277af-18a2-45b1-917d-a55dc75da776'
+    >>> t4.importRecord(DemoRecord2(uuid))
+    [Failure instance: Traceback: <...TypeError'>: Some kind of problem
+    ...:import_Demo_record2
+    ...
+    --- <exception caught here> ---
+    ...:do
+    ]
+
+Of course, you should call the ``super()`` of the method if you also want the
+standard behavior, which we'll demonstrate here::
+
+    >>> del DemoTranslator4.recordFailure
+
+    >>> t4.importRecord(DemoRecord2(uuid))
+    Traceback (most recent call last):
+      ...
+    TypeError: Some kind of problem
+
+Also note that if you use any ``Deferred`` objects, you should always use
+``.addErrback(self.recordFailure)`` after adding a callback to the deferred.
+This will ensure that any error in your callback will be reported back to the
+translator.
+
 
 Conflict Management
 -------------------

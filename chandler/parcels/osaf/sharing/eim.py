@@ -39,7 +39,6 @@ logger = logging.getLogger(__name__)
 
 
 
-
 def exporter(*types):
     """Mark a translator method as exporting the specified item type(s)"""
     for t in types:
@@ -931,17 +930,19 @@ class Translator:
             deleter = self.deleters.get(type(r))
             if deleter: deleter(self, r)
 
-    def importRecord(self, r):
+    def importRecord(self, r):        
         importer = self.importers.get(type(r))
         try:
             if importer: importer(self, r)
+            if self.failure: self.failure.raiseException()
         except:
             logger.exception("Failed to import %s", r)
             raise
+        finally:
+            self.failure=None
 
     def _exportablesFor(self, item):
         yield item, object
-
         if isinstance(item, pim.ContentItem):
             for stamp in pim.Stamp(item).stamps:
                 yield stamp, pim.Stamp
@@ -982,7 +983,8 @@ class Translator:
 
 
     def withItemForUUID(self, uuid, itype=schema.Item, **attrs):
-        return self.deferredItem(uuid, itype, **attrs).addCallback
+        d = self.deferredItem(uuid, itype, **attrs)
+        return lambda f: d.addCallback(f).addErrback(self.recordFailure)
 
     def deferredItem(self, uuid, itype=schema.Item, **attrs):
         """Return deferred for a stamp or item by UUID+type w/optional attrs"""
@@ -995,6 +997,7 @@ class Translator:
                 else:
                     self.deferredItem(uuid, itype, **attrs).addCallback(d.callback)
                 return uuid
+            uuid.addErrback(self.recordFailure)
             return d
 
         def setattrs(ob):
@@ -1011,13 +1014,11 @@ class Translator:
                 if not stamp.stamp_types or itype not in stamp.stamp_types:
                     stamp.add()
                 return setattrs(stamp)  # return value for deferreds
-            return d
+            return d.addErrback(self.recordFailure)
             
         item = self.rv.findUUID(uuid)
-        d = Deferred()
-        d.addCallback(setattrs)
-        if item is None:
-            # Create the item
+        d = Deferred().addCallback(setattrs).addErrback(self.recordFailure)
+        if item is None:    # Create the item
             if isinstance(uuid, basestring):
                 uuid = UUID(uuid)
             item = itype(itsView=self.rv, _uuid=uuid)
@@ -1050,7 +1051,6 @@ class Translator:
                     q.remove((t,cbd))
                     if not q:
                         del self.loadQueue[item]
-
         d.callback(item)
         return d
 
@@ -1059,6 +1059,7 @@ class Translator:
             if hasattr(ob, attr): delattr(ob, attr)
         elif isinstance(val, Deferred):
             val.addCallback(self.smart_setattr, ob, attr)
+            val.addErrback(self.recordFailure)
         elif val is not NoChange:
             setattr(ob, attr, val)
         return ob   # return value for deferreds
@@ -1068,6 +1069,11 @@ class Translator:
 
     def getAliasForItem(self, item):
         return item.itsUUID.str16()
+
+    failure = None
+    
+    def recordFailure(self, failure):
+        self.failure = failure
         
 
 def create_default_converter(t):
@@ -1101,8 +1107,6 @@ def uuid_converter(uuid):
 
 def item_uuid_converter(item):
     return str(item.itsUUID)
-
-
 
 add_converter(UUIDType, UUID, uuid_converter)
 add_converter(UUIDType, schema.Item, item_uuid_converter)
@@ -1140,8 +1144,5 @@ def additional_tests():
         'EIM.txt',
         optionflags=doctest.ELLIPSIS|doctest.REPORT_ONLY_FIRST_FAILURE,
     )
-
-
-
 
 

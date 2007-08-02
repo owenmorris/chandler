@@ -483,7 +483,7 @@ class SharingTranslator(eim.Translator):
                     else:
                         return None
                 return occurrence.itsItem.itsUUID.str16()
-            return d
+            return d.addErrback(self.recordFailure)
         d = Deferred()
         d.callback(master_uuid)
         return d
@@ -516,7 +516,7 @@ class SharingTranslator(eim.Translator):
                     for attr, val in attrs.items():
                         self.smart_setattr(val, stamp, attr)
                     return stamp # return value for deferreds
-                return d
+                return d.addErrback(self.recordFailure)
 
         return super(SharingTranslator, self).deferredItem(uuid, itype, **attrs)
 
@@ -543,6 +543,7 @@ class SharingTranslator(eim.Translator):
             read=with_nochange(record.read, bool)
         )
         def do(item):
+
             if record.triage != "" and record.triage not in emptyValues:
                 code, timestamp, auto = record.triage.split(" ")
                 item._triageStatus = self.code_to_triagestatus[code]
@@ -855,7 +856,7 @@ class SharingTranslator(eim.Translator):
                 if (item is not None and item.isLive() and
                     pim.has_stamp(item, pim.TaskStamp)):
                     pim.TaskStamp(item).remove()
-
+        d.addErrback(self.recordFailure)
 
 
     @model.PasswordRecord.importer
@@ -1239,6 +1240,7 @@ class SharingTranslator(eim.Translator):
                 if (item is not None and item.isLive() and
                     pim.has_stamp(item, pim.MailStamp)):
                     pim.MailStamp(item).remove()
+        d.addErrback(self.recordFailure)
 
     # EventRecord -------------
 
