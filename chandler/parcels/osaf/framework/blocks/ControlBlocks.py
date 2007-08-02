@@ -38,7 +38,7 @@ from wx.lib.buttons import GenBitmapTextButton
 import application.dialogs.ReminderDialog as ReminderDialog
 import Styles
 from datetime import datetime, timedelta
-from osaf.pim import Reminder
+from osaf.pim import Reminder, isDead
 from i18n import ChandlerMessageFactory as _
 
 
@@ -1399,7 +1399,7 @@ class AEBlock(BoxContainer):
 
         editor = self.lookupEditor()
         if editor is None:
-            assert False
+            assert isDead(item)
             widget = wx.Panel(self.parentBlock.widget, self.getWidgetID())
             return widget
 
