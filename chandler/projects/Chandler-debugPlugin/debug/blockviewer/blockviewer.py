@@ -38,6 +38,7 @@ class BlockItemDetail(ControlBlocks.ItemDetail):
             if reference == None:
                 return "(None)"
 
+            url = reference.itsPath
             name = getItemName (reference)
             kind = reference.itsKind
             if kind is not None:
