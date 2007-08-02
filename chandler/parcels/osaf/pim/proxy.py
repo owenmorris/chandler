@@ -611,6 +611,8 @@ class CHANGE_FUTURE(CHANGE_ALL):
                     if not item.hasModifiedAttribute(attr)
             )
             return attr
+        elif changeType == 'add' and change[2] is schema.ns("osaf.pim", item.itsView).trashCollection:
+            event.deleteThisAndFuture()        
         elif changeType in ('addStamp', 'removeStamp', 'add', 'remove', 'append'):
             event.changeThisAndFuture()
             return super(CHANGE_FUTURE, self).makeChange(item, change)

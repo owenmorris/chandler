@@ -145,19 +145,36 @@ class RecurrenceDialog(wx.Dialog):
         self._end()
 
     def onAll(self, event):
+        self.updateSelection()
         self.proxy.changing = CHANGE_ALL
         self.proxy.makeChanges()
         self._accept()
 
     def onFuture(self, event):
+        self.updateSelection()
         self.proxy.changing = CHANGE_FUTURE
         self.proxy.makeChanges()
         self._accept()
 
     def onThis(self, event):
+        self.updateSelection()
         self.proxy.changing = CHANGE_THIS
         self.proxy.makeChanges()
         self._accept()
+
+    def updateSelection(self):
+        view = self.proxy.proxiedItem.itsView
+        for change in self.proxy.changes:
+            changeType = change[1]
+            if (changeType == 'remove' or 
+                (changeType == 'add' and 
+                 change[2] is schema.ns("osaf.pim", view).trashCollection)):
+                from osaf.framework.blocks import Block
+                bpb = Block.Block.findBlockByName("SidebarBranchPointBlock")
+                if bpb is not None:
+                    view = bpb.childBlocks.first()
+                    view.postEventByName("SelectItemsBroadcast", {'items':[]})
+                break
 
 _proxies = {}
 

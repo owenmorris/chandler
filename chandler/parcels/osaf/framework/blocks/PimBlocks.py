@@ -461,8 +461,9 @@ class FocusEventHandlers(Item):
             DeleteDialog.ShowDeleteDialog(view=self.itsView,
                                           selectedCollection=selectedCollection,
                                           itemsAndStates=itemsAndStates,
-                                          originalAction=originalAction)            
-        if self.contents.isSelectionEmpty():
+                                          originalAction=originalAction)
+        selection = getattr(self, 'GetSelection', lambda : self.contents)()
+        if selection.isSelectionEmpty():
             self.selectionEmptiedAfterDelete (selectedCollection, oldIndex)
 
     def onDeleteEvent(self, event):
@@ -499,8 +500,9 @@ class FocusEventHandlers(Item):
             DeleteDialog.ShowDeleteDialog(view=self.itsView,
                                           selectedCollection=selectedCollection,
                                           itemsAndStates=readonly,
-                                          originalAction='delete')            
-        if self.contents.isSelectionEmpty():
+                                          originalAction='delete')
+        selection = getattr(self, 'GetSelection', lambda : self.contents)()
+        if selection.isSelectionEmpty():
             self.selectionEmptiedAfterDelete (selectedCollection, oldIndex)
 
                         

@@ -229,7 +229,7 @@ class CalendarSelection(schema.Annotation):
         """
 
         def ActualMethod(self, item):
-            if item.hasTrueAttributeValue(Calendar.EventStamp.occurrenceFor.name):
+            if isinstance(item, Calendar.Occurrence):
                 return method(self, item)
             else:
                 # call an identically named function in the outer
