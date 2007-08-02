@@ -92,6 +92,7 @@ class AETypeOverTextCtrl(wxRectangularChild):
                                      style=style, *args, **keys)
         self.staticControl = staticControl
         staticControl.Bind(wx.EVT_LEFT_UP, self.OnStaticClick)
+        self.Bind(wx.EVT_LEFT_UP, self.OnStaticClick)
         staticControl.Bind(wx.EVT_SIZE, self.OnSize)
 
         self.shownControl = staticControl
