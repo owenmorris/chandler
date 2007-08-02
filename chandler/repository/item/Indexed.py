@@ -286,15 +286,18 @@ class Indexed(object):
         if not done:
             _indexChanges[0] = done = True
 
+            def getChanges(uItem, attrName, indexName):
+                changes = indexChanges.get(uItem)
+                if changes is not None:
+                    changes = changes.get(attrName)
+                    if changes is not None:
+                        return changes.get(indexName)
+
             if 'superindex' in kwds:
                 uItem, attr, superName = kwds['superindex']
-                superChanges = indexChanges.get(uItem)
+                superChanges = getChanges(uItem, attr, superName)
                 if superChanges is not None:
-                    superChanges = superChanges.get(attr)
-                    if superChanges is not None:
-                        superChanges = superChanges.get(superName)
-                        if superChanges is not None:
-                            getattr(view[uItem], attr)._applyIndexChanges(view, indexChanges, superName, superChanges, deletes)
+                    getattr(view[uItem], attr)._applyIndexChanges(view, indexChanges, superName, superChanges, deletes)
 
             indexes = self._indexes
             if indexes is None:
@@ -330,6 +333,10 @@ class Indexed(object):
                             indexes = getattr(indexed, '_indexes', None)
                             if indexes and subName in indexes:
                                 index.addSubIndex(uItem, attr, subName)
+                                subChanges = getChanges(uItem, attr, subName)
+                                if subChanges is not None:
+                                    indexes[subName].validateIndex(False, False,
+                                                                   False)
 
             removals = []
             moves = []
@@ -354,6 +361,8 @@ class Indexed(object):
 
             index.removeKeys(removals)
             index.moveKeys(moves, Default, True)
+            if not index.isValid():
+                index.validateIndex(True, True, False)
 
     def _createIndex(self, indexType, **kwds):
 

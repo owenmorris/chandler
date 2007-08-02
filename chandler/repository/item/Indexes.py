@@ -131,7 +131,7 @@ class NumericIndex(Index):
                 self._ranges = RangeSet(kwds.pop('ranges'))
             self._descending = str(kwds.pop('descending', 'False')) == 'True'
 
-    def validateIndex(self, valid, insertMissing=False):
+    def validateIndex(self, valid, insertMissing=False, subIndexes=True):
 
         self.skipList.validate(valid)
 
@@ -416,14 +416,14 @@ class SortedIndex(DelegatingIndex):
         else:
             self._valueMap._reindex(self, key)
 
-    def validateIndex(self, valid, insertMissing=False):
+    def validateIndex(self, valid, insertMissing=False, subIndexes=True):
 
         if valid:
             superIndex = self.getSuperIndex()
             if not (superIndex is None or superIndex.isValid()):
                 return superIndex.validateIndex(valid)
 
-            self._index.validateIndex(valid)
+            self._index.validateIndex(valid, insertMissing, subIndexes)
             self._deferred = False
 
             deferredKeys = getattr(self, '_deferredKeys', None)
@@ -437,15 +437,17 @@ class SortedIndex(DelegatingIndex):
                 self.moveKeys(deferredKeys, None, insertMissing)
 
         elif not self._deferred:
-            self._index.validateIndex(valid)
+            self._index.validateIndex(valid, insertMissing, subIndexes)
             self._deferred = True
             self._deferredKeys = set()
 
-        if self._subIndexes:
+        if subIndexes and self._subIndexes:
             view = self._valueMap.itsView
             for uuid, attr, name in self._subIndexes:
                 indexed = getattr(view[uuid], attr)
-                index = indexed.getIndex(name).validateIndex(valid)
+                index = indexed.getIndex(name).validateIndex(valid,
+                                                             insertMissing,
+                                                             subIndexes)
 
     def insertKey(self, key, ignore=None, selected=False):
 
