@@ -1235,14 +1235,17 @@ class ViewEvent (BlockEvent):
 
 class NewItemEvent(ClassParameterizedEvent):
     """
-    Creates a new Item, adds it to a C{collection} and displays it properly.
+    Adds or creates a new Item, adds it to a C{collection} and displays it properly.
 
-    If the NewItemEvent implements the C{onNewItem} method it will be called to
-    create the item. This is handy if you want to use a dialog to get some
+    If the event's arguments dictionary contains an item with the key "item", that
+    will be used as the item to display.
+
+    Otherwise if the NewItemEvent implements the C{onNewItem} method it will be
+    called to create the item. This is handy if you want to use a dialog to get some
     information to create the item. If C{onNewItem} returns None, no Item will
     be created.
 
-    If you don't implement C{onNewItem} the C{classParameter} attribute
+    If you didn't implement C{onNewItem} the C{classParameter} attribute
     is used to determine what item to create. The attribute has a default
     value of C{MissingClass}; in this case in Item matching the ApplicationBar
     is created; e.g. if you're in Calendar View you'll get an Item that has

@@ -50,6 +50,12 @@ def makeMainEvents(parcel):
                         blockName = 'NewTask',
                         classParameter = osaf.pim.tasks.TaskStamp)
 
+    NewItemEvent.update(parcel, 'DisplayMailMessage',
+                        blockName = 'DisplayMailMessage',
+                        dispatchEnum = 'SendToBlockByName',
+                        dispatchToBlockName = 'MainView',
+                        collection = schema.ns("osaf.pim", repositoryView).outCollection)
+
     BlockEvent.template('ReminderTime',
                         dispatchEnum = 'SendToBlockByReference'
                         # destinatinBlockReference is assigned in makeMakeView
@@ -364,4 +370,3 @@ def makeMainEvents(parcel):
     BlockEvent.template('Plugin',
                         dispatchToBlockName = 'PluginsMenu',
                         commitAfterDispatch = True).install(parcel)
-

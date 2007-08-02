@@ -157,6 +157,34 @@ def promptUser(title, message, defaultValue=""):
 
     return value
 
+def promptUserAction(title, message,
+        okayTitle=wx.EmptyString, cancelTitle=wx.EmptyString):
+    """
+    Prompt the user to choose between two actions, as defined by
+    the two buttons in the dialog. No text entry is provided for.
+
+    @param title: The title string for the dialog
+    @type title: String
+    @param message:  A message prompting the user for input
+    @type message:  String
+    @param defaultValue:  A value to populate the text field with
+    @type defaultValue:  String
+    @param okayTitle: The title for the first button, selecting which
+        will return the value wx.ID_OK
+    @type okayTitle: String
+    @param cancelTitle: The title for the second button, selecting which
+        will return the value wx.ID_CANCEL
+    @type cancelTitle: String
+    """
+    win = promptUserDialog(title, message, None, size=(500,-1),
+        button1Title=okayTitle, button2Title=cancelTitle)
+    win.CenterOnScreen()
+    val = win.ShowModal()
+
+    win.Destroy()
+
+    return val
+
 def mailAccountError(view, message, account):
     # importing AccountPreferences imports osaf.sharing, but Util is loaded
     # by a sharing dependency, so to avoid import loops, only import
@@ -245,7 +273,8 @@ class MailAddressErrorDialog(MailErrorBaseDialog):
 class promptUserDialog(wx.Dialog):
     def __init__(self, title, message, value, isPassword=False,
      size=wx.DefaultSize, pos=wx.DefaultPosition,
-     style=wx.DEFAULT_DIALOG_STYLE):
+     style=wx.DEFAULT_DIALOG_STYLE,
+     button1Title=wx.EmptyString, button2Title=wx.EmptyString):
 
         # Instead of calling wx.Dialog.__init__ we precreate the dialog
         # so we can set an extra style that must be set before
@@ -262,18 +291,20 @@ class promptUserDialog(wx.Dialog):
         # Now continue with the normal construction of the dialog
         # contents
         sizer = wx.BoxSizer(wx.VERTICAL)
-        label = wx.StaticText(self, -1, message)
+        label = wx.StaticText(self, -1, message, size=[500,-1])
         sizer.Add(label, 0, wx.ALIGN_CENTER|wx.ALL, 5)
 
         box = wx.BoxSizer(wx.HORIZONTAL)
 
-        if isPassword:
-            text = wx.TextCtrl(self, -1, value, wx.DefaultPosition, [500,-1],
-             wx.TE_PASSWORD)
+        if value is not None:
+            if isPassword:
+                text = wx.TextCtrl(self, -1, value, wx.DefaultPosition, [500,-1],
+                 wx.TE_PASSWORD)
+            else:
+                text = wx.TextCtrl(self, -1, value, wx.DefaultPosition, [500,-1])
+            box.Add(text, 1, wx.ALIGN_CENTRE|wx.ALL, 5)
         else:
-            text = wx.TextCtrl(self, -1, value, wx.DefaultPosition, [500,-1])
-
-        box.Add(text, 1, wx.ALIGN_CENTRE|wx.ALL, 5)
+            text = None
 
         sizer.Add(box, 0, wx.GROW|wx.ALIGN_CENTER_VERTICAL|wx.ALL, 5)
 
@@ -282,11 +313,11 @@ class promptUserDialog(wx.Dialog):
 
         box = wx.BoxSizer(wx.HORIZONTAL)
 
-        btn = wx.Button(self, wx.ID_OK)
+        btn = wx.Button(self, wx.ID_OK, button1Title)
         btn.SetDefault()
         box.Add(btn, 0, wx.ALIGN_CENTRE|wx.ALL, 5)
 
-        btn = wx.Button(self, wx.ID_CANCEL)
+        btn = wx.Button(self, wx.ID_CANCEL, button2Title)
         box.Add(btn, 0, wx.ALIGN_CENTRE|wx.ALL, 5)
 
         sizer.Add(box, 0, wx.ALIGN_RIGHT|wx.ALIGN_CENTER_VERTICAL|wx.ALL, 5)
@@ -298,10 +329,14 @@ class promptUserDialog(wx.Dialog):
         # Store these, using attribute names that hopefully wont collide with
         # any wx attributes
         self.textControl = text
-        text.SetFocus()
+        if text is not None:
+            text.SetFocus()
 
     def GetValue(self):
-        return self.textControl.GetValue()
+        val = None
+        if self.textControl is not None:
+            val = self.textControl.GetValue()
+        return val
 
 
 class checkboxUserDialog(wx.Dialog):

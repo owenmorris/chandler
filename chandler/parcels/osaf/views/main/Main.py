@@ -80,27 +80,40 @@ class MainView(View):
         """
         Called when the SMTP Send generated an error.
         """
-        # These three strings are not yet referenced; adding them
-        # for the UI freeze
-        errorQuestion = _(u"Would you like to")
-        errorSendAgain = _(u"Send again")
-        errorEditMessage = _(u"Edit message")
-
         if mailMessage is not None:
-            if getattr(mailMessage.itsItem, "error", None) is None:
-                errorMessage = _(u"An unknown error has occurred")
-            else:
+            item = mailMessage.itsItem
+
+            # sender is the main view
+            error = getattr(item, "error", None)
+            if error is not None:
                 errorMessage = _(u"""Message Title: %(title)s
-Error: %(translatedErrorStrings)s""") % {
-                'title': mailMessage.itsItem.displayName,
-                'translatedErrorStrings': mailMessage.itsItem.error
-            }
+    Error: %(translatedErrorStrings)s""") % {
+                'title': item.displayName,
+                'translatedErrorStrings': error
+                }
+            else:
+                errorMessage = _(u"An unknown error has occurred")
+
+            from application.dialogs import Util
+            # add 'errorQuestion' to the bottom of the dialog, above the
+            # buttons after the i18n freeze is over (0.7.1).
+            errorQuestion = _(u"Would you like to")
+            result = Util.promptUserAction(
+                _(u''),
+                errorMessage,
+                okayTitle = _(u"Send again"),
+                cancelTitle = _(u"Edit message"))
+            if result == wx.ID_OK:
+                # User clicked 'send again' button
+                eventName =  "SendMail"
+            else:
+                eventName =  "DisplayMailMessage"
+            self.postEventByName(eventName, {'item': item})
 
             """
             Clear the status message.
             """
             self.setStatusMessage(u'')
-            self.displayMailError (errorMessage, account)
 
     def displaySMTPSendSuccess (self, mailMessage, account):
         """
@@ -149,7 +162,8 @@ Error: %(translatedErrorStrings)s""") % {
         return False
 
     def onNewItemEvent(self, event):
-        # Create a new Content Item
+        # See the declaration of the class NewItemEvent in Block.py for a
+        # description of the attributes and values.
 
         allCollection = schema.ns('osaf.pim', self).allCollection
         sidebar = Block.findBlockByName("Sidebar")
@@ -163,29 +177,36 @@ Error: %(translatedErrorStrings)s""") % {
         else:
             stampClass = MissingClass
 
-        # onNewItem method takes precedence of classParameter
-        onNewItemMethod = getattr(event, "onNewItem", None)
-        if onNewItemMethod is not None:
-            newItem = onNewItemMethod()
-            if newItem is None:
-                return
-        else:
-            # A classParameter of MissingClass stamps a Note with the sidebar's
-            # filterClass
+        # First check to see if arguments have an item, then
+        # try onNewItem method, finally create an item of type
+        # classParameter
+        newItem = event.arguments.get ("item", None)
 
-            if classParameter is MissingClass or stampClass is not MissingClass:
-                kindToCreate = pim.Note.getKind(self.itsView)
+        # no item was passed in, so create a new one
+        if newItem is None:
+            # onNewItem method takes precedence of classParameter
+            onNewItemMethod = getattr(event, "onNewItem", None)
+            if onNewItemMethod is not None:
+                newItem = onNewItemMethod()
+                if newItem is None:
+                    return
             else:
-                kindToCreate = classParameter.getKind(self.itsView)
+                # A classParameter of MissingClass stamps a Note with the sidebar's
+                # filterClass
 
-            newItem = kindToCreate.newItem(None, None)
+                if classParameter is MissingClass or stampClass is not MissingClass:
+                    kindToCreate = pim.Note.getKind(self.itsView)
+                else:
+                    kindToCreate = classParameter.getKind(self.itsView)
 
-            if stampClass is not MissingClass:
-                stampObject = stampClass(newItem)
-                stampObject.add()
-                stampObject.InitOutgoingAttributes()
-            else:
-                newItem.InitOutgoingAttributes ()
+                newItem = kindToCreate.newItem(None, None)
+
+                if stampClass is not MissingClass:
+                    stampObject = stampClass(newItem)
+                    stampObject.add()
+                    stampObject.InitOutgoingAttributes()
+                else:
+                    newItem.InitOutgoingAttributes ()
 
         collection = event.collection
         selectedCollection = self.getSidebarSelectedCollection()

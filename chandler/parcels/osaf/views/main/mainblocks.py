@@ -232,6 +232,7 @@ def makeMainView(parcel):
             main.ApplicationBarTask,
             main.ApplicationBarMail,
             main.ApplicationBarAll,
+            main.DisplayMailMessage,
             ],
         childBlocks = [
             main.MenuBar,

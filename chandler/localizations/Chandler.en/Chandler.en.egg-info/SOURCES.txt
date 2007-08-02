@@ -8,3 +8,4 @@ Chandler.en.egg-info/top_level.txt
 Chandler.en.egg-info/zip-safe
 Chandler.en.egg-info/locale/en/Chandler-en.mo
 Chandler.en.egg-info/locale/en/Chandler-en.po
+Chandler.en.egg-info/locale/en/Chandler.pot
