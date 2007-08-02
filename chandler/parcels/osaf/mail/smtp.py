@@ -18,6 +18,7 @@ import twisted.mail.smtp as smtp
 import twisted.internet.reactor as reactor
 import twisted.internet.defer as defer
 import twisted.internet.error as error
+import twisted.python.failure as failure
 from twisted.internet import threads
 from M2Crypto.SSL.Checker import WrongHost
 
@@ -255,20 +256,12 @@ class SMTPClient(object):
             # return here instead of seeing if the message should go in the queue
             if self.cancel:
                 return self._resetClient()
-            
+
             msg = self._getMailMessage(mailMessageUUID)
             mailStampOccurrence, masterMailStamp = getRecurrenceMailStamps(msg)
 
             if self.mailMessage is not None or not Globals.mailService.isOnline():
                 newMessage = masterMailStamp
-                # Commented out for Performance Improvement
-                # The UI Layer should handle all conflict logic
-                # before calling this module
-                #if hasConflicts(newMessage.itsItem):
-                #    # If the new message has a conflict display
-                #    # a warning to the user and do not
-                #    # add the message to the queue
-                #    return alertConflictError(newMessage, self.account)
 
                 try:
                     sending = (self.mailMessage.itsItem is newMessage.itsItem)
@@ -310,14 +303,6 @@ class SMTPClient(object):
 
             self.mailMessage = masterMailStamp
 
-            # Commented out for Performance Improvement
-            # The UI Layer should handle all conflict logic
-            # before calling this module
-            #if hasConflicts(self.mailMessage.itsItem):
-            #   # If the mail message has a conflict it
-            #   # will not be sent
-            #    return alertConflictError(self.mailMessage, self.account)
-
             setStatusMessage(constants.UPLOAD_START % \
                              {'accountName': self.account.displayName,
                               'subject': mailStampOccurrence.subject})
@@ -327,20 +312,21 @@ class SMTPClient(object):
             masterMailStamp.outgoingMessage()
 
             sender = masterMailStamp.getSender()
+
             # use the individual occurrence, not the master, bug 9499
             messageText = kindToMessageText(mailStampOccurrence)
 
         except Exception, e:
             if __debug__:
                 trace(e)
-            raise
+
+            return self._mailFailure(e)
 
         d = defer.Deferred()
         d.addCallback(self._mailSuccessCheck)
         d.addErrback(self._mailFailure)
 
         self._sendingMail(sender.emailAddress, self._getRcptTo(), messageText, d)
-
 
     def _testAccountSettings(self):
         if __debug__:
@@ -541,7 +527,8 @@ class SMTPClient(object):
         except:
             pass
 
-        exc = exc.value
+        if isinstance(exc, failure.Failure):
+            exc = exc.value
 
         displayed = self.displayedRecoverableSSLErrorDialog(exc, self.mailMessage)
 
@@ -715,11 +702,16 @@ class SMTPClient(object):
         """If there are messages send the next one in the Queue
            and we have not displayed the Add Certificate Dialog"""
 
+        self.view.refresh()
+
         size = len(self.account.messageQueue)
 
         if size:
             for i in xrange(0, size):
                 item = self.account.messageQueue.pop()
+                # Commit the popping of a MailStamped Item
+                # from the queue
+                self.view.commit()
 
                 if item is not None and item.isLive():
                     mUUID = item.itsUUID

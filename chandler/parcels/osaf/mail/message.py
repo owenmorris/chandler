@@ -846,7 +846,7 @@ def getPeers(mailStamp):
         associatedAddresses = set()
         addressMapping = {}
 
-        for state in shared.peerStates:
+        for state in getattr(shared, "peerStates", []):
             peerUUID = shared.peerStates.getAlias(state)
             peer = view.findUUID(peerUUID)
 
