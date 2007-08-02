@@ -26,6 +26,7 @@ typedef struct {
     PyObject *allNames;
     PyObject *inheritedAttributes;
     PyObject *notFoundAttributes;
+    PyObject *allCorrelations;
 } t_kind;
 
 enum {

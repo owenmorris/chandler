@@ -59,6 +59,8 @@ static PyMemberDef t_kind_members[] = {
       "" },
     { "notFoundAttributes", T_OBJECT, offsetof(t_kind, notFoundAttributes), 0,
       "" },
+    { "allCorrelations", T_OBJECT, offsetof(t_kind, allCorrelations), 0,
+      "" },
     { NULL, 0, 0, 0, NULL }
 };
 
@@ -157,6 +159,7 @@ static int t_kind_traverse(t_kind *self, visitproc visit, void *arg)
     Py_VISIT(self->allNames);
     Py_VISIT(self->inheritedAttributes);
     Py_VISIT(self->notFoundAttributes);
+    Py_VISIT(self->allCorrelations);
 
     return 0;
 }
@@ -171,6 +174,7 @@ static int t_kind_clear(t_kind *self)
     Py_CLEAR(self->allNames);
     Py_CLEAR(self->inheritedAttributes);
     Py_CLEAR(self->notFoundAttributes);
+    Py_CLEAR(self->allCorrelations);
 
     return 0;
 }
@@ -190,6 +194,7 @@ static PyObject *t_kind_new(PyTypeObject *type, PyObject *args, PyObject *kwds)
         self->allNames = PyDict_New();
         self->inheritedAttributes = PyDict_New();
         self->notFoundAttributes = PyList_New(0);
+        self->allCorrelations = PyDict_New();
     }
 
     return (PyObject *) self;
