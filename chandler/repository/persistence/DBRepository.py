@@ -52,7 +52,6 @@ class DBRepository(OnDemandRepository):
         """
         Construct an DBRepository giving it a DB container pathname
         """
-        
         super(DBRepository, self).__init__(abspath(dbHome))
 
         self._openLock = None
@@ -383,11 +382,12 @@ class DBRepository(OnDemandRepository):
 
         if dbHome is None:
             dbHome = self.dbHome
+        elif isinstance(dbHome, unicode):
+            dbHome = dbHome.encode(sys.getfilesystemencoding())
 
         rev = 1
         while True:
             path = "%s.%03d" %(dbHome, rev)
-            path = path.encode(sys.getfilesystemencoding())
             if exists(path):
                 rev += 1
             else:
@@ -472,6 +472,9 @@ class DBRepository(OnDemandRepository):
         return dbHome
 
     def restore(self, srcHome, datadir=None, logdir=None):
+
+        if isinstance(srcHome, unicode):
+            srcHome = srcHome.encode(sys.getfilesystemencoding())
 
         if exists(srcHome):
             dbHome = self.dbHome

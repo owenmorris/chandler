@@ -38,6 +38,9 @@ class Repository(CRepository):
 
         super(Repository, self).__init__()
 
+        if isinstance(dbHome, unicode):
+            dbHome = dbHome.encode(sys.getfilesystemencoding())
+
         self.dbHome = dbHome
         self._threaded = threading.local()
         self._openViews = []
