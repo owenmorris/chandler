@@ -1250,29 +1250,34 @@ class EventStamp(Stamp):
             start = self.effectiveStartTime
 
         def iterRecurrenceIDs():
+            # iterate over the ruleset just once, or iteration will be O(n^2)
+            ruleset_iterator = iter(ruleset)
+            def next_in_ruleset():
+                try:
+                    return ruleset_iterator.next()
+                except StopIteration:
+                    return None
+
+            current = next_in_ruleset()
             if after is not None:
+                # prep ruleset_iterator, move its position to after
+                prep_start = min(after, start) if not exact else after
+                while current is not None and current < prep_start:
+                    current = next_in_ruleset()
                 if (exact or (inclusive and (after <= start))):
-                    if after in ruleset:
+                    if after == current:
                         yield after
+                        if not exact:
+                            current = next_in_ruleset()
 
             if not exact:
-                if after is not None:
-                    current = ruleset.after(start)
-                    #print '*** ruleset.after() --> setting current=%s' % (current,)
-                else:
-                    try:
-                        current = iter(ruleset).next()
-                        #print '*** iter(ruleset).next() setting current=%s' % (current,)
-                    except StopIteration:
-                        current = None
-
                 while ((current is not None) and
                        (before is None or current < before)):
                     #print '*** yielding current=%s' % (current,)
                     yield current
-                    current = ruleset.after(current)
+                    current = next_in_ruleset()
 
-                if inclusive and (before is not None) and (before in ruleset):
+                if inclusive and (before is not None) and (current == before):
                     yield before
 
         for recurrenceID in iterRecurrenceIDs():
