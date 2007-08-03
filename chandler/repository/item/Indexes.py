@@ -697,7 +697,11 @@ class SortedIndex(DelegatingIndex):
             if (subIndexes is None or
                 (item.itsUUID, attribute, name) not in subIndexes):
                 logger.error("%s superindex (%s, %s, %s) of %s index (%s, %s, %s) has no subindex entry for it'", index.getIndexType(), superItem._repr_(), attr, superName, self.getIndexType(), item._repr_(), attribute, name)
-                return False
+                if repair:
+                    logger.warning("Adding index (%s, %s, %s) to (%s, %s, %s)'s subindexes", item._repr_(), attribute, name, superItem._repr_(), attr, superName)
+                    index.addSubIndex(item.itsUUID, attribute, name)
+                else:
+                    return False
 
             reasons = set()
             if not self._valueMap.isSubset(superValue, reasons):
