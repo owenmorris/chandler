@@ -20,8 +20,7 @@ Mail Domain (SMTP, IMAP4, POP3) and message parsing
 
 #python imports
 import email.Utils as Utils
-import os
-import logging
+import os, logging, time, random
 from time import mktime
 from datetime import datetime
 import sys
@@ -198,13 +197,22 @@ def createMessageID():
 
     @return: String containing the unique message id
     """
+    timeval = time.time()
+    utcdate = time.strftime('%Y%m%d%H%M%S', time.gmtime(timeval))
+    pid = os.getpid()
+
+    randint = random.randrange(100000)
+
     # The twisted.mail.smtp module
     # contains a cached DNS name. There
     # is a large performance increase in
     # not looking up this value each time a
     # messageID is created.
-    return "%s@%s" % (UUID().str16(), smtp.DNSNAME)
+    idhost = smtp.DNSNAME
 
+    msgid = '<%s.%s.%s@%s>' % (utcdate, pid, randint, idhost)
+
+    return msgid
 
 def hasValue(value):
     """
