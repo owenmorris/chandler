@@ -1252,7 +1252,7 @@ class SharingTranslator(eim.Translator):
         start, allDay, anyTime = getTimeValues(self.rv, record)
 
         uuid, recurrenceID = splitUUID(self.rv, record.uuid)
-        if recurrenceID and start in emptyValues:
+        if recurrenceID and start == eim.Inherit:
             start = recurrenceID
 
         if (self.promptForTimezoneAllowed and start not in emptyValues
