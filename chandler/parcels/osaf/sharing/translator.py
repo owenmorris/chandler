@@ -364,7 +364,7 @@ class SharingTranslator(eim.Translator):
 
         # Resolve item record conflicts:
         if cls is model.ItemRecord:
-            if field.name == 'createdOn':
+            if field.name in ('createdOn', 'hasBeenSent', 'read', 'needsReply'):
                 return -1 if internal else 1 # let the non-None value win
 
             elif field.name == 'triage':
@@ -380,13 +380,15 @@ class SharingTranslator(eim.Translator):
 
         # Resolve note record conflicts:
         if cls is model.NoteRecord:
-            if field.name == 'icalUid':
+            if field.name in ('icalUid', 'icalProperties', 'icalParameters',
+                'icalExtra'):
                 return -1 if internal else 1 # let the non-None value win
+
 
         # Resolve mail record conflicts:
         if cls is model.MailMessageRecord:
             if field.name in ('messageId', 'headers', 'dateSent', 'inReplyTo',
-                'references', 'hasBeenSent'):
+                'references'):
                 return -1 if internal else 1 # let the non-None value win
 
         return 0
