@@ -127,6 +127,12 @@ class Triageable(Remindable):
         to pop the item to the top of the Now section (again, only if force
         if the item already has section status).
         """
+        if (hasattr(self, 'proxiedItem') and
+            getattr(self.proxiedItem, 'inheritFrom', None) and
+            (not self.changing or self.changing.__name__ != 'CHANGE_THIS')):
+            # setTriageStatus on a proxy should do nothing, unless it's
+            # changing a single occurrence
+            return
         # Don't autotriage unless the flag says we should. (We keep going if we
         # also want to pop-to-now, though)
         if newStatus == 'auto' and not popToNow \

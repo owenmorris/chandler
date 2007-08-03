@@ -670,18 +670,6 @@ class RecurrenceProxy(UserChangeProxy):
             super(RecurrenceProxy, self).makeChanges()
         elif self.changing is not None:
             self.makeChanges()
-
-    def setTriageStatus(self, *args, **kwargs):
-        item = self.proxiedItem
-        if (not stamping.has_stamp(item, EventStamp) or
-            EventStamp(item).rruleset is None):
-            item.setTriageStatus(*args, **kwargs)
-        else:
-            # ignore setTriageStatus calls on recurrence proxies, the EventStamp
-            # change handlers will manage the state of triage status when
-            # changes are propagated, and setTriageStatus deletes attributes,
-            # which isn't currently handled by proxies, causing bug 10156
-            pass            
             
     def cancel(self):
         super(RecurrenceProxy, self).cancel()
