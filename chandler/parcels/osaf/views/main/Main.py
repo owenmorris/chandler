@@ -583,7 +583,7 @@ class MainView(View):
         MasterPassword.beforeBackup(self.itsView)
 
         dlg = wx.DirDialog(wx.GetApp().mainFrame, _(u'Backup Repository'),
-                           unicode(Utility.getDesktopDir()),
+                           unicode(Utility.getDesktopDir(), sys.getfilesystemencoding()),
                            wx.DD_DEFAULT_STYLE | wx.DD_NEW_DIR_BUTTON)
         if dlg.ShowModal() == wx.ID_OK:
             path = os.path.join(dlg.GetPath(), '__repository__')
@@ -617,7 +617,7 @@ class MainView(View):
                 break
 
         dlg = wx.DirDialog(app.mainFrame, _(u'Restore Repository'),
-                           unicode(path),
+                           unicode(path, sys.getfilesystemencoding()),
                            wx.DD_DEFAULT_STYLE | wx.DD_NEW_DIR_BUTTON)
         if dlg.ShowModal() == wx.ID_OK:
             path = dlg.GetPath()
@@ -627,7 +627,7 @@ class MainView(View):
 
         if path is not None:
             dlg = wx.MessageDialog(app.mainFrame,
-                                   _(u"Your current repository will be destructively replaced by the repository backup you're about to restart Chandler with: %s") %(path),
+                                   _(u"Your current repository will be destructively replaced by the repository backup you're about to restart Chandler with: %(repoPath)s") % {'repoPath': path},
                                    _(u"Confirm Restore"),
                                    (wx.YES_NO | wx.NO_DEFAULT |
                                     wx.ICON_EXCLAMATION))
@@ -1106,9 +1106,9 @@ class MainView(View):
             log = None
 
         if log in sidebar:
-            menuTitle = u'Show Sharing Activity'
+            menuTitle = _(u'Show Sharing Activity')
         else:
-            menuTitle = u'Add sharing activity log to Sidebar'
+            menuTitle = _(u'Add sharing activity log to Sidebar')
         event.arguments ['Text'] = menuTitle
         event.arguments ['Enable'] = True
 

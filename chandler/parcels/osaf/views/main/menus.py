@@ -618,8 +618,8 @@ def makeMainMenus(parcel):
                                 helpString = _(u'Restore previously published shares')),
                         ]), # Menu SaveRestoreMenu
                     Menu.template('RepositoryTestMenu',
-                        title=u'&Repository',
-                        helpString=u'Repository tools',
+                        title=_(u'&Repository'),
+                        helpString=_(u'Repository tools'),
                         childBlocks = [
                             MenuItem.template('CheckRepositoryItem',
                                 event = main.CheckRepository,
