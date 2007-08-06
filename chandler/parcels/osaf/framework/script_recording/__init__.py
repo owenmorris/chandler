@@ -13,15 +13,16 @@
 #   limitations under the License.
 
 
-import os, sys, wx, types
-from application import Utility, Globals, Parcel, schema
-from osaf.framework.blocks.Block import Block
+import os, sys, wx, types, traceback, sys
+from application import schema
 from osaf.framework.blocks import Block, BlockEvent, Table
-from osaf.framework.blocks.MenusAndToolbars import Menu, MenuItem, wxMenu, wxMenuItem, ToolBarItem
+from osaf.framework.blocks.MenusAndToolbars import Menu, MenuItem, ToolBarItem
 from i18n import ChandlerMessageFactory as _
 from application.Application import idToString
 from osaf.views.detail import DetailSynchronizedAttributeEditorBlock
-from osaf.framework.script_recording.Scripts import ScriptsMenu
+from osaf.framework.script_recording.Scripts import ScriptsMenu, runScript
+from tools.cats.framework import run_recorded
+from i18n import ChandlerMessageFactory as _
 
 wxEventClasseInfo = {wx.CommandEvent: {"attributes": ()},
                      wx.grid.GridEvent: {"attributes": ("Col",
@@ -72,7 +73,7 @@ wxEventTypes = ("wx.EVT_MENU",
                 "wx.EVT_CHECKBOX")
 
 ignoreBlocks = set (("RecordingMenuItem",
-                     "IncludeTeststMenuItem"))
+                     "ScriptVerificationMenuItem"))
 
 wxEventTypeReverseMapping = {}
 
@@ -118,16 +119,17 @@ class Controller (Block.Block):
     """
     Class to handle recording events
     """
-    includeTests = schema.One(schema.Boolean, initialValue=True)
-
+    verifyScripts = schema.One(schema.Boolean, initialValue=True)
+    
     def onToggleRecordingEvent (self, event):
         theApp = wx.GetApp()
 
         if self.FilterEvent not in theApp.filterEventCallables:
             self.script = "import wx, osaf" + os.linesep
-            self.script += "from " + __name__ + ".script_lib import ProcessEvent, VerifyOn" + os.linesep + os.linesep
+            self.script += "from " + __name__ + ".script_lib import ProcessEvent, InitializeScript" + os.linesep + os.linesep
             self.script += "def run():" + os.linesep
-            self.verifyOn = None
+            self.script += "    InitializeScript ()" + os.linesep
+
             if hasattr (self, "lastFocus"):
                 del self.lastFocus
 
@@ -139,6 +141,7 @@ class Controller (Block.Block):
 
             dialog = wx.FileDialog (None,
                                     message = _(u"Save script as ..."),
+                                    defaultDir = run_recorded.recorded_scripts_dir, 
                                     defaultFile = u"",
                                     wildcard = u"*.py",
                                     style = wx.SAVE|wx.CHANGE_DIR)
@@ -162,20 +165,22 @@ class Controller (Block.Block):
 
     def onToggleRecordingEventUpdateUI (self, event):
         if self.FilterEvent in wx.GetApp().filterEventCallables:
-            event.arguments['Text'] = _(u'Stop &recording')
+            event.arguments['Text'] = _(u'Stop &recording...')
         else:
-            event.arguments['Text'] = _(u'&Record script...')
+            event.arguments['Text'] = _(u'&Record script')
 
-    def onIncludeTestsEvent (self, event):
-        self.includeTests = not self.includeTests
+    def onScriptVerificationEvent (self, event):
+        #Change boolean in scripts folder to determine script completion notification message
+        self.verifyScripts  = not self.verifyScripts
 
-    def onIncludeTestsEventUpdateUI (self, event):
-        event.arguments['Check'] = self.includeTests
+    def onScriptVerificationEventUpdateUI (self, event):
+        event.arguments['Check'] = self.verifyScripts and __debug__
+        event.arguments['Enable'] = __debug__
 
-    def onPlayScriptEvent (self, event):
+    def onBrowseScriptEvent (self, event):
         dialog = wx.FileDialog (None,
                                 message = "Choose script",
-                                defaultDir = os.getcwd(), 
+                                defaultDir = run_recorded.recorded_scripts_dir, 
                                 defaultFile = "",
                                 wildcard = "*.py",
                                 style = wx.OPEN | wx.MULTIPLE | wx.CHANGE_DIR)
@@ -183,17 +188,12 @@ class Controller (Block.Block):
             paths = dialog.GetPaths()
             for path in paths:
                 (path, extension) = os.path.splitext (path)
+                
+                #split the filename out of the path
+                (path, filename) = os.path.split(path)
 
-                # Temporarily modify sys.path so we can load the script's module
-                sys.path.insert (0, os.path.dirname(path))
-                try:
-                    module = reload (__import__ (os.path.basename (path)))
-                finally:
-                    sys.path.pop(0)
-
-                runFunction = module.__dict__.get ("run")
-                runFunction()
-
+                #run the recorded script
+                runScript (filename)
         dialog.Destroy()
 
     def FilterEvent (self, event):
@@ -281,42 +281,41 @@ class Controller (Block.Block):
                                                valueToString (start) + "," +
                                                valueToString (end) + ')')
 
-                            if self.includeTests:
-                                focusWindow = wx.Window_FindFocus()
+                            focusWindow = wx.Window_FindFocus()
+                            
+                            if wx.Platform != "__WXMAC__":
+                                # On platforms other than mac the focus window is a wx.TextCtrl
+                                # whose parent is the wx.SearchCtrl
+                                parentWidget = focusWindow.GetParent()
+                                if isinstance (parentWidget, wx.SearchCtrl):
+                                    focusWindow = parentWidget
+
+                            if not hasattr (self, "lastFocus"):
+                                self.lastFocus = focusWindow
+                            if self.lastFocus != focusWindow:
                                 
-                                if wx.Platform != "__WXMAC__":
-                                    # On platforms other than mac the focus window is a wx.TextCtrl
-                                    # whose parent is the wx.SearchCtrl
-                                    parentWidget = focusWindow.GetParent()
-                                    if isinstance (parentWidget, wx.SearchCtrl):
-                                        focusWindow = parentWidget
+                                # Keep track of the focus window changes
+                                self.lastFocus = focusWindow
+                                
+                                # The newFocusWindow is either a blockName or a tupe of class, id
+                                newFocusWindow = widgetToName (focusWindow)
+                                if newFocusWindow == "__FocusWindow__" or type (newFocusWindow) is int:
+                                    values.append ("'newFocusWindow':" + str(focusWindow.GetId()))
+                                else:
+                                    values.append ("'newFocusWindow':" + valueToString (newFocusWindow))
+                                values.append ("'newFocusWindowClass':" + getClassName (focusWindow.__class__))
 
-                                if not hasattr (self, "lastFocus"):
-                                    self.lastFocus = focusWindow
-                                if self.lastFocus != focusWindow:
-                                    
-                                    # Keep track of the focus window changes
-                                    self.lastFocus = focusWindow
-                                    
-                                    # The newFocusWindow is either a blockName or a tupe of class, id
-                                    newFocusWindow = widgetToName (focusWindow)
-                                    if newFocusWindow == "__FocusWindow__" or type (newFocusWindow) is int:
-                                        values.append ("'newFocusWindow':" + str(focusWindow.GetId()))
-                                    else:
-                                        values.append ("'newFocusWindow':" + valueToString (newFocusWindow))
-                                    values.append ("'newFocusWindowClass':" + getClassName (focusWindow.__class__))
-
-                                #  Record the state of the last widget so we can check that the state is the same
-                                # afer the event is played back
-                                lastSentToWidget = getattr (self, "lastSentToWidget", None)
-                                if lastSentToWidget is not None and not isinstance (lastSentToWidget, wx._core._wxPyDeadObject):
-                                    method = getattr (lastSentToWidget, "GetValue", None)
-                                    if method is not None:
-                                        values.append ("'lastWidgetValue':" + valueToString (method()))
-                                    
-                                # Keep track of the last widget so we can record the change in Value and
-                                # verify it during playbeck.
-                                self.lastSentToWidget = sentToWidget
+                            #  Record the state of the last widget so we can check that the state is the same
+                            # afer the event is played back
+                            lastSentToWidget = getattr (self, "lastSentToWidget", None)
+                            if lastSentToWidget is not None and not isinstance (lastSentToWidget, wx._core._wxPyDeadObject):
+                                method = getattr (lastSentToWidget, "GetValue", None)
+                                if method is not None:
+                                    values.append ("'lastWidgetValue':" + valueToString (method()))
+                                
+                            # Keep track of the last widget so we can record the change in Value and
+                            # verify it during playbeck.
+                            self.lastSentToWidget = sentToWidget
  
                             properties = "{" + ", ".join (values) + "}"
 
@@ -327,12 +326,6 @@ class Controller (Block.Block):
                                 if value != defaultValue:
                                     values.append ("'%s':%s" % (attribute, valueToString (value)))
                             attributes = "{" + ", ".join (values) + "}"
-                            if self.verifyOn is not self.includeTests:
-                                self.script += "    VerifyOn ("
-                                if not self.includeTests:
-                                    self.script += "False"
-                                self.script += ")" + os.linesep
-                                self.verifyOn = self.includeTests
 
                             self.script += ("    ProcessEvent (%s, %s, %s)%s" % (classInfo ["className"],
                                                                                  properties ,
@@ -342,19 +335,13 @@ class Controller (Block.Block):
                     #else:
                         #print "unnamed block with id", sentToName, sentToWidget
 
-
 def installParcel(parcel, old_version=None):
     main = schema.ns('osaf.views.main', parcel.itsView)
     controller = Controller.update(
         parcel, 'RecordingController',
         blockName = 'RecordingController')
 
-    scriptingMenu = Menu.update(
-        parcel, 'ScriptingMenuItem',
-        blockName = 'ScriptingMenuItem',
-        title = _(u'Scriptin&g'),
-        childrenBlocks = ['ScriptMenut'],
-        parentBlock = main.ToolsMenu)
+    #Define the block events for use with the menu items to be created.
 
     # Add menu and event to record scripts
     ToggleRecording = BlockEvent.update(
@@ -363,61 +350,55 @@ def installParcel(parcel, old_version=None):
         dispatchEnum = 'SendToBlockByReference',
         destinationBlockReference = controller)
 
-    MenuItem.update(
-        parcel, 'RecordingMenuItem',
-        blockName = 'RecordingMenuItem',
-        title = _(u'&Record script'), # see onToggleRecordingEventUpdateUI
-        helpString = _(u'Record commands in Chandler'),
-        event = ToggleRecording,
-        eventsForNamedLookup = [ToggleRecording],
-        parentBlock = scriptingMenu)
-
     # Add menu and event to include testing in script
-    IncludeTests = BlockEvent.update(
-        parcel, 'IncludeTests',
-        blockName = 'IncludeTests',
+    ScriptVerification = BlockEvent.update(
+        parcel, 'ScriptVerification',
+        blockName = 'ScriptVerification',
         dispatchEnum = 'SendToBlockByReference',
         destinationBlockReference = controller)
-
-    MenuItem.update(
-        parcel, 'IncludeTestsMenuItem',
-        menuItemKind = 'Check',
-        blockName = 'IncludeTeststMenuItem',
-        title = _(u'I&nclude tests in script'),
-        helpString = _(u"Includes code in the script to verify that the UI's data matches the state when the script was recorded"),
-        event = IncludeTests,
-        eventsForNamedLookup = [IncludeTests],
-        parentBlock = scriptingMenu)
     
-    ##create a block event that will be used for the dynamic menu system
-    Scripta = BlockEvent.template('Scripta',
+    # Create a block event that will be used for the dynamic play script menu system
+    PlayableSripts = BlockEvent.template('PlayableSripts',
                     dispatchToBlockName = 'ScriptMenu',
                     commitAfterDispatch = True).install(parcel)    
     
-    ##Create the block for the dynamic menu
-    ScriptMenu = ScriptsMenu.update(
-        parcel, 'ScriptMenu',
-        blockName = 'ScriptMenu',
-        title = _(u'R&un Script'),
-        event = Scripta,
-        childrenBlocks = [],
-        parentBlock = scriptingMenu)    
-
-    # Add menu and event to play a recording
+    # Add event to play a recording
     #create the block event that will handle the event raised by open script menu item
-    PlayScript = BlockEvent.update(
-        parcel, 'PlayScript',
-        blockName = 'PlayScript',
+    BrowseScript = BlockEvent.update(
+        parcel, 'BrowseScript',
+        blockName = 'BrowseScript',
         dispatchEnum = 'SendToBlockByReference',
         destinationBlockReference = controller)
-
-    #create the menu item script and link it to the event
-    MenuItem.update(
-        parcel, 'PlayScriptMenuItem',
-        blockName = 'PlayScriptMenuItem',
-        title = _(u'&Open script...'),
-        helpString = _(u'Playback a script you recorded'),
-        event = PlayScript,
-        eventsForNamedLookup = [PlayScript],
-        parentBlock = ScriptMenu)
-        
+    
+    Menu.template(
+        'ScriptingMenuItem',
+        title = _(u'Scriptin&g'),
+        childBlocks = [
+            MenuItem.template(
+                'RecordingMenuItem',
+                title = _(u'&Record script'), # see onToggleRecordingEventUpdateUI
+                helpString = _(u'Record commands in Chandler'),
+                event = ToggleRecording),
+            MenuItem.template(
+                'ScriptVerificationMenuItem',
+                title = _(u'&Verify script'),
+                helpString = _(u"When scripts run, verification ensure that the UI's data matches the state when the script was recorded"),
+                menuItemKind = 'Check',
+                event = ScriptVerification),
+            
+            # Create the block for the dynamic menu
+            # Add a dynamic menu to display the playable scripts
+            ScriptsMenu.template(
+                'ScriptMenu',
+                title = _(u'Run &Script'),
+                event = PlayableSripts,
+                childBlocks = [
+                    # Add a menu item that allows user to browse for a specific playable script
+                    MenuItem.template(
+                        'PlayScriptMenuItem',
+                        title = _(u'&Browse...'),
+                        helpString = _(u'Open a script you recorded to play'),
+                        event = BrowseScript)
+                ])
+            ],
+        parentBlock = main.ToolsMenu).install(parcel)

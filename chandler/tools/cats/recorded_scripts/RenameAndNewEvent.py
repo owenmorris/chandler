@@ -1,8 +1,8 @@
 import wx, osaf
-from osaf.framework.script_recording.script_lib import ProcessEvent, VerifyOn
+from osaf.framework.script_recording.script_lib import ProcessEvent, InitializeScript
 
 def run():
-    VerifyOn ()
+    InitializeScript ()
     ProcessEvent (wx.MouseEvent, {'eventType':wx.EVT_LEFT_DOWN, 'sentTo':'Sidebar'}, {'m_leftDown':True, 'm_x':65, 'm_y':14})
     ProcessEvent (wx.MouseEvent, {'eventType':wx.EVT_LEFT_UP, 'sentTo':'Sidebar', 'newFocusWindow':-218, 'newFocusWindowClass':wx.Window}, {'m_x':65, 'm_y':14})    
     ProcessEvent (wx.MouseEvent, {'associatedBlock':'SidebarContainer', 'eventType':wx.EVT_LEFT_DOWN, 'sentTo':'SidebarContainer'}, {'m_leftDown':True, 'm_x':81, 'm_y':171})

@@ -28,15 +28,8 @@ logger = logging.getLogger(__name__)
 class wxPluginMenu(wxMenu):
 
     def ItemsAreSame(self, old, new):
+        return self.TextItemsAreSame(old, new)
 
-        if new is None or isinstance(new, wx.MenuItem):
-            return super(wxPluginMenu, self).ItemsAreSame(old, new)
-
-        if new == '__separator__':
-            return old is not None and old.IsSeparator()
-        else:
-            return old is not None and old.GetText() == new
-    
     def GetNewItems(self):
 
         newItems = super(wxPluginMenu, self).GetNewItems()
@@ -51,12 +44,9 @@ class wxPluginMenu(wxMenu):
 
         if not isinstance(item, wx.MenuItem):
             if item == '__separator__':
-                item = wx.MenuItem(self, id=wx.ID_SEPARATOR,
-                                   kind=wx.ID_SEPARATOR)
+                item = wx.MenuItem(self, id=wx.ID_SEPARATOR, kind=wx.ID_SEPARATOR)
             else:
-                block = Block.findBlockByName("PluginsMenu")
-                id = block.getWidgetID()
-                item = wx.MenuItem(self, id=id, text=item, kind=wx.ITEM_CHECK)
+                item = wx.MenuItem(self, id=self.blockItem.getWidgetID(), text=item, kind=wx.ITEM_CHECK)
 
         super(wxPluginMenu, self).InsertItem(position, item)
 
@@ -185,15 +175,14 @@ class PluginMenu(Menu):
     def onPluginEventUpdateUI(self, event):
 
         arguments = event.arguments
-        widget = self.widget
-        subMenu = widget.GetSubMenu()
+        subMenu = self.widget.GetSubMenu()
         menuItem = subMenu.FindItemById(arguments["wxEvent"].GetId())
 
         if isinstance(menuItem, wx.MenuItem):
             value = subMenu.pluginPrefs.get(menuItem.GetText(), 'active')
             arguments['Check'] = value == 'active'
             
-            # Delete default text since.
+            # Delete default text otherwise the incorrect menu text will be displayed
             del arguments['Text']
 
     def activatePlugin(self, project_name, plugin_env):
@@ -284,14 +273,8 @@ class PluginMenu(Menu):
 class wxDemoMenu(wxMenu):
 
     def ItemsAreSame(self, old, new):
+        return self.TextItemsAreSame(old, new)
 
-        if new is None or isinstance(new, wx.MenuItem):
-            return super(wxDemoMenu, self).ItemsAreSame(old, new)
-
-        if new == '__separator__':
-            return old is not None and old.IsSeparator()
-        else:
-            return old is not None and old.GetText() == new
     
     def GetNewItems(self):
 
@@ -305,8 +288,7 @@ class wxDemoMenu(wxMenu):
 
         if not isinstance(item, wx.MenuItem):
             if item == '__separator__':
-                item = wx.MenuItem(self, id=wx.ID_SEPARATOR,
-                                   kind=wx.ID_SEPARATOR)
+                item = wx.MenuItem(self, id=wx.ID_SEPARATOR, kind=wx.ID_SEPARATOR)
 
         super(wxDemoMenu, self).InsertItem(position, item)
 

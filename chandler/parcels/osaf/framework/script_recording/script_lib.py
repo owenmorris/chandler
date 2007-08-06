@@ -16,6 +16,7 @@ import wx
 from osaf.framework.blocks.Block import Block
 from application.Application import stringToId
 from osaf.framework.attributeEditors.AETypeOverTextCtrl import AETypeOverTextCtrl
+from application import schema
 
 def ProcessEvent (theClass, properties, attributes):
     def NameToWidget (name):
@@ -117,8 +118,8 @@ def ProcessEvent (theClass, properties, attributes):
     if eventType is wx.EVT_KEY_DOWN:
         ProcessEvent.last_rawCode = event.m_rawCode
 
-    # Do validations
-    if ProcessEvent.verifyOn:
+    # Verify script if necessary
+    if schema.ns('osaf.framework.script_recording', application.UIRepositoryView).RecordingController.verifyScripts:
         # Make sure the menu or button is enabled
         if eventType is wx.EVT_MENU:
             updateUIEvent = wx.UpdateUIEvent (event.GetId())
@@ -188,7 +189,7 @@ def ProcessEvent (theClass, properties, attributes):
 
         # Keep track of the last widget. Use Id because widget can be deleted
         ProcessEvent.lastSentToWidget = sentToWidget
-        
+
     if not sentToWidget.ProcessEvent (event):
         if (eventType is wx.EVT_KEY_DOWN and
             event.m_keyCode in set ((wx.WXK_ESCAPE, wx.WXK_TAB, wx.WXK_RETURN, wx.WXK_NUMPAD_ENTER))):
@@ -243,8 +244,6 @@ def ProcessEvent (theClass, properties, attributes):
         else:
             break
     
-def VerifyOn (verify = True):
-    ProcessEvent.verifyOn = verify
+def InitializeScript ():
     ProcessEvent.lastSentToWidget = None
     ProcessEvent.newFocusWindow = None
-

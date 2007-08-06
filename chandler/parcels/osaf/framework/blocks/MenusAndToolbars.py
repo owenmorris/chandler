@@ -257,7 +257,17 @@ class wxMenu (wxBaseContainer, wx.Menu):
     
     def InsertItem (self, position, item):
         super (wxMenu, self).InsertItem (position, item)
-    
+
+    def TextItemsAreSame(self, old, new):
+        if new is None or isinstance(new, wx.MenuItem):
+            return super(wxMenu, self).ItemsAreSame(old, new)
+  
+        if new == '__separator__':
+            return old is not None and old.IsSeparator()
+        else:
+            return old is not None and old.GetText() == new
+  
+
 class wxMenuBar (wxBaseContainer, wx.MenuBar):
     def wxSynchronizeWidget(self):
         changed = super (wxMenuBar, self).wxSynchronizeWidget()

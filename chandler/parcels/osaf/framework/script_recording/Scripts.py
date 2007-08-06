@@ -1,53 +1,65 @@
-import os, pkg_resources, wx, webbrowser, logging
+#   Copyright (c) 2003-2007 Open Source Applications Foundation
+#
+#   Licensed under the Apache License, Version 2.0 (the "License");
+#   you may not use this file except in compliance with the License.
+#   You may obtain a copy of the License at
+#
+#       http://www.apache.org/licenses/LICENSE-2.0
+#
+#   Unless required by applicable law or agreed to in writing, software
+#   distributed under the License is distributed on an "AS IS" BASIS,
+#   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+#   See the License for the specific language governing permissions and
+#   limitations under the License.
 
-from application import Utility, Globals, Parcel, schema
+import wx, logging, sys
 from osaf.framework.blocks import Menu
 from osaf.framework.blocks.MenusAndToolbars import wxMenu, wxMenuItem
-from osaf.framework.blocks.Block import Block
-from repository.schema.Kind import Kind
-from i18n import ChandlerMessageFactory as _
+from application import schema
 from tools.cats.framework import run_recorded
+from i18n import ChandlerMessageFactory as _
 
 logger = logging.getLogger(__name__)
 
-class wxScriptsMenu(wxMenu):
-
-    def ItemsAreSame(self, old, new):
-
-        if new is None or isinstance(new, wx.MenuItem):
-            return super(wxScriptsMenu, self).ItemsAreSame(old, new)
-
-        if new == '__separator__':
-            return old is not None and old.IsSeparator()
-        else:
-            return old is not None and old.GetText() == new
+#determines whether to display a final prompt when running a script
+displayTestResults = True
+        
+def runScript (name):
+    if (not run_recorded.run_test_by_name (name, test_modules=run_recorded.get_test_modules (observe_exclusions=False)) and
+        schema.ns('osaf.framework.script_recording', wx.GetApp().UIRepositoryView).RecordingController.verifyScripts):
     
+        #display the results of the script just ran to the user if "Check Results" is On
+        testResults = unicode("".join(run_recorded.last_format_exception), "utf8", "ignore")
+        wx.MessageBox(_(u"The script did not complete because a error was found during verification.\n\n%(testResults)s") % {'testResults': testResults},
+                      _(u"Script Error"), wx.OK)
+
+
+class wxScriptsMenu(wxMenu):
+    
+    def ItemsAreSame(self, old, new):
+        return self.TextItemsAreSame(old, new)
+
     def GetNewItems(self):
-        
-        #open up the directory where script files exist
-        files = run_recorded.get_test_modules(observe_exclusions=False)
-        
+                
         #create the newItems item
-        newItems = super(wxScriptsMenu, self).GetNewItems()
+        newItems = super(wxMenu, self).GetNewItems()
         
-        if files: 
+        dynamicItems = sorted (run_recorded.get_test_modules(observe_exclusions=False))
+        if dynamicItems: 
             newItems.append('__separator__')
-            newItems.extend(files)
-
+            newItems.extend(dynamicItems)
+  
         return newItems
-
+  
     def InsertItem(self, position, item):
-
+  
         if not isinstance(item, wx.MenuItem):
             if item == '__separator__':
-                item = wx.MenuItem(self, id=wx.ID_SEPARATOR,
-                                   kind=wx.ID_SEPARATOR)
+                item = wx.MenuItem(self, id=wx.ID_SEPARATOR, kind=wx.ID_SEPARATOR)
             else:
-                block = Block.findBlockByName("ScriptMenu")
-                id = block.getWidgetID()
-                item = wx.MenuItem(self, id=id, text=item, kind=wx.ITEM_NORMAL)
-
-        super(wxScriptsMenu, self).InsertItem(position, item)
+                item = wx.MenuItem(self, id=self.blockItem.getWidgetID(), text=item, kind=wx.ITEM_NORMAL)
+  
+        super(wxMenu, self).InsertItem(position, item)
         
 class ScriptsMenu(Menu):
 
@@ -60,27 +72,20 @@ class ScriptsMenu(Menu):
         # will use the assume the id is for a stock menuItem and will fail
         return wxMenuItem(None, id=self.getWidgetID(), text=" ", subMenu=menu)
     
-    def onScriptaEvent(self, event):
+    def onPlayableSriptsEvent(self, event):
         
-        #grab the block representing the statusbar to clear it's text
-        msg = ''
-        statusBar = Block.findBlockByName('StatusBar')
-        statusBar.setStatusMessage(msg)
-        
-        ##retrieve the selected item's name so script can be ran
+        #retrieve the selected item's name so script can be ran
         subMenu = self.widget.GetSubMenu()
         menuItem = subMenu.FindItemById(event.arguments["wxEvent"].GetId())
-        name = menuItem.GetText()
+        runScript (menuItem.GetText())
+
+    def onPlayableSriptsEventUpdateUI(self, event):	
         
-        ##run the recorded script
-        run_recorded.run_test_by_name(name, test_modules=run_recorded.get_test_modules(observe_exclusions=False))        
-        
-    def onScriptaEventUpdateUI(self, event):
+        self.synchronizeWidget()
         arguments = event.arguments
-        widget = self.widget
-        subMenu = widget.GetSubMenu()
-        menuItem = subMenu.FindItemById(arguments["wxEvent"].GetId())
+        menuItem = self.widget.GetSubMenu().FindItemById(arguments["wxEvent"].GetId())
 
         if isinstance(menuItem, wx.MenuItem):
-            # Delete default text since.
+            # Delete default text otherwise the incorrect menu text will be displayed
             del arguments['Text']
+

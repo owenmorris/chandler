@@ -12,13 +12,14 @@
 #   See the License for the specific language governing permissions and
 #   limitations under the License.
 
-import sys, wx
+import sys, wx, traceback
 import os
 import logging
 from application import Globals
 from datetime import datetime
 from osaf.framework.blocks.Block import Block
 from tools.cats.framework.TestOutput import _inSeconds 
+from application.Application import Globals
 
 logger = logging.getLogger('recorded_test_framework')
 
@@ -27,7 +28,7 @@ recorded_scripts_dir = os.path.abspath(os.path.join(
                                                 os.path.pardir, 
                                                 'recorded_scripts'))
 
-
+last_format_exception = None
 
 def get_test_modules(observe_exclusions=True):
     test_modules = {}       
@@ -55,9 +56,12 @@ def get_test_modules(observe_exclusions=True):
 
 test_modules = get_test_modules()
 
-
 def run_test_by_name(name, test_modules=test_modules):
+    global last_format_exception
+
+    last_format_exception = ""
     logger.info('Starting Test:: %s' % name)
+
     if not test_modules.has_key(name):
         logger.error('Test dictionary does not have test named %s' % name)
         return False
@@ -72,24 +76,36 @@ def run_test_by_name(name, test_modules=test_modules):
                 dependency()
                 recorded_test_lib.executed_dependencies.append(dependency.__name__)
                 logger.info('executed dependency %s' % dependency.__name__)
+
             except AssertionError, e:
                 logger.exception('executing dependency "%s" has failed' % dependency.__name__)
+                last_format_exception = traceback.format_exception(*sys.exc_info())
                 return False
+
             except Exception, e:
                 logger.exception('executing dependency "%s" has failed due to traceback' % dependency.__name__)
+                last_format_exception = traceback.format_exception(*sys.exc_info())
                 return False
     
-    # Run the callable
-    try:
+    if Globals.options.catch == "never":
         test_modules[name].run()
-        logger.info('Test %s has passed' % name)
-    except AssertionError, e:
-        logger.exception('Test "%s" has failed' % name)
-        return False
-    except Exception, e:
-        logger.exception('Test "%s" has failed due to traceback' % name)
-        return False
+    
+    else:
+        # Run the callable
+        try:
+            test_modules[name].run()
+    
+        except AssertionError, e:
+            logger.exception('Test "%s" has failed' % name)
+            last_format_exception = traceback.format_exception(*sys.exc_info())
+            return False
+        
+        except Exception, e:
+            logger.exception('Test "%s" has failed due to traceback' % name)
+            last_format_exception = traceback.format_exception(*sys.exc_info())
+            return False
 
+    logger.info('Test %s has passed' % name)
     return True
 
 def execute_frame(option_value):

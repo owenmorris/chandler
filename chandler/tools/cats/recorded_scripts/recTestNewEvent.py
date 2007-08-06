@@ -1,11 +1,11 @@
 import wx, osaf
-from osaf.framework.script_recording.script_lib import ProcessEvent, VerifyOn
+from osaf.framework.script_recording.script_lib import ProcessEvent, InitializeScript
 
 def run():
     #ignore this test on windows because it catches Bug#9061: beep when title too long in lozenges (ws Need a different set of flags for the lozenge editor)
     if wx.Platform == '__WXMSW__':
         return
-    VerifyOn ()
+    InitializeScript ()
     ProcessEvent (wx.MouseEvent, {'associatedBlock':'SidebarContainer', 'eventType':wx.EVT_LEFT_DOWN, 'sentTo':'SidebarContainer'}, {'m_leftDown':True, 'm_x':81, 'm_y':171})
     ProcessEvent (wx.MouseEvent, {'associatedBlock':'SidebarContainer', 'eventType':wx.EVT_LEFT_UP, 'sentTo':'SidebarContainer'}, {'m_x':80, 'm_y':338})
     ProcessEvent (wx.CommandEvent, {'associatedBlock':'ApplicationBarEventButton', 'eventType':wx.EVT_MENU, 'sentTo':'ApplicationBar'}, {})

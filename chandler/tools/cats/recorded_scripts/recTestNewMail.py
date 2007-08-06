@@ -1,8 +1,8 @@
 import wx, osaf
-from osaf.framework.script_recording.script_lib import ProcessEvent, VerifyOn
+from osaf.framework.script_recording.script_lib import ProcessEvent, InitializeScript
 
 def run():
-    VerifyOn ()
+    InitializeScript ()
     ProcessEvent (wx.CommandEvent, {'associatedBlock':'NewCollectionItem', 'eventType':wx.EVT_MENU, 'sentTo':'MainFrame'}, {})
     ProcessEvent (wx.KeyEvent, {'eventType':wx.EVT_KEY_DOWN, 'sentTo':'__FocusWindow__', 'newFocusWindow':-309, 'newFocusWindowClass':osaf.framework.attributeEditors.AETypeOverTextCtrl.AENonTypeOverTextCtrl}, {'m_rawCode':16, 'm_keyCode':306, 'm_shiftDown':True, 'm_x':129, 'm_y':-132, 'UnicodeKey':16})
     ProcessEvent (wx.KeyEvent, {'eventType':wx.EVT_KEY_DOWN, 'sentTo':'__FocusWindow__', 'lastWidgetValue':u'Untitled'}, {'m_rawCode':84, 'm_keyCode':84, 'm_shiftDown':True, 'm_x':129, 'm_y':-132, 'UnicodeKey':84})
