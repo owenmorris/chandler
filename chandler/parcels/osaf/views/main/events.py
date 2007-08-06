@@ -370,3 +370,11 @@ def makeMainEvents(parcel):
     BlockEvent.template('Plugin',
                         dispatchToBlockName = 'PluginsMenu',
                         commitAfterDispatch = True).install(parcel)
+
+    AddToSidebarEvent.update(
+        parcel, 'SaveResults',
+        blockName = 'SaveResults',
+        editAttributeNamed = 'displayName',
+        sphereCollection = schema.ns('osaf.pim', repositoryView).mine,
+        item = schema.ns('osaf.pim', repositoryView).searchResults)
+        

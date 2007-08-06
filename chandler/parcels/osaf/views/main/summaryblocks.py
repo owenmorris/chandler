@@ -727,13 +727,6 @@ def makeSummaryBlocks(parcel):
                 delegate = detailBranchPointDelegate)
         ]).install(parcel) # SplitterWindow DashboardSummaryViewTemplate
 
-    saveResultsEvent = AddToSidebarEvent.update(
-        parcel, 'SaveResults',
-        blockName = 'SaveResults',
-        editAttributeNamed = 'displayName',
-        sphereCollection = schema.ns('osaf.pim', repositoryView).mine,
-        item = schema.ns('osaf.pim', view).searchResults)
-        
     searchRankColumn = makeColumnAndIndexes('SearchColRank',
         heading = _(u'Rank'),
         valueType = 'None',
@@ -835,16 +828,7 @@ def makeSummaryBlocks(parcel):
         orientationEnum = "Vertical",
         splitPercentage = 0.65,
         eventBoundary = True,
-        eventsForNamedLookup = [saveResultsEvent],
         childBlocks = [
-            ToolBarItem.template('SaveResultsButton',
-                event = saveResultsEvent,
-                bitmap = 'ApplicationBarSave.png',
-                title = _(u"Save"),
-                location = "ApplicationBar",
-                operation = 'InsertAfter',
-                itemLocation = 'ApplicationBarQuickEntry',
-                helpString = _(u'Save a copy of the results in the sidebar')),
             BoxContainer.template('SearchResultsSummaryContainer',
                 orientationEnum = 'Vertical',
                 childBlocks = [
@@ -872,10 +856,10 @@ def makeSummaryBlocks(parcel):
                         miniCalendar = main.MiniCalendar,
                         emptyContentsShow = False,
                         activeView = True),
-                            HTML.template('SearchResultsEmptyDashBoardView',
-                                text = _(u'<html><body><center>&nbsp;<br>&nbsp;<br>0 items</center></body></html>'),
-                                treatAsURL = False,
-                                emptyContentsShow = True)
+                    HTML.template('SearchResultsEmptyDashBoardView',
+                        text = _(u'<html><body><center>&nbsp;<br>&nbsp;<br>0 items</center></body></html>'),
+                        treatAsURL = False,
+                        emptyContentsShow = True)
                 ]
             ),
             BranchPointBlock.template('SearchResultsSummaryDetailBranchPointBlock',
