@@ -13,7 +13,7 @@
 #   limitations under the License.
 
 
-import logging, urlparse, datetime, wx, os.path
+import logging, urlparse, datetime, wx, os.path, sys
 
 from application import schema, dialogs, Globals
 from application.Parcel import Reference
@@ -96,7 +96,8 @@ PUBLISH_MONOLITHIC_ICS = True
 # = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =
 
 class SharingPreferences(schema.Item):
-    import_dir = schema.One(schema.Text, defaultValue = getDesktopDir())
+    import_dir = schema.One(schema.Text,
+                     defaultValue = unicode(getDesktopDir(), sys.getfilesystemencoding()))
     import_as_new = schema.One(schema.Boolean, defaultValue = True)
     freeBusyAccount = schema.One(WebDAVAccount, defaultValue=None)
     freeBusyShare   = schema.One(Share, defaultValue=None)

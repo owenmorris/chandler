@@ -648,7 +648,7 @@ class MainView(View):
         self.RepositoryCommitWithStatus()
 
         dlg = wx.DirDialog(wx.GetApp().mainFrame, _(u'Switch Repository'),
-                           unicode(Utility.getDesktopDir()),
+                           unicode(Utility.getDesktopDir(), sys.getfilesystemencoding()),
                            wx.DD_DEFAULT_STYLE | wx.DD_NEW_DIR_BUTTON)
         if dlg.ShowModal() == wx.ID_OK:
             repodir = dlg.GetPath()
@@ -943,7 +943,7 @@ class MainView(View):
             self.setStatusMessage(_(u"Export cancelled"))
             return
 
-        
+
         name = collection.displayName
         try:
             name.encode('ascii')
@@ -952,13 +952,20 @@ class MainView(View):
         except UnicodeEncodeError:
             name = str(collection.itsUUID)
 
+        if isinstance(name, unicode):
+            # Value in name will be ascii so
+            # cast name to a str if it is
+            # unicode.
+            name = str(name)
+
         options = [dict(name='cid:reminders-filter@osaf.us', checked = True,
                         label = _(u"Export reminders")),
                    dict(name='cid:event-status-filter@osaf.us', checked = True,
                         label = _(u"Export event status"))]
+
         res = ImportExport.showFileChooserWithOptions(
             _(u"Choose a filename to export to"),
-            os.path.join(getDesktopDir(), u"%s.ics" % (name)),
+             os.path.join(getDesktopDir(), "%s.ics" % name),
             _(u"iCalendar files|*.ics|All files (*.*)|*.*"),
             wx.SAVE | wx.OVERWRITE_PROMPT, options)
 

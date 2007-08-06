@@ -153,7 +153,7 @@ class StartupOptionsDialog(wx.Dialog):
 
         elif self.restore.GetValue():
             restorePath = wx.FileSelector(_(u"Snapshot to restore?"),
-                                          getDesktopDir(),
+                                          unicode(getDesktopDir(), sys.getfilesystemencoding()),
                                            u"", u".tgz",
                                           u"*.tgz",
                                           flags=wx.OPEN|wx.FILE_MUST_EXIST,
@@ -172,7 +172,7 @@ class StartupOptionsDialog(wx.Dialog):
         __repository__ directory instead.
         """
         tarPath = wx.FileSelector(_(u"Save snapshot as..."),
-                                  getDesktopDir(),
+                                  unicode(getDesktopDir(), sys.getfilesystemencoding()),
                                   _(u"ChandlerSnapshot.tgz"), u".tgz",
                                   u"*.tgz",
                                   flags=wx.SAVE | wx.OVERWRITE_PROMPT,
