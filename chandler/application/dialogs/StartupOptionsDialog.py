@@ -94,6 +94,11 @@ class StartupOptionsDialog(wx.Dialog):
             sizer.Add(self.undoStart, flag=wx.ALL, border=5)
             self.undoStart.Bind(wx.EVT_LEFT_DCLICK, self.onButton)
 
+            self.resetIndex = wx.RadioButton(self, -1, 
+                _(u"Discard my full-text index and reindex all my data"))
+            sizer.Add(self.resetIndex, flag=wx.ALL, border=5)
+            self.resetIndex.Bind(wx.EVT_LEFT_DCLICK, self.onButton)
+
             self.create = wx.RadioButton(self, -1, 
                 _(u"Discard all my data and start from scratch"))
             sizer.Add(self.create, flag=wx.ALL, border=5)
@@ -139,6 +144,9 @@ class StartupOptionsDialog(wx.Dialog):
 
         elif hasattr(self, 'undoStart') and self.undoStart.GetValue():
             Globals.options.undo = 'start'
+
+        elif hasattr(self, 'resetIndex') and self.resetIndex.GetValue():
+            Globals.options.resetIndex = True
 
         elif hasattr(self, 'snapshot') and self.snapshot.GetValue():
             if self.makeSnapshot():

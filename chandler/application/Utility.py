@@ -255,8 +255,9 @@ COMMAND_LINE_OPTIONS = {
     'uuids':      ('-U', '--uuids',      's', None, None, 'use a file containing a bunch of pre-generated UUIDs'),
     'undo':       ('',   '--undo',       's', None, None, 'undo <n> versions or until <check> or <repair> pass or until <start> succeeds'),
     'backup':     ('',   '--backup',     'b', False, None, 'backup repository before start'),
-    'backupdir':  ('',   '--backup-dir', 's', None, None, 'backup repository before start into dir'),
+    'backupDir':  ('',   '--backup-dir', 's', None, None, 'backup repository before start into dir'),
     'repair':     ('',   '--repair',     'b', False, None, 'repair repository before start (currently repairs broken indices)'),
+    'resetIndex': ('',   '--reset-index','b', False, None, 're-create full-text index database and reset indexer to reindex from earliest version'),
     'mvcc':       ('',   '--mvcc',       'b', True, 'MVCC', 'run repository multi version concurrency control'),
     'nomvcc':     ('',   '--nomvcc',     'b', False, 'NOMVCC', 'run repository without multi version concurrency control'),
     'prune':      ('',   '--prune',      's', '10000', None, 'number of items in a view to prune to after each commit'),
@@ -627,8 +628,8 @@ def initRepository(directory, options, allowSchemaView=False):
             del kwds
             break
 
-    if options.backupdir:
-        dbHome = repository.backup(os.path.join(options.backupdir,
+    if options.backupDir:
+        dbHome = repository.backup(os.path.join(options.backupDir,
                                                 '__repository__'))
         repository.logger.info("Repository was backed up into %s", dbHome)
     elif options.backup:
@@ -677,6 +678,11 @@ def initRepository(directory, options, allowSchemaView=False):
         view = repository.createView(version=version, timezone=Default)
 
     schema.initRepository(view)
+
+    if options.resetIndex:
+        # re-create Lucene index database
+        # indexer, if set to run, to start again from earliest version
+        repository.resetIndex()
 
     if options.indexer == 'foreground':
         # do nothing, indexing happens during commit

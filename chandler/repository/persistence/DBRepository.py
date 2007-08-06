@@ -996,6 +996,10 @@ class DBRepository(OnDemandRepository):
         if self._indexer is not None:
             self._indexer.notify(wait)
 
+    def resetIndex(self):
+
+        self.store.resetIndex()
+
     openUUID = UUID('c54211ac-131a-11d9-8475-000393db837c')
     OPEN_FLAGS = (DBEnv.DB_INIT_MPOOL | DBEnv.DB_INIT_LOCK |
                   DBEnv.DB_INIT_TXN | DBEnv.DB_THREAD)
@@ -1150,6 +1154,29 @@ class DBStore(Store):
         if progressFn(stage, 90) is False:
             return
         self._commits.compact()
+
+    def resetIndex(self):
+        
+        while True:
+            txnStatus = 0
+            try:
+                txnStatus = self.startTransaction(None)
+                self._index.remove()
+                self._index = IndexContainer(self)
+                self._index.open("__index.db", self.txn,
+                                 mvcc=self._mvcc,
+                                 ramdb=self._ramdb,
+                                 create=True)
+            except DBLockDeadlockError:
+                self.abortTransaction(None, txnStatus)
+                self._logDL()
+                continue
+            except:
+                self.abortTransaction(None, txnStatus)
+                raise
+            else:
+                self.commitTransaction(None, txnStatus)
+                break
         
     def loadItem(self, view, version, uuid):
 

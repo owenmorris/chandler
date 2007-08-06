@@ -1089,7 +1089,7 @@ class wxApplication (wx.App):
             if skip:
                 skip = False
                 continue
-            if arg in ('-c', '--create'):
+            if arg in ('-c', '--create', '--reset-index'):
                 continue
             if arg in ('-r', '--restore', '--reload', '--undo'):
                 skip = True

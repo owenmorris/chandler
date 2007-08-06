@@ -83,6 +83,11 @@ class DBContainer(object):
         if txn is not None:
             self.c.flags = DB.DB_READ_UNCOMMITTED
 
+    def remove(self):
+
+        self.close()
+        self.store.env.dbremove(self.filename, None, self.store.txn)
+
     def openIndex(self, name, dbname, txn, **kwds):
 
         index = self.openDB(txn, name, dbname,
