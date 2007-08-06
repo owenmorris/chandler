@@ -26,6 +26,7 @@ static int t_env_init(t_env *self, PyObject *args, PyObject *kwds);
 
 static PyObject *t_env_open(t_env *self, PyObject *args);
 static PyObject *t_env_close(t_env *self, PyObject *args);
+static PyObject *t_env_dbremove(t_env *self, PyObject *args);
 static PyObject *t_env_txn_begin(t_env *self, PyObject *args);
 static PyObject *t_env_txn_checkpoint(t_env *self, PyObject *args);
 static PyObject *t_env_set_flags(t_env *self, PyObject *args);
@@ -77,6 +78,7 @@ static PyMemberDef t_env_members[] = {
 static PyMethodDef t_env_methods[] = {
     { "open", (PyCFunction) t_env_open, METH_VARARGS, NULL },
     { "close", (PyCFunction) t_env_close, METH_VARARGS, NULL },
+    { "dbremove", (PyCFunction) t_env_dbremove, METH_VARARGS, NULL },
     { "txn_begin", (PyCFunction) t_env_txn_begin, METH_VARARGS, NULL },
     { "txn_checkpoint", (PyCFunction) t_env_txn_checkpoint, METH_VARARGS, NULL },
     { "log_archive", (PyCFunction) t_env_log_archive, METH_VARARGS, NULL },
@@ -301,6 +303,37 @@ static PyObject *t_env_close(t_env *self, PyObject *args)
         return NULL;
         
     Py_RETURN_NONE;
+}
+
+static PyObject *t_env_dbremove(t_env *self, PyObject *args)
+{
+    PyObject *txn = Py_None;
+    char *filename, *dbname = NULL;
+    int flags = 0;
+
+    if (!PyArg_ParseTuple(args, "z|zOi", &filename, &dbname, &txn, &flags))
+        return NULL;
+
+    if (txn != Py_None && !PyObject_TypeCheck(txn, CDBTxn))
+    {
+        PyErr_SetObject(PyExc_TypeError, txn);
+        return NULL;
+    }
+
+    {
+        DB_TXN *db_txn = txn == Py_None ? NULL : ((t_txn *) txn)->txn;
+        int err;
+
+        Py_BEGIN_ALLOW_THREADS;
+        err = self->db_env->dbremove(self->db_env, db_txn, filename, dbname,
+                                     flags);
+        Py_END_ALLOW_THREADS;
+
+        if (err)
+            return raiseDBError(err);
+
+        Py_RETURN_NONE;
+    }
 }
 
 static PyObject *t_env_txn_begin(t_env *self, PyObject *args)
