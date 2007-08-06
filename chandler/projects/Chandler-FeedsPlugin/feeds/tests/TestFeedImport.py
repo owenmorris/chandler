@@ -34,7 +34,7 @@ class TestFeedImporting(testcase.SingleRepositoryTestCase):
         view = self.view
         Utility.initTwisted(view)
 
-        url = u"http://wp.osafoundation.org/rss2"
+        url = u"http://blog.chandlerproject.org/rss2"
         url = str(url)
         view.refresh(notify=False)
         channel = FeedChannel(itsView=view)
@@ -48,7 +48,7 @@ class TestFeedImporting(testcase.SingleRepositoryTestCase):
         # timeout or other network problem, that shouldn"t fail the test.
         if status == FETCH_UPDATED:
             self.assertEqual(channel.displayName,
-                "Open Source Applications Foundation Blog")
+                u"The Chandler Project Blog")
 
     def NonASCII(self):
 
