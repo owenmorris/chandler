@@ -979,6 +979,14 @@ class wxApplication (wx.App):
 
         Block.dirtyBlocks = set()
 
+    def scheduleSave(self):
+        # Schedule a call to save the focus block's value some number of seconds
+        # in the future
+        self.scheduledSaveTime = time.time() + 15
+
+    def unscheduleSave(self):
+        # Don't bother saving sometime in the future.
+        self.scheduledSaveTime = None
 
     def OnIdle(self, event):
 
@@ -1014,6 +1022,14 @@ class wxApplication (wx.App):
         if self.focus != focus:
             self.focus = focus
             self.needsUpdateUI = True
+        
+        # is it time to auto-save changes to the focused block?
+        scheduledSaveTime = getattr(self, 'scheduledSaveTime', None)
+        if scheduledSaveTime is not None and \
+           scheduledSaveTime <= time.time():
+            from osaf.framework.blocks.Block import Block
+            Block.finishEdits(commitToo=True, autoSaving=True)
+            self.unscheduleSave()
 
         if self.needsUpdateUI:
             try:

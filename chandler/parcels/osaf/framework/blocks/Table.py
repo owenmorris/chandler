@@ -926,6 +926,18 @@ class Table (PimBlocks.FocusEventHandlers, RectangularChild):
             # Propagate the notifications and synchronize the widget so the sections are up to date
             wx.GetApp().propagateAsynchronousNotifications()
             self.widget.GoToItem (item)
+    
+    # I tried to get auto-saving to work for the table,
+    # but there's no way (that I could find) to get the 
+    # active attribute editor to save its value without closing
+    # the editor (which is what SaveEditControlValue does here)
+    # Commenting this out for now - maybe we can revisit after Preview.
+    #def saveValue(self, commitToo=False, autoSaving=False):
+        ## Save the value being edited, if any
+        #if self.widget.IsCellEditControlEnabled():
+            #self.widget.SaveEditControlValue()
+            #if commitToo:
+                #self.itsView.commit()
 
 
 # Ewww, yuk.  Blocks and attribute editors are mutually interdependent

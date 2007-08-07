@@ -288,6 +288,10 @@ class StringAttributeEditor (BaseAttributeEditor):
     def onTextChanged(self, event):
         if not getattr(self, "ignoreTextChanged", False):
             control = event.GetEventObject()
+            currentText = control.GetValue()
+            # If the text has changed, write it back in a little while.
+            if control.IsModified():
+                wx.GetApp().scheduleSave()
             if getattr(self, 'sampleText', None) is not None:
                 currentText = control.GetValue()
                 #logger.debug("StringAE.onTextChanged: not ignoring; value is '%s'" % currentText)                    
@@ -367,6 +371,9 @@ class StringAttributeEditor (BaseAttributeEditor):
                 oldValue = control.GetValue()
                 if oldValue != text:
                     control.SetValue(text)
+                    
+            control.DiscardEdits() # clear the 'changed' flag
+            wx.GetApp().unscheduleSave()
     
             control.SetEditable(not self.ReadOnly((self.item, self.attributeName)))
             
@@ -653,6 +660,13 @@ class StringAttributeEditor (BaseAttributeEditor):
             # Reread the old value from the domain model.
             self.SetControlValue(self.control, 
                                  self.GetAttributeValue(item, attributeName))            
+
+    def IsValidForWriteback(self, valueString):
+        """
+        Return true if this value is valid and parseable.
+        (Used to ignore invalid values instead of writing back when typing)
+        """
+        return True
 
     def allowEmpty(self):
         """ 

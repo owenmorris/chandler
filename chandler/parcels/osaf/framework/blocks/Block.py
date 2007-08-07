@@ -708,7 +708,7 @@ class Block(schema.Item):
         return Block.findBlockByName("MainView")
 
     @classmethod
-    def finishEdits(theClass, onBlock=None):
+    def finishEdits(theClass, onBlock=None, commitToo=False, autoSaving=False):
         """
         If the given block, or the focus block if no block given, has a
         saveValue method, call it to write pending edits back.
@@ -718,7 +718,7 @@ class Block(schema.Item):
         if onBlock is not None:
             saveValueMethod = getattr(type(onBlock), 'saveValue', None)
             if saveValueMethod is not None:
-                saveValueMethod(onBlock)
+                saveValueMethod(onBlock, commitToo, autoSaving)
 
     def onShowHideEvent(self, event):
         self.isShown = not self.isShown

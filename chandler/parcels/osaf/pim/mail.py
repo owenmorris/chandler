@@ -2235,7 +2235,7 @@ Issues:
         return tryAddress
 
     @classmethod
-    def getEmailAddress(cls, view, nameOrAddressString, fullName=u''):
+    def getEmailAddress(cls, view, nameOrAddressString, fullName=u'', create=True):
         """
         Factory Method
         --------------
@@ -2245,8 +2245,8 @@ Issues:
         garbage collection should eventually remove them.
 
         If a matching EmailAddress object is found in the repository, it
-        is returned.  If there is no match, then a new item is created
-        and returned.
+        is returned. If there is no match, but create is True, then a new item 
+        is created and returned; otherwise, None will be returned.
 
         There are two ways to call this method:
           1. with something the user typed in nameOrAddressString, which
@@ -2309,12 +2309,16 @@ Issues:
             return view[match]
 
         # no match - create a new address
-        if __debug__:
-           log.debug("Making new email address for '%s'/'%s'", name, address)
-
-        newAddress = EmailAddress(itsView=view, emailAddress=address,
-                                  fullName=name)
-        return newAddress
+        if create:
+            if __debug__:
+               log.debug("Making new email address for '%s'/'%s'", name, address)
+    
+            newAddress = EmailAddress(itsView=view, emailAddress=address,
+                                      fullName=name)
+            return newAddress
+        
+        # no match, but not create
+        return None        
 
     @classmethod
     def generateMatchingEmailAddresses(cls, view, partialAddress):
@@ -2365,12 +2369,13 @@ Issues:
         return re.match("^(([^<>()[\]\\.,;:\s@\"]+(\.[^<>()[\]\\.,;:\s@\"]+)*)|(\".+\"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$", emailAddress) is not None
 
     @classmethod
-    def parseEmailAddresses(cls, view, addressesString):
+    def parseEmailAddresses(cls, view, addressesString, create=True):
         """
         Parse the email addresses in addressesString and return
         a tuple with: (the processed string, a list of EmailAddress
         items created/found for those addresses, the number of
-        bad addresses we found).
+        bad addresses we found). if Create is false, only existing EmailAddress
+        items will be returned - the others will be counted as invalid addresses.
 
         Note: Now that we're no longer checking validity of addresses,
         invalidCount will always be zero unless the structure of the string
@@ -2391,7 +2396,7 @@ Issues:
 
         # build a list of all processed addresses, and all valid addresses
         for address in addresses:
-            ea = EmailAddress.getEmailAddress(view, address)
+            ea = EmailAddress.getEmailAddress(view, address, create=create)
             if ea is None:
                 processedAddresses.append(address + '?')
                 invalidCount += 1

@@ -395,19 +395,21 @@ class Location(ContentItem):
 
 
     @classmethod
-    def getLocation (cls, view, locationName):
+    def getLocation (cls, view, locationName, create=True):
         """
         Factory Method for getting a Location.
 
         Lookup or create a Location based on the supplied name string.
 
         If a matching Location object is found in the repository, it
-        is returned.  If there is no match, then a new item is created
-        and returned.
+        is returned.  If there is no match, but create is True, then 
+        a new item is created and returned; otherwise, None is returned.
 
         @param locationName: name of the Location
         @type locationName: C{String}
-        @return: C{Location} created or found
+        @param create: True if we should create a new location if no match
+        @type create: C{Boolean}
+        @return: C{Location} created or found, or None.
         """
         # make sure the locationName looks reasonable
         assert locationName, "Invalid locationName passed to getLocation factory"
@@ -419,11 +421,12 @@ class Location(ContentItem):
         existing = locations.findInIndex('locationName', 'exact', callback)
         if existing is not None:
             return view[existing]
-        else:
+        if create:
             # make a new Location
             newLocation = Location(itsView=view)
             newLocation.displayName = locationName
             return newLocation
+        return None
 
 
 

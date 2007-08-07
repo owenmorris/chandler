@@ -301,3 +301,11 @@ class AETypeOverTextCtrl(wxRectangularChild):
     def GetStaticControlDelegate(self):
         return self.staticControlDelegate
 
+    def DiscardEdits(self):
+        if self.shownControl is self.editControl:
+            self.editControl.DiscardEdits()
+
+    def IsModified(self):
+        if self.shownControl is self.editControl:
+            return self.editControl.IsModified()
+        return False

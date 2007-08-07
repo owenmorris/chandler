@@ -1646,17 +1646,19 @@ class AEBlock(BoxContainer):
         # Make sure the value is written back to the item. 
         self.saveValue()
 
-    def saveValue(self, validate=False):
+    def saveValue(self, commitToo=False, autoSaving=False):
         """
         Make sure the value is written back to the item.
-
-        @param validate: (Ignored here)
         """
         widget = getattr(self, 'widget', None)
         if widget is not None:
             editor = self.widget.editor
-            if editor is not None:
+            if (editor is not None) and \
+               (((not autoSaving) or editor.IsValidForWriteback(self.widget.GetValue()))):
                 editor.EndControlEdit(self.item, self.attributeName, widget)
+                if commitToo:
+                    self.itsView.commit()
+            wx.GetApp().unscheduleSave()
 
     def unRender(self):
         # Last-chance write-back.

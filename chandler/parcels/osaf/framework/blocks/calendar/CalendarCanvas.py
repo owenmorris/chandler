@@ -1376,10 +1376,12 @@ class CalendarCanvasBlock(CalendarRangeBlock):
                   self.itsView).colorChange.unregisterBlock(self.itsUUID)
         super(CalendarCanvasBlock, self).onDestroyWidget(*args, **kwds)
 
-    def closeEditor(self):
+    def closeEditor(self, commitToo=False, autoSaving=False):
         if (getattr(self, 'widget', None) and 
             getattr(self.widget, 'GrabFocusHack', None)):
             self.widget.GrabFocusHack()
+            if commitToo:
+                self.itsView.commit()
     
     saveValue = closeEditor
 

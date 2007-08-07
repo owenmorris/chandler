@@ -432,7 +432,7 @@ class DetailSynchronizedAttributeEditorBlock(DetailSynchronizedBehavior,
         self.saveValue()
 
     def OnFinishChangesEvent(self, event):
-        self.saveValue(validate=True)
+        self.saveValue()
 
 class DetailTriageButtonBlock(DetailSynchronizedBehavior, ControlBlocks.Button):
     """
@@ -650,68 +650,6 @@ class ReadOnlyIconBlock(DetailSynchronizedBehavior, ControlBlocks.StampButton):
         """
         event.arguments ['Enable'] = True
 
-class EditTextAttributeBlock(DetailSynchronizedBehavior, 
-                             ControlBlocks.EditText):
-    """
-    EditText field connected to some attribute of a ContentItem
-    Override LoadAttributeIntoWidget, SaveAttributeFromWidget in subclasses.
-    """
-    def instantiateWidget(self):
-        widget = super(EditTextAttributeBlock, self).instantiateWidget()
-        # We need to save off the changed widget's data into the block periodically
-        # Hopefully OnLoseFocus is getting called every time we lose focus.
-        widget.Bind(wx.EVT_KILL_FOCUS, self.onLoseFocus)
-        widget.Bind(wx.EVT_KEY_UP, self.onKeyPressed)
-        return widget
-
-    def saveValue(self, validate=False):
-        # save the user's edits into item's attibute
-        item = self.item
-        try:
-            widget = self.widget
-        except AttributeError:
-            widget = None
-        if item is not None and widget is not None:
-            self.saveAttributeFromWidget(item, widget, validate=validate)
-
-    def loadTextValue(self, item):
-        # load the edit text from our attribute into the field
-        if item is None:
-            item = self.item
-        if item is not None:
-            widget = self.widget
-            self.loadAttributeIntoWidget(item, widget)
-
-    def onLoseFocus(self, event):
-        # called when we get an event; to saves away the data and skips the event
-        self.saveValue(validate=True)
-        event.Skip()
-
-    def onKeyPressed(self, event):
-        # called when we get an event; to saves away the data and skips the event
-        self.saveValue(validate = event.m_keyCode == wx.WXK_RETURN and self.lineStyleEnum != "MultiLine")
-        event.Skip()
-
-    def OnDataChanged(self):
-        # event that an edit operation has taken place
-        self.saveValue()
-
-    def OnFinishChangesEvent(self, event):
-        self.saveValue(validate=True)
-
-    def synchronizeWidget(self):
-        super(EditTextAttributeBlock, self).synchronizeWidget()
-        if self.item is not None:
-            self.loadTextValue(self.item)
-
-    def saveAttributeFromWidget(self, item, widget, validate):  
-       # subclasses need to override this method
-       raise NotImplementedError, "%s.SaveAttributeFromWidget()" % (type(self))
-
-    def loadAttributeIntoWidget(self, item, widget):  
-       # subclasses need to override this method
-       raise NotImplementedError, "%s.LoadAttributeIntoWidget()" % (type(self))
-
 # @@@ Needs to be rewritten as an attribute editor when attachments become important again.
 #class AttachmentAreaBlock(DetailSynchronizedContentItemDetailBlock):
     #"""
@@ -730,11 +668,6 @@ class EditTextAttributeBlock(DetailSynchronizedBehavior,
         #else:
             #value = ", ".join([ attachment.filename for attachment in item.getAttachments() if hasattr(attachment, 'filename') ])
         #widget.SetValue(value)
-
-    #def saveAttributeFromWidget (self, item, widget, validate):  
-        ## It's read-only, but we have to override this method.
-        #pass
-
 
 # @@@ disabled until we start using this UI again
 #class AcceptShareButtonBlock(DetailSynchronizedBehavior, ControlBlocks.Button):
@@ -1254,6 +1187,13 @@ class ReminderUnitsAttributeEditor(StringAttributeEditor):
             setattr(item, pim.EventStamp.userReminderInterval.name,
                     scaleTimeDelta(value, scale, isAfter))
             item.setTriageStatus('auto', pin=True)
+
+    def IsValidForWriteback(self, valueString):
+        try:
+            int(valueString)
+        except ValueError:
+            return False
+        return True
 
 class TransparencyConditionalBehavior(EventConditionalBehavior):
     def shouldShow(self, item):

@@ -294,6 +294,10 @@ class ItemNameAttributeEditor(StringAttributeEditor):
     def allowEmpty(self):
         return False
 
+    def IsValidForWriteback(self, value):
+        # Only autosave if the value isn't empty.
+        return value != ''
+
 class StaticStringAttributeEditor(StringAttributeEditor):
     """
     To be always static, we pretend to be "edit-in-place", but never in
@@ -320,6 +324,10 @@ class StaticStringAttributeEditor(StringAttributeEditor):
     def EndControlEdit(self, item, attributeName, control):
         # value can't change in a static string, so don't try to update
         pass
+
+    def IsValidForWriteback(self, value):
+        # Don't even think about on-the-fly writeback: we're static.
+        return False
 
 class LobImageAttributeEditor(BaseAttributeEditor):
 
@@ -473,6 +481,11 @@ class DateTimeAttributeEditor(StringAttributeEditor):
         
         dc.DestroyClippingRegion()
             
+    def IsValidForWriteback(self, value):
+        # For now, don't write back incomplete-but-valid values, to avoid
+        # the item bouncing around the calendar view.
+        return False
+
 class DateAttributeEditor (StringAttributeEditor):
     
     # natural language strings for date
@@ -561,6 +574,11 @@ class DateAttributeEditor (StringAttributeEditor):
             self.SetControlValue(self.control, 
                                  self.GetAttributeValue(item, attributeName))
     
+    def IsValidForWriteback(self, value):
+        # For now, don't write back incomplete-but-valid values, to avoid
+        # the item bouncing around the calendar view.
+        return False
+
     def GetSampleText(self, item, attributeName):
         return pim.sampleDate # get a hint like "mm/dd/yy"
         
@@ -643,6 +661,11 @@ class TimeAttributeEditor(StringAttributeEditor):
         # Refresh the value in the control
         self.SetControlValue(self.control, 
                              self.GetAttributeValue(item, attributeName))
+
+    def IsValidForWriteback(self, value):
+        # For now, don't write back incomplete-but-valid values, to avoid
+        # the item bouncing around the calendar view.
+        return False
 
     def generateCompletionMatches(self, target):
         """
@@ -740,6 +763,13 @@ class LocationAttributeEditor (StringAttributeEditor):
                 and dispName != target):
                 yield aLoc
 
+    def IsValidForWriteback(self, value):
+        # Only autosave if this exactly matches an existing 
+        # Location (to avoid saving incomplete locations that would
+        # clutter future autocompletions)
+        return Calendar.Location.getLocation(self.item.itsView, value, 
+                                             create=False) is not None
+
 class TimeDeltaAttributeEditor (StringAttributeEditor):
     """
     Knows that the data Type is timedelta.
@@ -775,6 +805,10 @@ class TimeDeltaAttributeEditor (StringAttributeEditor):
         seconds = pim.durationFormat.parse(inputString) - self.zeroHours
         theDuration = timedelta(seconds=seconds)
         return theDuration
+
+    def IsValidForWriteback(self, value):
+        # For now, don't write back, to avoid incomplete-but-valid values
+        return False
 
     def _format(self, aDuration):
         # if we got a value different from the default
@@ -947,8 +981,8 @@ class EmailAddressAttributeEditor (StringAttributeEditor):
             unrenderedCount = 0
 
         return (addrOnlyString, indicatorString, unrenderedCount)
-
-    def SetAttributeValue(self, item, attributeName, valueString):
+    
+    def _parseAddresses(self, item, valueString, create):
         # For preview, changes to communication fields should apply to all
         # occurrences, change the master directly
         item = getattr(item, 'proxiedItem', item)
@@ -956,7 +990,14 @@ class EmailAddressAttributeEditor (StringAttributeEditor):
             item = pim.EventStamp(item).getMaster().itsItem
         
         processedAddresses, validAddresses, invalidCount = \
-            Mail.EmailAddress.parseEmailAddresses(item.itsView, valueString)
+            Mail.EmailAddress.parseEmailAddresses(item.itsView, 
+                                                  valueString, create)
+        return invalidCount, processedAddresses, validAddresses, item
+        
+    def SetAttributeValue(self, item, attributeName, valueString):
+        invalidCount, processedAddresses, validAddresses, item = \
+            self._parseAddresses(item, valueString, True)
+        
         if invalidCount == 0:
             # All the addresses were valid. Put them back.
             cardinality = item.getAttributeAspect (attributeName, "cardinality")
@@ -978,6 +1019,10 @@ class EmailAddressAttributeEditor (StringAttributeEditor):
             # This processing changed the text in the control - update it.
             self._changeTextQuietly(self.control, processedAddresses)
 
+    def IsValidForWriteback(self, value):
+        # Only write back the addresses if they all exist already
+        return self._parseAddresses(self.item, value, False)[0] == 0
+        
     def generateCompletionMatches(self, target):
         view = wx.GetApp().UIRepositoryView
         return Mail.EmailAddress.generateMatchingEmailAddresses(view, target)
