@@ -759,6 +759,8 @@ class Indexed(object):
                             kwds['ranges'] = ()
                         indexes[name] = index = \
                             self._createIndex(index.getIndexType(), **kwds)
+                        for uItem, attr, subName in kwds.get('subindexes', Nil):
+                            index.addSubIndex(uItem, attr, subName)
                         self.fillIndex(index, True)
                         self._setDirty(True)
 
