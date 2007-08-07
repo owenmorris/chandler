@@ -332,6 +332,17 @@ class StringAttributeEditor (BaseAttributeEditor):
                          #self.attributeName, text.split('\n')[0], isSample)
             # text = "%s %s" % (control.GetFont().GetFaceName(), control.GetFont().GetPointSize())
             normalTextColor = wx.SystemSettings_GetColour(wx.SYS_COLOUR_WINDOWTEXT)
+            # workaround for bug 9496 (DV start/end date/time fields text light gray instead of black)
+            # from the bug comments:
+            #   there is a place in wxMac where if the color being set is black
+            #   then it is ignored because, according to the comment, "otherwise
+            #   disabled controls won't be grayed out by the system anymore."  I've
+            #   asked about this in the past but I don't remember what the response was.
+            #   A simple workaround is to set a color that is almost black instead,
+            #   such as wx.Colour(1,1,1).
+            if normalTextColor == wx.BLACK:
+                normalTextColor = wx.Colour(1, 1, 1)
+
             if isSample:
                 self.showingSample = True
     
