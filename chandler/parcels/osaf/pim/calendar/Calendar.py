@@ -2105,7 +2105,11 @@ class EventStamp(Stamp):
                     if stampClass not in Stamp(master).stamp_types:
                         stampClass(self).remove()
 
-                assert self.isTriageOnlyModification()
+                # Commenting this assert out as a workaround for bug 10340.
+                # Andi says that removal of ref collection attributes is
+                # deferred until commit, so if we've done a delattr( ) on
+                # such an attribute, the following assert will fail:
+                # assert self.isTriageOnlyModification()
             else:
                 self.isGenerated = True
                 del self.modificationFor
