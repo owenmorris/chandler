@@ -1350,6 +1350,9 @@ class SharingTranslator(eim.Translator):
                             # to determine allDay-ness for duration translation
                             pos = record.uuid.find(':')
                             if pos != -1:
+                                if record.uuid(pos + 1) == ':':
+                                    # old style pseudo-uuid, two colons in a row
+                                    pos += 1
                                 ignore, allDayFromID, anyTimeFromID = \
                                   fromICalendarDateTime(self.rv, 
                                                         record.uuid[pos + 1:])
