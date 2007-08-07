@@ -139,6 +139,12 @@ class RecursiveLoadItemError(LoadError):
     def __str__(self):
         return self.__doc__ %(self.args[0])
 
+class ConcurrentLoadItemError(LoadError):
+    __doc__ = "Item %s is being loaded by threads %s and %s"
+
+    def __str__(self):
+        return self.__doc__ %(self.args[0], self.args[1], self.args[2])
+
 
 class LoadValueError(LoadError):
     __doc__ = "While loading %s.%s, %s"

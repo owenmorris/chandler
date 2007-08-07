@@ -242,7 +242,7 @@ class RepositoryView(CView):
         self._refRegistry = {}
         self._deletedRegistry = {}
         self._instanceRegistry = {}
-        self._loadingRegistry = set()
+        self._loadingRegistry = {}
         self._status |= RepositoryView.OPEN
         self.tzinfo = None
 
@@ -1550,18 +1550,23 @@ class OnDemandRepositoryView(RepositoryView):
 
     def _loadItem(self, uuid):
 
-        if uuid in self._loadingRegistry:
-            raise RecursiveLoadItemError, uuid
-
         if not uuid in self._deletedRegistry:
+            current = threading.currentThread()
+
+            thread = self._loadingRegistry.get(uuid)
+            if thread is not None:
+                if thread is current:
+                    raise RecursiveLoadItemError, uuid
+                raise ConcurrentLoadItemError, (uuid, thread, current)
+
             itemReader = self.repository.store.loadItem(self, self.itsVersion,
                                                         uuid)
             if itemReader is not None:
                 try:
-                    self._loadingRegistry.add(uuid)
+                    self._loadingRegistry[uuid] = current
                     return self._readItem(itemReader)
                 finally:
-                    self._loadingRegistry.remove(uuid)
+                    del self._loadingRegistry[uuid]
 
         return None
 
