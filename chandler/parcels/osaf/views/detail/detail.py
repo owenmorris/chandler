@@ -1401,7 +1401,7 @@ class CalendarRecurrenceAEBlock(DetailSynchronizedAttributeEditorBlock):
         watchList = super(DetailSynchronizedAttributeEditorBlock,
                           self).getWatchList()
         rruleset = pim.EventStamp(self.item).rruleset
-        
+
         if rruleset is not None:
             # Make sure we watch for changes in rrules ...
             watchList.append((rruleset, 'rrules'))
@@ -1411,8 +1411,10 @@ class CalendarRecurrenceAEBlock(DetailSynchronizedAttributeEditorBlock):
             # ... as well as the rrule attribute we're interested in
             # (if any). In theory, we should watch all rrules here, 
             # of course.
-            if attrName is not None and rruleset.rrules:
-                watchList.append((rruleset.rrules.first(), attrName))
+            if attrName is not None:
+                rrules = getattr(rruleset, 'rrules', ())
+                if rrules:
+                    watchList.append((rrules.first(), attrName))
         
         return watchList
         
