@@ -508,6 +508,9 @@ class IndexContainer(FileContainer):
                 raise DBLockDeadlockError, msg
             if je.getClass().getName() == 'java.lang.IllegalArgumentException':
                 raise DBInvalidArgError, msg
+            if je.getClass().getName() == 'java.lang.NullPointerException':
+                self.store.repository.logger.exception("in commitIndexWriter()")
+                return # Windows PyLucene bug 10363
             raise
 
     def abortIndexWriter(self, writer):
