@@ -40,7 +40,7 @@ def formatException(exception):
             summary.append(brief)
             extended.append(details)
     else:
-        summary.append(str(exception.message))
+        summary.append(str(exception.message or type(exception)))
         details = getattr(exception, 'debugMessage', None)
         if details:
             extended.append(str(details))
