@@ -562,8 +562,8 @@ class PublishCollectionDialog(wx.Dialog):
         else:
             share = sharing.getShare(self.collection)
 
-        urlString = "\n".join(sharing.getLabeledUrls(share))
-        self._showStatus("%s\n" % urlString)
+        urlString = "\n\n".join(sharing.getLabeledUrls(share))
+        self._showStatus("\n%s\n" % urlString)
 
         self.buttonPanel.Hide()
         self.mySizer.Detach(self.buttonPanel)
@@ -621,7 +621,7 @@ class PublishCollectionDialog(wx.Dialog):
         gotClipboard = wx.TheClipboard.Open()
         if gotClipboard:
             share = sharing.getShare(self.collection)
-            urlString = "\n".join(sharing.getLabeledUrls(share))
+            urlString = "\n\n".join(sharing.getLabeledUrls(share))
             wx.TheClipboard.SetData(wx.TextDataObject(unicode(urlString)))
             wx.TheClipboard.Close()
 

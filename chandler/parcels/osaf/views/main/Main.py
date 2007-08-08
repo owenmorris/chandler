@@ -1461,7 +1461,7 @@ class MainView(View):
         if collection is not None:
             share = sharing.getShare(collection)
             if share is not None:
-                urlString = "\n".join(sharing.getLabeledUrls(share))
+                urlString = "\n\n".join(sharing.getLabeledUrls(share))
                 gotClipboard = wx.TheClipboard.Open()
                 if gotClipboard:
                     wx.TheClipboard.SetData(wx.TextDataObject(unicode(urlString)))
