@@ -621,7 +621,8 @@ class PublishCollectionDialog(wx.Dialog):
         gotClipboard = wx.TheClipboard.Open()
         if gotClipboard:
             share = sharing.getShare(self.collection)
-            urlString = "\n\n".join(sharing.getLabeledUrls(share))
+
+            urlString = (os.linesep * 2).join(sharing.getLabeledUrls(share))
             wx.TheClipboard.SetData(wx.TextDataObject(unicode(urlString)))
             wx.TheClipboard.Close()
 
