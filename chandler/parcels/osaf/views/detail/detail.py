@@ -1589,6 +1589,15 @@ class CalendarTimeAttributeEditor(TimeAttributeEditor):
                     # blank & showing the "HH:MM" hint), entering a valid time 
                     # in either time field will set the other date and time 
                     # field to effect a one-hour event on the corresponding date. 
+                    
+                    # bug 10251: If this is an occurrence, use our master's TZ
+                    # if ours is floating. (It might be floating too, but if it's
+                    # not, it wins)
+                    master = getattr(item, 'inheritFrom', None)
+                    if master is not None and (value.tzinfo == view.tzinfo.floating):
+                        masterStart = pim.EventStamp(master).startTime
+                        value = value.replace(tzinfo=masterStart.tzinfo)
+
                     event.anyTime = False
                     if iAmStart:
                         event.startTime = value

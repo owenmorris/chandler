@@ -903,6 +903,16 @@ class wxTimedEventsCanvas(BaseWidget, wxCalendarCanvas):
             duration = endTime - startTime
             stampedProxy = Calendar.EventStamp(proxy)
             stampedProxy.duration = duration
+            
+            # Bug 10251: If this was a non-timed occurrence, copy the
+            # timezone from its master.
+            if stampedProxy.anyTime or stampedProxy.allDay:
+                master = getattr(stampedProxy.itsItem, 'inheritFrom', None)
+                if master is not None and \
+                   (startTime.tzinfo == proxy.itsView.tzinfo.floating):
+                    masterStart = Calendar.EventStamp(master).startTime
+                    startTime = startTime.replace(tzinfo=masterStart.tzinfo)
+                                
             stampedProxy.startTime = startTime
         
             if self.coercedCanvasItem is not None:
