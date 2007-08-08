@@ -217,6 +217,10 @@ class SectionedGridDelegate(ControlBlocks.AttributeDelegate):
         if not self.sectionRows:
             return row
 
+        # if we have no rows, skip out early
+        if not self.blockItem.contents:
+            return -1
+        
         sectionAdjust = len(self.sectionRows) - 1
         # search backwards so we can jump right to the section number
         for (reversedSection, (sectionRow, visible, total)) in enumerate(reversed(self.sectionRows)):
