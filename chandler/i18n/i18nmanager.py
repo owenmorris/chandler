@@ -388,16 +388,43 @@ class I18nManager(EggTranslations):
             # Chandler provides a localization.
             primaryLocale = self._localeSet[0]
 
-        if wxIsAvailable():
-            setWxLocale(primaryLocale, self)
-
-        setPyICULocale(primaryLocale)
-        setPythonLocale(primaryLocale)
-        setEnvironmentLocale(primaryLocale)
+        try:
+            self._setLocale(primaryLocale)
+        except I18nException, e:
+            if discover:
+                # XXX Would be nice to show a
+                # warning dialog when the
+                # locale discovered from the
+                # OS is not supported by
+                # Wx or PyICU
+                self._setLocale("en_US")
+            else:
+                # If the locale was passed in (ie. not
+                # discovered from the OS) then raise
+                # the error. The most common case is
+                # someone typing an invalid locale
+                # on the command line. In this case
+                # we do want to raise the error and
+                # not just default to "en_US".
+                raise e
 
         # Reset the resource lookup cache
         self._lookupCache = None
         self._lookupCache = {}
+
+    def _setLocale(self, primaryLocale):
+        if wxIsAvailable():
+            # Strip the country code for wxLocales
+            # since any invalid values raise an
+            # uncapturable error in the wx Widgets layer.
+            # With the exception of Chinese, all
+            # wx localizations use the lang
+            # code exclusively.
+            setWxLocale(stripCountryCode(primaryLocale), self)
+
+        setPyICULocale(primaryLocale)
+        setPythonLocale(primaryLocale)
+        setEnvironmentLocale(primaryLocale)
 
     def getText(self, project, name, txt, *args):
         """
