@@ -69,15 +69,20 @@ def inbound(peer, text, filter=None, allowDeletion=False, debug=False):
                 if not pim.has_stamp(item, shares.SharedItem):
                     shares.SharedItem(item).add()
                 shared = shares.SharedItem(item)
-                for state in shared.peerStates:
-                    peerUUID = shared.peerStates.getAlias(state)
-                    for peer in peers:
-                        if peer.itsUUID.str16() == peerUUID:
-                            # peer matches
-                            break
-                    else:
-                        # no match; use the first one passed in
-                        peer = peers[0]
+
+                if not getattr(shared, 'peerStates', False):
+                    # has no peer states yet, use the first peer in list
+                    peer = peers[0]
+                else:
+                    for state in shared.peerStates:
+                        peerUUID = shared.peerStates.getAlias(state)
+                        for peer in peers:
+                            if peer.itsUUID.str16() == peerUUID:
+                                # peer matches
+                                break
+                        else:
+                            # no match; use the first one passed in
+                            peer = peers[0]
 
                 state = shared.getPeerState(peer)
                 rsInternal= eim.RecordSet(trans.exportItem(item))
