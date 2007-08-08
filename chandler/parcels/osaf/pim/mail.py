@@ -1838,6 +1838,12 @@ class MailStamp(stamping.Stamp):
         for item in items:
             item.changeEditState(modFlag, self.getSender(), self.dateSent)
 
+        # Commit the changes to the MailStamped Item.
+        # The commit is needed at this point since
+        # the Item could be the recurrence master but the
+        # instance actually being sent is an occurrence.
+        self.itsItem.itsView.commit()
+
     def incomingMessage(self, ignoreMe=False):
         view = self.itsItem.itsView
 
