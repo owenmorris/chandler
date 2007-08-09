@@ -16,7 +16,7 @@
 __parcel__ = "osaf.views.main"
 
 from osaf.framework.blocks import ControlBlocks
-import wx
+import wx, time
 from osaf.framework.blocks import (
     Block, BranchPoint, DrawingUtilities, Table, wxTable, GridCellAttributeEditor
     )
@@ -381,7 +381,7 @@ class wxSidebar(wxTable):
             except sharing.ICalendar.ICalendarImportError:
                 wx.GetApp().CallItemMethodAsync(
                     "MainView", 'setStatusMessage',
-                    "Problem with file, import failed")
+                    _(u"Problem with file, import failed"))
 
 
     def getCollectionDroppedOn(self):
@@ -1526,7 +1526,7 @@ class SidebarBranchPointDelegate(BranchPoint.BranchPointDelegate):
                             break
                         
         if sidebar.showSearch:
-            if hints.get ("search", True):
+            if hints.get ("search", True) and wx.GetApp().initialized:
                 # Currently the UserCollection attributes are not watched on collections
                 # so we just mark the sidebar dirty in this case. We should reconsider this
                 # approach if we need to notice other UserCollection attributes or if we
@@ -1548,10 +1548,18 @@ class SidebarBranchPointDelegate(BranchPoint.BranchPointDelegate):
             view = self.itsView
 
             quickEntryBlock = Block.Block.findBlockByName ("ApplicationBarQuickEntry")
+            mainView = Block.Block.findBlockByName("MainView")
+
+            # make sure all changes are searchable
+            mainView.setStatusMessage (_(u"Preparing to search..."))
+            self.itsView.commit()
+            self.itsView.repository.notifyIndexer(True)
+
+            mainView.setStatusMessage (_(u"Searching..."))
             results = view.searchItems (quickEntryBlock.lastSearch)
 
-            resultsUnfiltered = schema.ns('osaf.pim', view).searchResultsUnfiltered
-            resultsUnfiltered.inclusions.clear()
+            searchResultsUnfiltered = schema.ns('osaf.pim', view).searchResultsUnfiltered
+            searchResultsUnfiltered.inclusions.clear()
 
             sidebarCollection = schema.ns("osaf.app", self).sidebarCollection
             for collection in sidebarCollection:
@@ -1560,34 +1568,45 @@ class SidebarBranchPointDelegate(BranchPoint.BranchPointDelegate):
             collectionList = searchCollection.collectionList
 
             app = wx.GetApp()
+            itemsFound = 0
+            searchAborted = False
+            lastTime = time.time()
             for item in search.processResults(results):
-                if item not in resultsUnfiltered and item in searchCollection:
-                    resultsUnfiltered.add(item)
-                    # Update the display every so often 
-                    if len (resultsUnfiltered) % 50 == 0:
-                        app.propagateAsynchronousNotifications()
-                        app.Yield(True)
+                if item in searchCollection and item not in searchResultsUnfiltered:
+
+                    searchAborted = itemsFound > 200 and (time.time() - lastTime) > 15
+                    if searchAborted:
+                        break
+                    
+                    searchResultsUnfiltered.add(item)
                     for collection in collectionList:
                         if item in collection:
                             UserCollection (collection).searchMatches += 1
+                            
+                    itemsFound = itemsFound + 1
 
-            if len(resultsUnfiltered) == 0:
+            if itemsFound == 0:
                 # For now we'll write a message to the status bar because it's easy
                 # When we get more time to work on search, we should write the message
                 # just below the search box in the toolbar.
-                statusMessage = _(u"Search found nothing")
+                statusMessage = _(u"No results found")
             else:
-                statusMessage = u''
-            Block.Block.findBlockByName('StatusBar').setStatusMessage (statusMessage)
-            
+                if searchAborted:
+                    statusMessage = _(u"200 best results found (more exist, but search didn't have time to display them)")
+                else:
+                    statusMessage = _(u"%(itemsFound)i results found") % {"itemsFound": itemsFound}
+
+            mainView.setStatusMessage (statusMessage)
+
         except PyLucene.JavaError, error:
-            message = unicode(error)
+            message = unicode (error)
             prefix = u"org.apache.lucene.queryParser.ParseException: "
             if message.startswith (prefix):
                 message = message [len(prefix):]
-            wx.MessageBox (_(u"An error occured during search.\n\nThe search engine reported the following error:\n\n" ) + message,
+            wx.MessageBox (_(u"An error occured during search.\n\nThe search engine reported the following error:\n\n%(message)s" ) % {"message": message},
                            _(u"Search Error"),
-                           parent=wx.GetApp().mainFrame)
+                           parent = app.mainFrame)
+            mainView.setStatusMessage (_(u"An error occured during search"))
 
 
     def _makeBranchForCacheKey(self, keyItem):

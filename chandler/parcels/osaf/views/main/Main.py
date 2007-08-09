@@ -513,9 +513,6 @@ class MainView(View):
 
                     quickEntryBlock.lastSearch = command
                     showSearchResults = True
-                    # make sure all changes are searchable
-                    self.itsView.commit()
-                    self.itsView.repository.notifyIndexer(True)
 
         sidebar.setShowSearch (showSearchResults)
 

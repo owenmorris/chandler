@@ -927,9 +927,11 @@ class BlockDispatchHook (DispatchHook):
             commitAfterDispatch = False
         else:
             # Clear old status before beginning a new command
-            statusBar = self.findBlockByName('StatusBar')
-            if statusBar is not None:
-                statusBar.setStatusMessage (u"")
+            wxEvent = event.arguments.get ("wxEvent", None)
+            if wxEvent is not None and isinstance (wxEvent, wx.CommandEvent):
+                statusBar = self.findBlockByName('StatusBar')
+                if statusBar is not None:
+                    statusBar.setStatusMessage (u"")
             commitAfterDispatch = event.commitAfterDispatch
 
         dispatchEnum = event.dispatchEnum

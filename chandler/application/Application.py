@@ -297,6 +297,7 @@ class wxApplication (wx.App):
         """
         Main application initialization.
         """
+        self.initialized = False
 
         # Python errors caught by wx are emitted via PyErr_Print() which
         # outputs to Python's sys.stderr (bug 6586).
@@ -654,6 +655,7 @@ class wxApplication (wx.App):
 
         util.timing.end("wxApplication OnInit") #@@@Temporary testing tool written by Morgen -- DJA
 
+        self.initialized = True
         return True    # indicates we succeeded with initialization
 
     def reload(self, parentWin):
