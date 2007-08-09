@@ -268,10 +268,10 @@ END:VCALENDAR
         defaultTzinfo = self.view.tzinfo.getInstance("US/Hawaii")
         self.savedTzinfo = self.view.tzinfo.setDefault(defaultTzinfo)
 
-        self.messageOne = message.messageTextToKind(self.view, self.M1)
-        self.messageTwo = message.messageTextToKind(self.view, self.M2)
-        self.messageThree = message.messageTextToKind(self.view, self.M3)
-        self.messageFour = message.messageTextToKind(self.view, self.M4)
+        self.messageOne = message.messageTextToKind(self.view, self.M1)[1]
+        self.messageTwo = message.messageTextToKind(self.view, self.M2)[1]
+        self.messageThree = message.messageTextToKind(self.view, self.M3)[1]
+        self.messageFour = message.messageTextToKind(self.view, self.M4)[1]
 
         self.assertTrue(isinstance(self.messageOne, MailStamp))
         self.assertTrue(isinstance(self.messageTwo, MailStamp))

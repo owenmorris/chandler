@@ -58,7 +58,7 @@ Content-Transfer-Encoding: 7bit
 </html>
 """
     def testHTMLMessage(self):
-        mailStamp = message.messageTextToKind(self.view, self.M)
+        statusCode, mailStamp = message.messageTextToKind(self.view, self.M)
         self.assertEquals(mailStamp.body.strip(), \
                         u"Start of Body\n  \nMore text in red")
 

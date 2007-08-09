@@ -239,8 +239,9 @@ def messageObjectToKind(view, messageObject, messageText=None):
         if peer is None:
             # A peer address is required for eimml
             # deserialization. If there is no peer
-            # then ignore the eimml data.
-            return None
+            # then ignore the eimml data and return
+            # an error flag.
+            return (-1, None)
 
         matchingAddresses = []
 
@@ -250,13 +251,14 @@ def messageObjectToKind(view, messageObject, messageText=None):
         # the matchingAddresses list will at least contain the
         # peer address since it is an EmailAddress Item and
         # there for will be in the EmailAddressCollection index.
-        mailStamp = parseEIMML(view, peer, matchingAddresses, eimml)
+        statusCode, mailStamp = parseEIMML(view, peer, matchingAddresses, eimml)
 
-        if mailStamp is None:
-            # Returning None here signals to the
-            # caller that this mail message contained
-            # eimml that was ignored
-            return None
+        if statusCode != 1:
+            # There was either an error during
+            # processing of the eimml or the
+            # eimml was older than the current
+            # Item's state so it was ignored.
+            return (statusCode, None)
 
     elif chandlerAttachments["ics"]:
         ics = chandlerAttachments["ics"][0]
@@ -325,7 +327,7 @@ def messageObjectToKind(view, messageObject, messageText=None):
     #if verbose():
     #    trace("\n\n%s\n\n" % '\n'.join(buf))
 
-    return mailStamp
+    return (1, mailStamp)
 
 def parseEIMML(view, peer, matchingAddresses, eimml):
     if peer in getCurrentMeEmailAddresses(view):
@@ -344,7 +346,7 @@ def parseEIMML(view, peer, matchingAddresses, eimml):
         #
         # If both cases are True then ignore the message other
         # wise process the EIMML.
-        return None
+        return (0, None)
 
     try:
         item = inbound(matchingAddresses, eimml)
@@ -352,7 +354,7 @@ def parseEIMML(view, peer, matchingAddresses, eimml):
         mailStamp = MailStamp(item)
         mailStamp.fromEIMML = True
 
-        return mailStamp
+        return (1, mailStamp)
 
     except sharingErrors.MalformedData, e:
         # The eimml records contained bogus
@@ -362,19 +364,19 @@ def parseEIMML(view, peer, matchingAddresses, eimml):
         # terminated so we log the error
         # instead
         logging.exception(e)
+        return (-1, None)
 
     except sharingErrors.OutOfSequence, e1:
         # The eimml records are older then
         # the current state and are not going
         # to be applied so return None
-        pass
+        return (0, None)
 
     except Exception, e2:
         # There was an error at the XML parsing layer.
         # Log the error and continue to download.
         logging.exception(e2)
-
-    return None
+        return (-1, None)
 
 def parseICS(view, ics, messageObject=None):
 
@@ -492,7 +494,7 @@ def previewQuickConvert(view, headers, body, eimml, ics):
             # A peer address is required for eimml
             # deserialization. If there is no peer
             # then ignore the eimml data.
-            return None
+            return (-1, None)
 
         name, addr = emailUtils.parseaddr(emailAddr)
         peer = EmailAddress.getEmailAddress(view, addr, name)
@@ -505,13 +507,14 @@ def previewQuickConvert(view, headers, body, eimml, ics):
         # the matchingAddresses list will at least contain the
         # peer address since it is an EmailAddress Item and
         # there for will be in the EmailAddressCollection index.
-        mailStamp = parseEIMML(view, peer, matchingAddresses, eimml)
+        statusCode, mailStamp = parseEIMML(view, peer, matchingAddresses, eimml)
 
-        if mailStamp is None:
-            # Returning None here signals to the
-            # caller that this mail message contained
-            # eimml that was ignored
-            return None
+        if statusCode != 1:
+            # There was either an error during
+            # processing of the eimml or the
+            # eimml was older than the current
+            # Item's state so it was ignored.
+            return (statusCode, None)
 
     elif ics:
         result = parseICS(view, ics)
@@ -554,7 +557,7 @@ def previewQuickConvert(view, headers, body, eimml, ics):
 
     __parseHeaders(view, headers, mailStamp, False, False)
 
-    return mailStamp
+    return (1, mailStamp)
 
 def previewQuickParse(msg, isObject=False):
     # Returns a tuple:

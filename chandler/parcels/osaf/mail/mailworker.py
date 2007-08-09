@@ -85,6 +85,7 @@ class DownloadTracker(object):
         self.totalNewDownloaded = 0
         self.totalUpdateDownloaded = 0
         self.totalIgnoreDownloaded = 0
+        self.totalErrorDownloaded = 0
 
         # Tracks the total number of downloaded
         # messages at the time of last commit
@@ -180,7 +181,7 @@ class MailWorker(RepositoryWorker):
         dt = self.getDownloadTracker(account)
 
         mRequests = request[3]
-       
+
         # The status bar message to display on commit 
         msg = request[4]
 
@@ -237,9 +238,8 @@ class MailWorker(RepositoryWorker):
         if constants.WAIT_FOR_COMMIT:
             reactor.callFromThread(client.nextAction)
 
-    def processMessage(self, view, protocol, client, 
-                       account, mRequest, 
-                       dt, args):
+    def processMessage(self, view, protocol, client,
+                       account, mRequest, dt, args):
         if __debug__:
             trace("processMessage")
 
@@ -253,10 +253,10 @@ class MailWorker(RepositoryWorker):
 
         headers, body, eimml, ics = mRequest[0]
 
-        repMessage = message.previewQuickConvert(view, headers,
-                                                body, eimml, ics)
+        statusCode, repMessage = message.previewQuickConvert(view, headers,
+                                                             body, eimml, ics)
 
-        if repMessage:
+        if statusCode == 1:
             # If the message contained an eimml attachment
             # that was older then the current state or
             # contained bogus data then repMessage will be
@@ -300,11 +300,14 @@ class MailWorker(RepositoryWorker):
                     ignoreMe = True
 
             repMessage.incomingMessage(ignoreMe)
+        elif statusCode == 0:
+            # The eimml was a duplicate or ignored
+            dt.totalIgnoreDownloaded += 1
 
         else:
-            # The message downloaded contained eimml that
-            # for what ever reason was ignored.
-            dt.totalIgnoreDownloaded += 1
+            # There was an error raised while parsing the
+            # eimml
+            dt.totalErrorDownloaded += 1
 
         if protocol == "IMAP":
             # IMAP folders can have max download
@@ -367,7 +370,7 @@ class MailWorker(RepositoryWorker):
         view.commit()
 
 
-    def processDone(self, view, protocol, client, 
+    def processDone(self, view, protocol, client,
                     account, request):
         if __debug__:
             trace("processDone")
@@ -390,7 +393,8 @@ class MailWorker(RepositoryWorker):
                               'numberTotal': dt.totalDownloaded,
                               'numberNew': dt.totalNewDownloaded,
                               'numberUpdates': dt.totalUpdateDownloaded,
-                              'numberDuplicates': dt.totalIgnoreDownloaded})
+                              'numberDuplicates': dt.totalIgnoreDownloaded,
+                              'numberErrors': dt.totalErrorDownloaded})
         else:
             setStatusMessage(constants.DOWNLOAD_NO_MESSAGES % \
                             {'accountName': account.displayName})
@@ -402,7 +406,7 @@ class MailWorker(RepositoryWorker):
         reactor.callFromThread(client.requestsComplete)
 
 
-    def processEmpty(self, view, protocol, client, 
+    def processEmpty(self, view, protocol, client,
                      account, request):
         if __debug__:
             trace("processEmpty")
@@ -411,7 +415,7 @@ class MailWorker(RepositoryWorker):
             return None
         return
 
-    def processCommit(self, view, protocol, client, 
+    def processCommit(self, view, protocol, client,
                       account, request):
         if __debug__:
             trace("processCommit")
@@ -434,7 +438,7 @@ class MailWorker(RepositoryWorker):
             self.handleError(view, client, account, e)
 
 
-    def processError(self, view, protocol, client, 
+    def processError(self, view, protocol, client,
                      account, request):
         if __debug__:
             trace("processError")
@@ -442,7 +446,7 @@ class MailWorker(RepositoryWorker):
         if self.shuttingDown:
             return None
 
-        #Clear the status bar message 
+        #Clear the status bar message
         setStatusMessage(u"")
         self._resetWorker(account)
 
@@ -456,6 +460,7 @@ class MailWorker(RepositoryWorker):
         dt.totalNewDownloaded = 0
         dt.totalUpdateDownloaded = 0
         dt.totalIgnoreDownloaded = 0
+        dt.totalErrorDownloaded = 0
         dt.lastTotalDownloaded = 0
 
     def handleError(self, view, client, account, err):

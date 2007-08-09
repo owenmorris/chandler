@@ -293,22 +293,23 @@ END:VCALENDAR
 
         self.assertTrue(mailStamp.subject.endswith('\n'))
         self.assertEquals(messageObject['Subject'], 'test mail')
-        
+
 
     def testMessageTextToKind(self):
-        mailKind = message.messageTextToKind(self.view, self.__getMessageText())
+        statusCode, mailKind = message.messageTextToKind(self.view, self.__getMessageText())
 
         self.assertNotEqual(mailKind, None)
 
         self.__compareMailMessages(mailKind, self.__getMailMessage())
 
     def testMessageWithEvent(self):
-        eventMessage = message.messageTextToKind(self.view, self.__getMultipartMessageText())
+        statusCode, eventMessage = message.messageTextToKind(self.view,
+                                       self.__getMultipartMessageText())
         self.assertTrue(has_stamp(eventMessage, MailStamp))
         self.assertTrue(has_stamp(eventMessage, EventStamp))
 
     def testMessageObjectToKind(self):
-        mailKind = message.messageObjectToKind(self.view, 
+        statusCode, mailKind = message.messageObjectToKind(self.view,
                            self.__getMessageObject(), self.__mail)
 
         self.assertNotEqual(mailKind, None)
