@@ -49,7 +49,7 @@ class MessageI18nTest(MailTestCase.MailTestCase):
         msgText = self.__loadTestMessage()
 
         mOne = email.message_from_string(msgText)
-        messageKind = message.messageObjectToKind(self.view, mOne, msgText)
+        messageKind = message.messageObjectToKind(self.view, mOne, msgText)[1]
         mTwo  = message.kindToMessageObject(messageKind)
 
         self.assertEquals(mOne['To'], mTwo['To'])
