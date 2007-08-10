@@ -582,9 +582,9 @@ def generateDocs(outputDir):
                   'chandlerdb.schema', 'chandlerdb.util',
                   'application', 'i18n', 'repository',
                   'osaf.app', 'osaf.mail', 'osaf.pim',
-                  'osaf.servlets',
-                  # these three are currently causing an epydoc error
-                  #'osaf.sharing', 'osaf.views', 'osaf.framework',
+                  'osaf.servlets', 'osaf.views',
+                  # these two are currently causing an epydoc error
+                  #'osaf.sharing', 'osaf.framework',
                 ]
 
     e_options, names = epydoc.cli.parse_arguments()
