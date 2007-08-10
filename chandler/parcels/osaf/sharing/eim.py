@@ -31,6 +31,7 @@ from chandlerdb.util.c import UUID
 from repository.persistence.RepositoryView import currentview
 from osaf import pim
 from twisted.internet.defer import Deferred
+import errors
 import logging
 logger = logging.getLogger(__name__)
 
@@ -935,8 +936,10 @@ class Translator:
         try:
             if importer: importer(self, r)
             if self.failure: self.failure.raiseException()
-        except:
-            logger.exception("Failed to import %s", r)
+        except Exception, e:
+            if self.failure:
+                errors.annotate(e, "Failed to import record %s" % str(r),
+                    details=self.failure.getTraceback())
             raise
         finally:
             self.failure=None
@@ -1071,10 +1074,11 @@ class Translator:
         return item.itsUUID.str16()
 
     failure = None
-    
+
     def recordFailure(self, failure):
         self.failure = failure
-        
+        logger.error(failure.getTraceback())
+
 
 def create_default_converter(t):
     converter = generic(default_converter)
