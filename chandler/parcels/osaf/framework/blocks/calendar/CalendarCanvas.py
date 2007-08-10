@@ -954,6 +954,14 @@ class CalendarNotificationHandler(object):
             blockItem = self.blockItem
             op, coll, name, uuid, dirties = data
             
+            if (op == "remove" and
+                blockItem.find(uuid) in blockItem.contents):
+                # There are many reasons we might be getting a 'remove' here;
+                # the item could be removed from one of the sub-collections of
+                # a Union collection, for example. So, if the item is still
+                # present, don't remove ('changed' for redisplay).
+                op = "changed"
+            
             if op == "refresh":
                 if blockItem.find(uuid) in blockItem.contents:
                     op = "add"
