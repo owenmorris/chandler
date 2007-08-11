@@ -122,6 +122,9 @@ def fromLocation(val, view):
 
 
 def fromICalendarDuration(text):
+    # tolerate None for duration in records, bug 10425
+    if not text:
+        return timedelta(0)
     return stringToDurations(text)[0]    
 
 def getTimeValues(view, record):
