@@ -133,7 +133,11 @@ def buildDistributionList(options):
                 options.distribs = [ 'dmg' ]
 
 def buildDistribName(mode, options):
-    return 'Chandler_%s_%s_%s' % (options.platformID, mode, options.version_info['version'])
+    if mode == 'release':
+        modeStr = ''
+    else:
+        modeStr = '%s_' % mode
+    return 'Chandler_%s_%s%s' % (options.platformID, modeStr, options.version_info['version'])
 
 def buildDistributionImage(mode, options):
     if options.platformID == 'iosx':
