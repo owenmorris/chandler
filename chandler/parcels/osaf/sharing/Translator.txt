@@ -777,3 +777,17 @@ for event status, and empty string to NoChange for triage are working::
     >>> rec.status
     NoChange
 
+    >>> rec = sharing.model.EventRecord(
+    ...         uuid='f230dcd4-7c32-4c3f-908b-d92081cc9a89',
+    ...         dtstart = ';VALUE=DATE-TIME;TZID=America/Los_Angeles:20070201T140000',
+    ...         duration = None,
+    ...         location = 'Nowhere',
+    ...         rrule = None,
+    ...         exrule = None,
+    ...         rdate = None,
+    ...         exdate = None,
+    ...         status = None,
+    ... )
+    >>> rec.duration
+    'PT0S'
+

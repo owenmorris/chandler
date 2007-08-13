@@ -122,10 +122,7 @@ def fromLocation(val, view):
 
 
 def fromICalendarDuration(text):
-    # tolerate None for duration in records, bug 10425
-    if not text:
-        return timedelta(0)
-    return stringToDurations(text)[0]    
+    return stringToDurations(text)[0]
 
 def getTimeValues(view, record):
     """
@@ -334,6 +331,9 @@ def emptyToNoChange(s):
 eim.add_converter(model.ItemRecord.triage, str, emptyToNoChange)
 eim.add_converter(model.ItemRecord.triage, unicode, emptyToNoChange)
 
+# Cosmo will generate a value of None for a zero-length duration, but Chandler
+# uses "PT0S"
+eim.add_converter(model.EventRecord.duration, type(None), lambda x: "PT0S")
 
 
 
