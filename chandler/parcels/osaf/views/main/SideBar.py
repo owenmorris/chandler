@@ -1464,7 +1464,7 @@ class SidebarBranchPointDelegate(BranchPoint.BranchPointDelegate):
                     # we can't filter out both master events and intersect
                     # with events, so filter on nonMasterEvents
                     newKey = IntersectionCollection(itsView=self.itsView,
-                                                    sources=[key, pim_ns.nonMasterEvents],
+                                                    sources=[key, pim_ns.nonMasterNonPureOccurrenceEvents],
                                                     autoDelete=True)
                     UserCollection(newKey).dontDisplayAsCalendar = UserCollection(key).dontDisplayAsCalendar
                     displayName += u" filtered by non-master events"

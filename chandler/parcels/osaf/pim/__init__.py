@@ -105,7 +105,20 @@ class NonOccurrenceFilter(schema.Item):
         occurrenceFor, modificationFor = \
             view.findValues(uuid, (EventStamp.occurrenceFor.name, None),
                                   (EventStamp.modificationFor.name, None))
-        return not occurrenceFor or modificationFor
+        return occurrenceFor is None or modificationFor is not None
+    
+    def isNotPureOccurrenceOrMaster(self, view, uuid):
+        rruleset, modificationFor, occurrenceFor = view.findValues(uuid,
+                           (EventStamp.rruleset.name, None),
+                           (EventStamp.modificationFor.name, None),
+                           (EventStamp.occurrenceFor.name, None))
+        
+        if occurrenceFor is None:
+            # it isn't an occurrence, don't let it be a master
+            return rruleset is None
+        else:
+            # it's an occurrence, reject pure occurrences
+            return modificationFor is not None
 
 
 class LongEventFilter(schema.Item):
@@ -354,6 +367,16 @@ def installParcel(parcel, oldVersion=None):
     EventStamp.addIndex(masterEvents, 'effectiveStart', 'subindex',
                           superindex=(events, events.__collection__,
                                       'effectiveStart'))
+
+    nonMasterNonPureOccurrenceEvents = FilteredCollection.update(
+        parcel, 'nonMasterNonPureOccurrenceEvents',
+        source=events,
+        filterMethod=(nonOccurrenceFilter, 'isNotPureOccurrenceOrMaster'),
+        filterAttributes=[EventStamp.occurrenceFor.name,
+                          EventStamp.modificationFor.name,
+                          EventStamp.rruleset.name]
+    )
+
 
     locations = KindCollection.update(
         parcel, 'locations',
