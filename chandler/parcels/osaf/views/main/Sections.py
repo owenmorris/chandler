@@ -240,7 +240,11 @@ class SectionedGridDelegate(ControlBlocks.AttributeDelegate):
                 rowOffset = row - (sectionRow + 1)
                 itemIndex = self.sectionIndexes[section] + rowOffset
                 
-                assert itemIndex < len(self.blockItem.contents)
+                if itemIndex >= len(self.blockItem.contents):
+                    assert False, "index (%s) out of range (%s)" \
+                           % (itemIndex, len(self.blockItem.contents))
+                    return -1
+
                 return itemIndex
 
         #assert False, "Couldn't find index for row %s in %s" % (row, [x[0] for x in reversed(self.sectionRows)])
