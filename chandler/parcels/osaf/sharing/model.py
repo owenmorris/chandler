@@ -161,6 +161,8 @@ class EventRecord(eim.Record):
     # EventStamp.transparency
     status = eim.field(text256, _(u"Event status"), filters=[eventStatusFilter])
 
+    # timestamp of the most recent occurrence, for calculating triage status
+    lastPastOccurrence = eim.field(text20, default=u"", filters=[triageFilter])
 
 
 

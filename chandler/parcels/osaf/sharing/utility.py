@@ -40,7 +40,9 @@ __all__ = [
     'splitUUID',
     'fromICalendarDateTime',
     'getDateUtilRRuleSet',
-    'checkTriageOnly'
+    'checkTriageOnly',
+    'code_to_triagestatus',
+    'triagestatus_to_code'
 ]
 
 from application import schema, Globals
@@ -885,6 +887,13 @@ def extractLinks(text):
 
 # = = = = = = = = = EIM Recurrence helper functions = = = = = = = = = = = = = = 
 
+code_to_triagestatus = {
+    "100" : pim.TriageEnum.now,
+    "200" : pim.TriageEnum.later,
+    "300" : pim.TriageEnum.done,
+}
+triagestatus_to_code = dict([[v, k] for k, v in code_to_triagestatus.items()])
+
 def getDateUtilRRuleSet(field, value, dtstart):
     """
     Turn EIM recurrence fields into a dateutil rruleset.
@@ -943,6 +952,14 @@ def fromICalendarDateTime(view, text, multivalued=False):
         start = start[0]
     return (start, allDay, anyTime)
 
+def getMasterAlias(alias):
+    """Return the portion of the alias before the colon."""
+    position = alias.find(':')
+    if position == -1:
+        return alias
+    else:
+        return alias[:position]
+
 def splitUUID(view, recurrence_aware_uuid):
     """
     Split an EIM recurrence UUID.
@@ -969,7 +986,7 @@ def checkTriageOnly(item):
     """
     return (isinstance(item, pim.Note) and
             pim.EventStamp(item).isTriageOnlyModification() and
-            pim.EventStamp(item).autoTriage() == item._triageStatus)
+            pim.EventStamp(item).simpleAutoTriage() == item._triageStatus)
 
 # = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =
 # Not used at the moment, but might be revived soon

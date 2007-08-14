@@ -93,13 +93,14 @@ Serialize and deserialize entire record sets using EIMMLSerializer::
     ...       <event:rdate eim:type="text" />
     ...       <event:exdate eim:type="text" />
     ...       <event:status eim:type="text"><![CDATA[CONFIRMED]]></event:status>
+    ...       <event:lastPastOccurrence eim:type="decimal" />
     ...     </event:record>
     ...   </eim:recordset>
     ... </eim:collection>'''
 
     >>> recordSets, extra = eimml.EIMMLSerializer.deserialize(rv, sample)
 
-    >>> expectedRecordSets = { '8501de14-1dc9-40d4-a7d4-f289feff8214': Diff([sharing.model.ItemRecord('8501de14-1dc9-40d4-a7d4-f289feff8214', u'Welcome to Cosmo', u'100 123456789.12 1', decimal.Decimal("1164803131"), 0, 0, 0), sharing.model.ModifiedByRecord('8501de14-1dc9-40d4-a7d4-f289feff8214', 'foo@example.com', decimal.Decimal("1164803132"), 500), sharing.model.NoteRecord('8501de14-1dc9-40d4-a7d4-f289feff8214', 'This is the body\nsecond line', u'1e2d48c0-d66b-494c-bb33-c3d75a1ba66b', None, None, None), sharing.model.EventRecord('8501de14-1dc9-40d4-a7d4-f289feff8214', u'20061130T140000', u'PT1H', u'San Jose', u'FREQ=WEEKLY', None, None, None, u'CONFIRMED')])}
+    >>> expectedRecordSets = { '8501de14-1dc9-40d4-a7d4-f289feff8214': Diff([sharing.model.ItemRecord('8501de14-1dc9-40d4-a7d4-f289feff8214', u'Welcome to Cosmo', u'100 123456789.12 1', decimal.Decimal("1164803131"), 0, 0, 0), sharing.model.ModifiedByRecord('8501de14-1dc9-40d4-a7d4-f289feff8214', 'foo@example.com', decimal.Decimal("1164803132"), 500), sharing.model.NoteRecord('8501de14-1dc9-40d4-a7d4-f289feff8214', 'This is the body\nsecond line', u'1e2d48c0-d66b-494c-bb33-c3d75a1ba66b', None, None, None), sharing.model.EventRecord('8501de14-1dc9-40d4-a7d4-f289feff8214', u'20061130T140000', u'PT1H', u'San Jose', u'FREQ=WEEKLY', None, None, None, u'CONFIRMED', None)])}
 
 
     >>> recordSets == expectedRecordSets
@@ -164,18 +165,18 @@ another.  For instance, NoteRecord's uuid field = eim.key(ItemRecord.uuid)::
 
     >>> r1 = sharing.model.ItemRecord('1', None, nc, nc, nc, nc, nc)
     >>> r2 = sharing.model.NoteRecord('1', None, nc, nc, nc, nc)
-    >>> r3 = sharing.model.EventRecord('1', None, nc, nc, nc, nc, nc, nc, nc)
+    >>> r3 = sharing.model.EventRecord('1', None, nc, nc, nc, nc, nc, nc, nc, nc)
     >>> r4 = sharing.model.DisplayAlarmRecord('1', nc, None, nc, nc)
     >>> list(sharing.sort_records( [r3, r1, r4, r2] ))
-    [ItemRecord(u'1', None, NoChange, NoChange, NoChange, NoChange, NoChange), NoteRecord(u'1', None, NoChange, NoChange, NoChange, NoChange), EventRecord(u'1', None, NoChange, NoChange, NoChange, NoChange, NoChange, NoChange, NoChange), DisplayAlarmRecord(u'1', NoChange, None, NoChange, NoChange)]
+    [ItemRecord(u'1', None, NoChange, NoChange, NoChange, NoChange, NoChange), NoteRecord(u'1', None, NoChange, NoChange, NoChange, NoChange), EventRecord(u'1', None, NoChange, NoChange, NoChange, NoChange, NoChange, NoChange, NoChange, NoChange), DisplayAlarmRecord(u'1', NoChange, None, NoChange, NoChange)]
 
 Sorting works even if not all record types are represented::
 
     >>> list(sharing.sort_records( [r3, r1, r4] ))
-    [ItemRecord(u'1', None, NoChange, NoChange, NoChange, NoChange, NoChange), EventRecord(u'1', None, NoChange, NoChange, NoChange, NoChange, NoChange, NoChange, NoChange), DisplayAlarmRecord(u'1', NoChange, None, NoChange, NoChange)]
+    [ItemRecord(u'1', None, NoChange, NoChange, NoChange, NoChange, NoChange), EventRecord(u'1', None, NoChange, NoChange, NoChange, NoChange, NoChange, NoChange, NoChange, NoChange), DisplayAlarmRecord(u'1', NoChange, None, NoChange, NoChange)]
 
     >>> list(sharing.sort_records( [r4, r3] ))
-    [EventRecord(u'1', None, NoChange, NoChange, NoChange, NoChange, NoChange, NoChange, NoChange), DisplayAlarmRecord(u'1', NoChange, None, NoChange, NoChange)]
+    [EventRecord(u'1', None, NoChange, NoChange, NoChange, NoChange, NoChange, NoChange, NoChange, NoChange), DisplayAlarmRecord(u'1', NoChange, None, NoChange, NoChange)]
 
     >>> sortedSets = {'1': rs([r4, r1, r3])}
     >>> eimml.EIMMLSerializer.serialize(rv, sortedSets)
@@ -274,7 +275,7 @@ created::
     >>> text = conduit.get()
     >>> conduit.syncToken
     '3'
-    >>> expectedRecordSets = { '8501de14-1dc9-40d4-a7d4-f289feff8214': Diff([sharing.model.ItemRecord('8501de14-1dc9-40d4-a7d4-f289feff8214', u'Welcome to Cosmo', u'100 123456789.12 1', decimal.Decimal("1164803131"), 0, 0, 0), sharing.model.ModifiedByRecord('8501de14-1dc9-40d4-a7d4-f289feff8214', 'foo@example.com', decimal.Decimal("1164803132"), 500), sharing.model.NoteRecord('8501de14-1dc9-40d4-a7d4-f289feff8214', 'This is the body\nsecond line', u'1e2d48c0-d66b-494c-bb33-c3d75a1ba66b', None, None, None), sharing.model.EventRecord('8501de14-1dc9-40d4-a7d4-f289feff8214', u'20061130T140000', u'PT1H', u'San Jose', u'FREQ=WEEKLY', None, None, None, u'CONFIRMED')]), '9501de14-1dc9-40d4-a7d4-f289feff8214': rs([sharing.model.ItemRecord('9501de14-1dc9-40d4-a7d4-f289feff8214', u'Welcome to Cosmo', u'100 123456789.12 1', decimal.Decimal("1164803132"), 0, 0, 0), sharing.model.ModifiedByRecord('9501de14-1dc9-40d4-a7d4-f289feff8214', 'foo@example.com', decimal.Decimal("1164803132"), 500), sharing.model.NoteRecord('9501de14-1dc9-40d4-a7d4-f289feff8214', 'This is the body\nsecond line', u'1e2d48c0-d66b-494c-bb33-c3d75a1ba66b', None, None, None), sharing.model.EventRecord('9501de14-1dc9-40d4-a7d4-f289feff8214', u'20061130T140000', u'PT1H', None, u'FREQ=WEEKLY', None, None, None, u'CONFIRMED')]) }
+    >>> expectedRecordSets = { '8501de14-1dc9-40d4-a7d4-f289feff8214': Diff([sharing.model.ItemRecord('8501de14-1dc9-40d4-a7d4-f289feff8214', u'Welcome to Cosmo', u'100 123456789.12 1', decimal.Decimal("1164803131"), 0, 0, 0), sharing.model.ModifiedByRecord('8501de14-1dc9-40d4-a7d4-f289feff8214', 'foo@example.com', decimal.Decimal("1164803132"), 500), sharing.model.NoteRecord('8501de14-1dc9-40d4-a7d4-f289feff8214', 'This is the body\nsecond line', u'1e2d48c0-d66b-494c-bb33-c3d75a1ba66b', None, None, None), sharing.model.EventRecord('8501de14-1dc9-40d4-a7d4-f289feff8214', u'20061130T140000', u'PT1H', u'San Jose', u'FREQ=WEEKLY', None, None, None, u'CONFIRMED', None)]), '9501de14-1dc9-40d4-a7d4-f289feff8214': rs([sharing.model.ItemRecord('9501de14-1dc9-40d4-a7d4-f289feff8214', u'Welcome to Cosmo', u'100 123456789.12 1', decimal.Decimal("1164803132"), 0, 0, 0), sharing.model.ModifiedByRecord('9501de14-1dc9-40d4-a7d4-f289feff8214', 'foo@example.com', decimal.Decimal("1164803132"), 500), sharing.model.NoteRecord('9501de14-1dc9-40d4-a7d4-f289feff8214', 'This is the body\nsecond line', u'1e2d48c0-d66b-494c-bb33-c3d75a1ba66b', None, None, None), sharing.model.EventRecord('9501de14-1dc9-40d4-a7d4-f289feff8214', u'20061130T140000', u'PT1H', None, u'FREQ=WEEKLY', None, None, None, u'CONFIRMED', nc)]) }
     >>> recordSets, extra = eimml.EIMMLSerializer.deserialize(rv, text)
     >>> recordSets == expectedRecordSets
     True

@@ -185,7 +185,7 @@ def outbound(peers, item, filter=None, debug=False):
             # auto-triage shouldn't have recordsets created for them
             if not (isinstance(mod, pim.Note) and
                     pim.EventStamp(mod).isTriageOnlyModification() and
-                    pim.EventStamp(mod).autoTriage() == mod._triageStatus):   
+                    pim.EventStamp(mod).simpleAutoTriage() == mod._triageStatus):   
                 items.append(mod)
 
     for item in items:

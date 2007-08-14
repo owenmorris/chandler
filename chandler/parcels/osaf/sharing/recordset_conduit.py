@@ -14,10 +14,12 @@
 from __future__ import with_statement
 
 from osaf import pim
-import conduits, errors, formats, eim, shares, model
-from model import EventRecord
+from osaf.timemachine import getNow
+from osaf.pim import TriageEnum
+import conduits, errors, formats, eim, shares, model, utility
+from model import EventRecord, ItemRecord
 from utility import (splitUUID, getDateUtilRRuleSet, fromICalendarDateTime,
-                     checkTriageOnly)
+                     checkTriageOnly, getMasterAlias, code_to_triagestatus)
 from i18n import ChandlerMessageFactory as _
 import logging
 from itertools import chain
@@ -43,10 +45,7 @@ __all__ = [
     'findRecurrenceConflicts'
 ]
 
-
-
-
-
+emptyValues = (eim.NoChange, eim.Inherit, None)
 
 
 def mergeFunction(code, item, attribute, value):
@@ -164,8 +163,12 @@ class RecordSetConduit(conduits.BaseConduit):
         remotelyRemoved = set() # The aliases of remotely removed items
         remotelyAdded = set() # The aliases of remotely added items
         remotelyUnmodified = set() # Aliases of unmodified (removed) occurrences
-        locallyAdded = set( ) # The aliases of locally add items
+        locallyAdded = set( ) # The aliases of locally added items
         localItems = set() # The aliases of all items we're to process
+        
+        triageFilter = eim.Filter(None, "Filter out triage and read")
+        triageFilter += model.triageFilter
+        triageFilter += model.readFilter
 
         if receive:
 
@@ -228,7 +231,7 @@ class RecordSetConduit(conduits.BaseConduit):
                 deletion = False
                 rs = inbound[alias]
                 if rs is None: # inbound deletion
-                    masterUUID, recurrenceID = splitUUID(rv, alias)
+                    masterUUID = getMasterAlias(alias)
                     if alias == masterUUID:
                         doLog("Inbound removal: %s", alias)
                         del inbound[alias]
@@ -330,16 +333,21 @@ class RecordSetConduit(conduits.BaseConduit):
         localCount = len(locallyChangedUuids)
         _callback(msg="Found %d local change(s)" % localCount)
 
-        triage_only_mods = set()
+        triageOnlyMods = set()
         for changedUuid in locallyChangedUuids:
             item = rv.findUUID(changedUuid)
+            master = getattr(item, 'inheritFrom', None)
+            if master is not None:
+                # treat masters as changed if their modifications changed, so
+                # lastPastOccurrence can be changed
+                localItems.add(translator.getAliasForItem(master))
             alias = translator.getAliasForItem(item)
 
             # modifications that have been changed purely by
             # auto-triage shouldn't have recordsets created for them
             if checkTriageOnly(item):
                 doLog("Skipping a triage-only modification: %s", changedUuid)
-                triage_only_mods.add(alias)
+                triageOnlyMods.add(alias)
                 continue
 
             if not self.hasState(alias):
@@ -357,6 +365,11 @@ class RecordSetConduit(conduits.BaseConduit):
 
         # Compute local records
         rsNewBase = { }
+        localMastersToMods = {}
+        # triageOnlyMods and justTriageChanged are slightly different;
+        # one has triage that matches simpleAutoTriage, the other has a triage
+        # change that will be shared
+        justTriageChanged = set()
         i = 0
         for alias in localItems:
             uuid = translator.getUUIDForAlias(alias)
@@ -371,6 +384,10 @@ class RecordSetConduit(conduits.BaseConduit):
 
                 rs = eim.RecordSet(translator.exportItem(item))
                 self.share.addSharedItem(item)
+                if pim.EventStamp(item).isTriageOnlyModification():
+                    if (not self.hasState(alias) or
+                        not (self.getState(alias).agreed - rs)):
+                        justTriageChanged.add(alias)
                 doLog("Computing local records for alias: %s", alias)
             else:
                 rs = eim.RecordSet()
@@ -379,7 +396,91 @@ class RecordSetConduit(conduits.BaseConduit):
             i += 1
             _callback(msg="Generated %d of %d recordset(s)" % (i, localCount),
                 work=1)
+            
+        def changeAgreedForNewInboundMod(modAlias):
+            if not rsNewBase.has_key(modAlias):
+                return eim.RecordSet()
+            state = self.getState(modAlias)
+            state.agreed += eim.RecordSet(
+                getInheritRecords(rsNewBase[modAlias].inclusions, modAlias))
 
+        # handle special triage status changes for recurring events
+        triageFixes = self.getResolvableTriageConflicts(inbound, localItems,
+                                                    remotelyRemoved, translator)
+        
+        dontSend = set()
+        
+        for modAlias, winner in triageFixes.iteritems():
+            if winner == 'inbound':
+                doLog("Inbound triage status wins for %s, removing local "
+                      "triage status changes" % modAlias)
+                
+                # change what's sent
+                if modAlias in justTriageChanged or modAlias not in localItems:
+                    # The only changes were triage changes, don't send anything
+                    # for this modification.  
+                    # 
+                    # If the item didn't exist locally, during the merge step
+                    # it needs to have its rsInternal set to state.agreed, or
+                    # the inbound changes merged with the forced agreed triage
+                    # of None (set below) will be seen as a conflict.
+                    dontSend.add(modAlias)
+                else:
+                    # there are local non-triage changes, filter out the triage
+                    # field if it was going to be set
+                    rs = rsNewBase[modAlias]
+                    rsNewBase[modAlias] = triageFilter.sync_filter(rs)
+
+                # change what's applied
+                forceChange = True
+                triageInheritDiff = getTriageDiff(modAlias, eim.Inherit)
+                
+                if inbound.get(modAlias) is not None:
+                    inbound_triage = getOneRecord(inbound[modAlias],
+                                                  ItemRecord, 'triage')
+                    if inbound_triage in (None, eim.NoChange):
+                        inbound[modAlias] += triageInheritDiff
+                elif self.hasState(modAlias):
+                    inbound[modAlias] = triageInheritDiff
+                else:
+                    # there's no agreed state for the item and no inbound
+                    # record, it should be unmodified
+                    remotelyUnmodified.add(modAlias)
+                    forceChange = False
+                    
+                # make sure Inherit (LATER) to Inherit (DONE) changes aren't
+                # seen as NoChange by resetting the agreed state to None
+                if forceChange:
+                    if not self.hasState(modAlias):
+                        changeAgreedForNewInboundMod(modAlias)
+                    self.getState(modAlias).agreed += getTriageDiff(modAlias,
+                                                                    None)
+
+            elif winner == 'local':
+                if inbound.has_key(modAlias):
+                    doLog("Filtering out inbound triageStatus on %s "% modAlias)
+                    filtered = triageFilter.sync_filter(inbound[modAlias])
+                    inbound[modAlias] = filtered
+                    if modAlias in triageOnlyMods:
+                        # don't leave modAlias in triageOnlyMods, or it will get
+                        # removed from toSend, preventing the local triageStatus
+                        # from propagating to the server
+                        triageOnlyMods.remove(modAlias)
+                        
+                        rsLocal = rsNewBase.get(modAlias)
+                        if rsLocal is not None:
+                            if not ((eim.RecordSet() + filtered) - rsLocal):
+                                # this is an inbound triage-only change, 
+                                # overridden by the local triage status.  Don't
+                                # apply the inbound change
+                                del inbound[modAlias]
+                    if not self.hasState(modAlias) and inbound.has_key(modAlias):
+                        changeAgreedForNewInboundMod(modAlias)
+
+                    if self.hasState(modAlias):
+                        # make sure the local Inherit value is seen as a change
+                        state = self.getState(modAlias)
+                        state.agreed += getTriageDiff(modAlias, None)
 
         filter = self.getFilter()
 
@@ -425,9 +526,12 @@ class RecordSetConduit(conduits.BaseConduit):
                 # seen as conflicts, set the agreed state in records for new
                 # modifications to be all Inherit values.  Without this, local
                 # Inherit values will be treated as conflicts
-                state.agreed += eim.RecordSet(
-                    getInheritRecords(rsInternal.inclusions, alias)
-                )
+                changeAgreedForNewInboundMod(alias)
+
+            if alias in dontSend:
+                # making rsInternal == state.agreed will make rsExternal be
+                # applied with no conflicts
+                rsInternal = state.agreed
 
             if alias in remotelyUnmodified and not rsInternal:
                 dSend = dApply = pending = False
@@ -449,7 +553,7 @@ class RecordSetConduit(conduits.BaseConduit):
             else:
                 item = None
 
-            if alias in remotelyUnmodified and rsInternal:
+            if alias in remotelyUnmodified and (dSend or pending):
                 # There's no record on the server anymore, but rsExternal was
                 # set to a fake state of all Inherits.  So we need to send
                 # the full state, recalculate dSend
@@ -480,10 +584,6 @@ class RecordSetConduit(conduits.BaseConduit):
                 work=1)
 
 
-
-
-
-
         # Look for conflicts that EIM doesn't detect
 
 
@@ -495,11 +595,9 @@ class RecordSetConduit(conduits.BaseConduit):
         # Build a dictionary of master aliases which have local changes to
         # their modifications
         for alias in toSend:
-            try:
-                masterAlias, recurrenceId = alias.split(":")
+            masterAlias = getMasterAlias(alias)
+            if masterAlias != alias:
                 masters.setdefault(masterAlias, set()).add(alias)
-            except ValueError: # no recurrenceId; not a modification
-                continue
         for alias in list(chain(toApply.keys(), remotelyRemoved)):
             if alias in masters:
                 # This is a master that has inbound changes and outbound
@@ -609,12 +707,12 @@ class RecordSetConduit(conduits.BaseConduit):
                 else:
                     item = None
 
-                # don't treat changes to recurrence master's triage status as
-                # real changes, bug 9643
+                # don't treat changes to recurrence master's triage status or
+                # lastPastOccurrence as real changes, bug 9643
                 if (item is not None and
                      (not item.hasLocalAttributeValue('inheritTo') or
-                      len(rs.inclusions) != 1 or
-                      hasChanges(list(rs.inclusions)[0], ['triage']))):
+                      triageFilter.sync_filter(rs) or
+                      triageFixes.get(alias) == 'inbound')):
                     # Set triage status, based on the values we loaded
                     # We'll only autotriage if we're not sharing triage status;
                     # We'll only pop to Now if this is an established share.
@@ -747,9 +845,9 @@ class RecordSetConduit(conduits.BaseConduit):
                 item = None
 
             if (item is None or
-                alias in triage_only_mods or 
-                item not in self.share.contents and
-                alias not in remotelyRemoved):
+                (alias in triageOnlyMods and alias not in toApply) or 
+                (item not in self.share.contents and
+                 alias not in remotelyRemoved)):
                 if send:
                     if not state.isNew():
                         # Only send a removal for a state that isn't new
@@ -841,6 +939,128 @@ class RecordSetConduit(conduits.BaseConduit):
 
 
 
+    def getResolvableTriageConflicts(self, inbound, localItems, remotelyRemoved,
+                                     translator):
+        """
+        Calculate triage status changes for each inbound master if its
+        lastPastOccurrence has changed and for each inbound modifications whose
+        triage status has changed.
+        
+        Return a dict of {alias : winner} pairs, where winner is 'inbound' or
+        'local'.
+        """
+        view = self.itsView
+        now = getNow(view.tzinfo.default)
+        resolution = {}
+        master_to_mods = {}
+        local_master_to_mods = {}
+        
+        for alias in localItems:
+            masterAlias = getMasterAlias(alias)
+            if masterAlias != alias and masterAlias not in remotelyRemoved:
+                local_master_to_mods.setdefault(masterAlias, set()).add(alias)
+        
+        for alias in inbound:
+            masterAlias = getMasterAlias(alias)
+            if masterAlias in remotelyRemoved:
+                # nothing to do for remotely deleted masters
+                continue
+            if masterAlias != alias:
+                master_to_mods.setdefault(masterAlias, set()).add(alias)
+            else:
+                eventRecord = getOneRecord(inbound.get(masterAlias),
+                                           EventRecord)
+                if (eventRecord is not None and 
+                    eventRecord.lastPastOccurrence is not eim.NoChange):
+                    # get local changes to modifications which might be covered
+                    # by the remote change to the master's lastPast
+                    mod_aliases = master_to_mods.setdefault(masterAlias, set())
+                    local_aliases = local_master_to_mods.get(masterAlias, set())
+                    mod_aliases.update(local_aliases)
+        
+        # look at inbound changes to modifications
+        for masterAlias, modifications in master_to_mods.iteritems():
+            if not self.hasState(masterAlias):
+                # this is a new recurring event, there should be no triage
+                # changes locally
+                continue
+
+            masterAgreed = self.getState(masterAlias).agreed
+            eventRecord = getOneRecord(masterAgreed, EventRecord)
+            if (eventRecord is None or
+                (eventRecord.rrule in emptyValues and
+                 eventRecord.rdate in emptyValues)):
+                # the old agreed state wasn't recurring
+                continue
+            
+            deleted = []
+            inboundLast = None
+            if inbound.has_key(masterAlias):
+                # need to distinguish between remote unmodify and remote
+                # deletion, deletions should be ignored
+                deleted = findRecurrenceConflicts(view, masterAlias,
+                                                  inbound.get(masterAlias),
+                                                  modifications)
+                inboundLast = getLastPastOccurrence(view,
+                                                    inbound.get(masterAlias))
+
+            agreedLast = getLastPastOccurrence(view, masterAgreed)
+            
+            if inboundLast is None:
+                inboundLast = agreedLast
+                
+            for modAlias in modifications:
+                if modAlias in deleted:
+                    continue
+                
+                # find the previously agreed triage status, the new
+                # remote implied triage status, and the local triage status
+                modState = self.share.states.getByAlias(modAlias)
+                if modState is not None:
+                    modAgreed = modState.agreed
+                else:
+                    modAgreed = None
+
+                agreedTS, agreedTSFieldValue = \
+                    calculateTriageStatus(view, modAlias, modAgreed, agreedLast)
+                
+                if agreedTS != TriageEnum.later:
+                    # Changes relative to DONE or changed relative to NOW
+                    # can be handled normally
+                    continue
+                
+                inboundTS, inboundTSFieldValue = \
+                    calculateTriageStatus(view, modAlias, inbound.get(modAlias),
+                                          inboundLast)
+                
+                if (inboundTS == TriageEnum.later and
+                    inboundTSFieldValue == agreedTSFieldValue):
+                    # The common case of no inbound changes to triage,
+                    # no conflict so nothing to do
+                    continue
+                
+                localUUID = translator.getUUIDForAlias(modAlias)
+                if localUUID:
+                    localTS = view.findUUID(localUUID)._triageStatus
+                else:
+                    # the locally deleted occurrence case isn't handled,
+                    # so this isn't quite right, but that case isn't really 
+                    # handled in other sharing situations, either
+                    localTS = triageStatusFromDateComparison(view, modAlias,
+                                                             now)
+
+                if inboundTS == localTS:
+                    # no conflict
+                    continue
+
+                if (inboundTS == TriageEnum.now and 
+                    localTS  == TriageEnum.done):
+                    resolution[modAlias] = 'local'
+                else:
+                    resolution[modAlias] = 'inbound'
+        
+        return resolution
+    
 
     def getState(self, alias):
         state = self.share.states.getByAlias(alias)
@@ -1348,6 +1568,60 @@ def prettyPrintRecordSetDict(d):
                 for record in rs.exclusions:
                     print "   " + str(record)
 
+def getOneRecord(recordset, record_type, field=None):
+    """
+    Return the given record_type, or a field within it, or None if the record
+    isn't in the given recordset.
+    
+    """
+    if recordset is None:
+        return None
+    for record in recordset.inclusions:
+        if isinstance(record, record_type):
+            if field is None:
+                return record
+            else:
+                return getattr(record, field)
+    return None
+
+def calculateTriageStatus(view, modificationAlias, modificationRecordSet,
+                          lastPast):
+    """
+    Return a modification's explicit triage status, or, if it's Inherit,
+    calculate its triage status based on the event's recurrenceID and
+    lastPastOccurrence.
+    
+    """
+    triage_string = getOneRecord(modificationRecordSet, ItemRecord, 'triage')
+        
+    if triage_string and triage_string not in emptyValues:
+        code, timestamp, auto = triage_string.split()
+        return code_to_triagestatus[code], triage_string
+    else:
+        if triage_string is None:
+            triage_string = eim.Inherit
+        return (triageStatusFromDateComparison(view, modificationAlias, lastPast),
+                triage_string)
+
+def triageStatusFromDateComparison(view, modificationAlias, lastPast):
+    if lastPast is None:
+        return TriageEnum.later
+    else:
+        masterAlias, recurrenceID = splitUUID(view, modificationAlias)
+        return TriageEnum.later if lastPast < recurrenceID else TriageEnum.done
+    
+
+def getLastPastOccurrence(view, masterRecordSet):
+    """
+    Return the agreed lastPastOccurrence for a masterRecordSet if there is one,
+    or return None.
+    
+    """
+    lastPast = getOneRecord(masterRecordSet, EventRecord, 'lastPastOccurrence')
+    # lastPast may be empty string, that's the default after reload
+    if not lastPast or lastPast in emptyValues:
+        return None
+    return fromICalendarDateTime(view, lastPast)[0]
 
 def findRecurrenceConflicts(view, master_alias, diff, localModAliases):
     """
@@ -1355,21 +1629,19 @@ def findRecurrenceConflicts(view, master_alias, diff, localModAliases):
     modifications, return a list of conflicting modifications (the list may be
     empty).
     
-    If diff is None, it's treats as a deletion of the master, so all
+    If diff is None, it's treated as a deletion of the master, so all
     local modifications are automatically in conflict
     """
     if diff is None:
         return localModAliases
     
-    event_records = [r for r in diff.inclusions if isinstance(r, EventRecord)]
-    if len(event_records) != 1:
+    event_record = getOneRecord(diff, EventRecord)
+    if event_record is None:
         if len([r for r in diff.exclusions if isinstance(r, EventRecord)]) > 0:
             # EventRecord was excluded, so event-ness was unstamped
             return localModAliases
         else:
             return []
-
-    event_record = event_records[0]
 
     rrule  = event_record.rrule
     
@@ -1452,3 +1724,8 @@ def getInheritRecords(records, alias):
         inherit_records.append(type(record)(*args))
     return inherit_records
 
+def getTriageDiff(alias, value):
+    args = [eim.NoChange] * len(ItemRecord.__fields__)
+    args[0] = alias
+    args[ItemRecord.triage.offset - 1] = value # subtract one for URI
+    return eim.Diff([ItemRecord(*args)])

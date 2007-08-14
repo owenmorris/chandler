@@ -17,6 +17,7 @@ import unittest, sys, os, logging, datetime, time
 from osaf import pim, sharing
 
 from osaf.sharing import recordset_conduit, translator, eimml
+from osaf import timemachine
 
 from repository.item.Item import Item
 from util import testcase
@@ -79,9 +80,18 @@ class RoundTripTestCase(testcase.DualRepositoryTestCase):
         ]
 
         self.uuids = { }
-
+        
         tzinfo = view.tzinfo.floating
         createdOn = datetime.datetime(2007, 3, 1, 10, 0, 0, 0, tzinfo)
+
+        pacific = view.tzinfo.getInstance("America/Los_Angeles")
+        now = timemachine.getNow(pacific)
+        # make sure to use eleven PM if the current time is AM, so recurring
+        # events don't get auto-triaged to NOW
+        eleven = datetime.time(11 if now.hour > 12 else 23, 0, tzinfo=pacific)
+        
+        self.elevenToday = datetime.datetime.combine(now.date(), eleven)
+        
         count = len(titles)
         for i in xrange(count):
             n = pim.Note(itsView=view)
@@ -109,10 +119,7 @@ class RoundTripTestCase(testcase.DualRepositoryTestCase):
         # understand
         pacific = view.tzinfo.getInstance("America/Los_Angeles")
 
-        event.startTime = datetime.datetime.combine(
-            datetime.datetime.now().date() - datetime.timedelta(days=3),
-            datetime.time(11, 0, tzinfo=pacific) # view.tzinfo.default)
-        )
+        event.startTime = self.elevenToday - datetime.timedelta(days=3)
         event.anyTime = False
         event.transparency = 'confirmed'
 
@@ -1213,9 +1220,9 @@ class RoundTripTestCase(testcase.DualRepositoryTestCase):
         #     "Sync operation mismatch")
         
         item1 = view1.findUUID(item.itsUUID)
-        event1 = pim.EventStamp(item1)
-        
+        event1 = pim.EventStamp(item1)            
         event.rruleset.rrules.first().freq = 'daily'
+        
         view0.commit(); stats = self.share0.sync(); view0.commit()
         self.assert_(checkStats(stats,
             ({'added' : 0, 'modified' : 0, 'removed' : 0},
@@ -1507,12 +1514,104 @@ class RoundTripTestCase(testcase.DualRepositoryTestCase):
         self.assert_(self.share0 in sharing.SharedItem(item).sharedIn)
         view0.commit(); stats = self.share0.sync(); view0.commit()
         self.assert_(item.inheritFrom not in self.share0.contents)
-        self.assert_(self.share0 not in sharing.SharedItem(item.inheritFrom).sharedIn)    
+        self.assert_(self.share0 not in sharing.SharedItem(item.inheritFrom).sharedIn)
         # make sure the first occurrence also had its SharedItem stamp removed
         self.assert_(item not in self.share0.contents)
         self.assert_(self.share0 not in sharing.SharedItem(item).sharedIn)
 
 
+        # check resolvable triage conflicts, which stem from Inherit meaning
+        # Now or Done depending on the master's lastPastOccurrence value
+        event = self._makeRecurringEvent(view0, self.share0.contents)
+        event.rruleset.rrules.first().freq = 'daily'
+        elevenTomorrow = self.elevenToday + datetime.timedelta(days=1)
+        tomorrowEvent = event.getRecurrenceID(elevenTomorrow)
+        
+        # pretend the current time is just before eleven tomorrow
+        timemachine.setNow(elevenTomorrow - datetime.timedelta(minutes=10))
+        
+        item = event.itsItem
+        item.read = True
+        
+        view0.commit(); stats = self.share0.sync(); view0.commit()
+        view1.commit(); stats = self.share1.sync(); view1.commit()
+        item1 = view1.findUUID(item.itsUUID)
+        item1.read = True
+        event1 = pim.EventStamp(item1)
+        tomorrowEvent1 = event1.getRecurrenceID(elevenTomorrow)
+        self.assert_(tomorrowEvent1.itsItem.read)
+        self.assertEqual(tomorrowEvent1.itsItem._triageStatus,
+                         pim.TriageEnum.later)
+
+        # pretend the current time is just after eleven tomorrow
+        timemachine.setNow(elevenTomorrow + datetime.timedelta(minutes=10))
+        
+        # emulate tickling in both, move view0's occurrence to done
+        tomorrowEvent1.itsItem.setTriageStatus(pim.TriageEnum.now)
+        tomorrowEvent.itsItem.setTriageStatus(pim.TriageEnum.done)
+
+        # exercise triageStatusFromDateComparison by creating a far future 
+        # occurrence that doesn't yet exist in view1
+        muchLater = elevenTomorrow + datetime.timedelta(14)
+        muchLaterEvent = event.getRecurrenceID(muchLater)
+        muchLaterEvent.itsItem.setTriageStatus(pim.TriageEnum.done)
+
+        view0.commit(); stats = self.share0.sync(); view0.commit()
+        view1.commit(); stats = self.share1.sync(); view1.commit()
+        view0.commit(); stats = self.share0.sync(); view0.commit()
+        
+        # view0's change should win
+        self.assertEqual(tomorrowEvent1.itsItem._triageStatus,
+                         pim.TriageEnum.done)
+        self.assertEqual(tomorrowEvent.itsItem._triageStatus,
+                         pim.TriageEnum.done)
+        
+        muchLaterEvent1 = event1.getRecurrenceID(muchLater)
+        self.assertEqual(muchLaterEvent1.itsItem._triageStatus,
+                         pim.TriageEnum.done)
+        # adding the new item muchLater1 marked the series as unread, mark it
+        # read again
+        item1.read = True
+        
+        # because view0's change won, and there were no other meaningful
+        # changes, view0's tomorrowEvent shouldn't be marked unread or popped to
+        # now
+        self.assert_(tomorrowEvent.itsItem.read)
+        self.failIf(hasattr(tomorrowEvent.itsItem, '_sectionTriageStatus'))
+
+        twoDaysLater = self.elevenToday + datetime.timedelta(days=2)
+        twoDaysEvent = event.getRecurrenceID(twoDaysLater)
+        twoDaysEvent1 = event1.getRecurrenceID(twoDaysLater)
+        
+        timemachine.setNow(twoDaysLater + datetime.timedelta(minutes=10))
+        
+        # emulate tickling in both, move view1's occurrence to done
+        twoDaysEvent1.itsItem.setTriageStatus(pim.TriageEnum.done)
+        twoDaysEvent.itsItem.setTriageStatus(pim.TriageEnum.now)
+
+        view0.commit(); stats = self.share0.sync(); view0.commit()
+        # make sure lastPastOccurrence conflicts are automatically resolved
+        timemachine.setNow(self.elevenToday + datetime.timedelta(days=5))
+        
+        view1.commit(); stats = self.share1.sync(); view1.commit()
+        
+        conflicts = list(sharing.SharedItem(item1).getConflicts())
+        self.assertEqual(len(conflicts), 0)
+
+        # view1 won, so its twoDaysEvent shouldn't be unread or popped to now
+        self.assert_(twoDaysEvent1.itsItem.read)
+        self.failIf(hasattr(twoDaysEvent1.itsItem, '_sectionTriageStatus'))
+        
+        view0.commit(); stats = self.share0.sync(); view0.commit()
+        
+        # view1's change should win
+        self.assertEqual(twoDaysEvent1.itsItem._triageStatus,
+                         pim.TriageEnum.done)
+        self.assertEqual(twoDaysEvent.itsItem._triageStatus,
+                         pim.TriageEnum.done)
+        
+        timemachine.resetNow()
+        
         # Verify that remote removal of a master and local nontrivial change
         # of a modification results in the series getting removed, but
         # the local modifications are orphaned

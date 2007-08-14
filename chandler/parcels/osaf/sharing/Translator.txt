@@ -299,6 +299,7 @@ Importing:
     ...         rdate = None,
     ...         exdate = None,
     ...         status = 'CANCELLED',
+    ...         lastPastOccurrence = None,
     ... )
 
 Explain the record:
@@ -312,6 +313,7 @@ Explain the record:
     (u'Start time', '2007-02-01 14:00:00-08:00')
     ('exdate', None)
     ('exrule', None)
+    ('lastPastOccurrence', None)
     ('rdate', None)
     ('rrule', None)
 
@@ -338,7 +340,7 @@ Exporting:
     >>> t.startExport()
     >>> records = [r for r in t.exportItem(item) if isinstance(r, sharing.model.EventRecord)]
     >>> records
-    [EventRecord('f230dcd4-7c32-4c3f-908b-d92081cc9a89', u';VALUE=DATE-TIME;TZID=America/Los_Angeles:20070201T140000', u'PT1H', u'Nowhere', None, None, None, None, u'CANCELLED')]
+    [EventRecord('f230dcd4-7c32-4c3f-908b-d92081cc9a89', u';VALUE=DATE-TIME;TZID=America/Los_Angeles:20070201T140000', u'PT1H', u'Nowhere', None, None, None, None, u'CANCELLED', NoChange)]
 
 Recurrence
 - - - - -
@@ -355,6 +357,7 @@ Importing:
     ...             rdate = ';VALUE=DATE-TIME;TZID=America/Los_Angeles:20070223T140000,20070225T140000',
     ...             exdate = ';VALUE=DATE-TIME;TZID=America/Los_Angeles:20070206T140000',
     ...             status = rec.status,
+    ...             lastPastOccurrence = None,
     ... )
 
     >>> rs = sharing.RecordSet([new_rec])
@@ -550,6 +553,7 @@ Importing:
     ...         rdate = None,
     ...         exdate = None,
     ...         status = 'CONFIRMED',
+    ...         lastPastOccurrence = None,    
     ... )
     >>> relative_alarm_rec = sharing.model.DisplayAlarmRecord(
     ...         uuid='800644b6-dd73-11db-f79a-0016cbca6aed',
@@ -773,6 +777,7 @@ for event status, and empty string to NoChange for triage are working::
     ...         rdate = None,
     ...         exdate = None,
     ...         status = None,
+    ...         lastPastOccurrence = None,
     ... )
     >>> rec.status
     NoChange

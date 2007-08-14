@@ -714,7 +714,8 @@ class ICSSerializer(object):
                                             recurrence['exrule'],  # exrule
                                             recurrence['rdate'],   # rdate
                                             recurrence['exdate'],  # exdate
-                                            status, # status
+                                            status,                # status
+                                            eim.NoChange    # lastPastOccurrence
                                             ))
                 if emitTask:
                     records.append(model.TaskRecord(uuid))

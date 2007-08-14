@@ -55,6 +55,7 @@ class redirector(property):
                           doc="Redirect to '%s'" % (attrName,))
 
 from application import schema
+from osaf.timemachine import getNow
 from osaf.pim.contacts import Contact
 from osaf.pim.triage import Triageable, TriageEnum
 from osaf.pim.items import ContentItem, isDead
@@ -1978,6 +1979,17 @@ class EventStamp(Stamp):
 
         return status
 
+
+    def simpleAutoTriage(self):
+        """
+        Pay attention only to the event's recurrenceID in relation to the 
+        current time to return either done or later.
+        
+        """
+        start = getattr(self, 'recurrenceID', None) or self.effectiveStartTime
+        now = getNow(tz=self.itsItem.itsView.tzinfo.default)
+        return TriageEnum.done if start < now else TriageEnum.later
+        
     def triageForRecurrenceAddition(self):
         """
         When initially adding recurrence, the first occurrence is treated
@@ -2090,7 +2102,7 @@ class EventStamp(Stamp):
                 # sharing may send an unmodify at times when triage status
                 # doesn't match its date, so we need to explicitly change it
                 if attr == '_triageStatus':
-                    triage = self.autoTriage()
+                    triage = self.simpleAutoTriage()
                     if value != triage:
                         self.itsItem.setTriageStatus(triage)
                 elif attr == Stamp.stamp_types.name and partial:

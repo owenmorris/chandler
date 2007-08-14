@@ -19,7 +19,8 @@ from osaf.sharing import (
     eim, model, shares, utility, accounts, conduits, cosmo, webdav_conduit,
     recordset_conduit, eimml, ootb
 )
-from utility import splitUUID, fromICalendarDateTime, getDateUtilRRuleSet
+from utility import (splitUUID, fromICalendarDateTime, getDateUtilRRuleSet,
+                     code_to_triagestatus, triagestatus_to_code)
 
 import os
 import calendar
@@ -29,6 +30,7 @@ from decimal import Decimal
 
 from vobject.icalendar import (RecurringComponent, VEvent, timedeltaToString,
                                stringToDurations)
+from osaf.timemachine import getNow
 import osaf.pim.calendar.TimeZone as TimeZone
 from osaf.pim.calendar.Calendar import Occurrence, EventStamp
 from osaf.pim.calendar.Recurrence import RecurrenceRuleSet, RecurrenceRule
@@ -169,7 +171,7 @@ def toICalendarDateTime(view, dt_or_dtlist, allDay, anyTime=False):
     if allDay or anyTime:
         output += allDayParameter
         if anyTime and not allDay:
-            output += anyTimeParameter        
+            output += anyTimeParameter
     else:
         isUTC = dtlist[0].tzinfo == view.tzinfo.UTC
         output += timedParameter
@@ -373,6 +375,8 @@ class SharingTranslator(eim.Translator):
             elif field.name == 'triage':
                 if external == eim.Inherit:
                     return -1 # internal wins
+                if internal == eim.Inherit:
+                    return 1  # external wins
 
                 codeInt, tscInt, autoInt = internal.split(" ")
                 codeExt, tscExt, autoExt = external.split(" ")
@@ -380,6 +384,11 @@ class SharingTranslator(eim.Translator):
                     # status is equal, let more recent tsc win
                     return -1 if (float(tscInt) < float(tscExt)) else 1
 
+        if cls is model.EventRecord:
+            if field.name == 'lastPastOccurrence':
+                local    = fromICalendarDateTime(self.rv, internal)[0]
+                inbound  = fromICalendarDateTime(self.rv, external)[0]
+                return -1 if local > inbound else 1
 
         # Resolve note record conflicts:
         if cls is model.NoteRecord:
@@ -450,13 +459,6 @@ class SharingTranslator(eim.Translator):
 
 
     # ItemRecord -------------
-
-    code_to_triagestatus = {
-        "100" : pim.TriageEnum.now,
-        "200" : pim.TriageEnum.later,
-        "300" : pim.TriageEnum.done,
-    }
-    triagestatus_to_code = dict([[v, k] for k, v in code_to_triagestatus.items()])
 
     code_to_modaction = {
         100 : pim.Modification.edited,
@@ -551,7 +553,7 @@ class SharingTranslator(eim.Translator):
 
             if record.triage != "" and record.triage not in emptyValues:
                 code, timestamp, auto = record.triage.split(" ")
-                item._triageStatus = self.code_to_triagestatus[code]
+                item._triageStatus = code_to_triagestatus[code]
                 item._triageStatusChanged = float(timestamp)
                 if getattr(item, 'inheritFrom', False):
                     # When import_event happens after import_item on recurring
@@ -564,10 +566,13 @@ class SharingTranslator(eim.Translator):
                     item.doAutoTriageOnDateChange = (auto == "1")
             elif record.triage == eim.Inherit:
                 item.doAutoTriageOnDateChange = True
-                item.setTriageStatus('auto')
+                if isinstance(item, Occurrence):
+                    item._triageStatus = pim.EventStamp(item).simpleAutoTriage()
+                else:
+                    item.setTriageStatus('auto')
 
 
-            if record.hasBeenSent != eim.NoChange:
+            if record.hasBeenSent not in (eim.NoChange, eim.Inherit):
                 if record.hasBeenSent:
                     if pim.Modification.sent not in item.modifiedFlags:
                         try:
@@ -597,7 +602,7 @@ class SharingTranslator(eim.Translator):
             # recurrence masters don't have a meaningful triage status
             triage = eim.NoChange
         elif (isinstance(item, Occurrence) and 
-              EventStamp(item).autoTriage() == item._triageStatus):
+              EventStamp(item).simpleAutoTriage() == item._triageStatus):
             # This will lose doATODC information, but that happens anyway for
             # modifications when they're unmodified, and doing this avoids
             # spurious conflicts
@@ -612,7 +617,7 @@ class SharingTranslator(eim.Translator):
                                          item._triageStatus.name,
                                          EventStamp(item).autoTriage().name))
 
-            tsCode = self.triagestatus_to_code.get(item._triageStatus, "100")
+            tsCode = triagestatus_to_code.get(item._triageStatus, "100")
             tsChanged = item._triageStatusChanged or 0.0
             tsAuto = ("1" if doATODC else "0")
             triage = "%s %.2f %s" % (tsCode, tsChanged, tsAuto)
@@ -1493,6 +1498,18 @@ class SharingTranslator(eim.Translator):
         else:
             duration = eim.Inherit
 
+        lastPast = eim.NoChange
+        if event.occurrenceFor is None and event.rruleset is not None:
+            rruleset = event.createDateUtilFromRule()
+            lastPast = rruleset.before(getNow(self.rv.tzinfo.default))
+            if lastPast is not None:
+                # convert to UTC if not floating
+                if lastPast.tzinfo != self.rv.tzinfo.floating:
+                    lastPast = lastPast.astimezone(self.rv.tzinfo.UTC)
+                lastPast = toICalendarDateTime(self.rv, lastPast, event.allDay,
+                                               event.anyTime)
+            
+            
 
         yield model.EventRecord(
             event,                                      # uuid
@@ -1504,6 +1521,7 @@ class SharingTranslator(eim.Translator):
             rdate,                                      # rdate
             exdate,                                     # exdate
             transparency,                               # status
+            lastPast                                    # lastPastOccurrence
         )
 
     @model.EventRecord.deleter
