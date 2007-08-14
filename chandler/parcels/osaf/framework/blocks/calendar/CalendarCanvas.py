@@ -954,8 +954,13 @@ class CalendarNotificationHandler(object):
             blockItem = self.blockItem
             op, coll, name, uuid, dirties = data
             
-            if (op == "remove" and
-                blockItem.find(uuid) in blockItem.contents):
+            def itemInContents():
+                contents = getattr(blockItem, 'contents', None)
+                return (contents is not None and
+                        blockItem.find(uuid) in contents)
+                
+            
+            if op == "remove" and itemInContents():
                 # There are many reasons we might be getting a 'remove' here;
                 # the item could be removed from one of the sub-collections of
                 # a Union collection, for example. So, if the item is still
@@ -963,7 +968,7 @@ class CalendarNotificationHandler(object):
                 op = "changed"
             
             if op == "refresh":
-                if blockItem.find(uuid) in blockItem.contents:
+                if itemInContents():
                     op = "add"
                 else:
                     op = "remove"
