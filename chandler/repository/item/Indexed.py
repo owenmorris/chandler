@@ -737,6 +737,33 @@ class Indexed(object):
 
         return len(self.getIndex(indexName))
 
+    def _rebuildIndex(self, logger, index, item, attribute, name,
+                      subIndexes=True):
+        
+        logger.warning("Rebuilding index '%s' installed on value '%s' of type %s in attribute '%s' on %s", name, self, type(self), attribute, item._repr_())
+
+        view = item.itsView
+        kwds = index.getInitKeywords()
+        if 'ranges' in kwds:
+            kwds['ranges'] = ()
+
+        index = self._createIndex(index.getIndexType(), **kwds)
+        self._indexes[name] = index
+
+        self.fillIndex(index, True)
+
+        for uItem, attribute, name in kwds.get('subindexes', Nil):
+            index.addSubIndex(uItem, attribute, name)
+            if subIndexes:
+                item = view[uItem]
+                value = getattr(item, attribute)
+                subIndex = value.getIndex(name)
+                value._rebuildIndex(logger, subIndex, item, attribute, name)
+
+        self._setDirty(True)
+
+        return index
+
     def _checkIndexes(self, logger, item, attribute, repair):
 
         result = True
@@ -753,16 +780,17 @@ class Indexed(object):
                 if not index._checkIndex(index, logger, name, self,
                                          item, attribute, count, repair):
                     if repair:
-                        logger.warning("Rebuilding index '%s' installed on value '%s' of type %s in attribute '%s' on %s", name, self, type(self), attribute, item._repr_())
-                        kwds = index.getInitKeywords()
-                        if 'ranges' in kwds:
-                            kwds['ranges'] = ()
-                        indexes[name] = index = \
-                            self._createIndex(index.getIndexType(), **kwds)
-                        for uItem, attr, subName in kwds.get('subindexes', Nil):
-                            index.addSubIndex(uItem, attr, subName)
-                        self.fillIndex(index, True)
-                        self._setDirty(True)
+                        if hasattr(index, '_super'):
+                            uItem, superAttr, superName = index._super
+                            superItem = item.itsView[uItem]
+                            value = getattr(superItem, superAttr)
+                            superIndex = value.getIndex(superName)
+                            value._rebuildIndex(logger, superIndex,
+                                                superItem, superAttr, superName)
+                            index = indexes[name]
+                        else:
+                            index = self._rebuildIndex(logger, index,
+                                                       item, attribute, name)
 
                         result = index._checkIndex(index, logger, name,
                                                    self, item, attribute,

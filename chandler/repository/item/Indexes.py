@@ -248,7 +248,7 @@ class NumericIndex(Index):
         return kwds
 
     # key: None -> first, Default -> last
-    def insertKey(self, key, afterKey=Default, selected=False):
+    def insertKey(self, key, afterKey=Default, selected=False, _setadd=False):
 
         skipList = self.skipList
         if afterKey is Default:
@@ -449,15 +449,20 @@ class SortedIndex(DelegatingIndex):
                                                              insertMissing,
                                                              subIndexes)
 
-    def insertKey(self, key, ignore=None, selected=False):
+    def insertKey(self, key, ignore=None, selected=False, _setadd=False):
 
         index = self._index
         skipList = index.skipList
 
         superindex = self.getSuperIndex()
-        if superindex is not None and superindex._valueMap is self._valueMap:
-            if key not in superindex:
+        if not (superindex is None or key in superindex):
+            if (_setadd and
+                (superindex._valueMap is self._valueMap or
+                 superindex._valueMap.__contains__(key, False, True))):
                 superindex.insertKey(key, ignore, selected)
+            else:
+                raise ValueError, ("subindex key not found in superset",
+                                   key, superindex._valueMap.itsOwner)
 
         if skipList.isValid():
             afterKey = skipList.after(key, self.compare, {})
@@ -745,6 +750,8 @@ class SortedIndex(DelegatingIndex):
 
     def _checkIterateIndex(self, logger, name, value, item, attribute, repair):
 
+        superIndex = self.getSuperIndex()
+
         size = len(self)
         prevKey = None
         result = True
@@ -758,6 +765,9 @@ class SortedIndex(DelegatingIndex):
             word = 'greater'
 
         for key in self:
+            if not (superIndex is None or key in superIndex):
+                logger.error("Sorted %s index '%s' installed on value '%s' of type %s in attribute '%s' on %s has a key that is not in its superindex: %s", self.getIndexType(), name, value, type(value), attribute, item._repr_(), repr(key))
+                return len(self), False
             size -= 1
             if size < 0:
                 break
@@ -1086,13 +1096,6 @@ class SubIndex(SortedIndex):
 
         uuid, attr, name = self._super
         index = getattr(self._valueMap.itsView[uuid], attr).getIndex(name)
-
-        # this should only happen during merge (moveKeys)
-        if k0 not in index:
-            index.insertKey(k0)
-        if k1 not in index:
-            index.insertKey(k1)
-
         skipList = index.skipList
 
         return skipList.position(k0) - skipList.position(k1)

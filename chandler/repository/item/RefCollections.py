@@ -344,7 +344,7 @@ class RefList(LinkedMap, Indexed):
 
         if self._indexes:
             for index in self._indexes.itervalues():
-                index.insertKey(key, link._previousKey)
+                index.insertKey(key, link._previousKey, False, True)
 
         self._setDirty(not fireChanges)
 

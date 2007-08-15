@@ -388,7 +388,7 @@ class AbstractSet(ItemValue, Indexed):
                         if op == 'add':
                             for index in self._indexes.itervalues():
                                 if other not in index:
-                                    index.insertKey(other, Default)
+                                    index.insertKey(other, Default, False, True)
                                     dirty = True
                         else:
                             for index in self._indexes.itervalues():
