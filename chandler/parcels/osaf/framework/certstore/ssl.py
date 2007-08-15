@@ -37,7 +37,9 @@ SSL/TLS.
 @type unknown_issuer:                            list
 """
 
+from __future__ import with_statement
 import logging
+import threading
 
 import wx
 import M2Crypto
@@ -65,6 +67,28 @@ log = logging.getLogger(__name__)
 
 certificateCache = []
 
+_sslLock = threading.Lock()
+
+def _getSSLView(repo):
+    """
+    Return the SSL view for this repository, creating one if necessary.
+    This function is internal to this module. Also, it is advisable to take
+    out _sslLock when accessing or changing the returned view, or any of
+    its Items.
+    
+    @param repo: The repository whose SSL view we want to return
+    @type repo: L{repository.persistence.DBRepository.DBRepository}
+    
+    @return: A repository view with name 'SSL'
+    @rtype: L{repository.persistence.DBRepositoryView.DBRepositoryView}
+    """
+    with _sslLock:
+        for view in repo.views:
+            if view.name == 'SSL':
+                return view
+        
+        return repo.createView('SSL', pruneSize=400)
+
 def loadCertificatesToContext(repView, ctx):
     """
     Add certificates to SSL Context.
@@ -72,15 +96,19 @@ def loadCertificatesToContext(repView, ctx):
     @param repView: repository view
     @param ctx:     M2Crypto.SSL.Context
     """
+    sslView = _getSSLView(repView.repository)
     store = ctx.get_cert_store()
-    for x509 in certificateCache:
-        store.add_x509(x509)
-    else:
-        q = schema.ns('osaf.framework.certstore', repView).sslCertificateQuery
-        for cert in q:
-            x509 = cert.asX509()
+    
+    with _sslLock:
+        for x509 in certificateCache:
             store.add_x509(x509)
-            certificateCache.append(x509)
+        else:
+            sslView.refresh()
+            q = schema.ns('osaf.framework.certstore', sslView).sslCertificateQuery
+            for cert in q:
+                x509 = cert.asX509()
+                store.add_x509(x509)
+                certificateCache.append(x509)
 
 class SSLContextError(utils.CertificateException):
     """
@@ -115,10 +143,6 @@ def getContext(repositoryView, protocol='sslv23', verify=True,
     #     Need to expand API.
 
     if verify:
-        # The main view is now being assigned to repositoryView, so no
-        # refresh or commit should be necessary.
-
-        # repositoryView.refresh()
         loadCertificatesToContext(repositoryView, ctx)
         
         # XXX TODO In some cases, for example when connecting directly
@@ -183,6 +207,8 @@ class TwistedProtocolWrapper(wrapper.TLSProtocolWrapper):
         if __debug__:
             log.debug('TwistedProtocolWrapper.__init__')
 
+        repositoryView = _getSSLView(repositoryView.repository)
+            
         self.contextFactory = ContextFactory(repositoryView, protocol, 
                                             verifyCallback=self.verifyCallback)
         wrapper.TLSProtocolWrapper.__init__(self, factory, wrappedProtocol, 
@@ -203,55 +229,57 @@ class TwistedProtocolWrapper(wrapper.TLSProtocolWrapper):
                         
         if not ok:
             try:
-                err = store.get_error()
-    
-                # This would actually give us the certificate we are currently
-                # checking: 
-                #
-                #pem = store.get_current_cert().as_pem()
-                #
-                # However, we want to ask the user what to do about
-                # the actual server certificate, not the other certs in the
-                # chain. While this makes it a little annoying for experts
-                # (we say there was a problem in the chain, and show only the
-                # server cert which itself may have no problems), it makes it
-                # slightly safer because if the users decide to ignore the
-                # error, they ignore only the server certificate errors. If
-                # we showed the CA certificate, the user could accidentally
-                # ok any certificates issued by the bad CA. Now they will
-                # at least be faced with the warning dialog for each actual
-                # server certificate.
-                stack = store.get1_chain()
-                x509 = stack[0]
-                pem = x509.as_pem()
-    
-                # Check temporarily trusted certificates
-                if err not in unknown_issuer:
-                    # Check if we are temporarily ignoring errors with this
-                    # certificate.
-                    acceptedErrList = trusted_until_shutdown_invalid_site_certs.get(pem)
-                    if acceptedErrList is not None and err in acceptedErrList:
+                with _sslLock:
+                    err = store.get_error()
+        
+                    # This would actually give us the certificate we are currently
+                    # checking: 
+                    #
+                    #pem = store.get_current_cert().as_pem()
+                    #
+                    # However, we want to ask the user what to do about
+                    # the actual server certificate, not the other certs in the
+                    # chain. While this makes it a little annoying for experts
+                    # (we say there was a problem in the chain, and show only the
+                    # server cert which itself may have no problems), it makes it
+                    # slightly safer because if the users decide to ignore the
+                    # error, they ignore only the server certificate errors. If
+                    # we showed the CA certificate, the user could accidentally
+                    # ok any certificates issued by the bad CA. Now they will
+                    # at least be faced with the warning dialog for each actual
+                    # server certificate.
+                    stack = store.get1_chain()
+                    x509 = stack[0]
+                    pem = x509.as_pem()
+        
+                    # Check temporarily trusted certificates
+                    if err not in unknown_issuer:
+                        # Check if we are temporarily ignoring errors with this
+                        # certificate.
+                        acceptedErrList = trusted_until_shutdown_invalid_site_certs.get(pem)
+                        if acceptedErrList is not None and err in acceptedErrList:
+                            if __debug__:
+                                log.debug('Ignoring certificate error %d' %err)
+                            return 1
+                        self.untrustedCertificates.append(pem)
+                        return ok
+        
+                    if pem in trusted_until_shutdown_site_certs:
                         if __debug__:
-                            log.debug('Ignoring certificate error %d' %err)
+                            log.debug('Found temporarily trusted site cert')
                         return 1
+        
+                    # Check permanently trusted certificates
+                    self.repositoryView.refresh()
+                    q = schema.ns('osaf.framework.certstore', 
+                                  self.repositoryView).sslTrustedServerCertificatesQuery
+                    for cert in q:
+                        if cert.pemAsString() == pem:
+                            if __debug__:
+                                log.debug('Found permanently trusted site cert')
+                            return 1
+        
                     self.untrustedCertificates.append(pem)
-                    return ok
-    
-                if pem in trusted_until_shutdown_site_certs:
-                    if __debug__:
-                        log.debug('Found temporarily trusted site cert')
-                    return 1
-    
-                # Check permanently trusted certificates
-                q = schema.ns('osaf.framework.certstore', 
-                              self.repositoryView).sslTrustedServerCertificatesQuery
-                for cert in q:
-                    if cert.pemAsString() == pem:
-                        if __debug__:
-                            log.debug('Found permanently trusted site cert')
-                        return 1
-    
-                self.untrustedCertificates.append(pem)
             except: # This is ok, we MUST return a value and not raise
                 log.exception('SSL verifyCallback raised exception')
         if __debug__:
@@ -368,7 +396,7 @@ def askTrustServerCertificate(repositoryView, pem, reconnect):
     from osaf.framework.certstore import dialogs, certificate
     global trusted_until_shutdown_site_certs, \
            trusted_until_shutdown_invalid_site_certs, \
-           unknown_issuer, _pending_trust_requests
+           _pending_trust_requests
 
     # [Bug 5406] Since calls to this function are generated by
     # the twisted thread, it's quite possible for it to be called
@@ -456,20 +484,15 @@ def askIgnoreSSLError(pem, err, reconnect):
                       chooses to ignore the error.
     """
     from osaf.framework.certstore import dialogs
-    global trusted_until_shutdown_site_certs, \
-           trusted_until_shutdown_invalid_site_certs, \
-           unknown_issuer
+    global trusted_until_shutdown_invalid_site_certs
     x509 = X509.load_cert_string(pem)
     dlg = dialogs.IgnoreSSLErrorDialog(wx.GetApp().mainFrame,
                                        x509,
                                        err)
     try:
         if dlg.ShowModal() == wx.ID_OK:
-            acceptedErrList = trusted_until_shutdown_invalid_site_certs.get(pem)
-            if acceptedErrList is None:
-                trusted_until_shutdown_invalid_site_certs[pem] = [err]
-            else:
-                trusted_until_shutdown_invalid_site_certs[pem].append(err)
+            acceptedErrList = trusted_until_shutdown_invalid_site_certs.setdefault(pem, [])
+            acceptedErrList.append(err)
             reconnect()
     finally:
         dlg.Destroy()
