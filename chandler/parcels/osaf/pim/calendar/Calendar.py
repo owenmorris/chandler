@@ -2105,8 +2105,10 @@ class EventStamp(Stamp):
                     triage = self.simpleAutoTriage()
                     if value != triage:
                         self.itsItem.setTriageStatus(triage)
-                elif attr == Stamp.stamp_types.name and partial:
-                    # don't delete the local set of stamps
+                elif attr == Stamp.stamp_types.name:
+                    # don't delete the local set of stamps; we handle
+                    # this below in the non-partial case (and for
+                    # partial, we don't want to remove them).
                     pass
                 elif self.itsItem.hasLocalAttributeValue(attr):
                     delattr(self.itsItem, attr)
@@ -2128,6 +2130,7 @@ class EventStamp(Stamp):
             else:
                 self.isGenerated = True
                 del self.modificationFor
+                del Stamp(self).stamp_types
 
 
     @schema.observer(

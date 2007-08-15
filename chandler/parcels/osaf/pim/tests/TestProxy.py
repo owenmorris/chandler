@@ -190,19 +190,35 @@ class ProxyChangeTestCase(ProxyTestCase):
         self.failIf(pim.has_stamp(self.event.getFirstOccurrence(),
                                   pim.TaskStamp))
 
-    def testUnstamp_THISANDFUTURE(self):
-        pim.TaskStamp(self.event).add()
+    def testStamp_THISANDFUTURE(self):
         self.event.rruleset = self.rruleset
         third = self.event.getFirstOccurrence().getNextOccurrence().getNextOccurrence()
 
-        pim.TaskStamp(pim.CHANGE_FUTURE(third)).remove()
+        pim.TaskStamp(pim.CHANGE_FUTURE(third)).add()
 
         self.failIfEqual(third.getMaster(), self.event.getMaster())
-        self.failIf(pim.has_stamp(third, pim.TaskStamp))
-        self.failIf(pim.has_stamp(third.getNextOccurrence(), pim.TaskStamp))
+        self.failUnless(pim.has_stamp(third, pim.TaskStamp))
+        self.failUnless(pim.has_stamp(third.getNextOccurrence(), pim.TaskStamp))
+        self.failIf(pim.has_stamp(self.event, pim.TaskStamp))
+        self.failIf(pim.has_stamp(self.event.getFirstOccurrence(),
+                                  pim.TaskStamp))
+
+    def testStamp_ALL(self):
+        self.event.rruleset = self.rruleset
+        ruleEnd = self.event.startTime + datetime.timedelta(days=10)
+        self.event.rruleset.rrules.first().until = ruleEnd
+        
+        occurrences = [self.event.getFirstOccurrence()]
+        for i in xrange(10):
+            occurrences.append(occurrences[-1].getNextOccurrence())
+
+        pim.TaskStamp(pim.CHANGE_ALL(occurrences[0])).add()
+
+        for event in occurrences:
+            self.failUnlessEqual(event.getMaster(), self.event)
+        for item in self.event.occurrences:
+            self.failUnless(pim.has_stamp(item, pim.TaskStamp))
         self.failUnless(pim.has_stamp(self.event, pim.TaskStamp))
-        self.failUnless(pim.has_stamp(self.event.getFirstOccurrence(),
-                                      pim.TaskStamp))
 
     def testUnstampEvent_ALL(self):
         self.event.rruleset = self.rruleset

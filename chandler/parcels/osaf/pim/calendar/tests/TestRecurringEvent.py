@@ -1339,6 +1339,7 @@ class RecurringEventTest(testcase.SingleRepositoryTestCase):
         second.unmodify()
         self.assertEqual(second.itsItem._triageStatus, TriageEnum.done)
         self.failIf(second.itsItem.hasLocalAttributeValue('displayName'))
+        self.failIf(second.itsItem.hasLocalAttributeValue(Stamp.stamp_types.name))
         
     def testEventCollection(self):
         events = EventStamp.getCollection(self.view)
