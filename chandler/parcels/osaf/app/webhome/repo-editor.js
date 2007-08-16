@@ -161,6 +161,9 @@ function extractValues(str) {
 
 function onValueTableClick(event) {
 
+  /* disable attribute editing for now */
+  return;
+
   if (editInProgress==true) 
     return;
 
