@@ -147,7 +147,7 @@ class RepositoryView(CView):
 
     def __init__(self, repository, name=None, version=None,
                  deferDelete=Default, pruneSize=Default, notify=True,
-                 mergeFn=None, timezone=None, ontzchange=None):
+                 mergeFn=None, timezone=Default, ontzchange=None):
         """
         Initializes a repository view.
 
@@ -197,7 +197,7 @@ class RepositoryView(CView):
         return self['Schema']['Core']['Lob'].makeValue(data, *args, **kwds)
 
     def openView(self, version=None, deferDelete=Default, notify=Default,
-                 mergeFn=None, timezone=None, ontzchange=None):
+                 mergeFn=None, timezone=Default, ontzchange=None):
         """
         Open this repository view.
 
@@ -1479,7 +1479,7 @@ class OnDemandRepositoryView(RepositoryView):
 
     def __init__(self, repository, name=None, version=None,
                  deferDelete=Default, pruneSize=Default, notify=Default,
-                 mergeFn=None, timezone=None, ontzchange=None):
+                 mergeFn=None, timezone=Default, ontzchange=None):
 
         if version is None:
             version = repository.store.getVersion()
@@ -1490,7 +1490,7 @@ class OnDemandRepositoryView(RepositoryView):
                                                      ontzchange)
 
     def openView(self, version=None, deferDelete=Default, notify=Default,
-                 mergeFn=None, timezone=None, ontzchange=None):
+                 mergeFn=None, timezone=Default, ontzchange=None):
 
         self._exclusive = threading.RLock()
         self._hooks = []
@@ -1640,7 +1640,8 @@ class OnDemandRepositoryView(RepositoryView):
 
 class NullRepositoryView(RepositoryView):
 
-    def __init__(self, name=None, verify=False, timezone=None, ontzchange=None):
+    def __init__(self, name=None, verify=False, timezone=Default,
+                 ontzchange=None):
 
         super(NullRepositoryView, self).__init__(None,
                                                  name=name,
@@ -1651,7 +1652,7 @@ class NullRepositoryView(RepositoryView):
             self._status |= RepositoryView.VERIFY
 
     def openView(self, version=None, deferDelete=Default, notify=Default,
-                 mergeFn=None, timezone=None, ontzchange=None):
+                 mergeFn=None, timezone=Default, ontzchange=None):
 
         self._logger = logging.getLogger(__name__)
         super(NullRepositoryView, self).openView(version=0,

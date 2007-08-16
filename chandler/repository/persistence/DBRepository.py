@@ -973,7 +973,7 @@ class DBRepository(OnDemandRepository):
 
     def createView(self, name=None, version=None,
                    deferDelete=Default, pruneSize=Default, notify=Default,
-                   mergeFn=None, timezone=None, ontzchange=None, mvcc=True):
+                   mergeFn=None, timezone=Default, ontzchange=None, mvcc=True):
 
         return DBRepositoryView(self, name, version,
                                 deferDelete, pruneSize, notify, mergeFn,

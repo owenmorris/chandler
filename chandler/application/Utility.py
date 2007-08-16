@@ -673,7 +673,7 @@ def initRepository(directory, options, allowSchemaView=False):
 
     # delay timezone change until schema API is initialized
     if repository.isNew():
-        view = repository.createView(version=version)
+        view = repository.createView(version=version, timezone=None)
     else:
         view = repository.createView(version=version, timezone=Default)
 

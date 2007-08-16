@@ -37,7 +37,7 @@ class DBRepositoryView(OnDemandRepositoryView):
 
     def __init__(self, repository, name=None, version=None,
                  deferDelete=Default, pruneSize=Default, notify=Default,
-                 mergeFn=None, timezone=None, ontzchange=None, mvcc=True):
+                 mergeFn=None, timezone=Default, ontzchange=None, mvcc=True):
 
         super(DBRepositoryView, self).__init__(repository, name, version,
                                                deferDelete, pruneSize, notify,
@@ -45,7 +45,7 @@ class DBRepositoryView(OnDemandRepositoryView):
         self.useMVCC(mvcc)
 
     def openView(self, version=None, deferDelete=Default, notify=Default,
-                 mergeFn=None, timezone=None, ontzchange=None, mvcc=True):
+                 mergeFn=None, timezone=Default, ontzchange=None, mvcc=True):
 
         self._log = set()
         self._indexWriter = None

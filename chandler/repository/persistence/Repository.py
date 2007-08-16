@@ -145,7 +145,7 @@ class Repository(CRepository):
 
     def createView(self, name=None, version=None,
                    deferDelete=Default, pruneSize=Default, notify=Default,
-                   mergeFn=None, timezone=None):
+                   mergeFn=None, timezone=Default):
         """
         Create a repository view.
 
@@ -239,7 +239,7 @@ class OnDemandRepository(Repository):
 
     def createView(self, name=None, version=None,
                    deferDelete=Default, pruneSize=Default, notify=Default,
-                   mergeFn=None, timezone=None):
+                   mergeFn=None, timezone=Default):
 
         return OnDemandRepositoryView(self, name, version,
                                       deferDelete, pruneSize, notify,
