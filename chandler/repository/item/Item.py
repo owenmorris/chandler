@@ -1437,18 +1437,18 @@ class Item(CItem):
                     else:
                         others.add(value)
 
-        for other in others:
-            if other.refCount(True) == 0:
-                other.delete(True, deletePolicy)
-
         if not self.isSchema():
             for name, value in refs.items():
                 if value is not None:
                     if value._isRefs():
-                        if name not in ('watches', 'monitors'):
+                        if name not in ('watches', 'monitors', 'watchers'):
                             value.clear()
                     else:
                         setattr(self, name, None)
+
+        for other in others:
+            if other.refCount(True) == 0:
+                other.delete(True, deletePolicy)
 
         self._status &= ~Item.DEFERRING
 

@@ -573,11 +573,18 @@ class References(Values):
     def clear(self):
 
         item = self._item
-        refs = item.itsRefs
+        removeWatchers = False
+
         for name in self.keys():
+            # remove watchers last so that remove notifs don't get lost
+            if name == 'watchers':
+                removeWatchers = True
             # if it wasn't removed by a reflexive bi-ref
-            if name in self:
-                item.removeAttributeValue(name, refs)
+            elif name in self:
+                item.removeAttributeValue(name, self)
+
+        if removeWatchers:
+            item.removeAttributeValue('watchers', self)
 
     def _setItem(self, item):
 

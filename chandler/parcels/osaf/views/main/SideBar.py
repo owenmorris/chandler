@@ -1125,12 +1125,6 @@ class SidebarBlock(Table):
                     item._prepareToRemoveFromCollection(collection)
 
             sharing.unsubscribe(collection)
-            # Bug 10402, deferred delete of a collection which has items
-            # in its inclusions doesn't update nonRecurringNotes __adhoc__
-            # index, and there's no harm in clearing inclusions before deletion,
-            # since we're about to delete the collection
-            collection.inclusions.clear()
-
             collection.delete(True)
 
         self.widget.DeleteSelection(DeleteItemCallback=deleteItem)
