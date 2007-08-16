@@ -386,9 +386,15 @@ class SharingTranslator(eim.Translator):
 
         if cls is model.EventRecord:
             if field.name == 'lastPastOccurrence':
-                local    = fromICalendarDateTime(self.rv, internal)[0]
-                inbound  = fromICalendarDateTime(self.rv, external)[0]
-                return -1 if local > inbound else 1
+                # handle "" or None
+                if not external:
+                    return -1
+                elif not internal:
+                    return 1
+                else:
+                    local    = fromICalendarDateTime(self.rv, internal)[0]
+                    inbound  = fromICalendarDateTime(self.rv, external)[0]
+                    return -1 if local > inbound else 1
 
         # Resolve note record conflicts:
         if cls is model.NoteRecord:
