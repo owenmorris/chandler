@@ -20,7 +20,7 @@ from osaf.sharing import (
     recordset_conduit, eimml, ootb
 )
 from utility import (splitUUID, fromICalendarDateTime, getDateUtilRRuleSet,
-                     code_to_triagestatus, triagestatus_to_code)
+    code_to_triagestatus, triagestatus_to_code, getMasterAlias)
 
 import os
 import calendar
@@ -1719,6 +1719,10 @@ class DumpTranslator(SharingTranslator):
     @model.CollectionMembershipRecord.importer
     def import_collectionmembership(self, record):
 
+        # Don't add non-masters to collections:
+        if record.itemUUID != getMasterAlias(record.itemUUID):
+            return
+
         id = record.collectionID
 
         # Map old hard-coded sidebar UUID to its well-known name
@@ -1754,6 +1758,11 @@ class DumpTranslator(SharingTranslator):
 
     @model.DashboardMembershipRecord.importer
     def import_dashboard_membership(self, record):
+
+        # Don't add non-masters to collections:
+        if record.itemUUID != getMasterAlias(record.itemUUID):
+            return
+
         @self.withItemForUUID(record.itemUUID, pim.ContentItem)
         def do(item):
             dashboard = schema.ns("osaf.pim", self.rv).allCollection
@@ -1762,6 +1771,11 @@ class DumpTranslator(SharingTranslator):
 
     @model.TrashMembershipRecord.importer
     def import_trash_membership(self, record):
+
+        # Don't add non-masters to collections:
+        if record.itemUUID != getMasterAlias(record.itemUUID):
+            return
+
         @self.withItemForUUID(record.itemUUID, pim.ContentItem)
         def do(item):
             trash = schema.ns("osaf.pim", self.rv).trashCollection
@@ -2744,12 +2758,14 @@ class DumpTranslator(SharingTranslator):
 
         # emit the DashboardMembership records
         for item in schema.ns("osaf.pim", self.rv).allCollection.inclusions:
-            if not str(item.itsPath).startswith("//parcels"):
+            if (not str(item.itsPath).startswith("//parcels") and
+                not isinstance(item, Occurrence)):
                 yield model.DashboardMembershipRecord(item)
 
         # emit the TrashMembership records
         for item in schema.ns("osaf.pim", self.rv).trashCollection.inclusions:
-            if not str(item.itsPath).startswith("//parcels"):
+            if (not str(item.itsPath).startswith("//parcels") and
+                not isinstance(item, Occurrence)):
                 yield model.TrashMembershipRecord(item)
 
 

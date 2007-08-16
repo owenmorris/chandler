@@ -777,7 +777,8 @@ class RecordSetConduit(conduits.BaseConduit):
 
                 # Add the item to contents
                 if item is not None and item.isLive():
-                    self.share.contents.add(item)
+                    if not isinstance(item, pim.Occurrence):
+                        self.share.contents.add(item)
                     self.share.addSharedItem(item)
 
 
