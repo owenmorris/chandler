@@ -371,8 +371,14 @@ class AbstractSet(ItemValue, Indexed):
             if change == 'collection':
 
                 if op in ('add', 'remove'):
+                    otherItem = self.itsView.get(other)
+
+                    if op == 'add':
+                        if (otherItem is not None and
+                            otherItem.isDeferringOrDeleting()):
+                            return
+
                     if not (local or self._otherName is None):
-                        otherItem = self.itsView.find(other)
                         if otherItem is not None:
                             refs = otherItem.itsRefs
                             if op == 'add':
@@ -1557,10 +1563,6 @@ class FilteredSet(Set):
                     op = None
                 elif not self.filter(other):
                     op = None
-                else:
-                    otherItem = self.itsView.get(other)
-                    if not (otherItem is None or not otherItem.isDeferring()):
-                        op = None
 
             elif op == 'remove':
                 index = self._anIndex()
