@@ -2105,6 +2105,8 @@ class EventStamp(Stamp):
                     triage = self.simpleAutoTriage()
                     if value != triage:
                         self.itsItem.setTriageStatus(triage)
+                elif attr == EventStamp.startTime.name:
+                    self.startTime = self.recurrenceID
                 elif attr == Stamp.stamp_types.name:
                     # don't delete the local set of stamps; we handle
                     # this below in the non-partial case (and for

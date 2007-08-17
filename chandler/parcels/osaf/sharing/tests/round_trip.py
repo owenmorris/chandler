@@ -1340,7 +1340,7 @@ class RoundTripTestCase(testcase.DualRepositoryTestCase):
         second0 = event.getFirstOccurrence().getNextOccurrence()
         self.assert_(pim.has_stamp(second0.itsItem, pim.MailStamp))
         view0.commit(); stats = self.share0.sync(); view0.commit()
-        view1.commit(); stats = self.share1.sync(debug=True); view1.commit()
+        view1.commit(); stats = self.share1.sync(); view1.commit()
         self.assert_(pim.has_stamp(item1, pim.MailStamp))
         second1 = event1.getRecurrenceID(second0.recurrenceID)
 
@@ -1634,7 +1634,7 @@ class RoundTripTestCase(testcase.DualRepositoryTestCase):
         second0 = event.getFirstOccurrence().getNextOccurrence()
         second0.itsItem.displayName = "Don't remove me!"
         self.assert_(self.share0 in sharing.SharedItem(item).sharedIn)
-        view0.commit(); stats = self.share0.sync(debug=True); view0.commit()
+        view0.commit(); stats = self.share0.sync(); view0.commit()
         self.assert_(item not in self.share0.contents)
         self.assert_(self.share0 not in sharing.SharedItem(item).sharedIn)
         # find the replacement for the orphan:
@@ -1649,6 +1649,44 @@ class RoundTripTestCase(testcase.DualRepositoryTestCase):
         conflicts = list(sharing.getConflicts(newItem))
         self.assertEquals(len(conflicts), 1)
         self.assertEquals(conflicts[0].pendingRemoval, True)
+
+
+
+
+
+        # Test scenario for bug 10510:
+
+        # Start over with a new recurring event
+        event0 = self._makeRecurringEvent(view0, self.share0.contents)
+        item0 = event0.itsItem
+        event0.rruleset.rrules.first().freq = 'daily'
+        view0.commit(); stats = self.share0.sync(); view0.commit()
+        view1.commit(); stats = self.share1.sync(); view1.commit()
+        # Make modifications out of 2nd/3rd occurrences:
+        second0 = event0.getFirstOccurrence().getNextOccurrence()
+        third0 = second0.getNextOccurrence()
+        newTime = second0.startTime + datetime.timedelta(hours=1)
+        second0.changeThis(pim.EventStamp.startTime.name, newTime)
+        newTime = third0.startTime + datetime.timedelta(hours=1)
+        third0.changeThis(pim.EventStamp.startTime.name, newTime)
+        view0.commit(); stats = self.share0.sync(); view0.commit()
+        view1.commit(); stats = self.share1.sync(); view1.commit()
+        # Make a startime this/future change to 2nd occurrence:
+        item1 = view1.findUUID(item0.itsUUID)
+        event1 = pim.EventStamp(item1)
+        second1 = event1.getFirstOccurrence().getNextOccurrence()
+        newTime = second1.startTime + datetime.timedelta(hours=1)
+        second1.changeThisAndFuture(pim.EventStamp.startTime.name, newTime)
+        view1.commit(); stats = self.share1.sync(); view1.commit()
+        view0.commit(); stats = self.share0.sync(); view0.commit()
+        # The two unmodifications should disappear, leaving just the master
+        # and its first occurrence:
+        self.assertEquals(len(event0.occurrences), 1)
+        first0 = event0.getFirstOccurrence()
+        self.assertEquals(event0.startTime, first0.startTime)
+
+
+
 
 
 

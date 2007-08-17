@@ -225,7 +225,6 @@ class RecordSetConduit(conduits.BaseConduit):
 
 
 
-
             # Add remotely changed items
             for alias in inbound.keys():
                 deletion = False
@@ -657,6 +656,39 @@ class RecordSetConduit(conduits.BaseConduit):
 
         if receive:
 
+            # Unmodify before applying other changes:
+            for alias in remotelyUnmodified:
+                if alias in toSend:
+                    # unmodify conflicted with a local change, not removed
+                    continue
+                uuid = translator.getUUIDForAlias(alias)
+                if uuid:
+                    item = rv.findUUID(uuid)
+                else:
+                    item = None
+                if (item is not None and pim.has_stamp(item, pim.EventStamp)
+                    and getattr(pim.EventStamp(item), 'modificationFor',
+                    False)):
+                    # A recordset deletion on an occurrence is treated
+                    # as an "unmodification" i.e., a modification going
+                    # back to a simple occurrence.  But don't do anything
+                    # if our master is being removed.
+                    masterItem = item.inheritFrom
+                    masterAlias = translator.getAliasForItem(masterItem)
+                    if masterAlias not in remotelyRemoved:
+                        logger.info("Locally unmodifying alias: %s", alias)
+                        pim.EventStamp(item).unmodify(partial=True)
+                    else:
+                        logger.info("Master was remotely removed for alias: %s",
+                            alias)
+                    # Make sure not to remodify an unmodification...
+                    with pim.EventStamp(item).noRecurrenceChanges():
+                        self.share.removeSharedItem(item)
+
+                    receiveStats['removed'].add(alias)
+                self.removeState(alias)
+
+
             applyCount = len(toApply)
             if applyCount:
                 _callback(msg="%d inbound change(s) to apply" % applyCount,
@@ -802,36 +834,6 @@ class RecordSetConduit(conduits.BaseConduit):
 
                 self.removeState(alias)
 
-            for alias in remotelyUnmodified:
-                if alias in toSend:
-                    # unmodify conflicted with a local change, not removed
-                    continue
-                uuid = translator.getUUIDForAlias(alias)
-                if uuid:
-                    item = rv.findUUID(uuid)
-                else:
-                    item = None
-                if (item is not None and pim.has_stamp(item, pim.EventStamp)
-                    and getattr(pim.EventStamp(item), 'modificationFor',
-                    False)):
-                    # A recordset deletion on an occurrence is treated
-                    # as an "unmodification" i.e., a modification going
-                    # back to a simple occurrence.  But don't do anything
-                    # if our master is being removed.
-                    masterItem = item.inheritFrom
-                    masterAlias = translator.getAliasForItem(masterItem)
-                    if masterAlias not in remotelyRemoved:
-                        logger.info("Locally unmodifying alias: %s", alias)
-                        pim.EventStamp(item).unmodify(partial=True)
-                    else:
-                        logger.info("Master was remotely removed for alias: %s",
-                            alias)
-                    # Make sure not to remodify an unmodification...
-                    with pim.EventStamp(item).noRecurrenceChanges():
-                        self.share.removeSharedItem(item)
-
-                    receiveStats['removed'].add(alias)
-                self.removeState(alias)
 
         # For each item that was in the collection before but is no longer,
         # remove its state; if sending, add an empty recordset to toSend
