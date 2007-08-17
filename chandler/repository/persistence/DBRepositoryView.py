@@ -354,8 +354,6 @@ class DBRepositoryView(OnDemandRepositoryView):
 
     def _refreshItems(self, version, items):
 
-        self._loadTimezone(version)
-
         refCounted = self.isRefCounted()
         kinds = []
         for item in items():
@@ -387,6 +385,9 @@ class DBRepositoryView(OnDemandRepositoryView):
         for item in items():
             if refCounted or item.isPinned():
                 self.find(item.itsUUID)
+
+        self._loadTimezone(version)
+
 
     def _refreshForwards(self, mergeFn, newVersion, notify):
 
