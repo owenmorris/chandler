@@ -384,7 +384,7 @@ class CosmoConduit(recordset_conduit.DiffRecordSetConduit, conduits.HTTPMixin):
             raise errors.CouldNotConnect(_(u"Unable to connect to server. Received the following error: %(error)s") % {'error': err})
 
         except twisted.internet.error.ConnectionLost, err:
-            raise error.CouldNotConnect(_(u"Lost connection to server.  Received the following error: %(error)s") % {'error' : err})
+            raise errors.CouldNotConnect(_(u"Lost connection to server.  Received the following error: %(error)s") % {'error' : err})
 
     def getLocation(self, privilege=None, morsecode=False):
         """
