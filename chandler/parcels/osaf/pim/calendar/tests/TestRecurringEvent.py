@@ -1550,10 +1550,16 @@ class RecurringEventTest(testcase.SingleRepositoryTestCase):
         # make sure it's not an Occurrence
         self.assert_(not isinstance(orphan, Calendar.Occurrence))
 
-        # make sure it has the right stamps
-        self.assert_(has_stamp(orphan, EventStamp))
-        self.assert_(has_stamp(orphan, MailStamp))
-        self.failIf(has_stamp(orphan, TaskStamp))
+        # make sure it's in the right stamp collections, and had the right
+        # stamps
+        for stamp, stamped in (
+            (EventStamp, True),
+            (MailStamp, True),
+            (TaskStamp, False)
+        ):
+            self.assertEqual(has_stamp(orphan, stamp), stamped)
+            self.assertEqual(orphan in stamp.getCollection(orphan.itsView),
+                             stamped)
         
         # the original item should be deleted
         self.assert_(secondOccurrence.itsItem.isDeleted)

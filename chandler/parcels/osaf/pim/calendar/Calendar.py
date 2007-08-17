@@ -1159,6 +1159,13 @@ class EventStamp(Stamp):
 
         self._copyCollections(master, orphan)
 
+        # We have had Stamp.stamp_types copied via the cloud copy
+        # above. However, we actually need to call .add() on each
+        # Stamp, since that's part of the API of stamping, and also
+        # how Stamp classes maintain their collections.
+        Stamp(orphan).stamp_types = set()
+        self._restoreStamps(orphanEvent)
+
         self._safeDelete()
         return orphan
 
