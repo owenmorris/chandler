@@ -1026,25 +1026,30 @@ class CalendarNotificationHandler(object):
         pending events.
         
         """
-        def translateUUID(uuid):
+        def translateUUID(uuid, change):
             try:
                 item = self.blockItem.itsView[uuid]
                 if not isDead(item):
                     if isinstance(item, Calendar.Occurrence):
                         item = item.inheritFrom
+                        if change =="remove":
+                            change = "changed"
+
                     if events:
                         item = Calendar.EventStamp(item)
-                    return item
+                    return item, change
             except KeyError:
                 # print "Couldn't find new item %s" % itemUUID
                 pass
+
+            return None, change
         
         added = set()
         removed = set()
         changed = set()
         
         for uuid, change in self._pending.iteritems():
-            itemOrEvent = translateUUID(uuid)
+            itemOrEvent, change = translateUUID(uuid, change)
             
             if itemOrEvent is not None:
                 if change == 'add':
