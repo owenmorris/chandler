@@ -242,6 +242,8 @@ class RecordSetConduit(conduits.BaseConduit):
                             state = self.getState(alias)
                             if hasattr(state, "_pending"):
                                 del state._pending
+                            updateConflicts(state, masterUUID)
+
                     else:
                         doLog("Inbound unmodification: %s", alias)
                         if self.hasState(alias):
@@ -257,9 +259,13 @@ class RecordSetConduit(conduits.BaseConduit):
                                 getInheritRecords(records, alias),
                                 exclusions
                             )
+                            remotelyUnmodified.add(alias)
+
                             if hasattr(state, "_pending"):
                                 del state._pending
-                            remotelyUnmodified.add(alias)
+                            uuid = translator.getUUIDForAlias(alias)
+                            if uuid:
+                                updateConflicts(state, uuid)
                         else:
                             doLog("Ignoring unmodification, no state for alias: %s", alias)
                             del inbound[alias]
@@ -275,8 +281,7 @@ class RecordSetConduit(conduits.BaseConduit):
                         # clear out any pendingRemoval
                         state = self.getState(alias)
                         state.pendingRemoval = False
-                        if item is not None:
-                            state.updateConflicts(item)
+                        updateConflicts(state, uuid)
 
                     if (item is not None and
                         item.isLive() and
@@ -568,16 +573,15 @@ class RecordSetConduit(conduits.BaseConduit):
             elif receive and pending and item is not None:
 
                 state.autoResolve(rsInternal, dApply, dSend)
-                state.updateConflicts(item)
+
+            if uuid:
+                updateConflicts(state, uuid)
 
             if send and dSend:
                 toSend[alias] = dSend
 
             if receive and dApply:
                 toApply[alias] = dApply
-
-            if receive and pending:
-                toAutoResolve[alias] = pending
 
             i += 1
             _callback(msg="Merged %d of %d recordset(s)" % (i, mergeCount),
@@ -651,8 +655,7 @@ class RecordSetConduit(conduits.BaseConduit):
                 if alias in remotelyRemoved:
                     remotelyRemoved.remove(alias)
                 doLog("Removal conflict: %s", alias)
-                if changedItem is not None:
-                    state.updateConflicts(changedItem)
+                updateConflicts(state, translator.getUUIDForAlias(alias))
 
 
         if receive:
@@ -1733,3 +1736,13 @@ def getTriageDiff(alias, value):
     args[0] = alias
     args[ItemRecord.triage.offset - 1] = value # subtract one for URI
     return eim.Diff([ItemRecord(*args)])
+
+
+
+
+def updateConflicts(state, uuid):
+    view = state.itsView
+    if uuid:
+        item = view.findUUID(uuid)
+        if item is not None:
+            state.updateConflicts(item)
