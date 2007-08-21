@@ -29,16 +29,20 @@ class Indexed(object):
 
         self._indexes = None
 
-    def getIndex(self, indexName):
+    def getIndex(self, indexName, default=Default):
 
         if self._indexes is None:
             item, name = self.itsOwner
-            raise NoSuchIndexError, (item, name, indexName)
+            if default is Default:
+                raise NoSuchIndexError, (item, name, indexName)
+            return default
 
         index = self._indexes.get(indexName)
         if index is None:
             item, name = self.itsOwner
-            raise NoSuchIndexError, (item, name, indexName)
+            if default is Default:
+                raise NoSuchIndexError, (item, name, indexName)
+            return default
 
         return index
 

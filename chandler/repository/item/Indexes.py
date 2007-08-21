@@ -445,9 +445,9 @@ class SortedIndex(DelegatingIndex):
             view = self._valueMap.itsView
             for uuid, attr, name in self._subIndexes:
                 indexed = getattr(view[uuid], attr)
-                index = indexed.getIndex(name).validateIndex(valid,
-                                                             insertMissing,
-                                                             subIndexes)
+                index = indexed.getIndex(name, None)
+                if index is not None:
+                    index.validateIndex(valid, insertMissing, subIndexes)
 
     def insertKey(self, key, ignore=None, selected=False, _setadd=False):
 
@@ -506,7 +506,7 @@ class SortedIndex(DelegatingIndex):
             view = self._valueMap.itsView
             for uuid, attr, name in self._subIndexes:
                 indexed = getattr(view[uuid], attr)
-                index = indexed.getIndex(name)
+                index = indexed.getIndex(name, Nil)
                 if key in index:
                     index.moveKey(key, ignore, insertMissing)
                     indexed._setDirty(True)
@@ -563,11 +563,12 @@ class SortedIndex(DelegatingIndex):
             view = self._valueMap.itsView
             for uuid, attr, name in self._subIndexes:
                 indexed = getattr(view[uuid], attr)
-                index = indexed.getIndex(name)
-                subKeys = [key for key in moves if key in index]
-                if subKeys:
-                    index.moveKeys(subKeys, ignore, insertMissing)
-                    indexed._setDirty(True)
+                index = indexed.getIndex(name, None)
+                if index is not None:
+                    subKeys = [key for key in moves if key in index]
+                    if subKeys:
+                        index.moveKeys(subKeys, ignore, insertMissing)
+                        indexed._setDirty(True)
 
     # Used during merging.
     # Not notifications safe, removes the keys from sub indexes too.
@@ -579,8 +580,8 @@ class SortedIndex(DelegatingIndex):
                 view = self._valueMap.itsView
                 for uuid, attr, name in self._subIndexes:
                     indexed = getattr(view[uuid], attr)
-                    index = indexed.getIndex(name)
-                    if index.removeKeys(keys):
+                    index = indexed.getIndex(name, None)
+                    if index is not None and index.removeKeys(keys):
                         indexed._setDirty(True)
 
             return True
