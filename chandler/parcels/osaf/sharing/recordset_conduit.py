@@ -262,6 +262,7 @@ class RecordSetConduit(conduits.BaseConduit):
                             remotelyUnmodified.add(alias)
                         else:
                             doLog("Ignoring unmodification, no state for alias: %s", alias)
+                            del inbound[alias]
 
                 else: # inbound change
                     uuid = translator.getUUIDForAlias(alias)
