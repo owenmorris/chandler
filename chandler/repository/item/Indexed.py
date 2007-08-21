@@ -334,7 +334,7 @@ class Indexed(object):
                 superIndex.addSubIndex(item.itsUUID, attr, name)
 
             if 'subindexes' in kwds: # bug 7324
-                if index._subIndexes is None:
+                if getattr(index, '_subIndexes', None) is None:
                     index._subIndexes = set()
                 for subIndex in kwds['subindexes']:
                     uItem, attr, subName = subIndex

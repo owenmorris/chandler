@@ -483,22 +483,24 @@ class SortedIndex(DelegatingIndex):
         selected = False
         insert = True
         vals = {}
+        skip = False
 
         if key in index:
             prevKey = skipList.previous(key)
             nextKey = skipList.next(key)
             if ((prevKey is None or self.compare(key, prevKey, vals) >= 0) and
                 (nextKey is None or self.compare(key, nextKey, vals) <= 0)):
-                return
+                skip = True
 
-            removed, selected = index.removeKey(key)
-            if not removed:
-                if insertMissing is None:
-                    raise KeyError, key
-                elif not insertMissing:
-                    insert = False
+            if not skip:
+                removed, selected = index.removeKey(key)
+                if not removed:
+                    if insertMissing is None:
+                        raise KeyError, key
+                    elif not insertMissing:
+                        insert = False
 
-        if insert:
+        if not skip and insert:
             afterKey = skipList.after(key, self.compare, vals)
             index.insertKey(key, afterKey, selected)
 
@@ -538,26 +540,24 @@ class SortedIndex(DelegatingIndex):
                     continue
             moves.append(key)
 
-        if not moves:
-            return
+        if moves:
+            inserts = []
+            selection = set()
 
-        inserts = []
-        selection = set()
+            for key in moves:
+                removed, selected = index.removeKey(key)
+                if removed:
+                    inserts.append(key)
+                    if selected:
+                        selection.add(key)
+                elif insertMissing is None:
+                    raise KeyError, key
+                elif insertMissing:
+                    inserts.append(key)
 
-        for key in moves:
-            removed, selected = index.removeKey(key)
-            if removed:
-                inserts.append(key)
-                if selected:
-                    selection.add(key)
-            elif insertMissing is None:
-                raise KeyError, key
-            elif insertMissing:
-                inserts.append(key)
-
-        for key in inserts:
-            afterKey = skipList.after(key, self.compare, vals)
-            index.insertKey(key, afterKey, key in selection)
+            for key in inserts:
+                afterKey = skipList.after(key, self.compare, vals)
+                index.insertKey(key, afterKey, key in selection)
 
         if self._subIndexes:
             view = self._valueMap.itsView
@@ -565,7 +565,7 @@ class SortedIndex(DelegatingIndex):
                 indexed = getattr(view[uuid], attr)
                 index = indexed.getIndex(name, None)
                 if index is not None:
-                    subKeys = [key for key in moves if key in index]
+                    subKeys = [key for key in keys if key in index]
                     if subKeys:
                         index.moveKeys(subKeys, ignore, insertMissing)
                         indexed._setDirty(True)
