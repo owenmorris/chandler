@@ -223,11 +223,10 @@ class RecordSetConduit(conduits.BaseConduit):
                 logger.info("Subscribed collection name: %s",
                     self.share.displayName)
 
-
+            removedMods = {} # dict of master -> set of modifications
 
             # Add remotely changed items
             for alias in inbound.keys():
-                deletion = False
                 rs = inbound[alias]
                 if rs is None: # inbound deletion
                     masterUUID = getMasterAlias(alias)
@@ -235,7 +234,6 @@ class RecordSetConduit(conduits.BaseConduit):
                         doLog("Inbound removal: %s", alias)
                         del inbound[alias]
                         remotelyRemoved.add(alias)
-                        deletion = True
                         # Since this item was remotely removed, all pending
                         # changes should go away.
                         if self.hasState(alias):
@@ -243,32 +241,8 @@ class RecordSetConduit(conduits.BaseConduit):
                             if hasattr(state, "_pending"):
                                 del state._pending
                             updateConflicts(state, masterUUID)
-
                     else:
-                        doLog("Inbound unmodification: %s", alias)
-                        if self.hasState(alias):
-                            # change inbound to a fake state based on the
-                            # master's state
-                            state = self.getState(alias)
-                            masterState = self.getState(masterUUID)
-                            records = masterState.agreed.inclusions
-                            masterRecordTypes = [type(r) for r in records]
-                            exclusions = [r for r in state.agreed.inclusions if
-                                          type(r) not in masterRecordTypes]
-                            inbound[alias] = eim.Diff(
-                                getInheritRecords(records, alias),
-                                exclusions
-                            )
-                            remotelyUnmodified.add(alias)
-
-                            if hasattr(state, "_pending"):
-                                del state._pending
-                            uuid = translator.getUUIDForAlias(alias)
-                            if uuid:
-                                updateConflicts(state, uuid)
-                        else:
-                            doLog("Ignoring unmodification, no state for alias: %s", alias)
-                            del inbound[alias]
+                        removedMods.setdefault(masterUUID, set()).add(alias)
 
                 else: # inbound change
                     uuid = translator.getUUIDForAlias(alias)
@@ -282,6 +256,15 @@ class RecordSetConduit(conduits.BaseConduit):
                         state = self.getState(alias)
                         state.pendingRemoval = False
                         updateConflicts(state, uuid)
+                            
+                    masterAlias = getMasterAlias(alias)
+                    if masterAlias != alias:
+                        if getOneRecord(rs, EventRecord) is not None:
+                            # Cosmo sends None for recurrence fields in
+                            # modifications, which we want to interpret as
+                            # Inherit
+                            rs = rs + getEmptyRecurrenceDiff(alias)
+                            inbound[alias] = rs
 
                     if (item is not None and
                         item.isLive() and
@@ -306,6 +289,50 @@ class RecordSetConduit(conduits.BaseConduit):
                             inbound[alias] = rs
                             state.clear()
 
+            for master, modifications in removedMods.iteritems():
+                if master in remotelyRemoved:
+                    deleted = modifications
+                elif inbound.get(master) is None:
+                    deleted = []
+                else:
+                    deleted = findRecurrenceConflicts(rv, master,
+                                                      inbound.get(master),
+                                                      modifications)
+                for alias in modifications:
+                    if alias in deleted:
+                        doLog("Inbound modification deletion: %s", alias)
+                        del inbound[alias]
+                        remotelyRemoved.add(alias)
+                    else:
+                        doLog("Inbound unmodification: %s", alias)
+                        if self.hasState(alias):
+                            # change inbound to a fake state based on the
+                            # master's state
+                            state = self.getState(alias)
+                            masterState = self.getState(master)
+                            records = masterState.agreed.inclusions
+                            masterRecordTypes = [type(r) for r in records]
+                            exclusions = [r for r in state.agreed.inclusions if
+                                          type(r) not in masterRecordTypes]
+                            inbound[alias] = eim.Diff(
+                                getInheritRecords(records, alias),
+                                exclusions
+                            )
+                            remotelyUnmodified.add(alias)
+                            
+                        else:
+                            doLog("Ignoring unmodification, no state for alias: %s", alias)
+                            del inbound[alias]
+                            
+                    # Since this item was remotely removed, all pending
+                    # changes should go away.
+                    if self.hasState(alias):
+                        state = self.getState(alias)
+                        if hasattr(state, "_pending"):
+                            del state._pending
+                        uuid = translator.getUUIDForAlias(alias)
+                        if uuid:
+                            updateConflicts(state, uuid)
 
         else:
             inbound = {}
@@ -595,30 +622,31 @@ class RecordSetConduit(conduits.BaseConduit):
         # changed modifications to be removed, and pretend the server
         # sent us inbound removals for these modifications directly.
         orphanAliases = set()
-        masters = {}
-        # Build a dictionary of master aliases which have local changes to
-        # their modifications
+        masters = {} # masters -> set of modifications
+        
         for alias in toSend:
             masterAlias = getMasterAlias(alias)
             if masterAlias != alias:
-                masters.setdefault(masterAlias, set()).add(alias)
-        for alias in list(chain(toApply.keys(), remotelyRemoved)):
-            if alias in masters:
-                # This is a master that has inbound changes and outbound
-                # changes to its modifications.  See if the inbound master
-                # change is supposed to cause the local modification to be
-                # removed (due to recurrence rule changes)
-                diff = None if alias in remotelyRemoved else toApply[alias]
-                for orphanAlias in findRecurrenceConflicts(rv, alias, diff,
-                    masters[alias]):
-                    doLog("Inbound master change is orphaning: %s", orphanAlias)
-                    orphanAliases.add(orphanAlias)
-                    remotelyRemoved.add(orphanAlias)
-                    if orphanAlias in toApply:
-                        del toApply[orphanAlias]
-
-
-
+                if alias in remotelyRemoved:
+                    doLog("Inbound occurrence deletion is orphaning: %s", alias)
+                    orphanAliases.add(alias)
+                elif alias in inbound:
+                    # the item was changed but not deleted on the server
+                    pass
+                elif masterAlias in toApply or masterAlias in remotelyRemoved:
+                    # the master was changed remotely, the modification was
+                    # changed locally but may never have existed on the server
+                    masters.setdefault(masterAlias, set()).add(alias)
+                
+        for master, modifications in masters.iteritems():
+            # See if the inbound master change is supposed to cause the local
+            # modification to be removed
+            for orphanAlias in findRecurrenceConflicts(rv, master,
+                                                       toApply.get(master),
+                                                       modifications):
+                doLog("Inbound master change is orphaning: %s", orphanAlias)
+                orphanAliases.add(orphanAlias)
+                remotelyRemoved.add(orphanAlias)
 
 
         # Examine inbound removal of items with local changes
@@ -652,8 +680,8 @@ class RecordSetConduit(conduits.BaseConduit):
 
                 state.clear()
                 state.pendingRemoval = True
-                if alias in remotelyRemoved:
-                    remotelyRemoved.remove(alias)
+                if alias in remotelyRemoved:      # alias may have changed, so
+                    remotelyRemoved.remove(alias) # the "if" isn't redundant
                 doLog("Removal conflict: %s", alias)
                 updateConflicts(state, translator.getUUIDForAlias(alias))
 
@@ -823,16 +851,28 @@ class RecordSetConduit(conduits.BaseConduit):
             # At this point, we know there were no local modifications
             _callback(msg="Removing items from collection", totalWork=None)
 
-            for alias in remotelyRemoved:
+            # sort in reverse order to process modifications before masters
+            for alias in sorted(remotelyRemoved, reverse=True):
                 uuid = translator.getUUIDForAlias(alias)
                 if uuid:
                     item = rv.findUUID(uuid)
                 else:
                     item = None
 
+                masterAlias = getMasterAlias(alias)
+
                 if item is not None and item in self.share.contents:
                     self.share.removeSharedItem(item)
-                    self.share.contents.remove(item)
+                    if (masterAlias != alias and
+                        masterAlias not in remotelyRemoved):
+                        # modifications which were deleted on the server should
+                        # be deleted, not removed from the collection, but only
+                        # if the whole series isn't being removed from the
+                        # collection
+                        pim.EventStamp(item)._safeDelete()
+                    else:
+                        self.share.contents.remove(item)
+
                     logger.info("Locally removing  alias: %s", alias)
                     receiveStats['removed'].add(alias)
 
@@ -1001,23 +1041,14 @@ class RecordSetConduit(conduits.BaseConduit):
                 continue
             
             deleted = []
-            inboundLast = None
-            if inbound.has_key(masterAlias):
-                # need to distinguish between remote unmodify and remote
-                # deletion, deletions should be ignored
-                deleted = findRecurrenceConflicts(view, masterAlias,
-                                                  inbound.get(masterAlias),
-                                                  modifications)
-                inboundLast = getLastPastOccurrence(view,
-                                                    inbound.get(masterAlias))
-
-            agreedLast = getLastPastOccurrence(view, masterAgreed)
+            inboundLast = getLastPastOccurrence(view, inbound.get(masterAlias))
+            agreedLast  = getLastPastOccurrence(view, masterAgreed)
             
             if inboundLast is None:
                 inboundLast = agreedLast
                 
             for modAlias in modifications:
-                if modAlias in deleted:
+                if modAlias in remotelyRemoved:
                     continue
                 
                 # find the previously agreed triage status, the new
@@ -1653,11 +1684,16 @@ def findRecurrenceConflicts(view, master_alias, diff, localModAliases):
     rrule  = event_record.rrule
     
     # are there any recurrence changes?
-    if eim.NoChange == rrule == event_record.exdate == event_record.rdate:
+    r = event_record
+    if eim.NoChange == rrule == r.exdate == r.rdate == r.dtstart:
         return []
             
     master = view.findUUID(master_alias)
-    start = pim.EventStamp(master).effectiveStartTime
+    if event_record.dtstart == eim.NoChange:
+        start = pim.EventStamp(master).effectiveStartTime
+    else:
+        start = fromICalendarDateTime(view, event_record.dtstart)[0]
+        
     if master is None:
         assert "no master found"
         return []
@@ -1670,7 +1706,7 @@ def findRecurrenceConflicts(view, master_alias, diff, localModAliases):
     conflicts = []
     split_aliases = ((splitUUID(view, a)[1], a) for a in localModAliases)
 
-    master_rruleset = pim.EventStamp(master).createDateUtilFromRule()
+    master_rruleset = pim.EventStamp(master).rruleset.createDateUtilFromRule(start)
     
     if rrule is eim.NoChange:
         du_rruleset = master_rruleset
@@ -1737,8 +1773,21 @@ def getTriageDiff(alias, value):
     args[ItemRecord.triage.offset - 1] = value # subtract one for URI
     return eim.Diff([ItemRecord(*args)])
 
+recurrenceFields = (EventRecord.exdate, EventRecord.exrule,
+                    EventRecord.rdate, EventRecord.rrule)
 
-
+def getEmptyRecurrenceDiff(alias):
+    """    
+    Cosmo sends EventRecords with None for their recurrence fields,
+    unfortunately we can't use the standard converter code to handle this case,
+    since we only want to fix modification records.
+    
+    """
+    args = [eim.NoChange] * len(EventRecord.__fields__)
+    args[0] = alias
+    for field in recurrenceFields:
+        args[field.offset - 1] = eim.Inherit # subtract one for URI
+    return eim.Diff([EventRecord(*args)])
 
 def updateConflicts(state, uuid):
     view = state.itsView

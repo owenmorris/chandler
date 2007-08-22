@@ -59,6 +59,13 @@ def checkStats(stats, expecting):
                     return False
     return True
 
+def findOrphan(share, title, masterToSkip=None):
+    for item in share.contents:
+        if item.displayName == title:
+            if masterToSkip is None:
+                return item
+            elif getattr(item, 'inheritFrom', None) is not masterToSkip:
+                return item
 
 class RoundTripTestCase(testcase.DualRepositoryTestCase):
 
@@ -1638,14 +1645,8 @@ class RoundTripTestCase(testcase.DualRepositoryTestCase):
         self.assert_(item not in self.share0.contents)
         self.assert_(self.share0 not in sharing.SharedItem(item).sharedIn)
         # find the replacement for the orphan:
-        for i in self.share0.contents:
-            if i.displayName == "Don't remove me!":
-                found = True
-                newItem = i
-                break
-        else:
-            found = False
-        self.assert_(found)
+        newItem = findOrphan(self.share0, "Don't remove me!")
+        self.assert_(newItem is not None)
         conflicts = list(sharing.getConflicts(newItem))
         self.assertEquals(len(conflicts), 1)
         self.assertEquals(conflicts[0].pendingRemoval, True)
@@ -1686,6 +1687,74 @@ class RoundTripTestCase(testcase.DualRepositoryTestCase):
         self.assertEquals(event0.startTime, first0.startTime)
 
 
+        # scenario for bug 10537, distinguish between inbound deletions and
+        # unmodifications
+        
+        # Start over with a new recurring event
+        event0 = self._makeRecurringEvent(view0, self.share0.contents)
+        item0 = event0.itsItem
+        event0.rruleset.rrules.first().freq = 'daily'
+        view0.commit(); stats = self.share0.sync(); view0.commit()
+        view1.commit(); stats = self.share1.sync(); view1.commit()
+        item1 = view1.findUUID(item0.itsUUID)
+        event1 = pim.EventStamp(item1)
+        second0 = event0.getFirstOccurrence().getNextOccurrence()
+        second1 = event1.getFirstOccurrence().getNextOccurrence()
+        
+        third0 = second0.getNextOccurrence()
+        third1 = second1.getNextOccurrence()
+        
+        second1.changeThis('displayName', 'modification to move')
+        third1.changeThis('displayName', 'modification to orphan')
+        view1.commit(); stats = self.share1.sync(); view1.commit()
+        view0.commit(); stats = self.share0.sync(); view0.commit()
+
+        newStart = event0.startTime + datetime.timedelta(hours=1)
+        event0.changeAll(pim.EventStamp.startTime.name, newStart)
+        third1.changeThis('displayName', 'changed, in conflict')
+        view0.commit(); stats = self.share0.sync(); view0.commit()
+        view1.commit(); stats = self.share1.sync(); view1.commit()
+
+        self.assert_(second1.itsItem.isDeleted())
+        self.assert_(third1.itsItem.isDeleted())
+        
+        # make sure the second1 wasn't orphaned
+        newItem = findOrphan(self.share1, 'modification to move', item1)
+        self.assert_(newItem is None)
+
+        # make sure third1 was orphaned
+        newItem = findOrphan(self.share1, 'changed, in conflict', item1)
+        self.assert_(newItem is not None)
+
+
+        # new third
+        third0 = event0.getFirstOccurrence().getNextOccurrence().getNextOccurrence()
+        third0.changeThis('displayName', "modification to delete")
+        fourth0 = third0.getNextOccurrence()
+        fourth0.changeThis('displayName', "modification to delete and conflict")
+        view0.commit(); stats = self.share0.sync(); view0.commit()
+        view1.commit(); stats = self.share1.sync(); view1.commit()
+        third1 = event1.getRecurrenceID(third0.recurrenceID)
+        fourth1 = event1.getRecurrenceID(fourth0.recurrenceID)
+        
+        third0.deleteThis()
+        fourth0.deleteThis()
+        
+        fourth1.changeThis('displayName', "should become an orphan")
+        
+        view0.commit(); stats = self.share0.sync(); view0.commit()
+        view1.commit(); stats = self.share1.sync(); view1.commit()
+
+        self.assert_(third1.itsItem.isDeleted())
+        self.assert_(fourth1.itsItem.isDeleted())
+        
+        # make sure third1 wasn't orphaned
+        newItem = findOrphan(self.share1, 'modification to move', item1)
+        self.assert_(newItem is None)
+
+        # make sure fourth1 was orphaned
+        newItem = findOrphan(self.share1, "should become an orphan", item1)
+        self.assert_(newItem is not None)
 
 
 

@@ -129,8 +129,8 @@ class RecurrenceConflictTestCase(NRVTestCase):
                                             aliases)
         # No conflicts with an empty diff
         self.assertEqual(self._getConflicts(emptyDiff, aliases), [])
-        # No conflicts with a start time change
-        self.assertEqual(self._getConflicts(diff, aliases), [])
+        # A start time change should give conflicts
+        self.assertNotEqual(self._getConflicts(diff, aliases), [])
 
     def testRemoveRecurrence(self):
         """All modifications should be returned if recurrence was removed."""

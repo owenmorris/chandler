@@ -636,13 +636,12 @@ class SharingTranslator(eim.Translator):
             else:
                 title = ''
 
-        if item.hasLocalAttributeValue('modifiedFlags'):
+        if isinstance(item, Occurrence):
+            hasBeenSent = eim.Inherit
+        elif item.hasLocalAttributeValue('modifiedFlags'):
             hasBeenSent = int(pim.Modification.sent in item.modifiedFlags)
         else:
-            if isinstance(item, Occurrence):
-                hasBeenSent = eim.Inherit
-            else:
-                hasBeenSent = 0
+            hasBeenSent = 0
 
         yield model.ItemRecord(
             item,                                       # uuid
