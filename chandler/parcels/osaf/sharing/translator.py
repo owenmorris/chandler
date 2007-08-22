@@ -1081,7 +1081,6 @@ class SharingTranslator(eim.Translator):
 
         headers = []
 
-
         for header in getattr(mail, 'headers', []):
             if obf:
                 headers.append(u"%s: %s" % (header, self.obfuscate(mail.headers[header])))
@@ -1090,6 +1089,9 @@ class SharingTranslator(eim.Translator):
                 headers.append(u"%s: %s" % (header, mail.headers[header]))
 
         if headers:
+            # Sort the headers to ensure they are serialized in a
+            # consistent manner.
+            headers.sort()
             headers = u"\n".join(headers)
         else:
             headers = None
