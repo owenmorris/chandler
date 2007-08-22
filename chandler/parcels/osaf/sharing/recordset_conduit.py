@@ -878,12 +878,18 @@ class RecordSetConduit(conduits.BaseConduit):
 
                 self.removeState(alias)
 
-
         # For each item that was in the collection before but is no longer,
         # remove its state; if sending, add an empty recordset to toSend
         # TODO: Optimize by removing item loading
         statesToRemove = set()
         for state in self.share.states:
+
+            # Ignore/remove any empty states
+            if not (state.agreed or state.pending or state.pendingRemoval):
+                logger.info("Removing empty state: %s", alias)
+                statesToRemove.add(alias)
+                continue
+
             alias = self.share.states.getAlias(state)
             uuid = translator.getUUIDForAlias(alias)
             if uuid:
