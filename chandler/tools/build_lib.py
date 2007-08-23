@@ -238,20 +238,25 @@ def generateVersionData(chandlerDirectory, platformName, tag=None):
 
         if len(parts) == 1:     # tbox continuous build
             vmodule    = loadModuleFromFile(versionFilename, "vmodule")
-            release    = '%s%s' % (getattr(vmodule, 'release',  ''), getattr(vmodule, 'build',    ''))
+            release    = '%s%s' % (getattr(vmodule, 'release', ''), getattr(vmodule, 'build', ''))
             revision   = getattr(vmodule, 'revision', '')
             checkpoint = parts[0]
             vmodule    = None
-        elif len(parts) == 3:
+
+            if release.startswith('r'):
+                release = release[1:]
+        elif len(parts) == 3:   # 0.7.dev-r12345-checkpoint20070810
             release    = parts[0]
             revision   = parts[1]
             checkpoint = parts[2]
 
-        if revision.startswith('r'):
-            revision = revision[1:]
+            if release.startswith('r'):
+                release = release[1:]
 
-        if checkpoint.startswith('checkpoint'):
-            checkpoint = checkpoint[10:]
+            if checkpoint.startswith('checkpoint'):
+                checkpoint = checkpoint[10:]
+        else:
+            release = tag
 
         build = ''
         parts = release.split('.')
