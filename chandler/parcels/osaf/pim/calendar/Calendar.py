@@ -2122,24 +2122,33 @@ class EventStamp(Stamp):
                 elif self.itsItem.hasLocalAttributeValue(attr):
                     delattr(self.itsItem, attr)
 
+            master = EventStamp(self.modificationFor)
             if partial:
-                master = EventStamp(self.modificationFor)
-                for stampClass in Stamp(master).stamp_types:
-                    if not has_stamp(self, stampClass):
-                        stampClass(self).add()
-                for stampClass in list(Stamp(self).stamp_types):
-                    if stampClass not in Stamp(master).stamp_types:
-                        stampClass(self).remove()
+                desiredStamps = list(Stamp(master).stamp_types)
+            else:
+                desiredStamps = (EventStamp,)
 
+            for stampClass in desiredStamps:
+                if not has_stamp(self, stampClass):
+                    stampClass(self).add()
+
+            for stampClass in list(Stamp(self).stamp_types):
+                if stampClass not in desiredStamps:
+                    stampClass(self).remove()
+
+            if partial:
                 # Commenting this assert out as a workaround for bug 10340.
                 # Andi says that removal of ref collection attributes is
                 # deferred until commit, so if we've done a delattr( ) on
                 # such an attribute, the following assert will fail:
                 # assert self.isTriageOnlyModification()
+                pass
             else:
                 self.isGenerated = True
                 del self.modificationFor
                 del Stamp(self).stamp_types
+                if self.itsItem.hasLocalAttributeValue('appearsIn'):
+                    del self.itsItem.appearsIn
 
 
     @schema.observer(

@@ -1324,8 +1324,8 @@ class RecurringEventTest(testcase.SingleRepositoryTestCase):
         # The first occurrence should've been removed from the series
         self.assertEqual(countStatus(event), (1,1,1)) # later, done, now
         
-    def testUnModify(self):
-        """Unmodify should delete make most attributes be inherited."""
+    def testUnmodify(self):
+        """Unmodify should make most attributes be inherited."""
         
         event = self.event
         start = self.start
@@ -1340,6 +1340,38 @@ class RecurringEventTest(testcase.SingleRepositoryTestCase):
         self.assertEqual(second.itsItem._triageStatus, TriageEnum.done)
         self.failIf(second.itsItem.hasLocalAttributeValue('displayName'))
         self.failIf(second.itsItem.hasLocalAttributeValue(Stamp.stamp_types.name))
+        self.failIf(second.itsItem.collections)
+        self.failIf(second.itsItem.hasLocalAttributeValue('appearsIn'))
+
+    def testUnmodifyMail(self):
+        """
+        Unmodify should make most attributes be inherited,
+        and remove item from stamp collections.
+        """
+        
+        collection = SmartCollection(None, itsParent=self.sandbox)
+        schema.ns("osaf.pim", self.view).mine.sources.add(collection)
+        collection.add(self.event.itsItem)
+        
+        event = self.event
+        start = self.start
+        MailStamp(event).add()
+        # recurrence entirely in the past
+        event.rruleset = self._createRuleSetItem('weekly')
+        
+        second = event.getFirstOccurrence().getNextOccurrence()
+        secondStart = second.startTime
+        
+        second.changeThis(EventStamp.startTime.name, secondStart + timedelta(hours=2))
+        second.itsItem.setTriageStatus(TriageEnum.now)
+        
+        second.unmodify()
+        self.assertEqual(second.itsItem._triageStatus, TriageEnum.done)
+        self.failUnlessEqual(second.startTime, secondStart)
+        self.failIf(second.itsItem.hasLocalAttributeValue(Stamp.stamp_types.name))
+        # check that our unmodified aren't in any stamp collections
+        for stamp in EventStamp, MailStamp:
+            self.failIf(second.itsItem in stamp.getCollection(self.view))
         
     def testEventCollection(self):
         events = EventStamp.getCollection(self.view)
