@@ -1414,6 +1414,10 @@ class SharingTranslator(eim.Translator):
                             ruleItem.setRuleFromDateUtil(du_rule)
                             itemlist.append(ruleItem)
                         setattr(rruleset, ruletype + 's', itemlist)
+            
+            floating = self.rv.tzinfo.floating
+            mastertz = event.effectiveStartTime.tzinfo
+            masterAllDay = event.allDay or event.anyTime
 
             for datetype in 'rdate', 'exdate':
                 record_field = getattr(record, datetype)
@@ -1423,6 +1427,10 @@ class SharingTranslator(eim.Translator):
                     else:
                         dates = fromICalendarDateTime(self.rv, record_field,
                                                       multivalued=True)[0]
+                        if not masterAllDay and mastertz != floating: 
+                            dates = [d.replace(tzinfo=mastertz) if 
+                                     d.tzinfo == floating else d for d in dates]
+                            
                     setattr(rruleset, datetype + 's', dates)
 
             if len(rruleset.rrules) == 0 and len(rruleset.rdates) == 0:
