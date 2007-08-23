@@ -1709,7 +1709,7 @@ class RoundTripTestCase(testcase.DualRepositoryTestCase):
         view1.commit(); stats = self.share1.sync(); view1.commit()
         view0.commit(); stats = self.share0.sync(); view0.commit()
 
-        newStart = event0.startTime + datetime.timedelta(hours=1)
+        newStart = event0.startTime + datetime.timedelta(hours=-1)
         event0.changeAll(pim.EventStamp.startTime.name, newStart)
         third1.changeThis('displayName', 'changed, in conflict')
         view0.commit(); stats = self.share0.sync(); view0.commit()
