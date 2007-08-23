@@ -552,7 +552,7 @@ class wxTimedEventsCanvas(BaseWidget, wxCalendarCanvas):
         if self.dragState is not None:
             canvasItem = self.dragState.currentDragBox      
             # drawing rects should be updated to reflect conflicts
-            if (canvasItem is not None and canvasItem.CanDrag()):
+            if (canvasItem is not None and canvasItem.CanDrag() and not isDead(canvasItem.item)):
 
                 dragTimes = self.GetDragAdjustedTimes()
                 canvasItem.startTime, canvasItem.endTime = dragTimes
