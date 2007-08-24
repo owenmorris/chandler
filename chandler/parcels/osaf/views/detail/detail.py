@@ -218,6 +218,14 @@ class DetailRootBlock(WatchedItemRootBlock, ControlBlocks.ContentItemDetail):
         if pim.has_stamp(item, Mail.MailStamp):
             wx.GetApp().needsUpdateUI = True
 
+    def selectionEmptiedAfterDelete (self, selectedCollection, oldIndex):
+        # when the last item in the selection is deleted, ask the sidebar
+        # to select the next item
+        sbpb = Block.Block.findBlockByName('SidebarBranchPointBlock')
+        sbpb.childBlocks.first().postEventByName("SelectItemsBroadcast",
+                             {'items': [],
+                              'collection': selectedCollection })
+
 class DetailBranchPointDelegate(BranchPoint.BranchPointDelegate):
     """ 
     Delegate for managing trees of blocks that compose the detail view.

@@ -409,10 +409,13 @@ class FocusEventHandlers(Item):
         selection = self.__getSelectedItems()
         assert len(selection) > 0 # If this assert fails fix onRemoveEventUpdateUI
 
-        try:
-            oldIndex = self.contents.index (selection[0])
-        except NoSuchItemInCollectionError:
-            oldIndex = None
+        oldIndex = None
+        # The DetailRootBlock's contents is not a collection, so it has no 'index' method
+        if hasattr(self.contents, 'index'):
+            try:
+                oldIndex = self.contents.index (selection[0])
+            except NoSuchItemInCollectionError:
+                pass
 
         assert selectedCollection, "Can't remove without a primary collection!"
 
@@ -463,7 +466,7 @@ class FocusEventHandlers(Item):
                                           itemsAndStates=itemsAndStates,
                                           originalAction=originalAction)
         selection = getattr(self, 'GetSelection', lambda : self.contents)()
-        if selection.isSelectionEmpty():
+        if not hasattr(selection, 'isSelectionEmpty') or selection.isSelectionEmpty():
             self.selectionEmptiedAfterDelete (selectedCollection, oldIndex)
 
     def onDeleteEvent(self, event):
@@ -471,10 +474,13 @@ class FocusEventHandlers(Item):
         selection = self.__getSelectedItems()
         assert len(selection) > 0 # If this assert fails fix onDeleteEventUpdateUI
         
-        try:
-            oldIndex = self.contents.index (selection[0])
-        except NoSuchItemInCollectionError:
-            oldIndex = None
+        oldIndex = None
+        # The DetailRootBlock's contents is not a collection, so it has no 'index' method
+        if hasattr(self.contents, 'index'):
+            try:
+                oldIndex = self.contents.index (selection[0])
+            except NoSuchItemInCollectionError:
+                pass
 
         assert selectedCollection, "Can't delete without a primary collection!"
 
@@ -502,7 +508,7 @@ class FocusEventHandlers(Item):
                                           itemsAndStates=readonly,
                                           originalAction='delete')
         selection = getattr(self, 'GetSelection', lambda : self.contents)()
-        if selection.isSelectionEmpty():
+        if not hasattr(selection, 'isSelectionEmpty') or selection.isSelectionEmpty():
             self.selectionEmptiedAfterDelete (selectedCollection, oldIndex)
 
                         
