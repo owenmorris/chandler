@@ -562,6 +562,7 @@ class wxCollectionCanvas(DragAndDrop.DropReceiveWidget,
             self.dragState.DragOut()
             self.draggedOutState = self._linuxHackDragState = self.dragState
             self.dragState = None
+            self.coercedCanvasItem = None
             
         # make sure to redraw the canvas with the dragged item gone
         self.RefreshCanvasItems(resort=False)
