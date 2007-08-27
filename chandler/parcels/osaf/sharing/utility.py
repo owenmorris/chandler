@@ -42,7 +42,8 @@ __all__ = [
     'getDateUtilRRuleSet',
     'checkTriageOnly',
     'code_to_triagestatus',
-    'triagestatus_to_code'
+    'triagestatus_to_code',
+    'mergeFunction'
 ]
 
 from application import schema, Globals
@@ -50,6 +51,7 @@ import WebDAV
 import urlparse, base64, datetime
 from i18n import ChandlerMessageFactory as _
 from repository.util.Lob import Lob
+from repository.persistence.RepositoryError import MergeError
 from itertools import chain
 from osaf.sharing import errors
 from HTMLParser import HTMLParser
@@ -77,6 +79,21 @@ from vobject.base import textLineToContentLine
 import osaf.pim.calendar.TimeZone as TimeZone
 
 logger = logging.getLogger(__name__)
+
+
+
+
+
+def mergeFunction(code, item, attribute, value):
+    # 'value' is the one from *this* view
+    # getattr(item, attribute) is the value from a different view
+
+    if code == MergeError.DELETE:
+        return True
+
+    return value # Change from *this* view wins
+
+
 
 
 

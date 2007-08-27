@@ -19,13 +19,13 @@ from osaf.pim import TriageEnum
 import conduits, errors, formats, eim, shares, model, utility
 from model import EventRecord, ItemRecord
 from utility import (splitUUID, getDateUtilRRuleSet, fromICalendarDateTime,
-                     checkTriageOnly, getMasterAlias, code_to_triagestatus)
+                     checkTriageOnly, getMasterAlias, code_to_triagestatus,
+                     mergeFunction)
 from i18n import ChandlerMessageFactory as _
 import logging
 from itertools import chain
 from application import schema
 from repository.item.Item import Item
-from repository.persistence.RepositoryError import MergeError
 from chandlerdb.util.c import UUID
 import dateutil
 
@@ -43,20 +43,9 @@ __all__ = [
     'InMemoryResourceRecordSetConduit',
     'hasChanges',
     'findRecurrenceConflicts',
-    'mergeFunction'
 ]
 
 emptyValues = (eim.NoChange, eim.Inherit, None)
-
-
-def mergeFunction(code, item, attribute, value):
-    # 'value' is the one from *this* view
-    # getattr(item, attribute) is the value from a different view
-
-    if code == MergeError.DELETE:
-        return True
-
-    return value # Change from *this* view wins
 
 
 

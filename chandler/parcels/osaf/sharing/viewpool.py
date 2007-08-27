@@ -15,6 +15,8 @@
 
 __all__ = [ 'getView', 'releaseView' ]
 
+from utility import mergeFunction
+
 AVAILABLE = 0
 IN_USE    = 1
 
@@ -32,7 +34,8 @@ def getView(repo):
             view.refresh( )
             return view
 
-    view = repo.createView(name=name%highest, pruneSize=500, notify=False)
+    view = repo.createView(name=name%highest, pruneSize=500, notify=False,
+        mergeFn=mergeFunction)
     views.append((view, IN_USE))
     highest += 1
     return view

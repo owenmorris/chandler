@@ -107,7 +107,7 @@ class SharingPreferences(schema.Item):
 class SyncPeriodicTask(startup.PeriodicTask):
     def fork(self):
         return startup.fork_item(self, name='Syncing', pruneSize=500,
-            notify=False)
+            notify=False, mergeFn=mergeFunction)
 
 
 def installParcel(parcel, oldVersion=None):
@@ -406,7 +406,7 @@ class BackgroundSyncHandler:
             logger.exception("Error trying to create sync report")
 
         try: # Commit sync report and possible errors
-            self.rv.commit()
+            self.rv.commit(mergeFunction)
         except: # No matter what we have to continue on
             logger.exception("Error trying to commit in bgsync")
 
