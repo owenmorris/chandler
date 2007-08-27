@@ -71,7 +71,7 @@ REMOVE_FOLDERS = _(u"Chandler will now attempt to remove the\nfollowing IMAP fol
 # Will print out saved account changes
 # before exiting the dialog when set to True
 DEBUG = False
-FOLDERS_URL = "http://chandlerproject.org/getstarted"
+FOLDERS_URL = "http://chandlerproject.org/pub/Product/GetStartedGuide/2-EmailAccounts.html#ChandlerFolders"
 SHARING_URL = "http://hub.chandlerproject.org/signup"
 
 # Special handlers referenced in the panelsInfo dictionary below:
