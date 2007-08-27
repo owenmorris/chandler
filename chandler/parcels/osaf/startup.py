@@ -240,7 +240,8 @@ class TaskRunner(object):
             self.pending.cancel()
 
         self.pending = reactor.callLater(
-            interval.days*86400 + interval.seconds + interval.microseconds/1e6,
+            max(0, interval.days*86400 + interval.seconds +
+                interval.microseconds/1e6),
             reactor.callInThread, self.run_once
         )
 
