@@ -1360,7 +1360,7 @@ class SidebarBranchPointDelegate(BranchPoint.BranchPointDelegate):
         return viewTemplatePath
 
     def _mapItemToCacheKeyItem(self, item, hints):
-
+        UC = UserCollection
         def wrapInIndexedSelectionCollection (key):
             # Finally, create a UI wrapper collection to manage
             # things like selection and sorting
@@ -1368,7 +1368,14 @@ class SidebarBranchPointDelegate(BranchPoint.BranchPointDelegate):
                                                 source=key, autoDelete=True)
             if len(newKey) > 0: # XXX if newKey: does not work; other code depends on index being created here
                 newKey.addSelectionRange (0)
-            UserCollection(newKey).dontDisplayAsCalendar = UserCollection(key).dontDisplayAsCalendar
+            UC(newKey).dontDisplayAsCalendar = UC(key).dontDisplayAsCalendar
+            return newKey
+
+        def wrapKey(oldKey, newKey, newName, startNewName=False):
+            oldName = oldKey.displayName if not startNewName else ""
+            # create an INTERNAL name for this collection, just for debugging
+            newKey.displayName = oldName + newName
+            UC(newKey).dontDisplayAsCalendar = UC(oldKey).dontDisplayAsCalendar
             return newKey
 
         sidebar = Block.Block.findBlockByName ("Sidebar")
@@ -1453,9 +1460,15 @@ class SidebarBranchPointDelegate(BranchPoint.BranchPointDelegate):
                                           sources=collectionList,
                                           autoDelete=True)
 
-                # create an INTERNAL name for this collection, just
-                # for debugging purposes
-                displayName = u" and ".join ([theItem.displayName for theItem in collectionList])
+                # bug 10669, the final IndexedSelectionCollection will have
+                # subindexes installed based on contentItems, so intersect all
+                # collections displayed with contentItems
+                newKey = IntersectionCollection(itsView=self.itsView,
+                                                sources=[key, pim_ns.contentItems],
+                                                autoDelete=True)
+                name = u" and ".join(i.displayName for i in collectionList)
+                key = wrapKey(key, newKey, name + " filtered by contentItems",
+                              startNewName=True)
 
                 if (filterClass is pim.EventStamp and
                     UserCollection(key).dontDisplayAsCalendar and
@@ -1464,12 +1477,9 @@ class SidebarBranchPointDelegate(BranchPoint.BranchPointDelegate):
                     # we can't filter out both master events and intersect
                     # with events, so filter on nonMasterEvents
                     newKey = IntersectionCollection(itsView=self.itsView,
-                                                    sources=[key, pim_ns.nonMasterNonPureOccurrenceEvents],
+                                                    sources=[key, pim_ns.nonMasterEvents],
                                                     autoDelete=True)
-                    UserCollection(newKey).dontDisplayAsCalendar = UserCollection(key).dontDisplayAsCalendar
-                    displayName += u" filtered by non-master events"
-                    newKey.displayName = displayName
-                    key = newKey
+                    key = wrapKey(key, newKey, " filtered by non-master events")
 
                 else:
                     # Handle filtered collections by intersecting with
@@ -1482,10 +1492,7 @@ class SidebarBranchPointDelegate(BranchPoint.BranchPointDelegate):
                         newKey = IntersectionCollection(itsView=self.itsView,
                                                         sources=[key, stampCollection],
                                                         autoDelete=True)
-                        UserCollection(newKey).dontDisplayAsCalendar = UserCollection(key).dontDisplayAsCalendar
-                        displayName += u" filtered by " + filterClass.__name__
-                        newKey.displayName = displayName
-                        key = newKey
+                        key = wrapKey(key, newKey, " filtered by " + filterClass.__name__)
     
                     # don't include masterEvents in collections passed to 
                     # anything but the calendar view. Master events in tables should
@@ -1497,17 +1504,14 @@ class SidebarBranchPointDelegate(BranchPoint.BranchPointDelegate):
                         newKey = DifferenceCollection(itsView=self.itsView,
                                                       sources=[key, pim_ns.masterEvents],
                                                       autoDelete=True)
-                        UserCollection(newKey).dontDisplayAsCalendar = \
-                            UserCollection(key).dontDisplayAsCalendar
-                        displayName += u" minus master events"
-                        newKey.displayName = displayName
-                        key = newKey
+                        key = wrapKey(key, newKey, " minus master events")
                     
-                key = wrapInIndexedSelectionCollection (key)
-                self.itemTupleKeyToCacheKey [tupleKey] = key
-                displayName += u" ISC"
-                key.displayName = displayName
-                key.collectionList = collectionList
+                newKey = wrapInIndexedSelectionCollection(key)
+                newKey.displayName = key.displayName + " ISC"
+                newKey.collectionList = collectionList
+                key = newKey
+                self.itemTupleKeyToCacheKey[tupleKey] = newKey
+                
             else: # if key is None
                 # We found the key, but we might still need to reorder
                 # collectionList. The list is kept sorted by the order

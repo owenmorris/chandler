@@ -368,16 +368,6 @@ def installParcel(parcel, oldVersion=None):
                           superindex=(events, events.__collection__,
                                       'effectiveStart'))
 
-    nonMasterNonPureOccurrenceEvents = FilteredCollection.update(
-        parcel, 'nonMasterNonPureOccurrenceEvents',
-        source=events,
-        filterMethod=(nonOccurrenceFilter, 'isNotPureOccurrenceOrMaster'),
-        filterAttributes=[EventStamp.occurrenceFor.name,
-                          EventStamp.modificationFor.name,
-                          EventStamp.rruleset.name]
-    )
-
-
     locations = KindCollection.update(
         parcel, 'locations',
         kind = Location.getKind(view),
