@@ -1158,6 +1158,7 @@ class FreeBusyFileFormat(ICalendarFormat):
 class ICalendarImportError(Exception):
     pass
 
+
 def importICalendarFile(fullpath, view, targetCollection = None,
                         filterAttributes = None, activity=None,
                         tzinfo = None, logger=None, selectedCollection = False):
@@ -1180,31 +1181,51 @@ def importICalendarFile(fullpath, view, targetCollection = None,
     if targetCollection == trash:
         targetCollection = None
 
-    # not dealing with tzinfo yet
+
+    view.commit(sharing.mergeFunction) # to make target collection available
+    # Note: if everyone is following the commit rules that says a commit
+    # happens after every user action, this commit is not required.
+
+
+    rv = sharing.getView(view.repository)
+    if targetCollection is not None:
+        targetCollection = rv.findUUID(targetCollection.itsUUID)
+
     if not os.path.isfile(fullpath):
         raise ICalendarImportError(_(u"File does not exist, import cancelled."))
 
-    (dir, filename) = os.path.split(fullpath)
-
-    # TODO: coerceTzinfo?
-
     before = epoch_time()
 
-    import stateless
+    (dir, filename) = os.path.split(fullpath)
+
     try:
-        collection = stateless.importFile(view, fullpath,
-            collection=targetCollection, filters=filterAttributes,
-            activity=activity)
-    except:
-        if logger:
-            logger.exception("Failed importFile %s" % fullpath)
-        raise ICalendarImportError(_(u"Problem with the file, import cancelled."))
+        # TODO: coerceTzinfo?
+
+        import stateless
+        try:
+            collection = stateless.importFile(rv , fullpath,
+                collection=targetCollection, filters=filterAttributes,
+                activity=activity)
+        except:
+            if logger:
+                logger.exception("Failed importFile %s" % fullpath)
+            raise ICalendarImportError(_(u"Problem with the file, import cancelled."))
+
+        if targetCollection is None:
+            collectionName = getattr(collection, 'displayName', 'Untitled')
+            if collectionName == 'Untitled':
+                name = "".join(filename.split('.')[0:-1]) or filename
+                collection.displayName = name
+
+        rv.commit(sharing.mergeFunction) # makes new collection available
+        view.refresh(sharing.mergeFunction) # main ui repo view
+
+    finally:
+        sharing.releaseView(rv)
+
+    collection = view.findUUID(collection.itsUUID)
 
     if targetCollection is None:
-        collectionName = getattr(collection, 'displayName', 'Untitled')
-        if collectionName == 'Untitled':
-            name = "".join(filename.split('.')[0:-1]) or filename
-            collection.displayName = name
         schema.ns("osaf.app", view).sidebarCollection.add(collection)
         sideBarBlock = Block.findBlockByName('Sidebar')
         sideBarBlock.postEventByName ("SelectItemsBroadcast",

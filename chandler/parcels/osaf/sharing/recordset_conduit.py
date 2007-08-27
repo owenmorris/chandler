@@ -42,7 +42,8 @@ __all__ = [
     'InMemoryMonolithicRecordSetConduit',
     'InMemoryResourceRecordSetConduit',
     'hasChanges',
-    'findRecurrenceConflicts'
+    'findRecurrenceConflicts',
+    'mergeFunction'
 ]
 
 emptyValues = (eim.NoChange, eim.Inherit, None)
