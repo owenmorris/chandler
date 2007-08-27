@@ -20,6 +20,7 @@ import unittest, os, logging
 from datetime import date
 from repository.tests.RepositoryTestCase import RepositoryTestCase
 from repository.persistence.RepositoryError import MergeError
+from repository.persistence.RepositoryView import otherViewWins
 from repository.util.Path import Path
 from repository.item.Sets import Set, KindSet, Intersection
 from chandlerdb.item.ItemError import ChildNameError
@@ -507,6 +508,28 @@ class TestMerge(RepositoryTestCase):
         self.assert_(m2.frenchTitle == 'm2titre')
         self.assert_(m3.title == 'm3title')
         self.assert_(m3.frenchTitle == 'm3titre')
+
+    def testMergeOverlapRefCollectionsDelete(self):
+
+        main = self.view
+        cineguidePack = os.path.join(self.testdir, 'data', 'packs',
+                                     'cineguide.pack')
+        main.loadPack(cineguidePack)
+        main.commit()
+
+        view = self.rep.createView('view')
+
+        k = view.findPath('//CineGuide/KHepburn')
+        m = k.movies.first()
+        del m.actors
+        view.commit()
+
+        k = main.findPath('//CineGuide/KHepburn')
+        m = k.movies.first()
+        m.actors.clear()
+        main.commit(otherViewWins)
+
+        self.assert_(main.check(), 'main view did not check out')
 
     def testMergeNoOverlapRV(self):
 

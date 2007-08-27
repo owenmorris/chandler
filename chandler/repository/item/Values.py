@@ -1015,7 +1015,14 @@ class References(Values):
 
                 elif name in dirties:
                     if value is Nil and valueChanges:
-                        view._e_3_overlap(MergeError.REF, item, name)
+                        # conflict: changes lose over removed value coming in
+                        otherName = item.itsKind.getOtherName(name, item)
+                        if ask(MergeError.DELETE, name, valueChanges):
+                            for uValue in valueChanges:
+                                dangling.append((uValue, otherName,
+                                                 item.itsUUID))
+                        else:
+                            view._e_1_overlap(MergeError.DELETE, item, name)
                     elif valueChanges:
                         if changes is None:
                             if card == 'dict':
