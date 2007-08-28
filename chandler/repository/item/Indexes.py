@@ -575,18 +575,16 @@ class SortedIndex(DelegatingIndex):
 
     def removeKeys(self, keys):
 
-        if self._index.removeKeys(keys):
-            if self._subIndexes:
-                view = self._valueMap.itsView
-                for uuid, attr, name in self._subIndexes:
-                    indexed = getattr(view[uuid], attr)
-                    index = indexed.getIndex(name, None)
-                    if index is not None and index.removeKeys(keys):
-                        indexed._setDirty(True)
+        removed = self._index.removeKeys(keys)
+        if self._subIndexes:
+            view = self._valueMap.itsView
+            for uuid, attr, name in self._subIndexes:
+                indexed = getattr(view[uuid], attr)
+                index = indexed.getIndex(name, None)
+                if index is not None and index.removeKeys(keys):
+                    indexed._setDirty(True)
 
-            return True
-
-        return False
+        return removed
 
     def findKey(self, mode, callable, *args):
 
@@ -1098,7 +1096,7 @@ class SubIndex(SortedIndex):
         uuid, attr, name = self._super
         index = getattr(self._valueMap.itsView[uuid], attr).getIndex(name)
         skipList = index.skipList
-
+        
         return skipList.position(k0) - skipList.position(k1)
 
 

@@ -350,7 +350,7 @@ class Indexed(object):
                                     indexes[subName].validateIndex(False, False,
                                                                    False)
 
-            removals = []
+            removals = list(deletes)
             moves = []
 
             for key, value in __indexChanges.iteritems():
