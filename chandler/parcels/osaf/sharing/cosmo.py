@@ -22,7 +22,7 @@ from application import schema
 import shares, accounts, conduits, errors, formats, eim, recordset_conduit
 import translator, eimml, WebDAV
 import zanshin, M2Crypto
-import urlparse
+import urlparse, urllib
 import logging
 import time
 from i18n import ChandlerMessageFactory as _
@@ -98,7 +98,7 @@ class CosmoAccount(accounts.SharingAccount):
         path = self.path.strip("/")
         if path:
             path = "/%s" % path
-        path = "%s/mc/user/%s" % (path, self.username)
+        path = urllib.quote("%s/mc/user/%s" % (path, self.username))
         handle = WebDAV.ChandlerServerHandle(self.host, self.port,
             username=self.username,
             password=waitForDeferred(self.password.decryptPassword()),

@@ -41,6 +41,7 @@ from osaf.framework.certstore import ssl
 from osaf import messages
 import threading
 import logging
+import urllib
 from i18n import ChandlerMessageFactory as _
 from osaf.mail.utils import displayIgnoreSSLErrorDialog, \
                             displaySSLCertDialog, \
@@ -503,7 +504,7 @@ class MorsecodeTester(object):
         path = self.path.strip("/")
         if path:
             path = "/" + path
-        usdPath = "%s/cmp/user/%s/service" % (path, self.username)
+        usdPath = urllib.quote("%s/cmp/user/%s/service" % (path, self.username))
 
         request = zanshin.http.Request("GET", usdPath, { }, None)
 
