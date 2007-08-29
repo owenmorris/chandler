@@ -21,8 +21,10 @@ setup(
     description = "Google Data synchronization support for Chandler",
     author = "OSAF",
     test_suite = "gdatasync.tests",
-    packages = ["gdatasync", "gdata", "atom"],
+    packages = ["gdatasync"],
     include_package_data = True,
+    install_requires = ["gdata.py==1.0.7"],
+    dependency_links = ["http://gdata-python-client.googlecode.com/files/gdata.py-1.0.7.tar.gz"],
     entry_points = {
         "chandler.parcels": ["Google Data Sync = gdatasync"],
         "chandler.chex_mixins": ["Google Data Sync = gdatasync:GDataTranslator"],

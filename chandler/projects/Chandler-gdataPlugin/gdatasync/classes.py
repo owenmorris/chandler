@@ -134,7 +134,8 @@ class GDataConduit(sharing.RecordSetConduit, sharing.HTTPMixin):
         inbound = { }
         extra = { }
 
-        query = gdata.calendar.service.CalendarEventQuery(feed=self.url)
+        query = gdata.calendar.service.CalendarEventQuery()
+        query.feed = self.url
         query.max_results = '10000'
         feed = self.gService.CalendarQuery(query)
         # feed = self.gService.GetCalendarEventFeed(self.url)
