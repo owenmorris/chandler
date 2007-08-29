@@ -1441,7 +1441,9 @@ class CalendarDateAttributeEditor(DateAttributeEditor):
                     event = pim.EventStamp(item)
                     if value < event.startTime:
                         event.startTime = value
-                    event.endTime = value
+                    # @@@ Expedient workaround for proxy/Calculated
+                    # issues (see Bug 10694).
+                    event.duration = value - event.startTime
                 elif attributeName == pim.EventStamp.startTime.name:
                     setattr(item, attributeName, value)
                 else:
@@ -1621,7 +1623,12 @@ class CalendarTimeAttributeEditor(TimeAttributeEditor):
                         # handle the case where an evening event crosses midnight.
                         while value < event.startTime:
                             value += timedelta(days=1)
-                    setattr(item, attributeName, value)
+                    # @@@ Expedient workaround for proxy/Calculated
+                    # issues (see Bug 10694).
+                    if attributeName == pim.EventStamp.endTime.name:
+                        event.duration = value - event.startTime
+                    else:
+                        setattr(item, attributeName, value)
                     event.anyTime = False
                 changed = True
 
