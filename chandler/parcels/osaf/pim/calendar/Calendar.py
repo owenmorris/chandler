@@ -2059,6 +2059,13 @@ class EventStamp(Stamp):
 
         firstFutureLater = self.getFirstFutureLater()
         lastPastDone = self.getLastPastDone()
+        # make sure firstFuture and lastPast are modifications, bug 10695
+        for dt in (firstFutureLater, lastPastDone):
+            if dt is not None:
+                ev = master.getRecurrenceID(dt)
+                if ev is not None and not getattr(ev, 'modificationFor', None):
+                    ev.changeThis()
+
         # run through modifications and unmodify them if their only changes
         # are from autoTriage
         for mod in map(EventStamp, master.modifications):

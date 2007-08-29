@@ -1308,7 +1308,7 @@ class RecurringEventTest(testcase.SingleRepositoryTestCase):
 
         rruleset = self._createRuleSetItem('daily')
         rruleset.rrules.first().until = now + timedelta(days=3)
-        #import pdb;pdb.set_trace()
+
         event.rruleset = rruleset
         
         # pre-triage purge, the first occurrence should be DONE (but in the
@@ -1323,6 +1323,25 @@ class RecurringEventTest(testcase.SingleRepositoryTestCase):
         
         # The first occurrence should've been removed from the series
         self.assertEqual(countStatus(event), (1,1,1)) # later, done, now
+
+        # create a future series
+        event = Calendar.CalendarEvent(None, itsParent=self.sandbox)
+        event.startTime = now + timedelta(days=2)
+
+        rruleset = self._createRuleSetItem('daily')
+        rruleset.rrules.first().until = now + timedelta(days=14)
+
+        event.rruleset = rruleset
+        
+        self.assertEqual(countStatus(event), (1,0,0)) # later, done, now
+        second = event.getFirstOccurrence().getNextOccurrence()
+        second.changeThisAndFuture('displayName', "new displayName")
+        
+        newMaster = second.getMaster()
+        self.assertEqual(newMaster.itsItem.displayName, "new displayName")
+        self.assertEqual(countStatus(newMaster), (1,0,0)) # later, done, now
+        
+
         
     def testUnmodify(self):
         """Unmodify should make most attributes be inherited."""

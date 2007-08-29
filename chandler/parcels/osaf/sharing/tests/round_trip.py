@@ -1188,11 +1188,11 @@ class RoundTripTestCase(testcase.DualRepositoryTestCase):
         view0.commit(); stats = self.share0.sync(); view0.commit()
         self.assert_(checkStats(stats,
             ({'added' : 0, 'modified' : 0, 'removed' : 0},
-             {'added' : 1, 'modified' : 1, 'removed' : 0})),
+             {'added' : 2, 'modified' : 1, 'removed' : 0})),
             "Sync operation mismatch")
         view1.commit(); stats = self.share1.sync(); view1.commit()
         self.assert_(checkStats(stats,
-            ({'added' : 1, 'modified' : 1, 'removed' : 0},
+            ({'added' : 2, 'modified' : 1, 'removed' : 0},
              {'added' : 0, 'modified' : 0, 'removed' : 0})),
             "Sync operation mismatch")
 
