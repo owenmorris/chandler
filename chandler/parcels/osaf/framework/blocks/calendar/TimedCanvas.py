@@ -357,8 +357,8 @@ class wxTimedEventsCanvas(BaseWidget, wxCalendarCanvas):
                "Dont' have an hour in the current locale's time format"
 
         for hour in hourrange:
-            timedate = time(hour=hour,
-                            tzinfo=self.blockItem.itsView.tzinfo.default)
+            # use floating timezone, bug 10709, or timezones don't match
+            timedate = time(hour=hour)
             hourdate = datetime.combine(dummyDate, timedate)
             timeString = timeFormatter.format(hourdate, hourFP)
             (start, end) = (hourFP.getBeginIndex(),hourFP.getEndIndex())
