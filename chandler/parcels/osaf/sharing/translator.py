@@ -1713,6 +1713,16 @@ class DumpTranslator(SharingTranslator):
             # By default we don't include items that are in
             # //parcels since they are not created by the user
 
+
+            # For items in the sidebar, if they're not of an approved class
+            # then skip them.
+            # TODO: When we have a better solution for filtering plugin data
+            # this check should be removed:
+            if (collectionID == "@sidebar" and
+                not isinstance(item, self.approvedClasses)):
+                continue
+
+
             if (not str(item.itsPath).startswith("//parcels") and
                 not isinstance(item, Occurrence)):
                 yield model.CollectionMembershipRecord(
