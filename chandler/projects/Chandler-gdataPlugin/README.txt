@@ -1,8 +1,5 @@
 This plugin provides support for Google Data synchronization in Chandler.
 
-The gdata and atom packages are included because the required version of
-gdata is not yet available in the cheeseshop.
-
 To download and install the plugin from the Chandler UI, 
 use the "Plugins -> Download" and "Plugins -> Install" menus.
 
