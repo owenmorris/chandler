@@ -1677,10 +1677,12 @@ class EventStamp(Stamp):
     
                     for occurrence in itertools.imap(EventStamp,
                                                      first.occurrences or []):
-                        with occurrence.noRecurrenceChanges():
-                            occurrence.recurrenceID =  datetime.combine(
-                                                occurrence.startTime.date(),
-                                                recurrenceTime)
+                        occurrenceID = occurrence.recurrenceID
+                        if occurrenceID >= recurrenceID:
+                            with occurrence.noRecurrenceChanges():
+                                occurrence.recurrenceID =  datetime.combine(
+                                                    occurrence.startTime.date(),
+                                                    recurrenceTime)
                     
             if attr is not None:
                 setattr(self.itsItem, attr, value)

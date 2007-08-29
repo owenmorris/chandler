@@ -1114,6 +1114,130 @@ class RecurringEventTest(testcase.SingleRepositoryTestCase):
         second.changeThis(EventStamp.allDay.name, False)
         self.failIf(second.allDay)
         
+    def testAllDayFuture(self):
+        # Make sure we can make a THISANDFUTURE change to all-day
+        # without messing up the recurrenceIDs of the events in
+        # the original series (c.f. Bug 10685)
+        event = self.event
+        event.rruleset = self._createRuleSetItem('weekly')
+        
+        first = event.getFirstOccurrence()
+        third = first.getNextOccurrence().getNextOccurrence()
+        
+        self.failIf(event.allDay, "Mis-configured test")
+        
+        # Make a THISANDFUTURE change of allDay ...
+        third.changeThisAndFuture(EventStamp.allDay.name, True)
+        
+        # Make sure it created a new master
+        self.failIfEqual(third.getMaster(), first.getMaster())
+
+        def reallyEqual(dt1, dt2):
+            # Helper function, dt1 and dt2 can be datetimes or times ...
+            # used to check that timezones haven't been changed accidentally
+            # (eg. between default & floating).
+            return dt1.tzinfo == dt2.tzinfo and dt1 == dt2
+        
+        # Since we made a new series starting @ the 3rd event,
+        # getting occurrences for the original series over a
+        # 31 day range should yield exactly 2 events.
+        oldOccurrences = first.getOccurrencesBetween(
+                             event.startTime - timedelta(days=1),
+                             event.startTime + timedelta(days=30)
+                         )
+        self.failUnlessEqual(len(oldOccurrences), 2)
+
+        # Make sure that the old occurrences haven't accidentally become
+        # startTime modifications, and that their startTimes are still
+        # correct.
+        for occurrence in oldOccurrences:
+            self.failUnless(
+                reallyEqual(occurrence.recurrenceID, occurrence.startTime)
+            )
+            self.failUnless(
+                reallyEqual(
+                    occurrence.startTime.timetz(),
+                    event.startTime.timetz(),
+                )
+            )
+
+        # The new series is never ending, so there should be 5 events
+        # in a 31-day range starting the day before its first occurrence's
+        # startTime.
+        newOccurrences = third.getOccurrencesBetween(
+                             third.startTime - timedelta(days=1),
+                             third.startTime + timedelta(days=30)
+                         )
+        self.failUnlessEqual(len(newOccurrences), 5)
+        
+        # Again, make sure that all the events aren't startTime
+        # modifications. Also, since they now are allDay, their
+        # effectiveStartTime should have a timetz() of midnight
+        # (with floating tz).
+        for occurrence in newOccurrences:
+            self.failUnless(
+                reallyEqual(occurrence.recurrenceID,
+                            occurrence.effectiveStartTime)
+            )
+            self.failUnless(
+                reallyEqual(occurrence.recurrenceID.timetz(),
+                            time(0, tzinfo=self.view.tzinfo.floating))
+            )
+            
+            # We should check:
+            #    reallyEqual(occurrence.startTime.timetz(),
+            #                third.startTime.timetz())
+            # but, this fails because EventStamp._createOccurrence is
+            # creating occurrences incorrectly. So far as I can tell, the
+            # Chandler UI works around this when recurring events lose
+            # allDay/anyTime. [grant 2007/08/28]
+        
+
+        # Now, make a THISANDFUTURE on the 2nd new event, resetting
+        # allDay.
+        newSecond = third.getNextOccurrence()
+        newSecond.changeThisAndFuture(EventStamp.allDay.name, False)
+        
+        # ... This should result in a 1 event series
+        thirdsOccurrences = third.getOccurrencesBetween(
+                             third.startTime - timedelta(days=1),
+                             third.startTime + timedelta(days=30)
+                         )
+        self.failUnlessEqual(len(thirdsOccurrences), 1)
+
+        # Again, check that the occurrence has the "floating midnight"
+        # effectiveStartTime/recurrenceID.
+        for occurrence in thirdsOccurrences:
+            self.failUnless(
+                reallyEqual(occurrence.recurrenceID,
+                            occurrence.effectiveStartTime)
+            )
+            self.failUnless(
+                reallyEqual(occurrence.recurrenceID.timetz(),
+                            time(0, tzinfo=self.view.tzinfo.floating))
+            )
+        
+        # And repeat the checks for the latest recurring series
+        # (i.e. one with non-allDay events)
+        latestOccurrences = newSecond.getOccurrencesBetween(
+                                newSecond.startTime - timedelta(days=1),
+                                newSecond.startTime + timedelta(days=30)
+                           )
+        
+
+        self.failUnlessEqual(len(latestOccurrences), 5)
+
+        for occurrence in latestOccurrences:
+            self.failUnless(
+                reallyEqual(occurrence.recurrenceID,
+                            occurrence.effectiveStartTime)
+            )
+            self.failUnless(
+                reallyEqual(occurrence.recurrenceID.timetz(),
+                            newSecond.startTime.timetz())
+            )
+        
+
     def testChangeTimeZone(self):
         event = self.event
         
