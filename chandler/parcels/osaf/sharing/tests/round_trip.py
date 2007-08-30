@@ -1791,4 +1791,32 @@ class RoundTripTestCase(testcase.DualRepositoryTestCase):
         self.assert_(not sharing.hasConflicts(item))
 
 
+
+
+
+        # Regression test for bug 10715 (moving item with pending removal to
+        # trash)
+        item0 = pim.Note(itsView=view0)
+        self.share0.contents.add(item0)
+        view0.commit(); stats = self.share0.sync(); view0.commit()
+        view1.commit(); stats = self.share1.sync(); view1.commit()
+        item1 = view1.findUUID(item0.itsUUID)
+        item1.delete()
+        item0.displayName = "Changed"
+        view1.commit(); stats = self.share1.sync(); view1.commit()
+        view0.commit(); stats = self.share0.sync(); view0.commit()
+        self.assert_(sharing.hasConflicts(item0)) # pending removal conflict
+        self.share0.contents.remove(item0)
+        view0.commit(); stats = self.share0.sync(); view0.commit()
+        self.assert_(checkStats(stats,
+            ({'added' : 0, 'modified' : 0, 'removed' : 0},
+             {'added' : 0, 'modified' : 0, 'removed' : 0})),
+            "Sync operation mismatch")
+
+
+
+
+
+
+
         self.share0.destroy() # clean up

@@ -589,6 +589,8 @@ class RecordSetConduit(conduits.BaseConduit):
 
             elif receive and pending and item is not None:
 
+                import pdb; pdb.set_trace()
+
                 state.autoResolve(rsInternal, dApply, dSend)
 
             if uuid:
@@ -892,7 +894,14 @@ class RecordSetConduit(conduits.BaseConduit):
                 (item not in self.share.contents and
                  alias not in remotelyRemoved)):
                 if send:
-                    if not state.isNew():
+
+                    if state.pendingRemoval:
+                        # It's already been deleted on the server
+                        doLog("Item with pending removal also removed locally: %s", alias)
+                        if alias in toSend:
+                            del toSend[alias]
+
+                    elif not state.isNew():
                         # Only send a removal for a state that isn't new
                         toSend[alias] = None
                         doLog("Remotely removing item: %s", alias)
