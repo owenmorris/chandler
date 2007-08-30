@@ -642,7 +642,7 @@ class IMAPClient(base.AbstractDownloadClient):
             # uid was getting commited but an error or
             # shutdown happened before the action was 
             # completed.
-            imapTuple = (self.vars.folderItem.itsUUID, 
+            imapTuple = (self.vars.folderItem.itsUUID,
                          self.vars.lastSearchUID + 1)
 
             self.mailWorker.queueRequest((mailworker.UID_REQUEST, self,
@@ -733,7 +733,7 @@ class IMAPClient(base.AbstractDownloadClient):
 
         if self.vars.folderItem.folderType == "CHANDLER_HEADERS":
             return self.proto.fetchUID(msgSet, uid=1
-                    ).addCallbacks(self._searchForChandlerMessages, 
+                    ).addCallbacks(self._searchForChandlerMessages,
                                    self.catchErrors)
         else:
             return self.proto.fetchFlags(msgSet, uid=True
@@ -745,7 +745,19 @@ class IMAPClient(base.AbstractDownloadClient):
             trace("_searchForChandlerHeaders")
 
         for uidDict in msgs.values():
-           self.vars.searchUIDs.append(int(uidDict['UID']))
+           uid = int(uidDict['UID'])
+
+           if uid >= self.vars.lastUID:
+               # Microsoft Exchange Server returnes UID's
+               # less than the value in self.vars.lastUID.
+               # This violates RFC 3501 and results in
+               # Chandler messages being re-downloaded on
+               # each sync.
+               #
+               # Exchange Example:
+               #     >>> C: 0004 UID FETCH 3:* (UID)
+               #     >>> S: * 2 FETCH (UID 2)
+               self.vars.searchUIDs.append(uid)
 
         # Sort the uids since the ordering returned from the
         # dict may not be sequential
@@ -1003,14 +1015,30 @@ class IMAPClient(base.AbstractDownloadClient):
         if curMessage[0] > self.vars.lastUID:
             self.vars.lastUID = curMessage[0]
 
+
+        # Store in a local variable the returned
+        # server data in the dict for
+        # quicker look up and easy reference.
+        mArray = msgs[msg][0]
+
+        if str(mArray[3]).upper() == 'UID':
+            # The UID information was returned
+            # by the server *after* the RFC822 message.
+            # Example: Microsoft Exchange IMAP Server
+            msg = mArray[2]
+        else:
+            # The UID information was returned
+            # by the server *before* the RFC822 message.
+            # Example: Courier IMAP Server
+            msg = mArray[4]
+
         self.vars.messages.append(
                      # Tuple containing
                      #     0: Mail Request
                      #     1: IMAP UID of message
-                     (message.previewQuickParse(msgs[msg][0][4]), 
-                      curMessage[0])
-                   )
-       
+                     (message.previewQuickParse(msg), curMessage[0])
+                )
+
         # this value is used to determine
         # when to post a MAIL_REQUEST to
         # the MailWorker.
@@ -1035,7 +1063,7 @@ class IMAPClient(base.AbstractDownloadClient):
         if self.vars.numDownloaded == self.vars.numToDownload:
             imapFolderInfo = (self.vars.folderItem.itsUUID, 
                               self.vars.lastUID + 1)
-            
+
             args = self._getStatusStats()
             args["folderDisplayName"] = self.vars.folderItem.displayName
 
