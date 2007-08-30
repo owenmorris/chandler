@@ -444,7 +444,7 @@ msgstr ""
 
 #: application/AboutBox.py:123
 msgid "Apache Licence, Version 2.0."
-msgstr ""
+msgstr "Apache License, Version 2.0."
 
 #: application/AboutBox.py:124
 msgid "Visit %(chandlerWebURL)s for more information."
