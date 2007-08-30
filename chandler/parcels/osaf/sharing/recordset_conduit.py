@@ -589,8 +589,6 @@ class RecordSetConduit(conduits.BaseConduit):
 
             elif receive and pending and item is not None:
 
-                import pdb; pdb.set_trace()
-
                 state.autoResolve(rsInternal, dApply, dSend)
 
             if uuid:
