@@ -1453,6 +1453,14 @@ class SidebarBranchPointDelegate(BranchPoint.BranchPointDelegate):
                 
                 if len(collectionList) == 1:
                     key = collectionList[0]
+                    # fix for bug 10726, Intersecting In or Out with MailStamp
+                    # should be a no-op, since In and Out are already based
+                    # on MailStamp's kind collection.  This is actually
+                    # not quite right if In/Out have inclusions, but we're
+                    # tolerating that for 0.7.0
+                    if filterClass == pim.MailStamp:
+                        if key in (pim_ns.inCollection, pim_ns.outCollection):
+                            filterClass = MissingClass
                 else:
                     # UnionCollection removes trash from its children before
                     # bringing them together
