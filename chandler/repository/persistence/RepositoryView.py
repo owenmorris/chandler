@@ -1467,6 +1467,12 @@ class RepositoryView(CView):
                 if not index.isValid():
                     index.validateIndex(True, True)
 
+        for indexed, indexes in map.iteritems():
+            for index in indexes:
+                if index._changedKeys:
+                    indexed._setDirty(True)
+                    break
+
 
     itsUUID = UUID('3631147e-e58d-11d7-d3c2-000393db837c')
     SUBSCRIBERS = UUID('4dc81eae-1689-11db-a0ac-0016cbc90838')

@@ -570,7 +570,10 @@ class DBRepositoryView(OnDemandRepositoryView):
                                         timedelta(seconds=duration))
 
             # synchronize new indexes with changes
-            x, x, newIndexes = self.store.getViewData(newVersion)
+            newIndexes = []
+            for version in xrange(oldVersion + 1, newVersion + 1):
+                x, x, _newIndexes = self.store.getViewData(version)
+                newIndexes.extend(_newIndexes)
             if newIndexes:
                 items = set(self._log)
                 for item in self._log:
