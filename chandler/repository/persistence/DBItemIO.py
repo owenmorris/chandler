@@ -1037,7 +1037,7 @@ class DBItemUndo(object):
         self.status = status
         self.uParent = uParent
 
-        if status & CItem.NEW:
+        if status & (CItem.NEW | CItem.MERGED):
             self.hashes = None
         else:
             self.hashes = list(dirties)
