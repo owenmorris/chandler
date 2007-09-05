@@ -1876,8 +1876,12 @@ class TransientWatchCollection(TransientWatch):
         
     def __call__(self, op, change, owner, name, other, dirties):
 
-        getattr(self.view[self.watchingItem],
-                self.methodName)(op, owner, name, other, dirties)
+        try:
+            watchingItem = self.view[self.watchingItem]
+        except KeyError:
+            return
+
+        getattr(watchingItem, self.methodName)(op, owner, name, other, dirties)
 
     def compare(self, methodName):
 
@@ -1893,13 +1897,16 @@ class TransientWatchKind(TransientWatch):
         
     def __call__(self, op, change, owner, name, other, dirties):
 
-        if isuuid(owner):
-            kind = self.view[owner].kind
-        else:
-            kind = owner.kind
+        try:
+            watchingItem = self.view[self.watchingItem]
+            if isuuid(owner):
+                kind = self.view[owner].kind
+            else:
+                kind = owner.kind
+        except KeyError:
+            return
 
-        getattr(self.view[self.watchingItem],
-                self.methodName)(op, kind, other, dirties)
+        getattr(watchingItem, self.methodName)(op, kind, other, dirties)
 
     def compare(self, methodName):
 
@@ -1915,8 +1922,12 @@ class TransientWatchItem(TransientWatch):
         
     def __call__(self, op, uItem, dirties):
 
-        getattr(self.view[self.watchingItem],
-                self.methodName)(op, uItem, dirties)
+        try:
+            watchingItem = self.view[self.watchingItem]
+        except KeyError:
+            return
+
+        getattr(watchingItem, self.methodName)(op, uItem, dirties)
 
     def compare(self, methodName):
 
