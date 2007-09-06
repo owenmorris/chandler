@@ -68,9 +68,18 @@ class MailService(object):
     """
 
     def __init__(self, view):
-        self._view = view.repository.createView("Mail Service Read Only View", notify=False,
-                                                mergeFn=otherViewWins,
-                                                pruneSize=constants.MAILSERVICE_PRUNE_SIZE)
+        # The MailService uses the Main UI Repository View
+        self._view = view
+
+        # Mail Service clients (IMAP, SMTP, POP) use a shared view
+        # that is accessed only on the Twisted thread.
+        #
+        # Since the Twisted thread is async only one client will
+        # will be using the view at any given time.
+        self._clientView = view.repository.createView("Twisted Thread Client View",
+                                                      notify=False,
+                                                      mergeFn=otherViewWins,
+                                                      pruneSize=constants.MAILSERVICE_PRUNE_SIZE)
 
         self._started = False
         self._clientInstances = None
@@ -84,6 +93,7 @@ class MailService(object):
 
         self._clientInstances = {"SMTP": {}, "IMAP": {}, "POP": {}}
 
+        # The MailWorker will create its own view
         self._mailWorker = MailWorker("MailWorker Thread", self._view.repository)
 
         #Start the mail worker thread
@@ -124,8 +134,17 @@ class MailService(object):
         schema.ns("osaf.pim", self._view).MailPrefs.isOnline = False
         self._view.commit()
 
-    def isOnline(self):
-        return schema.ns("osaf.pim", self._view).MailPrefs.isOnline
+    def isOnline(self, view=None):
+        """
+           A view should be passed when
+           the check for isOnline is not
+           performed on the Main UI Thread.
+        """
+
+        if view is None:
+            view = self._view
+
+        return schema.ns("osaf.pim", view).MailPrefs.isOnline
 
     def refreshMailServiceCache(self):
         """Refreshs the MailService Cache checking for
@@ -176,14 +195,14 @@ class MailService(object):
         assert isinstance(account, Mail.SMTPAccount)
 
         if not fromCache:
-            return SMTPClient(self._view, account)
+            return SMTPClient(self._clientView, account)
 
         smtpInstances = self._clientInstances.get("SMTP")
 
         if account.itsUUID in smtpInstances:
             return smtpInstances.get(account.itsUUID)
 
-        s = SMTPClient(self._view, account)
+        s = SMTPClient(self._clientView, account)
         smtpInstances[account.itsUUID] = s
 
         return s
@@ -206,14 +225,15 @@ class MailService(object):
         assert isinstance(account, Mail.IMAPAccount)
 
         if not fromCache:
-            return IMAPClient(self._view, account, self._mailWorker)
+            return IMAPClient(self._clientView, account, self._mailWorker)
 
         imapInstances = self._clientInstances.get("IMAP")
 
         if account.itsUUID in imapInstances:
             return imapInstances.get(account.itsUUID)
 
-        i = IMAPClient(self._view, account, self._mailWorker)
+        i = IMAPClient(self._clientView, account, self._mailWorker)
+
         imapInstances[account.itsUUID] = i
 
         return i
@@ -235,14 +255,15 @@ class MailService(object):
         assert isinstance(account, Mail.POPAccount)
 
         if not fromCache:
-            return POPClient(self._view, account, self._mailWorker)
+            return POPClient(self._clientView, account, self._mailWorker)
 
         popInstances = self._clientInstances.get("POP")
 
         if account.itsUUID in popInstances:
             return popInstances.get(account.itsUUID)
 
-        i = POPClient(self._view, account, self._mailWorker)
+        i = POPClient(self._clientView, account, self._mailWorker)
+
         popInstances[account.itsUUID] = i
 
         return i

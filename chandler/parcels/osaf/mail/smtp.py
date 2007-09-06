@@ -168,6 +168,8 @@ class SMTPClient(object):
         if __debug__:
             trace("testAccountSettings")
 
+        # The isOnline check is performed on the Main Thread
+        # so no need to pass in a view.
         if not Globals.mailService.isOnline():
             return self._resetClient()
 
@@ -193,28 +195,27 @@ class SMTPClient(object):
         if __debug__:
             trace("_commit")
 
-        def _tryCommit():
-            try:
-                self.view.commit()
-            except VersionConflictError, e1:
-                #Place holder for commit rollback
-                trace(e1)
-                raise
-            except RepositoryError, e:
-                #Place holder for commit rollback
-                trace(e)
-                raise
+        try:
+            self.view.commit()
+        except VersionConflictError, e1:
+            #Place holder for commit rollback
+            trace(e1)
+            raise
+        except RepositoryError, e:
+            #Place holder for commit rollback
+            trace(e)
+            raise
 
-        d = threads.deferToThread(_tryCommit)
-        d.addCallbacks(lambda _: self._actionCompleted())
-        return d
+        return self._actionCompleted()
 
     def _actionCompleted(self):
         if __debug__:
             trace("_actionCompleted")
 
+        # The isOnline check is performed in the Twisted thread
+        # so pass in a view.
         if not self.displayed and not self.shuttingDown and \
-           Globals.mailService.isOnline() and not self.cancel:
+           Globals.mailService.isOnline(self.view) and not self.cancel:
             if self.mailMessage.itsItem.error:
                  key = "displaySMTPSendError"
             else:
@@ -260,7 +261,9 @@ class SMTPClient(object):
             msg = self._getMailMessage(mailMessageUUID)
             mailStampOccurrence, masterMailStamp = getRecurrenceMailStamps(msg)
 
-            if self.mailMessage is not None or not Globals.mailService.isOnline():
+            # The isOnline check is performed in the Twisted thread
+            # so pass in a view.
+            if self.mailMessage is not None or not Globals.mailService.isOnline(self.view):
                 newMessage = masterMailStamp
 
                 try:
@@ -294,7 +297,9 @@ class SMTPClient(object):
                     if __debug__:
                         trace("SMTPClient adding to the Queue message: %s" % mailMessageUUID)
 
-                if not Globals.mailService.isOnline():
+                # The isOnline check is performed in the Twisted thread
+                # so pass in a view.
+                if not Globals.mailService.isOnline(self.view):
                     setStatusMessage(constants.UPLOAD_OFFLINE % \
                                     {'accountName': self.account.displayName,
                                      'subject': mailStampOccurrence.subject})
@@ -356,7 +361,9 @@ class SMTPClient(object):
         if __debug__:
             trace("_sendingMail")
 
-        if self.shuttingDown or not Globals.mailService.isOnline() or \
+        # The isOnline check is performed in the Twisted thread
+        # so pass in a view.
+        if self.shuttingDown or not Globals.mailService.isOnline(self.view) or \
            self.cancel:
             return self._resetClient()
 
@@ -413,7 +420,9 @@ class SMTPClient(object):
         if __debug__:
             trace("_testSuccess")
 
-        if self.shuttingDown or not Globals.mailService.isOnline() or \
+        # The isOnline check is performed in the Twisted thread
+        # so pass in a view.
+        if self.shuttingDown or not Globals.mailService.isOnline(self.view) or \
            self.cancel:
             return self._resetClient()
 
@@ -425,7 +434,9 @@ class SMTPClient(object):
         if __debug__:
             trace("_testFailure")
 
-        if self.shuttingDown or not Globals.mailService.isOnline() or \
+        # The isOnline check is performed in the Twisted thread
+        # so pass in a view.
+        if self.shuttingDown or not Globals.mailService.isOnline(self.view) or \
            self.cancel:
             return self._resetClient()
 
@@ -454,7 +465,9 @@ class SMTPClient(object):
         if __debug__:
             trace("_mailSuccessCheck")
 
-        if self.shuttingDown or not Globals.mailService.isOnline() or \
+        # The isOnline check is performed in the Twisted thread
+        # so pass in a view.
+        if self.shuttingDown or not Globals.mailService.isOnline(self.view) or \
            self.cancel:
             return self._resetClient()
 
@@ -491,7 +504,9 @@ class SMTPClient(object):
         if __debug__:
             trace("_mailSomeFailed")
 
-        if self.shuttingDown or not Globals.mailService.isOnline() or \
+        # The isOnline check is performed in the Twisted thread
+        # so pass in a view.
+        if self.shuttingDown or not Globals.mailService.isOnline(self.view) or \
            self.cancel:
             return self._resetClient()
 
@@ -517,7 +532,9 @@ class SMTPClient(object):
         if __debug__:
             trace("_mailFailure")
 
-        if self.shuttingDown or not Globals.mailService.isOnline() or \
+        # The isOnline check is performed in the Twisted thread
+        # so pass in a view.
+        if self.shuttingDown or not Globals.mailService.isOnline(self.view) or \
            self.cancel:
             return self._resetClient()
 
@@ -560,7 +577,9 @@ class SMTPClient(object):
         if __debug__:
             trace("displayedRecoverableSSLErrorDialog")
 
-        if not dryRun and (self.shuttingDown or not Globals.mailService.isOnline() or \
+        # The isOnline check is performed in the Twisted thread
+        # so pass in a view.
+        if not dryRun and (self.shuttingDown or not Globals.mailService.isOnline(self.view) or \
            self.cancel):
             return self._resetClient()
 

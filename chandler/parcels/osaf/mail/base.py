@@ -293,6 +293,8 @@ class AbstractDownloadClient(object):
         if __debug__:
             trace("testAccountSettings")
 
+        # The isOnline check is performed on the Main Thread
+        # so no need to pass in a view.
         if not Globals.mailService.isOnline():
             return
 
@@ -346,7 +348,9 @@ class AbstractDownloadClient(object):
         #Overidden method
         self._getAccount()
 
-        if not Globals.mailService.isOnline():
+        # The isOnline check is performed in the Twisted thread
+        # so pass in a view.
+        if not Globals.mailService.isOnline(self.view):
             if self.statusMessages:
                 msg = constants.MAIL_PROTOCOL_OFFLINE % \
                               {"accountName": self.account.displayName}
@@ -461,7 +465,9 @@ class AbstractDownloadClient(object):
 
         # In this case don't try to clean up the transport connection
         # but do reset the client variables
-        if self.shuttingDown or not Globals.mailService.isOnline() or \
+        # The isOnline check is performed in the Twisted thread so
+        # pass in a view.
+        if self.shuttingDown or not Globals.mailService.isOnline(self.view) or \
            self.factory is None:
             self._resetClient()
             return

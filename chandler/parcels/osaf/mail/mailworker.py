@@ -115,7 +115,7 @@ class MailWorker(RepositoryWorker):
             return None
 
         if view is None:
-            view = self._repository.createView(self.getName(), 
+            view = self._repository.createView(self.getName(),
                                                notify=False,
                                                mergeFn=otherViewWins,
                                                pruneSize=constants.MAILWORKER_PRUNE_SIZE)
