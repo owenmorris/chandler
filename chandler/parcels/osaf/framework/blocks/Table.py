@@ -391,16 +391,18 @@ class wxTable(DragAndDrop.DraggableWidget,
         Handle the variety of raw mouse events cells get, passing them to 
         the rendering delegate if it wants them.
         """
-        # If the handlers we call (if any) want to eat the event, they'll
-        # call event.Skip(False)
-        event.Skip()
-        
         # Bug #7320: Don't process mouse events when the the table isn't visible
         # or when gridWindow's data has changed but hasn't been synchronized to the widget.
         if self.IsShown():
             blockItem = self.blockItem
             blockItem.itsView.dispatchQueuedNotifications()
             if not blockItem.isBlockDirty():
+                # From this point on we should let wxWidgets continue 
+                # processing the event. If the handlers we call (if any) 
+                # want to eat the event, they can still call 
+                # event.Skip(False) to do so.
+                event.Skip()
+        
                 gridWindow = self.GetGridWindow()
     
                 def callHandler(cell, isInCell, oldnew):
