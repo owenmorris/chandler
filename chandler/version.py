@@ -1,4 +1,4 @@
-_version = { 'release':    '0.7',
+_version = { 'release':    '0.7.1',
              'build':      '.dev',
              'checkpoint': None,
              'revision':   None,
