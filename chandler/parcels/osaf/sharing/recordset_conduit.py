@@ -874,13 +874,14 @@ class RecordSetConduit(conduits.BaseConduit):
         statesToRemove = set()
         for state in self.share.states:
 
+            alias = self.share.states.getAlias(state)
+
             # Ignore/remove any empty states
             if not (state.agreed or state.pending or state.pendingRemoval):
                 logger.info("Removing empty state: %s", alias)
                 statesToRemove.add(alias)
                 continue
 
-            alias = self.share.states.getAlias(state)
             uuid = translator.getUUIDForAlias(alias)
             if uuid:
                 item = rv.findUUID(uuid)

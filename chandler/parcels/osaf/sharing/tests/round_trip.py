@@ -1814,6 +1814,19 @@ class RoundTripTestCase(testcase.DualRepositoryTestCase):
             "Sync operation mismatch")
 
 
+        # Regression test for bug 10810
+        item0 = pim.Note(itsView=view0)
+        self.share0.contents.add(item0)
+        view0.commit(); stats = self.share0.sync(); view0.commit()
+        trans = sharing.SharingTranslator(view0)
+        state0 = self.share0.states.getByAlias(trans.getAliasForItem(item0))
+        state0.clear()
+        item0.delete()
+        view0.commit(); stats = self.share0.sync(debug=True); view0.commit()
+        self.assert_(checkStats(stats,
+            ({'added' : 0, 'modified' : 0, 'removed' : 0},
+             {'added' : 0, 'modified' : 0, 'removed' : 0})),
+            "Sync operation mismatch")
 
 
 
