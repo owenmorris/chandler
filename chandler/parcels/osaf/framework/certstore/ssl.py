@@ -56,6 +56,7 @@ from application import schema, Utility
 from osaf.framework.certstore import constants, utils
 from osaf import messages
 from repository.persistence.RepositoryError import MergeError
+from repository.persistence.RepositoryView import otherViewWins
 
 
 __all__ = ['loadCertificatesToContext', 'SSLContextError', 'getContext',
@@ -89,15 +90,8 @@ def _getSSLView(repo):
             if view.name == 'SSL':
                 return view
         
-        return repo.createView('SSL', pruneSize=400)
-
-
-def _mergeCallback(code, item, attribute, value):
-    # 'value' is the one from *this* view
-    # getattr(item, attribute) is the value from a different view
-    if code == MergeError.DELETE:
-        return True
-    return getattr(item, attribute) # Change from *other* view wins
+        return repo.createView('SSL', pruneSize=400, notify=False,
+                               mergeFn=otherViewWins)
 
 
 def loadCertificatesToContext(repView, ctx):
@@ -114,7 +108,7 @@ def loadCertificatesToContext(repView, ctx):
         for x509 in certificateCache:
             store.add_x509(x509)
         else:
-            sslView.refresh(_mergeCallback)
+            sslView.refresh()
             q = schema.ns('osaf.framework.certstore', sslView).sslCertificateQuery
             for cert in q:
                 x509 = cert.asX509()
@@ -281,7 +275,7 @@ class TwistedProtocolWrapper(wrapper.TLSProtocolWrapper):
                         return 1
         
                     # Check permanently trusted certificates
-                    self.repositoryView.refresh(_mergeCallback)
+                    self.repositoryView.refresh()
                     q = schema.ns('osaf.framework.certstore', 
                                   self.repositoryView).sslTrustedServerCertificatesQuery
                     for cert in q:
