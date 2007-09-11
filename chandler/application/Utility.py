@@ -253,7 +253,7 @@ COMMAND_LINE_OPTIONS = {
     'indexer':    ('-i', '--indexer',    's', '90', None, 'Run Lucene indexing in the background every 90s, in the foreground or none'),
     'checkpoints': ('', '--checkpoints', 's', '10', None, 'Checkpoint the repository in the background every 10min, or none'),
     'uuids':      ('-U', '--uuids',      's', None, None, 'use a file containing a bunch of pre-generated UUIDs'),
-    'undo':       ('',   '--undo',       's', None, None, 'undo <n> versions or until <check> or <repair> pass or until <start> succeeds'),
+    'undo':       ('',   '--undo',       's', None, None, 'undo -<n> versions or until version <n> or until <check> or <repair> pass or until <start> succeeds'),
     'backup':     ('',   '--backup',     'b', False, None, 'backup repository before start'),
     'backupDir':  ('',   '--backup-dir', 's', None, None, 'backup repository before start into dir'),
     'repair':     ('',   '--repair',     'b', False, None, 'repair repository before start (currently repairs broken indices)'),
@@ -664,8 +664,10 @@ def initRepository(directory, options, allowSchemaView=False):
             version = repository.store.getVersion()
             if options.undo == 'start':
                 nVersions = 1
+            elif options.undo.startswith('-'):
+                nVersions = -long(options.undo)
             else:
-                nVersions = long(options.undo)
+                nVersions = version - long(options.undo)
             if version > nVersions:
                 version -= nVersions
                 repository.undo(version)
