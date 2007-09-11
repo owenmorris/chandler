@@ -17,7 +17,7 @@ from setuptools import setup
 
 setup(
     name = "Chandler-HelloWorldPlugin",
-    version = "0.7",
+    version = "0.8",
     description = "This is just an example plugin project",
     author = "Phillip J. Eby",
     author_email = "pje@telecommunity.com",

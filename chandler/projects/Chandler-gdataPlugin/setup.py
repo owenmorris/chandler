@@ -17,7 +17,7 @@ from setuptools import setup
 
 setup(
     name = "Chandler-gdataPlugin",
-    version = "0.7",
+    version = "0.8",
     description = "Google Data synchronization support for Chandler",
     author = "Morgen Sagen",
     test_suite = "gdatasync.tests",
