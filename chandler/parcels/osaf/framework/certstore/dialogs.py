@@ -174,8 +174,8 @@ class TrustServerCertificateDialog(wx.Dialog):
         
         first = True
         rbs = []
-        choices=[_(u'Trust the authenticity of this certificate until program exit.'),
-                 _(u'Trust the authenticity of this certificate permanently.')]
+        choices=[_(u'Trust the authenticity of this certificate &until program exit.'),
+                 _(u'Trust the authenticity of this certificate &permanently.')]
         for choice in choices:
             if first:
                 style = wx.ALIGN_LEFT|wx.RB_GROUP
