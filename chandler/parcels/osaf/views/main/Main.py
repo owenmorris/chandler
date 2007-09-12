@@ -1068,13 +1068,12 @@ class MainView(View):
                          parent=wx.GetApp().mainFrame) != wx.YES:
             return
 
-        filename = "%s.chex" % strftime("%Y%m%d%H%M%S")
         wildcard = "%s|*.chex|%s|*.dump|%s (*.*)|*.*" % (_(u"Export files"),
                                                          _(u"Dump files"),
                                                          _(u"All files"))
 
         dlg = wx.FileDialog(wx.GetApp().mainFrame,
-                            _(u"Reload Items"), "", filename, wildcard,
+                            _(u"Reload Items"), "", "", wildcard,
                             wx.OPEN)
 
         path = None
