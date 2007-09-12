@@ -44,6 +44,7 @@ from osaf.pim import ContentItem
 from repository.item.Item import Item
 import wx
 import logging
+import PyICU
 from PyICU import ICUError
 from datetime import datetime, time, timedelta
 from i18n import ChandlerMessageFactory as _
@@ -1456,7 +1457,8 @@ class CalendarDateAttributeEditor(DateAttributeEditor):
                                  self.GetAttributeValue(item, attributeName))
 
 class CalendarTimeAttributeEditor(TimeAttributeEditor):
-    zeroHours = pim.durationFormat.parse(_(u"0:00"))
+    durationFormat = PyICU.SimpleDateFormat(u"H:mm")
+    zeroHours = durationFormat.parse(u"0:00")
 
     def GetAttributeValue(self, item, attributeName):
         event = pim.EventStamp(item)

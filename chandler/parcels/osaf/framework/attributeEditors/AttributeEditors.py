@@ -775,7 +775,8 @@ class TimeDeltaAttributeEditor (StringAttributeEditor):
     Knows that the data Type is timedelta.
     """
 
-    zeroHours = pim.durationFormat.parse("0:00")
+    durationFormat = PyICU.SimpleDateFormat(u"H:mm")
+    zeroHours = durationFormat.parse(u"0:00")
     dummyDate = datetime(2005,1,1)
 
     def GetAttributeValue (self, item, attributeName):
