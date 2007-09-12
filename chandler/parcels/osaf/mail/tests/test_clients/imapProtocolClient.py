@@ -55,8 +55,12 @@ class ImapProtocolClient(LineReceiver):
             reactor.callLater(TIMER, self.sendNoop)
 
     def dataReceived(self, data):
-        print "\n", data
-        self.io.display()
+        try:
+            print "\n", data
+            self.io.display()
+        except:
+            pass
+
 
         if self.first:
             reactor.callLater(TIMER, self.sendNoop)
