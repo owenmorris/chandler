@@ -1648,13 +1648,13 @@ class AccountPreferencesDialog(wx.Dialog):
                 self.data)
 
         if canDelete:
-            self.accountsList.Delete(index)
             self.deletions.append(self.data[index])
             del self.data[index]
             self.innerSizer.Detach(self.currentPanel)
             self.currentPanel.Hide()
             self.currentIndex = None
             self.selectAccount(-1)
+            self.accountsList.Delete(index)
             for messageWidget in self.currentMessages:
                 messageWidget.Hide()
 
