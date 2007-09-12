@@ -1780,7 +1780,7 @@ class RoundTripTestCase(testcase.DualRepositoryTestCase):
         # Assign an alarm (I'm cheating by getting the translator to do the
         # work for me):
         trans = sharing.SharingTranslator(view0)
-        trans.importRecord(sharing.DisplayAlarmRecord(item, u'', u'-PT42M',
+        trans.importRecord(sharing.DisplayAlarmRecord(item, u'Event Reminder', u'-PT42M',
             None, None))
         self.share0.conduit.filters.remove('cid:reminders-filter@osaf.us')
         view0.commit(); stats = self.share0.sync(forceUpdate=True); view0.commit()
@@ -1822,7 +1822,7 @@ class RoundTripTestCase(testcase.DualRepositoryTestCase):
         state0 = self.share0.states.getByAlias(trans.getAliasForItem(item0))
         state0.clear()
         item0.delete()
-        view0.commit(); stats = self.share0.sync(debug=True); view0.commit()
+        view0.commit(); stats = self.share0.sync(); view0.commit()
         self.assert_(checkStats(stats,
             ({'added' : 0, 'modified' : 0, 'removed' : 0},
              {'added' : 0, 'modified' : 0, 'removed' : 0})),

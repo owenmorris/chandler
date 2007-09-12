@@ -323,9 +323,6 @@ eim.add_converter(model.aliasableUUID, pim.Stamp, getAliasForItem)
 # value for event status, so treat None as NoChange
 eim.add_converter(model.EventRecord.status, type(None), lambda x: eim.NoChange)
 
-eim.add_converter(model.DisplayAlarmRecord.description, type(None),
-    lambda x: eim.NoChange)
-
 # Cosmo will generate a value of empty string even if Chandler hasn't provided
 # a value for triage, so treat empty string as NoChange
 def emptyToNoChange(s):
@@ -1594,7 +1591,8 @@ class SharingTranslator(eim.Translator):
             reminder = item.getUserReminder()
             if reminder is not None:
 
-                if record.description not in noChangeOrInherit:
+                if (record.description not in noChangeOrInherit and
+                    record.description is not None):
                     reminder.description = record.description
 
                 if record.duration not in noChangeOrInherit:
