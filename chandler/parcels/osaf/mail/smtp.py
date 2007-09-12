@@ -407,11 +407,16 @@ class SMTPClient(object):
             factory.protocol = _TwistedESMTPSender
             factory.testing  = testing
 
+            # Convert the Unicode hostname to an str
+            # before passing to twisted since twisted uses
+            # a repr of the hostname in error messages.
+            host = self.account.host.encode("utf-8", "ignore")
+
             if self.account.connectionSecurity == 'SSL':
-                ssl.connectSSL(self.account.host, self.account.port, factory,
+                ssl.connectSSL(host, self.account.port, factory,
                                self.view)
             else:
-                ssl.connectTCP(self.account.host, self.account.port, factory,
+                ssl.connectTCP(host, self.account.port, factory,
                                self.view)
 
         deferredPassword.addCallback(callback)

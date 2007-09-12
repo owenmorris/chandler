@@ -99,7 +99,7 @@ class MainView(View):
             # buttons after the i18n freeze is over (0.7.1).
             errorQuestion = _(u"Would you like to")
             result = Util.promptUserAction(
-                _(u''),
+                u'',
                 errorMessage,
                 okayTitle = _(u"Send again"),
                 cancelTitle = _(u"Edit message"))
