@@ -116,6 +116,7 @@ class SharingTestDialog(ProgressDialog):
         ps = self.password
         s  = self.useSSL
         v  = self.view
+        m  = self.morsecode
         parent = self.GetParent()
 
         if self.sharingInstance == None:
@@ -124,7 +125,7 @@ class SharingTestDialog(ProgressDialog):
             else:
                 self.sharingInstance = WebDAVTester(h, p, pa, u, ps, s, v)
 
-        reconnect = lambda: SharingTestDialog(parent, d, h, p, pa, u, ps, s, v)
+        reconnect = lambda: SharingTestDialog(parent, d, h, p, pa, u, ps, s, v, m)
 
         self.sharingInstance.testAccountSettings(self.OnActionComplete,
                                                 reconnect)
