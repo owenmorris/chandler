@@ -1430,7 +1430,8 @@ class SharingTranslator(eim.Translator):
                             
                     setattr(rruleset, datetype + 's', dates)
 
-            if len(rruleset.rrules) == 0 and len(rruleset.rdates) == 0:
+            if (len(getattr(rruleset, 'rrules', ())) == 0 and
+                len(getattr(rruleset, 'rdates', ())) == 0):
                 event.removeRecurrence()
             else:
                 # if the master is in the past but not triaged DONE before

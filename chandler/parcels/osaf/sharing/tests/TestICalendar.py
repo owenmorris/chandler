@@ -110,6 +110,12 @@ class ICalendarTestCase(SingleRepositoryTestCase):
          "allDay not set properly for all day event, allDay is %s"
          % event.allDay)
 
+    def testRDateOnly(self):
+        self.Import(self.view, u'rdates.ics')
+        event = pim.EventStamp(sharing.findUID(self.view, 'rdate_test'))
+        self.failUnless(pim.has_stamp(event, pim.EventStamp))
+        self.assertEqual(len(event.rruleset.rdates), 3)
+
     def testDateValuedExDate(self):
         self.Import(self.view, u'AllDayRecurrence.ics')
         event = pim.EventStamp(sharing.findUID(self.view, 'testAllDay'))
