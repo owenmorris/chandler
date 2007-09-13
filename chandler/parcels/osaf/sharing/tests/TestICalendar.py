@@ -75,6 +75,16 @@ class ICalendarTestCase(SingleRepositoryTestCase):
         self.assert_(event.effectiveEndTime.replace(tzinfo=None) == endTime)
         self.assert_(event.allDay == True)
 
+    def testNoMaster(self):
+        """
+        Treat a modification without a master as a normal event, because Google
+        exports events like this, bug 10821.
+        """        
+        self.Import(self.view, u'NoMaster.ics')
+        event = pim.EventStamp(sharing.findUID(self.view, 'no_master'))
+        rruleset = getattr(event, 'rruleset', None)
+        self.assertEqual(rruleset, None)
+
     def testSummaryAndDateTimeImported(self):
         self.Import(self.view, u'Chandler.ics')
         event = pim.EventStamp(sharing.findUID(

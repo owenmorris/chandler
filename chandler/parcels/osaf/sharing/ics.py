@@ -496,6 +496,11 @@ class ICSSerializer(object):
                 dtstart      = vobj.getChildValue('dtstart')
                 location     = vobj.getChildValue('location', eim.NoChange)
                 
+                # bug 10821, Google serializes modifications with no master;
+                # treat these as normal events, not modifications
+                if not masters.get(uid):
+                    recurrenceID = None
+                
                 # can't just compare recurrenceID and dtstart, timezone could
                 # have changed, and comparing floating to non-floating would
                 # raise an exception
