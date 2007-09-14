@@ -457,10 +457,10 @@ def initI18n(options):
     i18n._I18nManager.initialize(options.locale)
 
 
-class ChandlerTimedRotatingFileHandler(logging.handlers.TimedRotatingFileHandler):
+class ChandlerRotatingFileHandler(logging.handlers.RotatingFileHandler):
     def doRollover(self):
         self.stream.flush()
-        logging.handlers.TimedRotatingFileHandler.doRollover(self)
+        logging.handlers.RotatingFileHandler.doRollover(self)
 
 def initLogging(options):
     global logger
@@ -480,8 +480,8 @@ def initLogging(options):
             #    filemode='a')
 
             logger = logging.getLogger()
-            fileHandler = ChandlerTimedRotatingFileHandler(os.path.join(options.profileDir, 'chandler.log'),
-                                                           when="midnight", backupCount=3)
+            logfile = os.path.join(options.profileDir, 'chandler.log')
+            fileHandler = ChandlerRotatingFileHandler(logfile, 'a', 5000000, 5)
 
             fileFormatter = logging.Formatter(
                 '%(asctime)s %(name)s %(levelname)s: %(message)s'
