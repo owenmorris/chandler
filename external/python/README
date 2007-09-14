@@ -13,14 +13,24 @@ Upgrading python build
 ----------------------
 
  On Windows:
-   - upgrade the vc++ project files to 7.1
-      Note: 2.4.1 may already be 7.1 - open them in 7.1 to verify
+   - locate the PCbuild/ directory and the *.vcproj and pcbuild.sln
    - copy them into win32/$(VERSION)
    - copy the previous version's readline.vcproj file into win32/$(VERSION)
    - edit bz2.vcproj to remove the VCPreLinkEventTool checking for bzip2
       Note: ensure you get both instances (debug and release)
    - disable the _bsddb, _ssl, _testcapi, _tkinter, winsound, win9xpopen,
      _ctypes_test, _sqlite3 projects 
+   - remember that the patches-2.5.1-Cygwin-readline patches pcbuild.sln directly
+      factor that in if you are changing pcbuild.sln to enable/disable a module
+   - To enable/disable a module:
+       - checkout external/python and do a make expand to get the PCbuild/
+          directory populated
+       - open MSVC
+       - open external/python/Python-2.5.1/PCbuild/pcbuild.sln
+       - bring up the build configuration dialog
+       - edit the Debug set and the Release set
+       - save and exit
+       - edit new pcbuild.sln to remove the parts patched by patches-2.5.1-Cygwin-readline
 
  On Mac:
    - to get Chandler.app to display as 'Chandler' and not 'Python' in the 
@@ -33,6 +43,9 @@ Upgrading python build
 
 
 Deprecated Notes:
+  For windows prior to 2.4.1 you needed to do the following:
+   - upgrade the vc++ project files to 7.1
+      Note: 2.4.1 may already be 7.1 - open them in 7.1 to verify
   For windows prior to 2.4.3 you also needed to do the following:
    - edit zlib.vcproj to point at zlib 1.2.1 instead of zlib 1.1.4
       Note: 2.4.1 already has this change
