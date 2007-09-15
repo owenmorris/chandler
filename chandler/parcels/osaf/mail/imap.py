@@ -399,6 +399,12 @@ class IMAPClient(base.AbstractDownloadClient):
             #   2: the folder name
             folderFlags, folderDelim, folderName = result[0]
 
+            # Assign the lowercase flags back to
+            # the folderFlags variable. This
+            # allows a case insensitive compare
+            # of flags such as \\NoInferiors.
+            folderFlags = map(str.lower, folderFlags)
+
         except:
             # This error should never be raised but a
             # safeguard is put in place just in case.
@@ -413,8 +419,8 @@ class IMAPClient(base.AbstractDownloadClient):
         t = constants.CHANDLER_TASKS_FOLDER
         e = constants.CHANDLER_EVENTS_FOLDER
 
-        if not ("\\NoInferiors" in folderFlags or \
-           "\\NoSelect" in folderFlags or \
+        if not ("\\noinferiors" in folderFlags or \
+           "\\noselect" in folderFlags or \
            folderDelim is None or \
            folderDelim.lower() == "nil"):
             # The folder can be created under the INBOX
