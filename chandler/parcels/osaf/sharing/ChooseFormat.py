@@ -82,7 +82,7 @@ def importFileAsFormat(format, filename, view, coll=None,
         return importEmail(text, view, coll, selectedCollection)
 
 def importEmail(text, view, coll=None, selectedCollection=False):
-    msg = osaf.mail.message.messageTextToKind(view, text)
+    status, msg = osaf.mail.message.messageTextToKind(view, text)
     if selectedCollection or coll is None:
         coll = Block.findBlockByName("MainView").getSidebarSelectedCollection()
     if msg is not None:
