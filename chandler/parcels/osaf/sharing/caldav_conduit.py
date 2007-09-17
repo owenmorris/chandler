@@ -19,7 +19,7 @@ __all__ = [
     'FreeBusyAnnotation',
 ]
 
-import datetime, bisect
+import datetime, bisect, PyICU
 from application import schema
 from osaf import pim
 import webdav_conduit
@@ -345,7 +345,7 @@ class CalDAVRecordSetConduit(webdav_conduit.WebDAVRecordSetConduit):
 
     def _createCollectionResource(self, handle, resource, childName):
         displayName = self.share.contents.displayName
-        timezone = serializeTimeZone(ICUtzinfo.default)
+        timezone = serializeTimeZone(PyICU.ICUtzinfo.default)
         return handle.blockUntil(resource.createCalendar, childName,
                                  displayName, timezone)
 
