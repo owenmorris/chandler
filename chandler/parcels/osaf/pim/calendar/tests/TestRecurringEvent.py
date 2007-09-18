@@ -1183,14 +1183,10 @@ class RecurringEventTest(testcase.SingleRepositoryTestCase):
                 reallyEqual(occurrence.recurrenceID.timetz(),
                             time(0, tzinfo=self.view.tzinfo.floating))
             )
-            
-            # We should check:
-            #    reallyEqual(occurrence.startTime.timetz(),
-            #                third.startTime.timetz())
-            # but, this fails because EventStamp._createOccurrence is
-            # creating occurrences incorrectly. So far as I can tell, the
-            # Chandler UI works around this when recurring events lose
-            # allDay/anyTime. [grant 2007/08/28]
+            self.failUnless(
+                reallyEqual(occurrence.startTime.timetz(),
+                            third.startTime.timetz())
+            )
         
 
         # Now, make a THISANDFUTURE on the 2nd new event, resetting

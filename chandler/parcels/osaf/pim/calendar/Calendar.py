@@ -1105,11 +1105,21 @@ class EventStamp(Stamp):
         # item.
         item = first.itsItem.getMembershipItem()
         
+        #
+        # We want the effectiveStartTime of the new event to
+        # match its recurrenceID. For non-allDay/anyTime events,
+        # effectiveStartTime is just startTime, but otherwise we
+        # want the same time-of-day as our own startTime.
+        startTime = recurrenceID
+        
+        if self.anyTime or self.allDay:
+            startTime = datetime.combine(startTime.date(),
+                                         self.startTime.timetz())
         
         values = {
             EventStamp.isGenerated.name: True,
             EventStamp.recurrenceID.name: recurrenceID,
-            EventStamp.startTime.name: recurrenceID,
+            EventStamp.startTime.name: startTime,
             EventStamp.occurrenceFor.name: item,
         }
 
@@ -1654,7 +1664,7 @@ class EventStamp(Stamp):
                                                         occurrence.startTime)
                                 occurrence.recurrenceID = changeRecurrenceID(
                                                                 occurrenceID)
-                
+
             elif attr in (EventStamp.allDay.name, EventStamp.anyTime.name):
                 # if startTime changes (and an allDay/anyTime change changes
                 # effective startTime), all future occurrences's recurrenceIDs
@@ -1749,7 +1759,17 @@ class EventStamp(Stamp):
                     # need to reassign
                     if attr is not None:
                         setattr(newMasterItem, attr, value)
-                    newMaster.startTime = newMaster.recurrenceID = self.recurrenceID
+                    # self is starting out as the first occurrence of newMaster,
+                    # and so its recurrenceID matches its effectiveStartTime
+                    self.recurrenceID = self.effectiveStartTime
+                    
+                    # ... newMaster's recurrenceID matches self's
+                    newMaster.recurrenceID = self.recurrenceID
+                    # ... and so does its startTime. Note that, for allDay
+                    # events, self.startTime may differ from self.recurrenceID.
+                    # We want to preserve time-of-day so that the user can
+                    # uncheck "all-day" and get back the event's old time.
+                    newMaster.startTime = self.startTime
                     if newMaster.occurrenceFor:
                         del newMaster.occurrenceFor #self overrides newMaster
                     newMaster.itsItem.icalUID = str(newMasterItem.itsUUID)
@@ -2074,10 +2094,10 @@ class EventStamp(Stamp):
             item = mod.itsItem
             if ((item._triageStatus == TriageEnum.done and
                  lastPastDone is not None and
-                 mod.startTime < lastPastDone) or
+                 mod.effectiveStartTime < lastPastDone) or
                 (item._triageStatus == TriageEnum.later and
                  firstFutureLater is not None and 
-                 mod.startTime > firstFutureLater)):
+                 mod.effectiveStartTime > firstFutureLater)):
 
                 if mod.isTriageOnlyModification():
                     mod.unmodify()
