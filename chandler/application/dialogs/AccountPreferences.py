@@ -117,7 +117,9 @@ def IncomingSaveHandler(item, fields, values):
             # bug which needs to be fixed.
             raise Exception("Internal Exception")
 
-        item.password = password.Password(itsView=item.itsView, itsParent=item)
+        if not hasattr(item, 'password'):
+            item.password = password.Password(itsView=item.itsView,
+                                              itsParent=item)
 
         if isCurrent:
             ns_pim.currentIncomingAccount.item = item
@@ -161,7 +163,7 @@ def SharingDeleteHandler(item, values, data):
 
 # Generic defaults based on the attr type.  Use "default" on attr for
 # specific defaults.
-DEFAULTS = {'string': '', 'integer': 0, 'boolean': False}
+DEFAULTS = {'string': '', 'password': '', 'integer': 0, 'boolean': False}
 
 class AccountPreferencesDialog(wx.Dialog):
 
@@ -566,7 +568,8 @@ class AccountPreferencesDialog(wx.Dialog):
         # can delete them
         self.creations = set()
 
-        self.__PopulateAccountsList(account)
+        if not self.__PopulateAccountsList(account):
+            wx.CallAfter(self.OnCancel, None)
 
         self.Bind(wx.EVT_CHOICE, self.OnToggleIncomingProtocol,
                   id=wx.xrc.XRCID("INCOMING_PROTOCOL"))
@@ -721,10 +724,15 @@ class AccountPreferencesDialog(wx.Dialog):
                         setting = {}
 
                 elif desc['type'] == 'password':
-                    if not hasattr(item, 'password'):
-                        item.password = password.Password(itsParent=item)
-                    setting = item.password
-
+                    try:
+                        pw = item.password
+                    except AttributeError:
+                        setting = u''
+                    else:
+                        try:
+                            setting = waitForDeferred(pw.decryptPassword(window=self))
+                        except password.NoMasterPassword:
+                            return False
                 else:
                     # Otherwise store a literal
                     try:
@@ -754,6 +762,7 @@ class AccountPreferencesDialog(wx.Dialog):
         else:
             self.selectAccount(-1)
 
+        return True
 
     def __ApplyChanges(self):
         """ Take the data from the list and apply the values to the items. """
@@ -792,9 +801,9 @@ class AccountPreferencesDialog(wx.Dialog):
                 elif account['protocol'] == "Morsecode":
                     item = sharing.CosmoAccount(itsView=self.rv)
 
+            if not hasattr(item, 'password'):
                 item.password = password.Password(itsView=self.rv,
                                                   itsParent=item)
-
 
             values = account['values']
             panel = self.panelsInfo[account['type']]
@@ -833,19 +842,26 @@ class AccountPreferencesDialog(wx.Dialog):
                                     self.rv.findUUID(values[field]))
 
                     elif desc['type'] == 'chandlerFolders':
-                       if values['INCOMING_PROTOCOL'] != "IMAP":
-                           continue
+                        if values['INCOMING_PROTOCOL'] != "IMAP":
+                            continue
 
-                       action = values[field].get("action", None)
+                        action = values[field].get("action", None)
 
-                       if action == "ADD" and not \
-                             self.hasChandlerFolders(item):
-                           folderNames = values[field]["folderNames"]
-                           self.addChandlerFolders(item, folderNames)
+                        if action == "ADD" and not \
+                           self.hasChandlerFolders(item):
+                            folderNames = values[field]["folderNames"]
+                            self.addChandlerFolders(item, folderNames)
 
-                       elif action == "REMOVE" and \
-                              self.hasChandlerFolders(item):
-                           self.removeChandlerFolders(item)
+                        elif action == "REMOVE" and \
+                            self.hasChandlerFolders(item):
+                            self.removeChandlerFolders(item)
+
+                    elif desc['type'] == 'password':
+                        try:
+                            waitForDeferred(item.password.encryptPassword(values[field], window=self))
+                        except password.NoMasterPassword:
+                            pass # XXX Passwords will not be updated unless master password is provided, should we tell the user/ask again?
+                                
                     else:
                         # Otherwise, make the literal assignment:
                         try:
@@ -1142,10 +1158,10 @@ class AccountPreferencesDialog(wx.Dialog):
                     val = control.GetClientData(index)
 
             elif valueType == "chandlerFolders":
-               # The action and folderNames have
-               # already been stored via callbacks
-               # so do not do anything here
-               continue
+                # The action and folderNames have
+                # already been stored via callbacks
+                # so do not do anything here
+                continue
 
             elif valueType == "choice":
                 index = control.GetSelection()
@@ -1163,16 +1179,7 @@ class AccountPreferencesDialog(wx.Dialog):
                     # Skip if not valid
                     continue
 
-            if valueType == 'password':
-                try:
-                    waitForDeferred(data[field].encryptPassword(val,
-                        window=self))
-                except password.NoMasterPassword:
-                    # Don't change it. Means we can end up with uninitialized
-                    # passwords.
-                    pass
-            else:
-                data[field] = val
+            data[field] = val
 
 
     def __FetchFormData(self, panelType, panel, data):
@@ -1196,16 +1203,8 @@ class AccountPreferencesDialog(wx.Dialog):
 
             valueType = self.panelsInfo[panelType]['fields'][field]['type']
 
-            # Handle passwords
-            if valueType == "password":
-                try:
-                    control.SetValue(waitForDeferred(
-                        data[field].decryptPassword(window=self)))
-                except password.NoMasterPassword:
-                    control.SetValue("")
-
             # Handle strings:
-            if valueType == "string":
+            if valueType in ("string", "password"):
                 # The control can not accept a None value
                 val = data[field] and data[field] or u""
 
@@ -1403,6 +1402,8 @@ class AccountPreferencesDialog(wx.Dialog):
 
         create  = data['INCOMING_FOLDERS']['create']
         account = self.getIncomingAccount()
+        if account is None:
+            return
 
         if create:
             config = showConfigureDialog(CREATE_FOLDERS_TITLE,
@@ -1605,8 +1606,6 @@ class AccountPreferencesDialog(wx.Dialog):
                     setting = {"hasFolders": self.hasChandlerFolders(item)}
                 else:
                     setting = {}
-            elif desc['type'] == 'password':
-                setting = password.Password(itsView=self.rv, itsParent=item)
             else:
                 try:
                     setting = desc['default']
@@ -1728,9 +1727,9 @@ class AccountPreferencesDialog(wx.Dialog):
         proto = data["INCOMING_PROTOCOL"]
 
         if proto == "IMAP":
-             account = schema.ns('osaf.app', self.rv).TestIMAPAccount
+            account = schema.ns('osaf.app', self.rv).TestIMAPAccount
         elif proto == "POP":
-             account = schema.ns('osaf.app', self.rv).TestPOPAccount
+            account = schema.ns('osaf.app', self.rv).TestPOPAccount
         else:
             # If this code is reached then there is a
             # bug which needs to be fixed.
@@ -1741,7 +1740,10 @@ class AccountPreferencesDialog(wx.Dialog):
         account.port = data['INCOMING_PORT']
         account.connectionSecurity = data['INCOMING_SECURE']
         account.username = data['INCOMING_USERNAME']
-        account.password = data['INCOMING_PASSWORD']
+        try:
+            waitForDeferred(account.password.encryptPassword(data['INCOMING_PASSWORD'], window=self))
+        except password.NoMasterPassword:
+            return None
 
         self.rv.commit()
 
@@ -1756,10 +1758,7 @@ class AccountPreferencesDialog(wx.Dialog):
         host = data['INCOMING_SERVER']
         port = data['INCOMING_PORT']
         username = data['INCOMING_USERNAME']
-        try:
-            pw = waitForDeferred(data['INCOMING_PASSWORD'].decryptPassword(window=self))
-        except password.NoMasterPassword:
-            pw = u''
+        pw = data['INCOMING_PASSWORD']
 
         error = False
 
@@ -1767,7 +1766,7 @@ class AccountPreferencesDialog(wx.Dialog):
            len(username.strip()) == 0 or \
            len(pw.strip()) == 0:
 
-           error = True
+            error = True
 
         try:
             # Test that the port value is an integer
@@ -1786,7 +1785,8 @@ class AccountPreferencesDialog(wx.Dialog):
 
         if self.incomingAccountValid():
             account = self.getIncomingAccount()
-            MailTestDialog(self, account)
+            if account is not None:
+                MailTestDialog(self, account)
 
     def outgoingAccountValid(self):
         self.__StoreFormData(self.currentPanelType, self.currentPanel,
@@ -1797,17 +1797,12 @@ class AccountPreferencesDialog(wx.Dialog):
         host = data['OUTGOING_SERVER']
         port = data['OUTGOING_PORT']
         useAuth = data['OUTGOING_USE_AUTH']
-        username = data['OUTGOING_USERNAME']
-        try:
-            pw = waitForDeferred(data['OUTGOING_PASSWORD'].decryptPassword(window=self))
-        except password.NoMasterPassword:
-            pw = u''
 
         error = False
         errorType = 0
 
         if len(host.strip()) == 0:
-           error = True
+            error = True
 
         try:
             # Test that the port value is an integer
@@ -1816,6 +1811,9 @@ class AccountPreferencesDialog(wx.Dialog):
             error = True
 
         if useAuth:
+            username = data['OUTGOING_USERNAME']
+            pw = data['OUTGOING_PASSWORD']
+
             if len(username.strip()) == 0 or \
                len(pw.strip()) == 0:
                 error = True
@@ -1849,7 +1847,10 @@ class AccountPreferencesDialog(wx.Dialog):
         account.connectionSecurity = data['OUTGOING_SECURE']
         account.useAuth = data['OUTGOING_USE_AUTH']
         account.username = data['OUTGOING_USERNAME']
-        account.password = data['OUTGOING_PASSWORD']
+        try:
+            waitForDeferred(account.password.encryptPassword(data['OUTGOING_PASSWORD'], window=self))
+        except password.NoMasterPassword:
+            return
 
         self.rv.commit()
 
@@ -1866,10 +1867,7 @@ class AccountPreferencesDialog(wx.Dialog):
         port = data['DAV_PORT']
         path = data['DAV_PATH']
         username = data['DAV_USERNAME']
-        try:
-            pw = waitForDeferred(data['DAV_PASSWORD'].decryptPassword(window=self))
-        except password.NoMasterPassword:
-            pw = u''
+        pw = data['DAV_PASSWORD']
         useSSL = data['DAV_USE_SSL']
 
         error = False
@@ -1904,10 +1902,7 @@ class AccountPreferencesDialog(wx.Dialog):
         port = data['MORSECODE_PORT']
         path = data['MORSECODE_PATH']
         username = data['MORSECODE_USERNAME']
-        try:
-            pw = waitForDeferred(data['MORSECODE_PASSWORD'].decryptPassword(window=self))
-        except password.NoMasterPassword:
-            pw = u''
+        pw = data['MORSECODE_PASSWORD']
         useSSL = data['MORSECODE_USE_SSL']
 
         error = False
@@ -1917,7 +1912,7 @@ class AccountPreferencesDialog(wx.Dialog):
            len(pw.strip()) == 0 or \
            len(path.strip()) == 0:
 
-           error = True
+            error = True
 
         try:
             # Test that the port value is an integer
@@ -1943,10 +1938,7 @@ class AccountPreferencesDialog(wx.Dialog):
         useSSL = account.useSSL
         path = account.path
         username = data['HUBSHARING_USERNAME']
-        try:
-            pw = waitForDeferred(data['HUBSHARING_PASSWORD'].decryptPassword(window=self))
-        except password.NoMasterPassword:
-            pw = u''
+        pw = data['HUBSHARING_PASSWORD']
 
         if len(username.strip()) == 0 or len(pw.strip()) == 0:
             return alertError(FIELDS_REQUIRED_THREE, self)
@@ -2107,8 +2099,8 @@ class AccountPreferencesDialog(wx.Dialog):
             if name == constants.CHANDLER_MAIL_FOLDER or \
                name == constants.CHANDLER_TASKS_FOLDER or \
                name == constants.CHANDLER_EVENTS_FOLDER:
-               account.folders.remove(folder)
-               folder.delete()
+                account.folders.remove(folder)
+                folder.delete()
 
 def ShowAccountPreferencesDialog(account=None, rv=None, modal=True,
     create=None):
