@@ -51,7 +51,6 @@ from osaf.framework.twisted import waitForDeferred
 
 log = logging.getLogger(__name__)
 
-
 # Kind Combinations
 MESSAGE = _(u"Message")
 TASK = _(u"Task")
@@ -87,10 +86,12 @@ P_AT_SCHEDULED_TASK = _(u"an Any-time Scheduled Task")
 C_TITLE = _(u"Custom recurrence rule: No description\n\n%(title)s on %(startDate)s")
 CD_TITLE = _(u"Custom recurrence rule: No description\n\n%(title)s from %(startDate)s - %(endDate)s")
 CS_TITLE = _(u"Custom recurrence rule: No description\n\n%(title)s on %(startDate)s %(startTime)s - %(endTime)s %(timezone)s")
+CSX_TITLE = _(u"Custom recurrence rule: No description\n\n%(title)s on %(startDate)s at %(startTime)s %(timezone)s")
 CSD_TITLE = _(u"Custom recurrence rule: No description\n\n%(title)s on %(startDate)s %(startTime)s - %(endDate)s %(endTime)s %(timezone)s")
 CL_TITLE = _(u"Custom recurrence rule: No description\n\n%(title)s at %(location)s on %(startDate)s")
 CLD_TITLE = _(u"Custom recurrence rule: No description\n\n%(title)s at %(location)s from %(startDate)s - %(endDate)s")
 CLS_TITLE = _(u"Custom recurrence rule: No description\n\n%(title)s at %(location)s on %(startDate)s %(startTime)s - %(endTime)s %(timezone)s")
+CLSX_TITLE = _(u"Custom recurrence rule: No description\n\n%(title)s at %(location)s on %(startDate)s at %(startTime)s %(timezone)s")
 CLSD_TITLE = _(u"Custom recurrence rule: No description\n\n%(title)s at %(location)s on %(startDate)s %(startTime)s - %(endDate)s %(endTime)s %(timezone)s")
 
 #Anytime or All Day Event
@@ -101,8 +102,10 @@ ALD_TITLE = _(u"%(title)s at %(location)s from %(startDate)s - %(endDate)s")
 
 #Event
 E_TITLE = _(u"%(title)s on %(startDate)s %(startTime)s - %(endTime)s %(timezone)s")
+EX_TITLE = _(u"%(title)s on %(startDate)s at %(startTime)s %(timezone)s")
 ED_TITLE = _(u"%(title)s from %(startDate)s %(startTime)s - %(endDate)s %(endTime)s %(timezone)s")
 EL_TITLE = _(u"%(title)s at %(location)s on %(startDate)s %(startTime)s - %(endTime)s %(timezone)s")
+ELX_TITLE = _(u"%(title)s at %(location)s on %(startDate)s at %(startTime)s %(timezone)s")
 ELD_TITLE = _(u"%(title)s at %(location)s from %(startDate)s %(startTime)s - %(endDate)s %(endTime)s %(timezone)s")
 
 #All Day / Any Time Every Day
@@ -113,9 +116,13 @@ DUL_TITLE = _(u"%(title)s at %(location)s every day until %(recurrenceEndDate)s"
 
 #Every day at specific times
 DT_TITLE = _(u"%(title)s every day from %(startTime)s - %(endTime)s %(timezone)s")
+DTX_TITLE = _(u"%(title)s every day at %(startTime)s %(timezone)s")
 DTU_TITLE = _(u"%(title)s every day from %(startTime)s - %(endTime)s %(timezone)s until %(recurrenceEndDate)s")
+DTUX_TITLE = _(u"%(title)s every day at %(startTime)s %(timezone)s until %(recurrenceEndDate)s")
 DTL_TITLE = _(u"%(title)s at %(location)s every day from %(startTime)s - %(endTime)s %(timezone)s")
+DTLX_TITLE = _(u"%(title)s at %(location)s every day at %(startTime)s %(timezone)s")
 DTUL_TITLE = _(u"%(title)s at %(location)s every day from %(startTime)s - %(endTime)s %(timezone)s until %(recurrenceEndDate)s")
+DTULX_TITLE = _(u"%(title)s at %(location)s every day at %(startTime)s %(timezone)s until %(recurrenceEndDate)s")
 
 #All Day / Any Time Weekly Event
 W_TITLE = _(u"%(title)s every %(dayName)s")
@@ -125,9 +132,14 @@ WUL_TITLE = _(u"%(title)s at %(location)s every %(dayName)s until %(recurrenceEn
 
 #Weekly Event at specific times
 WT_TITLE = _(u"%(title)s every %(dayName)s from %(startTime)s - %(endTime)s %(timezone)s")
+WTX_TITLE = _(u"%(title)s every %(dayName)s at %(startTime)s %(timezone)s")
 WTU_TITLE = _(u"%(title)s every %(dayName)s from %(startTime)s - %(endTime)s %(timezone)s until %(recurrenceEndDate)s")
+WTUX_TITLE = _(u"%(title)s every %(dayName)s at %(startTime)s %(timezone)s until %(recurrenceEndDate)s")
+
 WTL_TITLE = _(u"%(title)s at %(location)s every %(dayName)s from %(startTime)s - %(endTime)s %(timezone)s")
+WTLX_TITLE = _(u"%(title)s at %(location)s every %(dayName)s at %(startTime)s %(timezone)s")
 WTUL_TITLE = _(u"%(title)s at %(location)s every %(dayName)s from %(startTime)s - %(endTime)s %(timezone)s until %(recurrenceEndDate)s")
+WTULX_TITLE = _(u"%(title)s at %(location)s every %(dayName)s at %(startTime)s %(timezone)s until %(recurrenceEndDate)s")
 
 #All Day / Any Time Bi-Weekly Event
 B_TITLE = _(u"%(title)s every other %(dayName)s")
@@ -137,9 +149,13 @@ BUL_TITLE = _(u"%(title)s at %(location)s every other %(dayName)s until %(recurr
 
 #Bi-Weekly Event at specific times
 BT_TITLE = _(u"%(title)s every other %(dayName)s from %(startTime)s - %(endTime)s %(timezone)s")
+BTX_TITLE = _(u"%(title)s every other %(dayName)s at %(startTime)s %(timezone)s")
 BTU_TITLE = _(u"%(title)s every other %(dayName)s from %(startTime)s - %(endTime)s %(timezone)s until %(recurrenceEndDate)s")
+BTUX_TITLE = _(u"%(title)s every other %(dayName)s at %(startTime)s %(timezone)s until %(recurrenceEndDate)s")
 BTL_TITLE = _(u"%(title)s at %(location)s every other %(dayName)s from %(startTime)s - %(endTime)s %(timezone)s")
+BTLX_TITLE = _(u"%(title)s at %(location)s every other %(dayName)s at %(startTime)s %(timezone)s")
 BTUL_TITLE = _(u"%(title)s at %(location)s every other %(dayName)s from %(startTime)s - %(endTime)s %(timezone)s until %(recurrenceEndDate)s")
+BTULX_TITLE = _(u"%(title)s at %(location)s every other %(dayName)s at %(startTime)s %(timezone)s until %(recurrenceEndDate)s")
 
 #All Day / Any Time Monthly Event
 M_TITLE = _(u"%(title)s every month on the %(dayOfMonth)s%(abbreviation)s")
@@ -149,9 +165,13 @@ MUL_TITLE = _(u"%(title)s at %(location)s every month on the %(dayOfMonth)s%(abb
 
 #Monthly Event at specific times
 MT_TITLE = _(u"%(title)s every month on the %(dayOfMonth)s%(abbreviation)s from %(startTime)s - %(endTime)s %(timezone)s")
+MTX_TITLE = _(u"%(title)s every month on the %(dayOfMonth)s%(abbreviation)s at %(startTime)s %(timezone)s")
 MTU_TITLE = _(u"%(title)s every month on the %(dayOfMonth)s%(abbreviation)s from %(startTime)s - %(endTime)s %(timezone)s until %(recurrenceEndDate)s")
+MTUX_TITLE = _(u"%(title)s every month on the %(dayOfMonth)s%(abbreviation)s at %(startTime)s %(timezone)s until %(recurrenceEndDate)s")
 MTL_TITLE = _(u"%(title)s at %(location)s every month on the %(dayOfMonth)s%(abbreviation)s from %(startTime)s - %(endTime)s %(timezone)s")
+MTLX_TITLE = _(u"%(title)s at %(location)s every month on the %(dayOfMonth)s%(abbreviation)s at %(startTime)s %(timezone)s")
 MTUL_TITLE = _(u"%(title)s at %(location)s every month on the %(dayOfMonth)s%(abbreviation)s from %(startTime)s - %(endTime)s %(timezone)s until %(recurrenceEndDate)s")
+MTULX_TITLE = _(u"%(title)s at %(location)s every month on the %(dayOfMonth)s%(abbreviation)s at %(startTime)s %(timezone)s until %(recurrenceEndDate)s")
 
 #All Day / Any Time Yearly Event
 Y_TITLE = _(u"%(title)s every year on %(startDate)s")
@@ -161,12 +181,16 @@ YUL_TITLE = _(u"%(title)s at %(location)s every year on %(startDate)s until %(re
 
 #Yearly Event at specific times
 YT_TITLE = _(u"%(title)s every year on %(startDate)s %(startTime)s - %(endTime)s %(timezone)s")
+YTX_TITLE = _(u"%(title)s every year on %(startDate)s at %(startTime)s %(timezone)s")
 YTD_TITLE = _(u"%(title)s every year from %(startDate)s %(startTime)s -  %(endDate)s %(endTime)s %(timezone)s")
 YTU_TITLE = _(u"%(title)s every year on %(startDate)s %(startTime)s - %(endTime)s %(timezone)s until %(recurrenceEndDate)s")
+YTUX_TITLE = _(u"%(title)s every year on %(startDate)s at %(startTime)s %(timezone)s until %(recurrenceEndDate)s")
 YTUD_TITLE = _(u"%(title)s every year from %(startDate)s %(startTime)s - %(endDate)s %(endTime)s %(timezone)s until %(recurrenceEndDate)s")
 YTL_TITLE = _(u"%(title)s at %(location)s every year on %(startDate)s %(startTime)s - %(endTime)s %(timezone)s")
+YTLX_TITLE = _(u"%(title)s at %(location)s every year on %(startDate)s at %(startTime)s %(timezone)s")
 YTLD_TITLE = _(u"%(title)s at %(location)s every year from %(startDate)s %(startTime)s - %(endDate)s %(endTime)s %(timezone)s")
 YTUL_TITLE = _(u"%(title)s at %(location)s every year on %(startDate)s %(startTime)s - %(endTime)s %(timezone)s until %(recurrenceEndDate)s")
+YTULX_TITLE = _(u"%(title)s at %(location)s every year on %(startDate)s at %(startTime)s %(timezone)s until %(recurrenceEndDate)s")
 YTULD_TITLE = _(u"%(title)s at %(location)s every year from %(startDate)s %(startTime)s - %(endDate)s %(endTime)s %(timezone)s until %(recurrenceEndDate)s")
 
 # Used by PyICU.ChoiceFormat to determine the abbreviation for the day of month ie. 1st or 10th
@@ -331,7 +355,7 @@ def getRecurrenceMailStamps(mailStamp):
     master, but a few details (subject, body, description) are based on which
     occurrence was sent.  Return (mailStampOccurrence, mailStampMaster), which
     will be equal for non-recurring events.
-    
+
     """
     mailStampMaster = mailStampOccurrence = mailStamp
     if has_stamp(mailStampOccurrence, EventStamp):
@@ -340,9 +364,9 @@ def getRecurrenceMailStamps(mailStamp):
 
 def getBodyValues(mailStamp, addGT=False, usePrefix=False):
     view = mailStamp.itsItem.itsView
-    
+
     mailStampOccurrence, mailStamp = getRecurrenceMailStamps(mailStamp)
-    
+
     if not hasattr(mailStamp, 'dateSent'):
         from osaf.mail.utils import dateTimeToRFC2822Date
         mailStamp.dateSent = datetime.now(view.tzinfo.default)
@@ -408,7 +432,7 @@ def getBodyValues(mailStamp, addGT=False, usePrefix=False):
 
 
 def buildItemDescription(mailStamp):
-    #XXX Post Preview I will clean up
+    #XXX I would like to clean up
     # this logic since there are more
     # efficient ways to get the
     # item description strings.
@@ -417,7 +441,11 @@ def buildItemDescription(mailStamp):
     # then build the key dynamically based on
     # recurrence frequency / interval and whether
     # the Event has a location and a recurrence
-    # end date
+    # end date. I would also like to find a
+    # means to condense the number of localizable
+    # strings translation keys required while
+    # preserving the item descriptions ability
+    # to localize.
 
     item = mailStamp.itsItem
     view = item.itsView
@@ -448,6 +476,16 @@ def buildItemDescription(mailStamp):
             # The Event starts and ends on the same day
             endDate = None
 
+            if startTime == endTime:
+                # The Event has no duration
+                endTime = None
+
+        # If the event endDate and endTime
+        # match the event startDate and startTime
+        # then the event is singular in nature
+        # ie. Event on 12/31/207 at 12pm
+        single = endDate == endTime == None
+
         args = {'title': item.displayName,
                 'startTime': startTime,
                 'startDate': startDate,
@@ -458,12 +496,6 @@ def buildItemDescription(mailStamp):
                }
 
         if recur:
-            args['masterStartDate'], args['masterStartTime'] = \
-                formatDateAndTime(view, master.startTime)
-            args['masterEndDate'], args['masterEndTime'] = \
-                formatDateAndTime(view, master.endTime)
-            args['masterTimeZone'] = getTimeZoneCode(view, master.startTime)
-            
             if recur.isComplex():
                 if noTime:
                     if endDate:
@@ -471,9 +503,13 @@ def buildItemDescription(mailStamp):
                     else:
                         return (location and CL_TITLE or C_TITLE) % args
                 if endDate:
-                    return (location and CLSD_TITLE or CLD_TITLE) % args
+                    return (location and CLSD_TITLE or CSD_TITLE) % args
                 else:
-                    return (location and CLS_TITLE or CL_TITLE) % args
+                   if single:
+                       #The startTime and endTime are the same
+                       return (location and CLSX_TITLE or CSX_TITLE) % args
+                   else:
+                       return (location and CLS_TITLE or CS_TITLE) % args
 
             rule = recur.rrules.first()
             freq = rule.freq
@@ -492,9 +528,17 @@ def buildItemDescription(mailStamp):
                         ret = location and DL_TITLE or D_TITLE
                 else:
                     if until:
-                        ret = location and DTUL_TITLE or DTU_TITLE
+                        if single:
+                            #The startTime and endTime are the same
+                            ret = location and DTULX_TITLE or DTUX_TITLE
+                        else:
+                            ret = location and DTUL_TITLE or DTU_TITLE
                     else:
-                        ret = location and DTL_TITLE or DT_TITLE
+                        if single:
+                            #The startTime and endTime are the same
+                            ret = location and DTLX_TITLE or DTX_TITLE
+                        else:
+                            ret = location and DTL_TITLE or DT_TITLE
 
             elif freq == "weekly":
                 args['dayName'] = weekdayName(event.startTime)
@@ -512,15 +556,31 @@ def buildItemDescription(mailStamp):
                             ret = location and WL_TITLE or W_TITLE
                 else:
                     if until:
-                        if interval == 2:
-                            ret = location and BTUL_TITLE or BTU_TITLE
+                        if single:
+                            #The startTime and endTime are the same
+                            if interval == 2:
+                                ret = location and BTULX_TITLE or BTUX_TITLE
+                            else:
+                                ret = location and WTULX_TITLE or WTUX_TITLE
+
                         else:
-                            ret = location and WTUL_TITLE or WTU_TITLE
+                            if interval == 2:
+                                ret = location and BTUL_TITLE or BTU_TITLE
+                            else:
+                                ret = location and WTUL_TITLE or WTU_TITLE
                     else:
-                        if interval == 2:
-                            ret = location and BTL_TITLE or BT_TITLE
+                        if single:
+                            #The startTime and endTime are the same
+                            if interval == 2:
+                                ret = location and BTLX_TITLE or BTX_TITLE
+                            else:
+                                ret = location and WTLX_TITLE or WTX_TITLE
+
                         else:
-                            ret = location and WTL_TITLE or WT_TITLE
+                            if interval == 2:
+                                ret = location and BTL_TITLE or BT_TITLE
+                            else:
+                                ret = location and WTL_TITLE or WT_TITLE
 
             elif freq == "monthly":
                 num = int(PyICU.SimpleDateFormat(_(u"dd")).format(event.startTime))
@@ -534,9 +594,17 @@ def buildItemDescription(mailStamp):
                         ret = location and ML_TITLE or M_TITLE
                 else:
                     if until:
-                        ret = location and MTUL_TITLE or MTU_TITLE
+                        if single:
+                            #The startTime and endTime are the same
+                            ret = location and MTULX_TITLE or MTUX_TITLE
+                        else:
+                            ret = location and MTUL_TITLE or MTU_TITLE
                     else:
-                        ret = location and MTL_TITLE or MT_TITLE
+                        if single:
+                            #The startTime and endTime are the same
+                            ret = location and MTLX_TITLE or MTX_TITLE
+                        else:
+                            ret = location and MTL_TITLE or MT_TITLE
 
             elif freq == "yearly":
                 if noTime:
@@ -549,12 +617,20 @@ def buildItemDescription(mailStamp):
                         if endDate:
                             ret = location and YTULD_TITLE or YTUD_TITLE
                         else:
-                            ret = location and YTUL_TITLE or YTU_TITLE
+                            if single:
+                                #The startTime and endTime are the same
+                                ret = location and YTULX_TITLE or YTUX_TITLE
+                            else:
+                                ret = location and YTUL_TITLE or YTU_TITLE
                     else:
                         if endDate:
                             ret = location and YTLD_TITLE or YTD_TITLE
                         else:
-                            ret = location and YTL_TITLE or YT_TITLE
+                            if single:
+                                #The startTime and endTime are the same
+                                ret = location and YTLX_TITLE or YTX_TITLE
+                            else:
+                                ret = location and YTL_TITLE or YT_TITLE
 
             return ret % args
 
@@ -568,10 +644,15 @@ def buildItemDescription(mailStamp):
             if endDate:
                 return (location and ELD_TITLE or ED_TITLE) % args
             else:
-                return (location and EL_TITLE or E_TITLE) % args
+                if single:
+                    #The startTime and endTime are the same
+                    return (location and ELX_TITLE or EX_TITLE) % args
+                else:
+                    return (location and EL_TITLE or E_TITLE) % args
 
 
     return item.displayName
+
 
 def buildKindCombination(mailStamp, usePrefix=False):
     item = mailStamp.itsItem
@@ -2318,11 +2399,11 @@ Issues:
         if create:
             if __debug__:
                log.debug("Making new email address for '%s'/'%s'", name, address)
-    
+
             newAddress = EmailAddress(itsView=view, emailAddress=address,
                                       fullName=name)
             return newAddress
-        
+
         # no match, but not create
         return None        
 
@@ -2434,7 +2515,7 @@ class EmailComparator(schema.Item):
     # For separately indexing emailAddress and fullName, case-insensitively
     cmpAddress, cmpAddress_init = makeCompareMethod('emailAddress')
     cmpFullName, cmpFullName_init = makeCompareMethod('fullName')
-    
+
     # For indexing both attributes, case-sensitively
     bothValues = (('emailAddress', u''),
                   ('fullName', u''))
