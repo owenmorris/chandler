@@ -197,6 +197,7 @@ _pending_trust_requests = []
 # the certificate can't be verified because we don't have
 # the issuing certificate.
 unknown_issuer = [m2.X509_V_ERR_DEPTH_ZERO_SELF_SIGNED_CERT,
+                  m2.X509_V_ERR_SELF_SIGNED_CERT_IN_CHAIN,
                   m2.X509_V_ERR_UNABLE_TO_GET_ISSUER_CERT_LOCALLY,
                   m2.X509_V_ERR_CERT_UNTRUSTED,
                   m2.X509_V_ERR_UNABLE_TO_VERIFY_LEAF_SIGNATURE]
