@@ -190,9 +190,9 @@ class PublishCollectionDialog(wx.Dialog):
 
         share = sharing.getShare(self.collection)
         if sharing.isSharedByMe(share):
-            self.UnPubSub.SetLabel("Unpublish")
+            self.UnPubSub.SetLabel(_(u"Unpublish"))
         else:
-            self.UnPubSub.SetLabel("Unsubscribe")
+            self.UnPubSub.SetLabel(_(u"Unsubscribe"))
 
 
         self.CheckboxShareAlarms = wx.xrc.XRCCTRL(self, "CHECKBOX_ALARMS")
@@ -639,7 +639,7 @@ class PublishCollectionDialog(wx.Dialog):
         if not self.statusPanel.IsShown():
             self.mySizer.Insert(1, self.statusPanel, 0, wx.GROW, 5)
             self.statusPanel.Show()
-        self.textStatus.SetLabel("%s%s" % (self.textStatus.GetLabel(), msg))
+        self.textStatus.SetLabel(u"%s%s" % (self.textStatus.GetLabel(), msg))
         # self.textStatus.ShowPosition(self.textStatus.GetLastPosition())
         self._resize()
 

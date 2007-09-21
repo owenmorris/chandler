@@ -78,7 +78,7 @@ def wxIsAvailable():
 class I18nManager(EggTranslations):
     _NAME = "I18nManager"
 
-    __slots__ = ["_testing", "_lookupCache", "_wx_filehandler",
+    __slots__ = ["_testing", "_expand", "_lookupCache", "_wx_filehandler",
                  "_DEFAULT_PROJECT", "_DEFAULT_CATALOG", "_DEFAULT_IMAGE",
                  "_DEFAULT_HTML"]
 
@@ -107,6 +107,7 @@ class I18nManager(EggTranslations):
         self._lookupCache = None
         self._wx_filehandler = None
         self._testing = False
+        self._expand = 0
 
     def __repr__(self):
         return "I18nManager(%s, %s, %s, %s)" % (
@@ -117,7 +118,7 @@ class I18nManager(EggTranslations):
 
 
     def initialize(self, localeSet=None, iniFileName="resources.ini",
-                   encoding="UTF-8", fallback=True):
+                   encoding="UTF-8", fallback=True, expand=0):
         """
         The initialize method performs the following operations:
 
@@ -196,10 +197,33 @@ class I18nManager(EggTranslations):
 
 
           @type fallback: c{boolean}
+
+          @param expand: This feature is used for UI layout testing.
+                         The value represents the percentage to
+                         increase localized string sizes by.
+                         The value must be between 0 and 100
+                         where 100 represents a 100% increase
+                         in the string expansion size. Any value
+                         less than 0 or greater than 100 is ignored.
+                         If the expand value is 100 (100%) and
+                         the localized string is u"test" the
+                         c{I18nManager.getText) method will return
+                         u"test---->" which represents a 100%
+                         doubling of the string length (4) with
+                         u"-" characters plus a terminating u">".
+
+            @type expand: c{int}
         """
 
         super(I18nManager, self).initialize(localeSet, iniFileName,
                                             encoding, fallback)
+
+        try:
+            ex = int(expand)
+
+            self._expand = (ex > 0 and ex <= 100) and (ex / 100.0) or 0
+        except:
+            self._expand = 0
 
         if wxIsAvailable():
             self._wx_filehandler = I18nFileSystemHandler(self)
@@ -261,16 +285,9 @@ class I18nManager(EggTranslations):
 
         A locale of 'test' can be passed to this method.
 
-        The 'test' locale is a debug keyword
-        which sets the locale set to ['fr_CA', 'fr']
-        and enables the testing mode flag.
-
         In testing mode all values returned by
-        the c{I18nManager.getText} method insert
-        a (\u00FC): at the start of the string.
-        All values returned by the c{I18nManager.wxTranslate}
-        method return (WX): at the start of the
-        string.
+        the c{I18nManager.getText} and c{i18nManager.wxTranslate}
+        methods insert a (\u00FC): at the start of the string.
 
         This method sets the following:
            1. The PyICU Locale
@@ -323,7 +340,7 @@ class I18nManager(EggTranslations):
                    type(localeSet) == StringType)
 
             if 'test' in localeSet:
-                localeSet = ['fr_CA', 'fr']
+                localeSet = ['en_US']
                 self._testing = True
 
         if type(localeSet) != ListType:
@@ -564,21 +581,38 @@ class I18nManager(EggTranslations):
 
         res = super(I18nManager, self).getText(project, name, txt, *args)
 
-        #If the additional argument passed to getText is
-        #the same as res meaning no translation was found
-        #then do not add u"(\u00FC):" to it.
+        # If the additional argument passed to getText is
+        # the same as res meaning no translation was found
+        # then do not call the expandText or wrapText
+        # methods.
         ignore = args and args[0] == res
 
-        if self._testing \
-           and not ignore \
-           and not "Ctrl+" in res \
-           and not "DELETE" == res \
-           and not "Del" == res \
-           and not ":mm" in res \
-           and not "yy" in res \
-           and not "hh" in res \
-           and not "0:00" in res:
-             return u"(\u00FC): %s" % res
+        if self._testing and not ignore:
+            return self._wrapText(res)
+
+        if self._expand and not ignore:
+            return self._expandText(res)
+
+        return res
+
+    def _wrapText(self, msg):
+        if not "Ctrl+" in msg \
+           and not "DELETE" == msg \
+           and not "Del" == msg \
+           and not ":mm" in msg \
+           and not "yy" in msg \
+           and not "hh" in msg \
+           and not "0:00" in msg:
+            return u"(\u00FC): %s" % msg
+
+        return msg
+
+
+    def _expandText(self, msg):
+        res = u"%s%s" % (msg, "-" * (int(len(msg) * self._expand)))
+
+        if res != msg:
+            res += u">"
 
         return res
 
@@ -604,7 +638,7 @@ class I18nManager(EggTranslations):
             res = txt
 
         if self._testing:
-            return u"(WX): %s" % res
+            return self._wrapText(res)
 
         return res
 
@@ -1255,6 +1289,12 @@ if _WX_AVAILABLE:
 
             if msg is missing:
                 msg = wx.GetTranslation(txt)
+
+                if self.i18nMan._testing:
+                    return self.i18nMan._wrapText(msg)
+
+                if self.i18nMan._expand:
+                    return self.i18nMan._expandText(msg)
 
             return msg
 

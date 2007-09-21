@@ -173,7 +173,7 @@ def makeMainMenus(parcel):
                             MenuItem.template('SyncIMAPItem',
                                 event = main.GetNewMail,
                                 title = _(u'&Mail'),
-                                helpString = _(u'Sync Mail')),
+                                helpString = _(u'Sync mail')),
                             MenuItem.template('SyncWebDAVItem',
                                 event = main.SyncWebDAV,
                                 title = _(u'&Shares'),

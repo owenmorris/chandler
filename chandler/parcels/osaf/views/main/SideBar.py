@@ -1281,10 +1281,7 @@ class SidebarBlock(Table):
             event.arguments['Enable'] = False
             event.arguments['Check'] = False
         else:
-            arguments = {'collection': selectedItem.displayName,
-                         'dashboard': schema.ns("osaf.pim", self).allCollection.displayName}
-                         
-            menuTitle = _(u'&Keep out of %(dashboard)s') % arguments
+            menuTitle = _(u'&Keep out of Dashboard')
 
             if UserCollection(selectedItem).outOfTheBoxCollection:
                 enabled = False

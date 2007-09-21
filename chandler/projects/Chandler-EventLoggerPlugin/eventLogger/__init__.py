@@ -31,6 +31,9 @@ import logging
 import logging.handlers
 import os
 
+from i18n import MessageFactory
+_ = MessageFactory("Chandler-EventLoggerPlugin")
+
 logger = logging.getLogger(__name__)
 
 logDir = os.path.join(Globals.options.profileDir, 'eventLogger')
@@ -193,8 +196,8 @@ def installParcel(parcel, old_version=None):
         parcel, 'StartLogging',
         blockName = 'StartLoggingMenuItem',
         menuItemKind = 'Check',
-        title = u'Log &user actions',
-        helpString = u'Turn on logging and send result to OSAF',
+        title = _(u'Log &user actions'),
+        helpString = _(u'Turn on logging and send result to OSAF'),
         event = ToggleLogging,
         eventsForNamedLookup = [ToggleLogging],
         parentBlock = mainView.LoggingMenu)

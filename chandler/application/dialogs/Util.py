@@ -426,7 +426,7 @@ class LogWindow(wx.Dialog):
         # creation, and then we create the GUI dialog using the Create
         # method.
         pre = wx.PreDialog()
-        pre.Create(None, -1, "Logs", pos, size, style)
+        pre.Create(None, -1, _(u"Logs"), pos, size, style)
 
         # This next step is the most important, it turns this Python
         # object into the real wrapper of the dialog (instead of pre)
@@ -445,7 +445,10 @@ class LogWindow(wx.Dialog):
             f = codecs.open(log, encoding='utf-8', mode="r", errors="ignore")
             #combined is a list of unicode text
             combined = u"".join(f.readlines()[-500:])
-            label = wx.StaticText(self, -1, log)
+
+            label = wx.StaticText(self, -1,
+                            _(u"Log Path: %(path)s") % {"path": log})
+
             sizer.Add(label, 0, wx.ALIGN_LEFT|wx.ALL, 5)
 
             self.forClipboard += u"==> %s <==\n\n" % log

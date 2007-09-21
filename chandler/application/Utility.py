@@ -235,6 +235,7 @@ COMMAND_LINE_OPTIONS = {
     'wing':       ('-w', '--wing',       'b', False, None, ''),
     'komodo':     ('-k', '--komodo',     'b', False, None, ''),
     'locale':     ('-l', '--locale',     's', None,  None, 'Set the default locale'),
+    'expand':      ('',   '--expand',      's', '0', None, 'Expands the length of localized strings by the percentage specified between 0 and 100'),
     'encrypt':    ('-S', '--encrypt',    'b', False, None, 'Request prompt for password for repository encryption'),
     'nosplash':   ('-N', '--nosplash',   'b', False, 'CHANDLERNOSPLASH', ''),
     'logging':    ('-L', '--logging',    's', 'logging.conf',  'CHANDLERLOGCONFIG', 'The logging config file'),
@@ -454,7 +455,7 @@ def loadPrefs(options):
 
 def initI18n(options):
     #Will discover locale set if options.locale is None
-    i18n._I18nManager.initialize(options.locale)
+    i18n._I18nManager.initialize(localeSet=options.locale, expand=options.expand)
 
 
 class ChandlerRotatingFileHandler(logging.handlers.RotatingFileHandler):

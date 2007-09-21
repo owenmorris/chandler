@@ -13,9 +13,10 @@
 #   limitations under the License.
 
 import accounts, cosmo
+from i18n import ChandlerMessageFactory as _
 
 __all__ = ["prepareAccounts"]
 
 def prepareAccounts(rv):
     if len(list(accounts.SharingAccount.iterItems(rv))) == 0:
-        cosmo.HubAccount(itsView=rv, displayName="Chandler Hub sharing")
+        cosmo.HubAccount(itsView=rv, displayName=_(u"Chandler Hub sharing"))
