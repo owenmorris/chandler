@@ -100,14 +100,22 @@ def dump(rv, filename, uuids=None, serializer=PickleSerializer,
 
     translator = getTranslator()
 
-    if uuids is None:
-        uuids = set()
-        for item in schema.Item.iterItems(rv):
-            if not str(item.itsPath).startswith("//parcels"):
-                uuids.add(item.itsUUID)
 
     trans = translator(rv)
     trans.obfuscation = obfuscate
+
+    aliases = list()
+
+    if uuids:
+        for uuid in uuids:
+            aliases.append(trans.getAliasForItem(rv.findUUID(uuid)))
+    else:
+        for item in schema.Item.iterItems(rv):
+            if not str(item.itsPath).startswith("//parcels"):
+                aliases.append(trans.getAliasForItem(item))
+
+    # Sort on alias so masters are dumped before occurrences
+    aliases.sort()
 
     trans.startExport()
 
@@ -128,12 +136,14 @@ def dump(rv, filename, uuids=None, serializer=PickleSerializer,
         dump = serializer.dumper(output)
 
         if activity:
-            count = len(uuids)
+            count = len(aliases)
             activity.update(msg="Dumping %d records" % count, totalWork=count)
 
         i = 0
-        for uuid in uuids:
-            for record in trans.exportItem(rv.findUUID(uuid)):
+        for alias in aliases:
+            uuid = trans.getUUIDForAlias(alias)
+            item = rv.findUUID(uuid)
+            for record in trans.exportItem(item):
                 dump(record)
             i += 1
             if activity:
