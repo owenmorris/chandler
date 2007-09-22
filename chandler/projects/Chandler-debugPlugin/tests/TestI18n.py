@@ -91,7 +91,6 @@ class I18nTestCase(unittest.TestCase):
         self.assertEquals(txt, u"Hello")
 
         # The 'test' locale is a debug keyword
-        # which sets the locale set to ['fr_CA', 'fr']
         # and enables the testing mode flag.
         # In testing mode all values returned by
         # the I18nManager.getText method insert
@@ -99,7 +98,7 @@ class I18nTestCase(unittest.TestCase):
 
         self.i18nMan.setLocaleSet("test")
         txt = self.mf(u"Hello")
-        self.assertEquals(txt, u"(\u00FC): Bonjour")
+        self.assertEquals(txt, u"(\u00FC): Hello")
 
         # Restore the default locale set
         self.i18nMan.setLocaleSet(self.LOCALE_SET)
