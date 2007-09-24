@@ -1163,6 +1163,10 @@ class EventStamp(Stamp):
         
         orphanEvent = EventStamp(orphan)
         orphanEvent.startTime = self.startTime
+        
+        # icalUID should be deleted on orphans, Bug 10881
+        if hasattr(orphan, 'icalUID'):
+            del orphan.icalUID
 
         for key, value in self.itsItem.iterModifiedAttributes():
             setattr(orphan, key, value)

@@ -1701,6 +1701,7 @@ class RecurringEventTest(testcase.SingleRepositoryTestCase):
 
         event.itsItem.displayName = uw('Master displayName')
         event.itsItem.body = uw('Body of the master')
+        event.itsItem.icalUID = 'masterUID'
         
         collection1.add(event.itsItem)
         TaskStamp(event).add()
@@ -1743,6 +1744,7 @@ class RecurringEventTest(testcase.SingleRepositoryTestCase):
         
         self.assertEqual(orphan.displayName, uw('Modified'))
         self.assertEqual(orphan.body, uw('Body of the master'))
+        self.failIfEqual(getattr(orphan, 'icalUID', None), 'masterUID')
         
         self.assert_(getattr(orphan, EventStamp.rruleset.name, None) is None)
 
