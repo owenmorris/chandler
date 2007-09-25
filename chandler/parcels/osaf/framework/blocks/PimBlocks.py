@@ -172,7 +172,7 @@ class FocusEventHandlers(Item):
             Block.Block.postEventByNameWithSender('SendMail', {'item': item})
 
     def onMarkAsReadEvent(self, event):
-        selectedItems = self.__getProxiedSelectedItems(event)
+        selectedItems = self.__getSelectedItems(event)
         for item in selectedItems:
             EventStamp(item).getMaster().itsItem.read = True
 
@@ -181,7 +181,7 @@ class FocusEventHandlers(Item):
         Toggle the "private" attribute of all the selected items
         or of the items specified in the optional arguments of the event.
         """
-        selectedItems = self.__getProxiedSelectedItems(event)
+        selectedItems = self.__getSelectedItems(event)
         if len(selectedItems) > 0:
             # if any item is shared, give a warning if marking it private
             for item in selectedItems:
