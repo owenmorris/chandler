@@ -1514,6 +1514,8 @@ class VersionContainer(DBContainer):
 
     SCHEMA_KEY  = pack('>16sl', Repository.itsUUID._uuid, 0)
     VERSION_KEY = pack('>16sl', Repository.itsUUID._uuid, 1)
+    VIEW_KEY = pack('>16sl', Repository.itsUUID._uuid, 2)
+    MIN_VERSION_KEY = pack('>16sl', Repository.itsUUID._uuid, 3)
 
     VIEW_DATA_TYPES = (Record.INT,       # status
                        Record.SYMBOL,    # timezone
@@ -1638,7 +1640,23 @@ class VersionContainer(DBContainer):
 
         return version
 
+    def getMinVersion(self):
+
+        value = self._db.get(VersionContainer.MIN_VERSION_KEY,
+                             self.store.txn, self.c.flags, None)
+        if value is None:
+            return 0
+        else:
+            return unpack('>l', value)[0]
+
+    def setMinVersion(self, version):
+
+        self._db.put(VersionContainer.MIN_VERSION_KEY, pack('>l', version),
+                     self.store.txn)
+
     def purgeViewData(self, txn, counter, toVersion):
+
+        self.setMinVersion(toVersion)
 
         try:
             key = str(Record(Record.UUID, Repository.itsUUID,

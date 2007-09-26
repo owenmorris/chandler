@@ -1314,6 +1314,10 @@ class DBStore(Store):
 
         return self._versions.nextVersion()
 
+    def getMinVersion(self):
+
+        return self._versions.getMinVersion()
+
     def getSchemaInfo(self):
 
         return self._versions.getSchemaInfo()
@@ -1551,6 +1555,7 @@ class DBIndexerThread(RepositoryThread):
                     try:
                         txnStatus = store.startTransaction(None)
                         latestVersion = store.getVersion()
+                        earliestVersion = store.getMinVersion()
                         indexVersion = store.getIndexVersion()
                     except DBLockDeadlockError:
                         store.abortTransaction(None, txnStatus)
@@ -1565,15 +1570,19 @@ class DBIndexerThread(RepositoryThread):
 
                 if indexVersion < latestVersion:
                     if view is None:
+                        version = max(indexVersion + 1, earliestVersion)
                         view = repository.createView("Lucene", pruneSize=400,
+                                                     version=version,
                                                      mergeFn=otherViewWins,
                                                      notify=False,
                                                      timezone=Default,
                                                      ontzchange=Nil)
                     while indexVersion < latestVersion:
-                        view.refresh(version=indexVersion + 1)
-                        self._indexVersion(view, indexVersion + 1, store)
-                        indexVersion += 1
+                        version = max(indexVersion + 1, earliestVersion)
+                        view.refresh(version=version)
+                        self._indexVersion(view, indexVersion + 1,
+                                           earliestVersion, store)
+                        indexVersion = version
             finally:
                 condition.acquire()
                 condition.notifyAll()
@@ -1582,7 +1591,7 @@ class DBIndexerThread(RepositoryThread):
         if view is not None:
             view.closeView()
 
-    def _indexVersion(self, view, version, store):
+    def _indexVersion(self, view, indexVersion, earliestVersion, store):
 
         items = store._items
 
@@ -1597,13 +1606,22 @@ class DBIndexerThread(RepositoryThread):
 
                 try:
                     txnStatus = view._startTransaction(False, False)
-                    status = store.getViewStatus(version)
-                    if status & view.TOINDEX:
+
+                    if indexVersion < earliestVersion:
+                        version = earliestVersion
+                    else:
+                        version = indexVersion
+                        status = store.getViewStatus(version)
+
+                    if indexVersion < version or status & view.TOINDEX:
                         for (uItem, ver, uKind, status, uParent, pKind,
-                             dirties) in items.iterHistory(view, version - 1,
+                             dirties) in items.iterHistory(view,
+                                                           indexVersion - 1,
                                                            version):
                             if status & CItem.TOINDEX:
-                                if status & CItem.NEW:
+                                if status & (CItem.NEW | CItem.MERGED):
+                                    dirties = None
+                                elif indexVersion < version:
                                     dirties = None
                                 else:
                                     dirties = list(dirties)

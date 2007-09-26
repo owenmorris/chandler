@@ -210,6 +210,8 @@ class RepositoryView(CView):
         if repository is not None:
             if version is None:
                 version = repository.store.getVersion()
+            elif version < repository.store.getMinVersion():
+                raise ValueError, (version, 'no longer exists')
             verify = repository._isVerify()
             if timezone is None:
                 timezone = repository.timezone

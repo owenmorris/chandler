@@ -324,7 +324,10 @@ class DBRepositoryView(OnDemandRepositoryView):
         if not version:
             newVersion = store.getVersion()
         else:
+            minVersion = store.getMinVersion()
             newVersion = min(long(version), store.getVersion())
+            if newVersion < minVersion:
+                raise ValueError, (newVersion, 'no longer exists')
         
         if newVersion > self.itsVersion:
             if notify:
