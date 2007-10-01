@@ -793,14 +793,19 @@ class ProgressPanel(wx.Panel):
         self.progress = 0
         self.timeout = gaugeTime
 
-        self.label = wx.StaticText(self, -1, self.parent.getStartText(),
-                                   size=(450,-1))
-
+        self.label = wx.StaticText(self, -1, self.parent.getStartText())
         self.gauge = wx.Gauge(self, -1, gaugeTime, size=(400, 25))
+        self.spacer = wx.StaticText(self, -1, "", size=(50,-1))
 
         self.sizer = wx.BoxSizer(wx.VERTICAL)
         self.sizer.Add(self.label, 0, wx.ALIGN_LEFT|wx.ALL, 10)
-        self.sizer.Add(self.gauge, 0, wx.ALIGN_LEFT|wx.ALL, 10)
+
+        self.hSizer = wx.BoxSizer(wx.HORIZONTAL)
+        self.hSizer.Add(self.gauge, 0, wx.ALIGN_LEFT|wx.ALL, 0)
+        self.hSizer.Add(self.spacer, 0, wx.ALIGN_LEFT|wx.ALL, 0)
+
+        self.sizer.Add(self.hSizer, 0, wx.ALIGN_LEFT|wx.ALL, 10)
+
         self.timer = wx.Timer(self, 0)
         self.Bind(wx.EVT_TIMER, self.OnTimer, self.timer)
 

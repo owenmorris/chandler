@@ -73,7 +73,6 @@ def installParcel(parcel, oldVersion=None):
             <flag>wxALIGN_CENTER|wxALL</flag>
             <border>5</border>
             <object class="wxStaticText" name="ID_TEXT">
-              <size>110,-1</size>
               <style>wxALIGN_RIGHT</style>
               <label>Account type:</label>
             </object>
@@ -90,7 +89,6 @@ def installParcel(parcel, oldVersion=None):
             <flag>wxALIGN_CENTER|wxALL</flag>
             <border>5</border>
             <object class="wxStaticText" name="ID_TEXT">
-              <size>110,-1</size>
               <style>wxALIGN_RIGHT</style>
               <label>Descr&amp;iption:</label>
             </object>
@@ -107,7 +105,6 @@ def installParcel(parcel, oldVersion=None):
             <flag>wxALIGN_CENTER|wxALL</flag>
             <border>5</border>
             <object class="wxStaticText" name="ID_TEXT">
-              <size>110,-1</size>
               <style>wxALIGN_RIGHT</style>
               <label>User &amp;name:</label>
             </object>
@@ -124,7 +121,6 @@ def installParcel(parcel, oldVersion=None):
             <flag>wxALIGN_CENTER|wxALL</flag>
             <border>5</border>
             <object class="wxStaticText" name="ID_TEXT">
-              <size>110,-1</size>
               <style>wxALIGN_RIGHT</style>
               <label>Pass&amp;word:</label>
             </object>

@@ -30,7 +30,6 @@
             <flag>wxGROW|wxALIGN_CENTER_VERTICAL|wxALL</flag>
             <border>5</border>
             <object class="wxStaticText" name="ID_TEXT">
-              <size>110,-1</size>
               <style>wxALIGN_RIGHT</style>
               <label>Account type:</label>
             </object>
@@ -47,7 +46,6 @@
             <flag>wxGROW|wxALIGN_CENTER_VERTICAL|wxALL</flag>
             <border>5</border>
             <object class="wxStaticText" name="ID_TEXT">
-              <size>110,-1</size>
               <style>wxALIGN_RIGHT</style>
               <label>Descr&amp;iption:</label>
             </object>
@@ -64,7 +62,6 @@
             <flag>wxGROW|wxALIGN_CENTER_VERTICAL|wxALL</flag>
             <border>5</border>
             <object class="wxStaticText" name="ID_TEXT">
-              <size>110,-1</size>
               <style>wxALIGN_RIGHT</style>
               <label>&amp;Email address:</label>
             </object>
@@ -81,7 +78,6 @@
             <flag>wxGROW|wxALIGN_CENTER_VERTICAL|wxALL</flag>
             <border>5</border>
             <object class="wxStaticText" name="ID_TEXT">
-              <size>110,-1</size>
               <style>wxALIGN_RIGHT</style>
               <label>&amp;Server:</label>
             </object>
@@ -119,7 +115,6 @@
             <flag>wxGROW|wxALIGN_CENTER_VERTICAL|wxALL</flag>
             <border>5</border>
             <object class="wxStaticText" name="ID_TEXT">
-              <size>110,-1</size>
               <style>wxALIGN_RIGHT</style>
               <label>Po&amp;rt:</label>
             </object>
@@ -167,7 +162,6 @@
             <border>5</border>
             <object class="wxStaticText" name="ID_TEXT">
               <label></label>
-              <size>110,-1</size>
             </object>
           </object>
           <object class="sizeritem">
@@ -181,7 +175,6 @@
             <flag>wxGROW|wxALIGN_CENTER_VERTICAL|wxALL</flag>
             <border>5</border>
             <object class="wxStaticText" name="ID_TEXT">
-              <size>110,-1</size>
               <style>wxALIGN_RIGHT</style>
               <label>User &amp;name:</label>
             </object>
@@ -230,7 +223,6 @@
             <flag>wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL|wxALL</flag>
             <border>5</border>
             <object class="wxStaticText" name="ID_TEXT">
-              <size>110,-1</size>
               <style>wxALIGN_RIGHT</style>
               <label>Account type:</label>
             </object>
@@ -247,7 +239,6 @@
             <flag>wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL|wxALL</flag>
             <border>5</border>
             <object class="wxStaticText" name="ID_TEXT">
-              <size>110,-1</size>
               <style>wxALIGN_RIGHT</style>
               <label>Descr&amp;iption:</label>
             </object>
@@ -264,7 +255,6 @@
             <flag>wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL|wxALL</flag>
             <border>5</border>
             <object class="wxStaticText" name="ID_TEXT">
-              <size>110,-1</size>
               <style>wxALIGN_RIGHT</style>
               <label>&amp;Email address:</label>
             </object>
@@ -281,7 +271,6 @@
             <flag>wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL|wxALL</flag>
             <border>5</border>
             <object class="wxStaticText" name="ID_TEXT">
-              <size>110,-1</size>
               <style>wxALIGN_RIGHT</style>
               <label>&amp;Full name:</label>
             </object>
@@ -298,7 +287,6 @@
             <flag>wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL|wxALL</flag>
             <border>5</border>
             <object class="wxStaticText" name="ID_TEXT">
-              <size>110,-1</size>
               <style>wxALIGN_RIGHT</style>
               <label>&amp;Server:</label>
             </object>
@@ -315,7 +303,6 @@
             <flag>wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL|wxALL</flag>
             <border>5</border>
             <object class="wxStaticText" name="ID_TEXT">
-              <size>110,-1</size>
               <style>wxALIGN_RIGHT</style>
               <label>User &amp;name:</label>
             </object>
@@ -332,7 +319,6 @@
             <flag>wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL|wxALL</flag>
             <border>5</border>
             <object class="wxStaticText" name="ID_TEXT">
-              <size>110,-1</size>
               <style>wxALIGN_RIGHT</style>
               <label>Pass&amp;word:</label>
             </object>
@@ -361,7 +347,6 @@
           <object class="sizeritem">
             <flag>wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL|wxALL</flag>
             <object class="wxStaticText" name="ID_TEXT">
-              <size>110,-1</size>
               <style>wxALIGN_RIGHT</style>
               <label>&amp;Protocol:</label>
             </object>
@@ -374,7 +359,6 @@
               <object class="sizeritem">
                 <object class="wxChoice" name="INCOMING_PROTOCOL">
                   <selection>0</selection>
-                  <size>100,-1</size>
                   <content>
                     <item>IMAP</item>
                     <item>POP</item>
@@ -417,7 +401,6 @@
             <flag>wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL|wxALL</flag>
             <border>5</border>
             <object class="wxStaticText" name="ID_TEXT">
-              <size>110,-1</size>
               <style>wxALIGN_RIGHT</style>
               <label>Po&amp;rt:</label>
             </object>
@@ -475,7 +458,6 @@
             <flag>wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL|wxALL</flag>
             <border>5</border>
             <object class="wxStaticText" name="ID_TEXT">
-              <size>110,-1</size>
               <label></label>
               <style>wxALIGN_RIGHT</style>
             </object>
@@ -500,7 +482,6 @@
               </object>
               <object class="sizeritem">
                 <object class="wxHyperlinkCtrl" name="INCOMING_FOLDERS_VERBAGE2">
-                  <label>Learn more.</label>
                 </object>
                 <flag>wxALIGN_CENTRE_VERTICAL</flag>
               </object>
@@ -538,7 +519,6 @@
             <flag>wxALIGN_CENTER|wxALL</flag>
             <border>5</border>
             <object class="wxStaticText" name="ID_TEXT">
-              <size>110,-1</size>
               <style>wxALIGN_RIGHT</style>
               <label>Account type:</label>
             </object>
@@ -555,7 +535,6 @@
             <flag>wxALIGN_CENTER|wxALL</flag>
             <border>5</border>
             <object class="wxStaticText" name="ID_TEXT">
-              <size>110,-1</size>
               <style>wxALIGN_RIGHT</style>
               <label>Descr&amp;iption:</label>
             </object>
@@ -572,7 +551,6 @@
             <flag>wxALIGN_CENTER|wxALL</flag>
             <border>5</border>
             <object class="wxStaticText" name="ID_TEXT">
-              <size>110,-1</size>
               <style>wxALIGN_RIGHT</style>
               <label>&amp;Server:</label>
             </object>
@@ -589,7 +567,6 @@
             <flag>wxALIGN_CENTER|wxALL</flag>
             <border>5</border>
             <object class="wxStaticText" name="ID_TEXT">
-              <size>110,-1</size>
               <style>wxALIGN_RIGHT</style>
               <label>Pat&amp;h:</label>
             </object>
@@ -606,7 +583,6 @@
             <flag>wxALIGN_CENTER|wxALL</flag>
             <border>5</border>
             <object class="wxStaticText" name="ID_TEXT">
-              <size>110,-1</size>
               <style>wxALIGN_RIGHT</style>
               <label>User &amp;name:</label>
             </object>
@@ -623,7 +599,6 @@
             <flag>wxALIGN_CENTER|wxALL</flag>
             <border>5</border>
             <object class="wxStaticText" name="ID_TEXT">
-              <size>110,-1</size>
               <style>wxALIGN_RIGHT</style>
               <label>Pass&amp;word:</label>
             </object>
@@ -641,7 +616,6 @@
             <flag>wxALIGN_CENTER|wxALL</flag>
             <border>5</border>
             <object class="wxStaticText" name="ID_TEXT">
-              <size>110,-1</size>
               <style>wxALIGN_RIGHT</style>
               <label>Po&amp;rt:</label>
             </object>
@@ -686,7 +660,6 @@
             <flag>wxALIGN_CENTER|wxALL</flag>
             <border>5</border>
             <object class="wxStaticText" name="ID_TEXT">
-              <size>110,-1</size>
               <style>wxALIGN_RIGHT</style>
               <label>Account type:</label>
             </object>
@@ -703,7 +676,6 @@
             <flag>wxALIGN_CENTER|wxALL</flag>
             <border>5</border>
             <object class="wxStaticText" name="ID_TEXT">
-              <size>110,-1</size>
               <style>wxALIGN_RIGHT</style>
               <label>Descr&amp;iption:</label>
             </object>
@@ -720,7 +692,6 @@
             <flag>wxALIGN_CENTER|wxALL</flag>
             <border>5</border>
             <object class="wxStaticText" name="ID_TEXT">
-              <size>110,-1</size>
               <style>wxALIGN_RIGHT</style>
               <label>&amp;Server:</label>
             </object>
@@ -737,7 +708,6 @@
             <flag>wxALIGN_CENTER|wxALL</flag>
             <border>5</border>
             <object class="wxStaticText" name="ID_TEXT">
-              <size>110,-1</size>
               <style>wxALIGN_RIGHT</style>
               <label>Pat&amp;h:</label>
             </object>
@@ -754,7 +724,6 @@
             <flag>wxALIGN_CENTER|wxALL</flag>
             <border>5</border>
             <object class="wxStaticText" name="ID_TEXT">
-              <size>110,-1</size>
               <style>wxALIGN_RIGHT</style>
               <label>User &amp;name:</label>
             </object>
@@ -771,7 +740,6 @@
             <flag>wxALIGN_CENTER|wxALL</flag>
             <border>5</border>
             <object class="wxStaticText" name="ID_TEXT">
-              <size>110,-1</size>
               <style>wxALIGN_RIGHT</style>
               <label>Pass&amp;word:</label>
             </object>
@@ -789,7 +757,6 @@
             <flag>wxALIGN_CENTER|wxALL</flag>
             <border>5</border>
             <object class="wxStaticText" name="ID_TEXT">
-              <size>110,-1</size>
               <style>wxALIGN_RIGHT</style>
               <label>Po&amp;rt:</label>
             </object>
@@ -834,7 +801,6 @@
             <flag>wxALIGN_CENTER|wxALL</flag>
             <border>5</border>
             <object class="wxStaticText" name="ID_TEXT">
-              <size>110,-1</size>
               <style>wxALIGN_RIGHT</style>
               <label>Account type:</label>
             </object>
@@ -851,7 +817,6 @@
             <flag>wxALIGN_CENTER|wxALL</flag>
             <border>5</border>
             <object class="wxStaticText" name="ID_TEXT">
-              <size>110,-1</size>
               <style>wxALIGN_RIGHT</style>
               <label>Descr&amp;iption:</label>
             </object>
@@ -868,7 +833,6 @@
             <flag>wxALIGN_CENTER|wxALL</flag>
             <border>5</border>
             <object class="wxStaticText" name="ID_TEXT">
-              <size>110,-1</size>
               <style>wxALIGN_RIGHT</style>
               <label>User &amp;name:</label>
             </object>
@@ -885,7 +849,6 @@
             <flag>wxALIGN_CENTER|wxALL</flag>
             <border>5</border>
             <object class="wxStaticText" name="ID_TEXT">
-              <size>110,-1</size>
               <style>wxALIGN_RIGHT</style>
               <label>Pass&amp;word:</label>
             </object>
@@ -985,18 +948,14 @@
           <object class="sizeritem">
             <object class="wxStaticText" name="INCOMING_MESSAGE">
               <label>Note: Only emails sent from Chandler will be downloaded.</label>
-              <size>370,-1</size>
               <hidden>1</hidden>
             </object>
-            <flag>wxALL|wxALIGN_CENTRE_VERTICAL</flag>
           </object>
           <object class="sizeritem">
             <object class="wxStaticText" name="OUTGOING_MESSAGE">
               <label></label>
-              <size>370,-1</size>
               <hidden>1</hidden>
             </object>
-            <flag>wxALL|wxALIGN_CENTRE_VERTICAL</flag>
           </object>
           <object class="sizeritem">
             <object class="wxStaticText" name="SHARING_MESSAGE">
@@ -1006,7 +965,7 @@
           </object>
           <object class="sizeritem">
             <object class="wxHyperlinkCtrl" name="SHARING_MESSAGE2">
-              <label>Sign up here.</label>
+              <hidden>1</hidden>
             </object>
           </object>
         </object>

@@ -214,7 +214,7 @@ class AccountPreferencesDialog(wx.Dialog):
 
                     "INCOMING_PROTOCOL" : {
                         "attr" : "accountProtocol",
-                        "type" : "choice",
+                        "type" : "protocolChoice",
                         "default": "IMAP",
                     },
 
@@ -502,6 +502,11 @@ class AccountPreferencesDialog(wx.Dialog):
         self.sharingLink = wx.xrc.XRCCTRL(self.messagesPanel,
             "SHARING_MESSAGE2")
 
+        # Theses values are not localizing if set in xrc.
+        # The xrc support for the wxHyperlinkCtrl needs improvement.
+        self.sharingLink.SetLabel(_(u"Sign up here."))
+        self.folderLink.SetLabel(_(u"Learn more."))
+
         for hyperCtrl in (self.folderLink, self.sharingLink):
             hyperCtrl.SetNormalColour("#0080ff")
             hyperCtrl.SetVisitedColour("#0080ff")
@@ -509,7 +514,6 @@ class AccountPreferencesDialog(wx.Dialog):
 
         self.folderLink.SetURL(FOLDERS_URL)
         self.sharingLink.SetURL(SHARING_URL)
-
 
         self.SetSizer(self.outerSizer)
         self.outerSizer.SetSizeHints(self)
@@ -1163,11 +1167,14 @@ class AccountPreferencesDialog(wx.Dialog):
                 # so do not do anything here
                 continue
 
-            elif valueType == "choice":
+            elif valueType == "choice" or \
+                 valueType == "protocolChoice":
                 index = control.GetSelection()
 
                 if index == -1:
                     val = None
+                elif valueType == "protocolChoice":
+                    val = index and "POP" or "IMAP"
                 else:
                     val = control.GetString(index)
 
@@ -1234,6 +1241,15 @@ class AccountPreferencesDialog(wx.Dialog):
 
                 if pos != wx.NOT_FOUND:
                     control.SetSelection(pos)
+
+            elif valueType == "protocolChoice":
+                if data[field] == "IMAP":
+                    pos = 0
+                else:
+                    pos = 1
+
+                control.SetSelection(pos)
+
 
             elif valueType == "chandlerFolders":
                 if data["INCOMING_PROTOCOL"] == "IMAP":
@@ -1332,8 +1348,8 @@ class AccountPreferencesDialog(wx.Dialog):
         ns_pim = schema.ns('osaf.pim', self.rv)
         sharing_ns = schema.ns('osaf.sharing', self.rv)
 
-        currentOutgoing = ns_pim.currentOutgoingAccount.item
-        currentIncoming = ns_pim.currentIncomingAccount.item
+        currentOutgoing = getattr(ns_pim.currentOutgoingAccount, "item", None)
+        currentIncoming = getattr(ns_pim.currentIncomingAccount, "item", None)
 
         for account in self.data:
             item = self.rv.findUUID(account['item'])
@@ -2013,7 +2029,7 @@ class AccountPreferencesDialog(wx.Dialog):
 
     def getIncomingProtocol(self):
         proto = wx.xrc.XRCCTRL(self.currentPanel, "INCOMING_PROTOCOL")
-        return proto.GetString(proto.GetSelection())
+        return proto.GetSelection() and "POP" or "IMAP"
 
     def OnExclusiveRadioButton(self, evt):
         """ When an exclusive attribute (like default) is set on one account,
