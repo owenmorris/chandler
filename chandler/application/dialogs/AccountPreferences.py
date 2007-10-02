@@ -507,6 +507,11 @@ class AccountPreferencesDialog(wx.Dialog):
         self.sharingLink.SetLabel(_(u"Sign up here."))
         self.folderLink.SetLabel(_(u"Learn more."))
 
+        # On Linux the wx layer raises an assert when
+        # hiding the wxHyperlinkCtrl via xrc. So
+        # instead hide the control in code.
+        self.sharingLink.Hide()
+
         for hyperCtrl in (self.folderLink, self.sharingLink):
             hyperCtrl.SetNormalColour("#0080ff")
             hyperCtrl.SetVisitedColour("#0080ff")
