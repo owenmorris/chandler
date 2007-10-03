@@ -105,8 +105,9 @@ def loadCertificatesToContext(repView, ctx):
     store = ctx.get_cert_store()
     
     with _sslLock:
-        for x509 in certificateCache:
-            store.add_x509(x509)
+        if certificateCache:
+            for x509 in certificateCache:
+                store.add_x509(x509)
         else:
             sslView.refresh()
             q = schema.ns('osaf.framework.certstore', sslView).sslCertificateQuery
