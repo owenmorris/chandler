@@ -43,7 +43,8 @@ __all__ = [
     'checkTriageOnly',
     'code_to_triagestatus',
     'triagestatus_to_code',
-    'mergeFunction'
+    'mergeFunction',
+    'syncAll'
 ]
 
 from application import schema, Globals
@@ -149,6 +150,9 @@ def sync(collection, modeOverride=None, activity=None,
     return stats
 
 
+def syncAll(rv):
+    for share in getSyncableShares(rv):
+        share.sync()
 
 
 
