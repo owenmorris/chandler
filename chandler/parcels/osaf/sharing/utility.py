@@ -106,9 +106,9 @@ def inspect(rv, url, username=None, password=None):
 
 
     def _catchError(method):
+
         try:
-            return zanshin.util.blockUntil(method, rv, url,
-                username=username, password=password)
+            return method(rv, url, username=username, password=password)
 
         except zanshin.webdav.ConnectionError, e:
             raise errors.CouldNotConnect(_(u"Unable to connect to server. Received the following error: %(error)s") % {'error': e})
@@ -638,69 +638,69 @@ def getDAVInfo(rv, url, username=None, password=None):
 
     request = PropfindRequest(path, 0, list(properties), {})
 
-    d = handle.addRequest(request)
+    resp = handle.blockUntil(handle.addRequest, request)
+
+    resultDict = dict(calendar=False, collection=False)
+
+    if resp.status != http.MULTI_STATUS:
+        raise zanshin.http.HTTPError(status=resp.status,
+                                     message=resp.message)
+
+    try:
+        cups = acl.CurrentUserPrivilegeSet.parse(resp.body)
+    except ValueError:
+        # Some servers ignore the CUPS request, which is illegal,
+        # but tolerate it and just return an empty privilege set
+        cups = acl.CurrentUserPrivilegeSet()
+
+    if not cups.privileges:
+        ticketInfoNodes = getTicketInfoNodes(resp.body)
+        if ticketInfoNodes:
+            for node in ticketInfoNodes:
+                ticket = Ticket.parse(node)
+                for privName, value in ticket.privileges.iteritems():
+                    # the ticket privileges dictionary currently doesn't
+                    # have the flexibility to handle namespaces, that should
+                    # probably be added.
+                    if value and (privName, "DAV:") not in cups.privileges:
+                        cups.privileges.append((privName, "DAV:"))
+        else:
+            # As Indiana Jones would say, "No ticket".
+            # If the username was provided, and we got this far, then
+            # the username and password is valid.  Assume we have read
+            # and write permission
+            cups.privileges.extend([('write', 'DAV:'), ('read', 'DAV:')])
+
+    logger.debug("inspect getDAVinfo cups.privileges: %s", cups.privileges)
+    for priv in (('read', "DAV:"), ('write', "DAV:"),
+                       ('freebusy', CALDAV_NAMESPACE)):
+        resultDict["priv:%s" % priv[0]] = (priv in cups.privileges)
+    logger.debug("inspect getDAVinfo results: %s", resultDict)
+
+    xml = ElementTree.XML(resp.body)
+
+    for ctype in xml.getiterator(properties[2]):
+        if ctype.text:
+            resultDict.update(contentType=ctype.text)
+            break
+
+    calendarTag = PackElement("calendar", CALDAV_NAMESPACE)
+    collectionTag = PackElement("collection")
+
+    for rtype in xml.getiterator(properties[3]):
+        for calendarElement in rtype.getiterator(calendarTag):
+            resultDict.update(calendar=True)
+            break
+        for collectionElement in rtype.getiterator(collectionTag):
+            resultDict.update(collection=True)
+            break
+
+    return resultDict
 
 
-    def handlePropfindResponse(resp):
-        resultDict = dict(calendar=False, collection=False)
-
-        if resp.status != http.MULTI_STATUS:
-            raise zanshin.http.HTTPError(status=resp.status,
-                                         message=resp.message)
-
-        try:
-            cups = acl.CurrentUserPrivilegeSet.parse(resp.body)
-        except ValueError:
-            # Some servers ignore the CUPS request, which is illegal,
-            # but tolerate it and just return an empty privilege set
-            cups = acl.CurrentUserPrivilegeSet()
-
-        if not cups.privileges:
-            ticketInfoNodes = getTicketInfoNodes(resp.body)
-            if ticketInfoNodes:
-                for node in ticketInfoNodes:
-                    ticket = Ticket.parse(node)
-                    for privName, value in ticket.privileges.iteritems():
-                        # the ticket privileges dictionary currently doesn't
-                        # have the flexibility to handle namespaces, that should
-                        # probably be added.
-                        if value and (privName, "DAV:") not in cups.privileges:
-                            cups.privileges.append((privName, "DAV:"))
-            else:
-                # As Indiana Jones would say, "No ticket".
-                # If the username was provided, and we got this far, then
-                # the username and password is valid.  Assume we have read
-                # and write permission
-                cups.privileges.extend([('write', 'DAV:'), ('read', 'DAV:')])
-
-        logger.debug("inspect getDAVinfo cups.privileges: %s", cups.privileges)
-        for priv in (('read', "DAV:"), ('write', "DAV:"),
-                           ('freebusy', CALDAV_NAMESPACE)):
-            resultDict["priv:%s" % priv[0]] = (priv in cups.privileges)
-        logger.debug("inspect getDAVinfo results: %s", resultDict)
-
-        xml = ElementTree.XML(resp.body)
-
-        for ctype in xml.getiterator(properties[2]):
-            if ctype.text:
-                resultDict.update(contentType=ctype.text)
-                break
-
-        calendarTag = PackElement("calendar", CALDAV_NAMESPACE)
-        collectionTag = PackElement("collection")
-
-        for rtype in xml.getiterator(properties[3]):
-            for calendarElement in rtype.getiterator(calendarTag):
-                resultDict.update(calendar=True)
-                break
-            for collectionElement in rtype.getiterator(collectionTag):
-                resultDict.update(collection=True)
-                break
-
-        return resultDict
 
 
-    return d.addCallback(handlePropfindResponse)
+
 
 
 
@@ -751,33 +751,31 @@ def getHEADInfo(rv, url, username=None, password=None):
         path = "%s?%s" % (path, parsedUrl.query)
 
     request = zanshin.http.Request('HEAD', path, None, None)
-    d = handle.addRequest(request)
+    resp = handle.blockUntil(handle.addRequest, request)
 
-    def handleHeadResponse(resp):
-        resultDict = {
-            'calendar' : False,
-            'collection' : False,
-            'priv:read' : True,
-            'priv:write' : False,
-        }
+    resultDict = {
+        'calendar' : False,
+        'collection' : False,
+        'priv:read' : True,
+        'priv:write' : False,
+    }
 
-        if resp.status == http.FORBIDDEN:
-            msg = _("The server rejected our request; please check the URL (HTTP status %(status)d)") % { 'status' : resp.status }
-            raise errors.SharingError(msg,
-                details=_("Received [%(body)s]") % {'body' : resp.body })
-        elif resp.status != http.OK:
-            raise zanshin.http.HTTPError(status=resp.status,
-                                         message=resp.message)
-
-
-        contentType = resp.headers.getHeader('Content-Type')
-        if contentType:
-            resultDict['contentType'] = contentType[0]
-
-        return resultDict
+    if resp.status == http.FORBIDDEN:
+        msg = _("The server rejected our request; please check the URL (HTTP status %(status)d)") % { 'status' : resp.status }
+        raise errors.SharingError(msg,
+            details=_("Received [%(body)s]") % {'body' : resp.body })
+    elif resp.status != http.OK:
+        raise zanshin.http.HTTPError(status=resp.status,
+                                     message=resp.message)
 
 
-    return d.addCallback(handleHeadResponse)
+    contentType = resp.headers.getHeader('Content-Type')
+    if contentType:
+        resultDict['contentType'] = contentType[0]
+
+    return resultDict
+
+
 
 
 def getOPTIONS(rv, url, username=None, password=None):
@@ -803,46 +801,39 @@ def getOPTIONS(rv, url, username=None, password=None):
         path = "%s?%s" % (path, parsedUrl.query)
 
     request = zanshin.http.Request('OPTIONS', path, None, None)
-    d = handle.addRequest(request)
+    resp = handle.blockUntil(handle.addRequest, request)
 
-    def handleOptionsResponse(resp):
-        resultDict = { }
+    resultDict = { }
 
-        if resp.status == http.FORBIDDEN:
-            msg = _("The server rejected our request; please check the URL (HTTP status %(status)d)") % { 'status' : resp.status }
-            raise errors.SharingError(msg,
-                details=_("Received [%(body)s]") % {'body' : resp.body })
-        elif resp.status != http.OK:
-            raise zanshin.http.HTTPError(status=resp.status,
-                                         message=resp.message)
+    if resp.status == http.FORBIDDEN:
+        msg = _("The server rejected our request; please check the URL (HTTP status %(status)d)") % { 'status' : resp.status }
+        raise errors.SharingError(msg,
+            details=_("Received [%(body)s]") % {'body' : resp.body })
+    elif resp.status != http.OK:
+        raise zanshin.http.HTTPError(status=resp.status,
+                                     message=resp.message)
 
 
-        cosmo = resp.headers.getHeader('X-Cosmo-Version')
-        if cosmo:
-            resultDict['cosmo'] = cosmo[0]
+    cosmo = resp.headers.getHeader('X-Cosmo-Version')
+    if cosmo:
+        resultDict['cosmo'] = cosmo[0]
 
-        dav = resp.headers.getHeader('DAV')
-        if dav:
-            resultDict['dav'] = dav[0]
+    dav = resp.headers.getHeader('DAV')
+    if dav:
+        resultDict['dav'] = dav[0]
 
-        allow = resp.headers.getHeader('Allow')
-        if allow:
-            resultDict['allow'] = allow[0]
+    allow = resp.headers.getHeader('Allow')
+    if allow:
+        resultDict['allow'] = allow[0]
 
-        return resultDict
+    return resultDict
 
-    return d.addCallback(handleOptionsResponse)
 
 
 
 def getPage(rv, url, username=None, password=None):
-    return zanshin.util.blockUntil(_getPage, rv, url, username=username,
-        password=password)
-
-
-def _getPage(rv, url, username=None, password=None):
     """
-    Returns a deferred to a string
+    Returns the body of a resource
     """
 
     parsedUrl = urlparse.urlsplit(url)
@@ -866,17 +857,13 @@ def _getPage(rv, url, username=None, password=None):
         path = "%s?%s" % (path, parsedUrl.query)
 
     request = zanshin.http.Request('GET', path, None, None)
-    d = handle.addRequest(request)
+    resp = handle.blockUntil(handle.addRequest, request)
 
-    def handleGetResponse(resp):
+    if resp.status != http.OK:
+        raise zanshin.http.HTTPError(status=resp.status,
+                                     message=resp.message)
 
-        if resp.status != http.OK:
-            raise zanshin.http.HTTPError(status=resp.status,
-                                         message=resp.message)
-
-        return resp.body
-
-    return d.addCallback(handleGetResponse)
+    return resp.body
 
 
 
