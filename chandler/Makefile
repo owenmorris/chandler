@@ -48,7 +48,7 @@ ARCHIVES = \
     $(CHANDLERARCHIVES)/wxPython-$(SNAP)-2.8.4.1-r184-$(BP)1.tar.gz \
     $(CHANDLERARCHIVES)/dateutil-$(SNAP)-1.1-$(BP)5.tar.gz \
     $(CHANDLERARCHIVES)/vobject-$(SNAP)-0.4.8-r186-$(BP)1.tar.gz \
-    $(CHANDLERARCHIVES)/zanshin-$(SNAP)-168-$(BP)1.tar.gz \
+    $(CHANDLERARCHIVES)/zanshin-$(SNAP)-169-$(BP)1.tar.gz \
     $(CHANDLERARCHIVES)/logilab-astng-$(SNAP)-0.17.0-$(BP)1.tar.gz \
     $(CHANDLERARCHIVES)/logilab-common-$(SNAP)-0.21.2-$(BP)1.tar.gz \
     $(CHANDLERARCHIVES)/pylint-$(SNAP)-0.13.1-$(BP)1.tar.gz \
