@@ -6,14 +6,13 @@ The ``osaf.pim.proxy`` module
 
 >>> from __future__ import with_statement
 >>> __parcel__ = 'osaf.pim.tests'
->>> from application import schema, Utility, Globals
+>>> from application import schema
+>>> from repository.persistence.RepositoryView import NullRepositoryView
 >>> import osaf.pim as pim
 >>> from osaf.pim.proxy import *
 >>> from datetime import *
 >>> from PyICU import *
->>> Globals.options = Utility.initOptions()
->>> Globals.options.ramdb = True
->>> view = Utility.initRepository("", Globals.options, True)
+>>> view = NullRepositoryView(verify=True)
 
 Overview
 ========
@@ -175,7 +174,7 @@ Similarly, you can proxy Stamps:
 >>> eventProxy = UserChangeProxy(pim.EventStamp(note))
 
 >>> eventProxy.itsItem
-<UserChangeProxy at ... for <Note: ...>>
+<UserChangeProxy at ... for <Note ...>>
 >>> eventProxy == pim.EventStamp(UserChangeProxy(note))
 True
 
@@ -185,23 +184,23 @@ The proxy will buffer changes to ``Stamp`` additions and removals:
 >>> eventProxy.itsItem.changes
 [(..., 'addStamp', <class 'osaf.pim.calendar.Calendar.EventStamp'>)]
 >>> list(pim.Stamp(eventProxy).stamps)
-[EventStamp(<UserChangeProxy at ... for <Note: ...>>)]
+[EventStamp(<UserChangeProxy at ... for <Note ...>>)]
 >>> list(pim.Stamp(note).stamps)
 []
 >>> eventProxy.itsItem.makeChanges()
 1
 >>> list(pim.Stamp(note).stamps)
-[EventStamp(<Note: ...>)]
+[EventStamp(<Note ...>)]
 >>> pim.mail.MailStamp(eventProxy).add()
 >>> eventProxy.remove()
 >>> list(pim.Stamp(eventProxy).stamps)
-[MailStamp(<UserChangeProxy at ... for <Note: ...>>)]
+[MailStamp(<UserChangeProxy at ... for <Note ...>>)]
 >>> list(pim.Stamp(note).stamps)
-[EventStamp(<Note: ...>)]
+[EventStamp(<Note ...>)]
 >>> eventProxy.itsItem.makeChanges()
 1
 >>> list(pim.Stamp(note).stamps)
-[MailStamp(<Note: ...>)]
+[MailStamp(<Note ...>)]
 
 
 Proxying ``None``
@@ -215,7 +214,7 @@ back ``None``:
 >>> item = pim.ContentItem(itsView=view, displayName=u"Hi")
 >>> item.delete()
 >>> item
-<ContentItem (deferred): ...>
+<Item (deleted): ...>
 >>> UserChangeProxy(item)
 
 
@@ -285,7 +284,7 @@ Changing reflists
 >>> itemProxy.makeChanges()
 1
 >>> reminder.reminderItem
-<ContentItem: ...>
+<ContentItem ...>
 >>> item = pim.ContentItem(itsView=view)
 >>> itemProxy = UserChangeProxy(item)
 >>> itemProxy.reminders = []
@@ -329,7 +328,7 @@ u''
 The same works for ``eventProxy`` above, since it doesn't have recurrence yet:
 
 >>> eventProxy.itsItem
-<RecurrenceProxy at ... for <Note: ...>>
+<RecurrenceProxy at ... for <Note ...>>
 >>> eventProxy.summary = u"Very important event"
 >>> master.summary
 u'Very important event'

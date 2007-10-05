@@ -710,7 +710,7 @@ class EventStamp(Stamp):
 
         super(EventStamp, self).remove()
         
-        if not isDead(self.itsItem) and self.itsItem.displayName == _("New Event"):
+        if self.itsItem.displayName == _("New Event"):
             self.itsItem.displayName = _("Untitled")
 
     def getTimeDescription(self):
