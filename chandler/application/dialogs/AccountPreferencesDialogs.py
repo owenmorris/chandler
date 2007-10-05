@@ -230,20 +230,23 @@ class ChandlerIMAPFoldersDialog(ProgressDialog):
         created = statusValue[3]
 
         if created:
-            self.SUCCESS_TEXT_SIZE = (525, 240)
+            # The -1 length argument lets the wx layer
+            # determine the correct length based on the
+            # the localized text.
+            self.SUCCESS_TEXT_SIZE = (525, -1)
 
             return _(u"""\
-The following folders have been created in your account:
-
-Chandler Events - Add messages to this folder to add them to your Calendar
-Dashboard. Chandler will do its best to makes sense of any date and time information in the message.
+The following folders have been created on your account:
 
 Chandler Mail - Add messages to this folder to add them to your Mail Dashboard.
 
-Chandler Tasks - Add messages to this folder to add them to your Tasks
-Dashboard.
+Chandler Tasks - Add messages to this folder to add them to your Tasks Dashboard.
 
-All messages added to Chandler folders will show up in your All Dashboard.""")
+Chandler Events - Add messages to this folder to add them to your Calendar Dashboard. Chandler will do its best to makes sense of any date and time information in the message.
+
+All messages added to Chandler folders will show up in your All Dashboard.
+
+Note: Chandler folders may take a while to appear in your email application.""")
 
         else:
             return _(u"You have already set up Chandler folders in this account. No new folders were created.")
