@@ -540,7 +540,7 @@ def makeMainMenus(parcel):
                                 helpString = _(u'Browse for new pluginsItem')),
                     MenuItem.template('InstallPluginsMenuItem',
                                 event = main.InstallPlugins,
-                                title = _(u"I&nstall"),
+                                title = _(u"I&nstall..."),
                                 helpString = _(u'Install plugins')),
                     PluginMenu.template('PluginsMenu',
                         title=_(u'&Active'),
