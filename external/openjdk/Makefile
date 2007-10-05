@@ -6,6 +6,7 @@ RELVER=$(JRE_VERSION)-$(BRANCH_REV_PREFIX)1
 OPENJDK=$(BUILD_ROOT)/openjdk
 JDK=$(OPENJDK)/j2sdk-image
 JRE=$(OPENJDK)/j2re-image
+SRC=$(OPENJDK)/none
 
 include $(BUILD_ROOT)/Makefile.inc
 
@@ -55,3 +56,6 @@ install: $(TARBALL)
 
 default: expand
 all: expand
+
+_realclean::
+	rm -rf j2re* j2sdk* apache-ant*
