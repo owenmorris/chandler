@@ -563,8 +563,12 @@ class WebDAVMonolithicRecordSetConduit(MonolithicRecordSetConduit,
 
     def get(self):
         handle = self._getServerHandle()
-        resource = self._resourceFromPath("")
-        path = resource.path
+
+        path = self._getSharePath()
+        if path == "/":
+            path = ""
+        path = "/".join([path, self.shareName])
+
         if self.etag:
             extraHeaders = { 'If-None-Match' : self.etag }
         else:

@@ -1315,6 +1315,8 @@ def subscribeICS(view, url, inspection, activity=None,
             translator=SharingTranslator,
             serializer=ICSSerializer
         )
+        if query:
+            share.conduit.shareName += "?%s" % query
         if ticket:
             share.conduit.ticket = ticket
         if username:
