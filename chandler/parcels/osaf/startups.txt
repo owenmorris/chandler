@@ -361,7 +361,7 @@ Giving it a chance to run and complete::
     running <TwistedTask ... demo ...> in <RepositoryThread(reactor,...)>
 
     >>> stop_reactor()  # shut down the reactor again
-    >>> len(threading.enumerate())  # all other threads should be stopped now
+    >>> len([thread for thread in threading.enumerate() if thread.isAlive()]) # all other threads should be stopped now
     1
 
     >>> demo.active = False     # disable for next test(s)
@@ -495,7 +495,7 @@ Anyway, if we turn the ``run_at_startup`` flag back off, it doesn't get a
 Finally, let's clean up after our ``PeriodicTask`` example::
 
     >>> stop_reactor()
-    >>> len(threading.enumerate())  # all other threads should be stopped now
+    >>> len([thread for thread in threading.enumerate() if thread.isAlive()])  # all other threads should be stopped now
     1
 
     >>> counter.active = False      # disable for subsequent tests
