@@ -731,29 +731,6 @@ class MainView(View):
     def alertUser(self, message):
         promptOk(message)
 
-    def callAnyCallable(self, callable, withView, *args, **kw):
-        """
-        Call any callable. The idea with this method is that any object
-        in any view and any thread can put in a request in the application
-        async method list with::
-
-            wxApplication.CallItemMethodAsync("MainView", 
-                                              'callAnyCallable',
-                                              withView, myMethod, myArg1, ...)
-
-        and get a method of their choice be called back on the main thread with
-        the main repository view (if they so like).
-
-        @param withView: Should be true if the first argument for the callable
-                         should be the main view, before *args and **kw.
-        @param callable: A Python callable
-        @param args:     Arguments for callable
-        @param kw:       Keyword arguments for callable
-        """
-        if withView:
-            return callable(self.itsView, *args, **kw)
-        return callable(*args, **kw)
-
     def onReplyEventUpdateUI(self, event):
         event.arguments['Enable'] = False
     def onReplyAllEventUpdateUI(self, event):

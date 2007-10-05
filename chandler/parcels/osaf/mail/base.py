@@ -22,7 +22,6 @@ import twisted.internet.defer as defer
 import twisted.internet.error as error
 import twisted.internet.protocol as protocol
 import twisted.python.failure as failure
-from twisted.internet import threads
 from M2Crypto.SSL.Checker import WrongHost
 
 #python imports
@@ -32,8 +31,6 @@ import email.Utils as emailUtils
 
 #Chandler imports
 from application import Globals
-from repository.persistence.RepositoryError \
-    import RepositoryError, VersionConflictError
 from repository.persistence.RepositoryView import RepositoryView
 from osaf.pim.mail import AccountBase
 from osaf.framework.certstore import ssl
@@ -515,14 +512,17 @@ class AbstractDownloadClient(object):
                     callMethodInUIThread(self.callback, (2, None))
 
                 if err.args[0] in ssl.unknown_issuer:
-                    displaySSLCertDialog(err.untrustedCertificates[0], self.reconnect)
+                    d = ssl.askTrustServerCertificate(err.untrustedCertificates[0], self.reconnect)
                 else:
-                    displayIgnoreSSLErrorDialog(err.untrustedCertificates[0], err.args[0],
-                                                self.reconnect)
+                    d = ssl.askIgnoreSSLError(err.untrustedCertificates[0],
+                                              err.args[0],
+                                              self.reconnect)
+                
+                d.addCallback(lambda dummy: True)
+                    
             except Exception, e:
                 # This code should never be reached.
                 log.exception('Error raised in SSL Layer which requires investigation.')
-                from i18n import ChandlerMessageFactory as _
                 callMethodInUIThread(self.callback, (0, _(u"There was an error in the SSL Layer.")))
 
             return self._actionCompleted()
@@ -539,10 +539,13 @@ class AbstractDownloadClient(object):
                 # Weird, huh? Welcome to the world of wx...
                 callMethodInUIThread(self.callback, (2, None))
 
-            displayIgnoreSSLErrorDialog(err.pem,
-                                        messages.SSL_HOST_MISMATCH % \
-                                          {'expectedHost': err.expectedHost,
-                                           'actualHost': err.actualHost}, self.reconnect)
+            d = ssl.askIgnoreSSLError(err.pem,
+                                      messages.SSL_HOST_MISMATCH % \
+                                        {'expectedHost': err.expectedHost,
+                                         'actualHost': err.actualHost},
+                                      self.reconnect)
+
+            d.addCallback(lambda dummy: True)
 
             return self._actionCompleted()
 

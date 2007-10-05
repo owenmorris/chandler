@@ -29,24 +29,21 @@ import zanshin.webdav
 import zanshin.util
 import zanshin.http
 
-import wx
 import M2Crypto
 import chandlerdb
 import twisted.internet.error as error
 from twisted.internet import reactor
 
-import application.Globals as Globals
 import application.Utility as Utility
 from osaf.framework.certstore import ssl
+from osaf.activity import ActivityAborted
 from osaf import messages
 import threading
 import logging
 import urllib
 from i18n import ChandlerMessageFactory as _
-from osaf.mail.utils import displayIgnoreSSLErrorDialog, \
-                            displaySSLCertDialog, \
-                            callMethodInUIThread
-
+from osaf.mail.utils import callMethodInUIThread
+from osaf.framework.twisted import waitForDeferred
 
 class ChandlerServerHandle(zanshin.webdav.ServerHandle):
     def __init__(self, host=None, port=None, username=None, password=None,
@@ -83,51 +80,45 @@ class ChandlerServerHandle(zanshin.webdav.ServerHandle):
             try:
                 return zanshin.util.blockUntil(callable, *args, **keywds)
             except Utility.CertificateVerificationError, err:
+                self._reconnect = False
+
                 assert err.args[1] == 'certificate verify failed'
     
                 # Reason why verification failed is stored in err.args[0], see
                 # codes at http://www.openssl.org/docs/apps/verify.html#DIAGNOSTICS
     
-                retry = (lambda: setattr(self, '_retry', True))
+                retry = lambda: True
     
                 if err.args[0] in ssl.unknown_issuer:
-                    handler = lambda: ssl.askTrustServerCertificate(
-                        wx.GetApp().UIRepositoryView,
+                    d = ssl.askTrustServerCertificate(
                         err.untrustedCertificates[0], 
                         retry)
                 else:
-                    handler = lambda: ssl.askIgnoreSSLError(
+                    d = ssl.askIgnoreSSLError(
                         err.untrustedCertificates[0], 
                         err.args[0], 
                         retry)
-    
-                self._handleSSLError(handler, err, callable, *args, **keywds)
-                        
+
+                if not waitForDeferred(d):
+                    raise ActivityAborted(_(u"Cancelled by user"))
+                                            
             except M2Crypto.SSL.Checker.WrongHost, err:
-                retry = (lambda: setattr(self, '_retry', True))
-    
-                handler = lambda: ssl.askIgnoreSSLError(
+                self._reconnect = False
+
+                retry = lambda: True
+        
+                d = ssl.askIgnoreSSLError(
                     err.pem, 
                     messages.SSL_HOST_MISMATCH % {'expectedHost': err.expectedHost, 'actualHost': err.actualHost},
                     retry)
-                self._handleSSLError(handler, err, callable, *args, **keywds)
-    
+
+                if not waitForDeferred(d):
+                    raise ActivityAborted(_(u"Cancelled by user"))
+
             except M2Crypto.BIO.BIOError, err:
                 # Translate the mysterious M2Crypto.BIO.BIOError
                 raise error.SSLError(err)
-
-    def _handleSSLError(self, handler, err, callable, *args, **keywds):
-        self._reconnect = False
-
-        if Globals.wxApplication is not None: # test framework has no wxApplication
-            handler()
-            
-        if hasattr(self, '_retry'):
-            del self._retry
-        else:
-            raise err
         
-
 
 class ChandlerHTTPClientFactory(zanshin.http.HTTPClientFactory):
     logLevel = logging.WARNING
@@ -312,10 +303,12 @@ class TestChandlerServerHandle(ChandlerServerHandle):
                 # Weird, huh? Welcome to the world of wx...
                 callMethodInUIThread(self.callback, result)
                 if err.args[0] in ssl.unknown_issuer:
-                    displaySSLCertDialog(err.untrustedCertificates[0], self.reconnect)
+                    d = ssl.askTrustServerCertificate(err.untrustedCertificates[0], self.reconnect)
                 else:
-                    displayIgnoreSSLErrorDialog(err.untrustedCertificates[0],
-                                                err.args[0], self.reconnect)
+                    d = ssl.askIgnoreSSLError(err.untrustedCertificates[0],
+                                              err.args[0], self.reconnect)
+
+                waitForDeferred(d)
 
                 return result
             except Exception, e:
@@ -331,11 +324,12 @@ class TestChandlerServerHandle(ChandlerServerHandle):
             # the progress dialog will also kill the SSL error dialog.
             # Weird, huh? Welcome to the world of wx...
             callMethodInUIThread(self.callback, result)
-            ssl.askIgnoreSSLError( err.pem,
-                    messages.SSL_HOST_MISMATCH % \
-                      {'expectedHost': err.expectedHost,
-                       'actualHost': err.actualHost},
-                       self.reconnect)
+            d = ssl.askIgnoreSSLError(err.pem,
+                                      messages.SSL_HOST_MISMATCH % \
+                                        {'expectedHost': err.expectedHost,
+                                        'actualHost': err.actualHost},
+                                      self.reconnect)
+            waitForDeferred(d)
 
             return result
 

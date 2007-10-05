@@ -26,7 +26,6 @@ from datetime import datetime
 import sys
 import sgmllib
 from twisted.mail import smtp
-from chandlerdb.util.c import UUID
 
 #Chandler imports
 import application.Globals as Globals
@@ -34,8 +33,8 @@ from repository.util.Lob import Lob
 from i18n import ChandlerMessageFactory as _
 
 __all__ = ['log', 'trace', 'disableTwistedTLS', 'getEmptyDate',
-           'dateIsEmpty', 'alert', 'alertMailError', 'NotifyUIAsync', 'displaySSLCertDialog',
-           'displayIgnoreSSLErrorDialog', 'dateTimeToRFC2822Date', 'createMessageID',
+           'dateIsEmpty', 'alert', 'alertMailError', 'NotifyUIAsync',
+           'dateTimeToRFC2822Date', 'createMessageID',
            'hasValue', 'isString', 'dataToBinary', 'binaryToData', 'stripHTML',
            'setStatusMessage', 'callMethodInUIThread']
 
@@ -133,28 +132,6 @@ def alertMailError(message, account, args=None):
         message = message % args
 
     NotifyUIAsync(message, None, 'displayMailError', account)
-
-def displaySSLCertDialog(cert, reconnectMethod):
-    """
-    Displays the "Do you want to add this cert" dialog.
-    """
-    from osaf.framework.certstore import ssl
-    wxApplication = Globals.wxApplication
-    if wxApplication is not None: # test framework has no wxApplication
-        wxApplication.CallItemMethodAsync("MainView", 'callAnyCallable', 
-                                          ssl.askTrustServerCertificate, True,
-                                          cert, reconnectMethod)
-
-def displayIgnoreSSLErrorDialog(cert, err, reconnectMethod):
-    """
-    Displays the invalid cert dialog.
-    """
-    from osaf.framework.certstore import ssl
-    wxApplication = Globals.wxApplication
-    if wxApplication is not None: # test framework has no wxApplication
-        wxApplication.CallItemMethodAsync("MainView", 'callAnyCallable',
-                                          ssl.askIgnoreSSLError, False, cert,
-                                          err, reconnectMethod)
 
 def NotifyUIAsync(message, logger=None, cl='setStatusMessage', *args, **keys):
     if logger is not None:
