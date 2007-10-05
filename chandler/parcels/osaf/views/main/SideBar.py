@@ -27,6 +27,8 @@ from osaf.pim import (
     calendar
     )
 
+from lucene import JavaError as LuceneError
+
 from osaf.framework.prompts import promptYesNoCancel
 from application.dialogs import RecurrenceDialog
 
@@ -34,6 +36,7 @@ from osaf import sharing, pim, search
 from osaf.usercollections import UserCollection
 from osaf.sharing import ChooseFormat, Share
 from repository.item.Item import MissingClass
+from lucene import JavaError as LuceneError
 from osaf.pim import isDead
 from application import schema
 from i18n import ChandlerMessageFactory as _
@@ -1552,7 +1555,7 @@ class SidebarBranchPointDelegate(BranchPoint.BranchPointDelegate):
         return key
 
     def search(self, searchCollection):
-        import PyLucene
+
         try:
             view = self.itsView
 
@@ -1607,11 +1610,13 @@ class SidebarBranchPointDelegate(BranchPoint.BranchPointDelegate):
 
             mainView.setStatusMessage (statusMessage)
 
-        except PyLucene.JavaError, error:
-            message = unicode (error)
-            prefix = u"org.apache.lucene.queryParser.ParseException: "
-            if message.startswith (prefix):
-                message = message [len(prefix):]
+        except LuceneError, error:
+            exception = error.getJavaException()
+            if (exception.getClass().getName() ==
+                u'org.apache.lucene.queryParser.ParseException'):
+                message = exception.getMessage()
+            else:
+                message = unicode(error)
             wx.MessageBox (_(u"An error occured during search.\n\nThe search engine reported the following error:\n\n%(message)s" ) % {"message": message},
                            _(u"Search Error"),
                            parent = app.mainFrame)

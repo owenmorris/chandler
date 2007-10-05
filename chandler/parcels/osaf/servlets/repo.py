@@ -242,7 +242,7 @@ def RenderSearchForm(repoView):
     result = """
 <table width="100%" border="0" cellpadding="4" cellspacing="0" class="search-form">
 <tr class="toprow">
-<td><b>PyLucene Search:</b></td>
+<td><b>Lucene Search:</b></td>
 </tr>
 <tr class="oddrow">
 <td>
@@ -258,7 +258,7 @@ def RenderSearchResults(repoView, text):
     result = u""
     result += "<table width=100% border=0 cellpadding=4 cellspacing=0>\n"
     result += "<tr class='toprow'>\n"
-    result += "<td><b>PyLucene Search Results for <i>%s</i> :</b></td>\n" % text
+    result += "<td><b>Lucene Search Results for <i>%s</i> :</b></td>\n" % text
     result += "</tr>\n"
     count = 0
     for (item, attribute) in repoView.searchItems(text):

@@ -692,7 +692,7 @@ def initRepository(directory, options, allowSchemaView=False):
         pass
 
     elif options.indexer == 'none':
-        # don't run PyLucene indexing in the main view
+        # don't run full-text indexing in the main view
         view.setBackgroundIndexed(True)
         # don't start an indexer
 
@@ -703,7 +703,7 @@ def initRepository(directory, options, allowSchemaView=False):
             options.indexer = int(options.indexer) # seconds
 
         if options.indexer:
-            # don't run PyLucene indexing in the main view
+            # don't run full-text indexing in the main view
             view.setBackgroundIndexed(True)
             # but in the repository's background indexer
             repository.startIndexer(options.indexer)

@@ -1361,26 +1361,36 @@ class RepositoryView(CView):
 
         store = self.store
         prevValues = set()
+        prevNames = set()
 
         if fromVersion > 1:
             for version, status in store.iterItemVersions(self, item.itsUUID, fromVersion - 1, 0, True):
                 then, viewSize, commitCount, name = store.getCommit(version)
                 reader, uValues = store.loadValues(self, version, item.itsUUID)
                 prevValues = set(uValues)
+                prevNames = set(store.loadItemName(self, version, uAttr)
+                                for uAttr in (reader.readAttribute(self, uValue)
+                                              for uValue in uValues))
                 break
                 
         for version, status in store.iterItemVersions(self, item.itsUUID, fromVersion, toVersion):
             then, viewSize, commitCount, name = store.getCommit(version)
             reader, uValues = store.loadValues(self, version, item.itsUUID)
             currValues = set(uValues)
+            currNames = set(store.loadItemName(self, version, uAttr)
+                            for uAttr in (reader.readAttribute(self, uValue)
+                                          for uValue in uValues))
             if name == self.name:
                 # removed values not included
                 names = [store.loadItemName(self, version, uAttr)
                          for uAttr in (reader.readAttribute(self, uValue)
                                        for uValue in currValues - prevValues)]
-                print "%6d 0x%08x %s: %s" %(version, status, name,
-                                            ', '.join(names))
+                print "%6d 0x%08x %s:" %(version, status, name)
+                print "      changed: %s" %(', '.join(sorted(names)))
+                print "      removed: %s" %(', '.join(sorted(prevNames -
+                                                             currNames)))
             prevValues = currValues
+            prevNames = currNames
 
     def printCurrentChanges(self, detailed=False):
 
@@ -1970,7 +1980,7 @@ class ViewTZInfo(object):
         elif not isinstance(default, ICUtzinfo):
             raise TypeError, default
         current = self._default
-        if self._default != default:
+        if current != default:
             self._default = default
             self._floating.tzinfo = default
             self._ontzchange(self.view, default)

@@ -17,7 +17,7 @@
 The beginning of a search module.
 
 The initial purpose of this module is to transform search results from
-PyLucene into a set of Note-based items.
+Lucene into a set of Note-based items.
 
 Right now this is hardcoded for non-Note types like Location and
 EmailAddress. Eventually we'd like this to be pluggable, so that any
@@ -29,7 +29,7 @@ from itertools import chain
 
 def processResults(results):
     """
-    a generator that returns Notes-based items based on PyLucene results
+    a generator that returns Notes-based items based on Lucene results
 
     At the moment there are no guarantees that the same item won't be
     returned more than once.

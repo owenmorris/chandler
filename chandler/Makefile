@@ -26,24 +26,42 @@ BUILD_LOCALES = Chandler.en
 
 # When a version changes, the ARCHIVES lists below need to be updated.
 
+ifeq ($(findstring CYGWIN,$(OS)),CYGWIN)
+    OS = Cygwin
+endif
+
+ifeq ($(findstring WINNT,$(OS)),WINNT)
+    OS = Cygwin
+endif
+
 ifeq ($(OS),Linux)
     OPENSSL =
-else
+    OPENJDK = $(CHANDLERARCHIVES)/openjdk-7-ea-j2re-b21-$(BP)1.tar.gz
+endif
+
+ifeq ($(OS),Darwin)
     OPENSSL = $(CHANDLERARCHIVES)/openssl-$(SNAP)-0.9.8d-$(BP)1.tar.gz
+    OPENJDK = 
+endif
+
+ifeq ($(OS),Cygwin)
+    OPENSSL = $(CHANDLERARCHIVES)/openssl-$(SNAP)-0.9.8d-$(BP)1.tar.gz
+    OPENJDK = $(CHANDLERARCHIVES)/openjdk-7-ea-j2re-b21-$(BP)1.tar.gz
 endif
 
 ARCHIVES = \
-    $(CHANDLERARCHIVES)/Launchers-$(SNAP)-0.9-$(BP)20.tar.gz \
-    $(CHANDLERARCHIVES)/chandlerdb-$(SNAP)-0.7-$(BP)25.tar.gz \
+    $(CHANDLERARCHIVES)/Launchers-$(SNAP)-0.9-$(BP)21.tar.gz \
+    $(CHANDLERARCHIVES)/chandlerdb-$(SNAP)-0.7-$(BP)26.tar.gz \
     $(CHANDLERARCHIVES)/db-$(SNAP)-4.5.20-$(BP)3.tar.gz \
     $(CHANDLERARCHIVES)/python-$(SNAP)-2.5.1-$(BP)4.tar.gz \
     $(CHANDLERARCHIVES)/epydoc-$(SNAP)-3.0beta1-$(BP)1.tar.gz \
     $(CHANDLERARCHIVES)/icu-$(SNAP)-3.6-$(BP)1.tar.gz \
     $(OPENSSL) \
+    $(OPENJDK) \
     $(CHANDLERARCHIVES)/m2crypto-$(SNAP)-563-$(BP)2.tar.gz \
     $(CHANDLERARCHIVES)/pychecker-$(SNAP)-0.8.17-$(BP)1.tar.gz \
     $(CHANDLERARCHIVES)/PyICU-$(SNAP)-0.6-78-$(BP)1.tar.gz \
-    $(CHANDLERARCHIVES)/PyLucene-$(SNAP)-2.1.0-2-$(BP)1.tar.gz \
+    $(CHANDLERARCHIVES)/PyLucene-$(SNAP)-2.2.0-1-354-$(BP)1.tar.gz \
     $(CHANDLERARCHIVES)/twisted-$(SNAP)-r18795-$(BP)2.tar.gz \
     $(CHANDLERARCHIVES)/wxPython-$(SNAP)-2.8.4.1-r184-$(BP)1.tar.gz \
     $(CHANDLERARCHIVES)/dateutil-$(SNAP)-1.1-$(BP)5.tar.gz \
@@ -58,14 +76,6 @@ ARCHIVES = \
     $(CHANDLERARCHIVES)/eggtranslations-$(SNAP)-1.0-r9-$(BP)1.tar.gz \
     $(CHANDLERARCHIVES)/zope.interface-$(SNAP)-3.3.0b2-r71371-$(BP)3.tar.gz \
     $(CHANDLERARCHIVES)/setuptools-$(SNAP)-0.6c6-$(BP)1.tar.gz
-
-ifeq ($(findstring CYGWIN,$(OS)),CYGWIN)
-    OS = Cygwin
-endif
-
-ifeq ($(findstring WINNT,$(OS)),WINNT)
-    OS = Cygwin
-endif
 
 ifeq ($(DEBUG),1)
     SNAP         = debug
@@ -232,8 +242,16 @@ $(ARCHIVES):
 	mkdir -p $(CHANDLERARCHIVES)
 	$(CURL) $@ $(P_URL)/$(notdir $@)
 
+# if the archive name does not contain the string 'release' or 'debug' it's
+# the same for both and needs to be installed in $(SNAP) explicitely
 $(ARCHIVES_INST):
-	tar -C $(C_BIN) -xvzf $(CHANDLERARCHIVES)/$(notdir $(basename $@))
+	@if [ $(shell echo $(notdir $@) | sed "s/-$(SNAP)[^ ]*//g") = $(notdir $@) ]; then \
+            echo tar -C $(C_BIN)/$(SNAP) -xvzf $(CHANDLERARCHIVES)/$(notdir $(basename $@)); \
+            tar -C $(C_BIN)/$(SNAP) -xvzf $(CHANDLERARCHIVES)/$(notdir $(basename $@)); \
+        else \
+            echo tar -C $(C_BIN) -xvzf $(CHANDLERARCHIVES)/$(notdir $(basename $@)); \
+            tar -C $(C_BIN) -xvzf $(CHANDLERARCHIVES)/$(notdir $(basename $@)); \
+        fi
 	touch $@
 
 ifeq ($(OS),Cygwin)

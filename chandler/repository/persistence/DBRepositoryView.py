@@ -86,8 +86,6 @@ class DBRepositoryView(OnDemandRepositoryView):
 
     def cancel(self):
 
-        self._loadTimezone()
-
         for item in self._log:
             item.setDirty(0)
             item._unloadItem(not item.isNew(), self, False)
@@ -103,6 +101,8 @@ class DBRepositoryView(OnDemandRepositoryView):
         for item in self._log:
             if not item.isNew():
                 self.find(item.itsUUID)
+
+        self._loadTimezone()
 
         self._log.clear()
         del self._newIndexes[:]
@@ -390,7 +390,6 @@ class DBRepositoryView(OnDemandRepositoryView):
                 self.find(item.itsUUID)
 
         self._loadTimezone(version)
-
 
     def _refreshForwards(self, mergeFn, newVersion, notify):
 

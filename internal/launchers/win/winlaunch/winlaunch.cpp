@@ -61,7 +61,7 @@ int APIENTRY WinMain (HINSTANCE hInstance,
     DWORD               length;
     DWORD               exitCode = EXIT_FAILURE;
     CString             pathToPython;
-    CString             chandlerHome;
+    CString             chandlerHome, chandlerBin;
     CString             pathToExe;
     PROCESS_INFORMATION processInfo;
     STARTUPINFO         startupInfo;
@@ -112,6 +112,7 @@ int APIENTRY WinMain (HINSTANCE hInstance,
     chandlerHome = pathToExe;
     index = chandlerHome.ReverseFind(TCHAR('\\'));
     chandlerHome.Truncate(index);
+    chandlerBin = chandlerHome;
     index = chandlerHome.ReverseFind(TCHAR('\\'));
     chandlerHome.Truncate(index);
 
@@ -131,9 +132,12 @@ int APIENTRY WinMain (HINSTANCE hInstance,
 
     /*
      * PATH must be set because some DLLs don't get found
-     * pre XP SP1
+     * pre XP SP1 and to find j2re DLLs
      */
-    _putenv(_T("PATH=") + pathToExe);
+    _putenv(_T("PATH=") + \
+            pathToExe + _T(";") + \
+            chandlerBin + _T("\\j2re-image\\bin;") + \
+            chandlerBin + _T("\\j2re-image\\bin\\client"));
 
     /*
      * CHANDLERHOME must be set because otherwise Chandler won't be

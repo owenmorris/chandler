@@ -576,7 +576,6 @@ def generateDocs(outputDir):
     import epydoc.cli
 
     sys.argv += [ 'Chandler.py',
-                  'PyICU', 'PyLucene',
                   'chandlerdb', 'chandlerdb.item',
                   'chandlerdb.persistence',
                   'chandlerdb.schema', 'chandlerdb.util',

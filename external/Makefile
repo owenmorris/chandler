@@ -22,6 +22,7 @@ SYSTEMS=db \
         $(OPENSSL_WIN) \
         $(READLINE_OSX) \
         $(READLINE_WIN) \
+        $(OPENJDK) \
         python \
         setuptools \
         epydoc \

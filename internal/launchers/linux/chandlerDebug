@@ -15,7 +15,7 @@ export CHANDLERBIN
 
 export PYTHONPATH="$CHANDLERHOME:$CHANDLERHOME/parcels"
 export PYTHONHOME="$CHANDLERBIN"/debug
-export LD_LIBRARY_PATH="$CHANDLERBIN"/debug/lib:"$CHANDLERBIN"/debug/db/lib:"$CHANDLERBIN"/debug/icu/lib
+export LD_LIBRARY_PATH="$CHANDLERBIN"/debug/lib:"$CHANDLERBIN"/debug/db/lib:"$CHANDLERBIN"/debug/icu/lib:"$CHANDLERBIN"/debug/j2re-image/lib/i386:"$CHANDLERBIN"/debug/j2re-image/lib/i386/client
 export LC_PATH="$CHANDLERBIN"/debug/share/locale
 
 if [ "$PARCELPATH" != "" ]

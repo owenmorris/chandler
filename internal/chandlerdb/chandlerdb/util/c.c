@@ -188,6 +188,17 @@ static PyObject *getLinkedMapCounts(PyObject *self)
     return Py_BuildValue("(ll)", linkCount, linkedMapCount);
 }
 
+static PyObject *allocateBuffer(PyObject *self, PyObject *arg)
+{
+    if (!PyInt_Check(arg))
+    {
+        PyErr_SetObject(PyExc_TypeError, arg);
+        return NULL;
+    }
+
+    return PyBuffer_New((Py_ssize_t) PyInt_AS_LONG(arg));
+}
+
 
 #ifdef __MACH__
 static PyObject *_vfork(PyObject *self)
@@ -233,6 +244,8 @@ static PyMethodDef c_funcs[] = {
       "return the number of currently allocated skiplist objects" },
     { "getLinkedMapCounts", (PyCFunction) getLinkedMapCounts, METH_NOARGS,
       "return the number of currently allocated LinkedMap objects" },
+    { "allocateBuffer", (PyCFunction) allocateBuffer, METH_O,
+      "return a newly allocated read/write buffer object" },
 #ifdef __MACH__
     { "vfork", (PyCFunction) _vfork, METH_NOARGS, "" },
 #endif

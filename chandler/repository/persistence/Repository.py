@@ -13,7 +13,7 @@
 #   limitations under the License.
 
 
-import sys, logging, threading, PyLucene, time, Queue
+import sys, logging, threading, time, Queue
 
 from chandlerdb.util.c import Default
 from chandlerdb.persistence.c import CRepository, CStore
@@ -187,28 +187,73 @@ class Repository(CRepository):
                                                 viewSize, commitCount, status,
                                                 name)
 
+    def printChanges(self, fromVersion=1, toVersion=0):
+
+        store = self.store
+        if toVersion == 0:
+            toVersion = store.getVersion()
+        ver = 0
+
+        def changes(uItem, version):
+            reader, uValues = store.loadValues(None, version, uItem)
+            names = set(store.loadItemName(None, version, uAttr)
+                        for uAttr in (reader.readAttribute(None, uValue)
+                                      for uValue in uValues))
+            return names, set(uValues), reader
+            
+        for (uItem, version, uKind, status, uParent, pKind,
+             dirties) in store.iterHistory(None, fromVersion - 1, toVersion):
+            if ver != version:
+                then, viewSize, commitCount, name = store.getCommit(version)
+                ver = version
+                x, tzname, newIndexes = store.getViewData(version)
+                then = time.strftime("%d-%b-%y,%H:%M:%S", time.localtime(then))
+                print "%6d: %s %s %s %s" %(version, name, then,
+                                           tzname, newIndexes)
+
+            prevNames, prevValues, prevReader = changes(uItem, version - 1)
+            currNames, currValues, currReader = changes(uItem, version)
+            names = [store.loadItemName(None, version, uAttr)
+                     for uAttr in (currReader.readAttribute(None, uValue)
+                                   for uValue in currValues - prevValues)]
+
+            print '    %s 0x%08x' %(uItem, status)
+            print '        changed: %s' %(', '.join(sorted(names)))
+            print '        removed: %s' %(', '.join(sorted(prevNames -
+                                                           currNames)))
+
     def printItemChanges(self, item, fromVersion=1, toVersion=0):
 
         store = self.store
         prevValues = set()
+        prevNames = set()
 
         if fromVersion > 1:
             for version, status in store.iterItemVersions(None, item.itsUUID, fromVersion - 1, 0, True):
                 then, viewSize, commitCount, name = store.getCommit(version)
                 reader, uValues = store.loadValues(None, version, item.itsUUID)
                 prevValues = set(uValues)
+                prevNames = set(store.loadItemName(None, version, uAttr)
+                                for uAttr in (reader.readAttribute(None, uValue)
+                                              for uValue in uValues))
                 break
 
         for version, status in store.iterItemVersions(None, item.itsUUID, fromVersion, toVersion):
             then, viewSize, commitCount, name = store.getCommit(version)
             reader, uValues = store.loadValues(None, version, item.itsUUID)
             currValues = set(uValues)
-            # removed values not included
+            currNames = set(store.loadItemName(None, version, uAttr)
+                            for uAttr in (reader.readAttribute(None, uValue)
+                                          for uValue in uValues))
             names = [store.loadItemName(None, version, uAttr)
                      for uAttr in (reader.readAttribute(None, uValue)
                                    for uValue in currValues - prevValues)]
-            print "%6d 0x%08x %s: %s" %(version, status, name, ', '.join(names))
+            print "%6d 0x%08x %s:" %(version, status, name)
+            print "      changed: %s" %(', '.join(sorted(names)))
+            print "      removed: %s" %(', '.join(sorted(prevNames -
+                                                         currNames)))
             prevValues = currValues
+            prevNames = currNames
 
     def setDebug(self, debug):
 
@@ -306,8 +351,13 @@ class Store(CStore):
         pass
 
 
-class RepositoryThread(PyLucene.PythonThread):
-    pass
+class RepositoryThread(threading.Thread):
+
+    def run(self):
+
+        from lucene import getVMEnv
+        getVMEnv().attachCurrentThread()
+        super(RepositoryThread, self).run()
 
 
 class RepositoryWorker(RepositoryThread):

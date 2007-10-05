@@ -108,7 +108,7 @@ def main():
                         libraries=['db-%s' %(DB_VER)])
     extensions.append(ext)
 
-    setup(name='chandlerdb', version='0.5',
+    setup(name='chandlerdb', version=VERSION,
           ext_modules=extensions, py_modules=modules)
 
 if __name__ == "__main__":

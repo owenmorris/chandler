@@ -17,7 +17,7 @@
 Chandler startup
 """
 
-import os, sys, PyLucene
+import os, sys
 from application import Globals, Utility
 
 def main():

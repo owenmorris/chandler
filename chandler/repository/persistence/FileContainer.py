@@ -13,23 +13,20 @@
 #   limitations under the License.
 
 from struct import pack, unpack
-from cStringIO import StringIO
 from time import time
-from heapq import heapify, heappop
 
-from PyLucene import \
-    Document, Field, RAMDirectory, DbDirectory, StandardAnalyzer, \
-    QueryParser, IndexReader, IndexWriter, IndexSearcher, Term, TermQuery, \
-    JavaError, MatchAllDocsQuery, BooleanQuery, BooleanClause
-
-from chandlerdb.util.c import UUID
+from chandlerdb.util.c import UUID, allocateBuffer
 from chandlerdb.persistence.c import DBLockDeadlockError, DBInvalidArgError
 
-from repository.persistence.DBContainer import DBContainer, VersionContainer
+from repository.persistence.DBContainer import DBContainer
 from repository.persistence.RepositoryError import RepositoryError
 
 
 class FileContainer(DBContainer):
+
+    BLOCK_SHIFT = 14
+    BLOCK_LEN = 1 << BLOCK_SHIFT
+    BLOCK_MASK = BLOCK_LEN - 1
 
     def __init__(self, store):
 
@@ -100,7 +97,7 @@ class FileContainer(DBContainer):
         while True:
             try:
                 cursor = self.c.openCursor()
-                value = cursor.first(self.c.flags)
+                value = cursor.first(self.c.flags, None)
 
                 while value is not None:
                     value = value[0]
@@ -263,6 +260,8 @@ class Block(object):
         self._container = container
         self._key = pack('>16sll', file.getKey()._uuid, 0L, 0L)
         self._data = None
+        self._position = 0
+        self._len = 0
 
     def getKey(self):
 
@@ -274,8 +273,9 @@ class Block(object):
 
     def seek(self, position, write=False):
 
-        key = pack('>16sll', self._key[0:16], 0L,
-                   position >> OutputStream.BLOCK_SHIFT)
+        position = int(position)
+        key = pack('>16sll', self._key[0:16], 0,
+                   position >> self._container.BLOCK_SHIFT)
 
         if self._data is None or key != self._key:
             self._key = key
@@ -283,30 +283,41 @@ class Block(object):
             data = container.get(self._key, container._blocks)
 
             if data is not None:
+                self._len = len(data)
                 if write:
-                    self._data = StringIO()
-                    self._data.write(data)
+                    self._data = allocateBuffer(self._container.BLOCK_LEN)
+                    self._data[0:self._len] = data
                 else:
-                    self._data = StringIO(data)
+                    self._data = buffer(data)
             else:
-                self._data = StringIO()
+                self._data = allocateBuffer(self._container.BLOCK_LEN)
 
-        self._data.seek(position & OutputStream.BLOCK_MASK)
+        self._position = position & self._container.BLOCK_MASK
 
     def put(self):
 
         if self._data is not None:
             container = self._container
-            data = self._data.getvalue()
-            self._data.close()
+            data = self._data[0:self._len]
+            self._data = None
             container.put(self._key, data, container._blocks)
+
+    def write(self, data):
+
+        size = len(data)
+        self._data[self._position:self._position+size] = data
+        self._position += size
+        self._len = max(self._len, self._position)
+
+    def read(self, size):
+
+        data = self._data[self._position:self._position+size]
+        self._position += size
+
+        return data
 
 
 class OutputStream(object):
-
-    BLOCK_SHIFT = 14L
-    BLOCK_LEN = 1L << BLOCK_SHIFT
-    BLOCK_MASK = BLOCK_LEN - 1L
 
     def __init__(self, container, name, create=False):
 
@@ -327,31 +338,31 @@ class OutputStream(object):
 
         self._file.modify(self.length, long(time() * 1000))
 
-    def write(self, buffer, length = -1):
+    def write(self, buffer, length=-1):
 
-        blockPos = self.position & OutputStream.BLOCK_MASK
+        blockPos = self.position & self._container.BLOCK_MASK
         offset = 0
         if length < 0:
             length = len(buffer)
 
-        while blockPos + length >= OutputStream.BLOCK_LEN:
-            blockLen = OutputStream.BLOCK_LEN - blockPos
+        while blockPos + length >= self._container.BLOCK_LEN:
+            blockLen = self._container.BLOCK_LEN - blockPos
 
-            self._block.getData().write(buffer[offset:offset+blockLen])
+            self._block.write(buffer[offset:offset+blockLen])
             self._block.put()
 
             length -= blockLen
             offset += blockLen
             self.position += blockLen
-
+            
             self._block.seek(self.position, True)
             blockPos = 0
 
         if length > 0:
             if offset == 0 and length == len(buffer):
-                self._block.getData().write(buffer)
+                self._block.write(buffer)
             else:
-                self._block.getData().write(buffer[offset:offset+length])
+                self._block.write(buffer[offset:offset+length])
             self.position += length
 
         if self.position > self.length:
@@ -362,15 +373,12 @@ class OutputStream(object):
         if pos > self.length:
             raise RepositoryError, "Seeking past end of file"
 
-        if ((pos >> OutputStream.BLOCK_SHIFT) !=
-            (self.position >> OutputStream.BLOCK_SHIFT)):
+        if ((pos >> self._container.BLOCK_SHIFT) !=
+            (self.position >> self._container.BLOCK_SHIFT)):
             self._block.put()
 
         self._block.seek(pos, True)
         self.position = pos
-
-    def length(self):
-        return self.length
 
     def flush(self):
         pass
@@ -392,16 +400,20 @@ class InputStream(object):
         self._block = Block(container, self._file)
 
         self.seek(0L)
+
+    def clone(self):
+
+        clone = type(self)(self._container, self._file.getName())
+        clone.seek(self.position)
+        return clone
         
     def close(self):
         pass
 
-    def read(self, length = -1):
+    def read(self, length=-1):
 
-        blockPos = self.position & OutputStream.BLOCK_MASK
+        blockPos = self.position & self._container.BLOCK_MASK
         offset = 0
-        buffer = None
-        data = ''
 
         if length < 0:
             length = self.length - self.position
@@ -409,13 +421,16 @@ class InputStream(object):
         if self.position + length > self.length:
             length = self.length - self.position
 
-        while blockPos + length >= OutputStream.BLOCK_LEN:
-            blockLen = OutputStream.BLOCK_LEN - blockPos
+        if not length:
+            return ''
 
-            if buffer is None:
-                buffer = StringIO()
+        buffer = allocateBuffer(int(length))
 
-            buffer.write(self._block.getData().read(blockLen))
+        while blockPos + length >= self._container.BLOCK_LEN:
+            blockLen = self._container.BLOCK_LEN - blockPos
+
+            data = self._block.read(blockLen)
+            buffer[offset:offset+blockLen] = data
 
             length -= blockLen
             offset += blockLen
@@ -425,16 +440,11 @@ class InputStream(object):
             blockPos = 0
 
         if length > 0:
-            data = self._block.getData().read(length)
-            if buffer is not None:
-                buffer.write(data)
+            buffer[offset:offset+length] = self._block.read(length)
             self.position += length
+            offset += length
 
-        if buffer is not None:
-            data = buffer.getvalue()
-            buffer.close()
-
-        return data
+        return buffer[0:offset]
 
     def seek(self, pos):
 
@@ -443,228 +453,3 @@ class InputStream(object):
 
         self._block.seek(pos)
         self.position = pos
-
-
-class IndexContainer(FileContainer):
-
-    def open(self, name, txn, **kwds):
-
-        super(IndexContainer, self).open(name, txn, **kwds)
-
-        if kwds.get('create', False):
-            directory = DbDirectory(txn, self._db, self._blocks, self.c.flags)
-            indexWriter = IndexWriter(directory, StandardAnalyzer(), True)
-            indexWriter.close()
-            directory.close()
-
-    def getIndexVersion(self):
-
-        value = self.get(VersionContainer.VERSION_KEY, self._blocks)
-
-        if value is None:
-            return 0
-        else:
-            return unpack('>l', value)[0]
-
-    def setIndexVersion(self, version):
-
-        self.put(VersionContainer.VERSION_KEY, pack('>l', version),
-                 self._blocks)
-        
-    def getDirectory(self):
-
-        return DbDirectory(self.store.txn, self._db, self._blocks, self.c.flags)
-
-    def getIndexReader(self):
-
-        return IndexReader.open(self.getDirectory())
-
-    def getIndexSearcher(self):
-
-        return IndexSearcher(self.getDirectory())
-
-    def getIndexWriter(self):
-
-        writer = IndexWriter(RAMDirectory(), StandardAnalyzer(), True)
-        writer.setUseCompoundFile(False)
-
-        return writer
-
-    def commitIndexWriter(self, writer):
-
-        try:
-            writer.close()
-            directory = self.getDirectory()
-            dbWriter = IndexWriter(directory, StandardAnalyzer(), False)
-            dbWriter.setUseCompoundFile(False)
-            dbWriter.addIndexes([writer.getDirectory()])
-            dbWriter.close()
-            dbWriter.getDirectory().close()
-            directory.close()
-        except JavaError, e:
-            je = e.getJavaException()
-            msg = je.getMessage()
-            if msg is not None and msg.find("DB_LOCK_DEADLOCK") >= 0:
-                raise DBLockDeadlockError, msg
-            if je.getClass().getName() == 'java.lang.IllegalArgumentException':
-                raise DBInvalidArgError, msg
-            if je.getClass().getName() == 'java.lang.NullPointerException':
-                self.store.repository.logger.exception("in commitIndexWriter()")
-                return # Windows PyLucene bug 10363
-            raise
-
-    def abortIndexWriter(self, writer):
-
-        writer.close()
-        writer.getDirectory().close()
-
-    def indexValue(self, indexWriter, value, uItem, uAttr, uValue, version):
-
-        try:
-            STORED = Field.Store.YES
-            UN_STORED = Field.Store.NO
-            TOKENIZED = Field.Index.TOKENIZED
-            UN_INDEXED = Field.Index.NO
-            UN_TOKENIZED = Field.Index.UN_TOKENIZED
-
-            doc = Document()
-            doc.add(Field("item", uItem.str64(), STORED, UN_TOKENIZED))
-            doc.add(Field("attribute", uAttr.str64(), STORED, UN_TOKENIZED))
-            doc.add(Field("value", uValue.str64(), STORED, UN_INDEXED))
-            doc.add(Field("version", str(version), STORED, UN_INDEXED))
-            doc.add(Field("contents", value, UN_STORED, TOKENIZED,
-                          Field.TermVector.YES))
-
-            indexWriter.addDocument(doc)
-        except JavaError:
-            self.store.repository.logger.exception("in indexValue()")
-
-    def indexReader(self, indexWriter, reader, uItem, uAttr, uValue, version):
-
-        try:
-            STORED = Field.Store.YES
-            UN_INDEXED = Field.Index.NO
-            UN_TOKENIZED = Field.Index.UN_TOKENIZED
-
-            doc = Document()
-            doc.add(Field("item", uItem.str64(), STORED, UN_TOKENIZED))
-            doc.add(Field("attribute", uAttr.str64(), STORED, UN_TOKENIZED))
-            doc.add(Field("value", uValue.str64(), STORED, UN_INDEXED))
-            doc.add(Field("version", str(version), STORED, UN_INDEXED))
-            doc.add(Field("contents", reader, Field.TermVector.YES))
-
-            indexWriter.addDocument(doc)
-        except JavaError:
-            self.store.repository.logger.exception("in indexReader()")
-
-    def optimizeIndex(self, indexWriter):
-
-        try:
-            indexWriter.optimize()
-        except JavaError:
-            self.store.repository.logger.exception("in optimizeIndex()")
-
-    def searchDocuments(self, view, version, query=None, attribute=None):
-
-        store = self.store
-
-        if query is None:
-            query = MatchAllDocsQuery()
-        else:
-            query = QueryParser("contents", StandardAnalyzer()).parse(query)
-        
-        if attribute:
-            combinedQuery = BooleanQuery()
-            combinedQuery.add(query, BooleanClause.Occur.MUST)
-            combinedQuery.add(TermQuery(Term("attribute", attribute.str64())),
-                              BooleanClause.Occur.MUST)
-            query = combinedQuery
-
-        class _collector(object):
-
-            def __init__(_self):
-                _self.hits=[]
-
-            def collect(_self, id, score):
-                _self.hits.append((-score, id))
-        
-        class _iterator(object):
-
-            def __init__(_self):
-
-                _self.txnStatus = 0
-                _self.searcher = None
-                _self.collector = None
-
-            def __del__(_self):
-
-                try:
-                    if _self.searcher is not None:
-                        _self.searcher.close()
-                    store.abortTransaction(view, _self.txnStatus)
-                except:
-                    store.repository.logger.exception("in __del__")
-
-                _self.txnStatus = 0
-                _self.searcher = None
-                _self.collector = None
-
-            def __iter__(_self):
-
-                _self.txnStatus = store.startTransaction(view)
-                _self.searcher = searcher = self.getIndexSearcher()
-                _self.collector = _collector()
-
-                searcher.search(query, _self.collector)
-                hits = _self.collector.hits
-
-                if hits:
-                    heapify(hits)
-                    while hits:
-                        score, id = heappop(hits)
-                        doc = searcher.doc(id)
-                        uItem = UUID(doc['item'])
-                        
-                        if long(doc['version']) <= version:
-                            if store._items.isValue(view, version, uItem,
-                                                    UUID(doc['value'])):
-                                yield uItem, UUID(doc['attribute'])
-
-        return _iterator()
-
-    def purgeDocuments(self, txn, counter, indexSearcher, indexReader,
-                       uItem, toVersion=None):
-
-        try:
-            term = Term("item", uItem.str64())
-
-            if toVersion is None:
-                counter.documentCount += indexReader.deleteDocuments(term)
-
-            else:
-                x, keep = self.store._items.findValues(None, toVersion,
-                                                       uItem, None, True)
-                keep = set(keep)
-
-                for hit in indexSearcher.search(TermQuery(term)):
-                    doc = hit.getDocument()
-                    ver = long(doc['version'])
-
-                    if ver <= toVersion and UUID(doc['value']) not in keep:
-                        indexReader.deleteDocument(hit.getId())
-                        counter.documentCount += 1
-
-        except JavaError:
-            self.store.repository.logger.exception("in purgeDocuments()")
-
-    def undoDocuments(self, indexSearcher, indexReader, uItem, version):
-
-        try:
-            term = Term("item", uItem.str64())
-
-            for hit in indexSearcher.search(TermQuery(term)):
-                if long(hit.getDocument()['version']) == version:
-                    indexReader.deleteDocument(hit.getId())
-
-        except JavaError:
-            self.store.repository.logger.exception("in undoDocuments()")

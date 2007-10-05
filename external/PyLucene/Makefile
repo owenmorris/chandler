@@ -1,177 +1,112 @@
 
-VERSION=2.1.0-2
+VERSION=2.2.0-1-$(SVNVER)
+SVNVER=354
 RELVER=$(VERSION)-$(BRANCH_REV_PREFIX)1
 PYLUCENE=$(BUILD_ROOT)/PyLucene
-SRC=$(PYLUCENE)/PyLucene-src-$(VERSION)
+SRC=$(PYLUCENE)/PyLucene-$(VERSION)
 BUILD=$(SNAP)
 TARBALL=PyLucene-$(SNAP)-$(RELVER).tar.gz
-
-DB_VER=4.5.20
-DB_LIB_VER=$(basename $(DB_VER))
+MANIFEST=$(SNAP)/$(SITE)/lucene
 
 include $(BUILD_ROOT)/Makefile.inc
 
-ifeq ($(DEBUG),1)
-SUFFIX=d
-_SUFFIX=_d
-ifeq ($(OS),Cygwin)
-PYDBG=-DPy_DEBUG=1
-endif
-else
-SUFFIX=
-_SUFFIX=
-endif
-
-ifeq ($(OS),Cygwin)
-PREFIX_PYTHON=$(PREFIX)/bin
-PREFIX_DB=$(BUILD_ROOT)/db/db-$(DB_VER)
-BUILD_DB=build_windows
-MANIFEST=$(SNAP)/$(SITE)/PyLucene.py \
-         $(SNAP)/$(SITE)/_PyLucene$(_SUFFIX).pyd \
-         $(SNAP)/$(SITE)/libiconv-2.dll \
-         $(SNAP)/$(SITE)/security/classpath.security \
-         $(SNAP)/$(SITE)/security/libgcj.security \
-         $(SNAP)/bin/libdb_java$(subst .,,$(DB_LIB_VER))$(SUFFIX).dll
-LIB_INSTALL=
-GCJ_STATIC=1
-else
-
 ifeq ($(OS),Darwin)
-PREFIX_PYTHON=$(PREFIX)/$(FRAMEWORK)
-PREFIX_DB=$(PREFIX)/db
-BUILD_DB=build_$(SNAP)
-MANIFEST=$(SNAP)/$(SITE)/PyLucene.py \
-         $(SNAP)/$(SITE)/_PyLucene.so \
-         $(SNAP)/$(SITE)/security/classpath.security \
-         $(SNAP)/$(SITE)/security/libgcj.security \
-         $(SNAP)/db/lib/libdb_java-$(DB_LIB_VER).dylib \
-         $(SNAP)/db/lib/libdb_java-$(DB_LIB_VER).la
-ifeq ($(GCJ_VER),3)
-MANIFEST:=$(MANIFEST) \
-         $(SNAP)/lib/libstdc++.6.dylib \
-         $(SNAP)/lib/libgcc_s.1.0.dylib
-LIB_INSTALL=libstdc++.6.dylib libgcc_s.1.0.dylib
-GCJ_STATIC=1
-endif
-ifeq ($(GCJ_VER),4)
-MANIFEST:=$(MANIFEST) \
-         $(SNAP)/lib/libgcj.6.dylib \
-         $(SNAP)/lib/libstdc++.6.dylib \
-         $(SNAP)/lib/libgcc_s.1.0.dylib
-LIB_INSTALL=libgcj.6.dylib libstdc++.6.dylib libgcc_s.1.0.dylib
-GCJ_STATIC=0
-endif
+
+ifeq ($(MACOSX_DEPLOYMENT_TARGET),10.3)
+NUM_FILES=8
 else
+NUM_FILES=1
+endif
+
+ANT=ant
+JCC_ENV=
+ENV=
+
+ifeq ($(DEBUG),1)
+CFLAGS="-O0"
+DEBUG_OPT=--debug
+endif
+
+endif
 
 ifeq ($(OS),Linux)
-PREFIX_PYTHON=$(PREFIX)
-PREFIX_DB=$(PREFIX)/db
-BUILD_DB=build_$(SNAP)
-MANIFEST=$(SNAP)/$(SITE)/PyLucene.py \
-         $(SNAP)/$(SITE)/_PyLucene.so \
-         $(SNAP)/$(SITE)/security/classpath.security \
-         $(SNAP)/$(SITE)/security/libgcj.security \
-         $(SNAP)/db/lib/libdb_java-$(DB_LIB_VER).so
-ifeq ($(GCJ_VER),3)
-LIB_INSTALL=
-GCJ_STATIC=1
-endif
-ifeq ($(GCJ_VER),4)
-MANIFEST:=$(MANIFEST) \
-         $(SNAP)/lib/libgcj.so.6 \
-         $(SNAP)/lib/libstdc++.so.6 \
-         $(SNAP)/lib/libgcc_s.so.1
-LIB_INSTALL=libgcj.so.6 libstdc++.so.6 libgcc_s.so.1
-GCJ_STATIC=0
-endif
-endif
-endif
+
+NUM_FILES=1
+JDK=$(BUILD_ROOT)/openjdk/j2sdk-image
+JRE=$(BUILD_ROOT)/openjdk/j2re-image
+ANT="$(BUILD_ROOT)/openjdk/apache-ant-1.7.0/bin/ant"
+JCC_ENV=\
+  JCC_INCLUDES="$(JDK)/include:$(JDK)/include/linux" \
+  JCC_LFLAGS="-L$(JDK)/jre/lib/i386:-ljava"
+ENV=\
+  LD_LIBRARY_PATH="$(JRE)/lib/i386:$(JRE)/lib/i386/client:$(LD_LIBRARY_PATH)" \
+  JAVA_HOME="$(JDK)"
+
+ifeq ($(DEBUG),1)
+CFLAGS="-O0"
+DEBUG_OPT=--debug
 endif
 
-apply: patches-$(VERSION)
-	cd $(SRC); patch -Nup1 < ../patches-$(VERSION); echo ok
-
-
-ifeq ($(PYLUCENE_CC),)
-PYLUCENE_CC=$(GCJ_HOME)/bin/gcc
 endif
 
-ifeq ($(PYLUCENE_CXX),)
-PYLUCENE_CXX=$(GCJ_HOME)/bin/g++
+ifeq ($(OS),Cygwin)
+
+NUM_FILES=2
+JDK=$(BUILD_ROOT)/openjdk/j2sdk-image
+JRE=$(BUILD_ROOT)/openjdk/j2re-image
+ANT="$(BUILD_ROOT)/openjdk/apache-ant-1.7.0/bin/ant"
+JCC_ENV=\
+  JCC_INCLUDES=`cygpath -awp "$(JDK)/include:$(JDK)/include/win32"` \
+  JCC_LFLAGS="/LIBPATH:"`cygpath -awp "$(JDK)/lib:jvm.lib"`
+ENV=\
+  PATH="$(JRE)/bin:$(JRE)/bin/client:$(PATH)" \
+  JAVA_HOME=`cygpath -aw "$(JDK)"`
+
+ifeq ($(DEBUG),1)
+CFLAGS="/Od /DPy_DEBUG=1"
+DEBUG_OPT=--debug
 endif
 
-ifeq ($(PYLUCENE_JCC),)
-PYLUCENE_JCC=$(GCJ_HOME)/bin/gcj
 endif
 
-ifeq ($(PYLUCENE_JCCH),)
-PYLUCENE_JCCH=$(GCJ_HOME)/bin/gcjh
-endif
+PyLucene-$(VERSION)-expanded:
+	svn export -r $(SVNVER) http://svn.osafoundation.org/pylucene/trunk/jcc PyLucene-$(VERSION)
+	touch PyLucene-$(VERSION)-expanded
 
-build: expand apply
-	$(MAKE) -C $(SRC) \
-            PREFIX=$(PREFIX) \
-            PREFIX_FRAMEWORKS=$(PREFIX)/Library/Frameworks \
-            PREFIX_PYTHON=$(PREFIX_PYTHON) \
-            GCJ_HOME=$(GCJ_HOME) \
-            GCJ_LIBDIR=$(GCJ_HOME)/lib \
-            GCJ_STATIC=$(GCJ_STATIC) \
-            LIBDIR_NAME="lib" \
-            LIB_INSTALL="$(LIB_INSTALL)" \
-            PYDBG=$(PYDBG) \
-            _SUFFIX=$(_SUFFIX) \
-            CC=$(PYLUCENE_CC) \
-            CXX=$(PYLUCENE_CXX) \
-            JCC=$(PYLUCENE_JCC) \
-            JCCH=$(PYLUCENE_JCCH) \
-            DB=$(BUILD_ROOT)/db/db-$(DB_VER) \
-            DB_VER=$(DB_VER) \
-            DB_LIB_VER=$(DB_LIB_VER) \
-            PREFIX_DB=$(PREFIX_DB) \
-            BUILD_DB=$(BUILD_DB) \
-            PYTHON_VER=$(PYTHON_VER) \
-            VERSION=$(VERSION) \
-            all install
+expand: PyLucene-$(VERSION)-expanded
+
+sources: expand
+
+clean:
+	rm -rf $(SRC)/jcc/build
+	$(ENV) $(MAKE) -C $(SRC) ANT=$(ANT) clean
+
+build: expand
+	rm -rf $(SRC)/jcc/build
+	rm -rf $(SRC)/build
+	cd $(SRC)/jcc; CFLAGS=$(CFLAGS) $(JCC_ENV) \
+                       $(PYTHON) setup.py build $(DEBUG_OPT) install
+	$(ENV) $(MAKE) -C $(SRC) \
+            PYTHON=$(PYTHON) \
+            ANT=$(ANT) \
+            JCC="$(PYTHON) -m jcc" \
+            NUM_FILES=$(NUM_FILES) \
+            DEBUG=$(DEBUG) \
+          compile install
 
 test:
-	$(MAKE) -C $(SRC) PYTHON=$(PYTHON) test
+	$(ENV) $(MAKE) -C $(SRC) \
+            PYTHON=$(PYTHON) \
+            ANT=$(ANT) \
+            JCC="$(PYTHON) -m jcc" \
+            NUM_FILES=$(NUM_FILES) \
+            DEBUG=$(DEBUG) \
+          test
 
-ifneq (/,$(SRC))
-clean: $(SRC)
-	$(MAKE) -C $(SRC) clean
-	rm -f $(CHANDLERBIN)/$(SNAP)/$(TARBALL).inst
-endif
-
-binaries:
+$(TARBALL):
 	tar -C $(BUILD_ROOT) -cvzf $(TARBALL) $(MANIFEST)
 
-ifeq ($(OS),Darwin)
-ifeq ($(ARCH),i386)
-PYLUCENE_SRC_ARCHIVE=PyLucene-src-$(VERSION)-darwin-i386.tar.gz
-else
-PYLUCENE_SRC_ARCHIVE=PyLucene-src-$(VERSION).tar.gz
-endif
-else
-PYLUCENE_SRC_ARCHIVE=PyLucene-src-$(VERSION).tar.gz
-endif
-
-$(SRC): expand
-
-sources: $(PYLUCENE_SRC_ARCHIVE)
-
-$(PYLUCENE_SRC_ARCHIVE):
-	$(CURL) http://builds.osafoundation.org/external/$(PYLUCENE_SRC_ARCHIVE)
-
-PyLucene-src-$(VERSION)-expanded: $(PYLUCENE_SRC_ARCHIVE)
-	tar xvzf $(PYLUCENE_SRC_ARCHIVE)
-	touch PyLucene-src-$(VERSION)-expanded
-
-expand: PyLucene-src-$(VERSION)-expanded
+binaries: $(TARBALL)
 
 install: $(TARBALL)
 	cp -p $(TARBALL) $(CHANDLERARCHIVES)
-
-.PHONY: dummy
-
-dummy:
-	cp -p dummy/PyLucene.py $(CHANDLERBIN)/$(BUILD)/$(SITE)/PyLucene.py

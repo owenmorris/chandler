@@ -67,6 +67,7 @@ SWIG=$(PREFIX)/bin/swig/swig.exe
 UPLOAD=builder@builds.osafoundation.org:/www/docs/external/$(PLATFORM)
 READLINE_WIN=readline
 OPENSSL_WIN=openssl
+OPENJDK=openjdk
 else
 ifeq ($(OS),Darwin)
 FRAMEWORK=Library/Frameworks/Python.framework/Versions/$(PYTHON_VER)
@@ -90,39 +91,13 @@ else
 UPLOAD=builder@builds.osafoundation.org:/www/docs/external/macosx
 endif
 else
+OPENJDK=openjdk
 PYTHON_BINDIR:=bin
 PYTHON:=$(PREFIX)/$(PYTHON_BINDIR)/$(PYTHON)
 SITE=lib/python$(PYTHON_VER)/site-packages
 PLATFORM=linux
 SWIG=$(PREFIX)/bin/swig
 UPLOAD=builder@builds.osafoundation.org:/www/docs/external/$(PLATFORM)
-endif
-endif
-
-# GCJ_VER should be set to 3, if using gcj 3.4.x
-# GCJ_VER should be set to 4, if using gcj 4.x.y
-
-ifndef GCJ_HOME
-ifeq ($(OS),Cygwin)
-GCJ_HOME=$(BUILD_ROOT)/mingw-5.0-3.4.6
-GCJ_VER=3
-endif
-ifeq ($(OS),Darwin)
-ifeq ($(ARCH),ppc)
-GCJ_HOME=$(BUILD_ROOT)/gcc-3.4.4
-GCJ_VER=3
-else
-GCJ_HOME=$(BUILD_ROOT)/gcc-4.0.2
-GCJ_VER=4
-endif
-endif
-ifeq ($(OS),Linux)
-GCJ_HOME=$(BUILD_ROOT)/gcc-3.4.5
-GCJ_VER=3
-endif
-else
-ifndef GCJ_VER
-GCJ_VER=3
 endif
 endif
 
@@ -174,7 +149,6 @@ else
         fi
 endif
 	@echo CHANDLERBIN is $(CHANDLERBIN)
-	@echo GCJ_HOME is $(GCJ_HOME)
 ifeq ($(OS),Darwin)
 	@if [ "$(ARCH)" = "ppc" ]; then \
             echo ARCH is $(ARCH); \
@@ -186,14 +160,6 @@ ifeq ($(OS),Darwin)
         fi
 endif
 ifeq ($(OS),Cygwin)
-	@if [ ! -f $(GCJ_HOME)/bin/gcj.exe ]; then \
-            echo GCJ_HOME is incorrect; \
-            echo it needs to be set to the absolute gcc with gcj installation path; \
-            echo or unset it and run 'make compilers' to install gcc with gcj into $(BUILD_ROOT)/mingw-5.0-3.4.6; \
-            false; \
-        else \
-            $(GCJ_HOME)/bin/gcj.exe --v; \
-        fi
 ifndef VS71COMNTOOLS
 	@echo VS71COMNTOOLS is not set, you do not have MSVC 7.1 installed
 	@false
@@ -206,66 +172,9 @@ else
             echo LIB for MSVC is `echo $$LIB`; \
 	fi
 endif
-else
-	@if [ ! -f $(GCJ_HOME)/bin/gcj ]; then \
-            echo GCJ_HOME is incorrect; \
-            echo it needs to be set to the absolute gcc with gcj installation path; \
-            echo or unset it and run 'make compilers' to install gcc with gcj into $(BUILD_ROOT)/$(GCC_VERSION); \
-            false; \
-        else \
-            $(GCJ_HOME)/bin/gcj --v; \
-        fi
 endif
 
 all: build
-
-
-COMPILERS=http://builds.osafoundation.org/compilers
-
-ifeq ($(OS),Cygwin)
-
-MINGW_VERSION=5.0-3.4.6
-
-$(GCJ_HOME): $(notdir $(GCJ_HOME).tar.bz2)
-	cd $(BUILD_ROOT); tar -xvjf $<
-
-$(notdir $(GCJ_HOME).tar.bz2):
-	cd $(BUILD_ROOT); \
-	$(CURL) -O $(COMPILERS)/windows/$@
-
-endif
-
-ifeq ($(OS),Darwin)
-
-ifeq ($(ARCH),ppc)
-$(GCJ_HOME): $(notdir $(GCJ_HOME).tar.gz)
-	cd $(BUILD_ROOT); \
-	tar xvzf $<
-
-$(notdir $(GCJ_HOME).tar.gz):
-	cd $(BUILD_ROOT);
-	$(CURL) $(COMPILERS)/osx/$(ARCH)/$@
-else
-$(GCJ_HOME): $(notdir $(GCJ_HOME).tar.bz2)
-	cd $(BUILD_ROOT); tar xvjf $<
-
-$(notdir $(GCJ_HOME).tar.bz2):
-	cd $(BUILD_ROOT);
-	$(CURL) $(COMPILERS)/osx/$(ARCH)/$@
-endif
-
-endif
-
-ifeq ($(OS),Linux)
-
-$(GCJ_HOME): $(notdir $(GCJ_HOME).tar.gz)
-	cd $(BUILD_ROOT); tar xvzf $<
-
-$(notdir $(GCJ_HOME).tar.gz):
-	cd $(BUILD_ROOT); \
-	$(CURL) $(COMPILERS)/linux/$@
-
-endif
 
 ifeq ($(OS),Cygwin)
 strip:
@@ -287,8 +196,6 @@ strip:
     done
 endif
 endif
-
-compilers: $(GCJ_HOME)/
 
 print-%:
 	@echo $* = $($*)

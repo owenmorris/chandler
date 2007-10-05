@@ -976,13 +976,25 @@ class Intersection(BiSet):
 
         left = self._left
         right = self._right
+        
+        inLeft = self._sourceContains(other, left)
+        inRight = self._sourceContains(other, right)
 
-        if (leftOp == 'add' and self._sourceContains(other, right) or
-            rightOp == 'add' and self._sourceContains(other, left)):
+        if (leftOp == 'add' and inRight or
+            rightOp == 'add' and inLeft):
             return 'add'
-        elif (leftOp == 'remove' and self._sourceContains(other, right) or
-              rightOp == 'remove' and self._sourceContains(other, left)):
+        elif (leftOp == 'remove' and inRight or
+              rightOp == 'remove' and inLeft):
             return 'remove'
+
+        index = self._anIndex()
+        if index is not None:
+            if not (inRight or inLeft) and 'remove' in (leftOp, rightOp):
+                if other in index:
+                    return 'remove'
+            if (inRight and inLeft) and 'add' in (leftOp, rightOp):
+                if other not in index:
+                    return 'add'
 
         return None
 

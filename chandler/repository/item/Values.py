@@ -714,17 +714,17 @@ class References(Values):
             if flags & Values.TRANSIENT != 0:
                 continue
             
-            if kind is not None:
-                attribute = kind.getAttribute(name, False, item)
-            else:
-                attribute = None
-
             if not (all or flags & Values.DIRTY != 0):
                 size += itemWriter._unchangedValue(item, name)
                 continue
             
             if value is Nil:
                 raise ValueError, 'Cannot persist Nil'
+
+            if kind is not None:
+                attribute = kind.getAttribute(name, False, item)
+            else:
+                attribute = None
 
             size += itemWriter._ref(item, name, value,
                                     version, flags & Values.SAVEMASK, 

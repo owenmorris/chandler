@@ -36,7 +36,8 @@ from repository.persistence.DBRepositoryView import DBRepositoryView
 from repository.persistence.DBContainer import \
     RefContainer, NamesContainer, ACLContainer, IndexesContainer, \
     ItemContainer, ValueContainer, VersionContainer, CommitsContainer
-from repository.persistence.FileContainer import IndexContainer, LOBContainer
+from repository.persistence.FileContainer import LOBContainer
+from repository.persistence.LuceneContainer import IndexContainer
 from repository.persistence.DBItemIO import \
     DBItemReader, DBItemPurger, DBValueReader, DBItemWriter, DBItemUndo
 
@@ -1296,6 +1297,10 @@ class DBStore(Store):
 
         return self._items.iterItems(view, backwards)
 
+    def iterHistory(self, view, fromVersion, toVersion):
+
+        return self._items.iterHistory(view, fromVersion, toVersion)
+
     def iterItemVersions(self, view, uuid, fromVersion=1, toVersion=0,
                          backwards=False):
 
@@ -1524,7 +1529,8 @@ class DBIndexerThread(RepositoryThread):
 
     def __init__(self, repository, interval=60):
 
-        super(DBIndexerThread, self).__init__(name='__indexer__')
+        super(DBIndexerThread, self).__init__(name='__indexer__',
+                                              target=self._run)
 
         self._repository = repository
         self._condition = threading.Condition(threading.Lock())
@@ -1533,7 +1539,7 @@ class DBIndexerThread(RepositoryThread):
 
         self.setDaemon(True)
 
-    def run(self):
+    def _run(self):
 
         repository = self._repository
         store = repository.store
