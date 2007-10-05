@@ -114,6 +114,7 @@ class TurnOnTimezonesDialog(wx.Dialog):
         sizer.AddButton(wx.Button(self, wx.ID_YES))
         sizer.AddButton(wx.Button(self, wx.ID_NO))
         sizer.AddButton(wx.Button(self, wx.ID_CANCEL))
+        self.buttonSizer.GetAffirmativeButton().SetDefault()
         sizer.Realize()
         self.checkbox.GetContainingSizer().Add(sizer, wx.EXPAND|wx.ALL, 10)
         
