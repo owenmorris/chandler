@@ -35,9 +35,10 @@ def getTriageStatusName(value):
     return triageStatusNames[value]
 
 # Bug 6525: the clicking sequence isn't the sort order
-triageStatusClickSequence = { TriageEnum.now: TriageEnum.done,
-                              TriageEnum.done: TriageEnum.later,
-                              TriageEnum.later: TriageEnum.now }
+# Bug 10926: was now -> done -> later, should be now -> later -> done again.
+triageStatusClickSequence = { TriageEnum.now: TriageEnum.later,
+                              TriageEnum.later: TriageEnum.done,
+                              TriageEnum.done: TriageEnum.now }
 def getNextTriageStatus(value):
     return triageStatusClickSequence[value]
     
