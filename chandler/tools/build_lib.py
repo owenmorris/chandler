@@ -591,10 +591,12 @@ def convertLineEndings(srcdir):
                     newtext = text.replace("\n", "\r\n")
 
                     if newtext != text:
-                        f = open(fullpath, "wb")
-                        f.write(newtext)
-                        f.close()
-
+                        try:
+                            f = open(fullpath, "wb")
+                            f.write(newtext)
+                            f.close()
+                        except IOError:
+                            log("Unable to write converted text for [%s] - skipping" % fullpath)
 
 if __name__ == "__main__":
     import doctest

@@ -29,7 +29,7 @@ dest=Contents/Resources/Library/Frameworks/Python.framework/Versions/2.5
 glob=*
 Python
 
-# Grab wx, db and gcj libs
+# Grab wx and db libs
 src=chandler/debug
 dest=Contents/Resources
 glob=*.dylib,*.r,*.rsrc,*.jnilib,*.la

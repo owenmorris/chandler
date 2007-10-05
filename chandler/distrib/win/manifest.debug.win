@@ -20,7 +20,6 @@ bin
 src=chandler/debug/bin
 dest=debug/bin
 libdb45d.dll
-libdb_java45d.dll
 msvcp71d.dll
 msvcr71d.dll
 msvcrtd.dll
@@ -39,6 +38,12 @@ src=chandler/debug/bin
 dest=debug/bin
 glob=db*.exe
 db
+
+# grab openjdk
+src=chandler/debug
+dest=debug
+glob=*
+j2re-image
 
 # Grab all py, pyc, etc. from debug/bin/DLLs
 src=chandler/debug/bin

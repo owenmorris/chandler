@@ -20,7 +20,6 @@ bin
 src=chandler/release/bin
 dest=release/bin
 libdb45.dll
-libdb_java45.dll
 msvcp71.dll
 msvcr71.dll
 python25.dll
@@ -38,6 +37,12 @@ src=chandler/release/bin
 dest=release/bin
 glob=db*.exe
 db
+
+# grab openjdk
+src=chandler/release
+dest=release
+glob=*
+j2re-image
 
 # Grab all py, pyc, etc. from release/bin/DLLs
 src=chandler/release/bin

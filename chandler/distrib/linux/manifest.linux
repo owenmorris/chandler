@@ -72,7 +72,6 @@ site-packages
 dest=release/db/lib
 src=chandler/release/db/lib
 libdb-4.5.so
-libdb_java-4.5.so
 dest=release/db
 src=chandler/release/db
 bin
