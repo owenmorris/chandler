@@ -7,6 +7,7 @@ SharingTranslator implements the callbacks for converting between items and
 records.
 
     >>> from osaf import sharing, pim
+    >>> from application import Utility, Globals
     >>> from application.Parcel import Parcel
     >>> from datetime import datetime, timedelta
     >>> from decimal import Decimal
@@ -14,9 +15,9 @@ records.
     >>> TimeZone.setDefault(ICUtzinfo.getInstance(
     ...                              "America/Los_Angeles").timezone)
     >>> from repository.persistence.RepositoryView import currentview
-    >>> from repository.persistence.RepositoryView import NullRepositoryView
-    >>> rv = NullRepositoryView()
-
+    >>> Globals.options = Utility.initOptions()
+    >>> Globals.options.ramdb = True
+    >>> rv = Utility.initRepository("", Globals.options, True)
 
     >>> t = sharing.translator.SharingTranslator(rv)
 
@@ -574,7 +575,7 @@ Importing:
     >>> len(item.reminders)
     1
     >>> item.reminders.first()
-    <RelativeReminder (new): ...>
+    <RelativeReminder...>
     >>> item.reminders.first().delta
     datetime.timedelta(-1, 86100)
     >>> item.reminders.first().description

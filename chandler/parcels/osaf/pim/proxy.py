@@ -412,6 +412,8 @@ class UserChangeProxy(object):
             
         if changedAttrs:
             self.markEdited(self.proxiedItem, changedAttrs)
+            self.proxiedItem.itsView.commit()
+            
         return len(changedAttrs)
         
     def cancel(self):
@@ -650,9 +652,11 @@ class RecurrenceProxy(UserChangeProxy):
                 if attr:
                     changedAttrs.add(attr)
             
-        if changedAttrs and not self.markedEdited:
-            changer.markProxyEdited(self, changedAttrs)
-
+        if changedAttrs:
+            if not self.markedEdited:
+                changer.markProxyEdited(self, changedAttrs)
+            self.proxiedItem.itsView.commit()
+            
         return len(changedAttrs)
         
     def markEdited(self, item, attrs):
