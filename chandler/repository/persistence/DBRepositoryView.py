@@ -20,12 +20,13 @@ from time import time, sleep
 
 from chandlerdb.item.c import CItem
 from chandlerdb.util.c import isuuid, Nil, Default, HashTuple
-from chandlerdb.persistence.c import CView, DBLockDeadlockError
+from chandlerdb.persistence.c import CView, DBLockDeadlockError, Transaction
 
 from repository.item.RefCollections import RefList
 from repository.schema.Kind import Kind
 from repository.persistence.RepositoryError \
-     import RepositoryError, MergeError, VersionConflictError
+     import RepositoryError, MergeError, VersionConflictError, \
+            NestedTransactionError
 from repository.persistence.RepositoryView \
      import RepositoryView, OnDemandRepositoryView
 from repository.persistence.DBLob import DBLob
@@ -679,9 +680,14 @@ class DBRepositoryView(OnDemandRepositoryView):
                                              self, count)
 
                         if count > 0:
+                            # requesting a nested transaction so that we don't
+                            # silently run in an existing one
                             txnStatus = self._startTransaction(True, False)
                             if txnStatus == 0:
                                 raise AssertionError, 'no transaction started'
+                            # and failing the actual nested transaction
+                            elif txnStatus & Transaction.TXN_NESTED:
+                                raise NestedTransactionError, 'commit()'
 
                             newVersion = store.nextVersion()
 

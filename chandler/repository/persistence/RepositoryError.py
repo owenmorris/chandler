@@ -165,3 +165,10 @@ class SaveValueError(RepositoryError):
 
     def __str__(self):
         return self.__doc__ %(self.args[1], self.args[0]._repr_(), self.args[2])
+
+
+class NestedTransactionError(RepositoryError):
+    __doc__ = "%s is running in a nested transaction"
+
+    def __str__(self):
+        return self.__doc__ %(self.args[0])
