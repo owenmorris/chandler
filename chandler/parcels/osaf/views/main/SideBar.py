@@ -27,8 +27,6 @@ from osaf.pim import (
     calendar
     )
 
-from lucene import JavaError as LuceneError
-
 from osaf.framework.prompts import promptYesNoCancel
 from application.dialogs import RecurrenceDialog
 
