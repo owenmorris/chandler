@@ -58,4 +58,4 @@ default: expand
 all: expand
 
 _realclean::
-	rm -rf j2re* j2sdk* apache-ant* openjdk*.tar.gz
+	rm -rf j2re* j2sdk* apache-ant* openjdk*.tar.gz *expanded
