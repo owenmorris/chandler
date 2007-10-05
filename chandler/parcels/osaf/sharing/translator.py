@@ -655,7 +655,7 @@ class SharingTranslator(eim.Translator):
         if hasattr(item, "lastModifiedBy"):
             emailAddress = item.lastModifiedBy
             if emailAddress is not None and emailAddress.emailAddress:
-                lastModifiedBy = emailAddress.emailAddress
+                lastModifiedBy = emailAddress.format()
 
         lastModified = getattr(item, "lastModified", None)
         if lastModified:
