@@ -195,7 +195,7 @@ external/PyICU
 external/PyLucene
 
     /* ====================================================================
-     * Copyright (c) 2004 - 2005 Open Source Applications Foundation.
+     * Copyright (c) 2004 - 2007 Open Source Applications Foundation.
      *
      * Permission is hereby granted, free of charge, to any person obtaining a
      * copy of this software and associated documentation files (the "Software"),
@@ -216,6 +216,12 @@ external/PyLucene
      * DEALINGS IN THE SOFTWARE.
      * ====================================================================
      */
+
+
+external/openjdk (linux and windows only)
+
+    OpenJDK is licensed GPL v2 and comes with an assembly exception.
+    Please refer to j2re-image/LICENSE and j2re-image/ASSEMBLY_EXCEPTION.
 
 
 external/configobj
