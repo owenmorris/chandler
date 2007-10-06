@@ -221,7 +221,8 @@ external/PyLucene
 external/openjdk (linux and windows only)
 
     OpenJDK is licensed GPL v2 and comes with an assembly exception.
-    Please refer to j2re-image/LICENSE and j2re-image/ASSEMBLY_EXCEPTION.
+    Please refer to j2re-image/LICENSE, j2re-image/ASSEMBLY_EXCEPTION and
+    j2re-image/THIRD_PARTY_README.
 
 
 external/configobj
