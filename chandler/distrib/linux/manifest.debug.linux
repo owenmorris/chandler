@@ -77,6 +77,12 @@ dest=debug/db
 src=chandler/debug/db
 bin
 
+# grab openjdk
+src=chandler/debug
+dest=debug
+glob=*
+j2re-image
+
 # Grab Chandler.py, and others
 src=chandler
 dest=
