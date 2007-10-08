@@ -372,7 +372,7 @@ class RepositoryWorker(RepositoryThread):
     """
 
     def __init__(self, name, repository):
-        super(RepositoryWorker, self).__init__(None, None, name)
+        super(RepositoryWorker, self).__init__(None, self._run, name)
 
         self._repository = repository
         self._condition = threading.Condition(threading.Lock())
@@ -400,7 +400,8 @@ class RepositoryWorker(RepositoryThread):
         """
         raise NotImplementedError, "%s.processRequest" %(type(self))
         
-    def run(self):
+    def _run(self):
+
         condition = self._condition
         requests = self._requests
         view = None
