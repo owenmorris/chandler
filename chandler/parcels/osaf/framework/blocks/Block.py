@@ -314,7 +314,10 @@ class Block(schema.Item):
         proxyFactory (a staticmethod) if you want to customize the proxy,
         for example to force an ALL change for recurring events.
         """
-        return self.proxyFactory(getattr(self, 'contents', None))
+        proxy = self.proxyFactory(getattr(self, 'contents', None))
+        if proxy is not None:
+            proxy.changeCallback = self.itsView.commit
+        return proxy
 
     def render (self):
         method = getattr (type (self), "instantiateWidget", None)

@@ -281,6 +281,7 @@ class UserChangeProxy(object):
             raise TypeError, "Can't proxy a non-ContentItem %s" % (item,)
         
         self.proxiedItem = item
+        self.changeCallback = None
         
     def __getValueWrapper(self, attr):
     
@@ -412,6 +413,9 @@ class UserChangeProxy(object):
             
         if changedAttrs:
             self.markEdited(self.proxiedItem, changedAttrs)
+            if self.changeCallback is not None:
+                self.changeCallback()
+            
         return len(changedAttrs)
         
     def cancel(self):
@@ -650,8 +654,11 @@ class RecurrenceProxy(UserChangeProxy):
                 if attr:
                     changedAttrs.add(attr)
             
-        if changedAttrs and not self.markedEdited:
-            changer.markProxyEdited(self, changedAttrs)
+        if changedAttrs:
+            if not self.markedEdited:
+                changer.markProxyEdited(self, changedAttrs)
+            if self.changeCallback is not None:
+                self.changeCallback()
 
         return len(changedAttrs)
         
