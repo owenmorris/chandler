@@ -36,7 +36,7 @@ endif
 
 ifeq ($(OS),Linux)
     OPENSSL =
-    OPENJDK = $(CHANDLERARCHIVES)/openjdk-7-ea-j2re-b21-$(BP)1.tar.gz
+    OPENJDK = $(CHANDLERARCHIVES)/openjdk-7-ea-j2re-b21-$(BP)2.tar.gz
 endif
 
 ifeq ($(OS),Darwin)
@@ -46,7 +46,7 @@ endif
 
 ifeq ($(OS),Cygwin)
     OPENSSL = $(CHANDLERARCHIVES)/openssl-$(SNAP)-0.9.8d-$(BP)1.tar.gz
-    OPENJDK = $(CHANDLERARCHIVES)/openjdk-7-ea-j2re-b21-$(BP)1.tar.gz
+    OPENJDK = $(CHANDLERARCHIVES)/openjdk-7-ea-j2re-b21-$(BP)2.tar.gz
 endif
 
 ARCHIVES = \
