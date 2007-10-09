@@ -192,10 +192,8 @@ class CommunicationStatus(schema.Annotation):
             msg = MailStamp(self.itsItem)
             preferFrom = (commState & CommunicationStatus.OUT) == 0            
             toAddress = getattr(msg, 'toAddress', schema.Nil)
-            if len(toAddress) > 0:
-                toText = u", ".join(x.getLabel() for x in toAddress)
-                if len(toText) > 0:
-                    whos.append((preferFrom and 4 or 2, toText, 'to'))
+            toText = u", ".join(x.getLabel() for x in toAddress)
+            whos.append((preferFrom and 4 or 2, toText, 'to'))
 
             originators = getattr(msg, 'originators', schema.Nil)
             if len(originators) > 0:

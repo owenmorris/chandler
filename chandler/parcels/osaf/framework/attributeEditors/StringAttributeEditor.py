@@ -100,23 +100,24 @@ class StringAttributeEditor (BaseAttributeEditor):
         # Get the text we'll display, and note whether it's the sample text.
         prefix, theText, isSample = self.GetTextToDraw(item, attributeName)
 
-        if len(theText) > 0:
-            # We'll draw the sample or prefix in gray (unless it's part of the
-            # selection, in which case we'll leave it white)
-            if not isInSelection and (isSample or prefix is not None):
-                oldForeground = wx.Colour(dc.GetTextForeground())
-                dc.SetTextForeground (wx.SystemSettings.GetColour (wx.SYS_COLOUR_GRAYTEXT))
+        # We'll draw the sample or prefix in gray (unless it's part of the
+        # selection, in which case we'll leave it white)
+        if not isInSelection and (isSample or prefix is not None):
+            oldForeground = wx.Colour(dc.GetTextForeground())
+            dc.SetTextForeground (wx.SystemSettings.GetColour (wx.SYS_COLOUR_GRAYTEXT))
 
+        haveText = len(theText) > 0
+        if (prefix is not None) or haveText:
             # Draw inside the lines.
             dc.SetBackgroundMode (wx.TRANSPARENT)
             rect.Inflate (-1, -1)
             dc.SetClippingRect (rect)
-            
+    
             textFont = Styles.getFont(grid.blockItem.characterStyle)
             textMeasurements = Styles.getMeasurements(textFont)
             textHeight = textMeasurements.height
             textTop = (rect.GetHeight() - textHeight) / 2
-            
+        
             if prefix is not None:
                 # Match up baselines
                 prefixFont = Styles.getFont(grid.blockItem.prefixCharacterStyle)
@@ -134,9 +135,10 @@ class StringAttributeEditor (BaseAttributeEditor):
                 if not isInSelection:
                     dc.SetTextForeground(oldForeground)
                 dc.SetFont(textFont)
-            
-            DrawingUtilities.DrawClippedTextWithDots (dc, theText, rect, 
-                                                      top=textTop)
+
+            if haveText:
+                DrawingUtilities.DrawClippedTextWithDots (dc, theText, rect, 
+                                                          top=textTop)
                 
             dc.DestroyClippingRegion()
         
