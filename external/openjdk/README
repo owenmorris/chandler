@@ -1,0 +1,144 @@
+
+ Notes on building the openjdk binaries
+ --------------------------------------
+
+Currently, in our external/openjdk build we don't build from binaries. We
+only repackage full binaries that were built separately and
+uploaded. Building openjdk binaries can be difficult and time
+consuming. Foisting that on every Chandler from-source builder would be a
+little too onerous.
+
+This document tries to summarize the notes that I took when I did these builds.
+
+
+ Getting the sources
+ -------------------
+
+The openjdk source bundles are available at:
+    http://download.java.net/openjdk/jdk7/
+
+There are two pieces to the sources: the actual sources and the binary plug
+downloads. These binary plugs are the parts of openjdk that are not yet open
+source. These are supposed to disappear in the future as they get replaced
+by open source alternatives.
+
+
+ The lay of the land
+ -------------------
+
+Once you've installed the sources, _carefully_ and _thoroughly_ read the
+README-builds.html file. It lists, exhaustively, all the requirements needed
+to do full builds on Ubuntu and Windows. You need to very carefully make sure
+all these requirements are met. 
+
+
+ Satisfying the build environment requirements
+ ---------------------------------------------
+
+On Ubuntu this is as simple as pasting the list of apt-get module
+requirements into a "sudo apt-get install" shell script and running it.
+
+On Windows, however, things are more complicated. Some of the requirements
+are not well spelled out and are ambiguous or left to the punter to
+discover:
+
+  - Satisfying the freetype requirement
+
+    You need to provide a freetype build to the openjdk build on windows
+    that satisfies what openjdk seems to be expecting. At time of this
+    writing, build 21, freetype is expected to be built as a DLL called
+    freetype.dll.
+
+    The GnuWin32 binaries for freetype 2 that one may find on the net do not
+    satisify these requirements.
+
+    Below are extra steps to satisfying this requirement:
+      - Download a .zip archive of the freetype sources from
+            http://download.savannah.gnu.org/releases/freetype/
+        such as ft235.zip.
+        This archive has the right line endings in text files for Visual
+        Studio to function.
+      - Once the source archive was unpacked, open and convert the
+        freetype.dsw Visual Studio project file in builds/win32/visualc to
+        be compatible with Visual Studio 7.1.
+      - Make the "Release" configuration the active one.
+      - Edit the freetype project properties so that its "Configuration
+        Type" property under the "General" tab is "Dynamic Library (.dll)"
+        (Be sure to verify that the "Release" configuration is selected). 
+      - Edit the include/freetype/config/ftoption.h header file so that the
+        FT_EXPORT and FT_EXPORT_DEF macros read as:
+            #define  FT_EXPORT(x)       extern __declspec(dllexport) x
+            #define  FT_EXPORT_DEF(x)   __declspec(dllexport) x
+      - Build the project.
+      - Set the REQUIRED_FREETYPE_VERSION env var to 2.3.5 so that 'make
+        sanity' passes. Apparently, mention of this env var was forgotten in
+        README-builds.html altogether.
+
+  - Satisfying the env var requirements
+
+    I built openjdk on Cygwin. It can also be done on MinGW, apparently.
+    Cygwin path style, Windows path styles, forward and backward slahes
+    clash and confuse the build if not carefully crafted. See below for a
+    sample openjdk.sh file as a starting point for creating your own.
+
+
+ Verifying your build environment
+ --------------------------------
+
+Run (cd control/make; make sanity)
+If you get any errors or crashes, go back to reading README-builds.html and
+the paragraphs above, even more _carefully_ and _thoroughly_ yet again.
+
+
+ Building the openjdk binaries
+ -----------------------------
+
+Run (cd control/make; make)
+The resulting binaries are in the control/build tree under a directory named
+after the operating system you're on.
+
+
+ Building and uploading the binary distributions for Chandler's build
+ --------------------------------------------------------------------
+
+tar -C control/build/<os> -cvjf openjdk-7-ea-j2re-b21-<OS>.tar.bz2 j2re-image
+tar -C control/build/<os> -cvjf openjdk-7-ea-j2sdk-b21-<OS>.tar.bz2 j2sdk-image
+
+where <os> is something like linux-i586 or windows-i586 and
+<OS> is Linux for linux and Cygwin for windows.
+
+Upload both j2re and j2sdk archives to:
+    builds.osafoundation.org:/www/docs/external
+
+
+ Sample openjdk.sh for Ubuntu 6.06 build
+ ---------------------------------------
+
+export PATH=/opt/openjdk/control/build/linux-i586/bin:$ORIG_PATH
+export LD_LIBRARY_PATH=/opt/openjdk/control/build/linux-i586/lib/i386:/opt/openjdk/control/build/linux-i586/lib/i386/client
+export ANT_HOME=/usr/share/ant
+export JAVA_HOME=/opt/openjdk/control/build/linux-i586
+export FINDBUGS_HOME=/opt/java/findbugs-1.2.1
+
+
+ Sample openjdk.sh for Cygwin build
+ ----------------------------------
+
+export ALT_BOOTDIR=o:/Java/jdk1.6.0_02
+export ALT_BINARY_PLUGS_PATH=o:/Java/openjdk-binary-plugs
+export ALT_UNICOWS_DLL_PATH=`cygpath -aw /cygdrive/o/Java/jdk1.6.0_02/jre/bin`
+export ALT_FREETYPE_HEADERS_PATH=o:/Java/FreeType/freetype-2.3.5/include
+export ALT_FREETYPE_LIB_PATH=o:/Java/FreeType/freetype-2.3.5/objs/release
+export REQUIRED_FREETYPE_VERSION=2.3.5
+
+export DXSDK_DIR=`cygpath -aw /cygdrive/o/Java/DirectX`
+export ANT_HOME=/cygdrive/o/Java/apache-ant-1.7.0
+export FINDBUGS_HOME=/cygdrive/o/Java/findbugs-1.2.1
+
+MSVC_ROOT=/cygdrive/d/msvc
+MSVC_DIR=$MSVC_ROOT/Vc7
+
+export MSVCDIR=`cygpath -aw $MSVC_DIR`
+export INCLUDE=`cygpath -awp $MSVC_DIR/atlmfc/include:$MSVC_DIR/PlatformSDK/include/prerelease:$MSVC_DIR/PlatformSDK/include:$MSVC_DIR/include`
+export LIB=`cygpath -awp $MSVC_DIR/atlmfc/lib:$MSVC_DIR/LIB:$MSVC_DIR/PlatformSDK/lib/prerelease:$MSVC_DIR/PlatformSDK/lib`
+export PATH=$MSVC_ROOT/Common7/IDE:$MSVC_DIR/BIN:$MSVC_ROOT/Common7/Tools:$MSVC_ROOT/Common7/Tools/bin/prerelease:$MSVC_ROOT/Common7/Tools/bin:$PATH
