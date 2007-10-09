@@ -255,7 +255,7 @@ def stripTimeZone(view, dt):
     else:
         return dt.astimezone(view.tzinfo.default).replace(tzinfo=None)
 
-def forceToDateTime(view, dt):
+def forceToDateTime(view, dt, tzinfo=None):
     """
     If dt is a datetime, return dt, if a date, add time(0) and return.
 
@@ -264,14 +264,15 @@ def forceToDateTime(view, dt):
 
     @return: A C{datetime}
     """
-    floating = view.tzinfo.floating
+    if tzinfo is None:
+        tzinfo = view.tzinfo.floating
     if type(dt) == datetime.datetime:
         if dt.tzinfo is None:
-            return dt.replace(tzinfo=floating)
+            return dt.replace(tzinfo=tzinfo)
         else:
             return dt
     elif type(dt) == datetime.date:
-        return datetime.datetime.combine(dt, datetime.time(0, tzinfo=floating))
+        return datetime.datetime.combine(dt, datetime.time(0, tzinfo=tzinfo))
 
 def coerceTimeZone(view, dt, tzinfo):
     """
@@ -310,7 +311,7 @@ def convertToICUtzinfo(view, dt):
     @type dt: C{datetime}
     """
 
-    oldTzinfo = dt.tzinfo
+    oldTzinfo = getattr(dt, 'tzinfo', None)
     if isinstance(oldTzinfo, (PyICU.ICUtzinfo, PyICU.FloatingTZ)):
         return dt
     elif oldTzinfo is None:
@@ -403,7 +404,10 @@ def convertToICUtzinfo(view, dt):
     if icuTzinfo is None:
         icuTzinfo = view.tzinfo.floating
 
-    dt = dt.replace(tzinfo=icuTzinfo)
+    if not hasattr(dt, 'hour'):
+        dt = forceToDateTime(view, dt, icuTzinfo)
+    else:
+        dt = dt.replace(tzinfo=icuTzinfo)
 
     return dt
 
