@@ -468,7 +468,7 @@ def _multiChange(item, change):
         newValue = list(iter(oldValue))
         if change[1] in ('add', 'append'):
             newValue.append(change[2])
-        else:
+        elif change[2] in newValue:
             newValue.remove(change[2])
     elif cardinality == 'set':
         newValue = set(iter(oldValue))
