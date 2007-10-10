@@ -608,6 +608,12 @@ class ICSSerializer(object):
                         else:
                             assert type(remValue) is timedelta
                             trigger = toICalendarDuration(remValue)
+                            
+                    if remDuration is not None:
+                        remDuration = toICalendarDuration(remDuration)
+                        
+                    if remRepeat is not None:
+                        remRepeat = int(remRepeat)
 
                 recurrence = {}
             

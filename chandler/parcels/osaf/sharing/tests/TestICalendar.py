@@ -441,6 +441,19 @@ class ICalendarTestCase(SingleRepositoryTestCase):
         self.failUnlessEqual(event.startTime.tzinfo, self.view.tzinfo.floating)
 
 
+    def testDisplayAlarm(self):
+        """Check we initialize a Reminder correctly from a VALARM element"""
+        self.Import(self.view, 'DisplayAlarm.ics')
+        
+        eventItem = sharing.findUID(self.view, 'eventfrombug10958')
+                                    
+        reminder = eventItem.getUserReminder()
+        self.failUnless(reminder is not None, "Reminder not set up from VALARM")
+        self.failUnlessEqual(reminder.duration, datetime.timedelta(days=1))
+        self.failUnlessEqual(reminder.repeat, 4)
+        self.failUnlessEqual(reminder.description, u'Wake up!')
+        self.failUnlessEqual(reminder.delta, datetime.timedelta(days=-5))
+
 
 # test import/export unicode
 
