@@ -783,6 +783,22 @@ class RoundTripTestCase(testcase.DualRepositoryTestCase):
 
 
 
+
+
+        # Remotely touched but not really modified, locally removed - we send
+        # a removal for the item
+        self.share1.contents.remove(item1)
+        view1.commit(); stats = self.share1.sync(forceUpdate=True); view1.commit()
+        self.assert_(checkStats(stats,
+            ({'added' : 0, 'modified' : 0, 'removed' : 0},
+             {'added' : 0, 'modified' : 0, 'removed' : 1})),
+            "Sync operation mismatch")
+
+        # put the item back in
+        self.share1.contents.add(item1)
+        view1.commit(); stats = self.share1.sync(); view1.commit()
+
+
         # Remote *and* Local item removal
         self.share0.contents.remove(item)
         self.share1.contents.remove(item1)

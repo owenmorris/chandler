@@ -831,9 +831,15 @@ class RecordSetConduit(conduits.BaseConduit):
 
                 # Add the item to contents
                 if item is not None and item.isLive():
-                    if not isinstance(item, pim.Occurrence):
-                        self.share.contents.add(item)
-                    self.share.addSharedItem(item)
+                    # If this is a new state (meaning the item has just been
+                    # added to the collection), or...
+                    # It's an old state (the item was in the collection before)
+                    # and there were inbound changes, add to the collection
+                    state = self.getState(alias)
+                    if state.isNew( ) or toApply.get(alias, False):
+                        if not isinstance(item, pim.Occurrence):
+                            self.share.contents.add(item)
+                        self.share.addSharedItem(item)
 
 
             # For each remote removal, remove the item from the collection
