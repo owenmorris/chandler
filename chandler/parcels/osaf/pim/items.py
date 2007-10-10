@@ -536,7 +536,7 @@ class ContentItem(Triageable):
     def onCreatedOrLastModifiedChanged(self, op, attr):
         self.updateDisplayDate(op, attr)
 
-    @schema.observer(modifiedFlags, lastModification, lastModifiedBy)
+    @schema.observer(modifiedFlags, lastModification, lastModifiedBy, read)
     def onModificationChange(self, op, name):
         # CommunicationStatus might have changed
         self.updateDisplayWho(op, name)

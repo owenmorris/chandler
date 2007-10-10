@@ -117,10 +117,10 @@ class CommunicationStatus(schema.Annotation):
                           CommunicationStatus.QUEUED |
                           CommunicationStatus.ERROR) == 0:
                 result |= CommunicationStatus.DRAFT
-        else:
-            # edited
-            if Modification.edited in modifiedFlags:
-                result |= CommunicationStatus.EDITED
+
+        # edited
+        if Modification.edited in modifiedFlags:
+            result |= CommunicationStatus.EDITED
 
         # needsReply
         if needsReply:
@@ -176,9 +176,14 @@ class CommunicationStatus(schema.Annotation):
         """
         commState = CommunicationStatus.getItemCommState(self.itsItem)
         lastModifiedBy = self.itsItem.lastModifiedBy
+        stamp_types = Stamp(self.itsItem).stamp_types
+        isMessage = stamp_types and MailStamp in stamp_types
         if lastModifiedBy is not None:
             lastModifiedBy = lastModifiedBy.getLabel()
-            if commState & (CommunicationStatus.EDITED | CommunicationStatus.UPDATE):
+            # (bug 10927: We only want to include ed/up if the item is either not
+            #  a message, or not read)
+            if (commState & (CommunicationStatus.EDITED | CommunicationStatus.UPDATE)) and \
+               (not isMessage or not (commState & CommunicationStatus.READ)):
                 lastMod = self.itsItem.lastModification
                 if lastMod == Modification.edited:
                     whos.append((1, lastModifiedBy, 'editor'))
@@ -187,8 +192,7 @@ class CommunicationStatus(schema.Annotation):
             else:
                 whos.append((1000, lastModifiedBy, 'creator'))
 
-        stamp_types = Stamp(self.itsItem).stamp_types
-        if stamp_types and MailStamp in stamp_types:
+        if isMessage:
             msg = MailStamp(self.itsItem)
             preferFrom = (commState & CommunicationStatus.OUT) == 0            
             toAddress = getattr(msg, 'toAddress', schema.Nil)
