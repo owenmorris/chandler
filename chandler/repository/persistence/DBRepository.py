@@ -12,7 +12,7 @@
 #   See the License for the specific language governing permissions and
 #   limitations under the License.
 
-
+from __future__ import with_statement
 import sys, os, shutil, atexit, time, threading
 
 from datetime import datetime, timedelta
@@ -235,7 +235,17 @@ class DBRepository(OnDemandRepository):
             env.tx_max = 1024
 
         if configure and not ramdb:
-            db_info = file(join(dbHome, 'DB_INFO'), 'w+b')
+            if create or not exists(join(dbHome, 'DB_CONFIG')):
+                datadir = kwds.get('datadir', None) or ''
+            else:
+                with file(join(dbHome, 'DB_CONFIG'), 'r+b') as db_config:
+                    for line in db_config:
+                        if line.startswith('set_data_dir'):
+                            datadir = line.split(' ', 1)[1].strip()
+                            break
+                    else:
+                        datadir = kwds.get('datadir', None) or ''
+            db_info = file(join(dbHome, datadir, 'DB_INFO'), 'w+b')
             try:
                 db_info.write("%d.%d.%d\n" %(DB_VERSION_MAJOR,
                                              DB_VERSION_MINOR,
@@ -252,7 +262,17 @@ class DBRepository(OnDemandRepository):
 
         elif not (configure or ramdb):
             try:
-                db_info = file(join(dbHome, 'DB_INFO'))
+                if exists(join(dbHome, 'DB_CONFIG')):
+                    with file(join(dbHome, 'DB_CONFIG'), 'r+b') as db_config:
+                        for line in db_config:
+                            if line.startswith('set_data_dir'):
+                                datadir = line.split(' ', 1)[1].strip()
+                                break
+                        else:
+                            datadir = kwds.get('datadir', None) or ''
+                else:
+                    datadir = kwds.get('datadir', None) or ''
+                db_info = file(join(dbHome, datadir, 'DB_INFO'))
                 version = db_info.readline().strip()
                 encrypted = db_info.readline().strip() == 'encrypted'
                 platform = db_info.readline().strip()
@@ -299,7 +319,6 @@ class DBRepository(OnDemandRepository):
                 env.set_flags(DBEnv.DB_LOG_AUTOREMOVE, 1)
                 db_config.write("set_flags DB_LOG_AUTOREMOVE\n")
 
-            datadir = kwds.get('datadir', None)
             if datadir:
                 env.set_data_dir(datadir)
                 db_config.write("set_data_dir %s\n" %(datadir))
@@ -345,13 +364,14 @@ class DBRepository(OnDemandRepository):
                 if (name.startswith('__db') or
                     name.startswith('log.') or
                     name.endswith('.db') or
-                    name in ('DB_CONFIG', 'DB_INFO')):
+                    name == 'DB_CONFIG'):
                     path = join(dbHome, name)
                     if not isdir(path):
                         os.remove(path)
             if datadir:
                 for name in os.listdir(join(dbHome, datadir)):
-                    if name.endswith('.db'):
+                    if (name.endswith('.db') or
+                        name == 'DB_INFO'):
                         path = join(dbHome, datadir, name)
                         if not isdir(path):
                             os.remove(path)
@@ -398,6 +418,7 @@ class DBRepository(OnDemandRepository):
 
         release = []
         enabled = None
+        datadir = ''
         try:
             for view in self.getOpenViews():
                 if view._acquireExclusive():
@@ -425,18 +446,18 @@ class DBRepository(OnDemandRepository):
             if exists(join(self.dbHome, 'DB_CONFIG')):
                 dstPath = join(dbHome, 'DB_CONFIG')
                 self.logger.info(dstPath)
-                inFile = file(join(self.dbHome, 'DB_CONFIG'), 'r')
-                outFile = file(dstPath, 'w+b')
-                for line in inFile:
-                    if not (line.startswith('set_data_dir') or
-                            line.startswith('set_lg_dir')):
-                        outFile.write(line)
-                outFile.close()
-            
-            if exists(join(self.dbHome, 'DB_INFO')):
+                with file(dstPath, 'w+b') as outFile:
+                    with file(join(self.dbHome, 'DB_CONFIG'), 'r') as inFile:
+                        for line in inFile:
+                            if line.startswith('set_data_dir'):
+                                datadir = line.split(' ', 1)[1].strip()
+                            elif not line.startswith('set_lg_dir'):
+                                outFile.write(line)
+
+            if exists(join(self.dbHome, datadir, 'DB_INFO')):
                 dstPath = join(dbHome, 'DB_INFO')
                 self.logger.info(dstPath)
-                shutil.copy2(join(self.dbHome, 'DB_INFO'), dstPath)
+                shutil.copy2(join(self.dbHome, datadir, 'DB_INFO'), dstPath)
 
             if not withLog:
                 env = None
@@ -507,8 +528,10 @@ class DBRepository(OnDemandRepository):
                     elif f.startswith('log.'):
                         withLogs = True
                         dstPath = join(logdir, f)
-                    elif f in ('DB_CONFIG', 'DB_INFO'):
+                    elif f == 'DB_CONFIG':
                         dstPath = join(dbHome, f)
+                    elif f == 'DB_INFO':
+                        dstPath = join(datadir, f)
                     else:
                         continue
                                       
@@ -531,8 +554,10 @@ class DBRepository(OnDemandRepository):
                     elif f.startswith('log.'):
                         withLogs = True
                         dstPath = logdir
-                    elif f in ('DB_CONFIG', 'DB_INFO'):
+                    elif f == 'DB_CONFIG':
                         dstPath = dbHome
+                    elif f == 'DB_INFO':
+                        dstPath = datadir
                     else:
                         continue
 
@@ -555,8 +580,10 @@ class DBRepository(OnDemandRepository):
                     elif f.startswith('log.'):
                         withLogs = True
                         dstPath = logdir
-                    elif f in ('DB_CONFIG', 'DB_INFO'):
+                    elif f == 'DB_CONFIG':
                         dstPath = dbHome
+                    elif f == 'DB_INFO':
+                        dstPath = datadir
                     else:
                         continue
 
@@ -579,7 +606,7 @@ class DBRepository(OnDemandRepository):
                 outFile.close()
 
             try:
-                db_info = file(join(dbHome, 'DB_INFO'))
+                db_info = file(join(datadir, 'DB_INFO'))
                 version = db_info.readline().strip()
                 encrypted = db_info.readline().strip()
                 platform = db_info.readline().strip()
@@ -592,7 +619,7 @@ class DBRepository(OnDemandRepository):
                 raise RepositoryPlatformError, (platform or 'unknown',
                                                 getPlatformName())
 
-            db_info = file(join(dbHome, 'DB_INFO'), 'w+b')
+            db_info = file(join(datadir, 'DB_INFO'), 'w+b')
             db_info.write("%s\n" %(version))
             db_info.write("%s\n" %(encrypted))
             db_info.write("%s\n" %(getPlatformName()))
@@ -824,7 +851,15 @@ class DBRepository(OnDemandRepository):
                     return self.create(**kwds)
 
             self._lockOpen()
-            self._env = self._createEnv(configure, False, kwds)
+
+            try:
+                self._env = self._createEnv(configure, False, kwds)
+            except RepositoryPlatformError:
+                if kwds.get('forceplatform', False):
+                    self._env = self._createEnv(True, False, kwds)
+                    recover = True
+                else:
+                    raise
 
             if not recover and exclusive:
                 if exists(self._openDir) and os.listdir(self._openDir):

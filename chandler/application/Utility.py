@@ -228,6 +228,7 @@ COMMAND_LINE_OPTIONS = {
     'ramdb':      ('-m', '--ramdb',      'b', False, None, ''),
     'restore':    ('-r', '--restore',    's', None,  None, 'repository backup to restore from before repository open'),
     'recover':    ('-R', '--recover',    'b', False, None, 'open repository with recovery'),
+    'forceplatform': ('', '--force-platform', 'b', False, None, 'open repository with recovery if platform of env does not match current platform'),
     'reload':     ('',   '--reload',     's', None, None, 'reload a dump file, will clear repository first'),
     # --nocatch is deprecated and will be removed soon: use --catch=tests or --catch=never instead
     'nocatch':    ('-n', '--nocatch',    'b', False, 'CHANDLERNOCATCH', ''),
@@ -585,6 +586,7 @@ def initRepository(directory, options, allowSchemaView=False):
              'ramdb': options.ramdb,
              'create': True,
              'recover': options.recover,
+             'forceplatform': options.forceplatform,
              'exclusive': not options.nonexclusive,
              'memorylog': options.memorylog,
              'mvcc': options.mvcc and not options.nomvcc,

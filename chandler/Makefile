@@ -24,29 +24,52 @@ BUILD_PLUGINS = Chandler-HelloWorldPlugin \
 
 BUILD_LOCALES = Chandler.en
 
-# When a version changes, the ARCHIVES lists below need to be updated.
+ifeq ($(OS),Darwin)
+    ifeq ($(shell arch),ppc)
+        PLATFORM = macosx
+    else
+        PLATFORM = maciosx
+    endif
+endif
+
+ifeq ($(OS),Linux)
+    PLATFORM = linux
+endif
 
 ifeq ($(findstring CYGWIN,$(OS)),CYGWIN)
     OS = Cygwin
+    PLATFORM = windows
 endif
 
 ifeq ($(findstring WINNT,$(OS)),WINNT)
     OS = Cygwin
+    PLATFORM = windows
 endif
 
-ifeq ($(OS),Linux)
+# When a version changes, the ARCHIVES lists below need to be updated.
+
+ifeq ($(PLATFORM),linux)
     OPENSSL =
     OPENJDK = $(CHANDLERARCHIVES)/openjdk-7-ea-j2re-b21-$(BP)2.tar.gz
+    READLINE = 
 endif
 
-ifeq ($(OS),Darwin)
+ifeq ($(PLATFORM),macosx)
     OPENSSL = $(CHANDLERARCHIVES)/openssl-$(SNAP)-0.9.8d-$(BP)1.tar.gz
     OPENJDK = 
+    READLINE = $(CHANDLERARCHIVES)/readline-$(SNAP)-5.2-$(BP)1.tar.gz
 endif
 
-ifeq ($(OS),Cygwin)
+ifeq ($(PLATFORM),maciosx)
+    OPENSSL = $(CHANDLERARCHIVES)/openssl-$(SNAP)-0.9.8d-$(BP)1.tar.gz
+    OPENJDK = 
+    READLINE = $(CHANDLERARCHIVES)/readline-$(SNAP)-5.2-$(BP)1.tar.gz
+endif
+
+ifeq ($(PLATFORM),windows)
     OPENSSL = $(CHANDLERARCHIVES)/openssl-$(SNAP)-0.9.8d-$(BP)1.tar.gz
     OPENJDK = $(CHANDLERARCHIVES)/openjdk-7-ea-j2re-b21-$(BP)2.tar.gz
+    READLINE = 
 endif
 
 ARCHIVES = \
@@ -58,6 +81,7 @@ ARCHIVES = \
     $(CHANDLERARCHIVES)/icu-$(SNAP)-3.6-$(BP)1.tar.gz \
     $(OPENSSL) \
     $(OPENJDK) \
+    $(READLINE) \
     $(CHANDLERARCHIVES)/m2crypto-$(SNAP)-563-$(BP)2.tar.gz \
     $(CHANDLERARCHIVES)/pychecker-$(SNAP)-0.8.17-$(BP)1.tar.gz \
     $(CHANDLERARCHIVES)/PyICU-$(SNAP)-0.6-78-$(BP)1.tar.gz \
@@ -122,7 +146,6 @@ endif
 
 ifeq ($(OS),Cygwin)
     SITE       = $(SNAP)/bin/Lib/site-packages
-    PLATFORM   = windows
     SCRIPTS    = $(C_BIN)/$(SNAP)/bin/Scripts/
     RUN_PYTHON = CHANDLERHOME='$(CHANDLERHOME)' CHANDLERBIN='$(CHANDLERBIN)' $(C_BIN)/$(SNAP)/RunPython.bat
     SED_MODERN = -r
@@ -130,32 +153,15 @@ else
     ifeq ($(OS),Darwin)
         FRAMEWORK  = Library/Frameworks/Python.framework/Versions/$(PYTHON_VER)
         SITE       = $(SNAP)/$(FRAMEWORK)/lib/python$(PYTHON_VER)/site-packages
-        ARCH       = $(shell arch)
         SCRIPTS    = $(C_BIN)/$(SNAP)/$(FRAMEWORK)/bin/
         RUN_PYTHON = MACOSX_DEPLOYMENT_TARGET= CHANDLERHOME=$(CHANDLERHOME) $(C_BIN)/$(SNAP)/RunPython
         SED_MODERN = -E
-
-        ifeq ($(ARCH),ppc)
-            PLATFORM = macosx
-        else
-            PLATFORM = maciosx
-        endif
     else
         SITE       = $(SNAP)/lib/python$(PYTHON_VER)/site-packages
-        PLATFORM   = linux
         SCRIPTS    = $(C_BIN)/$(SNAP)/bin/
         RUN_PYTHON = CHANDLERHOME=$(CHANDLERHOME) $(C_BIN)/$(SNAP)/RunPython
         SED_MODERN = -r
     endif
-endif
-
-# readline is only needed for OS X
-# use PLATFORM so this target can be run on another OS
-ifeq ($(PLATFORM),macosx)
-    ARCHIVES += $(CHANDLERARCHIVES)/readline-$(SNAP)-5.2-$(BP)1.tar.gz
-endif
-ifeq ($(PLATFORM),maciosx)
-    ARCHIVES += $(CHANDLERARCHIVES)/readline-$(SNAP)-5.2-$(BP)1.tar.gz
 endif
 
 # We download some pretty big files, which can clog your network. You can now
@@ -362,6 +368,12 @@ relocatable-distro:
                 DSTDIR=`pwd`/relocatable \
                 SVNURL=`svn info | grep URL | sed 's/URL: //'` \
                 distro
+
+relocatable-deploy:
+	$(MAKE) -C distrib/relocatable \
+                DSTDIR=`pwd`/relocatable \
+                SVNURL=`svn info | grep URL | sed 's/URL: //'` \
+                deploy
 
 relocatable-starters:
 	$(MAKE) -C distrib/relocatable \

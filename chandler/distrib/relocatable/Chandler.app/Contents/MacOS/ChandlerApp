@@ -1,8 +1,11 @@
 #!/bin/sh
 
-cd $(dirname "${0}")
+cwd=$(dirname "${0}")
+cd "${cwd}"
 execdir="$PWD"
-rootdir="$(dirname $(dirname $(dirname $PWD)))"
+rootdir=$(dirname "${execdir}")
+rootdir=$(dirname "${rootdir}")
+rootdir=$(dirname "${rootdir}")
 export CHANDLERHOME="${rootdir}/chandler"
 export CHANDLERBIN="${rootdir}/mac"
-exec "${CHANDLERBIN}/release/RunChandler" --profileDir="${rootdir}/profile" --repodir="${CHANDLERBIN}" --datadir=../../profile/data --logdir=../../profile/logs --encrypt $@
+exec "${CHANDLERBIN}/release/RunPython" -O "${CHANDLERHOME}/Chandler.py" --profileDir="${rootdir}/profile" --repodir="${CHANDLERBIN}" --datadir=../../profile/data --logdir=../../profile/logs --force-platform --encrypt $@

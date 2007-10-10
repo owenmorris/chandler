@@ -28,7 +28,7 @@ deploy:
 	mkdir -p $(DSTDIR)/chandler/linux/archives
 	mkdir -p $(DSTDIR)/chandler/windows/archives
 	mkdir -p $(DSTDIR)/chandler/profile
-	cd $(DSTDIR)/chandler; svn co $(SVNURL) chandler
+	cd $(DSTDIR)/chandler; svn export $(SVNURL) chandler
 	$(MAKE) -f $(DSTDIR)/chandler/chandler/Makefile -e \
                 CHANDLERBIN="$(DSTDIR)/chandler/mac" \
                 CHANDLERARCHIVES="$(DSTDIR)/chandler/mac/archives" \
@@ -44,6 +44,9 @@ deploy:
                 CHANDLERARCHIVES="$(DSTDIR)/chandler/windows/archives" \
                 PLATFORM=windows \
                 archives
+	find $(DSTDIR)/chandler -type l | xargs rm
+	find $(DSTDIR)/chandler -name 'python2.5' -type f | xargs rm
+	DSTDIR=$(DSTDIR) sh -v renames.sh
 
 
 starters:
@@ -58,7 +61,10 @@ archive:
                          --exclude .svn \
                          --exclude archives \
                          --exclude distrib \
+                         --exclude tests \
                          --exclude '*.inst' \
+                         --exclude 'chandler/tools' \
+                         --exclude 'chandler/projects' \
                          chandler
 
 
