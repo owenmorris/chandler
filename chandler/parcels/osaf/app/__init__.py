@@ -372,13 +372,9 @@ The Chandler Team""") % {'version': version.version,
                             body=scripting.script_file(u"CleanupAfterTests.py", Scripts.__file__)
                             )
 
-    # Script to paste the clipboard into a new menu item
-    newScript = scripting.Script.update(parcel, 'Paste New Item',
-                                        displayName=_(u"F5 - Paste new item"),
-                                        fkey= u"F5",
-                                        creator = osafDev
-                                        )
-    newScript.set_file(u"PasteNewItem.py", Scripts.__file__)
+    #
+    # F5 reserved for triage
+    #
 
     # Print selected item to stdout
     scripting.Script.update(parcel, 'Print Selected to stdout',
@@ -387,6 +383,14 @@ The Chandler Team""") % {'version': version.version,
                             creator = osafDev,
                             body=scripting.script_file(u"StdoutSelected.py", Scripts.__file__)
                             )
+
+    # Script to paste the clipboard into a new menu item
+    newScript = scripting.Script.update(parcel, 'Paste New Item',
+                                        displayName=_(u"F7 - Paste new item"),
+                                        fkey= u"F7",
+                                        creator = osafDev
+                                        )
+    newScript.set_file(u"PasteNewItem.py", Scripts.__file__)
 
     from osaf.app import compact
     compact.CompactTask.update(parcel, 'compactTask')
