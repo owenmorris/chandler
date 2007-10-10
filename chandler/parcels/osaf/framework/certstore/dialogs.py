@@ -155,9 +155,9 @@ class TrustServerCertificateDialog(wx.Dialog):
         # Static text
 
         if storedUntrusted is None:
-            message = _(u'Do you want to trust this certificate?\nSHA1 fingerprint: %s') % utils.fingerprint(x509)
+            message = _(u'Do you want to trust this certificate?\nSHA1 fingerprint: %(fingerprint)s') % {'fingerprint': utils.fingerprint(x509)}
         else:
-            message = _(u'This certificate is already known but not trusted.\nDo you want to trust this certificate?\nSHA1 fingerprint: %s') % utils.fingerprint(x509)
+            message = _(u'This certificate is already known but not trusted.\nDo you want to trust this certificate now?\nSHA1 fingerprint: %(fingerprint)s') % {'fingerprint': utils.fingerprint(x509)}
         label = wx.StaticText(self, -1, message)
         sizer.Add(label, 0, wx.ALIGN_LEFT|wx.ALL, 5)
 
@@ -174,7 +174,7 @@ class TrustServerCertificateDialog(wx.Dialog):
         
         first = True
         rbs = []
-        choices=[_(u'Trust the authenticity of this certificate &until program exit.'),
+        choices=[_(u'Trust the authenticity of this certificate &until you quit Chandler.'),
                  _(u'Trust the authenticity of this certificate &permanently.')]
         for choice in choices:
             if first:
@@ -268,7 +268,7 @@ class IgnoreSSLErrorDialog(wx.Dialog):
             errString = err
         except AttributeError:
             errString = errors.getCertificateVerifyErrorString(err)
-        message = _(u'There was an error with this SSL connection.\nThe error was: %s.\nIgnoring this error may be dangerous!\nSHA1 fingerprint: %s') % (errString, utils.fingerprint(x509))
+        message = _(u'There was an error with this SSL connection.\nThe error was: %(sslError)s.\nIgnoring this error may be dangerous!\nSHA1 fingerprint: %(fingerprint)s') % {'sslError': errString, 'fingerprint': utils.fingerprint(x509)}
         label = wx.StaticText(self, -1, message)
         sizer.Add(label, 0, wx.ALIGN_LEFT|wx.ALL, 5)
 
@@ -283,7 +283,7 @@ class IgnoreSSLErrorDialog(wx.Dialog):
 
         box = wx.BoxSizer(wx.HORIZONTAL)
 
-        btn = wx.Button(self, wx.ID_OK, _(u'Ignore this error'))
+        btn = wx.Button(self, wx.ID_OK, _(u'Ignore Error'))
         box.Add(btn, 0, wx.ALIGN_RIGHT|wx.ALL, 5)
 
         btn = wx.Button(self, wx.ID_CANCEL, _(u'Disconnect'))

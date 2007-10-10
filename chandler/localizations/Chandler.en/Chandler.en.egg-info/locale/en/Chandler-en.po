@@ -2132,28 +2132,28 @@ msgid "algorithm"
 msgstr ""
 
 #: parcels/osaf/framework/certstore/certificate.py:229
-msgid "Could not determine certificate purpose."
-msgstr "Could not determine purpose of certificate."
+msgid "Could not determine purpose of certificate."
+msgstr ""
 
 #: parcels/osaf/framework/certstore/certificate.py:255
 msgid "This certificate has already been imported."
 msgstr ""
 
 #: parcels/osaf/framework/certstore/certificate.py:267
-msgid "Unable to verify the certificate."
-msgstr "Unable to verify certificate."
+msgid "Unable to verify certificate."
+msgstr ""
 
 #: parcels/osaf/framework/certstore/certificate.py:297
 msgid "Choose a certificate to import"
-msgstr "Choose a certificate to import."
+msgstr ""
 
 #: parcels/osaf/framework/certstore/certificate.py:300
 msgid "PEM files|*.pem;*.crt|All files (*.*)|*.*"
 msgstr ""
 
 #: parcels/osaf/framework/certstore/certificate.py:315
-msgid "Trust the authenticity of this certificate."
-msgstr "Trust this certificate."
+msgid "Trust this certificate."
+msgstr ""
 
 #: parcels/osaf/framework/certstore/certificate.py:317
 msgid "Trust this certificate to sign site certificates."
@@ -2189,19 +2189,16 @@ msgstr ""
 #: parcels/osaf/framework/certstore/dialogs.py:160
 msgid ""
 "This certificate is already known but not trusted.\n"
-"Do you want to trust this certificate?\n"
-"SHA1 fingerprint: %s"
-msgstr ""
-"This certificate is already known but not trusted.\n"
 "Do you want to trust this certificate now?\n"
 "SHA1 fingerprint: %s"
+msgstr ""
 
 #: parcels/osaf/framework/certstore/dialogs.py:177
-msgid "Trust the authenticity of this certificate until program exit."
-msgstr "Trust the authenticity of this certificate until you quit Chandler."
+msgid "Trust the authenticity of this certificate &until you quit Chandler."
+msgstr ""
 
 #: parcels/osaf/framework/certstore/dialogs.py:178
-msgid "Trust the authenticity of this certificate permanently."
+msgid "Trust the authenticity of this certificate &permanently."
 msgstr ""
 
 #: parcels/osaf/framework/certstore/dialogs.py:253
@@ -2217,8 +2214,8 @@ msgid ""
 msgstr ""
 
 #: parcels/osaf/framework/certstore/dialogs.py:286
-msgid "Ignore this error"
-msgstr "Ignore Error"
+msgid "Ignore Error"
+msgstr ""
 
 #: parcels/osaf/framework/certstore/dialogs.py:289
 msgid "Disconnect"
@@ -2227,31 +2224,31 @@ msgstr ""
 #: parcels/osaf/framework/certstore/errors.py:24
 #: parcels/osaf/framework/certstore/errors.py:51
 msgid "unable to get issuer certificate"
-msgstr "Unable to get issuer certificate."
+msgstr ""
 
 #: parcels/osaf/framework/certstore/errors.py:25
 msgid "unable to decrypt certificate's signature"
-msgstr "Unable to decrypt certificate's signature."
+msgstr ""
 
 #: parcels/osaf/framework/certstore/errors.py:26
 msgid "unable to decode issuer public key"
-msgstr "Unable to decode issuer public key."
+msgstr ""
 
 #: parcels/osaf/framework/certstore/errors.py:27
 msgid "certificate signature failure"
-msgstr "Certificate signature failure."
+msgstr ""
 
 #: parcels/osaf/framework/certstore/errors.py:28
 msgid "certificate is not yet valid"
-msgstr "Certificate is not yet valid."
+msgstr ""
 
 #: parcels/osaf/framework/certstore/errors.py:29
 msgid "certificate has expired"
-msgstr "Certificate has expired."
+msgstr ""
 
 #: parcels/osaf/framework/certstore/errors.py:30
 msgid "format error in certificate's notBefore field"
-msgstr "Certificate notBefore field is formatted incorrectly."
+msgstr ""
 
 #: parcels/osaf/framework/certstore/errors.py:31
 msgid "format error in certificate's notAfter field"
@@ -2259,52 +2256,52 @@ msgstr ""
 
 #: parcels/osaf/framework/certstore/errors.py:32
 msgid "out of memory"
-msgstr "Out of memory."
+msgstr ""
 
 #: parcels/osaf/framework/certstore/errors.py:33
 msgid "self signed certificate"
-msgstr "Self-signed certificate."
+msgstr ""
 
 #: parcels/osaf/framework/certstore/errors.py:34
 msgid "self signed certificate in certificate chain"
-msgstr "Self-signed certificate in certificate chain."
+msgstr ""
 
 #: parcels/osaf/framework/certstore/errors.py:35
 msgid "unable to get local issuer certificate"
-msgstr "Unable to get local issuer certificate."
+msgstr ""
 
 #: parcels/osaf/framework/certstore/errors.py:36
 msgid "unable to verify the first certificate"
-msgstr "Unable to verify the first certificate."
+msgstr ""
 
 #: parcels/osaf/framework/certstore/errors.py:37
 msgid "invalid CA certificate"
-msgstr "Invalid CA certificate."
+msgstr ""
 
 #: parcels/osaf/framework/certstore/errors.py:38
 msgid "path length constraint exceeded"
-msgstr "Path is too long."
+msgstr ""
 
 #: parcels/osaf/framework/certstore/errors.py:39
 msgid "unsupported certificate purpose"
-msgstr "Unsupported certificate purpose."
+msgstr ""
 
 #: parcels/osaf/framework/certstore/errors.py:40
 msgid "certificate not trusted"
-msgstr "Certificate not trusted."
+msgstr ""
 
 #: parcels/osaf/framework/certstore/errors.py:41
 msgid "certificate rejected"
-msgstr "Certificate rejected."
+msgstr ""
 
 #: parcels/osaf/framework/certstore/ssl.py:143
 msgid "Could not set cipher list"
-msgstr "Could not set cipher list."
+msgstr ""
 
 #: parcels/osaf/framework/password.py:132
 #: parcels/osaf/framework/password.py:227
 msgid "Password is too long"
-msgstr "Password is too long."
+msgstr ""
 
 #: parcels/osaf/framework/script_recording/__init__.py:141
 msgid "Save script as ..."

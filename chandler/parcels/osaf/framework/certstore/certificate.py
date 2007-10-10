@@ -226,7 +226,7 @@ def certificatePurpose(x509):
         purpose |= constants.PURPOSE_SERVER
 
     if purpose == 0:
-        raise utils.CertificateException(_(u'Could not determine certificate purpose.'))
+        raise utils.CertificateException(_(u'Could not determine purpose of certificate.'))
 
     return purpose
 
@@ -264,7 +264,7 @@ def importCertificate(x509, fingerprint, trust, repView):
     purpose = certificatePurpose(x509)
     if purpose & constants.PURPOSE_CA:
         if not x509.verify():
-            raise utils.CertificateException(_(u'Unable to verify the certificate.'))
+            raise utils.CertificateException(_(u'Unable to verify certificate.'))
 
     lobType = schema.itemFor(schema.Lob, repView)
     pem = lobType.makeValue(pem, compression=None)
@@ -312,7 +312,7 @@ def importCertificateDialog(repView):
             fprint = utils.fingerprint(x509)
             purpose = certificatePurpose(x509)
             # Note: the order of choices must match the selections code below
-            choices = [_(u"Trust the authenticity of this certificate.")]
+            choices = [_(u"Trust this certificate.")]
             if purpose & constants.PURPOSE_CA:
                 choices += [_(u"Trust this certificate to sign site certificates.")]
 
