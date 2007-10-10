@@ -466,6 +466,13 @@ class wxQuickEntry (wx.SearchCtrl):
         self.Bind(wx.EVT_TEXT_ENTER, theApp.OnCommand)
         self.Bind(wx.EVT_TEXT, self.OnTextChange)
 
+        # on some platforms the search widget is a composite control which
+        # doesn't pass along key events to the parent, find the text widget
+        text = self
+        if text.GetChildren():
+            text = text.GetChildren()[0]
+        text.Bind(wx.EVT_KEY_DOWN, self.OnKeyDown)
+
     def OnCancelButton (self, event):
         block = self.blockItem
         block.post (block.event, {"cancelClicked": True}, sender = block)
@@ -489,9 +496,17 @@ class wxQuickEntry (wx.SearchCtrl):
             # propagating a cancel event, just stop showing search.
 
             self.blockItem.findBlockByName("Sidebar").setShowSearch(False)
+            self.SetFocus()
+            
+        self.ShowCancelButton(showCancelButton)
         
-        self.ShowCancelButton (showCancelButton)
-        
+
+    def OnKeyDown(self, event):
+        """Treat ESC as Cancel."""
+        if event.GetKeyCode() == wx.WXK_ESCAPE:
+            self.OnCancelButton(event)
+        else:
+            event.Skip()
         
 class ToolBar(Block.RectangularChild):
 

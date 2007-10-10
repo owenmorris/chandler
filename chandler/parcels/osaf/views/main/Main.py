@@ -16,6 +16,7 @@ from datetime import timedelta
 from time import time, strftime
 import wx, os, sys, traceback, logging, re, webbrowser
 import application.dialogs.Util
+import pkg_resources
 
 from application import Globals, Printing, schema, Utility
 from application.AboutBox import AboutBox
@@ -27,11 +28,11 @@ from application.dialogs import ( AccountPreferences, PublishCollection,
 
 from repository.item.Item import MissingClass
 from osaf import (
-    pim, sharing, messages, webserver, settings, dumpreload
+    pim, sharing, messages, webserver, settings, dumpreload, quickentry
 )
 from osaf.activity import *
 
-from osaf.pim import Contact, mail
+from osaf.pim import Contact, mail, stamp_to_command
 from osaf.usercollections import UserCollection
 
 from osaf.mail import constants
@@ -164,6 +165,12 @@ class MainView(View):
         # See the declaration of the class NewItemEvent in Block.py for a
         # description of the attributes and values.
 
+        if self.trashCollectionSelected():
+            # Items can not be created in the
+            # trash collectioon
+            return
+
+
         allCollection = schema.ns('osaf.pim', self).allCollection
         sidebar = Block.findBlockByName("Sidebar")
         classParameter = event.classParameter
@@ -286,7 +293,7 @@ class MainView(View):
         sidebar = Block.findBlockByName ("Sidebar")
 
         if text is None:
-            text = _(u"/find ")
+	    text = "/" + SearchCommand.command_names[0] + " "
 
         widget = quickEntryBlock.widget.GetControl()
         widget.SetFocus()
@@ -301,219 +308,89 @@ class MainView(View):
         widget.SetSelection (start, end)
     
     def onSwitchToQuickEntryEvent (self, event):
-        quickEntryBlock = Block.findBlockByName("ApplicationBarQuickEntry")
-
-        sidebar = Block.findBlockByName ("Sidebar")
-
+        quickEntryBlock = self.findBlockByName("ApplicationBarQuickEntry")
         widget = quickEntryBlock.widget.GetControl()
         widget.SetFocus()
         quickEntryBlock.synchronizeWidget()
+	
         start = 0
         end = len(quickEntryBlock.text)
-        widget.SetSelection (start, end)
+        widget.SetSelection(start, end)
 
     def onQuickEntryEvent (self, event):
-        # XXX This needs some refactoring love
-        searchKinds = (_(u'search'), _(u's'),
-                       _(u'find'), _(u'f'),
-                       _(u'lucene'), _(u'l'))
-
-        def processQuickEntry(self, command):
-            """
-            Parses the text in the quick item entry widget in the
-            toolbar. Creates the items depending on the command and adds it
-            to the appropriate collection. Also parses the date/time info
-            and sets the start/end time or the reminder time.
-            """
-
-            msgFlag = False
-            eventFlag = False
-            taskFlag = False
-
-            # Default kind
-            defaultKind = sidebar.filterClass
-
-            # Search the text for "/" which indicates it is a quick item entry
-            cmd_re = re.compile(r'/(?P<kind>([A-z]+))')
-
-            cmd = cmd_re.match(command)
-            if cmd is None:
-                if defaultKind is not None:
-                    if defaultKind == pim.tasks.TaskStamp:
-                        taskFlag = True
-                    elif defaultKind == pim.mail.MailStamp:
-                        msgFlag = True
-                    elif defaultKind == pim.calendar.Calendar.EventStamp:
-                        eventFlag = True
-                    displayName = command
-
-            while cmd is not None:
-                kind = (cmd.group('kind')).lower()
-                displayName = command[(cmd.end()):].strip()
-                command = displayName
-
-                # Set flags depending on its kind
-                if kind in searchKinds:
-                    return False
-
-                elif kind in (_(u'task'), _(u't')):
-                    taskFlag = True
-
-                elif kind in (_(u'msg'), _(u'message'), _(u'm')):
-                     msgFlag = True
-
-                elif kind in (_(u'event'), _(u'e')):
-                    eventFlag = True
-
-                elif kind in (_(u'invite'), _(u'i')):
-                    eventFlag = True
-                    msgFlag = True
-
-                elif kind in (_(u'request'), _(u'r')):
-                    taskFlag = True
-                    msgFlag = True
-
-                elif kind not in (_(u'note'), _(u'n')):
-                    # if command is not 'note' then it is not a valid  command. for eg: '/foo'
-                    return False
-
-                cmd = cmd_re.match(displayName)
-
-            #Create a Note 
-            item = pim.Note(itsView = self.itsView)
-
-            # Parse the text for date/time information
-            startTime, endTime, countFlag, typeFlag = \
-                pim.calendar.Calendar.parseText(self.itsView, displayName)
-
-            # Check whether there is a date/time range
-            if startTime != endTime:
-                eventFlag = True
-
-            #Stamp the note appropriately depending on flags
-            if taskFlag:
-                pim.tasks.TaskStamp(item).add()
-            if eventFlag:
-                pim.calendar.Calendar.EventStamp(item).add()
-            if msgFlag:
-                pim.mail.MailStamp(item).add()
-                pim.mail.MailStamp(item).InitOutgoingAttributes()
-            else:
-                item.InitOutgoingAttributes()
-
-            # Set a reminder if the item is not an event but it has time
-            if (not eventFlag) and (typeFlag != 0) :
-                item.userReminderTime = startTime
-
-            if eventFlag:
-                # If the item is an event, set the event's start and end date/time
-                pim.calendar.Calendar.setEventDateTime(item, startTime, endTime, typeFlag)
-
-            # If item is a message, search for contacts and seperate them        
-            if msgFlag:
-                pattern = {}
-                pattern['email'] = r'[a-zA-Z0-9._%-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,4}'
-
-                checkContact = re.match(r'\s?((%(email)s)\s?(,|;)?\s?)+\s?:'%pattern,displayName)
-                sep = re.search(r':',displayName)
-
-                if checkContact and sep:
-                    contacts = (displayName[:sep.start()]).strip()
-                    displayName = (displayName[sep.end():]).strip()
-
-                    contacts_pattern = r"""
-                        \s*                      # ignore whitespace
-                        (?P<contact> ([^,;\s]*)) # any intervening non-whitespace is the contact
-                        \s*                      # ignore whitespace
-                        (,|;)?                   # gobble contact separators
-                        \s*                      # ignore whitespace
-                        """
-
-                    contacts_re = re.compile(contacts_pattern, re.VERBOSE)
-
-                    for match in contacts_re.finditer(contacts):
-                        toOne = pim.mail.EmailAddress.getEmailAddress(self.itsView,
-                                                                      match.group('contact'))
-                        pim.mail.MailStamp(item).toAddress.append(toOne)                        
-
-                else:
-                    pim.mail.MailStamp(item).subject = displayName
-
-
-            if item is not None:
-                item.displayName = displayName
-
-                # Add the item to the appropriate collection. Default to selected collection
-                # except for certain cases below
-                selectedCollection = self.getSidebarSelectedCollection()
-                collection = selectedCollection
-                allCollection = schema.ns('osaf.pim',self).allCollection
-
-                if defaultKind is not MissingClass:
-                    if not ((defaultKind == pim.tasks.TaskStamp and taskFlag) or
-                        (defaultKind == pim.calendar.Calendar.EventStamp and eventFlag) or
-                        (defaultKind == pim.mail.MailStamp and msgFlag)):
-                        # if item is of a different kind than the default item of current view,
-                        # put it in Dashboard 'All' collection
-                        collection = allCollection
-
-                if (collection is None or
-                    sharing.isReadOnly(collection) or
-                    not UserCollection(collection).canAdd):
-                    collection = allCollection
-
-                collection.add(item)
-                self.selectItems([item])
-
-                if collection is allCollection:
-                    self.setStatusMessage (_(u"New item created in the Dashboard All Collection"))
-                else:
-                    self.setStatusMessage (_(u"New item created in the selected collection"))
-
-            # Clear out the command when it finishes without errors
-            quickEntryWidget.SetValue("")
-            return True
-
-        sidebar = Block.findBlockByName ("Sidebar")
-        quickEntryBlock = Block.findBlockByName ("ApplicationBarQuickEntry")
+        sidebar = self.findBlockByName("Sidebar")
+        quickEntryBlock = self.findBlockByName("ApplicationBarQuickEntry")
         quickEntryWidget = quickEntryBlock.widget.GetControl()
-        showSearchResults = False
+	
+	text = quickEntryWidget.GetValue().strip()
 
-        cancelClicked = event.arguments.get ("cancelClicked", False)
-        if cancelClicked:
-
-            # Remember the last value of the QuickEntry
-            lastText = quickEntryWidget.GetValue()
-            if len (lastText) != 0:
-                quickEntryBlock.lastText = lastText
-                quickEntryWidget.SetValue ("")
-
+	# handle cancel
+        if len(text) == 0 or event.arguments.get("cancelClicked", False):
+	    if sidebar.showSearch:
+		# Remember the search string
+		if len(text) > 0:
+		    quickEntryBlock.lastText = text
+		sidebar.setShowSearch(False)
+		    
+	    quickEntryWidget.SetValue("")
             self.setStatusMessage(u'')
-        else:
-            # Try to process as a quick entry command
-            command = quickEntryWidget.GetValue().strip()
-            if len (command) != 0 and not processQuickEntry (self, command):
+	    return
+	
+	# Process quick entry commands
+	qe_commands = []
+	end = 0
+	for match in quick_entry_commands_re.finditer(text):
+	    command = get_quick_entry(match.group('cmd').lower())
+	    
+	    if command is None:
+		quickEntryWidget.SetValue(text + ' ?')
+		self.setStatusMessage (_(u"Command entered is not valid"))
+		if sidebar.showSearch:
+		    sidebar.setShowSearch(False)
+		quickEntryWidget.SetFocus()
+		return
+	    
+	    end = match.end()
+	    qe_commands.append(command)
+	    if len(qe_commands) == 1 and command.single_command:
+		break
+	
+	text = text[end:].strip()
+	
+	if len(qe_commands) == 0:
+	    # use a default stamp command based on the selected filter
+	    command = stamp_to_command.get(sidebar.filterClass)
+	    if command is None:
+		command = stamp_to_command.get(None)
+	    qe_commands.append(command)
 
-                c = command.lower()[:command.find(' ')]
-
-                if c not in [u'/' + k for k in searchKinds]:
-                    # command is not valid
-                    quickEntryWidget.SetValue (command + ' ?')
-                    self.setStatusMessage (_(u"Command entered is not valid"))
-                else:
-                    command = command[len(c) + 1:] # remove '/find '
-
-                    # if /search or /find but not /lucene
-                    # quote special lucene query syntax chars except "
-                    # http://lucene.apache.org/java/docs/queryparsersyntax.html
-                    if not c.startswith('/l'):
-                        command = ''.join(('\\'+char if char in '+-&|!(){}[]^~*?:\\' else char)
-                                          for char in command)
-
-                    quickEntryBlock.lastSearch = command
-                    showSearchResults = True
-
-        sidebar.setShowSearch (showSearchResults)
+	state = quickentry.run_commands(self.itsView, text, qe_commands)
+	item = state.item
+	if item is not None:
+	    # Add the item to the selected collection if possible, otherwise
+	    # the Dashboard collection
+	    collection = self.getSidebarSelectedCollection()
+	    msg = _(u"'%(title)s' created in %(collection)s")
+	    if (collection is None or sharing.isReadOnly(collection) or 
+		not UserCollection(collection).canAdd):
+		collection = schema.ns('osaf.pim', self.itsView).allCollection
+    
+	    statusMessageDict = {'title' : item.displayName, 
+				 'collection' : collection.displayName}
+	    collection.add(item)
+	    self.selectItems([item])
+	    self.setStatusMessage(msg % statusMessageDict)
+	    
+	# Stop showing search results if a non-search command was run
+	if not getattr(state, 'search', False):
+	    if sidebar.showSearch:
+		sidebar.setShowSearch(False)
+		
+	    # Clear out the widget when non-search commands run
+	    quickEntryWidget.SetValue("")
+	    
+	# bring focus back to quick entry so the next quick item can be created
+	quickEntryWidget.SetFocus()
 
 
     def printEvent(self, isPreview):
@@ -1683,3 +1560,50 @@ class MainView(View):
 
     def onNeedsUpdateUpdateUI(self, event):
         pass
+
+# these quickentry commands probably shouldn't live in Main, but I don't know
+# what a better place would be...
+
+class SearchCommand(quickentry.QuickEntryCommand):
+    # L10N: A comma separated list of names for commands to search
+    command_names = _(u"find,search").split(',')
+
+    @classmethod
+    def process(cls, state):
+	"""Configure the UI to display a search."""
+	quickEntryBlock = Block.findBlockByName("ApplicationBarQuickEntry")
+	sidebar = Block.findBlockByName("Sidebar")
+	
+	command = cls.backslash_escape(state.text, '+-&|!(){}[]^~*?:\\')
+	quickEntryBlock.lastSearch = command
+        sidebar.setShowSearch(True)
+	state.search = True
+
+    @classmethod
+    def backslash_escape(cls, string, escape_chars):
+	return ''.join((r'\\'+c if c in escape_chars else c) for c in string)
+
+
+class LuceneCommand(SearchCommand):
+    # L10N: A comma separated list of names for commands to do a full text
+    # search using lucene syntax
+    command_names = _(u"lucene").split(',')
+    @classmethod
+    def backslash_escape(cls, string, escape_chars):
+	"""Don't escape special lucene characters when searching."""
+	return string
+
+# Regular expression for finding quick entry commands 
+quick_entry_commands_re = re.compile(r'/(?P<cmd>([A-z]+))')
+
+# create a mapping from command names to QuickEntryCommand objects
+quick_entry_objects = {}
+for ep in pkg_resources.iter_entry_points('chandler.quick_entry'):
+    cls = ep.load()
+    for name in cls.command_names:
+        quick_entry_objects[name.lower()] = cls
+
+def get_quick_entry(partial_name):
+    for name, cls in quick_entry_objects.iteritems():
+	if name.startswith(partial_name):
+	    return cls

@@ -28,7 +28,17 @@ setup(
     test_suite   = 'unittest.TestCase',
     include_package_data = True,
     zip_safe             = True,
-    entry_points = {"chandler.parcels": ["Script Recording = osaf.framework.script_recording"]
+    entry_points = {"chandler.parcels":
+                        ["Script Recording = osaf.framework.script_recording"],
+                    "chandler.quick_entry":
+                        ['event   = osaf.pim:EventCommand',
+                         'task    = osaf.pim:TaskCommand',
+                         'request = osaf.pim:RequestCommand',
+                         'invite  = osaf.pim:InviteCommand',
+                         'note    = osaf.pim:NoteCommand',
+                         'message = osaf.pim:MailCommand',
+                         'search  = osaf.views.main.Main:SearchCommand',
+                         'lucene  = osaf.views.main.Main:LuceneCommand',]
                    }
 )
 

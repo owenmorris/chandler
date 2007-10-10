@@ -50,6 +50,7 @@ from reminders import PendingReminderEntry, Reminder, Remindable
 from tasks import Task, TaskStamp
 from mail import EmailAddress, EmailComparator, MailStamp, MailPreferences, IMAPAccount, SMTPAccount
 from proxy import *
+from quickentry_commands import *
 from osaf.framework import password
 from application.Parcel import Reference
 from osaf import messages, startup
