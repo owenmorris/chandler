@@ -316,7 +316,7 @@ class Block(schema.Item):
         """
         proxy = self.proxyFactory(getattr(self, 'contents', None))
         if proxy is not None:
-            proxy.changeCallback = self.itsView.commit
+            proxy.changeCallback = wx.GetApp().commitSoon
         return proxy
 
     def render (self):

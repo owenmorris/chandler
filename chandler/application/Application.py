@@ -990,6 +990,10 @@ class wxApplication (wx.App):
         # Don't bother saving sometime in the future.
         self.scheduledSaveTime = None
 
+    def commitSoon(self):
+        # Set a flag to commit at the next idle
+        self.doCommitSoon = True
+        
     def OnIdle(self, event):
 
         if self.updateUIInOnIdle:
@@ -1032,6 +1036,14 @@ class wxApplication (wx.App):
             from osaf.framework.blocks.Block import Block
             Block.finishEdits(commitToo=True, autoSaving=True)
             self.unscheduleSave()
+
+        # Maybe it's time to commit (as triggered by proxies)
+        # (This could coincidentally happen during the same idle as the
+        # scheduled save above - this commit won't commit anything in that case,
+        # but will be quick, so this comment is all I'm doing about it.)
+        if getattr(self, 'doCommitSoon', False):
+            self.UIRepositoryView.commit()
+            del self.doCommitSoon
 
         if self.needsUpdateUI:
             try:
