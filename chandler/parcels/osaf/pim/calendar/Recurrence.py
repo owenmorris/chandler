@@ -730,8 +730,9 @@ class RecurrenceRuleSet(items.ContentItem):
         for datetype in 'rdates', 'exdates':
             datelist = getattr(self, datetype, None)
             if datelist is not None:
-                for i, dt in enumerate(datelist):
-                    if cmpFn(dt, endpoint):
+                # need to start from the end, bug 11005
+                for i in reversed(xrange(len(datelist))):
+                    if cmpFn(datelist[i], endpoint):
                         self._ignoreValueChanges = True
                         del datelist[i]
                         self._ignoreValueChanges = False
