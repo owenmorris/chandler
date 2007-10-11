@@ -339,11 +339,13 @@ class MainView(View):
 	# Process quick entry commands
 	qe_commands = []
 	end = 0
+	# L10N: string to be appended to text when it has unrecognized commands
+	error_string = _(u"  ?")
 	for match in quick_entry_commands_re.finditer(text):
 	    command = get_quick_entry(match.group('cmd').lower())
 	    
 	    if command is None:
-		quickEntryWidget.SetValue(text + ' ?')
+		quickEntryWidget.SetValue(text + error_string)
 		self.setStatusMessage (_(u"Command entered is not valid"))
 		if sidebar.showSearch:
 		    sidebar.setShowSearch(False)
@@ -355,7 +357,7 @@ class MainView(View):
 	    if len(qe_commands) == 1 and command.single_command:
 		break
 	
-	text = text[end:].strip()
+	text = text[end:].strip().rstrip(error_string)
 	
 	if len(qe_commands) == 0:
 	    # use a default stamp command based on the selected filter
