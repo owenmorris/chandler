@@ -64,3 +64,27 @@
  	ln -sf pythonw$(VERSION) "$(DESTDIR)$(prefix)/bin/pythonw"
  
  #
+--- Python-2.5.1/Lib/doctest.py	2007-10-02 14:18:48.000000000 -1000
++++ Python-2.5.1-patched/Lib/doctest.py	2007-10-03 11:50:31.000000000 -1000
+@@ -234,7 +234,19 @@
+ # Override some StringIO methods.
+ class _SpoofOut(StringIO):
+     def getvalue(self):
+-        result = StringIO.getvalue(self)
++        if isinstance(self.buf, unicode):
++            # The doctest text file paths will be 8bit.
++            # Thus any Unicode in the buffer needs to be converted
++            # to 8bit before the values in self.buflist are
++            # added to self.buf.
++            self.buf = self.buf.encode(sys.getfilesystemencoding())
++
++        if self.buflist:
++            self.buf += ''.join(self.buflist)
++            self.buflist = []
++
++        result = self.buf
++
+         # If anything at all was written, make sure there's a trailing
+         # newline.  There's no way for the expected output to indicate
+         # that a trailing newline is missing.
+
