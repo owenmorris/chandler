@@ -148,12 +148,12 @@ def hasConflicts(item):
 
 def getConflicts(item):
     item = getattr(item, 'proxiedItem', item)
-    # conflicts = []
+
     for state in getattr(item, SharedItem.conflictingStates.name, []):
         for conflict in state.getConflicts():
             conflict.item = item
-            yield conflict
-            # conflicts.append(conflict)
+            if conflict.verify(): # still a valid conflict?
+                yield conflict
 
     if item.hasLocalAttributeValue(SharedItem.conflictingStates.name):
         # the conflicts we just looked at where not inherited, but if
@@ -163,7 +163,8 @@ def getConflicts(item):
             master = event.getMaster()
             if master is not event:
                 for conflict in getConflicts(master.itsItem):
-                    yield conflict
+                    if conflict.verify(): # still a valid conflict?
+                        yield conflict
 
 
 
@@ -521,6 +522,61 @@ class Conflict(object):
             self.resolved = True
             if self.item is not None:
                 self.state.updateConflicts(self.item)
+
+
+    def verify(self):
+
+        if self.item is None:
+            self.discard()
+            return False
+
+        if self.pendingRemoval:
+            # Someone else removed this item from share.contents
+            peer = self.state.peer
+            if peer and isinstance(peer, Share):
+                if self.item in peer.contents:
+                    # local item still in share.contents, still conflict
+                    return True
+
+                # item no longer in share.contents, no longer in conflict
+                self.discard()
+                return False
+
+            # Some non-Share peer, keep it a pending removal conflict
+            return True
+
+        # generate records for local item
+        translator = self.state.getTranslator()
+        rs = eim.RecordSet(translator.exportItem(self.item))
+
+        if self.change.exclusions: # the conflict is a record removal
+            change = list(self.change.exclusions)[0]
+            # search rs for matching key
+            for r in rs.inclusions:
+                if r.getKey() == change.getKey():
+                    # record still applies to local item, still a conflict
+                    return True
+
+            # didn't find a match, so the record has been removed on the
+            # item, thus this is no longer a conflict
+
+        else: # the conflict is on a field change
+            change = list(self.change.inclusions)[0]
+            for r in rs.inclusions:
+                if r.getKey() == change.getKey():
+                    # found matching record, now see if local values match
+                    # pending change
+                    for field in type(r).__fields__:
+                        changedField = getattr(change, field.name)
+                        if changedField != nc:
+                            if getattr(r, field.name) != changedField:
+                                # mismatch, conflict still valid
+                                return True
+
+            # pending changes all match local item, no more conflict
+
+        self.discard()
+        return False
 
 
 

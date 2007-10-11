@@ -1847,5 +1847,37 @@ class RoundTripTestCase(testcase.DualRepositoryTestCase):
 
 
 
+        # Verify changing an item to match a pending change discards the
+        # conflict
+        item0 = pim.Note(itsView=view0)
+        self.share0.contents.add(item0)
+        view0.commit(); stats = self.share0.sync(); view0.commit()
+        view1.commit(); stats = self.share1.sync(); view1.commit()
+        item1 = view1.findUUID(item0.itsUUID)
+        item0.displayName = "item0"
+        item1.displayName = "item1"
+        view1.commit(); stats = self.share1.sync(); view1.commit()
+        view0.commit(); stats = self.share0.sync(); view0.commit()
+        conflicts = list(sharing.getConflicts(item0))
+        self.assertEquals(len(conflicts), 1)
+        item0.displayName = "item1"
+        conflicts = list(sharing.getConflicts(item0))
+        self.assertEquals(len(conflicts), 0)
+        view0.commit(); stats = self.share0.sync(); view0.commit()
+
+        self.share1.contents.remove(item1)
+        view1.commit(); stats = self.share1.sync(); view1.commit()
+        item0.displayName = "item0"
+        view0.commit(); stats = self.share0.sync(); view0.commit()
+        conflicts = list(sharing.getConflicts(item0))
+        self.assertEquals(len(conflicts), 1)
+        self.assertEquals(conflicts[0].pendingRemoval, True)
+        self.share0.contents.remove(item0)
+        conflicts = list(sharing.getConflicts(item0))
+        self.assertEquals(len(conflicts), 0)
+
+
+
+
 
         self.share0.destroy() # clean up
