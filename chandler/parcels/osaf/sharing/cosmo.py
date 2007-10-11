@@ -20,7 +20,9 @@ __all__ = [
 
 from application import schema
 import shares, accounts, conduits, errors, formats, eim, recordset_conduit
-import translator, eimml, WebDAV
+from shares import Share
+from osaf.activity import Activity
+import translator, eimml, WebDAV, utility
 import zanshin, M2Crypto
 import urlparse, urllib
 import logging
@@ -29,6 +31,8 @@ from i18n import ChandlerMessageFactory as _
 from osaf.framework.twisted import waitForDeferred
 from xml.etree.cElementTree import fromstring
 import twisted.internet.error
+import threading
+from osaf.mail.utils import callMethodInUIThread
 
 logger = logging.getLogger(__name__)
 
@@ -94,7 +98,17 @@ class CosmoAccount(accounts.SharingAccount):
 
         return [share]
 
-    def getPublishedShares(self):
+
+    def getPublishedShares(self, callback=None, blocking=False):
+        if blocking:
+            return self._getPublishedShares(None)
+
+        # don't block the current thread
+        t = threading.Thread(target=self._getPublishedShares,
+            args=(callback,))
+        t.start()
+
+    def _getPublishedShares(self, callback):
         path = self.path.strip("/")
         if path:
             path = "/%s" % path
@@ -111,15 +125,27 @@ class CosmoAccount(accounts.SharingAccount):
         try:
             resp = handle.blockUntil(handle.addRequest, request)
         except zanshin.webdav.ConnectionError, err:
-            raise errors.CouldNotConnect(_(u"Unable to connect to server. Received the following error: %(error)s") % {'error': err})
+            exc = errors.CouldNotConnect(_(u"Unable to connect to server. Received the following error: %(error)s") % {'error': err})
+            if callback:
+                return callMethodInUIThread(callback, (exc, None))
+            else:
+                raise exc
 
         except M2Crypto.BIO.BIOError, err:
-            raise errors.CouldNotConnect(_(u"Unable to connect to server. Received the following error: %(error)s") % {'error': err})
+            exc = errors.CouldNotConnect(_(u"Unable to connect to server. Received the following error: %(error)s") % {'error': err})
+            if callback:
+                return callMethodInUIThread(callback, (exc, None))
+            else:
+                raise exc
 
         if resp.status != 200:
-            raise errors.SharingError("%s (HTTP status %d)" % (resp.message,
+            exc = errors.SharingError("%s (HTTP status %d)" % (resp.message,
                 resp.status),
                 details="Received [%s]" % resp.body)
+            if callback:
+                return callMethodInUIThread(callback, (exc, None))
+            else:
+                raise exc
 
 
         info = []
@@ -140,7 +166,47 @@ class CosmoAccount(accounts.SharingAccount):
 
             info.append( (name, uuid, href, tickets) )
 
+        if callback:
+            return callMethodInUIThread(callback, (None, info))
+
         return info
+
+    def autoRestoreShares(self):
+        rv = self.itsView
+
+        if not self.isSetUp():
+            return
+
+        shares = list()
+        info = self.getPublishedShares(blocking=True)
+        for name, uuid, href, tickets in info:
+            url = "%smc/%s" % (self.getLocation( ), href)
+            share = utility.findMatchingShare(rv, url)
+            if share is None:
+                share = Share(itsView=rv, displayName=name)
+                share.mode = 'both'
+                share.conduit = CosmoConduit(itsParent=share,
+                    shareName=uuid, account=self,
+                    translator=translator.SharingTranslator,
+                    serializer=eimml.EIMMLSerializer)
+                for ticket, ticketType in tickets:
+                    if ticketType == 'read-only':
+                        share.conduit.ticketReadOnly = ticket
+                    elif ticketType == 'read-write':
+                        share.conduit.ticketReadWrite = ticket
+
+                share.conduit.filters = set()
+                share.conduit.filters.add('cid:reminders-filter@osaf.us')
+                share.conduit.filters.add('cid:needs-reply-filter@osaf.us')
+                share.conduit.filters.add('cid:bcc-filter@osaf.us')
+
+                activity = Activity(_("Restore %s") % name)
+                activity.started()
+                share.get(activity=activity)
+                share.sharer = schema.ns("osaf.pim", rv).currentContact.item
+                schema.ns("osaf.app", rv).sidebarCollection.add(share.contents)
+                activity.completed()
+
 
 
 class HubAccount(CosmoAccount):
@@ -294,7 +360,7 @@ class CosmoConduit(recordset_conduit.DiffRecordSetConduit, conduits.HTTPMixin):
             # Trying to publish a collection but the uuid of that collection
             # is already on the server.
             # Find out if it's ours:
-            shares = self.account.getPublishedShares()
+            shares = self.account.getPublishedShares(blocking=True)
             toRaise = errors.AlreadyExists("%s (HTTP status %d)" %
                 (resp.message, resp.status),
                 details="Collection already exists on server")

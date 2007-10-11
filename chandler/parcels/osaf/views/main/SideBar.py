@@ -31,6 +31,7 @@ from osaf.framework.prompts import promptYesNoCancel
 from application.dialogs import RecurrenceDialog
 
 from osaf import sharing, pim, search
+import twisted.internet.error
 from osaf.usercollections import UserCollection
 from osaf.sharing import ChooseFormat, Share
 from repository.item.Item import MissingClass
@@ -40,6 +41,9 @@ from application import schema
 from i18n import ChandlerMessageFactory as _
 
 from colorsys import rgb_to_hsv
+
+import logging
+logger = logging.getLogger(__name__)
 
 class SidebarElementDelegate (ControlBlocks.ListDelegate):
     def ReadOnly (self, row, column):
@@ -399,16 +403,84 @@ class wxSidebar(wxTable):
         coll = self.getCollectionDroppedOn()
         ChooseFormat.importEmail(text, self.blockItem.itsView, coll)
 
-    def DeleteSelection (self, DeleteItemCallback=None, *args, **kwargs):
-        def DefaultCallback(item, collection=self.blockItem.contents):
-            collection.remove(item)
-            
+    def DeleteSelection (self, prompt=True, *args, **kwargs):
+        # The widget really isn't the right place to have common collection
+        # deletion logic live, but for now it seems the widget has to be
+        # intimately involved in deletion, so this is the most central place
         blockItem = self.blockItem
-        if DeleteItemCallback is None:
-            DeleteItemCallback = DefaultCallback
+        contents = blockItem.contents
+        view = blockItem.itsView
+        viewsmain = schema.ns('osaf.views.main', view)
+
+        # If there are any "mine" collections selected, ask the user
+        # if we should be deleting the entire collection including the
+        # items, or just some things
+        shouldClearCollection = True
+        pim_ns = schema.ns('osaf.pim', view)
+        mine = pim_ns.mine
+
+        mineMessage = _(u'Would you like to delete just the collection or the '
+                        u'collection and the items within it as well?\n\n'
+                        u'Note: Items you have added to other collections will '
+                        u'not be deleted.')
+        mineTextTable = {wx.ID_YES : _(u"Collection and Items"),
+                         wx.ID_NO  : _(u"Collection only")}
+        notMineMessage = _(u"Deleting %(collectionName)s will move its "
+                           u'contents to the Trash\n\n'
+                           u'Note: Items you have added to other collections '
+                           u'will not be deleted.')
+        
+        # If we're editing the name now, stop.
+        self.DisableCellEditControl()
+        
+        # don't pop up a dialog when running functional tests
+        if prompt:
+
+            # Prompt for unpublish, and unpublish
+            for collection in contents.iterSelection():
+                try:
+                    share = sharing.getShare(collection)
+                    if sharing.isSharedByMe(share):
+                        dialog = wx.MessageDialog(wx.GetApp().mainFrame,
+                            _(u"Deleting the collection will also unpublish it from the server.  Proceed?"),
+                            _(u"Unpublish Confirmation"),
+                            wx.YES_NO | wx.ICON_INFORMATION)
+                        response = dialog.ShowModal()
+                        dialog.Destroy()
+                        if response == wx.ID_YES:
+                            sharing.unpublish(collection)
+                        else:
+                            return
+                except (sharing.CouldNotConnect, twisted.internet.error.TimeoutError):
+                    logger.exception("Connection error during unpublish")
+                    pass
+                except:
+                    logger.exception("Unknown error during unpublish")
+                    pass
+
+            for collection in contents.iterSelection():
+                if len(collection) == 0:
+                    continue
+                dataDict = {'collectionName' : collection.displayName}
+                if collection in mine.sources:
+                    shouldClearCollection = \
+                        promptYesNoCancel(mineMessage % dataDict,
+                                          viewsmain.clearCollectionPref,
+                                          textTable=mineTextTable,
+                                          caption=_(u"Delete collection"))
+    
+                    if shouldClearCollection is None: # user pressed cancel
+                        return
+    
+                else:
+                    if wx.MessageBox (notMineMessage % dataDict,
+                                      _(u"Delete collection"),
+                                      style = wx.OK | wx.CANCEL,
+                                      parent = wx.GetApp().mainFrame) != wx.OK:
+                        return
 
         # save a list copy of the ranges because we're about to clear them.
-        selectionRanges = list(reversed(self.blockItem.contents.getSelectionRanges()))
+        selectionRanges = list(reversed(contents.getSelectionRanges()))
 
         """
           Clear the selection before removing the elements from the collection
@@ -426,16 +498,25 @@ class wxSidebar(wxTable):
         # (that probably can't be fixed until ItemCollection
         # becomes Collection and notifications work again)
 
-        contents = blockItem.contents
         newSelectedItemIndex = -1
         for selectionStart,selectionEnd in selectionRanges:
             for itemIndex in xrange (selectionEnd, selectionStart - 1, -1):
-                DeleteItemCallback(contents[itemIndex])
+                collection = contents[itemIndex]
+                # clear out the collection contents, if appropriate
+                if shouldClearCollection:
+                    blockItem.ClearCollectionContents(collection)
+                elif collection in mine.sources:
+                    for item in collection:
+                        item._prepareToRemoveFromCollection(collection)
+    
+                sharing.unsubscribe(collection)
+                collection.delete(True)
+
                 # remember the last deleted row
                 newSelectedItemIndex = itemIndex
         
-        blockItem.contents.clearSelection()
-        blockItem.itsView.commit()
+        contents.clearSelection()
+        view.commit()
         
         # now select the "next" item
         """
@@ -1066,71 +1147,14 @@ class SidebarBlock(Table):
         self.postEventByName("SelectItemsBroadcast", {'items':[item]})
         return item
 
-    def onRemoveEvent(self, event):
+    def onDeleteEvent(self, event):
         """
         Permanently remove the collection
         """
-        viewsmain = schema.ns('osaf.views.main', self.itsView)
+        prompt = not event.arguments.get('testing')
+        self.widget.DeleteSelection(prompt=prompt)
 
-        # If there are any "mine" collections selected, ask the user
-        # if we should be deleting the entire collection including the
-        # items, or just some things
-        shouldClearCollection = True
-        pim_ns = schema.ns('osaf.pim', self.itsView)
-        mine = pim_ns.mine
-
-        mineMessage = _(u'Would you like to delete just the collection or the '
-                        u'collection and the items within it as well?\n\n'
-                        u'Note: Items you have added to other collections will '
-                        u'not be deleted.')
-        mineTextTable = {wx.ID_YES : _(u"Collection and Items"),
-                         wx.ID_NO  : _(u"Collection only")}
-        notMineMessage = _(u"Deleting %(collectionName)s will move its "
-                           u'contents to the Trash\n\n'
-                           u'Note: Items you have added to other collections '
-                           u'will not be deleted.')
-        
-        # If we're editing the name now, stop.
-        self.widget.DisableCellEditControl()
-        
-        # don't pop up a dialog when running functional tests
-        if not event.arguments.get('testing'):
-            for collection in self.contents.iterSelection():
-                if len(collection) == 0:
-                    continue
-                dataDict = {'collectionName' : collection.displayName}
-                if collection in mine.sources:
-                    shouldClearCollection = \
-                        promptYesNoCancel(mineMessage % dataDict,
-                                          viewsmain.clearCollectionPref,
-                                          textTable=mineTextTable,
-                                          caption=_(u"Delete collection"))
-    
-                    if shouldClearCollection is None: # user pressed cancel
-                        return
-    
-                else:
-                    if wx.MessageBox (notMineMessage % dataDict,
-                                      _(u"Delete collection"),
-                                      style = wx.OK | wx.CANCEL,
-                                      parent = wx.GetApp().mainFrame) != wx.OK:
-                        return
-
-        def deleteItem(collection):
-
-            # clear out the collection contents, if appropriate
-            if shouldClearCollection:
-                self.ClearCollectionContents(collection)
-            elif collection in mine.sources:
-                for item in collection:
-                    item._prepareToRemoveFromCollection(collection)
-
-            sharing.unsubscribe(collection)
-            collection.delete(True)
-
-        self.widget.DeleteSelection(DeleteItemCallback=deleteItem)
-
-    onDeleteEvent = onRemoveEvent
+    onRemoveEvent = onDeleteEvent
 
     def onRemoveEventUpdateUI(self, event):
         event.arguments['Enable'] = False

@@ -93,10 +93,9 @@ class RestoreSharesDialog(wx.Dialog):
         try:
             self.showStatus(_(u"Getting list of shares..."))
             if isinstance(self.currentAccount, sharing.CosmoAccount):
-                self.shares = self.currentAccount.getPublishedShares()
-                self.hideStatus()
-                for name, uuid, href, tickets in self.shares:
-                    self.listShares.Append(name)
+                # Don't block, results will be sent to OnRetrieveList, below
+                self.currentAccount.getPublishedShares(
+                    callback=self.OnRetrieveList, blocking=False)
 
             else:
                 existing = sharing.getExistingResources(self.currentAccount)
@@ -109,6 +108,30 @@ class RestoreSharesDialog(wx.Dialog):
             logger.exception("Error during discovery of shares")
             self.showStatus(_(u"Sharing Error:\n%(error)s") % {'error': e})
 
+
+    def OnRetrieveList(self, results):
+        # Note: this method only works for Cosmo/morsecode
+
+        view = self.view
+
+        exc, items = results
+        if exc is not None:
+            self.gauge.SetValue(0)
+            self.showStatus(_(u"Sharing Error:\n%(error)s") % {'error': exc})
+            return
+
+        self.shares = []
+
+        for name, uuid, href, tickets in items:
+            url = "%smc/%s" % (self.currentAccount.getLocation( ), href)
+            share = sharing.findMatchingShare(view, url)
+            # Only list unsubscribed collections
+            if share is None:
+                self.shares.append((name, uuid, href, tickets))
+
+        self.hideStatus()
+        for name, uuid, href, tickets in self.shares:
+            self.listShares.Append(name)
 
 
     def OnRestore(self, evt):

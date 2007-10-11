@@ -1435,17 +1435,11 @@ class MainView(View):
         # At least one account is setup, or there are active shares
 
         # find all the shared collections and sync them.
-        if activeShares:
-            # Fire off a background syncAll:
+        # Fire off a background syncAll:
 
-            # Ensure changes in attribute editors are saved
-            wx.GetApp().mainFrame.SetFocus()
-
-            sharing.scheduleNow(view)
-
-        else:
-            if sharingReady:
-                self.setStatusMessage (_(u"No shared collections found"))
+        # Ensure changes in attribute editors are saved
+        wx.GetApp().mainFrame.SetFocus()
+        sharing.scheduleNow(view)
 
         if incomingMailReady:
             self.onGetNewMailEvent (event)

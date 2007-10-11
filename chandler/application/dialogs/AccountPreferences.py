@@ -1346,6 +1346,14 @@ class AccountPreferencesDialog(wx.Dialog):
             Mail._recalculateMeEmailAddresses(self.rv)
 
             Globals.mailService.refreshMailServiceCache()
+
+            # Initiate a sharing sync to pick up previously published
+            # collections
+            if (not Globals.options.offline and
+                Globals.options.catch != 'tests' and
+                sharing.getAutoSyncInterval(self.rv) is not None):
+                sharing.scheduleNow(self.rv)
+
             self.Destroy()
 
     def debugAccountSaving(self):

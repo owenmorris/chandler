@@ -355,6 +355,14 @@ class BackgroundSyncHandler:
             else:
                 collection = None
 
+                # TODO: someday replace this with an endpoint
+                uuids = [account.itsUUID for account in
+                    CosmoAccount.iterItems(self.rv)]
+                for uuid in uuids:
+                    account = self.rv.findUUID(uuid)
+                    if account is not None:
+                         account.autoRestoreShares()
+
             shares = getSyncableShares(self.rv, collection)
 
             for share in shares:
@@ -1360,10 +1368,6 @@ def subscribeMorsecode(view, url, morsecodeUrl, inspection, activity=None,
     share = Share(itsView=view)
     share.mode = shareMode
 
-    # Get the user-facing sharePath from url, e.g.  "/cosmo/pim/collection"
-    (scheme, useSSL, host, port, path, query, fragment, ticket, sharePath,
-        shareName) = splitUrl(url)
-
     if not ticket and account is None:
         # Create a new account
         account = CosmoAccount(itsView=view)
@@ -1403,7 +1407,7 @@ def subscribeMorsecode(view, url, morsecodeUrl, inspection, activity=None,
 
     if account:
         # Retrieve tickets
-        shares = account.getPublishedShares()
+        shares = account.getPublishedShares(blocking=True)
         for name, uuid, href, tickets in shares:
             if uuid == share.contents.itsUUID.str16():
                 for ticket, ticketType in tickets:
