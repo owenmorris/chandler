@@ -1274,7 +1274,7 @@ int _t_item_setDirty(t_item *self, int dirty,
                 {
                     Py_DECREF(result);
                     self->status |= dirty;
-                    return 1;
+                    return 0;
                 }
 
                 Py_DECREF(result);
