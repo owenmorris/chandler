@@ -22,5 +22,4 @@ Upgrading db build
 
 After upgrading Berkeley DB the systems that depend on it need to be
 rebuilt, and re-released with an incremented RELVER number:
-   - external/PyLucene (its Makefile needs DB_VER to be updated too)
    - internal/chandlerdb
