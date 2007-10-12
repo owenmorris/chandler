@@ -1161,7 +1161,7 @@ loaded::
     routine that is calling this function (``level=2``)::
 
         >>> schema.getCaller()  # we're being called from doctest.py line 1212
-        ('...doctest...', 1212)
+        ('...doctest...', 1224)
 
         >>> schema.getCaller(level=1)   # where are we calling from?
         ('<doctest schema_api.txt[...]>', 1)
