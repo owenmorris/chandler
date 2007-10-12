@@ -165,6 +165,86 @@ def SharingDeleteHandler(item, values, data):
 # specific defaults.
 DEFAULTS = {'string': '', 'password': '', 'integer': 0, 'boolean': False}
 
+# If incoming email addresses domain matches, we will automatically fill
+# in what we can.
+PREFILLED_INCOMING_EMAIL = {
+#        'example.com': {
+#            'server'   : 'mail.example.com',
+#            'port'     : <int>,
+#            'useSSL'   : 'NONE' | 'SSL' | 'TLS',
+#            'protocol' : 'POP' | 'IMAP',
+#            'user'     : True for username, False for username@domain.com
+#        },
+        'comcast.net': { # auto-configure times out with these settings, but these are correct
+            'server'   : 'mail.comcast.net',
+            'port'     : 995,
+            'useSSL'   : 'SSL',
+            'protocol' : 'POP',
+            'user'     : True
+        },
+        'osafoundation.org': {
+            'server'   : 'imap.osafoundation.org',
+            'port'     : 993,
+            'useSSL'   : 'SSL',
+            'protocol' : 'IMAP',
+            'user'     : True
+        },
+        'gmail.com': {
+            'server'   : 'pop.gmail.com',
+            'port'     : 995,
+            'useSSL'   : 'SSL',
+            'protocol' : 'POP',
+            'user'     : True
+        },
+        'mac.com': {
+            'server'   : 'mail.mac.com',
+            'port'     : 993,
+            'useSSL'   : 'SSL',
+            'protocol' : 'IMAP',
+            'user'     : True
+        },
+}
+
+# If outgoing email addresses domain matches, we will automatically fill
+# in what we can.
+PREFILLED_OUTGOING_EMAIL = {
+#        'example.com': {
+#            'server'   : 'mail.example.com',
+#            'port'     : <int>,
+#            'useSSL'   : 'NONE' | 'SSL' | 'TLS',
+#            'auth'     : True | False,
+#            'user'     : True for username, False for username@domain.com
+#        },
+        'comcast.net': {
+            'server' : 'smtp.comcast.net',
+            'port'   : 465,
+            'useSSL' : 'SSL',
+            'auth'   : True,
+            'user'   : True
+        },
+        'osafoundation.org': {
+            'server' : 'smtp.osafoundation.org',
+            'port'   : 587,
+            'useSSL' : 'TLS',
+            'auth'   : True,
+            'user'   : True
+        },
+        'gmail.com': {
+            'server' : 'smtp.gmail.com',
+            'port'   : 465,
+            'useSSL' : 'TLS', # http://mail.google.com/support/bin/answer.py?hl=en&answer=13287. Auto-configure suggests SSL. Both work.
+            'auth'   : True,
+            'user'   : False
+        },
+        'mac.com': {
+            'server'   : 'smtp.mac.com',
+            'port'     : 587,
+            'useSSL'   : 'TLS',
+            'auth'     : True,
+            'user'     : True
+        },
+}
+
 class AccountPreferencesDialog(wx.Dialog):
 
     def __init__(self, title, size=wx.DefaultSize,
@@ -187,6 +267,7 @@ class AccountPreferencesDialog(wx.Dialog):
                     "INCOMING_EMAIL_ADDRESS" : {
                         "attr" : "emailAddress",
                         "type" : "string",
+                        "killFocusCallback": self.OnFocusLostIncomingEmail,
                     },
                     "INCOMING_FULL_NAME" : {
                         "attr" : "fullName",
@@ -270,6 +351,7 @@ class AccountPreferencesDialog(wx.Dialog):
                     "OUTGOING_FROM" : {
                         "attr" : "emailAddress",
                         "type" : "string",
+                        "killFocusCallback": self.OnFocusLostOutgoingEmail,
                     },
                     "OUTGOING_SERVER" : {
                         "attr" : "host",
@@ -1066,6 +1148,10 @@ class AccountPreferencesDialog(wx.Dialog):
 
             if isinstance(control, wx.TextCtrl):
                 wx.EVT_SET_FOCUS(control, self.OnFocusGained)
+                
+                killFocusCallback = fieldInfo.get('killFocusCallback', None)
+                if killFocusCallback is not None:
+                    wx.EVT_KILL_FOCUS(control, killFocusCallback)
 
             elif isinstance(control, wx.RadioButton):
                 # Set up the callback for an "exclusive" radio button, i.e.,
@@ -1986,6 +2072,97 @@ class AccountPreferencesDialog(wx.Dialog):
         """ Select entire text field contents when focus is gained. """
         control = evt.GetEventObject()
         wx.CallAfter(control.SetSelection, -1, -1)
+
+    def OnFocusLostIncomingEmail(self, evt):
+        control = evt.GetEventObject()
+        wx.CallAfter(self.incomingEmailChange, control.GetValue())
+
+    def OnFocusLostOutgoingEmail(self, evt):
+        control = evt.GetEventObject()
+        wx.CallAfter(self.outgoingEmailChange, control.GetValue())
+
+    def incomingEmailChange(self, email):
+        try:
+            username, domain = email.split('@')
+        except ValueError:
+            return
+        if not domain:
+            return
+        
+        entry = PREFILLED_INCOMING_EMAIL.get(domain, None)
+        if entry is None:
+            return
+        
+        server   = entry['server']
+        port     = entry['port']
+        useSSL   = entry['useSSL']
+        protocol = entry['protocol']
+        user     = entry['user']
+            
+        control = wx.xrc.XRCCTRL(self.currentPanel, 'INCOMING_SERVER')
+        control.SetValue(server)
+
+        if not user:
+            username = email
+        control = wx.xrc.XRCCTRL(self.currentPanel, 'INCOMING_USERNAME')
+        control.SetValue(username)
+
+        control = wx.xrc.XRCCTRL(self.currentPanel, 'INCOMING_PROTOCOL')
+        control.SetStringSelection(protocol)
+
+        fields = self.panelsInfo[self.currentPanelType]['fields']
+        fieldInfo = fields['INCOMING_SECURE']
+
+        for (button, value) in fieldInfo['buttons'].iteritems():
+            if useSSL == value:
+                control = wx.xrc.XRCCTRL(self.currentPanel, button)
+                control.SetValue(True)
+                break
+
+        control = wx.xrc.XRCCTRL(self.currentPanel, 'INCOMING_PORT')
+        control.SetValue(str(port))
+
+    def outgoingEmailChange(self, email):
+        try:
+            username, domain = email.split('@')
+        except ValueError:
+            return
+        if not domain:
+            return
+        
+        entry = PREFILLED_OUTGOING_EMAIL.get(domain, None)
+        if entry is None:
+            return
+        
+        server = entry['server']
+        port   = entry['port']
+        useSSL = entry['useSSL']
+        auth   = entry['auth']
+        user   = entry['user']
+
+        control = wx.xrc.XRCCTRL(self.currentPanel, 'OUTGOING_SERVER')
+        control.SetValue(server)
+
+        fields = self.panelsInfo[self.currentPanelType]['fields']
+        fieldInfo = fields['OUTGOING_SECURE']
+
+        for (button, value) in fieldInfo['buttons'].iteritems():
+            if useSSL == value:
+                control = wx.xrc.XRCCTRL(self.currentPanel, button)
+                control.SetValue(True)
+                break
+
+        control = wx.xrc.XRCCTRL(self.currentPanel, 'OUTGOING_PORT')
+        control.SetValue(str(port))
+
+        if auth:
+            control = wx.xrc.XRCCTRL(self.currentPanel, 'OUTGOING_USE_AUTH')
+            control.SetValue(True)
+                        
+            if not user:
+                username = email
+            control = wx.xrc.XRCCTRL(self.currentPanel, 'OUTGOING_USERNAME')
+            control.SetValue(username)
 
     def OnLinkedControl(self, evt):
         # A "linked" control has been clicked -- we need to modify the value
