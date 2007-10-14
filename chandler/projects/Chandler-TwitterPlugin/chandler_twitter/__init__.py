@@ -240,14 +240,26 @@ def update(account):
         timestamp = convertToICUtzinfo(rv, dateutilparser(status.created_at))
         timestamp = timestamp.astimezone(rv.tzinfo.default)
 
+        fromMe = status.user.screen_name == username
+        toMe = "@%s" % username in status.text
+
+        # Create an event
         event = pim.CalendarEvent(itsView=rv,
             displayName = "%s: %s" % (status.user.name, status.text),
             body = "%s: %s" % (status.user.name, status.text),
             startTime = timestamp,
             duration = datetime.timedelta(minutes=30),
             anyTime = False,
-            transparency = 'confirmed'
+            transparency = ('tentative' if fromMe else
+                            'confirmed' if toMe else 'fyi')
         )
+
+        # Also stamp as mail so I can set originator:
+        pim.mail.MailStamp(event.itsItem).add()
+        message = pim.mail.MailStamp(event.itsItem)
+        message.originators.add(pim.EmailAddress.getEmailAddress(rv,
+            "%s <%s>" % (status.user.name, status.user.screen_name)))
+
         collection.add(event.itsItem)
 
     rv.commit()
