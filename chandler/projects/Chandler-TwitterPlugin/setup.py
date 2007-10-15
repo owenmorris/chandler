@@ -23,7 +23,7 @@ setup(
     test_suite = "chandler_twitter.tests",
     packages = ["chandler_twitter"],
     include_package_data = True,
-    install_requires = ["python-twitter>=0.5"],
+    # install_requires = ["python-twitter>=0.5"],
     entry_points = {
         "chandler.parcels": ["Twitter Integration = chandler_twitter"],
     },
