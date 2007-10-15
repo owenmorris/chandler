@@ -20,8 +20,7 @@ BUILD_PLUGINS = Chandler-HelloWorldPlugin \
                 Chandler-FlickrPlugin \
                 Chandler-debugPlugin \
                 Chandler-p2pPlugin \
-                Chandler-gdataPlugin \
-                Chandler-TwitterPlugin
+                Chandler-gdataPlugin
 
 BUILD_LOCALES = Chandler.en
 
