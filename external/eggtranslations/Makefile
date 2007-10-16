@@ -1,6 +1,6 @@
 
 VERSION=1.0
-SVN_REVISION=10
+SVN_REVISION=9
 RELVER=$(VERSION)-r$(SVN_REVISION)-$(BRANCH_REV_PREFIX)1
 EGGTRANSLATIONS=$(BUILD_ROOT)/eggtranslations
 BUILD=build_$(SNAP)
@@ -16,6 +16,9 @@ build: expand
             $(PYTHON) setup.py build --build-base=$(BUILD) $(DIST_OPT) \
                                install --force
 
+eggtranslations-$(VERSION).tar.gz:
+	$(CURL) http://builds.osafoundation.org/external/$@
+
 $(SRC).tar.gz:
 	svn export http://svn.osafoundation.org/eggtranslations/trunk -r $(SVN_REVISION) $(SRC)
 	tar -czf $(SRC).tar.gz $(SRC)
@@ -28,7 +31,7 @@ eggtranslations-$(VERSION)-expanded: $(SRC).tar.gz
 
 expand: eggtranslations-$(VERSION)-expanded
 
-binaries: build
+binaries: $(BUILD_ROOT)/$(SNAP)/$(SITE)/$(EGG)
 	echo "./$(EGG)" > $(BUILD_ROOT)/$(SNAP)/$(SITE)/EggTranslations.pth
 	tar -C $(BUILD_ROOT) -cvzf $(EGGTRANSLATIONS)/$(TARBALL) \
                              $(SNAP)/$(SITE)/$(EGG) \
