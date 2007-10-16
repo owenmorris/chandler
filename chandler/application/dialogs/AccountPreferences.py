@@ -203,6 +203,13 @@ PREFILLED_INCOMING_EMAIL = {
             'protocol' : 'IMAP',
             'user'     : True
         },
+        'yahoo.com': { # http://help.yahoo.com/l/us/yahoo/mail/original/mailplus/pop/pop-06.html
+            'server'   : 'pop.mail.yahoo.com',
+            'port'     : 995,
+            'useSSL'   : 'SSL',
+            'protocol' : 'POP',
+            'user'     : True
+        },
 }
 
 # If outgoing email addresses domain matches, we will automatically fill
@@ -240,6 +247,13 @@ PREFILLED_OUTGOING_EMAIL = {
             'server'   : 'smtp.mac.com',
             'port'     : 587,
             'useSSL'   : 'TLS',
+            'auth'     : True,
+            'user'     : True
+        },
+        'yahoo.com': { # http://help.yahoo.com/l/us/yahoo/mail/original/mailplus/pop/pop-06.html
+            'server'   : 'smtp.mail.yahoo.com',
+            'port'     : 465,
+            'useSSL'   : 'SSL',
             'auth'     : True,
             'user'     : True
         },
