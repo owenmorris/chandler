@@ -1,6 +1,6 @@
 
-VERSION=1.0
-SVN_REVISION=9
+VERSION=1.1
+SVN_REVISION=10
 RELVER=$(VERSION)-r$(SVN_REVISION)-$(BRANCH_REV_PREFIX)1
 EGGTRANSLATIONS=$(BUILD_ROOT)/eggtranslations
 BUILD=build_$(SNAP)
@@ -31,7 +31,7 @@ eggtranslations-$(VERSION)-expanded: $(SRC).tar.gz
 
 expand: eggtranslations-$(VERSION)-expanded
 
-binaries: $(BUILD_ROOT)/$(SNAP)/$(SITE)/$(EGG)
+binaries:
 	echo "./$(EGG)" > $(BUILD_ROOT)/$(SNAP)/$(SITE)/EggTranslations.pth
 	tar -C $(BUILD_ROOT) -cvzf $(EGGTRANSLATIONS)/$(TARBALL) \
                              $(SNAP)/$(SITE)/$(EGG) \
