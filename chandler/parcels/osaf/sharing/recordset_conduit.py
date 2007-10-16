@@ -101,11 +101,12 @@ class RecordSetConduit(conduits.BaseConduit):
                 activity.update(*args, **kwds)
 
         rv = self.itsView
+        share = self.share
 
         stats = []
-        receiveStats = { 'share' : self.share.itsUUID, 'op' : 'get',
+        receiveStats = { 'share' : share.itsUUID, 'op' : 'get',
             'added' : set(), 'modified' : set(), 'removed' : set() }
-        sendStats = { 'share' : self.share.itsUUID, 'op' : 'put',
+        sendStats = { 'share' : share.itsUUID, 'op' : 'put',
             'added' : set(), 'modified' : set(), 'removed' : set() }
 
         if modeOverride:
@@ -116,34 +117,34 @@ class RecordSetConduit(conduits.BaseConduit):
                 send = False
                 receive = True
         else:
-            send = self.share.mode in ('put', 'both')
-            receive = self.share.mode in ('get', 'both')
+            send = share.mode in ('put', 'both')
+            receive = share.mode in ('get', 'both')
 
         translator = self.translator(rv)
 
-        if self.share.established:
+        if share.established:
             doLog("Previous sync included up to version: %s",
                 self.lastVersion)
             version = self.lastVersion + 1
             # Old share items won't have their displayName set; set it:
-            if not self.share.displayName and self.share.contents is not None:
-                self.share.displayName = self.share.contents.displayName
+            if not share.displayName and share.contents is not None:
+                share.displayName = share.contents.displayName
         else:
             version = 0
             # This is our first sync; if we're already assigned a collection,
             # that means this is our initial publish; don't receive
-            if self.share.contents is not None:
-                self.share.displayName = self.share.contents.displayName
+            if share.contents is not None:
+                share.displayName = share.contents.displayName
                 if send:
                     receive = False
 
-        if self.share.contents is not None:
-            name = getattr(self.share.contents, 'displayName', '<untitled>')
+        if share.contents is not None:
+            name = getattr(share.contents, 'displayName', '<untitled>')
             logger.info("----- Syncing collection: %s -----", name)
         else:
             logger.info("----- Subscribing -----")
 
-        doLog("Mode: %s", self.share.mode)
+        doLog("Mode: %s", share.mode)
         doLog("Mode override: %s", modeOverride)
         doLog("Send: %s", send)
         doLog("Receive: %s", receive)
@@ -185,7 +186,7 @@ class RecordSetConduit(conduits.BaseConduit):
             _callback(msg="Received %d change(s)" % inboundCount)
             logger.info("Received %d change(s)" % inboundCount)
 
-            if self.share.contents is None:
+            if share.contents is None:
                 # We're importing a collection; either create it if it
                 # doesn't exist, or grab the matching one we already have.
                 collectionUuid = extra.get('uuid', None)
@@ -193,7 +194,7 @@ class RecordSetConduit(conduits.BaseConduit):
                 def setup_collection(collection):
                     if not pim.has_stamp(collection, shares.SharedItem):
                         shares.SharedItem(collection).add()
-                    self.share.contents = collection
+                    share.contents = collection
 
                 if collectionUuid:
                     translator.withItemForUUID(
@@ -204,14 +205,32 @@ class RecordSetConduit(conduits.BaseConduit):
                     setup_collection(pim.SmartCollection(itsView=rv))
 
 
-            # If the inbound collection name is provided we change the local
-            # collection name (only if initial subscribe -- latter syncs don't
-            # change the name)
-            self.share.displayName = extra.get('name', _(u"Untitled"))
-            if not self.share.established:
-                self.share.contents.displayName = self.share.displayName
-                logger.info("Subscribed collection name: %s",
-                    self.share.displayName)
+            # On an initial subscribe we always use the inbound collection
+            # name; on subsequent syncs an inbound rename is honored only
+            # if the local collection name matches the *previous* inbound name.
+            # If the collection's name has been locally changed, we don't
+            # honor the inbound rename.  If we are the collection's owner,
+            # our local name is always sent out.
+            share = self.share
+            if not share.established:
+                share.displayName = extra.get('name', _(u"Untitled"))
+                share.contents.displayName = share.displayName
+                logger.info("Subscribed collection name: %s", share.displayName)
+            else:
+                if extra.has_key('name'): # an inbound collection name
+                    name = extra['name']
+                    if share.displayName == share.contents.displayName:
+                        # apply inbound name if no local change to it
+                        if share.contents.displayName != name:
+                            share.contents.displayName = name
+                            logger.info("Collection renamed: %s", name)
+
+                    if utility.isSharedByMe(share):
+                        # take name from our copy of collection
+                        share.displayName = share.contents.displayName
+                    else:
+                        # take name from inbound data
+                        share.displayName = name
 
             removedMods = {} # dict of master -> set of modifications
 
@@ -339,7 +358,7 @@ class RecordSetConduit(conduits.BaseConduit):
 
         if forceUpdate:
             # A filter was changed, so we need to publish all items again
-            for item in self.share.contents:
+            for item in share.contents:
                 locallyChangedUuids.add(item.itsUUID)
 
         else:
@@ -348,7 +367,7 @@ class RecordSetConduit(conduits.BaseConduit):
             # what we expect
             for changedUuid, x in rv.mapHistoryKeys(fromVersion=version,
                 toVersion=rv.itsVersion):
-                if changedUuid in self.share.contents:
+                if changedUuid in share.contents:
                     locallyChangedUuids.add(changedUuid)
 
 
@@ -405,7 +424,7 @@ class RecordSetConduit(conduits.BaseConduit):
                 not pim.EventStamp(item).isGenerated):
 
                 rs = eim.RecordSet(translator.exportItem(item))
-                self.share.addSharedItem(item)
+                share.addSharedItem(item)
                 if pim.EventStamp(item).isTriageOnlyModification():
                     if (not self.hasState(alias) or
                         not (self.getState(alias).agreed - rs)):
@@ -537,7 +556,7 @@ class RecordSetConduit(conduits.BaseConduit):
             else:
                 rsExternal = inbound.get(alias, eim.RecordSet())
 
-            readOnly = (self.share.mode == 'get')
+            readOnly = (share.mode == 'get')
             doLog("----- Merging %s %s", alias,
                 "(Read-only merge)" if readOnly else "")
 
@@ -705,7 +724,7 @@ class RecordSetConduit(conduits.BaseConduit):
                             alias)
                     # Make sure not to remodify an unmodification...
                     with pim.EventStamp(item).noRecurrenceChanges():
-                        self.share.removeSharedItem(item)
+                        share.removeSharedItem(item)
 
                     receiveStats['removed'].add(alias)
                 self.removeState(alias)
@@ -771,7 +790,7 @@ class RecordSetConduit(conduits.BaseConduit):
                     # We'll only autotriage if we're not sharing triage status;
                     # We'll only pop to Now if this is an established share.
                     # Do nothing if neither.
-                    established = self.share.established
+                    established = share.established
                     newTriageStatus = 'auto' \
                         if extra.get('forceDateTriage', False) or \
                            'cid:triage-filter@osaf.us' in self.filters \
@@ -787,7 +806,7 @@ class RecordSetConduit(conduits.BaseConduit):
 
                     # Per bug 8809:
                     # Set "read" state to True if this is an initial subscribe
-                    # but False otherwise.  self.share.established is False
+                    # but False otherwise.  share.established is False
                     # during an initial subscribe and True on subsequent
                     # syncs.  Also, make sure we apply this to the master item:
                     item_to_change = getattr(item, 'inheritFrom', item)
@@ -838,8 +857,8 @@ class RecordSetConduit(conduits.BaseConduit):
                     state = self.getState(alias)
                     if state.isNew( ) or toApply.get(alias, False):
                         if not isinstance(item, pim.Occurrence):
-                            self.share.contents.add(item)
-                        self.share.addSharedItem(item)
+                            share.contents.add(item)
+                        share.addSharedItem(item)
 
 
             # For each remote removal, remove the item from the collection
@@ -857,8 +876,8 @@ class RecordSetConduit(conduits.BaseConduit):
 
                 masterAlias = getMasterAlias(alias)
 
-                if item is not None and item in self.share.contents:
-                    self.share.removeSharedItem(item)
+                if item is not None and item in share.contents:
+                    share.removeSharedItem(item)
                     if (masterAlias != alias and
                         masterAlias not in remotelyRemoved):
                         # modifications which were deleted on the server should
@@ -867,7 +886,7 @@ class RecordSetConduit(conduits.BaseConduit):
                         # collection
                         pim.EventStamp(item)._safeDelete()
                     else:
-                        self.share.contents.remove(item)
+                        share.contents.remove(item)
 
                     logger.info("Locally removing  alias: %s", alias)
                     receiveStats['removed'].add(alias)
@@ -878,9 +897,9 @@ class RecordSetConduit(conduits.BaseConduit):
         # remove its state; if sending, add an empty recordset to toSend
         # TODO: Optimize by removing item loading
         statesToRemove = set()
-        for state in self.share.states:
+        for state in share.states:
 
-            alias = self.share.states.getAlias(state)
+            alias = share.states.getAlias(state)
 
             # Ignore/remove any empty states
             if not (state.agreed or state.pending or state.pendingRemoval):
@@ -896,7 +915,7 @@ class RecordSetConduit(conduits.BaseConduit):
 
             if (item is None or
                 (alias in triageOnlyMods and alias not in toApply) or 
-                (item not in self.share.contents and
+                (item not in share.contents and
                  alias not in remotelyRemoved)):
                 if send:
 
@@ -925,14 +944,18 @@ class RecordSetConduit(conduits.BaseConduit):
 
         # Send if there is something to send or even if this is just an
         # initial publish of an empty collection:
-        if send and (toSend or not self.share.established):
+        if send and (toSend or not share.established):
             sendCount = len(toSend)
             _callback(msg="Sending %d outbound change(s)" % sendCount,
                 totalWork=None)
 
+            # Note, whatever value is in share.displayName (share.contents'
+            # displayName) is what gets sent to the server.  So to change
+            # the server's copy you need to update share.displayName first.
+
             extra = { 'rootName' : 'collection',
-                      'uuid' : self.share.contents.itsUUID.str16(),
-                      'name' : self.share.displayName
+                      'uuid' : share.contents.itsUUID.str16(),
+                      'name' : share.displayName
                     }
 
             aliases = toSend.keys()
@@ -971,14 +994,14 @@ class RecordSetConduit(conduits.BaseConduit):
                     # Make sure not to remodify an occurrence...
                     if getattr(item, 'inheritFrom', None):
                         with pim.EventStamp(item).noRecurrenceChanges():
-                            self.share.removeSharedItem(item)
+                            share.removeSharedItem(item)
                     else:
-                        self.share.removeSharedItem(item)
+                        share.removeSharedItem(item)
 
         # Note the repository version number
         self.lastVersion = rv.itsVersion
 
-        self.share.established = True
+        share.established = True
 
         _callback(msg="Done")
 
@@ -989,7 +1012,7 @@ class RecordSetConduit(conduits.BaseConduit):
             sendStats['sent'] = toSend
             stats.append(sendStats)
 
-        name = getattr(self.share.contents, 'displayName', '<untitled>')
+        name = getattr(share.contents, 'displayName', '<untitled>')
         logger.info("----- Done syncing collection: %s -----", name)
 
         return stats

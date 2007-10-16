@@ -178,7 +178,7 @@ class RoundTripTestCase(testcase.DualRepositoryTestCase):
              {'added' : 0, 'modified' : 1, 'removed' : 0})),
             "Sync operation mismatch")
         if checkCollName:
-            self.assertEquals(self.share0.displayName, u"original")
+            self.assertEquals(self.share0.displayName, u"changed")
         self.assert_(item.read == True)
 
         # Initial subscribe
@@ -188,7 +188,7 @@ class RoundTripTestCase(testcase.DualRepositoryTestCase):
              {'added' : 0, 'modified' : 0, 'removed' : 0})),
             "Sync operation mismatch")
         if checkCollName:
-            self.assertEquals(self.share1.displayName, u"original")
+            self.assertEquals(self.share1.displayName, u"changed")
 
         # Verify items are imported
         for uuid in self.uuids:
@@ -217,7 +217,7 @@ class RoundTripTestCase(testcase.DualRepositoryTestCase):
         self.share1.contents.displayName = u"also changed"
         view1.commit(); stats = self.share1.sync(); view1.commit()
         if checkCollName:
-            self.assertEquals(self.share1.displayName, u"original")
+            self.assertEquals(self.share1.displayName, u"also changed")
         self.assert_(checkStats(stats,
             ({'added' : 0, 'modified' : 1, 'removed' : 0},
              {'added' : 0, 'modified' : 1, 'removed' : 0})),
@@ -228,8 +228,8 @@ class RoundTripTestCase(testcase.DualRepositoryTestCase):
              {'added' : 0, 'modified' : 0, 'removed' : 0})),
             "Sync operation mismatch")
         if checkCollName:
-            self.assertEquals(self.share0.displayName, u"original")
-        self.assertEquals(self.share0.contents.displayName, u"changed")
+            self.assertEquals(self.share0.displayName, u"also changed")
+            self.assertEquals(self.share0.contents.displayName, u"also changed")
         self.assert_(item.displayName == "displayName changed in 1")
         self.assert_(item.body == "body changed in 0")
         self.assert_(item.read == False)
@@ -1875,6 +1875,63 @@ class RoundTripTestCase(testcase.DualRepositoryTestCase):
         self.share0.contents.remove(item0)
         conflicts = list(sharing.getConflicts(item0))
         self.assertEquals(len(conflicts), 0)
+
+
+
+
+
+
+        if checkCollName:
+            # Regression test for bug 11010 "Display name changes to
+            # collections don't sync"
+            me0 = pim.Contact(itsView=view0)
+            schema.ns("osaf.pim", view0).currentContact.item = me0
+            me1 = pim.Contact(itsView=view1)
+            schema.ns("osaf.pim", view1).currentContact.item = me1
+            self.share0.sharer = me0
+
+            # Owner's change gets applied to others if they haven't also
+            # changed:
+            self.share0.contents.displayName = "A"
+            # make a change to cause a PUT
+            self.share0.contents.add(item0)
+            item0.displayName = "changed"
+            view0.commit(); stats = self.share0.sync(); view0.commit()
+            view1.commit(); stats = self.share1.sync(); view1.commit()
+            self.assertEquals(self.share1.displayName, "A")
+            self.assertEquals(self.share1.contents.displayName, "A")
+
+            # Owner's change does not get applied to others if they have also
+            # changed:
+            self.share0.contents.displayName = "B"
+            # make a change to cause a PUT
+            self.share0.contents.add(item0)
+            item0.displayName = "changed0"
+            view0.commit(); stats = self.share0.sync(); view0.commit()
+            self.share1.contents.displayName = "locally changed"
+            # make a change to cause a PUT
+            item1.body = "changed1"
+            item1 = view1.findUUID(item0.itsUUID)
+            view1.commit(); stats = self.share1.sync(); view1.commit()
+            self.assertEquals(self.share1.displayName, "B")
+            self.assertEquals(self.share1.contents.displayName,
+                "locally changed")
+
+            # ...and nobody else sees the non-Owner change
+            view0.commit(); stats = self.share0.sync(); view0.commit()
+            self.assertEquals(self.share0.displayName, "B")
+            self.assertEquals(self.share0.contents.displayName, "B")
+
+            # Change share1 to be an owner to verify the other owner receives
+            # name change:
+            self.share1.sharer = me1
+            self.share1.contents.displayName = "C"
+            # make a change to cause a PUT
+            item1.body = "changed2"
+            view1.commit(); stats = self.share1.sync(); view1.commit()
+            view0.commit(); stats = self.share0.sync(); view0.commit()
+            self.assertEquals(self.share0.displayName, "C")
+            self.assertEquals(self.share0.contents.displayName, "C")
 
 
 
