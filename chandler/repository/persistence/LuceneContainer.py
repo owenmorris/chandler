@@ -21,7 +21,7 @@ from lucene import \
     JavaError, MatchAllDocsQuery, BooleanQuery, BooleanClause, Hit, \
     StringReader, PythonDirectory, PythonIndexOutput, PythonIndexInput, \
     PythonLock, PythonHitCollector, initVM, CLASSPATH, IOException
-initVM(CLASSPATH)
+initVM(CLASSPATH, maxstack='2m')
 
 from chandlerdb.util.c import UUID
 from chandlerdb.persistence.c import DBLockDeadlockError, DBInvalidArgError
