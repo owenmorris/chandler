@@ -153,13 +153,14 @@ class wxChandlerMultiStateButton(MultiStateButton.MultiStateButton):
     implementation tries to use it again (to Refresh, etc.)
     """
     def __init__(self, parent, ID, pos, size, multibitmaps, *args, **kwds):
+        if kwds.get('bitmapProvider') is None:
+            kwds['bitmapProvider'] = wx.GetApp().GetImage
         super(wxChandlerMultiStateButton, self).__init__(parent,
                                                         ID,
                                                         pos,
                                                         size,
                                                         wx.BORDER_NONE,
                                                         multibitmaps = multibitmaps,
-                                                        bitmapProvider = wx.GetApp().GetImage,
                                                         *args, **kwds)
     def AcceptsFocus(self):
         return False
@@ -359,6 +360,9 @@ class Column(schema.Item):
         else:
             assert valueStr in self.collapsedSections
             self.collapsedSections.remove(valueStr)
+        
+    def getWidth(self):
+        return self.width
 
 class ListDelegate (object):
     """

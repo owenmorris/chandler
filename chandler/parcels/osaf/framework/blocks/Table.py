@@ -611,7 +611,7 @@ class wxTable(DragAndDrop.DraggableWidget,
             # Update column widths
             indexName = contents.indexName
             for i, column in enumerate(blockItem.columns):
-                self.SetColSize (i, column.width)
+                self.SetColSize (i, column.getWidth())
                 self.ScaleColumn (i, column.scaleColumn)
                 columnIndexName = getattr(column, 'indexName', '__adhoc__')
                 if indexName == '__adhoc__' and column.defaultSort:

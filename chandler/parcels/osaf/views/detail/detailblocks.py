@@ -652,8 +652,7 @@ def makeMarkupBar(parcel, oldVersion):
                                          helpString=messages.STAMP_TRIAGE_HELP,
                                          event=buttonPressed,
                                          viewAttribute='_triageStatus',
-                                         stretchFactor=0.0,
-                                         minimumSize=SizeType(41, 20))
+                                         stretchFactor=0.0)
 
     markupSpacer1 = ControlBlocks.StaticText.template('MarkupSpacer1',
                                     title=u'',

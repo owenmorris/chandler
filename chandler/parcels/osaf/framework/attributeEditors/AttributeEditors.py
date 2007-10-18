@@ -1316,10 +1316,11 @@ class IconAttributeEditor (BaseAttributeEditor):
     }
 
     def __init__(self, *args, **kwds):
+        bitmapProvider = kwds.pop('bitmapProvider', wx.GetApp().GetImage)
         super(IconAttributeEditor, self).__init__(*args, **kwds)
-        IconAttributeEditor.bitmapCache.AddStates(\
+        self.bitmapCache.AddStates(\
             multibitmaps=self.makeStates(),
-            bitmapProvider=wx.GetApp().GetImage)
+            bitmapProvider=bitmapProvider)
 
     def GetAttributeValue (self, item, attributeName):
         """ 

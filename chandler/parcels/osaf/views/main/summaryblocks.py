@@ -17,6 +17,7 @@ from osaf.framework.blocks import *
 from osaf import pim
 from osaf.framework import attributeEditors
 from util.MultiStateButton import BitmapInfo
+from util.triagebuttonimageprovider import TriageButtonImageProvider
 from i18n import ChandlerMessageFactory as _
 from wx import grid as wxGrid
 from chandlerdb.util.c import Nil
@@ -229,18 +230,28 @@ class WhoAttributeEditor(attributeEditors.StringAttributeEditor):
             
         return (prefix, theText, isSample)
 
+dashboardTriageButtonBitmapProvider = TriageButtonImageProvider("Triage.Now.png")
+
+class TriageColumn(Column):
+    def getWidth(self):
+        return dashboardTriageButtonBitmapProvider.getImageSize()[0]
+
 class TriageAttributeEditor(attributeEditors.IconAttributeEditor):
+    def __init__(self, *args, **kwds):
+        kwds['bitmapProvider'] = dashboardTriageButtonBitmapProvider
+        super(TriageAttributeEditor, self).__init__(*args, **kwds)
+
     def makeStates(self):
         # The state name has the state in lowercase, which matches the "name"
         # attribute of the various TriageEnums. The state values are mixed-case,
         # which matches the actual icon filenames.
         states = [ BitmapInfo(stateName="Triage.%s" % s.lower(),
-                       normal="Triage%s" % s,
-                       selected="Triage%s" % s,
-                       rollover="Triage%sRollover" % s,
-                       rolloverselected="Triage%sRollover" % s,
-                       mousedown="Triage%sMousedown" % s,
-                       mousedownselected="Triage%sMousedown" % s)
+                       normal="Triage.%s" % s,
+                       selected="Triage.%s" % s,
+                       rollover="Triage.%s.Rollover" % s,
+                       rolloverselected="Triage.%s.Rollover" % s,
+                       mousedown="Triage.%s.Mousedown" % s,
+                       mousedownselected="Triage.%s.Mousedown" % s)
                    for s in "Now", "Later", "Done" ]
         return states
         
@@ -568,6 +579,7 @@ def makeSummaryBlocks(parcel):
         useCompare = kwargs.pop('useCompare', False)
         useMaster = kwargs.pop('useMaster', True)
         baseClass = kwargs.pop('baseClass', pim.AttributeIndexDefinition)
+        columnClass = kwargs.pop('columnClass', Column)
         indexDefinition = baseClass.update(parcel, 
                                            indexName,
                                            useMaster=useMaster,
@@ -578,7 +590,7 @@ def makeSummaryBlocks(parcel):
         if useMaster: indexDefinition.makeMasterIndex()
             
         # Create the column
-        return Column.update(parcel, colName, **kwargs)
+        return columnClass.update(parcel, colName, **kwargs)
 
     # We have to build the triage column first, because the other columns 
     # delegate to its index
@@ -586,8 +598,8 @@ def makeSummaryBlocks(parcel):
         icon = 'ColHTriageStatus',
         useSortArrows = False,
         defaultSort = True,
-        width = 39,
         scaleColumn = wxGrid.Grid.GRID_COLUMN_FIXED_SIZE,
+        columnClass = TriageColumn,
         attributeName = 'sectionTriageStatus',
         indexName = '%s.triage' % __name__,
         baseClass=TriageColumnIndexDefinition,

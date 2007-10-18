@@ -35,7 +35,7 @@ import version
 # with your name (and some helpful text). The comment's really there just to
 # cause Subversion to warn you of a conflict when you update, in case someone 
 # else changes it at the same time you do (that's why it's on the same line).
-SCHEMA_VERSION = "453" # stearns: changed what we store in displayWho
+SCHEMA_VERSION = "454" # stearns: triage column auto-width
 
 logger = None # initialized in initLogging()
 

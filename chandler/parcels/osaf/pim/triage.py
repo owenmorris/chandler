@@ -34,6 +34,13 @@ triageStatusNames = { TriageEnum.now: _(u"Now"),
 def getTriageStatusName(value):
     return triageStatusNames[value]
 
+triageStatusButtonLabels = { TriageEnum.now: _(u"NOW"),
+                      TriageEnum.later: _(u"LATER"),
+                      TriageEnum.done: _(u"DONE")
+                    }
+def getTriageStatusButtonLabel(value):
+    return triageStatusButtonLabels[value]
+
 # Bug 6525: the clicking sequence isn't the sort order
 # Bug 10926: was now -> done -> later, should be now -> later -> done again.
 triageStatusClickSequence = { TriageEnum.now: TriageEnum.later,

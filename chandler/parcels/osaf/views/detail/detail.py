@@ -50,7 +50,7 @@ from datetime import datetime, time, timedelta
 from i18n import ChandlerMessageFactory as _
 from osaf import messages
 from util import MultiStateButton
-
+from util.triagebuttonimageprovider import TriageButtonImageProvider
 import parsedatetime.parsedatetime as parsedatetime
 import parsedatetime.parsedatetime_consts as ptc
 from i18n import getLocale
@@ -450,37 +450,26 @@ class DetailTriageButtonBlock(DetailSynchronizedBehavior, ControlBlocks.Button):
     def instantiateWidget(self):
         id = self.getWidgetID()
         parentWidget = self.parentBlock.widget
-        # for a Triage, we share button images with the table view, and have these names:
-        #
-        #   Triage{Done,Later,Now}{'',Mousedown,Rollover)
-        #
-        # From these we build the three triage states (Done, Later, Now)
-        #
+        # Our images are composited by the TriageButtonImageProvider from images
+        # named Markup.{Now,Later,Done}.Stamped{,Pressed,Rollover}.{Left,Right}
         self.icon = "Markup"
-        now = MultiStateButton.BitmapInfo()
-        now.normal   = "%sNowStamped" % self.icon
-        now.selected = "%sNowStampedPressed" % self.icon
-        now.rollover = "%sNowStampedRollover" % self.icon
-        now.stateName = "%s.now" % self.icon
-        later = MultiStateButton.BitmapInfo()
-        later.normal   = "%sLaterStamped" % self.icon
-        later.selected = "%sLaterStampedPressed" % self.icon
-        later.rollover = "%sLaterStampedRollover" % self.icon
-        later.stateName = "%s.later" % self.icon
-        done = MultiStateButton.BitmapInfo()
-        done.normal   = "%sDoneStamped" % self.icon
-        done.selected = "%sDoneStampedPressed" % self.icon
-        done.rollover = "%sDoneStampedRollover" % self.icon
-        done.stateName = "%s.done" % self.icon
+        multibitmaps = [ 
+            MultiStateButton.BitmapInfo(
+                stateName="%s.%s" % (self.icon, s.lower()),
+                normal="%s.%s.Stamped" % (self.icon, s),
+                selected="%s.%s.StampedPressed" % (self.icon, s),
+                rollover="%s.%s.StampedRollover" % (self.icon, s))
+            for s in "Now", "Later", "Done" ]
         button = ControlBlocks.wxChandlerMultiStateButton (parentWidget, 
-                            id, 
-                            wx.DefaultPosition,
-                            (self.minimumSize.width, self.minimumSize.height),
-                            helpString = self.helpString,
-                            multibitmaps=(now, later, done))
+            id, 
+            wx.DefaultPosition,
+            (self.minimumSize.width, self.minimumSize.height),
+            helpString = self.helpString,
+            multibitmaps = multibitmaps,
+            bitmapProvider=TriageButtonImageProvider("Markup.Now.Stamped.png"))
 
         parentWidget.Bind(wx.EVT_BUTTON, self.buttonPressed, id=id)
-        return button
+        return button        
 
     def getState(self):
         """ If this button has state, return it. """
